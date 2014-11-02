@@ -36,5 +36,9 @@ DEFINES += TORRENT_DISABLE_GEO_IP
 DEFINES += TORRENT_NO_DEPRECATE
 
 LIBS += -LC:/boost_1_56_0/stage/lib
-LIBS += -LC:/libtorrent-rasterbar-1.0.2/bin/msvc-11.0/release/boost-source/deprecated-functions-off/link-static/threading-multi/ -llibtorrent
 
+debug {
+    LIBS += -LC:/libtorrent-rasterbar-1.0.2/bin/msvc-11.0/debug/boost-source/deprecated-functions-off/link-static/threading-multi/ -llibtorrent
+} release {
+    LIBS += -LC:/libtorrent-rasterbar-1.0.2/bin/msvc-11.0/release/boost-source/deprecated-functions-off/link-static/threading-multi/ -llibtorrent
+}

@@ -1,8 +1,6 @@
 
-
 #include "mainwindow.h"
 #include <QApplication>
-
 
 #include <iostream>
 
@@ -92,8 +90,11 @@ void main(int argc, char* argv[]) {
         // Load state from file
         state = new ControllerState(file.string().c_str());
     } else // Load default state
-        state = new ControllerState();
+    {
+        std::cerr << "Got here!" << std::endl ;
 
+        state = new ControllerState();
+}
     // Create view
     QApplication a(argc, argv);
     MainWindow view;
