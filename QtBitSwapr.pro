@@ -11,23 +11,35 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = QtBitSwapr
 TEMPLATE = app
 
-SOURCES +=  main.cpp\
-            mainwindow.cpp\
-            ../BitSwapr/core/src/ConsoleView.cpp \
-            ../BitSwapr/core/src/Controller.cpp \
-            ../BitSwapr/core/src/ControllerState.cpp \
-            ../BitSwapr/core/src/ViewRequestCallbackHandler.cpp \
-            ../BitSwapr/core/src/Exceptions/InvalidBitSwaprStateEntryException.cpp \
-            ../BitSwapr/core/src/Exceptions/ListenOnException.cpp \
-            ../BitSwapr/core/src/Exceptions/MissingInfoHashViewRequestException.cpp
+SOURCES +=  src/main.cpp \
+    src/controller/src/Exceptions/InvalidBitSwaprStateEntryException.cpp \
+    src/controller/src/Exceptions/ListenOnException.cpp \
+    src/controller/src/Exceptions/MissingInfoHashViewRequestException.cpp \
+    src/controller/src/BrPayment.cpp \
+    src/controller/src/ConsoleView.cpp \
+    src/controller/src/Controller.cpp \
+    src/controller/src/ControllerState.cpp \
+    src/controller/src/ViewRequestCallbackHandler.cpp \
+    src/view/src/mainwindow.cpp
 
-HEADERS  += mainwindow.h
+HEADERS += \
+    src/controller/include/Exceptions/InvalidBitSwaprStateEntryException.hpp \
+    src/controller/include/Exceptions/ListenOnException.hpp \
+    src/controller/include/Exceptions/MissingInfoHashViewRequestException.hpp \
+    src/controller/include/BrPayment.hpp \
+    src/controller/include/Config.hpp \
+    src/controller/include/ConsoleView.hpp \
+    src/controller/include/Controller.hpp \
+    src/controller/include/ControllerState.hpp \
+    src/controller/include/ViewRequestCallbackHandler.hpp \
+    src/view/include/mainwindow.h
 
-FORMS    += mainwindow.ui
+FORMS += \
+    src/view/ui/mainwindow.ui
 
 INCLUDEPATH += C:/boost_1_56_0
 INCLUDEPATH += C:/libtorrent-rasterbar-1.0.2/include
-INCLUDEPATH += C:/Users/bedeho/Documents/GitHub/BitSwapr/core/include
+INCLUDEPATH += C:/Users/bedeho/Documents/GitHub/QtBitSwapr/src
 
 DEFINES += WIN32
 DEFINES += NDEBUG
@@ -37,8 +49,18 @@ DEFINES += TORRENT_NO_DEPRECATE
 
 LIBS += -LC:/boost_1_56_0/stage/lib
 
-debug {
-    LIBS += -LC:/libtorrent-rasterbar-1.0.2/bin/msvc-11.0/debug/boost-source/deprecated-functions-off/link-static/threading-multi/ -llibtorrent
-} release {
-    LIBS += -LC:/libtorrent-rasterbar-1.0.2/bin/msvc-11.0/release/boost-source/deprecated-functions-off/link-static/threading-multi/ -llibtorrent
+#message($$CONFIG)
+
+CONFIG(debug, debug|release) {
+    LIBS += -LC:/libtorrent-rasterbar-1.0.2/bin/msvc-11.0/debug/boost-source/deprecated-functions-off/link-static/threading-multi -llibtorrent
+    DEFINES += TORRENT_DEBUG
+
+    message("Debug Configuration")
 }
+
+CONFIG(release, debug|release) {
+    LIBS += -LC:/libtorrent-rasterbar-1.0.2/bin/msvc-11.0/release/boost-source/deprecated-functions-off/link-static/threading-multi -llibtorrent
+
+    message("Release Configuration")
+}
+

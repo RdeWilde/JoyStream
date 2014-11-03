@@ -1,5 +1,5 @@
 
-#include "mainwindow.h"
+#include "view/include/mainwindow.h"
 #include <QApplication>
 
 #include <iostream>
@@ -7,10 +7,10 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 
-#include <BitSwapr/Controller.hpp>
-#include <BitSwapr/ControllerState.hpp>
-#include <BitSwapr/ConsoleView.hpp>
-#include <BitSwapr/Exceptions/ListenOnException.hpp>
+#include "controller/include/Controller.hpp"
+#include "controller/include/ControllerState.hpp"
+#include "controller/include/ConsoleView.hpp"
+#include "controller/include/Exceptions/ListenOnException.hpp"
 
 // Forward declarations
 void loadJVM();
@@ -89,12 +89,13 @@ void main(int argc, char* argv[]) {
 
         // Load state from file
         state = new ControllerState(file.string().c_str());
-    } else // Load default state
-    {
+    } else { // Load default state
+
         std::cerr << "Got here!" << std::endl ;
 
         state = new ControllerState();
-}
+    }
+
     // Create view
     QApplication a(argc, argv);
     MainWindow view;
@@ -118,6 +119,7 @@ void main(int argc, char* argv[]) {
 
     // Start servicing session
     //controller->sessionLoop();
+
 }
 
 void loadJVM() {
