@@ -5,7 +5,9 @@
 #include "controller/include/Controller.hpp"
 #include "controller/include/ViewRequestCallbackHandler.hpp"
 
+#ifndef Q_MOC_RUN
 #include <boost/thread.hpp>
+#endif Q_MOC_RUN
 
 class ConsoleView : public ViewRequestCallbackHandler {
 

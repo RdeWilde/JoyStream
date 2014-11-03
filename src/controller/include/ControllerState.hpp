@@ -2,7 +2,9 @@
 #ifndef CONTROLLER_STATE_HPP
 #define CONTROLLER_STATE_HPP
 
+#ifndef Q_MOC_RUN
 #include <boost/filesystem.hpp>
+#endif Q_MOC_RUN
 
 #include <libtorrent/entry.hpp>
 #include <libtorrent/session.hpp>

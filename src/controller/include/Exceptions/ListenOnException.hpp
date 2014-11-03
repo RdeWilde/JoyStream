@@ -2,7 +2,9 @@
 #ifndef LISTEN_ON_EXCEPTION_H
 #define LISTEN_ON_EXCEPTION_H
 
+#ifndef Q_MOC_RUN
 #include <boost/system/error_code.hpp>
+#endif Q_MOC_RUN
 
 class ListenOnException : public std::exception {
 

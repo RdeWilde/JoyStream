@@ -3,12 +3,18 @@
 
 #include "controller/include/ControllerState.hpp"
 #include "controller/include/ViewRequestCallbackHandler.hpp"
-#include "view/include/mainwindow.h"
 
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>
 #include <libtorrent/alert.hpp>
 #include <libtorrent/alert_types.hpp>
+
+#ifndef Q_MOC_RUN
+#include <boost/thread.hpp>
+#endif Q_MOC_RUN
+
+// Forward declarations
+class MainWindow;
 
 class Controller {
 
@@ -38,6 +44,9 @@ private:
     // Main window
     MainWindow * view_;
 
+    // Thread running session loop
+    boost::thread sessionLoopThread;
+
 	// Routine for processing a single libtorrent alert
 	void processAlert(const libtorrent::alert * a);
 
@@ -48,6 +57,9 @@ public:
 
 	// Constructor starting session with given state
     Controller(const ControllerState & state, MainWindow * view);
+
+    // Starts a new thread which runs libtorrent session loop by calling sessionLoop()
+    void beginSessionThread();
 	
 	/*
 	* Service loop for libtorrent alerts, calling this

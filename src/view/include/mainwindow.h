@@ -2,11 +2,13 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "controller/include/Controller.hpp"
 
 namespace Ui {
 class MainWindow;
 }
+
+// Forward declarations
+class Controller;
 
 class MainWindow : public QMainWindow
 {
@@ -16,15 +18,15 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-    void startView(Controller * controller);
+    MainWindow(Controller * controller);
 
 private slots:
     void on_pushButton_clicked();
 
-    Controller * controller_;
-
 private:
     Ui::MainWindow *ui;
+
+    Controller * controller_;
 };
 
 #endif // MAINWINDOW_H

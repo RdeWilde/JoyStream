@@ -8,6 +8,8 @@
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/bencode.hpp>
 
+#include <QMessageBox>
+
 Controller::Controller(const ControllerState & state, MainWindow * view)
     : session(libtorrent::fingerprint("BR", BITSWAPR_VERSION_MAJOR, BITSWAPR_VERSION_MINOR, 0, 0) , libtorrent::session::add_default_plugins + libtorrent::alert::debug_notification + libtorrent::alert::stats_notification)
     , view_(view){
@@ -61,12 +63,28 @@ Controller::Controller(const ControllerState & state, MainWindow * view)
 		throw ListenOnException(listenOnErrorCode);
 }
 
+void Controller::beginSessionThread() {
+
+    /*
+     * ADD CODE HERE TO PREVENT STARTING THREAD MULTIPLE TIMES, SINCE
+     * CONTROLLER IS NOT REINTRANT.
+     */
+
+    // Start thread which runs session looop:
+    // http://antonym.org/2009/05/threading-with-boost---part-i-creating-threads.html
+    sessionLoopThread = boost::thread(&Controller::sessionLoop, this);
+}
+
 void Controller::sessionLoop() {
 
 	// Allocate alerts queue
 	std::deque<libtorrent::alert*> alerts;
 
+    int counter = 0;
+
 	while(true) {
+
+        //std::cerr << "looping: " << counter++ << std::endl ;
 
 		// Get fresh libtorrent alerts
 		session.pop_alerts(&alerts);
@@ -82,6 +100,11 @@ void Controller::sessionLoop() {
 			delete *i;
 		}
 
+        // Clear alerts queue
+        alerts.clear();
+
+        // Sleep 100ms
+        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
 	}
 
 }
@@ -262,8 +285,8 @@ void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p)
 	}
 	*/
 
-	// Do callback
-	//handler_
+    // Update
+    QMessageBox::information(NULL, "processAddTorrentAlert called", "Hi!");
 }
 
 void Controller::submitAddTorrentViewRequest(const libtorrent::add_torrent_params & params) {
@@ -286,7 +309,8 @@ void Controller::submitAddTorrentViewRequest(const libtorrent::add_torrent_param
 	// Add to libtorrent session
 	session.async_add_torrent(params);
 
-	// Add to controller
+    // Add to controller
+    // - DO WE EVEN NEED TO KEEP TRACK OF THIS? -
 	addTorrentParameters.push_back(params);
 }
 

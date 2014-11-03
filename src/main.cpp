@@ -1,16 +1,17 @@
-
-#include "view/include/mainwindow.h"
 #include <QApplication>
 
 #include <iostream>
 
+#ifndef Q_MOC_RUN
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
+#endif Q_MOC_RUN
 
 #include "controller/include/Controller.hpp"
 #include "controller/include/ControllerState.hpp"
 #include "controller/include/ConsoleView.hpp"
 #include "controller/include/Exceptions/ListenOnException.hpp"
+#include "view/include/mainwindow.h"
 
 // Forward declarations
 void loadJVM();
@@ -89,12 +90,8 @@ void main(int argc, char* argv[]) {
 
         // Load state from file
         state = new ControllerState(file.string().c_str());
-    } else { // Load default state
-
-        std::cerr << "Got here!" << std::endl ;
-
+    } else // Load default state
         state = new ControllerState();
-    }
 
     // Create view
     QApplication a(argc, argv);
@@ -110,16 +107,14 @@ void main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    // Start console ui
-    view.startView(controller);
+    // Show window
     view.show();
 
-    // Start running Qt event loop
+    // Start servicing session in new thread
+    controller->beginSessionThread();
+
+    // Start running Qt application event loop
     a.exec();
-
-    // Start servicing session
-    //controller->sessionLoop();
-
 }
 
 void loadJVM() {

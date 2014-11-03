@@ -20,7 +20,8 @@ SOURCES +=  src/main.cpp \
     src/controller/src/Controller.cpp \
     src/controller/src/ControllerState.cpp \
     src/controller/src/ViewRequestCallbackHandler.cpp \
-    src/view/src/mainwindow.cpp
+    src/view/src/mainwindow.cpp \
+    src/view/src/addtorrentdialog.cpp
 
 HEADERS += \
     src/controller/include/Exceptions/InvalidBitSwaprStateEntryException.hpp \
@@ -32,10 +33,12 @@ HEADERS += \
     src/controller/include/Controller.hpp \
     src/controller/include/ControllerState.hpp \
     src/controller/include/ViewRequestCallbackHandler.hpp \
-    src/view/include/mainwindow.h
+    src/view/include/mainwindow.h \
+    src/view/include/addtorrentdialog.h
 
 FORMS += \
-    src/view/ui/mainwindow.ui
+    src/view/ui/mainwindow.ui \
+    src/view/ui/addtorrentdialog.ui
 
 INCLUDEPATH += C:/boost_1_56_0
 INCLUDEPATH += C:/libtorrent-rasterbar-1.0.2/include
@@ -63,4 +66,7 @@ CONFIG(release, debug|release) {
 
     message("Release Configuration")
 }
+
+OTHER_FILES += \
+    resources/frostwire-5.7.6.dmg.torrent
 
