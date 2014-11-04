@@ -1,4 +1,5 @@
 #include "view/include/mainwindow.h"
+#include "view/include/addtorrentdialog.h"
 #include "ui_mainwindow.h"
 
 #include <iostream>
@@ -18,8 +19,10 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 MainWindow::MainWindow(Controller * controller) :
-    controller_(controller) {
-
+    ui(new Ui::MainWindow),
+    controller_(controller)
+{
+    ui->setupUi(this);
 }
 
 MainWindow::~MainWindow()
@@ -29,18 +32,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_pushButton_clicked()
 {
-    //QMessageBox::information(NULL, "Hello World!", "Hi!");
-
     // Choose torrent file
-    QString fileNameQString = QFileDialog::getOpenFileName(this, tr("Open Torrent"), "/home/jana", tr("Torrent file (*.torrent)"));
+    QString torrentFileName = QFileDialog::getOpenFileName(this, tr("Open Torrent"), "/home/jana", tr("Torrent file (*.torrent)"));
 
-    std::string fileNameString = fileNameQString.toStdString();
-
-    std::cout << fileNameString << std::endl;
-
-    /*
-    // Add torrent file
-    libtorrent::add_torrent_params params;
-    controller_->submitAddTorrentViewRequest(params);
-    */
+    // Show window
+    AddTorrentDialog * addTorrentDialog = new AddTorrentDialog(controller_, torrentFileName);
+    addTorrentDialog->exec();
 }

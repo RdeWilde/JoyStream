@@ -93,25 +93,21 @@ void main(int argc, char* argv[]) {
     } else // Load default state
         state = new ControllerState();
 
-    // Create view
+    // Create application
     QApplication a(argc, argv);
-    MainWindow view;
 
     // Create controller
     Controller * controller;
 
     try {
-        controller = new Controller(*state, &view);
+        controller = new Controller(*state);
     } catch(ListenOnException & e) {
         std::cerr << "ERROR: failed to start libtorrent listening due to " <<  e.what() << "." << std::endl << std::endl;
         exit(EXIT_FAILURE);
     }
 
-    // Show window
-    view.show();
-
-    // Start servicing session in new thread
-    controller->beginSessionThread();
+    // Start session loop thread and show view
+    controller->start();
 
     // Start running Qt application event loop
     a.exec();

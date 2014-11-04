@@ -10,9 +10,9 @@
 
 #include <QMessageBox>
 
-Controller::Controller(const ControllerState & state, MainWindow * view)
+Controller::Controller(const ControllerState & state)
     : session(libtorrent::fingerprint("BR", BITSWAPR_VERSION_MAJOR, BITSWAPR_VERSION_MINOR, 0, 0) , libtorrent::session::add_default_plugins + libtorrent::alert::debug_notification + libtorrent::alert::stats_notification)
-    , view_(view){
+    , view(this){
 
 	// Set session settings - these acrobatics with going back and forth seem to indicate that I may have done it incorrectly
 	std::vector<char> buffer;
@@ -63,8 +63,12 @@ Controller::Controller(const ControllerState & state, MainWindow * view)
 		throw ListenOnException(listenOnErrorCode);
 }
 
-void Controller::beginSessionThread() {
+void Controller::start() {
 
+    // Show window
+    view.show();
+
+    // Start servicing session in new thread
     /*
      * ADD CODE HERE TO PREVENT STARTING THREAD MULTIPLE TIMES, SINCE
      * CONTROLLER IS NOT REINTRANT.
@@ -285,8 +289,6 @@ void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p)
 	}
 	*/
 
-    // Update
-    QMessageBox::information(NULL, "processAddTorrentAlert called", "Hi!");
 }
 
 void Controller::submitAddTorrentViewRequest(const libtorrent::add_torrent_params & params) {
