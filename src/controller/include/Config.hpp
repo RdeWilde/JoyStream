@@ -1,8 +1,0 @@
-
-#ifndef CONFIG_HPP
-#define CONFIG_HPP
-
-#define BITSWAPR_VERSION_MAJOR 0
-#define BITSWAPR_VERSION_MINOR 1
-
-#endif

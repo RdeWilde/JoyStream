@@ -31,6 +31,8 @@ AddTorrentDialog::AddTorrentDialog(Controller * controller, const QString & torr
     ui->setupUi(this);
 }
 
+
+
 AddTorrentDialog::~AddTorrentDialog()
 {
     delete ui;
@@ -75,7 +77,7 @@ void AddTorrentDialog::addTorrent(const QString & torrentFileName, const QString
     torrentFolder.cd(torrentNameQString);
 
     // Load resume data if it exists
-    std::vector<char> * resume_data = NULL;
+    std::vector<char> resume_data;
     if(torrentFolder.exists("resume.file")) {
 
         // Allocate space for resume data

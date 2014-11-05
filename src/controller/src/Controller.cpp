@@ -1,6 +1,6 @@
 
 #include "controller/include/Controller.hpp"
-#include "controller/include/Config.hpp"
+#include "Config.hpp"
 #include "controller/include/Exceptions/ListenOnException.hpp"
 #include "controller/include/Exceptions/MissingInfoHashViewRequestException.hpp"
 
@@ -8,11 +8,30 @@
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/bencode.hpp>
 
+#include <QObject>
 #include <QMessageBox>
+#include <QElapsedTimer>
+#include <QtGlobal>
 
 Controller::Controller(const ControllerState & state)
     : session(libtorrent::fingerprint("BR", BITSWAPR_VERSION_MAJOR, BITSWAPR_VERSION_MINOR, 0, 0) , libtorrent::session::add_default_plugins + libtorrent::alert::debug_notification + libtorrent::alert::stats_notification)
     , view(this){
+
+    // Connect controller signals with view slots
+    QObject::connect(this, SIGNAL(addTorrent(const libtorrent::sha1_hash &, const std::string &, int)),
+                      &view, SLOT(addTorrent(const libtorrent::sha1_hash &, const std::string &, int)));
+
+    QObject::connect(this, SIGNAL(addTorrentFailed(const std::string &, const libtorrent::sha1_hash &, const libtorrent::error_code &)),
+                      &view, SLOT(addTorrentFailed(const std::string &, const libtorrent::sha1_hash &, const libtorrent::error_code &)));
+
+    QObject::connect(this, SIGNAL(updateTorrentStatus(const std::vector<libtorrent::torrent_status> &)),
+                      &view, SLOT(updateTorrentStatus(const std::vector<libtorrent::torrent_status> &)));
+
+    QObject::connect(this, SIGNAL(updateTorrentStatus(const libtorrent::torrent_status &)),
+                      &view, SLOT(updateTorrentStatus(const libtorrent::torrent_status &)));
+
+    QObject::connect(this, SIGNAL(removeTorrent(const libtorrent::sha1_hash &)),
+                      &view, SLOT(removeTorrent(const libtorrent::sha1_hash &)));
 
 	// Set session settings - these acrobatics with going back and forth seem to indicate that I may have done it incorrectly
 	std::vector<char> buffer;
@@ -63,7 +82,7 @@ Controller::Controller(const ControllerState & state)
 		throw ListenOnException(listenOnErrorCode);
 }
 
-void Controller::start() {
+void Controller::begin() {
 
     // Show window
     view.show();
@@ -76,22 +95,33 @@ void Controller::start() {
 
     // Start thread which runs session looop:
     // http://antonym.org/2009/05/threading-with-boost---part-i-creating-threads.html
-    sessionLoopThread = boost::thread(&Controller::sessionLoop, this);
+    //sessionLoopThread = boost::thread(&Controller::sessionLoop, this);
+    this->start();
 }
 
-void Controller::sessionLoop() {
+void Controller::run() {
+
+    // Start timer which coordinates how often various session methods are called
+    QElapsedTimer timer;
+
+    // Set up time stamps
+    qint64 lastPopAlerts = Q_INT64_C(0),
+           lastPostTorrentUpdates = Q_INT64_C(0);
 
 	// Allocate alerts queue
 	std::deque<libtorrent::alert*> alerts;
 
-    int counter = 0;
+    forever {
 
-	while(true) {
+        // Get fresh libtorrent alerts if time is right
+        qint64 elapsed = timer.elapsed();
+        if(elapsed - lastPopAlerts > CONTROLLER_POP_ALERTS_DELAY) {
 
-        //std::cerr << "looping: " << counter++ << std::endl ;
+            //std::cerr << " calling pop_alerts " << elapsed << std::endl;
 
-		// Get fresh libtorrent alerts
-		session.pop_alerts(&alerts);
+            lastPopAlerts = elapsed;
+            session.pop_alerts(&alerts);
+        }
 		
 		// Iterate alerts
 		for (std::deque<libtorrent::alert* >::iterator i = alerts.begin()
@@ -107,8 +137,18 @@ void Controller::sessionLoop() {
         // Clear alerts queue
         alerts.clear();
 
-        // Sleep 100ms
-        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+        // Tell session to give us an update on the status of torrents, if time is right
+        elapsed = timer.elapsed();
+        if(elapsed - lastPostTorrentUpdates > CONTROLLER_POST_TORRENT_UPDATES_DELAY) {
+
+            //std::cerr << " calling post_torrent_updates " << elapsed << std::endl;
+
+            lastPostTorrentUpdates = elapsed;
+            session.post_torrent_updates();
+        }
+
+        // Sleep 100ms, take this away later
+        sleep(100);
 	}
 
 }
@@ -205,108 +245,41 @@ void Controller::processAlert(libtorrent::alert const * a) {
 		*/
 	}
 	else if (libtorrent::state_update_alert const * p = libtorrent::alert_cast<libtorrent::state_update_alert>(a))
-	{
-		std::cout << "state_update_alert" << std::endl;
-
-		/*
-		bool need_filter_update = false;
-		for (std::vector<torrent_status>::iterator i = p->status.begin();
-			i != p->status.end(); ++i)
-		{
-			boost::unordered_set<torrent_status>::iterator j = all_handles.find(*i);
-			// don't add new entries here, that's done in the handler
-			// for add_torrent_alert
-			if (j == all_handles.end()) continue;
-			if (j->state != i->state
-				|| j->paused != i->paused
-				|| j->auto_managed != i->auto_managed)
-				need_filter_update = true;
-			((torrent_status&)*j) = *i;
-		}
-		if (need_filter_update)
-			update_filtered_torrents(all_handles, filtered_handles, counters);
-
-		return true;
-		*/
-	}
+        processStatusUpdateAlert(p);
 
 }
 
 void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p) {
 
-	/*
-	std::string filename;
-	if (p->params.userdata)
-	{
-		filename = (char*)p->params.userdata;
-		free(p->params.userdata);
-	}
+    // Name of torrent
+    std::string name = p->params.ti->name();
 
-	if (p->error)
-	{
-		fprintf(stderr, "failed to add torrent: %s %s\n", filename.c_str(), p->error.message().c_str());
-	}
-	else
-	{
-		torrent_handle h = p->handle;
+    // Check if there was an error
+    if (p->error)
+        emit addTorrentFailed(name, p->params.info_hash, p->error);
+    else {
 
-		if (!filename.empty())
-			files.insert(std::pair<const std::string, torrent_handle>(filename, h));
-		else
-			non_files.insert(h);
+        // Save handle
+        torrentHandles.push_back(p->handle);
 
+        /*
 		h.set_max_connections(max_connections_per_torrent);
 		h.set_max_uploads(-1);
 		h.set_upload_limit(torrent_upload_limit);
 		h.set_download_limit(torrent_download_limit);
 		h.use_interface(outgoing_interface.c_str());
-#ifndef TORRENT_DISABLE_RESOLVE_COUNTRIES
-		h.resolve_countries(true);
-#endif
+        */
 
-		// if we have a peer specified, connect to it
-		if (!peer.empty())
-		{
-			char* port = (char*) strrchr((char*)peer.c_str(), ':');
-			if (port > 0)
-			{
-				*port++ = 0;
-				char const* ip = peer.c_str();
-				int peer_port = atoi(port);
-				error_code ec;
-				if (peer_port > 0)
-					h.connect_peer(tcp::endpoint(address::from_string(ip, ec), peer_port));
-			}
-		}
-
-		boost::unordered_set<torrent_status>::iterator j
-			= all_handles.insert(h.status()).first;
-		if (show_torrent(*j, torrent_filter, counters))
-		{
-			filtered_handles.push_back(&*j);
-			need_resort = true;
-		}
+        // Add torrent to view
+        emit addTorrent(p->handle.info_hash(), name, (p->params.ti)->total_size());
 	}
-	*/
+}
 
+void Controller::processStatusUpdateAlert(libtorrent::state_update_alert const * p) {
+    emit updateTorrentStatus(p->status);
 }
 
 void Controller::submitAddTorrentViewRequest(const libtorrent::add_torrent_params & params) {
-
-	/* 
-	* Check that info_hash is valid,
-	* by either directly from add_torrent_params, 
-	* or torrent_info field of latter
-	
-	libtorrent::sha1_hash info_hash;
-
-	if(!params.info_hash.is_all_zeros())
-		info_hash = params.info_hash;
-	else if(params.ti.get()->info_hash().is_all_zeros())
-		info_hash = params.ti.get()->info_hash();
-	else
-		throw MissingInfoHashViewRequestException(params);
-	*/
 
 	// Add to libtorrent session
 	session.async_add_torrent(params);

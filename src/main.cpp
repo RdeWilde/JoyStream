@@ -9,7 +9,6 @@
 
 #include "controller/include/Controller.hpp"
 #include "controller/include/ControllerState.hpp"
-#include "controller/include/ConsoleView.hpp"
 #include "controller/include/Exceptions/ListenOnException.hpp"
 #include "view/include/mainwindow.h"
 
@@ -107,7 +106,7 @@ void main(int argc, char* argv[]) {
     }
 
     // Start session loop thread and show view
-    controller->start();
+    controller->begin();
 
     // Start running Qt application event loop
     a.exec();

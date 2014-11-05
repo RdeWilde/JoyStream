@@ -16,23 +16,19 @@ SOURCES +=  src/main.cpp \
     src/controller/src/Exceptions/ListenOnException.cpp \
     src/controller/src/Exceptions/MissingInfoHashViewRequestException.cpp \
     src/controller/src/BrPayment.cpp \
-    src/controller/src/ConsoleView.cpp \
     src/controller/src/Controller.cpp \
     src/controller/src/ControllerState.cpp \
-    src/controller/src/ViewRequestCallbackHandler.cpp \
     src/view/src/mainwindow.cpp \
     src/view/src/addtorrentdialog.cpp
 
 HEADERS += \
+    src/Config.hpp \
     src/controller/include/Exceptions/InvalidBitSwaprStateEntryException.hpp \
     src/controller/include/Exceptions/ListenOnException.hpp \
     src/controller/include/Exceptions/MissingInfoHashViewRequestException.hpp \
     src/controller/include/BrPayment.hpp \
-    src/controller/include/Config.hpp \
-    src/controller/include/ConsoleView.hpp \
     src/controller/include/Controller.hpp \
     src/controller/include/ControllerState.hpp \
-    src/controller/include/ViewRequestCallbackHandler.hpp \
     src/view/include/mainwindow.h \
     src/view/include/addtorrentdialog.h
 

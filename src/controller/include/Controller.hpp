@@ -2,20 +2,19 @@
 #define CONTROLLER_H
 
 #include "controller/include/ControllerState.hpp"
-#include "controller/include/ViewRequestCallbackHandler.hpp"
 #include "view/include/mainwindow.h"
 
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>
 #include <libtorrent/alert.hpp>
 #include <libtorrent/alert_types.hpp>
+#include <libtorrent/torrent_handle.hpp>
 
-#ifndef Q_MOC_RUN
-#include <boost/thread.hpp>
-#endif Q_MOC_RUN
+#include <QThread>
 
+class Controller : public QThread {
 
-class Controller {
+    Q_OBJECT
 
 private:
 	
@@ -37,20 +36,21 @@ private:
 	// Dht routers
 	std::vector<std::pair<std::string, int>> dhtRouters;
 
-	// Handles callbacks of requests made by view
-    //ViewRequestCallbackHandler * const handler_;
+    // Torrent handles
+    std::vector<libtorrent::torrent_handle> torrentHandles;
 
     // Main window
     MainWindow view;
 
     // Thread running session loop
-    boost::thread sessionLoopThread;
+    //boost::thread sessionLoopThread;
 
 	// Routine for processing a single libtorrent alert
 	void processAlert(const libtorrent::alert * a);
 
 	// Routine for processig libtorrent alerts
 	void processAddTorrentAlert(libtorrent::add_torrent_alert const * p);
+    void processStatusUpdateAlert(libtorrent::state_update_alert const * p);
 
 public:
 
@@ -58,14 +58,14 @@ public:
     Controller(const ControllerState & state);
 
     // Start session loop thread and show view
-    void start();
+    void begin();
 	
 	/*
 	* Service loop for libtorrent alerts, calling this
 	* causes infinite looping, closing client requires
 	* issuing a command.
 	*/
-	void sessionLoop();
+    void run();
 
 	// Saves to file
 	void saveStateToFile(const char * file);
@@ -75,6 +75,21 @@ public:
 
 	// Routines for submitting requests from view
 	void submitAddTorrentViewRequest(const libtorrent::add_torrent_params & params);
+
+signals:
+    /*
+     * These signals are connected to corresponding slots on the view object,
+     * and they are emitted in response to
+     * 1) libtorren session alerts
+     * 2)
+    */
+
+    void addTorrent(const libtorrent::sha1_hash & info_hash, const std::string & torrentName, int totalSize);
+    void addTorrentFailed(const std::string & name,const libtorrent::sha1_hash & info_has,const libtorrent::error_code & ec);
+    void updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector);
+    void updateTorrentStatus(const libtorrent::torrent_status & torrentStatus);
+    void removeTorrent(const libtorrent::sha1_hash & info_hash);
+
 };
 
 #endif
