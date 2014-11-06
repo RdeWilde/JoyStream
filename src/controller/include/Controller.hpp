@@ -12,6 +12,13 @@
 
 #include <QThread>
 
+// Register new types for signal and slot system
+Q_DECLARE_METATYPE(libtorrent::sha1_hash)
+Q_DECLARE_METATYPE(std::string)
+Q_DECLARE_METATYPE(libtorrent::error_code)
+Q_DECLARE_METATYPE(std::vector<libtorrent::torrent_status>)
+Q_DECLARE_METATYPE(libtorrent::torrent_status)
+
 class Controller : public QThread {
 
     Q_OBJECT
@@ -73,8 +80,14 @@ public:
 	// Returns session, for control by view
 	libtorrent::session getSession();
 
-	// Routines for submitting requests from view
-	void submitAddTorrentViewRequest(const libtorrent::add_torrent_params & params);
+    // Called by AddTorrentDialog::on_AddTorrentDialog_accepted()
+    void addTorrent(libtorrent::add_torrent_params & params);
+
+    // Called by MainWindow::on_addTorrentFilePushButton_clicked()
+    void addTorrentFromTorrentFile(const QString & torrentFile);
+
+    // Called by MainWindow::on_addMagnetLinkPushButton_clicked()
+    void addTorrentFromMagnetLink(const QString & magnetLink);
 
 signals:
     /*
@@ -85,7 +98,7 @@ signals:
     */
 
     void addTorrent(const libtorrent::sha1_hash & info_hash, const std::string & torrentName, int totalSize);
-    void addTorrentFailed(const std::string & name,const libtorrent::sha1_hash & info_has,const libtorrent::error_code & ec);
+    void addTorrentFailed(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec);
     void updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector);
     void updateTorrentStatus(const libtorrent::torrent_status & torrentStatus);
     void removeTorrent(const libtorrent::sha1_hash & info_hash);

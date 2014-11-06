@@ -2,115 +2,63 @@
 #include "ui_addtorrentdialog.h"
 
 #include <QFileDialog>
-#include <QDir>
 
-#include <iostream>
-
-#ifndef Q_MOC_RUN
-#include <boost/intrusive_ptr.hpp>
-#endif Q_MOC_RUN
-
-//#include <libtorrent/entry.hpp>
-//#include <libtorrent/bencode.hpp>
-//#include <libtorrent/session.hpp>
-#include <libtorrent/torrent_info.hpp>
-
-AddTorrentDialog::AddTorrentDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::AddTorrentDialog)
-{
-    ui->setupUi(this);
-}
-
-AddTorrentDialog::AddTorrentDialog(Controller * controller, const QString & torrentFileName) :
+AddTorrentDialog::AddTorrentDialog(Controller * controller, libtorrent::add_torrent_params & params) : //, AddTorrentDialog::torrentType type) :
     ui(new Ui::AddTorrentDialog),
     controller_(controller),
-    torrentFileName_(torrentFileName)
-
-{
+    params_(params) {
     ui->setupUi(this);
 }
 
-
-
-AddTorrentDialog::~AddTorrentDialog()
-{
+AddTorrentDialog::~AddTorrentDialog() {
     delete ui;
 }
 
-void AddTorrentDialog::on_AddTorrentDialog_accepted()
-{
+void AddTorrentDialog::on_AddTorrentDialog_accepted() {
+
+    // save_path
+    QString save_path = this->ui->saveToFolderLineEdit->text();
+
+    /*
+    // Append directory seperator if not there
+    QChar s = QDir::separator();
+    if(!save_path.endsWith(s))
+        save_path.append(s);
+
+    // Extend with torrent name if present, checks torrent_info
+    // which is set when using torrent files, and checks .name
+    // which is set when using magnet links.
+    std::string torrentName;
+    if(params_.ti.get() != 0) // check if pointer has been set
+        torrentName = params_.ti->name();
+    else
+        torrentName = params_.name;
+
+    if(torrentName.empty())
+        std::cerr << "No torrent name found." << std::endl;
+
+    // Append torrent whatever torrent name found
+    save_path.append(torrentName.c_str());
+    */
+
+    // Update parameters
+    params_.save_path = save_path.toStdString();
+
     // Add torrent
-    addTorrent(torrentFileName_, ui->saveToFolderLineEdit->text());
+    controller_->addTorrent(params_);
 
+    // Close window
+    closeWindow();
+
+    //std::cout << "done on_AddTorrentDialog_accepted()" << std::endl;
+}
+
+void AddTorrentDialog::on_AddTorrentDialog_rejected() {
     // Close window
     closeWindow();
 }
 
-void AddTorrentDialog::addTorrent(const QString & torrentFileName, const QString & downloadFolder) {
-
-    std::string torrentFileNameString = torrentFileName.toStdString();
-
-    // Load torrent file
-    boost::intrusive_ptr<libtorrent::torrent_info> t;
-    libtorrent::error_code ec;
-    t = new libtorrent::torrent_info(torrentFileNameString.c_str(), ec);
-    if(ec) {
-        std::cerr << torrentFileNameString.c_str() << ": " << ec.message().c_str() << std::endl;
-        return;
-    }
-
-    // Create directory for torrent if it does not exist
-    QDir downloadFolderQDir(downloadFolder);
-    QString torrentNameQString(t->name().c_str());
-
-    if(!downloadFolderQDir.exists()) {
-        std::cerr << "Directory " << downloadFolder.toStdString() << " does not exist." << std::endl;
-        return;
-    } else if(!downloadFolderQDir.exists(torrentNameQString)) {
-        std::cout << "Creating directory: " << t->name() << std::endl;
-        downloadFolderQDir.mkdir(torrentNameQString);
-    }
-
-    // Go into torrent folder
-    QDir torrentFolder(downloadFolder);
-    torrentFolder.cd(torrentNameQString);
-
-    // Load resume data if it exists
-    std::vector<char> resume_data;
-    if(torrentFolder.exists("resume.file")) {
-
-        // Allocate space for resume data
-        //resume_data = new std::vector<char>();
-
-        //
-
-    }
-
-    // Create torrent parameters
-    libtorrent::add_torrent_params params;
-
-    params.ti = t;
-    params.save_path = torrentFolder.path().toStdString();
-    params.resume_data = resume_data;
-    //params.storage_mode = (storage_mode_t)allocation_mode; //  disabled_storage_constructor;
-    //params.flags |= add_torrent_params::flag_paused; //  |= add_torrent_params::flag_seed_mode;
-    //params.flags &= ~add_torrent_params::flag_duplicate_is_error;
-    //params.flags |= add_torrent_params::flag_auto_managed; // |= add_torrent_params::flag_share_mode;
-    //params.userdata = (void*)strdup(torrent.c_str());
-
-    // Ask controller to add torrent
-    controller_->submitAddTorrentViewRequest(params);
-}
-
-void AddTorrentDialog::on_AddTorrentDialog_rejected()
-{
-    // Close window
-    closeWindow();
-}
-
-void AddTorrentDialog::on_saveToFolderPushButton_clicked()
-{
+void AddTorrentDialog::on_saveToFolderPushButton_clicked() {
     // Show directory chooser
     QString path = QFileDialog::getExistingDirectory (this, tr("Directory"), "C:\\");
 

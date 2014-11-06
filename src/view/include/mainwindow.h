@@ -32,15 +32,19 @@ public slots:
      * These slots are connected to signals on the controller object,
      * who's constructor does the connecting.
      */
+
     void addTorrent(const libtorrent::sha1_hash & info_hash, const std::string & torrentName, int totalSize);
-    void addTorrentFailed(const std::string & name,const libtorrent::sha1_hash & info_has,const libtorrent::error_code & ec);
+    void addTorrentFailed(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec);
     void updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector);
     void updateTorrentStatus(const libtorrent::torrent_status & torrentStatus); // start, stopp, stats
     void removeTorrent(const libtorrent::sha1_hash & info_hash);
 
 
 private slots:
-    void on_pushButton_clicked();
+
+    void on_addTorrentFilePushButton_clicked();
+    void on_addMagnetLinkPushButton_clicked();
+    void on_closePushButton_clicked();
 
 private:
     Ui::MainWindow * ui;

@@ -3,19 +3,32 @@
 #include "Config.hpp"
 #include "controller/include/Exceptions/ListenOnException.hpp"
 #include "controller/include/Exceptions/MissingInfoHashViewRequestException.hpp"
+#include "view/include/addtorrentdialog.h"
 
 #include <libtorrent/alert_types.hpp>
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/bencode.hpp>
+#include <libtorrent/magnet_uri.hpp>
+#include <libtorrent/torrent_info.hpp>
 
 #include <QObject>
 #include <QMessageBox>
 #include <QElapsedTimer>
 #include <QtGlobal>
+#include <QDir>
+#include <QFile>
+#include <QByteArray>
 
 Controller::Controller(const ControllerState & state)
     : session(libtorrent::fingerprint("BR", BITSWAPR_VERSION_MAJOR, BITSWAPR_VERSION_MINOR, 0, 0) , libtorrent::session::add_default_plugins + libtorrent::alert::debug_notification + libtorrent::alert::stats_notification)
     , view(this){
+
+    // Register types
+    qRegisterMetaType<libtorrent::sha1_hash>();
+    qRegisterMetaType<std::string>();
+    qRegisterMetaType<libtorrent::error_code>();
+    qRegisterMetaType<std::vector<libtorrent::torrent_status>>();
+    qRegisterMetaType<libtorrent::torrent_status>();
 
     // Connect controller signals with view slots
     QObject::connect(this, SIGNAL(addTorrent(const libtorrent::sha1_hash &, const std::string &, int)),
@@ -96,7 +109,7 @@ void Controller::begin() {
     // Start thread which runs session looop:
     // http://antonym.org/2009/05/threading-with-boost---part-i-creating-threads.html
     //sessionLoopThread = boost::thread(&Controller::sessionLoop, this);
-    this->start();
+    start();
 }
 
 void Controller::run() {
@@ -148,10 +161,14 @@ void Controller::run() {
         }
 
         // Sleep 100ms, take this away later
-        sleep(100);
+        msleep(100);
 	}
 
 }
+
+/*
+ * Libtorrent alert processing routines
+ */
 
 void Controller::processAlert(libtorrent::alert const * a) {
 	
@@ -279,7 +296,103 @@ void Controller::processStatusUpdateAlert(libtorrent::state_update_alert const *
     emit updateTorrentStatus(p->status);
 }
 
-void Controller::submitAddTorrentViewRequest(const libtorrent::add_torrent_params & params) {
+void Controller::addTorrentFromTorrentFile(const QString & torrentFile) {
+
+    // Check that torrent file exists
+    if(!QFile::exists(torrentFile)) {
+        std::cerr << "Torrent file " << torrentFile.toStdString().c_str() << " does not exist." << std::endl;
+        return;
+    }
+
+    // Setup parameters
+    libtorrent::add_torrent_params params;
+
+    // Load torrent file
+    boost::intrusive_ptr<libtorrent::torrent_info> torrentInfo;
+    libtorrent::error_code ec;
+    torrentInfo = new libtorrent::torrent_info(torrentFile.toStdString().c_str(), ec);
+    if(ec) {
+        std::cout << "Invalid torrent file: " << ec.message().c_str() << std::endl;
+        return;
+    }
+
+    params.ti = torrentInfo;
+
+    // Show window for adding torrent
+    AddTorrentDialog * addTorrentDialog = new AddTorrentDialog(this, params);
+    addTorrentDialog->exec();
+
+    // Delete window resources
+    delete addTorrentDialog;
+}
+
+void Controller::addTorrentFromMagnetLink(const QString & magnetLink) {
+
+    // Setup parameters
+    libtorrent::add_torrent_params params;
+    params.url = magnetLink.toStdString();
+
+    // Parse link to get info_hash, so that resume data can be loaded
+    libtorrent::error_code ec;
+    libtorrent::parse_magnet_uri(magnetLink.toStdString(), params, ec);
+
+    // Exit if link is malformed
+    if(ec) {
+        std::cout << "Malformed magnet link: " << ec.message().c_str() << std::endl;
+        return;
+    }
+
+    // Show window for adding torrent
+    AddTorrentDialog * addTorrentDialog = new AddTorrentDialog(this, params);
+    addTorrentDialog->exec();
+
+    // Delete window resources
+    delete addTorrentDialog;
+}
+
+void Controller::addTorrent(libtorrent::add_torrent_params & params) {
+
+    QString savePath(params.save_path.c_str());
+
+    // Create save_path if it does not exist
+    QDir savePathDirectory;
+    bool failed = !savePathDirectory.mkpath(savePath);
+
+    if(failed) {
+        std::cerr << "Could not create save_path: " << savePath.toStdString().c_str() << std::endl;
+        return;
+    }
+
+    // Load resume data if it exists
+    QString resumeFileName = (libtorrent::to_hex(params.info_hash.to_string()) + ".resume").c_str();
+
+    std::vector<char> resume_data;
+    if(QDir(savePath).exists(resumeFileName)) {
+
+        // Open file
+        QFile file(resumeFileName);
+
+        if(!file.open(QIODevice::ReadOnly)) {
+            std::cerr << "Could not open : " << resumeFileName.toStdString().c_str() << std::endl;
+            return;
+        }
+
+        // Read entire file
+        QByteArray fullFile = file.readAll();
+
+        // Populate resume_data vector
+        for(QByteArray::iterator i = fullFile.begin(),
+            end(fullFile.end()); i != end; i++)
+            resume_data.push_back(*i);
+    }
+
+    // Set parameters
+    params.resume_data = resume_data;
+    //params.storage_mode = (storage_mode_t)allocation_mode; //  disabled_storage_constructor;
+    //params.flags |= add_torrent_params::flag_paused; //  |= add_torrent_params::flag_seed_mode;
+    //params.flags &= ~add_torrent_params::flag_duplicate_is_error;
+    //params.flags |= add_torrent_params::flag_auto_managed; // |= add_torrent_params::flag_share_mode;
+    //params.userdata = (void*)strdup(torrent.c_str());
 
 	// Add to libtorrent session
 	session.async_add_torrent(params);

@@ -7,9 +7,11 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QString>
+#include <QInputDialog>
 
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>
+#include <libtorrent/torrent_handle.hpp>
 
 MainWindow::MainWindow(Controller * controller) :
     ui(new Ui::MainWindow),
@@ -24,7 +26,6 @@ MainWindow::MainWindow(Controller * controller) :
     model->setHorizontalHeaderItem(2, new QStandardItem(QString("Status")));
     model->setHorizontalHeaderItem(3, new QStandardItem(QString("Speed")));
     ui->tableView->setModel(model);
-
 }
 
 MainWindow::~MainWindow()
@@ -32,19 +33,51 @@ MainWindow::~MainWindow()
     delete ui;
 
     // Delete everything in model
+    delete model;
 }
 
-void MainWindow::on_pushButton_clicked()
+void MainWindow::on_addTorrentFilePushButton_clicked()
 {
     // Choose torrent file
-    QString torrentFileName = QFileDialog::getOpenFileName(this, tr("Open Torrent"), "/home/jana", tr("Torrent file (*.torrent)"));
+    QString torrentFile = QFileDialog::getOpenFileName(this, tr("Open Torrent"), "/home/jana", tr("Torrent file (*.torrent)"));
 
-    // Show window
-    AddTorrentDialog * addTorrentDialog = new AddTorrentDialog(controller_, torrentFileName);
-    addTorrentDialog->exec();
+    // Exit if no file chosen
+    if(torrentFile.isNull())
+        return;
+
+    // Tell controller
+    controller_->addTorrentFromTorrentFile(torrentFile);
+}
+
+void MainWindow::on_addMagnetLinkPushButton_clicked()
+{
+    // Input magnet link
+    bool ok;
+    QString magnetLink = QInputDialog::getText(this,
+                                         tr("Add Magnet Link"),
+                                         tr("Magnet link:"),
+                                         QLineEdit::Normal,
+                                         QString("magnet:?xt=urn:btih:781ad3adbd9b81b64e4c530712ae9199b1dfbae5&dn=Now+You+See+Me+%282013%29+1080p+EXTENDED+BrRip+x264+-+YIFY&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3"),
+                                         &ok);
+
+    // Exit if no link provided
+    if (!ok || magnetLink.isEmpty())
+        return;
+
+    // Tell controller
+    controller_->addTorrentFromMagnetLink(magnetLink);
+}
+
+void MainWindow::on_closePushButton_clicked()
+{
+
 }
 
 void MainWindow::addTorrent(const libtorrent::sha1_hash & info_hash, const std::string & torrentName, int totalSize) {
+
+    /*
+     * change model to avoid the whole hash map mess
+     */
 
     // Create row for model
     QList<QStandardItem *> modelRow;
@@ -82,20 +115,19 @@ void MainWindow::updateTorrentStatus(const libtorrent::torrent_status & torrentS
     // Find model item corresponding to torrent
     QStandardItem * firstItem = rowMap.at(torrentStatus.info_hash);
 
-    std::cerr << "here" << std::endl;
-
     // Find row and column of model item
     QModelIndex index = model->indexFromItem(firstItem);
     int row = index.row();
 
     // Change row in model row, by updating: status (2) and speed (3)
     QString status;
+    std::cout << torrentStatus.progress*100 << std::endl;
     status.append(QString::number(torrentStatus.progress*100)).append("%");
     model->item(row,2)->setText(status);
 
     QString speed;
     speed.append(QString::number(torrentStatus.download_rate))
-            .append("/")
+            .append(QDir::separator())
             .append(QString::number(torrentStatus.upload_rate));
     model->item(row, 3)->setText(speed);
 }

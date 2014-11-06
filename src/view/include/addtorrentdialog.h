@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QString>
 
+#include <libtorrent/add_torrent_params.hpp>
 #include "controller/include/Controller.hpp"
 
 namespace Ui {
@@ -15,10 +16,19 @@ class AddTorrentDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit AddTorrentDialog(QWidget *parent = 0);
+
+    /*
+    enum torrentType {
+        torrent_file,
+        magnet_link
+    };
+    */
+
+    // explicit AddTorrentDialog(QWidget *parent = 0);
     ~AddTorrentDialog();
 
-    AddTorrentDialog(Controller * controller, const QString & torrentFileName);
+    // Constructors
+    AddTorrentDialog(Controller * controller, libtorrent::add_torrent_params & params); //, torrentType type);
 
     void closeWindow();
 
@@ -34,10 +44,10 @@ private:
 
     Controller * controller_;
 
-    const QString torrentFileName_;
+    //torrentType type_;
 
-    //
-    void addTorrent(const QString & torrentFileName, const QString & downloadFolder);
+    libtorrent::add_torrent_params & params_;
+
 };
 
 #endif // ADDTORRENTDIALOG_H
