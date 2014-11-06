@@ -89,6 +89,9 @@ public:
     // Called by MainWindow::on_addMagnetLinkPushButton_clicked()
     void addTorrentFromMagnetLink(const QString & magnetLink);
 
+    // Called by MainWindow::
+    libtorrent::torrent_handle & Controller::getTorrentHandleFromInfoHash(const libtorrent::sha1_hash & info_hash);
+
 signals:
     /*
      * These signals are connected to corresponding slots on the view object,

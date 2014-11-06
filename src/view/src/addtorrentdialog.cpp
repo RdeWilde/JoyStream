@@ -49,8 +49,6 @@ void AddTorrentDialog::on_AddTorrentDialog_accepted() {
 
     // Close window
     closeWindow();
-
-    //std::cout << "done on_AddTorrentDialog_accepted()" << std::endl;
 }
 
 void AddTorrentDialog::on_AddTorrentDialog_rejected() {

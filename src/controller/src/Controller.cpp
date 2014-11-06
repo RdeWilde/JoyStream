@@ -114,12 +114,11 @@ void Controller::begin() {
 
 void Controller::run() {
 
-    // Start timer which coordinates how often various session methods are called
-    QElapsedTimer timer;
+    // Start timers which determine how often session calls are made
+    QElapsedTimer popAlertsTimer, postTorrentUpdatesTimer;
 
-    // Set up time stamps
-    qint64 lastPopAlerts = Q_INT64_C(0),
-           lastPostTorrentUpdates = Q_INT64_C(0);
+    popAlertsTimer.start();
+    postTorrentUpdatesTimer.start();
 
 	// Allocate alerts queue
 	std::deque<libtorrent::alert*> alerts;
@@ -127,13 +126,15 @@ void Controller::run() {
     forever {
 
         // Get fresh libtorrent alerts if time is right
-        qint64 elapsed = timer.elapsed();
-        if(elapsed - lastPopAlerts > CONTROLLER_POP_ALERTS_DELAY) {
+        if(popAlertsTimer.elapsed() > CONTROLLER_POP_ALERTS_DELAY) {
 
-            //std::cerr << " calling pop_alerts " << elapsed << std::endl;
+            //std::cerr << " calling pop_alerts " << std::endl;
 
-            lastPopAlerts = elapsed;
+            // Call session
             session.pop_alerts(&alerts);
+
+            // start timer
+            popAlertsTimer.start();
         }
 		
 		// Iterate alerts
@@ -141,23 +142,25 @@ void Controller::run() {
 			, end(alerts.end()); i != end; i++) {
 
 			// Process this alert
-			processAlert(*i);
+            processAlert(*i);
 
 			// Clear memory used by alert
-			delete *i;
+            delete *i;
 		}
 
         // Clear alerts queue
         alerts.clear();
 
         // Tell session to give us an update on the status of torrents, if time is right
-        elapsed = timer.elapsed();
-        if(elapsed - lastPostTorrentUpdates > CONTROLLER_POST_TORRENT_UPDATES_DELAY) {
+        if(postTorrentUpdatesTimer.elapsed() > CONTROLLER_POST_TORRENT_UPDATES_DELAY) {
 
-            //std::cerr << " calling post_torrent_updates " << elapsed << std::endl;
+            //std::cerr << " calling post_torrent_updates " << std::endl;
 
-            lastPostTorrentUpdates = elapsed;
+            // Call session
             session.post_torrent_updates();
+
+            // start timer
+            postTorrentUpdatesTimer.start();
         }
 
         // Sleep 100ms, take this away later
@@ -269,7 +272,13 @@ void Controller::processAlert(libtorrent::alert const * a) {
 void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p) {
 
     // Name of torrent
-    std::string name = p->params.ti->name();
+    std::string name("N/A");
+    int totalSize = 0;
+    if(p->params.ti.get() != 0) {
+        name = p->params.ti->name();
+        totalSize = (p->params.ti)->total_size();
+    } else
+        name = p->params.name;
 
     // Check if there was an error
     if (p->error)
@@ -288,7 +297,7 @@ void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p)
         */
 
         // Add torrent to view
-        emit addTorrent(p->handle.info_hash(), name, (p->params.ti)->total_size());
+        emit addTorrent(p->handle.info_hash(), name, totalSize);
 	}
 }
 
@@ -323,7 +332,8 @@ void Controller::addTorrentFromTorrentFile(const QString & torrentFile) {
     addTorrentDialog->exec();
 
     // Delete window resources
-    delete addTorrentDialog;
+    // is this a good idea
+    //delete addTorrentDialog;
 }
 
 void Controller::addTorrentFromMagnetLink(const QString & magnetLink) {
@@ -347,7 +357,12 @@ void Controller::addTorrentFromMagnetLink(const QString & magnetLink) {
     addTorrentDialog->exec();
 
     // Delete window resources
-    delete addTorrentDialog;
+    // is this a good idea
+    //delete addTorrentDialog;
+}
+
+libtorrent::torrent_handle & Controller::getTorrentHandleFromInfoHash(const libtorrent::sha1_hash & info_hash) {
+    return session.find_torrent(info_hash);
 }
 
 void Controller::addTorrent(libtorrent::add_torrent_params & params) {
@@ -366,8 +381,10 @@ void Controller::addTorrent(libtorrent::add_torrent_params & params) {
     // Load resume data if it exists
     QString resumeFileName = (libtorrent::to_hex(params.info_hash.to_string()) + ".resume").c_str();
 
-    std::vector<char> resume_data;
     if(QDir(savePath).exists(resumeFileName)) {
+
+        // Vector for resume data
+        std::vector<char> resume_data;
 
         // Open file
         QFile file(resumeFileName);
@@ -384,10 +401,12 @@ void Controller::addTorrent(libtorrent::add_torrent_params & params) {
         for(QByteArray::iterator i = fullFile.begin(),
             end(fullFile.end()); i != end; i++)
             resume_data.push_back(*i);
+
+        // set parameter
+        params.resume_data = resume_data;
     }
 
     // Set parameters
-    params.resume_data = resume_data;
     //params.storage_mode = (storage_mode_t)allocation_mode; //  disabled_storage_constructor;
     //params.flags |= add_torrent_params::flag_paused; //  |= add_torrent_params::flag_seed_mode;
     //params.flags &= ~add_torrent_params::flag_duplicate_is_error;
@@ -395,11 +414,18 @@ void Controller::addTorrent(libtorrent::add_torrent_params & params) {
     //params.userdata = (void*)strdup(torrent.c_str());
 
 	// Add to libtorrent session
-	session.async_add_torrent(params);
+    /*
+    libtorrent::add_torrent_params d;
+    d.save_path = std::string("C:\\");
+    d.url = std::string("magnet:?xt=urn:btih:781ad3adbd9b81b64e4c530712ae9199b1dfbae5&dn=Now+You+See+Me+%282013%29+1080p+EXTENDED+BrRip+x264+-+YIFY&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3");
+    session.async_add_torrent(d);
+    */
+    session.async_add_torrent(params);
 
     // Add to controller
     // - DO WE EVEN NEED TO KEEP TRACK OF THIS? -
-	addTorrentParameters.push_back(params);
+    addTorrentParameters.push_back(params);
+
 }
 
 void Controller::saveStateToFile(const char * file) {
