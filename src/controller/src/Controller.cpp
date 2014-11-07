@@ -361,8 +361,12 @@ void Controller::addTorrentFromMagnetLink(const QString & magnetLink) {
     //delete addTorrentDialog;
 }
 
-libtorrent::torrent_handle & Controller::getTorrentHandleFromInfoHash(const libtorrent::sha1_hash & info_hash) {
+libtorrent::torrent_handle Controller::getTorrentHandleFromInfoHash(const libtorrent::sha1_hash & info_hash) {
     return session.find_torrent(info_hash);
+}
+
+libtorrent::session & Controller::getSession() {
+    return session;
 }
 
 void Controller::addTorrent(libtorrent::add_torrent_params & params) {

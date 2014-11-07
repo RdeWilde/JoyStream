@@ -41,7 +41,6 @@ INCLUDEPATH += C:/libtorrent-rasterbar-1.0.2/include
 INCLUDEPATH += C:/Users/bedeho/Documents/GitHub/QtBitSwapr/src
 
 DEFINES += WIN32
-DEFINES += NDEBUG
 DEFINES += BOOST_ASIO_SEPARATE_COMPILATION
 DEFINES += TORRENT_DISABLE_GEO_IP
 DEFINES += TORRENT_NO_DEPRECATE
@@ -51,13 +50,21 @@ LIBS += -LC:/boost_1_56_0/stage/lib
 #message($$CONFIG)
 
 CONFIG(debug, debug|release) {
-    LIBS += -LC:/libtorrent-rasterbar-1.0.2/bin/msvc-11.0/debug/boost-source/deprecated-functions-off/link-static/threading-multi -llibtorrent
+
     DEFINES += TORRENT_DEBUG
+
+    LIBS += -LC:/libtorrent-rasterbar-1.0.2/bin/msvc-11.0/debug/boost-source/deprecated-functions-off/link-static/threading-multi -llibtorrent
+
+    # The mailinglist suggested this to be able
+    LIBS += DbgHelp.lib
 
     message("Debug Configuration")
 }
 
 CONFIG(release, debug|release) {
+
+    DEFINES += NDEBUG
+
     LIBS += -LC:/libtorrent-rasterbar-1.0.2/bin/msvc-11.0/release/boost-source/deprecated-functions-off/link-static/threading-multi -llibtorrent
 
     message("Release Configuration")

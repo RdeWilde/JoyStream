@@ -71,6 +71,9 @@ private:
     // Context menu on torrents
     QMenu * tableViewContextMenu;
     QModelIndex lastIndexClicked;
+
+    int findRowFromInfoHash(const libtorrent::sha1_hash & info_hash);
+    libtorrent::torrent_handle getTorrentHandleLastClicked();
 };
 
 #endif // MAINWINDOW_H

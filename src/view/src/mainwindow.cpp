@@ -55,7 +55,7 @@ MainWindow::~MainWindow()
     // Delete everything in model, should be recursive
     delete model;
 
-    // Are Actions also deleted? hope so
+    // Are actions also deleted? hope so
     delete tableViewContextMenu;
 
     //rowMap.clear();
@@ -66,13 +66,67 @@ void MainWindow::customMenuRequested(QPoint pos) {
     // Figure out where user clicked
     lastIndexClicked = ui->tableView->indexAt(pos);
 
+    // Check that the clicked item is valid, e.g. if view is empty
+    if(!lastIndexClicked.isValid())
+        return;
+
     // Show menu
     tableViewContextMenu->popup(ui->tableView->viewport()->mapToGlobal(pos));
 }
 
 void MainWindow::pauseMenuAction() {
 
-    std::cout << "pause" << std::endl;
+    /*
+     * DEBUG code for manually querying torrents
+    libtorrent::session & s = controller_->getSession();
+    std::vector<libtorrent::torrent_handle> v = s.get_torrents();
+
+    std::cout << "Number of active torrents: " << v.size() << std::endl;
+
+    libtorrent::torrent_handle handle = v.front();
+
+    std::cout << "Queue position: " << handle.queue_position() << std::endl;
+
+    libtorrent::sha1_hash & info_hash = handle.info_hash();
+    */
+
+    libtorrent::torrent_handle torrentHandle = getTorrentHandleLastClicked();
+
+    // Is it valid, i.e. was an actual match found?
+    if(!torrentHandle.is_valid())
+        std::cout << "no match found" << std::endl;
+    else {
+
+        // Turn off auto managing
+        torrentHandle.auto_managed(false);
+
+        // Pause
+        torrentHandle.pause(libtorrent::torrent_handle::graceful_pause);
+    }
+}
+
+void MainWindow::startMenuAction() {
+
+    libtorrent::torrent_handle torrentHandle = getTorrentHandleLastClicked();
+
+    // Is it valid, i.e. was an actual match found?
+    if(!torrentHandle.is_valid())
+        std::cout << "no match found" << std::endl;
+    else {
+
+        // Turn on auto managing
+        torrentHandle.auto_managed(true);
+
+        // Start
+        torrentHandle.resume();
+    }
+}
+
+void MainWindow::removeMenuAction() {
+    std::cout << "remove" << std::endl;
+}
+
+libtorrent::torrent_handle MainWindow::getTorrentHandleLastClicked() {
 
     // Get row
     int row = lastIndexClicked.row();
@@ -81,18 +135,7 @@ void MainWindow::pauseMenuAction() {
     libtorrent::sha1_hash & info_hash = infoHashInRow[row];
 
     // Get handle
-    libtorrent::torrent_handle & torrentHandle = controller_->getTorrentHandleFromInfoHash(info_hash);
-
-    // Pause
-    torrentHandle.pause();
-}
-
-void MainWindow::startMenuAction() {
-    std::cout << "start" << std::endl;
-}
-
-void MainWindow::removeMenuAction() {
-    std::cout << "remove" << std::endl;
+    return controller_->getTorrentHandleFromInfoHash(info_hash);    // libtorrent::torrent_handle torrentHandle =
 }
 
 
@@ -183,30 +226,45 @@ void MainWindow::updateTorrentStatus(const libtorrent::torrent_status & torrentS
     */
 
     // Find row where torrent is located
-    int row;
-    std::vector<libtorrent::sha1_hash>::iterator i = std::find(infoHashInRow.begin(),
-                                                               infoHashInRow.end(),
-                                                               torrentStatus.info_hash);
-    // Check if we hit end, could be due to no match
-    if(i != infoHashInRow.end())
-        row = std::distance(infoHashInRow.begin(), i);
-    else if (*i == infoHashInRow.back())
-        row = infoHashInRow.size() - 1;
-    else {
-        std::cout << "no match found" << std::endl;
+    int row = findRowFromInfoHash(torrentStatus.info_hash);
+
+    if(row < 0) {
+        std::cout << "no match info_hash found." << std::endl;
         return;
+    }// else
+     //   std::cout << "update for row: " << row << std::endl;
+
+    // Change row in model row, by updating:
+    // size (1) <-- if not set by info_hash based torrent
+    // status (2)
+    // speed (3)
+
+    // Size, set it if information is present
+    if(torrentStatus.torrent_file.get() != 0) {
+
+        QString size = QString::number(torrentStatus.torrent_file->total_size());
+
+        model->item(row,1)->setText(size);
     }
 
-    // Change row in model row, by updating: status (2) and speed (3)
+    // Satus
     QString status;
-    status.append(QString::number(torrentStatus.progress*100,'f',0)).append("%");
+
+    if(torrentStatus.paused)
+        status = "Paused";
+    else
+        status = QString::number(torrentStatus.progress*100,'f',0).append("%");
+
     model->item(row,2)->setText(status);
 
+    // Speed
     QString speed;
+
     speed.append(QString::number(torrentStatus.download_rate/1024))
          .append("Kb/s | ")
          .append(QString::number(torrentStatus.upload_rate/1024))
          .append("Kb/s");
+
     model->item(row, 3)->setText(speed);
 }
 
@@ -218,4 +276,19 @@ void MainWindow::addTorrentFailed(const std::string & name, const libtorrent::sh
 
     // Do something more clever, this is just a hacky fix for now
     std::cerr << "Failed to add torrent " << name.c_str() << " because: " << ec.message().c_str() << std::endl;
+}
+
+int MainWindow::findRowFromInfoHash(const libtorrent::sha1_hash & info_hash) {
+
+    // Find torrent matching info_hash
+    std::vector<libtorrent::sha1_hash>::iterator it = std::find(infoHashInRow.begin(),
+                                                               infoHashInRow.end(),
+                                                               info_hash);
+    // Check if we hit end, could be due to no match
+    if(it != infoHashInRow.end())
+        return std::distance(infoHashInRow.begin(), it);
+    else if (*it == infoHashInRow.back())
+        return infoHashInRow.size() - 1;
+    else
+        return -1;
 }

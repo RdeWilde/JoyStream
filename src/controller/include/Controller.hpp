@@ -78,7 +78,7 @@ public:
 	void saveStateToFile(const char * file);
 
 	// Returns session, for control by view
-	libtorrent::session getSession();
+    libtorrent::session & getSession();
 
     // Called by AddTorrentDialog::on_AddTorrentDialog_accepted()
     void addTorrent(libtorrent::add_torrent_params & params);
@@ -90,7 +90,7 @@ public:
     void addTorrentFromMagnetLink(const QString & magnetLink);
 
     // Called by MainWindow::
-    libtorrent::torrent_handle & Controller::getTorrentHandleFromInfoHash(const libtorrent::sha1_hash & info_hash);
+    libtorrent::torrent_handle getTorrentHandleFromInfoHash(const libtorrent::sha1_hash & info_hash);
 
 signals:
     /*
