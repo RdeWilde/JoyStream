@@ -43,8 +43,8 @@ private:
 	// Dht routers
 	std::vector<std::pair<std::string, int>> dhtRouters;
 
-    // Torrent handles
-    std::vector<libtorrent::torrent_handle> torrentHandles;
+    // Torrent handles <-- why do we need this?
+    //std::vector<libtorrent::torrent_handle> torrentHandles;
 
     // Main window
     MainWindow view;
@@ -58,7 +58,7 @@ private:
 	// Routine for processig libtorrent alerts
 	void processAddTorrentAlert(libtorrent::add_torrent_alert const * p);
     void processStatusUpdateAlert(libtorrent::state_update_alert const * p);
-
+    void processTorrentDeletedAlert(libtorrent::torrent_deleted_alert const * p);
 public:
 
 	// Constructor starting session with given state
@@ -80,6 +80,10 @@ public:
 	// Returns session, for control by view
     libtorrent::session & getSession();
 
+    /*
+     * Routines called by view
+     */
+
     // Called by AddTorrentDialog::on_AddTorrentDialog_accepted()
     void addTorrent(libtorrent::add_torrent_params & params);
 
@@ -88,6 +92,9 @@ public:
 
     // Called by MainWindow::on_addMagnetLinkPushButton_clicked()
     void addTorrentFromMagnetLink(const QString & magnetLink);
+
+    // Called by MainWindow::startMenuAction()
+    void removeTorrent(const libtorrent::torrent_handle & torrentHandle);
 
     // Called by MainWindow::
     libtorrent::torrent_handle getTorrentHandleFromInfoHash(const libtorrent::sha1_hash & info_hash);
@@ -105,7 +112,6 @@ signals:
     void updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector);
     void updateTorrentStatus(const libtorrent::torrent_status & torrentStatus);
     void removeTorrent(const libtorrent::sha1_hash & info_hash);
-
 };
 
 #endif

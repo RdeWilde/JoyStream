@@ -76,20 +76,7 @@ void MainWindow::customMenuRequested(QPoint pos) {
 
 void MainWindow::pauseMenuAction() {
 
-    /*
-     * DEBUG code for manually querying torrents
-    libtorrent::session & s = controller_->getSession();
-    std::vector<libtorrent::torrent_handle> v = s.get_torrents();
-
-    std::cout << "Number of active torrents: " << v.size() << std::endl;
-
-    libtorrent::torrent_handle handle = v.front();
-
-    std::cout << "Queue position: " << handle.queue_position() << std::endl;
-
-    libtorrent::sha1_hash & info_hash = handle.info_hash();
-    */
-
+    // Get handle
     libtorrent::torrent_handle torrentHandle = getTorrentHandleLastClicked();
 
     // Is it valid, i.e. was an actual match found?
@@ -107,6 +94,7 @@ void MainWindow::pauseMenuAction() {
 
 void MainWindow::startMenuAction() {
 
+    // Get handle
     libtorrent::torrent_handle torrentHandle = getTorrentHandleLastClicked();
 
     // Is it valid, i.e. was an actual match found?
@@ -123,7 +111,12 @@ void MainWindow::startMenuAction() {
 }
 
 void MainWindow::removeMenuAction() {
-    std::cout << "remove" << std::endl;
+
+    // Get handle
+    libtorrent::torrent_handle torrentHandle = getTorrentHandleLastClicked();
+
+    // Notify controller to remove torrent
+    controller_->removeTorrent(torrentHandle);
 }
 
 libtorrent::torrent_handle MainWindow::getTorrentHandleLastClicked() {
@@ -269,6 +262,8 @@ void MainWindow::updateTorrentStatus(const libtorrent::torrent_status & torrentS
 }
 
 void MainWindow::removeTorrent(const libtorrent::sha1_hash & info_hash) {
+
+    std::cout << "remove signal received from controller." << std::endl;
 
 }
 

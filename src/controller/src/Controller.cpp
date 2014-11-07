@@ -266,7 +266,48 @@ void Controller::processAlert(libtorrent::alert const * a) {
 	}
 	else if (libtorrent::state_update_alert const * p = libtorrent::alert_cast<libtorrent::state_update_alert>(a))
         processStatusUpdateAlert(p);
+    else if(libtorrent::torrent_deleted_alert const * p = libtorrent::alert_cast<libtorrent::torrent_deleted_alert>(a))
+        processTorrentDeletedAlert(p);
 
+
+
+}
+
+void Controller::processTorrentDeletedAlert(libtorrent::torrent_deleted_alert const * p) {
+
+    /*
+    // Remove among torrent handle
+    std::vector<libtorrent::torrent_handle>::iterator i = std::find(torrentHandles.begin(),
+                                                                    torrentHandles.end(),
+                                                                    p->handle);
+
+    // Can we trust i here?
+
+    torrentHandles.erase(i);
+    */
+
+    // Find torrent params in addTorrentParameters
+    for(std::vector<libtorrent::add_torrent_params>::iterator i = addTorrentParameters.begin(),
+        end(addTorrentParameters.end()); i != end;i++) {
+
+        libtorrent::add_torrent_params & params = (*i);
+
+        // Check for match
+        if(params.info_hash == p->info_hash) {
+
+            // Remove torrent
+            addTorrentParameters.erase(i);
+
+            // Notify view to remove torrent
+            emit removeTorrent(p->info_hash);
+
+            // Done
+            break;
+        }
+
+    }
+
+    std::cerr << "Got a torrent_deleted_alert alert, but no match exists in addTorrentParameters." << std::endl;
 }
 
 void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p) {
@@ -286,7 +327,7 @@ void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p)
     else {
 
         // Save handle
-        torrentHandles.push_back(p->handle);
+        //torrentHandles.push_back(p->handle);
 
         /*
 		h.set_max_connections(max_connections_per_torrent);
@@ -359,6 +400,11 @@ void Controller::addTorrentFromMagnetLink(const QString & magnetLink) {
     // Delete window resources
     // is this a good idea
     //delete addTorrentDialog;
+}
+
+void Controller::removeTorrent(const libtorrent::torrent_handle & torrentHandle) {
+
+    session.remove_torrent(torrentHandle);
 }
 
 libtorrent::torrent_handle Controller::getTorrentHandleFromInfoHash(const libtorrent::sha1_hash & info_hash) {
