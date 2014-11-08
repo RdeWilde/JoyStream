@@ -1,9 +1,8 @@
 
 #include "controller/include/Controller.hpp"
 #include "Config.hpp"
-#include "controller/include/Exceptions/ListenOnException.hpp"
-#include "controller/include/Exceptions/MissingInfoHashViewRequestException.hpp"
 #include "view/include/addtorrentdialog.h"
+#include "controller/include/Exceptions/ListenOnException.hpp"
 
 #include <libtorrent/alert_types.hpp>
 #include <libtorrent/error_code.hpp>
@@ -19,32 +18,23 @@
 #include <QFile>
 #include <QByteArray>
 
+#ifndef Q_MOC_RUN
+#include <boost/bind.hpp>
+#endif Q_MOC_RUN
+
 Controller::Controller(const ControllerState & state)
     : session(libtorrent::fingerprint("BR", BITSWAPR_VERSION_MAJOR, BITSWAPR_VERSION_MINOR, 0, 0) , libtorrent::session::add_default_plugins + libtorrent::alert::debug_notification + libtorrent::alert::stats_notification)
-    , view(this){
+    , view(this) {
 
-    // Register types
+    // Register types for signal and slots
     qRegisterMetaType<libtorrent::sha1_hash>();
     qRegisterMetaType<std::string>();
     qRegisterMetaType<libtorrent::error_code>();
     qRegisterMetaType<std::vector<libtorrent::torrent_status>>();
     qRegisterMetaType<libtorrent::torrent_status>();
 
-    // Connect controller signals with view slots
-    QObject::connect(this, SIGNAL(addTorrent(const libtorrent::sha1_hash &, const std::string &, int)),
-                      &view, SLOT(addTorrent(const libtorrent::sha1_hash &, const std::string &, int)));
-
-    QObject::connect(this, SIGNAL(addTorrentFailed(const std::string &, const libtorrent::sha1_hash &, const libtorrent::error_code &)),
-                      &view, SLOT(addTorrentFailed(const std::string &, const libtorrent::sha1_hash &, const libtorrent::error_code &)));
-
-    QObject::connect(this, SIGNAL(updateTorrentStatus(const std::vector<libtorrent::torrent_status> &)),
-                      &view, SLOT(updateTorrentStatus(const std::vector<libtorrent::torrent_status> &)));
-
-    QObject::connect(this, SIGNAL(updateTorrentStatus(const libtorrent::torrent_status &)),
-                      &view, SLOT(updateTorrentStatus(const libtorrent::torrent_status &)));
-
-    QObject::connect(this, SIGNAL(removeTorrent(const libtorrent::sha1_hash &)),
-                      &view, SLOT(removeTorrent(const libtorrent::sha1_hash &)));
+    // Register type for QMetaObject::invokeMethod
+    qRegisterMetaType<const libtorrent::alert*>();
 
 	// Set session settings - these acrobatics with going back and forth seem to indicate that I may have done it incorrectly
 	std::vector<char> buffer;
@@ -86,6 +76,9 @@ Controller::Controller(const ControllerState & state)
 		addTorrentParameters.push_back(*i);
 	}
 
+    // Set libtorrent to call processAlert when alert is created
+    session.set_alert_dispatch(boost::bind(&Controller::libtorrent_alert_dispatcher_callback, this, _1));
+
 	// Start listening
 	boost::system::error_code listenOnErrorCode;
 	session.listen_on(state.getPortRange(), listenOnErrorCode);
@@ -93,88 +86,59 @@ Controller::Controller(const ControllerState & state)
 	// throw
 	if(listenOnErrorCode)
 		throw ListenOnException(listenOnErrorCode);
-}
 
-void Controller::begin() {
+    // Start timer which calls session.post_torrent_updates at regular intervals
+    statusUpdateTimer.setInterval(POST_TORRENT_UPDATES_DELAY);
+    QObject::connect(&statusUpdateTimer, SIGNAL(timeout()), this, SLOT(callPostTorrentUpdates()));
+    statusUpdateTimer.start();
 
-    // Show window
+    // Show view
     view.show();
-
-    // Start servicing session in new thread
-    /*
-     * ADD CODE HERE TO PREVENT STARTING THREAD MULTIPLE TIMES, SINCE
-     * CONTROLLER IS NOT REINTRANT.
-     */
-
-    // Start thread which runs session looop:
-    // http://antonym.org/2009/05/threading-with-boost---part-i-creating-threads.html
-    //sessionLoopThread = boost::thread(&Controller::sessionLoop, this);
-    start();
 }
 
-void Controller::run() {
-
-    // Start timers which determine how often session calls are made
-    QElapsedTimer popAlertsTimer, postTorrentUpdatesTimer;
-
-    popAlertsTimer.start();
-    postTorrentUpdatesTimer.start();
-
-	// Allocate alerts queue
-	std::deque<libtorrent::alert*> alerts;
-
-    forever {
-
-        // Get fresh libtorrent alerts if time is right
-        if(popAlertsTimer.elapsed() > CONTROLLER_POP_ALERTS_DELAY) {
-
-            //std::cerr << " calling pop_alerts " << std::endl;
-
-            // Call session
-            session.pop_alerts(&alerts);
-
-            // start timer
-            popAlertsTimer.start();
-        }
-		
-		// Iterate alerts
-		for (std::deque<libtorrent::alert* >::iterator i = alerts.begin()
-			, end(alerts.end()); i != end; i++) {
-
-			// Process this alert
-            processAlert(*i);
-
-			// Clear memory used by alert
-            delete *i;
-		}
-
-        // Clear alerts queue
-        alerts.clear();
-
-        // Tell session to give us an update on the status of torrents, if time is right
-        if(postTorrentUpdatesTimer.elapsed() > CONTROLLER_POST_TORRENT_UPDATES_DELAY) {
-
-            //std::cerr << " calling post_torrent_updates " << std::endl;
-
-            // Call session
-            session.post_torrent_updates();
-
-            // start timer
-            postTorrentUpdatesTimer.start();
-        }
-
-        // Sleep 100ms, take this away later
-        msleep(100);
-	}
-
+void Controller::callPostTorrentUpdates() {
+    session.post_torrent_updates();
 }
 
 /*
- * Libtorrent alert processing routines
- */
+void Controller::connecToViewSlots(MainWindow * view) {
 
-void Controller::processAlert(libtorrent::alert const * a) {
-	
+    // Setup view, connect controller signals with view slots
+    QObject::connect(this, SIGNAL(addTorrent(const libtorrent::sha1_hash &, const std::string &, int)),
+                      view, SLOT(addTorrent(const libtorrent::sha1_hash &, const std::string &, int)));
+
+    QObject::connect(this, SIGNAL(addTorrentFailed(const std::string &, const libtorrent::sha1_hash &, const libtorrent::error_code &)),
+                      view, SLOT(addTorrentFailed(const std::string &, const libtorrent::sha1_hash &, const libtorrent::error_code &)));
+
+    QObject::connect(this, SIGNAL(updateTorrentStatus(const std::vector<libtorrent::torrent_status> &)),
+                      view, SLOT(updateTorrentStatus(const std::vector<libtorrent::torrent_status> &)));
+
+    QObject::connect(this, SIGNAL(updateTorrentStatus(const libtorrent::torrent_status &)),
+                      view, SLOT(updateTorrentStatus(const libtorrent::torrent_status &)));
+
+    QObject::connect(this, SIGNAL(removeTorrent(const libtorrent::sha1_hash &)),
+                      view, SLOT(removeTorrent(const libtorrent::sha1_hash &)));
+}
+*/
+
+void Controller::libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::alert> alertAutoPtr) {
+
+    /*
+     * CRITICAL: Do not under any circumstance make a new call to libtorrent in this routine here, since the network
+     * thread in libtorrent will be making this call, and a new call will result in a dead lock.
+     */
+
+    // Grab alert pointer and release the auto pointer, this way the alert is not automatically
+    // deleted when alertAutoPtr goes out of scope.
+    const libtorrent::alert * a = alertAutoPtr.release();
+
+    // Tell bitswapr thread to run processAlert later with given alert as argument
+    QMetaObject::invokeMethod(this, "processAlert", Q_ARG(const libtorrent::alert*, a));
+}
+
+void Controller::processAlert(const libtorrent::alert * a) {
+
+    // In each case, tell bitswapr thread to run the given method
 	if (libtorrent::metadata_received_alert const * p = libtorrent::alert_cast<libtorrent::metadata_received_alert>(a))
 	{
 		std::cout << "metadata_received_alert" << std::endl;
@@ -199,10 +163,9 @@ void Controller::processAlert(libtorrent::alert const * a) {
 		}
 		*/
 	}
-	else if (libtorrent::add_torrent_alert const * p = libtorrent::alert_cast<libtorrent::add_torrent_alert>(a))
-		processAddTorrentAlert(p);
-	else if (libtorrent::torrent_finished_alert const * p = libtorrent::alert_cast<libtorrent::torrent_finished_alert>(a))
-	{
+    else if (libtorrent::add_torrent_alert const * p = libtorrent::alert_cast<libtorrent::add_torrent_alert>(a))
+        processAddTorrentAlert(p);
+    else if (libtorrent::torrent_finished_alert const * p = libtorrent::alert_cast<libtorrent::torrent_finished_alert>(a)) {
 		std::cout << "torrent_finished_alert" << std::endl;
 
 		/*
@@ -266,25 +229,20 @@ void Controller::processAlert(libtorrent::alert const * a) {
 	}
 	else if (libtorrent::state_update_alert const * p = libtorrent::alert_cast<libtorrent::state_update_alert>(a))
         processStatusUpdateAlert(p);
-    else if(libtorrent::torrent_deleted_alert const * p = libtorrent::alert_cast<libtorrent::torrent_deleted_alert>(a))
-        processTorrentDeletedAlert(p);
-
-
-
-}
-
-void Controller::processTorrentDeletedAlert(libtorrent::torrent_deleted_alert const * p) {
 
     /*
-    // Remove among torrent handle
-    std::vector<libtorrent::torrent_handle>::iterator i = std::find(torrentHandles.begin(),
-                                                                    torrentHandles.end(),
-                                                                    p->handle);
-
-    // Can we trust i here?
-
-    torrentHandles.erase(i);
+    if(libtorrent::torrent_removed_alert const * p = libtorrent::alert_cast<libtorrent::torrent_removed_alert>(a))
+        processTorrentRemovedAlert(p);
     */
+
+    // Delete alert
+    //delete p;
+}
+
+/*
+void Controller::processTorrentRemovedAlert(libtorrent::torrent_removed_alert const * p) {
+
+    // Docs say p->handle may be invalid at this time.
 
     // Find torrent params in addTorrentParameters
     for(std::vector<libtorrent::add_torrent_params>::iterator i = addTorrentParameters.begin(),
@@ -299,7 +257,7 @@ void Controller::processTorrentDeletedAlert(libtorrent::torrent_deleted_alert co
             addTorrentParameters.erase(i);
 
             // Notify view to remove torrent
-            emit removeTorrent(p->info_hash);
+            view.removeTorrent(p->info_hash);
 
             // Done
             break;
@@ -307,8 +265,9 @@ void Controller::processTorrentDeletedAlert(libtorrent::torrent_deleted_alert co
 
     }
 
-    std::cerr << "Got a torrent_deleted_alert alert, but no match exists in addTorrentParameters." << std::endl;
+    std::cerr << "Got a torrent_removed_alert alert, but no match exists in addTorrentParameters." << std::endl;
 }
+*/
 
 void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p) {
 
@@ -323,7 +282,7 @@ void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p)
 
     // Check if there was an error
     if (p->error)
-        emit addTorrentFailed(name, p->params.info_hash, p->error);
+        view.addTorrentFailed(name, p->params.info_hash, p->error);
     else {
 
         // Save handle
@@ -338,12 +297,12 @@ void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p)
         */
 
         // Add torrent to view
-        emit addTorrent(p->handle.info_hash(), name, totalSize);
+        view.addTorrent(p->handle.info_hash(), name, totalSize);
 	}
 }
 
 void Controller::processStatusUpdateAlert(libtorrent::state_update_alert const * p) {
-    emit updateTorrentStatus(p->status);
+    view.updateTorrentStatus(p->status);
 }
 
 void Controller::addTorrentFromTorrentFile(const QString & torrentFile) {
@@ -402,8 +361,9 @@ void Controller::addTorrentFromMagnetLink(const QString & magnetLink) {
     //delete addTorrentDialog;
 }
 
-void Controller::removeTorrent(const libtorrent::torrent_handle & torrentHandle) {
+void Controller::removeTorrent(const libtorrent::torrent_handle torrentHandle) {
 
+    //std::cerr << "view was able to call controller" << std::endl;
     session.remove_torrent(torrentHandle);
 }
 
@@ -492,4 +452,21 @@ void Controller::saveStateToFile(const char * file) {
 
 	// Save to file
 	controllerState.saveToFile(file);
+}
+
+void Controller::close() {
+
+    // Stop libtorrent
+
+    // Save libtorrent state, resume data etc.
+
+    // Save state to file
+
+    // Stop all event further event processing
+
+    // stop timer
+    //statusUpdateTimer
+
+    // Done
+
 }

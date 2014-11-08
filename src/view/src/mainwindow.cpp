@@ -112,8 +112,16 @@ void MainWindow::startMenuAction() {
 
 void MainWindow::removeMenuAction() {
 
-    // Get handle
+    // Remove row from model
+    model->removeRows(lastIndexClicked.row(), 1);
+
+    // Remove from info hash container
     libtorrent::torrent_handle torrentHandle = getTorrentHandleLastClicked();
+
+    infoHashInRow.erase(std::remove(infoHashInRow.begin(),
+                                    infoHashInRow.end(),
+                                    torrentHandle.info_hash()),
+                        infoHashInRow.end());
 
     // Notify controller to remove torrent
     controller_->removeTorrent(torrentHandle);
@@ -169,10 +177,6 @@ void MainWindow::on_closePushButton_clicked() {
 }
 
 void MainWindow::addTorrent(const libtorrent::sha1_hash & info_hash, const std::string & torrentName, int totalSize) {
-
-    /*
-     * change model to avoid the whole hash map mess
-     */
 
     // Create row for model
     QList<QStandardItem *> modelRow;

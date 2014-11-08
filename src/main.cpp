@@ -1,29 +1,29 @@
 #include <QApplication>
+#include <QThread>
 
 #include <iostream>
 
+// LATER REPLACE BOOST COMMAND LINE PROCESSING WITH QCommandLineParser
 #ifndef Q_MOC_RUN
+
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
-#endif Q_MOC_RUN
-
-#include "controller/include/Controller.hpp"
-#include "controller/include/ControllerState.hpp"
-#include "controller/include/Exceptions/ListenOnException.hpp"
-#include "view/include/mainwindow.h"
-
-// Forward declarations
-void loadJVM();
-bool updateManager();
 
 // Name space abbreviations
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 
-void main(int argc, char* argv[]) {
+#endif Q_MOC_RUN
 
-    // Load JVM
-    loadJVM();
+#include "controller/include/Controller.hpp"
+#include "controller/include/ControllerState.hpp"
+#include "controller/include/Exceptions/ListenOnException.hpp"
+#include "controller/include/Exceptions/MissingInfoHashViewRequestException.hpp"
+
+// Forward declarations
+bool updateManager();
+
+void main(int argc, char* argv[]) {
 
     // Create options description
     po::options_description desc("Allowed options");
@@ -31,9 +31,9 @@ void main(int argc, char* argv[]) {
     // Add options
     desc.add_options()
       ("help,h", "Print help messages")
+      ("no-update,n", "Do not run update manager")
       ("console,c", "Run in console mode")
-      ("fresh,f", "Create and use a fresh parameter file")
-      ("no-update,n", "Do not run update manager");
+      ("fresh,f", "Create and use a fresh parameter file");
 
     // Parse the command line catching and displaying any parser errors
     po::variables_map vm;
@@ -71,6 +71,9 @@ void main(int argc, char* argv[]) {
     if(!vm.count("console"))
         useConsole = true;
 
+    // Create Qt application: all objects created after this point are owned by this thread
+    QApplication a(argc, argv);
+
     // Open existing parameter file, or create a fresh one if user passed fresh flag
     ControllerState * state = NULL;
     if(!vm.count("fresh")) {
@@ -92,9 +95,6 @@ void main(int argc, char* argv[]) {
     } else // Load default state
         state = new ControllerState();
 
-    // Create application
-    QApplication a(argc, argv);
-
     // Create controller
     Controller * controller;
 
@@ -105,15 +105,8 @@ void main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    // Start session loop thread and show view
-    controller->begin();
-
-    // Start running Qt application event loop
+    // Start application event loop
     a.exec();
-}
-
-void loadJVM() {
-
 }
 
 bool updateManager() {
