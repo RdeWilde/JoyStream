@@ -59,11 +59,21 @@ private:
     // Routine for processig libtorrent alerts
     void processAddTorrentAlert(libtorrent::add_torrent_alert const * p);
     void processStatusUpdateAlert(libtorrent::state_update_alert const * p);
+    void processTorrentRemovedAlert(libtorrent::torrent_removed_alert const * p);
+
+    std::auto_ptr<std::vector<libtorrent::add_torrent_params>::iterator> findTorrentParamsFromInfoHash(const libtorrent::sha1_hash & info_hash);
+
+    bool loadResumeDataForTorrent(libtorrent::add_torrent_params & params) const;
+
+    void saveResumeDataForAllTorrent() const;
+    bool saveResumeDataForTorrent(libtorrent::add_torrent_params const & params) const;
+
+    QString resumeFileNameForTorrent(libtorrent::add_torrent_params const & params) const;
 
 public:
 
 	// Constructor starting session with given state
-    Controller(const ControllerState & state);
+    Controller(ControllerState state);
 
     // Connect controller signals to view slots
     void connecToViewSlots(MainWindow * view);

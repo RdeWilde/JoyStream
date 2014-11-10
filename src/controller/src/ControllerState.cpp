@@ -518,7 +518,7 @@ const std::pair<int, int> & ControllerState::getPortRange() const {
 	return portRange;
 }
 
-const std::vector<libtorrent::add_torrent_params> & ControllerState::getTorrentParameters() const {
+std::vector<libtorrent::add_torrent_params> & ControllerState::getTorrentParameters() {
 	return addTorrentParameters;
 }
 

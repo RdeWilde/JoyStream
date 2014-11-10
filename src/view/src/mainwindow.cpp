@@ -9,6 +9,7 @@
 #include <QString>
 #include <QInputDialog>
 #include <QAction>
+#include <QCloseEvent>
 
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>
@@ -112,16 +113,8 @@ void MainWindow::startMenuAction() {
 
 void MainWindow::removeMenuAction() {
 
-    // Remove row from model
-    model->removeRows(lastIndexClicked.row(), 1);
-
     // Remove from info hash container
     libtorrent::torrent_handle torrentHandle = getTorrentHandleLastClicked();
-
-    infoHashInRow.erase(std::remove(infoHashInRow.begin(),
-                                    infoHashInRow.end(),
-                                    torrentHandle.info_hash()),
-                        infoHashInRow.end());
 
     // Notify controller to remove torrent
     controller_->removeTorrent(torrentHandle);
@@ -138,7 +131,6 @@ libtorrent::torrent_handle MainWindow::getTorrentHandleLastClicked() {
     // Get handle
     return controller_->getTorrentHandleFromInfoHash(info_hash);    // libtorrent::torrent_handle torrentHandle =
 }
-
 
 void MainWindow::on_addTorrentFilePushButton_clicked()
 {
@@ -174,6 +166,14 @@ void MainWindow::on_addMagnetLinkPushButton_clicked()
 
 void MainWindow::on_closePushButton_clicked() {
 
+    // Notify controller
+    controller_->close();
+}
+
+void MainWindow::closeEvent(QCloseEvent * event) {
+
+    // Notify controller
+    controller_->close();
 }
 
 void MainWindow::addTorrent(const libtorrent::sha1_hash & info_hash, const std::string & torrentName, int totalSize) {
@@ -182,8 +182,6 @@ void MainWindow::addTorrent(const libtorrent::sha1_hash & info_hash, const std::
     QList<QStandardItem *> modelRow;
 
     QString name(torrentName.c_str());
-    //QStandardItem * nameQStandardItem = new QStandardItem(name);
-    //modelRow.append(nameQStandardItem);
     modelRow.append(new QStandardItem(name));
 
     QString size = QString::number(totalSize);
@@ -195,8 +193,7 @@ void MainWindow::addTorrent(const libtorrent::sha1_hash & info_hash, const std::
     QString speed("");
     modelRow.append(new QStandardItem(speed));
 
-    // Add to name model item to to make it recoverable from info_hash
-    //rowMap.insert(std::make_pair(info_hash, nameQStandardItem));
+    // Remember info has order
     infoHashInRow.push_back(info_hash);
 
     // Add row to model
@@ -212,15 +209,6 @@ void MainWindow::updateTorrentStatus(const std::vector<libtorrent::torrent_statu
 }
 
 void MainWindow::updateTorrentStatus(const libtorrent::torrent_status & torrentStatus) {
-
-    /*
-    // Find model item corresponding to torrent
-    QStandardItem * firstItem = rowMap.at(torrentStatus.info_hash);
-
-    // Find row of model item
-    QModelIndex index = model->indexFromItem(firstItem);
-    int row = index.row();
-    */
 
     // Find row where torrent is located
     int row = findRowFromInfoHash(torrentStatus.info_hash);
@@ -244,13 +232,59 @@ void MainWindow::updateTorrentStatus(const libtorrent::torrent_status & torrentS
         model->item(row,1)->setText(size);
     }
 
-    // Satus
+    // Status
     QString status;
 
     if(torrentStatus.paused)
         status = "Paused";
-    else
-        status = QString::number(torrentStatus.progress*100,'f',0).append("%");
+    else {
+
+        // .progress reports the pogress of the relevant task, but I suspect it is being used
+        // some what incorrectly in som eof the cases below.
+
+        switch(torrentStatus.state) {
+
+            case libtorrent::torrent_status::queued_for_checking:
+
+                status = "Queued for checking";
+
+                break;
+            case libtorrent::torrent_status::checking_files:
+
+                status = "Checking files";
+                status += " " + QString::number(torrentStatus.progress*100,'f',0).append("%");
+                break;
+            case libtorrent::torrent_status::downloading_metadata:
+
+                status = "Downloading metadata";
+                status += " " + QString::number(torrentStatus.progress*100,'f',0).append("%");
+                break;
+            case libtorrent::torrent_status::downloading:
+
+                status = "Downloading";
+                status += " " + QString::number(torrentStatus.progress*100,'f',0).append("%");
+                break;
+            case libtorrent::torrent_status::finished:
+
+                status = "Finished";
+                break;
+            case libtorrent::torrent_status::seeding:
+
+                status = "Seeding";
+                break;
+            case libtorrent::torrent_status::allocating:
+
+                status = "Allocating";
+                status += " " + QString::number(torrentStatus.progress*100,'f',0).append("%");
+                break;
+            case libtorrent::torrent_status::checking_resume_data:
+
+                status = "Checking resume data";
+                status += " " + QString::number(torrentStatus.progress*100,'f',0).append("%");
+                break;
+        }
+
+    }
 
     model->item(row,2)->setText(status);
 
@@ -267,8 +301,19 @@ void MainWindow::updateTorrentStatus(const libtorrent::torrent_status & torrentS
 
 void MainWindow::removeTorrent(const libtorrent::sha1_hash & info_hash) {
 
-    std::cout << "remove signal received from controller." << std::endl;
+    // Try to get row
+    int row = findRowFromInfoHash(info_hash);
 
+    // Check that it is valid
+
+    // Remove row from model
+    model->removeRows(row, 1);
+
+    // Remove from info hash container
+    infoHashInRow.erase(std::remove(infoHashInRow.begin(),
+                                    infoHashInRow.end(),
+                                    info_hash),
+                        infoHashInRow.end());
 }
 
 void MainWindow::addTorrentFailed(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec) {

@@ -1,5 +1,7 @@
 #include <QApplication>
 #include <QThread>
+#include <QString>
+#include <QDir>
 
 #include <iostream>
 
@@ -7,14 +9,13 @@
 #ifndef Q_MOC_RUN
 
 #include <boost/program_options.hpp>
-#include <boost/filesystem.hpp>
 
 // Name space abbreviations
 namespace po = boost::program_options;
-namespace fs = boost::filesystem;
 
 #endif Q_MOC_RUN
 
+#include "Config.hpp"
 #include "controller/include/Controller.hpp"
 #include "controller/include/ControllerState.hpp"
 #include "controller/include/Exceptions/ListenOnException.hpp"
@@ -79,19 +80,17 @@ void main(int argc, char* argv[]) {
     if(!vm.count("fresh")) {
 
         // Get name of file name
-        fs::path file = operator/(fs::current_path(), fs::path("parameter-file.txt")); // Parameters.DEFAULT_FILE_NAME
+        QString file = QDir::current().absolutePath () + QDir::separator() + PARAMETER_FILE_NAME;
+        std::string fileString = file.toStdString();
 
         // Check that file exists, and that it actually is a file
-        if(!fs::exists(file)) {
-            std::cerr << "ERROR: parameter file " << file << " does not exist." << std::endl << "Try fresh run option if problem persists" << std::endl << std::endl;
-            exit(EXIT_FAILURE);
-        } else if(!fs::is_regular_file(file)) {
-            std::cerr << "ERROR: parameter file " << file << " is not regular." << std::endl << "Try fresh run option if problem persists" << std::endl << std::endl;
+        if(!QFile::exists(file)) {
+            std::cerr << "ERROR: parameter file " << fileString.c_str() << " does not exist." << std::endl << "Try fresh run option if problem persists" << std::endl << std::endl;
             exit(EXIT_FAILURE);
         }
 
         // Load state from file
-        state = new ControllerState(file.string().c_str());
+        state = new ControllerState(fileString.c_str());
     } else // Load default state
         state = new ControllerState();
 
@@ -107,6 +106,12 @@ void main(int argc, char* argv[]) {
 
     // Start application event loop
     a.exec();
+
+    // Notify that event loop processing was ended
+    std::cout << "Qt event loop exited, application closing." << std::endl;
+
+    // Delete controller to delete session object, and thereby close libtorrent
+    delete controller;
 }
 
 bool updateManager() {

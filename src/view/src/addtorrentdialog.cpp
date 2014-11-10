@@ -52,11 +52,13 @@ void AddTorrentDialog::on_AddTorrentDialog_accepted() {
 }
 
 void AddTorrentDialog::on_AddTorrentDialog_rejected() {
+
     // Close window
     closeWindow();
 }
 
 void AddTorrentDialog::on_saveToFolderPushButton_clicked() {
+
     // Show directory chooser
     QString path = QFileDialog::getExistingDirectory (this, tr("Directory"), "C:\\");
 
@@ -66,7 +68,4 @@ void AddTorrentDialog::on_saveToFolderPushButton_clicked() {
 }
 
 void AddTorrentDialog::closeWindow() {
-
-    // Delete window resources
-    //delete this;
 }

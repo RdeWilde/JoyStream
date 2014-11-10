@@ -17,13 +17,26 @@
 #include <QDir>
 #include <QFile>
 #include <QByteArray>
+#include <QThread>
 
 #ifndef Q_MOC_RUN
 #include <boost/bind.hpp>
 #endif Q_MOC_RUN
 
-Controller::Controller(const ControllerState & state)
-    : session(libtorrent::fingerprint("BR", BITSWAPR_VERSION_MAJOR, BITSWAPR_VERSION_MINOR, 0, 0) , libtorrent::session::add_default_plugins + libtorrent::alert::debug_notification + libtorrent::alert::stats_notification)
+Controller::Controller(ControllerState state)
+    : session(libtorrent::fingerprint("BR"
+                                      ,BITSWAPR_VERSION_MAJOR
+                                      ,BITSWAPR_VERSION_MINOR
+                                      ,0
+                                      ,0)
+              ,libtorrent::session::add_default_plugins
+              ,libtorrent::alert::error_notification
+              +libtorrent::alert::tracker_notification
+              +libtorrent::alert::debug_notification
+              +libtorrent::alert::status_notification
+              +libtorrent::alert::progress_notification
+              +libtorrent::alert::performance_warning
+              +libtorrent::alert::stats_notification)
     , view(this) {
 
     // Register types for signal and slots
@@ -64,17 +77,11 @@ Controller::Controller(const ControllerState & state)
 	session.start_dht();
 
 	// Add torrents to session and to controller
-	const std::vector<libtorrent::add_torrent_params> & p = state.getTorrentParameters();
+    std::vector<libtorrent::add_torrent_params> & p = state.getTorrentParameters();
 	
-	for(std::vector<libtorrent::add_torrent_params>::const_iterator i = p.begin()
-		, end(p.end()); i != end; ++i) {
-
-		// Add to session
-		session.async_add_torrent(*i);
-
-		// Add to controller
-		addTorrentParameters.push_back(*i);
-	}
+    for(std::vector<libtorrent::add_torrent_params>::iterator i = p.begin()
+        , end(p.end()); i != end; ++i)
+        addTorrent(*i);
 
     // Set libtorrent to call processAlert when alert is created
     session.set_alert_dispatch(boost::bind(&Controller::libtorrent_alert_dispatcher_callback, this, _1));
@@ -92,6 +99,9 @@ Controller::Controller(const ControllerState & state)
     QObject::connect(&statusUpdateTimer, SIGNAL(timeout()), this, SLOT(callPostTorrentUpdates()));
     statusUpdateTimer.start();
 
+    // Restore view state
+    //view.restoreState();
+
     // Show view
     view.show();
 }
@@ -99,27 +109,6 @@ Controller::Controller(const ControllerState & state)
 void Controller::callPostTorrentUpdates() {
     session.post_torrent_updates();
 }
-
-/*
-void Controller::connecToViewSlots(MainWindow * view) {
-
-    // Setup view, connect controller signals with view slots
-    QObject::connect(this, SIGNAL(addTorrent(const libtorrent::sha1_hash &, const std::string &, int)),
-                      view, SLOT(addTorrent(const libtorrent::sha1_hash &, const std::string &, int)));
-
-    QObject::connect(this, SIGNAL(addTorrentFailed(const std::string &, const libtorrent::sha1_hash &, const libtorrent::error_code &)),
-                      view, SLOT(addTorrentFailed(const std::string &, const libtorrent::sha1_hash &, const libtorrent::error_code &)));
-
-    QObject::connect(this, SIGNAL(updateTorrentStatus(const std::vector<libtorrent::torrent_status> &)),
-                      view, SLOT(updateTorrentStatus(const std::vector<libtorrent::torrent_status> &)));
-
-    QObject::connect(this, SIGNAL(updateTorrentStatus(const libtorrent::torrent_status &)),
-                      view, SLOT(updateTorrentStatus(const libtorrent::torrent_status &)));
-
-    QObject::connect(this, SIGNAL(removeTorrent(const libtorrent::sha1_hash &)),
-                      view, SLOT(removeTorrent(const libtorrent::sha1_hash &)));
-}
-*/
 
 void Controller::libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::alert> alertAutoPtr) {
 
@@ -137,6 +126,13 @@ void Controller::libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::
 }
 
 void Controller::processAlert(const libtorrent::alert * a) {
+
+    // Check that alert is not a queued up linger alert corresponding
+    // to a recently removed torrent.
+
+    // something()
+
+
 
     // In each case, tell bitswapr thread to run the given method
 	if (libtorrent::metadata_received_alert const * p = libtorrent::alert_cast<libtorrent::metadata_received_alert>(a))
@@ -229,45 +225,143 @@ void Controller::processAlert(const libtorrent::alert * a) {
 	}
 	else if (libtorrent::state_update_alert const * p = libtorrent::alert_cast<libtorrent::state_update_alert>(a))
         processStatusUpdateAlert(p);
-
-    /*
-    if(libtorrent::torrent_removed_alert const * p = libtorrent::alert_cast<libtorrent::torrent_removed_alert>(a))
+    else if(libtorrent::torrent_removed_alert const * p = libtorrent::alert_cast<libtorrent::torrent_removed_alert>(a))
         processTorrentRemovedAlert(p);
-    */
 
     // Delete alert
-    //delete p;
+    delete a;
 }
 
-/*
-void Controller::processTorrentRemovedAlert(libtorrent::torrent_removed_alert const * p) {
+// REMOVE AUTO POINTER, PASS ITERATOR ADDRESS OR REF INSTED
+std::auto_ptr<std::vector<libtorrent::add_torrent_params>::iterator> Controller::findTorrentParamsFromInfoHash(const libtorrent::sha1_hash & info_hash) {
 
-    // Docs say p->handle may be invalid at this time.
+    // Allocate iterator copy on heap
+    std::vector<libtorrent::add_torrent_params>::iterator * i_heap = new std::vector<libtorrent::add_torrent_params>::iterator();
 
-    // Find torrent params in addTorrentParameters
-    for(std::vector<libtorrent::add_torrent_params>::iterator i = addTorrentParameters.begin(),
-        end(addTorrentParameters.end()); i != end;i++) {
+    // Declare auto pointer pointing to iterator on heap
+    std::auto_ptr<std::vector<libtorrent::add_torrent_params>::iterator> a_ptr(i_heap);
 
-        libtorrent::add_torrent_params & params = (*i);
+    // Check if vector is empty, in which case we cannot dereference .begin() iterator
+    if(!addTorrentParameters.empty()) {
 
-        // Check for match
-        if(params.info_hash == p->info_hash) {
+        // Iterate, using iterator on heap, to find match
+        *i_heap = addTorrentParameters.begin();
+        std::vector<libtorrent::add_torrent_params>::iterator end = addTorrentParameters.end();
 
-            // Remove torrent
-            addTorrentParameters.erase(i);
+        for(; *i_heap != end;(*i_heap)++) {
 
-            // Notify view to remove torrent
-            view.removeTorrent(p->info_hash);
+            libtorrent::add_torrent_params & params = *(*i_heap);
 
-            // Done
-            break;
+            // Check for match, and return
+            if(params.info_hash == info_hash) {
+                std::cout << "did we get here?" << std::endl;
+
+                return a_ptr;
+            }
         }
-
     }
 
-    std::cerr << "Got a torrent_removed_alert alert, but no match exists in addTorrentParameters." << std::endl;
+    // Free heap iterator and set auto pointer to 0
+    a_ptr.reset();
+
+    // Return null auto_ptr
+    return a_ptr;
 }
-*/
+
+bool Controller::loadResumeDataForTorrent(libtorrent::add_torrent_params & params) const {
+
+    // Check that file exists
+    QString resumeFile = QString(params.save_path.c_str()) + QDir::separator() + resumeFileNameForTorrent(params);
+    QFile file(resumeFile);
+
+    if(file.exists()) {
+
+        // Open file
+        if(!file.open(QIODevice::ReadOnly)) {
+            std::cerr << "Could not open : " << resumeFile.toStdString().c_str() << std::endl;
+            return false;
+        }
+
+        // Read entire file
+        QByteArray fullFile = file.readAll();
+
+        // Close file
+        file.close();
+
+        // Populate resume_data vector
+        for(QByteArray::iterator i = fullFile.begin(), end(fullFile.end()); i != end; i++)
+            params.resume_data.push_back(*i);
+
+        return true;
+    } else
+        return false;
+}
+
+void Controller::saveResumeDataForAllTorrent() const {
+
+    for(std::vector<libtorrent::add_torrent_params>::const_iterator i = addTorrentParameters.begin(),
+        end(addTorrentParameters.end()); i != end;i++)
+        saveResumeDataForTorrent(*i);
+}
+
+bool Controller::saveResumeDataForTorrent(libtorrent::add_torrent_params const & params) const {
+
+    // Check that save_path still exists, if not create it,
+    // because it could have been deleted by user since addTorrent()
+    // If you cant create it, then return false
+    if(!(QDir().exists(params.save_path.c_str()) || QDir().mkpath(params.save_path.c_str()))) {
+
+        std::cerr << "Could not create save_path: " << params.save_path << std::endl;
+        return false;
+    }
+
+    // Open file
+    QString resumeFile = QString(params.save_path.c_str()) + QDir::separator() + resumeFileNameForTorrent(params);
+    QFile file(resumeFile);
+
+    if(!file.open(QIODevice::WriteOnly)) {
+
+        std::cerr << "Could not open : " << resumeFile.toStdString().c_str() << std::endl;
+        return false;
+    }
+
+    // Write to file
+    file.write(&(params.resume_data[0]), params.resume_data.size());
+
+    // Close file
+    file.close();
+
+    return true;
+}
+
+QString Controller::resumeFileNameForTorrent(libtorrent::add_torrent_params const & params) const {
+    return QString((libtorrent::to_hex(params.info_hash.to_string()) + ".resume").c_str());
+}
+
+void Controller::processTorrentRemovedAlert(libtorrent::torrent_removed_alert const * p) {
+
+    /*
+     * NOTICE: Docs say p->handle may be invalid at this time,
+     * so we must use p->info_hash instead.
+     */
+
+    // Find torrent params in addTorrentParameters
+    std::auto_ptr<std::vector<libtorrent::add_torrent_params>::iterator> a_ptr = findTorrentParamsFromInfoHash(p->info_hash);
+
+    // Did we find a match
+    if(a_ptr.get() != 0) {
+
+        // Remove torrent
+        addTorrentParameters.erase(*a_ptr.get());
+
+        // Notify view to remove torrent
+        view.removeTorrent(p->info_hash);
+
+        std::cerr << "Found match and removed it." << std::endl;
+
+    } else
+        std::cerr << "We found no matching torrent for this." << std::endl;
+}
 
 void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p) {
 
@@ -317,23 +411,24 @@ void Controller::addTorrentFromTorrentFile(const QString & torrentFile) {
     libtorrent::add_torrent_params params;
 
     // Load torrent file
-    boost::intrusive_ptr<libtorrent::torrent_info> torrentInfo;
     libtorrent::error_code ec;
-    torrentInfo = new libtorrent::torrent_info(torrentFile.toStdString().c_str(), ec);
+    boost::intrusive_ptr<libtorrent::torrent_info> torrentInfoPointer = new libtorrent::torrent_info(torrentFile.toStdString().c_str(), ec);
     if(ec) {
         std::cout << "Invalid torrent file: " << ec.message().c_str() << std::endl;
         return;
     }
 
-    params.ti = torrentInfo;
+    // Set torrent info in parameters
+    params.ti = torrentInfoPointer;
 
     // Show window for adding torrent
     AddTorrentDialog * addTorrentDialog = new AddTorrentDialog(this, params);
-    addTorrentDialog->exec();
 
-    // Delete window resources
-    // is this a good idea
-    //delete addTorrentDialog;
+    std::cerr << "was able to create dialog" << std::endl;
+    addTorrentDialog->exec(); // <-- starts new event loop, no more libtorrent alerts are processed in mean time.
+
+    // Delete window
+    delete addTorrentDialog;
 }
 
 void Controller::addTorrentFromMagnetLink(const QString & magnetLink) {
@@ -348,7 +443,7 @@ void Controller::addTorrentFromMagnetLink(const QString & magnetLink) {
 
     // Exit if link is malformed
     if(ec) {
-        std::cout << "Malformed magnet link: " << ec.message().c_str() << std::endl;
+        std::cout << "Malf|ormed magnet link: " << ec.message().c_str() << std::endl;
         return;
     }
 
@@ -357,13 +452,12 @@ void Controller::addTorrentFromMagnetLink(const QString & magnetLink) {
     addTorrentDialog->exec();
 
     // Delete window resources
-    // is this a good idea
-    //delete addTorrentDialog;
+    delete addTorrentDialog;
 }
 
 void Controller::removeTorrent(const libtorrent::torrent_handle torrentHandle) {
 
-    //std::cerr << "view was able to call controller" << std::endl;
+    // Remove from session
     session.remove_torrent(torrentHandle);
 }
 
@@ -371,50 +465,41 @@ libtorrent::torrent_handle Controller::getTorrentHandleFromInfoHash(const libtor
     return session.find_torrent(info_hash);
 }
 
+// comment out later
 libtorrent::session & Controller::getSession() {
     return session;
 }
 
 void Controller::addTorrent(libtorrent::add_torrent_params & params) {
 
-    QString savePath(params.save_path.c_str());
+    /*
+    * If info_hash is not set, we try and set it.
+    * This would typically be the case if torrent was added through torrent
+    * file rather than magnet link. The primary reason for this constraint is because searching
+    * addTorrentParameters is based on info_hashes
+    */
+    if(params.info_hash.is_all_zeros()) {
+
+        // Is torrent info set, use it
+        if(params.ti.get() != 0 && !params.ti->info_hash().is_all_zeros()) {
+            libtorrent::sha1_hash info_hash = params.ti->info_hash();
+            params.info_hash = info_hash;
+        } else {
+            // Throw exception in future
+            std::cerr << "no valid info_hash set." << std::endl;
+            return;
+        }
+    }
 
     // Create save_path if it does not exist
-    QDir savePathDirectory;
-    bool failed = !savePathDirectory.mkpath(savePath);
+    if(!(QDir()).mkpath(params.save_path.c_str())) {
 
-    if(failed) {
-        std::cerr << "Could not create save_path: " << savePath.toStdString().c_str() << std::endl;
+        std::cerr << "Could not create save_path: " << params.save_path << std::endl;
         return;
     }
 
     // Load resume data if it exists
-    QString resumeFileName = (libtorrent::to_hex(params.info_hash.to_string()) + ".resume").c_str();
-
-    if(QDir(savePath).exists(resumeFileName)) {
-
-        // Vector for resume data
-        std::vector<char> resume_data;
-
-        // Open file
-        QFile file(resumeFileName);
-
-        if(!file.open(QIODevice::ReadOnly)) {
-            std::cerr << "Could not open : " << resumeFileName.toStdString().c_str() << std::endl;
-            return;
-        }
-
-        // Read entire file
-        QByteArray fullFile = file.readAll();
-
-        // Populate resume_data vector
-        for(QByteArray::iterator i = fullFile.begin(),
-            end(fullFile.end()); i != end; i++)
-            resume_data.push_back(*i);
-
-        // set parameter
-        params.resume_data = resume_data;
-    }
+    loadResumeDataForTorrent(params);
 
     // Set parameters
     //params.storage_mode = (storage_mode_t)allocation_mode; //  disabled_storage_constructor;
@@ -435,7 +520,6 @@ void Controller::addTorrent(libtorrent::add_torrent_params & params) {
     // Add to controller
     // - DO WE EVEN NEED TO KEEP TRACK OF THIS? -
     addTorrentParameters.push_back(params);
-
 }
 
 void Controller::saveStateToFile(const char * file) {
@@ -456,17 +540,19 @@ void Controller::saveStateToFile(const char * file) {
 
 void Controller::close() {
 
-    // Stop libtorrent
+    // Pause all torrents
+    session.pause();
 
-    // Save libtorrent state, resume data etc.
+    // Save all resume data
+    saveResumeDataForAllTorrent();
 
-    // Save state to file
+    // Save state of controller (includes full libtorrent state) to parameter file
+    QString file = QDir::current().absolutePath () + QDir::separator() + PARAMETER_FILE_NAME;
+    this->saveStateToFile(file.toStdString().c_str());
 
-    // Stop all event further event processing
+    // Exit Qt event loop
+    QThread::currentThread()->exit();
 
-    // stop timer
-    //statusUpdateTimer
-
-    // Done
-
+    // Save state of window
+    //view.saveState();
 }

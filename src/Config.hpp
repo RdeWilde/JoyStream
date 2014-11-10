@@ -11,4 +11,6 @@
 // Time between each time session.post_torrent_updates() is called, in milliseconds
 #define POST_TORRENT_UPDATES_DELAY 1000
 
+#define PARAMETER_FILE_NAME "parameters.txt"
+
 #endif

@@ -86,7 +86,7 @@ public:
 	// Get routines
 	const libtorrent::entry getLibtorrentSessionSettingsEntry() const;
 	const std::pair<int, int> & getPortRange() const;
-	const std::vector<libtorrent::add_torrent_params> & getTorrentParameters() const;
+    std::vector<libtorrent::add_torrent_params> & getTorrentParameters();
 	const std::vector<std::pair<std::string, int>> & getDhtRouters() const;
 };
 

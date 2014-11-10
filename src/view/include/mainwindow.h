@@ -27,6 +27,9 @@ public:
     MainWindow(Controller * controller);
     ~MainWindow();
 
+protected:
+    void closeEvent(QCloseEvent *event);
+
 public slots:
 
     /*
