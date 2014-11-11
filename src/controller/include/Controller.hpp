@@ -60,15 +60,48 @@ private:
     void processAddTorrentAlert(libtorrent::add_torrent_alert const * p);
     void processStatusUpdateAlert(libtorrent::state_update_alert const * p);
     void processTorrentRemovedAlert(libtorrent::torrent_removed_alert const * p);
+    void processSaveResumeDataAlert(libtorrent::save_resume_data_alert const * p);
+    void processSaveResumeDataFailedAlert(libtorrent::save_resume_data_failed_alert const * p);
 
     std::auto_ptr<std::vector<libtorrent::add_torrent_params>::iterator> findTorrentParamsFromInfoHash(const libtorrent::sha1_hash & info_hash);
 
-    bool loadResumeDataForTorrent(libtorrent::add_torrent_params & params) const;
+    bool loadResumeDataForTorrent(QString const & save_path, QString const & file_name, std::vector<char> & resume_data) const;
 
-    void saveResumeDataForAllTorrent() const;
-    bool saveResumeDataForTorrent(libtorrent::add_torrent_params const & params) const;
+    // Tell libtorrent try save resume data for all torrents needing it
+    int makeResumeDataCallsForAllTorrents();
 
-    QString resumeFileNameForTorrent(libtorrent::add_torrent_params const & params) const;
+    // Tries to save the resume data for a torrent
+    bool saveResumeDataForTorrent(QString const & save_path, QString const & file_name, std::vector<char> const & resume_data) const;
+
+    QString resumeFileNameForTorrent(libtorrent::sha1_hash & info_hash) const;
+
+    // Routine called after all resume data has been saved
+    void finalize_close();
+
+    // Private short term state:
+    // Needed for processing which relies
+    // on asyncrhoous calls to libtorrent. It is short term in the sense
+    // that it does not need to persist across client sessions.
+
+    // Represents the number of calls that have been made to save resume data,
+    // for which a save_resume_data_failed_alert/save_resume_data_alert has not been
+    // received. If this number is greater than one, then no new (series) of calls to save resume
+    // data should be made, because that will confuse source of call, which can be
+    // a) closing client
+    // b) pausing client
+    // c) pausing an individual torrent
+    unsigned int numberOfOutstandingResumeDataCalls;
+
+    // Different sources for a resume data call
+    enum sourceForLastResumeDataCallType {
+        NONE,
+        CLIENT_PAUSE,
+        TORRENT_PAUSE,
+        CLIENT_CLOSE
+    };
+
+    // Actual source of resume data call
+    sourceForLastResumeDataCallType sourceForLastResumeDataCall;
 
 public:
 
@@ -84,15 +117,8 @@ public:
     // Invocations of this method are queued, and dispatcher callback
     Q_INVOKABLE void processAlert(libtorrent::alert const * a);
 
-    // Stops libtorrent session, saves ...
-    // Called by
-    void close();
-
     /*
-     * BELOW HERE: Routines called by view
-     *
-     * TURN ALL OF THESE INTO SLOTS LATER SO THAT THEY RUN IN CONTROLLER
-     * THREAD
+     * Routines called by view
      */
 
     // Called by ...
@@ -112,7 +138,22 @@ public:
     void addTorrentFromMagnetLink(const QString & magnetLink);
 
     // Called by MainWindow::startMenuAction()
-    void removeTorrent(const libtorrent::torrent_handle torrentHandle);
+    void removeTorrent(const libtorrent::torrent_handle & torrentHandle);
+
+    // Called by MainWindow::pauseMenuAction()
+    void pauseTorrent(libtorrent::torrent_handle & torrentHandle);
+
+    // Called by MainWindow::startMenuAction()
+    void startTorrent(libtorrent::torrent_handle & torrentHandle);
+
+    // Called by
+    // Stops libtorrent session, and tries to save_resume data.
+    // When all resume data is saved, finalize_close() is called.
+    void begin_close();
+
+    /*
+     * Utilities
+     */
 
     // Called by MainWindow::
     libtorrent::torrent_handle getTorrentHandleFromInfoHash(const libtorrent::sha1_hash & info_hash);
@@ -121,23 +162,6 @@ private slots:
 
     // Tells session to post updates, is signaled by timer
     void callPostTorrentUpdates();
-
-
-
-/*
-    // These signals are connected to corresponding slots on the view object,
-    // and they are emitted in response to
-    // 1) libtorren session alerts
-    // 2)
-    //
-
-    void addTorrent(const libtorrent::sha1_hash & info_hash, const std::string & torrentName, int totalSize);
-    void addTorrentFailed(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec);
-    void updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector);
-    void updateTorrentStatus(const libtorrent::torrent_status & torrentStatus);
-    void removeTorrent(const libtorrent::sha1_hash & info_hash);
-
-*/
 };
 
 #endif

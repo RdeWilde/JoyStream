@@ -80,17 +80,12 @@ void MainWindow::pauseMenuAction() {
     // Get handle
     libtorrent::torrent_handle torrentHandle = getTorrentHandleLastClicked();
 
-    // Is it valid, i.e. was an actual match found?
+    // Notify controller
+    // is it valid, i.e. was an actual match found?
     if(!torrentHandle.is_valid())
-        std::cout << "no match found" << std::endl;
-    else {
-
-        // Turn off auto managing
-        torrentHandle.auto_managed(false);
-
-        // Pause
-        torrentHandle.pause(libtorrent::torrent_handle::graceful_pause);
-    }
+        std::cout << "No match found" << std::endl;
+    else
+        controller_->pauseTorrent(torrentHandle);
 }
 
 void MainWindow::startMenuAction() {
@@ -100,15 +95,9 @@ void MainWindow::startMenuAction() {
 
     // Is it valid, i.e. was an actual match found?
     if(!torrentHandle.is_valid())
-        std::cout << "no match found" << std::endl;
-    else {
-
-        // Turn on auto managing
-        torrentHandle.auto_managed(true);
-
-        // Start
-        torrentHandle.resume();
-    }
+        std::cout << "No match found" << std::endl;
+    else
+        controller_->startTorrent(torrentHandle);
 }
 
 void MainWindow::removeMenuAction() {
@@ -167,13 +156,13 @@ void MainWindow::on_addMagnetLinkPushButton_clicked()
 void MainWindow::on_closePushButton_clicked() {
 
     // Notify controller
-    controller_->close();
+    controller_->begin_close();
 }
 
 void MainWindow::closeEvent(QCloseEvent * event) {
 
     // Notify controller
-    controller_->close();
+    controller_->begin_close();
 }
 
 void MainWindow::addTorrent(const libtorrent::sha1_hash & info_hash, const std::string & torrentName, int totalSize) {

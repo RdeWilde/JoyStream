@@ -37,7 +37,9 @@ Controller::Controller(ControllerState state)
               +libtorrent::alert::progress_notification
               +libtorrent::alert::performance_warning
               +libtorrent::alert::stats_notification)
-    , view(this) {
+    , view(this)
+    , numberOfOutstandingResumeDataCalls(0)
+    , sourceForLastResumeDataCall(NONE){
 
     // Register types for signal and slots
     qRegisterMetaType<libtorrent::sha1_hash>();
@@ -227,6 +229,10 @@ void Controller::processAlert(const libtorrent::alert * a) {
         processStatusUpdateAlert(p);
     else if(libtorrent::torrent_removed_alert const * p = libtorrent::alert_cast<libtorrent::torrent_removed_alert>(a))
         processTorrentRemovedAlert(p);
+    else if(libtorrent::save_resume_data_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_alert>(a))
+        processSaveResumeDataAlert(p);
+    else if(libtorrent::save_resume_data_failed_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_failed_alert>(a))
+        processSaveResumeDataFailedAlert(p);
 
     // Delete alert
     delete a;
@@ -268,10 +274,10 @@ std::auto_ptr<std::vector<libtorrent::add_torrent_params>::iterator> Controller:
     return a_ptr;
 }
 
-bool Controller::loadResumeDataForTorrent(libtorrent::add_torrent_params & params) const {
+bool Controller::loadResumeDataForTorrent(QString const & save_path, QString const & file_name, std::vector<char> & resume_data) const {
 
     // Check that file exists
-    QString resumeFile = QString(params.save_path.c_str()) + QDir::separator() + resumeFileNameForTorrent(params);
+    QString resumeFile = save_path + QDir::separator() + file_name;
     QFile file(resumeFile);
 
     if(file.exists()) {
@@ -290,33 +296,54 @@ bool Controller::loadResumeDataForTorrent(libtorrent::add_torrent_params & param
 
         // Populate resume_data vector
         for(QByteArray::iterator i = fullFile.begin(), end(fullFile.end()); i != end; i++)
-            params.resume_data.push_back(*i);
+            resume_data.push_back(*i);
 
         return true;
     } else
         return false;
 }
 
-void Controller::saveResumeDataForAllTorrent() const {
+// NB!: Alreayd assumes session is paused and does not check sourceForLastResumeDataCall and numberOfOutstandingResumeDataCalls before starting,
+// assumes they equal NONE,0 respectively.
+int Controller::makeResumeDataCallsForAllTorrents() {
 
-    for(std::vector<libtorrent::add_torrent_params>::const_iterator i = addTorrentParameters.begin(),
-        end(addTorrentParameters.end()); i != end;i++)
-        saveResumeDataForTorrent(*i);
+    // Get all handles (should be same torrents as int addTorrentParameters, but we dont check this here
+    std::vector<libtorrent::torrent_handle> handles = session.get_torrents();
+
+    // Iterate all torrents, and try to save
+    for (std::vector<libtorrent::torrent_handle>::iterator i = handles.begin(),
+         end(handles.end());i != end; ++i) {
+
+        // Get handle
+        libtorrent::torrent_handle & h = *i;
+
+        // Dont save data if we dont need to or can
+        if (!h.is_valid() || !h.need_save_resume_data() || !h.status().has_metadata)
+            continue;
+
+        // Save resume data
+        h.save_resume_data();
+
+        // Count towards number of outstanding calls
+        numberOfOutstandingResumeDataCalls++;
+    }
+
+    return numberOfOutstandingResumeDataCalls;
 }
 
-bool Controller::saveResumeDataForTorrent(libtorrent::add_torrent_params const & params) const {
+bool Controller::saveResumeDataForTorrent(QString const & save_path, QString const & file_name, std::vector<char> const & resume_data) const {
 
     // Check that save_path still exists, if not create it,
     // because it could have been deleted by user since addTorrent()
     // If you cant create it, then return false
-    if(!(QDir().exists(params.save_path.c_str()) || QDir().mkpath(params.save_path.c_str()))) {
+    if(!(QDir().exists(save_path) || QDir().mkpath(save_path))) {
 
-        std::cerr << "Could not create save_path: " << params.save_path << std::endl;
+        std::cerr << "Could not create save_path: " << save_path.toStdString().c_str() << std::endl;
         return false;
     }
 
     // Open file
-    QString resumeFile = QString(params.save_path.c_str()) + QDir::separator() + resumeFileNameForTorrent(params);
+    QString resumeFile = save_path + QDir::separator() + file_name;
     QFile file(resumeFile);
 
     if(!file.open(QIODevice::WriteOnly)) {
@@ -326,7 +353,7 @@ bool Controller::saveResumeDataForTorrent(libtorrent::add_torrent_params const &
     }
 
     // Write to file
-    file.write(&(params.resume_data[0]), params.resume_data.size());
+    file.write(&(resume_data[0]), resume_data.size());
 
     // Close file
     file.close();
@@ -334,8 +361,8 @@ bool Controller::saveResumeDataForTorrent(libtorrent::add_torrent_params const &
     return true;
 }
 
-QString Controller::resumeFileNameForTorrent(libtorrent::add_torrent_params const & params) const {
-    return QString((libtorrent::to_hex(params.info_hash.to_string()) + ".resume").c_str());
+QString Controller::resumeFileNameForTorrent(libtorrent::sha1_hash & info_hash) const {
+    return QString((libtorrent::to_hex(info_hash.to_string()) + ".resume").c_str());
 }
 
 void Controller::processTorrentRemovedAlert(libtorrent::torrent_removed_alert const * p) {
@@ -379,9 +406,6 @@ void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p)
         view.addTorrentFailed(name, p->params.info_hash, p->error);
     else {
 
-        // Save handle
-        //torrentHandles.push_back(p->handle);
-
         /*
 		h.set_max_connections(max_connections_per_torrent);
 		h.set_max_uploads(-1);
@@ -397,6 +421,63 @@ void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p)
 
 void Controller::processStatusUpdateAlert(libtorrent::state_update_alert const * p) {
     view.updateTorrentStatus(p->status);
+}
+
+void Controller::processSaveResumeDataAlert(libtorrent::save_resume_data_alert const * p) {
+
+    // Check that state of controller is compatible with the arrival of this alert
+    if(sourceForLastResumeDataCall == NONE || numberOfOutstandingResumeDataCalls > 0) {
+
+        std::cerr << "Received resume data alert, despite no outstanding calls, hence droping alert, but this is a bug." << std::endl;
+        return;
+    }
+
+    // Get torrent params to get save_path
+    std::auto_ptr<std::vector<libtorrent::add_torrent_params>::iterator> ptr = findTorrentParamsFromInfoHash(p->handle.info_hash());
+    std::vector<libtorrent::add_torrent_params>::iterator & ptr_iterator = *ptr;
+    libtorrent::add_torrent_params & params = *ptr_iterator;
+    QString save_path = params.save_path.c_str();
+
+    // Save resume data for torrent to disk
+    std::vector<char> resume_data;
+    bencode(std::back_inserter(resume_data), *(p->resume_data));
+    saveResumeDataForTorrent(save_path, resumeFileNameForTorrent(p->handle.info_hash()), resume_data);
+
+    // If this was last outstanding resume data save, then do relevant callback
+    if(numberOfOutstandingResumeDataCalls == 0) {
+
+        switch(sourceForLastResumeDataCall) {
+
+            case CLIENT_PAUSE:
+
+                break;
+            case TORRENT_PAUSE:
+
+                break;
+            case CLIENT_CLOSE:
+
+                // Close application
+                finalize_close();
+
+                break;
+            default:
+                std::cerr << "" << std::endl;
+        }
+
+        // Reset state
+        sourceForLastResumeDataCall = NONE;
+    }
+}
+
+void Controller::processSaveResumeDataFailedAlert(libtorrent::save_resume_data_failed_alert const * p) {
+
+    // Check that state of controller is compatible with the arrival of this alert
+    if(sourceForLastResumeDataCall == NONE || numberOfOutstandingResumeDataCalls > 0) {
+
+        std::cerr << "Received resume data alert, despite no outstanding calls, hence droping alert, but this is a bug." << std::endl;
+        return;
+    }
+
 }
 
 void Controller::addTorrentFromTorrentFile(const QString & torrentFile) {
@@ -443,7 +524,7 @@ void Controller::addTorrentFromMagnetLink(const QString & magnetLink) {
 
     // Exit if link is malformed
     if(ec) {
-        std::cout << "Malf|ormed magnet link: " << ec.message().c_str() << std::endl;
+        std::cout << "Malformed magnet link: " << ec.message().c_str() << std::endl;
         return;
     }
 
@@ -455,10 +536,47 @@ void Controller::addTorrentFromMagnetLink(const QString & magnetLink) {
     delete addTorrentDialog;
 }
 
-void Controller::removeTorrent(const libtorrent::torrent_handle torrentHandle) {
+void Controller::removeTorrent(const libtorrent::torrent_handle & torrentHandle) {
 
     // Remove from session
     session.remove_torrent(torrentHandle);
+}
+
+void Controller::pauseTorrent(libtorrent::torrent_handle & torrentHandle) {
+
+    // Turn off auto managing
+    torrentHandle.auto_managed(false);
+
+    // Pause
+    torrentHandle.pause(libtorrent::torrent_handle::graceful_pause);
+
+    // Save resume data
+    if(sourceForLastResumeDataCall == NONE) {
+
+        // Check that we have a valid state
+        if(numberOfOutstandingResumeDataCalls != 0) {
+
+            std::cerr << "Invalid state, sourceForLastResumeDataCall == NONE && numberOfOutstandingResumeDataCalls != 0, can't save resume data." << std::endl;
+            return;
+        }
+
+        // Set state
+        sourceForLastResumeDataCall = TORRENT_PAUSE;
+        numberOfOutstandingResumeDataCalls = 1;
+
+        // Save resume data
+        torrentHandle.save_resume_data();
+    }
+}
+
+void Controller::startTorrent(libtorrent::torrent_handle & torrentHandle) {
+
+    /*        // Turn on auto managing
+        torrentHandle.auto_managed(true);
+
+        // Start
+        torrentHandle.resume();
+        */
 }
 
 libtorrent::torrent_handle Controller::getTorrentHandleFromInfoHash(const libtorrent::sha1_hash & info_hash) {
@@ -499,7 +617,8 @@ void Controller::addTorrent(libtorrent::add_torrent_params & params) {
     }
 
     // Load resume data if it exists
-    loadResumeDataForTorrent(params);
+    //params.resume_data.clear(); // <-- should be empty
+    loadResumeDataForTorrent(params.save_path.c_str(), resumeFileNameForTorrent(params.info_hash), params.resume_data);
 
     // Set parameters
     //params.storage_mode = (storage_mode_t)allocation_mode; //  disabled_storage_constructor;
@@ -538,17 +657,34 @@ void Controller::saveStateToFile(const char * file) {
 	controllerState.saveToFile(file);
 }
 
-void Controller::close() {
+void Controller::begin_close() {
+
+    // Check if we can actually save resume data at this time
+    if(sourceForLastResumeDataCall != NONE) {
+        std::cout << "Cannot save resume data at this time due to outstanding resume_data calls, try again later." << std::endl;
+        return;
+    } else  if(numberOfOutstandingResumeDataCalls != 0) {
+        std::cerr << "ERROR: Invalid state found, numberOfOutstandingResumeDataCalls != 0, despite sourceForLastResumeDataCall == NONE. Resume data cannot be saved." << std::endl;
+        return;
+    }
 
     // Pause all torrents
     session.pause();
 
-    // Save all resume data
-    saveResumeDataForAllTorrent();
-
     // Save state of controller (includes full libtorrent state) to parameter file
     QString file = QDir::current().absolutePath () + QDir::separator() + PARAMETER_FILE_NAME;
     this->saveStateToFile(file.toStdString().c_str());
+
+    // Save resume data for all
+    sourceForLastResumeDataCall = CLIENT_CLOSE; // Note source of a new set of resume data calls
+    int numberOutStanding = makeResumeDataCallsForAllTorrents();
+
+    // If there are no outstanding, then just close right away
+    if(numberOutStanding == 0)
+        finalize_close();
+}
+
+void Controller::finalize_close() {
 
     // Exit Qt event loop
     QThread::currentThread()->exit();

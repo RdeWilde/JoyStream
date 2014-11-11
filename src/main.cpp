@@ -83,14 +83,22 @@ void main(int argc, char* argv[]) {
         QString file = QDir::current().absolutePath () + QDir::separator() + PARAMETER_FILE_NAME;
         std::string fileString = file.toStdString();
 
+        std::cerr << "did I even get here" << std::endl;
+
         // Check that file exists, and that it actually is a file
         if(!QFile::exists(file)) {
-            std::cerr << "ERROR: parameter file " << fileString.c_str() << " does not exist." << std::endl << "Try fresh run option if problem persists" << std::endl << std::endl;
-            exit(EXIT_FAILURE);
-        }
 
-        // Load state from file
-        state = new ControllerState(fileString.c_str());
+            std::cerr << "ERROR: parameter file "
+                      << fileString.c_str()
+                      << " does not exist." << std::endl
+                      << "Try fresh run option if problem persists" << std::endl << std::endl;
+
+            //exit(EXIT_FAILURE);
+
+            state = new ControllerState();
+        } else // Load state from file
+            state = new ControllerState(fileString.c_str());
+
     } else // Load default state
         state = new ControllerState();
 
