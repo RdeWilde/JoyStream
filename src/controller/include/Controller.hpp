@@ -35,7 +35,7 @@ private:
 	* so view thread can control session
 	* since this is mostly thread safe
 	* MAY need to be moved later.
-	*/
+    */
 	libtorrent::session session;
 
     // View
@@ -62,6 +62,7 @@ private:
     void processTorrentRemovedAlert(libtorrent::torrent_removed_alert const * p);
     void processSaveResumeDataAlert(libtorrent::save_resume_data_alert const * p);
     void processSaveResumeDataFailedAlert(libtorrent::save_resume_data_failed_alert const * p);
+    void processTorrentPausedAlert(libtorrent::torrent_paused_alert const * p);
 
     std::auto_ptr<std::vector<libtorrent::add_torrent_params>::iterator> findTorrentParamsFromInfoHash(const libtorrent::sha1_hash & info_hash);
 

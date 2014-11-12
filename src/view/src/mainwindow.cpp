@@ -153,11 +153,13 @@ void MainWindow::on_addMagnetLinkPushButton_clicked()
     controller_->addTorrentFromMagnetLink(magnetLink);
 }
 
+/*
 void MainWindow::on_closePushButton_clicked() {
 
     // Notify controller
     controller_->begin_close();
 }
+*/
 
 void MainWindow::closeEvent(QCloseEvent * event) {
 

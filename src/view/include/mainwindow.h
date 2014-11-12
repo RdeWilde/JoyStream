@@ -46,7 +46,7 @@ private slots:
 
     void on_addTorrentFilePushButton_clicked();
     void on_addMagnetLinkPushButton_clicked();
-    void on_closePushButton_clicked();
+    //void on_closePushButton_clicked();
 
     // These slots are used to tap into native QMenu ui signals.
     void customMenuRequested(QPoint pos);
