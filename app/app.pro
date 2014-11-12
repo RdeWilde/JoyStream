@@ -2,7 +2,6 @@ include(../defaults.pri)
 
 TARGET = BitSwapr
 TEMPLATE = app
-CONFIG  += console
 SOURCES += main.cpp
 
 win32:CONFIG(release, debug|release):       LIBS += -L$$OUT_PWD/../lib/release/ -lQtBitSwapr

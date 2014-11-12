@@ -7,12 +7,8 @@
 
 // LATER REPLACE BOOST COMMAND LINE PROCESSING WITH QCommandLineParser
 #ifndef Q_MOC_RUN
-
 #include <boost/program_options.hpp>
-
-// Name space abbreviations
 namespace po = boost::program_options;
-
 #endif Q_MOC_RUN
 
 #include <Config.hpp>
@@ -82,8 +78,6 @@ void main(int argc, char* argv[]) {
         // Get name of file name
         QString file = QDir::current().absolutePath () + QDir::separator() + PARAMETER_FILE_NAME;
         std::string fileString = file.toStdString();
-
-        std::cerr << "did I even get here" << std::endl;
 
         // Check that file exists, and that it actually is a file
         if(!QFile::exists(file)) {

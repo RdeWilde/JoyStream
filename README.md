@@ -1,4 +1,4 @@
 QtBitSwapr
 ==========
 
-Qt project for BitSwapr
+Qt project for BitSwapr.

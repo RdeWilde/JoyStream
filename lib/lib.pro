@@ -2,6 +2,7 @@ include(../defaults.pri)
 
 TARGET = QtBitSwapr
 TEMPLATE = lib
+CONFIG += staticlib
 
 SOURCES += \
             controller/Controller.cpp \

@@ -1,4 +1,5 @@
 
+
 #ifndef CONTROLLER_STATE_HPP
 #define CONTROLLER_STATE_HPP
 
@@ -34,8 +35,6 @@ private:
 
 	// Dht routers
 	std::vector<std::pair<std::string, int>> dhtRouters;
-	
-	// BrPaymentSettings, wallet etc, later
 
 	// Routines for en/de-coding object as dictionary entry
 	/**
@@ -53,7 +52,7 @@ private:
 	* "dhtRouters" -> entry::list_type with entry::list_type objects with two elements, each encoding a dht router by the host (first)
 	* and port (second).
 	*/
-	static void addTorrentParamsToDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry, const libtorrent::add_torrent_params & addTorrentParams);
+    static libtorrent::entry::dictionary_type addTorrentParamsToDictionaryEntry(const libtorrent::add_torrent_params & addTorrentParams);
 	static void dictionaryEntryToAddTorrentParams(libtorrent::add_torrent_params & addTorrentParams, const libtorrent::entry::dictionary_type & dictionaryEntry);
 
 	void loadFromDictionaryEntry(const libtorrent::entry::dictionary_type & bitSwaprStateDictionaryEntry);

@@ -275,14 +275,16 @@ ControllerState::ControllerState(const char * fileName) {
 
 void ControllerState::loadFromDictionaryEntry(const libtorrent::entry::dictionary_type & bitSwaprStateDictionaryEntry) {
 
+    std::cerr << "count = " << bitSwaprStateDictionaryEntry.count("libtorrentSettings") << std::endl;
+
 	// Check that libtorrentSettings key is present, and then parse
-	if(bitSwaprStateDictionaryEntry.count("libtorrentSettings") != 1)
+    if(bitSwaprStateDictionaryEntry.count("libtorrentSettings") > 0) // == 1
 		libtorrentSessionSettingsEntry = bitSwaprStateDictionaryEntry.find("libtorrentSettings")->second;
 	else
 		throw InvalidBitSwaprStateEntryException(bitSwaprStateDictionaryEntry, "There is not exactly one libtorrentSettings key.");
 
 	// Check that portRange key is present, and then parse
-	if(bitSwaprStateDictionaryEntry.count("portRange") != 1) {
+    if(bitSwaprStateDictionaryEntry.count("portRange") == 1) {
 
 		const libtorrent::entry & portRangeEntry = bitSwaprStateDictionaryEntry.find("portRange")->second;
 
@@ -323,7 +325,7 @@ void ControllerState::loadFromDictionaryEntry(const libtorrent::entry::dictionar
 		throw InvalidBitSwaprStateEntryException(bitSwaprStateDictionaryEntry, "libtorrentSettings key should have .count == 1.");
 	
 	// Check that addTorrentParameters key is present, and then parse
-	if(bitSwaprStateDictionaryEntry.count("addTorrentParameters") != 1) {
+    if(bitSwaprStateDictionaryEntry.count("addTorrentParameters") == 1) {
 
 		const libtorrent::entry & addTorrentParametersEntry = bitSwaprStateDictionaryEntry.find("addTorrentParameters")->second;
 
@@ -363,7 +365,7 @@ void ControllerState::loadFromDictionaryEntry(const libtorrent::entry::dictionar
 		throw InvalidBitSwaprStateEntryException(bitSwaprStateDictionaryEntry, "addTorrentParameters key should have .count == 1.");
 
 	// Check that dhtRouters key is present, and then parse
-	if(bitSwaprStateDictionaryEntry.count("dhtRouters") != 1) {
+    if(bitSwaprStateDictionaryEntry.count("dhtRouters") == 1) {
 
 		const libtorrent::entry & dhtRoutersEntry = bitSwaprStateDictionaryEntry.find("dhtRouters")->second;
 
@@ -424,7 +426,7 @@ void ControllerState::loadFromDictionaryEntry(const libtorrent::entry::dictionar
 void ControllerState::saveToDictionaryEntry(libtorrent::entry::dictionary_type & bitSwaprStateDictionaryEntry) {
 	
 	// Add "libtorrentSettings" key
-	bitSwaprStateDictionaryEntry.insert(std::make_pair(std::string("libtorrentSettings"), libtorrentSessionSettingsEntry));
+    bitSwaprStateDictionaryEntry["libtorrentSettings"] = libtorrentSessionSettingsEntry;
 
 	// Add "portRange" key
 	libtorrent::entry::integer_type startOfPortRangeEntry = portRange.first, 
@@ -434,9 +436,7 @@ void ControllerState::saveToDictionaryEntry(libtorrent::entry::dictionary_type &
 	portRangeListEntry.push_back(startOfPortRangeEntry);
 	portRangeListEntry.push_back(endOfPortRangeEntry);
 
-	libtorrent::entry portRangeEntry(portRangeListEntry);
-
-	bitSwaprStateDictionaryEntry.insert(make_pair(std::string("portRange"), portRangeEntry));
+    bitSwaprStateDictionaryEntry["portRange"] = libtorrent::entry(portRangeListEntry);
 
 	// Add "addtorrentParameters" key
 	libtorrent::entry::list_type addtorrentParametersListEntry;
@@ -445,20 +445,15 @@ void ControllerState::saveToDictionaryEntry(libtorrent::entry::dictionary_type &
 	for(std::vector<libtorrent::add_torrent_params>::const_iterator i = addTorrentParameters.begin(),
 		end(addTorrentParameters.end()); i != end; i++) {
 
-		// Create new dictionary for params of this torrent
-		libtorrent::entry::dictionary_type addTorrentParamsEntry;
-
-		// Convert params to dictonary entry
-		addTorrentParamsToDictionaryEntry(addTorrentParamsEntry, *i);
+        // Convert params for this torrent to dictonary entry
+        libtorrent::entry::dictionary_type torrentDictionaryEntry = addTorrentParamsToDictionaryEntry(*i);
 
 		// Add to list entry
-		libtorrent::entry addTorrentParamsEntry_(addTorrentParamsEntry);
-		addtorrentParametersListEntry.push_back(addTorrentParamsEntry_);
+        addtorrentParametersListEntry.push_back(libtorrent::entry(torrentDictionaryEntry));
 	}
 
 	// Add list entry to map
-	libtorrent::entry addtorrentParametersEntry(addtorrentParametersListEntry);
-	bitSwaprStateDictionaryEntry.insert(make_pair(std::string("addTorrentParameters"), addtorrentParametersEntry));
+    bitSwaprStateDictionaryEntry["addTorrentParameters"] = libtorrent::entry(addtorrentParametersListEntry);
 
 	// Add "dhtRouters" key
 	libtorrent::entry::list_type dhtRoutersListEntry;
@@ -468,19 +463,16 @@ void ControllerState::saveToDictionaryEntry(libtorrent::entry::dictionary_type &
 
 		// Create entry list for dht pair
 		libtorrent::entry::list_type routerEntry;
-		libtorrent::entry::string_type hostEntry((*i).first);
-		libtorrent::entry::integer_type portEntry((*i).second);
 
-		routerEntry.push_back(hostEntry);
-		routerEntry.push_back(portEntry);
+        routerEntry.push_back(libtorrent::entry::string_type((*i).first));
+        routerEntry.push_back(libtorrent::entry::integer_type((*i).second));
 
 		// Add to list entry
 		dhtRoutersListEntry.push_back(routerEntry);
 	}
 
 	// Add list entry to map
-	libtorrent::entry dhtRoutersEntry(dhtRoutersListEntry);
-	bitSwaprStateDictionaryEntry.insert(make_pair(std::string("dhtRouters"), dhtRoutersEntry));
+    bitSwaprStateDictionaryEntry["dhtRouters"] = libtorrent::entry(dhtRoutersListEntry);
 }
 
 void ControllerState::saveToFile(const char * fileName) {
@@ -526,30 +518,20 @@ const std::vector<std::pair<std::string, int>> & ControllerState::getDhtRouters(
 	return dhtRouters;
 }
 
-void ControllerState::addTorrentParamsToDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry, const libtorrent::add_torrent_params & addTorrentParams) {
+libtorrent::entry::dictionary_type ControllerState::addTorrentParamsToDictionaryEntry(const libtorrent::add_torrent_params & addTorrentParams) {
 
-	// Create dictionary entry
-	libtorrent::entry::dictionary_type addTorrentParamsDictionaryEntry;
+    // Entry to return copy of
+    libtorrent::entry::dictionary_type dictionaryEntry;
 
 	// info_hash
 	std::string infoHashString = addTorrentParams.info_hash.to_string();
-
-	libtorrent::entry::string_type infoHashStringEntry(infoHashString);
-	libtorrent::entry infoHashEntry(infoHashStringEntry);
-
-	addTorrentParamsDictionaryEntry.insert(make_pair(std::string("info_hash"), infoHashEntry));
+    dictionaryEntry["info_hash"] = libtorrent::entry(libtorrent::entry::string_type(infoHashString));
 
 	// name
-	libtorrent::entry::string_type nameStringEntry(addTorrentParams.name);
-	libtorrent::entry nameEntry(nameStringEntry);
-
-	addTorrentParamsDictionaryEntry.insert(make_pair(std::string("name"), nameEntry));
+    dictionaryEntry["name"] = libtorrent::entry(libtorrent::entry::string_type(addTorrentParams.name));
 
 	// save_path
-	libtorrent::entry::string_type savePathStringEntry(addTorrentParams.save_path);
-	libtorrent::entry savePathEntry(savePathStringEntry);
-
-	addTorrentParamsDictionaryEntry.insert(make_pair(std::string("save_path"), savePathEntry));
+    dictionaryEntry["save_path"] = libtorrent::entry(libtorrent::entry::string_type(addTorrentParams.save_path));
 
 	// resume_data
 	const std::vector<char> & resume_data = addTorrentParams.resume_data;
@@ -559,21 +541,14 @@ void ControllerState::addTorrentParamsToDictionaryEntry(libtorrent::entry::dicti
 		end(resume_data.end());i != end;i++)
 			resume_data_string.append(&(*i));
 
-	libtorrent::entry::string_type resumeDataStringEntry(resume_data_string);
-	libtorrent::entry resumeDataEntry(resumeDataStringEntry);
-
-	addTorrentParamsDictionaryEntry.insert(make_pair(std::string("resume_data"), resumeDataEntry));
+    dictionaryEntry["resume_data"] = libtorrent::entry(libtorrent::entry::string_type(resume_data_string));
 
 	// flags
 	const boost::uint64_t flags = addTorrentParams.flags;
-	libtorrent::entry::integer_type flagsIntegerEntry(flags);
-	libtorrent::entry flagsEntry(flagsIntegerEntry);
+    dictionaryEntry["flags"] = libtorrent::entry(libtorrent::entry::integer_type(flags));
 
-	addTorrentParamsDictionaryEntry.insert(make_pair(std::string("flags"), flagsEntry));
-
-	// Add dictionary entry to addTorrentParamsEntry
-	libtorrent::entry addTorrentParamsEntry(addTorrentParamsDictionaryEntry);
-	dictionaryEntry.insert(std::make_pair(std::string("addTorrentParameters"), addTorrentParamsEntry));
+    // Return result
+    return dictionaryEntry;
 }
 
 void ControllerState::dictionaryEntryToAddTorrentParams(libtorrent::add_torrent_params & addTorrentParams, const libtorrent::entry::dictionary_type & dictionaryEntry) {
