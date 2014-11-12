@@ -1,4 +1,4 @@
-#include "view/include/addtorrentdialog.h"
+#include "view/addtorrentdialog.hpp"
 #include "ui_addtorrentdialog.h"
 
 #include <QFileDialog>

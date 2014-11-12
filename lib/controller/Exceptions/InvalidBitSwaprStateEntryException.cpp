@@ -1,5 +1,5 @@
 
-#include "controller/include/Exceptions/InvalidBitSwaprStateEntryException.hpp"
+#include "controller/Exceptions/InvalidBitSwaprStateEntryException.hpp"
 
 InvalidBitSwaprStateEntryException::InvalidBitSwaprStateEntryException(const libtorrent::entry::dictionary_type & state_, const char * message_) : state(state_), message(message_) {}
 

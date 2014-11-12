@@ -1,8 +1,8 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#include "controller/include/ControllerState.hpp"
-#include "view/include/mainwindow.h"
+#include "controller/ControllerState.hpp"
+#include "view/mainwindow.hpp"
 
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>

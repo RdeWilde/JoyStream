@@ -1,6 +1,6 @@
 
-#include "controller/include/ControllerState.hpp"
-#include "controller/include/Exceptions/InvalidBitSwaprStateEntryException.hpp"
+#include "ControllerState.hpp"
+#include "Exceptions/InvalidBitSwaprStateEntryException.hpp"
 
 #include <libtorrent/bencode.hpp>
 

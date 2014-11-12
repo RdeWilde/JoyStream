@@ -1,8 +1,8 @@
 
-#include "controller/include/Controller.hpp"
+#include "controller/Controller.hpp"
 #include "Config.hpp"
-#include "view/include/addtorrentdialog.h"
-#include "controller/include/Exceptions/ListenOnException.hpp"
+#include "view/addtorrentdialog.hpp"
+#include "controller/Exceptions/ListenOnException.hpp"
 
 #include <libtorrent/alert_types.hpp>
 #include <libtorrent/error_code.hpp>

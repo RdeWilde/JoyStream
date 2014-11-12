@@ -15,11 +15,11 @@ namespace po = boost::program_options;
 
 #endif Q_MOC_RUN
 
-#include "Config.hpp"
-#include "controller/include/Controller.hpp"
-#include "controller/include/ControllerState.hpp"
-#include "controller/include/Exceptions/ListenOnException.hpp"
-#include "controller/include/Exceptions/MissingInfoHashViewRequestException.hpp"
+#include <Config.hpp>
+#include <controller/Controller.hpp>
+#include <controller/ControllerState.hpp>
+#include <controller/Exceptions/ListenOnException.hpp>
+#include <controller/Exceptions/MissingInfoHashViewRequestException.hpp>
 
 // Forward declarations
 bool updateManager();

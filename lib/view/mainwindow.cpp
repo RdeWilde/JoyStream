@@ -1,5 +1,5 @@
-#include "view/include/mainwindow.h"
-#include "view/include/addtorrentdialog.h"
+#include "view/mainwindow.hpp"
+#include "view/addtorrentdialog.hpp"
 #include "ui_mainwindow.h"
 
 #include <iostream>

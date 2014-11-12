@@ -5,7 +5,7 @@
 #include <QString>
 
 #include <libtorrent/add_torrent_params.hpp>
-#include "controller/include/Controller.hpp"
+#include "controller/Controller.hpp"
 
 namespace Ui {
 class AddTorrentDialog;
