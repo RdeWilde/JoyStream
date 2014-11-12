@@ -71,5 +71,7 @@ CONFIG(release, debug|release) {
 }
 
 OTHER_FILES += \
-    resources/frostwire-5.7.6.dmg.torrent
+    resources/frostwire-5.7.6.dmg.torrent \
+    D:/Projects/BitSwapr/Logo/Original from designer/BitSwapr_mark_32.png \
+    resources/BitSwapr_mark_32.png
 
