@@ -39,7 +39,9 @@ Controller::Controller(ControllerState state)
               +libtorrent::alert::stats_notification)
     , view(this)
     , numberOfOutstandingResumeDataCalls(0)
-    , sourceForLastResumeDataCall(NONE){
+    , sourceForLastResumeDataCall(NONE)
+    , portRange(state.getPortRange())
+    , dhtRouters(state.getDhtRouters()){
 
     // Register types for signal and slots
     qRegisterMetaType<libtorrent::sha1_hash>();
@@ -51,6 +53,9 @@ Controller::Controller(ControllerState state)
     // Register type for QMetaObject::invokeMethod
     qRegisterMetaType<const libtorrent::alert*>();
 
+    // Set libtorrent to call processAlert when alert is created
+    session.set_alert_dispatch(boost::bind(&Controller::libtorrent_alert_dispatcher_callback, this, _1));
+
 	// Set session settings - these acrobatics with going back and forth seem to indicate that I may have done it incorrectly
 	std::vector<char> buffer;
 	libtorrent::bencode(std::back_inserter(buffer), state.getLibtorrentSessionSettingsEntry());
@@ -60,46 +65,32 @@ Controller::Controller(ControllerState state)
 	session.load_state(settingsLazyEntry);
 
 	// Add DHT routing nodes
-	const std::vector<std::pair<std::string, int>> & r = state.getDhtRouters();
-
-	for(std::vector<std::pair<std::string, int>>::const_iterator i = r.begin()
-		, end(r.end()); i != end; ++i) {
-
-		// Add router to session
-		session.add_dht_router(*i);
-
-		// Add to controller
-		//std::pair<std::string, int> router = *i;
-		dhtRouters.push_back(*i);
-	}
+    for(std::vector<std::pair<std::string, int>>::iterator i = dhtRouters.begin();i != dhtRouters.end(); ++i)
+        session.add_dht_router(*i); // Add router to session
 
 	// Add some sort of check that we actually have some dht routers?
 
 	// Start DHT node
 	session.start_dht();
 
-	// Add torrents to session and to controller
-    std::vector<libtorrent::add_torrent_params> & p = state.getTorrentParameters();
-	
-    for(std::vector<libtorrent::add_torrent_params>::iterator i = p.begin()
-        , end(p.end()); i != end; ++i)
-        addTorrent(*i);
-
-    // Set libtorrent to call processAlert when alert is created
-    session.set_alert_dispatch(boost::bind(&Controller::libtorrent_alert_dispatcher_callback, this, _1));
+    // Start timer which calls session.post_torrent_updates at regular intervals
+    statusUpdateTimer.setInterval(POST_TORRENT_UPDATES_DELAY);
+    QObject::connect(&statusUpdateTimer, SIGNAL(timeout()), this, SLOT(callPostTorrentUpdates()));
+    statusUpdateTimer.start();
 
 	// Start listening
 	boost::system::error_code listenOnErrorCode;
-	session.listen_on(state.getPortRange(), listenOnErrorCode);
+    session.listen_on(portRange, listenOnErrorCode);
 
     // Throw
 	if(listenOnErrorCode)
 		throw ListenOnException(listenOnErrorCode);
 
-    // Start timer which calls session.post_torrent_updates at regular intervals
-    statusUpdateTimer.setInterval(POST_TORRENT_UPDATES_DELAY);
-    QObject::connect(&statusUpdateTimer, SIGNAL(timeout()), this, SLOT(callPostTorrentUpdates()));
-    statusUpdateTimer.start();
+    // Add torrents to session and to controller: Wisdom of Sindre indicates this must be AFTER session.listen_on()
+    std::vector<libtorrent::add_torrent_params> & params = state.getTorrentParameters();
+    for(std::vector<libtorrent::add_torrent_params>::iterator i = params.begin();i != params.end(); ++i)
+        addTorrent(*i);
+
 
     // Restore view state
     //view.restoreState();

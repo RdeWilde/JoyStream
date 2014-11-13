@@ -4,6 +4,9 @@ TARGET = QtBitSwapr
 TEMPLATE = lib
 CONFIG += staticlib
 
+# Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
+CONFIG += create_prl
+
 SOURCES += \
             controller/Controller.cpp \
             controller/ControllerState.cpp \

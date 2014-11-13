@@ -59,7 +59,7 @@ private:
 public:
 
 	// Default name of parameter file name
-	static const std::string DEFAULT_FILE_NAME;
+    //static const std::string DEFAULT_FILE_NAME;
 	
 	// Constructor 
 	ControllerState(const libtorrent::entry & libtorrentSessionSettingsEntry_,
@@ -83,10 +83,10 @@ public:
 	void saveToFile(const char * file);
 
 	// Get routines
-	const libtorrent::entry getLibtorrentSessionSettingsEntry() const;
-	const std::pair<int, int> & getPortRange() const;
-    std::vector<libtorrent::add_torrent_params> & getTorrentParameters();
-	const std::vector<std::pair<std::string, int>> & getDhtRouters() const;
+    libtorrent::entry getLibtorrentSessionSettingsEntry() const;
+    std::pair<int, int> getPortRange() const;
+    std::vector<libtorrent::add_torrent_params> getTorrentParameters() const;
+    std::vector<std::pair<std::string, int>> getDhtRouters() const;
 };
 
 #endif

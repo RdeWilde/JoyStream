@@ -41,9 +41,6 @@ private:
     // View
     MainWindow view;
 
-    // Timer which calls session.post_torrent_updates() at regular intervals
-    QTimer statusUpdateTimer;
-
 	// Listening port range
 	std::pair<int, int> portRange;
 
@@ -53,8 +50,8 @@ private:
 	// Dht routers
 	std::vector<std::pair<std::string, int>> dhtRouters;
 
-    // Torrent handles <-- why do we need this?
-    //std::vector<libtorrent::torrent_handle> torrentHandles;
+    // Timer which calls session.post_torrent_updates() at regular intervals
+    QTimer statusUpdateTimer;
 
     // Routine for processig libtorrent alerts
     void processAddTorrentAlert(libtorrent::add_torrent_alert const * p);

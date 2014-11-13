@@ -6,7 +6,7 @@
 
 #include <fstream>
 
-const std::string ControllerState::DEFAULT_FILE_NAME = "state.txt";
+//const std::string ControllerState::DEFAULT_FILE_NAME = "state.txt";
 
 ControllerState::ControllerState(const libtorrent::entry & libtorrentSessionSettingsEntry_,
 								const std::pair<int, int> & portRange_,
@@ -45,7 +45,7 @@ ControllerState::ControllerState()
 
 	/* choking_algorithm:
 	*	Specifies which algorithm to use to determine which peers to unchoke.
-	*	This setting replaces the deprecated settings auto_upload_slots and
+    *	This setting replaces the deprecated settings auto_up_slots and
 	*	auto_upload_slots_rate_based. 
 	*/
 	sessionSettings.choking_algorithm = libtorrent::session_settings::auto_expand_choker;
@@ -275,10 +275,8 @@ ControllerState::ControllerState(const char * fileName) {
 
 void ControllerState::loadFromDictionaryEntry(const libtorrent::entry::dictionary_type & bitSwaprStateDictionaryEntry) {
 
-    std::cerr << "count = " << bitSwaprStateDictionaryEntry.count("libtorrentSettings") << std::endl;
-
 	// Check that libtorrentSettings key is present, and then parse
-    if(bitSwaprStateDictionaryEntry.count("libtorrentSettings") > 0) // == 1
+    if(bitSwaprStateDictionaryEntry.count("libtorrentSettings") == 1)
 		libtorrentSessionSettingsEntry = bitSwaprStateDictionaryEntry.find("libtorrentSettings")->second;
 	else
 		throw InvalidBitSwaprStateEntryException(bitSwaprStateDictionaryEntry, "There is not exactly one libtorrentSettings key.");
@@ -286,7 +284,7 @@ void ControllerState::loadFromDictionaryEntry(const libtorrent::entry::dictionar
 	// Check that portRange key is present, and then parse
     if(bitSwaprStateDictionaryEntry.count("portRange") == 1) {
 
-		const libtorrent::entry & portRangeEntry = bitSwaprStateDictionaryEntry.find("portRange")->second;
+        const libtorrent::entry & portRangeEntry = bitSwaprStateDictionaryEntry.find("portRange")->second;
 
 		// Check that entry is of type entry::list_type
 		if(portRangeEntry.type() == libtorrent::entry::data_type::list_t) {
@@ -429,14 +427,11 @@ void ControllerState::saveToDictionaryEntry(libtorrent::entry::dictionary_type &
     bitSwaprStateDictionaryEntry["libtorrentSettings"] = libtorrentSessionSettingsEntry;
 
 	// Add "portRange" key
-	libtorrent::entry::integer_type startOfPortRangeEntry = portRange.first, 
-									endOfPortRangeEntry = portRange.second;
-
 	libtorrent::entry::list_type portRangeListEntry;
-	portRangeListEntry.push_back(startOfPortRangeEntry);
-	portRangeListEntry.push_back(endOfPortRangeEntry);
+    portRangeListEntry.push_back(portRange.first);
+    portRangeListEntry.push_back(portRange.second);
 
-    bitSwaprStateDictionaryEntry["portRange"] = libtorrent::entry(portRangeListEntry);
+    bitSwaprStateDictionaryEntry["portRange"] = portRangeListEntry;
 
 	// Add "addtorrentParameters" key
 	libtorrent::entry::list_type addtorrentParametersListEntry;
@@ -446,14 +441,14 @@ void ControllerState::saveToDictionaryEntry(libtorrent::entry::dictionary_type &
 		end(addTorrentParameters.end()); i != end; i++) {
 
         // Convert params for this torrent to dictonary entry
-        libtorrent::entry::dictionary_type torrentDictionaryEntry = addTorrentParamsToDictionaryEntry(*i);
+        libtorrent::entry::dictionary_type d = addTorrentParamsToDictionaryEntry(*i);
 
 		// Add to list entry
-        addtorrentParametersListEntry.push_back(libtorrent::entry(torrentDictionaryEntry));
+        addtorrentParametersListEntry.push_back(d);
 	}
 
 	// Add list entry to map
-    bitSwaprStateDictionaryEntry["addTorrentParameters"] = libtorrent::entry(addtorrentParametersListEntry);
+    bitSwaprStateDictionaryEntry["addTorrentParameters"] = addtorrentParametersListEntry;
 
 	// Add "dhtRouters" key
 	libtorrent::entry::list_type dhtRoutersListEntry;
@@ -464,15 +459,15 @@ void ControllerState::saveToDictionaryEntry(libtorrent::entry::dictionary_type &
 		// Create entry list for dht pair
 		libtorrent::entry::list_type routerEntry;
 
-        routerEntry.push_back(libtorrent::entry::string_type((*i).first));
-        routerEntry.push_back(libtorrent::entry::integer_type((*i).second));
+        routerEntry.push_back((*i).first);
+        routerEntry.push_back((*i).second);
 
 		// Add to list entry
 		dhtRoutersListEntry.push_back(routerEntry);
 	}
 
 	// Add list entry to map
-    bitSwaprStateDictionaryEntry["dhtRouters"] = libtorrent::entry(dhtRoutersListEntry);
+    bitSwaprStateDictionaryEntry["dhtRouters"] = dhtRoutersListEntry;
 }
 
 void ControllerState::saveToFile(const char * fileName) {
@@ -502,19 +497,19 @@ void ControllerState::saveToFile(const char * fileName) {
 	file.close();
 }
 
-const libtorrent::entry ControllerState::getLibtorrentSessionSettingsEntry() const {
+libtorrent::entry ControllerState::getLibtorrentSessionSettingsEntry() const {
 	return libtorrentSessionSettingsEntry;
 }
 
-const std::pair<int, int> & ControllerState::getPortRange() const {
+std::pair<int, int> ControllerState::getPortRange() const {
 	return portRange;
 }
 
-std::vector<libtorrent::add_torrent_params> & ControllerState::getTorrentParameters() {
+std::vector<libtorrent::add_torrent_params> ControllerState::getTorrentParameters() const {
 	return addTorrentParameters;
 }
 
-const std::vector<std::pair<std::string, int>> & ControllerState::getDhtRouters() const {
+std::vector<std::pair<std::string, int>> ControllerState::getDhtRouters() const {
 	return dhtRouters;
 }
 
@@ -524,16 +519,16 @@ libtorrent::entry::dictionary_type ControllerState::addTorrentParamsToDictionary
     libtorrent::entry::dictionary_type dictionaryEntry;
 
 	// info_hash
-	std::string infoHashString = addTorrentParams.info_hash.to_string();
-    dictionaryEntry["info_hash"] = libtorrent::entry(libtorrent::entry::string_type(infoHashString));
+    dictionaryEntry["info_hash"] = libtorrent::entry::string_type(addTorrentParams.info_hash.to_string());
 
 	// name
-    dictionaryEntry["name"] = libtorrent::entry(libtorrent::entry::string_type(addTorrentParams.name));
+    dictionaryEntry["name"] = libtorrent::entry::string_type(addTorrentParams.name);
 
 	// save_path
-    dictionaryEntry["save_path"] = libtorrent::entry(libtorrent::entry::string_type(addTorrentParams.save_path));
+    dictionaryEntry["save_path"] = libtorrent::entry::string_type(addTorrentParams.save_path);
 
 	// resume_data
+    /*
 	const std::vector<char> & resume_data = addTorrentParams.resume_data;
 
 	std::string resume_data_string;
@@ -541,11 +536,11 @@ libtorrent::entry::dictionary_type ControllerState::addTorrentParamsToDictionary
 		end(resume_data.end());i != end;i++)
 			resume_data_string.append(&(*i));
 
-    dictionaryEntry["resume_data"] = libtorrent::entry(libtorrent::entry::string_type(resume_data_string));
+    dictionaryEntry["resume_data"] = libtorrent::entry::string_type(resume_data_string);
+    */
 
 	// flags
-	const boost::uint64_t flags = addTorrentParams.flags;
-    dictionaryEntry["flags"] = libtorrent::entry(libtorrent::entry::integer_type(flags));
+    dictionaryEntry["flags"] = libtorrent::entry::integer_type(addTorrentParams.flags);
 
     // Return result
     return dictionaryEntry;
@@ -617,6 +612,7 @@ void ControllerState::dictionaryEntryToAddTorrentParams(libtorrent::add_torrent_
 	else
 		throw InvalidBitSwaprStateEntryException(dictionaryEntry, "save_path key should have .count == 1.");
 
+    /*
 	// Check that resume_data is present
 	if(dictionaryEntry.count("resume_data") == 1) {
 
@@ -641,6 +637,7 @@ void ControllerState::dictionaryEntryToAddTorrentParams(libtorrent::add_torrent_
 	}
 	else
 		throw InvalidBitSwaprStateEntryException(dictionaryEntry, "save_path key should have .count == 1.");
+    */
 
 	// Check that flags is present
 	if(dictionaryEntry.count("flags") == 1) {

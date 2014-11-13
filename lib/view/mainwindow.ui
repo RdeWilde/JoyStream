@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>465</width>
-    <height>475</height>
+    <width>459</width>
+    <height>464</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,8 +21,8 @@
    <widget class="QPushButton" name="settingsPushButton">
     <property name="geometry">
      <rect>
-      <x>365</x>
-      <y>60</y>
+      <x>350</x>
+      <y>62</y>
       <width>76</width>
       <height>23</height>
      </rect>
@@ -34,11 +34,16 @@
    <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>70</y>
-      <width>446</width>
+      <x>14</x>
+      <y>72</y>
+      <width>431</width>
       <height>381</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
     </property>
     <property name="tabShape">
      <enum>QTabWidget::Rounded</enum>
@@ -55,6 +60,12 @@
     <property name="elideMode">
      <enum>Qt::ElideNone</enum>
     </property>
+    <property name="documentMode">
+     <bool>true</bool>
+    </property>
+    <property name="tabsClosable">
+     <bool>false</bool>
+    </property>
     <widget class="QWidget" name="torrentsTab">
      <attribute name="title">
       <string>Torrents</string>
@@ -62,18 +73,18 @@
      <widget class="QTableView" name="tableView">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>421</width>
-        <height>301</height>
+        <x>0</x>
+        <y>5</y>
+        <width>431</width>
+        <height>311</height>
        </rect>
       </property>
      </widget>
      <widget class="QPushButton" name="addMagnetLinkPushButton">
       <property name="geometry">
        <rect>
-        <x>220</x>
-        <y>320</y>
+        <x>218</x>
+        <y>325</y>
         <width>101</width>
         <height>23</height>
        </rect>
@@ -85,8 +96,8 @@
      <widget class="QPushButton" name="addTorrentFilePushButton">
       <property name="geometry">
        <rect>
-        <x>330</x>
-        <y>320</y>
+        <x>328</x>
+        <y>325</y>
         <width>101</width>
         <height>23</height>
        </rect>
@@ -102,10 +113,10 @@
      </attribute>
     </widget>
    </widget>
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="logoLabel">
     <property name="geometry">
      <rect>
-      <x>15</x>
+      <x>8</x>
       <y>5</y>
       <width>156</width>
       <height>61</height>
@@ -116,6 +127,71 @@
     </property>
     <property name="pixmap">
      <pixmap>D:/Projects/BitSwapr/Logo/Original from designer/BitSwaprResized_150.png</pixmap>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>420</x>
+      <y>24</y>
+      <width>26</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap>D:/Projects/BitSwapr/Bitcoin_Logo_25.png</pixmap>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>361</x>
+      <y>20</y>
+      <width>66</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Up: +35m฿</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>346</x>
+      <y>32</y>
+      <width>81</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Down: -20m฿</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_4">
+    <property name="geometry">
+     <rect>
+      <x>386</x>
+      <y>10</y>
+      <width>46</width>
+      <height>13</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>333</string>
     </property>
    </widget>
   </widget>
