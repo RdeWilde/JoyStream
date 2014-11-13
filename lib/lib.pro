@@ -13,9 +13,9 @@ SOURCES += \
             controller/Exceptions/InvalidBitSwaprStateEntryException.cpp \
             controller/Exceptions/ListenOnException.cpp \
             controller/Exceptions/MissingInfoHashViewRequestException.cpp \
-            extension/BrPayment.cpp \
             view/mainwindow.cpp \
-            view/addtorrentdialog.cpp
+            view/addtorrentdialog.cpp \
+    extension/BrPaymentPlugin.cpp
 		
 HEADERS += \
             controller/Controller.hpp \
@@ -23,10 +23,10 @@ HEADERS += \
             controller/Exceptions/InvalidBitSwaprStateEntryException.hpp \
             controller/Exceptions/ListenOnException.hpp \
             controller/Exceptions/MissingInfoHashViewRequestException.hpp \
-            extension/BrPayment.hpp \
             view/mainwindow.hpp \
             view/addtorrentdialog.hpp \
-            Config.hpp
+            Config.hpp \
+    extension/BrPaymentPlugin.hpp
 				
 FORMS += \
             view/mainwindow.ui \

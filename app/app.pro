@@ -3,6 +3,7 @@ include(../defaults.pri)
 TARGET = BitSwapr
 TEMPLATE = app
 SOURCES += main.cpp
+CONFIG  += console
 
 # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
 CONFIG += link_prl

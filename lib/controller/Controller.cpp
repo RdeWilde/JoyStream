@@ -41,7 +41,8 @@ Controller::Controller(ControllerState state)
     , numberOfOutstandingResumeDataCalls(0)
     , sourceForLastResumeDataCall(NONE)
     , portRange(state.getPortRange())
-    , dhtRouters(state.getDhtRouters()){
+    , dhtRouters(state.getDhtRouters())
+    , pluginPointer(new BrPaymentPlugin) {
 
     // Register types for signal and slots
     qRegisterMetaType<libtorrent::sha1_hash>();
@@ -68,7 +69,8 @@ Controller::Controller(ControllerState state)
     for(std::vector<std::pair<std::string, int>>::iterator i = dhtRouters.begin();i != dhtRouters.end(); ++i)
         session.add_dht_router(*i); // Add router to session
 
-	// Add some sort of check that we actually have some dht routers?
+    // Add plugin extension
+    session.add_extension(pluginPointer);
 
 	// Start DHT node
 	session.start_dht();
@@ -90,7 +92,6 @@ Controller::Controller(ControllerState state)
     std::vector<libtorrent::add_torrent_params> & params = state.getTorrentParameters();
     for(std::vector<libtorrent::add_torrent_params>::iterator i = params.begin();i != params.end(); ++i)
         addTorrent(*i);
-
 
     // Restore view state
     //view.restoreState();

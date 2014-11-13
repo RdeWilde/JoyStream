@@ -3,6 +3,7 @@
 
 #include "controller/ControllerState.hpp"
 #include "view/mainwindow.hpp"
+#include "extension/BrPaymentPlugin.hpp"
 
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>
@@ -49,6 +50,9 @@ private:
 
 	// Dht routers
 	std::vector<std::pair<std::string, int>> dhtRouters;
+
+    // Plugin
+    boost::shared_ptr<libtorrent::plugin> pluginPointer;
 
     // Timer which calls session.post_torrent_updates() at regular intervals
     QTimer statusUpdateTimer;
