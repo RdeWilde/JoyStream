@@ -82,7 +82,7 @@ void main(int argc, char* argv[]) {
         // Check that file exists, and that it actually is a file
         if(!QFile::exists(file)) {
 
-            std::cerr << "ERROR: parameter file "
+            std::cerr << "WARNING: parameter file "
                       << fileString.c_str()
                       << " does not exist." << std::endl
                       << "Try fresh run option if problem persists" << std::endl << std::endl;

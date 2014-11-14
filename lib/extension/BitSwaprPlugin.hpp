@@ -1,7 +1,6 @@
 
-#ifndef BR_PAYMENT_PLUGIN_HPP
-#define BR_PAYMENT_PLUGIN_HPP
-
+#ifndef BITSWAPR_PLUGIN_HPP
+#define BITSWAPR_PLUGIN_HPP
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
@@ -15,13 +14,29 @@
 
 #include <boost/shared_ptr.hpp>
 
+//#include "extension/BitSwaprTorrentPlugin.hpp"
+
 #include <QThread>
 
-class BrPaymentPlugin : public libtorrent::plugin {
+// Forward declaration
+class BitSwaprTorrentPlugin;
+
+class BitSwaprPlugin : public libtorrent::plugin {
 
 private:
 
+    // Libtorrent session. Is set by added() call, not constructor
+    libtorrent::aux::session_impl * session_;
+
+    // Collection of plugin objects for each torrent added through new_connection()
+    std::vector<BitSwaprTorrentPlugin *> torrentPlugins;
+
 public:
+
+    // Constructor
+    BitSwaprPlugin();
+
+    //BitSwaprPlugin~();
 
     virtual boost::shared_ptr<libtorrent::torrent_plugin> new_torrent(libtorrent::torrent * newTorrent, void * userData);
     virtual void added(libtorrent::aux::session_impl * session);

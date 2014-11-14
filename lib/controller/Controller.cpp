@@ -42,7 +42,7 @@ Controller::Controller(ControllerState state)
     , sourceForLastResumeDataCall(NONE)
     , portRange(state.getPortRange())
     , dhtRouters(state.getDhtRouters())
-    , pluginPointer(new BrPaymentPlugin) {
+    , pluginPointer(new BitSwaprPlugin()) {
 
     // Register types for signal and slots
     qRegisterMetaType<libtorrent::sha1_hash>();

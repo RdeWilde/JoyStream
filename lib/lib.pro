@@ -15,7 +15,9 @@ SOURCES += \
             controller/Exceptions/MissingInfoHashViewRequestException.cpp \
             view/mainwindow.cpp \
             view/addtorrentdialog.cpp \
-    extension/BrPaymentPlugin.cpp
+    extension/BitSwaprPlugin.cpp \
+    extension/BitSwaprTorrentPlugin.cpp \
+    extension/BitSwaprPeerPlugin.cpp
 		
 HEADERS += \
             controller/Controller.hpp \
@@ -26,7 +28,9 @@ HEADERS += \
             view/mainwindow.hpp \
             view/addtorrentdialog.hpp \
             Config.hpp \
-    extension/BrPaymentPlugin.hpp
+    extension/BitSwaprPlugin.hpp \
+    extension/BitSwaprTorrentPlugin.hpp \
+    extension/BitSwaprPeerPlugin.hpp
 				
 FORMS += \
             view/mainwindow.ui \

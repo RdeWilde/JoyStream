@@ -3,7 +3,7 @@
 
 #include "controller/ControllerState.hpp"
 #include "view/mainwindow.hpp"
-#include "extension/BrPaymentPlugin.hpp"
+#include "extension/BitSwaprPlugin.hpp"
 
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>
