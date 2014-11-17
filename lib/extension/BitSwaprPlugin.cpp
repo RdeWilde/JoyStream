@@ -1,6 +1,5 @@
 
 #include "extension/BitSwaprTorrentPlugin.hpp"
-
 #include "extension/BitSwaprPlugin.hpp"
 #include <iostream>
 
@@ -9,11 +8,13 @@ BitSwaprPlugin::BitSwaprPlugin()
 
 }
 
-/*
-BitSwaprPlugin::BitSwaprPlugin~() {
+BitSwaprPlugin::~BitSwaprPlugin() {
 
+    // Iterate torrent plugins and delete them
+    for(std::vector<BitSwaprTorrentPlugin *>::iterator i = torrentPlugins.begin(),
+        end(torrentPlugins.end()); i != end;i++)
+        delete *i;
 }
-*/
 
 boost::shared_ptr<libtorrent::torrent_plugin> BitSwaprPlugin::new_torrent(libtorrent::torrent * newTorrent, void * userData) {
 

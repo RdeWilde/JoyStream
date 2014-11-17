@@ -34,7 +34,7 @@ public:
     BitSwaprTorrentPlugin(BitSwaprPlugin * plugin, libtorrent::torrent * torrent);
 
     // Destructor
-    //BitSwaprTorrentPlugin~();
+    ~BitSwaprTorrentPlugin();
 
     virtual boost::shared_ptr<libtorrent::peer_plugin> new_connection(libtorrent::peer_connection * peerConnection);
     virtual void on_piece_pass(int index);

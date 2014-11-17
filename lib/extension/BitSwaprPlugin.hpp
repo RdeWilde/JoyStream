@@ -36,7 +36,8 @@ public:
     // Constructor
     BitSwaprPlugin();
 
-    //BitSwaprPlugin~();
+    // Destructor
+    ~BitSwaprPlugin();
 
     virtual boost::shared_ptr<libtorrent::torrent_plugin> new_torrent(libtorrent::torrent * newTorrent, void * userData);
     virtual void added(libtorrent::aux::session_impl * session);

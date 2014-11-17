@@ -1,26 +1,148 @@
 
 #include "extension/BitSwaprPeerPlugin.hpp"
+#include "Config.hpp"
 
 #include <iostream>
 
+const char * message_names[] = {
+    "list",
+    "offer",
+    "setup_begin",
+    "setup_begin",
+    "setup_begin_accept",
+    "setup_contract",
+    "setup_contract_signed",
+    "setup_refund",
+    "setup_refund_signed",
+    "setup_contract_published",
+    "setup_completed",
+    "piece_get",
+    "piece_missing",
+    "piece_put",
+    "payment",
+    "end"
+};
+
 BitSwaprPeerPlugin::BitSwaprPeerPlugin(BitSwaprTorrentPlugin * torrentPlugin, libtorrent::peer_connection * peerConnection)
     : torrentPlugin_(torrentPlugin)
-    , peerConnection_(peerConnection) {
+    , peerConnection_(peerConnection)
+    , peerBEP10SupportedStatus(unknown)
+    , peerBEP43SupportedStatus(unknown) {}
+
+BitSwaprPeerPlugin::~BitSwaprPeerPlugin() {
 
 }
-
-/*
-BitSwaprPeerPlugin::BitSwaprPeerPlugin~() {
-
-}
-*/
 
 char const * BitSwaprPeerPlugin::type() const {
     return "BitSwapr";
 }
 
+/*
+ * Can add entries to the extension handshake this is not called for web seeds
+ */
 void BitSwaprPeerPlugin::add_handshake(libtorrent::entry & handshake) {
 
+    // We can safely assume hanshake has proper structure, that is
+    // 1) is dictionary entry
+    // 2) has key m which maps to a dictionary entry
+
+    // Add key for bitswapr payment protocol
+    libtorrent::entry::dictionary_type & m = handshake["m"].dict();
+
+    // Iterate m key dictionary and find the greatest ID
+    int maxExistingID = 0;
+    for(std::map<std::string, libtorrent::entry>::iterator i = m.begin(),
+        end(m.end());i != end;i++)
+        maxExistingID = std::max((int)(((*i).second).integer()), maxExistingID);
+
+    // Set m dictionary key for client
+    for(int i = 0;i < NUMBER_OF_MESSAGES;i++)
+        m[message_names[i]] = (maxExistingID + 1) + i;
+
+    // Add client identification
+    QString clientIdentifier = QString("BitSwapr ")
+            + QString::number(BITSWAPR_VERSION_MAJOR)
+            + QString(".")
+            + QString::number(BITSWAPR_VERSION_MINOR);
+
+    handshake["v"] = clientIdentifier.toStdString().c_str();
+}
+
+/*
+ * This is called when the initial BASIC BT handshake is received.
+ * Returning false means that the other end doesn't support this
+ * extension and will remove it from the list of plugins.
+ * this is not called for web seeds.
+ *
+ * The BEP10 docs say:
+ * The bit selected for the extension protocol is bit 20 from
+ * the right (counting starts at 0).
+ * So (reserved_byte[5] & 0x10) is the expression to use for
+ * checking if the client supports extended messaging.
+ */
+bool BitSwaprPeerPlugin::on_handshake(char const * reserved_bits) {
+
+    // Check if BEP10 is enabled
+    if(reserved_bits[5] & 0x10) {
+        peerBEP10SupportedStatus = supported;
+        return true;
+    } else {
+        peerBEP10SupportedStatus = not_supported;
+        return false;
+    }
+}
+
+/*
+ * Called when the extension handshake from the other end is received
+ * if this returns false, it means that this extension isn't supported
+ * by this peer. It will result in this peer_plugin being removed from
+ * the peer_connection and destructed. this is not called for web seeds
+ */
+bool BitSwaprPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake) {
+
+    // Check that BEP10 was actually supported, if
+    // it wasnt, then the peer is misbehaving
+    if(peerBEP10SupportedStatus != supported) {
+        std::cerr << "Peer didn't support BEP10, but it sent extended handshake." << std::endl;
+        peerBEP43SupportedStatus = not_supported;
+        return false;
+    }
+
+    // We cannot trust structure of entry, since it is from peer,
+    // hence we must check it properly.
+
+    // If its not a dictionary, we are done
+    if(handshake.type() != libtorrent::lazy_entry::dict_t) {
+        peerBEP43SupportedStatus = not_supported;
+        return false;
+    }
+
+    // Try to extract m key, if its not present, then we are done
+    const libtorrent::lazy_entry * mKey = handshake.dict_find_dict("m");
+    if(!mKey) {
+        peerBEP43SupportedStatus = not_supported;
+        return false;
+    }
+
+    // Check that "m" key maps message id of all required messages
+    for(int i = 0;i < NUMBER_OF_MESSAGES;i++) {
+
+        // Get value of message name
+        int peerMessageBEP10ID = mKey->dict_find_int_value(message_names[i], -1);
+
+        // We are done if message was not in dictionary
+        if(peerMessageBEP10ID == -1) {
+            peerBEP43SupportedStatus = not_supported;
+            return false;
+        } else
+            peerMessageMapping[i] = peerMessageBEP10ID;
+    }
+
+    std::cout << "Found extension handshake." << std::endl;
+
+    // All messages were present, hence the protocol is supported
+    peerBEP43SupportedStatus = supported;
+    return true;
 }
 
 void BitSwaprPeerPlugin::on_disconnect(libtorrent::error_code const & ec) {
@@ -32,36 +154,10 @@ void BitSwaprPeerPlugin::on_connected() {
 }
 
 /*
- * This is called when the initial BT handshake is received.
- * Returning false means that the other end doesn't support this
- * extension and will remove it from the list of plugins.
- * this is not called for web seeds.
- */
-bool BitSwaprPeerPlugin::on_handshake(char const * reserved_bits) {
-
-    // Return true iff bep10 is enabled?
-    return true;
-}
-
-/*
- * Called when the extension handshake from the other end is received
- * if this returns false, it means that this extension isn't supported
- * by this peer. It will result in this peer_plugin being removed from
- * the peer_connection and destructed. this is not called for web seeds
- */
-bool BitSwaprPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake) {
-
-    // Return true if BitSwapr is supported
-    return false;
-}
-
-/*
  * Returning true from any of the message handlers indicates that the
  * plugin has handeled the message. it will break the plugin chain
  * traversing and not let anyone else handle the message, including the default handler.
  */
-
-
 
 bool BitSwaprPeerPlugin::on_have(int index) {
     return true;

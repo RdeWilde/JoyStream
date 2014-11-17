@@ -108,7 +108,7 @@ private:
 public:
 
 	// Constructor starting session with given state
-    Controller(ControllerState state);
+    Controller(const ControllerState & state, bool showView);
 
     // Connect controller signals to view slots
     void connecToViewSlots(MainWindow * view);

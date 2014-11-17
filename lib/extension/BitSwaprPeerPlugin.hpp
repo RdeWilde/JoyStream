@@ -17,7 +17,20 @@
 // Forward declaration
 class BitSwaprTorrentPlugin;
 
+// Names of all messages
+extern const char * message_names[];
+
+// Number of messages
+#define NUMBER_OF_MESSAGES 16
+
 class BitSwaprPeerPlugin : public libtorrent::peer_plugin {
+
+    // BEP support state indicator
+    enum PEER_BEP_SUPPORTED_STATUS {
+        unknown,
+        supported,
+        not_supported
+    };
 
 private:
 
@@ -27,13 +40,23 @@ private:
     // Connection to peer for this plugin
     libtorrent::peer_connection * peerConnection_;
 
+    // Indicates whether peer supports BEP10
+    PEER_BEP_SUPPORTED_STATUS peerBEP10SupportedStatus;
+
+    // Indicates whether peer supports BEP43
+    PEER_BEP_SUPPORTED_STATUS peerBEP43SupportedStatus;
+
+    // Mapping from messages to BEP10 ID of peer
+    unsigned int peerMessageMapping[NUMBER_OF_MESSAGES],
+                    clientMessageMapping[NUMBER_OF_MESSAGES];
+
 public:
 
     // Constructor
     BitSwaprPeerPlugin(BitSwaprTorrentPlugin * torrentPlugin, libtorrent::peer_connection * peerConnection);
 
     // Destructor
-    //BitSwaprPeerPlugin~();
+    ~BitSwaprPeerPlugin();
 
     virtual char const* type() const;
     virtual void add_handshake(libtorrent::entry & handshake);

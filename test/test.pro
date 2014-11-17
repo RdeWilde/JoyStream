@@ -13,3 +13,7 @@ else:win32:CONFIG(debug, debug|release):    LIBS += -L$$OUT_PWD/../lib/debug/ -l
 else:unix:                                  LIBS += -L$$OUT_PWD/../lib/ -lQtBitSwapr
 
 DEPENDPATH += $$PWD/../lib
+
+OTHER_FILES += \
+    resources/frostwire-5.7.6.dmg.torrent \
+    resources/test.torrent

@@ -23,7 +23,7 @@
 #include <boost/bind.hpp>
 #endif Q_MOC_RUN
 
-Controller::Controller(ControllerState state)
+Controller::Controller(const ControllerState & state, bool showView)
     : session(libtorrent::fingerprint("BR"
                                       ,BITSWAPR_VERSION_MAJOR
                                       ,BITSWAPR_VERSION_MINOR
@@ -96,8 +96,9 @@ Controller::Controller(ControllerState state)
     // Restore view state
     //view.restoreState();
 
-    // Show view
-    view.show();
+    // Show view if desired
+    if(showView)
+        view.show();
 }
 
 void Controller::callPostTorrentUpdates() {
@@ -121,12 +122,11 @@ void Controller::libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::
 
 void Controller::processAlert(const libtorrent::alert * a) {
 
-    // Check that alert is not a queued up linger alert corresponding
-    // to a recently removed torrent.
+    // Check that alert has been stuck in event queue and corresponds to recenty
+    // removed torrent.
 
-    // something()
-
-
+    // if(something)
+    //    something;
 
     // In each case, tell bitswapr thread to run the given method
 	if (libtorrent::metadata_received_alert const * p = libtorrent::alert_cast<libtorrent::metadata_received_alert>(a))
@@ -153,9 +153,10 @@ void Controller::processAlert(const libtorrent::alert * a) {
 		}
 		*/
 	}
-    else if (libtorrent::add_torrent_alert const * p = libtorrent::alert_cast<libtorrent::add_torrent_alert>(a))
+    else if (libtorrent::add_torrent_alert const * p = libtorrent::alert_cast<libtorrent::add_torrent_alert>(a)) {
+        //std::cout << "Add torrent alert." << std::endl;
         processAddTorrentAlert(p);
-    else if (libtorrent::torrent_finished_alert const * p = libtorrent::alert_cast<libtorrent::torrent_finished_alert>(a)) {
+    } else if (libtorrent::torrent_finished_alert const * p = libtorrent::alert_cast<libtorrent::torrent_finished_alert>(a)) {
 		std::cout << "torrent_finished_alert" << std::endl;
 
 		/*
@@ -169,16 +170,22 @@ void Controller::processAlert(const libtorrent::alert * a) {
 		++num_outstanding_resume_data;
 		*/
 	}
-	else if (libtorrent::torrent_paused_alert const * p = libtorrent::alert_cast<libtorrent::torrent_paused_alert>(a))
+    else if (libtorrent::torrent_paused_alert const * p = libtorrent::alert_cast<libtorrent::torrent_paused_alert>(a)) {
+        //std::cout << "Torrent paused alert." << std::endl;
         processTorrentPausedAlert(p);
-	else if (libtorrent::state_update_alert const * p = libtorrent::alert_cast<libtorrent::state_update_alert>(a))
+    } else if (libtorrent::state_update_alert const * p = libtorrent::alert_cast<libtorrent::state_update_alert>(a)) {
+        //std::cout << "State update alert." << std::endl;
         processStatusUpdateAlert(p);
-    else if(libtorrent::torrent_removed_alert const * p = libtorrent::alert_cast<libtorrent::torrent_removed_alert>(a))
+    } else if(libtorrent::torrent_removed_alert const * p = libtorrent::alert_cast<libtorrent::torrent_removed_alert>(a)) {
+        //std::cout << "Torrent removed alert." << std::endl;
         processTorrentRemovedAlert(p);
-    else if(libtorrent::save_resume_data_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_alert>(a))
+    } else if(libtorrent::save_resume_data_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_alert>(a)) {
+        //std::cout << "Save resume data alert." << std::endl;
         processSaveResumeDataAlert(p);
-    else if(libtorrent::save_resume_data_failed_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_failed_alert>(a))
+    } else if(libtorrent::save_resume_data_failed_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_failed_alert>(a)) {
+        //std::cout << "Save resume data failed alert." << std::endl;
         processSaveResumeDataFailedAlert(p);
+    }
 
     // Delete alert
     delete a;
@@ -206,7 +213,7 @@ std::auto_ptr<std::vector<libtorrent::add_torrent_params>::iterator> Controller:
 
             // Check for match, and return
             if(params.info_hash == info_hash) {
-                std::cout << "did we get here?" << std::endl;
+                //std::cout << "did we get here?" << std::endl;
 
                 return a_ptr;
             }
@@ -627,12 +634,17 @@ void Controller::begin_close() {
 
     // Check if we can actually save resume data at this time
     if(sourceForLastResumeDataCall != NONE) {
-        std::cout << "Cannot save resume data at this time due to outstanding resume_data calls, try again later." << std::endl;
+        std::cout << "ERROR: Cannot save resume data at this time due to outstanding resume_data calls, try again later." << std::endl;
         return;
     } else  if(numberOfOutstandingResumeDataCalls != 0) {
         std::cerr << "ERROR: Invalid state found, numberOfOutstandingResumeDataCalls != 0, despite sourceForLastResumeDataCall == NONE. Resume data cannot be saved." << std::endl;
         return;
     }
+
+    // Note that controller is being stopped,
+    // this prevents any processing of Qt events
+    // from libtorrent or view pending in event queue.
+    //stoppingController = true;
 
     // Pause all torrents
     session.pause();
@@ -645,18 +657,28 @@ void Controller::begin_close() {
     sourceForLastResumeDataCall = CLIENT_CLOSE; // Note source of a new set of resume data calls
     int numberOutStanding = makeResumeDataCallsForAllTorrents();
 
-    std::cout << "Attempting to generate resume data for " << numberOutStanding << " torrents." << std::endl;
-
     // If there are no outstanding, then just close right away
     if(numberOutStanding == 0)
         finalize_close();
+    else
+        std::cout << "Attempting to generate resume data for " << numberOutStanding << " torrents." << std::endl;
 }
 
 void Controller::finalize_close() {
 
-    // Exit Qt event loop
-    QThread::currentThread()->exit();
+    std::cout << "finalize_close() run." << std::endl;
 
     // Save state of window
     //view.saveState();
+
+    // Kill controller
+    delete this;
+
+    // Immediately stop event loop for controller
+    // ==========================================
+    // NB: It is very important that exit() is used,
+    // because this ensures that not a single additional
+    // event is processed by event loop, which will not
+    // work since controller has been deleted.
+    QThread::currentThread()->exit();
 }

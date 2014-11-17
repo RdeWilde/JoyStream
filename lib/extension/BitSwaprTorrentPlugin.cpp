@@ -1,5 +1,6 @@
 
 #include "extension/BitSwaprTorrentPlugin.hpp"
+#include "extension/BitSwaprPeerPlugin.hpp" // needed since we construct object
 
 #include <iostream>
 
@@ -9,11 +10,13 @@ BitSwaprTorrentPlugin::BitSwaprTorrentPlugin(BitSwaprPlugin * plugin, libtorrent
 
 }
 
-/*
-BitSwaprTorrentPlugin::BitSwaprTorrentPlugin~() {
+BitSwaprTorrentPlugin::~BitSwaprTorrentPlugin() {
 
+    // Iterate torrent plugins and delete
+    for(std::vector<BitSwaprPeerPlugin *>::iterator i = peerPlugins.begin(),
+        end(peerPlugins.end());i != end;i++)
+        delete *i;
 }
-*/
 
 boost::shared_ptr<libtorrent::peer_plugin> BitSwaprTorrentPlugin::new_connection(libtorrent::peer_connection * peerConnection) {
 

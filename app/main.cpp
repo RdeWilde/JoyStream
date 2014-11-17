@@ -1,5 +1,4 @@
 #include <QApplication>
-#include <QThread>
 #include <QString>
 #include <QDir>
 
@@ -11,16 +10,17 @@
 namespace po = boost::program_options;
 #endif Q_MOC_RUN
 
-#include <Config.hpp>
-#include <controller/Controller.hpp>
-#include <controller/ControllerState.hpp>
-#include <controller/Exceptions/ListenOnException.hpp>
-#include <controller/Exceptions/MissingInfoHashViewRequestException.hpp>
+#include "controller/ControllerState.hpp"
+#include "BitSwapr.hpp"
+#include "Config.hpp"
 
 // Forward declarations
 bool updateManager();
 
 void main(int argc, char* argv[]) {
+
+    // Create Qt application: all objects created after this point are owned by this thread
+    QApplication a(argc, argv);
 
     // Create options description
     po::options_description desc("Allowed options");
@@ -50,8 +50,10 @@ void main(int argc, char* argv[]) {
     }
 
     // Display help text when requested
-    if(vm.count("help"))
+    if(vm.count("help")) {
         std::cout << desc << std::endl;
+        return;
+    }
 
     // Call update manager, if allowed
     if(!vm.count("no-update")) {
@@ -64,15 +66,15 @@ void main(int argc, char* argv[]) {
     }
 
     // Check console flag
-    bool useConsole = false;
+    bool showView = false;
     if(!vm.count("console"))
-        useConsole = true;
+        showView = true;
 
-    // Create Qt application: all objects created after this point are owned by this thread
-    QApplication a(argc, argv);
+    // Load default state
+    ControllerState controllerState;
 
-    // Open existing parameter file, or create a fresh one if user passed fresh flag
-    ControllerState * state = NULL;
+    // If fresh flag is not passed,
+    // then open existing parameter file
     if(!vm.count("fresh")) {
 
         // Get name of file name
@@ -87,33 +89,25 @@ void main(int argc, char* argv[]) {
                       << " does not exist." << std::endl
                       << "Try fresh run option if problem persists" << std::endl << std::endl;
 
-            //exit(EXIT_FAILURE);
+            exit(EXIT_FAILURE);
 
-            state = new ControllerState();
         } else // Load state from file
-            state = new ControllerState(fileString.c_str());
-
-    } else // Load default state
-        state = new ControllerState();
-
-    // Create controller
-    Controller * controller;
-
-    try {
-        controller = new Controller(*state);
-    } catch(ListenOnException & e) {
-        std::cerr << "ERROR: failed to start libtorrent listening due to " <<  e.what() << "." << std::endl << std::endl;
-        exit(EXIT_FAILURE);
+            controllerState = ControllerState(fileString.c_str());
     }
 
-    // Start application event loop
+    // Create client
+    BitSwapr client(controllerState, showView);
+
+    // Start client
+    client.start();
+    std::cout << "Started client thread." << std::endl;
+
+    // Start application event loop,
+    // it services events of thread which runs client.
     a.exec();
 
     // Notify that event loop processing was ended
-    std::cout << "Qt event loop exited, application closing." << std::endl;
-
-    // Delete controller to delete session object, and thereby close libtorrent
-    delete controller;
+    std::cout << "Application event loop exited, application closing." << std::endl;
 }
 
 bool updateManager() {

@@ -13,4 +13,9 @@
 
 #define PARAMETER_FILE_NAME "parameters.txt"
 
+#define PAYMENT_PROTOCOL_VERSION 1
+
+#define BEP10_key "BR_payment"
+
+
 #endif

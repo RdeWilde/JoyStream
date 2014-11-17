@@ -17,7 +17,8 @@ SOURCES += \
             view/addtorrentdialog.cpp \
     extension/BitSwaprPlugin.cpp \
     extension/BitSwaprTorrentPlugin.cpp \
-    extension/BitSwaprPeerPlugin.cpp
+    extension/BitSwaprPeerPlugin.cpp \
+    BitSwapr.cpp
 		
 HEADERS += \
             controller/Controller.hpp \
@@ -30,7 +31,8 @@ HEADERS += \
             Config.hpp \
     extension/BitSwaprPlugin.hpp \
     extension/BitSwaprTorrentPlugin.hpp \
-    extension/BitSwaprPeerPlugin.hpp
+    extension/BitSwaprPeerPlugin.hpp \
+    BitSwapr.hpp
 				
 FORMS += \
             view/mainwindow.ui \
