@@ -10,29 +10,35 @@ CONFIG += create_prl
 SOURCES += \
             controller/Controller.cpp \
             controller/ControllerState.cpp \
-            controller/Exceptions/InvalidBitSwaprStateEntryException.cpp \
-            controller/Exceptions/ListenOnException.cpp \
-            controller/Exceptions/MissingInfoHashViewRequestException.cpp \
+            controller/exceptions/InvalidBitSwaprStateEntryException.cpp \
+            controller/exceptions/ListenOnException.cpp \
+            controller/exceptions/MissingInfoHashViewRequestException.cpp \
             view/mainwindow.cpp \
             view/addtorrentdialog.cpp \
-    extension/BitSwaprPlugin.cpp \
-    extension/BitSwaprTorrentPlugin.cpp \
-    extension/BitSwaprPeerPlugin.cpp \
-    BitSwapr.cpp
+            logger/CategoryLoggerManager.cpp \
+            logger/exceptions/DuplicateCategoryLog.cpp \
+            logger/exceptions/CannnotOpenCategoryLogFile.cpp \
+            extension/BitSwaprPlugin.cpp \
+            extension/BitSwaprTorrentPlugin.cpp \
+            extension/BitSwaprPeerPlugin.cpp \
+            BitSwapr.cpp \
 		
 HEADERS += \
             controller/Controller.hpp \
             controller/ControllerState.hpp \
-            controller/Exceptions/InvalidBitSwaprStateEntryException.hpp \
-            controller/Exceptions/ListenOnException.hpp \
-            controller/Exceptions/MissingInfoHashViewRequestException.hpp \
+            controller/exceptions/InvalidBitSwaprStateEntryException.hpp \
+            controller/exceptions/ListenOnException.hpp \
+            controller/exceptions/MissingInfoHashViewRequestException.hpp \
             view/mainwindow.hpp \
             view/addtorrentdialog.hpp \
+            logger/CategoryLoggerManager.hpp \
+            logger/exceptions/DuplicateCategoryLog.hpp \
+            logger/exceptions/CannnotOpenCategoryLogFile.hpp \
+            extension/BitSwaprPlugin.hpp \
+            extension/BitSwaprTorrentPlugin.hpp \
+            extension/BitSwaprPeerPlugin.hpp \
             Config.hpp \
-    extension/BitSwaprPlugin.hpp \
-    extension/BitSwaprTorrentPlugin.hpp \
-    extension/BitSwaprPeerPlugin.hpp \
-    BitSwapr.hpp
+            BitSwapr.hpp
 				
 FORMS += \
             view/mainwindow.ui \
