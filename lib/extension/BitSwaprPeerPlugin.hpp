@@ -13,6 +13,10 @@
 #include <libtorrent/buffer.hpp>
 
 #include <QThread>
+#include <QLoggingCategory>
+
+// Used directing logging to category object.
+#define CATEGORY (*category_)
 
 // Forward declaration
 class BitSwaprTorrentPlugin;
@@ -50,10 +54,13 @@ private:
     unsigned int peerMessageMapping[NUMBER_OF_MESSAGES],
                     clientMessageMapping[NUMBER_OF_MESSAGES];
 
+    // Logging category
+    QLoggingCategory * category_;
+
 public:
 
     // Constructor
-    BitSwaprPeerPlugin(BitSwaprTorrentPlugin * torrentPlugin, libtorrent::peer_connection * peerConnection);
+    BitSwaprPeerPlugin(BitSwaprTorrentPlugin * torrentPlugin, libtorrent::peer_connection * peerConnection, QLoggingCategory * category = 0);
 
     // Destructor
     ~BitSwaprPeerPlugin();

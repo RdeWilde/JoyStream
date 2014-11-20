@@ -1,18 +1,13 @@
 #include <QApplication>
+#include <QCommandLineParser>
 #include <QString>
 #include <QDir>
 
 #include <iostream>
 
-// LATER REPLACE BOOST COMMAND LINE PROCESSING WITH QCommandLineParser
-#ifndef Q_MOC_RUN
-#include <boost/program_options.hpp>
-namespace po = boost::program_options;
-#endif Q_MOC_RUN
-
-#include "controller/ControllerState.hpp"
-#include "BitSwapr.hpp"
-#include "Config.hpp"
+#include "lib/BitSwapr.hpp"
+#include "lib/Config.hpp"
+#include "lib/logger/LoggerManager.hpp"
 
 // Forward declarations
 bool updateManager();
@@ -20,43 +15,30 @@ bool updateManager();
 void main(int argc, char* argv[]) {
 
     // Create Qt application: all objects created after this point are owned by this thread
-    QApplication a(argc, argv);
+    QApplication app(argc, argv);
+    QApplication::setApplicationName(APPLICATION_NAME);
+    QApplication::setApplicationVersion(QString::number(BITSWAPR_VERSION_MAJOR) + "." + QString::number(BITSWAPR_VERSION_MINOR));
 
-    // Create options description
-    po::options_description desc("Allowed options");
+    // Setup command line parsing
+    QCommandLineParser parser;
+    parser.setApplicationDescription(APPLICATION_DESCRIPTION);
 
     // Add options
-    desc.add_options()
-      ("help,h", "Print help messages")
-      ("no-update,n", "Do not run update manager")
-      ("console,c", "Run in console mode")
-      ("fresh,f", "Create and use a fresh parameter file");
+    parser.addHelpOption();
+    parser.addVersionOption();
 
-    // Parse the command line catching and displaying any parser errors
-    po::variables_map vm;
+    QCommandLineOption showNoUpdateOption("n", "Do not run update manager.");
+    parser.addOption(showNoUpdateOption);
+    QCommandLineOption showConsoleModeOption("c", "Run in console mode.");
+    parser.addOption(showConsoleModeOption);
+    QCommandLineOption showFreshOption("f", "Create and use a fresh parameter file.");
+    parser.addOption(showFreshOption);
 
-    try {
-
-        // Parse
-        po::store(po::parse_command_line(argc, argv, desc), vm);
-
-        // Throw exception if required option is not present
-        po::notify(vm);
-
-    } catch(po::error& e) {
-        std::cerr << "ERROR: " << e.what() << std::endl << std::endl;
-        std::cerr << desc << std::endl;
-        exit(EXIT_FAILURE);
-    }
-
-    // Display help text when requested
-    if(vm.count("help")) {
-        std::cout << desc << std::endl;
-        return;
-    }
+    // Process the actual command line arguments given by the user
+    parser.process(app);
 
     // Call update manager, if allowed
-    if(!vm.count("no-update")) {
+    if(!parser.isSet(showNoUpdateOption)) {
 
         bool doRestart = updateManager();
 
@@ -67,7 +49,7 @@ void main(int argc, char* argv[]) {
 
     // Check console flag
     bool showView = false;
-    if(!vm.count("console"))
+    if(!parser.isSet(showConsoleModeOption))
         showView = true;
 
     // Load default state
@@ -75,7 +57,7 @@ void main(int argc, char* argv[]) {
 
     // If fresh flag is not passed,
     // then open existing parameter file
-    if(!vm.count("fresh")) {
+    if(!parser.isSet(showFreshOption)) {
 
         // Get name of file name
         QString file = QDir::current().absolutePath () + QDir::separator() + PARAMETER_FILE_NAME;
@@ -95,16 +77,31 @@ void main(int argc, char* argv[]) {
             controllerState = ControllerState(fileString.c_str());
     }
 
-    // Create client
-    BitSwapr client(controllerState, showView);
+    /*
+    // Create category
+    QLoggingCategory * mainCategory = global_log_manager("main", false, true),
+            * peerCategory = global_log_manager("peer", false, false);
+    */
 
-    // Start client
+    std::cout << "Main thread id = " << QThread::currentThreadId() << std::endl;
+
+    // Create main client
+    BitSwapr client(controllerState, showView);
     client.start();
-    std::cout << "Started client thread." << std::endl;
+    std::cout << "Started main client thread." << std::endl;
+
+    /*
+    // Create peer client
+    BitSwapr client(controllerState, showView);
+    client.start();
+    std::cout << "Started main client thread." << std::endl;
+    */
 
     // Start application event loop,
-    // it services events of thread which runs client.
-    a.exec();
+    // it is responsible for servicing event loop for BitSwapr
+    // objects, which among which means connecting runner thread in
+    // each object to its runner_entry slot
+    app.exec();
 
     // Notify that event loop processing was ended
     std::cout << "Application event loop exited, application closing." << std::endl;

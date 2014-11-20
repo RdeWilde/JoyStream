@@ -1,7 +1,7 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#include "controller/ControllerState.hpp"
+#include "ControllerState.hpp"
 #include "view/mainwindow.hpp"
 #include "extension/BitSwaprPlugin.hpp"
 
@@ -13,6 +13,10 @@
 
 #include <QObject>
 #include <QTimer>
+#include <QLoggingCategory>
+
+// Used directing logging to category object.
+#define CATEGORY (*category_)
 
 // Register types for signal and slots
 Q_DECLARE_METATYPE(libtorrent::sha1_hash)
@@ -105,10 +109,13 @@ private:
     // Actual source of resume data call
     sourceForLastResumeDataCallType sourceForLastResumeDataCall;
 
+    // Logging category
+    QLoggingCategory * category_;
+
 public:
 
 	// Constructor starting session with given state
-    Controller(const ControllerState & state, bool showView);
+    Controller(const ControllerState & state, bool showView, QLoggingCategory * category = 0);
 
     // Connect controller signals to view slots
     void connecToViewSlots(MainWindow * view);

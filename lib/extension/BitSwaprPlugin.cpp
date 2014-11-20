@@ -1,10 +1,9 @@
+#include "BitSwaprPlugin.hpp"
+#include "BitSwaprTorrentPlugin.hpp"
 
-#include "extension/BitSwaprTorrentPlugin.hpp"
-#include "extension/BitSwaprPlugin.hpp"
-#include <iostream>
-
-BitSwaprPlugin::BitSwaprPlugin()
-    : session_(NULL) {
+BitSwaprPlugin::BitSwaprPlugin(QLoggingCategory * category)
+    : session_(NULL)
+    , category_(category == 0 ? QLoggingCategory::defaultCategory() : category) {
 
 }
 
@@ -19,13 +18,13 @@ BitSwaprPlugin::~BitSwaprPlugin() {
 boost::shared_ptr<libtorrent::torrent_plugin> BitSwaprPlugin::new_torrent(libtorrent::torrent * newTorrent, void * userData) {
 
     // Create plugin
-    BitSwaprTorrentPlugin * torrentPlugin = new BitSwaprTorrentPlugin(this, newTorrent);
+    BitSwaprTorrentPlugin * torrentPlugin = new BitSwaprTorrentPlugin(this, newTorrent, category_);
 
     // Add to collection
     torrentPlugins.push_back(torrentPlugin);
 
     // Diagnostic
-    std::cout << "Torrent #" << torrentPlugins.size() << " added." << std::endl;
+    qCDebug(CATEGORY) << "Torrent #" << torrentPlugins.size() << " added.";
 
     // Return
     return boost::shared_ptr<libtorrent::torrent_plugin>(torrentPlugin);

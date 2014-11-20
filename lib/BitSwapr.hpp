@@ -3,7 +3,12 @@
 
 #include "controller/ControllerState.hpp"
 #include "controller/Controller.hpp"
+
 #include <QThread>
+#include <QLoggingCategory>
+
+// Used directing logging to category object.
+#define CATEGORY (*category_)
 
 class BitSwapr : public QObject
 {
@@ -23,10 +28,13 @@ private:
     // Runs event loop for client
     QThread runner;
 
+    // Logging category
+    QLoggingCategory * category_;
+
 public:
 
     // Constructor
-    BitSwapr(const ControllerState & controllerState, bool showView);
+    BitSwapr(const ControllerState & controllerState, bool showView, QLoggingCategory * category = 0);
 
     // Destructor
     ~BitSwapr();

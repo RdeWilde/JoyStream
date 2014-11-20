@@ -1,10 +1,11 @@
 #include "BitSwapr.hpp"
 #include "controller/Exceptions/ListenOnException.hpp"
 
-BitSwapr::BitSwapr(const ControllerState & controllerState, bool showView)
+BitSwapr::BitSwapr(const ControllerState & controllerState, bool showView, QLoggingCategory * category)
     : controllerState_(controllerState)
     , controller_(0)
-    , showView_(showView) {
+    , showView_(showView)
+    , category_(category == 0 ? QLoggingCategory::defaultCategory() : category) {
 
     // Have runner call runner_entry() when it starts
     QObject::connect(&runner, SIGNAL(started()), this, SLOT(runner_entry()));
@@ -15,7 +16,7 @@ BitSwapr::BitSwapr(const ControllerState & controllerState, bool showView)
 
 BitSwapr::~BitSwapr() {
 
-    std::cout << "~BitSwapr() called." << std::endl;
+    qCDebug(CATEGORY) << "~BitSwapr() called.";
 
     // No need to delete controller_ here, it deletes itself
     // and then tells runner to stop event loop.
@@ -39,15 +40,19 @@ void BitSwapr::runner_entry() {
 
     // All objects created from here on in are owned by runner
 
+    std::cout << "Thread id of runner_entry() runner = " << QThread::currentThreadId() << std::endl;
+
     try {
         // Create controller
-        controller_ = new Controller(controllerState_, showView_);
+        controller_ = new Controller(controllerState_, showView_, category_);
     } catch(ListenOnException & e) {
-        std::cerr << "ERROR: failed to start libtorrent listening due to " <<  e.what() << "." << std::endl << std::endl;
+        qCCritical(CATEGORY) << "ERROR: failed to start libtorrent listening due to " <<  e.what() << ".";
         exit(EXIT_FAILURE);
     }
+
+    // Start servicing event loop
 }
 
 void BitSwapr::runner_exit() {
-    std::cout << "Client was stopped." << std::endl;
+    qCDebug(CATEGORY) << "Client was stopped.";
 }

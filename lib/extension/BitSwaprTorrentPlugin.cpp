@@ -4,9 +4,10 @@
 
 #include <iostream>
 
-BitSwaprTorrentPlugin::BitSwaprTorrentPlugin(BitSwaprPlugin * plugin, libtorrent::torrent * torrent)
+BitSwaprTorrentPlugin::BitSwaprTorrentPlugin(BitSwaprPlugin * plugin, libtorrent::torrent * torrent, QLoggingCategory * category)
     : plugin_(plugin)
-    , torrent_(torrent) {
+    , torrent_(torrent)
+    , category_(category == 0 ? QLoggingCategory::defaultCategory() : category) {
 
 }
 
@@ -27,7 +28,7 @@ boost::shared_ptr<libtorrent::peer_plugin> BitSwaprTorrentPlugin::new_connection
     peerPlugins.push_back(peerPlugin);
 
     // Notify user
-    std::cout << "Peer #" << peerPlugins.size() << " added to torrent " << (libtorrent::to_hex(torrent_->info_hash().to_string())).c_str() << "." << std::endl;
+    qCDebug(CATEGORY) << "Peer #" << peerPlugins.size() << " added to torrent " << (libtorrent::to_hex(torrent_->info_hash().to_string())).c_str() << ".";
 
     // Return pointer as required
     return boost::shared_ptr<libtorrent::peer_plugin>(peerPlugin);

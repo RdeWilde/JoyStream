@@ -1,10 +1,10 @@
-#ifndef DUPLICATE_CATEGORY_LOG_HPP
-#define DUPLICATE_CATEGORY_LOG_HPP
+#ifndef DUPLICATE_LOG_HPP
+#define DUPLICATE_LOG_HPP
 
 #include <exception>
 #include <QString>
 
-class DuplicateCategoryLog : public std::exception
+class DuplicateLog : public std::exception
 {
 private:
 
@@ -16,10 +16,10 @@ public:
     QString name_;
 
     // Constructor
-    DuplicateCategoryLog(QString & name);
+    DuplicateLog(const QString & name);
 
     // Message
     virtual const char * what() const throw();
 };
 
-#endif // DUPLICATE_CATEGORY_LOG_HPP
+#endif // DUPLICATE_LOG_HPP

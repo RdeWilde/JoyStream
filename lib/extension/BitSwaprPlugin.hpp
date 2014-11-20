@@ -14,9 +14,11 @@
 
 #include <boost/shared_ptr.hpp>
 
-//#include "extension/BitSwaprTorrentPlugin.hpp"
-
 #include <QThread>
+#include <QLoggingCategory>
+
+// Used directing logging to category object.
+#define CATEGORY (*category_)
 
 // Forward declaration
 class BitSwaprTorrentPlugin;
@@ -31,10 +33,12 @@ private:
     // Collection of plugin objects for each torrent added through new_connection()
     std::vector<BitSwaprTorrentPlugin *> torrentPlugins;
 
+    // Logging category
+    QLoggingCategory * category_;
 public:
 
     // Constructor
-    BitSwaprPlugin();
+    BitSwaprPlugin(QLoggingCategory * category = 0);
 
     // Destructor
     ~BitSwaprPlugin();

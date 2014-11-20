@@ -17,5 +17,9 @@
 
 #define BEP10_key "BR_payment"
 
+#define APPLICATION_NAME "BitSwapr"
+
+#define APPLICATION_DESCRIPTION "A cryptocurrency enabled BitTorrent client."
+
 
 #endif

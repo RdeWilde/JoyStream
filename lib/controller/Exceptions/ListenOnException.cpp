@@ -1,5 +1,5 @@
 
-#include "controller/Exceptions/ListenOnException.hpp"
+#include "ListenOnException.hpp"
 
 ListenOnException::ListenOnException(boost::system::error_code listenOnErrorCode_) : listenOnErrorCode(listenOnErrorCode_) { }
 

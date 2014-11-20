@@ -1,5 +1,5 @@
 
-#include "extension/BitSwaprPeerPlugin.hpp"
+#include "BitSwaprPeerPlugin.hpp"
 #include "Config.hpp"
 
 #include <iostream>
@@ -23,11 +23,14 @@ const char * message_names[] = {
     "end"
 };
 
-BitSwaprPeerPlugin::BitSwaprPeerPlugin(BitSwaprTorrentPlugin * torrentPlugin, libtorrent::peer_connection * peerConnection)
+BitSwaprPeerPlugin::BitSwaprPeerPlugin(BitSwaprTorrentPlugin * torrentPlugin, libtorrent::peer_connection * peerConnection, QLoggingCategory * category)
     : torrentPlugin_(torrentPlugin)
     , peerConnection_(peerConnection)
     , peerBEP10SupportedStatus(unknown)
-    , peerBEP43SupportedStatus(unknown) {}
+    , peerBEP43SupportedStatus(unknown)
+    , category_(category == 0 ? QLoggingCategory::defaultCategory() : category) {
+
+}
 
 BitSwaprPeerPlugin::~BitSwaprPeerPlugin() {
 
@@ -103,7 +106,7 @@ bool BitSwaprPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & h
     // Check that BEP10 was actually supported, if
     // it wasnt, then the peer is misbehaving
     if(peerBEP10SupportedStatus != supported) {
-        std::cerr << "Peer didn't support BEP10, but it sent extended handshake." << std::endl;
+        qCWarning(CATEGORY) << "Peer didn't support BEP10, but it sent extended handshake.";
         peerBEP43SupportedStatus = not_supported;
         return false;
     }
@@ -138,7 +141,7 @@ bool BitSwaprPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & h
             peerMessageMapping[i] = peerMessageBEP10ID;
     }
 
-    std::cout << "Found extension handshake." << std::endl;
+    qCDebug(CATEGORY) << "Found extension handshake.";
 
     // All messages were present, hence the protocol is supported
     peerBEP43SupportedStatus = supported;

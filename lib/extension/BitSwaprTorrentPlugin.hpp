@@ -10,6 +10,10 @@
 #include <boost/shared_ptr.hpp>
 
 #include <QThread>
+#include <QLoggingCategory>
+
+// Used directing logging to category object.
+#define CATEGORY (*category_)
 
 // Forward declaration
 class BitSwaprPlugin;
@@ -28,10 +32,13 @@ private:
     // Collection of peer plugin objects for each peer presently connected to this node through this torrent swarm
     std::vector<BitSwaprPeerPlugin *> peerPlugins;
 
+    // Logging category
+    QLoggingCategory * category_;
+
 public:
 
     // Constructor
-    BitSwaprTorrentPlugin(BitSwaprPlugin * plugin, libtorrent::torrent * torrent);
+    BitSwaprTorrentPlugin(BitSwaprPlugin * plugin, libtorrent::torrent * torrent, QLoggingCategory * category = 0);
 
     // Destructor
     ~BitSwaprTorrentPlugin();
