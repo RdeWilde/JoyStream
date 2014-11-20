@@ -6,8 +6,7 @@ TEMPLATE = app
 
 CONFIG += console
 CONFIG += link_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
-CONFIG += qtestlib
-QT      += core
+QT     += core
 
 INCLUDEPATH += $$PWD # be able to include w.r.t root of this project
 

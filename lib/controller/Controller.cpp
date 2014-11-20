@@ -23,7 +23,7 @@
 #include <boost/bind.hpp>
 #endif Q_MOC_RUN
 
-Controller::Controller(const ControllerState & state, bool showView, QLoggingCategory * category)
+Controller::Controller(const ControllerState & state, QLoggingCategory * category)
     : session(libtorrent::fingerprint("BR"
                                       ,BITSWAPR_VERSION_MAJOR
                                       ,BITSWAPR_VERSION_MINOR
@@ -37,7 +37,7 @@ Controller::Controller(const ControllerState & state, bool showView, QLoggingCat
               +libtorrent::alert::progress_notification
               +libtorrent::alert::performance_warning
               +libtorrent::alert::stats_notification)
-    , view(this)
+
     , numberOfOutstandingResumeDataCalls(0)
     , sourceForLastResumeDataCall(NONE)
     , portRange(state.getPortRange())
@@ -62,7 +62,7 @@ Controller::Controller(const ControllerState & state, bool showView, QLoggingCat
 	std::vector<char> buffer;
 	libtorrent::bencode(std::back_inserter(buffer), state.getLibtorrentSessionSettingsEntry());
 	libtorrent::lazy_entry settingsLazyEntry;
-	libtorrent::error_code lazyBdecodeEc;
+    libtorrent::error_code lazyBdecodeEc;
 	libtorrent::lazy_bdecode(&buffer[0], &buffer[0] + buffer.size(), settingsLazyEntry, lazyBdecodeEc);
 	session.load_state(settingsLazyEntry);
 
@@ -93,13 +93,15 @@ Controller::Controller(const ControllerState & state, bool showView, QLoggingCat
     std::vector<libtorrent::add_torrent_params> & params = state.getTorrentParameters();
     for(std::vector<libtorrent::add_torrent_params>::iterator i = params.begin();i != params.end(); ++i)
         addTorrent(*i);
+}
 
-    // Restore view state
-    //view.restoreState();
+void Controller::connectToView(MainWindow * view) {
 
-    // Show view if desired
-    if(showView)
-        view.show();
+    // connect: view -> controller
+    QObject::connect(view, SIGNAL(addTorrentFromMagnetLink(const QString &)),
+                     this, SLOT(addTorrentFromMagnetLink(const QString &)));
+
+
 }
 
 void Controller::callPostTorrentUpdates() {
@@ -362,7 +364,7 @@ void Controller::processTorrentRemovedAlert(libtorrent::torrent_removed_alert co
         addTorrentParameters.erase(*a_ptr.get());
 
         // Notify view to remove torrent
-        view.removeTorrent(p->info_hash);
+        //view.removeTorrent(p->info_hash);
 
         qCDebug(CATEGORY) << "Found match and removed it.";
 
@@ -382,9 +384,9 @@ void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p)
         name = p->params.name;
 
     // Check if there was an error
-    if (p->error)
-        view.addTorrentFailed(name, p->params.info_hash, p->error);
-    else {
+    if (p->error) {
+        //view.addTorrentFailed(name, p->params.info_hash, p->error);
+    } else {
 
         /*
 		h.set_max_connections(max_connections_per_torrent);
@@ -395,12 +397,12 @@ void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p)
         */
 
         // Add torrent to view
-        view.addTorrent(p->handle.info_hash(), name, totalSize);
+        //view.addTorrent(p->handle.info_hash(), name, totalSize);
 	}
 }
 
 void Controller::processStatusUpdateAlert(libtorrent::state_update_alert const * p) {
-    view.updateTorrentStatus(p->status);
+    //view.updateTorrentStatus(p->status);
 }
 
 void Controller::processSaveResumeDataAlert(libtorrent::save_resume_data_alert const * p) {
@@ -665,11 +667,8 @@ void Controller::finalize_close() {
 
     qCDebug(CATEGORY) << "finalize_close() run.";
 
-    // Save state of window
-    //view.saveState();
-
-    // Kill controller
-    delete this;
+    // Stop timer
+    statusUpdateTimer.stop();
 
     // Immediately stop event loop for controller
     // ==========================================

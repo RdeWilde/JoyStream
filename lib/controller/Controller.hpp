@@ -2,7 +2,7 @@
 #define CONTROLLER_H
 
 #include "ControllerState.hpp"
-#include "view/mainwindow.hpp"
+#include "view/MainWindow.hpp"
 #include "extension/BitSwaprPlugin.hpp"
 
 #include <libtorrent/session.hpp>
@@ -25,6 +25,7 @@ Q_DECLARE_METATYPE(libtorrent::error_code)
 Q_DECLARE_METATYPE(std::vector<libtorrent::torrent_status>)
 Q_DECLARE_METATYPE(libtorrent::torrent_status)
 
+
 // Register type for QMetaObject::invokeMethod
 Q_DECLARE_METATYPE(const libtorrent::alert*)
 
@@ -42,9 +43,6 @@ private:
 	* MAY need to be moved later.
     */
 	libtorrent::session session;
-
-    // View
-    MainWindow view;
 
 	// Listening port range
 	std::pair<int, int> portRange;
@@ -115,10 +113,10 @@ private:
 public:
 
 	// Constructor starting session with given state
-    Controller(const ControllerState & state, bool showView, QLoggingCategory * category = 0);
+    Controller(const ControllerState & state, QLoggingCategory * category = 0);
 
     // Connect controller signals to view slots
-    void connecToViewSlots(MainWindow * view);
+    void connectToView(MainWindow * view);
 
     // Callback routine called by libtorrent dispatcher routine
     void libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::alert> alertAutoPtr);
@@ -127,13 +125,16 @@ public:
     Q_INVOKABLE void processAlert(libtorrent::alert const * a);
 
     /*
-     * Routines called by view
+     * Utilities
      */
 
-    // Called by ...
+    // Called by MainWindow::
+    libtorrent::torrent_handle getTorrentHandleFromInfoHash(const libtorrent::sha1_hash & info_hash);
+
+public slots:
+
 	void saveStateToFile(const char * file);
 
-    // Called by ...
     // REMOVE LATER, not nice to share this out.
     libtorrent::session & getSession();
 
@@ -143,7 +144,7 @@ public:
     // Called by MainWindow::on_addTorrentFilePushButton_clicked()
     void addTorrentFromTorrentFile(const QString & torrentFile);
 
-    // Called by MainWindow::on_addMagnetLinkPushButton_clicked()
+    //
     void addTorrentFromMagnetLink(const QString & magnetLink);
 
     // Called by MainWindow::startMenuAction()
@@ -159,13 +160,6 @@ public:
     // Stops libtorrent session, and tries to save_resume data.
     // When all resume data is saved, finalize_close() is called.
     void begin_close();
-
-    /*
-     * Utilities
-     */
-
-    // Called by MainWindow::
-    libtorrent::torrent_handle getTorrentHandleFromInfoHash(const libtorrent::sha1_hash & info_hash);
 
 private slots:
 
