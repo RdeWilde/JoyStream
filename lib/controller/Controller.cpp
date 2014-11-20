@@ -23,7 +23,7 @@
 #include <boost/bind.hpp>
 #endif Q_MOC_RUN
 
-Controller::Controller(const ControllerState & state, QLoggingCategory * category)
+Controller::Controller(const ControllerState & state, bool showView, QLoggingCategory * category)
     : session(libtorrent::fingerprint("BR"
                                       ,BITSWAPR_VERSION_MAJOR
                                       ,BITSWAPR_VERSION_MINOR
@@ -37,7 +37,7 @@ Controller::Controller(const ControllerState & state, QLoggingCategory * categor
               +libtorrent::alert::progress_notification
               +libtorrent::alert::performance_warning
               +libtorrent::alert::stats_notification)
-
+    , view(this)
     , numberOfOutstandingResumeDataCalls(0)
     , sourceForLastResumeDataCall(NONE)
     , portRange(state.getPortRange())
@@ -93,8 +93,13 @@ Controller::Controller(const ControllerState & state, QLoggingCategory * categor
     std::vector<libtorrent::add_torrent_params> & params = state.getTorrentParameters();
     for(std::vector<libtorrent::add_torrent_params>::iterator i = params.begin();i != params.end(); ++i)
         addTorrent(*i);
+
+    // Show view
+    if(showView)
+        view.show();
 }
 
+/*
 void Controller::connectToView(MainWindow * view) {
 
     // connect: view -> controller
@@ -103,6 +108,7 @@ void Controller::connectToView(MainWindow * view) {
 
 
 }
+*/
 
 void Controller::callPostTorrentUpdates() {
     session.post_torrent_updates();
@@ -494,7 +500,10 @@ void Controller::addTorrentFromTorrentFile(const QString & torrentFile) {
     // Show window for adding torrent
     AddTorrentDialog * addTorrentDialog = new AddTorrentDialog(this, params);
 
-    addTorrentDialog->exec(); // <-- starts new event loop, no more libtorrent alerts are processed in mean time.
+    // Starts new event loop,
+    // no more libtorrent alerts are processed in mean time,
+    // change at a later time
+    addTorrentDialog->exec();
 
     // Delete window
     delete addTorrentDialog;
@@ -670,6 +679,7 @@ void Controller::finalize_close() {
     // Stop timer
     statusUpdateTimer.stop();
 
+    /*
     // Immediately stop event loop for controller
     // ==========================================
     // NB: It is very important that exit() is used,
@@ -677,4 +687,8 @@ void Controller::finalize_close() {
     // event is processed by event loop, which will not
     // work since controller has been deleted.
     QThread::currentThread()->exit();
+    */
+
+    // Tell runner that controller is done
+    emit closed();
 }

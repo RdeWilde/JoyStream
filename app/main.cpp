@@ -5,13 +5,14 @@
 
 #include <iostream>
 
-#include "lib/BitSwapr.hpp"
 #include "lib/Config.hpp"
+#include "lib/ControllerTracker.hpp"
 #include "lib/logger/LoggerManager.hpp"
 
 // Forward declarations
 bool updateManager();
 
+// BitSwapr entry point
 void main(int argc, char* argv[]) {
 
     // Create Qt application: all objects created after this point are owned by this thread
@@ -77,33 +78,32 @@ void main(int argc, char* argv[]) {
             controllerState = ControllerState(fileString.c_str());
     }
 
+    // Create a tracker
+    ControllerTracker tracker;
+
     /*
     // Create category
     QLoggingCategory * mainCategory = global_log_manager("main", false, true),
-            * peerCategory = global_log_manager("peer", false, false);
+                    * peerCategory = global_log_manager("peer", false, false);
     */
 
-    std::cout << "Main thread id = " << QThread::currentThreadId() << std::endl;
+    //std::cout << "Main thread id = " << QThread::currentThreadId() << std::endl;
 
     // Create main client
-    BitSwapr client(controllerState, showView);
-    client.start();
-    std::cout << "Started main client thread." << std::endl;
+    Controller client(controllerState);
+    tracker.addClient(&client);
+    std::cout << "Started main client." << std::endl;
 
     /*
     // Create peer client
-    BitSwapr client(controllerState, showView);
-    client.start();
-    std::cout << "Started main client thread." << std::endl;
+    BitSwapr pclient(controllerState, false, peerCategory);
+    runner.addClient(&pclient);
+    std::cout << "Started peer client." << std::endl;
     */
 
-    // Start application event loop,
-    // it is responsible for servicing event loop for BitSwapr
-    // objects, which among which means connecting runner thread in
-    // each object to its runner_entry slot
+    // Start event loop: this is the only Qt event loop in the entire application
     app.exec();
 
-    // Notify that event loop processing was ended
     std::cout << "Application event loop exited, application closing." << std::endl;
 }
 

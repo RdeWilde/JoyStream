@@ -25,7 +25,6 @@ Q_DECLARE_METATYPE(libtorrent::error_code)
 Q_DECLARE_METATYPE(std::vector<libtorrent::torrent_status>)
 Q_DECLARE_METATYPE(libtorrent::torrent_status)
 
-
 // Register type for QMetaObject::invokeMethod
 Q_DECLARE_METATYPE(const libtorrent::alert*)
 
@@ -110,13 +109,13 @@ private:
     // Logging category
     QLoggingCategory * category_;
 
+    // View
+    MainWindow view;
+
 public:
 
 	// Constructor starting session with given state
-    Controller(const ControllerState & state, QLoggingCategory * category = 0);
-
-    // Connect controller signals to view slots
-    void connectToView(MainWindow * view);
+    Controller(const ControllerState & state, bool showView = true, QLoggingCategory * category = 0);
 
     // Callback routine called by libtorrent dispatcher routine
     void libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::alert> alertAutoPtr);
@@ -131,7 +130,10 @@ public:
     // Called by MainWindow::
     libtorrent::torrent_handle getTorrentHandleFromInfoHash(const libtorrent::sha1_hash & info_hash);
 
-public slots:
+
+    /*
+     * View entry points
+     */
 
 	void saveStateToFile(const char * file);
 
@@ -144,7 +146,7 @@ public slots:
     // Called by MainWindow::on_addTorrentFilePushButton_clicked()
     void addTorrentFromTorrentFile(const QString & torrentFile);
 
-    //
+    // Called by MainWindow::on_
     void addTorrentFromMagnetLink(const QString & magnetLink);
 
     // Called by MainWindow::startMenuAction()
@@ -165,6 +167,11 @@ private slots:
 
     // Tells session to post updates, is signaled by timer
     void callPostTorrentUpdates();
+
+signals:
+
+    // Emitted after finalize_close(), that is when controller is 100% done
+    void closed();
 };
 
 #endif

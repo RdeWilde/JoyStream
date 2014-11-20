@@ -16,6 +16,9 @@ namespace Ui {
 class MainWindow;
 }
 
+// Forward declarations
+class Controller;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -23,7 +26,7 @@ class MainWindow : public QMainWindow
 public:
 
     // Constructor
-    MainWindow();
+    MainWindow(Controller * controller);
 
     // Destructor
     ~MainWindow();
@@ -35,6 +38,9 @@ private:
 
     // View model
     QStandardItemModel * model;
+
+    // Controller
+    Controller * controller_;
 
     /*
     * Maps torrent info_hash to the model item containing the name of the torrent.
@@ -52,42 +58,17 @@ private:
     int findRowFromInfoHash(const libtorrent::sha1_hash & info_hash);
     libtorrent::torrent_handle getTorrentHandleLastClicked();
 
-protected:
 
-    void closeEvent(QCloseEvent *event);
-
-signals:
-
-    /*
-    libtorrent::session & getSession();
-
-    // Called by AddTorrentDialog::on_AddTorrentDialog_accepted()
-    void addTorrent(libtorrent::add_torrent_params & params);
-
-    // Called by MainWindow::on_addTorrentFilePushButton_clicked()
-    void addTorrentFromTorrentFile(const QString & torrentFile);
-    */
-
-    void addTorrentFromMagnetLink(const QString & magnetLink);
-
-    /*
-    // Called by MainWindow::startMenuAction()
-    void removeTorrent(const libtorrent::torrent_handle & torrentHandle);
-
-    // Called by MainWindow::pauseMenuAction()
-    void pauseTorrent(libtorrent::torrent_handle & torrentHandle);
-
-    // Called by MainWindow::startMenuAction()
-    void startTorrent(libtorrent::torrent_handle & torrentHandle);
-    */
-
-public slots: // These slots get signals from controller.
 
     void addTorrent(const libtorrent::sha1_hash & info_hash, const std::string & torrentName, int totalSize);
     void addTorrentFailed(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec);
     void updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector);
     void updateTorrentStatus(const libtorrent::torrent_status & torrentStatus); // start, stopp, stats
     void removeTorrent(const libtorrent::sha1_hash & info_hash);
+
+protected:
+
+    void closeEvent(QCloseEvent *event);
 
 private slots: // These slots get signals from view objects.
 

@@ -22,11 +22,11 @@ SOURCES += \
             extension/BitSwaprPlugin.cpp \
             extension/BitSwaprTorrentPlugin.cpp \
             extension/BitSwaprPeerPlugin.cpp \
-            BitSwapr.cpp \
             logger/LoggerManager.cpp \
             logger/exceptions/CannnotOpenLogFile.cpp \
             logger/exceptions/DuplicateLog.cpp \
-    view/MainWindow.cpp
+    view/MainWindow.cpp \
+    ControllerTracker.cpp
 		
 HEADERS += \
             controller/Controller.hpp \
@@ -39,11 +39,11 @@ HEADERS += \
             extension/BitSwaprTorrentPlugin.hpp \
             extension/BitSwaprPeerPlugin.hpp \
             Config.hpp \
-            BitSwapr.hpp \
             logger/LoggerManager.hpp \
             logger/exceptions/DuplicateLog.hpp \
             logger/exceptions/CannnotOpenLogFile.hpp \
-    view/MainWindow.hpp
+    view/MainWindow.hpp \
+    ControllerTracker.hpp
 				
 FORMS += \
             view/mainwindow.ui \

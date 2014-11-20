@@ -2,6 +2,8 @@
 #include "view/addtorrentdialog.hpp"
 #include "ui_mainwindow.h"
 
+#include "controller/Controller.hpp"
+
 #include <iostream>
 
 #include <QMessageBox>
@@ -15,9 +17,10 @@
 #include <libtorrent/add_torrent_params.hpp>
 #include <libtorrent/torrent_handle.hpp>
 
-MainWindow::MainWindow()
+MainWindow::MainWindow(Controller * controller)
     : ui(new Ui::MainWindow)
     , model(new QStandardItemModel(0, 4, this)) //0 Rows and 4 Columns
+    , controller_(controller)
     , tableViewContextMenu(new QMenu(this))
 {
     ui->setupUi(this);
@@ -84,8 +87,8 @@ void MainWindow::pauseMenuAction() {
     // is it valid, i.e. was an actual match found?
     if(!torrentHandle.is_valid())
         std::cout << "No match found" << std::endl;
-    //else
-    //   controller_->pauseTorrent(torrentHandle);
+    else
+       controller_->pauseTorrent(torrentHandle);
 }
 
 void MainWindow::startMenuAction() {
@@ -96,8 +99,8 @@ void MainWindow::startMenuAction() {
     // Is it valid, i.e. was an actual match found?
     if(!torrentHandle.is_valid())
         std::cout << "No match found" << std::endl;
-    //else
-    //    controller_->startTorrent(torrentHandle);
+    else
+        controller_->startTorrent(torrentHandle);
 }
 
 void MainWindow::removeMenuAction() {
@@ -106,7 +109,7 @@ void MainWindow::removeMenuAction() {
     libtorrent::torrent_handle torrentHandle = getTorrentHandleLastClicked();
 
     // Notify controller to remove torrent
-    //controller_->removeTorrent(torrentHandle);
+    controller_->removeTorrent(torrentHandle);
 }
 
 libtorrent::torrent_handle MainWindow::getTorrentHandleLastClicked() {
@@ -118,8 +121,8 @@ libtorrent::torrent_handle MainWindow::getTorrentHandleLastClicked() {
     libtorrent::sha1_hash & info_hash = infoHashInRow[row];
 
     // Get handle
-    //return controller_->getTorrentHandleFromInfoHash(info_hash);
-    return  libtorrent::torrent_handle(); // CHANGE LATER
+    return controller_->getTorrentHandleFromInfoHash(info_hash);
+    //return  libtorrent::torrent_handle(); // CHANGE LATER
 }
 
 void MainWindow::on_addTorrentFilePushButton_clicked()
@@ -131,8 +134,8 @@ void MainWindow::on_addTorrentFilePushButton_clicked()
     if(torrentFile.isNull())
         return;
 
-    // Tell
-    //controller_->addTorrentFromTorrentFile(torrentFile);
+    // Tell controller
+    controller_->addTorrentFromTorrentFile(torrentFile);
 }
 
 void MainWindow::on_addMagnetLinkPushButton_clicked()
@@ -151,13 +154,13 @@ void MainWindow::on_addMagnetLinkPushButton_clicked()
         return;
 
     // Notify controller
-    emit addTorrentFromMagnetLink(magnetLink);
+    controller_->addTorrentFromMagnetLink(magnetLink);
 }
 
 void MainWindow::closeEvent(QCloseEvent * event) {
 
     // Notify controller
-    //controller_->begin_close();
+    controller_->begin_close();
 }
 
 void MainWindow::addTorrent(const libtorrent::sha1_hash & info_hash, const std::string & torrentName, int totalSize) {
@@ -200,8 +203,8 @@ void MainWindow::updateTorrentStatus(const libtorrent::torrent_status & torrentS
     if(row < 0) {
         std::cout << "no match info_hash found." << std::endl;
         return;
-    }// else
-     //   std::cout << "update for row: " << row << std::endl;
+    } else
+        std::cout << "update for row: " << row << std::endl;
 
     // Change row in model row, by updating:
     // size (1) <-- if not set by info_hash based torrent
