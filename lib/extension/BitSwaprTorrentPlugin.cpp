@@ -2,6 +2,8 @@
 #include "extension/BitSwaprTorrentPlugin.hpp"
 #include "extension/BitSwaprPeerPlugin.hpp" // needed since we construct object
 
+#include <libtorrent/error_code.hpp>
+
 #include <iostream>
 
 BitSwaprTorrentPlugin::BitSwaprTorrentPlugin(BitSwaprPlugin * plugin, libtorrent::torrent * torrent, QLoggingCategory * category)
@@ -16,6 +18,11 @@ BitSwaprTorrentPlugin::~BitSwaprTorrentPlugin() {
     // No need to explicltly delete BitSwaprPeerPlugin, since libtorrent has shared_ptr
 }
 
+// Returns plugin
+BitSwaprPlugin * BitSwaprTorrentPlugin::getPlugin() {
+    return plugin_;
+}
+
 boost::shared_ptr<libtorrent::peer_plugin> BitSwaprTorrentPlugin::new_connection(libtorrent::peer_connection * peerConnection) {
 
     // Create peer level plugin
@@ -24,8 +31,24 @@ boost::shared_ptr<libtorrent::peer_plugin> BitSwaprTorrentPlugin::new_connection
     // Add to collection
     peerPlugins.push_back(peerPlugin);
 
-    // Notify user
-    qCDebug(CATEGORY) << "Peer #" << peerPlugins.size() << " added to torrent " << (libtorrent::to_hex(torrent_->info_hash().to_string())).c_str() << ".";
+    // Notify
+    libtorrent::error_code ec;
+    libtorrent::address const & addr = peerConnection->remote().address();
+    const char * peerAddress = NULL;
+
+    if (addr.is_v6())
+        peerAddress = addr.to_string(ec).c_str();
+    else
+        peerAddress = addr.to_string(ec).c_str();
+
+    if(ec) {
+        qCCritical(CATEGORY) << ec.message().c_str();
+        return boost::shared_ptr<libtorrent::peer_plugin>();
+    }
+
+    short port = peerConnection->remote().port();
+
+    qCDebug(CATEGORY) << "Peer #" << peerPlugins.size() << "[" << peerAddress << ":" << port << "] added to torrent " << (libtorrent::to_hex(torrent_->info_hash().to_string())).c_str() << ".";
 
     // Return pointer as required
     return boost::shared_ptr<libtorrent::peer_plugin>(peerPlugin);

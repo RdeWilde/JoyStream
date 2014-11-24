@@ -15,13 +15,13 @@ ControllerState::ControllerState(const libtorrent::entry & libtorrentSessionSett
 								: libtorrentSessionSettingsEntry(libtorrentSessionSettingsEntry_)
 								, portRange(portRange_)
 								, addTorrentParameters(addTorrentParameters_)
-								, dhtRouters(dhtRouters_) {}
+                                , dhtRouters(dhtRouters_) {}
 
 ControllerState::ControllerState() 
 				: libtorrentSessionSettingsEntry()
 				, portRange()
 				, addTorrentParameters()
-				, dhtRouters() {
+                , dhtRouters() {
 
 	// Setup session settings
 	libtorrent::session_settings sessionSettings;

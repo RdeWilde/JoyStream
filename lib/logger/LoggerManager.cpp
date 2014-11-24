@@ -91,41 +91,43 @@ void handler(QtMsgType type, const QMessageLogContext & messageLogContext, const
     LoggerManager::Category & category = global_log_manager.loggers[messageLogContext.category];
 
     // Build message
-    QString message;
+    QString messageType;
 
     switch(type) {
 
         case QtDebugMsg:
-            message = "Debug: ";
+            messageType = "Debug: ";
             break;
         case QtWarningMsg:
-            message = "Warning: ";
+            messageType = "Warning: ";
             break;
         case QtCriticalMsg:
-            message = "Critical: ";
+            messageType = "Critical: ";
             break;
         case QtFatalMsg:
-            message = "Fatal: ";
+            messageType = "Fatal: ";
     }
 
-    message.append("[")
+    QString messageSource;
+    messageSource.append("[")
             .append(messageLogContext.line)
             .append("@")
             .append(messageLogContext.function)
             .append("@")
             .append(messageLogContext.file)
-            .append("] ")
-            .append(msg);
+            .append("] ");
 
     // Write to file
-    QTextStream(category.file) << message << "\n";
+    QTextStream(category.file) << messageType << msg << "\n"; // << messageSource
 
     // and flush
     category.file->flush();
 
     // Write to screen
     if(category.useStandardOutput)
-        std::cerr << message.toStdString().c_str() << std::endl;
+        std::cerr << messageType.toStdString().c_str()
+                  << msg.toStdString().c_str()
+                  << std::endl;
 
     // Pass to default handler
     if(category.chainStandardHandler)

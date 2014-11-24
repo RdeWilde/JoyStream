@@ -12,8 +12,13 @@
 #include <libtorrent/disk_buffer_holder.hpp>
 #include <libtorrent/buffer.hpp>
 
-#include <QThread>
+//#include <QThread>
+#include <QObject>
 #include <QLoggingCategory>
+
+// MOC declarations
+#include <QMetaType>
+Q_DECLARE_METATYPE(libtorrent::peer_connection *)
 
 // Used directing logging to category object.
 #define CATEGORY (*category_)
@@ -27,7 +32,11 @@ extern const char * message_names[];
 // Number of messages
 #define NUMBER_OF_MESSAGES 15
 
-class BitSwaprPeerPlugin : public libtorrent::peer_plugin {
+// We inherit from QObject so we can send signals, and QObject must be first:
+// http://doc.trolltech.com/4.5/moc.html
+class BitSwaprPeerPlugin : public QObject, public libtorrent::peer_plugin {
+
+    Q_OBJECT
 
     // BEP support state indicator
     enum PEER_BEP_SUPPORTED_STATUS {
@@ -94,6 +103,15 @@ public:
     virtual void on_piece_failed(int index);
     virtual void tick();
     virtual bool write_request(libtorrent::peer_request const & peerRequest);
+
+signals:
+
+    /*
+     * Notifying controller
+     */
+
+    void peerAdded(libtorrent::peer_connection * peerConnection);
+
 };
 
 #endif

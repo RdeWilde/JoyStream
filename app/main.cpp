@@ -7,7 +7,15 @@
 
 #include "lib/Config.hpp"
 #include "lib/ControllerTracker.hpp"
+#include "lib/controller/Controller.hpp"
 #include "lib/logger/LoggerManager.hpp"
+
+#include <libtorrent/torrent_info.hpp>
+#include <libtorrent/error_code.hpp>
+
+#ifndef Q_MOC_RUN
+#include <boost/intrusive_ptr.hpp>
+#endif Q_MOC_RUN
 
 // Forward declarations
 bool updateManager();
@@ -78,24 +86,44 @@ void main(int argc, char* argv[]) {
             controllerState = ControllerState(fileString.c_str());
     }
 
-    // Create a tracker
-    ControllerTracker tracker;
+    // Create a controller tracker
+    ControllerTracker controllerTracker;
 
-    // Create category
-    QLoggingCategory * mainCategory = global_log_manager.createLogger("main", false, true);
-    //QLoggingCategory * peerCategory = global_log_manager.createLogger("peer", false, false);
+    // Load torrent
+    QString torrentFile  = "C:/Users/bedeho/Documents/GitHub/QtBitSwapr/tests/resources/BITSWAPR.TEST.torrent";
+
+    libtorrent::error_code ec;
+    boost::intrusive_ptr<libtorrent::torrent_info> torrentInfoPointer = new libtorrent::torrent_info(torrentFile.toStdString().c_str(), ec);
+
+    if(ec) {
+        std::cerr << "Invalid torrent file: " << ec.message().c_str();
+        return;
+    }
 
     // Create main client
-    Controller client(controllerState, true, mainCategory);
-    tracker.addClient(&client);
+    QLoggingCategory * mainCategory = global_log_manager.createLogger("main", false, true);
+    Controller main(controllerState, true, mainCategory);
+    controllerTracker.addClient(&main);
+
     std::cout << "Started main client." << std::endl;
 
-    /*
+    libtorrent::add_torrent_params paramsMain;
+    paramsMain.ti = torrentInfoPointer;
+    paramsMain.save_path = "C:/TORRRENT_OUTPUT/TEST/MAIN";
+    QMetaObject::invokeMethod(&main, "addTorrent", Q_ARG(libtorrent::add_torrent_params &, paramsMain));
+
+/*
     // Create peer client
-    Controller pclient(controllerState, false, peerCategory);
-    tracker.addClient(&pclient);
+    QLoggingCategory * peerCategory = global_log_manager.createLogger("peer", false, false); // false
+    Controller peer(controllerState, true, peerCategory);
+    controllerTracker.addClient(&peer);
+
     std::cout << "Started peer client." << std::endl;
-    */
+    libtorrent::add_torrent_params paramsPeer;
+    paramsPeer.ti = torrentInfoPointer;
+    paramsPeer.save_path = "C:/TORRRENT_OUTPUT/TEST/PEER";
+    QMetaObject::invokeMethod(&peer, "addTorrent", Q_ARG(libtorrent::add_torrent_params &, paramsPeer));
+*/
 
     // Start event loop: this is the only Qt event loop in the entire application
     app.exec();

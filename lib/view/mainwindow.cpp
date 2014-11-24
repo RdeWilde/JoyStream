@@ -161,6 +161,9 @@ void MainWindow::closeEvent(QCloseEvent * event) {
 
     // Notify controller
     controller_->begin_close();
+
+    // But do not close, which causes event loop exit
+    event->ignore();
 }
 
 void MainWindow::addTorrent(const libtorrent::sha1_hash & info_hash, const std::string & torrentName, int totalSize) {

@@ -43,6 +43,10 @@ public:
     // Destructor
     ~BitSwaprTorrentPlugin();
 
+    // Returns plugin
+    BitSwaprPlugin * getPlugin();
+
+    // Virtual functions
     virtual boost::shared_ptr<libtorrent::peer_plugin> new_connection(libtorrent::peer_connection * peerConnection);
     virtual void on_piece_pass(int index);
     virtual void on_piece_failed(int index);

@@ -59,7 +59,7 @@ public:
 	ControllerState(const libtorrent::entry & libtorrentSessionSettingsEntry_,
 					const std::pair<int, int> & portRange_,
 					const std::vector<libtorrent::add_torrent_params> & addTorrentParameters_,
-					const std::vector<std::pair<std::string, int>> & dhtRouters_);
+                    const std::vector<std::pair<std::string, int>> & dhtRouters_);
 
 	// Constructor using default parameter settings
 	ControllerState();

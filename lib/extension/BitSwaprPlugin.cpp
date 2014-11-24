@@ -1,15 +1,19 @@
 #include "BitSwaprPlugin.hpp"
 #include "BitSwaprTorrentPlugin.hpp"
 
-BitSwaprPlugin::BitSwaprPlugin(QLoggingCategory * category)
-    : session_(NULL)
+BitSwaprPlugin::BitSwaprPlugin(Controller * controller, QLoggingCategory * category)
+    : controller_(controller)
+    , session_(NULL)
     , category_(category == 0 ? QLoggingCategory::defaultCategory() : category) {
 
 }
 
 BitSwaprPlugin::~BitSwaprPlugin() {
-
     // No need to explicltly delete BitSwaprTorrentPlugin objects, since libtorrent has shared_ptr
+}
+
+Controller * BitSwaprPlugin::getController() {
+    return controller_;
 }
 
 boost::shared_ptr<libtorrent::torrent_plugin> BitSwaprPlugin::new_torrent(libtorrent::torrent * newTorrent, void * userData) {

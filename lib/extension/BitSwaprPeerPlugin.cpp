@@ -1,5 +1,8 @@
 
 #include "BitSwaprPeerPlugin.hpp"
+#include "BitSwaprTorrentPlugin.hpp"
+#include "BitSwaprPlugin.hpp"
+#include "controller/Controller.hpp" // needed to connect
 #include "Config.hpp"
 
 #include <iostream>
@@ -22,6 +25,7 @@ const char * message_names[] = {
     "end"
 };
 
+
 BitSwaprPeerPlugin::BitSwaprPeerPlugin(BitSwaprTorrentPlugin * torrentPlugin, libtorrent::peer_connection * peerConnection, QLoggingCategory * category)
     : torrentPlugin_(torrentPlugin)
     , peerConnection_(peerConnection)
@@ -29,6 +33,15 @@ BitSwaprPeerPlugin::BitSwaprPeerPlugin(BitSwaprTorrentPlugin * torrentPlugin, li
     , peerBEP43SupportedStatus(unknown)
     , category_(category == 0 ? QLoggingCategory::defaultCategory() : category) {
 
+
+    // Setup signals
+    Controller * controller = torrentPlugin_->getPlugin()->getController();
+
+    qRegisterMetaType<libtorrent::peer_connection *>();
+    QObject::connect(this,
+                     SIGNAL(peerAdded(libtorrent::peer_connection *)),
+                     controller,
+                     SLOT(extensionPeerAdded(libtorrent::peer_connection *)));
 }
 
 BitSwaprPeerPlugin::~BitSwaprPeerPlugin() {
@@ -155,12 +168,28 @@ bool BitSwaprPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & h
             peerMessageMapping[i] = peerMessageBEP10ID;
     }
 
-    qCDebug(CATEGORY) << "Found extension handshake.";
+    // Notify
+    const char * peerAddress = peerConnection_->remote().address().to_string().c_str();
+    short port = peerConnection_->remote().port();
+
+    qCDebug(CATEGORY) << "Found extension handshake for peer " << peerAddress << ":" << port << ".\n";
 
     // All messages were present, hence the protocol is supported
     peerBEP43SupportedStatus = supported;
+
+    // Send signal about new peer
+    emit peerAdded(peerConnection_);
+
+    // Tell libtorrent that our extension should be kept in the loop for this peer
     return true;
 }
+
+/*
+ *. m_pc.disconnect(errors::pex_message_too_large, 2);
+ * m_pc.disconnect(errors::too_frequent_pex);
+ * m_pc.remote().address()
+ *
+ */
 
 void BitSwaprPeerPlugin::on_disconnect(libtorrent::error_code const & ec) {
 

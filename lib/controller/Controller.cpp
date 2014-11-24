@@ -9,6 +9,7 @@
 #include <libtorrent/bencode.hpp>
 #include <libtorrent/magnet_uri.hpp>
 #include <libtorrent/torrent_info.hpp>
+#include <libtorrent/peer_connection.hpp>
 
 #include <QObject>
 #include <QMessageBox>
@@ -43,7 +44,7 @@ Controller::Controller(const ControllerState & state, bool showView, QLoggingCat
     , portRange(state.getPortRange())
     , dhtRouters(state.getDhtRouters())
     , category_(category == 0 ? QLoggingCategory::defaultCategory() : category)
-    , plugin(new BitSwaprPlugin(category_)) {
+    , plugin(new BitSwaprPlugin(this, category_)) {
 
     // Register types for signal and slots
     qRegisterMetaType<libtorrent::sha1_hash>();
@@ -74,11 +75,17 @@ Controller::Controller(const ControllerState & state, bool showView, QLoggingCat
     session.add_extension(plugin);
 
 	// Start DHT node
-	session.start_dht();
+    //if(state.useDht)
+        session.start_dht();
 
     // Start timer which calls session.post_torrent_updates at regular intervals
     statusUpdateTimer.setInterval(POST_TORRENT_UPDATES_DELAY);
-    QObject::connect(&statusUpdateTimer, SIGNAL(timeout()), this, SLOT(callPostTorrentUpdates()));
+
+    QObject::connect(&statusUpdateTimer,
+                     SIGNAL(timeout()),
+                     this,
+                     SLOT(callPostTorrentUpdates()));
+
     statusUpdateTimer.start();
 
 	// Start listening
@@ -112,6 +119,11 @@ void Controller::connectToView(MainWindow * view) {
 
 void Controller::callPostTorrentUpdates() {
     session.post_torrent_updates();
+}
+
+void Controller::extensionPeerAdded(libtorrent::peer_connection * peerConnection) {
+
+    qCDebug(CATEGORY) << "extende peer added!! \n";
 }
 
 void Controller::libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::alert> alertAutoPtr) {

@@ -20,6 +20,7 @@ void ControllerTracker::controllerClosed() {
     count--;
 
     // If all controllers are done, we kill event loop
-    if(count < 1)
+    if(count < 1) {
         QThread::currentThread()->exit();
+    }
 }

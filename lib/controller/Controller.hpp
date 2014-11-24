@@ -28,6 +28,18 @@ Q_DECLARE_METATYPE(libtorrent::torrent_status)
 // Register type for QMetaObject::invokeMethod
 Q_DECLARE_METATYPE(const libtorrent::alert*)
 
+// Forward declarations
+/*
+Introduce later:
+class libtorrent::add_torrent_alert;
+class libtorrent::state_update_alert;
+class libtorrent::torrent_removed_alert;
+class libtorrent::save_resume_data_alert;
+class libtorrent::save_resume_data_failed_alert;
+class libtorrent::torrent_paused_alert;
+*/
+class libtorrent::peer_connection;
+
 class Controller : public QObject {
 
     Q_OBJECT
@@ -130,9 +142,9 @@ public:
     // Called by MainWindow::
     libtorrent::torrent_handle getTorrentHandleFromInfoHash(const libtorrent::sha1_hash & info_hash);
 
-
     /*
-     * View entry points
+     * View/Main entry points.
+     * TURN INTO SLOTS LATER
      */
 
 	void saveStateToFile(const char * file);
@@ -141,7 +153,7 @@ public:
     libtorrent::session & getSession();
 
     // Called by AddTorrentDialog::on_AddTorrentDialog_accepted()
-    void addTorrent(libtorrent::add_torrent_params & params);
+    Q_INVOKABLE void addTorrent(libtorrent::add_torrent_params & params);
 
     // Called by MainWindow::on_addTorrentFilePushButton_clicked()
     void addTorrentFromTorrentFile(const QString & torrentFile);
@@ -167,6 +179,14 @@ private slots:
 
     // Tells session to post updates, is signaled by timer
     void callPostTorrentUpdates();
+
+public slots:
+
+    /*
+     * Primarily used by plugin routines, run by libtorrent thread.
+     */
+
+    void extensionPeerAdded(libtorrent::peer_connection * peerConnection);
 
 signals:
 
