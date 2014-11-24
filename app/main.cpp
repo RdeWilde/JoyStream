@@ -81,23 +81,19 @@ void main(int argc, char* argv[]) {
     // Create a tracker
     ControllerTracker tracker;
 
-    /*
     // Create category
-    QLoggingCategory * mainCategory = global_log_manager("main", false, true),
-                    * peerCategory = global_log_manager("peer", false, false);
-    */
-
-    //std::cout << "Main thread id = " << QThread::currentThreadId() << std::endl;
+    QLoggingCategory * mainCategory = global_log_manager.createLogger("main", false, true);
+    //QLoggingCategory * peerCategory = global_log_manager.createLogger("peer", false, false);
 
     // Create main client
-    Controller client(controllerState);
+    Controller client(controllerState, true, mainCategory);
     tracker.addClient(&client);
     std::cout << "Started main client." << std::endl;
 
     /*
     // Create peer client
-    BitSwapr pclient(controllerState, false, peerCategory);
-    runner.addClient(&pclient);
+    Controller pclient(controllerState, false, peerCategory);
+    tracker.addClient(&pclient);
     std::cout << "Started peer client." << std::endl;
     */
 

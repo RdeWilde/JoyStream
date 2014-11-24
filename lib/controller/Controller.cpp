@@ -42,8 +42,8 @@ Controller::Controller(const ControllerState & state, bool showView, QLoggingCat
     , sourceForLastResumeDataCall(NONE)
     , portRange(state.getPortRange())
     , dhtRouters(state.getDhtRouters())
-    , pluginPointer(new BitSwaprPlugin())
-    , category_(category == 0 ? QLoggingCategory::defaultCategory() : category) {
+    , category_(category == 0 ? QLoggingCategory::defaultCategory() : category)
+    , plugin(new BitSwaprPlugin(category_)) {
 
     // Register types for signal and slots
     qRegisterMetaType<libtorrent::sha1_hash>();
@@ -71,7 +71,7 @@ Controller::Controller(const ControllerState & state, bool showView, QLoggingCat
         session.add_dht_router(*i); // Add router to session
 
     // Add plugin extension
-    session.add_extension(pluginPointer);
+    session.add_extension(plugin);
 
 	// Start DHT node
 	session.start_dht();
@@ -370,7 +370,7 @@ void Controller::processTorrentRemovedAlert(libtorrent::torrent_removed_alert co
         addTorrentParameters.erase(*a_ptr.get());
 
         // Notify view to remove torrent
-        //view.removeTorrent(p->info_hash);
+        view.removeTorrent(p->info_hash);
 
         qCDebug(CATEGORY) << "Found match and removed it.";
 
@@ -391,7 +391,7 @@ void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p)
 
     // Check if there was an error
     if (p->error) {
-        //view.addTorrentFailed(name, p->params.info_hash, p->error);
+        view.addTorrentFailed(name, p->params.info_hash, p->error);
     } else {
 
         /*
@@ -403,12 +403,12 @@ void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p)
         */
 
         // Add torrent to view
-        //view.addTorrent(p->handle.info_hash(), name, totalSize);
+        view.addTorrent(p->handle.info_hash(), name, totalSize);
 	}
 }
 
 void Controller::processStatusUpdateAlert(libtorrent::state_update_alert const * p) {
-    //view.updateTorrentStatus(p->status);
+    view.updateTorrentStatus(p->status);
 }
 
 void Controller::processSaveResumeDataAlert(libtorrent::save_resume_data_alert const * p) {

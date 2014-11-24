@@ -8,7 +8,6 @@ const char * message_names[] = {
     "list",
     "offer",
     "setup_begin",
-    "setup_begin",
     "setup_begin_accept",
     "setup_contract",
     "setup_contract_signed",
@@ -52,21 +51,36 @@ void BitSwaprPeerPlugin::add_handshake(libtorrent::entry & handshake) {
     // Add key for bitswapr payment protocol
     libtorrent::entry::dictionary_type & m = handshake["m"].dict();
 
+    // Starting point from where to map.
+    // So this is a bit of a mess. First I attempted to just look at all prexisting registrations,
+    // and make sure that I started after the greatest one. However, we cannot be sure that add_handshake
+    // is actually called last on our extension, and since the other extensions dont give a FUCK
+    // about not overwriting other peoples extensions values. The only solution is then to just start
+    // on some huge value which has no other extensions above it, so this value was found by trial and error.
+    int maxExistingID = 60;
+
+    /*
     // Iterate m key dictionary and find the greatest ID
-    int maxExistingID = 0;
-    for(std::map<std::string, libtorrent::entry>::iterator i = m.begin(),
-        end(m.end());i != end;i++)
+    for(std::map<std::string, libtorrent::entry>::iterator i = m.begin(),end(m.end());i != end;i++)
         maxExistingID = std::max((int)(((*i).second).integer()), maxExistingID);
+    */
 
     // Set m dictionary key for client
     for(int i = 0;i < NUMBER_OF_MESSAGES;i++)
         m[message_names[i]] = (maxExistingID + 1) + i;
 
+    /*
+    // Diagnostics
+    qCDebug(CATEGORY) << "m:";
+    for(std::map<std::string, libtorrent::entry>::iterator i = m.begin(), end(m.end());i != end;i++)
+        qCDebug(CATEGORY) << ((*i).first).c_str() << " : " << ((*i).second).integer();
+    */
+
     // Add client identification
     QString clientIdentifier = QString("BitSwapr ")
-            + QString::number(BITSWAPR_VERSION_MAJOR)
-            + QString(".")
-            + QString::number(BITSWAPR_VERSION_MINOR);
+                                + QString::number(BITSWAPR_VERSION_MAJOR)
+                                + QString(".")
+                                + QString::number(BITSWAPR_VERSION_MINOR);
 
     handshake["v"] = clientIdentifier.toStdString().c_str();
 }

@@ -13,10 +13,7 @@ BitSwaprTorrentPlugin::BitSwaprTorrentPlugin(BitSwaprPlugin * plugin, libtorrent
 
 BitSwaprTorrentPlugin::~BitSwaprTorrentPlugin() {
 
-    // Iterate torrent plugins and delete
-    for(std::vector<BitSwaprPeerPlugin *>::iterator i = peerPlugins.begin(),
-        end(peerPlugins.end());i != end;i++)
-        delete *i;
+    // No need to explicltly delete BitSwaprPeerPlugin, since libtorrent has shared_ptr
 }
 
 boost::shared_ptr<libtorrent::peer_plugin> BitSwaprTorrentPlugin::new_connection(libtorrent::peer_connection * peerConnection) {

@@ -31,6 +31,13 @@ public:
     // Destructor
     ~MainWindow();
 
+    // Controller calls
+    void addTorrent(const libtorrent::sha1_hash & info_hash, const std::string & torrentName, int totalSize);
+    void addTorrentFailed(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec);
+    void updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector);
+    void updateTorrentStatus(const libtorrent::torrent_status & torrentStatus); // start, stopp, stats
+    void removeTorrent(const libtorrent::sha1_hash & info_hash);
+
 private:
 
     // View
@@ -57,14 +64,6 @@ private:
 
     int findRowFromInfoHash(const libtorrent::sha1_hash & info_hash);
     libtorrent::torrent_handle getTorrentHandleLastClicked();
-
-
-
-    void addTorrent(const libtorrent::sha1_hash & info_hash, const std::string & torrentName, int totalSize);
-    void addTorrentFailed(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec);
-    void updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector);
-    void updateTorrentStatus(const libtorrent::torrent_status & torrentStatus); // start, stopp, stats
-    void removeTorrent(const libtorrent::sha1_hash & info_hash);
 
 protected:
 

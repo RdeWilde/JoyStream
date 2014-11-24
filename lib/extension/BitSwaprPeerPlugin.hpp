@@ -25,7 +25,7 @@ class BitSwaprTorrentPlugin;
 extern const char * message_names[];
 
 // Number of messages
-#define NUMBER_OF_MESSAGES 16
+#define NUMBER_OF_MESSAGES 15
 
 class BitSwaprPeerPlugin : public libtorrent::peer_plugin {
 

@@ -38,7 +38,7 @@ private:
 public:
 
     // Constructor
-    BitSwaprPlugin(QLoggingCategory * category = 0);
+    BitSwaprPlugin(QLoggingCategory * category);
 
     // Destructor
     ~BitSwaprPlugin();

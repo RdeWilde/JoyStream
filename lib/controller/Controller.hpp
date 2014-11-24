@@ -52,9 +52,6 @@ private:
 	// Dht routers
 	std::vector<std::pair<std::string, int>> dhtRouters;
 
-    // Plugin
-    boost::shared_ptr<libtorrent::plugin> pluginPointer;
-
     // Timer which calls session.post_torrent_updates() at regular intervals
     QTimer statusUpdateTimer;
 
@@ -108,6 +105,9 @@ private:
 
     // Logging category
     QLoggingCategory * category_;
+
+    // Plugin: constructor initializatin list expects plugin to appear after category_
+    boost::shared_ptr<libtorrent::plugin> plugin;
 
     // View
     MainWindow view;

@@ -10,37 +10,6 @@ LoggerManager global_log_manager;
 
 void handler(QtMsgType type, const QMessageLogContext & messageLogContext, const QString & msg);
 
-// Inner class constructor
-LoggerManager::Logger::Logger(const QString & name, bool chainStandardHandler, bool useStandardOutput)
-    : name_(name)
-    , file_(new QFile(name))
-    , logger_(new QLoggingCategory(name.toStdString().c_str()))
-    , chainStandardHandler_(chainStandardHandler)
-    , useStandardOutput_(useStandardOutput) {
-
-    // Open file
-    if(!file_->open(QIODevice::WriteOnly | QIODevice::Text))
-        throw CannnotOpenLogFile(file_);
-}
-
-LoggerManager::Logger::Logger()
-    : file_(0)
-    , logger_(0) {
-}
-
-// Inner class destructor
-LoggerManager::Logger::~Logger() {
-
-    // Free file object, if non-default constructor used
-    if(file_ != 0)
-        delete file_;
-
-    // Free logger object, if non-default constructor used
-    if(logger_ != 0)
-        delete logger_;
-}
-
-
 // Manager constructor
 LoggerManager::LoggerManager() {
 
@@ -51,16 +20,25 @@ LoggerManager::LoggerManager() {
 // Manager destructor
 LoggerManager::~LoggerManager() {
 
-    // Iterate and free
-    for(std::map<QString, LoggerManager::Logger>::iterator i = loggers.begin(),
-        end(loggers.end()); i != end;i++)
-        delete (i->second).logger_;
+    // Iterate loggers and free resources
+    for(std::map<QString, LoggerManager::Category>::iterator i = loggers.begin(),
+        end(loggers.end()); i != end; i++) {
+
+        // Get logger
+        LoggerManager::Category & category = i->second;
+
+        // Free file object
+        delete category.file;
+
+        // Free category object
+        delete category.qCategory;
+    }
 
     // Reinstall default handler
     qInstallMessageHandler(defaultHandler);
 }
 
-QLoggingCategory * LoggerManager::createLogger(const QString & name, bool chainStandardHandler = false, bool useStandardOutput = false) {
+QLoggingCategory * LoggerManager::createLogger(const char * name, bool chainStandardHandler = false, bool useStandardOutput = false) {
 
     // Acquire lock
     mutex.lock();
@@ -70,16 +48,25 @@ QLoggingCategory * LoggerManager::createLogger(const QString & name, bool chainS
         throw DuplicateLog(name);
 
     // Create category logger
-    Logger logger(name, chainStandardHandler, useStandardOutput);
+    LoggerManager::Category category;
+    category.name = name;
+    category.file = new QFile(QString(name) + ".txt");
+    category.qCategory = new QLoggingCategory(name);
+    category.chainStandardHandler = chainStandardHandler;
+    category.useStandardOutput = useStandardOutput;
+
+    // Open file
+    if(!category.file->open(QIODevice::WriteOnly | QIODevice::Text))
+        throw CannnotOpenLogFile(category.file);
 
     // Save in logs map
-    loggers[name] = logger;
+    loggers[name] = category;
 
     // Release lock
     mutex.unlock();
 
     // Return QLoggingCategory pointer
-    return logger.logger_;
+    return category.qCategory;
 }
 
 // QtMessageHandler
@@ -101,7 +88,7 @@ void handler(QtMsgType type, const QMessageLogContext & messageLogContext, const
     }
 
     // Get category
-    LoggerManager::Logger & logger = global_log_manager.loggers[messageLogContext.category];
+    LoggerManager::Category & category = global_log_manager.loggers[messageLogContext.category];
 
     // Build message
     QString message;
@@ -131,17 +118,17 @@ void handler(QtMsgType type, const QMessageLogContext & messageLogContext, const
             .append(msg);
 
     // Write to file
-    QTextStream(logger.file_) << message << "\n";
+    QTextStream(category.file) << message << "\n";
 
     // and flush
-    logger.file_->flush();
+    category.file->flush();
 
     // Write to screen
-    if(logger.useStandardOutput_)
+    if(category.useStandardOutput)
         std::cerr << message.toStdString().c_str() << std::endl;
 
     // Pass to default handler
-    if(logger.chainStandardHandler_)
+    if(category.chainStandardHandler)
         global_log_manager.defaultHandler(type, messageLogContext, msg);
 
     // Abort if we received fatal message

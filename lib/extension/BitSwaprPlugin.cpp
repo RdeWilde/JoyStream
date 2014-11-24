@@ -9,10 +9,7 @@ BitSwaprPlugin::BitSwaprPlugin(QLoggingCategory * category)
 
 BitSwaprPlugin::~BitSwaprPlugin() {
 
-    // Iterate torrent plugins and delete them
-    for(std::vector<BitSwaprTorrentPlugin *>::iterator i = torrentPlugins.begin(),
-        end(torrentPlugins.end()); i != end;i++)
-        delete *i;
+    // No need to explicltly delete BitSwaprTorrentPlugin objects, since libtorrent has shared_ptr
 }
 
 boost::shared_ptr<libtorrent::torrent_plugin> BitSwaprPlugin::new_torrent(libtorrent::torrent * newTorrent, void * userData) {

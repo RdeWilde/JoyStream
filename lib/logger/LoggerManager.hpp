@@ -11,38 +11,28 @@ class LoggerManager {
 
 public:
 
-    class Logger {
+    // Collects all resources for a single logging category
+    struct Category {
 
-        public:
+        // Name
+        const char * name;
 
-            // Name
-            QString name_;
+        // File where messages are outputted
+        QFile * file;
 
-            // File where messages are outputted
-            QFile * file_;
+        // Logger for category
+        QLoggingCategory * qCategory;
 
-            // Logger for category
-            QLoggingCategory * logger_;
+        // Whether standard handler should be used
+        bool chainStandardHandler;
 
-            // Whether standard handler should be used
-            bool chainStandardHandler_;
-
-            // Whether message should also output message to stdout/stderr
-            bool useStandardOutput_;
-
-            // Constructor
-            Logger(const QString & name, bool chainStandardHandler, bool useStandardOutput);
-
-            // Default Constructor, needed to put objects in std::map
-            Logger();
-
-            // Destructor
-            ~Logger();
+        // Whether message should also output message to stdout/stderr
+        bool useStandardOutput;
     };
 
     // Map name of category to category
     // (we use pointer since QLoggingCategory member of Logger cannot be copied around)
-    std::map<QString, LoggerManager::Logger> loggers;
+    std::map<QString, LoggerManager::Category> loggers;
 
     // Defualt message handler
     QtMessageHandler defaultHandler;
@@ -57,7 +47,7 @@ public:
     ~LoggerManager();
 
     // Creates a new category
-    QLoggingCategory * createLogger(const QString & name, bool chainStandardHandler, bool useStandardOutput);
+    QLoggingCategory * createLogger(const char * name, bool chainStandardHandler, bool useStandardOutput);
 
 };
 
