@@ -38,13 +38,13 @@ Controller::Controller(const ControllerState & state, bool showView, QLoggingCat
               +libtorrent::alert::progress_notification
               +libtorrent::alert::performance_warning
               +libtorrent::alert::stats_notification)
-    , view(this)
     , numberOfOutstandingResumeDataCalls(0)
     , sourceForLastResumeDataCall(NONE)
     , portRange(state.getPortRange())
     , dhtRouters(state.getDhtRouters())
     , category_(category == 0 ? QLoggingCategory::defaultCategory() : category)
-    , plugin(new BitSwaprPlugin(this, category_)) {
+    , plugin(new BitSwaprPlugin(this, category_))
+    , view(this, category_) {
 
     // Register types for signal and slots
     qRegisterMetaType<libtorrent::sha1_hash>();
@@ -148,6 +148,7 @@ void Controller::processAlert(const libtorrent::alert * a) {
 
     // if(something)
     //    something;
+
 
     // In each case, tell bitswapr thread to run the given method
 	if (libtorrent::metadata_received_alert const * p = libtorrent::alert_cast<libtorrent::metadata_received_alert>(a))

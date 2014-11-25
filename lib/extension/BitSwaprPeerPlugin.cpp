@@ -95,14 +95,14 @@ void BitSwaprPeerPlugin::add_handshake(libtorrent::entry & handshake) {
                                 + QString(".")
                                 + QString::number(BITSWAPR_VERSION_MINOR);
 
-    handshake["v"] = clientIdentifier.toStdString().c_str();
+    handshake["v"] = clientIdentifier.toStdString();
 }
 
 /*
  * This is called when the initial BASIC BT handshake is received.
  * Returning false means that the other end doesn't support this
  * extension and will remove it from the list of plugins.
- * this is not called for web seeds.
+ * This is not called for web seeds.
  *
  * The BEP10 docs say:
  * The bit selected for the extension protocol is bit 20 from
@@ -130,13 +130,16 @@ bool BitSwaprPeerPlugin::on_handshake(char const * reserved_bits) {
  */
 bool BitSwaprPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake) {
 
+    //return false;
+
     // Check that BEP10 was actually supported, if
     // it wasnt, then the peer is misbehaving
     if(peerBEP10SupportedStatus != supported) {
         qCWarning(CATEGORY) << "Peer didn't support BEP10, but it sent extended handshake.";
         peerBEP43SupportedStatus = not_supported;
         return false;
-    }
+    } else
+        qCDebug(CATEGORY) << "Peer supports BEP10.";
 
     // We cannot trust structure of entry, since it is from peer,
     // hence we must check it properly.
@@ -144,12 +147,14 @@ bool BitSwaprPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & h
     // If its not a dictionary, we are done
     if(handshake.type() != libtorrent::lazy_entry::dict_t) {
         peerBEP43SupportedStatus = not_supported;
+        qCWarning(CATEGORY) << "Malformed handshake received: not dictionary.";
         return false;
     }
 
     // Try to extract m key, if its not present, then we are done
     const libtorrent::lazy_entry * mKey = handshake.dict_find_dict("m");
     if(!mKey) {
+        qCWarning(CATEGORY) << "Malformed handshake received: m key not present.";
         peerBEP43SupportedStatus = not_supported;
         return false;
     }
@@ -163,6 +168,7 @@ bool BitSwaprPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & h
         // We are done if message was not in dictionary
         if(peerMessageBEP10ID == -1) {
             peerBEP43SupportedStatus = not_supported;
+            qCDebug(CATEGORY) << "Peer does not support bitswapr plugin.";
             return false;
         } else
             peerMessageMapping[i] = peerMessageBEP10ID;
@@ -172,7 +178,7 @@ bool BitSwaprPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & h
     const char * peerAddress = peerConnection_->remote().address().to_string().c_str();
     short port = peerConnection_->remote().port();
 
-    qCDebug(CATEGORY) << "Found extension handshake for peer " << peerAddress << ":" << port << ".\n";
+    qCDebug(CATEGORY) << "Found bitswapr extension handshake for peer " << peerAddress << ":" << port << ".\n";
 
     // All messages were present, hence the protocol is supported
     peerBEP43SupportedStatus = supported;
@@ -185,12 +191,12 @@ bool BitSwaprPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & h
 }
 
 /*
- *. m_pc.disconnect(errors::pex_message_too_large, 2);
+ *
+ * m_pc.disconnect(errors::pex_message_too_large, 2);
  * m_pc.disconnect(errors::too_frequent_pex);
  * m_pc.remote().address()
  *
  */
-
 void BitSwaprPeerPlugin::on_disconnect(libtorrent::error_code const & ec) {
 
 }

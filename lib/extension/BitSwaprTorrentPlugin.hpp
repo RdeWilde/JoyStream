@@ -9,7 +9,6 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include <QThread>
 #include <QLoggingCategory>
 
 // Used directing logging to category object.

@@ -17,13 +17,21 @@
 #include <libtorrent/add_torrent_params.hpp>
 #include <libtorrent/torrent_handle.hpp>
 
-MainWindow::MainWindow(Controller * controller)
+MainWindow::MainWindow(Controller * controller, QLoggingCategory * category)
     : ui(new Ui::MainWindow)
     , model(new QStandardItemModel(0, 4, this)) //0 Rows and 4 Columns
     , controller_(controller)
     , tableViewContextMenu(new QMenu(this))
+    , category_(category == 0 ? QLoggingCategory::defaultCategory() : category)
 {
     ui->setupUi(this);
+
+    // Alter window title
+    if(category_ != 0) {
+
+        QString title = QString("Logging: ") + QString(category_->categoryName());
+        this->setWindowTitle(title);
+    }
 
     // Setup tableView
     model->setHorizontalHeaderItem(0, new QStandardItem(QString("Name")));
@@ -206,8 +214,8 @@ void MainWindow::updateTorrentStatus(const libtorrent::torrent_status & torrentS
     if(row < 0) {
         std::cout << "no match info_hash found." << std::endl;
         return;
-    } else
-        std::cout << "update for row: " << row << std::endl;
+    }// else
+     //   std::cout << "update for row: " << row << std::endl;
 
     // Change row in model row, by updating:
     // size (1) <-- if not set by info_hash based torrent

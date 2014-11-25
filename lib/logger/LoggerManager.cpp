@@ -77,11 +77,16 @@ void handler(QtMsgType type, const QMessageLogContext & messageLogContext, const
     // Acquire lock
     global_log_manager.mutex.lock();
 
+    //std::cerr << "Entered mutex (" << messageLogContext.category << "):" << msg.toStdString() << std::endl;
+
     // If category is not registered, then logging is not coming from one of our category loggers
     if(global_log_manager.loggers.count(messageLogContext.category) == 0) {
 
         // Call default handler
         global_log_manager.defaultHandler(type, messageLogContext, msg);
+
+        // Release lock
+        global_log_manager.mutex.unlock();
 
         // This is all we do
         return;

@@ -7,6 +7,10 @@
 #include <QList>
 #include <QPoint>
 #include <QMenu>
+#include <QLoggingCategory>
+
+// Used directing logging to category object.
+#define CATEGORY (*category_)
 
 #include <libtorrent/sha1_hash.hpp>
 #include <libtorrent/torrent_handle.hpp>
@@ -26,7 +30,7 @@ class MainWindow : public QMainWindow
 public:
 
     // Constructor
-    MainWindow(Controller * controller);
+    MainWindow(Controller * controller, QLoggingCategory * category);
 
     // Destructor
     ~MainWindow();
@@ -48,6 +52,9 @@ private:
 
     // Controller
     Controller * controller_;
+
+    // Logging category
+    QLoggingCategory * category_;
 
     /*
     * Maps torrent info_hash to the model item containing the name of the torrent.
