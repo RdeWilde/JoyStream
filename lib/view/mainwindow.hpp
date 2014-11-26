@@ -12,7 +12,6 @@
 // Used directing logging to category object.
 #define CATEGORY (*category_)
 
-//#include <libtorrent/sha1_hash.hpp>
 #include <libtorrent/torrent_handle.hpp>
 #include <libtorrent/add_torrent_params.hpp>
 

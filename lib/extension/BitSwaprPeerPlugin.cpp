@@ -116,7 +116,6 @@ bool BitSwaprPeerPlugin::on_handshake(char const * reserved_bits) {
 
     // Check if BEP10 is enabled
     if(reserved_bits[5] & 0x10) {
-
         qCDebug(CATEGORY) << "BEP10 supported in handshake.";
         peerBEP10SupportedStatus = supported;
         return true;

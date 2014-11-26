@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>459</width>
-    <height>464</height>
+    <height>468</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -74,9 +74,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>5</y>
+        <y>30</y>
         <width>431</width>
-        <height>311</height>
+        <height>161</height>
        </rect>
       </property>
      </widget>
@@ -106,6 +106,42 @@
        <string>Add Torrent File</string>
       </property>
      </widget>
+     <widget class="QLabel" name="torrentsQLabel">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>67</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Torrents</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_5">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>198</y>
+        <width>115</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Payment Channels</string>
+      </property>
+     </widget>
+     <widget class="QTableView" name="paymentChannelTableView">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>220</y>
+        <width>431</width>
+        <height>91</height>
+       </rect>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="walletTab">
      <attribute name="title">
@@ -126,7 +162,7 @@
      <string/>
     </property>
     <property name="pixmap">
-     <pixmap>D:/Projects/BitSwapr/Logo/Original from designer/BitSwaprResized_150.png</pixmap>
+     <pixmap>../resources/BitSwapr_mark_32.png</pixmap>
     </property>
    </widget>
    <widget class="QLabel" name="label">
