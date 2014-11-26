@@ -15,6 +15,8 @@
 #include <QTimer>
 #include <QLoggingCategory>
 
+#define CLIENT_FINGERPRINT "BR"
+
 // Used directing logging to category object.
 #define CATEGORY (*category_)
 
@@ -77,7 +79,8 @@ private:
 
     std::auto_ptr<std::vector<libtorrent::add_torrent_params>::iterator> findTorrentParamsFromInfoHash(const libtorrent::sha1_hash & info_hash);
 
-    bool loadResumeDataForTorrent(QString const & save_path, QString const & file_name, std::vector<char> & resume_data) const;
+    bool loadResumeDataForTorrent(libtorrent::add_torrent_params & params) const;
+    //bool loadResumeDataForTorrent(QString const & save_path, QString const & file_name, std::vector<char> * resume_data) const;
 
     // Tell libtorrent try save resume data for all torrents needing it
     int makeResumeDataCallsForAllTorrents();

@@ -69,7 +69,7 @@ private:
 public:
 
     // Constructor
-    BitSwaprPeerPlugin(BitSwaprTorrentPlugin * torrentPlugin, libtorrent::peer_connection * peerConnection, QLoggingCategory * category = 0);
+    BitSwaprPeerPlugin(BitSwaprTorrentPlugin * torrentPlugin, libtorrent::peer_connection * peerConnection, QLoggingCategory * category);
 
     // Destructor
     ~BitSwaprPeerPlugin();

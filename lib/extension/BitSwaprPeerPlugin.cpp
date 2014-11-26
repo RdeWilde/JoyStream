@@ -112,11 +112,16 @@ void BitSwaprPeerPlugin::add_handshake(libtorrent::entry & handshake) {
  */
 bool BitSwaprPeerPlugin::on_handshake(char const * reserved_bits) {
 
+    qCDebug(CATEGORY) << "on_handshake";
+
     // Check if BEP10 is enabled
     if(reserved_bits[5] & 0x10) {
+
+        qCDebug(CATEGORY) << "BEP10 supported in handshake.";
         peerBEP10SupportedStatus = supported;
         return true;
     } else {
+        qCDebug(CATEGORY) << "BEP10 not supported in handshake.";
         peerBEP10SupportedStatus = not_supported;
         return false;
     }
@@ -130,7 +135,7 @@ bool BitSwaprPeerPlugin::on_handshake(char const * reserved_bits) {
  */
 bool BitSwaprPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake) {
 
-    //return false;
+    qCDebug(CATEGORY) << "on_extension_handshake";
 
     // Check that BEP10 was actually supported, if
     // it wasnt, then the peer is misbehaving
@@ -138,8 +143,7 @@ bool BitSwaprPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & h
         qCWarning(CATEGORY) << "Peer didn't support BEP10, but it sent extended handshake.";
         peerBEP43SupportedStatus = not_supported;
         return false;
-    } else
-        qCDebug(CATEGORY) << "Peer supports BEP10.";
+    }
 
     // We cannot trust structure of entry, since it is from peer,
     // hence we must check it properly.
@@ -198,11 +202,11 @@ bool BitSwaprPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & h
  *
  */
 void BitSwaprPeerPlugin::on_disconnect(libtorrent::error_code const & ec) {
-
+    qCDebug(CATEGORY) << "on_disconnect";
 }
 
 void BitSwaprPeerPlugin::on_connected() {
-
+    qCDebug(CATEGORY) << "on_connected";
 }
 
 /*
@@ -212,63 +216,78 @@ void BitSwaprPeerPlugin::on_connected() {
  */
 
 bool BitSwaprPeerPlugin::on_have(int index) {
-    return true;
+    qCDebug(CATEGORY) << "on_have(" << index << ")";
+    return false;
 }
 
 bool BitSwaprPeerPlugin::on_bitfield(libtorrent::bitfield const & bitfield) {
-    return true;
+    qCDebug(CATEGORY) << "on_bitfield";
+    return false;
 }
 
 bool BitSwaprPeerPlugin::on_have_all() {
-    return true;
+    qCDebug(CATEGORY) << "on_have_all";
+    return false;
 }
 
 bool BitSwaprPeerPlugin::on_reject(libtorrent::peer_request const & peerRequest) {
-    return true;
+    qCDebug(CATEGORY) << "on_reject";
+    return false;
 }
 
 bool BitSwaprPeerPlugin::on_request(libtorrent::peer_request const & peerRequest) {
-    return true;
+    qCDebug(CATEGORY) << "on_request";
+    return false;
 }
 
 bool BitSwaprPeerPlugin::on_unchoke() {
-    return true;
+    qCDebug(CATEGORY) << "on_unchoke";
+    return false;
 }
 
 bool BitSwaprPeerPlugin::on_interested() {
-    return true;
+    qCDebug(CATEGORY) << "on_interested";
+    return false;
 }
 
 bool BitSwaprPeerPlugin::on_allowed_fast(int index) {
-    return true;
+    qCDebug(CATEGORY) << "on_allowed_fast(" << index << ")";
+    return false;
 }
 
 bool BitSwaprPeerPlugin::on_have_none() {
-    return true;
+    qCDebug(CATEGORY) << "on_have_none";
+    return false;
 }
 
 bool BitSwaprPeerPlugin::on_choke() {
-    return true;
+    qCDebug(CATEGORY) << "on_choke";
+    return false;
 }
 
 bool BitSwaprPeerPlugin::on_not_interested() {
-    return true;
+    qCDebug(CATEGORY) << "on_not_interested";
+    return false;
 }
 
 bool BitSwaprPeerPlugin::on_piece(libtorrent::peer_request const& piece, libtorrent::disk_buffer_holder & data) {
-    return true;
+    qCDebug(CATEGORY) << "on_piece";
+    return false;
 }
 
 bool BitSwaprPeerPlugin::on_suggest(int index) {
-    return true;
+    qCDebug(CATEGORY) << "on_suggest(" << index << ")";
+    return false;
 }
 
 bool BitSwaprPeerPlugin::on_cancel(libtorrent::peer_request const & peerRequest) {
-    return true;
+    qCDebug(CATEGORY) << "on_cancel";
+    return false;
 }
 
 bool BitSwaprPeerPlugin::on_dont_have(int index) {
-    return true;
+    qCDebug(CATEGORY) << "on_dont_have(" << index << ")";
+    return false;
 }
 
 /*
@@ -282,7 +301,7 @@ void BitSwaprPeerPlugin::sent_unchoke() {
  * If the plugin returns false, the peer will not be disconnected.
  */
 bool BitSwaprPeerPlugin::can_disconnect(libtorrent::error_code const & ec) {
-
+    qCDebug(CATEGORY) << "can_disconnect";
     // CRITICAL
     return true;
 }
@@ -294,7 +313,7 @@ bool BitSwaprPeerPlugin::can_disconnect(libtorrent::error_code const & ec) {
  * be able to handle it this is not called for web seeds.
  */
 bool BitSwaprPeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_interval body) {
-
+    qCDebug(CATEGORY) << "on_extended(" << length << "," << msg << ")";
     // CRITICAL
     return false;
 }
@@ -304,6 +323,7 @@ bool BitSwaprPeerPlugin::on_extended(int length, int msg, libtorrent::buffer::co
  */
 bool BitSwaprPeerPlugin::on_unknown_message(int length, int msg, libtorrent::buffer::const_interval body) {
 
+    qCDebug(CATEGORY) << "on_unknown_message(" << length << "," << msg << ")";
     // CRITICAL
     return false;
 }
@@ -334,5 +354,6 @@ void BitSwaprPeerPlugin::tick() {
  * the original request message won't be sent and no other plugin will have this function called.
  */
 bool BitSwaprPeerPlugin::write_request(libtorrent::peer_request const & peerRequest) {
+    qCDebug(CATEGORY) << "write_request";
     return false;
 }

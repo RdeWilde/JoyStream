@@ -223,12 +223,14 @@ void MainWindow::updateTorrentStatus(const libtorrent::torrent_status & torrentS
     // speed (3)
 
     // Size, set it if information is present
+    /*
     if(torrentStatus.torrent_file.get() != 0) {
 
         QString size = QString::number(torrentStatus.torrent_file->total_size());
 
         model->item(row,1)->setText(size);
     }
+*/
 
     // Status
     QString status;

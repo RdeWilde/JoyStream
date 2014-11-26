@@ -213,7 +213,6 @@ ControllerState::ControllerState()
 
 	// Set dht settings
 	libtorrent::dht_settings dhtSettings;
-	dhtSettings.privacy_lookups = true;
 
 	// Set encryption settings
 	//libtorrent::pe_settings peerEncryptionSettings;

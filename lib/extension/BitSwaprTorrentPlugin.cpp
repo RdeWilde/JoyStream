@@ -26,7 +26,7 @@ BitSwaprPlugin * BitSwaprTorrentPlugin::getPlugin() {
 boost::shared_ptr<libtorrent::peer_plugin> BitSwaprTorrentPlugin::new_connection(libtorrent::peer_connection * peerConnection) {
 
     // Create peer level plugin
-    BitSwaprPeerPlugin * peerPlugin = new BitSwaprPeerPlugin(this, peerConnection);
+    BitSwaprPeerPlugin * peerPlugin = new BitSwaprPeerPlugin(this, peerConnection, category_);
 
     // Add to collection
     peerPlugins.push_back(peerPlugin);
@@ -48,7 +48,8 @@ boost::shared_ptr<libtorrent::peer_plugin> BitSwaprTorrentPlugin::new_connection
 
     short port = peerConnection->remote().port();
 
-    //qCDebug(CATEGORY) << "Peer #" << peerPlugins.size() << "[" << peerAddress << ":" << port << "] added to torrent " << (libtorrent::to_hex(torrent_->info_hash().to_string())).c_str() << ".";
+    qCDebug(CATEGORY) << "Peer #" << peerPlugins.size() << "[" << peerAddress << ":" << port << "] added to torrent " << this->torrent_->name().c_str();
+                         //(libtorrent::to_hex(torrent_->info_hash().to_string())).c_str() << ".";
 
     // Return pointer as required
     return boost::shared_ptr<libtorrent::peer_plugin>(peerPlugin);

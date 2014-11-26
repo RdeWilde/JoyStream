@@ -90,10 +90,10 @@ void main(int argc, char* argv[]) {
     ControllerTracker controllerTracker;
 
     // Load torrent
-    // sophos97win72012.exe.torrent
-    // frostwire-5.7.6.dmg.torrent
-    QString torrentFile1  = "C:/Users/bedeho/Desktop/frostwire-5.7.6.dmg.torrent";
-    QString torrentFile2  = "C:/Users/bedeho/Desktop/frostwire-5.7.6.dmg.torrent";
+    // UTORRENT-TEST.torrent
+    // VUZE-test.mp4.torrent
+    QString torrentFile1  = "C:/Users/Sindre/Desktop/TORRENTS/VUZE-test.mp4.torrent";
+    QString torrentFile2  = "C:/Users/Sindre/Desktop/TORRENTS/VUZE-test.mp4.torrent";
 
     libtorrent::error_code ec;
 
@@ -120,14 +120,13 @@ void main(int argc, char* argv[]) {
 
     libtorrent::add_torrent_params paramsMain;
     paramsMain.ti = torrentInfoPointer1;
-    paramsMain.save_path = "C:/TORRRENT_OUTPUT/TEST/MAIN";
-    //QMetaObject::invokeMethod(&main, "addTorrent", Q_ARG(libtorrent::add_torrent_params &, paramsMain));
+    paramsMain.save_path = "C:/Users/Sindre/Desktop/SAVE_OUTPUT/MAIN";
     main.addTorrent(paramsMain);
 
     // =======================================================
 
     // Create peer client
-    QLoggingCategory * peerCategory = global_log_manager.createLogger("peer", false, false); // false
+    QLoggingCategory * peerCategory = global_log_manager.createLogger("peer", false, false); // false i midten, lets not crowd the screen
     Controller peer(controllerState, true, peerCategory);
     controllerTracker.addClient(&peer);
 
@@ -135,8 +134,7 @@ void main(int argc, char* argv[]) {
 
     libtorrent::add_torrent_params paramsPeer;
     paramsPeer.ti = torrentInfoPointer2;
-    paramsPeer.save_path = "C:/TORRRENT_OUTPUT/TEST/PEER";
-    //QMetaObject::invokeMethod(&peer, "addTorrent", Q_ARG(libtorrent::add_torrent_params &, paramsPeer));
+    paramsPeer.save_path = "C:/Users/Sindre/Desktop/SAVE_OUTPUT/PEER";
     peer.addTorrent(paramsPeer);
 
     // Start event loop: this is the only Qt event loop in the entire application

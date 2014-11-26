@@ -44,8 +44,11 @@ QLoggingCategory * LoggerManager::createLogger(const char * name, bool chainStan
     mutex.lock();
 
     // If is already registered, then throw exception
-    if(loggers.count(name) > 0)
-        throw DuplicateLog(name);
+    if(loggers.count(name) > 0) {
+
+        mutex.unlock();
+        throw DuplicateLog(name);   
+    }
 
     // Create category logger
     LoggerManager::Category category;
@@ -56,8 +59,11 @@ QLoggingCategory * LoggerManager::createLogger(const char * name, bool chainStan
     category.useStandardOutput = useStandardOutput;
 
     // Open file
-    if(!category.file->open(QIODevice::WriteOnly | QIODevice::Text))
+    if(!category.file->open(QIODevice::WriteOnly | QIODevice::Text)) {
+
+        mutex.unlock();
         throw CannnotOpenLogFile(category.file);
+    }
 
     // Save in logs map
     loggers[name] = category;
@@ -77,7 +83,7 @@ void handler(QtMsgType type, const QMessageLogContext & messageLogContext, const
     // Acquire lock
     global_log_manager.mutex.lock();
 
-    //std::cerr << "Entered mutex (" << messageLogContext.category << "):" << msg.toStdString() << std::endl;
+    //std::cerr << "Acquired lock." << std::endl;
 
     // If category is not registered, then logging is not coming from one of our category loggers
     if(global_log_manager.loggers.count(messageLogContext.category) == 0) {
@@ -87,6 +93,7 @@ void handler(QtMsgType type, const QMessageLogContext & messageLogContext, const
 
         // Release lock
         global_log_manager.mutex.unlock();
+        //std::cerr << "Release lock." << std::endl;
 
         // This is all we do
         return;
@@ -130,7 +137,8 @@ void handler(QtMsgType type, const QMessageLogContext & messageLogContext, const
 
     // Write to screen
     if(category.useStandardOutput)
-        std::cerr << messageType.toStdString().c_str()
+        std::cerr << "[" << messageLogContext.category << "]: "
+                  << messageType.toStdString().c_str()
                   << msg.toStdString().c_str()
                   << std::endl;
 
@@ -142,6 +150,8 @@ void handler(QtMsgType type, const QMessageLogContext & messageLogContext, const
     if(type == QtFatalMsg)
         abort();
 
-    // Realse lock
+    //std::cerr << "Release lock." << std::endl;
+
+    // Release lock
     global_log_manager.mutex.unlock();
 }

@@ -25,7 +25,7 @@
 #endif Q_MOC_RUN
 
 Controller::Controller(const ControllerState & state, bool showView, QLoggingCategory * category)
-    : session(libtorrent::fingerprint("BR"
+    : session(libtorrent::fingerprint(CLIENT_FINGERPRINT
                                       ,BITSWAPR_VERSION_MAJOR
                                       ,BITSWAPR_VERSION_MINOR
                                       ,0
@@ -246,10 +246,14 @@ std::auto_ptr<std::vector<libtorrent::add_torrent_params>::iterator> Controller:
     return a_ptr;
 }
 
-bool Controller::loadResumeDataForTorrent(QString const & save_path, QString const & file_name, std::vector<char> & resume_data) const {
+// QString const & save_path, QString const & file_name, std::vector<char> * resume_data
+bool Controller::loadResumeDataForTorrent(libtorrent::add_torrent_params & params) const {
 
     // Check that file exists
+    QString save_path(params.save_path.c_str());
+    QString file_name = resumeFileNameForTorrent(params.info_hash);
     QString resumeFile = save_path + QDir::separator() + file_name;
+
     QFile file(resumeFile);
 
     if(file.exists()) {
@@ -267,8 +271,9 @@ bool Controller::loadResumeDataForTorrent(QString const & save_path, QString con
         file.close();
 
         // Populate resume_data vector
+        params.resume_data = new std::vector<char>();
         for(QByteArray::iterator i = fullFile.begin(), end(fullFile.end()); i != end; i++)
-            resume_data.push_back(*i);
+            params.resume_data->push_back(*i);
 
         return true;
     } else
@@ -612,7 +617,27 @@ void Controller::addTorrent(libtorrent::add_torrent_params & params) {
 
     // Load resume data if it exists
     //params.resume_data.clear(); // <-- should be empty
-    loadResumeDataForTorrent(params.save_path.c_str(), resumeFileNameForTorrent(params.info_hash), params.resume_data);
+
+    if(params.resume_data) {
+
+        qCDebug(CATEGORY) << "resume_data has to be non-zero, canceling adding torrent.";
+        return;
+    }
+
+    // Load resume data for torrents
+    loadResumeDataForTorrent(params);
+
+    /*
+    // Allocate space for resume data
+    std::vector<char> * resume_data = new std::vector<char>();
+
+    bool resumed = loadResumeDataForTorrent(params.save_path.c_str(), resumeFileNameForTorrent(params.info_hash), params.resume_data);
+
+    if(resumed)
+        params.resume_data = resume_data;
+    else
+        delete resume_data;
+    */
 
     // Set parameters
     //params.storage_mode = (storage_mode_t)allocation_mode; //  disabled_storage_constructor;
