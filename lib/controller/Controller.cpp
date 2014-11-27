@@ -111,9 +111,11 @@ void Controller::callPostTorrentUpdates() {
 }
 
 void Controller::extensionPeerAdded(BitSwaprPeerPlugin * peerPlugin) {
-
-    // Notify view
     view.addPaymentChannel(peerPlugin);
+}
+
+void Controller::torrentPluginStatus(int numberOfPeers, int numberOfPeersWithExtension, BitSwaprTorrentPlugin::TORRENT_MANAGEMENT_STATUS mode, int inBalance, int outBalance) {
+    view.torrentPluginStatus(numberOfPeers, numberOfPeersWithExtension, mode, inBalance, outBalance);
 }
 
 void Controller::libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::alert> alertAutoPtr) {

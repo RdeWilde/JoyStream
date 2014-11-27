@@ -26,13 +26,13 @@ const char * message_names[] = {
 };
 
 
-BitSwaprPeerPlugin::BitSwaprPeerPlugin(BitSwaprTorrentPlugin * torrentPlugin, libtorrent::peer_connection * peerConnection, QLoggingCategory * category)
+BitSwaprPeerPlugin::BitSwaprPeerPlugin(BitSwaprTorrentPlugin * torrentPlugin, libtorrent::peer_connection * peerConnection, QLoggingCategory * category, PEER_ROLE role)
     : torrentPlugin_(torrentPlugin)
     , peerConnection_(peerConnection)
     , peerBEP10SupportedStatus(unknown)
     , peerBEP43SupportedStatus(unknown)
-    , category_(category == 0 ? QLoggingCategory::defaultCategory() : category) {
-
+    , category_(category == 0 ? QLoggingCategory::defaultCategory() : category)
+    , peerRole_(role) {
 
     // Setup signals
     Controller * controller = torrentPlugin_->getPlugin()->getController();
@@ -359,4 +359,12 @@ bool BitSwaprPeerPlugin::write_request(libtorrent::peer_request const & peerRequ
 
 libtorrent::sha1_hash BitSwaprPeerPlugin::getInfoHash() {
     return torrentPlugin_->getTorrent()->info_hash();
+}
+
+BitSwaprPeerPlugin::PEER_BEP_SUPPORTED_STATUS BitSwaprPeerPlugin::getPeerBEP10SupportedStatus() {
+    return peerBEP10SupportedStatus;
+}
+
+BitSwaprPeerPlugin::PEER_BEP_SUPPORTED_STATUS BitSwaprPeerPlugin::getPeerBEP43SupportedStatus() {
+    return peerBEP43SupportedStatus;
 }

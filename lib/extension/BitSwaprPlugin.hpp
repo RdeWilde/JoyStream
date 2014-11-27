@@ -14,8 +14,12 @@
 
 #include <boost/shared_ptr.hpp>
 
-//#include <QThread>
+#include <QObject>
 #include <QLoggingCategory>
+
+// MOC declarations
+#include <QMetaType>
+Q_DECLARE_METATYPE(BitSwaprTorrentPlugin::TORRENT_MANAGEMENT_STATUS)
 
 // Used directing logging to category object.
 #define CATEGORY (*category_)
@@ -24,7 +28,9 @@
 class Controller;
 class BitSwaprTorrentPlugin;
 
-class BitSwaprPlugin : public libtorrent::plugin {
+class BitSwaprPlugin : public QObject, public libtorrent::plugin {
+
+    Q_OBJECT
 
 private:
 
@@ -39,27 +45,6 @@ private:
 
     // Logging category
     QLoggingCategory * category_;
-
-    /*
-     * Protocol state
-     */
-
-    // The role a peer can play
-    enum PeerRole {
-        UNKNOWN,
-        BUYER,
-        SELLER
-    };
-
-    /*
-     * Roles of peer and client, which is determined
-     * by first message after extended handshake.
-     */
-    PeerRole peer, client;
-
-
-
-
 
 public:
 

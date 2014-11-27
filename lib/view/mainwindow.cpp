@@ -19,7 +19,7 @@
 
 MainWindow::MainWindow(Controller * controller, QLoggingCategory * category)
     : ui(new Ui::MainWindow)
-    , model(new QStandardItemModel(0, 4, this)) //0 Rows and 4 Columns
+    , model(new QStandardItemModel(0, 7, this)) //0 Rows and 4 Columns
     , controller_(controller)
     , tableViewContextMenu(new QMenu(this))
     , paymentChannelTableContextMenu(new QMenu(this))
@@ -39,6 +39,9 @@ MainWindow::MainWindow(Controller * controller, QLoggingCategory * category)
     model->setHorizontalHeaderItem(1, new QStandardItem(QString("Size")));
     model->setHorizontalHeaderItem(2, new QStandardItem(QString("Status")));
     model->setHorizontalHeaderItem(3, new QStandardItem(QString("Speed (Down|Up)")));
+    model->setHorizontalHeaderItem(4, new QStandardItem(QString("Peers (Classic|BitSwapr)")));
+    model->setHorizontalHeaderItem(5, new QStandardItem(QString("Mode")));
+    model->setHorizontalHeaderItem(6, new QStandardItem(QString("Balance (In|Out)")));
     ui->tableView->setModel(model);
 
     // Setup context menu capacity on table view
@@ -212,6 +215,15 @@ void MainWindow::addTorrent(const libtorrent::sha1_hash & info_hash, const std::
     QString speed("");
     modelRow.append(new QStandardItem(speed));
 
+    QString peers("x|y");
+    modelRow.append(new QStandardItem(peers));
+
+    QString mode("Classic");
+    modelRow.append(new QStandardItem(mode));
+
+    QString balance("12|33");
+    modelRow.append(new QStandardItem(balance));
+
     // Remember info has order
     infoHashInRow.push_back(info_hash);
 
@@ -361,6 +373,10 @@ void MainWindow::updateTorrentStatus(const libtorrent::torrent_status & torrentS
     model->item(row, 3)->setText(speed);
 }
 
+void MainWindow::torrentPluginStatus(int numberOfPeers, int numberOfPeersWithExtension, BitSwaprTorrentPlugin::TORRENT_MANAGEMENT_STATUS mode, int inBalance, int outBalance) {
+
+}
+
 void MainWindow::addPaymentChannel(BitSwaprPeerPlugin * peerPlugin) {
 
     /*
@@ -396,6 +412,10 @@ void MainWindow::addPaymentChannel(BitSwaprPeerPlugin * peerPlugin) {
 
     // Add row to payment channel table view-model for this torrent
     paymentChannelTableViewModels[row]->appendRow(paymentChannelTableViewModelRow);
+}
+
+void MainWindow::updatePaymentChannelStatus() {
+
 }
 
 int MainWindow::findRowFromInfoHash(const libtorrent::sha1_hash & info_hash) {

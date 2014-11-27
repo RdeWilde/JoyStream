@@ -6,22 +6,26 @@
 
 #include <iostream>
 
-BitSwaprTorrentPlugin::BitSwaprTorrentPlugin(BitSwaprPlugin * plugin, libtorrent::torrent * torrent, QLoggingCategory * category)
+BitSwaprTorrentPlugin::BitSwaprTorrentPlugin(BitSwaprPlugin * plugin, libtorrent::torrent * torrent, QLoggingCategory * category, TORRENT_MANAGEMENT_STATUS torrentManagementStatus)
     : plugin_(plugin)
     , torrent_(torrent)
-    , category_(category == 0 ? QLoggingCategory::defaultCategory() : category) {
-
+    , category_(category == 0 ? QLoggingCategory::defaultCategory() : category)
+    , torrentManagementStatus_(torrentManagementStatus)
+    , inBalance(0)
+    , outBalance(0) {
 }
 
 BitSwaprTorrentPlugin::~BitSwaprTorrentPlugin() {
-
     // No need to explicltly delete BitSwaprPeerPlugin, since libtorrent has shared_ptr
 }
 
 boost::shared_ptr<libtorrent::peer_plugin> BitSwaprTorrentPlugin::new_connection(libtorrent::peer_connection * peerConnection) {
 
+    // Role of peer
+    BitSwaprPeerPlugin::PEER_ROLE role = (torrent_->bytes_left() > 0) ? BitSwaprPeerPlugin::buyer : BitSwaprPeerPlugin::seller;
+
     // Create peer level plugin
-    BitSwaprPeerPlugin * peerPlugin = new BitSwaprPeerPlugin(this, peerConnection, category_);
+    BitSwaprPeerPlugin * peerPlugin = new BitSwaprPeerPlugin(this, peerConnection, category_, role);
 
     // Add to collection
     peerPlugins.push_back(peerPlugin);
@@ -44,7 +48,7 @@ boost::shared_ptr<libtorrent::peer_plugin> BitSwaprTorrentPlugin::new_connection
     short port = peerConnection->remote().port();
 
     qCDebug(CATEGORY) << "Peer #" << peerPlugins.size() << "[" << peerAddress << ":" << port << "] added to torrent " << this->torrent_->name().c_str();
-                         //(libtorrent::to_hex(torrent_->info_hash().to_string())).c_str() << ".";
+    //(libtorrent::to_hex(torrent_->info_hash().to_string())).c_str() << ".";
 
     // Return pointer as required
     return boost::shared_ptr<libtorrent::peer_plugin>(peerPlugin);
@@ -59,6 +63,11 @@ void BitSwaprTorrentPlugin::on_piece_failed(int index) {
 }
 
 void BitSwaprTorrentPlugin::tick() {
+
+    qCDebug(CATEGORY) << "Peer.tick()";
+
+    // Send status signal
+    sendTorrentPluginStatusSignal();
 
 }
 
@@ -79,7 +88,7 @@ void BitSwaprTorrentPlugin::on_state(int s) {
 }
 
 void BitSwaprTorrentPlugin::on_add_peer(libtorrent::tcp::endpoint const & tcpEndPoint, int src, int flags) {
-
+    qCDebug(CATEGORY) << "Peer added to list " << tcpEndPoint.address().to_string().c_str() << ": " << tcpEndPoint.port();
 }
 
 // Returns plugin
@@ -89,4 +98,19 @@ BitSwaprPlugin * BitSwaprTorrentPlugin::getPlugin() {
 
 libtorrent::torrent * BitSwaprTorrentPlugin::getTorrent() {
     return torrent_;
+}
+
+void BitSwaprTorrentPlugin::sendTorrentPluginStatusSignal() {
+
+    int numberOfPeers = peerPlugins.size();
+
+    int numberOfPeersWithExtension = 0;
+    for(std::vector<BitSwaprPeerPlugin *>::iterator i = peerPlugins.begin(),
+        end(peerPlugins.end()); i != end; i++) {
+
+        if((*i)->getPeerBEP43SupportedStatus() == BitSwaprPeerPlugin::supported)
+            numberOfPeersWithExtension++;
+    }
+
+    emit torrentPluginStatus(numberOfPeers, numberOfPeersWithExtension, torrentManagementStatus_, inBalance, outBalance);
 }

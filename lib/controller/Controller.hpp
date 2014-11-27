@@ -190,6 +190,7 @@ public slots:
      */
 
     void extensionPeerAdded(BitSwaprPeerPlugin * peerPlugin);
+    void torrentPluginStatus(int numberOfPeers, int numberOfPeersWithExtension, BitSwaprTorrentPlugin::TORRENT_MANAGEMENT_STATUS mode, int inBalance, int outBalance);
 
 signals:
 

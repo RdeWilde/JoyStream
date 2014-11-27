@@ -19,10 +19,17 @@ Controller * BitSwaprPlugin::getController() {
 boost::shared_ptr<libtorrent::torrent_plugin> BitSwaprPlugin::new_torrent(libtorrent::torrent * newTorrent, void * userData) {
 
     // Create plugin
-    BitSwaprTorrentPlugin * torrentPlugin = new BitSwaprTorrentPlugin(this, newTorrent, category_);
+    BitSwaprTorrentPlugin * torrentPlugin = new BitSwaprTorrentPlugin(this, newTorrent, category_, BitSwaprTorrentPlugin::on);
 
     // Add to collection
     torrentPlugins.push_back(torrentPlugin);
+
+    // Connect signals to controller slot
+    //qRegisterMetaType<BitSwaprTorrentPlugin::TORRENT_MANAGEMENT_STATUS>();
+    QObject::connect(torrentPlugin,
+                     SIGNAL(torrentPluginStatus(int, int, BitSwaprTorrentPlugin::TORRENT_MANAGEMENT_STATUS, int, int)),
+                     controller_,
+                     SLOT(torrentPluginStatus(int, int, BitSwaprTorrentPlugin::TORRENT_MANAGEMENT_STATUS, int, int)));
 
     // Diagnostic
     qCDebug(CATEGORY) << "Torrent #" << torrentPlugins.size() << " added.";

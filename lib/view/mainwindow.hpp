@@ -15,6 +15,8 @@
 #include <libtorrent/torrent_handle.hpp>
 #include <libtorrent/add_torrent_params.hpp>
 
+#include "extension/BitSwaprTorrentPlugin.hpp"
+
 namespace Ui {
 class MainWindow;
 }
@@ -43,6 +45,7 @@ public:
 
     void updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector);
     void updateTorrentStatus(const libtorrent::torrent_status & torrentStatus); // start, stopp, stats
+    void torrentPluginStatus(int numberOfPeers, int numberOfPeersWithExtension, BitSwaprTorrentPlugin::TORRENT_MANAGEMENT_STATUS mode, int inBalance, int outBalance);
 
     void addPaymentChannel(BitSwaprPeerPlugin * peerPlugin);
     void updatePaymentChannelStatus();
@@ -88,6 +91,16 @@ private:
     // Context menu on payment channel table
     QMenu * paymentChannelTableContextMenu;
     QModelIndex paymentChannelTableLastIndexClicked;
+
+    /*
+    struct TorrentViewModel {
+
+        QStandardItemModel * paymentChannelTableViewModel;
+
+    };
+
+    std::vector<TorrentViewModel>
+    */
 
 protected:
 

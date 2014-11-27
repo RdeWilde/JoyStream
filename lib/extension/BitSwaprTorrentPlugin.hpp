@@ -9,6 +9,7 @@
 
 #include <boost/shared_ptr.hpp>
 
+#include <QObject>
 #include <QLoggingCategory>
 
 // Used directing logging to category object.
@@ -18,26 +19,23 @@
 class BitSwaprPlugin;
 class BitSwaprPeerPlugin;
 
-class BitSwaprTorrentPlugin : public libtorrent::torrent_plugin {
+class BitSwaprTorrentPlugin : public QObject, public libtorrent::torrent_plugin {
 
-private:
-
-    // Parent plugin for BitSwapr
-    BitSwaprPlugin * plugin_;
-
-    // Torrent for this torrent_plugin
-    libtorrent::torrent * torrent_;
-
-    // Collection of peer plugin objects for each peer presently connected to this node through this torrent swarm
-    std::vector<BitSwaprPeerPlugin *> peerPlugins;
-
-    // Logging category
-    QLoggingCategory * category_;
+    Q_OBJECT
 
 public:
 
+    // State of this torrent plugin
+    // Determines whether libtorrent automanagement is active for this torrent
+    // When not (on), the peer plugins behave as buyers or sellers depending
+    // on whether full file has been aquired.
+    enum TORRENT_MANAGEMENT_STATUS {
+        on,
+        off
+    };
+
     // Constructor
-    BitSwaprTorrentPlugin(BitSwaprPlugin * plugin, libtorrent::torrent * torrent, QLoggingCategory * category = 0);
+    BitSwaprTorrentPlugin(BitSwaprPlugin * plugin, libtorrent::torrent * torrent, QLoggingCategory * category, TORRENT_MANAGEMENT_STATUS torrentManagementStatus);
 
     // Destructor
     ~BitSwaprTorrentPlugin();
@@ -67,6 +65,32 @@ public:
 
     // Returns torrent
     libtorrent::torrent * getTorrent();
+
+signals:
+
+    void torrentPluginStatus(int numberOfPeers, int numberOfPeersWithExtension, TORRENT_MANAGEMENT_STATUS mode, int inBalance, int outBalance);
+
+private:
+
+    // Parent plugin for BitSwapr
+    BitSwaprPlugin * plugin_;
+
+    // Torrent for this torrent_plugin
+    libtorrent::torrent * torrent_;
+
+    // Collection of peer plugin objects for each peer presently connected to this node through this torrent swarm
+    std::vector<BitSwaprPeerPlugin *> peerPlugins;
+
+    // Logging category
+    QLoggingCategory * category_;
+
+    // State
+    TORRENT_MANAGEMENT_STATUS torrentManagementStatus_;
+
+    // Accounting
+    int inBalance, outBalance;
+
+    void sendTorrentPluginStatusSignal();
 
 };
 

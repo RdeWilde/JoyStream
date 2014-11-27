@@ -39,38 +39,51 @@ class BitSwaprPeerPlugin : public QObject, public libtorrent::peer_plugin {
 
     Q_OBJECT
 
-    // BEP support state indicator
+public:
+
+    // BEP support state indicator, is used for both regular BitTorrent handshake
+    // and BEP10 handshake.
     enum PEER_BEP_SUPPORTED_STATUS {
+
+        // Before handshake
         unknown,
+
+        // After handshake
         supported,
         not_supported
     };
 
-private:
+    // Role of a peer
+    enum PEER_ROLE {
 
-    // Torrent plugin for torrent
-    BitSwaprTorrentPlugin * torrentPlugin_;
+        // Sent buy message as first message after extended handshake
+        buyer,
 
-    // Connection to peer for this plugin
-    libtorrent::peer_connection * peerConnection_;
+        // Sent sell message as first message after extended handshake
+        seller
+    };
 
-    // Indicates whether peer supports BEP10
-    PEER_BEP_SUPPORTED_STATUS peerBEP10SupportedStatus;
+    enum BUYER_CHANNEL_STATE {
 
-    // Indicates whether peer supports BEP43
-    PEER_BEP_SUPPORTED_STATUS peerBEP43SupportedStatus;
+    };
 
-    // Mapping from messages to BEP10 ID of peer
-    unsigned int peerMessageMapping[NUMBER_OF_MESSAGES],
-                    clientMessageMapping[NUMBER_OF_MESSAGES];
+    enum SELLER_CHANNEL_STATE {
 
-    // Logging category
-    QLoggingCategory * category_;
+    };
 
-public:
+    // Snap shot of peer plugin status
+    struct PeerPluginStatus {
+
+        // Total balance in favour of peer
+        int balance;
+
+    };
 
     // Constructor
-    BitSwaprPeerPlugin(BitSwaprTorrentPlugin * torrentPlugin, libtorrent::peer_connection * peerConnection, QLoggingCategory * category);
+    BitSwaprPeerPlugin(BitSwaprTorrentPlugin * torrentPlugin,
+                       libtorrent::peer_connection * peerConnection,
+                       QLoggingCategory * category,
+                       PEER_ROLE role);
 
     // Destructor
     ~BitSwaprPeerPlugin();
@@ -116,22 +129,32 @@ public:
      */
     libtorrent::sha1_hash getInfoHash();
 
+    PEER_BEP_SUPPORTED_STATUS getPeerBEP10SupportedStatus();
+    PEER_BEP_SUPPORTED_STATUS getPeerBEP43SupportedStatus();
+
+private:
+
+    // Torrent plugin for torrent
+    BitSwaprTorrentPlugin * torrentPlugin_;
+
+    // Connection to peer for this plugin
+    libtorrent::peer_connection * peerConnection_;
+
+    // Indicates whether peer supports
+    PEER_BEP_SUPPORTED_STATUS peerBEP10SupportedStatus, // BEP10
+                        peerBEP43SupportedStatus; // BEP43
+
+    // Indicates role of peer
+    PEER_ROLE peerRole_, clientRole_;
+
+    // Mapping from messages to BEP10 ID of peer
+    unsigned int peerMessageMapping[NUMBER_OF_MESSAGES],
+                    clientMessageMapping[NUMBER_OF_MESSAGES];
+
+    // Logging category
+    QLoggingCategory * category_;
+
 signals:
-
-    /*
-     * Notifying controller
-     */
-/*
-    class PeerHandle {
-
-        public:
-
-        libtorrent::sha1_hash info_hash;
-
-        boost::ip::tcp::endpoint
-
-    };
-*/
 
     void peerAdded(BitSwaprPeerPlugin * peerPlugin);
 
