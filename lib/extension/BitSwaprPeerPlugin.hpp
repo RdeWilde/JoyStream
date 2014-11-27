@@ -12,13 +12,14 @@
 #include <libtorrent/disk_buffer_holder.hpp>
 #include <libtorrent/buffer.hpp>
 
-//#include <QThread>
 #include <QObject>
 #include <QLoggingCategory>
 
 // MOC declarations
 #include <QMetaType>
-Q_DECLARE_METATYPE(libtorrent::peer_connection *)
+//Q_DECLARE_METATYPE(BitSwaprPeerPlugin *)
+
+#include <boost/asio/ip/tcp.hpp> // ip::tcp::endpoint
 
 // Used directing logging to category object.
 #define CATEGORY (*category_)
@@ -74,6 +75,12 @@ public:
     // Destructor
     ~BitSwaprPeerPlugin();
 
+    /**
+     * All virtual functions below should ONLY
+     * be called by libtorrent network thread,
+     * never by other threads, as this causes synchronization
+     * failures.
+     */
     virtual char const* type() const;
     virtual void add_handshake(libtorrent::entry & handshake);
     virtual void on_disconnect(libtorrent::error_code const & ec);
@@ -104,13 +111,29 @@ public:
     virtual void tick();
     virtual bool write_request(libtorrent::peer_request const & peerRequest);
 
+    /**
+     * Public routines used by non-libtorrent thread
+     */
+    libtorrent::sha1_hash getInfoHash();
+
 signals:
 
     /*
      * Notifying controller
      */
+/*
+    class PeerHandle {
 
-    void peerAdded(libtorrent::peer_connection * peerConnection);
+        public:
+
+        libtorrent::sha1_hash info_hash;
+
+        boost::ip::tcp::endpoint
+
+    };
+*/
+
+    void peerAdded(BitSwaprPeerPlugin * peerPlugin);
 
 };
 

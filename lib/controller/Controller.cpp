@@ -106,24 +106,14 @@ Controller::Controller(const ControllerState & state, bool showView, QLoggingCat
         view.show();
 }
 
-/*
-void Controller::connectToView(MainWindow * view) {
-
-    // connect: view -> controller
-    QObject::connect(view, SIGNAL(addTorrentFromMagnetLink(const QString &)),
-                     this, SLOT(addTorrentFromMagnetLink(const QString &)));
-
-
-}
-*/
-
 void Controller::callPostTorrentUpdates() {
     session.post_torrent_updates();
 }
 
-void Controller::extensionPeerAdded(libtorrent::peer_connection * peerConnection) {
+void Controller::extensionPeerAdded(BitSwaprPeerPlugin * peerPlugin) {
 
-    qCDebug(CATEGORY) << "extende peer added!! \n";
+    // Notify view
+    view.addPaymentChannel(peerPlugin);
 }
 
 void Controller::libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::alert> alertAutoPtr) {

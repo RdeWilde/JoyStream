@@ -189,7 +189,7 @@ public slots:
      * Primarily used by plugin routines, run by libtorrent thread.
      */
 
-    void extensionPeerAdded(libtorrent::peer_connection * peerConnection);
+    void extensionPeerAdded(BitSwaprPeerPlugin * peerPlugin);
 
 signals:
 

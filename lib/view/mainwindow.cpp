@@ -1,8 +1,8 @@
-#include "view/mainwindow.hpp"
-#include "view/addtorrentdialog.hpp"
+#include "view/MainWindow.hpp"
+#include "view/AddTorrentDialog.hpp"
 #include "ui_mainwindow.h"
-
 #include "controller/Controller.hpp"
+#include "extension/BitSwaprPeerPlugin.hpp"
 
 #include <iostream>
 
@@ -22,6 +22,7 @@ MainWindow::MainWindow(Controller * controller, QLoggingCategory * category)
     , model(new QStandardItemModel(0, 4, this)) //0 Rows and 4 Columns
     , controller_(controller)
     , tableViewContextMenu(new QMenu(this))
+    , paymentChannelTableContextMenu(new QMenu(this))
     , category_(category == 0 ? QLoggingCategory::defaultCategory() : category)
 {
     ui->setupUi(this);
@@ -42,8 +43,16 @@ MainWindow::MainWindow(Controller * controller, QLoggingCategory * category)
 
     // Setup context menu capacity on table view
     ui->tableView->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->tableView, SIGNAL(customContextMenuRequested(QPoint)),
-                             SLOT(customMenuRequested(QPoint)));
+    connect(ui->tableView,
+            SIGNAL(customContextMenuRequested(QPoint)),
+            this,
+            SLOT(customMenuRequested(QPoint)));
+
+    // Setup mouse click on torrent table view
+    connect(ui->tableView,
+            SIGNAL(clicked(const QModelIndex &)),
+            this,
+            SLOT(torrentQTableViewClicked(const QModelIndex &)));
 
     // add menu buttons
     QAction * pauseAction = new QAction("Pause", this);
@@ -71,6 +80,8 @@ MainWindow::~MainWindow()
     // Delete context menu
     // does it take ownership of actions, or do we need to delete them explicitly
     delete tableViewContextMenu;
+
+    // Delet stuff with payment channel tabel view models
 }
 
 void MainWindow::customMenuRequested(QPoint pos) {
@@ -84,6 +95,12 @@ void MainWindow::customMenuRequested(QPoint pos) {
 
     // Show menu
     tableViewContextMenu->popup(ui->tableView->viewport()->mapToGlobal(pos));
+}
+
+void MainWindow::torrentQTableViewClicked(const QModelIndex & index) {
+
+    // Switch model for payment channel table view
+    ui->paymentChannelTableView->setModel(paymentChannelTableViewModels[index.row()]);
 }
 
 void MainWindow::pauseMenuAction() {
@@ -176,7 +193,11 @@ void MainWindow::closeEvent(QCloseEvent * event) {
 
 void MainWindow::addTorrent(const libtorrent::sha1_hash & info_hash, const std::string & torrentName, int totalSize) {
 
-    // Create row for model
+    /*
+     * Add row to torrent table view-model
+     */
+
+    // Create row
     QList<QStandardItem *> modelRow;
 
     QString name(torrentName.c_str());
@@ -196,6 +217,47 @@ void MainWindow::addTorrent(const libtorrent::sha1_hash & info_hash, const std::
 
     // Add row to model
     model->appendRow(modelRow);
+
+    /*
+     * Create view model for payment channel table view-model
+     */
+    QStandardItemModel * paymentChannelTableViewModel = new QStandardItemModel(0, 4, this); //0 Rows and 4 Columns
+
+    // Add columns to model
+    paymentChannelTableViewModel->setHorizontalHeaderItem(0, new QStandardItem(QString("Host")));
+    paymentChannelTableViewModel->setHorizontalHeaderItem(1, new QStandardItem(QString("Status")));
+    paymentChannelTableViewModel->setHorizontalHeaderItem(2, new QStandardItem(QString("Balance")));
+    paymentChannelTableViewModel->setHorizontalHeaderItem(3, new QStandardItem(QString("Progress")));
+
+    // Add to list of view models for payment channel table
+    paymentChannelTableViewModels.push_back(paymentChannelTableViewModel);
+}
+
+void MainWindow::addTorrentFailed(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec) {
+
+    // Do something more clever, this is just a hacky fix for now
+    std::cerr << "Failed to add torrent " << name.c_str() << " because: " << ec.message().c_str() << std::endl;
+}
+
+void MainWindow::removeTorrent(const libtorrent::sha1_hash & info_hash) {
+
+    // Try to get row
+    int row = findRowFromInfoHash(info_hash);
+
+    // Check that it is valid
+
+    // Remove row from model
+    model->removeRows(row, 1);
+
+    // Remove from info hash container
+    infoHashInRow.erase(std::remove(infoHashInRow.begin(),
+                                    infoHashInRow.end(),
+                                    info_hash),
+                        infoHashInRow.end());
+
+    // Remove from payment channel view model contaier
+
+    //....
 }
 
 void MainWindow::updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector) {
@@ -299,27 +361,41 @@ void MainWindow::updateTorrentStatus(const libtorrent::torrent_status & torrentS
     model->item(row, 3)->setText(speed);
 }
 
-void MainWindow::removeTorrent(const libtorrent::sha1_hash & info_hash) {
+void MainWindow::addPaymentChannel(BitSwaprPeerPlugin * peerPlugin) {
 
-    // Try to get row
-    int row = findRowFromInfoHash(info_hash);
+    /*
+     * Add channel to corresponding view-model
+     */
 
-    // Check that it is valid
+    // Create row
+    QList<QStandardItem *> paymentChannelTableViewModelRow;
 
-    // Remove row from model
-    model->removeRows(row, 1);
+    QString host("host");
+    paymentChannelTableViewModelRow.append(new QStandardItem(host));
 
-    // Remove from info hash container
-    infoHashInRow.erase(std::remove(infoHashInRow.begin(),
-                                    infoHashInRow.end(),
-                                    info_hash),
-                        infoHashInRow.end());
-}
+    QString status("status"); //QString::number(totalSize);
+    paymentChannelTableViewModelRow.append(new QStandardItem(status));
 
-void MainWindow::addTorrentFailed(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec) {
+    QString balance("1/1");
+    paymentChannelTableViewModelRow.append(new QStandardItem(balance));
 
-    // Do something more clever, this is just a hacky fix for now
-    std::cerr << "Failed to add torrent " << name.c_str() << " because: " << ec.message().c_str() << std::endl;
+    QString progress("p");
+    paymentChannelTableViewModelRow.append(new QStandardItem(progress));
+
+    /*
+     * Get table view-model
+     */
+
+    // Find row where torrent, to which peer corresponds, is located
+    int row = findRowFromInfoHash(peerPlugin->getInfoHash());
+
+    if(row < 0) {
+        std::cout << "no match info_hash found." << std::endl;
+        return;
+    }
+
+    // Add row to payment channel table view-model for this torrent
+    paymentChannelTableViewModels[row]->appendRow(paymentChannelTableViewModelRow);
 }
 
 int MainWindow::findRowFromInfoHash(const libtorrent::sha1_hash & info_hash) {

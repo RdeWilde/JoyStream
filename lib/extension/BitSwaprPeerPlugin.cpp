@@ -37,11 +37,11 @@ BitSwaprPeerPlugin::BitSwaprPeerPlugin(BitSwaprTorrentPlugin * torrentPlugin, li
     // Setup signals
     Controller * controller = torrentPlugin_->getPlugin()->getController();
 
-    qRegisterMetaType<libtorrent::peer_connection *>();
+    qRegisterMetaType<BitSwaprPeerPlugin *>();
     QObject::connect(this,
-                     SIGNAL(peerAdded(libtorrent::peer_connection *)),
+                     SIGNAL(peerAdded(BitSwaprPeerPlugin *)),
                      controller,
-                     SLOT(extensionPeerAdded(libtorrent::peer_connection *)));
+                     SLOT(extensionPeerAdded(BitSwaprPeerPlugin *)));
 }
 
 BitSwaprPeerPlugin::~BitSwaprPeerPlugin() {
@@ -187,7 +187,7 @@ bool BitSwaprPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & h
     peerBEP43SupportedStatus = supported;
 
     // Send signal about new peer
-    emit peerAdded(peerConnection_);
+    emit peerAdded(this);
 
     // Tell libtorrent that our extension should be kept in the loop for this peer
     return true;
@@ -355,4 +355,8 @@ void BitSwaprPeerPlugin::tick() {
 bool BitSwaprPeerPlugin::write_request(libtorrent::peer_request const & peerRequest) {
     qCDebug(CATEGORY) << "write_request";
     return false;
+}
+
+libtorrent::sha1_hash BitSwaprPeerPlugin::getInfoHash() {
+    return torrentPlugin_->getTorrent()->info_hash();
 }

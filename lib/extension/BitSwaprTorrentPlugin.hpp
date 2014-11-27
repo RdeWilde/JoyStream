@@ -42,10 +42,12 @@ public:
     // Destructor
     ~BitSwaprTorrentPlugin();
 
-    // Returns plugin
-    BitSwaprPlugin * getPlugin();
-
-    // Virtual functions
+    /**
+     * All virtual functions below should ONLY
+     * be called by libtorrent network thread,
+     * never by other threads, as this causes synchronization
+     * failures.
+     */
     virtual boost::shared_ptr<libtorrent::peer_plugin> new_connection(libtorrent::peer_connection * peerConnection);
     virtual void on_piece_pass(int index);
     virtual void on_piece_failed(int index);
@@ -55,6 +57,17 @@ public:
     virtual void on_files_checked();
     virtual void on_state(int s);
     virtual void on_add_peer(libtorrent::tcp::endpoint const & tcpEndPoint, int src, int flags);
+
+    /**
+     * Public routines used by non-libtorrent thread
+     */
+
+    // Returns plugin
+    BitSwaprPlugin * getPlugin();
+
+    // Returns torrent
+    libtorrent::torrent * getTorrent();
+
 };
 
 #endif

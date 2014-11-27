@@ -18,11 +18,6 @@ BitSwaprTorrentPlugin::~BitSwaprTorrentPlugin() {
     // No need to explicltly delete BitSwaprPeerPlugin, since libtorrent has shared_ptr
 }
 
-// Returns plugin
-BitSwaprPlugin * BitSwaprTorrentPlugin::getPlugin() {
-    return plugin_;
-}
-
 boost::shared_ptr<libtorrent::peer_plugin> BitSwaprTorrentPlugin::new_connection(libtorrent::peer_connection * peerConnection) {
 
     // Create peer level plugin
@@ -85,4 +80,13 @@ void BitSwaprTorrentPlugin::on_state(int s) {
 
 void BitSwaprTorrentPlugin::on_add_peer(libtorrent::tcp::endpoint const & tcpEndPoint, int src, int flags) {
 
+}
+
+// Returns plugin
+BitSwaprPlugin * BitSwaprTorrentPlugin::getPlugin() {
+    return plugin_;
+}
+
+libtorrent::torrent * BitSwaprTorrentPlugin::getTorrent() {
+    return torrent_;
 }

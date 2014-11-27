@@ -18,7 +18,6 @@ SOURCES += \
             controller/exceptions/InvalidBitSwaprStateEntryException.cpp \
             controller/exceptions/ListenOnException.cpp \
             controller/exceptions/MissingInfoHashViewRequestException.cpp \
-            view/addtorrentdialog.cpp \
             extension/BitSwaprPlugin.cpp \
             extension/BitSwaprTorrentPlugin.cpp \
             extension/BitSwaprPeerPlugin.cpp \
@@ -26,7 +25,9 @@ SOURCES += \
             logger/exceptions/CannnotOpenLogFile.cpp \
             logger/exceptions/DuplicateLog.cpp \
     view/MainWindow.cpp \
-    ControllerTracker.cpp
+    ControllerTracker.cpp \
+    extension/Message/ExtendedMessage.cpp \
+    view/AddTorrentDialog.cpp
 		
 HEADERS += \
             controller/Controller.hpp \
@@ -34,7 +35,6 @@ HEADERS += \
             controller/exceptions/InvalidBitSwaprStateEntryException.hpp \
             controller/exceptions/ListenOnException.hpp \
             controller/exceptions/MissingInfoHashViewRequestException.hpp \
-            view/addtorrentdialog.hpp \
             extension/BitSwaprPlugin.hpp \
             extension/BitSwaprTorrentPlugin.hpp \
             extension/BitSwaprPeerPlugin.hpp \
@@ -43,7 +43,9 @@ HEADERS += \
             logger/exceptions/DuplicateLog.hpp \
             logger/exceptions/CannnotOpenLogFile.hpp \
     view/MainWindow.hpp \
-    ControllerTracker.hpp
+    ControllerTracker.hpp \
+    extension/Message/ExtendedMessage.hpp \
+    view/AddTorrentDialog.hpp
 				
 FORMS += \
             view/mainwindow.ui \

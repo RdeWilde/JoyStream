@@ -39,6 +39,28 @@ private:
 
     // Logging category
     QLoggingCategory * category_;
+
+    /*
+     * Protocol state
+     */
+
+    // The role a peer can play
+    enum PeerRole {
+        UNKNOWN,
+        BUYER,
+        SELLER
+    };
+
+    /*
+     * Roles of peer and client, which is determined
+     * by first message after extended handshake.
+     */
+    PeerRole peer, client;
+
+
+
+
+
 public:
 
     // Constructor
