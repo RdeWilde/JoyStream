@@ -29,7 +29,9 @@ SOURCES += \
     extension/TorrentPlugin.cpp \
     extension/Plugin.cpp \
     extension/PeerPlugin.cpp \
-    extension/PeerPluginStatus.cpp
+    extension/PeerPluginStatus.cpp \
+    extension/Message/BuyMessage.cpp \
+    extension/Message/SellMessage.cpp
 		
 HEADERS += \
             controller/Controller.hpp \
@@ -49,7 +51,9 @@ HEADERS += \
     extension/TorrentPlugin.hpp \
     extension/Plugin.hpp \
     extension/PeerPlugin.hpp \
-    extension/PeerPluginStatus.hpp
+    extension/PeerPluginStatus.hpp \
+    extension/Message/BuyMessage.hpp \
+    extension/Message/SellMessage.hpp
 				
 FORMS += \
             view/mainwindow.ui \

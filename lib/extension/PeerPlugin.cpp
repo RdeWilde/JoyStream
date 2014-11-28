@@ -187,7 +187,7 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
     const char * peerAddress = peerConnection_->remote().address().to_string().c_str();
     short port = peerConnection_->remote().port();
 
-    qCDebug(category_) << "Found  extension handshake for peer " << peerAddress << ":" << port << ".\n";
+    qCDebug(category_) << "Found extension handshake for peer " << peerAddress << ":" << port;
 
     // All messages were present, hence the protocol is supported
     peerBEP43SupportedStatus = supported;
@@ -207,11 +207,17 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
  *
  */
 void PeerPlugin::on_disconnect(libtorrent::error_code const & ec) {
-    qCDebug(category_) << "on_disconnect";
+
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(category_) << "on_disconnect";
+
 }
 
 void PeerPlugin::on_connected() {
-    qCDebug(category_) << "on_connected";
+
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(category_) << "on_connected";
+
 }
 
 /*
@@ -221,77 +227,122 @@ void PeerPlugin::on_connected() {
  */
 
 bool PeerPlugin::on_have(int index) {
-    qCDebug(category_) << "on_have(" << index << ")";
+
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(category_) << "on_have(" << index << ")";
+
     return false;
 }
 
 bool PeerPlugin::on_bitfield(libtorrent::bitfield const & bitfield) {
-    qCDebug(category_) << "on_bitfield";
+
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(category_) << "on_bitfield";
+
     return false;
 }
 
 bool PeerPlugin::on_have_all() {
-    qCDebug(category_) << "on_have_all";
+
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(category_) << "on_have_all";
+
     return false;
 }
 
 bool PeerPlugin::on_reject(libtorrent::peer_request const & peerRequest) {
-    qCDebug(category_) << "on_reject";
+
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(category_) << "on_reject";
+
     return false;
 }
 
 bool PeerPlugin::on_request(libtorrent::peer_request const & peerRequest) {
-    qCDebug(category_) << "on_request";
+
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(category_) << "on_request";
+
     return false;
 }
 
 bool PeerPlugin::on_unchoke() {
-    qCDebug(category_) << "on_unchoke";
+
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(category_) << "on_unchoke";
+
     return false;
 }
 
 bool PeerPlugin::on_interested() {
-    qCDebug(category_) << "on_interested";
+
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(category_) << "on_interested";
+
     return false;
 }
 
 bool PeerPlugin::on_allowed_fast(int index) {
-    qCDebug(category_) << "on_allowed_fast(" << index << ")";
+
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(category_) << "on_allowed_fast(" << index << ")";
+
     return false;
 }
 
 bool PeerPlugin::on_have_none() {
-    qCDebug(category_) << "on_have_none";
+
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(category_) << "on_have_none";
+
     return false;
 }
 
 bool PeerPlugin::on_choke() {
-    qCDebug(category_) << "on_choke";
+
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(category_) << "on_choke";
+
     return false;
 }
 
 bool PeerPlugin::on_not_interested() {
-    qCDebug(category_) << "on_not_interested";
+
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(category_) << "on_not_interested";
+
     return false;
 }
 
 bool PeerPlugin::on_piece(libtorrent::peer_request const& piece, libtorrent::disk_buffer_holder & data) {
-    qCDebug(category_) << "on_piece";
+
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(category_) << "on_piece";
+
     return false;
 }
 
 bool PeerPlugin::on_suggest(int index) {
-    qCDebug(category_) << "on_suggest(" << index << ")";
+
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(category_) << "on_suggest(" << index << ")";
+
     return false;
 }
 
 bool PeerPlugin::on_cancel(libtorrent::peer_request const & peerRequest) {
-    qCDebug(category_) << "on_cancel";
+
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(category_) << "on_cancel";
+
     return false;
 }
 
 bool PeerPlugin::on_dont_have(int index) {
-    qCDebug(category_) << "on_dont_have(" << index << ")";
+
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(category_) << "on_dont_have(" << index << ")";
+
     return false;
 }
 
@@ -306,7 +357,10 @@ void PeerPlugin::sent_unchoke() {
  * If the plugin returns false, the peer will not be disconnected.
  */
 bool PeerPlugin::can_disconnect(libtorrent::error_code const & ec) {
-    qCDebug(category_) << "can_disconnect";
+
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(category_) << "can_disconnect";
+
     // CRITICAL
     return true;
 }
@@ -318,7 +372,10 @@ bool PeerPlugin::can_disconnect(libtorrent::error_code const & ec) {
  * be able to handle it this is not called for web seeds.
  */
 bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_interval body) {
-    qCDebug(category_) << "on_extended(" << length << "," << msg << ")";
+
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(category_) << "on_extended(" << length << "," << msg << ")";
+
     // CRITICAL
     return false;
 }
@@ -328,7 +385,9 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
  */
 bool PeerPlugin::on_unknown_message(int length, int msg, libtorrent::buffer::const_interval body) {
 
-    qCDebug(category_) << "on_unknown_message(" << length << "," << msg << ")";
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(category_) << "on_unknown_message(" << length << "," << msg << ")";
+
     // CRITICAL
     return false;
 }
@@ -365,7 +424,10 @@ void PeerPlugin::tick() {
  * the original request message won't be sent and no other plugin will have this function called.
  */
 bool PeerPlugin::write_request(libtorrent::peer_request const & peerRequest) {
-    qCDebug(category_) << "write_request";
+
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(category_) << "write_request";
+
     return false;
 }
 

@@ -28,6 +28,15 @@ extern const char * message_names[];
 // Number of messages
 #define NUMBER_OF_MESSAGES 15
 
+/**
+  * ALMOST CERTAINLY, THIS CLASS WILL
+  * HAVE TO BE FACTORED INTO TWO VERSIONS OF
+  * THE PEER PLUGIN, ONE BEHAVING AS A SEELER,
+  * AND ONE BEHAVING AS A BUYER, BUT LETS POSTPONE
+  * THAT UNTIL IT BECOMES CLEAR THAT THIS IS IN
+  * FACT WORTH IT
+  */
+
 // We inherit from QObject so we can send signals, and QObject must be first:
 // http://doc.trolltech.com/4.5/moc.html
 class PeerPlugin : public QObject, public libtorrent::peer_plugin {

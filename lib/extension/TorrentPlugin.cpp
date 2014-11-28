@@ -47,7 +47,7 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorr
 
     short port = peerConnection->remote().port();
 
-    qCDebug(category_) << "Peer #" << peerPlugins.size() << "[" << peerAddress << ":" << port << "] added to torrent " << this->torrent_->name().c_str();
+    qCDebug(category_) << "Peer #" << peerPlugins.size() << "[" << peerAddress << ":" << port << "] added to " << this->torrent_->name().c_str();
     //(libtorrent::to_hex(torrent_->info_hash().to_string())).c_str() << ".";
 
     // Return pointer as required
