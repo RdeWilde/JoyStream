@@ -3,7 +3,8 @@
 
 #include "ControllerState.hpp"
 #include "view/MainWindow.hpp"
-#include "extension/BitSwaprPlugin.hpp"
+#include "extension/Plugin.hpp"
+#include "extension/PeerPluginStatus.hpp" // not sure why this has to be here, when TorrentPluginStatus did not
 
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>
@@ -17,20 +18,18 @@
 
 #define CLIENT_FINGERPRINT "BR"
 
-// Used directing logging to category object.
-#define CATEGORY (*category_)
-
 // Register types for signal and slots
 Q_DECLARE_METATYPE(libtorrent::sha1_hash)
 Q_DECLARE_METATYPE(std::string)
 Q_DECLARE_METATYPE(libtorrent::error_code)
 Q_DECLARE_METATYPE(std::vector<libtorrent::torrent_status>)
 Q_DECLARE_METATYPE(libtorrent::torrent_status)
-
-// Register type for QMetaObject::invokeMethod
-Q_DECLARE_METATYPE(const libtorrent::alert*)
+Q_DECLARE_METATYPE(const libtorrent::alert*) // Register type for QMetaObject::invokeMethod
 
 // Forward declarations
+class TorrentPluginStatus;
+class PeerPluginStatus;
+
 /*
 Introduce later:
 class libtorrent::add_torrent_alert;
@@ -119,7 +118,7 @@ private:
     sourceForLastResumeDataCallType sourceForLastResumeDataCall;
 
     // Logging category
-    QLoggingCategory * category_;
+    QLoggingCategory & category_;
 
     // Plugin: constructor initializatin list expects plugin to appear after category_
     boost::shared_ptr<libtorrent::plugin> plugin;
@@ -130,7 +129,7 @@ private:
 public:
 
 	// Constructor starting session with given state
-    Controller(const ControllerState & state, bool showView = true, QLoggingCategory * category = 0);
+    Controller(const ControllerState & state, bool showView, QLoggingCategory & category);
 
     // Callback routine called by libtorrent dispatcher routine
     void libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::alert> alertAutoPtr);
@@ -189,8 +188,9 @@ public slots:
      * Primarily used by plugin routines, run by libtorrent thread.
      */
 
-    void extensionPeerAdded(BitSwaprPeerPlugin * peerPlugin);
-    void torrentPluginStatus(int numberOfPeers, int numberOfPeersWithExtension, BitSwaprTorrentPlugin::TORRENT_MANAGEMENT_STATUS mode, int inBalance, int outBalance);
+    void extensionPeerAdded(PeerPlugin * peerPlugin);
+    void updateTorrentPluginStatus(TorrentPluginStatus status);
+    void updatePeerPluginStatus(PeerPluginStatus status);
 
 signals:
 

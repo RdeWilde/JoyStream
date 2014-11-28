@@ -2,9 +2,10 @@
 #include "view/AddTorrentDialog.hpp"
 #include "ui_mainwindow.h"
 #include "controller/Controller.hpp"
-#include "extension/BitSwaprPeerPlugin.hpp"
-
-#include <iostream>
+#include "extension/TorrentPlugin.hpp"
+#include "extension/PeerPlugin.hpp"
+#include "extension/TorrentPluginStatus.hpp"
+#include "extension/PeerPluginStatus.hpp"
 
 #include <QMessageBox>
 #include <QFileDialog>
@@ -17,20 +18,20 @@
 #include <libtorrent/add_torrent_params.hpp>
 #include <libtorrent/torrent_handle.hpp>
 
-MainWindow::MainWindow(Controller * controller, QLoggingCategory * category)
+MainWindow::MainWindow(Controller * controller, QLoggingCategory & category)
     : ui(new Ui::MainWindow)
     , model(new QStandardItemModel(0, 7, this)) //0 Rows and 4 Columns
     , controller_(controller)
     , tableViewContextMenu(new QMenu(this))
     , paymentChannelTableContextMenu(new QMenu(this))
-    , category_(category == 0 ? QLoggingCategory::defaultCategory() : category)
+    , category_(category)
 {
     ui->setupUi(this);
 
     // Alter window title
-    if(category_ != 0) {
+    if(!QString(category_.categoryName()).compare("default")) {
 
-        QString title = QString("Logging: ") + QString(category_->categoryName());
+        QString title = QString("Logging: ") + QString(category_.categoryName());
         this->setWindowTitle(title);
     }
 
@@ -39,7 +40,7 @@ MainWindow::MainWindow(Controller * controller, QLoggingCategory * category)
     model->setHorizontalHeaderItem(1, new QStandardItem(QString("Size")));
     model->setHorizontalHeaderItem(2, new QStandardItem(QString("Status")));
     model->setHorizontalHeaderItem(3, new QStandardItem(QString("Speed (Down|Up)")));
-    model->setHorizontalHeaderItem(4, new QStandardItem(QString("Peers (Classic|BitSwapr)")));
+    model->setHorizontalHeaderItem(4, new QStandardItem(QString("Peers (Total|BitSwapr)")));
     model->setHorizontalHeaderItem(5, new QStandardItem(QString("Mode")));
     model->setHorizontalHeaderItem(6, new QStandardItem(QString("Balance (In|Out)")));
     ui->tableView->setModel(model);
@@ -114,7 +115,7 @@ void MainWindow::pauseMenuAction() {
     // Notify controller
     // is it valid, i.e. was an actual match found?
     if(!torrentHandle.is_valid())
-        std::cout << "No match found" << std::endl;
+        qCDebug(category_) << "No match found!!";
     else
        controller_->pauseTorrent(torrentHandle);
 }
@@ -126,7 +127,7 @@ void MainWindow::startMenuAction() {
 
     // Is it valid, i.e. was an actual match found?
     if(!torrentHandle.is_valid())
-        std::cout << "No match found" << std::endl;
+        qCDebug(category_) << "No match found!!";
     else
         controller_->startTorrent(torrentHandle);
 }
@@ -215,13 +216,13 @@ void MainWindow::addTorrent(const libtorrent::sha1_hash & info_hash, const std::
     QString speed("");
     modelRow.append(new QStandardItem(speed));
 
-    QString peers("x|y");
+    QString peers("");
     modelRow.append(new QStandardItem(peers));
 
-    QString mode("Classic");
+    QString mode("");
     modelRow.append(new QStandardItem(mode));
 
-    QString balance("12|33");
+    QString balance("");
     modelRow.append(new QStandardItem(balance));
 
     // Remember info has order
@@ -286,7 +287,7 @@ void MainWindow::updateTorrentStatus(const libtorrent::torrent_status & torrentS
     int row = findRowFromInfoHash(torrentStatus.info_hash);
 
     if(row < 0) {
-        std::cout << "no match info_hash found." << std::endl;
+        qCDebug(category_) << "no match info_hash found.!!";
         return;
     }// else
      //   std::cout << "update for row: " << row << std::endl;
@@ -373,11 +374,38 @@ void MainWindow::updateTorrentStatus(const libtorrent::torrent_status & torrentS
     model->item(row, 3)->setText(speed);
 }
 
-void MainWindow::torrentPluginStatus(int numberOfPeers, int numberOfPeersWithExtension, BitSwaprTorrentPlugin::TORRENT_MANAGEMENT_STATUS mode, int inBalance, int outBalance) {
+void MainWindow::updateTorrentPluginStatus(TorrentPluginStatus status) {
 
+    // Find row where torrent is located
+    int row = findRowFromInfoHash(status.info_hash_);
+
+    if(row < 0) {
+        qCDebug(category_) << "no match info_hash found!!";
+        return;
+    }
+
+    // Peers column
+    QString peers = QString::number(status.numberOfPeers_) + "|" + QString::number(status.numberOfPeersWithExtension_);
+    model->item(row, 4)->setText(peers);
+
+    // Mode column
+    QString mode(status.pluginOn_ ? "BitSwapr" : "Classic");
+    model->item(row, 5)->setText(mode);
+
+    // Balance column
+    QString balance = QString::number(status.tokensReceived_) + "|" + QString::number(status.tokensSent_);
+    model->item(row, 6)->setText(balance);
 }
 
-void MainWindow::addPaymentChannel(BitSwaprPeerPlugin * peerPlugin) {
+void MainWindow::addPaymentChannel(PeerPlugin * peerPlugin) {
+
+    // Find row where torrent, to which peer corresponds, is located
+    int row = findRowFromInfoHash(peerPlugin->getInfoHash());
+
+    if(row < 0) {
+        qCDebug(category_) << "no match info_hash found!!";
+        return;
+    }
 
     /*
      * Add channel to corresponding view-model
@@ -386,36 +414,28 @@ void MainWindow::addPaymentChannel(BitSwaprPeerPlugin * peerPlugin) {
     // Create row
     QList<QStandardItem *> paymentChannelTableViewModelRow;
 
-    QString host("host");
+    QString host("");
     paymentChannelTableViewModelRow.append(new QStandardItem(host));
 
-    QString status("status"); //QString::number(totalSize);
+    QString status(""); //QString::number(totalSize);
     paymentChannelTableViewModelRow.append(new QStandardItem(status));
 
-    QString balance("1/1");
+    QString balance("");
     paymentChannelTableViewModelRow.append(new QStandardItem(balance));
 
-    QString progress("p");
+    QString progress("");
     paymentChannelTableViewModelRow.append(new QStandardItem(progress));
 
     /*
      * Get table view-model
      */
 
-    // Find row where torrent, to which peer corresponds, is located
-    int row = findRowFromInfoHash(peerPlugin->getInfoHash());
-
-    if(row < 0) {
-        std::cout << "no match info_hash found." << std::endl;
-        return;
-    }
-
     // Add row to payment channel table view-model for this torrent
     paymentChannelTableViewModels[row]->appendRow(paymentChannelTableViewModelRow);
 }
 
-void MainWindow::updatePaymentChannelStatus() {
-
+void MainWindow::updatePeerPluginStatus(PeerPluginStatus status) {
+    qCDebug(category_) << "updatePeerPluginStatus()";
 }
 
 int MainWindow::findRowFromInfoHash(const libtorrent::sha1_hash & info_hash) {

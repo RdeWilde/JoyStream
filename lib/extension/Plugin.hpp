@@ -1,10 +1,9 @@
 
-#ifndef BITSWAPR_PLUGIN_HPP
-#define BITSWAPR_PLUGIN_HPP
+#ifndef PLUGIN_HPP
+#define PLUGIN_HPP
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
-
 #include <libtorrent/aux_/session_impl.hpp>
 #include <libtorrent/alert.hpp>
 #include <libtorrent/policy.hpp>
@@ -15,20 +14,12 @@
 #include <boost/shared_ptr.hpp>
 
 #include <QObject>
-#include <QLoggingCategory>
-
-// MOC declarations
-#include <QMetaType>
-Q_DECLARE_METATYPE(BitSwaprTorrentPlugin::TORRENT_MANAGEMENT_STATUS)
-
-// Used directing logging to category object.
-#define CATEGORY (*category_)
 
 // Forward declaration
 class Controller;
-class BitSwaprTorrentPlugin;
+class TorrentPlugin;
 
-class BitSwaprPlugin : public QObject, public libtorrent::plugin {
+class Plugin : public QObject, public libtorrent::plugin {
 
     Q_OBJECT
 
@@ -41,18 +32,18 @@ private:
     libtorrent::aux::session_impl * session_;
 
     // Collection of plugin objects for each torrent added through new_connection()
-    std::vector<BitSwaprTorrentPlugin *> torrentPlugins;
+    std::vector<TorrentPlugin *> torrentPlugins;
 
     // Logging category
-    QLoggingCategory * category_;
+    QLoggingCategory & category_;
 
 public:
 
     // Constructor
-    BitSwaprPlugin(Controller * controller, QLoggingCategory * category);
+    Plugin(Controller * controller, QLoggingCategory & category);
 
     // Destructor
-    ~BitSwaprPlugin();
+    ~Plugin();
 
     // Returns controller
     Controller * getController();

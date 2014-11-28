@@ -1,6 +1,6 @@
 
-#ifndef BITSWAPR_TORRENT_PLUGIN_HPP
-#define BITSWAPR_TORRENT_PLUGIN_HPP
+#ifndef TORRENT_PLUGIN_HPP
+#define TORRENT_PLUGIN_HPP
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
@@ -10,35 +10,24 @@
 #include <boost/shared_ptr.hpp>
 
 #include <QObject>
-#include <QLoggingCategory>
 
-// Used directing logging to category object.
-#define CATEGORY (*category_)
+#include "TorrentPluginStatus.hpp"
 
 // Forward declaration
-class BitSwaprPlugin;
-class BitSwaprPeerPlugin;
+class Plugin;
+class PeerPlugin;
 
-class BitSwaprTorrentPlugin : public QObject, public libtorrent::torrent_plugin {
+class TorrentPlugin : public QObject, public libtorrent::torrent_plugin {
 
     Q_OBJECT
 
 public:
 
-    // State of this torrent plugin
-    // Determines whether libtorrent automanagement is active for this torrent
-    // When not (on), the peer plugins behave as buyers or sellers depending
-    // on whether full file has been aquired.
-    enum TORRENT_MANAGEMENT_STATUS {
-        on,
-        off
-    };
-
     // Constructor
-    BitSwaprTorrentPlugin(BitSwaprPlugin * plugin, libtorrent::torrent * torrent, QLoggingCategory * category, TORRENT_MANAGEMENT_STATUS torrentManagementStatus);
+    TorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn);
 
     // Destructor
-    ~BitSwaprTorrentPlugin();
+    ~TorrentPlugin();
 
     /**
      * All virtual functions below should ONLY
@@ -61,37 +50,40 @@ public:
      */
 
     // Returns plugin
-    BitSwaprPlugin * getPlugin();
+    Plugin * getPlugin();
 
     // Returns torrent
     libtorrent::torrent * getTorrent();
 
 signals:
 
-    void torrentPluginStatus(int numberOfPeers, int numberOfPeersWithExtension, TORRENT_MANAGEMENT_STATUS mode, int inBalance, int outBalance);
+    void updateTorrentPluginStatus(TorrentPluginStatus status);
 
 private:
 
     // Parent plugin for BitSwapr
-    BitSwaprPlugin * plugin_;
+    Plugin * plugin_;
 
     // Torrent for this torrent_plugin
     libtorrent::torrent * torrent_;
 
     // Collection of peer plugin objects for each peer presently connected to this node through this torrent swarm
-    std::vector<BitSwaprPeerPlugin *> peerPlugins;
+    std::vector<PeerPlugin *> peerPlugins;
 
     // Logging category
-    QLoggingCategory * category_;
+    QLoggingCategory & category_;
 
-    // State
-    TORRENT_MANAGEMENT_STATUS torrentManagementStatus_;
+    // State of this torrent plugin
+    // Determines whether libtorrent automanagement is active for this torrent
+    // When not (on), the peer plugins behave as buyers or sellers depending
+    // on whether full file has been aquired.
+    bool pluginOn_;
 
-    // Accounting
-    int inBalance, outBalance;
+    // Token accounting since session start
+    int tokensReceived_, tokensSent_;
 
+    // subroutines for the tick() method
     void sendTorrentPluginStatusSignal();
-
 };
 
 #endif

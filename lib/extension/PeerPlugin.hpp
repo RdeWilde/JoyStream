@@ -1,6 +1,6 @@
 
-#ifndef BITSWAPR_PEER_PLUGIN_HPP
-#define BITSWAPR_PEER_PLUGIN_HPP
+#ifndef PEER_PLUGIN_HPP
+#define PEER_PLUGIN_HPP
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/peer_connection.hpp>
@@ -13,19 +13,14 @@
 #include <libtorrent/buffer.hpp>
 
 #include <QObject>
-#include <QLoggingCategory>
-
-// MOC declarations
-#include <QMetaType>
-//Q_DECLARE_METATYPE(BitSwaprPeerPlugin *)
 
 #include <boost/asio/ip/tcp.hpp> // ip::tcp::endpoint
 
-// Used directing logging to category object.
-#define CATEGORY (*category_)
+#include "PeerPluginStatus.hpp"
 
 // Forward declaration
-class BitSwaprTorrentPlugin;
+class TorrentPlugin;
+class PeerPluginStatus;
 
 // Names of all messages
 extern const char * message_names[];
@@ -35,7 +30,7 @@ extern const char * message_names[];
 
 // We inherit from QObject so we can send signals, and QObject must be first:
 // http://doc.trolltech.com/4.5/moc.html
-class BitSwaprPeerPlugin : public QObject, public libtorrent::peer_plugin {
+class PeerPlugin : public QObject, public libtorrent::peer_plugin {
 
     Q_OBJECT
 
@@ -71,22 +66,14 @@ public:
 
     };
 
-    // Snap shot of peer plugin status
-    struct PeerPluginStatus {
-
-        // Total balance in favour of peer
-        int balance;
-
-    };
-
     // Constructor
-    BitSwaprPeerPlugin(BitSwaprTorrentPlugin * torrentPlugin,
-                       libtorrent::peer_connection * peerConnection,
-                       QLoggingCategory * category,
-                       PEER_ROLE role);
+    PeerPlugin(TorrentPlugin * torrentPlugin,
+               libtorrent::peer_connection * peerConnection,
+               QLoggingCategory & category,
+               PEER_ROLE role);
 
     // Destructor
-    ~BitSwaprPeerPlugin();
+    ~PeerPlugin();
 
     /**
      * All virtual functions below should ONLY
@@ -135,7 +122,7 @@ public:
 private:
 
     // Torrent plugin for torrent
-    BitSwaprTorrentPlugin * torrentPlugin_;
+    TorrentPlugin * torrentPlugin_;
 
     // Connection to peer for this plugin
     libtorrent::peer_connection * peerConnection_;
@@ -152,11 +139,13 @@ private:
                     clientMessageMapping[NUMBER_OF_MESSAGES];
 
     // Logging category
-    QLoggingCategory * category_;
+    QLoggingCategory & category_;
 
 signals:
 
-    void peerAdded(BitSwaprPeerPlugin * peerPlugin);
+    void peerAdded(PeerPlugin * peerPlugin);
+
+    void updatePeerPluginStatus(PeerPluginStatus status);
 
 };
 

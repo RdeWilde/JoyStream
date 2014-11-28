@@ -113,7 +113,7 @@ void main(int argc, char* argv[]) {
 
     // Create main client
     QLoggingCategory * mainCategory = global_log_manager.createLogger("main", true, false); // true i midten, trenger logging til skjerm
-    Controller main(controllerState, true, mainCategory);
+    Controller main(controllerState, true, *mainCategory);
     controllerTracker.addClient(&main);
 
     std::cout << "Started main client." << std::endl;
@@ -127,7 +127,7 @@ void main(int argc, char* argv[]) {
 
     // Create peer client
     QLoggingCategory * peerCategory = global_log_manager.createLogger("peer", false, false); // false i midten, lets not crowd the screen
-    Controller peer(controllerState, true, peerCategory);
+    Controller peer(controllerState, true, *peerCategory);
     controllerTracker.addClient(&peer);
 
     std::cout << "Started peer client." << std::endl;

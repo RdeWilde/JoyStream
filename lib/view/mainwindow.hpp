@@ -9,13 +9,10 @@
 #include <QMenu>
 #include <QLoggingCategory>
 
-// Used directing logging to category object.
-#define CATEGORY (*category_)
-
 #include <libtorrent/torrent_handle.hpp>
 #include <libtorrent/add_torrent_params.hpp>
 
-#include "extension/BitSwaprTorrentPlugin.hpp"
+#include "extension/TorrentPlugin.hpp"
 
 namespace Ui {
 class MainWindow;
@@ -23,7 +20,9 @@ class MainWindow;
 
 // Forward declarations
 class Controller;
-class BitSwaprPeerPlugin;
+class PeerPlugin;
+class TorrentPluginStatus;
+class PeerPluginStatus;
 
 class MainWindow : public QMainWindow
 {
@@ -32,7 +31,7 @@ class MainWindow : public QMainWindow
 public:
 
     // Constructor
-    MainWindow(Controller * controller, QLoggingCategory * category);
+    MainWindow(Controller * controller, QLoggingCategory & category);
 
     // Destructor
     ~MainWindow();
@@ -45,10 +44,10 @@ public:
 
     void updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector);
     void updateTorrentStatus(const libtorrent::torrent_status & torrentStatus); // start, stopp, stats
-    void torrentPluginStatus(int numberOfPeers, int numberOfPeersWithExtension, BitSwaprTorrentPlugin::TORRENT_MANAGEMENT_STATUS mode, int inBalance, int outBalance);
+    void updateTorrentPluginStatus(TorrentPluginStatus status);
 
-    void addPaymentChannel(BitSwaprPeerPlugin * peerPlugin);
-    void updatePaymentChannelStatus();
+    void addPaymentChannel(PeerPlugin * peerPlugin);
+    void updatePeerPluginStatus(PeerPluginStatus status);
 
 
 private:
@@ -60,7 +59,7 @@ private:
     Controller * controller_;
 
     // Logging category
-    QLoggingCategory * category_;
+    QLoggingCategory & category_;
 
     /*
      * View-models
