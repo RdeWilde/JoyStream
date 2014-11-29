@@ -3,6 +3,8 @@
 #include "PeerPlugin.hpp" // needed since we construct object
 
 #include <libtorrent/error_code.hpp>
+#include <libtorrent/peer_connection.hpp>
+#include <libtorrent/bt_peer_connection.hpp>
 
 #include <QLoggingCategory>
 
@@ -21,26 +23,24 @@ TorrentPlugin::~TorrentPlugin() {
 
 boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorrent::peer_connection * peerConnection) {
 
-    /*
-     *		if (pc->type() != peer_connection::bittorrent_connection)
-            return boost::shared_ptr<peer_plugin>();
+    // Check that this is indeed a bittorrent client, and not a HTTP or URL seed, if not, then dont isntall
+    if(peerConnection->type() != libtorrent::peer_connection::bittorrent_connection)
+        return boost::shared_ptr<libtorrent::peer_plugin>();
 
-        bt_peer_connection* c = static_cast<bt_peer_connection*>(pc);
-        return boost::shared_ptr<peer_plugin>(new ut_metadata_peer_plugin(m_torrent, *c, *this));
-     */
+    libtorrent::bt_peer_connection * bittorrentPeerConnection = static_cast<libtorrent::bt_peer_connection*>(peerConnection);
 
     // Role of peer
     PeerPlugin::PEER_ROLE role = (torrent_->bytes_left() > 0) ? PeerPlugin::buyer : PeerPlugin::seller;
 
     // Create peer level plugin
-    PeerPlugin * peerPlugin = new PeerPlugin(this, peerConnection, category_, role);
+    PeerPlugin * peerPlugin = new PeerPlugin(this, bittorrentPeerConnection, category_, role);
 
     // Add to collection
     peerPlugins.push_back(peerPlugin);
 
     // Notify
     libtorrent::error_code ec;
-    libtorrent::address const & addr = peerConnection->remote().address();
+    libtorrent::address const & addr = bittorrentPeerConnection->remote().address();
     const char * peerAddress = NULL;
 
     if (addr.is_v6())
@@ -53,7 +53,7 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorr
         return boost::shared_ptr<libtorrent::peer_plugin>();
     }
 
-    short port = peerConnection->remote().port();
+    short port = bittorrentPeerConnection->remote().port();
 
     qCDebug(category_) << "Peer #" << peerPlugins.size() << "[" << peerAddress << ":" << port << "] added to " << this->torrent_->name().c_str();
     //(libtorrent::to_hex(torrent_->info_hash().to_string())).c_str() << ".";

@@ -1,20 +1,31 @@
 #include "SellMessage.hpp"
 
-SellMessage::SellMessage(uint32_t price, uint32_t fee, uint32_t minimum)
+SellMessage::SellMessage(quint32 price, quint32 fee, quint32 minimum)
     : price_(price)
     , fee_(fee)
     , minimum_(minimum) {
 }
 
-SellMessage::MESSAGE_TYPES SellMessage::getType() {
-    return MESSAGE_TYPES::sell;
+SellMessage::SellMessage(QDataStream & extendedPayloadStream) {
+
+    // Read payload fields
+    extendedPayloadStream >> price_ >> fee_ >> minimum_;
 }
 
-uint32_t SellMessage::rawLength() {
-    return 1 + 3*sizeof(uint32_t);
+
+Message::TYPE SellMessage::getMessageType() const {
+    return Message::sell;
 }
 
-uint32_t SellMessage::toRaw(char * buffer) const {
-
+quint32 SellMessage::rawPayloadLength() const {
+    return 3*sizeof(quint32);
 }
 
+void SellMessage::toRaw(const ExtendedMessageIdMapping & mapping, QDataStream & extendedMessageStream) const {
+
+    // Write extended message id
+    extendedMessageStream << mapping.buy();
+
+    // Write payload fields
+    extendedMessageStream << price_ << fee_ << minimum_;
+}

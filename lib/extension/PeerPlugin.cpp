@@ -6,27 +6,11 @@
 #include "Config.hpp"
 #include "extension/PeerPluginStatus.hpp"
 
-const char * message_names[] = {
-    "list",
-    "offer",
-    "setup_begin",
-    "setup_begin_accept",
-    "setup_contract",
-    "setup_contract_signed",
-    "setup_refund",
-    "setup_refund_signed",
-    "setup_contract_published",
-    "setup_completed",
-    "piece_get",
-    "piece_missing",
-    "piece_put",
-    "payment",
-    "end"
-};
+#include <libtorrent/bt_peer_connection.hpp>
 
-PeerPlugin::PeerPlugin(TorrentPlugin * torrentPlugin, libtorrent::peer_connection * peerConnection, QLoggingCategory & category, PEER_ROLE role)
+PeerPlugin::PeerPlugin(TorrentPlugin * torrentPlugin, libtorrent::bt_peer_connection * bittorrentPeerConnection, QLoggingCategory & category, PEER_ROLE role)
     : torrentPlugin_(torrentPlugin)
-    , peerConnection_(peerConnection)
+    , bittorrentPeerConnection_(bittorrentPeerConnection)
     , peerBEP10SupportedStatus(unknown)
     , peerBEP43SupportedStatus(unknown)
     , category_(category)
@@ -76,24 +60,29 @@ void PeerPlugin::add_handshake(libtorrent::entry & handshake) {
     // is actually called last on our extension, and since the other extensions dont give a FUCK
     // about not overwriting other peoples extensions values. The only solution is then to just start
     // on some huge value which has no other extensions above it, so this value was found by trial and error.
-    int maxExistingID = 60;
 
     /*
+    int maxExistingID = 0;
     // Iterate m key dictionary and find the greatest ID
     for(std::map<std::string, libtorrent::entry>::iterator i = m.begin(),end(m.end());i != end;i++)
         maxExistingID = std::max((int)(((*i).second).integer()), maxExistingID);
     */
 
-    // Set m dictionary key for client
-    for(int i = 0;i < NUMBER_OF_MESSAGES;i++)
-        m[message_names[i]] = (maxExistingID + 1) + i;
-
-    /*
-    // Diagnostics
-    qCDebug(category_) << "m:";
-    for(std::map<std::string, libtorrent::entry>::iterator i = m.begin(), end(m.end());i != end;i++)
-        qCDebug(category_) << ((*i).first).c_str() << " : " << ((*i).second).integer();
-    */
+    uint8_t id = 60;
+    clientMapping.buy(id++);
+    clientMapping.sell(id++);
+    clientMapping.setup_begin(id++);
+    clientMapping.setup_begin_reject(id++);
+    clientMapping.setup_contract(id++);
+    clientMapping.setup_contract_signed(id++);
+    clientMapping.setup_refund(id++);
+    clientMapping.setup_refund_signed(id++);
+    clientMapping.setup_contract_published(id++);
+    clientMapping.setup_completed(id++);
+    clientMapping.piece_get(id++);
+    clientMapping.piece_put(id++);
+    clientMapping.payment(id++);
+    clientMapping.end(id++);
 
     // Add client identification
     QString clientIdentifier = QString(" ")
@@ -145,8 +134,9 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
     // Check that BEP10 was actually supported, if
     // it wasnt, then the peer is misbehaving
     if(peerBEP10SupportedStatus != supported) {
-        qCWarning(category_) << "Peer didn't support BEP10, but it sent extended handshake.";
+
         peerBEP43SupportedStatus = not_supported;
+        qCWarning(category_) << "Peer didn't support BEP10, but it sent extended handshake.";
         return false;
     }
 
@@ -155,6 +145,7 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
 
     // If its not a dictionary, we are done
     if(handshake.type() != libtorrent::lazy_entry::dict_t) {
+
         peerBEP43SupportedStatus = not_supported;
         qCWarning(category_) << "Malformed handshake received: not dictionary.";
         return false;
@@ -163,29 +154,40 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
     // Try to extract m key, if its not present, then we are done
     const libtorrent::lazy_entry * mKey = handshake.dict_find_dict("m");
     if(!mKey) {
-        qCWarning(category_) << "Malformed handshake received: m key not present.";
+
         peerBEP43SupportedStatus = not_supported;
+        qCWarning(category_) << "Malformed handshake received: m key not present.";
         return false;
     }
 
-    // Check that "m" key maps message id of all required messages
-    for(int i = 0;i < NUMBER_OF_MESSAGES;i++) {
+    // Get peer mapping
+    // This part is ugly, may indicate some bad design on the
+    peerMapping.buy(mKey->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::buy).c_str(), -1));
+    peerMapping.sell(mKey->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::sell).c_str(), -1));
+    peerMapping.setup_begin(mKey->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::setup_begin).c_str(), -1));
+    peerMapping.setup_begin_reject(mKey->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::setup_begin_reject).c_str(), -1));
+    peerMapping.setup_contract(mKey->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::setup_contract).c_str(), -1));
+    peerMapping.setup_contract_signed(mKey->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::setup_contract_signed).c_str(), -1));
+    peerMapping.setup_refund(mKey->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::setup_refund).c_str(), -1));
+    peerMapping.setup_refund_signed(mKey->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::setup_refund_signed).c_str(), -1));
+    peerMapping.setup_contract_published(mKey->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::setup_contract_published).c_str(), -1));
+    peerMapping.setup_completed(mKey->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::setup_completed).c_str(), -1));
+    peerMapping.piece_get(mKey->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::piece_get).c_str(), -1));
+    peerMapping.piece_put(mKey->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::piece_put).c_str(), -1));
+    peerMapping.payment(mKey->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::payment).c_str(), -1));
+    peerMapping.end(mKey->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::end).c_str(), -1));
 
-        // Get value of message name
-        int peerMessageBEP10ID = mKey->dict_find_int_value(message_names[i], -1);
+    // Check that peer mapping is valid: all messages are present, and duplicate ids
+    if(!peerMapping.isValid()) {
 
-        // We are done if message was not in dictionary
-        if(peerMessageBEP10ID == -1) {
-            peerBEP43SupportedStatus = not_supported;
-            qCDebug(category_) << "Peer does not support  plugin.";
-            return false;
-        } else
-            peerMessageMapping[i] = peerMessageBEP10ID;
+        peerBEP43SupportedStatus = not_supported;
+        qCDebug(category_) << "Peer does not support plugin.";
+        return false;
     }
 
     // Notify
-    const char * peerAddress = peerConnection_->remote().address().to_string().c_str();
-    short port = peerConnection_->remote().port();
+    const char * peerAddress = bittorrentPeerConnection_->remote().address().to_string().c_str();
+    short port = bittorrentPeerConnection_->remote().port();
 
     qCDebug(category_) << "Found extension handshake for peer " << peerAddress << ":" << port;
 
@@ -366,7 +368,7 @@ bool PeerPlugin::can_disconnect(libtorrent::error_code const & ec) {
 }
 
 /*
- * called when an extended message is received. If returning true,
+ * Called when an extended message is received. If returning true,
  * the message is not processed by any other plugin and if false
  * is returned the next plugin in the chain will receive it to
  * be able to handle it this is not called for web seeds.
@@ -375,6 +377,8 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
 
     if(peerBEP43SupportedStatus != not_supported)
         qCDebug(category_) << "on_extended(" << length << "," << msg << ")";
+
+    // Create QByte array where you put data, then wrap witha stream, after mesage has b een parsed, check that pointer received is not null.
 
     // CRITICAL
     return false;

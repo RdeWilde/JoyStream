@@ -2,7 +2,6 @@
 #define SELL_MESSAGE_HPP
 
 #include "ExtendedMessage.hpp"
-#include <cstdint>
 
 class SellMessage : public ExtendedMessage
 {
@@ -10,16 +9,26 @@ class SellMessage : public ExtendedMessage
 public:
 
     // Unit price
-    uint32_t price_;
+    quint32 price_;
 
     // Fee used
-    uint32_t fee_;
+    quint32 fee_;
 
     // Minimum bond required
-    uint32_t minimum_;
+    quint32 minimum_;
 
-    // Constructor
-    SellMessage(uint32_t price, uint32_t fee, uint32_t minimum);
+    // Constructor based on fields
+    SellMessage(quint32 price, quint32 fee, quint32 minimum);
+
+    // Constructor based on raw data
+    SellMessage(QDataStream & extendedPayloadStream);
+
+    /**
+     * Inherited from ExtendedMessage
+     */
+    Message::TYPE getMessageType() const;
+    quint32 rawPayloadLength() const;
+    void toRaw(const ExtendedMessageIdMapping & mapping, QDataStream & stream) const;
 
 };
 

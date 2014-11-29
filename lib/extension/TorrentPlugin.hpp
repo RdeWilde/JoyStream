@@ -4,7 +4,6 @@
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
-#include <libtorrent/peer_connection.hpp>
 #include <libtorrent/socket.hpp> // tcp::endpoint
 
 #include <boost/shared_ptr.hpp>

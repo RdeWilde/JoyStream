@@ -1,96 +1,107 @@
 #ifndef EXTENDED_MESSAGE_ID_MAPPING_HPP
 #define EXTENDED_MESSAGE_ID_MAPPING_HPP
 
-#include <cstdint>
+#include <QDataStream> // for data types
 #include <string>
 
-// Number of messages
-#define NUMBER_OF_MESSAGES 14
+namespace Message {
+
+    // Menu of extended message types in protocol,
+    // and value is array index in array "ids" where
+    // id of corresponding message is kept
+    // CRITICAL: Code assumes enum values start at 0 increase with one
+    enum TYPE {
+        buy = 0,
+        sell = 1,
+        setup_begin = 2,
+        setup_begin_reject = 3,
+        setup_contract = 4,
+        setup_contract_signed = 5,
+        setup_refund = 6,
+        setup_refund_signed = 7,
+        setup_contract_published = 8,
+        setup_completed = 9,
+        piece_get = 10,
+        piece_put = 11,
+        payment = 12,
+        end = 13
+    };
+
+    // Number of messages
+    const static int NUMBER_OF_MESSAGES = TYPE::end + 1 ;
+}
 
 class ExtendedMessageIdMapping
 {
 
 public:
-
-    // Menu of extended message types in protocol
-    enum MESSAGE_TYPE {
-        buy,
-        sell,
-        setup_begin,
-        setup_begin_reject,
-        setup_contract,
-        setup_contract_signed,
-        setup_refund,
-        setup_refund_signed,
-        setup_contract_published,
-        setup_completed,
-        piece_get,
-        piece_put,
-        payment,
-        end
-    };
-
     // Default constructor. If used, then set each id individually later
     ExtendedMessageIdMapping();
 
     // Constructor for setting up mapping
-    ExtendedMessageIdMapping(uint8_t buyId,
-                             uint8_t sellId,
-                             uint8_t setupBeginId,
-                             uint8_t setupBeginRejectId,
-                             uint8_t setupContractId,
-                             uint8_t setupContractSignedId,
-                             uint8_t setupRefundId,
-                             uint8_t setupRefundSignedId,
-                             uint8_t setupContractPublishedId,
-                             uint8_t setupCompletedId,
-                             uint8_t pieceGetId,
-                             uint8_t piecePutId,
-                             uint8_t paymentId,
-                             uint8_t endId);
+    ExtendedMessageIdMapping(quint8 buyId,
+                             quint8 sellId,
+                             quint8 setupBeginId,
+                             quint8 setupBeginRejectId,
+                             quint8 setupContractId,
+                             quint8 setupContractSignedId,
+                             quint8 setupRefundId,
+                             quint8 setupRefundSignedId,
+                             quint8 setupContractPublishedId,
+                             quint8 setupCompletedId,
+                             quint8 pieceGetId,
+                             quint8 piecePutId,
+                             quint8 paymentId,
+                             quint8 endId);
 
     // Set extended message id of given message
-    void buy(uint8_t id);
-    void sell(uint8_t id);
-    void setup_begin(uint8_t id);
-    void setup_begin_reject(uint8_t id);
-    void setup_contract(uint8_t id);
-    void setup_contract_signed(uint8_t id);
-    void setup_refund(uint8_t id);
-    void setup_refund_signed(uint8_t id);
-    void setup_contract_published(uint8_t id);
-    void setup_completed(uint8_t id);
-    void piece_get(uint8_t id);
-    void piece_put(uint8_t id);
-    void payment(uint8_t id);
-    void end(uint8_t id);
+    void buy(quint8 id);
+    void sell(quint8 id);
+    void setup_begin(quint8 id);
+    void setup_begin_reject(quint8 id);
+    void setup_contract(quint8 id);
+    void setup_contract_signed(quint8 id);
+    void setup_refund(quint8 id);
+    void setup_refund_signed(quint8 id);
+    void setup_contract_published(quint8 id);
+    void setup_completed(quint8 id);
+    void piece_get(quint8 id);
+    void piece_put(quint8 id);
+    void payment(quint8 id);
+    void end(quint8 id);
 
     // Get extended message id of given message
-    uint8_t buy() const;
-    uint8_t sell() const;
-    uint8_t setup_begin() const;
-    uint8_t setup_begin_reject() const;
-    uint8_t setup_contract() const;
-    uint8_t setup_contract_signed() const;
-    uint8_t setup_refund() const;
-    uint8_t setup_refund_signed() const;
-    uint8_t setup_contract_published() const;
-    uint8_t setup_completed() const;
-    uint8_t piece_get() const;
-    uint8_t piece_put() const;
-    uint8_t payment() const;
-    uint8_t end() const;
+    quint8 buy() const;
+    quint8 sell() const;
+    quint8 setup_begin() const;
+    quint8 setup_begin_reject() const;
+    quint8 setup_contract() const;
+    quint8 setup_contract_signed() const;
+    quint8 setup_refund() const;
+    quint8 setup_refund_signed() const;
+    quint8 setup_contract_published() const;
+    quint8 setup_completed() const;
+    quint8 piece_get() const;
+    quint8 piece_put() const;
+    quint8 payment() const;
+    quint8 end() const;
 
     // Get message corresponding to id
-    MESSAGE_TYPE getType(uint8_t extendedMessageId) const;
+    Message::TYPE getMessageType(quint8 id) const;
+
+    // Get message corresponding to message name
+    static Message::TYPE getMessageType(std::string & messageName);
 
     // Get name of message
-    std::string getMessageName(MESSAGE_TYPE messageType) const;
+    static std::string getMessageName(Message::TYPE type);
+
+    // Check that mapping is valid
+    bool isValid() const;
 
 private:
 
     // Id of corresponding message (as seen in MESSAGE_TYPE)
-    uint8_t ids[NUMBER_OF_MESSAGES];
+    quint8 ids[Message::NUMBER_OF_MESSAGES];
 
 };
 

@@ -6,7 +6,13 @@
 class BuyMessage : public ExtendedMessage
 {
 public:
-    BuyMessage();
+
+    /**
+     * Inherited from ExtendedMessage
+     */
+    Message::TYPE getMessageType() const;
+    quint32 rawPayloadLength() const;
+    void toRaw(const ExtendedMessageIdMapping & mapping, QDataStream & stream) const;
 };
 
 #endif // BUY_MESSAGE_HPP

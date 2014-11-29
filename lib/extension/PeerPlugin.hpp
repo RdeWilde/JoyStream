@@ -3,7 +3,6 @@
 #define PEER_PLUGIN_HPP
 
 #include <libtorrent/extensions.hpp>
-#include <libtorrent/peer_connection.hpp>
 #include <libtorrent/entry.hpp>
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/lazy_entry.hpp>
@@ -12,20 +11,18 @@
 #include <libtorrent/disk_buffer_holder.hpp>
 #include <libtorrent/buffer.hpp>
 
+#include <libtorrent/peer_id.hpp> // sha1_hash
+
 #include <QObject>
 
 #include <boost/asio/ip/tcp.hpp> // ip::tcp::endpoint
 
 #include "PeerPluginStatus.hpp"
+#include "Message/ExtendedMessageIdMapping.hpp"
 
 // Forward declaration
 class TorrentPlugin;
 class PeerPluginStatus;
-
-// Names of all messages
-//extern const char * message_names[];
-
-
 
 /**
   * ALMOST CERTAINLY, THIS CLASS WILL
@@ -76,7 +73,7 @@ public:
 
     // Constructor
     PeerPlugin(TorrentPlugin * torrentPlugin,
-               libtorrent::peer_connection * peerConnection,
+               libtorrent::bt_peer_connection * bittorrentPeerConnection,
                QLoggingCategory & category,
                PEER_ROLE role);
 
@@ -133,7 +130,7 @@ private:
     TorrentPlugin * torrentPlugin_;
 
     // Connection to peer for this plugin
-    libtorrent::peer_connection * peerConnection_;
+    libtorrent::bt_peer_connection * bittorrentPeerConnection_;
 
     // Indicates whether peer supports
     PEER_BEP_SUPPORTED_STATUS peerBEP10SupportedStatus, // BEP10
@@ -143,8 +140,7 @@ private:
     PEER_ROLE peerRole_, clientRole_;
 
     // Mapping from messages to BEP10 ID of peer
-    unsigned int peerMessageMapping[NUMBER_OF_MESSAGES],
-                    clientMessageMapping[NUMBER_OF_MESSAGES];
+    ExtendedMessageIdMapping clientMapping, peerMapping;
 
     // Logging category
     QLoggingCategory & category_;
