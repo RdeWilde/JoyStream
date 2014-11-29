@@ -21,6 +21,14 @@ TorrentPlugin::~TorrentPlugin() {
 
 boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorrent::peer_connection * peerConnection) {
 
+    /*
+     *		if (pc->type() != peer_connection::bittorrent_connection)
+            return boost::shared_ptr<peer_plugin>();
+
+        bt_peer_connection* c = static_cast<bt_peer_connection*>(pc);
+        return boost::shared_ptr<peer_plugin>(new ut_metadata_peer_plugin(m_torrent, *c, *this));
+     */
+
     // Role of peer
     PeerPlugin::PEER_ROLE role = (torrent_->bytes_left() > 0) ? PeerPlugin::buyer : PeerPlugin::seller;
 

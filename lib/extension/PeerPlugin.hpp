@@ -23,10 +23,9 @@ class TorrentPlugin;
 class PeerPluginStatus;
 
 // Names of all messages
-extern const char * message_names[];
+//extern const char * message_names[];
 
-// Number of messages
-#define NUMBER_OF_MESSAGES 15
+
 
 /**
   * ALMOST CERTAINLY, THIS CLASS WILL

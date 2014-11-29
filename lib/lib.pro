@@ -31,7 +31,8 @@ SOURCES += \
     extension/PeerPlugin.cpp \
     extension/PeerPluginStatus.cpp \
     extension/Message/BuyMessage.cpp \
-    extension/Message/SellMessage.cpp
+    extension/Message/SellMessage.cpp \
+    extension/Message/ExtendedMessageIdMapping.cpp
 		
 HEADERS += \
             controller/Controller.hpp \
@@ -53,7 +54,8 @@ HEADERS += \
     extension/PeerPlugin.hpp \
     extension/PeerPluginStatus.hpp \
     extension/Message/BuyMessage.hpp \
-    extension/Message/SellMessage.hpp
+    extension/Message/SellMessage.hpp \
+    extension/Message/ExtendedMessageIdMapping.hpp
 				
 FORMS += \
             view/mainwindow.ui \
