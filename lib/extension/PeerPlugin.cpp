@@ -4,17 +4,17 @@
 #include "Plugin.hpp"
 #include "controller/Controller.hpp" // needed to connect
 #include "Config.hpp"
-#include "extension/PeerPluginStatus.hpp"
+#include "PeerPluginStatus.hpp"
 
 #include <libtorrent/bt_peer_connection.hpp>
 
-PeerPlugin::PeerPlugin(TorrentPlugin * torrentPlugin, libtorrent::bt_peer_connection * bittorrentPeerConnection, QLoggingCategory & category, PEER_ROLE role)
+PeerPlugin::PeerPlugin(TorrentPlugin * torrentPlugin, libtorrent::bt_peer_connection * bittorrentPeerConnection, QLoggingCategory & category)
     : torrentPlugin_(torrentPlugin)
     , bittorrentPeerConnection_(bittorrentPeerConnection)
     , peerBEP10SupportedStatus(unknown)
     , peerBEP43SupportedStatus(unknown)
-    , category_(category)
-    , peerRole_(role) {
+    , peerPluginState_(started)
+    , category_(category) {
 
     // Setup signals
     Controller * controller = torrentPlugin_->getPlugin()->getController();
@@ -367,22 +367,7 @@ bool PeerPlugin::can_disconnect(libtorrent::error_code const & ec) {
     return true;
 }
 
-/*
- * Called when an extended message is received. If returning true,
- * the message is not processed by any other plugin and if false
- * is returned the next plugin in the chain will receive it to
- * be able to handle it this is not called for web seeds.
- */
-bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_interval body) {
 
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(category_) << "on_extended(" << length << "," << msg << ")";
-
-    // Create QByte array where you put data, then wrap witha stream, after mesage has b een parsed, check that pointer received is not null.
-
-    // CRITICAL
-    return false;
-}
 
 /*
  * This is not called for web seeds

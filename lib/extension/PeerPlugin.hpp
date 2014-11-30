@@ -17,7 +17,6 @@
 
 #include <boost/asio/ip/tcp.hpp> // ip::tcp::endpoint
 
-#include "PeerPluginStatus.hpp"
 #include "Message/ExtendedMessageIdMapping.hpp"
 
 // Forward declaration
@@ -53,29 +52,17 @@ public:
         not_supported
     };
 
-    // Role of a peer
-    enum PEER_ROLE {
-
-        // Sent buy message as first message after extended handshake
-        buyer,
-
-        // Sent sell message as first message after extended handshake
-        seller
-    };
-
-    enum BUYER_CHANNEL_STATE {
-
-    };
-
-    enum SELLER_CHANNEL_STATE {
-
+    // Different states of plugin by indicating last arrived message
+    enum State {
+        started,
+        buy_message_received,
+        sell_message_received
     };
 
     // Constructor
     PeerPlugin(TorrentPlugin * torrentPlugin,
                libtorrent::bt_peer_connection * bittorrentPeerConnection,
-               QLoggingCategory & category,
-               PEER_ROLE role);
+               QLoggingCategory & category);
 
     // Destructor
     ~PeerPlugin();
@@ -109,7 +96,9 @@ public:
     virtual bool on_dont_have(int index);
     virtual void sent_unchoke();
     virtual bool can_disconnect(libtorrent::error_code const & ec);
-    virtual bool on_extended(int length, int msg, libtorrent::buffer::const_interval body);
+
+    virtual bool on_extended(int length, int msg, libtorrent::buffer::const_interval body) = 0;
+
     virtual bool on_unknown_message(int length, int msg, libtorrent::buffer::const_interval body);
     virtual void on_piece_pass(int index);
     virtual void on_piece_failed(int index);
@@ -124,7 +113,7 @@ public:
     PEER_BEP_SUPPORTED_STATUS getPeerBEP10SupportedStatus();
     PEER_BEP_SUPPORTED_STATUS getPeerBEP43SupportedStatus();
 
-private:
+protected:
 
     // Torrent plugin for torrent
     TorrentPlugin * torrentPlugin_;
@@ -136,11 +125,11 @@ private:
     PEER_BEP_SUPPORTED_STATUS peerBEP10SupportedStatus, // BEP10
                         peerBEP43SupportedStatus; // BEP43
 
-    // Indicates role of peer
-    PEER_ROLE peerRole_, clientRole_;
-
     // Mapping from messages to BEP10 ID of peer
     ExtendedMessageIdMapping clientMapping, peerMapping;
+
+    // State of peer plugin
+    State peerPluginState_;
 
     // Logging category
     QLoggingCategory & category_;

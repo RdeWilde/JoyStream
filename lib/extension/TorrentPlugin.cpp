@@ -1,6 +1,7 @@
 
 #include "TorrentPlugin.hpp"
-#include "PeerPlugin.hpp" // needed since we construct object
+#include "BuyerPeerPlugin.hpp" // needed since we construct object
+#include "SellerPeerPlugin.hpp" // needed since we construct object
 
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/peer_connection.hpp>
@@ -29,11 +30,13 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorr
 
     libtorrent::bt_peer_connection * bittorrentPeerConnection = static_cast<libtorrent::bt_peer_connection*>(peerConnection);
 
-    // Role of peer
-    PeerPlugin::PEER_ROLE role = (torrent_->bytes_left() > 0) ? PeerPlugin::buyer : PeerPlugin::seller;
-
-    // Create peer level plugin
-    PeerPlugin * peerPlugin = new PeerPlugin(this, bittorrentPeerConnection, category_, role);
+    // Create new peer, buyer or seller, depending
+    PeerPlugin * peerPlugin;
+    if(torrent_->bytes_left() > 0) {
+        peerPlugin = new BuyerPeerPlugin(this, bittorrentPeerConnection, category_);
+    } else {
+        peerPlugin = new SellerPeerPlugin(this, bittorrentPeerConnection, category_);
+    }
 
     // Add to collection
     peerPlugins.push_back(peerPlugin);
