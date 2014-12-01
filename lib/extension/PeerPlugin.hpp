@@ -2,6 +2,10 @@
 #ifndef PEER_PLUGIN_HPP
 #define PEER_PLUGIN_HPP
 
+#include "Message/ExtendedMessageIdMapping.hpp"
+#include "PeerPluginStatus.hpp"
+#include "PeerPluginState.hpp"
+
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/entry.hpp>
 #include <libtorrent/error_code.hpp>
@@ -17,23 +21,14 @@
 
 #include <boost/asio/ip/tcp.hpp> // ip::tcp::endpoint
 
-#include "Message/ExtendedMessageIdMapping.hpp"
-
 // Forward declaration
 class TorrentPlugin;
-class PeerPluginStatus;
 
-/**
-  * ALMOST CERTAINLY, THIS CLASS WILL
-  * HAVE TO BE FACTORED INTO TWO VERSIONS OF
-  * THE PEER PLUGIN, ONE BEHAVING AS A SEELER,
-  * AND ONE BEHAVING AS A BUYER, BUT LETS POSTPONE
-  * THAT UNTIL IT BECOMES CLEAR THAT THIS IS IN
-  * FACT WORTH IT
-  */
+/*
+ * We inherit from QObject so we can send signals, and QObject must be first:
+ * http://doc.trolltech.com/4.5/moc.html
+ */
 
-// We inherit from QObject so we can send signals, and QObject must be first:
-// http://doc.trolltech.com/4.5/moc.html
 class PeerPlugin : public QObject, public libtorrent::peer_plugin {
 
     Q_OBJECT
@@ -50,13 +45,6 @@ public:
         // After handshake
         supported,
         not_supported
-    };
-
-    // Different states of plugin by indicating last arrived message
-    enum State {
-        started,
-        buy_message_received,
-        sell_message_received
     };
 
     // Constructor
@@ -110,8 +98,8 @@ public:
      */
     libtorrent::sha1_hash getInfoHash();
 
-    PEER_BEP_SUPPORTED_STATUS getPeerBEP10SupportedStatus();
-    PEER_BEP_SUPPORTED_STATUS getPeerBEP43SupportedStatus();
+    PEER_BEP_SUPPORTED_STATUS getPeerBEP10SupportedStatus() const;
+    PEER_BEP_SUPPORTED_STATUS getPeerBEP43SupportedStatus() const;
 
 protected:
 
@@ -129,7 +117,7 @@ protected:
     ExtendedMessageIdMapping clientMapping, peerMapping;
 
     // State of peer plugin
-    State peerPluginState_;
+    PeerPluginState peerPluginState_;
 
     // Logging category
     QLoggingCategory & category_;

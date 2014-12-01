@@ -1,6 +1,8 @@
-#include "view/MainWindow.hpp"
-#include "view/AddTorrentDialog.hpp"
+#include "MainWindow.hpp"
 #include "ui_mainwindow.h"
+#include "AddTorrentDialog.hpp"
+#include "TorrentViewModel.hpp"
+
 #include "controller/Controller.hpp"
 #include "extension/TorrentPlugin.hpp"
 #include "extension/PeerPlugin.hpp"
@@ -20,10 +22,10 @@
 
 MainWindow::MainWindow(Controller * controller, QLoggingCategory & category)
     : ui(new Ui::MainWindow)
-    , model(new QStandardItemModel(0, 7, this)) //0 Rows and 4 Columns
+    , torrentTableViewModel(new QStandardItemModel(0, 7, this)) //0 Rows and 4 Columns
     , controller_(controller)
-    , tableViewContextMenu(new QMenu(this))
-    , paymentChannelTableContextMenu(new QMenu(this))
+    , torrentTableContextMenu(new QMenu(this))
+    , paymentChannelsTableContextMenu(new QMenu(this))
     , category_(category)
 {
     ui->setupUi(this);
@@ -36,14 +38,15 @@ MainWindow::MainWindow(Controller * controller, QLoggingCategory & category)
     }
 
     // Setup tableView
-    model->setHorizontalHeaderItem(0, new QStandardItem(QString("Name")));
-    model->setHorizontalHeaderItem(1, new QStandardItem(QString("Size")));
-    model->setHorizontalHeaderItem(2, new QStandardItem(QString("Status")));
-    model->setHorizontalHeaderItem(3, new QStandardItem(QString("Speed (Down|Up)")));
-    model->setHorizontalHeaderItem(4, new QStandardItem(QString("Peers (Total|BitSwapr)")));
-    model->setHorizontalHeaderItem(5, new QStandardItem(QString("Mode")));
-    model->setHorizontalHeaderItem(6, new QStandardItem(QString("Balance (In|Out)")));
-    ui->tableView->setModel(model);
+    torrentTableViewModel->setHorizontalHeaderItem(0, new QStandardItem(QString("Name")));
+    torrentTableViewModel->setHorizontalHeaderItem(1, new QStandardItem(QString("Size")));
+    torrentTableViewModel->setHorizontalHeaderItem(2, new QStandardItem(QString("Status")));
+    torrentTableViewModel->setHorizontalHeaderItem(3, new QStandardItem(QString("Speed")));
+    torrentTableViewModel->setHorizontalHeaderItem(4, new QStandardItem(QString("Peers")));
+    torrentTableViewModel->setHorizontalHeaderItem(5, new QStandardItem(QString("Mode")));
+    torrentTableViewModel->setHorizontalHeaderItem(6, new QStandardItem(QString("Payment Channels")));
+    torrentTableViewModel->setHorizontalHeaderItem(7, new QStandardItem(QString("Balance")));
+    ui->tableView->setModel(torrentTableViewModel);
 
     // Setup context menu capacity on table view
     ui->tableView->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -61,15 +64,15 @@ MainWindow::MainWindow(Controller * controller, QLoggingCategory & category)
     // add menu buttons
     QAction * pauseAction = new QAction("Pause", this);
     connect(pauseAction, SIGNAL(triggered()), this, SLOT(pauseMenuAction()));
-    tableViewContextMenu->addAction(pauseAction);
+    torrentTableContextMenu->addAction(pauseAction);
 
     QAction * startAction = new QAction("Start", this);
     connect(startAction, SIGNAL(triggered()), this, SLOT(startMenuAction()));
-    tableViewContextMenu->addAction(startAction);
+    torrentTableContextMenu->addAction(startAction);
 
     QAction * removeAction = new QAction("Remove", this);
     connect(removeAction, SIGNAL(triggered()), this, SLOT(removeMenuAction()));
-    tableViewContextMenu->addAction(removeAction);
+    torrentTableContextMenu->addAction(removeAction);
 }
 
 MainWindow::~MainWindow()
@@ -79,26 +82,35 @@ MainWindow::~MainWindow()
 
     // Delete everything in model, should be recursive
     // does it take ownership of actions, or do we need to delete them explicitly
-    delete model;
+    delete torrentTableViewModel;
 
     // Delete context menu
     // does it take ownership of actions, or do we need to delete them explicitly
-    delete tableViewContextMenu;
+    delete torrentTableContextMenu;
+
+    /*
+     *
+     * DELET ALL THE VIEW MODEL STUFF HERE, DONT FORGET
+     *
+     *
+     */
 
     // Delet stuff with payment channel tabel view models
+
+    //Torrentview model vector
 }
 
 void MainWindow::customMenuRequested(QPoint pos) {
 
     // Figure out where user clicked
-    lastIndexClicked = ui->tableView->indexAt(pos);
+    torrentTableLastIndexClicked = ui->tableView->indexAt(pos);
 
     // Check that the clicked item is valid, e.g. if view is empty
-    if(!lastIndexClicked.isValid())
+    if(!torrentTableLastIndexClicked.isValid())
         return;
 
     // Show menu
-    tableViewContextMenu->popup(ui->tableView->viewport()->mapToGlobal(pos));
+    torrentTableContextMenu->popup(ui->tableView->viewport()->mapToGlobal(pos));
 }
 
 void MainWindow::torrentQTableViewClicked(const QModelIndex & index) {
@@ -144,7 +156,7 @@ void MainWindow::removeMenuAction() {
 libtorrent::torrent_handle MainWindow::getTorrentHandleLastClicked() {
 
     // Get row
-    int row = lastIndexClicked.row();
+    int row = torrentTableLastIndexClicked.row();
 
     // Get info_hash
     libtorrent::sha1_hash & info_hash = infoHashInRow[row];
@@ -197,53 +209,18 @@ void MainWindow::closeEvent(QCloseEvent * event) {
 
 void MainWindow::addTorrent(const libtorrent::sha1_hash & info_hash, const std::string & torrentName, int totalSize) {
 
-    /*
-     * Add row to torrent table view-model
-     */
+    // Create torrent view model
+    TorrentViewModel * torrentViewModel = new TorrentViewModel(info_hash);
 
-    // Create row
-    QList<QStandardItem *> modelRow;
+    // Add view model
+    torrentTableViewModel->appendRow(torrentViewModel->getModelAsQStandardItemRow());
 
-    QString name(torrentName.c_str());
-    modelRow.append(new QStandardItem(name));
+    // Update known fields
+    torrentViewModel->updateName(torrentName);
+    torrentViewModel->updateSize(totalSize);
 
-    QString size = QString::number(totalSize);
-    modelRow.append(new QStandardItem(size));
-
-    QString status("Starting");
-    modelRow.append(new QStandardItem(status));
-
-    QString speed("");
-    modelRow.append(new QStandardItem(speed));
-
-    QString peers("");
-    modelRow.append(new QStandardItem(peers));
-
-    QString mode("");
-    modelRow.append(new QStandardItem(mode));
-
-    QString balance("");
-    modelRow.append(new QStandardItem(balance));
-
-    // Remember info has order
-    infoHashInRow.push_back(info_hash);
-
-    // Add row to model
-    model->appendRow(modelRow);
-
-    /*
-     * Create view model for payment channel table view-model
-     */
-    QStandardItemModel * paymentChannelTableViewModel = new QStandardItemModel(0, 4, this); //0 Rows and 4 Columns
-
-    // Add columns to model
-    paymentChannelTableViewModel->setHorizontalHeaderItem(0, new QStandardItem(QString("Host")));
-    paymentChannelTableViewModel->setHorizontalHeaderItem(1, new QStandardItem(QString("Status")));
-    paymentChannelTableViewModel->setHorizontalHeaderItem(2, new QStandardItem(QString("Balance")));
-    paymentChannelTableViewModel->setHorizontalHeaderItem(3, new QStandardItem(QString("Progress")));
-
-    // Add to list of view models for payment channel table
-    paymentChannelTableViewModels.push_back(paymentChannelTableViewModel);
+    // Add to torrent view model map
+    torrentViewModels.insert(std::make_pair(info_hash, torrentViewModel));
 }
 
 void MainWindow::addTorrentFailed(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec) {
@@ -254,23 +231,24 @@ void MainWindow::addTorrentFailed(const std::string & name, const libtorrent::sh
 
 void MainWindow::removeTorrent(const libtorrent::sha1_hash & info_hash) {
 
-    // Try to get row
-    int row = findRowFromInfoHash(info_hash);
+    // Find corresponding TorrentViewModel
+    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator & mapIterator = torrentViewModels.find(info_hash);
 
-    // Check that it is valid
+    if(mapIterator == torrentViewModels.end()) {
+        qCCritical(category_) << "No match info_hash found.";
+        return;
+    }
 
-    // Remove row from model
-    model->removeRows(row, 1);
+    TorrentViewModel * torrentViewModel = mapIterator->second();
 
-    // Remove from info hash container
-    infoHashInRow.erase(std::remove(infoHashInRow.begin(),
-                                    infoHashInRow.end(),
-                                    info_hash),
-                        infoHashInRow.end());
+    // Remove from torrentViewModels map
+    torrentViewModels.erase(mapIterator);
 
-    // Remove from payment channel view model contaier
+    // Clear model for paymentChannelsTable
+    ui->paymentChannelsTable->setModel(0);
 
-    //....
+    // Delete, also removes itself from torrentTableViewModel
+    delete torrentViewModel;
 }
 
 void MainWindow::updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector) {
@@ -283,172 +261,72 @@ void MainWindow::updateTorrentStatus(const std::vector<libtorrent::torrent_statu
 
 void MainWindow::updateTorrentStatus(const libtorrent::torrent_status & torrentStatus) {
 
-    // Find row where torrent is located
-    int row = findRowFromInfoHash(torrentStatus.info_hash);
+    // Find corresponding TorrentViewModel
+    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator & mapIterator = torrentViewModels.find(torrentStatus.info_hash);
 
-    if(row < 0) {
-        qCDebug(category_) << "no match info_hash found.!!";
+    if(mapIterator == torrentViewModels.end()) {
+        qCCritical(category_) << "No match info_hash found.";
         return;
-    }// else
-     //   std::cout << "update for row: " << row << std::endl;
-
-    // Change row in model row, by updating:
-    // size (1) <-- if not set by info_hash based torrent
-    // status (2)
-    // speed (3)
-
-    // Size, set it if information is present
-    /*
-    if(torrentStatus.torrent_file.get() != 0) {
-
-        QString size = QString::number(torrentStatus.torrent_file->total_size());
-
-        model->item(row,1)->setText(size);
-    }
-*/
-
-    // Status
-    QString status;
-
-    if(torrentStatus.paused)
-        status = "Paused";
-    else {
-
-        // .progress reports the pogress of the relevant task, but I suspect it is being used
-        // some what incorrectly in som eof the cases below.
-
-        switch(torrentStatus.state) {
-
-            case libtorrent::torrent_status::queued_for_checking:
-
-                status = "Queued for checking";
-
-                break;
-            case libtorrent::torrent_status::checking_files:
-
-                status = "Checking files";
-                status += " " + QString::number(torrentStatus.progress*100,'f',0).append("%");
-                break;
-            case libtorrent::torrent_status::downloading_metadata:
-
-                status = "Downloading metadata";
-                status += " " + QString::number(torrentStatus.progress*100,'f',0).append("%");
-                break;
-            case libtorrent::torrent_status::downloading:
-
-                status = "Downloading";
-                status += " " + QString::number(torrentStatus.progress*100,'f',0).append("%");
-                break;
-            case libtorrent::torrent_status::finished:
-
-                status = "Finished";
-                break;
-            case libtorrent::torrent_status::seeding:
-
-                status = "Seeding";
-                break;
-            case libtorrent::torrent_status::allocating:
-
-                status = "Allocating";
-                status += " " + QString::number(torrentStatus.progress*100,'f',0).append("%");
-                break;
-            case libtorrent::torrent_status::checking_resume_data:
-
-                status = "Checking resume data";
-                status += " " + QString::number(torrentStatus.progress*100,'f',0).append("%");
-                break;
-        }
-
     }
 
-    model->item(row,2)->setText(status);
+    TorrentViewModel * torrentViewModel = mapIterator->second();
 
-    // Speed
-    QString speed;
-
-    speed.append(QString::number(torrentStatus.download_rate/1024))
-         .append("Kb/s | ")
-         .append(QString::number(torrentStatus.upload_rate/1024))
-         .append("Kb/s");
-
-    model->item(row, 3)->setText(speed);
+    // Update
+    torrentViewModel->update(torrentStatus);
 }
 
 void MainWindow::updateTorrentPluginStatus(TorrentPluginStatus status) {
 
-    // Find row where torrent is located
-    int row = findRowFromInfoHash(status.info_hash_);
+    // Find corresponding TorrentViewModel
+    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator & mapIterator = torrentViewModels.find(status.info_hash_);
 
-    if(row < 0) {
-        qCDebug(category_) << "no match info_hash found!!";
+    if(mapIterator == torrentViewModels.end()) {
+        qCCritical(category_) << "No match info_hash found.";
         return;
     }
 
-    // Peers column
-    QString peers = QString::number(status.numberOfPeers_) + "|" + QString::number(status.numberOfPeersWithExtension_);
-    model->item(row, 4)->setText(peers);
+    TorrentViewModel * torrentViewModel = mapIterator->second();
 
-    // Mode column
-    QString mode(status.pluginOn_ ? "BitSwapr" : "Classic");
-    model->item(row, 5)->setText(mode);
+    // Peers
+    torrentViewModel->updatePeers(status.numberOfPeers_, status.numberOfPeersWithExtension_);
 
-    // Balance column
-    QString balance = QString::number(status.tokensReceived_) + "|" + QString::number(status.tokensSent_);
-    model->item(row, 6)->setText(balance);
+    // Mode
+    torrentViewModel->updateMode(status.pluginOn_);
+
+    // Balance
+    torrentViewModel->updateBalance(status.tokensReceived_, status.tokensSent_);
 }
 
 void MainWindow::addPaymentChannel(PeerPlugin * peerPlugin) {
 
-    // Find row where torrent, to which peer corresponds, is located
-    int row = findRowFromInfoHash(peerPlugin->getInfoHash());
+    qCDebug(category_) << "addPaymentChannel()";
 
-    if(row < 0) {
-        qCDebug(category_) << "no match info_hash found!!";
+    // Find corresponding TorrentViewModel
+    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator & mapIterator = torrentViewModels.find(peerPlugin->getInfoHash());
+
+    if(mapIterator == torrentViewModels.end()) {
+        qCCritical(category_) << "No match info_hash found.";
         return;
     }
 
-    /*
-     * Add channel to corresponding view-model
-     */
+    TorrentViewModel * torrentViewModel = mapIterator->second();
 
-    // Create row
-    QList<QStandardItem *> paymentChannelTableViewModelRow;
-
-    QString host("");
-    paymentChannelTableViewModelRow.append(new QStandardItem(host));
-
-    QString status(""); //QString::number(totalSize);
-    paymentChannelTableViewModelRow.append(new QStandardItem(status));
-
-    QString balance("");
-    paymentChannelTableViewModelRow.append(new QStandardItem(balance));
-
-    QString progress("");
-    paymentChannelTableViewModelRow.append(new QStandardItem(progress));
-
-    /*
-     * Get table view-model
-     */
-
-    // Add row to payment channel table view-model for this torrent
-    paymentChannelTableViewModels[row]->appendRow(paymentChannelTableViewModelRow);
+    // Add channel for plugin
+    torrentViewModel->addPaymentChannel(peerPlugin);
 }
 
 void MainWindow::updatePeerPluginStatus(PeerPluginStatus status) {
+
     qCDebug(category_) << "updatePeerPluginStatus()";
-}
 
-int MainWindow::findRowFromInfoHash(const libtorrent::sha1_hash & info_hash) {
+    // Find corresponding TorrentViewModel
+    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator & mapIterator = torrentViewModels.find(peerPlugin->getInfoHash());
 
-    // Find torrent matching info_hash
-    std::vector<libtorrent::sha1_hash>::iterator it = std::find(infoHashInRow.begin(),
-                                                               infoHashInRow.end(),
-                                                               info_hash);
-    // Check if we hit end, could be due to no match
-    if(it != infoHashInRow.end())
-        return std::distance(infoHashInRow.begin(), it);
-    else if (*it == infoHashInRow.back())
-        return infoHashInRow.size() - 1;
-    else
-        return -1;
+    if(mapIterator == torrentViewModels.end()) {
+        qCCritical(category_) << "No match info_hash found.";
+        return;
+    }
+
+    // Update
+    torrentViewModel->updatePaymentChannel(status);
 }

@@ -4,7 +4,8 @@
 #include "ControllerState.hpp"
 #include "view/MainWindow.hpp"
 #include "extension/Plugin.hpp"
-#include "extension/PeerPluginStatus.hpp" // not sure why this has to be here, when TorrentPluginStatus did not
+#include "extension/TorrentPluginStatus.hpp" // needed for QT moc
+#include "extension/PeerPluginStatus.hpp" // needed for QT moc
 
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>
@@ -26,19 +27,6 @@ Q_DECLARE_METATYPE(std::vector<libtorrent::torrent_status>)
 Q_DECLARE_METATYPE(libtorrent::torrent_status)
 Q_DECLARE_METATYPE(const libtorrent::alert*) // Register type for QMetaObject::invokeMethod
 
-// Forward declarations
-class TorrentPluginStatus;
-class PeerPluginStatus;
-
-/*
-Introduce later:
-class libtorrent::add_torrent_alert;
-class libtorrent::state_update_alert;
-class libtorrent::torrent_removed_alert;
-class libtorrent::save_resume_data_alert;
-class libtorrent::save_resume_data_failed_alert;
-class libtorrent::torrent_paused_alert;
-*/
 class libtorrent::peer_connection;
 
 class Controller : public QObject {
@@ -56,13 +44,13 @@ private:
     */
 	libtorrent::session session;
 
-	// Listening port range
+    // Listening port range : MOVE LATER
 	std::pair<int, int> portRange;
 
-	// Parameters for all torrents added
+    // Parameters for all torrents added: WRAP IN PROPER CLASS LATER
 	std::vector<libtorrent::add_torrent_params> addTorrentParameters;
 
-	// Dht routers
+    // Dht routers: MOVE LATER
 	std::vector<std::pair<std::string, int>> dhtRouters;
 
     // Timer which calls session.post_torrent_updates() at regular intervals
@@ -76,6 +64,7 @@ private:
     void processSaveResumeDataFailedAlert(libtorrent::save_resume_data_failed_alert const * p);
     void processTorrentPausedAlert(libtorrent::torrent_paused_alert const * p);
 
+    // THIS HAS TO GO LATER! AND GET RID OF AUTO_PTR
     std::auto_ptr<std::vector<libtorrent::add_torrent_params>::iterator> findTorrentParamsFromInfoHash(const libtorrent::sha1_hash & info_hash);
 
     bool loadResumeDataForTorrent(libtorrent::add_torrent_params & params) const;

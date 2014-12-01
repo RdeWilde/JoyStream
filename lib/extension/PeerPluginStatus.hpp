@@ -3,32 +3,23 @@
 
 #include <QMetaType> // Q_DECLARE_METATYPE
 
-//#include "PeerPlugin.hpp" // for PeerPlugin::State field
-
-// Proiblem is circular dependency, not enum!!
-// Proiblem is circular dependency, not enum!!
-// Proiblem is circular dependency, not enum!!
-// Proiblem is circular dependency, not enum!!
-
-
-class PeerPlugin;
+#include "PeerPluginState.hpp"
 
 class PeerPluginStatus
 {
 public:
 
-    PeerPlugin * x;
-
-    /*
     // Default constructor required for Qt MOC
     PeerPluginStatus();
 
     // Constructor
-    PeerPluginStatus(State peerPluginStatus, int balance);
+    PeerPluginStatus(const PeerPlugin * peerPlugin, PeerPluginState peerPluginState, int balance);
 
-    PeerPlugin::State peerPluginStatus_;
+    const PeerPluginState * peerPlugin_;
 
-    int balance_;*/
+    PeerPluginState peerPluginState_;
+
+    int balance_;
 };
 
 Q_DECLARE_METATYPE(PeerPluginStatus)

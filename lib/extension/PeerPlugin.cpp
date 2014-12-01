@@ -13,7 +13,7 @@ PeerPlugin::PeerPlugin(TorrentPlugin * torrentPlugin, libtorrent::bt_peer_connec
     , bittorrentPeerConnection_(bittorrentPeerConnection)
     , peerBEP10SupportedStatus(unknown)
     , peerBEP43SupportedStatus(unknown)
-    , peerPluginState_(started)
+    , peerPluginState_(PeerPluginState::started)
     , category_(category) {
 
     // Setup signals
@@ -424,10 +424,10 @@ libtorrent::sha1_hash PeerPlugin::getInfoHash() {
     return torrentPlugin_->getTorrent()->info_hash();
 }
 
-PeerPlugin::PEER_BEP_SUPPORTED_STATUS PeerPlugin::getPeerBEP10SupportedStatus() {
+PeerPlugin::PEER_BEP_SUPPORTED_STATUS PeerPlugin::getPeerBEP10SupportedStatus() const {
     return peerBEP10SupportedStatus;
 }
 
-PeerPlugin::PEER_BEP_SUPPORTED_STATUS PeerPlugin::getPeerBEP43SupportedStatus() {
+PeerPlugin::PEER_BEP_SUPPORTED_STATUS PeerPlugin::getPeerBEP43SupportedStatus() const {
     return peerBEP43SupportedStatus;
 }

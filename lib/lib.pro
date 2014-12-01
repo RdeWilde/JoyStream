@@ -6,6 +6,7 @@ TEMPLATE = lib
 CONFIG  += staticlib
 CONFIG  += create_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
 CONFIG  += console
+CONFIG  += c++11 # Needed for class enum
 
 QT     += core gui
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets # Needed for including QApplication
@@ -34,7 +35,9 @@ SOURCES += \
     extension/Message/SellMessage.cpp \
     extension/Message/ExtendedMessageIdMapping.cpp \
     extension/SellerPeerPlugin.cpp \
-    extension/BuyerPeerplugin.cpp
+    extension/BuyerPeerplugin.cpp \
+    view/TorrentViewModel.cpp \
+    view/PaymentChannelViewModel.cpp
 		
 HEADERS += \
             controller/Controller.hpp \
@@ -59,7 +62,10 @@ HEADERS += \
     extension/Message/SellMessage.hpp \
     extension/Message/ExtendedMessageIdMapping.hpp \
     extension/SellerPeerPlugin.hpp \
-    extension/BuyerPeerPlugin.hpp
+    extension/BuyerPeerPlugin.hpp \
+    extension/PeerPluginState.hpp \
+    view/TorrentViewModel.hpp \
+    view/PaymentChannelViewModel.hpp
 				
 FORMS += \
             view/mainwindow.ui \

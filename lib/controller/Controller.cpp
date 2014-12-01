@@ -3,8 +3,6 @@
 #include "Config.hpp"
 #include "view/addtorrentdialog.hpp"
 #include "controller/Exceptions/ListenOnException.hpp"
-#include "extension/TorrentPluginStatus.hpp"
-#include "extension/PeerPluginStatus.hpp"
 
 #include <libtorrent/alert_types.hpp>
 #include <libtorrent/error_code.hpp>

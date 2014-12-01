@@ -70,7 +70,7 @@
      <attribute name="title">
       <string>Torrents</string>
      </attribute>
-     <widget class="QTableView" name="tableView">
+     <widget class="QTableView" name="torrentsTable">
       <property name="geometry">
        <rect>
         <x>0</x>
@@ -132,7 +132,7 @@
        <string>Payment Channels</string>
       </property>
      </widget>
-     <widget class="QTableView" name="paymentChannelTableView">
+     <widget class="QTableView" name="paymentChannelsTable">
       <property name="geometry">
        <rect>
         <x>0</x>

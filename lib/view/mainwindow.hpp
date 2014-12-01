@@ -1,6 +1,8 @@
 #ifndef MAIN_WINDOW_HPP
 #define MAIN_WINDOW_HPP
 
+#include "extension/TorrentPlugin.hpp"
+
 #include <QMainWindow>
 #include <QStandardItemModel>
 #include <QStandardItem>
@@ -12,7 +14,7 @@
 #include <libtorrent/torrent_handle.hpp>
 #include <libtorrent/add_torrent_params.hpp>
 
-#include "extension/TorrentPlugin.hpp"
+#include <map>
 
 namespace Ui {
 class MainWindow;
@@ -23,6 +25,7 @@ class Controller;
 class PeerPlugin;
 class TorrentPluginStatus;
 class PeerPluginStatus;
+class TorrentViewModel;
 
 class MainWindow : public QMainWindow
 {
@@ -49,7 +52,6 @@ public:
     void addPaymentChannel(PeerPlugin * peerPlugin);
     void updatePeerPluginStatus(PeerPluginStatus status);
 
-
 private:
 
     // View
@@ -65,41 +67,18 @@ private:
      * View-models
      */
 
-    // Torrent table view-model
-    QStandardItemModel * model;
+    // Torrent table
+    QStandardItemModel * torrentTableViewModel; // View model
+    QMenu * torrentTableContextMenu; // Context menu
+    QModelIndex torrentTableLastIndexClicked; // Last model index for mouse click
+    std::map<libtorrent::sha1_hash, TorrentViewModel *> torrentViewModels; // Maps info_hash of models to corresponding TorrentViewModel
 
-    /*
-    * Maps torrent info_hash to the model item containing the name of the torrent.
-    * This makes all model items associated with a given torrent recoverable
-    * based on its info_hash. Using only name directly would have been unwise,
-    * as two torrents with the same name, but different info_hash, could potentially
-    * be added and then cause ambiguity.
-    */
-    std::vector<libtorrent::sha1_hash> infoHashInRow;
+    // Payment channel table
+    QMenu * paymentChannelsTableContextMenu; // context menu
+    QModelIndex paymentChannelsTableLastIndexClicked; // Last model index for mouse click
 
-    // Context menu on torrents
-    QMenu * tableViewContextMenu;
-    QModelIndex lastIndexClicked;
 
-    int findRowFromInfoHash(const libtorrent::sha1_hash & info_hash);
     libtorrent::torrent_handle getTorrentHandleLastClicked();
-
-    // Payment channel table view-models (one per torrent)
-    std::vector<QStandardItemModel *> paymentChannelTableViewModels;
-
-    // Context menu on payment channel table
-    QMenu * paymentChannelTableContextMenu;
-    QModelIndex paymentChannelTableLastIndexClicked;
-
-    /*
-    struct TorrentViewModel {
-
-        QStandardItemModel * paymentChannelTableViewModel;
-
-    };
-
-    std::vector<TorrentViewModel>
-    */
 
 protected:
 

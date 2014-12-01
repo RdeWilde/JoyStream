@@ -1,5 +1,6 @@
 #include "Plugin.hpp"
 #include "TorrentPlugin.hpp"
+
 #include "controller/Controller.hpp" // needed for connecting
 #include "TorrentPluginStatus.hpp" // needed for connecting
 
