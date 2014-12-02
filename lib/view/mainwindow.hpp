@@ -40,7 +40,7 @@ public:
     ~MainWindow();
 
     // Controller calls
-    void addTorrent(const libtorrent::sha1_hash & info_hash, const std::string & torrentName, int totalSize);
+    void addTorrent(const libtorrent::sha1_hash & info_hash, const QString & torrentName, int totalSize);
     void addTorrentFailed(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec);
 
     void removeTorrent(const libtorrent::sha1_hash & info_hash);
@@ -77,8 +77,8 @@ private:
     QMenu * paymentChannelsTableContextMenu; // context menu
     QModelIndex paymentChannelsTableLastIndexClicked; // Last model index for mouse click
 
-
-    libtorrent::torrent_handle getTorrentHandleLastClicked();
+    // Utilities
+    const libtorrent::sha1_hash & getInfoHashOfLastClickedTorrent();
 
 protected:
 
@@ -92,7 +92,7 @@ private slots: // These slots get signals from view objects.
 public slots:
 
     // These slots are used to tap into native QMenu ui signals.
-    void customMenuRequested(QPoint pos);
+    void showContextMenu(QPoint pos);
     void pauseMenuAction();
     void startMenuAction();
     void removeMenuAction();

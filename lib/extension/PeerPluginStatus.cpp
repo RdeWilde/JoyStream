@@ -1,5 +1,7 @@
 #include "PeerPluginStatus.hpp"
 
+#include "PeerPlugin.hpp"
+
 PeerPluginStatus::PeerPluginStatus()
     : peerPlugin_(0)
     , peerPluginState_(PeerPluginState::started) // not REALLY best state encoding for default

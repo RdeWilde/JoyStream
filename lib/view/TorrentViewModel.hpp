@@ -1,15 +1,21 @@
 #ifndef TORRENT_VIEW_MODEL_HPP
 #define TORRENT_VIEW_MODEL_HPP
 
+#include "extension/PeerPluginId.hpp"
+
 #include <libtorrent/peer_id.hpp> // sha1_hash
-#include <libtorrent/torrent_handle.hpp> // torrent_status::state_t
+#include <libtorrent/torrent_handle.hpp> // libtorrent::torrent_status, torrent_status::state_t
+
+#include <QLoggingCategory>
 
 #include <map>
+
+#include <boost/asio/ip/tcp.hpp>
 
 class QStandardItemModel;
 class QStandardItem;
 class PaymentChannelViewModel;
-class libtorrent::torrent_status;
+class QString;
 
 class PeerPlugin;
 class PeerPluginStatus;
@@ -20,7 +26,7 @@ class TorrentViewModel
 public:
 
     // Constructor
-    TorrentViewModel(libtorrent::sha1_hash & info_hash, QStandardItemModel * torrentTableViewModel);
+    TorrentViewModel(const libtorrent::sha1_hash & info_hash, QStandardItemModel * torrentTableViewModel, QLoggingCategory & category);
 
     // Destructor
     ~TorrentViewModel();
@@ -41,6 +47,9 @@ public:
     void addPaymentChannel(PeerPlugin * peerPlugin); // Add view-model for payment channel
     void updatePaymentChannel(PeerPluginStatus status); //
 
+    // Getter
+    const libtorrent::sha1_hash & getInfoHash();
+
 private:
 
     // Hash of torrent
@@ -52,15 +61,12 @@ private:
     // View model for payment channels table
     QStandardItemModel * paymentChannelsTableViewModel_;
 
-    // View models for peers
-
     /*
-     *
      * ALTER LATER WE SHOULD NOT USE POINTER AS KEY, RATHER IP:PORT OR
      * SOMETHING ELSE STABLE.
-     *
      */
-    std::map<PeerPlugin *,PaymentChannelViewModel *> paymentChannelViewModels;
+    // View models for peers
+    std::map<boost::asio::ip::tcp::endpoint ,PaymentChannelViewModel *> paymentChannelViewModels;
 
     // torrentTableViewModel_ items
     QStandardItem * nameItem,
@@ -71,6 +77,11 @@ private:
                   * modeItem,
                   * paymentChannelsItem,
                   * balanceItem;
+
+    // Logging category
+    QLoggingCategory & category_;
 };
+
+Q_DECLARE_METATYPE(TorrentViewModel *)
 
 #endif // TORRENT_VIEW_MODEL_HPP

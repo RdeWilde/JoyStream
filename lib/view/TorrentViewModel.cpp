@@ -7,9 +7,10 @@
 #include <QStandardItemModel>
 #include <QStandardItem>
 
-TorrentViewModel::TorrentViewModel(libtorrent::sha1_hash & info_hash, QStandardItemModel * torrentTableViewModel)
+TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & info_hash, QStandardItemModel * torrentTableViewModel,  QLoggingCategory & category)
     : info_hash_(info_hash)
     , torrentTableViewModel_(torrentTableViewModel)
+    , category_(category)
 {
 
     // Allocate view items
@@ -23,6 +24,16 @@ TorrentViewModel::TorrentViewModel(libtorrent::sha1_hash & info_hash, QStandardI
     modeItem = new QStandardItem();
     paymentChannelsItem = new QStandardItem();
     balanceItem = new QStandardItem();
+
+    // Set item data, so this is recoverable
+    nameItem->setData(QVariant::fromValue(this));
+    sizeItem->setData(QVariant::fromValue(this));
+    stateItem->setData(QVariant::fromValue(this));
+    speedItem->setData(QVariant::fromValue(this));
+    peersItem->setData(QVariant::fromValue(this));
+    modeItem->setData(QVariant::fromValue(this));
+    paymentChannelsItem->setData(QVariant::fromValue(this));
+    balanceItem->setData(QVariant::fromValue(this));
 
     // Add as row to torrentTableViewModel
     QList<QStandardItem *> row;
@@ -38,14 +49,14 @@ TorrentViewModel::TorrentViewModel(libtorrent::sha1_hash & info_hash, QStandardI
 
     torrentTableViewModel_->appendRow(row);
 
-    // Create view model for payment channels
-    paymentChannelsTableViewModel_ = new QStandardItemModel(0, 4); //0 Rows and 4 Columns
+    // Create model
+    const char * columns[] = {"Host", "State", "Balance", "Progress"};
+    const int numberOfColumns = sizeof(columns)/sizeof(char *);
+    paymentChannelsTableViewModel_ = new QStandardItemModel(0, numberOfColumns);
 
     // Add columns to model
-    paymentChannelsTableViewModel_->setHorizontalHeaderItem(0, new QStandardItem(QString("Host")));
-    paymentChannelsTableViewModel_->setHorizontalHeaderItem(1, new QStandardItem(QString("State")));
-    paymentChannelsTableViewModel_->setHorizontalHeaderItem(2, new QStandardItem(QString("Balance")));
-    paymentChannelsTableViewModel_->setHorizontalHeaderItem(3, new QStandardItem(QString("Progress")));
+    for(int i = 0;i < numberOfColumns;i++)
+        paymentChannelsTableViewModel_->setHorizontalHeaderItem(i, new QStandardItem(columns[i]));
 }
 
 TorrentViewModel::~TorrentViewModel(){
@@ -53,15 +64,15 @@ TorrentViewModel::~TorrentViewModel(){
     // Remove corresponding row from torrentTableViewModel_
     QModelIndex index = torrentTableViewModel_->indexFromItem(nameItem);
 
-    torrentTableViewModel_->removeRows (index.row(), 1);
+    torrentTableViewModel_->removeRows(index.row(), 1);
 
-    // Delete all paymentChannelViewModels
-    for(std::vector<PaymentChannelViewModel *>::iterator i = paymentChannelViewModels.begin(),
+    // Delete all paymentChannelViewModels for all payment channels
+    for(std::map<boost::asio::ip::tcp::endpoint,PaymentChannelViewModel *>::iterator i = paymentChannelViewModels.begin(),
             end(paymentChannelViewModels.end());i != end; i++)
-        delete *i;
+        delete i->second;
 
-
-    //
+    // Delete view model for payment channels table,
+    // this also will automatically delete all items in model
     delete paymentChannelsTableViewModel_;
 }
 
@@ -90,10 +101,10 @@ void TorrentViewModel::updateSize(int size) {
 void TorrentViewModel::updateState(bool paused, libtorrent::torrent_status::state_t state, float progress) {
 
     // State
-    QString state;
+    QString itemText;
 
     if(paused)
-        state = "Paused";
+        itemText = "Paused";
     else {
 
         // .progress reports the pogress of the relevant task, but I suspect it is being used
@@ -103,48 +114,48 @@ void TorrentViewModel::updateState(bool paused, libtorrent::torrent_status::stat
 
             case libtorrent::torrent_status::queued_for_checking:
 
-                state = "Queued for checking";
+                itemText = "Queued for checking";
 
                 break;
             case libtorrent::torrent_status::checking_files:
 
-                state = "Checking files";
-                state += " " + QString::number(progress*100,'f',0).append("%");
+                itemText = "Checking files";
+                itemText += " " + QString::number(progress*100,'f',0).append("%");
                 break;
             case libtorrent::torrent_status::downloading_metadata:
 
-                state = "Downloading metadata";
-                state += " " + QString::number(progress*100,'f',0).append("%");
+                itemText = "Downloading metadata";
+                itemText += " " + QString::number(progress*100,'f',0).append("%");
                 break;
             case libtorrent::torrent_status::downloading:
 
-                state = "Downloading";
-                state += " " + QString::number(progress*100,'f',0).append("%");
+                itemText = "Downloading";
+                itemText += " " + QString::number(progress*100,'f',0).append("%");
                 break;
             case libtorrent::torrent_status::finished:
 
-                state = "Finished";
+                itemText = "Finished";
                 break;
             case libtorrent::torrent_status::seeding:
 
-                state = "Seeding";
+                itemText = "Seeding";
                 break;
             case libtorrent::torrent_status::allocating:
 
-                state = "Allocating";
-                state += " " + QString::number(progress*100,'f',0).append("%");
+                itemText = "Allocating";
+                itemText += " " + QString::number(progress*100,'f',0).append("%");
                 break;
             case libtorrent::torrent_status::checking_resume_data:
 
-                state = "Checking resume data";
-                state += " " + QString::number(progress*100,'f',0).append("%");
+                itemText = "Checking resume data";
+                itemText += " " + QString::number(progress*100,'f',0).append("%");
                 break;
         }
 
     }
 
     // Update item
-    stateItem->setText(state);
+    stateItem->setText(itemText);
 }
 
 void TorrentViewModel::updateSpeed(int downloadRate, int uploadRate) {
@@ -191,15 +202,25 @@ void TorrentViewModel::addPaymentChannel(PeerPlugin * peerPlugin) {
     PaymentChannelViewModel * paymentChannelViewModel = new PaymentChannelViewModel(peerPlugin, paymentChannelsTableViewModel_);
 
     // Add to map
-    paymentChannelViewModels.insert(std::make_pair(peerPlugin, paymentChannelViewModel));
+    paymentChannelViewModels.insert(std::make_pair(peerPlugin->getEndPoint(), paymentChannelViewModel));
 }
 
 void TorrentViewModel::updatePaymentChannel(PeerPluginStatus status) {
 
     // Find Peer
+    std::map<boost::asio::ip::tcp::endpoint,PaymentChannelViewModel *>::iterator mapIterator = paymentChannelViewModels.find(status.peerPlugin_->getEndPoint());
 
-   ///// llokuo in map
+    if(mapIterator == paymentChannelViewModels.end()) {
+        qCCritical(category_) << "No match info_hash found.";
+        return;
+    }
+
+    PaymentChannelViewModel * paymentChannelViewModel = mapIterator->second;
 
     // Update
-    update(status);
+    paymentChannelViewModel->update(status);
+}
+
+const libtorrent::sha1_hash & TorrentViewModel::getInfoHash() {
+    return info_hash_;
 }

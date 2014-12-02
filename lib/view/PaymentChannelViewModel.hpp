@@ -5,6 +5,8 @@ class PeerPlugin;
 class QStandardItemModel;
 class QStandardItem;
 class PeerPluginStatus;
+class QString;
+enum class PeerPluginState;
 
 class PaymentChannelViewModel
 {
@@ -13,16 +15,19 @@ public:
     // Constructor
     PaymentChannelViewModel(PeerPlugin * peerPlugin, QStandardItemModel * paymentChannelsTableViewModel);
 
+    // Destructor, is called from TorrentViewModel destructor
+    ~PaymentChannelViewModel();
+
     void update(PeerPluginStatus status);
     void updateHost(const QString & host);
-    void updateState();
+    void updateState(PeerPluginState state);
     void updateBalance(int balance);
     void updateProgress(); // some representation of what it has given me?
 
 private:
 
     // View model for payment channels table
-    QStandardItem * paymentChannelsTableViewModel_;
+    QStandardItemModel * paymentChannelsTableViewModel_;
 
     // paymentChannelsTableViewModel_ items
     QStandardItem * hostItem,

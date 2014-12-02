@@ -24,6 +24,13 @@ TorrentPlugin::~TorrentPlugin() {
 
 boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorrent::peer_connection * peerConnection) {
 
+    /*
+     * Libtorrent docs (http://libtorrent.org/reference-Plugins.html#peer_plugin):
+     * The peer_connection will be valid as long as the shared_ptr is being held by the
+     * torrent object. So, it is generally a good idea to not keep a shared_ptr to
+     * your own peer_plugin. If you want to keep references to it, use weak_ptr.
+     */
+
     // Check that this is indeed a bittorrent client, and not a HTTP or URL seed, if not, then dont isntall
     if(peerConnection->type() != libtorrent::peer_connection::bittorrent_connection)
         return boost::shared_ptr<libtorrent::peer_plugin>();

@@ -131,7 +131,7 @@ public:
      */
 
     // Called by MainWindow::
-    libtorrent::torrent_handle getTorrentHandleFromInfoHash(const libtorrent::sha1_hash & info_hash);
+    //libtorrent::torrent_handle getTorrentHandleFromInfoHash(const libtorrent::sha1_hash & info_hash);
 
     /*
      * View/Main entry points.
@@ -153,13 +153,13 @@ public:
     void addTorrentFromMagnetLink(const QString & magnetLink);
 
     // Called by MainWindow::startMenuAction()
-    void removeTorrent(const libtorrent::torrent_handle & torrentHandle);
+    bool removeTorrent(const libtorrent::sha1_hash & info_hash);
 
     // Called by MainWindow::pauseMenuAction()
-    void pauseTorrent(libtorrent::torrent_handle & torrentHandle);
+    bool pauseTorrent(const libtorrent::sha1_hash & info_hash);
 
     // Called by MainWindow::startMenuAction()
-    void startTorrent(libtorrent::torrent_handle & torrentHandle);
+    bool startTorrent(const libtorrent::sha1_hash & info_hash);
 
     // Called by
     // Stops libtorrent session, and tries to save_resume data.

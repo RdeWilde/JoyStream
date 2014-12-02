@@ -417,7 +417,7 @@ void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p)
         */
 
         // Add torrent to view
-        view.addTorrent(p->handle.info_hash(), name, totalSize);
+        view.addTorrent(p->handle.info_hash(), QString(name.c_str()), totalSize);
 	}
 }
 
@@ -547,33 +547,62 @@ void Controller::addTorrentFromMagnetLink(const QString & magnetLink) {
     delete addTorrentDialog;
 }
 
-void Controller::removeTorrent(const libtorrent::torrent_handle & torrentHandle) {
+bool Controller::removeTorrent(const libtorrent::sha1_hash & info_hash) {
+
+    // Find corresponding torrent
+    libtorrent::torrent_handle & torrentHandle = session.find_torrent(info_hash);
+
+    // Check that there actually was such a torrent
+    if(!torrentHandle.is_valid())
+        return false;
 
     // Remove from session
     session.remove_torrent(torrentHandle);
+
+    // It worked
+    return true;
 }
 
-void Controller::pauseTorrent(libtorrent::torrent_handle & torrentHandle) {
+bool Controller::pauseTorrent(const libtorrent::sha1_hash & info_hash) {
+
+    // Find corresponding torrent
+    libtorrent::torrent_handle & torrentHandle = session.find_torrent(info_hash);
+
+    // Check that there actually was such a torrent
+    if(!torrentHandle.is_valid())
+        return false;
 
     // Turn off auto managing
     torrentHandle.auto_managed(false);
 
     // Pause
+    // We save resume data when the pause alert is issued by libtorrent
     torrentHandle.pause(libtorrent::torrent_handle::graceful_pause);
 
-    // We save resume data when the pause alert is issued by libtorrent
+    // It worked
+    return true;
 }
 
-void Controller::startTorrent(libtorrent::torrent_handle & torrentHandle) {
+bool Controller::startTorrent(const libtorrent::sha1_hash & info_hash) {
 
-    /*        // Turn on auto managing
-        torrentHandle.auto_managed(true);
+    // Find corresponding torrent
+    libtorrent::torrent_handle & torrentHandle = session.find_torrent(info_hash);
 
-        // Start
-        torrentHandle.resume();
-        */
+    // Check that there actually was such a torrent
+    if(!torrentHandle.is_valid())
+        return false;
+
+    // Turn on auto managing
+    torrentHandle.auto_managed(true);
+
+    // Start
+    torrentHandle.resume();
+
+    // It worked
+    return true;
 }
 
+/*
 libtorrent::torrent_handle Controller::getTorrentHandleFromInfoHash(const libtorrent::sha1_hash & info_hash) {
     return session.find_torrent(info_hash);
 }
@@ -582,6 +611,7 @@ libtorrent::torrent_handle Controller::getTorrentHandleFromInfoHash(const libtor
 libtorrent::session & Controller::getSession() {
     return session;
 }
+*/
 
 void Controller::addTorrent(libtorrent::add_torrent_params & params) {
 

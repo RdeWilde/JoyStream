@@ -1,12 +1,15 @@
 #include "PaymentChannelViewModel.hpp"
 #include "extension/PeerPluginStatus.hpp"
+#include "extension/PeerPluginState.hpp"
 
+#include <QString>
 #include <QList>
 #include <QStandardItem>
 
 PaymentChannelViewModel::PaymentChannelViewModel(PeerPlugin * peerPlugin, QStandardItemModel * paymentChannelsTableViewModel)
-    : peerPlugin_(peerPlugin)
-    , paymentChannelsTableViewModel_(paymentChannelsTableViewModel)
+    : paymentChannelsTableViewModel_(paymentChannelsTableViewModel)
+
+    // save peerPlugin later, we dont need for now
 {
 
     // Allocate view items
@@ -16,6 +19,12 @@ PaymentChannelViewModel::PaymentChannelViewModel(PeerPlugin * peerPlugin, QStand
     stateItem = new QStandardItem();
     balanceItem = new QStandardItem();
     progressItem = new QStandardItem();
+
+    // Set item data, so this is recoverable
+    hostItem->setData(QVariant::fromValue(this));
+    stateItem->setData(QVariant::fromValue(this));
+    balanceItem->setData(QVariant::fromValue(this));
+    progressItem->setData(QVariant::fromValue(this));
 
     // Add as row to
     QList<QStandardItem *> row;
@@ -27,6 +36,15 @@ PaymentChannelViewModel::PaymentChannelViewModel(PeerPlugin * peerPlugin, QStand
 
     // Add row to payment channel table view-model for this torrent
     paymentChannelsTableViewModel_->appendRow(row);
+}
+
+PaymentChannelViewModel::~PaymentChannelViewModel() {
+
+    // Nothing to delete at moment
+
+    // items are owned by paymentChannelsTableViewModel_, which we
+    // do not own.
+
 }
 
 void PaymentChannelViewModel::update(PeerPluginStatus status) {
@@ -45,8 +63,13 @@ void PaymentChannelViewModel::updateHost(const QString & host) {
     hostItem->setText(host);
 }
 
-void PaymentChannelViewModel::updateState() {
+void PaymentChannelViewModel::updateState(PeerPluginState state) {
 
+    switch(state) {
+        case PeerPluginState::started: stateItem->setText("Started");
+        case PeerPluginState::buy_message_received: stateItem->setText("Sent buy offer");
+        case PeerPluginState::sell_message_received: stateItem->setText("Sent sell offer");
+    }
 }
 
 void PaymentChannelViewModel::updateBalance(int balance) {

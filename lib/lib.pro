@@ -37,7 +37,9 @@ SOURCES += \
     extension/SellerPeerPlugin.cpp \
     extension/BuyerPeerplugin.cpp \
     view/TorrentViewModel.cpp \
-    view/PaymentChannelViewModel.cpp
+    view/PaymentChannelViewModel.cpp \
+    Utilities.cpp \
+    extension/PeerPluginId.cpp
 		
 HEADERS += \
             controller/Controller.hpp \
@@ -65,7 +67,9 @@ HEADERS += \
     extension/BuyerPeerPlugin.hpp \
     extension/PeerPluginState.hpp \
     view/TorrentViewModel.hpp \
-    view/PaymentChannelViewModel.hpp
+    view/PaymentChannelViewModel.hpp \
+    Utilities.hpp \
+    extension/PeerPluginId.hpp
 				
 FORMS += \
             view/mainwindow.ui \

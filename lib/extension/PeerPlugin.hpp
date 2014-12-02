@@ -5,6 +5,7 @@
 #include "Message/ExtendedMessageIdMapping.hpp"
 #include "PeerPluginStatus.hpp"
 #include "PeerPluginState.hpp"
+#include "PeerPluginId.hpp"
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/entry.hpp>
@@ -19,6 +20,7 @@
 
 #include <QObject>
 
+// #include <boost/asio/ip/tcp.hpp> // ip::tcp::endpoint
 #include <boost/asio/ip/tcp.hpp> // ip::tcp::endpoint
 
 // Forward declaration
@@ -96,10 +98,19 @@ public:
     /**
      * Public routines used by non-libtorrent thread
      */
-    libtorrent::sha1_hash getInfoHash();
+    libtorrent::sha1_hash getInfoHash() const;
 
     PEER_BEP_SUPPORTED_STATUS getPeerBEP10SupportedStatus() const;
     PEER_BEP_SUPPORTED_STATUS getPeerBEP43SupportedStatus() const;
+
+    const boost::asio::ip::tcp::endpoint & PeerPlugin::getEndPoint() const;
+
+    /*
+    const PeerPluginId & getPeerPluginId() const;
+
+    // Needed so plugins can appear in std::map
+    bool operator<(PeerPlugin other) const;
+    */
 
 protected:
 
@@ -121,6 +132,9 @@ protected:
 
     // Logging category
     QLoggingCategory & category_;
+
+    // Identifies peer pugin (make last, since it appears in ctr initialization list, and depends on this)
+    PeerPluginId peerPluginId_;
 
 signals:
 

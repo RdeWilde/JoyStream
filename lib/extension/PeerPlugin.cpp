@@ -14,7 +14,8 @@ PeerPlugin::PeerPlugin(TorrentPlugin * torrentPlugin, libtorrent::bt_peer_connec
     , peerBEP10SupportedStatus(unknown)
     , peerBEP43SupportedStatus(unknown)
     , peerPluginState_(PeerPluginState::started)
-    , category_(category) {
+    , category_(category)
+    , peerPluginId_(this) {
 
     // Setup signals
     Controller * controller = torrentPlugin_->getPlugin()->getController();
@@ -420,7 +421,7 @@ bool PeerPlugin::write_request(libtorrent::peer_request const & peerRequest) {
     return false;
 }
 
-libtorrent::sha1_hash PeerPlugin::getInfoHash() {
+libtorrent::sha1_hash PeerPlugin::getInfoHash() const {
     return torrentPlugin_->getTorrent()->info_hash();
 }
 
@@ -431,3 +432,17 @@ PeerPlugin::PEER_BEP_SUPPORTED_STATUS PeerPlugin::getPeerBEP10SupportedStatus() 
 PeerPlugin::PEER_BEP_SUPPORTED_STATUS PeerPlugin::getPeerBEP43SupportedStatus() const {
     return peerBEP43SupportedStatus;
 }
+
+const boost::asio::ip::tcp::endpoint & PeerPlugin::getEndPoint() const {
+    return bittorrentPeerConnection_->remote();
+}
+
+/*
+const PeerPluginId & PeerPlugin::getPeerPluginId() const {
+    return peerPluginId_;
+}
+
+bool PeerPlugin::operator<(PeerPlugin other) const {
+    this->peerPluginId_ < other.getPeerPluginId();
+}
+*/

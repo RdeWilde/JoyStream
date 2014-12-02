@@ -5,6 +5,8 @@
 
 #include "PeerPluginState.hpp"
 
+class PeerPlugin;
+
 class PeerPluginStatus
 {
 public:
@@ -15,7 +17,7 @@ public:
     // Constructor
     PeerPluginStatus(const PeerPlugin * peerPlugin, PeerPluginState peerPluginState, int balance);
 
-    const PeerPluginState * peerPlugin_;
+    const PeerPlugin * peerPlugin_;
 
     PeerPluginState peerPluginState_;
 
