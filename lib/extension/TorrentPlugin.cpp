@@ -32,8 +32,13 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorr
      */
 
     // Check that this is indeed a bittorrent client, and not a HTTP or URL seed, if not, then dont isntall
-    if(peerConnection->type() != libtorrent::peer_connection::bittorrent_connection)
+    if(peerConnection->type() != libtorrent::peer_connection::bittorrent_connection) {
+
+        qCDebug(category_) << "New peer connection without plugin, was not BitTorrent client. ";
+
+        // Return without plugin
         return boost::shared_ptr<libtorrent::peer_plugin>();
+    }
 
     libtorrent::bt_peer_connection * bittorrentPeerConnection = static_cast<libtorrent::bt_peer_connection*>(peerConnection);
 
@@ -49,23 +54,21 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorr
     peerPlugins.push_back(peerPlugin);
 
     // Notify
-    libtorrent::error_code ec;
-    libtorrent::address const & addr = bittorrentPeerConnection->remote().address();
-    const char * peerAddress = NULL;
+    const boost::asio::ip::tcp::endpoint & endPoint = bittorrentPeerConnection->remote();
 
-    if (addr.is_v6())
-        peerAddress = addr.to_string(ec).c_str();
-    else
-        peerAddress = addr.to_string(ec).c_str();
+    libtorrent::error_code ec;
+    std::string addrString = endPoint.address().to_string(ec);
 
     if(ec) {
-        qCCritical(category_) << ec.message().c_str();
+        std::string m = ec.message();
+        qCCritical(category_) << m.c_str();
+
+        // Return without plugin
         return boost::shared_ptr<libtorrent::peer_plugin>();
     }
 
-    short port = bittorrentPeerConnection->remote().port();
+    qCDebug(category_) << "Peer #" << peerPlugins.size() << "[" << addrString.c_str() << ":" << endPoint.port() << "] added to " << this->torrent_->name().c_str();
 
-    qCDebug(category_) << "Peer #" << peerPlugins.size() << "[" << peerAddress << ":" << port << "] added to " << this->torrent_->name().c_str();
     //(libtorrent::to_hex(torrent_->info_hash().to_string())).c_str() << ".";
 
     // Return pointer as required
@@ -116,6 +119,10 @@ Plugin * TorrentPlugin::getPlugin() {
 
 libtorrent::torrent * TorrentPlugin::getTorrent() {
     return torrent_;
+}
+
+const libtorrent::sha1_hash & TorrentPlugin::getInfoHash() const {
+    return torrent_->info_hash();
 }
 
 void TorrentPlugin::sendTorrentPluginStatusSignal() {

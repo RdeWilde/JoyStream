@@ -97,7 +97,7 @@ public slots:
     void startMenuAction();
     void removeMenuAction();
 
-    void torrentQTableViewClicked(const QModelIndex & index);
+    void torrentTableClicked(const QModelIndex & index);
 };
 
 #endif // MAIN_WINDOW_HPP

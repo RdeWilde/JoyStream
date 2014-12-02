@@ -1,6 +1,8 @@
 #ifndef PAYMENT_CHANNEL_VIEW_MODEL_HPP
 #define PAYMENT_CHANNEL_VIEW_MODEL_HPP
 
+#include <QMetaType> // Q_DECLARE_METATYPE
+
 class PeerPlugin;
 class QStandardItemModel;
 class QStandardItem;
@@ -35,5 +37,7 @@ private:
                   * balanceItem,
                   * progressItem;
 };
+
+Q_DECLARE_METATYPE(PaymentChannelViewModel *)
 
 #endif // PAYMENT_CHANNEL_VIEW_MODEL_HPP

@@ -14,8 +14,7 @@ PeerPlugin::PeerPlugin(TorrentPlugin * torrentPlugin, libtorrent::bt_peer_connec
     , peerBEP10SupportedStatus(unknown)
     , peerBEP43SupportedStatus(unknown)
     , peerPluginState_(PeerPluginState::started)
-    , category_(category)
-    , peerPluginId_(this) {
+    , category_(category) {
 
     // Setup signals
     Controller * controller = torrentPlugin_->getPlugin()->getController();
@@ -404,7 +403,8 @@ void PeerPlugin::tick() {
     // Send signal
     PeerPluginStatus status;
 
-    //status.
+    status.peerPluginState_ = peerPluginState_;
+    status.balance_ = 100;
 
     emit updatePeerPluginStatus(status);
 }
@@ -421,8 +421,8 @@ bool PeerPlugin::write_request(libtorrent::peer_request const & peerRequest) {
     return false;
 }
 
-libtorrent::sha1_hash PeerPlugin::getInfoHash() const {
-    return torrentPlugin_->getTorrent()->info_hash();
+const libtorrent::sha1_hash & PeerPlugin::getInfoHash() const {
+    return torrentPlugin_->getInfoHash();
 }
 
 PeerPlugin::PEER_BEP_SUPPORTED_STATUS PeerPlugin::getPeerBEP10SupportedStatus() const {

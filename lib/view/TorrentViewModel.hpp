@@ -7,6 +7,7 @@
 #include <libtorrent/torrent_handle.hpp> // libtorrent::torrent_status, torrent_status::state_t
 
 #include <QLoggingCategory>
+#include <QMetaType> // Q_DECLARE_METATYPE
 
 #include <map>
 

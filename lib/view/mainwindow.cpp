@@ -37,7 +37,7 @@ MainWindow::MainWindow(Controller * controller, QLoggingCategory & category)
     }
 
     // Create table view model
-    const char * columns[] = {"Name", "Size", "Status", "Speed", "Peers", "Mode", "Payment Channels", "Balance"};
+    const char * columns[] = {"Name", "Size", "Status", "Speed", "Peers", "Mode", "#Channels", "Balance"};
     const int numberOfColumns = sizeof(columns)/sizeof(char *);
 
     torrentTableViewModel = new QStandardItemModel(0, numberOfColumns); // this no longer parent, does it matter?
@@ -60,9 +60,9 @@ MainWindow::MainWindow(Controller * controller, QLoggingCategory & category)
     connect(ui->torrentsTable,
             SIGNAL(clicked(const QModelIndex &)),
             this,
-            SLOT(torrentQTableViewClicked(const QModelIndex &)));
+            SLOT(torrentTableClicked(const QModelIndex &)));
 
-    // add menu buttons
+    // Add menu buttons
     QAction * pauseAction = new QAction("Pause", this);
     connect(pauseAction, SIGNAL(triggered()), this, SLOT(pauseMenuAction()));
     torrentTableContextMenu->addAction(pauseAction);
@@ -89,16 +89,10 @@ MainWindow::~MainWindow()
     // does it take ownership of actions, or do we need to delete them explicitly
     delete torrentTableContextMenu;
 
-    /*
-     *
-     * DELET ALL THE VIEW MODEL STUFF HERE, DONT FORGET
-     *
-     *
-     */
-
-    // Delet stuff with payment channel tabel view models
-
-    //Torrentview model vector
+    // Delete torrent view models
+    for(std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator i = torrentViewModels.begin(),
+        end(torrentViewModels.end()); i != end;i++)
+        delete i->second;
 }
 
 void MainWindow::showContextMenu(QPoint pos) {
@@ -114,7 +108,7 @@ void MainWindow::showContextMenu(QPoint pos) {
     torrentTableContextMenu->popup(ui->torrentsTable->viewport()->mapToGlobal(pos));
 }
 
-void MainWindow::torrentQTableViewClicked(const QModelIndex & index) {
+void MainWindow::torrentTableClicked(const QModelIndex & index) {
 
     // Get torrent view model for torrent clicked on
 

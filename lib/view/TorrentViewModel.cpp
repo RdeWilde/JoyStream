@@ -7,6 +7,7 @@
 #include <QStandardItemModel>
 #include <QStandardItem>
 
+
 TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & info_hash, QStandardItemModel * torrentTableViewModel,  QLoggingCategory & category)
     : info_hash_(info_hash)
     , torrentTableViewModel_(torrentTableViewModel)

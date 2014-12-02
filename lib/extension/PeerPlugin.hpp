@@ -98,7 +98,7 @@ public:
     /**
      * Public routines used by non-libtorrent thread
      */
-    libtorrent::sha1_hash getInfoHash() const;
+    const libtorrent::sha1_hash & getInfoHash() const;
 
     PEER_BEP_SUPPORTED_STATUS getPeerBEP10SupportedStatus() const;
     PEER_BEP_SUPPORTED_STATUS getPeerBEP43SupportedStatus() const;
@@ -132,9 +132,6 @@ protected:
 
     // Logging category
     QLoggingCategory & category_;
-
-    // Identifies peer pugin (make last, since it appears in ctr initialization list, and depends on this)
-    PeerPluginId peerPluginId_;
 
 signals:
 

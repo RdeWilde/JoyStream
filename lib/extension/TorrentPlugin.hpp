@@ -53,6 +53,7 @@ public:
 
     // Returns torrent
     libtorrent::torrent * getTorrent();
+    const libtorrent::sha1_hash & getInfoHash() const;
 
 signals:
 
