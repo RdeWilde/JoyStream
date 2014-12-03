@@ -21,8 +21,20 @@ bool BuyerPeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const
     if(peerBEP43SupportedStatus != not_supported)
         qCDebug(category_) << "buyer:on_extended(" << length << "," << msg << ")";
 
+    // Update peerPluginState_
+
     // Create QByte array where you put data, then wrap witha stream, after mesage has b een parsed, check that pointer received is not null.
 
     // CRITICAL
     return false;
+}
+
+/*
+ * Called aproximately once every second
+ */
+void BuyerPeerPlugin::tick() {
+
+    // call parent tick() also?
+
+    qCDebug(category_) << "BuyerPeerPlugin.tick()";
 }

@@ -26,8 +26,6 @@
 // Forward declaration
 class TorrentPlugin;
 
-#define PLUGIN_NAME "bs_payment"
-
 /*
  * We inherit from QObject so we can send signals, and QObject must be first:
  * http://doc.trolltech.com/4.5/moc.html
@@ -88,9 +86,7 @@ public:
     virtual bool on_dont_have(int index);
     virtual void sent_unchoke();
     virtual bool can_disconnect(libtorrent::error_code const & ec);
-
     virtual bool on_extended(int length, int msg, libtorrent::buffer::const_interval body) = 0;
-
     virtual bool on_unknown_message(int length, int msg, libtorrent::buffer::const_interval body);
     virtual void on_piece_pass(int index);
     virtual void on_piece_failed(int index);

@@ -33,8 +33,9 @@ MainWindow::MainWindow(Controller * controller, QLoggingCategory & category)
     QString categoryName = category_.categoryName();
     QString title;
 
+    // Set title depending on if we are logging or not
     if(categoryName.compare("default"))
-        title = QString("Logging: ") + categoryName + QString(", Port:") + QString::number(controller_->getListenPort());
+        title = QString("Logging: ") + categoryName;
     else
         title = "BitSwapr - Proof of Concept 1";
 
@@ -278,7 +279,7 @@ void MainWindow::updateTorrentPluginStatus(TorrentPluginStatus status) {
     std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = torrentViewModels.find(status.info_hash_);
 
     if(mapIterator == torrentViewModels.end()) {
-        qCCritical(category_) << "No match info_hash found.";
+        qCCritical(category_) << "No matching info_hash found.";
         return;
     }
 
@@ -296,7 +297,7 @@ void MainWindow::updateTorrentPluginStatus(TorrentPluginStatus status) {
 
 void MainWindow::addPeerPlugin(PeerPlugin * peerPlugin) {
 
-    qCDebug(category_) << "addPaymentPeerPlugin()";
+    qCDebug(category_) << "addPeerPlugin()";
 
     // Find corresponding TorrentViewModel
     std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = torrentViewModels.find(peerPlugin->getInfoHash());

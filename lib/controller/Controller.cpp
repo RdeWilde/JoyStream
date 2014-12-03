@@ -102,8 +102,13 @@ Controller::Controller(const ControllerState & state, bool showView, QLoggingCat
         addTorrent(*i);
 
     // Show view
-    if(showView)
+    if(showView) {
         view.show();
+
+        // Set port in title if we are logging
+        if(QString(category_.categoryName()).compare("default"))
+            view.setWindowTitle(view.windowTitle() + ", Port:" + QString::number(session.listen_port()));
+    }
 }
 
 void Controller::callPostTorrentUpdates() {

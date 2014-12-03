@@ -26,7 +26,7 @@ TorrentPlugin::~TorrentPlugin() {
 
 boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorrent::peer_connection * peerConnection) {
 
-    /*
+    /**
      * Libtorrent docs (http://libtorrent.org/reference-Plugins.html#peer_plugin):
      * The peer_connection will be valid as long as the shared_ptr is being held by the
      * torrent object. So, it is generally a good idea to not keep a shared_ptr to
@@ -74,7 +74,7 @@ void TorrentPlugin::on_piece_failed(int index) {
 
 void TorrentPlugin::tick() {
 
-    //qCDebug(category_) << "Peer.tick()";
+    qCDebug(category_) << "TorrentPlugin.tick()";
 
     // Send status signal
     sendTorrentPluginStatusSignal();
@@ -98,7 +98,7 @@ void TorrentPlugin::on_state(int s) {
 }
 
 void TorrentPlugin::on_add_peer(libtorrent::tcp::endpoint const & tcpEndPoint, int src, int flags) {
-    qCDebug(category_) << "Peer added to list " << tcpEndPoint.address().to_string().c_str() << ": " << tcpEndPoint.port();
+    qCDebug(category_) << "Peer list extended with " << tcpEndPoint.address().to_string().c_str() << ": " << tcpEndPoint.port();
 }
 
 // Returns plugin

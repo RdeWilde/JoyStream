@@ -60,7 +60,7 @@ void PeerPlugin::add_handshake(libtorrent::entry & handshake) {
       */
 
     // Add top level key for extesion version information
-    handshake[PLUGIN_NAME] = 1; // write version, which is 1 for now
+    handshake[EXTENSION_NAME] = 1; // write version, which is 1 for now
 
     // Add top level key for client identification
     QString clientIdentifier = QString(" ")
@@ -164,13 +164,13 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
     }
 
     // Check if plugin key is there
-    int version = handshake.dict_find_int_value(PLUGIN_NAME,-1);
+    int version = handshake.dict_find_int_value(EXTENSION_NAME,-1);
 
     if(version == -1) {
-        qCDebug(category_) << "Extension bs_payment not supported.";
+        qCDebug(category_) << "Extension not supported.";
         return false;
     } else
-        qCDebug(category_) << "Extension bs_payment version" << version << "supported.";
+        qCDebug(category_) << "Extension    version" << version << "supported.";
 
     // Try to extract m key, if its not present, then we are done
     const libtorrent::lazy_entry * m = handshake.dict_find_dict("m");
@@ -412,10 +412,10 @@ bool PeerPlugin::can_disconnect(libtorrent::error_code const & ec) {
  */
 bool PeerPlugin::on_unknown_message(int length, int msg, libtorrent::buffer::const_interval body) {
 
-    /*
+
     if(peerBEP43SupportedStatus != not_supported)
         qCDebug(category_) << "on_unknown_message(" << length << "," << msg << ")";
-        */
+
 
     // CRITICAL
     return false;
@@ -439,6 +439,8 @@ void PeerPlugin::on_piece_failed(int index) {
  * Called aproximately once every second
  */
 void PeerPlugin::tick() {
+
+    qCDebug(category_) << "PeerPlugin.tick()";
 
     // Send signal
     PeerPluginStatus status;

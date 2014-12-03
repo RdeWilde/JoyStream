@@ -17,8 +17,6 @@
 #include <QTimer>
 #include <QLoggingCategory>
 
-#define CLIENT_FINGERPRINT "BS"
-
 // Register types for signal and slots
 Q_DECLARE_METATYPE(libtorrent::sha1_hash)
 Q_DECLARE_METATYPE(std::string)

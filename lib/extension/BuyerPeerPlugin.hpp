@@ -13,6 +13,7 @@ public:
                     QLoggingCategory & category);
 
     virtual bool on_extended(int length, int msg, libtorrent::buffer::const_interval body);
+    void tick();
 };
 
 #endif // BUYER_PEER_PLUGIN_HPP

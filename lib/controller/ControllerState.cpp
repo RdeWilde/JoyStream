@@ -1,6 +1,7 @@
 
 #include "ControllerState.hpp"
 #include "Exceptions/InvalidBitSwaprStateEntryException.hpp"
+#include "Config.hpp"
 
 #include <libtorrent/bencode.hpp>
 
@@ -41,7 +42,7 @@ ControllerState::ControllerState()
 	*	This name will not only be used when making HTTP requests, but also when
 	*	sending extended headers to peers that support that extension.
 	*/
-	sessionSettings.user_agent = "BR/" LIBTORRENT_VERSION;
+    sessionSettings.user_agent = CLIENT_FINGERPRINT "/" ;// BITSWAPR_VERSION_MAJOR BITSWAPR_VERSION_MINOR, "LT/" LIBTORRENT_VERSION;
 
 	/* choking_algorithm:
 	*	Specifies which algorithm to use to determine which peers to unchoke.

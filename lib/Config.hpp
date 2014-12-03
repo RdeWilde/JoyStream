@@ -2,6 +2,8 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
+#define CLIENT_FINGERPRINT "BM" // Bedeho Mender, was almost no other ones left (https://wiki.theory.org/BitTorrentSpecification)
+
 #define BITSWAPR_VERSION_MAJOR 0
 #define BITSWAPR_VERSION_MINOR 1
 
@@ -15,7 +17,7 @@
 
 #define PAYMENT_PROTOCOL_VERSION 1
 
-#define BEP10_key "BR_payment"
+#define EXTENSION_NAME "bm_payment" // extension name
 
 #define APPLICATION_NAME "BitSwapr"
 
