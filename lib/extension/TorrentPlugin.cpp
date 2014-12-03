@@ -6,6 +6,7 @@
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/peer_connection.hpp>
 #include <libtorrent/bt_peer_connection.hpp>
+#include <libtorrent/socket_io.hpp> // print_endpoint
 
 #include <QLoggingCategory>
 
@@ -16,6 +17,7 @@ TorrentPlugin::TorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLo
     , tokensReceived_(0)
     , tokensSent_(0)
     , pluginOn_(pluginOn) {
+    //(libtorrent::to_hex(torrent_->info_hash().to_string())).c_str() << ".";
 }
 
 TorrentPlugin::~TorrentPlugin() {
@@ -54,24 +56,11 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorr
     peerPlugins.push_back(peerPlugin);
 
     // Notify
-    const boost::asio::ip::tcp::endpoint & endPoint = bittorrentPeerConnection->remote();
+    std::string endPointString = libtorrent::print_endpoint(bittorrentPeerConnection->remote());
 
-    libtorrent::error_code ec;
-    std::string addrString = endPoint.address().to_string(ec);
+    qCDebug(category_) << "#" << peerPlugins.size() << endPointString.c_str() << "added to " << this->torrent_->name().c_str();
 
-    if(ec) {
-        std::string m = ec.message();
-        qCCritical(category_) << m.c_str();
-
-        // Return without plugin
-        return boost::shared_ptr<libtorrent::peer_plugin>();
-    }
-
-    qCDebug(category_) << "Peer #" << peerPlugins.size() << "[" << addrString.c_str() << ":" << endPoint.port() << "] added to " << this->torrent_->name().c_str();
-
-    //(libtorrent::to_hex(torrent_->info_hash().to_string())).c_str() << ".";
-
-    // Return pointer as required
+    // Return pointer to plugin as required
     return boost::shared_ptr<libtorrent::peer_plugin>(peerPlugin);
 }
 

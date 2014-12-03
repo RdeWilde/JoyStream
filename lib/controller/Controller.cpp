@@ -111,7 +111,7 @@ void Controller::callPostTorrentUpdates() {
 }
 
 void Controller::extensionPeerAdded(PeerPlugin * peerPlugin) {
-    view.addPaymentChannel(peerPlugin);
+    view.addPeerPlugin(peerPlugin);
 }
 
 void Controller::updateTorrentPluginStatus(TorrentPluginStatus status) {
@@ -600,6 +600,10 @@ bool Controller::startTorrent(const libtorrent::sha1_hash & info_hash) {
 
     // It worked
     return true;
+}
+
+unsigned short Controller::getListenPort() {
+    return session.listen_port();
 }
 
 /*

@@ -1,6 +1,9 @@
 #ifndef EXTENDED_MESSAGE_ID_MAPPING_HPP
 #define EXTENDED_MESSAGE_ID_MAPPING_HPP
 
+#include <libtorrent/lazy_entry.hpp>
+#include <libtorrent/entry.hpp>
+
 #include <QDataStream> // for data types
 #include <string>
 
@@ -35,8 +38,12 @@ class ExtendedMessageIdMapping
 {
 
 public:
+
     // Default constructor. If used, then set each id individually later
     ExtendedMessageIdMapping();
+
+    // Constructor from extended hanshake dictionary m, used when parsing hanshake from peer
+    ExtendedMessageIdMapping(const libtorrent::lazy_entry * m);
 
     // Constructor for setting up mapping
     ExtendedMessageIdMapping(quint8 buyId,
@@ -53,6 +60,9 @@ public:
                              quint8 piecePutId,
                              quint8 paymentId,
                              quint8 endId);
+
+    // Outputs mapping into and m dicitonary, which can be used in extended handshake
+    void writeToDictionary(libtorrent::entry::dictionary_type & m);
 
     // Set extended message id of given message
     void buy(quint8 id);
@@ -97,6 +107,9 @@ public:
 
     // Check that mapping is valid
     bool isValid() const;
+
+    // Sets all message ids starting at the given parameter
+    void setAllStartingAt(quint8 id);
 
 private:
 

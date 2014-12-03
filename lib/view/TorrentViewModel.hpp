@@ -15,7 +15,7 @@
 
 class QStandardItemModel;
 class QStandardItem;
-class PaymentChannelViewModel;
+class PeerPluginViewModel;
 class QString;
 
 class PeerPlugin;
@@ -32,8 +32,8 @@ public:
     // Destructor
     ~TorrentViewModel();
 
-    // For altering view model of payment channels table, for example in response to user clicks on torrents
-    QStandardItemModel * getPaymentChannelsTableViewModel();
+    // For altering view model of peer plugins table, for example in response to user clicks on torrents
+    QStandardItemModel * getPeerPluginsTableViewModel();
 
     // Update view-model
     void update(const libtorrent::torrent_status & torrentStatus);
@@ -45,8 +45,8 @@ public:
     void updateMode(bool pluginOn);
     void updateBalance(int tokensReceived, int tokensSent);
 
-    void addPaymentChannel(PeerPlugin * peerPlugin); // Add view-model for payment channel
-    void updatePaymentChannel(PeerPluginStatus status); //
+    void addPeerPlugin(PeerPlugin * peerPlugin); // Add view-model for peer plugin
+    void updatePeerPluginState(PeerPluginStatus status); //
 
     // Getter
     const libtorrent::sha1_hash & getInfoHash();
@@ -54,20 +54,20 @@ public:
 private:
 
     // Hash of torrent
-    libtorrent::sha1_hash info_hash_;
+    const libtorrent::sha1_hash info_hash_;
 
     // View model for torrent table
     QStandardItemModel * torrentTableViewModel_;
 
-    // View model for payment channels table
-    QStandardItemModel * paymentChannelsTableViewModel_;
+    // View model for peer plugins table
+    QStandardItemModel * peerPluginsTableViewModel_;
 
     /*
      * ALTER LATER WE SHOULD NOT USE POINTER AS KEY, RATHER IP:PORT OR
      * SOMETHING ELSE STABLE.
      */
     // View models for peers
-    std::map<boost::asio::ip::tcp::endpoint ,PaymentChannelViewModel *> paymentChannelViewModels;
+    std::map<boost::asio::ip::tcp::endpoint, PeerPluginViewModel *> peerPluginViewModels;
 
     // torrentTableViewModel_ items
     QStandardItem * nameItem,
@@ -76,7 +76,7 @@ private:
                   * speedItem,
                   * peersItem,
                   * modeItem,
-                  * paymentChannelsItem,
+                  * peerPluginsItem,
                   * balanceItem;
 
     // Logging category

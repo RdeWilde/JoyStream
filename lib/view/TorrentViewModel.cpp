@@ -1,11 +1,13 @@
 #include "TorrentViewModel.hpp"
-#include "PaymentChannelViewModel.hpp"
+#include "peerPluginViewModel.hpp"
 
 #include "extension/PeerPlugin.hpp"
 #include "extension/PeerPluginStatus.hpp"
 
 #include <QStandardItemModel>
 #include <QStandardItem>
+
+#include <libtorrent/socket_io.hpp>
 
 
 TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & info_hash, QStandardItemModel * torrentTableViewModel,  QLoggingCategory & category)
@@ -23,7 +25,7 @@ TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & info_hash, QSta
     speedItem = new QStandardItem();
     peersItem = new QStandardItem();
     modeItem = new QStandardItem();
-    paymentChannelsItem = new QStandardItem();
+    peerPluginsItem = new QStandardItem();
     balanceItem = new QStandardItem();
 
     // Set item data, so this is recoverable
@@ -33,7 +35,7 @@ TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & info_hash, QSta
     speedItem->setData(QVariant::fromValue(this));
     peersItem->setData(QVariant::fromValue(this));
     modeItem->setData(QVariant::fromValue(this));
-    paymentChannelsItem->setData(QVariant::fromValue(this));
+    peerPluginsItem->setData(QVariant::fromValue(this));
     balanceItem->setData(QVariant::fromValue(this));
 
     // Add as row to torrentTableViewModel
@@ -45,7 +47,7 @@ TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & info_hash, QSta
     row.append(speedItem);
     row.append(peersItem);
     row.append(modeItem);
-    row.append(paymentChannelsItem);
+    row.append(peerPluginsItem);
     row.append(balanceItem);
 
     torrentTableViewModel_->appendRow(row);
@@ -53,11 +55,11 @@ TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & info_hash, QSta
     // Create model
     const char * columns[] = {"Host", "State", "Balance", "Progress"};
     const int numberOfColumns = sizeof(columns)/sizeof(char *);
-    paymentChannelsTableViewModel_ = new QStandardItemModel(0, numberOfColumns);
+    peerPluginsTableViewModel_ = new QStandardItemModel(0, numberOfColumns);
 
     // Add columns to model
     for(int i = 0;i < numberOfColumns;i++)
-        paymentChannelsTableViewModel_->setHorizontalHeaderItem(i, new QStandardItem(columns[i]));
+        peerPluginsTableViewModel_->setHorizontalHeaderItem(i, new QStandardItem(columns[i]));
 }
 
 TorrentViewModel::~TorrentViewModel(){
@@ -67,18 +69,18 @@ TorrentViewModel::~TorrentViewModel(){
 
     torrentTableViewModel_->removeRows(index.row(), 1);
 
-    // Delete all paymentChannelViewModels for all payment channels
-    for(std::map<boost::asio::ip::tcp::endpoint,PaymentChannelViewModel *>::iterator i = paymentChannelViewModels.begin(),
-            end(paymentChannelViewModels.end());i != end; i++)
+    // Delete all peerPluginViewModels for all peer plugins
+    for(std::map<boost::asio::ip::tcp::endpoint,PeerPluginViewModel *>::iterator i = peerPluginViewModels.begin(),
+            end(peerPluginViewModels.end());i != end; i++)
         delete i->second;
 
-    // Delete view model for payment channels table,
+    // Delete view model for peer plugins table,
     // this also will automatically delete all items in model
-    delete paymentChannelsTableViewModel_;
+    delete peerPluginsTableViewModel_;
 }
 
-QStandardItemModel * TorrentViewModel::getPaymentChannelsTableViewModel() {
-    return paymentChannelsTableViewModel_;
+QStandardItemModel * TorrentViewModel::getPeerPluginsTableViewModel() {
+    return peerPluginsTableViewModel_;
 }
 
 
@@ -197,29 +199,46 @@ void TorrentViewModel::updateBalance(int tokensReceived, int tokensSent) {
     balanceItem->setText(balance);
 }
 
-void TorrentViewModel::addPaymentChannel(PeerPlugin * peerPlugin) {
+void TorrentViewModel::addPeerPlugin(PeerPlugin * peerPlugin) {
 
-    // Create view model for payment channel
-    PaymentChannelViewModel * paymentChannelViewModel = new PaymentChannelViewModel(peerPlugin, paymentChannelsTableViewModel_);
+    const boost::asio::ip::tcp::endpoint & endPoint = peerPlugin->getEndPoint();
+
+    // Create view model for peer plugin
+    PeerPluginViewModel * peerPluginViewModel = new PeerPluginViewModel(endPoint, peerPluginsTableViewModel_);
 
     // Add to map
-    paymentChannelViewModels.insert(std::make_pair(peerPlugin->getEndPoint(), paymentChannelViewModel));
+    peerPluginViewModels.insert(std::make_pair(endPoint, peerPluginViewModel));
+
+    std::string endPointString = libtorrent::print_endpoint(endPoint);
+    qCDebug(category_) << "addPeerPlugin" << endPointString.c_str();
+
 }
 
-void TorrentViewModel::updatePaymentChannel(PeerPluginStatus status) {
+void TorrentViewModel::updatePeerPluginState(PeerPluginStatus status) {
+
+    // If extension is not enabled, then it should not be registered with us.
+    // If extension is enabled, it may still be it is not registered here,
+    // simply because peerAdded() signal has not been processed yet.
+    if(status.peerPlugin_->getPeerBEP43SupportedStatus() != PeerPlugin::PEER_BEP_SUPPORTED_STATUS::supported)
+        return;
 
     // Find Peer
-    std::map<boost::asio::ip::tcp::endpoint,PaymentChannelViewModel *>::iterator mapIterator = paymentChannelViewModels.find(status.peerPlugin_->getEndPoint());
+    const boost::asio::ip::tcp::endpoint & endPoint = status.peerPlugin_->getEndPoint();
+    std::map<boost::asio::ip::tcp::endpoint,PeerPluginViewModel *>::iterator mapIterator = peerPluginViewModels.find(endPoint);
 
-    if(mapIterator == paymentChannelViewModels.end()) {
-        qCCritical(category_) << "No match info_hash found.";
+    std::string endPointString = libtorrent::print_endpoint(endPoint);
+    qCDebug(category_) << "updatePeerPluginState" << endPointString.c_str();
+
+    if(mapIterator == peerPluginViewModels.end()) {
+        qCCritical(category_) << "No mathching end point found."; // I
         return;
-    }
+    } else
+        qCCritical(category_) << "end point found.";
 
-    PaymentChannelViewModel * paymentChannelViewModel = mapIterator->second;
+    PeerPluginViewModel * peerPluginViewModel = mapIterator->second;
 
     // Update
-    paymentChannelViewModel->update(status);
+    peerPluginViewModel->update(status);
 }
 
 const libtorrent::sha1_hash & TorrentViewModel::getInfoHash() {

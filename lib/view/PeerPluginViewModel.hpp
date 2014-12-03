@@ -1,7 +1,8 @@
-#ifndef PAYMENT_CHANNEL_VIEW_MODEL_HPP
-#define PAYMENT_CHANNEL_VIEW_MODEL_HPP
+#ifndef PEER_PLUGIN_VIEW_MODEL_HPP
+#define PEER_PLUGIN_VIEW_MODEL_HPP
 
 #include <QMetaType> // Q_DECLARE_METATYPE
+#include <boost/asio/ip/tcp.hpp>
 
 class PeerPlugin;
 class QStandardItemModel;
@@ -10,15 +11,15 @@ class PeerPluginStatus;
 class QString;
 enum class PeerPluginState;
 
-class PaymentChannelViewModel
+class PeerPluginViewModel
 {
 public:
 
     // Constructor
-    PaymentChannelViewModel(PeerPlugin * peerPlugin, QStandardItemModel * paymentChannelsTableViewModel);
+    PeerPluginViewModel(const boost::asio::ip::tcp::endpoint & endPoint, QStandardItemModel * peerPluginsTableViewModel);
 
     // Destructor, is called from TorrentViewModel destructor
-    ~PaymentChannelViewModel();
+    ~PeerPluginViewModel();
 
     void update(PeerPluginStatus status);
     void updateHost(const QString & host);
@@ -28,16 +29,19 @@ public:
 
 private:
 
-    // View model for payment channels table
-    QStandardItemModel * paymentChannelsTableViewModel_;
+    // TCP/IP endpoint
+    const boost::asio::ip::tcp::endpoint endPoint_;
 
-    // paymentChannelsTableViewModel_ items
+    // View model for peer plugins table
+    QStandardItemModel * peerPluginsTableViewModel_;
+
+    // peerPluginsTableViewModel_ items
     QStandardItem * hostItem,
                   * stateItem,
                   * balanceItem,
                   * progressItem;
 };
 
-Q_DECLARE_METATYPE(PaymentChannelViewModel *)
+Q_DECLARE_METATYPE(PeerPluginViewModel *)
 
-#endif // PAYMENT_CHANNEL_VIEW_MODEL_HPP
+#endif // PEER_PLUGIN_VIEW_MODEL_HPP

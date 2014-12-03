@@ -26,6 +26,8 @@
 // Forward declaration
 class TorrentPlugin;
 
+#define PLUGIN_NAME "bs_payment"
+
 /*
  * We inherit from QObject so we can send signals, and QObject must be first:
  * http://doc.trolltech.com/4.5/moc.html
@@ -103,7 +105,7 @@ public:
     PEER_BEP_SUPPORTED_STATUS getPeerBEP10SupportedStatus() const;
     PEER_BEP_SUPPORTED_STATUS getPeerBEP43SupportedStatus() const;
 
-    const boost::asio::ip::tcp::endpoint & PeerPlugin::getEndPoint() const;
+    const boost::asio::ip::tcp::endpoint & getEndPoint() const;
 
     /*
     const PeerPluginId & getPeerPluginId() const;
@@ -132,6 +134,14 @@ protected:
 
     // Logging category
     QLoggingCategory & category_;
+
+
+    /**
+      * Convenience variables, not part of entitiy model
+      */
+
+    // Convenience variable, since we need it so often
+    std::string endPointString_;
 
 signals:
 

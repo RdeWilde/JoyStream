@@ -49,7 +49,7 @@ public:
     void updateTorrentStatus(const libtorrent::torrent_status & torrentStatus); // start, stopp, stats
     void updateTorrentPluginStatus(TorrentPluginStatus status);
 
-    void addPaymentChannel(PeerPlugin * peerPlugin);
+    void addPeerPlugin(PeerPlugin * peerPlugin);
     void updatePeerPluginStatus(PeerPluginStatus status);
 
 private:
@@ -73,9 +73,9 @@ private:
     QModelIndex torrentTableLastIndexClicked; // Last model index for mouse click
     std::map<libtorrent::sha1_hash, TorrentViewModel *> torrentViewModels; // Maps info_hash of models to corresponding TorrentViewModel
 
-    // Payment channel table
-    QMenu * paymentChannelsTableContextMenu; // context menu
-    QModelIndex paymentChannelsTableLastIndexClicked; // Last model index for mouse click
+    // Peer Plugins table
+    QMenu * peerPluginsTableContextMenu; // context menu
+    QModelIndex peerPluginsTableLastIndexClicked; // Last model index for mouse click
 
     // Utilities
     const libtorrent::sha1_hash & getInfoHashOfLastClickedTorrent();

@@ -10,6 +10,24 @@ ExtendedMessageIdMapping::ExtendedMessageIdMapping()
         ids[i] = INVALID_EXTENDED_ID; // just to have some non-random value
 }
 
+ExtendedMessageIdMapping::ExtendedMessageIdMapping(const libtorrent::lazy_entry * m) {
+
+    buy(m->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::buy).c_str(), -1));
+    sell(m->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::sell).c_str(), -1));
+    setup_begin(m->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::setup_begin).c_str(), -1));
+    setup_begin_reject(m->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::setup_begin_reject).c_str(), -1));
+    setup_contract(m->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::setup_contract).c_str(), -1));
+    setup_contract_signed(m->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::setup_contract_signed).c_str(), -1));
+    setup_refund(m->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::setup_refund).c_str(), -1));
+    setup_refund_signed(m->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::setup_refund_signed).c_str(), -1));
+    setup_contract_published(m->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::setup_contract_published).c_str(), -1));
+    setup_completed(m->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::setup_completed).c_str(), -1));
+    piece_get(m->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::piece_get).c_str(), -1));
+    piece_put(m->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::piece_put).c_str(), -1));
+    payment(m->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::payment).c_str(), -1));
+    end(m->dict_find_int_value(ExtendedMessageIdMapping::getMessageName(Message::end).c_str(), -1));
+}
+
 ExtendedMessageIdMapping::ExtendedMessageIdMapping(
                                                 quint8 buyId,
                                                 quint8 sellId,
@@ -40,6 +58,24 @@ ExtendedMessageIdMapping::ExtendedMessageIdMapping(
     ids[Message::piece_put] = piecePutId;
     ids[Message::payment] = paymentId;
     ids[Message::end] = endId;
+}
+
+void ExtendedMessageIdMapping::writeToDictionary(libtorrent::entry::dictionary_type & m) {
+
+    m[ExtendedMessageIdMapping::getMessageName(Message::buy)] = buy();
+    m[ExtendedMessageIdMapping::getMessageName(Message::sell)] = sell();
+    m[ExtendedMessageIdMapping::getMessageName(Message::setup_begin)] = setup_begin();
+    m[ExtendedMessageIdMapping::getMessageName(Message::setup_begin_reject)] = setup_begin_reject();
+    m[ExtendedMessageIdMapping::getMessageName(Message::setup_contract)] = setup_contract();
+    m[ExtendedMessageIdMapping::getMessageName(Message::setup_contract_signed)] = setup_contract_signed();
+    m[ExtendedMessageIdMapping::getMessageName(Message::setup_refund)] = setup_refund();
+    m[ExtendedMessageIdMapping::getMessageName(Message::setup_refund_signed)] = setup_refund_signed();
+    m[ExtendedMessageIdMapping::getMessageName(Message::setup_contract_published)] = setup_contract_published();
+    m[ExtendedMessageIdMapping::getMessageName(Message::setup_completed)] = setup_completed();
+    m[ExtendedMessageIdMapping::getMessageName(Message::piece_get)] = piece_get();
+    m[ExtendedMessageIdMapping::getMessageName(Message::piece_put)] = piece_put();
+    m[ExtendedMessageIdMapping::getMessageName(Message::payment)] = payment();
+    m[ExtendedMessageIdMapping::getMessageName(Message::end)] = end();
 }
 
 // Getters
@@ -165,4 +201,22 @@ bool ExtendedMessageIdMapping::isValid() const {
 
     // No two message have same id
     return true;
+}
+
+void ExtendedMessageIdMapping::setAllStartingAt(quint8 id) {
+
+    buy(id++);
+    sell(id++);
+    setup_begin(id++);
+    setup_begin_reject(id++);
+    setup_contract(id++);
+    setup_contract_signed(id++);
+    setup_refund(id++);
+    setup_refund_signed(id++);
+    setup_contract_published(id++);
+    setup_completed(id++);
+    piece_get(id++);
+    piece_put(id++);
+    payment(id++);
+    end(id++);
 }

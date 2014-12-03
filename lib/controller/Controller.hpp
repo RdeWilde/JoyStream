@@ -17,7 +17,7 @@
 #include <QTimer>
 #include <QLoggingCategory>
 
-#define CLIENT_FINGERPRINT "BR"
+#define CLIENT_FINGERPRINT "BS"
 
 // Register types for signal and slots
 Q_DECLARE_METATYPE(libtorrent::sha1_hash)
@@ -160,6 +160,8 @@ public:
 
     // Called by MainWindow::startMenuAction()
     bool startTorrent(const libtorrent::sha1_hash & info_hash);
+
+    unsigned short getListenPort();
 
     // Called by
     // Stops libtorrent session, and tries to save_resume data.

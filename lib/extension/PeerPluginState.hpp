@@ -8,6 +8,7 @@
 
 enum class PeerPluginState {
     started,
+    handshake_received, // BEP10 extension handshake
     buy_message_received,
     sell_message_received
 };
