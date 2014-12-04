@@ -62,7 +62,7 @@ void main(int argc, char* argv[]) {
         showView = true;
 
     // Load default state
-    ControllerState controllerState;
+    PersistentControllerState controllerState;
 
     // If fresh flag is not passed,
     // then open existing parameter file
@@ -83,7 +83,7 @@ void main(int argc, char* argv[]) {
             exit(EXIT_FAILURE);
 
         } else // Load state from file
-            controllerState = ControllerState(fileString.c_str());
+            controllerState = PersistentControllerState(fileString.c_str());
     }
 
     // Create a controller tracker

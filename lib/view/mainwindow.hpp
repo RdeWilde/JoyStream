@@ -71,7 +71,7 @@ private:
     QStandardItemModel * torrentTableViewModel; // View model
     QMenu * torrentTableContextMenu; // Context menu
     QModelIndex torrentTableLastIndexClicked; // Last model index for mouse click
-    std::map<libtorrent::sha1_hash, TorrentViewModel *> torrentViewModels; // Maps info_hash of models to corresponding TorrentViewModel
+    std::map<libtorrent::sha1_hash, TorrentViewModel> torrentViewModels; // Maps info_hash of models to corresponding TorrentViewModel
 
     // Peer Plugins table
     QMenu * peerPluginsTableContextMenu; // context menu

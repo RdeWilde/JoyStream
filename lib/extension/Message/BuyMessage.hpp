@@ -10,7 +10,7 @@ public:
     /**
      * Inherited from ExtendedMessage
      */
-    Message::TYPE getMessageType() const;
+    MessageType getMessageType() const;
     quint32 rawPayloadLength() const;
     void toRaw(const ExtendedMessageIdMapping & mapping, QDataStream & stream) const;
 };

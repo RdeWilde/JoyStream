@@ -62,12 +62,8 @@ private:
     // View model for peer plugins table
     QStandardItemModel * peerPluginsTableViewModel_;
 
-    /*
-     * ALTER LATER WE SHOULD NOT USE POINTER AS KEY, RATHER IP:PORT OR
-     * SOMETHING ELSE STABLE.
-     */
     // View models for peers
-    std::map<boost::asio::ip::tcp::endpoint, PeerPluginViewModel *> peerPluginViewModels;
+    std::map<boost::asio::ip::tcp::endpoint, PeerPluginViewModel> peerPluginViewModels;
 
     // torrentTableViewModel_ items
     QStandardItem * nameItem,

@@ -94,10 +94,12 @@ MainWindow::~MainWindow()
     // does it take ownership of actions, or do we need to delete them explicitly
     delete torrentTableContextMenu;
 
+    /*
     // Delete torrent view models
     for(std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator i = torrentViewModels.begin(),
         end(torrentViewModels.end()); i != end;i++)
         delete i->second;
+     */
 }
 
 void MainWindow::showContextMenu(QPoint pos) {
@@ -125,7 +127,7 @@ void MainWindow::torrentTableClicked(const QModelIndex & index) {
     TorrentViewModel * torrentViewModel = data.value<TorrentViewModel *>();
 
     // Switch model for peer plugin table view
-        ui->peerPluginsTable->setModel(torrentViewModel->getPeerPluginsTableViewModel());
+    ui->peerPluginsTable->setModel(torrentViewModel->getPeerPluginsTableViewModel());
 }
 
 void MainWindow::pauseMenuAction() {
@@ -211,14 +213,12 @@ void MainWindow::closeEvent(QCloseEvent * event) {
 void MainWindow::addTorrent(const libtorrent::sha1_hash & info_hash, const QString & torrentName, int totalSize) {
 
     // Create torrent view model
-    TorrentViewModel * torrentViewModel = new TorrentViewModel(info_hash, torrentTableViewModel, category_);
+    torrentViewModels[info_hash] = TorrentViewModel(info_hash, torrentTableViewModel, category_);
 
     // Update known fields
-    torrentViewModel->updateName(torrentName);
-    torrentViewModel->updateSize(totalSize);
+    torrentViewModels[info_hash].updateName(torrentName);
+    torrentViewModels[info_hash].updateSize(totalSize);
 
-    // Add to torrent view model map
-    torrentViewModels.insert(std::make_pair(info_hash, torrentViewModel));
 }
 
 void MainWindow::addTorrentFailed(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec) {
@@ -230,23 +230,19 @@ void MainWindow::addTorrentFailed(const std::string & name, const libtorrent::sh
 void MainWindow::removeTorrent(const libtorrent::sha1_hash & info_hash) {
 
     // Find corresponding TorrentViewModel
-    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = torrentViewModels.find(info_hash);
+    std::map<libtorrent::sha1_hash, TorrentViewModel>::iterator mapIterator = torrentViewModels.find(info_hash);
 
     if(mapIterator == torrentViewModels.end()) {
         qCCritical(category_) << "No match info_hash found.";
         return;
     }
 
-    TorrentViewModel * torrentViewModel = mapIterator->second;
-
-    // Remove from torrentViewModels map
+    // Remove from torrentViewModels map and destroys it
     torrentViewModels.erase(mapIterator);
 
     // Clear model for peerPluginsTable
     ui->peerPluginsTable->setModel(0);
 
-    // Delete, also removes itself from torrentTableViewModel
-    delete torrentViewModel;
 }
 
 void MainWindow::updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector) {
@@ -260,39 +256,39 @@ void MainWindow::updateTorrentStatus(const std::vector<libtorrent::torrent_statu
 void MainWindow::updateTorrentStatus(const libtorrent::torrent_status & torrentStatus) {
 
     // Find corresponding TorrentViewModel
-    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = torrentViewModels.find(torrentStatus.info_hash);
+    std::map<libtorrent::sha1_hash, TorrentViewModel>::iterator mapIterator = torrentViewModels.find(torrentStatus.info_hash);
 
     if(mapIterator == torrentViewModels.end()) {
         qCCritical(category_) << "No match info_hash found.";
         return;
     }
 
-    TorrentViewModel * torrentViewModel = mapIterator->second;
+    TorrentViewModel & torrentViewModel = mapIterator->second;
 
     // Update
-    torrentViewModel->update(torrentStatus);
+    torrentViewModel.update(torrentStatus);
 }
 
 void MainWindow::updateTorrentPluginStatus(TorrentPluginStatus status) {
 
     // Find corresponding TorrentViewModel
-    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = torrentViewModels.find(status.info_hash_);
+    std::map<libtorrent::sha1_hash, TorrentViewModel>::iterator mapIterator = torrentViewModels.find(status.info_hash_);
 
     if(mapIterator == torrentViewModels.end()) {
         qCCritical(category_) << "No matching info_hash found.";
         return;
     }
 
-    TorrentViewModel * torrentViewModel = mapIterator->second;
+    TorrentViewModel & torrentViewModel = mapIterator->second;
 
     // Peers
-    torrentViewModel->updatePeers(status.numberOfPeers_, status.numberOfPeersWithExtension_);
+    torrentViewModel.updatePeers(status.numberOfPeers_, status.numberOfPeersWithExtension_);
 
     // Mode
-    torrentViewModel->updateMode(status.pluginOn_);
+    torrentViewModel.updateMode(status.pluginOn_);
 
     // Balance
-    torrentViewModel->updateBalance(status.tokensReceived_, status.tokensSent_);
+    torrentViewModel.updateBalance(status.tokensReceived_, status.tokensSent_);
 }
 
 void MainWindow::addPeerPlugin(PeerPlugin * peerPlugin) {
@@ -300,17 +296,17 @@ void MainWindow::addPeerPlugin(PeerPlugin * peerPlugin) {
     qCDebug(category_) << "addPeerPlugin()";
 
     // Find corresponding TorrentViewModel
-    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = torrentViewModels.find(peerPlugin->getInfoHash());
+    std::map<libtorrent::sha1_hash, TorrentViewModel>::iterator mapIterator = torrentViewModels.find(peerPlugin->getInfoHash());
 
     if(mapIterator == torrentViewModels.end()) {
         qCCritical(category_) << "No match info_hash found.";
         return;
     }
 
-    TorrentViewModel * torrentViewModel = mapIterator->second;
+    TorrentViewModel & torrentViewModel = mapIterator->second;
 
     // Add plugin
-    torrentViewModel->addPeerPlugin(peerPlugin);
+    torrentViewModel.addPeerPlugin(peerPlugin);
 }
 
 void MainWindow::updatePeerPluginStatus(PeerPluginStatus status) {
@@ -319,15 +315,15 @@ void MainWindow::updatePeerPluginStatus(PeerPluginStatus status) {
 
     // Find corresponding TorrentViewModel
     libtorrent::sha1_hash info_hash = status.peerPlugin_->getInfoHash();
-    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = torrentViewModels.find(info_hash);
+    std::map<libtorrent::sha1_hash, TorrentViewModel>::iterator mapIterator = torrentViewModels.find(info_hash);
 
     if(mapIterator == torrentViewModels.end()) {
         qCCritical(category_) << "No match info_hash found.";
         return;
     }
 
-    TorrentViewModel * torrentViewModel = mapIterator->second;
+    TorrentViewModel & torrentViewModel = mapIterator->second;
 
     // Update
-    torrentViewModel->updatePeerPluginState(status);
+    torrentViewModel.updatePeerPluginState(status);
 }

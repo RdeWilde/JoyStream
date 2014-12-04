@@ -62,6 +62,7 @@ signals:
 private:
 
     // Parent plugin for BitSwapr
+    // SHOULD THIS BE WEAK_PTR ?
     Plugin * plugin_;
 
     // Torrent for this torrent_plugin

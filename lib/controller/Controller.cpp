@@ -24,7 +24,7 @@
 #include <boost/bind.hpp>
 #endif Q_MOC_RUN
 
-Controller::Controller(const ControllerState & state, bool showView, QLoggingCategory & category)
+Controller::Controller(const PersistentControllerState & persistentControllerState, bool showView, QLoggingCategory & category)
     : session(libtorrent::fingerprint(CLIENT_FINGERPRINT
                                       ,BITSWAPR_VERSION_MAJOR
                                       ,BITSWAPR_VERSION_MINOR
@@ -40,8 +40,7 @@ Controller::Controller(const ControllerState & state, bool showView, QLoggingCat
               +libtorrent::alert::stats_notification)
     , numberOfOutstandingResumeDataCalls(0)
     , sourceForLastResumeDataCall(NONE)
-    , portRange(state.getPortRange())
-    , dhtRouters(state.getDhtRouters())
+    , persistentControllerState_(persistentControllerState)
     , category_(category)
     , plugin(new Plugin(this, category_))
     , view(this, category_) {
@@ -61,22 +60,21 @@ Controller::Controller(const ControllerState & state, bool showView, QLoggingCat
 
 	// Set session settings - these acrobatics with going back and forth seem to indicate that I may have done it incorrectly
 	std::vector<char> buffer;
-	libtorrent::bencode(std::back_inserter(buffer), state.getLibtorrentSessionSettingsEntry());
+    libtorrent::bencode(std::back_inserter(buffer), persistentControllerState_.getLibtorrentSessionSettingsEntry());
 	libtorrent::lazy_entry settingsLazyEntry;
     libtorrent::error_code lazyBdecodeEc;
 	libtorrent::lazy_bdecode(&buffer[0], &buffer[0] + buffer.size(), settingsLazyEntry, lazyBdecodeEc);
 	session.load_state(settingsLazyEntry);
 
 	// Add DHT routing nodes
-    for(std::vector<std::pair<std::string, int>>::iterator i = dhtRouters.begin();i != dhtRouters.end(); ++i)
+    for(std::vector<std::pair<std::string, int>>::iterator i = dhtRouters_.begin();i != dhtRouters_.end(); ++i)
         session.add_dht_router(*i); // Add router to session
 
     // Add plugin extension
     session.add_extension(plugin);
 
-	// Start DHT node
-    //if(state.useDht)
-        session.start_dht();
+    // Start DHT node
+    session.start_dht();
 
     // Start timer which calls session.post_torrent_updates at regular intervals
     statusUpdateTimer.setInterval(POST_TORRENT_UPDATES_DELAY);
@@ -90,16 +88,33 @@ Controller::Controller(const ControllerState & state, bool showView, QLoggingCat
 
 	// Start listening
 	boost::system::error_code listenOnErrorCode;
-    session.listen_on(portRange, listenOnErrorCode);
+    session.listen_on(persistentControllerState_.getPortRange(), listenOnErrorCode);
 
     // Throw
 	if(listenOnErrorCode)
 		throw ListenOnException(listenOnErrorCode);
 
     // Add torrents to session and to controller: Wisdom of Sindre indicates this must be AFTER session.listen_on()
-    std::vector<libtorrent::add_torrent_params> & params = state.getTorrentParameters();
-    for(std::vector<libtorrent::add_torrent_params>::iterator i = params.begin();i != params.end(); ++i)
-        addTorrent(*i);
+    std::map<libtorrent::sha1_hash, PersistentTorrentState> & models = persistentControllerState_.getPersistentTorrentStates();
+
+    for(std::map<libtorrent::sha1_hash, PersistentTorrentState>::iterator i = models.begin(),
+            end(models.end());i != end; ++i) {
+
+        // Get state of torrent
+        PersistentTorrentState & persistentState = i->second;
+
+        // Create add_torrent_params for adding
+        libtorrent::add_torrent_params params;
+
+        params.info_hash = persistentState.getInfoHash();
+        params.name = persistentState.getName();
+        params.save_path = persistentState.getSavePath();
+        params.resume_data = &(persistentState.getResumeData()); // Pointer to the original std::vector which persists
+        params.flags = persistentState.getFlags();
+
+        // Add torrent
+        addTorrent(params);
+    }
 
     // Show view
     if(showView) {
@@ -135,7 +150,7 @@ void Controller::libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::
      */
 
     // Grab alert pointer and release the auto pointer, this way the alert is not automatically
-    // deleted when alertAutoPtr goes out of scope.
+    // deleted when alertAutoPtr goes out of scope. Registering auto_ptr with MOC is not worth trying.
     const libtorrent::alert * a = alertAutoPtr.release();
 
     // Tell bitswapr thread to run processAlert later with given alert as argument
@@ -212,39 +227,6 @@ void Controller::processAlert(const libtorrent::alert * a) {
 
     // Delete alert
     delete a;
-}
-
-// REMOVE AUTO POINTER, PASS ITERATOR ADDRESS OR REF INSTED
-std::auto_ptr<std::vector<libtorrent::add_torrent_params>::iterator> Controller::findTorrentParamsFromInfoHash(const libtorrent::sha1_hash & info_hash) {
-
-    // Allocate iterator copy on heap
-    std::vector<libtorrent::add_torrent_params>::iterator * i_heap = new std::vector<libtorrent::add_torrent_params>::iterator();
-
-    // Declare auto pointer pointing to iterator on heap
-    std::auto_ptr<std::vector<libtorrent::add_torrent_params>::iterator> a_ptr(i_heap);
-
-    // Check if vector is empty, in which case we cannot dereference .begin() iterator
-    if(!addTorrentParameters.empty()) {
-
-        // Iterate, using iterator on heap, to find match
-        *i_heap = addTorrentParameters.begin();
-        std::vector<libtorrent::add_torrent_params>::iterator end = addTorrentParameters.end();
-
-        for(; *i_heap != end;(*i_heap)++) {
-
-            libtorrent::add_torrent_params & params = *(*i_heap);
-
-            // Check for match, and return
-            if(params.info_hash == info_hash)
-                return a_ptr;
-        }
-    }
-
-    // Free heap iterator and set auto pointer to 0
-    a_ptr.reset();
-
-    // Return null auto_ptr
-    return a_ptr;
 }
 
 // QString const & save_path, QString const & file_name, std::vector<char> * resume_data
@@ -379,22 +361,20 @@ void Controller::processTorrentRemovedAlert(libtorrent::torrent_removed_alert co
      * so we must use p->info_hash instead.
      */
 
-    // Find torrent params in addTorrentParameters
-    std::auto_ptr<std::vector<libtorrent::add_torrent_params>::iterator> a_ptr = findTorrentParamsFromInfoHash(p->info_hash);
+    std::map<libtorrent::sha1_hash, TorrentState>::iterator mapIterator = torrentModels_.find(p->info_hash);
 
-    // Did we find a match
-    if(a_ptr.get() != 0) {
+    // Did we find match
+    if(mapIterator == torrentModels_.end()) {
+        qCCritical(category_) << "No matching info hash found.";
+    }
 
-        // Remove torrent
-        addTorrentParameters.erase(*a_ptr.get());
+    // Erase from map, which also calls destructor
+    torrentModels_.erase(mapIterator);
 
-        // Notify view to remove torrent
-        view.removeTorrent(p->info_hash);
+    // Remove from view
+    view.removeTorrent(p->info_hash);
 
-        qCDebug(category_) << "Found match and removed it.";
-
-    } else
-        qCCritical(category_) << "We found no matching torrent for this.";
+    qCDebug(category_) << "Found match and removed it.";
 }
 
 void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p) {
@@ -443,9 +423,16 @@ void Controller::processSaveResumeDataAlert(libtorrent::save_resume_data_alert c
     numberOfOutstandingResumeDataCalls--;
 
     // Get torrent params to get save_path
-    std::auto_ptr<std::vector<libtorrent::add_torrent_params>::iterator> ptr = findTorrentParamsFromInfoHash(p->handle.info_hash());
-    std::vector<libtorrent::add_torrent_params>::iterator & ptr_iterator = *ptr;
-    libtorrent::add_torrent_params & params = *ptr_iterator;
+    std::map<libtorrent::sha1_hash, TorrentState>::iterator mapIterator = persistentControllerState_.getPersistentTorrentStates().find(p->handle.info_hash());
+
+    // Did we find match
+    if(mapIterator == torrentModels_.end()) {
+        qCCritical(category_) << "No matching info hash found.";
+    }
+
+    TorrentState & torrentModel = mapIterator->second;
+
+    libtorrent::add_torrent_params & params = torrentModel.getParameters();
     QString save_path = params.save_path.c_str();
 
     // Save resume data for torrent to disk
@@ -607,21 +594,6 @@ bool Controller::startTorrent(const libtorrent::sha1_hash & info_hash) {
     return true;
 }
 
-unsigned short Controller::getListenPort() {
-    return session.listen_port();
-}
-
-/*
-libtorrent::torrent_handle Controller::getTorrentHandleFromInfoHash(const libtorrent::sha1_hash & info_hash) {
-    return session.find_torrent(info_hash);
-}
-
-// comment out later
-libtorrent::session & Controller::getSession() {
-    return session;
-}
-*/
-
 void Controller::addTorrent(libtorrent::add_torrent_params & params) {
 
     /*
@@ -690,9 +662,8 @@ void Controller::addTorrent(libtorrent::add_torrent_params & params) {
     */
     session.async_add_torrent(params);
 
-    // Add to controller
-    // - DO WE EVEN NEED TO KEEP TRACK OF THIS? -
-    addTorrentParameters.push_back(params);
+    // Create and add torrent model to map
+    torrentModels_[params.info_hash] = TorrentState(params);
 }
 
 void Controller::saveStateToFile(const char * file) {
@@ -702,10 +673,10 @@ void Controller::saveStateToFile(const char * file) {
 	session.save_state(libtorrentSessionSettingsEntry);
 
 	// Create state object
-	ControllerState controllerState(libtorrentSessionSettingsEntry, 
-									portRange, 
-									addTorrentParameters, 
-									dhtRouters);
+    PersistentControllerState controllerState(libtorrentSessionSettingsEntry,
+                                    portRange_,
+                                    torrentModels_,
+                                    dhtRouters_);
 
 	// Save to file
 	controllerState.saveToFile(file);

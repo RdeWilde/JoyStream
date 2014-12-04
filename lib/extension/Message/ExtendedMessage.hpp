@@ -12,14 +12,14 @@ class ExtendedMessage
 public:
 
     // Message factory based on only payload, header is encoded in type argument
-    static ExtendedMessage * fromRaw(Message::TYPE type, QDataStream & extendedPayloadStream);
+    static ExtendedMessage * fromRaw(MessageType type, QDataStream & extendedPayloadStream);
 
     /**
      * Virtual methods that subclassing messages have to implement:
      */
 
     // Get type of message
-    virtual Message::TYPE getMessageType() const = 0;
+    virtual MessageType getMessageType() const = 0;
 
     // Compute raw byte length of full extended message (1 byte header + payload)
     virtual quint32 rawPayloadLength() const = 0;

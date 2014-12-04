@@ -15,7 +15,6 @@ INCLUDEPATH += $$PWD # be able to include w.r.t root of this project
 
 SOURCES += \
             controller/Controller.cpp \
-            controller/ControllerState.cpp \
             controller/exceptions/InvalidBitSwaprStateEntryException.cpp \
             controller/exceptions/ListenOnException.cpp \
             controller/exceptions/MissingInfoHashViewRequestException.cpp \
@@ -39,11 +38,12 @@ SOURCES += \
     view/TorrentViewModel.cpp \
     Utilities.cpp \
     extension/PeerPluginId.cpp \
-    view/PeerPluginViewModel.cpp
+    view/PeerPluginViewModel.cpp \
+    controller/PersistentControllerState.cpp \
+    controller/PersistentTorrentState.cpp
 		
 HEADERS += \
             controller/Controller.hpp \
-            controller/ControllerState.hpp \
             controller/exceptions/InvalidBitSwaprStateEntryException.hpp \
             controller/exceptions/ListenOnException.hpp \
             controller/exceptions/MissingInfoHashViewRequestException.hpp \
@@ -69,7 +69,10 @@ HEADERS += \
     view/TorrentViewModel.hpp \
     Utilities.hpp \
     extension/PeerPluginId.hpp \
-    view/PeerPluginViewModel.hpp
+    view/PeerPluginViewModel.hpp \
+    extension/Message/MessageType.hpp \
+    controller/PersistentTorrentState.hpp \
+    controller/PersistentControllerState.hpp
 				
 FORMS += \
             view/mainwindow.ui \

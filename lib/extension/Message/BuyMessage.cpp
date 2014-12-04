@@ -1,7 +1,7 @@
 #include "BuyMessage.hpp"
 
-Message::TYPE BuyMessage::getMessageType() const {
-    return Message::TYPE::buy;
+MessageType BuyMessage::getMessageType() const {
+    return MessageType::buy;
 }
 
 quint32 BuyMessage::rawPayloadLength() const {

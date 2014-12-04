@@ -1,38 +1,13 @@
 #ifndef EXTENDED_MESSAGE_ID_MAPPING_HPP
 #define EXTENDED_MESSAGE_ID_MAPPING_HPP
 
+#include "MessageType.hpp"
+
 #include <libtorrent/lazy_entry.hpp>
 #include <libtorrent/entry.hpp>
 
 #include <QDataStream> // for data types
 #include <string>
-
-namespace Message {
-
-    // Menu of extended message types in protocol,
-    // and value is array index in array "ids" where
-    // id of corresponding message is kept
-    // CRITICAL: Code assumes enum values start at 0 increase with one
-    enum TYPE {
-        buy = 0,
-        sell = 1,
-        setup_begin = 2,
-        setup_begin_reject = 3,
-        setup_contract = 4,
-        setup_contract_signed = 5,
-        setup_refund = 6,
-        setup_refund_signed = 7,
-        setup_contract_published = 8,
-        setup_completed = 9,
-        piece_get = 10,
-        piece_put = 11,
-        payment = 12,
-        end = 13
-    };
-
-    // Number of messages
-    const static int NUMBER_OF_MESSAGES = TYPE::end + 1 ;
-}
 
 class ExtendedMessageIdMapping
 {
@@ -97,13 +72,13 @@ public:
     quint8 end() const;
 
     // Get message corresponding to id
-    Message::TYPE getMessageType(quint8 id) const;
+    MessageType getMessageType(quint8 id) const;
 
     // Get message corresponding to message name
-    static Message::TYPE getMessageType(std::string & messageName);
+    static MessageType getMessageType(std::string & messageName);
 
     // Get name of message
-    static std::string getMessageName(Message::TYPE type);
+    static std::string getMessageName(MessageType type);
 
     // Check that mapping is valid
     bool isValid() const;
@@ -113,8 +88,21 @@ public:
 
 private:
 
-    // Id of corresponding message (as seen in MESSAGE_TYPE)
-    quint8 ids[Message::NUMBER_OF_MESSAGES];
+    // Id of corresponding message
+    quint8 buyId_,
+            sellId_,
+            setupBeginId_,
+            setupBeginRejectId_,
+            setupContractId_,
+            setupContractSignedId_,
+            setupRefundId_,
+            setupRefundSignedId_,
+            setupContractPublishedId_,
+            setupCompletedId_,
+            pieceGetId_,
+            piecePutId_,
+            paymentId_,
+            endId_;
 
 };
 

@@ -69,11 +69,6 @@ TorrentViewModel::~TorrentViewModel(){
 
     torrentTableViewModel_->removeRows(index.row(), 1);
 
-    // Delete all peerPluginViewModels for all peer plugins
-    for(std::map<boost::asio::ip::tcp::endpoint,PeerPluginViewModel *>::iterator i = peerPluginViewModels.begin(),
-            end(peerPluginViewModels.end());i != end; i++)
-        delete i->second;
-
     // Delete view model for peer plugins table,
     // this also will automatically delete all items in model
     delete peerPluginsTableViewModel_;
@@ -203,11 +198,8 @@ void TorrentViewModel::addPeerPlugin(PeerPlugin * peerPlugin) {
 
     const boost::asio::ip::tcp::endpoint & endPoint = peerPlugin->getEndPoint();
 
-    // Create view model for peer plugin
-    PeerPluginViewModel * peerPluginViewModel = new PeerPluginViewModel(endPoint, peerPluginsTableViewModel_);
-
     // Add to map
-    peerPluginViewModels.insert(std::make_pair(endPoint, peerPluginViewModel));
+    peerPluginViewModels[endPoint] = PeerPluginViewModel(endPoint, peerPluginsTableViewModel_);
 
     std::string endPointString = libtorrent::print_endpoint(endPoint);
     qCDebug(category_) << "addPeerPlugin" << endPointString.c_str();
@@ -224,7 +216,7 @@ void TorrentViewModel::updatePeerPluginState(PeerPluginStatus status) {
 
     // Find Peer
     const boost::asio::ip::tcp::endpoint & endPoint = status.peerPlugin_->getEndPoint();
-    std::map<boost::asio::ip::tcp::endpoint,PeerPluginViewModel *>::iterator mapIterator = peerPluginViewModels.find(endPoint);
+    std::map<boost::asio::ip::tcp::endpoint,PeerPluginViewModel>::iterator mapIterator = peerPluginViewModels.find(endPoint);
 
     std::string endPointString = libtorrent::print_endpoint(endPoint);
     qCDebug(category_) << "updatePeerPluginState" << endPointString.c_str();
@@ -235,10 +227,10 @@ void TorrentViewModel::updatePeerPluginState(PeerPluginStatus status) {
     } else
         qCCritical(category_) << "end point found.";
 
-    PeerPluginViewModel * peerPluginViewModel = mapIterator->second;
+    PeerPluginViewModel & peerPluginViewModel = mapIterator->second;
 
     // Update
-    peerPluginViewModel->update(status);
+    peerPluginViewModel.update(status);
 }
 
 const libtorrent::sha1_hash & TorrentViewModel::getInfoHash() {

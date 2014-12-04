@@ -13,8 +13,8 @@ SellMessage::SellMessage(QDataStream & extendedPayloadStream) {
 }
 
 
-Message::TYPE SellMessage::getMessageType() const {
-    return Message::sell;
+MessageType SellMessage::getMessageType() const {
+    return MessageType::sell;
 }
 
 quint32 SellMessage::rawPayloadLength() const {
