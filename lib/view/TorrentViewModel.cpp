@@ -9,10 +9,13 @@
 
 #include <libtorrent/socket_io.hpp>
 
+const char * TorrentViewModel::columnTitles[] = {"Name", "Size", "Status", "Speed", "Peers", "Mode", "#Channels", "Balance"};
+const int TorrentViewModel::numberOfColumns = sizeof(TorrentViewModel::columnTitles)/sizeof(char *);
 
-TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & info_hash, QStandardItemModel * torrentTableViewModel,  QLoggingCategory & category)
+TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & info_hash, QStandardItemModel & torrentTableViewModel, QLoggingCategory & category)
     : info_hash_(info_hash)
     , torrentTableViewModel_(torrentTableViewModel)
+    , peerPluginsTableViewModel_(0, PeerPluginViewModel::numberOfColumns)
     , category_(category)
 {
 
@@ -50,34 +53,24 @@ TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & info_hash, QSta
     row.append(peerPluginsItem);
     row.append(balanceItem);
 
-    torrentTableViewModel_->appendRow(row);
-
-    // Create model
-    const char * columns[] = {"Host", "State", "Balance", "Progress"};
-    const int numberOfColumns = sizeof(columns)/sizeof(char *);
-    peerPluginsTableViewModel_ = new QStandardItemModel(0, numberOfColumns);
+    torrentTableViewModel_.appendRow(row);
 
     // Add columns to model
-    for(int i = 0;i < numberOfColumns;i++)
-        peerPluginsTableViewModel_->setHorizontalHeaderItem(i, new QStandardItem(columns[i]));
+    for(int i = 0;i < PeerPluginViewModel::numberOfColumns;i++)
+        peerPluginsTableViewModel_.setHorizontalHeaderItem(i, new QStandardItem(PeerPluginViewModel::columnTitles[i]));
 }
 
 TorrentViewModel::~TorrentViewModel(){
 
-    // Remove corresponding row from torrentTableViewModel_
-    QModelIndex index = torrentTableViewModel_->indexFromItem(nameItem);
-
-    torrentTableViewModel_->removeRows(index.row(), 1);
-
-    // Delete view model for peer plugins table,
-    // this also will automatically delete all items in model
-    delete peerPluginsTableViewModel_;
+    // Delete peer plugin view models
+    for(std::map<boost::asio::ip::tcp::endpoint, PeerPluginViewModel *>::iterator i = peerPluginViewModels.begin(),
+            end(peerPluginViewModels.end());i != end;i++)
+        delete i->second;
 }
 
 QStandardItemModel * TorrentViewModel::getPeerPluginsTableViewModel() {
-    return peerPluginsTableViewModel_;
+    return &peerPluginsTableViewModel_;
 }
-
 
 void TorrentViewModel::update(const libtorrent::torrent_status & torrentStatus) {
 
@@ -199,11 +192,15 @@ void TorrentViewModel::addPeerPlugin(PeerPlugin * peerPlugin) {
     const boost::asio::ip::tcp::endpoint & endPoint = peerPlugin->getEndPoint();
 
     // Add to map
-    peerPluginViewModels[endPoint] = PeerPluginViewModel(endPoint, peerPluginsTableViewModel_);
+    peerPluginViewModels.insert(std::make_pair(endPoint, new PeerPluginViewModel(endPoint, peerPluginsTableViewModel_)));
 
+    // Notify
     std::string endPointString = libtorrent::print_endpoint(endPoint);
     qCDebug(category_) << "addPeerPlugin" << endPointString.c_str();
+}
 
+void TorrentViewModel::removePeerPlugin(const boost::asio::ip::tcp::endpoint & endPoint) {
+    qCDebug(category_) << "removePeerPlugin: NOT IMPLEMENTED";
 }
 
 void TorrentViewModel::updatePeerPluginState(PeerPluginStatus status) {
@@ -216,23 +213,23 @@ void TorrentViewModel::updatePeerPluginState(PeerPluginStatus status) {
 
     // Find Peer
     const boost::asio::ip::tcp::endpoint & endPoint = status.peerPlugin_->getEndPoint();
-    std::map<boost::asio::ip::tcp::endpoint,PeerPluginViewModel>::iterator mapIterator = peerPluginViewModels.find(endPoint);
+    std::map<boost::asio::ip::tcp::endpoint,PeerPluginViewModel *>::iterator mapIterator = peerPluginViewModels.find(endPoint);
 
     std::string endPointString = libtorrent::print_endpoint(endPoint);
     qCDebug(category_) << "updatePeerPluginState" << endPointString.c_str();
 
     if(mapIterator == peerPluginViewModels.end()) {
-        qCCritical(category_) << "No mathching end point found."; // I
+        qCCritical(category_) << "No mathching end point found.";
         return;
     } else
         qCCritical(category_) << "end point found.";
 
-    PeerPluginViewModel & peerPluginViewModel = mapIterator->second;
+    PeerPluginViewModel * peerPluginViewModel = mapIterator->second;
 
     // Update
-    peerPluginViewModel.update(status);
+    peerPluginViewModel->update(status);
 }
 
-const libtorrent::sha1_hash & TorrentViewModel::getInfoHash() {
+const libtorrent::sha1_hash & TorrentViewModel::getInfoHash() const {
     return info_hash_;
 }

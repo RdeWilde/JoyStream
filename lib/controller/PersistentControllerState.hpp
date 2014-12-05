@@ -56,6 +56,9 @@ public:
     std::map<libtorrent::sha1_hash, PersistentTorrentState> & getPersistentTorrentStates();
     std::vector<std::pair<std::string, int>> & getDhtRouters();
 
+    // Setters
+    void setLibtorrentSessionSettingsEntry(const libtorrent::entry & libtorrentSessionSettingsEntry);
+
 private:
 
     /*

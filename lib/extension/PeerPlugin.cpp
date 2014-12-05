@@ -40,10 +40,6 @@ PeerPlugin::PeerPlugin(TorrentPlugin * torrentPlugin, libtorrent::bt_peer_connec
     endPointString_ = libtorrent::print_endpoint(endPoint);
 }
 
-PeerPlugin::~PeerPlugin() {
-
-}
-
 char const * PeerPlugin::type() const {
     return "";
 }
@@ -170,7 +166,7 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
         qCDebug(category_) << "Extension not supported.";
         return false;
     } else
-        qCDebug(category_) << "Extension    version" << version << "supported.";
+        qCDebug(category_) << "Extension version" << version << "supported.";
 
     // Try to extract m key, if its not present, then we are done
     const libtorrent::lazy_entry * m = handshake.dict_find_dict("m");

@@ -15,48 +15,37 @@ class PeerPluginViewModel
 {
 public:
 
+    static const char * columnTitles[];
+    static const int numberOfColumns;
+
     // Constructor
-    PeerPluginViewModel(const boost::asio::ip::tcp::endpoint & endPoint, QStandardItemModel * peerPluginsTableViewModel);
+    PeerPluginViewModel(const boost::asio::ip::tcp::endpoint & endPoint, QStandardItemModel & peerPluginsTableViewModel);
 
-    // Default constructor so type can be added to container by value
-    PeerPluginViewModel();
-
-    // Destructor, is called from TorrentViewModel destructor
-    ~PeerPluginViewModel();
-
-    // Assignment operator required to put in std::map
-    PeerPluginViewModel & operator=(const PeerPluginViewModel& rhs);
-
+    // Update routines
     void update(PeerPluginStatus status);
     void updateHost(const QString & host);
     void updateState(PeerPluginState state);
     void updateBalance(int balance);
-    void updateProgress(); // some representation of what it has given me?
+    void updateProgress();
 
     // Getters
     const boost::asio::ip::tcp::endpoint & getEndPoint() const;
-    QStandardItemModel * getPeerPluginsTableViewModel() const;
-    QStandardItem * getHostItem() const;
-    QStandardItem * getStateItem() const;
-    QStandardItem * getBalanceItem() const;
-    QStandardItem * getProgressItem() const;
 
 private:
 
     // TCP/IP endpoint
     boost::asio::ip::tcp::endpoint endPoint_;
 
-    // View model for peer plugins table
-    QStandardItemModel * peerPluginsTableViewModel_;
+    // View model for peer plugins table. Is pointer since it is shared
+    // among objects of this type.
+    QStandardItemModel & peerPluginsTableViewModel_;
 
-    // peerPluginsTableViewModel_ items
+    // Model items, these cannot be by value since the QStandardItemModel
+    // takes ownership of objects and deletes them.
     QStandardItem * hostItem,
                   * stateItem,
                   * balanceItem,
                   * progressItem;
-
-    // Sets data of all items to be Qvairant of this object
-    void setItemData();
 };
 
 Q_DECLARE_METATYPE(PeerPluginViewModel *)

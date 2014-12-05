@@ -192,7 +192,7 @@ MessageType ExtendedMessageIdMapping::getMessageType(std::string & messageName) 
 }
 
 // Get name of message
-std::string getMessageName(MessageType type) {
+std::string ExtendedMessageIdMapping::getMessageName(MessageType type) {
 
     switch(type) {
         case MessageType::buy: return "buy";
@@ -215,55 +215,55 @@ std::string getMessageName(MessageType type) {
 // Check validity of mapping
 bool ExtendedMessageIdMapping::isValid() const {
 
-    std::set<quint8> ids;
-
     // Check
-    if(INVALID_EXTENDED_ID == buyId_) {
-        ids.emplace(buyId_);
+    if(INVALID_EXTENDED_ID == buyId_)
         return false;
-    } else if(INVALID_EXTENDED_ID == sellId_) {
-        ids.emplace(sellId_);
+    else if(INVALID_EXTENDED_ID == sellId_)
         return false;
-    } else if(INVALID_EXTENDED_ID == setupBeginId_) {
-        ids.emplace(setupBeginId_);
+    else if(INVALID_EXTENDED_ID == setupBeginId_)
         return false;
-    } else if(INVALID_EXTENDED_ID == setupBeginRejectId_) {
-        ids.emplace(setupBeginRejectId_);
+    else if(INVALID_EXTENDED_ID == setupBeginRejectId_)
         return false;
-    } else if(INVALID_EXTENDED_ID == setupContractId_) {
-        ids.emplace(setupContractId_);
+    else if(INVALID_EXTENDED_ID == setupContractId_)
         return false;
-    } else if(INVALID_EXTENDED_ID == setupContractSignedId_) {
-        ids.emplace(setupContractSignedId_);
+    else if(INVALID_EXTENDED_ID == setupContractSignedId_)
         return false;
-    } else if(INVALID_EXTENDED_ID == setupRefundId_) {
-        ids.emplace(setupRefundId_);
+    else if(INVALID_EXTENDED_ID == setupRefundId_)
         return false;
-    } else if(INVALID_EXTENDED_ID == setupRefundSignedId_) {
-        ids.emplace(setupRefundSignedId_);
+    else if(INVALID_EXTENDED_ID == setupRefundSignedId_)
         return false;
-    } else if(INVALID_EXTENDED_ID == setupContractPublishedId_) {
-        ids.emplace(setupRefundSignedId_);
+    else if(INVALID_EXTENDED_ID == setupContractPublishedId_)
         return false;
-    } else if(INVALID_EXTENDED_ID == setupCompletedId_) {
-        ids.emplace(setupCompletedId_);
+    else if(INVALID_EXTENDED_ID == setupCompletedId_)
         return false;
-    } else if(INVALID_EXTENDED_ID == pieceGetId_) {
-        ids.emplace(pieceGetId_);
+    else if(INVALID_EXTENDED_ID == pieceGetId_)
         return false;
-    } else if(INVALID_EXTENDED_ID == piecePutId_) {
-        ids.emplace(piecePutId_);
+    else if(INVALID_EXTENDED_ID == piecePutId_)
         return false;
-    } else if(INVALID_EXTENDED_ID == paymentId_) {
-        ids.emplace(paymentId_);
+    else if(INVALID_EXTENDED_ID == paymentId_)
         return false;
-    } else if(INVALID_EXTENDED_ID == endId_) {
-        ids.emplace(endId_);
+    else if(INVALID_EXTENDED_ID == endId_)
         return false;
-    }
+
+    quint8 ids [] = { buyId_,
+                        sellId_,
+                        setupBeginId_,
+                        setupBeginRejectId_,
+                        setupContractId_,
+                        setupContractSignedId_,
+                        setupRefundId_,
+                        setupRefundSignedId_,
+                        setupContractPublishedId_,
+                        setupCompletedId_,
+                        pieceGetId_,
+                        piecePutId_,
+                        paymentId_,
+                        endId_};
+
+    std::set<quint8> uniqueness(ids, ids + 14);
 
     // Do we have the correct number of unique ids?
-    if(ids.size() != NUMBER_OF_MESSAGES)
+    if(uniqueness.size() != NUMBER_OF_MESSAGES)
         return false;
 
     // No two message have same id, and no one has id INVALID_EXTENDED_ID

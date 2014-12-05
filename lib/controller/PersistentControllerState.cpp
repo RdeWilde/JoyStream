@@ -356,7 +356,7 @@ PersistentControllerState::PersistentControllerState(const libtorrent::entry::di
                     end(persistentTorrentStatesDictionaryEntry.end()); i != end;i++) {
 
                 // Get key and value
-                const libtorrent::sha1_hash info_hash((i->first).string());
+                const libtorrent::sha1_hash info_hash(i->first);
                 const libtorrent::entry & persistentTorrentStateEntry = i->second;
 
                 // Check that it is a dictionary
@@ -391,10 +391,10 @@ PersistentControllerState::PersistentControllerState(const char * fileName) {
 	file.seekg(0);
 
 	// Allocate space for bencoded state entry
-	std::vector<char> bencodedBitSwaprStateEntry(sizeOfFile, 0);
+    std::vector<char> dictionaryEntryVector(sizeOfFile, 0);
 
 	// Read entire file into vector
-	file.read(&bencodedBitSwaprStateEntry[0], bencodedBitSwaprStateEntry.size());
+    file.read(&dictionaryEntryVector[0], dictionaryEntryVector.size());
 	
 	// Close file
 	file.close();
@@ -406,11 +406,11 @@ PersistentControllerState::PersistentControllerState(const char * fileName) {
 	*/
 
 	// Bendecode entry
-	libtorrent::entry bitSwaprStateEntry = libtorrent::bdecode(bencodedBitSwaprStateEntry.begin(), bencodedBitSwaprStateEntry.end());
-	const libtorrent::entry::dictionary_type & bitSwaprStateDictionaryEntry = bitSwaprStateEntry.dict();
+    libtorrent::entry bitSwaprStateEntry = libtorrent::bdecode(dictionaryEntryVector.begin(), dictionaryEntryVector.end());
+    const libtorrent::entry::dictionary_type & dictionaryEntry = bitSwaprStateEntry.dict();
 
     // Use other constructor using this dictionary
-    PersistentControllerState(bitSwaprStateDictionaryEntry);
+    PersistentControllerState::PersistentControllerState(dictionaryEntry);
 }
 
 void PersistentControllerState::toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) {
@@ -447,8 +447,15 @@ void PersistentControllerState::toDictionaryEntry(libtorrent::entry::dictionary_
     libtorrent::entry::dictionary_type persistentTorrentStatesDictionaryEntry;
 
     for(std::map<libtorrent::sha1_hash, PersistentTorrentState>::const_iterator i = persistantTorrentStates_.begin(),
-        end(persistantTorrentStates_.end()); i != end; i++)
-        persistentTorrentStatesDictionaryEntry[(i->first).to_string()] = (i->second).toDictionaryEntry();
+        end(persistantTorrentStates_.end()); i != end; i++) {
+
+        // Write to dictionary
+        libtorrent::entry::dictionary_type dictionaryEntry;
+        (i->second).toDictionaryEntry(dictionaryEntry);
+
+        // Save mapping
+        persistentTorrentStatesDictionaryEntry[(i->first).to_string()] = dictionaryEntry;
+    }
 
     dictionaryEntry["persistentTorrentStates"] = persistentTorrentStatesDictionaryEntry;
 }
@@ -480,18 +487,22 @@ void PersistentControllerState::saveToFile(const char * fileName) {
 	file.close();
 }
 
-libtorrent::entry & PersistentControllerState::getLibtorrentSessionSettingsEntry() const {
+libtorrent::entry & PersistentControllerState::getLibtorrentSessionSettingsEntry() {
     return libtorrentSessionSettingsEntry_;
 }
 
-std::pair<int, int> & PersistentControllerState::getPortRange() const {
+std::pair<int, int> & PersistentControllerState::getPortRange() {
     return portRange_;
 }
 
-std::map<libtorrent::sha1_hash, PersistentTorrentState> & PersistentControllerState::getPersistentTorrentStates() const {
-    return torrentModels_;
+std::map<libtorrent::sha1_hash, PersistentTorrentState> & PersistentControllerState::getPersistentTorrentStates() {
+    return persistantTorrentStates_;
 }
 
-std::vector<std::pair<std::string, int>> & PersistentControllerState::getDhtRouters() const {
+std::vector<std::pair<std::string, int>> & PersistentControllerState::getDhtRouters() {
     return dhtRouters_;
+}
+
+void PersistentControllerState::setLibtorrentSessionSettingsEntry(const libtorrent::entry & libtorrentSessionSettingsEntry) {
+    libtorrentSessionSettingsEntry_ = libtorrentSessionSettingsEntry;
 }

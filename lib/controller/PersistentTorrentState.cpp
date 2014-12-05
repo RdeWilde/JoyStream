@@ -104,8 +104,9 @@ PersistentTorrentState & PersistentTorrentState::operator=(const PersistentTorre
     info_hash_ = rhs.getInfoHash();
     name_ = rhs.getName();
     save_path_ = rhs.getSavePath();
-    resume_data_ = rhs.getResumeData();
+    resume_data_ = rhs.getConstResumeData();
     flags_ = rhs.getFlags();
+
     return *this;
 }
 
@@ -145,6 +146,10 @@ const std::string & PersistentTorrentState::getSavePath() const {
 }
 
 std::vector<char> & PersistentTorrentState::getResumeData() {
+    return resume_data_;
+}
+
+const std::vector<char> & PersistentTorrentState::getConstResumeData() const {
     return resume_data_;
 }
 

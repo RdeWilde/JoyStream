@@ -14,13 +14,13 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets # Needed for including QApplicat
 INCLUDEPATH += $$PWD # be able to include w.r.t root of this project
 
 SOURCES += \
-            controller/Controller.cpp \
-            controller/exceptions/InvalidBitSwaprStateEntryException.cpp \
-            controller/exceptions/ListenOnException.cpp \
-            controller/exceptions/MissingInfoHashViewRequestException.cpp \
-            logger/LoggerManager.cpp \
-            logger/exceptions/CannnotOpenLogFile.cpp \
-            logger/exceptions/DuplicateLog.cpp \
+    controller/Controller.cpp \
+    controller/exceptions/InvalidBitSwaprStateEntryException.cpp \
+    controller/exceptions/ListenOnException.cpp \
+    controller/exceptions/MissingInfoHashViewRequestException.cpp \
+    logger/LoggerManager.cpp \
+    logger/exceptions/CannnotOpenLogFile.cpp \
+    logger/exceptions/DuplicateLog.cpp \
     view/MainWindow.cpp \
     ControllerTracker.cpp \
     extension/Message/ExtendedMessage.cpp \
@@ -43,14 +43,14 @@ SOURCES += \
     controller/PersistentTorrentState.cpp
 		
 HEADERS += \
-            controller/Controller.hpp \
-            controller/exceptions/InvalidBitSwaprStateEntryException.hpp \
-            controller/exceptions/ListenOnException.hpp \
-            controller/exceptions/MissingInfoHashViewRequestException.hpp \
-            Config.hpp \
-            logger/LoggerManager.hpp \
-            logger/exceptions/DuplicateLog.hpp \
-            logger/exceptions/CannnotOpenLogFile.hpp \
+    controller/Controller.hpp \
+    controller/exceptions/InvalidBitSwaprStateEntryException.hpp \
+    controller/exceptions/ListenOnException.hpp \
+    controller/exceptions/MissingInfoHashViewRequestException.hpp \
+    Config.hpp \
+    logger/LoggerManager.hpp \
+    logger/exceptions/DuplicateLog.hpp \
+    logger/exceptions/CannnotOpenLogFile.hpp \
     view/MainWindow.hpp \
     ControllerTracker.hpp \
     extension/Message/ExtendedMessage.hpp \

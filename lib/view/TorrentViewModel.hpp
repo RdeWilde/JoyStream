@@ -8,26 +8,29 @@
 
 #include <QLoggingCategory>
 #include <QMetaType> // Q_DECLARE_METATYPE
+#include <QStandardItemModel>
 
 #include <map>
 
 #include <boost/asio/ip/tcp.hpp>
 
-class QStandardItemModel;
 class QStandardItem;
-class PeerPluginViewModel;
 class QString;
 
 class PeerPlugin;
 class PeerPluginStatus;
+class PeerPluginViewModel;
 
 class TorrentViewModel
 {
 
 public:
 
+    static const char * columnTitles[];
+    static const int numberOfColumns;
+
     // Constructor
-    TorrentViewModel(const libtorrent::sha1_hash & info_hash, QStandardItemModel * torrentTableViewModel, QLoggingCategory & category);
+    TorrentViewModel(const libtorrent::sha1_hash & info_hash, QStandardItemModel & torrentTableViewModel, QLoggingCategory & category);
 
     // Destructor
     ~TorrentViewModel();
@@ -35,7 +38,7 @@ public:
     // For altering view model of peer plugins table, for example in response to user clicks on torrents
     QStandardItemModel * getPeerPluginsTableViewModel();
 
-    // Update view-model
+    // Update
     void update(const libtorrent::torrent_status & torrentStatus);
     void updateName(const QString & name);
     void updateSize(int size);
@@ -45,27 +48,30 @@ public:
     void updateMode(bool pluginOn);
     void updateBalance(int tokensReceived, int tokensSent);
 
-    void addPeerPlugin(PeerPlugin * peerPlugin); // Add view-model for peer plugin
+    void addPeerPlugin(PeerPlugin * peerPlugin);
+    void removePeerPlugin(const boost::asio::ip::tcp::endpoint & endPoint);
     void updatePeerPluginState(PeerPluginStatus status); //
 
     // Getter
-    const libtorrent::sha1_hash & getInfoHash();
+    const libtorrent::sha1_hash & getInfoHash() const;
 
 private:
 
     // Hash of torrent
-    const libtorrent::sha1_hash info_hash_;
+    libtorrent::sha1_hash info_hash_;
 
-    // View model for torrent table
-    QStandardItemModel * torrentTableViewModel_;
+    // View model for torrent table. Is reference since it is shared
+    // across objects of this type.
+    QStandardItemModel & torrentTableViewModel_;
 
     // View model for peer plugins table
-    QStandardItemModel * peerPluginsTableViewModel_;
+    QStandardItemModel peerPluginsTableViewModel_;
 
     // View models for peers
-    std::map<boost::asio::ip::tcp::endpoint, PeerPluginViewModel> peerPluginViewModels;
+    std::map<boost::asio::ip::tcp::endpoint, PeerPluginViewModel *> peerPluginViewModels;
 
-    // torrentTableViewModel_ items
+    // Model items, have to be pointers since QStandardItemModel takes ownership of
+    // objects and deletes them.
     QStandardItem * nameItem,
                   * sizeItem,
                   * stateItem,

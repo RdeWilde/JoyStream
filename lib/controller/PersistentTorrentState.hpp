@@ -49,6 +49,7 @@ public:
     const std::string & getName() const;
     const std::string & getSavePath() const;
     std::vector<char> & getResumeData();
+    const std::vector<char> & PersistentTorrentState::getConstResumeData() const;
     quint64 getFlags() const;
 
 private:

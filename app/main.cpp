@@ -9,6 +9,7 @@
 #include "lib/ControllerTracker.hpp"
 #include "lib/controller/Controller.hpp"
 #include "lib/logger/LoggerManager.hpp"
+#include "lib/controller/PersistentControllerState.hpp"
 
 #include <libtorrent/torrent_info.hpp>
 #include <libtorrent/error_code.hpp>

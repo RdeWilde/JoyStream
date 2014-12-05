@@ -49,23 +49,10 @@ private:
     void processSaveResumeDataFailedAlert(libtorrent::save_resume_data_failed_alert const * p);
     void processTorrentPausedAlert(libtorrent::torrent_paused_alert const * p);
 
-    /**
-     * Routines for dealing with resume data
-     */
-
-    bool loadResumeDataForTorrent(libtorrent::add_torrent_params & params) const;
-    //bool loadResumeDataForTorrent(QString const & save_path, QString const & file_name, std::vector<char> * resume_data) const;
-
     // Tell libtorrent try save resume data for all torrents needing it
     int makeResumeDataCallsForAllTorrents();
 
-    // Tries to save the resume data for a torrent
-    bool saveResumeDataForTorrent(QString const & save_path, QString const & file_name, std::vector<char> const & resume_data) const;
-
-    // Builds resume file name for torrent with given info hash
-    QString resumeFileNameForTorrent(libtorrent::sha1_hash & info_hash) const;
-
-    // Routine called after all resume data has been saved
+    // Routine called after all resume data has been saved as part of an initlal begin_close() call
     void finalize_close();
 
    /**

@@ -23,6 +23,7 @@
 MainWindow::MainWindow(Controller * controller, QLoggingCategory & category)
     : ui(new Ui::MainWindow)
     , controller_(controller)
+    , torrentTableViewModel_(0, TorrentViewModel::numberOfColumns)
     , torrentTableContextMenu(new QMenu(this))
     , peerPluginsTableContextMenu(new QMenu(this))
     , category_(category)
@@ -41,18 +42,12 @@ MainWindow::MainWindow(Controller * controller, QLoggingCategory & category)
 
     this->setWindowTitle(title);
 
-    // Create table view model
-    const char * columns[] = {"Name", "Size", "Status", "Speed", "Peers", "Mode", "#Channels", "Balance"};
-    const int numberOfColumns = sizeof(columns)/sizeof(char *);
-
-    torrentTableViewModel = new QStandardItemModel(0, numberOfColumns); // this no longer parent, does it matter?
-
-    // Add columns to model
-    for(int i = 0;i < numberOfColumns;i++)
-        torrentTableViewModel->setHorizontalHeaderItem(i, new QStandardItem(columns[i]));
+    // Add columns to model view model
+    for(int i = 0;i < TorrentViewModel::numberOfColumns;i++)
+        torrentTableViewModel_.setHorizontalHeaderItem(i, new QStandardItem(TorrentViewModel::columnTitles[i]));
 
     // Set table model to view model
-    ui->torrentsTable->setModel(torrentTableViewModel);
+    ui->torrentsTable->setModel(&torrentTableViewModel_);
 
     // Setup context menu capacity on table view
     ui->torrentsTable->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -83,23 +78,20 @@ MainWindow::MainWindow(Controller * controller, QLoggingCategory & category)
 
 MainWindow::~MainWindow()
 {
-    // Delete Ui::MainWindow
-    delete ui;
-
-    // Delete everything in model, should be recursive
-    // does it take ownership of actions, or do we need to delete them explicitly
-    delete torrentTableViewModel;
-
-    // Delete context menu
-    // does it take ownership of actions, or do we need to delete them explicitly
-    delete torrentTableContextMenu;
-
-    /*
     // Delete torrent view models
+    ui->peerPluginsTable->setModel(0); // make sure peer plugin table is not backed by a model
+
     for(std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator i = torrentViewModels.begin(),
         end(torrentViewModels.end()); i != end;i++)
         delete i->second;
-     */
+
+    // Delete context menus
+    // Do thet take ownership of actions, or do we need to delete them explicitly?
+    delete torrentTableContextMenu;
+    delete peerPluginsTableContextMenu;
+
+    // Delete Ui::MainWindow
+    delete ui;
 }
 
 void MainWindow::showContextMenu(QPoint pos) {
@@ -120,7 +112,7 @@ void MainWindow::torrentTableClicked(const QModelIndex & index) {
     // Get torrent view model for torrent clicked on
 
     // Get item that was clicked
-    QStandardItem * clickedItem = torrentTableViewModel->itemFromIndex(index);
+    QStandardItem * clickedItem = torrentTableViewModel_.itemFromIndex(index);
 
     // Get torrent view stored in data field
     QVariant data = clickedItem->data();
@@ -160,7 +152,7 @@ void MainWindow::removeMenuAction() {
 const libtorrent::sha1_hash & MainWindow::getInfoHashOfLastClickedTorrent() {
 
     // Get view item corresponding to index
-    QStandardItem * torrentTableItem = torrentTableViewModel->itemFromIndex(torrentTableLastIndexClicked);
+    QStandardItem * torrentTableItem = torrentTableViewModel_.itemFromIndex(torrentTableLastIndexClicked);
 
     // Get torrent view model for item
     QVariant variant = torrentTableItem->data();
@@ -213,12 +205,14 @@ void MainWindow::closeEvent(QCloseEvent * event) {
 void MainWindow::addTorrent(const libtorrent::sha1_hash & info_hash, const QString & torrentName, int totalSize) {
 
     // Create torrent view model
-    torrentViewModels[info_hash] = TorrentViewModel(info_hash, torrentTableViewModel, category_);
+    TorrentViewModel * torrentViewModel = new TorrentViewModel(info_hash, torrentTableViewModel_, category_);
 
     // Update known fields
-    torrentViewModels[info_hash].updateName(torrentName);
-    torrentViewModels[info_hash].updateSize(totalSize);
+    torrentViewModel->updateName(torrentName);
+    torrentViewModel->updateSize(totalSize);
 
+    // Insert into map
+    torrentViewModels.insert(std::make_pair(info_hash, torrentViewModel));
 }
 
 void MainWindow::addTorrentFailed(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec) {
@@ -230,19 +224,20 @@ void MainWindow::addTorrentFailed(const std::string & name, const libtorrent::sh
 void MainWindow::removeTorrent(const libtorrent::sha1_hash & info_hash) {
 
     // Find corresponding TorrentViewModel
-    std::map<libtorrent::sha1_hash, TorrentViewModel>::iterator mapIterator = torrentViewModels.find(info_hash);
+    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = torrentViewModels.find(info_hash);
 
     if(mapIterator == torrentViewModels.end()) {
         qCCritical(category_) << "No match info_hash found.";
         return;
     }
 
-    // Remove from torrentViewModels map and destroys it
-    torrentViewModels.erase(mapIterator);
-
-    // Clear model for peerPluginsTable
+    // Reset model for peerPluginsTable,
+    // which if this method call is due to a context menu click on torrent table
+    // will have set the peerPluginsTable to its model.
     ui->peerPluginsTable->setModel(0);
 
+    // Remove from map, which will call destuctor
+    torrentViewModels.erase(mapIterator);
 }
 
 void MainWindow::updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector) {
@@ -256,39 +251,39 @@ void MainWindow::updateTorrentStatus(const std::vector<libtorrent::torrent_statu
 void MainWindow::updateTorrentStatus(const libtorrent::torrent_status & torrentStatus) {
 
     // Find corresponding TorrentViewModel
-    std::map<libtorrent::sha1_hash, TorrentViewModel>::iterator mapIterator = torrentViewModels.find(torrentStatus.info_hash);
+    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = torrentViewModels.find(torrentStatus.info_hash);
 
     if(mapIterator == torrentViewModels.end()) {
         qCCritical(category_) << "No match info_hash found.";
         return;
     }
 
-    TorrentViewModel & torrentViewModel = mapIterator->second;
+    TorrentViewModel * torrentViewModel = mapIterator->second;
 
     // Update
-    torrentViewModel.update(torrentStatus);
+    torrentViewModel->update(torrentStatus);
 }
 
 void MainWindow::updateTorrentPluginStatus(TorrentPluginStatus status) {
 
     // Find corresponding TorrentViewModel
-    std::map<libtorrent::sha1_hash, TorrentViewModel>::iterator mapIterator = torrentViewModels.find(status.info_hash_);
+    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = torrentViewModels.find(status.info_hash_);
 
     if(mapIterator == torrentViewModels.end()) {
         qCCritical(category_) << "No matching info_hash found.";
         return;
     }
 
-    TorrentViewModel & torrentViewModel = mapIterator->second;
+    TorrentViewModel * torrentViewModel = mapIterator->second;
 
     // Peers
-    torrentViewModel.updatePeers(status.numberOfPeers_, status.numberOfPeersWithExtension_);
+    torrentViewModel->updatePeers(status.numberOfPeers_, status.numberOfPeersWithExtension_);
 
     // Mode
-    torrentViewModel.updateMode(status.pluginOn_);
+    torrentViewModel->updateMode(status.pluginOn_);
 
     // Balance
-    torrentViewModel.updateBalance(status.tokensReceived_, status.tokensSent_);
+    torrentViewModel->updateBalance(status.tokensReceived_, status.tokensSent_);
 }
 
 void MainWindow::addPeerPlugin(PeerPlugin * peerPlugin) {
@@ -296,17 +291,17 @@ void MainWindow::addPeerPlugin(PeerPlugin * peerPlugin) {
     qCDebug(category_) << "addPeerPlugin()";
 
     // Find corresponding TorrentViewModel
-    std::map<libtorrent::sha1_hash, TorrentViewModel>::iterator mapIterator = torrentViewModels.find(peerPlugin->getInfoHash());
+    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = torrentViewModels.find(peerPlugin->getInfoHash());
 
     if(mapIterator == torrentViewModels.end()) {
         qCCritical(category_) << "No match info_hash found.";
         return;
     }
 
-    TorrentViewModel & torrentViewModel = mapIterator->second;
+    TorrentViewModel * torrentViewModel = mapIterator->second;
 
     // Add plugin
-    torrentViewModel.addPeerPlugin(peerPlugin);
+    torrentViewModel->addPeerPlugin(peerPlugin);
 }
 
 void MainWindow::updatePeerPluginStatus(PeerPluginStatus status) {
@@ -315,15 +310,15 @@ void MainWindow::updatePeerPluginStatus(PeerPluginStatus status) {
 
     // Find corresponding TorrentViewModel
     libtorrent::sha1_hash info_hash = status.peerPlugin_->getInfoHash();
-    std::map<libtorrent::sha1_hash, TorrentViewModel>::iterator mapIterator = torrentViewModels.find(info_hash);
+    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = torrentViewModels.find(info_hash);
 
     if(mapIterator == torrentViewModels.end()) {
         qCCritical(category_) << "No match info_hash found.";
         return;
     }
 
-    TorrentViewModel & torrentViewModel = mapIterator->second;
+    TorrentViewModel * torrentViewModel = mapIterator->second;
 
     // Update
-    torrentViewModel.updatePeerPluginState(status);
+    torrentViewModel->updatePeerPluginState(status);
 }

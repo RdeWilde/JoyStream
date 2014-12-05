@@ -41,7 +41,18 @@ void AddTorrentDialog::on_AddTorrentDialog_accepted() {
     save_path.append(torrentName.c_str());
     */
 
-    // Update parameters
+    // Storage mode (not represented in persistent state)
+    //params.storage_mode = (storage_mode_t)allocation_mode; //  disabled_storage_constructor;
+
+    // Flags
+    //params.flags |= add_torrent_params::flag_paused; //  |= add_torrent_params::flag_seed_mode;
+    //params.flags &= ~add_torrent_params::flag_duplicate_is_error;
+    //params.flags |= add_torrent_params::flag_auto_managed; // |= add_torrent_params::flag_share_mode;
+
+    // User data (not represented in persistent state)
+    //params.userdata = (void*)strdup(torrent.c_str());
+
+    // Save path
     params_.save_path = save_path.toStdString();
 
     // Add torrent

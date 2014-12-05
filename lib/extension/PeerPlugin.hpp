@@ -54,9 +54,6 @@ public:
                libtorrent::bt_peer_connection * bittorrentPeerConnection,
                QLoggingCategory & category);
 
-    // Destructor
-    ~PeerPlugin();
-
     /**
      * All virtual functions below should ONLY
      * be called by libtorrent network thread,

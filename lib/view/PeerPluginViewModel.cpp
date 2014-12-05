@@ -8,14 +8,19 @@
 #include <QList>
 #include <QStandardItem>
 
-PeerPluginViewModel::PeerPluginViewModel(const boost::asio::ip::tcp::endpoint & endPoint, QStandardItemModel * peerPluginsTableViewModel)
+const char * PeerPluginViewModel::columnTitles[] = {"Host", "State", "Balance", "Progress"};
+const int PeerPluginViewModel::numberOfColumns = sizeof(PeerPluginViewModel::columnTitles)/sizeof(char *);
+
+PeerPluginViewModel::PeerPluginViewModel(const boost::asio::ip::tcp::endpoint & endPoint, QStandardItemModel & peerPluginsTableViewModel)
     : endPoint_(endPoint)
     , peerPluginsTableViewModel_(peerPluginsTableViewModel)
 {
 
-    // Allocate view items
-    // These are later owned by the external QStandardItem
-    // model for the torrent table, hence we do not need to delete
+    /**
+     * Allocate view items
+     * These are later owned by the external QStandardItem
+     * model for the torrent table, hence we do not need to delete.
+     */
 
     std::string hostAddress = libtorrent::print_endpoint(endPoint);
     hostItem = new QStandardItem(QString(hostAddress.c_str()));
@@ -24,9 +29,12 @@ PeerPluginViewModel::PeerPluginViewModel(const boost::asio::ip::tcp::endpoint & 
     progressItem = new QStandardItem();
 
     // Set item data, so this is recoverable
-    setItemData();
+    hostItem->setData(QVariant::fromValue(this));
+    stateItem->setData(QVariant::fromValue(this));
+    balanceItem->setData(QVariant::fromValue(this));
+    progressItem->setData(QVariant::fromValue(this));
 
-    // Add as row to
+    // Add as row to model
     QList<QStandardItem *> row;
 
     row.append(hostItem);
@@ -35,40 +43,7 @@ PeerPluginViewModel::PeerPluginViewModel(const boost::asio::ip::tcp::endpoint & 
     row.append(progressItem);
 
     // Add row to peer plugins table view-model for this torrent
-    peerPluginsTableViewModel_->appendRow(row);
-}
-
-void PeerPluginViewModel::setItemData() {
-
-    hostItem->setData(QVariant::fromValue(this));
-    stateItem->setData(QVariant::fromValue(this));
-    balanceItem->setData(QVariant::fromValue(this));
-    progressItem->setData(QVariant::fromValue(this));
-}
-
-PeerPluginViewModel::~PeerPluginViewModel() {
-
-    // Nothing to delete at moment
-
-    // items are owned by peerPluginsTableViewModel_, which we
-    // do not own.
-}
-
-// Assignment operator required to put in std::map
-PeerPluginViewModel & PeerPluginViewModel::operator=(const PeerPluginViewModel& rhs) {
-
-    // Copy fields
-    endPoint_ = rhs.getEndPoint();
-    peerPluginsTableViewModel_ = rhs.getPeerPluginsTableViewModel();
-    hostItem = rhs.getHostItem();
-    stateItem = rhs.getStateItem();
-    balanceItem = rhs.getBalanceItem();
-    progressItem = rhs.getProgressItem();
-
-    // Change item data field to this object
-    setItemData();
-
-    return *this;
+    peerPluginsTableViewModel_.appendRow(row);
 }
 
 void PeerPluginViewModel::update(PeerPluginStatus status) {
@@ -107,24 +82,4 @@ void PeerPluginViewModel::updateProgress() {
 
 const boost::asio::ip::tcp::endpoint & PeerPluginViewModel::getEndPoint() const {
     return endPoint_;
-}
-
-QStandardItemModel * PeerPluginViewModel::getPeerPluginsTableViewModel() const {
-    return peerPluginsTableViewModel_;
-}
-
-QStandardItem * PeerPluginViewModel::getHostItem() const {
-    return hostItem;
-}
-
-QStandardItem * PeerPluginViewModel::getStateItem() const {
-    return stateItem;
-}
-
-QStandardItem * PeerPluginViewModel::getBalanceItem() const {
-    return balanceItem;
-}
-
-QStandardItem * PeerPluginViewModel::getProgressItem() const {
-    return progressItem;
 }

@@ -67,7 +67,10 @@ Controller::Controller(const PersistentControllerState & persistentControllerSta
 	session.load_state(settingsLazyEntry);
 
 	// Add DHT routing nodes
-    for(std::vector<std::pair<std::string, int>>::iterator i = dhtRouters_.begin();i != dhtRouters_.end(); ++i)
+    const std::vector<std::pair<std::string, int>> & dhtRouters = persistentControllerState_.getDhtRouters();
+
+    for(std::vector<std::pair<std::string, int>>::const_iterator i = dhtRouters.begin(),
+            end(dhtRouters.end());i != end; ++i)
         session.add_dht_router(*i); // Add router to session
 
     // Add plugin extension
@@ -229,40 +232,6 @@ void Controller::processAlert(const libtorrent::alert * a) {
     delete a;
 }
 
-// QString const & save_path, QString const & file_name, std::vector<char> * resume_data
-bool Controller::loadResumeDataForTorrent(libtorrent::add_torrent_params & params) const {
-
-    // Check that file exists
-    QString save_path(params.save_path.c_str());
-    QString file_name = resumeFileNameForTorrent(params.info_hash);
-    QString resumeFile = save_path + QDir::separator() + file_name;
-
-    QFile file(resumeFile);
-
-    if(file.exists()) {
-
-        // Open file
-        if(!file.open(QIODevice::ReadOnly)) {
-            qCWarning(category_) << "Could not open : " << resumeFile.toStdString().c_str();
-            return false;
-        }
-
-        // Read entire file
-        QByteArray fullFile = file.readAll();
-
-        // Close file
-        file.close();
-
-        // Populate resume_data vector
-        params.resume_data = new std::vector<char>();
-        for(QByteArray::iterator i = fullFile.begin(), end(fullFile.end()); i != end; i++)
-            params.resume_data->push_back(*i);
-
-        return true;
-    } else
-        return false;
-}
-
 // NB!: Alreayd assumes session is paused and does not check sourceForLastResumeDataCall and numberOfOutstandingResumeDataCalls before starting,
 // assumes they equal NONE,0 respectively.
 int Controller::makeResumeDataCallsForAllTorrents() {
@@ -289,40 +258,6 @@ int Controller::makeResumeDataCallsForAllTorrents() {
     }
 
     return numberOfOutstandingResumeDataCalls;
-}
-
-bool Controller::saveResumeDataForTorrent(QString const & save_path, QString const & file_name, std::vector<char> const & resume_data) const {
-
-    // Check that save_path still exists, if not create it,
-    // because it could have been deleted by user since addTorrent()
-    // If you cant create it, then return false
-    if(!(QDir().exists(save_path) || QDir().mkpath(save_path))) {
-
-        qCWarning(category_) << "Could not create save_path: " << save_path.toStdString().c_str();
-        return false;
-    }
-
-    // Open file
-    QString resumeFile = save_path + QDir::separator() + file_name;
-    QFile file(resumeFile);
-
-    if(!file.open(QIODevice::WriteOnly)) {
-
-        qCCritical(category_) << "Could not open : " << resumeFile.toStdString().c_str();
-        return false;
-    }
-
-    // Write to file
-    file.write(&(resume_data[0]), resume_data.size());
-
-    // Close file
-    file.close();
-
-    return true;
-}
-
-QString Controller::resumeFileNameForTorrent(libtorrent::sha1_hash & info_hash) const {
-    return QString((libtorrent::to_hex(info_hash.to_string()) + ".resume").c_str());
 }
 
 void Controller::processTorrentPausedAlert(libtorrent::torrent_paused_alert const * p) {
@@ -361,15 +296,16 @@ void Controller::processTorrentRemovedAlert(libtorrent::torrent_removed_alert co
      * so we must use p->info_hash instead.
      */
 
-    std::map<libtorrent::sha1_hash, TorrentState>::iterator mapIterator = torrentModels_.find(p->info_hash);
+    std::map<libtorrent::sha1_hash, PersistentTorrentState> & torrentStates = persistentControllerState_.getPersistentTorrentStates();
+    std::map<libtorrent::sha1_hash, PersistentTorrentState>::iterator & mapIterator = torrentStates.find(p->info_hash);
 
     // Did we find match
-    if(mapIterator == torrentModels_.end()) {
+    if(mapIterator == torrentStates.end()) {
         qCCritical(category_) << "No matching info hash found.";
     }
 
     // Erase from map, which also calls destructor
-    torrentModels_.erase(mapIterator);
+    torrentStates.erase(mapIterator);
 
     // Remove from view
     view.removeTorrent(p->info_hash);
@@ -414,7 +350,6 @@ void Controller::processSaveResumeDataAlert(libtorrent::save_resume_data_alert c
 
     // Check that state of controller is compatible with the arrival of this alert
     if(sourceForLastResumeDataCall == NONE || numberOfOutstandingResumeDataCalls == 0) {
-
         qCCritical(category_) << "Received resume data alert, despite no outstanding calls, hence droping alert, but this is a bug.";
         return;
     }
@@ -422,23 +357,26 @@ void Controller::processSaveResumeDataAlert(libtorrent::save_resume_data_alert c
     // Decrease outstanding count
     numberOfOutstandingResumeDataCalls--;
 
-    // Get torrent params to get save_path
-    std::map<libtorrent::sha1_hash, TorrentState>::iterator mapIterator = persistentControllerState_.getPersistentTorrentStates().find(p->handle.info_hash());
+    // Get persistent torrent state to save resume data
+    std::map<libtorrent::sha1_hash, PersistentTorrentState> & torrentStates = persistentControllerState_.getPersistentTorrentStates();
+    std::map<libtorrent::sha1_hash, PersistentTorrentState>::iterator & mapIterator = torrentStates.find(p->handle.info_hash());
 
     // Did we find match
-    if(mapIterator == torrentModels_.end()) {
+    if(mapIterator == torrentStates.end()) {
         qCCritical(category_) << "No matching info hash found.";
+        return;
     }
 
-    TorrentState & torrentModel = mapIterator->second;
+    PersistentTorrentState & torrentState = mapIterator->second;
 
-    libtorrent::add_torrent_params & params = torrentModel.getParameters();
-    QString save_path = params.save_path.c_str();
+    // Get reference to resume data vector
+    std::vector<char> & resume_data = torrentState.getResumeData();
 
-    // Save resume data for torrent to disk
-    std::vector<char> resume_data;
+    // Dump old content
+    resume_data.clear();
+
+    // Write new content to it
     bencode(std::back_inserter(resume_data), *(p->resume_data));
-    saveResumeDataForTorrent(save_path, resumeFileNameForTorrent(p->handle.info_hash()), resume_data);
 
     // If this was last outstanding resume data save, then do relevant callback
     if(numberOfOutstandingResumeDataCalls == 0) {
@@ -615,55 +553,15 @@ void Controller::addTorrent(libtorrent::add_torrent_params & params) {
         }
     }
 
-    // Create save_path if it does not exist
+    // Create save_path on disk if it does not exist
     if(!(QDir()).mkpath(params.save_path.c_str())) {
 
         qCCritical(category_) << "Could not create save_path: " << params.save_path.c_str();
         return;
     }
 
-    // Load resume data if it exists
-    //params.resume_data.clear(); // <-- should be empty
-
-    if(params.resume_data) {
-
-        qCDebug(category_) << "resume_data has to be non-zero, canceling adding torrent.";
-        return;
-    }
-
-    // Load resume data for torrents
-    loadResumeDataForTorrent(params);
-
-    /*
-    // Allocate space for resume data
-    std::vector<char> * resume_data = new std::vector<char>();
-
-    bool resumed = loadResumeDataForTorrent(params.save_path.c_str(), resumeFileNameForTorrent(params.info_hash), params.resume_data);
-
-    if(resumed)
-        params.resume_data = resume_data;
-    else
-        delete resume_data;
-    */
-
-    // Set parameters
-    //params.storage_mode = (storage_mode_t)allocation_mode; //  disabled_storage_constructor;
-    //params.flags |= add_torrent_params::flag_paused; //  |= add_torrent_params::flag_seed_mode;
-    //params.flags &= ~add_torrent_params::flag_duplicate_is_error;
-    //params.flags |= add_torrent_params::flag_auto_managed; // |= add_torrent_params::flag_share_mode;
-    //params.userdata = (void*)strdup(torrent.c_str());
-
-	// Add to libtorrent session
-    /*
-    libtorrent::add_torrent_params d;
-    d.save_path = std::string("C:\\");
-    d.url = std::string("magnet:?xt=urn:btih:781ad3adbd9b81b64e4c530712ae9199b1dfbae5&dn=Now+You+See+Me+%282013%29+1080p+EXTENDED+BrRip+x264+-+YIFY&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3");
-    session.async_add_torrent(d);
-    */
+    // Add to session
     session.async_add_torrent(params);
-
-    // Create and add torrent model to map
-    torrentModels_[params.info_hash] = TorrentState(params);
 }
 
 void Controller::saveStateToFile(const char * file) {
@@ -672,14 +570,10 @@ void Controller::saveStateToFile(const char * file) {
 	libtorrent::entry libtorrentSessionSettingsEntry;
 	session.save_state(libtorrentSessionSettingsEntry);
 
-	// Create state object
-    PersistentControllerState controllerState(libtorrentSessionSettingsEntry,
-                                    portRange_,
-                                    torrentModels_,
-                                    dhtRouters_);
+    persistentControllerState_.setLibtorrentSessionSettingsEntry(libtorrentSessionSettingsEntry);
 
 	// Save to file
-	controllerState.saveToFile(file);
+    persistentControllerState_.saveToFile(file);
 }
 
 void Controller::begin_close() {
