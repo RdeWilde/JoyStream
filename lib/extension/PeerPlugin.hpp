@@ -5,7 +5,6 @@
 #include "Message/ExtendedMessageIdMapping.hpp"
 #include "PeerPluginStatus.hpp"
 #include "PeerPluginState.hpp"
-#include "PeerPluginId.hpp"
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/entry.hpp>
@@ -15,13 +14,13 @@
 #include <libtorrent/peer_request.hpp>
 #include <libtorrent/disk_buffer_holder.hpp>
 #include <libtorrent/buffer.hpp>
-
 #include <libtorrent/peer_id.hpp> // sha1_hash
 
-#include <QObject>
+#include <boost/asio/ip/tcp.hpp> // boost::asio::ip::tcp::endpoint
 
-// #include <boost/asio/ip/tcp.hpp> // ip::tcp::endpoint
-#include <boost/asio/ip/tcp.hpp> // ip::tcp::endpoint
+#include <QObject>
+#include <QMetaType>
+Q_DECLARE_METATYPE(boost::asio::ip::tcp::endpoint) // peerRemoved signal
 
 // Forward declaration
 class TorrentPlugin;
@@ -53,6 +52,9 @@ public:
     PeerPlugin(TorrentPlugin * torrentPlugin,
                libtorrent::bt_peer_connection * bittorrentPeerConnection,
                QLoggingCategory & category);
+
+    // Destructor
+    ~PeerPlugin();
 
     /**
      * All virtual functions below should ONLY
@@ -128,18 +130,18 @@ protected:
     // Logging category
     QLoggingCategory & category_;
 
-
     /**
-      * Convenience variables, not part of entitiy model
-      */
-
-    // Convenience variable, since we need it so often
-    std::string endPointString_;
+     * Question: Can this only run on libtorrent network thread?
+     * 1) Closes b_peer_connection
+     * 2) Removes from torrent plugin
+     * 3) Notifies controller
+     */
+    void endPlugin();
 
 signals:
 
     void peerAdded(PeerPlugin * peerPlugin);
-
+    void peerRemoved(boost::asio::ip::tcp::endpoint endPoint);
     void updatePeerPluginStatus(PeerPluginStatus status);
 
 };

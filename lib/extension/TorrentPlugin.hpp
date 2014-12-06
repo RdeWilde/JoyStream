@@ -45,6 +45,17 @@ public:
     virtual void on_add_peer(libtorrent::tcp::endpoint const & tcpEndPoint, int src, int flags);
 
     /**
+      * Routines called by libtorrent network thread via tick() entry point on
+      * peer plugins.
+      */
+    // Adds peer to respective set, and returns whether it was actually added or existed in the set from before.
+    bool addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint);
+    bool addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint);
+
+    // Remove plugin from peerPlugins_ map
+    void removePlugin(PeerPlugin * plugin);
+
+    /**
      * Public routines used by non-libtorrent thread
      */
 
@@ -61,15 +72,14 @@ signals:
 
 private:
 
-    // Parent plugin for BitSwapr
-    // SHOULD THIS BE WEAK_PTR ?
+    // Parent plugin for BitSwapr: SHOULD THIS BE WEAK_PTR ?
     Plugin * plugin_;
 
     // Torrent for this torrent_plugin
     libtorrent::torrent * torrent_;
 
-    // Collection of peer plugin objects for each peer presently connected to this node through this torrent swarm
-    std::vector<PeerPlugin *> peerPlugins;
+    // Map of peer plugin objects for each peer presently connected to this node through this torrent swarm
+    std::map<libtorrent::tcp::endpoint, PeerPlugin *> peerPlugins_;
 
     // Logging category
     QLoggingCategory & category_;
@@ -82,6 +92,16 @@ private:
 
     // Token accounting since session start
     int tokensReceived_, tokensSent_;
+
+    // Use the two sets below when accepting new peers in new_connect
+    bool enableBanningSets;
+
+    // Set of all endpoints known to not have extension. Is populated
+    // by previous failed extended handshakes.
+    std::set<libtorrent::tcp::endpoint> peersWithoutExtension_;
+
+    // Set of endpoints banned for irregular conduct during extended protocol
+    std::set<libtorrent::tcp::endpoint> irregularPeer_;
 
     // subroutines for the tick() method
     void sendTorrentPluginStatusSignal();

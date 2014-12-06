@@ -205,9 +205,11 @@ void TorrentViewModel::removePeerPlugin(const boost::asio::ip::tcp::endpoint & e
 
 void TorrentViewModel::updatePeerPluginState(PeerPluginStatus status) {
 
-    // If extension is not enabled, then it should not be registered with us.
-    // If extension is enabled, it may still be it is not registered here,
-    // simply because peerAdded() signal has not been processed yet.
+    /**
+     * If extension is not enabled, then it should not be registered with us.
+     * If extension is enabled, it may still be it is not registered here,
+     * simply because peerAdded() signal has not been processed yet.
+     */
     if(status.peerPlugin_->getPeerBEP43SupportedStatus() != PeerPlugin::PEER_BEP_SUPPORTED_STATUS::supported)
         return;
 

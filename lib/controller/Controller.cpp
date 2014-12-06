@@ -145,6 +145,10 @@ void Controller::updatePeerPluginStatus(PeerPluginStatus status) {
     view.updatePeerPluginStatus(status);
 }
 
+void Controller::removePeer(boost::asio::ip::tcp::endpoint endPoint) {
+    view.removePeerPlugin(endPoint);
+}
+
 void Controller::libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::alert> alertAutoPtr) {
 
     /*

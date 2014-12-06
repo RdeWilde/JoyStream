@@ -1,8 +1,6 @@
 #ifndef TORRENT_VIEW_MODEL_HPP
 #define TORRENT_VIEW_MODEL_HPP
 
-#include "extension/PeerPluginId.hpp"
-
 #include <libtorrent/peer_id.hpp> // sha1_hash
 #include <libtorrent/torrent_handle.hpp> // libtorrent::torrent_status, torrent_status::state_t
 

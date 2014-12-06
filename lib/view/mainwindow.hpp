@@ -51,6 +51,7 @@ public:
 
     void addPeerPlugin(PeerPlugin * peerPlugin);
     void updatePeerPluginStatus(PeerPluginStatus status);
+    void removePeer(boost::asio::ip::tcp::endpoint endPoint);
 
 private:
 

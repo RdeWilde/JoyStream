@@ -37,7 +37,6 @@ SOURCES += \
     extension/BuyerPeerplugin.cpp \
     view/TorrentViewModel.cpp \
     Utilities.cpp \
-    extension/PeerPluginId.cpp \
     view/PeerPluginViewModel.cpp \
     controller/PersistentControllerState.cpp \
     controller/PersistentTorrentState.cpp
@@ -68,7 +67,6 @@ HEADERS += \
     extension/PeerPluginState.hpp \
     view/TorrentViewModel.hpp \
     Utilities.hpp \
-    extension/PeerPluginId.hpp \
     view/PeerPluginViewModel.hpp \
     extension/Message/MessageType.hpp \
     controller/PersistentTorrentState.hpp \

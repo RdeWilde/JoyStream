@@ -322,3 +322,8 @@ void MainWindow::updatePeerPluginStatus(PeerPluginStatus status) {
     // Update
     torrentViewModel->updatePeerPluginState(status);
 }
+
+void MainWindow::removePeer(boost::asio::ip::tcp::endpoint endPoint) {
+
+    qCDebug(category_) << "MainWindow::removePeer(): not implemented";
+}

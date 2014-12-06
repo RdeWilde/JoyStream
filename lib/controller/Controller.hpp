@@ -141,6 +141,7 @@ public slots:
     void extensionPeerAdded(PeerPlugin * peerPlugin);
     void updateTorrentPluginStatus(TorrentPluginStatus status);
     void updatePeerPluginStatus(PeerPluginStatus status);
+    void removePeer(boost::asio::ip::tcp::endpoint endPoint);
 
 signals:
 
