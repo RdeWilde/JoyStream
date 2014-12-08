@@ -39,7 +39,8 @@ SOURCES += \
     Utilities.cpp \
     view/PeerPluginViewModel.cpp \
     controller/PersistentControllerState.cpp \
-    controller/PersistentTorrentState.cpp
+    controller/PersistentTorrentState.cpp \
+    extension/PeerPluginId.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -70,7 +71,8 @@ HEADERS += \
     view/PeerPluginViewModel.hpp \
     extension/Message/MessageType.hpp \
     controller/PersistentTorrentState.hpp \
-    controller/PersistentControllerState.hpp
+    controller/PersistentControllerState.hpp \
+    extension/PeerPluginId.hpp
 				
 FORMS += \
             view/mainwindow.ui \

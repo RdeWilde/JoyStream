@@ -49,9 +49,9 @@ public:
     void updateTorrentStatus(const libtorrent::torrent_status & torrentStatus); // start, stopp, stats
     void updateTorrentPluginStatus(TorrentPluginStatus status);
 
-    void addPeerPlugin(PeerPlugin * peerPlugin);
+    void addPeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint);
     void updatePeerPluginStatus(PeerPluginStatus status);
-    void removePeer(boost::asio::ip::tcp::endpoint endPoint);
+    void removePeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint);
 
 private:
 

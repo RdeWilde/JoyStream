@@ -4,17 +4,16 @@
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
-#include <libtorrent/socket.hpp> // tcp::endpoint
 
 #include <boost/shared_ptr.hpp>
 
 #include <QObject>
 
-#include "TorrentPluginStatus.hpp"
-
 // Forward declaration
 class Plugin;
 class PeerPlugin;
+class PeerPluginId;
+class TorrentPluginStatus;
 
 class TorrentPlugin : public QObject, public libtorrent::torrent_plugin {
 
@@ -42,7 +41,7 @@ public:
     virtual bool on_pause();
     virtual void on_files_checked();
     virtual void on_state(int s);
-    virtual void on_add_peer(libtorrent::tcp::endpoint const & tcpEndPoint, int src, int flags);
+    virtual void on_add_peer(const libtorrent::tcp::endpoint & endPoint, int src, int flags);
 
     /**
       * Routines called by libtorrent network thread via tick() entry point on
@@ -52,23 +51,27 @@ public:
     bool addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint);
     bool addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint);
 
-    // Remove plugin from peerPlugins_ map
-    void removePlugin(PeerPlugin * plugin);
-
-    /**
-     * Public routines used by non-libtorrent thread
-     */
+    // Removes peer plugin
+    // 1) Remove plugin from peerPlugins_ map
+    // 2) Deletes peer_plugin object
+    // 3) Notifies controller
+    void removePeerPlugin(PeerPlugin * plugin);
 
     // Returns plugin
-    Plugin * getPlugin();
+    //Plugin * getPlugin();
 
     // Returns torrent
-    libtorrent::torrent * getTorrent();
+    //libtorrent::torrent * getTorrent();
     const libtorrent::sha1_hash & getInfoHash() const;
 
 signals:
 
-    void updateTorrentPluginStatus(TorrentPluginStatus status);
+    void torrentPluginStatusUpdated(const TorrentPluginStatus & status);
+
+    /*
+    void peerAdded(const PeerPluginId & peerPluginId);
+    void peerRemoved(const PeerPluginId & peerPluginId);
+    */
 
 private:
 
@@ -102,6 +105,10 @@ private:
 
     // Set of endpoints banned for irregular conduct during extended protocol
     std::set<libtorrent::tcp::endpoint> irregularPeer_;
+
+    /**
+      * Utility routines, not part of entity representation.
+      */
 
     // subroutines for the tick() method
     void sendTorrentPluginStatusSignal();

@@ -5,7 +5,7 @@
 #include <libtorrent/torrent_handle.hpp> // libtorrent::torrent_status, torrent_status::state_t
 
 #include <QLoggingCategory>
-#include <QMetaType> // Q_DECLARE_METATYPE
+
 #include <QStandardItemModel>
 
 #include <map>
@@ -46,8 +46,8 @@ public:
     void updateMode(bool pluginOn);
     void updateBalance(int tokensReceived, int tokensSent);
 
-    void addPeerPlugin(PeerPlugin * peerPlugin);
-    void removePeerPlugin(const boost::asio::ip::tcp::endpoint & endPoint);
+    void addPeerPlugin(const libtorrent::tcp::endpoint & endPoint);
+    void removePeerPlugin(const libtorrent::tcp::endpoint & endPoint);
     void updatePeerPluginState(PeerPluginStatus status); //
 
     // Getter
@@ -66,7 +66,7 @@ private:
     QStandardItemModel peerPluginsTableViewModel_;
 
     // View models for peers
-    std::map<boost::asio::ip::tcp::endpoint, PeerPluginViewModel *> peerPluginViewModels;
+    std::map<libtorrent::tcp::endpoint, PeerPluginViewModel *> peerPluginViewModels;
 
     // Model items, have to be pointers since QStandardItemModel takes ownership of
     // objects and deletes them.
@@ -83,6 +83,7 @@ private:
     QLoggingCategory & category_;
 };
 
-Q_DECLARE_METATYPE(TorrentViewModel *)
+#include <QMetaType>
+Q_DECLARE_METATYPE(TorrentViewModel*) // QStandardItem::setData(QVariant::fromValue(this))
 
 #endif // TORRENT_VIEW_MODEL_HPP

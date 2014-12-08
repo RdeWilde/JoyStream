@@ -17,13 +17,6 @@
 #include <QTimer>
 #include <QLoggingCategory>
 
-// Register types for signal and slots
-Q_DECLARE_METATYPE(libtorrent::sha1_hash)
-Q_DECLARE_METATYPE(std::string)
-Q_DECLARE_METATYPE(libtorrent::error_code)
-Q_DECLARE_METATYPE(std::vector<libtorrent::torrent_status>)
-Q_DECLARE_METATYPE(libtorrent::torrent_status)
-Q_DECLARE_METATYPE(const libtorrent::alert*) // Register type for QMetaObject::invokeMethod
 
 class libtorrent::peer_connection;
 
@@ -134,14 +127,13 @@ private slots:
 
 public slots:
 
-    /**
-     * Primarily used by plugin routines, run by libtorrent thread.
-     */
-
-    void extensionPeerAdded(PeerPlugin * peerPlugin);
+    /*
+    // Primarily used by plugin routines, run by libtorrent thread.
+    void addPeerPlugin(libtorrent::tcp::endpoint endPoint);
     void updateTorrentPluginStatus(TorrentPluginStatus status);
     void updatePeerPluginStatus(PeerPluginStatus status);
-    void removePeer(boost::asio::ip::tcp::endpoint endPoint);
+    void removePeerPlugin(libtorrent::tcp::endpoint endPoint);
+    */
 
 signals:
 

@@ -1,14 +1,18 @@
 #include "Plugin.hpp"
 #include "TorrentPlugin.hpp"
-
 #include "controller/Controller.hpp" // needed for connecting
 #include "TorrentPluginStatus.hpp" // needed for connecting
+
+/*
+#include <QMetaType>
+Q_DECLARE_METATYPE(libtorrent::tcp::endpoint)
+*/
+// #include <libtorrent/socket.hpp> // tcp::endpoint
 
 Plugin::Plugin(Controller * controller, QLoggingCategory & category)
     : controller_(controller)
     , session_(NULL)
     , category_(category) {
-
 }
 
 Plugin::~Plugin() {
@@ -25,17 +29,30 @@ boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::to
     TorrentPlugin * torrentPlugin = new TorrentPlugin(this, newTorrent, category_, true);
 
     // Add to collection
-    torrentPlugins.push_back(torrentPlugin);
+    torrentPlugins_.insert(std::make_pair(newTorrent->info_hash(), torrentPlugin));
 
-    // Connect signals to controller slot
-    qRegisterMetaType<TorrentPluginStatus>();
+    // Connect torrent plugin signal
+    /*
+    //qRegisterMetaType<TorrentPluginStatus>();
     QObject::connect(torrentPlugin,
                      SIGNAL(updateTorrentPluginStatus(TorrentPluginStatus)),
                      controller_,
                      SLOT(updateTorrentPluginStatus(TorrentPluginStatus)));
 
+    //qRegisterMetaType<libtorrent::tcp::endpoint>();
+
+    QObject::connect(torrentPlugin,
+                     SIGNAL(peerAdded(libtorrent::tcp::endpoint)),
+                     controller_,
+                     SLOT(extensionPeerAdded(libtorrent::tcp::endpoint)));
+
+    QObject::connect(torrentPlugin,
+                     SIGNAL(peerRemoved(libtorrent::tcp::endpoint)),
+                     controller_,
+                     SLOT(removePeer(libtorrent::tcp::endpoint)));
+*/
     // Diagnostic
-    qCDebug(category_) << "Torrent #" << torrentPlugins.size() << " added.";
+    qCDebug(category_) << "Torrent #" << torrentPlugins_.size() << " added.";
 
     // Return
     return boost::shared_ptr<libtorrent::torrent_plugin>(torrentPlugin);
@@ -62,5 +79,9 @@ void Plugin::save_state(libtorrent::entry & stateEntry) const {
 }
 
 void Plugin::load_state(libtorrent::lazy_entry const & stateEntry) {
+
+}
+
+void Plugin::removeTorrentPlugin(const libtorrent::sha1_hash & info_hash) {
 
 }

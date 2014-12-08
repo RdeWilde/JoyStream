@@ -24,6 +24,14 @@
 #include <boost/bind.hpp>
 #endif Q_MOC_RUN
 
+// Register types for signal and slots
+Q_DECLARE_METATYPE(libtorrent::sha1_hash)
+Q_DECLARE_METATYPE(std::string)
+Q_DECLARE_METATYPE(libtorrent::error_code)
+Q_DECLARE_METATYPE(std::vector<libtorrent::torrent_status>)
+Q_DECLARE_METATYPE(libtorrent::torrent_status)
+Q_DECLARE_METATYPE(const libtorrent::alert*) // Register type for QMetaObject::invokeMethod
+
 Controller::Controller(const PersistentControllerState & persistentControllerState, bool showView, QLoggingCategory & category)
     : session(libtorrent::fingerprint(CLIENT_FINGERPRINT
                                       ,BITSWAPR_VERSION_MAJOR
@@ -133,8 +141,9 @@ void Controller::callPostTorrentUpdates() {
     session.post_torrent_updates();
 }
 
-void Controller::extensionPeerAdded(PeerPlugin * peerPlugin) {
-    view.addPeerPlugin(peerPlugin);
+/*
+void Controller::addPeerPlugin(libtorrent::sha1_hash info_hash, libtorrent::tcp::endpoint endPoint) {
+    view.addPeerPlugin(info_hash, endPoint);
 }
 
 void Controller::updateTorrentPluginStatus(TorrentPluginStatus status) {
@@ -145,9 +154,10 @@ void Controller::updatePeerPluginStatus(PeerPluginStatus status) {
     view.updatePeerPluginStatus(status);
 }
 
-void Controller::removePeer(boost::asio::ip::tcp::endpoint endPoint) {
-    view.removePeerPlugin(endPoint);
+void Controller::removePeerPlugin(libtorrent::sha1_hash info_hash, libtorrent::tcp::endpoint endPoint) {
+    view.removePeerPlugin(info_hash, endPoint);
 }
+*/
 
 void Controller::libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::alert> alertAutoPtr) {
 

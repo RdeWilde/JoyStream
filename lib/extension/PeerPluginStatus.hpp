@@ -1,11 +1,8 @@
 #ifndef PEER_PLUGIN_STATUS_HPP
 #define PEER_PLUGIN_STATUS_HPP
 
-#include <QMetaType> // Q_DECLARE_METATYPE
-
 #include "PeerPluginState.hpp"
-
-class PeerPlugin;
+#include "PeerPluginId.hpp"
 
 class PeerPluginStatus
 {
@@ -15,15 +12,19 @@ public:
     PeerPluginStatus();
 
     // Constructor
-    PeerPluginStatus(const PeerPlugin * peerPlugin, PeerPluginState peerPluginState, int balance);
+    PeerPluginStatus(const PeerPluginId & peerPluginId, PeerPluginState peerPluginState, int balance);
 
-    const PeerPlugin * peerPlugin_;
+    // Source of status
+    PeerPluginId peerPluginId_;
 
+    // State of plugin
     PeerPluginState peerPluginState_;
 
+    // Balance in favour of client
     int balance_;
 };
 
+#include <QMetaType>
 Q_DECLARE_METATYPE(PeerPluginStatus)
 
 #endif // PEER_PLUGIN_STATUS_HPP

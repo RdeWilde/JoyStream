@@ -1,7 +1,9 @@
-
+﻿
 #include "TorrentPlugin.hpp"
 #include "BuyerPeerPlugin.hpp" // needed since we construct object
 #include "SellerPeerPlugin.hpp" // needed since we construct object
+#include "PeerPluginStatus.hpp" // signal parameter
+#include "controller/Controller.hpp" // needed to connect
 
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/peer_connection.hpp>
@@ -18,7 +20,6 @@ TorrentPlugin::TorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLo
     , tokensSent_(0)
     , pluginOn_(pluginOn)
     , enableBanningSets(true) {
-    //(libtorrent::to_hex(torrent_->info_hash().to_string())).c_str() << ".";
 }
 
 TorrentPlugin::~TorrentPlugin() {
@@ -77,8 +78,21 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorr
     // Add to collection
     peerPlugins_.insert(std::make_pair(endPoint, peerPlugin));
 
-    // Notify
+    /*
+    // Connect peer plugin signal to controller slot
+    Controller * controller = plugin_->getController();
+
+    QObject::connect(peerPlugin,
+                     SIGNAL(peerPluginStatusUpdated(const PeerPluginStatus&)),
+                     controller,
+                     SLOT(updatePeerPluginStatus(const PeerPluginStatus&)));
+    */
+
     qCDebug(category_) << "#" << peerPlugins_.size() << endPointString.c_str() << "added to " << this->torrent_->name().c_str();
+
+    // Emit peer added signal
+    // Should not be here, should be when a payment channel actually starts
+    //emit peerAdded(peerPlugin->getPeerPluginId());
 
     // Return pointer to plugin as required
     return boost::shared_ptr<libtorrent::peer_plugin>(peerPlugin);
@@ -98,7 +112,6 @@ void TorrentPlugin::tick() {
 
     // Send status signal
     sendTorrentPluginStatusSignal();
-
 }
 
 bool TorrentPlugin::on_resume() {
@@ -167,18 +180,28 @@ bool TorrentPlugin::addToIrregularPeersSet(const libtorrent::tcp::endpoint & end
     return insertResult.second;
 }
 
-void TorrentPlugin::removePlugin(PeerPlugin * plugin) {
+void TorrentPlugin::removePeerPlugin(PeerPlugin * plugin) {
 
     // Find iterator reference to plugin
-    std::map<libtorrent::tcp::endpoint, PeerPlugin *>::iterator & mapIterator = peerPlugins_.find(plugin->getInfoHash());
+    std::map<libtorrent::tcp::endpoint, PeerPlugin *>::iterator & mapIterator = peerPlugins_.find(plugin->getEndPoint());
 
     // Did we find match?
-    if(mapIterator == peerPlugins_.end())
+    if(mapIterator == peerPlugins_.end()) {
         qCDebug(category_) << "Could not find peer for removal.";
-    else // Remove
-        peerPlugins_.erase(mapIterator);
+        return;
+    }
+
+    // Remove
+    peerPlugins_.erase(mapIterator);
+
+    // Delete object: Do we do this, or does libtorrent? and when is this safe?
+    //delete mapIterator->second;
+
+    // Emit peer added signal
+    //emit peerRemoved(torrent_->info_hash(), mapIterator->first);
 }
 
+/*
 Plugin * TorrentPlugin::getPlugin() {
 
     // Returns plugin
@@ -188,6 +211,7 @@ Plugin * TorrentPlugin::getPlugin() {
 libtorrent::torrent * TorrentPlugin::getTorrent() {
     return torrent_;
 }
+*/
 
 const libtorrent::sha1_hash & TorrentPlugin::getInfoHash() const {
     return torrent_->info_hash();
@@ -198,16 +222,16 @@ void TorrentPlugin::sendTorrentPluginStatusSignal() {
     int numberOfPeers = peerPlugins_.size();
 
     int numberOfPeersWithExtension = 0;
-    for(std::vector<PeerPlugin *>::iterator i = peerPlugins_.begin(),
+    for(std::map<libtorrent::tcp::endpoint, PeerPlugin *>::iterator i = peerPlugins_.begin(),
         end(peerPlugins_.end()); i != end; i++) {
 
-        if((*i)->getPeerBEP43SupportedStatus() == PeerPlugin::supported)
+        if((i->second)->getPeerBEP43SupportedStatus() == PeerPlugin::supported)
             numberOfPeersWithExtension++;
     }
 
-    // Emit status
-    libtorrent::sha1_hash hash = torrent_->info_hash();
-    TorrentPluginStatus status(hash, numberOfPeers, numberOfPeersWithExtension, pluginOn_, tokensReceived_, tokensSent_);
+    // Emit status signal
+    libtorrent::sha1_hash info_hash = torrent_->info_hash();
+    TorrentPluginStatus status(info_hash, numberOfPeers, numberOfPeersWithExtension, pluginOn_, tokensReceived_, tokensSent_);
 
-    emit updateTorrentPluginStatus(status);
+    //emit torrentPluginStatusUpdated(status);
 }

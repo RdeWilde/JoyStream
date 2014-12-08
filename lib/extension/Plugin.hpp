@@ -1,4 +1,3 @@
-
 #ifndef PLUGIN_HPP
 #define PLUGIN_HPP
 
@@ -10,6 +9,7 @@
 #include <libtorrent/peer.hpp>
 #include <libtorrent/entry.hpp>
 #include <libtorrent/lazy_entry.hpp>
+#include <libtorrent/peer_id.hpp> // libtorrent::sha1_hash
 
 #include <boost/shared_ptr.hpp>
 
@@ -31,8 +31,8 @@ private:
     // Libtorrent session. Is set by added() call, not constructor
     libtorrent::aux::session_impl * session_;
 
-    // Collection of plugin objects for each torrent added through new_connection()
-    std::vector<TorrentPlugin *> torrentPlugins;
+    // Maps info hash to pointer to corresponding torrent plugin
+    std::map<libtorrent::sha1_hash, TorrentPlugin *> torrentPlugins_;
 
     // Logging category
     QLoggingCategory & category_;
@@ -48,7 +48,12 @@ public:
     // Returns controller
     Controller * getController();
 
-    // Virtual functions
+    /**
+     * All virtual functions below should ONLY
+     * be called by libtorrent network thread,
+     * never by other threads, as this causes synchronization
+     * failures.
+     */
     virtual boost::shared_ptr<libtorrent::torrent_plugin> new_torrent(libtorrent::torrent * newTorrent, void * userData);
     virtual void added(libtorrent::aux::session_impl * session);
     virtual void on_alert(libtorrent::alert const * a);
@@ -57,14 +62,21 @@ public:
     virtual void save_state(libtorrent::entry & stateEntry) const;
     virtual void load_state(libtorrent::lazy_entry const & stateEntry);
 
+    /**
+      * Routines called by libtorrent network thread via tick() entry point on
+      * torrent plugins.
+      */
+
+    // Removes torrent plugin
+    // 1) Remove plugin from torrentPlugins_ map
+    // 2) Deletes peer_plugin object
+    // 3) Notifies controller
+    void removeTorrentPlugin(const libtorrent::sha1_hash & info_hash);
+
 signals:
 
-    /*
-     * Notifying controller
-     */
-
-    //void statusUpdate();
-
+    // void pluginStatusUpdated(PluginStatus pluginStatus); // total account balance?
+    //void torrentRemoved(libtorrent::sha1_hash info_hash);
 };
 
 #endif

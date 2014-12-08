@@ -3,8 +3,8 @@
 #define PEER_PLUGIN_HPP
 
 #include "Message/ExtendedMessageIdMapping.hpp"
-#include "PeerPluginStatus.hpp"
 #include "PeerPluginState.hpp"
+#include "PeerPluginId.hpp"
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/entry.hpp>
@@ -16,14 +16,11 @@
 #include <libtorrent/buffer.hpp>
 #include <libtorrent/peer_id.hpp> // sha1_hash
 
-#include <boost/asio/ip/tcp.hpp> // boost::asio::ip::tcp::endpoint
-
 #include <QObject>
-#include <QMetaType>
-Q_DECLARE_METATYPE(boost::asio::ip::tcp::endpoint) // peerRemoved signal
 
 // Forward declaration
 class TorrentPlugin;
+class PeerPluginStatus;
 
 /*
  * We inherit from QObject so we can send signals, and QObject must be first:
@@ -36,8 +33,9 @@ class PeerPlugin : public QObject, public libtorrent::peer_plugin {
 
 public:
 
-    // BEP support state indicator, is used for both regular BitTorrent handshake
-    // and BEP10 handshake.
+    // BEP support state indicator, is used for both regular
+    // 1) BitTorrent handshake
+    // 2) BEP10 handshake
     enum PEER_BEP_SUPPORTED_STATUS {
 
         // Before handshake
@@ -95,19 +93,13 @@ public:
     /**
      * Public routines used by non-libtorrent thread
      */
-    const libtorrent::sha1_hash & getInfoHash() const;
+    //const libtorrent::sha1_hash & getInfoHash() const; // Who calls this? remove if no one
 
     PEER_BEP_SUPPORTED_STATUS getPeerBEP10SupportedStatus() const;
     PEER_BEP_SUPPORTED_STATUS getPeerBEP43SupportedStatus() const;
 
-    const boost::asio::ip::tcp::endpoint & getEndPoint() const;
-
-    /*
+    const libtorrent::tcp::endpoint & getEndPoint() const;
     const PeerPluginId & getPeerPluginId() const;
-
-    // Needed so plugins can appear in std::map
-    bool operator<(PeerPlugin other) const;
-    */
 
 protected:
 
@@ -131,18 +123,15 @@ protected:
     QLoggingCategory & category_;
 
     /**
-     * Question: Can this only run on libtorrent network thread?
-     * 1) Closes b_peer_connection
-     * 2) Removes from torrent plugin
-     * 3) Notifies controller
-     */
-    void endPlugin();
+      * Utilitiy routines/variables
+      */
+
+    // Id of this peer plugin
+    PeerPluginId peerPluginId_; // asess later, is the redundancy worth it
 
 signals:
 
-    void peerAdded(PeerPlugin * peerPlugin);
-    void peerRemoved(boost::asio::ip::tcp::endpoint endPoint);
-    void updatePeerPluginStatus(PeerPluginStatus status);
+    //void peerPluginStatusUpdated(const PeerPluginStatus & status);
 
 };
 

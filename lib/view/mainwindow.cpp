@@ -286,22 +286,23 @@ void MainWindow::updateTorrentPluginStatus(TorrentPluginStatus status) {
     torrentViewModel->updateBalance(status.tokensReceived_, status.tokensSent_);
 }
 
-void MainWindow::addPeerPlugin(PeerPlugin * peerPlugin) {
+void MainWindow::addPeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint) {
 
     qCDebug(category_) << "addPeerPlugin()";
 
     // Find corresponding TorrentViewModel
-    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = torrentViewModels.find(peerPlugin->getInfoHash());
+    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = torrentViewModels.find(info_hash);
 
     if(mapIterator == torrentViewModels.end()) {
         qCCritical(category_) << "No match info_hash found.";
         return;
     }
 
+    // Get corresponding torrent view model
     TorrentViewModel * torrentViewModel = mapIterator->second;
 
     // Add plugin
-    torrentViewModel->addPeerPlugin(peerPlugin);
+    torrentViewModel->addPeerPlugin(endPoint);
 }
 
 void MainWindow::updatePeerPluginStatus(PeerPluginStatus status) {
@@ -309,8 +310,7 @@ void MainWindow::updatePeerPluginStatus(PeerPluginStatus status) {
     qCDebug(category_) << "updatePeerPluginStatus()";
 
     // Find corresponding TorrentViewModel
-    libtorrent::sha1_hash info_hash = status.peerPlugin_->getInfoHash();
-    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = torrentViewModels.find(info_hash);
+    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = torrentViewModels.find(status.peerPluginId_.info_hash_);
 
     if(mapIterator == torrentViewModels.end()) {
         qCCritical(category_) << "No match info_hash found.";
@@ -323,7 +323,6 @@ void MainWindow::updatePeerPluginStatus(PeerPluginStatus status) {
     torrentViewModel->updatePeerPluginState(status);
 }
 
-void MainWindow::removePeer(boost::asio::ip::tcp::endpoint endPoint) {
-
+void MainWindow::removePeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint) {
     qCDebug(category_) << "MainWindow::removePeer(): not implemented";
 }

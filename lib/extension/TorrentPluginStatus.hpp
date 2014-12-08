@@ -2,7 +2,6 @@
 #define TORRENT_PLUGIN_STATUS_HPP
 
 #include <libtorrent/peer_id.hpp> // sha1_hash
-#include <QMetaType> // Q_DECLARE_METATYPE
 
 class TorrentPluginStatus
 {
@@ -35,6 +34,7 @@ public:
 
 };
 
+#include <QMetaType>
 Q_DECLARE_METATYPE(TorrentPluginStatus)
 
 #endif // TORRENT_PLUGIN_STATUS_HPP

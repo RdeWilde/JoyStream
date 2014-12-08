@@ -11,7 +11,7 @@
 const char * PeerPluginViewModel::columnTitles[] = {"Host", "State", "Balance", "Progress"};
 const int PeerPluginViewModel::numberOfColumns = sizeof(PeerPluginViewModel::columnTitles)/sizeof(char *);
 
-PeerPluginViewModel::PeerPluginViewModel(const boost::asio::ip::tcp::endpoint & endPoint, QStandardItemModel & peerPluginsTableViewModel)
+PeerPluginViewModel::PeerPluginViewModel(const libtorrent::tcp::endpoint & endPoint, QStandardItemModel & peerPluginsTableViewModel)
     : endPoint_(endPoint)
     , peerPluginsTableViewModel_(peerPluginsTableViewModel)
 {
@@ -80,6 +80,6 @@ void PeerPluginViewModel::updateProgress() {
 
 }
 
-const boost::asio::ip::tcp::endpoint & PeerPluginViewModel::getEndPoint() const {
+const libtorrent::tcp::endpoint & PeerPluginViewModel::getEndPoint() const {
     return endPoint_;
 }

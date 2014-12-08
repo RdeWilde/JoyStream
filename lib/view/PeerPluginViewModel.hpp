@@ -1,8 +1,7 @@
 #ifndef PEER_PLUGIN_VIEW_MODEL_HPP
 #define PEER_PLUGIN_VIEW_MODEL_HPP
 
-#include <QMetaType> // Q_DECLARE_METATYPE
-#include <boost/asio/ip/tcp.hpp>
+#include <libtorrent/socket.hpp> // libtorrent::tcp::endpoint
 
 class PeerPlugin;
 class QStandardItemModel;
@@ -19,7 +18,7 @@ public:
     static const int numberOfColumns;
 
     // Constructor
-    PeerPluginViewModel(const boost::asio::ip::tcp::endpoint & endPoint, QStandardItemModel & peerPluginsTableViewModel);
+    PeerPluginViewModel(const libtorrent::tcp::endpoint & endPoint, QStandardItemModel & peerPluginsTableViewModel);
 
     // Update routines
     void update(PeerPluginStatus status);
@@ -29,12 +28,12 @@ public:
     void updateProgress();
 
     // Getters
-    const boost::asio::ip::tcp::endpoint & getEndPoint() const;
+    const libtorrent::tcp::endpoint & getEndPoint() const;
 
 private:
 
     // TCP/IP endpoint
-    boost::asio::ip::tcp::endpoint endPoint_;
+    libtorrent::tcp::endpoint endPoint_;
 
     // View model for peer plugins table. Is pointer since it is shared
     // among objects of this type.
@@ -48,6 +47,7 @@ private:
                   * progressItem;
 };
 
-Q_DECLARE_METATYPE(PeerPluginViewModel *)
+#include <QMetaType>
+Q_DECLARE_METATYPE(PeerPluginViewModel *) // QStandardItem::setData(QVariant::fromValue(this))
 
 #endif // PEER_PLUGIN_VIEW_MODEL_HPP

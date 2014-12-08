@@ -63,7 +63,7 @@ TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & info_hash, QSta
 TorrentViewModel::~TorrentViewModel(){
 
     // Delete peer plugin view models
-    for(std::map<boost::asio::ip::tcp::endpoint, PeerPluginViewModel *>::iterator i = peerPluginViewModels.begin(),
+    for(std::map<libtorrent::tcp::endpoint, PeerPluginViewModel *>::iterator i = peerPluginViewModels.begin(),
             end(peerPluginViewModels.end());i != end;i++)
         delete i->second;
 }
@@ -187,9 +187,9 @@ void TorrentViewModel::updateBalance(int tokensReceived, int tokensSent) {
     balanceItem->setText(balance);
 }
 
-void TorrentViewModel::addPeerPlugin(PeerPlugin * peerPlugin) {
+void TorrentViewModel::addPeerPlugin(const libtorrent::tcp::endpoint & endPoint) {
 
-    const boost::asio::ip::tcp::endpoint & endPoint = peerPlugin->getEndPoint();
+    //const libtorrent::tcp::endpoint & endPoint = peerPlugin->getEndPoint();
 
     // Add to map
     peerPluginViewModels.insert(std::make_pair(endPoint, new PeerPluginViewModel(endPoint, peerPluginsTableViewModel_)));
@@ -199,7 +199,7 @@ void TorrentViewModel::addPeerPlugin(PeerPlugin * peerPlugin) {
     qCDebug(category_) << "addPeerPlugin" << endPointString.c_str();
 }
 
-void TorrentViewModel::removePeerPlugin(const boost::asio::ip::tcp::endpoint & endPoint) {
+void TorrentViewModel::removePeerPlugin(const libtorrent::tcp::endpoint & endPoint) {
     qCDebug(category_) << "removePeerPlugin: NOT IMPLEMENTED";
 }
 
@@ -210,12 +210,20 @@ void TorrentViewModel::updatePeerPluginState(PeerPluginStatus status) {
      * If extension is enabled, it may still be it is not registered here,
      * simply because peerAdded() signal has not been processed yet.
      */
+
+
+
+    /*
+     * DISABLE THIS CHECK UNTIL THE MESSAGE LOGIC IS SORTED OUT
+     *
+     *
     if(status.peerPlugin_->getPeerBEP43SupportedStatus() != PeerPlugin::PEER_BEP_SUPPORTED_STATUS::supported)
         return;
+    */
 
     // Find Peer
-    const boost::asio::ip::tcp::endpoint & endPoint = status.peerPlugin_->getEndPoint();
-    std::map<boost::asio::ip::tcp::endpoint,PeerPluginViewModel *>::iterator mapIterator = peerPluginViewModels.find(endPoint);
+    const libtorrent::tcp::endpoint & endPoint = status.peerPluginId_.endPoint_;
+    std::map<libtorrent::tcp::endpoint,PeerPluginViewModel *>::iterator mapIterator = peerPluginViewModels.find(endPoint);
 
     std::string endPointString = libtorrent::print_endpoint(endPoint);
     qCDebug(category_) << "updatePeerPluginState" << endPointString.c_str();

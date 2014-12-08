@@ -16,33 +16,8 @@ PeerPlugin::PeerPlugin(TorrentPlugin * torrentPlugin, libtorrent::bt_peer_connec
     , peerBEP10SupportedStatus(unknown)
     , peerBEP43SupportedStatus(unknown)
     , peerPluginState_(PeerPluginState::started)
-    , category_(category) {
-
-    /**
-     * Signals
-     */
-    Controller * controller = torrentPlugin_->getPlugin()->getController();
-
-    // peer added
-    qRegisterMetaType<PeerPlugin *>();
-    QObject::connect(this,
-                     SIGNAL(peerAdded(PeerPlugin *)),
-                     controller,
-                     SLOT(extensionPeerAdded(PeerPlugin *)));
-
-    // update status
-    qRegisterMetaType<PeerPluginStatus>();
-    QObject::connect(this,
-                     SIGNAL(updatePeerPluginStatus(PeerPluginStatus)),
-                     controller,
-                     SLOT(updatePeerPluginStatus(PeerPluginStatus)));
-
-    // peer remove
-    qRegisterMetaType<boost::asio::ip::tcp::endpoint>();
-    QObject::connect(this,
-                     SIGNAL(peerRemoved(boost::asio::ip::tcp::endpoint)),
-                     controller,
-                     SLOT(removePeer(boost::asio::ip::tcp::endpoint)));
+    , category_(category)
+    , peerPluginId_(torrentPlugin_->getInfoHash(), bittorrentPeerConnection_->remote()) {
 }
 
 PeerPlugin::~PeerPlugin() {
@@ -159,7 +134,7 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
         torrentPlugin_->addToPeersWithoutExtensionSet(peerInfo.ip);
 
         // Remove this plugin from torrent plugin
-        torrentPlugin_->removePlugin(this);
+        torrentPlugin_->removePeerPlugin(this);
 
         // Do no keep extension around
         return false;
@@ -180,7 +155,7 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
         torrentPlugin_->addToIrregularPeersSet(peerInfo.ip);
 
         // Remove this plugin from torrent plugin
-        torrentPlugin_->removePlugin(this);
+        torrentPlugin_->removePeerPlugin(this);
 
         // Do no keep extension around
         return false;
@@ -197,7 +172,7 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
         torrentPlugin_->addToPeersWithoutExtensionSet(peerInfo.ip);
 
         // Remove this plugin from torrent plugin
-        torrentPlugin_->removePlugin(this);
+        torrentPlugin_->removePeerPlugin(this);
 
         // Do no keep extension around
         return false;
@@ -216,7 +191,7 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
         torrentPlugin_->addToIrregularPeersSet(peerInfo.ip);
 
         // Remove this plugin from torrent plugin
-        torrentPlugin_->removePlugin(this);
+        torrentPlugin_->removePeerPlugin(this);
 
         // Do no keep extension around
         return false;
@@ -235,31 +210,27 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
         torrentPlugin_->addToIrregularPeersSet(peerInfo.ip);
 
         // Remove this plugin from torrent plugin
-        torrentPlugin_->removePlugin(this);
+        torrentPlugin_->removePeerPlugin(this);
 
         // Do no keep extension around
         return false;
     }
 
-
-
-    endPointString_ = libtorrent::print_endpoint(endPoint);
-
-
-
-
-
     // Notify
-    qCDebug(category_) << "Found extension handshake for peer " << endPointString_.c_str();
+    std::string endPointString = libtorrent::print_endpoint(peerInfo.ip);
+    qCDebug(category_) << "Found extension handshake for peer " << endPointString.c_str();
 
     // All messages were present, hence the protocol is supported
     peerBEP43SupportedStatus = supported;
 
-    // Send signal about new peer
-    emit peerAdded(this);
-
     // Tell libtorrent that our extension should be kept in the loop for this peer
     return true;
+}
+
+bool PeerPlugin::on_have(int index) {
+
+    qCDebug(category_) << "on_have";
+    return false;
 }
 
 /*
@@ -267,37 +238,17 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
  * m_pc.disconnect(errors::too_frequent_pex);
  * m_pc.remote().address()
  */
+
 void PeerPlugin::on_disconnect(libtorrent::error_code const & ec) {
 
-    //if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(category_) << "on_disconnect";
+    qCDebug(category_) << "on_disconnect";
 
-        bittorrentPeerConnection_->disconnect();
+    // Remove from torrent plugin
+    torrentPlugin_->removePeerPlugin(this);
 }
 
 void PeerPlugin::on_connected() {
 
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(category_) << "on_connected";
-*/
-
-}
-
-/*
- * Returning true from any of the message handlers indicates that the
- * plugin has handeled the message. it will break the plugin chain
- * traversing and not let anyone else handle the message, including the default handler.
- */
-
-bool PeerPlugin::on_have(int index) {
-
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(category_) << "on_have(" << index << ")";
-        */
-
-    return false;
 }
 
 bool PeerPlugin::on_bitfield(libtorrent::bitfield const & bitfield) {
@@ -331,7 +282,7 @@ bool PeerPlugin::on_reject(libtorrent::peer_request const & peerRequest) {
 
 bool PeerPlugin::on_request(libtorrent::peer_request const & peerRequest) {
 
-    bittorrentPeerConnection_->incoming_request();
+    //bittorrentPeerConnection_->incoming_request();
 
     /*
     if(peerBEP43SupportedStatus != not_supported)
@@ -500,13 +451,9 @@ void PeerPlugin::tick() {
     qCDebug(category_) << "PeerPlugin.tick()";
 
     // Send signal
-    PeerPluginStatus status;
+    PeerPluginStatus status(peerPluginId_, peerPluginState_, 0);
 
-    status.peerPlugin_ = this;
-    status.peerPluginState_ = peerPluginState_;
-    status.balance_ = 100;
-
-    emit updatePeerPluginStatus(status);
+    //emit peerPluginStatusUpdated(status);
 }
 
 /*
@@ -518,14 +465,16 @@ bool PeerPlugin::write_request(libtorrent::peer_request const & peerRequest) {
     /*
     if(peerBEP43SupportedStatus != not_supported)
         qCDebug(category_) << "write_request";
-        */
+    */
 
     return false;
 }
 
+/*
 const libtorrent::sha1_hash & PeerPlugin::getInfoHash() const {
     return torrentPlugin_->getInfoHash();
 }
+*/
 
 PeerPlugin::PEER_BEP_SUPPORTED_STATUS PeerPlugin::getPeerBEP10SupportedStatus() const {
     return peerBEP10SupportedStatus;
@@ -535,32 +484,10 @@ PeerPlugin::PEER_BEP_SUPPORTED_STATUS PeerPlugin::getPeerBEP43SupportedStatus() 
     return peerBEP43SupportedStatus;
 }
 
-const boost::asio::ip::tcp::endpoint & PeerPlugin::getEndPoint() const {
+const libtorrent::tcp::endpoint & PeerPlugin::getEndPoint() const {
     return bittorrentPeerConnection_->remote();
 }
 
-void PeerPlugin::endPlugin() {
-
-    // Get end point
-    boost::asio::ip::tcp::endpoint endPoint = bittorrentPeerConnection_->remote();
-
-    // Close peer connection
-    libtorrent::error_code ec(,libtorrent::erro)
-    bittorrentPeerConnection_->disconnect();
-
-    // Remove from torrent plugin
-    torrentPlugin_->removePlugin(this);
-
-    // Notify controller
-    emit peerRemoved(endPoint);
-}
-
-/*
 const PeerPluginId & PeerPlugin::getPeerPluginId() const {
     return peerPluginId_;
 }
-
-bool PeerPlugin::operator<(PeerPlugin other) const {
-    this->peerPluginId_ < other.getPeerPluginId();
-}
-*/
