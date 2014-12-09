@@ -366,7 +366,7 @@ PersistentControllerState::PersistentControllerState(const libtorrent::entry::di
                     const libtorrent::entry::dictionary_type & persistentTorrentStateDictionaryEntry = persistentTorrentStateEntry.dict();
 
                     // Add to torrentAddTorrentParameters
-                    persistantTorrentStates_[info_hash] = PersistentTorrentState(persistentTorrentStateDictionaryEntry);
+                    persistentTorrentStates_[info_hash] = PersistentTorrentState(persistentTorrentStateDictionaryEntry);
 
                 } else
                     throw InvalidBitSwaprStateEntryException(dictionaryEntry, "persistentTorrentStates has value that is not of type entry::dict_type.");
@@ -446,8 +446,8 @@ void PersistentControllerState::toDictionaryEntry(libtorrent::entry::dictionary_
     // Add "persistentTorrentStates" key
     libtorrent::entry::dictionary_type persistentTorrentStatesDictionaryEntry;
 
-    for(std::map<libtorrent::sha1_hash, PersistentTorrentState>::const_iterator i = persistantTorrentStates_.begin(),
-        end(persistantTorrentStates_.end()); i != end; i++) {
+    for(std::map<libtorrent::sha1_hash, PersistentTorrentState>::const_iterator i = persistentTorrentStates_.begin(),
+        end(persistentTorrentStates_.end()); i != end; i++) {
 
         // Write to dictionary
         libtorrent::entry::dictionary_type dictionaryEntry;
@@ -496,7 +496,7 @@ std::pair<int, int> & PersistentControllerState::getPortRange() {
 }
 
 std::map<libtorrent::sha1_hash, PersistentTorrentState> & PersistentControllerState::getPersistentTorrentStates() {
-    return persistantTorrentStates_;
+    return persistentTorrentStates_;
 }
 
 std::vector<std::pair<std::string, int>> & PersistentControllerState::getDhtRouters() {

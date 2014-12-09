@@ -35,7 +35,7 @@ public:
     // Constructor using fields
     PersistentControllerState(const libtorrent::entry & libtorrentSessionSettingsEntry,
                     const std::pair<int, int> & portRange,
-                    const std::map<libtorrent::sha1_hash, PersistentTorrentState> torrentModels,
+                    const std::map<libtorrent::sha1_hash, PersistentTorrentState> persistentTorrentStates,
                     const std::vector<std::pair<std::string, int>> & dhtRouters);
 
     // Constructor using dictionary entry
@@ -80,7 +80,7 @@ private:
     std::vector<std::pair<std::string, int>> dhtRouters_;
 
     // Torrent states
-    std::map<libtorrent::sha1_hash, PersistentTorrentState> persistantTorrentStates_;
+    std::map<libtorrent::sha1_hash, PersistentTorrentState> persistentTorrentStates_;
 };
 
 #endif

@@ -1,6 +1,7 @@
-
 #ifndef TORRENT_PLUGIN_HPP
 #define TORRENT_PLUGIN_HPP
+
+#include "TorrentPluginParameters.hpp"
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
@@ -21,9 +22,6 @@ class TorrentPlugin : public QObject, public libtorrent::torrent_plugin {
 
 public:
 
-    // Constructor
-    TorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn);
-
     // Destructor
     ~TorrentPlugin();
 
@@ -33,7 +31,7 @@ public:
      * never by other threads, as this causes synchronization
      * failures.
      */
-    virtual boost::shared_ptr<libtorrent::peer_plugin> new_connection(libtorrent::peer_connection * peerConnection);
+    virtual boost::shared_ptr<libtorrent::peer_plugin> new_connection(libtorrent::peer_connection * peerConnection) = 0;
     virtual void on_piece_pass(int index);
     virtual void on_piece_failed(int index);
     virtual void tick();
@@ -44,9 +42,12 @@ public:
     virtual void on_add_peer(const libtorrent::tcp::endpoint & endPoint, int src, int flags);
 
     /**
-      * Routines called by libtorrent network thread via tick() entry point on
-      * peer plugins.
+      * Routines called by libtorrent network thread from other plugin objects
       */
+
+    // Checks that peer is not banned and that it is a bittorrent connection
+    bool installPluginOnNewConnection(libtorrent::peer_connection * peerConnection);
+
     // Adds peer to respective set, and returns whether it was actually added or existed in the set from before.
     bool addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint);
     bool addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint);
@@ -73,13 +74,19 @@ signals:
     void peerRemoved(const PeerPluginId & peerPluginId);
     */
 
-private:
+protected:
+
+    // Constructor
+    TorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn, const TorrentPluginParameters & torrentPluginParameters);
 
     // Parent plugin for BitSwapr: SHOULD THIS BE WEAK_PTR ?
     Plugin * plugin_;
 
     // Torrent for this torrent_plugin
     libtorrent::torrent * torrent_;
+
+    // Parameters for running plugin
+    TorrentPluginParameters torrentPluginParameters_;
 
     // Map of peer plugin objects for each peer presently connected to this node through this torrent swarm
     std::map<libtorrent::tcp::endpoint, PeerPlugin *> peerPlugins_;
@@ -95,9 +102,6 @@ private:
 
     // Token accounting since session start
     int tokensReceived_, tokensSent_;
-
-    // Use the two sets below when accepting new peers in new_connect
-    bool enableBanningSets;
 
     // Set of all endpoints known to not have extension. Is populated
     // by previous failed extended handshakes.

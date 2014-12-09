@@ -115,10 +115,20 @@ public:
     bool pauseTorrent(const libtorrent::sha1_hash & info_hash);
     bool startTorrent(const libtorrent::sha1_hash & info_hash);
 
-    // Called by:
     // Stops libtorrent session, and tries to save_resume data.
     // When all resume data is saved, finalize_close() is called.
     void begin_close();
+
+    /**
+      * All routines public routines below are entry points for libtorrent
+      * thread, and all use locks to synchronize access to various parts of the
+      * controller state. The routines are used for synchronous calls to the controller,
+      * for asynchronous calls uses slots.
+      */
+
+
+
+
 
 private slots:
 

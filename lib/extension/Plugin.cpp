@@ -2,6 +2,12 @@
 #include "TorrentPlugin.hpp"
 #include "controller/Controller.hpp" // needed for connecting
 #include "TorrentPluginStatus.hpp" // needed for connecting
+#include "BuyerTorrentPlugin.hpp"
+#include "SellerTorrentPlugin.hpp"
+
+#include "TorrentPluginParameters.hpp"
+#include "SellerTorrentPluginParameters.hpp"
+#include "BuyerTorrentPluginParameters.hpp"
 
 /*
 #include <QMetaType>
@@ -25,8 +31,21 @@ Controller * Plugin::getController() {
 
 boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::torrent * newTorrent, void * userData) {
 
-    // Create plugin
-    TorrentPlugin * torrentPlugin = new TorrentPlugin(this, newTorrent, category_, true);
+    // Create the appropriate torrent plugin depending on if we have full file
+    TorrentPlugin * torrentPlugin;
+
+
+    /**
+     * Just putting in some random parameter stuff for it to build, all these params must be fetched from controller.
+     */
+
+
+    TorrentPluginParameters torrentPluginParameters(10,10,true);
+
+    if(newTorrent->bytes_left() > 0)
+        torrentPlugin = new BuyerTorrentPlugin(this, newTorrent, category_, true, torrentPluginParameters, BuyerTorrentPluginParameters(1,2));
+    else
+        torrentPlugin = new SellerTorrentPlugin(this, newTorrent, category_, true, torrentPluginParameters, SellerTorrentPluginParameters(5));
 
     // Add to collection
     torrentPlugins_.insert(std::make_pair(newTorrent->info_hash(), torrentPlugin));

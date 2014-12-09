@@ -40,7 +40,12 @@ SOURCES += \
     view/PeerPluginViewModel.cpp \
     controller/PersistentControllerState.cpp \
     controller/PersistentTorrentState.cpp \
-    extension/PeerPluginId.cpp
+    extension/PeerPluginId.cpp \
+    extension/BuyerTorrentPlugin.cpp \
+    extension/SellerTorrentPlugin.cpp \
+    extension/BuyerTorrentPluginParameters.cpp \
+    extension/SellerTorrentPluginParameters.cpp \
+    extension/TorrentPluginParameters.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -72,7 +77,12 @@ HEADERS += \
     extension/Message/MessageType.hpp \
     controller/PersistentTorrentState.hpp \
     controller/PersistentControllerState.hpp \
-    extension/PeerPluginId.hpp
+    extension/PeerPluginId.hpp \
+    extension/BuyerTorrentPlugin.hpp \
+    extension/SellerTorrentPlugin.hpp \
+    extension/SellerTorrentPluginParameters.hpp \
+    extension/TorrentPluginParameters.hpp \
+    extension/BuyerTorrentPluginParameters.hpp
 				
 FORMS += \
             view/mainwindow.ui \
