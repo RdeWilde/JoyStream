@@ -2,7 +2,7 @@
 #define BUYER_TORRENT_PLUGIN_HPP
 
 #include "TorrentPlugin.hpp"
-#include "BuyerTorrentPluginParameters.hpp"
+#include "BuyerTorrentPluginConfiguration.hpp"
 
 class BuyerPeerPlugin;
 
@@ -17,7 +17,10 @@ class BuyerTorrentPlugin : public TorrentPlugin
 public:
 
     // Constructor
-    BuyerTorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn, const TorrentPluginParameters & torrentPluginParameters, const BuyerTorrentPluginParameters & buyerTorrentPluginParameters);
+    BuyerTorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn, const BuyerTorrentPluginConfiguration & buyerTorrentPluginConfiguration);
+
+    // Parameters for running plugin
+    virtual const TorrentPluginConfiguration & getTorrentPluginConfiguration();
 
     /**
      * All virtual functions below should ONLY be called by libtorrent network thread,
@@ -29,7 +32,7 @@ public:
 private:
 
     // Parameters
-    BuyerTorrentPluginParameters buyerTorrentPluginParameters_;
+    BuyerTorrentPluginConfiguration _buyerTorrentPluginConfiguration;
 };
 
 #endif // BUYER_TORRENT_PLUGIN_HPP

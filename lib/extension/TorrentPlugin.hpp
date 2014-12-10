@@ -1,7 +1,7 @@
 #ifndef TORRENT_PLUGIN_HPP
 #define TORRENT_PLUGIN_HPP
 
-#include "TorrentPluginParameters.hpp"
+#include "TorrentPluginConfiguration.hpp"
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
@@ -24,6 +24,10 @@ public:
 
     // Destructor
     ~TorrentPlugin();
+
+    // Parameters for running plugin, is pure virtual and must be supplied
+    // by sub classes
+    virtual const TorrentPluginConfiguration & getTorrentPluginConfiguration() = 0;
 
     /**
      * All virtual functions below should ONLY
@@ -77,16 +81,13 @@ signals:
 protected:
 
     // Constructor
-    TorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn, const TorrentPluginParameters & torrentPluginParameters);
+    TorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn);
 
     // Parent plugin for BitSwapr: SHOULD THIS BE WEAK_PTR ?
     Plugin * plugin_;
 
     // Torrent for this torrent_plugin
     libtorrent::torrent * torrent_;
-
-    // Parameters for running plugin
-    TorrentPluginParameters torrentPluginParameters_;
 
     // Map of peer plugin objects for each peer presently connected to this node through this torrent swarm
     std::map<libtorrent::tcp::endpoint, PeerPlugin *> peerPlugins_;

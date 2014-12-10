@@ -52,6 +52,8 @@ void AddTorrentDialog::on_AddTorrentDialog_accepted() {
     // User data (not represented in persistent state)
     //params.userdata = (void*)strdup(torrent.c_str());
 
+    send configruation instead
+
     // Save path
     params_.save_path = save_path.toStdString();
 

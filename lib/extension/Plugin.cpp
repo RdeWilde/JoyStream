@@ -5,9 +5,8 @@
 #include "BuyerTorrentPlugin.hpp"
 #include "SellerTorrentPlugin.hpp"
 
-#include "TorrentPluginParameters.hpp"
-#include "SellerTorrentPluginParameters.hpp"
-#include "BuyerTorrentPluginParameters.hpp"
+#include "SellerTorrentPluginConfiguration.hpp"
+#include "BuyerTorrentPluginConfiguration.hpp"
 
 /*
 #include <QMetaType>
@@ -16,9 +15,9 @@ Q_DECLARE_METATYPE(libtorrent::tcp::endpoint)
 // #include <libtorrent/socket.hpp> // tcp::endpoint
 
 Plugin::Plugin(Controller * controller, QLoggingCategory & category)
-    : controller_(controller)
-    , session_(NULL)
-    , category_(category) {
+    : _controller(controller)
+    , _session(NULL)
+    , _category(category) {
 }
 
 Plugin::~Plugin() {
@@ -26,29 +25,29 @@ Plugin::~Plugin() {
 }
 
 Controller * Plugin::getController() {
-    return controller_;
+    return _controller;
 }
 
 boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::torrent * newTorrent, void * userData) {
 
+    // Check what sort of plugin, if any, should be installed on this torrent
+    TorrentPluginConfiguration * torrentPluginConfiguration = _controller->getTorrentPluginConfiguration(newTorrent->info_hash());
+
+    if(!torrentPluginConfiguration) {
+        qCDebug(_category) << "Plugin not installed on new torrent.";
+        return boost::shared_ptr<libtorrent::torrent_plugin>();
+    }
+
     // Create the appropriate torrent plugin depending on if we have full file
     TorrentPlugin * torrentPlugin;
 
-
-    /**
-     * Just putting in some random parameter stuff for it to build, all these params must be fetched from controller.
-     */
-
-
-    TorrentPluginParameters torrentPluginParameters(10,10,true);
-
     if(newTorrent->bytes_left() > 0)
-        torrentPlugin = new BuyerTorrentPlugin(this, newTorrent, category_, true, torrentPluginParameters, BuyerTorrentPluginParameters(1,2));
+        torrentPlugin = new BuyerTorrentPlugin(this, newTorrent, _category, true, torrentPluginConfiguration);
     else
-        torrentPlugin = new SellerTorrentPlugin(this, newTorrent, category_, true, torrentPluginParameters, SellerTorrentPluginParameters(5));
+        torrentPlugin = new SellerTorrentPlugin(this, newTorrent, _category, true, torrentPluginConfiguration);
 
     // Add to collection
-    torrentPlugins_.insert(std::make_pair(newTorrent->info_hash(), torrentPlugin));
+    _torrentPlugins.insert(std::make_pair(newTorrent->info_hash(), torrentPlugin));
 
     // Connect torrent plugin signal
     /*
@@ -71,14 +70,14 @@ boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::to
                      SLOT(removePeer(libtorrent::tcp::endpoint)));
 */
     // Diagnostic
-    qCDebug(category_) << "Torrent #" << torrentPlugins_.size() << " added.";
+    qCDebug(_category) << "Torrent #" << _torrentPlugins.size() << " added.";
 
     // Return
     return boost::shared_ptr<libtorrent::torrent_plugin>(torrentPlugin);
 }
 
 void Plugin::added(libtorrent::aux::session_impl * session) {
-    session_ = session;
+    _session = session;
 }
 
 void Plugin::on_alert(libtorrent::alert const * a) {

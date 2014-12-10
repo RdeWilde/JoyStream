@@ -1,5 +1,6 @@
 
-#include "PersistentControllerState.hpp"
+#include "ControllerConfiguration.hpp"
+#include "TorrentConfiguration.hpp"
 #include "exceptions/InvalidBitSwaprStateEntryException.hpp"
 #include "Config.hpp"
 
@@ -7,7 +8,7 @@
 
 #include <fstream>
 
-PersistentControllerState::PersistentControllerState() {
+ControllerConfiguration::ControllerConfiguration() {
 
 	// Setup session settings
 	libtorrent::session_settings sessionSettings;
@@ -213,31 +214,40 @@ PersistentControllerState::PersistentControllerState() {
 	dummySession.set_dht_settings(dhtSettings);
 	//dummySession.set_pe_settings(peerEncryptionSettings);
 	//dummySession.set_proxy(proxySettings);
-    dummySession.save_state(libtorrentSessionSettingsEntry_);
+    dummySession.save_state(_libtorrentSessionSettingsEntry);
 
 	// Set port range
-    portRange_ = std::make_pair(6881, 6889);
+    _portRange = std::make_pair(6881, 6889);
 
 	// Set dht routers
-    dhtRouters_.push_back(std::make_pair(std::string("router.bittorrent.com"), 6881));
-    dhtRouters_.push_back(std::make_pair(std::string("router.utorrent.com"), 6881));
-    dhtRouters_.push_back(std::make_pair(std::string("router.bitcomet.com"), 6881));
+    _dhtRouters.push_back(std::make_pair(std::string("router.bittorrent.com"), 6881));
+    _dhtRouters.push_back(std::make_pair(std::string("router.utorrent.com"), 6881));
+    _dhtRouters.push_back(std::make_pair(std::string("router.bitcomet.com"), 6881));
 }
 
-PersistentControllerState::PersistentControllerState(const libtorrent::entry & libtorrentSessionSettingsEntry,
-                                const std::pair<int, int> & portRange,
-                                const std::map<libtorrent::sha1_hash, PersistentTorrentState> torrentModels,
-                                const std::vector<std::pair<std::string, int>> & dhtRouters)
-                                : libtorrentSessionSettingsEntry_(libtorrentSessionSettingsEntry)
-                                , portRange_(portRange)
-                                , dhtRouters_(dhtRouters)
+ControllerConfiguration::ControllerConfiguration(const libtorrent::entry & libtorrentSessionSettingsEntry
+                                        , const std::pair<int, int> & portRange
+                                        , const std::map<libtorrent::sha1_hash, TorrentConfiguration *> torrentConfigurations
+                                        , const std::vector<std::pair<std::string, int>> & dhtRouters)
+                                : _libtorrentSessionSettingsEntry(libtorrentSessionSettingsEntry)
+                                , _portRange(portRange)
+                                , _dhtRouters(dhtRouters)
+                                , _torrentConfigurations(torrentConfigurations)
 {}
 
-PersistentControllerState::PersistentControllerState(const libtorrent::entry::dictionary_type & dictionaryEntry) {
+ControllerConfiguration::~ControllerConfiguration() {
+
+    // Delete torrent states
+    for(std::map<libtorrent::sha1_hash, TorrentConfiguration *>::iterator i = _torrentConfigurations.begin(),
+            end(_torrentConfigurations.end()); i != end;i++)
+            delete i->second;
+}
+
+ControllerConfiguration::ControllerConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry) {
 
     // Check that libtorrentSettings key is present, and then parse
     if(dictionaryEntry.count("libtorrentSettings") == 1)
-        libtorrentSessionSettingsEntry_ = dictionaryEntry.find("libtorrentSettings")->second;
+        _libtorrentSessionSettingsEntry = dictionaryEntry.find("libtorrentSettings")->second;
     else
         throw InvalidBitSwaprStateEntryException(dictionaryEntry, "There is not exactly one libtorrentSettings key.");
 
@@ -271,7 +281,7 @@ PersistentControllerState::PersistentControllerState(const libtorrent::entry::di
                     const libtorrent::entry::integer_type secondInteger = secondListElement.integer();
 
                     // Add to portRange
-                    portRange_ = std::make_pair(static_cast<int>(firstInteger), static_cast<int>(secondInteger));
+                    _portRange = std::make_pair(static_cast<int>(firstInteger), static_cast<int>(secondInteger));
 
                 } else
                     throw InvalidBitSwaprStateEntryException(dictionaryEntry, "elements in portRange entry are not of type entry::int_type.");
@@ -325,7 +335,7 @@ PersistentControllerState::PersistentControllerState(const libtorrent::entry::di
                             libtorrent::entry::integer_type portIntegerEntry = portEntry.integer();
 
                             // Add to dhtRouters
-                            dhtRouters_.push_back(std::make_pair(hostNameStringEntry.c_str(), (int)portIntegerEntry));
+                            _dhtRouters.push_back(std::make_pair(hostNameStringEntry.c_str(), (int)portIntegerEntry));
 
                         } else
                             throw InvalidBitSwaprStateEntryException(dictionaryEntry, "elements in dhtRouters entry are not of type <entry::string_type, entry::int_type>.");
@@ -366,7 +376,7 @@ PersistentControllerState::PersistentControllerState(const libtorrent::entry::di
                     const libtorrent::entry::dictionary_type & persistentTorrentStateDictionaryEntry = persistentTorrentStateEntry.dict();
 
                     // Add to torrentAddTorrentParameters
-                    persistentTorrentStates_[info_hash] = PersistentTorrentState(persistentTorrentStateDictionaryEntry);
+                    _torrentConfigurations[info_hash] = new TorrentConfiguration(persistentTorrentStateDictionaryEntry);
 
                 } else
                     throw InvalidBitSwaprStateEntryException(dictionaryEntry, "persistentTorrentStates has value that is not of type entry::dict_type.");
@@ -378,8 +388,7 @@ PersistentControllerState::PersistentControllerState(const libtorrent::entry::di
         throw InvalidBitSwaprStateEntryException(dictionaryEntry, "persistentTorrentStates key should have .count == 1.");
 }
 
-
-PersistentControllerState::PersistentControllerState(const char * fileName) {
+ControllerConfiguration::ControllerConfiguration(const char * fileName) {
 
 	// Open file at the end, so we can get size
 	std::ifstream file(fileName, std::ios::in | std::ios::binary | std::ifstream::ate);
@@ -410,26 +419,26 @@ PersistentControllerState::PersistentControllerState(const char * fileName) {
     const libtorrent::entry::dictionary_type & dictionaryEntry = bitSwaprStateEntry.dict();
 
     // Use other constructor using this dictionary
-    PersistentControllerState::PersistentControllerState(dictionaryEntry);
+    ControllerConfiguration::ControllerConfiguration(dictionaryEntry);
 }
 
-void PersistentControllerState::toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) {
+void ControllerConfiguration::toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) {
 	
 	// Add "libtorrentSettings" key
-    dictionaryEntry["libtorrentSettings"] = libtorrentSessionSettingsEntry_;
+    dictionaryEntry["libtorrentSettings"] = _libtorrentSessionSettingsEntry;
 
 	// Add "portRange" key
 	libtorrent::entry::list_type portRangeListEntry;
-    portRangeListEntry.push_back(portRange_.first);
-    portRangeListEntry.push_back(portRange_.second);
+    portRangeListEntry.push_back(_portRange.first);
+    portRangeListEntry.push_back(_portRange.second);
 
     dictionaryEntry["portRange"] = portRangeListEntry;
 
     // Add "dhtRouters" key
     libtorrent::entry::list_type dhtRoutersListEntry;
 
-    for(std::vector<std::pair<std::string, int>>::const_iterator i = dhtRouters_.begin(),
-        end(dhtRouters_.end());i != end; i++) {
+    for(std::vector<std::pair<std::string, int>>::const_iterator i = _dhtRouters.begin(),
+        end(_dhtRouters.end());i != end; i++) {
 
         // Create entry list for dht pair
         libtorrent::entry::list_type routerEntry;
@@ -446,12 +455,12 @@ void PersistentControllerState::toDictionaryEntry(libtorrent::entry::dictionary_
     // Add "persistentTorrentStates" key
     libtorrent::entry::dictionary_type persistentTorrentStatesDictionaryEntry;
 
-    for(std::map<libtorrent::sha1_hash, PersistentTorrentState>::const_iterator i = persistentTorrentStates_.begin(),
-        end(persistentTorrentStates_.end()); i != end; i++) {
+    for(std::map<libtorrent::sha1_hash, TorrentConfiguration *>::const_iterator i = _torrentConfigurations.begin(),
+        end(_torrentConfigurations.end()); i != end; i++) {
 
         // Write to dictionary
         libtorrent::entry::dictionary_type dictionaryEntry;
-        (i->second).toDictionaryEntry(dictionaryEntry);
+        (i->second)->toDictionaryEntry(dictionaryEntry);
 
         // Save mapping
         persistentTorrentStatesDictionaryEntry[(i->first).to_string()] = dictionaryEntry;
@@ -460,7 +469,7 @@ void PersistentControllerState::toDictionaryEntry(libtorrent::entry::dictionary_
     dictionaryEntry["persistentTorrentStates"] = persistentTorrentStatesDictionaryEntry;
 }
 
-void PersistentControllerState::saveToFile(const char * fileName) {
+void ControllerConfiguration::saveToFile(const char * fileName) {
 
 	// Save state to entry
 	libtorrent::entry::dictionary_type BitSwaprStateEntry;
@@ -487,22 +496,22 @@ void PersistentControllerState::saveToFile(const char * fileName) {
 	file.close();
 }
 
-libtorrent::entry & PersistentControllerState::getLibtorrentSessionSettingsEntry() {
-    return libtorrentSessionSettingsEntry_;
+libtorrent::entry & ControllerConfiguration::getLibtorrentSessionSettingsEntry() {
+    return _libtorrentSessionSettingsEntry;
 }
 
-std::pair<int, int> & PersistentControllerState::getPortRange() {
-    return portRange_;
+std::pair<int, int> & ControllerConfiguration::getPortRange() {
+    return _portRange;
 }
 
-std::map<libtorrent::sha1_hash, PersistentTorrentState> & PersistentControllerState::getPersistentTorrentStates() {
-    return persistentTorrentStates_;
+std::map<libtorrent::sha1_hash, TorrentConfiguration *> & ControllerConfiguration::getTorrentConfigurations() {
+    return _torrentConfigurations;
 }
 
-std::vector<std::pair<std::string, int>> & PersistentControllerState::getDhtRouters() {
-    return dhtRouters_;
+std::vector<std::pair<std::string, int>> & ControllerConfiguration::getDhtRouters() {
+    return _dhtRouters;
 }
 
-void PersistentControllerState::setLibtorrentSessionSettingsEntry(const libtorrent::entry & libtorrentSessionSettingsEntry) {
-    libtorrentSessionSettingsEntry_ = libtorrentSessionSettingsEntry;
+void ControllerConfiguration::setLibtorrentSessionSettingsEntry(const libtorrent::entry & libtorrentSessionSettingsEntry) {
+    _libtorrentSessionSettingsEntry = libtorrentSessionSettingsEntry;
 }

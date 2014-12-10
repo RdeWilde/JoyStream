@@ -8,10 +8,15 @@
 
 #include <QLoggingCategory>
 
-BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn, const TorrentPluginParameters & torrentPluginParameters, const BuyerTorrentPluginParameters & buyerTorrentPluginParameters)
+BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn, const BuyerTorrentPluginConfiguration & buyerTorrentPluginConfiguration)
     : TorrentPlugin(plugin, torrent, category, pluginOn, torrentPluginParameters)
-    , buyerTorrentPluginParameters_(buyerTorrentPluginParameters)
-{ }
+    , _buyerTorrentPluginConfiguration(buyerTorrentPluginConfiguration) {
+
+}
+
+const TorrentPluginConfiguration & BuyerTorrentPlugin::getTorrentPluginConfiguration() {
+    return _buyerTorrentPluginConfiguration;
+}
 
 boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(libtorrent::peer_connection * peerConnection) {
 

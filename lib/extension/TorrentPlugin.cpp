@@ -12,11 +12,10 @@
 
 #include <QLoggingCategory>
 
-TorrentPlugin::TorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn, const TorrentPluginParameters & torrentPluginParameters)
+TorrentPlugin::TorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn)
     : plugin_(plugin)
     , torrent_(torrent)
     , category_(category)
-    , torrentPluginParameters_(torrentPluginParameters)
     , tokensReceived_(0)
     , tokensSent_(0)
     , pluginOn_(pluginOn) {
@@ -33,7 +32,7 @@ bool TorrentPlugin::installPluginOnNewConnection(libtorrent::peer_connection * p
     const libtorrent::tcp::endpoint & endPoint = peerConnection->remote();
 
     // If we are using banning sets, then check this peer
-    if(torrentPluginParameters_.enableBanningSets_) {
+    if(torrentPluginParameters_._enableBanningSets) {
 
         // Check if we know from before that peer does not have
         if(peersWithoutExtension_.find(endPoint) != peersWithoutExtension_.end()) {

@@ -1,7 +1,7 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#include "PersistentControllerState.hpp"
+#include "ControllerConfiguration.hpp"
 #include "view/MainWindow.hpp"
 #include "extension/Plugin.hpp"
 #include "extension/TorrentPluginStatus.hpp" // needed for QT moc
@@ -16,6 +16,7 @@
 #include <QObject>
 #include <QTimer>
 #include <QLoggingCategory>
+#include <QMutex>
 
 
 class libtorrent::peer_connection;
@@ -27,10 +28,10 @@ class Controller : public QObject {
 private:
 	
     // Underlying libtorrent session
-	libtorrent::session session;
+    libtorrent::session _session;
 
     // Persistent state of controller
-    PersistentControllerState persistentControllerState_;
+    ControllerConfiguration _controllerConfiguration;
 
     /**
      * Routine for processig libtorrent alerts
@@ -59,12 +60,12 @@ private:
     * for which a save_resume_data_failed_alert/save_resume_data_alert has not been
     * received. If this number is greater than one, then no new (series) of calls to save resume
     * data should be made, because that will confuse source of call, which can be
-    * a) closing client
-    * b) pausing client
-    * c) pausing an individual torrent
+    * (a) closing client
+    * (b) pausing client
+    * (c) pausing an individual torrent
     */
 
-    unsigned int numberOfOutstandingResumeDataCalls;
+    unsigned int _numberOfOutstandingResumeDataCalls;
 
     // Different sources for a resume data call
     enum sourceForLastResumeDataCallType {
@@ -75,24 +76,32 @@ private:
     };
 
     // Actual source of resume data call
-    sourceForLastResumeDataCallType sourceForLastResumeDataCall;
+    sourceForLastResumeDataCallType _sourceForLastResumeDataCall;
 
     // Timer which calls session.post_torrent_updates() at regular intervals
-    QTimer statusUpdateTimer;
+    QTimer _statusUpdateTimer;
 
     // Logging category
-    QLoggingCategory & category_;
+    QLoggingCategory & _category;
 
     // Plugin: constructor initializatin list expects plugin to appear after category_
-    boost::shared_ptr<libtorrent::plugin> plugin; // should this be weak
+    boost::shared_ptr<libtorrent::plugin> _plugin; // should this be weak
 
     // View
-    MainWindow view;
+    MainWindow _view;
+
+    /**
+      * Mutexes used to synchronize access to critical data in the controller,
+      * so that the libtorrent thread can make calls into the public entry points
+      * in the controller.
+      */
+
+    QMutex _controllerConfigurationMutex;
 
 public:
 
 	// Constructor starting session with given state
-    Controller(const PersistentControllerState & persistentControllerState, bool showView, QLoggingCategory & category);
+    Controller(const ControllerConfiguration & controllerParameters, bool showView, QLoggingCategory & category);
 
     // Callback routine called by libtorrent dispatcher routine
     void libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::alert> alertAutoPtr);
@@ -101,22 +110,25 @@ public:
     Q_INVOKABLE void processAlert(libtorrent::alert const * a);
 
     /**
-     * View/Main entry points, turn into slots later?
-     */
+      * View entry points
+      */
 
 	void saveStateToFile(const char * file);
 
-    // Called by AddTorrentDialog::on_AddTorrentDialog_accepted()
-    Q_INVOKABLE void addTorrent(libtorrent::add_torrent_params & params);
+    // Add a torrent to controller and start servicing it
+    //void addTorrent(libtorrent::add_torrent_params & params);
 
-    void addTorrentFromTorrentFile(const QString & torrentFile);
-    void addTorrentFromMagnetLink(const QString & magnetLink);
+    void addTorrent(const TorrentConfiguration & TorrentConfiguration);
+
+
+
+    void addTorrentFromTorrentFile(const QString & torrentFile, bool withPlugin);
+    void addTorrentFromMagnetLink(const QString & magnetLink, bool withPlugin);
     bool removeTorrent(const libtorrent::sha1_hash & info_hash);
     bool pauseTorrent(const libtorrent::sha1_hash & info_hash);
     bool startTorrent(const libtorrent::sha1_hash & info_hash);
 
-    // Stops libtorrent session, and tries to save_resume data.
-    // When all resume data is saved, finalize_close() is called.
+    // Stops libtorrent session, and tries to save_resume data, when all resume data is saved, finalize_close() is called.
     void begin_close();
 
     /**
@@ -126,8 +138,7 @@ public:
       * for asynchronous calls uses slots.
       */
 
-
-
+    TorrentPluginConfiguration * getTorrentPluginConfiguration(const libtorrent::sha1_hash & info_hash);
 
 
 private slots:

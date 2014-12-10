@@ -26,16 +26,16 @@ class Plugin : public QObject, public libtorrent::plugin {
 private:
 
     // Controller
-    Controller * controller_;
+    Controller * _controller;
 
     // Libtorrent session. Is set by added() call, not constructor
-    libtorrent::aux::session_impl * session_;
+    libtorrent::aux::session_impl * _session;
 
     // Maps info hash to pointer to corresponding torrent plugin
-    std::map<libtorrent::sha1_hash, TorrentPlugin *> torrentPlugins_;
+    std::map<libtorrent::sha1_hash, TorrentPlugin *> _torrentPlugins;
 
     // Logging category
-    QLoggingCategory & category_;
+    QLoggingCategory & _category;
 
 public:
 

@@ -1,10 +1,7 @@
-#include "PersistentTorrentState.hpp"
+#include "TorrentConfiguration.hpp"
 #include "Exceptions/InvalidBitSwaprStateEntryException.hpp"
 
-PersistentTorrentState::PersistentTorrentState()
-{}
-
-PersistentTorrentState::PersistentTorrentState(const libtorrent::sha1_hash & info_hash, const std::string & name, const std::string & save_path, const std::vector<char> & resume_data, quint64 flags)
+TorrentConfiguration::TorrentConfiguration(const libtorrent::sha1_hash & info_hash, const std::string & name, const std::string & save_path, const std::vector<char> & resume_data, quint64 flags)
     : info_hash_(info_hash)
     , name_(name)
     , save_path_(save_path)
@@ -12,7 +9,7 @@ PersistentTorrentState::PersistentTorrentState(const libtorrent::sha1_hash & inf
     , flags_(flags) {
 }
 
-PersistentTorrentState::PersistentTorrentState(const libtorrent::entry::dictionary_type & dictionaryEntry) {
+TorrentConfiguration::TorrentConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry) {
 
     // Check that info_hash is present
     if(dictionaryEntry.count("info_hash") == 1) {
@@ -98,7 +95,7 @@ PersistentTorrentState::PersistentTorrentState(const libtorrent::entry::dictiona
         throw InvalidBitSwaprStateEntryException(dictionaryEntry, "flags key should have .count == 1.");
 }
 
-PersistentTorrentState & PersistentTorrentState::operator=(const PersistentTorrentState & rhs) {
+TorrentConfiguration & TorrentConfiguration::operator=(const TorrentConfiguration & rhs) {
 
     // Copy fields
     info_hash_ = rhs.getInfoHash();
@@ -110,7 +107,7 @@ PersistentTorrentState & PersistentTorrentState::operator=(const PersistentTorre
     return *this;
 }
 
-void PersistentTorrentState::toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const {
+void TorrentConfiguration::toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const {
 
     // info_hash
     dictionaryEntry["info_hash"] = libtorrent::entry::string_type(info_hash_.to_string());
@@ -133,26 +130,26 @@ void PersistentTorrentState::toDictionaryEntry(libtorrent::entry::dictionary_typ
     dictionaryEntry["flags"] = libtorrent::entry::integer_type(flags_);
 }
 
-const libtorrent::sha1_hash & PersistentTorrentState::getInfoHash() const {
+const libtorrent::sha1_hash & TorrentConfiguration::getInfoHash() const {
     return info_hash_;
 }
 
-const std::string & PersistentTorrentState::getName() const {
+const std::string & TorrentConfiguration::getName() const {
      return name_;
 }
 
-const std::string & PersistentTorrentState::getSavePath() const {
+const std::string & TorrentConfiguration::getSavePath() const {
     return save_path_;
 }
 
-std::vector<char> & PersistentTorrentState::getResumeData() {
+std::vector<char> & TorrentConfiguration::getResumeData() {
     return resume_data_;
 }
 
-const std::vector<char> & PersistentTorrentState::getConstResumeData() const {
+const std::vector<char> & TorrentConfiguration::getConstResumeData() const {
     return resume_data_;
 }
 
-quint64 PersistentTorrentState::getFlags() const {
+quint64 TorrentConfiguration::getFlags() const {
     return flags_;
 }

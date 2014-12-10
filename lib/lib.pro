@@ -38,14 +38,15 @@ SOURCES += \
     view/TorrentViewModel.cpp \
     Utilities.cpp \
     view/PeerPluginViewModel.cpp \
-    controller/PersistentControllerState.cpp \
-    controller/PersistentTorrentState.cpp \
     extension/PeerPluginId.cpp \
     extension/BuyerTorrentPlugin.cpp \
     extension/SellerTorrentPlugin.cpp \
-    extension/BuyerTorrentPluginParameters.cpp \
-    extension/SellerTorrentPluginParameters.cpp \
-    extension/TorrentPluginParameters.cpp
+    controller/ControllerConfiguration.cpp \
+    controller/TorrentConfiguration.cpp \
+    extension/TorrentPluginConfiguration.cpp \
+    extension/BuyerTorrentPluginConfiguration.cpp \
+    extension/SellerTorrentPluginConfiguration.cpp \
+    controller/TorrentWithPluginConfiguration.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -75,14 +76,15 @@ HEADERS += \
     Utilities.hpp \
     view/PeerPluginViewModel.hpp \
     extension/Message/MessageType.hpp \
-    controller/PersistentTorrentState.hpp \
-    controller/PersistentControllerState.hpp \
     extension/PeerPluginId.hpp \
     extension/BuyerTorrentPlugin.hpp \
     extension/SellerTorrentPlugin.hpp \
-    extension/SellerTorrentPluginParameters.hpp \
-    extension/TorrentPluginParameters.hpp \
-    extension/BuyerTorrentPluginParameters.hpp
+    controller/ControllerConfiguration.hpp \
+    controller/TorrentConfiguration.hpp \
+    extension/TorrentPluginConfiguration.hpp \
+    extension/BuyerTorrentPluginConfiguration.hpp \
+    extension/SellerTorrentPluginConfiguration.hpp \
+    controller/TorrentWithPluginConfiguration.hpp
 				
 FORMS += \
             view/mainwindow.ui \

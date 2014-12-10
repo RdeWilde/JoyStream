@@ -2,7 +2,7 @@
 #define SELLER_TORRENT_PLUGIN_HPP
 
 #include "TorrentPlugin.hpp"
-#include "SellerTorrentPluginParameters.hpp"
+#include "SellerTorrentPluginConfiguration.hpp"
 
 class SellerPeerPlugin;
 
@@ -16,7 +16,10 @@ class SellerTorrentPlugin : public TorrentPlugin
 public:
 
     // Constructor
-    SellerTorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn, const TorrentPluginParameters & torrentPluginParameters, const SellerTorrentPluginParameters & sellerTorrentPluginParameters);
+    SellerTorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn, const TorrentPluginConfiguration & torrentPluginParameters, const SellerTorrentPluginConfiguration & sellerTorrentPluginParameters);
+
+    // Parameters for running plugin
+    virtual const TorrentPluginConfiguration & getTorrentPluginConfiguration();
 
     /**
      * All virtual functions below should ONLY be called by libtorrent network thread,
@@ -28,10 +31,10 @@ public:
 private:
 
     // Parameters for
-    SellerTorrentPluginParameters sellerTorrentPluginParameters_;
+    SellerTorrentPluginConfiguration _sellerTorrentPluginParameters;
 
     // Maps endpoint to corresponding peer for all peers being sold to: IS THIS REDUNDANT?
-    std::map<libtorrent::tcp::endpoint, SellerPeerPlugin *> presentlySellingTo_;
+    std::map<libtorrent::tcp::endpoint, SellerPeerPlugin *> _presentlySellingTo;
 };
 
 #endif // SELLER_TORRENT_PLUGIN_HPP
