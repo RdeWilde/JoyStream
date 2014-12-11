@@ -125,7 +125,7 @@ Controller::Controller(const ControllerConfiguration & controllerConfiguration, 
         params.flags = torrentConfiguration->getFlags();
 
         // Add torrent
-        addTorrent(params);
+        addTorrentToSession(params);
     }
 
     // Show view
@@ -547,7 +547,7 @@ bool Controller::startTorrent(const libtorrent::sha1_hash & info_hash) {
     return true;
 }
 
-void Controller::addTorrent(libtorrent::add_torrent_params & params) {
+void Controller::addTorrentToSession(libtorrent::add_torrent_params & params) {
 
     /*
     * If info_hash is not set, we try and set it.
@@ -645,6 +645,23 @@ void Controller::finalize_close() {
     // Tell runner that controller is done
     emit closed();
 }
+
+const TorrentPluginConfiguration * Controller::getTorrentPluginConfiguration(const libtorrent::sha1_hash & info_hash) {
+
+    // Aquire lock
+    _controllerConfigurationMutex.lock();
+
+    // Configuration
+    TorrentPluginConfiguration * torrentPluginConfiguration = _controllerConfiguration.getTorrentConfiguration(info_hash);
+
+    // Release lock
+    _controllerConfigurationMutex.unlock();
+
+    // Return pointer
+    return torrentPluginConfiguration;
+}
+
+/*
 MainWindow Controller::getView() const
 {
     return _view;
@@ -654,4 +671,4 @@ void Controller::setView(const MainWindow &value)
 {
     _view = value;
 }
-
+*/

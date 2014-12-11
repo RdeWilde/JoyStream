@@ -17,7 +17,7 @@ public:
     // Minimum bond required
     quint32 minimum_;
 
-    // Constructor based on fields
+    // Constructor based on members
     SellMessage(quint32 price, quint32 fee, quint32 minimum);
 
     // Constructor based on raw data

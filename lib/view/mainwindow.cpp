@@ -207,7 +207,7 @@ void MainWindow::addTorrent(const libtorrent::sha1_hash & info_hash, const QStri
     // Create torrent view model
     TorrentViewModel * torrentViewModel = new TorrentViewModel(info_hash, torrentTableViewModel_, category_);
 
-    // Update known fields
+    // Update known members
     torrentViewModel->updateName(torrentName);
     torrentViewModel->updateSize(totalSize);
 

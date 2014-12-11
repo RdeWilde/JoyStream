@@ -118,7 +118,7 @@ public:
     // Add a torrent to controller and start servicing it
     //void addTorrent(libtorrent::add_torrent_params & params);
 
-    void addTorrent(const TorrentConfiguration & TorrentConfiguration);
+    void addTorrentToSession(const TorrentConfiguration & TorrentConfiguration);
     void addTorrentFromTorrentFile(const QString & torrentFile, bool withPlugin);
     void addTorrentFromMagnetLink(const QString & magnetLink, bool withPlugin);
     bool removeTorrent(const libtorrent::sha1_hash & info_hash);

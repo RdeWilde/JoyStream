@@ -504,8 +504,22 @@ std::pair<int, int> & ControllerConfiguration::getPortRange() {
     return _portRange;
 }
 
+/*
 std::map<libtorrent::sha1_hash, TorrentConfiguration *> & ControllerConfiguration::getTorrentConfigurations() {
     return _torrentConfigurations;
+}
+*/
+
+const TorrentConfiguration * ControllerConfiguration::getTorrentConfiguration(const libtorrent::sha1_hash & info_hash) {
+
+    // Look up configuration for torrrent with given info hash
+    std::map<libtorrent::sha1_hash, TorrentConfiguration *>::iterator & mapIterator = _torrentConfigurations.find(info_hash);
+
+    // Return the configuration pointer if present
+    if(mapIterator == _torrentConfigurations.end())
+        return 0;
+    else
+        return mapIterator->second;
 }
 
 std::vector<std::pair<std::string, int>> & ControllerConfiguration::getDhtRouters() {

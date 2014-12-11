@@ -2,18 +2,20 @@
 #define TORRENT_CONFIGURATION_HPP
 
 #include <libtorrent/peer_id.hpp> // sha1_hash
-#include <libtorrent/entry.hpp>
+#include <libtorrent/entry.hpp> // because you cant forward declare typedefs (libtorrent::entry::dictionary_type)
 
 #include <QtGlobal> // quint64
 
 #include <vector>
 
+class TorrentPluginConfiguration;
+
 class TorrentConfiguration {
 
 public:
 
-    // Constructor from fields
-    TorrentConfiguration(const libtorrent::sha1_hash & info_hash, const std::string & name, const std::string & save_path, const std::vector<char> & resume_data, quint64 flags);
+    // Constructor from members
+    TorrentConfiguration(const libtorrent::sha1_hash & info_hash, const std::string & name, const std::string & save_path, const std::vector<char> & resume_data, quint64 flags, TorrentPluginConfiguration * torrentPluginConfiguration = 0);
 
     // Constructor from dictionary
     TorrentConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry);
@@ -51,19 +53,22 @@ public:
 protected:
 
     // Info hash of torrent
-    libtorrent::sha1_hash info_hash_;
+    libtorrent::sha1_hash _info_hash;
 
     // Name of torrent
-    std::string name_;
+    std::string _name;
 
     // Save path
-    std::string save_path_;
+    std::string _save_path;
 
     // Resume data
-    std::vector<char> resume_data_;
+    std::vector<char> _resume_data;
 
     // Flags
-    quint64 flags_;
+    quint64 _flags;
+
+    // Configuration
+    TorrentPluginConfiguration * _torrentPluginConfiguration;
 };
 
 #endif // TORRENT_CONFIGURATION_HPP

@@ -17,7 +17,7 @@ public:
     // Destructor
     ~ControllerConfiguration();
 
-    // Constructor using fields
+    // Constructor using members
     ControllerConfiguration(const libtorrent::entry & libtorrentSessionSettingsEntry,
                     const std::pair<int, int> & portRange,
                     const std::map<libtorrent::sha1_hash, TorrentConfiguration *> torrentParameters,
@@ -55,7 +55,7 @@ public:
     // Getters
     libtorrent::entry & getLibtorrentSessionSettingsEntry();
     std::pair<int, int> & getPortRange();
-    std::map<libtorrent::sha1_hash, TorrentConfiguration *> & getTorrentConfigurations();
+    TorrentConfiguration * getTorrentConfiguration(const libtorrent::sha1_hash & info_hash);
     std::vector<std::pair<std::string, int>> & getDhtRouters();
 
     // Setters

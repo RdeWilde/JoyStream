@@ -45,8 +45,7 @@ SOURCES += \
     controller/TorrentConfiguration.cpp \
     extension/TorrentPluginConfiguration.cpp \
     extension/BuyerTorrentPluginConfiguration.cpp \
-    extension/SellerTorrentPluginConfiguration.cpp \
-    controller/TorrentWithPluginConfiguration.cpp
+    extension/SellerTorrentPluginConfiguration.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -83,8 +82,7 @@ HEADERS += \
     controller/TorrentConfiguration.hpp \
     extension/TorrentPluginConfiguration.hpp \
     extension/BuyerTorrentPluginConfiguration.hpp \
-    extension/SellerTorrentPluginConfiguration.hpp \
-    controller/TorrentWithPluginConfiguration.hpp
+    extension/SellerTorrentPluginConfiguration.hpp
 				
 FORMS += \
             view/mainwindow.ui \

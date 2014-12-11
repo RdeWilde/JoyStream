@@ -5,8 +5,8 @@
 #include "BuyerTorrentPlugin.hpp"
 #include "SellerTorrentPlugin.hpp"
 
-#include "SellerTorrentPluginConfiguration.hpp"
 #include "BuyerTorrentPluginConfiguration.hpp"
+#include "SellerTorrentPluginConfiguration.hpp"
 
 /*
 #include <QMetaType>
@@ -41,10 +41,19 @@ boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::to
     // Create the appropriate torrent plugin depending on if we have full file
     TorrentPlugin * torrentPlugin;
 
-    if(newTorrent->bytes_left() > 0)
-        torrentPlugin = new BuyerTorrentPlugin(this, newTorrent, _category, true, torrentPluginConfiguration);
-    else
-        torrentPlugin = new SellerTorrentPlugin(this, newTorrent, _category, true, torrentPluginConfiguration);
+    const BuyerTorrentPluginConfiguration * potentialBuyerTorrentPluginConfiguration = dynamic_cast<BuyerTorrentPluginConfiguration*>(torrentPluginConfiguration);
+    const SellerTorrentPluginConfiguration * potentialSellerTorrentPluginConfiguration = dynamic_cast<SellerTorrentPluginConfiguration*>(torrentPluginConfiguration);
+
+    if(potentialBuyerTorrentPluginConfiguration) {
+        torrentPlugin = new BuyerTorrentPlugin(this, newTorrent, _category, true, potentialBuyerTorrentPluginConfiguration);
+    else if(potentialSellerTorrentPluginConfiguration)
+        torrentPlugin = new SellerTorrentPlugin(this, newTorrent, _category, true, potentialSellerTorrentPluginConfiguration);
+    else {
+
+        qCDebug(_category) << "Type disaster!!!!. Plugin not installed on new torrent.";
+        return boost::shared_ptr<libtorrent::torrent_plugin>();
+    }
+
 
     // Add to collection
     _torrentPlugins.insert(std::make_pair(newTorrent->info_hash(), torrentPlugin));

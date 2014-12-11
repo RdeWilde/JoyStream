@@ -8,8 +8,23 @@ class SellerTorrentPluginConfiguration : public TorrentPluginConfiguration
 
 public:
 
-    // Constructor
+    // Constructor from members
     SellerTorrentPluginConfiguration(qint32 maxPrice, qint32 maxBurn, bool enableBanningSets, qint32 maxNumberOfSimultaneousSales);
+
+    // Constructor from dictionary
+    SellerTorrentPluginConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry);
+
+    /**
+     * Write configuration into dictionary
+     * ===============================================================
+     *
+     * Seller torrent plugin configuration as it persists across sessions on disk
+     * encoded as entry::dictionary_type with the following keys:
+     *
+     * IMPLEMENT LATER
+     *
+     */
+    void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const;
 
     // Getters
     qint32 getMaxNumberOfSimultaneousSales();

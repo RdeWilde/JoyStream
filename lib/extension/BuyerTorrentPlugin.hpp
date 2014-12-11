@@ -17,7 +17,7 @@ class BuyerTorrentPlugin : public TorrentPlugin
 public:
 
     // Constructor
-    BuyerTorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn, const BuyerTorrentPluginConfiguration & buyerTorrentPluginConfiguration);
+    BuyerTorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn, const BuyerTorrentPluginConfiguration * buyerTorrentPluginConfiguration);
 
     // Parameters for running plugin
     virtual const TorrentPluginConfiguration & getTorrentPluginConfiguration();

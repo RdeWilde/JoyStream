@@ -8,9 +8,9 @@
 
 #include <QLoggingCategory>
 
-SellerTorrentPlugin::SellerTorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn, const TorrentPluginConfiguration & torrentPluginParameters, const SellerTorrentPluginConfiguration & sellerTorrentPluginParameters)
+SellerTorrentPlugin::SellerTorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn, const TorrentPluginConfiguration & torrentPluginParameters, const SellerTorrentPluginConfiguration * sellerTorrentPluginParameters)
     : TorrentPlugin(plugin, torrent, category, pluginOn, torrentPluginParameters)
-    , _sellerTorrentPluginParameters(sellerTorrentPluginParameters)
+    , _sellerTorrentPluginParameters(*sellerTorrentPluginParameters)
 { }
 
 const TorrentPluginConfiguration & SellerTorrentPlugin::getTorrentPluginConfiguration() {
