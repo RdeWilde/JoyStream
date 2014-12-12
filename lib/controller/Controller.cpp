@@ -25,13 +25,15 @@
 #include <boost/bind.hpp>
 #endif Q_MOC_RUN
 
-// Register types for signal and slots
+// Register types for signal and slots: LATER CHECK WHICH ONE OF THESE ARE ACTUALLY REQUIRED
 Q_DECLARE_METATYPE(libtorrent::sha1_hash)
 Q_DECLARE_METATYPE(std::string)
 Q_DECLARE_METATYPE(libtorrent::error_code)
 Q_DECLARE_METATYPE(std::vector<libtorrent::torrent_status>)
 Q_DECLARE_METATYPE(libtorrent::torrent_status)
-Q_DECLARE_METATYPE(const libtorrent::alert*) // Register type for QMetaObject::invokeMethod
+
+// Register type for QMetaObject::invokeMethod
+Q_DECLARE_METATYPE(const libtorrent::alert*)
 
 Controller::Controller(const ControllerConfiguration & controllerConfiguration, bool showView, QLoggingCategory & category)
     : _session(libtorrent::fingerprint(CLIENT_FINGERPRINT
@@ -106,26 +108,19 @@ Controller::Controller(const ControllerConfiguration & controllerConfiguration, 
 	if(listenOnErrorCode)
 		throw ListenOnException(listenOnErrorCode);
 
-    // Add torrents to session and to controller: Wisdom of Sindre indicates this must be AFTER session.listen_on()
-    std::map<libtorrent::sha1_hash, TorrentConfiguration *> & torrentConfigurations = _controllerConfiguration.getTorrentConfigurations();
+    // Add torrents to session
+    // Wisdom of Sindre indicates this must be AFTER session.listen_on()
+    std::map<libtorrent::sha1_hash, TorrentConfiguration> & torrentConfigurations = _controllerConfiguration.getTorrentConfigurations();
 
-    for(std::map<libtorrent::sha1_hash, TorrentConfiguration *>::iterator i = torrentConfigurations.begin(),
+    for(std::map<libtorrent::sha1_hash, TorrentConfiguration>::iterator i = torrentConfigurations.begin(),
             end(torrentConfigurations.end());i != end; ++i) {
 
-        // Get state of torrent
-        TorrentConfiguration * torrentConfiguration = i->second;
-
-        // Create add_torrent_params for adding
-        libtorrent::add_torrent_params params;
-
-        params.info_hash = torrentConfiguration->getInfoHash();
-        params.name = torrentConfiguration->getName();
-        params.save_path = torrentConfiguration->getSavePath();
-        params.resume_data = &(torrentConfiguration->getResumeData()); // Pointer to the original std::vector which persists
-        params.flags = torrentConfiguration->getFlags();
-
         // Add torrent
-        addTorrentToSession(params);
+        if(!addTorrentToSession(i->second)) {
+
+            qCCritical(_category) << "Unable to add torrent configuration to session";
+            return;
+        }
     }
 
     // Show view
@@ -547,36 +542,39 @@ bool Controller::startTorrent(const libtorrent::sha1_hash & info_hash) {
     return true;
 }
 
-void Controller::addTorrentToSession(libtorrent::add_torrent_params & params) {
+void Controller::addTorrent(const TorrentConfiguration & torrentConfiguration) {
 
-    /*
-    * If info_hash is not set, we try and set it.
-    * This would typically be the case if torrent was added through torrent
-    * file rather than magnet link. The primary reason for this constraint is because searching
-    * addTorrentParameters is based on info_hashes
-    */
-    if(params.info_hash.is_all_zeros()) {
+    // Attempt to add to session
+    if(addTorrentToSession(torrentConfiguation)) {
 
-        // Is torrent info set, use it
-        if(params.ti.get() != 0 && !params.ti->info_hash().is_all_zeros()) {
-            libtorrent::sha1_hash info_hash = params.ti->info_hash();
-            params.info_hash = info_hash;
-        } else {
-            // Throw exception in future
-            qCDebug(_category) << "no valid info_hash set.";
-            return;
-        }
+        // and add to controller if this was possible
+        _controllerConfiguration.addTorrentConfiguration(torrentConfiguration);
     }
+}
+
+bool Controller::addTorrentToSession(const TorrentConfiguration & torrentConfiguration) {
+
+    // Create add_torrent_params for adding
+    libtorrent::add_torrent_params params;
+
+    params.info_hash = torrentConfiguration.getInfoHash();
+    params.name = torrentConfiguration.getName();
+    params.save_path = torrentConfiguration.getSavePath();
+    params.resume_data = &(torrentConfiguration.getResumeData());
+    params.flags = torrentConfiguration.getFlags();
 
     // Create save_path on disk if it does not exist
     if(!(QDir()).mkpath(params.save_path.c_str())) {
 
         qCCritical(_category) << "Could not create save_path: " << params.save_path.c_str();
-        return;
+        return false;
     }
 
     // Add to session
     _session.async_add_torrent(params);
+
+    // Indicate that we added to session
+    return true;
 }
 
 void Controller::saveStateToFile(const char * file) {
@@ -632,27 +630,19 @@ void Controller::finalize_close() {
     // Stop timer
     _statusUpdateTimer.stop();
 
-    /*
-    // Immediately stop event loop for controller
-    // ==========================================
-    // NB: It is very important that exit() is used,
-    // because this ensures that not a single additional
-    // event is processed by event loop, which will not
-    // work since controller has been deleted.
-    QThread::currentThread()->exit();
-    */
-
     // Tell runner that controller is done
     emit closed();
 }
 
 const TorrentPluginConfiguration * Controller::getTorrentPluginConfiguration(const libtorrent::sha1_hash & info_hash) {
 
+    const TorrentPluginConfiguration * torrentPluginConfiguration;
+
     // Aquire lock
     _controllerConfigurationMutex.lock();
 
-    // Configuration
-    TorrentPluginConfiguration * torrentPluginConfiguration = _controllerConfiguration.getTorrentConfiguration(info_hash);
+    // Get torrent plugin configuration
+    torrentPluginConfiguration = _controllerConfiguration.getTorrentConfiguration(info_hash).getTorrentPluginConfiguration();
 
     // Release lock
     _controllerConfigurationMutex.unlock();

@@ -227,7 +227,7 @@ ControllerConfiguration::ControllerConfiguration() {
 
 ControllerConfiguration::ControllerConfiguration(const libtorrent::entry & libtorrentSessionSettingsEntry
                                         , const std::pair<int, int> & portRange
-                                        , const std::map<libtorrent::sha1_hash, TorrentConfiguration *> torrentConfigurations
+                                        , const std::map<libtorrent::sha1_hash, TorrentConfiguration> torrentConfigurations
                                         , const std::vector<std::pair<std::string, int>> & dhtRouters)
                                 : _libtorrentSessionSettingsEntry(libtorrentSessionSettingsEntry)
                                 , _portRange(portRange)
@@ -237,10 +237,13 @@ ControllerConfiguration::ControllerConfiguration(const libtorrent::entry & libto
 
 ControllerConfiguration::~ControllerConfiguration() {
 
+    /*
+     *
     // Delete torrent states
     for(std::map<libtorrent::sha1_hash, TorrentConfiguration *>::iterator i = _torrentConfigurations.begin(),
             end(_torrentConfigurations.end()); i != end;i++)
             delete i->second;
+    */
 }
 
 ControllerConfiguration::ControllerConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry) {
@@ -376,7 +379,7 @@ ControllerConfiguration::ControllerConfiguration(const libtorrent::entry::dictio
                     const libtorrent::entry::dictionary_type & persistentTorrentStateDictionaryEntry = persistentTorrentStateEntry.dict();
 
                     // Add to torrentAddTorrentParameters
-                    _torrentConfigurations[info_hash] = new TorrentConfiguration(persistentTorrentStateDictionaryEntry);
+                    _torrentConfigurations[info_hash] = TorrentConfiguration(persistentTorrentStateDictionaryEntry); // new
 
                 } else
                     throw InvalidBitSwaprStateEntryException(dictionaryEntry, "persistentTorrentStates has value that is not of type entry::dict_type.");
@@ -496,6 +499,27 @@ void ControllerConfiguration::saveToFile(const char * fileName) {
 	file.close();
 }
 
+bool ControllerConfiguration::addTorrentConfiguration(const TorrentConfiguration & torrentConfiguration) {
+
+    // Get info hash
+    libtorrent::sha1_hash & info_hash = torrentConfiguration.getInfoHash();
+
+    // Look up configuration for torrrent with given info hash
+    std::map<libtorrent::sha1_hash, TorrentConfiguration>::iterator & mapIterator = _torrentConfigurations.find(info_hash);
+
+    // Return false if we found match
+    if(mapIterator != _torrentConfigurations.end())
+        return false;
+    else {
+
+        // Add to map
+        _torrentConfigurations.insert(std::make_pair(info_hash, torrentConfiguration));
+
+        // Indicate that it worked
+        return true;
+    }
+}
+
 libtorrent::entry & ControllerConfiguration::getLibtorrentSessionSettingsEntry() {
     return _libtorrentSessionSettingsEntry;
 }
@@ -510,10 +534,10 @@ std::map<libtorrent::sha1_hash, TorrentConfiguration *> & ControllerConfiguratio
 }
 */
 
-const TorrentConfiguration * ControllerConfiguration::getTorrentConfiguration(const libtorrent::sha1_hash & info_hash) {
+const TorrentConfiguration & ControllerConfiguration::getTorrentConfiguration(const libtorrent::sha1_hash & info_hash) {
 
     // Look up configuration for torrrent with given info hash
-    std::map<libtorrent::sha1_hash, TorrentConfiguration *>::iterator & mapIterator = _torrentConfigurations.find(info_hash);
+    std::map<libtorrent::sha1_hash, TorrentConfiguration>::iterator & mapIterator = _torrentConfigurations.find(info_hash);
 
     // Return the configuration pointer if present
     if(mapIterator == _torrentConfigurations.end())

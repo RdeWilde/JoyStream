@@ -122,7 +122,7 @@ void main(int argc, char* argv[]) {
     libtorrent::add_torrent_params paramsMain;
     paramsMain.ti = torrentInfoPointer1;
     paramsMain.save_path = "C:/Users/Sindre/Desktop/SAVE_OUTPUT/MAIN";
-    main.addTorrent(paramsMain);
+    main.addTorrentToSession(paramsMain);
 
     // =======================================================
 
@@ -136,7 +136,7 @@ void main(int argc, char* argv[]) {
     libtorrent::add_torrent_params paramsPeer;
     paramsPeer.ti = torrentInfoPointer2;
     paramsPeer.save_path = "C:/Users/Sindre/Desktop/SAVE_OUTPUT/PEER";
-    peer.addTorrent(paramsPeer);
+    peer.addTorrentToSession(paramsPeer);
 
     // Start event loop: this is the only Qt event loop in the entire application
     app.exec();

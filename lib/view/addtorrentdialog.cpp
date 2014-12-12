@@ -52,6 +52,33 @@ void AddTorrentDialog::on_AddTorrentDialog_accepted() {
     // User data (not represented in persistent state)
     //params.userdata = (void*)strdup(torrent.c_str());
 
+
+
+    /*
+     *
+    //* If info_hash is not set, we try and set it.
+    //* This would typically be the case if torrent was added through torrent
+    //* file rather than magnet link. The primary reason for this constraint is because searching
+    //* addTorrentParameters is based on info_hashes,
+    if(params.info_hash.is_all_zeros()) {
+
+        // Is torrent info set, use it
+        if(params.ti.get() != 0 && !params.ti->info_hash().is_all_zeros()) {
+            libtorrent::sha1_hash info_hash = params.ti->info_hash();
+            params.info_hash = info_hash;
+        } else {
+            // Throw exception in future
+            qCDebug(_category) << "no valid info_hash set.";
+            return;
+        }
+    }
+    */
+
+
+    set plugin configuration
+            if(newTorrent->bytes_left() > 0
+
+
     send configruation instead
 
     // Save path

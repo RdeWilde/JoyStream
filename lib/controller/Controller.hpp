@@ -49,6 +49,10 @@ private:
     // Routine called after all resume data has been saved as part of an initlal begin_close() call
     void finalize_close();
 
+    // Creates folder and adds torrent to session, but does not alter state of controller by adding torrent configuration
+    // to it. Is typically called by ctr() and addTorrent().
+    bool addTorrentToSession(const TorrentConfiguration & TorrentConfiguration);
+
    /**
     * Private short term state
     * ==========================
@@ -101,7 +105,7 @@ private:
 public:
 
 	// Constructor starting session with given state
-    Controller(const ControllerConfiguration & controllerParameters, bool showView, QLoggingCategory & category);
+    Controller(const ControllerConfiguration & controllerConfiguration, bool showView, QLoggingCategory & category);
 
     // Callback routine called by libtorrent dispatcher routine
     void libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::alert> alertAutoPtr);
@@ -116,9 +120,7 @@ public:
 	void saveStateToFile(const char * file);
 
     // Add a torrent to controller and start servicing it
-    //void addTorrent(libtorrent::add_torrent_params & params);
-
-    void addTorrent(const TorrentConfiguration & TorrentConfiguration);
+    void addTorrent(const TorrentConfiguration & TorrentConfiguration); //void addTorrent(libtorrent::add_torrent_params & params);
     void addTorrentFromTorrentFile(const QString & torrentFile, bool withPlugin);
     void addTorrentFromMagnetLink(const QString & magnetLink, bool withPlugin);
     bool removeTorrent(const libtorrent::sha1_hash & info_hash);
@@ -137,7 +139,7 @@ public:
 
     // Caller does not own object, life time is uncertain, at least make copy.
     // Do something safer later?
-    const TorrentPluginConfiguration * getTorrentPluginConfiguration(const libtorrent::sha1_hash & info_hash);
+    const TorrentPluginConfiguration & getTorrentPluginConfiguration(const libtorrent::sha1_hash & info_hash);
 
 
 private slots:

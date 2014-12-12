@@ -42,6 +42,7 @@ protected:
     // Only way to make class strictly abstract, silly C++-
     // Is needed so that dyanmic_cast actually works
     virtual ~TorrentPluginConfiguration() = 0;
+
     /**
      * Write configuration into dictionary
      * ===============================================================

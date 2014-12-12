@@ -15,13 +15,19 @@ class TorrentConfiguration {
 public:
 
     // Constructor from members
-    TorrentConfiguration(const libtorrent::sha1_hash & info_hash, const std::string & name, const std::string & save_path, const std::vector<char> & resume_data, quint64 flags, TorrentPluginConfiguration * torrentPluginConfiguration = 0);
+    TorrentConfiguration(const libtorrent::sha1_hash & info_hash, const std::string & name, const std::string & save_path, const std::vector<char> & resume_data, quint64 flags, TorrentPluginConfiguration * torrentPluginConfiguration = NULL);
 
     // Constructor from dictionary
     TorrentConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry);
 
-    // Assignment operator needed for adding type by value to map
-    //TorrentConfiguration & operator=(const TorrentConfiguration & rhs);
+    // Default constructor, needed for adding type by value to map
+    TorrentConfiguration();
+
+    // Assignment operator, needed for adding type by value to map
+    TorrentConfiguration & operator=(const TorrentConfiguration & rhs);
+
+    // Destructor
+    ~TorrentConfiguration();
 
     /**
      * Write state into dictionary
@@ -49,6 +55,7 @@ public:
     std::vector<char> & getResumeData();
     const std::vector<char> & getConstResumeData() const;
     quint64 getFlags() const;
+    TorrentPluginConfiguration * getTorrentPluginConfiguration() const;
 
 protected:
 

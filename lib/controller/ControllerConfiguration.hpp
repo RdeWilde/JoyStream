@@ -1,11 +1,13 @@
 #ifndef CONTROLLER_CONFIGURATION_HPP
 #define CONTROLLER_CONFIGURATION_HPP
 
+#include "TorrentConfiguration.hpp" // _torrentConfigurationss
+
 #include <libtorrent/entry.hpp>
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>
 
-class TorrentConfiguration;
+//class TorrentConfiguration;
 
 class ControllerConfiguration {
 
@@ -20,7 +22,7 @@ public:
     // Constructor using members
     ControllerConfiguration(const libtorrent::entry & libtorrentSessionSettingsEntry,
                     const std::pair<int, int> & portRange,
-                    const std::map<libtorrent::sha1_hash, TorrentConfiguration *> torrentParameters,
+                    const std::map<libtorrent::sha1_hash, TorrentConfiguration> torrentParameters,
                     const std::vector<std::pair<std::string, int>> & dhtRouters);
 
     // Constructor using dictionary entry
@@ -52,10 +54,13 @@ public:
 	// Saves to file
 	void saveToFile(const char * file);
 
+    // Inserts torrent configuration.
+    bool addTorrentConfiguration(const TorrentConfiguration & torrentConfiguration);
+
     // Getters
     libtorrent::entry & getLibtorrentSessionSettingsEntry();
     std::pair<int, int> & getPortRange();
-    TorrentConfiguration * getTorrentConfiguration(const libtorrent::sha1_hash & info_hash);
+    const TorrentConfiguration & getTorrentConfiguration(const libtorrent::sha1_hash & info_hash);
     std::vector<std::pair<std::string, int>> & getDhtRouters();
 
     // Setters
@@ -82,7 +87,7 @@ private:
     std::vector<std::pair<std::string, int>> _dhtRouters;
 
     // Torrent states
-    std::map<libtorrent::sha1_hash, TorrentConfiguration *> _torrentConfigurations;
+    std::map<libtorrent::sha1_hash, TorrentConfiguration> _torrentConfigurations;
 };
 
 #endif // CONTROLLER_CONFIGURATION_HPP
