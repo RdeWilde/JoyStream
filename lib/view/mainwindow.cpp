@@ -122,6 +122,36 @@ void MainWindow::torrentTableClicked(const QModelIndex & index) {
     ui->peerPluginsTable->setModel(torrentViewModel->getPeerPluginsTableViewModel());
 }
 
+void MainWindow::showAddTorrentFromTorrentFileDialog(const QString & torrentFile, bool withPlugin) {
+
+    // Check that torrent file exists
+    if(!QFile::exists(torrentFile)) {
+        qCCritical(_category) << "Torrent file " << torrentFile.toStdString().c_str() << " does not exist.";
+        return;
+    }
+
+    // Show window for adding torrent with torrent file
+    /**
+     * Starts new event loop,
+     * no more libtorrent alerts are processed in mean time,
+     * change at a later time
+     */
+    AddTorrentDialog addTorrentDialog(this, torrentfile, true, withPlugin);
+    addTorrentDialog.exec();
+}
+
+void MainWindow::showAddTorrentFromMagnetLinkDialog(const QString & magnetLink, bool withPlugin) {
+
+    // Show window for adding torrent with magnet link
+    /**
+     * Starts new event loop,
+     * no more libtorrent alerts are processed in mean time,
+     * change at a later time
+     */
+    AddTorrentDialog addTorrentDialog(this, magnetLink, false, withPlugin);
+    addTorrentDialog.exec();
+}
+
 void MainWindow::pauseMenuAction() {
 
     bool paused = controller_->pauseTorrent(getInfoHashOfLastClickedTorrent());
@@ -170,8 +200,8 @@ void MainWindow::on_addTorrentFilePushButton_clicked()
     if(torrentFile.isNull())
         return;
 
-    // Tell controller
-    controller_->addTorrentFromTorrentFile(torrentFile);
+    // Open dialog for adding torrent from file
+    showAddTorrentFromTorrentFileDialog(torrentFile);
 }
 
 void MainWindow::on_addMagnetLinkPushButton_clicked()
@@ -189,8 +219,8 @@ void MainWindow::on_addMagnetLinkPushButton_clicked()
     if (!ok || magnetLink.isEmpty())
         return;
 
-    // Notify controller
-    controller_->addTorrentFromMagnetLink(magnetLink);
+    // Open dialog for adding torrent from magnet link
+    showAddTorrentFromMagnetLinkDialog(magnetLink);
 }
 
 void MainWindow::closeEvent(QCloseEvent * event) {

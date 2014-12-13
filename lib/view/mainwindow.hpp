@@ -99,6 +99,11 @@ public slots:
     void removeMenuAction();
 
     void torrentTableClicked(const QModelIndex & index);
+
+    // Show parts of view
+    void showAddTorrentFromTorrentFileDialog(const QString & torrentFile, bool withPlugin);
+    void showAddTorrentFromMagnetLinkDialog(const QString & magnetLink, bool withPlugin);
+
 };
 
 #endif // MAIN_WINDOW_HPP

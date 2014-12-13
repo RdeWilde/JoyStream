@@ -108,15 +108,17 @@ Controller::Controller(const ControllerConfiguration & controllerConfiguration, 
 	if(listenOnErrorCode)
 		throw ListenOnException(listenOnErrorCode);
 
-    // Add torrents to session
-    // Wisdom of Sindre indicates this must be AFTER session.listen_on()
-    std::map<libtorrent::sha1_hash, TorrentConfiguration> & torrentConfigurations = _controllerConfiguration.getTorrentConfigurations();
+    // Add torrents to session (this must be AFTER session.listen_on())
+    std::set<libtorrent::sha1_hash> torrentInfoHashes = _controllerConfiguration.getTorrentInfoHashes();
 
-    for(std::map<libtorrent::sha1_hash, TorrentConfiguration>::iterator i = torrentConfigurations.begin(),
-            end(torrentConfigurations.end());i != end; ++i) {
+    for(std::set<libtorrent::sha1_hash>::iterator i = torrentInfoHashes.begin(),
+            end(torrentInfoHashes.end());i != end; ++i) {
+
+        // Get reference to torrent configuration corresponding to info hash
+        const TorrentConfiguration & torrentConfiguration = _controllerConfiguration.getTorrentConfiguration(*i);
 
         // Add torrent
-        if(!addTorrentToSession(i->second)) {
+        if(!addTorrentToSession(torrentConfiguration)) {
 
             qCCritical(_category) << "Unable to add torrent configuration to session";
             return;
@@ -306,21 +308,29 @@ void Controller::processTorrentRemovedAlert(libtorrent::torrent_removed_alert co
      * so we must use p->info_hash instead.
      */
 
-    std::map<libtorrent::sha1_hash, TorrentConfiguration *> & torrentConfigurations = _controllerConfiguration.getTorrentConfigurations();
-    std::map<libtorrent::sha1_hash, TorrentConfiguration *>::iterator & mapIterator = torrentConfigurations.find(p->info_hash);
+    // Get torrent info hash
+    libtorrent::sha1_hash info_hash = p->info_hash;
 
-    // Did we find match
-    if(mapIterator == torrentConfigurations.end()) {
-        qCCritical(_category) << "No matching info hash found.";
+    // Aquire lock
+    _controllerConfigurationMutex.lock();
+
+    // Attempt to erase
+    if(!_controllerConfiguration.eraseTorrentConfiguration(info_hash)) {
+
+        // Release lock
+        _controllerConfigurationMutex.unlock();
+
+        qCCritical(_category) << "No matching info hash found, torrent not removed from controller.";
+        return;
     }
 
-    // Erase from map, which also calls destructor
-    torrentConfigurations.erase(mapIterator);
-
     // Remove from view
-    _view.removeTorrent(p->info_hash);
+    _view.removeTorrent(info_hash);
 
     qCDebug(_category) << "Found match and removed it.";
+
+    // Rlease lock
+    _controllerConfigurationMutex.unlock();
 }
 
 void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p) {
@@ -367,28 +377,41 @@ void Controller::processSaveResumeDataAlert(libtorrent::save_resume_data_alert c
     // Decrease outstanding count
     _numberOfOutstandingResumeDataCalls--;
 
-    // Get persistent torrent state to save resume data
-    std::map<libtorrent::sha1_hash, TorrentConfiguration *> & torrentConfigurations = _controllerConfiguration.getTorrentConfigurations();
-    std::map<libtorrent::sha1_hash, TorrentConfiguration *>::iterator & mapIterator = torrentConfigurations.find(p->handle.info_hash());
+    // Get info hash for torrent
+    libtorrent::sha1_hash info_hash = p->handle.info_hash();
 
-    // Did we find match
-    if(mapIterator == torrentConfigurations.end()) {
-        qCCritical(_category) << "No matching info hash found.";
+    // Aquire lock
+    _controllerConfigurationMutex.lock();
+
+    try{
+
+        // Get torrent configuration
+        TorrentConfiguration & torrentConfiguration =_controllerConfiguration.getTorrentConfiguration(info_hash);
+
+        // Get reference to resume data vector
+        std::vector<char> & resume_data = torrentConfiguration.getResumeData();
+
+        // Dump old content
+        resume_data.clear();
+
+        // Write new content to it
+        bencode(std::back_inserter(resume_data), *(p->resume_data));
+
+    } catch (std::exception & e) {
+
+        // Release lock
+        _controllerConfigurationMutex.unlock();
+
+        // Write critial warning
+        qCCritical(_category) << "exception caught: " << e.what() << '\n';
+
         return;
     }
 
-    TorrentConfiguration * torrentParameters = mapIterator->second;
+    // Release lock
+    _controllerConfigurationMutex.unlock();
 
-    // Get reference to resume data vector
-    std::vector<char> & resume_data = torrentParameters->getResumeData();
-
-    // Dump old content
-    resume_data.clear();
-
-    // Write new content to it
-    bencode(std::back_inserter(resume_data), *(p->resume_data));
-
-    // If this was last outstanding resume data save, then do relevant callback
+    // If this was last outstanding resume data save, the   n do relevant callback
     if(_numberOfOutstandingResumeDataCalls == 0) {
 
         switch(_sourceForLastResumeDataCall) {
@@ -429,63 +452,6 @@ void Controller::processSaveResumeDataFailedAlert(libtorrent::save_resume_data_f
     _numberOfOutstandingResumeDataCalls--;
 }
 
-void Controller::addTorrentFromTorrentFile(const QString & torrentFile, bool withPlugin) {
-
-    // Check that torrent file exists
-    if(!QFile::exists(torrentFile)) {
-        qCCritical(_category) << "Torrent file " << torrentFile.toStdString().c_str() << " does not exist.";
-        return;
-    }
-
-    // Setup parameters
-    libtorrent::add_torrent_params params;
-
-    // Load torrent file
-    libtorrent::error_code ec;
-    boost::intrusive_ptr<libtorrent::torrent_info> torrentInfoPointer = new libtorrent::torrent_info(torrentFile.toStdString().c_str(), ec);
-    if(ec) {
-        qCCritical(_category) << "Invalid torrent file: " << ec.message().c_str();
-        return;
-    }
-
-    // Set torrent info in parameters
-    params.ti = torrentInfoPointer;
-
-    // Show window for adding torrent
-    AddTorrentDialog * addTorrentDialog = new AddTorrentDialog(this, params);
-
-    // Starts new event loop,
-    // no more libtorrent alerts are processed in mean time,
-    // change at a later time
-    addTorrentDialog->exec();
-
-    // Delete window
-    delete addTorrentDialog;
-}
-
-void Controller::addTorrentFromMagnetLink(const QString & magnetLink) {
-
-    // Setup parameters
-    libtorrent::add_torrent_params params;
-    params.url = magnetLink.toStdString();
-
-    // Parse link to get info_hash, so that resume data can be loaded
-    libtorrent::error_code ec;
-    libtorrent::parse_magnet_uri(magnetLink.toStdString(), params, ec);
-
-    // Exit if link is malformed
-    if(ec) {
-        qCWarning(_category) << "Malformed magnet link: " << ec.message().c_str();
-        return;
-    }
-
-    // Show window for adding torrent
-    AddTorrentDialog * addTorrentDialog = new AddTorrentDialog(this, params);
-    addTorrentDialog->exec();
-
-    // Delete window resources
-    delete addTorrentDialog;
-}
 
 bool Controller::removeTorrent(const libtorrent::sha1_hash & info_hash) {
 
@@ -497,6 +463,8 @@ bool Controller::removeTorrent(const libtorrent::sha1_hash & info_hash) {
         return false;
 
     // Remove from session
+    // Session will send us torrent_removed_alert alert when torrent has been removed
+    // at which point we can remove torrent from model in alert handler
     _session.remove_torrent(torrentHandle);
 
     // It worked
@@ -542,14 +510,32 @@ bool Controller::startTorrent(const libtorrent::sha1_hash & info_hash) {
     return true;
 }
 
-void Controller::addTorrent(const TorrentConfiguration & torrentConfiguration) {
+bool Controller::addTorrent(const TorrentConfiguration & torrentConfiguration) {
 
     // Attempt to add to session
     if(addTorrentToSession(torrentConfiguation)) {
 
+        // Aquire lock
+        _controllerConfigurationMutex.lock();
+
         // and add to controller if this was possible
-        _controllerConfiguration.addTorrentConfiguration(torrentConfiguration);
-    }
+        if(!_controllerConfiguration.addTorrentConfiguration(torrentConfiguration)) {
+
+            // Release lock
+            _controllerConfigurationMutex.unlock();
+
+            // Could add to session, but not controller!!!
+            return false;
+        }
+
+        // Release lock
+        _controllerConfigurationMutex.unlock();
+
+        // Could add to both session and controller
+        return true;
+
+    } else // Could not add to session
+        return false;
 }
 
 bool Controller::addTorrentToSession(const TorrentConfiguration & torrentConfiguration) {
@@ -610,7 +596,7 @@ void Controller::begin_close() {
 
     // Save state of controller (includes full libtorrent state) to parameter file
     QString file = QDir::current().absolutePath () + QDir::separator() + PARAMETER_FILE_NAME;
-    this->saveStateToFile(file.toStdString().c_str());
+    saveStateToFile(file.toStdString().c_str());
 
     // Save resume data for all
     _sourceForLastResumeDataCall = CLIENT_CLOSE; // Note source of a new set of resume data calls
@@ -636,13 +622,26 @@ void Controller::finalize_close() {
 
 const TorrentPluginConfiguration * Controller::getTorrentPluginConfiguration(const libtorrent::sha1_hash & info_hash) {
 
-    const TorrentPluginConfiguration * torrentPluginConfiguration;
+    const TorrentPluginConfiguration * torrentPluginConfiguration = NULL;
 
     // Aquire lock
     _controllerConfigurationMutex.lock();
 
-    // Get torrent plugin configuration
-    torrentPluginConfiguration = _controllerConfiguration.getTorrentConfiguration(info_hash).getTorrentPluginConfiguration();
+    try{
+
+        // Get torrent plugin configuration
+        torrentPluginConfiguration = _controllerConfiguration.getTorrentConfiguration(info_hash).getTorrentPluginConfiguration();
+
+    } catch (std::exception & e) {
+
+        // Release lock
+        _controllerConfigurationMutex.unlock();
+
+        // Write critial warning
+        qCCritical(_category) << "exception caught: " << e.what() << '\n';
+
+        return NULL;
+    }
 
     // Release lock
     _controllerConfigurationMutex.unlock();

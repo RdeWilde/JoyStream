@@ -1,10 +1,9 @@
-#ifndef ADDTORRENTDIALOG_H
-#define ADDTORRENTDIALOG_H
+#ifndef ADD_TORRENT_DIALOG_HPP
+#define ADD_TORRENT_DIALOG_HPP
 
 #include <QDialog>
 #include <QString>
 
-#include <libtorrent/add_torrent_params.hpp>
 #include "controller/Controller.hpp"
 
 namespace Ui {
@@ -17,20 +16,11 @@ class AddTorrentDialog : public QDialog
 
 public:
 
-    /*
-    enum torrentType {
-        torrent_file,
-        magnet_link
-    };
-    */
-
     // explicit AddTorrentDialog(QWidget *parent = 0);
     ~AddTorrentDialog();
 
     // Constructors
-    AddTorrentDialog(Controller * controller, libtorrent::add_torrent_params & params); //, torrentType type);
-
-    void closeWindow();
+    AddTorrentDialog(Controller * controller, const QString & resource, bool isTorrentFile, bool withPlugin);
 
 private slots:
     void on_AddTorrentDialog_accepted();
@@ -42,12 +32,16 @@ private slots:
 private:
     Ui::AddTorrentDialog * ui;
 
-    Controller * controller_;
+    Controller * _controller;
 
-    //torrentType type_;
+    // Torrent resouce, i.e. magnet link or file location
+    QString _resource;
 
-    libtorrent::add_torrent_params & params_;
+    // Indicates whether adding was magnet link or file location
+    bool _isTorrentFile;
 
+    // Should plugin be installed
+    bool _withPlugin;
 };
 
-#endif // ADDTORRENTDIALOG_H
+#endif // ADD_TORRENT_DIALOG_HPP

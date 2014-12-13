@@ -53,6 +53,9 @@ private:
     // to it. Is typically called by ctr() and addTorrent().
     bool addTorrentToSession(const TorrentConfiguration & TorrentConfiguration);
 
+    // Save state of controller to file
+    void saveStateToFile(const char * file);
+
    /**
     * Private short term state
     * ==========================
@@ -100,6 +103,9 @@ private:
       * in the controller.
       */
 
+    // SHOULD THIS LOCK BE PLACES INSIDE CONTROLLER CONFIGURATION
+    // CLASS, AND THEN PUT SYNCHRONIZED MANIPULATION ROUTINES (ADD,REMOVE..)
+    // INSIDE THE CLASS.
     QMutex _controllerConfigurationMutex;
 
 public:
@@ -115,14 +121,13 @@ public:
 
     /**
       * View entry points
+      * =================
+      * Primarily called by view objects on the same thread as controller thread,
+      * buy also good routines to use for testing.
       */
 
-	void saveStateToFile(const char * file);
-
-    // Add a torrent to controller and start servicing it
-    void addTorrent(const TorrentConfiguration & TorrentConfiguration); //void addTorrent(libtorrent::add_torrent_params & params);
-    void addTorrentFromTorrentFile(const QString & torrentFile, bool withPlugin);
-    void addTorrentFromMagnetLink(const QString & magnetLink, bool withPlugin);
+    // Manage torrents
+    bool addTorrent(const TorrentConfiguration & TorrentConfiguration);
     bool removeTorrent(const libtorrent::sha1_hash & info_hash);
     bool pauseTorrent(const libtorrent::sha1_hash & info_hash);
     bool startTorrent(const libtorrent::sha1_hash & info_hash);
@@ -131,6 +136,8 @@ public:
     void begin_close();
 
     /**
+      * Libtorrent entry points
+      * =======================
       * All public routines below are entry points for libtorrent
       * thread, and all use locks to synchronize access to various parts of the
       * controller state. The routines are used for synchronous calls to the controller,
@@ -139,8 +146,7 @@ public:
 
     // Caller does not own object, life time is uncertain, at least make copy.
     // Do something safer later?
-    const TorrentPluginConfiguration & getTorrentPluginConfiguration(const libtorrent::sha1_hash & info_hash);
-
+    const TorrentPluginConfiguration * getTorrentPluginConfiguration(const libtorrent::sha1_hash & info_hash);
 
 private slots:
 

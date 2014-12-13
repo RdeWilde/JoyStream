@@ -60,11 +60,20 @@ public:
     // Getters
     libtorrent::entry & getLibtorrentSessionSettingsEntry();
     std::pair<int, int> & getPortRange();
-    const TorrentConfiguration & getTorrentConfiguration(const libtorrent::sha1_hash & info_hash);
+
+    // Be careful with reference since underlying configuration object may expire by being
+    // erased from underlying map. Best practice is to only use locally and in a thread which
+    // has exclusive access to controller configuration.
+    std::set<libtorrent::sha1_hash> getTorrentInfoHashes() const;
+    TorrentConfiguration & getTorrentConfiguration(const libtorrent::sha1_hash & info_hash);
     std::vector<std::pair<std::string, int>> & getDhtRouters();
 
     // Setters
     void setLibtorrentSessionSettingsEntry(const libtorrent::entry & libtorrentSessionSettingsEntry);
+    bool eraseTorrentConfiguration(const libtorrent::sha1_hash & info_hash);
+
+    // TorrentConfiguraton setters
+    bool setTorrentConfigurationResumeData(const libtorrent::sha1_hash & info_hash, std::vector<char> & resume_data);
 
 private:
 

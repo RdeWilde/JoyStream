@@ -534,6 +534,20 @@ std::map<libtorrent::sha1_hash, TorrentConfiguration *> & ControllerConfiguratio
 }
 */
 
+std::set<libtorrent::sha1_hash> ControllerConfiguration::getTorrentInfoHashes() const {
+
+    // Create vector for keeping keys
+    std::set<libtorrent::sha1_hash> keys;
+
+    // Iterate map and populate keys vector
+    for(std::map<libtorrent::sha1_hash, TorrentConfiguration>::iterator i = _torrentConfigurations.begin(),
+            end(_torrentConfigurations.end()); i != end;i++)
+        keys.insert(i->first);
+
+    // Return set
+    return keys;
+}
+
 const TorrentConfiguration & ControllerConfiguration::getTorrentConfiguration(const libtorrent::sha1_hash & info_hash) {
 
     // Look up configuration for torrrent with given info hash
@@ -541,7 +555,7 @@ const TorrentConfiguration & ControllerConfiguration::getTorrentConfiguration(co
 
     // Return the configuration pointer if present
     if(mapIterator == _torrentConfigurations.end())
-        return 0;
+        throw std::exception("No matching info hash found.");
     else
         return mapIterator->second;
 }
@@ -552,4 +566,22 @@ std::vector<std::pair<std::string, int>> & ControllerConfiguration::getDhtRouter
 
 void ControllerConfiguration::setLibtorrentSessionSettingsEntry(const libtorrent::entry & libtorrentSessionSettingsEntry) {
     _libtorrentSessionSettingsEntry = libtorrentSessionSettingsEntry;
+}
+
+bool ControllerConfiguration::eraseTorrentConfiguration(const libtorrent::sha1_hash & info_hash) {
+
+    // Try to find iterator reference to mathch
+    std::map<libtorrent::sha1_hash, TorrentConfiguration>::iterator & mapIterator = _torrentConfigurations.find(info_hash);
+
+    // Did we find match
+    if(mapIterator == _torrentConfigurations.end())
+         return false;
+    else {
+
+        // Erase
+        _torrentConfigurations.erase(mapIterator);
+
+        // Indicate it worked
+        return true;
+    }
 }
