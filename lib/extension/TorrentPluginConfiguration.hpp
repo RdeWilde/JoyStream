@@ -1,47 +1,38 @@
 #ifndef TORRENT_PLUGIN_CONFIGURATION_HPP
 #define TORRENT_PLUGIN_CONFIGURATION_HPP
 
+#include "PluginMode.hpp"
+
 #include <libtorrent/entry.hpp> // because you cant forward declare typedefs (libtorrent::entry::dictionary_type)
 
 #include <QtGlobal> // quint8,...
 
-/**
- * Configuration for running a torrent plugin. Class
- * is practically abstract (protected constructor),
- * but instances can be created through copying.
- *
- * GET RID OF LATER IF IT TURNS OUT THAT SELLER AND BUYER
- * PLUGINS REALLY HAVE NO CONFIGURATIONS IN COMMON
- */
+// Was factored out of TorrentConfiguration because Plugin does not need to know about all parts of torrent configuration
+// only the plugin spesific ones.
 class TorrentPluginConfiguration
 {
 public:
 
-    // Getters
-    qint32 getMaxPrice();
-    qint32 getMaxBurn();
-    bool getEnableBanningSets();
-
-protected:
-
-    // Maximum price at which this plugin buys pieces
-    qint32 _maxPrice;
-
-    // Maxmimum price at which this plugin burns funds for a payment channel
-    qint32 _maxBurn;
-
-    // Use the two sets below when accepting new peers in new_connect
-    bool _enableBanningSets;
-
     // Constructor from members
-    TorrentPluginConfiguration(qint32 maxPrice, qint32 maxBurn, bool enableBanningSets);
+    TorrentPluginConfiguration(PluginMode pluginMode, bool enableBanningSets, bool pluginOn);
 
     // Constructor from dictionary
     TorrentPluginConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry);
 
-    // Only way to make class strictly abstract, silly C++-
-    // Is needed so that dyanmic_cast actually works
-    virtual ~TorrentPluginConfiguration() = 0;
+    // Getters
+    bool getEnableBanningSets();
+    PluginMode getPluginMode();
+
+protected:
+
+    // Mode of plugin. All peers have same mode.
+    PluginMode _pluginMode;
+
+    // Use the two sets below when accepting new peers in new_connect
+    bool _enableBanningSets;
+
+    // Plugin is on: Write more
+    bool _pluginOn;
 
     /**
      * Write configuration into dictionary

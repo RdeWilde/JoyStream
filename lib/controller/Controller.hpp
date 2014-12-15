@@ -146,7 +146,7 @@ public:
 
     // Caller does not own object, life time is uncertain, at least make copy.
     // Do something safer later?
-    const TorrentPluginConfiguration * getTorrentPluginConfiguration(const libtorrent::sha1_hash & info_hash);
+    //const TorrentPluginConfiguration * getTorrentPluginConfiguration(const libtorrent::sha1_hash & info_hash);
 
 private slots:
 

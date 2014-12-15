@@ -11,14 +11,14 @@ public:
     // Default constructor required for Qt MOC
     PeerPluginId();
 
-
+    // Constructor from members
     PeerPluginId(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint);
 
     // info hash of torrent to which this peer plugin corresponds
-    const libtorrent::sha1_hash info_hash_;
+    libtorrent::sha1_hash info_hash_;
 
     // end point of peer
-    const libtorrent::tcp::endpoint endPoint_;
+    libtorrent::tcp::endpoint endPoint_;
 };
 
 #include <QMetaType>

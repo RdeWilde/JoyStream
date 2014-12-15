@@ -1,10 +1,7 @@
-
 #ifndef PEER_PLUGIN_HPP
 #define PEER_PLUGIN_HPP
 
-#include "Message/ExtendedMessageIdMapping.hpp"
-#include "PeerPluginState.hpp"
-#include "PeerPluginId.hpp"
+#include "PeerPluginConfiguration.hpp"
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/entry.hpp>
@@ -33,32 +30,18 @@ class PeerPlugin : public QObject, public libtorrent::peer_plugin {
 
 public:
 
-    // BEP support state indicator, is used for both regular
-    // 1) BitTorrent handshake
-    // 2) BEP10 handshake
-    enum PEER_BEP_SUPPORTED_STATUS {
-
-        // Before handshake
-        unknown,
-
-        // After handshake
-        supported,
-        not_supported
-    };
-
     // Constructor
     PeerPlugin(TorrentPlugin * torrentPlugin,
                libtorrent::bt_peer_connection * bittorrentPeerConnection,
-               QLoggingCategory & category);
+               QLoggingCategory & category,
+               PeerPluginConfiguration & peerPluginConfiguration);
 
     // Destructor
     ~PeerPlugin();
 
     /**
-     * All virtual functions below should ONLY
-     * be called by libtorrent network thread,
-     * never by other threads, as this causes synchronization
-     * failures.
+     * All virtual functions below should ONLY be called by libtorrent network thread,
+     * never by other threads, as this causes synchronization failures.
      */
     virtual char const* type() const;
     virtual void add_handshake(libtorrent::entry & handshake);
@@ -83,51 +66,29 @@ public:
     virtual bool on_dont_have(int index);
     virtual void sent_unchoke();
     virtual bool can_disconnect(libtorrent::error_code const & ec);
-    virtual bool on_extended(int length, int msg, libtorrent::buffer::const_interval body) = 0;
+    virtual bool on_extended(int length, int msg, libtorrent::buffer::const_interval body);
     virtual bool on_unknown_message(int length, int msg, libtorrent::buffer::const_interval body);
     virtual void on_piece_pass(int index);
     virtual void on_piece_failed(int index);
     virtual void tick();
     virtual bool write_request(libtorrent::peer_request const & peerRequest);
 
-    /**
-     * Public routines used by non-libtorrent thread
-     */
-    //const libtorrent::sha1_hash & getInfoHash() const; // Who calls this? remove if no one
-
-    PEER_BEP_SUPPORTED_STATUS getPeerBEP10SupportedStatus() const;
-    PEER_BEP_SUPPORTED_STATUS getPeerBEP43SupportedStatus() const;
-
-    const libtorrent::tcp::endpoint & getEndPoint() const;
-    const PeerPluginId & getPeerPluginId() const;
+    //const libtorrent::tcp::endpoint & getEndPoint() const;
+    //const PeerPluginId & getPeerPluginId() const;
 
 protected:
 
     // Torrent plugin for torrent
-    TorrentPlugin * torrentPlugin_;
+    TorrentPlugin * _torrentPlugin;
 
     // Connection to peer for this plugin
-    libtorrent::bt_peer_connection * bittorrentPeerConnection_;
-
-    // Indicates whether peer supports
-    PEER_BEP_SUPPORTED_STATUS peerBEP10SupportedStatus, // BEP10
-                        peerBEP43SupportedStatus; // BEP43
-
-    // Mapping from messages to BEP10 ID of peer
-    ExtendedMessageIdMapping clientMapping, peerMapping;
-
-    // State of peer plugin
-    PeerPluginState peerPluginState_;
+    libtorrent::bt_peer_connection * _bittorrentPeerConnection;
 
     // Logging category
-    QLoggingCategory & category_;
+    QLoggingCategory & _category;
 
-    /**
-      * Utilitiy routines/variables
-      */
-
-    // Id of this peer plugin
-    PeerPluginId peerPluginId_; // asess later, is the redundancy worth it
+    // Configuration for peer: Reference to object in torrent configuration
+    PeerPluginConfiguration & _peerPluginConfiguration;
 
 signals:
 

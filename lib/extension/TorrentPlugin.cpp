@@ -1,7 +1,7 @@
 ﻿
 #include "TorrentPlugin.hpp"
-#include "BuyerPeerPlugin.hpp" // needed since we construct object
-#include "SellerPeerPlugin.hpp" // needed since we construct object
+#include "PeerPlugin.hpp"
+#include "PeerPluginConfiguration.hpp"
 #include "PeerPluginStatus.hpp" // signal parameter
 #include "controller/Controller.hpp" // needed to connect
 
@@ -12,49 +12,71 @@
 
 #include <QLoggingCategory>
 
-TorrentPlugin::TorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn)
-    : plugin_(plugin)
-    , torrent_(torrent)
-    , category_(category)
-    , tokensReceived_(0)
-    , tokensSent_(0)
-    , pluginOn_(pluginOn) {
+TorrentPlugin::TorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, const TorrentPluginConfiguration & torrentPluginConfiguration)
+    : _plugin(plugin)
+    , _torrent(torrent)
+    , _category(category)
+    , _torrentPluginConfiguration(torrentPluginConfiguration)
+    , _tokensReceived(0)
+    , _tokensSent(0) {
 }
 
 TorrentPlugin::~TorrentPlugin() {
     // Lets log, so we understand when libtorrent disposes of shared pointer
-    qCDebug(category_) << "~TorrentPlugin() called.";
+    qCDebug(_category) << "~TorrentPlugin() called.";
 }
 
-bool TorrentPlugin::installPluginOnNewConnection(libtorrent::peer_connection * peerConnection) {
+boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorrent::peer_connection * peerConnection) {
 
-    // Get endpoint of connection
+    /**
+     * Libtorrent docs (http://libtorrent.org/reference-Plugins.html#peer_plugin):
+     * ===========================================================================
+     * The peer_connection will be valid as long as the shared_ptr is being held by the
+     * torrent object. So, it is generally a good idea to not keep a shared_ptr to
+     * your own peer_plugin. If you want to keep references to it, use weak_ptr.
+     */
+
+    // Get end point to look up sets
     const libtorrent::tcp::endpoint & endPoint = peerConnection->remote();
+    std::string endPointString = libtorrent::print_endpoint(endPoint);
 
-    // If we are using banning sets, then check this peer
-    if(torrentPluginParameters_._enableBanningSets) {
+    qCDebug(_category) << "New connection from" << endPointString.c_str();
 
-        // Check if we know from before that peer does not have
-        if(peersWithoutExtension_.find(endPoint) != peersWithoutExtension_.end()) {
-            qCDebug(category_) << "Peer is known to not have extension.";
-            return false;
-        }
-
-        // Check if peer is banned due to irregular behaviour
-        if(irregularPeer_.find(endPoint) != irregularPeer_.end()) {
-            qCDebug(category_) << "Peer has been banned due to irregular behaviour.";
-            return false;
-        }
+    // Check if this peer should be accepted, if not
+    // a null is returned, hence plugin is not installed
+    if(installPluginOnNewConnection(peerConnection)) {
+        qCDebug(_category) << "Rejected connection from peer, peer plugin not installed.";
+        return boost::shared_ptr<libtorrent::peer_plugin>();
     }
 
-    // Check that this is indeed a bittorrent client, and not a HTTP or URL seed, if not, then dont isntall
-    if(peerConnection->type() != libtorrent::peer_connection::bittorrent_connection) {
-        qCDebug(category_) << "Peer was not BitTorrent client.";
-        return false;
-    }
+    // Recast as bittorrent peer connection
+    libtorrent::bt_peer_connection * bittorrentPeerConnection = static_cast<libtorrent::bt_peer_connection*>(peerConnection);
 
-    // Otherwise install plugin
-    return true;
+    // Create peer plugin configuration
+    PeerPluginConfiguration peerPluginConfiguration(BEPSupportStatus::unknown, BEPSupportStatus::unknown, PeerPluginState::started);
+
+    // Create peer plugin
+    PeerPlugin * peerPlugin = new PeerPlugin(this, bittorrentPeerConnection, _category, peerPluginConfiguration);
+
+    // Add to collection
+    _peerPlugins.insert(std::make_pair(endPoint, peerPlugin));
+
+    // Connect peer plugin signal to controller slot
+    //Controller * controller = plugin_->getController();
+    //
+    //QObject::connect(peerPlugin,
+    //                 SIGNAL(peerPluginStatusUpdated(const PeerPluginStatus&)),
+    //                 controller,
+    //                 SLOT(updatePeerPluginStatus(const PeerPluginStatus&)));
+
+    qCDebug(_category) << "Seller #" << _peerPlugins.size() << endPointString.c_str() << "added to " << _torrent->name().c_str();
+
+    // Emit peer added signal
+    // Should not be here, should be when a payment channel actually starts
+    //emit peerAdded(peerPlugin->getPeerPluginId());
+
+    // Return pointer to plugin as required
+    return boost::shared_ptr<libtorrent::peer_plugin>(peerPlugin);
 }
 
 void TorrentPlugin::on_piece_pass(int index) {
@@ -67,7 +89,7 @@ void TorrentPlugin::on_piece_failed(int index) {
 
 void TorrentPlugin::tick() {
 
-    //qCDebug(category_) << "TorrentPlugin.tick()";
+    qCDebug(_category) << "TorrentPlugin.tick()";
 
     // Send status signal
     sendTorrentPluginStatusSignal();
@@ -93,19 +115,19 @@ void TorrentPlugin::on_add_peer(libtorrent::tcp::endpoint const & endPoint, int 
 
     std::string endPointString = libtorrent::print_endpoint(endPoint);
 
-    qCDebug(category_) << "Peer list extended with peer" << endPointString.c_str() << ": " << endPoint.port();
+    qCDebug(_category) << "Peer list extended with peer" << endPointString.c_str() << ": " << endPoint.port();
 
     // Check if we know from before that peer does not have
-    if(peersWithoutExtension_.find(endPoint) != peersWithoutExtension_.end()) {
+    if(_peersWithoutExtension.find(endPoint) != _peersWithoutExtension.end()) {
 
-        qCDebug(category_) << "Not connecting to peer" << endPointString.c_str() << "which is known to not have extension.";
+        qCDebug(_category) << "Not connecting to peer" << endPointString.c_str() << "which is known to not have extension.";
         return;
     }
 
     // Check if peer is banned due to irregular behaviour
-    if(irregularPeer_.find(endPoint) != irregularPeer_.end()) {
+    if(_irregularPeer.find(endPoint) != _irregularPeer.end()) {
 
-        qCDebug(category_) << "Not connecting to peer" << endPointString.c_str() << "which has been banned due to irregular behaviour.";
+        qCDebug(_category) << "Not connecting to peer" << endPointString.c_str() << "which has been banned due to irregular behaviour.";
         return;
     }
 
@@ -115,16 +137,45 @@ void TorrentPlugin::on_add_peer(libtorrent::tcp::endpoint const & endPoint, int 
     /*
     libtorrent::policy::peer peerPolicy = new libtorrent::policy::peer();
 
-    torrent_->co
-
-            connect_to_peer(peerPolicy,true);
+    torrent_->connect_to_peer(peerPolicy,true);
     */
+}
+
+bool TorrentPlugin::installPluginOnNewConnection(libtorrent::peer_connection * peerConnection) {
+
+    // Get endpoint of connection
+    const libtorrent::tcp::endpoint & endPoint = peerConnection->remote();
+
+    // If we are using banning sets, then check this peer
+    if(_torrentPluginConfiguration.getEnableBanningSets()) {
+
+        // Check if we know from before that peer does not have
+        if(_peersWithoutExtension.find(endPoint) != _peersWithoutExtension.end()) {
+            qCDebug(_category) << "Peer is known to not have extension.";
+            return false;
+        }
+
+        // Check if peer is banned due to irregular behaviour
+        if(_irregularPeer.find(endPoint) != _irregularPeer.end()) {
+            qCDebug(_category) << "Peer has been banned due to irregular behaviour.";
+            return false;
+        }
+    }
+
+    // Check that this is indeed a bittorrent client, and not a HTTP or URL seed, if not, then dont isntall
+    if(peerConnection->type() != libtorrent::peer_connection::bittorrent_connection) {
+        qCDebug(_category) << "Peer was not BitTorrent client.";
+        return false;
+    }
+
+    // Otherwise install plugin
+    return true;
 }
 
 bool TorrentPlugin::addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint) {
 
     // Attempt to insert
-    std::pair<std::set<libtorrent::tcp::endpoint>::iterator, bool> insertResult = peersWithoutExtension_.insert(endPoint);
+    std::pair<std::set<libtorrent::tcp::endpoint>::iterator, bool> insertResult = _peersWithoutExtension.insert(endPoint);
 
     // Return whether object was actually inserted
     return insertResult.second;
@@ -133,25 +184,26 @@ bool TorrentPlugin::addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoin
 bool TorrentPlugin::addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint) {
 
     // Attempt to insert
-    std::pair<std::set<libtorrent::tcp::endpoint>::iterator, bool> insertResult = irregularPeer_.insert(endPoint);
+    std::pair<std::set<libtorrent::tcp::endpoint>::iterator, bool> insertResult = _irregularPeer.insert(endPoint);
 
     // Return whether object was actually inserted
     return insertResult.second;
 }
 
+/*
 void TorrentPlugin::removePeerPlugin(PeerPlugin * plugin) {
 
     // Find iterator reference to plugin
-    std::map<libtorrent::tcp::endpoint, PeerPlugin *>::iterator & mapIterator = peerPlugins_.find(plugin->getEndPoint());
+    std::map<libtorrent::tcp::endpoint, PeerPlugin *>::iterator & mapIterator = _peerPlugins.find(plugin->getEndPoint());
 
     // Did we find match?
-    if(mapIterator == peerPlugins_.end()) {
-        qCDebug(category_) << "Could not find peer for removal.";
+    if(mapIterator == _peerPlugins.end()) {
+        qCDebug(_category) << "Could not find peer for removal.";
         return;
     }
 
     // Remove
-    peerPlugins_.erase(mapIterator);
+    _peerPlugins.erase(mapIterator);
 
     // Delete object: Do we do this, or does libtorrent? and when is this safe?
     //delete mapIterator->second;
@@ -159,30 +211,20 @@ void TorrentPlugin::removePeerPlugin(PeerPlugin * plugin) {
     // Emit peer added signal
     //emit peerRemoved(torrent_->info_hash(), mapIterator->first);
 }
-
-/*
-Plugin * TorrentPlugin::getPlugin() {
-
-    // Returns plugin
-    return plugin_;
-}
-
-libtorrent::torrent * TorrentPlugin::getTorrent() {
-    return torrent_;
-}
 */
 
 const libtorrent::sha1_hash & TorrentPlugin::getInfoHash() const {
-    return torrent_->info_hash();
+    return _torrent->info_hash();
 }
 
 void TorrentPlugin::sendTorrentPluginStatusSignal() {
 
-    int numberOfPeers = peerPlugins_.size();
+    /*
+    int numberOfPeers = _peerPlugins.size();
 
     int numberOfPeersWithExtension = 0;
-    for(std::map<libtorrent::tcp::endpoint, PeerPlugin *>::iterator i = peerPlugins_.begin(),
-        end(peerPlugins_.end()); i != end; i++) {
+    for(std::map<libtorrent::tcp::endpoint, PeerPlugin *>::iterator i = _peerPlugins.begin(),
+        end(_peerPlugins.end()); i != end; i++) {
 
         // Count as supporting plugin if extended handshake was successful
         if((i->second)->getPeerBEP43SupportedStatus() == PeerPlugin::supported)
@@ -190,8 +232,13 @@ void TorrentPlugin::sendTorrentPluginStatusSignal() {
     }
 
     // Emit status signal
-    libtorrent::sha1_hash info_hash = torrent_->info_hash();
-    TorrentPluginStatus status(info_hash, numberOfPeers, numberOfPeersWithExtension, pluginOn_, tokensReceived_, tokensSent_);
+    libtorrent::sha1_hash info_hash = _torrent->info_hash();
+    TorrentPluginStatus status(info_hash, numberOfPeers, numberOfPeersWithExtension, pluginOn_, _tokensReceived, _tokensSent);
 
     //emit torrentPluginStatusUpdated(status);
+    */
+}
+
+const TorrentPluginConfiguration & TorrentPlugin::getTorrentPluginConfiguration() const {
+    return _torrentPluginConfiguration;
 }

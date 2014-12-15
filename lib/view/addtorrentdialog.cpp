@@ -83,6 +83,11 @@ void AddTorrentDialog::on_AddTorrentDialog_accepted() {
     // Create plugin
     TorrentPluginConfiguration * torrentPluginConfiguration = NULL;
 
+
+    jjjj
+
+
+
     if(_withPlugin) {
 
         if()

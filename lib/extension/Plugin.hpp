@@ -32,7 +32,7 @@ private:
     libtorrent::aux::session_impl * _session;
 
     // Maps info hash to pointer to corresponding torrent plugin
-    std::map<libtorrent::sha1_hash, TorrentPlugin *> _torrentPlugins;
+    std::map<libtorrent::sha1_hash, TorrentPlugin *> _torrentPlugins; // Must be pointers, since TorrentPlugin::_category is reference, hence type is not copyable
 
     // Logging category
     QLoggingCategory & _category;
@@ -46,7 +46,7 @@ public:
     ~Plugin();
 
     // Returns controller
-    Controller * getController();
+    //Controller * getController();
 
     /**
      * All virtual functions below should ONLY

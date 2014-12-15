@@ -513,7 +513,7 @@ bool Controller::startTorrent(const libtorrent::sha1_hash & info_hash) {
 bool Controller::addTorrent(const TorrentConfiguration & torrentConfiguration) {
 
     // Attempt to add to session
-    if(addTorrentToSession(torrentConfiguation)) {
+    if(addTorrentToSession(torrentConfiguration)) {
 
         // Aquire lock
         _controllerConfigurationMutex.lock();
@@ -546,7 +546,9 @@ bool Controller::addTorrentToSession(const TorrentConfiguration & torrentConfigu
     params.info_hash = torrentConfiguration.getInfoHash();
     params.name = torrentConfiguration.getName();
     params.save_path = torrentConfiguration.getSavePath();
-    params.resume_data = &(torrentConfiguration.getResumeData());
+
+    std::vector<char> resume_data = torrentConfiguration.getConstResumeData();
+    params.resume_data = &(resume_data);
     params.flags = torrentConfiguration.getFlags();
 
     // Create save_path on disk if it does not exist
@@ -619,7 +621,7 @@ void Controller::finalize_close() {
     // Tell runner that controller is done
     emit closed();
 }
-
+/*
 const TorrentPluginConfiguration * Controller::getTorrentPluginConfiguration(const libtorrent::sha1_hash & info_hash) {
 
     const TorrentPluginConfiguration * torrentPluginConfiguration = NULL;
@@ -649,6 +651,7 @@ const TorrentPluginConfiguration * Controller::getTorrentPluginConfiguration(con
     // Return pointer
     return torrentPluginConfiguration;
 }
+*/
 
 /*
 MainWindow Controller::getView() const

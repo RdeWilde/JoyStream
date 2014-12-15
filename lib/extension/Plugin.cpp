@@ -1,12 +1,10 @@
 #include "Plugin.hpp"
 #include "TorrentPlugin.hpp"
+#include "TorrentPluginConfiguration.hpp"
 #include "controller/Controller.hpp" // needed for connecting
 #include "TorrentPluginStatus.hpp" // needed for connecting
 #include "BuyerTorrentPlugin.hpp"
 #include "SellerTorrentPlugin.hpp"
-
-#include "BuyerTorrentPluginConfiguration.hpp"
-#include "SellerTorrentPluginConfiguration.hpp"
 
 /*
 #include <QMetaType>
@@ -22,44 +20,32 @@ Plugin::Plugin(Controller * controller, QLoggingCategory & category)
 
 Plugin::~Plugin() {
     // No need to explicltly delete TorrentPlugin objects, since libtorrent has shared_ptr
+
+    // Delete TorrentPlugins!
+    for(std::map<libtorrent::sha1_hash, TorrentPlugin *>::iterator i = _torrentPlugins.begin(),
+            end(_torrentPlugins.end()); i != end; i++)
+        delete i->second;
 }
 
+/*
 Controller * Plugin::getController() {
     return _controller;
 }
+*/
 
 boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::torrent * newTorrent, void * userData) {
 
-    // Check what sort of plugin, if any, should be installed on this torrent
-    TorrentPluginConfiguration * torrentPluginConfiguration = _controller->getTorrentPluginConfiguration(newTorrent->info_hash());
-
-    if(!torrentPluginConfiguration) {
-        qCDebug(_category) << "Plugin not installed on new torrent.";
-        return boost::shared_ptr<libtorrent::torrent_plugin>();
-    }
+    // Create torrent configuration
+    TorrentPluginConfiguration torrentPluginConfiguration(PluginMode::NotDetermined, true, true);
 
     // Create the appropriate torrent plugin depending on if we have full file
-    TorrentPlugin * torrentPlugin;
-
-    const BuyerTorrentPluginConfiguration * potentialBuyerTorrentPluginConfiguration = dynamic_cast<BuyerTorrentPluginConfiguration*>(torrentPluginConfiguration);
-    const SellerTorrentPluginConfiguration * potentialSellerTorrentPluginConfiguration = dynamic_cast<SellerTorrentPluginConfiguration*>(torrentPluginConfiguration);
-
-    if(potentialBuyerTorrentPluginConfiguration) {
-        torrentPlugin = new BuyerTorrentPlugin(this, newTorrent, _category, true, potentialBuyerTorrentPluginConfiguration);
-    else if(potentialSellerTorrentPluginConfiguration)
-        torrentPlugin = new SellerTorrentPlugin(this, newTorrent, _category, true, potentialSellerTorrentPluginConfiguration);
-    else {
-
-        qCDebug(_category) << "Type disaster!!!!. Plugin not installed on new torrent.";
-        return boost::shared_ptr<libtorrent::torrent_plugin>();
-    }
-
+    TorrentPlugin * torrentPlugin = new TorrentPlugin(this, newTorrent, _category, torrentPluginConfiguration);
 
     // Add to collection
     _torrentPlugins.insert(std::make_pair(newTorrent->info_hash(), torrentPlugin));
 
-    // Connect torrent plugin signal
     /*
+    // Connect torrent plugin signal
     //qRegisterMetaType<TorrentPluginStatus>();
     QObject::connect(torrentPlugin,
                      SIGNAL(updateTorrentPluginStatus(TorrentPluginStatus)),
@@ -77,7 +63,8 @@ boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::to
                      SIGNAL(peerRemoved(libtorrent::tcp::endpoint)),
                      controller_,
                      SLOT(removePeer(libtorrent::tcp::endpoint)));
-*/
+    */
+
     // Diagnostic
     qCDebug(_category) << "Torrent #" << _torrentPlugins.size() << " added.";
 

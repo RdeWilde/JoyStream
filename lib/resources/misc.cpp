@@ -1,3 +1,112 @@
+
+boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorrent::peer_connection * peerConnection) {
+
+    /**
+     * Libtorrent docs (http://libtorrent.org/reference-Plugins.html#peer_plugin):
+     * ===========================================================================
+     * The peer_connection will be valid as long as the shared_ptr is being held by the
+     * torrent object. So, it is generally a good idea to not keep a shared_ptr to
+     * your own peer_plugin. If you want to keep references to it, use weak_ptr.
+     */
+
+    // Get end point to look up sets
+    const libtorrent::tcp::endpoint & endPoint = peerConnection->remote();
+    std::string endPointString = libtorrent::print_endpoint(endPoint);
+
+    qCDebug(category_) << "New connection from" << endPointString.c_str();
+
+    // Check if this peer should be accepted, if not
+    // a null is returned, hence plugin is not installed
+    if(!TorrentPlugin::installPluginOnNewConnection(peerConnection)) {
+        qCDebug(category_) << "Rejected connection from peer, peer plugin not installed.";
+        return boost::shared_ptr<libtorrent::peer_plugin>();
+    }
+
+    // Create seller peer
+    libtorrent::bt_peer_connection * bittorrentPeerConnection = static_cast<libtorrent::bt_peer_connection*>(peerConnection);
+    PeerPlugin * peerPlugin = new SellerPeerPlugin(this, bittorrentPeerConnection, category_);
+
+    // Add to collection
+    peerPlugins_.insert(std::make_pair(endPoint, peerPlugin));
+
+    // Connect peer plugin signal to controller slot
+    //Controller * controller = plugin_->getController();
+    //
+    //QObject::connect(peerPlugin,
+    //                 SIGNAL(peerPluginStatusUpdated(const PeerPluginStatus&)),
+    //                 controller,
+    //                 SLOT(updatePeerPluginStatus(const PeerPluginStatus&)));
+
+    qCDebug(category_) << "Seller #" << peerPlugins_.size() << endPointString.c_str() << "added to " << this->torrent_->name().c_str();
+
+    // Emit peer added signal
+    // Should not be here, should be when a payment channel actually starts
+    //emit peerAdded(peerPlugin->getPeerPluginId());
+
+    // Return pointer to plugin as required
+    return boost::shared_ptr<libtorrent::peer_plugin>(peerPlugin);
+}
+
+
+boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::torrent * newTorrent, void * userData) {
+
+    
+    // Check what sort of plugin, if any, should be installed on this torrent
+    TorrentPluginConfiguration * torrentPluginConfiguration = _controller->getTorrentPluginConfiguration(newTorrent->info_hash());
+
+    if(!torrentPluginConfiguration) {
+        qCDebug(_category) << "Plugin not installed on new torrent.";
+        return boost::shared_ptr<libtorrent::torrent_plugin>();
+    }
+
+    // Create the appropriate torrent plugin depending on if we have full file
+    TorrentPlugin * torrentPlugin;
+
+    const BuyerTorrentPluginConfiguration * potentialBuyerTorrentPluginConfiguration = dynamic_cast<BuyerTorrentPluginConfiguration*>(torrentPluginConfiguration);
+    const SellerTorrentPluginConfiguration * potentialSellerTorrentPluginConfiguration = dynamic_cast<SellerTorrentPluginConfiguration*>(torrentPluginConfiguration);
+
+    if(potentialBuyerTorrentPluginConfiguration) {
+        torrentPlugin = new BuyerTorrentPlugin(this, newTorrent, _category, true, potentialBuyerTorrentPluginConfiguration);
+    else if(potentialSellerTorrentPluginConfiguration)
+        torrentPlugin = new SellerTorrentPlugin(this, newTorrent, _category, true, potentialSellerTorrentPluginConfiguration);
+    else {
+
+        qCDebug(_category) << "Type disaster!!!!. Plugin not installed on new torrent.";
+        return boost::shared_ptr<libtorrent::torrent_plugin>();
+    }
+
+
+    // Add to collection
+    _torrentPlugins.insert(std::make_pair(newTorrent->info_hash(), torrentPlugin));
+
+    // Connect torrent plugin signal
+    /*
+    //qRegisterMetaType<TorrentPluginStatus>();
+    QObject::connect(torrentPlugin,
+                     SIGNAL(updateTorrentPluginStatus(TorrentPluginStatus)),
+                     controller_,
+                     SLOT(updateTorrentPluginStatus(TorrentPluginStatus)));
+
+    //qRegisterMetaType<libtorrent::tcp::endpoint>();
+
+    QObject::connect(torrentPlugin,
+                     SIGNAL(peerAdded(libtorrent::tcp::endpoint)),
+                     controller_,
+                     SLOT(extensionPeerAdded(libtorrent::tcp::endpoint)));
+
+    QObject::connect(torrentPlugin,
+                     SIGNAL(peerRemoved(libtorrent::tcp::endpoint)),
+                     controller_,
+                     SLOT(removePeer(libtorrent::tcp::endpoint)));
+*/
+    // Diagnostic
+    qCDebug(_category) << "Torrent #" << _torrentPlugins.size() << " added.";
+
+    // Return
+    return boost::shared_ptr<libtorrent::torrent_plugin>(torrentPlugin);
+}
+
+
 /*
 bool Controller::saveResumeDataForTorrent(QString const & save_path, QString const & file_name, std::vector<char> const & resume_data) const {
 

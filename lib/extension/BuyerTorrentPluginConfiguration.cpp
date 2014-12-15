@@ -28,5 +28,3 @@ void BuyerTorrentPluginConfiguration::toDictionaryEntry(libtorrent::entry::dicti
 
     // IMPLEMENT LATER
 }
-
-
