@@ -458,12 +458,12 @@ void ControllerConfiguration::toDictionaryEntry(libtorrent::entry::dictionary_ty
     // Add "persistentTorrentStates" key
     libtorrent::entry::dictionary_type persistentTorrentStatesDictionaryEntry;
 
-    for(std::map<libtorrent::sha1_hash, TorrentConfiguration *>::const_iterator i = _torrentConfigurations.begin(),
+    for(std::map<libtorrent::sha1_hash, TorrentConfiguration>::const_iterator i = _torrentConfigurations.begin(),
         end(_torrentConfigurations.end()); i != end; i++) {
 
         // Write to dictionary
         libtorrent::entry::dictionary_type dictionaryEntry;
-        (i->second)->toDictionaryEntry(dictionaryEntry);
+        (i->second).toDictionaryEntry(dictionaryEntry);
 
         // Save mapping
         persistentTorrentStatesDictionaryEntry[(i->first).to_string()] = dictionaryEntry;
@@ -502,7 +502,7 @@ void ControllerConfiguration::saveToFile(const char * fileName) {
 bool ControllerConfiguration::addTorrentConfiguration(const TorrentConfiguration & torrentConfiguration) {
 
     // Get info hash
-    libtorrent::sha1_hash & info_hash = torrentConfiguration.getInfoHash();
+    const libtorrent::sha1_hash & info_hash = torrentConfiguration.getInfoHash();
 
     // Look up configuration for torrrent with given info hash
     std::map<libtorrent::sha1_hash, TorrentConfiguration>::iterator & mapIterator = _torrentConfigurations.find(info_hash);
@@ -540,7 +540,7 @@ std::set<libtorrent::sha1_hash> ControllerConfiguration::getTorrentInfoHashes() 
     std::set<libtorrent::sha1_hash> keys;
 
     // Iterate map and populate keys vector
-    for(std::map<libtorrent::sha1_hash, TorrentConfiguration>::iterator i = _torrentConfigurations.begin(),
+    for(std::map<libtorrent::sha1_hash, TorrentConfiguration>::const_iterator i = _torrentConfigurations.begin(),
             end(_torrentConfigurations.end()); i != end;i++)
         keys.insert(i->first);
 
@@ -548,7 +548,7 @@ std::set<libtorrent::sha1_hash> ControllerConfiguration::getTorrentInfoHashes() 
     return keys;
 }
 
-const TorrentConfiguration & ControllerConfiguration::getTorrentConfiguration(const libtorrent::sha1_hash & info_hash) {
+TorrentConfiguration & ControllerConfiguration::getTorrentConfiguration(const libtorrent::sha1_hash & info_hash) {
 
     // Look up configuration for torrrent with given info hash
     std::map<libtorrent::sha1_hash, TorrentConfiguration>::iterator & mapIterator = _torrentConfigurations.find(info_hash);

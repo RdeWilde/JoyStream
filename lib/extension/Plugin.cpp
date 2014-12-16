@@ -3,8 +3,10 @@
 #include "TorrentPluginConfiguration.hpp"
 #include "controller/Controller.hpp" // needed for connecting
 #include "TorrentPluginStatus.hpp" // needed for connecting
-#include "BuyerTorrentPlugin.hpp"
-#include "SellerTorrentPlugin.hpp"
+#include "PluginRequest/PluginRequest.hpp"
+#include "TorrentPluginRequest/TorrentPluginRequest.hpp"
+#include "PeerPluginRequest/PeerPluginRequest.hpp"
+#include "PeerPlugin.hpp"
 
 /*
 #include <QMetaType>
@@ -82,6 +84,10 @@ void Plugin::on_alert(libtorrent::alert const * a) {
 
 void Plugin::on_tick() {
 
+    // Process requests from controller
+    processesRequests();
+
+
 }
 
 bool Plugin::on_optimistic_unchoke(std::vector<libtorrent::policy::peer*> & peers) {
@@ -99,3 +105,112 @@ void Plugin::load_state(libtorrent::lazy_entry const & stateEntry) {
 void Plugin::removeTorrentPlugin(const libtorrent::sha1_hash & info_hash) {
 
 }
+
+void Plugin::submitPluginRequest(PluginRequest * pluginRequest) {
+
+    // Synchronized adding to queue
+    _pluginRequestQueueMutex.lock();
+    _pluginRequestQueue.push(pluginRequest);
+    _pluginRequestQueueMutex.unlock();
+}
+
+void Plugin::submitTorrentPluginRequest(TorrentPluginRequest * torrentPluginRequest) {
+
+    // Synchronized adding to queue
+    _torrentPluginRequestQueueMutex.lock();
+    _torrentPluginRequestQueue.push(torrentPluginRequest);
+    _torrentPluginRequestQueueMutex.unlock();
+}
+
+void Plugin::submitPeerPluginRequest(PeerPluginRequest * peerPluginRequest) {
+
+    // Synchronized adding to queue
+    _peerPluginRequestQueueMutex.lock();
+    _peerPluginRequestQueue.push(peerPluginRequest);
+    _peerPluginRequestQueueMutex.unlock();
+}
+
+void Plugin::processesRequests() {
+
+    // Iterate _pluginRequestQueue
+    while (!_pluginRequestQueue.empty()) {
+
+        // get request
+        PluginRequest * pluginRequest = _pluginRequestQueue.front();
+
+        // process
+        processPluginRequest(pluginRequest);
+
+        // remove from queue
+        _pluginRequestQueue.pop();
+
+        // delete
+        delete pluginRequest;
+    }
+
+    // Iterate _torrentPluginRequestQueue
+    while (!_torrentPluginRequestQueue.empty()) {
+
+        // get request
+        TorrentPluginRequest * torrentPluginRequest = _torrentPluginRequestQueue.front();
+
+        // find corresponding torrent plugin
+        std::map<libtorrent::sha1_hash, TorrentPlugin *>::iterator i = _torrentPlugins.find(torrentPluginRequest->_info_hash);
+
+        // process it if it exists
+        if(i != _torrentPlugins.end())
+            (i->second)->processTorrentPluginRequest(torrentPluginRequest);
+        else
+            qCDebug(_category) << "Discarded request for torrent plugin which does not exist.";
+
+        // remove from queue
+        _torrentPluginRequestQueue.pop();
+
+        // delete
+        delete torrentPluginRequest;
+    }
+
+    // Iterate _peerPluginRequestQueue
+    while (!_peerPluginRequestQueue.empty()) {
+
+        // get request
+        PeerPluginRequest * peerPluginRequest = _peerPluginRequestQueue.front();
+
+        // find corresponding torrent plugin
+        std::map<libtorrent::sha1_hash, TorrentPlugin *>::iterator i = _torrentPlugins.find(peerPluginRequest->_info_hash);
+
+        // process it if it exists
+        if(i != _torrentPlugins.end()) {
+
+            // get torrent plugin
+            TorrentPlugin * torrentPlugin = i->second;
+
+            // get peer plugin
+            PeerPlugin * peerPlugin = torrentPlugin->getPeerPlugin(peerPluginRequest->_endpoint);
+
+            // process if match was found
+            if(peerPlugin != NULL)
+                peerPlugin->processPeerPluginRequest(peerPluginRequest);
+            else
+                qCDebug(_category) << "Discarded request for peer plugin which does not exist.";
+
+        } else
+            qCDebug(_category) << "Discarded request for torrent plugin which does not exist.";
+
+        // remove from queue
+        _peerPluginRequestQueue.pop();
+
+        // delete
+        delete peerPluginRequest;
+    }
+}
+
+void Plugin::processPluginRequest(const PluginRequest * pluginRequest) {
+
+    qCDebug(_category) << "processPluginRequest";
+
+    switch(pluginRequest->getPluginRequestType()) {
+
+    }
+}
+

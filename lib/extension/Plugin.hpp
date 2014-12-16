@@ -14,10 +14,16 @@
 #include <boost/shared_ptr.hpp>
 
 #include <QObject>
+#include <QMutex>
+
+#include <queue>
 
 // Forward declaration
 class Controller;
 class TorrentPlugin;
+class PluginRequest;
+class TorrentPluginRequest;
+class PeerPluginRequest;
 
 class Plugin : public QObject, public libtorrent::plugin {
 
@@ -36,6 +42,25 @@ private:
 
     // Logging category
     QLoggingCategory & _category;
+
+    // Plugin Request
+    std::queue<PluginRequest *> _pluginRequestQueue; // queue
+    QMutex _pluginRequestQueueMutex; // mutex protecting queue
+
+    // Torrent Plugin Request
+    std::queue<TorrentPluginRequest *> _torrentPluginRequestQueue; // queue
+    QMutex _torrentPluginRequestQueueMutex; // mutex protecting queue
+
+    // Peer Plugin Request
+    std::queue<PeerPluginRequest *> _peerPluginRequestQueue; // queue
+    QMutex _peerPluginRequestQueueMutex; // mutex protecting queue
+
+    /**
+     * Subroutines for libtorrent thread.
+     */
+
+    void processesRequests();
+    void processPluginRequest(const PluginRequest * pluginRequest);
 
 public:
 
@@ -63,15 +88,27 @@ public:
     virtual void load_state(libtorrent::lazy_entry const & stateEntry);
 
     /**
-      * Routines called by libtorrent network thread via tick() entry point on
-      * torrent plugins.
-      */
+     * Routines called by libtorrent network thread via tick() entry point on
+     * torrent plugins.
+     *
+     * THESE SHOULD NOT BE PUBLIC, RATHER MAKE THEM PRIVATE AND ADD FRIENDING WITH
+     * TORRENT/PEER PLUGIN TYPES
+     */
 
     // Removes torrent plugin
     // 1) Remove plugin from torrentPlugins_ map
     // 2) Deletes peer_plugin object
     // 3) Notifies controller
     void removeTorrentPlugin(const libtorrent::sha1_hash & info_hash);
+
+    /**
+     * Synchronized routines called from controller by Qt thread.
+     *
+     * In all of these routines, plugin takes ownership of request object.
+     */
+    void submitPluginRequest(PluginRequest * pluginRequest);
+    void submitTorrentPluginRequest(TorrentPluginRequest * torrentPluginRequest);
+    void submitPeerPluginRequest(PeerPluginRequest * peerPluginRequest);
 
 signals:
 

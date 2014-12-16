@@ -40,7 +40,10 @@ SOURCES += \
     controller/ControllerConfiguration.cpp \
     controller/TorrentConfiguration.cpp \
     extension/TorrentPluginConfiguration.cpp \
-    extension/PeerPluginConfiguration.cpp
+    extension/PeerPluginConfiguration.cpp \
+    extension/PluginRequest/PluginRequest.cpp \
+    extension/TorrentPluginRequest/TorrentPluginRequest.cpp \
+    extension/PeerPluginRequest/PeerPluginRequest.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -74,7 +77,13 @@ HEADERS += \
     extension/TorrentPluginConfiguration.hpp \
     extension/PluginMode.hpp \
     extension/PeerPluginConfiguration.hpp \
-    extension/BEPSupportStatus.hpp
+    extension/BEPSupportStatus.hpp \
+    extension/PluginRequest/PluginRequest.hpp \
+    extension/TorrentPluginRequest/TorrentPluginRequest.hpp \
+    extension/PeerPluginRequest/PeerPluginRequest.hpp \
+    extension/TorrentPluginRequest/TorrentPluginRequestType.hpp \
+    extension/PluginRequest/PluginRequestType.hpp \
+    extension/PeerPluginRequest/PeerPluginRequestType.hpp
 				
 FORMS += \
             view/mainwindow.ui \

@@ -15,6 +15,7 @@ class Plugin;
 class PeerPlugin;
 class PeerPluginId;
 class TorrentPluginStatus;
+class TorrentPluginRequest;
 
 class TorrentPlugin : public QObject, public libtorrent::torrent_plugin {
 
@@ -22,7 +23,10 @@ class TorrentPlugin : public QObject, public libtorrent::torrent_plugin {
 
 public:
 
-    // Constructor
+    // Default constructor
+    TorrentPlugin();
+
+    // Constructor from member fields
     TorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, const TorrentPluginConfiguration & torrentPluginConfiguration);
 
     // Destructor
@@ -52,15 +56,19 @@ public:
     bool addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint);
     bool addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint);
 
+    //
+    void processTorrentPluginRequest(const TorrentPluginRequest * torrentPluginRequest);
+    PeerPlugin * getPeerPlugin(const libtorrent::tcp::endpoint & endPoint);
+
     // Removes peer plugin
     // 1) Remove plugin from peerPlugins_ map
     // 2) Deletes peer_plugin object
     // 3) Notifies controller
-    //void removePeerPlugin(PeerPlugin * plugin);
+    void removePeerPlugin(PeerPlugin * plugin);
 
     // Getters
     //libtorrent::torrent * getTorrent();
-    const libtorrent::sha1_hash & getInfoHash() const;
+    //const libtorrent::sha1_hash & getInfoHash() const;
     const TorrentPluginConfiguration & getTorrentPluginConfiguration() const;
 
 signals:
@@ -102,7 +110,6 @@ private:
 
     // Subroutines for the tick() method
     void sendTorrentPluginStatusSignal();
-
 
     // Checks that peer is not banned and that it is a bittorrent connection
     bool installPluginOnNewConnection(libtorrent::peer_connection * peerConnection);

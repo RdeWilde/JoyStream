@@ -2,6 +2,7 @@
 #define PEER_PLUGIN_HPP
 
 #include "PeerPluginConfiguration.hpp"
+#include "PeerPluginRequest/PeerPluginRequest.hpp"
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/entry.hpp>
@@ -18,6 +19,7 @@
 // Forward declaration
 class TorrentPlugin;
 class PeerPluginStatus;
+class PeerPluginRequest;
 
 /*
  * We inherit from QObject so we can send signals, and QObject must be first:
@@ -75,6 +77,11 @@ public:
 
     //const libtorrent::tcp::endpoint & getEndPoint() const;
     //const PeerPluginId & getPeerPluginId() const;
+
+    /**
+     * Subroutines for libtorrent thread.
+     */
+    void processPeerPluginRequest(const PeerPluginRequest * peerPluginRequest);
 
 protected:
 

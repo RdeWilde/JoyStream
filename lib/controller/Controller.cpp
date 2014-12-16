@@ -180,63 +180,33 @@ void Controller::processAlert(const libtorrent::alert * a) {
     // if(something)
     //    something;
 
-
     // In each case, tell bitswapr thread to run the given method
-	if (libtorrent::metadata_received_alert const * p = libtorrent::alert_cast<libtorrent::metadata_received_alert>(a))
-	{
-        //qCDebug(category_) << "metadata_received_alert";
-
-		/*
-		// if we have a monitor dir, save the .torrent file we just received in it
-		// also, add it to the files map, and remove it from the non_files list
-		// to keep the scan dir logic in sync so it's not removed, or added twice
-		torrent_handle h = p->handle;
-		if (h.is_valid()) {
-			if (!ti) ti = h.torrent_file();
-			create_torrent ct(*ti);
-			entry te = ct.generate();
-			std::vector<char> buffer;
-			bencode(std::back_inserter(buffer), te);
-			std::string filename = ti->name() + "." + to_hex(ti->info_hash().to_string()) + ".torrent";
-			filename = combine_path(monitor_dir, filename);
-			save_file(filename, buffer);
-
-			files.insert(std::pair<std::string, libtorrent::torrent_handle>(filename, h));
-			non_files.erase(h);
-		}
-		*/
-	}
-    else if (libtorrent::add_torrent_alert const * p = libtorrent::alert_cast<libtorrent::add_torrent_alert>(a)) {
-        //qCDebug(category_) << "Add torrent alert.";
+    if(libtorrent::metadata_received_alert const * p = libtorrent::alert_cast<libtorrent::metadata_received_alert>(a)) {
+        //qCDebug(_category) << "Metadata received alert";
+        processMetadataReceivedAlert(p);
+    } else if(libtorrent::metadata_failed_alert const * p = libtorrent::alert_cast<libtorrent::metadata_failed_alert>(a)) {
+        qCDebug(_category) << "Metadata failed alert";
+        processMetadataFailedAlert(p);
+    } else if(libtorrent::add_torrent_alert const * p = libtorrent::alert_cast<libtorrent::add_torrent_alert>(a)) {
+        //qCDebug(_category) << "Add torrent alert";
         processAddTorrentAlert(p);
     } else if (libtorrent::torrent_finished_alert const * p = libtorrent::alert_cast<libtorrent::torrent_finished_alert>(a)) {
-        //qCDebug(category_) << "torrent_finished_alert";
-
-		/*
-		p->handle.set_max_connections(max_connections_per_torrent / 2);
-
-		// write resume data for the finished torrent
-		// the alert handler for save_resume_data_alert
-		// will save it to disk
-		torrent_handle h = p->handle;
-		h.save_resume_data();
-		++num_outstanding_resume_data;
-		*/
-	}
-    else if (libtorrent::torrent_paused_alert const * p = libtorrent::alert_cast<libtorrent::torrent_paused_alert>(a)) {
-        //qCDebug(category_) << "Torrent paused alert.";
+        //qCDebug(_category) << "torrent_finished_alert";
+        processTorrentFinishedAlert(p);
+    } else if (libtorrent::torrent_paused_alert const * p = libtorrent::alert_cast<libtorrent::torrent_paused_alert>(a)) {
+        //qCDebug(_category) << "Torrent paused alert.";
         processTorrentPausedAlert(p);
     } else if (libtorrent::state_update_alert const * p = libtorrent::alert_cast<libtorrent::state_update_alert>(a)) {
-        //qCDebug(category_) << "State update alert.";
+        //qCDebug(_category) << "State update alert.";
         processStatusUpdateAlert(p);
     } else if(libtorrent::torrent_removed_alert const * p = libtorrent::alert_cast<libtorrent::torrent_removed_alert>(a)) {
-        //qCDebug(category_) << "Torrent removed alert.";
+        //qCDebug(_category) << "Torrent removed alert.";
         processTorrentRemovedAlert(p);
     } else if(libtorrent::save_resume_data_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_alert>(a)) {
-        //qCDebug(category_) << "Save resume data alert.";
+        //qCDebug(_category) << "Save resume data alert.";
         processSaveResumeDataAlert(p);
     } else if(libtorrent::save_resume_data_failed_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_failed_alert>(a)) {
-        //qCDebug(category_) << "Save resume data failed alert.";
+        //qCDebug(_category) << "Save resume data failed alert.";
         processSaveResumeDataFailedAlert(p);
     }
 
@@ -311,15 +281,8 @@ void Controller::processTorrentRemovedAlert(libtorrent::torrent_removed_alert co
     // Get torrent info hash
     libtorrent::sha1_hash info_hash = p->info_hash;
 
-    // Aquire lock
-    _controllerConfigurationMutex.lock();
-
     // Attempt to erase
     if(!_controllerConfiguration.eraseTorrentConfiguration(info_hash)) {
-
-        // Release lock
-        _controllerConfigurationMutex.unlock();
-
         qCCritical(_category) << "No matching info hash found, torrent not removed from controller.";
         return;
     }
@@ -328,9 +291,30 @@ void Controller::processTorrentRemovedAlert(libtorrent::torrent_removed_alert co
     _view.removeTorrent(info_hash);
 
     qCDebug(_category) << "Found match and removed it.";
+}
 
-    // Rlease lock
-    _controllerConfigurationMutex.unlock();
+void Controller::processMetadataReceivedAlert(libtorrent::metadata_received_alert const * p) {
+
+    // Get handle for torrent
+    libtorrent::torrent_handle h = p->handle;
+
+    // Process if handle is valid
+    if (h.is_valid()) {
+
+        // get torrent info
+        const libtorrent::torrent_info & torrentInfo = h.get_torrent_info();
+
+        // Save in torrent configuration
+        _controllerConfiguration.getTorrentConfiguration(h.info_hash()).setTorrent_info(torrentInfo);
+
+        // should we now ask if we have full file?
+
+    } else
+        qCDebug(_category) << "Invalid handle for received metadata.";
+}
+
+void Controller::processMetadataFailedAlert(libtorrent::metadata_failed_alert const * p) {
+    // WHAT DO WE DO HERE?
 }
 
 void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p) {
@@ -362,6 +346,20 @@ void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p)
 	}
 }
 
+void Controller::processTorrentFinishedAlert(libtorrent::torrent_finished_alert const * p) {
+
+    /*
+    p->handle.set_max_connections(max_connections_per_torrent / 2);
+
+    // write resume data for the finished torrent
+    // the alert handler for save_resume_data_alert
+    // will save it to disk
+    torrent_handle h = p->handle;
+    h.save_resume_data();
+    ++num_outstanding_resume_data;
+    */
+}
+
 void Controller::processStatusUpdateAlert(libtorrent::state_update_alert const * p) {
     _view.updateTorrentStatus(p->status);
 }
@@ -380,13 +378,10 @@ void Controller::processSaveResumeDataAlert(libtorrent::save_resume_data_alert c
     // Get info hash for torrent
     libtorrent::sha1_hash info_hash = p->handle.info_hash();
 
-    // Aquire lock
-    _controllerConfigurationMutex.lock();
-
-    try{
+    try {
 
         // Get torrent configuration
-        TorrentConfiguration & torrentConfiguration =_controllerConfiguration.getTorrentConfiguration(info_hash);
+        TorrentConfiguration & torrentConfiguration = _controllerConfiguration.getTorrentConfiguration(info_hash);
 
         // Get reference to resume data vector
         std::vector<char> & resume_data = torrentConfiguration.getResumeData();
@@ -399,17 +394,11 @@ void Controller::processSaveResumeDataAlert(libtorrent::save_resume_data_alert c
 
     } catch (std::exception & e) {
 
-        // Release lock
-        _controllerConfigurationMutex.unlock();
-
         // Write critial warning
         qCCritical(_category) << "exception caught: " << e.what() << '\n';
 
         return;
     }
-
-    // Release lock
-    _controllerConfigurationMutex.unlock();
 
     // If this was last outstanding resume data save, the   n do relevant callback
     if(_numberOfOutstandingResumeDataCalls == 0) {
@@ -515,21 +504,12 @@ bool Controller::addTorrent(const TorrentConfiguration & torrentConfiguration) {
     // Attempt to add to session
     if(addTorrentToSession(torrentConfiguration)) {
 
-        // Aquire lock
-        _controllerConfigurationMutex.lock();
-
         // and add to controller if this was possible
         if(!_controllerConfiguration.addTorrentConfiguration(torrentConfiguration)) {
-
-            // Release lock
-            _controllerConfigurationMutex.unlock();
 
             // Could add to session, but not controller!!!
             return false;
         }
-
-        // Release lock
-        _controllerConfigurationMutex.unlock();
 
         // Could add to both session and controller
         return true;
@@ -547,9 +527,31 @@ bool Controller::addTorrentToSession(const TorrentConfiguration & torrentConfigu
     params.name = torrentConfiguration.getName();
     params.save_path = torrentConfiguration.getSavePath();
 
+    // torrent_info
+
     std::vector<char> resume_data = torrentConfiguration.getConstResumeData();
     params.resume_data = &(resume_data);
     params.flags = torrentConfiguration.getFlags();
+
+    /*
+     *
+     //* If info_hash is not set, we try and set it.
+     //* This would typically be the case if torrent was added through torrent
+     //* file rather than magnet link. The primary reason for this constraint is because searching
+     //* addTorrentParameters is based on info_hashes,
+     if(params.info_hash.is_all_zeros()) {
+
+         // Is torrent info set, use it
+         if(params.ti.get() != 0 && !params.ti->info_hash().is_all_zeros()) {
+             libtorrent::sha1_hash info_hash = params.ti->info_hash();
+             params.info_hash = info_hash;
+         } else {
+             // Throw exception in future
+             qCDebug(_category) << "no valid info_hash set.";
+             return;
+         }
+     }
+     */
 
     // Create save_path on disk if it does not exist
     if(!(QDir()).mkpath(params.save_path.c_str())) {
@@ -626,9 +628,6 @@ const TorrentPluginConfiguration * Controller::getTorrentPluginConfiguration(con
 
     const TorrentPluginConfiguration * torrentPluginConfiguration = NULL;
 
-    // Aquire lock
-    _controllerConfigurationMutex.lock();
-
     try{
 
         // Get torrent plugin configuration
@@ -636,17 +635,11 @@ const TorrentPluginConfiguration * Controller::getTorrentPluginConfiguration(con
 
     } catch (std::exception & e) {
 
-        // Release lock
-        _controllerConfigurationMutex.unlock();
-
         // Write critial warning
         qCCritical(_category) << "exception caught: " << e.what() << '\n';
 
         return NULL;
     }
-
-    // Release lock
-    _controllerConfigurationMutex.unlock();
 
     // Return pointer
     return torrentPluginConfiguration;

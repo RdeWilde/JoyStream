@@ -1,5 +1,11 @@
 #include "TorrentPluginConfiguration.hpp"
 
+TorrentPluginConfiguration::TorrentPluginConfiguration()
+    : _pluginMode(PluginMode::NotDetermined)
+    , _enableBanningSets(true)
+    , _pluginOn(true) {
+}
+
 TorrentPluginConfiguration::TorrentPluginConfiguration(PluginMode pluginMode, bool enableBanningSets, bool pluginOn)
     : _pluginMode(pluginMode)
     , _enableBanningSets(enableBanningSets)

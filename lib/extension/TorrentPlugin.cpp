@@ -4,6 +4,7 @@
 #include "PeerPluginConfiguration.hpp"
 #include "PeerPluginStatus.hpp" // signal parameter
 #include "controller/Controller.hpp" // needed to connect
+#include "TorrentPluginRequest/TorrentPluginRequest.hpp"
 
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/peer_connection.hpp>
@@ -190,9 +191,32 @@ bool TorrentPlugin::addToIrregularPeersSet(const libtorrent::tcp::endpoint & end
     return insertResult.second;
 }
 
-/*
+
+void TorrentPlugin::processTorrentPluginRequest(const TorrentPluginRequest * torrentPluginRequest) {
+
+    qCDebug(_category) << "processTorrentPluginRequest";
+
+    switch(torrentPluginRequest->getTorrentPluginRequestType()) {
+
+    }
+}
+
+PeerPlugin * TorrentPlugin::getPeerPlugin(const libtorrent::tcp::endpoint & endPoint) {
+
+    // Search for peer plugin
+    std::map<libtorrent::tcp::endpoint, PeerPlugin *>::iterator i = _peerPlugins.find(endPoint);
+
+    if(i == _peerPlugins.end())
+        return NULL;
+    else
+        return i->second;
+}
+
 void TorrentPlugin::removePeerPlugin(PeerPlugin * plugin) {
 
+    qCDebug(_category) << "TorrentPlugin::removePeerPlugin(): NOT IMPLEMENTED.";
+
+    /*
     // Find iterator reference to plugin
     std::map<libtorrent::tcp::endpoint, PeerPlugin *>::iterator & mapIterator = _peerPlugins.find(plugin->getEndPoint());
 
@@ -210,12 +234,14 @@ void TorrentPlugin::removePeerPlugin(PeerPlugin * plugin) {
 
     // Emit peer added signal
     //emit peerRemoved(torrent_->info_hash(), mapIterator->first);
+    */
 }
-*/
 
+/*
 const libtorrent::sha1_hash & TorrentPlugin::getInfoHash() const {
     return _torrent->info_hash();
 }
+*/
 
 void TorrentPlugin::sendTorrentPluginStatusSignal() {
 

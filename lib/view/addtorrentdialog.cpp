@@ -1,117 +1,101 @@
-#include "view/addtorrentdialog.hpp"
+#include "view/AddTorrentDialog.hpp"
 #include "ui_addtorrentdialog.h"
 
 #include <QFileDialog>
 
+#include <libtorrent/magnet_uri.hpp> // libtorrent::parse_magnet_uri
 #include <libtorrent/add_torrent_params.hpp> // parsing torrent magnet/file
 
-AddTorrentDialog::AddTorrentDialog(Controller * controller, const QString & resource, bool isTorrentFile, bool withPlugin)
+AddTorrentDialog::AddTorrentDialog(Controller * controller, QLoggingCategory & category, const QString & resource, bool isTorrentFile)
     : ui(new Ui::AddTorrentDialog)
     , _controller(controller)
-    , _resources(resources)
-    , _isTorrentFile(isTorrentFile)
-    , _withPlugin(withPlugin)
-{
+    , _category(category)
+    , _resource(resource)
+    , _isTorrentFile(isTorrentFile) {
+
     // Setup ui using QtCreator routine
     ui->setupUi(this);
 
-    // From torrent file
-    if(_isTorrentFile) {
+    // Error code
+    libtorrent::error_code ec;
 
-        // Setup parameters
-        libtorrent::add_torrent_params params;
+    if(_isTorrentFile) { // From torrent file
 
         // Load torrent file
-        libtorrent::error_code ec;
-        boost::intrusive_ptr<libtorrent::torrent_info> torrentInfoPointer = new libtorrent::torrent_info(torrentFile.toStdString().c_str(), ec);
+        _torrent_info = new libtorrent::torrent_info(_resource.toStdString().c_str(), ec);
+
+        // Was torrent file valid?
         if(ec) {
             qCCritical(_category) << "Invalid torrent file: " << ec.message().c_str();
             return;
         }
 
-        // Set torrent info in parameters
-        params.ti = torrentInfoPointer;
-
     } else { // From magnet link
 
-        // Setup parameters
-        libtorrent::add_torrent_params params;
-        params.url = magnetLink.toStdString();
+        // Get magnet link
+        url = _resource.toStdString();
 
-        // Parse link to get info_hash, so that resume data can be loaded
-        libtorrent::error_code ec;
-        libtorrent::parse_magnet_uri(magnetLink.toStdString(), params, ec);
+        // Parse link to get info_hash
+        libtorrent::parse_magnet_uri(url, _params, ec);
 
-        // Exit if link is malformed
+        // Was magnet link malformed
         if(ec) {
-            qCWarning(_category) << "Malformed magnet link: " << ec.message().c_str();
+            qCWarning(_category) << "Invalid magnet link: " << ec.message().c_str();
             return;
         }
-
-
-        /*
-         *
-         //* If info_hash is not set, we try and set it.
-         //* This would typically be the case if torrent was added through torrent
-         //* file rather than magnet link. The primary reason for this constraint is because searching
-         //* addTorrentParameters is based on info_hashes,
-         if(params.info_hash.is_all_zeros()) {
-
-             // Is torrent info set, use it
-             if(params.ti.get() != 0 && !params.ti->info_hash().is_all_zeros()) {
-                 libtorrent::sha1_hash info_hash = params.ti->info_hash();
-                 params.info_hash = info_hash;
-             } else {
-                 // Throw exception in future
-                 qCDebug(_category) << "no valid info_hash set.";
-                 return;
-             }
-         }
-         */
     }
 }
 
 AddTorrentDialog::~AddTorrentDialog() {
+
     delete ui;
+
+    // Delete torrent information we allocated in constructor
+    if(_isTorrentFile)
+        delete _torrent_info;
 }
 
 void AddTorrentDialog::on_AddTorrentDialog_accepted() {
 
-    // save_path
-    QString save_path = this->ui->saveToFolderLineEdit->text();
+    // Info hash
+    libtorrent::sha1_hash info_hash;
 
-    // Create plugin
-    TorrentPluginConfiguration * torrentPluginConfiguration = NULL;
+    if(_isTorrentFile)
+        info_hash = _torrent_info->info_hash();
+    else
+        info_hash = _params.info_hash;
 
+    // Name
+    std::string name;
 
-    jjjj
+    if(_isTorrentFile)
+        name = _torrent_info->name();
+    else
+        name = _params.name;
 
+    // Save path
+    std::string save_path = this->ui->saveToFolderLineEdit->text().toStdString();
 
+    // Resume data
+    std::vector<char> resume_data;
 
-    if(_withPlugin) {
+    // Torrent plugin configuration
+    TorrentPluginConfiguration torrentPluginConfiguration(PluginMode::NotDetermined, _enableBanningSets, _withPlugin);
 
-        if()
-            torrentPluginConfiguration = new SellerTorrentPluginConfiguration();
-        else
-            torrentPluginConfiguration = new BuyerTorrentPluginConfiguration();
-
-        //if(newTorrent->bytes_left() > 0
-   }
-
-   // Create configuration for adding torrent
-   TorrentConfiguration torrentConfiguration();
+    // Create configuration for adding torrent
+    TorrentConfiguration torrentConfiguration(info_hash, name, save_path, resume_data, 0, *_torrent_info, torrentPluginConfiguration);
 
     // Add torrent
     _controller->addTorrent(torrentConfiguration);
 
     // Close window
-    closeWindow();
+    done(0);
 }
 
 void AddTorrentDialog::on_AddTorrentDialog_rejected() {
 
     // Close window
-    closeWindow();
+    done(0);
 }
 
 void AddTorrentDialog::on_saveToFolderPushButton_clicked() {

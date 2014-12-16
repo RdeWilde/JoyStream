@@ -16,8 +16,6 @@
 #include <QObject>
 #include <QTimer>
 #include <QLoggingCategory>
-#include <QMutex>
-
 
 class libtorrent::peer_connection;
 
@@ -36,7 +34,10 @@ private:
     /**
      * Routine for processig libtorrent alerts
      */
+    void processMetadataReceivedAlert(libtorrent::metadata_received_alert const * p);
+    void processMetadataFailedAlert(libtorrent::metadata_failed_alert const * p);
     void processAddTorrentAlert(libtorrent::add_torrent_alert const * p);
+    void processTorrentFinishedAlert(libtorrent::torrent_finished_alert const * p);
     void processStatusUpdateAlert(libtorrent::state_update_alert const * p);
     void processTorrentRemovedAlert(libtorrent::torrent_removed_alert const * p);
     void processSaveResumeDataAlert(libtorrent::save_resume_data_alert const * p);
@@ -92,21 +93,10 @@ private:
     QLoggingCategory & _category;
 
     // Plugin: constructor initializatin list expects plugin to appear after category_
-    boost::shared_ptr<libtorrent::plugin> _plugin; // should this be weak
+    boost::shared_ptr<libtorrent::plugin> _plugin; // should this be weak?
 
     // View
     MainWindow _view;
-
-    /**
-      * Mutexes used to synchronize access to critical data in the controller,
-      * so that the libtorrent thread can make calls into the public entry points
-      * in the controller.
-      */
-
-    // SHOULD THIS LOCK BE PLACES INSIDE CONTROLLER CONFIGURATION
-    // CLASS, AND THEN PUT SYNCHRONIZED MANIPULATION ROUTINES (ADD,REMOVE..)
-    // INSIDE THE CLASS.
-    QMutex _controllerConfigurationMutex;
 
 public:
 

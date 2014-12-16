@@ -1,16 +1,25 @@
 #include "TorrentConfiguration.hpp"
 #include "Exceptions/InvalidBitSwaprStateEntryException.hpp"
 
-TorrentConfiguration::TorrentConfiguration(const libtorrent::sha1_hash & info_hash, const std::string & name, const std::string & save_path, const std::vector<char> & resume_data, quint64 flags, const TorrentPluginConfiguration & torrentPluginConfiguration)
+TorrentConfiguration::TorrentConfiguration(const libtorrent::sha1_hash & info_hash, const std::string & name, const std::string & save_path, const std::vector<char> & resume_data, quint64 flags, const libtorrent::torrent_info & torrent_info, const TorrentPluginConfiguration & torrentPluginConfiguration)
     : _info_hash(info_hash)
     , _name(name)
     , _save_path(save_path)
     , _resume_data(resume_data)
     , _flags(flags)
+    , _torrent_info(new libtorrent::torrent_info(torrent_info))
     , _torrentPluginConfiguration(torrentPluginConfiguration) {
 }
 
-TorrentConfiguration::TorrentConfiguration(){
+TorrentConfiguration::TorrentConfiguration()
+    : _torrent_info(NULL) {
+}
+
+TorrentConfiguration::~TorrentConfiguration() {
+
+    // Delete if was set to object
+    if(_torrent_info != NULL)
+        delete _torrent_info;
 }
 
 TorrentConfiguration & TorrentConfiguration::operator=(const TorrentConfiguration & rhs) {
@@ -21,6 +30,13 @@ TorrentConfiguration & TorrentConfiguration::operator=(const TorrentConfiguratio
     _save_path = rhs.getSavePath();
     _resume_data = rhs.getConstResumeData();
     _flags = rhs.getFlags();
+
+    // Delete if was set to object
+    if(_torrent_info != NULL)
+        delete _torrent_info;
+
+    _torrent_info = new libtorrent::torrent_info(*rhs.getTorrentInfo());
+
     _torrentPluginConfiguration = rhs.getTorrentPluginConfiguration();
 
     // Return self reference
@@ -150,7 +166,9 @@ void TorrentConfiguration::toDictionaryEntry(libtorrent::entry::dictionary_type 
     dictionaryEntry["flags"] = libtorrent::entry::integer_type(_flags);
 
     // torrentPluginConfiguration
-    _torrentPluginConfiguration.toDictionaryEntry(dictionaryEntry["torrentPluginConfiguration"]);
+    libtorrent::entry::dictionary_type torrentPluginConfigurationDictionaryEntry;
+    _torrentPluginConfiguration.toDictionaryEntry(torrentPluginConfigurationDictionaryEntry);
+    dictionaryEntry["torrentPluginConfiguration"] = torrentPluginConfigurationDictionaryEntry;
 }
 
 const libtorrent::sha1_hash & TorrentConfiguration::getInfoHash() const {
@@ -169,6 +187,10 @@ std::vector<char> & TorrentConfiguration::getResumeData() {
     return _resume_data;
 }
 
+const std::vector<char> & TorrentConfiguration::getConstResumeData() const {
+    return _resume_data;
+}
+
 quint64 TorrentConfiguration::getFlags() const {
     return _flags;
 }
@@ -176,3 +198,18 @@ quint64 TorrentConfiguration::getFlags() const {
 const TorrentPluginConfiguration & TorrentConfiguration::getTorrentPluginConfiguration() const {
     return _torrentPluginConfiguration;
 }
+
+libtorrent::torrent_info *TorrentConfiguration::getTorrentInfo() const {
+    return _torrent_info;
+}
+
+void TorrentConfiguration::setTorrent_info(const libtorrent::torrent_info & torrent_info) {
+
+    // Delete if we set to object
+    if(_torrent_info != NULL)
+        delete _torrent_info;
+
+    // Allocate new object
+    _torrent_info = new libtorrent::torrent_info(torrent_info);
+}
+

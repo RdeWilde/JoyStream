@@ -12,32 +12,32 @@ class PeerPluginConfiguration
 public:
 
     // Constructor from members
-    PeerPluginConfiguration(const ExtendedMessageIdMapping & clientMapping, const ExtendedMessageIdMapping & peerMapping, const BEPSupportStatus & peerBEP10SupportedStatus, const BEPSupportStatus & peerBEP43SupportedStatus, const PeerPluginState & peerPluginState, const PeerPluginId & peerPluginId);
+    PeerPluginConfiguration(const ExtendedMessageIdMapping & clientMapping, const ExtendedMessageIdMapping & peerMapping, const BEPSupportStatus & getPeerBEP10SupportedStatus, const BEPSupportStatus & peerBEP43SupportedStatus, const PeerPluginState & peerPluginState, const PeerPluginId & peerPluginId);
 
     // Constructor from members, when mappings are not known
-    PeerPluginConfiguration(const BEPSupportStatus & peerBEP10SupportedStatus, const BEPSupportStatus & peerBEP43SupportedStatus, const PeerPluginState & peerPluginState);
+    PeerPluginConfiguration(const BEPSupportStatus & getPeerBEP10SupportedStatus, const BEPSupportStatus & peerBEP43SupportedStatus, const PeerPluginState & peerPluginState);
 
     // Constructor from dictionary
     PeerPluginConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry);
 
     // Getters & Setters
-    ExtendedMessageIdMapping peerMapping() const;
-    void setPeerMapping(const ExtendedMessageIdMapping &peerMapping);
+    ExtendedMessageIdMapping & getPeerMapping();
+    void setPeerMapping(const ExtendedMessageIdMapping & peerMapping);
 
-    ExtendedMessageIdMapping clientMapping() const;
-    void setClientMapping(const ExtendedMessageIdMapping &clientMapping);
+    ExtendedMessageIdMapping & getClientMapping();
+    void setClientMapping(const ExtendedMessageIdMapping & clientMapping);
 
-    BEPSupportStatus peerBEP10SupportedStatus() const;
-    void setPeerBEP10SupportedStatus(const BEPSupportStatus &peerBEP10SupportedStatus);
+    BEPSupportStatus & getPeerBEP10SupportedStatus();
+    void setPeerBEP10SupportedStatus(const BEPSupportStatus & peerBEP10SupportedStatus);
 
-    BEPSupportStatus peerBEP43SupportedStatus() const;
-    void setPeerBEP43SupportedStatus(const BEPSupportStatus &peerBEP43SupportedStatus);
+    BEPSupportStatus & getPeerBEP43SupportedStatus();
+    void setPeerBEP43SupportedStatus(const BEPSupportStatus & peerBEP43SupportedStatus);
 
-    PeerPluginState peerPluginState() const;
-    void setPeerPluginState(const PeerPluginState &peerPluginState);
+    PeerPluginState & getPeerPluginState();
+    void setPeerPluginState(const PeerPluginState & peerPluginState);
 
-    PeerPluginId peerPluginId() const;
-    void setPeerPluginId(const PeerPluginId &peerPluginId);
+    PeerPluginId & getPeerPluginId();
+    void setPeerPluginId(const PeerPluginId & peerPluginId);
 
 private:
 
@@ -52,7 +52,7 @@ private:
     PeerPluginState _peerPluginState;
 
     // Id of this peer plugin
-    PeerPluginId _peerPluginId; // asess later, is the redundancy worth it
+    PeerPluginId _peerPluginId; // assess later, is the redundancy worth it
 };
 
 #endif // PEER_PLUGIN_CONFIGURATION_HPP

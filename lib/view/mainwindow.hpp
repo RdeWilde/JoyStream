@@ -59,24 +59,24 @@ private:
     Ui::MainWindow * ui;
 
     // Controller
-    Controller * controller_;
+    Controller * _controller;
 
     // Logging category
-    QLoggingCategory & category_;
+    QLoggingCategory & _category;
 
     /*
      * View-models
      */
 
     // Torrent table
-    QStandardItemModel torrentTableViewModel_; // View model
-    QMenu * torrentTableContextMenu; // Context menu
-    QModelIndex torrentTableLastIndexClicked; // Last model index for mouse click
-    std::map<libtorrent::sha1_hash, TorrentViewModel *> torrentViewModels; // Maps info_hash of models to corresponding TorrentViewModel
+    QStandardItemModel _torrentTableViewModel; // View model
+    QMenu * _torrentTableContextMenu; // Context menu
+    QModelIndex _torrentTableLastIndexClicked; // Last model index for mouse click
+    std::map<libtorrent::sha1_hash, TorrentViewModel *> _torrentViewModels; // Maps info_hash of models to corresponding TorrentViewModel
 
     // Peer Plugins table
-    QMenu * peerPluginsTableContextMenu; // context menu
-    QModelIndex peerPluginsTableLastIndexClicked; // Last model index for mouse click
+    QMenu * _peerPluginsTableContextMenu; // context menu
+    QModelIndex _peerPluginsTableLastIndexClicked; // Last model index for mouse click
 
     // Utilities
     const libtorrent::sha1_hash & getInfoHashOfLastClickedTorrent();
@@ -101,8 +101,8 @@ public slots:
     void torrentTableClicked(const QModelIndex & index);
 
     // Show parts of view
-    void showAddTorrentFromTorrentFileDialog(const QString & torrentFile, bool withPlugin);
-    void showAddTorrentFromMagnetLinkDialog(const QString & magnetLink, bool withPlugin);
+    void showAddTorrentFromTorrentFileDialog(const QString & torrentFile);
+    void showAddTorrentFromMagnetLinkDialog(const QString & magnetLink);
 
 };
 
