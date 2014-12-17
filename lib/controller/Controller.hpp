@@ -43,6 +43,7 @@ private:
     void processSaveResumeDataAlert(libtorrent::save_resume_data_alert const * p);
     void processSaveResumeDataFailedAlert(libtorrent::save_resume_data_failed_alert const * p);
     void processTorrentPausedAlert(libtorrent::torrent_paused_alert const * p);
+    void processTorrentCheckedAlert(libtorrent::torrent_checked_alert const * p);
 
     // Tell libtorrent try save resume data for all torrents needing it
     int makeResumeDataCallsForAllTorrents();
@@ -93,7 +94,7 @@ private:
     QLoggingCategory & _category;
 
     // Plugin: constructor initializatin list expects plugin to appear after category_
-    boost::shared_ptr<libtorrent::plugin> _plugin; // should this be weak?
+    Plugin * _plugin; // should this be weak?
 
     // View
     MainWindow _view;

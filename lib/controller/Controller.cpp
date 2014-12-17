@@ -85,7 +85,8 @@ Controller::Controller(const ControllerConfiguration & controllerConfiguration, 
         _session.add_dht_router(*i); // Add router to session
 
     // Add plugin extension
-    _session.add_extension(_plugin);
+    boost::shared_ptr<libtorrent::plugin> plugin_shared_ptr(_plugin);
+    _session.add_extension(plugin_shared_ptr);
 
     // Start DHT node
     _session.start_dht();
@@ -208,6 +209,9 @@ void Controller::processAlert(const libtorrent::alert * a) {
     } else if(libtorrent::save_resume_data_failed_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_failed_alert>(a)) {
         //qCDebug(_category) << "Save resume data failed alert.";
         processSaveResumeDataFailedAlert(p);
+    } else if(libtorrent::torrent_checked_alert const * p = libtorrent::alert_cast<libtorrent::torrent_checked_alert>(a)) {
+        //qCDebug(_category) << "Torrent checked alert.";
+        processTorrentCheckedAlert(p);
     }
 
     // Delete alert
@@ -441,6 +445,78 @@ void Controller::processSaveResumeDataFailedAlert(libtorrent::save_resume_data_f
     _numberOfOutstandingResumeDataCalls--;
 }
 
+void Controller::processTorrentCheckedAlert(libtorrent::torrent_checked_alert const * p) {
+
+    // Get handle for torrent
+    libtorrent::torrent_handle h = p->handle;
+
+    // Process if handle is valid
+    if (h.is_valid()) {
+
+        // get info hash of torrent
+        libtorrent::sha1_hash infoHash = h.info_hash();
+
+        // get torrent information
+        libtorrent::torrent_info & torrentInfo = h.get_torrent_info();
+
+        // get torrent status
+        libtorrent::torrent_status torrentStatus = h.status();
+
+        // Try to get torrent configuration, but since it may
+        // not be there we must catch exception
+        try {
+
+            // Get torrent configuration
+            TorrentConfiguration & torrentConfiguration = _controllerConfiguration.getTorrentConfiguration(infoHash);
+
+            // If torrent plugin has configurations, then use them
+            PluginMode pluginMode = torrentConfiguration.getTorrentPluginConfiguration().getPluginMode();
+
+            if(pluginMode != PluginMode::Undetermined) {
+
+                // If we do not have full file, yet are in seller mode, then user
+                // must alter torrent configuration
+                if(torrentStatus. not full && pluginMode == PluginMode::Seller) {
+
+                    qCCritical(_category) << "Torrent was not fully downloaded, yet torrent plugin was in seller mode.";
+
+                    // Prompt user to specify mode again
+                    view.showAddBuyerTorrentPluginConfigurationDialog(torrentInfo, torrentStatus);
+                }
+                // also if we do have full file, yet are in buyer mode, then
+                // user must alter torrent configuration
+                else if(torrent full && pluinMode == PluginMode::Buyer) {
+
+                    qCCritical(_category) << "Torrent was fully downloaded, yet torrent plugin was in buyer mode.";
+
+                    // Prompt user to specify mode again
+                    view.showAddSellerTorrentPluginConfigurationDialog(torrentInfo, torrentStatus);
+                }
+                // otherwise we are ok and can tell torrent plugin to update configuration
+                else {
+
+                    // Update view some how
+
+                    // IMPLEMENT LATER: view.torrentPluginEnabled()
+
+                    // Send torrent plugin request
+                    _plugin->submitTorrentPluginRequest(new SetConfigurationTorrentPluginRequest(infoHash, torrentConfiguration));
+                }
+
+            } else // otherwise prompt user to specify them
+                view.showAddTorrentPluginConfigurationDialog(torrentInfo, torrentStatus);
+
+        } catch (std::exception & e) {
+
+            // Write critial warning
+            qCCritical(_category) << "Could not find configuration for torrent which was checked, exception thrown: " << e.what() << '\n';
+
+            return;
+        }
+
+    } else
+        qCDebug(_category) << "Invalid handle for checked torrent.";
+}
 
 bool Controller::removeTorrent(const libtorrent::sha1_hash & info_hash) {
 

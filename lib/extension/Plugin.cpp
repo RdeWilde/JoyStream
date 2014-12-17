@@ -21,7 +21,8 @@ Plugin::Plugin(Controller * controller, QLoggingCategory & category)
 }
 
 Plugin::~Plugin() {
-    // No need to explicltly delete TorrentPlugin objects, since libtorrent has shared_ptr
+
+    // No need to explicltly delete TorrentPlugin objects, since libtorrent has shared_ptr?
 
     // Delete TorrentPlugins!
     for(std::map<libtorrent::sha1_hash, TorrentPlugin *>::iterator i = _torrentPlugins.begin(),
@@ -37,8 +38,9 @@ Controller * Plugin::getController() {
 
 boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::torrent * newTorrent, void * userData) {
 
-    // Create torrent configuration
-    TorrentPluginConfiguration torrentPluginConfiguration(PluginMode::NotDetermined, true, true);
+    // Create a temporary torrent configuration: controller will later alter with proper configuration
+    // when torrent has been checked (metadata and resume data is validated)
+    TorrentPluginConfiguration torrentPluginConfiguration(PluginMode::Undetermined, true, true);
 
     // Create the appropriate torrent plugin depending on if we have full file
     TorrentPlugin * torrentPlugin = new TorrentPlugin(this, newTorrent, _category, torrentPluginConfiguration);

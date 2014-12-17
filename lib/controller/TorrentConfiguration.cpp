@@ -35,6 +35,7 @@ TorrentConfiguration & TorrentConfiguration::operator=(const TorrentConfiguratio
     if(_torrent_info != NULL)
         delete _torrent_info;
 
+    // Allocate copy for new object
     _torrent_info = new libtorrent::torrent_info(*rhs.getTorrentInfo());
 
     _torrentPluginConfiguration = rhs.getTorrentPluginConfiguration();
@@ -197,6 +198,10 @@ quint64 TorrentConfiguration::getFlags() const {
 
 const TorrentPluginConfiguration & TorrentConfiguration::getTorrentPluginConfiguration() const {
     return _torrentPluginConfiguration;
+}
+
+void TorrentConfiguration::setTorrentPluginConfiguration(const TorrentPluginConfiguration & torrentPluginConfiguration) {
+    _torrentPluginConfiguration = torrentPluginConfiguration;
 }
 
 libtorrent::torrent_info *TorrentConfiguration::getTorrentInfo() const {

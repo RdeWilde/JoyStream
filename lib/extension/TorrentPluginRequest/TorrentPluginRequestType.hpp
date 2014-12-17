@@ -4,6 +4,8 @@
 // Type of torrent plugin request
 enum class TorrentPluginRequestType {
 
+     SetConfiguration
+
 };
 
 #endif // TORRENT_PLUGIN_REQUEST_TYPE_HPP

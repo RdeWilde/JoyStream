@@ -152,6 +152,20 @@ void MainWindow::showAddTorrentFromMagnetLinkDialog(const QString & magnetLink) 
     addTorrentDialog.exec();
 }
 
+void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torrent_info & torrent_info) {
+
+    // Show window for adding torrent with magnet link
+    /**
+     * Starts new event loop,
+     * no more libtorrent alerts are processed in mean time,
+     * change at a later time
+     */
+    //AddTorrentDialog addTorrentDialog(_controller, _category, magnetLink, false);
+    //addTorrentDialog.exec();
+
+
+}
+
 void MainWindow::pauseMenuAction() {
 
     bool paused = _controller->pauseTorrent(getInfoHashOfLastClickedTorrent());

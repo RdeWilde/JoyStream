@@ -22,7 +22,7 @@ public:
     // Constructor using members
     ControllerConfiguration(const libtorrent::entry & libtorrentSessionSettingsEntry,
                     const std::pair<int, int> & portRange,
-                    const std::map<libtorrent::sha1_hash, TorrentConfiguration> torrentParameters,
+                    const std::map<libtorrent::sha1_hash, TorrentConfiguration> torrentConfigurations,
                     const std::vector<std::pair<std::string, int>> & dhtRouters);
 
     // Constructor using dictionary entry

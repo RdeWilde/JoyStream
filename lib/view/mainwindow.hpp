@@ -53,6 +53,11 @@ public:
     void updatePeerPluginStatus(PeerPluginStatus status);
     void removePeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint);
 
+    // Show parts of view
+    void showAddTorrentFromTorrentFileDialog(const QString & torrentFile);
+    void showAddTorrentFromMagnetLinkDialog(const QString & magnetLink);
+    void showAddTorrentPluginConfigurationDialog(const libtorrent::torrent_info & torrent_info);
+
 private:
 
     // View
@@ -99,11 +104,6 @@ public slots:
     void removeMenuAction();
 
     void torrentTableClicked(const QModelIndex & index);
-
-    // Show parts of view
-    void showAddTorrentFromTorrentFileDialog(const QString & torrentFile);
-    void showAddTorrentFromMagnetLinkDialog(const QString & magnetLink);
-
 };
 
 #endif // MAIN_WINDOW_HPP

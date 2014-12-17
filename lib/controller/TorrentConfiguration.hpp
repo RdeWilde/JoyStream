@@ -47,6 +47,8 @@ public:
      *
      * "flags" -> entry::integer_type object representing flag parameter.
      *
+     * "torrent_info" -> not implemented
+     *
      * "torrentPluginConfiguration" -> entry::dictionary_type object representing _torrentPluginConfiguration as encoded by TorrentPluginConfiguration::toDictionaryEntry().
      */
     void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const;
@@ -63,6 +65,7 @@ public:
     void setTorrent_info(const libtorrent::torrent_info & getTorrentInfo);
 
     const TorrentPluginConfiguration & getTorrentPluginConfiguration() const;
+    void setTorrentPluginConfiguration(const TorrentPluginConfiguration & torrentPluginConfiguration);
 
 protected:
 
