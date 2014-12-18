@@ -1,13 +1,11 @@
 #ifndef CONTROLLER_CONFIGURATION_HPP
 #define CONTROLLER_CONFIGURATION_HPP
 
-#include "TorrentConfiguration.hpp" // _torrentConfigurationss
-
 #include <libtorrent/entry.hpp>
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>
 
-//class TorrentConfiguration;
+class TorrentConfiguration;
 
 class ControllerConfiguration {
 
@@ -22,13 +20,13 @@ public:
     // Constructor using members
     ControllerConfiguration(const libtorrent::entry & libtorrentSessionSettingsEntry,
                     const std::pair<int, int> & portRange,
-                    const std::map<libtorrent::sha1_hash, TorrentConfiguration> torrentConfigurations,
+                    const std::vector<TorrentConfiguration *> & torrentConfigurations,
                     const std::vector<std::pair<std::string, int>> & dhtRouters);
 
     // Constructor using dictionary entry
     ControllerConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry);
 
-	// Constructor using state file
+    // Constructor using file
     ControllerConfiguration(const char * fileName);
 
     /**
@@ -46,8 +44,8 @@ public:
      * "dhtRouters" -> entry::list_type object with entry::list_type objects with two elements, each encoding a dht router by the host (first)
      * and port (second).
      *
-     * "persistentTorrentStates" -> entry::dictionary_type object, with key representing torrent info hash and value being
-     * entry::dictionary_type object representing state of corresponding torrent as dictated by encoding used in PersistentTorrentState::toDictionaryEntry().
+     * "torrentConfigurations" -> entry::list_type object, with list item objects being of type entry::dictionary_type and
+     * representing state of corresponding torrent as dictated by encoding used in TorrentConfiguration::toDictionaryEntry().
      */
     void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry);
 
@@ -55,38 +53,32 @@ public:
 	void saveToFile(const char * file);
 
     // Inserts torrent configuration.
-    bool addTorrentConfiguration(const TorrentConfiguration & torrentConfiguration);
+    // This object then takes ownership of file, and deletes in constructor
+    bool insertTorrentConfiguration(const TorrentConfiguration * torrentConfiguration);
 
-    // Getters
-    libtorrent::entry & getLibtorrentSessionSettingsEntry();
-    std::pair<int, int> & getPortRange();
-
-    // Be careful with reference since underlying configuration object may expire by being
-    // erased from underlying map. Best practice is to only use locally and in a thread which
-    // has exclusive access to controller configuration.
-    std::set<libtorrent::sha1_hash> getTorrentInfoHashes() const;
-    TorrentConfiguration & getTorrentConfiguration(const libtorrent::sha1_hash & info_hash);
-    std::vector<std::pair<std::string, int>> & getDhtRouters();
-
-    // Setters
+    // Getters & Setters
+    libtorrent::entry getLibtorrentSessionSettingsEntry() const;
     void setLibtorrentSessionSettingsEntry(const libtorrent::entry & libtorrentSessionSettingsEntry);
-    bool eraseTorrentConfiguration(const libtorrent::sha1_hash & info_hash);
 
-    // TorrentConfiguraton setters
-    bool setTorrentConfigurationResumeData(const libtorrent::sha1_hash & info_hash, std::vector<char> & resume_data);
+    std::pair<int, int> getPortRange() const;
+
+    std::vector<std::pair<std::string, int>> getDhtRouters() const;
+
+    std::vector<TorrentConfiguration *>::const_iterator getBeginTorrentConfigurationsIterator() const;
+    std::vector<TorrentConfiguration *>::const_iterator getEndTorrentConfigurationsIterator() const;
 
 private:
 
     /*
-    * Holds all settings of session, that includes
-    * session_settings, dht_settings, dht_state,
-    * proxy_settings, i2p_proxy, pe_settings, feed
-    * and extension settings.
-    *
-    * It would be cleaner to save class representations rather
-    * than using entry type, however that gets messy and/or
-    * requires lots of extra work for various reasons.
-    */
+     * Holds all settings of session, that includes
+     * session_settings, dht_settings, dht_state,
+     * proxy_settings, i2p_proxy, pe_settings, feed
+     * and extension settings.
+     *
+     * It would be cleaner to save class representations rather
+     * than using entry type, however that gets messy and/or
+     * requires lots of extra work for various reasons.
+     */
     libtorrent::entry _libtorrentSessionSettingsEntry;
 
     // Listening port range: DO WE EVEN NEED THIS? IT MAY BE PART OF DHT_SETTINGS ENTRY?
@@ -96,7 +88,7 @@ private:
     std::vector<std::pair<std::string, int>> _dhtRouters;
 
     // Torrent states
-    std::map<libtorrent::sha1_hash, TorrentConfiguration> _torrentConfigurations;
+    std::vector<TorrentConfiguration *> _torrentConfigurations;
 };
 
 #endif // CONTROLLER_CONFIGURATION_HPP

@@ -1,9 +1,12 @@
 
 #include "Controller.hpp"
+#include "TorrentStatus.hpp"
 #include "Config.hpp"
 #include "view/addtorrentdialog.hpp"
 #include "controller/Exceptions/ListenOnException.hpp"
 #include "controller/TorrentConfiguration.hpp"
+#include "extension/TorrentPluginRequest/SetConfigurationTorrentPluginRequest.hpp"
+
 
 #include <libtorrent/alert_types.hpp>
 #include <libtorrent/error_code.hpp>
@@ -49,12 +52,12 @@ Controller::Controller(const ControllerConfiguration & controllerConfiguration, 
               +libtorrent::alert::progress_notification
               +libtorrent::alert::performance_warning
               +libtorrent::alert::stats_notification)
-    , _numberOfOutstandingResumeDataCalls(0)
     , _sourceForLastResumeDataCall(NONE)
-    , _controllerConfiguration(controllerConfiguration)
     , _category(category)
     , _plugin(new Plugin(this, _category))
-    , _view(this, _category) {
+    , _portRange(controllerConfiguration.getPortRange())
+    , _view(this, _category)
+    , _numberOfOutstandingResumeDataCalls(0) {
 
     // Register types for signal and slots
     qRegisterMetaType<libtorrent::sha1_hash>();
@@ -71,14 +74,14 @@ Controller::Controller(const ControllerConfiguration & controllerConfiguration, 
 
 	// Set session settings - these acrobatics with going back and forth seem to indicate that I may have done it incorrectly
 	std::vector<char> buffer;
-    libtorrent::bencode(std::back_inserter(buffer), _controllerConfiguration.getLibtorrentSessionSettingsEntry());
+    libtorrent::bencode(std::back_inserter(buffer), controllerConfiguration.getLibtorrentSessionSettingsEntry());
 	libtorrent::lazy_entry settingsLazyEntry;
     libtorrent::error_code lazyBdecodeEc;
 	libtorrent::lazy_bdecode(&buffer[0], &buffer[0] + buffer.size(), settingsLazyEntry, lazyBdecodeEc);
     _session.load_state(settingsLazyEntry);
 
 	// Add DHT routing nodes
-    const std::vector<std::pair<std::string, int>> & dhtRouters = _controllerConfiguration.getDhtRouters();
+    const std::vector<std::pair<std::string, int>> & dhtRouters = controllerConfiguration.getDhtRouters();
 
     for(std::vector<std::pair<std::string, int>>::const_iterator i = dhtRouters.begin(),
             end(dhtRouters.end());i != end; ++i)
@@ -103,23 +106,19 @@ Controller::Controller(const ControllerConfiguration & controllerConfiguration, 
 
 	// Start listening
 	boost::system::error_code listenOnErrorCode;
-    _session.listen_on(_controllerConfiguration.getPortRange(), listenOnErrorCode);
+    _session.listen_on(_portRange, listenOnErrorCode);
 
     // Throw
 	if(listenOnErrorCode)
 		throw ListenOnException(listenOnErrorCode);
 
-    // Add torrents to session (this must be AFTER session.listen_on())
-    std::set<libtorrent::sha1_hash> torrentInfoHashes = _controllerConfiguration.getTorrentInfoHashes();
+    // Add all torrents, but this ust be AFTER session.listen_on(),
+    // because otherwise adding to session won't work.
+    for(std::vector<TorrentConfiguration *>::const_iterator i = controllerConfiguration.getBeginTorrentConfigurationsIterator(),
+            end(controllerConfiguration.getEndTorrentConfigurationsIterator());i != end; ++i) {
 
-    for(std::set<libtorrent::sha1_hash>::iterator i = torrentInfoHashes.begin(),
-            end(torrentInfoHashes.end());i != end; ++i) {
-
-        // Get reference to torrent configuration corresponding to info hash
-        const TorrentConfiguration & torrentConfiguration = _controllerConfiguration.getTorrentConfiguration(*i);
-
-        // Add torrent
-        if(!addTorrentToSession(torrentConfiguration)) {
+        // Try to add torrent
+        if(!addTorrent(*(*i), false)) {
 
             qCCritical(_category) << "Unable to add torrent configuration to session";
             return;
@@ -285,12 +284,6 @@ void Controller::processTorrentRemovedAlert(libtorrent::torrent_removed_alert co
     // Get torrent info hash
     libtorrent::sha1_hash info_hash = p->info_hash;
 
-    // Attempt to erase
-    if(!_controllerConfiguration.eraseTorrentConfiguration(info_hash)) {
-        qCCritical(_category) << "No matching info hash found, torrent not removed from controller.";
-        return;
-    }
-
     // Remove from view
     _view.removeTorrent(info_hash);
 
@@ -308,10 +301,7 @@ void Controller::processMetadataReceivedAlert(libtorrent::metadata_received_aler
         // get torrent info
         const libtorrent::torrent_info & torrentInfo = h.get_torrent_info();
 
-        // Save in torrent configuration
-        _controllerConfiguration.getTorrentConfiguration(h.info_hash()).setTorrent_info(torrentInfo);
-
-        // should we now ask if we have full file?
+        // USE THIS INFORMATION FOR SOMETHING LATER
 
     } else
         qCDebug(_category) << "Invalid handle for received metadata.";
@@ -382,27 +372,22 @@ void Controller::processSaveResumeDataAlert(libtorrent::save_resume_data_alert c
     // Get info hash for torrent
     libtorrent::sha1_hash info_hash = p->handle.info_hash();
 
-    try {
+    // Find reference to resume data for torrent
+    std::map<libtorrent::sha1_hash, TorrentStatus *>::iterator i = _torrentStatuses.find(info_hash);
 
-        // Get torrent configuration
-        TorrentConfiguration & torrentConfiguration = _controllerConfiguration.getTorrentConfiguration(info_hash);
+    if(i == _torrentStatuses.end()) {
 
-        // Get reference to resume data vector
-        std::vector<char> & resume_data = torrentConfiguration.getResumeData();
-
-        // Dump old content
-        resume_data.clear();
-
-        // Write new content to it
-        bencode(std::back_inserter(resume_data), *(p->resume_data));
-
-    } catch (std::exception & e) {
-
-        // Write critial warning
-        qCCritical(_category) << "exception caught: " << e.what() << '\n';
-
+        qCCritical(_category) << "Resume data received for missing torrent.";
         return;
     }
+
+    std::vector<char> & resumeData = (i->second)->_resumeData;
+
+    // Dump old content
+    resumeData.clear();
+
+    // Write new content to it
+    bencode(std::back_inserter(resumeData), *(p->resume_data));
 
     // If this was last outstanding resume data save, the   n do relevant callback
     if(_numberOfOutstandingResumeDataCalls == 0) {
@@ -453,66 +438,36 @@ void Controller::processTorrentCheckedAlert(libtorrent::torrent_checked_alert co
     // Process if handle is valid
     if (h.is_valid()) {
 
-        // get info hash of torrent
+        // Get info hash of torrent
         libtorrent::sha1_hash infoHash = h.info_hash();
 
-        // get torrent information
-        libtorrent::torrent_info & torrentInfo = h.get_torrent_info();
+        // Get torrent status
+        std::map<libtorrent::sha1_hash, TorrentStatus *>::iterator i = _torrentStatuses.find(infoHash);
 
-        // get torrent status
-        libtorrent::torrent_status torrentStatus = h.status();
+        // if no status is registered, then we exit
+        if(i == _torrentStatuses.end()) {
 
-        // Try to get torrent configuration, but since it may
-        // not be there we must catch exception
-        try {
-
-            // Get torrent configuration
-            TorrentConfiguration & torrentConfiguration = _controllerConfiguration.getTorrentConfiguration(infoHash);
-
-            // If torrent plugin has configurations, then use them
-            PluginMode pluginMode = torrentConfiguration.getTorrentPluginConfiguration().getPluginMode();
-
-            if(pluginMode != PluginMode::Undetermined) {
-
-                // If we do not have full file, yet are in seller mode, then user
-                // must alter torrent configuration
-                if(torrentStatus. not full && pluginMode == PluginMode::Seller) {
-
-                    qCCritical(_category) << "Torrent was not fully downloaded, yet torrent plugin was in seller mode.";
-
-                    // Prompt user to specify mode again
-                    view.showAddBuyerTorrentPluginConfigurationDialog(torrentInfo, torrentStatus);
-                }
-                // also if we do have full file, yet are in buyer mode, then
-                // user must alter torrent configuration
-                else if(torrent full && pluinMode == PluginMode::Buyer) {
-
-                    qCCritical(_category) << "Torrent was fully downloaded, yet torrent plugin was in buyer mode.";
-
-                    // Prompt user to specify mode again
-                    view.showAddSellerTorrentPluginConfigurationDialog(torrentInfo, torrentStatus);
-                }
-                // otherwise we are ok and can tell torrent plugin to update configuration
-                else {
-
-                    // Update view some how
-
-                    // IMPLEMENT LATER: view.torrentPluginEnabled()
-
-                    // Send torrent plugin request
-                    _plugin->submitTorrentPluginRequest(new SetConfigurationTorrentPluginRequest(infoHash, torrentConfiguration));
-                }
-
-            } else // otherwise prompt user to specify them
-                view.showAddTorrentPluginConfigurationDialog(torrentInfo, torrentStatus);
-
-        } catch (std::exception & e) {
-
-            // Write critial warning
-            qCCritical(_category) << "Could not find configuration for torrent which was checked, exception thrown: " << e.what() << '\n';
-
+            qCCritical(_category) << "Torrent checked alert issued for torrent without status.";
             return;
         }
+
+        // otherwise grab status
+        TorrentStatus * torrentStatus = i->second;
+
+        // and if torrent configuration plugin is needed, then tell view
+        if(torrentStatus->_needsTorrentPluginConfigurationAfterTorrentCheckedAlert) {
+
+            // get torrent information
+            libtorrent::torrent_info torrentInfo = h.get_torrent_info();
+
+            // get torrent status
+            libtorrent::torrent_status torrentStatus = h.status();
+
+            // and tell view to prompt user based on this
+            _view.showAddTorrentPluginConfigurationDialog(torrentInfo, torrentStatus);
+
+        } else // otherwise just tell torrent plugin to begin
+            _plugin->submitTorrentPluginRequest(new SetConfigurationTorrentPluginRequest(infoHash));
 
     } else
         qCDebug(_category) << "Invalid handle for checked torrent.";
@@ -575,69 +530,29 @@ bool Controller::startTorrent(const libtorrent::sha1_hash & info_hash) {
     return true;
 }
 
-bool Controller::addTorrent(const TorrentConfiguration & torrentConfiguration) {
+bool Controller::addTorrent(const TorrentConfiguration & torrentConfiguration, bool promptUserForTorrentPluginConfiguration) {
 
-    // Attempt to add to session
-    if(addTorrentToSession(torrentConfiguration)) {
+    // Convert to add torrent parameters
+    libtorrent::add_torrent_params params = torrentConfiguration.toAddTorrentParams();
 
-        // and add to controller if this was possible
-        if(!_controllerConfiguration.addTorrentConfiguration(torrentConfiguration)) {
-
-            // Could add to session, but not controller!!!
-            return false;
-        }
-
-        // Could add to both session and controller
-        return true;
-
-    } else // Could not add to session
-        return false;
-}
-
-bool Controller::addTorrentToSession(const TorrentConfiguration & torrentConfiguration) {
-
-    // Create add_torrent_params for adding
-    libtorrent::add_torrent_params params;
-
-    params.info_hash = torrentConfiguration.getInfoHash();
-    params.name = torrentConfiguration.getName();
-    params.save_path = torrentConfiguration.getSavePath();
-
-    // torrent_info
-
-    std::vector<char> resume_data = torrentConfiguration.getConstResumeData();
-    params.resume_data = &(resume_data);
-    params.flags = torrentConfiguration.getFlags();
-
-    /*
-     *
-     //* If info_hash is not set, we try and set it.
-     //* This would typically be the case if torrent was added through torrent
-     //* file rather than magnet link. The primary reason for this constraint is because searching
-     //* addTorrentParameters is based on info_hashes,
-     if(params.info_hash.is_all_zeros()) {
-
-         // Is torrent info set, use it
-         if(params.ti.get() != 0 && !params.ti->info_hash().is_all_zeros()) {
-             libtorrent::sha1_hash info_hash = params.ti->info_hash();
-             params.info_hash = info_hash;
-         } else {
-             // Throw exception in future
-             qCDebug(_category) << "no valid info_hash set.";
-             return;
-         }
-     }
-     */
-
-    // Create save_path on disk if it does not exist
+    // Create save_path on disk, return if it does not exist
     if(!(QDir()).mkpath(params.save_path.c_str())) {
 
         qCCritical(_category) << "Could not create save_path: " << params.save_path.c_str();
         return false;
     }
 
-    // Add to session
+    // Create initial torrent status
+    TorrentStatus * s = new TorrentStatus(*params.resume_data, promptUserForTorrentPluginConfiguration);
+
+    // Save status in map
+    _torrentStatuses.insert(std::make_pair(params.info_hash, s));
+
+    // Add torrent to session
     _session.async_add_torrent(params);
+
+    // Delete std::vector<char> memory allocated in TorrentConfiguration::toAddTorrentParams
+    delete params.resume_data;
 
     // Indicate that we added to session
     return true;
@@ -645,14 +560,52 @@ bool Controller::addTorrentToSession(const TorrentConfiguration & torrentConfigu
 
 void Controller::saveStateToFile(const char * file) {
 
+    // NOT DONE!
+
+    /**
+
 	// Save present state of session in entry
 	libtorrent::entry libtorrentSessionSettingsEntry;
     _session.save_state(libtorrentSessionSettingsEntry);
 
-    _controllerConfiguration.setLibtorrentSessionSettingsEntry(libtorrentSessionSettingsEntry);
+    // Torrent configurations
+    std::vector<TorrentConfiguration *> torrentConfigurations;
+
+    // Grab torrent handles
+    std::vector<libtorrent::torrent_handle> torrents = _session.get_torrents();
+
+    for(std::vector<libtorrent::torrent_handle>::iterator i = torrents.begin(),
+            end(torrents.end()); i != end;i++) {
+
+        // Check if torrent handle is valid, if not, we can't save it
+        if((*i).is_valid()) {
+
+            // We need to have torrent plugin configurations already available,
+            // which is done asynch, perhaps make a parameter of this method
+            // which is called by a callback routine.
+
+            // Create torrent configuration
+            TorrentConfiguration * torrentConfiguration = new TorrentConfiguration();
+
+            // Add to vector of configurations
+            torrentConfigurations.push_back(torrentConfiguration);
+
+        } else
+            qCCritical(_category) << "Could not recover handle for torrent for saving, skipping it.";
+    }
+
+    // DHT routers
+    std::vector<std::pair<std::string, int>> dhtRouters;
+
+    // Create controller configuration
+    ControllerConfiguration controllerConfiguration(libtorrentSessionSettingsEntry
+                                                    ,_portRange
+                                                    ,torrentConfigurations
+                                                    ,dhtRouters);
 
 	// Save to file
-    _controllerConfiguration.saveToFile(file);
+    controllerConfiguration.saveToFile(file);
+    */
 }
 
 void Controller::begin_close() {
@@ -699,37 +652,3 @@ void Controller::finalize_close() {
     // Tell runner that controller is done
     emit closed();
 }
-/*
-const TorrentPluginConfiguration * Controller::getTorrentPluginConfiguration(const libtorrent::sha1_hash & info_hash) {
-
-    const TorrentPluginConfiguration * torrentPluginConfiguration = NULL;
-
-    try{
-
-        // Get torrent plugin configuration
-        torrentPluginConfiguration = _controllerConfiguration.getTorrentConfiguration(info_hash).getTorrentPluginConfiguration();
-
-    } catch (std::exception & e) {
-
-        // Write critial warning
-        qCCritical(_category) << "exception caught: " << e.what() << '\n';
-
-        return NULL;
-    }
-
-    // Return pointer
-    return torrentPluginConfiguration;
-}
-*/
-
-/*
-MainWindow Controller::getView() const
-{
-    return _view;
-}
-
-void Controller::setView(const MainWindow &value)
-{
-    _view = value;
-}
-*/

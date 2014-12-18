@@ -56,7 +56,7 @@ public:
     // Show parts of view
     void showAddTorrentFromTorrentFileDialog(const QString & torrentFile);
     void showAddTorrentFromMagnetLinkDialog(const QString & magnetLink);
-    void showAddTorrentPluginConfigurationDialog(const libtorrent::torrent_info & torrent_info);
+    void showAddTorrentPluginConfigurationDialog(const libtorrent::torrent_info & torrentInfo, const libtorrent::torrent_status & torrentStatus);
 
 private:
 

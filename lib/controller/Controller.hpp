@@ -17,7 +17,11 @@
 #include <QTimer>
 #include <QLoggingCategory>
 
-class libtorrent::peer_connection;
+class TorrentStatus;
+
+namespace libtorrent {
+    class peer_connection;
+}
 
 class Controller : public QObject {
 
@@ -28,12 +32,25 @@ private:
     // Underlying libtorrent session
     libtorrent::session _session;
 
-    // Persistent state of controller
-    ControllerConfiguration _controllerConfiguration;
+    // Logging category
+    QLoggingCategory & _category;
 
-    /**
-     * Routine for processig libtorrent alerts
-     */
+    // Plugin: constructor initializatin list expects plugin to appear after category_
+    // should this be weak?
+    Plugin * _plugin;
+
+    // Port range for which libtorrent should try to listen
+    // Must persist so that it can be saved in controller contiguration
+    // upon closing
+    std::pair<int, int> _portRange;
+
+    // View
+    MainWindow _view;
+
+    // Timer which calls session.post_torrent_updates() at regular intervals
+    QTimer _statusUpdateTimer;
+
+    // Routine for processig libtorrent alerts
     void processMetadataReceivedAlert(libtorrent::metadata_received_alert const * p);
     void processMetadataFailedAlert(libtorrent::metadata_failed_alert const * p);
     void processAddTorrentAlert(libtorrent::add_torrent_alert const * p);
@@ -51,15 +68,17 @@ private:
     // Routine called after all resume data has been saved as part of an initlal begin_close() call
     void finalize_close();
 
+    /*
     // Creates folder and adds torrent to session, but does not alter state of controller by adding torrent configuration
     // to it. Is typically called by ctr() and addTorrent().
     bool addTorrentToSession(const TorrentConfiguration & TorrentConfiguration);
+    */
 
     // Save state of controller to file
     void saveStateToFile(const char * file);
 
    /**
-    * Private short term state
+    * Short term controller state
     * ==========================
     * Needed for processing which relies
     * on asyncrhoous calls to libtorrent. It is short term in the sense
@@ -87,17 +106,8 @@ private:
     // Actual source of resume data call
     sourceForLastResumeDataCallType _sourceForLastResumeDataCall;
 
-    // Timer which calls session.post_torrent_updates() at regular intervals
-    QTimer _statusUpdateTimer;
-
-    // Logging category
-    QLoggingCategory & _category;
-
-    // Plugin: constructor initializatin list expects plugin to appear after category_
-    Plugin * _plugin; // should this be weak?
-
-    // View
-    MainWindow _view;
+    // Resume data for torrents
+    std::map<libtorrent::sha1_hash, TorrentStatus *> _torrentStatuses;
 
 public:
 
@@ -111,14 +121,14 @@ public:
     Q_INVOKABLE void processAlert(libtorrent::alert const * a);
 
     /**
-      * View entry points
-      * =================
-      * Primarily called by view objects on the same thread as controller thread,
-      * buy also good routines to use for testing.
-      */
+     * View entry points
+     * =================
+     * Primarily called by view objects on the same thread as controller thread,
+     * buy also good routines to use for testing.
+     */
 
     // Manage torrents
-    bool addTorrent(const TorrentConfiguration & TorrentConfiguration);
+    bool addTorrent(const TorrentConfiguration & TorrentConfiguration, bool promptUserForTorrentPluginConfiguration);
     bool removeTorrent(const libtorrent::sha1_hash & info_hash);
     bool pauseTorrent(const libtorrent::sha1_hash & info_hash);
     bool startTorrent(const libtorrent::sha1_hash & info_hash);
@@ -126,18 +136,8 @@ public:
     // Stops libtorrent session, and tries to save_resume data, when all resume data is saved, finalize_close() is called.
     void begin_close();
 
-    /**
-      * Libtorrent entry points
-      * =======================
-      * All public routines below are entry points for libtorrent
-      * thread, and all use locks to synchronize access to various parts of the
-      * controller state. The routines are used for synchronous calls to the controller,
-      * for asynchronous calls uses slots.
-      */
-
-    // Caller does not own object, life time is uncertain, at least make copy.
-    // Do something safer later?
-    //const TorrentPluginConfiguration * getTorrentPluginConfiguration(const libtorrent::sha1_hash & info_hash);
+    // Save state of controller
+    ControllerConfiguration toControllerConfiguration() const;
 
 private slots:
 

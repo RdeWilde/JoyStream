@@ -1,15 +1,22 @@
 #ifndef UTILITIES_HPP
 #define UTILITIES_HPP
 
-#include <libtorrent/peer_id.hpp> // info_hash
+namespace libtorrent {
+    class entry;
+}
 
-// Clas with ONLY static functions
+/**
+ * Static utility functions
+ */
 class Utilities
 {
 public:
 
-    // Comparison function for info_hash
-    //static bool compareInfoHash(libtorrent::sha1_hash lhs, libtorrent::sha1_hash rhs);
+    // Opens file, reads contents, debencodes into destinationEntry
+    static bool loadBencodedEntry(const char * fileName, libtorrent::entry & destinationEntry);
+
+    // Bencodes dictionary, opens file, writes to file
+    static bool saveBencodedEntry(const char * fileName, const libtorrent::entry & sourceEntry);
 };
 
 #endif // UTILITIES_HPP

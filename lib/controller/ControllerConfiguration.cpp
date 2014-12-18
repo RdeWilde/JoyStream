@@ -3,10 +3,7 @@
 #include "TorrentConfiguration.hpp"
 #include "exceptions/InvalidBitSwaprStateEntryException.hpp"
 #include "Config.hpp"
-
-#include <libtorrent/bencode.hpp>
-
-#include <fstream>
+#include "Utilities.hpp"
 
 ControllerConfiguration::ControllerConfiguration() {
 
@@ -225,25 +222,24 @@ ControllerConfiguration::ControllerConfiguration() {
     _dhtRouters.push_back(std::make_pair(std::string("router.bitcomet.com"), 6881));
 }
 
+
 ControllerConfiguration::ControllerConfiguration(const libtorrent::entry & libtorrentSessionSettingsEntry
                                         , const std::pair<int, int> & portRange
-                                        , const std::map<libtorrent::sha1_hash, TorrentConfiguration> torrentConfigurations
+                                        , const std::vector<TorrentConfiguration *> & torrentConfigurations
                                         , const std::vector<std::pair<std::string, int>> & dhtRouters)
                                 : _libtorrentSessionSettingsEntry(libtorrentSessionSettingsEntry)
                                 , _portRange(portRange)
                                 , _dhtRouters(dhtRouters)
-                                , _torrentConfigurations(torrentConfigurations)
-{}
+                                , _torrentConfigurations(torrentConfigurations) {
+
+}
 
 ControllerConfiguration::~ControllerConfiguration() {
 
-    /*
-     *
-    // Delete torrent states
-    for(std::map<libtorrent::sha1_hash, TorrentConfiguration *>::iterator i = _torrentConfigurations.begin(),
+    // Delete torrent configuration
+    for(std::vector<TorrentConfiguration *>::iterator i = _torrentConfigurations.begin(),
             end(_torrentConfigurations.end()); i != end;i++)
             delete i->second;
-    */
 }
 
 ControllerConfiguration::ControllerConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry) {
@@ -393,37 +389,16 @@ ControllerConfiguration::ControllerConfiguration(const libtorrent::entry::dictio
 
 ControllerConfiguration::ControllerConfiguration(const char * fileName) {
 
-	// Open file at the end, so we can get size
-	std::ifstream file(fileName, std::ios::in | std::ios::binary | std::ifstream::ate);
+    // Create dictionary entry
+    libtorrent::entry::dictionary_type controllerConfigurationDictionaryEntry;
 
-	// Get size of file
-	int sizeOfFile = (int)file.tellg();
-
-	// Rewind position
-	file.seekg(0);
-
-	// Allocate space for bencoded state entry
-    std::vector<char> dictionaryEntryVector(sizeOfFile, 0);
-
-	// Read entire file into vector
-    file.read(&dictionaryEntryVector[0], dictionaryEntryVector.size());
-	
-	// Close file
-	file.close();
-
-	/* 
-	// Check that entire file was read
-	if(!file)
-		throw something.., only file.gcount() written
-	*/
-
-	// Bendecode entry
-    libtorrent::entry bitSwaprStateEntry = libtorrent::bdecode(dictionaryEntryVector.begin(), dictionaryEntryVector.end());
-    const libtorrent::entry::dictionary_type & dictionaryEntry = bitSwaprStateEntry.dict();
+    // Save bencoded dictionary to file
+    Utilities::loadBencodedEntry(fileName, controllerConfigurationDictionaryEntry);
 
     // Use other constructor using this dictionary
-    ControllerConfiguration::ControllerConfiguration(dictionaryEntry);
+    ControllerConfiguration::ControllerConfiguration(controllerConfigurationDictionaryEntry);
 }
+
 
 void ControllerConfiguration::toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) {
 	
@@ -455,133 +430,59 @@ void ControllerConfiguration::toDictionaryEntry(libtorrent::entry::dictionary_ty
 
     dictionaryEntry["dhtRouters"] = dhtRoutersListEntry;
 
-    // Add "persistentTorrentStates" key
-    libtorrent::entry::dictionary_type persistentTorrentStatesDictionaryEntry;
+    // Add "torrentConfigurations" key
+    libtorrent::entry::list_type torrentConfigurationsListEntry;
 
-    for(std::map<libtorrent::sha1_hash, TorrentConfiguration>::const_iterator i = _torrentConfigurations.begin(),
+    for(std::vector<TorrentConfiguration *>::const_iterator i = _torrentConfigurations.begin(),
         end(_torrentConfigurations.end()); i != end; i++) {
 
         // Write to dictionary
         libtorrent::entry::dictionary_type dictionaryEntry;
-        (i->second).toDictionaryEntry(dictionaryEntry);
+        (*i)->toDictionaryEntry(dictionaryEntry);
 
-        // Save mapping
-        persistentTorrentStatesDictionaryEntry[(i->first).to_string()] = dictionaryEntry;
+        // Add to list
+        torrentConfigurationsListEntry.push_back(dictionaryEntry);
     }
 
-    dictionaryEntry["persistentTorrentStates"] = persistentTorrentStatesDictionaryEntry;
+    dictionaryEntry["torrentConfigurations"] = torrentConfigurationsListEntry;
 }
 
 void ControllerConfiguration::saveToFile(const char * fileName) {
 
-	// Save state to entry
-	libtorrent::entry::dictionary_type BitSwaprStateEntry;
+    // Create dictionary entry
+    libtorrent::entry::dictionary_type controllerConfigurationDictionaryEntry;
 
-    toDictionaryEntry(BitSwaprStateEntry);
+    // Save controller configururation in entry
+    toDictionaryEntry(controllerConfigurationDictionaryEntry);
 
-	// Bencode entry
-	std::vector<char> bencodedBitSwaprStateEntry;
-	bencode(std::back_inserter(bencodedBitSwaprStateEntry), BitSwaprStateEntry);
-
-	// Open file, overwrite if present
-	std::ofstream file(fileName, std::ios::out | std::ios::binary | std::ios::trunc);
-
-	// Save to file
-	file.write(reinterpret_cast<const char*>(&bencodedBitSwaprStateEntry[0]), bencodedBitSwaprStateEntry.size());
-
-	/* 
-	// Check that entire file was written
-	if(!file)
-		throw something.., only file.gcount() written
-	*/
-
-	// Close file
-	file.close();
+    // Save bencoded dictionary to file
+    Utilities::saveBencodedEntry(fileName, controllerConfigurationDictionaryEntry);
 }
 
-bool ControllerConfiguration::addTorrentConfiguration(const TorrentConfiguration & torrentConfiguration) {
-
-    // Get info hash
-    const libtorrent::sha1_hash & info_hash = torrentConfiguration.getInfoHash();
-
-    // Look up configuration for torrrent with given info hash
-    std::map<libtorrent::sha1_hash, TorrentConfiguration>::iterator & mapIterator = _torrentConfigurations.find(info_hash);
-
-    // Return false if we found match
-    if(mapIterator != _torrentConfigurations.end())
-        return false;
-    else {
-
-        // Add to map
-        _torrentConfigurations.insert(std::make_pair(info_hash, torrentConfiguration));
-
-        // Indicate that it worked
-        return true;
-    }
+void ControllerConfiguration::insertTorrentConfiguration(const TorrentConfiguration * torrentConfiguration) {
+    _torrentConfigurations.push_back(torrentConfiguration);
 }
 
-libtorrent::entry & ControllerConfiguration::getLibtorrentSessionSettingsEntry() {
+libtorrent::entry ControllerConfiguration::getLibtorrentSessionSettingsEntry() const {
     return _libtorrentSessionSettingsEntry;
 }
 
-std::pair<int, int> & ControllerConfiguration::getPortRange() {
+std::pair<int, int> ControllerConfiguration::getPortRange() const {
     return _portRange;
 }
 
-/*
-std::map<libtorrent::sha1_hash, TorrentConfiguration *> & ControllerConfiguration::getTorrentConfigurations() {
-    return _torrentConfigurations;
-}
-*/
-
-std::set<libtorrent::sha1_hash> ControllerConfiguration::getTorrentInfoHashes() const {
-
-    // Create vector for keeping keys
-    std::set<libtorrent::sha1_hash> keys;
-
-    // Iterate map and populate keys vector
-    for(std::map<libtorrent::sha1_hash, TorrentConfiguration>::const_iterator i = _torrentConfigurations.begin(),
-            end(_torrentConfigurations.end()); i != end;i++)
-        keys.insert(i->first);
-
-    // Return set
-    return keys;
-}
-
-TorrentConfiguration & ControllerConfiguration::getTorrentConfiguration(const libtorrent::sha1_hash & info_hash) {
-
-    // Look up configuration for torrrent with given info hash
-    std::map<libtorrent::sha1_hash, TorrentConfiguration>::iterator & mapIterator = _torrentConfigurations.find(info_hash);
-
-    // Return the configuration pointer if present
-    if(mapIterator == _torrentConfigurations.end())
-        throw std::exception("No matching info hash found.");
-    else
-        return mapIterator->second;
-}
-
-std::vector<std::pair<std::string, int>> & ControllerConfiguration::getDhtRouters() {
+std::vector<std::pair<std::string, int>> ControllerConfiguration::getDhtRouters() const {
     return _dhtRouters;
+}
+
+std::vector<TorrentConfiguration *>::const_iterator ControllerConfiguration::getBeginTorrentConfigurationsIterator() const {
+    return _torrentConfigurations.begin();
+}
+
+std::vector<TorrentConfiguration *>::const_iterator ControllerConfiguration::getEndTorrentConfigurationsIterator() const {
+    return _torrentConfigurations.end();
 }
 
 void ControllerConfiguration::setLibtorrentSessionSettingsEntry(const libtorrent::entry & libtorrentSessionSettingsEntry) {
     _libtorrentSessionSettingsEntry = libtorrentSessionSettingsEntry;
-}
-
-bool ControllerConfiguration::eraseTorrentConfiguration(const libtorrent::sha1_hash & info_hash) {
-
-    // Try to find iterator reference to mathch
-    std::map<libtorrent::sha1_hash, TorrentConfiguration>::iterator & mapIterator = _torrentConfigurations.find(info_hash);
-
-    // Did we find match
-    if(mapIterator == _torrentConfigurations.end())
-         return false;
-    else {
-
-        // Erase
-        _torrentConfigurations.erase(mapIterator);
-
-        // Indicate it worked
-        return true;
-    }
 }

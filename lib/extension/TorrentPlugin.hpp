@@ -1,7 +1,7 @@
 #ifndef TORRENT_PLUGIN_HPP
 #define TORRENT_PLUGIN_HPP
 
-#include "TorrentPluginConfiguration.hpp"
+#include "PluginMode.hpp"
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
@@ -16,6 +16,10 @@ class PeerPlugin;
 class PeerPluginId;
 class TorrentPluginStatus;
 class TorrentPluginRequest;
+class TorrentPluginConfiguration;
+class PeerPluginConfiguration;
+class SetConfigurationTorrentPluginRequest;
+class SetPluginModeTorrentPluginRequest;
 
 class TorrentPlugin : public QObject, public libtorrent::torrent_plugin {
 
@@ -27,7 +31,7 @@ public:
     TorrentPlugin();
 
     // Constructor from member fields
-    TorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, const TorrentPluginConfiguration & torrentPluginConfiguration);
+    TorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, TorrentPluginConfiguration * torrentPluginConfiguration);
 
     // Destructor
     ~TorrentPlugin();
@@ -56,8 +60,12 @@ public:
     bool addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint);
     bool addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint);
 
-    //
+    // Process torrent plugin requests
     void processTorrentPluginRequest(const TorrentPluginRequest * torrentPluginRequest);
+    void processSetConfigurationTorrentPluginRequest(const SetConfigurationTorrentPluginRequest * setConfigurationTorrentPluginRequest);
+    void processSetPluginModeTorrentPluginRequest(const SetPluginModeTorrentPluginRequest * setPluginModeTorrentPluginRequest);
+
+    // Get peer plugin
     PeerPlugin * getPeerPlugin(const libtorrent::tcp::endpoint & endPoint);
 
     // Removes peer plugin
@@ -69,7 +77,7 @@ public:
     // Getters
     //libtorrent::torrent * getTorrent();
     //const libtorrent::sha1_hash & getInfoHash() const;
-    const TorrentPluginConfiguration & getTorrentPluginConfiguration() const;
+    //const TorrentPluginConfiguration & getTorrentPluginConfiguration() const;
 
 signals:
 
@@ -89,16 +97,10 @@ protected:
     libtorrent::torrent * _torrent;
 
     // Map of peer plugin objects for each peer presently connected to this node through this torrent swarm
-    std::map<libtorrent::tcp::endpoint, PeerPlugin *> _peerPlugins; // // Must be pointers, since TorrentPlugin::_category is reference, hence type is not copyable
+    std::map<libtorrent::tcp::endpoint, PeerPlugin *> _peerPlugins;
 
     // Logging category
     QLoggingCategory & _category;
-
-    // Configuration of torrent plugin
-    TorrentPluginConfiguration _torrentPluginConfiguration;
-
-    // Token accounting since session start
-    int _tokensReceived, _tokensSent;
 
     // Set of all endpoints known to not have extension. Is populated by previous failed extended handshakes.
     std::set<libtorrent::tcp::endpoint> _peersWithoutExtension;
@@ -106,14 +108,39 @@ protected:
     // Set of endpoints banned for irregular conduct during extended protocol
     std::set<libtorrent::tcp::endpoint> _irregularPeer;
 
+    /**
+     *
+     *
+    // Indicates if torrent has been properly checked and
+    // if value in _torrentPluginConfiguration is reliable
+    // Perhaps a better way of representing state can be found in the future
+    // I hate relying on the null pointer below
+    bool _pluginStarted;
+
+    // Configuration: only relevant when (_pluginStarted == true)
+    // NULL means we dont buy or sell
+    // NON-NULL means we are buyer or seller
+    TorrentPluginConfiguration * _torrentPluginConfiguration;
+    */
+
+    // Mode of plugin
+    PluginMode _pluginMode;
+
+    // Use the two sets below when accepting new peers in new_connect
+    bool _enableBanningSets;
+
 private:
 
     // Subroutines for the tick() method
     void sendTorrentPluginStatusSignal();
 
     // Checks that peer is not banned and that it is a bittorrent connection
-    bool installPluginOnNewConnection(libtorrent::peer_connection * peerConnection);
+    bool installPluginOnNewConnection(libtorrent::peer_connection * peerConnection) const;
 
+    /*
+    // Creates configurations for new peer plugins
+    PeerPluginConfiguration * createPeerPluginConfiguration(const libtorrent::tcp::endpoint & endPoint) const;
+    */
 };
 
 #endif // TORRENT_PLUGIN_HPP

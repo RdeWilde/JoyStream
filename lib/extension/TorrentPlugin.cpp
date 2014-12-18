@@ -1,10 +1,12 @@
 ﻿
 #include "TorrentPlugin.hpp"
+#include "TorrentPluginConfiguration.hpp"
 #include "PeerPlugin.hpp"
 #include "PeerPluginConfiguration.hpp"
 #include "PeerPluginStatus.hpp" // signal parameter
 #include "controller/Controller.hpp" // needed to connect
 #include "TorrentPluginRequest/TorrentPluginRequest.hpp"
+#include "TorrentPluginRequest/SetConfigurationTorrentPluginRequest.hpp"
 
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/peer_connection.hpp>
@@ -13,13 +15,13 @@
 
 #include <QLoggingCategory>
 
-TorrentPlugin::TorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, const TorrentPluginConfiguration & torrentPluginConfiguration)
+TorrentPlugin::TorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, TorrentPluginConfiguration * torrentPluginConfiguration)
     : _plugin(plugin)
     , _torrent(torrent)
     , _category(category)
-    , _torrentPluginConfiguration(torrentPluginConfiguration)
-    , _tokensReceived(0)
-    , _tokensSent(0) {
+    , _pluginStarted(false)
+    , _torrentPluginConfiguration(torrentPluginConfiguration) {
+
 }
 
 TorrentPlugin::~TorrentPlugin() {
@@ -46,6 +48,7 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorr
     // Check if this peer should be accepted, if not
     // a null is returned, hence plugin is not installed
     if(installPluginOnNewConnection(peerConnection)) {
+
         qCDebug(_category) << "Rejected connection from peer, peer plugin not installed.";
         return boost::shared_ptr<libtorrent::peer_plugin>();
     }
@@ -54,13 +57,17 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorr
     libtorrent::bt_peer_connection * bittorrentPeerConnection = static_cast<libtorrent::bt_peer_connection*>(peerConnection);
 
     // Create peer plugin configuration
-    PeerPluginConfiguration peerPluginConfiguration(BEPSupportStatus::unknown, BEPSupportStatus::unknown, PeerPluginState::started);
+    PeerPluginConfiguration * peerPluginConfiguration = createPeerPluginConfiguration(endPoint);
 
     // Create peer plugin
     PeerPlugin * peerPlugin = new PeerPlugin(this, bittorrentPeerConnection, _category, peerPluginConfiguration);
 
-    // Add to collection
+    // Add to plugin to collection
     _peerPlugins.insert(std::make_pair(endPoint, peerPlugin));
+
+    // Add to torrent configuration if present
+    if(_torrentPluginConfiguration != NULL)
+        _torrentPluginConfiguration->insertPeerPluginConfiguration(peerPluginConfiguration);
 
     // Connect peer plugin signal to controller slot
     //Controller * controller = plugin_->getController();
@@ -142,13 +149,17 @@ void TorrentPlugin::on_add_peer(libtorrent::tcp::endpoint const & endPoint, int 
     */
 }
 
-bool TorrentPlugin::installPluginOnNewConnection(libtorrent::peer_connection * peerConnection) {
+bool TorrentPlugin::installPluginOnNewConnection(libtorrent::peer_connection * peerConnection) const {
+
+    // If not configuratio is present, then install plugin
+    if(_torrentPluginConfiguration == NULL)
+        return true;
 
     // Get endpoint of connection
     const libtorrent::tcp::endpoint & endPoint = peerConnection->remote();
 
     // If we are using banning sets, then check this peer
-    if(_torrentPluginConfiguration.getEnableBanningSets()) {
+    if(_torrentPluginConfiguration->getEnableBanningSets()) {
 
         // Check if we know from before that peer does not have
         if(_peersWithoutExtension.find(endPoint) != _peersWithoutExtension.end()) {
@@ -173,6 +184,21 @@ bool TorrentPlugin::installPluginOnNewConnection(libtorrent::peer_connection * p
     return true;
 }
 
+PeerPluginConfiguration * TorrentPlugin::createPeerPluginConfiguration(const libtorrent::tcp::endpoint & endPoint) const {
+
+    // If plugin has not been started, or is in passive mode
+    if(!_pluginStarted || _torrentPluginConfiguration == NULL)
+        return NULL;
+    else {
+
+        // Do something more complicated here depending on being buyer or seller or whatever?
+        // mode: _torrentPluginConfiguration->getPluginMode()
+
+        // Basic
+        return new PeerPluginConfiguration(endPoint, _torrentPluginConfiguration->getPluginMode(), BEPSupportStatus::unknown, BEPSupportStatus::unknown, PeerPluginState::started);
+    }
+}
+
 bool TorrentPlugin::addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint) {
 
     // Attempt to insert
@@ -191,14 +217,71 @@ bool TorrentPlugin::addToIrregularPeersSet(const libtorrent::tcp::endpoint & end
     return insertResult.second;
 }
 
-
 void TorrentPlugin::processTorrentPluginRequest(const TorrentPluginRequest * torrentPluginRequest) {
 
     qCDebug(_category) << "processTorrentPluginRequest";
 
     switch(torrentPluginRequest->getTorrentPluginRequestType()) {
 
+        case TorrentPluginRequestType::SetConfiguration:
+
+            processSetConfigurationTorrentPluginRequest(static_cast<SetConfigurationTorrentPluginRequest *>(torrentPluginRequest));
+            break;
+
+        case TorrentPluginRequestType::SetPluginMode:
+
+            processSetPluginModeTorrentPluginRequest(static_cast<SetPluginModeTorrentPluginRequest *>(torrentPluginRequest));
+            break;
     }
+}
+
+void TorrentPlugin::processSetConfigurationTorrentPluginRequest(SetConfigurationTorrentPluginRequest * setConfigurationTorrentPluginRequest) {
+
+    /*
+        !!!!what if we received this already once before??!!!
+
+
+        for all peer plugin configurations in torrent configurations,
+
+        -add to queue of critical endpoints you are trying to reach?
+        -this also means that you should not just start buying and selling shit from others,
+        you are in a special recovery mode
+
+        -otherwise, if we didnt have any peers hanging arround, just gothrough
+        _peerPlugin objects which have had all NULL configuration, give them
+        basic configuration so it can change its operation.
+
+        AVOID THIS WHOLE MESS BY SIMPLY NOT SAVING PEER CONFIGURATION FOR NOW
+
+
+    // We have now started
+    _pluginStarted = true;
+
+    // Set configuration
+    _torrentPluginConfiguration = setConfigurationTorrentPluginRequest->getTorrentPluginConfiguration();
+
+    // Iterate peer plugins and set their configuration
+    for(std::map<libtorrent::tcp::endpoint, PeerPlugin *>::iterator i = _peerPlugins.begin(),
+            end(_peerPlugins.end()); i != end;i++) {
+
+        // Get peer plugin
+        PeerPlugin * peerPlugin = i->second;
+
+        // cannot get bep status of peer, since it will typically
+        // not be set. since configuration is not set
+        // this indicates that configuration content shouldbe flat
+        // inside types, andt hen save and load to configurations as needed
+        //
+
+        if(peerPlugin->)
+
+        // Create peer plugin configuration
+        PeerPluginConfiguration * peerPluginConfiguration = createPeerPluginConfiguration(i->first);
+
+        // Set peer plugin configuration
+        (i->second)->setConfiguration(peerPluginConfiguration);
+    }
+    */
 }
 
 PeerPlugin * TorrentPlugin::getPeerPlugin(const libtorrent::tcp::endpoint & endPoint) {
@@ -265,6 +348,8 @@ void TorrentPlugin::sendTorrentPluginStatusSignal() {
     */
 }
 
+/*
 const TorrentPluginConfiguration & TorrentPlugin::getTorrentPluginConfiguration() const {
     return _torrentPluginConfiguration;
 }
+*/

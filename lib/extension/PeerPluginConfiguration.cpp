@@ -1,18 +1,33 @@
 #include "PeerPluginConfiguration.hpp"
 
-PeerPluginConfiguration::PeerPluginConfiguration(const ExtendedMessageIdMapping & clientMapping, const ExtendedMessageIdMapping & peerMapping, const BEPSupportStatus & peerBEP10SupportedStatus, const BEPSupportStatus & peerBEP43SupportedStatus, const PeerPluginState & peerPluginState, const PeerPluginId & peerPluginId)
-    : _clientMapping(clientMapping)
-    , _peerMapping(peerMapping)
-    , _peerBEP10SupportedStatus(peerBEP10SupportedStatus)
-    , _peerBEP43SupportedStatus(peerBEP43SupportedStatus)
-    , _peerPluginState(peerPluginState)
-    , _peerPluginId(peerPluginId) {
+PeerPluginConfiguration::PeerPluginConfiguration(const libtorrent::tcp::endpoint & endPoint
+                                                 ,PluginMode pluginMode
+                                                 ,const ExtendedMessageIdMapping & clientMapping
+                                                 ,const ExtendedMessageIdMapping & peerMapping
+                                                 ,const BEPSupportStatus & peerBEP10SupportedStatus
+                                                 ,const BEPSupportStatus & peerBEP43SupportedStatus
+                                                 ,const PeerPluginState & peerPluginState
+                                                 ,const PeerPluginId & peerPluginId)
+        : _endPoint(endPoint)
+        ,_pluginMode(pluginMode)
+        ,_clientMapping(clientMapping)
+        ,_peerMapping(peerMapping)
+        ,_peerBEP10SupportedStatus(peerBEP10SupportedStatus)
+        ,_peerBEP43SupportedStatus(peerBEP43SupportedStatus)
+        ,_peerPluginState(peerPluginState)
+        ,_peerPluginId(peerPluginId) {
 }
 
-PeerPluginConfiguration::PeerPluginConfiguration(const BEPSupportStatus & peerBEP10SupportedStatus, const BEPSupportStatus & peerBEP43SupportedStatus, const PeerPluginState & peerPluginState)
-    : _peerBEP10SupportedStatus(peerBEP10SupportedStatus)
-    , _peerBEP43SupportedStatus(peerBEP43SupportedStatus)
-    , _peerPluginState(peerPluginState) {
+PeerPluginConfiguration::PeerPluginConfiguration(const libtorrent::tcp::endpoint & endPoint
+                                                 ,PluginMode pluginMode
+                                                 ,const BEPSupportStatus & peerBEP10SupportedStatus
+                                                 ,const BEPSupportStatus & peerBEP43SupportedStatus
+                                                 ,const PeerPluginState & peerPluginState)
+        : _endPoint(endPoint)
+        ,_pluginMode(pluginMode)
+        ,_peerBEP10SupportedStatus(peerBEP10SupportedStatus)
+        ,_peerBEP43SupportedStatus(peerBEP43SupportedStatus)
+        ,_peerPluginState(peerPluginState) {
 }
 
 PeerPluginConfiguration::PeerPluginConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry) {

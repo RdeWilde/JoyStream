@@ -3,13 +3,11 @@
 
 enum class PluginMode {
 
-    // Before torrent has been checked after loading, or before user decides when adding
-    // Is only temporary mode
+    // Plugin has not been enabled
     Undetermined,
 
-    // Neither seller nor buyer, but user has made a decision
+    // Plugin has been enabled
     Passive,
-
     Seller,
     Buyer
 };

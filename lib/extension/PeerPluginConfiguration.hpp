@@ -5,17 +5,33 @@
 #include "Message/ExtendedMessageIdMapping.hpp"
 #include "PeerPluginState.hpp"
 #include "PeerPluginId.hpp"
+#include "PluginMode.hpp"
 
-class PeerPluginConfiguration
-{
+/**
+ * This class has been disabled for the time
+ * being, as persisting peer plugin state is
+ * way to complex to deal with at the moment.
+ */
+class PeerPluginConfiguration {
 
 public:
 
     // Constructor from members
-    PeerPluginConfiguration(const ExtendedMessageIdMapping & clientMapping, const ExtendedMessageIdMapping & peerMapping, const BEPSupportStatus & getPeerBEP10SupportedStatus, const BEPSupportStatus & peerBEP43SupportedStatus, const PeerPluginState & peerPluginState, const PeerPluginId & peerPluginId);
+    PeerPluginConfiguration(const libtorrent::tcp::endpoint & endPoint
+                            ,PluginMode pluginMode
+                            ,const ExtendedMessageIdMapping & clientMapping
+                            ,const ExtendedMessageIdMapping & peerMapping
+                            ,const BEPSupportStatus & getPeerBEP10SupportedStatus
+                            ,const BEPSupportStatus & peerBEP43SupportedStatus
+                            ,const PeerPluginState & peerPluginState
+                            ,const PeerPluginId & peerPluginId);
 
     // Constructor from members, when mappings are not known
-    PeerPluginConfiguration(const BEPSupportStatus & getPeerBEP10SupportedStatus, const BEPSupportStatus & peerBEP43SupportedStatus, const PeerPluginState & peerPluginState);
+    PeerPluginConfiguration(const libtorrent::tcp::endpoint & endPoint
+                            ,PluginMode pluginMode
+                            ,const BEPSupportStatus & getPeerBEP10SupportedStatus
+                            ,const BEPSupportStatus & peerBEP43SupportedStatus
+                            ,const PeerPluginState & peerPluginState);
 
     // Constructor from dictionary
     PeerPluginConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry);
@@ -39,7 +55,13 @@ public:
     PeerPluginId & getPeerPluginId();
     void setPeerPluginId(const PeerPluginId & peerPluginId);
 
-private:
+protected:
+
+    // Endpoint
+    libtorrent::tcp::endpoint _endPoint;
+
+    // Mode of plugin. All peers have same mode.
+    PluginMode _pluginMode;
 
     // Mapping from messages to BEP10 ID of peer
     ExtendedMessageIdMapping _clientMapping, _peerMapping;

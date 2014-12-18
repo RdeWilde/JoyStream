@@ -11,11 +11,11 @@
 #include <libtorrent/socket_io.hpp>
 #include <libtorrent/peer_info.hpp>
 
-PeerPlugin::PeerPlugin(TorrentPlugin * torrentPlugin, libtorrent::bt_peer_connection * bittorrentPeerConnection, QLoggingCategory & category, PeerPluginConfiguration & peerPluginConfiguration)
+PeerPlugin::PeerPlugin(TorrentPlugin * torrentPlugin, libtorrent::bt_peer_connection * bittorrentPeerConnection, QLoggingCategory & category) //, PeerPluginConfiguration & peerPluginConfiguration)
     : _torrentPlugin(torrentPlugin)
     , _bittorrentPeerConnection(bittorrentPeerConnection)
-    , _category(category)
-    , _peerPluginConfiguration(peerPluginConfiguration) {
+    , _category(category) {
+    //, _peerPluginConfiguration(peerPluginConfiguration) {
 }
 
 PeerPlugin::~PeerPlugin() {
@@ -507,6 +507,29 @@ void PeerPlugin::processPeerPluginRequest(const PeerPluginRequest * peerPluginRe
 
     }
 }
+
+void PeerPlugin::setPluginMode(PluginMode pluginMode) {
+
+    // DO SOMETHING COMPLICATED
+
+    _pluginMode = pluginMode;
+    // DO SOMETHING COMPLICATED
+    // DO SOMETHING COMPLICATED
+    // DO SOMETHING COMPLICATED
+
+}
+
+/*
+void PeerPlugin::setConfiguration(PeerPluginConfiguration * peerPluginConfiguration) {
+
+
+    // We have now started
+    _pluginStarted = true;
+
+    // Set configuration
+    _torrentPluginConfiguration
+}
+*/
 
 /*
 const libtorrent::sha1_hash & PeerPlugin::getInfoHash() const {

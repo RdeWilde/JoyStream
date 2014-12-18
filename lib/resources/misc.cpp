@@ -1,3 +1,96 @@
+/*
+std::set<libtorrent::sha1_hash> ControllerConfiguration::getTorrentInfoHashes() const {
+
+    // Create vector for keeping keys
+    std::set<libtorrent::sha1_hash> keys;
+
+    // Iterate map and populate keys vector
+    for(std::map<libtorrent::sha1_hash, TorrentConfiguration>::const_iterator i = _torrentConfigurations.begin(),
+            end(_torrentConfigurations.end()); i != end;i++)
+        keys.insert(i->first);
+
+    // Return set
+    return keys;
+}
+*/
+
+/*
+TorrentConfiguration * ControllerConfiguration::getTorrentConfiguration(const libtorrent::sha1_hash & info_hash) {
+
+    // Look up configuration for torrrent with given info hash
+    std::map<libtorrent::sha1_hash, TorrentConfiguration>::iterator & mapIterator = _torrentConfigurations.find(info_hash);
+
+    // Return the configuration pointer if present
+    if(mapIterator == _torrentConfigurations.end())
+        throw NULL;
+    else
+        return mapIterator->second;
+}
+*/
+
+/*
+bool ControllerConfiguration::eraseTorrentConfiguration(const libtorrent::sha1_hash & info_hash) {
+
+    // Try to find iterator reference to mathch
+    std::map<libtorrent::sha1_hash, TorrentConfiguration>::iterator & mapIterator = _torrentConfigurations.find(info_hash);
+
+    // Did we find match
+    if(mapIterator == _torrentConfigurations.end())
+         return false;
+    else {
+
+        // Erase
+        _torrentConfigurations.erase(mapIterator);
+
+        // Indicate it worked
+        return true;
+    }
+}
+*/
+
+/*
+bool Controller::addTorrent(const TorrentConfiguration & torrentConfiguration) {
+
+    // Attempt to add to session
+    if(addTorrentToSession(torrentConfiguration)) {
+
+        // and add to controller if this was possible
+        if(!_controllerConfiguration.addTorrentConfiguration(torrentConfiguration)) {
+
+            // Could add to session, but not controller!!!
+            return false;
+        }
+
+        // Could add to both session and controller
+        return true;
+
+    } else // Could not add to session
+        return false;
+}
+*/
+
+/*
+const TorrentPluginConfiguration * Controller::getTorrentPluginConfiguration(const libtorrent::sha1_hash & info_hash) {
+
+    const TorrentPluginConfiguration * torrentPluginConfiguration = NULL;
+
+    try{
+
+        // Get torrent plugin configuration
+        torrentPluginConfiguration = _controllerConfiguration.getTorrentConfiguration(info_hash).getTorrentPluginConfiguration();
+
+    } catch (std::exception & e) {
+
+        // Write critial warning
+        qCCritical(_category) << "exception caught: " << e.what() << '\n';
+
+        return NULL;
+    }
+
+    // Return pointer
+    return torrentPluginConfiguration;
+}
+*/
 
 boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorrent::peer_connection * peerConnection) {
 

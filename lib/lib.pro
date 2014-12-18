@@ -44,7 +44,9 @@ SOURCES += \
     extension/PluginRequest/PluginRequest.cpp \
     extension/TorrentPluginRequest/TorrentPluginRequest.cpp \
     extension/PeerPluginRequest/PeerPluginRequest.cpp \
-    extension/TorrentPluginRequest/SetConfigurationTorrentPluginRequest.cpp
+    extension/TorrentPluginRequest/SetConfigurationTorrentPluginRequest.cpp \
+    controller/TorrentStatus.cpp \
+    extension/TorrentPluginRequest/SetPluginModeTorrentPluginRequest.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -85,7 +87,9 @@ HEADERS += \
     extension/TorrentPluginRequest/TorrentPluginRequestType.hpp \
     extension/PluginRequest/PluginRequestType.hpp \
     extension/PeerPluginRequest/PeerPluginRequestType.hpp \
-    extension/TorrentPluginRequest/SetConfigurationTorrentPluginRequest.hpp
+    extension/TorrentPluginRequest/SetConfigurationTorrentPluginRequest.hpp \
+    controller/TorrentStatus.hpp \
+    extension/TorrentPluginRequest/SetPluginModeTorrentPluginRequest.hpp
 				
 FORMS += \
             view/mainwindow.ui \

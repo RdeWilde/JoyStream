@@ -152,7 +152,7 @@ void MainWindow::showAddTorrentFromMagnetLinkDialog(const QString & magnetLink) 
     addTorrentDialog.exec();
 }
 
-void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torrent_info & torrent_info) {
+void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torrent_info & torrentInfo, const libtorrent::torrent_status & torrentStatus) {
 
     // Show window for adding torrent with magnet link
     /**

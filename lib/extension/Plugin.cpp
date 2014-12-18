@@ -38,12 +38,8 @@ Controller * Plugin::getController() {
 
 boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::torrent * newTorrent, void * userData) {
 
-    // Create a temporary torrent configuration: controller will later alter with proper configuration
-    // when torrent has been checked (metadata and resume data is validated)
-    TorrentPluginConfiguration torrentPluginConfiguration(PluginMode::Undetermined, true, true);
-
     // Create the appropriate torrent plugin depending on if we have full file
-    TorrentPlugin * torrentPlugin = new TorrentPlugin(this, newTorrent, _category, torrentPluginConfiguration);
+    TorrentPlugin * torrentPlugin = new TorrentPlugin(this, newTorrent, _category, static_cast<TorrentPluginConfiguration *>(userData));
 
     // Add to collection
     _torrentPlugins.insert(std::make_pair(newTorrent->info_hash(), torrentPlugin));

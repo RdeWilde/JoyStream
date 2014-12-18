@@ -4,23 +4,43 @@
 #include "PluginMode.hpp"
 
 #include <libtorrent/entry.hpp> // because you cant forward declare typedefs (libtorrent::entry::dictionary_type)
+#include <libtorrent/peer_id.hpp> // sha1_hash
+#include <libtorrent/socket.hpp> // tcp::endpoint
 
 #include <QtGlobal> // quint8,...
 
-// Was factored out of TorrentConfiguration because Plugin does not need to know about all parts of torrent configuration
-// only the plugin spesific ones.
-class TorrentPluginConfiguration
-{
+class PeerPluginConfiguration;
+
+/**
+ * Was factored out of TorrentConfiguration because Plugin
+ * does not need to know about all parts of torrent configuration
+ * only the plugin spesific ones.
+ */
+
+class TorrentPluginConfiguration {
+
 public:
 
     // Default constructor, for default constructor in TorrentConfiguration
     TorrentPluginConfiguration();
 
     // Constructor from members
-    TorrentPluginConfiguration(PluginMode pluginMode, bool enableBanningSets, bool pluginOn);
+    TorrentPluginConfiguration(PluginMode pluginMode, bool enableBanningSets);
 
     // Constructor from dictionary
     TorrentPluginConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry);
+
+    /*
+     * DISABLED
+    // Adds a peer plugin configuration
+    void insertPeerPluginConfiguration(const PeerPluginConfiguration * peerPluginConfiguration);
+
+    // Beginning iterator of _peerPluginConfigurations
+    std::map<libtorrent::tcp::endpoint, PeerPluginConfiguration *>::const_iterator getBeginPeerPluginConfigurationsIterator() const;
+
+    // End iterator of _peerPluginConfigurations
+    std::map<libtorrent::tcp::endpoint, PeerPluginConfiguration *>::const_iterator getEndPeerPluginConfigurationsIterator() const;
+    */
 
     /**
      * Write configuration into dictionary
@@ -34,20 +54,21 @@ public:
      */
     void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const;
 
-    // Getters
-    bool getEnableBanningSets();
-    PluginMode getPluginMode();
+    // Getters & Setters
+    PluginMode getPluginMode() const;
+
+    bool getEnableBanningSets() const;
 
 protected:
 
-    // Mode of plugin. All peers have same mode.
+    // Mode of plugin
     PluginMode _pluginMode;
 
     // Use the two sets below when accepting new peers in new_connect
     bool _enableBanningSets;
 
-    // Plugin is on: Write more
-    bool _pluginOn;
+    // Configurations for all active peer plugins
+    //std::map<libtorrent::tcp::endpoint, PeerPluginConfiguration *> _peerPluginConfigurations;
 };
 
 #endif // TORRENT_PLUGIN_CONFIGURATION_HPP

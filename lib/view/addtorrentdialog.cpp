@@ -80,7 +80,7 @@ void AddTorrentDialog::on_AddTorrentDialog_accepted() {
     std::vector<char> resume_data;
 
     // Torrent plugin configuration
-    TorrentPluginConfiguration torrentPluginConfiguration(PluginMode::NotDetermined, _enableBanningSets, _withPlugin);
+    TorrentPluginConfiguration torrentPluginConfiguration(PluginMode::Passive, _enableBanningSets, _withPlugin);
 
     // Create configuration for adding torrent
     TorrentConfiguration torrentConfiguration(info_hash, name, save_path, resume_data, 0, *_torrent_info, torrentPluginConfiguration);

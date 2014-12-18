@@ -8,14 +8,19 @@ class SetConfigurationTorrentPluginRequest : public TorrentPluginRequest {
 
 public:
 
-    // Configuration
-    TorrentPluginConfiguration _torrentPluginConfiguration;
-
     // Constructor
-    SetConfigurationTorrentPluginRequest(const libtorrent::sha1_hash & info_hash, const TorrentPluginConfiguration & torrentPluginConfiguration);
+    SetConfigurationTorrentPluginRequest(const libtorrent::sha1_hash & info_hash, TorrentPluginConfiguration * torrentPluginConfiguration);
 
     // Returns request type
     virtual TorrentPluginRequestType getTorrentPluginRequestType() const;
+
+    // Getters
+    TorrentPluginConfiguration * getTorrentPluginConfiguration();
+
+private:
+
+    // Configuration
+    TorrentPluginConfiguration * _torrentPluginConfiguration;
 };
 
 #endif // SET_CONFIGURATION_TORRENT_PLUGIN_REQUEST_HPP
