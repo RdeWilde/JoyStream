@@ -1,4 +1,5 @@
 #include "TorrentConfiguration.hpp"
+#include "extension/TorrentPluginConfiguration.hpp"
 #include "Exceptions/InvalidBitSwaprStateEntryException.hpp"
 
 TorrentConfiguration::TorrentConfiguration(const libtorrent::sha1_hash & infoHash
@@ -17,16 +18,16 @@ TorrentConfiguration::TorrentConfiguration(const libtorrent::sha1_hash & infoHas
                     ,_torrentPluginConfiguration(torrentPluginConfiguration) {
 }
 
-/*
-TorrentConfiguration::TorrentConfiguration()
-                    : _torrentInfo(NULL) {
-}
-
 TorrentConfiguration::~TorrentConfiguration() {
 
     // Delete if was set to object
     if(_torrentInfo != NULL)
         delete _torrentInfo;
+}
+
+/*
+TorrentConfiguration::TorrentConfiguration()
+                    : _torrentInfo(NULL) {
 }
 
 TorrentConfiguration & TorrentConfiguration::operator=(const TorrentConfiguration & rhs) {
@@ -202,9 +203,9 @@ libtorrent::add_torrent_params TorrentConfiguration::toAddTorrentParams() const 
     params.flags = _flags;
 
     if(_torrentInfo != NULL)
-        params.ti = boost::intrusive_ptr<libtorrent::torrent_info>(new libtorrent::torrent_info(*_torrentInfo));
+        params.ti = boost::intrusive_ptr<libtorrent::torrent_info>(_torrentInfo);
 
-    params.userdata = torrentPluginConfiguration;
+    params.userdata = static_cast<void *>(_torrentPluginConfiguration);
 
     // Return parameters
     return params;

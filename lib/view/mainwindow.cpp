@@ -2,12 +2,15 @@
 #include "ui_mainwindow.h"
 #include "AddTorrentDialog.hpp"
 #include "TorrentViewModel.hpp"
+#include "SellerTorrentPluginConfigurationDialog.hpp"
+#include "BuyerTorrentPluginConfigurationDialog.hpp"
 
 #include "controller/Controller.hpp"
 #include "extension/TorrentPlugin.hpp"
 #include "extension/PeerPlugin.hpp"
 #include "extension/TorrentPluginStatus.hpp"
 #include "extension/PeerPluginStatus.hpp"
+#include "extension/TorrentPluginConfiguration.hpp"
 
 #include <QMessageBox>
 #include <QFileDialog>
@@ -160,10 +163,36 @@ void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torre
      * no more libtorrent alerts are processed in mean time,
      * change at a later time
      */
-    //AddTorrentDialog addTorrentDialog(_controller, _category, magnetLink, false);
-    //addTorrentDialog.exec();
 
+    QMessageBox msgBox;
+    msgBox.setText("Choose plugin mode.");
 
+    QPushButton * passivePushButton = msgBox.addButton(tr("Passive"), QMessageBox::ActionRole);
+    QPushButton * buyerPushButton = msgBox.addButton(tr("Buyer"), QMessageBox::ActionRole);
+    QPushButton * sellerPushButton = msgBox.addButton(tr("Seller"), QMessageBox::ActionRole);
+
+    // Show modal dialog on same thread, we block untill it is closed
+    msgBox.exec();
+
+    libtorrent::sha1_hash infoHash = torrentInfo.info_hash();
+
+    if (msgBox.clickedButton() == passivePushButton) {
+
+        // Set in passive mode
+        _controller->updateTorrentPluginConfiguration(infoHash, new TorrentPluginConfiguration(StartedPluginMode::Passive, true));
+
+    } else if (msgBox.clickedButton() == buyerPushButton) {
+
+        //Show buyer configuration dialog
+        BuyerTorrentPluginConfigurationDialog buyerTorrentPluginConfigurationDialog(_controller, infoHash);
+        buyerTorrentPluginConfigurationDialog.exec();
+
+    } else if (msgBox.clickedButton() == sellerPushButton) {
+
+        //Show seller configuration dialog
+        SellerTorrentPluginConfigurationDialog sellerTorrentPluginConfigurationDialog(_controller, infoHash);
+        sellerTorrentPluginConfigurationDialog.exec();
+    }
 }
 
 void MainWindow::pauseMenuAction() {

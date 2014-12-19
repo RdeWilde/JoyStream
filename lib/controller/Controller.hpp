@@ -132,6 +132,7 @@ public:
     bool removeTorrent(const libtorrent::sha1_hash & info_hash);
     bool pauseTorrent(const libtorrent::sha1_hash & info_hash);
     bool startTorrent(const libtorrent::sha1_hash & info_hash);
+    void updateTorrentPluginConfiguration(const libtorrent::sha1_hash & infoHash, TorrentPluginConfiguration * torrentPluginConfiguration);
 
     // Stops libtorrent session, and tries to save_resume data, when all resume data is saved, finalize_close() is called.
     void begin_close();

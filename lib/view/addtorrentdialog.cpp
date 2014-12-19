@@ -1,5 +1,6 @@
 #include "view/AddTorrentDialog.hpp"
 #include "ui_addtorrentdialog.h"
+#include "controller/TorrentConfiguration.hpp"
 
 #include <QFileDialog>
 
@@ -11,7 +12,8 @@ AddTorrentDialog::AddTorrentDialog(Controller * controller, QLoggingCategory & c
     , _controller(controller)
     , _category(category)
     , _resource(resource)
-    , _isTorrentFile(isTorrentFile) {
+    , _isTorrentFile(isTorrentFile)
+    , _torrentInfo(NULL) {
 
     // Setup ui using QtCreator routine
     ui->setupUi(this);
@@ -22,7 +24,7 @@ AddTorrentDialog::AddTorrentDialog(Controller * controller, QLoggingCategory & c
     if(_isTorrentFile) { // From torrent file
 
         // Load torrent file
-        _torrent_info = new libtorrent::torrent_info(_resource.toStdString().c_str(), ec);
+        _torrentInfo = new libtorrent::torrent_info(_resource.toStdString().c_str(), ec);
 
         // Was torrent file valid?
         if(ec) {
@@ -33,10 +35,10 @@ AddTorrentDialog::AddTorrentDialog(Controller * controller, QLoggingCategory & c
     } else { // From magnet link
 
         // Get magnet link
-        url = _resource.toStdString();
+        _url = _resource.toStdString();
 
         // Parse link to get info_hash
-        libtorrent::parse_magnet_uri(url, _params, ec);
+        libtorrent::parse_magnet_uri(_url, _params, ec);
 
         // Was magnet link malformed
         if(ec) {
@@ -52,7 +54,7 @@ AddTorrentDialog::~AddTorrentDialog() {
 
     // Delete torrent information we allocated in constructor
     if(_isTorrentFile)
-        delete _torrent_info;
+        delete _torrentInfo;
 }
 
 void AddTorrentDialog::on_AddTorrentDialog_accepted() {
@@ -61,7 +63,7 @@ void AddTorrentDialog::on_AddTorrentDialog_accepted() {
     libtorrent::sha1_hash info_hash;
 
     if(_isTorrentFile)
-        info_hash = _torrent_info->info_hash();
+        info_hash = _torrentInfo->info_hash();
     else
         info_hash = _params.info_hash;
 
@@ -69,7 +71,7 @@ void AddTorrentDialog::on_AddTorrentDialog_accepted() {
     std::string name;
 
     if(_isTorrentFile)
-        name = _torrent_info->name();
+        name = _torrentInfo->name();
     else
         name = _params.name;
 
@@ -79,14 +81,17 @@ void AddTorrentDialog::on_AddTorrentDialog_accepted() {
     // Resume data
     std::vector<char> resume_data;
 
-    // Torrent plugin configuration
-    TorrentPluginConfiguration torrentPluginConfiguration(PluginMode::Passive, _enableBanningSets, _withPlugin);
-
     // Create configuration for adding torrent
-    TorrentConfiguration torrentConfiguration(info_hash, name, save_path, resume_data, 0, *_torrent_info, torrentPluginConfiguration);
+    libtorrent::torrent_info * t;
 
-    // Add torrent
-    _controller->addTorrent(torrentConfiguration);
+    // make copy
+    if(_torrentInfo != NULL)
+        t = new libtorrent::torrent_info(*_torrentInfo);
+
+    TorrentConfiguration torrentConfiguration(info_hash, name, save_path, resume_data, 0, t, NULL);
+
+    // Add torrent, and make sure user later supplies torrent plugin configuration
+    _controller->addTorrent(torrentConfiguration, true);
 
     // Close window
     done(0);

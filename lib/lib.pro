@@ -46,7 +46,9 @@ SOURCES += \
     extension/PeerPluginRequest/PeerPluginRequest.cpp \
     extension/TorrentPluginRequest/SetConfigurationTorrentPluginRequest.cpp \
     controller/TorrentStatus.cpp \
-    extension/TorrentPluginRequest/SetPluginModeTorrentPluginRequest.cpp
+    extension/TorrentPluginRequest/SetPluginModeTorrentPluginRequest.cpp \
+    view/SellerTorrentPluginConfigurationDialog.cpp \
+    view/BuyerTorrentPluginConfigurationDialog.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -78,7 +80,6 @@ HEADERS += \
     controller/ControllerConfiguration.hpp \
     controller/TorrentConfiguration.hpp \
     extension/TorrentPluginConfiguration.hpp \
-    extension/PluginMode.hpp \
     extension/PeerPluginConfiguration.hpp \
     extension/BEPSupportStatus.hpp \
     extension/PluginRequest/PluginRequest.hpp \
@@ -89,11 +90,16 @@ HEADERS += \
     extension/PeerPluginRequest/PeerPluginRequestType.hpp \
     extension/TorrentPluginRequest/SetConfigurationTorrentPluginRequest.hpp \
     controller/TorrentStatus.hpp \
-    extension/TorrentPluginRequest/SetPluginModeTorrentPluginRequest.hpp
+    extension/TorrentPluginRequest/SetPluginModeTorrentPluginRequest.hpp \
+    extension/StartedPluginMode.hpp \
+    view/SellerTorrentPluginConfigurationDialog.hpp \
+    view/BuyerTorrentPluginConfigurationDialog.hpp
 				
 FORMS += \
-            view/mainwindow.ui \
-            view/addtorrentdialog.ui
+    view/mainwindow.ui \
+    view/addtorrentdialog.ui \
+    view/SellerTorrentPluginConfigurationDialog.ui \
+    view/BuyerTorrentPluginConfigurationDialog.ui
 
 OTHER_FILES += \
             resources/BitSwapr_mark_32.png

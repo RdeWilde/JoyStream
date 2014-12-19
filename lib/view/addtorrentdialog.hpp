@@ -77,12 +77,12 @@ private:
     // Torrent information : is pointer since there is only one constructor, and in this constructor we need a test which
     // does not allow this field to be set in initialization list, this in combination with the fact that torrent_info has
     // no assignment operator forces us to save as pointer member.
-    libtorrent::torrent_info * _torrent_info;
+    libtorrent::torrent_info * _torrentInfo;
 
     // MAGNET LINK CASE ===================
 
     // Magnet link url
-    std::string url;
+    std::string _url;
 
     // parse_magnet_uri
     libtorrent::add_torrent_params _params;

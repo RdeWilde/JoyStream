@@ -12,6 +12,8 @@
 #include "lib/controller/ControllerConfiguration.hpp"
 #include "lib/controller/TorrentConfiguration.hpp"
 #include "lib/extension/TorrentPluginConfiguration.hpp"
+#include "lib/extension/StartedPluginMode.hpp"
+#include "lib/extension/StartedPluginMode.hpp"
 
 #include <libtorrent/torrent_info.hpp>
 #include <libtorrent/error_code.hpp>
@@ -89,78 +91,70 @@ void main(int argc, char* argv[]) {
             controllerConfiguration = ControllerConfiguration(fileString.c_str());
     }
 
+    // Load torrent
     // Torrent file: (UTORRENT-TEST.torrent, VUZE-test.mp4.torrent)
     const char * torrent  = "C:/Users/Sindre/Desktop/TORRENTS/VUZE-test.mp4.torrent";
 
-    /**
-     * Main client =======================================================
-     */
-
-    // Load torrent
     libtorrent::error_code ec;
-    libtorrent::torrent_info mainTorrentInfo(torrent, ec);
+    libtorrent::torrent_info torrentInfo(torrent, ec);
 
     if(ec) {
         std::cerr << "Invalid torrent file 1: " << ec.message().c_str();
         return;
     }
 
+    /**
+     * Buyer =======================================================
+     */
+
     // Create logging category: med logging til skjerm
-    QLoggingCategory * mainCategory = global_log_manager.createLogger("main", true, false);
+    QLoggingCategory * buyerCategory = global_log_manager.createLogger("buyer", true, false);
 
     // Create main client
-    Controller mainClient(controllerConfiguration, true, *mainCategory);
+    Controller buyerClient(controllerConfiguration, true, *buyerCategory);
 
     std::cout << "Started main client." << std::endl;
 
     // Create configuration
-    TorrentConfiguration mainTorrentConfiguration(mainTorrentInfo.info_hash()
-                                                  ,mainTorrentInfo.name()
+    TorrentConfiguration buyerTorrentConfiguration(torrentInfo.info_hash()
+                                                  ,torrentInfo.name()
                                                   ,std::string("C:/Users/Sindre/Desktop/SAVE_OUTPUT/MAIN")
                                                   ,std::vector<char>()
                                                   ,0
-                                                  ,mainTorrentInfo
-                                                  ,TorrentPluginConfiguration(PluginMode::Buyer, true, true));
+                                                  ,&torrentInfo
+                                                  ,NULL); // new TorrentPluginConfiguration(StartedPluginMode::Buyer, true)
 
     // Add to client
-    mainClient.addTorrent(mainTorrentConfiguration);
+    buyerClient.addTorrent(buyerTorrentConfiguration, true);
 
     /**
-     * Peer client =======================================================
+     * Seller =======================================================
      */
-
-    // Load torrent
-    libtorrent::torrent_info peerTorrentInfo(torrent, ec);
-
-    if(ec) {
-        std::cerr << "Invalid torrent file 2: " << ec.message().c_str();
-        return;
-    }
-
+/*
     // Create logging category: uten logging til skjerm
-    QLoggingCategory * peerCategory = global_log_manager.createLogger("peer", false, false);
+    QLoggingCategory * sellerCategory = global_log_manager.createLogger("peer", false, false);
 
     // Create peer client
-    Controller peerClient(controllerConfiguration, true, *peerCategory);
+    Controller sellerClient(controllerConfiguration, true, *sellerCategory);
 
     std::cout << "Started peer client." << std::endl;
 
     // Create configuration
-    TorrentConfiguration peerTorrentConfiguration(peerTorrentInfo.info_hash()
-                                                  ,peerTorrentInfo.name()
+    TorrentConfiguration sellerTorrentConfiguration(torrentInfo.info_hash()
+                                                  ,torrentInfo.name()
                                                   ,std::string("C:/Users/Sindre/Desktop/SAVE_OUTPUT/PEER")
                                                   ,std::vector<char>()
                                                   ,0
-                                                  ,peerTorrentInfo
-                                                  ,TorrentPluginConfiguration(PluginMode::Seller, true, true));
+                                                  ,&torrentInfo
+                                                  ,new TorrentPluginConfiguration(StartedPluginMode::Seller, true));
 
     // Add to client
-    peerClient.addTorrent(peerTorrentConfiguration);
-
+    sellerClient.addTorrent(sellerTorrentConfiguration, false);
+*/
     // Create a controller tracker
     ControllerTracker controllerTracker;
-    controllerTracker.addClient(&mainClient);
-    controllerTracker.addClient(&peerClient);
+    controllerTracker.addClient(&buyerClient);
+    //controllerTracker.addClient(&sellerClient);
 
     // Start event loop: this is the only Qt event loop in the entire application
     app.exec();

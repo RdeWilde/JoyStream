@@ -117,7 +117,7 @@ Controller::Controller(const ControllerConfiguration & controllerConfiguration, 
     for(std::vector<TorrentConfiguration *>::const_iterator i = controllerConfiguration.getBeginTorrentConfigurationsIterator(),
             end(controllerConfiguration.getEndTorrentConfigurationsIterator());i != end; ++i) {
 
-        // Try to add torrent
+        // Try to add torrent, without prompting user
         if(!addTorrent(*(*i), false)) {
 
             qCCritical(_category) << "Unable to add torrent configuration to session";
@@ -466,8 +466,8 @@ void Controller::processTorrentCheckedAlert(libtorrent::torrent_checked_alert co
             // and tell view to prompt user based on this
             _view.showAddTorrentPluginConfigurationDialog(torrentInfo, torrentStatus);
 
-        } else // otherwise just tell torrent plugin to begin
-            _plugin->submitTorrentPluginRequest(new SetConfigurationTorrentPluginRequest(infoHash));
+        } else // otherwise just tell torrent plugin to begin with existing torrent plugin configuratio, hence we pass NULL
+            updateTorrentPluginConfiguration(infoHash, NULL);
 
     } else
         qCDebug(_category) << "Invalid handle for checked torrent.";
@@ -528,6 +528,10 @@ bool Controller::startTorrent(const libtorrent::sha1_hash & info_hash) {
 
     // It worked
     return true;
+}
+
+void Controller::updateTorrentPluginConfiguration(const libtorrent::sha1_hash & infoHash, TorrentPluginConfiguration * torrentPluginConfiguration) {
+    _plugin->submitTorrentPluginRequest(new SetConfigurationTorrentPluginRequest(infoHash, torrentPluginConfiguration));
 }
 
 bool Controller::addTorrent(const TorrentConfiguration & torrentConfiguration, bool promptUserForTorrentPluginConfiguration) {

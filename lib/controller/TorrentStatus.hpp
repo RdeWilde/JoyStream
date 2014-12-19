@@ -1,6 +1,8 @@
 #ifndef TORRENT_STATUS_HPP
 #define TORRENT_STATUS_HPP
 
+#include <vector>
+
 // State of torrents, only short term within session
 class TorrentStatus {
 

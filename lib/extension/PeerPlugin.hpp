@@ -35,8 +35,8 @@ public:
     // Constructor
     PeerPlugin(TorrentPlugin * torrentPlugin,
                libtorrent::bt_peer_connection * bittorrentPeerConnection,
-               QLoggingCategory & category,
-               PeerPluginConfiguration * peerPluginConfiguration);
+               QLoggingCategory & category);
+               //PeerPluginConfiguration * peerPluginConfiguration);
 
     // Destructor
     ~PeerPlugin();
@@ -83,7 +83,11 @@ public:
      */
     void processPeerPluginRequest(const PeerPluginRequest * peerPluginRequest);
 
-    void setConfiguration(PeerPluginConfiguration * peerPluginConfiguration);
+    // Torrent plugin calls to start
+    void startPlugin(StartedPluginMode pluginMode);
+
+    //void setConfiguration(PeerPluginConfiguration * peerPluginConfiguration);
+
 
     // Getters
     ExtendedMessageIdMapping & getPeerMapping();
@@ -119,10 +123,13 @@ protected:
     libtorrent::tcp::endpoint _endPoint;
 
     // Indicates if plugin has been started
+    // Before this becomes true, plugin will
+    // not do anythng which compromises eventually
+    // going into seller or buyer mode
     bool _pluginStarted;
 
-    // Mode of plugin. All peers have same mode.
-    PluginMode _pluginMode;
+    // Mode of plugin when started
+    StartedPluginMode _pluginStartedMode;
 
     // Mapping from messages to BEP10 ID of peer
     ExtendedMessageIdMapping _clientMapping, _peerMapping;

@@ -2,22 +2,22 @@
 #define SET_PLUGIN_MODE_TORRENT_PLUGIN_REQUEST_HPP
 
 #include "TorrentPluginRequest.hpp"
-#include "extension/PluginMode.hpp"
+#include "extension/StartedPluginMode.hpp"
 
 class SetPluginModeTorrentPluginRequest : public TorrentPluginRequest
 {
 public:
 
     // Constructor
-    SetPluginModeTorrentPluginRequest(libtorrent::sha1_hash & info_hash, PluginMode pluginMode);
+    SetPluginModeTorrentPluginRequest(libtorrent::sha1_hash & info_hash, StartedPluginMode pluginMode);
 
     // Getters
-    PluginMode getPluginMode() const;
+    StartedPluginMode getStartedPluginMode() const;
 
 private:
 
     // Mode
-    PluginMode _pluginMode;
+    StartedPluginMode _pluginMode;
 
 };
 

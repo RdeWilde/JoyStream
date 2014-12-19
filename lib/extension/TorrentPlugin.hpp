@@ -1,7 +1,7 @@
 #ifndef TORRENT_PLUGIN_HPP
 #define TORRENT_PLUGIN_HPP
 
-#include "PluginMode.hpp"
+#include "StartedPluginMode.hpp"
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
@@ -63,7 +63,7 @@ public:
     // Process torrent plugin requests
     void processTorrentPluginRequest(const TorrentPluginRequest * torrentPluginRequest);
     void processSetConfigurationTorrentPluginRequest(const SetConfigurationTorrentPluginRequest * setConfigurationTorrentPluginRequest);
-    void processSetPluginModeTorrentPluginRequest(const SetPluginModeTorrentPluginRequest * setPluginModeTorrentPluginRequest);
+    //void processSetPluginModeTorrentPluginRequest(const SetPluginModeTorrentPluginRequest * setPluginModeTorrentPluginRequest);
 
     // Get peer plugin
     PeerPlugin * getPeerPlugin(const libtorrent::tcp::endpoint & endPoint);
@@ -108,9 +108,6 @@ protected:
     // Set of endpoints banned for irregular conduct during extended protocol
     std::set<libtorrent::tcp::endpoint> _irregularPeer;
 
-    /**
-     *
-     *
     // Indicates if torrent has been properly checked and
     // if value in _torrentPluginConfiguration is reliable
     // Perhaps a better way of representing state can be found in the future
@@ -121,13 +118,6 @@ protected:
     // NULL means we dont buy or sell
     // NON-NULL means we are buyer or seller
     TorrentPluginConfiguration * _torrentPluginConfiguration;
-    */
-
-    // Mode of plugin
-    PluginMode _pluginMode;
-
-    // Use the two sets below when accepting new peers in new_connect
-    bool _enableBanningSets;
 
 private:
 
@@ -137,7 +127,7 @@ private:
     // Checks that peer is not banned and that it is a bittorrent connection
     bool installPluginOnNewConnection(libtorrent::peer_connection * peerConnection) const;
 
-    /*
+    /**
     // Creates configurations for new peer plugins
     PeerPluginConfiguration * createPeerPluginConfiguration(const libtorrent::tcp::endpoint & endPoint) const;
     */

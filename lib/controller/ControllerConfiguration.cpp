@@ -239,7 +239,7 @@ ControllerConfiguration::~ControllerConfiguration() {
     // Delete torrent configuration
     for(std::vector<TorrentConfiguration *>::iterator i = _torrentConfigurations.begin(),
             end(_torrentConfigurations.end()); i != end;i++)
-            delete i->second;
+            delete *i;
 }
 
 ControllerConfiguration::ControllerConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry) {
@@ -375,7 +375,8 @@ ControllerConfiguration::ControllerConfiguration(const libtorrent::entry::dictio
                     const libtorrent::entry::dictionary_type & persistentTorrentStateDictionaryEntry = persistentTorrentStateEntry.dict();
 
                     // Add to torrentAddTorrentParameters
-                    _torrentConfigurations[info_hash] = TorrentConfiguration(persistentTorrentStateDictionaryEntry); // new
+                    //_torrentConfigurations[info_hash] = TorrentConfiguration(persistentTorrentStateDictionaryEntry); // new
+                    _torrentConfigurations.push_back(new TorrentConfiguration(persistentTorrentStateDictionaryEntry));
 
                 } else
                     throw InvalidBitSwaprStateEntryException(dictionaryEntry, "persistentTorrentStates has value that is not of type entry::dict_type.");
@@ -390,15 +391,17 @@ ControllerConfiguration::ControllerConfiguration(const libtorrent::entry::dictio
 ControllerConfiguration::ControllerConfiguration(const char * fileName) {
 
     // Create dictionary entry
-    libtorrent::entry::dictionary_type controllerConfigurationDictionaryEntry;
+    libtorrent::entry controllerConfigurationEntry;
 
     // Save bencoded dictionary to file
-    Utilities::loadBencodedEntry(fileName, controllerConfigurationDictionaryEntry);
+    Utilities::loadBencodedEntry(fileName, controllerConfigurationEntry);
+
+    // Convert to dictionary entry
+    libtorrent::entry::dictionary_type controllerConfigurationDictionaryEntry = controllerConfigurationEntry.dict();
 
     // Use other constructor using this dictionary
     ControllerConfiguration::ControllerConfiguration(controllerConfigurationDictionaryEntry);
 }
-
 
 void ControllerConfiguration::toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) {
 	
@@ -459,9 +462,11 @@ void ControllerConfiguration::saveToFile(const char * fileName) {
     Utilities::saveBencodedEntry(fileName, controllerConfigurationDictionaryEntry);
 }
 
+/*
 void ControllerConfiguration::insertTorrentConfiguration(const TorrentConfiguration * torrentConfiguration) {
     _torrentConfigurations.push_back(torrentConfiguration);
 }
+*/
 
 libtorrent::entry ControllerConfiguration::getLibtorrentSessionSettingsEntry() const {
     return _libtorrentSessionSettingsEntry;

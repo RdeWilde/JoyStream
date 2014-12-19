@@ -15,11 +15,12 @@ public:
     virtual TorrentPluginRequestType getTorrentPluginRequestType() const;
 
     // Getters
-    TorrentPluginConfiguration * getTorrentPluginConfiguration();
+    const TorrentPluginConfiguration * getTorrentPluginConfiguration() const;
 
 private:
 
     // Configuration
+    // We do not own this, recipient of configuration must delete.
     TorrentPluginConfiguration * _torrentPluginConfiguration;
 };
 

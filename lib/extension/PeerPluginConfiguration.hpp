@@ -5,7 +5,7 @@
 #include "Message/ExtendedMessageIdMapping.hpp"
 #include "PeerPluginState.hpp"
 #include "PeerPluginId.hpp"
-#include "PluginMode.hpp"
+#include "StartedPluginMode.hpp"
 
 /**
  * This class has been disabled for the time
@@ -18,7 +18,7 @@ public:
 
     // Constructor from members
     PeerPluginConfiguration(const libtorrent::tcp::endpoint & endPoint
-                            ,PluginMode pluginMode
+                            ,StartedPluginMode pluginMode
                             ,const ExtendedMessageIdMapping & clientMapping
                             ,const ExtendedMessageIdMapping & peerMapping
                             ,const BEPSupportStatus & getPeerBEP10SupportedStatus
@@ -28,13 +28,16 @@ public:
 
     // Constructor from members, when mappings are not known
     PeerPluginConfiguration(const libtorrent::tcp::endpoint & endPoint
-                            ,PluginMode pluginMode
+                            ,StartedPluginMode pluginMode
                             ,const BEPSupportStatus & getPeerBEP10SupportedStatus
                             ,const BEPSupportStatus & peerBEP43SupportedStatus
                             ,const PeerPluginState & peerPluginState);
 
     // Constructor from dictionary
     PeerPluginConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry);
+
+    // Just to prevent anyone using this class for now
+    virtual ~PeerPluginConfiguration() = 0;
 
     // Getters & Setters
     ExtendedMessageIdMapping & getPeerMapping();
@@ -61,7 +64,7 @@ protected:
     libtorrent::tcp::endpoint _endPoint;
 
     // Mode of plugin. All peers have same mode.
-    PluginMode _pluginMode;
+    StartedPluginMode _pluginMode;
 
     // Mapping from messages to BEP10 ID of peer
     ExtendedMessageIdMapping _clientMapping, _peerMapping;

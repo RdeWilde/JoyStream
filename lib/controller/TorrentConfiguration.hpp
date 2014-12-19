@@ -1,14 +1,14 @@
 #ifndef TORRENT_CONFIGURATION_HPP
 #define TORRENT_CONFIGURATION_HPP
 
-#include "extension/TorrentPluginConfiguration.hpp" //class TorrentPluginConfiguration;
-
 #include <libtorrent/peer_id.hpp> // sha1_hash
 #include <libtorrent/entry.hpp> // because you cant forward declare typedefs (libtorrent::entry::dictionary_type)
 #include <libtorrent/torrent_info.hpp>
 #include <libtorrent/add_torrent_params.hpp>
 
 #include <QtGlobal> // quint64
+
+class TorrentPluginConfiguration;
 
 class TorrentConfiguration {
 
@@ -26,12 +26,12 @@ public:
     // Constructor from dictionary
     TorrentConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry);
 
+    // Destructors
+    ~TorrentConfiguration();
+
     /*
     // Default constructor, needed for adding type by value to map
     TorrentConfiguration();
-
-    // Destructors
-    ~TorrentConfiguration();
 
     // Assignment operator, needed for adding type by value to map
     TorrentConfiguration & operator=(const TorrentConfiguration & rhs);
@@ -92,6 +92,7 @@ protected:
     quint64 _flags;
 
     // Metadata in torrent file
+    // We need pointer since we cannot copy torrent_info
     libtorrent::torrent_info * _torrentInfo;
 
     // Torrent plugin configuration

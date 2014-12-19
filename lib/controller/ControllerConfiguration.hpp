@@ -52,9 +52,11 @@ public:
 	// Saves to file
 	void saveToFile(const char * file);
 
+    /*
     // Inserts torrent configuration.
     // This object then takes ownership of file, and deletes in constructor
-    bool insertTorrentConfiguration(const TorrentConfiguration * torrentConfiguration);
+    void insertTorrentConfiguration(TorrentConfiguration * torrentConfiguration);
+    */
 
     // Getters & Setters
     libtorrent::entry getLibtorrentSessionSettingsEntry() const;

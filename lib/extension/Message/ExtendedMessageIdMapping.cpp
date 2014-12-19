@@ -71,6 +71,28 @@ ExtendedMessageIdMapping::ExtendedMessageIdMapping(
     , endId_(endId)
 { }
 
+ExtendedMessageIdMapping & ExtendedMessageIdMapping::operator=(const ExtendedMessageIdMapping & rhs) {
+
+    // Member-wise copy
+    buyId_ = rhs.buy();
+    sellId_ = rhs.sell();
+    setupBeginId_ = rhs.setup_begin();
+    setupBeginRejectId_ = rhs.setup_begin_reject();
+    setupContractId_ = rhs.setup_contract();
+    setupContractSignedId_ = rhs.setup_contract_signed();
+    setupRefundId_ = rhs.setup_refund();
+    setupRefundSignedId_ = rhs.setup_refund_signed();
+    setupContractPublishedId_ = rhs.setup_contract_published();
+    setupCompletedId_ = rhs.setup_completed();
+    pieceGetId_ = rhs.piece_get();
+    piecePutId_ = rhs.piece_put();
+    paymentId_ = rhs.payment();
+    endId_ = rhs.end();
+
+    // Return self reference
+    return *this;
+}
+
 void ExtendedMessageIdMapping::writeToDictionary(libtorrent::entry::dictionary_type & m) {
 
     m[getMessageName(MessageType::buy)] = buy();

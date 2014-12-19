@@ -36,6 +36,9 @@ public:
                              quint8 paymentId,
                              quint8 endId);
 
+    // Assignment operator
+    ExtendedMessageIdMapping & operator=(const ExtendedMessageIdMapping & rhs);
+
     // Outputs mapping into and m dicitonary, which can be used in extended handshake
     void writeToDictionary(libtorrent::entry::dictionary_type & m);
 

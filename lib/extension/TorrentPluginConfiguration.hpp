@@ -1,7 +1,7 @@
 #ifndef TORRENT_PLUGIN_CONFIGURATION_HPP
 #define TORRENT_PLUGIN_CONFIGURATION_HPP
 
-#include "PluginMode.hpp"
+#include "StartedPluginMode.hpp"
 
 #include <libtorrent/entry.hpp> // because you cant forward declare typedefs (libtorrent::entry::dictionary_type)
 #include <libtorrent/peer_id.hpp> // sha1_hash
@@ -25,7 +25,7 @@ public:
     TorrentPluginConfiguration();
 
     // Constructor from members
-    TorrentPluginConfiguration(PluginMode pluginMode, bool enableBanningSets);
+    TorrentPluginConfiguration(StartedPluginMode startedPluginMode, bool enableBanningSets);
 
     // Constructor from dictionary
     TorrentPluginConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry);
@@ -55,14 +55,14 @@ public:
     void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const;
 
     // Getters & Setters
-    PluginMode getPluginMode() const;
+    StartedPluginMode getStartedPluginMode() const;
 
     bool getEnableBanningSets() const;
 
 protected:
 
-    // Mode of plugin
-    PluginMode _pluginMode;
+    // Mode of started plugin
+    StartedPluginMode _startedPluginMode;
 
     // Use the two sets below when accepting new peers in new_connect
     bool _enableBanningSets;

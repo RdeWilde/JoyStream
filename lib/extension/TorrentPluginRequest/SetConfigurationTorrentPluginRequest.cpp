@@ -9,6 +9,6 @@ TorrentPluginRequestType SetConfigurationTorrentPluginRequest::getTorrentPluginR
     return TorrentPluginRequestType::SetConfiguration;
 }
 
-TorrentPluginConfiguration * SetConfigurationTorrentPluginRequest::getTorrentPluginConfiguration() {
+const TorrentPluginConfiguration * SetConfigurationTorrentPluginRequest::getTorrentPluginConfiguration() const {
     return _torrentPluginConfiguration;
 }
