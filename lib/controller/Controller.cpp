@@ -6,7 +6,7 @@
 #include "controller/Exceptions/ListenOnException.hpp"
 #include "controller/TorrentConfiguration.hpp"
 #include "extension/TorrentPluginRequest/SetConfigurationTorrentPluginRequest.hpp"
-
+#include "extension/Alert/TorrentPluginStatusAlert.hpp"
 
 #include <libtorrent/alert_types.hpp>
 #include <libtorrent/error_code.hpp>
@@ -144,10 +144,6 @@ void Controller::addPeerPlugin(libtorrent::sha1_hash info_hash, libtorrent::tcp:
     view.addPeerPlugin(info_hash, endPoint);
 }
 
-void Controller::updateTorrentPluginStatus(TorrentPluginStatus status) {
-    view.updateTorrentPluginStatus(status);
-}
-
 void Controller::updatePeerPluginStatus(PeerPluginStatus status) {
     view.updatePeerPluginStatus(status);
 }
@@ -211,6 +207,9 @@ void Controller::processAlert(const libtorrent::alert * a) {
     } else if(libtorrent::torrent_checked_alert const * p = libtorrent::alert_cast<libtorrent::torrent_checked_alert>(a)) {
         //qCDebug(_category) << "Torrent checked alert.";
         processTorrentCheckedAlert(p);
+    } else if(TorrentPluginStatusAlert const * p = libtorrent::alert_cast<TorrentPluginStatusAlert>(a)) {
+        //qCDebug(_category) << "Torrent plugin status alert.";
+        processTorrentPluginStatusAlert(p);
     }
 
     // Delete alert
@@ -355,6 +354,8 @@ void Controller::processTorrentFinishedAlert(libtorrent::torrent_finished_alert 
 }
 
 void Controller::processStatusUpdateAlert(libtorrent::state_update_alert const * p) {
+
+    qCCritical(_category) << "Number of alerts" << p->status.size();
     _view.updateTorrentStatus(p->status);
 }
 
@@ -471,6 +472,10 @@ void Controller::processTorrentCheckedAlert(libtorrent::torrent_checked_alert co
 
     } else
         qCDebug(_category) << "Invalid handle for checked torrent.";
+}
+
+void Controller::processTorrentPluginStatusAlert(const TorrentPluginStatusAlert * p) {
+    _view.updateTorrentPluginStatus(p);
 }
 
 bool Controller::removeTorrent(const libtorrent::sha1_hash & info_hash) {

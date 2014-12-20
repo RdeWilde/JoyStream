@@ -4,7 +4,7 @@
 #include "ControllerConfiguration.hpp"
 #include "view/MainWindow.hpp"
 #include "extension/Plugin.hpp"
-#include "extension/TorrentPluginStatus.hpp" // needed for QT moc
+//#include "extension/TorrentPluginStatus.hpp" // needed for QT moc
 #include "extension/PeerPluginStatus.hpp" // needed for QT moc
 
 #include <libtorrent/session.hpp>
@@ -18,6 +18,7 @@
 #include <QLoggingCategory>
 
 class TorrentStatus;
+class TorrentPluginStatusAlert;
 
 namespace libtorrent {
     class peer_connection;
@@ -61,18 +62,13 @@ private:
     void processSaveResumeDataFailedAlert(libtorrent::save_resume_data_failed_alert const * p);
     void processTorrentPausedAlert(libtorrent::torrent_paused_alert const * p);
     void processTorrentCheckedAlert(libtorrent::torrent_checked_alert const * p);
+    void processTorrentPluginStatusAlert(const TorrentPluginStatusAlert * p);
 
     // Tell libtorrent try save resume data for all torrents needing it
     int makeResumeDataCallsForAllTorrents();
 
     // Routine called after all resume data has been saved as part of an initlal begin_close() call
     void finalize_close();
-
-    /*
-    // Creates folder and adds torrent to session, but does not alter state of controller by adding torrent configuration
-    // to it. Is typically called by ctr() and addTorrent().
-    bool addTorrentToSession(const TorrentConfiguration & TorrentConfiguration);
-    */
 
     // Save state of controller to file
     void saveStateToFile(const char * file);
@@ -144,16 +140,6 @@ private slots:
 
     // Tells session to post updates, is signaled by timer
     void callPostTorrentUpdates();
-
-public slots:
-
-    /*
-    // Primarily used by plugin routines, run by libtorrent thread.
-    void addPeerPlugin(libtorrent::tcp::endpoint endPoint);
-    void updateTorrentPluginStatus(TorrentPluginStatus status);
-    void updatePeerPluginStatus(PeerPluginStatus status);
-    void removePeerPlugin(libtorrent::tcp::endpoint endPoint);
-    */
 
 signals:
 

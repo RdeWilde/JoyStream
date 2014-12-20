@@ -8,7 +8,10 @@
 #include "controller/Controller.hpp"
 #include "extension/TorrentPlugin.hpp"
 #include "extension/PeerPlugin.hpp"
-#include "extension/TorrentPluginStatus.hpp"
+
+//#include "extension/TorrentPluginStatus.hpp"
+#include "extension/Alert/TorrentPluginStatusAlert.hpp"
+
 #include "extension/PeerPluginStatus.hpp"
 #include "extension/TorrentPluginConfiguration.hpp"
 
@@ -337,10 +340,10 @@ void MainWindow::updateTorrentStatus(const libtorrent::torrent_status & torrentS
     torrentViewModel->update(torrentStatus);
 }
 
-void MainWindow::updateTorrentPluginStatus(TorrentPluginStatus status) {
+void MainWindow::updateTorrentPluginStatus(const TorrentPluginStatusAlert * torrentPluginStatusAlert) {
 
     // Find corresponding TorrentViewModel
-    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = _torrentViewModels.find(status.info_hash_);
+    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = _torrentViewModels.find(torrentPluginStatusAlert->getInfoHash());
 
     if(mapIterator == _torrentViewModels.end()) {
         qCCritical(_category) << "No matching info_hash found.";
@@ -350,13 +353,13 @@ void MainWindow::updateTorrentPluginStatus(TorrentPluginStatus status) {
     TorrentViewModel * torrentViewModel = mapIterator->second;
 
     // Peers
-    torrentViewModel->updatePeers(status.numberOfPeers_, status.numberOfPeersWithExtension_);
+    torrentViewModel->updatePeers(torrentPluginStatusAlert->numberOfPeers(),torrentPluginStatusAlert->numberOfPeersWithExtension());
 
     // Mode
-    torrentViewModel->updateMode(status.pluginOn_);
+    torrentViewModel->updateMode(torrentPluginStatusAlert->pluginOn());
 
     // Balance
-    torrentViewModel->updateBalance(status.tokensReceived_, status.tokensSent_);
+    torrentViewModel->updateBalance(torrentPluginStatusAlert->tokensReceived(), torrentPluginStatusAlert->tokensSent());
 }
 
 void MainWindow::addPeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint) {

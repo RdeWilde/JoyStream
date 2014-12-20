@@ -25,6 +25,10 @@ class PluginRequest;
 class TorrentPluginRequest;
 class PeerPluginRequest;
 
+namespace libtorrent {
+    class alert;
+}
+
 class Plugin : public QObject, public libtorrent::plugin {
 
     Q_OBJECT
@@ -100,6 +104,9 @@ public:
     // 2) Deletes peer_plugin object
     // 3) Notifies controller
     void removeTorrentPlugin(const libtorrent::sha1_hash & info_hash);
+
+    // Send alert to session object
+    void sendAlertToSession(const libtorrent::alert & _alert);
 
     /**
      * Synchronized routines called from controller by Qt thread.

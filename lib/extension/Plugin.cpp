@@ -2,7 +2,7 @@
 #include "TorrentPlugin.hpp"
 #include "TorrentPluginConfiguration.hpp"
 #include "controller/Controller.hpp" // needed for connecting
-#include "TorrentPluginStatus.hpp" // needed for connecting
+//#include "TorrentPluginStatus.hpp" // needed for connecting
 #include "PluginRequest/PluginRequest.hpp"
 #include "TorrentPluginRequest/TorrentPluginRequest.hpp"
 #include "PeerPluginRequest/PeerPluginRequest.hpp"
@@ -102,6 +102,10 @@ void Plugin::load_state(libtorrent::lazy_entry const & stateEntry) {
 
 void Plugin::removeTorrentPlugin(const libtorrent::sha1_hash & info_hash) {
 
+}
+
+void Plugin::sendAlertToSession(const libtorrent::alert & _alert) {
+    _session->post_alert(_alert);
 }
 
 void Plugin::submitPluginRequest(PluginRequest * pluginRequest) {

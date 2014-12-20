@@ -8,6 +8,8 @@
 #include "TorrentPluginRequest/TorrentPluginRequest.hpp"
 #include "TorrentPluginRequest/SetConfigurationTorrentPluginRequest.hpp"
 
+#include "Alert/TorrentPluginStatusAlert.hpp"
+
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/peer_connection.hpp>
 #include <libtorrent/bt_peer_connection.hpp>
@@ -97,7 +99,7 @@ void TorrentPlugin::on_piece_failed(int index) {
 
 void TorrentPlugin::tick() {
 
-    qCDebug(_category) << "TorrentPlugin.tick()";
+    //qCDebug(_category) << "TorrentPlugin.tick()";
 
     // Send status signal
     sendTorrentPluginStatusSignal();
@@ -342,7 +344,6 @@ const libtorrent::sha1_hash & TorrentPlugin::getInfoHash() const {
 
 void TorrentPlugin::sendTorrentPluginStatusSignal() {
 
-    /*
     int numberOfPeers = _peerPlugins.size();
 
     int numberOfPeersWithExtension = 0;
@@ -354,12 +355,11 @@ void TorrentPlugin::sendTorrentPluginStatusSignal() {
             numberOfPeersWithExtension++;
     }
 
-    // Emit status signal
-    libtorrent::sha1_hash info_hash = _torrent->info_hash();
-    TorrentPluginStatus status(info_hash, numberOfPeers, numberOfPeersWithExtension, pluginOn_, _tokensReceived, _tokensSent);
+    // Create torrent plugin alert
+    TorrentPluginStatusAlert torrentPluginStatusAlert(_,numberOfPEers,numberOfPeersWithExtension, )
 
-    //emit torrentPluginStatusUpdated(status);
-    */
+    // Send torrent plugin
+    _plugin->sendAlertToSession(torrentPluginStatusAlert);
 }
 
 /*

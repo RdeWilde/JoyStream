@@ -25,7 +25,6 @@ SOURCES += \
     ControllerTracker.cpp \
     extension/Message/ExtendedMessage.cpp \
     view/AddTorrentDialog.cpp \
-    extension/TorrentPluginStatus.cpp \
     extension/TorrentPlugin.cpp \
     extension/Plugin.cpp \
     extension/PeerPlugin.cpp \
@@ -48,7 +47,9 @@ SOURCES += \
     controller/TorrentStatus.cpp \
     extension/TorrentPluginRequest/SetPluginModeTorrentPluginRequest.cpp \
     view/SellerTorrentPluginConfigurationDialog.cpp \
-    view/BuyerTorrentPluginConfigurationDialog.cpp
+    view/BuyerTorrentPluginConfigurationDialog.cpp \
+    extension/Alert/TorrentPluginAlert.cpp \
+    extension/Alert/TorrentPluginStatusAlert.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -63,7 +64,6 @@ HEADERS += \
     ControllerTracker.hpp \
     extension/Message/ExtendedMessage.hpp \
     view/AddTorrentDialog.hpp \
-    extension/TorrentPluginStatus.hpp \
     extension/TorrentPlugin.hpp \
     extension/Plugin.hpp \
     extension/PeerPlugin.hpp \
@@ -93,7 +93,10 @@ HEADERS += \
     extension/TorrentPluginRequest/SetPluginModeTorrentPluginRequest.hpp \
     extension/StartedPluginMode.hpp \
     view/SellerTorrentPluginConfigurationDialog.hpp \
-    view/BuyerTorrentPluginConfigurationDialog.hpp
+    view/BuyerTorrentPluginConfigurationDialog.hpp \
+    extension/Alert/TorrentPluginAlert.hpp \
+    extension/Alert/AlertTypes.hpp \
+    extension/Alert/TorrentPluginStatusAlert.hpp
 				
 FORMS += \
     view/mainwindow.ui \
