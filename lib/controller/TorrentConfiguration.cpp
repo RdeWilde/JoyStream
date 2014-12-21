@@ -199,7 +199,7 @@ libtorrent::add_torrent_params TorrentConfiguration::toAddTorrentParams() const 
     params.info_hash = _infoHash;
     params.name = _name;
     params.save_path = _savePath;
-    params.resume_data = new std::vector<char>(_resumeData);
+    params.resume_data = new std::vector<char>(_resumeData); // We do not own this pointer
     params.flags = _flags;
 
     if(_torrentInfo != NULL)

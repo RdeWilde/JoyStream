@@ -260,8 +260,6 @@ void TorrentPlugin::processSetConfigurationTorrentPluginRequest(const SetConfigu
     // We have now started
     _pluginStarted = true;
 
-    // Make copy of torrent plugin configuration
-
     // Get configuration by removing constness, maybee in future we send by value
     TorrentPluginConfiguration * torrentPluginConfiguration = const_cast<TorrentPluginConfiguration *>(setConfigurationTorrentPluginRequest->getTorrentPluginConfiguration());
 
@@ -351,12 +349,12 @@ void TorrentPlugin::sendTorrentPluginStatusSignal() {
         end(_peerPlugins.end()); i != end; i++) {
 
         // Count as supporting plugin if extended handshake was successful
-        if((i->second)->getPeerBEP43SupportedStatus() == PeerPlugin::supported)
+        if((i->second)->getPeerBEP43SupportedStatus() == BEPSupportStatus::supported)
             numberOfPeersWithExtension++;
     }
 
     // Create torrent plugin alert
-    TorrentPluginStatusAlert torrentPluginStatusAlert(_,numberOfPEers,numberOfPeersWithExtension, )
+    TorrentPluginStatusAlert torrentPluginStatusAlert(_torrent->info_hash(), numberOfPeers, numberOfPeersWithExtension, _pluginStarted, 0, 0);
 
     // Send torrent plugin
     _plugin->sendAlertToSession(torrentPluginStatusAlert);

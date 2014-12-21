@@ -88,25 +88,11 @@ public:
 
     //void setConfiguration(PeerPluginConfiguration * peerPluginConfiguration);
 
-
     // Getters
-    ExtendedMessageIdMapping & getPeerMapping();
-    void setPeerMapping(const ExtendedMessageIdMapping & peerMapping);
-
-    ExtendedMessageIdMapping & getClientMapping();
-    void setClientMapping(const ExtendedMessageIdMapping & clientMapping);
-
-    BEPSupportStatus & getPeerBEP10SupportedStatus();
-    void setPeerBEP10SupportedStatus(const BEPSupportStatus & peerBEP10SupportedStatus);
-
-    BEPSupportStatus & getPeerBEP43SupportedStatus();
-    void setPeerBEP43SupportedStatus(const BEPSupportStatus & peerBEP43SupportedStatus);
-
-    PeerPluginState & getPeerPluginState();
-    void setPeerPluginState(const PeerPluginState & peerPluginState);
-
-    PeerPluginId & getPeerPluginId();
-    void setPeerPluginId(const PeerPluginId & peerPluginId);
+    BEPSupportStatus peerBEP10SupportedStatus() const;
+    BEPSupportStatus peerBEP43SupportedStatus() const;
+    PeerPluginState peerPluginState() const;
+    libtorrent::tcp::endpoint endPoint() const;
 
 protected:
 

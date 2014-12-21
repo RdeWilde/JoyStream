@@ -11,16 +11,19 @@ public:
     // Public member required for alert_cast
     const static int alert_type = TORRENT_PLUGIN_STATUS_ALERT_ID;
 
-
     //const static int static_category = <bitmask of alert::category_t flags>;
 
-    // Constructor
+    // Constructor based on members
     TorrentPluginStatusAlert(const libtorrent::sha1_hash & infoHash
                              ,int numberOfPeers
                              ,int numberOfPeersWithExtension
-                             ,bool pluginOn
+                             ,bool pluginStarted
                              ,int tokensReceived
                              ,int tokensSent);
+
+
+    // Constructor based on reference
+    TorrentPluginStatusAlert(const TorrentPluginStatusAlert & torrentPluginStatusAlert);
 
     // Virtual routines from libtorrent::alert
     virtual int type() const;
@@ -32,7 +35,7 @@ public:
     // Getters
     int numberOfPeers() const;
     int numberOfPeersWithExtension() const;
-    bool pluginOn() const;
+    bool pluginStarted() const;
     int tokensReceived() const;
     int tokensSent() const;
 
@@ -45,7 +48,7 @@ private:
     int _numberOfPeersWithExtension;
 
     // Management mode of torrent plugin
-    bool _pluginOn;
+    bool _pluginStarted;
 
     // Number of tokens received during this session
     int _tokensReceived;

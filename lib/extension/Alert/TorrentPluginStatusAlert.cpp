@@ -4,15 +4,25 @@
 TorrentPluginStatusAlert::TorrentPluginStatusAlert(const libtorrent::sha1_hash & infoHash
                                                    ,int numberOfPeers
                                                    ,int numberOfPeersWithExtension
-                                                   ,bool pluginOn
+                                                   ,bool pluginStarted
                                                    ,int tokensReceived
                                                    ,int tokensSent)
     : TorrentPluginAlert(infoHash)
     ,_numberOfPeers(numberOfPeers)
     ,_numberOfPeersWithExtension(numberOfPeersWithExtension)
-    ,_pluginOn(pluginOn)
+    ,_pluginStarted(pluginStarted)
     ,_tokensReceived(tokensReceived)
     ,_tokensSent(tokensSent){
+
+}
+
+TorrentPluginStatusAlert::TorrentPluginStatusAlert(const TorrentPluginStatusAlert & torrentPluginStatusAlert)
+    :TorrentPluginAlert(torrentPluginStatusAlert.getInfoHash())
+    ,_numberOfPeers(torrentPluginStatusAlert.numberOfPeers())
+    ,_numberOfPeersWithExtension(torrentPluginStatusAlert.numberOfPeersWithExtension())
+    ,_pluginStarted(torrentPluginStatusAlert.pluginStarted())
+    ,_tokensReceived(torrentPluginStatusAlert.tokensReceived())
+    ,_tokensSent(torrentPluginStatusAlert.tokensSent()) {
 
 }
 
@@ -44,8 +54,8 @@ int TorrentPluginStatusAlert::numberOfPeersWithExtension() const {
     return _numberOfPeersWithExtension;
 }
 
-bool TorrentPluginStatusAlert::pluginOn() const {
-    return _pluginOn;
+bool TorrentPluginStatusAlert::pluginStarted() const {
+    return _pluginStarted;
 }
 
 int TorrentPluginStatusAlert::tokensReceived() const {

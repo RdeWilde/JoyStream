@@ -557,24 +557,18 @@ void PeerPlugin::setConfiguration(PeerPluginConfiguration * peerPluginConfigurat
 }
 */
 
-/*
-const libtorrent::sha1_hash & PeerPlugin::getInfoHash() const {
-    return torrentPlugin_->getInfoHash();
-}
-
-PeerPlugin::PEER_BEP_SUPPORTED_STATUS PeerPlugin::getPeerBEP10SupportedStatus() const {
+BEPSupportStatus PeerPlugin::peerBEP10SupportedStatus() const {
     return _peerBEP10SupportedStatus;
 }
 
-PeerPlugin::PEER_BEP_SUPPORTED_STATUS PeerPlugin::getPeerBEP43SupportedStatus() const {
+BEPSupportStatus PeerPlugin::peerBEP43SupportedStatus() const {
     return _peerBEP43SupportedStatus;
 }
 
-const libtorrent::tcp::endpoint & PeerPlugin::getEndPoint() const {
-    return _bittorrentPeerConnection->remote();
+PeerPluginState PeerPlugin::peerPluginState() const {
+   return _peerPluginState;
 }
 
-const PeerPluginId & PeerPlugin::getPeerPluginId() const {
-    return peerPluginId_;
+libtorrent::tcp::endpoint PeerPlugin::endPoint() const {
+    return _bittorrentPeerConnection->remote();
 }
-*/

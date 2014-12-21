@@ -60,11 +60,6 @@ public:
     bool addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint);
     bool addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint);
 
-    // Process torrent plugin requests
-    void processTorrentPluginRequest(const TorrentPluginRequest * torrentPluginRequest);
-    void processSetConfigurationTorrentPluginRequest(const SetConfigurationTorrentPluginRequest * setConfigurationTorrentPluginRequest);
-    //void processSetPluginModeTorrentPluginRequest(const SetPluginModeTorrentPluginRequest * setPluginModeTorrentPluginRequest);
-
     // Get peer plugin
     PeerPlugin * getPeerPlugin(const libtorrent::tcp::endpoint & endPoint);
 
@@ -74,6 +69,12 @@ public:
     // 3) Notifies controller
     void removePeerPlugin(PeerPlugin * plugin);
 
+    // Process torrent plugin requests
+    void processTorrentPluginRequest(const TorrentPluginRequest * torrentPluginRequest);
+    void processSetConfigurationTorrentPluginRequest(const SetConfigurationTorrentPluginRequest * setConfigurationTorrentPluginRequest);
+    //void processSetPluginModeTorrentPluginRequest(const SetPluginModeTorrentPluginRequest * setPluginModeTorrentPluginRequest);
+
+
     // Getters
     //libtorrent::torrent * getTorrent();
     //const libtorrent::sha1_hash & getInfoHash() const;
@@ -81,9 +82,8 @@ public:
 
 signals:
 
-    void torrentPluginStatusUpdated(const TorrentPluginStatus & status);
-
     /*
+    void torrentPluginStatusUpdated(const TorrentPluginStatus & status);
     void peerAdded(const PeerPluginId & peerPluginId);
     void peerRemoved(const PeerPluginId & peerPluginId);
     */

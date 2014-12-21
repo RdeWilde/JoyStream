@@ -561,6 +561,7 @@ bool Controller::addTorrent(const TorrentConfiguration & torrentConfiguration, b
     _session.async_add_torrent(params);
 
     // Delete std::vector<char> memory allocated in TorrentConfiguration::toAddTorrentParams
+    // Do something differet later, e.g. have params point to same resume_data as in torrentConfiguration?
     delete params.resume_data;
 
     // Indicate that we added to session

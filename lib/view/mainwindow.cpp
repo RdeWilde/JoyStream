@@ -356,7 +356,7 @@ void MainWindow::updateTorrentPluginStatus(const TorrentPluginStatusAlert * torr
     torrentViewModel->updatePeers(torrentPluginStatusAlert->numberOfPeers(),torrentPluginStatusAlert->numberOfPeersWithExtension());
 
     // Mode
-    torrentViewModel->updateMode(torrentPluginStatusAlert->pluginOn());
+    torrentViewModel->updateMode(torrentPluginStatusAlert->pluginStarted());
 
     // Balance
     torrentViewModel->updateBalance(torrentPluginStatusAlert->tokensReceived(), torrentPluginStatusAlert->tokensSent());
