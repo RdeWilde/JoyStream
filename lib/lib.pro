@@ -91,12 +91,12 @@ HEADERS += \
     extension/TorrentPluginRequest/SetConfigurationTorrentPluginRequest.hpp \
     controller/TorrentStatus.hpp \
     extension/TorrentPluginRequest/SetPluginModeTorrentPluginRequest.hpp \
-    extension/StartedPluginMode.hpp \
     view/SellerTorrentPluginConfigurationDialog.hpp \
     view/BuyerTorrentPluginConfigurationDialog.hpp \
     extension/Alert/TorrentPluginAlert.hpp \
     extension/Alert/AlertTypes.hpp \
-    extension/Alert/TorrentPluginStatusAlert.hpp
+    extension/Alert/TorrentPluginStatusAlert.hpp \
+    extension/PluginMode.hpp
 				
 FORMS += \
     view/mainwindow.ui \

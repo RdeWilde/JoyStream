@@ -25,7 +25,7 @@ public:
     TorrentPluginConfiguration();
 
     // Constructor from members
-    TorrentPluginConfiguration(StartedPluginMode startedPluginMode, bool enableBanningSets);
+    TorrentPluginConfiguration(PluginMode startedPluginMode, bool enableBanningSets);
 
     // Constructor from dictionary
     TorrentPluginConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry);
@@ -55,14 +55,14 @@ public:
     void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const;
 
     // Getters & Setters
-    StartedPluginMode getStartedPluginMode() const;
+    PluginMode getStartedPluginMode() const;
 
     bool getEnableBanningSets() const;
 
 protected:
 
     // Mode of started plugin
-    StartedPluginMode _startedPluginMode;
+    PluginMode _startedPluginMode;
 
     // Use the two sets below when accepting new peers in new_connect
     bool _enableBanningSets;

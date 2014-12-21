@@ -1,7 +1,7 @@
 #include "PeerPluginConfiguration.hpp"
 
 PeerPluginConfiguration::PeerPluginConfiguration(const libtorrent::tcp::endpoint & endPoint
-                                                 ,StartedPluginMode pluginMode
+                                                 ,PluginMode pluginMode
                                                  ,const ExtendedMessageIdMapping & clientMapping
                                                  ,const ExtendedMessageIdMapping & peerMapping
                                                  ,const BEPSupportStatus & peerBEP10SupportedStatus
@@ -19,7 +19,7 @@ PeerPluginConfiguration::PeerPluginConfiguration(const libtorrent::tcp::endpoint
 }
 
 PeerPluginConfiguration::PeerPluginConfiguration(const libtorrent::tcp::endpoint & endPoint
-                                                 ,StartedPluginMode pluginMode
+                                                 ,PluginMode pluginMode
                                                  ,const BEPSupportStatus & peerBEP10SupportedStatus
                                                  ,const BEPSupportStatus & peerBEP43SupportedStatus
                                                  ,const PeerPluginState & peerPluginState)

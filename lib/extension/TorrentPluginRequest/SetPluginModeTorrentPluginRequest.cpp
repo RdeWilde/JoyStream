@@ -1,10 +1,10 @@
 #include "SetPluginModeTorrentPluginRequest.hpp"
 
-SetPluginModeTorrentPluginRequest::SetPluginModeTorrentPluginRequest(libtorrent::sha1_hash & info_hash, StartedPluginMode pluginMode)
+SetPluginModeTorrentPluginRequest::SetPluginModeTorrentPluginRequest(libtorrent::sha1_hash & info_hash, PluginMode pluginMode)
     : TorrentPluginRequest(info_hash)
     , _pluginMode(pluginMode) {
 }
 
-StartedPluginMode SetPluginModeTorrentPluginRequest::getStartedPluginMode() const {
+PluginMode SetPluginModeTorrentPluginRequest::getStartedPluginMode() const {
     return _pluginMode;
 }

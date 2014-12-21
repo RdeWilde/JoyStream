@@ -18,7 +18,7 @@ public:
 
     // Constructor from members
     PeerPluginConfiguration(const libtorrent::tcp::endpoint & endPoint
-                            ,StartedPluginMode pluginMode
+                            ,PluginMode pluginMode
                             ,const ExtendedMessageIdMapping & clientMapping
                             ,const ExtendedMessageIdMapping & peerMapping
                             ,const BEPSupportStatus & getPeerBEP10SupportedStatus
@@ -28,7 +28,7 @@ public:
 
     // Constructor from members, when mappings are not known
     PeerPluginConfiguration(const libtorrent::tcp::endpoint & endPoint
-                            ,StartedPluginMode pluginMode
+                            ,PluginMode pluginMode
                             ,const BEPSupportStatus & getPeerBEP10SupportedStatus
                             ,const BEPSupportStatus & peerBEP43SupportedStatus
                             ,const PeerPluginState & peerPluginState);
@@ -64,7 +64,7 @@ protected:
     libtorrent::tcp::endpoint _endPoint;
 
     // Mode of plugin. All peers have same mode.
-    StartedPluginMode _pluginMode;
+    PluginMode _pluginMode;
 
     // Mapping from messages to BEP10 ID of peer
     ExtendedMessageIdMapping _clientMapping, _peerMapping;

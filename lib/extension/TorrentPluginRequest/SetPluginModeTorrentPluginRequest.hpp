@@ -9,15 +9,15 @@ class SetPluginModeTorrentPluginRequest : public TorrentPluginRequest
 public:
 
     // Constructor
-    SetPluginModeTorrentPluginRequest(libtorrent::sha1_hash & info_hash, StartedPluginMode pluginMode);
+    SetPluginModeTorrentPluginRequest(libtorrent::sha1_hash & info_hash, PluginMode pluginMode);
 
     // Getters
-    StartedPluginMode getStartedPluginMode() const;
+    PluginMode getStartedPluginMode() const;
 
 private:
 
     // Mode
-    StartedPluginMode _pluginMode;
+    PluginMode _pluginMode;
 
 };
 

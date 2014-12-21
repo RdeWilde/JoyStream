@@ -6,6 +6,8 @@
 #include "Config.hpp"
 #include "PeerPluginStatus.hpp"
 #include "PeerPluginRequest/PeerPluginRequest.hpp"
+#include "Message/MessageType.hpp"
+#include "Message/ExtendedMessage.hpp"
 
 #include <libtorrent/bt_peer_connection.hpp>
 #include <libtorrent/socket_io.hpp>
@@ -14,7 +16,10 @@
 PeerPlugin::PeerPlugin(TorrentPlugin * torrentPlugin, libtorrent::bt_peer_connection * bittorrentPeerConnection, QLoggingCategory & category) //, PeerPluginConfiguration & peerPluginConfiguration)
     : _torrentPlugin(torrentPlugin)
     , _bittorrentPeerConnection(bittorrentPeerConnection)
-    , _category(category) {
+    , _category(category)
+    , _pluginStarted(false)
+    , _peerPluginModeObserved(false)
+{
     //, _peerPluginConfiguration(peerPluginConfiguration) {
 }
 
@@ -438,16 +443,46 @@ bool PeerPlugin::can_disconnect(libtorrent::error_code const & ec) {
 // be able to handle it this is not called for web seeds.
 bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_interval body) {
 
-    // if(_peerPluginConfiguration.getPeerBEP43SupportedStatus() != BEPSupportStatus::not_supported)
-    if(_peerBEP43SupportedStatus != BEPSupportStatus::not_supported)
-        qCDebug(_category) << "buyer:on_extended(" << length << "," << msg << ")";
+    qCDebug(_category) << "buyer:on_extended(" << length << "," << msg << ")";
 
-    // Update peerPluginState_
+    // Ignore message if peer has not successfully completed BEP43 handshake (yet, or perhaps never will)
+    if(_peerBEP43SupportedStatus != BEPSupportStatus::supported) {
+        qCDebug(_category) << "Received extended message despite BEP43 not supported, not for this plugin then.";
 
-    // Create QByte array where you put data, then wrap witha stream, after mesage has b een parsed, check that pointer received is not null.
+        // Let next plugin handle message
+        return false;
+    }
 
-    // CRITICAL
-    return false;
+    // Is it a BEP43 message
+    MessageType messageType;
+
+    try {
+        messageType = _peerMapping.getMessageType(msg);
+    } catch(std::exception & e) {
+
+        // Not for us, Let next plugin handle message
+        return false;
+    }
+
+    // Wrap data in QDataStream
+    QByteArray byteArray(body.begin, body.end - body.begin);
+    QDataStream dataStream(&byteArray, QIODevice::ReadOnly);
+
+    // Parse message
+    ExtendedMessage * extendedMessage = ExtendedMessage.fromRaw(messageType,dataStream);
+
+    // Drop if message was malformed
+    if(extendedMessage == NULL) {
+
+        qCDebug(_category) << "Malformed message BEP43 message received.";
+        return true;
+    }
+
+    // Add to message queue
+    _unprocessedMessageQueue.push(extendedMessage);
+
+    // No other plugin should process
+    return true;
 }
 
 /*
@@ -484,6 +519,17 @@ void PeerPlugin::tick() {
 
     qCDebug(_category) << "PeerPlugin.tick()";
 
+    // Process messages in queue
+    while(!_unprocessedMessageQueue.empty()) {
+
+        // Process message
+        processMessage(_unprocessedMessageQueue.front());
+
+        // Remove from queue
+        _unprocessedMessageQueue.pop();
+    }
+
+
     // Send signal
     //PeerPluginStatus status(_peerPluginConfiguration.getPeerPluginId(), _peerPluginConfiguration.getPeerPluginState(), 0);
     PeerPluginStatus status(_peerPluginId, _peerPluginState, 0);
@@ -514,7 +560,7 @@ void PeerPlugin::processPeerPluginRequest(const PeerPluginRequest * peerPluginRe
     }
 }
 
-void PeerPlugin::startPlugin(StartedPluginMode pluginMode) {
+void PeerPlugin::startPlugin(PluginMode pluginMode) {
 
     // Start plugin
     _pluginStarted = true;
@@ -525,24 +571,95 @@ void PeerPlugin::startPlugin(StartedPluginMode pluginMode) {
     // Do something
     switch(_pluginStartedMode) {
 
-        case StartedPluginMode::Buyer:
+        case PluginMode::Buyer:
 
         // Check what you have received so far, and send some message
 
         break;
 
-        case StartedPluginMode::Seller:
+        case PluginMode::Seller:
 
         // Check what you have received so far, and send some message
 
         break;
 
-        case StartedPluginMode::Passive:
+        case PluginMode::Passive:
 
         // ?, send not interested mesasge or something?
 
         break;
     }
+}
+
+void PeerPlugin::processMessage(ExtendedMessage * extendedMessage) {
+
+    // Get message type
+    MessageType messageType = extendedMessage->getMessageType();
+
+    // Call relevant message handler
+    switch(messageType) {
+
+        case MessageType::buy:
+
+            qCDebug(_category) << "buy";
+            break;
+        case MessageType::sell:
+
+            qCDebug(_category) << "sell";
+            break;
+        case MessageType::setup_begin:
+
+            qCDebug(_category) << "setup_begin";
+            break;
+        case MessageType::setup_begin_reject:
+
+            qCDebug(_category) << "setup_begin_reject";
+            break;
+        case MessageType::setup_contract:
+
+            qCDebug(_category) << "setup_contract";
+            break;
+        case MessageType::setup_contract_signed:
+
+            qCDebug(_category) << "setup_contract_signed";
+            break;
+        case MessageType::setup_refund:
+
+            qCDebug(_category) << "setup_refund";
+            break;
+        case MessageType::setup_refund_signed:
+
+            qCDebug(_category) << "setup_refund_signed";
+            break;
+        case MessageType::setup_contract_published:
+
+            qCDebug(_category) << "setup_contract_published";
+            break;
+        case MessageType::setup_completed:
+
+            qCDebug(_category) << "setup_completed";
+            break;
+        case MessageType::piece_get:
+
+            qCDebug(_category) << "piece_get";
+            break;
+        case MessageType::piece_put:
+
+            qCDebug(_category) << "piece_put";
+            break;
+        case MessageType::payment:
+
+            qCDebug(_category) << "payment";
+            break;
+        case MessageType::end:
+
+            qCDebug(_category) << "end";
+            break;
+    }
+
+    // Delet message
+    delete extendedMessage;
+
 }
 
 /*

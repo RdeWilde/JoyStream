@@ -3,6 +3,7 @@
 
 #include "PeerPluginConfiguration.hpp"
 #include "PeerPluginRequest/PeerPluginRequest.hpp"
+#include "PluginMode.hpp"
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/entry.hpp>
@@ -16,10 +17,12 @@
 
 #include <QObject>
 
-// Forward declaration
+#include <queue>
+
 class TorrentPlugin;
 class PeerPluginStatus;
 class PeerPluginRequest;
+class ExtendedMessage;
 
 /*
  * We inherit from QObject so we can send signals, and QObject must be first:
@@ -84,7 +87,20 @@ public:
     void processPeerPluginRequest(const PeerPluginRequest * peerPluginRequest);
 
     // Torrent plugin calls to start
-    void startPlugin(StartedPluginMode pluginMode);
+    void startPlugin(PluginMode pluginMode);
+
+    // Processes a message, and frees it
+    void processMessage(ExtendedMessage * extendedMessage);
+
+    /*
+    void processBuyMessage();
+    void processSellMessage();
+    void processSetupBeginMessage();
+    void processSetupBeginRejectMessage();
+    void processSetupContractMessage();
+    void processSetupContractSignedMessage();
+    void processSetupRefundMessage();
+    */
 
     //void setConfiguration(PeerPluginConfiguration * peerPluginConfiguration);
 
@@ -108,14 +124,22 @@ protected:
     // Endpoint
     libtorrent::tcp::endpoint _endPoint;
 
+    // Queue of received valid messages which have not yet been processed
+    // messages enter queue in on_extended(), and are dispatched in tick()
+    std::queue<ExtendedMessage *> _unprocessedMessageQueue;
+
     // Indicates if plugin has been started
     // Before this becomes true, plugin will
     // not do anythng which compromises eventually
     // going into seller or buyer mode
     bool _pluginStarted;
 
+    /**
+     * Persistent state of controller below
+     */
+
     // Mode of plugin when started
-    StartedPluginMode _pluginStartedMode;
+    PluginMode _clientPluginMode;
 
     // Mapping from messages to BEP10 ID of peer
     ExtendedMessageIdMapping _clientMapping, _peerMapping;
@@ -129,6 +153,24 @@ protected:
 
     // Id of this peer plugin
     PeerPluginId _peerPluginId; // assess later, is the redundancy worth it
+
+    // Has mode of peer been observed
+    bool _peerPluginModeObserved;
+
+    // Mode of peer when observed,
+    // not valid when _peerPluginModeObserved == false
+    PluginMode _peerPluginMode;
+
+    /**
+     * Buyer spesific state
+     */
+
+
+    /**
+     * Seller spesific state
+     */
+
+
 
 signals:
 

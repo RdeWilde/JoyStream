@@ -2,11 +2,11 @@
 #include "PeerPluginConfiguration.hpp"
 
 TorrentPluginConfiguration::TorrentPluginConfiguration()
-    : _startedPluginMode(StartedPluginMode::Seller)
+    : _startedPluginMode(PluginMode::Seller)
     , _enableBanningSets(true) {
 }
 
-TorrentPluginConfiguration::TorrentPluginConfiguration(StartedPluginMode pluginMode, bool enableBanningSets)
+TorrentPluginConfiguration::TorrentPluginConfiguration(PluginMode pluginMode, bool enableBanningSets)
     : _startedPluginMode(pluginMode)
     , _enableBanningSets(enableBanningSets) {
 }
@@ -32,7 +32,7 @@ void TorrentPluginConfiguration::toDictionaryEntry(libtorrent::entry::dictionary
     // NOT IMPLEMENTED
 }
 
-StartedPluginMode TorrentPluginConfiguration::getStartedPluginMode() const {
+PluginMode TorrentPluginConfiguration::getStartedPluginMode() const {
     return _startedPluginMode;
 }
 
