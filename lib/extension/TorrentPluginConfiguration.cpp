@@ -2,7 +2,7 @@
 #include "PeerPluginConfiguration.hpp"
 
 TorrentPluginConfiguration::TorrentPluginConfiguration()
-    : _startedPluginMode(PluginMode::Seller)
+    : _startedPluginMode(PluginMode::Sell)
     , _enableBanningSets(true) {
 }
 

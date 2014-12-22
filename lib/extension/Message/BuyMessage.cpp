@@ -11,5 +11,5 @@ quint32 BuyMessage::rawPayloadLength() const {
 void BuyMessage::toRaw(const ExtendedMessageIdMapping & mapping, QDataStream & extendedMessageStream) const {
 
     // Write extended message id
-    extendedMessageStream << mapping.buy();
+    extendedMessageStream << mapping.id(MessageType::buy);
 }

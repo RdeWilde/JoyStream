@@ -1,6 +1,6 @@
 #include "BuyerTorrentPluginConfigurationDialog.hpp"
 #include "ui_BuyerTorrentPluginConfigurationDialog.h"
-#include "extension/StartedPluginMode.hpp"
+#include "extension/PluginMode.hpp"
 #include "extension/TorrentPluginConfiguration.hpp"
 #include "controller/Controller.hpp"
 
@@ -30,7 +30,7 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted()
 {
 
     // Set in seller mode
-    _controller->updateTorrentPluginConfiguration(_infoHash, new TorrentPluginConfiguration(PluginMode::Seller, true));
+    _controller->updateTorrentPluginConfiguration(_infoHash, new TorrentPluginConfiguration(PluginMode::Sell, true));
 
     // close window
     done(0);

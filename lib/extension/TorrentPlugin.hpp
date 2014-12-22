@@ -1,7 +1,7 @@
 #ifndef TORRENT_PLUGIN_HPP
 #define TORRENT_PLUGIN_HPP
 
-#include "StartedPluginMode.hpp"
+#include "PluginMode.hpp"
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
@@ -20,6 +20,7 @@ class TorrentPluginConfiguration;
 class PeerPluginConfiguration;
 class SetConfigurationTorrentPluginRequest;
 class SetPluginModeTorrentPluginRequest;
+class StartPluginTorrentPluginRequest;
 
 class TorrentPlugin : public QObject, public libtorrent::torrent_plugin {
 
@@ -71,7 +72,9 @@ public:
 
     // Process torrent plugin requests
     void processTorrentPluginRequest(const TorrentPluginRequest * torrentPluginRequest);
-    void processSetConfigurationTorrentPluginRequest(const SetConfigurationTorrentPluginRequest * setConfigurationTorrentPluginRequest);
+    void processStartPluginRequest(const StartPluginTorrentPluginRequest * startPluginTorrentPluginRequest);
+
+    //void processSetConfigurationTorrentPluginRequest(const SetConfigurationTorrentPluginRequest * setConfigurationTorrentPluginRequest);
     //void processSetPluginModeTorrentPluginRequest(const SetPluginModeTorrentPluginRequest * setPluginModeTorrentPluginRequest);
 
 

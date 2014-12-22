@@ -66,9 +66,11 @@ void PeerPluginViewModel::updateState(PeerPluginState state) {
 
     switch(state) {
         case PeerPluginState::started: stateItem->setText("Started"); break;
-        case PeerPluginState::handshake_received: stateItem->setText("Received handshake"); break;
-        case PeerPluginState::buy_message_received: stateItem->setText("Received buy offer"); break;
-        case PeerPluginState::sell_message_received: stateItem->setText("Received sell offer"); break;
+        case PeerPluginState::BEP10_handshake_received: stateItem->setText("Received handshake"); break;
+        case PeerPluginState::mode_message_received: stateItem->setText("Mode announced");
+            //stateItem->setText("Received buy offer");
+            //stateItem->setText("Received sell offer");
+        break;
     }
 }
 

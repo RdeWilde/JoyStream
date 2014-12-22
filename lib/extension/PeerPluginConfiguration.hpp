@@ -5,7 +5,7 @@
 #include "Message/ExtendedMessageIdMapping.hpp"
 #include "PeerPluginState.hpp"
 #include "PeerPluginId.hpp"
-#include "StartedPluginMode.hpp"
+#include "PluginMode.hpp"
 
 /**
  * This class has been disabled for the time

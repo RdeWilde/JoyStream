@@ -23,6 +23,9 @@ class TorrentPlugin;
 class PeerPluginStatus;
 class PeerPluginRequest;
 class ExtendedMessage;
+class PassiveMessage;
+class BuyMessage;
+class SellMessage;
 
 /*
  * We inherit from QObject so we can send signals, and QObject must be first:
@@ -84,17 +87,26 @@ public:
     /**
      * Subroutines for libtorrent thread.
      */
+
+    // Processig routine for peer plugin requests, request pointer is owned by plugin dispatcher
     void processPeerPluginRequest(const PeerPluginRequest * peerPluginRequest);
 
     // Torrent plugin calls to start
     void startPlugin(PluginMode pluginMode);
 
-    // Processes a message, and frees it
-    void processMessage(ExtendedMessage * extendedMessage);
+    // Sends extended message to peer
+    // does not take ownership of pointer
+    void sendExtendedMessage(const ExtendedMessage * extendedMessage);
+
+    // Determines the message type, calls correct handler, then frees message
+    void processExtendedMessage(ExtendedMessage * extendedMessage);
+
+    // Processess a message
+    void processPassiveMessage(const PassiveMessage * passiveMessage);
+    void processBuyMessage(const BuyMessage * buyMessage);
+    void processSellMessage(const SellMessage * sellMessage);
 
     /*
-    void processBuyMessage();
-    void processSellMessage();
     void processSetupBeginMessage();
     void processSetupBeginRejectMessage();
     void processSetupContractMessage();
@@ -135,7 +147,7 @@ protected:
     bool _pluginStarted;
 
     /**
-     * Persistent state of controller below
+     * Persistent state below
      */
 
     // Mode of plugin when started
@@ -162,15 +174,21 @@ protected:
     PluginMode _peerPluginMode;
 
     /**
-     * Buyer spesific state
+     * Peer information which is sharded based on
+     * peer mode.
      */
-
+    quint32 _peerSellerPrice;
+    quint32 _peerBuyerPrice;
 
     /**
-     * Seller spesific state
+     * Client buyer mode spesific state
      */
+    quint32 _clientBuyerPrice;
 
-
+    /**
+     * Client seller mode spesific state
+     */
+    quint32 _clientSellerPrice;
 
 signals:
 

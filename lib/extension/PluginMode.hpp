@@ -4,8 +4,8 @@
 // Mode of torrent or peer plugin when it has been started
 enum class PluginMode {
     Passive,
-    Seller,
-    Buyer
+    Sell,
+    Buy
 };
 
 #endif // PLUGIN_MODE_HPP

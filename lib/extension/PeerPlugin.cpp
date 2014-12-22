@@ -8,6 +8,9 @@
 #include "PeerPluginRequest/PeerPluginRequest.hpp"
 #include "Message/MessageType.hpp"
 #include "Message/ExtendedMessage.hpp"
+#include "Message/PassiveMessage.hpp"
+#include "Message/BuyMessage.hpp"
+#include "Message/SellMessage.hpp"
 
 #include <libtorrent/bt_peer_connection.hpp>
 #include <libtorrent/socket_io.hpp>
@@ -19,6 +22,8 @@ PeerPlugin::PeerPlugin(TorrentPlugin * torrentPlugin, libtorrent::bt_peer_connec
     , _category(category)
     , _pluginStarted(false)
     , _peerPluginModeObserved(false)
+    , _peerSellerPrice(0)
+    , _peerBuyerPrice(0)
 {
     //, _peerPluginConfiguration(peerPluginConfiguration) {
 }
@@ -129,7 +134,7 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
 
     // Note that we have received extended handshake
     //_peerPluginConfiguration.getPeerPluginState() = PeerPluginState::handshake_received;
-    _peerPluginState = PeerPluginState::handshake_received;
+    _peerPluginState = PeerPluginState::BEP10_handshake_received;
 
     // Write what client is trying to handshake us, should now be possible given initial hand shake
     libtorrent::peer_info peerInfo;
@@ -217,7 +222,34 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
     }
 
     // Get peer mapping
-    ExtendedMessageIdMapping peerMapping(m);
+
+    // Convert from lazy entry to entry
+    libtorrent::entry mEntry;
+    mEntry = *m;
+
+    // Check if it is a dictionary entry
+    if(mEntry.type() != libtorrent::entry::dictionary_t) {
+
+        // Mark peer as not supporting BEP43
+        _peerBEP43SupportedStatus = BEPSupportStatus::not_supported;
+        qCWarning(_category) << "Malformed handshake received: m key not mapping to dictionary.";
+
+        // Remember that this peer does not have extension
+        _torrentPlugin->addToIrregularPeersSet(peerInfo.ip);
+
+        // Remove this plugin from torrent plugin
+        _torrentPlugin->removePeerPlugin(this);
+
+        // Do no keep extension around
+        return false;
+    }
+
+    // Make conversion to dictionary entry
+    libtorrent::entry::dictionary_type mDictionaryEntry;
+    mDictionaryEntry = mEntry.dict();
+
+    // Create peer mapping
+    ExtendedMessageIdMapping peerMapping(mDictionaryEntry);
 
     // Set peer mapping in configuration
     //_peerPluginConfiguration.setPeerMapping(peerMapping);
@@ -457,7 +489,7 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
     MessageType messageType;
 
     try {
-        messageType = _peerMapping.getMessageType(msg);
+        messageType = _peerMapping.messageType(msg);
     } catch(std::exception & e) {
 
         // Not for us, Let next plugin handle message
@@ -469,7 +501,7 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
     QDataStream dataStream(&byteArray, QIODevice::ReadOnly);
 
     // Parse message
-    ExtendedMessage * extendedMessage = ExtendedMessage.fromRaw(messageType,dataStream);
+    ExtendedMessage * extendedMessage = ExtendedMessage::fromRaw(messageType, dataStream);
 
     // Drop if message was malformed
     if(extendedMessage == NULL) {
@@ -519,18 +551,25 @@ void PeerPlugin::tick() {
 
     qCDebug(_category) << "PeerPlugin.tick()";
 
+    // No processing is done before plugin is started
+    if(!_pluginStarted)
+        return;
+
+    // No processing is done before successful extended handshake
+    if(_peerBEP43SupportedStatus != BEPSupportStatus::supported)
+        return;
+
     // Process messages in queue
     while(!_unprocessedMessageQueue.empty()) {
 
         // Process message
-        processMessage(_unprocessedMessageQueue.front());
+        processExtendedMessage(_unprocessedMessageQueue.front());
 
         // Remove from queue
         _unprocessedMessageQueue.pop();
     }
 
-
-    // Send signal
+    // Send status to controller
     //PeerPluginStatus status(_peerPluginConfiguration.getPeerPluginId(), _peerPluginConfiguration.getPeerPluginState(), 0);
     PeerPluginStatus status(_peerPluginId, _peerPluginState, 0);
 
@@ -566,32 +605,48 @@ void PeerPlugin::startPlugin(PluginMode pluginMode) {
     _pluginStarted = true;
 
     // Set mode
-    _pluginStartedMode = pluginMode;
+    _clientPluginMode = pluginMode;
 
-    // Do something
-    switch(_pluginStartedMode) {
-
-        case PluginMode::Buyer:
-
-        // Check what you have received so far, and send some message
-
-        break;
-
-        case PluginMode::Seller:
-
-        // Check what you have received so far, and send some message
-
-        break;
+    // Create appropriate mode message
+    ExtendedMessage * extendedMessage;
+    switch(_clientPluginMode) {
 
         case PluginMode::Passive:
+            extendedMessage = new PassiveMessage();
+            break;
 
-        // ?, send not interested mesasge or something?
+        case PluginMode::Buy:
+            extendedMessage = new BuyMessage();
+            break;
 
-        break;
+        case PluginMode::Sell:
+            extendedMessage = new SellMessage(_clientSellerPrice);
+            break;
     }
+
+    // Send message
+    sendExtendedMessage(extendedMessage);
+
+    // Delete message
+    delete extendedMessage;
 }
 
-void PeerPlugin::processMessage(ExtendedMessage * extendedMessage) {
+void PeerPlugin::sendExtendedMessage(const ExtendedMessage * extendedMessage) {
+
+    // Allocate space for message buffer
+    QByteArray byteArray(extendedMessage->rawPayloadLength(), 0);
+
+    // Wrap buffer in stream
+    QDataStream extendedMessageStream(byteArray);
+
+    // Write message into buffer through stream
+    extendedMessage->toRaw(_peerMapping, extendedMessageStream);
+
+    // Send message buffer
+    //_bittorrentPeerConnection->wr
+}
+
+void PeerPlugin::processExtendedMessage(ExtendedMessage * extendedMessage) {
 
     // Get message type
     MessageType messageType = extendedMessage->getMessageType();
@@ -599,13 +654,23 @@ void PeerPlugin::processMessage(ExtendedMessage * extendedMessage) {
     // Call relevant message handler
     switch(messageType) {
 
+        case MessageType::passive:
+
+            qCDebug(_category) << "passive";
+            processPassiveMessage(static_cast<PassiveMessage *>(extendedMessage));
+
+            break;
         case MessageType::buy:
 
             qCDebug(_category) << "buy";
+            processBuyMessage(static_cast<BuyMessage *>(extendedMessage));
+
             break;
         case MessageType::sell:
 
             qCDebug(_category) << "sell";
+            processSellMessage(static_cast<SellMessage *>(extendedMessage));
+
             break;
         case MessageType::setup_begin:
 
@@ -657,14 +722,76 @@ void PeerPlugin::processMessage(ExtendedMessage * extendedMessage) {
             break;
     }
 
-    // Delet message
+    // Delete message
     delete extendedMessage;
+}
 
+void PeerPlugin::processPassiveMessage(const PassiveMessage * passiveMessage) {
+
+    // Check that last message received was BEP10 extended handshake
+    if(!(_peerPluginState == PeerPluginState::BEP10_handshake_received)) {
+
+        qCDebug(_category) << "Received passive message at incorrect state, drop peer?.";
+        return;
+    }
+
+    // Alter state
+    _peerPluginState = PeerPluginState::mode_message_received;
+
+    // Note that peer is passive
+    _peerPluginMode = PluginMode::Passive;
+
+    // Now what?
+}
+
+void PeerPlugin::processBuyMessage(const BuyMessage * buyMessage) {
+
+    // Check that last message received was either BEP10 extended handshake
+    // or passive message
+    if(!(_peerPluginState == PeerPluginState::BEP10_handshake_received ||
+       (_peerPluginState == PeerPluginState::mode_message_received && _clientPluginMode == PluginMode::Passive))) {
+
+        qCDebug(_category) << "Received buy message at incorrect state, drop peer?.";
+        return;
+    }
+
+    // Alter state
+    _peerPluginState = PeerPluginState::mode_message_received;
+
+    // Note that peer is buyer
+    _peerPluginMode = PluginMode::Buy;
+
+    //
+    //_buyerPrice = buyMessage->
+
+    // Now what?
+}
+
+void PeerPlugin::processSellMessage(const SellMessage * sellMessage) {
+
+    // Check that last message received was either BEP10 extended handshake
+    // or passive message
+    if(!(_peerPluginState == PeerPluginState::BEP10_handshake_received ||
+       (_peerPluginState == PeerPluginState::mode_message_received && _clientPluginMode == PluginMode::Passive))) {
+
+        qCDebug(_category) << "Received buy message at incorrect state, drop peer?.";
+        return;
+    }
+
+    // Alter state
+    _peerPluginState = PeerPluginState::mode_message_received;
+
+    // Note that peer is seller
+    _peerPluginMode = PluginMode::Sell;
+
+    // Save seller price
+    _peerSellerPrice = sellMessage->price();
+
+    // Now what?
 }
 
 /*
 void PeerPlugin::setConfiguration(PeerPluginConfiguration * peerPluginConfiguration) {
-
 
     // We have now started
     _pluginStarted = true;

@@ -2,7 +2,7 @@
 #define SET_PLUGIN_MODE_TORRENT_PLUGIN_REQUEST_HPP
 
 #include "TorrentPluginRequest.hpp"
-#include "extension/StartedPluginMode.hpp"
+#include "extension/PluginMode.hpp"
 
 class SetPluginModeTorrentPluginRequest : public TorrentPluginRequest
 {

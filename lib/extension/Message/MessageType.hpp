@@ -1,9 +1,14 @@
 #ifndef MESSAGE_TYPE_HPP
 #define MESSAGE_TYPE_HPP
 
+// Extended messages part of BEP43 wire protocol
 enum class MessageType {
+
+    // First message is one of these
+    passive,
     buy,
     sell,
+
     setup_begin,
     setup_begin_reject,
     setup_contract,
@@ -18,7 +23,5 @@ enum class MessageType {
     end
 };
 
-// Number of messages
-#define NUMBER_OF_MESSAGES 14
 
 #endif // MESSAGE_TYPE_HPP

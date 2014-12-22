@@ -12,8 +12,7 @@
 #include "lib/controller/ControllerConfiguration.hpp"
 #include "lib/controller/TorrentConfiguration.hpp"
 #include "lib/extension/TorrentPluginConfiguration.hpp"
-#include "lib/extension/StartedPluginMode.hpp"
-#include "lib/extension/StartedPluginMode.hpp"
+#include "lib/extension/PluginMode.hpp"
 
 #include <libtorrent/torrent_info.hpp>
 #include <libtorrent/error_code.hpp>

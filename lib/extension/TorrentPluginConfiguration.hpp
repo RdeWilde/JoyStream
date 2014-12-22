@@ -1,7 +1,7 @@
 #ifndef TORRENT_PLUGIN_CONFIGURATION_HPP
 #define TORRENT_PLUGIN_CONFIGURATION_HPP
 
-#include "StartedPluginMode.hpp"
+#include "PluginMode.hpp"
 
 #include <libtorrent/entry.hpp> // because you cant forward declare typedefs (libtorrent::entry::dictionary_type)
 #include <libtorrent/peer_id.hpp> // sha1_hash

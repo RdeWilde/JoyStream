@@ -349,7 +349,7 @@ void TorrentPlugin::sendTorrentPluginStatusSignal() {
         end(_peerPlugins.end()); i != end; i++) {
 
         // Count as supporting plugin if extended handshake was successful
-        if((i->second)->getPeerBEP43SupportedStatus() == BEPSupportStatus::supported)
+        if((i->second)->peerBEP43SupportedStatus() == BEPSupportStatus::supported)
             numberOfPeersWithExtension++;
     }
 

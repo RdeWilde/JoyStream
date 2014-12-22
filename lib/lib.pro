@@ -49,7 +49,8 @@ SOURCES += \
     view/SellerTorrentPluginConfigurationDialog.cpp \
     view/BuyerTorrentPluginConfigurationDialog.cpp \
     extension/Alert/TorrentPluginAlert.cpp \
-    extension/Alert/TorrentPluginStatusAlert.cpp
+    extension/Alert/TorrentPluginStatusAlert.cpp \
+    extension/Message/PassiveMessage.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -96,7 +97,8 @@ HEADERS += \
     extension/Alert/TorrentPluginAlert.hpp \
     extension/Alert/AlertTypes.hpp \
     extension/Alert/TorrentPluginStatusAlert.hpp \
-    extension/PluginMode.hpp
+    extension/PluginMode.hpp \
+    extension/Message/PassiveMessage.hpp
 				
 FORMS += \
     view/mainwindow.ui \
