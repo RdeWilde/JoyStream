@@ -633,17 +633,28 @@ void PeerPlugin::startPlugin(PluginMode pluginMode) {
 
 void PeerPlugin::sendExtendedMessage(const ExtendedMessage * extendedMessage) {
 
+    // Length of message
+    quint32 messageLength = extendedMessage->length();
+
     // Allocate space for message buffer
-    QByteArray byteArray(extendedMessage->rawPayloadLength(), 0);
+    QByteArray byteArray(messageLength, 0);
 
     // Wrap buffer in stream
-    QDataStream extendedMessageStream(byteArray);
+    QDataStream stream(byteArray);
 
     // Write message into buffer through stream
-    extendedMessage->toRaw(_peerMapping, extendedMessageStream);
+    extendedMessage->wireForm(_peerMapping, stream);
 
-    // Send message buffer
-    //_bittorrentPeerConnection->wr
+    if(stream.status() != QDataStream::Status::Ok)
+        qCCritical(_category) << "Output stream in bad state after message write, message not sent.";
+    else {
+
+        // Get raw buffer
+        const char * constData = byteArray.constData(); // is zero terminated, but we dont care
+
+        // Send message buffer
+        _bittorrentPeerConnection->send_buffer(constData, messageLength);
+    }
 }
 
 void PeerPlugin::processExtendedMessage(ExtendedMessage * extendedMessage) {

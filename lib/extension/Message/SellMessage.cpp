@@ -17,17 +17,17 @@ MessageType SellMessage::getMessageType() const {
     return MessageType::sell;
 }
 
-quint32 SellMessage::rawPayloadLength() const {
-    return 3*sizeof(quint32);
+quint32 SellMessage::extendedPayloadLength() const {
+    return sizeof(quint32); //3*sizeof(quint32);
 }
 
-void SellMessage::toRaw(const ExtendedMessageIdMapping & mapping, QDataStream & extendedMessageStream) const {
+void SellMessage::wireForm(const ExtendedMessageIdMapping & mapping, QDataStream & stream) const {
 
-    // Write extended message id
-    extendedMessageStream << mapping.id(MessageType::buy);
+    // Write header
+    writeBEP10Header(stream, mapping.id(MessageType::sell));
 
     // Write payload fields
-    extendedMessageStream << price_; // << fee_ << minimum_;
+    stream << price_; // << fee_ << minimum_;
 }
 
 quint32 SellMessage::price() const

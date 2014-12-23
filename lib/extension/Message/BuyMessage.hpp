@@ -11,8 +11,8 @@ public:
      * Inherited from ExtendedMessage
      */
     MessageType getMessageType() const;
-    quint32 rawPayloadLength() const;
-    void toRaw(const ExtendedMessageIdMapping & mapping, QDataStream & stream) const;
+    quint32 extendedPayloadLength() const;
+    void wireForm(const ExtendedMessageIdMapping & mapping, QDataStream & stream) const;
 };
 
 #endif // BUY_MESSAGE_HPP

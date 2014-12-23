@@ -4,12 +4,12 @@ MessageType BuyMessage::getMessageType() const {
     return MessageType::buy;
 }
 
-quint32 BuyMessage::rawPayloadLength() const {
+quint32 BuyMessage::extendedPayloadLength() const {
     return 0;
 }
 
-void BuyMessage::toRaw(const ExtendedMessageIdMapping & mapping, QDataStream & extendedMessageStream) const {
+void BuyMessage::wireForm(const ExtendedMessageIdMapping & mapping, QDataStream & stream) const {
 
-    // Write extended message id
-    extendedMessageStream << mapping.id(MessageType::buy);
+    // Write header
+    writeBEP10Header(stream, mapping.id(MessageType::buy));
 }
