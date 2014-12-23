@@ -3,9 +3,9 @@
 #include "TorrentPluginConfiguration.hpp"
 #include "controller/Controller.hpp" // needed for connecting
 //#include "TorrentPluginStatus.hpp" // needed for connecting
-#include "PluginRequest/PluginRequest.hpp"
-#include "TorrentPluginRequest/TorrentPluginRequest.hpp"
-#include "PeerPluginRequest/PeerPluginRequest.hpp"
+#include "Request/PluginRequest.hpp"
+#include "Request/TorrentPluginRequest.hpp"
+#include "Request/PeerPluginRequest.hpp"
 #include "PeerPlugin.hpp"
 
 /*

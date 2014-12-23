@@ -40,17 +40,18 @@ SOURCES += \
     controller/TorrentConfiguration.cpp \
     extension/TorrentPluginConfiguration.cpp \
     extension/PeerPluginConfiguration.cpp \
-    extension/PluginRequest/PluginRequest.cpp \
-    extension/TorrentPluginRequest/TorrentPluginRequest.cpp \
-    extension/PeerPluginRequest/PeerPluginRequest.cpp \
-    extension/TorrentPluginRequest/SetConfigurationTorrentPluginRequest.cpp \
+    extension/Request/PluginRequest.cpp \
+    extension/Request/TorrentPluginRequest.cpp \
+    extension/Request/PeerPluginRequest.cpp \
+    extension/Request/SetConfigurationTorrentPluginRequest.cpp \
     controller/TorrentStatus.cpp \
-    extension/TorrentPluginRequest/SetPluginModeTorrentPluginRequest.cpp \
+    extension/Request/SetPluginModeTorrentPluginRequest.cpp \
     view/SellerTorrentPluginConfigurationDialog.cpp \
     view/BuyerTorrentPluginConfigurationDialog.cpp \
     extension/Alert/TorrentPluginAlert.cpp \
     extension/Alert/TorrentPluginStatusAlert.cpp \
-    extension/Message/PassiveMessage.cpp
+    extension/Message/PassiveMessage.cpp \
+    extension/Request/StartPluginTorrentPluginRequest.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -83,22 +84,23 @@ HEADERS += \
     extension/TorrentPluginConfiguration.hpp \
     extension/PeerPluginConfiguration.hpp \
     extension/BEPSupportStatus.hpp \
-    extension/PluginRequest/PluginRequest.hpp \
-    extension/TorrentPluginRequest/TorrentPluginRequest.hpp \
-    extension/PeerPluginRequest/PeerPluginRequest.hpp \
-    extension/TorrentPluginRequest/TorrentPluginRequestType.hpp \
-    extension/PluginRequest/PluginRequestType.hpp \
-    extension/PeerPluginRequest/PeerPluginRequestType.hpp \
-    extension/TorrentPluginRequest/SetConfigurationTorrentPluginRequest.hpp \
+    extension/Request/PluginRequest.hpp \
+    extension/Request/TorrentPluginRequest.hpp \
+    extension/Request/PeerPluginRequest.hpp \
+    extension/Request/TorrentPluginRequestType.hpp \
+    extension/Request/PluginRequestType.hpp \
+    extension/Request/PeerPluginRequestType.hpp \
+    extension/Request/SetConfigurationTorrentPluginRequest.hpp \
     controller/TorrentStatus.hpp \
-    extension/TorrentPluginRequest/SetPluginModeTorrentPluginRequest.hpp \
+    extension/Request/SetPluginModeTorrentPluginRequest.hpp \
     view/SellerTorrentPluginConfigurationDialog.hpp \
     view/BuyerTorrentPluginConfigurationDialog.hpp \
     extension/Alert/TorrentPluginAlert.hpp \
     extension/Alert/AlertTypes.hpp \
     extension/Alert/TorrentPluginStatusAlert.hpp \
     extension/PluginMode.hpp \
-    extension/Message/PassiveMessage.hpp
+    extension/Message/PassiveMessage.hpp \
+    extension/Request/StartPluginTorrentPluginRequest.hpp
 				
 FORMS += \
     view/mainwindow.ui \

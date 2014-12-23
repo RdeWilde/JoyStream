@@ -4,6 +4,7 @@
 // Type of torrent plugin request
 enum class TorrentPluginRequestType {
     SetConfiguration,
+    StartPlugin,
     SetPluginMode
 };
 

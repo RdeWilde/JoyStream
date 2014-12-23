@@ -5,8 +5,10 @@
 #include "PeerPluginConfiguration.hpp"
 #include "PeerPluginStatus.hpp" // signal parameter
 #include "controller/Controller.hpp" // needed to connect
-#include "TorrentPluginRequest/TorrentPluginRequest.hpp"
-#include "TorrentPluginRequest/SetConfigurationTorrentPluginRequest.hpp"
+#include "Request/TorrentPluginRequest.hpp"
+#include "Request/SetConfigurationTorrentPluginRequest.hpp"
+#include "Request/StartPluginTorrentPluginRequest.hpp"
+#include "Request/SetPluginModeTorrentPluginRequest.hpp"
 
 #include "Alert/TorrentPluginStatusAlert.hpp"
 
@@ -225,43 +227,29 @@ void TorrentPlugin::processTorrentPluginRequest(const TorrentPluginRequest * tor
 
     qCDebug(_category) << "processTorrentPluginRequest";
 
-    switch(torrentPluginRequest->getTorrentPluginRequestType()) {
+    if(const StartPluginTorrentPluginRequest * r = dynamic_cast<const StartPluginTorrentPluginRequest *>(torrentPluginRequest)) {
 
-        case TorrentPluginRequestType::SetConfiguration:
+        qCDebug(_category) << "StartPluginTorrentPluginRequest";
+        processStartPluginRequest(r);
+    } else if(const SetConfigurationTorrentPluginRequest * r = dynamic_cast<const SetConfigurationTorrentPluginRequest *>(torrentPluginRequest)) {
 
-            processSetConfigurationTorrentPluginRequest(static_cast<const SetConfigurationTorrentPluginRequest *>(torrentPluginRequest));
-            break;
+        qCDebug(_category) << "SetConfigurationTorrentPluginRequest";
+        processSetConfigurationTorrentPluginRequest(r);
+    } else if(const SetPluginModeTorrentPluginRequest * r = dynamic_cast<const SetPluginModeTorrentPluginRequest *>(torrentPluginRequest)) {
 
-        case TorrentPluginRequestType::SetPluginMode:
-
-            //processSetPluginModeTorrentPluginRequest(static_cast<const SetPluginModeTorrentPluginRequest *>(torrentPluginRequest));
-            break;
+        qCDebug(_category) << "SetConfigurationTorrentPluginRequest";
+        //processSetPluginModeTorrentPluginRequest(r);
     }
+
 }
 
-void TorrentPlugin::processSetConfigurationTorrentPluginRequest(const SetConfigurationTorrentPluginRequest * setConfigurationTorrentPluginRequest) {
-
-    /*
-        !!!!what if we received this already once before??!!!
-
-        for all peer plugin configurations in torrent configurations,
-
-        -add to queue of critical endpoints you are trying to reach?
-        -this also means that you should not just start buying and selling shit from others,
-        you are in a special recovery mode
-
-        -otherwise, if we didnt have any peers hanging arround, just gothrough
-        _peerPlugin objects which have had all NULL configuration, give them
-        basic configuration so it can change its operation.
-
-        AVOID THIS WHOLE MESS BY SIMPLY NOT SAVING PEER CONFIGURATION FOR NOW
-    */
+void TorrentPlugin::processStartPluginRequest(const StartPluginTorrentPluginRequest * startPluginTorrentPluginRequest) {
 
     // We have now started
     _pluginStarted = true;
 
     // Get configuration by removing constness, maybee in future we send by value
-    TorrentPluginConfiguration * torrentPluginConfiguration = const_cast<TorrentPluginConfiguration *>(setConfigurationTorrentPluginRequest->getTorrentPluginConfiguration());
+    TorrentPluginConfiguration * torrentPluginConfiguration = const_cast<TorrentPluginConfiguration *>(startPluginTorrentPluginRequest->getTorrentPluginConfiguration());
 
     // Determine which one to use
     // if we got new one, use that one, if we didn
@@ -296,6 +284,27 @@ void TorrentPlugin::processSetConfigurationTorrentPluginRequest(const SetConfigu
         // Start plugin in given mode
         peerPlugin->startPlugin(_torrentPluginConfiguration->getStartedPluginMode());
     }
+}
+
+void TorrentPlugin::processSetConfigurationTorrentPluginRequest(const SetConfigurationTorrentPluginRequest * setConfigurationTorrentPluginRequest) {
+
+    /*
+        !!!!what if we received this already once before??!!!
+
+        for all peer plugin configurations in torrent configurations,
+
+        -add to queue of critical endpoints you are trying to reach?
+        -this also means that you should not just start buying and selling shit from others,
+        you are in a special recovery mode
+
+        -otherwise, if we didnt have any peers hanging arround, just gothrough
+        _peerPlugin objects which have had all NULL configuration, give them
+        basic configuration so it can change its operation.
+
+        AVOID THIS WHOLE MESS BY SIMPLY NOT SAVING PEER CONFIGURATION FOR NOW
+    */
+
+    // LATER
 }
 
 PeerPlugin * TorrentPlugin::getPeerPlugin(const libtorrent::tcp::endpoint & endPoint) {

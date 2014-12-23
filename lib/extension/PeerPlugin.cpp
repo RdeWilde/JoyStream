@@ -5,7 +5,7 @@
 #include "controller/Controller.hpp" // needed to connect
 #include "Config.hpp"
 #include "PeerPluginStatus.hpp"
-#include "PeerPluginRequest/PeerPluginRequest.hpp"
+#include "Request/PeerPluginRequest.hpp"
 #include "Message/MessageType.hpp"
 #include "Message/ExtendedMessage.hpp"
 #include "Message/PassiveMessage.hpp"

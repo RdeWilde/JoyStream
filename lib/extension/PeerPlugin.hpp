@@ -2,7 +2,7 @@
 #define PEER_PLUGIN_HPP
 
 #include "PeerPluginConfiguration.hpp"
-#include "PeerPluginRequest/PeerPluginRequest.hpp"
+#include "Request/PeerPluginRequest.hpp"
 #include "PluginMode.hpp"
 
 #include <libtorrent/extensions.hpp>

@@ -73,6 +73,7 @@ public:
     // Process torrent plugin requests
     void processTorrentPluginRequest(const TorrentPluginRequest * torrentPluginRequest);
     void processStartPluginRequest(const StartPluginTorrentPluginRequest * startPluginTorrentPluginRequest);
+    void processSetConfigurationTorrentPluginRequest(const SetConfigurationTorrentPluginRequest * setConfigurationTorrentPluginRequest);
 
     //void processSetConfigurationTorrentPluginRequest(const SetConfigurationTorrentPluginRequest * setConfigurationTorrentPluginRequest);
     //void processSetPluginModeTorrentPluginRequest(const SetPluginModeTorrentPluginRequest * setPluginModeTorrentPluginRequest);

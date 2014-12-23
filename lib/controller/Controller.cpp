@@ -5,8 +5,9 @@
 #include "view/addtorrentdialog.hpp"
 #include "controller/Exceptions/ListenOnException.hpp"
 #include "controller/TorrentConfiguration.hpp"
-#include "extension/TorrentPluginRequest/SetConfigurationTorrentPluginRequest.hpp"
 #include "extension/Alert/TorrentPluginStatusAlert.hpp"
+#include "extension/Request/SetConfigurationTorrentPluginRequest.hpp"
+#include "extension/Request/StartPluginTorrentPluginRequest.hpp"
 
 #include <libtorrent/alert_types.hpp>
 #include <libtorrent/error_code.hpp>
@@ -536,7 +537,7 @@ bool Controller::startTorrent(const libtorrent::sha1_hash & info_hash) {
 }
 
 void Controller::updateTorrentPluginConfiguration(const libtorrent::sha1_hash & infoHash, TorrentPluginConfiguration * torrentPluginConfiguration) {
-    _plugin->submitTorrentPluginRequest(new SetConfigurationTorrentPluginRequest(infoHash, torrentPluginConfiguration));
+    _plugin->submitTorrentPluginRequest(new StartPluginTorrentPluginRequest(infoHash, torrentPluginConfiguration));
 }
 
 bool Controller::addTorrent(const TorrentConfiguration & torrentConfiguration, bool promptUserForTorrentPluginConfiguration) {
