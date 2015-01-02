@@ -85,7 +85,6 @@ void Plugin::on_tick() {
     // Process requests from controller
     processesRequests();
 
-
 }
 
 bool Plugin::on_optimistic_unchoke(std::vector<libtorrent::policy::peer*> & peers) {
@@ -104,8 +103,8 @@ void Plugin::removeTorrentPlugin(const libtorrent::sha1_hash & info_hash) {
 
 }
 
-void Plugin::sendAlertToSession(const libtorrent::alert & _alert) {
-    //_session->post_alert(_alert);
+void Plugin::sendAlertToSession(const libtorrent::alert & alert) {
+    _session->m_alerts.post_alert(alert);
 }
 
 void Plugin::submitPluginRequest(PluginRequest * pluginRequest) {

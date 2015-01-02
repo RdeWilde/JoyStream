@@ -366,7 +366,7 @@ void TorrentPlugin::sendTorrentPluginStatusSignal() {
     TorrentPluginStatusAlert torrentPluginStatusAlert(_torrent->info_hash(), numberOfPeers, numberOfPeersWithExtension, _pluginStarted, 0, 0);
 
     // Send torrent plugin
-    _plugin->sendAlertToSession(torrentPluginStatusAlert);
+    _torrent->alerts().post_alert(torrentPluginStatusAlert);
 }
 
 /*

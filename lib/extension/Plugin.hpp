@@ -106,7 +106,7 @@ public:
     void removeTorrentPlugin(const libtorrent::sha1_hash & info_hash);
 
     // Send alert to session object
-    void sendAlertToSession(const libtorrent::alert & _alert);
+    void sendAlertToSession(const libtorrent::alert & alert);
 
     /**
      * Synchronized routines called from controller by Qt thread.

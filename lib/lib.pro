@@ -8,7 +8,7 @@ CONFIG  += create_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-
 CONFIG  += console
 CONFIG  += c++11 # Needed for class enum
 
-QT     += core gui
+QT     += core gui network
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets # Needed for including QApplication
 
 INCLUDEPATH += $$PWD # be able to include w.r.t root of this project
@@ -51,7 +51,8 @@ SOURCES += \
     extension/Alert/TorrentPluginAlert.cpp \
     extension/Alert/TorrentPluginStatusAlert.cpp \
     extension/Message/PassiveMessage.cpp \
-    extension/Request/StartPluginTorrentPluginRequest.cpp
+    extension/Request/StartPluginTorrentPluginRequest.cpp \
+    extension/BitCoin/Client.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -100,7 +101,8 @@ HEADERS += \
     extension/Alert/TorrentPluginStatusAlert.hpp \
     extension/PluginMode.hpp \
     extension/Message/PassiveMessage.hpp \
-    extension/Request/StartPluginTorrentPluginRequest.hpp
+    extension/Request/StartPluginTorrentPluginRequest.hpp \
+    extension/BitCoin/Client.hpp
 				
 FORMS += \
     view/mainwindow.ui \
