@@ -21,6 +21,7 @@ class PeerPluginConfiguration;
 class SetConfigurationTorrentPluginRequest;
 class SetPluginModeTorrentPluginRequest;
 class StartPluginTorrentPluginRequest;
+class TorrentPluginStatusAlert;
 
 class TorrentPlugin : public QObject, public libtorrent::torrent_plugin {
 
@@ -125,8 +126,11 @@ protected:
 
 private:
 
-    // Subroutines for the tick() method
-    void sendTorrentPluginStatusSignal();
+    // Sends plugin status Subroutines for the tick() method
+    TorrentPluginStatusAlert createTorrentPluginStatusAlert();
+
+    // Sends alert
+    void sentTorrentPluginAlert(const TorrentPluginStatusAlert & alert);
 
     // Checks that peer is not banned and that it is a bittorrent connection
     bool installPluginOnNewConnection(libtorrent::peer_connection * peerConnection) const;

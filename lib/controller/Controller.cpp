@@ -2,10 +2,11 @@
 #include "Controller.hpp"
 #include "TorrentStatus.hpp"
 #include "Config.hpp"
-#include "view/addtorrentdialog.hpp"
+//#include "view/addtorrentdialog.hpp"
 #include "controller/Exceptions/ListenOnException.hpp"
 #include "controller/TorrentConfiguration.hpp"
 #include "extension/Alert/TorrentPluginStatusAlert.hpp"
+#include "extension/Alert/PluginStatusAlert.hpp"
 #include "extension/Request/SetConfigurationTorrentPluginRequest.hpp"
 #include "extension/Request/StartPluginTorrentPluginRequest.hpp"
 
@@ -39,7 +40,7 @@ Q_DECLARE_METATYPE(libtorrent::torrent_status)
 // Register type for QMetaObject::invokeMethod
 Q_DECLARE_METATYPE(const libtorrent::alert*)
 
-Controller::Controller(const ControllerConfiguration & controllerConfiguration, bool showView, QLoggingCategory & category)
+Controller::Controller(const ControllerConfiguration & controllerConfiguration, bool showView, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category)
     : _session(libtorrent::fingerprint(CLIENT_FINGERPRINT
                                       ,BITSWAPR_VERSION_MAJOR
                                       ,BITSWAPR_VERSION_MINOR
@@ -55,7 +56,8 @@ Controller::Controller(const ControllerConfiguration & controllerConfiguration, 
               +libtorrent::alert::stats_notification)
     , _sourceForLastResumeDataCall(NONE)
     , _category(category)
-    , _plugin(new Plugin(this, _category))
+    , _manager(manager)
+    , _plugin(new Plugin(this, _manager, bitcoindAccount, _category))
     , _portRange(controllerConfiguration.getPortRange())
     , _view(this, _category)
     , _numberOfOutstandingResumeDataCalls(0) {
@@ -477,6 +479,10 @@ void Controller::processTorrentCheckedAlert(libtorrent::torrent_checked_alert co
 
 void Controller::processTorrentPluginStatusAlert(const TorrentPluginStatusAlert * p) {
     _view.updateTorrentPluginStatus(p);
+}
+
+void Controller::processPluginStatusAlert(const PluginStatusAlert * p) {
+    _view.updatePluginStatus(p);
 }
 
 bool Controller::removeTorrent(const libtorrent::sha1_hash & info_hash) {

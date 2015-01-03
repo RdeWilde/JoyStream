@@ -157,14 +157,14 @@
      <string/>
     </property>
     <property name="pixmap">
-     <pixmap>../resources/BitSwaprResized.png</pixmap>
+     <pixmap resource="ui.qrc">:/images/images/BitSwaprResized.png</pixmap>
     </property>
    </widget>
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>881</x>
-      <y>30</y>
+      <x>870</x>
+      <y>42</y>
       <width>51</width>
       <height>53</height>
      </rect>
@@ -173,62 +173,35 @@
      <string/>
     </property>
     <property name="pixmap">
-     <pixmap>../resources/Bitcoin_Logo_31.png</pixmap>
+     <pixmap resource="ui.qrc">:/images/images/Bitcoin_Logo_31.png</pixmap>
     </property>
    </widget>
-   <widget class="QLabel" name="label_2">
+   <widget class="QLabel" name="balanceLabel">
     <property name="geometry">
      <rect>
-      <x>782</x>
-      <y>38</y>
-      <width>91</width>
-      <height>26</height>
+      <x>699</x>
+      <y>56</y>
+      <width>89</width>
+      <height>23</height>
      </rect>
     </property>
     <property name="font">
      <font>
       <pointsize>12</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
      </font>
     </property>
     <property name="text">
-     <string>Up: +35m฿</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_3">
-    <property name="geometry">
-     <rect>
-      <x>768</x>
-      <y>52</y>
-      <width>105</width>
-      <height>26</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>12</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Down: -20m฿</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_4">
-    <property name="geometry">
-     <rect>
-      <x>244</x>
-      <y>50</y>
-      <width>46</width>
-      <height>13</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>777</string>
+     <string>N/A</string>
     </property>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="ui.qrc"/>
+ </resources>
  <connections/>
 </ui>

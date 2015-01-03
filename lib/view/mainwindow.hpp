@@ -27,6 +27,7 @@ class PeerPlugin;
 class PeerPluginStatus;
 class TorrentViewModel;
 class TorrentPluginStatusAlert;
+class PluginStatusAlert;
 
 class MainWindow : public QMainWindow
 {
@@ -49,6 +50,7 @@ public:
     void updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector);
     void updateTorrentStatus(const libtorrent::torrent_status & torrentStatus); // start, stopp, stats
     void updateTorrentPluginStatus(const TorrentPluginStatusAlert * torrentPluginStatusAlert);// TorrentPluginStatus status
+    void updatePluginStatus(const PluginStatusAlert * p);
 
     void addPeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint);
     void updatePeerPluginStatus(PeerPluginStatus status);

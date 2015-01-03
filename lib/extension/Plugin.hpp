@@ -1,6 +1,8 @@
 #ifndef PLUGIN_HPP
 #define PLUGIN_HPP
 
+#include "BitCoin/Client.hpp"
+
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
 #include <libtorrent/aux_/session_impl.hpp>
@@ -24,6 +26,7 @@ class TorrentPlugin;
 class PluginRequest;
 class TorrentPluginRequest;
 class PeerPluginRequest;
+class QNetworkReply;
 
 namespace libtorrent {
     class alert;
@@ -44,8 +47,15 @@ private:
     // Maps info hash to pointer to corresponding torrent plugin
     std::map<libtorrent::sha1_hash, TorrentPlugin *> _torrentPlugins; // Must be pointers, since TorrentPlugin::_category is reference, hence type is not copyable
 
+    // BitCoind wrapper
+    BitCoindRPC::Client _btcClient;
+
     // Logging category
     QLoggingCategory & _category;
+
+    // Has this plugin been added to session.
+    // Do not use the _session pointer before this.
+    bool _addedToSession;
 
     // Plugin Request
     std::queue<PluginRequest *> _pluginRequestQueue; // queue
@@ -66,10 +76,17 @@ private:
     void processesRequests();
     void processPluginRequest(const PluginRequest * pluginRequest);
 
+    void processStatus();
+    QNetworkReply * _getBalanceReply;
+
+    /**
+     *
+     */
+
 public:
 
     // Constructor
-    Plugin(Controller * controller, QLoggingCategory & category);
+    Plugin(Controller * controller, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category);
 
     // Destructor
     ~Plugin();

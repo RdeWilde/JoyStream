@@ -52,7 +52,8 @@ SOURCES += \
     extension/Alert/TorrentPluginStatusAlert.cpp \
     extension/Message/PassiveMessage.cpp \
     extension/Request/StartPluginTorrentPluginRequest.cpp \
-    extension/BitCoin/Client.cpp
+    extension/BitCoin/Client.cpp \
+    extension/Alert/PluginStatusAlert.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -102,17 +103,14 @@ HEADERS += \
     extension/PluginMode.hpp \
     extension/Message/PassiveMessage.hpp \
     extension/Request/StartPluginTorrentPluginRequest.hpp \
-    extension/BitCoin/Client.hpp
+    extension/BitCoin/Client.hpp \
+    extension/Alert/PluginStatusAlert.hpp
 				
 FORMS += \
     view/mainwindow.ui \
     view/addtorrentdialog.ui \
     view/SellerTorrentPluginConfigurationDialog.ui \
     view/BuyerTorrentPluginConfigurationDialog.ui
-
-OTHER_FILES += \
-            resources/BitSwapr_mark_32.png
-
 
 # Required for including libtorrent and boost headers
 include(../defaults.pri)
@@ -141,3 +139,6 @@ CONFIG(release, debug|release) {
 
 # Linking with boost
 LIBS += -L$$BOOST_LOCATION/stage/lib
+
+RESOURCES += \
+    view/ui.qrc

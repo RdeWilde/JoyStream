@@ -2,6 +2,7 @@
 #include <QCommandLineParser>
 #include <QString>
 #include <QDir>
+#include <QNetworkAccessManager>
 
 #include <iostream>
 
@@ -90,7 +91,13 @@ void main(int argc, char* argv[]) {
             controllerConfiguration = ControllerConfiguration(fileString.c_str());
     }
 
-    // Load torrent
+    // Network access manager instance used by all code trying to use network
+    QNetworkAccessManager manager;
+
+    /**
+     * Load torrent ================================================
+     */
+
     // Torrent file: (UTORRENT-TEST.torrent, VUZE-test.mp4.torrent)
     const char * torrent  = "C:/Users/Sindre/Desktop/TORRENTS/VUZE-test.mp4.torrent";
 
@@ -110,7 +117,7 @@ void main(int argc, char* argv[]) {
     QLoggingCategory * buyerCategory = global_log_manager.createLogger("buyer", true, false);
 
     // Create main client
-    Controller buyerClient(controllerConfiguration, true, *buyerCategory);
+    Controller buyerClient(controllerConfiguration, true, manager, "Faucet http://faucet.xeno-genesis.com/",*buyerCategory);
 
     std::cout << "Started main client." << std::endl;
 

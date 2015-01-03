@@ -8,10 +8,8 @@
 #include "controller/Controller.hpp"
 #include "extension/TorrentPlugin.hpp"
 #include "extension/PeerPlugin.hpp"
-
-//#include "extension/TorrentPluginStatus.hpp"
 #include "extension/Alert/TorrentPluginStatusAlert.hpp"
-
+#include "extension/Alert/PluginStatusAlert.hpp"
 #include "extension/PeerPluginStatus.hpp"
 #include "extension/TorrentPluginConfiguration.hpp"
 
@@ -360,6 +358,10 @@ void MainWindow::updateTorrentPluginStatus(const TorrentPluginStatusAlert * torr
 
     // Balance
     torrentViewModel->updateBalance(torrentPluginStatusAlert->tokensReceived(), torrentPluginStatusAlert->tokensSent());
+}
+
+void MainWindow::updatePluginStatus(const PluginStatusAlert * p) {
+    ui->balanceLabel->setText(QString::number(p->balance()/1000) + "mBTC");
 }
 
 void MainWindow::addPeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint) {

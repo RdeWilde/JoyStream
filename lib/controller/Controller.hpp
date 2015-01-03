@@ -16,9 +16,11 @@
 #include <QObject>
 #include <QTimer>
 #include <QLoggingCategory>
+#include <QNetworkAccessManager>
 
 class TorrentStatus;
 class TorrentPluginStatusAlert;
+class PluginStatusAlert;
 
 namespace libtorrent {
     class peer_connection;
@@ -35,6 +37,9 @@ private:
 
     // Logging category
     QLoggingCategory & _category;
+
+    // Network access manager reference
+    QNetworkAccessManager & _manager;
 
     // Plugin: constructor initializatin list expects plugin to appear after category_
     // should this be weak?
@@ -63,6 +68,7 @@ private:
     void processTorrentPausedAlert(libtorrent::torrent_paused_alert const * p);
     void processTorrentCheckedAlert(libtorrent::torrent_checked_alert const * p);
     void processTorrentPluginStatusAlert(const TorrentPluginStatusAlert * p);
+    void processPluginStatusAlert(const PluginStatusAlert * p);
 
     // Tell libtorrent try save resume data for all torrents needing it
     int makeResumeDataCallsForAllTorrents();
@@ -108,7 +114,7 @@ private:
 public:
 
 	// Constructor starting session with given state
-    Controller(const ControllerConfiguration & controllerConfiguration, bool showView, QLoggingCategory & category);
+    Controller(const ControllerConfiguration & controllerConfiguration, bool showView, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category);
 
     // Callback routine called by libtorrent dispatcher routine
     void libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::alert> alertAutoPtr);

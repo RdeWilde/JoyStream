@@ -8,16 +8,28 @@
 #include "Request/PeerPluginRequest.hpp"
 #include "PeerPlugin.hpp"
 
+#include "Alert/PluginStatusAlert.hpp"
+
+#include <QNetworkReply>
+
 /*
 #include <QMetaType>
 Q_DECLARE_METATYPE(libtorrent::tcp::endpoint)
 */
 // #include <libtorrent/socket.hpp> // tcp::endpoint
 
-Plugin::Plugin(Controller * controller, QLoggingCategory & category)
+Plugin::Plugin(Controller * controller, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category)
     : _controller(controller)
     , _session(NULL)
-    , _category(category) {
+    , _btcClient("127.0.0.1"
+                 ,8332
+                 ,"bitcoinrpc"
+                 ,"DDKVyZDNros2cKvkk5KpGmJWGazzYMezoWTeKaXcqxEj"
+                 ,bitcoindAccount
+                 ,manager)
+    , _category(category)
+    , _getBalanceReply(NULL)
+    , _addedToSession(false) {
 }
 
 Plugin::~Plugin() {
@@ -73,7 +85,11 @@ boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::to
 }
 
 void Plugin::added(libtorrent::aux::session_impl * session) {
+
+    qCDebug(_category) << "Added";
+
     _session = session;
+    _addedToSession = true;
 }
 
 void Plugin::on_alert(libtorrent::alert const * a) {
@@ -82,8 +98,15 @@ void Plugin::on_alert(libtorrent::alert const * a) {
 
 void Plugin::on_tick() {
 
+    // Only do processing if plugin has been added to session
+    if(!_addedToSession)
+        return;
+
     // Process requests from controller
     processesRequests();
+
+    //
+    processStatus();
 
 }
 
@@ -212,6 +235,24 @@ void Plugin::processPluginRequest(const PluginRequest * pluginRequest) {
 
     switch(pluginRequest->getPluginRequestType()) {
 
+    }
+}
+
+void Plugin::processStatus() {
+
+    if(_getBalanceReply == NULL)
+        _getBalanceReply = _btcClient.getBalance();
+    else if(_getBalanceReply->isFinished()) {
+
+        // If the reply is valid, we get balance
+        double balance = BitCoindRPC::Client::getBalance(_getBalanceReply);
+
+        // Delete reply and reset reply
+        //delete _getBalanceReply;
+        _getBalanceReply = NULL;
+
+        // Create and send plugin status alert
+        sendAlertToSession(PluginStatusAlert(balance));
     }
 }
 

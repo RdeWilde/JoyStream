@@ -4,6 +4,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QThread> // QThread::currentThread()
 
 using namespace BitCoindRPC;
 
@@ -28,6 +29,10 @@ Client::Client(QString host, int port, QString user, QString password, QString a
     QObject::connect(&_manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(finished(QNetworkReply*)));
 }
 
+QNetworkReply * Client::ownerPOST(const QNetworkRequest & request, const QByteArray & payload) {
+    return _manager.post(request, payload);
+}
+
 QNetworkReply * Client::rpc(const QString & method, const QJsonArray & parameters) {
 
     // Create RPC payload: http://json-rpc.org/wiki/specification
@@ -48,7 +53,23 @@ QNetworkReply * Client::rpc(const QString & method, const QJsonArray & parameter
     request.setAttribute(QNetworkRequest::User, QVariant(method)); // used in Client::finished routine
 
     // POST RPC and return network reply pointer
-    return _manager.post(request, payload);
+    Qt::ConnectionType type;
+
+    // Use direct invocation if we are on owner thread, otherwise block
+    if(QThread::currentThread() == _manager.thread())
+        type = Qt::DirectConnection;
+    else
+        type = Qt::BlockingQueuedConnection;
+
+    QNetworkReply * reply;
+    QMetaObject::invokeMethod(this
+                              ,"ownerPOST"
+                              ,type
+                              ,Q_RETURN_ARG(QNetworkReply*, reply)
+                              ,Q_ARG(QNetworkRequest, request)
+                              ,Q_ARG(QByteArray, payload));
+
+    return reply;
 }
 
 QJsonValue Client::parse(QNetworkReply * reply) {
@@ -89,6 +110,10 @@ void Client::finished(QNetworkReply * reply) {
 
     // Get method corresponding to reply
     QNetworkRequest request = reply->request();
+
+   // QByteBuffer b = reply->peek(reply->bytesAvailable());
+   // Debug() << QString(b);
+
     QString method = request.attribute(QNetworkRequest::User).toString();
 
     // Parse response and emit correspondig signal

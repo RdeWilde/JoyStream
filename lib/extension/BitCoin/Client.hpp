@@ -18,6 +18,9 @@ public:
     // Constructor
     Client(QString host, int port, QString user, QString password, QString account, QNetworkAccessManager & manager);
 
+    // Routine for posting on manager thread
+    Q_INVOKABLE QNetworkReply * ownerPOST(const QNetworkRequest & request, const QByteArray & payload);
+
     // Asynchronous routines mkaing bitcoind RPC
     // Corresponds to https://en.bitcoin.it/wiki/Original_Bitcoin_client/API_Calls_list
     QNetworkReply * getBlockCount();

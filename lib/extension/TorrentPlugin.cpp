@@ -104,7 +104,10 @@ void TorrentPlugin::tick() {
     //qCDebug(_category) << "TorrentPlugin.tick()";
 
     // Send status signal
-    sendTorrentPluginStatusSignal();
+    TorrentPluginStatusAlert alert = createTorrentPluginStatusAlert();
+
+    // Send torrent plugin
+    sentTorrentPluginAlert(alert);
 }
 
 bool TorrentPlugin::on_resume() {
@@ -349,7 +352,7 @@ const libtorrent::sha1_hash & TorrentPlugin::getInfoHash() const {
 }
 */
 
-void TorrentPlugin::sendTorrentPluginStatusSignal() {
+TorrentPluginStatusAlert TorrentPlugin::createTorrentPluginStatusAlert() {
 
     int numberOfPeers = _peerPlugins.size();
 
@@ -363,11 +366,13 @@ void TorrentPlugin::sendTorrentPluginStatusSignal() {
     }
 
     // Create torrent plugin alert
-    TorrentPluginStatusAlert torrentPluginStatusAlert(_torrent->info_hash(), numberOfPeers, numberOfPeersWithExtension, _pluginStarted, 0, 0);
-
-    // Send torrent plugin
-    _torrent->alerts().post_alert(torrentPluginStatusAlert);
+    return TorrentPluginStatusAlert(_torrent->info_hash(), numberOfPeers, numberOfPeersWithExtension, _pluginStarted, 0, 0);
 }
+
+void TorrentPlugin::sentTorrentPluginAlert(const TorrentPluginStatusAlert & alert) {
+    _torrent->alerts().post_alert(alert);
+}
+
 
 /*
 const TorrentPluginConfiguration & TorrentPlugin::getTorrentPluginConfiguration() const {
