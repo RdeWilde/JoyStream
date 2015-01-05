@@ -1,26 +1,19 @@
 #include "Plugin.hpp"
 #include "TorrentPlugin.hpp"
 #include "TorrentPluginConfiguration.hpp"
-#include "controller/Controller.hpp" // needed for connecting
-//#include "TorrentPluginStatus.hpp" // needed for connecting
 #include "Request/PluginRequest.hpp"
 #include "Request/TorrentPluginRequest.hpp"
 #include "Request/PeerPluginRequest.hpp"
 #include "PeerPlugin.hpp"
-
 #include "Alert/PluginStatusAlert.hpp"
 
-#include <QNetworkReply>
+#include <boost/shared_ptr.hpp>
 
-/*
-#include <QMetaType>
-Q_DECLARE_METATYPE(libtorrent::tcp::endpoint)
-*/
-// #include <libtorrent/socket.hpp> // tcp::endpoint
+#include <QNetworkReply>
+#include <QLoggingCategory>
 
 Plugin::Plugin(Controller * controller, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category)
     : _controller(controller)
-    , _session(NULL)
     , _btcClient("127.0.0.1"
                  ,8332
                  ,"bitcoinrpc"
@@ -54,7 +47,7 @@ boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::to
     TorrentPlugin * torrentPlugin = new TorrentPlugin(this, newTorrent, _category, static_cast<TorrentPluginConfiguration *>(userData));
 
     // Add to collection
-    _torrentPlugins.insert(std::make_pair(newTorrent->info_hash(), torrentPlugin));
+    _torrentPlugins[newTorrent->info_hash()] = torrentPlugin;
 
     /*
     // Connect torrent plugin signal
@@ -84,9 +77,9 @@ boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::to
     return boost::shared_ptr<libtorrent::torrent_plugin>(torrentPlugin);
 }
 
-void Plugin::added(libtorrent::aux::session_impl * session) {
+void Plugin::added(boost::weak_ptr<libtorrent::aux::session_impl> session) {
 
-    qCDebug(_category) << "Added";
+    qCDebug(_category) << "Plugin added to session.";
 
     _session = session;
     _addedToSession = true;
@@ -127,14 +120,18 @@ void Plugin::removeTorrentPlugin(const libtorrent::sha1_hash & info_hash) {
 }
 
 void Plugin::sendAlertToSession(const libtorrent::alert & alert) {
-    _session->m_alerts.post_alert(alert);
+
+    if(boost::shared_ptr<libtorrent::aux::session_impl> s = _session.lock())
+        s->m_alerts.post_alert(alert);
+    else
+        qCDebug(_category) << "Session deleted.";
 }
 
 void Plugin::submitPluginRequest(PluginRequest * pluginRequest) {
 
     // Synchronized adding to queue
     _pluginRequestQueueMutex.lock();
-    _pluginRequestQueue.push(pluginRequest);
+    _pluginRequestQueue.enqueue(pluginRequest);
     _pluginRequestQueueMutex.unlock();
 }
 
@@ -142,7 +139,7 @@ void Plugin::submitTorrentPluginRequest(TorrentPluginRequest * torrentPluginRequ
 
     // Synchronized adding to queue
     _torrentPluginRequestQueueMutex.lock();
-    _torrentPluginRequestQueue.push(torrentPluginRequest);
+    _torrentPluginRequestQueue.enqueue(torrentPluginRequest);
     _torrentPluginRequestQueueMutex.unlock();
 }
 
@@ -150,7 +147,7 @@ void Plugin::submitPeerPluginRequest(PeerPluginRequest * peerPluginRequest) {
 
     // Synchronized adding to queue
     _peerPluginRequestQueueMutex.lock();
-    _peerPluginRequestQueue.push(peerPluginRequest);
+    _peerPluginRequestQueue.enqueue(peerPluginRequest);
     _peerPluginRequestQueueMutex.unlock();
 }
 
@@ -159,14 +156,11 @@ void Plugin::processesRequests() {
     // Iterate _pluginRequestQueue
     while (!_pluginRequestQueue.empty()) {
 
-        // get request
-        PluginRequest * pluginRequest = _pluginRequestQueue.front();
+        // Removes the head request in the queue and returns it
+        PluginRequest * pluginRequest = _pluginRequestQueue.dequeue();
 
         // process
         processPluginRequest(pluginRequest);
-
-        // remove from queue
-        _pluginRequestQueue.pop();
 
         // delete
         delete pluginRequest;
@@ -175,8 +169,8 @@ void Plugin::processesRequests() {
     // Iterate _torrentPluginRequestQueue
     while (!_torrentPluginRequestQueue.empty()) {
 
-        // get request
-        TorrentPluginRequest * torrentPluginRequest = _torrentPluginRequestQueue.front();
+        // Removes the head request in the queue and returns it
+        TorrentPluginRequest * torrentPluginRequest = _torrentPluginRequestQueue.dequeue();
 
         // find corresponding torrent plugin
         std::map<libtorrent::sha1_hash, TorrentPlugin *>::iterator i = _torrentPlugins.find(torrentPluginRequest->_info_hash);
@@ -187,9 +181,6 @@ void Plugin::processesRequests() {
         else
             qCDebug(_category) << "Discarded request for torrent plugin which does not exist.";
 
-        // remove from queue
-        _torrentPluginRequestQueue.pop();
-
         // delete
         delete torrentPluginRequest;
     }
@@ -197,8 +188,8 @@ void Plugin::processesRequests() {
     // Iterate _peerPluginRequestQueue
     while (!_peerPluginRequestQueue.empty()) {
 
-        // get request
-        PeerPluginRequest * peerPluginRequest = _peerPluginRequestQueue.front();
+        // Removes the head request in the queue and returns it
+        PeerPluginRequest * peerPluginRequest = _peerPluginRequestQueue.dequeue();
 
         // find corresponding torrent plugin
         std::map<libtorrent::sha1_hash, TorrentPlugin *>::iterator i = _torrentPlugins.find(peerPluginRequest->_info_hash);
@@ -220,9 +211,6 @@ void Plugin::processesRequests() {
 
         } else
             qCDebug(_category) << "Discarded request for torrent plugin which does not exist.";
-
-        // remove from queue
-        _peerPluginRequestQueue.pop();
 
         // delete
         delete peerPluginRequest;

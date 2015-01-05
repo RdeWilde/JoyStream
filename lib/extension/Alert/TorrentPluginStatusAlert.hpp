@@ -3,6 +3,7 @@
 
 #include "TorrentPluginAlert.hpp"
 #include "AlertTypes.hpp"
+#include "../PluginMode.hpp"
 
 class TorrentPluginStatusAlert : public TorrentPluginAlert {
 
@@ -19,7 +20,8 @@ public:
                              ,int numberOfPeersWithExtension
                              ,bool pluginStarted
                              ,int tokensReceived
-                             ,int tokensSent);
+                             ,int tokensSent
+                             ,PluginMode mode);
 
 
     // Constructor based on reference
@@ -38,6 +40,7 @@ public:
     bool pluginStarted() const;
     int tokensReceived() const;
     int tokensSent() const;
+    PluginMode mode() const;
 
 private:
 
@@ -55,6 +58,9 @@ private:
 
     // Numbre of tokens sent during this session
     int _tokensSent;
+
+    // Mode of plugin
+    PluginMode _mode;
 };
 
 #endif // TORRENT_PLUGIN_STATUS_ALERT_HPP

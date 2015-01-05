@@ -4,6 +4,13 @@
 #include "TorrentPluginRequest.hpp"
 #include "extension/TorrentPluginConfiguration.hpp"
 
+/**
+ * @brief The StartPluginTorrentPluginRequest class
+ *
+ * MAKE TO DISTINCT TYPES LATER, START_WITH_EXISTING_CONFIGURATION,
+ * WHICH BASICALLY SAYS USE WHAT YOU HAVE. AND A START WITH CONFIGURITAON
+ * WHICH HAS A CONFIGURATION AS A MEMBER BY VALUE
+ */
 class StartPluginTorrentPluginRequest : public TorrentPluginRequest
 {
 

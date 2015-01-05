@@ -171,12 +171,30 @@ void TorrentViewModel::updatePeers(int numberOfPeers, int numberOfPeersWithExten
     peersItem->setText(peers);
 }
 
-void TorrentViewModel::updateMode(bool pluginOn) {
+void TorrentViewModel::updateMode(bool pluginOn, PluginMode mode) {
 
-    QString mode(pluginOn ? "BitSwapr" : "Classic");
+    QString modeText;
+
+    if(!pluginOn)
+        modeText = "Waiting";
+    else {
+
+        switch(mode) {
+            case PluginMode::Observee:
+                modeText = "Observe";
+                break;
+            case PluginMode::Sell:
+                modeText = "Sell";
+                break;
+            case PluginMode::Buy:
+                modeText = "Buy";
+                break;
+        }
+
+    }
 
     // Update item
-    modeItem->setText(mode);
+    modeItem->setText(modeText);
 }
 
 void TorrentViewModel::updateBalance(int tokensReceived, int tokensSent) {

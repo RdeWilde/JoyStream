@@ -22,6 +22,7 @@ class SetConfigurationTorrentPluginRequest;
 class SetPluginModeTorrentPluginRequest;
 class StartPluginTorrentPluginRequest;
 class TorrentPluginStatusAlert;
+class TorrentPluginAlert;
 
 class TorrentPlugin : public QObject, public libtorrent::torrent_plugin {
 
@@ -73,25 +74,13 @@ public:
 
     // Process torrent plugin requests
     void processTorrentPluginRequest(const TorrentPluginRequest * torrentPluginRequest);
-    void processStartPluginRequest(const StartPluginTorrentPluginRequest * startPluginTorrentPluginRequest);
-    void processSetConfigurationTorrentPluginRequest(const SetConfigurationTorrentPluginRequest * setConfigurationTorrentPluginRequest);
-
-    //void processSetConfigurationTorrentPluginRequest(const SetConfigurationTorrentPluginRequest * setConfigurationTorrentPluginRequest);
-    //void processSetPluginModeTorrentPluginRequest(const SetPluginModeTorrentPluginRequest * setPluginModeTorrentPluginRequest);
-
+        void processStartPluginRequest(const StartPluginTorrentPluginRequest * startPluginTorrentPluginRequest);
+        void processSetConfigurationTorrentPluginRequest(const SetConfigurationTorrentPluginRequest * setConfigurationTorrentPluginRequest);
 
     // Getters
     //libtorrent::torrent * getTorrent();
     //const libtorrent::sha1_hash & getInfoHash() const;
     //const TorrentPluginConfiguration & getTorrentPluginConfiguration() const;
-
-signals:
-
-    /*
-    void torrentPluginStatusUpdated(const TorrentPluginStatus & status);
-    void peerAdded(const PeerPluginId & peerPluginId);
-    void peerRemoved(const PeerPluginId & peerPluginId);
-    */
 
 protected:
 
@@ -113,24 +102,39 @@ protected:
     // Set of endpoints banned for irregular conduct during extended protocol
     std::set<libtorrent::tcp::endpoint> _irregularPeer;
 
-    // Indicates if torrent has been properly checked and
-    // if value in _torrentPluginConfiguration is reliable
-    // Perhaps a better way of representing state can be found in the future
-    // I hate relying on the null pointer below
+    /**
+     * Old state, before TorrentPluginConfiguration was absorbed
+     *
+     * // Indicates if torrent has been properly checked and
+     * // if value in _torrentPluginConfiguration is reliable
+     * // Perhaps a better way of representing state can be found in the future
+     * // I hate relying on the null pointer below
+     * bool _pluginStarted;
+
+     * // Configuration: only relevant when (_pluginStarted == true)
+     * // NULL means we dont buy or sell
+     * // NON-NULL means we are buyer or seller
+     * TorrentPluginConfiguration * _torrentPluginConfiguration;
+     */
+
+    // Plugin is active and therefore does tick() processing.
+    // Is set by controller after file torrent metadata is acquired and/or
+    // resume data has been validated.
     bool _pluginStarted;
 
-    // Configuration: only relevant when (_pluginStarted == true)
-    // NULL means we dont buy or sell
-    // NON-NULL means we are buyer or seller
-    TorrentPluginConfiguration * _torrentPluginConfiguration;
+    // Mode of client plugin
+    PluginMode _mode;
+
+    // Use the two sets below when accepting new peers in new_connect
+    bool _enableBanningSets;
 
 private:
 
-    // Sends plugin status Subroutines for the tick() method
-    TorrentPluginStatusAlert createTorrentPluginStatusAlert();
+    // Send torrent plugin alert to libtorrent session
+    void sendTorrentPluginAlert(const TorrentPluginAlert & alert);
 
-    // Sends alert
-    void sentTorrentPluginAlert(const TorrentPluginStatusAlert & alert);
+    // Creates torrent plugin status alert based on current state
+    TorrentPluginStatusAlert createTorrentPluginStatusAlert();
 
     // Checks that peer is not banned and that it is a bittorrent connection
     bool installPluginOnNewConnection(libtorrent::peer_connection * peerConnection) const;

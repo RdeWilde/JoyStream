@@ -4,8 +4,7 @@
 #include "ControllerConfiguration.hpp"
 #include "view/MainWindow.hpp"
 #include "extension/Plugin.hpp"
-//#include "extension/TorrentPluginStatus.hpp" // needed for QT moc
-#include "extension/PeerPluginStatus.hpp" // needed for QT moc
+#include "extension/PeerPluginStatus.hpp" // needed for QT moc <==== Remove later
 
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>

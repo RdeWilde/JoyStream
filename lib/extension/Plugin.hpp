@@ -5,20 +5,19 @@
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
-#include <libtorrent/aux_/session_impl.hpp>
 #include <libtorrent/alert.hpp>
 #include <libtorrent/policy.hpp>
 #include <libtorrent/peer.hpp>
 #include <libtorrent/entry.hpp>
 #include <libtorrent/lazy_entry.hpp>
 #include <libtorrent/peer_id.hpp> // libtorrent::sha1_hash
+#include <libtorrent/aux_/session_impl.hpp>
 
-#include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
 
 #include <QObject>
 #include <QMutex>
-
-#include <queue>
+#include <QQueue>
 
 // Forward declaration
 class Controller;
@@ -30,6 +29,11 @@ class QNetworkReply;
 
 namespace libtorrent {
     class alert;
+    class session_impl;
+}
+
+namespace boost {
+    template<class T> class shared_ptr;
 }
 
 class Plugin : public QObject, public libtorrent::plugin {
@@ -42,7 +46,7 @@ private:
     Controller * _controller;
 
     // Libtorrent session. Is set by added() call, not constructor
-    libtorrent::aux::session_impl * _session;
+    boost::weak_ptr<libtorrent::aux::session_impl> _session;
 
     // Maps info hash to pointer to corresponding torrent plugin
     std::map<libtorrent::sha1_hash, TorrentPlugin *> _torrentPlugins; // Must be pointers, since TorrentPlugin::_category is reference, hence type is not copyable
@@ -58,15 +62,15 @@ private:
     bool _addedToSession;
 
     // Plugin Request
-    std::queue<PluginRequest *> _pluginRequestQueue; // queue
-    QMutex _pluginRequestQueueMutex; // mutex protecting queue
+    QQueue<PluginRequest *> _pluginRequestQueue;
+    QMutex _pluginRequestQueueMutex; // mutex protecting qu
 
     // Torrent Plugin Request
-    std::queue<TorrentPluginRequest *> _torrentPluginRequestQueue; // queue
+    QQueue<TorrentPluginRequest *> _torrentPluginRequestQueue; // queue
     QMutex _torrentPluginRequestQueueMutex; // mutex protecting queue
 
     // Peer Plugin Request
-    std::queue<PeerPluginRequest *> _peerPluginRequestQueue; // queue
+    QQueue<PeerPluginRequest *> _peerPluginRequestQueue; // queue
     QMutex _peerPluginRequestQueueMutex; // mutex protecting queue
 
     /**
@@ -101,7 +105,7 @@ public:
      * failures.
      */
     virtual boost::shared_ptr<libtorrent::torrent_plugin> new_torrent(libtorrent::torrent * newTorrent, void * userData);
-    virtual void added(libtorrent::aux::session_impl * session);
+    virtual void added(boost::weak_ptr<libtorrent::aux::session_impl> session);
     virtual void on_alert(libtorrent::alert const * a);
     virtual void on_tick();
     virtual bool on_optimistic_unchoke(std::vector<libtorrent::policy::peer*> & peers);

@@ -15,6 +15,13 @@ class PeerPluginConfiguration;
  * Was factored out of TorrentConfiguration because Plugin
  * does not need to know about all parts of torrent configuration
  * only the plugin spesific ones.
+ *
+ * Is now an object passed arround when starting torrent plugin.
+ * THIS HAS TO CHANGE, SHOULD BE BY VALUE/REF. AND THEN
+ * IN THE FUTURE ONE HAS TO EDIT THE LIVE CONFIGURATION OF
+ * THE PLUGIN IN SOME WAY, AND THIS MAY BE WITHOUT THE CONFIGURATION,
+ * SINCE CONFIGURATION IS PERSISTANT DISK STATE, AND THIS IS NOT FULL
+ * STATE THAT ONE MAY WANT TO ADMINISTRATE LIVE. FIGURE THIS OUT LATER.
  */
 
 class TorrentPluginConfiguration {
@@ -55,7 +62,7 @@ public:
     void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const;
 
     // Getters & Setters
-    PluginMode getStartedPluginMode() const;
+    PluginMode getPluginMode() const;
 
     bool getEnableBanningSets() const;
 

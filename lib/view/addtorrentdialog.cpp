@@ -88,7 +88,13 @@ void AddTorrentDialog::on_AddTorrentDialog_accepted() {
     if(_torrentInfo != NULL)
         t = new libtorrent::torrent_info(*_torrentInfo);
 
-    TorrentConfiguration torrentConfiguration(info_hash, name, save_path, resume_data, 0, t, NULL);
+    TorrentConfiguration torrentConfiguration(info_hash,
+                                              name,
+                                              save_path,
+                                              resume_data,
+                                              libtorrent::add_torrent_params::flag_update_subscribe,
+                                              t,
+                                              NULL);
 
     // Add torrent, and make sure user later supplies torrent plugin configuration
     _controller->addTorrent(torrentConfiguration, true);

@@ -126,7 +126,8 @@ void main(int argc, char* argv[]) {
                                                   ,torrentInfo.name()
                                                   ,std::string("C:/Users/Sindre/Desktop/SAVE_OUTPUT/MAIN")
                                                   ,std::vector<char>()
-                                                  ,0
+                                                  ,libtorrent::add_torrent_params::flag_update_subscribe
+                                                  //+libtorrent::add_torrent_params::flag_auto_managed
                                                   ,&torrentInfo
                                                   ,NULL); // new TorrentPluginConfiguration(StartedPluginMode::Buyer, true)
 
@@ -150,7 +151,7 @@ void main(int argc, char* argv[]) {
                                                   ,torrentInfo.name()
                                                   ,std::string("C:/Users/Sindre/Desktop/SAVE_OUTPUT/PEER")
                                                   ,std::vector<char>()
-                                                  ,0
+                                                  ,libtorrent::add_torrent_params::flag_update_subscribe
                                                   ,&torrentInfo
                                                   ,new TorrentPluginConfiguration(StartedPluginMode::Seller, true));
 

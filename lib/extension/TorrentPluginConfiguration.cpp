@@ -32,7 +32,7 @@ void TorrentPluginConfiguration::toDictionaryEntry(libtorrent::entry::dictionary
     // NOT IMPLEMENTED
 }
 
-PluginMode TorrentPluginConfiguration::getStartedPluginMode() const {
+PluginMode TorrentPluginConfiguration::getPluginMode() const {
     return _startedPluginMode;
 }
 

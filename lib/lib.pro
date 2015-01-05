@@ -112,6 +112,9 @@ FORMS += \
     view/SellerTorrentPluginConfigurationDialog.ui \
     view/BuyerTorrentPluginConfigurationDialog.ui
 
+RESOURCES += \
+    view/ui.qrc
+
 # Required for including libtorrent and boost headers
 include(../defaults.pri)
 
@@ -139,6 +142,3 @@ CONFIG(release, debug|release) {
 
 # Linking with boost
 LIBS += -L$$BOOST_LOCATION/stage/lib
-
-RESOURCES += \
-    view/ui.qrc

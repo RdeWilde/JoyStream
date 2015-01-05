@@ -168,9 +168,9 @@ void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torre
     QMessageBox msgBox;
     msgBox.setText("Choose plugin mode.");
 
-    QPushButton * passivePushButton = msgBox.addButton(tr("Passive"), QMessageBox::ActionRole);
-    QPushButton * buyerPushButton = msgBox.addButton(tr("Buyer"), QMessageBox::ActionRole);
-    QPushButton * sellerPushButton = msgBox.addButton(tr("Seller"), QMessageBox::ActionRole);
+    QPushButton * passivePushButton = msgBox.addButton(tr("Observe"), QMessageBox::ActionRole);
+    QPushButton * buyerPushButton = msgBox.addButton(tr("Buy"), QMessageBox::ActionRole);
+    QPushButton * sellerPushButton = msgBox.addButton(tr("Sell"), QMessageBox::ActionRole);
 
     // Show modal dialog on same thread, we block untill it is closed
     msgBox.exec();
@@ -180,7 +180,7 @@ void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torre
     if (msgBox.clickedButton() == passivePushButton) {
 
         // Set in passive mode
-        _controller->updateTorrentPluginConfiguration(infoHash, new TorrentPluginConfiguration(PluginMode::Passive, true));
+        _controller->updateTorrentPluginConfiguration(infoHash, new TorrentPluginConfiguration(PluginMode::Observe, true));
 
     } else if (msgBox.clickedButton() == buyerPushButton) {
 
@@ -354,14 +354,14 @@ void MainWindow::updateTorrentPluginStatus(const TorrentPluginStatusAlert * torr
     torrentViewModel->updatePeers(torrentPluginStatusAlert->numberOfPeers(),torrentPluginStatusAlert->numberOfPeersWithExtension());
 
     // Mode
-    torrentViewModel->updateMode(torrentPluginStatusAlert->pluginStarted());
+    torrentViewModel->updateMode(torrentPluginStatusAlert->pluginStarted(), torrentPluginStatusAlert->mode());
 
     // Balance
     torrentViewModel->updateBalance(torrentPluginStatusAlert->tokensReceived(), torrentPluginStatusAlert->tokensSent());
 }
 
 void MainWindow::updatePluginStatus(const PluginStatusAlert * p) {
-    ui->balanceLabel->setText(QString::number(p->balance()/1000) + "mBTC");
+    ui->balanceLabel->setText(QString::number(p->balance()*1000) + "mBTC");
 }
 
 void MainWindow::addPeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint) {

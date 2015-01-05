@@ -611,7 +611,7 @@ void PeerPlugin::startPlugin(PluginMode pluginMode) {
     ExtendedMessage * extendedMessage;
     switch(_clientPluginMode) {
 
-        case PluginMode::Passive:
+        case PluginMode::Observe:
             extendedMessage = new PassiveMessage();
             break;
 
@@ -750,7 +750,7 @@ void PeerPlugin::processPassiveMessage(const PassiveMessage * passiveMessage) {
     _peerPluginState = PeerPluginState::mode_message_received;
 
     // Note that peer is passive
-    _peerPluginMode = PluginMode::Passive;
+    _peerPluginMode = PluginMode::Observe;
 
     // Now what?
 }
@@ -760,7 +760,7 @@ void PeerPlugin::processBuyMessage(const BuyMessage * buyMessage) {
     // Check that last message received was either BEP10 extended handshake
     // or passive message
     if(!(_peerPluginState == PeerPluginState::BEP10_handshake_received ||
-       (_peerPluginState == PeerPluginState::mode_message_received && _clientPluginMode == PluginMode::Passive))) {
+       (_peerPluginState == PeerPluginState::mode_message_received && _clientPluginMode == PluginMode::Observe))) {
 
         qCDebug(_category) << "Received buy message at incorrect state, drop peer?.";
         return;
@@ -783,7 +783,7 @@ void PeerPlugin::processSellMessage(const SellMessage * sellMessage) {
     // Check that last message received was either BEP10 extended handshake
     // or passive message
     if(!(_peerPluginState == PeerPluginState::BEP10_handshake_received ||
-       (_peerPluginState == PeerPluginState::mode_message_received && _clientPluginMode == PluginMode::Passive))) {
+       (_peerPluginState == PeerPluginState::mode_message_received && _clientPluginMode == PluginMode::Observe))) {
 
         qCDebug(_category) << "Received buy message at incorrect state, drop peer?.";
         return;

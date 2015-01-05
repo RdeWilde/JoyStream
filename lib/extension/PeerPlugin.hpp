@@ -174,6 +174,13 @@ protected:
     PluginMode _peerPluginMode;
 
     /**
+     * ==============================================
+     * SHARDED STATE BELOW, FACTOR OUT INTO BUYER AND
+     * SELLER PEER PLUGIN WHEN THERE IS MORE CLARITY.
+     * ==============================================
+     */
+
+    /**
      * Peer information which is sharded based on
      * peer mode.
      */

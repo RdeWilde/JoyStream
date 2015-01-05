@@ -1,6 +1,8 @@
 #ifndef TORRENT_VIEW_MODEL_HPP
 #define TORRENT_VIEW_MODEL_HPP
 
+#include "extension/PluginMode.hpp"
+
 #include <libtorrent/peer_id.hpp> // sha1_hash
 #include <libtorrent/torrent_handle.hpp> // libtorrent::torrent_status, torrent_status::state_t
 
@@ -43,7 +45,7 @@ public:
     void updateState(bool paused, libtorrent::torrent_status::state_t state, float progress);
     void updateSpeed(int downloadRate, int uploadRate);
     void updatePeers(int numberOfPeers, int numberOfPeersWithExtension);
-    void updateMode(bool pluginOn);
+    void updateMode(bool pluginOn, PluginMode mode);
     void updateBalance(int tokensReceived, int tokensSent);
 
     void addPeerPlugin(const libtorrent::tcp::endpoint & endPoint);

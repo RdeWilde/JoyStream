@@ -3,7 +3,7 @@
 
 // Mode of torrent or peer plugin when it has been started
 enum class PluginMode {
-    Passive,
+    Observe,
     Sell,
     Buy
 };

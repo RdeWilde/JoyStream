@@ -10,7 +10,7 @@ class PluginStatusAlert : public libtorrent::alert
 public:
 
     // Public member required for alert_cast
-    const static int alert_type = TORRENT_PLUGIN_STATUS_ALERT_ID;
+    const static int alert_type = PLUGIN_STATUS_ALERT_ID;
 
     // Constructors
     PluginStatusAlert(double balance);

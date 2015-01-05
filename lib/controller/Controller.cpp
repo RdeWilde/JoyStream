@@ -158,8 +158,8 @@ void Controller::removePeerPlugin(libtorrent::sha1_hash info_hash, libtorrent::t
 
 void Controller::libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::alert> alertAutoPtr) {
 
-    /*
-     * CRITICAL: Do not under any circumstance make a new call to libtorrent in this routine here, since the network
+    /**
+     * CRITICAL: Do not under any circumstance make a new call to libtorrent in this routine, since the network
      * thread in libtorrent will be making this call, and a new call will result in a dead lock.
      */
 
@@ -178,6 +178,8 @@ void Controller::processAlert(const libtorrent::alert * a) {
 
     // if(something)
     //    something;
+
+    //qCDebug(_category) << a->what();
 
     // In each case, tell bitswapr thread to run the given method
     if(libtorrent::metadata_received_alert const * p = libtorrent::alert_cast<libtorrent::metadata_received_alert>(a)) {
@@ -213,6 +215,9 @@ void Controller::processAlert(const libtorrent::alert * a) {
     } else if(TorrentPluginStatusAlert const * p = libtorrent::alert_cast<TorrentPluginStatusAlert>(a)) {
         //qCDebug(_category) << "Torrent plugin status alert.";
         processTorrentPluginStatusAlert(p);
+    } else if(PluginStatusAlert const * p = libtorrent::alert_cast<PluginStatusAlert>(a)) {
+        //qCDebug(_category) << "Plugin status alert.";
+        processPluginStatusAlert(p);
     }
 
     // Delete alert
