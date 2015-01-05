@@ -103,20 +103,19 @@ protected:
     std::set<libtorrent::tcp::endpoint> _irregularPeer;
 
     /**
-     * Old state, before TorrentPluginConfiguration was absorbed
-     *
-     * // Indicates if torrent has been properly checked and
-     * // if value in _torrentPluginConfiguration is reliable
-     * // Perhaps a better way of representing state can be found in the future
-     * // I hate relying on the null pointer below
-     * bool _pluginStarted;
+    * Old state, before TorrentPluginConfiguration was absorbed
+    */
+    // Plugin is active and therefore does tick() processing.
+    // Is set by controller after file torrent metadata is acquired and/or
+    // resume data has been validated.
+    bool _pluginStarted;
 
-     * // Configuration: only relevant when (_pluginStarted == true)
-     * // NULL means we dont buy or sell
-     * // NON-NULL means we are buyer or seller
-     * TorrentPluginConfiguration * _torrentPluginConfiguration;
-     */
+    // Configuration: only relevant when (_pluginStarted == true)
+    // NULL means we dont buy or sell
+    // NON-NULL means we are buyer or seller
+    TorrentPluginConfiguration * _torrentPluginConfiguration;
 
+    /**
     // Plugin is active and therefore does tick() processing.
     // Is set by controller after file torrent metadata is acquired and/or
     // resume data has been validated.
@@ -127,6 +126,7 @@ protected:
 
     // Use the two sets below when accepting new peers in new_connect
     bool _enableBanningSets;
+    */
 
 private:
 

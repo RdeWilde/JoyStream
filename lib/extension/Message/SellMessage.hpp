@@ -1,9 +1,9 @@
 #ifndef SELL_MESSAGE_HPP
 #define SELL_MESSAGE_HPP
 
-#include "ExtendedMessage.hpp"
+#include "ExtendedMessagePayload.hpp"
 
-class SellMessage : public ExtendedMessage
+class SellMessage : public ExtendedMessagePayload
 {
 
 public:
@@ -12,14 +12,14 @@ public:
     SellMessage(quint32 price); //, quint32 fee, quint32 minimum);
 
     // Constructor based on raw data
-    SellMessage(QDataStream & extendedPayloadStream);
+    SellMessage(QDataStream & stream);
 
     /**
-     * Inherited from ExtendedMessage
+     * Inherited from ExtendedMessagePayload
      */
-    MessageType getMessageType() const;
-    quint32 extendedPayloadLength() const;
-    void wireForm(const ExtendedMessageIdMapping & mapping, QDataStream & stream) const;
+    virtual MessageType messageType() const;
+    virtual quint32 length() const;
+    virtual void write(QDataStream & stream) const;
 
     // Getters
     quint32 price() const;

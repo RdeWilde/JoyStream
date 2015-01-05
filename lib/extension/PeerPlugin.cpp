@@ -2,19 +2,20 @@
 #include "PeerPlugin.hpp"
 #include "TorrentPlugin.hpp"
 #include "Plugin.hpp"
-#include "controller/Controller.hpp" // needed to connect
 #include "Config.hpp"
 #include "PeerPluginStatus.hpp"
 #include "Request/PeerPluginRequest.hpp"
 #include "Message/MessageType.hpp"
-#include "Message/ExtendedMessage.hpp"
-#include "Message/PassiveMessage.hpp"
+#include "Message/ExtendedMessagePayload.hpp"
+#include "Message/ObserveMessage.hpp"
 #include "Message/BuyMessage.hpp"
 #include "Message/SellMessage.hpp"
 
-#include <libtorrent/bt_peer_connection.hpp>
+#include <libtorrent/bt_peer_connection.hpp> // bt_peer_connection, bt_peer_connection::msg_extended
 #include <libtorrent/socket_io.hpp>
 #include <libtorrent/peer_info.hpp>
+
+#include <QLoggingCategory>
 
 PeerPlugin::PeerPlugin(TorrentPlugin * torrentPlugin, libtorrent::bt_peer_connection * bittorrentPeerConnection, QLoggingCategory & category) //, PeerPluginConfiguration & peerPluginConfiguration)
     : _torrentPlugin(torrentPlugin)
@@ -22,9 +23,8 @@ PeerPlugin::PeerPlugin(TorrentPlugin * torrentPlugin, libtorrent::bt_peer_connec
     , _category(category)
     , _pluginStarted(false)
     , _peerPluginModeObserved(false)
-    , _peerSellerPrice(0)
-    , _peerBuyerPrice(0)
-{
+    , _peerSellMessage(NULL)
+    , _peerBuyMessage(NULL) {
     //, _peerPluginConfiguration(peerPluginConfiguration) {
 }
 
@@ -501,7 +501,7 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
     QDataStream dataStream(&byteArray, QIODevice::ReadOnly);
 
     // Parse message
-    ExtendedMessage * extendedMessage = ExtendedMessage::fromRaw(messageType, dataStream);
+    ExtendedMessagePayload * extendedMessage = ExtendedMessagePayload::fromRaw(messageType, dataStream);
 
     // Drop if message was malformed
     if(extendedMessage == NULL) {
@@ -551,12 +551,9 @@ void PeerPlugin::tick() {
 
     qCDebug(_category) << "PeerPlugin.tick()";
 
-    // No processing is done before plugin is started
-    if(!_pluginStarted)
-        return;
-
-    // No processing is done before successful extended handshake
-    if(_peerBEP43SupportedStatus != BEPSupportStatus::supported)
+    // No processing is done before plugin is started and
+    // successful extended handshake
+    if(!_pluginStarted || _peerBEP43SupportedStatus != BEPSupportStatus::supported)
         return;
 
     // Process messages in queue
@@ -599,52 +596,72 @@ void PeerPlugin::processPeerPluginRequest(const PeerPluginRequest * peerPluginRe
     }
 }
 
-void PeerPlugin::startPlugin(PluginMode pluginMode) {
+void PeerPlugin::startPlugin() {
 
     // Start plugin
     _pluginStarted = true;
 
     // Set mode
-    _clientPluginMode = pluginMode;
+    _clientPluginMode = PluginMode::Observe;
 
-    // Create appropriate mode message
-    ExtendedMessage * extendedMessage;
-    switch(_clientPluginMode) {
-
-        case PluginMode::Observe:
-            extendedMessage = new PassiveMessage();
-            break;
-
-        case PluginMode::Buy:
-            extendedMessage = new BuyMessage();
-            break;
-
-        case PluginMode::Sell:
-            extendedMessage = new SellMessage(_clientSellerPrice);
-            break;
-    }
-
-    // Send message
-    sendExtendedMessage(extendedMessage);
-
-    // Delete message
-    delete extendedMessage;
+    // Send observe message
+    sendExtendedMessage(ObserveMessage());
 }
 
-void PeerPlugin::sendExtendedMessage(const ExtendedMessage * extendedMessage) {
+void PeerPlugin::startPlugin(const SellMessage & m) {
 
-    // Length of message
-    quint32 messageLength = extendedMessage->length();
+    // Start plugin
+    _pluginStarted = true;
 
-    // Allocate space for message buffer
+    // Set mode
+    _clientPluginMode = PluginMode::Sell;
+
+    // Send message
+    sendExtendedMessage(m);
+}
+
+void PeerPlugin::startPlugin(const BuyMessage & m) {
+
+    // Start plugin
+    _pluginStarted = true;
+
+    // Set mode
+    _clientPluginMode = PluginMode::Sell;
+
+    // Send message
+    sendExtendedMessage(m);
+}
+
+
+void PeerPlugin::sendExtendedMessage(const ExtendedMessagePayload & extendedMessage) {
+
+    // Length of message full message
+    quint32 messageLength = 4 + 1 + 1 + extendedMessage.length();
+
+    // Allocate message buffer
     QByteArray byteArray(messageLength, 0);
 
     // Wrap buffer in stream
     QDataStream stream(byteArray);
 
-    // Write message into buffer through stream
-    extendedMessage->wireForm(_peerMapping, stream);
+    /**
+     * Write both headers to stream:
+     * [messageLength():uint32_t][(bt_peer_connection::msg_extended):uint8_t][id:uint8_t]
+     */
 
+    // Message length
+    stream << messageLength;
+
+    // BEP10 message id
+    stream << static_cast<quint8>(libtorrent::bt_peer_connection::msg_extended); // should always be 20
+
+    // Extended message id
+    stream << _peerMapping.id(extendedMessage.messageType());
+
+    // Write message into buffer through stream
+    extendedMessage.write(stream);
+
+    // If message was written properly buffer, then send buffer to peer
     if(stream.status() != QDataStream::Status::Ok)
         qCCritical(_category) << "Output stream in bad state after message write, message not sent.";
     else {
@@ -657,18 +674,18 @@ void PeerPlugin::sendExtendedMessage(const ExtendedMessage * extendedMessage) {
     }
 }
 
-void PeerPlugin::processExtendedMessage(ExtendedMessage * extendedMessage) {
+void PeerPlugin::processExtendedMessage(ExtendedMessagePayload * extendedMessage) {
 
     // Get message type
-    MessageType messageType = extendedMessage->getMessageType();
+    MessageType messageType = extendedMessage->messageType();
 
     // Call relevant message handler
     switch(messageType) {
 
-        case MessageType::passive:
+        case MessageType::observe:
 
-            qCDebug(_category) << "passive";
-            processPassiveMessage(static_cast<PassiveMessage *>(extendedMessage));
+            qCDebug(_category) << "observe";
+            processPassiveMessage(static_cast<ObserveMessage *>(extendedMessage));
 
             break;
         case MessageType::buy:
@@ -737,12 +754,12 @@ void PeerPlugin::processExtendedMessage(ExtendedMessage * extendedMessage) {
     delete extendedMessage;
 }
 
-void PeerPlugin::processPassiveMessage(const PassiveMessage * passiveMessage) {
+void PeerPlugin::processPassiveMessage(const ObserveMessage * observeMessage) {
 
     // Check that last message received was BEP10 extended handshake
     if(!(_peerPluginState == PeerPluginState::BEP10_handshake_received)) {
 
-        qCDebug(_category) << "Received passive message at incorrect state, drop peer?.";
+        qCDebug(_category) << "Received observe message at incorrect state, drop peer?.";
         return;
     }
 
@@ -751,29 +768,6 @@ void PeerPlugin::processPassiveMessage(const PassiveMessage * passiveMessage) {
 
     // Note that peer is passive
     _peerPluginMode = PluginMode::Observe;
-
-    // Now what?
-}
-
-void PeerPlugin::processBuyMessage(const BuyMessage * buyMessage) {
-
-    // Check that last message received was either BEP10 extended handshake
-    // or passive message
-    if(!(_peerPluginState == PeerPluginState::BEP10_handshake_received ||
-       (_peerPluginState == PeerPluginState::mode_message_received && _clientPluginMode == PluginMode::Observe))) {
-
-        qCDebug(_category) << "Received buy message at incorrect state, drop peer?.";
-        return;
-    }
-
-    // Alter state
-    _peerPluginState = PeerPluginState::mode_message_received;
-
-    // Note that peer is buyer
-    _peerPluginMode = PluginMode::Buy;
-
-    //
-    //_buyerPrice = buyMessage->
 
     // Now what?
 }
@@ -789,14 +783,40 @@ void PeerPlugin::processSellMessage(const SellMessage * sellMessage) {
         return;
     }
 
+    // Save message
+    _peerSellMessage = sellMessage;
+
     // Alter state
     _peerPluginState = PeerPluginState::mode_message_received;
 
     // Note that peer is seller
     _peerPluginMode = PluginMode::Sell;
 
-    // Save seller price
-    _peerSellerPrice = sellMessage->price();
+    // Now what?
+}
+
+void PeerPlugin::processBuyMessage(const BuyMessage * buyMessage) {
+
+    // Check that last message received was either BEP10 extended handshake
+    // or passive message
+    if(!(_peerPluginState == PeerPluginState::BEP10_handshake_received ||
+       (_peerPluginState == PeerPluginState::mode_message_received && _clientPluginMode == PluginMode::Observe))) {
+
+        qCDebug(_category) << "Received buy message at incorrect state, drop peer?.";
+        return;
+    }
+
+    // Save message
+    _peerBuyMessage = buyMessage;
+
+    // Alter state
+    _peerPluginState = PeerPluginState::mode_message_received;
+
+    // Note that peer is buyer
+    _peerPluginMode = PluginMode::Buy;
+
+    //
+    //_buyerPrice = buyMessage->
 
     // Now what?
 }

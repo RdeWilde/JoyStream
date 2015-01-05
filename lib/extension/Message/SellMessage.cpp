@@ -1,4 +1,7 @@
 #include "SellMessage.hpp"
+#include "MessageType.hpp"
+
+#include <QDataStream>
 
 SellMessage::SellMessage(quint32 price) //, quint32 fee, quint32 minimum)
     : price_(price)
@@ -7,30 +10,22 @@ SellMessage::SellMessage(quint32 price) //, quint32 fee, quint32 minimum)
     , minimum_(minimum)*/ {
 }
 
-SellMessage::SellMessage(QDataStream & extendedPayloadStream) {
-
-    // Read payload fields
-    extendedPayloadStream >> price_; // >> fee_ >> minimum_;
+SellMessage::SellMessage(QDataStream & stream) {
+    stream >> price_; // >> fee_ >> minimum_;
 }
 
-MessageType SellMessage::getMessageType() const {
+MessageType SellMessage::messageType() const {
     return MessageType::sell;
 }
 
-quint32 SellMessage::extendedPayloadLength() const {
-    return sizeof(quint32); //3*sizeof(quint32);
+quint32 SellMessage::length() const {
+    return sizeof(price_); //3*sizeof(quint32);
 }
 
-void SellMessage::wireForm(const ExtendedMessageIdMapping & mapping, QDataStream & stream) const {
-
-    // Write header
-    writeBEP10Header(stream, mapping.id(MessageType::sell));
-
-    // Write payload fields
+void SellMessage::write(QDataStream & stream) const {
     stream << price_; // << fee_ << minimum_;
 }
 
-quint32 SellMessage::price() const
-{
+quint32 SellMessage::price() const {
     return price_;
 }

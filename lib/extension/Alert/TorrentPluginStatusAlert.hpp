@@ -12,8 +12,6 @@ public:
     // Public member required for alert_cast
     const static int alert_type = TORRENT_PLUGIN_STATUS_ALERT_ID;
 
-    //const static int static_category = <bitmask of alert::category_t flags>;
-
     // Constructor based on members
     TorrentPluginStatusAlert(const libtorrent::sha1_hash & infoHash
                              ,int numberOfPeers
@@ -22,7 +20,6 @@ public:
                              ,int tokensReceived
                              ,int tokensSent
                              ,PluginMode mode);
-
 
     // Constructor based on reference
     TorrentPluginStatusAlert(const TorrentPluginStatusAlert & torrentPluginStatusAlert);
@@ -60,7 +57,7 @@ private:
     int _tokensSent;
 
     // Mode of plugin
-    PluginMode _mode;
+    PluginMode _pluginMode;
 };
 
 #endif // TORRENT_PLUGIN_STATUS_ALERT_HPP

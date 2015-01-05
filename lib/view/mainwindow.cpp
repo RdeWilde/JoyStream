@@ -180,7 +180,7 @@ void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torre
     if (msgBox.clickedButton() == passivePushButton) {
 
         // Set in passive mode
-        _controller->updateTorrentPluginConfiguration(infoHash, new TorrentPluginConfiguration(PluginMode::Observe, true));
+        _controller->updateTorrentPluginConfiguration(infoHash, new TorrentPluginConfiguration(true));
 
     } else if (msgBox.clickedButton() == buyerPushButton) {
 

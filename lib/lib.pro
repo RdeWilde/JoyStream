@@ -23,7 +23,6 @@ SOURCES += \
     logger/exceptions/DuplicateLog.cpp \
     view/MainWindow.cpp \
     ControllerTracker.cpp \
-    extension/Message/ExtendedMessage.cpp \
     view/AddTorrentDialog.cpp \
     extension/TorrentPlugin.cpp \
     extension/Plugin.cpp \
@@ -50,10 +49,11 @@ SOURCES += \
     view/BuyerTorrentPluginConfigurationDialog.cpp \
     extension/Alert/TorrentPluginAlert.cpp \
     extension/Alert/TorrentPluginStatusAlert.cpp \
-    extension/Message/PassiveMessage.cpp \
     extension/Request/StartPluginTorrentPluginRequest.cpp \
     extension/BitCoin/Client.cpp \
-    extension/Alert/PluginStatusAlert.cpp
+    extension/Alert/PluginStatusAlert.cpp \
+    extension/Message/ObserveMessage.cpp \
+    extension/Message/ExtendedMessagePayload.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -66,7 +66,6 @@ HEADERS += \
     logger/exceptions/CannnotOpenLogFile.hpp \
     view/MainWindow.hpp \
     ControllerTracker.hpp \
-    extension/Message/ExtendedMessage.hpp \
     view/AddTorrentDialog.hpp \
     extension/TorrentPlugin.hpp \
     extension/Plugin.hpp \
@@ -101,10 +100,11 @@ HEADERS += \
     extension/Alert/AlertTypes.hpp \
     extension/Alert/TorrentPluginStatusAlert.hpp \
     extension/PluginMode.hpp \
-    extension/Message/PassiveMessage.hpp \
     extension/Request/StartPluginTorrentPluginRequest.hpp \
     extension/BitCoin/Client.hpp \
-    extension/Alert/PluginStatusAlert.hpp
+    extension/Alert/PluginStatusAlert.hpp \
+    extension/Message/ObserveMessage.hpp \
+    extension/Message/ExtendedMessagePayload.hpp
 				
 FORMS += \
     view/mainwindow.ui \

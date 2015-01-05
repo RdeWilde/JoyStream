@@ -14,7 +14,7 @@ TorrentPluginStatusAlert::TorrentPluginStatusAlert(const libtorrent::sha1_hash &
     ,_pluginStarted(pluginStarted)
     ,_tokensReceived(tokensReceived)
     ,_tokensSent(tokensSent)
-    ,_mode(mode) {
+    ,_pluginMode(mode) {
 
 }
 
@@ -25,7 +25,7 @@ TorrentPluginStatusAlert::TorrentPluginStatusAlert(const TorrentPluginStatusAler
     ,_pluginStarted(torrentPluginStatusAlert.pluginStarted())
     ,_tokensReceived(torrentPluginStatusAlert.tokensReceived())
     ,_tokensSent(torrentPluginStatusAlert.tokensSent())
-    ,_mode(torrentPluginStatusAlert.mode()) {
+    ,_pluginMode(torrentPluginStatusAlert.mode()) {
 
 }
 
@@ -70,5 +70,5 @@ int TorrentPluginStatusAlert::tokensSent() const {
 }
 
 PluginMode TorrentPluginStatusAlert::mode() const {
-    return _mode;
+    return _pluginMode;
 }

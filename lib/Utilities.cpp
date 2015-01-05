@@ -69,7 +69,7 @@ const std::map<MessageType, const char *> Utilities::messageTypeToNameMapping() 
     std::map<MessageType, const char *> m;
 
     // Setup mapping
-    m[MessageType::passive] = "passive";
+    m[MessageType::observe] = "observe";
     m[MessageType::buy] = "buy";
     m[MessageType::sell] = "sell";
     m[MessageType::setup_begin] = "setup_begin";

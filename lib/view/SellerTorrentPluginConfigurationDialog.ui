@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>384</width>
+    <width>230</width>
     <height>194</height>
    </rect>
   </property>
@@ -18,7 +18,7 @@
     <rect>
      <x>30</x>
      <y>150</y>
-     <width>341</width>
+     <width>177</width>
      <height>32</height>
     </rect>
    </property>
@@ -32,8 +32,8 @@
   <widget class="QLabel" name="sellerTorrentPluginConfigurationLabel">
    <property name="geometry">
     <rect>
-     <x>78</x>
-     <y>4</y>
+     <x>20</x>
+     <y>8</y>
      <width>253</width>
      <height>43</height>
     </rect>
@@ -44,14 +44,14 @@
     </font>
    </property>
    <property name="text">
-    <string>Seller Plugin Configuration</string>
+    <string>Seller</string>
    </property>
   </widget>
   <widget class="QLabel" name="priceLabel">
    <property name="geometry">
     <rect>
-     <x>14</x>
-     <y>48</y>
+     <x>22</x>
+     <y>50</y>
      <width>46</width>
      <height>13</height>
     </rect>
@@ -63,9 +63,9 @@
   <widget class="QLineEdit" name="priceLineEdit">
    <property name="geometry">
     <rect>
-     <x>54</x>
-     <y>46</y>
-     <width>113</width>
+     <x>62</x>
+     <y>48</y>
+     <width>141</width>
      <height>20</height>
     </rect>
    </property>

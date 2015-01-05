@@ -29,10 +29,16 @@ class TorrentPluginConfiguration {
 public:
 
     // Default constructor, for default constructor in TorrentConfiguration
-    TorrentPluginConfiguration();
+    //TorrentPluginConfiguration();
 
-    // Constructor from members
-    TorrentPluginConfiguration(PluginMode startedPluginMode, bool enableBanningSets);
+    // Observe constructor from members
+    TorrentPluginConfiguration(bool enableBanningSets);
+
+    // Sell constructor from members
+    TorrentPluginConfiguration(bool enableBanningSets, quint32 sellerPrice);
+
+    // Buy constructor from member
+    TorrentPluginConfiguration(bool enableBanningSets, quint32 buyerPrice, quint32 fee, qint32 btcVersion, qint16 waitTime, qint8 minPeers);
 
     // Constructor from dictionary
     TorrentPluginConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry);
@@ -61,18 +67,32 @@ public:
      */
     void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const;
 
-    // Getters & Setters
-    PluginMode getPluginMode() const;
+    // Getters
+    PluginMode pluginMode() const;
+    bool enableBanningSets() const;
 
-    bool getEnableBanningSets() const;
-
-protected:
+//protected:
 
     // Mode of started plugin
-    PluginMode _startedPluginMode;
+    PluginMode _pluginMode;
 
     // Use the two sets below when accepting new peers in new_connect
     bool _enableBanningSets;
+
+    /**
+     * Mode spesific
+     */
+
+    // Sell
+    quint32 _sellerPrice;
+
+    // Buy
+    quint32 _buyerPrice;
+    quint32 _fee;
+    qint32 _btcVersion;
+
+    qint16 _waitTime;
+    qint8 _minPeers;
 
     // Configurations for all active peer plugins
     //std::map<libtorrent::tcp::endpoint, PeerPluginConfiguration *> _peerPluginConfigurations;

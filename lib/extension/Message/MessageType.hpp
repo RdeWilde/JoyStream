@@ -4,8 +4,8 @@
 // Extended messages part of BEP43 wire protocol
 enum class MessageType {
 
-    // First message is one of these
-    passive,
+    // First message is one of these three
+    observe,
     buy,
     sell,
 

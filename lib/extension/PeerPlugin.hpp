@@ -22,8 +22,8 @@
 class TorrentPlugin;
 class PeerPluginStatus;
 class PeerPluginRequest;
-class ExtendedMessage;
-class PassiveMessage;
+class ExtendedMessagePayload;
+class ObserveMessage;
 class BuyMessage;
 class SellMessage;
 
@@ -92,17 +92,20 @@ public:
     void processPeerPluginRequest(const PeerPluginRequest * peerPluginRequest);
 
     // Torrent plugin calls to start
-    void startPlugin(PluginMode pluginMode);
+    //void startPlugin(PluginMode pluginMode);
+    void startPlugin();
+    void startPlugin(const SellMessage & m);
+    void startPlugin(const BuyMessage & m);
 
     // Sends extended message to peer
     // does not take ownership of pointer
-    void sendExtendedMessage(const ExtendedMessage * extendedMessage);
+    void sendExtendedMessage(const ExtendedMessagePayload & extendedMessage);
 
     // Determines the message type, calls correct handler, then frees message
-    void processExtendedMessage(ExtendedMessage * extendedMessage);
+    void processExtendedMessage(ExtendedMessagePayload * extendedMessage);
 
     // Processess a message
-    void processPassiveMessage(const PassiveMessage * passiveMessage);
+    void processPassiveMessage(const ObserveMessage * passiveMessage);
     void processBuyMessage(const BuyMessage * buyMessage);
     void processSellMessage(const SellMessage * sellMessage);
 
@@ -138,7 +141,7 @@ protected:
 
     // Queue of received valid messages which have not yet been processed
     // messages enter queue in on_extended(), and are dispatched in tick()
-    std::queue<ExtendedMessage *> _unprocessedMessageQueue;
+    std::queue<ExtendedMessagePayload *> _unprocessedMessageQueue;
 
     // Indicates if plugin has been started
     // Before this becomes true, plugin will
@@ -173,6 +176,10 @@ protected:
     // not valid when _peerPluginModeObserved == false
     PluginMode _peerPluginMode;
 
+    // Last message received of the given type from peer
+    const SellMessage * _peerSellMessage;
+    const BuyMessage * _peerBuyMessage;
+
     /**
      * ==============================================
      * SHARDED STATE BELOW, FACTOR OUT INTO BUYER AND
@@ -181,21 +188,23 @@ protected:
      */
 
     /**
-     * Peer information which is sharded based on
-     * peer mode.
+     * Peer
      */
-    quint32 _peerSellerPrice;
-    quint32 _peerBuyerPrice;
+
 
     /**
-     * Client buyer mode spesific state
+     * Client
      */
+
+    /*
+    // Sell client
+    quint32 _clientSellerPrice; // price put in sell message
+
+    // Buy client
     quint32 _clientBuyerPrice;
-
-    /**
-     * Client seller mode spesific state
-     */
-    quint32 _clientSellerPrice;
+    quint32 _clientFee;
+    qint32 _clientPeerBtcVersion;
+    */
 
 signals:
 

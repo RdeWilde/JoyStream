@@ -12,6 +12,9 @@
 
 #include "Alert/TorrentPluginStatusAlert.hpp"
 
+#include "Message/BuyMessage.hpp"
+#include "Message/SellMessage.hpp"
+
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/peer_connection.hpp>
 #include <libtorrent/bt_peer_connection.hpp>
@@ -24,15 +27,15 @@ TorrentPlugin::TorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLo
     , _torrent(torrent)
     , _category(category)
     , _pluginStarted(false)
-    //, _torrentPluginConfiguration(torrentPluginConfiguration)
-    , _enableBanningSets(true)
+    , _torrentPluginConfiguration(torrentPluginConfiguration)
+    //, _enableBanningSets(true)
 {
-
+/*
     if(torrentPluginConfiguration != NULL) {
         _mode = torrentPluginConfiguration->getPluginMode();
         _enableBanningSets = torrentPluginConfiguration->getEnableBanningSets();
     }
-
+*/
 }
 
 TorrentPlugin::~TorrentPlugin() {
@@ -173,7 +176,7 @@ bool TorrentPlugin::installPluginOnNewConnection(libtorrent::peer_connection * p
     const libtorrent::tcp::endpoint & endPoint = peerConnection->remote();
 
     // If we are using banning sets, then check this peer
-    if(_enableBanningSets) {
+    if(_torrentPluginConfiguration->_enableBanningSets) {
 
         // Check if we know from before that peer does not have
         if(_peersWithoutExtension.find(endPoint) != _peersWithoutExtension.end()) {
@@ -261,16 +264,17 @@ void TorrentPlugin::processStartPluginRequest(const StartPluginTorrentPluginRequ
     // Get configuration by removing constness, maybee in future we send by value
     TorrentPluginConfiguration * torrentPluginConfiguration = const_cast<TorrentPluginConfiguration *>(startPluginTorrentPluginRequest->getTorrentPluginConfiguration());
 
+    /*
     if(torrentPluginConfiguration != NULL) {
         _mode = torrentPluginConfiguration->getPluginMode();
         _enableBanningSets = torrentPluginConfiguration->getEnableBanningSets();
     }
+*/
 
-    /**
+
     // Determine which one to use
     // if we got new one, use that one, if we didn
     if(torrentPluginConfiguration != NULL) {
-
 
         // Delete old configuration if we had one
         if(_torrentPluginConfiguration != NULL)
@@ -289,7 +293,6 @@ void TorrentPlugin::processStartPluginRequest(const StartPluginTorrentPluginRequ
 
         return;
     }
-    */
 
     qCDebug(_category) << "Enabling peer plugins.";
 
@@ -300,8 +303,21 @@ void TorrentPlugin::processStartPluginRequest(const StartPluginTorrentPluginRequ
         // Get peer plugin
         PeerPlugin * peerPlugin = i->second;
 
-        // Start plugin in given mode
-        peerPlugin->startPlugin(_mode);
+        // Start plugin
+        switch(_torrentPluginConfiguration->pluginMode()) {
+
+            case PluginMode::Observe:
+                peerPlugin->startPlugin();
+                break;
+            case PluginMode::Buy:
+                peerPlugin->startPlugin(SellMessage(_torrentPluginConfiguration->_sellerPrice));
+                break;
+            case PluginMode::Sell:
+                peerPlugin->startPlugin(BuyMessage(_torrentPluginConfiguration->_buyerPrice
+                                                   ,_torrentPluginConfiguration->_fee
+                                                   ,_torrentPluginConfiguration->_btcVersion));
+                break;
+        }
     }
 }
 
@@ -380,7 +396,7 @@ TorrentPluginStatusAlert TorrentPlugin::createTorrentPluginStatusAlert() {
     }
 
     // Create torrent plugin alert
-    return TorrentPluginStatusAlert(_torrent->info_hash(), numberOfPeers, numberOfPeersWithExtension, _pluginStarted, 0, 0, _mode);
+    return TorrentPluginStatusAlert(_torrent->info_hash(), numberOfPeers, numberOfPeersWithExtension, _pluginStarted, 0, 0, _torrentPluginConfiguration->pluginMode());
 }
 
 /*
