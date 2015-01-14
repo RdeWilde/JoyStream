@@ -55,7 +55,11 @@ SOURCES += \
     extension/Message/ObserveMessage.cpp \
     extension/Message/ExtendedMessagePayload.cpp \
     extension/Message/JoinContractMessage.cpp \
-    extension/BitCoin/PublicKey.cpp
+    extension/BitCoin/PublicKey.cpp \
+    extension/BitCoin/Signature.cpp \
+    extension/Message/JoiningContract.cpp \
+    extension/Message/SignRefund.cpp \
+    extension/BitCoin/Hash.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -108,7 +112,11 @@ HEADERS += \
     extension/Message/ObserveMessage.hpp \
     extension/Message/ExtendedMessagePayload.hpp \
     extension/Message/JoinContractMessage.hpp \
-    extension/BitCoin/PublicKey.hpp
+    extension/BitCoin/PublicKey.hpp \
+    extension/BitCoin/Signature.hpp \
+    extension/Message/JoiningContract.hpp \
+    extension/Message/SignRefund.hpp \
+    extension/BitCoin/Hash.hpp
 				
 FORMS += \
     view/mainwindow.ui \
