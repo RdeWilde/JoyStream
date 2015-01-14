@@ -72,16 +72,11 @@ const std::map<MessageType, const char *> Utilities::messageTypeToNameMapping() 
     m[MessageType::observe] = "observe";
     m[MessageType::buy] = "buy";
     m[MessageType::sell] = "sell";
-    m[MessageType::setup_begin] = "setup_begin";
-    m[MessageType::setup_begin_reject] = "setup_begin_reject";
-    m[MessageType::setup_contract] = "setup_contract";
-    m[MessageType::setup_contract_signed] = "setup_contract_signed";
-    m[MessageType::setup_refund] = "setup_refund";
-    m[MessageType::setup_refund_signed] = "setup_refund_signed";
-    m[MessageType::setup_contract_published] = "setup_contract_published";
-    m[MessageType::setup_completed] = "setup_completed";
-    m[MessageType::piece_get] = "piece_get";
-    m[MessageType::piece_put] = "piece_put";
+    m[MessageType::join_contract] = "join_contract";
+    m[MessageType::joining_contract] = "joining_contract";
+    m[MessageType::sign_refund] = "sign_refund";
+    m[MessageType::refund_signed] = "refund_signed";
+    m[MessageType::ready] = "ready";
     m[MessageType::payment] = "payment";
     m[MessageType::end] = "end";
 

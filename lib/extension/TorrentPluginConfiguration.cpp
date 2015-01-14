@@ -6,20 +6,32 @@ TorrentPluginConfiguration::TorrentPluginConfiguration(bool enableBanningSets)
     , _enableBanningSets(enableBanningSets) {
 }
 
-TorrentPluginConfiguration::TorrentPluginConfiguration(bool enableBanningSets, quint32 sellerPrice)
+TorrentPluginConfiguration::TorrentPluginConfiguration(bool enableBanningSets,
+                                                       quint32 minPrice,
+                                                       QTime minLock,
+                                                       quint32 minFee,
+                                                       QTime maxContractConfirmationDelay)
     : _pluginMode(PluginMode::Sell)
     , _enableBanningSets(enableBanningSets)
-    , _sellerPrice(sellerPrice) {
+    , _minPrice(minPrice)
+    , _minLock(minLock)
+    , _minFee(minFee)
+    , _maxContractConfirmationDelay(maxContractConfirmationDelay) {
 }
 
-TorrentPluginConfiguration::TorrentPluginConfiguration(bool enableBanningSets, quint32 buyerPrice, quint32 fee, qint32 btcVersion, qint16 waitTime, qint8 minPeers)
+TorrentPluginConfiguration::TorrentPluginConfiguration(bool enableBanningSets,
+                                                       quint32 maxPrice,
+                                                       QTime maxLock,
+                                                       QTime waitTime,
+                                                       qint8 minPeers,
+                                                       quint32 fee)
     : _pluginMode(PluginMode::Buy)
     , _enableBanningSets(enableBanningSets)
-    , _buyerPrice(buyerPrice)
-    , _fee(fee)
-    , _btcVersion(btcVersion)
+    , _maxPrice(maxPrice)
+    , _maxLock(maxLock)
     , _waitTime(waitTime)
-    , _minPeers(minPeers) {
+    , _minPeers(minPeers)
+    , _fee(fee) {
 }
 
 TorrentPluginConfiguration::TorrentPluginConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry) {

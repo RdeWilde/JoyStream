@@ -3,13 +3,15 @@
 
 #include "ExtendedMessagePayload.hpp"
 
+#include <QDateTime>
+
 class SellMessage : public ExtendedMessagePayload
 {
 
 public:
 
     // Constructor based on members
-    SellMessage(quint32 price); //, quint32 fee, quint32 minimum);
+    SellMessage(quint32 minPrice, QDateTime minLock);
 
     // Constructor based on raw data
     SellMessage(QDataStream & stream);
@@ -22,21 +24,16 @@ public:
     virtual void write(QDataStream & stream) const;
 
     // Getters
-    quint32 price() const;
+    quint32 minPrice() const;
+    QDateTime minLock() const;
 
 private:
 
-    // Unit price
-    quint32 price_;
+    // Piece price (in satoshi units)
+    quint32 _minPrice;
 
-    /*
-    // Fee used
-    quint32 fee_;
-
-    // Minimum bond required
-    quint32 minimum_;
-    */
-
+    // When refund is spendable at the earliest
+    QDateTime _minLock;
 };
 
 #endif // SELL_MESSAGE_HPP

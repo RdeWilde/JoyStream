@@ -14,6 +14,7 @@
 
 #include "Message/BuyMessage.hpp"
 #include "Message/SellMessage.hpp"
+#include "Message/ObserveMessage.hpp"
 
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/peer_connection.hpp>
@@ -307,15 +308,27 @@ void TorrentPlugin::processStartPluginRequest(const StartPluginTorrentPluginRequ
         switch(_torrentPluginConfiguration->pluginMode()) {
 
             case PluginMode::Observe:
-                peerPlugin->startPlugin();
+                peerPlugin->startPlugin(ObserveMessage());
                 break;
-            case PluginMode::Buy:
-                peerPlugin->startPlugin(SellMessage(_torrentPluginConfiguration->_sellerPrice));
+
+            case PluginMode::Sell: {
+
+                    // Convert to minimum refund lock time, w.r.t Coordinated Univesal Time, which is what nLockTime uses, i.e. POSIX time
+                    QDateTime minLock = QDateTime(QDate::currentDate(), _torrentPluginConfiguration->_minLock, Qt::UTC);
+
+                    peerPlugin->startPlugin(SellMessage(_torrentPluginConfiguration->_minPrice, minLock));
+                }
+
                 break;
-            case PluginMode::Sell:
-                peerPlugin->startPlugin(BuyMessage(_torrentPluginConfiguration->_buyerPrice
-                                                   ,_torrentPluginConfiguration->_fee
-                                                   ,_torrentPluginConfiguration->_btcVersion));
+
+            case PluginMode::Buy: {
+
+                    // Convert to maximum refund lock time, w.r.t Coordinated Univesal Time, which is what nLockTime uses, i.e. POSIX time
+                    QDateTime maxLock = QDateTime(QDate::currentDate(), _torrentPluginConfiguration->_maxLock, Qt::UTC);
+
+                    peerPlugin->startPlugin(BuyMessage(_torrentPluginConfiguration->_maxPrice, maxLock));
+                }
+
                 break;
         }
     }

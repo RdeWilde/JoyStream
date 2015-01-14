@@ -10,6 +10,7 @@
 #include "Message/ObserveMessage.hpp"
 #include "Message/BuyMessage.hpp"
 #include "Message/SellMessage.hpp"
+#include "Utilities.hpp"
 
 #include <libtorrent/bt_peer_connection.hpp> // bt_peer_connection, bt_peer_connection::msg_extended
 #include <libtorrent/socket_io.hpp>
@@ -596,7 +597,7 @@ void PeerPlugin::processPeerPluginRequest(const PeerPluginRequest * peerPluginRe
     }
 }
 
-void PeerPlugin::startPlugin() {
+void PeerPlugin::startPlugin(const ObserveMessage & m) {
 
     // Start plugin
     _pluginStarted = true;
@@ -605,7 +606,7 @@ void PeerPlugin::startPlugin() {
     _clientPluginMode = PluginMode::Observe;
 
     // Send observe message
-    sendExtendedMessage(ObserveMessage());
+    sendExtendedMessage(m);
 }
 
 void PeerPlugin::startPlugin(const SellMessage & m) {
@@ -679,74 +680,43 @@ void PeerPlugin::processExtendedMessage(ExtendedMessagePayload * extendedMessage
     // Get message type
     MessageType messageType = extendedMessage->messageType();
 
+    qCDebug(_category) << Utilities::messageName(messageType);
+
     // Call relevant message handler
     switch(messageType) {
 
         case MessageType::observe:
 
-            qCDebug(_category) << "observe";
             processPassiveMessage(static_cast<ObserveMessage *>(extendedMessage));
-
             break;
         case MessageType::buy:
 
-            qCDebug(_category) << "buy";
             processBuyMessage(static_cast<BuyMessage *>(extendedMessage));
-
             break;
         case MessageType::sell:
 
-            qCDebug(_category) << "sell";
             processSellMessage(static_cast<SellMessage *>(extendedMessage));
+            break;
+        case MessageType::join_contract:
 
             break;
-        case MessageType::setup_begin:
+        case MessageType::joining_contract:
 
-            qCDebug(_category) << "setup_begin";
             break;
-        case MessageType::setup_begin_reject:
+        case MessageType::sign_refund:
 
-            qCDebug(_category) << "setup_begin_reject";
             break;
-        case MessageType::setup_contract:
+        case MessageType::refund_signed:
 
-            qCDebug(_category) << "setup_contract";
             break;
-        case MessageType::setup_contract_signed:
+        case MessageType::ready:
 
-            qCDebug(_category) << "setup_contract_signed";
-            break;
-        case MessageType::setup_refund:
-
-            qCDebug(_category) << "setup_refund";
-            break;
-        case MessageType::setup_refund_signed:
-
-            qCDebug(_category) << "setup_refund_signed";
-            break;
-        case MessageType::setup_contract_published:
-
-            qCDebug(_category) << "setup_contract_published";
-            break;
-        case MessageType::setup_completed:
-
-            qCDebug(_category) << "setup_completed";
-            break;
-        case MessageType::piece_get:
-
-            qCDebug(_category) << "piece_get";
-            break;
-        case MessageType::piece_put:
-
-            qCDebug(_category) << "piece_put";
             break;
         case MessageType::payment:
 
-            qCDebug(_category) << "payment";
             break;
         case MessageType::end:
 
-            qCDebug(_category) << "end";
             break;
     }
 

@@ -28,14 +28,19 @@ BuyerTorrentPluginConfigurationDialog::~BuyerTorrentPluginConfigurationDialog() 
 void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
     // Grab fields
-    quint32 price = ui->priceLineEdit->text().toInt();
-    quint32 fee = ui->feeLine->text().toInt();
-    qint32 btcVersion = ui->btcVersionLine->text().toInt();
-    qint16 waitTime = ui->waitTimeLine->text().toInt();
-    qint8 minPeers = ui->minPeersLine->text().toInt();
+    quint32 maxPrice = ui->maxPriceLineEdit->text().toInt();
+    QTime maxLock = ui->maxLockTimeEdit->time();
+    QTime waitTime = ui->waitTimeTimeEdit->time();
+    qint8 minPeers = ui->minPeersLineEdit->text().toInt();
+    quint32 fee = ui->feeLineEdit->text().toInt();
 
     // Create configuration
-    TorrentPluginConfiguration * configuration = new TorrentPluginConfiguration(true, price, fee, btcVersion, waitTime, minPeers);
+    TorrentPluginConfiguration * configuration = new TorrentPluginConfiguration(true,
+                                                                                maxPrice,
+                                                                                maxLock,
+                                                                                waitTime,
+                                                                                minPeers,
+                                                                                fee);
 
     // Set in seller mode
     _controller->updateTorrentPluginConfiguration(_infoHash, configuration);

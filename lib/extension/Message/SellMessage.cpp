@@ -3,15 +3,18 @@
 
 #include <QDataStream>
 
-SellMessage::SellMessage(quint32 price) //, quint32 fee, quint32 minimum)
-    : price_(price)
-    /*
-    , fee_(fee)
-    , minimum_(minimum)*/ {
+SellMessage::SellMessage(quint32 minPrice, QDateTime minLock)
+    : _minPrice(minPrice)
+    , _minLock(minLock) {
 }
 
 SellMessage::SellMessage(QDataStream & stream) {
-    stream >> price_; // >> fee_ >> minimum_;
+
+    uint minLockTime_t;
+
+    stream >> _minPrice >> minLockTime_t;
+
+    _minLock.fromTime_t(minLockTime_t);
 }
 
 MessageType SellMessage::messageType() const {
@@ -19,13 +22,17 @@ MessageType SellMessage::messageType() const {
 }
 
 quint32 SellMessage::length() const {
-    return sizeof(price_); //3*sizeof(quint32);
+    return sizeof(_minPrice) + sizeof(uint);
 }
 
 void SellMessage::write(QDataStream & stream) const {
-    stream << price_; // << fee_ << minimum_;
+    stream << _minPrice << _minLock.toTime_t();
 }
 
-quint32 SellMessage::price() const {
-    return price_;
+quint32 SellMessage::minPrice() const {
+    return _minPrice;
+}
+
+QDateTime SellMessage::minLock() const {
+    return _minLock;
 }

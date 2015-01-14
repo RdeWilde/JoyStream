@@ -8,6 +8,7 @@
 #include <libtorrent/socket.hpp> // tcp::endpoint
 
 #include <QtGlobal> // quint8,...
+#include <QTime>
 
 class PeerPluginConfiguration;
 
@@ -35,10 +36,19 @@ public:
     TorrentPluginConfiguration(bool enableBanningSets);
 
     // Sell constructor from members
-    TorrentPluginConfiguration(bool enableBanningSets, quint32 sellerPrice);
+    TorrentPluginConfiguration(bool enableBanningSets,
+                               quint32 minPrice,
+                               QTime minLock,
+                               quint32 minFee,
+                               QTime maxContractConfirmationDelay);
 
-    // Buy constructor from member
-    TorrentPluginConfiguration(bool enableBanningSets, quint32 buyerPrice, quint32 fee, qint32 btcVersion, qint16 waitTime, qint8 minPeers);
+    // Buy constructor from members
+    TorrentPluginConfiguration(bool enableBanningSets,
+                               quint32 maxPrice,
+                               QTime maxLock,
+                               QTime waitTime,
+                               qint8 minPeers,
+                               quint32 fee);
 
     // Constructor from dictionary
     TorrentPluginConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry);
@@ -84,18 +94,19 @@ public:
      */
 
     // Sell
-    quint32 _sellerPrice;
+    quint32 _minPrice;
+    QTime _minLock;
+
+    quint32 _minFee;
+    QTime _maxContractConfirmationDelay;
 
     // Buy
-    quint32 _buyerPrice;
-    quint32 _fee;
-    qint32 _btcVersion;
+    quint32 _maxPrice;
+    QTime _maxLock;
 
-    qint16 _waitTime;
+    QTime _waitTime;
     qint8 _minPeers;
-
-    // Configurations for all active peer plugins
-    //std::map<libtorrent::tcp::endpoint, PeerPluginConfiguration *> _peerPluginConfigurations;
+    quint32 _fee;
 };
 
 #endif // TORRENT_PLUGIN_CONFIGURATION_HPP

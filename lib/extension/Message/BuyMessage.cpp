@@ -3,14 +3,18 @@
 
 #include <QDataStream>
 
-BuyMessage::BuyMessage(quint32 price, quint32 fee, qint32 btcVersion)
-    : _price(price)
-    , _fee(fee)
-    , _btcVersion(btcVersion) {
+BuyMessage::BuyMessage(quint32 maxPrice, QDateTime maxLock)
+    : _maxPrice(maxPrice)
+    , _maxLock(maxLock) {
 }
 
 BuyMessage::BuyMessage(QDataStream & stream) {
-    stream >> _price >> _fee >> _btcVersion;
+
+    uint maxLockTime_t;
+
+    stream >> _maxPrice >> maxLockTime_t;
+
+    _maxLock.fromTime_t(maxLockTime_t);
 }
 
 MessageType BuyMessage::messageType() const {
@@ -18,9 +22,17 @@ MessageType BuyMessage::messageType() const {
 }
 
 quint32 BuyMessage::length() const {
-    return sizeof(_price) + sizeof(_fee) + sizeof(_btcVersion);
+    return sizeof(_maxPrice) + sizeof(uint);
 }
 
 void BuyMessage::write(QDataStream & stream) const {
-    stream << _price << _fee << _btcVersion;
+    stream << _maxPrice << _maxLock.toTime_t();
+}
+
+quint32 BuyMessage::maxPrice() const {
+    return _maxPrice;
+}
+
+QDateTime BuyMessage::maxLock() const {
+    return _maxLock;
 }

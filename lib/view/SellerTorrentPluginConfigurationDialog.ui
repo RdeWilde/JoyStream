@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>230</width>
-    <height>194</height>
+    <width>368</width>
+    <height>207</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,8 +16,8 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>150</y>
+     <x>170</x>
+     <y>160</y>
      <width>177</width>
      <height>32</height>
     </rect>
@@ -47,26 +47,101 @@
     <string>Seller</string>
    </property>
   </widget>
-  <widget class="QLabel" name="priceLabel">
+  <widget class="QLabel" name="minPriceLabel">
    <property name="geometry">
     <rect>
      <x>22</x>
-     <y>50</y>
-     <width>46</width>
-     <height>13</height>
+     <y>52</y>
+     <width>85</width>
+     <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>Price</string>
+    <string>minPrice (mBTC):</string>
    </property>
   </widget>
-  <widget class="QLineEdit" name="priceLineEdit">
+  <widget class="QLineEdit" name="minPriceLineEdit">
    <property name="geometry">
     <rect>
-     <x>62</x>
+     <x>206</x>
      <y>48</y>
      <width>141</width>
      <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>1</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="minLockLabel">
+   <property name="geometry">
+    <rect>
+     <x>22</x>
+     <y>78</y>
+     <width>139</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>minLock (hours::minutes):</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="minFeeLineEdit">
+   <property name="geometry">
+    <rect>
+     <x>206</x>
+     <y>102</y>
+     <width>141</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>1</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="minFeeLabel">
+   <property name="geometry">
+    <rect>
+     <x>22</x>
+     <y>106</y>
+     <width>111</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>minFeet/KB (mBTC):</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="maxmaxContractConfirmationDelayLabel">
+   <property name="geometry">
+    <rect>
+     <x>22</x>
+     <y>132</y>
+     <width>203</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>max Confirmation (hours::minutes):</string>
+   </property>
+  </widget>
+  <widget class="QTimeEdit" name="maxContractConfirmationDelayTimeEdit">
+   <property name="geometry">
+    <rect>
+     <x>206</x>
+     <y>128</y>
+     <width>141</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QTimeEdit" name="minLockTimeEdit">
+   <property name="geometry">
+    <rect>
+     <x>206</x>
+     <y>72</y>
+     <width>141</width>
+     <height>22</height>
     </rect>
    </property>
   </widget>

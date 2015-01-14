@@ -53,7 +53,9 @@ SOURCES += \
     extension/BitCoin/Client.cpp \
     extension/Alert/PluginStatusAlert.cpp \
     extension/Message/ObserveMessage.cpp \
-    extension/Message/ExtendedMessagePayload.cpp
+    extension/Message/ExtendedMessagePayload.cpp \
+    extension/Message/JoinContractMessage.cpp \
+    extension/BitCoin/PublicKey.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -104,7 +106,9 @@ HEADERS += \
     extension/BitCoin/Client.hpp \
     extension/Alert/PluginStatusAlert.hpp \
     extension/Message/ObserveMessage.hpp \
-    extension/Message/ExtendedMessagePayload.hpp
+    extension/Message/ExtendedMessagePayload.hpp \
+    extension/Message/JoinContractMessage.hpp \
+    extension/BitCoin/PublicKey.hpp
 				
 FORMS += \
     view/mainwindow.ui \

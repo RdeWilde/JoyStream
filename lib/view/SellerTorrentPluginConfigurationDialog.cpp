@@ -27,10 +27,18 @@ SellerTorrentPluginConfigurationDialog::~SellerTorrentPluginConfigurationDialog(
 void SellerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
     // Grab fields
-    quint32 price = ui->priceLineEdit->text().toInt();
+    bool enableBanningSets = true;
+    quint32 minPrice = ui->minPriceLineEdit->text().toInt();
+    QTime minLock = ui->minLockTimeEdit->time();
+    quint32 minFee = ui->minFeeLineEdit->text().toInt();
+    QTime maxContractConfirmationDelay = ui->maxContractConfirmationDelayTimeEdit->time();
 
     // Create configuration
-    TorrentPluginConfiguration * configuration = new TorrentPluginConfiguration(true, price);
+    TorrentPluginConfiguration * configuration = new TorrentPluginConfiguration(enableBanningSets,
+                                                                                minPrice,
+                                                                                minLock,
+                                                                                minFee,
+                                                                                maxContractConfirmationDelay);
 
     // Set in seller mode
     _controller->updateTorrentPluginConfiguration(_infoHash, configuration);

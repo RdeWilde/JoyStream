@@ -93,7 +93,7 @@ public:
 
     // Torrent plugin calls to start
     //void startPlugin(PluginMode pluginMode);
-    void startPlugin();
+    void startPlugin(const ObserveMessage & m);
     void startPlugin(const SellMessage & m);
     void startPlugin(const BuyMessage & m);
 

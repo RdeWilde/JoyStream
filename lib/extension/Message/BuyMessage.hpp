@@ -3,12 +3,14 @@
 
 #include "ExtendedMessagePayload.hpp"
 
+#include <QDateTime>
+
 class BuyMessage : public ExtendedMessagePayload
 {
 public:
 
     // Constructor based on members
-    BuyMessage(quint32 price, quint32 fee, qint32 btcVersion);
+    BuyMessage(quint32 maxPrice, QDateTime maxLock);
 
     // Constructor based on raw payload
     BuyMessage(QDataStream & stream);
@@ -20,16 +22,17 @@ public:
     virtual quint32 length() const;
     virtual void write(QDataStream & stream) const;
 
+    // Getters
+    quint32 maxPrice() const;
+    QDateTime maxLock() const;
+
 private:
 
     // Buyer max price (satoshies)
-    quint32 _price;
+    quint32 _maxPrice;
 
-    // Required fee (satoshies)
-    quint32 _fee;
-
-    // BitCoin transaction version number
-    qint32 _btcVersion;
+    // When refund becomes spendable at latest
+    QDateTime _maxLock;
 };
 
 #endif // BUY_MESSAGE_HPP
