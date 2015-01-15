@@ -1,8 +1,8 @@
 #include "ExtendedMessagePayload.hpp"
 #include "MessageType.hpp"
-#include "ObserveMessage.hpp"
-#include "BuyMessage.hpp"
-#include "SellMessage.hpp"
+#include "Observe.hpp"
+#include "Buy.hpp"
+#include "Sell.hpp"
 
 #include <QDataStream>
 
@@ -12,9 +12,9 @@ ExtendedMessagePayload * ExtendedMessagePayload::fromRaw(MessageType type, QData
 
         switch(type) {
 
-            case MessageType::observe: return new ObserveMessage();
-            case MessageType::buy: return new BuyMessage(stream);
-            case MessageType::end: return new SellMessage(stream);
+            case MessageType::observe: return new Observe();
+            case MessageType::buy: return new Buy(stream);
+            case MessageType::end: return new Sell(stream);
 
             return NULL;
         }

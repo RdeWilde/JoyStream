@@ -1,14 +1,14 @@
-#include "BuyMessage.hpp"
+#include "Buy.hpp"
 #include "MessageType.hpp"
 
 #include <QDataStream>
 
-BuyMessage::BuyMessage(quint32 maxPrice, QDateTime maxLock)
+Buy::Buy(quint32 maxPrice, QDateTime maxLock)
     : _maxPrice(maxPrice)
     , _maxLock(maxLock) {
 }
 
-BuyMessage::BuyMessage(QDataStream & stream) {
+Buy::Buy(QDataStream & stream) {
 
     uint maxLockTime_t;
 
@@ -17,22 +17,22 @@ BuyMessage::BuyMessage(QDataStream & stream) {
     _maxLock.fromTime_t(maxLockTime_t);
 }
 
-MessageType BuyMessage::messageType() const {
+MessageType Buy::messageType() const {
     return MessageType::buy;
 }
 
-quint32 BuyMessage::length() const {
+quint32 Buy::length() const {
     return sizeof(_maxPrice) + sizeof(uint);
 }
 
-void BuyMessage::write(QDataStream & stream) const {
+void Buy::write(QDataStream & stream) const {
     stream << _maxPrice << _maxLock.toTime_t();
 }
 
-quint32 BuyMessage::maxPrice() const {
+quint32 Buy::maxPrice() const {
     return _maxPrice;
 }
 
-QDateTime BuyMessage::maxLock() const {
+QDateTime Buy::maxLock() const {
     return _maxLock;
 }

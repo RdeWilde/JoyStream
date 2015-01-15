@@ -1,23 +1,21 @@
-#ifndef BUY_MESSAGE_HPP
-#define BUY_MESSAGE_HPP
+#ifndef BUY_HPP
+#define BUY_HPP
 
 #include "ExtendedMessagePayload.hpp"
 
 #include <QDateTime>
 
-class BuyMessage : public ExtendedMessagePayload
+class Buy : public ExtendedMessagePayload
 {
 public:
 
     // Constructor based on members
-    BuyMessage(quint32 maxPrice, QDateTime maxLock);
+    Buy(quint32 maxPrice, QDateTime maxLock);
 
     // Constructor based on raw payload
-    BuyMessage(QDataStream & stream);
+    Buy(QDataStream & stream);
 
-    /**
-     * Inherited from ExtendedMessage
-     */
+    // Virtual methods that subclassing messages have to implement
     virtual MessageType messageType() const;
     virtual quint32 length() const;
     virtual void write(QDataStream & stream) const;
@@ -35,4 +33,4 @@ private:
     QDateTime _maxLock;
 };
 
-#endif // BUY_MESSAGE_HPP
+#endif // BUY_HPP

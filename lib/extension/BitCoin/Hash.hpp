@@ -5,21 +5,19 @@ class QDataStream;
 
 #include <QtGlobal> // quint32;
 
-#define HASH_LENGTH 32
-
 class Hash
 {
 public:
     Hash();
 
-    static quint32 length();
+    static const quint32 length = 32;
 
     friend QDataStream & operator<<(QDataStream & stream, const Hash & key);
     friend QDataStream & operator>>(QDataStream & stream, Hash & key);
 
 private:
 
-    char _hash[HASH_LENGTH];
+    char _raw[32];
 };
 
 #endif // HASH_HPP

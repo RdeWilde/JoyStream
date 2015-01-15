@@ -15,7 +15,7 @@ MessageType JoiningContract::messageType() const {
 }
 
 quint32 JoiningContract::length() const {
-    return PublicKey::length();
+    return PublicKey::length;
 }
 
 void JoiningContract::write(QDataStream & stream) const {

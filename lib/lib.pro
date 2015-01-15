@@ -28,8 +28,6 @@ SOURCES += \
     extension/Plugin.cpp \
     extension/PeerPlugin.cpp \
     extension/PeerPluginStatus.cpp \
-    extension/Message/BuyMessage.cpp \
-    extension/Message/SellMessage.cpp \
     extension/Message/ExtendedMessageIdMapping.cpp \
     view/TorrentViewModel.cpp \
     Utilities.cpp \
@@ -52,14 +50,19 @@ SOURCES += \
     extension/Request/StartPluginTorrentPluginRequest.cpp \
     extension/BitCoin/Client.cpp \
     extension/Alert/PluginStatusAlert.cpp \
-    extension/Message/ObserveMessage.cpp \
     extension/Message/ExtendedMessagePayload.cpp \
-    extension/Message/JoinContractMessage.cpp \
     extension/BitCoin/PublicKey.cpp \
     extension/BitCoin/Signature.cpp \
     extension/Message/JoiningContract.cpp \
     extension/Message/SignRefund.cpp \
-    extension/BitCoin/Hash.cpp
+    extension/BitCoin/Hash.cpp \
+    extension/Message/RefundSigned.cpp \
+    extension/Message/Buy.cpp \
+    extension/Message/Sell.cpp \
+    extension/Message/Observe.cpp \
+    extension/Message/JoinContract.cpp \
+    extension/Message/Payment.cpp \
+    extension/Message/End.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -77,8 +80,6 @@ HEADERS += \
     extension/Plugin.hpp \
     extension/PeerPlugin.hpp \
     extension/PeerPluginStatus.hpp \
-    extension/Message/BuyMessage.hpp \
-    extension/Message/SellMessage.hpp \
     extension/Message/ExtendedMessageIdMapping.hpp \
     extension/PeerPluginState.hpp \
     view/TorrentViewModel.hpp \
@@ -109,14 +110,19 @@ HEADERS += \
     extension/Request/StartPluginTorrentPluginRequest.hpp \
     extension/BitCoin/Client.hpp \
     extension/Alert/PluginStatusAlert.hpp \
-    extension/Message/ObserveMessage.hpp \
     extension/Message/ExtendedMessagePayload.hpp \
-    extension/Message/JoinContractMessage.hpp \
     extension/BitCoin/PublicKey.hpp \
     extension/BitCoin/Signature.hpp \
     extension/Message/JoiningContract.hpp \
     extension/Message/SignRefund.hpp \
-    extension/BitCoin/Hash.hpp
+    extension/BitCoin/Hash.hpp \
+    extension/Message/RefundSigned.hpp \
+    extension/Message/Sell.hpp \
+    extension/Message/Observe.hpp \
+    extension/Message/JoinContract.hpp \
+    extension/Message/Buy.hpp \
+    extension/Message/Payment.hpp \
+    extension/Message/End.hpp
 				
 FORMS += \
     view/mainwindow.ui \

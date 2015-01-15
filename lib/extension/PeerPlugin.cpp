@@ -7,9 +7,9 @@
 #include "Request/PeerPluginRequest.hpp"
 #include "Message/MessageType.hpp"
 #include "Message/ExtendedMessagePayload.hpp"
-#include "Message/ObserveMessage.hpp"
-#include "Message/BuyMessage.hpp"
-#include "Message/SellMessage.hpp"
+#include "Message/Observe.hpp"
+#include "Message/Buy.hpp"
+#include "Message/Sell.hpp"
 #include "Utilities.hpp"
 
 #include <libtorrent/bt_peer_connection.hpp> // bt_peer_connection, bt_peer_connection::msg_extended
@@ -597,7 +597,7 @@ void PeerPlugin::processPeerPluginRequest(const PeerPluginRequest * peerPluginRe
     }
 }
 
-void PeerPlugin::startPlugin(const ObserveMessage & m) {
+void PeerPlugin::startPlugin(const Observe & m) {
 
     // Start plugin
     _pluginStarted = true;
@@ -609,7 +609,7 @@ void PeerPlugin::startPlugin(const ObserveMessage & m) {
     sendExtendedMessage(m);
 }
 
-void PeerPlugin::startPlugin(const SellMessage & m) {
+void PeerPlugin::startPlugin(const Sell & m) {
 
     // Start plugin
     _pluginStarted = true;
@@ -621,7 +621,7 @@ void PeerPlugin::startPlugin(const SellMessage & m) {
     sendExtendedMessage(m);
 }
 
-void PeerPlugin::startPlugin(const BuyMessage & m) {
+void PeerPlugin::startPlugin(const Buy & m) {
 
     // Start plugin
     _pluginStarted = true;
@@ -687,15 +687,15 @@ void PeerPlugin::processExtendedMessage(ExtendedMessagePayload * extendedMessage
 
         case MessageType::observe:
 
-            processPassiveMessage(static_cast<ObserveMessage *>(extendedMessage));
+            processPassiveMessage(static_cast<Observe *>(extendedMessage));
             break;
         case MessageType::buy:
 
-            processBuyMessage(static_cast<BuyMessage *>(extendedMessage));
+            processBuyMessage(static_cast<Buy *>(extendedMessage));
             break;
         case MessageType::sell:
 
-            processSellMessage(static_cast<SellMessage *>(extendedMessage));
+            processSellMessage(static_cast<Sell *>(extendedMessage));
             break;
         case MessageType::join_contract:
 
@@ -724,7 +724,7 @@ void PeerPlugin::processExtendedMessage(ExtendedMessagePayload * extendedMessage
     delete extendedMessage;
 }
 
-void PeerPlugin::processPassiveMessage(const ObserveMessage * observeMessage) {
+void PeerPlugin::processPassiveMessage(const Observe * observeMessage) {
 
     // Check that last message received was BEP10 extended handshake
     if(!(_peerPluginState == PeerPluginState::BEP10_handshake_received)) {
@@ -742,7 +742,7 @@ void PeerPlugin::processPassiveMessage(const ObserveMessage * observeMessage) {
     // Now what?
 }
 
-void PeerPlugin::processSellMessage(const SellMessage * sellMessage) {
+void PeerPlugin::processSellMessage(const Sell * sellMessage) {
 
     // Check that last message received was either BEP10 extended handshake
     // or passive message
@@ -765,7 +765,7 @@ void PeerPlugin::processSellMessage(const SellMessage * sellMessage) {
     // Now what?
 }
 
-void PeerPlugin::processBuyMessage(const BuyMessage * buyMessage) {
+void PeerPlugin::processBuyMessage(const Buy * buyMessage) {
 
     // Check that last message received was either BEP10 extended handshake
     // or passive message

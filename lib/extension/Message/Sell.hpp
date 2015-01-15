@@ -1,24 +1,22 @@
-#ifndef SELL_MESSAGE_HPP
-#define SELL_MESSAGE_HPP
+#ifndef SELL_HPP
+#define SELL_HPP
 
 #include "ExtendedMessagePayload.hpp"
 
 #include <QDateTime>
 
-class SellMessage : public ExtendedMessagePayload
+class Sell : public ExtendedMessagePayload
 {
 
 public:
 
     // Constructor based on members
-    SellMessage(quint32 minPrice, QDateTime minLock);
+    Sell(quint32 minPrice, QDateTime minLock);
 
     // Constructor based on raw data
-    SellMessage(QDataStream & stream);
+    Sell(QDataStream & stream);
 
-    /**
-     * Inherited from ExtendedMessagePayload
-     */
+    // Virtual methods that subclassing messages have to implement
     virtual MessageType messageType() const;
     virtual quint32 length() const;
     virtual void write(QDataStream & stream) const;
@@ -36,4 +34,4 @@ private:
     QDateTime _minLock;
 };
 
-#endif // SELL_MESSAGE_HPP
+#endif // SELL_HPP

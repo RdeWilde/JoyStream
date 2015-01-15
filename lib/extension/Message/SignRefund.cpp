@@ -1,6 +1,8 @@
 #include "SignRefund.hpp"
 #include "MessageType.hpp"
 
+#include <QDataStream>
+
 SignRefund::SignRefund(const Hash & hash, quint32 index, quint64 value, const PublicKey & pk)
     : _hash(hash)
     , _index(index)
@@ -13,7 +15,7 @@ MessageType SignRefund::messageType() const {
 }
 
 quint32 SignRefund::length() const {
-    return Hash::length() + sizeof(quint32) + sizeof(quint64) + PublicKey::length();
+    return Hash::length + sizeof(quint32) + sizeof(quint64) + PublicKey::length;
 }
 
 void SignRefund::write(QDataStream & stream) const {

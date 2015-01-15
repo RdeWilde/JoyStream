@@ -4,10 +4,6 @@
 Signature::Signature() {
 }
 
-quint32 Signature::length() {
-    return -1; // temp
-}
-
 bool Signature::isValid(const PublicKey & key) const {
     return true;
 }

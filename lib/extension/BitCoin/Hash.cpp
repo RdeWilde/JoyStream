@@ -1,17 +1,16 @@
 #include "Hash.hpp"
 
-Hash::Hash()
-{
+Hash::Hash() {
 }
 
-quint32 Hash::length() {
-    return HASH_LENGTH;
+QDataStream & operator<<(QDataStream & stream, const Hash & key) {
+
+    return stream;
 }
 
-QDataStream & Hash::operator<<(QDataStream & stream, const Hash & key) {
+QDataStream & operator>>(QDataStream & stream, Hash & key) {
 
-}
+    //for(int i = 0;i < HASH_LENGTH;i++)
 
-QDataStream & Hash::operator>>(QDataStream & stream, Hash & key) {
-
+    return stream;
 }

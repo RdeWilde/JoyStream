@@ -12,10 +12,7 @@ public:
     // Getter
     PublicKey pk() const;
 
-    /**
-     * Virtual methods that subclassing messages have to implement
-     */
-
+    // Virtual methods that subclassing messages have to implement
     virtual MessageType messageType() const;
     virtual quint32 length() const;
     virtual void write(QDataStream & stream) const;

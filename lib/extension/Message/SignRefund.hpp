@@ -12,9 +12,7 @@ class SignRefund : public ExtendedMessagePayload
 public:
     SignRefund(const Hash & hash, quint32 index, quint64 value, const PublicKey & pk);
 
-    /**
-     * Virtual methods that subclassing messages have to implement
-     */
+    // Virtual methods that subclassing messages have to implement
     MessageType messageType() const;
     quint32 length() const;
     void write(QDataStream & stream) const;

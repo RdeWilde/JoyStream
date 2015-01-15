@@ -23,9 +23,9 @@ class TorrentPlugin;
 class PeerPluginStatus;
 class PeerPluginRequest;
 class ExtendedMessagePayload;
-class ObserveMessage;
-class BuyMessage;
-class SellMessage;
+class Observe;
+class Buy;
+class Sell;
 
 /*
  * We inherit from QObject so we can send signals, and QObject must be first:
@@ -93,9 +93,9 @@ public:
 
     // Torrent plugin calls to start
     //void startPlugin(PluginMode pluginMode);
-    void startPlugin(const ObserveMessage & m);
-    void startPlugin(const SellMessage & m);
-    void startPlugin(const BuyMessage & m);
+    void startPlugin(const Observe & m);
+    void startPlugin(const Sell & m);
+    void startPlugin(const Buy & m);
 
     // Sends extended message to peer
     // does not take ownership of pointer
@@ -105,9 +105,9 @@ public:
     void processExtendedMessage(ExtendedMessagePayload * extendedMessage);
 
     // Processess a message
-    void processPassiveMessage(const ObserveMessage * passiveMessage);
-    void processBuyMessage(const BuyMessage * buyMessage);
-    void processSellMessage(const SellMessage * sellMessage);
+    void processPassiveMessage(const Observe * passiveMessage);
+    void processBuyMessage(const Buy * buyMessage);
+    void processSellMessage(const Sell * sellMessage);
 
     /*
     void processSetupBeginMessage();
@@ -177,8 +177,8 @@ protected:
     PluginMode _peerPluginMode;
 
     // Last message received of the given type from peer
-    const SellMessage * _peerSellMessage;
-    const BuyMessage * _peerBuyMessage;
+    const Sell * _peerSellMessage;
+    const Buy * _peerBuyMessage;
 
     /**
      * ==============================================
