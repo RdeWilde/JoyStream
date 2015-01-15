@@ -363,7 +363,7 @@ void Controller::processTorrentFinishedAlert(libtorrent::torrent_finished_alert 
 
 void Controller::processStatusUpdateAlert(libtorrent::state_update_alert const * p) {
 
-    qCCritical(_category) << "Number of state_update_alert alerts" << p->status.size();
+    //qCCritical(_category) << "Number of state_update_alert alerts" << p->status.size();
     _view.updateTorrentStatus(p->status);
 }
 

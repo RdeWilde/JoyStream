@@ -4,6 +4,9 @@
 #include "PeerPluginConfiguration.hpp"
 #include "Request/PeerPluginRequest.hpp"
 #include "PluginMode.hpp"
+#include "BitCoin/PublicKey.hpp"
+#include "BitCoin/Hash.hpp"
+#include "BitCoin/Signature.hpp"
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/entry.hpp>
@@ -150,7 +153,7 @@ protected:
     bool _pluginStarted;
 
     /**
-     * Persistent state below
+     * State
      */
 
     // Mode of plugin when started
@@ -176,9 +179,8 @@ protected:
     // not valid when _peerPluginModeObserved == false
     PluginMode _peerPluginMode;
 
-    // Last message received of the given type from peer
-    const Sell * _peerSellMessage;
-    const Buy * _peerBuyMessage;
+    // Messages received from peer, in order
+    QList<ExtendedMessagePayload *> _messagesReceived;
 
     /**
      * ==============================================
@@ -187,28 +189,41 @@ protected:
      * ==============================================
      */
 
-    /**
-     * Peer
-     */
+    // Seller
+    quint64 _sBuyerMaxPrice;
+    quint32 _sBuyerMaxLock;
+
+    PublicKey _sPK;
+    //PrivateKey _sSK;
+
+    PublicKey _sBuyerContractPK;
+    Hash _sContractHash;
+    quint32 _sContractOutputIndex;
+    quint64 _sContractOutputValue;
+
+    // Set when refund signature sent, as this is lower bound
+    QDateTime _sContractRefundEarliestSpendable;
+
+    // Signature for last valid payment from buyer
+    Signature _sLastValidPaymentSignatureReceived;
+
+    // Requests received, but not serviced
+    QList<quint32> _sPendingRequests;
+
+    // Buyer
+    quint64 _bSellerMinPrice;
+    quint32 _bSellerMinLock;
+
+    PublicKey _bSellerPK;
+
+    quint32 _bContractOutputIndex;
+    quint64 _bContractOutputValue;
+
+    Signature _bContractOutputRefund;
+
+    QList<quint32> _sUnservicedSentRequests;
 
 
-    /**
-     * Client
-     */
-
-    /*
-    // Sell client
-    quint32 _clientSellerPrice; // price put in sell message
-
-    // Buy client
-    quint32 _clientBuyerPrice;
-    quint32 _clientFee;
-    qint32 _clientPeerBtcVersion;
-    */
-
-signals:
-
-    //void peerPluginStatusUpdated(const PeerPluginStatus & status);
 
 };
 

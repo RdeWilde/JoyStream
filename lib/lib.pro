@@ -62,7 +62,8 @@ SOURCES += \
     extension/Message/Observe.cpp \
     extension/Message/JoinContract.cpp \
     extension/Message/Payment.cpp \
-    extension/Message/End.cpp
+    extension/Message/End.cpp \
+    extension/BitCoin/PrivateKey.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -122,7 +123,9 @@ HEADERS += \
     extension/Message/JoinContract.hpp \
     extension/Message/Buy.hpp \
     extension/Message/Payment.hpp \
-    extension/Message/End.hpp
+    extension/Message/End.hpp \
+    extension/TorrentPluginState.hpp \
+    extension/BitCoin/PrivateKey.hpp
 				
 FORMS += \
     view/mainwindow.ui \

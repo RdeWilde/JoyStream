@@ -170,7 +170,7 @@ void TorrentPlugin::on_add_peer(libtorrent::tcp::endpoint const & endPoint, int 
 bool TorrentPlugin::installPluginOnNewConnection(libtorrent::peer_connection * peerConnection) const {
 
     // We accept all connections while plugin has not yet been started
-    if(_pluginStarted)
+    if(!_pluginStarted)
         return true;
 
     // Get endpoint of connection

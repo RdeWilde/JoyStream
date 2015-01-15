@@ -2,6 +2,7 @@
 #define TORRENT_PLUGIN_HPP
 
 #include "PluginMode.hpp"
+#include "TorrentPluginState.hpp"
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
@@ -115,18 +116,25 @@ protected:
     // NON-NULL means we are buyer or seller
     TorrentPluginConfiguration * _torrentPluginConfiguration;
 
+    // Plugin state
+    TorrentPluginState _state;
+
     /**
-    // Plugin is active and therefore does tick() processing.
-    // Is set by controller after file torrent metadata is acquired and/or
-    // resume data has been validated.
-    bool _pluginStarted;
+     * Buy
+     */
 
-    // Mode of client plugin
-    PluginMode _mode;
+    //
+    // what requests have been sent out for pieces we still
+    // dont have, and how long have we been waiting (so that we can discard slow bastards).
 
-    // Use the two sets below when accepting new peers in new_connect
-    bool _enableBanningSets;
-    */
+    // What refunds have been spent,and what have not.
+    // Use timer to keep checking back?
+
+    /**
+     * Seller has not torrent level state
+     */
+
+
 
 private:
 

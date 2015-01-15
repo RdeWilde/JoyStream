@@ -86,6 +86,7 @@ QJsonValue Client::parse(QNetworkReply * reply) {
         throw std::exception("Network request error.");
 
     // Parse into json
+
     QJsonDocument jsonResponse = QJsonDocument::fromJson(response);
     QJsonObject jsonObject = jsonResponse.object();
 
