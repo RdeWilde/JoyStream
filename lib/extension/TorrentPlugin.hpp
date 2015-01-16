@@ -3,6 +3,7 @@
 
 #include "PluginMode.hpp"
 #include "TorrentPluginState.hpp"
+#include "BitCoin/PublicKey.hpp"
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
@@ -123,29 +124,46 @@ protected:
     // Plugin state
     TorrentPluginState _state;
 
-    // Counts until
-    QTime _delayedSellerPickerClock;
+                /**
+                 * Build better model of payment channel later perhaps
+                 */
+                // Vector of plugins for seller in contract,
+                // where position corresponds to contract output position.
+                QVector<PeerPlugin *> _sellersInContract;
+                QVector<PublicKey> _contractOutputPKs;
 
-    // TxId of transactin funding contract
-    // Hash _fundingTxHash;
+                // Counts until
+                QTime _delayedSellerPickerClock;
 
-    // TxId of contract transaction
-    // Hash _contractTxHash
+
+                //PublicKey _sPK;
+                //PrivateKey _sSK;
+
+                // TxId of transactin funding contract
+                // Hash _fundingTxHash;
+                // quint32 _fundingTxOutputIndex;
+
+                // TxId of contract transaction
+                // Hash _contractTxHash
+                // PublicKey _contractTxChangePK
+                // PublicKey _contractTxO
 
     /**
      * State sets: Later perhaps put variables
      * in plugins themselfs, makes cleanup simpler.
      */
 
-    // Peers to which join_contract message has been sent
-    QSet<PeerPlugin *> _invitedToContract;
+    // Peers to which join_contract message has been sent,
+    // and since have not altered mode to worse terms.
+    QSet<PeerPlugin *> _invitedToJoinContract;
 
-    // Peers which have responded with joining_contract message.
-    QSet<PeerPlugin *> _joinedContract;
+    // Peers to which sign_refundmessage has been sent,
+    // and response has not expired.???
+    QSet<PeerPlugin *> _invitedToSignRefund;
 
 
+    QSet<PeerPlugin *> _expiredSignRefundRequest;
 
-     //
     // what requests have been sent out for pieces we still
     // dont have, and how long have we been waiting (so that we can discard slow bastards).
 

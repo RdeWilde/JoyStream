@@ -10,6 +10,7 @@
 class SignRefund : public ExtendedMessagePayload
 {
 public:
+
     SignRefund(const Hash & hash, quint32 index, quint64 value, const PublicKey & pk);
 
     // Virtual methods that subclassing messages have to implement

@@ -93,19 +93,19 @@ public:
      * Mode spesific
      */
 
-    // Sell
+    // Seller
     quint32 _minPrice;
     QTime _minLock;
 
     quint32 _minFee;
     QTime _maxContractConfirmationDelay;
 
-    // Buy
+    // Buyer
     quint32 _maxPrice;
     QTime _maxLock;
 
-    QTime _waitTime;
-    qint8 _minPeers;
+    QTime _joinContractDelay;
+    qint32 _numSellers;
     quint32 _fee;
 };
 

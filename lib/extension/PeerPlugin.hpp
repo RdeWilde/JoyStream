@@ -135,6 +135,7 @@ public:
     PeerPluginState peerPluginState() const;
     libtorrent::tcp::endpoint endPoint() const;
     bool isConnected() const;
+    bool peerSentInvalidMessage() const;
 
 protected:
 
@@ -160,11 +161,20 @@ protected:
     // Connection status with peer
     bool _isConnected;
 
+    // Peer sent an invalid message
+    // This could either be because
+    // a) sent a message which was not well formed
+    // b)
+    // c)
+    bool _peerSentInvalidMessage;
+
     // Indicates if plugin has been started
     // Before this becomes true, plugin will
     // not do anythng which compromises eventually
     // going into seller or buyer mode
     bool _pluginStarted;
+
+public: // <====== TEMPORARY ACCESS QUALIFIER UNTIL WE DESHARD
 
     /**
      * State

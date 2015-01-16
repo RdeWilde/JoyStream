@@ -820,3 +820,7 @@ libtorrent::tcp::endpoint PeerPlugin::endPoint() const {
 bool PeerPlugin::isConnected() const {
     return _isConnected;
 }
+
+bool PeerPlugin::peerSentInvalidMessage() const {
+    return _peerSentInvalidMessage;
+}

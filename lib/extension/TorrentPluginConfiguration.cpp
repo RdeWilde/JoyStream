@@ -29,8 +29,8 @@ TorrentPluginConfiguration::TorrentPluginConfiguration(bool enableBanningSets,
     , _enableBanningSets(enableBanningSets)
     , _maxPrice(maxPrice)
     , _maxLock(maxLock)
-    , _waitTime(waitTime)
-    , _minPeers(minPeers)
+    , _joinContractDelay(waitTime)
+    , _numSellers(minPeers)
     , _fee(fee) {
 }
 

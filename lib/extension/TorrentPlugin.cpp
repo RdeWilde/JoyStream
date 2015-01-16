@@ -15,6 +15,8 @@
 #include "Message/Buy.hpp"
 #include "Message/Sell.hpp"
 #include "Message/Observe.hpp"
+#include "Message/JoinContract.hpp"
+#include "Message/SignRefund.hpp"
 
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/peer_connection.hpp>
@@ -22,6 +24,9 @@
 #include <libtorrent/socket_io.hpp> // print_endpoint
 
 #include <QLoggingCategory>
+
+// Maximum allowable a peer may have in responding to given message (ms)
+#define SIGN_REFUND_MAX_DELAY 5*1000
 
 TorrentPlugin::TorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, TorrentPluginConfiguration * torrentPluginConfiguration)
     : _plugin(plugin)
@@ -112,9 +117,9 @@ void TorrentPlugin::on_piece_failed(int index) {
 
 void TorrentPlugin::tick() {
 
-    //qCDebug(_category) << "TorrentPlugin.tick()";
-
-    if(!_pluginStarted)
+    // No processing is done before plugin is started and
+    // successful extended handshake
+    if(!_pluginStarted || _peerBEP43SupportedStatus != BEPSupportStatus::supported)
         return;
 
     // Create and send torrent plugin satus
@@ -128,11 +133,11 @@ void TorrentPlugin::tick() {
         // Get peer plugin
         PeerPlugin * plugin = _peerPlugins.find(*i);
 
-        // If peer is connected, then process unprocessed messages, otherwise remove
-        if(plugin->isConnected())
-            plugin->processUnprocessedMessages();
-        else
+        // If peer was disconnected, or sent inappropriate message, then remove plugin
+        if(!plugin->isConnected() || plugin->peerSentInvalidMessage())
             removePeerPlugin(plugin);
+        else // otherwise process messages
+            plugin->processUnprocessedMessages();
     }
 
     // Call mode spesific tick processor
@@ -148,14 +153,6 @@ void TorrentPlugin::tick() {
             sellTick();
             break;
     }
-
-    /**
-    // No processing is done before plugin is started and
-    // successful extended handshake
-    if(!_pluginStarted || _peerBEP43SupportedStatus != BEPSupportStatus::supported)
-        return;
-
-        */
 }
 
 bool TorrentPlugin::on_resume() {
@@ -215,21 +212,78 @@ void TorrentPlugin::buyTick() {
 
     switch(_state) {
 
-        case TorrentPluginState::waiting_for_enough_contract_participants:
+        case TorrentPluginState::populating_payment_channel:
 
             // Return if the minimal amount of time required before picking sellers has not been reached
-            if(_delayedSellerPickerClock < _torrentPluginConfiguration->_waitTime)
+            if(_delayedSellerPickerClock < _torrentPluginConfiguration->_joinContractDelay)
                 return;
 
-            /**
-            // Iterate sellers NOT in _invitedToContract, if a seller is good enough,
-                // put in _haveValidContractInvitation
-                // send out join_contract
+            // Iterate peer plugins
+            QMapIterator<libtorrent::tcp::endpoint, PeerPlugin *> i(_peerPlugins);
+            while(i.hasNext()) {
+
+                // Get plugin
+                PeerPlugin * plugin = i.value();
+
+                // Only known to be seller
+                if(plugin->peerPluginState() == PeerPluginState::sell_mode_announced) {
+
+                    // Invite if not invited before, and terms are compatible
+                    if(!_invitedToJoinContract.contains(plugin) &&
+                        plugin->_bSellerMinPrice <= _torrentPluginConfiguration->_maxPrice &&
+                        plugin->_bSellerMinLock <= _torrentPluginConfiguration->_maxLock) {
+
+                        // Invite to join contract
+                        plugin->sendExtendedMessage(JoinContract());
+
+                        // and keep track of invitation
+                        _invitedToJoinContract.insert(plugin);
+                    }
+
+                } // Has seller joined contract
+                else if(plugin->peerPluginState() == PeerPluginState::joined_contract) {
+
+                    // Has been invited to sign refund
+                    if(_invitedToSignRefund.contains(plugin)) {
+
+                        // If has expired, then we need to kick out
+                        if(plugin->peerTimedOut(SIGN_REFUND_MAX_DELAY)) {
+
+                            // what now, black list from resending or something
+                            // remove from _invitedToSignRefund
+                            // add to _expiredSignRefundRequest
+
+                        }
+
+                    } // Hasn't been invited, and there are free spots, hence we invite
+                    else (!_expiredSignRefundRequest.contains(plugin) &&
+                            ((int unoccupiedContractIndex = _sellersInContract.indexOf(NULL)) != -1)) {
+
+                        // Build refund
+                        // tx
+
+                        // Put in free slot in contract
+                        _sellersInContract[unoccupiedContractIndex] = plugin;
+
+                        // Invite to sign refund
+                        //plugin->sendExtendedMessage(SignRefund(sign(,tx)));
+
+                        //and keep track of invitation
+                        _invitedToSignRefund.insert(plugin);
+
+                    }
+                }
+            }
+
+            //
+            //_invitedToSignRefund kick out slow peers.
+
+
+            // contract is not full,
+
 
             // if we have enough sellers in QList
                 // switch <--  waiting_for_everyone_to_join_contract
-
-                */
 
 
             // if ALL peers in _contractCandidates PeerPluginState::joined_contract
@@ -478,6 +532,9 @@ void TorrentPlugin::startBuyer() {
 
     // Start clock for when picking sellers can begin
     _delayedSellerPickerClock.start();
+
+    // Setup space for plugins in contract
+    _sellersInContract.fill(NULL, _torrentPluginConfiguration->_numSellers);
 }
 
 void TorrentPlugin::processSetConfigurationTorrentPluginRequest(const SetConfigurationTorrentPluginRequest * setConfigurationTorrentPluginRequest) {

@@ -16,9 +16,7 @@ enum class TorrentPluginState {
      * Buy
      */
 
-    waiting_for_enough_contract_participants,
-
-    waiting_for_refund_signatures,
+    populating_payment_channel,
     downloading_pieces,
     waiting_for_all_refunds_to_be_spent,
     done
