@@ -24,8 +24,7 @@ PeerPlugin::PeerPlugin(TorrentPlugin * torrentPlugin, libtorrent::bt_peer_connec
     , _category(category)
     , _pluginStarted(false)
     , _peerPluginModeObserved(false)
-    , _peerSellMessage(NULL)
-    , _peerBuyMessage(NULL) {
+    , _isConnected(true) {
     //, _peerPluginConfiguration(peerPluginConfiguration) {
 }
 
@@ -300,8 +299,7 @@ void PeerPlugin::on_disconnect(libtorrent::error_code const & ec) {
 
     qCDebug(_category) << "on_disconnect";
 
-    // Remove from torrent plugin
-    _torrentPlugin->removePeerPlugin(this);
+    _isConnected = false;
 }
 
 void PeerPlugin::on_connected() {
@@ -512,7 +510,7 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
     }
 
     // Add to message queue
-    _unprocessedMessageQueue.push(extendedMessage);
+    _unprocessedMessageQueue.enqueue(extendedMessage);
 
     // No other plugin should process
     return true;
@@ -546,35 +544,6 @@ void PeerPlugin::on_piece_failed(int index) {
 }
 
 /*
- * Called aproximately once every second
- */
-void PeerPlugin::tick() {
-
-    qCDebug(_category) << "PeerPlugin.tick()";
-
-    // No processing is done before plugin is started and
-    // successful extended handshake
-    if(!_pluginStarted || _peerBEP43SupportedStatus != BEPSupportStatus::supported)
-        return;
-
-    // Process messages in queue
-    while(!_unprocessedMessageQueue.empty()) {
-
-        // Process message
-        processExtendedMessage(_unprocessedMessageQueue.front());
-
-        // Remove from queue
-        _unprocessedMessageQueue.pop();
-    }
-
-    // Send status to controller
-    //PeerPluginStatus status(_peerPluginConfiguration.getPeerPluginId(), _peerPluginConfiguration.getPeerPluginState(), 0);
-    PeerPluginStatus status(_peerPluginId, _peerPluginState, 0);
-
-    //emit peerPluginStatusUpdated(status);
-}
-
-/*
  * Called each time a request message is to be sent. If true is returned,
  * the original request message won't be sent and no other plugin will have this function called.
  */
@@ -586,6 +555,22 @@ bool PeerPlugin::write_request(libtorrent::peer_request const & peerRequest) {
     */
 
     return false;
+}
+
+void PeerPlugin::processUnprocessedMessages() {
+
+    // Process messages in queue
+    while(!_unprocessedMessageQueue.isEmpty()) {
+
+        // Get and remove message from front of queue
+        ExtendedMessagePayload * m = _unprocessedMessageQueue.dequeue();
+
+        // Process message
+        processExtendedMessage(m);
+
+        // Save it: CONTROL SIZE OF THIS LATER, CAN TAKE UP ALL MEMORY
+        _messagesReceived.append(m);
+    }
 }
 
 void PeerPlugin::processPeerPluginRequest(const PeerPluginRequest * peerPluginRequest) {
@@ -672,6 +657,12 @@ void PeerPlugin::sendExtendedMessage(const ExtendedMessagePayload & extendedMess
 
         // Send message buffer
         _bittorrentPeerConnection->send_buffer(constData, messageLength);
+
+        // Start/Restart timer
+        if(_lastMessageSentClock.isNull())
+            _lastMessageSentClock.start();
+        else
+            _lastMessageSentClock.restart();
     }
 }
 
@@ -687,7 +678,7 @@ void PeerPlugin::processExtendedMessage(ExtendedMessagePayload * extendedMessage
 
         case MessageType::observe:
 
-            processPassiveMessage(static_cast<Observe *>(extendedMessage));
+            processObserveMessage(static_cast<Observe *>(extendedMessage));
             break;
         case MessageType::buy:
 
@@ -724,7 +715,7 @@ void PeerPlugin::processExtendedMessage(ExtendedMessagePayload * extendedMessage
     delete extendedMessage;
 }
 
-void PeerPlugin::processPassiveMessage(const Observe * observeMessage) {
+void PeerPlugin::processObserveMessage(const Observe * m) {
 
     // Check that last message received was BEP10 extended handshake
     if(!(_peerPluginState == PeerPluginState::BEP10_handshake_received)) {
@@ -734,7 +725,7 @@ void PeerPlugin::processPassiveMessage(const Observe * observeMessage) {
     }
 
     // Alter state
-    _peerPluginState = PeerPluginState::mode_message_received;
+    _peerPluginState = PeerPluginState::observe_mode_announced;
 
     // Note that peer is passive
     _peerPluginMode = PluginMode::Observe;
@@ -742,45 +733,39 @@ void PeerPlugin::processPassiveMessage(const Observe * observeMessage) {
     // Now what?
 }
 
-void PeerPlugin::processSellMessage(const Sell * sellMessage) {
+void PeerPlugin::processSellMessage(const Sell * m) {
 
-    // Check that last message received was either BEP10 extended handshake
-    // or passive message
+    // Check that last message received was either BEP10 extended handshake or a observe message
     if(!(_peerPluginState == PeerPluginState::BEP10_handshake_received ||
-       (_peerPluginState == PeerPluginState::mode_message_received && _clientPluginMode == PluginMode::Observe))) {
+       _peerPluginState == PeerPluginState::observe_mode_announced)) {
 
         qCDebug(_category) << "Received buy message at incorrect state, drop peer?.";
         return;
     }
 
-    // Save message
-    _peerSellMessage = sellMessage;
-
     // Alter state
-    _peerPluginState = PeerPluginState::mode_message_received;
+    _peerPluginState = PeerPluginState::sell_mode_announced;
 
     // Note that peer is seller
     _peerPluginMode = PluginMode::Sell;
 
     // Now what?
+    // Make decision informed by _clientPluginMode
+    // && _clientPluginMode == PluginMode::Observe
 }
 
 void PeerPlugin::processBuyMessage(const Buy * buyMessage) {
 
-    // Check that last message received was either BEP10 extended handshake
-    // or passive message
+    // Check that last message received was either BEP10 extended handshake or observe message
     if(!(_peerPluginState == PeerPluginState::BEP10_handshake_received ||
-       (_peerPluginState == PeerPluginState::mode_message_received && _clientPluginMode == PluginMode::Observe))) {
+       _peerPluginState == PeerPluginState::observe_mode_announced)) {
 
         qCDebug(_category) << "Received buy message at incorrect state, drop peer?.";
         return;
     }
 
-    // Save message
-    _peerBuyMessage = buyMessage;
-
     // Alter state
-    _peerPluginState = PeerPluginState::mode_message_received;
+    _peerPluginState = PeerPluginState::buy_mode_announced;
 
     // Note that peer is buyer
     _peerPluginMode = PluginMode::Buy;
@@ -789,6 +774,20 @@ void PeerPlugin::processBuyMessage(const Buy * buyMessage) {
     //_buyerPrice = buyMessage->
 
     // Now what?
+    // _clientPluginMode == PluginMode::Observe
+}
+
+void PeerPlugin::sendStatusToController() {
+
+    // Send status to controller
+    //PeerPluginStatus status(_peerPluginConfiguration.getPeerPluginId(), _peerPluginConfiguration.getPeerPluginState(), 0);
+    PeerPluginStatus status(_peerPluginId, _peerPluginState, 0);
+
+    //emit peerPluginStatusUpdated(status);
+}
+
+bool PeerPlugin::peerTimedOut(int maxDelay) const {
+    return _lastMessageSentClock.elapsed() > maxDelay;
 }
 
 /*
@@ -816,4 +815,8 @@ PeerPluginState PeerPlugin::peerPluginState() const {
 
 libtorrent::tcp::endpoint PeerPlugin::endPoint() const {
     return _bittorrentPeerConnection->remote();
+}
+
+bool PeerPlugin::isConnected() const {
+    return _isConnected;
 }

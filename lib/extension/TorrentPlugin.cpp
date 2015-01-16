@@ -119,6 +119,43 @@ void TorrentPlugin::tick() {
 
     // Create and send torrent plugin satus
     sendTorrentPluginAlert(createTorrentPluginStatusAlert());
+
+    // Iterate peers, and handle disconnection or new messages
+    QList<libtorrent::tcp::endpoint> keys = _peerPlugins.keys();
+    for(QList<libtorrent::tcp::endpoint>::iterator i = keys.begin(),
+            end(keys.end()); i != end;i++) {
+
+        // Get peer plugin
+        PeerPlugin * plugin = _peerPlugins.find(*i);
+
+        // If peer is connected, then process unprocessed messages, otherwise remove
+        if(plugin->isConnected())
+            plugin->processUnprocessedMessages();
+        else
+            removePeerPlugin(plugin);
+    }
+
+    // Call mode spesific tick processor
+    switch(_torrentPluginConfiguration->pluginMode()) {
+
+        case PluginMode::Observe:
+            observeTick();
+            break;
+        case PluginMode::Buy:
+            buyTick();
+            break;
+        case PluginMode::Sell:
+            sellTick();
+            break;
+    }
+
+    /**
+    // No processing is done before plugin is started and
+    // successful extended handshake
+    if(!_pluginStarted || _peerBEP43SupportedStatus != BEPSupportStatus::supported)
+        return;
+
+        */
 }
 
 bool TorrentPlugin::on_resume() {
@@ -165,6 +202,76 @@ void TorrentPlugin::on_add_peer(libtorrent::tcp::endpoint const & endPoint, int 
 
     torrent_->connect_to_peer(peerPolicy,true);
     */
+}
+
+void TorrentPlugin::observeTick() {
+
+    // Iterate all peers and process extended messages?
+
+
+}
+
+void TorrentPlugin::buyTick() {
+
+    switch(_state) {
+
+        case TorrentPluginState::waiting_for_enough_contract_participants:
+
+            // Return if the minimal amount of time required before picking sellers has not been reached
+            if(_delayedSellerPickerClock < _torrentPluginConfiguration->_waitTime)
+                return;
+
+            /**
+            // Iterate sellers NOT in _invitedToContract, if a seller is good enough,
+                // put in _haveValidContractInvitation
+                // send out join_contract
+
+            // if we have enough sellers in QList
+                // switch <--  waiting_for_everyone_to_join_contract
+
+                */
+
+
+            // if ALL peers in _contractCandidates PeerPluginState::joined_contract
+                // create contract using peer fields
+                    // MAY INVOLVE SOMETHING ASYNC AS WE WAIT FOR SOME SPENDABLE OUTPUT TO CONFIRM ENOUGH?
+                // set fields in peers associated with contract
+                // send out sign_refund message on all
+                // switch <-- waiting_for_refund_signatures
+            // else if timer on some have expired
+                // remove from _contractCandidates
+                // switch <-- finding_sellers
+
+            break;
+        case TorrentPluginState::waiting_for_refund_signatures:
+
+            // if ALL peers in "chosen" QList are refund_signed_correctly
+                // send ready message
+                // switch <--- TorrentPluginState::downloading_pieces
+            // else if one is refund_signed_incorrectly OR if timer expired
+
+
+
+
+
+
+
+
+            break;
+        case TorrentPluginState::downloading_pieces:
+            break;
+        case TorrentPluginState::waiting_for_all_refunds_to_be_spent:
+            break;
+        case TorrentPluginState::done:
+            break;
+        default:
+            qCDebug(_category) << "Serious error.";
+    }
+
+}
+
+void TorrentPlugin::sellTick() {
+
 }
 
 bool TorrentPlugin::installPluginOnNewConnection(libtorrent::peer_connection * peerConnection) const {
@@ -297,6 +404,23 @@ void TorrentPlugin::processStartPluginRequest(const StartPluginTorrentPluginRequ
 
     qCDebug(_category) << "Enabling peer plugins.";
 
+    // Start plugin
+    switch(_torrentPluginConfiguration->pluginMode()) {
+
+        case PluginMode::Observe:
+            startObserve();
+            break;
+        case PluginMode::Sell:
+            startSell();
+            break;
+        case PluginMode::Buy:
+            startBuy();
+            break;
+    }
+}
+
+void TorrentPlugin::startObserve() {
+
     // Iterate peer plugins and set their configuration
     for(std::map<libtorrent::tcp::endpoint, PeerPlugin *>::iterator i = _peerPlugins.begin(),
             end(_peerPlugins.end()); i != end;i++) {
@@ -305,33 +429,55 @@ void TorrentPlugin::processStartPluginRequest(const StartPluginTorrentPluginRequ
         PeerPlugin * peerPlugin = i->second;
 
         // Start plugin
-        switch(_torrentPluginConfiguration->pluginMode()) {
-
-            case PluginMode::Observe:
-                peerPlugin->startPlugin(Observe());
-                break;
-
-            case PluginMode::Sell: {
-
-                    // Convert to minimum refund lock time, w.r.t Coordinated Univesal Time, which is what nLockTime uses, i.e. POSIX time
-                    QDateTime minLock = QDateTime(QDate::currentDate(), _torrentPluginConfiguration->_minLock, Qt::UTC);
-
-                    peerPlugin->startPlugin(Sell(_torrentPluginConfiguration->_minPrice, minLock));
-                }
-
-                break;
-
-            case PluginMode::Buy: {
-
-                    // Convert to maximum refund lock time, w.r.t Coordinated Univesal Time, which is what nLockTime uses, i.e. POSIX time
-                    QDateTime maxLock = QDateTime(QDate::currentDate(), _torrentPluginConfiguration->_maxLock, Qt::UTC);
-
-                    peerPlugin->startPlugin(Buy(_torrentPluginConfiguration->_maxPrice, maxLock));
-                }
-
-                break;
-        }
+        peerPlugin->startPlugin(Observe());
     }
+}
+
+void TorrentPlugin::startSell() {
+
+    // Iterate peer plugins and set their configuration
+    for(std::map<libtorrent::tcp::endpoint, PeerPlugin *>::iterator i = _peerPlugins.begin(),
+            end(_peerPlugins.end()); i != end;i++) {
+
+        // Get peer plugin
+        PeerPlugin * peerPlugin = i->second;
+
+        // Start plugin
+        /**
+        // THIS IS WRONG, REMOVE
+
+        // Convert to minimum refund lock time, w.r.t Coordinated Univesal Time, which is what nLockTime uses, i.e. POSIX time
+        QDateTime minLock = QDateTime(QDate::currentDate(), _torrentPluginConfiguration->_minLock, Qt::UTC);
+
+        peerPlugin->startPlugin(Sell(_torrentPluginConfiguration->_minPrice, minLock));
+        */
+    }
+}
+
+void TorrentPlugin::startBuyer() {
+
+
+    // Iterate peer plugins and set their configuration
+    for(std::map<libtorrent::tcp::endpoint, PeerPlugin *>::iterator i = _peerPlugins.begin(),
+            end(_peerPlugins.end()); i != end;i++) {
+
+        // Get peer plugin
+        PeerPlugin * peerPlugin = i->second;
+
+        // Start plugin
+        /**
+
+        // THIS IS WRONG, REMOVE
+
+        // Convert to maximum refund lock time, w.r.t Coordinated Univesal Time, which is what nLockTime uses, i.e. POSIX time
+        QDateTime maxLock = QDateTime(QDate::currentDate(), _torrentPluginConfiguration->_maxLock, Qt::UTC);
+
+        peerPlugin->startPlugin(Buy(_torrentPluginConfiguration->_maxPrice, maxLock));
+        */
+    }
+
+    // Start clock for when picking sellers can begin
+    _delayedSellerPickerClock.start();
 }
 
 void TorrentPlugin::processSetConfigurationTorrentPluginRequest(const SetConfigurationTorrentPluginRequest * setConfigurationTorrentPluginRequest) {
@@ -369,6 +515,23 @@ PeerPlugin * TorrentPlugin::getPeerPlugin(const libtorrent::tcp::endpoint & endP
 void TorrentPlugin::removePeerPlugin(PeerPlugin * plugin) {
 
     qCDebug(_category) << "TorrentPlugin::removePeerPlugin(): NOT IMPLEMENTED.";
+
+    /*
+     * SHOULD DEPEND ON MODE, AND ON SUB MODE STATE
+     *     // Call mode spesific tick processor
+    switch(_torrentPluginConfiguration->pluginMode()) {
+
+        case PluginMode::Observe:
+            observeTick();
+            break;
+        case PluginMode::Buy:
+            buyTick();
+            break;
+        case PluginMode::Sell:
+            sellTick();
+            break;
+    }
+    */
 
     /*
     // Find iterator reference to plugin

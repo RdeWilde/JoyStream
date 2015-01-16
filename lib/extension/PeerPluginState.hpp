@@ -2,20 +2,25 @@
 #define PEER_PLUGIN_STATE_HPP
 
 /*
- * Mutually exclusive set of states for peer plugin.
+ * Mutually exclusive set of states for peer plugin
+ * in terms of the last action of the peer.
  *
  * Sharded!
  */
 
 enum class PeerPluginState {
-    started,
+
+    // Common
+    started, // <-- what is this for again?
+
     BEP10_handshake_received, // BEP10 extension handshake
     observe_mode_announced,
     buy_mode_announced,
     sell_mode_announced,
+
     ended,
 
-    // Buy States
+    // Client is in Buy mode
     joined_contract,
     refund_signed_correctly,
     refund_signed_incorrectly,
@@ -23,7 +28,7 @@ enum class PeerPluginState {
     invalid_piece_sent,
     to_slow,
 
-    // Sell States
+    // Client is in Sell mode
     invited_to_contract,
     refund_signature_requested,
     contract_ready,

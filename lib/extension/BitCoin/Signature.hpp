@@ -5,7 +5,7 @@
 
 class QDataStream;
 
-#define SIGNATURE_LENGTH 0
+#define SIGNATURE_LENGTH 11
 
 class Signature
 {

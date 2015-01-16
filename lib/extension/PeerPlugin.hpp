@@ -19,8 +19,8 @@
 #include <libtorrent/peer_id.hpp> // sha1_hash
 
 #include <QObject>
-
-#include <queue>
+#include <QDateTime>
+#include <QQueue>
 
 class TorrentPlugin;
 class PeerPluginStatus;
@@ -81,7 +81,7 @@ public:
     virtual bool on_unknown_message(int length, int msg, libtorrent::buffer::const_interval body);
     virtual void on_piece_pass(int index);
     virtual void on_piece_failed(int index);
-    virtual void tick();
+    //virtual void tick();
     virtual bool write_request(libtorrent::peer_request const & peerRequest);
 
     //const libtorrent::tcp::endpoint & getEndPoint() const;
@@ -90,6 +90,9 @@ public:
     /**
      * Subroutines for libtorrent thread.
      */
+
+    // Process messages in unprocessed message queue
+    void processUnprocessedMessages();
 
     // Processig routine for peer plugin requests, request pointer is owned by plugin dispatcher
     void processPeerPluginRequest(const PeerPluginRequest * peerPluginRequest);
@@ -108,7 +111,7 @@ public:
     void processExtendedMessage(ExtendedMessagePayload * extendedMessage);
 
     // Processess a message
-    void processPassiveMessage(const Observe * passiveMessage);
+    void processObserveMessage(const Observe * passiveMessage);
     void processBuyMessage(const Buy * buyMessage);
     void processSellMessage(const Sell * sellMessage);
 
@@ -121,12 +124,17 @@ public:
     */
 
     //void setConfiguration(PeerPluginConfiguration * peerPluginConfiguration);
+    void sendStatusToController();
+
+    // Utilitliy
+    bool peerTimedOut(int maxDelay) const;
 
     // Getters
     BEPSupportStatus peerBEP10SupportedStatus() const;
     BEPSupportStatus peerBEP43SupportedStatus() const;
     PeerPluginState peerPluginState() const;
     libtorrent::tcp::endpoint endPoint() const;
+    bool isConnected() const;
 
 protected:
 
@@ -144,7 +152,13 @@ protected:
 
     // Queue of received valid messages which have not yet been processed
     // messages enter queue in on_extended(), and are dispatched in tick()
-    std::queue<ExtendedMessagePayload *> _unprocessedMessageQueue;
+    QQueue<ExtendedMessagePayload *> _unprocessedMessageQueue;
+
+    // Time since last message was sent to peer, is used to judge if peer has timed out
+    QTime _lastMessageSentClock;
+
+    // Connection status with peer
+    bool _isConnected;
 
     // Indicates if plugin has been started
     // Before this becomes true, plugin will

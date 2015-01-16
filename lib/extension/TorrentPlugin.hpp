@@ -92,16 +92,16 @@ protected:
     libtorrent::torrent * _torrent;
 
     // Map of peer plugin objects for each peer presently connected to this node through this torrent swarm
-    std::map<libtorrent::tcp::endpoint, PeerPlugin *> _peerPlugins;
+    QMap<libtorrent::tcp::endpoint, PeerPlugin *> _peerPlugins;
 
     // Logging category
     QLoggingCategory & _category;
 
     // Set of all endpoints known to not have extension. Is populated by previous failed extended handshakes.
-    std::set<libtorrent::tcp::endpoint> _peersWithoutExtension;
+    QMap<libtorrent::tcp::endpoint> _peersWithoutExtension;
 
     // Set of endpoints banned for irregular conduct during extended protocol
-    std::set<libtorrent::tcp::endpoint> _irregularPeer;
+    QMap<libtorrent::tcp::endpoint> _irregularPeer;
 
     /**
     * Old state, before TorrentPluginConfiguration was absorbed
@@ -116,14 +116,36 @@ protected:
     // NON-NULL means we are buyer or seller
     TorrentPluginConfiguration * _torrentPluginConfiguration;
 
-    // Plugin state
-    TorrentPluginState _state;
-
     /**
      * Buy
      */
 
-    //
+    // Plugin state
+    TorrentPluginState _state;
+
+    // Counts until
+    QTime _delayedSellerPickerClock;
+
+    // TxId of transactin funding contract
+    // Hash _fundingTxHash;
+
+    // TxId of contract transaction
+    // Hash _contractTxHash
+
+    /**
+     * State sets: Later perhaps put variables
+     * in plugins themselfs, makes cleanup simpler.
+     */
+
+    // Peers to which join_contract message has been sent
+    QSet<PeerPlugin *> _invitedToContract;
+
+    // Peers which have responded with joining_contract message.
+    QSet<PeerPlugin *> _joinedContract;
+
+
+
+     //
     // what requests have been sent out for pieces we still
     // dont have, and how long have we been waiting (so that we can discard slow bastards).
 
@@ -134,8 +156,6 @@ protected:
      * Seller has not torrent level state
      */
 
-
-
 private:
 
     // Send torrent plugin alert to libtorrent session
@@ -143,6 +163,20 @@ private:
 
     // Creates torrent plugin status alert based on current state
     TorrentPluginStatusAlert createTorrentPluginStatusAlert();
+
+    /**
+     * Temporary mode spesific sharded routines.
+     */
+
+    // Tick processor
+    void observeTick();
+    void buyTick();
+    void sellTick();
+
+    // Start plugin
+    void startObserve();
+    void startSell();
+    void startBuyer();
 
     // Checks that peer is not banned and that it is a bittorrent connection
     bool installPluginOnNewConnection(libtorrent::peer_connection * peerConnection) const;
