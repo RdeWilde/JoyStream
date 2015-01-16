@@ -161,8 +161,9 @@ protected:
     // and response has not expired.???
     QSet<PeerPlugin *> _invitedToSignRefund;
 
-
+    // Peers known to|
     QSet<PeerPlugin *> _expiredSignRefundRequest;
+
 
     // what requests have been sent out for pieces we still
     // dont have, and how long have we been waiting (so that we can discard slow bastards).

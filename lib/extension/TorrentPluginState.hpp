@@ -10,18 +10,24 @@
 enum class TorrentPluginState {
 
     // Do we even need dormant, how does it related to active?
-    dormant, // Before plugin has been started after torrent ready alert
+    //dormant, // Before plugin has been started after torrent ready alert
 
     /**
      * Buy
      */
 
+    // Sending out join_contract messages while trying to get enough
+    // peers to sign contract refunds to start the channel
     populating_payment_channel,
-    downloading_pieces,
-    waiting_for_all_refunds_to_be_spent,
-    done
 
-    // Seller has not torrent level state
+    // Requesting, validating, downlading, saving and paying for pieces
+    downloading_pieces,
+
+    // While contract outputs have not all been spent, we still wait to use refunds
+    waiting_to_spend_refunds,
+
+    // Nothing more to do
+    finished
 };
 
-#endif // TORRENTPLUGINSTATE_HPP
+#endif // TORRENT_PLUGIN_STATE_HPP

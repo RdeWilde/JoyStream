@@ -219,6 +219,7 @@ void TorrentPlugin::buyTick() {
                 return;
 
             // Iterate peer plugins
+            quint32 numberOfCorrectly
             QMapIterator<libtorrent::tcp::endpoint, PeerPlugin *> i(_peerPlugins);
             while(i.hasNext()) {
 
@@ -249,10 +250,11 @@ void TorrentPlugin::buyTick() {
                         // If has expired, then we need to kick out
                         if(plugin->peerTimedOut(SIGN_REFUND_MAX_DELAY)) {
 
-                            // what now, black list from resending or something
-                            // remove from _invitedToSignRefund
-                            // add to _expiredSignRefundRequest
+                            // Remove from due to delay
+                            _invitedToSignRefund.remove(plugin);
 
+                            // Remember that this peer was slow, so we dont send sign_refund again, cause terms likely havent changed
+                            _expiredSignRefundRequest.insert(plugin);
                         }
 
                     } // Hasn't been invited, and there are free spots, hence we invite
@@ -270,53 +272,37 @@ void TorrentPlugin::buyTick() {
 
                         //and keep track of invitation
                         _invitedToSignRefund.insert(plugin);
-
                     }
-                }
+                } //
+                else if (plugin->peerPluginState() == PeerPluginState::refund_signed_incorrectly && ) {
+
+
+                    // Throw out failed isgnature of contract
+
+                }       // Has seller returned correct signature, and is not already in contract
             }
 
-            //
-            //_invitedToSignRefund kick out slow peers.
+            // If contract is full
 
+            // Create contract transaction
 
-            // contract is not full,
+            // Send ready to all peers
 
-
-            // if we have enough sellers in QList
-                // switch <--  waiting_for_everyone_to_join_contract
-
-
-            // if ALL peers in _contractCandidates PeerPluginState::joined_contract
-                // create contract using peer fields
-                    // MAY INVOLVE SOMETHING ASYNC AS WE WAIT FOR SOME SPENDABLE OUTPUT TO CONFIRM ENOUGH?
-                // set fields in peers associated with contract
-                // send out sign_refund message on all
-                // switch <-- waiting_for_refund_signatures
-            // else if timer on some have expired
-                // remove from _contractCandidates
-                // switch <-- finding_sellers
-
-            break;
-        case TorrentPluginState::waiting_for_refund_signatures:
-
-            // if ALL peers in "chosen" QList are refund_signed_correctly
-                // send ready message
-                // switch <--- TorrentPluginState::downloading_pieces
-            // else if one is refund_signed_incorrectly OR if timer expired
-
-
-
-
-
-
-
+            // Change state
+            _state = TorrentPluginState::downloading_pieces;
 
             break;
         case TorrentPluginState::downloading_pieces:
+
+            // Make payments
+            // Veify pieces
+            // Request pieces
+            // Write to disk etc
+
             break;
-        case TorrentPluginState::waiting_for_all_refunds_to_be_spent:
+        case TorrentPluginState::waiting_to_spend_refunds:
             break;
-        case TorrentPluginState::done:
+        case TorrentPluginState::finished:
             break;
         default:
             qCDebug(_category) << "Serious error.";
