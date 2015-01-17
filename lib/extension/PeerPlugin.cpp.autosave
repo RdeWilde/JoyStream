@@ -837,15 +837,15 @@ void PeerPlugin::setConfiguration(PeerPluginConfiguration * peerPluginConfigurat
 }
 */
 
-BEPSupportStatus PeerPlugin::peerBEP10SupportedStatus() const {
+BEPSupportStatus PeerPlugin::peerBEP10SupportStatus() const {
     return _peerBEP10SupportedStatus;
 }
 
-BEPSupportStatus PeerPlugin::peerBEP43SupportedStatus() const {
+BEPSupportStatus PeerPlugin::peerBEP43SupportStatus() const {
     return _peerBEP43SupportedStatus;
 }
 
-PeerPluginState PeerPlugin::peerPluginState() const {
+PeerPluginState PeerPlugin::state() const {
    return _peerPluginState;
 }
 

@@ -29,6 +29,12 @@ class ExtendedMessagePayload;
 class Observe;
 class Buy;
 class Sell;
+class JoinContract;
+class SignRefund;
+class RefundSigned;
+class Ready;
+class Payment;
+class End;
 
 /*
  * We inherit from QObject so we can send signals, and QObject must be first:
@@ -110,18 +116,16 @@ public:
     // Determines the message type, calls correct handler, then frees message
     void processExtendedMessage(ExtendedMessagePayload * extendedMessage);
 
-    // Processess a message
-    void processObserveMessage(const Observe * passiveMessage);
-    void processBuyMessage(const Buy * buyMessage);
-    void processSellMessage(const Sell * sellMessage);
-
-    /*
-    void processSetupBeginMessage();
-    void processSetupBeginRejectMessage();
-    void processSetupContractMessage();
-    void processSetupContractSignedMessage();
-    void processSetupRefundMessage();
-    */
+    // Processess message
+    void processObserve(const Observe * m);
+    void processBuy(const Buy * m);
+    void processSell(const Sell * m);
+    void processJoinContract(const JoinContract * m);
+    void processSignRefund(const SignRefund * m);
+    void processRefundSigned(const RefundSigned * m);
+    void processReady(const Ready * m);
+    void processPayment(const Payment * m);
+    void processEnd(const End * m);
 
     //void setConfiguration(PeerPluginConfiguration * peerPluginConfiguration);
     void sendStatusToController();
@@ -130,9 +134,9 @@ public:
     bool peerTimedOut(int maxDelay) const;
 
     // Getters
-    BEPSupportStatus peerBEP10SupportedStatus() const;
-    BEPSupportStatus peerBEP43SupportedStatus() const;
-    PeerPluginState peerPluginState() const;
+    BEPSupportStatus peerBEP10SupportStatus() const;
+    BEPSupportStatus peerBEP43SupportStatus() const;
+    PeerPluginState state() const;
     libtorrent::tcp::endpoint endPoint() const;
     bool isConnected() const;
     bool peerSentInvalidMessage() const;
@@ -217,36 +221,43 @@ public: // <====== TEMPORARY ACCESS QUALIFIER UNTIL WE DESHARD
     quint64 _sBuyerMaxPrice;
     quint32 _sBuyerMaxLock;
 
-    PublicKey _sPK;
-    //PrivateKey _sSK;
+        /**
+         * channel
+         */
 
-    PublicKey _sBuyerContractPK;
-    Hash _sContractHash;
-    quint32 _sContractOutputIndex;
-    quint64 _sContractOutputValue;
+        //PayeePaymentChannel _channel;
 
-    // Set when refund signature sent, as this is lower bound
-    QDateTime _sContractRefundEarliestSpendable;
+        PublicKey _sPK;
+        //PrivateKey _sSK;
 
-    // Signature for last valid payment from buyer
-    Signature _sLastValidPaymentSignatureReceived;
+        PublicKey _sBuyerContractPK;
+        Hash _sContractHash;
+        quint32 _sContractOutputIndex;
+        quint64 _sContractOutputValue;
+
+        // Set when refund signature sent, as this is lower bound
+        QDateTime _sContractRefundEarliestSpendable;
+
+        // Signature for last valid payment from buyer
+        Signature _sLastValidPaymentSignatureReceived;
 
     // Requests received, but not serviced
     QList<quint32> _sPendingRequests;
 
     // Buyer
-    quint64 _bSellerMinPrice;
-    quint32 _bSellerMinLock;
+    quint64 _bLastSellerMinPrice;
+    quint32 _bLastSellerMinLock;
+    PublicKey _bLastSellerPK;
 
-    PublicKey _bSellerPK;
-
+    /**
+     * This should not be here, is in payment chnnale in buyer torrent plugin
     quint32 _bContractOutputIndex;
     quint64 _bContractOutputValue;
 
     Signature _bContractOutputRefund;
 
     QList<quint32> _sUnservicedSentRequests;
-
+    */
 
 
 };

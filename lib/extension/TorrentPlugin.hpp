@@ -3,6 +3,7 @@
 
 #include "PluginMode.hpp"
 #include "TorrentPluginState.hpp"
+#include "PaymentChannel/PayorPaymentChannel.hpp"
 #include "BitCoin/PublicKey.hpp"
 
 #include <libtorrent/extensions.hpp>
@@ -104,9 +105,6 @@ protected:
     // Set of endpoints banned for irregular conduct during extended protocol
     QMap<libtorrent::tcp::endpoint> _irregularPeer;
 
-    /**
-    * Old state, before TorrentPluginConfiguration was absorbed
-    */
     // Plugin is active and therefore does tick() processing.
     // Is set by controller after file torrent metadata is acquired and/or
     // resume data has been validated.
@@ -118,51 +116,35 @@ protected:
     TorrentPluginConfiguration * _torrentPluginConfiguration;
 
     /**
-     * Buy
+     * Buy mode
      */
 
     // Plugin state
     TorrentPluginState _state;
 
-                /**
-                 * Build better model of payment channel later perhaps
-                 */
-                // Vector of plugins for seller in contract,
-                // where position corresponds to contract output position.
-                QVector<PeerPlugin *> _sellersInContract;
-                QVector<PublicKey> _contractOutputPKs;
+    // Payment channel
+    PayorPaymentChannel _channel;
 
-                // Counts until
-                QTime _delayedSellerPickerClock;
+    // Counts from buyer plugin was started,
+    // is used to keep track of when to start picking sellers.
+    QTime _timeSincePluginStarted;
 
 
-                //PublicKey _sPK;
-                //PrivateKey _sSK;
 
-                // TxId of transactin funding contract
-                // Hash _fundingTxHash;
-                // quint32 _fundingTxOutputIndex;
+        /**
+         * State for contract building stage
+         */
 
-                // TxId of contract transaction
-                // Hash _contractTxHash
-                // PublicKey _contractTxChangePK
-                // PublicKey _contractTxO
+        // Peers to which join_contract message has been sent,
+        // and since have not altered mode to worse terms.
+        QSet<PeerPlugin *> _invitedToJoinContract;
 
-    /**
-     * State sets: Later perhaps put variables
-     * in plugins themselfs, makes cleanup simpler.
-     */
+        // Peers to which sign_refundmessage has been sent,
+        // and response has not expired. Vector position corresponds to
+        QSet<PeerPlugin *> _invitedToSignRefund;
 
-    // Peers to which join_contract message has been sent,
-    // and since have not altered mode to worse terms.
-    QSet<PeerPlugin *> _invitedToJoinContract;
-
-    // Peers to which sign_refundmessage has been sent,
-    // and response has not expired.???
-    QSet<PeerPlugin *> _invitedToSignRefund;
-
-    // Peers known to|
-    QSet<PeerPlugin *> _expiredSignRefundRequest;
+        // Peers known to
+        QSet<PeerPlugin *> _expiredSignRefundRequest;
 
 
     // what requests have been sent out for pieces we still

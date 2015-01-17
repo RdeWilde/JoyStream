@@ -63,7 +63,10 @@ SOURCES += \
     extension/Message/JoinContract.cpp \
     extension/Message/Payment.cpp \
     extension/Message/End.cpp \
-    extension/BitCoin/PrivateKey.cpp
+    extension/BitCoin/PrivateKey.cpp \
+    extension/PayorPaymentChannel.cpp \
+    extension/PaymentChannel/PayorPaymentChannel.cpp \
+    extension/PaymentChannel/PayeePaymentChannel.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -125,7 +128,10 @@ HEADERS += \
     extension/Message/Payment.hpp \
     extension/Message/End.hpp \
     extension/TorrentPluginState.hpp \
-    extension/BitCoin/PrivateKey.hpp
+    extension/BitCoin/PrivateKey.hpp \
+    extension/PayorPaymentChannel.hpp \
+    extension/PaymentChannel/PayorPaymentChannel.hpp \
+    extension/PaymentChannel/PayeePaymentChannel.hpp
 				
 FORMS += \
     view/mainwindow.ui \

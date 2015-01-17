@@ -215,11 +215,12 @@ void TorrentPlugin::buyTick() {
         case TorrentPluginState::populating_payment_channel:
 
             // Return if the minimal amount of time required before picking sellers has not been reached
-            if(_delayedSellerPickerClock < _torrentPluginConfiguration->_joinContractDelay)
+            if(_timeSincePluginStarted < _torrentPluginConfiguration->_joinContractDelay)
                 return;
 
             // Iterate peer plugins
-            quint32 numberOfCorrectly
+            quint32 numberOfCorrectlySignedRefunds;
+
             QMapIterator<libtorrent::tcp::endpoint, PeerPlugin *> i(_peerPlugins);
             while(i.hasNext()) {
 
@@ -227,12 +228,12 @@ void TorrentPlugin::buyTick() {
                 PeerPlugin * plugin = i.value();
 
                 // Only known to be seller
-                if(plugin->peerPluginState() == PeerPluginState::sell_mode_announced) {
+                if(plugin->state() == PeerPluginState::sell_mode_announced) {
 
                     // Invite if not invited before, and terms are compatible
                     if(!_invitedToJoinContract.contains(plugin) &&
-                        plugin->_bSellerMinPrice <= _torrentPluginConfiguration->_maxPrice &&
-                        plugin->_bSellerMinLock <= _torrentPluginConfiguration->_maxLock) {
+                        plugin->Last <= _torrentPluginConfiguration->_maxPrice &&
+                        plugin->_bLastSellerMinLock <= _torrentPluginConfiguration->_maxLock) {
 
                         // Invite to join contract
                         plugin->sendExtendedMessage(JoinContract());
@@ -242,7 +243,7 @@ void TorrentPlugin::buyTick() {
                     }
 
                 } // Has seller joined contract
-                else if(plugin->peerPluginState() == PeerPluginState::joined_contract) {
+                else if(plugin->state() == PeerPluginState::joined_contract) {
 
                     // Has been invited to sign refund
                     if(_invitedToSignRefund.contains(plugin)) {
@@ -257,7 +258,7 @@ void TorrentPlugin::buyTick() {
                             _expiredSignRefundRequest.insert(plugin);
                         }
 
-                    } // Hasn't been invited, and there are free spots, hence we invite
+                    } // Hasn't been invited to sign refund, and there are free spots, hence we invite
                     else (!_expiredSignRefundRequest.contains(plugin) &&
                             ((int unoccupiedContractIndex = _sellersInContract.indexOf(NULL)) != -1)) {
 
@@ -274,7 +275,7 @@ void TorrentPlugin::buyTick() {
                         _invitedToSignRefund.insert(plugin);
                     }
                 } //
-                else if (plugin->peerPluginState() == PeerPluginState::refund_signed_incorrectly && ) {
+                else if (plugin->state() == PeerPluginState::refund_signed_incorrectly && ) {
 
 
                     // Throw out failed isgnature of contract
@@ -517,7 +518,7 @@ void TorrentPlugin::startBuyer() {
     }
 
     // Start clock for when picking sellers can begin
-    _delayedSellerPickerClock.start();
+    _timeSincePluginStarted.start();
 
     // Setup space for plugins in contract
     _sellersInContract.fill(NULL, _torrentPluginConfiguration->_numSellers);
