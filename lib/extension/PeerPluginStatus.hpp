@@ -12,13 +12,13 @@ public:
     PeerPluginStatus();
 
     // Constructor
-    PeerPluginStatus(const PeerPluginId & peerPluginId, PeerPluginState peerPluginState, int balance);
+    PeerPluginStatus(const PeerPluginId & peerPluginId, PeerState peerPluginState, int balance);
 
     // Source of status
     PeerPluginId peerPluginId_;
 
     // State of plugin
-    PeerPluginState peerPluginState_;
+    PeerState peerPluginState_;
 
     // Balance in favour of client
     int balance_;

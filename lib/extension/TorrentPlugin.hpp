@@ -2,7 +2,7 @@
 #define TORRENT_PLUGIN_HPP
 
 #include "PluginMode.hpp"
-#include "TorrentPluginState.hpp"
+#include "BuyerTorrentPluginState.hpp"
 #include "PaymentChannel/PayorPaymentChannel.hpp"
 #include "BitCoin/PublicKey.hpp"
 
@@ -51,7 +51,7 @@ public:
     virtual boost::shared_ptr<libtorrent::peer_plugin> new_connection(libtorrent::peer_connection * peerConnection);
     virtual void on_piece_pass(int index);
     virtual void on_piece_failed(int index);
-    virtual void tick();
+    virtual void tick() = 0;
     virtual bool on_resume();
     virtual bool on_pause();
     virtual void on_files_checked();
@@ -65,6 +65,12 @@ public:
     // Adds peer to respective set, and returns whether it was actually added or existed in the set from before.
     bool addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint);
     bool addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint);
+
+    /**
+    // Called from peer plugin
+    void peerAnnouncedBuyMode(PeerPlugin * plugin, quint32 maxPrice, QTime maxLock);
+    void peerAnnouncedSellMode(PeerPlugin * plugin, quint32 minPrice, QTime minLock);
+    */
 
     // Get peer plugin
     PeerPlugin * getPeerPlugin(const libtorrent::tcp::endpoint & endPoint);
@@ -94,7 +100,7 @@ protected:
     libtorrent::torrent * _torrent;
 
     // Map of peer plugin objects for each peer presently connected to this node through this torrent swarm
-    QMap<libtorrent::tcp::endpoint, PeerPlugin *> _peerPlugins;
+    //QMap<libtorrent::tcp::endpoint, PeerPlugin *> _peerPlugins;
 
     // Logging category
     QLoggingCategory & _category;
@@ -110,52 +116,20 @@ protected:
     // resume data has been validated.
     bool _pluginStarted;
 
+    /**
+     * Torrent plugin configuration (Flattened out for now)
+     */
+    bool _enableBanningSets;
+
+
     // Configuration: only relevant when (_pluginStarted == true)
     // NULL means we dont buy or sell
     // NON-NULL means we are buyer or seller
     TorrentPluginConfiguration * _torrentPluginConfiguration;
 
-    /**
-     * Buy mode
-     */
-
-    // Plugin state
-    TorrentPluginState _state;
-
-    // Payment channel
-    PayorPaymentChannel _channel;
-
-    // Counts from buyer plugin was started,
-    // is used to keep track of when to start picking sellers.
-    QTime _timeSincePluginStarted;
-
-
-
-        /**
-         * State for contract building stage
-         */
-
-        // Peers to which join_contract message has been sent,
-        // and since have not altered mode to worse terms.
-        QSet<PeerPlugin *> _invitedToJoinContract;
-
-        // Peers to which sign_refundmessage has been sent,
-        // and response has not expired. Vector position corresponds to
-        QSet<PeerPlugin *> _invitedToSignRefund;
-
-        // Peers known to
-        QSet<PeerPlugin *> _expiredSignRefundRequest;
-
-
-    // what requests have been sent out for pieces we still
-    // dont have, and how long have we been waiting (so that we can discard slow bastards).
-
-    // What refunds have been spent,and what have not.
-    // Use timer to keep checking back?
-
-    /**
-     * Seller has not torrent level state
-     */
+    // Getters
+    PluginMode pluginMode() const;
+    //TorrentPluginConfiguration * config();
 
 private:
 
@@ -181,11 +155,6 @@ private:
 
     // Checks that peer is not banned and that it is a bittorrent connection
     bool installPluginOnNewConnection(libtorrent::peer_connection * peerConnection) const;
-
-    /**
-    // Creates configurations for new peer plugins
-    PeerPluginConfiguration * createPeerPluginConfiguration(const libtorrent::tcp::endpoint & endPoint) const;
-    */
 };
 
 #endif // TORRENT_PLUGIN_HPP

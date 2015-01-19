@@ -47,7 +47,6 @@ SOURCES += \
     view/BuyerTorrentPluginConfigurationDialog.cpp \
     extension/Alert/TorrentPluginAlert.cpp \
     extension/Alert/TorrentPluginStatusAlert.cpp \
-    extension/Request/StartPluginTorrentPluginRequest.cpp \
     extension/BitCoin/Client.cpp \
     extension/Alert/PluginStatusAlert.cpp \
     extension/Message/ExtendedMessagePayload.cpp \
@@ -66,7 +65,14 @@ SOURCES += \
     extension/BitCoin/PrivateKey.cpp \
     extension/PayorPaymentChannel.cpp \
     extension/PaymentChannel/PayorPaymentChannel.cpp \
-    extension/PaymentChannel/PayeePaymentChannel.cpp
+    extension/PaymentChannel/PayeePaymentChannel.cpp \
+    extension/Message/Ready.cpp \
+    extension/Message/NoPayloadMessage.cpp \
+    extension/BuyerTorrentPlugin.cpp \
+    extension/BuyerTorrentPluginConfiguration.cpp \
+    extension/SellerTorrentPluginConfiguration.cpp \
+    extension/Request/StartBuyerTorrentPlugin.cpp \
+    extension/Request/StartSellerTorrentPlugin.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -85,7 +91,6 @@ HEADERS += \
     extension/PeerPlugin.hpp \
     extension/PeerPluginStatus.hpp \
     extension/Message/ExtendedMessageIdMapping.hpp \
-    extension/PeerPluginState.hpp \
     view/TorrentViewModel.hpp \
     Utilities.hpp \
     view/PeerPluginViewModel.hpp \
@@ -102,7 +107,6 @@ HEADERS += \
     extension/Request/TorrentPluginRequestType.hpp \
     extension/Request/PluginRequestType.hpp \
     extension/Request/PeerPluginRequestType.hpp \
-    extension/Request/SetConfigurationTorrentPluginRequest.hpp \
     controller/TorrentStatus.hpp \
     extension/Request/SetPluginModeTorrentPluginRequest.hpp \
     view/SellerTorrentPluginConfigurationDialog.hpp \
@@ -111,7 +115,6 @@ HEADERS += \
     extension/Alert/AlertTypes.hpp \
     extension/Alert/TorrentPluginStatusAlert.hpp \
     extension/PluginMode.hpp \
-    extension/Request/StartPluginTorrentPluginRequest.hpp \
     extension/BitCoin/Client.hpp \
     extension/Alert/PluginStatusAlert.hpp \
     extension/Message/ExtendedMessagePayload.hpp \
@@ -127,11 +130,22 @@ HEADERS += \
     extension/Message/Buy.hpp \
     extension/Message/Payment.hpp \
     extension/Message/End.hpp \
-    extension/TorrentPluginState.hpp \
     extension/BitCoin/PrivateKey.hpp \
     extension/PayorPaymentChannel.hpp \
     extension/PaymentChannel/PayorPaymentChannel.hpp \
-    extension/PaymentChannel/PayeePaymentChannel.hpp
+    extension/PaymentChannel/PayeePaymentChannel.hpp \
+    extension/PeerAction.hpp \
+    extension/BuyerTorrentPluginState.hpp \
+    extension/Message/Ready.hpp \
+    extension/Message/NoPayloadMessage.hpp \
+    extension/SellModePeerAction.hpp \
+    BuyModePeerAction.hpp \
+    extension/BuyModePeerAction.hpp \
+    extension/BuyerTorrentPlugin.hpp \
+    extension/BuyerTorrentPluginConfiguration.hpp \
+    extension/SellerTorrentPluginConfiguration.hpp \
+    extension/Request/StartBuyerTorrentPlugin.hpp \
+    extension/Request/StartSellerTorrentPlugin.hpp
 				
 FORMS += \
     view/mainwindow.ui \

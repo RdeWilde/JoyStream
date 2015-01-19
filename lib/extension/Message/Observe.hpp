@@ -1,16 +1,12 @@
 #ifndef OBSERVE_HPP
 #define OBSERVE_HPP
 
-#include "ExtendedMessagePayload.hpp"
+#include "NoPayloadMessage.hpp"
 
-class Observe : public ExtendedMessagePayload
+class Observe : public NoPayloadMessage
 {
 public:
-
-    // Virtual methods that subclassing messages have to implement
     virtual MessageType messageType() const;
-    virtual quint32 length() const;
-    virtual void write(QDataStream & stream) const;
 };
 
 #endif // OBSERVE_HPP

@@ -1,5 +1,5 @@
-#ifndef TORRENT_PLUGIN_STATE_HPP
-#define TORRENT_PLUGIN_STATE_HPP
+#ifndef BUYER_TORRENT_PLUGIN_STATE_HPP
+#define BUYER_TORRENT_PLUGIN_STATE_HPP
 
 /*
  * Mutually exclusive set of states for torrent plugin,
@@ -7,7 +7,7 @@
  *
  * Sharded!
  */
-enum class TorrentPluginState {
+enum class BuyerTorrentPluginState {
 
     // Do we even need dormant, how does it related to active?
     //dormant, // Before plugin has been started after torrent ready alert
@@ -30,4 +30,4 @@ enum class TorrentPluginState {
     finished
 };
 
-#endif // TORRENT_PLUGIN_STATE_HPP
+#endif // BUYER_TORRENT_PLUGIN_STATE_HPP

@@ -1,23 +1,13 @@
-#ifndef PEER_PLUGIN_STATE_HPP
-#define PEER_PLUGIN_STATE_HPP
+#ifndef BUY_MODE_PEER_ACTION_HPP
+#define BUY_MODE_PEER_ACTION_HPP
 
-/*
- * Mutually exclusive set of states for peer plugin
- * in terms of the last action of the peer.
- *
- * Sharded!
- */
+class enum BuyModePeerAction {
 
-enum class PeerPluginState {
-
-    // Common
-    started, // <-- what is this for again?
-
-    BEP10_handshake_received, // BEP10 extension handshake
+    not_acted,
+    extended_handshake_completed,
     observe_mode_announced,
     buy_mode_announced,
     sell_mode_announced,
-
     ended,
 
     // Client is in Buy mode
@@ -36,6 +26,7 @@ enum class PeerPluginState {
     contract_confirmation_deadline_expired,
     valid_payment_sent,
     invalid_payment_sent
+
 };
 
-#endif // PEER_PLUGIN_STATE_HPP
+#endif // BUY_MODE_PEER_ACTION_HPP

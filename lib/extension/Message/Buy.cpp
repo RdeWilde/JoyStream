@@ -33,6 +33,6 @@ quint32 Buy::maxPrice() const {
     return _maxPrice;
 }
 
-QDateTime Buy::maxLock() const {
+QTime Buy::maxLock() const {
     return _maxLock;
 }

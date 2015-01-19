@@ -19,15 +19,31 @@ public:
     // Constructor
     BuyerTorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn, const BuyerTorrentPluginConfiguration * buyerTorrentPluginConfiguration);
 
-    // Parameters for running plugin
-    virtual const TorrentPluginConfiguration & getTorrentPluginConfiguration();
-
     /**
      * All virtual functions below should ONLY be called by libtorrent network thread,
      * never by other threads, as this causes synchronization failures.
      */
     virtual boost::shared_ptr<libtorrent::peer_plugin> new_connection(libtorrent::peer_connection * peerConnection);
     virtual void tick();
+
+    // Getters
+    BuyerTorrentPluginState buyerTorrentPluginState() const;
+
+    // Buyer plugin state
+    BuyerTorrentPluginState _state;
+
+    // Payment channel
+    PayorPaymentChannel _channel;
+
+    // Counts from buyer plugin was started,
+    // is used to keep track of when to start picking sellers.
+    QTime _timeSincePluginStarted;
+
+    // what requests have been sent out for pieces we still
+    // dont have, and how long have we been waiting (so that we can discard slow bastards).
+
+    // What refunds have been spent,and what have not.
+    // Use timer to keep checking back?
 
 private:
 

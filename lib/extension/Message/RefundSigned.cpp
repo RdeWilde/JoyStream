@@ -8,7 +8,7 @@ RefundSigned::RefundSigned()
 }
 
 MessageType RefundSigned::messageType() const {
-    return MessageType::join_contract;
+    return MessageType::refund_signed;
 }
 
 quint32 RefundSigned::length() const {

@@ -28,6 +28,14 @@
 // Maximum allowable a peer may have in responding to given message (ms)
 #define SIGN_REFUND_MAX_DELAY 5*1000
 
+TorrentPlugin::NegotiationState(bool invitedToJoinContract, bool invitedToSignRefund, bool failedToSignRefund, quint32 minPrice, QTime minLock)
+    : _invitedToJoinContract(invitedToJoinContract)
+    , _invitedToSignRefund(invitedToSignRefund)
+    , _failedToSignRefund(failedToSignRefund)
+    , _minPrice(minPrice)
+    , _minLock(minLock) {
+}
+
 TorrentPlugin::TorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, TorrentPluginConfiguration * torrentPluginConfiguration)
     : _plugin(plugin)
     , _torrent(torrent)
@@ -122,9 +130,6 @@ void TorrentPlugin::tick() {
     if(!_pluginStarted || _peerBEP43SupportedStatus != BEPSupportStatus::supported)
         return;
 
-    // Create and send torrent plugin satus
-    sendTorrentPluginAlert(createTorrentPluginStatusAlert());
-
     // Iterate peers, and handle disconnection or new messages
     QList<libtorrent::tcp::endpoint> keys = _peerPlugins.keys();
     for(QList<libtorrent::tcp::endpoint>::iterator i = keys.begin(),
@@ -153,6 +158,9 @@ void TorrentPlugin::tick() {
             sellTick();
             break;
     }
+
+    // Create and send torrent plugin satus
+    sendTorrentPluginAlert(createTorrentPluginStatusAlert());
 }
 
 bool TorrentPlugin::on_resume() {
@@ -205,109 +213,6 @@ void TorrentPlugin::observeTick() {
 
     // Iterate all peers and process extended messages?
 
-
-}
-
-void TorrentPlugin::buyTick() {
-
-    switch(_state) {
-
-        case TorrentPluginState::populating_payment_channel:
-
-            // Return if the minimal amount of time required before picking sellers has not been reached
-            if(_timeSincePluginStarted < _torrentPluginConfiguration->_joinContractDelay)
-                return;
-
-            // Iterate peer plugins
-            quint32 numberOfCorrectlySignedRefunds;
-
-            QMapIterator<libtorrent::tcp::endpoint, PeerPlugin *> i(_peerPlugins);
-            while(i.hasNext()) {
-
-                // Get plugin
-                PeerPlugin * plugin = i.value();
-
-                // Only known to be seller
-                if(plugin->state() == PeerPluginState::sell_mode_announced) {
-
-                    // Invite if not invited before, and terms are compatible
-                    if(!_invitedToJoinContract.contains(plugin) &&
-                        plugin->Last <= _torrentPluginConfiguration->_maxPrice &&
-                        plugin->_bLastSellerMinLock <= _torrentPluginConfiguration->_maxLock) {
-
-                        // Invite to join contract
-                        plugin->sendExtendedMessage(JoinContract());
-
-                        // and keep track of invitation
-                        _invitedToJoinContract.insert(plugin);
-                    }
-
-                } // Has seller joined contract
-                else if(plugin->state() == PeerPluginState::joined_contract) {
-
-                    // Has been invited to sign refund
-                    if(_invitedToSignRefund.contains(plugin)) {
-
-                        // If has expired, then we need to kick out
-                        if(plugin->peerTimedOut(SIGN_REFUND_MAX_DELAY)) {
-
-                            // Remove from due to delay
-                            _invitedToSignRefund.remove(plugin);
-
-                            // Remember that this peer was slow, so we dont send sign_refund again, cause terms likely havent changed
-                            _expiredSignRefundRequest.insert(plugin);
-                        }
-
-                    } // Hasn't been invited to sign refund, and there are free spots, hence we invite
-                    else (!_expiredSignRefundRequest.contains(plugin) &&
-                            ((int unoccupiedContractIndex = _sellersInContract.indexOf(NULL)) != -1)) {
-
-                        // Build refund
-                        // tx
-
-                        // Put in free slot in contract
-                        _sellersInContract[unoccupiedContractIndex] = plugin;
-
-                        // Invite to sign refund
-                        //plugin->sendExtendedMessage(SignRefund(sign(,tx)));
-
-                        //and keep track of invitation
-                        _invitedToSignRefund.insert(plugin);
-                    }
-                } //
-                else if (plugin->state() == PeerPluginState::refund_signed_incorrectly && ) {
-
-
-                    // Throw out failed isgnature of contract
-
-                }       // Has seller returned correct signature, and is not already in contract
-            }
-
-            // If contract is full
-
-            // Create contract transaction
-
-            // Send ready to all peers
-
-            // Change state
-            _state = TorrentPluginState::downloading_pieces;
-
-            break;
-        case TorrentPluginState::downloading_pieces:
-
-            // Make payments
-            // Veify pieces
-            // Request pieces
-            // Write to disk etc
-
-            break;
-        case TorrentPluginState::waiting_to_spend_refunds:
-            break;
-        case TorrentPluginState::finished:
-            break;
-        default:
-            qCDebug(_category) << "Serious error.";
-    }
 
 }
 
@@ -402,6 +307,7 @@ void TorrentPlugin::processTorrentPluginRequest(const TorrentPluginRequest * tor
         qCDebug(_category) << "SetConfigurationTorrentPluginRequest";
         //processSetPluginModeTorrentPluginRequest(r);
     }
+
 
 }
 
@@ -544,6 +450,20 @@ void TorrentPlugin::processSetConfigurationTorrentPluginRequest(const SetConfigu
 
     // LATER
 }
+
+PluginMode TorrentPlugin::pluginMode() const {
+    return _torrentPluginConfiguration->pluginMode();
+}
+
+TorrentPluginConfiguration * TorrentPlugin::config() {
+    return _torrentPluginConfiguration;
+}
+
+BuyerTorrentPluginState TorrentPlugin::buyerTorrentPluginState() const {
+    return _state;
+}
+
+
 
 PeerPlugin * TorrentPlugin::getPeerPlugin(const libtorrent::tcp::endpoint & endPoint) {
 

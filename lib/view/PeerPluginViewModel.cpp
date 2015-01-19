@@ -62,14 +62,14 @@ void PeerPluginViewModel::updateHost(const QString & host) {
     hostItem->setText(host);
 }
 
-void PeerPluginViewModel::updateState(PeerPluginState state) {
+void PeerPluginViewModel::updateState(PeerState state) {
 
     switch(state) {
-        case PeerPluginState::started: stateItem->setText("Started"); break;
-        case PeerPluginState::BEP10_handshake_received: stateItem->setText("Received handshake"); break;
-        case PeerPluginState::observe_mode_announced: stateItem->setText("Observe mode announced");
-        case PeerPluginState::buy_mode_announced: stateItem->setText("Buy mode announced");
-        case PeerPluginState::sell_mode_announced: stateItem->setText("Sell mode announced");
+        case PeerState::started: stateItem->setText("Started"); break;
+        case PeerState::BEP10_handshake_received: stateItem->setText("Received handshake"); break;
+        case PeerState::observe_mode_announced: stateItem->setText("Observe mode announced");
+        case PeerState::buy_mode_announced: stateItem->setText("Buy mode announced");
+        case PeerState::sell_mode_announced: stateItem->setText("Sell mode announced");
 
         break;
     }

@@ -23,7 +23,7 @@ public:
                             ,const ExtendedMessageIdMapping & peerMapping
                             ,const BEPSupportStatus & getPeerBEP10SupportedStatus
                             ,const BEPSupportStatus & peerBEP43SupportedStatus
-                            ,const PeerPluginState & peerPluginState
+                            ,const PeerState & peerPluginState
                             ,const PeerPluginId & peerPluginId);
 
     // Constructor from members, when mappings are not known
@@ -31,7 +31,7 @@ public:
                             ,PluginMode pluginMode
                             ,const BEPSupportStatus & getPeerBEP10SupportedStatus
                             ,const BEPSupportStatus & peerBEP43SupportedStatus
-                            ,const PeerPluginState & peerPluginState);
+                            ,const PeerState & peerPluginState);
 
     // Constructor from dictionary
     PeerPluginConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry);
@@ -52,8 +52,8 @@ public:
     BEPSupportStatus & getPeerBEP43SupportedStatus();
     void setPeerBEP43SupportedStatus(const BEPSupportStatus & peerBEP43SupportedStatus);
 
-    PeerPluginState & getPeerPluginState();
-    void setPeerPluginState(const PeerPluginState & peerPluginState);
+    PeerState & getPeerPluginState();
+    void setPeerPluginState(const PeerState & peerPluginState);
 
     PeerPluginId & getPeerPluginId();
     void setPeerPluginId(const PeerPluginId & peerPluginId);
@@ -74,7 +74,7 @@ protected:
                         _peerBEP43SupportedStatus; // BEP43
 
     // State of peer plugin
-    PeerPluginState _peerPluginState;
+    PeerState _peerPluginState;
 
     // Id of this peer plugin
     PeerPluginId _peerPluginId; // assess later, is the redundancy worth it

@@ -8,9 +8,7 @@ class QStandardItemModel;
 class QStandardItem;
 class PeerPluginStatus;
 class QString;
-enum class PeerPluginState;
-
-class PeerPluginViewModel
+enum class PeerStatess PeerPluginViewModel
 {
 public:
 
@@ -23,7 +21,7 @@ public:
     // Update routines
     void update(PeerPluginStatus status);
     void updateHost(const QString & host);
-    void updateState(PeerPluginState state);
+    void updateState(PeerState);
     void updateBalance(int balance);
     void updateProgress();
 

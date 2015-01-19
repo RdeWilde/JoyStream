@@ -4,6 +4,7 @@
 #include "PeerPluginConfiguration.hpp"
 #include "Request/PeerPluginRequest.hpp"
 #include "PluginMode.hpp"
+#include "PeerAction.hpp"
 #include "BitCoin/PublicKey.hpp"
 #include "BitCoin/Hash.hpp"
 #include "BitCoin/Signature.hpp"
@@ -30,6 +31,7 @@ class Observe;
 class Buy;
 class Sell;
 class JoinContract;
+class JoiningContract;
 class SignRefund;
 class RefundSigned;
 class Ready;
@@ -116,16 +118,19 @@ public:
     // Determines the message type, calls correct handler, then frees message
     void processExtendedMessage(ExtendedMessagePayload * extendedMessage);
 
-    // Processess message
-    void processObserve(const Observe * m);
-    void processBuy(const Buy * m);
-    void processSell(const Sell * m);
-    void processJoinContract(const JoinContract * m);
-    void processSignRefund(const SignRefund * m);
-    void processRefundSigned(const RefundSigned * m);
-    void processReady(const Ready * m);
-    void processPayment(const Payment * m);
-    void processEnd(const End * m);
+    // Processess message, return whether or not message was valid, that is
+    // 1) was compatible with last action of peer
+    // 2) was premature, i.e. came before we had even sent a preconditional message
+    bool processObserve(const Observe * m);
+    bool processBuy(const Buy * m);
+    bool processSell(const Sell * m);
+    bool processJoinContract(const JoinContract * m);
+    bool processJoiningContract(const JoiningContract * m);
+    bool processSignRefund(const SignRefund * m);
+    bool processRefundSigned(const RefundSigned * m);
+    bool processReady(const Ready * m);
+    bool processPayment(const Payment * m);
+    bool processEnd(const End * m);
 
     //void setConfiguration(PeerPluginConfiguration * peerPluginConfiguration);
     void sendStatusToController();
@@ -136,7 +141,7 @@ public:
     // Getters
     BEPSupportStatus peerBEP10SupportStatus() const;
     BEPSupportStatus peerBEP43SupportStatus() const;
-    PeerPluginState state() const;
+    PeerAction peerState() const;
     libtorrent::tcp::endpoint endPoint() const;
     bool isConnected() const;
     bool peerSentInvalidMessage() const;
@@ -155,22 +160,23 @@ protected:
     // Endpoint
     libtorrent::tcp::endpoint _endPoint;
 
-    // Queue of received valid messages which have not yet been processed
-    // messages enter queue in on_extended(), and are dispatched in tick()
-    QQueue<ExtendedMessagePayload *> _unprocessedMessageQueue;
+    // Queue of received valid messages befor plugin started.
+    // Enter through on_extended(), are processed when plugin starts
+    // REMOVE LATER WHEN PLUGIN IS ACTIVE FROM GET GO.
+    QQueue<ExtendedMessagePayload *> _beforePluginStartsMessageQueue;
 
     // Time since last message was sent to peer, is used to judge if peer has timed out
-    QTime _lastMessageSentClock;
+    QTime _timeSinceLastMessageSent;
 
     // Connection status with peer
     bool _isConnected;
 
     // Peer sent an invalid message
     // This could either be because
-    // a) sent a message which was not well formed
-    // b)
-    // c)
-    bool _peerSentInvalidMessage;
+    // a) peer sent a message which was not well formed
+    // b) peer sent a message which was incompatible with mode
+    // c) peer sent a message which was incompatible with state of interaction
+    bool _lastPeerMessageWasValid;
 
     // Indicates if plugin has been started
     // Before this becomes true, plugin will
@@ -178,13 +184,17 @@ protected:
     // going into seller or buyer mode
     bool _pluginStarted;
 
+    // Type of last message client sent to peer
+    MessageType _lastMessageSent;
+
 public: // <====== TEMPORARY ACCESS QUALIFIER UNTIL WE DESHARD
 
     /**
      * State
      */
 
-    // Mode of plugin when started
+    // Mode of plugin when started: <== should this actually be duplicated here?, no will be removed
+    // when we antishard!!!!!!!
     PluginMode _clientPluginMode;
 
     // Mapping from messages to BEP10 ID of peer
@@ -194,21 +204,18 @@ public: // <====== TEMPORARY ACCESS QUALIFIER UNTIL WE DESHARD
     BEPSupportStatus _peerBEP10SupportedStatus, // BEP10
                         _peerBEP43SupportedStatus; // BEP43
 
-    // State of peer plugin
-    PeerPluginState _peerPluginState;
+    // Last observed peer action
+    PeerAction _lastPeerAction;
 
     // Id of this peer plugin
     PeerPluginId _peerPluginId; // assess later, is the redundancy worth it
 
     // Has mode of peer been observed
-    bool _peerPluginModeObserved;
+    bool _peerPluginModeObserved; // <==== why do we need this again
 
     // Mode of peer when observed,
     // not valid when _peerPluginModeObserved == false
     PluginMode _peerPluginMode;
-
-    // Messages received from peer, in order
-    QList<ExtendedMessagePayload *> _messagesReceived;
 
     /**
      * ==============================================
@@ -245,9 +252,23 @@ public: // <====== TEMPORARY ACCESS QUALIFIER UNTIL WE DESHARD
     QList<quint32> _sPendingRequests;
 
     // Buyer
-    quint64 _bLastSellerMinPrice;
-    quint32 _bLastSellerMinLock;
+    quint64 _bsellerMinPrice;
+    quint32 _bsellerMinLock;
     PublicKey _bLastSellerPK;
+
+        /**
+         * Contract bulding state
+         */
+
+        // join_contract message has been sent to peer
+        bool _invitedToJoinContract;
+
+        // sign_refund message has been sent to peer
+        bool _invitedToSignRefund;
+
+        // signature in refund_signed was not valid, or refund_signed
+        // was not returned within time limit
+        bool _failedToSignRefund;
 
     /**
      * This should not be here, is in payment chnnale in buyer torrent plugin
@@ -258,8 +279,6 @@ public: // <====== TEMPORARY ACCESS QUALIFIER UNTIL WE DESHARD
 
     QList<quint32> _sUnservicedSentRequests;
     */
-
-
 };
 
 #endif
