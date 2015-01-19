@@ -1,10 +1,12 @@
 #ifndef START_BUYER_TORRENT_PLUGIN_HPP
 #define START_BUYER_TORRENT_PLUGIN_HPP
 
-#include "TorrentPluginRequest.hpp"
+#include "PluginRequest.hpp"
 #include "extension/BuyerTorrentPluginConfiguration.hpp"
 
-class StartBuyerTorrentPlugin : public TorrentPluginRequest {
+#include <libtorrent/peer_id.hpp> // sha1_hash
+
+class StartBuyerTorrentPlugin : public PluginRequest {
 
 public:
 
@@ -12,12 +14,18 @@ public:
     StartBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const BuyerTorrentPluginConfiguration & configuration);
 
     // Returns request type
-    virtual TorrentPluginRequestType getTorrentPluginRequestType() const;
+    virtual PluginRequestType getPluginRequestType() const;
 
     // Getters
     BuyerTorrentPluginConfiguration getConfiguration() const;
 
+    libtorrent::sha1_hash infoHash() const;
+    void setInfoHash(const libtorrent::sha1_hash &infoHash);
+
 private:
+
+    // Torrent info_hash
+    libtorrent::sha1_hash _infoHash;
 
     // Configuration
     BuyerTorrentPluginConfiguration _configuration;

@@ -4,6 +4,8 @@
 #include "Request/PluginRequest.hpp"
 #include "Request/TorrentPluginRequest.hpp"
 #include "Request/PeerPluginRequest.hpp"
+#include "Request/StartBuyerTorrentPlugin.hpp"
+#include "Request/StartSellerTorrentPlugin.hpp"
 #include "PeerPlugin.hpp"
 #include "Alert/PluginStatusAlert.hpp"
 
@@ -222,9 +224,28 @@ void Plugin::processPluginRequest(const PluginRequest * pluginRequest) {
     qCDebug(_category) << "processPluginRequest";
 
     switch(pluginRequest->getPluginRequestType()) {
+        case PluginRequestType::StartBuyerTorrentPlugin: {
 
+                StartBuyerTorrentPlugin * p = static_cast<StartBuyerTorrentPlugin *>(pluginRequest);
+                startBuyerTorrentPlugin(p->infoHash(), p->getConfiguration());
+            }
+
+            break;
+        case PluginRequestType::StartSellerTorrentPlugin:
+            startSellerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const SellerTorrentPluginConfiguration & configuration);
+            break;
     }
 }
+
+
+void Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const BuyerTorrentPluginConfiguration & configuration) {
+    qCDebug(_category) << "addBuyerTorrentPlugin: Not implemented.";
+}
+
+void Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const SellerTorrentPluginConfiguration & configuration) {
+    qCDebug(_category) << "addSellerTorrentPlugin: Not implemented.";
+}
+
 
 void Plugin::processStatus() {
 
@@ -243,4 +264,3 @@ void Plugin::processStatus() {
         sendAlertToSession(PluginStatusAlert(balance));
     }
 }
-

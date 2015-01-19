@@ -25,6 +25,8 @@ class TorrentPlugin;
 class PluginRequest;
 class TorrentPluginRequest;
 class PeerPluginRequest;
+class BuyerTorrentPluginConfiguration;
+class SellerTorrentPluginConfiguration;
 class QNetworkReply;
 
 namespace libtorrent {
@@ -39,53 +41,6 @@ namespace boost {
 class Plugin : public QObject, public libtorrent::plugin {
 
     Q_OBJECT
-
-private:
-
-    // Controller
-    Controller * _controller;
-
-    // Libtorrent session. Is set by added() call, not constructor
-    boost::weak_ptr<libtorrent::aux::session_impl> _session;
-
-    // Maps info hash to pointer to corresponding torrent plugin
-    std::map<libtorrent::sha1_hash, TorrentPlugin *> _torrentPlugins; // Must be pointers, since TorrentPlugin::_category is reference, hence type is not copyable
-
-    // BitCoind wrapper
-    BitCoindRPC::Client _btcClient;
-
-    // Logging category
-    QLoggingCategory & _category;
-
-    // Has this plugin been added to session.
-    // Do not use the _session pointer before this.
-    bool _addedToSession;
-
-    // Plugin Request
-    QQueue<PluginRequest *> _pluginRequestQueue;
-    QMutex _pluginRequestQueueMutex; // mutex protecting qu
-
-    // Torrent Plugin Request
-    QQueue<TorrentPluginRequest *> _torrentPluginRequestQueue; // queue
-    QMutex _torrentPluginRequestQueueMutex; // mutex protecting queue
-
-    // Peer Plugin Request
-    QQueue<PeerPluginRequest *> _peerPluginRequestQueue; // queue
-    QMutex _peerPluginRequestQueueMutex; // mutex protecting queue
-
-    /**
-     * Subroutines for libtorrent thread.
-     */
-
-    void processesRequests();
-    void processPluginRequest(const PluginRequest * pluginRequest);
-
-    void processStatus();
-    QNetworkReply * _getBalanceReply;
-
-    /**
-     *
-     */
 
 public:
 
@@ -120,14 +75,6 @@ public:
      * TORRENT/PEER PLUGIN TYPES
      */
 
-    // Removes torrent plugin
-    // 1) Remove plugin from torrentPlugins_ map
-    // 2) Deletes peer_plugin object
-    // 3) Notifies controller
-    void removeTorrentPlugin(const libtorrent::sha1_hash & info_hash);
-
-    // Send alert to session object
-    void sendAlertToSession(const libtorrent::alert & alert);
 
     /**
      * Synchronized routines called from controller by Qt thread.
@@ -138,10 +85,65 @@ public:
     void submitTorrentPluginRequest(TorrentPluginRequest * torrentPluginRequest);
     void submitPeerPluginRequest(PeerPluginRequest * peerPluginRequest);
 
-signals:
+private:
 
-    // void pluginStatusUpdated(PluginStatus pluginStatus); // total account balance?
-    //void torrentRemoved(libtorrent::sha1_hash info_hash);
+    // Controller
+    Controller * _controller;
+
+    // Libtorrent session. Is set by added() call, not constructor
+    boost::weak_ptr<libtorrent::aux::session_impl> _session;
+
+    // Maps info hash to pointer to corresponding torrent plugin
+    QMap<libtorrent::sha1_hash, TorrentPlugin *> _torrentPlugins; // Must be pointers, since TorrentPlugin::_category is reference, hence type is not copyable
+
+    // BitCoind wrapper
+    BitCoindRPC::Client _btcClient;
+
+    // Logging category
+    QLoggingCategory & _category;
+
+    // Has this plugin been added to session.
+    // Do not use the _session pointer before this.
+    bool _addedToSession;
+
+    /**
+     * Request processing
+     */
+
+    // Plugin Request
+    QQueue<PluginRequest *> _pluginRequestQueue;
+    QMutex _pluginRequestQueueMutex; // mutex protecting qu
+
+    // Torrent Plugin Request
+    QQueue<TorrentPluginRequest *> _torrentPluginRequestQueue; // queue
+    QMutex _torrentPluginRequestQueueMutex; // mutex protecting queue
+
+    // Peer Plugin Request
+    QQueue<PeerPluginRequest *> _peerPluginRequestQueue; // queue
+    QMutex _peerPluginRequestQueueMutex; // mutex protecting queue
+
+    void processesRequests();
+    void processPluginRequest(const PluginRequest * pluginRequest);
+
+    // Removes torrent plugin
+    // 1) Remove plugin from torrentPlugins_ map
+    // 2) Deletes peer_plugin object
+    // 3) Notifies controller
+    void removeTorrentPlugin(const libtorrent::sha1_hash & info_hash);
+
+    // Start plugin
+    void startBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const BuyerTorrentPluginConfiguration & configuration);
+    void startSellerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const SellerTorrentPluginConfiguration & configuration);
+
+    /**
+     * Status
+     */
+
+    void processStatus();
+    QNetworkReply * _getBalanceReply;
+
+    // Send alert to session object
+    void sendAlertToSession(const libtorrent::alert & alert);
 };
 
 #endif
