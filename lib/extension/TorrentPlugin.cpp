@@ -1,15 +1,10 @@
-﻿
-#include "TorrentPlugin.hpp"
+﻿#include "TorrentPlugin.hpp"
 #include "TorrentPluginConfiguration.hpp"
 #include "PeerPlugin.hpp"
 #include "PeerPluginConfiguration.hpp"
 #include "PeerPluginStatus.hpp" // signal parameter
 #include "controller/Controller.hpp" // needed to connect
 #include "Request/TorrentPluginRequest.hpp"
-#include "Request/SetConfigurationTorrentPluginRequest.hpp"
-#include "Request/StartPluginTorrentPluginRequest.hpp"
-#include "Request/SetPluginModeTorrentPluginRequest.hpp"
-
 #include "Alert/TorrentPluginStatusAlert.hpp"
 
 #include "Message/Buy.hpp"
@@ -25,111 +20,36 @@
 
 #include <QLoggingCategory>
 
-// Maximum allowable a peer may have in responding to given message (ms)
-#define SIGN_REFUND_MAX_DELAY 5*1000
-
-TorrentPlugin::NegotiationState(bool invitedToJoinContract, bool invitedToSignRefund, bool failedToSignRefund, quint32 minPrice, QTime minLock)
-    : _invitedToJoinContract(invitedToJoinContract)
-    , _invitedToSignRefund(invitedToSignRefund)
-    , _failedToSignRefund(failedToSignRefund)
-    , _minPrice(minPrice)
-    , _minLock(minLock) {
-}
-
-TorrentPlugin::TorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, TorrentPluginConfiguration * torrentPluginConfiguration)
+TorrentPlugin::TorrentPlugin(Plugin * plugin, const boost::weak_ptr<libtorrent::torrent> & torrent, const TorrentPluginConfiguration & configuration, QLoggingCategory & category)
     : _plugin(plugin)
     , _torrent(torrent)
+    , _configuration(configuration)
     , _category(category)
-    , _pluginStarted(false)
-    , _torrentPluginConfiguration(torrentPluginConfiguration)
-    //, _enableBanningSets(true)
-{
-/*
-    if(torrentPluginConfiguration != NULL) {
-        _mode = torrentPluginConfiguration->getPluginMode();
-        _enableBanningSets = torrentPluginConfiguration->getEnableBanningSets();
-    }
-*/
+    , _peerBitSwaprBEPSupportedStatus(BEPSupportStatus::unknown) {
 }
 
 TorrentPlugin::~TorrentPlugin() {
+
     // Lets log, so we understand when libtorrent disposes of shared pointer
     qCDebug(_category) << "~TorrentPlugin() called.";
 }
 
-boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorrent::peer_connection * peerConnection) {
+boost::weak_ptr<libtorrent::peer_plugin> TorrentPlugin::peerPlugin(const libtorrent::tcp::endpoint & endPoint) {
+
+    // Lookup plugin based on endpoint
+    QMap<libtorrent::tcp::endpoint, boost::weak_ptr<libtorrent::peer_plugin> >::const_iterator i = _peerPlugins.find(endPoint);
+
+    // Return weak pointer for match, otherwise throw exception
+    if(i != _peerPlugins.end())
+        return i.value();
+    else
+        throw std::exception();
+}
+
+void TorrentPlugin::_tick() {
 
     /**
-     * Libtorrent docs (http://libtorrent.org/reference-Plugins.html#peer_plugin):
-     * ===========================================================================
-     * The peer_connection will be valid as long as the shared_ptr is being held by the
-     * torrent object. So, it is generally a good idea to not keep a shared_ptr to
-     * your own peer_plugin. If you want to keep references to it, use weak_ptr.
-     */
-
-    // Get end point to look up sets
-    const libtorrent::tcp::endpoint & endPoint = peerConnection->remote();
-    std::string endPointString = libtorrent::print_endpoint(endPoint);
-
-    qCDebug(_category) << "New connection from" << endPointString.c_str();
-
-    // Check if this peer should be accepted, if not
-    // a null is returned, hence plugin is not installed
-    if(installPluginOnNewConnection(peerConnection)) {
-
-        qCDebug(_category) << "Peer plugin not installed on new connection.";
-        return boost::shared_ptr<libtorrent::peer_plugin>();
-    }
-
-    // Recast as bittorrent peer connection
-    libtorrent::bt_peer_connection * bittorrentPeerConnection = static_cast<libtorrent::bt_peer_connection*>(peerConnection);
-
-    // Create peer plugin configuration
-    //PeerPluginConfiguration * peerPluginConfiguration = createPeerPluginConfiguration(endPoint);
-
-    // Create peer plugin
-    PeerPlugin * peerPlugin = new PeerPlugin(this, bittorrentPeerConnection, _category); //, peerPluginConfiguration);
-
-    // Add to plugin to collection
-    _peerPlugins[endPoint] = peerPlugin;
-
-    // Add to torrent configuration if present
-    //if(_torrentPluginConfiguration != NULL)
-    //    _torrentPluginConfiguration->insertPeerPluginConfiguration(peerPluginConfiguration);
-
-    // Connect peer plugin signal to controller slot
-    //Controller * controller = plugin_->getController();
-    //
-    //QObject::connect(peerPlugin,
-    //                 SIGNAL(peerPluginStatusUpdated(const PeerPluginStatus&)),
-    //                 controller,
-    //                 SLOT(updatePeerPluginStatus(const PeerPluginStatus&)));
-
-    qCDebug(_category) << "Seller #" << _peerPlugins.size() << endPointString.c_str() << "added to " << _torrent->name().c_str();
-
-    // Emit peer added signal
-    // Should not be here, should be when a payment channel actually starts
-    //emit peerAdded(peerPlugin->getPeerPluginId());
-
-    // Return pointer to plugin as required
-    return boost::shared_ptr<libtorrent::peer_plugin>(peerPlugin);
-}
-
-void TorrentPlugin::on_piece_pass(int index) {
-
-}
-
-void TorrentPlugin::on_piece_failed(int index) {
-
-}
-
-void TorrentPlugin::tick() {
-
-    // No processing is done before plugin is started and
-    // successful extended handshake
-    if(!_pluginStarted || _peerBEP43SupportedStatus != BEPSupportStatus::supported)
-        return;
-
+     * DO WE EVEN THIS?
     // Iterate peers, and handle disconnection or new messages
     QList<libtorrent::tcp::endpoint> keys = _peerPlugins.keys();
     for(QList<libtorrent::tcp::endpoint>::iterator i = keys.begin(),
@@ -144,386 +64,85 @@ void TorrentPlugin::tick() {
         else // otherwise process messages
             plugin->processUnprocessedMessages();
     }
-
-    // Call mode spesific tick processor
-    switch(_torrentPluginConfiguration->pluginMode()) {
-
-        case PluginMode::Observe:
-            observeTick();
-            break;
-        case PluginMode::Buy:
-            buyTick();
-            break;
-        case PluginMode::Sell:
-            sellTick();
-            break;
-    }
-
-    // Create and send torrent plugin satus
-    sendTorrentPluginAlert(createTorrentPluginStatusAlert());
-}
-
-bool TorrentPlugin::on_resume() {
-    return false;
-}
-
-bool TorrentPlugin::on_pause() {
-    return false;
-}
-
-void TorrentPlugin::on_files_checked() {
-
-}
-
-void TorrentPlugin::on_state(int s) {
-
-}
-
-void TorrentPlugin::on_add_peer(libtorrent::tcp::endpoint const & endPoint, int src, int flags) {
-
-    std::string endPointString = libtorrent::print_endpoint(endPoint);
-
-    qCDebug(_category) << "Peer list extended with peer" << endPointString.c_str() << ": " << endPoint.port();
-
-    // Check if we know from before that peer does not have
-    if(_peersWithoutExtension.find(endPoint) != _peersWithoutExtension.end()) {
-
-        qCDebug(_category) << "Not connecting to peer" << endPointString.c_str() << "which is known to not have extension.";
-        return;
-    }
-
-    // Check if peer is banned due to irregular behaviour
-    if(_irregularPeer.find(endPoint) != _irregularPeer.end()) {
-
-        qCDebug(_category) << "Not connecting to peer" << endPointString.c_str() << "which has been banned due to irregular behaviour.";
-        return;
-    }
-
-    // Try to connect to peer
-    // Who owns this? I am allocatig on heap because I think connect_to_peer() requires persistent object?
-    // ask on mailinglist.
-    /*
-    libtorrent::policy::peer peerPolicy = new libtorrent::policy::peer();
-
-    torrent_->connect_to_peer(peerPolicy,true);
     */
 }
 
-void TorrentPlugin::observeTick() {
-
-    // Iterate all peers and process extended messages?
-
-
+void TorrentPlugin::addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint) {
+    _peersWithoutExtension.insert(endPoint);
 }
 
-void TorrentPlugin::sellTick() {
-
+bool TorrentPlugin::addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint) {
+    _irregularPeer.insert(endPoint);
 }
 
-bool TorrentPlugin::installPluginOnNewConnection(libtorrent::peer_connection * peerConnection) const {
-
-    // We accept all connections while plugin has not yet been started
-    if(!_pluginStarted)
-        return true;
+bool TorrentPlugin::isPeerWellBehaved(libtorrent::peer_connection * connection) const {
 
     // Get endpoint of connection
-    const libtorrent::tcp::endpoint & endPoint = peerConnection->remote();
+    const libtorrent::tcp::endpoint & endPoint = connection->remote();
 
     // If we are using banning sets, then check this peer
-    if(_torrentPluginConfiguration->_enableBanningSets) {
+    if(_configuration.enableBanningSets()) {
 
         // Check if we know from before that peer does not have
-        if(_peersWithoutExtension.find(endPoint) != _peersWithoutExtension.end()) {
+        if(_peersWithoutExtension.contains(endPoint)) {
             qCDebug(_category) << "Peer is known to not have extension.";
             return false;
         }
 
         // Check if peer is banned due to irregular behaviour
-        if(_irregularPeer.find(endPoint) != _irregularPeer.end()) {
+        if(_irregularPeer.contains(endPoint)) {
             qCDebug(_category) << "Peer has been banned due to irregular behaviour.";
             return false;
         }
     }
 
     // Check that this is indeed a bittorrent client, and not a HTTP or URL seed, if not, then dont isntall
-    if(peerConnection->type() != libtorrent::peer_connection::bittorrent_connection) {
+    if(connection->type() != libtorrent::peer_connection::bittorrent_connection) {
         qCDebug(_category) << "Peer was not BitTorrent client.";
         return false;
     }
 
-    // Otherwise install plugin
+    // Is well behaved
     return true;
 }
 
-/*
-PeerPluginConfiguration * TorrentPlugin::createPeerPluginConfiguration(const libtorrent::tcp::endpoint & endPoint) const {
-
-    // If plugin has not been started, or is in passive mode
-    if(!_pluginStarted || _torrentPluginConfiguration == NULL)
-        return NULL;
-    else {
-
-        // Do something more complicated here depending on being buyer or seller or whatever?
-        // mode: _torrentPluginConfiguration->getPluginMode()
-
-        // Basic
-        return new PeerPluginConfiguration(endPoint, _torrentPluginConfiguration->getStartedPluginMode(), BEPSupportStatus::unknown, BEPSupportStatus::unknown, PeerPluginState::started);
-    }
-}
-*/
-
-bool TorrentPlugin::addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint) {
-
-    // Attempt to insert
-    std::pair<std::set<libtorrent::tcp::endpoint>::iterator, bool> insertResult = _peersWithoutExtension.insert(endPoint);
-
-    // Return whether object was actually inserted
-    return insertResult.second;
-}
-
-bool TorrentPlugin::addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint) {
-
-    // Attempt to insert
-    std::pair<std::set<libtorrent::tcp::endpoint>::iterator, bool> insertResult = _irregularPeer.insert(endPoint);
-
-    // Return whether object was actually inserted
-    return insertResult.second;
-}
-
-void TorrentPlugin::processTorrentPluginRequest(const TorrentPluginRequest * torrentPluginRequest) {
+/**
+void TorrentPlugin::processTorrentPluginRequest(const TorrentPluginRequest * request) {
 
     qCDebug(_category) << "processTorrentPluginRequest";
 
-    if(const StartPluginTorrentPluginRequest * r = dynamic_cast<const StartPluginTorrentPluginRequest *>(torrentPluginRequest)) {
+    if(const StartPluginTorrentPluginRequest * r = dynamic_cast<const StartPluginTorrentPluginRequest *>(request)) {
 
         qCDebug(_category) << "StartPluginTorrentPluginRequest";
         processStartPluginRequest(r);
-    } else if(const SetConfigurationTorrentPluginRequest * r = dynamic_cast<const SetConfigurationTorrentPluginRequest *>(torrentPluginRequest)) {
+    } else if(const SetConfigurationTorrentPluginRequest * r = dynamic_cast<const SetConfigurationTorrentPluginRequest *>(request)) {
 
         qCDebug(_category) << "SetConfigurationTorrentPluginRequest";
         processSetConfigurationTorrentPluginRequest(r);
-    } else if(const SetPluginModeTorrentPluginRequest * r = dynamic_cast<const SetPluginModeTorrentPluginRequest *>(torrentPluginRequest)) {
+    } else if(const SetPluginModeTorrentPluginRequest * r = dynamic_cast<const SetPluginModeTorrentPluginRequest *>(request)) {
 
         qCDebug(_category) << "SetConfigurationTorrentPluginRequest";
         //processSetPluginModeTorrentPluginRequest(r);
     }
-
-
 }
-
-void TorrentPlugin::processStartPluginRequest(const StartPluginTorrentPluginRequest * startPluginTorrentPluginRequest) {
-
-    // We have now started
-    _pluginStarted = true;
-
-    // Get configuration by removing constness, maybee in future we send by value
-    TorrentPluginConfiguration * torrentPluginConfiguration = const_cast<TorrentPluginConfiguration *>(startPluginTorrentPluginRequest->getTorrentPluginConfiguration());
-
-    /*
-    if(torrentPluginConfiguration != NULL) {
-        _mode = torrentPluginConfiguration->getPluginMode();
-        _enableBanningSets = torrentPluginConfiguration->getEnableBanningSets();
-    }
 */
 
-
-    // Determine which one to use
-    // if we got new one, use that one, if we didn
-    if(torrentPluginConfiguration != NULL) {
-
-        // Delete old configuration if we had one
-        if(_torrentPluginConfiguration != NULL)
-            delete _torrentPluginConfiguration;
-
-        // Use new one
-        _torrentPluginConfiguration = torrentPluginConfiguration;
-
-
-    } else if(_torrentPluginConfiguration == NULL) {
-
-        // serious problem
-        _pluginStarted = false;
-
-        qCDebug(_category) << "Disaster: Received NULL configuration, no configuration set from before.";
-
-        return;
-    }
-
-    qCDebug(_category) << "Enabling peer plugins.";
-
-    // Start plugin
-    switch(_torrentPluginConfiguration->pluginMode()) {
-
-        case PluginMode::Observe:
-            startObserve();
-            break;
-        case PluginMode::Sell:
-            startSell();
-            break;
-        case PluginMode::Buy:
-            startBuy();
-            break;
-    }
-}
-
-void TorrentPlugin::startObserve() {
-
-    // Iterate peer plugins and set their configuration
-    for(std::map<libtorrent::tcp::endpoint, PeerPlugin *>::iterator i = _peerPlugins.begin(),
-            end(_peerPlugins.end()); i != end;i++) {
-
-        // Get peer plugin
-        PeerPlugin * peerPlugin = i->second;
-
-        // Start plugin
-        peerPlugin->startPlugin(Observe());
-    }
-}
-
-void TorrentPlugin::startSell() {
-
-    // Iterate peer plugins and set their configuration
-    for(std::map<libtorrent::tcp::endpoint, PeerPlugin *>::iterator i = _peerPlugins.begin(),
-            end(_peerPlugins.end()); i != end;i++) {
-
-        // Get peer plugin
-        PeerPlugin * peerPlugin = i->second;
-
-        // Start plugin
-        /**
-        // THIS IS WRONG, REMOVE
-
-        // Convert to minimum refund lock time, w.r.t Coordinated Univesal Time, which is what nLockTime uses, i.e. POSIX time
-        QDateTime minLock = QDateTime(QDate::currentDate(), _torrentPluginConfiguration->_minLock, Qt::UTC);
-
-        peerPlugin->startPlugin(Sell(_torrentPluginConfiguration->_minPrice, minLock));
-        */
-    }
-}
-
-void TorrentPlugin::startBuyer() {
-
-
-    // Iterate peer plugins and set their configuration
-    for(std::map<libtorrent::tcp::endpoint, PeerPlugin *>::iterator i = _peerPlugins.begin(),
-            end(_peerPlugins.end()); i != end;i++) {
-
-        // Get peer plugin
-        PeerPlugin * peerPlugin = i->second;
-
-        // Start plugin
-        /**
-
-        // THIS IS WRONG, REMOVE
-
-        // Convert to maximum refund lock time, w.r.t Coordinated Univesal Time, which is what nLockTime uses, i.e. POSIX time
-        QDateTime maxLock = QDateTime(QDate::currentDate(), _torrentPluginConfiguration->_maxLock, Qt::UTC);
-
-        peerPlugin->startPlugin(Buy(_torrentPluginConfiguration->_maxPrice, maxLock));
-        */
-    }
-
-    // Start clock for when picking sellers can begin
-    _timeSincePluginStarted.start();
-
-    // Setup space for plugins in contract
-    _sellersInContract.fill(NULL, _torrentPluginConfiguration->_numSellers);
-}
-
-void TorrentPlugin::processSetConfigurationTorrentPluginRequest(const SetConfigurationTorrentPluginRequest * setConfigurationTorrentPluginRequest) {
-
-    /*
-        !!!!what if we received this already once before??!!!
-
-        for all peer plugin configurations in torrent configurations,
-
-        -add to queue of critical endpoints you are trying to reach?
-        -this also means that you should not just start buying and selling shit from others,
-        you are in a special recovery mode
-
-        -otherwise, if we didnt have any peers hanging arround, just gothrough
-        _peerPlugin objects which have had all NULL configuration, give them
-        basic configuration so it can change its operation.
-
-        AVOID THIS WHOLE MESS BY SIMPLY NOT SAVING PEER CONFIGURATION FOR NOW
-    */
-
-    // LATER
-}
-
-PluginMode TorrentPlugin::pluginMode() const {
-    return _torrentPluginConfiguration->pluginMode();
-}
-
-TorrentPluginConfiguration * TorrentPlugin::config() {
-    return _torrentPluginConfiguration;
-}
-
-BuyerTorrentPluginState TorrentPlugin::buyerTorrentPluginState() const {
-    return _state;
-}
-
-
-
-PeerPlugin * TorrentPlugin::getPeerPlugin(const libtorrent::tcp::endpoint & endPoint) {
-
-    // Search for peer plugin
-    std::map<libtorrent::tcp::endpoint, PeerPlugin *>::iterator i = _peerPlugins.find(endPoint);
-
-    if(i == _peerPlugins.end())
-        return NULL;
-    else
-        return i->second;
-}
-
-void TorrentPlugin::removePeerPlugin(PeerPlugin * plugin) {
-
-    qCDebug(_category) << "TorrentPlugin::removePeerPlugin(): NOT IMPLEMENTED.";
-
-    /*
-     * SHOULD DEPEND ON MODE, AND ON SUB MODE STATE
-     *     // Call mode spesific tick processor
-    switch(_torrentPluginConfiguration->pluginMode()) {
-
-        case PluginMode::Observe:
-            observeTick();
-            break;
-        case PluginMode::Buy:
-            buyTick();
-            break;
-        case PluginMode::Sell:
-            sellTick();
-            break;
-    }
-    */
-
-    /*
-    // Find iterator reference to plugin
-    std::map<libtorrent::tcp::endpoint, PeerPlugin *>::iterator & mapIterator = _peerPlugins.find(plugin->getEndPoint());
-
-    // Did we find match?
-    if(mapIterator == _peerPlugins.end()) {
-        qCDebug(_category) << "Could not find peer for removal.";
-        return;
-    }
-
-    // Remove
-    _peerPlugins.erase(mapIterator);
-
-    // Delete object: Do we do this, or does libtorrent? and when is this safe?
-    //delete mapIterator->second;
-
-    // Emit peer added signal
-    //emit peerRemoved(torrent_->info_hash(), mapIterator->first);
-    */
-}
-
 void TorrentPlugin::sendTorrentPluginAlert(const TorrentPluginAlert & alert) {
-    _torrent->alerts().post_alert(alert);
+
+    // Get shared pointer, if possible
+    if(boost::shared_ptr<libtorrent::torrent> torrentSharedPtr = _torrent.lock())
+        torrentSharedPtr->alerts().post_alert(alert);
+    else
+        qCDebug(_category) << "Torrent no longer exists, cannot send alert via torrent.";
+}
+
+TorrentPluginConfiguration TorrentPlugin::config() const {
+    return _configuration;
 }
 
 TorrentPluginStatusAlert TorrentPlugin::createTorrentPluginStatusAlert() {
 
+    /**
     int numberOfPeers = _peerPlugins.size();
 
     int numberOfPeersWithExtension = 0;
@@ -537,10 +156,5 @@ TorrentPluginStatusAlert TorrentPlugin::createTorrentPluginStatusAlert() {
 
     // Create torrent plugin alert
     return TorrentPluginStatusAlert(_torrent->info_hash(), numberOfPeers, numberOfPeersWithExtension, _pluginStarted, 0, 0, _torrentPluginConfiguration->pluginMode());
+    */
 }
-
-/*
-const TorrentPluginConfiguration & TorrentPlugin::getTorrentPluginConfiguration() const {
-    return _torrentPluginConfiguration;
-}
-*/

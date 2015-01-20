@@ -4,6 +4,10 @@
 #include "TorrentPlugin.hpp"
 #include "BuyerTorrentPluginConfiguration.hpp"
 
+#include "BuyerTorrentPluginState.hpp"
+#include "PaymentChannel/PayorPaymentChannel.hpp"
+#include "BitCoin/PublicKey.hpp"
+
 class BuyerPeerPlugin;
 
 /**
@@ -18,6 +22,9 @@ public:
 
     // Constructor
     BuyerTorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn, const BuyerTorrentPluginConfiguration * buyerTorrentPluginConfiguration);
+
+    // Removes peer plugin by
+    void removePeerPlugin(const libtorrent::tcp::endpoint & endPoint);
 
     /**
      * All virtual functions below should ONLY be called by libtorrent network thread,

@@ -229,7 +229,7 @@ void Plugin::processPluginRequest(const PluginRequest * pluginRequest) {
 bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPluginConfiguration & configuration) {
 
     // Check that torrent does not already have a plugin installed
-    if(_buyerPlugins.contains(infoHash) || _sellerPlugins.contains(infoHash)) {
+    if(_plugins.contains(infoHash)) {
 
         qCDebug(_category) << "Torrent already has plugin installed, remove first.";
         return false;
@@ -251,7 +251,7 @@ bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, con
             sharedTorrentPtr->add_extension(sharedPluginPtr);
 
             // Remember plugin
-            _buyerPlugins[infoHash] = boost::weak_ptr<BuyerTorrentPlugin>(sharedPluginPtr);
+            _plugins[infoHash] = boost::weak_ptr<libtorrent::torrent_plugin>(sharedPluginPtr);
 
             // Return success indication
             return true;
@@ -272,7 +272,7 @@ bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, con
 bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const SellerTorrentPluginConfiguration & configuration) {
 
     // Check that torrent does not already have a plugin installed
-    if(_buyerPlugins.contains(infoHash) || _sellerPlugins.contains(infoHash)) {
+    if(_plugins.contains(infoHash)) {
 
         qCDebug(_category) << "Torrent already has plugin installed, remove first.";
         return false;
@@ -294,7 +294,7 @@ bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, co
             sharedTorrentPtr->add_extension(sharedPluginPtr);
 
             // Remember plugin
-            _sellerPlugins[infoHash] = boost::weak_ptr<SellerTorrentPlugin>(sharedPluginPtr);
+            _plugins[infoHash] = boost::weak_ptr<SellerTorrentPlugin>(sharedPluginPtr);
 
             // Return success indication
             return true;
@@ -311,7 +311,6 @@ bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, co
         return false;
     }
 }
-
 
 void Plugin::processStatus() {
 

@@ -146,7 +146,8 @@ HEADERS += \
     extension/BuyerTorrentPluginConfiguration.hpp \
     extension/SellerTorrentPluginConfiguration.hpp \
     extension/Request/StartBuyerTorrentPlugin.hpp \
-    extension/Request/StartSellerTorrentPlugin.hpp
+    extension/Request/StartSellerTorrentPlugin.hpp \
+    extension/SellerTorrentPlugin.hpp
 				
 FORMS += \
     view/mainwindow.ui \

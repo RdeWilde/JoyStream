@@ -21,7 +21,7 @@
 
 // Forward declaration
 class Controller;
-//class TorrentPlugin;
+class TorrentPlugin;
 class SellerTorrentPlugin;
 class BuyerTorrentPlugin;
 class PluginRequest;
@@ -61,7 +61,7 @@ public:
      * never by other threads, as this causes synchronization
      * failures.
      */
-    virtual boost::shared_ptr<libtorrent::torrent_plugin> new_torrent(libtorrent::torrent * newTorrent, void * userData);
+    virtual boost::shared_ptr<libtorrent::torrent_plugin> new_torrent(libtorrent::torrent * torrent, void * userData);
     virtual void added(boost::weak_ptr<libtorrent::aux::session_impl> session);
     virtual void on_alert(libtorrent::alert const * a);
     virtual void on_tick();
@@ -95,9 +95,10 @@ private:
     // Libtorrent session. Is set by added() call, not constructor
     boost::weak_ptr<libtorrent::aux::session_impl> _session;
 
-    // Maps info hash to pointer to torrent plugin
-    QMap<libtorrent::sha1_hash, boost::weak_ptr<BuyerTorrentPlugin> > _buyerPlugins;
-    QMap<libtorrent::sha1_hash, boost::weak_ptr<SellerTorrentPlugin> > _sellerPlugins;
+    // Maps info hash to pointer to torrent plugin,
+    // has to be TorrentPlugin weak pointer, since this is
+    // what libtorrent requires
+    QMap<libtorrent::sha1_hash, boost::weak_ptr<libtorrent::torrent_plugin> > _plugins;
 
     // BitCoind wrapper
     BitCoindRPC::Client _btcClient;
