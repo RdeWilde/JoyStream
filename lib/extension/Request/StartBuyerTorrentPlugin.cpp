@@ -9,10 +9,6 @@ PluginRequestType StartBuyerTorrentPlugin::getPluginRequestType() const {
     return PluginRequestType::StartBuyerTorrentPlugin;
 }
 
-BuyerTorrentPluginConfiguration StartBuyerTorrentPlugin::getConfiguration() const {
-    return _configuration;
-}
-
 libtorrent::sha1_hash StartBuyerTorrentPlugin::infoHash() const {
     return _infoHash;
 }
@@ -20,6 +16,16 @@ libtorrent::sha1_hash StartBuyerTorrentPlugin::infoHash() const {
 void StartBuyerTorrentPlugin::setInfoHash(const libtorrent::sha1_hash &infoHash) {
     _infoHash = infoHash;
 }
+BuyerTorrentPluginConfiguration StartBuyerTorrentPlugin::configuration() const
+{
+    return _configuration;
+}
+
+void StartBuyerTorrentPlugin::setConfiguration(const BuyerTorrentPluginConfiguration &configuration)
+{
+    _configuration = configuration;
+}
+
 
 libtorrent::sha1_hash StartBuyerTorrentPlugin::info_hash() const {
     return _infoHash;

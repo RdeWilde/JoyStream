@@ -4,19 +4,16 @@
 #include "TorrentPlugin.hpp"
 #include "SellerTorrentPluginConfiguration.hpp"
 
+#include <QMap>
+
 class SellerPeerPlugin;
 
-/**
- * This is the simplest possible seller plugin, it sells to all peers
- * above a given set price by user, hence it has no price discovery
- * phase.
- */
 class SellerTorrentPlugin : public TorrentPlugin
 {
 public:
 
     // Constructor
-    SellerTorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn, const TorrentPluginConfiguration & torrentPluginParameters, const SellerTorrentPluginConfiguration * sellerTorrentPluginParameters);
+    SellerTorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, const SellerTorrentPluginConfiguration & configuration);
 
     // Parameters for running plugin
     virtual const TorrentPluginConfiguration & getTorrentPluginConfiguration();
@@ -31,10 +28,10 @@ public:
 private:
 
     // Parameters for
-    SellerTorrentPluginConfiguration _sellerTorrentPluginParameters;
+    SellerTorrentPluginConfiguration _configuration;
 
     // Maps endpoint to corresponding peer for all peers being sold to: IS THIS REDUNDANT?
-    std::map<libtorrent::tcp::endpoint, SellerPeerPlugin *> _presentlySellingTo;
+    QMap<libtorrent::tcp::endpoint, SellerPeerPlugin *> _peers;
 };
 
 #endif // SELLER_TORRENT_PLUGIN_HPP

@@ -21,7 +21,9 @@
 
 // Forward declaration
 class Controller;
-class TorrentPlugin;
+//class TorrentPlugin;
+class SellerTorrentPlugin;
+class BuyerTorrentPlugin;
 class PluginRequest;
 class TorrentPluginRequest;
 class PeerPluginRequest;
@@ -93,8 +95,9 @@ private:
     // Libtorrent session. Is set by added() call, not constructor
     boost::weak_ptr<libtorrent::aux::session_impl> _session;
 
-    // Maps info hash to pointer to corresponding torrent plugin
-    QMap<libtorrent::sha1_hash, TorrentPlugin *> _torrentPlugins; // Must be pointers, since TorrentPlugin::_category is reference, hence type is not copyable
+    // Maps info hash to pointer to torrent plugin
+    QMap<libtorrent::sha1_hash, boost::weak_ptr<BuyerTorrentPlugin> > _buyerPlugins;
+    QMap<libtorrent::sha1_hash, boost::weak_ptr<SellerTorrentPlugin> > _sellerPlugins;
 
     // BitCoind wrapper
     BitCoindRPC::Client _btcClient;
@@ -112,7 +115,7 @@ private:
 
     // Plugin Request
     QQueue<PluginRequest *> _pluginRequestQueue;
-    QMutex _pluginRequestQueueMutex; // mutex protecting qu
+    QMutex _pluginRequestQueueMutex; // mutex protecting queue
 
     // Torrent Plugin Request
     QQueue<TorrentPluginRequest *> _torrentPluginRequestQueue; // queue
@@ -132,8 +135,8 @@ private:
     void removeTorrentPlugin(const libtorrent::sha1_hash & info_hash);
 
     // Start plugin
-    void startBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const BuyerTorrentPluginConfiguration & configuration);
-    void startSellerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const SellerTorrentPluginConfiguration & configuration);
+    bool startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPluginConfiguration & configuration);
+    bool startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const SellerTorrentPluginConfiguration & configuration);
 
     /**
      * Status

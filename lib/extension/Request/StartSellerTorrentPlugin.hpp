@@ -17,12 +17,16 @@ public:
     virtual PluginRequestType getPluginRequestType() const;
 
     // Getters
-    SellerTorrentPluginConfiguration getConfiguration() const;
+    libtorrent::sha1_hash infoHash() const;
+    void setInfoHash(const libtorrent::sha1_hash &infoHash);
+
+    SellerTorrentPluginConfiguration configuration() const;
+    void setConfiguration(const SellerTorrentPluginConfiguration &configuration);
 
 private:
 
     // Torrent info_hash
-    libtorrent::sha1_hash _info_hash;
+    libtorrent::sha1_hash _infoHash;
 
     // Configuration
     SellerTorrentPluginConfiguration _configuration;

@@ -37,7 +37,7 @@ public:
     TorrentPlugin();
 
     // Constructor from member fields
-    TorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, TorrentPluginConfiguration * torrentPluginConfiguration);
+    TorrentPlugin(Plugin * plugin, const boost::weak_ptr<libtorrent::torrent> & torrent, QLoggingCategory & category, const TorrentPluginConfiguration & configuration);
 
     // Destructor
     ~TorrentPlugin();
@@ -97,7 +97,7 @@ protected:
     Plugin * _plugin;
 
     // Torrent for this torrent_plugin
-    libtorrent::torrent * _torrent;
+    boost::weak_ptr<libtorrent::torrent>  _torrent;
 
     // Map of peer plugin objects for each peer presently connected to this node through this torrent swarm
     //QMap<libtorrent::tcp::endpoint, PeerPlugin *> _peerPlugins;
@@ -120,7 +120,6 @@ protected:
      * Torrent plugin configuration (Flattened out for now)
      */
     bool _enableBanningSets;
-
 
     // Configuration: only relevant when (_pluginStarted == true)
     // NULL means we dont buy or sell

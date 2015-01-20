@@ -72,7 +72,8 @@ SOURCES += \
     extension/BuyerTorrentPluginConfiguration.cpp \
     extension/SellerTorrentPluginConfiguration.cpp \
     extension/Request/StartBuyerTorrentPlugin.cpp \
-    extension/Request/StartSellerTorrentPlugin.cpp
+    extension/Request/StartSellerTorrentPlugin.cpp \
+    extension/SellerTorrentPlugin.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
