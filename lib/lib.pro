@@ -73,7 +73,9 @@ SOURCES += \
     extension/SellerTorrentPluginConfiguration.cpp \
     extension/Request/StartBuyerTorrentPlugin.cpp \
     extension/Request/StartSellerTorrentPlugin.cpp \
-    extension/SellerTorrentPlugin.cpp
+    extension/SellerTorrentPlugin.cpp \
+    extension/BuyerPeerplugin.cpp \
+    extension/SellerPeerPlugin.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -136,7 +138,6 @@ HEADERS += \
     extension/PaymentChannel/PayorPaymentChannel.hpp \
     extension/PaymentChannel/PayeePaymentChannel.hpp \
     extension/PeerAction.hpp \
-    extension/BuyerTorrentPluginState.hpp \
     extension/Message/Ready.hpp \
     extension/Message/NoPayloadMessage.hpp \
     extension/SellModePeerAction.hpp \
@@ -147,7 +148,9 @@ HEADERS += \
     extension/SellerTorrentPluginConfiguration.hpp \
     extension/Request/StartBuyerTorrentPlugin.hpp \
     extension/Request/StartSellerTorrentPlugin.hpp \
-    extension/SellerTorrentPlugin.hpp
+    extension/SellerTorrentPlugin.hpp \
+    extension/BuyerPeerPlugin.hpp \
+    extension/SellerPeerPlugin.hpp
 				
 FORMS += \
     view/mainwindow.ui \

@@ -37,12 +37,12 @@ private:
         quint32 _outputIndex;
 
         //
-        bool _waiting
+        bool _waiting;
     };
 
     // Vector of plugins for seller in contract,
     // where position corresponds to contract output position.
-    QVector<T> _sellersInContract;
+    //QVector<T> _sellersInContract;
 
 
     QVector<PublicKey> _contractOutputPKs;
@@ -62,10 +62,6 @@ private:
     // Hash _contractTxHash
     // PublicKey _contractTxChangePK
     // PublicKey _contractTxO
-
-
-
-
 };
 
 #endif // PAYOR_PAYMENT_CHANNEL_HPP

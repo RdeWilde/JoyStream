@@ -3,7 +3,6 @@
 
 #include "PeerPluginConfiguration.hpp"
 #include "Request/PeerPluginRequest.hpp"
-#include "PluginMode.hpp"
 #include "PeerAction.hpp"
 #include "BitCoin/PublicKey.hpp"
 #include "BitCoin/Hash.hpp"
@@ -51,49 +50,46 @@ public:
 
     // Constructor
     PeerPlugin(TorrentPlugin * torrentPlugin,
-               libtorrent::bt_peer_connection * bittorrentPeerConnection,
+               libtorrent::bt_peer_connection * btConnection,
                QLoggingCategory & category);
-               //PeerPluginConfiguration * peerPluginConfiguration);
-
-    // Destructor
-    ~PeerPlugin();
 
     /**
      * All virtual functions below should ONLY be called by libtorrent network thread,
      * never by other threads, as this causes synchronization failures.
      */
-    virtual char const* type() const;
+    // Destructor
+    virtual ~PeerPlugin() = 0;
+
+    // Libtorrent callback
+    virtual char const* type() const = 0;
     virtual void add_handshake(libtorrent::entry & handshake);
-    virtual void on_disconnect(libtorrent::error_code const & ec);
-    virtual void on_connected();
+    virtual void on_disconnect(libtorrent::error_code const & ec) = 0;
+    virtual void on_connected() = 0;
     virtual bool on_handshake(char const* reserved_bits);
     virtual bool on_extension_handshake(libtorrent::lazy_entry const & handshake);
-    virtual bool on_have(int index);
-    virtual bool on_bitfield(libtorrent::bitfield const & bitfield);
-    virtual bool on_have_all();
-    virtual bool on_reject(libtorrent::peer_request const & peerRequest);
-    virtual bool on_request(libtorrent::peer_request const & peerRequest);
-    virtual bool on_unchoke();
-    virtual bool on_interested();
-    virtual bool on_allowed_fast(int index);
-    virtual bool on_have_none();
-    virtual bool on_choke();
-    virtual bool on_not_interested();
-    virtual bool on_piece(libtorrent::peer_request const & piece, libtorrent::disk_buffer_holder & data);
-    virtual bool on_suggest(int index);
-    virtual bool on_cancel(libtorrent::peer_request const & peerRequest);
-    virtual bool on_dont_have(int index);
-    virtual void sent_unchoke();
-    virtual bool can_disconnect(libtorrent::error_code const & ec);
-    virtual bool on_extended(int length, int msg, libtorrent::buffer::const_interval body);
-    virtual bool on_unknown_message(int length, int msg, libtorrent::buffer::const_interval body);
-    virtual void on_piece_pass(int index);
-    virtual void on_piece_failed(int index);
-    //virtual void tick();
-    virtual bool write_request(libtorrent::peer_request const & peerRequest);
-
-    //const libtorrent::tcp::endpoint & getEndPoint() const;
-    //const PeerPluginId & getPeerPluginId() const;
+    virtual bool on_have(int index) = 0;
+    virtual bool on_bitfield(libtorrent::bitfield const & bitfield) = 0;
+    virtual bool on_have_all() = 0;
+    virtual bool on_reject(libtorrent::peer_request const & peerRequest) = 0;
+    virtual bool on_request(libtorrent::peer_request const & peerRequest) = 0;
+    virtual bool on_unchoke() = 0;
+    virtual bool on_interested() = 0;
+    virtual bool on_allowed_fast(int index) = 0;
+    virtual bool on_have_none() = 0;
+    virtual bool on_choke() = 0;
+    virtual bool on_not_interested() = 0;
+    virtual bool on_piece(libtorrent::peer_request const & piece, libtorrent::disk_buffer_holder & data) = 0;
+    virtual bool on_suggest(int index) = 0;
+    virtual bool on_cancel(libtorrent::peer_request const & peerRequest) = 0;
+    virtual bool on_dont_have(int index) = 0;
+    virtual void sent_unchoke() = 0;
+    virtual bool can_disconnect(libtorrent::error_code const & ec) = 0;
+    virtual bool on_extended(int length, int msg, libtorrent::buffer::const_interval body) = 0;
+    virtual bool on_unknown_message(int length, int msg, libtorrent::buffer::const_interval body) = 0;
+    virtual void on_piece_pass(int index) = 0;
+    virtual void on_piece_failed(int index) = 0;
+    virtual void tick() = 0;
+    virtual bool write_request(libtorrent::peer_request const & peerRequest) = 0;
 
     /**
      * Subroutines for libtorrent thread.
@@ -104,12 +100,6 @@ public:
 
     // Processig routine for peer plugin requests, request pointer is owned by plugin dispatcher
     void processPeerPluginRequest(const PeerPluginRequest * peerPluginRequest);
-
-    // Torrent plugin calls to start
-    //void startPlugin(PluginMode pluginMode);
-    void startPlugin(const Observe & m);
-    void startPlugin(const Sell & m);
-    void startPlugin(const Buy & m);
 
     // Sends extended message to peer
     // does not take ownership of pointer
@@ -132,7 +122,6 @@ public:
     bool processPayment(const Payment * m);
     bool processEnd(const End * m);
 
-    //void setConfiguration(PeerPluginConfiguration * peerPluginConfiguration);
     void sendStatusToController();
 
     // Utilitliy
@@ -178,107 +167,17 @@ protected:
     // c) peer sent a message which was incompatible with state of interaction
     bool _lastPeerMessageWasValid;
 
-    // Indicates if plugin has been started
-    // Before this becomes true, plugin will
-    // not do anythng which compromises eventually
-    // going into seller or buyer mode
-    bool _pluginStarted;
-
     // Type of last message client sent to peer
     MessageType _lastMessageSent;
 
-public: // <====== TEMPORARY ACCESS QUALIFIER UNTIL WE DESHARD
-
-    /**
-     * State
-     */
-
-    // Mode of plugin when started: <== should this actually be duplicated here?, no will be removed
-    // when we antishard!!!!!!!
-    PluginMode _clientPluginMode;
+private:
 
     // Mapping from messages to BEP10 ID of peer
     ExtendedMessageIdMapping _clientMapping, _peerMapping;
 
     // Indicates whether peer supports
     BEPSupportStatus _peerBEP10SupportedStatus, // BEP10
-                        _peerBEP43SupportedStatus; // BEP43
-
-    // Last observed peer action
-    PeerAction _lastPeerAction;
-
-    // Id of this peer plugin
-    PeerPluginId _peerPluginId; // assess later, is the redundancy worth it
-
-    // Has mode of peer been observed
-    bool _peerPluginModeObserved; // <==== why do we need this again
-
-    // Mode of peer when observed,
-    // not valid when _peerPluginModeObserved == false
-    PluginMode _peerPluginMode;
-
-    /**
-     * ==============================================
-     * SHARDED STATE BELOW, FACTOR OUT INTO BUYER AND
-     * SELLER PEER PLUGIN WHEN THERE IS MORE CLARITY.
-     * ==============================================
-     */
-
-    // Seller
-    quint64 _sBuyerMaxPrice;
-    quint32 _sBuyerMaxLock;
-
-        /**
-         * channel
-         */
-
-        //PayeePaymentChannel _channel;
-
-        PublicKey _sPK;
-        //PrivateKey _sSK;
-
-        PublicKey _sBuyerContractPK;
-        Hash _sContractHash;
-        quint32 _sContractOutputIndex;
-        quint64 _sContractOutputValue;
-
-        // Set when refund signature sent, as this is lower bound
-        QDateTime _sContractRefundEarliestSpendable;
-
-        // Signature for last valid payment from buyer
-        Signature _sLastValidPaymentSignatureReceived;
-
-    // Requests received, but not serviced
-    QList<quint32> _sPendingRequests;
-
-    // Buyer
-    quint64 _bsellerMinPrice;
-    quint32 _bsellerMinLock;
-    PublicKey _bLastSellerPK;
-
-        /**
-         * Contract bulding state
-         */
-
-        // join_contract message has been sent to peer
-        bool _invitedToJoinContract;
-
-        // sign_refund message has been sent to peer
-        bool _invitedToSignRefund;
-
-        // signature in refund_signed was not valid, or refund_signed
-        // was not returned within time limit
-        bool _failedToSignRefund;
-
-    /**
-     * This should not be here, is in payment chnnale in buyer torrent plugin
-    quint32 _bContractOutputIndex;
-    quint64 _bContractOutputValue;
-
-    Signature _bContractOutputRefund;
-
-    QList<quint32> _sUnservicedSentRequests;
-    */
+                        _peerBitSwaprBEPSupportedStatus ; // BitSwapr BEP
 };
 
 #endif

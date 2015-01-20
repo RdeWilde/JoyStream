@@ -5,9 +5,7 @@
 BuyerPeerPlugin::BuyerPeerPlugin(TorrentPlugin * torrentPlugin,
                                  libtorrent::bt_peer_connection * bittorrentPeerConnection,
                                  QLoggingCategory & category)
-    : PeerPlugin(torrentPlugin,bittorrentPeerConnection,category)
-{
-
+    : PeerPlugin(torrentPlugin,bittorrentPeerConnection,category) {
 }
 
 /*
@@ -17,6 +15,12 @@ BuyerPeerPlugin::BuyerPeerPlugin(TorrentPlugin * torrentPlugin,
  * be able to handle it this is not called for web seeds.
  */
 bool BuyerPeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_interval body) {
+
+    /**
+    // No processing is done before a successful extended handshake
+    if(_peerBitSwaprBEPSupportedStatus != BEPSupportStatus::supported)
+        return;
+    */
 
     if(peerBEP43SupportedStatus != not_supported)
         qCDebug(category_) << "buyer:on_extended(" << length << "," << msg << ")";
@@ -37,4 +41,13 @@ void BuyerPeerPlugin::tick() {
     // call parent tick() also?
 
     qCDebug(category_) << "BuyerPeerPlugin.tick()";
+}
+
+void BuyerPeerPlugin::sendStatusToController() {
+
+    // Send status to controller
+    //PeerPluginStatus status(_peerPluginConfiguration.getPeerPluginId(), _peerPluginConfiguration.getPeerPluginState(), 0);
+    PeerPluginStatus status(_peerPluginId, _lastPeerAction, 0);
+
+    //emit peerPluginStatusUpdated(status);
 }

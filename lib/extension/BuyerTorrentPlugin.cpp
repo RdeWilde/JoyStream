@@ -1,21 +1,31 @@
 #include "BuyerTorrentPlugin.hpp"
 #include "BuyerPeerPlugin.hpp"
 
-#include <libtorrent/error_code.hpp>
-#include <libtorrent/peer_connection.hpp>
+#include "Message/Buy.hpp"
+#include "Message/Sell.hpp"
+#include "Message/Observe.hpp"
+#include "Message/JoinContract.hpp"
+#include "Message/SignRefund.hpp"
+
+//#include <libtorrent/error_code.hpp>
 #include <libtorrent/bt_peer_connection.hpp>
 #include <libtorrent/socket_io.hpp> // print_endpoint
 
 // Maximum allowable a peer may have in responding to given message (ms)
 #define SIGN_REFUND_MAX_DELAY 5*1000
 
-BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn, const BuyerTorrentPluginConfiguration * buyerTorrentPluginConfiguration)
-    : TorrentPlugin(plugin, torrent, category, pluginOn, torrentPluginParameters)
-    , _buyerTorrentPluginConfiguration(*buyerTorrentPluginConfiguration) {
+BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin, const boost::weak_ptr<libtorrent::torrent> & torrent, const BuyerTorrentPluginConfiguration & configuration, QLoggingCategory & category)
+    : TorrentPlugin(plugin, torrent, configuration, category)
+    , _configuration(configuration) {
 
+    // Start clock for when picking sellers can begin
+    _timeSincePluginStarted.start();
+
+    // Setup space for plugins in contract
+    //_sellersInContract.fill(NULL, _torrentPluginConfiguration->_numSellers);
 }
 
-boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(libtorrent::peer_connection * peerConnection) {
+boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(libtorrent::peer_connection * connection) {
 
     /**
      * Libtorrent docs (http://libtorrent.org/reference-Plugins.html#peer_plugin):
@@ -25,58 +35,40 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
      */
 
     // Get end point to look up sets
-    const libtorrent::tcp::endpoint & endPoint = peerConnection->remote();
+    const libtorrent::tcp::endpoint & endPoint = connection->remote();
     std::string endPointString = libtorrent::print_endpoint(endPoint);
 
-    qCDebug(category_) << "New connection from" << endPointString.c_str();
+    qCDebug(_category) << "New connection from" << endPointString.c_str();
 
     // Check if this peer should be accepted, if not
     // a null is returned, hence plugin is not installed
-    if(!TorrentPlugin::isPeerWellBehaved(peerConnection)) {
-        qCDebug(category_) << "Rejected connection from peer, peer plugin not installed.";
+    if(!TorrentPlugin::isPeerWellBehaved(connection)) {
+        qCDebug(_category) << "Rejected connection from peer, peer plugin not installed.";
         return boost::shared_ptr<libtorrent::peer_plugin>();
     }
 
-    // Create seller peer
-    libtorrent::bt_peer_connection * bittorrentPeerConnection = static_cast<libtorrent::bt_peer_connection*>(peerConnection);
-    PeerPlugin * peerPlugin = new BuyerPeerPlugin(this, bittorrentPeerConnection, category_);
+    // Create bittorrent peer connection
+    libtorrent::bt_peer_connection * btConnection = static_cast<libtorrent::bt_peer_connection*>(connection);
+
+    // Create seller peer plugin
+    boost::shared_ptr<libtorrent::peer_plugin> sharedPluginPtr(new BuyerPeerPlugin(this, btConnection, _category));
 
     // Add to collection
-    peerPlugins_.insert(std::make_pair(endPoint, peerPlugin));
+    _peerPlugins[endPoint] = boost::weak_ptr<libtorrent::peer_plugin>(sharedPluginPtr);
 
-    /*
-    // Connect peer plugin signal to controller slot
-    Controller * controller = plugin_->getController();
-
-    QObject::connect(peerPlugin,
-                     SIGNAL(peerPluginStatusUpdated(const PeerPluginStatus&)),
-                     controller,
-                     SLOT(updatePeerPluginStatus(const PeerPluginStatus&)));
-    */
-
-    qCDebug(category_) << "Buyer #" << peerPlugins_.size() << endPointString.c_str() << "added to " << this->torrent_->name().c_str();
-
-    // Emit peer added signal
-    // Should not be here, should be when a payment channel actually starts
-    //emit peerAdded(peerPlugin->getPeerPluginId());
+    qCDebug(_category) << "Buyer #" << _peerPlugins.count() << endPointString.c_str() << "added.";
 
     // Return pointer to plugin as required
-    return boost::shared_ptr<libtorrent::peer_plugin>(peerPlugin);
+    return sharedPluginPtr;
 }
 
 void BuyerTorrentPlugin::tick() {
 
-    qCDebug(category_) << "BuyerTorrentPlugin.tick()";
-
-    // No processing is done before a successful extended handshake
-    if(_peerBitSwaprBEPSupportedStatus != BEPSupportStatus::supported)
-        return;
+    qCDebug(_category) << "BuyerTorrentPlugin.tick()";
 
     // Call base tick routine
-    TorrentPlugin::tick();
+    //TorrentPlugin::_tick();
 }
-
-
 
 bool BuyerTorrentPlugin::on_resume() {
     return false;
@@ -96,35 +88,6 @@ void BuyerTorrentPlugin::on_state(int s) {
 
 void BuyerTorrentPlugin::on_add_peer() {
 
-}
-
-void BuyerTorrentPlugin::startBuyer() {
-
-
-    // Iterate peer plugins and set their configuration
-    for(std::map<libtorrent::tcp::endpoint, PeerPlugin *>::iterator i = _peerPlugins.begin(),
-            end(_peerPlugins.end()); i != end;i++) {
-
-        // Get peer plugin
-        PeerPlugin * peerPlugin = i->second;
-
-        // Start plugin
-        /**
-
-        // THIS IS WRONG, REMOVE
-
-        // Convert to maximum refund lock time, w.r.t Coordinated Univesal Time, which is what nLockTime uses, i.e. POSIX time
-        QDateTime maxLock = QDateTime(QDate::currentDate(), _torrentPluginConfiguration->_maxLock, Qt::UTC);
-
-        peerPlugin->startPlugin(Buy(_torrentPluginConfiguration->_maxPrice, maxLock));
-        */
-    }
-
-    // Start clock for when picking sellers can begin
-    _timeSincePluginStarted.start();
-
-    // Setup space for plugins in contract
-    _sellersInContract.fill(NULL, _torrentPluginConfiguration->_numSellers);
 }
 
 void BuyerTorrentPlugin::removePeerPlugin(PeerPlugin * plugin) {
@@ -154,11 +117,6 @@ void BuyerTorrentPlugin::removePeerPlugin(PeerPlugin * plugin) {
     */
 }
 
-const TorrentPluginConfiguration & BuyerTorrentPlugin::getTorrentPluginConfiguration() {
-    return _buyerTorrentPluginConfiguration;
-}
-
-
-BuyerTorrentPluginState BuyerTorrentPlugin::state() const {
+BuyerTorrentPlugin::State BuyerTorrentPlugin::state() const {
     return _state;
 }

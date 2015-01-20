@@ -1,10 +1,8 @@
 #ifndef PAYEE_PAYMENT_CHANNEL_HPP
 #define PAYEE_PAYMENT_CHANNEL_HPP
 
+class PayeePaymentChannel {
 
-
-class PayeePaymentChannel
-{
 public:
     PayeePaymentChannel();
 

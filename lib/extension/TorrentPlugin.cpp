@@ -7,12 +7,6 @@
 #include "Request/TorrentPluginRequest.hpp"
 #include "Alert/TorrentPluginStatusAlert.hpp"
 
-#include "Message/Buy.hpp"
-#include "Message/Sell.hpp"
-#include "Message/Observe.hpp"
-#include "Message/JoinContract.hpp"
-#include "Message/SignRefund.hpp"
-
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/peer_connection.hpp>
 #include <libtorrent/bt_peer_connection.hpp>
@@ -24,8 +18,7 @@ TorrentPlugin::TorrentPlugin(Plugin * plugin, const boost::weak_ptr<libtorrent::
     : _plugin(plugin)
     , _torrent(torrent)
     , _configuration(configuration)
-    , _category(category)
-    , _peerBitSwaprBEPSupportedStatus(BEPSupportStatus::unknown) {
+    , _category(category) {
 }
 
 TorrentPlugin::~TorrentPlugin() {

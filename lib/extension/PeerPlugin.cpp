@@ -1,4 +1,3 @@
-
 #include "PeerPlugin.hpp"
 #include "TorrentPlugin.hpp"
 #include "Plugin.hpp"
@@ -29,22 +28,16 @@ PeerPlugin::PeerPlugin(TorrentPlugin * torrentPlugin, libtorrent::bt_peer_connec
     : _torrentPlugin(torrentPlugin)
     , _bittorrentPeerConnection(bittorrentPeerConnection)
     , _category(category)
-    , _pluginStarted(false)
     , _peerPluginModeObserved(false)
     , _isConnected(true)
     , _lastPeerMessageWasValid(true)
     , _peerBEP10SupportedStatus(BEPSupportStatus::unknown)
-    , _peerBEP43SupportedStatus(BEPSupportStatus::unknown)
+    , _peerBitSwaprBEPSupportedStatus (BEPSupportStatus::unknown)
     , _lastPeerAction(PeerAction::not_acted)
-    //, _peerPluginId
     , _peerPluginModeObserved(false)
-
     , _invitedToJoinContract(false)
     , _invitedToSignRefund(false)
-    , _failedToSignRefund(false)
-
-{
-    //, _peerPluginConfiguration(peerPluginConfiguration) {
+    , _failedToSignRefund(false) {
 }
 
 PeerPlugin::~PeerPlugin() {
@@ -139,7 +132,6 @@ bool PeerPlugin::on_handshake(char const * reserved_bits) {
         qCDebug(_category) << "BEP10 not supported in handshake.";
         _peerBEP10SupportedStatus = BEPSupportStatus::not_supported;
         return false;
-
     }
 }
 
@@ -168,7 +160,7 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
     if(_peerBEP10SupportedStatus != BEPSupportStatus::supported) {
 
         // Mark peer as not supporting BEP43
-        _peerBEP43SupportedStatus = BEPSupportStatus::not_supported;
+        _peerBitSwaprBEPSupportedStatus  = BEPSupportStatus::not_supported;
         qCWarning(_category) << "Peer didn't support BEP10, but it sent extended handshake.";
 
         // Remember that this peer does not have extension
@@ -190,7 +182,7 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
     if(handshake.type() != libtorrent::lazy_entry::dict_t) {
 
         // Mark peer as not supporting BEP43
-        _peerBEP43SupportedStatus = BEPSupportStatus::not_supported;
+        _peerBitSwaprBEPSupportedStatus  = BEPSupportStatus::not_supported;
         qCWarning(_category) << "Malformed handshake received: not dictionary.";
 
         // Remember that this peer does not have extension
@@ -227,7 +219,7 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
     if(!m) {
 
         // Mark peer as not supporting BEP43
-        _peerBEP43SupportedStatus = BEPSupportStatus::not_supported;
+        _peerBitSwaprBEPSupportedStatus  = BEPSupportStatus::not_supported;
         qCWarning(_category) << "Malformed handshake received: m key not present.";
 
         // Remember that this peer does not have extension
@@ -250,7 +242,7 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
     if(mEntry.type() != libtorrent::entry::dictionary_t) {
 
         // Mark peer as not supporting BEP43
-        _peerBEP43SupportedStatus = BEPSupportStatus::not_supported;
+        _peerBitSwaprBEPSupportedStatus  = BEPSupportStatus::not_supported;
         qCWarning(_category) << "Malformed handshake received: m key not mapping to dictionary.";
 
         // Remember that this peer does not have extension
@@ -278,7 +270,7 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
     if(!_peerMapping.isValid()) {
 
         // Mark peer as not supporting BEP43
-        _peerBEP43SupportedStatus = BEPSupportStatus::not_supported;
+        _peerBitSwaprBEPSupportedStatus  = BEPSupportStatus::not_supported;
         qCDebug(_category) << "m key does not contain mapping for all messages.";
 
         // Remember that this peer does not have extension
@@ -296,7 +288,7 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
     qCDebug(_category) << "Found extension handshake for peer " << endPointString.c_str();
 
     // All messages were present, hence the protocol is supported
-    _peerBEP43SupportedStatus = BEPSupportStatus::supported;
+    _peerBitSwaprBEPSupportedStatus  = BEPSupportStatus::supported;
 
     // Tell libtorrent that our extension should be kept in the loop for this peer
     return true;
@@ -497,7 +489,7 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
     qCDebug(_category) << "buyer:on_extended(" << length << "," << msg << ")";
 
     // Ignore message if peer has not successfully completed BEP43 handshake (yet, or perhaps never will)
-    if(_peerBEP43SupportedStatus != BEPSupportStatus::supported) {
+    if(_peerBitSwaprBEPSupportedStatus  != BEPSupportStatus::supported) {
         qCDebug(_category) << "Received extended message despite BEP43 not supported, not for this plugin then, letting another plugin handle it.";
 
         // Let next plugin handle message
@@ -562,7 +554,7 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
 bool PeerPlugin::on_unknown_message(int length, int msg, libtorrent::buffer::const_interval body) {
 
     // if(_peerPluginConfiguration.getPeerBEP43SupportedStatus() != BEPSupportStatus::not_supported)
-    if(_peerBEP43SupportedStatus != BEPSupportStatus::not_supported)
+    if(_peerBitSwaprBEPSupportedStatus  != BEPSupportStatus::not_supported)
         qCDebug(_category) << "on_unknown_message(" << length << "," << msg << ")";
 
     // CRITICAL
@@ -883,36 +875,16 @@ bool PeerPlugin::processEnd(const End * m) {
 
 }
 
-void PeerPlugin::sendStatusToController() {
-
-    // Send status to controller
-    //PeerPluginStatus status(_peerPluginConfiguration.getPeerPluginId(), _peerPluginConfiguration.getPeerPluginState(), 0);
-    PeerPluginStatus status(_peerPluginId, _lastPeerAction, 0);
-
-    //emit peerPluginStatusUpdated(status);
-}
-
 bool PeerPlugin::peerTimedOut(int maxDelay) const {
     return _timeSinceLastMessageSent.elapsed() > maxDelay;
 }
-
-/*
-void PeerPlugin::setConfiguration(PeerPluginConfiguration * peerPluginConfiguration) {
-
-    // We have now started
-    _pluginStarted = true;
-
-    // Set configuration
-    _torrentPluginConfiguration
-}
-*/
 
 BEPSupportStatus PeerPlugin::peerBEP10SupportStatus() const {
     return _peerBEP10SupportedStatus;
 }
 
 BEPSupportStatus PeerPlugin::peerBEP43SupportStatus() const {
-    return _peerBEP43SupportedStatus;
+    return _peerBitSwaprBEPSupportedStatus ;
 }
 
 PeerAction PeerPlugin::peerState() const {

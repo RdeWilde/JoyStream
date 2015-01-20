@@ -55,7 +55,8 @@ public:
     virtual void on_add_peer(const libtorrent::tcp::endpoint & endPoint, int src, int flags) = 0;
 
     // Removes peer plugin
-    void removePeerPlugin(PeerPlugin * plugin) = 0;
+    virtual void removePeerPlugin(PeerPlugin * plugin) = 0;
+    virtual TorrentPluginConfiguration config() const = 0;
 
     /**
      * Routines called by libtorrent network thread from other plugin objects
@@ -70,7 +71,6 @@ public:
     /**
      * Getters and setters
      */
-    TorrentPluginConfiguration config() const;
 
 protected:
 
@@ -90,9 +90,6 @@ protected:
 
     // Set of endpoints banned for irregular conduct during extended protocol
     QSet<libtorrent::tcp::endpoint> _irregularPeer;
-
-    // Status of announced BitSwapr support
-    BEPSupportStatus _peerBitSwaprBEPSupportedStatus;
 
     // Logging category
     QLoggingCategory & _category;
@@ -121,9 +118,6 @@ protected:
     PluginMode pluginMode() const = 0;
 
 private:
-
-    // Plugin configuration
-    TorrentPluginConfiguration _configuration;
 
     // Creates torrent plugin status alert based on current state
     TorrentPluginStatusAlert createTorrentPluginStatusAlert();    
