@@ -26,18 +26,13 @@
 
 PeerPlugin::PeerPlugin(TorrentPlugin * torrentPlugin, libtorrent::bt_peer_connection * bittorrentPeerConnection, QLoggingCategory & category) //, PeerPluginConfiguration & peerPluginConfiguration)
     : _torrentPlugin(torrentPlugin)
-    , _bittorrentPeerConnection(bittorrentPeerConnection)
+    , _btConnection(bittorrentPeerConnection)
     , _category(category)
     , _peerPluginModeObserved(false)
     , _isConnected(true)
     , _lastPeerMessageWasValid(true)
     , _peerBEP10SupportedStatus(BEPSupportStatus::unknown)
-    , _peerBitSwaprBEPSupportedStatus (BEPSupportStatus::unknown)
-    , _lastPeerAction(PeerAction::not_acted)
-    , _peerPluginModeObserved(false)
-    , _invitedToJoinContract(false)
-    , _invitedToSignRefund(false)
-    , _failedToSignRefund(false) {
+    , _peerBitSwaprBEPSupportedStatus(BEPSupportStatus::unknown) {
 }
 
 PeerPlugin::~PeerPlugin() {
@@ -149,7 +144,7 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
 
     // Write what client is trying to handshake us, should now be possible given initial hand shake
     libtorrent::peer_info peerInfo;
-    _bittorrentPeerConnection->get_peer_info(peerInfo);
+    _btConnection->get_peer_info(peerInfo);
     qCDebug(_category) << "on_extension_handshake[" << peerInfo.client.c_str() << "]";
 
     // Get reference to BEP43
@@ -294,190 +289,6 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
     return true;
 }
 
-bool PeerPlugin::on_have(int index) {
-
-    qCDebug(_category) << "on_have";
-    return false;
-}
-
-/*
- * m_pc.disconnect(errors::pex_message_too_large, 2);
- * m_pc.disconnect(errors::too_frequent_pex);
- * m_pc.remote().address()
- */
-
-void PeerPlugin::on_disconnect(libtorrent::error_code const & ec) {
-
-    qCDebug(_category) << "on_disconnect";
-
-    _isConnected = false;
-}
-
-void PeerPlugin::on_connected() {
-
-}
-
-bool PeerPlugin::on_bitfield(libtorrent::bitfield const & bitfield) {
-
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_bitfield";
-*/
-    return false;
-}
-
-bool PeerPlugin::on_have_all() {
-
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_have_all";
-        */
-
-    return false;
-}
-
-bool PeerPlugin::on_reject(libtorrent::peer_request const & peerRequest) {
-
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_reject";
-        */
-
-    return false;
-}
-
-bool PeerPlugin::on_request(libtorrent::peer_request const & peerRequest) {
-
-    //bittorrentPeerConnection_->incoming_request();
-
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_request";
-        */
-
-    return false;
-}
-
-bool PeerPlugin::on_unchoke() {
-
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_unchoke";
-        */
-
-    return false;
-}
-
-bool PeerPlugin::on_interested() {
-
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_interested";
-        */
-
-    return false;
-}
-
-bool PeerPlugin::on_allowed_fast(int index) {
-
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_allowed_fast(" << index << ")";
-        */
-
-    return false;
-}
-
-bool PeerPlugin::on_have_none() {
-
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_have_none";
-        */
-
-    return false;
-}
-
-bool PeerPlugin::on_choke() {
-
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_choke";
-        */
-
-    return false;
-}
-
-bool PeerPlugin::on_not_interested() {
-
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_not_interested";
-        */
-
-    return false;
-}
-
-bool PeerPlugin::on_piece(libtorrent::peer_request const& piece, libtorrent::disk_buffer_holder & data) {
-
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_piece";
-        */
-
-    return false;
-}
-
-bool PeerPlugin::on_suggest(int index) {
-
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_suggest(" << index << ")";
-        */
-
-    return false;
-}
-
-bool PeerPlugin::on_cancel(libtorrent::peer_request const & peerRequest) {
-
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_cancel";
-        */
-
-    return false;
-}
-
-bool PeerPlugin::on_dont_have(int index) {
-
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_dont_have(" << index << ")";
-        */
-
-    return false;
-}
-
-/*
- * Called after a choke message has been sent to the peer
- */
-void PeerPlugin::sent_unchoke() {
-}
-
-/*
- * Called when libtorrent think this peer should be disconnected.
- * If the plugin returns false, the peer will not be disconnected.
- */
-bool PeerPlugin::can_disconnect(libtorrent::error_code const & ec) {
-
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "can_disconnect";
-        */
-
-    // CRITICAL
-    return true;
-}
 
 // Called when an extended message is received. If returning true,
 // the message is not processed by any other plugin and if false
@@ -672,7 +483,7 @@ void PeerPlugin::sendExtendedMessage(const ExtendedMessagePayload & extendedMess
         const char * constData = byteArray.constData(); // is zero terminated, but we dont care
 
         // Send message buffer
-        _bittorrentPeerConnection->send_buffer(constData, messageLength);
+        _btConnection->send_buffer(constData, messageLength);
 
         // Start/Restart timer
         if(_timeSinceLastMessageSent.isNull())
@@ -892,7 +703,7 @@ PeerAction PeerPlugin::peerState() const {
 }
 
 libtorrent::tcp::endpoint PeerPlugin::endPoint() const {
-    return _bittorrentPeerConnection->remote();
+    return _btConnection->remote();
 }
 
 bool PeerPlugin::isConnected() const {

@@ -1,12 +1,8 @@
 #ifndef PEER_PLUGIN_HPP
 #define PEER_PLUGIN_HPP
 
-#include "PeerPluginConfiguration.hpp"
+//#include "PeerPluginConfiguration.hpp"
 #include "Request/PeerPluginRequest.hpp"
-#include "PeerAction.hpp"
-#include "BitCoin/PublicKey.hpp"
-#include "BitCoin/Hash.hpp"
-#include "BitCoin/Signature.hpp"
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/entry.hpp>
@@ -95,9 +91,6 @@ public:
      * Subroutines for libtorrent thread.
      */
 
-    // Process messages in unprocessed message queue
-    void processUnprocessedMessages();
-
     // Processig routine for peer plugin requests, request pointer is owned by plugin dispatcher
     void processPeerPluginRequest(const PeerPluginRequest * peerPluginRequest);
 
@@ -107,20 +100,6 @@ public:
 
     // Determines the message type, calls correct handler, then frees message
     void processExtendedMessage(ExtendedMessagePayload * extendedMessage);
-
-    // Processess message, return whether or not message was valid, that is
-    // 1) was compatible with last action of peer
-    // 2) was premature, i.e. came before we had even sent a preconditional message
-    bool processObserve(const Observe * m);
-    bool processBuy(const Buy * m);
-    bool processSell(const Sell * m);
-    bool processJoinContract(const JoinContract * m);
-    bool processJoiningContract(const JoiningContract * m);
-    bool processSignRefund(const SignRefund * m);
-    bool processRefundSigned(const RefundSigned * m);
-    bool processReady(const Ready * m);
-    bool processPayment(const Payment * m);
-    bool processEnd(const End * m);
 
     void sendStatusToController();
 
@@ -141,18 +120,13 @@ protected:
     TorrentPlugin * _torrentPlugin;
 
     // Connection to peer for this plugin
-    libtorrent::bt_peer_connection * _bittorrentPeerConnection;
+    libtorrent::bt_peer_connection * _btConnection;
 
     // Logging category
     QLoggingCategory & _category;
 
     // Endpoint
     libtorrent::tcp::endpoint _endPoint;
-
-    // Queue of received valid messages befor plugin started.
-    // Enter through on_extended(), are processed when plugin starts
-    // REMOVE LATER WHEN PLUGIN IS ACTIVE FROM GET GO.
-    QQueue<ExtendedMessagePayload *> _beforePluginStartsMessageQueue;
 
     // Time since last message was sent to peer, is used to judge if peer has timed out
     QTime _timeSinceLastMessageSent;
@@ -170,14 +144,27 @@ protected:
     // Type of last message client sent to peer
     MessageType _lastMessageSent;
 
+    // Processess message, return whether or not message was valid, that is
+    // 1) was compatible with last action of peer
+    // 2) was premature, i.e. came before we had even sent a preconditional message
+    virtual bool processObserve(const Observe * m) = 0;
+    virtual bool processBuy(const Buy * m) = 0;
+    virtual bool processSell(const Sell * m) = 0;
+    virtual bool processJoinContract(const JoinContract * m) = 0;
+    virtual bool processJoiningContract(const JoiningContract * m) = 0;
+    virtual bool processSignRefund(const SignRefund * m) = 0;
+    virtual bool processRefundSigned(const RefundSigned * m) = 0;
+    virtual bool processReady(const Ready * m) = 0;
+    virtual bool processPayment(const Payment * m) = 0;
+    virtual bool processEnd(const End * m) = 0;
+
 private:
 
     // Mapping from messages to BEP10 ID of peer
     ExtendedMessageIdMapping _clientMapping, _peerMapping;
 
-    // Indicates whether peer supports
-    BEPSupportStatus _peerBEP10SupportedStatus, // BEP10
-                        _peerBitSwaprBEPSupportedStatus ; // BitSwapr BEP
+    // Indicates whether peer supports BEP10 and BitSwapr BEP respectively
+    BEPSupportStatus _peerBEP10SupportedStatus, _peerBitSwaprBEPSupportedStatus;
 };
 
 #endif

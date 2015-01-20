@@ -53,6 +53,20 @@ private:
 
         QList<quint32> _sUnservicedSentRequests;
         */
+
+        // Processess message, return whether or not message was valid, that is
+        // 1) was compatible with last action of peer
+        // 2) was premature, i.e. came before we had even sent a preconditional message
+        virtual bool processObserve(const Observe * m);
+        virtual bool processBuy(const Buy * m);
+        virtual bool processSell(const Sell * m);
+        virtual bool processJoinContract(const JoinContract * m);
+        virtual bool processJoiningContract(const JoiningContract * m);
+        virtual bool processSignRefund(const SignRefund * m);
+        virtual bool processRefundSigned(const RefundSigned * m);
+        virtual bool processReady(const Ready * m);
+        virtual bool processPayment(const Payment * m);
+        virtual bool processEnd(const End * m);
 };
 
 #endif // BUYER_PEER_PLUGIN_HPP
