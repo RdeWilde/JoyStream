@@ -262,6 +262,19 @@ void PeerPlugin::on_piece_failed(int index) {
 
 }
 
+/*
+ * Called each time a request message is to be sent. If true is returned,
+ * the original request message won't be sent and no other plugin will have this function called.
+ */
+bool PeerPlugin::write_request(libtorrent::peer_request const & peerRequest) {
+
+    /*
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(_category) << "write_request";
+    */
+
+    return false;
+}
 bool BuyerPeerPlugin::processObserve(const Observe * m) {
 
     // Check that message is compatible with last peer action

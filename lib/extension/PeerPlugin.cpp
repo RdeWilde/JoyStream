@@ -24,15 +24,14 @@
 
 #include <QLoggingCategory>
 
-PeerPlugin::PeerPlugin(TorrentPlugin * torrentPlugin, libtorrent::bt_peer_connection * bittorrentPeerConnection, QLoggingCategory & category) //, PeerPluginConfiguration & peerPluginConfiguration)
-    : _torrentPlugin(torrentPlugin)
-    , _btConnection(bittorrentPeerConnection)
+PeerPlugin::PeerPlugin(TorrentPlugin * plugin, libtorrent::bt_peer_connection * connection, QLoggingCategory & category)
+    : _plugin(plugin)
+    , _connection(connection)
     , _category(category)
-    , _peerPluginModeObserved(false)
-    , _isConnected(true)
-    , _lastPeerMessageWasValid(true)
-    , _peerBEP10SupportedStatus(BEPSupportStatus::unknown)
-    , _peerBitSwaprBEPSupportedStatus(BEPSupportStatus::unknown) {
+    , _connectionAlive(true)
+    , _lastPeerMessageWasMalformed(false)
+    , _peerBEP10SupportStatus(BEPSupportStatus::unknown)
+    , _peerBitSwaprBEPSupportStatus(BEPSupportStatus::unknown) {
 }
 
 PeerPlugin::~PeerPlugin() {
@@ -42,7 +41,7 @@ PeerPlugin::~PeerPlugin() {
 }
 
 char const * PeerPlugin::type() const {
-    return "";
+    return "BitSwapr payment plugin.";
 }
 
 /*
@@ -86,9 +85,6 @@ void PeerPlugin::add_handshake(libtorrent::entry & handshake) {
             maxExistingID = std::max((int)(((*i).second).integer()), maxExistingID);
       */
 
-    // Get
-    //ExtendedMessageIdMapping & clientMapping = _peerPluginConfiguration.getClientMapping();
-
     // Set all ids from 60
     _clientMapping.setAllStartingAt(60);
 
@@ -112,20 +108,17 @@ bool PeerPlugin::on_handshake(char const * reserved_bits) {
 
     //qCDebug(_category) << "on_handshake";
 
-    // Get reference to BEP10 support status
-    //BEPSupportStatus & peerBEP10SupportedStatus = _peerPluginConfiguration.getPeerBEP10SupportedStatus();
-
     // Check if BEP10 is enabled
     if(reserved_bits[5] & 0x10) {
 
         //qCDebug(_category) << "BEP10 supported in handshake.";
-        _peerBEP10SupportedStatus = BEPSupportStatus::supported;
+        _peerBEP10SupportStatus = BEPSupportStatus::supported;
         return true;
 
     } else {
 
         qCDebug(_category) << "BEP10 not supported in handshake.";
-        _peerBEP10SupportedStatus = BEPSupportStatus::not_supported;
+        _peerBEP10SupportStatus = BEPSupportStatus::not_supported;
         return false;
     }
 }
@@ -138,31 +131,22 @@ bool PeerPlugin::on_handshake(char const * reserved_bits) {
  */
 bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake) {
 
-    // Note that we have received extended handshake
-    //_peerPluginConfiguration.getPeerPluginState() = PeerPluginState::handshake_received;
-    _lastPeerAction = PeerAction::BEP10_handshake_received;
-
     // Write what client is trying to handshake us, should now be possible given initial hand shake
     libtorrent::peer_info peerInfo;
-    _btConnection->get_peer_info(peerInfo);
+    _connection->get_peer_info(peerInfo);
+
     qCDebug(_category) << "on_extension_handshake[" << peerInfo.client.c_str() << "]";
 
-    // Get reference to BEP43
-    //BEPSupportStatus & peerBEP43SupportedStatus = _peerPluginConfiguration.getPeerBEP43SupportedStatus();
-
     // Check that BEP10 was actually supported, if it wasnt, then the peer is misbehaving
-    //_peerPluginConfiguration.getPeerBEP10SupportedStatus() != BEPSupportStatus::supported
-    if(_peerBEP10SupportedStatus != BEPSupportStatus::supported) {
-
-        // Mark peer as not supporting BEP43
-        _peerBitSwaprBEPSupportedStatus  = BEPSupportStatus::not_supported;
-        qCWarning(_category) << "Peer didn't support BEP10, but it sent extended handshake.";
+    if(_peerBEP10SupportStatus != BEPSupportStatus::supported) {
 
         // Remember that this peer does not have extension
-        _torrentPlugin->addToPeersWithoutExtensionSet(peerInfo.ip);
+        _plugin->addToPeersWithoutExtensionSet(peerInfo.ip);
 
-        // Remove this plugin from torrent plugin
-        _torrentPlugin->removePeerPlugin(this);
+        // Mark peer as not supporting BEP43
+        _peerBitSwaprBEPSupportStatus  = BEPSupportStatus::not_supported;
+
+        qCWarning(_category) << "Peer didn't support BEP10, but it sent extended handshake.";
 
         // Do no keep extension around
         return false;
@@ -176,15 +160,13 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
     // If its not a dictionary, we are done
     if(handshake.type() != libtorrent::lazy_entry::dict_t) {
 
-        // Mark peer as not supporting BEP43
-        _peerBitSwaprBEPSupportedStatus  = BEPSupportStatus::not_supported;
-        qCWarning(_category) << "Malformed handshake received: not dictionary.";
-
         // Remember that this peer does not have extension
-        _torrentPlugin->addToIrregularPeersSet(peerInfo.ip);
+        _plugin->addToIrregularPeersSet(peerInfo.ip);
 
-        // Remove this plugin from torrent plugin
-        _torrentPlugin->removePeerPlugin(this);
+        // Mark peer as not supporting BEP43
+        _peerBitSwaprBEPSupportStatus  = BEPSupportStatus::not_supported;
+
+        qCWarning(_category) << "Malformed handshake received: not dictionary.";
 
         // Do no keep extension around
         return false;
@@ -195,13 +177,13 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
 
     if(version == -1) {
 
-        qCDebug(_category) << "Extension not supported.";
-
         // Remember that this peer does not have extension
-        _torrentPlugin->addToPeersWithoutExtensionSet(peerInfo.ip);
+        _plugin->addToPeersWithoutExtensionSet(peerInfo.ip);
 
-        // Remove this plugin from torrent plugin
-        _torrentPlugin->removePeerPlugin(this);
+        // Mark peer as not supporting BEP43
+        _peerBitSwaprBEPSupportStatus  = BEPSupportStatus::not_supported;
+
+        qCDebug(_category) << "Extension not supported.";
 
         // Do no keep extension around
         return false;
@@ -211,17 +193,16 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
 
     // Try to extract m key, if its not present, then we are done
     const libtorrent::lazy_entry * m = handshake.dict_find_dict("m");
+
     if(!m) {
 
-        // Mark peer as not supporting BEP43
-        _peerBitSwaprBEPSupportedStatus  = BEPSupportStatus::not_supported;
-        qCWarning(_category) << "Malformed handshake received: m key not present.";
-
         // Remember that this peer does not have extension
-        _torrentPlugin->addToIrregularPeersSet(peerInfo.ip);
+        _plugin->addToIrregularPeersSet(peerInfo.ip);
 
-        // Remove this plugin from torrent plugin
-        _torrentPlugin->removePeerPlugin(this);
+        // Mark peer as not supporting BEP43
+        _peerBitSwaprBEPSupportStatus = BEPSupportStatus::not_supported;
+
+        qCWarning(_category) << "Malformed handshake received: m key not present.";
 
         // Do no keep extension around
         return false;
@@ -236,15 +217,13 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
     // Check if it is a dictionary entry
     if(mEntry.type() != libtorrent::entry::dictionary_t) {
 
-        // Mark peer as not supporting BEP43
-        _peerBitSwaprBEPSupportedStatus  = BEPSupportStatus::not_supported;
-        qCWarning(_category) << "Malformed handshake received: m key not mapping to dictionary.";
-
         // Remember that this peer does not have extension
-        _torrentPlugin->addToIrregularPeersSet(peerInfo.ip);
+        _plugin->addToIrregularPeersSet(peerInfo.ip);
 
-        // Remove this plugin from torrent plugin
-        _torrentPlugin->removePeerPlugin(this);
+        // Mark peer as not supporting BEP43
+        _peerBitSwaprBEPSupportStatus  = BEPSupportStatus::not_supported;
+
+        qCWarning(_category) << "Malformed handshake received: m key not mapping to dictionary.";
 
         // Do no keep extension around
         return false;
@@ -264,15 +243,13 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
     // Check that peer mapping is valid: all messages are present, and duplicate ids
     if(!_peerMapping.isValid()) {
 
-        // Mark peer as not supporting BEP43
-        _peerBitSwaprBEPSupportedStatus  = BEPSupportStatus::not_supported;
-        qCDebug(_category) << "m key does not contain mapping for all messages.";
-
         // Remember that this peer does not have extension
-        _torrentPlugin->addToIrregularPeersSet(peerInfo.ip);
+        _plugin->addToIrregularPeersSet(peerInfo.ip);
 
-        // Remove this plugin from torrent plugin
-        _torrentPlugin->removePeerPlugin(this);
+        // Mark peer as not supporting BEP43
+        _peerBitSwaprBEPSupportStatus = BEPSupportStatus::not_supported;
+
+        qCDebug(_category) << "m key does not contain mapping for all messages.";
 
         // Do no keep extension around
         return false;
@@ -280,15 +257,18 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
 
     // Notify
     std::string endPointString = libtorrent::print_endpoint(peerInfo.ip);
+
     qCDebug(_category) << "Found extension handshake for peer " << endPointString.c_str();
 
     // All messages were present, hence the protocol is supported
-    _peerBitSwaprBEPSupportedStatus  = BEPSupportStatus::supported;
+    _peerBitSwaprBEPSupportStatus = BEPSupportStatus::supported;
+
+    // Make subtype callback
+    extendedHandshakeCompleted();
 
     // Tell libtorrent that our extension should be kept in the loop for this peer
     return true;
 }
-
 
 // Called when an extended message is received. If returning true,
 // the message is not processed by any other plugin and if false
@@ -300,14 +280,15 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
     qCDebug(_category) << "buyer:on_extended(" << length << "," << msg << ")";
 
     // Ignore message if peer has not successfully completed BEP43 handshake (yet, or perhaps never will)
-    if(_peerBitSwaprBEPSupportedStatus  != BEPSupportStatus::supported) {
+    if(_peerBitSwaprBEPSupportStatus  != BEPSupportStatus::supported) {
+
         qCDebug(_category) << "Received extended message despite BEP43 not supported, not for this plugin then, letting another plugin handle it.";
 
         // Let next plugin handle message
         return false;
     }
 
-    // Is it a BEP43 message?
+    // Is it a BitSwapr BEP message?
     MessageType messageType;
 
     try {
@@ -330,76 +311,25 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
     // Drop if message was malformed
     if(m == NULL) {
 
-        qCDebug(_category) << "Malformed message BEP43 message received, peer marked for removal.";
+        qCDebug(_category) << "Malformed message BitSwapr BEP message received, peer marked for removal.";
 
-        // Mark for removal of this peer
-        _lastPeerMessageWasValid = false;
+        // Note that message was malformed
+        _lastPeerMessageWasMalformed = true;
 
-        return true;
     } else {
 
-        // If plugin has not started, then enqueue messages
-        if(!_pluginStarted) {
-            qCDebug(_category) << "Received extended message despite plugin not started, queue messages.";
+        // Process message
+        processExtendedMessage(m);
 
-            // Add to queue
-            _beforePluginStartsMessageQueue.enqueue(m);
-
-        } else {
-
-            // Process message
-            processExtendedMessage(m);
-
-            // Delete message
-            delete m;
-        }
+        // Delete message
+        delete m;
     }
 
     // No other plugin should process
     return true;
 }
 
-/*
- * This is not called for web seeds
- */
-bool PeerPlugin::on_unknown_message(int length, int msg, libtorrent::buffer::const_interval body) {
-
-    // if(_peerPluginConfiguration.getPeerBEP43SupportedStatus() != BEPSupportStatus::not_supported)
-    if(_peerBitSwaprBEPSupportedStatus  != BEPSupportStatus::not_supported)
-        qCDebug(_category) << "on_unknown_message(" << length << "," << msg << ")";
-
-    // CRITICAL
-    return false;
-}
-
-/*
- * Called when a piece that this peer participated in passes the hash_check
- */
-void PeerPlugin::on_piece_pass(int index) {
-
-}
-
-/*
- * Called when a piece that this peer participated in fails the hash_check
- */
-void PeerPlugin::on_piece_failed(int index) {
-
-}
-
-/*
- * Called each time a request message is to be sent. If true is returned,
- * the original request message won't be sent and no other plugin will have this function called.
- */
-bool PeerPlugin::write_request(libtorrent::peer_request const & peerRequest) {
-
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "write_request";
-    */
-
-    return false;
-}
-
+/**
 void PeerPlugin::processPeerPluginRequest(const PeerPluginRequest * peerPluginRequest) {
 
     qCDebug(_category) << "processPeerPluginRequest";
@@ -408,43 +338,7 @@ void PeerPlugin::processPeerPluginRequest(const PeerPluginRequest * peerPluginRe
 
     }
 }
-
-void PeerPlugin::startPlugin(const Observe & m) {
-
-    // Start plugin
-    _pluginStarted = true;
-
-    // Set mode
-    _clientPluginMode = PluginMode::Observe;
-
-    // Send observe message
-    sendExtendedMessage(m);
-}
-
-void PeerPlugin::startPlugin(const Sell & m) {
-
-    // Start plugin
-    _pluginStarted = true;
-
-    // Set mode
-    _clientPluginMode = PluginMode::Sell;
-
-    // Send message
-    sendExtendedMessage(m);
-}
-
-void PeerPlugin::startPlugin(const Buy & m) {
-
-    // Start plugin
-    _pluginStarted = true;
-
-    // Set mode
-    _clientPluginMode = PluginMode::Sell;
-
-    // Send message
-    sendExtendedMessage(m);
-}
-
+*/
 
 void PeerPlugin::sendExtendedMessage(const ExtendedMessagePayload & extendedMessage) {
 
@@ -483,7 +377,7 @@ void PeerPlugin::sendExtendedMessage(const ExtendedMessagePayload & extendedMess
         const char * constData = byteArray.constData(); // is zero terminated, but we dont care
 
         // Send message buffer
-        _btConnection->send_buffer(constData, messageLength);
+        _connection->send_buffer(constData, messageLength);
 
         // Start/Restart timer
         if(_timeSinceLastMessageSent.isNull())
@@ -504,212 +398,58 @@ void PeerPlugin::processExtendedMessage(ExtendedMessagePayload * m) {
     switch(messageType) {
 
         case MessageType::observe:
-
-            _lastPeerMessageWasValid = processObserve(static_cast<Observe *>(m));
+            processObserve(static_cast<Observe *>(m));
             break;
         case MessageType::buy:
-
-            _lastPeerMessageWasValid = processBuy(static_cast<Buy *>(m));
+            processBuy(static_cast<Buy *>(m));
             break;
         case MessageType::sell:
-
-            _lastPeerMessageWasValid = processSell(static_cast<Sell *>(m));
+            processSell(static_cast<Sell *>(m));
             break;
         case MessageType::join_contract:
-
+            processJoinContract(static_cast<JoinContract *>(m));
             break;
         case MessageType::joining_contract:
-
-            _lastPeerMessageWasValid = processJoiningContract(static_cast<JoiningContract *>(m));
+            processJoiningContract(static_cast<JoiningContract *>(m));
             break;
         case MessageType::sign_refund:
-
+            processSignRefund(static_cast<SignRefund *>(m));
             break;
         case MessageType::refund_signed:
-
+            processRefundSigned(static_cast<RefundSigned *>(m));
             break;
         case MessageType::ready:
-
+            processReady(static_cast<Ready *>(m));
             break;
         case MessageType::payment:
-
+            processPayment(static_cast<Payment *>(m));
             break;
         case MessageType::end:
-
+            processEnd(static_cast<End *>(m));
             break;
     }
-
-    if(!_lastPeerMessageWasValid)
-        qCDebug(_category) << "Received message at incorrect state, peer marked for removal.";
-
-}
-
-bool PeerPlugin::processObserve(const Observe * m) {
-
-    // Check that message is compatible with last peer action
-    if(_lastPeerAction != PeerAction::extended_handshake_completed &&
-       _lastPeerAction != PeerAction::observe_mode_announced &&
-       _lastPeerAction != PeerAction::buy_mode_announced &&
-       _lastPeerAction != PeerAction::sell_mode_announced &&
-       _lastPeerAction != PeerAction::ended)
-        return false;
-
-    // Update last peer action
-    _lastPeerAction = PeerAction::observe_mode_announced;
-
-    // Note that peer is in observe mode
-    _peerPluginMode = PluginMode::Observe;
-
-    // Message was valid
-    return true;
-}
-
-bool PeerPlugin::processBuy(const Buy * buyMessage) {
-
-    // Check that message is compatible with last peer action
-    if(_lastPeerAction != PeerAction::extended_handshake_completed &&
-       _lastPeerAction != PeerAction::observe_mode_announced &&
-       _lastPeerAction != PeerAction::buy_mode_announced &&
-       _lastPeerAction != PeerAction::sell_mode_announced &&
-       _lastPeerAction != PeerAction::ended)
-        return false;
-
-    // Update last peer action
-    _lastPeerAction = PeerAction::buy_mode_announced;
-
-    // Note that peer is buyer
-    _peerPluginMode = PluginMode::Buy;
-
-
-    /**
-     * Do later
-     */
-
-
-    // Message was valid
-    return true;
-}
-
-bool PeerPlugin::processSell(const Sell * m) {
-
-    // Only ok if last action by peer was handshake/mode message or end
-    if(_lastPeerAction != PeerAction::extended_handshake_completed &&
-       _lastPeerAction != PeerAction::observe_mode_announced &&
-       _lastPeerAction != PeerAction::buy_mode_announced &&
-       _lastPeerAction != PeerAction::sell_mode_announced &&
-       _lastPeerAction != PeerAction::ended)
-        return false;
-
-    // Update last peer action
-    _lastPeerAction = PeerAction::sell_mode_announced;
-
-    // Note that peer is seller
-    _peerPluginMode = PluginMode::Sell;
-
-    /**
-     * The only spesific processing is if we are in buy mode
-     */
-    if(_clientPluginMode == PluginMode::Buy) {
-
-        // Save last terms
-        _bsellerMinPrice = m->minPrice();
-        _bsellerMinLock = m->minLock();
-
-        // If we are building payment channel,
-        // and peer has not been invited,
-        // and peer has sufficiently good terms,
-        // then invite to join contract
-        if(_torrentPlugin->buyerTorrentPluginState() == BuyerTorrentPluginState::populating_payment_channel &&
-            !_invitedToJoinContract &&
-            m->minPrice() < _torrentPlugin->config()->_maxPrice &&
-            m->minLock() < _torrentPlugin->config()->_maxLock) {
-
-            // Invite to join contract
-            plugin->sendExtendedMessage(JoinContract());
-
-            // and remember invite
-            _invitedToJoinContract = true;
-        }
-    }
-
-    // Message was valid
-    return true;
-}
-
-bool PeerPlugin::processJoinContract(const JoinContract * m) {
-
-    // Check mode of peer is compatible with message
-
-}
-
-bool PeerPlugin::processJoiningContract(const JoiningContract * m) {
-
-    // Only ok if last action by peer was to set sell mode, and peer has been invited to join contract
-    if(_lastPeerAction != PeerAction::sell_mode_announced ||
-       !_invitedToJoinContract) // <== change?
-        return false;
-
-    // Update last peer action
-    _lastPeerAction = PeerAction::sell_mode_announced;
-
-
-
-}
-
-bool PeerPlugin::processSignRefund(const SignRefund * m) {
-
-    // Check mode of peer is compatible with message
-
-}
-
-bool PeerPlugin::processRefundSigned(const RefundSigned * m) {
-
-    // Check mode of peer is compatible with message
-
-}
-
-bool PeerPlugin::processReady(const Ready * m) {
-
-    // Check mode of peer is compatible with message
-
-}
-
-bool PeerPlugin::processPayment(const Payment * m) {
-
-    // Check mode of peer is compatible with message
-
-}
-
-bool PeerPlugin::processEnd(const End * m) {
-
-    // Check mode of peer is compatible with message
-
 }
 
 bool PeerPlugin::peerTimedOut(int maxDelay) const {
-    return _timeSinceLastMessageSent.elapsed() > maxDelay;
+    return (!_timeSinceLastMessageSent.isNull()) && (_timeSinceLastMessageSent.elapsed() > maxDelay);
 }
 
 BEPSupportStatus PeerPlugin::peerBEP10SupportStatus() const {
-    return _peerBEP10SupportedStatus;
+    return _peerBEP10SupportStatus;
 }
 
-BEPSupportStatus PeerPlugin::peerBEP43SupportStatus() const {
-    return _peerBitSwaprBEPSupportedStatus ;
-}
-
-PeerAction PeerPlugin::peerState() const {
-   return _lastPeerAction;
+BEPSupportStatus PeerPlugin::peerBitSwaprBEPSupportStatus() const {
+    return _peerBitSwaprBEPSupportStatus ;
 }
 
 libtorrent::tcp::endpoint PeerPlugin::endPoint() const {
-    return _btConnection->remote();
+    return _connection->remote();
 }
 
-bool PeerPlugin::isConnected() const {
-    return _isConnected;
+bool PeerPlugin::connectionAlive() const {
+    return _connectionAlive;
 }
 
-bool PeerPlugin::peerSentInvalidMessage() const {
-    return _lastPeerMessageWasValid;
+bool PeerPlugin::lastPeerMessageWasMalformed() const {
+    return _lastPeerMessageWasMalformed;
 }

@@ -1,8 +1,9 @@
 #ifndef PEER_PLUGIN_HPP
 #define PEER_PLUGIN_HPP
 
-//#include "PeerPluginConfiguration.hpp"
 #include "Request/PeerPluginRequest.hpp"
+#include "BEPSupportStatus.hpp"
+#include "Message/ExtendedMessageIdMapping.hpp"
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/entry.hpp>
@@ -45,9 +46,7 @@ class PeerPlugin : public QObject, public libtorrent::peer_plugin {
 public:
 
     // Constructor
-    PeerPlugin(TorrentPlugin * torrentPlugin,
-               libtorrent::bt_peer_connection * btConnection,
-               QLoggingCategory & category);
+    PeerPlugin(TorrentPlugin * plugin, libtorrent::bt_peer_connection * connection, QLoggingCategory & category);
 
     /**
      * All virtual functions below should ONLY be called by libtorrent network thread,
@@ -80,7 +79,7 @@ public:
     virtual bool on_dont_have(int index) = 0;
     virtual void sent_unchoke() = 0;
     virtual bool can_disconnect(libtorrent::error_code const & ec) = 0;
-    virtual bool on_extended(int length, int msg, libtorrent::buffer::const_interval body) = 0;
+    virtual bool on_extended(int length, int msg, libtorrent::buffer::const_interval body);
     virtual bool on_unknown_message(int length, int msg, libtorrent::buffer::const_interval body) = 0;
     virtual void on_piece_pass(int index) = 0;
     virtual void on_piece_failed(int index) = 0;
@@ -92,35 +91,30 @@ public:
      */
 
     // Processig routine for peer plugin requests, request pointer is owned by plugin dispatcher
-    void processPeerPluginRequest(const PeerPluginRequest * peerPluginRequest);
+    //void processPeerPluginRequest(const PeerPluginRequest * peerPluginRequest);
 
-    // Sends extended message to peer
-    // does not take ownership of pointer
+    // Sends extended message to peer, does not take ownership of pointer
     void sendExtendedMessage(const ExtendedMessagePayload & extendedMessage);
 
     // Determines the message type, calls correct handler, then frees message
     void processExtendedMessage(ExtendedMessagePayload * extendedMessage);
 
-    void sendStatusToController();
-
-    // Utilitliy
-    bool peerTimedOut(int maxDelay) const;
-
     // Getters
+    bool peerTimedOut(int maxDelay) const;
     BEPSupportStatus peerBEP10SupportStatus() const;
-    BEPSupportStatus peerBEP43SupportStatus() const;
-    PeerAction peerState() const;
+    BEPSupportStatus peerBitSwaprBEPSupportStatus() const;
     libtorrent::tcp::endpoint endPoint() const;
-    bool isConnected() const;
-    bool peerSentInvalidMessage() const;
+    bool connectionAlive() const;
+    bool lastPeerMessageWasMalformed() const;
+    virtual bool lastPeerMessageWasStateCompatible() const = 0;
 
 protected:
 
     // Torrent plugin for torrent
-    TorrentPlugin * _torrentPlugin;
+    TorrentPlugin * _plugin;
 
     // Connection to peer for this plugin
-    libtorrent::bt_peer_connection * _btConnection;
+    libtorrent::bt_peer_connection * _connection;
 
     // Logging category
     QLoggingCategory & _category;
@@ -131,40 +125,37 @@ protected:
     // Time since last message was sent to peer, is used to judge if peer has timed out
     QTime _timeSinceLastMessageSent;
 
-    // Connection status with peer
-    bool _isConnected;
+    // Plugin still has contact with peer
+    bool _connectionAlive;
 
-    // Peer sent an invalid message
-    // This could either be because
-    // a) peer sent a message which was not well formed
-    // b) peer sent a message which was incompatible with mode
-    // c) peer sent a message which was incompatible with state of interaction
-    bool _lastPeerMessageWasValid;
+    // Last message arriving in on_extended() which was malformed accoridng
+    // to ExtendedMessagePayload::fromRaw().
+    bool _lastPeerMessageWasMalformed;
 
-    // Type of last message client sent to peer
-    MessageType _lastMessageSent;
+    // Processess message
+    virtual void processObserve(const Observe * m) = 0;
+    virtual void processBuy(const Buy * m) = 0;
+    virtual void processSell(const Sell * m) = 0;
+    virtual void processJoinContract(const JoinContract * m) = 0;
+    virtual void processJoiningContract(const JoiningContract * m) = 0;
+    virtual void processSignRefund(const SignRefund * m) = 0;
+    virtual void processRefundSigned(const RefundSigned * m) = 0;
+    virtual void processReady(const Ready * m) = 0;
+    virtual void processPayment(const Payment * m) = 0;
+    virtual void processEnd(const End * m) = 0;
 
-    // Processess message, return whether or not message was valid, that is
-    // 1) was compatible with last action of peer
-    // 2) was premature, i.e. came before we had even sent a preconditional message
-    virtual bool processObserve(const Observe * m) = 0;
-    virtual bool processBuy(const Buy * m) = 0;
-    virtual bool processSell(const Sell * m) = 0;
-    virtual bool processJoinContract(const JoinContract * m) = 0;
-    virtual bool processJoiningContract(const JoiningContract * m) = 0;
-    virtual bool processSignRefund(const SignRefund * m) = 0;
-    virtual bool processRefundSigned(const RefundSigned * m) = 0;
-    virtual bool processReady(const Ready * m) = 0;
-    virtual bool processPayment(const Payment * m) = 0;
-    virtual bool processEnd(const End * m) = 0;
+    // Callback to subclass routine for handling a successfully extended handshake,
+    // typicall by sending a mode message.
+    virtual void extendedHandshakeCompleted() = 0;
 
 private:
+
+    // Indicates whether peer supports BEP10 and BitSwapr BEP respectively
+    BEPSupportStatus _peerBEP10SupportStatus, _peerBitSwaprBEPSupportStatus;
 
     // Mapping from messages to BEP10 ID of peer
     ExtendedMessageIdMapping _clientMapping, _peerMapping;
 
-    // Indicates whether peer supports BEP10 and BitSwapr BEP respectively
-    BEPSupportStatus _peerBEP10SupportedStatus, _peerBitSwaprBEPSupportedStatus;
 };
 
 #endif
