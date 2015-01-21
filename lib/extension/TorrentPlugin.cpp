@@ -14,10 +14,10 @@
 
 #include <QLoggingCategory>
 
-TorrentPlugin::TorrentPlugin(Plugin * plugin, const boost::weak_ptr<libtorrent::torrent> & torrent, const TorrentPluginConfiguration & configuration, QLoggingCategory & category)
+TorrentPlugin::TorrentPlugin(Plugin * plugin, const boost::weak_ptr<libtorrent::torrent> & torrent, const TorrentPluginConfiguration & torrentPluginConfiguration, QLoggingCategory & category)
     : _plugin(plugin)
     , _torrent(torrent)
-    , _configuration(configuration)
+    , _torrentPluginConfiguration(torrentPluginConfiguration)
     , _category(category) {
 }
 
@@ -39,10 +39,10 @@ boost::weak_ptr<libtorrent::peer_plugin> TorrentPlugin::peerPlugin(const libtorr
         throw std::exception();
 }
 
+/**
+ * DO WE EVEN THIS?
 void TorrentPlugin::_tick() {
 
-    /**
-     * DO WE EVEN THIS?
     // Iterate peers, and handle disconnection or new messages
     QList<libtorrent::tcp::endpoint> keys = _peerPlugins.keys();
     for(QList<libtorrent::tcp::endpoint>::iterator i = keys.begin(),
@@ -57,8 +57,9 @@ void TorrentPlugin::_tick() {
         else // otherwise process messages
             plugin->processUnprocessedMessages();
     }
-    */
+
 }
+*/
 
 void TorrentPlugin::addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint) {
     _peersWithoutExtension.insert(endPoint);
@@ -74,7 +75,7 @@ bool TorrentPlugin::isPeerWellBehaved(libtorrent::peer_connection * connection) 
     const libtorrent::tcp::endpoint & endPoint = connection->remote();
 
     // If we are using banning sets, then check this peer
-    if(_configuration.enableBanningSets()) {
+    if(_torrentPluginConfiguration.enableBanningSets()) {
 
         // Check if we know from before that peer does not have
         if(_peersWithoutExtension.contains(endPoint)) {
@@ -133,9 +134,10 @@ TorrentPluginConfiguration TorrentPlugin::config() const {
     return _configuration;
 }
 
+/**
 TorrentPluginStatusAlert TorrentPlugin::createTorrentPluginStatusAlert() {
 
-    /**
+
     int numberOfPeers = _peerPlugins.size();
 
     int numberOfPeersWithExtension = 0;
@@ -149,5 +151,6 @@ TorrentPluginStatusAlert TorrentPlugin::createTorrentPluginStatusAlert() {
 
     // Create torrent plugin alert
     return TorrentPluginStatusAlert(_torrent->info_hash(), numberOfPeers, numberOfPeersWithExtension, _pluginStarted, 0, 0, _torrentPluginConfiguration->pluginMode());
-    */
+
 }
+*/

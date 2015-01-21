@@ -33,17 +33,29 @@ class RefundSigned;
 class Ready;
 class Payment;
 class End;
+enum class PluginMode;
 
-/*
+/**
  * We inherit from QObject so we can send signals, and QObject must be first:
  * http://doc.trolltech.com/4.5/moc.html
  */
 
+/**
+ * @brief Abstract parent type for peer plugins, in seller, buyer and observer mode.
+ */
 class PeerPlugin : public QObject, public libtorrent::peer_plugin {
 
     Q_OBJECT
 
 public:
+
+    // Mode which has been announced by a peer
+    enum class PeerModeAnnounced {
+        none,
+        observer,
+        seller,
+        buyer
+    };
 
     // Constructor
     PeerPlugin(TorrentPlugin * plugin, libtorrent::bt_peer_connection * connection, QLoggingCategory & category);
@@ -104,14 +116,12 @@ public:
     BEPSupportStatus peerBEP10SupportStatus() const;
     BEPSupportStatus peerBitSwaprBEPSupportStatus() const;
     libtorrent::tcp::endpoint endPoint() const;
+
     bool connectionAlive() const;
-    bool lastPeerMessageWasMalformed() const;
-    virtual bool lastPeerMessageWasStateCompatible() const = 0;
+    bool lastReceivedMessageWasMalformed() const;
+    virtual PluginMode mode() const = 0;
 
 protected:
-
-    // Torrent plugin for torrent
-    TorrentPlugin * _plugin;
 
     // Connection to peer for this plugin
     libtorrent::bt_peer_connection * _connection;
@@ -122,6 +132,9 @@ protected:
     // Endpoint
     libtorrent::tcp::endpoint _endPoint;
 
+    // Announced peer mode
+    PeerModeAnnounced _peerModeAnnounced;
+
     // Time since last message was sent to peer, is used to judge if peer has timed out
     QTime _timeSinceLastMessageSent;
 
@@ -130,9 +143,13 @@ protected:
 
     // Last message arriving in on_extended() which was malformed accoridng
     // to ExtendedMessagePayload::fromRaw().
-    bool _lastPeerMessageWasMalformed;
+    bool _lastReceivedMessageWasMalformed;
 
-    // Processess message
+    // Last message was not compatible with state of plugin
+    bool _lastMessageWasStateIncompatible;
+
+    // Processess message in subclass,
+    // are only called if extended handshake is completed successfully.
     virtual void processObserve(const Observe * m) = 0;
     virtual void processBuy(const Buy * m) = 0;
     virtual void processSell(const Sell * m) = 0;
@@ -144,11 +161,10 @@ protected:
     virtual void processPayment(const Payment * m) = 0;
     virtual void processEnd(const End * m) = 0;
 
-    // Callback to subclass routine for handling a successfully extended handshake,
-    // typicall by sending a mode message.
-    virtual void extendedHandshakeCompleted() = 0;
-
 private:
+
+    // Torrent plugin for torrent
+    TorrentPlugin * _plugin;
 
     // Indicates whether peer supports BEP10 and BitSwapr BEP respectively
     BEPSupportStatus _peerBEP10SupportStatus, _peerBitSwaprBEPSupportStatus;

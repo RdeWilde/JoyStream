@@ -1,5 +1,5 @@
-#ifndef PAYOR_PAYMENT_CHANNEL_HPP
-#define PAYOR_PAYMENT_CHANNEL_HPP
+#ifndef PAYMENT_CHANNEL_PAYOR_HPP
+#define PAYMENT_CHANNEL_PAYOR_HPP
 
 //#include<QSet>
 
@@ -13,10 +13,10 @@
  * https://github.com/bedeho/CBEP
  *
  */
-class PayorPaymentChannel
+class PaymentChannelPayor
 {
 public:
-    PayorPaymentChannel(quint32 numberOfPayees);
+    PaymentChannelPayor(quint32 numberOfPayees);
 
 private:
 
@@ -64,4 +64,4 @@ private:
     // PublicKey _contractTxO
 };
 
-#endif // PAYOR_PAYMENT_CHANNEL_HPP
+#endif // PAYMENT_CHANNEL_PAYOR_HPP

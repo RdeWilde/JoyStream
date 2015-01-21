@@ -2,8 +2,9 @@
 #include "TorrentPlugin.hpp"
 #include "Plugin.hpp"
 #include "Config.hpp"
-#include "PeerPluginStatus.hpp"
-#include "Request/PeerPluginRequest.hpp"
+//#include "PeerPluginStatus.hpp"
+//#include "Request/PeerPluginRequest.hpp"
+/**
 #include "Message/MessageType.hpp"
 #include "Message/ExtendedMessagePayload.hpp"
 #include "Message/Observe.hpp"
@@ -16,6 +17,7 @@
 #include "Message/Ready.hpp"
 #include "Message/Payment.hpp"
 #include "Message/End.hpp"
+*/
 #include "Utilities.hpp"
 
 #include <libtorrent/bt_peer_connection.hpp> // bt_peer_connection, bt_peer_connection::msg_extended
@@ -28,8 +30,10 @@ PeerPlugin::PeerPlugin(TorrentPlugin * plugin, libtorrent::bt_peer_connection * 
     : _plugin(plugin)
     , _connection(connection)
     , _category(category)
+    , _peerModeAnnounced(PeerModeAnnounced::none)
     , _connectionAlive(true)
-    , _lastPeerMessageWasMalformed(false)
+    , _lastReceivedMessageWasMalformed(false)
+    , _lastMessageWasStateIncompatible(false)
     , _peerBEP10SupportStatus(BEPSupportStatus::unknown)
     , _peerBitSwaprBEPSupportStatus(BEPSupportStatus::unknown) {
 }
@@ -38,10 +42,6 @@ PeerPlugin::~PeerPlugin() {
 
     // Lets log, so we understand when libtorrent disposes of shared pointer
     qCDebug(_category) << "~PeerPlugin() called.";
-}
-
-char const * PeerPlugin::type() const {
-    return "BitSwapr payment plugin.";
 }
 
 /*
@@ -263,9 +263,6 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
     // All messages were present, hence the protocol is supported
     _peerBitSwaprBEPSupportStatus = BEPSupportStatus::supported;
 
-    // Make subtype callback
-    extendedHandshakeCompleted();
-
     // Tell libtorrent that our extension should be kept in the loop for this peer
     return true;
 }
@@ -280,7 +277,7 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
     qCDebug(_category) << "buyer:on_extended(" << length << "," << msg << ")";
 
     // Ignore message if peer has not successfully completed BEP43 handshake (yet, or perhaps never will)
-    if(_peerBitSwaprBEPSupportStatus  != BEPSupportStatus::supported) {
+    if(_peerBitSwaprBEPSupportStatus != BEPSupportStatus::supported) {
 
         qCDebug(_category) << "Received extended message despite BEP43 not supported, not for this plugin then, letting another plugin handle it.";
 
@@ -314,7 +311,7 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
         qCDebug(_category) << "Malformed message BitSwapr BEP message received, peer marked for removal.";
 
         // Note that message was malformed
-        _lastPeerMessageWasMalformed = true;
+        _lastReceivedMessageWasMalformed = true;
 
     } else {
 
@@ -450,6 +447,6 @@ bool PeerPlugin::connectionAlive() const {
     return _connectionAlive;
 }
 
-bool PeerPlugin::lastPeerMessageWasMalformed() const {
-    return _lastPeerMessageWasMalformed;
+bool PeerPlugin::lastReceivedMessageWasMalformed() const {
+    return _lastReceivedMessageWasMalformed;
 }

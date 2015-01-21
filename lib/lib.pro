@@ -64,18 +64,17 @@ SOURCES += \
     extension/Message/End.cpp \
     extension/BitCoin/PrivateKey.cpp \
     extension/PayorPaymentChannel.cpp \
-    extension/PaymentChannel/PayorPaymentChannel.cpp \
-    extension/PaymentChannel/PayeePaymentChannel.cpp \
     extension/Message/Ready.cpp \
     extension/Message/NoPayloadMessage.cpp \
     extension/BuyerTorrentPlugin.cpp \
-    extension/BuyerTorrentPluginConfiguration.cpp \
     extension/SellerTorrentPluginConfiguration.cpp \
     extension/Request/StartBuyerTorrentPlugin.cpp \
     extension/Request/StartSellerTorrentPlugin.cpp \
     extension/SellerTorrentPlugin.cpp \
     extension/BuyerPeerplugin.cpp \
-    extension/SellerPeerPlugin.cpp
+    extension/SellerPeerPlugin.cpp \
+    extension/PaymentChannel/PaymentChannelPayee.cpp \
+    extension/PaymentChannel/PaymentChannelPayor.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -135,8 +134,6 @@ HEADERS += \
     extension/Message/End.hpp \
     extension/BitCoin/PrivateKey.hpp \
     extension/PayorPaymentChannel.hpp \
-    extension/PaymentChannel/PayorPaymentChannel.hpp \
-    extension/PaymentChannel/PayeePaymentChannel.hpp \
     extension/PeerAction.hpp \
     extension/Message/Ready.hpp \
     extension/Message/NoPayloadMessage.hpp \
@@ -144,13 +141,14 @@ HEADERS += \
     BuyModePeerAction.hpp \
     extension/BuyModePeerAction.hpp \
     extension/BuyerTorrentPlugin.hpp \
-    extension/BuyerTorrentPluginConfiguration.hpp \
     extension/SellerTorrentPluginConfiguration.hpp \
     extension/Request/StartBuyerTorrentPlugin.hpp \
     extension/Request/StartSellerTorrentPlugin.hpp \
     extension/SellerTorrentPlugin.hpp \
     extension/BuyerPeerPlugin.hpp \
-    extension/SellerPeerPlugin.hpp
+    extension/SellerPeerPlugin.hpp \
+    extension/PaymentChannel/PaymentChannelPayee.hpp \
+    extension/PaymentChannel/PaymentChannelPayor.hpp
 				
 FORMS += \
     view/mainwindow.ui \

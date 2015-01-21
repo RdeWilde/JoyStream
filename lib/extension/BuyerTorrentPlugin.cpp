@@ -1,4 +1,61 @@
 #include "BuyerTorrentPlugin.hpp"
+
+BuyerTorrentPlugin::Configuration(const Configuration & c)
+    : Configuration(c.maxPrice(), c.maxLock(), c.maxFeePerByte(), c.numSellers()) {
+}
+
+BuyerTorrentPlugin::Configuration(quint64 maxPrice, QTime maxLock, quint64 maxFeePerByte, qint32 numSellers)
+    : _maxPrice(maxPrice)
+    , _maxLock(maxLock)
+    , _maxFeePerByte(maxFeePerByte)
+    , _numSellers(numSellers) {
+}
+
+BuyerTorrentPlugin::Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry)
+    : TorrentPluginConfiguration(dictionaryEntry) {
+    // IMPLEMENT LATER
+}
+
+void BuyerTorrentPlugin::Configuration::toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const {
+
+    // Call super version
+    TorrentPluginConfiguration::toDictionaryEntry(dictionaryEntry);
+
+    // IMPLEMENT LATER
+}
+
+quint64 BuyerTorrentPlugin::Configuration::maxPrice() const {
+    return _maxPrice;
+}
+
+void BuyerTorrentPlugin::Configuration::setMaxPrice(const quint64 &maxPrice) {
+    _maxPrice = maxPrice;
+}
+
+QTime BuyerTorrentPlugin::Configuration::maxLock() const {
+    return _maxLock;
+}
+
+void BuyerTorrentPlugin::Configuration::setMaxLock(const QTime &maxLock) {
+    _maxLock = maxLock;
+}
+
+quint64 BuyerTorrentPlugin::Configuration::maxFeePerByte() const {
+    return _maxFeePerByte;
+}
+
+void BuyerTorrentPlugin::Configuration::setMaxFeePerByte(const quint64 &maxFeePerByte) {
+    _maxFeePerByte = maxFeePerByte;
+}
+
+qint32 BuyerTorrentPlugin::Configuration::numSellers() const {
+    return _numSellers;
+}
+
+void BuyerTorrentPlugin::Configuration::setNumSellers(const qint32 &numSellers) {
+    _numSellers = numSellers;
+}
+
 #include "BuyerPeerPlugin.hpp"
 
 #include "Message/Buy.hpp"
@@ -14,9 +71,9 @@
 // Maximum allowable a peer may have in responding to given message (ms)
 #define SIGN_REFUND_MAX_DELAY 5*1000
 
-BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin, const boost::weak_ptr<libtorrent::torrent> & torrent, const BuyerTorrentPluginConfiguration & configuration, QLoggingCategory & category)
-    : TorrentPlugin(plugin, torrent, configuration, category)
-    , _configuration(configuration) {
+BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin, const boost::weak_ptr<libtorrent::torrent> & torrent, const TorrentPluginConfiguration & torrentPluginConfiguration, const Configuration & buyerTorrentPluginConfiguration, QLoggingCategory & category)
+    : TorrentPlugin(plugin, torrent, torrentPluginConfiguration, category)
+    , _buyerTorrentPluginConfiguration(buyerTorrentPluginConfiguration) {
 
     // Start clock for when picking sellers can begin
     _timeSincePluginStarted.start();
@@ -119,4 +176,12 @@ void BuyerTorrentPlugin::removePeerPlugin(PeerPlugin * plugin) {
 
 BuyerTorrentPlugin::State BuyerTorrentPlugin::state() const {
     return _state;
+}
+
+BuyerTorrentPluginConfiguration BuyerTorrentPlugin::configuration() const {
+    return _buyerTorrentPluginConfiguration;
+}
+
+void BuyerTorrentPlugin::setConfiguration(const Configuration &buyerTorrentPluginConfiguration) {
+    _buyerTorrentPluginConfiguration = buyerTorrentPluginConfiguration;
 }

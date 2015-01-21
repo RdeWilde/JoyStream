@@ -1,60 +1,84 @@
 #include "BuyerPeerPlugin.hpp"
 
-#include "BitCoin/PublicKey.hpp"
-#include "BitCoin/Hash.hpp"
-#include "BitCoin/Signature.hpp"
-
-
-#include <QLoggingCategory> // qCDebug
-
-BuyerPeerPlugin::BuyerPeerPlugin(TorrentPlugin * torrentPlugin, libtorrent::bt_peer_connection * bittorrentPeerConnection, QLoggingCategory & category)
-    : PeerPlugin(torrentPlugin, bittorrentPeerConnection, category)
-    , _lastPeerAction(PeerAction::not_acted)
-    , _invitedToJoinContract(false)
-    , _invitedToSignRefund(false)
-    , _failedToSignRefund(false) {
+BuyerPeerPlugin::Configuration::Peer::Peer()
+    : _lastAction(LastValidAction::no_bitswapr_message_sent)
+    , _failureMode(FailureMode::not_failed) {
 }
 
-/*
- * Called when an extended message is received. If returning true,
- * the message is not processed by any other plugin and if false
- * is returned the next plugin in the chain will receive it to
- * be able to handle it this is not called for web seeds.
- */
-bool BuyerPeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_interval body) {
-
-    /**
-    // No processing is done before a successful extended handshake
-    if(_peerBitSwaprBEPSupportedStatus != BEPSupportStatus::supported)
-        return;
-    */
-
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(category_) << "buyer:on_extended(" << length << "," << msg << ")";
-
-    // Update peerPluginState_
-
-    // Create QByte array where you put data, then wrap witha stream, after mesage has b een parsed, check that pointer received is not null.
-
-    // CRITICAL
-    return false;
+BuyerPeerPlugin::Configuration::Peer::LastValidAction BuyerPeerPlugin::PeerState::lastAction() const {
+    return _lastAction;
 }
 
-/*
- * Called aproximately once every second
- */
-void BuyerPeerPlugin::tick() {
-
-    // call parent tick() also?
-
-    qCDebug(category_) << "BuyerPeerPlugin.tick()";
+void BuyerPeerPlugin::Configuration::Peer::setLastAction(const LastValidAction &lastAction) {
+    _lastAction = lastAction;
 }
 
+BuyerPeerPlugin::Configuration::Peer::FailureMode BuyerPeerPlugin::PeerState::failureMode() const {
+    return _failureMode;
+}
 
-bool BuyerPeerPlugin::on_have(int index) {
+void BuyerPeerPlugin::Configuration::Peer::setFailureMode(const FailureMode & failureMode) {
+    _failureMode = failureMode;
+}
 
-    qCDebug(_category) << "on_have";
-    return false;
+quint64 BuyerPeerPlugin::Configuration::Peer::minPrice() const {
+    return _minPrice;
+}
+
+void BuyerPeerPlugin::Configuration::Peer::setMinPrice(const quint64 &minPrice) {
+    _minPrice = minPrice;
+}
+
+PublicKey BuyerPeerPlugin::Configuration::Peer::pK() const {
+    return _pK;
+}
+
+void BuyerPeerPlugin::Configuration::Peer::setPK(const PublicKey &pK) {
+    _pK = pK;
+}
+
+quint32 BuyerPeerPlugin::Configuration::Peer::minLock() const {
+    return _minLock;
+}
+
+void BuyerPeerPlugin::Configuration::Peer::setMinLock(const quint32 &minLock) {
+    _minLock = minLock;
+}
+
+BuyerPeerPlugin::Configuration::Peer BuyerPeerPlugin::Configuration::peerState() const {
+    return _peer;
+}
+
+void BuyerPeerPlugin::Configuration::setPeer(const Peer &peer) {
+    _peer = peer;
+}
+
+BuyerPeerPlugin::Configuration::Client BuyerPeerPlugin::Configuration::clientState() const {
+    return _client;
+}
+
+void BuyerPeerPlugin::Configuration::setClient(const Client &client) {
+    _client = client;
+}
+
+#include "BuyerTorrentPlugin.hpp"
+#include "PluginMode.hpp"
+
+#include <QLoggingCategory>
+
+BuyerPeerPlugin::BuyerPeerPlugin(BuyerTorrentPlugin * plugin, libtorrent::bt_peer_connection * connection, QLoggingCategory & category, , const Configuration & configuration)
+    : PeerPlugin(plugin, connection, category)
+    , _plugin(plugin)
+    , _configuration(configuration)
+    , _lastMessageStateCompatibility(MessageStateCompatibility::compatible){
+}
+
+BuyerPeerPlugin::~BuyerPeerPlugin() {
+
+}
+
+char const * PeerPlugin::type() const {
+    return "BitSwapr payment buyer peer plugin.";
 }
 
 /*
@@ -72,6 +96,34 @@ void BuyerPeerPlugin::on_disconnect(libtorrent::error_code const & ec) {
 
 void BuyerPeerPlugin::on_connected() {
 
+}
+
+bool BuyerPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake) {
+
+    // Use base class extension handhsake processor
+    bool keepPlugin = PeerPlugin::on_extension_handshake(handshake);
+
+    // If handshake was successful
+    if(keepPlugin) {
+
+        // get buyer torrent plugin configurations
+        BuyerTorrentPluginConfiguration configuration = _plugin->configuration();
+
+        // send mode message
+        sendExtendedMessage(Buy(configuration.maxPrice(), configuration.maxLock());
+
+        // and update new client state correspondingly
+        _configuration.setClient(Configuration::Client::buyer_mode_announced);
+    }
+
+    // Return status to libtorrent
+    return keepPlugin;
+}
+
+bool BuyerPeerPlugin::on_have(int index) {
+
+    qCDebug(_category) << "on_have";
+    return false;
 }
 
 bool BuyerPeerPlugin::on_bitfield(libtorrent::bitfield const & bitfield) {
@@ -241,9 +293,6 @@ bool BuyerPeerPlugin::can_disconnect(libtorrent::error_code const & ec) {
  */
 bool PeerPlugin::on_unknown_message(int length, int msg, libtorrent::buffer::const_interval body) {
 
-    if(_peerBitSwaprBEPSupportStatus  != BEPSupportStatus::not_supported)
-        qCDebug(_category) << "on_unknown_message(" << length << "," << msg << ")";
-
     // CRITICAL
     return false;
 }
@@ -262,105 +311,98 @@ void PeerPlugin::on_piece_failed(int index) {
 
 }
 
-bool BuyerPeerPlugin::processObserve(const Observe * m) {
+/*
+ * Called aproximately once every second
+ */
+void BuyerPeerPlugin::tick() {
 
-    // Check that message is compatible with last peer action
-    if(_lastPeerAction != PeerAction::extended_handshake_completed &&
-       _lastPeerAction != PeerAction::observe_mode_announced &&
-       _lastPeerAction != PeerAction::buy_mode_announced &&
-       _lastPeerAction != PeerAction::sell_mode_announced &&
-       _lastPeerAction != PeerAction::ended)
-        return false;
+    qCDebug(_category) << "BuyerPeerPlugin.tick()";
+}
 
-    // Update last peer action
-    _lastPeerAction = PeerAction::observe_mode_announced;
+/*
+ * Called each time a request message is to be sent. If true is returned,
+ * the original request message won't be sent and no other plugin will have this function called.
+ */
+bool PeerPlugin::write_request(libtorrent::peer_request const & peerRequest) {
+
+    /*
+    if(peerBEP43SupportedStatus != not_supported)
+        qCDebug(_category) << "write_request";
+    */
+
+    return false;
+}
+
+void BuyerPeerPlugin::processObserve(const Observe * m) {
+
+    // Do processing in response to mode reset
+    peerModeReset();
+
+    // Update peer state with new valid action
+    _configuration.peerState().setLastAction(Configuration::Peer::LastValidAction::mode_announced);
 
     // Note that peer is in observe mode
-    _peerPluginMode = PluginMode::Observe;
+    _peerModeAnnounced = PeerModeAnnounced::observer;
 
-    // Message was valid
-    return true;
+    // We dont do anything else, since we cant buy from peer in observer mode
 }
 
-bool BuyerPeerPlugin::processBuy(const Buy * buyMessage) {
+void BuyerPeerPlugin::processBuy(const Buy * m) {
 
-    // Check that message is compatible with last peer action
-    if(_lastPeerAction != PeerAction::extended_handshake_completed &&
-       _lastPeerAction != PeerAction::observe_mode_announced &&
-       _lastPeerAction != PeerAction::buy_mode_announced &&
-       _lastPeerAction != PeerAction::sell_mode_announced &&
-       _lastPeerAction != PeerAction::ended)
-        return false;
+    // Do processing in response to mode reset
+    peerModeReset();
 
-    // Update last peer action
-    _lastPeerAction = PeerAction::buy_mode_announced;
+    // Update peer state with new valid action
+    _configuration.peerState().setLastAction(Configuration::Peer::LastValidAction::mode_announced);
 
-    // Note that peer is buyer
-    _peerPluginMode = PluginMode::Buy;
+    // Note that peer is in observe mode
+    _peerModeAnnounced = PeerModeAnnounced::buyer;
 
-
-    /**
-     * Do later
-     */
-
-
-    // Message was valid
-    return true;
+    // We dont do anything else, since we cant buy from peer in buyer mode
 }
 
-bool BuyerPeerPlugin::processSell(const Sell * m) {
+void BuyerPeerPlugin::processSell(const Sell * m) {
 
-    // Only ok if last action by peer was handshake/mode message or end
-    if(_lastPeerAction != PeerAction::extended_handshake_completed &&
-       _lastPeerAction != PeerAction::observe_mode_announced &&
-       _lastPeerAction != PeerAction::buy_mode_announced &&
-       _lastPeerAction != PeerAction::sell_mode_announced &&
-       _lastPeerAction != PeerAction::ended)
-        return false;
+    // Do processing in response to mode reset
+    peerModeReset();
 
-    // Update last peer action
-    _lastPeerAction = PeerAction::sell_mode_announced;
+    // do something clever about state processing.
+
+    // Update peer state with new valid action
+    Configuration::Peer peerState = _configuration.peerState();
+    peerState.setLastAction(Configuration::Peer::LastValidAction::mode_announced);
+    peerState.setMinPrice(m->minPrice());
+    peerState.setMinLock(m->minLock());
 
     // Note that peer is seller
-    _peerPluginMode = PluginMode::Sell;
+    _peerModeAnnounced = PeerModeAnnounced::seller;
 
-    /**
-     * The only spesific processing is if we are in buy mode
-     */
-    if(_clientPluginMode == PluginMode::Buy) {
+    // Get buyer torrent plugin configurations
+    BuyerTorrentPlugin::Configuration configuration = _plugin->configuration();
 
-        // Save last terms
-        _bsellerMinPrice = m->minPrice();
-        _bsellerMinLock = m->minLock();
+    // If we are building payment channel,
+    // and peer has not been invited,
+    // and peer has sufficiently good terms,
+    // then
+    if(configuration.Stage == BuyerTorrentPlugin::Configuration::Stage::building_contract &&
+            _configuration.client() == Configuration::Client::no_bitswapr_message_sent &&
+            m->minPrice() < configuration.maxPrice() &&
+            m->minLock() < configuration.maxLock()) {
 
-        // If we are building payment channel,
-        // and peer has not been invited,
-        // and peer has sufficiently good terms,
-        // then invite to join contract
-        if(_plugin->buyerTorrentPluginState() == BuyerTorrentPluginState::populating_payment_channel &&
-            !_invitedToJoinContract &&
-            m->minPrice() < _plugin->config()->_maxPrice &&
-            m->minLock() < _plugin->config()->_maxLock) {
+        // invite to join contract
+        sendExtendedMessage(JoinContract());
 
-            // Invite to join contract
-            plugin->sendExtendedMessage(JoinContract());
-
-            // and remember invite
-            _invitedToJoinContract = true;
-        }
+        // and remember invitation
+        _configuration.setClient(Configuration::Client::invited_to_contract);
     }
-
-    // Message was valid
-    return true;
 }
 
-bool BuyerPeerPlugin::processJoinContract(const JoinContract * m) {
-
-    // Check mode of peer is compatible with message
-
+void BuyerPeerPlugin::processJoinContract(const JoinContract * m) {
+    qCDebug(_category) << "JoinContract is state incompatible.";
+    _lastMessageWasStateIncompatible = true;
 }
 
-bool BuyerPeerPlugin::processJoiningContract(const JoiningContract * m) {
+void BuyerPeerPlugin::processJoiningContract(const JoiningContract * m) {
 
     // Only ok if last action by peer was to set sell mode, and peer has been invited to join contract
     if(_lastPeerAction != PeerAction::sell_mode_announced ||
@@ -368,48 +410,41 @@ bool BuyerPeerPlugin::processJoiningContract(const JoiningContract * m) {
         return false;
 
     // Update last peer action
-    _lastPeerAction = PeerAction::sell_mode_announced;
-
-
-
+    _peerState = PeerState::joined_contract;
 }
 
-bool BuyerPeerPlugin::processSignRefund(const SignRefund * m) {
+void BuyerPeerPlugin::processSignRefund(const SignRefund * m) {
+    qCDebug(_category) << "SignRefund is state incompatible.";
+    _lastMessageWasStateIncompatible = true;
+}
+
+void BuyerPeerPlugin::processRefundSigned(const RefundSigned * m) {
 
     // Check mode of peer is compatible with message
 
 }
 
-bool BuyerPeerPlugin::processRefundSigned(const RefundSigned * m) {
+void BuyerPeerPlugin::processReady(const Ready * m) {
+    qCDebug(_category) << "Ready is state incompatible.";
+    _lastMessageWasStateIncompatible = true;
+}
 
-    // Check mode of peer is compatible with message
+void BuyerPeerPlugin::processPayment(const Payment * m) {
+
+    qCDebug(_category) << "Payment is state incompatible.";
+    _lastMessageWasStateIncompatible = true;
+}
+
+void BuyerPeerPlugin::peerModeReset() {
 
 }
 
-bool BuyerPeerPlugin::processReady(const Ready * m) {
-
-    // Check mode of peer is compatible with message
-
+BuyerPeerPlugin::Configuration BuyerPeerPlugin::configuration() const {
+    return _configuration;
 }
 
-bool BuyerPeerPlugin::processPayment(const Payment * m) {
-
-    // Check mode of peer is compatible with message
-
-}
-
-bool BuyerPeerPlugin::processEnd(const End * m) {
-
-    // Check mode of peer is compatible with message
-
-}
-
-void BuyerPeerPlugin::extendedHandshakeCompleted() {
-    sendExtendedMessage(Buy());
-}
-
-bool BuyerPeerPlugin::lastPeerMessageWasStateCompatible() const {
-
+PluginMode BuyerPeerPlugin::mode() const {
+    return PluginMode::Buy;
 }
 
 /*

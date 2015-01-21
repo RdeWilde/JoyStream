@@ -12,8 +12,8 @@ enum class MessageType {
     sign_refund,
     refund_signed,
     ready,
-    payment,
-    end
+    payment //,
+    //end
 };
 
 #endif // MESSAGE_TYPE_HPP

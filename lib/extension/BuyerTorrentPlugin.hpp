@@ -2,10 +2,10 @@
 #define BUYER_TORRENT_PLUGIN_HPP
 
 #include "TorrentPlugin.hpp"
-#include "BuyerTorrentPluginConfiguration.hpp"
-#include "PaymentChannel/PayorPaymentChannel.hpp"
+#include "PaymentChannel/PaymentChannelPayor.hpp"
 //#include "BitCoin/PublicKey.hpp"
 
+class TorrentPluginConfiguration;
 class BuyerPeerPlugin;
 
 /**
@@ -15,8 +15,91 @@ class BuyerTorrentPlugin : public TorrentPlugin
 {
 public:
 
+    /**
+     * @brief Configuration of buyer torrent plugin.
+     */
+    class Configuration {
+
+    public:
+
+        /**
+         * @brief The Stage enum
+         */
+        enum class Stage {
+
+            // Inviting all peers with good enough peers,
+            //
+            building_contract,
+
+            // Requesting and downloading pieces
+            downloading_pieces,
+
+            // Waiting to claim one or more refunds
+            // since contract outputs have not been spent
+            waiting_for_refunds_to_be_spendable,
+
+            // All outputs have been spent
+            done,
+        };
+
+        // Constructor from copy
+        Configuration(const Configuration & c);
+
+        // Constructor from members
+        Configuration(quint64 maxPrice, QTime maxLock, quint64 maxFeePerByte, qint32 numSellers);
+
+        // Constructor from dictionary
+        Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry);
+
+        /**
+         * Write configuration into dictionary
+         * ===============================================================
+         *
+         * Buyer torrent plugin configuration as it persists across sessions on disk
+         * encoded as entry::dictionary_type with the following keys:
+         *
+         * IMPLEMENT LATER
+         *
+         */
+        void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const;
+
+        // Getters and setters
+        quint64 maxPrice() const;
+        void setMaxPrice(const quint64 &maxPrice);
+
+        QTime maxLock() const;
+        void setMaxLock(const QTime &maxLock);
+
+        quint64 maxFeePerByte() const;
+        void setMaxFeePerByte(const quint64 &maxFeePerByte);
+
+        qint32 numSellers() const;
+        void setNumSellers(const qint32 &numSellers);
+
+    private:
+
+        // What stage is plugin
+        Stage _stage;
+
+        // Maximum price accepted (satoshies)
+        quint64 _maxPrice;
+
+        // Maximum lock time (the number of seconds elapsed since 1970-01-01T00:00 UTC)
+        QTime _maxLock;
+
+        // Maximum fee per byte in contract transaction (satoshies)
+        quint64 _maxFeePerByte;
+
+        // Number of seller in payment channel
+        qint32 _numSellers;
+    };
+
     // Constructor
-    BuyerTorrentPlugin(Plugin * plugin, const boost::weak_ptr<libtorrent::torrent> & torrent, const BuyerTorrentPluginConfiguration & configuration, QLoggingCategory & category);
+    BuyerTorrentPlugin(Plugin * plugin,
+                       const boost::weak_ptr<libtorrent::torrent> & torrent,
+                       const TorrentPluginConfiguration & torrentPluginConfiguration,
+                       const Configuration & configuration,
+                       QLoggingCategory & category);
 
     /**
      * All virtual functions below should ONLY be called by libtorrent network thread,
@@ -58,13 +141,16 @@ public:
     // Getters and setters
     State state() const;
 
+    Configuration configuration() const;
+    void setConfiguration(const Configuration &configuration);
+
 private:
 
     // Buyer plugin state
     State _state;
 
     // Payment channel
-    PayorPaymentChannel _channel;
+    PaymentChannelPayor _channel;
 
     // Time since plugin was created, is used to keep track of when to start picking sellers.
     QTime _timeSincePluginStarted;
@@ -75,8 +161,8 @@ private:
     // What refunds have been spent,and what have not.
     // Use timer to keep checking back?
 
-    // Parameters
-    BuyerTorrentPluginConfiguration _configuration;
+    // Configuration
+    Configuration _buyerTorrentPluginConfiguration;
 };
 
 #endif // BUYER_TORRENT_PLUGIN_HPP

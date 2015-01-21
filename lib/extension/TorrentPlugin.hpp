@@ -2,6 +2,7 @@
 #define TORRENT_PLUGIN_HPP
 
 #include "BEPSupportStatus.hpp"
+#include "TorrentPluginConfiguration.hpp"
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
@@ -16,7 +17,6 @@ class PeerPlugin;
 //class PeerPluginId;
 class TorrentPluginStatus;
 class TorrentPluginRequest;
-class TorrentPluginConfiguration;
 //class PeerPluginConfiguration;
 //class SetConfigurationTorrentPluginRequest;
 //class SetPluginModeTorrentPluginRequest;
@@ -55,8 +55,7 @@ public:
     virtual void on_add_peer(const libtorrent::tcp::endpoint & endPoint, int src, int flags) = 0;
 
     // Removes peer plugin
-    virtual void removePeerPlugin(PeerPlugin * plugin) = 0;
-    virtual TorrentPluginConfiguration config() const = 0;
+    //virtual void removePeerPlugin(PeerPlugin * plugin) = 0;
 
     /**
      * Routines called by libtorrent network thread from other plugin objects
@@ -99,10 +98,10 @@ protected:
     // Is set by controller after file torrent metadata is acquired and/or
     // resume data has been validated.
     bool _pluginStarted;
-    */
 
     // Tick processor
     void _tick();
+    */
 
     // Adds peer to respective set, and returns whether it was actually added or existed in the set from before.
     void addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint);
@@ -119,8 +118,11 @@ protected:
 
 private:
 
+    // Configuration
+    TorrentPluginConfiguration _torrentPluginConfiguration;
+
     // Creates torrent plugin status alert based on current state
-    TorrentPluginStatusAlert createTorrentPluginStatusAlert();    
+    //TorrentPluginStatusAlert createTorrentPluginStatusAlert();
 };
 
 #endif // TORRENT_PLUGIN_HPP
