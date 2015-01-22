@@ -68,6 +68,7 @@ PaymentChannelPayor::Slot::Slot(quint64 funds,
 
 RefundTransaction PaymentChannelPayor::Slot::refundTransaction() const {
 
+    return RefundTransaction();
 }
 
 PaymentTransaction PaymentChannelPayor::Slot::paymentTransaction() const {
