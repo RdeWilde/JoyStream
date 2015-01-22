@@ -1,10 +1,10 @@
 #ifndef PAYMENT_CHANNEL_PAYOR_HPP
 #define PAYMENT_CHANNEL_PAYOR_HPP
 
-//#include<QSet>
-
 #include "extension/BitCoin/PublicKey.hpp"
 #include "extension/BitCoin/PrivateKey.hpp"
+#include "extension/BitCoin/KeyPair.hpp"
+#include "extension/BitCoin/TxOut.hpp"
 #include "extension/BitCoin/Hash.hpp"
 #include "extension/BitCoin/Signature.hpp"
 
@@ -16,52 +16,137 @@
 class PaymentChannelPayor
 {
 public:
-    PaymentChannelPayor(quint32 numberOfPayees);
 
-private:
-
-    // Number of payees desired in the channel
-    quint32 _numberOfPayees;
+    /**
+     * @brief State of a payor.
+     */
+    enum class State {
+        constructing_contract,
+        all_refunds_collected,
+        contract_broadcasted,
+        all_refunds_uspendable
+    };
 
     /**
      * Represents payment channel participant as seen by a payor.
      */
-    class Payee {
+    class Slot {
 
     public:
 
+        /**
+         * @brief Enumeration of possible slot states.
+         */
+        enum class State {
+            unassigned_payee,
+            received_payee_information,
+            refund_signed
+        };
+
+        Slot();
+
+        // Set all fields, e.g. loading from file
+        Slot(const State & state,
+             quint64 numberOfPaymentsMade,
+             quint64 funds,
+             quint64 priceIncrement,
+             quint32 index,
+             const KeyPair& payorKeyPair,
+             const PublicKey & payeeContractPk,
+             const PublicKey & payeeFinalPk,
+             const Signature & refund);
+
+        // Start before contract has been constructed
+        Slot(quint64 funds,
+             quint64 priceIncrement,
+             quint32 index,
+             const KeyPair& payorKeyPair,
+             const PublicKey & payeeContractPk,
+             const PublicKey & payeeFinalPk);
+
+        // Getters and setters
+        State state() const;
+        void setState(const State &state);
+
+        quint64 numberOfPaymentsMade() const;
+        void setNumberOfPaymentsMade(const quint64 &numberOfPaymentsMade);
+
+        quint64 funds() const;
+        void setFunds(const quint64 &funds);
+
+        quint64 priceIncrement() const;
+        void setPriceIncrement(const quint64 &priceIncrement);
+
+        quint32 index() const;
+        void setIndex(const quint32 &index);
+
+        KeyPair payorKeyPair() const;
+        void setPayorKeyPair(const KeyPair &payorKeyPair);
+
+        PublicKey payeeContractPk() const;
+        void setPayeeContractPk(const PublicKey &payeeContractPk);
+
+        PublicKey payeeFinalPk() const;
+        void setPayeeFinalPk(const PublicKey &payeeFinalPk);
+
+        Signature refund() const;
+        void setRefund(const Signature &refund);
+
     private:
 
+        // Slot state
+        State _state;
 
-        //
-        quint32 _outputIndex;
+        // Number of payments made
+        quint64 _numberOfPaymentsMade;
 
-        //
-        bool _waiting;
+        // Funds allocated to output
+        quint64 _funds;
+
+        // Size of single payment
+        quint64 _priceIncrement;
+
+        // Output index
+        quint32 _index;
+
+        // Controls payour output of multisig
+        KeyPair _payorKeyPair;
+
+        // Controls payee output of multisig, from joinin_contract.pk
+        PublicKey _payeeContractPk;
+
+        // Controls payee payments, from sign_refund.pk
+        PublicKey _payeeFinalPk;
+
+        // Controls output refund
+        Signature _refund;
     };
 
-    // Vector of plugins for seller in contract,
-    // where position corresponds to contract output position.
-    //QVector<T> _sellersInContract;
+    // Default constructor
+    PaymentChannelPayor();
 
+    // Member wise constructor
+    PaymentChannelPayor(quint32 numberOfPayees);
 
-    QVector<PublicKey> _contractOutputPKs;
+private:
 
-    /**
-     * Contract
-     */
+    // Payor state
+    State _state;
 
-    //PublicKey _sPK;
-    //PrivateKey _sSK;
+    // Number of payees desired in the channel
+    quint32 _numberOfPayees;
 
-    // TxId of transactin funding contract
-    // Hash _fundingTxHash;
-    // quint32 _fundingTxOutputIndex;
+    // Contract outputs
+    QVector<Slot> _outputs;
 
-    // TxId of contract transaction
-    // Hash _contractTxHash
-    // PublicKey _contractTxChangePK
-    // PublicKey _contractTxO
+    // Unspent output funding channel
+    TxOut _fundingOutput;
+
+    // Controls output funding channel
+    KeyPair _fundingOutputKeyPair;
+
+    // Hash of contract
+    Hash _contractHash;
 };
 
 #endif // PAYMENT_CHANNEL_PAYOR_HPP

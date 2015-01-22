@@ -125,6 +125,14 @@ void BuyerTorrentPlugin::tick() {
 
     // Call base tick routine
     //TorrentPlugin::_tick();
+
+    /**
+Iterate peers and delete the ones which pass this test:
+
+      _lastReceivedMessageWasMalformed || _lastMessageWasStateIncompatible || !_connectionAlive
+
+
+      */
 }
 
 bool BuyerTorrentPlugin::on_resume() {

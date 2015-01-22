@@ -298,6 +298,15 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
         return false;
     }
 
+    // Check that plugin is in good state
+    if(_lastReceivedMessageWasMalformed || _lastMessageWasStateIncompatible || !_connectionAlive) {
+
+        qCDebug(_category) << "Dropping extended message since peer plugin is in bad state.";
+
+        // No other plugin should process message
+        return true;
+    }
+
     // Wrap data in QDataStream
     QByteArray byteArray(body.begin, body.end - body.begin);
     QDataStream dataStream(&byteArray, QIODevice::ReadOnly);
@@ -322,7 +331,7 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
         delete m;
     }
 
-    // No other plugin should process
+    // No other plugin should process message
     return true;
 }
 
@@ -391,39 +400,49 @@ void PeerPlugin::processExtendedMessage(ExtendedMessagePayload * m) {
 
     qCDebug(_category) << Utilities::messageName(messageType);
 
-    // Call relevant message handler
-    switch(messageType) {
+    try {
 
-        case MessageType::observe:
-            processObserve(static_cast<Observe *>(m));
-            break;
-        case MessageType::buy:
-            processBuy(static_cast<Buy *>(m));
-            break;
-        case MessageType::sell:
-            processSell(static_cast<Sell *>(m));
-            break;
-        case MessageType::join_contract:
-            processJoinContract(static_cast<JoinContract *>(m));
-            break;
-        case MessageType::joining_contract:
-            processJoiningContract(static_cast<JoiningContract *>(m));
-            break;
-        case MessageType::sign_refund:
-            processSignRefund(static_cast<SignRefund *>(m));
-            break;
-        case MessageType::refund_signed:
-            processRefundSigned(static_cast<RefundSigned *>(m));
-            break;
-        case MessageType::ready:
-            processReady(static_cast<Ready *>(m));
-            break;
-        case MessageType::payment:
-            processPayment(static_cast<Payment *>(m));
-            break;
-        case MessageType::end:
-            processEnd(static_cast<End *>(m));
-            break;
+        // Call relevant message handler
+        switch(messageType) {
+
+            case MessageType::observe:
+                processObserve(static_cast<Observe *>(m));
+                break;
+            case MessageType::buy:
+                processBuy(static_cast<Buy *>(m));
+                break;
+            case MessageType::sell:
+                processSell(static_cast<Sell *>(m));
+                break;
+            case MessageType::join_contract:
+                processJoinContract(static_cast<JoinContract *>(m));
+                break;
+            case MessageType::joining_contract:
+                processJoiningContract(static_cast<JoiningContract *>(m));
+                break;
+            case MessageType::sign_refund:
+                processSignRefund(static_cast<SignRefund *>(m));
+                break;
+            case MessageType::refund_signed:
+                processRefundSigned(static_cast<RefundSigned *>(m));
+                break;
+            case MessageType::ready:
+                processReady(static_cast<Ready *>(m));
+                break;
+            case MessageType::payment:
+                processPayment(static_cast<Payment *>(m));
+                break;
+            case MessageType::end:
+                processEnd(static_cast<End *>(m));
+                break;
+        }
+
+    } catch (std::exception & e) {
+
+        qCCritical(_category) << "Extended message was state incompatible:" << e.what();
+
+        // Note incompatibility
+        _lastMessageWasStateIncompatible = true;
     }
 }
 

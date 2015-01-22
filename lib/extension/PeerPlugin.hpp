@@ -149,7 +149,7 @@ protected:
     bool _lastMessageWasStateIncompatible;
 
     // Processess message in subclass,
-    // are only called if extended handshake is completed successfully.
+    // are only called if extended handshake has been completed successfully.
     virtual void processObserve(const Observe * m) = 0;
     virtual void processBuy(const Buy * m) = 0;
     virtual void processSell(const Sell * m) = 0;

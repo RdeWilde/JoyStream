@@ -74,7 +74,9 @@ SOURCES += \
     extension/BuyerPeerplugin.cpp \
     extension/SellerPeerPlugin.cpp \
     extension/PaymentChannel/PaymentChannelPayee.cpp \
-    extension/PaymentChannel/PaymentChannelPayor.cpp
+    extension/PaymentChannel/PaymentChannelPayor.cpp \
+    extension/BitCoin/KeyPair.cpp \
+    extension/BitCoin/TxOut.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -148,7 +150,9 @@ HEADERS += \
     extension/BuyerPeerPlugin.hpp \
     extension/SellerPeerPlugin.hpp \
     extension/PaymentChannel/PaymentChannelPayee.hpp \
-    extension/PaymentChannel/PaymentChannelPayor.hpp
+    extension/PaymentChannel/PaymentChannelPayor.hpp \
+    extension/BitCoin/KeyPair.hpp \
+    extension/BitCoin/TxOut.hpp
 				
 FORMS += \
     view/mainwindow.ui \

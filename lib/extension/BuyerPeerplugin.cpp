@@ -355,7 +355,7 @@ void BuyerPeerPlugin::processBuy(const Buy * m) {
     // Update peer state with new valid action
     _configuration.peerState().setLastAction(Configuration::Peer::LastValidAction::mode_announced);
 
-    // Note that peer is in observe mode
+    // Note that peer is in buyer mode
     _peerModeAnnounced = PeerModeAnnounced::buyer;
 
     // We dont do anything else, since we cant buy from peer in buyer mode
@@ -365,8 +365,6 @@ void BuyerPeerPlugin::processSell(const Sell * m) {
 
     // Do processing in response to mode reset
     peerModeReset();
-
-    // do something clever about state processing.
 
     // Update peer state with new valid action
     Configuration::Peer peerState = _configuration.peerState();
@@ -398,24 +396,23 @@ void BuyerPeerPlugin::processSell(const Sell * m) {
 }
 
 void BuyerPeerPlugin::processJoinContract(const JoinContract * m) {
-    qCDebug(_category) << "JoinContract is state incompatible.";
-    _lastMessageWasStateIncompatible = true;
+    throw std::exception("JoinContract message should never be sent to buyer mode peer.");
 }
 
 void BuyerPeerPlugin::processJoiningContract(const JoiningContract * m) {
 
-    // Only ok if last action by peer was to set sell mode, and peer has been invited to join contract
-    if(_lastPeerAction != PeerAction::sell_mode_announced ||
-       !_invitedToJoinContract) // <== change?
-        return false;
+    // Check that we are in correct stage
+    if(_configuration.client() != Configuration::Client::invited_to_contract)
+        throw std::exception("JoiningContract message should only be sent in response to a contract invitation.");
 
-    // Update last peer action
-    _peerState = PeerState::joined_contract;
+    // Update peer state with new valid action
+    _configuration.peerState().setLastAction(Configuration::Peer::LastValidAction::joined_contract);
+
+
 }
 
 void BuyerPeerPlugin::processSignRefund(const SignRefund * m) {
-    qCDebug(_category) << "SignRefund is state incompatible.";
-    _lastMessageWasStateIncompatible = true;
+    throw std::exception("SignRefund message should never be sent to buyer mode peer.");
 }
 
 void BuyerPeerPlugin::processRefundSigned(const RefundSigned * m) {
@@ -425,14 +422,11 @@ void BuyerPeerPlugin::processRefundSigned(const RefundSigned * m) {
 }
 
 void BuyerPeerPlugin::processReady(const Ready * m) {
-    qCDebug(_category) << "Ready is state incompatible.";
-    _lastMessageWasStateIncompatible = true;
+    throw std::exception("Ready message should never be sent to buyer mode peer.");
 }
 
 void BuyerPeerPlugin::processPayment(const Payment * m) {
-
-    qCDebug(_category) << "Payment is state incompatible.";
-    _lastMessageWasStateIncompatible = true;
+    throw std::exception("Payment message should never be sent to buyer mode peer.");
 }
 
 void BuyerPeerPlugin::peerModeReset() {
