@@ -10,9 +10,13 @@ class QDataStream;
 class Signature
 {
 public:
-    Signature();
 
-    //Signature(tx, sk);
+    /**
+     * Default/Copy constructor and assignemtn operator needed to put in container.
+     */
+    Signature();
+    Signature(const Signature& signature);
+    Signature & operator=(const Signature& signature);
 
     static const quint32 length = SIGNATURE_LENGTH;
 

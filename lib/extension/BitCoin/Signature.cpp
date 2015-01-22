@@ -4,6 +4,14 @@
 Signature::Signature() {
 }
 
+Signature::Signature(const Signature& signature) {
+}
+
+Signature & Signature::operator=(const Signature& signature) {
+
+    return *this;
+}
+
 bool Signature::isValid(const PublicKey & key) const {
     return true;
 }

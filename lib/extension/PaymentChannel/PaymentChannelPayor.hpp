@@ -8,6 +8,9 @@
 #include "extension/BitCoin/Hash.hpp"
 #include "extension/BitCoin/Signature.hpp"
 
+class RefundTransaction;
+class PaymentTransaction;
+
 /**
  * 1-to-N payment channel from payor perspective, using design in CBEP.
  * https://github.com/bedeho/CBEP
@@ -21,9 +24,17 @@ public:
      * @brief State of a payor.
      */
     enum class State {
-        constructing_contract,
+
+        // Getting keys and refund signature
+        constructing_channel,
+
+        // Full set of signatures acheived
         all_refunds_collected,
+
+        //
         contract_broadcasted,
+
+
         all_refunds_uspendable
     };
 
@@ -63,11 +74,33 @@ public:
         Slot(quint64 funds,
              quint64 priceIncrement,
              quint32 index,
-             const KeyPair& payorKeyPair,
-             const PublicKey & payeeContractPk,
-             const PublicKey & payeeFinalPk);
+             const KeyPair& payorKeyPair);
 
-        // Getters and setters
+        /**
+         * Payment channel operations
+         */
+
+        // Refund transaction for slot
+        RefundTransaction refundTransaction() const;
+
+        // Payment transaction for slot, based on current _numberOfPaymentsMade value
+        PaymentTransaction paymentTransaction() const;
+
+        // Checks if signature is valid for refund in index'th slot
+        bool isRefundValid(Signature payeeSignature);
+
+        // Provides payment signature
+        Signature nextPaymentSignature() const;
+
+        // Registers that a payment was made
+        void paymentMade();
+
+        // Checks if slot payment has been published
+        bool isRefundDoubleSpent() const;
+
+        /**
+         * Getters and setters
+         */
         State state() const;
         void setState(const State &state);
 
@@ -137,7 +170,7 @@ private:
     State _state;
 
     // Contract outputs
-    QVector<Slot> _outputs;
+    QVector<Slot> _slots;
 
     // Unspent output funding channel
     TxOut _fundingOutput;

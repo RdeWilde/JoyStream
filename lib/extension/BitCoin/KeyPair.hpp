@@ -8,8 +8,12 @@ class KeyPair
 {
 public:
 
-    // Default constructor
+    /**
+     * Default/Copy constructor and assignemtn operator needed to put in container.
+     */
     KeyPair();
+    KeyPair(const KeyPair& keyPair);
+    KeyPair & operator=(const KeyPair& rhs);
 
     // Constructor
     KeyPair(const PublicKey & pk, const PrivateKey & sk);

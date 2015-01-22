@@ -1,6 +1,17 @@
 #include "KeyPair.hpp"
 
 KeyPair::KeyPair() {
+
+}
+
+KeyPair::KeyPair(const KeyPair& keyPair) {
+    _pk = keyPair.pk();
+    _sk = keyPair.sk();
+}
+
+KeyPair & KeyPair::operator=(const KeyPair& rhs) {
+    _pk = keyPair.pk();
+    _sk = keyPair.sk();
 }
 
 KeyPair::KeyPair(const PublicKey & pk, const PrivateKey & sk)

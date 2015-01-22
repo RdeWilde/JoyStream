@@ -76,7 +76,9 @@ SOURCES += \
     extension/PaymentChannel/PaymentChannelPayor.cpp \
     extension/BitCoin/KeyPair.cpp \
     extension/BitCoin/TxOut.cpp \
-    extension/BitCoin/FixedBuffer.cpp
+    extension/BitCoin/FixedBuffer.cpp \
+    extension/PaymentChannel/RefundTransaction.cpp \
+    extension/PaymentChannel/PaymentTransaction.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -153,7 +155,9 @@ HEADERS += \
     extension/PaymentChannel/PaymentChannelPayor.hpp \
     extension/BitCoin/KeyPair.hpp \
     extension/BitCoin/TxOut.hpp \
-    extension/BitCoin/FixedBuffer.hpp
+    extension/BitCoin/FixedBuffer.hpp \
+    extension/PaymentChannel/RefundTansaction.hpp \
+    extension/PaymentChannel/PaymentTransaction.hpp
 				
 FORMS += \
     view/mainwindow.ui \

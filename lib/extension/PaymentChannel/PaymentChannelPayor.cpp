@@ -1,15 +1,30 @@
 #include "PaymentChannelPayor.hpp"
+#include "RefundTansaction.hpp"
+#include "PaymentTransaction.hpp"
 
 PaymentChannelPayor::Slot::Slot() {
-
 }
 
-PaymentChannelPayor::Slot::Slot() {
-
+PaymentChannelPayor::Slot::Slot(const Slot& slot) {
+    _state = slot.state();
+    _numberOfPaymentsMade = slot.numberOfPaymentsMade();
+    _funds = slot.funds();
+    _priceIncrement = slot.priceIncrement();
+    _index = slot.index();
+    _payorKeyPair = slot.payorKeyPair();
+    _payeeFinalPk = slot.payeeFinalPk();
+    _refund = slot.refund();
 }
 
 PaymentChannelPayor::Slot & PaymentChannelPayor::Slot::operator=(const Slot& rhs) {
-
+    _state = rhs.state();
+    _numberOfPaymentsMade = rhs.numberOfPaymentsMade();
+    _funds = rhs.funds();
+    _priceIncrement = rhs.priceIncrement();
+    _index = rhs.index();
+    _payorKeyPair = rhs.payorKeyPair();
+    _payeeFinalPk = rhs.payeeFinalPk();
+    _refund = rhs.refund();
     return *this;
 }
 
@@ -48,6 +63,38 @@ PaymentChannelPayor::Slot::Slot(quint64 funds,
                                 , _payeeContractPk(payeeContractPk)
                                 , _payeeFinalPk(payeeFinalPk)
                                 , _refund(refund) {
+
+}
+
+RefundTransaction PaymentChannelPayor::Slot::refundTransaction() const {
+
+}
+
+PaymentTransaction PaymentChannelPayor::Slot::paymentTransaction() const {
+
+}
+
+bool PaymentChannelPayor::Slot::isRefundValid(Signature payeeSignature) {
+
+    // Create refund transaction
+    // Tx refund = refundTransaction();
+
+    // Create payor refund signature
+    // Signature sig1 = _payorKeyPair.sk().sign(refund, sighash... );
+
+    // Check that both can spend multisig output
+    // BitCoin::checkMultisignature(refund, sig1, signature);
+}
+
+Signature PaymentChannelPayor::Slot::nextPaymentSignature() const {
+
+}
+
+void PaymentChannelPayor::Slot::paymentMade() {
+
+}
+
+bool PaymentChannelPayor::Slot::isRefundDoubleSpent() const {
 
 }
 
@@ -127,9 +174,27 @@ PaymentChannelPayor::PaymentChannelPayor() {
 
 }
 
-PaymentChannelPayor::PaymentChannelPayor(quint32 numberOfPayees, const TxOut& fundingOutput, const KeyPair& fundingOutputKeyPair) {
+PaymentChannelPayor::PaymentChannelPayor(quint32 numberOfPayees, const TxOut& fundingOutput, const KeyPair& fundingOutputKeyPair)
+    : _state(State::constructing_channel)
+    , _fundingOutput(fundingOutput)
+    , _fundingOutputKeyPair(fundingOutputKeyPair){
 
+    // Check that _fundingOutput
+    // *exists
+    // *is unspent
+    // *has correct output script with correct sighash
+    // *is controlled by _fundingOutputKeyPair
+    // *has enough value
 
+    // Construct slots
+    for(int i = 0;i < numberOfPayees;i++)
+        _slots.append(Slot());
 
+    {
+
+        KeyPair payor =
+        _slots.append(Slot(funds_i, p_i,i, K, payor))
+
+    }
 }
 

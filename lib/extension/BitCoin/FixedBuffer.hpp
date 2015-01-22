@@ -1,6 +1,8 @@
 #ifndef FIXED_BUFFER_HPP
 #define FIXED_BUFFER_HPP
 
+#include <QtGlobal> // quint32, ...
+
 class QDataStream;
 
 /**
