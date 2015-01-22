@@ -54,7 +54,6 @@ SOURCES += \
     extension/BitCoin/Signature.cpp \
     extension/Message/JoiningContract.cpp \
     extension/Message/SignRefund.cpp \
-    extension/BitCoin/Hash.cpp \
     extension/Message/RefundSigned.cpp \
     extension/Message/Buy.cpp \
     extension/Message/Sell.cpp \
@@ -76,7 +75,8 @@ SOURCES += \
     extension/PaymentChannel/PaymentChannelPayee.cpp \
     extension/PaymentChannel/PaymentChannelPayor.cpp \
     extension/BitCoin/KeyPair.cpp \
-    extension/BitCoin/TxOut.cpp
+    extension/BitCoin/TxOut.cpp \
+    extension/BitCoin/FixedBuffer.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -152,7 +152,8 @@ HEADERS += \
     extension/PaymentChannel/PaymentChannelPayee.hpp \
     extension/PaymentChannel/PaymentChannelPayor.hpp \
     extension/BitCoin/KeyPair.hpp \
-    extension/BitCoin/TxOut.hpp
+    extension/BitCoin/TxOut.hpp \
+    extension/BitCoin/FixedBuffer.hpp
 				
 FORMS += \
     view/mainwindow.ui \

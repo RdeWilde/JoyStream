@@ -43,7 +43,10 @@ public:
             refund_signed
         };
 
+        // Default/Copy constructor and assignemtn operator needed to put in container.
         Slot();
+        Slot(const Slot& slot);
+        Slot & operator=(const Slot& rhs);
 
         // Set all fields, e.g. loading from file
         Slot(const State & state,
@@ -126,15 +129,12 @@ public:
     PaymentChannelPayor();
 
     // Member wise constructor
-    PaymentChannelPayor(quint32 numberOfPayees);
+    PaymentChannelPayor(quint32 numberOfPayees, const TxOut& fundingOutput, const KeyPair& fundingOutputKeyPair);
 
 private:
 
     // Payor state
     State _state;
-
-    // Number of payees desired in the channel
-    quint32 _numberOfPayees;
 
     // Contract outputs
     QVector<Slot> _outputs;

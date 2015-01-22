@@ -4,6 +4,15 @@ PaymentChannelPayor::Slot::Slot() {
 
 }
 
+PaymentChannelPayor::Slot::Slot() {
+
+}
+
+PaymentChannelPayor::Slot & PaymentChannelPayor::Slot::operator=(const Slot& rhs) {
+
+    return *this;
+}
+
 PaymentChannelPayor::Slot::Slot(const State & state,
                                 quint64 numberOfPaymentsMade,
                                 quint64 funds,
@@ -118,7 +127,9 @@ PaymentChannelPayor::PaymentChannelPayor() {
 
 }
 
-PaymentChannelPayor::PaymentChannelPayor(quint32 numberOfPayees)
-    : _numberOfPayees(numberOfPayees) {
+PaymentChannelPayor::PaymentChannelPayor(quint32 numberOfPayees, const TxOut& fundingOutput, const KeyPair& fundingOutputKeyPair) {
+
+
+
 }
 

@@ -1,26 +1,16 @@
 #ifndef PUBLIC_KEY_HPP
 #define PUBLIC_KEY_HPP
 
-#include <QtGlobal> // quint32
-class QDataStream;
+#include "FixedBuffer.hpp"
 
-#define PUBLIC_KEY_LENGTH 3
+class QString;
 
-class PublicKey
+class PublicKey : public FixedBuffer<23>
 {
 public:
-    PublicKey();
-
-    static const quint32 length = PUBLIC_KEY_LENGTH;
 
     QString wif() const;
 
-    friend QDataStream & operator<<(QDataStream & stream, const PublicKey & key);
-    friend QDataStream & operator>>(QDataStream & stream, PublicKey & key);
-
-private:
-
-    char _raw[PUBLIC_KEY_LENGTH];
 };
 
 #endif // PUBLIC_KEY_HPP
