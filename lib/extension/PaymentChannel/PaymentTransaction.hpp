@@ -16,7 +16,7 @@ public:
     PaymentTransaction(const QJsonObject & rawTransaction);
 
     // Constructor based on members
-    PaymentTransaction(const TxOut & contractOutput,
+    PaymentTransaction(const OutputPoint & contractOutput,
                        quint64 payorFunds,
                        quint64 payeeFunds,
                        const PublicKey & payourKey,
@@ -26,8 +26,8 @@ public:
     QJsonObject rawTransaction() const;
 
     // Getters and setters
-    TxOut contractOutput() const;
-    void setContractOutput(const TxOut &contractOutput);
+    OutputPoint contractOutput() const;
+    void setContractOutput(const OutputPoint &contractOutput);
 
     quint64 payorFunds() const;
     void setPayorFunds(const quint64 &payorFunds);
@@ -44,7 +44,7 @@ public:
 private:
 
     // Contract transaction output
-    TxOut _contractOutput;
+    OutputPoint _contractOutput;
 
     // Funds going to payor
     quint64 _payorFunds;

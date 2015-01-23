@@ -6,7 +6,7 @@ PaymentTransaction::PaymentTransaction(const QJsonObject & rawTransaction) {
     // Recover fields
 }
 
-PaymentTransaction::PaymentTransaction(const TxOut & contractOutput,
+PaymentTransaction::PaymentTransaction(const OutputPoint & contractOutput,
                                        quint64 payorFunds,
                                        quint64 payeeFunds,
                                        const PublicKey & payourKey,
@@ -22,11 +22,11 @@ QJsonObject PaymentTransaction::rawTransaction() const {
     // Turn into raw json transaction
 }
 
-TxOut PaymentTransaction::contractOutput() const {
+OutputPoint PaymentTransaction::contractOutput() const {
     return _contractOutput;
 }
 
-void PaymentTransaction::setContractOutput(const TxOut &contractOutput) {
+void PaymentTransaction::setContractOutput(const OutputPoint &contractOutput) {
     _contractOutput = contractOutput;
 }
 

@@ -6,27 +6,36 @@ RefundTransaction::RefundTransaction(const QJsonObject & rawTransaction) {
     // Recover fields
 }
 
-RefundTransaction::RefundTransaction(const TxOut & contractOutput, quint64 funds)
+RefundTransaction::RefundTransaction(const OutputPoint & contractOutput, const P2SHTxOut& refund, quint32 _lockTime)
     : _contractOutput(contractOutput)
-    , _funds(funds) {
+    , _refund(refund)
+    , _lockTime(lockTime) {
 }
 
 QJsonObject RefundTransaction::rawTransaction() const {
     // Turn into raw json transaction
 }
 
-TxOut RefundTransaction::contractOutput() const {
+OutputPoint RefundTransaction::contractOutput() const {
     return _contractOutput;
 }
 
-void RefundTransaction::setContractOutput(const TxOut &contractOutput) {
+void RefundTransaction::setContractOutput(const OutputPoint &contractOutput) {
     _contractOutput = contractOutput;
 }
 
-quint64 RefundTransaction::funds() const {
-    return _funds;
+P2SHTxOut RefundTransaction::refund() const {
+    return _refund;
 }
 
-void RefundTransaction::setFunds(const quint64 &funds) {
-    _funds = funds;
+void RefundTransaction::setRefund(const P2SHTxOut &refund) {
+    _refund = refund;
 }
+quint32 RefundTransaction::lockTime() const {
+    return _lockTime;
+}
+
+void RefundTransaction::setLockTime(const quint32 &lockTime) {
+    _lockTime = lockTime;
+}
+

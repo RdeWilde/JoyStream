@@ -4,12 +4,13 @@
 #include "extension/BitCoin/PublicKey.hpp"
 #include "extension/BitCoin/PrivateKey.hpp"
 #include "extension/BitCoin/KeyPair.hpp"
-#include "extension/BitCoin/TxOut.hpp"
 #include "extension/BitCoin/Hash.hpp"
 #include "extension/BitCoin/Signature.hpp"
+#include "extension/BitCoin/OutputPoint.hpp"
 
 class RefundTransaction;
 class PaymentTransaction;
+class ContractTransaction;
 
 /**
  * 1-to-N payment channel from payor perspective, using design in CBEP.
@@ -162,7 +163,10 @@ public:
     PaymentChannelPayor();
 
     // Member wise constructor
-    PaymentChannelPayor(quint32 numberOfPayees, const TxOut& fundingOutput, const KeyPair& fundingOutputKeyPair);
+    //PaymentChannelPayor(quint32 numberOfPayees, const OutputPoint& fundingOutput, const KeyPair& fundingOutputKeyPair);
+
+    // Get contract for
+    ContractTransaction getContract() const;
 
 private:
 
@@ -173,7 +177,7 @@ private:
     QVector<Slot> _slots;
 
     // Unspent output funding channel
-    TxOut _fundingOutput;
+    OutputPoint _fundingOutput;
 
     // Controls output funding channel
     KeyPair _fundingOutputKeyPair;

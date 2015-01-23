@@ -84,7 +84,7 @@ bool PaymentChannelPayor::Slot::isRefundValid(Signature payeeSignature) {
     // Signature sig1 = _payorKeyPair.sk().sign(refund, sighash... );
 
     // Check that both can spend multisig output
-    // BitCoin::checkMultisignature(refund, sig1, signature);
+    // BitCoin::checkMultisignature(contractOutput, sig1, signature);
 }
 
 Signature PaymentChannelPayor::Slot::nextPaymentSignature() const {
@@ -175,7 +175,7 @@ PaymentChannelPayor::PaymentChannelPayor() {
 
 }
 
-PaymentChannelPayor::PaymentChannelPayor(quint32 numberOfPayees, const TxOut& fundingOutput, const KeyPair& fundingOutputKeyPair)
+PaymentChannelPayor::PaymentChannelPayor(quint32 numberOfPayees, const OutputPoint& fundingOutput, const KeyPair& fundingOutputKeyPair)
     : _state(State::constructing_channel)
     , _fundingOutput(fundingOutput)
     , _fundingOutputKeyPair(fundingOutputKeyPair){
@@ -188,10 +188,9 @@ PaymentChannelPayor::PaymentChannelPayor(quint32 numberOfPayees, const TxOut& fu
     // *has enough value
 
     // Construct slots
-    for(int i = 0;i < numberOfPayees;i++)
-        _slots.append(Slot());
+    for(int i = 0;i < numberOfPayees;i++) {
 
-    {
+        _slots.append(Slot());
 
         KeyPair payor =
         _slots.append(Slot(funds_i, p_i,i, K, payor))
@@ -199,3 +198,6 @@ PaymentChannelPayor::PaymentChannelPayor(quint32 numberOfPayees, const TxOut& fu
     }
 }
 
+ContractTransaction PaymentChannelPayor::getContract() const {
+
+}
