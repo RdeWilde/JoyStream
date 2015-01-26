@@ -180,10 +180,13 @@ public:
     //PaymentChannelPayor(quint32 numberOfPayees, const OutputPoint& fundingOutput, const KeyPair& fundingOutputKeyPair);
 
     // Get contract for
-    Contract getContract() const;
+    Contract contract() const;
 
     // Creates refund transaction for given output with given lock
-    Refund refundTransaction(quint32 index) const;
+    Refund refund(quint32 index) const;
+
+
+    Payment refund(quint32 index) const;
 
     // Checks if output is spent
     bool spent(quint32 index) const;
@@ -206,7 +209,7 @@ private:
     KeyPair _fundingOutputKeyPair;
 
     // Hash of contract
-    Hash _contractHash;
+    Hash _contractHash; // should this be here?
 };
 
 #endif // PAYMENT_CHANNEL_PAYOR_HPP

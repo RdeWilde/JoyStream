@@ -230,6 +230,7 @@ PaymentChannelPayor::PaymentChannelPayor(quint32 numberOfPayees, const OutputPoi
     // *has enough value
 
     // Construct slots
+    /**
     for(int i = 0;i < numberOfPayees;i++) {
 
         _slots.append(Slot());
@@ -238,14 +239,22 @@ PaymentChannelPayor::PaymentChannelPayor(quint32 numberOfPayees, const OutputPoi
         _slots.append(Slot(funds_i, p_i,i, K, payor))
 
     }
+    */
 }
 
-Contract PaymentChannelPayor::getContract() const {
+Contract PaymentChannelPayor::contract() const {
+
+    // build contract
 
 }
 
-Refund PaymentChannelPayor::refundTransaction(quint32 index) const {
-    return _slots[index].refundTransaction(_refundLockTime);
+Refund PaymentChannelPayor::refund(quint32 index) const {
+    return _slots[index].refund(_contractHash, _refundLockTime);
+}
+
+
+Payment PaymentChannelPayor::payment(quint32 index) const {
+    return _slots[index].payment(_contractHash);
 }
 
 bool PaymentChannelPayor::spent(quint32 index) const {
