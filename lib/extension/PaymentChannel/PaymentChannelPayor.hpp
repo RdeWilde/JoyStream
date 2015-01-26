@@ -79,22 +79,19 @@ public:
          */
 
         // Refund transaction for slot
-        Refund refund(const Hash& contractHash, quint32 lockTime) const;
+        Refund refund(const Hash &contractHash, quint32 lockTime) const;
 
         // Payment transaction for slot, based on current _numberOfPaymentsMade value
-        Payment payment(const Hash& contractHash) const;
+        Payment payment(const Hash &contractHash) const;
 
-        // Checks if signature is valid for refund in index'th slot
-        bool isRefundValid(Signature payeeSignature);
+        // Refund signature
+        Signature refundSignature(const Hash &contractHash, quint32 lockTime) const;
 
-        // Provides payment signature
-        Signature nextPaymentSignature() const;
+        // Payment signature
+        Signature paymentSignature(const Hash &contractHash) const;
 
         // Registers that a payment was made
         void paymentMade();
-
-        // Checks if slot payment has been published
-        bool isPaymentSpent() const;
 
         /**
          * Getters and setters
@@ -173,6 +170,7 @@ public:
 
         // Fee used in payment transaction
         quint64 _paymentFee;
+
     };
 
     // Default constructor
@@ -186,6 +184,9 @@ public:
 
     // Creates refund transaction for given output with given lock
     Refund refundTransaction(quint32 index) const;
+
+    // Checks if output is spent
+    bool spent(quint32 index) const;
 
 private:
 

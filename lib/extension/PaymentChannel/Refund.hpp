@@ -5,6 +5,7 @@
 #include "extension/BitCoin/P2PKHTxOut.hpp"
 
 class QJsonObject;
+class Signature;
 
 class Refund
 {
@@ -18,6 +19,9 @@ public:
 
     // To JSON with raw transaction
     QJsonObject rawTransaction() const;
+
+    // Checks if signature is valid for refund in index'th slot
+    bool isRefundValid(const Signature &payorSignature, const Signature &payeeSignature) const;
 
     // Getters and setters
     OutputPoint contractOutput() const;

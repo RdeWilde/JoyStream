@@ -62,13 +62,13 @@ PaymentChannelPayor::Slot::Slot(quint32 index,
                                 , _paymentFee(paymentFee) {
 }
 
-Refund PaymentChannelPayor::Slot::refund(const Hash& contractHash, quint32 lockTime) const {
+Refund PaymentChannelPayor::Slot::refund(const Hash &contractHash, quint32 lockTime) const {
     return Refund(OutputPoint(contractHash, _index),
                   P2PKHTxOut(_funds - _refundFee, _payorContractKeyPair.pk(), _payeeContractPk),
                   lockTime);
 }
 
-Payment PaymentChannelPayor::Slot::payment(const Hash& contractHash) const {
+Payment PaymentChannelPayor::Slot::payment(const Hash &contractHash) const {
 
     // The amount paid so far
     quint64 amountPaid = _priceIncrement*_numberOfPaymentsMade;
@@ -78,29 +78,35 @@ Payment PaymentChannelPayor::Slot::payment(const Hash& contractHash) const {
                    P2PKHTxOut(amountPaid - _paymentFee, _payorContractKeyPair.pk()));
 }
 
-bool PaymentChannelPayor::Slot::isRefundValid(Signature payeeSignature) {
+Signature PaymentChannelPayor::Slot::refundSignature(const Hash &contractHash, quint32 lockTime) const {
 
-    // Create refund transaction
-    // Tx refund = refundTransaction();
+    // Create refund
+    Refund refund = refund(contractHash, lockTime);
 
-    // Create payor refund signature
-    // Signature sig1 = _payorKeyPair.sk().sign(refund, sighash... );
+    /**
+      QJsonObject raw = refund.rawTransaction();
+      return _payorContractKeyPair.sk().sign(raw, sighash);
+      */
 
-    // Check that both can spend multisig output
-    // BitCoin::checkMultisignature(contractOutput, sig1, signature);
+    return Signature();
 }
 
-Signature PaymentChannelPayor::Slot::nextPaymentSignature() const {
+Signature PaymentChannelPayor::Slot::paymentSignature(const Hash &contractHash) const {
+
+    // Create pamynent
+    Payment payment = payment(contractHash);
+
+    /**
+      QJsonObject raw = payment.rawTransaction();
+      return _payorContractKeyPair.sk().sign(raw, sighash);
+      */
+
+    return Signature();
 
 }
 
 void PaymentChannelPayor::Slot::paymentMade() {
     _numberOfPaymentsMade++;
-}
-
-bool PaymentChannelPayor::Slot::isPaymentSpent() const {
-
-    return
 }
 
 PaymentChannelPayor::Slot::State PaymentChannelPayor::Slot::state() const {
@@ -240,4 +246,8 @@ Contract PaymentChannelPayor::getContract() const {
 
 Refund PaymentChannelPayor::refundTransaction(quint32 index) const {
     return _slots[index].refundTransaction(_refundLockTime);
+}
+
+bool PaymentChannelPayor::spent(quint32 index) const {
+
 }
