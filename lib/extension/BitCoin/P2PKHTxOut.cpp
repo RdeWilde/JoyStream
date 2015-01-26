@@ -13,6 +13,11 @@ P2PKHTxOut & P2PKHTxOut::operator=(const P2PKHTxOut& p2pkhTxOut) {
     _pk = p2pkhTxOut.pk();
 }
 
+P2PKHTxOut::P2PKHTxOut(quint64 value, const PublicKey& pk)
+    : _value(value)
+    , _pk(pk){
+}
+
 quint64 P2PKHTxOut::value() const {
     return _value;
 }

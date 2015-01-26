@@ -14,6 +14,9 @@ public:
     P2PKHTxOut(const P2PKHTxOut& p2pkhTxOut);
     P2PKHTxOut & operator=(const P2PKHTxOut& p2pkhTxOut);
 
+    // Constructor from members
+    P2PKHTxOut(quint64 value, const PublicKey& pk);
+
     // Getters and setters
     quint64 value() const;
     void setValue(const quint64 &value);

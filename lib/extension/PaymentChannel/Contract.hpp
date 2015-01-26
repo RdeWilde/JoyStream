@@ -1,5 +1,5 @@
-#ifndef CONTRACT_TRANSACTION_HPP
-#define CONTRACT_TRANSACTION_HPP
+#ifndef CONTRACT_HPP
+#define CONTRACT_HPP
 
 #include "extension/BitCoin/OutputPoint.hpp"
 #include "extension/BitCoin/P2SHTxOut.hpp"
@@ -7,21 +7,21 @@
 
 class QJsonObject;
 
-class ContractTransaction
+class Contract
 {
 public:
     /**
      * Default/Copy constructor and assignemtn operator needed to put in container.
      */
-    ContractTransaction();
-    ContractTransaction(const ContractTransaction& contractTransaction);
-    ContractTransaction & operator=(const ContractTransaction& contractTransaction);
+    Contract();
+    Contract(const Contract& contract);
+    Contract & operator=(const Contract& contract);
 
     // Constructor based on members
-    ContractTransaction(quint32 numberOfMultisigOutputs);
+    Contract(quint32 numberOfMultisigOutputs);
 
     // Constructor based on JSON of raw transaction
-    ContractTransaction(const QJsonObject & rawTransaction);
+    Contract(const QJsonObject & rawTransaction);
 
     // To JSON with raw transaction
     QJsonObject rawTransaction() const;
@@ -33,8 +33,11 @@ public:
     QVector<P2SHTxOut> p2shTxOuts() const;
     void setP2shTxOuts(const QVector<P2SHTxOut> &p2shTxOuts);
 
-    P2PKHTxOut refund() const;
-    void setRefund(const P2PKHTxOut &refund);
+    P2PKHTxOut change() const;
+    void setChange(const P2PKHTxOut &change);
+
+    // Set corresponding output with given value
+    void setOutput(quint32 index, const P2SHTxOut& output);
 
 private:
 
@@ -45,7 +48,7 @@ private:
     QVector<P2SHTxOut> _p2shTxOuts;
 
     // Refund output
-    P2PKHTxOut _refund;
+    P2PKHTxOut _change;
 };
 
-#endif // CONTRACT_TRANSACTION_HPP
+#endif // CONTRACT_HPP

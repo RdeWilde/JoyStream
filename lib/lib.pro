@@ -76,12 +76,12 @@ SOURCES += \
     extension/PaymentChannel/PaymentChannelPayor.cpp \
     extension/BitCoin/KeyPair.cpp \
     extension/BitCoin/FixedBuffer.cpp \
-    extension/PaymentChannel/RefundTransaction.cpp \
-    extension/PaymentChannel/PaymentTransaction.cpp \
-    extension/PaymentChannel/ContractTransaction.cpp \
     extension/BitCoin/OutputPoint.cpp \
     extension/BitCoin/P2SHTxOut.cpp \
-    extension/BitCoin/P2PKHTxOut.cpp
+    extension/BitCoin/P2PKHTxOut.cpp \
+    extension/PaymentChannel/Refund.cpp \
+    extension/PaymentChannel/Payment.cpp \
+    extension/PaymentChannel/Contract.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -158,13 +158,13 @@ HEADERS += \
     extension/PaymentChannel/PaymentChannelPayor.hpp \
     extension/BitCoin/KeyPair.hpp \
     extension/BitCoin/FixedBuffer.hpp \
-    extension/PaymentChannel/RefundTansaction.hpp \
-    extension/PaymentChannel/PaymentTransaction.hpp \
-    extension/PaymentChannel/ContractTransaction.hpp \
     extension/BitCoin/OutputSigHash.hpp \
     extension/BitCoin/OutputPoint.hpp \
     extension/BitCoin/P2SHTxOut.hpp \
-    extension/BitCoin/P2PKHTxOut.hpp
+    extension/BitCoin/P2PKHTxOut.hpp \
+    extension/PaymentChannel/Refund.hpp \
+    extension/PaymentChannel/Payment.hpp \
+    extension/PaymentChannel/Contract.hpp
 				
 FORMS += \
     view/mainwindow.ui \

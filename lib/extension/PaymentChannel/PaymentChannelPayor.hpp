@@ -8,9 +8,9 @@
 #include "extension/BitCoin/Signature.hpp"
 #include "extension/BitCoin/OutputPoint.hpp"
 
-class RefundTransaction;
-class PaymentTransaction;
-class ContractTransaction;
+class Refund;
+class Payment;
+class Contract;
 
 /**
  * 1-to-N payment channel from payor perspective, using design in CBEP.
@@ -50,8 +50,8 @@ public:
          * @brief Enumeration of possible slot states.
          */
         enum class State {
-            unassigned_payee,
-            received_payee_information,
+            unassigned,
+            assigned,
             refund_signed
         };
 
@@ -61,31 +61,28 @@ public:
         Slot & operator=(const Slot& rhs);
 
         // Set all fields, e.g. loading from file
-        Slot(const State & state,
+        Slot(quint32 index,
+             const State &state,
+             quint64 priceIncrement,
              quint64 numberOfPaymentsMade,
              quint64 funds,
-             quint64 priceIncrement,
-             quint32 index,
-             const KeyPair& payorKeyPair,
-             const PublicKey & payeeContractPk,
-             const PublicKey & payeeFinalPk,
-             const Signature & refund);
-
-        // Start before contract has been constructed
-        Slot(quint64 funds,
-             quint64 priceIncrement,
-             quint32 index,
-             const KeyPair& payorKeyPair);
+             const KeyPair &payorContractKeyPair,
+             const PublicKey &payorFinalPk,
+             const PublicKey &payeeContractPk,
+             const PublicKey &payeeFinalPk,
+             const Signature &refund,
+             quint64 refundFee,
+             quint64 paymentFee);
 
         /**
          * Payment channel operations
          */
 
         // Refund transaction for slot
-        RefundTransaction refundTransaction() const;
+        Refund refund(const Hash& contractHash, quint32 lockTime) const;
 
         // Payment transaction for slot, based on current _numberOfPaymentsMade value
-        PaymentTransaction paymentTransaction() const;
+        Payment payment(const Hash& contractHash) const;
 
         // Checks if signature is valid for refund in index'th slot
         bool isRefundValid(Signature payeeSignature);
@@ -97,13 +94,20 @@ public:
         void paymentMade();
 
         // Checks if slot payment has been published
-        bool isRefundDoubleSpent() const;
+        bool isPaymentSpent() const;
 
         /**
          * Getters and setters
          */
+
+        quint32 index() const;
+        void setIndex(const quint32 &index);
+
         State state() const;
         void setState(const State &state);
+
+        quint64 priceIncrement() const;
+        void setPriceIncrement(const quint64 &priceIncrement);
 
         quint64 numberOfPaymentsMade() const;
         void setNumberOfPaymentsMade(const quint64 &numberOfPaymentsMade);
@@ -111,28 +115,37 @@ public:
         quint64 funds() const;
         void setFunds(const quint64 &funds);
 
-        quint64 priceIncrement() const;
-        void setPriceIncrement(const quint64 &priceIncrement);
+        KeyPair payorContractKeyPair() const;
+        void setPayorContractKeyPair(const KeyPair &keyPair);
 
-        quint32 index() const;
-        void setIndex(const quint32 &index);
-
-        KeyPair payorKeyPair() const;
-        void setPayorKeyPair(const KeyPair &payorKeyPair);
+        PublicKey payorFinalPk() const;
+        void setPayorFinalPk(const PublicKey &pk);
 
         PublicKey payeeContractPk() const;
-        void setPayeeContractPk(const PublicKey &payeeContractPk);
+        void setPayeeContractPk(const PublicKey &pk);
 
         PublicKey payeeFinalPk() const;
-        void setPayeeFinalPk(const PublicKey &payeeFinalPk);
+        void setPayeeFinalPk(const PublicKey &pk);
 
         Signature refund() const;
-        void setRefund(const Signature &refund);
+        void setRefund(const Signature &signature);
+
+        quint64 refundFee() const;
+        void setRefundFee(const quint64 &refundFee);
+
+        quint64 paymentFee() const;
+        void setPaymentFee(const quint64 &paymentFee);
 
     private:
 
+        // Index in contract
+        quint32 _index;
+
         // Slot state
         State _state;
+
+        // Size of single payment
+        quint64 _priceIncrement;
 
         // Number of payments made
         quint64 _numberOfPaymentsMade;
@@ -140,33 +153,39 @@ public:
         // Funds allocated to output
         quint64 _funds;
 
-        // Size of single payment
-        quint64 _priceIncrement;
-
-        // Output index
-        quint32 _index;
-
         // Controls payour output of multisig
-        KeyPair _payorKeyPair;
+        KeyPair _payorContractKeyPair;
 
-        // Controls payee output of multisig, from joinin_contract.pk
+        // Controls final payment to payor
+        PublicKey _payorFinalPk;
+
+        // Controls payee output of multisig, received in joinin_contract.pk
         PublicKey _payeeContractPk;
 
-        // Controls payee payments, from sign_refund.pk
+        // Controls payee payments, received in sign_refund.pk
         PublicKey _payeeFinalPk;
 
-        // Controls output refund
+        // Controls output refund for payee
         Signature _refund;
+
+        // Fee used in refund transaction, is unlikely to vary across slots,
+        quint64 _refundFee;
+
+        // Fee used in payment transaction
+        quint64 _paymentFee;
     };
 
     // Default constructor
     PaymentChannelPayor();
 
-    // Member wise constructor
+    // Constructor based on members
     //PaymentChannelPayor(quint32 numberOfPayees, const OutputPoint& fundingOutput, const KeyPair& fundingOutputKeyPair);
 
     // Get contract for
-    ContractTransaction getContract() const;
+    Contract getContract() const;
+
+    // Creates refund transaction for given output with given lock
+    Refund refundTransaction(quint32 index) const;
 
 private:
 
@@ -175,6 +194,9 @@ private:
 
     // Contract outputs
     QVector<Slot> _slots;
+
+    // Lock time of refund
+    quint32 _refundLockTime;
 
     // Unspent output funding channel
     OutputPoint _fundingOutput;

@@ -1,78 +1,81 @@
 #include "PaymentChannelPayor.hpp"
-#include "RefundTansaction.hpp"
-#include "PaymentTransaction.hpp"
+#include "Refund.hpp"
+#include "Payment.hpp"
 
 PaymentChannelPayor::Slot::Slot() {
 }
 
 PaymentChannelPayor::Slot::Slot(const Slot& slot) {
+    _index = slot.index();
     _state = slot.state();
+    _priceIncrement = slot.priceIncrement();
     _numberOfPaymentsMade = slot.numberOfPaymentsMade();
     _funds = slot.funds();
-    _priceIncrement = slot.priceIncrement();
-    _index = slot.index();
-    _payorKeyPair = slot.payorKeyPair();
+    _payorContractKeyPair = slot.payorContractKeyPair();
+    _payorFinalPk = slot.payorFinalPk();
+    _payeeContractPk = slot.payeeContractPk();
     _payeeFinalPk = slot.payeeFinalPk();
     _refund = slot.refund();
+    _refundFee = slot.refundFee();
+    _paymentFee = slot.paymentFee();
 }
 
 PaymentChannelPayor::Slot & PaymentChannelPayor::Slot::operator=(const Slot& rhs) {
+    _index = rhs.index();
     _state = rhs.state();
+    _priceIncrement = rhs.priceIncrement();
     _numberOfPaymentsMade = rhs.numberOfPaymentsMade();
     _funds = rhs.funds();
-    _priceIncrement = rhs.priceIncrement();
-    _index = rhs.index();
-    _payorKeyPair = rhs.payorKeyPair();
+    _payorContractKeyPair = rhs.payorContractKeyPair();
+    _payorFinalPk = rhs.payorFinalPk();
+    _payeeContractPk = rhs.payeeContractPk();
     _payeeFinalPk = rhs.payeeFinalPk();
     _refund = rhs.refund();
+    _refundFee = rhs.refundFee();
+    _paymentFee = rhs.paymentFee();
     return *this;
 }
 
-PaymentChannelPayor::Slot::Slot(const State & state,
+PaymentChannelPayor::Slot::Slot(quint32 index,
+                                const State &state,
+                                quint64 priceIncrement,
                                 quint64 numberOfPaymentsMade,
                                 quint64 funds,
-                                quint64 priceIncrement,
-                                quint32 index,
-                                const KeyPair& payorKeyPair,
-                                const PublicKey & payeeContractPk,
-                                const PublicKey & payeeFinalPk,
-                                const Signature & refund)
-                                : _state(state)
+                                const KeyPair &payorContractKeyPair,
+                                const PublicKey &payorFinalPk,
+                                const PublicKey &payeeContractPk,
+                                const PublicKey &payeeFinalPk,
+                                const Signature &refund,
+                                quint64 refundFee,
+                                quint64 paymentFee)
+                                : _index(index)
+                                , _state(state)
+                                , _priceIncrement(priceIncrement)
                                 , _numberOfPaymentsMade(numberOfPaymentsMade)
                                 , _funds(funds)
-                                , _priceIncrement(priceIncrement)
-                                , _index(index)
-                                , _payorKeyPair(payorKeyPair)
+                                , _payorContractKeyPair(payorContractKeyPair)
+                                , _payorFinalPk(payorFinalPk)
                                 , _payeeContractPk(payeeContractPk)
                                 , _payeeFinalPk(payeeFinalPk)
-                                , _refund(refund) {
+                                , _refund(refund)
+                                , _refundFee(refundFee)
+                                , _paymentFee(paymentFee) {
 }
 
-PaymentChannelPayor::Slot::Slot(quint64 funds,
-                                 quint64 priceIncrement,
-                                 quint32 index,
-                                 const KeyPair& payorKeyPair,
-                                 const PublicKey & payeeContractPk,
-                                 const PublicKey & payeeFinalPk)
-                                : _state(State::unassigned_payee)
-                                , _numberOfPaymentsMade(0)
-                                , _funds(funds)
-                                , _priceIncrement(priceIncrement)
-                                , _index(index)
-                                , _payorKeyPair(payorKeyPair)
-                                , _payeeContractPk(payeeContractPk)
-                                , _payeeFinalPk(payeeFinalPk)
-                                , _refund(refund) {
-
+Refund PaymentChannelPayor::Slot::refund(const Hash& contractHash, quint32 lockTime) const {
+    return Refund(OutputPoint(contractHash, _index),
+                  P2PKHTxOut(_funds - _refundFee, _payorContractKeyPair.pk(), _payeeContractPk),
+                  lockTime);
 }
 
-RefundTransaction PaymentChannelPayor::Slot::refundTransaction() const {
+Payment PaymentChannelPayor::Slot::payment(const Hash& contractHash) const {
 
-    return RefundTransaction();
-}
+    // The amount paid so far
+    quint64 amountPaid = _priceIncrement*_numberOfPaymentsMade;
 
-PaymentTransaction PaymentChannelPayor::Slot::paymentTransaction() const {
-
+    return Payment(OutputPoint(contractHash, _index),
+                   P2PKHTxOut(_funds - amountPaid, _payorContractKeyPair.pk()),
+                   P2PKHTxOut(amountPaid - _paymentFee, _payorContractKeyPair.pk()));
 }
 
 bool PaymentChannelPayor::Slot::isRefundValid(Signature payeeSignature) {
@@ -92,11 +95,12 @@ Signature PaymentChannelPayor::Slot::nextPaymentSignature() const {
 }
 
 void PaymentChannelPayor::Slot::paymentMade() {
-
+    _numberOfPaymentsMade++;
 }
 
-bool PaymentChannelPayor::Slot::isRefundDoubleSpent() const {
+bool PaymentChannelPayor::Slot::isPaymentSpent() const {
 
+    return
 }
 
 PaymentChannelPayor::Slot::State PaymentChannelPayor::Slot::state() const {
@@ -123,6 +127,38 @@ void PaymentChannelPayor::Slot::setRefund(const Signature &refund) {
     _refund = refund;
 }
 
+quint64 Slot::paymentFee() const {
+    return _paymentFee;
+}
+
+void PaymentChannelPayor::Slot::setPaymentFee(const quint64 &paymentFee) {
+    _paymentFee = paymentFee;
+}
+
+quint64 PaymentChannelPayor::Slot::refundFee() const {
+    return _refundFee;
+}
+
+void PaymentChannelPayor::Slot::setRefundFee(const quint64 &refundFee) {
+    _refundFee = refundFee;
+}
+
+PublicKey PaymentChannelPayor::Slot::payorFinalPk() const {
+    return _payorFinalPk;
+}
+
+void PaymentChannelPayor::Slot::setPayorFinalPk(const PublicKey &payorFinalPk) {
+    _payorFinalPk = payorFinalPk;
+}
+
+quint32 PaymentChannelPayor::Slot::index() const {
+    return _index;
+}
+
+void PaymentChannelPayor::Slot::setIndex(const quint32 &index) {
+    _index = index;
+}
+
 PublicKey PaymentChannelPayor::Slot::payeeFinalPk() const {
     return _payeeFinalPk;
 }
@@ -139,12 +175,12 @@ void PaymentChannelPayor::Slot::setPayeeContractPk(const PublicKey &payeeContrac
     _payeeContractPk = payeeContractPk;
 }
 
-KeyPair PaymentChannelPayor::Slot::payorKeyPair() const {
-    return _payorKeyPair;
+KeyPair PaymentChannelPayor::Slot::payorContractKeyPair() const {
+    return _payorContractKeyPair;
 }
 
-void PaymentChannelPayor::Slot::setPayorKeyPair(const KeyPair &payorKeyPair) {
-    _payorKeyPair = payorKeyPair;
+void PaymentChannelPayor::Slot::setPayorContractKeyPair(const KeyPair &payorKeyPair) {
+    _payorContractKeyPair = payorKeyPair;
 }
 
 quint32 PaymentChannelPayor::Slot::index() const {
@@ -198,6 +234,10 @@ PaymentChannelPayor::PaymentChannelPayor(quint32 numberOfPayees, const OutputPoi
     }
 }
 
-ContractTransaction PaymentChannelPayor::getContract() const {
+Contract PaymentChannelPayor::getContract() const {
 
+}
+
+Refund PaymentChannelPayor::refundTransaction(quint32 index) const {
+    return _slots[index].refundTransaction(_refundLockTime);
 }

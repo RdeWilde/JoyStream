@@ -1,20 +1,20 @@
-#ifndef REFUND_TANSACTION_HPP
-#define REFUND_TANSACTION_HPP
+#ifndef REFUND_HPP
+#define REFUND_HPP
 
 #include "extension/BitCoin/OutputPoint.hpp"
-#include "extension/BitCoin/P2SHTxOut.hpp"
+#include "extension/BitCoin/P2PKHTxOut.hpp"
 
 class QJsonObject;
 
-class RefundTransaction
+class Refund
 {
 public:
 
     // Constructor based on JSON of raw transaction
-    RefundTransaction(const QJsonObject & rawTransaction);
+    Refund(const QJsonObject & rawTransaction);
 
     // Constructor based on members
-    RefundTransaction(const OutputPoint & contractOutput, const P2SHTxOut& refund, quint32 _lockTime);
+    Refund(const OutputPoint & contractOutput, const P2PKHTxOut & ouput, quint32 lockTime);
 
     // To JSON with raw transaction
     QJsonObject rawTransaction() const;
@@ -23,8 +23,8 @@ public:
     OutputPoint contractOutput() const;
     void setContractOutput(const OutputPoint &contractOutput);
 
-    P2SHTxOut refund() const;
-    void setRefund(const P2SHTxOut &refund);
+    P2PKHTxOut output() const;
+    void setOutput(const P2PKHTxOut &output);
 
     quint32 lockTime() const;
     void setLockTime(const quint32 &lockTime);
@@ -34,11 +34,11 @@ private:
     // Contract transaction output
     OutputPoint _contractOutput;
 
-    // Refund
-    P2SHTxOut _refund;
+    // Refund output
+    P2PKHTxOut _output;
 
     // How long is refund locked (UNIX time)
     quint32 _lockTime;
 };
 
-#endif // REFUND_TANSACTION_HPP
+#endif // REFUND_HPP
