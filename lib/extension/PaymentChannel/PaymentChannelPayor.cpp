@@ -1,6 +1,7 @@
 #include "PaymentChannelPayor.hpp"
 #include "Refund.hpp"
 #include "Payment.hpp"
+#include "Contract.hpp"
 
 PaymentChannelPayor::Slot::Slot() {
 }
@@ -214,44 +215,69 @@ void PaymentChannelPayor::Slot::setFunds(const quint64 &funds) {
 }
 
 PaymentChannelPayor::PaymentChannelPayor() {
-
 }
 
 PaymentChannelPayor::PaymentChannelPayor(quint32 numberOfPayees, const OutputPoint& fundingOutput, const KeyPair& fundingOutputKeyPair)
     : _state(State::constructing_channel)
     , _fundingOutput(fundingOutput)
-    , _fundingOutputKeyPair(fundingOutputKeyPair){
+    , _fundingOutputKeyPair(fundingOutputKeyPair)
+    , _slots(numberOfPayees) {
 
+    /**
     // Check that _fundingOutput
     // *exists
     // *is unspent
     // *has correct output script with correct sighash
     // *is controlled by _fundingOutputKeyPair
     // *has enough value
+    */
 
-    // Construct slots
-    /**
-    for(int i = 0;i < numberOfPayees;i++) {
+    for(int i = 0;i < _slots.size();i++) {
 
-        _slots.append(Slot());
+        // Get contract slot
+        Slot & s = _slots[i];
 
-        KeyPair payor =
-        _slots.append(Slot(funds_i, p_i,i, K, payor))
+        // Set some fields
+        s.index(i);
+        s.state(Slot::State::unassigned);
+        s.numberOfPaymentsMade(0);
+
+        // known upon design of channel
+        //s.payorContractKeyPair(); _payorContractKeyPair
+        //._payorFinalPk
+        // _refundFee
+        // _funds?
+
+        // set for spesific seller
+        // _priceIncrement
+        // _payeeContractPk
+        // _payeeFinalPk
+        // _paymentFee
 
     }
-    */
 }
 
 Contract PaymentChannelPayor::contract() const {
 
-    // build contract
+    // Build contract
+    Contract contract(_fundingOutput, _slots.size(), P2PKHTxOut(_changeValue, _changeOutputKeyPair.pk()));
 
+    // Set outputs
+    for(QVector<Slot>::iterator i = _slots.begin(), end(_slots.end()); i != end;i++) {
+
+        // Get contract slot
+        Slot & s = *i;
+
+        // Set output
+        contract.setOutput(P2SHTxOut(s.funds(), s.payorContractKeyPair(), s.payeeContractPk()));
+    }
+
+    return contract;
 }
 
 Refund PaymentChannelPayor::refund(quint32 index) const {
     return _slots[index].refund(_contractHash, _refundLockTime);
 }
-
 
 Payment PaymentChannelPayor::payment(quint32 index) const {
     return _slots[index].payment(_contractHash);
@@ -259,4 +285,20 @@ Payment PaymentChannelPayor::payment(quint32 index) const {
 
 bool PaymentChannelPayor::spent(quint32 index) const {
 
+}
+
+quint32 PaymentChannelPayor::refundLockTime() const {
+    return _refundLockTime;
+}
+
+void PaymentChannelPayor::setRefundLockTime(const quint32 &refundLockTime) {
+    _refundLockTime = refundLockTime;
+}
+
+OutputPoint PaymentChannelPayor::fundingOutput() const {
+    return _fundingOutput;
+}
+
+void PaymentChannelPayor::setFundingOutput(const OutputPoint &fundingOutput) {
+    _fundingOutput = fundingOutput;
 }

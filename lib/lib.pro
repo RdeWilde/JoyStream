@@ -81,7 +81,8 @@ SOURCES += \
     extension/BitCoin/P2PKHTxOut.cpp \
     extension/PaymentChannel/Refund.cpp \
     extension/PaymentChannel/Payment.cpp \
-    extension/PaymentChannel/Contract.cpp
+    extension/PaymentChannel/Contract.cpp \
+    extension/BitCoin/BitSwaprjs.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -164,7 +165,8 @@ HEADERS += \
     extension/BitCoin/P2PKHTxOut.hpp \
     extension/PaymentChannel/Refund.hpp \
     extension/PaymentChannel/Payment.hpp \
-    extension/PaymentChannel/Contract.hpp
+    extension/PaymentChannel/Contract.hpp \
+    extension/BitCoin/BitSwaprjs.hpp
 				
 FORMS += \
     view/mainwindow.ui \

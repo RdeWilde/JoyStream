@@ -17,8 +17,10 @@ Contract & Contract::operator=(const Contract& contract) {
     _change = contract.refund();
 }
 
-Contract::Contract(quint32 numberOfMultisigOutputs)
-    : _p2shTxOuts(numberOfMultisigOutputs) {
+Contract::Contract(const OutputPoint &fundingOutput, quint32 numberOfMultisigOutputs, const P2PKHTxOut &change)
+    : _fundingOutput(fundingOutput)
+    , _p2shTxOuts(numberOfMultisigOutputs)
+    , _change(change){
 }
 
 Contract::Contract(const QJsonObject & rawTransaction) {

@@ -18,7 +18,7 @@ public:
     Contract & operator=(const Contract& contract);
 
     // Constructor based on members
-    Contract(quint32 numberOfMultisigOutputs);
+    Contract(const OutputPoint &fundingOutput, quint32 numberOfMultisigOutputs, const P2PKHTxOut &change);
 
     // Constructor based on JSON of raw transaction
     Contract(const QJsonObject & rawTransaction);

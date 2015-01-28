@@ -179,17 +179,28 @@ public:
     // Constructor based on members
     //PaymentChannelPayor(quint32 numberOfPayees, const OutputPoint& fundingOutput, const KeyPair& fundingOutputKeyPair);
 
+    // Finds an unassigned slot, and returns a copy
+    Slot assignUnassignedSlot();
+
+
+
     // Get contract for
     Contract contract() const;
 
     // Creates refund transaction for given output with given lock
     Refund refund(quint32 index) const;
 
-
-    Payment refund(quint32 index) const;
-
     // Checks if output is spent
     bool spent(quint32 index) const;
+
+    // Getters and setters
+
+
+    quint32 refundLockTime() const;
+    void setRefundLockTime(const quint32 &refundLockTime);
+
+    OutputPoint fundingOutput() const;
+    void setFundingOutput(const OutputPoint &fundingOutput);
 
 private:
 
@@ -207,6 +218,14 @@ private:
 
     // Controls output funding channel
     KeyPair _fundingOutputKeyPair;
+
+    // Controls change output in contract
+    KeyPair _changeOutputKeyPair;
+
+    // Change amount sent back to payor,
+    // this value, together with the _funds in all the slots
+    // determines how much is paid in contract fee implicitly.
+    quint64 _changeValue;
 
     // Hash of contract
     Hash _contractHash; // should this be here?
