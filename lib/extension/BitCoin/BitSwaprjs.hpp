@@ -5,6 +5,9 @@
 
 class QJsonValue;
 class QJsonObject;
+class KeyPair;
+class Contract;
+class Hash;
 
 class BitSwaprjs
 {
@@ -13,7 +16,9 @@ public:
 
     void test() const;
 
-    void generate_fresh_key_pairs(int numberOfPairs) const;
+    static QList<KeyPair> generate_fresh_key_pairs(int numberOfPairs);
+
+    static Hash compute_contract_hash(const Contract & contract);
 
 private:
 
@@ -21,7 +26,7 @@ private:
 
     QString _module;
 
-    QJsonObject nodeBlockingCall(const QString & method, const QJsonValue & params) const;
+    static QJsonObject nodeBlockingCall(const QString & method, const QJsonValue & params);
 };
 
 #endif // BITSWAPRJS_HPP

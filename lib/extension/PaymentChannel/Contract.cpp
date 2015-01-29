@@ -27,8 +27,12 @@ Contract::Contract(const QJsonObject & rawTransaction) {
     // extract fields
 }
 
-QJsonObject Contract::rawTransaction() const {
+QJsonObject Contract::bitswaprjsEncoding() const {
     // return raw transacton form in json form
+
+    QJsonObject encoded;
+
+
 }
 
 OutputPoint Contract::fundingOutput() const {

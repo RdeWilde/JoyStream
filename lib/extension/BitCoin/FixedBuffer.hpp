@@ -15,6 +15,8 @@ public:
 
     static const quint32 length = L;
 
+    FixedBuffer(const QString & string);
+
     /**
      * Default/Copy constructor and assignemtn operator needed to put in container.
      */
@@ -28,6 +30,7 @@ public:
     char at(unsigned int index) const;
     void set(unsigned int index, char value);
     void clear();
+    bool isClear() const;
 
     /**
      * Iterator routines.

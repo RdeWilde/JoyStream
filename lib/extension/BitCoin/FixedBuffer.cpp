@@ -2,6 +2,18 @@
 
 #include <QDataStream>
 
+FixedBuffer::FixedBuffer(const QString & string) {
+
+    if(string.length() != L)
+        throw std::exception("String argument is of incorrect length.");
+    else {
+
+        // Copy into buffer
+        for(int i = 0;i < L;i++)
+            _buffer[i] = string.at(i);
+    }
+}
+
 FixedBuffer::FixedBuffer() {
 
     // Clear buffer
@@ -42,6 +54,18 @@ void FixedBuffer::clear() {
 
     for(unsigned int i = 0;i < L;i++)
         _buffer[i] = 0;
+}
+
+bool FixedBuffer::isClear() const {
+
+    // Find non zero byte
+    for(unsigned int i = 0;i < L;i++) {
+        if(_buffer[i] != 0)
+            return false;
+    }
+
+    // We didn't, so it is clear
+    return true;
 }
 
 const char * FixedBuffer::begin() const {

@@ -150,7 +150,7 @@ private:
     State _state;
 
     // Payment channel
-    PaymentChannelPayor _channel;
+    Payor _channel;
 
     // Time since plugin was created, is used to keep track of when to start picking sellers.
     QTime _timeSincePluginStarted;

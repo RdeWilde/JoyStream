@@ -21,10 +21,10 @@ public:
     Contract(const OutputPoint &fundingOutput, quint32 numberOfMultisigOutputs, const P2PKHTxOut &change);
 
     // Constructor based on JSON of raw transaction
-    Contract(const QJsonObject & rawTransaction);
+    Contract(const QJsonObject & bitswaprjsEncoding);
 
-    // To JSON with raw transaction
-    QJsonObject rawTransaction() const;
+    // To JSON with bitswaprjsEncoding
+    QJsonObject bitswaprjsEncoding() const;
 
     // Getters and setters
     OutputPoint fundingOutput() const;

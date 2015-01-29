@@ -12,7 +12,7 @@ Refund::Refund(const OutputPoint & contractOutput, const P2PKHTxOut& ouput, quin
     , _lockTime(lockTime) {
 }
 
-QJsonObject Refund::rawTransaction() const {
+QJsonObject Refund::bitswaprjsEncoding() const {
     // Turn into raw json transaction
 }
 

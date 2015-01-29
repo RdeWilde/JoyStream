@@ -1,4 +1,5 @@
 #include "BitSwaprjs.hpp"
+#include "KeyPair.hpp"
 
 #include <QProcess>
 #include <QEventLoop>
@@ -22,23 +23,47 @@ void BitSwaprjs::test() const {
     nodeBlockingCall("test", QJsonValue());
 }
 
-void BitSwaprjs::generate_fresh_key_pairs(int numberOfPairs) const {
-    QJsonObject o = nodeBlockingCall("generate_fresh_key_pairs", QJsonValue(numberOfPairs));
+QList<KeyPair> BitSwaprjs::generate_fresh_key_pairs(int numberOfPairs) {
 
-    if(o['state'] != 1) {
-        qDebug() << "Bad state";
-    } else {
+    // Make call to generate keys
+    QJsonValue result = nodeBlockingCall("generate_fresh_key_pairs", QJsonValue(numberOfPairs));
 
-        qDebug() << "Got these key-pairs";
+    // Create list for key pairs
+    QList<KeyPair> keyPairs;
 
-        o.
-        for()
+    QJsonArray jsonKeyPairsArray = result.toArray();
 
+    for(QJsonArray::iterator i = jsonKeyPairsArray.begin(),
+        end(jsonKeyPairsArray.end()); i != end;i++) {
 
+        // Get json array element
+        QJsonValue element = *i;
+
+        // Turn into map
+        QJsonObject map = element.toObject();
+
+        // Get keypair from map and add to keypair list
+        QString pkString = map["pk"].toString();
+        QString skString = map["sk"].toString();
+        QString addressString = map["address"].toString();
+
+        keyPairs.append(KeyPair(PublicKey(pkString), PrivateKey(skString)));
     }
 }
 
-QJsonObject BitSwaprjs::nodeBlockingCall(const QString & method, const QJsonValue & params) const {
+static Hash BitSwaprjs::compute_contract_hash(const Contract & contract) {
+
+    // Turn into raw transaction
+    QJsonObject rawTx = contract.rawTransaction();
+
+    // Make call to generate keys
+    QJsonValue result = nodeBlockingCall("compute_contract_hash", QJsonValue(rawTx));
+
+    // Turn string to hash
+    return Hash(result.toString());
+}
+
+QJsonObject BitSwaprjs::nodeBlockingCall(const QString & method, const QJsonValue & params) {
 
     // Build input dictionary for node script
     QJsonObject input;
@@ -54,7 +79,7 @@ QJsonObject BitSwaprjs::nodeBlockingCall(const QString & method, const QJsonValu
 
     // Build argument list
     QStringList args;
-    args << _module << encodedInputs;
+    args << "C:\\Users\\Sindre\\Documents\\GitHub\\BitSwaprjs\\index.js" << encodedInputs;
 
     // Allocate process and loop
     QProcess process;
@@ -67,7 +92,7 @@ QJsonObject BitSwaprjs::nodeBlockingCall(const QString & method, const QJsonValu
                      SLOT(quit()));
 
     // Start process async
-    process.start(_node, args);
+    process.start("C:\\Program Files\\nodejs\\node.exe", args);
 
     // Wait for process to be finished
     loop.exec();
@@ -81,5 +106,11 @@ QJsonObject BitSwaprjs::nodeBlockingCall(const QString & method, const QJsonValu
     QJsonDocument outputDocument = QJsonDocument::fromJson(rawOutput);
 
     // Return json object
-    return outputDocument.object();
+    QJsonObject o = outputDocument.object();
+
+    if(o['state'] != 1) {
+        throw std::exception("Error state returned.");
+    } else {
+        return o['result'];
+    }
 }
