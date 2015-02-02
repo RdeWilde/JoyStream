@@ -20,8 +20,8 @@ public:
     // Constructor based on members
     Contract(const OutputPoint &fundingOutput, quint32 numberOfMultisigOutputs, const P2PKHTxOut &change);
 
-    // Constructor based on JSON of raw transaction
-    Contract(const QJsonObject & bitswaprjsEncoding);
+    // Constructor based on bitswaprjsEncoding
+    //Contract(const QJsonObject & bitswaprjsEncoding);
 
     // To JSON with bitswaprjsEncoding
     QJsonObject bitswaprjsEncoding() const;

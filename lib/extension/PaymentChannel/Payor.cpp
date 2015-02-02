@@ -317,7 +317,8 @@ Payor::Payor() {
 Payor::Payor(const QSet<Slot::PayorConfiguration> & configurations, const OutputPoint& fundingOutput, const KeyPair& fundingOutputKeyPair)
     : _state(State::waiting_for_full_set_of_sellers)
     , _fundingOutput(fundingOutput)
-    , _fundingOutputKeyPair(fundingOutputKeyPair) {
+    , _fundingOutputKeyPair(fundingOutputKeyPair)
+    , _numberOfSignedSlots(0) {
 
     // Check that _fundingOutput
     // *exists
@@ -391,7 +392,7 @@ quint32 Payor::assignUnassignedSlot(const Slot::PayeeConfiguration & configurati
         _state = State::waiting_for_full_set_of_refund_signatures;
 
         // Generate contract and save hash
-        Contract contract = contract();
+        _contract = contract();
         _contractHash = BitSwaprjs.compute_contract_hash(contract);
     }
 
@@ -410,7 +411,7 @@ void Payor::unassignSlot(quint32 index) {
     // Update slot state
     _slots[index].state(Slot::State::unassigned);
 
-    // If some slots had valid signatures
+    // If some slots had refund signed state, i.e. valid signature, then revert state
     for(QVector<Slot>::iterator i = _slots.begin(),
             end(_slots.end()); i != end;i++) {
 
@@ -424,6 +425,9 @@ void Payor::unassignSlot(quint32 index) {
 
     // Set state of payor
     _state = State::waiting_for_full_set_of_sellers;
+
+    // No signature is now valid
+    _numberOfSignedSlots = 0;
 }
 
 bool Payor::processRefundSignature(quint32 index, const Signature & signature) {
@@ -442,15 +446,37 @@ bool Payor::processRefundSignature(quint32 index, const Signature & signature) {
     Q_ASSERT(s.state() == Slot::State::assigned);
 
     // Get refund
-    Refund refund = s.refund(_);
+    Refund refund = s.refund(_contractHash);
 
-    // Get payor refund
+    // Check signature
+    bool validSignature = BitSwaprjs.check_refund_signature(refund, s.payorContractKeyPair().sk(), _contract, signature);
 
-    // Check
+    // If it matched, then alter state and save refund
+    if(validSignature) {
 
-    // If it matched
+        s.state(Slot::State::refund_signed);
+        s.refund(signature);
 
+        _numberOfSignedSlots++;
 
+        // Check if they are all signed
+        if(_numberOfSignedSlots == _slots.size()) {
+            _state = State::paying;
+        }
+    }
+
+    return validSignature;
+}
+
+Signature Payor::presentPaymentSignature(quint32 index) const {
+
+}
+
+bool Payor::claimRefund(quint32 index) const {
+
+}
+
+bool Payor::spent(quint32 index) const {
 
 }
 
@@ -459,7 +485,6 @@ Contract Payor::contract() const {
     // Check that a full set of sellers has been established
     if(_state != State::waiting_for_full_set_of_refund_signatures)
         throw std::exception("State incompatile request, must be in State::waiting_for_full_set_of_refund_signatures state.");
-
 
     // Build contract
     Contract contract(_fundingOutput, _slots.size(), P2PKHTxOut(_changeValue, _changeOutputKeyPair.pk()));
@@ -471,18 +496,6 @@ Contract Payor::contract() const {
     return contract;
 }
 
-Refund Payor::refund(quint32 index) const {
-    return _slots[index].refund(_contractHash);
-}
-
-Payment Payor::payment(quint32 index) const {
-    return _slots[index].payment(_contractHash);
-}
-
-bool Payor::spent(quint32 index) const {
-
-}
-
 OutputPoint Payor::fundingOutput() const {
     return _fundingOutput;
 }
@@ -490,3 +503,12 @@ OutputPoint Payor::fundingOutput() const {
 void Payor::setFundingOutput(const OutputPoint &fundingOutput) {
     _fundingOutput = fundingOutput;
 }
+
+quint32 Payor::numberOfSignedSlots() const {
+    return _numberOfSignedSlots;
+}
+
+void Payor::setNumberOfSignedSlots(const quint32 &numberOfSignedSlots) {
+    _numberOfSignedSlots = numberOfSignedSlots;
+}
+

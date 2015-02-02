@@ -22,17 +22,43 @@ Contract::Contract(const OutputPoint &fundingOutput, quint32 numberOfMultisigOut
     , _p2shTxOuts(numberOfMultisigOutputs)
     , _change(change){
 }
-
+/**
 Contract::Contract(const QJsonObject & rawTransaction) {
-    // extract fields
+
+
 }
-
+*/
 QJsonObject Contract::bitswaprjsEncoding() const {
-    // return raw transacton form in json form
 
-    QJsonObject encoded;
+    QJsonObject fundingOutput {
+        {"hash", _fundingOutput.hash().toString()},
+        {"index", _fundingOutput.index()},
+    };
 
+    QJsonArray p2shTxOuts;
+    for(QVector<P2SHTxOut>::iterator i = _p2shTxOuts,
+            end(_p2shTxOuts.end()); i != end;i++) {
 
+        // Get output
+        P2SHTxOut output = *i;
+
+        p2shTxOuts.append(QJsonObject {
+                              {"value", output.value()},
+                              {"firstPk", output.firstPk().toString()},
+                              {"secondPk", output.secondPk().toString()}
+                          });
+    }
+
+    QJsonObject change {
+        {"value", _change.value()},
+        {"pk", _change.pk().toString()},
+    };
+
+    return QJsonObject {
+        {"fundingOutput", fundingOutput},
+        {"p2shTxOuts", p2shTxOuts},
+        {"change", change}
+    };
 }
 
 OutputPoint Contract::fundingOutput() const {

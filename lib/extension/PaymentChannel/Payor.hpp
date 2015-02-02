@@ -8,9 +8,10 @@
 #include "extension/BitCoin/Signature.hpp"
 #include "extension/BitCoin/OutputPoint.hpp"
 
+#include "Contract.hpp"
+
 class Refund;
 class Payment;
-class Contract;
 
 /**
  * 1-to-N payment channel from payor perspective, using design in CBEP.
@@ -303,11 +304,12 @@ public:
     // 3) updates payor state to all_signed, if all all are now signed.
     bool processRefundSignature(quint32 index, const Signature & signature);
 
-    // Get contract for channel
-    Contract contract() const;
+    // Returns the payment signature for the present payment increment of given slot
+    Signature presentPaymentSignature(quint32 index) const;
 
-    // Creates refund transaction for given output and time lock
-    Refund refund(quint32 index) const;
+    // Attempts to claim refund for given slot
+    // Returns false iff (time lock has not experied on refund or output has been double spent)
+    bool claimRefund(quint32 index) const;
 
     // Checks if output is spent
     bool spent(quint32 index) const;
@@ -315,6 +317,9 @@ public:
     // Getters and setters
     OutputPoint fundingOutput() const;
     void setFundingOutput(const OutputPoint &fundingOutput);
+
+    quint32 numberOfSignedSlots() const;
+    void setNumberOfSignedSlots(const quint32 &numberOfSignedSlots);
 
 private:
 
@@ -338,10 +343,20 @@ private:
     // determines how much is paid in contract fee implicitly.
     quint64 _changeValue;
 
-    // Hash of contract
-    // Is recomputed every time a full set of sellers is established,
-    // and is cleared whenever a signature failed.
+    /**
+     * Contract:
+     * Is recomputed every time a full set of sellers is established,
+     * and is cleared whenever a signature failed.
+     */
+
+    Contract _contract;
     Hash _contractHash;
+
+    quint32 _numberOfSignedSlots;
+
+    // Get contract for channel
+    Contract contract() const;
+
 };
 
 #endif // PAYOR_HPP

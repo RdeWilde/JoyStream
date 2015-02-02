@@ -8,6 +8,9 @@ class QJsonObject;
 class KeyPair;
 class Contract;
 class Hash;
+class Refund;
+class PrivateKey;
+class Signature;
 
 class BitSwaprjs
 {
@@ -19,6 +22,8 @@ public:
     static QList<KeyPair> generate_fresh_key_pairs(int numberOfPairs);
 
     static Hash compute_contract_hash(const Contract & contract);
+
+    static bool check_refund_signature(const Refund & refund, const PrivateKey & sk, const Contract & contract, const Signature & signature);
 
 private:
 
