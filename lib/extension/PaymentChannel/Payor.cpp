@@ -1,11 +1,13 @@
 #include "Payor.hpp"
 #include "Refund.hpp"
 #include "Payment.hpp"
-#include "Contract.hpp"
+//#include "Contract.hpp"
+
+#include "extension/BitCoin/P2SHTxOut.hpp"
 
 #include "extension/BitCoin/BitSwaprjs.hpp"
 
-Payor::Slot::PayorConfiguration::PayorConfiguration(quint64 funds, const KeyPair &contractKeyPair, const KeyPair &finalKeyPair, quint64 refundFee)
+Payor::Channel::PayorConfiguration::PayorConfiguration(quint64 funds, const KeyPair &contractKeyPair, const KeyPair &finalKeyPair, quint64 refundFee)
     : _funds(funds)
     , _contractKeyPair(contractKeyPair)
     , _finalKeyPair(finalKeyPair)
@@ -13,47 +15,47 @@ Payor::Slot::PayorConfiguration::PayorConfiguration(quint64 funds, const KeyPair
     , _refundLockTime(refundLockTime){
 }
 
-quint64 Payor::Slot::PayorConfiguration::funds() const {
+quint64 Payor::Channel::PayorConfiguration::funds() const {
     return _funds;
 }
 
-void Payor::Slot::PayorConfiguration::setFunds(const quint64 &funds) {
+void Payor::Channel::PayorConfiguration::setFunds(const quint64 &funds) {
     _funds = funds;
 }
 
-KeyPair Payor::Slot::PayorConfiguration::contractKeyPair() const {
+KeyPair Payor::Channel::PayorConfiguration::contractKeyPair() const {
     return _contractKeyPair;
 }
 
-void Payor::Slot::PayorConfiguration::setContractKeyPair(const KeyPair &contractKeyPair) {
+void Payor::Channel::PayorConfiguration::setContractKeyPair(const KeyPair &contractKeyPair) {
     _contractKeyPair = contractKeyPair;
 }
 
-KeyPair Payor::Slot::PayorConfiguration::finalKeyPair() const {
+KeyPair Payor::Channel::PayorConfiguration::finalKeyPair() const {
     return _finalKeyPair;
 }
 
-void Payor::Slot::PayorConfiguration::setFinalKeyPair(const KeyPair &finalKeyPair) {
+void Payor::Channel::PayorConfiguration::setFinalKeyPair(const KeyPair &finalKeyPair) {
     _finalKeyPair = finalKeyPair;
 }
 
-quint64 Payor::Slot::PayorConfiguration::refundFee() const {
+quint64 Payor::Channel::PayorConfiguration::refundFee() const {
     return _refundFee;
 }
 
-void Payor::Slot::PayorConfiguration::setRefundFee(const quint64 &refundFee) {
+void Payor::Channel::PayorConfiguration::setRefundFee(const quint64 &refundFee) {
     _refundFee = refundFee;
 }
 
-quint32 Payor::Slot::PayorConfiguration::getRefundLockTime() const {
+quint32 Payor::Channel::PayorConfiguration::getRefundLockTime() const {
     return refundLockTime;
 }
 
-void Payor::Slot::PayorConfiguration::setRefundLockTime(const quint32 &value) {
+void Payor::Channel::PayorConfiguration::setRefundLockTime(const quint32 &value) {
     refundLockTime = value;
 }
 
-Payor::Slot::PayeeConfiguration::PayeeConfiguration(quint64 price, const PublicKey &contractPk, const PublicKey &finalPk, quint64 paymentFee)
+Payor::Channel::PayeeConfiguration::PayeeConfiguration(quint64 price, const PublicKey &contractPk, const PublicKey &finalPk, quint64 paymentFee)
     : _price(price)
     , _contractPk(contractPk)
     , _finalPk(finalPk)
@@ -61,42 +63,42 @@ Payor::Slot::PayeeConfiguration::PayeeConfiguration(quint64 price, const PublicK
 
 }
 
-quint64 Payor::Slot::PayeeConfiguration::paymentFee() const {
+quint64 Payor::Channel::PayeeConfiguration::paymentFee() const {
     return _paymentFee;
 }
 
-void Payor::Slot::PayeeConfiguration::setPaymentFee(const quint64 &paymentFee) {
+void Payor::Channel::PayeeConfiguration::setPaymentFee(const quint64 &paymentFee) {
     _paymentFee = paymentFee;
 }
 
-PublicKey Payor::Slot::PayeeConfiguration::finalPk() const {
+PublicKey Payor::Channel::PayeeConfiguration::finalPk() const {
     return _finalPk;
 }
 
-void Payor::Slot::PayeeConfiguration::setFinalPk(const PublicKey &finalPk) {
+void Payor::Channel::PayeeConfiguration::setFinalPk(const PublicKey &finalPk) {
     _finalPk = finalPk;
 }
 
-PublicKey Payor::Slot::PayeeConfiguration::contractPk() const {
+PublicKey Payor::Channel::PayeeConfiguration::contractPk() const {
     return _contractPk;
 }
 
-void Payor::Slot::PayeeConfiguration::setContractPk(const PublicKey &contractPk) {
+void Payor::Channel::PayeeConfiguration::setContractPk(const PublicKey &contractPk) {
     _contractPk = contractPk;
 }
 
-quint64 Payor::Slot::PayeeConfiguration::price() const {
+quint64 Payor::Channel::PayeeConfiguration::price() const {
     return _price;
 }
 
-void Payor::Slot::PayeeConfiguration::setPrice(const quint64 &price) {
+void Payor::Channel::PayeeConfiguration::setPrice(const quint64 &price) {
     _price = price;
 }
 
-Payor::Slot::Slot() {
+Payor::Channel::Channel() {
 }
 
-Payor::Slot::Slot(const Slot& slot) {
+Payor::Channel::Channel(const Channel& slot) {
     _index = slot.index();
     _state = slot.state();
     _price = slot.price();
@@ -105,13 +107,13 @@ Payor::Slot::Slot(const Slot& slot) {
     _payorContractKeyPair = slot.payorContractKeyPair();
     _payeeContractPk = slot.payeeContractPk();
     _payeeFinalPk = slot.payeeFinalPk();
-    _refund = slot.refund();
+    _payeeRefundSignature = slot.refund();
     _refundFee = slot.refundFee();
     _paymentFee = slot.paymentFee();
     _refundLockTime = slot.refundLockTime();
 }
 
-Payor::Slot & Payor::Slot::operator=(const Slot& rhs) {
+Payor::Channel & Payor::Channel::operator=(const Channel& rhs) {
     _index = rhs.index();
     _state = rhs.state();
     _price = rhs.price();
@@ -120,14 +122,14 @@ Payor::Slot & Payor::Slot::operator=(const Slot& rhs) {
     _payorContractKeyPair = rhs.payorContractKeyPair();
     _payeeContractPk = rhs.payeeContractPk();
     _payeeFinalPk = rhs.payeeFinalPk();
-    _refund = rhs.refund();
+    _payeeRefundSignature = rhs.refund();
     _refundFee = rhs.refundFee();
     _paymentFee = rhs.paymentFee();
     _refundLockTime = rhs.refundLockTime();
     return *this;
 }
 
-Payor::Slot::Slot(quint32 index,
+Payor::Channel::Channel(quint32 index,
                                 const State &state,
                                 quint64 priceIncrement,
                                 quint64 numberOfPaymentsMade,
@@ -146,18 +148,18 @@ Payor::Slot::Slot(quint32 index,
                                 , _payorContractKeyPair(payorContractKeyPair)
                                 , _payeeContractPk(payeeContractPk)
                                 , _payeeFinalPk(payeeFinalPk)
-                                , _refund(refund)
+                                , _payeeRefundSignature(refund)
                                 , _refundFee(refundFee)
                                 , _paymentFee(paymentFee) {
 }
 
-Refund Payor::Slot::refund(const Hash &contractHash) const {
+Refund Payor::Channel::refund(const Hash &contractHash) const {
     return Refund(OutputPoint(contractHash, _index),
                   P2PKHTxOut(_funds - _refundFee, _payorContractKeyPair.pk(), _payeeContractPk),
                   _refundLockTime);
 }
 
-Payment Payor::Slot::payment(const Hash &contractHash) const {
+Payment Payor::Channel::payment(const Hash &contractHash) const {
 
     // The amount paid so far
     quint64 amountPaid = _price*_numberOfPaymentsMade;
@@ -167,20 +169,20 @@ Payment Payor::Slot::payment(const Hash &contractHash) const {
                    P2PKHTxOut(amountPaid - _paymentFee, _payorContractKeyPair.pk()));
 }
 
-Signature Payor::Slot::refundSignature(const Hash &contractHash) const {
+void Payor::Channel::computePayorRefundSignature(const Hash &contractHash) const {
 
-    // Create refund
-    Refund refund = refund(contractHash, _refundLockTime);
+    // Check that channel has been assigned
+    if(_state != State::assigned)
+        throw std::exception("State incompatile request, must be in assigned state.");
 
-    /**
-      QJsonObject raw = refund.rawTransaction();
-      return _payorContractKeyPair.sk().sign(raw, sighash);
-      */
+    // Make call to compute signature
+    OutputPoint contractOutputPoint(contractHash, _index);
+    P2PKHTxOut refundOutput(_funds, _payorFinalKeyPair.pk());
 
-    return Signature();
+    _payorRefundSignature = BitSwaprjs.compute_payor_refund_signature(contractOutputPoint, _payorContractKeyPair.pk(), _payeeContractPk, refundOutput,_refundLockTime);
 }
 
-Signature Payor::Slot::paymentSignature(const Hash &contractHash) const {
+Signature Payor::Channel::paymentSignature(const Hash &contractHash) const {
 
     // Create pamynent
     Payment payment = payment(contractHash);
@@ -194,39 +196,47 @@ Signature Payor::Slot::paymentSignature(const Hash &contractHash) const {
 
 }
 
-void Payor::Slot::paymentMade() {
+QJsonObject Payor::Channel::json() const {
+    return QJsonObject {
+                          {"funds", _funds},
+                          {"firstPk", _payorContractKeyPair.pk().toString()},
+                          {"secondPk", _payeeContractPk.toString()}
+                       };
+}
+
+void Payor::Channel::paymentMade() {
     _numberOfPaymentsMade++;
 }
 
-Payor::Slot::State Payor::Slot::state() const {
+Payor::Channel::State Payor::Channel::state() const {
     return _state;
 }
 
-void Payor::Slot::setState(const State &state) {
+void Payor::Channel::setState(const State &state) {
     _state = state;
 }
 
-quint64 Payor::Slot::numberOfPaymentsMade() const {
+quint64 Payor::Channel::numberOfPaymentsMade() const {
     return _numberOfPaymentsMade;
 }
 
-void Payor::Slot::setNumberOfPaymentsMade(const quint64 &numberOfPaymentsMade) {
+void Payor::Channel::setNumberOfPaymentsMade(const quint64 &numberOfPaymentsMade) {
     _numberOfPaymentsMade = numberOfPaymentsMade;
 }
 
-Signature Payor::Slot::refund() const {
-    return _refund;
+Signature Payor::Channel::refund() const {
+    return _payeeRefundSignature;
 }
 
-void Payor::Slot::setRefund(const Signature &refund) {
-    _refund = refund;
+void Payor::Channel::setRefund(const Signature &refund) {
+    _payeeRefundSignature = refund;
 }
 
-quint64 Payor::Slot::paymentFee() const {
+quint64 Payor::Channel::paymentFee() const {
     return _paymentFee;
 }
 
-void Payor::Slot::setPaymentFee(const quint64 &paymentFee) {
+void Payor::Channel::setPaymentFee(const quint64 &paymentFee) {
     _paymentFee = paymentFee;
 }
 
@@ -234,87 +244,87 @@ PublicKey PaymentChannelPayPaymentChannelPayoror::Slot::payeeFinalPk() const {
     return _payeeFinalPk;
 }
 
-void Payor::Slot::setPayeeFinalPk(const PublicKey &payeeFinalPk) {
+void Payor::Channel::setPayeeFinalPk(const PublicKey &payeeFinalPk) {
     _payeeFinalPk = payeeFinalPk;
 }
 
 
-quint64 Payor::Slot::refundFee() const {
+quint64 Payor::Channel::refundFee() const {
     return _refundFee;
 }
 
-void Payor::Slot::setRefundFee(const quint64 &refundFee) {
+void Payor::Channel::setRefundFee(const quint64 &refundFee) {
     _refundFee = refundFee;
 }
 
-quint32 Payor::Slot::index() const {
+quint32 Payor::Channel::index() const {
     return _index;
 }
 
-void Payor::Slot::setIndex(const quint32 &index) {
+void Payor::Channel::setIndex(const quint32 &index) {
     _index = index;
 }
 
-PublicKey Payor::Slot::payeeFinalPk() const {
+PublicKey Payor::Channel::payeeFinalPk() const {
     return _payeeFinalPk;
 }
 
-void Payor::Slot::setPayeeFinalPk(const PublicKey &payeeFinalPk) {
+void Payor::Channel::setPayeeFinalPk(const PublicKey &payeeFinalPk) {
     _payeeFinalPk = payeeFinalPk;
 }
 
-quint32 Payor::Slot::refundLockTime() const {
+quint32 Payor::Channel::refundLockTime() const {
     return _refundLockTime;
 }
 
-void Payor::Slot::setRefundLockTime(const quint32 &refundLockTime) {
+void Payor::Channel::setRefundLockTime(const quint32 &refundLockTime) {
     _refundLockTime = refundLockTime;
 }
 
-PublicKey Payor::Slot::payeeContractPk() const {
+PublicKey Payor::Channel::payeeContractPk() const {
     return _payeeContractPk;
 }
 
-void Payor::Slot::setPayeeContractPk(const PublicKey &payeeContractPk) {
+void Payor::Channel::setPayeeContractPk(const PublicKey &payeeContractPk) {
     _payeeContractPk = payeeContractPk;
 }
 
-KeyPair Payor::Slot::payorContractKeyPair() const {
+KeyPair Payor::Channel::payorContractKeyPair() const {
     return _payorContractKeyPair;
 }
 
-void Payor::Slot::setPayorContractKeyPair(const KeyPair &payorKeyPair) {
+void Payor::Channel::setPayorContractKeyPair(const KeyPair &payorKeyPair) {
     _payorContractKeyPair = payorKeyPair;
 }
 
-quint32 Payor::Slot::index() const {
+quint32 Payor::Channel::index() const {
     return _index;
 }
 
-void Payor::Slot::setIndex(const quint32 &index) {
+void Payor::Channel::setIndex(const quint32 &index) {
     _index = index;
 }
 
-quint64 Payor::Slot::price() const {
+quint64 Payor::Channel::price() const {
     return _price;
 }
 
-void Payor::Slot::setPrice(const quint64 &priceIncrement) {
+void Payor::Channel::setPrice(const quint64 &priceIncrement) {
     _price = priceIncrement;
 }
 
-quint64 Payor::Slot::funds() const {
+quint64 Payor::Channel::funds() const {
     return _funds;
 }
 
-void Payor::Slot::setFunds(const quint64 &funds) {
+void Payor::Channel::setFunds(const quint64 &funds) {
     _funds = funds;
 }
 
 Payor::Payor() {
 }
 
-Payor::Payor(const QSet<Slot::PayorConfiguration> & configurations, const OutputPoint& fundingOutput, const KeyPair& fundingOutputKeyPair)
+Payor::Payor(const QSet<Channel::PayorConfiguration> & configurations, const OutputPoint& fundingOutput, const KeyPair& fundingOutputKeyPair)
     : _state(State::waiting_for_full_set_of_sellers)
     , _fundingOutput(fundingOutput)
     , _fundingOutputKeyPair(fundingOutputKeyPair)
@@ -328,16 +338,16 @@ Payor::Payor(const QSet<Slot::PayorConfiguration> & configurations, const Output
     // *has enough value
 
     quint32 index = 0;
-    for(QSet<Slot::PayorConfiguration>::iterator i = configurations.begin(),
+    for(QSet<Channel::PayorConfiguration>::iterator i = configurations.begin(),
             end(configurations.end()); i != end;i++) {
 
         // Get configuration
-        Slot::PayorConfiguration payorConfiguration = *i;
+        Channel::PayorConfiguration payorConfiguration = *i;
 
-        // Create slot
-        Slot s;
+        // Create channel
+        Channel s;
         s.index(index);
-        s.state(Slot::State::unassigned);
+        s.state(Channel::State::unassigned);
         s.numberOfPaymentsMade(0);
         s.payorContractKeyPair(payorConfiguration.contractKeyPair());
         s.payorFinalKeyPair(payorConfiguration.finalKeyPair());
@@ -345,14 +355,14 @@ Payor::Payor(const QSet<Slot::PayorConfiguration> & configurations, const Output
         s.funds(payorConfiguration.funds());
 
         // Add slot
-        _slots.append(s);
+        _channels.append(s);
 
         // Increment counter
         index++;
     }
 }
 
-quint32 Payor::assignUnassignedSlot(const Slot::PayeeConfiguration & configuration) {
+quint32 Payor::assignUnassignedSlot(const Channel::PayeeConfiguration & configuration) {
 
     // Check payor is trying to find sellers
     if(_state != State::waiting_for_full_set_of_sellers)
@@ -361,12 +371,12 @@ quint32 Payor::assignUnassignedSlot(const Slot::PayeeConfiguration & configurati
     // Find a slot
     quint32 numberUnassigned = 0;
     quint32 slotIndex = -1;
-    for(quint32 i = 0;i < _slots.size();i++) {
+    for(quint32 i = 0;i < _channels.size();i++) {
 
         // Get reference to slot
-        Slot & s = _slots[i];
+        Channel & s = _channels[i];
 
-        if(s.state() == Slot::State::unassigned) {
+        if(s.state() == Channel::State::unassigned) {
 
             // Count number of unassigned slots
             numberUnassigned++;
@@ -379,7 +389,7 @@ quint32 Payor::assignUnassignedSlot(const Slot::PayeeConfiguration & configurati
                 s.payeeContractPk(configuration.contractPk());
                 s.payeeFinalPk(configuration.finalPk());
                 s.paymentFee(configuration.paymentFee());
-                s.state(Slot::State::assigned);
+                s.state(Channel::State::assigned);
 
                 // and slot index
                 slotIndex = i;
@@ -391,9 +401,14 @@ quint32 Payor::assignUnassignedSlot(const Slot::PayeeConfiguration & configurati
     if(numberUnassigned == 1) {
         _state = State::waiting_for_full_set_of_refund_signatures;
 
-        // Generate contract and save hash
-        _contract = contract();
-        _contractHash = BitSwaprjs.compute_contract_hash(contract);
+        // Compute and set _contractHash
+        P2PKHTxOut changeOutput(_changeValue, _changeOutputKeyPair.pk());
+        _contractHash = BitSwaprjs.compute_contract_hash(_fundingOutput, _fundingOutputKeyPair.pk(), _channels, changeOutput);
+
+        // Compute all refund signatures
+        for(QVector<Channel>::Iterator i = _channels.begin(), end(_channels.end()); i != end;i++)
+            i->computePayorRefundSignature(_contractHash);
+
     }
 
     return slotIndex;
@@ -405,22 +420,22 @@ void Payor::unassignSlot(quint32 index) {
         throw std::exception("State incompatile request, must be in State::waiting_for_full_set_of_sellers or State::waiting_for_full_set_of_refund_signatures state.");
 
     // Check that index is valid
-    if(index >= _slots.size())
+    if(index >= _channels.size())
         throw std::exception("Invalid index.");
 
     // Update slot state
-    _slots[index].state(Slot::State::unassigned);
+    _channels[index].state(Channel::State::unassigned);
 
     // If some slots had refund signed state, i.e. valid signature, then revert state
-    for(QVector<Slot>::iterator i = _slots.begin(),
-            end(_slots.end()); i != end;i++) {
+    for(QVector<Channel>::iterator i = _channels.begin(),
+            end(_channels.end()); i != end;i++) {
 
         // Get slot
-        Slot & s = *i;
+        Channel & s = *i;
 
         // Reset state back to simply assigned, if a valid signature existed
-        if(s.state() == Slot::State::refund_signed)
-            s.state(Slot::State::assigned);
+        if(s.state() == Channel::State::refund_signed)
+            s.state(Channel::State::assigned);
     }
 
     // Set state of payor
@@ -437,30 +452,39 @@ bool Payor::processRefundSignature(quint32 index, const Signature & signature) {
         throw std::exception("State incompatile request, must be in State::waiting_for_full_set_of_refund_signatures state.");
 
     // Check that index is valid
-    if(index >= _slots.size())
+    if(index >= _channels.size())
         throw std::exception("Invalid index.");
 
     // Get slot
-    Slot & s = _slots[index];
+    Channel & s = _channels[index];
 
-    Q_ASSERT(s.state() == Slot::State::assigned);
+    Q_ASSERT(s.state() == Channel::State::assigned);
 
     // Get refund
     Refund refund = s.refund(_contractHash);
 
     // Check signature
-    bool validSignature = BitSwaprjs.check_refund_signature(refund, s.payorContractKeyPair().sk(), _contract, signature);
+    bool validSignature = refund.isRefundValid();
+
+    // pk keys controlling given output => to build multisigoutput script
+    // value of output
+    // payor sig
+    // payee sig
+    // payor refund address/pk
+
+
+    //BitSwaprjs.check_refund_signature(refund, s.payorContractKeyPair().sk(), _contract, signature);
 
     // If it matched, then alter state and save refund
     if(validSignature) {
 
-        s.state(Slot::State::refund_signed);
+        s.state(Channel::State::refund_signed);
         s.refund(signature);
 
         _numberOfSignedSlots++;
 
         // Check if they are all signed
-        if(_numberOfSignedSlots == _slots.size()) {
+        if(_numberOfSignedSlots == _channels.size()) {
             _state = State::paying;
         }
     }
@@ -480,6 +504,7 @@ bool Payor::spent(quint32 index) const {
 
 }
 
+/**
 Contract Payor::contract() const {
 
     // Check that a full set of sellers has been established
@@ -495,6 +520,7 @@ Contract Payor::contract() const {
 
     return contract;
 }
+*/
 
 OutputPoint Payor::fundingOutput() const {
     return _fundingOutput;

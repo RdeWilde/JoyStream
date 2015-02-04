@@ -1,5 +1,7 @@
 #include "P2PKHTxOut.hpp"
 
+#include <QJsonObject>
+
 P2PKHTxOut::P2PKHTxOut() {
 }
 
@@ -16,6 +18,14 @@ P2PKHTxOut & P2PKHTxOut::operator=(const P2PKHTxOut& p2pkhTxOut) {
 P2PKHTxOut::P2PKHTxOut(quint64 value, const PublicKey& pk)
     : _value(value)
     , _pk(pk){
+}
+
+QJsonObject P2PKHTxOut::json() const {
+
+    return QJsonObject {
+                        {"value", _value},
+                        {"pk", _pk.toString()},
+                        };
 }
 
 quint64 P2PKHTxOut::value() const {

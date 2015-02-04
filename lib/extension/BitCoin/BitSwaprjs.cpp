@@ -22,72 +22,6 @@ BitSwaprjs::BitSwaprjs(const QString & node, const QString & module)
     , _module(module) {
 }
 
-void BitSwaprjs::test() const {
-    nodeBlockingCall("test", QJsonValue());
-}
-
-QList<KeyPair> BitSwaprjs::generate_fresh_key_pairs(int numberOfPairs) {
-
-    // Make call to generate keys
-    QJsonValue result = nodeBlockingCall("generate_fresh_key_pairs", QJsonValue(numberOfPairs));
-
-    // Create list for key pairs
-    QList<KeyPair> keyPairs;
-
-    QJsonArray jsonKeyPairsArray = result.toArray();
-
-    for(QJsonArray::iterator i = jsonKeyPairsArray.begin(),
-        end(jsonKeyPairsArray.end()); i != end;i++) {
-
-        // Get json array element
-        QJsonValue element = *i;
-
-        // Turn into map
-        QJsonObject map = element.toObject();
-
-        // Get keypair from map and add to keypair list
-        QString pkString = map["pk"].toString();
-        QString skString = map["sk"].toString();
-        QString addressString = map["address"].toString();
-
-        keyPairs.append(KeyPair(PublicKey(pkString), PrivateKey(skString)));
-    }
-}
-
-Hash BitSwaprjs::compute_contract_hash(const Contract & contract) {
-
-    // Turn into json encoding
-    QJsonObject encodedContract = contract.bitswaprjsEncoding();
-
-    // Make call
-    QJsonValue result = nodeBlockingCall("compute_contract_hash", QJsonValue(encodedContract));
-
-    // Turn string to hash
-    return Hash(result.toString());
-}
-
-bool BitSwaprjs::check_refund_signature(const Refund & refund, const PrivateKey & sk, const Contract & contract, const Signature & signature) {
-
-    // Turn into json encoding
-    QJsonObject encodedRefund = refund.bitswaprjsEncoding();
-
-    // Turn into json encoding
-    QJsonObject encodedContract = contract.bitswaprjsEncoding();
-
-    // Create params object
-    QJsonObject params  {
-        {"refund", encodedRefund},
-        {"contract", encodedContract},
-        {"signature", signature.toString()}
-    };
-
-    // Make call
-    QJsonValue result = nodeBlockingCall("check_refund_signature", QJsonValue(params));
-
-    // Turn into bool result
-    return result.toBool();
-}
-
 QJsonObject BitSwaprjs::nodeBlockingCall(const QString & method, const QJsonValue & params) {
 
     // Build input dictionary for node script
@@ -139,3 +73,114 @@ QJsonObject BitSwaprjs::nodeBlockingCall(const QString & method, const QJsonValu
         return o['result'];
     }
 }
+
+QList<KeyPair> BitSwaprjs::generate_fresh_key_pairs(int numberOfPairs) {
+
+    // Make call to generate keys
+    QJsonValue result = nodeBlockingCall("generate_fresh_key_pairs", QJsonValue(numberOfPairs));
+
+    // Create list for key pairs
+    QList<KeyPair> keyPairs;
+
+    QJsonArray jsonKeyPairsArray = result.toArray();
+
+    for(QJsonArray::iterator i = jsonKeyPairsArray.begin(),
+        end(jsonKeyPairsArray.end()); i != end;i++) {
+
+        // Get json array element
+        QJsonValue element = *i;
+
+        // Turn into map
+        QJsonObject map = element.toObject();
+
+        // Get keypair from map and add to keypair list
+        QString pkString = map["pk"].toString();
+        QString skString = map["sk"].toString();
+        QString addressString = map["address"].toString();
+
+        keyPairs.append(KeyPair(PublicKey(pkString), PrivateKey(skString)));
+    }
+}
+
+/**
+Hash BitSwaprjs::compute_contract_hash(const Contract & contract, const PrivateKey & sk) {
+
+    // Create json parameters
+    QJsonObject encodedContract = contract.json();
+
+    QJsonObject params {
+      {"contract", encodedContract},
+      {"sk", sk.toString()}
+    };
+
+    // Make call
+    QJsonValue result = nodeBlockingCall("compute_contract_hash", QJsonValue(params));
+
+    // Turn string to hash
+    return Hash(result.toString());
+}
+*/
+
+Hash BitSwaprjs::compute_contract_hash(const OutputPoint & fundingOutput, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput) {
+
+    // Encode parameters into json
+    QJsonArray p2shTxOuts;
+
+    for(QVector<Payor::Channel>::iterator i = channels.begin(), end(channels.end()); i != end;i++)
+        p2shTxOuts.append(i->json());
+
+    QJsonObject params {
+        {"fundingOutput",   fundingOutput.json()},
+        {"p2shTxOuts",      p2shTxOuts},
+        {"change",          changeOutput.json()},
+        {"sk",              sk.toString()}
+    };
+
+    // Make call
+    QJsonValue result = nodeBlockingCall("compute_contract_hash", QJsonValue(params));
+
+    // Turn string to hash
+    return Hash(result.toString());
+}
+
+Signature BitSwaprjs::compute_payor_refund_signature(const OutputPoint & contractOutputPoint, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime) {
+
+    // Create parameters
+    QJsonObject params {
+        {"contractOutputPoint", contractOutputPoint.json()},
+        {"firstPk", firstPk.toString()},
+        {"secondPk", secondPk.toString()},
+        {"refundOutput", refundOutput.json()},
+        {"refundLockTime", refundLockTime}
+    };
+
+    // Make call
+    QJsonValue result = nodeBlockingCall("compute_payor_refund_signature", QJsonValue(params));
+
+    // Turn string to signature
+    return Signature(result.toString());
+}
+
+bool BitSwaprjs::check_refund_signature(const Refund & refund, const PrivateKey & sk, const Contract & contract, const Signature & signature) {
+
+    // Turn into json encoding
+    QJsonObject encodedRefund = refund.json();
+
+    // Turn into json encoding
+    QJsonObject encodedContract = contract.json();
+
+    // Create params object
+    QJsonObject params  {
+        {"refund", encodedRefund},
+        {"sk", sk.toString()},
+        {"contract", encodedContract},
+        {"signature", signature.toString()}
+    };
+
+    // Make call
+    QJsonValue result = nodeBlockingCall("check_refund_signature", QJsonValue(params));
+
+    // Turn into bool result
+    return result.toBool();
+}
+

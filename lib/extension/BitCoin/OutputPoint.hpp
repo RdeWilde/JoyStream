@@ -3,6 +3,8 @@
 
 #include "extension/BitCoin/Hash.hpp"
 
+class QJsonObject;
+
 class OutputPoint
 {
 public:
@@ -16,6 +18,8 @@ public:
 
     // Constructor
     OutputPoint(const Hash & hash, quint32 index);
+
+    QJsonObject json() const;
 
     // Getters and setters
     Hash hash() const;

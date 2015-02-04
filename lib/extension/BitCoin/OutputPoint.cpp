@@ -1,5 +1,7 @@
 #include "OutputPoint.hpp"
 
+#include <QJsonObject>
+
 OutputPoint::OutputPoint() {
 }
 
@@ -16,6 +18,13 @@ OutputPoint & operator=(const OutputPoint& outputPoint) {
 OutputPoint::OutputPoint(const Hash & hash, quint32 index)
     : _hash(hash)
     , _index(index) {
+}
+
+QJsonObject OutputPoint::OutputPoint() const {
+    return QJsonObject {
+                        {"hash", _hash.toString()},
+                        {"index",_index.index()}
+                        };
 }
 
 Hash OutputPoint::hash() const {

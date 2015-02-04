@@ -11,14 +11,14 @@ class Refund
 {
 public:
 
-    // Constructor based on JSON of raw transaction
-    Refund(const QJsonObject & bitswaprjsEncoding);
+    // Constructor based on JSON with encoding
+    Refund(const QJsonObject & json);
 
     // Constructor based on members
     Refund(const OutputPoint & contractOutput, const P2PKHTxOut & ouput, quint32 lockTime);
 
-    // To JSON with bitswaprjsEncoding
-    QJsonObject bitswaprjsEncoding() const;
+    // To JSON with encoding
+    QJsonObject json() const;
 
     // Checks if signature is valid for refund in index'th slot
     bool isRefundValid(const Signature &payorSignature, const Signature &payeeSignature) const;

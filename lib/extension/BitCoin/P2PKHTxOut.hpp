@@ -3,6 +3,8 @@
 
 #include "extension/BitCoin/PublicKey.hpp"
 
+class QJsonObject;
+
 class P2PKHTxOut
 {
 public:
@@ -16,6 +18,8 @@ public:
 
     // Constructor from members
     P2PKHTxOut(quint64 value, const PublicKey& pk);
+
+    QJsonObject json() const;
 
     // Getters and setters
     quint64 value() const;

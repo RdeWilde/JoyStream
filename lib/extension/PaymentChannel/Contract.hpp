@@ -2,10 +2,13 @@
 #define CONTRACT_HPP
 
 #include "extension/BitCoin/OutputPoint.hpp"
+//#include "extension/BitCoin/Signature.hpp"
 #include "extension/BitCoin/P2SHTxOut.hpp"
 #include "extension/BitCoin/P2PKHTxOut.hpp"
 
 class QJsonObject;
+class PrivateKey;
+//class Signature;
 
 class Contract
 {
@@ -21,10 +24,10 @@ public:
     Contract(const OutputPoint &fundingOutput, quint32 numberOfMultisigOutputs, const P2PKHTxOut &change);
 
     // Constructor based on bitswaprjsEncoding
-    //Contract(const QJsonObject & bitswaprjsEncoding);
+    //void sign(const PrivateKey & sk);
 
-    // To JSON with bitswaprjsEncoding
-    QJsonObject bitswaprjsEncoding() const;
+    // To JSON encoding
+    QJsonObject json() const;
 
     // Getters and setters
     OutputPoint fundingOutput() const;

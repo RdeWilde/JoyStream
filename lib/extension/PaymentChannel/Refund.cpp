@@ -2,7 +2,7 @@
 
 #include <QJsonObject>
 
-Refund::Refund(const QJsonObject & rawTransaction) {
+Refund::Refund(const QJsonObject & json) {
     // Recover fields
 }
 
@@ -12,8 +12,23 @@ Refund::Refund(const OutputPoint & contractOutput, const P2PKHTxOut& ouput, quin
     , _lockTime(lockTime) {
 }
 
-QJsonObject Refund::bitswaprjsEncoding() const {
-    // Turn into raw json transaction
+QJsonObject Refund::json() const {
+
+    QJsonObject contractOutput {
+        {"hash", _contractOutput.hash().toString()},
+        {"index", _contractOutput.index()},
+    };
+
+    QJsonObject output {
+        {"value", _output.value()},
+        {"pk", _output.pk().toString()},
+    };
+
+    return QJsonObject {
+        {"contractOutput", contractOutput},
+        {"output", output},
+        {"lockTime", _lockTime}
+    };
 }
 
 bool Refund::isRefundValid(const Signature &payorSignature, const Signature &payeeSignature) const {

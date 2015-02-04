@@ -8,10 +8,11 @@
 #include "extension/BitCoin/Signature.hpp"
 #include "extension/BitCoin/OutputPoint.hpp"
 
-#include "Contract.hpp"
+//#include "Contract.hpp"
 
 class Refund;
 class Payment;
+//class Contract;
 
 /**
  * 1-to-N payment channel from payor perspective, using design in CBEP.
@@ -44,16 +45,16 @@ public:
     };
 
     /**
-     * Represents payment channel participant as seen by a payor.
+     * Represents a single channel.
      */
-    class Slot {
+    class Channel {
 
     public:
 
         /**
-         * @brief The configurations of a slot set by the payor
+         * @brief The configurations of a channel set by the payor
          *
-         * IS THIS NEEDED.
+         * IS THIS NEEDED ???
          */
         class PayorConfiguration {
 
@@ -101,7 +102,7 @@ public:
         };
 
         /**
-         * @brief The configurations of a slot set by the payee
+         * @brief The configurations of a channel set by the payee
          */
         class PayeeConfiguration {
 
@@ -139,7 +140,7 @@ public:
         };
 
         /**
-         * @brief Enumeration of possible slot states.
+         * @brief Enumeration of possible channel states.
          */
         enum class State {
             unassigned,
@@ -148,12 +149,12 @@ public:
         };
 
         // Default/Copy constructor and assignemtn operator needed to put in container.
-        Slot();
-        Slot(const Slot& slot);
-        Slot & operator=(const Slot& rhs);
+        Channel();
+        Channel(const Channel& slot);
+        Channel & operator=(const Channel& rhs);
 
         // Set all fields, e.g. loading from file
-        Slot(quint32 index,
+        Channel(quint32 index,
              const State &state,
              quint64 price,
              quint64 numberOfPaymentsMade,
@@ -177,14 +178,16 @@ public:
         // Payment transaction for slot, based on current _numberOfPaymentsMade value
         Payment payment(const Hash &contractHash) const;
 
-        // Refund signature
-        Signature refundSignature(const Hash &contractHash) const;
+        // Compute payor refund signature
+        void computePayorRefundSignature(const Hash &contractHash) const;
 
         // Payment signature
         Signature paymentSignature(const Hash &contractHash) const;
 
         // Registers that a payment was made
         void paymentMade();
+
+        QJsonObject json() const;
 
         /**
          * Getters and setters
@@ -261,8 +264,11 @@ public:
         // Controls payee payments, received in sign_refund.pk
         PublicKey _payeeFinalPk;
 
-        // Controls output refund for payee
-        Signature _refund;
+        // Controls refund for payor
+        Signature _payorRefundSignature;
+
+        // Controls refund for payee
+        Signature _payeeRefundSignature;
 
         // Fee used in refund transaction, is unlikely to vary across slots,
         quint64 _refundFee;
@@ -278,14 +284,14 @@ public:
     Payor();
 
     // Constructor based on members
-    Payor(const QSet<Slot::PayorConfiguration> & configurations, const OutputPoint& fundingOutput, const KeyPair& fundingOutputKeyPair);
+    Payor(const QSet<Channel::PayorConfiguration> & configurations, const OutputPoint& fundingOutput, const KeyPair& fundingOutputKeyPair);
 
     // Finds an unassigned slot
     // ========================
     // If one is found then the
     // given payee slot configurations are saved in slot,
     // and if this was last unassigned slot, then payor state is switched.
-    quint32 assignUnassignedSlot(const Slot::PayeeConfiguration & configuration);
+    quint32 assignUnassignedSlot(const Channel::PayeeConfiguration & configuration);
 
     // Resets slot state to unassigned
     // ===============================
@@ -327,7 +333,7 @@ private:
     State _state;
 
     // Contract outputs
-    QVector<Slot> _slots;
+    QVector<Channel> _channels;
 
     // Unspent output funding channel
     OutputPoint _fundingOutput;
@@ -349,13 +355,11 @@ private:
      * and is cleared whenever a signature failed.
      */
 
-    Contract _contract;
+    //Contract _contract;
     Hash _contractHash;
-
     quint32 _numberOfSignedSlots;
-
-    // Get contract for channel
-    Contract contract() const;
+    //Contract contract() const;
+    void compute_and_set_contract_tx_hash();
 
 };
 

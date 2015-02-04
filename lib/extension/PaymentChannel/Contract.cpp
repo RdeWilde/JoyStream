@@ -1,4 +1,6 @@
 #include "Contract.hpp"
+#include "extension/BitCoin/PrivateKey.hpp"
+#include "extension/BitCoin/BitSwaprjs.hpp"
 
 #include <QJsonObject>
 
@@ -22,13 +24,12 @@ Contract::Contract(const OutputPoint &fundingOutput, quint32 numberOfMultisigOut
     , _p2shTxOuts(numberOfMultisigOutputs)
     , _change(change){
 }
-/**
-Contract::Contract(const QJsonObject & rawTransaction) {
-
+/*
+void Contract::sign(const PrivateKey & sk) {
 
 }
 */
-QJsonObject Contract::bitswaprjsEncoding() const {
+QJsonObject Contract::json() const {
 
     QJsonObject fundingOutput {
         {"hash", _fundingOutput.hash().toString()},
