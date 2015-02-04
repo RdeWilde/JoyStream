@@ -243,7 +243,7 @@ void Payor::Channel::setPaymentFee(const quint64 &paymentFee) {
     _paymentFee = paymentFee;
 }
 
-PublicKey PaymentChannelPayPaymentChannelPayoror::Slot::payeeFinalPk() const {
+PublicKey Payor::Channel::payeeFinalPk() const {
     return _payeeFinalPk;
 }
 
@@ -283,26 +283,26 @@ quint32 Payor::Channel::refundLockTime() const {
 void Payor::Channel::setRefundLockTime(const quint32 &refundLockTime) {
     _refundLockTime = refundLockTime;
 }
-Signature Channel::payeeRefundSignature() const
+
+Signature Payor::Channel::payeeRefundSignature() const
 {
     return _payeeRefundSignature;
 }
 
-void Channel::setPayeeRefundSignature(const Signature &payeeRefundSignature)
+void Payor::Channel::setPayeeRefundSignature(const Signature &payeeRefundSignature)
 {
     _payeeRefundSignature = payeeRefundSignature;
 }
 
-Signature Channel::payorRefundSignature() const
+Signature Payor::Channel::payorRefundSignature() const
 {
     return _payorRefundSignature;
 }
 
-void Channel::setPayorRefundSignature(const Signature &payorRefundSignature)
+void Payor::Channel::setPayorRefundSignature(const Signature &payorRefundSignature)
 {
     _payorRefundSignature = payorRefundSignature;
 }
-
 
 PublicKey Payor::Channel::payeeContractPk() const {
     return _payeeContractPk;
@@ -505,22 +505,45 @@ bool Payor::processRefundSignature(quint32 index, const Signature & signature) {
             _state = State::paying;
 
             // What do we do now?!
+            // up to user of channel to act.
         }
     }
 
     return validSignature;
 }
 
-Signature Payor::presentPaymentSignature(quint32 index) const {
+Signature Payor::getPresentPaymentSignature(quint32 index) const {
 
+    // Check that we are paying
+    if(_state != State::paying)
+        throw std::exception("State incompatile request, must be in State::paying state.");
+
+    // Check that index is valid
+    if(index >= _channels.size())
+        throw std::exception("Invalid index.");
+
+    // Get channel
+    Channel & s = _channels[index];
+
+    Q_ASSERT(s.state() == Channel::State::refund_signed);
+
+    // The amount paid so far
+    quint64 amountPaid = _price*_numberOfPaymentsMade;
+
+    return BitSwaprjs.compute_payor_payment_signature(OutputPoint(_contractHash, index),
+                                                       P2PKHTxOut(s.funds() - amountPaid, s.payorContractKeyPair.pk()),
+                                                       P2PKHTxOut(amountPaid - _paymentFee, s.payorContractKeyPair.pk()),
+                                                       s.payorContractKeyPair().sk());
 }
 
 bool Payor::claimRefund(quint32 index) const {
 
+    // Try to spend refund
 }
 
 bool Payor::spent(quint32 index) const {
 
+    // Check if cannel payment has been spent
 }
 
 /**

@@ -225,7 +225,8 @@ public:
         Signature payorRefundSignature() const;
         void setPayorRefundSignature(const Signature &payorRefundSignature);
 
-
+        Signature payeeRefundSignature() const;
+        void setPayeeRefundSignature(const Signature &payeeRefundSignature);
 
     private:
 
@@ -303,7 +304,8 @@ public:
     bool processRefundSignature(quint32 index, const Signature & signature);
 
     // Returns the payment signature for the present payment increment of given slot
-    Signature presentPaymentSignature(quint32 index) const;
+    // ============================================
+    Signature getPresentPaymentSignature(quint32 index) const;
 
     // Attempts to claim refund for given slot
     // Returns false iff (time lock has not experied on refund or output has been double spent)
@@ -350,8 +352,6 @@ private:
     //Contract _contract;
     Hash _contractHash;
     quint32 _numberOfSignedSlots;
-    //Contract contract() const;
-    void compute_and_set_contract_tx_hash();
 
 };
 

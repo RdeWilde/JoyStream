@@ -182,3 +182,19 @@ bool BitSwaprjs::check_refund_signatures(const OutputPoint & contractOutputPoint
     return result.toBool();
 }
 
+Signature BitSwaprjs::compute_payor_payment_signature(const OutputPoint & contractOutputPoint, const P2PKHTxOut &refundOutput, const P2PKHTxOut & payeeOutput, const PrivateKey &sk) {
+
+    // Create parameters
+    QJsonObject params {
+        {"contractOutputPoint", contractOutputPoint.json()},
+        {"refundOutput", refundOutput.json()},
+        {"payeeOutput", payeeOutput.json()},
+        {"sk", sk.toString()},
+    };
+
+    // Make call
+    QJsonValue result = nodeBlockingCall("compute_payor_payment_signature", QJsonValue(params));
+
+    // Turn into bool result
+    return Signature(result.toString());
+}
