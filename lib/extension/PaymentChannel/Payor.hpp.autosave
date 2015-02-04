@@ -225,16 +225,17 @@ public:
         Signature payorRefundSignature() const;
         void setPayorRefundSignature(const Signature &payorRefundSignature);
 
-
-
+        Signature payeeRefundSignature() const;
+        void setPayeeRefundSignature(const Signature &payeeRefundSignature);
+        
     private:
-
+        
         // Index in contract
         quint32 _index;
-
+        
         // Slot state
         State _state;
-
+        
         // Size of single payment
         quint64 _price;
 

@@ -153,6 +153,7 @@ Payor::Channel::Channel(quint32 index,
                                 , _paymentFee(paymentFee) {
 }
 
+/**
 Refund Payor::Channel::refund(const Hash &contractHash) const {
     return Refund(OutputPoint(contractHash, _index),
                   P2PKHTxOut(_funds - _refundFee, _payorContractKeyPair.pk(), _payeeContractPk),
@@ -168,6 +169,7 @@ Payment Payor::Channel::payment(const Hash &contractHash) const {
                    P2PKHTxOut(_funds - amountPaid, _payorContractKeyPair.pk()),
                    P2PKHTxOut(amountPaid - _paymentFee, _payorContractKeyPair.pk()));
 }
+*/
 
 void Payor::Channel::computePayorRefundSignature(const Hash &contractHash) const {
 
@@ -179,7 +181,9 @@ void Payor::Channel::computePayorRefundSignature(const Hash &contractHash) const
     OutputPoint contractOutputPoint(contractHash, _index);
     P2PKHTxOut refundOutput(_funds, _payorFinalKeyPair.pk());
 
-    _payorRefundSignature = BitSwaprjs.compute_payor_refund_signature(contractOutputPoint, _payorContractKeyPair.pk(), _payeeContractPk, refundOutput,_refundLockTime);
+    // remove PKs later, no reason we need them
+
+    _payorRefundSignature = BitSwaprjs.compute_payor_refund_signature(contractOutputPoint, _payorContractKeyPair.sk(), _payorContractKeyPair.pk(), _payeeContractPk, refundOutput,_refundLockTime);
 }
 
 Signature Payor::Channel::paymentSignature(const Hash &contractHash) const {
@@ -193,7 +197,6 @@ Signature Payor::Channel::paymentSignature(const Hash &contractHash) const {
       */
 
     return Signature();
-
 }
 
 QJsonObject Payor::Channel::json() const {
@@ -280,6 +283,26 @@ quint32 Payor::Channel::refundLockTime() const {
 void Payor::Channel::setRefundLockTime(const quint32 &refundLockTime) {
     _refundLockTime = refundLockTime;
 }
+Signature Channel::payeeRefundSignature() const
+{
+    return _payeeRefundSignature;
+}
+
+void Channel::setPayeeRefundSignature(const Signature &payeeRefundSignature)
+{
+    _payeeRefundSignature = payeeRefundSignature;
+}
+
+Signature Channel::payorRefundSignature() const
+{
+    return _payorRefundSignature;
+}
+
+void Channel::setPayorRefundSignature(const Signature &payorRefundSignature)
+{
+    _payorRefundSignature = payorRefundSignature;
+}
+
 
 PublicKey Payor::Channel::payeeContractPk() const {
     return _payeeContractPk;
@@ -455,37 +478,33 @@ bool Payor::processRefundSignature(quint32 index, const Signature & signature) {
     if(index >= _channels.size())
         throw std::exception("Invalid index.");
 
-    // Get slot
+    // Get channel
     Channel & s = _channels[index];
 
     Q_ASSERT(s.state() == Channel::State::assigned);
 
-    // Get refund
-    Refund refund = s.refund(_contractHash);
-
     // Check signature
-    bool validSignature = refund.isRefundValid();
+    bool validSignature = BitSwaprjs.check_refund_signatures(OutputPoint(_contractHash, index),
+                                                             s.payorRefundSignature(),
+                                                             signature,
+                                                             s.payorContractKeyPair().pk(),
+                                                             s.payeeContractPk(),
+                                                             P2PKHTxOut(s.funds(), s.payorFinalPk()),
+                                                             s.refundLockTime());
 
-    // pk keys controlling given output => to build multisigoutput script
-    // value of output
-    // payor sig
-    // payee sig
-    // payor refund address/pk
-
-
-    //BitSwaprjs.check_refund_signature(refund, s.payorContractKeyPair().sk(), _contract, signature);
-
-    // If it matched, then alter state and save refund
+    // If it matched, then alter state and save signature
     if(validSignature) {
 
         s.state(Channel::State::refund_signed);
-        s.refund(signature);
+        s.setPayeeRefundSignature(signature);
 
         _numberOfSignedSlots++;
 
         // Check if they are all signed
         if(_numberOfSignedSlots == _channels.size()) {
             _state = State::paying;
+
+            // What do we do now?!
         }
     }
 

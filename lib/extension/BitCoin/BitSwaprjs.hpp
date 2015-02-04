@@ -26,20 +26,11 @@ public:
 
     static QList<KeyPair> generate_fresh_key_pairs(int numberOfPairs);
 
-    //static Signature compute_contract_signature(const Contract & contract);
-
-    //static Hash compute_contract_hash(const Contract & contract, const PrivateKey & sk);
-
     static Hash compute_contract_hash(const OutputPoint & fundingOutput, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput);
 
-    static Signature compute_payor_refund_signature(const OutputPoint & contractOutputPoint, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime);
+    static Signature compute_payor_refund_signature(const OutputPoint & contractOutputPoint, const PrivateKey &sk, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime);
 
-
-
-
-
-
-    static bool check_refund_signature(const Refund & refund, const PrivateKey & sk, const Contract & contract, const Signature & signature);
+    static bool check_refund_signatures(const OutputPoint & contractOutputPoint, const Signature &payorSignature, const Signature &payeeSignature, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime);
 
 private:
 

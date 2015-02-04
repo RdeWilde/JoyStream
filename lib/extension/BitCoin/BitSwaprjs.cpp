@@ -143,11 +143,12 @@ Hash BitSwaprjs::compute_contract_hash(const OutputPoint & fundingOutput, const 
     return Hash(result.toString());
 }
 
-Signature BitSwaprjs::compute_payor_refund_signature(const OutputPoint & contractOutputPoint, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime) {
+Signature BitSwaprjs::compute_payor_refund_signature(const OutputPoint & contractOutputPoint, const PrivateKey &sk, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime) {
 
     // Create parameters
     QJsonObject params {
         {"contractOutputPoint", contractOutputPoint.json()},
+        {"sk", sk.toString()},
         {"firstPk", firstPk.toString()},
         {"secondPk", secondPk.toString()},
         {"refundOutput", refundOutput.json()},
@@ -161,24 +162,21 @@ Signature BitSwaprjs::compute_payor_refund_signature(const OutputPoint & contrac
     return Signature(result.toString());
 }
 
-bool BitSwaprjs::check_refund_signature(const Refund & refund, const PrivateKey & sk, const Contract & contract, const Signature & signature) {
+bool BitSwaprjs::check_refund_signatures(const OutputPoint & contractOutputPoint, const Signature &payorSignature, const Signature &payeeSignature, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime) {
 
-    // Turn into json encoding
-    QJsonObject encodedRefund = refund.json();
-
-    // Turn into json encoding
-    QJsonObject encodedContract = contract.json();
-
-    // Create params object
-    QJsonObject params  {
-        {"refund", encodedRefund},
-        {"sk", sk.toString()},
-        {"contract", encodedContract},
-        {"signature", signature.toString()}
+    // Create parameters
+    QJsonObject params {
+        {"contractOutputPoint", contractOutputPoint.json()},
+        {"payorSignature", payorSignature.toString()},
+        {"payeeSignature", payeeSignature.toString()},
+        {"firstPk", firstPk.toString()},
+        {"secondPk", secondPk.toString()},
+        {"refundOutput", refundOutput.json()},
+        {"refundLockTime", refundLockTime}
     };
 
     // Make call
-    QJsonValue result = nodeBlockingCall("check_refund_signature", QJsonValue(params));
+    QJsonValue result = nodeBlockingCall("check_refund_signatures", QJsonValue(params));
 
     // Turn into bool result
     return result.toBool();
