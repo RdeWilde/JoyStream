@@ -72,7 +72,6 @@ SOURCES += \
     extension/SellerTorrentPlugin.cpp \
     extension/BuyerPeerplugin.cpp \
     extension/SellerPeerPlugin.cpp \
-    extension/PaymentChannel/PaymentChannelPayee.cpp \
     extension/BitCoin/KeyPair.cpp \
     extension/BitCoin/FixedBuffer.cpp \
     extension/BitCoin/OutputPoint.cpp \
@@ -82,7 +81,8 @@ SOURCES += \
     extension/PaymentChannel/Payment.cpp \
     extension/PaymentChannel/Contract.cpp \
     extension/BitCoin/BitSwaprjs.cpp \
-    extension/PaymentChannel/Payor.cpp
+    extension/PaymentChannel/Payor.cpp \
+    extension/PaymentChannel/Payee.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -155,7 +155,6 @@ HEADERS += \
     extension/SellerTorrentPlugin.hpp \
     extension/BuyerPeerPlugin.hpp \
     extension/SellerPeerPlugin.hpp \
-    extension/PaymentChannel/PaymentChannelPayee.hpp \
     extension/BitCoin/KeyPair.hpp \
     extension/BitCoin/FixedBuffer.hpp \
     extension/BitCoin/OutputSigHash.hpp \
@@ -166,7 +165,8 @@ HEADERS += \
     extension/PaymentChannel/Payment.hpp \
     extension/PaymentChannel/Contract.hpp \
     extension/BitCoin/BitSwaprjs.hpp \
-    extension/PaymentChannel/Payor.hpp
+    extension/PaymentChannel/Payor.hpp \
+    extension/PaymentChannel/Payee.hpp
 				
 FORMS += \
     view/mainwindow.ui \

@@ -345,6 +345,7 @@ private:
 
     /**
      * Contract:
+     * ==========================
      * Is recomputed every time a full set of sellers is established,
      * and is cleared whenever a signature failed.
      */
