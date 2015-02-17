@@ -10,13 +10,6 @@ enum class MessageType;
 #include <set>
 #include <map>
 
-/*
-namespace std {
-    class map<MessageType, const char *>;
-    class set<MessageType>;
-}
-*/
-
 /**
  * Static utility functions
  */

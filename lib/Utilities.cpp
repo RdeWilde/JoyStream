@@ -78,7 +78,7 @@ const std::map<MessageType, const char *> Utilities::messageTypeToNameMapping() 
     m[MessageType::refund_signed] = "refund_signed";
     m[MessageType::ready] = "ready";
     m[MessageType::payment] = "payment";
-    m[MessageType::end] = "end";
+    //m[MessageType::end] = "end";
 
     // Return mapping
     return m;

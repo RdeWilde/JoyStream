@@ -1,7 +1,7 @@
 #ifndef PEER_PLUGIN_STATUS_HPP
 #define PEER_PLUGIN_STATUS_HPP
 
-#include "PeerPluginState.hpp"
+//#include "PeerState.hpp"
 #include "PeerPluginId.hpp"
 
 class PeerPluginStatus
@@ -9,16 +9,16 @@ class PeerPluginStatus
 public:
 
     // Default constructor required for Qt MOC
-    PeerPluginStatus();
+    //PeerPluginStatus();
 
     // Constructor
-    PeerPluginStatus(const PeerPluginId & peerPluginId, PeerState peerPluginState, int balance);
+    //PeerPluginStatus(const PeerPluginId & peerPluginId, PeerState peerPluginState, int balance);
 
     // Source of status
     PeerPluginId peerPluginId_;
 
     // State of plugin
-    PeerState peerPluginState_;
+    //PeerState peerPluginState_;
 
     // Balance in favour of client
     int balance_;

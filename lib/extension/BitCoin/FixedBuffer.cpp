@@ -4,13 +4,18 @@
 
 FixedBuffer::FixedBuffer(const QString & string) {
 
-    if(string.length() != L)
-        throw std::exception("String argument is of incorrect length.");
+    // Check that string has correct length
+    if(string.length() != 2*L)
+        throw std::exception("String argument is of incorrect length, should be 2*L.");
     else {
 
+        // Decode from hex format
+        QByteArray b = QByteArray::fromHex(string);
+
+        Q_ASSERT(b.length() == L);
+
         // Copy into buffer
-        for(int i = 0;i < L;i++)
-            _buffer[i] = string.at(i);
+        memcpy(&_buffer, b.constData(), L);
     }
 }
 
@@ -66,6 +71,18 @@ bool FixedBuffer::isClear() const {
 
     // We didn't, so it is clear
     return true;
+}
+
+QString FixedBuffer::toString() const {
+
+    // Put into byte array
+    QByteArray raw(_buffer, L);
+
+    // Hex encode
+    QByteArray hexEncoded = raw.toHex();
+
+    // Return as string
+    return QString(hexEncoded.constData());
 }
 
 const char * FixedBuffer::begin() const {

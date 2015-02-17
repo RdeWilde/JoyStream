@@ -8,8 +8,10 @@ class QStandardItemModel;
 class QStandardItem;
 class PeerPluginStatus;
 class QString;
-enum class PeerStatess PeerPluginViewModel
-{
+//enum class PeerState;
+
+class PeerPluginViewModel {
+
 public:
 
     static const char * columnTitles[];
@@ -21,7 +23,7 @@ public:
     // Update routines
     void update(PeerPluginStatus status);
     void updateHost(const QString & host);
-    void updateState(PeerState);
+    //void updateState(PeerState);
     void updateBalance(int balance);
     void updateProgress();
 

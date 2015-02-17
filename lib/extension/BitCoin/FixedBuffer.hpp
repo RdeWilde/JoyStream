@@ -15,6 +15,7 @@ public:
 
     static const quint32 length = L;
 
+    // Construct from hex encoded string, hence length of string must be 2L
     FixedBuffer(const QString & string);
 
     /**
@@ -31,6 +32,7 @@ public:
     void set(unsigned int index, char value);
     void clear();
     bool isClear() const;
+    QString toString() const;
 
     /**
      * Iterator routines.

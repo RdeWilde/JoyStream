@@ -40,9 +40,9 @@ SOURCES += \
     extension/Request/PluginRequest.cpp \
     extension/Request/TorrentPluginRequest.cpp \
     extension/Request/PeerPluginRequest.cpp \
-    extension/Request/SetConfigurationTorrentPluginRequest.cpp \
+    #extension/Request/SetConfigurationTorrentPluginRequest.cpp \
     controller/TorrentStatus.cpp \
-    extension/Request/SetPluginModeTorrentPluginRequest.cpp \
+    #extension/Request/SetPluginModeTorrentPluginRequest.cpp \
     view/SellerTorrentPluginConfigurationDialog.cpp \
     view/BuyerTorrentPluginConfigurationDialog.cpp \
     extension/Alert/TorrentPluginAlert.cpp \
@@ -62,7 +62,6 @@ SOURCES += \
     extension/Message/Payment.cpp \
     extension/Message/End.cpp \
     extension/BitCoin/PrivateKey.cpp \
-    extension/PayorPaymentChannel.cpp \
     extension/Message/Ready.cpp \
     extension/Message/NoPayloadMessage.cpp \
     extension/BuyerTorrentPlugin.cpp \
@@ -166,7 +165,8 @@ HEADERS += \
     extension/PaymentChannel/Contract.hpp \
     extension/BitCoin/BitSwaprjs.hpp \
     extension/PaymentChannel/Payor.hpp \
-    extension/PaymentChannel/Payee.hpp
+    extension/PaymentChannel/Payee.hpp \
+    extension/BitCoin/P2PKHAddress.hpp
 				
 FORMS += \
     view/mainwindow.ui \

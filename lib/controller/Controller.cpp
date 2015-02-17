@@ -7,8 +7,8 @@
 #include "controller/TorrentConfiguration.hpp"
 #include "extension/Alert/TorrentPluginStatusAlert.hpp"
 #include "extension/Alert/PluginStatusAlert.hpp"
-#include "extension/Request/SetConfigurationTorrentPluginRequest.hpp"
-#include "extension/Request/StartPluginTorrentPluginRequest.hpp"
+//#include "extension/Request/SetConfigurationTorrentPluginRequest.hpp"
+//#include "extension/Request/StartPluginTorrentPluginRequest.hpp"
 
 #include <libtorrent/alert_types.hpp>
 #include <libtorrent/error_code.hpp>

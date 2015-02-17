@@ -3,7 +3,7 @@
 
 #include "BEPSupportStatus.hpp"
 #include "Message/ExtendedMessageIdMapping.hpp"
-#include "PeerPluginState.hpp"
+//#include "PeerPluginState.hpp"
 #include "PeerPluginId.hpp"
 #include "PluginMode.hpp"
 

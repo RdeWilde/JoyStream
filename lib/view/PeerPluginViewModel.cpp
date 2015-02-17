@@ -1,6 +1,6 @@
 #include "PeerPluginViewModel.hpp"
 #include "extension/PeerPluginStatus.hpp"
-#include "extension/PeerPluginState.hpp"
+//#include "extension/PeerPluginState.hpp"
 
 #include <libtorrent/socket_io.hpp>
 
@@ -49,7 +49,7 @@ PeerPluginViewModel::PeerPluginViewModel(const libtorrent::tcp::endpoint & endPo
 void PeerPluginViewModel::update(PeerPluginStatus status) {
 
     // State
-    updateState(status.peerPluginState_);
+    //updateState(status.peerPluginState_);
 
     // Balance
     updateBalance(status.balance_);
@@ -62,6 +62,7 @@ void PeerPluginViewModel::updateHost(const QString & host) {
     hostItem->setText(host);
 }
 
+/*
 void PeerPluginViewModel::updateState(PeerState state) {
 
     switch(state) {
@@ -74,6 +75,7 @@ void PeerPluginViewModel::updateState(PeerState state) {
         break;
     }
 }
+*/
 
 void PeerPluginViewModel::updateBalance(int balance) {
     balanceItem->setText(QString::number(balance));

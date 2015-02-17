@@ -41,7 +41,18 @@ public:
 
     Signature generateRefundSignature() const;
 
-    bool checkPaymentSignature() const;
+    // Attempts to register payment if signature is valid
+    // ==================================================
+    // A valid signature will lead to an increase of _numberOfPaymentsMade,
+    // and storing signature in _lastValidPaymentSignature
+    bool registerPayment(const Signature &paymentSignature);
+
+    // Attempts to check validity of given payment signature with (_numberOfPaymentsMade + 1)
+    bool checkNextPaymentSignature(const Signature &paymentSignature) const;
+
+    /**
+     * Routines below check contract validity in various ways
+     */
 
     // Returns the rate at which peers have output point
     // of contract in mempool or chain.
@@ -63,6 +74,9 @@ private:
     //
     quint64 _numberOfPaymentsMade;
 
+
+    Signature _lastValidPaymentSignature;
+
     //
     quint32 _lockTime;
 
@@ -78,7 +92,7 @@ private:
     // Controls payee portion of contract output
     KeyPair _payeeContractOutput;
 
-    // Controls payee output in payment
+    // Controls payee output in payment_lastValidPaymentSignature
     KeyPair _payeeFinalPaymentOutput;
 
     // Controls payor

@@ -10,6 +10,8 @@
 #include <boost/weak_ptr.hpp>
 
 #include <QObject>
+#include <QMap>
+#include <QSet>
 
 // Forward declaration
 class Plugin;
@@ -114,7 +116,7 @@ protected:
     void sendTorrentPluginAlert(const TorrentPluginAlert & alert);
 
     // Getters
-    PluginMode pluginMode() const = 0;
+    virtual PluginMode pluginMode() const = 0;
 
 private:
 

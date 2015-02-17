@@ -36,8 +36,22 @@ Signature Payee::generateRefundSignature() const {
     //return BitSwaprjs.compute_payor_refund_signature(_contractOutputPoint, _payeeContractOutput.sk(), <not needed>, <not needed _payeeContractPk>, P2PKHTxOut(_funds, _payorFinalPk), _lockTime);
 }
 
-bool Payee::checkPaymentSignature() const {
+bool Payee::registerPayment(const Signature &paymentSignature) {
 
+    bool check = checkNextPaymentSignature(paymentSignature);
+
+    // Increase payment count if signature was valid
+    if(check) {
+        _numberOfPaymentsMade++;
+        _lastValidPaymentSignature = paymentSignature;
+    }
+
+    return check;
+}
+
+bool Payee::checkNextPaymentSignature(const Signature &paymentSignature) const {
+
+    // check with (_numberOfPaymentsMade + 1)
 }
 
 float Payee::outputPointVisible() const {

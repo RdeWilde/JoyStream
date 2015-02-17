@@ -14,9 +14,10 @@ ExtendedMessagePayload * ExtendedMessagePayload::fromRaw(MessageType type, QData
 
             case MessageType::observe: return new Observe();
             case MessageType::buy: return new Buy(stream);
-            case MessageType::end: return new Sell(stream);
+            //case MessageType::end: return new Sell(stream);
 
-            return NULL;
+            default:
+                return NULL;
         }
     } catch (std::exception & e) {
         return NULL;
