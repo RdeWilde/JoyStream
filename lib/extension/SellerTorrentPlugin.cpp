@@ -6,10 +6,15 @@
 #include <libtorrent/bt_peer_connection.hpp>
 #include <libtorrent/socket_io.hpp> // print_endpoint
 
-SellerTorrentPlugin::SellerTorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, bool pluginOn, const TorrentPluginConfiguration & torrentPluginParameters, const SellerTorrentPluginConfiguration * sellerTorrentPluginParameters)
-    : TorrentPlugin(plugin, torrent, category, pluginOn, torrentPluginParameters)
-    , _sellerTorrentPluginParameters(*sellerTorrentPluginParameters)
-{ }
+SellerTorrentPlugin::SellerTorrentPlugin(Plugin * plugin,
+                                         const boost::weak_ptr<libtorrent::torrent> & torrent,
+                                         const SellerTorrentPlugin::Configuration & configuration,
+                                         QLoggingCategory & category)
+    : TorrentPlugin(plugin, torrent, configuration, category)
+    //, _configuration(configuration)
+{
+    // do something with this => configuration
+}
 
 boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(libtorrent::peer_connection * peerConnection) {
 
@@ -90,7 +95,6 @@ void SellerTorrentPlugin::on_state(int s) {
 
 }
 
-
 void SellerTorrentPlugin::on_add_peer(libtorrent::tcp::endpoint const & endPoint, int src, int flags) {
 
     std::string endPointString = libtorrent::print_endpoint(endPoint);
@@ -121,8 +125,7 @@ void SellerTorrentPlugin::on_add_peer(libtorrent::tcp::endpoint const & endPoint
     */
 }
 
-
-
+/*
 void SellerTorrentPlugin::startSell() {
 
     // Iterate peer plugins and set their configuration
@@ -133,23 +136,21 @@ void SellerTorrentPlugin::startSell() {
         PeerPlugin * peerPlugin = i->second;
 
         // Start plugin
-        /**
         // THIS IS WRONG, REMOVE
-
         // Convert to minimum refund lock time, w.r.t Coordinated Univesal Time, which is what nLockTime uses, i.e. POSIX time
-        QDateTime minLock = QDateTime(QDate::currentDate(), _torrentPluginConfiguration->_minLock, Qt::UTC);
+        //QDateTime minLock = QDateTime(QDate::currentDate(), _torrentPluginConfiguration->_minLock, Qt::UTC);
+        //peerPlugin->startPlugin(Sell(_torrentPluginConfiguration->_minPrice, minLock));
 
-        peerPlugin->startPlugin(Sell(_torrentPluginConfiguration->_minPrice, minLock));
-        */
     }
 }
+*/
 
-
+/*
 void SellerTorrentPlugin::removePeerPlugin(PeerPlugin * plugin) {
 
     qCDebug(_category) << "TorrentPlugin::removePeerPlugin(): NOT IMPLEMENTED.";
 
-    /*
+
      * SHOULD DEPEND ON MODE, AND ON SUB MODE STATE
 
     // Find iterator reference to plugin
@@ -169,9 +170,6 @@ void SellerTorrentPlugin::removePeerPlugin(PeerPlugin * plugin) {
 
     // Emit peer added signal
     //emit peerRemoved(torrent_->info_hash(), mapIterator->first);
-    */
-}
 
-const TorrentPluginConfiguration & SellerTorrentPlugin::getTorrentPluginConfiguration() {
-    return _sellerTorrentPluginParameters;
 }
+*/

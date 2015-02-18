@@ -382,7 +382,7 @@ void BuyerPeerPlugin::processSell(const Sell * m) {
     // and peer has not been invited,
     // and peer has sufficiently good terms,
     // then
-    if(configuration.Stage == BuyerTorrentPlugin::Configuration::Stage::building_contract &&
+    if(configuration.State == BuyerTorrentPlugin::Configuration::State::building_contract &&
             _configuration.client() == Configuration::Client::no_bitswapr_message_sent &&
             m->minPrice() < configuration.maxPrice() &&
             m->minLock() < configuration.maxLock()) {

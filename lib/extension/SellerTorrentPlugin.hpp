@@ -3,23 +3,13 @@
 
 #include "TorrentPlugin.hpp"
 
-#include <QMap>
+//#include <QMap>
 
-class SellerPeerPlugin;
+//class SellerPeerPlugin;
 
 class SellerTorrentPlugin : public TorrentPlugin
 {
 public:
-
-    /**
-     * Mutually exclusive set of states for seller torrent plugin,
-     * in terms of cause of tick processing not advancing.
-     */
-    enum class State {
-
-        //..
-
-    };
 
     /**
      * @brief Configuration of seller torrent plugin.
@@ -27,6 +17,16 @@ public:
     class Configuration : public TorrentPlugin::Configuration {
 
     public:
+
+        /**
+         * Mutually exclusive set of states for seller torrent plugin,
+         * in terms of cause of tick processing not advancing.
+         */
+        enum class State {
+
+            //..
+
+        };
 
     private:
 
@@ -44,13 +44,10 @@ public:
     };
 
     // Constructor
-    SellerTorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, const Configuration & configuration);
-
-    // Removes peer plugin by
-    void removePeerPlugin(const libtorrent::tcp::endpoint & endPoint);
-
-    // Parameters for running plugin
-    virtual const TorrentPluginConfiguration & getTorrentPluginConfiguration();
+    SellerTorrentPlugin(Plugin * plugin,
+                        const boost::weak_ptr<libtorrent::torrent> & torrent,
+                        const SellerTorrentPlugin::Configuration & configuration,
+                        QLoggingCategory & category);
 
     /**
      * All virtual functions below should ONLY be called by libtorrent network thread,
@@ -66,10 +63,14 @@ public:
     virtual void on_state(int s);
     virtual void on_add_peer(const libtorrent::tcp::endpoint & endPoint, int src, int flags);
 
+    // Getters and setters
+    virtual PluginMode pluginMode() const = 0;
+    //virtual const TorrentPlugin::Configuration getTorrentPluginConfiguration() = 0;
+
 private:
 
     // Parameters for
-    Configuration _sellerTorrentPluginConfiguration;
+    //SellerTorrentPlugin::Configuration _configuration;
 };
 
 #endif // SELLER_TORRENT_PLUGIN_HPP

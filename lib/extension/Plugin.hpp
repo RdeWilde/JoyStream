@@ -2,6 +2,8 @@
 #define PLUGIN_HPP
 
 #include "BitCoin/Client.hpp"
+#include "SellerTorrentPlugin.hpp"
+#include "BuyerTorrentPlugin.hpp"
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
@@ -28,8 +30,8 @@ class PluginRequest;
 class TorrentPluginRequest;
 class PeerPluginRequest;
 class TorrentPluginConfiguration;
-class BuyerTorrentPluginConfiguration;
-class SellerTorrentPluginConfiguration;
+//class BuyerTorrentPlugin::Configuration;
+//class SellerTorrentPlugin::Configuration;
 class QNetworkReply;
 
 namespace libtorrent {
@@ -138,12 +140,10 @@ private:
 
     // Start plugin
     bool startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
-                                 const TorrentPluginConfiguration &torrentPluginConfiguration,
-                                 const BuyerTorrentPluginConfiguration &buyerTorrentPluginConfiguration);
+                                 const BuyerTorrentPlugin::Configuration & configuration);
 
     bool startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
-                                  const TorrentPluginConfiguration &torrentPluginConfiguration,
-                                  const SellerTorrentPluginConfiguration &sellerTorrentPluginConfiguration);
+                                  const SellerTorrentPlugin::Configuration & configuration);
 
     /**
      * Status

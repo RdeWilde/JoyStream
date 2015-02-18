@@ -64,7 +64,10 @@ public:
     };
 
     // Constructor from member fields
-    TorrentPlugin(Plugin * plugin, const boost::weak_ptr<libtorrent::torrent> & torrent, const Configuration & configuration, QLoggingCategory & category);
+    TorrentPlugin(Plugin * plugin,
+                  const boost::weak_ptr<libtorrent::torrent> & torrent,
+                  const TorrentPlugin::Configuration & configuration,
+                  QLoggingCategory & category);
 
     /**
      * Virtual routines
@@ -105,6 +108,7 @@ public:
      * Getters and setters
      */
     virtual PluginMode pluginMode() const = 0;
+    //virtual const TorrentPlugin::Configuration getTorrentPluginConfiguration() = 0;
 
 protected:
 
@@ -144,7 +148,9 @@ protected:
     // Send torrent plugin alert to libtorrent session
     void sendTorrentPluginAlert(const TorrentPluginAlert & alert);
 
+private:
 
+    bool _enableBanningSets;
 };
 
 #endif // TORRENT_PLUGIN_HPP

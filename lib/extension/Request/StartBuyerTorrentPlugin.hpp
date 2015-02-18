@@ -21,7 +21,6 @@ public:
     libtorrent::sha1_hash infoHash() const;
     void setInfoHash(const libtorrent::sha1_hash &infoHash);
 
-
     BuyerTorrentPlugin::Configuration configuration() const;
     void setConfiguration(const BuyerTorrentPlugin::Configuration &configuration);
 

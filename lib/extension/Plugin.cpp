@@ -213,22 +213,21 @@ void Plugin::processPluginRequest(const PluginRequest * pluginRequest) {
         case PluginRequestType::StartBuyerTorrentPlugin: {
 
                 const StartBuyerTorrentPlugin * p = reinterpret_cast<const StartBuyerTorrentPlugin *>(pluginRequest);
-                startBuyerTorrentPlugin(p->infoHash(), p->torrentPluginConfiguration(), p->buyerTorrentPluginConfiguration());
+                startBuyerTorrentPlugin(p->infoHash(), p->configuration());
             }
 
             break;
         case PluginRequestType::StartSellerTorrentPlugin: {
 
                 const StartSellerTorrentPlugin * p = reinterpret_cast<const StartSellerTorrentPlugin *>(pluginRequest);
-                startSellerTorrentPlugin(p->infoHash(), p->torrentPluginConfiguration(), p->sellerTorrentPluginConfiguration());
+                startSellerTorrentPlugin(p->infoHash(), p->configuration());
         }
             break;
     }
 }
 
 bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
-                                     const TorrentPluginConfiguration &torrentPluginConfiguration,
-                                     const BuyerTorrentPluginConfiguration & buyerTorrentPluginConfiguration) {
+                                     const BuyerTorrentPlugin::Configuration & configuration) {
 
     // Check that torrent does not already have a plugin installed
     if(_plugins.contains(infoHash)) {
@@ -247,7 +246,7 @@ bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
         if(boost::shared_ptr<libtorrent::torrent> sharedTorrentPtr = weakTorrentPtr.lock()) {
 
             // Create plugin with given configuration
-            boost::shared_ptr<libtorrent::torrent_plugin> sharedPluginPtr(new BuyerTorrentPlugin(this, weakTorrentPtr, torrentPluginConfiguration, buyerTorrentPluginConfiguration, _category));
+            boost::shared_ptr<libtorrent::torrent_plugin> sharedPluginPtr(new BuyerTorrentPlugin(this, weakTorrentPtr, configuration, _category));
 
             // Install plugin on torrent
             sharedTorrentPtr->add_extension(sharedPluginPtr);
@@ -272,8 +271,7 @@ bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
 }
 
 bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
-                                      const TorrentPluginConfiguration &torrentPluginConfiguration,
-                                      const SellerTorrentPluginConfiguration &sellerTorrentPluginConfiguration) {
+                                      const SellerTorrentPlugin::Configuration & configuration) {
 
     // Check that torrent does not already have a plugin installed
     if(_plugins.contains(infoHash)) {
@@ -292,7 +290,7 @@ bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
         if(boost::shared_ptr<libtorrent::torrent> sharedTorrentPtr = weakTorrentPtr.lock()) {
 
             // Create plugin with given configuration
-            boost::shared_ptr<libtorrent::torrent_plugin> sharedPluginPtr(new SellerTorrentPlugin(this, weakTorrentPtr, torrentPluginConfiguration, sellerTorrentPluginConfiguration, _category));
+            boost::shared_ptr<libtorrent::torrent_plugin> sharedPluginPtr(new SellerTorrentPlugin(this, weakTorrentPtr, configuration, _category));
 
             // Install plugin on torrent
             sharedTorrentPtr->add_extension(sharedPluginPtr);

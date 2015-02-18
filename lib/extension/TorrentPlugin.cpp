@@ -26,10 +26,13 @@ void TorrentPlugin::Configuration::setEnableBanningSets(bool enableBanningSets) 
     _enableBanningSets = enableBanningSets;
 }
 
-TorrentPlugin::TorrentPlugin(Plugin * plugin, const boost::weak_ptr<libtorrent::torrent> & torrent, const Configuration & configuration, QLoggingCategory & category)
+TorrentPlugin::TorrentPlugin(Plugin * plugin,
+                             const boost::weak_ptr<libtorrent::torrent> & torrent,
+                             const TorrentPlugin::Configuration & configuration,
+                             QLoggingCategory & category)
     : _plugin(plugin)
     , _torrent(torrent)
-    , _configuration(torrentPluginConfiguration)
+    , _enableBanningSets(configuration.enableBanningSets())
     , _category(category) {
 }
 

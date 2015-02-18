@@ -4,9 +4,7 @@
 #include "TorrentPlugin.hpp"
 #include "PaymentChannel/Payor/Payor.hpp"
 
-class TorrentPluginConfiguration;
-class BuyerPeerPlugin;
-
+//class BuyerPeerPlugin;
 #include <QTime>
 
 /**
@@ -17,56 +15,38 @@ class BuyerTorrentPlugin : public TorrentPlugin
 public:
 
     /**
-     * Mutually exclusive set of states for torrent plugin,
-     * in terms of cause of tick processing not advancing.
+     * @brief
      */
     enum class State {
 
-        // Sending out join_contract messages while trying to get enough
-        // peers to sign contract refunds to start the channel
-        populating_payment_channel,
+        // Inviting all peers with good enough peers,
+        building_contract,
 
-        // Requesting, validating, downlading, saving and paying for pieces
+        // Requesting and downloading pieces
         downloading_pieces,
 
-        // While contract outputs have not all been spent, we still wait to use refunds
-        waiting_to_spend_refunds,
+        // Waiting to claim one or more refunds
+        // since contract outputs have not been spent
+        waiting_for_refunds_to_be_spendable,
 
-        // Nothing more to do
-        finished
+        // All outputs have been spent
+        done
     };
 
     /**
      * @brief Configuration of buyer torrent plugin.
      */
-    class Configuration {
+    class Configuration : public TorrentPlugin::Configuration {
 
     public:
 
-        /**
-         * @brief The Stage enum
-         */
-        enum class Stage {
 
-            // Inviting all peers with good enough peers,
-            building_contract,
-
-            // Requesting and downloading pieces
-            downloading_pieces,
-
-            // Waiting to claim one or more refunds
-            // since contract outputs have not been spent
-            waiting_for_refunds_to_be_spendable,
-
-            // All outputs have been spent
-            done,
-        };
 
         // Constructor from copy
         Configuration(const Configuration & c);
 
         // Constructor from members
-        Configuration(Stage stage, quint64 maxPrice, quint32 maxLock, quint64 maxFeePerByte, qint32 numSellers);
+        Configuration(State stage, quint64 maxPrice, quint32 maxLock, quint64 maxFeePerByte, qint32 numSellers);
 
         // Constructor from dictionary
         Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry);
@@ -84,8 +64,8 @@ public:
         void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const;
 
         // Getters and setters
-        Stage stage() const;
-        void setStage(const Stage &stage);
+        State stage() const;
+        void setStage(const State &stage);
 
         quint64 maxPrice() const;
         void setMaxPrice(const quint64 &maxPrice);
@@ -102,7 +82,7 @@ public:
     private:
 
         // What stage is plugin
-        Stage _stage;
+        State _stage;
 
         // Maximum price accepted (satoshies)
         quint64 _maxPrice;
@@ -120,7 +100,6 @@ public:
     // Constructor
     BuyerTorrentPlugin(Plugin * plugin,
                        const boost::weak_ptr<libtorrent::torrent> & torrent,
-                       const TorrentPluginConfiguration & torrentPluginConfiguration,
                        const Configuration & configuration,
                        QLoggingCategory & category);
 
@@ -138,16 +117,9 @@ public:
     virtual void on_state(int s);
     virtual void on_add_peer(const libtorrent::tcp::endpoint & endPoint, int src, int flags);
 
-    // Removes peer plugin by
-    void removePeerPlugin(const libtorrent::tcp::endpoint & endPoint);
-
     // Getters and setters
     virtual PluginMode pluginMode() const;
-
-    State state() const;
-
-    Configuration configuration() const;
-    void setConfiguration(const Configuration &configuration);
+    //virtual const TorrentPlugin::Configuration getTorrentPluginConfiguration() = 0;
 
 private:
 
@@ -167,7 +139,7 @@ private:
     // Use timer to keep checking back?
 
     // Configuration
-    Configuration _buyerTorrentPluginConfiguration;
+    //Configuration _configuration;
 };
 
 #endif // BUYER_TORRENT_PLUGIN_HPP

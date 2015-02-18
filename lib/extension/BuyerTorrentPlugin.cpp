@@ -1,4 +1,5 @@
 #include "BuyerTorrentPlugin.hpp"
+#include "PluginMode.hpp"
 
 #include <libtorrent/entry.hpp>
 
@@ -10,7 +11,7 @@ BuyerTorrentPlugin::Configuration::Configuration(const Configuration & c)
     , _numSellers(c.numSellers()) {
 }
 
-BuyerTorrentPlugin::Configuration::Configuration(Stage stage, quint64 maxPrice, quint32 maxLock, quint64 maxFeePerByte, qint32 numSellers)
+BuyerTorrentPlugin::Configuration::Configuration(State stage, quint64 maxPrice, quint32 maxLock, quint64 maxFeePerByte, qint32 numSellers)
     : _stage(stage)
     , _maxPrice(maxPrice)
     , _maxLock(maxLock)
@@ -35,7 +36,7 @@ BuyerTorrentPlugin::Stage BuyerTorrentPlugin::Configuration::stage() const {
     return _stage;
 }
 
-void BuyerTorrentPlugin::Configuration::setStage(const Stage &stage) {
+void BuyerTorrentPlugin::Configuration::setStage(const State &stage) {
     _stage = stage;
 }
 
@@ -85,9 +86,14 @@ void BuyerTorrentPlugin::Configuration::setNumSellers(const qint32 numSellers) {
 // Maximum allowable a peer may have in responding to given message (ms)
 #define SIGN_REFUND_MAX_DELAY 5*1000
 
-BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin, const boost::weak_ptr<libtorrent::torrent> & torrent, const TorrentPluginConfiguration & torrentPluginConfiguration, const Configuration & buyerTorrentPluginConfiguration, QLoggingCategory & category)
-    : TorrentPlugin(plugin, torrent, torrentPluginConfiguration, category)
-    , _buyerTorrentPluginConfiguration(buyerTorrentPluginConfiguration) {
+BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
+                                       const boost::weak_ptr<libtorrent::torrent> & torrent,
+                                       const BuyerTorrentPlugin::Configuration & configuration,
+                                       QLoggingCategory & category)
+    : TorrentPlugin(plugin, torrent, configuration, category) {
+    //, _configuration(configuration) {
+
+    // do something with this => configuration
 
     // Start clock for when picking sellers can begin
     _timeSincePluginStarted.start();
@@ -169,11 +175,12 @@ void BuyerTorrentPlugin::on_add_peer() {
 
 }
 
+/*
 void BuyerTorrentPlugin::removePeerPlugin(PeerPlugin * plugin) {
 
     qCDebug(_category) << "TorrentPlugin::removePeerPlugin(): NOT IMPLEMENTED.";
 
-    /*
+
      * SHOULD DEPEND ON MODE, AND ON SUB MODE STATE
 
     // Find iterator reference to plugin
@@ -193,21 +200,12 @@ void BuyerTorrentPlugin::removePeerPlugin(PeerPlugin * plugin) {
 
     // Emit peer added signal
     //emit peerRemoved(torrent_->info_hash(), mapIterator->first);
-    */
+
 }
+*/
 
 PluginMode BuyerTorrentPlugin::pluginMode() const {
-    return PluginMode::Buyer;
+    PluginMode::Buyer;
 }
 
-BuyerTorrentPlugin::State BuyerTorrentPlugin::state() const {
-    return _state;
-}
 
-BuyerTorrentPlugin::Configuration BuyerTorrentPlugin::configuration() const {
-    return _buyerTorrentPluginConfiguration;
-}
-
-void BuyerTorrentPlugin::setConfiguration(const Configuration &buyerTorrentPluginConfiguration) {
-    _buyerTorrentPluginConfiguration = buyerTorrentPluginConfiguration;
-}
