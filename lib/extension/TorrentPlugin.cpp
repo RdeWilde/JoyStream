@@ -1,7 +1,7 @@
 ﻿#include "TorrentPlugin.hpp"
-#include "TorrentPluginConfiguration.hpp"
+//#include "TorrentPluginConfiguration.hpp"
 #include "PeerPlugin.hpp"
-#include "PeerPluginConfiguration.hpp"
+//#include "PeerPluginConfiguration.hpp"
 #include "PeerPluginStatus.hpp" // signal parameter
 #include "controller/Controller.hpp" // needed to connect
 #include "Request/TorrentPluginRequest.hpp"
@@ -14,10 +14,22 @@
 
 #include <QLoggingCategory>
 
-TorrentPlugin::TorrentPlugin(Plugin * plugin, const boost::weak_ptr<libtorrent::torrent> & torrent, const TorrentPluginConfiguration & torrentPluginConfiguration, QLoggingCategory & category)
+TorrentPlugin::Configuration::Configuration(bool enableBanningSets)
+    : _enableBanningSets(enableBanningSets) {
+}
+
+bool TorrentPlugin::Configuration::enableBanningSets() const {
+    return _enableBanningSets;
+}
+
+void TorrentPlugin::Configuration::setEnableBanningSets(bool enableBanningSets) {
+    _enableBanningSets = enableBanningSets;
+}
+
+TorrentPlugin::TorrentPlugin(Plugin * plugin, const boost::weak_ptr<libtorrent::torrent> & torrent, const Configuration & configuration, QLoggingCategory & category)
     : _plugin(plugin)
     , _torrent(torrent)
-    , _torrentPluginConfiguration(torrentPluginConfiguration)
+    , _configuration(torrentPluginConfiguration)
     , _category(category) {
 }
 
@@ -65,7 +77,7 @@ void TorrentPlugin::addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoin
     _peersWithoutExtension.insert(endPoint);
 }
 
-bool TorrentPlugin::addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint) {
+void TorrentPlugin::addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint) {
     _irregularPeer.insert(endPoint);
 }
 
@@ -75,7 +87,7 @@ bool TorrentPlugin::isPeerWellBehaved(libtorrent::peer_connection * connection) 
     const libtorrent::tcp::endpoint & endPoint = connection->remote();
 
     // If we are using banning sets, then check this peer
-    if(_torrentPluginConfiguration.enableBanningSets()) {
+    if(_configuration.enableBanningSets()) {
 
         // Check if we know from before that peer does not have
         if(_peersWithoutExtension.contains(endPoint)) {
@@ -130,9 +142,11 @@ void TorrentPlugin::sendTorrentPluginAlert(const TorrentPluginAlert & alert) {
         qCDebug(_category) << "Torrent no longer exists, cannot send alert via torrent.";
 }
 
+/*
 TorrentPluginConfiguration TorrentPlugin::config() const {
-    return _configuration;
+    return _torrentPluginConfiguration;
 }
+*/
 
 /**
 TorrentPluginStatusAlert TorrentPlugin::createTorrentPluginStatusAlert() {

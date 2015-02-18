@@ -3,18 +3,14 @@
 
 #include <QDataStream>
 
-Buy::Buy(quint32 maxPrice, QDateTime maxLock)
+Buy::Buy(quint32 maxPrice, quint32 maxLock)
     : _maxPrice(maxPrice)
     , _maxLock(maxLock) {
 }
 
 Buy::Buy(QDataStream & stream) {
 
-    uint maxLockTime_t;
-
-    stream >> _maxPrice >> maxLockTime_t;
-
-    _maxLock.fromTime_t(maxLockTime_t);
+    stream >> _maxPrice >> _maxLock;
 }
 
 MessageType Buy::messageType() const {
@@ -26,13 +22,13 @@ quint32 Buy::length() const {
 }
 
 void Buy::write(QDataStream & stream) const {
-    stream << _maxPrice << _maxLock.toTime_t();
+    stream << _maxPrice << _maxLock;
 }
 
 quint32 Buy::maxPrice() const {
     return _maxPrice;
 }
 
-QTime Buy::maxLock() const {
+quint32 Buy::maxLock() const {
     return _maxLock;
 }

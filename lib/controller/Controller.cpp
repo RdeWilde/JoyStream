@@ -548,7 +548,8 @@ bool Controller::startTorrent(const libtorrent::sha1_hash & info_hash) {
 }
 
 void Controller::updateTorrentPluginConfiguration(const libtorrent::sha1_hash & infoHash, TorrentPluginConfiguration * torrentPluginConfiguration) {
-    _plugin->submitTorrentPluginRequest(new StartPluginTorrentPluginRequest(infoHash, torrentPluginConfiguration));
+    //_plugin->submitTorrentPluginRequest(new StartPluginTorrentPluginRequest(infoHash, torrentPluginConfiguration));
+    qCCritical(_category) << "updating torretn plugin configuration disabled!";
 }
 
 bool Controller::addTorrent(const TorrentConfiguration & torrentConfiguration, bool promptUserForTorrentPluginConfiguration) {

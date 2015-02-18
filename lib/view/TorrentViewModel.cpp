@@ -180,13 +180,13 @@ void TorrentViewModel::updateMode(bool pluginOn, PluginMode mode) {
     else {
 
         switch(mode) {
-            case PluginMode::Observe:
+            case PluginMode::Observer:
                 modeText = "Observe";
                 break;
-            case PluginMode::Sell:
+            case PluginMode::Seller:
                 modeText = "Sell";
                 break;
-            case PluginMode::Buy:
+            case PluginMode::Buyer:
                 modeText = "Buy";
                 break;
         }

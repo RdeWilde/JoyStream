@@ -1,17 +1,24 @@
 #include "BuyerTorrentPlugin.hpp"
 
-BuyerTorrentPlugin::Configuration(const Configuration & c)
-    : Configuration(c.maxPrice(), c.maxLock(), c.maxFeePerByte(), c.numSellers()) {
+#include <libtorrent/entry.hpp>
+
+BuyerTorrentPlugin::Configuration::Configuration(const Configuration & c)
+    : _stage(c.stage())
+    , _maxPrice(c.maxPrice())
+    , _maxLock(c.maxLock())
+    , _maxFeePerByte(c.maxFeePerByte())
+    , _numSellers(c.numSellers()) {
 }
 
-BuyerTorrentPlugin::Configuration(quint64 maxPrice, QTime maxLock, quint64 maxFeePerByte, qint32 numSellers)
-    : _maxPrice(maxPrice)
+BuyerTorrentPlugin::Configuration::Configuration(Stage stage, quint64 maxPrice, quint32 maxLock, quint64 maxFeePerByte, qint32 numSellers)
+    : _stage(stage)
+    , _maxPrice(maxPrice)
     , _maxLock(maxLock)
     , _maxFeePerByte(maxFeePerByte)
     , _numSellers(numSellers) {
 }
 
-BuyerTorrentPlugin::Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry)
+BuyerTorrentPlugin::Configuration::Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry)
     : TorrentPluginConfiguration(dictionaryEntry) {
     // IMPLEMENT LATER
 }
@@ -24,6 +31,14 @@ void BuyerTorrentPlugin::Configuration::toDictionaryEntry(libtorrent::entry::dic
     // IMPLEMENT LATER
 }
 
+BuyerTorrentPlugin::Stage BuyerTorrentPlugin::Configuration::stage() const {
+    return _stage;
+}
+
+void BuyerTorrentPlugin::Configuration::setStage(const Stage &stage) {
+    _stage = stage;
+}
+
 quint64 BuyerTorrentPlugin::Configuration::maxPrice() const {
     return _maxPrice;
 }
@@ -32,11 +47,11 @@ void BuyerTorrentPlugin::Configuration::setMaxPrice(const quint64 &maxPrice) {
     _maxPrice = maxPrice;
 }
 
-QTime BuyerTorrentPlugin::Configuration::maxLock() const {
+quint32 BuyerTorrentPlugin::Configuration::maxLock() const {
     return _maxLock;
 }
 
-void BuyerTorrentPlugin::Configuration::setMaxLock(const QTime &maxLock) {
+void BuyerTorrentPlugin::Configuration::setMaxLock(const QTime maxLock) {
     _maxLock = maxLock;
 }
 
@@ -44,7 +59,7 @@ quint64 BuyerTorrentPlugin::Configuration::maxFeePerByte() const {
     return _maxFeePerByte;
 }
 
-void BuyerTorrentPlugin::Configuration::setMaxFeePerByte(const quint64 &maxFeePerByte) {
+void BuyerTorrentPlugin::Configuration::setMaxFeePerByte(const quint64 maxFeePerByte) {
     _maxFeePerByte = maxFeePerByte;
 }
 
@@ -52,7 +67,7 @@ qint32 BuyerTorrentPlugin::Configuration::numSellers() const {
     return _numSellers;
 }
 
-void BuyerTorrentPlugin::Configuration::setNumSellers(const qint32 &numSellers) {
+void BuyerTorrentPlugin::Configuration::setNumSellers(const qint32 numSellers) {
     _numSellers = numSellers;
 }
 
@@ -64,7 +79,6 @@ void BuyerTorrentPlugin::Configuration::setNumSellers(const qint32 &numSellers) 
 #include "Message/JoinContract.hpp"
 #include "Message/SignRefund.hpp"
 
-//#include <libtorrent/error_code.hpp>
 #include <libtorrent/bt_peer_connection.hpp>
 #include <libtorrent/socket_io.hpp> // print_endpoint
 
@@ -182,11 +196,15 @@ void BuyerTorrentPlugin::removePeerPlugin(PeerPlugin * plugin) {
     */
 }
 
+PluginMode BuyerTorrentPlugin::pluginMode() const {
+    return PluginMode::Buyer;
+}
+
 BuyerTorrentPlugin::State BuyerTorrentPlugin::state() const {
     return _state;
 }
 
-BuyerTorrentPluginConfiguration BuyerTorrentPlugin::configuration() const {
+BuyerTorrentPlugin::Configuration BuyerTorrentPlugin::configuration() const {
     return _buyerTorrentPluginConfiguration;
 }
 

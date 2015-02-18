@@ -27,6 +27,7 @@ class BuyerTorrentPlugin;
 class PluginRequest;
 class TorrentPluginRequest;
 class PeerPluginRequest;
+class TorrentPluginConfiguration;
 class BuyerTorrentPluginConfiguration;
 class SellerTorrentPluginConfiguration;
 class QNetworkReply;
@@ -136,8 +137,13 @@ private:
     void removeTorrentPlugin(const libtorrent::sha1_hash & info_hash);
 
     // Start plugin
-    bool startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPluginConfiguration & configuration);
-    bool startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const SellerTorrentPluginConfiguration & configuration);
+    bool startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
+                                 const TorrentPluginConfiguration &torrentPluginConfiguration,
+                                 const BuyerTorrentPluginConfiguration &buyerTorrentPluginConfiguration);
+
+    bool startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
+                                  const TorrentPluginConfiguration &torrentPluginConfiguration,
+                                  const SellerTorrentPluginConfiguration &sellerTorrentPluginConfiguration);
 
     /**
      * Status

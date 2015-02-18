@@ -2,11 +2,12 @@
 #define BUYER_TORRENT_PLUGIN_HPP
 
 #include "TorrentPlugin.hpp"
-#include "PaymentChannel/PaymentChannelPayor.hpp"
-//#include "BitCoin/PublicKey.hpp"
+#include "PaymentChannel/Payor/Payor.hpp"
 
 class TorrentPluginConfiguration;
 class BuyerPeerPlugin;
+
+#include <QTime>
 
 /**
  * @brief Torrent plugin for buyer mode.
@@ -14,6 +15,26 @@ class BuyerPeerPlugin;
 class BuyerTorrentPlugin : public TorrentPlugin
 {
 public:
+
+    /**
+     * Mutually exclusive set of states for torrent plugin,
+     * in terms of cause of tick processing not advancing.
+     */
+    enum class State {
+
+        // Sending out join_contract messages while trying to get enough
+        // peers to sign contract refunds to start the channel
+        populating_payment_channel,
+
+        // Requesting, validating, downlading, saving and paying for pieces
+        downloading_pieces,
+
+        // While contract outputs have not all been spent, we still wait to use refunds
+        waiting_to_spend_refunds,
+
+        // Nothing more to do
+        finished
+    };
 
     /**
      * @brief Configuration of buyer torrent plugin.
@@ -28,7 +49,6 @@ public:
         enum class Stage {
 
             // Inviting all peers with good enough peers,
-            //
             building_contract,
 
             // Requesting and downloading pieces
@@ -46,7 +66,7 @@ public:
         Configuration(const Configuration & c);
 
         // Constructor from members
-        Configuration(quint64 maxPrice, QTime maxLock, quint64 maxFeePerByte, qint32 numSellers);
+        Configuration(Stage stage, quint64 maxPrice, quint32 maxLock, quint64 maxFeePerByte, qint32 numSellers);
 
         // Constructor from dictionary
         Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry);
@@ -64,11 +84,14 @@ public:
         void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const;
 
         // Getters and setters
+        Stage stage() const;
+        void setStage(const Stage &stage);
+
         quint64 maxPrice() const;
         void setMaxPrice(const quint64 &maxPrice);
 
-        QTime maxLock() const;
-        void setMaxLock(const QTime &maxLock);
+        quint32 maxLock() const;
+        void setMaxLock(const quint32 &maxLock);
 
         quint64 maxFeePerByte() const;
         void setMaxFeePerByte(const quint64 &maxFeePerByte);
@@ -85,7 +108,7 @@ public:
         quint64 _maxPrice;
 
         // Maximum lock time (the number of seconds elapsed since 1970-01-01T00:00 UTC)
-        QTime _maxLock;
+        quint32 _maxLock;
 
         // Maximum fee per byte in contract transaction (satoshies)
         quint64 _maxFeePerByte;
@@ -118,27 +141,9 @@ public:
     // Removes peer plugin by
     void removePeerPlugin(const libtorrent::tcp::endpoint & endPoint);
 
-    /**
-     * Mutually exclusive set of states for torrent plugin,
-     * in terms of cause of tick processing not advancing.
-     */
-    enum class State {
-
-        // Sending out join_contract messages while trying to get enough
-        // peers to sign contract refunds to start the channel
-        populating_payment_channel,
-
-        // Requesting, validating, downlading, saving and paying for pieces
-        downloading_pieces,
-
-        // While contract outputs have not all been spent, we still wait to use refunds
-        waiting_to_spend_refunds,
-
-        // Nothing more to do
-        finished
-    };
-
     // Getters and setters
+    virtual PluginMode pluginMode() const;
+
     State state() const;
 
     Configuration configuration() const;

@@ -2,7 +2,6 @@
 #define SELLER_TORRENT_PLUGIN_HPP
 
 #include "TorrentPlugin.hpp"
-#include "SellerTorrentPluginConfiguration.hpp"
 
 #include <QMap>
 
@@ -12,8 +11,40 @@ class SellerTorrentPlugin : public TorrentPlugin
 {
 public:
 
+    /**
+     * Mutually exclusive set of states for seller torrent plugin,
+     * in terms of cause of tick processing not advancing.
+     */
+    enum class State {
+
+        //..
+
+    };
+
+    /**
+     * @brief Configuration of seller torrent plugin.
+     */
+    class Configuration : public TorrentPlugin::Configuration {
+
+    public:
+
+    private:
+
+        // Maximum price accepted (satoshies)
+        quint64 _minPrice;
+
+        // Minimum lock time (the number of seconds elapsed since 1970-01-01T00:00 UTC)
+        quint32 _minLock;
+
+        // Minimum fee per byte in contract transaction (satoshies)
+        quint64 _minFeePerByte;
+
+        // Maximum time (s) for which seller is willing to seed without contract getting at least one confirmation
+        quint32 _maxContractConfirmationDelay;
+    };
+
     // Constructor
-    SellerTorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, const SellerTorrentPluginConfiguration & configuration);
+    SellerTorrentPlugin(Plugin * plugin, libtorrent::torrent * torrent, QLoggingCategory & category, const Configuration & configuration);
 
     // Removes peer plugin by
     void removePeerPlugin(const libtorrent::tcp::endpoint & endPoint);
@@ -38,12 +69,7 @@ public:
 private:
 
     // Parameters for
-    SellerTorrentPluginConfiguration _configuration;
-
-    /**
-    // Maps endpoint to corresponding peer for all peers being sold to: IS THIS REDUNDANT?
-    QMap<libtorrent::tcp::endpoint, SellerPeerPlugin *> _peers;
-    */
+    Configuration _sellerTorrentPluginConfiguration;
 };
 
 #endif // SELLER_TORRENT_PLUGIN_HPP

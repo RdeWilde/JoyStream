@@ -1,6 +1,7 @@
 #include "StartBuyerTorrentPlugin.hpp"
 
-StartBuyerTorrentPlugin::StartBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const BuyerTorrentPluginConfiguration & configuration)
+StartBuyerTorrentPlugin::StartBuyerTorrentPlugin(const libtorrent::sha1_hash &info_hash,
+                                                 const BuyerTorrentPlugin::Configuration & configuration)
     : _infoHash(info_hash)
     , _configuration(configuration) {
 }
@@ -16,22 +17,12 @@ libtorrent::sha1_hash StartBuyerTorrentPlugin::infoHash() const {
 void StartBuyerTorrentPlugin::setInfoHash(const libtorrent::sha1_hash &infoHash) {
     _infoHash = infoHash;
 }
-BuyerTorrentPluginConfiguration StartBuyerTorrentPlugin::configuration() const
-{
+
+BuyerTorrentPlugin::Configuration StartBuyerTorrentPlugin::configuration() const {
     return _configuration;
 }
 
-void StartBuyerTorrentPlugin::setConfiguration(const BuyerTorrentPluginConfiguration &configuration)
-{
+void StartBuyerTorrentPlugin::setConfiguration(const BuyerTorrentPlugin::Configuration &configuration) {
     _configuration = configuration;
-}
-
-
-libtorrent::sha1_hash StartBuyerTorrentPlugin::info_hash() const {
-    return _infoHash;
-}
-
-void StartBuyerTorrentPlugin::setInfo_hash(const libtorrent::sha1_hash &info_hash) {
-    _infoHash = info_hash;
 }
 

@@ -438,7 +438,7 @@ BuyerPeerPlugin::Configuration BuyerPeerPlugin::configuration() const {
 }
 
 PluginMode BuyerPeerPlugin::mode() const {
-    return PluginMode::Buy;
+    return PluginMode::Buyer;
 }
 
 /*

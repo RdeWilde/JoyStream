@@ -2,7 +2,7 @@
 #define TORRENT_PLUGIN_HPP
 
 #include "BEPSupportStatus.hpp"
-#include "TorrentPluginConfiguration.hpp"
+//#include "TorrentPluginConfiguration.hpp"
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
@@ -35,8 +35,36 @@ class TorrentPlugin : public QObject, public libtorrent::torrent_plugin {
 
 public:
 
+    class Configuration {
+
+    public:
+
+        // Constructor based on members
+        Configuration(bool enableBanningSets);
+
+
+        /*
+        // Observe constructor from members
+        TorrentPluginConfiguration(bool enableBanningSets);
+
+        // Constructor from dictionary
+        TorrentPluginConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry);
+        *
+        */
+
+        // Getters and setters
+
+        bool enableBanningSets() const;
+        void setEnableBanningSets(bool enableBanningSets);
+
+    private:
+
+        // Whether peers are banned for bad conduct
+        bool _enableBanningSets;
+    };
+
     // Constructor from member fields
-    TorrentPlugin(Plugin * plugin, const boost::weak_ptr<libtorrent::torrent> & torrent, const TorrentPluginConfiguration & configuration, QLoggingCategory & category);
+    TorrentPlugin(Plugin * plugin, const boost::weak_ptr<libtorrent::torrent> & torrent, const Configuration & configuration, QLoggingCategory & category);
 
     /**
      * Virtual routines
@@ -69,9 +97,14 @@ public:
     // Process torrent plugin requests
     // void processTorrentPluginRequest(const TorrentPluginRequest * request);
 
+    // Adds peer to respective set, and returns whether it was actually added or existed in the set from before.
+    void addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint);
+    void addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint);
+
     /**
      * Getters and setters
      */
+    virtual PluginMode pluginMode() const = 0;
 
 protected:
 
@@ -105,26 +138,13 @@ protected:
     void _tick();
     */
 
-    // Adds peer to respective set, and returns whether it was actually added or existed in the set from before.
-    void addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint);
-    void addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint);
-
     // Checks that peer is not banned and that it is a bittorrent connection
     bool isPeerWellBehaved(libtorrent::peer_connection * connection) const;
 
     // Send torrent plugin alert to libtorrent session
     void sendTorrentPluginAlert(const TorrentPluginAlert & alert);
 
-    // Getters
-    virtual PluginMode pluginMode() const = 0;
 
-private:
-
-    // Configuration
-    TorrentPluginConfiguration _torrentPluginConfiguration;
-
-    // Creates torrent plugin status alert based on current state
-    //TorrentPluginStatusAlert createTorrentPluginStatusAlert();
 };
 
 #endif // TORRENT_PLUGIN_HPP

@@ -49,6 +49,20 @@ class PeerPlugin : public QObject, public libtorrent::peer_plugin {
 
 public:
 
+    /*
+    class Configuration {
+
+    private:
+
+        // Mapping from messages to BEP10 ID of peer
+        ExtendedMessageIdMapping _clientMapping, _peerMapping;
+
+        // Indicates whether peer supports
+        BEPSupportStatus _peerBEP10SupportedStatus, // BEP10
+                            _peerBEP43SupportedStatus; // BEP43
+    };
+    */
+
     // Mode which has been announced by a peer
     enum class PeerModeAnnounced {
         none,
