@@ -48,7 +48,6 @@ SOURCES += \
     extension/BitCoin/Client.cpp \
     extension/Alert/PluginStatusAlert.cpp \
     extension/Message/ExtendedMessagePayload.cpp \
-    extension/BitCoin/PublicKey.cpp \
     extension/BitCoin/Signature.cpp \
     extension/Message/JoiningContract.cpp \
     extension/Message/SignRefund.cpp \
@@ -58,7 +57,6 @@ SOURCES += \
     extension/Message/Observe.cpp \
     extension/Message/JoinContract.cpp \
     extension/Message/Payment.cpp \
-    extension/BitCoin/PrivateKey.cpp \
     extension/Message/Ready.cpp \
     extension/Message/NoPayloadMessage.cpp \
     extension/BuyerTorrentPlugin.cpp \

@@ -7,6 +7,8 @@
 #include <libtorrent/bt_peer_connection.hpp>
 #include <libtorrent/socket_io.hpp> // print_endpoint
 
+#include <QLoggingCategory>
+
 SellerTorrentPlugin::SellerTorrentPlugin(Plugin * plugin,
                                          const boost::weak_ptr<libtorrent::torrent> & torrent,
                                          const SellerTorrentPlugin::Configuration & configuration,
@@ -30,33 +32,36 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
     const libtorrent::tcp::endpoint & endPoint = peerConnection->remote();
     std::string endPointString = libtorrent::print_endpoint(endPoint);
 
-    qCDebug(category_) << "New connection from" << endPointString.c_str();
+    qCDebug(_category) << "New connection from" << endPointString.c_str();
 
     // Check if this peer should be accepted, if not
     // a null is returned, hence plugin is not installed
     if(!TorrentPlugin::isPeerWellBehaved(peerConnection)) {
-        qCDebug(category_) << "Rejected connection from peer, peer plugin not installed.";
+        qCDebug(_category) << "Rejected connection from peer, peer plugin not installed.";
         return boost::shared_ptr<libtorrent::peer_plugin>();
     }
 
     // Create seller peer
     libtorrent::bt_peer_connection * bittorrentPeerConnection = static_cast<libtorrent::bt_peer_connection*>(peerConnection);
-    PeerPlugin * peerPlugin = new SellerPeerPlugin(this, bittorrentPeerConnection, category_);
+
+    // Create shared pointer to new seller peer plugin
+    boost::shared_ptr<libtorrent::peer_plugin> sharedPeerPluginPtr(new SellerPeerPlugin(this, bittorrentPeerConnection, _category));
+
+    // Create weak pointer to the same seller, and save in _peerPlugins map
+    boost::weak_ptr<libtorrent::peer_plugin> weakPeerPluginPtr(sharedPeerPluginPtr);
 
     // Add to collection
-    peerPlugins_.insert(std::make_pair(endPoint, peerPlugin));
+    _peerPlugins[endPoint] = weakPeerPluginPtr;
 
-
-    qCDebug(category_) << "Seller #" << peerPlugins_.size() << endPointString.c_str() << "added to " << this->torrent_->name().c_str();
+    qCDebug(_category) << "Seller #" << _peerPlugins.size() << endPointString.c_str() << "added to " << _torrent->name().c_str();
 
     // Emit peer added signal
     // Should not be here, should be when a payment channel actually starts
     //emit peerAdded(peerPlugin->getPeerPluginId());
 
     // Return pointer to plugin as required
-    return boost::shared_ptr<libtorrent::peer_plugin>(peerPlugin);
+    return sharedPeerPluginPtr;
 }
-
 
 void SellerTorrentPlugin::on_piece_pass(int index) {
 
@@ -68,11 +73,13 @@ void SellerTorrentPlugin::on_piece_failed(int index) {
 
 void SellerTorrentPlugin::tick() {
 
-    qCDebug(category_) << "SellerTorrentPlugin.tick()";
+    qCDebug(_category) << "SellerTorrentPlugin.tick()";
 
+    /*
     // No processing is done before a successful extended handshake
     if(_peerBitSwaprBEPSupportedStatus != BEPSupportStatus::supported)
         return;
+    */
 
     // Call base tick routine
     TorrentPlugin::tick();
@@ -176,5 +183,5 @@ void SellerTorrentPlugin::removePeerPlugin(PeerPlugin * plugin) {
 */
 
 PluginMode SellerTorrentPlugin::pluginMode() const {
-    return PluginMode::
+    return PluginMode::Seller;
 }

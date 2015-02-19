@@ -7,6 +7,10 @@ Signature::Signature() {
 Signature::Signature(const Signature& signature) {
 }
 
+Signature::Signature(const QString & signature) {
+
+}
+
 Signature & Signature::operator=(const Signature& signature) {
 
     return *this;

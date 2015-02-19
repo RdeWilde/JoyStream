@@ -33,7 +33,11 @@ void Payee::registerContractInformation(const OutPoint &contractOutputPoint, qui
 }
 
 Signature Payee::generateRefundSignature() const {
+
     //return BitSwaprjs.compute_payor_refund_signature(_contractOutputPoint, _payeeContractOutput.sk(), <not needed>, <not needed _payeeContractPk>, P2PKHTxOut(_funds, _payorFinalPk), _lockTime);
+
+    // random bs
+    return Signature();
 }
 
 bool Payee::registerPayment(const Signature &paymentSignature) {
@@ -52,12 +56,19 @@ bool Payee::registerPayment(const Signature &paymentSignature) {
 bool Payee::checkNextPaymentSignature(const Signature &paymentSignature) const {
 
     // check with (_numberOfPaymentsMade + 1)
+
+    // random bs
+    return true;
 }
 
 float Payee::outputPointVisible() const {
 
+    // random bs
+    return 0.5;
 }
 
 bool Payee::isContractValid() const {
 
+    // random bs
+    return true;
 }

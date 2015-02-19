@@ -3,8 +3,6 @@
 
 #include "TorrentPlugin.hpp"
 
-//#include <QMap>
-
 //class SellerPeerPlugin;
 
 class SellerTorrentPlugin : public TorrentPlugin

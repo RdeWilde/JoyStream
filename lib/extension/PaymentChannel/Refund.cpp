@@ -6,7 +6,7 @@ Refund::Refund(const QJsonObject & json) {
     // Recover fields
 }
 
-Refund::Refund(const OutPoint & contractOutput, const P2PKHTxOut& ouput, quint32 _lockTime)
+Refund::Refund(const OutPoint & contractOutput, const P2PKHTxOut& ouput, quint32 lockTime)
     : _contractOutput(contractOutput)
     , _output(ouput)
     , _lockTime(lockTime) {
@@ -14,6 +14,7 @@ Refund::Refund(const OutPoint & contractOutput, const P2PKHTxOut& ouput, quint32
 
 QJsonObject Refund::json() const {
 
+    /*
     QJsonObject contractOutput {
         {"hash", _contractOutput.hash().toString()},
         {"index", _contractOutput.index()},
@@ -29,6 +30,9 @@ QJsonObject Refund::json() const {
         {"output", output},
         {"lockTime", _lockTime}
     };
+    */
+
+    return QJsonObject();
 }
 
 bool Refund::isRefundValid(const Signature &payorSignature, const Signature &payeeSignature) const {
@@ -43,6 +47,9 @@ bool Refund::isRefundValid(const Signature &payorSignature, const Signature &pay
 
     // Check that both can spend multisig output
     // BitCoin::checkMultisignature(contractOutput, sig1, signature);
+
+    // random bs
+    return true;
 }
 
 OutPoint Refund::contractOutput() const {

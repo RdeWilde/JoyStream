@@ -175,7 +175,7 @@ protected:
     virtual void processPayment(const Payment * m) = 0;
     virtual void processEnd(const End * m) = 0;
 
-private:
+protected:
 
     // Torrent plugin for torrent
     TorrentPlugin * _plugin;

@@ -13,6 +13,8 @@ P2PKHTxOut::P2PKHTxOut(const P2PKHTxOut& p2pkhTxOut) {
 P2PKHTxOut & P2PKHTxOut::operator=(const P2PKHTxOut& p2pkhTxOut) {
     _value = p2pkhTxOut.value();
     _pk = p2pkhTxOut.pk();
+
+    return *this;
 }
 
 P2PKHTxOut::P2PKHTxOut(quint64 value, const PublicKey& pk)
@@ -22,11 +24,11 @@ P2PKHTxOut::P2PKHTxOut(quint64 value, const PublicKey& pk)
 
 QJsonObject P2PKHTxOut::json() const {
 
-    QJsonObject object{{"property1", 1}};
+    return QJsonObject();
 
-    return object;
-            /*
-            QJsonObject{
+    /*
+     * FIX LATER
+     *   QJsonObject{
                         {"value", _value},
                         {"pk", _pk.toString()},
                         };

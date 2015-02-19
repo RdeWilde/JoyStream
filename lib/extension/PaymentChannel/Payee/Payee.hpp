@@ -2,9 +2,8 @@
 #define PAYEE_HPP
 
 #include "extension/BitCoin/KeyPair.hpp"
-#include "extension/BitCoin/OutputPoint.hpp"
-
-class Signature;
+#include "extension/BitCoin/OutPoint.hpp"
+#include "extension/BitCoin/Signature.hpp"
 
 class Payee {
 

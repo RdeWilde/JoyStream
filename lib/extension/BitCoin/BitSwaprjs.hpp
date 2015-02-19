@@ -4,29 +4,33 @@
 #include <QString>
 #include <QVector>
 
-#include "extension/PaymentChannel/Payor.hpp"
+#include "extension/PaymentChannel/Payor/Payor.hpp"
 
 class QJsonValue;
 class QJsonObject;
 class KeyPair;
 class Contract;
-class Hash;
+//class Hash;
 class Refund;
-class PrivateKey;
+//class PrivateKey;
 class Signature;
 
 class OutPoint;
+class Channel;
 class P2PKHTxOut;
 class P2SHTxOut;
 
 class BitSwaprjs
 {
 public:
+
+    BitSwaprjs();
+
     BitSwaprjs(const QString & node, const QString & module);
 
     static QList<KeyPair> generate_fresh_key_pairs(int numberOfPairs);
 
-    static Hash compute_contract_hash(const OutPoint & fundingOutput, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput);
+    static Hash compute_contract_hash(const OutPoint & fundingOutput, const PrivateKey & sk, const QVector<Channel> & channels, const P2PKHTxOut & changeOutput);
 
     static Signature compute_payor_refund_signature(const OutPoint & contractOutputPoint, const PrivateKey &sk, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime);
 

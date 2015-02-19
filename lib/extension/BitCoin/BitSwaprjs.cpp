@@ -2,6 +2,9 @@
 #include "KeyPair.hpp"
 #include "extension/PaymentChannel/Contract.hpp"
 #include "extension/PaymentChannel/Refund.hpp"
+
+#include "extension/PaymentChannel/Payor/Channel.hpp"
+
 #include "Signature.hpp"
 
 #include <QProcess>
@@ -9,6 +12,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QJsonArray>
 
 #include <QDebug>
 
@@ -67,10 +71,13 @@ QJsonObject BitSwaprjs::nodeBlockingCall(const QString & method, const QJsonValu
     // Return json object
     QJsonObject o = outputDocument.object();
 
-    if(o['state'] != 1) {
+    if(o["state"] != 1) {
         throw std::exception("Error state returned.");
     } else {
-        return o['result'];
+
+        QJsonValue result =  o["result"];
+
+        return result.toObject();
     }
 }
 
@@ -121,12 +128,12 @@ Hash BitSwaprjs::compute_contract_hash(const Contract & contract, const PrivateK
 }
 */
 
-Hash BitSwaprjs::compute_contract_hash(const OutPoint & fundingOutput, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput) {
+Hash BitSwaprjs::compute_contract_hash(const OutPoint & fundingOutput, const PrivateKey & sk, const QVector<Channel> & channels, const P2PKHTxOut & changeOutput) {
 
     // Encode parameters into json
     QJsonArray p2shTxOuts;
 
-    for(QVector<Payor::Channel>::iterator i = channels.begin(), end(channels.end()); i != end;i++)
+    for(QVector<Channel>::iterator i = channels.begin(), end(channels.end()); i != end;i++)
         p2shTxOuts.append(i->json());
 
     QJsonObject params {

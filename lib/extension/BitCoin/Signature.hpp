@@ -16,6 +16,7 @@ public:
      */
     Signature();
     Signature(const Signature& signature);
+    Signature(const QString & signature);
     Signature & operator=(const Signature& signature);
 
     static const quint32 length = SIGNATURE_LENGTH;

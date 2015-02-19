@@ -2,12 +2,10 @@
 #define BUYER_PEER_PLUGIN_HPP
 
 #include "PeerPlugin.hpp"
-#include "BitCoin/PublicKey.hpp"
+#include "PluginMode.hpp"
 
-/**
 #include "BitCoin/Hash.hpp"
-#include "BitCoin/Signature.hpp"
-*/
+#include "BitCoin/PublicKey.hpp"
 
 class BuyerTorrentPlugin;
 
@@ -28,7 +26,7 @@ public:
         /**
          * @brief State of peer.
          */
-        class Peer {
+        class PeerState {
 
         public:
 
@@ -56,23 +54,23 @@ public:
             };
 
             // Constructor
-            Peer();
+            PeerState();
 
             // Getters and setters
             LastValidAction lastAction() const;
-            void setLastAction(const LastValidAction &lastAction);
+            void setLastAction(LastValidAction lastAction);
 
             FailureMode failureMode() const;
-            void setFailureMode(const FailureMode &failureMode);
+            void setFailureMode(FailureMode failureMode);
 
             quint64 minPrice() const;
-            void setMinPrice(const quint64 &minPrice);
+            void setMinPrice(quint64 &minPrice);
 
             quint32 minLock() const;
             void setMinLock(const quint32 &minLock);
 
             PublicKey pK() const;
-            void setPK(const PublicKey &pK);
+            void setPK(const PublicKey & pK);
 
         private:
 
@@ -91,16 +89,20 @@ public:
         };
 
         /**
-         * @brief Enumeration of possible
-         * states the client side of this
-         * connection can have.
+         * @brief Enumeration of possible states the client.
          */
-        enum class Client {
+        enum class ClientState {
+
             no_bitswapr_message_sent,
+
             buyer_mode_announced,
+
             invited_to_contract,
+
             asked_for_refund_signature,
+
             requested_piece,
+
             sent_payment
         };
 
@@ -108,21 +110,26 @@ public:
         Configuration();
 
         // Getters and setters
-        Peer peerState() const;
-        void setPeerState(const Peer &peerState);
+        PeerState peerState() const;
+        void setPeerState(const PeerState & peerState);
 
-        Client client() const;
-        void setClient(const Client &client);
+        ClientState clientState() const;
+        void setClientState(const ClientState & clientState);
 
     private:
 
-        Peer _peer;
+        // State of peer
+        PeerState _peer;
 
-        Client _client;
+        // State of client
+        ClientState _state;
     };
 
     // Constructor
-    BuyerPeerPlugin(BuyerTorrentPlugin * plugin, libtorrent::bt_peer_connection * connection, QLoggingCategory & category, const Configuration & configuration);
+    BuyerPeerPlugin(BuyerTorrentPlugin * plugin,
+                    libtorrent::bt_peer_connection * connection,
+                    const BuyerPeerPlugin::Configuration & configuration,
+                    QLoggingCategory & category);
 
     // Destructor
     virtual ~BuyerPeerPlugin();
@@ -149,14 +156,14 @@ public:
     virtual bool on_dont_have(int index);
     virtual void sent_unchoke();
     virtual bool can_disconnect(libtorrent::error_code const & ec);
-    virtual bool on_unknown_message(int length, int msg, libtorrent::buffer::const_interval body) = 0;
+    virtual bool on_unknown_message(int length, int msg, libtorrent::buffer::const_interval body);
     virtual void on_piece_pass(int index);
     virtual void on_piece_failed(int index);
     virtual void tick();
     virtual bool write_request(libtorrent::peer_request const & peerRequest);
 
     // Getters and setters
-    Configuration configuration() const;
+    //Configuration configuration() const;
     virtual PluginMode mode() const;
 
 private:

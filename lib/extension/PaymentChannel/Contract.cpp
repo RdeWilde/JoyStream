@@ -3,6 +3,7 @@
 #include "extension/BitCoin/BitSwaprjs.hpp"
 
 #include <QJsonObject>
+#include <QJsonArray>
 
 Contract::Contract() {
 }
@@ -10,13 +11,15 @@ Contract::Contract() {
 Contract::Contract(const Contract& contract)
     : _fundingOutput(contract.fundingOutput())
     , _p2shTxOuts(contract.p2shTxOuts())
-    , _change(cntract.refund()) {
+    , _change(contract.change()) {
 }
 
 Contract & Contract::operator=(const Contract& contract) {
     _fundingOutput = contract.fundingOutput();
     _p2shTxOuts = contract.p2shTxOuts();
-    _change = contract.refund();
+    _change = contract.change();
+
+    return *this;
 }
 
 Contract::Contract(const OutPoint &fundingOutput, quint32 numberOfMultisigOutputs, const P2PKHTxOut &change)
@@ -24,41 +27,44 @@ Contract::Contract(const OutPoint &fundingOutput, quint32 numberOfMultisigOutput
     , _p2shTxOuts(numberOfMultisigOutputs)
     , _change(change){
 }
+
 /*
 void Contract::sign(const PrivateKey & sk) {
 
 }
 */
+
 QJsonObject Contract::json() const {
 
-    QJsonObject fundingOutput {
-        {"hash", _fundingOutput.hash().toString()},
-        {"index", _fundingOutput.index()},
-    };
-
     QJsonArray p2shTxOuts;
-    for(QVector<P2SHTxOut>::iterator i = _p2shTxOuts,
+    for(QVector<P2SHTxOut>::const_iterator i = _p2shTxOuts.begin(),
             end(_p2shTxOuts.end()); i != end;i++) {
 
         // Get output
         P2SHTxOut output = *i;
 
-        p2shTxOuts.append(QJsonObject {
-                              {"value", output.value()},
-                              {"firstPk", output.firstPk().toString()},
-                              {"secondPk", output.secondPk().toString()}
-                          });
+        p2shTxOuts.append(
+                    QJsonObject {
+                        {"value", static_cast<qint64>(output.value())},
+                        {"firstPk", output.firstPk().toString()},
+                        {"secondPk", output.secondPk().toString()}
+                    });
     }
 
-    QJsonObject change {
-        {"value", _change.value()},
-        {"pk", _change.pk().toString()},
-    };
-
     return QJsonObject {
-        {"fundingOutput", fundingOutput},
+        {"fundingOutput",
+            QJsonObject {
+                {"hash", _fundingOutput.hash().toString()},
+                {"index", static_cast<qint64>(_fundingOutput.index())}
+            }
+        },
         {"p2shTxOuts", p2shTxOuts},
-        {"change", change}
+        {"change",
+            QJsonObject {
+                {"value", static_cast<qint64>(_change.value())},
+                {"pk", _change.pk().toString()}
+            }
+        }
     };
 }
 

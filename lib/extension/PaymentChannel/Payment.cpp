@@ -1,6 +1,6 @@
 #include "Payment.hpp"
 
-class QJsonObject;
+#include <QJsonObject>
 
 Payment::Payment(const QJsonObject & rawTransaction) {
     // Recover fields
@@ -11,11 +11,13 @@ Payment::Payment(const OutPoint& contractOutput,
                  const P2PKHTxOut& payeeOutput)
     : _contractOutput(contractOutput)
     , _payorOutput(payorOutput)
-    , _payorOutput(payeeOutput) {
+    , _payeeOutput(payeeOutput) {
 }
 
 QJsonObject Payment::rawTransaction() const {
+
     // Turn into raw json transaction
+    return QJsonObject();
 }
 
 OutPoint Payment::contractOutput() const {

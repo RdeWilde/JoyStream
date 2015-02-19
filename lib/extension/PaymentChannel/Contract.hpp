@@ -1,14 +1,16 @@
 #ifndef CONTRACT_HPP
 #define CONTRACT_HPP
 
-#include "extension/BitCoin/OutputPoint.hpp"
+#include "extension/BitCoin/OutPoint.hpp"
 //#include "extension/BitCoin/Signature.hpp"
 #include "extension/BitCoin/P2SHTxOut.hpp"
 #include "extension/BitCoin/P2PKHTxOut.hpp"
 
 class QJsonObject;
-class PrivateKey;
+//class PrivateKey;
 //class Signature;
+
+#include <QVector>
 
 class Contract
 {

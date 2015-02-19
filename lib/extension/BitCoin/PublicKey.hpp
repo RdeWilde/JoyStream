@@ -3,6 +3,9 @@
 
 #include "FixedBuffer.hpp"
 
+typedef FixedBuffer<23> PublicKey;
+
+/*
 class QString;
 
 class PublicKey : public FixedBuffer<23>
@@ -12,5 +15,7 @@ public:
     QString wif() const;
 
 };
+*/
+
 
 #endif // PUBLIC_KEY_HPP

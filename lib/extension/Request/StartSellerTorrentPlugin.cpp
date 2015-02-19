@@ -6,7 +6,7 @@ StartSellerTorrentPlugin::StartSellerTorrentPlugin(const libtorrent::sha1_hash &
     , _configuration(configuration) {
 }
 
-PluginRequestType StartSellerTorrentPlugin::getTorrentPluginRequestType() const {
+PluginRequestType StartSellerTorrentPlugin::getPluginRequestType() const {
     return PluginRequestType::StartSellerTorrentPlugin;
 }
 

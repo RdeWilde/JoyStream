@@ -1,7 +1,7 @@
 #ifndef PAYMENT_HPP
 #define PAYMENT_HPP
 
-#include "extension/BitCoin/OutputPoint.hpp"
+#include "extension/BitCoin/OutPoint.hpp"
 #include "extension/BitCoin/P2PKHTxOut.hpp"
 
 class QJsonObject;

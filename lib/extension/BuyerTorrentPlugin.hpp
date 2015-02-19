@@ -40,8 +40,6 @@ public:
 
     public:
 
-
-
         // Constructor from copy
         Configuration(const Configuration & c);
 
@@ -64,25 +62,25 @@ public:
         void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const;
 
         // Getters and setters
-        State stage() const;
-        void setStage(const State &stage);
+        State state() const;
+        void setState(const State & state);
 
         quint64 maxPrice() const;
-        void setMaxPrice(const quint64 &maxPrice);
+        void setMaxPrice(quint64 maxPrice);
 
         quint32 maxLock() const;
-        void setMaxLock(const quint32 &maxLock);
+        void setMaxLock(quint32 maxLock);
 
         quint64 maxFeePerByte() const;
-        void setMaxFeePerByte(const quint64 &maxFeePerByte);
+        void setMaxFeePerByte(quint64 maxFeePerByte);
 
-        qint32 numSellers() const;
-        void setNumSellers(const qint32 &numSellers);
+        quint32 numSellers() const;
+        void setNumSellers(quint32 numSellers);
 
     private:
 
         // What stage is plugin
-        State _stage;
+        State _state;
 
         // Maximum price accepted (satoshies)
         quint64 _maxPrice;
@@ -94,7 +92,7 @@ public:
         quint64 _maxFeePerByte;
 
         // Number of seller in payment channel
-        qint32 _numSellers;
+        quint32 _numSellers;
     };
 
     // Constructor
@@ -119,7 +117,6 @@ public:
 
     // Getters and setters
     virtual PluginMode pluginMode() const;
-    //virtual const TorrentPlugin::Configuration getTorrentPluginConfiguration() = 0;
 
 private:
 
