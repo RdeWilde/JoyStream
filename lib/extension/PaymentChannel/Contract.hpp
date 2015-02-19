@@ -21,7 +21,7 @@ public:
     Contract & operator=(const Contract& contract);
 
     // Constructor based on members
-    Contract(const OutputPoint &fundingOutput, quint32 numberOfMultisigOutputs, const P2PKHTxOut &change);
+    Contract(const OutPoint &fundingOutput, quint32 numberOfMultisigOutputs, const P2PKHTxOut &change);
 
     // Constructor based on bitswaprjsEncoding
     //void sign(const PrivateKey & sk);
@@ -30,8 +30,8 @@ public:
     QJsonObject json() const;
 
     // Getters and setters
-    OutputPoint fundingOutput() const;
-    void setFundingOutput(const OutputPoint &fundingOutput);
+    OutPoint fundingOutput() const;
+    void setFundingOutput(const OutPoint &fundingOutput);
 
     QVector<P2SHTxOut> p2shTxOuts() const;
     void setP2shTxOuts(const QVector<P2SHTxOut> &p2shTxOuts);
@@ -45,7 +45,7 @@ public:
 private:
 
     // Unspent output funding channel
-    OutputPoint _fundingOutput;
+    OutPoint _fundingOutput;
 
     // Multisig outputs
     QVector<P2SHTxOut> _p2shTxOuts;

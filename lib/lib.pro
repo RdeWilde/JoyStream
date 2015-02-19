@@ -69,7 +69,6 @@ SOURCES += \
     extension/SellerPeerPlugin.cpp \
     extension/BitCoin/KeyPair.cpp \
     extension/BitCoin/FixedBuffer.cpp \
-    extension/BitCoin/OutputPoint.cpp \
     extension/BitCoin/P2SHTxOut.cpp \
     extension/BitCoin/P2PKHTxOut.cpp \
     extension/PaymentChannel/Refund.cpp \
@@ -78,7 +77,8 @@ SOURCES += \
     extension/BitCoin/BitSwaprjs.cpp \
     extension/PaymentChannel/Payee/Payee.cpp \
     extension/PaymentChannel/Payor/Payor.cpp \
-    extension/PaymentChannel/Payor/Channel.cpp
+    extension/PaymentChannel/Payor/Channel.cpp \
+    extension/BitCoin/OutPoint.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -150,7 +150,6 @@ HEADERS += \
     extension/BitCoin/KeyPair.hpp \
     extension/BitCoin/FixedBuffer.hpp \
     extension/BitCoin/OutputSigHash.hpp \
-    extension/BitCoin/OutputPoint.hpp \
     extension/BitCoin/P2SHTxOut.hpp \
     extension/BitCoin/P2PKHTxOut.hpp \
     extension/PaymentChannel/Refund.hpp \
@@ -162,7 +161,8 @@ HEADERS += \
     extension/BitCoin/P2PKHAddress.hpp \
     extension/PaymentChannel/Payee/Payee.hpp \
     extension/PaymentChannel/Payor/Payor.hpp \
-    extension/PaymentChannel/Payor/Channel.hpp
+    extension/PaymentChannel/Payor/Channel.hpp \
+    extension/BitCoin/OutPoint.hpp
 				
 FORMS += \
     view/mainwindow.ui \

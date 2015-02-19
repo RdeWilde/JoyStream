@@ -3,6 +3,10 @@
 
 #include "PeerPlugin.hpp"
 
+#include "extension/BitCoin/PublicKey.hpp"
+#include "extension/BitCoin/Hash.hpp"
+#include "extension/BitCoin/Signature.hpp"
+
 class SellerPeerPlugin : public PeerPlugin
 {
 public:

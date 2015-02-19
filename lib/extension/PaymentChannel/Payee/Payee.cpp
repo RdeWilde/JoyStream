@@ -19,7 +19,7 @@ void Payee::registerPayeeConfiguration(quint32 lockTime, quint32 price) {
     _state = State::waiting_for_contract_information;
 }
 
-void Payee::registerContractInformation(const OutputPoint &contractOutputPoint, quint64 funds, const PublicKey &payorFinalPk) {
+void Payee::registerContractInformation(const OutPoint &contractOutputPoint, quint64 funds, const PublicKey &payorFinalPk) {
 
     // Check state
     if(_state != State::waiting_for_contract_information)

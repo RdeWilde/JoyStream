@@ -22,10 +22,15 @@ P2PKHTxOut::P2PKHTxOut(quint64 value, const PublicKey& pk)
 
 QJsonObject P2PKHTxOut::json() const {
 
-    return QJsonObject {
+    QJsonObject object{{"property1", 1}};
+
+    return object;
+            /*
+            QJsonObject{
                         {"value", _value},
                         {"pk", _pk.toString()},
                         };
+                                */
 }
 
 quint64 P2PKHTxOut::value() const {

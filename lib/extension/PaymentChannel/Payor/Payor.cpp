@@ -12,7 +12,7 @@
 Payor::Payor() {
 }
 
-Payor::Payor(const QSet<Channel::PayorConfiguration> & configurations, const OutputPoint& fundingOutput, const KeyPair& fundingOutputKeyPair)
+Payor::Payor(const QSet<Channel::PayorConfiguration> & configurations, const OutPoint& fundingOutput, const KeyPair& fundingOutputKeyPair)
     : _state(State::waiting_for_full_set_of_sellers)
     , _fundingOutput(fundingOutput)
     , _fundingOutputKeyPair(fundingOutputKeyPair)
@@ -149,7 +149,7 @@ bool Payor::processRefundSignature(quint32 index, const Signature & signature) {
     Q_ASSERT(s.state() == Channel::State::assigned);
 
     // Check signature
-    bool validSignature = BitSwaprjs.check_refund_signatures(OutputPoint(_contractHash, index),
+    bool validSignature = BitSwaprjs.check_refund_signatures(OutPoint(_contractHash, index),
                                                              s.payorRefundSignature(),
                                                              signature,
                                                              s.payorContractKeyPair().pk(),
@@ -195,7 +195,7 @@ Signature Payor::getPresentPaymentSignature(quint32 index) const {
     // The amount paid so far
     quint64 amountPaid = _price*_numberOfPaymentsMade;
 
-    return BitSwaprjs.compute_payor_payment_signature(OutputPoint(_contractHash, index),
+    return BitSwaprjs.compute_payor_payment_signature(OutPoint(_contractHash, index),
                                                        P2PKHTxOut(s.funds() - amountPaid, s.payorContractKeyPair.pk()),
                                                        P2PKHTxOut(amountPaid - _paymentFee, s.payorContractKeyPair.pk()),
                                                        s.payorContractKeyPair().sk());
@@ -229,11 +229,11 @@ Contract Payor::contract() const {
 }
 */
 
-OutputPoint Payor::fundingOutput() const {
+OutPoint Payor::fundingOutput() const {
     return _fundingOutput;
 }
 
-void Payor::setFundingOutput(const OutputPoint &fundingOutput) {
+void Payor::setFundingOutput(const OutPoint &fundingOutput) {
     _fundingOutput = fundingOutput;
 }
 

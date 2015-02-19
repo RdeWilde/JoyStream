@@ -64,7 +64,7 @@ public:
     virtual void on_add_peer(const libtorrent::tcp::endpoint & endPoint, int src, int flags);
 
     // Getters and setters
-    virtual PluginMode pluginMode() const = 0;
+    virtual PluginMode pluginMode() const;
     //virtual const TorrentPlugin::Configuration getTorrentPluginConfiguration() = 0;
 
 private:

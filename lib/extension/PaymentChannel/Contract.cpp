@@ -19,7 +19,7 @@ Contract & Contract::operator=(const Contract& contract) {
     _change = contract.refund();
 }
 
-Contract::Contract(const OutputPoint &fundingOutput, quint32 numberOfMultisigOutputs, const P2PKHTxOut &change)
+Contract::Contract(const OutPoint &fundingOutput, quint32 numberOfMultisigOutputs, const P2PKHTxOut &change)
     : _fundingOutput(fundingOutput)
     , _p2shTxOuts(numberOfMultisigOutputs)
     , _change(change){
@@ -62,11 +62,11 @@ QJsonObject Contract::json() const {
     };
 }
 
-OutputPoint Contract::fundingOutput() const {
+OutPoint Contract::fundingOutput() const {
     return _fundingOutput;
 }
 
-void Contract::setFundingOutput(const OutputPoint &fundingOutput) {
+void Contract::setFundingOutput(const OutPoint &fundingOutput) {
     _fundingOutput = fundingOutput;
 }
 

@@ -8,11 +8,16 @@
 
 #include <QtGlobal> // quint64
 
-class TorrentPluginConfiguration;
+//class TorrentPluginConfiguration;
+
+#include "extension/TorrentPlugin.hpp" // TorrentPlugin::Configuration
 
 class TorrentConfiguration {
 
 public:
+
+    // Default constructor
+    //TorrentConfiguration();
 
     // Constructor from members
     TorrentConfiguration(const libtorrent::sha1_hash & infoHash,
@@ -21,7 +26,7 @@ public:
                          const std::vector<char> & resumeData,
                          quint64 flags,
                          libtorrent::torrent_info * torrentInfo,
-                         TorrentPluginConfiguration * torrentPluginConfiguration);
+                         const TorrentPlugin::Configuration & configuration);
 
     // Constructor from dictionary
     TorrentConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry);
@@ -30,9 +35,6 @@ public:
     ~TorrentConfiguration();
 
     /*
-    // Default constructor, needed for adding type by value to map
-    TorrentConfiguration();
-
     // Assignment operator, needed for adding type by value to map
     TorrentConfiguration & operator=(const TorrentConfiguration & rhs);
     */
@@ -71,7 +73,8 @@ public:
     const std::vector<char> & getResumeData() const;
     quint64 getFlags() const;
     const libtorrent::torrent_info * getTorrentInfo() const;
-    const TorrentPluginConfiguration * getTorrentPluginConfiguration() const;
+
+    //const TorrentPluginConfiguration * getTorrentPluginConfiguration() const;
     //void setTorrentPluginConfiguration(const TorrentPluginConfiguration & torrentPluginConfiguration);
 
 protected:
@@ -96,7 +99,7 @@ protected:
     libtorrent::torrent_info * _torrentInfo;
 
     // Torrent plugin configuration
-    TorrentPluginConfiguration * _torrentPluginConfiguration;
+    TorrentPlugin::Configuration _configuration;
 };
 
 #endif // TORRENT_CONFIGURATION_HPP

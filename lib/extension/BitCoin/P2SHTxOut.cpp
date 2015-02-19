@@ -13,6 +13,8 @@ P2SHTxOut & P2SHTxOut::operator=(const P2SHTxOut& p2shTxOut) {
     _value = p2shTxOut.value();
     _firstPk = p2shTxOut.firstPk();
     _secondPk =  p2shTxOut.secondPk();
+
+    return *this;
 }
 
 P2SHTxOut::P2SHTxOut(quint64 value, const PublicKey & firstPk, const PublicKey & secondPk)

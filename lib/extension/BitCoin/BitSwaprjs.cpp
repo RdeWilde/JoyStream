@@ -121,7 +121,7 @@ Hash BitSwaprjs::compute_contract_hash(const Contract & contract, const PrivateK
 }
 */
 
-Hash BitSwaprjs::compute_contract_hash(const OutputPoint & fundingOutput, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput) {
+Hash BitSwaprjs::compute_contract_hash(const OutPoint & fundingOutput, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput) {
 
     // Encode parameters into json
     QJsonArray p2shTxOuts;
@@ -143,7 +143,7 @@ Hash BitSwaprjs::compute_contract_hash(const OutputPoint & fundingOutput, const 
     return Hash(result.toString());
 }
 
-Signature BitSwaprjs::compute_payor_refund_signature(const OutputPoint & contractOutputPoint, const PrivateKey &sk, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime) {
+Signature BitSwaprjs::compute_payor_refund_signature(const OutPoint & contractOutputPoint, const PrivateKey &sk, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime) {
 
     // Create parameters
     QJsonObject params {
@@ -162,7 +162,7 @@ Signature BitSwaprjs::compute_payor_refund_signature(const OutputPoint & contrac
     return Signature(result.toString());
 }
 
-bool BitSwaprjs::check_refund_signatures(const OutputPoint & contractOutputPoint, const Signature &payorSignature, const Signature &payeeSignature, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime) {
+bool BitSwaprjs::check_refund_signatures(const OutPoint & contractOutputPoint, const Signature &payorSignature, const Signature &payeeSignature, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime) {
 
     // Create parameters
     QJsonObject params {
@@ -182,7 +182,7 @@ bool BitSwaprjs::check_refund_signatures(const OutputPoint & contractOutputPoint
     return result.toBool();
 }
 
-Signature BitSwaprjs::compute_payor_payment_signature(const OutputPoint & contractOutputPoint, const P2PKHTxOut &refundOutput, const P2PKHTxOut & payeeOutput, const PrivateKey &sk) {
+Signature BitSwaprjs::compute_payor_payment_signature(const OutPoint & contractOutputPoint, const P2PKHTxOut &refundOutput, const P2PKHTxOut & payeeOutput, const PrivateKey &sk) {
 
     // Create parameters
     QJsonObject params {

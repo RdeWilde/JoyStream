@@ -14,10 +14,20 @@
 
 #include <QLoggingCategory>
 
+TorrentPlugin::Configuration::Configuration() {
+}
+
 TorrentPlugin::Configuration::Configuration(bool enableBanningSets)
     : _enableBanningSets(enableBanningSets) {
 }
 
+TorrentPlugin::Configuration::Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry) {
+
+}
+
+void TorrentPlugin::Configuration::toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const {
+
+}
 bool TorrentPlugin::Configuration::enableBanningSets() const {
     return _enableBanningSets;
 }
@@ -90,7 +100,7 @@ bool TorrentPlugin::isPeerWellBehaved(libtorrent::peer_connection * connection) 
     const libtorrent::tcp::endpoint & endPoint = connection->remote();
 
     // If we are using banning sets, then check this peer
-    if(_configuration.enableBanningSets()) {
+    if(_enableBanningSets) {
 
         // Check if we know from before that peer does not have
         if(_peersWithoutExtension.contains(endPoint)) {

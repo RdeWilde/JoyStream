@@ -10,8 +10,10 @@ KeyPair::KeyPair(const KeyPair& keyPair) {
 }
 
 KeyPair & KeyPair::operator=(const KeyPair& rhs) {
-    _pk = keyPair.pk();
-    _sk = keyPair.sk();
+    _pk = rhs.pk();
+    _sk = rhs.sk();
+
+    return *this;
 }
 
 KeyPair::KeyPair(const PublicKey & pk, const PrivateKey & sk)

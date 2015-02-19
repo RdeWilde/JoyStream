@@ -41,12 +41,10 @@ Plugin::~Plugin() {
     */
 }
 
+/**
 boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::torrent * newTorrent, void * userData) {
 
-    /**
-      * No longer used
-      *
-      *
+    // No longer used
     // Create the appropriate torrent plugin depending on if we have full file
     TorrentPlugin * torrentPlugin = new TorrentPlugin(this, newTorrent, _category, static_cast<TorrentPluginConfiguration *>(userData));
 
@@ -58,8 +56,8 @@ boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::to
 
     // Return
     return boost::shared_ptr<libtorrent::torrent_plugin>(torrentPlugin);
-    */
 }
+*/
 
 void Plugin::added(boost::weak_ptr<libtorrent::aux::session_impl> session) {
 
@@ -296,7 +294,7 @@ bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
             sharedTorrentPtr->add_extension(sharedPluginPtr);
 
             // Remember plugin
-            _plugins[infoHash] = boost::weak_ptr<SellerTorrentPlugin>(sharedPluginPtr);
+            _plugins[infoHash] = boost::weak_ptr<libtorrent::torrent_plugin>(sharedPluginPtr);
 
             // Return success indication
             return true;

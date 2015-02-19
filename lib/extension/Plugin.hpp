@@ -64,7 +64,7 @@ public:
      * never by other threads, as this causes synchronization
      * failures.
      */
-    virtual boost::shared_ptr<libtorrent::torrent_plugin> new_torrent(libtorrent::torrent * torrent, void * userData);
+    //virtual boost::shared_ptr<libtorrent::torrent_plugin> new_torrent(libtorrent::torrent * torrent, void * userData);
     virtual void added(boost::weak_ptr<libtorrent::aux::session_impl> session);
     virtual void on_alert(libtorrent::alert const * a);
     virtual void on_tick();

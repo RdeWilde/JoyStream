@@ -174,7 +174,7 @@ void Channel::computePayorRefundSignature(const Hash &contractHash) const {
         throw std::exception("State incompatile request, must be in assigned state.");
 
     // Make call to compute signature
-    OutputPoint contractOutputPoint(contractHash, _index);
+    OutPoint contractOutputPoint(contractHash, _index);
     P2PKHTxOut refundOutput(_funds, _payorFinalKeyPair.pk());
 
     // remove PKs later, no reason we need them

@@ -3,6 +3,7 @@
 
 #include "BEPSupportStatus.hpp"
 //#include "TorrentPluginConfiguration.hpp"
+#include "Utilities.hpp" // uint qHash(const libtorrent::tcp::endpoint & endpoint)
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
@@ -39,21 +40,23 @@ public:
 
     public:
 
-        // Constructor based on members
+        // Default constructor
+        Configuration();
+
+        // Constructor from members
         Configuration(bool enableBanningSets);
 
-
-        /*
-        // Observe constructor from members
-        TorrentPluginConfiguration(bool enableBanningSets);
-
         // Constructor from dictionary
-        TorrentPluginConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry);
-        *
-        */
+        Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry);
+
+        // Assignment
+        // KeyPair & KeyPair::operator=(const KeyPair& rhs)
+        //Configuration(const Configuration & rhs);
+
+        // Turn into dictionary
+        void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const;
 
         // Getters and setters
-
         bool enableBanningSets() const;
         void setEnableBanningSets(bool enableBanningSets);
 

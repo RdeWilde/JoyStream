@@ -6,7 +6,7 @@ Payment::Payment(const QJsonObject & rawTransaction) {
     // Recover fields
 }
 
-Payment::Payment(const OutputPoint& contractOutput,
+Payment::Payment(const OutPoint& contractOutput,
                  const P2PKHTxOut& payorOutput,
                  const P2PKHTxOut& payeeOutput)
     : _contractOutput(contractOutput)
@@ -18,11 +18,11 @@ QJsonObject Payment::rawTransaction() const {
     // Turn into raw json transaction
 }
 
-OutputPoint Payment::contractOutput() const {
+OutPoint Payment::contractOutput() const {
     return _contractOutput;
 }
 
-void Payment::setContractOutput(const OutputPoint &contractOutput) {
+void Payment::setContractOutput(const OutPoint &contractOutput) {
     _contractOutput = contractOutput;
 }
 

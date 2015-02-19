@@ -6,7 +6,7 @@
 #include "extension/BitCoin/KeyPair.hpp"
 #include "extension/BitCoin/Hash.hpp"
 #include "extension/BitCoin/Signature.hpp"
-#include "extension/BitCoin/OutputPoint.hpp"
+#include "extension/BitCoin/OutPoint.hpp"
 
 /**
  * Represents a single channel.

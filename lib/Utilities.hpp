@@ -10,6 +10,11 @@ enum class MessageType;
 #include <set>
 #include <map>
 
+// Required for QSet<libtorrent::tcp::endpoint>
+#include <QtGlobal> // uint
+#include <libtorrent/socket.hpp> // libtorrent::tcp::endpoint
+uint qHash(const libtorrent::tcp::endpoint & endpoint);
+
 /**
  * Static utility functions
  */

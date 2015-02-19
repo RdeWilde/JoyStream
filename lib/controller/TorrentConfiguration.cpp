@@ -1,5 +1,4 @@
 #include "TorrentConfiguration.hpp"
-#include "extension/TorrentPluginConfiguration.hpp"
 #include "Exceptions/InvalidBitSwaprStateEntryException.hpp"
 
 TorrentConfiguration::TorrentConfiguration(const libtorrent::sha1_hash & infoHash
@@ -8,14 +7,14 @@ TorrentConfiguration::TorrentConfiguration(const libtorrent::sha1_hash & infoHas
                                            ,const std::vector<char> & resumeData
                                            ,quint64 flags
                                            ,libtorrent::torrent_info * torrentInfo
-                                           ,TorrentPluginConfiguration * torrentPluginConfiguration)
+                                           ,const TorrentPlugin::Configuration & configuration)
                     :_infoHash(infoHash)
                     ,_name(name)
                     ,_savePath(savePath)
                     ,_resumeData(resumeData)
                     ,_flags(flags)
                     ,_torrentInfo(torrentInfo)
-                    ,_torrentPluginConfiguration(torrentPluginConfiguration) {
+                    ,_configuration(configuration) {
 }
 
 TorrentConfiguration::~TorrentConfiguration() {
@@ -142,18 +141,18 @@ TorrentConfiguration::TorrentConfiguration(const libtorrent::entry::dictionary_t
     // NOT IMPLEMENTED
 
     // Check if torrentPluginConfiguration is present
-    if(dictionaryEntry.count("torrentPluginConfiguration") == 1) {
+    if(dictionaryEntry.count("configuration") == 1) {
 
         // Get entry
-        libtorrent::entry torrentPluginConfigurationEntry = dictionaryEntry.find("torrentPluginConfiguration")->second;
+        libtorrent::entry configurationEntry = dictionaryEntry.find("configuration")->second;
 
         // Check that entry is of type entry::dictionary_t
-        if(torrentPluginConfigurationEntry.type() == libtorrent::entry::dictionary_t)
-            _torrentPluginConfiguration = new TorrentPluginConfiguration(torrentPluginConfigurationEntry.dict());
+        if(configurationEntry.type() == libtorrent::entry::dictionary_t)
+            _configuration = TorrentPlugin::Configuration(configurationEntry.dict());
         else
-            throw InvalidBitSwaprStateEntryException(dictionaryEntry, "torrentPluginConfiguration key is not of type entry::dictionary_t.");
+            throw InvalidBitSwaprStateEntryException(dictionaryEntry, "configuration key is not of type entry::dictionary_t.");
     } else
-        _torrentPluginConfiguration = NULL;
+        throw InvalidBitSwaprStateEntryException(dictionaryEntry, "configuration key should have .count == 1.");
 }
 
 void TorrentConfiguration::toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const {
@@ -182,13 +181,10 @@ void TorrentConfiguration::toDictionaryEntry(libtorrent::entry::dictionary_type 
     // NOT IMPLEMENTED
     //dictionaryEntry["torrentInfo"] = ;
 
-    // _torrentPluginConfiguration
-    if(_torrentPluginConfiguration != NULL) {
-
-        libtorrent::entry::dictionary_type torrentPluginConfigurationDictionaryEntry;
-        _torrentPluginConfiguration->toDictionaryEntry(torrentPluginConfigurationDictionaryEntry);
-        dictionaryEntry["torrentPluginConfiguration"] = torrentPluginConfigurationDictionaryEntry;
-    }
+    // _configuration
+    libtorrent::entry::dictionary_type configurationDictionaryEntry;
+    _configuration.toDictionaryEntry(configurationDictionaryEntry);
+    dictionaryEntry["configuration"] = configurationDictionaryEntry;
 }
 
 libtorrent::add_torrent_params TorrentConfiguration::toAddTorrentParams() const {
@@ -205,7 +201,7 @@ libtorrent::add_torrent_params TorrentConfiguration::toAddTorrentParams() const 
     if(_torrentInfo != NULL)
         params.ti = boost::intrusive_ptr<libtorrent::torrent_info>(_torrentInfo);
 
-    params.userdata = static_cast<void *>(_torrentPluginConfiguration);
+    //params.userdata = static_cast<void *>(_torrentPluginConfiguration);
 
     // Return parameters
     return params;
@@ -235,11 +231,11 @@ const libtorrent::torrent_info * TorrentConfiguration::getTorrentInfo() const {
     return _torrentInfo;
 }
 
+/*
 const TorrentPluginConfiguration * TorrentConfiguration::getTorrentPluginConfiguration() const {
     return _torrentPluginConfiguration;
 }
 
-/*
 void TorrentConfiguration::setTorrentPluginConfiguration(const TorrentPluginConfiguration & torrentPluginConfiguration) {
     _torrentPluginConfiguration = torrentPluginConfiguration;
 }

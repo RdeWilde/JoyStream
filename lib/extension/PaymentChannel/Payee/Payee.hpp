@@ -37,7 +37,7 @@ public:
     void registerPayeeConfiguration(quint32 lockTime, quint32 price);
 
     // When contract information is known, as advertised in
-    void registerContractInformation(const OutputPoint &contractOutputPoint, quint64 funds, const PublicKey &payorFinalPk);
+    void registerContractInformation(const OutPoint &contractOutputPoint, quint64 funds, const PublicKey &payorFinalPk);
 
     Signature generateRefundSignature() const;
 
@@ -87,7 +87,7 @@ private:
     quint32 _maximumNumberOfSellers;
 
     //
-    OutputPoint _contractOutputPoint;
+    OutPoint _contractOutputPoint;
 
     // Controls payee portion of contract output
     KeyPair _payeeContractOutput;

@@ -1,7 +1,7 @@
 #ifndef REFUND_HPP
 #define REFUND_HPP
 
-#include "extension/BitCoin/OutputPoint.hpp"
+#include "extension/BitCoin/OutPoint.hpp"
 #include "extension/BitCoin/P2PKHTxOut.hpp"
 
 class QJsonObject;
@@ -15,7 +15,7 @@ public:
     Refund(const QJsonObject & json);
 
     // Constructor based on members
-    Refund(const OutputPoint & contractOutput, const P2PKHTxOut & ouput, quint32 lockTime);
+    Refund(const OutPoint & contractOutput, const P2PKHTxOut & ouput, quint32 lockTime);
 
     // To JSON with encoding
     QJsonObject json() const;
@@ -24,8 +24,8 @@ public:
     bool isRefundValid(const Signature &payorSignature, const Signature &payeeSignature) const;
 
     // Getters and setters
-    OutputPoint contractOutput() const;
-    void setContractOutput(const OutputPoint &contractOutput);
+    OutPoint contractOutput() const;
+    void setContractOutput(const OutPoint &contractOutput);
 
     P2PKHTxOut output() const;
     void setOutput(const P2PKHTxOut &output);
@@ -36,7 +36,7 @@ public:
 private:
 
     // Contract transaction output
-    OutputPoint _contractOutput;
+    OutPoint _contractOutput;
 
     // Refund output
     P2PKHTxOut _output;

@@ -4,8 +4,24 @@
 #include <libtorrent/entry.hpp>
 #include <libtorrent/bencode.hpp> // bdecode()
 
+#include <QString>
+
 #include <fstream>
 #include <vector>
+
+#include <libtorrent/socket_io.hpp> // libtorrent::print_endpoint
+#include <QHash>
+uint qHash(const libtorrent::tcp::endpoint & endpoint) {
+
+    // Convert to std::string
+    std::string endPointStdString = libtorrent::print_endpoint(endpoint);
+
+    // Convert to QString
+    QString endPointQString = endPointStdString.c_str();
+
+    // Hash it
+    return qHash(endPointQString);
+}
 
 bool Utilities::loadBencodedEntry(const char * fileName, libtorrent::entry & destinationEntry) {
 

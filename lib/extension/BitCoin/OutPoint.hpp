@@ -1,23 +1,23 @@
-#ifndef OUTPUT_POINT_HPP
-#define OUTPUT_POINT_HPP
+#ifndef OUT_POINT_HPP
+#define OUT_POINT_HPP
 
 #include "extension/BitCoin/Hash.hpp"
 
 class QJsonObject;
 
-class OutputPoint
+class OutPoint
 {
 public:
 
     /**
      * Default/Copy constructor and assignemtn operator needed to put in container.
      */
-    OutputPoint();
-    OutputPoint(const OutputPoint& outputPoint);
-    OutputPoint & operator=(const OutputPoint& outputPoint);
+    OutPoint();
+    OutPoint(const OutPoint& outputPoint);
+    OutPoint & operator=(const OutPoint& outputPoint);
 
     // Constructor
-    OutputPoint(const Hash & hash, quint32 index);
+    OutPoint(const Hash & hash, quint32 index);
 
     QJsonObject json() const;
 
@@ -37,4 +37,4 @@ private:
     quint32 _index;
 };
 
-#endif // OUTPUT_POINT_HPP
+#endif // OUT_POINT_HPP

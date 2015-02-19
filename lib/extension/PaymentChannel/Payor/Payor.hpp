@@ -6,7 +6,7 @@
 #include "extension/BitCoin/KeyPair.hpp"
 #include "extension/BitCoin/Hash.hpp"
 #include "extension/BitCoin/Signature.hpp"
-#include "extension/BitCoin/OutputPoint.hpp"
+#include "extension/BitCoin/OutPoint.hpp"
 
 #include "Channel.hpp"
 
@@ -51,7 +51,7 @@ public:
     Payor();
 
     // Constructor based on members
-    Payor(const QSet<Channel::PayorConfiguration> & configurations, const OutputPoint& fundingOutput, const KeyPair& fundingOutputKeyPair);
+    Payor(const QSet<Channel::PayorConfiguration> & configurations, const OutPoint& fundingOutput, const KeyPair& fundingOutputKeyPair);
 
     // Finds an unassigned slot
     // ========================
@@ -89,8 +89,8 @@ public:
     bool spent(quint32 index) const;
 
     // Getters and setters
-    OutputPoint fundingOutput() const;
-    void setFundingOutput(const OutputPoint &fundingOutput);
+    OutPoint fundingOutput() const;
+    void setFundingOutput(const OutPoint &fundingOutput);
 
     quint32 numberOfSignedSlots() const;
     void setNumberOfSignedSlots(const quint32 &numberOfSignedSlots);
@@ -104,7 +104,7 @@ private:
     QVector<Channel> _channels;
 
     // Unspent output funding channel
-    OutputPoint _fundingOutput;
+    OutPoint _fundingOutput;
 
     // Controls output funding channel
     KeyPair _fundingOutputKeyPair;

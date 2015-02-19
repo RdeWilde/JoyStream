@@ -5,7 +5,7 @@ BuyerPeerPlugin::Configuration::Peer::Peer()
     , _failureMode(FailureMode::not_failed) {
 }
 
-BuyerPeerPlugin::Configuration::Peer::LastValidAction BuyerPeerPlugin::PeerState::lastAction() const {
+BuyerPeerPlugin::Configuration::Peer::LastValidAction BuyerPeerPlugin::Configuration::Peer::lastAction() const {
     return _lastAction;
 }
 
@@ -13,7 +13,7 @@ void BuyerPeerPlugin::Configuration::Peer::setLastAction(const LastValidAction &
     _lastAction = lastAction;
 }
 
-BuyerPeerPlugin::Configuration::Peer::FailureMode BuyerPeerPlugin::PeerState::failureMode() const {
+BuyerPeerPlugin::Configuration::Peer::FailureMode BuyerPeerPlugin::Configuration::Peer::failureMode() const {
     return _failureMode;
 }
 
@@ -49,11 +49,11 @@ BuyerPeerPlugin::Configuration::Peer BuyerPeerPlugin::Configuration::peerState()
     return _peer;
 }
 
-void BuyerPeerPlugin::Configuration::setPeer(const Peer &peer) {
+void BuyerPeerPlugin::Configuration::setPeerState(const Peer &peer) {
     _peer = peer;
 }
 
-BuyerPeerPlugin::Configuration::Client BuyerPeerPlugin::Configuration::clientState() const {
+BuyerPeerPlugin::Configuration::Client BuyerPeerPlugin::Configuration::client() const {
     return _client;
 }
 

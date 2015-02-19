@@ -1,4 +1,5 @@
 #include "SellerTorrentPlugin.hpp"
+#include "PluginMode.hpp"
 #include "SellerPeerPlugin.hpp"
 
 #include <libtorrent/error_code.hpp>
@@ -173,3 +174,7 @@ void SellerTorrentPlugin::removePeerPlugin(PeerPlugin * plugin) {
 
 }
 */
+
+PluginMode SellerTorrentPlugin::pluginMode() const {
+    return PluginMode::
+}

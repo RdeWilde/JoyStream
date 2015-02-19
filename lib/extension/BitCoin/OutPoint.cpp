@@ -1,45 +1,45 @@
-#include "OutputPoint.hpp"
+#include "OutPoint.hpp"
 
 #include <QJsonObject>
 
-OutputPoint::OutputPoint() {
+OutPoint::OutPoint() {
 }
 
-OutputPoint::OutputPoint(const OutputPoint& outputPoint) {
+OutPoint::OutPoint(const OutPoint& outputPoint) {
     _hash = outputPoint.hash();
     _index = outputPoint.index();
 }
 
-OutputPoint & operator=(const OutputPoint& outputPoint) {
+OutPoint & operator=(const OutPoint& outputPoint) {
     _hash = outputPoint.hash();
     _index = outputPoint.index();
 }
 
-OutputPoint::OutputPoint(const Hash & hash, quint32 index)
+OutPoint::OutPoint(const Hash & hash, quint32 index)
     : _hash(hash)
     , _index(index) {
 }
 
-QJsonObject OutputPoint::OutputPoint() const {
+QJsonObject OutPoint::OutPoint() const {
     return QJsonObject {
                         {"hash", _hash.toString()},
                         {"index",_index.index()}
                         };
 }
 
-Hash OutputPoint::hash() const {
+Hash OutPoint::hash() const {
     return _hash;
 }
 
-void OutputPoint::setHash(const Hash& hash){
+void OutPoint::setHash(const Hash& hash){
     _hash = hash;
 }
 
-quint32 OutputPoint::index() const {
+quint32 OutPoint::index() const {
     return _index;
 }
 
-void OutputPoint::setIndex(const quint32& index) {
+void OutPoint::setIndex(const quint32& index) {
     _index = index;
 }
 
