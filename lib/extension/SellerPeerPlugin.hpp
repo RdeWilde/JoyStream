@@ -54,6 +54,9 @@ public:
     virtual void tick();
     virtual bool write_request(libtorrent::peer_request const & peerRequest);
 
+    // Getters and setters
+    virtual PluginMode mode() const;
+
 private:
 
     // Seller

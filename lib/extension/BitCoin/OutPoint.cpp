@@ -10,9 +10,11 @@ OutPoint::OutPoint(const OutPoint& outputPoint) {
     _index = outputPoint.index();
 }
 
-OutPoint & operator=(const OutPoint& outputPoint) {
+OutPoint & OutPoint::operator=(const OutPoint& outputPoint) {
     _hash = outputPoint.hash();
     _index = outputPoint.index();
+
+    return *this;
 }
 
 OutPoint::OutPoint(const Hash & hash, quint32 index)
@@ -20,11 +22,11 @@ OutPoint::OutPoint(const Hash & hash, quint32 index)
     , _index(index) {
 }
 
-QJsonObject OutPoint::OutPoint() const {
+QJsonObject OutPoint::json() const {
     return QJsonObject {
-                        {"hash", _hash.toString()},
-                        {"index",_index.index()}
-                        };
+        {"hash", _hash.toString()},
+        {"index", static_cast<qint64>(_index)}
+    };
 }
 
 Hash OutPoint::hash() const {

@@ -2,7 +2,7 @@
 #define BUYER_TORRENT_PLUGIN_HPP
 
 #include "TorrentPlugin.hpp"
-#include "PaymentChannel/Payor/Payor.hpp"
+#include "PaymentChannel/Payor.hpp"
 
 //class BuyerPeerPlugin;
 #include <QTime>

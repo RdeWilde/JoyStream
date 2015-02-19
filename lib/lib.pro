@@ -63,20 +63,22 @@ SOURCES += \
     extension/Request/StartBuyerTorrentPlugin.cpp \
     extension/Request/StartSellerTorrentPlugin.cpp \
     extension/SellerTorrentPlugin.cpp \
-    extension/BuyerPeerplugin.cpp \
     extension/SellerPeerPlugin.cpp \
     extension/BitCoin/KeyPair.cpp \
     extension/BitCoin/FixedBuffer.cpp \
     extension/BitCoin/P2SHTxOut.cpp \
     extension/BitCoin/P2PKHTxOut.cpp \
-    extension/PaymentChannel/Refund.cpp \
-    extension/PaymentChannel/Payment.cpp \
-    extension/PaymentChannel/Contract.cpp \
+    #extension/PaymentChannel/Refund.cpp \
+    #extension/PaymentChannel/Payment.cpp \
+    #extension/PaymentChannel/Contract.cpp \
     extension/BitCoin/BitSwaprjs.cpp \
-    extension/PaymentChannel/Payee/Payee.cpp \
-    extension/PaymentChannel/Payor/Payor.cpp \
-    extension/PaymentChannel/Payor/Channel.cpp \
-    extension/BitCoin/OutPoint.cpp
+    #extension/PaymentChannel/Payee/Payee.cpp \
+    #extension/PaymentChannel/Payor/Channel.cpp \
+    extension/BitCoin/OutPoint.cpp \
+    extension/BuyerPeerPlugin.cpp \
+    #extension/PaymentChannel/Payor/Payor.cpp \
+    extension/PaymentChannel/Payor.cpp \
+    extension/PaymentChannel/Payee.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -151,16 +153,12 @@ HEADERS += \
     extension/BitCoin/P2SHTxOut.hpp \
     extension/BitCoin/P2PKHTxOut.hpp \
     extension/PaymentChannel/Refund.hpp \
-    extension/PaymentChannel/Payment.hpp \
     extension/PaymentChannel/Contract.hpp \
     extension/BitCoin/BitSwaprjs.hpp \
-    extension/PaymentChannel/Payor.hpp \
     extension/PaymentChannel/Payee.hpp \
     extension/BitCoin/P2PKHAddress.hpp \
-    extension/PaymentChannel/Payee/Payee.hpp \
-    extension/PaymentChannel/Payor/Payor.hpp \
-    extension/PaymentChannel/Payor/Channel.hpp \
-    extension/BitCoin/OutPoint.hpp
+    extension/BitCoin/OutPoint.hpp \
+    extension/PaymentChannel/Payor.hpp
 				
 FORMS += \
     view/mainwindow.ui \

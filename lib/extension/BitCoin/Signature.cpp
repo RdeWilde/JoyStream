@@ -20,6 +20,10 @@ bool Signature::isValid(const PublicKey & key) const {
     return true;
 }
 
+QString Signature::toString() const {
+    return QString();
+}
+
 QDataStream & operator<<(QDataStream & stream, const Signature & key) {
     // put key into this QDataStream
     return stream;

@@ -41,24 +41,24 @@ quint32 BuyerPeerPlugin::Configuration::PeerState::minLock() const {
     return _minLock;
 }
 
-void BuyerPeerPlugin::Configuration::PeerState::setMinLock(const quint32 &minLock) {
+void BuyerPeerPlugin::Configuration::PeerState::setMinLock(quint32 minLock) {
     _minLock = minLock;
 }
 
 BuyerPeerPlugin::Configuration::PeerState BuyerPeerPlugin::Configuration::peerState() const {
-    return _peer;
+    return _peerState;
 }
 
-void BuyerPeerPlugin::Configuration::setPeerState(const PeerState &peer) {
-    _peer = peer;
+void BuyerPeerPlugin::Configuration::setPeerState(const PeerState & peerState) {
+    _peerState = peerState;
 }
 
 BuyerPeerPlugin::Configuration::ClientState BuyerPeerPlugin::Configuration::clientState() const {
-    return _state;
+    return _clientState;
 }
 
-void BuyerPeerPlugin::Configuration::setClientState(const ClientState &client) {
-    _state = client;
+void BuyerPeerPlugin::Configuration::setClientState(ClientState clientState) {
+    _clientState = clientState;
 }
 
 #include "BuyerTorrentPlugin.hpp"

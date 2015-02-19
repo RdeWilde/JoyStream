@@ -4,7 +4,7 @@
 #include <QString>
 #include <QVector>
 
-#include "extension/PaymentChannel/Payor/Payor.hpp"
+#include "extension/PaymentChannel/Payor.hpp"
 
 class QJsonValue;
 class QJsonObject;
@@ -30,7 +30,7 @@ public:
 
     static QList<KeyPair> generate_fresh_key_pairs(int numberOfPairs);
 
-    static Hash compute_contract_hash(const OutPoint & fundingOutput, const PrivateKey & sk, const QVector<Channel> & channels, const P2PKHTxOut & changeOutput);
+    static Hash compute_contract_hash(const OutPoint & fundingOutput, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput);
 
     static Signature compute_payor_refund_signature(const OutPoint & contractOutputPoint, const PrivateKey &sk, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime);
 

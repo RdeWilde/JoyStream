@@ -22,6 +22,7 @@ public:
     static const quint32 length = SIGNATURE_LENGTH;
 
     bool isValid(const PublicKey & key) const;
+    QString toString() const;
 
     friend QDataStream & operator<<(QDataStream & stream, const Signature & key);
     friend QDataStream & operator>>(QDataStream & stream, Signature & key);

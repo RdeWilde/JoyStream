@@ -1,9 +1,11 @@
 #include "BitSwaprjs.hpp"
 #include "KeyPair.hpp"
-#include "extension/PaymentChannel/Contract.hpp"
-#include "extension/PaymentChannel/Refund.hpp"
+#include "P2PKHTxOut.hpp"
 
-#include "extension/PaymentChannel/Payor/Channel.hpp"
+//#include "extension/PaymentChannel/Contract.hpp"
+//#include "extension/PaymentChannel/Refund.hpp"
+
+#include "extension/PaymentChannel/Payor.hpp"
 
 #include "Signature.hpp"
 
@@ -107,6 +109,8 @@ QList<KeyPair> BitSwaprjs::generate_fresh_key_pairs(int numberOfPairs) {
 
         keyPairs.append(KeyPair(PublicKey(pkString), PrivateKey(skString)));
     }
+
+    return keyPairs;
 }
 
 /**
@@ -128,19 +132,19 @@ Hash BitSwaprjs::compute_contract_hash(const Contract & contract, const PrivateK
 }
 */
 
-Hash BitSwaprjs::compute_contract_hash(const OutPoint & fundingOutput, const PrivateKey & sk, const QVector<Channel> & channels, const P2PKHTxOut & changeOutput) {
+Hash BitSwaprjs::compute_contract_hash(const OutPoint & fundingOutput, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput) {
 
     // Encode parameters into json
     QJsonArray p2shTxOuts;
 
-    for(QVector<Channel>::iterator i = channels.begin(), end(channels.end()); i != end;i++)
+    for(QVector<Payor::Channel>::const_iterator i = channels.begin(), end(channels.end()); i != end;i++)
         p2shTxOuts.append(i->json());
 
     QJsonObject params {
-        {"fundingOutput",   fundingOutput.json()},
-        {"p2shTxOuts",      p2shTxOuts},
-        {"change",          changeOutput.json()},
-        {"sk",              sk.toString()}
+        {"fundingOutput", fundingOutput.json()},
+        {"p2shTxOuts", p2shTxOuts},
+        {"change", changeOutput.json()},
+        {"sk", sk.toString()}
     };
 
     // Make call
@@ -159,7 +163,7 @@ Signature BitSwaprjs::compute_payor_refund_signature(const OutPoint & contractOu
         {"firstPk", firstPk.toString()},
         {"secondPk", secondPk.toString()},
         {"refundOutput", refundOutput.json()},
-        {"refundLockTime", refundLockTime}
+        {"refundLockTime", static_cast<qint64>(refundLockTime)}
     };
 
     // Make call
@@ -179,7 +183,7 @@ bool BitSwaprjs::check_refund_signatures(const OutPoint & contractOutputPoint, c
         {"firstPk", firstPk.toString()},
         {"secondPk", secondPk.toString()},
         {"refundOutput", refundOutput.json()},
-        {"refundLockTime", refundLockTime}
+        {"refundLockTime", static_cast<qint64>(refundLockTime)}
     };
 
     // Make call

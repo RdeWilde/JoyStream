@@ -16,6 +16,14 @@ class BuyerPeerPlugin : public PeerPlugin
 {
 public:
 
+    /***
+     *
+     * MOVE STATE OUT OF CONFIGURATION!!!!
+     * ALSO DO THE SAME IN ALL OTHER CONFIGURATION CLASSES,
+     * SHOULDNOT DEFINE TYPES
+     *
+     */
+
     /**
      * @brief Configuration of buyer peer plugin.
      */
@@ -64,10 +72,10 @@ public:
             void setFailureMode(FailureMode failureMode);
 
             quint64 minPrice() const;
-            void setMinPrice(quint64 &minPrice);
+            void setMinPrice(quint64 minPrice);
 
             quint32 minLock() const;
-            void setMinLock(const quint32 &minLock);
+            void setMinLock(quint32 minLock);
 
             PublicKey pK() const;
             void setPK(const PublicKey & pK);
@@ -82,6 +90,8 @@ public:
 
             // seller mode fields
             quint64 _minPrice;
+
+
             quint32 _minLock;
 
             // joining contract fields
@@ -114,15 +124,15 @@ public:
         void setPeerState(const PeerState & peerState);
 
         ClientState clientState() const;
-        void setClientState(const ClientState & clientState);
+        void setClientState(ClientState clientState);
 
     private:
 
         // State of peer
-        PeerState _peer;
+        PeerState _peerState;
 
         // State of client
-        ClientState _state;
+        ClientState _clientState;
     };
 
     // Constructor
