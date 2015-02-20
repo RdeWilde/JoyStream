@@ -9,14 +9,59 @@
 
 #include <QLoggingCategory>
 
+/**
+ * @brief SellerTorrentPlugin::Configuration
+ */
+
+SellerTorrentPlugin::Configuration::Configuration() {
+
+}
+
+quint32 SellerTorrentPlugin::Configuration::maxContractConfirmationDelay() const {
+    return _maxContractConfirmationDelay;
+}
+
+void SellerTorrentPlugin::Configuration::setMaxContractConfirmationDelay(quint32 maxContractConfirmationDelay) {
+    _maxContractConfirmationDelay = maxContractConfirmationDelay;
+}
+
+quint64 SellerTorrentPlugin::Configuration::minFeePerByte() const {
+    return _minFeePerByte;
+}
+
+void SellerTorrentPlugin::Configuration::setMinFeePerByte(quint64 minFeePerByte) {
+    _minFeePerByte = minFeePerByte;
+}
+
+quint32 SellerTorrentPlugin::Configuration::minLock() const {
+    return _minLock;
+}
+
+void SellerTorrentPlugin::Configuration::setMinLock(quint32 minLock) {
+    _minLock = minLock;
+}
+
+SellerTorrentPlugin::Configuration::pluginMode() const {
+    return PluginMode::Seller;
+}
+
+quint64 Configuration::minPrice() const {
+    return _minPrice;
+}
+
+void Configuration::setMinPrice(quint64 minPrice) {
+    _minPrice = minPrice;
+}
+
+/**
+ * SellerTorrentPlugin
+ */
+
 SellerTorrentPlugin::SellerTorrentPlugin(Plugin * plugin,
                                          const boost::weak_ptr<libtorrent::torrent> & torrent,
                                          const SellerTorrentPlugin::Configuration & configuration,
                                          QLoggingCategory & category)
-    : TorrentPlugin(plugin, torrent, configuration, category)
-    //, _configuration(configuration)
-{
-    // do something with this => configuration
+    : TorrentPlugin(plugin, torrent, configuration, category) {
 }
 
 boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(libtorrent::peer_connection * peerConnection) {
@@ -185,3 +230,40 @@ void SellerTorrentPlugin::removePeerPlugin(PeerPlugin * plugin) {
 PluginMode SellerTorrentPlugin::pluginMode() const {
     return PluginMode::Seller;
 }
+
+quint64 SellerTorrentPlugin::minPrice() const {
+    return _minPrice;
+}
+
+void SellerTorrentPlugin::setMinPrice(quint64 minPrice) {
+    _minPrice = minPrice;
+}
+
+quint32 SellerTorrentPlugin::minLock() const {
+    return _minLock;
+}
+
+void SellerTorrentPlugin::setMinLock(quint32 minLock) {
+    _minLock = minLock;
+}
+
+quint64 SellerTorrentPlugin::minFeePerByte() const {
+    return _minFeePerByte;
+}
+
+void SellerTorrentPlugin::setMinFeePerByte(quint64 minFeePerByte) {
+    _minFeePerByte = minFeePerByte;
+}
+
+quint32 SellerTorrentPlugin::maxContractConfirmationDelay() const {
+    return _maxContractConfirmationDelay;
+}
+
+void SellerTorrentPlugin::setMaxContractConfirmationDelay(quint32 maxContractConfirmationDelay) {
+    _maxContractConfirmationDelay = maxContractConfirmationDelay;
+}
+
+
+
+
+

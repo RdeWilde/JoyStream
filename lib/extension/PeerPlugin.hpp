@@ -173,7 +173,7 @@ protected:
     virtual void processRefundSigned(const RefundSigned * m) = 0;
     virtual void processReady(const Ready * m) = 0;
     virtual void processPayment(const Payment * m) = 0;
-    virtual void processEnd(const End * m) = 0;
+    //virtual void processEnd(const End * m) = 0;
 
 protected:
 

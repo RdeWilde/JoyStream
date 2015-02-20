@@ -1,13 +1,16 @@
 #include "TorrentConfiguration.hpp"
 #include "Exceptions/InvalidBitSwaprStateEntryException.hpp"
 
+#include "extension/BuyerTorrentPlugin.hpp"
+#include "extension/SellerTorrentPlugin.hpp"
+
 TorrentConfiguration::TorrentConfiguration(const libtorrent::sha1_hash & infoHash
                                            ,const std::string & name
                                            ,const std::string & savePath
                                            ,const std::vector<char> & resumeData
                                            ,quint64 flags
                                            ,libtorrent::torrent_info * torrentInfo
-                                           ,const TorrentPlugin::Configuration & configuration)
+                                           ,const TorrentPlugin::Configuration * configuration)
                     :_infoHash(infoHash)
                     ,_name(name)
                     ,_savePath(savePath)
@@ -147,9 +150,38 @@ TorrentConfiguration::TorrentConfiguration(const libtorrent::entry::dictionary_t
         libtorrent::entry configurationEntry = dictionaryEntry.find("configuration")->second;
 
         // Check that entry is of type entry::dictionary_t
-        if(configurationEntry.type() == libtorrent::entry::dictionary_t)
-            _configuration = TorrentPlugin::Configuration(configurationEntry.dict());
-        else
+        if(configurationEntry.type() == libtorrent::entry::dictionary_t) {
+
+            //_configuration = TorrentPlugin::Configuration(configurationEntry.dict());
+
+            libtorrent::entry::dictionary_type configurationDictionaryEntry = configurationEntry.dict();
+
+            // Figure out mode of plugin
+            PluginMode mode;
+
+            try {
+                mode = TorrentPlugin::Configuration::pluginMode(configurationEntry);
+            } catch (InvalidBitSwaprStateEntryException & e) {
+
+            }
+
+            // Create corresponding
+            switch(mode) {
+
+                case PluginMode::Buyer:
+                    _configuration = BuyerTorrentPlugin::Configuration(configurationDictionaryEntry);
+                    break;
+                case PluginMode::Seller:
+                    _configuration = SellerTorrentPlugin::Configuration(configurationDictionaryEntry);
+                    break;
+                case PluginMode::Observer:
+                    _configuration = NULL; /**
+                                             LATER*/
+                    break;
+            }
+
+
+        } else
             throw InvalidBitSwaprStateEntryException(dictionaryEntry, "configuration key is not of type entry::dictionary_t.");
     } else
         throw InvalidBitSwaprStateEntryException(dictionaryEntry, "configuration key should have .count == 1.");

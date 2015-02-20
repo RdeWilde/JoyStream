@@ -62,6 +62,8 @@ public:
         void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const;
 
         // Getters and setters
+        virtual PluginMode pluginMode() const;
+
         State state() const;
         void setState(const State & state);
 
@@ -118,10 +120,37 @@ public:
     // Getters and setters
     virtual PluginMode pluginMode() const;
 
+    State state() const;
+    void setState(const State & state);
+
+    quint64 maxPrice() const;
+    void setMaxPrice(quint64 maxPrice);
+
+    quint32 maxLock() const;
+    void setMaxLock(quint32 maxLock);
+
+    quint64 maxFeePerByte() const;
+    void setMaxFeePerByte(quint64 maxFeePerByte);
+
+    quint32 numSellers() const;
+    void setNumSellers(quint32 numSellers);
+
 private:
 
-    // Buyer plugin state
+    // What stage is plugin
     State _state;
+
+    // Maximum price accepted (satoshies)
+    quint64 _maxPrice;
+
+    // Maximum lock time (the number of seconds elapsed since 1970-01-01T00:00 UTC)
+    quint32 _maxLock;
+
+    // Maximum fee per byte in contract transaction (satoshies)
+    quint64 _maxFeePerByte;
+
+    // Number of seller in payment channel
+    quint32 _numSellers;
 
     // Payment channel
     Payor _channel;
@@ -134,9 +163,6 @@ private:
 
     // What refunds have been spent,and what have not.
     // Use timer to keep checking back?
-
-    // Configuration
-    //Configuration _configuration;
 };
 
 #endif // BUYER_TORRENT_PLUGIN_HPP

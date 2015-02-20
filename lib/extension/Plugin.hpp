@@ -139,11 +139,8 @@ private:
     void removeTorrentPlugin(const libtorrent::sha1_hash & info_hash);
 
     // Start plugin
-    bool startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
-                                 const BuyerTorrentPlugin::Configuration & configuration);
-
-    bool startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
-                                  const SellerTorrentPlugin::Configuration & configuration);
+    bool startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration);
+    bool startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration);
 
     /**
      * Status

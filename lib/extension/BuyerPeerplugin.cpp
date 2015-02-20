@@ -1,51 +1,89 @@
 #include "BuyerPeerPlugin.hpp"
 
-BuyerPeerPlugin::Configuration::PeerState::PeerState()
+BuyerPeerPlugin::PeerState::PeerState()
     : _lastAction(LastValidAction::no_bitswapr_message_sent)
-    , _failureMode(FailureMode::not_failed) {
+    , _failureMode(FailureMode::not_failed)
+    , _minPrice(0)
+    , _minLock(0) {
 }
 
-BuyerPeerPlugin::Configuration::PeerState::LastValidAction BuyerPeerPlugin::Configuration::PeerState::lastAction() const {
+BuyerPeerPlugin::PeerState::PeerState(LastValidAction lastAction,
+                                        FailureMode failureMode,
+                                        quint64 minPrice,
+                                        quint32 minLock,
+                                        const PublicKey & pK)
+    : _lastAction(lastAction)
+    , _failureMode(failureMode)
+    , _minPrice(minPrice)
+    , _minLock(minLock)
+    , _pK(pK){
+}
+
+BuyerPeerPlugin::PeerState::LastValidAction BuyerPeerPlugin::PeerState::lastAction() const {
     return _lastAction;
 }
 
-void BuyerPeerPlugin::Configuration::PeerState::setLastAction(LastValidAction lastAction) {
+void BuyerPeerPlugin::PeerState::setLastAction(LastValidAction lastAction) {
     _lastAction = lastAction;
 }
 
-BuyerPeerPlugin::Configuration::PeerState::FailureMode BuyerPeerPlugin::Configuration::PeerState::failureMode() const {
+BuyerPeerPlugin::PeerState::FailureMode BuyerPeerPlugin::PeerState::failureMode() const {
     return _failureMode;
 }
 
-void BuyerPeerPlugin::Configuration::PeerState::setFailureMode(FailureMode failureMode) {
+void BuyerPeerPlugin::PeerState::setFailureMode(FailureMode failureMode) {
     _failureMode = failureMode;
 }
 
-quint64 BuyerPeerPlugin::Configuration::PeerState::minPrice() const {
+quint64 BuyerPeerPlugin::PeerState::minPrice() const {
     return _minPrice;
 }
 
-void BuyerPeerPlugin::Configuration::PeerState::setMinPrice(quint64 minPrice) {
+void BuyerPeerPlugin::PeerState::setMinPrice(quint64 minPrice) {
     _minPrice = minPrice;
 }
 
-PublicKey BuyerPeerPlugin::Configuration::PeerState::pK() const {
+PublicKey BuyerPeerPlugin::PeerState::pK() const {
     return _pK;
 }
 
-void BuyerPeerPlugin::Configuration::PeerState::setPK(const PublicKey & pK) {
+void BuyerPeerPlugin::PeerState::setPK(const PublicKey & pK) {
     _pK = pK;
 }
 
-quint32 BuyerPeerPlugin::Configuration::PeerState::minLock() const {
+quint32 BuyerPeerPlugin::PeerState::minLock() const {
     return _minLock;
 }
 
-void BuyerPeerPlugin::Configuration::PeerState::setMinLock(quint32 minLock) {
+void BuyerPeerPlugin::PeerState::setMinLock(quint32 minLock) {
     _minLock = minLock;
 }
 
-BuyerPeerPlugin::Configuration::PeerState BuyerPeerPlugin::Configuration::peerState() const {
+BuyerPeerPlugin::PeerState BuyerPeerPlugin::peerState() const {
+    return _peerState;
+}
+
+void BuyerPeerPlugin::setPeerState(const PeerState & peerState) {
+    _peerState = peerState;
+}
+
+BuyerPeerPlugin::ClientState BuyerPeerPlugin::clientState() const {
+    return _clientState;
+}
+
+void BuyerPeerPlugin::setClientState(ClientState clientState) {
+    _clientState = clientState;
+}
+
+/**
+ * BuyerPeerPlugin::Configuration
+ */
+
+BuyerPeerPlugin::Configuration::Configuration() {
+
+}
+
+BuyerPeerPlugin::Configuration::peerState() const {
     return _peerState;
 }
 
@@ -63,16 +101,19 @@ void BuyerPeerPlugin::Configuration::setClientState(ClientState clientState) {
 
 #include "BuyerTorrentPlugin.hpp"
 #include "PluginMode.hpp"
+#include "Message/Buy.hpp"
+#include "Message/Sell.hpp"
 
 #include <QLoggingCategory>
 
 BuyerPeerPlugin::BuyerPeerPlugin(BuyerTorrentPlugin * plugin,
                                  libtorrent::bt_peer_connection * connection,
-                                 const BuyerPeerPlugin::Configuration & configuration,
+                                 const Configuration & configuration,
                                  QLoggingCategory & category)
-    : PeerPlugin(plugin, connection, category)
+    : PeerPlugin(plugin, configuration, category)
     , _plugin(plugin)
-    , _configuration(configuration) {
+    , _peerState(configuration.peerState())
+    , _clientState(configuration.clientState()) {
     //, _lastMessageStateCompatibility(MessageStateCompatibility::compatible){
 }
 
@@ -109,14 +150,11 @@ bool BuyerPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & hand
     // If handshake was successful
     if(keepPlugin) {
 
-        // get buyer torrent plugin configurations
-        BuyerTorrentPlugin::Configuration configuration = _plugin->configuration();
-
         // send mode message
-        sendExtendedMessage(Buy(configuration.maxPrice(), configuration.maxLock());
+        sendExtendedMessage(Buy(_plugin->maxPrice(), _plugin->maxLock());
 
         // and update new client state correspondingly
-        _configuration.setClientState(Configuration::ClientState::buyer_mode_announced);
+        _clientState.setClientState(ClientState::buyer_mode_announced);
     }
 
     // Return status to libtorrent
@@ -342,7 +380,7 @@ void BuyerPeerPlugin::processObserve(const Observe * m) {
     peerModeReset();
 
     // Update peer state with new valid action
-    _configuration.peerState().setLastAction(Configuration::PeerState::LastValidAction::mode_announced);
+    _peerState.setLastAction(PeerState::LastValidAction::mode_announced);
 
     // Note that peer is in observe mode
     _peerModeAnnounced = PeerModeAnnounced::observer;
@@ -356,7 +394,7 @@ void BuyerPeerPlugin::processBuy(const Buy * m) {
     peerModeReset();
 
     // Update peer state with new valid action
-    _configuration.peerState().setLastAction(Configuration::PeerState::LastValidAction::mode_announced);
+    _peerState.setLastAction(PeerState::LastValidAction::mode_announced);
 
     // Note that peer is in buyer mode
     _peerModeAnnounced = PeerModeAnnounced::buyer;
@@ -370,10 +408,9 @@ void BuyerPeerPlugin::processSell(const Sell * m) {
     peerModeReset();
 
     // Update peer state with new valid action
-    BuyerPeerPlugin::Configuration::PeerState peerState = _configuration.peerState();
-    peerState.setLastAction(Configuration::PeerState::LastValidAction::mode_announced);
-    peerState.setMinPrice(m->minPrice());
-    peerState.setMinLock(m->minLock());
+    _peerState.setLastAction(PeerState::LastValidAction::mode_announced);
+    _peerState.setMinPrice(m->minPrice());
+    _peerState.setMinLock(m->minLock());
 
     // Note that peer is seller
     _peerModeAnnounced = PeerModeAnnounced::seller;
@@ -385,7 +422,7 @@ void BuyerPeerPlugin::processSell(const Sell * m) {
     // and peer has not been invited,
     // and peer has sufficiently good terms,
     // then
-    if(configuration.State == BuyerTorrentPlugin::Configuration::State::building_contract &&
+    if(configuration.State == BuyerTorrentPlugin::State::building_contract &&
             _configuration.clientState() == Configuration::ClientState::no_bitswapr_message_sent &&
             m->minPrice() < configuration.maxPrice() &&
             m->minLock() < configuration.maxLock()) {
@@ -394,7 +431,7 @@ void BuyerPeerPlugin::processSell(const Sell * m) {
         sendExtendedMessage(JoinContract());
 
         // and remember invitation
-        _configuration.setClientState(Configuration::ClientState::invited_to_contract);
+        _clientState = ClientState::invited_to_contract;
     }
 }
 
@@ -405,11 +442,11 @@ void BuyerPeerPlugin::processJoinContract(const JoinContract * m) {
 void BuyerPeerPlugin::processJoiningContract(const JoiningContract * m) {
 
     // Check that we are in correct stage
-    if(_configuration.clientState() != Configuration::ClientState::invited_to_contract)
+    if(_clientState != ClientState::invited_to_contract)
         throw std::exception("JoiningContract message should only be sent in response to a contract invitation.");
 
     // Update peer state with new valid action
-    _configuration.peerState().setLastAction(Configuration::PeerState::LastValidAction::joined_contract);
+    _peerState.setLastAction(PeerState::LastValidAction::joined_contract);
 }
 
 void BuyerPeerPlugin::processSignRefund(const SignRefund * m) {

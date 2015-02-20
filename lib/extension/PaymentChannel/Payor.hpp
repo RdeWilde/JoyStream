@@ -57,125 +57,93 @@ public:
         };
 
         /**
-         * @brief Channel configuration.
+         * @brief Payor provided settings in channel,
+         * as through wire message.
          */
-        class Configuration {
+        class PayorSettings {
 
         public:
 
-            /**
-             * @brief Payor provided values in channel,
-             * as through wire message.
-             */
-            class Payor {
+            // Default constructor
+            PayorSettings();
 
-            public:
+            // Member constructor
+            PayorSettings(quint64 funds, const KeyPair & contractKeyPair, const KeyPair & finalKeyPair);
 
-                // Default constructor
-                Payor();
+            // Copy constructor
+            PayorSettings(const PayorSettings & o);
 
-                // Member constructor
-                Payor(quint64 funds, const KeyPair & contractKeyPair, const KeyPair & finalKeyPair);
-
-                // Copy constructor
-                Payor(const Payor & o);
-
-                // Assignment operator
-                Payor & Payor::operator=(const Payor & o);
-
-                // Getters and setters
-                quint64 funds() const;
-                void setFunds(quint64 funds);
-
-                KeyPair contractKeyPair() const;
-                void setContractKeyPair(const KeyPair &contractKeyPair);
-
-                KeyPair finalKeyPair() const;
-                void setFinalKeyPair(const KeyPair &finalKeyPair);
-
-            private:
-
-                // Funds allocated to output
-                quint64 _funds;
-
-                // Controls payour output of multisig
-                KeyPair _contractKeyPair;
-
-                // Controls final payment to payor
-                KeyPair _finalKeyPair;
-            };
-
-            /**
-             * @brief Payee provided values in channel,
-             * as through wire message.
-             */
-            class Payee {
-
-            public:
-
-                // Default constructor
-                Payee();
-
-                // Constructor based on members
-                Payee(quint64 price, const PublicKey & contractPk, const PublicKey & finalPk, quint32 refundLockTime);
-
-                // Copy constructor
-                Payee(const Channel::Configuration::Payee & o);
-
-                // Assignment operator
-                Payee & Payee::operator=(const Payee & o);
-
-                // Getters and setters
-                quint64 price() const;
-                void setPrice(quint64 price);
-
-                PublicKey contractPk() const;
-                void setContractPk(const PublicKey & contractPk);
-
-                PublicKey finalPk() const;
-                void setFinalPk(const PublicKey & finalPk);
-
-                quint32 refundLockTime() const;
-                void setRefundLockTime(quint32 refundLockTime);
-
-            private:
-
-                // Size of single payment
-                quint64 _price;
-
-                // Controls payee output of multisig, received in joinin_contract.pk
-                PublicKey _contractPk;
-
-                // Controls payee payments, received in sign_refund.pk
-                PublicKey _finalPk;
-
-                // Refund lock time
-                quint32 _refundLockTime;
-            };
-
-            Configuration();
+            // Assignment operator
+            PayorSettings & PayorSettings::operator=(const PayorSettings & o);
 
             // Getters and setters
-            Configuration::Payor payorConfiguration() const;
-            void setPayorConfiguration(const Configuration::Payor & payorConfiguration);
+            quint64 funds() const;
+            void setFunds(quint64 funds);
 
-            Configuration::Payee payeeConfiguration() const;
-            void setPayeeConfiguration(const Configuration::Payee & payeeConfiguration);
+            KeyPair contractKeyPair() const;
+            void setContractKeyPair(const KeyPair &contractKeyPair);
+
+            KeyPair finalKeyPair() const;
+            void setFinalKeyPair(const KeyPair &finalKeyPair);
 
         private:
 
-            // Index in contract
-            quint32 _index;
+            // Funds allocated to output
+            quint64 _funds;
 
-            // Slot state
-            Channel::State _state;
+            // Controls payour output of multisig
+            KeyPair _contractKeyPair;
 
-            // Payor configurations
-            Payor _payorConfiguration;
+            // Controls final payment to payor
+            KeyPair _finalKeyPair;
+        };
 
-            // Payee configuration
-            Payee _payeeConfiguration;
+        /**
+         * @brief Payee provided settings in channel,
+         * as through wire message.
+         */
+        class PayeeSettings {
 
+        public:
+
+            // Default constructor
+            PayeeSettings();
+
+            // Constructor based on members
+            PayeeSettings(quint64 price, const PublicKey & contractPk, const PublicKey & finalPk, quint32 refundLockTime);
+
+            // Copy constructor
+            PayeeSettings(const PayeeSettings & o);
+
+            // Assignment operator
+            PayeeSettings & PayeeSettings::operator=(const PayeeSettings & o);
+
+            // Getters and setters
+            quint64 price() const;
+            void setPrice(quint64 price);
+
+            PublicKey contractPk() const;
+            void setContractPk(const PublicKey & contractPk);
+
+            PublicKey finalPk() const;
+            void setFinalPk(const PublicKey & finalPk);
+
+            quint32 refundLockTime() const;
+            void setRefundLockTime(quint32 refundLockTime);
+
+        private:
+
+            // Size of single payment
+            quint64 _price;
+
+            // Controls payee output of multisig, received in joinin_contract.pk
+            PublicKey _contractPk;
+
+            // Controls payee payments, received in sign_refund.pk
+            PublicKey _finalPk;
+
+            // Refund lock time
+            quint32 _refundLockTime;
         };
 
         // Default constructor
@@ -216,7 +184,7 @@ public:
         //Payment payment(const Hash &contractHash) const;
 
         // Compute payor refund signature
-        void computePayorRefundSignature(const Hash &contractHash) const;
+        void computePayorRefundSignature(const Hash &contractHash);
 
         // Payment signature
         Signature paymentSignature(const Hash &contractHash) const;
@@ -227,15 +195,50 @@ public:
         QJsonObject json() const;
 
         // Getters and setters
-        //void setPayorConfiguration(const Channel::Configuration::Payor & payorConfiguration);
-        //void setPayeeConfiguration(const Channel::Configuration::Payee & payeeConfiguration);
+        quint32 index() const;
+        void setIndex(quint32 index);
+
+        State state() const;
+        void setState(const State & state);
+
+        quint64 price() const;
+        void setPrice(quint64 price);
+
+        quint64 numberOfPaymentsMade() const;
+        void setNumberOfPaymentsMade(quint64 numberOfPaymentsMade);
+
+        quint64 funds() const;
+        void setFunds(quint64 funds);
+
+        KeyPair payorContractKeyPair() const;
+        void setPayorContractKeyPair(const KeyPair & payorContractKeyPair);
+
+        KeyPair payorFinalKeyPair() const;
+        void setPayorFinalKeyPair(const KeyPair & payorFinalKeyPair);
+
+        PublicKey payeeContractPk() const;
+        void setPayeeContractPk(const PublicKey & payeeContractPk);
+
+        PublicKey payeeFinalPk() const;
+        void setPayeeFinalPk(const PublicKey & payeeFinalPk);
+
+        Signature payorRefundSignature() const;
+        void setPayorRefundSignature(const Signature & payorRefundSignature);
+
+        Signature payeeRefundSignature() const;
+        void setPayeeRefundSignature(const Signature & payeeRefundSignature);
+
+        quint64 refundFee() const;
+        void setRefundFee(quint64 refundFee);
+
+        quint64 paymentFee() const;
+        void setPaymentFee(quint64 paymentFee);
+
+        quint32 refundLockTime() const;
+        void setRefundLockTime(quint32 refundLockTime);
 
     private:
 
-        // Configuration (remove later?)
-        //Channel::Configuration _configuration;
-
-        /**
         // Index in contract
         quint32 _index;
 
@@ -277,41 +280,27 @@ public:
 
         // Lock time of refund, received in
         quint32 _refundLockTime;
-        */
-    };
-
-    /**
-     * @brief The Configuration class
-     */
-    class Configuration {
-
-    public:
-
-        Configuration();
-
-    private:
-
     };
 
     // Default constructor
     Payor();
 
     // Constructor based on configuration
-    Payor(const Payor::Configuration & configuration);
+    //Payor(const Payor::Configuration & configuration);
 
     // Constructor based on members
     //Payor(const QSet<Channel::PayorConfiguration> & configurations, const OutPoint& fundingOutput, const KeyPair& fundingOutputKeyPair);
     Payor(const OutPoint& fundingOutput, const KeyPair& fundingOutputKeyPair);
 
     // Add channel
-    quint32 addChannel(const Channel::Configuration::Payor & configuration);
+    quint32 addChannel(const Channel::PayorSettings & configuration);
 
     // Finds an unassigned slot
     // ========================
     // If one is found then the
     // given payee slot configurations are saved in slot,
     // and if this was last unassigned slot, then payor state is switched.
-    quint32 assignUnassignedSlot(const Channel::Configuration::Payee & configuration);
+    quint32 assignUnassignedSlot(const Channel::PayeeSettings & configuration);
 
     // Resets slot state to unassigned
     // ===============================
@@ -343,10 +332,10 @@ public:
 
     // Getters and setters
     OutPoint fundingOutput() const;
-    void setFundingOutput(const OutPoint &fundingOutput);
+    void setFundingOutput(const OutPoint & fundingOutput);
 
     quint32 numberOfSignatures() const;
-    void setNumberOfSignatures(const quint32 &numberOfSignatures);
+    void setNumberOfSignatures(quint32 numberOfSignatures);
 
 private:
 

@@ -26,7 +26,7 @@ public:
                          const std::vector<char> & resumeData,
                          quint64 flags,
                          libtorrent::torrent_info * torrentInfo,
-                         const TorrentPlugin::Configuration & configuration);
+                         const TorrentPlugin::Configuration * configuration);
 
     // Constructor from dictionary
     TorrentConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry);
@@ -99,7 +99,7 @@ protected:
     libtorrent::torrent_info * _torrentInfo;
 
     // Torrent plugin configuration
-    TorrentPlugin::Configuration _configuration;
+    const TorrentPlugin::Configuration * _configuration;
 };
 
 #endif // TORRENT_CONFIGURATION_HPP

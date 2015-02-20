@@ -173,7 +173,7 @@ Signature BitSwaprjs::compute_payor_refund_signature(const OutPoint & contractOu
     return Signature(result.toString());
 }
 
-bool BitSwaprjs::check_refund_signatures(const OutPoint & contractOutputPoint, const Signature &payorSignature, const Signature &payeeSignature, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime) {
+bool BitSwaprjs::check_refund_signatures(const OutPoint & contractOutputPoint, const Signature & payorSignature, const Signature & payeeSignature, const PublicKey & firstPk, const PublicKey & secondPk, const P2PKHTxOut & refundOutput, quint32 refundLockTime) {
 
     // Create parameters
     QJsonObject params {

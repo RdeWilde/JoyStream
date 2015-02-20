@@ -3,8 +3,6 @@
 
 #include "TorrentPlugin.hpp"
 
-//class SellerPeerPlugin;
-
 class SellerTorrentPlugin : public TorrentPlugin
 {
 public:
@@ -22,9 +20,26 @@ public:
          */
         enum class State {
 
-            //..
+            test
 
         };
+
+        Configuration();
+
+        // Getters and setters
+        virtual PluginMode pluginMode() const;
+
+        quint64 minPrice() const;
+        void setMinPrice(quint64 minPrice);
+
+        quint32 minLock() const;
+        void setMinLock(quint32 minLock);
+
+        quint64 minFeePerByte() const;
+        void setMinFeePerByte(quint64 minFeePerByte);
+
+        quint32 maxContractConfirmationDelay() const;
+        void setMaxContractConfirmationDelay(quint32 maxContractConfirmationDelay);
 
     private:
 
@@ -63,12 +78,32 @@ public:
 
     // Getters and setters
     virtual PluginMode pluginMode() const;
-    //virtual const TorrentPlugin::Configuration getTorrentPluginConfiguration() = 0;
+
+    quint64 minPrice() const;
+    void setMinPrice(quint64 minPrice);
+
+    quint32 minLock() const;
+    void setMinLock(quint32 minLock);
+
+    quint64 minFeePerByte() const;
+    void setMinFeePerByte(quint64 minFeePerByte);
+
+    quint32 maxContractConfirmationDelay() const;
+    void setMaxContractConfirmationDelay(quint32 maxContractConfirmationDelay);
 
 private:
 
-    // Parameters for
-    //SellerTorrentPlugin::Configuration _configuration;
+    // Maximum price accepted (satoshies)
+    quint64 _minPrice;
+
+    // Minimum lock time (the number of seconds elapsed since 1970-01-01T00:00 UTC)
+    quint32 _minLock;
+
+    // Minimum fee per byte in contract transaction (satoshies)
+    quint64 _minFeePerByte;
+
+    // Maximum time (s) for which seller is willing to seed without contract getting at least one confirmation
+    quint32 _maxContractConfirmationDelay;
 };
 
 #endif // SELLER_TORRENT_PLUGIN_HPP

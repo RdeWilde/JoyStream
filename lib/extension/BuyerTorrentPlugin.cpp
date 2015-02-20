@@ -34,6 +34,10 @@ void BuyerTorrentPlugin::Configuration::toDictionaryEntry(libtorrent::entry::dic
     // IMPLEMENT LATER
 }
 
+PluginMode BuyerTorrentPlugin::Configuration::pluginMode() const {
+    return PluginMode::Buyer;
+}
+
 BuyerTorrentPlugin::State BuyerTorrentPlugin::Configuration::state() const {
     return _state;
 }
@@ -129,8 +133,19 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
     // Create bittorrent peer connection
     libtorrent::bt_peer_connection * btConnection = static_cast<libtorrent::bt_peer_connection*>(connection);
 
-    // Create seller peer plugin
-    boost::shared_ptr<libtorrent::peer_plugin> sharedPluginPtr(new BuyerPeerPlugin(this, btConnection, _category));
+    // Create seller buyer peer plugin
+    BuyerPeerPlugin::PeerState peerState;
+    peerState.setLastAction(BuyerPeerPlugin::PeerState::LastValidAction::no_bitswapr_message_sent);
+    peerState.setFailureMode(BuyerPeerPlugin::PeerState::FailureMode::not_failed);
+
+    boost::shared_ptr<libtorrent::peer_plugin> sharedPluginPtr(new BuyerPeerPlugin(this,
+                                                                                   btConnection,
+                                                                                   peerState,
+                                                                                   BuyerPeerPlugin::ClientState
+                                                                                   _category));
+
+
+
 
     // Add to collection
     _peerPlugins[endPoint] = boost::weak_ptr<libtorrent::peer_plugin>(sharedPluginPtr);
@@ -206,8 +221,46 @@ void BuyerTorrentPlugin::removePeerPlugin(PeerPlugin * plugin) {
 }
 */
 
-PluginMode BuyerTorrentPlugin::pluginMode() const {
-    PluginMode::Buyer;
+BuyerTorrentPlugin::State BuyerTorrentPlugin::state() const {
+    return _state;
 }
 
+void BuyerTorrentPlugin::setState(const State & state) {
+    _state = state;
+}
 
+PluginMode BuyerTorrentPlugin::pluginMode() const {
+    return PluginMode::Buyer;
+}
+
+quint64 BuyerTorrentPlugin::maxPrice() const {
+    return _maxPrice;
+}
+
+void BuyerTorrentPlugin::setMaxPrice(const quint64 &maxPrice) {
+    _maxPrice = maxPrice;
+}
+
+quint32 BuyerTorrentPlugin::maxLock() const {
+    return _maxLock;
+}
+
+void BuyerTorrentPlugin::setMaxLock(quint32 maxLock) {
+    _maxLock = maxLock;
+}
+
+quint64 BuyerTorrentPlugin::maxFeePerByte() const {
+    return _maxFeePerByte;
+}
+
+void BuyerTorrentPlugin::setMaxFeePerByte(quint64 maxFeePerByte) {
+    _maxFeePerByte = maxFeePerByte;
+}
+
+quint32 BuyerTorrentPlugin::numSellers() const {
+    return _numSellers;
+}
+
+void BuyerTorrentPlugin::setNumSellers(quint32 numSellers) {
+    _numSellers = numSellers;
+}

@@ -11,7 +11,7 @@ class StartBuyerTorrentPlugin : public PluginRequest {
 public:
 
     // Constructor
-    StartBuyerTorrentPlugin(const libtorrent::sha1_hash &info_hash,
+    StartBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash,
                             const BuyerTorrentPlugin::Configuration & configuration);
 
     // Returns request type
@@ -19,7 +19,7 @@ public:
 
     // Getters
     libtorrent::sha1_hash infoHash() const;
-    void setInfoHash(const libtorrent::sha1_hash &infoHash);
+    void setInfoHash(const libtorrent::sha1_hash & infoHash);
 
     BuyerTorrentPlugin::Configuration configuration() const;
     void setConfiguration(const BuyerTorrentPlugin::Configuration &configuration);
@@ -29,7 +29,7 @@ private:
     // Torrent info_hash
     libtorrent::sha1_hash _infoHash;
 
-    // Buyer torrent plugin configuration
+    // Torrent plugin configuration
     BuyerTorrentPlugin::Configuration _configuration;
 };
 

@@ -224,8 +224,7 @@ void Plugin::processPluginRequest(const PluginRequest * pluginRequest) {
     }
 }
 
-bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
-                                     const BuyerTorrentPlugin::Configuration & configuration) {
+bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration) {
 
     // Check that torrent does not already have a plugin installed
     if(_plugins.contains(infoHash)) {
@@ -268,8 +267,7 @@ bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
     }
 }
 
-bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
-                                      const SellerTorrentPlugin::Configuration & configuration) {
+bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration) {
 
     // Check that torrent does not already have a plugin installed
     if(_plugins.contains(infoHash)) {

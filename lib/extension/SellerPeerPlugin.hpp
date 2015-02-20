@@ -85,6 +85,18 @@ private:
 
     // Requests received, but not serviced
     QList<quint32> _sPendingRequests;
+
+
+    // Processess message
+    virtual void processObserve(const Observe * m);
+    virtual void processBuy(const Buy * m);
+    virtual void processSell(const Sell * m);
+    virtual void processJoinContract(const JoinContract * m);
+    virtual void processJoiningContract(const JoiningContract * m);
+    virtual void processSignRefund(const SignRefund * m);
+    virtual void processRefundSigned(const RefundSigned * m);
+    virtual void processReady(const Ready * m);
+    virtual void processPayment(const Payment * m);
 };
 
 #endif // SELLER_PEER_PLUGIN_HPP

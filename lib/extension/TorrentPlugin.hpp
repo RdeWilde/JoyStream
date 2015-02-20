@@ -36,6 +36,9 @@ class TorrentPlugin : public QObject, public libtorrent::torrent_plugin {
 
 public:
 
+    /**
+     * @brief
+     */
     class Configuration {
 
     public:
@@ -53,10 +56,15 @@ public:
         // KeyPair & KeyPair::operator=(const KeyPair& rhs)
         //Configuration(const Configuration & rhs);
 
+        // Determnes the plugin mode of TorrentPlugin::Configuration object encoded in dictionary
+        static PluginMode pluginMode(libtorrent::entry::dictionary_type & dictionaryEntry);
+
         // Turn into dictionary
         void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const;
 
         // Getters and setters
+        virtual PluginMode pluginMode() const = 0;
+
         bool enableBanningSets() const;
         void setEnableBanningSets(bool enableBanningSets);
 

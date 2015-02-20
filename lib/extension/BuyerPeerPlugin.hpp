@@ -16,13 +16,96 @@ class BuyerPeerPlugin : public PeerPlugin
 {
 public:
 
-    /***
-     *
-     * MOVE STATE OUT OF CONFIGURATION!!!!
-     * ALSO DO THE SAME IN ALL OTHER CONFIGURATION CLASSES,
-     * SHOULDNOT DEFINE TYPES
-     *
+    /**
+     * @brief State of peer.
      */
+    class PeerState {
+
+    public:
+
+        // Enumeration of possible states
+        // a peer can have when facing buyer
+        // and last message sent was
+        // 1) welformed
+        // 2) state compatible
+        enum class LastValidAction {
+            no_bitswapr_message_sent, // No message extended message beyond extended handshake has been sent
+            mode_announced,
+            joined_contract,
+            signed_refund,
+            sent_valid_piece
+        };
+
+        // Bad states
+        enum class FailureMode {
+            not_failed,
+            mode_message_time_out,
+            join_contract_time_out,
+            refund_signature_time_out,
+            refund_incorrectly_signed,
+            sent_invalid_piece, // wrong piece, or integrity not intact
+        };
+
+        // Default constructor
+        PeerState();
+
+        // Constructor from members
+        PeerState(LastValidAction lastAction,
+                  FailureMode failureMode,
+                  quint64 minPrice,
+                  quint32 _minLock,
+                  const PublicKey & pK);
+
+        // Getters and setters
+        LastValidAction lastAction() const;
+        void setLastAction(LastValidAction lastAction);
+
+        FailureMode failureMode() const;
+        void setFailureMode(FailureMode failureMode);
+
+        quint64 minPrice() const;
+        void setMinPrice(quint64 minPrice);
+
+        quint32 minLock() const;
+        void setMinLock(quint32 minLock);
+
+        PublicKey pK() const;
+        void setPK(const PublicKey & pK);
+
+    private:
+
+        // Last valid action of peer
+        LastValidAction _lastAction;
+
+        // How peer may have failed
+        FailureMode _failureMode;
+
+        // seller mode fields
+        quint64 _minPrice;
+
+        quint32 _minLock;
+
+        // joining contract fields
+        PublicKey _pK;
+    };
+
+    /**
+     * @brief Enumeration of possible states the client.
+     */
+    enum class ClientState {
+
+        no_bitswapr_message_sent,
+
+        buyer_mode_announced,
+
+        invited_to_contract,
+
+        asked_for_refund_signature,
+
+        requested_piece,
+
+        sent_payment
+    };
 
     /**
      * @brief Configuration of buyer peer plugin.
@@ -30,91 +113,6 @@ public:
     class Configuration {
 
     public:
-
-        /**
-         * @brief State of peer.
-         */
-        class PeerState {
-
-        public:
-
-            // Enumeration of possible states
-            // a peer can have when facing buyer
-            // and last message sent was
-            // 1) welformed
-            // 2) state compatible
-            enum class LastValidAction {
-                no_bitswapr_message_sent, // No message extended message beyond extended handshake has been sent
-                mode_announced,
-                joined_contract,
-                signed_refund,
-                sent_valid_piece
-            };
-
-            // Bad states
-            enum class FailureMode {
-                not_failed,
-                mode_message_time_out,
-                join_contract_time_out,
-                refund_signature_time_out,
-                refund_incorrectly_signed,
-                sent_invalid_piece, // wrong piece, or integrity not intact
-            };
-
-            // Constructor
-            PeerState();
-
-            // Getters and setters
-            LastValidAction lastAction() const;
-            void setLastAction(LastValidAction lastAction);
-
-            FailureMode failureMode() const;
-            void setFailureMode(FailureMode failureMode);
-
-            quint64 minPrice() const;
-            void setMinPrice(quint64 minPrice);
-
-            quint32 minLock() const;
-            void setMinLock(quint32 minLock);
-
-            PublicKey pK() const;
-            void setPK(const PublicKey & pK);
-
-        private:
-
-            // Last valid action of peer
-            LastValidAction _lastAction;
-
-            // How peer may have failed
-            FailureMode _failureMode;
-
-            // seller mode fields
-            quint64 _minPrice;
-
-
-            quint32 _minLock;
-
-            // joining contract fields
-            PublicKey _pK;
-        };
-
-        /**
-         * @brief Enumeration of possible states the client.
-         */
-        enum class ClientState {
-
-            no_bitswapr_message_sent,
-
-            buyer_mode_announced,
-
-            invited_to_contract,
-
-            asked_for_refund_signature,
-
-            requested_piece,
-
-            sent_payment
-        };
 
         // Constructor
         Configuration();
@@ -138,7 +136,7 @@ public:
     // Constructor
     BuyerPeerPlugin(BuyerTorrentPlugin * plugin,
                     libtorrent::bt_peer_connection * connection,
-                    const BuyerPeerPlugin::Configuration & configuration,
+                    const Configuration & configuration,
                     QLoggingCategory & category);
 
     // Destructor
@@ -173,14 +171,24 @@ public:
     virtual bool write_request(libtorrent::peer_request const & peerRequest);
 
     // Getters and setters
-    //Configuration configuration() const;
+    PeerState peerState() const;
+    void setPeerState(const PeerState & peerState);
+
+    ClientState clientState() const;
+    void setClientState(ClientState clientState);
+
     virtual PluginMode mode() const;
 
 private:
 
+    // Torrent level plugin
     BuyerTorrentPlugin * _plugin;
 
-    Configuration _configuration;
+    // State of peer
+    PeerState _peerState;
+
+    // State of client
+    ClientState _clientState;
 
     // Processess message
     virtual void processObserve(const Observe * m);
@@ -192,7 +200,7 @@ private:
     virtual void processRefundSigned(const RefundSigned * m);
     virtual void processReady(const Ready * m);
     virtual void processPayment(const Payment * m);
-    virtual void processEnd(const End * m);
+    //virtual void processEnd(const End * m);
 
     // Resets plugin in response to peer sending a mode message
     void peerModeReset();

@@ -251,3 +251,40 @@ bool SellerPeerPlugin::write_request(libtorrent::peer_request const & peerReques
 PluginMode SellerPeerPlugin::mode() const {
     return PluginMode::Seller;
 }
+
+
+void SellerPeerPlugin::processObserve(const Observe * m) {
+
+}
+
+void SellerPeerPlugin::processBuy(const Buy * m) {
+
+}
+
+void SellerPeerPlugin::processSell(const Sell * m) {
+
+}
+
+void SellerPeerPlugin::processJoinContract(const JoinContract * m) {
+
+}
+
+void SellerPeerPlugin::processJoiningContract(const JoiningContract * m) {
+
+}
+
+void SellerPeerPlugin::processSignRefund(const SignRefund * m) {
+
+}
+
+void SellerPeerPlugin::processRefundSigned(const RefundSigned * m) {
+
+}
+
+void SellerPeerPlugin::processReady(const Ready * m) {
+
+}
+
+void SellerPeerPlugin::processPayment(const Payment * m) {
+
+}
