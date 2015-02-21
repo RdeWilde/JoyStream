@@ -44,7 +44,7 @@ public:
         Configuration(const Configuration & c);
 
         // Constructor from members
-        Configuration(State stage, quint64 maxPrice, quint32 maxLock, quint64 maxFeePerByte, qint32 numSellers);
+        Configuration(bool enableBanningSets, State state, quint64 maxPrice, quint32 maxLock, quint64 maxFeePerByte, qint32 numSellers);
 
         // Constructor from dictionary
         Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry);

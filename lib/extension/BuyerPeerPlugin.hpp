@@ -110,12 +110,15 @@ public:
     /**
      * @brief Configuration of buyer peer plugin.
      */
-    class Configuration {
+    class Configuration : public PeerPlugin::Configuration {
 
     public:
 
         // Constructor
         Configuration();
+
+        // Constructor from members
+        Configuration(const PeerState & peerState, ClientState clientState);
 
         // Getters and setters
         PeerState peerState() const;

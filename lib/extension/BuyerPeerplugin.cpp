@@ -83,7 +83,12 @@ BuyerPeerPlugin::Configuration::Configuration() {
 
 }
 
-BuyerPeerPlugin::Configuration::peerState() const {
+BuyerPeerPlugin::Configuration::Configuration(const PeerState & peerState, ClientState clientState)
+    : _peerState(peerState)
+    , _clientState(clientState) {
+}
+
+BuyerPeerPlugin::PeerState BuyerPeerPlugin::Configuration::peerState() const {
     return _peerState;
 }
 
@@ -91,7 +96,7 @@ void BuyerPeerPlugin::Configuration::setPeerState(const PeerState & peerState) {
     _peerState = peerState;
 }
 
-BuyerPeerPlugin::Configuration::ClientState BuyerPeerPlugin::Configuration::clientState() const {
+BuyerPeerPlugin::ClientState BuyerPeerPlugin::Configuration::clientState() const {
     return _clientState;
 }
 
@@ -103,6 +108,7 @@ void BuyerPeerPlugin::Configuration::setClientState(ClientState clientState) {
 #include "PluginMode.hpp"
 #include "Message/Buy.hpp"
 #include "Message/Sell.hpp"
+#include "Message/JoinContract.hpp"
 
 #include <QLoggingCategory>
 
@@ -110,7 +116,7 @@ BuyerPeerPlugin::BuyerPeerPlugin(BuyerTorrentPlugin * plugin,
                                  libtorrent::bt_peer_connection * connection,
                                  const Configuration & configuration,
                                  QLoggingCategory & category)
-    : PeerPlugin(plugin, configuration, category)
+    : PeerPlugin(plugin, connection, configuration, category)
     , _plugin(plugin)
     , _peerState(configuration.peerState())
     , _clientState(configuration.clientState()) {
@@ -151,10 +157,10 @@ bool BuyerPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & hand
     if(keepPlugin) {
 
         // send mode message
-        sendExtendedMessage(Buy(_plugin->maxPrice(), _plugin->maxLock());
+        sendExtendedMessage(Buy(_plugin->maxPrice(), _plugin->maxLock()));
 
         // and update new client state correspondingly
-        _clientState.setClientState(ClientState::buyer_mode_announced);
+        _clientState = ClientState::buyer_mode_announced;
     }
 
     // Return status to libtorrent
@@ -415,17 +421,14 @@ void BuyerPeerPlugin::processSell(const Sell * m) {
     // Note that peer is seller
     _peerModeAnnounced = PeerModeAnnounced::seller;
 
-    // Get buyer torrent plugin configurations
-    BuyerTorrentPlugin::Configuration configuration = _plugin->configuration();
-
     // If we are building payment channel,
     // and peer has not been invited,
     // and peer has sufficiently good terms,
     // then
-    if(configuration.State == BuyerTorrentPlugin::State::building_contract &&
-            _configuration.clientState() == Configuration::ClientState::no_bitswapr_message_sent &&
-            m->minPrice() < configuration.maxPrice() &&
-            m->minLock() < configuration.maxLock()) {
+    if(_plugin->state() == BuyerTorrentPlugin::State::building_contract &&
+            _clientState == ClientState::no_bitswapr_message_sent &&
+            m->minPrice() < _plugin->maxPrice() &&
+            m->minLock() < _plugin->maxLock()) {
 
         // invite to join contract
         sendExtendedMessage(JoinContract());

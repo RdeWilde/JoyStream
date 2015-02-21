@@ -6,15 +6,17 @@
 #include <libtorrent/entry.hpp>
 
 BuyerTorrentPlugin::Configuration::Configuration(const Configuration & c)
-    : _state(c.state())
+    : TorrentPlugin::Configuration(c)
+    , _state(c.state())
     , _maxPrice(c.maxPrice())
     , _maxLock(c.maxLock())
     , _maxFeePerByte(c.maxFeePerByte())
     , _numSellers(c.numSellers()) {
 }
 
-BuyerTorrentPlugin::Configuration::Configuration(State stage, quint64 maxPrice, quint32 maxLock, quint64 maxFeePerByte, qint32 numSellers)
-    : _state(stage)
+BuyerTorrentPlugin::Configuration::Configuration(bool enableBanningSets, State state, quint64 maxPrice, quint32 maxLock, quint64 maxFeePerByte, qint32 numSellers)
+    : TorrentPlugin::Configuration(enableBanningSets)
+    , _state(state)
     , _maxPrice(maxPrice)
     , _maxLock(maxLock)
     , _maxFeePerByte(maxFeePerByte)
@@ -140,12 +142,8 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
 
     boost::shared_ptr<libtorrent::peer_plugin> sharedPluginPtr(new BuyerPeerPlugin(this,
                                                                                    btConnection,
-                                                                                   peerState,
-                                                                                   BuyerPeerPlugin::ClientState
+                                                                                   BuyerPeerPlugin::Configuration(peerState, BuyerPeerPlugin::ClientState::no_bitswapr_message_sent),
                                                                                    _category));
-
-
-
 
     // Add to collection
     _peerPlugins[endPoint] = boost::weak_ptr<libtorrent::peer_plugin>(sharedPluginPtr);
@@ -164,7 +162,8 @@ void BuyerTorrentPlugin::tick() {
     //TorrentPlugin::_tick();
 
     /**
-Iterate peers and delete the ones which pass this test:
+     *
+        Iterate peers and delete the ones which pass this test:
 
       _lastReceivedMessageWasMalformed || _lastMessageWasStateIncompatible || !_connectionAlive
 
@@ -237,7 +236,7 @@ quint64 BuyerTorrentPlugin::maxPrice() const {
     return _maxPrice;
 }
 
-void BuyerTorrentPlugin::setMaxPrice(const quint64 &maxPrice) {
+void BuyerTorrentPlugin::setMaxPrice(const quint64 maxPrice) {
     _maxPrice = maxPrice;
 }
 

@@ -1,6 +1,7 @@
 
 # Required for including libtorrent headers
-LIBTORRENT_LOCATION = C:/libtorrent-rasterbar-0.16.18
+#LIBTORRENT_LOCATION = C:/libtorrent-rasterbar-0.16.18
+LIBTORRENT_LOCATION = C:/libtorrent-rasterbar-1.0.3
 INCLUDEPATH += $$LIBTORRENT_LOCATION/include
 
 DEFINES += WIN32
@@ -11,14 +12,3 @@ DEFINES += TORRENT_NO_DEPRECATE
 # Required for including boost headers
 BOOST_LOCATION = C:/boost_1_57_0
 INCLUDEPATH += $$BOOST_LOCATION
-
-
-
-
-
-
-
-
-
-
-
