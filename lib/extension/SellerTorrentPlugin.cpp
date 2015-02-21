@@ -17,6 +17,10 @@ SellerTorrentPlugin::Configuration::Configuration() {
 
 }
 
+SellerTorrentPlugin::Configuration::Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry) {
+
+}
+
 quint32 SellerTorrentPlugin::Configuration::maxContractConfirmationDelay() const {
     return _maxContractConfirmationDelay;
 }
@@ -41,15 +45,15 @@ void SellerTorrentPlugin::Configuration::setMinLock(quint32 minLock) {
     _minLock = minLock;
 }
 
-SellerTorrentPlugin::Configuration::pluginMode() const {
+PluginMode SellerTorrentPlugin::Configuration::pluginMode() const {
     return PluginMode::Seller;
 }
 
-quint64 Configuration::minPrice() const {
+quint64 SellerTorrentPlugin::Configuration::minPrice() const {
     return _minPrice;
 }
 
-void Configuration::setMinPrice(quint64 minPrice) {
+void SellerTorrentPlugin::Configuration::setMinPrice(quint64 minPrice) {
     _minPrice = minPrice;
 }
 
@@ -90,7 +94,10 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
     libtorrent::bt_peer_connection * bittorrentPeerConnection = static_cast<libtorrent::bt_peer_connection*>(peerConnection);
 
     // Create shared pointer to new seller peer plugin
-    boost::shared_ptr<libtorrent::peer_plugin> sharedPeerPluginPtr(new SellerPeerPlugin(this, bittorrentPeerConnection, _category));
+    boost::shared_ptr<libtorrent::peer_plugin> sharedPeerPluginPtr(new SellerPeerPlugin(this,
+                                                                                        bittorrentPeerConnection,
+                                                                                        SellerPeerPlugin::Configuration(), // nothing here, ask _plugin for values or something
+                                                                                        _category));
 
     // Create weak pointer to the same seller, and save in _peerPlugins map
     boost::weak_ptr<libtorrent::peer_plugin> weakPeerPluginPtr(sharedPeerPluginPtr);
@@ -98,14 +105,25 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
     // Add to collection
     _peerPlugins[endPoint] = weakPeerPluginPtr;
 
-    qCDebug(_category) << "Seller #" << _peerPlugins.size() << endPointString.c_str() << "added to " << _torrent->name().c_str();
+    if(boost::shared_ptr<libtorrent::torrent> sharedTorrentPtr = _torrent.lock()) {
 
-    // Emit peer added signal
-    // Should not be here, should be when a payment channel actually starts
-    //emit peerAdded(peerPlugin->getPeerPluginId());
+        std::string name = sharedTorrentPtr->name();
 
-    // Return pointer to plugin as required
-    return sharedPeerPluginPtr;
+        qCDebug(_category) << "Seller #" << _peerPlugins.size() << endPointString.c_str() << "added to " << name.c_str();
+
+        // Emit peer added signal
+        // Should not be here, should be when a payment channel actually starts
+        //emit peerAdded(peerPlugin->getPeerPluginId());
+
+        // Return pointer to plugin as required
+        return sharedPeerPluginPtr;
+
+    } else {
+
+        qCDebug(_category) << "_torrent pointer invalid.";
+
+        return boost::shared_ptr<libtorrent::peer_plugin>(NULL);
+    }
 }
 
 void SellerTorrentPlugin::on_piece_pass(int index) {

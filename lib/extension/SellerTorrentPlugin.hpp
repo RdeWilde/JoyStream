@@ -26,6 +26,9 @@ public:
 
         Configuration();
 
+        // Constructor from dictionary
+        Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry);
+
         // Getters and setters
         virtual PluginMode pluginMode() const;
 

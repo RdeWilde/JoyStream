@@ -46,6 +46,9 @@ public:
         // Default constructor
         Configuration();
 
+        // Copy constructor
+        Configuration(const Configuration & configuration);
+
         // Constructor from members
         Configuration(bool enableBanningSets);
 
@@ -68,7 +71,7 @@ public:
         bool enableBanningSets() const;
         void setEnableBanningSets(bool enableBanningSets);
 
-    private:
+    protected:
 
         // Whether peers are banned for bad conduct
         bool _enableBanningSets;

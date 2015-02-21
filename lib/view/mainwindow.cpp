@@ -11,7 +11,10 @@
 #include "extension/Alert/TorrentPluginStatusAlert.hpp"
 #include "extension/Alert/PluginStatusAlert.hpp"
 #include "extension/PeerPluginStatus.hpp"
-#include "extension/TorrentPluginConfiguration.hpp"
+
+//#include "extension/TorrentPluginConfiguration.hpp"
+#include "extension/BuyerTorrentPlugin.hpp"
+#include "extension/SellerTorrentPlugin.hpp"
 
 #include <QMessageBox>
 #include <QFileDialog>
@@ -180,7 +183,9 @@ void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torre
     if (msgBox.clickedButton() == passivePushButton) {
 
         // Set in passive mode
-        _controller->updateTorrentPluginConfiguration(infoHash, new TorrentPluginConfiguration(true));
+        //_controller->updateTorrentPluginConfiguration(infoHash, new TorrentPluginConfiguration(true));
+
+        qCDebug(_category) << "Not implemented.";
 
     } else if (msgBox.clickedButton() == buyerPushButton) {
 

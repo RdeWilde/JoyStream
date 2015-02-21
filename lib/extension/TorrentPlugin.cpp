@@ -19,6 +19,10 @@
 TorrentPlugin::Configuration::Configuration() {
 }
 
+TorrentPlugin::Configuration::Configuration(const Configuration & configuration)
+    : _enableBanningSets(configuration.enableBanningSets()){
+}
+
 TorrentPlugin::Configuration::Configuration(bool enableBanningSets)
     : _enableBanningSets(enableBanningSets) {
 }

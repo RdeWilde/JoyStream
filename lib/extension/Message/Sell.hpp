@@ -11,7 +11,7 @@ class Sell : public ExtendedMessagePayload
 public:
 
     // Constructor based on members
-    Sell(quint32 minPrice, QDateTime minLock);
+    Sell(quint32 minPrice, quint32 minLock);
 
     // Constructor based on raw data
     Sell(QDataStream & stream);
@@ -23,7 +23,7 @@ public:
 
     // Getters
     quint32 minPrice() const;
-    QDateTime minLock() const;
+    quint32 minLock() const;
 
 private:
 
@@ -31,7 +31,7 @@ private:
     quint32 _minPrice;
 
     // When refund is spendable at the earliest
-    QDateTime _minLock;
+    quint32 _minLock;
 };
 
 #endif // SELL_HPP

@@ -7,8 +7,11 @@
 
 SellerPeerPlugin::SellerPeerPlugin(TorrentPlugin * torrentPlugin,
                                    libtorrent::bt_peer_connection * bittorrentPeerConnection,
+                                   const Configuration & configuration,
                                    QLoggingCategory & category)
-      : PeerPlugin(torrentPlugin, bittorrentPeerConnection, category) {
+      : PeerPlugin(torrentPlugin, bittorrentPeerConnection, configuration, category) {
+
+    // Do something with: configuration
 }
 
 SellerPeerPlugin::~SellerPeerPlugin() {

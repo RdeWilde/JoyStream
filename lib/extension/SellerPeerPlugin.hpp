@@ -14,13 +14,24 @@ public:
     /**
      * @brief Configuration of seller peer plugin.
      */
-    class Configuration {
+    class Configuration : public PeerPlugin::Configuration {
+
+    public:
+
+        // Default constructor
+        Configuration();
+
+
+
+    private:
+
 
     };
 
     // Constructor
     SellerPeerPlugin(TorrentPlugin * torrentPlugin,
                      libtorrent::bt_peer_connection * bittorrentPeerConnection,
+                     const Configuration & configuration,
                      QLoggingCategory & category);
 
     // Destructor
@@ -63,25 +74,25 @@ private:
     quint64 _sBuyerMaxPrice;
     quint32 _sBuyerMaxLock;
 
-        /**
-         * channel
-         */
+                                            /**
+                                             * channel
+                                             */
 
-        //PayeePaymentChannel _channel;
+                                            //PayeePaymentChannel _channel;
 
-        PublicKey _sPK;
-        //PrivateKey _sSK;
+                                            PublicKey _sPK;
+                                            //PrivateKey _sSK;
 
-        PublicKey _sBuyerContractPK;
-        Hash _sContractHash;
-        quint32 _sContractOutputIndex;
-        quint64 _sContractOutputValue;
+                                            PublicKey _sBuyerContractPK;
+                                            Hash _sContractHash;
+                                            quint32 _sContractOutputIndex;
+                                            quint64 _sContractOutputValue;
 
-        // Set when refund signature sent, as this is lower bound
-        QDateTime _sContractRefundEarliestSpendable;
+                                            // Set when refund signature sent, as this is lower bound
+                                            QDateTime _sContractRefundEarliestSpendable;
 
-        // Signature for last valid payment from buyer
-        Signature _sLastValidPaymentSignatureReceived;
+                                            // Signature for last valid payment from buyer
+                                            Signature _sLastValidPaymentSignatureReceived;
 
     // Requests received, but not serviced
     QList<quint32> _sPendingRequests;

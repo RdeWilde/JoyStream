@@ -5,9 +5,41 @@
 //#include "PeerPluginStatus.hpp"
 //#include "Request/PeerPluginRequest.hpp"
 
-
 #include "Message/MessageType.hpp"
 #include "Message/ExtendedMessagePayload.hpp"
+
+ExtendedMessageIdMapping PeerPlugin::Configuration::clientMapping() const {
+    return _clientMapping;
+}
+
+void PeerPlugin::Configuration::setClientMapping(const ExtendedMessageIdMapping & clientMapping) {
+    _clientMapping = clientMapping;
+}
+
+ExtendedMessageIdMapping PeerPlugin::Configuration::peerMapping() const {
+    return _peerMapping;
+}
+
+void PeerPlugin::Configuration::setPeerMapping(const ExtendedMessageIdMapping & peerMapping) {
+    _peerMapping = peerMapping;
+}
+
+BEPSupportStatus PeerPlugin::Configuration::peerBEP10SupportStatus() const {
+    return _peerBEP10SupportStatus;
+}
+
+void PeerPlugin::Configuration::setPeerBEP10SupportStatus(BEPSupportStatus peerBEP10SupportedStatus) {
+    _peerBEP10SupportStatus = peerBEP10SupportedStatus;
+}
+
+BEPSupportStatus PeerPlugin::Configuration::peerBitSwaprBEPSupportStatus() const {
+    return _peerBitSwaprBEPSupportStatus;
+}
+
+void PeerPlugin::Configuration::setPeerBitSwaprBEPSupportStatus(BEPSupportStatus peerBEP43SupportedStatus) {
+    _peerBitSwaprBEPSupportStatus = peerBEP43SupportedStatus;
+}
+
 
 /*
 #include "Message/Observe.hpp"
@@ -29,7 +61,12 @@
 
 #include <QLoggingCategory>
 
-PeerPlugin::PeerPlugin(TorrentPlugin * plugin, libtorrent::bt_peer_connection * connection, QLoggingCategory & category)
+
+
+PeerPlugin::PeerPlugin(TorrentPlugin * plugin,
+                       libtorrent::bt_peer_connection * connection,
+                       const Configuration & configuration,
+                       QLoggingCategory & category)
     : _plugin(plugin)
     , _connection(connection)
     , _category(category)
@@ -37,8 +74,10 @@ PeerPlugin::PeerPlugin(TorrentPlugin * plugin, libtorrent::bt_peer_connection * 
     , _connectionAlive(true)
     , _lastReceivedMessageWasMalformed(false)
     , _lastMessageWasStateIncompatible(false)
-    , _peerBEP10SupportStatus(BEPSupportStatus::unknown)
-    , _peerBitSwaprBEPSupportStatus(BEPSupportStatus::unknown) {
+    , _clientMapping(configuration.clientMapping())
+    , _peerMapping(configuration.peerMapping())
+    , _peerBEP10SupportStatus(configuration.peerBEP10SupportStatus())
+    , _peerBitSwaprBEPSupportStatus(configuration.peerBitSwaprBEPSupportStatus()) {
 }
 
 PeerPlugin::~PeerPlugin() {

@@ -1,17 +1,11 @@
 #include "BuyerTorrentPluginConfigurationDialog.hpp"
 #include "ui_BuyerTorrentPluginConfigurationDialog.h"
 #include "extension/PluginMode.hpp"
-#include "extension/TorrentPluginConfiguration.hpp"
-#include "controller/Controller.hpp"
 
-/*
-BuyerTorrentPluginConfigurationDialog::BuyerTorrentPluginConfigurationDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::BuyerTorrentPluginConfigurationDialog)
-{
-    ui->setupUi(this);
-}
-*/
+//#include "extension/TorrentPluginConfiguration.hpp"
+#include "extension/BuyerTorrentPlugin.hpp"
+
+#include "controller/Controller.hpp"
 
 BuyerTorrentPluginConfigurationDialog::BuyerTorrentPluginConfigurationDialog(Controller * controller, const libtorrent::sha1_hash & infoHash)
     : ui(new Ui::BuyerTorrentPluginConfigurationDialog)
@@ -28,19 +22,19 @@ BuyerTorrentPluginConfigurationDialog::~BuyerTorrentPluginConfigurationDialog() 
 void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
     // Grab fields
-    quint32 maxPrice = ui->maxPriceLineEdit->text().toInt();
-    QTime maxLock = ui->maxLockTimeEdit->time();
+    bool enableBanningSets = true;
+    BuyerTorrentPlugin::State state = BuyerTorrentPlugin::State::building_contract;
+    quint64 maxPrice = ui->maxPriceLineEdit->text().toInt();
+    //quint32 maxLock = ui->maxLockTimeEdit->time();
+    quint32 maxLock = 1;
+    quint64 maxFeePerByte = ui->feeLineEdit->text().toInt();
+    qint32 minPeers = ui->minPeersLineEdit->text().toInt();
+
+    // Use this for something?
     QTime waitTime = ui->waitTimeTimeEdit->time();
-    qint8 minPeers = ui->minPeersLineEdit->text().toInt();
-    quint32 fee = ui->feeLineEdit->text().toInt();
 
     // Create configuration
-    TorrentPluginConfiguration * configuration = new TorrentPluginConfiguration(true,
-                                                                                maxPrice,
-                                                                                maxLock,
-                                                                                waitTime,
-                                                                                minPeers,
-                                                                                fee);
+    BuyerTorrentPlugin::Configuration * configuration = new BuyerTorrentPlugin::Configuration(enableBanningSets, state, maxPrice, maxLock, maxFeePerByte, minPeers);
 
     // Set in seller mode
     _controller->updateTorrentPluginConfiguration(_infoHash, configuration);

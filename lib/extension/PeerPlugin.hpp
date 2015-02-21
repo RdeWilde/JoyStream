@@ -49,20 +49,6 @@ class PeerPlugin : public QObject, public libtorrent::peer_plugin {
 
 public:
 
-    /*
-    class Configuration {
-
-    private:
-
-        // Mapping from messages to BEP10 ID of peer
-        ExtendedMessageIdMapping _clientMapping, _peerMapping;
-
-        // Indicates whether peer supports
-        BEPSupportStatus _peerBEP10SupportedStatus, // BEP10
-                            _peerBEP43SupportedStatus; // BEP43
-    };
-    */
-
     // Mode which has been announced by a peer
     enum class PeerModeAnnounced {
         none,
@@ -71,8 +57,49 @@ public:
         buyer
     };
 
+    /**
+     * @brief
+     */
+    class Configuration {
+
+    public:
+
+        // Default constructor
+        Configuration();
+
+        // Getters and Setters
+        ExtendedMessageIdMapping clientMapping() const;
+        void setClientMapping(const ExtendedMessageIdMapping & clientMapping);
+
+        ExtendedMessageIdMapping peerMapping() const;
+        void setPeerMapping(const ExtendedMessageIdMapping & peerMapping);
+
+        BEPSupportStatus peerBEP10SupportStatus() const;
+        void setPeerBEP10SupportStatus(BEPSupportStatus peerBEP10SupportStatus);
+
+        BEPSupportStatus peerBitSwaprBEPSupportStatus() const;
+        void setPeerBitSwaprBEPSupportStatus(BEPSupportStatus  peerBitSwaprBEPSupportStatus);
+
+    private:
+
+        // Mapping from messages to BEP10 ID of client
+        ExtendedMessageIdMapping _clientMapping;
+
+        // Mapping from messages to BEP10 ID of peer
+        ExtendedMessageIdMapping _peerMapping;
+
+        // Indicates whether peer supports BEP10
+        BEPSupportStatus _peerBEP10SupportStatus;
+
+        // Indicates whether peer supports BitSwapr BEP
+        BEPSupportStatus _peerBitSwaprBEPSupportStatus;
+    };
+
     // Constructor
-    PeerPlugin(TorrentPlugin * plugin, libtorrent::bt_peer_connection * connection, QLoggingCategory & category);
+    PeerPlugin(TorrentPlugin * plugin,
+               libtorrent::bt_peer_connection * connection,
+               const Configuration & configuration,
+               QLoggingCategory & category);
 
     /**
      * All virtual functions below should ONLY be called by libtorrent network thread,
@@ -180,12 +207,17 @@ protected:
     // Torrent plugin for torrent
     TorrentPlugin * _plugin;
 
-    // Indicates whether peer supports BEP10 and BitSwapr BEP respectively
-    BEPSupportStatus _peerBEP10SupportStatus, _peerBitSwaprBEPSupportStatus;
+    // Mapping from messages to BEP10 ID of client
+    ExtendedMessageIdMapping _clientMapping;
 
     // Mapping from messages to BEP10 ID of peer
-    ExtendedMessageIdMapping _clientMapping, _peerMapping;
+    ExtendedMessageIdMapping _peerMapping;
 
+    // Indicates whether peer supports BEP10
+    BEPSupportStatus _peerBEP10SupportStatus;
+
+    // Indicates whether peer supports BEP43 .. BitSwapr
+    BEPSupportStatus _peerBitSwaprBEPSupportStatus;
 };
 
 #endif

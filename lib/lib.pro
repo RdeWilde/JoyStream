@@ -34,12 +34,10 @@ SOURCES += \
     view/PeerPluginViewModel.cpp \
     extension/PeerPluginId.cpp \
     controller/ControllerConfiguration.cpp \
-    controller/TorrentConfiguration.cpp \
     extension/Request/PluginRequest.cpp \
     extension/Request/TorrentPluginRequest.cpp \
     extension/Request/PeerPluginRequest.cpp \
     #extension/Request/SetConfigurationTorrentPluginRequest.cpp \
-    controller/TorrentStatus.cpp \
     #extension/Request/SetPluginModeTorrentPluginRequest.cpp \
     view/SellerTorrentPluginConfigurationDialog.cpp \
     view/BuyerTorrentPluginConfigurationDialog.cpp \
@@ -103,7 +101,6 @@ HEADERS += \
     extension/Message/MessageType.hpp \
     extension/PeerPluginId.hpp \
     controller/ControllerConfiguration.hpp \
-    controller/TorrentConfiguration.hpp \
     extension/BEPSupportStatus.hpp \
     extension/Request/PluginRequest.hpp \
     extension/Request/TorrentPluginRequest.hpp \
@@ -111,7 +108,6 @@ HEADERS += \
     extension/Request/TorrentPluginRequestType.hpp \
     extension/Request/PluginRequestType.hpp \
     extension/Request/PeerPluginRequestType.hpp \
-    controller/TorrentStatus.hpp \
     extension/Request/SetPluginModeTorrentPluginRequest.hpp \
     view/SellerTorrentPluginConfigurationDialog.hpp \
     view/BuyerTorrentPluginConfigurationDialog.hpp \
@@ -177,7 +173,7 @@ CONFIG(debug, debug|release) {
 
     DEFINES += TORRENT_DEBUG
 
-    LIBS += -L$$LIBTORRENT_LOCATION/bin/msvc-11.0/debug/boost-source/deprecated-functions-off/link-static/threading-multi -llibtorrent
+    LIBS += -L$$LIBTORRENT_LOCATION/bin/msvc-12.0/debug/boost-source/deprecated-functions-off/link-static/threading-multi -llibtorrent
 
     # The mailinglist suggested this to be able
     LIBS += DbgHelp.lib
@@ -189,7 +185,7 @@ CONFIG(release, debug|release) {
 
     DEFINES += NDEBUG
 
-    LIBS += -L$$LIBTORRENT_LOCATION/bin/msvc-11.0/release/boost-source/deprecated-functions-off/link-static/threading-multi -llibtorrent
+    LIBS += -L$$LIBTORRENT_LOCATION/bin/msvc-12.0/release/boost-source/deprecated-functions-off/link-static/threading-multi -llibtorrent
 
     message("Release Configuration")
 }

@@ -2,7 +2,8 @@
 #include "ui_SellerTorrentPluginConfigurationDialog.h"
 
 #include "controller/Controller.hpp"
-#include "extension/TorrentPluginConfiguration.hpp"
+//#include "extension/TorrentPluginConfiguration.hpp"
+#include "extension/SellerTorrentPlugin.hpp"
 
 /*
 SellerTorrentPluginConfigurationDialog::SellerTorrentPluginConfigurationDialog(QWidget *parent) :
@@ -26,6 +27,7 @@ SellerTorrentPluginConfigurationDialog::~SellerTorrentPluginConfigurationDialog(
 
 void SellerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
+    /**
     // Grab fields
     bool enableBanningSets = true;
     quint32 minPrice = ui->minPriceLineEdit->text().toInt();
@@ -33,12 +35,16 @@ void SellerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
     quint32 minFee = ui->minFeeLineEdit->text().toInt();
     QTime maxContractConfirmationDelay = ui->maxContractConfirmationDelayTimeEdit->time();
 
+
+    enableBanningSets,
+    minPrice,
+    minLock,
+    minFee,
+    maxContractConfirmationDelay
+    */
+
     // Create configuration
-    TorrentPluginConfiguration * configuration = new TorrentPluginConfiguration(enableBanningSets,
-                                                                                minPrice,
-                                                                                minLock,
-                                                                                minFee,
-                                                                                maxContractConfirmationDelay);
+    SellerTorrentPlugin::Configuration * configuration = new SellerTorrentPlugin::Configuration();
 
     // Set in seller mode
     _controller->updateTorrentPluginConfiguration(_infoHash, configuration);
