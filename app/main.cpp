@@ -129,7 +129,7 @@ void main(int argc, char* argv[]) {
                                                   ,libtorrent::add_torrent_params::flag_update_subscribe
                                                   //+libtorrent::add_torrent_params::flag_auto_managed
                                                   ,&torrentInfo
-                                                  ,NULL); // new TorrentPluginConfiguration(StartedPluginMode::Buyer, true)
+                                                  ,NULL);
 
     // Add to client
     buyerClient.addTorrent(buyerTorrentConfiguration, true);

@@ -154,6 +154,14 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
     return sharedPluginPtr;
 }
 
+void BuyerTorrentPlugin::on_piece_pass(int index) {
+
+}
+
+void BuyerTorrentPlugin::on_piece_failed(int index) {
+
+}
+
 void BuyerTorrentPlugin::tick() {
 
     qCDebug(_category) << "BuyerTorrentPlugin.tick()";

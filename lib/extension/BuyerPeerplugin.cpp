@@ -127,7 +127,7 @@ BuyerPeerPlugin::~BuyerPeerPlugin() {
     qCDebug(_category) << "~BuyerPeerPlugin";
 }
 
-char const * PeerPlugin::type() const {
+char const * BuyerPeerPlugin::type() const {
     return "BitSwapr payment buyer peer plugin.";
 }
 

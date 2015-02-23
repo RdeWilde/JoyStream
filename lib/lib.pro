@@ -73,7 +73,8 @@ SOURCES += \
     extension/BuyerPeerPlugin.cpp \
     #extension/PaymentChannel/Payor/Payor.cpp \
     extension/PaymentChannel/Payor.cpp \
-    extension/PaymentChannel/Payee.cpp
+    extension/PaymentChannel/Payee.cpp \
+    extension/Request/StartTorrentPlugin.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -163,26 +164,31 @@ RESOURCES += \
 # Required for including libtorrent and boost headers
 include(../defaults.pri)
 
-# Linking with Libtorrent
+####################################
+# Linking with Libtorrent RELEASE
+####################################
+CONFIG(release, debug|release) {
+
+    DEFINES += NDEBUG
+
+    LIBS += -L$$LIBTORRENT_LOCATION/bin/msvc-12.0/release/address-model-64/boost-source/deprecated-functions-off/link-static/threading-multi -llibtorrent
+
+    message("Release Configuration")
+}
+
+####################################
+# Linking with Libtorrent DEBUG
+####################################
 CONFIG(debug, debug|release) {
 
     DEFINES += TORRENT_DEBUG
 
-    LIBS += -L$$LIBTORRENT_LOCATION/bin/msvc-12.0/debug/boost-source/deprecated-functions-off/link-static/threading-multi -llibtorrent
+    LIBS += -L$$LIBTORRENT_LOCATION/bin/msvc-12.0/debug/address-model-64/boost-source/deprecated-functions-off/link-static/threading-multi -llibtorrent
 
     # The mailinglist suggested this to be able
     LIBS += DbgHelp.lib
 
     message("Debug Configuration")
-}
-
-CONFIG(release, debug|release) {
-
-    DEFINES += NDEBUG
-
-    LIBS += -L$$LIBTORRENT_LOCATION/bin/msvc-12.0/release/boost-source/deprecated-functions-off/link-static/threading-multi -llibtorrent
-
-    message("Release Configuration")
 }
 
 # Linking with boost

@@ -1,6 +1,17 @@
-// ddddd Configuration
-
 #include "SellerPeerPlugin.hpp"
+
+/**
+ * SellerPeerPlugin::Configuration
+ */
+
+SellerPeerPlugin::Configuration::Configuration() {
+
+}
+
+/**
+ * SellerPeerPlugin
+ */
+
 #include "PluginMode.hpp"
 
 #include <QLoggingCategory>

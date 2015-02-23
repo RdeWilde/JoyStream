@@ -1,5 +1,5 @@
 #include "FixedBuffer.hpp"
-
+/*
 #include <QDataStream>
 
 template <unsigned int L>
@@ -13,7 +13,7 @@ FixedBuffer<L>::FixedBuffer(const QString & string) {
         // Decode from hex format
         QByteArray b = QByteArray::fromHex(string);
 
-        Q_ASSERT(b.length() == L);
+        //Q_ASSERT(b.length() == L);
 
         // Copy into buffer
         memcpy(&_buffer, b.constData(), L);
@@ -138,3 +138,4 @@ QDataStream & operator>>(QDataStream& stream, FixedBuffer<L> & fixedBuffer) {
 
     return stream;
 }
+*/

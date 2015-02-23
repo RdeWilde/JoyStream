@@ -377,23 +377,12 @@ public:
 
     // Manage torrents
     bool addTorrent(const Torrent::Configuration & configuration, bool promptUserForTorrentPluginConfiguration);
-
-    /*
-    bool addTorrent(const Torrent::Configuration & configuration);
-    bool addTorrent(const Torrent::Configuration & configuration, const BuyerTorrentPlugin::Configuration & torrentPluginConfiguration);
-    bool addTorrent(const Torrent::Configuration & configuration, const SellerTorrentPlugin::Configuration & torrentPluginConfiguration);
-    //bool addTorrent(const Torrent::Configuration & configuration, const ObserverTorrentPlugin::Configuration & torrentPluginConfiguration);
-    */
-
     bool removeTorrent(const libtorrent::sha1_hash & info_hash);
     bool pauseTorrent(const libtorrent::sha1_hash & info_hash);
     bool startTorrent(const libtorrent::sha1_hash & info_hash);
 
     // Start torrent plugin
     void startTorrentPlugin(const libtorrent::sha1_hash & info_hash, const TorrentPlugin::Configuration * configuration);
-    //void startBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const BuyerTorrentPlugin::Configuration & configuration);
-    //void startSellerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const SellerTorrentPlugin::Configuration & configuration);
-    //void startObserverTorrentPlugin(const libtorrent::sha1_hash & info_hash, const ObserverTorrentPlugin::Configuration & configuration);
 
     // Stops libtorrent session, and tries to save_resume data, when all resume data is saved, finalize_close() is called.
     void begin_close();
@@ -448,10 +437,6 @@ private:
     // issued by session.
     QMap<libtorrent::sha1_hash, const TorrentPlugin::Configuration *> _pendingConfigurations;
 
-    //QMap<libtorrent::sha1_hash, BuyerTorrentPlugin::Configuration> _pendingBuyerConfigurations;
-    //QMap<libtorrent::sha1_hash, SellerTorrentPlugin::Configuration> _pendingSellerConfigurations;
-    //QMap<libtorrent::sha1_hash, ObserverTorrentPlugin::Configuration> _pendingObserverConfigurations;
-
     // Routine for processig libtorrent alerts
     void processMetadataReceivedAlert(libtorrent::metadata_received_alert const * p);
     void processMetadataFailedAlert(libtorrent::metadata_failed_alert const * p);
@@ -474,37 +459,6 @@ private:
 
     // Save state of controller to file
     void saveStateToFile(const char * file);
-
-   /**
-    * Short term controller state
-    * ==========================
-    * Needed for processing which relies
-    * on asyncrhoous calls to libtorrent. It is short term in the sense
-    * that it does not need to persist across client sessions.
-    *
-    * Represents the number of calls that have been made to save resume data,
-    * for which a save_resume_data_failed_alert/save_resume_data_alert has not been
-    * received. If this number is greater than one, then no new (series) of calls to save resume
-    * data should be made, because that will confuse source of call, which can be
-    * (a) closing client
-    * (b) pausing client
-    * (c) pausing an individual torrent
-
-
-    unsigned int _numberOfOutstandingResumeDataCalls;
-
-    // Different sources for a resume data call
-    enum sourceForLastResumeDataCallType {
-        NONE,
-        CLIENT_PAUSE,
-        TORRENT_PAUSE,
-        CLIENT_CLOSE
-    };
-
-    // Actual source of resume data call
-    sourceForLastResumeDataCallType _sourceForLastResumeDataCall;
-
-     */
 };
 
 #endif

@@ -9,6 +9,10 @@
 #include "Exceptions/InvalidBitSwaprStateEntryException.hpp"
 #include "extension/PluginMode.hpp"
 
+Controller::Torrent::Configuration::Configuration() {
+
+}
+
 Controller::Torrent::Configuration::Configuration(const libtorrent::sha1_hash & infoHash,
                                            const std::string & name,
                                            const std::string & savePath,
@@ -963,26 +967,21 @@ Q_DECLARE_METATYPE(libtorrent::torrent_status)
 Q_DECLARE_METATYPE(const libtorrent::alert*)
 
 Controller::Controller(const Configuration & configuration, bool showView, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category)
-    : _session(libtorrent::fingerprint(CLIENT_FINGERPRINT
-                                      ,BITSWAPR_VERSION_MAJOR
-                                      ,BITSWAPR_VERSION_MINOR
-                                      ,0
-                                      ,0)
-              ,libtorrent::session::add_default_plugins
-              ,libtorrent::alert::error_notification
-              +libtorrent::alert::tracker_notification
-              +libtorrent::alert::debug_notification
-              +libtorrent::alert::status_notification
-              +libtorrent::alert::progress_notification
-              +libtorrent::alert::performance_warning
-              +libtorrent::alert::stats_notification)
-    //, _sourceForLastResumeDataCall(NONE)
-    , _category(category)
-    , _manager(manager)
-    , _plugin(new Plugin(this, _manager, bitcoindAccount, _category))
-    , _portRange(configuration.getPortRange())
-    , _view(this, _category) {
-    // , _numberOfOutstandingResumeDataCalls(0) {
+    :_state(State::normal)
+    ,_session(libtorrent::fingerprint(CLIENT_FINGERPRINT, BITSWAPR_VERSION_MAJOR, BITSWAPR_VERSION_MINOR, 0, 0),
+              libtorrent::session::add_default_plugins,
+              libtorrent::alert::error_notification +
+              libtorrent::alert::tracker_notification +
+              libtorrent::alert::debug_notification +
+              libtorrent::alert::status_notification +
+              libtorrent::alert::progress_notification +
+              libtorrent::alert::performance_warning +
+              libtorrent::alert::stats_notification)
+    ,_category(category)
+    ,_manager(manager)
+    ,_plugin(new Plugin(this, _manager, bitcoindAccount, _category))
+    ,_portRange(configuration.getPortRange())
+    ,_view(this, _category) {
 
     // Register types for signal and slots
     qRegisterMetaType<libtorrent::sha1_hash>();
@@ -1046,11 +1045,9 @@ Controller::Controller(const Configuration & configuration, bool showView, QNetw
 
         // Try to add torrent, without prompting user
         if(!addTorrent(*i, false)) {
-
             qCCritical(_category) << "Unable to add torrent configuration to session";
             return;
         }
-
     }
 
     // Show view

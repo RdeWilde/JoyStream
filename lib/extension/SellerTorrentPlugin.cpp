@@ -145,7 +145,7 @@ void SellerTorrentPlugin::tick() {
     */
 
     // Call base tick routine
-    TorrentPlugin::tick();
+    //TorrentPlugin::tick();
 
 }
 

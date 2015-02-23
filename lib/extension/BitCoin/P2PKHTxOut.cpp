@@ -1,5 +1,6 @@
 #include "P2PKHTxOut.hpp"
 
+
 #include <QJsonObject>
 
 P2PKHTxOut::P2PKHTxOut() {

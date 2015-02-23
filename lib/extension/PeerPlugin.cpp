@@ -8,6 +8,13 @@
 #include "Message/MessageType.hpp"
 #include "Message/ExtendedMessagePayload.hpp"
 
+/**
+ * PeerPlugin::Configuration
+ */
+
+PeerPlugin::Configuration::Configuration() {
+}
+
 ExtendedMessageIdMapping PeerPlugin::Configuration::clientMapping() const {
     return _clientMapping;
 }
@@ -40,6 +47,9 @@ void PeerPlugin::Configuration::setPeerBitSwaprBEPSupportStatus(BEPSupportStatus
     _peerBitSwaprBEPSupportStatus = peerBEP43SupportedStatus;
 }
 
+/**
+ * PeerPlugin
+ */
 
 /*
 #include "Message/Observe.hpp"
