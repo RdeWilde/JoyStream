@@ -6,10 +6,13 @@
 #include "Request/PluginRequest.hpp"
 #include "Request/TorrentPluginRequest.hpp"
 #include "Request/PeerPluginRequest.hpp"
-#include "Request/StartBuyerTorrentPlugin.hpp"
-#include "Request/StartSellerTorrentPlugin.hpp"
+//#include "Request/StartBuyerTorrentPlugin.hpp"
+//#include "Request/StartSellerTorrentPlugin.hpp"
+#include "Request/StartTorrentPlugin.hpp"
 #include "PeerPlugin.hpp"
 #include "Alert/PluginStatusAlert.hpp"
+
+#include "PluginMode.hpp"
 
 #include <boost/shared_ptr.hpp>
 
@@ -208,6 +211,15 @@ void Plugin::processPluginRequest(const PluginRequest * pluginRequest) {
 
     switch(pluginRequest->getPluginRequestType()) {
 
+        case PluginRequestType::StartTorrentPlugin:  {
+
+            const StartTorrentPlugin * p = reinterpret_cast<const StartTorrentPlugin *>(pluginRequest);
+            startTorrentPlugin(p->infoHash(), p->configuration());
+        }
+
+        break;
+
+        /**
         case PluginRequestType::StartBuyerTorrentPlugin: {
 
                 const StartBuyerTorrentPlugin * p = reinterpret_cast<const StartBuyerTorrentPlugin *>(pluginRequest);
@@ -221,9 +233,68 @@ void Plugin::processPluginRequest(const PluginRequest * pluginRequest) {
                 startSellerTorrentPlugin(p->infoHash(), p->configuration());
         }
             break;
+        */
     }
 }
 
+bool Plugin::startTorrentPlugin(const libtorrent::sha1_hash & infoHash, const TorrentPlugin::Configuration * configuration) {
+
+    // Torrent should never have a plugin installed
+    Q_ASSERT(!_plugins.contains(infoHash));
+
+    // Get shared pointer to session
+    if(boost::shared_ptr<libtorrent::aux::session_impl> sharedSessionPtr = _session.lock()) {
+
+        // Find torrent
+        boost::weak_ptr<libtorrent::torrent> weakTorrentPtr = sharedSessionPtr->find_torrent(infoHash);
+
+        // Get shared torrent pointer
+        if(boost::shared_ptr<libtorrent::torrent> sharedTorrentPtr = weakTorrentPtr.lock()) {
+
+            // Shared pointer used to point to plugin
+            boost::shared_ptr<libtorrent::torrent_plugin> sharedPluginPtr;
+
+            // Create corresponding torrent plugin
+            switch(configuration->pluginMode()) {
+
+                case PluginMode::Buyer:
+
+                    sharedPluginPtr.reset(new BuyerTorrentPlugin(this, weakTorrentPtr, *(reinterpret_cast<const BuyerTorrentPlugin::Configuration *>(configuration)), _category));
+                    break;
+
+                case PluginMode::Seller:
+
+                    sharedPluginPtr.reset(new SellerTorrentPlugin(this, weakTorrentPtr, *(reinterpret_cast<const SellerTorrentPlugin::Configuration *>(configuration)), _category));
+                    break;
+
+                case PluginMode::Observer:
+
+                    qCDebug(_category) << "Not implemented yet.";
+            }
+
+            // Install plugin on torrent
+            sharedTorrentPtr->add_extension(sharedPluginPtr);
+
+            // Remember plugin
+            _plugins[infoHash] = boost::weak_ptr<libtorrent::torrent_plugin>(sharedPluginPtr);
+
+            // Return success indication
+            return true;
+
+        } else {
+
+            qCDebug(_category) << "Torrent deleted, cannot install seller torrent pluin.";
+            return false;
+        }
+
+    } else {
+
+        qCDebug(_category) << "Session deleted, cannot install seller torrent pluin.";
+        return false;
+    }
+}
+
+/**
 bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration) {
 
     // Check that torrent does not already have a plugin installed
@@ -309,6 +380,7 @@ bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, co
         return false;
     }
 }
+*/
 
 void Plugin::processStatus() {
 

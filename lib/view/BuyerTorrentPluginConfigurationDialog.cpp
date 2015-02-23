@@ -37,7 +37,7 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
     BuyerTorrentPlugin::Configuration * configuration = new BuyerTorrentPlugin::Configuration(enableBanningSets, state, maxPrice, maxLock, maxFeePerByte, minPeers);
 
     // Set in seller mode
-    _controller->updateTorrentPluginConfiguration(_infoHash, configuration);
+    _controller->startTorrentPlugin(_infoHash, configuration);
 
     // close window
     done(0);

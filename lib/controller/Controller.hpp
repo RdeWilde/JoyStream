@@ -1,7 +1,7 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#include "ControllerConfiguration.hpp"
+//#include "ControllerConfiguration.hpp"
 #include "view/MainWindow.hpp"
 #include "extension/Plugin.hpp"
 #include "extension/PeerPluginStatus.hpp" // needed for QT moc <==== Remove later
@@ -53,10 +53,12 @@ public:
          */
         enum class ExpectedEvent {
 
-            // Added to session, but not yet checked
+            // Added to session, but not yet checked,
+            // is set when torrent is added to session
             torrent_checked_alert,
 
-            // User has to specify torrent plugin configuration
+            // User has to specify torrent plugin configuration,
+            // is set when user dialog is started
             torrent_plugin_configuration_from_user,
 
             //
@@ -85,7 +87,8 @@ public:
                          const std::string & savePath,
                          const std::vector<char> & resumeData,
                          quint64 flags,
-                         libtorrent::torrent_info * torrentInfo);
+                         libtorrent::torrent_info * torrentInfo,
+                         const TorrentPlugin::Configuration * torrentPluginConfiguration);
 
             // Constructor from dictionary
             Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry);
@@ -121,12 +124,27 @@ public:
             libtorrent::add_torrent_params toAddTorrentParams() const;
 
             // Getters
-            libtorrent::sha1_hash getInfoHash() const;
-            std::string getName() const;
-            std::string getSavePath() const;
-            std::vector<char> getResumeData() const;
-            quint64 getFlags() const;
-            const libtorrent::torrent_info * getTorrentInfo() const;
+
+            const TorrentPlugin::Configuration * torrentPluginConfiguration() const;
+            void setTorrentPluginConfiguration(const TorrentPlugin::Configuration *torrentPluginConfiguration);
+
+            libtorrent::torrent_info * torrentInfo() const;
+            void setTorrentInfo(libtorrent::torrent_info * torrentInfo);
+
+            quint64 flags() const;
+            void setFlags(const quint64 & flags);
+
+            std::vector<char> resumeData() const;
+            void setResumeData(const std::vector<char> & resumeData);
+
+            std::string savePath() const;
+            void setSavePath(const std::string & savePath);
+
+            std::string name() const;
+            void setName(const std::string & name);
+
+            libtorrent::sha1_hash infoHash() const;
+            void setInfoHash(const libtorrent::sha1_hash & infoHash);
 
         private:
 
@@ -149,19 +167,8 @@ public:
             // We need pointer since we cannot copy torrent_info
             libtorrent::torrent_info * _torrentInfo;
 
-            /**
-
-
-
-
-              Should TorrentPlugin::Configuration go here, and should it
-              be ptr, or should we subclass with different corresponding types
-
-
-              */
-
-
-
+            // Have to use pointer to get polymorphism. :/
+            const TorrentPlugin::Configuration * _torrentPluginConfiguration;
         };
 
         // Default constructor
@@ -174,8 +181,29 @@ public:
                 const std::vector<char> & resumeData,
                 quint64 flags,
                 libtorrent::torrent_info * torrentInfo,
-                const TorrentPlugin::Configuration * loadedTorrentPluginConfiguration,
                 ExpectedEvent event);
+
+        // Getters and Setters
+        libtorrent::sha1_hash infoHash() const;
+        void setInfoHash(const libtorrent::sha1_hash &infoHash);
+
+        std::string name() const;
+        void setName(const std::string &name);
+
+        std::string savePath() const;
+        void setSavePath(const std::string &savePath);
+
+        std::vector<char> resumeData() const;
+        void setResumeData(const std::vector<char> &resumeData);
+
+        quint64 flags() const;
+        void setFlags(const quint64 &flags);
+
+        libtorrent::torrent_info *torrentInfo() const;
+        void setTorrentInfo(libtorrent::torrent_info *torrentInfo);
+
+        ExpectedEvent event() const;
+        void setEvent(const ExpectedEvent &event);
 
     private:
 
@@ -198,11 +226,6 @@ public:
         // We need pointer since we cannot copy torrent_info
         libtorrent::torrent_info * _torrentInfo;
 
-        // The torrent plugin configuration which was loaded from disk,
-        // we need to keep it arround since we may only add it once the
-        // libtorrent::torrent_checked_alert is received from libtorrent.
-        const TorrentPlugin::Configuration * _loadedTorrentPluginConfiguration;
-
         // Next expected event for this torrent
         ExpectedEvent _event;
 
@@ -218,15 +241,126 @@ public:
 
     public:
 
+        // Constructor using default parameter settings
+        Configuration();
+
+        // Destructor
+        ~Configuration();
+
+        // Constructor using members
+        Configuration(const libtorrent::entry & libtorrentSessionSettingsEntry,
+                      const std::pair<int, int> & portRange,
+                      const std::vector<std::pair<std::string, int>> & dhtRouters,
+                      const QVector<Torrent::Configuration> & torrents);
+
+        // Constructor using dictionary entry
+        Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry);
+
+        // Constructor using file
+        Configuration(const char * fileName);
+
+        /**
+         * Saves to dictionary entry
+         * ===============================================================
+         *
+         * Controller parameters as they persist across sessions on disk
+         * encoded as entry::dictionary_type with the following keys:
+         *
+         * "libtorrentSettings" -> entry::dictionary_type object from session.save_state().
+         *
+         * "portRange" -> entry::list_type object with two positive integers used as start (first) and end (second)
+         * of port range for running bitswapr.
+         *
+         * "dhtRouters" -> entry::list_type object with entry::list_type objects with two elements, each encoding a dht router by the host (first)
+         * and port (second).
+         *
+         * "torrentConfigurations" -> entry::list_type object, with list item objects being of type entry::dictionary_type and
+         * representing state of corresponding torrent as dictated by encoding used in TorrentConfiguration::toDictionaryEntry().
+         */
+        void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry);
+
+        // Saves to file
+        void saveToFile(const char * file);
+
+        /*
+        // Inserts torrent configuration.
+        // This object then takes ownership of file, and deletes in constructor
+        void insertTorrentConfiguration(TorrentConfiguration * torrentConfiguration);
+        */
+
+        // Getters & Setters
+        libtorrent::entry getLibtorrentSessionSettingsEntry() const;
+        void setLibtorrentSessionSettingsEntry(const libtorrent::entry & libtorrentSessionSettingsEntry);
+
+        std::pair<int, int> getPortRange() const;
+
+        std::vector<std::pair<std::string, int>> getDhtRouters() const;
+
+        //std::vector<TorrentConfiguration *>::const_iterator getBeginTorrentConfigurationsIterator() const;
+        //std::vector<TorrentConfiguration *>::const_iterator getEndTorrentConfigurationsIterator() const;
+
+        /*
+        QMap<libtorrent::sha1_hash, QPair<Torrent::Configuration, BuyerTorrentPlugin::Configuration> > buyers() const;
+        void setBuyers(const QMap<libtorrent::sha1_hash, QPair<Torrent::Configuration, BuyerTorrentPlugin::Configuration> > & buyers);
+
+        QMap<libtorrent::sha1_hash, QPair<Torrent::Configuration, SellerTorrentPlugin::Configuration> > sellers() const;
+        void setSellers(const QMap<libtorrent::sha1_hash, QPair<Torrent::Configuration, SellerTorrentPlugin::Configuration> > & sellers);
+*/
+
+        //TorrentPlugin::Configuration *getTorrentPluginConfiguration() const;
+        //void setTorrentPluginConfiguration(TorrentPlugin::Configuration *value);
+
+        QVector<Torrent::Configuration> torrents() const;
+        void setTorrents(const QVector<Torrent::Configuration> & torrents);
+
+        libtorrent::sha1_hash infoHash() const;
+        void setInfoHash(const libtorrent::sha1_hash &infoHash);
+
+        std::string name() const;
+        void setName(const std::string &name);
+
+        std::string savePath() const;
+        void setSavePath(const std::string &savePath);
+
+        std::vector<char> resumeData() const;
+        void setResumeData(const std::vector<char> &resumeData);
+
+        quint64 flags() const;
+        void setFlags(const quint64 &flags);
+
+        libtorrent::torrent_info *torrentInfo() const;
+        void setTorrentInfo(libtorrent::torrent_info *torrentInfo);
+
+        const TorrentPlugin::Configuration *torrentPluginConfiguration() const;
+        void setTorrentPluginConfiguration(const TorrentPlugin::Configuration *torrentPluginConfiguration);
+
     private:
 
-        // Map to info_hash to persistant state of torrents
-        QMap<libtorrent::sha1_hash, Torrent::Configuration> _torrentConfigurations;
+        /*
+         * Holds all settings of session, that includes
+         * session_settings, dht_settings, dht_state,
+         * proxy_settings, i2p_proxy, pe_settings, feed
+         * and extension settings.
+         *
+         * It would be cleaner to save class representations rather
+         * than using entry type, however that gets messy and/or
+         * requires lots of extra work for various reasons.
+         */
+        libtorrent::entry _libtorrentSessionSettingsEntry;
+
+        // Listening port range: DO WE EVEN NEED THIS? IT MAY BE PART OF DHT_SETTINGS ENTRY?
+        std::pair<int, int> _portRange;
+
+        // Dht routers
+        std::vector<std::pair<std::string, int>> _dhtRouters;
+
+        // Torrent configurations
+        QVector<Torrent::Configuration> _torrents;
 
     };
 
     // Constructor starting session with given state
-    Controller(const ControllerConfiguration & controllerConfiguration, bool showView, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category);
+    Controller(const Configuration & configuration, bool showView, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category);
 
     // Callback routine called by libtorrent dispatcher routine
     void libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::alert> alertAutoPtr);
@@ -243,18 +377,44 @@ public:
 
     // Manage torrents
     bool addTorrent(const Torrent::Configuration & configuration, bool promptUserForTorrentPluginConfiguration);
+
+    /*
+    bool addTorrent(const Torrent::Configuration & configuration);
+    bool addTorrent(const Torrent::Configuration & configuration, const BuyerTorrentPlugin::Configuration & torrentPluginConfiguration);
+    bool addTorrent(const Torrent::Configuration & configuration, const SellerTorrentPlugin::Configuration & torrentPluginConfiguration);
+    //bool addTorrent(const Torrent::Configuration & configuration, const ObserverTorrentPlugin::Configuration & torrentPluginConfiguration);
+    */
+
     bool removeTorrent(const libtorrent::sha1_hash & info_hash);
     bool pauseTorrent(const libtorrent::sha1_hash & info_hash);
     bool startTorrent(const libtorrent::sha1_hash & info_hash);
-    void updateTorrentPluginConfiguration(const libtorrent::sha1_hash & infoHash, TorrentPlugin::Configuration * configuration);
+
+    // Start torrent plugin
+    void startTorrentPlugin(const libtorrent::sha1_hash & info_hash, const TorrentPlugin::Configuration * configuration);
+    //void startBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const BuyerTorrentPlugin::Configuration & configuration);
+    //void startSellerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const SellerTorrentPlugin::Configuration & configuration);
+    //void startObserverTorrentPlugin(const libtorrent::sha1_hash & info_hash, const ObserverTorrentPlugin::Configuration & configuration);
 
     // Stops libtorrent session, and tries to save_resume data, when all resume data is saved, finalize_close() is called.
     void begin_close();
 
     // Save state of controller
-    ControllerConfiguration toControllerConfiguration() const;
+    Configuration toConfiguration() const;
+
+private slots:
+
+    // Tells session to post updates, is signaled by timer
+    void callPostTorrentUpdates();
+
+signals:
+
+    // Emitted after finalize_close(), that is when controller is 100% done
+    void closed();
 
 private:
+
+    // State of controller
+    State _state;
 	
     // Underlying libtorrent session
     libtorrent::session _session;
@@ -279,6 +439,18 @@ private:
 
     // Timer which calls session.post_torrent_updates() at regular intervals
     QTimer _statusUpdateTimer;
+
+    // Torrents added to session
+    QMap<libtorrent::sha1_hash, Torrent> _torrents;
+
+    // Configurations are placed in these maps when corresponding torrent is added to session,
+    // and they are used to start a plugin on the given torrent once a torrent_checked_alert has been
+    // issued by session.
+    QMap<libtorrent::sha1_hash, const TorrentPlugin::Configuration *> _pendingConfigurations;
+
+    //QMap<libtorrent::sha1_hash, BuyerTorrentPlugin::Configuration> _pendingBuyerConfigurations;
+    //QMap<libtorrent::sha1_hash, SellerTorrentPlugin::Configuration> _pendingSellerConfigurations;
+    //QMap<libtorrent::sha1_hash, ObserverTorrentPlugin::Configuration> _pendingObserverConfigurations;
 
     // Routine for processig libtorrent alerts
     void processMetadataReceivedAlert(libtorrent::metadata_received_alert const * p);
@@ -317,14 +489,9 @@ private:
     * (a) closing client
     * (b) pausing client
     * (c) pausing an individual torrent
-    */
+
 
     unsigned int _numberOfOutstandingResumeDataCalls;
-
-    /**
-     * ABSORB INTO TORRENT TYPE LATER
-     * ==============================
-     */
 
     // Different sources for a resume data call
     enum sourceForLastResumeDataCallType {
@@ -337,18 +504,7 @@ private:
     // Actual source of resume data call
     sourceForLastResumeDataCallType _sourceForLastResumeDataCall;
 
-    // Torrents added to session
-    QMap<libtorrent::sha1_hash, Torrent> _torrents;
-
-private slots:
-
-    // Tells session to post updates, is signaled by timer
-    void callPostTorrentUpdates();
-
-signals:
-
-    // Emitted after finalize_close(), that is when controller is 100% done
-    void closed();
+     */
 };
 
 #endif

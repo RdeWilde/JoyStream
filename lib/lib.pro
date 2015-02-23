@@ -33,7 +33,6 @@ SOURCES += \
     Utilities.cpp \
     view/PeerPluginViewModel.cpp \
     extension/PeerPluginId.cpp \
-    controller/ControllerConfiguration.cpp \
     extension/Request/PluginRequest.cpp \
     extension/Request/TorrentPluginRequest.cpp \
     extension/Request/PeerPluginRequest.cpp \
@@ -58,8 +57,6 @@ SOURCES += \
     extension/Message/Ready.cpp \
     extension/Message/NoPayloadMessage.cpp \
     extension/BuyerTorrentPlugin.cpp \
-    extension/Request/StartBuyerTorrentPlugin.cpp \
-    extension/Request/StartSellerTorrentPlugin.cpp \
     extension/SellerTorrentPlugin.cpp \
     extension/SellerPeerPlugin.cpp \
     extension/BitCoin/KeyPair.cpp \
@@ -100,7 +97,6 @@ HEADERS += \
     view/PeerPluginViewModel.hpp \
     extension/Message/MessageType.hpp \
     extension/PeerPluginId.hpp \
-    controller/ControllerConfiguration.hpp \
     extension/BEPSupportStatus.hpp \
     extension/Request/PluginRequest.hpp \
     extension/Request/TorrentPluginRequest.hpp \
@@ -138,8 +134,6 @@ HEADERS += \
     BuyModePeerAction.hpp \
     extension/BuyModePeerAction.hpp \
     extension/BuyerTorrentPlugin.hpp \
-    extension/Request/StartBuyerTorrentPlugin.hpp \
-    extension/Request/StartSellerTorrentPlugin.hpp \
     extension/SellerTorrentPlugin.hpp \
     extension/BuyerPeerPlugin.hpp \
     extension/SellerPeerPlugin.hpp \
@@ -154,7 +148,8 @@ HEADERS += \
     extension/PaymentChannel/Payee.hpp \
     extension/BitCoin/P2PKHAddress.hpp \
     extension/BitCoin/OutPoint.hpp \
-    extension/PaymentChannel/Payor.hpp
+    extension/PaymentChannel/Payor.hpp \
+    extension/Request/StartTorrentPlugin.hpp
 				
 FORMS += \
     view/mainwindow.ui \

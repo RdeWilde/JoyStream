@@ -1,6 +1,6 @@
 #include "view/AddTorrentDialog.hpp"
 #include "ui_addtorrentdialog.h"
-#include "controller/TorrentConfiguration.hpp"
+//#include "controller/TorrentConfiguration.hpp"
 
 #include <QFileDialog>
 
@@ -88,16 +88,16 @@ void AddTorrentDialog::on_AddTorrentDialog_accepted() {
     if(_torrentInfo != NULL)
         t = new libtorrent::torrent_info(*_torrentInfo);
 
-    TorrentConfiguration torrentConfiguration(info_hash,
-                                              name,
-                                              save_path,
-                                              resume_data,
-                                              libtorrent::add_torrent_params::flag_update_subscribe,
-                                              t,
-                                              NULL);
+    Controller::Torrent::Configuration configuration(info_hash,
+                                                      name,
+                                                      save_path,
+                                                      resume_data,
+                                                      libtorrent::add_torrent_params::flag_update_subscribe,
+                                                      t,
+                                                      NULL);
 
     // Add torrent, and make sure user later supplies torrent plugin configuration
-    _controller->addTorrent(torrentConfiguration, true);
+    _controller->addTorrent(configuration, true);
 
     // Close window
     done(0);

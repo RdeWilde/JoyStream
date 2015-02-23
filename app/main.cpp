@@ -10,8 +10,8 @@
 #include "lib/ControllerTracker.hpp"
 #include "lib/controller/Controller.hpp"
 #include "lib/logger/LoggerManager.hpp"
-#include "lib/controller/ControllerConfiguration.hpp"
-#include "lib/controller/TorrentConfiguration.hpp"
+//#include "lib/controller/ControllerConfiguration.hpp"
+//#include "lib/controller/TorrentConfiguration.hpp"
 //#include "lib/extension/TorrentPluginConfiguration.hpp"
 #include "lib/extension/PluginMode.hpp"
 
@@ -67,7 +67,7 @@ void main(int argc, char* argv[]) {
         showView = true;
 
     // Load default state
-    ControllerConfiguration controllerConfiguration;
+    Controller::Configuration controllerConfiguration;
 
     // If fresh flag is not passed,
     // then open existing parameter file
@@ -88,7 +88,7 @@ void main(int argc, char* argv[]) {
             exit(EXIT_FAILURE);
 
         } else // Load state from file
-            controllerConfiguration = ControllerConfiguration(fileString.c_str());
+            controllerConfiguration = Controller::Configuration(fileString.c_str());
     }
 
     // Network access manager instance used by all code trying to use network
@@ -122,7 +122,7 @@ void main(int argc, char* argv[]) {
     std::cout << "Started main client." << std::endl;
 
     // Create configuration
-    TorrentConfiguration buyerTorrentConfiguration(torrentInfo.info_hash()
+    Controller::Torrent::Configuration buyerTorrentConfiguration(torrentInfo.info_hash()
                                                   ,torrentInfo.name()
                                                   ,std::string("C:/Users/Sindre/Desktop/SAVE_OUTPUT/MAIN")
                                                   ,std::vector<char>()
