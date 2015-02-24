@@ -115,8 +115,26 @@ public:
 
     public:
 
+        // Default constructor
+        Status();
+
+        // Constructor from members
+        Status(const PeerState & peerState, ClientState clientState);
+
+        // Getters and setters
+        PeerState peerState() const;
+        void setPeerState(const PeerState &peerState);
+
+        ClientState clientState() const;
+        void setClientState(ClientState clientState);
+
     private:
 
+        // State of peer
+        PeerState _peerState;
+
+        // State of client
+        ClientState _clientState;
     };
 
     /**
@@ -184,6 +202,8 @@ public:
     virtual void on_piece_failed(int index);
     virtual void tick();
     virtual bool write_request(libtorrent::peer_request const & peerRequest);
+
+    Status status() const;
 
     // Getters and setters
     PeerState peerState() const;

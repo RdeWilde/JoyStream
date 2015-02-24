@@ -88,6 +88,15 @@ TorrentPlugin::TorrentPlugin(Plugin * plugin,
     , _torrent(torrent)
     , _enableBanningSets(configuration.enableBanningSets())
     , _category(category) {
+
+
+    if(boost::shared_ptr<libtorrent::torrent> torrentSharedPtr = torrent.lock()) {
+
+        // Grab info hash
+        _infoHash = torrentSharedPtr->info_hash();
+
+    } else
+        qCDebug(_category) << "Invalid torrent pointer passed.";
 }
 
 TorrentPlugin::~TorrentPlugin() {

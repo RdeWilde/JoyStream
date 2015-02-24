@@ -213,6 +213,15 @@ QJsonObject Payor::Channel::json() const {
             };
 }
 
+Payor::Channel::Status Payor::Channel::status() const {
+
+    return Payor::Channel::Status(_index,
+                                  _state,
+                                  _price,
+                                  _numberOfPaymentsMade,
+                                  _refundLockTime);
+}
+
 quint32 Payor::Channel::index() const {
     return _index;
 }
@@ -326,6 +335,64 @@ void Payor::Channel::setIndex(quint32 index) {
     _index = index;
 }
 
+
+/**
+ * Payor::Channel::Status
+ */
+
+Payor::Channel::Status::Status(quint32 index,
+                               State state,
+                               quint64 price,
+                               quint64 numberOfPaymentsMade,
+                               quint32 refundLockTime)
+    : _index(index)
+    , _state(state)
+    , _price(price)
+    , _numberOfPaymentsMade(numberOfPaymentsMade)
+    , _refundLockTime(refundLockTime) {
+}
+
+quint32 Payor::Channel::Status::refundLockTime() const {
+    return _refundLockTime;
+}
+
+void Payor::Channel::Status::setRefundLockTime(quint32 refundLockTime) {
+    _refundLockTime = refundLockTime;
+}
+
+quint64 Payor::Channel::Status::numberOfPaymentsMade() const {
+    return _numberOfPaymentsMade;
+}
+
+void Payor::Channel::Status::setNumberOfPaymentsMade(quint64 numberOfPaymentsMade) {
+    _numberOfPaymentsMade = numberOfPaymentsMade;
+}
+
+quint64 Payor::Channel::Status::price() const {
+    return _price;
+}
+
+void Payor::Channel::Status::setPrice(quint64 price) {
+    _price = price;
+}
+
+Payor::Channel::State Payor::Channel::Status::state() const {
+    return _state;
+}
+
+void Payor::Channel::Status::setState(State state) {
+    _state = state;
+}
+
+quint32 Payor::Channel::Status::index() const {
+    return _index;
+}
+
+void Payor::Channel::Status::setIndex(quint32 index) {
+    _index = index;
+}
+
+
 /**
  * Payor::Status
  */
@@ -338,7 +405,7 @@ Payor::Status::Status(const QVector<Channel::Status> & channels,
     , _numberOfSignatures(numberOfSignatures) {
 }
 
-QVector<Channel::Status> Payor::Status::channels() const {
+QVector<Payor::Channel::Status> Payor::Status::channels() const {
     return _channels;
 }
 
@@ -621,6 +688,19 @@ bool Payor::spent(quint32 index) const {
 
     // Check if cannel payment has been spent
     return false;
+}
+
+Payor::Status Payor::status() const {
+
+    // Get channel statuses
+    QVector<Channel::Status> channels;
+
+    for(QVector<Channel>::const_iterator i = _channels.begin(),
+            end(_channels.end()); i != end;i++)
+        channels.push_back(i->status());
+
+    // Create rest of payor status
+    return Status(channels, _state, _numberOfSignatures);
 }
 
 /**

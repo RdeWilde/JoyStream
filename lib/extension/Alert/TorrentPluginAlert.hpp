@@ -9,6 +9,9 @@ class TorrentPluginAlert : public libtorrent::alert {
 
 public:
 
+    // Default constructor
+    TorrentPluginAlert();
+
     // Constructor
     TorrentPluginAlert(const libtorrent::sha1_hash & infoHash);
 
@@ -22,7 +25,7 @@ public:
     // Getters
     libtorrent::sha1_hash infoHash() const;
 
-private:
+protected:
 
     libtorrent::sha1_hash _infoHash;
 };

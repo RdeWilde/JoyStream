@@ -50,50 +50,30 @@ public:
 
     public:
 
-        Status(BuyerTorrentPlugin::State state,
-                  quint32 numberOfPeers,
-                  quint32 numberOfPeersWithExtension,
-                  quint32 contractFee,
-                  quint64 totalPayment);
+        Status(State state,
+                const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> & peers,
+                const Payor::Status & payor);
 
         // Getters and Setters
-        BuyerTorrentPlugin::State state() const;
-        void setState(BuyerTorrentPlugin::State state);
-
-        quint32 numberOfPeers() const;
-        void setNumberOfPeers(quint32 numberOfPeers);
-
-        quint32 numberOfPeersWithExtension() const;
-        void setNumberOfPeersWithExtension(quint32 numberOfPeersWithExtension);
-
-        quint32 contractFee() const;
-        void setContractFee(quint32 contractFee);
-
-        quint64 totalPayment() const;
-        void setTotalPayment(quint64 totalPayment);
+        State state() const;
+        void setState(State state);
 
         QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> peers() const;
-        void setPeers(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> &peers);
+        void setPeers(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> & peers);
+
+        Payor::Status payor() const;
+        void setPayor(const Payor::Status & payor);
 
     private:
 
         // State of plugin
         State _state;
 
-        // Number of peers torrent plugin has been connected with (not all peers on libtorrent::torrent peer list?)
-        quint32 _numberOfPeers;
-
-        // Among numberOfPeers_, how many did a correct BEP10 handshake indicating they supported BEP43
-        quint32 _numberOfPeersWithExtension;
-
-        // Contract fee spent
-        quint32 _contractFee;
-
-        // Total amount of payment made so far
-        quint64 _totalPayment;
-
-        // The status of peers
+        // Status of peers
         QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> _peers;
+
+        // Status of the payor
+        Payor::Status _payor;
     };
 
     /**
@@ -191,7 +171,7 @@ public:
     //virtual boost::weak_ptr<libtorrent::peer_plugin> peerPlugin(const libtorrent::tcp::endpoint & endPoint) const;
 
     // Generate plugin status
-    Status status();
+    Status status() const;
 
     // Getters and setters
     virtual PluginMode pluginMode() const;

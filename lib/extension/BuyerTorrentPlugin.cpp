@@ -4,67 +4,37 @@
  * BuyerTorrentPlugin::Status
  */
 
-BuyerTorrentPlugin::Status::Status(BuyerTorrentPlugin::State state,
-                                   quint32 numberOfPeers,
-                                   quint32 numberOfPeersWithExtension,
-                                   quint32 contractFee,
-                                   quint64 totalPayment)
+BuyerTorrentPlugin::Status::Status(State state,
+                                   const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> & peers,
+                                   const Payor::Status & payor)
     : _state(state)
-    , _numberOfPeers(numberOfPeers)
-    , _numberOfPeersWithExtension(numberOfPeersWithExtension)
-    , _contractFee(contractFee)
-    , _totalPayment(totalPayment) {
+    , _peers(peers)
+    , _payor(payor) {
 }
 
 BuyerTorrentPlugin::State BuyerTorrentPlugin::Status::state() const {
     return _state;
 }
 
-void BuyerTorrentPlugin::Status::setState(BuyerTorrentPlugin::State state) {
+void BuyerTorrentPlugin::Status::setState(State state) {
     _state = state;
 }
 
-quint32 BuyerTorrentPlugin::Status::numberOfPeers() const {
-    return _numberOfPeers;
-}
-
-void BuyerTorrentPlugin::Status::setNumberOfPeers(quint32 numberOfPeers) {
-    _numberOfPeers = numberOfPeers;
-}
-
-quint32 BuyerTorrentPlugin::Status::numberOfPeersWithExtension() const {
-    return _numberOfPeersWithExtension;
-}
-
-void BuyerTorrentPlugin::Status::setNumberOfPeersWithExtension(quint32 numberOfPeersWithExtension) {
-    _numberOfPeersWithExtension = numberOfPeersWithExtension;
-}
-
-quint32 BuyerTorrentPlugin::Status::contractFee() const {
-    return _contractFee;
-}
-
-void BuyerTorrentPlugin::Status::setContractFee(quint32 contractFee) {
-    _contractFee = contractFee;
-}
-
-quint64 BuyerTorrentPlugin::Status::totalPayment() const {
-    return _totalPayment;
-}
-
-void BuyerTorrentPlugin::Status::setTotalPayment(quint64 totalPayment) {
-    _totalPayment = totalPayment;
-}
-QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> Status::peers() const
-{
+QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> BuyerTorrentPlugin::Status::peers() const {
     return _peers;
 }
 
-void Status::setPeers(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> &peers)
-{
+void BuyerTorrentPlugin::Status::setPeers(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> & peers) {
     _peers = peers;
 }
 
+Payor::Status BuyerTorrentPlugin::Status::payor() const {
+    return _payor;
+}
+
+void BuyerTorrentPlugin::Status::setPayor(const Payor::Status & payor) {
+    _payor = payor;
+}
 
 /**
  * BuyerTorrentPlugin::Configuration
@@ -213,18 +183,18 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
     peerState.setLastAction(BuyerPeerPlugin::PeerState::LastValidAction::no_bitswapr_message_sent);
     peerState.setFailureMode(BuyerPeerPlugin::PeerState::FailureMode::not_failed);
 
-    boost::shared_ptr<BuyerPeerPlugin> sharedPluginPtr(new BuyerPeerPlugin(this,
+    boost::shared_ptr<BuyerPeerPlugin> sharedPeerPluginPtr(new BuyerPeerPlugin(this,
                                                                            btConnection,
                                                                            BuyerPeerPlugin::Configuration(peerState, BuyerPeerPlugin::ClientState::no_bitswapr_message_sent),
                                                                            _category));
 
     // Add to collection
-    _peers[endPoint] = boost::weak_ptr<BuyerPeerPlugin>(sharedPluginPtr);
+    _peers[endPoint] = boost::weak_ptr<BuyerPeerPlugin>(sharedPeerPluginPtr);
 
     qCDebug(_category) << "Buyer #" << _peers.count() << endPointString.c_str() << "added.";
 
     // Return pointer to plugin as required
-    return sharedPluginPtr;
+    return sharedPeerPluginPtr;
 }
 
 void BuyerTorrentPlugin::on_piece_pass(int index) {
@@ -240,7 +210,7 @@ void BuyerTorrentPlugin::tick() {
     qCDebug(_category) << "BuyerTorrentPlugin.tick()";
 
     // Send status update to controller
-    sendTorrentPluginAlert(BuyerTorrentPluginStatusAlert(status()));
+    sendTorrentPluginAlert(BuyerTorrentPluginStatusAlert(_infoHash, status()));
 }
 
 bool BuyerTorrentPlugin::on_resume() {
@@ -263,9 +233,23 @@ void BuyerTorrentPlugin::on_add_peer(const libtorrent::tcp::endpoint & endPoint,
 
 }
 
-BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() {
+BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
 
-    //return Status(_state, _peers.count(), );
+    // Build list of buyer peer statuses
+    QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> peers;
+
+    for(QMap<libtorrent::tcp::endpoint, boost::weak_ptr<BuyerPeerPlugin> >::const_iterator i = _peers.constBegin(),
+            end(_peers.constEnd());i != end;i++) {
+
+        // Try to get shared pointer, and get status for peer plugin
+        if(boost::shared_ptr<BuyerPeerPlugin> sharedPtr = i.value().lock())
+            peers[i.key()] = sharedPtr->status();
+        else
+            qCDebug(_category) << "BuyerPeerPlugin was invalid!";
+    }
+
+    // Return final status
+    return Status(_state, peers, _payor.status());
 }
 
 /**
@@ -316,36 +300,4 @@ void BuyerTorrentPlugin::setState(const State & state) {
 
 PluginMode BuyerTorrentPlugin::pluginMode() const {
     return PluginMode::Buyer;
-}
-
-quint64 BuyerTorrentPlugin::maxPrice() const {
-    return _maxPrice;
-}
-
-void BuyerTorrentPlugin::setMaxPrice(const quint64 maxPrice) {
-    _maxPrice = maxPrice;
-}
-
-quint32 BuyerTorrentPlugin::maxLock() const {
-    return _maxLock;
-}
-
-void BuyerTorrentPlugin::setMaxLock(quint32 maxLock) {
-    _maxLock = maxLock;
-}
-
-quint64 BuyerTorrentPlugin::maxFeePerByte() const {
-    return _maxFeePerByte;
-}
-
-void BuyerTorrentPlugin::setMaxFeePerByte(quint64 maxFeePerByte) {
-    _maxFeePerByte = maxFeePerByte;
-}
-
-quint32 BuyerTorrentPlugin::numSellers() const {
-    return _numSellers;
-}
-
-void BuyerTorrentPlugin::setNumSellers(quint32 numSellers) {
-    _numSellers = numSellers;
 }

@@ -148,21 +148,55 @@ public:
 
         /**
          * @brief Snap shot state of channel
+         *
+         * weird class, will eventually be as large as Channel itself?
          */
         class Status {
 
         public:
 
+            // Default constructor
+            Status();
+
+            // Constructor from members
+            Status(quint32 index,
+                   State state,
+                   quint64 price,
+                   quint64 numberOfPaymentsMade,
+                   quint32 refundLockTime);
+
+            // Getters and setters
+            quint32 index() const;
+            void setIndex(quint32 index);
+
+            State state() const;
+            void setState(State state);
+
+            quint64 price() const;
+            void setPrice(quint64 price);
+
+            quint64 numberOfPaymentsMade() const;
+            void setNumberOfPaymentsMade(quint64 numberOfPaymentsMade);
+
+            quint32 refundLockTime() const;
+            void setRefundLockTime(quint32 refundLockTime);
+
+        private:
+
+            // Index in contract
+            quint32 _index;
+
             // Slot state
             State _state;
+
+            // Size of single payment
+            quint64 _price;
 
             // Number of payments made
             quint64 _numberOfPaymentsMade;
 
-
-
-        private:
-
+            // Lock time of refund, received in
+            quint32 _refundLockTime;
         };
 
         // Default constructor
@@ -212,6 +246,8 @@ public:
         void paymentMade();
 
         QJsonObject json() const;
+
+        Status status() const;
 
         // Getters and setters
         quint32 index() const;
@@ -315,13 +351,13 @@ public:
 
         // Getters and setters
         QVector<Channel::Status> channels() const;
-        void setChannels(const QVector<Channel::Status> &channels);
+        void setChannels(const QVector<Channel::Status> & channels);
 
         State state() const;
-        void setState(const State &state);
+        void setState(State state);
 
         quint32 numberOfSignatures() const;
-        void setNumberOfSignatures(const quint32 &numberOfSignatures);
+        void setNumberOfSignatures(quint32 numberOfSignatures);
 
     private:
 
@@ -393,6 +429,8 @@ public:
 
     // Checks if output is spent
     bool spent(quint32 index) const;
+
+    Status status() const;
 
     // Getters and setters
     OutPoint fundingOutput() const;

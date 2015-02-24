@@ -94,22 +94,19 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
     libtorrent::bt_peer_connection * bittorrentPeerConnection = static_cast<libtorrent::bt_peer_connection*>(peerConnection);
 
     // Create shared pointer to new seller peer plugin
-    boost::shared_ptr<libtorrent::peer_plugin> sharedPeerPluginPtr(new SellerPeerPlugin(this,
-                                                                                        bittorrentPeerConnection,
-                                                                                        SellerPeerPlugin::Configuration(), // nothing here, ask _plugin for values or something
-                                                                                        _category));
-
-    // Create weak pointer to the same seller, and save in _peerPlugins map
-    boost::weak_ptr<libtorrent::peer_plugin> weakPeerPluginPtr(sharedPeerPluginPtr);
+    boost::shared_ptr<SellerPeerPlugin> sharedPeerPluginPtr(new SellerPeerPlugin(this,
+                                                                                bittorrentPeerConnection,
+                                                                                SellerPeerPlugin::Configuration(), // nothing here, ask _plugin for values or something
+                                                                                _category));
 
     // Add to collection
-    _peerPlugins[endPoint] = weakPeerPluginPtr;
+    _peers[endPoint] = boost::weak_ptr<SellerPeerPlugin>(sharedPeerPluginPtr);
 
     if(boost::shared_ptr<libtorrent::torrent> sharedTorrentPtr = _torrent.lock()) {
 
         std::string name = sharedTorrentPtr->name();
 
-        qCDebug(_category) << "Seller #" << _peerPlugins.size() << endPointString.c_str() << "added to " << name.c_str();
+        qCDebug(_category) << "Seller #" << _peers.size() << endPointString.c_str() << "added to " << name.c_str();
 
         // Emit peer added signal
         // Should not be here, should be when a payment channel actually starts

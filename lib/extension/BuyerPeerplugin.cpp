@@ -1,5 +1,9 @@
 #include "BuyerPeerPlugin.hpp"
 
+/**
+ * BuyerPeerPlugin::PeerState
+ */
+
 BuyerPeerPlugin::PeerState::PeerState()
     : _lastAction(LastValidAction::no_bitswapr_message_sent)
     , _failureMode(FailureMode::not_failed)
@@ -73,6 +77,34 @@ BuyerPeerPlugin::ClientState BuyerPeerPlugin::clientState() const {
 
 void BuyerPeerPlugin::setClientState(ClientState clientState) {
     _clientState = clientState;
+}
+
+/**
+ * BuyerPeerPlugin::Status
+ */
+
+BuyerPeerPlugin::Status::Status() {
+}
+
+BuyerPeerPlugin::Status::Status(const PeerState & peerState, ClientState clientState)
+    : _peerState(peerState)
+    , _clientState(clientState) {
+}
+
+BuyerPeerPlugin::ClientState BuyerPeerPlugin::Status::clientState() const {
+    return _clientState;
+}
+
+void BuyerPeerPlugin::Status::setClientState(ClientState clientState) {
+    _clientState = clientState;
+}
+
+BuyerPeerPlugin::PeerState BuyerPeerPlugin::Status::peerState() const {
+    return _peerState;
+}
+
+void BuyerPeerPlugin::Status::setPeerState(const PeerState & peerState) {
+    _peerState = peerState;
 }
 
 /**
@@ -378,6 +410,10 @@ bool BuyerPeerPlugin::write_request(libtorrent::peer_request const & peerRequest
     */
 
     return false;
+}
+
+BuyerPeerPlugin::Status BuyerPeerPlugin::status() const {
+    return Status(_peerState, _clientState);
 }
 
 void BuyerPeerPlugin::processObserve(const Observe * m) {

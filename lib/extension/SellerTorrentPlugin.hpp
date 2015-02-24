@@ -2,6 +2,7 @@
 #define SELLER_TORRENT_PLUGIN_HPP
 
 #include "TorrentPlugin.hpp"
+#include "SellerPeerPlugin.hpp"
 
 class SellerTorrentPlugin : public TorrentPlugin
 {
@@ -98,6 +99,11 @@ public:
     void setMaxContractConfirmationDelay(quint32 maxContractConfirmationDelay);
 
 private:
+
+    // Maps endpoint to weak peer plugin pointer, is peer_plugin, since this is
+    // the type of weak_ptr libtrrrent requires, hence might as well put it
+    // in this type, rather than corresponding subclass of TorrentPlugin.
+    QMap<libtorrent::tcp::endpoint, boost::weak_ptr<SellerPeerPlugin> > _peers;
 
     // Maximum price accepted (satoshies)
     quint64 _minPrice;

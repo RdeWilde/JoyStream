@@ -67,8 +67,6 @@ public:
 
         // Getters and setters
 
-
-
         virtual PluginMode pluginMode() const = 0;
 
         bool enableBanningSets() const;
@@ -143,6 +141,9 @@ protected:
     // Logging category
     QLoggingCategory & _category;
 
+    // Torrent info hash
+    libtorrent::sha1_hash _infoHash;
+
     /**
     // Plugin is active and therefore does tick() processing.
     // Is set by controller after file torrent metadata is acquired and/or
@@ -161,6 +162,7 @@ protected:
 
 private:
 
+    // Use banning of peers
     bool _enableBanningSets;
 };
 
