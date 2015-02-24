@@ -196,6 +196,18 @@ void SellerTorrentPlugin::on_add_peer(libtorrent::tcp::endpoint const & endPoint
     */
 }
 
+
+/**
+boost::weak_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::peerPlugin(const libtorrent::tcp::endpoint & endPoint) const {
+
+    if(_peers.contains(endPoint)) {
+        return _peers[endPoint];
+    else
+        return boost::weak_ptr<libtorrent::peer_plugin>(NULL);
+
+}
+*/
+
 /*
 void SellerTorrentPlugin::startSell() {
 

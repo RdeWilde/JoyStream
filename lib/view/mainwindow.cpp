@@ -86,7 +86,7 @@ MainWindow::MainWindow(Controller * controller, QLoggingCategory & category)
 MainWindow::~MainWindow()
 {
     // Delete torrent view models
-    ui->peerPluginsTable->setModel(0); // make sure peer plugin table is not backed by a model
+    //ui->peerPluginsTable->setModel(0); // make sure peer plugin table is not backed by a model
 
     for(std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator i = _torrentViewModels.begin(),
         end(_torrentViewModels.end()); i != end;i++)
@@ -126,7 +126,7 @@ void MainWindow::torrentTableClicked(const QModelIndex & index) {
     TorrentViewModel * torrentViewModel = data.value<TorrentViewModel *>();
 
     // Switch model for peer plugin table view
-    ui->peerPluginsTable->setModel(torrentViewModel->getPeerPluginsTableViewModel());
+    //ui->peerPluginsTable->setModel(torrentViewModel->getPeerPluginsTableViewModel());
 }
 
 void MainWindow::showAddTorrentFromTorrentFileDialog(const QString & torrentFile) {
@@ -313,7 +313,7 @@ void MainWindow::removeTorrent(const libtorrent::sha1_hash & info_hash) {
     // Reset model for peerPluginsTable,
     // which if this method call is due to a context menu click on torrent table
     // will have set the peerPluginsTable to its model.
-    ui->peerPluginsTable->setModel(0);
+    //ui->peerPluginsTable->setModel(0);
 
     // Remove from map, which will call destuctor
     _torrentViewModels.erase(mapIterator);
@@ -346,7 +346,7 @@ void MainWindow::updateTorrentStatus(const libtorrent::torrent_status & torrentS
 void MainWindow::updateTorrentPluginStatus(const TorrentPluginStatusAlert * torrentPluginStatusAlert) {
 
     // Find corresponding TorrentViewModel
-    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = _torrentViewModels.find(torrentPluginStatusAlert->getInfoHash());
+    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = _torrentViewModels.find(torrentPluginStatusAlert->infoHash());
 
     if(mapIterator == _torrentViewModels.end()) {
         qCCritical(_category) << "No matching info_hash found.";

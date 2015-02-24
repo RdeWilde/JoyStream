@@ -146,6 +146,25 @@ public:
             quint32 _refundLockTime;
         };
 
+        /**
+         * @brief Snap shot state of channel
+         */
+        class Status {
+
+        public:
+
+            // Slot state
+            State _state;
+
+            // Number of payments made
+            quint64 _numberOfPaymentsMade;
+
+
+
+        private:
+
+        };
+
         // Default constructor
         Channel();
 
@@ -282,6 +301,51 @@ public:
         quint32 _refundLockTime;
     };
 
+    /**
+     * @brief Snap shot status of payor.
+     */
+    class Status {
+
+    public:
+
+        // Construct from members
+        Status(const QVector<Channel::Status> & channels,
+               State state,
+               quint32 numberOfSignatures);
+
+        // Getters and setters
+        QVector<Channel::Status> channels() const;
+        void setChannels(const QVector<Channel::Status> &channels);
+
+        State state() const;
+        void setState(const State &state);
+
+        quint32 numberOfSignatures() const;
+        void setNumberOfSignatures(const quint32 &numberOfSignatures);
+
+    private:
+
+        // Status of channels
+        QVector<Channel::Status> _channels;
+
+        // State of payor
+        State _state;
+
+        // Number of valid signatures collected
+        quint32 _numberOfSignatures;
+    };
+
+    /**
+     * @brief Persistant
+     */
+    class Configuration {
+
+    public:
+
+    private:
+
+    };
+
     // Default constructor
     Payor();
 
@@ -358,6 +422,17 @@ private:
     // this value, together with the _funds in all the slots
     // determines how much is paid in contract fee implicitly.
     quint64 _changeValue;
+
+    /**
+    // Maximum price accepted (satoshies)
+    quint64 _maxPrice;
+
+    // Maximum lock time (the number of seconds elapsed since 1970-01-01T00:00 UTC)
+    quint32 _maxLock;
+
+    // Maximum fee per byte in contract transaction (satoshies)
+    quint64 _maxFeePerByte;
+    */
 
     /**
      * Contract:

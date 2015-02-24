@@ -1156,6 +1156,7 @@ int Controller::makeResumeDataCallsForAllTorrents() {
     // Get all handles (should be same torrents as int addTorrentParameters, but we dont check this here
     std::vector<libtorrent::torrent_handle> handles = _session.get_torrents();
 
+    // Keeps track of how many calls were made
     int resumeCallsMade = 0;
 
     // Iterate all torrents, and try to save
@@ -1165,20 +1166,31 @@ int Controller::makeResumeDataCallsForAllTorrents() {
         // Get handle
         libtorrent::torrent_handle & h = *i;
 
-        // Dont save data if we dont need to or can
-        if (!h.is_valid() || !h.need_save_resume_data() || !h.status().has_metadata)
+        // Get torrent info hash
+        libtorrent::sha1_hash infoHash = h.info_hash();
+
+        Q_ASSERT(_torrents.contains(infoHash));
+
+        // Grab torrent;
+        Torrent & torrent = _torrents[infoHash];
+
+        // Dont save data if
+        if (torrent.event() != Torrent::ExpectedEvent::nothing // are in wrong state
+            || !h.is_valid() // dont have valid handle
+            || !h.need_save_resume_data() // dont need to
+            || !h.status().has_metadata) // or dont have metadata
             continue;
 
         // Save resume data
         h.save_resume_data();
 
+        // Count call
         resumeCallsMade++;
 
-        // Count towards number of outstanding calls
-        //_numberOfOutstandingResumeDataCalls++;
+        // Change expected event of torrent
+        _torrents[infoHash].setEvent(Torrent::ExpectedEvent::save_resume_data_alert);
     }
 
-    //return _numberOfOutstandingResumeDataCalls;
     return resumeCallsMade;
 }
 

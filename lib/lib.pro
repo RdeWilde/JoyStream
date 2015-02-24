@@ -74,7 +74,8 @@ SOURCES += \
     #extension/PaymentChannel/Payor/Payor.cpp \
     extension/PaymentChannel/Payor.cpp \
     extension/PaymentChannel/Payee.cpp \
-    extension/Request/StartTorrentPlugin.cpp
+    extension/Request/StartTorrentPlugin.cpp \
+    extension/Alert/BuyerTorrentPluginStatuAlert.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -150,7 +151,8 @@ HEADERS += \
     extension/BitCoin/P2PKHAddress.hpp \
     extension/BitCoin/OutPoint.hpp \
     extension/PaymentChannel/Payor.hpp \
-    extension/Request/StartTorrentPlugin.hpp
+    extension/Request/StartTorrentPlugin.hpp \
+    extension/Alert/BuyerTorrentPluginStatuAlert.hpp
 				
 FORMS += \
     view/mainwindow.ui \

@@ -1,4 +1,75 @@
 #include "BuyerTorrentPlugin.hpp"
+
+/**
+ * BuyerTorrentPlugin::Status
+ */
+
+BuyerTorrentPlugin::Status::Status(BuyerTorrentPlugin::State state,
+                                   quint32 numberOfPeers,
+                                   quint32 numberOfPeersWithExtension,
+                                   quint32 contractFee,
+                                   quint64 totalPayment)
+    : _state(state)
+    , _numberOfPeers(numberOfPeers)
+    , _numberOfPeersWithExtension(numberOfPeersWithExtension)
+    , _contractFee(contractFee)
+    , _totalPayment(totalPayment) {
+}
+
+BuyerTorrentPlugin::State BuyerTorrentPlugin::Status::state() const {
+    return _state;
+}
+
+void BuyerTorrentPlugin::Status::setState(BuyerTorrentPlugin::State state) {
+    _state = state;
+}
+
+quint32 BuyerTorrentPlugin::Status::numberOfPeers() const {
+    return _numberOfPeers;
+}
+
+void BuyerTorrentPlugin::Status::setNumberOfPeers(quint32 numberOfPeers) {
+    _numberOfPeers = numberOfPeers;
+}
+
+quint32 BuyerTorrentPlugin::Status::numberOfPeersWithExtension() const {
+    return _numberOfPeersWithExtension;
+}
+
+void BuyerTorrentPlugin::Status::setNumberOfPeersWithExtension(quint32 numberOfPeersWithExtension) {
+    _numberOfPeersWithExtension = numberOfPeersWithExtension;
+}
+
+quint32 BuyerTorrentPlugin::Status::contractFee() const {
+    return _contractFee;
+}
+
+void BuyerTorrentPlugin::Status::setContractFee(quint32 contractFee) {
+    _contractFee = contractFee;
+}
+
+quint64 BuyerTorrentPlugin::Status::totalPayment() const {
+    return _totalPayment;
+}
+
+void BuyerTorrentPlugin::Status::setTotalPayment(quint64 totalPayment) {
+    _totalPayment = totalPayment;
+}
+QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> Status::peers() const
+{
+    return _peers;
+}
+
+void Status::setPeers(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> &peers)
+{
+    _peers = peers;
+}
+
+
+/**
+ * BuyerTorrentPlugin::Configuration
+ */
+
 #include "PluginMode.hpp"
 
 #include <QLoggingCategory>
@@ -88,6 +159,8 @@ void BuyerTorrentPlugin::Configuration::setNumSellers(quint32 numSellers) {
 #include "Message/JoinContract.hpp"
 #include "Message/SignRefund.hpp"
 
+#include "Alert/BuyerTorrentPluginStatuAlert.hpp"
+
 #include <libtorrent/bt_peer_connection.hpp>
 #include <libtorrent/socket_io.hpp> // print_endpoint
 
@@ -140,15 +213,15 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
     peerState.setLastAction(BuyerPeerPlugin::PeerState::LastValidAction::no_bitswapr_message_sent);
     peerState.setFailureMode(BuyerPeerPlugin::PeerState::FailureMode::not_failed);
 
-    boost::shared_ptr<libtorrent::peer_plugin> sharedPluginPtr(new BuyerPeerPlugin(this,
-                                                                                   btConnection,
-                                                                                   BuyerPeerPlugin::Configuration(peerState, BuyerPeerPlugin::ClientState::no_bitswapr_message_sent),
-                                                                                   _category));
+    boost::shared_ptr<BuyerPeerPlugin> sharedPluginPtr(new BuyerPeerPlugin(this,
+                                                                           btConnection,
+                                                                           BuyerPeerPlugin::Configuration(peerState, BuyerPeerPlugin::ClientState::no_bitswapr_message_sent),
+                                                                           _category));
 
     // Add to collection
-    _peerPlugins[endPoint] = boost::weak_ptr<libtorrent::peer_plugin>(sharedPluginPtr);
+    _peers[endPoint] = boost::weak_ptr<BuyerPeerPlugin>(sharedPluginPtr);
 
-    qCDebug(_category) << "Buyer #" << _peerPlugins.count() << endPointString.c_str() << "added.";
+    qCDebug(_category) << "Buyer #" << _peers.count() << endPointString.c_str() << "added.";
 
     // Return pointer to plugin as required
     return sharedPluginPtr;
@@ -166,17 +239,8 @@ void BuyerTorrentPlugin::tick() {
 
     qCDebug(_category) << "BuyerTorrentPlugin.tick()";
 
-    // Call base tick routine
-    //TorrentPlugin::_tick();
-
-    /**
-     *
-        Iterate peers and delete the ones which pass this test:
-
-      _lastReceivedMessageWasMalformed || _lastMessageWasStateIncompatible || !_connectionAlive
-
-
-      */
+    // Send status update to controller
+    sendTorrentPluginAlert(BuyerTorrentPluginStatusAlert(status()));
 }
 
 bool BuyerTorrentPlugin::on_resume() {
@@ -199,7 +263,21 @@ void BuyerTorrentPlugin::on_add_peer(const libtorrent::tcp::endpoint & endPoint,
 
 }
 
-/*
+BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() {
+
+    //return Status(_state, _peers.count(), );
+}
+
+/**
+boost::weak_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::peerPlugin(const libtorrent::tcp::endpoint & endPoint) const {
+
+    if(_peers.contains(endPoint)) {
+        return _peers[endPoint];
+    else
+        return boost::weak_ptr<libtorrent::peer_plugin>(NULL);
+
+}
+
 void BuyerTorrentPlugin::removePeerPlugin(PeerPlugin * plugin) {
 
     qCDebug(_category) << "TorrentPlugin::removePeerPlugin(): NOT IMPLEMENTED.";

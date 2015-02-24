@@ -327,6 +327,48 @@ void Payor::Channel::setIndex(quint32 index) {
 }
 
 /**
+ * Payor::Status
+ */
+
+Payor::Status::Status(const QVector<Channel::Status> & channels,
+                      State state,
+                      quint32 numberOfSignatures)
+    : _channels(channels)
+    , _state(state)
+    , _numberOfSignatures(numberOfSignatures) {
+}
+
+QVector<Channel::Status> Payor::Status::channels() const {
+    return _channels;
+}
+
+void Payor::Status::setChannels(const QVector<Channel::Status> & channels) {
+    _channels = channels;
+}
+
+Payor::State Payor::Status::state() const {
+    return _state;
+}
+
+void Payor::Status::setState(State state) {
+    _state = state;
+}
+
+quint32 Payor::Status::numberOfSignatures() const {
+    return _numberOfSignatures;
+}
+
+void Payor::Status::setNumberOfSignatures(quint32 numberOfSignatures) {
+    _numberOfSignatures = numberOfSignatures;
+}
+
+/**
+ * Payor::Configuration
+ */
+
+
+
+/**
  * Payor
  */
 

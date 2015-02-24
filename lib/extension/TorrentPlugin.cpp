@@ -16,6 +16,11 @@
 
 #include <QLoggingCategory>
 
+
+/**
+ * TorrentPlugin::Configuration
+ */
+
 TorrentPlugin::Configuration::Configuration() {
 }
 
@@ -71,6 +76,10 @@ void TorrentPlugin::Configuration::setEnableBanningSets(bool enableBanningSets) 
     _enableBanningSets = enableBanningSets;
 }
 
+/**
+ * TorrentPlugin::TorrentPlugin
+ */
+
 TorrentPlugin::TorrentPlugin(Plugin * plugin,
                              const boost::weak_ptr<libtorrent::torrent> & torrent,
                              const TorrentPlugin::Configuration & configuration,
@@ -87,6 +96,7 @@ TorrentPlugin::~TorrentPlugin() {
     qCDebug(_category) << "~TorrentPlugin() called.";
 }
 
+/**
 boost::weak_ptr<libtorrent::peer_plugin> TorrentPlugin::peerPlugin(const libtorrent::tcp::endpoint & endPoint) {
 
     // Lookup plugin based on endpoint
@@ -99,7 +109,7 @@ boost::weak_ptr<libtorrent::peer_plugin> TorrentPlugin::peerPlugin(const libtorr
         throw std::exception();
 }
 
-/**
+
  * DO WE EVEN THIS?
 void TorrentPlugin::_tick() {
 

@@ -20,7 +20,7 @@ public:
     virtual std::auto_ptr<alert> clone() const = 0;
 
     // Getters
-    libtorrent::sha1_hash getInfoHash() const;
+    libtorrent::sha1_hash infoHash() const;
 
 private:
 

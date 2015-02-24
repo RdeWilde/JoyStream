@@ -3,9 +3,9 @@
 
 #include "TorrentPlugin.hpp"
 #include "PaymentChannel/Payor.hpp"
+#include "BuyerPeerPlugin.hpp"
 
-//class BuyerPeerPlugin;
-#include <QTime>
+//#include <QTime>
 
 /**
  * @brief Torrent plugin for buyer mode.
@@ -15,10 +15,14 @@ class BuyerTorrentPlugin : public TorrentPlugin
 public:
 
     /**
-     * @brief
+     * @brief Plugin state
      */
     enum class State {
 
+
+        // NOT SURE WE ACTUALL NEED THIS, PAYOR::STATE MAY BE ENOUGH.
+
+        /**
         // Inviting all peers with good enough peers,
         building_contract,
 
@@ -31,6 +35,65 @@ public:
 
         // All outputs have been spent
         done
+        */
+
+
+
+
+    };
+
+    /**
+     * @brief Plugin status, that is a snapshot
+     * of important information.
+     */
+    class Status {
+
+    public:
+
+        Status(BuyerTorrentPlugin::State state,
+                  quint32 numberOfPeers,
+                  quint32 numberOfPeersWithExtension,
+                  quint32 contractFee,
+                  quint64 totalPayment);
+
+        // Getters and Setters
+        BuyerTorrentPlugin::State state() const;
+        void setState(BuyerTorrentPlugin::State state);
+
+        quint32 numberOfPeers() const;
+        void setNumberOfPeers(quint32 numberOfPeers);
+
+        quint32 numberOfPeersWithExtension() const;
+        void setNumberOfPeersWithExtension(quint32 numberOfPeersWithExtension);
+
+        quint32 contractFee() const;
+        void setContractFee(quint32 contractFee);
+
+        quint64 totalPayment() const;
+        void setTotalPayment(quint64 totalPayment);
+
+        QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> peers() const;
+        void setPeers(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> &peers);
+
+    private:
+
+        // State of plugin
+        State _state;
+
+        // Number of peers torrent plugin has been connected with (not all peers on libtorrent::torrent peer list?)
+        quint32 _numberOfPeers;
+
+        // Among numberOfPeers_, how many did a correct BEP10 handshake indicating they supported BEP43
+        quint32 _numberOfPeersWithExtension;
+
+        // Contract fee spent
+        quint32 _contractFee;
+
+        // Total amount of payment made so far
+        quint64 _totalPayment;
+
+        // The status of peers
+        QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> _peers;
     };
 
     /**
@@ -97,11 +160,18 @@ public:
         quint32 _numSellers;
     };
 
-    // Constructor
+    // Constructor from members
     BuyerTorrentPlugin(Plugin * plugin,
                        const boost::weak_ptr<libtorrent::torrent> & torrent,
                        const Configuration & configuration,
                        QLoggingCategory & category);
+
+    /**
+    BuyerTorrentPlugin(Plugin * plugin,
+                       const boost::weak_ptr<libtorrent::torrent> & torrent,
+                       quint32 _numSellers,
+                       QLoggingCategory & category);
+    */
 
     /**
      * All virtual functions below should ONLY be called by libtorrent network thread,
@@ -117,43 +187,31 @@ public:
     virtual void on_state(int s);
     virtual void on_add_peer(const libtorrent::tcp::endpoint & endPoint, int src, int flags);
 
+    // Get peer_plugin if present, otherwise NULL pointer is wrapped
+    //virtual boost::weak_ptr<libtorrent::peer_plugin> peerPlugin(const libtorrent::tcp::endpoint & endPoint) const;
+
+    // Generate plugin status
+    Status status();
+
     // Getters and setters
     virtual PluginMode pluginMode() const;
 
     State state() const;
     void setState(const State & state);
 
-    quint64 maxPrice() const;
-    void setMaxPrice(quint64 maxPrice);
-
-    quint32 maxLock() const;
-    void setMaxLock(quint32 maxLock);
-
-    quint64 maxFeePerByte() const;
-    void setMaxFeePerByte(quint64 maxFeePerByte);
-
-    quint32 numSellers() const;
-    void setNumSellers(quint32 numSellers);
 
 private:
+
+    // Maps endpoint to weak peer plugin pointer, is peer_plugin, since this is
+    // the type of weak_ptr libtrrrent requires, hence might as well put it
+    // in this type, rather than corresponding subclass of TorrentPlugin.
+    QMap<libtorrent::tcp::endpoint, boost::weak_ptr<BuyerPeerPlugin> > _peers;
 
     // What stage is plugin
     State _state;
 
-    // Maximum price accepted (satoshies)
-    quint64 _maxPrice;
-
-    // Maximum lock time (the number of seconds elapsed since 1970-01-01T00:00 UTC)
-    quint32 _maxLock;
-
-    // Maximum fee per byte in contract transaction (satoshies)
-    quint64 _maxFeePerByte;
-
-    // Number of seller in payment channel
-    quint32 _numSellers;
-
     // Payment channel
-    Payor _channel;
+    Payor _payor;
 
     // Time since plugin was created, is used to keep track of when to start picking sellers.
     QTime _timeSincePluginStarted;

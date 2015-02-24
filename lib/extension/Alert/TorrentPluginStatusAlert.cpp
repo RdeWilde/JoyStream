@@ -19,7 +19,7 @@ TorrentPluginStatusAlert::TorrentPluginStatusAlert(const libtorrent::sha1_hash &
 }
 
 TorrentPluginStatusAlert::TorrentPluginStatusAlert(const TorrentPluginStatusAlert & torrentPluginStatusAlert)
-    :TorrentPluginAlert(torrentPluginStatusAlert.getInfoHash())
+    :TorrentPluginAlert(torrentPluginStatusAlert.infoHash())
     ,_numberOfPeers(torrentPluginStatusAlert.numberOfPeers())
     ,_numberOfPeersWithExtension(torrentPluginStatusAlert.numberOfPeersWithExtension())
     ,_pluginStarted(torrentPluginStatusAlert.pluginStarted())

@@ -79,6 +79,9 @@ public:
     virtual void on_state(int s);
     virtual void on_add_peer(const libtorrent::tcp::endpoint & endPoint, int src, int flags);
 
+    // Get peer_plugin if present, otherwise NULL pointer is wrapped
+    //virtual boost::weak_ptr<libtorrent::peer_plugin> peerPlugin(const libtorrent::tcp::endpoint & endPoint) const;
+
     // Getters and setters
     virtual PluginMode pluginMode() const;
 

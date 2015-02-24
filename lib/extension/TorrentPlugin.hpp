@@ -66,6 +66,9 @@ public:
         void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const;
 
         // Getters and setters
+
+
+
         virtual PluginMode pluginMode() const = 0;
 
         bool enableBanningSets() const;
@@ -107,9 +110,8 @@ public:
     /**
      * Routines called by libtorrent network thread from other plugin objects
      */
-
     // Get peer plugin, throws std::exception if there is no match
-    boost::weak_ptr<libtorrent::peer_plugin> peerPlugin(const libtorrent::tcp::endpoint & endPoint);
+    //virtual boost::weak_ptr<libtorrent::peer_plugin> peerPlugin(const libtorrent::tcp::endpoint & endPoint) const = 0;
 
     // Process torrent plugin requests
     // void processTorrentPluginRequest(const TorrentPluginRequest * request);
@@ -131,11 +133,6 @@ protected:
 
     // Torrent for this torrent_plugin
     boost::weak_ptr<libtorrent::torrent> _torrent;
-
-    // Maps endpoint to weak peer plugin pointer, is peer_plugin, since this is
-    // the type of weak_ptr libtrrrent requires, hence might as well put it
-    // in this type, rather than corresponding subclass of TorrentPlugin.
-    QMap<libtorrent::tcp::endpoint, boost::weak_ptr<libtorrent::peer_plugin> > _peerPlugins;
 
     // Set of all endpoints known to not have extension. Is populated by previous failed extended handshakes.
     QSet<libtorrent::tcp::endpoint> _peersWithoutExtension;

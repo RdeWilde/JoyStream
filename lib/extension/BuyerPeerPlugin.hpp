@@ -108,6 +108,18 @@ public:
     };
 
     /**
+     * @brief Plugin status, that is a snapshot
+     * of important information.
+     */
+    class Status {
+
+    public:
+
+    private:
+
+    };
+
+    /**
      * @brief Configuration of buyer peer plugin.
      */
     class Configuration : public PeerPlugin::Configuration {
