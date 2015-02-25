@@ -33,28 +33,29 @@ void BuyerTorrentPlugin::Status::setState(State state) {
 BuyerTorrentPlugin::Configuration::Configuration(const Configuration & c)
     : TorrentPlugin::Configuration(c)
     , _state(c.state())
-    , _peerConfigurations(c.peers())
-    , _payorConfiguration(c.payor()) {
+    , _peerConfigurations(c.peerConfigurations())
+    , _payorConfiguration(c.payorConfiguration()) {
 }
 
 BuyerTorrentPlugin::Configuration::Configuration(bool enableBanningSets,
                                                     State state,
                                                     const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> & peers,
-                                                    const Payor::Configuration payor)
+                                                    const Payor::Configuration & payor)
     : TorrentPlugin::Configuration(enableBanningSets)
     , _state(state)
     , _peerConfigurations(peers)
     , _payorConfiguration(payor){
 }
 
-BuyerTorrentPlugin::Configuration::Configuration(quint32 numberOfSellers,
-                                                  const OutPoint & fundingOutput,
-                                                  const KeyPair & fundingOutputKeyPair,
-                                                  quint64 maxPrice,
-                                                  quint32 maxLock)
+BuyerTorrentPlugin::Configuration::Configuration(QVector<quint64> funds,
+                                                quint64 changeValue,
+                                                const OutPoint & fundingOutput,
+                                                const KeyPair & fundingOutputKeyPair,
+                                                quint64 maxPrice,
+                                                quint32 maxLock)
     : TorrentPlugin::Configuration(true)
     , _state(State::waiting_for_payor_to_be_ready)
-    , _payorConfiguration(numberOfSellers, fundingOutput, fundingOutputKeyPair, maxPrice, maxLock) {
+    , _payorConfiguration(funds, changeValue, fundingOutput, fundingOutputKeyPair, maxPrice, maxLock) {
 
     /*
      * WE DO NOT ADD PEER PLUGIN CONFIGURATIONS FOR A FRESH PLUGIN
@@ -102,30 +103,6 @@ QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> BuyerTorrentPlug
 
 void BuyerTorrentPlugin::Configuration::setPeerConfigurations(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> &peerConfigurations) {
     _peerConfigurations = peerConfigurations;
-}
-
-QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> BuyerTorrentPlugin::Configuration::peers() const {
-    return _peers;
-}
-
-void BuyerTorrentPlugin::Configuration::setPeers(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> &peers) {
-    _peers = peers;
-}
-
-Payor::Configuration BuyerTorrentPlugin::Configuration::payor() const {
-    return _payorConfiguration;
-}
-
-void BuyerTorrentPlugin::Configuration::setPayor(const Payor::Configuration & payor) {
-    _payorConfiguration = payor;
-}
-
-QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> BuyerTorrentPlugin::Configuration::peers() const {
-    return _peerConfigurations;
-}
-
-void BuyerTorrentPlugin::Configuration::setPeers(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> &peers) {
-    _peerConfigurations = peers;
 }
 
 /**
@@ -190,15 +167,17 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
     libtorrent::bt_peer_connection * btConnection = static_cast<libtorrent::bt_peer_connection*>(connection);
 
     // Create seller buyer peer plugin
-    BuyerPeerPlugin::PeerState peerState;
-    peerState.setLastAction(BuyerPeerPlugin::PeerState::LastValidAction::no_bitswapr_message_sent);
-    peerState.setFailureMode(BuyerPeerPlugin::PeerState::FailureMode::not_failed);
+    BuyerPeerPlugin::Configuration configuration(ExtendedMessageIdMapping(),
+                                                   ExtendedMessageIdMapping(),
+                                                   BEPSupportStatus::unknown,
+                                                   BEPSupportStatus::unknown,
+                                                   BuyerPeerPlugin::PeerState(),
+                                                   BuyerPeerPlugin::ClientState::no_bitswapr_message_sent);
 
     boost::shared_ptr<BuyerPeerPlugin> sharedPeerPluginPtr(new BuyerPeerPlugin(this,
                                                                            btConnection,
-                                                                           BuyerPeerPlugin::Configuration(peerState, BuyerPeerPlugin::ClientState::no_bitswapr_message_sent),
+                                                                           configuration,
                                                                            _category));
-
     // Add to collection
     _peers[endPoint] = boost::weak_ptr<BuyerPeerPlugin>(sharedPeerPluginPtr);
 

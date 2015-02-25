@@ -77,10 +77,11 @@ public:
         Configuration(bool enableBanningSets,
                       State state,
                       const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> & peerConfigurations,
-                      const Payor::Configuration payorConfiguration);
+                      const Payor::Configuration & payorConfiguration);
 
         // Constructor for a fresh plugin.
-        Configuration(quint32 numberOfSellers,
+        Configuration(QVector<quint64> funds,
+                      quint64 changeValue,
                       const OutPoint & fundingOutput,
                       const KeyPair & fundingOutputKeyPair,
                       quint64 maxPrice,

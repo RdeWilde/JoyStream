@@ -452,13 +452,13 @@ public:
     public:
 
         // Default constructor
-        Configuration(quint32 numberOfSellers, const OutPoint &fundingOutput, const KeyPair &fundingOutputKeyPair, quint64 maxPrice, quint32 maxLock);
+        Configuration();
 
         // Constructor from members
         //Configuration();
 
         // Constructor for a fresh payor.
-        Configuration(quint32 numberOfSellers,
+        Configuration(QVector<quint64> funds,
                       quint64 changeValue,
                       const OutPoint & fundingOutput,
                       const KeyPair & fundingOutputKeyPair,

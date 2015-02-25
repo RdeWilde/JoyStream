@@ -2,7 +2,7 @@
 #define SELLER_TORRENT_PLUGIN_CONFIGURATION_DIALOG_HPP
 
 #include <libtorrent/peer_id.hpp> // sha1_hash
-
+#include <libtorrent/torrent_info.hpp> // torrent_info
 #include <QDialog>
 
 class Controller;
@@ -18,7 +18,7 @@ class SellerTorrentPluginConfigurationDialog : public QDialog
 public:
     //explicit SellerTorrentPluginConfigurationDialog(QWidget *parent = 0);
 
-    SellerTorrentPluginConfigurationDialog(Controller * controller, const libtorrent::sha1_hash & infoHash);
+    SellerTorrentPluginConfigurationDialog(Controller * controller, const libtorrent::torrent_info & torrentInfo);
 
     ~SellerTorrentPluginConfigurationDialog();
 
@@ -31,7 +31,10 @@ private:
     Controller * _controller;
 
     // Hash of torrent
-    libtorrent::sha1_hash _infoHash;
+    //libtorrent::sha1_hash _infoHash;
+
+    // Torrent file
+    libtorrent::torrent_info _torrentInfo;
 };
 
 #endif // SELLER_TORRENT_PLUGIN_CONFIGURATION_DIALOG_HPP

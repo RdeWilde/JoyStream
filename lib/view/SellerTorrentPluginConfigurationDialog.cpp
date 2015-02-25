@@ -14,10 +14,10 @@ SellerTorrentPluginConfigurationDialog::SellerTorrentPluginConfigurationDialog(Q
 }
 */
 
-SellerTorrentPluginConfigurationDialog::SellerTorrentPluginConfigurationDialog(Controller * controller, const libtorrent::sha1_hash & infoHash)
+SellerTorrentPluginConfigurationDialog::SellerTorrentPluginConfigurationDialog(Controller * controller, const libtorrent::torrent_info & torrentInfo)
     :ui(new Ui::SellerTorrentPluginConfigurationDialog)
-    ,_controller(controller)
-    ,_infoHash(infoHash) {
+    , _controller(controller)
+    , _torrentInfo(torrentInfo) {
     ui->setupUi(this);
 }
 
@@ -47,7 +47,7 @@ void SellerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
     SellerTorrentPlugin::Configuration * configuration = new SellerTorrentPlugin::Configuration();
 
     // Set in seller mode
-    _controller->startTorrentPlugin(_infoHash, configuration);
+    _controller->startTorrentPlugin(_torrentInfo.info_hash(), configuration);
 
     // close window
     done(0);

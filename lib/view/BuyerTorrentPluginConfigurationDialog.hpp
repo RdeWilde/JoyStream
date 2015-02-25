@@ -4,6 +4,7 @@
 #include <QDialog>
 
 #include <libtorrent/peer_id.hpp> // sha1_hash
+#include <libtorrent/torrent_info.hpp>
 
 namespace Ui {
 class BuyerTorrentPluginConfigurationDialog;
@@ -19,7 +20,7 @@ public:
 
     //explicit BuyerTorrentPluginConfigurationDialog(QWidget *parent = 0);
 
-    BuyerTorrentPluginConfigurationDialog(Controller * controller, const libtorrent::sha1_hash & infoHash);
+    BuyerTorrentPluginConfigurationDialog(Controller * controller, const libtorrent::torrent_info & torrentInfo);
 
     // Destructor
     ~BuyerTorrentPluginConfigurationDialog();
@@ -34,7 +35,9 @@ private:
 
     Controller * _controller;
 
-    libtorrent::sha1_hash _infoHash;
+    //libtorrent::sha1_hash _infoHash;
+
+    libtorrent::torrent_info _torrentInfo;
 };
 
 #endif // BUYERTORRENTPLUGINCONFIGURATIONDIALOG_HPP

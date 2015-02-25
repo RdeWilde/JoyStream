@@ -350,6 +350,10 @@ void Payor::Channel::setIndex(quint32 index) {
  * Payor::Channel::Status
  */
 
+Payor::Channel::Status::Status() {
+
+}
+
 Payor::Channel::Status::Status(quint32 index,
                                State state,
                                quint64 price,
@@ -453,25 +457,34 @@ Payor::Configuration::Configuration() {
 }
 */
 
-Payor::Configuration::Configuration(quint32 numberOfSellers,
+Payor::Configuration::Configuration(QVector<quint64> funds,
+                                    quint64 changeValue,
                                     const OutPoint & fundingOutput,
                                     const KeyPair & fundingOutputKeyPair,
                                     quint64 maxPrice,
                                     quint32 maxLock)
-    : _fundingOutput(fundingOutput)
+    : _state(State::waiting_for_full_set_of_sellers)
+    , _fundingOutput(fundingOutput)
     , _fundingOutputKeyPair(fundingOutputKeyPair)
+    , _changeOutputKeyPair(BitSwaprjs::generate_fresh_key_pairs(1)[0]) // Generate one key pair for change
+    , _changeValue(changeValue)
     , _maxPrice(maxPrice)
-    , _maxLock(maxLock) {
+    , _maxLock(maxLock)
+    , _numberOfSignatures(0) {
 
-    // Generate one key pair for each channel, and one for change
-    QList<KeyPair> keyPairs = BitSwaprjs::generate_fresh_key_pairs(numberOfSellers + 1);
+    // Count number of sellers
+    quint32 numberOfChannels = funds.count();
+
+    // Generate two key pairs for each channel, the payors contract and final keys
+    QList<KeyPair> payorContractKeyPairs = BitSwaprjs::generate_fresh_key_pairs(numberOfChannels);
+    QList<KeyPair> payorFinalKeyPairs = BitSwaprjs::generate_fresh_key_pairs(numberOfChannels);
 
     // Create payor channel configurations, and add to vector
-    for(quint32 index = 0; index < numberOfSellers;index++)
+    for(quint32 index = 0; index < numberOfChannels;index++)
         _channels.push_back(Channel::Configuration(index,
-                                                   funds,
-                                                   payorContractKeyPair,
-                                                   payorFinalKeyPair));
+                                                   funds[index],
+                                                   payorContractKeyPairs[index],
+                                                   payorFinalKeyPairs[index]));
 }
 
 /**

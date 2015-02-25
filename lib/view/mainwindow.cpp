@@ -166,6 +166,8 @@ void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torre
      * Starts new event loop,
      * no more libtorrent alerts are processed in mean time,
      * change at a later time
+     *
+     * I think the statement above is incorrect, check later.
      */
 
     QMessageBox msgBox;
@@ -178,8 +180,6 @@ void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torre
     // Show modal dialog on same thread, we block untill it is closed
     msgBox.exec();
 
-    libtorrent::sha1_hash infoHash = torrentInfo.info_hash();
-
     if (msgBox.clickedButton() == passivePushButton) {
 
         // Set in passive mode
@@ -190,13 +190,13 @@ void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torre
     } else if (msgBox.clickedButton() == buyerPushButton) {
 
         //Show buyer configuration dialog
-        BuyerTorrentPluginConfigurationDialog buyerTorrentPluginConfigurationDialog(_controller, infoHash);
+        BuyerTorrentPluginConfigurationDialog buyerTorrentPluginConfigurationDialog(_controller, torrentInfo);
         buyerTorrentPluginConfigurationDialog.exec();
 
     } else if (msgBox.clickedButton() == sellerPushButton) {
 
         //Show seller configuration dialog
-        SellerTorrentPluginConfigurationDialog sellerTorrentPluginConfigurationDialog(_controller, infoHash);
+        SellerTorrentPluginConfigurationDialog sellerTorrentPluginConfigurationDialog(_controller, torrentInfo);
         sellerTorrentPluginConfigurationDialog.exec();
     }
 }

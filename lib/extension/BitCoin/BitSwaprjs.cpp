@@ -1,6 +1,7 @@
 #include "BitSwaprjs.hpp"
 #include "KeyPair.hpp"
 #include "P2PKHTxOut.hpp"
+#include "UnspentP2PKHOutput.hpp"
 
 //#include "extension/PaymentChannel/Contract.hpp"
 //#include "extension/PaymentChannel/Refund.hpp"
@@ -208,4 +209,10 @@ Signature BitSwaprjs::compute_payor_payment_signature(const OutPoint & contractO
 
     // Turn into bool result
     return Signature(result.toString());
+}
+
+UnspentP2PKHOutput BitSwaprjs::get_utxo(quint64 minimalValue) {
+
+    // Implement later
+    return UnspentP2PKHOutput();
 }
