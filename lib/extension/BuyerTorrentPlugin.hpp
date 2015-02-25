@@ -19,27 +19,14 @@ public:
      */
     enum class State {
 
-
-        // NOT SURE WE ACTUALL NEED THIS, PAYOR::STATE MAY BE ENOUGH.
-
-        /**
-        // Inviting all peers with good enough peers,
-        building_contract,
+        // _payor has reached, or passed, Payor:State::paying status
+        waiting_for_payor_to_be_ready,
 
         // Requesting and downloading pieces
         downloading_pieces,
 
-        // Waiting to claim one or more refunds
-        // since contract outputs have not been spent
-        waiting_for_refunds_to_be_spendable,
-
-        // All outputs have been spent
+        // Have full torrent
         done
-        */
-
-
-
-
     };
 
     /**
@@ -87,7 +74,17 @@ public:
         Configuration(const Configuration & c);
 
         // Constructor from members
-        Configuration(bool enableBanningSets, State state, quint64 maxPrice, quint32 maxLock, quint64 maxFeePerByte, qint32 numSellers);
+        Configuration(bool enableBanningSets,
+                      State state,
+                      const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> & peerConfigurations,
+                      const Payor::Configuration payorConfiguration);
+
+        // Constructor for a fresh plugin.
+        Configuration(quint32 numberOfSellers,
+                      const OutPoint & fundingOutput,
+                      const KeyPair & fundingOutputKeyPair,
+                      quint64 maxPrice,
+                      quint32 maxLock);
 
         // Constructor from dictionary
         Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry);
@@ -110,34 +107,22 @@ public:
         State state() const;
         void setState(const State & state);
 
-        quint64 maxPrice() const;
-        void setMaxPrice(quint64 maxPrice);
+        QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> peerConfigurations() const;
+        void setPeerConfigurations(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> &peerConfigurations);
 
-        quint32 maxLock() const;
-        void setMaxLock(quint32 maxLock);
-
-        quint64 maxFeePerByte() const;
-        void setMaxFeePerByte(quint64 maxFeePerByte);
-
-        quint32 numSellers() const;
-        void setNumSellers(quint32 numSellers);
+        Payor::Configuration payorConfiguration() const;
+        void setPayorConfiguration(const Payor::Configuration &payorConfiguration);
 
     private:
 
         // What stage is plugin
         State _state;
 
-        // Maximum price accepted (satoshies)
-        quint64 _maxPrice;
+        // Configuration of peers
+        QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> _peerConfigurations;
 
-        // Maximum lock time (the number of seconds elapsed since 1970-01-01T00:00 UTC)
-        quint32 _maxLock;
-
-        // Maximum fee per byte in contract transaction (satoshies)
-        quint64 _maxFeePerByte;
-
-        // Number of seller in payment channel
-        quint32 _numSellers;
+        // Configuration of payor
+        Payor::Configuration _payorConfiguration;
     };
 
     // Constructor from members
@@ -179,19 +164,23 @@ public:
     State state() const;
     void setState(const State & state);
 
+    // Allows
+    const Payor & payor() const;
+
 
 private:
+
+    // What stage is plugin
+    State _state;
 
     // Maps endpoint to weak peer plugin pointer, is peer_plugin, since this is
     // the type of weak_ptr libtrrrent requires, hence might as well put it
     // in this type, rather than corresponding subclass of TorrentPlugin.
     QMap<libtorrent::tcp::endpoint, boost::weak_ptr<BuyerPeerPlugin> > _peers;
 
-    // What stage is plugin
-    State _state;
-
     // Payment channel
     Payor _payor;
+
 
     // Time since plugin was created, is used to keep track of when to start picking sellers.
     QTime _timeSincePluginStarted;

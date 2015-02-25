@@ -56,10 +56,11 @@ public:
             refund_signed
         };
 
+
         /**
-         * @brief Payor provided settings in channel,
-         * as through wire message.
-         */
+        // @brief Payor provided settings in channel,
+        // as through wire message.
+
         class PayorSettings {
 
         public:
@@ -98,10 +99,8 @@ public:
             KeyPair _finalKeyPair;
         };
 
-        /**
-         * @brief Payee provided settings in channel,
-         * as through wire message.
-         */
+        // @brief Payee provided settings in channel,
+        // as through wire message.
         class PayeeSettings {
 
         public:
@@ -143,6 +142,80 @@ public:
             PublicKey _finalPk;
 
             // Refund lock time
+            quint32 _refundLockTime;
+        };
+
+        */
+
+        /**
+         * @brief Peristant state of Channel.
+         */
+        class Configuration {
+
+        public:
+
+            // Default constructor.
+            Configuration();
+
+            // Constructor from members.
+            //Configuration(...);
+
+            // Constructor for fresh Channel.
+            Configuration(quint32 index,
+                            quint64 funds,
+                            const KeyPair & payorContractKeyPair,
+                            const KeyPair & payorFinalKeyPair);
+
+            // Getters and setters
+            quint32 index() const;
+            void setIndex(const quint32 index);
+
+
+
+
+        private:
+
+
+            // Index in contract
+            quint32 _index;
+
+            // Slot state
+            State _state;
+
+            // Size of single payment
+            quint64 _price;
+
+            // Number of payments made
+            quint64 _numberOfPaymentsMade;
+
+            // Funds allocated to output
+            quint64 _funds;
+
+            // Controls payour output of multisig
+            KeyPair _payorContractKeyPair;
+
+            // Controls final payment to payor
+            KeyPair _payorFinalKeyPair;
+
+            // Controls payee output of multisig, received in joinin_contract.pk
+            PublicKey _payeeContractPk;
+
+            // Controls payee payments, received in sign_refund.pk
+            PublicKey _payeeFinalPk;
+
+            // Controls refund for payor
+            Signature _payorRefundSignature;
+
+            // Controls refund for payee
+            Signature _payeeRefundSignature;
+
+            // Fee used in refund transaction, is unlikely to vary across slots,
+            quint64 _refundFee;
+
+            // Fee used in payment transaction
+            quint64 _paymentFee;
+
+            // Lock time of refund, received in
             quint32 _refundLockTime;
         };
 
@@ -378,7 +451,63 @@ public:
 
     public:
 
+        // Default constructor
+        Configuration(quint32 numberOfSellers, const OutPoint &fundingOutput, const KeyPair &fundingOutputKeyPair, quint64 maxPrice, quint32 maxLock);
+
+        // Constructor from members
+        //Configuration();
+
+        // Constructor for a fresh payor.
+        Configuration(quint32 numberOfSellers,
+                      quint64 changeValue,
+                      const OutPoint & fundingOutput,
+                      const KeyPair & fundingOutputKeyPair,
+                      quint64 maxPrice,
+                      quint32 maxLock);
+
+        // Getters and setters
+
     private:
+
+        // Payor state
+        State _state;
+
+        // Contract outputs configurations
+        QVector<Channel::Configuration> _channels;
+
+        // Unspent output funding channel
+        OutPoint _fundingOutput;
+
+        // Controls output funding channel
+        KeyPair _fundingOutputKeyPair;
+
+        // Controls change output in contract
+        KeyPair _changeOutputKeyPair;
+
+        // Change amount sent back to payor,
+        // this value, together with the _funds in all the slots
+        // determines how much is paid in contract fee implicitly.
+        quint64 _changeValue;
+
+        // Maximum price accepted (satoshies)
+        quint64 _maxPrice;
+
+        // Maximum lock time (the number of seconds elapsed since 1970-01-01T00:00 UTC)
+        quint32 _maxLock;
+
+        // Maximum fee per byte in contract transaction (satoshies)
+        //quint64 _maxFeePerByte;
+
+        /**
+         * Contract:
+         * ==========================
+         * Is recomputed every time a full set of sellers is established,
+         * and is cleared whenever a signature failed.
+         */
+
+        //Contract _contract;
+        Hash _contractHash;
+        quint32 _numberOfSignatures;
 
     };
 
@@ -393,14 +522,14 @@ public:
     Payor(const OutPoint& fundingOutput, const KeyPair& fundingOutputKeyPair);
 
     // Add channel
-    quint32 addChannel(const Channel::PayorSettings & configuration);
+    //quint32 addChannel(const Channel::PayorSettings & configuration);
 
     // Finds an unassigned slot
     // ========================
     // If one is found then the
     // given payee slot configurations are saved in slot,
     // and if this was last unassigned slot, then payor state is switched.
-    quint32 assignUnassignedSlot(const Channel::PayeeSettings & configuration);
+    quint32 assignUnassignedSlot(quint64 price, const PublicKey & contractPk, const PublicKey & finalPk, quint32 refundLockTime);
 
     // Resets slot state to unassigned
     // ===============================
@@ -439,6 +568,15 @@ public:
     quint32 numberOfSignatures() const;
     void setNumberOfSignatures(quint32 numberOfSignatures);
 
+    quint64 maxPrice() const;
+    void setMaxPrice(quint64 maxPrice);
+
+    quint32 maxLock() const;
+    void setMaxLock(quint32 maxLock);
+
+    quint64 maxFeePerByte() const;
+    void setMaxFeePerByte(quint64 maxFeePerByte);
+
 private:
 
     // Payor state
@@ -461,7 +599,6 @@ private:
     // determines how much is paid in contract fee implicitly.
     quint64 _changeValue;
 
-    /**
     // Maximum price accepted (satoshies)
     quint64 _maxPrice;
 
@@ -470,7 +607,6 @@ private:
 
     // Maximum fee per byte in contract transaction (satoshies)
     quint64 _maxFeePerByte;
-    */
 
     /**
      * Contract:
@@ -482,7 +618,6 @@ private:
     //Contract _contract;
     Hash _contractHash;
     quint32 _numberOfSignatures;
-
 };
 
 #endif // PAYOR_HPP

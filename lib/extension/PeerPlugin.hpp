@@ -67,6 +67,12 @@ public:
         // Default constructor
         Configuration();
 
+        // Constructor from members
+        Configuration(const ExtendedMessageIdMapping & clientMapping,
+                      const ExtendedMessageIdMapping & peerMapping,
+                      BEPSupportStatus peerBEP10SupportStatus,
+                      BEPSupportStatus peerBitSwaprBEPSupportStatus);
+
         // Getters and Setters
         ExtendedMessageIdMapping clientMapping() const;
         void setClientMapping(const ExtendedMessageIdMapping & clientMapping);

@@ -15,6 +15,16 @@
 PeerPlugin::Configuration::Configuration() {
 }
 
+PeerPlugin::Configuration::Configuration(const ExtendedMessageIdMapping & clientMapping,
+                                         const ExtendedMessageIdMapping & peerMapping,
+                                         BEPSupportStatus peerBEP10SupportStatus,
+                                         BEPSupportStatus peerBitSwaprBEPSupportStatus)
+    : _clientMapping(clientMapping)
+    , _peerMapping(peerMapping)
+    , _peerBEP10SupportStatus(peerBEP10SupportStatus)
+    , _peerBitSwaprBEPSupportStatus(peerBitSwaprBEPSupportStatus) {
+}
+
 ExtendedMessageIdMapping PeerPlugin::Configuration::clientMapping() const {
     return _clientMapping;
 }
@@ -120,25 +130,6 @@ void PeerPlugin::add_handshake(libtorrent::entry & handshake) {
 
     // Add m keys for extended message ids
     libtorrent::entry::dictionary_type & m = handshake["m"].dict();
-
-    /**
-      * Starting point from where to map:
-      * =================================
-      * So this is a bit of a mess. First I attempted to just look at all prexisting registrations,
-      * and make sure that I started after the greatest one. However, we cannot be sure that add_handshake
-      * is actually called last on our extension, and since the other extensions dont give a FUCK
-      * about not overwriting other peoples extensions values. The only solution is then to just start
-      * on some huge value which has no other extensions above it, so this value was found by trial and error.
-      *
-      * Old approach which did not work due to libtorrent
-        int maxExistingID = 0;
-        // Iterate m key dictionary and find the greatest ID
-        for(std::map<std::string, libtorrent::entry>::iterator i = m.begin(),end(m.end());i != end;i++)
-            maxExistingID = std::max((int)(((*i).second).integer()), maxExistingID);
-      */
-
-    // Set all ids from 60
-    _clientMapping.setAllStartingAt(60);
 
     // Write mapping to key
     _clientMapping.writeToDictionary(m);

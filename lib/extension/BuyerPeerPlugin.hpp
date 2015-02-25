@@ -82,7 +82,6 @@ public:
 
         // seller mode fields
         quint64 _minPrice;
-
         quint32 _minLock;
 
         // joining contract fields
@@ -148,7 +147,12 @@ public:
         Configuration();
 
         // Constructor from members
-        Configuration(const PeerState & peerState, ClientState clientState);
+        Configuration(const ExtendedMessageIdMapping & clientMapping,
+                      const ExtendedMessageIdMapping & peerMapping,
+                      BEPSupportStatus peerBEP10SupportStatus,
+                      BEPSupportStatus peerBitSwaprBEPSupportStatus,
+                      const PeerState & peerState,
+                      ClientState clientState);
 
         // Getters and setters
         PeerState peerState() const;

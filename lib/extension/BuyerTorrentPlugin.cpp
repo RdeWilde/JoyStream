@@ -20,27 +20,11 @@ void BuyerTorrentPlugin::Status::setState(State state) {
     _state = state;
 }
 
-QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> BuyerTorrentPlugin::Status::peers() const {
-    return _peers;
-}
-
-void BuyerTorrentPlugin::Status::setPeers(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> & peers) {
-    _peers = peers;
-}
-
-Payor::Status BuyerTorrentPlugin::Status::payor() const {
-    return _payor;
-}
-
-void BuyerTorrentPlugin::Status::setPayor(const Payor::Status & payor) {
-    _payor = payor;
-}
-
 /**
  * BuyerTorrentPlugin::Configuration
  */
 
-#include "PluginMode.hpp"
+//#include "BitCoin/BitSwaprjs.hpp"
 
 #include <QLoggingCategory>
 
@@ -49,19 +33,38 @@ void BuyerTorrentPlugin::Status::setPayor(const Payor::Status & payor) {
 BuyerTorrentPlugin::Configuration::Configuration(const Configuration & c)
     : TorrentPlugin::Configuration(c)
     , _state(c.state())
-    , _maxPrice(c.maxPrice())
-    , _maxLock(c.maxLock())
-    , _maxFeePerByte(c.maxFeePerByte())
-    , _numSellers(c.numSellers()) {
+    , _peerConfigurations(c.peers())
+    , _payorConfiguration(c.payor()) {
 }
 
-BuyerTorrentPlugin::Configuration::Configuration(bool enableBanningSets, State state, quint64 maxPrice, quint32 maxLock, quint64 maxFeePerByte, qint32 numSellers)
+BuyerTorrentPlugin::Configuration::Configuration(bool enableBanningSets,
+                                                    State state,
+                                                    const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> & peers,
+                                                    const Payor::Configuration payor)
     : TorrentPlugin::Configuration(enableBanningSets)
     , _state(state)
-    , _maxPrice(maxPrice)
-    , _maxLock(maxLock)
-    , _maxFeePerByte(maxFeePerByte)
-    , _numSellers(numSellers) {
+    , _peerConfigurations(peers)
+    , _payorConfiguration(payor){
+}
+
+BuyerTorrentPlugin::Configuration::Configuration(quint32 numberOfSellers,
+                                                  const OutPoint & fundingOutput,
+                                                  const KeyPair & fundingOutputKeyPair,
+                                                  quint64 maxPrice,
+                                                  quint32 maxLock)
+    : TorrentPlugin::Configuration(true)
+    , _state(State::waiting_for_payor_to_be_ready)
+    , _payorConfiguration(numberOfSellers, fundingOutput, fundingOutputKeyPair, maxPrice, maxLock) {
+
+    /*
+     * WE DO NOT ADD PEER PLUGIN CONFIGURATIONS FOR A FRESH PLUGIN
+    BuyerPeerPlugin::Configuration(ExtendedMessageIdMapping(),
+                                   ExtendedMessageIdMapping(),
+                                   BEPSupportStatus::unknown,
+                                   BEPSupportStatus::unknown,
+                                   BuyerPeerPlugin::PeerState(),
+                                   BuyerPeerPlugin::ClientState::no_bitswapr_message_sent)*/
+
 }
 
 BuyerTorrentPlugin::Configuration::Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry)
@@ -72,7 +75,7 @@ BuyerTorrentPlugin::Configuration::Configuration(const libtorrent::entry::dictio
 void BuyerTorrentPlugin::Configuration::toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const {
 
     // Call super version
-    TorrentPlugin::Configuration::toDictionaryEntry(dictionaryEntry);
+    //TorrentPlugin::Configuration::toDictionaryEntry(dictionaryEntry);
 
     // IMPLEMENT LATER
 }
@@ -85,41 +88,49 @@ BuyerTorrentPlugin::State BuyerTorrentPlugin::Configuration::state() const {
     return _state;
 }
 
-void BuyerTorrentPlugin::Configuration::setState(const State & state) {
-    _state = state;
+Payor::Configuration BuyerTorrentPlugin::Configuration::payorConfiguration() const {
+    return _payorConfiguration;
 }
 
-quint64 BuyerTorrentPlugin::Configuration::maxPrice() const {
-    return _maxPrice;
+void BuyerTorrentPlugin::Configuration::setPayorConfiguration(const Payor::Configuration &payorConfiguration) {
+    _payorConfiguration = payorConfiguration;
 }
 
-void BuyerTorrentPlugin::Configuration::setMaxPrice(quint64 maxPrice) {
-    _maxPrice = maxPrice;
+QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> BuyerTorrentPlugin::Configuration::peerConfigurations() const {
+    return _peerConfigurations;
 }
 
-quint32 BuyerTorrentPlugin::Configuration::maxLock() const {
-    return _maxLock;
+void BuyerTorrentPlugin::Configuration::setPeerConfigurations(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> &peerConfigurations) {
+    _peerConfigurations = peerConfigurations;
 }
 
-void BuyerTorrentPlugin::Configuration::setMaxLock(quint32 maxLock) {
-    _maxLock = maxLock;
+QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> BuyerTorrentPlugin::Configuration::peers() const {
+    return _peers;
 }
 
-quint64 BuyerTorrentPlugin::Configuration::maxFeePerByte() const {
-    return _maxFeePerByte;
+void BuyerTorrentPlugin::Configuration::setPeers(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> &peers) {
+    _peers = peers;
 }
 
-void BuyerTorrentPlugin::Configuration::setMaxFeePerByte(quint64 maxFeePerByte) {
-    _maxFeePerByte = maxFeePerByte;
+Payor::Configuration BuyerTorrentPlugin::Configuration::payor() const {
+    return _payorConfiguration;
 }
 
-quint32 BuyerTorrentPlugin::Configuration::numSellers() const {
-    return _numSellers;
+void BuyerTorrentPlugin::Configuration::setPayor(const Payor::Configuration & payor) {
+    _payorConfiguration = payor;
 }
 
-void BuyerTorrentPlugin::Configuration::setNumSellers(quint32 numSellers) {
-    _numSellers = numSellers;
+QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> BuyerTorrentPlugin::Configuration::peers() const {
+    return _peerConfigurations;
 }
+
+void BuyerTorrentPlugin::Configuration::setPeers(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> &peers) {
+    _peerConfigurations = peers;
+}
+
+/**
+ * BuyerTorrentPlugin
+ */
 
 #include "BuyerPeerPlugin.hpp"
 
@@ -296,6 +307,10 @@ BuyerTorrentPlugin::State BuyerTorrentPlugin::state() const {
 
 void BuyerTorrentPlugin::setState(const State & state) {
     _state = state;
+}
+
+const Payor & BuyerTorrentPlugin::payor() const {
+    return _payor;
 }
 
 PluginMode BuyerTorrentPlugin::pluginMode() const {

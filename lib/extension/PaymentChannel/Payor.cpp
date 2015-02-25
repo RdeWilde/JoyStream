@@ -1,8 +1,7 @@
 #include "Payor.hpp"
 
 /**
- * Payor::Channel::PayorSettings
- */
+// Payor::Channel::PayorSettings
 
 Payor::Channel::PayorSettings::PayorSettings() {
 
@@ -51,9 +50,7 @@ void Payor::Channel::PayorSettings::setFunds(quint64 funds) {
     _funds = funds;
 }
 
-/**
- * Payor::Channel::PayeeSettings
- */
+// Payor::Channel::PayeeSettings
 
 Payor::Channel::PayeeSettings::PayeeSettings() {
 }
@@ -112,30 +109,43 @@ PublicKey Payor::Channel::PayeeSettings::contractPk() const {
 void Payor::Channel::PayeeSettings::setContractPk(const PublicKey & contractPk) {
     _contractPk = contractPk;
 }
+*/
 
 /**
- * @brief Payor::Channel::Configuration
+ * Payor::Channel::Configuration
+*/
 
-PayorSettings::Channel::Configuration::Configuration() {
+Payor::Channel::Configuration::Configuration() {
 
 }
 
-Payor::Channel::PayorSettings PayorSettings::Channel::Configuration::payorConfiguration() const {
-    return _payorConfiguration;
-}
+/**
+Payor::Channel::Configuration::Configuration() {
 
-void PayorSettings::Channel::Configuration::setPayorConfiguration(const PayorSettings & payorConfiguration) {
-    _payorConfiguration = payorConfiguration;
-}
-
-Payor::Channel::PayeeSettings PayorSettings::Channel::Configuration::payeeConfiguration() const {
-    return _payeeConfiguration;
-}
-
-void PayorSettings::Channel::Configuration::setPayeeConfiguration(const Payee & payeeConfiguration) {
-    _payeeConfiguration = payeeConfiguration;
 }
 */
+
+Payor::Channel::Configuration::Configuration(quint32 index,
+                                             quint64 funds,
+                                             const KeyPair & payorContractKeyPair,
+                                             const KeyPair & payorFinalKeyPair)
+    : _index(index)
+    , _state(State::unassigned)
+    , _numberOfPaymentsMade(0)
+    , _funds(funds)
+    , _payorContractKeyPair(payorContractKeyPair)
+    , _payorFinalKeyPair(payorFinalKeyPair){
+}
+
+quint32 Payor::Channel::Configuration::index() const {
+    return _index;
+}
+
+void Payor::Channel::Configuration::setIndex(quint32 index) {
+    _index = index;
+}
+
+
 
 /**
  * Payor::Channel
@@ -433,7 +443,36 @@ void Payor::Status::setNumberOfSignatures(quint32 numberOfSignatures) {
  * Payor::Configuration
  */
 
+Payor::Configuration::Configuration() {
 
+}
+
+/** from members
+Payor::Configuration::Configuration() {
+
+}
+*/
+
+Payor::Configuration::Configuration(quint32 numberOfSellers,
+                                    const OutPoint & fundingOutput,
+                                    const KeyPair & fundingOutputKeyPair,
+                                    quint64 maxPrice,
+                                    quint32 maxLock)
+    : _fundingOutput(fundingOutput)
+    , _fundingOutputKeyPair(fundingOutputKeyPair)
+    , _maxPrice(maxPrice)
+    , _maxLock(maxLock) {
+
+    // Generate one key pair for each channel, and one for change
+    QList<KeyPair> keyPairs = BitSwaprjs::generate_fresh_key_pairs(numberOfSellers + 1);
+
+    // Create payor channel configurations, and add to vector
+    for(quint32 index = 0; index < numberOfSellers;index++)
+        _channels.push_back(Channel::Configuration(index,
+                                                   funds,
+                                                   payorContractKeyPair,
+                                                   payorFinalKeyPair));
+}
 
 /**
  * Payor
@@ -495,8 +534,10 @@ Payor::Payor(const QSet<Channel::PayorConfiguration> & configurations, const Out
 }
 */
 
-quint32 Payor::addChannel(const Channel::PayorSettings & configuration) {
 /*
+
+quint32 Payor::addChannel(const Channel::PayorSettings & configuration) {
+
     // Check state
     if(_state != State::waiting_for_full_set_of_sellers)
         throw std::exception("State incompatile request, must be in waiting_for_full_set_of_sellers state.");
@@ -518,12 +559,13 @@ quint32 Payor::addChannel(const Channel::PayorSettings & configuration) {
     _channels.p(c);
 
     // Return size of channel
-    return index + 1;*/
+    return index + 1;
 
     return 0;
 }
+*/
 
-quint32 Payor::assignUnassignedSlot(const Channel::PayeeSettings & configuration) {
+quint32 Payor::assignUnassignedSlot(quint64 price, const PublicKey & contractPk, const PublicKey & finalPk, quint32 refundLockTime) {
 /*
     // Check payor is trying to find sellers
     if(_state != State::waiting_for_full_set_of_sellers)
@@ -737,3 +779,25 @@ void Payor::setNumberOfSignatures(quint32 numberOfSignedSlots) {
     _numberOfSignatures = numberOfSignedSlots;
 }
 
+quint64 Payor::maxPrice() const {
+    return _maxPrice;
+}
+
+void Payor::setMaxPrice(quint64 maxPrice) {
+    _maxPrice = maxPrice;
+}
+
+quint32 Payor::maxLock() const {
+    return _maxLock;
+}
+
+void Payor::setMaxLock(quint32 maxLock) {
+    _maxLock = maxLock;
+}
+quint64 Payor::maxFeePerByte() const {
+    return _maxFeePerByte;
+}
+
+void Payor::setMaxFeePerByte(quint64 maxFeePerByte) {
+    _maxFeePerByte = maxFeePerByte;
+}

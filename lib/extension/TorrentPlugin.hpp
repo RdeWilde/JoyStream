@@ -66,7 +66,6 @@ public:
         void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const;
 
         // Getters and setters
-
         virtual PluginMode pluginMode() const = 0;
 
         bool enableBanningSets() const;

@@ -5,6 +5,28 @@
 #include <exception>
 
 ExtendedMessageIdMapping::ExtendedMessageIdMapping() {
+
+    /**
+      * Starting point from where to map:
+      * =================================
+      * So this is a bit of a mess. First I attempted to just look at all prexisting registrations,
+      * and make sure that I started after the greatest one. However, we cannot be sure that add_handshake
+      * is actually called last on our extension, and since the other extensions dont give a FUCK
+      * about not overwriting other peoples extensions values. The only solution is then to just start
+      * on some huge value which has no other extensions above it, so this value was found by trial and error.
+      *
+      * Old approach which did not work due to libtorrent:
+      *
+      * m is extended handshake dictionary
+      *
+        int maxExistingID = 0;
+        // Iterate m key dictionary and find the greatest ID
+        for(std::map<std::string, libtorrent::entry>::iterator i = m.begin(),end(m.end());i != end;i++)
+            maxExistingID = std::max((int)(((*i).second).integer()), maxExistingID);
+      */
+
+    // Set all ids from 60
+    setAllStartingAt(60);
 }
 
 ExtendedMessageIdMapping::ExtendedMessageIdMapping(const std::map<std::string, libtorrent::entry> & m) {

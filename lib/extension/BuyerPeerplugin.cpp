@@ -115,8 +115,14 @@ BuyerPeerPlugin::Configuration::Configuration() {
 
 }
 
-BuyerPeerPlugin::Configuration::Configuration(const PeerState & peerState, ClientState clientState)
-    : _peerState(peerState)
+BuyerPeerPlugin::Configuration::Configuration(const ExtendedMessageIdMapping & clientMapping,
+                                              const ExtendedMessageIdMapping & peerMapping,
+                                              BEPSupportStatus peerBEP10SupportStatus,
+                                              BEPSupportStatus peerBitSwaprBEPSupportStatus,
+                                              const PeerState & peerState,
+                                              ClientState clientState)
+    : PeerPlugin::Configuration(clientMapping, peerMapping, peerBEP10SupportStatus, peerBitSwaprBEPSupportStatus)
+    , _peerState(peerState)
     , _clientState(clientState) {
 }
 
@@ -189,7 +195,7 @@ bool BuyerPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & hand
     if(keepPlugin) {
 
         // send mode message
-        sendExtendedMessage(Buy(_plugin->maxPrice(), _plugin->maxLock()));
+        sendExtendedMessage(Buy(_plugin->payor().maxPrice(), _plugin->payor().maxLock()));
 
         // and update new client state correspondingly
         _clientState = ClientState::buyer_mode_announced;
@@ -461,10 +467,10 @@ void BuyerPeerPlugin::processSell(const Sell * m) {
     // and peer has not been invited,
     // and peer has sufficiently good terms,
     // then
-    if(_plugin->state() == BuyerTorrentPlugin::State::building_contract &&
+    if(_plugin->state() == BuyerTorrentPlugin::State::waiting_for_payor_to_be_ready &&
             _clientState == ClientState::no_bitswapr_message_sent &&
-            m->minPrice() < _plugin->maxPrice() &&
-            m->minLock() < _plugin->maxLock()) {
+            m->minPrice() < _plugin->payor().maxPrice() &&
+            m->minLock() < _plugin->payor().maxLock()) {
 
         // invite to join contract
         sendExtendedMessage(JoinContract());
