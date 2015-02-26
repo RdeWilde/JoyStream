@@ -76,7 +76,8 @@ SOURCES += \
     extension/PaymentChannel/Payee.cpp \
     extension/Request/StartTorrentPlugin.cpp \
     extension/Alert/BuyerTorrentPluginStatuAlert.cpp \
-    extension/BitCoin/UnspentP2PKHOutput.cpp
+    extension/BitCoin/UnspentP2PKHOutput.cpp \
+    extension/BitCoin/Wallet.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -154,7 +155,8 @@ HEADERS += \
     extension/PaymentChannel/Payor.hpp \
     extension/Request/StartTorrentPlugin.hpp \
     extension/Alert/BuyerTorrentPluginStatuAlert.hpp \
-    extension/BitCoin/UnspentP2PKHOutput.hpp
+    extension/BitCoin/UnspentP2PKHOutput.hpp \
+    extension/BitCoin/Wallet.hpp
 				
 FORMS += \
     view/mainwindow.ui \
