@@ -19,7 +19,11 @@ public:
     // Constructor
     OutPoint(const Hash & hash, quint32 index);
 
-    QJsonObject json() const;
+    QJsonObject toJson() const;
+
+    // Flat representation, so outpoint can be used as json key
+    OutPoint(const QString & string);
+    QString toString() const;
 
     // Getters and setters
     Hash hash() const;

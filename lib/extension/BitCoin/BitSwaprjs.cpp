@@ -142,7 +142,7 @@ Hash BitSwaprjs::compute_contract_hash(const OutPoint & fundingOutput, const Pri
         p2shTxOuts.append(i->json());
 
     QJsonObject params {
-        {"fundingOutput", fundingOutput.json()},
+        {"fundingOutput", fundingOutput.toJson()},
         {"p2shTxOuts", p2shTxOuts},
         {"change", changeOutput.json()},
         {"sk", sk.toString()}
@@ -159,7 +159,7 @@ Signature BitSwaprjs::compute_payor_refund_signature(const OutPoint & contractOu
 
     // Create parameters
     QJsonObject params {
-        {"contractOutputPoint", contractOutputPoint.json()},
+        {"contractOutputPoint", contractOutputPoint.toJson()},
         {"sk", sk.toString()},
         {"firstPk", firstPk.toString()},
         {"secondPk", secondPk.toString()},
@@ -178,7 +178,7 @@ bool BitSwaprjs::check_refund_signatures(const OutPoint & contractOutputPoint, c
 
     // Create parameters
     QJsonObject params {
-        {"contractOutputPoint", contractOutputPoint.json()},
+        {"contractOutputPoint", contractOutputPoint.toJson()},
         {"payorSignature", payorSignature.toString()},
         {"payeeSignature", payeeSignature.toString()},
         {"firstPk", firstPk.toString()},
@@ -198,7 +198,7 @@ Signature BitSwaprjs::compute_payor_payment_signature(const OutPoint & contractO
 
     // Create parameters
     QJsonObject params {
-        {"contractOutputPoint", contractOutputPoint.json()},
+        {"contractOutputPoint", contractOutputPoint.toJson()},
         {"refundOutput", refundOutput.json()},
         {"payeeOutput", payeeOutput.json()},
         {"sk", sk.toString()},
