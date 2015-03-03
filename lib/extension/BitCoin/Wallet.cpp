@@ -1,10 +1,18 @@
 #include "Wallet.hpp"
 
+#include <QJsonValue>
+#include <QJsonObject>
+
+#include "Utilities.hpp"
+
 /**
  * Wallet::Entry::Output
  */
 
- Wallet::Entry::Output::Output(const OutPoint & point,
+ Wallet::KeyInformation::Output::Output() {
+ }
+
+ Wallet::KeyInformation::Output::Output(const OutPoint & point,
                              const QDateTime & added,
                              const QString & description,
                              Type type,
@@ -24,38 +32,21 @@
     , _spent(spent){
  }
 
- Wallet::Entry::Output::Output(const QJsonObject & json) {
+ Wallet::KeyInformation::Output::Output(const QJsonObject & json) {
 
-     // _point
-     QJsonValue pointValue = json["_point"];
-     if(pointValue.type() != QJsonValue::Object)
-         throw new std::exception("_point key does not exist or is not of type QJsonValue::Object.");
-
-    QJsonObject pointObject = pointValue.toObject();
-
+    // _point
+    QJsonObject pointObject = Utilities::GET_OBJECT(json, "_point");
     _point = OutPoint(pointObject);
 
     // _added
-    QJsonValue addedValue = json["_added"];
-    if(addedValue.type() != QJsonValue::String)
-        throw new std::exception("_added key does not exist or is not of type QJsonValue::String.");
-
-    QString addedString = addedValue.toString();
+    QString addedString = Utilities::GET_STRING(json, "_added");
     _added = QDateTime::fromString(addedString, Qt::ISODate);
 
     // _description
-    QJsonValue descriptionValue = json["_description"];
-    if(descriptionValue.type() != QJsonValue::String)
-        throw new std::exception("_description key does not exist or is not of type QJsonValue::String.");
-
-    _description = descriptionValue.toString();
+    _description = Utilities::GET_STRING(json, "_description");
 
     // _type
-    QJsonValue typeString = json["_type"];
-    if(typeString.type() != QJsonValue::String)
-        throw new std::exception("_type key does not exist or is not of type QJsonValue::String.");
-
-    QString type = typeString.toString();
+    QString type = Utilities::GET_STRING(json, "_type");
 
     if(type == "ContractChange")
         _type = Type::ContractChange;
@@ -71,37 +62,24 @@
         throw new std::exception("_type key must have valud among {ContractChange, ContractOutputChange, ContractOutputRefund, Payment, Receive} of type QJsonValue::String.");
 
     // _value
-    QJsonValue valueValue = json["_value"];
-
-    if(valueValue.type() != QJsonValue::Double)
-        throw new std::exception("_value key does not exist or is not of type QJsonValue::Double.");
-
-    _value = valueValue.toDouble();
+    _value = Utilities::GET_DOUBLE(json, "_value");
 
     // _blockHash
-    QJsonValue blockHashString = json["_blockHash"];
-    if(blockHashString.type() != QJsonValue::String)
-        throw new std::exception("_blockHash key does not exist or is not of type QJsonValue::String.");
-
-    _blockHash = Hash(blockHashString.toString());
+    QString blockHashString = Utilities::GET_STRING(json, "_blockHash");
+    _blockHash = Hash(blockHashString);
 
     // _blockHeight
-    QJsonValue blockHeightValue = json["_blockHeight"];
-
-    if(blockHeightValue.type() != QJsonValue::Double)
-        throw new std::exception("_blockHeight key does not exist or is not of type QJsonValue::Double.");
-
-    _blockHeight = blockHeightValue.toDouble();
+    _blockHeight = Utilities::GET_DOUBLE(json, "_blockHeight");
 
     // _spent
-    QJsonValue spentValue = json["_spent"];
-    if(spentValue.type() != QJsonValue::Bool)
-        throw new std::exception("_spent key does not exist or is not of type QJsonValue::Bool.");
-
-    _spent = QJsonValue(spentValue.toBool());
+    _spent = Utilities::GET_BOOL(json, "_spent");
  }
 
- QJsonObject Wallet::Entry::Output::toJson() const {
+ bool Wallet::KeyInformation::Output::operator<(const Output & rhs) {
+     return _point < rhs.point();
+ }
+
+ QJsonObject Wallet::KeyInformation::Output::toJson() const {
 
      QJsonObject json;
 
@@ -120,83 +98,83 @@
      }
 
      json["_type"] = QJsonValue(type);
-     json["_value"] = QJsonValue(_value);
+     json["_value"] = QJsonValue(static_cast<double>(_value));
      json["_blockHash"] = QJsonValue(_blockHash.toString());
-     json["_blockHeight"] = QJsonValue(_blockHeight);
+     json["_blockHeight"] = QJsonValue(static_cast<double>(_blockHeight));
      json["_spent"] = QJsonValue(_spent);
 
      return json;
  }
 
- OutPoint Wallet::Entry::Output::point() const {
+ OutPoint Wallet::KeyInformation::Output::point() const {
      return _point;
  }
 
- void Wallet::Entry::Output::setPoint(const OutPoint & point) {
+ void Wallet::KeyInformation::Output::setPoint(const OutPoint & point) {
      _point = point;
  }
 
- QDateTime Wallet::Entry::Output::added() const {
+ QDateTime Wallet::KeyInformation::Output::added() const {
      return _added;
  }
 
- void Wallet::Entry::Output::setAdded(const QDateTime & added) {
+ void Wallet::KeyInformation::Output::setAdded(const QDateTime & added) {
      _added = added;
  }
 
- QString Wallet::Entry::Output::description() const {
+ QString Wallet::KeyInformation::Output::description() const {
      return _description;
  }
 
- void Wallet::Entry::Output::setDescription(const QString & description) {
+ void Wallet::KeyInformation::Output::setDescription(const QString & description) {
      _description = description;
  }
 
-  Wallet::Entry::Output::Type Wallet::Entry::Output::type() const {
+  Wallet::KeyInformation::Output::Type Wallet::KeyInformation::Output::type() const {
      return _type;
   }
 
-  void Wallet::Entry::Output::setType(Type type) {
+  void Wallet::KeyInformation::Output::setType(Type type) {
       _type = type;
   }
 
-  Wallet::Entry::Output::State Wallet::Entry::Output::state() const {
+  Wallet::KeyInformation::Output::State Wallet::KeyInformation::Output::state() const {
       return _state;
   }
 
-  void Wallet::Entry::Output::setState(State state) {
+  void Wallet::KeyInformation::Output::setState(State state) {
       _state = state;
   }
 
-  quint64 Wallet::Entry::Output::value() const {
+  quint64 Wallet::KeyInformation::Output::value() const {
       return _value;
   }
 
-  void Wallet::Entry::Output::setValue(quint64 value) {
+  void Wallet::KeyInformation::Output::setValue(quint64 value) {
       _value = value;
   }
 
-  Hash Wallet::Entry::Output::blockHash() const {
+  Hash Wallet::KeyInformation::Output::blockHash() const {
       return _blockHash;
   }
 
-  void Wallet::Entry::Output::setBlockHash(const Hash & blockHash) {
+  void Wallet::KeyInformation::Output::setBlockHash(const Hash & blockHash) {
       _blockHash = blockHash;
   }
 
-  quint32 Wallet::Entry::Output::blockHeight() const {
+  quint32 Wallet::KeyInformation::Output::blockHeight() const {
       return _blockHeight;
   }
 
-  void Wallet::Entry::Output::setBlockHeight(quint32 blockHeight) {
+  void Wallet::KeyInformation::Output::setBlockHeight(quint32 blockHeight) {
       _blockHeight = blockHeight;
   }
 
-  bool Wallet::Entry::Output::spent() const {
+  bool Wallet::KeyInformation::Output::spent() const {
       return _spent;
   }
 
-  void Wallet::Entry::Output::setSpent(bool spent) {
+  void Wallet::KeyInformation::Output::setSpent(bool spent) {
       _spent = spent;
   }
 
@@ -204,39 +182,28 @@
  * Wallet::Entry
  */
 
-  Wallet::Entry::Entry(const QDateTime & added, const QString & description, const QMap<OutPoint, Output> & outputs)
+  Wallet::KeyInformation::KeyInformation() {
+
+  }
+
+  Wallet::KeyInformation::KeyInformation(const QDateTime & added, const QString & description, const QMap<OutPoint, Output> & outputs)
     : _added(added)
     , _description(description)
     , _outputs(outputs) {
   }
 
-  Wallet::Entry::Entry(const QJsonObject & json) {
+  Wallet::KeyInformation::KeyInformation(const QJsonObject & json) {
 
       // Parse _added
-      QJsonValue added = json["_added"];
-
-      if(added.type() != QJsonValue::String)
-          throw new std::exception("_added key is not present or not of type QJsonValue::String.");
-
-      QString addedString = added.toString();
+      QString addedString = Utilities::GET_STRING(json, "_added");
 
       _added = QDateTime::fromString(addedString, Qt::ISODate);
 
       // Parse _description
-      QJsonValue description = json["_description"];
-
-      if(description.type() != QJsonValue::String)
-          throw new std::exception("_description key is not present or not of type QJsonValue::String.");
-
-      _description = description.toString();
+      _description = Utilities::GET_STRING(json, "_added");
 
       // Parse _outputs
-      QJsonValue outputsValue = json["_outputs"];
-
-      if(outputsValue.type() != QJsonValue::Object)
-          throw new std::exception("_outputs key is not present or not of type QJsonValue::Object.");
-
-      QJsonObject ouputsObject = outputsValue.object();
+      QJsonObject ouputsObject = Utilities::GET_OBJECT(json, "_outputs");
 
       for(QJsonObject::const_iterator i = ouputsObject.constBegin();
           i != ouputsObject.constEnd();i++) {
@@ -247,20 +214,16 @@
           QJsonValue valueValue = i.value();
 
           if(valueValue.type() != QJsonValue::Object)
-              throw new std::exception("value in _outputs is not of type QJosnValue::Object.");
-
-          QJsonObject valueObject(valueValue);
+              throw new std::exception("value in _outputs is not of type QJsonValue::Object.");
 
           // Save mapping
-          _outputs[key] = Output(valueObject);
+          _outputs[key] = Output(valueValue.toObject());
       }
   }
 
-  QJsonObject Wallet::Entry::toJson() const {
+  QJsonObject Wallet::KeyInformation::toJson() const {
 
       QJsonObject json;
-
-      _mutex.lock();
 
       // _added
       json["_added"] = _added.toString(Qt::ISODate);
@@ -273,36 +236,34 @@
 
       for(QMap<OutPoint, Output>::const_iterator i = _outputs.constBegin();
           i != _outputs.constEnd();i++)
-          outputs[(i->key()).toString()] = Output(i->value());
+          outputs[(i.key()).toString()] = Output(i.value()).toJson();
 
       json["_outputs"] = outputs;
-
-      _mutex.unlock();
 
       return json;
   }
 
-  QDateTime Wallet::Entry::added() const {
+  QDateTime Wallet::KeyInformation::added() const {
       return _added;
   }
 
-  void Wallet::Entry::setAdded(const QDateTime & added) {
+  void Wallet::KeyInformation::setAdded(const QDateTime & added) {
       _added = added;
   }
 
-  QString Wallet::Entry::description() const {
+  QString Wallet::KeyInformation::description() const {
       return _description;
   }
 
-  void Wallet::Entry::setDescription(const QString & description) {
+  void Wallet::KeyInformation::setDescription(const QString & description) {
       _description = description;
   }
 
-  QMap<OutPoint, Wallet::Entry::Output> Entry::outputs() const {
+  QMap<OutPoint, Wallet::KeyInformation::Output> Wallet::KeyInformation::outputs() const {
       return _outputs;
   }
 
-  void Wallet::Entry::setOutputs(const QMap<OutPoint, Wallet::Entry::Output> & outputs) {
+  void Wallet::KeyInformation::setOutputs(const QMap<OutPoint, Wallet::KeyInformation::Output> & outputs) {
       _outputs = outputs;
   }
 
@@ -311,6 +272,8 @@
  */
 
 #include <QTextStream>
+#include <QJsonDocument>
+#include <QJsonArray>
 
   Wallet::Wallet(const QString & file, bool autoSave)
     : _walletFileName(file)
@@ -318,27 +281,22 @@
     , _walletFile(file){
 
       // Open wallet file
-      if(!file.open(QIODevice::ReadWrite | QIODevice::Text))
+      if(!_walletFile.open(QIODevice::ReadWrite | QIODevice::Text))
           throw new std::exception("Could not open wallet file.");
 
       // Read entire file
-      QByteArray walletRaw = file.readAll();
+      QByteArray walletRaw = _walletFile.readAll();
 
       /*************************************
        ***** DECRYPT HERE IN THE FUTURE ****
        *************************************/
 
       // Parse into json
-      QJsonDocument doc(walletRaw);
+      QJsonDocument doc = QJsonDocument::fromJson(walletRaw);
       QJsonObject walletDictionary = doc.object();
 
       // Parse out _entries
-      QJsonValue entries = walletDictionary["_entries"];
-
-      if(entries.type() != QJsonValue::Object)
-          throw new std::exception("_entries key not present or not of type QJsonValue::Object.");
-
-      QJsonObject entriesDictionary = entries.toObject();
+      QJsonObject entriesDictionary = Utilities::GET_OBJECT(walletDictionary, "_entries");
 
       for(QJsonObject::const_iterator i = entriesDictionary.constBegin();
           i != entriesDictionary.constEnd();i++) {
@@ -351,49 +309,28 @@
 
           PrivateKey key(privateKeyValue.toString());
 
-          // Parse into QList<Entry>
-          QList<Entry> entryList;
+          // Parse into KeyInformation
+          QJsonValue keyInformationValue = i.value();
 
-          QJsonValue entryListValue = i.value();
-
-          if(entryList != QJsonValue::Array)
-              throw new std::exception("value in _entries not of type QJsonValue::Array.");
-
-          QJsonArray entryListArray = entryListValue.toArray();
-
-          for(QJsonArray::const_iterator i = entryListArray.constBegin();
-              i != entryListArray.constEnd();i++) {
-
-              // Parse Entry
-              QJsonValue entryValue = *i;
-
-              if(entryValue.type() != QJsonValue::Object)
-                  throw new std::exception("element in value in _entries not of type QJsonValue::Object.");
-
-              Entry entry(entryValue.toObject());
-
-              // add to array
-              entryList.push_back(entry);
-          }
+          if(keyInformationValue.type() != QJsonValue::Object)
+            throw new std::exception("value in _entries not of type QJsonValue::Object.");
 
           // Save mapping
-          _entries[key] = entryList;
+          _entries[key] = KeyInformation(keyInformationValue.toObject());
       }
 
       // Parse out _entries
-      QJsonValue chain = walletDictionary["_chain"];
+      QString chain = Utilities::GET_STRING(walletDictionary, "_chain");
 
-      if(chain.type() != QJsonValue::String)
-          throw new std::exception("_chain key not present or not of type QJsonValue::String.");
-      else if(chain.toString() == "mainnet")
+      if(chain == "mainnet")
           _chain = Chain::mainnet;
-      else if(chain.toString() == "testnet3")
+      else if(chain == "testnet3")
           _chain = Chain::testnet3;
       else
           throw new std::exception("_chain key must have value among {mainnet, testnet3}.");
   }
 
-  QJsonObject Wallet::toJson() const {
+  QJsonObject Wallet::toJson() {
 
       QJsonObject wallet;
 
@@ -402,19 +339,9 @@
       // Jsonify _entries
       QJsonObject entriesObject;
 
-      for(QMap<PrivateKey, QList<Entry>>::const_iterator i = _entries.constBegin();
-          i != _entries.constEnd();i++) {
-
-          QJsonArray entryListValue;
-
-          QList<Entry> & entryList = i.value();
-          for(QList<Entry>::const_iterator i = entryList.constBegin();
-              i != entryList.constEnd();i++)
-              entryListValue.push_back((*i).toJson());
-
-          // Save
-          entriesObject[(i->key).toString()] = entryListValue;
-      }
+      for(QMap<PrivateKey, KeyInformation>::const_iterator i = _entries.constBegin();
+          i != _entries.constEnd();i++)
+        entriesObject[(i.key()).toString()] = (i.value()).toJson();
 
       wallet["_entries"] = entriesObject;
 
@@ -429,13 +356,13 @@
       return wallet;
   }
 
-  void Wallet::save() const {
+  void Wallet::save() {
 
       _mutex.lock();
 
       // Turn wallet into raw form
       QJsonObject walletJson = toJson();
-      QByteArray walletRaw = QJsonDocument::toBinaryData(walletJson);
+      QByteArray walletRaw = QJsonDocument(walletJson).toJson();
 
       // Empty file
       _walletFile.resize(0);
@@ -453,9 +380,11 @@
   quint32 Wallet::blockHeight() {
 
       // Talk to Chain.com or bitcore-explorer or something?
+
+      return 0;
   }
 
-  quint64 Wallet::balance(quint32 confirmations) const {
+  quint64 Wallet::balance(quint32 confirmations) {
 
       _mutex.lock();
 
@@ -466,28 +395,17 @@
       quint32 currentBlockHeight = blockHeight();
 
       // Iterate entries and corresponding outputs
-      for(QMap<PrivateKey, QList<Entry>>::const_iterator i = _entries.constBegin();
+      for(QMap<PrivateKey, KeyInformation>::const_iterator i = _entries.constBegin();
           i != _entries.constEnd();i++) {
 
-          // Grab entry list
-          const QList<Entry> & entryList = i->second;
+          // Iterate outputs
+          const QMap<OutPoint, KeyInformation::Output> & outputs = i->outputs();
+          for(QMap<OutPoint, KeyInformation::Output>::const_iterator i = outputs.constBegin();
+              i != outputs.constEnd();i++) {
 
-          // Itearte entry list
-          for(QList<Entry>::const_iterator i = entryList.constBegin();
-              i != entryList.constEnd();i++) {
-
-              const QMap<OutPoint, Entry::Output> & outputs = i.outputs();
-
-              // Iterate output map
-              for(QMap<OutPoint, Entry::Output>::const_iterator i = outputs.constBegin();
-                  i != outputs.constEnd();i++) {
-
-                  Entry::Output & output = i->second();
-
-                  // Check that output has sufficient number of confirmations
-                  if(currentBlockHeight - output.blockHeight() >= confirmations)
-                      balance += output.value();
-              }
+              // Check that output has sufficient number of confirmations
+              if(currentBlockHeight - i->blockHeight() >= confirmations)
+                  balance += i->value();
           }
       }
 
@@ -498,7 +416,12 @@
 
   void Wallet::synchronize() {
 
+      // Only synchronized when nothing is locked, because this may disturb
+
       _mutex.lock();
+
+      // For each private key, find all outputs, and update entry based on what
+      // you found, that is add new outputs, and update values in old ones.
 
       _mutex.unlock();
   }

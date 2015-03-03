@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "AddTorrentDialog.hpp"
 #include "TorrentViewModel.hpp"
+#include "WalletDialog.hpp"
 #include "SellerTorrentPluginConfigurationDialog.hpp"
 #include "BuyerTorrentPluginConfigurationDialog.hpp"
 
@@ -27,9 +28,10 @@
 #include <libtorrent/add_torrent_params.hpp>
 #include <libtorrent/torrent_handle.hpp>
 
-MainWindow::MainWindow(Controller * controller, QLoggingCategory & category)
+MainWindow::MainWindow(Controller * controller, Wallet * wallet, QLoggingCategory & category)
     : ui(new Ui::MainWindow)
     , _controller(controller)
+    , _wallet(wallet)
     , _torrentTableViewModel(0, TorrentViewModel::numberOfColumns)
     , _torrentTableContextMenu(new QMenu(this))
     , _peerPluginsTableContextMenu(new QMenu(this))
@@ -366,7 +368,7 @@ void MainWindow::updateTorrentPluginStatus(const TorrentPluginStatusAlert * torr
 }
 
 void MainWindow::updatePluginStatus(const PluginStatusAlert * p) {
-    ui->balanceLabel->setText(QString::number(p->balance()*1000) + "mBTC");
+    //ui->balanceLabel->setText(QString::number(p->balance()*1000) + "mBTC");
 }
 
 void MainWindow::addPeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint) {
@@ -408,4 +410,13 @@ void MainWindow::updatePeerPluginStatus(PeerPluginStatus status) {
 
 void MainWindow::removePeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint) {
     qCDebug(_category) << "MainWindow::removePeer(): not implemented";
+}
+
+void MainWindow::on_walletPushButton_clicked() {
+
+    // Create dialog
+    WalletDialog dialog(_wallet);
+
+    // Start processing new event loop
+    dialog.exec();
 }

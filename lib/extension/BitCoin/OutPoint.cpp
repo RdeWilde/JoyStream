@@ -1,6 +1,9 @@
 #include "OutPoint.hpp"
+#include "Utilities.hpp"
 
 #include <QJsonObject>
+#include <QJsonValue>
+#include <QStringList>
 
 OutPoint::OutPoint() {
 }
@@ -20,6 +23,18 @@ OutPoint & OutPoint::operator=(const OutPoint& outputPoint) {
 OutPoint::OutPoint(const Hash & hash, quint32 index)
     : _hash(hash)
     , _index(index) {
+}
+
+OutPoint::OutPoint(const QJsonObject & json) {
+
+    // _hash
+    _hash = Hash(Utilities::GET_STRING(json, "_hash"));
+}
+
+bool operator<(const OutPoint & lhs, const OutPoint & rhs) {
+
+    //return (lhs.hash() < rhs.hash()) || ((lhs.hash() == rhs.hash()) && (lhs.index() < rhs.index()));
+    return lhs.hash().less(rhs.hash()) || (lhs.hash().equals(rhs.hash()) && (lhs.index() < rhs.index()));
 }
 
 QJsonObject OutPoint::toJson() const {
@@ -63,5 +78,3 @@ quint32 OutPoint::index() const {
 void OutPoint::setIndex(const quint32& index) {
     _index = index;
 }
-
-

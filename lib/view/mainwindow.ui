@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>948</width>
-    <height>566</height>
+    <width>745</width>
+    <height>390</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,13 +18,67 @@
     <normaloff>../../../resources/BitSwapr_mark_32.png</normaloff>../../../resources/BitSwapr_mark_32.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QTabWidget" name="tabWidget">
+   <widget class="QTableView" name="torrentsTable">
     <property name="geometry">
      <rect>
-      <x>14</x>
-      <y>112</y>
-      <width>919</width>
-      <height>425</height>
+      <x>10</x>
+      <y>92</y>
+      <width>723</width>
+      <height>227</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="addTorrentFilePushButton">
+    <property name="geometry">
+     <rect>
+      <x>622</x>
+      <y>332</y>
+      <width>101</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Add Torrent File</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="addMagnetLinkPushButton">
+    <property name="geometry">
+     <rect>
+      <x>512</x>
+      <y>332</y>
+      <width>101</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Add Magnet Link</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="earnedBalanceQlabel">
+    <property name="geometry">
+     <rect>
+      <x>470</x>
+      <y>30</y>
+      <width>71</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>456mɃ</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="earnedTitleQlabel">
+    <property name="geometry">
+     <rect>
+      <x>492</x>
+      <y>54</y>
+      <width>45</width>
+      <height>19</height>
      </rect>
     </property>
     <property name="font">
@@ -32,140 +86,151 @@
       <pointsize>10</pointsize>
      </font>
     </property>
-    <property name="tabPosition">
-     <enum>QTabWidget::North</enum>
-    </property>
-    <property name="tabShape">
-     <enum>QTabWidget::Rounded</enum>
-    </property>
-    <property name="currentIndex">
-     <number>0</number>
-    </property>
-    <property name="iconSize">
-     <size>
-      <width>32</width>
-      <height>32</height>
-     </size>
-    </property>
-    <property name="elideMode">
-     <enum>Qt::ElideNone</enum>
-    </property>
-    <property name="documentMode">
-     <bool>true</bool>
-    </property>
-    <property name="tabsClosable">
-     <bool>false</bool>
-    </property>
-    <widget class="QWidget" name="torrentsTab">
-     <attribute name="title">
-      <string>Torrents</string>
-     </attribute>
-     <widget class="QTableView" name="torrentsTable">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>10</y>
-        <width>879</width>
-        <height>165</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="addMagnetLinkPushButton">
-      <property name="geometry">
-       <rect>
-        <x>686</x>
-        <y>208</y>
-        <width>101</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Add Magnet Link</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="addTorrentFilePushButton">
-      <property name="geometry">
-       <rect>
-        <x>796</x>
-        <y>208</y>
-        <width>101</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Add Torrent File</string>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="walletTab">
-     <attribute name="title">
-      <string>Wallet</string>
-     </attribute>
-    </widget>
-    <widget class="QWidget" name="tab">
-     <attribute name="title">
-      <string>Settings</string>
-     </attribute>
-    </widget>
-   </widget>
-   <widget class="QLabel" name="logoLabel">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>10</y>
-      <width>319</width>
-      <height>91</height>
-     </rect>
-    </property>
     <property name="text">
-     <string/>
-    </property>
-    <property name="pixmap">
-     <pixmap resource="ui.qrc">:/images/images/BitSwaprResized.png</pixmap>
+     <string>earned</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label">
+   <widget class="Line" name="line">
     <property name="geometry">
      <rect>
-      <x>870</x>
-      <y>38</y>
-      <width>51</width>
-      <height>53</height>
+      <x>546</x>
+      <y>20</y>
+      <width>3</width>
+      <height>61</height>
      </rect>
     </property>
-    <property name="text">
-     <string/>
+    <property name="orientation">
+     <enum>Qt::Vertical</enum>
     </property>
-    <property name="pixmap">
-     <pixmap resource="ui.qrc">:/images/images/Bitcoin_Logo_31.png</pixmap>
+   </widget>
+   <widget class="QLabel" name="spentTitleLabel">
+    <property name="geometry">
+     <rect>
+      <x>590</x>
+      <y>54</y>
+      <width>35</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>spent</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="spentBalanceLabel_2">
+    <property name="geometry">
+     <rect>
+      <x>558</x>
+      <y>30</y>
+      <width>71</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>116mɃ</string>
+    </property>
+   </widget>
+   <widget class="Line" name="line_2">
+    <property name="geometry">
+     <rect>
+      <x>636</x>
+      <y>20</y>
+      <width>3</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Vertical</enum>
     </property>
    </widget>
    <widget class="QLabel" name="balanceLabel">
     <property name="geometry">
      <rect>
-      <x>714</x>
-      <y>46</y>
-      <width>153</width>
-      <height>37</height>
+      <x>646</x>
+      <y>30</y>
+      <width>79</width>
+      <height>27</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>12</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
+      <pointsize>16</pointsize>
      </font>
     </property>
     <property name="text">
-     <string>N/A</string>
+     <string>2231mɃ</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="balanceTitleLabel">
+    <property name="geometry">
+     <rect>
+      <x>678</x>
+      <y>54</y>
+      <width>51</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>balance</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="walletPushButton">
+    <property name="geometry">
+     <rect>
+      <x>386</x>
+      <y>38</y>
+      <width>57</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Wallet</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="settingsPushButton">
+    <property name="geometry">
+     <rect>
+      <x>316</x>
+      <y>38</y>
+      <width>57</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Settings</string>
+    </property>
+   </widget>
+   <widget class="Line" name="line_3">
+    <property name="geometry">
+     <rect>
+      <x>378</x>
+      <y>34</y>
+      <width>5</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Vertical</enum>
     </property>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources>
-  <include location="ui.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

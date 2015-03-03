@@ -29,6 +29,8 @@ class TorrentViewModel;
 class TorrentPluginStatusAlert;
 class PluginStatusAlert;
 
+class Wallet;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -36,7 +38,7 @@ class MainWindow : public QMainWindow
 public:
 
     // Constructor
-    MainWindow(Controller * controller, QLoggingCategory & category);
+    MainWindow(Controller * controller, Wallet * wallet, QLoggingCategory & category);
 
     // Destructor
     ~MainWindow();
@@ -69,6 +71,9 @@ private:
     // Controller
     Controller * _controller;
 
+    // Wallet
+    Wallet * _wallet;
+
     // Logging category
     QLoggingCategory & _category;
 
@@ -97,6 +102,8 @@ private slots: // These slots get signals from view objects.
 
     void on_addTorrentFilePushButton_clicked();
     void on_addMagnetLinkPushButton_clicked();
+
+    void on_walletPushButton_clicked();
 
 public slots:
 

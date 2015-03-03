@@ -60,7 +60,6 @@ SOURCES += \
     extension/SellerTorrentPlugin.cpp \
     extension/SellerPeerPlugin.cpp \
     extension/BitCoin/KeyPair.cpp \
-    extension/BitCoin/FixedBuffer.cpp \
     extension/BitCoin/P2SHTxOut.cpp \
     extension/BitCoin/P2PKHTxOut.cpp \
     #extension/PaymentChannel/Refund.cpp \
@@ -77,7 +76,8 @@ SOURCES += \
     extension/Request/StartTorrentPlugin.cpp \
     extension/Alert/BuyerTorrentPluginStatuAlert.cpp \
     extension/BitCoin/UnspentP2PKHOutput.cpp \
-    extension/BitCoin/Wallet.cpp
+    extension/BitCoin/Wallet.cpp \
+    view/WalletDialog.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -156,13 +156,15 @@ HEADERS += \
     extension/Request/StartTorrentPlugin.hpp \
     extension/Alert/BuyerTorrentPluginStatuAlert.hpp \
     extension/BitCoin/UnspentP2PKHOutput.hpp \
-    extension/BitCoin/Wallet.hpp
+    extension/BitCoin/Wallet.hpp \
+    view/WalletDialog.hpp
 				
 FORMS += \
     view/mainwindow.ui \
     view/addtorrentdialog.ui \
     view/SellerTorrentPluginConfigurationDialog.ui \
-    view/BuyerTorrentPluginConfigurationDialog.ui
+    view/BuyerTorrentPluginConfigurationDialog.ui \
+    view/walletdialog.ui
 
 RESOURCES += \
     view/ui.qrc

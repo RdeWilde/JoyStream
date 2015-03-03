@@ -6,6 +6,7 @@
 
 #include <QDateTime>
 #include <QFile>
+#include <QMap>
 
 /**
  * @brief Naive Btc Micropayment wallet
@@ -25,7 +26,7 @@ public:
     /**
      * @brief Wallet entry
      */
-    class Entry {
+    class KeyInformation {
 
     public:
 
@@ -77,6 +78,9 @@ public:
                 Locked
             };
 
+            // Default constructor
+            Output();
+
             // Constructor from members
             Output(const OutPoint & point,
                    const QDateTime & added,
@@ -90,6 +94,9 @@ public:
 
             // Constructor from json dictionary
             Output(const QJsonObject & json);
+
+            // Used for comparison function to put Output in QMap
+            bool operator<(const Output & rhs);
 
             // Save wallet as json dictionary
             QJsonObject toJson() const;
@@ -152,13 +159,16 @@ public:
             bool _spent;
         };
 
+        // Defualt constructor for QMap
+        KeyInformation();
+
         // Constructor from members
-        Entry(const QDateTime & added,
+        KeyInformation(const QDateTime & added,
               const QString & description,
               const QMap<OutPoint, Output> & outputs);
 
         // Constructor from json dictionary
-        Entry(const QJsonObject & json);
+        KeyInformation(const QJsonObject & json);
 
         // Save wallet as json dictionary
         QJsonObject toJson() const;
@@ -175,30 +185,36 @@ public:
 
     private:
 
-        // Time when entry was added to wallet
+        // Time when key was added to wallet
         QDateTime _added;
 
-        // Description
+        // Description of key
         QString _description;
 
-        // All outputs associated with given entry
+        // All outputs associated with given key
         QMap<OutPoint, Output> _outputs;
     };
 
     // Constructor from wallet file
     Wallet(const QString & file, bool autoSave);
 
+    /**
+     * Many of the routines below are semantically const, however
+     * they cannot be in practices since they have to aquire
+     * _mutex.
+     */
+
     // Save wallet as json dictionary
-    QJsonObject toJson() const;
+    QJsonObject toJson(); // const
 
     // Save to disk
-    void save() const;
+    void save(); // const
 
     // Gets current block height
     static quint32 blockHeight();
 
     // Total balance in wallet with utxos with no less than given number of confirmations
-    quint64 balance(quint32 confirmations) const;
+    quint64 balance(quint32 confirmations); // const
 
     // Synchronizes wallet with blockchain
     void synchronize();
@@ -208,7 +224,7 @@ public:
 private:
 
     // Wallet entries
-    QMap<PrivateKey, QList<Entry>> _entries;
+    QMap<PrivateKey, KeyInformation> _entries;
 
     // The chain to which wallet belongs
     Chain _chain;

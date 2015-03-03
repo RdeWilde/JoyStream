@@ -153,3 +153,76 @@ const std::set<MessageType> Utilities::allMessageTypes() {
 int Utilities::numberOfMessageTypes() {
     return allMessageTypes().size();
 }
+
+#include <QJsonObject>
+#include <QJsonArray>
+
+bool Utilities::GET_BOOL(const QJsonObject & dictionary, const QString & key) {
+
+    // Get value
+    QJsonValue vValue = dictionary[key];
+
+    // Check that it has correct type
+    if(vValue.type() != QJsonValue::Bool) {
+        QString str = key + " key does not exist or is not of type QJsonValue::Bool.";
+        throw new std::exception(str.toLatin1().constData());
+    }
+
+    return vValue.toBool();
+}
+
+double Utilities::GET_DOUBLE(const QJsonObject & dictionary, const QString & key) {
+
+    // Get value
+    QJsonValue vValue = dictionary[key];
+
+    // Check that it has correct type
+    if(vValue.type() != QJsonValue::Double) {
+        QString str = key + " key does not exist or is not of type QJsonValue::Double.";
+        throw new std::exception(str.toLatin1().constData());
+    }
+
+    return vValue.toDouble();
+}
+
+QString Utilities::GET_STRING(const QJsonObject & dictionary, const QString & key) {
+
+    // Get value
+    QJsonValue vValue = dictionary[key];
+
+    // Check that it has correct type
+    if(vValue.type() != QJsonValue::String) {
+        QString str = key + " key does not exist or is not of type QJsonValue::String.";
+        throw new std::exception(str.toLatin1().constData());
+    }
+
+    return vValue.toString();
+}
+
+QJsonArray Utilities::GET_ARRAY(const QJsonObject & dictionary, const QString & key) {
+
+    // Get value
+    QJsonValue vValue = dictionary[key];
+
+    // Check that it has correct type
+    if(vValue.type() != QJsonValue::Array) {
+        QString str = key + " key does not exist or is not of type QJsonValue::Array.";
+        throw new std::exception(str.toLatin1().constData());
+    }
+
+    return vValue.toArray();
+}
+
+QJsonObject Utilities::GET_OBJECT(const QJsonObject & dictionary, const QString & key) {
+
+    // Get value
+    QJsonValue vValue = dictionary[key];
+
+    // Check that it has correct type
+    if(vValue.type() != QJsonValue::Object) {
+        QString str = key + " key does not exist or is not of type QJsonValue::Object.";
+        throw new std::exception(str.toLatin1().constData());
+    }
+
+    return vValue.toObject();
+}

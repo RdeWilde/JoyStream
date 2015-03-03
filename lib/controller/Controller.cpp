@@ -618,11 +618,13 @@ Controller::Configuration::Configuration() {
 Controller::Configuration::Configuration(const libtorrent::entry & libtorrentSessionSettingsEntry,
                                          const std::pair<int, int> & portRange,
                                          const std::vector<std::pair<std::string, int>> & dhtRouters,
-                                         const QVector<Torrent::Configuration> & torrents)
+                                         const QVector<Torrent::Configuration> & torrents,
+                                         const QString walletFile)
                                 :_libtorrentSessionSettingsEntry(libtorrentSessionSettingsEntry)
                                 ,_portRange(portRange)
                                 ,_dhtRouters(dhtRouters)
-                                ,_torrents(torrents){
+                                ,_torrents(torrents)
+                                ,_walletFile(walletFile){
 }
 
 Controller::Configuration::~Configuration() {
@@ -846,6 +848,9 @@ void Controller::Configuration::toDictionaryEntry(libtorrent::entry::dictionary_
     }
 
     dictionaryEntry["torrentConfigurations"] = torrentConfigurationsListEntry;
+
+    // Add "walletFile" key
+    walletFile...
     */
 }
 
@@ -887,6 +892,14 @@ QVector<Controller::Torrent::Configuration> Controller::Configuration::torrents(
 
 void Controller::Configuration::setTorrents(const QVector<Torrent::Configuration> & torrents) {
     _torrents = torrents;
+}
+
+QString Controller::Configuration::walletFile() const {
+    return _walletFile;
+}
+
+void Controller::Configuration::setWalletFile(const QString & walletFile) {
+    _walletFile = walletFile;
 }
 
 /*
@@ -977,11 +990,12 @@ Controller::Controller(const Configuration & configuration, bool showView, QNetw
               libtorrent::alert::progress_notification +
               libtorrent::alert::performance_warning +
               libtorrent::alert::stats_notification)
+    ,_wallet(configuration.walletFile(), true) // add autosave to configuration later?? does user even need to control that?
     ,_category(category)
     ,_manager(manager)
     ,_plugin(new Plugin(this, _manager, bitcoindAccount, _category))
     ,_portRange(configuration.getPortRange())
-    ,_view(this, _category) {
+    ,_view(this, &_wallet, _category) {
 
     // Register types for signal and slots
     qRegisterMetaType<libtorrent::sha1_hash>();
@@ -1043,11 +1057,13 @@ Controller::Controller(const Configuration & configuration, bool showView, QNetw
     for(QVector<Torrent::Configuration>::const_iterator i = torrents.begin(),
             end(torrents.end());i != end; ++i) {
 
+        /**
         // Try to add torrent, without prompting user
         if(!addTorrent(*i, false)) {
             qCCritical(_category) << "Unable to add torrent configuration to session";
             return;
         }
+        */
     }
 
     // Show view

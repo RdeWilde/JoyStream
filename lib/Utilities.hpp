@@ -15,6 +15,10 @@ enum class MessageType;
 #include <libtorrent/socket.hpp> // libtorrent::tcp::endpoint
 uint qHash(const libtorrent::tcp::endpoint & endpoint);
 
+#include <QJsonValue>
+
+//class QJsonObject;
+
 /**
  * Static utility functions
  */
@@ -42,6 +46,13 @@ public:
 
     // Count the number of message types
     static int numberOfMessageTypes();
+
+    // Get value from dictionary of given type
+    static bool GET_BOOL(const QJsonObject & dictionary, const QString & key);
+    static double GET_DOUBLE(const QJsonObject & dictionary, const QString & key);
+    static QString GET_STRING(const QJsonObject & dictionary, const QString & key);
+    static QJsonArray GET_ARRAY(const QJsonObject & dictionary, const QString & key);
+    static QJsonObject GET_OBJECT(const QJsonObject & dictionary, const QString & key);
 };
 
 #endif // UTILITIES_HPP

@@ -49,6 +49,15 @@ public:
     friend QDataStream & operator<<(QDataStream& stream, const FixedBuffer<L> & fixedBuffer);
     friend QDataStream & operator>>(QDataStream& stream, FixedBuffer<L> & fixedBuffer);
 
+    // Comparison for use with QMap
+
+    // dont work for whatever reason?
+    friend bool operator<(const FixedBuffer<L> & lhs, const FixedBuffer<L> & rhs);
+    friend bool operator==(const FixedBuffer<L> & lhs, const FixedBuffer<L> & rhs);
+
+    bool less(const FixedBuffer<L> & o) const;
+    bool equals(const FixedBuffer<L> & o) const;
+
 private:
 
     // Actual type fixed buffer
@@ -198,6 +207,40 @@ QDataStream & operator>>(QDataStream& stream, FixedBuffer<L> & fixedBuffer) {
     }
 
     return stream;
+}
+
+template <unsigned int L>
+bool operator<(const FixedBuffer<L> & lhs, const FixedBuffer<L> & rhs) {
+    return lhs.less(rhs);
+}
+
+template <unsigned int L>
+bool operator==(const FixedBuffer<L> & lhs, const FixedBuffer<L> & rhs) {
+    return lhs.equals(rhs);
+}
+
+template <unsigned int L>
+bool FixedBuffer<L>::less(const FixedBuffer<L> & o) const {
+
+    for(unsigned int i = 0;i < L;i++) {
+
+        if(this->at(i) > o.at(i))
+            return false;
+    }
+
+    return true;
+}
+
+template <unsigned int L>
+bool FixedBuffer<L>::equals(const FixedBuffer<L> & o) const {
+
+    for(unsigned int i = 0;i < L;i++) {
+
+        if(this->at(i) != o.at(i))
+            return false;
+    }
+
+    return true;
 }
 
 #endif // FIXED_BUFFER_HPP

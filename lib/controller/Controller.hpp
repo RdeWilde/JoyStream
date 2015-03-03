@@ -5,6 +5,7 @@
 #include "view/MainWindow.hpp"
 #include "extension/Plugin.hpp"
 #include "extension/PeerPluginStatus.hpp" // needed for QT moc <==== Remove later
+#include "extension/BitCoin/Wallet.hpp"
 
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>
@@ -251,7 +252,8 @@ public:
         Configuration(const libtorrent::entry & libtorrentSessionSettingsEntry,
                       const std::pair<int, int> & portRange,
                       const std::vector<std::pair<std::string, int>> & dhtRouters,
-                      const QVector<Torrent::Configuration> & torrents);
+                      const QVector<Torrent::Configuration> & torrents,
+                      const QString walletFile);
 
         // Constructor using dictionary entry
         Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry);
@@ -334,6 +336,9 @@ public:
         const TorrentPlugin::Configuration *torrentPluginConfiguration() const;
         void setTorrentPluginConfiguration(const TorrentPlugin::Configuration *torrentPluginConfiguration);
 
+        QString walletFile() const;
+        void setWalletFile(const QString &walletFile);
+
     private:
 
         /*
@@ -356,6 +361,9 @@ public:
 
         // Torrent configurations
         QVector<Torrent::Configuration> _torrents;
+
+        // Location of wallet file
+        QString _walletFile;
 
     };
 
@@ -407,6 +415,9 @@ private:
 	
     // Underlying libtorrent session
     libtorrent::session _session;
+
+    // Wallet used
+    Wallet _wallet;
 
     // Logging category
     QLoggingCategory & _category;

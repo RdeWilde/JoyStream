@@ -19,6 +19,12 @@ public:
     // Constructor
     OutPoint(const Hash & hash, quint32 index);
 
+    // Constructor from json
+    OutPoint(const QJsonObject & json);
+
+    // Comparison for use with QMap
+    friend bool operator<(const OutPoint & lhs, const OutPoint & rhs);
+
     QJsonObject toJson() const;
 
     // Flat representation, so outpoint can be used as json key
