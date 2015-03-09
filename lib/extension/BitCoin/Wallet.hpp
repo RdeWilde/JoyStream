@@ -1,7 +1,10 @@
 #ifndef WALLET_HPP
 #define WALLET_HPP
 
-#include "PrivateKey.hpp"
+//#include "PrivateKey.hpp"
+//#include "PrivateKey.hpp"
+//#include "PublicKey.hpp"
+#include "KeyPair.hpp"
 #include "OutPoint.hpp"
 
 #include <QDateTime>
@@ -26,7 +29,7 @@ public:
     /**
      * @brief Wallet entry
      */
-    class KeyInformation {
+    class KeyEntry {
 
     public:
 
@@ -39,7 +42,7 @@ public:
         };
 
         /**
-         * @brief
+         * @brief Output entry associated with a an address.
          */
         class Output {
 
@@ -160,20 +163,32 @@ public:
         };
 
         // Defualt constructor for QMap
-        KeyInformation();
+        KeyEntry();
 
         // Constructor from members
-        KeyInformation(const QDateTime & added,
-              const QString & description,
-              const QMap<OutPoint, Output> & outputs);
+        KeyEntry(quint32 n,
+                const KeyPair & keyPair,
+                Source source,
+                const QDateTime & added,
+                const QString & description,
+                const QMap<OutPoint, Output> & outputs);
 
         // Constructor from json dictionary
-        KeyInformation(const QJsonObject & json);
+        KeyEntry(const QJsonObject & json);
 
         // Save wallet as json dictionary
         QJsonObject toJson() const;
 
         // Getters and setters
+        quint32 n() const;
+        void setN(quint32 n);
+
+        KeyPair keyPair() const;
+        void setKeyPair(const KeyPair & keyPair);
+
+        Source source() const;
+        void setSource(Source source);
+
         QDateTime added() const;
         void setAdded(const QDateTime & added);
 
@@ -183,7 +198,24 @@ public:
         QMap<OutPoint, Output> outputs() const;
         void setOutputs(const QMap<OutPoint, Output> & outputs);
 
+        //bool containsOutPoint(const OutPoint & p);
+
+        void addOutPoint(const Output & output);
+
     private:
+
+        // Deterministic seed used for private key, only valid if
+        // _source == Source::Generated
+        quint32 _n;
+
+        // Key pair
+        KeyPair _keyPair;
+
+        // Private key corresponding to public key
+        //PrivateKey _sk;
+
+        // Source of key
+        Source _source;
 
         // Time when key was added to wallet
         QDateTime _added;
@@ -207,6 +239,9 @@ public:
     // Save wallet as json dictionary
     QJsonObject toJson(); // const
 
+    // Number of keys in the wallet
+    int numberOfKeysInWallet();  // const
+
     // Save to disk
     void save(); // const
 
@@ -219,12 +254,37 @@ public:
     // Synchronizes wallet with blockchain
     void synchronize();
 
+    // Kill later, only temporary
+    QString toAddress(const PublicKey & pk) const;
+
     //Entry getAndLockEntry();
+
+    // Add entry for a new receive address
+    KeyEntry addReceiveKey(const QString & description);
+
+    // Generate a fresh set of keys
+    QMap<PublicKey, KeyEntry> generateNewKeys(quint8 numberOfKeys);
+
+    // Getters and setters
+    QMap<PublicKey, KeyEntry> entries();  // const
+    void setEntries(const QMap<PublicKey, KeyEntry> &entries);
+
+    quint64 latestBlockHeight();  // const
 
 private:
 
+    // Seed used for wallet creation: (keep here?)
+    quint64 _walletSeed;
+
+    // Deterministic wallet gab limit
+    quint8 _gabLimit;
+
+    // Number of keys generated since start of wallet,
+    // is used to generate fresh keys.
+    quint64 _keyCount;
+
     // Wallet entries
-    QMap<PrivateKey, KeyInformation> _entries;
+    QMap<PublicKey, KeyEntry> _entries;
 
     // The chain to which wallet belongs
     Chain _chain;
@@ -240,6 +300,15 @@ private:
 
     // Automatically save wallet to disk after every change
     bool _autoSave;
+
+    //
+    quint64 _latestBlockHeight;
+
+    // Add entry to _entries map
+    void addEntry(const PublicKey & pk, const KeyEntry & entry);
+
+    // Add output to _outputs map of entry
+    void addEntryOutput(const PublicKey & pk, const KeyEntry::Output & output);
 };
 
 #endif // WALLET_HPP

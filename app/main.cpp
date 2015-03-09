@@ -117,6 +117,7 @@ void main(int argc, char* argv[]) {
     QLoggingCategory * buyerCategory = global_log_manager.createLogger("buyer", true, false);
 
     // Create main client
+    controllerConfiguration.setWalletFile("C:/Users/Sindre/Desktop/BUILD_DEBUG/app/debug/buyer_wallet.dat");
     Controller buyerClient(controllerConfiguration, true, manager, "Faucet http://faucet.xeno-genesis.com/",*buyerCategory);
 
     std::cout << "Started main client." << std::endl;
@@ -142,6 +143,7 @@ void main(int argc, char* argv[]) {
     QLoggingCategory * sellerCategory = global_log_manager.createLogger("peer", false, false);
 
     // Create peer client
+    controllerConfiguration.setWalletFile("C:/Users/Sindre/Desktop/BUILD_DEBUG/app/debug/seller_wallet.dat");
     Controller sellerClient(controllerConfiguration, true, *sellerCategory);
 
     std::cout << "Started peer client." << std::endl;

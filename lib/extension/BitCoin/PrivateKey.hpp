@@ -3,13 +3,7 @@
 
 #include "FixedBuffer.hpp"
 
-typedef FixedBuffer<44> PrivateKey;
-
-/*
-class PrivateKey : public FixedBuffer<13>
-{
-
-};
-*/
+// strlen(KzVEsf4fzZPk9twhdSP2LviTLjBjqKDNLZSGVPRkchNKZFkkigum) = 52 hex = 26 bytes
+typedef FixedBuffer<26> PrivateKey;
 
 #endif // PRIVATE_KEY_HPP

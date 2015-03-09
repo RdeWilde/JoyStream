@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>579</width>
+    <width>811</width>
     <height>315</height>
    </rect>
   </property>
@@ -17,16 +17,16 @@
    <property name="geometry">
     <rect>
      <x>16</x>
-     <y>14</y>
-     <width>547</width>
-     <height>247</height>
+     <y>44</y>
+     <width>777</width>
+     <height>217</height>
     </rect>
    </property>
   </widget>
   <widget class="QPushButton" name="sendPushButton">
    <property name="geometry">
     <rect>
-     <x>470</x>
+     <x>694</x>
      <y>274</y>
      <width>75</width>
      <height>23</height>
@@ -39,7 +39,7 @@
   <widget class="QPushButton" name="receivePushButton">
    <property name="geometry">
     <rect>
-     <x>388</x>
+     <x>612</x>
      <y>274</y>
      <width>75</width>
      <height>23</height>
@@ -47,6 +47,37 @@
    </property>
    <property name="text">
     <string>Receive</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="numEntriesLabel">
+   <property name="geometry">
+    <rect>
+     <x>18</x>
+     <y>280</y>
+     <width>233</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>12</y>
+     <width>145</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Transactions</string>
    </property>
   </widget>
  </widget>

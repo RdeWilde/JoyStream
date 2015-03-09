@@ -29,7 +29,7 @@ BitSwaprjs::BitSwaprjs(const QString & node, const QString & module)
     , _module(module) {
 }
 
-QJsonObject BitSwaprjs::nodeBlockingCall(const QString & method, const QJsonValue & params) {
+QJsonValue BitSwaprjs::nodeBlockingCall(const QString & method, const QJsonValue & params) {
 
     // Build input dictionary for node script
     QJsonObject input;
@@ -38,14 +38,14 @@ QJsonObject BitSwaprjs::nodeBlockingCall(const QString & method, const QJsonValu
 
     // Turn into string form
     QJsonDocument inputDocument(input);
-    QByteArray byteArrayInput(inputDocument.toJson());
+    QByteArray byteArrayInput(inputDocument.toJson(QJsonDocument::Compact));
     QString encodedInputs = QString(byteArrayInput).replace("\"","#");
 
     // qDebug() << encodedInputs;
 
     // Build argument list
     QStringList args;
-    args << "C:\\Users\\Sindre\\Documents\\GitHub\\BitSwaprjs\\index.js" << encodedInputs;
+    args << "C:/Users/Sindre/Documents/GitHub/BitSwaprjs/index.js" << encodedInputs;
 
     // Allocate process and loop
     QProcess process;
@@ -58,7 +58,7 @@ QJsonObject BitSwaprjs::nodeBlockingCall(const QString & method, const QJsonValu
                      SLOT(quit()));
 
     // Start process async
-    process.start("C:\\Program Files\\nodejs\\node.exe", args);
+    process.start("C:/Program Files/nodejs/node.exe", args);
 
     // Wait for process to be finished
     loop.exec();
@@ -66,22 +66,26 @@ QJsonObject BitSwaprjs::nodeBlockingCall(const QString & method, const QJsonValu
     // Read what process dumped
     QByteArray rawOutput = process.readAll();
 
-    //qDebug() << rawOutput;
+    qDebug() << rawOutput;
 
     // Decode into json
-    QJsonDocument outputDocument = QJsonDocument::fromJson(rawOutput);
+    QJsonParseError parseError;
+    QJsonDocument outputDocument = QJsonDocument::fromJson(rawOutput, &parseError);
+
+    Q_ASSERT(parseError.error == QJsonParseError::NoError);
 
     // Return json object
     QJsonObject o = outputDocument.object();
 
-    if(o["state"] != 1) {
+    // get value for state key2
+    QJsonValue successValue = o["success"];
+
+    Q_ASSERT(successValue.type() == QJsonValue::Bool);
+
+    if(!successValue.toBool())
         throw std::exception("Error state returned.");
-    } else {
-
-        QJsonValue result =  o["result"];
-
-        return result.toObject();
-    }
+    else
+        return o["result"];
 }
 
 QList<KeyPair> BitSwaprjs::generate_fresh_key_pairs(int numberOfPairs) {
@@ -89,13 +93,15 @@ QList<KeyPair> BitSwaprjs::generate_fresh_key_pairs(int numberOfPairs) {
     // Make call to generate keys
     QJsonValue result = nodeBlockingCall("generate_fresh_key_pairs", QJsonValue(numberOfPairs));
 
-    // Create list for key pairs
-    QList<KeyPair> keyPairs;
+    Q_ASSERT(result.type() == QJsonValue::Array);
 
     QJsonArray jsonKeyPairsArray = result.toArray();
 
-    for(QJsonArray::iterator i = jsonKeyPairsArray.begin(),
-        end(jsonKeyPairsArray.end()); i != end;i++) {
+    // Create list for key pairs
+    QList<KeyPair> keyPairs;
+
+    for(QJsonArray::const_iterator i = jsonKeyPairsArray.constBegin();
+        i != jsonKeyPairsArray.constEnd();i++) {
 
         // Get json array element
         QJsonValue element = *i;
@@ -106,6 +112,7 @@ QList<KeyPair> BitSwaprjs::generate_fresh_key_pairs(int numberOfPairs) {
         // Get keypair from map and add to keypair list
         QString pkString = map["pk"].toString();
         QString skString = map["sk"].toString();
+
         QString addressString = map["address"].toString();
 
         keyPairs.append(KeyPair(PublicKey(pkString), PrivateKey(skString)));
@@ -215,4 +222,18 @@ UnspentP2PKHOutput BitSwaprjs::get_utxo(quint64 minimalValue) {
 
     // Implement later
     return UnspentP2PKHOutput();
+}
+
+QString BitSwaprjs::to_address(const PublicKey & pk) {
+
+    // Create parameters
+    QJsonObject params {
+        {"pk", pk.toString()},
+    };
+
+    // Make call
+    QJsonValue result = nodeBlockingCall("to_address", QJsonValue(params));
+
+    // Turn into bool result
+    return result.toString();
 }

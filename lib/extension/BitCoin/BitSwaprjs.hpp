@@ -21,6 +21,7 @@ class P2PKHTxOut;
 class P2SHTxOut;
 class UnspentP2PKHOutput;
 
+// Wraps BitSwaprjs
 class BitSwaprjs
 {
 public:
@@ -41,13 +42,17 @@ public:
 
     static UnspentP2PKHOutput get_utxo(quint64 minimalValue);
 
+    // We wont bother with an address class as that gets complicated with all the different
+    // address types.
+    static QString to_address(const PublicKey & pk);
+
 private:
 
     QString _node;
 
     QString _module;
 
-    static QJsonObject nodeBlockingCall(const QString & method, const QJsonValue & params);
+    static QJsonValue nodeBlockingCall(const QString & method, const QJsonValue & params);
 };
 
 #endif // BITSWAPRJS_HPP

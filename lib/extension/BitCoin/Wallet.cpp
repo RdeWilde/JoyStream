@@ -1,4 +1,5 @@
 #include "Wallet.hpp"
+#include "BitSwaprjs.hpp"
 
 #include <QJsonValue>
 #include <QJsonObject>
@@ -9,10 +10,10 @@
  * Wallet::Entry::Output
  */
 
- Wallet::KeyInformation::Output::Output() {
+ Wallet::KeyEntry::Output::Output() {
  }
 
- Wallet::KeyInformation::Output::Output(const OutPoint & point,
+ Wallet::KeyEntry::Output::Output(const OutPoint & point,
                              const QDateTime & added,
                              const QString & description,
                              Type type,
@@ -32,7 +33,7 @@
     , _spent(spent){
  }
 
- Wallet::KeyInformation::Output::Output(const QJsonObject & json) {
+ Wallet::KeyEntry::Output::Output(const QJsonObject & json) {
 
     // _point
     QJsonObject pointObject = Utilities::GET_OBJECT(json, "_point");
@@ -75,11 +76,11 @@
     _spent = Utilities::GET_BOOL(json, "_spent");
  }
 
- bool Wallet::KeyInformation::Output::operator<(const Output & rhs) {
+ bool Wallet::KeyEntry::Output::operator<(const Output & rhs) {
      return _point < rhs.point();
  }
 
- QJsonObject Wallet::KeyInformation::Output::toJson() const {
+ QJsonObject Wallet::KeyEntry::Output::toJson() const {
 
      QJsonObject json;
 
@@ -106,75 +107,75 @@
      return json;
  }
 
- OutPoint Wallet::KeyInformation::Output::point() const {
+ OutPoint Wallet::KeyEntry::Output::point() const {
      return _point;
  }
 
- void Wallet::KeyInformation::Output::setPoint(const OutPoint & point) {
+ void Wallet::KeyEntry::Output::setPoint(const OutPoint & point) {
      _point = point;
  }
 
- QDateTime Wallet::KeyInformation::Output::added() const {
+ QDateTime Wallet::KeyEntry::Output::added() const {
      return _added;
  }
 
- void Wallet::KeyInformation::Output::setAdded(const QDateTime & added) {
+ void Wallet::KeyEntry::Output::setAdded(const QDateTime & added) {
      _added = added;
  }
 
- QString Wallet::KeyInformation::Output::description() const {
+ QString Wallet::KeyEntry::Output::description() const {
      return _description;
  }
 
- void Wallet::KeyInformation::Output::setDescription(const QString & description) {
+ void Wallet::KeyEntry::Output::setDescription(const QString & description) {
      _description = description;
  }
 
-  Wallet::KeyInformation::Output::Type Wallet::KeyInformation::Output::type() const {
+  Wallet::KeyEntry::Output::Type Wallet::KeyEntry::Output::type() const {
      return _type;
   }
 
-  void Wallet::KeyInformation::Output::setType(Type type) {
+  void Wallet::KeyEntry::Output::setType(Type type) {
       _type = type;
   }
 
-  Wallet::KeyInformation::Output::State Wallet::KeyInformation::Output::state() const {
+  Wallet::KeyEntry::Output::State Wallet::KeyEntry::Output::state() const {
       return _state;
   }
 
-  void Wallet::KeyInformation::Output::setState(State state) {
+  void Wallet::KeyEntry::Output::setState(State state) {
       _state = state;
   }
 
-  quint64 Wallet::KeyInformation::Output::value() const {
+  quint64 Wallet::KeyEntry::Output::value() const {
       return _value;
   }
 
-  void Wallet::KeyInformation::Output::setValue(quint64 value) {
+  void Wallet::KeyEntry::Output::setValue(quint64 value) {
       _value = value;
   }
 
-  Hash Wallet::KeyInformation::Output::blockHash() const {
+  Hash Wallet::KeyEntry::Output::blockHash() const {
       return _blockHash;
   }
 
-  void Wallet::KeyInformation::Output::setBlockHash(const Hash & blockHash) {
+  void Wallet::KeyEntry::Output::setBlockHash(const Hash & blockHash) {
       _blockHash = blockHash;
   }
 
-  quint32 Wallet::KeyInformation::Output::blockHeight() const {
+  quint32 Wallet::KeyEntry::Output::blockHeight() const {
       return _blockHeight;
   }
 
-  void Wallet::KeyInformation::Output::setBlockHeight(quint32 blockHeight) {
+  void Wallet::KeyEntry::Output::setBlockHeight(quint32 blockHeight) {
       _blockHeight = blockHeight;
   }
 
-  bool Wallet::KeyInformation::Output::spent() const {
+  bool Wallet::KeyEntry::Output::spent() const {
       return _spent;
   }
 
-  void Wallet::KeyInformation::Output::setSpent(bool spent) {
+  void Wallet::KeyEntry::Output::setSpent(bool spent) {
       _spent = spent;
   }
 
@@ -182,17 +183,25 @@
  * Wallet::Entry
  */
 
-  Wallet::KeyInformation::KeyInformation() {
+  Wallet::KeyEntry::KeyEntry() {
 
   }
 
-  Wallet::KeyInformation::KeyInformation(const QDateTime & added, const QString & description, const QMap<OutPoint, Output> & outputs)
-    : _added(added)
+  Wallet::KeyEntry::KeyEntry(quint32 n,
+                             const KeyPair & keyPair,
+                             Source source,
+                             const QDateTime & added,
+                             const QString & description,
+                             const QMap<OutPoint, Output> & outputs)
+    : _n(n)
+    , _keyPair(keyPair)
+    , _source(source)
+    , _added(added)
     , _description(description)
     , _outputs(outputs) {
   }
 
-  Wallet::KeyInformation::KeyInformation(const QJsonObject & json) {
+  Wallet::KeyEntry::KeyEntry(const QJsonObject & json) {
 
       // Parse _added
       QString addedString = Utilities::GET_STRING(json, "_added");
@@ -221,7 +230,7 @@
       }
   }
 
-  QJsonObject Wallet::KeyInformation::toJson() const {
+  QJsonObject Wallet::KeyEntry::toJson() const {
 
       QJsonObject json;
 
@@ -243,28 +252,70 @@
       return json;
   }
 
-  QDateTime Wallet::KeyInformation::added() const {
+  Wallet::KeyEntry::Source Wallet::KeyEntry::source() const {
+      return _source;
+  }
+
+  void Wallet::KeyEntry::setSource(Source source) {
+      _source = source;
+  }
+
+  KeyPair Wallet::KeyEntry::keyPair() const {
+      return _keyPair;
+  }
+
+  void Wallet::KeyEntry::setKeyPair(const KeyPair & keyPair) {
+      _keyPair = keyPair;
+  }
+
+  quint32 Wallet::KeyEntry::n() const {
+      return _n;
+  }
+
+  void Wallet::KeyEntry::setN(quint32 n) {
+      _n = n;
+  }
+
+  QDateTime Wallet::KeyEntry::added() const {
       return _added;
   }
 
-  void Wallet::KeyInformation::setAdded(const QDateTime & added) {
+  void Wallet::KeyEntry::setAdded(const QDateTime & added) {
       _added = added;
   }
 
-  QString Wallet::KeyInformation::description() const {
+  QString Wallet::KeyEntry::description() const {
       return _description;
   }
 
-  void Wallet::KeyInformation::setDescription(const QString & description) {
+  void Wallet::KeyEntry::setDescription(const QString & description) {
       _description = description;
   }
 
-  QMap<OutPoint, Wallet::KeyInformation::Output> Wallet::KeyInformation::outputs() const {
+  QMap<OutPoint, Wallet::KeyEntry::Output> Wallet::KeyEntry::outputs() const {
       return _outputs;
   }
 
-  void Wallet::KeyInformation::setOutputs(const QMap<OutPoint, Wallet::KeyInformation::Output> & outputs) {
+  void Wallet::KeyEntry::setOutputs(const QMap<OutPoint, Wallet::KeyEntry::Output> & outputs) {
       _outputs = outputs;
+  }
+
+/**
+  bool Wallet::KeyEntry::containsOutPoint(const OutPoint & p) {
+    return _outputs.contains(p);
+  }
+*/
+
+  void Wallet::KeyEntry::addOutPoint(const Output & output) {
+
+      OutPoint outpoint = output.point();
+
+      // Check if outpoint already in map
+      if(_outputs.contains(outpoint))
+          throw new std::exception("Output already part of _outputs in KeyEntry.");
+
+      // Store in map
+      _outputs[outpoint] = output;
   }
 
 /**
@@ -278,7 +329,7 @@
   Wallet::Wallet(const QString & file, bool autoSave)
     : _walletFileName(file)
     , _autoSave(autoSave)
-    , _walletFile(file){
+    , _walletFile(file) {
 
       // Open wallet file
       if(!_walletFile.open(QIODevice::ReadWrite | QIODevice::Text))
@@ -295,6 +346,19 @@
       QJsonDocument doc = QJsonDocument::fromJson(walletRaw);
       QJsonObject walletDictionary = doc.object();
 
+      // If wallet was empty, we are done loading
+      if(walletDictionary.size() == 0)
+          return;
+
+      // Parse out _walletSeed
+      _walletSeed = Utilities::GET_DOUBLE(walletDictionary, "_walletSeed");
+
+      // Parse out _gabLimit
+      _gabLimit = Utilities::GET_DOUBLE(walletDictionary, "_gabLimit");
+
+      // Parse out _keyCount
+      _keyCount = Utilities::GET_DOUBLE(walletDictionary, "_keyCount");
+
       // Parse out _entries
       QJsonObject entriesDictionary = Utilities::GET_OBJECT(walletDictionary, "_entries");
 
@@ -302,12 +366,12 @@
           i != entriesDictionary.constEnd();i++) {
 
           // Parse key into PrivateKey
-          QJsonValue privateKeyValue = i.key();
+          QJsonValue publicKeyValue = i.key();
 
-          if(privateKeyValue != QJsonValue::String)
+          if(publicKeyValue != QJsonValue::String)
               throw new std::exception("key in _entries not of type QJsonValue::String.");
 
-          PrivateKey key(privateKeyValue.toString());
+          PublicKey key(publicKeyValue.toString());
 
           // Parse into KeyInformation
           QJsonValue keyInformationValue = i.value();
@@ -316,7 +380,7 @@
             throw new std::exception("value in _entries not of type QJsonValue::Object.");
 
           // Save mapping
-          _entries[key] = KeyInformation(keyInformationValue.toObject());
+          _entries[key] = KeyEntry(keyInformationValue.toObject());
       }
 
       // Parse out _entries
@@ -339,7 +403,7 @@
       // Jsonify _entries
       QJsonObject entriesObject;
 
-      for(QMap<PrivateKey, KeyInformation>::const_iterator i = _entries.constBegin();
+      for(QMap<PublicKey, KeyEntry>::const_iterator i = _entries.constBegin();
           i != _entries.constEnd();i++)
         entriesObject[(i.key()).toString()] = (i.value()).toJson();
 
@@ -354,6 +418,17 @@
       _mutex.unlock();
 
       return wallet;
+  }
+
+  int Wallet::numberOfKeysInWallet() {
+
+      int num;
+
+      _mutex.lock();
+      num = _entries.size();
+      _mutex.unlock();
+
+      return num;
   }
 
   void Wallet::save() {
@@ -395,12 +470,12 @@
       quint32 currentBlockHeight = blockHeight();
 
       // Iterate entries and corresponding outputs
-      for(QMap<PrivateKey, KeyInformation>::const_iterator i = _entries.constBegin();
+      for(QMap<PublicKey, KeyEntry>::const_iterator i = _entries.constBegin();
           i != _entries.constEnd();i++) {
 
           // Iterate outputs
-          const QMap<OutPoint, KeyInformation::Output> & outputs = i->outputs();
-          for(QMap<OutPoint, KeyInformation::Output>::const_iterator i = outputs.constBegin();
+          const QMap<OutPoint, KeyEntry::Output> & outputs = i->outputs();
+          for(QMap<OutPoint, KeyEntry::Output>::const_iterator i = outputs.constBegin();
               i != outputs.constEnd();i++) {
 
               // Check that output has sufficient number of confirmations
@@ -425,3 +500,128 @@
 
       _mutex.unlock();
   }
+
+  QString Wallet::toAddress(const PublicKey & pk) const {
+      return BitSwaprjs::to_address(pk);
+  }
+
+  Wallet::KeyEntry Wallet::addReceiveKey(const QString & description) {
+
+      _mutex.lock();
+
+      // Generate key pair: future use _walletSeed and _keyCount to generate fresh key: PrivateKey(H(seed + n))
+      QList<KeyPair> pairs = BitSwaprjs::generate_fresh_key_pairs(1);
+
+      if(pairs.size() != 1)
+          throw std::exception("Could not generate new key.");
+
+      KeyPair & pair = pairs[0];
+
+      // Create entry
+      KeyEntry entry = KeyEntry(_keyCount++,
+                                pair,
+                                KeyEntry::Source::Generated,
+                                QDateTime::currentDateTime(),
+                                description,
+                                QMap<OutPoint, KeyEntry::Output>());
+      // Add to map
+      _entries[pair.pk()] = entry;
+
+      _mutex.unlock();
+
+      // Return entry
+      return entry;
+  }
+
+  QMap<PublicKey, Wallet::KeyEntry> Wallet::generateNewKeys(quint8 numberOfKeys) {
+
+      // Generate key pair: future use _walletSeed and _keyCount to generate fresh key: PrivateKey(H(seed + n))
+      const QList<KeyPair> & pairs = BitSwaprjs::generate_fresh_key_pairs(numberOfKeys);
+
+      _mutex.lock();
+
+      QMap<PublicKey, Wallet::KeyEntry> newEntries;
+
+      // Create new key
+      for(quint8 i = 0;i < numberOfKeys;i++) {
+
+          // Get key pair
+          const KeyPair & pair = pairs[i];
+
+          // Create entry
+          KeyEntry entry = KeyEntry(_keyCount++,
+                                    pair,
+                                    KeyEntry::Source::Generated,
+                                    QDateTime::currentDateTime(),
+                                    "generateNewKeys()",
+                                    QMap<OutPoint, KeyEntry::Output>());
+
+          // Add to maps
+          newEntries[pair.pk()] = entry;
+          _entries[pair.pk()] = entry;
+      }
+
+      _mutex.unlock();
+
+      return newEntries;
+  }
+
+  void Wallet::addEntry(const PublicKey & pk, const KeyEntry & entry) {
+
+      // Check if key already has entry
+      if(_entries.contains(pk))
+          throw new std::exception("key already has entry in wallet.");
+
+      // Add to map
+      _entries[pk] = entry;
+  }
+
+  void Wallet::addEntryOutput(const PublicKey & pk, const KeyEntry::Output & output) {
+
+      // Check if key is in map
+      if(!_entries.contains(pk))
+          throw new std::exception("key does not have entry in wallet.");
+
+      // Get reference to entry
+      KeyEntry & entry = _entries[pk];
+
+      // Add outpoint to entry
+      entry.addOutPoint(output);
+  }
+
+  QMap<PublicKey, Wallet::KeyEntry> Wallet::entries() {
+
+      QMap<PublicKey, KeyEntry> copy;
+
+      _mutex.lock();
+      copy = _entries;
+      _mutex.unlock();
+
+      return copy;
+  }
+
+  void Wallet::setEntries(const QMap<PublicKey, KeyEntry> &entries) {
+
+      _mutex.lock();
+      _entries = entries;
+      _mutex.unlock();
+  }
+
+  quint64 Wallet::latestBlockHeight() {
+
+      quint64 copy;
+
+      _mutex.lock();
+      copy = _latestBlockHeight;
+      _mutex.unlock();
+
+      return copy;
+  }
+/**
+  void Wallet::setLatestBlockHeight(quint64 latestBlockHeight) {
+
+      _mutex.lock();
+      _latestBlockHeight = latestBlockHeight;
+      _mutex.unlock();
+  }
+*/

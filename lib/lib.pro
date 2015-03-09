@@ -77,7 +77,8 @@ SOURCES += \
     extension/Alert/BuyerTorrentPluginStatuAlert.cpp \
     extension/BitCoin/UnspentP2PKHOutput.cpp \
     extension/BitCoin/Wallet.cpp \
-    view/WalletDialog.cpp
+    view/WalletDialog.cpp \
+    extension/BitCoin/PublicKey.cpp
 		
 HEADERS += \
     controller/Controller.hpp \

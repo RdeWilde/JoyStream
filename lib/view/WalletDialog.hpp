@@ -21,8 +21,17 @@ public:
     WalletDialog(Wallet * wallet);
     ~WalletDialog();
 
+    // Updates view
+    void refresh();
+
+    // Clear view model table
+    void clearWalletTableView();
+
     // Clears and repopulates walletTableView
     void updateWalletTableView();
+
+private slots:
+    void on_receivePushButton_clicked();
 
 private:
     Ui::WalletDialog *ui;
@@ -38,7 +47,6 @@ private:
     QModelIndex _walletTableLastIndexClicked; // Last model index for mouse click
 
     //std::map<libtorrent::sha1_hash, TorrentViewModel *> _torrentViewModels; // Maps info_hash of models to corresponding TorrentViewModel
-
 };
 
 #endif // WALLETDIALOG_HPP
