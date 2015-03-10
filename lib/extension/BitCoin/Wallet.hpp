@@ -10,6 +10,8 @@
 #include <QDateTime>
 #include <QFile>
 #include <QMap>
+#include <QVector>
+#include <QSet>
 
 /**
  * @brief Naive Btc Micropayment wallet
@@ -27,157 +29,146 @@ public:
     };
 
     /**
-     * @brief Wallet entry
+    * @brief Purpose for which key was generated
+    */
+    enum class Purpose {
+
+        // Standard receive transaction, not associated with payment channel
+        Receive,
+
+        // All below are associated with payment channels
+
+        /**
+         * Buyer key purposes
+         */
+
+        // Change output of contract
+        ContractChange,
+
+        // Controls buyer portion of contract multisig output
+        BuyerInContractOutput,
+
+        // Final payment (change/refund) of a particular output of a contract
+        ContractFinal,
+
+        /**
+         * Seller key purposes
+         */
+
+        // Controls sellers portion of contract multisig output
+        SellerInContractOutput,
+
+        // Payment of a particular output of a contract
+        ContractPayment
+    };
+
+    /**
+     * @brief Event associated with a transaction output controlled by a wallet key.
      */
-    class KeyEntry {
+    class TxOEvent {
 
     public:
 
-        /**
-         * @brief Private key source
-         */
-        enum class Source {
-            Generated,
-            Imported
+        enum class Type {
+
+            // Spend UTXO
+            Send,
+
+            // Receive UTXO
+            Receive
         };
 
-        /**
-         * @brief Output entry associated with a an address.
-         */
-        class Output {
-
-        public:
-
-            /**
-            * @brief Types of output
-            */
-            enum class Type {
-
-                // Change output of contract
-                ContractChange,
-
-                // Change of a particular output of a contract
-                ContractOutputChange,
-
-                // Refund of a particular output of a contract
-                ContractOutputRefund,
-
-                // Payment of a particular output of a contract
-                Payment,
-
-                // Standard receive transaction, not associated with payment channel
-                Receive
-            };
-
-            /**
-             * @brief State of output
-             */
-            enum class State {
-
-                // Whether output is reserved for
-                // some spending purpose.
-
-                Free,
-                Locked
-            };
-
-            // Default constructor
-            Output();
-
-            // Constructor from members
-            Output(const OutPoint & point,
-                   const QDateTime & added,
-                   const QString & description,
-                   Type type,
-                   State state,
-                   quint64 value,
-                   const Hash & blockHash,
-                   quint32 blockHeight,
-                   bool spent);
-
-            // Constructor from json dictionary
-            Output(const QJsonObject & json);
-
-            // Used for comparison function to put Output in QMap
-            bool operator<(const Output & rhs);
-
-            // Save wallet as json dictionary
-            QJsonObject toJson() const;
-
-            // Getters and setters
-            OutPoint point() const;
-            void setPoint(const OutPoint & point);
-
-            QDateTime added() const;
-            void setAdded(const QDateTime & added);
-
-            QString description() const;
-            void setDescription(const QString & description);
-
-            Type type() const;
-            void setType(Type type);
-
-            State state() const;
-            void setState(State state);
-
-            quint64 value() const;
-            void setValue(quint64 value);
-
-            Hash blockHash() const;
-            void setBlockHash(const Hash & blockHash);
-
-            quint32 blockHeight() const;
-            void setBlockHeight(quint32 blockHeight);
-
-            bool spent() const;
-            void setSpent(bool spent);
-
-        private:
-
-            // Outpoint
-            OutPoint _point;
-
-            // Time when output was added to wallet
-            QDateTime _added;
-
-            // Description of output
-            QString _description;
-
-            // Semantic type of output
-            Type _type;
-
-            // State of outpoint in wallet
-            State _state;
-
-            // Value of output
-            quint64 _value;
-
-            // Hash of bock to which _point belongs
-            Hash _blockHash;
-
-            // Height of block - use to compute #confirmations
-            quint32 _blockHeight;
-
-            // point is spent
-            bool _spent;
-        };
-
-        // Defualt constructor for QMap
-        KeyEntry();
+        // Default constructor
+        TxOEvent();
 
         // Constructor from members
-        KeyEntry(quint32 n,
-                const KeyPair & keyPair,
-                Source source,
-                const QDateTime & added,
-                const QString & description,
-                const QMap<OutPoint, Output> & outputs);
+        TxOEvent(Type type,
+               const OutPoint & outpoint,
+               const quint64 value,
+               const QDateTime & firstSeen,
+               quint32 blockHeight);
 
         // Constructor from json dictionary
-        KeyEntry(const QJsonObject & json);
+        TxOEvent(const QJsonObject & json);
+
+        // Required for sorting
+        bool operator<(const TxOEvent & o) const;
 
         // Save wallet as json dictionary
         QJsonObject toJson() const;
+
+        // Getters and setters
+        Type type() const;
+        void setType(Type type);
+
+        OutPoint outpoint() const;
+        void setOutpoint(const OutPoint & outpoint);
+
+        quint64 value() const;
+        void setValue(quint64 value);
+
+        QDateTime firstSeen() const;
+        void setFirstSeen(const QDateTime & firstSeen);
+
+        quint32 blockHeight() const;
+        void setBlockHeight(quint32 blockHeight);
+
+    private:
+
+        // Type of TxO event
+        // May not really be needed!!!!!!
+        Type _type;
+
+        // Send: spent utxo, Receive: received utxo
+        OutPoint _outpoint;
+
+        // Value of _outpoint
+        quint64 _value;
+
+        // Time event was first seen on wire
+        QDateTime _firstSeen;
+
+        // Height of block with transaction containing _outpoint
+        // used to compute #confirmations
+        quint32 _blockHeight;
+
+        // !!!NOT USED AT PRESENT!!!
+        // DO WE NEED THIS, AND SHOULD IT BE PART OF PERSISTENT WALLET STATE
+        // Is set to true while the transaction is not in a block, i.e. only
+        // observed, or the block is part of the longest known chain.
+        bool _onMainChain;
+    };
+
+    /**
+     * @brief Wallet entry
+     */
+    class Entry {
+
+    public:
+
+        // Defualt constructor for QMap
+        Entry();
+
+        // Constructor from members
+        Entry(quint32 n,
+            const KeyPair & keyPair,
+            Purpose purpose,
+            const QDateTime & generated,
+            const QString & description,
+            const QMap<OutPoint, TxOEvent> send,
+            const QMap<OutPoint, TxOEvent> receive);
+
+        // Constructor from json dictionary
+        Entry(const QJsonObject & json);
+
+        // Save wallet as json dictionary
+        QJsonObject toJson() const;
+
+        // Add TxO event
+        //void addTxOEvent(const TxOEvent & txOEvent);
+
+        // Is given outpoint utxo for given key
+        bool isUTxO(const OutPoint & outPoint) const;
 
         // Getters and setters
         quint32 n() const;
@@ -186,45 +177,58 @@ public:
         KeyPair keyPair() const;
         void setKeyPair(const KeyPair & keyPair);
 
-        Source source() const;
-        void setSource(Source source);
+        Purpose purpose() const;
+        void setPurpose(Purpose purpose);
 
-        QDateTime added() const;
-        void setAdded(const QDateTime & added);
+        QDateTime generated() const;
+        void setGenerated(const QDateTime & generated);
 
         QString description() const;
         void setDescription(const QString & description);
 
-        QMap<OutPoint, Output> outputs() const;
-        void setOutputs(const QMap<OutPoint, Output> & outputs);
+        QMap<OutPoint, TxOEvent> send() const;
+        void setSend(const QMap<OutPoint, TxOEvent> &send);
 
-        //bool containsOutPoint(const OutPoint & p);
-
-        void addOutPoint(const Output & output);
+        QMap<OutPoint, TxOEvent> receive() const;
+        void setReceive(const QMap<OutPoint, TxOEvent> &receive);
 
     private:
 
-        // Deterministic seed used for private key, only valid if
-        // _source == Source::Generated
+        // Deterministic seed used for private key
         quint32 _n;
 
         // Key pair
         KeyPair _keyPair;
 
-        // Private key corresponding to public key
-        //PrivateKey _sk;
-
-        // Source of key
-        Source _source;
+        // Purpose of key
+        Purpose _purpose;
 
         // Time when key was added to wallet
-        QDateTime _added;
+        QDateTime _generated;
 
         // Description of key
         QString _description;
 
-        // All outputs associated with given key
-        QMap<OutPoint, Output> _outputs;
+        // Transaction output events
+        //QVector<TxOEvent> _txoEvents;
+
+        // Send events, key is utxo spend in event
+        QMap<OutPoint, TxOEvent> _send;
+
+        // Receive events, key is utxo created in event
+        QMap<OutPoint, TxOEvent> _receive;
+
+        /**
+         * Both sets below are deduced from _txoEvents,
+         * they do not persist.
+         */
+
+        // Currently locked subset of _receive.
+        // These will not be returned when
+        // requesting utxo from wallet. Outputs are placed here when
+        // a payment channel is being constructed which spends them, but
+        // where the contract has not yet been broadcasted.
+        QSet<OutPoint> _locked;
     };
 
     // Constructor from wallet file
@@ -260,31 +264,31 @@ public:
     //Entry getAndLockEntry();
 
     // Add entry for a new receive address
-    KeyEntry addReceiveKey(const QString & description);
+    Entry addReceiveKey(const QString & description, Purpose purpose);
 
     // Generate a fresh set of keys
-    QMap<PublicKey, KeyEntry> generateNewKeys(quint8 numberOfKeys);
+    QMap<PublicKey, Entry> generateNewKeys(quint8 numberOfKeys, Purpose purpose);
 
     // Getters and setters
-    QMap<PublicKey, KeyEntry> entries();  // const
-    void setEntries(const QMap<PublicKey, KeyEntry> &entries);
+    QMap<PublicKey, Entry> entries();  // const
+    void setEntries(const QMap<PublicKey, Entry> &entries);
 
     quint64 latestBlockHeight();  // const
 
 private:
 
     // Seed used for wallet creation: (keep here?)
-    quint64 _walletSeed;
+    qint64 _walletSeed;
 
     // Deterministic wallet gab limit
-    quint8 _gabLimit;
+    int _gapLimit;
 
     // Number of keys generated since start of wallet,
     // is used to generate fresh keys.
-    quint64 _keyCount;
+    qint64 _keyCount;
 
     // Wallet entries
-    QMap<PublicKey, KeyEntry> _entries;
+    QMap<PublicKey, Entry> _entries;
 
     // The chain to which wallet belongs
     Chain _chain;
@@ -301,14 +305,19 @@ private:
     // Automatically save wallet to disk after every change
     bool _autoSave;
 
-    //
-    quint64 _latestBlockHeight;
+    // Latest known block height
+    qint64 _latestBlockHeight;
 
+    // Used by constructor to load wallet from dictionary, is not synchronized
+    void fromJson(const QJsonObject & walletDictionary);
+
+    /*
     // Add entry to _entries map
-    void addEntry(const PublicKey & pk, const KeyEntry & entry);
+    void addEntry(const PublicKey & pk, const Entry & entry);
 
     // Add output to _outputs map of entry
-    void addEntryOutput(const PublicKey & pk, const KeyEntry::Output & output);
+    void addEntryOutput(const PublicKey & pk, const Entry::Output & output);
+    */
 };
 
 #endif // WALLET_HPP

@@ -18,6 +18,11 @@ public:
     // Constructor
     KeyPair(const PublicKey & pk, const PrivateKey & sk);
 
+    // Constructor from json
+    KeyPair(const QJsonObject & json);
+
+    QJsonObject toJson() const;
+
     // Getters and setters
     PublicKey pk() const;
     void setPk(const PublicKey &pk);

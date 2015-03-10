@@ -66,7 +66,7 @@ QJsonValue BitSwaprjs::nodeBlockingCall(const QString & method, const QJsonValue
     // Read what process dumped
     QByteArray rawOutput = process.readAll();
 
-    qDebug() << rawOutput;
+    //qDebug() << rawOutput;
 
     // Decode into json
     QJsonParseError parseError;

@@ -61,6 +61,7 @@ public:
 private:
 
     // Actual type fixed buffer
+    // 0 is most significant byte for comparisons
     char _buffer[L];
 };
 
@@ -222,6 +223,7 @@ bool operator==(const FixedBuffer<L> & lhs, const FixedBuffer<L> & rhs) {
 template <unsigned int L>
 bool FixedBuffer<L>::less(const FixedBuffer<L> & o) const {
 
+    // 0 is most significant byte
     for(unsigned int i = 0;i < L;i++) {
 
         if(this->at(i) > o.at(i))
@@ -234,6 +236,7 @@ bool FixedBuffer<L>::less(const FixedBuffer<L> & o) const {
 template <unsigned int L>
 bool FixedBuffer<L>::equals(const FixedBuffer<L> & o) const {
 
+    // 0 is most significant byte
     for(unsigned int i = 0;i < L;i++) {
 
         if(this->at(i) != o.at(i))
