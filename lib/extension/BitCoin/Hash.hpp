@@ -3,6 +3,6 @@
 
 #include "FixedBuffer.hpp"
 
-typedef FixedBuffer<32> Hash;
+typedef FixedBuffer<64> Hash;
 
 #endif // HASH_HPP

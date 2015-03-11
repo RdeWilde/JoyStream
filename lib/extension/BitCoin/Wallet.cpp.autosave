@@ -578,7 +578,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
           Wallet::TxOEvent & event = *i;
 
           if(event.type() == Wallet::TxOEvent::Type::Receive)
-
+              
       }
 
       _mutex.unlock();

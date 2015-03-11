@@ -4,7 +4,7 @@
 #include "FixedBuffer.hpp"
 
 // strlen(03505ea93acd423afcb19c82ca90e1b5b0e950803b661e524949480403f1a678cf) = 66 hex = 33 bytes
-typedef FixedBuffer<33> PublicKey;
+typedef FixedBuffer<66> PublicKey;
 
 // qMapLessThanKey is used by QMap to sort keys using < operator of type.
 // Since the implementation is already built, there is not way to provide the

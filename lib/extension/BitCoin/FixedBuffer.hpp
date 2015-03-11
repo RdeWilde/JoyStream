@@ -62,7 +62,12 @@ private:
 
     // Actual type fixed buffer
     // 0 is most significant byte for comparisons
-    char _buffer[L];
+    //char _buffer[L];
+
+    // LOL: end using qstring for now since I ran into encoding issues,
+    // later we will substitite this class with proper types any way,
+    // so not worth messing around with base58 encoding.
+    QString _buffer;
 };
 
 /**
@@ -75,10 +80,11 @@ template <unsigned int L>
 FixedBuffer<L>::FixedBuffer(const QString & string) {
 
     // Check that string has correct length
-    if(string.length() != 2*L)
-        throw std::exception("String argument is of incorrect length, should be 2*L.");
+    if(string.length() != L)
+        throw std::exception("String argument is of incorrect length, should be L.");
     else {
 
+        /**
         // Decode from hex format
         QByteArray b = QByteArray::fromHex(string.toLatin1());
 
@@ -86,6 +92,9 @@ FixedBuffer<L>::FixedBuffer(const QString & string) {
 
         // Copy into buffer
         memcpy(&_buffer, b.constData(), L);
+        */
+
+        _buffer = string;
     }
 }
 
@@ -119,7 +128,7 @@ char FixedBuffer<L>::at(unsigned int index) const {
     if(index + 1 > L)
         throw std::exception("Index exceeds buffer.");
     else
-        return _buffer[index];
+        return _buffer[index].toLatin1();
 }
 
 template <unsigned int L>
@@ -135,8 +144,10 @@ void FixedBuffer<L>::set(unsigned int index, char value) {
 template <unsigned int L>
 void FixedBuffer<L>::clear() {
 
-    for(unsigned int i = 0;i < L;i++)
-        _buffer[i] = 0;
+    //for(unsigned int i = 0;i < L;i++)
+    //    _buffer[i] = 0;
+
+    _buffer = QString(L,' ');
 }
 
 template <unsigned int L>
@@ -155,6 +166,7 @@ bool FixedBuffer<L>::isClear() const {
 template <unsigned int L>
 QString FixedBuffer<L>::toString() const {
 
+    /**
     // Put into byte array
     QByteArray raw(_buffer, L);
 
@@ -163,6 +175,9 @@ QString FixedBuffer<L>::toString() const {
 
     // Return as string
     return QString(hexEncoded.constData());
+    */
+
+    return _buffer;
 }
 
 template <unsigned int L>

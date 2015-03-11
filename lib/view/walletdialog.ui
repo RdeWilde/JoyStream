@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>503</width>
-    <height>315</height>
+    <height>332</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -49,7 +49,7 @@
     <string>Receive</string>
    </property>
   </widget>
-  <widget class="QLabel" name="numEntriesLabel">
+  <widget class="QLabel" name="numKeys">
    <property name="geometry">
     <rect>
      <x>18</x>
@@ -78,6 +78,32 @@
    </property>
    <property name="text">
     <string>Transactions</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="numTransactions">
+   <property name="geometry">
+    <rect>
+     <x>18</x>
+     <y>290</y>
+     <width>233</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="synchronizePushButton">
+   <property name="geometry">
+    <rect>
+     <x>228</x>
+     <y>274</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Synchronize</string>
    </property>
   </widget>
  </widget>

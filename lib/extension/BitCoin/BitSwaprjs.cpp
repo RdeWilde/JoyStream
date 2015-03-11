@@ -66,7 +66,7 @@ QJsonValue BitSwaprjs::nodeBlockingCall(const QString & method, const QJsonValue
     // Read what process dumped
     QByteArray rawOutput = process.readAll();
 
-    //qDebug() << rawOutput;
+    qDebug() << rawOutput;
 
     // Decode into json
     QJsonParseError parseError;
@@ -236,4 +236,48 @@ QString BitSwaprjs::to_address(const PublicKey & pk) {
 
     // Turn into bool result
     return result.toString();
+}
+
+QList<Wallet::TxOEvent> BitSwaprjs::get_address_utxo(const QList<PublicKey> & list) {
+
+    QJsonArray pks;
+
+    for(QList<PublicKey>::const_iterator i = list.constBegin();
+        i != list.constEnd();i++)
+        pks.append((*i).toString());
+
+    // Create parameters
+    QJsonObject params {
+        {"pks", pks},
+    };
+
+    // Make call
+    QJsonValue result = nodeBlockingCall("get_address_utxo", QJsonValue(params));
+
+    // Parse
+    QList<Wallet::TxOEvent> txOEvents;
+
+    Q_ASSERT(result.type() == QJsonValue::Array);
+
+    QJsonArray resultArray = result.toArray();
+
+    for(QJsonArray::const_iterator i = resultArray.constBegin();
+        i != resultArray.constEnd();i++) {
+
+        // Grab element
+        QJsonValue & element = *i;
+
+        Q_ASSERT(element.type() == QJsonValue::Object);
+
+        // Turn into QJsonObject
+        QJsonObject o = element.toObject();
+
+        // Parse
+        Wallet::TxOEvent event(o);
+
+        // Add to events array
+        txOEvents.append(event);
+    }
+
+    return txOEvents;
 }

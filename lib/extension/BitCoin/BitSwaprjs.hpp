@@ -6,6 +6,8 @@
 
 #include "extension/PaymentChannel/Payor.hpp"
 
+#include "extension/BitCoin/Wallet.hpp"
+
 class QJsonValue;
 class QJsonObject;
 class KeyPair;
@@ -45,6 +47,8 @@ public:
     // We wont bother with an address class as that gets complicated with all the different
     // address types.
     static QString to_address(const PublicKey & pk);
+
+    static QList<Wallet::TxOEvent> get_address_utxo(const QList<PublicKey> & list);
 
 private:
 

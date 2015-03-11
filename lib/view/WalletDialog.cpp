@@ -39,9 +39,11 @@ void WalletDialog::refresh() {
 
     // Get number of keys in wallet
     int numberOfKeys = _wallet->numberOfKeysInWallet();
+    ui->numKeys->setText(QString("#Keys: ") + QString::number(numberOfKeys));
 
-    // Number of keys in wallet
-    ui->numEntriesLabel->setText(QString("#Keys in wallet: ") + QString::number(numberOfKeys));
+    // Get number of transactions in wallet
+    int numberOfTransactions = _wallet->numberOfTransactions();
+    ui->numTransactions->setText(QString("#Transactions: ") + QString::number(numberOfTransactions));
 }
 
 void WalletDialog::clearWalletTableView() {
@@ -227,7 +229,17 @@ void WalletDialog::on_receivePushButton_clicked() {
 
     msgBox.setText("Added: " + address);
     msgBox.setDetailedText(address);
+    // + " : " + entry.keyPair().pk().toString() + " : " + entry.keyPair().sk().toString() );
     msgBox.exec();
+
+    // Update view model
+    refresh();
+}
+
+void WalletDialog::on_synchronizePushButton_clicked() {
+
+    // Synch wallet
+    _wallet->synchronize();
 
     // Update view model
     refresh();

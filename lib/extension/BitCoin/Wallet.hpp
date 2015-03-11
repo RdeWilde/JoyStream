@@ -275,6 +275,8 @@ public:
 
     quint64 latestBlockHeight();  // const
 
+    quint32 numberOfTransactions(); // const
+
 private:
 
     // Seed used for wallet creation: (keep here?)

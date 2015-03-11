@@ -37,6 +37,8 @@ public:
 private slots:
     void on_receivePushButton_clicked();
 
+    void on_synchronizePushButton_clicked();
+
 private:
     Ui::WalletDialog *ui;
 
