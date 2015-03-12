@@ -240,6 +240,19 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       */
   }
 
+  void Wallet::Entry::lockUtxo(const OutPoint & outPoint) {
+
+      _locked.insert(outPoint);
+  }
+
+  bool Wallet::Entry::isLocked(const OutPoint & outPoint) const {
+      return _locked.contains(outPoint);
+  }
+
+  void Wallet::Entry::unlockUtxo(const OutPoint & outPoint) {
+      _locked.remove(outPoint);
+  }
+
   QJsonObject Wallet::Entry::toJson() const {
 
       QJsonObject json;
@@ -284,6 +297,26 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       json["_receive"] = receive;
 
       return json;
+  }
+
+  QList<Wallet::TxOEvent> Wallet::Entry::getFreeUtxo() const {
+
+      QList<Wallet::TxOEvent> utxos;
+
+      for(QMap<OutPoint, TxOEvent>::const_iterator i = _receive.constBegin();
+          i != _receive.constEnd();i++) {
+
+          // Get event
+          TxOEvent & event = i.value();
+
+          // Check that it is endeed an unspent output which is not locked
+          if(event.type() == TxOEvent::Type::Receive &&
+                  !_send.contains(event.outpoint()) &&
+                  _locked.contains(event.outpoint()))
+              utxos.append(event);
+      }
+
+      return utxos;
   }
 
   bool Wallet::Entry::isUTxO(const OutPoint & outPoint) const {
@@ -371,6 +404,8 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
 #include <QTextStream>
 #include <QJsonDocument>
 #include <QJsonArray>
+
+#include "UnspentP2PKHOutput.hpp"
 
   Wallet::Wallet(const QString & file, bool autoSave)
     : // add some of these hard coded values as explicit args in the future
@@ -616,6 +651,52 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
 
   QString Wallet::toAddress(const PublicKey & pk) const {
       return BitSwaprjs::to_address(pk);
+  }
+
+  UnspentP2PKHOutput Wallet::getUtxo(quint64 minimalValue, quint32 minimalNumberOfConfirmations) {
+
+      _mutex.lock();
+
+      // Go through entries
+      for(QMap<PublicKey, Entry>::iterator i = _entries.constBegin();
+          i != _entries.constEnd();i++) {
+
+          // Get entty
+          Entry & entry = i.value();
+
+          // Get free utxo in entry
+          const QList<Wallet::TxOEvent> & freeUtxo = entry.getFreeUtxo();
+
+          // Find utxo which matches
+          for(QList<Wallet::TxOEvent>::const_iterator i = freeUtxo.constBegin();
+              i != freeUtxo.constEnd();i++) {
+
+              const Wallet::TxOEvent & event = *i;
+
+              // Check that utxo has enough value and confirmations, and is not locked
+              if(event.value() >= minimalValue &&
+                 _latestBlockHeight - event.blockHeight() >= minimalNumberOfConfirmations &&
+                 !entry.isLocked(event.outpoint())) {
+
+                  // Lock that utxo
+                  entry.lockUtxo(event.outpoint());
+
+                  // Return that utxo
+                  UnspentP2PKHOutput utxo(entry.keyPair(), event.outpoint(), event.value());
+
+                  _mutex.unlock();
+
+                  return utxo;
+              }
+          }
+      }
+
+      _mutex.unlock();
+
+      // Return 0 value utxo, which signifies failure.
+      UnspentP2PKHOutput utxo;
+      utxo.setFundingValue(0);
+      return utxo;
   }
 
 #include <QDebug>

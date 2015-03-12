@@ -13,6 +13,8 @@
 #include <QVector>
 #include <QSet>
 
+class UnspentP2PKHOutput;
+
 /**
  * @brief Naive Btc Micropayment wallet
  */
@@ -167,6 +169,15 @@ public:
         // Add TxO event
         //void addTxOEvent(const TxOEvent & txOEvent);
 
+        void lockUtxo(const OutPoint & outPoint);
+
+        bool isLocked(const OutPoint & outPoint) const;
+
+        void unlockUtxo(const OutPoint & outPoint);
+
+        // MAKE QSET LATER BY ADDING QHASH AND == TO TxOEvent as reuired
+        QList<TxOEvent> getFreeUtxo() const;
+
         // Is given outpoint utxo for given key
         bool isUTxO(const OutPoint & outPoint) const;
 
@@ -262,6 +273,7 @@ public:
     QString toAddress(const PublicKey & pk) const;
 
     //Entry getAndLockEntry();
+    UnspentP2PKHOutput getUtxo(quint64 minimalValue, quint32 minimalNumberOfConfirmations);
 
     // Add entry for a new receive address
     Entry addReceiveKey(const QString & description, Purpose purpose);

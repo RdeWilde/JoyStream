@@ -218,12 +218,6 @@ Signature BitSwaprjs::compute_payor_payment_signature(const OutPoint & contractO
     return Signature(result.toString());
 }
 
-UnspentP2PKHOutput BitSwaprjs::get_utxo(quint64 minimalValue) {
-
-    // Implement later
-    return UnspentP2PKHOutput();
-}
-
 QString BitSwaprjs::to_address(const PublicKey & pk) {
 
     // Create parameters

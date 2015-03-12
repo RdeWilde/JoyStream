@@ -38,7 +38,7 @@ OutPoint::OutPoint(const QJsonObject & json) {
 
 bool operator<(const OutPoint & lhs, const OutPoint & rhs) {
 
-    return (lhs.hash() < rhs.hash()) || ((lhs.hash() == rhs.hash()) && (lhs.index() < rhs.index()));
+    //return (lhs.hash() < rhs.hash()) || ((lhs.hash() == rhs.hash()) && (lhs.index() < rhs.index()));
 
     /**
     bool r = lhs.hash().less(rhs.hash()) || (lhs.hash().equals(rhs.hash()) && (lhs.index() < rhs.index()));
@@ -49,6 +49,8 @@ bool operator<(const OutPoint & lhs, const OutPoint & rhs) {
 
     return r;
     */
+
+    return lhs.hash().less(rhs.hash()) || (lhs.hash().equals(rhs.hash()) && (lhs.index() < rhs.index()));
 }
 
 QJsonObject OutPoint::toJson() const {

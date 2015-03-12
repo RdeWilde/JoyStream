@@ -32,7 +32,7 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
     // Get funding output - this has to be grabbed from wallet/chain later
     quint64 minimalFunds = _torrentInfo.num_pieces()*maxPrice;
-    UnspentP2PKHOutput utxo = BitSwaprjs::get_utxo(minimalFunds);
+    UnspentP2PKHOutput utxo = BitSwaprjs::get_utxo(minimalFunds, 1);
 
     // Check that an utxo was indeed found
     if(utxo.fundingValue() == 0) {
