@@ -48,7 +48,9 @@ public:
     // address types.
     static QString to_address(const PublicKey & pk);
 
-    static QList<Wallet::TxOEvent> get_address_utxo(const QList<PublicKey> & list);
+    static QMap<PublicKey, QList<Wallet::TxOEvent>> get_key_events(const QSet<PublicKey> & keys);
+
+    static quint32 get_latest_block();
 
 private:
 

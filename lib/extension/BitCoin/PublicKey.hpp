@@ -11,5 +11,6 @@ typedef FixedBuffer<66> PublicKey;
 // source for operator<(const FixedBuffer<L> & lhs, const FixedBuffer<L> & rhs)
 // where it is used, hence it must be implemented explicitly as a function.
 bool qMapLessThanKey(const PublicKey & pk1, const PublicKey & pk2);
+bool operator==(const PublicKey & pk1, const PublicKey & pk2);
 
 #endif // PUBLIC_KEY_HPP

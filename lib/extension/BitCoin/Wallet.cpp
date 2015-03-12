@@ -568,18 +568,48 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       // you found, that is add new outputs, and update values in old ones.
       QList<PublicKey> & list = _entries.keys();
 
-      // Get events
-      QList<Wallet::TxOEvent> events = BitSwaprjs::get_address_utxo(list);
+      if(list.size() > 0) {
 
-      for(QList<Wallet::TxOEvent>::const_iterator i = events.constBegin();
-          i != events.constEnd();i++) {
+          // Get events
+          QMap<PublicKey, QList<Wallet::TxOEvent>>  & keyEvents = BitSwaprjs::get_key_events(QSet<PublicKey>::fromList(list));
 
-          //
-          Wallet::TxOEvent & event = *i;
+          for(QMap<PublicKey, QList<Wallet::TxOEvent>>::const_iterator i = keyEvents.constBegin();
+              i != keyEvents.constEnd();i++) {
 
-          if(event.type() == Wallet::TxOEvent::Type::Receive)
+              // Key
+              const PublicKey & key = i.key();
+
+              // Event list
+              const QList<Wallet::TxOEvent> & list = i.value();
+
+              // Iterate list and crate new send and receiv maps
+              QMap<OutPoint, TxOEvent> send, receive;
+
+              for(QList<Wallet::TxOEvent>::const_iterator j = list.constBegin();
+                  j != list.constEnd();j++) {
+
+                  const Wallet::TxOEvent & event = *j;
+
+                  if(event.type() == Wallet::TxOEvent::Type::Receive) {
+                      receive[event.outpoint()] = event;
+                  } else {
+                      send[event.outpoint()] = event;
+                  }
+              }
+
+              // Update wallet entry
+              Entry & entry = _entries[key];
+              entry.setSend(send);
+              entry.setReceive(receive);
+          }
 
       }
+
+      _latestBlockHeight = BitSwaprjs::get_latest_block();
+
+      // Save wallet to disk if autosaving is enabled
+      if(_autoSave)
+          save();
 
       _mutex.unlock();
   }
@@ -710,6 +740,10 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       _mutex.lock();
       _entries = entries;
       _mutex.unlock();
+  }
+
+  Wallet::Entry & Wallet::entry(const PublicKey & publicKey) {
+      return _entries[publicKey];
   }
 
   quint64 Wallet::latestBlockHeight() {

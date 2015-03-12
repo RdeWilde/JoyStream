@@ -2,6 +2,7 @@
 #define FIXED_BUFFER_HPP
 
 #include <QtGlobal> // quint32, ...
+#include <QChar>
 
 class QDataStream;
 
@@ -28,20 +29,21 @@ public:
     /**
      * Utilities
      */
-    char at(unsigned int index) const;
-    void set(unsigned int index, char value);
+    QChar at(unsigned int index) const;
+    void set(unsigned int index, QChar value);
     void clear();
-    bool isClear() const;
+    //bool isClear() const;
     QString toString() const;
 
     /**
      * Iterator routines.
-     */
+
     const char * begin() const;
     const char * end() const;
 
     char * begin();
     char * end();
+*/
 
     /**
      * Operator overloading.
@@ -122,17 +124,17 @@ FixedBuffer<L> & FixedBuffer<L>::operator=(const FixedBuffer<L>& rhs) {
 }
 
 template <unsigned int L>
-char FixedBuffer<L>::at(unsigned int index) const {
+QChar FixedBuffer<L>::at(unsigned int index) const {
 
     // Check that buffer is not exceeded
     if(index + 1 > L)
         throw std::exception("Index exceeds buffer.");
     else
-        return _buffer[index].toLatin1();
+        return _buffer[index];
 }
 
 template <unsigned int L>
-void FixedBuffer<L>::set(unsigned int index, char value) {
+void FixedBuffer<L>::set(unsigned int index, QChar value) {
 
     // Check that buffer is not exceeded
     if(index + 1 > L)
@@ -149,7 +151,7 @@ void FixedBuffer<L>::clear() {
 
     _buffer = QString(L,' ');
 }
-
+/*
 template <unsigned int L>
 bool FixedBuffer<L>::isClear() const {
 
@@ -162,6 +164,7 @@ bool FixedBuffer<L>::isClear() const {
     // We didn't, so it is clear
     return true;
 }
+*/
 
 template <unsigned int L>
 QString FixedBuffer<L>::toString() const {
@@ -179,7 +182,7 @@ QString FixedBuffer<L>::toString() const {
 
     return _buffer;
 }
-
+/*
 template <unsigned int L>
 const char * FixedBuffer<L>::begin() const {
     return _buffer[0];
@@ -199,6 +202,7 @@ template <unsigned int L>
 char * FixedBuffer<L>::end() {
     return _buffer[L];
 }
+*/
 
 template <unsigned int L>
 QDataStream & operator<<(QDataStream& stream, const FixedBuffer<L> & fixedBuffer) {
@@ -216,7 +220,7 @@ QDataStream & operator>>(QDataStream& stream, FixedBuffer<L> & fixedBuffer) {
     // Read from stream
     for(unsigned int i = 0;i < L;i++) {
 
-        char value;
+        QChar value;
         stream >> value;
 
         fixedBuffer.set(i, value);
@@ -241,11 +245,16 @@ bool FixedBuffer<L>::less(const FixedBuffer<L> & o) const {
     // 0 is most significant byte
     for(unsigned int i = 0;i < L;i++) {
 
-        if(this->at(i) > o.at(i))
+        QChar a = this->at(i);
+        QChar b = o.at(i);
+
+        if(a > b)
             return false;
+        else if(a < b)
+            return true;
     }
 
-    return true;
+    return false;
 }
 
 template <unsigned int L>
@@ -259,6 +268,13 @@ bool FixedBuffer<L>::equals(const FixedBuffer<L> & o) const {
     }
 
     return true;
+}
+
+#include <QHash>
+
+template <unsigned int L>
+uint qHash(const FixedBuffer<L> & o) {
+    return qHash(o.toString());
 }
 
 #endif // FIXED_BUFFER_HPP

@@ -29,18 +29,32 @@ OutPoint::OutPoint(const QJsonObject & json) {
 
     // _hash
     _hash = Hash(Utilities::GET_STRING(json, "_hash"));
+
+    // _index
+    _index = Utilities::GET_DOUBLE(json, "_index");
 }
+
+#include <QDebug>
 
 bool operator<(const OutPoint & lhs, const OutPoint & rhs) {
 
-    //return (lhs.hash() < rhs.hash()) || ((lhs.hash() == rhs.hash()) && (lhs.index() < rhs.index()));
-    return lhs.hash().less(rhs.hash()) || (lhs.hash().equals(rhs.hash()) && (lhs.index() < rhs.index()));
+    return (lhs.hash() < rhs.hash()) || ((lhs.hash() == rhs.hash()) && (lhs.index() < rhs.index()));
+
+    /**
+    bool r = lhs.hash().less(rhs.hash()) || (lhs.hash().equals(rhs.hash()) && (lhs.index() < rhs.index()));
+
+    qDebug() << lhs.hash().toString() << " <? " << rhs.hash().toString();
+    qDebug() << "? = " << r;
+
+
+    return r;
+    */
 }
 
 QJsonObject OutPoint::toJson() const {
     return QJsonObject {
-        {"hash", _hash.toString()},
-        {"index", static_cast<qint64>(_index)}
+        {"_hash", _hash.toString()},
+        {"_index", static_cast<int>(_index)}
     };
 }
 
@@ -56,11 +70,21 @@ OutPoint::OutPoint(const QString & string) {
 
     // Parse _index
     bool ok;
-    _index = list[1].toInt(&ok, 10);
+    QString rightToken = list[1];
+
+    _index = rightToken.toInt(&ok);
+
+    if(!ok)
+        throw new std::exception("Could not convert second token.");
 }
 
+#include <QDebug>
+
 QString OutPoint::toString() const {
-    return _hash.toString() + "-" + _index;
+
+    //qDebug() << _hash.toString() + "-" + _index;
+    //qDebug() << _hash.toString() + "-" + QString::number(_index);
+    return _hash.toString() + "-" + QString::number(_index);
 }
 
 Hash OutPoint::hash() const {

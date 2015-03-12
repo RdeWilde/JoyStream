@@ -66,7 +66,7 @@ QJsonValue BitSwaprjs::nodeBlockingCall(const QString & method, const QJsonValue
     // Read what process dumped
     QByteArray rawOutput = process.readAll();
 
-    qDebug() << rawOutput;
+    //qDebug() << rawOutput;
 
     // Decode into json
     QJsonParseError parseError;
@@ -238,12 +238,13 @@ QString BitSwaprjs::to_address(const PublicKey & pk) {
     return result.toString();
 }
 
-QList<Wallet::TxOEvent> BitSwaprjs::get_address_utxo(const QList<PublicKey> & list) {
+//QList<Wallet::TxOEvent> BitSwaprjs::get_key_events(const QList<PublicKey> & list) {
+QMap<PublicKey, QList<Wallet::TxOEvent>> BitSwaprjs::get_key_events(const QSet<PublicKey> & keys) {
 
     QJsonArray pks;
 
-    for(QList<PublicKey>::const_iterator i = list.constBegin();
-        i != list.constEnd();i++)
+    for(QSet<PublicKey>::const_iterator i = keys.constBegin();
+        i != keys.constEnd();i++)
         pks.append((*i).toString());
 
     // Create parameters
@@ -252,32 +253,61 @@ QList<Wallet::TxOEvent> BitSwaprjs::get_address_utxo(const QList<PublicKey> & li
     };
 
     // Make call
-    QJsonValue result = nodeBlockingCall("get_address_utxo", QJsonValue(params));
+    QJsonValue result = nodeBlockingCall("get_key_events", QJsonValue(params));
 
     // Parse
-    QList<Wallet::TxOEvent> txOEvents;
+    Q_ASSERT(result.type() == QJsonValue::Object);
+    QJsonObject resultMap = result.toObject();
 
-    Q_ASSERT(result.type() == QJsonValue::Array);
+    QMap<PublicKey, QList<Wallet::TxOEvent>> map;
 
-    QJsonArray resultArray = result.toArray();
+    for(QJsonObject::const_iterator i = resultMap.constBegin();
+        i != resultMap.constEnd();i++) {
 
-    for(QJsonArray::const_iterator i = resultArray.constBegin();
-        i != resultArray.constEnd();i++) {
+        QList<Wallet::TxOEvent> txOEvents;
 
-        // Grab element
-        QJsonValue & element = *i;
+        QJsonValue & eventList = i.value();
+        Q_ASSERT(eventList.type() == QJsonValue::Array);
+        QJsonArray resultArray = eventList.toArray();
 
-        Q_ASSERT(element.type() == QJsonValue::Object);
+        for(QJsonArray::const_iterator j = resultArray.constBegin();
+            j != resultArray.constEnd();j++) {
 
-        // Turn into QJsonObject
-        QJsonObject o = element.toObject();
+            // Grab element
+            QJsonValue & element = *j;
 
-        // Parse
-        Wallet::TxOEvent event(o);
+            Q_ASSERT(element.type() == QJsonValue::Object);
 
-        // Add to events array
-        txOEvents.append(event);
+            // Turn into QJsonObject
+            QJsonObject o = element.toObject();
+
+            // Parse
+            Wallet::TxOEvent event(o);
+
+            // Add to events array
+            txOEvents.append(event);
+        }
+
+        PublicKey key(i.key());
+        map[key] = txOEvents;
     }
 
-    return txOEvents;
+    return map;
+}
+
+quint32 BitSwaprjs::get_latest_block() {
+
+    // Make call
+    QJsonValue result = nodeBlockingCall("get_latest_block", QJsonValue(QJsonObject()));
+
+    // Parse
+    Q_ASSERT(result.type() == QJsonValue::Object);
+
+    QJsonObject & blockObject = result.toObject();
+
+    QJsonValue heightValue = blockObject["height"];
+
+    Q_ASSERT(heightValue.type() == QJsonValue::Double);
+
+    return heightValue.toDouble();
 }

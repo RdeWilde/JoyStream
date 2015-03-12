@@ -272,6 +272,7 @@ public:
     // Getters and setters
     QMap<PublicKey, Entry> entries();  // const
     void setEntries(const QMap<PublicKey, Entry> &entries);
+    Entry & entry(const PublicKey & publicKey);
 
     quint64 latestBlockHeight();  // const
 
