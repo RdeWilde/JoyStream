@@ -6,6 +6,7 @@
 #include "extension/BuyerTorrentPlugin.hpp"
 
 #include "controller/Controller.hpp"
+#include "extension/BitCoin/Wallet.hpp"B"
 
 #include "extension/BitCoin/BitSwaprjs.hpp"
 #include "extension/BitCoin/UnspentP2PKHOutput.hpp"
@@ -13,9 +14,10 @@
 #include <QtMath>
 #include <QMessageBox>
 
-BuyerTorrentPluginConfigurationDialog::BuyerTorrentPluginConfigurationDialog(Controller * controller, const libtorrent::torrent_info & torrentInfo)
+BuyerTorrentPluginConfigurationDialog::BuyerTorrentPluginConfigurationDialog(Controller * controller, Wallet * wallet, const libtorrent::torrent_info & torrentInfo)
     : ui(new Ui::BuyerTorrentPluginConfigurationDialog)
     , _controller(controller)
+    , _wallet(wallet)
     , _torrentInfo(torrentInfo) {
 
     ui->setupUi(this);
@@ -32,7 +34,7 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
     // Get funding output - this has to be grabbed from wallet/chain later
     quint64 minimalFunds = _torrentInfo.num_pieces()*maxPrice;
-    UnspentP2PKHOutput utxo = BitSwaprjs::get_utxo(minimalFunds, 1);
+    UnspentP2PKHOutput utxo = _wallet->getUtxo(minimalFunds, 1);
 
     // Check that an utxo was indeed found
     if(utxo.fundingValue() == 0) {

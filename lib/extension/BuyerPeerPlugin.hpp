@@ -4,7 +4,7 @@
 #include "PeerPlugin.hpp"
 #include "PluginMode.hpp"
 
-#include "BitCoin/Hash.hpp"
+#include "BitCoin/TxId.hpp"
 #include "BitCoin/PublicKey.hpp"
 
 class BuyerTorrentPlugin;

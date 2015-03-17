@@ -1,16 +1,54 @@
 #ifndef PUBLIC_KEY_HPP
 #define PUBLIC_KEY_HPP
 
-#include "FixedBuffer.hpp"
+#include <QtGlobal>
 
-// strlen(03505ea93acd423afcb19c82ca90e1b5b0e950803b661e524949480403f1a678cf) = 66 hex = 33 bytes
-typedef FixedBuffer<66> PublicKey;
+#include <vector>
 
-// qMapLessThanKey is used by QMap to sort keys using < operator of type.
-// Since the implementation is already built, there is not way to provide the
-// source for operator<(const FixedBuffer<L> & lhs, const FixedBuffer<L> & rhs)
-// where it is used, hence it must be implemented explicitly as a function.
-bool qMapLessThanKey(const PublicKey & pk1, const PublicKey & pk2);
-bool operator==(const PublicKey & pk1, const PublicKey & pk2);
+class QDataStream;
+class QString;
+
+class PublicKey
+{
+public:
+
+    // Byte length of raw data
+    static const quint32 length = 33;
+
+    // Construct from base58 encoded string
+    // e.g. 02520b32e461ec9e6b685d0e8603cc9b345bda4624aeb753a02333340d66909c83
+    PublicKey(const QString & string);
+
+    // Default/Copy constructor and assignment operator needed to put in container.
+    PublicKey();
+    PublicKey(const PublicKey & o);
+    PublicKey & operator=(const PublicKey & o);
+
+    // Utilities
+    void clear();
+    bool isClear() const;
+
+    // Encodes as base58
+    QString toString() const;
+
+    // Stream operator
+    friend QDataStream & operator<<(QDataStream & stream, const PublicKey & o);
+    friend QDataStream & operator>>(QDataStream & stream, PublicKey & o);
+
+    // Comparison for use with QMap
+    bool operator<(const PublicKey & o) const;
+    bool operator==(const PublicKey & o) const;
+
+    std::vector<unsigned char> buffer() const;
+    void setBuffer(const std::vector<unsigned char> & buffer);
+
+private:
+
+    // Raw data
+    // 0 is most significant byte for comparisons
+    std::vector<unsigned char> _buffer;
+};
+
+uint qHash(const PublicKey & o);
 
 #endif // PUBLIC_KEY_HPP

@@ -1,7 +1,7 @@
 #ifndef OUT_POINT_HPP
 #define OUT_POINT_HPP
 
-#include "extension/BitCoin/Hash.hpp"
+#include "extension/BitCoin/TxId.hpp"
 
 class QJsonObject;
 
@@ -9,20 +9,19 @@ class OutPoint
 {
 public:
 
-    /**
-     * Default/Copy constructor and assignemtn operator needed to put in container.
-     */
+    // Default/Copy constructor and assignemtn operator needed to put in container.
     OutPoint();
     OutPoint(const OutPoint& outputPoint);
     OutPoint & operator=(const OutPoint& outputPoint);
 
     // Constructor
-    OutPoint(const Hash & hash, quint32 index);
+    OutPoint(const TxId & txId, quint32 index);
 
     // Constructor from json
     OutPoint(const QJsonObject & json);
 
     // Comparison for use with QMap
+    friend bool operator==(const OutPoint & lhs, const OutPoint & rhs);
     friend bool operator<(const OutPoint & lhs, const OutPoint & rhs);
 
     QJsonObject toJson() const;
@@ -32,19 +31,21 @@ public:
     QString toString() const;
 
     // Getters and setters
-    Hash hash() const;
-    void setHash(const Hash &hash);
+    TxId txId() const;
+    void setTxId(const TxId &txId);
 
     quint32 index() const;
-    void setIndex(const quint32 &index);
+    void setIndex(quint32 index);
 
 private:
 
     // TxId of transaction
-    Hash _hash;
+    TxId _txId;
 
     // Output index
     quint32 _index;
 };
+
+uint qHash(const OutPoint & o);
 
 #endif // OUT_POINT_HPP

@@ -1,35 +1,94 @@
 #include "Signature.hpp"
 #include <QDataStream>
 
-Signature::Signature() {
+#include "base58.hpp"
+
+Signature::Signature(){
 }
 
-Signature::Signature(const Signature& signature) {
+Signature::Signature(const Signature & signature) {
+    *this = signature;
 }
 
-Signature::Signature(const QString & signature) {
+Signature::Signature(const QString & string) {
 
+    // Check that string has correct length
+    if(string.length() > 2*MAX_SIGNATURE_LENGTH)
+        throw std::exception("String argument is of incorrect length, should be 2*MAX_SIGNATURE_LENGTH.");
+    else {
+
+        // Decode from hex format
+        QByteArray b = QByteArray::fromHex(string.toLatin1());
+
+        Q_ASSERT(b.length()*2 == string.length());
+
+        // Read into vector buffer
+        unsigned const char * begin = (unsigned const char *)b.constBegin();
+        unsigned const char * end = (unsigned const char *)b.constEnd();
+        _buffer = std::vector<unsigned char>(begin, end);
+    }
 }
 
-Signature & Signature::operator=(const Signature& signature) {
-
+Signature & Signature::operator=(const Signature & signature) {
+    _buffer = signature.buffer();
     return *this;
 }
 
-bool Signature::isValid(const PublicKey & key) const {
-    return true;
+std::vector<unsigned char> Signature::buffer() const {
+    return _buffer;
+}
+
+void Signature::setBuffer(const std::vector<unsigned char> & buffer) {
+    _buffer = buffer;
+}
+
+int Signature::length() const {
+    return _buffer.size();
 }
 
 QString Signature::toString() const {
-    return QString();
+
+    // Put into byte array
+    const char * begin = (const char *)_buffer.data();
+    QByteArray raw(begin, _buffer.size());
+
+    // Hex encode
+    QByteArray hexEncoded = raw.toHex();
+
+    // Return as string
+    return QString(hexEncoded.constData());
 }
 
-QDataStream & operator<<(QDataStream & stream, const Signature & key) {
-    // put key into this QDataStream
-    return stream;
+int Signature::readFromStream(QDataStream & stream, int length) {
+
+    // Check that signature is not to large
+    if(length > MAX_SIGNATURE_LENGTH)
+        throw std::exception("Length argument is to large, should be MAX_SIGNATURE_LENGTH.");
+
+    // Allocate buffer
+    _buffer = std::vector<unsigned char>(length, 0);
+
+    // Read from stream
+    char * data = (char *)_buffer.data();
+    int bytesRead = stream.readRawData(data, length);
+
+    if(bytesRead != length)
+        throw new std::exception("Could not read length bytes.");
+
+    return bytesRead;
 }
 
-QDataStream & operator>>(QDataStream & stream, Signature & key) {
-    // put key into this QDataStream
-    return stream;
+int Signature::writeToStream(QDataStream & stream) const {
+
+    if(_buffer.size() == 0)
+        return 0;
+
+    // Write to stream
+    const char * data = (const char *)_buffer.data();
+    int bytesWritten = stream.writeRawData(data, _buffer.size());
+
+    if(bytesWritten != _buffer.size())
+        throw new std::exception("Could not write length bytes.");
+
+    return bytesWritten;
 }

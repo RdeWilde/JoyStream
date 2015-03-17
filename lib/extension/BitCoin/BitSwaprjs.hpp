@@ -34,7 +34,7 @@ public:
 
     static QList<KeyPair> generate_fresh_key_pairs(int numberOfPairs);
 
-    static Hash compute_contract_hash(const OutPoint & fundingOutput, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput);
+    static TxId compute_contract_hash(const OutPoint & fundingOutput, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput);
 
     static Signature compute_payor_refund_signature(const OutPoint & contractOutputPoint, const PrivateKey &sk, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime);
 
@@ -42,7 +42,7 @@ public:
 
     static Signature compute_payor_payment_signature(const OutPoint & contractOutputPoint, const P2PKHTxOut &refundOutput, const P2PKHTxOut & payeeOutput, const PrivateKey &sk);
 
-    static UnspentP2PKHOutput get_utxo(quint64 minimalValue);
+    //static UnspentP2PKHOutput get_utxo(quint64 minimalValue);
 
     // We wont bother with an address class as that gets complicated with all the different
     // address types.

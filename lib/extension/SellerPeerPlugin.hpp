@@ -4,7 +4,7 @@
 #include "PeerPlugin.hpp"
 
 #include "extension/BitCoin/PublicKey.hpp"
-#include "extension/BitCoin/Hash.hpp"
+#include "extension/BitCoin/TxId.hpp"
 #include "extension/BitCoin/Signature.hpp"
 
 class SellerPeerPlugin : public PeerPlugin
@@ -81,7 +81,7 @@ private:
                                             //PrivateKey _sSK;
 
                                             PublicKey _sBuyerContractPK;
-                                            Hash _sContractHash;
+                                            TxId _sContractHash;
                                             quint32 _sContractOutputIndex;
                                             quint64 _sContractOutputValue;
 

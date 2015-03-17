@@ -4,6 +4,8 @@
 #include "extension/BitCoin/PublicKey.hpp"
 #include "extension/BitCoin/PrivateKey.hpp"
 
+class QJsonObject;
+
 class KeyPair
 {
 public:

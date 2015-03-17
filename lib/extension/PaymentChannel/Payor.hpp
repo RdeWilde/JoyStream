@@ -4,7 +4,7 @@
 #include "extension/BitCoin/PublicKey.hpp"
 #include "extension/BitCoin/PrivateKey.hpp"
 #include "extension/BitCoin/KeyPair.hpp"
-#include "extension/BitCoin/Hash.hpp"
+#include "extension/BitCoin/TxId.hpp"
 #include "extension/BitCoin/Signature.hpp"
 #include "extension/BitCoin/OutPoint.hpp"
 
@@ -310,10 +310,10 @@ public:
         //Payment payment(const Hash &contractHash) const;
 
         // Compute payor refund signature
-        void computePayorRefundSignature(const Hash &contractHash);
+        void computePayorRefundSignature(const TxId &contractHash);
 
         // Payment signature
-        Signature paymentSignature(const Hash &contractHash) const;
+        Signature paymentSignature(const TxId &contractHash) const;
 
         // Registers that a payment was made
         void paymentMade();
@@ -506,7 +506,7 @@ public:
          */
 
         //Contract _contract;
-        Hash _contractHash;
+        TxId _contractHash;
         quint32 _numberOfSignatures;
 
     };
@@ -616,7 +616,7 @@ private:
      */
 
     //Contract _contract;
-    Hash _contractHash;
+    TxId _contractHash;
     quint32 _numberOfSignatures;
 };
 

@@ -12,9 +12,9 @@ MessageType Payment::messageType() const {
 }
 
 quint32 Payment::length() const {
-    return Signature::length;
+    return _sig.length();
 }
 
 void Payment::write(QDataStream & stream) const {
-    stream << _sig;
+    _sig.writeToStream(stream);
 }

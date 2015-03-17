@@ -177,7 +177,7 @@ Payment Channel::payment(const Hash &contractHash) const {
 }
 */
 
-void Payor::Channel::computePayorRefundSignature(const Hash &contractHash) {
+void Payor::Channel::computePayorRefundSignature(const TxId &contractHash) {
 
     // Check that channel has been assigned
     if(_state != State::assigned)
@@ -197,7 +197,7 @@ void Payor::Channel::computePayorRefundSignature(const Hash &contractHash) {
                                                                       _refundLockTime);
 }
 
-Signature Payor::Channel::paymentSignature(const Hash &contractHash) const {
+Signature Payor::Channel::paymentSignature(const TxId &contractHash) const {
 
     // Create pamynent
     //Payment payment = payment(contractHash);

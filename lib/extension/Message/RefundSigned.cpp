@@ -12,9 +12,9 @@ MessageType RefundSigned::messageType() const {
 }
 
 quint32 RefundSigned::length() const {
-    return Signature::length;
+    return _sig.length();
 }
 
 void RefundSigned::write(QDataStream & stream) const {
-    stream << _sig;
+    _sig.writeToStream(stream);
 }

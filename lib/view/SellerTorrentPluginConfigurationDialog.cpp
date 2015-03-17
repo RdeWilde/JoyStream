@@ -14,9 +14,10 @@ SellerTorrentPluginConfigurationDialog::SellerTorrentPluginConfigurationDialog(Q
 }
 */
 
-SellerTorrentPluginConfigurationDialog::SellerTorrentPluginConfigurationDialog(Controller * controller, const libtorrent::torrent_info & torrentInfo)
+SellerTorrentPluginConfigurationDialog::SellerTorrentPluginConfigurationDialog(Controller * controller, Wallet * wallet, const libtorrent::torrent_info & torrentInfo)
     :ui(new Ui::SellerTorrentPluginConfigurationDialog)
     , _controller(controller)
+    , _wallet(wallet)
     , _torrentInfo(torrentInfo) {
     ui->setupUi(this);
 }

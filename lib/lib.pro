@@ -78,7 +78,10 @@ SOURCES += \
     extension/BitCoin/UnspentP2PKHOutput.cpp \
     extension/BitCoin/Wallet.cpp \
     view/WalletDialog.cpp \
-    extension/BitCoin/PublicKey.cpp
+    extension/BitCoin/PublicKey.cpp \
+    extension/BitCoin/TxId.cpp \
+    extension/BitCoin/base58.cpp \
+    extension/BitCoin/PrivateKey.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -123,7 +126,6 @@ HEADERS += \
     extension/BitCoin/Signature.hpp \
     extension/Message/JoiningContract.hpp \
     extension/Message/SignRefund.hpp \
-    extension/BitCoin/Hash.hpp \
     extension/Message/RefundSigned.hpp \
     extension/Message/Sell.hpp \
     extension/Message/Observe.hpp \
@@ -158,7 +160,9 @@ HEADERS += \
     extension/Alert/BuyerTorrentPluginStatuAlert.hpp \
     extension/BitCoin/UnspentP2PKHOutput.hpp \
     extension/BitCoin/Wallet.hpp \
-    view/WalletDialog.hpp
+    view/WalletDialog.hpp \
+    extension/BitCoin/TxId.hpp \
+    extension/BitCoin/base58.hpp
 				
 FORMS += \
     view/mainwindow.ui \

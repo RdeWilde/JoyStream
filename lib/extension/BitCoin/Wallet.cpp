@@ -307,7 +307,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
           i != _receive.constEnd();i++) {
 
           // Get event
-          TxOEvent & event = i.value();
+          const TxOEvent & event = i.value();
 
           // Check that it is endeed an unspent output which is not locked
           if(event.type() == TxOEvent::Type::Receive &&
@@ -658,8 +658,8 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       _mutex.lock();
 
       // Go through entries
-      for(QMap<PublicKey, Entry>::iterator i = _entries.constBegin();
-          i != _entries.constEnd();i++) {
+      for(QMap<PublicKey, Entry>::iterator i = _entries.begin();
+          i != _entries.end();i++) {
 
           // Get entty
           Entry & entry = i.value();

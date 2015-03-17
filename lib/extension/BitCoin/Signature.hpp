@@ -1,35 +1,42 @@
 #ifndef SIGNATURE_HPP
 #define SIGNATURE_HPP
 
-#include "PublicKey.hpp"
+#include <vector>
 
 class QDataStream;
+class QString;
 
-#define SIGNATURE_LENGTH 11
+#define MAX_SIGNATURE_LENGTH 73
 
 class Signature
 {
 public:
 
-    /**
-     * Default/Copy constructor and assignemtn operator needed to put in container.
-     */
+    // Default/Copy constructor and assignemtn operator needed to put in container.
     Signature();
-    Signature(const Signature& signature);
-    Signature(const QString & signature);
+    Signature(const Signature & signature);
     Signature & operator=(const Signature& signature);
 
-    static const quint32 length = SIGNATURE_LENGTH;
+    // Hex encoded signature
+    Signature(const QString & signature);
 
-    bool isValid(const PublicKey & key) const;
+    std::vector<unsigned char> buffer() const;
+    void setBuffer(const std::vector<unsigned char> & buffer);
+
+    int length() const;
+
+    // Hex encoded signature
     QString toString() const;
 
-    friend QDataStream & operator<<(QDataStream & stream, const Signature & key);
-    friend QDataStream & operator>>(QDataStream & stream, Signature & key);
+    // Stream processing
+    int readFromStream(QDataStream & stream, int length);
+    int writeToStream(QDataStream & stream) const;
 
 private:
 
-    char _raw[SIGNATURE_LENGTH];
+    // Raw data
+    // 0 is most significant byte for comparisons
+    std::vector<unsigned char> _buffer;
 };
 
 #endif // SIGNATURE_HPP

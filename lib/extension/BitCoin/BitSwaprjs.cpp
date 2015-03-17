@@ -140,7 +140,7 @@ Hash BitSwaprjs::compute_contract_hash(const Contract & contract, const PrivateK
 }
 */
 
-Hash BitSwaprjs::compute_contract_hash(const OutPoint & fundingOutput, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput) {
+TxId BitSwaprjs::compute_contract_hash(const OutPoint & fundingOutput, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput) {
 
     // Encode parameters into json
     QJsonArray p2shTxOuts;
@@ -159,7 +159,7 @@ Hash BitSwaprjs::compute_contract_hash(const OutPoint & fundingOutput, const Pri
     QJsonValue result = nodeBlockingCall("compute_contract_hash", QJsonValue(params));
 
     // Turn string to hash
-    return Hash(result.toString());
+    return TxId(result.toString());
 }
 
 Signature BitSwaprjs::compute_payor_refund_signature(const OutPoint & contractOutputPoint, const PrivateKey &sk, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime) {

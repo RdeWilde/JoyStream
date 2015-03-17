@@ -192,13 +192,13 @@ void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torre
     } else if (msgBox.clickedButton() == buyerPushButton) {
 
         //Show buyer configuration dialog
-        BuyerTorrentPluginConfigurationDialog buyerTorrentPluginConfigurationDialog(_controller, torrentInfo);
+        BuyerTorrentPluginConfigurationDialog buyerTorrentPluginConfigurationDialog(_controller, _wallet, torrentInfo);
         buyerTorrentPluginConfigurationDialog.exec();
 
     } else if (msgBox.clickedButton() == sellerPushButton) {
 
         //Show seller configuration dialog
-        SellerTorrentPluginConfigurationDialog sellerTorrentPluginConfigurationDialog(_controller, torrentInfo);
+        SellerTorrentPluginConfigurationDialog sellerTorrentPluginConfigurationDialog(_controller, _wallet, torrentInfo);
         sellerTorrentPluginConfigurationDialog.exec();
     }
 }

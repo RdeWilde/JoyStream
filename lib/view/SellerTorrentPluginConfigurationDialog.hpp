@@ -6,6 +6,7 @@
 #include <QDialog>
 
 class Controller;
+class Wallet;
 
 namespace Ui {
 class SellerTorrentPluginConfigurationDialog;
@@ -18,7 +19,7 @@ class SellerTorrentPluginConfigurationDialog : public QDialog
 public:
     //explicit SellerTorrentPluginConfigurationDialog(QWidget *parent = 0);
 
-    SellerTorrentPluginConfigurationDialog(Controller * controller, const libtorrent::torrent_info & torrentInfo);
+    SellerTorrentPluginConfigurationDialog(Controller * controller, Wallet * wallet, const libtorrent::torrent_info & torrentInfo);
 
     ~SellerTorrentPluginConfigurationDialog();
 
@@ -29,6 +30,8 @@ private:
     Ui::SellerTorrentPluginConfigurationDialog *ui;
 
     Controller * _controller;
+
+    Wallet * _wallet;
 
     // Hash of torrent
     //libtorrent::sha1_hash _infoHash;

@@ -1,11 +1,11 @@
-#include "PublicKey.hpp"
+#include "PrivateKey.hpp"
 #include "base58.hpp"
 
 #include <QDataStream>
 #include <QHash>
 
-PublicKey::PublicKey(const QString & string)
-    : _buffer(length, 0) {
+PrivateKey::PrivateKey(const QString & string)
+    : _buffer(length, 0){
 
     // Turn into std::string
     std::string stdString = string.toStdString();
@@ -18,26 +18,26 @@ PublicKey::PublicKey(const QString & string)
         throw std::exception("Decoding base58 did not work.");
 }
 
-PublicKey::PublicKey()
+PrivateKey::PrivateKey()
     : _buffer(length, 0) {
 }
 
-PublicKey::PublicKey(const PublicKey & o) {
+PrivateKey::PrivateKey(const PrivateKey & o) {
     *this = o;
 }
 
-PublicKey & PublicKey::operator=(const PublicKey & o) {
+PrivateKey & PrivateKey::operator=(const PrivateKey & o) {
     _buffer = o.buffer();
     return *this;
 }
 
-void PublicKey::clear() {
+void PrivateKey::clear() {
 
     for(unsigned int i = 0;i < length;i++)
         _buffer[i] = 0;
 }
 
-bool PublicKey::isClear() const {
+bool PrivateKey::isClear() const {
 
     // Find non zero byte
     for(int i = 0;i < length;i++) {
@@ -49,37 +49,37 @@ bool PublicKey::isClear() const {
     return true;
 }
 
-QString PublicKey::toString() const {
+QString PrivateKey::toString() const {
 
-    // Base58 encode
+    // Encode as base58 string
     std::string result = EncodeBase58(_buffer);
 
     return QString::fromStdString(result);
 }
 
-QDataStream & operator<<(QDataStream& stream, const PublicKey & o) {
+QDataStream & operator<<(QDataStream& stream, const PrivateKey & o) {
 
     // Write to stream from buffer
     std::vector<unsigned char> buffer = o.buffer();
 
-    int bytesWritten = stream.writeRawData((const char *)(buffer.data()), PublicKey::length);
+    int bytesWritten = stream.writeRawData((const char *)(buffer.data()), PrivateKey::length);
 
-    if(bytesWritten != PublicKey::length)
-        throw new std::exception("Could not write PublicKey::length bytes.");
+    if(bytesWritten != PrivateKey::length)
+        throw new std::exception("Could not write PrivateKey::length bytes.");
 
     return stream;
 }
 
-QDataStream & operator>>(QDataStream& stream, PublicKey & o) {
+QDataStream & operator>>(QDataStream& stream, PrivateKey & o) {
 
     // Allocate buffer
-    std::vector<unsigned char> buffer(PublicKey::length, 0);
+    std::vector<unsigned char> buffer(PrivateKey::length, 0);
 
     // Read from stream to buffer
-    int bytesRead = stream.readRawData((char *)(buffer.data()), PublicKey::length);
+    int bytesRead = stream.readRawData((char *)(buffer.data()), PrivateKey::length);
 
-    if(bytesRead != PublicKey::length)
-        throw new std::exception("Could not read PublicKey::length bytes.");
+    if(bytesRead != PrivateKey::length)
+        throw new std::exception("Could not read PrivateKey::length bytes.");
 
     // Update buffer
     o.setBuffer(buffer);
@@ -87,7 +87,7 @@ QDataStream & operator>>(QDataStream& stream, PublicKey & o) {
     return stream;
 }
 
-bool PublicKey::operator<(const PublicKey & o) const {
+bool PrivateKey::operator<(const PrivateKey & o) const {
 
     // Get buffer
     std::vector<unsigned char> & oBuffer = o.buffer();
@@ -107,18 +107,18 @@ bool PublicKey::operator<(const PublicKey & o) const {
     return false;
 }
 
-bool PublicKey::operator==(const PublicKey & o) const {
+bool PrivateKey::operator==(const PrivateKey & o) const {
     return _buffer == o.buffer();
 }
 
-std::vector<unsigned char> PublicKey::buffer() const {
+std::vector<unsigned char> PrivateKey::buffer() const {
     return _buffer;
 }
 
-void PublicKey::setBuffer(const std::vector<unsigned char> & buffer) {
+void PrivateKey::setBuffer(const std::vector<unsigned char> & buffer) {
     _buffer = buffer;
 }
 
-uint qHash(const PublicKey & o) {
+uint qHash(const PrivateKey & o) {
     return qHash(o.toString());
 }
