@@ -54,7 +54,7 @@ public:
                   FailureMode failureMode,
                   quint64 minPrice,
                   quint32 _minLock,
-                  const PublicKey & pK);
+                  const PublicKey & contractPk);
 
         // Getters and setters
         LastValidAction lastAction() const;
@@ -69,8 +69,11 @@ public:
         quint32 minLock() const;
         void setMinLock(quint32 minLock);
 
-        PublicKey pK() const;
-        void setPK(const PublicKey & pK);
+        PublicKey contractPk() const;
+        void setContractPk(const PublicKey & contractPk);
+
+        PublicKey finalPk() const;
+        void setFinalPk(const PublicKey & finalPk);
 
     private:
 
@@ -85,7 +88,8 @@ public:
         quint32 _minLock;
 
         // joining contract fields
-        PublicKey _pK;
+        PublicKey _contractPk;
+        PublicKey _finalPk;
     };
 
     /**
@@ -93,16 +97,30 @@ public:
      */
     enum class ClientState {
 
+        // We have not sent any message after extended handshake
         no_bitswapr_message_sent,
 
+        // We have sent buyer mode message
         buyer_mode_announced,
 
+        // We have sent join_contraact message
         invited_to_contract,
 
+        // We ignored joining_contract message because the contract was full
+        attempted_to_join_at_bad_time,
+
+        // We have sent sign_refund message
         asked_for_refund_signature,
 
+
+        /**
+         * The last two are not very productive states
+         */
+
+        // We have requested a piece
         requested_piece,
 
+        // We have sent a payment?
         sent_payment
     };
 
@@ -152,7 +170,8 @@ public:
                       BEPSupportStatus peerBEP10SupportStatus,
                       BEPSupportStatus peerBitSwaprBEPSupportStatus,
                       const PeerState & peerState,
-                      ClientState clientState);
+                      ClientState clientState,
+                      quint32 payorSlot);
 
         // Getters and setters
         PeerState peerState() const;
@@ -168,6 +187,9 @@ public:
 
         // State of client
         ClientState _clientState;
+
+        // Payor slot: payment channel output slot
+        quint32 _payorSlot;
     };
 
     // Constructor
@@ -228,6 +250,9 @@ private:
 
     // State of client
     ClientState _clientState;
+
+    // Payor slot: payment channel output slot
+    quint32 _payorSlot;
 
     // Processess message
     virtual void processObserve(const Observe * m);

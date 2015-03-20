@@ -33,6 +33,7 @@ class TorrentPluginConfiguration;
 //class BuyerTorrentPlugin::Configuration;
 //class SellerTorrentPlugin::Configuration;
 class QNetworkReply;
+class Wallet;
 
 namespace libtorrent {
     class alert;
@@ -50,7 +51,7 @@ class Plugin : public QObject, public libtorrent::plugin {
 public:
 
     // Constructor
-    Plugin(Controller * controller, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category);
+    Plugin(Controller * controller, Wallet * wallet, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category);
 
     // Destructor
     ~Plugin();
@@ -94,6 +95,9 @@ private:
 
     // Controller
     Controller * _controller;
+
+    // Wallet
+    Wallet * _wallet;
 
     // Libtorrent session. Is set by added() call, not constructor
     boost::weak_ptr<libtorrent::aux::session_impl> _session;

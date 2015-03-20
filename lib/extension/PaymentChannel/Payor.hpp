@@ -10,6 +10,8 @@
 
 #include <QVector>
 
+class Wallet;
+
 /**
  * Manages the payor side of a 1-to-N payment channel using design in CBEP.
  * https://github.com/bedeho/CBEP
@@ -30,14 +32,12 @@ public:
         // Waiting to get refund signatures from all sellers
         waiting_for_full_set_of_refund_signatures,
 
-        // Payments are being made
-        paying,
+        // Contract has been broadcasted, and at least one contract output
+        // remains unspent and with sufficient balanc
+        can_pay,
 
-        // No more payments are being made, but some refunds are still spendable.
-        waiting_for_all_refunds_to_be_spendable,
-
-        // Ally refunds are spent or double spent, hence we are done
-        done
+        // When
+        all_contract_outputs_spent
     };
 
     /**
@@ -58,8 +58,8 @@ public:
 
 
         /**
-        // @brief Payor provided settings in channel,
-        // as through wire message.
+         * @brief Payor provided settings in channel, as through wire message.
+         */
 
         class PayorSettings {
 
@@ -69,7 +69,7 @@ public:
             PayorSettings();
 
             // Member constructor
-            PayorSettings(quint64 funds, const KeyPair & contractKeyPair, const KeyPair & finalKeyPair);
+            PayorSettings(quint64 funds, const PublicKey & contractPk, const PublicKey & finalPk);
 
             // Copy constructor
             PayorSettings(const PayorSettings & o);
@@ -81,11 +81,11 @@ public:
             quint64 funds() const;
             void setFunds(quint64 funds);
 
-            KeyPair contractKeyPair() const;
-            void setContractKeyPair(const KeyPair &contractKeyPair);
+            PublicKey contractPk() const;
+            void setContractPk(const PublicKey & contractPk);
 
-            KeyPair finalKeyPair() const;
-            void setFinalKeyPair(const KeyPair &finalKeyPair);
+            PublicKey finalPk() const;
+            void setFinalPk(const PublicKey & finalPk);
 
         private:
 
@@ -93,12 +93,13 @@ public:
             quint64 _funds;
 
             // Controls payour output of multisig
-            KeyPair _contractKeyPair;
+            PublicKey _contractPk;
 
             // Controls final payment to payor
-            KeyPair _finalKeyPair;
+            PublicKey _finalPk;
         };
 
+        /*
         // @brief Payee provided settings in channel,
         // as through wire message.
         class PayeeSettings {
@@ -149,7 +150,9 @@ public:
 
         /**
          * @brief Peristant state of Channel.
-         */
+         *
+         * WE DO NOT PERSIST STATE OF CHANNELS YET
+
         class Configuration {
 
         public:
@@ -218,6 +221,7 @@ public:
             // Lock time of refund, received in
             quint32 _refundLockTime;
         };
+        */
 
         /**
          * @brief Snap shot state of channel
@@ -276,28 +280,24 @@ public:
         Channel();
 
         // Default/Copy constructor and assignemtn operator needed to put in container.
-        /*
-         *
-
-        Channel(const Channel& slot);
-        Channel & operator=(const Channel& rhs);
-        */
+        // Channel(const Channel& slot);
+        // Channel & operator=(const Channel& rhs);
 
         // Set all fields, e.g. loading from file
-        /*
         Channel(quint32 index,
              const State &state,
              quint64 price,
              quint64 numberOfPaymentsMade,
              quint64 funds,
-             const KeyPair &payorContractKeyPair,
-             const PublicKey &payorFinalPk,
-             const PublicKey &payeeContractPk,
-             const PublicKey &payeeFinalPk,
-             const Signature &refund,
+             const KeyPair & payorContractKeyPair,
+             const KeyPair & payorFinalKeyPair,
+             const PublicKey & payeeContractPk,
+             const PublicKey & payeeFinalPk,
+             const Signature & payorRefundSignature,
+             const Signature & payeeRefundSignature,
              quint64 refundFee,
              quint64 paymentFee,
-             quint32 refundLockTime);*/
+             quint32 refundLockTime);
 
         /**
          * Payment channel operations
@@ -445,7 +445,11 @@ public:
     };
 
     /**
-     * @brief Persistant
+     * @brief Persistant state of payor
+     *
+     * ONLY REPRESENTS PAYOR INFORMQITON REQUIRED
+     * TO START IT FROM SCRATCH, NOT RECOVERING PAST SESSION,
+     * AS THIS WILL NOT BE SUPPORTED FOR NOW.
      */
     class Configuration {
 
@@ -454,18 +458,39 @@ public:
         // Default constructor
         Configuration();
 
-        // Constructor from members
-        //Configuration();
-
         // Constructor for a fresh payor.
-        Configuration(QVector<quint64> funds,
+        Configuration(const QVector<Channel::PayorSettings> & channels,
+                      const OutPoint & fundingOutPoint,
+                      const PublicKey & fundingOutPointPk,
+                      const PublicKey & changeOutPointPk,
                       quint64 changeValue,
-                      const OutPoint & fundingOutput,
-                      const KeyPair & fundingOutputKeyPair,
                       quint64 maxPrice,
                       quint32 maxLock);
 
         // Getters and setters
+        State state() const;
+        void setState(State state);
+
+        QVector<Channel::PayorSettings> channels() const;
+        void setChannels(const QVector<Channel::PayorSettings> & channels);
+
+        OutPoint fundingOutPoint() const;
+        void setFundingOutPoint(const OutPoint & fundingOutPoint);
+
+        PublicKey fundingOutPointPk() const;
+        void setFundingOutPointPk(const PublicKey & fundingOutPointPk);
+
+        PublicKey changeOutPointPk() const;
+        void setChangeOutPointPk(const PublicKey & changeOutPointPk);
+
+        quint64 changeValue() const;
+        void setChangeValue(quint64 changeValue);
+
+        quint64 maxPrice() const;
+        void setMaxPrice(quint64 maxPrice);
+
+        quint32 maxLock() const;
+        void setMaxLock(quint32 maxLock);
 
     private:
 
@@ -473,16 +498,21 @@ public:
         State _state;
 
         // Contract outputs configurations
-        QVector<Channel::Configuration> _channels;
+        // DEPRECATED FOR NOW
+        //QVector<Channel::Configuration> _channels;
+
+        QVector<Channel::PayorSettings> _channels;
 
         // Unspent output funding channel
-        OutPoint _fundingOutput;
+        OutPoint _fundingOutPoint;
 
         // Controls output funding channel
-        KeyPair _fundingOutputKeyPair;
+        //KeyPair _fundingOutputKeyPair;
+        PublicKey _fundingOutPointPk;
 
         // Controls change output in contract
-        KeyPair _changeOutputKeyPair;
+        //KeyPair _changeOutputKeyPair;
+        PublicKey _changeOutPointPk;
 
         // Change amount sent back to payor,
         // this value, together with the _funds in all the slots
@@ -503,23 +533,24 @@ public:
          * ==========================
          * Is recomputed every time a full set of sellers is established,
          * and is cleared whenever a signature failed.
-         */
+
 
         //Contract _contract;
         TxId _contractHash;
         quint32 _numberOfSignatures;
+         */
 
     };
 
     // Default constructor
-    Payor();
+    //Payor();
 
     // Constructor based on configuration
-    //Payor(const Payor::Configuration & configuration);
+    Payor(Wallet * wallet, const Payor::Configuration & c);
 
     // Constructor based on members
     //Payor(const QSet<Channel::PayorConfiguration> & configurations, const OutPoint& fundingOutput, const KeyPair& fundingOutputKeyPair);
-    Payor(const OutPoint& fundingOutput, const KeyPair& fundingOutputKeyPair);
+    //Payor(const OutPoint& fundingOutput, const KeyPair& fundingOutputKeyPair);
 
     // Add channel
     //quint32 addChannel(const Channel::PayorSettings & configuration);
@@ -561,9 +592,18 @@ public:
 
     Status status() const;
 
+    quint32 numberOfChannels() const;
+
+    quint32 numberOfChannelsWithState(Channel::State state) const;
+
     // Getters and setters
-    OutPoint fundingOutput() const;
-    void setFundingOutput(const OutPoint & fundingOutput);
+    State state() const;
+    void setState(State state);
+
+    const QVector<Channel> & channels() const;
+
+    OutPoint fundingOutPoint() const;
+    void setFundingOutPoint(const OutPoint & fundingOutPoint);
 
     quint32 numberOfSignatures() const;
     void setNumberOfSignatures(quint32 numberOfSignatures);
@@ -574,10 +614,18 @@ public:
     quint32 maxLock() const;
     void setMaxLock(quint32 maxLock);
 
+    /*
     quint64 maxFeePerByte() const;
     void setMaxFeePerByte(quint64 maxFeePerByte);
+    */
+
+    TxId contractHash() const;
+    void setContractHash(const TxId &contractHash);
 
 private:
+
+    // Pointer to wallet
+    Wallet * _wallet;
 
     // Payor state
     State _state;
@@ -586,7 +634,7 @@ private:
     QVector<Channel> _channels;
 
     // Unspent output funding channel
-    OutPoint _fundingOutput;
+    OutPoint _fundingOutPoint;
 
     // Controls output funding channel
     KeyPair _fundingOutputKeyPair;
@@ -605,8 +653,10 @@ private:
     // Maximum lock time (the number of seconds elapsed since 1970-01-01T00:00 UTC)
     quint32 _maxLock;
 
+    /**
     // Maximum fee per byte in contract transaction (satoshies)
     quint64 _maxFeePerByte;
+    */
 
     /**
      * Contract:
@@ -615,9 +665,13 @@ private:
      * and is cleared whenever a signature failed.
      */
 
-    //Contract _contract;
+    // Add variable here for number of channels assignd as well
+
+    // Contract _contract;
     TxId _contractHash;
+
     quint32 _numberOfSignatures;
+
 };
 
 #endif // PAYOR_HPP

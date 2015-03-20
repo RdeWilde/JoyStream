@@ -251,6 +251,9 @@ public:
      * _mutex.
      */
 
+    // Returns the private key for the given public key, or throws exception
+    PrivateKey getSk(const PublicKey & pk);
+
     // Save wallet as json dictionary
     QJsonObject toJson(); // const
 

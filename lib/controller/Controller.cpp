@@ -993,7 +993,7 @@ Controller::Controller(const Configuration & configuration, bool showView, QNetw
     ,_wallet(configuration.walletFile(), true) // add autosave to configuration later?? does user even need to control that?
     ,_category(category)
     ,_manager(manager)
-    ,_plugin(new Plugin(this, _manager, bitcoindAccount, _category))
+    ,_plugin(new Plugin(this, &_wallet, _manager, bitcoindAccount, _category))
     ,_portRange(configuration.getPortRange())
     ,_view(this, &_wallet, _category) {
 

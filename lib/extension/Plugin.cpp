@@ -14,13 +14,16 @@
 
 #include "PluginMode.hpp"
 
+#include "BitCoin/Wallet.hpp"
+
 #include <boost/shared_ptr.hpp>
 
 #include <QNetworkReply>
 #include <QLoggingCategory>
 
-Plugin::Plugin(Controller * controller, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category)
+Plugin::Plugin(Controller * controller, Wallet * wallet, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category)
     : _controller(controller)
+    , _wallet(wallet)
     , _btcClient("127.0.0.1"
                  ,8332
                  ,"bitcoinrpc"
@@ -213,8 +216,14 @@ void Plugin::processPluginRequest(const PluginRequest * pluginRequest) {
 
         case PluginRequestType::StartTorrentPlugin:  {
 
+            qCDebug(_category) << "Starting torrent plugin";
+
             const StartTorrentPlugin * p = reinterpret_cast<const StartTorrentPlugin *>(pluginRequest);
             startTorrentPlugin(p->infoHash(), p->configuration());
+
+            // Delete configuration
+            // enable later
+            //delete p->configuration();
         }
 
         break;
@@ -259,7 +268,11 @@ bool Plugin::startTorrentPlugin(const libtorrent::sha1_hash & infoHash, const To
 
                 case PluginMode::Buyer:
 
-                    sharedPluginPtr.reset(new BuyerTorrentPlugin(this, weakTorrentPtr, *(reinterpret_cast<const BuyerTorrentPlugin::Configuration *>(configuration)), _category));
+                    sharedPluginPtr.reset(new BuyerTorrentPlugin(this,
+                                                                 weakTorrentPtr,
+                                                                 _wallet,
+                                                                 *(reinterpret_cast<const BuyerTorrentPlugin::Configuration *>(configuration)),
+                                                                 _category));
                     break;
 
                 case PluginMode::Seller:

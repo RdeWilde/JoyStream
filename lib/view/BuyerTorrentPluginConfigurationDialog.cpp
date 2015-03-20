@@ -13,6 +13,7 @@
 
 #include <QtMath>
 #include <QMessageBox>
+#include <QVector>
 
 BuyerTorrentPluginConfigurationDialog::BuyerTorrentPluginConfigurationDialog(Controller * controller, Wallet * wallet, const libtorrent::torrent_info & torrentInfo)
     : ui(new Ui::BuyerTorrentPluginConfigurationDialog)
@@ -61,13 +62,27 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
     // Use this for something?
     //QTime waitTime = ui->waitTimeTimeEdit->time();
 
+    // Generate keys in wallet
+    QList<PublicKey> buyerInContractPks = _wallet->generateNewKeys(numberOfSellers, Wallet::Purpose::BuyerInContractOutput).keys();
+    QList<PublicKey> buyerFinalPks = _wallet->generateNewKeys(numberOfSellers, Wallet::Purpose::ContractFinal).keys();
+    PublicKey changeOutPointPk = _wallet->generateNewKeys(1, Wallet::Purpose::ContractChange).keys()[0];
+
     // Create configuration
-    BuyerTorrentPlugin::Configuration * configuration = new BuyerTorrentPlugin::Configuration(QVector<quint64>(numberOfSellers, fundingPerSeller),
-                                                                                              changeValue,
-                                                                                              utxo.fundingOutput(),
-                                                                                              utxo.fundingOutputKeyPair(),
-                                                                                              maxPrice,
-                                                                                              maxLock);
+    QVector<Payor::Channel::PayorSettings> channels;
+    for(int i = 0;i < numberOfSellers;i++)
+        channels.append(Payor::Channel::PayorSettings(fundingPerSeller, buyerInContractPks[i], buyerFinalPks[i]));
+
+    Payor::Configuration payorConfiguration(channels,
+                                            utxo.fundingOutput(),
+                                            utxo.fundingOutputKeyPair().pk(),
+                                            changeOutPointPk,
+                                            changeValue,
+                                            maxPrice,
+                                            maxLock);
+
+    BuyerTorrentPlugin::Configuration * configuration = new BuyerTorrentPlugin::Configuration(false,
+                                                                                              BuyerTorrentPlugin::State::waiting_for_payor_to_be_ready,
+                                                                                              payorConfiguration);
 
     // Set in seller mode
     _controller->startTorrentPlugin(_torrentInfo.info_hash(), configuration);

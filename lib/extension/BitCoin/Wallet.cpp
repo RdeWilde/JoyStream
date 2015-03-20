@@ -491,6 +491,26 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       _latestBlockHeight = Utilities::GET_DOUBLE(walletDictionary, "_latestBlockHeight");
   }
 
+  PrivateKey Wallet::getSk(const PublicKey & pk) {
+
+      _mutex.lock();
+
+      // Check if we have this key in wallet
+      if(!_entries.contains(pk)) {
+
+          _mutex.unlock();
+
+          throw new std::exception("No such public key in wallet.");
+
+      }
+
+      Entry & e = _entries[pk];
+
+      _mutex.unlock();
+
+      return e.keyPair().sk();
+  }
+
   QJsonObject Wallet::toJson() {
 
       QJsonObject wallet;

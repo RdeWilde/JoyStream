@@ -7,10 +7,13 @@
 class JoiningContract : public ExtendedMessagePayload
 {
 public:
-    JoiningContract(const PublicKey & pk);
+
+    // Construct from members
+    JoiningContract(const PublicKey & contractPk, const PublicKey & finalPk);
 
     // Getter
-    PublicKey pk() const;
+    PublicKey contractPk() const;
+    PublicKey finalPk() const;
 
     // Virtual methods that subclassing messages have to implement
     virtual MessageType messageType() const;
@@ -20,7 +23,10 @@ public:
 private:
 
     // Key for seller output in contract
-    PublicKey _pk;
+    PublicKey _contractPk;
+
+    // Key for payment to seller
+    PublicKey _finalPk;
 };
 
 #endif // JOINING_CONTRACT_HPP

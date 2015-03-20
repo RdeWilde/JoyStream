@@ -2,12 +2,17 @@
 #include "MessageType.hpp"
 #include <QDataStream>
 
-JoiningContract::JoiningContract(const PublicKey & pk)
-    : _pk(pk){
+JoiningContract::JoiningContract(const PublicKey & contractPk, const PublicKey & finalPk)
+    : _contractPk(contractPk)
+    , _finalPk(finalPk) {
 }
 
-PublicKey JoiningContract::pk() const {
-    return _pk;
+PublicKey JoiningContract::contractPk() const {
+    return _contractPk;
+}
+
+PublicKey JoiningContract::finalPk() const {
+    return _finalPk;
 }
 
 MessageType JoiningContract::messageType() const {
@@ -19,5 +24,5 @@ quint32 JoiningContract::length() const {
 }
 
 void JoiningContract::write(QDataStream & stream) const {
-    stream << _pk;
+    stream << _contractPk << _finalPk;
 }

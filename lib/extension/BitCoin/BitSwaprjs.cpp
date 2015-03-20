@@ -140,7 +140,7 @@ Hash BitSwaprjs::compute_contract_hash(const Contract & contract, const PrivateK
 }
 */
 
-TxId BitSwaprjs::compute_contract_hash(const OutPoint & fundingOutput, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput) {
+TxId BitSwaprjs::compute_contract_hash(const OutPoint & fundingOutPoint, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput) {
 
     // Encode parameters into json
     QJsonArray p2shTxOuts;
@@ -149,7 +149,7 @@ TxId BitSwaprjs::compute_contract_hash(const OutPoint & fundingOutput, const Pri
         p2shTxOuts.append(i->json());
 
     QJsonObject params {
-        {"fundingOutput", fundingOutput.toJson()},
+        {"fundingOutput", fundingOutPoint.toJson()},
         {"p2shTxOuts", p2shTxOuts},
         {"change", changeOutput.json()},
         {"sk", sk.toString()}

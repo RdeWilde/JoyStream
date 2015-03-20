@@ -20,7 +20,7 @@ BuyerPeerPlugin::PeerState::PeerState(LastValidAction lastAction,
     , _failureMode(failureMode)
     , _minPrice(minPrice)
     , _minLock(minLock)
-    , _pK(pK){
+    , _contractPk(pK){
 }
 
 BuyerPeerPlugin::PeerState::LastValidAction BuyerPeerPlugin::PeerState::lastAction() const {
@@ -47,12 +47,20 @@ void BuyerPeerPlugin::PeerState::setMinPrice(quint64 minPrice) {
     _minPrice = minPrice;
 }
 
-PublicKey BuyerPeerPlugin::PeerState::pK() const {
-    return _pK;
+PublicKey BuyerPeerPlugin::PeerState::contractPk() const {
+    return _contractPk;
 }
 
-void BuyerPeerPlugin::PeerState::setPK(const PublicKey & pK) {
-    _pK = pK;
+void BuyerPeerPlugin::PeerState::setContractPk(const PublicKey & contractPk) {
+    _contractPk = contractPk;
+}
+
+PublicKey BuyerPeerPlugin::PeerState::finalPk() const {
+    return _finalPk;
+}
+
+void BuyerPeerPlugin::PeerState::setFinalPk(const PublicKey & finalPk) {
+    _finalPk = finalPk;
 }
 
 quint32 BuyerPeerPlugin::PeerState::minLock() const {
@@ -120,10 +128,12 @@ BuyerPeerPlugin::Configuration::Configuration(const ExtendedMessageIdMapping & c
                                               BEPSupportStatus peerBEP10SupportStatus,
                                               BEPSupportStatus peerBitSwaprBEPSupportStatus,
                                               const PeerState & peerState,
-                                              ClientState clientState)
+                                              ClientState clientState,
+                                              quint32 payorSlot)
     : PeerPlugin::Configuration(clientMapping, peerMapping, peerBEP10SupportStatus, peerBitSwaprBEPSupportStatus)
     , _peerState(peerState)
-    , _clientState(clientState) {
+    , _clientState(clientState)
+    , _payorSlot(payorSlot) {
 }
 
 BuyerPeerPlugin::PeerState BuyerPeerPlugin::Configuration::peerState() const {
@@ -195,7 +205,7 @@ bool BuyerPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & hand
     if(keepPlugin) {
 
         // send mode message
-        sendExtendedMessage(Buy(_plugin->payor().maxPrice(), _plugin->payor().maxLock()));
+        sendExtendedMessage(Buy(_plugin->maxPrice(), _plugin->maxLock()));
 
         // and update new client state correspondingly
         _clientState = ClientState::buyer_mode_announced;
@@ -427,6 +437,8 @@ void BuyerPeerPlugin::processObserve(const Observe * m) {
     // Do processing in response to mode reset
     peerModeReset();
 
+    // May arrive at any time, hence no _peerState.lastAction() invariant to check
+
     // Update peer state with new valid action
     _peerState.setLastAction(PeerState::LastValidAction::mode_announced);
 
@@ -440,6 +452,8 @@ void BuyerPeerPlugin::processBuy(const Buy * m) {
 
     // Do processing in response to mode reset
     peerModeReset();
+
+    // May arrive at any time, hence no _peerState.lastAction() invariant to check
 
     // Update peer state with new valid action
     _peerState.setLastAction(PeerState::LastValidAction::mode_announced);
@@ -455,6 +469,8 @@ void BuyerPeerPlugin::processSell(const Sell * m) {
     // Do processing in response to mode reset
     peerModeReset();
 
+    // May arrive at any time, hence no _peerState.lastAction() invariant to check
+
     // Update peer state with new valid action
     _peerState.setLastAction(PeerState::LastValidAction::mode_announced);
     _peerState.setMinPrice(m->minPrice());
@@ -463,14 +479,10 @@ void BuyerPeerPlugin::processSell(const Sell * m) {
     // Note that peer is seller
     _peerModeAnnounced = PeerModeAnnounced::seller;
 
-    // If we are building payment channel,
-    // and peer has not been invited,
-    // and peer has sufficiently good terms,
-    // then
-    if(_plugin->state() == BuyerTorrentPlugin::State::waiting_for_payor_to_be_ready &&
-            _clientState == ClientState::no_bitswapr_message_sent &&
-            m->minPrice() < _plugin->payor().maxPrice() &&
-            m->minLock() < _plugin->payor().maxLock()) {
+    // If peer has not been invited, and plugin says ok,
+    // then we send invite
+    if(_clientState == ClientState::no_bitswapr_message_sent &&
+            _plugin->inviteSeller(m->minPrice(), m->minLock())) {
 
         // invite to join contract
         sendExtendedMessage(JoinContract());
@@ -490,8 +502,33 @@ void BuyerPeerPlugin::processJoiningContract(const JoiningContract * m) {
     if(_clientState != ClientState::invited_to_contract)
         throw std::exception("JoiningContract message should only be sent in response to a contract invitation.");
 
-    // Update peer state with new valid action
+    // Checks invariant:
+    // _clientState == ClientState::invited_to_contract -> _peerState.lastAction() == PeerState::LastValidAction::mode_announced
+    Q_ASSERT(_peerState.lastAction() == PeerState::LastValidAction::mode_announced);
+
+    // Update peer state
     _peerState.setLastAction(PeerState::LastValidAction::joined_contract);
+    _peerState.setContractPk(m->contractPk());
+    _peerState.setFinalPk(m->finalPk());
+
+    // Try to get unassigned slot
+    try {
+
+        _payorSlot = _plugin->addSellerToContract(_peerState.minPrice(),
+                                                  _peerState.contractPk(),
+                                                  _peerState.finalPk(),
+                                                  _peerState.minLock());
+
+    } catch (std::exception & e) {
+
+        // Catch exception thrown if it is a bad time
+        qCDebug(_category) << "Exception thrown when adding seller to contract: " << e.what();
+
+        // Note that peer was ignored since conctract was full
+        _clientState = ClientState::attempted_to_join_at_bad_time;
+
+        qWarning(_category) << "Ignoring joining_contract message from this peer.";
+    }
 }
 
 void BuyerPeerPlugin::processSignRefund(const SignRefund * m) {
@@ -501,6 +538,12 @@ void BuyerPeerPlugin::processSignRefund(const SignRefund * m) {
 void BuyerPeerPlugin::processRefundSigned(const RefundSigned * m) {
 
     // Check mode of peer is compatible with message
+
+    /**
+    // Checks invariant:
+    // _clientState == ClientState::invited_to_contract -> _peerState.lastAction() == PeerState::LastValidAction::mode_announced
+    Q_ASSERT(_peerState.lastAction() == PeerState::LastValidAction::mode_announced);
+    */
 
 }
 

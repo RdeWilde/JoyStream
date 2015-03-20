@@ -7,6 +7,8 @@
 
 //#include <QTime>
 
+class Wallet;
+
 /**
  * @brief Torrent plugin for buyer mode.
  */
@@ -76,9 +78,10 @@ public:
         // Constructor from members
         Configuration(bool enableBanningSets,
                       State state,
-                      const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> & peerConfigurations,
+                      //const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> & peerConfigurations,
                       const Payor::Configuration & payorConfiguration);
 
+        /**
         // Constructor for a fresh plugin.
         Configuration(QVector<quint64> funds,
                       quint64 changeValue,
@@ -86,6 +89,7 @@ public:
                       const KeyPair & fundingOutputKeyPair,
                       quint64 maxPrice,
                       quint32 maxLock);
+        */
 
         // Constructor from dictionary
         Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry);
@@ -108,19 +112,22 @@ public:
         State state() const;
         void setState(const State & state);
 
+        /*
         QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> peerConfigurations() const;
         void setPeerConfigurations(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> &peerConfigurations);
+        */
 
         Payor::Configuration payorConfiguration() const;
-        void setPayorConfiguration(const Payor::Configuration &payorConfiguration);
+        void setPayorConfiguration(const Payor::Configuration & payorConfiguration);
 
     private:
 
         // What stage is plugin
         State _state;
 
+        // DEPRECATED FOR NOW
         // Configuration of peers
-        QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> _peerConfigurations;
+        //QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> _peerConfigurations;
 
         // Configuration of payor
         Payor::Configuration _payorConfiguration;
@@ -129,6 +136,7 @@ public:
     // Constructor from members
     BuyerTorrentPlugin(Plugin * plugin,
                        const boost::weak_ptr<libtorrent::torrent> & torrent,
+                       Wallet * wallet,
                        const Configuration & configuration,
                        QLoggingCategory & category);
 
@@ -156,6 +164,33 @@ public:
     // Get peer_plugin if present, otherwise NULL pointer is wrapped
     //virtual boost::weak_ptr<libtorrent::peer_plugin> peerPlugin(const libtorrent::tcp::endpoint & endPoint) const;
 
+    // Checks if seller can be invited on given terms
+    bool inviteSeller(quint32 minPrice, quint32 minLock) const;
+
+    // Attempts to add seller to contract
+    quint32 addSellerToContract(BuyerPeerPlugin * peer, quint64 price, const PublicKey & contractPk, const PublicKey & finalPk, quint32 refundLockTime);
+
+    // Checks if all slots in payor are occupied
+    bool isContractFull() const;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // Generate plugin status
     Status status() const;
 
@@ -165,9 +200,11 @@ public:
     State state() const;
     void setState(const State & state);
 
-    // Allows
-    const Payor & payor() const;
+    quint64 maxPrice() const;
+    quint32 maxLock() const;
 
+    // Allows
+    //const Payor & payor() const;
 
 private:
 
@@ -179,9 +216,22 @@ private:
     // in this type, rather than corresponding subclass of TorrentPlugin.
     QMap<libtorrent::tcp::endpoint, boost::weak_ptr<BuyerPeerPlugin> > _peers;
 
+    // Maps given position in payor to given end point
+    /**
+     * LATER, ADD SOME SORT OF ELEMENT FIELD TO THE CHANNELS OF THE PAYOR,
+     * SO THAT THERE IS TIGHTER ASSOCIATION BETWEEN CHANNELS AND
+     *
+     * Lets just use sloppy pointers for now!!!!!!!!
+     */
+
+    QVector<BuyerPeerPlugin *> _slotToPluginMapping;
+
+
+    // Wallet
+    Wallet * _wallet;
+
     // Payment channel
     Payor _payor;
-
 
     // Time since plugin was created, is used to keep track of when to start picking sellers.
     QTime _timeSincePluginStarted;
