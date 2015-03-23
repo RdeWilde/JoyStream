@@ -7,12 +7,21 @@
 class RefundSigned : public ExtendedMessagePayload
 {
 public:
+
+    // Default constructor
     RefundSigned();
+
+    // Construct from members
+    RefundSigned(const Signature & sig);
 
     // Virtual methods that subclassing messages have to implement
     virtual MessageType messageType() const;
     virtual quint32 length() const;
     virtual void write(QDataStream & stream) const;
+
+    // Getters and setters
+    Signature sig() const;
+    void setSig(const Signature & sig);
 
 private:
 

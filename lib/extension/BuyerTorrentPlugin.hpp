@@ -168,24 +168,10 @@ public:
     bool inviteSeller(quint32 minPrice, quint32 minLock) const;
 
     // Attempts to add seller to contract
-    quint32 addSellerToContract(BuyerPeerPlugin * peer, quint64 price, const PublicKey & contractPk, const PublicKey & finalPk, quint32 refundLockTime);
+    bool sellerWantsToJoinContract(BuyerPeerPlugin * peer, quint64 price, const PublicKey & contractPk, const PublicKey & finalPk, quint32 refundLockTime);
 
-    // Checks if all slots in payor are occupied
-    bool isContractFull() const;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    // Verifies signature, and also broadcasts contract if full set of signatures has been aquired
+    bool sellerProvidedRefundSignature(BuyerPeerPlugin * peer, const Signature & refundSignature);
 
 
 

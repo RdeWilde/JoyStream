@@ -34,7 +34,7 @@ public:
 
     static QList<KeyPair> generate_fresh_key_pairs(int numberOfPairs);
 
-    static TxId compute_contract_hash(const OutPoint & fundingOutput, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput);
+    static TxId compute_contract_hash(const OutPoint & fundingOutPoint, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput);
 
     static Signature compute_payor_refund_signature(const OutPoint & contractOutputPoint, const PrivateKey &sk, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime);
 
@@ -51,6 +51,8 @@ public:
     static QMap<PublicKey, QList<Wallet::TxOEvent>> get_key_events(const QSet<PublicKey> & keys);
 
     static quint32 get_latest_block();
+
+    static void broadcast_contract(const OutPoint & fundingOutPoint, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput);
 
 private:
 

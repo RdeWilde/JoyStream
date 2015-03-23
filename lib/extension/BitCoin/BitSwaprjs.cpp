@@ -305,3 +305,26 @@ quint32 BitSwaprjs::get_latest_block() {
 
     return heightValue.toDouble();
 }
+
+void BitSwaprjs::broadcast_contract(const OutPoint & fundingOutPoint, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput) {
+
+    // Encode parameters into json
+    QJsonArray p2shTxOuts;
+
+    for(QVector<Payor::Channel>::const_iterator i = channels.begin(), end(channels.end()); i != end;i++)
+        p2shTxOuts.append(i->json());
+
+    QJsonObject params {
+        {"fundingOutput", fundingOutPoint.toJson()},
+        {"p2shTxOuts", p2shTxOuts},
+        {"change", changeOutput.json()},
+        {"sk", sk.toString()}
+    };
+
+    // Make call
+    QJsonValue result = nodeBlockingCall("broadcast_contract", QJsonValue(params));
+
+    // Turn string to hash
+    //return TxId(result.toString());
+    return;
+}

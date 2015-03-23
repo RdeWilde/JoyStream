@@ -3,8 +3,11 @@
 
 #include <QDataStream>
 
-RefundSigned::RefundSigned()
-{
+RefundSigned::RefundSigned() {
+}
+
+RefundSigned::RefundSigned(const Signature & sig)
+    : _sig(sig) {
 }
 
 MessageType RefundSigned::messageType() const {
@@ -17,4 +20,12 @@ quint32 RefundSigned::length() const {
 
 void RefundSigned::write(QDataStream & stream) const {
     _sig.writeToStream(stream);
+}
+
+Signature RefundSigned::sig() const {
+    return _sig;
+}
+
+void RefundSigned::setSig(const Signature & sig) {
+    _sig = sig;
 }

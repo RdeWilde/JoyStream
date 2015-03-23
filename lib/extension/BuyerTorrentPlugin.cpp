@@ -24,8 +24,6 @@ void BuyerTorrentPlugin::Status::setState(State state) {
  * BuyerTorrentPlugin::Configuration
  */
 
-//#include "BitCoin/BitSwaprjs.hpp"
-
 #include <QLoggingCategory>
 
 #include <libtorrent/entry.hpp>
@@ -110,9 +108,11 @@ void BuyerTorrentPlugin::Configuration::setPeerConfigurations(const QMap<libtorr
 #include "Message/Observe.hpp"
 #include "Message/JoinContract.hpp"
 #include "Message/SignRefund.hpp"
+#include "Message/Ready.hpp"
 
 #include "Alert/BuyerTorrentPluginStatuAlert.hpp"
 
+#include "BitCoin/BitSwaprjs.hpp"
 #include "BitCoin/Wallet.hpp"
 
 #include <libtorrent/bt_peer_connection.hpp>
@@ -235,11 +235,18 @@ bool BuyerTorrentPlugin::inviteSeller(quint32 minPrice, quint32 minLock) const {
             minLock <= _payor.maxLock();
 }
 
-quint32 BuyerTorrentPlugin::addSellerToContract(BuyerPeerPlugin * peer, quint64 price,const PublicKey & contractPk, const PublicKey & finalPk, quint32 refundLockTime) {
+bool BuyerTorrentPlugin::sellerWantsToJoinContract(BuyerPeerPlugin * peer, quint64 price, const PublicKey & contractPk, const PublicKey & finalPk, quint32 refundLockTime) {
 
     // Check payor is trying to find sellers
-    if(_payor.state() != Payor::State::waiting_for_full_set_of_sellers)
-        throw std::exception("Contract cannot accept new sellers at present.");
+    if(_payor.state() != Payor::State::waiting_for_full_set_of_sellers) {
+
+        // Update peer plugin client state
+        peer->setClientState(BuyerPeerPlugin::ClientState::ignored_join_contract_from_peer);
+
+        qWarning(_category) << "Ignoring joining_contract message from this peer.";
+
+        return false;
+    }
 
     // _payor.state() == Payor::State::waiting_for_full_set_of_sellers =>
     Q_ASSERT(_state == State::waiting_for_payor_to_be_ready);
@@ -253,11 +260,14 @@ quint32 BuyerTorrentPlugin::addSellerToContract(BuyerPeerPlugin * peer, quint64 
     // Save reference to peer for given slot
     _slotToPluginMapping[slot] = peer;
 
+    // Save slot membership in peer plugin.
+    peer->setPayorSlot(slot);
+
     // If this was the last slot, then we have a full set,
     // start asking for signatures
-    if(isContractFull()) {
+    if(_payor.isFull()) {
 
-        qDebug(_category) << "Contract is full, sending sign_refund messages to sellers.";
+        qDebug(_category) << "Contract was filled, sending sign_refund messages to sellers.";
 
         /**
          * For each contract channel,
@@ -272,7 +282,7 @@ quint32 BuyerTorrentPlugin::addSellerToContract(BuyerPeerPlugin * peer, quint64 
         quint32 index = 0;
         const TxId & contractHash = _payor.contractHash();
         for(QVector<Payor::Channel>::const_iterator i = channels.constBegin(),
-            end(channels.constEnd(); i != end;i++, index++) {
+            end(channels.constEnd()); i != end;i++, index++) {
 
             // Get channel
             const Payor::Channel & channel = *i;
@@ -284,32 +294,69 @@ quint32 BuyerTorrentPlugin::addSellerToContract(BuyerPeerPlugin * peer, quint64 
             SignRefund m(contractHash, index, channel.funds(), channel.payorFinalKeyPair().pk());
 
             // Get corresponding buyer peer plugin
-            BuyerPeerPlugin * peer = _slotToPluginMapping[index];
+            BuyerPeerPlugin * channelPeer = _slotToPluginMapping[index];
 
             // channel.state() == Payor::Channel::State::assigned
             // and
             // sign_refund message not yet sent
             // =>
-            Q_ASSERT(peer->clientState() == BuyerPeerPlugin::ClientState::invited_to_contract);
-            Q_ASSERT(peer->peerState().lastAction() == BuyerPeerPlugin::PeerState::LastValidAction::joined_contract);
-            Q_ASSERT(peer->peerState().failureMode() == BuyerPeerPlugin::PeerState::FailureMode::not_failed);
+            Q_ASSERT(channelPeer->clientState() == BuyerPeerPlugin::ClientState::invited_to_contract);
+            Q_ASSERT(channelPeer->peerState().lastAction() == BuyerPeerPlugin::PeerState::LastValidAction::joined_contract);
+            Q_ASSERT(channelPeer->peerState().failureMode() == BuyerPeerPlugin::PeerState::FailureMode::not_failed);
 
             // Have plugin send message
-            peer->sendExtendedMessage(m);
+            channelPeer->sendExtendedMessage(m);
 
             // Update peer plugin client state
-            peer->setClientState(BuyerPeerPlugin::ClientState::asked_for_refund_signature);
+            channelPeer->setClientState(BuyerPeerPlugin::ClientState::asked_for_refund_signature);
         }
 
         // Update payor state
         _payor.setState(Payor::State::waiting_for_full_set_of_refund_signatures);
     }
 
-    return slot;
+    return true;
 }
 
-bool BuyerTorrentPlugin::isContractFull() const {
-    return _payor.numberOfChannelsWithState(Payor::Channel::State::unassigned) == 0;
+bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, const Signature & refundSignature) {
+
+    // Check that signature is valid
+    bool wasValid = _payor.processRefundSignature(peer->payorSlot(), refundSignature);
+
+    // Return that signature was invalid
+    if(!wasValid)
+        return false;
+
+    // Check if we have all signatures
+    if(_payor.allRefundsSigned()) {
+
+        // Construct and broadcast contract
+        _payor.broadcast_contract();
+
+        // Tell all peers with ready message
+        for(QVector<BuyerPeerPlugin *>::iterator i = _slotToPluginMapping.begin(),
+            end(_slotToPluginMapping.end()); i != end;i++) {
+
+            // Get pointer to plugin
+            BuyerPeerPlugin * p = *i;
+
+            // _payor.allRefundSigned =>
+            Q_ASSERT(p == peer && p->clientState() == BuyerPeerPlugin::ClientState::asked_for_refund_signature);
+            Q_ASSERT(p->clientState() == BuyerPeerPlugin::ClientState::received_valid_refund_signature_and_waiting_for_others);
+            Q_ASSERT(p->peerState().lastAction() == BuyerPeerPlugin::PeerState::LastValidAction::signed_refund);
+
+            // Send ready message
+            p->sendExtendedMessage(Ready());
+
+            // Update client state
+            p->setClientState(BuyerPeerPlugin::ClientState::announced_ready);
+        }
+
+    } else // note that we ignored responding for now since we have to wait for others
+        peer->setClientState(BuyerPeerPlugin::ClientState::received_valid_refund_signature_and_waiting_for_others);
+
+    // Return tht signature was valid
+    return true;
 }
 
 BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {

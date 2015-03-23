@@ -107,6 +107,14 @@ void BuyerPeerPlugin::Status::setClientState(ClientState clientState) {
     _clientState = clientState;
 }
 
+quint32 BuyerPeerPlugin::payorSlot() const {
+    return _payorSlot;
+}
+
+void BuyerPeerPlugin::setPayorSlot(quint32 payorSlot) {
+    _payorSlot = payorSlot;
+}
+
 BuyerPeerPlugin::PeerState BuyerPeerPlugin::Status::peerState() const {
     return _peerState;
 }
@@ -154,9 +162,15 @@ void BuyerPeerPlugin::Configuration::setClientState(ClientState clientState) {
 
 #include "BuyerTorrentPlugin.hpp"
 #include "PluginMode.hpp"
+#include "Message/Observe.hpp"
 #include "Message/Buy.hpp"
 #include "Message/Sell.hpp"
 #include "Message/JoinContract.hpp"
+#include "Message/JoiningContract.hpp"
+#include "Message/SignRefund.hpp"
+#include "Message/RefundSigned.hpp"
+#include "Message/Ready.hpp"
+#include "Message/Payment.hpp"
 
 #include <QLoggingCategory>
 
@@ -502,8 +516,7 @@ void BuyerPeerPlugin::processJoiningContract(const JoiningContract * m) {
     if(_clientState != ClientState::invited_to_contract)
         throw std::exception("JoiningContract message should only be sent in response to a contract invitation.");
 
-    // Checks invariant:
-    // _clientState == ClientState::invited_to_contract -> _peerState.lastAction() == PeerState::LastValidAction::mode_announced
+    // _clientState == ClientState::invited_to_contract =>
     Q_ASSERT(_peerState.lastAction() == PeerState::LastValidAction::mode_announced);
 
     // Update peer state
@@ -511,24 +524,12 @@ void BuyerPeerPlugin::processJoiningContract(const JoiningContract * m) {
     _peerState.setContractPk(m->contractPk());
     _peerState.setFinalPk(m->finalPk());
 
-    // Try to get unassigned slot
-    try {
-
-        _payorSlot = _plugin->addSellerToContract(_peerState.minPrice(),
-                                                  _peerState.contractPk(),
-                                                  _peerState.finalPk(),
-                                                  _peerState.minLock());
-
-    } catch (std::exception & e) {
-
-        // Catch exception thrown if it is a bad time
-        qCDebug(_category) << "Exception thrown when adding seller to contract: " << e.what();
-
-        // Note that peer was ignored since conctract was full
-        _clientState = ClientState::attempted_to_join_at_bad_time;
-
-        qWarning(_category) << "Ignoring joining_contract message from this peer.";
-    }
+    // Tell torrent plugin about contract joining attempt
+    _plugin->sellerWantsToJoinContract(this,
+                                        _peerState.minPrice(),
+                                        _peerState.contractPk(),
+                                        _peerState.finalPk(),
+                                        _peerState.minLock());
 }
 
 void BuyerPeerPlugin::processSignRefund(const SignRefund * m) {
@@ -537,14 +538,25 @@ void BuyerPeerPlugin::processSignRefund(const SignRefund * m) {
 
 void BuyerPeerPlugin::processRefundSigned(const RefundSigned * m) {
 
-    // Check mode of peer is compatible with message
+    // Check that we are in correct stage
+    if(_clientState != ClientState::asked_for_refund_signature)
+        throw std::exception("RefundSigned message should only be sent in response to a refund signature invitation.");
 
-    /**
-    // Checks invariant:
-    // _clientState == ClientState::invited_to_contract -> _peerState.lastAction() == PeerState::LastValidAction::mode_announced
-    Q_ASSERT(_peerState.lastAction() == PeerState::LastValidAction::mode_announced);
-    */
+    // _clientState != ClientState::asked_for_refund_signature =>
+    Q_ASSERT(_peerState.lastAction() == PeerState::LastValidAction::joined_contract);
 
+    // Tell torrent plugin about refund signing attempt
+    bool wasValid = _plugin->sellerProvidedRefundSignature(this, m->sig());
+
+    // Update peer state
+    if(wasValid)
+        _peerState.setLastAction(PeerState::LastValidAction::signed_refund);
+    else {
+
+        //_peerState.failureMode(Peer);
+
+        Q_ASSERT(false); // Should never happen, we do not support this properly as of yet
+    }
 }
 
 void BuyerPeerPlugin::processReady(const Ready * m) {

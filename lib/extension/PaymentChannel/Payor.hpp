@@ -579,6 +579,9 @@ public:
     // 3) updates payor state to all_signed, if all all are now signed.
     bool processRefundSignature(quint32 index, const Signature & signature);
 
+    //
+    void broadcast_contract();
+
     // Returns the payment signature for the present payment increment of given slot
     // ============================================
     Signature getPresentPaymentSignature(quint32 index) const;
@@ -596,11 +599,15 @@ public:
 
     quint32 numberOfChannelsWithState(Channel::State state) const;
 
+    bool isFull() const;
+
+    bool allRefundsSigned() const;
+
     // Getters and setters
     State state() const;
     void setState(State state);
 
-    const QVector<Channel> & channels() const;
+    QVector<Channel> & channels();
 
     OutPoint fundingOutPoint() const;
     void setFundingOutPoint(const OutPoint & fundingOutPoint);
@@ -671,7 +678,6 @@ private:
     TxId _contractHash;
 
     quint32 _numberOfSignatures;
-
 };
 
 #endif // PAYOR_HPP

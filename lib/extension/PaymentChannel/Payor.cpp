@@ -837,6 +837,16 @@ bool Payor::processRefundSignature(quint32 index, const Signature & signature) {
     return validSignature;
 }
 
+void Payor::broadcast_contract() {
+
+    // Compute and set _contractHash
+    BitSwaprjs::broadcast_contract(_fundingOutPoint,
+                                  _fundingOutputKeyPair.sk(),
+                                  _channels,
+                                  P2PKHTxOut(_changeValue, _changeOutputKeyPair.pk()));
+
+}
+
 Signature Payor::getPresentPaymentSignature(quint32 index) const {
 
     // Check that we are paying
@@ -893,17 +903,27 @@ quint32 Payor::numberOfChannels() const {
 quint32 Payor::numberOfChannelsWithState(Channel::State state) const {
 
     quint32 count = 0;
-    for(QVector<Channel>::const_iterator i = _channels.begin(),
-            end(_channels.end()); i != end;i++) {
+    for(QVector<Channel>::const_iterator i = _channels.constBegin(),
+            end(_channels.constEnd()); i != end;i++) {
+
+        // Get channel
+        const Channel & channel = *i;
 
         // Count channel if it has given state
-        if(*i.state() == state)
+        if(channel.state() == state)
             count++;
     }
 
     return count;
 }
 
+bool Payor::isFull() const {
+    return numberOfChannelsWithState(Channel::State::assigned) == _channels.size();
+}
+
+bool Payor::allRefundsSigned() const {
+    return numberOfChannelsWithState(Channel::State::refund_signed) == _channels.size();
+}
 
 /**
 Contract Payor::contract() const {
@@ -931,7 +951,7 @@ void Payor::setState(State state) {
     _state = state;
 }
 
-QVector<Channel> & Payor::channels() {
+QVector<Payor::Channel> & Payor::channels() {
     return _channels;
 }
 

@@ -107,21 +107,28 @@ public:
         invited_to_contract,
 
         // We ignored joining_contract message because the contract was full
-        attempted_to_join_at_bad_time,
+        ignored_join_contract_from_peer,
 
         // We have sent sign_refund message
         asked_for_refund_signature,
 
+        // Postponed sendining ready message since not all signatures were ready
+        received_valid_refund_signature_and_waiting_for_others,
+
+        // Sent ready message
+        announced_ready
 
         /**
          * The last two are not very productive states
-         */
+
 
         // We have requested a piece
         requested_piece,
 
         // We have sent a payment?
         sent_payment
+
+        */
     };
 
     /**
@@ -237,6 +244,9 @@ public:
 
     ClientState clientState() const;
     void setClientState(ClientState clientState);
+
+    quint32 payorSlot() const;
+    void setPayorSlot(quint32 payorSlot);
 
     virtual PluginMode mode() const;
 
