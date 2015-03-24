@@ -553,6 +553,11 @@ void BuyerPeerPlugin::processRefundSigned(const RefundSigned * m) {
         _peerState.setLastAction(PeerState::LastValidAction::signed_refund);
     else {
 
+        // We could come here just because peer was late to respond with an old
+        // signature, or we had to reset a contract
+
+        // Deal with sequence numbers here later!!!!
+
         //_peerState.failureMode(Peer);
 
         Q_ASSERT(false); // Should never happen, we do not support this properly as of yet

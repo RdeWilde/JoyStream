@@ -7,6 +7,8 @@
 
 //#include <QTime>
 
+#include <queue>          // std::priority_queue
+
 class Wallet;
 
 /**
@@ -29,6 +31,47 @@ public:
 
         // Have full torrent
         done
+    };
+
+    /**
+     * @brief Represents piece in torrent
+     */
+    class Piece {
+
+    public:
+
+        // Default constructor
+        Piece();
+
+        // Constructors based on members
+        Piece(int piece, bool downloadedAndValid, bool outstandingRequests, BuyerPeerPlugin * requestDestination);
+
+        // Getters and setters
+        int piece() const;
+        void setPiece(int piece);
+
+        bool downloadedAndValid() const;
+        void setDownloadedAndValid(bool downloadedAndValid);
+
+        bool outstandingRequests() const;
+        void setOutstandingRequests(bool outstandingRequests);
+
+        BuyerPeerPlugin *requestDestination() const;
+        void setRequestDestination(BuyerPeerPlugin * requestDestination);
+
+    private:
+
+        // Index of piece
+        int _piece;
+
+        // Piece is downloaded and valid
+        bool _downloadedAndValid;
+
+        // There is an outstanding request for this piece
+        bool _outstandingRequests;
+
+        // Outstanding request to given peer plugin
+        BuyerPeerPlugin * _requestDestination;
     };
 
     /**
@@ -173,7 +216,8 @@ public:
     // Verifies signature, and also broadcasts contract if full set of signatures has been aquired
     bool sellerProvidedRefundSignature(BuyerPeerPlugin * peer, const Signature & refundSignature);
 
-
+    //
+    void manageRequests();
 
 
 
@@ -206,12 +250,9 @@ private:
     /**
      * LATER, ADD SOME SORT OF ELEMENT FIELD TO THE CHANNELS OF THE PAYOR,
      * SO THAT THERE IS TIGHTER ASSOCIATION BETWEEN CHANNELS AND
-     *
      * Lets just use sloppy pointers for now!!!!!!!!
      */
-
     QVector<BuyerPeerPlugin *> _slotToPluginMapping;
-
 
     // Wallet
     Wallet * _wallet;
@@ -222,11 +263,12 @@ private:
     // Time since plugin was created, is used to keep track of when to start picking sellers.
     QTime _timeSincePluginStarted;
 
-    // what requests have been sent out for pieces we still
-    // dont have, and how long have we been waiting (so that we can discard slow bastards).
+    // Pieces in torrent file
+    QVector<Piece> _pieces;
 
-    // What refunds have been spent,and what have not.
-    // Use timer to keep checking back?
+    // Indexes of pieces not yet requested
+    std::priority_queue<int> _unrequestedPieceIndexes;
+
 };
 
 #endif // BUYER_TORRENT_PLUGIN_HPP

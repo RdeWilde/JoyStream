@@ -1,6 +1,56 @@
 #include "BuyerTorrentPlugin.hpp"
 
 /**
+ * BuyerTorrentPlugin::Piece
+ */
+
+BuyerTorrentPlugin::Piece::Piece()
+    : _piece(-1)
+    , _downloadedAndValid(false)
+    , _outstandingRequests(false)
+    , _requestDestination(NULL) {
+}
+
+BuyerTorrentPlugin::Piece::Piece(int piece, bool downloadedAndValid, bool outstandingRequests, BuyerPeerPlugin * requestDestination)
+    : _piece(piece)
+    , _downloadedAndValid(downloadedAndValid)
+    , _outstandingRequests(outstandingRequests)
+    , _requestDestination(requestDestination) {
+}
+
+int BuyerTorrentPlugin::Piece::piece() const {
+    return _piece;
+}
+
+void BuyerTorrentPlugin::Piece::setPiece(int piece) {
+    _piece = piece;
+}
+
+bool BuyerTorrentPlugin::Piece::downloadedAndValid() const {
+    return _downloadedAndValid;
+}
+
+void BuyerTorrentPlugin::Piece::setDownloadedAndValid(bool downloadedAndValid) {
+    _downloadedAndValid = downloadedAndValid;
+}
+
+bool BuyerTorrentPlugin::Piece::outstandingRequests() const {
+    return _outstandingRequests;
+}
+
+void BuyerTorrentPlugin::Piece::setOutstandingRequests(bool outstandingRequests) {
+    _outstandingRequests = outstandingRequests;
+}
+
+BuyerPeerPlugin * BuyerTorrentPlugin::Piece::requestDestination() const {
+    return _requestDestination;
+}
+
+void BuyerTorrentPlugin::Piece::setRequestDestination(BuyerPeerPlugin *requestDestination) {
+    _requestDestination = requestDestination;
+}
+
+/**
  * BuyerTorrentPlugin::Status
  */
 
@@ -130,15 +180,36 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
     , _slotToPluginMapping(configuration.payorConfiguration().channels().size(), NULL)
     , _wallet(wallet)
     , _payor(_wallet, configuration.payorConfiguration()) {
-    //, _configuration(configuration) {
-
-    // do something with this => configuration
 
     // Start clock for when picking sellers can begin
     _timeSincePluginStarted.start();
 
-    // Setup space for plugins in contract
-    //_sellersInContract.fill(NULL, _torrentPluginConfiguration->_numSellers);
+    // Setup pieces management data
+    if(boost::shared_ptr<libtorrent::torrent> sharedPtr = torrent.lock()) {
+
+        // Get torrent information
+        const libtorrent::torrent_info & torrentInfo = sharedPtr->torrent_file();
+
+        int numberOfPieces = torrentInfo.num_pieces();
+
+        for(int i = 0;i < numberOfPieces;i++) {
+
+            // Do we already have the valid piece
+            if(!sharedPtr->have_piece(i)) {
+
+                // Add piece vector of pieces
+                _pieces.push_back(Piece(i, false, false, NULL));
+
+                // Add to queue of unrequested pieces
+                _unrequestedPieceIndexes.push(i);
+
+            } else // Add to piece vector of pieces, and indicate that we have it
+                _pieces.push_back(Piece(i, true, false, NULL));
+
+        }
+
+    } else
+        Q_ASSERT(false); // This should never happen
 }
 
 boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(libtorrent::peer_connection * connection) {
@@ -199,6 +270,9 @@ void BuyerTorrentPlugin::on_piece_failed(int index) {
 void BuyerTorrentPlugin::tick() {
 
     qCDebug(_category) << "BuyerTorrentPlugin.tick()";
+
+    // Manages requesting pieces from peers
+    manageRequests();
 
     // Send status update to controller
     sendTorrentPluginAlert(BuyerTorrentPluginStatusAlert(_infoHash, status()));
@@ -320,6 +394,13 @@ bool BuyerTorrentPlugin::sellerWantsToJoinContract(BuyerPeerPlugin * peer, quint
 
 bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, const Signature & refundSignature) {
 
+    //if(_state != State::waiting_for_payor_to_be_ready)
+
+    // OBS: MAY NEED TO BE EXCEPTION INSTEAD, DEPENDING ON WHETHER PEER PLUGINS
+    // CAN LEGALLY EVER CALL THIS!
+    // peer plugin .... =>
+    Q_ASSERT(_state == State::waiting_for_payor_to_be_ready);
+
     // Check that signature is valid
     bool wasValid = _payor.processRefundSignature(peer->payorSlot(), refundSignature);
 
@@ -352,11 +433,26 @@ bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, c
             p->setClientState(BuyerPeerPlugin::ClientState::announced_ready);
         }
 
+        // Update state
+        _state = State::downloading_pieces;
+
     } else // note that we ignored responding for now since we have to wait for others
         peer->setClientState(BuyerPeerPlugin::ClientState::received_valid_refund_signature_and_waiting_for_others);
 
     // Return tht signature was valid
     return true;
+}
+
+void BuyerTorrentPlugin::manageRequests() {
+
+    // Do nothing unless we are actually downloading pieces
+    if(_state != State::downloading_pieces)
+        return;
+
+
+
+
+
 }
 
 BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {

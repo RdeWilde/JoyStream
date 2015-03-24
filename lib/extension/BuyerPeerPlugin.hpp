@@ -7,6 +7,8 @@
 #include "BitCoin/TxId.hpp"
 #include "BitCoin/PublicKey.hpp"
 
+#include <QSet>
+
 class BuyerTorrentPlugin;
 
 /**
@@ -263,6 +265,9 @@ private:
 
     // Payor slot: payment channel output slot
     quint32 _payorSlot;
+
+    // Valid pieces downloaded from given peer
+    QSet<int> _downloadedPieces;
 
     // Processess message
     virtual void processObserve(const Observe * m);
