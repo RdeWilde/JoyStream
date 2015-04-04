@@ -847,6 +847,28 @@ void Payor::broadcast_contract() {
 
 }
 
+quint64 Payor::incrementPaymentCounter(quint32 index) {
+
+    // Check that we are paying
+    if(_state != State::can_pay)
+        throw std::exception("State incompatile request, must be in State::paying state.");
+
+    // Check that index is valid
+    if(index >= _channels.size())
+        throw std::exception("Invalid index.");
+
+    // Get channel
+    Channel & channel = _channels[index];
+
+    Q_ASSERT(channel.state() == Channel::State::refund_signed);
+
+    // Update payment counter
+    quint64 number = channel.numberOfPaymentsMade() + 1;
+    channel.setNumberOfPaymentsMade(number);
+
+    return number;
+}
+
 Signature Payor::getPresentPaymentSignature(quint32 index) const {
 
     // Check that we are paying

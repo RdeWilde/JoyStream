@@ -3,8 +3,11 @@
 
 #include <QDataStream>
 
-Payment::Payment()
-{
+Payment::Payment() {
+}
+
+Payment::Payment(const Signature & sig)
+    : _sig(sig) {
 }
 
 MessageType Payment::messageType() const {

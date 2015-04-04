@@ -7,7 +7,12 @@
 class Payment : public ExtendedMessagePayload
 {
 public:
+
+    // Defualt constructor
     Payment();
+
+    // Constructor from members
+    Payment(const Signature & sig);
 
     // Virtual methods that subclassing messages have to implement
     virtual MessageType messageType() const;

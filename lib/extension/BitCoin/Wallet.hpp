@@ -25,7 +25,7 @@ public:
     /**
      * @brief Different types of networks to which a wallet can belong
      */
-    enum class Chain {
+    enum class Network {
         mainnet,
         testnet3
     };
@@ -309,7 +309,7 @@ private:
     QMap<PublicKey, Entry> _entries;
 
     // The chain to which wallet belongs
-    Chain _chain;
+    Network _network;
 
     // Synchronizes wallet
     QMutex _mutex;

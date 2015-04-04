@@ -40,38 +40,51 @@ public:
 
     public:
 
+        enum class State {
+
+            // We do not have piece, and it has given assignment status
+            unassigned,
+            assigned,
+
+            // We do have piece
+            fully_downloaded_and_valid,
+        };
+
         // Default constructor
         Piece();
 
         // Constructors based on members
-        Piece(int piece, bool downloadedAndValid, bool outstandingRequests, BuyerPeerPlugin * requestDestination);
+        Piece(int index, int numberOfBlocks, State state, BuyerPeerPlugin * peerPlugin);
 
         // Getters and setters
-        int piece() const;
-        void setPiece(int piece);
+        int index() const;
+        void setIndex(int index);
 
-        bool downloadedAndValid() const;
-        void setDownloadedAndValid(bool downloadedAndValid);
+        int numberOfBlocks() const;
+        void setNumberOfBlocks(int numberOfBlocks);
 
-        bool outstandingRequests() const;
-        void setOutstandingRequests(bool outstandingRequests);
+        State state() const;
+        void setState(const State &state);
 
-        BuyerPeerPlugin *requestDestination() const;
-        void setRequestDestination(BuyerPeerPlugin * requestDestination);
+        BuyerPeerPlugin * peerPlugin() const;
+        void setPeerPlugin(BuyerPeerPlugin * peerPlugin);
 
     private:
 
         // Index of piece
-        int _piece;
+        int _index;
 
-        // Piece is downloaded and valid
-        bool _downloadedAndValid;
+        // Byte length of piece (should be the same for all but last piece)
+        int _length;
 
-        // There is an outstanding request for this piece
-        bool _outstandingRequests;
+        // Number of blocks in piece
+        int _numberOfBlocks;
 
-        // Outstanding request to given peer plugin
-        BuyerPeerPlugin * _requestDestination;
+        // Piece state
+        State _state;
+
+        // Peer plugin assigned to this piece
+        BuyerPeerPlugin * _peerPlugin;
     };
 
     /**
@@ -216,10 +229,20 @@ public:
     // Verifies signature, and also broadcasts contract if full set of signatures has been aquired
     bool sellerProvidedRefundSignature(BuyerPeerPlugin * peer, const Signature & refundSignature);
 
-    //
-    void manageRequests();
+    // Find peers which presently have not been assigned a piece, and assign piece.
+    bool assignPieceToPeerPlugin(BuyerPeerPlugin * peer);
 
+    // Starting after startIndex, and finds the first piece which has not been downloaded and not assigned.
+    // If no piece is found greater than startIndex, it loops around from piece 0
+    // to see if there are any hits there. If this fails, it throws and exception
+    // to signify that all pieces have been assigned
+    int getNextUnassignedPiece(int startIndex) const;
 
+    // Marks corresponding piece as downloaded
+    void pieceDownloaded(int index);
+
+    // Increments payment counter in payment channel, and generates signature
+    Signature makePaymentAndGetPaymentSignature(BuyerPeerPlugin * peerPlugin);
 
     // Generate plugin status
     Status status() const;
@@ -235,6 +258,9 @@ public:
 
     // Allows
     //const Payor & payor() const;
+
+    int blockSize() const;
+    void setBlockSize(int blockSize);
 
 private:
 
@@ -263,12 +289,31 @@ private:
     // Time since plugin was created, is used to keep track of when to start picking sellers.
     QTime _timeSincePluginStarted;
 
+    /**
+     * Piece management
+     */
+
     // Pieces in torrent file
     QVector<Piece> _pieces;
 
-    // Indexes of pieces not yet requested
-    std::priority_queue<int> _unrequestedPieceIndexes;
+    // The blocksize in the torrent
+    int _blockSize;
 
+    // The number of pieces which have not been downloaded and not been assigned to a peer
+    quint32 _numberOfUnassignedPieces;
+
+    // Set of peer plugins which have not been assigned a piece.
+    // the tick() callback routinely attempts to assign a piece
+    // to a peer plugin in this set.
+    QSet<BuyerPeerPlugin *> _peerPluginsWithoutPieceAssignment;
+
+    // Keeps track of lower bound for piece indexes which may be assigned.
+    // Is updated when full pieces are downloaded contigously, and
+    // is used with getNextUnassignedPiece() to find next piece to assign.
+    //
+    // Is required to ensure in order downloading from correct position in file, e.g.,
+    // if user has seeked to this position recently.
+    int _assignmentLowerBound;
 };
 
 #endif // BUYER_TORRENT_PLUGIN_HPP

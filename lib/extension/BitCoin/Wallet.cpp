@@ -412,7 +412,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       _walletSeed(0)
     , _gapLimit(1)
     , _keyCount(0)
-    , _chain(Chain::testnet3)
+    , _network(Network::testnet3)
     , _mutex(QMutex::Recursive) // allows same thread to call multiple synchronized sections in sequence
     , _walletFileName(file)
     , _autoSave(autoSave)
@@ -481,9 +481,9 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       QString chain = Utilities::GET_STRING(walletDictionary, "_chain");
 
       if(chain == "mainnet")
-          _chain = Chain::mainnet;
+          _network = Network::mainnet;
       else if(chain == "testnet3")
-          _chain = Chain::testnet3;
+          _network = Network::testnet3;
       else
           throw new std::exception("_chain key must have value among {mainnet, testnet3}.");
 
@@ -536,7 +536,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       wallet["_entries"] = entriesObject;
 
       // _chain
-      if(_chain == Chain::mainnet)
+      if(_network == Network::mainnet)
           wallet["_chain"] = "mainnet";
       else
           wallet["_chain"] = "testnet3";

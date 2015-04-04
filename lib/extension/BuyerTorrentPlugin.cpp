@@ -5,49 +5,48 @@
  */
 
 BuyerTorrentPlugin::Piece::Piece()
-    : _piece(-1)
-    , _downloadedAndValid(false)
-    , _outstandingRequests(false)
-    , _requestDestination(NULL) {
+    : _index(-1) // safe value
+    , _state(State::unassigned)
+    , _peerPlugin(NULL) {
 }
 
-BuyerTorrentPlugin::Piece::Piece(int piece, bool downloadedAndValid, bool outstandingRequests, BuyerPeerPlugin * requestDestination)
-    : _piece(piece)
-    , _downloadedAndValid(downloadedAndValid)
-    , _outstandingRequests(outstandingRequests)
-    , _requestDestination(requestDestination) {
+BuyerTorrentPlugin::Piece::Piece(int index, int numberOfBlocks, State state, BuyerPeerPlugin * peerPlugin)
+    : _index(index)
+    , _numberOfBlocks(numberOfBlocks)
+    , _state(state)
+    , _peerPlugin(peerPlugin) {
 }
 
-int BuyerTorrentPlugin::Piece::piece() const {
-    return _piece;
+int BuyerTorrentPlugin::Piece::index() const {
+    return _index;
 }
 
-void BuyerTorrentPlugin::Piece::setPiece(int piece) {
-    _piece = piece;
+void BuyerTorrentPlugin::Piece::setIndex(int index) {
+    _index = index;
 }
 
-bool BuyerTorrentPlugin::Piece::downloadedAndValid() const {
-    return _downloadedAndValid;
+int BuyerTorrentPlugin::Piece::numberOfBlocks() const {
+    return _numberOfBlocks;
 }
 
-void BuyerTorrentPlugin::Piece::setDownloadedAndValid(bool downloadedAndValid) {
-    _downloadedAndValid = downloadedAndValid;
+void BuyerTorrentPlugin::Piece::setNumberOfBlocks(int numberOfBlocks) {
+    _numberOfBlocks = numberOfBlocks;
 }
 
-bool BuyerTorrentPlugin::Piece::outstandingRequests() const {
-    return _outstandingRequests;
+BuyerTorrentPlugin::Piece::State BuyerTorrentPlugin::Piece::state() const {
+    return _state;
 }
 
-void BuyerTorrentPlugin::Piece::setOutstandingRequests(bool outstandingRequests) {
-    _outstandingRequests = outstandingRequests;
+void BuyerTorrentPlugin::Piece::setState(const State & state) {
+    _state = state;
 }
 
-BuyerPeerPlugin * BuyerTorrentPlugin::Piece::requestDestination() const {
-    return _requestDestination;
+BuyerPeerPlugin * BuyerTorrentPlugin::Piece::peerPlugin() const {
+    return _peerPlugin;
 }
 
-void BuyerTorrentPlugin::Piece::setRequestDestination(BuyerPeerPlugin *requestDestination) {
-    _requestDestination = requestDestination;
+void BuyerTorrentPlugin::Piece::setPeerPlugin(BuyerPeerPlugin *peerPlugin) {
+    _peerPlugin = peerPlugin;
 }
 
 /**
@@ -168,6 +167,8 @@ void BuyerTorrentPlugin::Configuration::setPeerConfigurations(const QMap<libtorr
 #include <libtorrent/bt_peer_connection.hpp>
 #include <libtorrent/socket_io.hpp> // print_endpoint
 
+#include <math.h> // ceil
+
 // Maximum allowable a peer may have in responding to given message (ms)
 #define SIGN_REFUND_MAX_DELAY 5*1000
 
@@ -179,32 +180,43 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
     : TorrentPlugin(plugin, torrent, configuration, category)
     , _slotToPluginMapping(configuration.payorConfiguration().channels().size(), NULL)
     , _wallet(wallet)
-    , _payor(_wallet, configuration.payorConfiguration()) {
+    , _payor(_wallet, configuration.payorConfiguration())
+    , _numberOfUnassignedPieces(0)
+    , _assignmentLowerBound(0) {
 
     // Start clock for when picking sellers can begin
     _timeSincePluginStarted.start();
 
     // Setup pieces management data
-    if(boost::shared_ptr<libtorrent::torrent> sharedPtr = torrent.lock()) {
+    if(boost::shared_ptr<libtorrent::torrent> sharedPtr = _torrent.lock()) {
 
-        // Get torrent information
+        // Get number of pieces
         const libtorrent::torrent_info & torrentInfo = sharedPtr->torrent_file();
-
         int numberOfPieces = torrentInfo.num_pieces();
 
+        // Get block size
+        libtorrent::torrent_status torrentStatus = sharedPtr->state();
+        _blockSize = torrentStatus.block_size;
+
         for(int i = 0;i < numberOfPieces;i++) {
+
+            // Get byte size of given piece: all pieces, except possibly last one, are of same length
+            int pieceSize = torrentInfo.piece_size(i);
+
+            // Get number of blocks in given piece
+            int numberOfBlocksInPiece = (int) ceil(((double)pieceSize) / _blockSize);
 
             // Do we already have the valid piece
             if(!sharedPtr->have_piece(i)) {
 
                 // Add piece vector of pieces
-                _pieces.push_back(Piece(i, false, false, NULL));
+                _pieces.push_back(Piece(i, numberOfBlocksInPiece, Piece::State::unassigned, NULL);
 
-                // Add to queue of unrequested pieces
-                _unrequestedPieceIndexes.push(i);
+                // Count piece as unassigned
+                _numberOfUnassignedPieces++;
 
             } else // Add to piece vector of pieces, and indicate that we have it
-                _pieces.push_back(Piece(i, true, false, NULL));
+                _pieces.push_back(Piece(i, numberOfBlocksInPiece,Piece::State::fully_downloaded_and_valid, NULL));
 
         }
 
@@ -271,8 +283,25 @@ void BuyerTorrentPlugin::tick() {
 
     qCDebug(_category) << "BuyerTorrentPlugin.tick()";
 
-    // Manages requesting pieces from peers
-    manageRequests();
+    // If we are downloading, then try to assign them to peers without pieces assigned
+    if(_state == State::downloading_pieces) {
+
+        qCDebug(_category) << "Trying to assign pieces to peers.";
+
+        // Iterate peers while there are unassigned pieces left
+        for(QSet<BuyerPeerPlugin *>::const_iterator i = _peerPluginsWithoutPieceAssignment.constBegin(),
+            end(_peerPluginsWithoutPieceAssignment.constEnd());
+            i != end && _numberOfUnassignedPieces > 0;i++) {
+
+            // Get peer plugin
+            BuyerPeerPlugin * peerPlugin = *i;
+
+            // Check if peer is giving us a decent down speed?
+
+            // Assign to peer plugin
+            assignPieceToPeerPlugin(peerPlugin);
+        }
+    }
 
     // Send status update to controller
     sendTorrentPluginAlert(BuyerTorrentPluginStatusAlert(_infoHash, status()));
@@ -430,7 +459,11 @@ bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, c
             p->sendExtendedMessage(Ready());
 
             // Update client state
-            p->setClientState(BuyerPeerPlugin::ClientState::announced_ready);
+            //p->setClientState(BuyerPeerPlugin::ClientState::announced_ready);
+            p->setClientState(BuyerPeerPlugin::ClientState::needs_to_be_assigned_piece);
+
+            // Note that peer has not been assigned a piece
+            _peerPluginsWithoutPieceAssignment.insert(p);
         }
 
         // Update state
@@ -443,98 +476,210 @@ bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, c
     return true;
 }
 
-void BuyerTorrentPlugin::manageRequests() {
+bool BuyerTorrentPlugin::assignPieceToPeerPlugin(BuyerPeerPlugin * peerPlugin) {
 
-    // Do nothing unless we are actually downloading pieces
-    if(_state != State::downloading_pieces)
-        return;
+    // This routine should only be called if following holds
+    Q_ASSERT(_state == State::downloading_pieces);
+    Q_ASSERT(peerPlugin->clientState() == BuyerPeerPlugin::ClientState::needs_to_be_assigned_piece);
+    Q_ASSERT(_peerPluginsWithoutPieceAssignment.contains(peerPlugin));
+    Q_ASSERT(peerPlugin->unservicedRequests().empty());
 
+    // Try to get next piece
+    int pieceIndex;
 
+    try {
+        pieceIndex = getNextUnassignedPiece(_assignmentLowerBound);
+    } catch (std::exception & e) {
 
+        // No unassigned pieces presently available, so add to set of unassigne peer plugins
+        _peerPluginsWithoutPieceAssignment.insert(peerPlugin);
 
+        // and signal failure
+        return false;
+    }
 
+     // Update piece object
+     Piece & piece = _pieces[pieceIndex];
+
+     // getNextUnassignedPiece() correctness requires that
+     // piece returned must have proper state
+     Q_ASSERT(piece.index() == pieceIndex);
+     Q_ASSERT(piece.state() == Piece::State::unassigned);
+
+     piece.setState(Piece::State::assigned);
+     piece.setPeerPlugin(peerPlugin);
+
+     // Update peer plugin
+     //peerPlugin->setAssignedPiece(true);
+     peerPlugin->setIndexOfAssignedPiece(pieceIndex);
+     peerPlugin->setNumberOfBlocksInPiece(piece.numberOfBlocks());
+     peerPlugin->setNumberOfBlocksRequested(0);
+     peerPlugin->setNumberOfBlocksReceived(0);
+     //instead: peerPlugin->assignPiece(piece);
+
+     // Remove from set of unassigned peer plugins, if its there
+     _peerPluginsWithoutPieceAssignment.remove(peerPlugin);
+
+     // Reduced the number of unassigned pieces
+     _numberOfUnassignedPieces--;
+
+     // Should never go negative
+     Q_ASSERT(_numberOfUnassignedPieces >= 0);
+ }
+
+int BuyerTorrentPlugin::getNextUnassignedPiece(int startIndex) const {
+
+     // Start looking for piece at given starting point index
+     int index = startIndex;
+
+     // Find first unasigned piece with index no less than startIndex
+     for(;index < _pieces.length();index++) {
+
+         // Get piece
+         const Piece & piece = _pieces[index];
+
+         // Return index if piece is unassigned
+         if(piece.state() == Piece::State::unassigned)
+             return index;
+
+     }
+
+     // No match found, lets start from beginning then
+     for(index = 0;i < startIndex;index++) {
+
+         // Get piece
+         const Piece & piece = _pieces[index];
+
+         // Return index if piece is unassigned
+         if(piece.state() == Piece::State::unassigned)
+             return index;
+
+     }
+
+     // We did not find anything
+     throw std::exception("Unable to find any unassigned pieces.");
+ }
+
+void BuyerTorrentPlugin::pieceDownloaded(int index) {
+
+    // Check that index is valid
+    Q_ASSERT(index < _pieces.length());
+
+    // Get piece
+    Piece & piece = _pieces[index];
+
+    // Note that peer plugin has no piece at present
+    _peerPluginsWithoutPieceAssignment.insert(piece.peerPlugin());
+
+    // Update state
+    piece.setState(Piece::State::fully_downloaded_and_valid);
+    piece.setPeerPlugin(NULL); // for safety
+}
+
+Signature BuyerTorrentPlugin::makePaymentAndGetPaymentSignature(BuyerPeerPlugin * peerPlugin) {
+
+    // This routine should only be called if following holds
+    Q_ASSERT(_state == State::downloading_pieces);
+
+    // Find payor slot for this plugin
+    quint32 payorSlot = peerPlugin->payorSlot();
+
+    // Note payment
+    _payor.incrementPaymentCounter(payorSlot);
+
+    // Get payment signature for given slot
+    return _payor.getPresentPaymentSignature(payorSlot);
 }
 
 BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
 
-    // Build list of buyer peer statuses
-    QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> peers;
+     // Build list of buyer peer statuses
+     QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> peers;
 
-    for(QMap<libtorrent::tcp::endpoint, boost::weak_ptr<BuyerPeerPlugin> >::const_iterator i = _peers.constBegin(),
-            end(_peers.constEnd());i != end;i++) {
+     for(QMap<libtorrent::tcp::endpoint, boost::weak_ptr<BuyerPeerPlugin> >::const_iterator i = _peers.constBegin(),
+             end(_peers.constEnd());i != end;i++) {
 
-        // Try to get shared pointer, and get status for peer plugin
-        if(boost::shared_ptr<BuyerPeerPlugin> sharedPtr = i.value().lock())
-            peers[i.key()] = sharedPtr->status();
-        else
-            qCDebug(_category) << "BuyerPeerPlugin was invalid!";
-    }
+         // Try to get shared pointer, and get status for peer plugin
+         if(boost::shared_ptr<BuyerPeerPlugin> sharedPtr = i.value().lock())
+             peers[i.key()] = sharedPtr->status();
+         else
+             qCDebug(_category) << "BuyerPeerPlugin was invalid!";
+     }
 
-    // Return final status
-    return Status(_state, peers, _payor.status());
-}
+     // Return final status
+     return Status(_state, peers, _payor.status());
+ }
 
-/**
-boost::weak_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::peerPlugin(const libtorrent::tcp::endpoint & endPoint) const {
+ /**
+ boost::weak_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::peerPlugin(const libtorrent::tcp::endpoint & endPoint) const {
 
-    if(_peers.contains(endPoint)) {
-        return _peers[endPoint];
-    else
-        return boost::weak_ptr<libtorrent::peer_plugin>(NULL);
+     if(_peers.contains(endPoint)) {
+         return _peers[endPoint];
+     else
+         return boost::weak_ptr<libtorrent::peer_plugin>(NULL);
 
-}
+ }
 
-void BuyerTorrentPlugin::removePeerPlugin(PeerPlugin * plugin) {
+ void BuyerTorrentPlugin::removePeerPlugin(PeerPlugin * plugin) {
 
-    qCDebug(_category) << "TorrentPlugin::removePeerPlugin(): NOT IMPLEMENTED.";
+     qCDebug(_category) << "TorrentPlugin::removePeerPlugin(): NOT IMPLEMENTED.";
 
 
-     * SHOULD DEPEND ON MODE, AND ON SUB MODE STATE
+      * SHOULD DEPEND ON MODE, AND ON SUB MODE STATE
 
-    // Find iterator reference to plugin
-    std::map<libtorrent::tcp::endpoint, PeerPlugin *>::iterator & mapIterator = _peerPlugins.find(plugin->getEndPoint());
+     // Find iterator reference to plugin
+     std::map<libtorrent::tcp::endpoint, PeerPlugin *>::iterator & mapIterator = _peerPlugins.find(plugin->getEndPoint());
 
-    // Did we find match?
-    if(mapIterator == _peerPlugins.end()) {
-        qCDebug(_category) << "Could not find peer for removal.";
-        return;
-    }
+     // Did we find match?
+     if(mapIterator == _peerPlugins.end()) {
+         qCDebug(_category) << "Could not find peer for removal.";
+         return;
+     }
 
-    // Remove
-    _peerPlugins.erase(mapIterator);
+     // Remove
+     _peerPlugins.erase(mapIterator);
 
-    // Delete object: Do we do this, or does libtorrent? and when is this safe?
-    //delete mapIterator->second;
+     // Delete object: Do we do this, or does libtorrent? and when is this safe?
+     //delete mapIterator->second;
 
-    // Emit peer added signal
-    //emit peerRemoved(torrent_->info_hash(), mapIterator->first);
+     // Emit peer added signal
+     //emit peerRemoved(torrent_->info_hash(), mapIterator->first);
 
-}
-*/
+ }
+ */
 
-BuyerTorrentPlugin::State BuyerTorrentPlugin::state() const {
-    return _state;
-}
+ BuyerTorrentPlugin::State BuyerTorrentPlugin::state() const {
+     return _state;
+ }
 
-void BuyerTorrentPlugin::setState(const State & state) {
-    _state = state;
-}
+ void BuyerTorrentPlugin::setState(const State & state) {
+     _state = state;
+ }
 
-quint64 BuyerTorrentPlugin::maxPrice() const {
-    return _payor.maxPrice();
-}
+ quint64 BuyerTorrentPlugin::maxPrice() const {
+     return _payor.maxPrice();
+ }
 
-quint32 BuyerTorrentPlugin::maxLock() const {
-    return _payor.maxLock();
-}
+ quint32 BuyerTorrentPlugin::maxLock() const {
+     return _payor.maxLock();
+ }
 
-/*
-const Payor & BuyerTorrentPlugin::payor() const {
-    return _payor;
-}
-*/
+ int BuyerTorrentPlugin::blockSize() const {
+     return _blockSize;
+ }
 
-PluginMode BuyerTorrentPlugin::pluginMode() const {
-    return PluginMode::Buyer;
-}
+ void BuyerTorrentPlugin::setBlockSize(int blockSize) {
+     _blockSize = blockSize;
+ }
+
+
+ /*
+ const Payor & BuyerTorrentPlugin::payor() const {
+     return _payor;
+ }
+ */
+
+ PluginMode BuyerTorrentPlugin::pluginMode() const {
+     return PluginMode::Buyer;
+ }
 

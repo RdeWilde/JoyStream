@@ -118,19 +118,20 @@ public:
         received_valid_refund_signature_and_waiting_for_others,
 
         // Sent ready message
-        announced_ready
+        // NOT REALLY NEEDED, WE NEVER WAIT FOR ANYTHIN AFTER THIS
+        //announced_ready,
 
-        /**
-         * The last two are not very productive states
+        // At least one request message has been sent, for which no piece message
+        // has yet been returned
+        waiting_for_requests_to_be_serviced,
 
+        // All sent requests have been serviced by peer
+        needs_to_be_assigned_piece,
 
-        // We have requested a piece
-        requested_piece,
+        // We have received piece messages for all blocks in currently assigned piece,
+        // hence we are waiting for libtorrent to fire on_piece_pass() or on_piece_failed()
+        waiting_for_libtorrent_to_validate_piece
 
-        // We have sent a payment?
-        sent_payment
-
-        */
     };
 
     /**
@@ -250,6 +251,36 @@ public:
     quint32 payorSlot() const;
     void setPayorSlot(quint32 payorSlot);
 
+    //bool assignedPiece() const;
+    //void setAssignedPiece(bool assignedPiece);
+
+    int indexOfAssignedPiece() const;
+    void setIndexOfAssignedPiece(int indexOfAssignedPiece);
+
+    int pieceSize() const;
+    void setPieceSize(int pieceSize);
+
+    int blockSize() const;
+    void setBlockSize(int blockSize);
+
+    int numberOfBlocksInPiece() const;
+    void setNumberOfBlocksInPiece(int numberOfBlocksInPiece);
+
+    int numberOfBlocksRequested() const;
+    void setNumberOfBlocksRequested(int numberOfBlocksRequested);
+
+    int numberOfBlocksReceived() const;
+    void setNumberOfBlocksReceived(int numberOfBlocksReceived);
+
+    QSet<libtorrent::peer_request> unservicedRequests() const;
+    void setUnservicedRequests(const QSet<libtorrent::peer_request> &unservicedRequests);
+
+    QDateTime whenLastRequestServiced() const;
+    void setWhenLastRequestServiced(const QDateTime &whenLastRequestServiced);
+
+    QSet<int> downloadedPieces() const;
+    void setDownloadedPieces(const QSet<int> &downloadedPieces);
+
     virtual PluginMode mode() const;
 
 private:
@@ -264,10 +295,64 @@ private:
     ClientState _clientState;
 
     // Payor slot: payment channel output slot
+    /**
+     * WHY IS THIS HERE??
+     * I cant see a clear benefit at this writing moment, much
+     * better then peer plugin asks torrent plugin to act w.r.t
+     * payment channel on its behalf by just using this, using
+     * an integer seems unsafe, as one can easily tamper with
+     * payment slots of other peers.
+     *
+     */
     quint32 _payorSlot;
 
-    // Valid pieces downloaded from given peer
+    /**
+     * Request/Piece management
+     */
+
+    // Whether this peer plugin has been assigned to try to buy a piece from peer seller
+    // NOT NEEDED: Should be inferred from ClientState
+    //bool _assignedPiece;
+
+    // Piece index for which this
+    int _indexOfAssignedPiece;
+
+    // Byte length of presently assigned piece
+    int _pieceSize;
+
+    // Byte length of blocks
+    int _blockSize;
+
+    // The number of blocks in the presently assigned piece
+    int _numberOfBlocksInPiece;
+
+    // The number of blocks requested
+    int _numberOfBlocksRequested;
+
+    // The number of blocks which were requested and were subsequently received in a piece message
+    int _numberOfBlocksReceived;
+
+    // Block indexes for block requests which have been issued, but not responded to
+    QSet<libtorrent::peer_request> _unservicedRequests;
+
+    // Time when last request was serviced
+    QDateTime _whenLastRequestServiced;
+
+    // Piece indexes, in download order, of
+    // all valid pieces downloaded from seller peer during this session
     QSet<int> _downloadedPieces;
+
+    /**
+     * In the future the next two pipeline variables have to be
+     * dynamically adjusted based on connection latency and
+     * downstream bandwidth.
+     */
+
+    // The maximum number of requests which can be pipelined
+    const static quint32 _requestPipelineLength = 10;
+
+    // Refill pipline when it falls below this bound
+    const static quint32 _requestPipelineRefillBound = 5;
 
     // Processess message
     virtual void processObserve(const Observe * m);

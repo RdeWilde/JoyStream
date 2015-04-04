@@ -99,6 +99,14 @@ BuyerPeerPlugin::Status::Status(const PeerState & peerState, ClientState clientS
     , _clientState(clientState) {
 }
 
+BuyerPeerPlugin::PeerState BuyerPeerPlugin::Status::peerState() const {
+    return _peerState;
+}
+
+void BuyerPeerPlugin::Status::setPeerState(const PeerState & peerState) {
+    _peerState = peerState;
+}
+
 BuyerPeerPlugin::ClientState BuyerPeerPlugin::Status::clientState() const {
     return _clientState;
 }
@@ -115,13 +123,8 @@ void BuyerPeerPlugin::setPayorSlot(quint32 payorSlot) {
     _payorSlot = payorSlot;
 }
 
-BuyerPeerPlugin::PeerState BuyerPeerPlugin::Status::peerState() const {
-    return _peerState;
-}
 
-void BuyerPeerPlugin::Status::setPeerState(const PeerState & peerState) {
-    _peerState = peerState;
-}
+
 
 /**
  * BuyerPeerPlugin::Configuration
@@ -181,7 +184,13 @@ BuyerPeerPlugin::BuyerPeerPlugin(BuyerTorrentPlugin * plugin,
     : PeerPlugin(plugin, connection, configuration, category)
     , _plugin(plugin)
     , _peerState(configuration.peerState())
-    , _clientState(configuration.clientState()) {
+    , _clientState(configuration.clientState())
+    , _payorSlot(-1) // deterministic value sentinel value
+    , _assignedPiece(false)
+    , _indexOfAssignedPiece(-1) // deterministic value sentinel value
+    , _lastBlockDownloaded(-1) { // deterministic value sentinel value
+
+
     //, _lastMessageStateCompatibility(MessageStateCompatibility::compatible){
 }
 
@@ -338,11 +347,44 @@ bool BuyerPeerPlugin::on_not_interested() {
 
 bool BuyerPeerPlugin::on_piece(libtorrent::peer_request const& piece, libtorrent::disk_buffer_holder & data) {
 
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_piece";
-        */
+    qCDebug(_category) << "on_piece";
 
+    // Check that peer is sending a state compatible message
+    if(_clientState != ClientState::waiting_for_requests_to_be_serviced)
+        throw std::exception("Peer sent on_piece at incorrect stage."); // Handle properly later
+
+    // _clientState == ClientState::waiting_for_requests_to_be_serviced =>
+    Q_ASSERT(_peerBEP10SupportStatus == BEPSupportStatus::supported);
+    Q_ASSERT(_peerBitSwaprBEPSupportStatus == BEPSupportStatus::supported);
+    Q_ASSERT(_peerState.lastAction() == PeerState::LastValidAction::signed_refund ||
+             _peerState.lastAction() == PeerState::LastValidAction::sent_valid_piece);
+
+    // Check that this is indeed the piece for which we have issued requests
+    if(piece.piece != _indexOfAssignedPiece)
+        throw std::exception("Peer sent piece message for incorrect piece."); // Handle properly later
+
+    // Check that we actually requested this block
+    if(!_unservicedRequests.contains(piece))
+        throw std::exception("Peer sent piece which was not requested"); // Handle properly later
+
+    // Remove request from set of unserviced requests
+    _unservicedRequests.remove(piece);
+
+    // Note that last request was serviced now
+    _whenLastRequestServiced = QDateTime::currentDateTime();
+
+    // Update block download counter
+    _numberOfBlocksReceived++;
+
+    // Update state if we have no outstanding requests
+    if(_numberOfBlocksInPiece == _numberOfBlocksReceived)
+        _clientState = ClientState::waiting_for_libtorrent_to_validate_piece;
+
+    // Make new requests if pipeline is running low
+    if(_unservicedRequests.size() < _requestPipelineRefillBound)
+        refillPipeline();
+
+    // Use normal piece message handler
     return false;
 }
 
@@ -411,13 +453,41 @@ bool BuyerPeerPlugin::on_unknown_message(int length, int msg, libtorrent::buffer
  */
 void BuyerPeerPlugin::on_piece_pass(int index) {
 
+    qCDebug(_category) << "on_piece_pass:" << index;
+
+    // on_piece_pass() =>
+    Q_ASSERT(_indexOfAssignedPiece == index); // peer should only be relaying blocks I am requesting
+    Q_ASSERT(_clientState == ClientState::waiting_for_libtorrent_to_validate_piece);
+    Q_ASSERT(_peerState == PeerState::LastValidAction::signed_refund ||
+            _peerState == PeerState::LastValidAction::sent_valid_piece); // presumes that we would have stopped peer if it started sending pieces without being asked
+    Q_ASSERT(_numberOfBlocksInPiece == _numberOfBlocksReceived);
+    Q_ASSERT(_numberOfBlocksRequested == _numberOfBlocksReceived);
+    Q_ASSERT(_unservicedRequests.empty());
+
+    // Make a payment
+    const Signature & paymentSignature = _plugin->makePaymentAndGetPaymentSignature(this);
+    sendExtendedMessage(Payment(paymentSignature));
+
+    // Remember that piece was downloaded
+    _downloadedPieces.insert(_indexOfAssignedPiece);
+
+    // Notify torrent plugin that piece has been downloaded
+    _plugin->pieceDownloaded(_indexOfAssignedPiece);
+
+    // Update state
+    _clientState = ClientState::needs_to_be_assigned_piece;
+
+    // Get a new piece if one is available.
+    // In the future, we should perhaps delay this decision, and let
+    // tick() in torretn plugin decide, since it has information about down speeds.
+    _plugin->assignPieceToPeerPlugin(this);
 }
 
 /*
  * Called when a piece that this peer participated in fails the hash_check
  */
 void BuyerPeerPlugin::on_piece_failed(int index) {
-
+    qCDebug(_category) << "BuyerPeerPlugin::on_piece_failed() NOT IMPLEMENTED.";
 }
 
 /*
@@ -425,7 +495,7 @@ void BuyerPeerPlugin::on_piece_failed(int index) {
  */
 void BuyerPeerPlugin::tick() {
 
-    qCDebug(_category) << "BuyerPeerPlugin.tick()";
+    //qCDebug(_category) << "BuyerPeerPlugin.tick()";
 }
 
 /*
@@ -442,8 +512,137 @@ bool BuyerPeerPlugin::write_request(libtorrent::peer_request const & peerRequest
     return false;
 }
 
+quint32 BuyerPeerPlugin::refillPipeline() {
+
+    // Pipeline params must be well founded <=>
+    Q_ASSERT(_requestPipelineLength > _requestPipelineRefillBound);
+
+    // pipline is maintained <=>
+    Q_ASSERT(_unservicedRequests.size() <= _requestPipelineLength);
+
+    // Check that the pipeline actually needs to be refilled
+    if(_unservicedRequests.size() >= _requestPipelineRefillBound)
+        return 0;
+
+    // How many pieces to add to pipeline at most
+    int numberOfMessagesToAddToPipeline = _requestPipelineLength - _unservicedRequests.size();
+
+    qCDebug(_category) << "refillPipeline with " << numberOfMessagesToAddToPipeline << " requests.";
+
+    // Issue requests
+    for(int i = 0;i < numberOfMessagesToAddToPipeline;i++) {
+
+        // Create request
+        libtorrent::peer_request r;
+        r.piece = _indexOfAssignedPiece;
+        r.start = _numberOfBlocksRequested * _blockSize;
+
+        // Length of last block may be different from other blocks
+        if(_numberOfBlocksRequested == _numberOfBlocksInPiece - 1)
+            r.length = _pieceSize - r.start; // last block is shorter
+        else
+            r.length = _blockSize;
+
+        // Send to peer
+        _connection->write_request(r);
+
+        // Keep track of number of blocks requested
+        _numberOfBlocksRequested++;
+
+        // This request has not yet been serviced
+        _unservicedRequests.insert(r);
+    }
+}
+
 BuyerPeerPlugin::Status BuyerPeerPlugin::status() const {
     return Status(_peerState, _clientState);
+}
+
+PluginMode BuyerPeerPlugin::mode() const {
+    return PluginMode::Buyer;
+}
+
+/**
+bool BuyerPeerPlugin::assignedPiece() const {
+    return _assignedPiece;
+}
+
+void BuyerPeerPlugin::setAssignedPiece(bool assignedPiece) {
+    _assignedPiece = assignedPiece;
+}
+*/
+
+int BuyerPeerPlugin::indexOfAssignedPiece() const {
+    return _indexOfAssignedPiece;
+}
+
+void BuyerPeerPlugin::setIndexOfAssignedPiece(int indexOfAssignedPiece) {
+    _indexOfAssignedPiece = indexOfAssignedPiece;
+}
+
+int BuyerPeerPlugin::pieceSize() const {
+    return _pieceSize;
+}
+
+void BuyerPeerPlugin::setPieceSize(int pieceSize) {
+    _pieceSize = pieceSize;
+}
+
+int BuyerPeerPlugin::blockSize() const {
+    return _blockSize;
+}
+
+void BuyerPeerPlugin::setBlockSize(int blockSize) {
+    _blockSize = blockSize;
+}
+
+int BuyerPeerPlugin::numberOfBlocksInPiece() const {
+    return _numberOfBlocksInPiece;
+}
+
+void BuyerPeerPlugin::setNumberOfBlocksInPiece(int numberOfBlocksInPiece) {
+    _numberOfBlocksInPiece = numberOfBlocksInPiece;
+}
+
+
+int BuyerPeerPlugin::numberOfBlocksRequested() const {
+    return _numberOfBlocksRequested;
+}
+
+void BuyerPeerPlugin::setNumberOfBlocksRequested(int numberOfBlocksRequested) {
+    _numberOfBlocksRequested = numberOfBlocksRequested;
+}
+
+int BuyerPeerPlugin::numberOfBlocksReceived() const {
+    return _numberOfBlocksReceived;
+}
+
+void BuyerPeerPlugin::setNumberOfBlocksReceived(int numberOfBlocksReceived) {
+    _numberOfBlocksReceived = numberOfBlocksReceived;
+}
+
+QSet<libtorrent::peer_request> BuyerPeerPlugin::unservicedRequests() const {
+    return _unservicedRequests;
+}
+
+void BuyerPeerPlugin::setUnservicedRequests(const QSet<libtorrent::peer_request> &unservicedRequests) {
+    _unservicedRequests = unservicedRequests;
+}
+
+QDateTime BuyerPeerPlugin::whenLastRequestServiced() const {
+    return _whenLastRequestServiced;
+}
+
+void BuyerPeerPlugin::setWhenLastRequestServiced(const QDateTime &whenLastRequestServiced) {
+    _whenLastRequestServiced = whenLastRequestServiced;
+}
+
+QSet<int> BuyerPeerPlugin::downloadedPieces() const {
+    return _downloadedPieces;
+}
+
+void BuyerPeerPlugin::setDownloadedPieces(const QSet<int> & downloadedPieces) {
+    _downloadedPieces = downloadedPieces;
 }
 
 void BuyerPeerPlugin::processObserve(const Observe * m) {
@@ -574,16 +773,6 @@ void BuyerPeerPlugin::processPayment(const Payment * m) {
 
 void BuyerPeerPlugin::peerModeReset() {
 
-}
-
-/*
-BuyerPeerPlugin::Configuration BuyerPeerPlugin::configuration() const {
-    return _configuration;
-}
-*/
-
-PluginMode BuyerPeerPlugin::mode() const {
-    return PluginMode::Buyer;
 }
 
 /*

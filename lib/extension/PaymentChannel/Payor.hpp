@@ -579,8 +579,13 @@ public:
     // 3) updates payor state to all_signed, if all all are now signed.
     bool processRefundSignature(quint32 index, const Signature & signature);
 
-    //
+    // Broadcast the current contract
+    // ============================================
     void broadcast_contract();
+
+    // Increments the payment counter for the given channel
+    // ============================================
+    quint64 incrementPaymentCounter(quint32 index);
 
     // Returns the payment signature for the present payment increment of given slot
     // ============================================
