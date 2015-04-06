@@ -175,6 +175,8 @@ void BuyerPeerPlugin::Configuration::setClientState(ClientState clientState) {
 #include "Message/Ready.hpp"
 #include "Message/Payment.hpp"
 
+#include <libtorrent/bt_peer_connection.hpp>
+
 #include <QLoggingCategory>
 
 BuyerPeerPlugin::BuyerPeerPlugin(BuyerTorrentPlugin * plugin,
@@ -186,11 +188,12 @@ BuyerPeerPlugin::BuyerPeerPlugin(BuyerTorrentPlugin * plugin,
     , _peerState(configuration.peerState())
     , _clientState(configuration.clientState())
     , _payorSlot(-1) // deterministic value sentinel value
-    , _assignedPiece(false)
-    , _indexOfAssignedPiece(-1) // deterministic value sentinel value
-    , _lastBlockDownloaded(-1) { // deterministic value sentinel value
-
-
+    , _indexOfAssignedPiece(-1)
+    , _pieceSize(0)
+    , _blockSize(0)
+    , _numberOfBlocksInPiece(0)
+    , _numberOfBlocksRequested(0)
+    , _numberOfBlocksReceived(0) {
     //, _lastMessageStateCompatibility(MessageStateCompatibility::compatible){
 }
 
@@ -240,109 +243,90 @@ bool BuyerPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & hand
 
 bool BuyerPeerPlugin::on_have(int index) {
 
-    qCDebug(_category) << "on_have";
-    return false;
+    qCDebug(_category) << "Ignoring have message.";
+
+    // Signal that we handled message
+    return true;
 }
 
 bool BuyerPeerPlugin::on_bitfield(libtorrent::bitfield const & bitfield) {
 
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_bitfield";
-*/
-    return false;
+    qCDebug(_category) << "Ignoring bitfield";
+
+    // Signal that we handled message
+    return true;
 }
 
 bool BuyerPeerPlugin::on_have_all() {
 
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_have_all";
-        */
+    qCDebug(_category) << "Ignoring have all message.";
 
-    return false;
+    // Signal that we handled message
+    return true;
 }
 
 bool BuyerPeerPlugin::on_reject(libtorrent::peer_request const & peerRequest) {
 
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_reject";
-        */
+    qCDebug(_category) << "Ignoring reject message.";
 
-    return false;
+    // Signal that we handled message
+    return true;
 }
 
 bool BuyerPeerPlugin::on_request(libtorrent::peer_request const & peerRequest) {
 
-    //bittorrentPeerConnection_->incoming_request();
+    qCDebug(_category) << "Ignoring request message.";
 
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_request";
-        */
-
-    return false;
+    // Signal that we handled message
+    return true;
 }
 
 bool BuyerPeerPlugin::on_unchoke() {
 
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_unchoke";
-        */
+    qCDebug(_category) << "Ignoring unchoke message.";
 
-    return false;
+    // Signal that we handled message
+    return true;
 }
 
 bool BuyerPeerPlugin::on_interested() {
 
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_interested";
-        */
+    qCDebug(_category) << "Ignoring interested message.";
 
-    return false;
+    // Signal that we handled message
+    return true;
 }
 
 bool BuyerPeerPlugin::on_allowed_fast(int index) {
 
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_allowed_fast(" << index << ")";
-        */
+    qCDebug(_category) << "Ignoring allowed fast message.";
 
-    return false;
+    // Signal that we handled message
+    return true;
 }
 
 bool BuyerPeerPlugin::on_have_none() {
 
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_have_none";
-        */
+    qCDebug(_category) << "Ignoring have none message.";
 
-    return false;
+    // Signal that we handled message
+    return true;
 }
 
 bool BuyerPeerPlugin::on_choke() {
 
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_choke";
-        */
+    qCDebug(_category) << "Ignoring choke message.";
 
-    return false;
+    // Signal that we handled message
+    return true;
 }
 
 bool BuyerPeerPlugin::on_not_interested() {
 
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_not_interested";
-        */
+    qCDebug(_category) << "Ignoring not intereste message.";
 
-    return false;
+    // Signal that we handled message
+    return true;
 }
 
 bool BuyerPeerPlugin::on_piece(libtorrent::peer_request const& piece, libtorrent::disk_buffer_holder & data) {
@@ -390,38 +374,33 @@ bool BuyerPeerPlugin::on_piece(libtorrent::peer_request const& piece, libtorrent
 
 bool BuyerPeerPlugin::on_suggest(int index) {
 
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_suggest(" << index << ")";
-        */
+    qCDebug(_category) << "Ignoring suggest message.";
 
-    return false;
+    // Signal that we handled message
+    return true;
 }
 
 bool BuyerPeerPlugin::on_cancel(libtorrent::peer_request const & peerRequest) {
 
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_cancel";
-        */
+    qCDebug(_category) << "Ignoring cancel message.";
 
-    return false;
+    // Signal that we handled message
+    return true;
 }
 
 bool BuyerPeerPlugin::on_dont_have(int index) {
 
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "on_dont_have(" << index << ")";
-        */
+    qCDebug(_category) << "Ignoring dont have message.";
 
-    return false;
+    // Signal that we handled message
+    return true;
 }
 
 /*
  * Called after a choke message has been sent to the peer
  */
 void BuyerPeerPlugin::sent_unchoke() {
+    qCDebug(_category) << "sent_unchoke: Should not happen!";
 }
 
 /*
@@ -430,10 +409,7 @@ void BuyerPeerPlugin::sent_unchoke() {
  */
 bool BuyerPeerPlugin::can_disconnect(libtorrent::error_code const & ec) {
 
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "can_disconnect";
-        */
+    qCDebug(_category) << "can_disconnect";
 
     // CRITICAL
     return true;
@@ -443,6 +419,8 @@ bool BuyerPeerPlugin::can_disconnect(libtorrent::error_code const & ec) {
  * This is not called for web seeds
  */
 bool BuyerPeerPlugin::on_unknown_message(int length, int msg, libtorrent::buffer::const_interval body) {
+
+    qCDebug(_category) << "on_unknown_message";
 
     // CRITICAL
     return false;
@@ -458,8 +436,8 @@ void BuyerPeerPlugin::on_piece_pass(int index) {
     // on_piece_pass() =>
     Q_ASSERT(_indexOfAssignedPiece == index); // peer should only be relaying blocks I am requesting
     Q_ASSERT(_clientState == ClientState::waiting_for_libtorrent_to_validate_piece);
-    Q_ASSERT(_peerState == PeerState::LastValidAction::signed_refund ||
-            _peerState == PeerState::LastValidAction::sent_valid_piece); // presumes that we would have stopped peer if it started sending pieces without being asked
+    Q_ASSERT(_peerState.lastAction() == PeerState::LastValidAction::signed_refund ||
+            _peerState.lastAction() == PeerState::LastValidAction::sent_valid_piece); // presumes that we would have stopped peer if it started sending pieces without being asked
     Q_ASSERT(_numberOfBlocksInPiece == _numberOfBlocksReceived);
     Q_ASSERT(_numberOfBlocksRequested == _numberOfBlocksReceived);
     Q_ASSERT(_unservicedRequests.empty());
@@ -494,7 +472,6 @@ void BuyerPeerPlugin::on_piece_failed(int index) {
  * Called aproximately once every second
  */
 void BuyerPeerPlugin::tick() {
-
     //qCDebug(_category) << "BuyerPeerPlugin.tick()";
 }
 
@@ -504,12 +481,10 @@ void BuyerPeerPlugin::tick() {
  */
 bool BuyerPeerPlugin::write_request(libtorrent::peer_request const & peerRequest) {
 
-    /*
-    if(peerBEP43SupportedStatus != not_supported)
-        qCDebug(_category) << "write_request";
-    */
+    qCDebug(_category) << "Blocking write_request:" << peerRequest.piece << ":" << peerRequest.start;
 
-    return false;
+    // Signal that it has been handled
+    return true;
 }
 
 quint32 BuyerPeerPlugin::refillPipeline() {

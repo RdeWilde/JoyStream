@@ -23,6 +23,16 @@ uint qHash(const libtorrent::tcp::endpoint & endpoint) {
     return qHash(endPointQString);
 }
 
+uint qHash(const libtorrent::peer_request & request) {
+
+    // Encode as string, since encoding as int requires knowing size of either request dimension,
+    // which varies across torrents
+    QString stringEncoding = QString::number(request.piece) + ":" + QString::number(request.start);
+
+    // Hash it
+    return qHash(stringEncoding);
+}
+
 bool Utilities::loadBencodedEntry(const char * fileName, libtorrent::entry & destinationEntry) {
 
     // Open file at the end, so we can get size

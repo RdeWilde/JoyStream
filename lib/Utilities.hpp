@@ -12,8 +12,13 @@ enum class MessageType;
 
 // Required for QSet<libtorrent::tcp::endpoint>
 #include <QtGlobal> // uint
+
 #include <libtorrent/socket.hpp> // libtorrent::tcp::endpoint
 uint qHash(const libtorrent::tcp::endpoint & endpoint);
+
+#include <libtorrent/peer_connection.hpp> // libtorrent::peer_request
+//#include <libtorrent/peer_request.hpp> // cannot be included directly, since TORRENT_EXPORT was not defined
+uint qHash(const libtorrent::peer_request & request);
 
 #include <QJsonValue>
 

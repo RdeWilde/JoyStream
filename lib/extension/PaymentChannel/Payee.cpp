@@ -3,6 +3,8 @@
 #include "extension/BitCoin/Signature.hpp"
 #include "extension/BitCoin/P2PKHTxOut.hpp"
 
+#include "extension/BitCoin/BitSwaprjs.hpp"
+
 Payee::Payee()
     : _state(State::waiting_forpayee_information)
     , _numberOfPaymentsMade(0) {
@@ -34,10 +36,11 @@ void Payee::registerContractInformation(const OutPoint &contractOutputPoint, qui
 
 Signature Payee::generateRefundSignature() const {
 
-    //return BitSwaprjs.compute_payor_refund_signature(_contractOutputPoint, _payeeContractOutput.sk(), <not needed>, <not needed _payeeContractPk>, P2PKHTxOut(_funds, _payorFinalPk), _lockTime);
+    // Compute refund signature
+    const Signature & sig = BitSwaprjs::compute_payment_signature(_contractOutputPoint, _payeeContractOutput.sk(), <not needed>, <not needed _payeeContractPk>, P2PKHTxOut(_funds, _payorFinalPk), _lockTime);
 
-    // random bs
-    return Signature();
+    // return
+    return sig;
 }
 
 bool Payee::registerPayment(const Signature &paymentSignature) {

@@ -10,8 +10,9 @@ BuyerTorrentPlugin::Piece::Piece()
     , _peerPlugin(NULL) {
 }
 
-BuyerTorrentPlugin::Piece::Piece(int index, int numberOfBlocks, State state, BuyerPeerPlugin * peerPlugin)
+BuyerTorrentPlugin::Piece::Piece(int index, int length, int numberOfBlocks, State state, BuyerPeerPlugin * peerPlugin)
     : _index(index)
+    , _length(length)
     , _numberOfBlocks(numberOfBlocks)
     , _state(state)
     , _peerPlugin(peerPlugin) {
@@ -23,6 +24,14 @@ int BuyerTorrentPlugin::Piece::index() const {
 
 void BuyerTorrentPlugin::Piece::setIndex(int index) {
     _index = index;
+}
+
+int BuyerTorrentPlugin::Piece::length() const {
+    return _length;
+}
+
+void BuyerTorrentPlugin::Piece::setLength(int length) {
+    _length = length;
 }
 
 int BuyerTorrentPlugin::Piece::numberOfBlocks() const {
@@ -195,7 +204,17 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
         int numberOfPieces = torrentInfo.num_pieces();
 
         // Get block size
-        libtorrent::torrent_status torrentStatus = sharedPtr->state();
+        libtorrent::torrent_status torrentStatus;
+        boost::uint32_t flags = libtorrent::torrent_handle::query_name +
+                                libtorrent::torrent_handle::query_save_path +
+                                libtorrent::torrent_handle::query_name +
+                                libtorrent::torrent_handle::query_torrent_file;
+                                //libtorrent::torrent_handle::query_accurate_download_counters +
+                                //libtorrent::torrent_handle::query_verified_pieces +
+                                //libtorrent::torrent_handle::query_pieces +
+                                //libtorrent::torrent_handle::query_distributed_copies;
+
+        sharedPtr->status(&torrentStatus, flags);
         _blockSize = torrentStatus.block_size;
 
         for(int i = 0;i < numberOfPieces;i++) {
@@ -210,13 +229,13 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
             if(!sharedPtr->have_piece(i)) {
 
                 // Add piece vector of pieces
-                _pieces.push_back(Piece(i, numberOfBlocksInPiece, Piece::State::unassigned, NULL);
+                _pieces.push_back(Piece(i, pieceSize, numberOfBlocksInPiece, Piece::State::unassigned, NULL));
 
                 // Count piece as unassigned
                 _numberOfUnassignedPieces++;
 
             } else // Add to piece vector of pieces, and indicate that we have it
-                _pieces.push_back(Piece(i, numberOfBlocksInPiece,Piece::State::fully_downloaded_and_valid, NULL));
+                _pieces.push_back(Piece(i, pieceSize, numberOfBlocksInPiece,Piece::State::fully_downloaded_and_valid, NULL));
 
         }
 
@@ -262,6 +281,8 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
                                                                            btConnection,
                                                                            configuration,
                                                                            _category));
+
+
     // Add to collection
     _peers[endPoint] = boost::weak_ptr<BuyerPeerPlugin>(sharedPeerPluginPtr);
 
@@ -512,6 +533,8 @@ bool BuyerTorrentPlugin::assignPieceToPeerPlugin(BuyerPeerPlugin * peerPlugin) {
      // Update peer plugin
      //peerPlugin->setAssignedPiece(true);
      peerPlugin->setIndexOfAssignedPiece(pieceIndex);
+     peerPlugin->setPieceSize(piece.length());
+     peerPlugin->setBlockSize(_blockSize); // Does not change from piece to piece, put in peer configuration or something later
      peerPlugin->setNumberOfBlocksInPiece(piece.numberOfBlocks());
      peerPlugin->setNumberOfBlocksRequested(0);
      peerPlugin->setNumberOfBlocksReceived(0);
@@ -545,7 +568,7 @@ int BuyerTorrentPlugin::getNextUnassignedPiece(int startIndex) const {
      }
 
      // No match found, lets start from beginning then
-     for(index = 0;i < startIndex;index++) {
+     for(index = 0;index < startIndex;index++) {
 
          // Get piece
          const Piece & piece = _pieces[index];

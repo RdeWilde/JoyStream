@@ -6,6 +6,7 @@
 
 #include "BitCoin/TxId.hpp"
 #include "BitCoin/PublicKey.hpp"
+#include "Utilities.hpp" // uint qHash(const libtorrent::peer_request & request);
 
 #include <QSet>
 
@@ -238,6 +239,8 @@ public:
     virtual void on_piece_failed(int index);
     virtual void tick();
     virtual bool write_request(libtorrent::peer_request const & peerRequest);
+
+    quint32 refillPipeline();
 
     Status status() const;
 

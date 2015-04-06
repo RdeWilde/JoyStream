@@ -54,11 +54,14 @@ public:
         Piece();
 
         // Constructors based on members
-        Piece(int index, int numberOfBlocks, State state, BuyerPeerPlugin * peerPlugin);
+        Piece(int index, int length, int numberOfBlocks, State state, BuyerPeerPlugin * peerPlugin);
 
         // Getters and setters
         int index() const;
         void setIndex(int index);
+
+        int length() const;
+        void setLength(int length);
 
         int numberOfBlocks() const;
         void setNumberOfBlocks(int numberOfBlocks);
