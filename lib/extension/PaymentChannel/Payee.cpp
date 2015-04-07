@@ -37,7 +37,12 @@ void Payee::registerContractInformation(const OutPoint &contractOutputPoint, qui
 Signature Payee::generateRefundSignature() const {
 
     // Compute refund signature
-    const Signature & sig = BitSwaprjs::compute_payment_signature(_contractOutputPoint, _payeeContractOutput.sk(), <not needed>, <not needed _payeeContractPk>, P2PKHTxOut(_funds, _payorFinalPk), _lockTime);
+    Signature sig = BitSwaprjs::compute_payment_signature(_contractOutputPoint,
+                                                                  _payeeContractOutput.sk(),
+                                                                  _payeeContractOutput.pk(),
+                                                                  _payorContractOutput,
+                                                                  const P2PKHTxOut &refundOutput,
+                                                                  const P2PKHTxOut & paymentOutput);
 
     // return
     return sig;

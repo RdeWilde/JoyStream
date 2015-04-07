@@ -212,7 +212,7 @@ void Payor::Channel::computePayorRefundSignature(const TxId &contractHash) {
 
     // remove PKs later, no reason we need them
 
-    _payorRefundSignature = BitSwaprjs::compute_payor_refund_signature(contractOutPoint,
+    _payorRefundSignature = BitSwaprjs::compute_refund_signature(contractOutPoint,
                                                                       _payorContractKeyPair.sk(),
                                                                       _payorContractKeyPair.pk(),
                                                                       _payeeContractPk,
@@ -887,10 +887,12 @@ Signature Payor::getPresentPaymentSignature(quint32 index) const {
     // The amount paid so far
     quint64 amountPaid = channel.price()*channel.numberOfPaymentsMade();
 
-    return BitSwaprjs::compute_payor_payment_signature(OutPoint(_contractHash, index),
-                                                       P2PKHTxOut(channel.funds() - amountPaid, channel.payorFinalKeyPair().pk()),
-                                                       P2PKHTxOut(amountPaid, channel.payeeContractPk()),
-                                                       channel.payorContractKeyPair().sk());
+    return BitSwaprjs::compute_payment_signature(OutPoint(_contractHash, index),
+                                                 channel.payorContractKeyPair().sk(),
+                                                 channel.payorContractKeyPair().pk(),
+                                                 channel.payeeContractPk(),
+                                                 P2PKHTxOut(channel.funds() - amountPaid, channel.payorFinalKeyPair().pk()),
+                                                 P2PKHTxOut(amountPaid, channel.payeeContractPk()));
 }
 
 bool Payor::claimRefund(quint32 index) const {

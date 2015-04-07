@@ -95,7 +95,7 @@ private:
     KeyPair _payeeFinalPaymentOutput;
 
     // Controls payor
-    // PublicKey _payorContractOutput;
+    PublicKey _payorContractOutput;
     PublicKey _payorFinalPk;
 
     //

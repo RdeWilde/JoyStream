@@ -36,22 +36,33 @@ public:
 
     static TxId compute_contract_hash(const OutPoint & fundingOutPoint, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput);
 
-    static Signature compute_payor_refund_signature(const OutPoint & contractOutputPoint, const PrivateKey &sk, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime);
+
+    /**
+     * Signature computing/checking
+     */
+    static Signature compute_refund_signature(const OutPoint & contractOutputPoint, const PrivateKey &sk, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime);
+
+    static Signature compute_payment_signature(const OutPoint & contractOutputPoint, const PrivateKey &sk, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, const P2PKHTxOut & paymentOutput);
 
     static bool check_refund_signatures(const OutPoint & contractOutputPoint, const Signature &payorSignature, const Signature &payeeSignature, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime);
 
-    static Signature compute_payee_payment_signature(const OutPoint & contractOutputPoint, const P2PKHTxOut &refundOutput, const P2PKHTxOut & payeeOutput, const PrivateKey &sk);
+    static bool check_payment_signatures(const OutPoint & contractOutputPoint, const Signature &payorSignature, const Signature &payeeSignature, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, const P2PKHTxOut & paymentOutput);
 
-    //static UnspentP2PKHOutput get_utxo(quint64 minimalValue);
 
-    // We wont bother with an address class as that gets complicated with all the different
-    // address types.
+    /**
+     * Wallet stuff
+     */
+
+    // We wont bother with an address class as that gets complicated with all the different address types.
     static QString to_address(const PublicKey & pk);
 
     static QMap<PublicKey, QList<Wallet::TxOEvent>> get_key_events(const QSet<PublicKey> & keys);
 
     static quint32 get_latest_block();
 
+    /**
+     * Broadcast transactions
+     */
     static void broadcast_contract(const OutPoint & fundingOutPoint, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput);
 
 private:
