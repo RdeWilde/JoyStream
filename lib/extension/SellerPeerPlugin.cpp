@@ -1,6 +1,96 @@
 #include "SellerPeerPlugin.hpp"
 
 /**
+ * SellerPeerPlugin::PeerState
+ */
+
+SellerPeerPlugin::PeerState::PeerState()
+    : _lastAction(LastValidAction::no_bitswapr_message_sent)
+    , _failureMode(FailureMode::not_failed) {
+}
+
+SellerPeerPlugin::PeerState::PeerState(LastValidAction lastAction,
+                                       FailureMode failureMode,
+                                       const Buy & lastBuySent,
+                                       const SignRefund & lastSignRefundSent,
+                                       const Payment & lastPaymentSent)
+    : _lastAction(lastAction)
+    , _failureMode(failureMode)
+    , _lastBuySent(lastBuySent)
+    , _lastSignRefundSent(lastSignRefundSent)
+    , _lastPaymentSent(lastPaymentSent) {
+}
+
+SellerPeerPlugin::PeerState::LastValidAction SellerPeerPlugin::PeerState::lastAction() const {
+    return _lastAction;
+}
+
+void SellerPeerPlugin::PeerState::setLastAction(LastValidAction lastAction) {
+    _lastAction = lastAction;
+}
+
+SellerPeerPlugin::PeerState::FailureMode SellerPeerPlugin::PeerState::failureMode() const {
+    return _failureMode;
+}
+
+void SellerPeerPlugin::PeerState::setFailureMode(FailureMode failureMode) {
+    _failureMode = failureMode;
+}
+
+Buy SellerPeerPlugin::PeerState::lastBuySent() const {
+    return _lastBuySent;
+}
+
+void SellerPeerPlugin::PeerState::setLastBuySent(const Buy & lastBuySent) {
+    _lastBuySent = lastBuySent;
+}
+
+SignRefund SellerPeerPlugin::PeerState::lastSignRefundSent() const {
+    return _lastSignRefundSent;
+}
+
+void SellerPeerPlugin::PeerState::setLastSignRefundSent(const SignRefund & lastSignRefundSent) {
+    _lastSignRefundSent = lastSignRefundSent;
+}
+
+Payment SellerPeerPlugin::PeerState::lastPaymentSent() const {
+    return _lastPaymentSent;
+}
+
+void SellerPeerPlugin::PeerState::setLastPaymentSent(const Payment & lastPaymentSent) {
+    _lastPaymentSent = lastPaymentSent;
+}
+
+/**
+ * SellerPeerPlugin::Status
+ */
+
+SellerPeerPlugin::Status::Status()
+    : _clientState(ClientState::no_bitswapr_message_sent) {
+}
+
+SellerPeerPlugin::Status::Status(const PeerState &peerState, ClientState clientState)
+    : _peerState(peerState)
+    , _clientState(clientState) {
+}
+
+SellerPeerPlugin::PeerState SellerPeerPlugin::Status::peerState() const {
+    return _peerState;
+}
+
+void SellerPeerPlugin::Status::setPeerState(const PeerState &peerState) {
+    _peerState = peerState;
+}
+
+SellerPeerPlugin::ClientState SellerPeerPlugin::Status::clientState() const {
+    return _clientState;
+}
+
+void SellerPeerPlugin::Status::setClientState(ClientState clientState) {
+    _clientState = clientState;
+}
+
+/**
  * SellerPeerPlugin::Configuration
  */
 

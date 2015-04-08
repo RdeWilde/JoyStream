@@ -57,7 +57,8 @@ public:
                   FailureMode failureMode,
                   quint64 minPrice,
                   quint32 _minLock,
-                  const PublicKey & contractPk);
+                  const PublicKey & contractPk,
+                  const PublicKey & finalPk);
 
         // Getters and setters
         LastValidAction lastAction() const;

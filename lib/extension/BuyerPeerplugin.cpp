@@ -15,12 +15,14 @@ BuyerPeerPlugin::PeerState::PeerState(LastValidAction lastAction,
                                         FailureMode failureMode,
                                         quint64 minPrice,
                                         quint32 minLock,
-                                        const PublicKey & pK)
+                                        const PublicKey & contractPk,
+                                        const PublicKey & finalPk)
     : _lastAction(lastAction)
     , _failureMode(failureMode)
     , _minPrice(minPrice)
     , _minLock(minLock)
-    , _contractPk(pK){
+    , _contractPk(contractPk)
+    , _finalPk(finalPk) {
 }
 
 BuyerPeerPlugin::PeerState::LastValidAction BuyerPeerPlugin::PeerState::lastAction() const {

@@ -10,8 +10,6 @@
 
 #include <QVector>
 
-class Wallet;
-
 /**
  * Manages the payor side of a 1-to-N payment channel using design in CBEP.
  * https://github.com/bedeho/CBEP
@@ -98,55 +96,6 @@ public:
             // Controls final payment to payor
             PublicKey _finalPk;
         };
-
-        /*
-        // @brief Payee provided settings in channel,
-        // as through wire message.
-        class PayeeSettings {
-
-        public:
-
-            // Default constructor
-            PayeeSettings();
-
-            // Constructor based on members
-            PayeeSettings(quint64 price, const PublicKey & contractPk, const PublicKey & finalPk, quint32 refundLockTime);
-
-            // Copy constructor
-            PayeeSettings(const PayeeSettings & o);
-
-            // Assignment operator
-            PayeeSettings & PayeeSettings::operator=(const PayeeSettings & o);
-
-            // Getters and setters
-            quint64 price() const;
-            void setPrice(quint64 price);
-
-            PublicKey contractPk() const;
-            void setContractPk(const PublicKey & contractPk);
-
-            PublicKey finalPk() const;
-            void setFinalPk(const PublicKey & finalPk);
-
-            quint32 refundLockTime() const;
-            void setRefundLockTime(quint32 refundLockTime);
-
-        private:
-
-            // Size of single payment
-            quint64 _price;
-
-            // Controls payee output of multisig, received in joinin_contract.pk
-            PublicKey _contractPk;
-
-            // Controls payee payments, received in sign_refund.pk
-            PublicKey _finalPk;
-
-            // Refund lock time
-            quint32 _refundLockTime;
-        };
-
-        */
 
         /**
          * @brief Peristant state of Channel.
@@ -463,7 +412,6 @@ public:
                       const OutPoint & fundingOutPoint,
                       const PublicKey & fundingOutPointPk,
                       const PublicKey & changeOutPointPk,
-                      quint64 changeValue,
                       quint64 maxPrice,
                       quint32 maxLock);
 
@@ -483,9 +431,6 @@ public:
         PublicKey changeOutPointPk() const;
         void setChangeOutPointPk(const PublicKey & changeOutPointPk);
 
-        quint64 changeValue() const;
-        void setChangeValue(quint64 changeValue);
-
         quint64 maxPrice() const;
         void setMaxPrice(quint64 maxPrice);
 
@@ -493,9 +438,6 @@ public:
         void setMaxLock(quint32 maxLock);
 
     private:
-
-        // Payor state
-        State _state;
 
         // Contract outputs configurations
         // DEPRECATED FOR NOW
@@ -514,11 +456,6 @@ public:
         //KeyPair _changeOutputKeyPair;
         PublicKey _changeOutPointPk;
 
-        // Change amount sent back to payor,
-        // this value, together with the _funds in all the slots
-        // determines how much is paid in contract fee implicitly.
-        quint64 _changeValue;
-
         // Maximum price accepted (satoshies)
         quint64 _maxPrice;
 
@@ -527,30 +464,13 @@ public:
 
         // Maximum fee per byte in contract transaction (satoshies)
         //quint64 _maxFeePerByte;
-
-        /**
-         * Contract:
-         * ==========================
-         * Is recomputed every time a full set of sellers is established,
-         * and is cleared whenever a signature failed.
-
-
-        //Contract _contract;
-        TxId _contractHash;
-        quint32 _numberOfSignatures;
-         */
-
     };
 
     // Default constructor
     //Payor();
 
     // Constructor based on configuration
-    Payor(Wallet * wallet, const Payor::Configuration & c);
-
-    // Constructor based on members
-    //Payor(const QSet<Channel::PayorConfiguration> & configurations, const OutPoint& fundingOutput, const KeyPair& fundingOutputKeyPair);
-    //Payor(const OutPoint& fundingOutput, const KeyPair& fundingOutputKeyPair);
+    Payor(const Payor::Configuration & c, );
 
     // Add channel
     //quint32 addChannel(const Channel::PayorSettings & configuration);
@@ -635,9 +555,6 @@ public:
     void setContractHash(const TxId &contractHash);
 
 private:
-
-    // Pointer to wallet
-    Wallet * _wallet;
 
     // Payor state
     State _state;

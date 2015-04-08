@@ -8,7 +8,7 @@ class Buy : public ExtendedMessagePayload
 public:
 
     // Constructor based on members
-    Buy(quint32 maxPrice, quint32 maxLock);
+    Buy(quint32 maxPrice, quint32 maxLock, quint32 minSellers);
 
     // Constructor based on raw payload
     Buy(QDataStream & stream);
@@ -21,6 +21,7 @@ public:
     // Getters
     quint32 maxPrice() const;
     quint32 maxLock() const;
+    quint32 minSellers() const;
 
 private:
 
@@ -29,6 +30,9 @@ private:
 
     // When refund becomes spendable at latest
     quint32 _maxLock;
+
+    // Minimum number of sellers in the contract
+    quint32 _minSellers;
 };
 
 #endif // BUY_HPP

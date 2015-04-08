@@ -587,9 +587,8 @@ Payor::Payor() {
 }
 */
 
-Payor::Payor(Wallet * wallet, const Payor::Configuration & c)
-    : _wallet(wallet)
-    , _state(c.state())
+Payor::Payor(const Payor::Configuration & c)
+    : _state(State::waiting_for_full_set_of_sellers)
     , _fundingOutPoint(c.fundingOutPoint())
     , _fundingOutputKeyPair(c.fundingOutPointPk(), _wallet->getSk(c.fundingOutPointPk()))
     , _changeOutputKeyPair(c.changeOutPointPk(), _wallet->getSk(c.changeOutPointPk()))
