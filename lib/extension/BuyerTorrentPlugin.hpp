@@ -131,24 +131,11 @@ public:
 
     public:
 
-        // Constructor from copy
-        Configuration(const Configuration & c);
-
         // Constructor from members
-        Configuration(bool enableBanningSets,
-                      State state,
-                      //const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> & peerConfigurations,
-                      const Payor::Configuration & payorConfiguration);
+        Configuration(bool enableBanningSets, quint64 maxPrice, quint32 maxLock, quint32 numberOfSellers);
 
-        /**
-        // Constructor for a fresh plugin.
-        Configuration(QVector<quint64> funds,
-                      quint64 changeValue,
-                      const OutPoint & fundingOutput,
-                      const KeyPair & fundingOutputKeyPair,
-                      quint64 maxPrice,
-                      quint32 maxLock);
-        */
+        // Constructor from copy <=== Why is this here again? who is using this
+        //Configuration(const Configuration & c);
 
         // Constructor from dictionary
         Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry);
@@ -168,28 +155,25 @@ public:
         // Getters and setters
         virtual PluginMode pluginMode() const;
 
-        State state() const;
-        void setState(const State & state);
+        quint64 maxPrice() const;
+        void setMaxPrice(quint64 maxPrice);
 
-        /*
-        QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> peerConfigurations() const;
-        void setPeerConfigurations(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> &peerConfigurations);
-        */
+        quint32 maxLock() const;
+        void setMaxLock(quint32 maxLock);
 
-        Payor::Configuration payorConfiguration() const;
-        void setPayorConfiguration(const Payor::Configuration & payorConfiguration);
+        qint32 numberOfSellers() const;
+        void setNumberOfSellers(qint32 numberOfSellers);
 
     private:
 
-        // What stage is plugin
-        State _state;
+        // Maximum price (#satoshies)
+        quint64 _maxPrice;
 
-        // DEPRECATED FOR NOW
-        // Configuration of peers
-        //QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> _peerConfigurations;
+        // Maximum lock time (seconds)
+        quint32 _maxLock;
 
-        // Configuration of payor
-        Payor::Configuration _payorConfiguration;
+        // Number of sellers
+        qint32 _numberOfSellers;
     };
 
     // Constructor from members

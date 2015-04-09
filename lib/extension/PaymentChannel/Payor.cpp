@@ -1,144 +1,104 @@
 #include "Payor.hpp"
 
-
-// Payor::Channel::PayorSettings
-
-Payor::Channel::PayorSettings::PayorSettings() {
-
-}
-
-Payor::Channel::PayorSettings::PayorSettings(quint64 funds, const PublicKey & contractPk, const PublicKey & finalPk)
-    : _funds(funds)
-    , _contractPk(contractPk)
-    , _finalPk(finalPk) {
-}
-
-Payor::Channel::PayorSettings::PayorSettings(const PayorSettings & o) {
-    *this = o;
-}
-
-PublicKey Payor::Channel::PayorSettings::finalPk() const {
-    return _finalPk;
-}
-
-void Payor::Channel::PayorSettings::setFinalPk(const PublicKey & finalPk) {
-    _finalPk = finalPk;
-}
-
-PublicKey Payor::Channel::PayorSettings::contractPk() const {
-    return _contractPk;
-}
-
-void Payor::Channel::PayorSettings::setContractPk(const PublicKey & contractPk) {
-    _contractPk = contractPk;
-}
-
-quint64 Payor::Channel::PayorSettings::funds() const {
-    return _funds;
-}
-
-void Payor::Channel::PayorSettings::setFunds(quint64 funds) {
-    _funds = funds;
-}
-
-Payor::Channel::PayorSettings & Payor::Channel::PayorSettings::operator=(const PayorSettings & o) {
-
-    _funds = o.funds();
-    _contractPk = o.contractPk(); //contractKeyPair();
-    _finalPk = o.finalPk(); //finalKeyPair();
-
-    return *this;
-}
-
 /**
-// Payor::Channel::PayeeSettings
-
-Payor::Channel::PayeeSettings::PayeeSettings() {
-}
-
-Payor::Channel::PayeeSettings::PayeeSettings(quint64 price, const PublicKey & contractPk, const PublicKey & finalPk, quint32 refundLockTime)
-    : _price(price)
-    , _contractPk(contractPk)
-    , _finalPk(finalPk)
-    , _refundLockTime(refundLockTime) {
-}
-
-// Copy constructor
-Payor::Channel::PayeeSettings::PayeeSettings(const Channel::PayeeSettings & o) {
-    *this = o;
-}
-
-// Assignment operator
-Payor::Channel::PayeeSettings & Payor::Channel::PayeeSettings::operator=(const Payor::Channel::PayeeSettings & o) {
-
-    _price = o.price();
-    _contractPk = o.contractPk();
-    _finalPk = o.finalPk();
-    _refundLockTime = o.refundLockTime();
-
-    return *this;
-}
-
-quint64 Payor::Channel::PayeeSettings::price() const {
-    return _price;
-}
-
-void Payor::Channel::PayeeSettings::setPrice(quint64 price) {
-    _price = price;
-}
-
-quint32 Payor::Channel::PayeeSettings::refundLockTime() const {
-    return _refundLockTime;
-}
-
-void Payor::Channel::PayeeSettings::setRefundLockTime(quint32 refundLockTime) {
-    _refundLockTime = refundLockTime;
-}
-
-PublicKey Payor::Channel::PayeeSettings::finalPk() const {
-    return _finalPk;
-}
-
-void Payor::Channel::PayeeSettings::setFinalPk(const PublicKey & finalPk) {
-    _finalPk = finalPk;
-}
-
-PublicKey Payor::Channel::PayeeSettings::contractPk() const {
-    return _contractPk;
-}
-
-void Payor::Channel::PayeeSettings::setContractPk(const PublicKey & contractPk) {
-    _contractPk = contractPk;
-}
+* Payor::Channel::Configuration
 */
 
-/**
- * Payor::Channel::Configuration
-
 Payor::Channel::Configuration::Configuration() {
-
 }
 
 Payor::Channel::Configuration::Configuration(quint32 index,
-                                             quint64 funds,
-                                             const KeyPair & payorContractKeyPair,
-                                             const KeyPair & payorFinalKeyPair)
-    : _index(index)
-    , _state(State::unassigned)
-    , _numberOfPaymentsMade(0)
-    , _funds(funds)
-    , _payorContractKeyPair(payorContractKeyPair)
-    , _payorFinalKeyPair(payorFinalKeyPair){
+                                        State state,
+                                        quint64 price,
+                                        quint64 numberOfPaymentsMade,
+                                        quint64 funds,
+                                        const KeyPair & payorContractKeyPair,
+                                        const KeyPair & payorFinalKeyPair,
+                                        const PublicKey & payeeContractPk,
+                                        const PublicKey & payeeFinalPk,
+                                        const Signature & payorRefundSignature,
+                                        const Signature & payeeRefundSignature,
+                                        quint64 refundFee,
+                                        quint64 paymentFee,
+                                        quint32 refundLockTime)
+            : _index(index)
+            , _state(state)
+            , _price(price)
+            , _numberOfPaymentsMade(numberOfPaymentsMade)
+            , _funds(funds)
+            , _payorContractKeyPair(payorContractKeyPair)
+            , _payorFinalKeyPair(payorFinalKeyPair)
+            , _payeeContractPk(payeeContractPk)
+            , _payeeFinalPk(payeeFinalPk)
+            , _payorRefundSignature(payorRefundSignature)
+            , _payeeRefundSignature(payeeRefundSignature)
+            , _refundFee(refundFee)
+            , _paymentFee(paymentFee)
+            , _refundLockTime(refundLockTime) {
 }
 
-quint32 Payor::Channel::Configuration::index() const {
+
+
+
+/**
+ * Payor::Channel::Status
+ */
+
+Payor::Channel::Status::Status() {
+
+}
+
+Payor::Channel::Status::Status(quint32 index,
+                               State state,
+                               quint64 price,
+                               quint64 numberOfPaymentsMade,
+                               quint32 refundLockTime)
+    : _index(index)
+    , _state(state)
+    , _price(price)
+    , _numberOfPaymentsMade(numberOfPaymentsMade)
+    , _refundLockTime(refundLockTime) {
+}
+
+quint32 Payor::Channel::Status::refundLockTime() const {
+    return _refundLockTime;
+}
+
+void Payor::Channel::Status::setRefundLockTime(quint32 refundLockTime) {
+    _refundLockTime = refundLockTime;
+}
+
+quint64 Payor::Channel::Status::numberOfPaymentsMade() const {
+    return _numberOfPaymentsMade;
+}
+
+void Payor::Channel::Status::setNumberOfPaymentsMade(quint64 numberOfPaymentsMade) {
+    _numberOfPaymentsMade = numberOfPaymentsMade;
+}
+
+quint64 Payor::Channel::Status::price() const {
+    return _price;
+}
+
+void Payor::Channel::Status::setPrice(quint64 price) {
+    _price = price;
+}
+
+Payor::Channel::State Payor::Channel::Status::state() const {
+    return _state;
+}
+
+void Payor::Channel::Status::setState(State state) {
+    _state = state;
+}
+
+quint32 Payor::Channel::Status::index() const {
     return _index;
 }
 
-void Payor::Channel::Configuration::setIndex(quint32 index) {
+void Payor::Channel::Status::setIndex(quint32 index) {
     _index = index;
 }
-*/
 
 /**
  * Payor::Channel
@@ -150,6 +110,23 @@ void Payor::Channel::Configuration::setIndex(quint32 index) {
 #include <QJsonObject>
 
 Payor::Channel::Channel() {
+}
+
+Payor::Channel::Channel(Channel::Configuration & configuration)
+    : Channel(configuration.index(),
+              configuration.state(),
+              configuration.price(),
+              configuration.numberOfPaymentsMade(),
+              configuration.funds(),
+              configuration.payorContractKeyPair(),
+              configuration.payorFinalKeyPair(),
+              configuration.payeeContractPk(),
+              configuration.payeeFinalPk(),
+              configuration.payorRefundSignature(),
+              configuration.payeeRefundSignature(),
+              configuration.refundFee(),
+              configuration.paymentFee(),
+              configuration.refundLockTime()){
 }
 
 Payor::Channel::Channel(quint32 index,
@@ -259,100 +236,16 @@ quint32 Payor::Channel::index() const {
     return _index;
 }
 
+void Payor::Channel::setIndex(quint32 index) {
+    _index = index;
+}
+
 Payor::Channel::State Payor::Channel::state() const {
     return _state;
 }
 
 void Payor::Channel::setState(const State & state) {
     _state = state;
-}
-
-quint32 Payor::Channel::refundLockTime() const {
-    return _refundLockTime;
-}
-
-void Payor::Channel::setRefundLockTime(quint32 refundLockTime) {
-    _refundLockTime = refundLockTime;
-}
-
-quint64 Payor::Channel::paymentFee() const {
-    return _paymentFee;
-}
-
-void Payor::Channel::setPaymentFee(quint64 paymentFee) {
-    _paymentFee = paymentFee;
-}
-
-quint64 Payor::Channel::refundFee() const {
-    return _refundFee;
-}
-
-void Payor::Channel::setRefundFee(quint64 refundFee) {
-    _refundFee = refundFee;
-}
-
-Signature Payor::Channel::payeeRefundSignature() const {
-    return _payeeRefundSignature;
-}
-
-void Payor::Channel::setPayeeRefundSignature(const Signature & payeeRefundSignature) {
-    _payeeRefundSignature = payeeRefundSignature;
-}
-
-Signature Payor::Channel::payorRefundSignature() const {
-    return _payorRefundSignature;
-}
-
-void Payor::Channel::setPayorRefundSignature(const Signature & payorRefundSignature) {
-    _payorRefundSignature = payorRefundSignature;
-}
-
-PublicKey Payor::Channel::payeeFinalPk() const {
-    return _payeeFinalPk;
-}
-
-void Payor::Channel::setPayeeFinalPk(const PublicKey & payeeFinalPk) {
-    _payeeFinalPk = payeeFinalPk;
-}
-
-PublicKey Payor::Channel::payeeContractPk() const {
-    return _payeeContractPk;
-}
-
-void Payor::Channel::setPayeeContractPk(const PublicKey & payeeContractPk) {
-    _payeeContractPk = payeeContractPk;
-}
-
-KeyPair Payor::Channel::payorFinalKeyPair() const {
-    return _payorFinalKeyPair;
-}
-
-void Payor::Channel::setPayorFinalKeyPair(const KeyPair & payorFinalKeyPair) {
-    _payorFinalKeyPair = payorFinalKeyPair;
-}
-
-KeyPair Payor::Channel::payorContractKeyPair() const {
-    return _payorContractKeyPair;
-}
-
-void Payor::Channel::setPayorContractKeyPair(const KeyPair & payorContractKeyPair) {
-    _payorContractKeyPair = payorContractKeyPair;
-}
-
-quint64 Payor::Channel::funds() const {
-    return _funds;
-}
-
-void Payor::Channel::setFunds(quint64 funds) {
-    _funds = funds;
-}
-
-quint64 Payor::Channel::numberOfPaymentsMade() const {
-    return _numberOfPaymentsMade;
-}
-
-void Payor::Channel::setNumberOfPaymentsMade(quint64 numberOfPaymentsMade) {
-    _numberOfPaymentsMade = numberOfPaymentsMade;
 }
 
 quint64 Payor::Channel::price() const {
@@ -363,72 +256,93 @@ void Payor::Channel::setPrice(quint64 price) {
     _price = price;
 }
 
-
-void Payor::Channel::setIndex(quint32 index) {
-    _index = index;
-}
-
-
-/**
- * Payor::Channel::Status
- */
-
-Payor::Channel::Status::Status() {
-
-}
-
-Payor::Channel::Status::Status(quint32 index,
-                               State state,
-                               quint64 price,
-                               quint64 numberOfPaymentsMade,
-                               quint32 refundLockTime)
-    : _index(index)
-    , _state(state)
-    , _price(price)
-    , _numberOfPaymentsMade(numberOfPaymentsMade)
-    , _refundLockTime(refundLockTime) {
-}
-
-quint32 Payor::Channel::Status::refundLockTime() const {
-    return _refundLockTime;
-}
-
-void Payor::Channel::Status::setRefundLockTime(quint32 refundLockTime) {
-    _refundLockTime = refundLockTime;
-}
-
-quint64 Payor::Channel::Status::numberOfPaymentsMade() const {
+quint64 Payor::Channel::numberOfPaymentsMade() const {
     return _numberOfPaymentsMade;
 }
 
-void Payor::Channel::Status::setNumberOfPaymentsMade(quint64 numberOfPaymentsMade) {
+void Payor::Channel::setNumberOfPaymentsMade(quint64 numberOfPaymentsMade) {
     _numberOfPaymentsMade = numberOfPaymentsMade;
 }
 
-quint64 Payor::Channel::Status::price() const {
-    return _price;
+quint64 Payor::Channel::funds() const {
+    return _funds;
 }
 
-void Payor::Channel::Status::setPrice(quint64 price) {
-    _price = price;
+void Payor::Channel::setFunds(quint64 funds) {
+    _funds = funds;
 }
 
-Payor::Channel::State Payor::Channel::Status::state() const {
-    return _state;
+KeyPair Payor::Channel::payorContractKeyPair() const {
+    return _payorContractKeyPair;
 }
 
-void Payor::Channel::Status::setState(State state) {
-    _state = state;
+void Payor::Channel::setPayorContractKeyPair(const KeyPair & payorContractKeyPair) {
+    _payorContractKeyPair = payorContractKeyPair;
 }
 
-quint32 Payor::Channel::Status::index() const {
-    return _index;
+KeyPair Payor::Channel::payorFinalKeyPair() const {
+    return _payorFinalKeyPair;
 }
 
-void Payor::Channel::Status::setIndex(quint32 index) {
-    _index = index;
+void Payor::Channel::setPayorFinalKeyPair(const KeyPair & payorFinalKeyPair) {
+    _payorFinalKeyPair = payorFinalKeyPair;
 }
 
+PublicKey Payor::Channel::payeeContractPk() const {
+    return _payeeContractPk;
+}
+
+void Payor::Channel::setPayeeContractPk(const PublicKey & payeeContractPk) {
+    _payeeContractPk = payeeContractPk;
+}
+
+PublicKey Payor::Channel::payeeFinalPk() const {
+    return _payeeFinalPk;
+}
+
+void Payor::Channel::setPayeeFinalPk(const PublicKey & payeeFinalPk) {
+    _payeeFinalPk = payeeFinalPk;
+}
+
+Signature Payor::Channel::payorRefundSignature() const {
+    return _payorRefundSignature;
+}
+
+void Payor::Channel::setPayorRefundSignature(const Signature & payorRefundSignature) {
+    _payorRefundSignature = payorRefundSignature;
+}
+
+Signature Payor::Channel::payeeRefundSignature() const {
+    return _payeeRefundSignature;
+}
+
+void Payor::Channel::setPayeeRefundSignature(const Signature & payeeRefundSignature) {
+    _payeeRefundSignature = payeeRefundSignature;
+}
+
+quint64 Payor::Channel::refundFee() const {
+    return _refundFee;
+}
+
+void Payor::Channel::setRefundFee(quint64 refundFee) {
+    _refundFee = refundFee;
+}
+
+quint64 Payor::Channel::paymentFee() const {
+    return _paymentFee;
+}
+
+void Payor::Channel::setPaymentFee(quint64 paymentFee) {
+    _paymentFee = paymentFee;
+}
+
+quint32 Payor::Channel::refundLockTime() const {
+    return _refundLockTime;
+}
+
+void Payor::Channel::setRefundLockTime(quint32 refundLockTime) {
+    _refundLockTime = refundLockTime;
+}
 
 /**
  * Payor::Status
@@ -474,38 +388,26 @@ Payor::Configuration::Configuration() {
 
 }
 
-Payor::Configuration::Configuration(const QVector<Channel::PayorSettings> & channelSettings,
+Payor::Configuration::Configuration(State state,
+                                    const QVector<Channel::Configuration> & channels,
                                     const OutPoint & fundingOutPoint,
-                                    const PublicKey & fundingOutPointPk,
-                                    const PublicKey & changeOutPointPk,
+                                    const KeyPair & fundingOutputKeyPair,
+                                    const KeyPair & changeOutputKeyPair,
                                     quint64 changeValue,
                                     quint64 maxPrice,
-                                    quint32 maxLock)
-    : _state(State::waiting_for_full_set_of_sellers)
-    , _channels(channelSettings)
+                                    quint32 maxLock,
+                                    const TxId & contractHash,
+                                    quint32 numberOfSignatures)
+    : _state(state)
+    , _channels(channels)
     , _fundingOutPoint(fundingOutPoint)
-    , _fundingOutPointPk(fundingOutPointPk)
-    , _changeOutPointPk(changeOutPointPk)
+    , _fundingOutputKeyPair(fundingOutputKeyPair)
+    , _changeOutputKeyPair(changeOutputKeyPair)
     , _changeValue(changeValue)
     , _maxPrice(maxPrice)
-    , _maxLock(maxLock) {
-
-    /**
-    // Count number of sellers
-    quint32 numberOfChannels = funds.count();
-
-    // Generate two key pairs for each channel, the payors contract and final keys
-    QList<KeyPair> payorContractKeyPairs = BitSwaprjs::generate_fresh_key_pairs(numberOfChannels);
-    QList<KeyPair> payorFinalKeyPairs = BitSwaprjs::generate_fresh_key_pairs(numberOfChannels);
-
-    // Create payor channel configurations, and add to vector
-    for(quint32 index = 0; index < numberOfChannels;index++)
-        _channels.push_back(Channel::Configuration(index,
-                                                   funds[index],
-                                                   payorContractKeyPairs[index],
-                                                   payorFinalKeyPairs[index]));
-
-    */
+    , _maxLock(maxLock)
+    , _contractHash(contractHash)
+    , _numberOfSignatures(numberOfSignatures) {
 }
 
 Payor::State Payor::Configuration::state() const {
@@ -516,52 +418,12 @@ void Payor::Configuration::setState(State state) {
     _state = state;
 }
 
-QVector<Payor::Channel::PayorSettings> Payor::Configuration::channels() const {
+QVector<Payor::Channel::Configuration> Payor::Configuration::channels() const {
     return _channels;
 }
 
-void Payor::Configuration::setChannels(const QVector<Payor::Channel::PayorSettings> & channelSettings) {
-    _channels = channelSettings;
-}
-
-quint32 Payor::Configuration::maxLock() const {
-    return _maxLock;
-}
-
-void Payor::Configuration::setMaxLock(quint32 maxLock) {
-    _maxLock = maxLock;
-}
-
-quint64 Payor::Configuration::maxPrice() const {
-    return _maxPrice;
-}
-
-void Payor::Configuration::setMaxPrice(quint64 maxPrice) {
-    _maxPrice = maxPrice;
-}
-
-quint64 Payor::Configuration::changeValue() const {
-    return _changeValue;
-}
-
-void Payor::Configuration::setChangeValue(quint64 changeValue) {
-    _changeValue = changeValue;
-}
-
-PublicKey Payor::Configuration::changeOutPointPk() const {
-    return _changeOutPointPk;
-}
-
-void Payor::Configuration::setChangeOutPointPk(const PublicKey & changeOutPointPk) {
-    _changeOutPointPk = changeOutPointPk;
-}
-
-PublicKey Payor::Configuration::fundingOutPointPk() const {
-    return _fundingOutPointPk;
-}
-
-void Payor::Configuration::setFundingOutPointPk(const PublicKey & fundingOutPointPk) {
-    _fundingOutPointPk = fundingOutPointPk;
+void Payor::Configuration::setChannels(const QVector<Payor::Channel::Configuration> & channels) {
+    _channels = channels;
 }
 
 OutPoint Payor::Configuration::fundingOutPoint() const {
@@ -572,133 +434,92 @@ void Payor::Configuration::setFundingOutPoint(const OutPoint & fundingOutPoint) 
     _fundingOutPoint = fundingOutPoint;
 }
 
+KeyPair Payor::Configuration::fundingOutputKeyPair() const {
+    return _fundingOutputKeyPair;
+}
+
+void Payor::Configuration::setFundingOutputKeyPair(const KeyPair & fundingOutputKeyPair) {
+    _fundingOutputKeyPair = fundingOutputKeyPair;
+}
+
+KeyPair Payor::Configuration::changeOutputKeyPair() const {
+    return _changeOutputKeyPair;
+}
+
+void Payor::Configuration::setChangeOutputKeyPair(const KeyPair & changeOutputKeyPair) {
+    _changeOutputKeyPair = changeOutputKeyPair;
+}
+
+quint64 Payor::Configuration::changeValue() const {
+    return _changeValue;
+}
+
+void Payor::Configuration::setChangeValue(quint64 changeValue) {
+    _changeValue = changeValue;
+}
+
+quint64 Payor::Configuration::maxPrice() const {
+    return _maxPrice;
+}
+
+void Payor::Configuration::setMaxPrice(quint64 maxPrice) {
+    _maxPrice = maxPrice;
+}
+
+quint32 Payor::Configuration::maxLock() const {
+    return _maxLock;
+}
+
+void Payor::Configuration::setMaxLock(quint32 maxLock) {
+    _maxLock = maxLock;
+}
+
+
+TxId Payor::Configuration::contractHash() const {
+    return _contractHash;
+}
+
+void Payor::Configuration::setContractHash(const TxId & contractHash) {
+    _contractHash = contractHash;
+}
+
+quint32 Payor::Configuration::numberOfSignatures() const {
+    return _numberOfSignatures;
+}
+
+void Payor::Configuration::setNumberOfSignatures(quint32 numberOfSignatures) {
+    _numberOfSignatures = numberOfSignatures;
+}
+
 /**
  * Payor
  */
 
 #include "extension/BitCoin/P2SHTxOut.hpp"
 
-#include "extension/BitCoin/Wallet.hpp"
-
+//#include "extension/BitCoin/Wallet.hpp"
 //#include "extension/BitCoin/BitSwaprjs.hpp"
 
-/*
 Payor::Payor() {
 }
-*/
 
-Payor::Payor(const Payor::Configuration & c)
-    : _state(State::waiting_for_full_set_of_sellers)
+Payor::Payor(const Payor::Configuration & configuration)
+    : _state(configuration.state())
     , _fundingOutPoint(c.fundingOutPoint())
-    , _fundingOutputKeyPair(c.fundingOutPointPk(), _wallet->getSk(c.fundingOutPointPk()))
-    , _changeOutputKeyPair(c.changeOutPointPk(), _wallet->getSk(c.changeOutPointPk()))
-    , _changeValue(c.changeValue())
-    , _maxPrice(c.maxPrice())
-    , _maxLock(c.maxLock())
-    , _numberOfSignatures(0){
+    , _fundingOutputKeyPair(configuration.fundingOutputKeyPair())
+    , _changeOutputKeyPair(configuration.changeOutputKeyPair())
+    , _changeValue(configuration.changeValue())
+    , _maxPrice(configuration.maxPrice())
+    , _maxLock(configuration.maxLock())
+    , _contractHash(configuration.contractHash())
+    , _numberOfSignatures(configuration.numberOfSignatures()) {
 
-    // Create channels
-    quint32 index = 0;
-    const QVector<Channel::PayorSettings> & settings = c.channels();
-    for(QVector<Channel::PayorSettings>::const_iterator i = settings.constBegin();
-        i != settings.constEnd();i++) {
-
-        // Get settings for channel
-        const Channel::PayorSettings & setting = *i;
-
-        // Create channel
-        Channel channel(index,
-                        Channel::State::unassigned,
-                        0,
-                        0,
-                        setting.funds(),
-                        KeyPair(setting.contractPk(), _wallet->getSk(setting.contractPk())),
-                        KeyPair(setting.finalPk(), _wallet->getSk(setting.finalPk())),
-                        PublicKey(),
-                        PublicKey(),
-                        Signature(),
-                        Signature(),
-                        0,
-                        0,
-                        0);
-
-        _channels.append(channel);
-
-        index++;
-    }
+    // Populate _channels vector
+    const QVector<Channel::Configuration> & channelConfigurations = configuration.channels();
+    for(QVector<Channel::Configuration>::const_iterator i = channelConfigurations.constBegin(),
+        end(channelConfigurations.constEnd()); i != end;i++)
+        _channels.append(Channel(*i));
 }
-
-/*
-Payor::Payor(const OutPoint& fundingOutput, const KeyPair& fundingOutputKeyPair)
-    : _state(State::waiting_for_full_set_of_sellers)
-    , _fundingOutput(fundingOutput)
-    , _fundingOutputKeyPair(fundingOutputKeyPair)
-    , _numberOfSignatures(0) {
-
-    // Check that _fundingOutput
-    // *exists
-    // *is unspent
-    // *has correct output script with correct sighash
-    // *is controlled by _fundingOutputKeyPair
-    // *has enough value
-}
-
-Payor::Payor(const QSet<Channel::PayorConfiguration> & configurations, const OutPoint& fundingOutput, const KeyPair& fundingOutputKeyPair)
-    : _state(State::waiting_for_full_set_of_sellers)
-    , _fundingOutput(fundingOutput)
-    , _fundingOutputKeyPair(fundingOutputKeyPair)
-    , _numberOfSignedSlots(0) {
-
-    // Check that _fundingOutput
-    // *exists
-    // *is unspent
-    // *has correct output script with correct sighash
-    // *is controlled by _fundingOutputKeyPair
-    // *has enough value
-
-    quint32 index = 0;
-    for(QSet<Channel::PayorConfiguration>::iterator i = configurations.begin(),
-            end(configurations.end()); i != end;i++) {
-
-        // Get configuration
-        Channel::PayorConfiguration payorConfiguration = *i;
-
-        // Add slot
-        _channels.append(s);
-
-        // Increment counter
-        index++;
-    }
-}
-
-quint32 Payor::addChannel(const Channel::PayorSettings & configuration) {
-
-    // Check state
-    if(_state != State::waiting_for_full_set_of_sellers)
-        throw std::exception("State incompatile request, must be in waiting_for_full_set_of_sellers state.");
-
-    // Get channel size
-    quint32 index = _channels.size();
-
-    // Create channel
-    Channel c;
-    c.index(index);
-    c.state(Channel::State::unassigned);
-    c.numberOfPaymentsMade(0);
-    c.payorContractKeyPair(contractKeyPair);
-    c.payorFinalKeyPair(finalKeyPair);
-    c.refundFee(refundFee);
-    c.funds(funds);
-
-    // Add channel to vector of channels.
-    _channels.p(c);
-
-    // Return size of channel
-    return index + 1;
-
-    return 0;
-}
-*/
 
 quint32 Payor::assignUnassignedSlot(quint64 price, const PublicKey & payeeContractPk, const PublicKey & payeeFinalPk, quint32 refundLockTime) {
 
@@ -1010,14 +831,6 @@ void Payor::setMaxLock(quint32 maxLock) {
     _maxLock = maxLock;
 }
 
-TxId Payor::contractHash() const {
-    return _contractHash;
-}
-
-void Payor::setContractHash(const TxId & contractHash) {
-    _contractHash = contractHash;
-}
-
 /*
 quint64 Payor::maxFeePerByte() const {
     return _maxFeePerByte;
@@ -1027,3 +840,19 @@ void Payor::setMaxFeePerByte(quint64 maxFeePerByte) {
     _maxFeePerByte = maxFeePerByte;
 }
 */
+
+TxId Payor::contractHash() const {
+    return _contractHash;
+}
+
+void Payor::setContractHash(const TxId & contractHash) {
+    _contractHash = contractHash;
+}
+
+quint32 Payor::numberOfSignatures() const {
+    return _numberOfSignatures;
+}
+
+void Payor::setNumberOfSignatures(quint32 numberOfSignatures) {
+    _numberOfSignatures = numberOfSignatures;
+}

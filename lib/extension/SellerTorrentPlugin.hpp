@@ -18,12 +18,15 @@ public:
         /**
          * Mutually exclusive set of states for seller torrent plugin,
          * in terms of cause of tick processing not advancing.
-         */
+
         enum class State {
 
-            test
+            something about whether we accept new peers
+            to sell to at the moment or something?
 
         };
+
+        */
 
         Configuration();
 

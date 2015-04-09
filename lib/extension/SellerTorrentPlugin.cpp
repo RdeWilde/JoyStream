@@ -93,10 +93,13 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
     // Create seller peer
     libtorrent::bt_peer_connection * bittorrentPeerConnection = static_cast<libtorrent::bt_peer_connection*>(peerConnection);
 
+    //
+    SellerPeerPlugin::Configuration()
+
     // Create shared pointer to new seller peer plugin
     boost::shared_ptr<SellerPeerPlugin> sharedPeerPluginPtr(new SellerPeerPlugin(this,
                                                                                 bittorrentPeerConnection,
-                                                                                SellerPeerPlugin::Configuration(), // nothing here, ask _plugin for values or something
+                                                                                , // nothing here, ask _plugin for values or something
                                                                                 _category));
 
     // Add to collection
@@ -289,8 +292,3 @@ quint32 SellerTorrentPlugin::maxContractConfirmationDelay() const {
 void SellerTorrentPlugin::setMaxContractConfirmationDelay(quint32 maxContractConfirmationDelay) {
     _maxContractConfirmationDelay = maxContractConfirmationDelay;
 }
-
-
-
-
-

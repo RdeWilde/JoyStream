@@ -85,10 +85,6 @@ public:
 
     /**
      * @brief Persistant state of payee
-     *
-     * ONLY REPRESENTS PAYOR INFORMQITON REQUIRED
-     * TO START IT FROM SCRATCH, NOT RECOVERING PAST SESSION,
-     * AS THIS WILL NOT BE SUPPORTED FOR NOW.
      */
     class Configuration {
 
@@ -97,10 +93,30 @@ public:
         // Default constructor
         Configuration();
 
-        // Constructor for a fresh payor
-        Configuration(quint32 maximumNumberOfSellers, const KeyPair & payeeContractPk, const KeyPair & payeePaymentPk);
+        // Constructor from members
+        Configuration(State state,
+                      quint64 numberOfPaymentsMade,
+                      Signature & lastValidPayorPaymentSignature,
+                      quint32 lockTime,
+                      quint64 price,
+                      quint32 maximumNumberOfSellers,
+                      const KeyPair & payeeContractKeys,
+                      const KeyPair & payeePaymentKeys,
+                      const OutPoint & contractOutPoint,
+                      const PublicKey & payorContractPk,
+                      const PublicKey & payorFinalPk,
+                      quint64 funds);
 
         // Getters and setters
+        State state() const;
+        void setState(State state);
+
+        quint64 numberOfPaymentsMade() const;
+        void setNumberOfPaymentsMade(quint64 numberOfPaymentsMade);
+
+        Signature lastValidPayorPaymentSignature() const;
+        void setLastValidPayorPaymentSignature(const Signature & lastValidPayorPaymentSignature);
+
         quint32 lockTime() const;
         void setLockTime(quint32 lockTime);
 
@@ -110,13 +126,34 @@ public:
         quint32 maximumNumberOfSellers() const;
         void setMaximumNumberOfSellers(quint32 maximumNumberOfSellers);
 
-        PublicKey payeeContractPk() const;
-        void setPayeeContractPk(const PublicKey & payeeContractPk);
+        KeyPair payeeContractKeys() const;
+        void setPayeeContractKeys(const KeyPair & payeeContractKeys);
 
-        PublicKey payeePaymentPk() const;
-        void setPayeePaymentPk(const PublicKey & payeePaymentPk);
+        KeyPair payeePaymentKeys() const;
+        void setPayeePaymentKeys(const KeyPair & payeePaymentKeys);
+
+        OutPoint contractOutPoint() const;
+        void setContractOutPoint(const OutPoint & contractOutPoint);
+
+        PublicKey payorContractPk() const;
+        void setPayorContractPk(const PublicKey & payorContractPk);
+
+        PublicKey payorFinalPk() const;
+        void setPayorFinalPk(const PublicKey & payorFinalPk);
+
+        quint64 funds() const;
+        void setFunds(quint64 funds);
 
     private:
+
+        // Payee state
+        State _state;
+
+        // The number of payments which have been successfully made
+        quint64 _numberOfPaymentsMade;
+
+        // The last valid payment signature received, corresponds to _numberOfPaymentsMade
+        Signature _lastValidPayorPaymentSignature;
 
         // Payment channel lock time
         quint32 _lockTime;
@@ -128,17 +165,30 @@ public:
         quint32 _maximumNumberOfSellers;
 
         // Controls payee portion of contract output
-        PublicKey _payeeContractPk;
+        KeyPair _payeeContractKeys;
 
         // Controls payee output in payment _lastValidPaymentSignature
-        PublicKey _payeePaymentPk;
+        KeyPair _payeePaymentKeys;
+
+        // Contract outpoint from which payments originate
+        OutPoint _contractOutPoint;
+
+        // Payor key in contract output
+        PublicKey _payorContractPk;
+
+        // Payor key in output in refund and payment
+        PublicKey _payorFinalPk;
+
+        // Amount (#satoshies) assigned to contract output
+        quint64 _funds;
+
     };
 
     // Default constructor
     Payee();
 
     // Constructor based on configuration
-    Payee(const Payee::Configuration & c, const PrivateKey & payeeContractSk, const PrivateKey & payeePaymentSk);
+    Payee(const Payee::Configuration & configuration);
 
     // When payee configurations are chosen
     void registerPayeeInformation(quint32 lockTime, quint32 price, quint32 maximumNumberOfSellers, const KeyPair & payeeContractKeys, const KeyPair & payeePaymentKeys);

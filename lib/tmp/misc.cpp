@@ -1,4 +1,193 @@
 /*
+Payor::Payor(const OutPoint& fundingOutput, const KeyPair& fundingOutputKeyPair)
+    : _state(State::waiting_for_full_set_of_sellers)
+    , _fundingOutput(fundingOutput)
+    , _fundingOutputKeyPair(fundingOutputKeyPair)
+    , _numberOfSignatures(0) {
+
+    // Check that _fundingOutput
+    // *exists
+    // *is unspent
+    // *has correct output script with correct sighash
+    // *is controlled by _fundingOutputKeyPair
+    // *has enough value
+}
+
+Payor::Payor(const QSet<Channel::PayorConfiguration> & configurations, const OutPoint& fundingOutput, const KeyPair& fundingOutputKeyPair)
+    : _state(State::waiting_for_full_set_of_sellers)
+    , _fundingOutput(fundingOutput)
+    , _fundingOutputKeyPair(fundingOutputKeyPair)
+    , _numberOfSignedSlots(0) {
+
+    // Check that _fundingOutput
+    // *exists
+    // *is unspent
+    // *has correct output script with correct sighash
+    // *is controlled by _fundingOutputKeyPair
+    // *has enough value
+
+    quint32 index = 0;
+    for(QSet<Channel::PayorConfiguration>::iterator i = configurations.begin(),
+            end(configurations.end()); i != end;i++) {
+
+        // Get configuration
+        Channel::PayorConfiguration payorConfiguration = *i;
+
+        // Add slot
+        _channels.append(s);
+
+        // Increment counter
+        index++;
+    }
+}
+
+quint32 Payor::addChannel(const Channel::PayorSettings & configuration) {
+
+    // Check state
+    if(_state != State::waiting_for_full_set_of_sellers)
+        throw std::exception("State incompatile request, must be in waiting_for_full_set_of_sellers state.");
+
+    // Get channel size
+    quint32 index = _channels.size();
+
+    // Create channel
+    Channel c;
+    c.index(index);
+    c.state(Channel::State::unassigned);
+    c.numberOfPaymentsMade(0);
+    c.payorContractKeyPair(contractKeyPair);
+    c.payorFinalKeyPair(finalKeyPair);
+    c.refundFee(refundFee);
+    c.funds(funds);
+
+    // Add channel to vector of channels.
+    _channels.p(c);
+
+    // Return size of channel
+    return index + 1;
+
+    return 0;
+}
+*/
+
+
+
+
+
+
+
+
+
+Payor::Payor(const Payor::Configuration & configuration)
+    : _state(State::waiting_for_full_set_of_sellers)
+    , _fundingOutPoint(c.fundingOutPoint())
+    , _fundingOutputKeyPair(c.fundingOutPointPk(), _wallet->getSk(c.fundingOutPointPk()))
+    , _changeOutputKeyPair(c.changeOutPointPk(), _wallet->getSk(c.changeOutPointPk()))
+    , _changeValue(c.changeValue())
+    , _maxPrice(c.maxPrice())
+    , _maxLock(c.maxLock())
+    , _numberOfSignatures(0){
+
+    // Create channels
+    quint32 index = 0;
+    const QVector<Channel::PayorSettings> & settings = c.channels();
+    for(QVector<Channel::PayorSettings>::const_iterator i = settings.constBegin();
+        i != settings.constEnd();i++) {
+
+        // Get settings for channel
+        const Channel::PayorSettings & setting = *i;
+
+        // Create channel
+        Channel channel(index,
+                        Channel::State::unassigned,
+                        0,
+                        0,
+                        setting.funds(),
+                        KeyPair(setting.contractPk(), _wallet->getSk(setting.contractPk())),
+                        KeyPair(setting.finalPk(), _wallet->getSk(setting.finalPk())),
+                        PublicKey(),
+                        PublicKey(),
+                        Signature(),
+                        Signature(),
+                        0,
+                        0,
+                        0);
+
+        _channels.append(channel);
+
+        index++;
+    }
+}
+    
+	
+	/**
+    // Count number of sellers
+    quint32 numberOfChannels = funds.count();
+
+    // Generate two key pairs for each channel, the payors contract and final keys
+    QList<KeyPair> payorContractKeyPairs = BitSwaprjs::generate_fresh_key_pairs(numberOfChannels);
+    QList<KeyPair> payorFinalKeyPairs = BitSwaprjs::generate_fresh_key_pairs(numberOfChannels);
+
+    // Create payor channel configurations, and add to vector
+    for(quint32 index = 0; index < numberOfChannels;index++)
+        _channels.push_back(Channel::Configuration(index,
+                                                   funds[index],
+                                                   payorContractKeyPairs[index],
+                                                   payorFinalKeyPairs[index]));
+
+    */
+		
+
+
+/**
+Payor::Channel::PayorSettings
+         * @brief Payor provided settings in channel, as through wire message.
+         
+
+        class PayorSettings {
+
+        public:
+
+            // Default constructor
+            PayorSettings();
+
+            // Member constructor
+            PayorSettings(quint64 funds, const PublicKey & contractPk, const PublicKey & finalPk);
+
+            // Copy constructor
+            PayorSettings(const PayorSettings & o);
+
+            // Assignment operator
+            PayorSettings & PayorSettings::operator=(const PayorSettings & o);
+
+            // Getters and setters
+            quint64 funds() const;
+            void setFunds(quint64 funds);
+
+            PublicKey contractPk() const;
+            void setContractPk(const PublicKey & contractPk);
+
+            PublicKey finalPk() const;
+            void setFinalPk(const PublicKey & finalPk);
+
+        private:
+
+            // Funds allocated to output
+            quint64 _funds;
+
+            // Controls payour output of multisig
+            PublicKey _contractPk;
+
+            // Controls final payment to payor
+            PublicKey _finalPk;
+        };
+        
+        */
+
+
+
+
+/*
 std::set<libtorrent::sha1_hash> ControllerConfiguration::getTorrentInfoHashes() const {
 
     // Create vector for keeping keys

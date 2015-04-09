@@ -86,33 +86,19 @@ void BuyerTorrentPlugin::Status::setState(State state) {
 
 #include <libtorrent/entry.hpp>
 
-BuyerTorrentPlugin::Configuration::Configuration(const Configuration & c)
-    : TorrentPlugin::Configuration(c)
-    , _state(c.state())
-    //, _peerConfigurations(c.peerConfigurations())
-    , _payorConfiguration(c.payorConfiguration()) {
-}
-
-BuyerTorrentPlugin::Configuration::Configuration(bool enableBanningSets,
-                                                    State state,
-                                                    //const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> & peers,
-                                                    const Payor::Configuration & payor)
+BuyerTorrentPlugin::Configuration::Configuration(bool enableBanningSets, quint64 maxPrice, quint32 maxLock, quint32 numberOfSellers)
     : TorrentPlugin::Configuration(enableBanningSets)
-    , _state(state)
-    //, _peerConfigurations(peers)
-    , _payorConfiguration(payor){
+    , _maxPrice(maxPrice)
+    , _maxLock(maxLock)
+    , _numberOfSellers(numberOfSellers) {
 }
 
 /**
-BuyerTorrentPlugin::Configuration::Configuration(QVector<quint64> funds,
-                                                quint64 changeValue,
-                                                const OutPoint & fundingOutput,
-                                                const KeyPair & fundingOutputKeyPair,
-                                                quint64 maxPrice,
-                                                quint32 maxLock)
-    : TorrentPlugin::Configuration(true)
-    , _state(State::waiting_for_payor_to_be_ready)
-    , _payorConfiguration(funds, changeValue, fundingOutput, fundingOutputKeyPair, maxPrice, maxLock) {
+BuyerTorrentPlugin::Configuration::Configuration(const Configuration & configuration)
+    : TorrentPlugin::Configuration(configuration)
+    , _maxPrice(configuration.maxPrice())
+    , _maxLock(configuration.maxLock())
+    , _numberOfSellers(configuration.numberOfSellers()) {
 }
 */
 
@@ -133,27 +119,29 @@ PluginMode BuyerTorrentPlugin::Configuration::pluginMode() const {
     return PluginMode::Buyer;
 }
 
-BuyerTorrentPlugin::State BuyerTorrentPlugin::Configuration::state() const {
-    return _state;
+quint64 BuyerTorrentPlugin::Configuration::maxPrice() const {
+    return _maxPrice;
 }
 
-Payor::Configuration BuyerTorrentPlugin::Configuration::payorConfiguration() const {
-    return _payorConfiguration;
+void BuyerTorrentPlugin::Configuration::setMaxPrice(quint64 maxPrice) {
+    _maxPrice = maxPrice;
 }
 
-void BuyerTorrentPlugin::Configuration::setPayorConfiguration(const Payor::Configuration &payorConfiguration) {
-    _payorConfiguration = payorConfiguration;
+quint32 BuyerTorrentPlugin::Configuration::maxLock() const{
+    return _maxLock;
 }
 
-/**
-QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> BuyerTorrentPlugin::Configuration::peerConfigurations() const {
-    return _peerConfigurations;
+void BuyerTorrentPlugin::Configuration::setMaxLock(quint32 maxLock) {
+    _maxLock = maxLock;
 }
 
-void BuyerTorrentPlugin::Configuration::setPeerConfigurations(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Configuration> &peerConfigurations) {
-    _peerConfigurations = peerConfigurations;
+qint32 BuyerTorrentPlugin::Configuration::numberOfSellers() const {
+    return _numberOfSellers;
 }
-*/
+
+void BuyerTorrentPlugin::Configuration::setNumberOfSellers(quint32 numberOfSellers) {
+    _numberOfSellers = numberOfSellers;
+}
 
 /**
  * BuyerTorrentPlugin
@@ -189,58 +177,124 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
     : TorrentPlugin(plugin, torrent, configuration, category)
     , _slotToPluginMapping(configuration.payorConfiguration().channels().size(), NULL)
     , _wallet(wallet)
-    , _payor(_wallet, configuration.payorConfiguration())
     , _numberOfUnassignedPieces(0)
     , _assignmentLowerBound(0) {
+
+    // Get pointer to torrent, required for setup
+    boost::shared_ptr<libtorrent::torrent> sharedPtr = _torrent.lock();
+
+    Q_ASSERT(sharedPtr);
+
+    // Get torrent info
+    const libtorrent::torrent_info & torrentInfo = sharedPtr->torrent_file();
 
     // Start clock for when picking sellers can begin
     _timeSincePluginStarted.start();
 
-    // Setup pieces management data
-    if(boost::shared_ptr<libtorrent::torrent> sharedPtr = _torrent.lock()) {
+    /**
+     * Setup payor configurations
+     *
+     * MOVE THIS TO SOME WHERE ELSE LATER, E.G. CTR OF PAYORCONFIGURATION
+     */
 
-        // Get number of pieces
-        const libtorrent::torrent_info & torrentInfo = sharedPtr->torrent_file();
-        int numberOfPieces = torrentInfo.num_pieces();
+    // Minimal funds required to fund payment channel
+    quint64 minimalFunds = torrentInfo.num_pieces()*configuration.maxPrice();
 
-        // Get block size
-        libtorrent::torrent_status torrentStatus;
-        boost::uint32_t flags = libtorrent::torrent_handle::query_name +
-                                libtorrent::torrent_handle::query_save_path +
-                                libtorrent::torrent_handle::query_name +
-                                libtorrent::torrent_handle::query_torrent_file;
-                                //libtorrent::torrent_handle::query_accurate_download_counters +
-                                //libtorrent::torrent_handle::query_verified_pieces +
-                                //libtorrent::torrent_handle::query_pieces +
-                                //libtorrent::torrent_handle::query_distributed_copies;
+    // Get funding utxo
+    UnspentP2PKHOutput utxo = _wallet->getUtxo(minimalFunds, 1);
 
-        sharedPtr->status(&torrentStatus, flags);
-        _blockSize = torrentStatus.block_size;
+    // Check that we found valid utxo
+    if(utxo.fundingValue() == 0)
+        throw std::exception("No utxo found.");
 
-        for(int i = 0;i < numberOfPieces;i++) {
+    // Figure out how much to lock up with each seller
+    quint64 fundingPerSeller = qFloor(utxo.fundingValue()/numberOfSellers);
 
-            // Get byte size of given piece: all pieces, except possibly last one, are of same length
-            int pieceSize = torrentInfo.piece_size(i);
+    // Contract transaction fee: Get from where?
+    quint64 tx_fee = 0;
 
-            // Get number of blocks in given piece
-            int numberOfBlocksInPiece = (int) ceil(((double)pieceSize) / _blockSize);
+    // Compute change
+    quint64 changeValue = utxo.fundingValue() - configuration.numberOfSellers()*fundingPerSeller - tx_fee;
 
-            // Do we already have the valid piece
-            if(!sharedPtr->have_piece(i)) {
+    // Generate keys in wallet
+    QList<Wallet::Entry> buyerInContractKeys = _wallet->generateNewKeys(numberOfSellers, Wallet::Purpose::BuyerInContractOutput).values();
+    QList<Wallet::Entry> buyerFinalKeys = _wallet->generateNewKeys(numberOfSellers, Wallet::Purpose::ContractFinal).values();
+    QList<Wallet::Entry> changeKey = _wallet->generateNewKeys(1, Wallet::Purpose::ContractChange).values();
 
-                // Add piece vector of pieces
-                _pieces.push_back(Piece(i, pieceSize, numberOfBlocksInPiece, Piece::State::unassigned, NULL));
+    Q_ASSERT(buyerInContractKeys.count() == numberOfSellers);
+    Q_ASSERT(buyerFinalKeys.count() == numberOfSellers);
+    Q_ASSERT(changeKey.count() == 1);
 
-                // Count piece as unassigned
-                _numberOfUnassignedPieces++;
+    // Create channel configurations
+    QVector<Payor::Channel::Configuration> channels;
+    for(int i = 0;i < configuration.numberOfSellers();i++)
+        channels.append(Payor::Channel::Configuration(i,
+                                                      Payor::Channel::State::unassigned,
+                                                      0,
+                                                      0,
+                                                      fundingPerSeller,
+                                                      buyerInContractKeys[i].keyPair(),
+                                                      buyerFinalKeys[i].keyPair(),
+                                                      PublicKey(),
+                                                      PublicKey(),
+                                                      Signature(),
+                                                      Signature(),
+                                                      0,
+                                                      0,
+                                                      0));
+    // Payor configuration
+    Payor::Configuration payorConfiguration(channels,
+                                            utxo.fundingOutput(),
+                                            utxo.fundingOutputKeyPair().pk(),
+                                            changeKey[0].keyPair(),
+                                            changeValue,
+                                            maxPrice,
+                                            maxLock);
+    // Set payor
+    _payor = Payor(payorConfiguration);
 
-            } else // Add to piece vector of pieces, and indicate that we have it
-                _pieces.push_back(Piece(i, pieceSize, numberOfBlocksInPiece,Piece::State::fully_downloaded_and_valid, NULL));
+    /**
+     *  Setup pieces management data
+     */
 
-        }
+    // Get number of pieces
+    int numberOfPieces = torrentInfo.num_pieces();
 
-    } else
-        Q_ASSERT(false); // This should never happen
+    // Get block size
+    libtorrent::torrent_status torrentStatus;
+    boost::uint32_t flags = libtorrent::torrent_handle::query_name +
+                            libtorrent::torrent_handle::query_save_path +
+                            libtorrent::torrent_handle::query_name +
+                            libtorrent::torrent_handle::query_torrent_file;
+                            //libtorrent::torrent_handle::query_accurate_download_counters +
+                            //libtorrent::torrent_handle::query_verified_pieces +
+                            //libtorrent::torrent_handle::query_pieces +
+                            //libtorrent::torrent_handle::query_distributed_copies;
+
+    sharedPtr->status(&torrentStatus, flags);
+    _blockSize = torrentStatus.block_size;
+
+    for(int i = 0;i < numberOfPieces;i++) {
+
+        // Get byte size of given piece: all pieces, except possibly last one, are of same length
+        int pieceSize = torrentInfo.piece_size(i);
+
+        // Get number of blocks in given piece
+        int numberOfBlocksInPiece = (int) ceil(((double)pieceSize) / _blockSize);
+
+        // Do we already have the valid piece
+        if(!sharedPtr->have_piece(i)) {
+
+            // Add piece vector of pieces
+            _pieces.push_back(Piece(i, pieceSize, numberOfBlocksInPiece, Piece::State::unassigned, NULL));
+
+            // Count piece as unassigned
+            _numberOfUnassignedPieces++;
+
+        } else // Add to piece vector of pieces, and indicate that we have it
+            _pieces.push_back(Piece(i, pieceSize, numberOfBlocksInPiece,Piece::State::fully_downloaded_and_valid, NULL));
+
+    }
 }
 
 boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(libtorrent::peer_connection * connection) {
