@@ -65,7 +65,11 @@ SellerTorrentPlugin::SellerTorrentPlugin(Plugin * plugin,
                                          const boost::weak_ptr<libtorrent::torrent> & torrent,
                                          const SellerTorrentPlugin::Configuration & configuration,
                                          QLoggingCategory & category)
-    : TorrentPlugin(plugin, torrent, configuration, category) {
+    : TorrentPlugin(plugin, torrent, configuration, category)
+    , _minPrice(configuration.minPrice())
+    , _minLock(configuration.minLock())
+    , _minFeePerByte(configuration.minFeePerByte())
+    , _maxContractConfirmationDelay(configuration.maxContractConfirmationDelay()) {
 }
 
 boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(libtorrent::peer_connection * peerConnection) {
@@ -93,15 +97,10 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
     // Create seller peer
     libtorrent::bt_peer_connection * bittorrentPeerConnection = static_cast<libtorrent::bt_peer_connection*>(peerConnection);
 
-    //
-    SellerPeerPlugin::Configuration()
-
     // Create shared pointer to new seller peer plugin
     boost::shared_ptr<SellerPeerPlugin> sharedPeerPluginPtr(new SellerPeerPlugin(this,
                                                                                 bittorrentPeerConnection,
-                                                                                , // nothing here, ask _plugin for values or something
                                                                                 _category));
-
     // Add to collection
     _peers[endPoint] = boost::weak_ptr<SellerPeerPlugin>(sharedPeerPluginPtr);
 

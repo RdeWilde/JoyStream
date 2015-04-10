@@ -73,7 +73,6 @@ SOURCES += \
     #extension/PaymentChannel/Payor/Payor.cpp \
     extension/PaymentChannel/Payor.cpp \
     extension/PaymentChannel/Payee.cpp \
-    extension/Request/StartTorrentPlugin.cpp \
     extension/Alert/BuyerTorrentPluginStatuAlert.cpp \
     extension/BitCoin/UnspentP2PKHOutput.cpp \
     extension/BitCoin/Wallet.cpp \
@@ -81,7 +80,10 @@ SOURCES += \
     extension/BitCoin/PublicKey.cpp \
     extension/BitCoin/TxId.cpp \
     extension/BitCoin/base58.cpp \
-    extension/BitCoin/PrivateKey.cpp
+    extension/BitCoin/PrivateKey.cpp \
+    extension/Request/StartBuyerTorrentPlugin.cpp \
+    extension/Request/StartSellerTorrentPlugin.cpp \
+    extension/Request/StartObserverTorrentPlugin.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -156,13 +158,15 @@ HEADERS += \
     extension/BitCoin/P2PKHAddress.hpp \
     extension/BitCoin/OutPoint.hpp \
     extension/PaymentChannel/Payor.hpp \
-    extension/Request/StartTorrentPlugin.hpp \
     extension/Alert/BuyerTorrentPluginStatuAlert.hpp \
     extension/BitCoin/UnspentP2PKHOutput.hpp \
     extension/BitCoin/Wallet.hpp \
     view/WalletDialog.hpp \
     extension/BitCoin/TxId.hpp \
-    extension/BitCoin/base58.hpp
+    extension/BitCoin/base58.hpp \
+    extension/Request/StartBuyerTorrentPlugin.hpp \
+    extension/Request/StartSellerTorrentPlugin.hpp \
+    extension/Request/StartObserverTorrentPlugin.hpp
 				
 FORMS += \
     view/mainwindow.ui \

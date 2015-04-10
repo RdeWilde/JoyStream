@@ -125,45 +125,9 @@ void BuyerPeerPlugin::setPayorSlot(quint32 payorSlot) {
     _payorSlot = payorSlot;
 }
 
-
-
-
 /**
- * BuyerPeerPlugin::Configuration
+ * BuyerPeerPlugin
  */
-
-BuyerPeerPlugin::Configuration::Configuration() {
-
-}
-
-BuyerPeerPlugin::Configuration::Configuration(const ExtendedMessageIdMapping & clientMapping,
-                                              const ExtendedMessageIdMapping & peerMapping,
-                                              BEPSupportStatus peerBEP10SupportStatus,
-                                              BEPSupportStatus peerBitSwaprBEPSupportStatus,
-                                              const PeerState & peerState,
-                                              ClientState clientState,
-                                              quint32 payorSlot)
-    : PeerPlugin::Configuration(clientMapping, peerMapping, peerBEP10SupportStatus, peerBitSwaprBEPSupportStatus)
-    , _peerState(peerState)
-    , _clientState(clientState)
-    , _payorSlot(payorSlot) {
-}
-
-BuyerPeerPlugin::PeerState BuyerPeerPlugin::Configuration::peerState() const {
-    return _peerState;
-}
-
-void BuyerPeerPlugin::Configuration::setPeerState(const PeerState & peerState) {
-    _peerState = peerState;
-}
-
-BuyerPeerPlugin::ClientState BuyerPeerPlugin::Configuration::clientState() const {
-    return _clientState;
-}
-
-void BuyerPeerPlugin::Configuration::setClientState(ClientState clientState) {
-    _clientState = clientState;
-}
 
 #include "BuyerTorrentPlugin.hpp"
 #include "PluginMode.hpp"
@@ -183,20 +147,17 @@ void BuyerPeerPlugin::Configuration::setClientState(ClientState clientState) {
 
 BuyerPeerPlugin::BuyerPeerPlugin(BuyerTorrentPlugin * plugin,
                                  libtorrent::bt_peer_connection * connection,
-                                 const Configuration & configuration,
                                  QLoggingCategory & category)
-    : PeerPlugin(plugin, connection, configuration, category)
+    : PeerPlugin(plugin, connection, category)
     , _plugin(plugin)
-    , _peerState(configuration.peerState())
-    , _clientState(configuration.clientState())
-    , _payorSlot(-1) // deterministic value sentinel value
-    , _indexOfAssignedPiece(-1)
+    , _clientState(ClientState::no_bitswapr_message_sent)
+    , _payorSlot(-1) // deterministic sentinel value
+    , _indexOfAssignedPiece(-1) // deterministic sentinel value
     , _pieceSize(0)
     , _blockSize(0)
     , _numberOfBlocksInPiece(0)
     , _numberOfBlocksRequested(0)
     , _numberOfBlocksReceived(0) {
-    //, _lastMessageStateCompatibility(MessageStateCompatibility::compatible){
 }
 
 BuyerPeerPlugin::~BuyerPeerPlugin() {
@@ -217,7 +178,7 @@ void BuyerPeerPlugin::on_disconnect(libtorrent::error_code const & ec) {
 
     qCDebug(_category) << "on_disconnect";
 
-    _connectionAlive = false;
+    //_connectionAlive = false;
 }
 
 void BuyerPeerPlugin::on_connected() {
@@ -233,7 +194,8 @@ bool BuyerPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & hand
     if(keepPlugin) {
 
         // send mode message
-        sendExtendedMessage(Buy(_plugin->maxPrice(), _plugin->maxLock()));
+        sendExtendedMessage(Buy(_plugin->maxPrice(), _plugin->maxLock(), _plugin->numberOfSellers()));
+        // _plugin->maxFeePerByte()
 
         // and update new client state correspondingly
         _clientState = ClientState::buyer_mode_announced;

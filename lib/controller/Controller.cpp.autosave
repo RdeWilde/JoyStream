@@ -1540,6 +1540,9 @@ bool Controller::addTorrent(const Torrent::Configuration & configuration, bool p
 
      // Save torrent
      _torrents[info_hash] = torrent;
+     
+     
+     
 
      // If we dont prompt user for plugin configuration,
      // then we save the one given in configuration

@@ -112,7 +112,7 @@ void Payor::Channel::Status::setIndex(quint32 index) {
 Payor::Channel::Channel() {
 }
 
-Payor::Channel::Channel(Channel::Configuration & configuration)
+Payor::Channel::Channel(const Channel::Configuration & configuration)
     : Channel(configuration.index(),
               configuration.state(),
               configuration.price(),
@@ -394,8 +394,6 @@ Payor::Configuration::Configuration(State state,
                                     const KeyPair & fundingOutputKeyPair,
                                     const KeyPair & changeOutputKeyPair,
                                     quint64 changeValue,
-                                    quint64 maxPrice,
-                                    quint32 maxLock,
                                     const TxId & contractHash,
                                     quint32 numberOfSignatures)
     : _state(state)
@@ -404,8 +402,6 @@ Payor::Configuration::Configuration(State state,
     , _fundingOutputKeyPair(fundingOutputKeyPair)
     , _changeOutputKeyPair(changeOutputKeyPair)
     , _changeValue(changeValue)
-    , _maxPrice(maxPrice)
-    , _maxLock(maxLock)
     , _contractHash(contractHash)
     , _numberOfSignatures(numberOfSignatures) {
 }
@@ -458,23 +454,6 @@ void Payor::Configuration::setChangeValue(quint64 changeValue) {
     _changeValue = changeValue;
 }
 
-quint64 Payor::Configuration::maxPrice() const {
-    return _maxPrice;
-}
-
-void Payor::Configuration::setMaxPrice(quint64 maxPrice) {
-    _maxPrice = maxPrice;
-}
-
-quint32 Payor::Configuration::maxLock() const {
-    return _maxLock;
-}
-
-void Payor::Configuration::setMaxLock(quint32 maxLock) {
-    _maxLock = maxLock;
-}
-
-
 TxId Payor::Configuration::contractHash() const {
     return _contractHash;
 }
@@ -505,17 +484,16 @@ Payor::Payor() {
 
 Payor::Payor(const Payor::Configuration & configuration)
     : _state(configuration.state())
-    , _fundingOutPoint(c.fundingOutPoint())
+    , _fundingOutPoint(configuration.fundingOutPoint())
     , _fundingOutputKeyPair(configuration.fundingOutputKeyPair())
     , _changeOutputKeyPair(configuration.changeOutputKeyPair())
     , _changeValue(configuration.changeValue())
-    , _maxPrice(configuration.maxPrice())
-    , _maxLock(configuration.maxLock())
     , _contractHash(configuration.contractHash())
     , _numberOfSignatures(configuration.numberOfSignatures()) {
 
     // Populate _channels vector
     const QVector<Channel::Configuration> & channelConfigurations = configuration.channels();
+
     for(QVector<Channel::Configuration>::const_iterator i = channelConfigurations.constBegin(),
         end(channelConfigurations.constEnd()); i != end;i++)
         _channels.append(Channel(*i));
@@ -806,40 +784,6 @@ OutPoint Payor::fundingOutPoint() const {
 void Payor::setFundingOutPoint(const OutPoint &fundingOutput) {
     _fundingOutPoint = fundingOutput;
 }
-
-quint32 Payor::numberOfSignatures() const {
-    return _numberOfSignatures;
-}
-
-void Payor::setNumberOfSignatures(quint32 numberOfSignedSlots) {
-    _numberOfSignatures = numberOfSignedSlots;
-}
-
-quint64 Payor::maxPrice() const {
-    return _maxPrice;
-}
-
-void Payor::setMaxPrice(quint64 maxPrice) {
-    _maxPrice = maxPrice;
-}
-
-quint32 Payor::maxLock() const {
-    return _maxLock;
-}
-
-void Payor::setMaxLock(quint32 maxLock) {
-    _maxLock = maxLock;
-}
-
-/*
-quint64 Payor::maxFeePerByte() const {
-    return _maxFeePerByte;
-}
-
-void Payor::setMaxFeePerByte(quint64 maxFeePerByte) {
-    _maxFeePerByte = maxFeePerByte;
-}
-*/
 
 TxId Payor::contractHash() const {
     return _contractHash;

@@ -11,6 +11,10 @@ class SignRefund : public ExtendedMessagePayload
 {
 public:
 
+    // Default constructor
+    SignRefund();
+
+    // Constructor from members
     SignRefund(const TxId & hash, quint32 index, quint64 value, const PublicKey & pk);
 
     // Virtual methods that subclassing messages have to implement

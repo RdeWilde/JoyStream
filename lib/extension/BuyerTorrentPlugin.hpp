@@ -132,7 +132,11 @@ public:
     public:
 
         // Constructor from members
-        Configuration(bool enableBanningSets, quint64 maxPrice, quint32 maxLock, quint32 numberOfSellers);
+        Configuration(bool enableBanningSets,
+                      quint64 maxPrice,
+                      quint32 maxLock,
+                      quint64 maxFeePerByte,
+                      quint32 numberOfSellers);
 
         // Constructor from copy <=== Why is this here again? who is using this
         //Configuration(const Configuration & c);
@@ -161,19 +165,26 @@ public:
         quint32 maxLock() const;
         void setMaxLock(quint32 maxLock);
 
-        qint32 numberOfSellers() const;
-        void setNumberOfSellers(qint32 numberOfSellers);
+        quint64 maxFeePerByte() const;
+        void setMaxFeePerByte(quint64 maxFeePerByte);
+
+        quint32 numberOfSellers() const;
+        void setNumberOfSellers(quint32 numberOfSellers);
 
     private:
 
-        // Maximum price (#satoshies)
+
+        // Maximum price accepted (satoshies)
         quint64 _maxPrice;
 
-        // Maximum lock time (seconds)
+        // Maximum lock time (the number of seconds elapsed since 1970-01-01T00:00 UTC)
         quint32 _maxLock;
 
+        // Maximum fee per byte in contract transaction (satoshies)
+        quint64 _maxFeePerByte;
+
         // Number of sellers
-        qint32 _numberOfSellers;
+        quint32 _numberOfSellers;
     };
 
     // Constructor from members
@@ -182,13 +193,6 @@ public:
                        Wallet * wallet,
                        const Configuration & configuration,
                        QLoggingCategory & category);
-
-    /**
-    BuyerTorrentPlugin(Plugin * plugin,
-                       const boost::weak_ptr<libtorrent::torrent> & torrent,
-                       quint32 _numSellers,
-                       QLoggingCategory & category);
-    */
 
     /**
      * All virtual functions below should ONLY be called by libtorrent network thread,
@@ -241,10 +245,16 @@ public:
     void setState(const State & state);
 
     quint64 maxPrice() const;
-    quint32 maxLock() const;
+    void setMaxPrice(quint64 maxPrice);
 
-    // Allows
-    //const Payor & payor() const;
+    quint32 maxLock() const;
+    void setMaxLock(quint32 maxLock);
+
+    quint64 maxFeePerByte() const;
+    void setMaxFeePerByte(quint64 maxFeePerByte);
+
+    quint32 numberOfSellers() const;
+    void setnumberOfSellers(quint32 numberOfSellers);
 
     int blockSize() const;
     void setBlockSize(int blockSize);
@@ -259,6 +269,24 @@ private:
     // in this type, rather than corresponding subclass of TorrentPlugin.
     QMap<libtorrent::tcp::endpoint, boost::weak_ptr<BuyerPeerPlugin> > _peers;
 
+    // Wallet
+    Wallet * _wallet;
+
+    // Maximum price accepted (satoshies)
+    quint64 _maxPrice;
+
+    // Maximum lock time (the number of seconds elapsed since 1970-01-01T00:00 UTC)
+    quint32 _maxLock;
+
+    // Maximum fee per byte in contract transaction (satoshies)
+    quint64 _maxFeePerByte;
+
+    // Number of sellers
+    quint32 _numberOfSellers;
+
+    // Payment channel
+    Payor _payor;
+
     // Maps given position in payor to given end point
     /**
      * LATER, ADD SOME SORT OF ELEMENT FIELD TO THE CHANNELS OF THE PAYOR,
@@ -266,12 +294,6 @@ private:
      * Lets just use sloppy pointers for now!!!!!!!!
      */
     QVector<BuyerPeerPlugin *> _slotToPluginMapping;
-
-    // Wallet
-    Wallet * _wallet;
-
-    // Payment channel
-    Payor _payor;
 
     // Time since plugin was created, is used to keep track of when to start picking sellers.
     QTime _timeSincePluginStarted;

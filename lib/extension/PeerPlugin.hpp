@@ -57,54 +57,9 @@ public:
         buyer
     };
 
-    /**
-     * @brief
-     */
-    class Configuration {
-
-    public:
-
-        // Default constructor
-        Configuration();
-
-        // Constructor from members
-        Configuration(const ExtendedMessageIdMapping & clientMapping,
-                      const ExtendedMessageIdMapping & peerMapping,
-                      BEPSupportStatus peerBEP10SupportStatus,
-                      BEPSupportStatus peerBitSwaprBEPSupportStatus);
-
-        // Getters and Setters
-        ExtendedMessageIdMapping clientMapping() const;
-        void setClientMapping(const ExtendedMessageIdMapping & clientMapping);
-
-        ExtendedMessageIdMapping peerMapping() const;
-        void setPeerMapping(const ExtendedMessageIdMapping & peerMapping);
-
-        BEPSupportStatus peerBEP10SupportStatus() const;
-        void setPeerBEP10SupportStatus(BEPSupportStatus peerBEP10SupportStatus);
-
-        BEPSupportStatus peerBitSwaprBEPSupportStatus() const;
-        void setPeerBitSwaprBEPSupportStatus(BEPSupportStatus  peerBitSwaprBEPSupportStatus);
-
-    private:
-
-        // Mapping from messages to BEP10 ID of client
-        ExtendedMessageIdMapping _clientMapping;
-
-        // Mapping from messages to BEP10 ID of peer
-        ExtendedMessageIdMapping _peerMapping;
-
-        // Indicates whether peer supports BEP10
-        BEPSupportStatus _peerBEP10SupportStatus;
-
-        // Indicates whether peer supports BitSwapr BEP
-        BEPSupportStatus _peerBitSwaprBEPSupportStatus;
-    };
-
     // Constructor
     PeerPlugin(TorrentPlugin * plugin,
                libtorrent::bt_peer_connection * connection,
-               const Configuration & configuration,
                QLoggingCategory & category);
 
     /**
@@ -168,15 +123,17 @@ public:
     bool lastReceivedMessageWasMalformed() const;
     virtual PluginMode mode() const = 0;
 
+private:
+
+    // Torrent plugin for torrent
+    TorrentPlugin * _plugin;
+
 protected:
 
     // Connection to peer for this plugin
     libtorrent::bt_peer_connection * _connection;
 
-    // Logging category
-    QLoggingCategory & _category;
-
-    // Endpoint
+    // Endpoint: can be deduced from connection, but is worth keeping if connection pointer becomes invalid
     libtorrent::tcp::endpoint _endPoint;
 
     // Announced peer mode
@@ -185,15 +142,27 @@ protected:
     // Time since last message was sent to peer, is used to judge if peer has timed out
     QTime _timeSinceLastMessageSent;
 
-    // Plugin still has contact with peer
-    bool _connectionAlive;
-
     // Last message arriving in on_extended() which was malformed accoridng
     // to ExtendedMessagePayload::fromRaw().
     bool _lastReceivedMessageWasMalformed;
 
     // Last message was not compatible with state of plugin
     bool _lastMessageWasStateIncompatible;
+
+    // Mapping from messages to BEP10 ID of client
+    ExtendedMessageIdMapping _clientMapping;
+
+    // Mapping from messages to BEP10 ID of peer
+    ExtendedMessageIdMapping _peerMapping;
+
+    // Indicates whether peer supports BEP10
+    BEPSupportStatus _peerBEP10SupportStatus;
+
+    // Indicates whether peer supports BEP43 .. BitSwapr
+    BEPSupportStatus _peerBitSwaprBEPSupportStatus;
+
+    // Logging category
+    QLoggingCategory & _category;
 
     // Processess message in subclass,
     // are only called if extended handshake has been completed successfully.
@@ -207,23 +176,6 @@ protected:
     virtual void processReady(const Ready * m) = 0;
     virtual void processPayment(const Payment * m) = 0;
     //virtual void processEnd(const End * m) = 0;
-
-protected:
-
-    // Torrent plugin for torrent
-    TorrentPlugin * _plugin;
-
-    // Mapping from messages to BEP10 ID of client
-    ExtendedMessageIdMapping _clientMapping;
-
-    // Mapping from messages to BEP10 ID of peer
-    ExtendedMessageIdMapping _peerMapping;
-
-    // Indicates whether peer supports BEP10
-    BEPSupportStatus _peerBEP10SupportStatus;
-
-    // Indicates whether peer supports BEP43 .. BitSwapr
-    BEPSupportStatus _peerBitSwaprBEPSupportStatus;
 };
 
 #endif

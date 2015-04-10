@@ -86,21 +86,17 @@ void BuyerTorrentPlugin::Status::setState(State state) {
 
 #include <libtorrent/entry.hpp>
 
-BuyerTorrentPlugin::Configuration::Configuration(bool enableBanningSets, quint64 maxPrice, quint32 maxLock, quint32 numberOfSellers)
+BuyerTorrentPlugin::Configuration::Configuration(bool enableBanningSets,
+                                                 quint64 maxPrice,
+                                                 quint32 maxLock,
+                                                 quint64 maxFeePerByte,
+                                                 quint32 numberOfSellers)
     : TorrentPlugin::Configuration(enableBanningSets)
     , _maxPrice(maxPrice)
     , _maxLock(maxLock)
+    , _maxFeePerByte(maxFeePerByte)
     , _numberOfSellers(numberOfSellers) {
 }
-
-/**
-BuyerTorrentPlugin::Configuration::Configuration(const Configuration & configuration)
-    : TorrentPlugin::Configuration(configuration)
-    , _maxPrice(configuration.maxPrice())
-    , _maxLock(configuration.maxLock())
-    , _numberOfSellers(configuration.numberOfSellers()) {
-}
-*/
 
 BuyerTorrentPlugin::Configuration::Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry)
     : TorrentPlugin::Configuration(dictionaryEntry) {
@@ -135,7 +131,15 @@ void BuyerTorrentPlugin::Configuration::setMaxLock(quint32 maxLock) {
     _maxLock = maxLock;
 }
 
-qint32 BuyerTorrentPlugin::Configuration::numberOfSellers() const {
+quint64 BuyerTorrentPlugin::Configuration::maxFeePerByte() const {
+    return _maxFeePerByte;
+}
+
+void BuyerTorrentPlugin::Configuration::setMaxFeePerByte(quint64 maxFeePerByte) {
+    _maxFeePerByte = maxFeePerByte;
+}
+
+quint32 BuyerTorrentPlugin::Configuration::numberOfSellers() const {
     return _numberOfSellers;
 }
 
@@ -160,10 +164,12 @@ void BuyerTorrentPlugin::Configuration::setNumberOfSellers(quint32 numberOfSelle
 
 #include "BitCoin/BitSwaprjs.hpp"
 #include "BitCoin/Wallet.hpp"
+#include "BitCoin/UnspentP2PKHOutput.hpp"
 
 #include <libtorrent/bt_peer_connection.hpp>
 #include <libtorrent/socket_io.hpp> // print_endpoint
 
+#include <QtMath> // QFloor
 #include <math.h> // ceil
 
 // Maximum allowable a peer may have in responding to given message (ms)
@@ -175,8 +181,13 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
                                        const BuyerTorrentPlugin::Configuration & configuration,
                                        QLoggingCategory & category)
     : TorrentPlugin(plugin, torrent, configuration, category)
-    , _slotToPluginMapping(configuration.payorConfiguration().channels().size(), NULL)
+    , _state(State::waiting_for_payor_to_be_ready)
     , _wallet(wallet)
+    , _maxPrice(configuration.maxPrice())
+    , _maxLock(configuration.maxLock())
+    , _maxFeePerByte(configuration.maxFeePerByte())
+    , _numberOfSellers(configuration.numberOfSellers())
+    , _slotToPluginMapping(configuration.numberOfSellers(), NULL)
     , _numberOfUnassignedPieces(0)
     , _assignmentLowerBound(0) {
 
@@ -208,7 +219,7 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
         throw std::exception("No utxo found.");
 
     // Figure out how much to lock up with each seller
-    quint64 fundingPerSeller = qFloor(utxo.fundingValue()/numberOfSellers);
+    quint64 fundingPerSeller = qFloor(utxo.fundingValue()/configuration.numberOfSellers());
 
     // Contract transaction fee: Get from where?
     quint64 tx_fee = 0;
@@ -217,18 +228,18 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
     quint64 changeValue = utxo.fundingValue() - configuration.numberOfSellers()*fundingPerSeller - tx_fee;
 
     // Generate keys in wallet
-    QList<Wallet::Entry> buyerInContractKeys = _wallet->generateNewKeys(numberOfSellers, Wallet::Purpose::BuyerInContractOutput).values();
-    QList<Wallet::Entry> buyerFinalKeys = _wallet->generateNewKeys(numberOfSellers, Wallet::Purpose::ContractFinal).values();
+    QList<Wallet::Entry> buyerInContractKeys = _wallet->generateNewKeys(configuration.numberOfSellers(), Wallet::Purpose::BuyerInContractOutput).values();
+    QList<Wallet::Entry> buyerFinalKeys = _wallet->generateNewKeys(configuration.numberOfSellers(), Wallet::Purpose::ContractFinal).values();
     QList<Wallet::Entry> changeKey = _wallet->generateNewKeys(1, Wallet::Purpose::ContractChange).values();
 
-    Q_ASSERT(buyerInContractKeys.count() == numberOfSellers);
-    Q_ASSERT(buyerFinalKeys.count() == numberOfSellers);
+    Q_ASSERT(buyerInContractKeys.count() == configuration.numberOfSellers());
+    Q_ASSERT(buyerFinalKeys.count() == configuration.numberOfSellers());
     Q_ASSERT(changeKey.count() == 1);
 
     // Create channel configurations
-    QVector<Payor::Channel::Configuration> channels;
+    QVector<Payor::Channel::Configuration> channelConfigurations;
     for(int i = 0;i < configuration.numberOfSellers();i++)
-        channels.append(Payor::Channel::Configuration(i,
+        channelConfigurations.append(Payor::Channel::Configuration(i,
                                                       Payor::Channel::State::unassigned,
                                                       0,
                                                       0,
@@ -243,13 +254,14 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
                                                       0,
                                                       0));
     // Payor configuration
-    Payor::Configuration payorConfiguration(channels,
+    Payor::Configuration payorConfiguration(Payor::State::waiting_for_full_set_of_sellers,
+                                            channelConfigurations,
                                             utxo.fundingOutput(),
-                                            utxo.fundingOutputKeyPair().pk(),
+                                            utxo.fundingOutputKeyPair(),
                                             changeKey[0].keyPair(),
                                             changeValue,
-                                            maxPrice,
-                                            maxLock);
+                                            TxId(),
+                                            0);
     // Set payor
     _payor = Payor(payorConfiguration);
 
@@ -323,17 +335,8 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
     libtorrent::bt_peer_connection * btConnection = static_cast<libtorrent::bt_peer_connection*>(connection);
 
     // Create seller buyer peer plugin
-    BuyerPeerPlugin::Configuration configuration(ExtendedMessageIdMapping(),
-                                                   ExtendedMessageIdMapping(),
-                                                   BEPSupportStatus::unknown,
-                                                   BEPSupportStatus::unknown,
-                                                   BuyerPeerPlugin::PeerState(),
-                                                   BuyerPeerPlugin::ClientState::no_bitswapr_message_sent,
-                                                   0);
-
     boost::shared_ptr<BuyerPeerPlugin> sharedPeerPluginPtr(new BuyerPeerPlugin(this,
                                                                            btConnection,
-                                                                           configuration,
                                                                            _category));
 
 
@@ -409,8 +412,8 @@ bool BuyerTorrentPlugin::inviteSeller(quint32 minPrice, quint32 minLock) const {
     // 2) Price is low enough
     // 3) nLockTime is short enough
     return _state == State::waiting_for_payor_to_be_ready &&
-            minPrice <= _payor.maxPrice() &&
-            minLock <= _payor.maxLock();
+            minPrice <= _maxPrice &&
+            minLock <= _maxLock;
 }
 
 bool BuyerTorrentPlugin::sellerWantsToJoinContract(BuyerPeerPlugin * peer, quint64 price, const PublicKey & contractPk, const PublicKey & finalPk, quint32 refundLockTime) {
@@ -734,11 +737,35 @@ BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
  }
 
  quint64 BuyerTorrentPlugin::maxPrice() const {
-     return _payor.maxPrice();
+     return _maxPrice;
+ }
+
+ void BuyerTorrentPlugin::setMaxPrice(quint64 maxPrice) {
+     _maxPrice = maxPrice;
  }
 
  quint32 BuyerTorrentPlugin::maxLock() const {
-     return _payor.maxLock();
+     return _maxLock;
+ }
+
+ void BuyerTorrentPlugin::setMaxLock(quint32 maxLock) {
+     _maxLock = maxLock;
+ }
+
+ quint64 BuyerTorrentPlugin::maxFeePerByte() const {
+     return _maxFeePerByte;
+ }
+
+ void BuyerTorrentPlugin::setMaxFeePerByte(quint64 maxFeePerByte) {
+     _maxFeePerByte = maxFeePerByte;
+ }
+
+ quint32 BuyerTorrentPlugin::numberOfSellers() const {
+     return _numberOfSellers;
+ }
+
+ void BuyerTorrentPlugin::setnumberOfSellers(quint32 numberOfSellers) {
+    _numberOfSellers = numberOfSellers;
  }
 
  int BuyerTorrentPlugin::blockSize() const {

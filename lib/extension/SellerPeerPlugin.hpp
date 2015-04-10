@@ -13,6 +13,8 @@
 //#include "extension/BitCoin/TxId.hpp"
 //#include "extension/BitCoin/Signature.hpp"
 
+#include <QSet>
+
 class SellerTorrentPlugin;
 
 class SellerPeerPlugin : public PeerPlugin
@@ -169,46 +171,9 @@ public:
         Payee::Status _payeeStatus;
     };
 
-    /**
-     * @brief Configuration of seller peer plugin.
-     */
-    class Configuration : public PeerPlugin::Configuration {
-
-    public:
-
-        // Constructor
-        Configuration();
-
-        // Constructor from members
-        Configuration(const ExtendedMessageIdMapping & clientMapping,
-                      const ExtendedMessageIdMapping & peerMapping,
-                      BEPSupportStatus peerBEP10SupportStatus,
-                      BEPSupportStatus peerBitSwaprBEPSupportStatus,
-                      const PeerState & peerState,
-                      ClientState clientState);
-
-        // Getters and setters
-        PeerState peerState() const;
-        void setPeerState(const PeerState & peerState);
-
-        ClientState clientState() const;
-        void setClientState(ClientState clientState);
-
-    private:
-
-        // State of peer
-        PeerState _peerState;
-
-        // State of client
-        ClientState _clientState;
-
-        //Payee::Configuration _payee;
-    };
-
     // Constructor
-    SellerPeerPlugin(TorrentPlugin * torrentPlugin,
-                     libtorrent::bt_peer_connection * bittorrentPeerConnection,
-                     const Configuration & configuration,
+    SellerPeerPlugin(SellerTorrentPlugin * torrentPlugin,
+                     libtorrent::bt_peer_connection * connection,
                      QLoggingCategory & category);
 
     // Destructor

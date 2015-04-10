@@ -166,48 +166,9 @@ public:
         ClientState _clientState;
     };
 
-    /**
-     * @brief Configuration of buyer peer plugin.
-     */
-    class Configuration : public PeerPlugin::Configuration {
-
-    public:
-
-        // Constructor
-        Configuration();
-
-        // Constructor from members
-        Configuration(const ExtendedMessageIdMapping & clientMapping,
-                      const ExtendedMessageIdMapping & peerMapping,
-                      BEPSupportStatus peerBEP10SupportStatus,
-                      BEPSupportStatus peerBitSwaprBEPSupportStatus,
-                      const PeerState & peerState,
-                      ClientState clientState,
-                      quint32 payorSlot);
-
-        // Getters and setters
-        PeerState peerState() const;
-        void setPeerState(const PeerState & peerState);
-
-        ClientState clientState() const;
-        void setClientState(ClientState clientState);
-
-    private:
-
-        // State of peer
-        PeerState _peerState;
-
-        // State of client
-        ClientState _clientState;
-
-        // Payor slot: payment channel output slot
-        quint32 _payorSlot;
-    };
-
     // Constructor
     BuyerPeerPlugin(BuyerTorrentPlugin * plugin,
                     libtorrent::bt_peer_connection * connection,
-                    const Configuration & configuration,
                     QLoggingCategory & category);
 
     // Destructor

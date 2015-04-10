@@ -91,28 +91,20 @@ void SellerPeerPlugin::Status::setClientState(ClientState clientState) {
 }
 
 /**
- * SellerPeerPlugin::Configuration
- */
-
-SellerPeerPlugin::Configuration::Configuration() {
-
-}
-
-/**
  * SellerPeerPlugin
  */
 
+#include "SellerTorrentPlugin.hpp" // Needed to do conversion to TorrentPlugin *
 #include "PluginMode.hpp"
 
 #include <QLoggingCategory>
 
-SellerPeerPlugin::SellerPeerPlugin(TorrentPlugin * torrentPlugin,
-                                   libtorrent::bt_peer_connection * bittorrentPeerConnection,
-                                   const Configuration & configuration,
+SellerPeerPlugin::SellerPeerPlugin(SellerTorrentPlugin * torrentPlugin,
+                                   libtorrent::bt_peer_connection * connection,
                                    QLoggingCategory & category)
-      : PeerPlugin(torrentPlugin, bittorrentPeerConnection, configuration, category) {
-
-    // Do something with: configuration
+    : PeerPlugin(torrentPlugin, connection, category)
+    , _plugin(torrentPlugin)
+    , _clientState(ClientState::no_bitswapr_message_sent) {
 }
 
 SellerPeerPlugin::~SellerPeerPlugin() {
@@ -132,7 +124,7 @@ void SellerPeerPlugin::on_disconnect(libtorrent::error_code const & ec) {
 
     qCDebug(_category) << "on_disconnect";
 
-    _connectionAlive = false;
+    //_connectionAlive = false;
 }
 
 void SellerPeerPlugin::on_connected() {

@@ -8,54 +8,6 @@
 #include "Message/MessageType.hpp"
 #include "Message/ExtendedMessagePayload.hpp"
 
-/**
- * PeerPlugin::Configuration
- */
-
-PeerPlugin::Configuration::Configuration() {
-}
-
-PeerPlugin::Configuration::Configuration(const ExtendedMessageIdMapping & clientMapping,
-                                         const ExtendedMessageIdMapping & peerMapping,
-                                         BEPSupportStatus peerBEP10SupportStatus,
-                                         BEPSupportStatus peerBitSwaprBEPSupportStatus)
-    : _clientMapping(clientMapping)
-    , _peerMapping(peerMapping)
-    , _peerBEP10SupportStatus(peerBEP10SupportStatus)
-    , _peerBitSwaprBEPSupportStatus(peerBitSwaprBEPSupportStatus) {
-}
-
-ExtendedMessageIdMapping PeerPlugin::Configuration::clientMapping() const {
-    return _clientMapping;
-}
-
-void PeerPlugin::Configuration::setClientMapping(const ExtendedMessageIdMapping & clientMapping) {
-    _clientMapping = clientMapping;
-}
-
-ExtendedMessageIdMapping PeerPlugin::Configuration::peerMapping() const {
-    return _peerMapping;
-}
-
-void PeerPlugin::Configuration::setPeerMapping(const ExtendedMessageIdMapping & peerMapping) {
-    _peerMapping = peerMapping;
-}
-
-BEPSupportStatus PeerPlugin::Configuration::peerBEP10SupportStatus() const {
-    return _peerBEP10SupportStatus;
-}
-
-void PeerPlugin::Configuration::setPeerBEP10SupportStatus(BEPSupportStatus peerBEP10SupportedStatus) {
-    _peerBEP10SupportStatus = peerBEP10SupportedStatus;
-}
-
-BEPSupportStatus PeerPlugin::Configuration::peerBitSwaprBEPSupportStatus() const {
-    return _peerBitSwaprBEPSupportStatus;
-}
-
-void PeerPlugin::Configuration::setPeerBitSwaprBEPSupportStatus(BEPSupportStatus peerBEP43SupportedStatus) {
-    _peerBitSwaprBEPSupportStatus = peerBEP43SupportedStatus;
-}
 
 /**
  * PeerPlugin
@@ -81,23 +33,18 @@ void PeerPlugin::Configuration::setPeerBitSwaprBEPSupportStatus(BEPSupportStatus
 
 #include <QLoggingCategory>
 
-
-
 PeerPlugin::PeerPlugin(TorrentPlugin * plugin,
                        libtorrent::bt_peer_connection * connection,
-                       const Configuration & configuration,
                        QLoggingCategory & category)
     : _plugin(plugin)
     , _connection(connection)
-    , _category(category)
+    , _endPoint(connection->remote())
     , _peerModeAnnounced(PeerModeAnnounced::none)
-    , _connectionAlive(true)
     , _lastReceivedMessageWasMalformed(false)
     , _lastMessageWasStateIncompatible(false)
-    , _clientMapping(configuration.clientMapping())
-    , _peerMapping(configuration.peerMapping())
-    , _peerBEP10SupportStatus(configuration.peerBEP10SupportStatus())
-    , _peerBitSwaprBEPSupportStatus(configuration.peerBitSwaprBEPSupportStatus()) {
+    , _peerBEP10SupportStatus(BEPSupportStatus::unknown)
+    , _peerBitSwaprBEPSupportStatus(BEPSupportStatus::supported)
+    , _category(category) {
 }
 
 PeerPlugin::~PeerPlugin() {
@@ -342,7 +289,7 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
     }
 
     // Check that plugin is in good state
-    if(_lastReceivedMessageWasMalformed || _lastMessageWasStateIncompatible || !_connectionAlive) {
+    if(_lastReceivedMessageWasMalformed || _lastMessageWasStateIncompatible) { // || !_connectionAlive) {
 
         qCDebug(_category) << "Dropping extended message since peer plugin is in bad state.";
 
@@ -508,9 +455,11 @@ libtorrent::tcp::endpoint PeerPlugin::endPoint() const {
     return _connection->remote();
 }
 
+/**
 bool PeerPlugin::connectionAlive() const {
     return _connectionAlive;
 }
+*/
 
 bool PeerPlugin::lastReceivedMessageWasMalformed() const {
     return _lastReceivedMessageWasMalformed;

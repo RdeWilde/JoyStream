@@ -3,10 +3,12 @@
 
 // Plugin request type
 enum class PluginRequestType {
-    //StartBuyerTorrentPlugin,
-    //StartSellerTorrentPlugin
 
-    StartTorrentPlugin
+    StartBuyerTorrentPlugin,
+    StartSellerTorrentPlugin,
+    StartObserverTorrentPlugin
+
+    //StartTorrentPlugin
 
 };
 

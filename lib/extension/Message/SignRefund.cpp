@@ -3,6 +3,9 @@
 
 #include <QDataStream>
 
+SignRefund::SignRefund() {
+}
+
 SignRefund::SignRefund(const TxId & hash, quint32 index, quint64 value, const PublicKey & pk)
     : _hash(hash)
     , _index(index)

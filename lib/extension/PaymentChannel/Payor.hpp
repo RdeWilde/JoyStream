@@ -227,7 +227,7 @@ public:
         Channel();
 
         // Construct from configuration
-        Channel(Channel::Configuration & configuration);
+        Channel(const Channel::Configuration & configuration);
 
         // Default/Copy constructor and assignemtn operator needed to put in container.
         // Channel(const Channel& slot);
@@ -412,8 +412,6 @@ public:
                       const KeyPair & fundingOutputKeyPair,
                       const KeyPair & changeOutputKeyPair,
                       quint64 changeValue,
-                      quint64 maxPrice,
-                      quint32 maxLock,
                       const TxId & contractHash,
                       quint32 numberOfSignatures);
 
@@ -435,12 +433,6 @@ public:
 
         quint64 changeValue() const;
         void setChangeValue(quint64 changeValue);
-
-        quint64 maxPrice() const;
-        void setMaxPrice(quint64 maxPrice);
-
-        quint32 maxLock() const;
-        void setMaxLock(quint32 maxLock);
 
         TxId contractHash() const;
         void setContractHash(const TxId & contractHash);
@@ -469,12 +461,6 @@ public:
         // this value, together with the _funds in all the slots
         // determines how much is paid in contract fee implicitly.
         quint64 _changeValue;
-
-        // Maximum price accepted (satoshies)
-        quint64 _maxPrice;
-
-        // Maximum lock time (the number of seconds elapsed since 1970-01-01T00:00 UTC)
-        quint32 _maxLock;
 
         // Contract _contract;
         TxId _contractHash;
@@ -551,20 +537,6 @@ public:
     OutPoint fundingOutPoint() const;
     void setFundingOutPoint(const OutPoint & fundingOutPoint);
 
-    quint32 numberOfSignatures() const;
-    void setNumberOfSignatures(quint32 numberOfSignatures);
-
-    quint64 maxPrice() const;
-    void setMaxPrice(quint64 maxPrice);
-
-    quint32 maxLock() const;
-    void setMaxLock(quint32 maxLock);
-
-    /*
-    quint64 maxFeePerByte() const;
-    void setMaxFeePerByte(quint64 maxFeePerByte);
-    */
-
     TxId contractHash() const;
     void setContractHash(const TxId & contractHash);
 
@@ -593,16 +565,6 @@ private:
     // determines how much is paid in contract fee implicitly.
     quint64 _changeValue;
 
-    // Maximum price accepted (satoshies)
-    quint64 _maxPrice;
-
-    // Maximum lock time (the number of seconds elapsed since 1970-01-01T00:00 UTC)
-    quint32 _maxLock;
-
-    /**
-    // Maximum fee per byte in contract transaction (satoshies)
-    quint64 _maxFeePerByte;
-    */
 
     /**
      * Contract:

@@ -7,6 +7,9 @@ class Buy : public ExtendedMessagePayload
 {
 public:
 
+    // Default constructor
+    Buy();
+
     // Constructor based on members
     Buy(quint32 maxPrice, quint32 maxLock, quint32 minSellers);
 
@@ -20,8 +23,13 @@ public:
 
     // Getters
     quint32 maxPrice() const;
+    void setMaxPrice(quint32 maxPrice);
+
     quint32 maxLock() const;
+    void setMaxLock(quint32 maxLock);
+
     quint32 minSellers() const;
+    void setMinSellers(quint32 minSellers);
 
 private:
 

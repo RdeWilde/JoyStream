@@ -1,3 +1,219 @@
+    /**
+     * @brief Configuration of seller peer plugin.
+     
+    class Configuration : public PeerPlugin::Configuration {
+
+    public:
+
+        // Constructor
+        Configuration();
+
+        // Constructor from members
+        Configuration(const ExtendedMessageIdMapping & clientMapping,
+                      const ExtendedMessageIdMapping & peerMapping,
+                      BEPSupportStatus peerBEP10SupportStatus,
+                      BEPSupportStatus peerBitSwaprBEPSupportStatus,
+                      const PeerState & peerState,
+                      ClientState clientState);
+
+        // Getters and setters
+        PeerState peerState() const;
+        void setPeerState(const PeerState & peerState);
+
+        ClientState clientState() const;
+        void setClientState(ClientState clientState);
+
+    private:
+
+        // State of peer
+        PeerState _peerState;
+
+        // State of client
+        ClientState _clientState;
+
+        //Payee::Configuration _payee;
+    };
+    */	
+
+
+/**
+ * BuyerPeerPlugin::Configuration
+
+
+BuyerPeerPlugin::Configuration::Configuration() {
+
+}
+
+BuyerPeerPlugin::Configuration::Configuration(const ExtendedMessageIdMapping & clientMapping,
+                                              const ExtendedMessageIdMapping & peerMapping,
+                                              BEPSupportStatus peerBEP10SupportStatus,
+                                              BEPSupportStatus peerBitSwaprBEPSupportStatus,
+                                              const PeerState & peerState,
+                                              ClientState clientState,
+                                              quint32 payorSlot)
+    : PeerPlugin::Configuration(clientMapping, peerMapping, peerBEP10SupportStatus, peerBitSwaprBEPSupportStatus)
+    , _peerState(peerState)
+    , _clientState(clientState)
+    , _payorSlot(payorSlot) {
+}
+
+BuyerPeerPlugin::PeerState BuyerPeerPlugin::Configuration::peerState() const {
+    return _peerState;
+}
+
+void BuyerPeerPlugin::Configuration::setPeerState(const PeerState & peerState) {
+    _peerState = peerState;
+}
+
+BuyerPeerPlugin::ClientState BuyerPeerPlugin::Configuration::clientState() const {
+    return _clientState;
+}
+
+void BuyerPeerPlugin::Configuration::setClientState(ClientState clientState) {
+    _clientState = clientState;
+}
+*/
+
+    /**
+ * PeerPlugin::Configuration
+ */
+
+PeerPlugin::Configuration::Configuration() {
+}
+
+PeerPlugin::Configuration::Configuration(const ExtendedMessageIdMapping & clientMapping,
+                                         const ExtendedMessageIdMapping & peerMapping,
+                                         BEPSupportStatus peerBEP10SupportStatus,
+                                         BEPSupportStatus peerBitSwaprBEPSupportStatus)
+    : _clientMapping(clientMapping)
+    , _peerMapping(peerMapping)
+    , _peerBEP10SupportStatus(peerBEP10SupportStatus)
+    , _peerBitSwaprBEPSupportStatus(peerBitSwaprBEPSupportStatus) {
+}
+
+ExtendedMessageIdMapping PeerPlugin::Configuration::clientMapping() const {
+    return _clientMapping;
+}
+
+void PeerPlugin::Configuration::setClientMapping(const ExtendedMessageIdMapping & clientMapping) {
+    _clientMapping = clientMapping;
+}
+
+ExtendedMessageIdMapping PeerPlugin::Configuration::peerMapping() const {
+    return _peerMapping;
+}
+
+void PeerPlugin::Configuration::setPeerMapping(const ExtendedMessageIdMapping & peerMapping) {
+    _peerMapping = peerMapping;
+}
+
+BEPSupportStatus PeerPlugin::Configuration::peerBEP10SupportStatus() const {
+    return _peerBEP10SupportStatus;
+}
+
+void PeerPlugin::Configuration::setPeerBEP10SupportStatus(BEPSupportStatus peerBEP10SupportedStatus) {
+    _peerBEP10SupportStatus = peerBEP10SupportedStatus;
+}
+
+BEPSupportStatus PeerPlugin::Configuration::peerBitSwaprBEPSupportStatus() const {
+    return _peerBitSwaprBEPSupportStatus;
+}
+
+void PeerPlugin::Configuration::setPeerBitSwaprBEPSupportStatus(BEPSupportStatus peerBEP43SupportedStatus) {
+    _peerBitSwaprBEPSupportStatus = peerBEP43SupportedStatus;
+}
+
+	
+	/**
+     * PeerPlugin
+	 * @brief
+     */
+    class Configuration {
+
+    public:
+
+        // Default constructor
+        Configuration();
+
+        // Constructor from members
+        Configuration(const ExtendedMessageIdMapping & clientMapping,
+                      const ExtendedMessageIdMapping & peerMapping,
+                      BEPSupportStatus peerBEP10SupportStatus,
+                      BEPSupportStatus peerBitSwaprBEPSupportStatus);
+
+        // Getters and Setters
+        ExtendedMessageIdMapping clientMapping() const;
+        void setClientMapping(const ExtendedMessageIdMapping & clientMapping);
+
+        ExtendedMessageIdMapping peerMapping() const;
+        void setPeerMapping(const ExtendedMessageIdMapping & peerMapping);
+
+        BEPSupportStatus peerBEP10SupportStatus() const;
+        void setPeerBEP10SupportStatus(BEPSupportStatus peerBEP10SupportStatus);
+
+        BEPSupportStatus peerBitSwaprBEPSupportStatus() const;
+        void setPeerBitSwaprBEPSupportStatus(BEPSupportStatus  peerBitSwaprBEPSupportStatus);
+
+    private:
+
+        // Mapping from messages to BEP10 ID of client
+        ExtendedMessageIdMapping _clientMapping;
+
+        // Mapping from messages to BEP10 ID of peer
+        ExtendedMessageIdMapping _peerMapping;
+
+        // Indicates whether peer supports BEP10
+        BEPSupportStatus _peerBEP10SupportStatus;
+
+        // Indicates whether peer supports BitSwapr BEP
+        BEPSupportStatus _peerBitSwaprBEPSupportStatus;
+    };
+
+
+
+/**
+     * @brief Configuration of buyer peer plugin.
+     *
+     * DOES NOT REPRESNT PERSISTENT STATE OF BUER PEER PLUGIN,
+     * RATHER JUST SETTINGS NEEDED TO START A FRESH PLUGIN.
+     * WE DO NOT SUPPORT PERSISINT PEER LEVEL PLUGINS AS OF YET.
+
+    class Configuration : public PeerPlugin::Configuration {
+
+    public:
+
+        // Constructor
+        Configuration();
+
+        // Constructor from members
+        Configuration(const ExtendedMessageIdMapping & clientMapping,
+                      const ExtendedMessageIdMapping & peerMapping,
+                      BEPSupportStatus peerBEP10SupportStatus,
+                      BEPSupportStatus peerBitSwaprBEPSupportStatus,
+                      const PeerState & peerState,
+                      ClientState clientState,
+                      quint32 payorSlot);
+
+        // Getters and setters
+        PeerState peerState() const;
+        void setPeerState(const PeerState & peerState);
+
+        ClientState clientState() const;
+        void setClientState(ClientState clientState);
+
+    private:
+
+        // State of peer
+        PeerState _peerState;
+
+        // State of client
+        ClientState _clientState;
+
+        // Payor slot: payment channel output slot
+        quint32 _payorSlot;
+    };
+    */
+
 /*
 Payor::Payor(const OutPoint& fundingOutput, const KeyPair& fundingOutputKeyPair)
     : _state(State::waiting_for_full_set_of_sellers)

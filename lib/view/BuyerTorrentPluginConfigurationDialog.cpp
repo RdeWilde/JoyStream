@@ -6,7 +6,7 @@
 #include "extension/BuyerTorrentPlugin.hpp"
 
 #include "controller/Controller.hpp"
-#include "extension/BitCoin/Wallet.hpp"B"
+#include "extension/BitCoin/Wallet.hpp"
 
 #include "extension/BitCoin/BitSwaprjs.hpp"
 #include "extension/BitCoin/UnspentP2PKHOutput.hpp"
@@ -48,41 +48,18 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
         return;
     }
 
-    // Figure out how much to lock up with each seller
-    qint32 numberOfSellers = ui->minPeersLineEdit->text().toInt();
-    quint64 fundingPerSeller = qFloor(utxo.fundingValue()/numberOfSellers);
-    quint64 tx_fee = 0; // Get from where?
-    quint64 changeValue = utxo.fundingValue() - numberOfSellers*fundingPerSeller - tx_fee;
-
-    // Get other values
+    // Maximum Lock time
     QTime maxLockTime = ui->maxLockTimeEdit->time();
     quint32 maxLock = maxLockTime.hour()*3600 + maxLockTime.minute()*60 + maxLockTime.second();
-    //quint64 maxFeePerByte = ui->feeLineEdit->text().toInt();
 
-    // Use this for something?
-    //QTime waitTime = ui->waitTimeTimeEdit->time();
-
-    // Generate keys in wallet
-    QList<PublicKey> buyerInContractPks = _wallet->generateNewKeys(numberOfSellers, Wallet::Purpose::BuyerInContractOutput).keys();
-    QList<PublicKey> buyerFinalPks = _wallet->generateNewKeys(numberOfSellers, Wallet::Purpose::ContractFinal).keys();
-    PublicKey changeOutPointPk = _wallet->generateNewKeys(1, Wallet::Purpose::ContractChange).keys()[0];
-
-    // Create configuration
-    QVector<Payor::Channel::PayorSettings> channels;
-    for(int i = 0;i < numberOfSellers;i++)
-        channels.append(Payor::Channel::PayorSettings(fundingPerSeller, buyerInContractPks[i], buyerFinalPks[i]));
-
-    Payor::Configuration payorConfiguration(channels,
-                                            utxo.fundingOutput(),
-                                            utxo.fundingOutputKeyPair().pk(),
-                                            changeOutPointPk,
-                                            changeValue,
-                                            maxPrice,
-                                            maxLock);
+    // Number of sellers
+    qint32 numberOfSellers = ui->minPeersLineEdit->text().toInt();
 
     BuyerTorrentPlugin::Configuration * configuration = new BuyerTorrentPlugin::Configuration(false,
-                                                                                              BuyerTorrentPlugin::State::waiting_for_payor_to_be_ready,
-                                                                                              payorConfiguration);
+                                                                                              maxPrice,
+                                                                                              maxLock,
+                                                                                              0,
+                                                                                              numberOfSellers);
 
     // Set in seller mode
     _controller->startTorrentPlugin(_torrentInfo.info_hash(), configuration);
