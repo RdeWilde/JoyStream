@@ -28,7 +28,11 @@ public:
 
         */
 
+        // Default constructor
         Configuration();
+
+        // Constructor from members
+        Configuration(bool enableBanningSets, quint64 minPrice, quint32 minLock, quint64 minFeePerByte, quint32 maxContractConfirmationDelay);
 
         // Constructor from dictionary
         Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry);

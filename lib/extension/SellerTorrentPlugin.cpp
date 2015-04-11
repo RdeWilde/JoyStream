@@ -17,6 +17,14 @@ SellerTorrentPlugin::Configuration::Configuration() {
 
 }
 
+SellerTorrentPlugin::Configuration::Configuration(bool enableBanningSets, quint64 minPrice, quint32 minLock, quint64 minFeePerByte, quint32 maxContractConfirmationDelay)
+    : TorrentPlugin::Configuration(enableBanningSets)
+    , _minPrice(minPrice)
+    , _minLock(minLock)
+    , _minFeePerByte(minFeePerByte)
+    , _maxContractConfirmationDelay(maxContractConfirmationDelay) {
+}
+
 SellerTorrentPlugin::Configuration::Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry) {
 
 }

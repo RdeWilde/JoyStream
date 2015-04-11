@@ -93,11 +93,10 @@ void AddTorrentDialog::on_AddTorrentDialog_accepted() {
                                                       save_path,
                                                       resume_data,
                                                       libtorrent::add_torrent_params::flag_update_subscribe,
-                                                      t,
-                                                      NULL);
+                                                      t);
 
-    // Add torrent, and make sure user later supplies torrent plugin configuration
-    _controller->addTorrent(configuration, true);
+    // Add torrent, user will later have to supply torrent plugin configuration
+    _controller->addTorrent(configuration);
 
     // Close window
     done(0);

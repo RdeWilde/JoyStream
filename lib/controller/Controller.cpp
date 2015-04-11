@@ -18,15 +18,15 @@ Controller::Torrent::Configuration::Configuration(const libtorrent::sha1_hash & 
                                            const std::string & savePath,
                                            const std::vector<char> & resumeData,
                                            quint64 flags,
-                                           libtorrent::torrent_info * torrentInfo,
-                                           const TorrentPlugin::Configuration * torrentPluginConfiguration)
+                                           libtorrent::torrent_info * torrentInfo)//,
+                                           //const TorrentPlugin::Configuration * torrentPluginConfiguration)
     :_infoHash(infoHash)
     ,_name(name)
     ,_savePath(savePath)
     ,_resumeData(resumeData)
     ,_flags(flags)
-    ,_torrentInfo(torrentInfo)
-    ,_torrentPluginConfiguration(torrentPluginConfiguration) {
+    ,_torrentInfo(torrentInfo) {
+    //,_torrentPluginConfiguration(torrentPluginConfiguration) {
 }
 
 Controller::Torrent::Configuration::~Configuration() {
@@ -254,6 +254,7 @@ libtorrent::add_torrent_params Controller::Torrent::Configuration::toAddTorrentP
     return params;
 }
 
+/**
 const TorrentPlugin::Configuration * Controller::Torrent::Configuration::torrentPluginConfiguration() const {
     return _torrentPluginConfiguration;
 }
@@ -261,6 +262,7 @@ const TorrentPlugin::Configuration * Controller::Torrent::Configuration::torrent
 void Controller::Torrent::Configuration::setTorrentPluginConfiguration(const TorrentPlugin::Configuration *torrentPluginConfiguration) {
     _torrentPluginConfiguration = torrentPluginConfiguration;
 }
+*/
 
 libtorrent::torrent_info * Controller::Torrent::Configuration::torrentInfo() const {
     return _torrentInfo;
@@ -1395,18 +1397,19 @@ void Controller::processTorrentCheckedAlert(libtorrent::torrent_checked_alert co
     if(h.is_valid()) {
 
         // Get info hash of torrent
-        libtorrent::sha1_hash info_hash = h.info_hash();
+        libtorrent::sha1_hash infoHash = h.info_hash();
 
         // Make sure the torrent exists
-        Q_ASSERT(_torrents.contains(info_hash));
+        Q_ASSERT(_torrents.contains(infoHash));
 
         // Grab torrent
-        Torrent & torrent = _torrents[info_hash];
+        Torrent & torrent = _torrents[infoHash];
 
         // Assert that torrent_checked_alert was expected
         Q_ASSERT(torrent.event() == Torrent::ExpectedEvent::torrent_checked_alert);
 
-        // if a configuration was saved, then we just use it
+        /**
+        // if a configuration was saved, i.e. started from disk, then we just use it
         if(_pendingConfigurations.contains(info_hash)) {
 
             // Remove torrent plugin configuration
@@ -1418,7 +1421,57 @@ void Controller::processTorrentCheckedAlert(libtorrent::torrent_checked_alert co
             // Reset event
             torrent.setEvent(Torrent::ExpectedEvent::nothing);
 
-        } else { // otherwise prompt user
+        } */
+
+        // if a configuration was saved, i.e. started from disk, then we just use it
+        if(_pendingSellerTorrentPluginConfigurations.contains(infoHash)) {
+
+            // Remove torrent plugin configuration
+            const SellerTorrentPlugin::Configuration configuration = _pendingSellerTorrentPluginConfigurations.take(infoHash);
+
+            // Send configuration to plugin
+            _plugin->submitPluginRequest(new StartSellerTorrentPlugin(infoHash, configuration));
+
+            // Reset event
+            torrent.setEvent(Torrent::ExpectedEvent::nothing);
+
+        } else if(_pendingBuyerTorrentPluginConfigurations.contains(infoHash)) {
+
+            // Remove torrent plugin configuration
+            const BuyerTorrentPlugin::Configuration configuration = _pendingBuyerTorrentPluginConfigurations.take(infoHash);
+
+            // Minimal funds required to fund payment channel
+            quint64 minimalFunds = torrent.torrentInfo()->num_pieces()*configuration.maxPrice();
+
+            // Get funding utxo
+            const UnspentP2PKHOutput utxo = _wallet.getUtxo(minimalFunds, 1);
+
+            if(utxo.fundingValue() == 0) {
+
+                qCCritical(_category) << "Could not start buyer mode plugin due to insufficient free funds.";
+
+                // Tell ui some how.
+                return;
+            }
+
+            // Send configuration to plugin
+            _plugin->submitPluginRequest(new StartBuyerTorrentPlugin(infoHash, configuration, utxo));
+
+            // Reset event
+            torrent.setEvent(Torrent::ExpectedEvent::nothing);
+
+        } /** else if(_pendingObserverTorrentPluginConfigurations.contains(info_hash)) {
+
+            // Remove torrent plugin configuration
+            const ObserverTorrentPlugin::Configuration configuration = _pendingObserverTorrentPluginConfigurations.take(info_hash);
+
+            // Send configuration to plugin
+            _plugin->submitPluginRequest(new StartObserverTorrentPlugin(info_hash, configuration));
+
+            // Reset event
+            torrent.setEvent(Torrent::ExpectedEvent::nothing);
+
+        }*/ else { // otherwise prompt user
 
             // Get torrent information
             boost::intrusive_ptr<libtorrent::torrent_info const> torrentInfoIntrusivePtr = h.torrent_file();
@@ -1507,14 +1560,14 @@ bool Controller::startTorrent(const libtorrent::sha1_hash & info_hash) {
     return true;
 }
 
-bool Controller::addTorrent(const Torrent::Configuration & configuration, bool promptUserForTorrentPluginConfiguration) {
+bool Controller::addTorrent(const Torrent::Configuration & configuration) {
+                            //, bool promptUserForTorrentPluginConfiguration) {
 
     // Convert to add torrent parameters
     libtorrent::add_torrent_params params = configuration.toAddTorrentParams();
 
     // Create save_path on disk, return if it does not exist
     if(!(QDir()).mkpath(params.save_path.c_str())) {
-
         qCCritical(_category) << "Could not create save_path: " << params.save_path.c_str();
         return false;
     }
@@ -1533,23 +1586,17 @@ bool Controller::addTorrent(const Torrent::Configuration & configuration, bool p
 
     // Warn user if torrent has already been added
     if(_torrents.contains(info_hash)) {
-
         qCCritical(_category) << "Torrent with given info_hash has already been added.";
         return false;
     }
 
+    // !_torrents.contains(info_hash) =>
+    Q_ASSERT(!_pendingSellerTorrentPluginConfigurations.contains(info_hash));
+    Q_ASSERT(!_pendingBuyerTorrentPluginConfigurations.contains(info_hash));
+    //Q_ASSERT(!_pendingObserverTorrentPluginConfigurations.contains(info_hash));
+
      // Save torrent
      _torrents[info_hash] = torrent;
-
-     // If we dont prompt user for plugin configuration,
-     // then we save the one given in configuration
-     if(!promptUserForTorrentPluginConfiguration) {
-
-         Q_ASSERT(!_pendingConfigurations.contains(info_hash));
-
-         // Save plugin configuration
-         _pendingConfigurations[info_hash] = configuration.torrentPluginConfiguration();
-     }
 
     // Add torrent to session
     _session.async_add_torrent(params);
@@ -1558,6 +1605,31 @@ bool Controller::addTorrent(const Torrent::Configuration & configuration, bool p
     return true;
 }
 
+bool Controller::addTorrent(const Torrent::Configuration & configuration, const SellerTorrentPlugin::Configuration & pluginConfiguration) {
+
+    // Try to add torrent
+    if(!addTorrent(configuration))
+        return false;
+
+    // Save plugin configuration
+    _pendingSellerTorrentPluginConfigurations[configuration.infoHash()] = pluginConfiguration;
+
+    return true;
+}
+
+bool Controller::addTorrent(const Torrent::Configuration & configuration, const BuyerTorrentPlugin::Configuration & pluginConfiguration) {
+
+    // Try to add torrent
+    if(!addTorrent(configuration))
+        return false;
+
+    // Save plugin configuration
+    _pendingBuyerTorrentPluginConfigurations[configuration.infoHash()] = pluginConfiguration;
+
+    return true;
+}
+
+/**
 void Controller::startTorrentPlugin(const libtorrent::sha1_hash & info_hash, const TorrentPlugin::Configuration * configuration) {
 
     // Check that torrent exists with given info hash
@@ -1578,6 +1650,58 @@ void Controller::startTorrentPlugin(const libtorrent::sha1_hash & info_hash, con
     // Reset event
     torrent.setEvent(Torrent::ExpectedEvent::nothing);
 }
+*/
+
+void Controller::startSellerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const SellerTorrentPlugin::Configuration & pluginConfiguration) {
+
+    // Check that torrent exists with given info hash
+    if(!_torrents.contains(info_hash)) {
+        //qCCritical(_category) << "No torrent registered with given info hash.";
+        throw std::exception("No torrent registered with given info hash.");
+        return;
+    }
+
+    // Grab torrent
+    Torrent & torrent = _torrents[info_hash];
+
+    // It must always have given event expected
+    if(torrent.event() != Torrent::ExpectedEvent::torrent_plugin_configuration_from_user) {
+        throw std::exception("Torrent has incorrect state.");
+        return;
+    }
+
+    // Reset event
+    torrent.setEvent(Torrent::ExpectedEvent::nothing);
+
+    // Send configuration to plugin
+    _plugin->submitPluginRequest(new StartSellerTorrentPlugin(info_hash, pluginConfiguration));
+}
+
+void Controller::startBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const UnspentP2PKHOutput & utxo) {
+
+    // Check that torrent exists with given info hash
+    if(!_torrents.contains(info_hash)) {
+        //qCCritical(_category) << "No torrent registered with given info hash.";
+        throw std::exception("No torrent registered with given info hash.");
+        return;
+    }
+
+    // Grab torrent
+    Torrent & torrent = _torrents[info_hash];
+
+    // It must always have given event expected
+    if(torrent.event() != Torrent::ExpectedEvent::torrent_plugin_configuration_from_user) {
+        throw std::exception("Torrent has incorrect state.");
+        return;
+    }
+
+    // Reset event
+    torrent.setEvent(Torrent::ExpectedEvent::nothing);
+
+    // Send configuration to plugin
+    _plugin->submitPluginRequest(new StartBuyerTorrentPlugin(info_hash, pluginConfiguration, utxo));
+}
+
 
 void Controller::saveStateToFile(const char * file) {
 

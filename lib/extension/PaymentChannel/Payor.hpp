@@ -86,7 +86,7 @@ public:
             void setIndex(quint32 index);
 
             State state() const;
-            void setState(const State & state);
+            void setState(State state);
 
             quint64 price() const;
             void setPrice(quint64 price);

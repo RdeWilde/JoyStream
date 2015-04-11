@@ -129,11 +129,10 @@ void main(int argc, char* argv[]) {
                                                   ,std::vector<char>()
                                                   ,libtorrent::add_torrent_params::flag_update_subscribe
                                                   //+libtorrent::add_torrent_params::flag_auto_managed
-                                                  ,&torrentInfo
-                                                  ,NULL);
+                                                  ,&torrentInfo);
 
     // Add to client
-    buyerClient.addTorrent(buyerTorrentConfiguration, true);
+    buyerClient.addTorrent(buyerTorrentConfiguration);
 
     /**
      * Seller =======================================================
@@ -154,8 +153,7 @@ void main(int argc, char* argv[]) {
                                                   ,std::string("C:/Users/Sindre/Desktop/SAVE_OUTPUT/PEER")
                                                   ,std::vector<char>()
                                                   ,libtorrent::add_torrent_params::flag_update_subscribe
-                                                  ,&torrentInfo
-                                                  ,new TorrentPluginConfiguration(StartedPluginMode::Seller, true));
+                                                  ,&torrentInfo);
 
     // Add to client
     sellerClient.addTorrent(sellerTorrentConfiguration, false);

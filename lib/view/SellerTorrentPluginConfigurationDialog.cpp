@@ -28,27 +28,26 @@ SellerTorrentPluginConfigurationDialog::~SellerTorrentPluginConfigurationDialog(
 
 void SellerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
-    /**
     // Grab fields
-    bool enableBanningSets = true;
     quint32 minPrice = ui->minPriceLineEdit->text().toInt();
-    QTime minLock = ui->minLockTimeEdit->time();
-    quint32 minFee = ui->minFeeLineEdit->text().toInt();
-    QTime maxContractConfirmationDelay = ui->maxContractConfirmationDelayTimeEdit->time();
 
+    QTime minLockTime = ui->minLockTimeEdit->time();
+    quint32 minLock = minLockTime.hour()*3600 + minLockTime.minute()*60 + minLockTime.second();
 
-    enableBanningSets,
-    minPrice,
-    minLock,
-    minFee,
-    maxContractConfirmationDelay
-    */
+    quint32 minFeePerByte = ui->minFeeLineEdit->text().toInt();
+
+    QTime maxContractConfirmationDelayTime = ui->maxContractConfirmationDelayTimeEdit->time();
+    quint32 maxContractConfirmationDelay = maxContractConfirmationDelayTime.hour()*3600 + maxContractConfirmationDelayTime.minute()*60 + maxContractConfirmationDelayTime.second();;
 
     // Create configuration
-    SellerTorrentPlugin::Configuration * configuration = new SellerTorrentPlugin::Configuration();
+    SellerTorrentPlugin::Configuration configuration(true,
+                                                     minPrice,
+                                                     minLock,
+                                                     minFeePerByte,
+                                                     maxContractConfirmationDelay);
 
     // Set in seller mode
-    _controller->startTorrentPlugin(_torrentInfo.info_hash(), configuration);
+    _controller->startSellerTorrentPlugin(_torrentInfo.info_hash(), configuration);
 
     // close window
     done(0);

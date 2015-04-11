@@ -200,6 +200,7 @@ bool SellerPeerPlugin::on_request(libtorrent::peer_request const & peerRequest) 
     // on_request()
 
     // Did we get paid for last piece?
+    
 
     // service request?
 
@@ -207,7 +208,7 @@ bool SellerPeerPlugin::on_request(libtorrent::peer_request const & peerRequest) 
 
     // send piece message
 
-    // mark if we have sent a full piece
+    // mark if we have sent a full piece??
 
     // Signal that we handled message
     return true;

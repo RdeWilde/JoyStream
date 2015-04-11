@@ -88,8 +88,8 @@ public:
                          const std::string & savePath,
                          const std::vector<char> & resumeData,
                          quint64 flags,
-                         libtorrent::torrent_info * torrentInfo,
-                         const TorrentPlugin::Configuration * torrentPluginConfiguration);
+                         libtorrent::torrent_info * torrentInfo);
+                         //const TorrentPlugin::Configuration * torrentPluginConfiguration);
 
             // Constructor from dictionary
             Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry);
@@ -116,7 +116,7 @@ public:
              *
              * "torrentInfo" -> not implemented
              *
-             * "torrentPluginConfiguration" -> entry::dictionary_type object representing _torrentPluginConfiguration as encoded by TorrentPluginConfiguration::toDictionaryEntry().
+             ///* "torrentPluginConfiguration" -> entry::dictionary_type object representing _torrentPluginConfiguration as encoded by TorrentPluginConfiguration::toDictionaryEntry().
              */
             void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const;
 
@@ -126,8 +126,8 @@ public:
 
             // Getters
 
-            const TorrentPlugin::Configuration * torrentPluginConfiguration() const;
-            void setTorrentPluginConfiguration(const TorrentPlugin::Configuration *torrentPluginConfiguration);
+            //const TorrentPlugin::Configuration * torrentPluginConfiguration() const;
+            //void setTorrentPluginConfiguration(const TorrentPlugin::Configuration *torrentPluginConfiguration);
 
             libtorrent::torrent_info * torrentInfo() const;
             void setTorrentInfo(libtorrent::torrent_info * torrentInfo);
@@ -169,7 +169,7 @@ public:
             libtorrent::torrent_info * _torrentInfo;
 
             // Have to use pointer to get polymorphism. :/
-            const TorrentPlugin::Configuration * _torrentPluginConfiguration;
+            //const TorrentPlugin::Configuration * _torrentPluginConfiguration;
         };
 
         // Default constructor
@@ -333,8 +333,8 @@ public:
         libtorrent::torrent_info *torrentInfo() const;
         void setTorrentInfo(libtorrent::torrent_info *torrentInfo);
 
-        const TorrentPlugin::Configuration *torrentPluginConfiguration() const;
-        void setTorrentPluginConfiguration(const TorrentPlugin::Configuration *torrentPluginConfiguration);
+        //const TorrentPlugin::Configuration *torrentPluginConfiguration() const;
+        //void setTorrentPluginConfiguration(const TorrentPlugin::Configuration *torrentPluginConfiguration);
 
         QString walletFile() const;
         void setWalletFile(const QString &walletFile);
@@ -384,13 +384,20 @@ public:
      */
 
     // Manage torrents
-    bool addTorrent(const Torrent::Configuration & configuration, bool promptUserForTorrentPluginConfiguration);
+    bool addTorrent(const Torrent::Configuration & configuration);
+    bool addTorrent(const Torrent::Configuration & configuration, const SellerTorrentPlugin::Configuration & pluginConfiguration);
+    bool addTorrent(const Torrent::Configuration & configuration, const BuyerTorrentPlugin::Configuration & pluginConfiguration);
+    //bool addTorrent(const Torrent::Configuration & configuration, const ObserverTorrentPlugin::Configuration & pluginConfiguration);
+
     bool removeTorrent(const libtorrent::sha1_hash & info_hash);
     bool pauseTorrent(const libtorrent::sha1_hash & info_hash);
     bool startTorrent(const libtorrent::sha1_hash & info_hash);
 
     // Start torrent plugin
-    void startTorrentPlugin(const libtorrent::sha1_hash & info_hash, const TorrentPlugin::Configuration * configuration);
+    //void startTorrentPlugin(const libtorrent::sha1_hash & info_hash, const TorrentPlugin::Configuration * configuration);
+    void startSellerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const SellerTorrentPlugin::Configuration & pluginConfiguration);
+    void startBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const UnspentP2PKHOutput & utxo);
+    //void startObserverTorrentPlugin(const libtorrent::sha1_hash & info_hash, const ObserverTorrentPlugin::Configuration & pluginConfiguration);
 
     // Stops libtorrent session, and tries to save_resume data, when all resume data is saved, finalize_close() is called.
     void begin_close();
@@ -446,7 +453,10 @@ private:
     // Configurations are placed in these maps when corresponding torrent is added to session,
     // and they are used to start a plugin on the given torrent once a torrent_checked_alert has been
     // issued by session.
-    QMap<libtorrent::sha1_hash, const TorrentPlugin::Configuration *> _pendingConfigurations;
+    //QMap<libtorrent::sha1_hash, const TorrentPlugin::Configuration *> _pendingConfigurations;
+    QMap<libtorrent::sha1_hash, SellerTorrentPlugin::Configuration> _pendingSellerTorrentPluginConfigurations;
+    QMap<libtorrent::sha1_hash, BuyerTorrentPlugin::Configuration> _pendingBuyerTorrentPluginConfigurations;
+    //QMap<libtorrent::sha1_hash, ObserverTorrentPlugin::Configuration> _pendingObserverTorrentPluginConfigurations;
 
     // Routine for processig libtorrent alerts
     void processMetadataReceivedAlert(libtorrent::metadata_received_alert const * p);
@@ -461,6 +471,9 @@ private:
     void processTorrentCheckedAlert(libtorrent::torrent_checked_alert const * p);
     void processTorrentPluginStatusAlert(const TorrentPluginStatusAlert * p);
     void processPluginStatusAlert(const PluginStatusAlert * p);
+
+    // Start torrent plugin
+    void startTorrentPlugin(const libtorrent::sha1_hash & info_hash);
 
     // Tell libtorrent try save resume data for all torrents needing it
     int makeResumeDataCallsForAllTorrents();

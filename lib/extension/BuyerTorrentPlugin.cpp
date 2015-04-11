@@ -86,6 +86,10 @@ void BuyerTorrentPlugin::Status::setState(State state) {
 
 #include <libtorrent/entry.hpp>
 
+BuyerTorrentPlugin::Configuration::Configuration() {
+
+}
+
 BuyerTorrentPlugin::Configuration::Configuration(bool enableBanningSets,
                                                  quint64 maxPrice,
                                                  quint32 maxLock,
@@ -179,6 +183,7 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
                                        const boost::weak_ptr<libtorrent::torrent> & torrent,
                                        Wallet * wallet,
                                        const BuyerTorrentPlugin::Configuration & configuration,
+                                       const UnspentP2PKHOutput & utxo,
                                        QLoggingCategory & category)
     : TorrentPlugin(plugin, torrent, configuration, category)
     , _state(State::waiting_for_payor_to_be_ready)
@@ -207,12 +212,6 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
      *
      * MOVE THIS TO SOME WHERE ELSE LATER, E.G. CTR OF PAYORCONFIGURATION
      */
-
-    // Minimal funds required to fund payment channel
-    quint64 minimalFunds = torrentInfo.num_pieces()*configuration.maxPrice();
-
-    // Get funding utxo
-    UnspentP2PKHOutput utxo = _wallet->getUtxo(minimalFunds, 1);
 
     // Check that we found valid utxo
     if(utxo.fundingValue() == 0)

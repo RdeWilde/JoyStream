@@ -55,14 +55,14 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
     // Number of sellers
     qint32 numberOfSellers = ui->minPeersLineEdit->text().toInt();
 
-    BuyerTorrentPlugin::Configuration * configuration = new BuyerTorrentPlugin::Configuration(false,
-                                                                                              maxPrice,
-                                                                                              maxLock,
-                                                                                              0,
-                                                                                              numberOfSellers);
+    BuyerTorrentPlugin::Configuration configuration(false,
+                                                    maxPrice,
+                                                    maxLock,
+                                                    0,
+                                                    numberOfSellers);
 
     // Set in seller mode
-    _controller->startTorrentPlugin(_torrentInfo.info_hash(), configuration);
+    _controller->startBuyerTorrentPlugin(_torrentInfo.info_hash(), configuration, utxo);
 
     // close window
     done(0);

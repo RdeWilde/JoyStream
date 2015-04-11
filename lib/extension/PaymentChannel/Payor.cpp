@@ -37,8 +37,117 @@ Payor::Channel::Configuration::Configuration(quint32 index,
             , _refundLockTime(refundLockTime) {
 }
 
+quint32 Payor::Channel::Configuration::index() const {
+    return _index;
+}
 
+void Payor::Channel::Configuration::setIndex(quint32 index) {
+    _index = index;
+}
 
+Payor::Channel::State Payor::Channel::Configuration::state() const {
+    return _state;
+}
+
+void Payor::Channel::Configuration::setState(State state) {
+    _state =  state;
+}
+
+quint64 Payor::Channel::Configuration::price() const {
+    return _price;
+}
+
+void Payor::Channel::Configuration::setPrice(quint64 price) {
+    _price = price;
+}
+
+quint64 Payor::Channel::Configuration::numberOfPaymentsMade() const {
+    return _numberOfPaymentsMade;
+}
+
+void Payor::Channel::Configuration::setNumberOfPaymentsMade(quint64 numberOfPaymentsMade) {
+    _numberOfPaymentsMade = numberOfPaymentsMade;
+}
+
+quint64 Payor::Channel::Configuration::funds() const {
+    return _funds;
+}
+
+void Payor::Channel::Configuration::setFunds(quint64 funds) {
+    _funds = funds;
+}
+
+KeyPair Payor::Channel::Configuration::payorContractKeyPair() const {
+    return _payorContractKeyPair;
+}
+
+void Payor::Channel::Configuration::setPayorContractKeyPair(const KeyPair & payorContractKeyPair) {
+    _payorContractKeyPair = payorContractKeyPair;
+}
+
+KeyPair Payor::Channel::Configuration::payorFinalKeyPair() const {
+    return _payorFinalKeyPair;
+}
+
+void Payor::Channel::Configuration::setPayorFinalKeyPair(const KeyPair & payorFinalKeyPair) {
+    _payorFinalKeyPair = payorFinalKeyPair;
+}
+
+PublicKey Payor::Channel::Configuration::payeeContractPk() const {
+    return _payeeContractPk;
+}
+
+void Payor::Channel::Configuration::setPayeeContractPk(const PublicKey & payeeContractPk) {
+    _payeeContractPk = payeeContractPk;
+}
+
+PublicKey Payor::Channel::Configuration::payeeFinalPk() const {
+    return _payeeFinalPk;
+}
+
+void Payor::Channel::Configuration::setPayeeFinalPk(const PublicKey & payeeFinalPk) {
+    _payeeFinalPk = payeeFinalPk;
+}
+
+Signature Payor::Channel::Configuration::payorRefundSignature() const {
+    return _payorRefundSignature;
+}
+
+void Payor::Channel::Configuration::setPayorRefundSignature(const Signature & payorRefundSignature) {
+    _payorRefundSignature = payorRefundSignature;
+}
+
+Signature Payor::Channel::Configuration::payeeRefundSignature() const {
+    return _payeeRefundSignature;
+}
+
+void Payor::Channel::Configuration::setPayeeRefundSignature(const Signature & payeeRefundSignature) {
+    _payeeRefundSignature = payeeRefundSignature;
+}
+
+quint64 Payor::Channel::Configuration::refundFee() const {
+    return _refundFee;
+}
+
+void Payor::Channel::Configuration::setRefundFee(quint64 refundFee) {
+    _refundFee = refundFee;
+}
+
+quint64 Payor::Channel::Configuration::paymentFee() const {
+    return _paymentFee;
+}
+
+void Payor::Channel::Configuration::setPaymentFee(quint64 paymentFee) {
+    _paymentFee = paymentFee;
+}
+
+quint32 Payor::Channel::Configuration::refundLockTime() const {
+    return _refundLockTime;
+}
+
+void Payor::Channel::Configuration::setRefundLockTime(quint32 refundLockTime) {
+    _refundLockTime = refundLockTime;
+}
 
 /**
  * Payor::Channel::Status

@@ -10,6 +10,7 @@
 #include <queue>          // std::priority_queue
 
 class Wallet;
+class UnspentP2PKHOutput;
 
 /**
  * @brief Torrent plugin for buyer mode.
@@ -131,6 +132,9 @@ public:
 
     public:
 
+        // Default constructor
+        Configuration();
+
         // Constructor from members
         Configuration(bool enableBanningSets,
                       quint64 maxPrice,
@@ -192,6 +196,7 @@ public:
                        const boost::weak_ptr<libtorrent::torrent> & torrent,
                        Wallet * wallet,
                        const Configuration & configuration,
+                       const UnspentP2PKHOutput & utxo,
                        QLoggingCategory & category);
 
     /**
