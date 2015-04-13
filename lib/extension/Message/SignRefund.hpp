@@ -17,10 +17,26 @@ public:
     // Constructor from members
     SignRefund(const TxId & hash, quint32 index, quint64 value, const PublicKey & pk);
 
+    // Constructor based on raw payload
+    SignRefund(QDataStream & stream);
+
     // Virtual methods that subclassing messages have to implement
     MessageType messageType() const;
     quint32 length() const;
     void write(QDataStream & stream) const;
+
+    // Getters and setters
+    TxId hash() const;
+    void setHash(const TxId & hash);
+
+    quint32 index() const;
+    void setIndex(quint32 index);
+
+    quint64 value() const;
+    void setValue(quint64 value);
+
+    PublicKey pk() const;
+    void setPk(const PublicKey & pk);
 
 private:
 

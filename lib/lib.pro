@@ -83,7 +83,9 @@ SOURCES += \
     extension/BitCoin/PrivateKey.cpp \
     extension/Request/StartBuyerTorrentPlugin.cpp \
     extension/Request/StartSellerTorrentPlugin.cpp \
-    extension/Request/StartObserverTorrentPlugin.cpp
+    extension/Request/StartObserverTorrentPlugin.cpp \
+    extension/Message/RequestFullPiece.cpp \
+    extension/Message/FullPiece.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -166,7 +168,9 @@ HEADERS += \
     extension/BitCoin/base58.hpp \
     extension/Request/StartBuyerTorrentPlugin.hpp \
     extension/Request/StartSellerTorrentPlugin.hpp \
-    extension/Request/StartObserverTorrentPlugin.hpp
+    extension/Request/StartObserverTorrentPlugin.hpp \
+    extension/Message/RequestFullPiece.hpp \
+    extension/Message/FullPiece.hpp
 				
 FORMS += \
     view/mainwindow.ui \

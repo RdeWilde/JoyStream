@@ -670,6 +670,29 @@ Signature BuyerTorrentPlugin::makePaymentAndGetPaymentSignature(BuyerPeerPlugin 
     return _payor.getPresentPaymentSignature(payorSlot);
 }
 
+bool BuyerTorrentPlugin::checkLengthAndValidatePiece(int pieceIndex, const QVector<char> & pieceData) {
+
+    // This routine should only be called if following holds
+    Q_ASSERT(_state == State::downloading_pieces);
+
+    // Get torrent
+    boost::shared_ptr<libtorrent::torrent> torrent = _torrent.lock();
+
+    Q_ASSERT(torrent);
+
+    // Check that piece has correct length
+    if(pieceData.size() != torrent->torrent_file().piece_size(pieceIndex))
+        return false;
+
+    // Tell libtorrent to validate piece
+    // last argument is a flag which presently seems to only test
+    // flags & torrent::overwrite_existing, which seems to be whether
+    // the piece should be overwritten if it is already present
+    torrent->add_piece(pieceIndex, pieceData.data(), 0);
+
+    return true;
+}
+
 BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
 
      // Build list of buyer peer statuses

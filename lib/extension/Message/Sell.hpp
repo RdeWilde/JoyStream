@@ -11,7 +11,7 @@ class Sell : public ExtendedMessagePayload
 public:
 
     // Constructor based on members
-    Sell(quint32 minPrice, quint32 minLock);
+    Sell(quint32 minPrice, quint32 minLock, quint32 maxSellers);
 
     // Constructor based on raw data
     Sell(QDataStream & stream);
@@ -21,9 +21,15 @@ public:
     virtual quint32 length() const;
     virtual void write(QDataStream & stream) const;
 
-    // Getters
+    // Getters and setters
     quint32 minPrice() const;
+    void setMinPrice(quint32 minPrice);
+
     quint32 minLock() const;
+    void setMinLock(quint32 minLock);
+
+    quint32 maxSellers() const;
+    void setMaxSellers(quint32 maxSellers);
 
 private:
 
@@ -32,6 +38,9 @@ private:
 
     // When refund is spendable at the earliest
     quint32 _minLock;
+
+    // Maximum number of sellers accepted in contract
+    quint32 _maxSellers;
 };
 
 #endif // SELL_HPP

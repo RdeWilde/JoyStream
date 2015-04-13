@@ -6,8 +6,6 @@
 class Ready : public NoPayloadMessage
 {
 public:
-    Ready();
-
     virtual MessageType messageType() const;
 };
 

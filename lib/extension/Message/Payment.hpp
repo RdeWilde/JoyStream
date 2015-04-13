@@ -14,6 +14,9 @@ public:
     // Constructor from members
     Payment(const Signature & sig);
 
+    // Constructor based on raw payload
+    Payment(QDataStream & stream, quint8 lengthOfSignature);
+
     // Virtual methods that subclassing messages have to implement
     virtual MessageType messageType() const;
     virtual quint32 length() const;

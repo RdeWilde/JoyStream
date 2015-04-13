@@ -21,7 +21,6 @@ class SellerPeerPlugin : public PeerPlugin
 {
 public:
 
-
     /**
      * @brief State of peer.
      */
@@ -40,6 +39,7 @@ public:
             sent_contract_invitation,
             requested_refund_signature,
             announced_ready,
+            made_request,
             made_payment
         };
 
@@ -115,7 +115,7 @@ public:
     /**
      * @brief Enumeration of possible states the client.
      */
-        enum class ClientState {
+    enum class ClientState {
 
         // We have not sent any message after extended handshake
         no_bitswapr_message_sent,
@@ -135,8 +135,14 @@ public:
         // We ignored signing refund invitation: Why would we ever do this?
         ignored_sign_refund_invitation,
 
-        // We sent a piece message
-        sent_piece
+        // Waiting for first request, after the ready message was sent
+        awaiting_piece_request_after_ready_announced,
+
+        // Waiting for payment
+        awaiting_payment,
+
+        // Waiting for next request, after a payment was made
+        awaiting_piece_request_after_payment
     };
 
     /**
@@ -174,6 +180,11 @@ public:
     // Constructor
     SellerPeerPlugin(SellerTorrentPlugin * torrentPlugin,
                      libtorrent::bt_peer_connection * connection,
+                     quint32 minPrice,
+                     quint32 minLock,
+                     quint32 maxSellers,
+                     const KeyPair & payeeContractKeys,
+                     const KeyPair & payeePaymentKeys,
                      QLoggingCategory & category);
 
     // Destructor
@@ -225,14 +236,50 @@ private:
     Payee _payee;
 
     /**
+     * Seller terms
+     */
+
+    // Piece price (in satoshi units)
+    quint32 _minPrice;
+
+    // When refund is spendable at the earliest
+    quint32 _minLock;
+
+    // Maximum number of sellers accepted in contract
+    quint32 _maxSellers;
+
+    //
+    KeyPair _payeeContractKeys;
+
+    //
+    KeyPair _payeePaymentKeys;
+
+    /**
+     * Joining contract terms
+     */
+
+    // Key for seller output in contract
+    PublicKey _contractPk;
+
+    // Key for payment to seller
+    PublicKey _finalPk;
+
+
+    /**
      * Request/Piece management
      */
 
-    // Requests received but not serviced, in order
-    QList<libtorrent::peer_request> _sPendingRequests;
+    // Last full piece request
+    int _lastRequestedFullPiece;
 
-    // Requests serviced
-    QSet<libtorrent::peer_request> _serviced;
+    // Full pieces sent
+    QList<int> _sendFullPieces;
+
+    // Requests received but not serviced, in order
+    //QList<libtorrent::peer_request> _sPendingRequests;
+
+    // Requests serviced, in order
+    //QList<libtorrent::peer_request> _serviced;
 
     // Processess message
     virtual void processObserve(const Observe * m);
@@ -243,6 +290,8 @@ private:
     virtual void processSignRefund(const SignRefund * m);
     virtual void processRefundSigned(const RefundSigned * m);
     virtual void processReady(const Ready * m);
+    virtual void processRequestFullPiece(const RequestFullPiece * m) = 0;
+    virtual void processFullPiece(const FullPiece * m) = 0;
     virtual void processPayment(const Payment * m);
 
     // Resets plugin in response to peer sending a mode message

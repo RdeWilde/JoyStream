@@ -12,6 +12,9 @@ class Signature
 {
 public:
 
+    // The maximum byte length of a valid signature
+    const static int maxLength = 73;
+
     // Default/Copy constructor and assignemtn operator needed to put in container.
     Signature();
     Signature(const Signature & signature);

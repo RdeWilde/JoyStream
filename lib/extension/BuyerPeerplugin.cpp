@@ -139,6 +139,8 @@ void BuyerPeerPlugin::setPayorSlot(quint32 payorSlot) {
 #include "Message/SignRefund.hpp"
 #include "Message/RefundSigned.hpp"
 #include "Message/Ready.hpp"
+#include "Message/RequestFullPiece.hpp"
+#include "Message/FullPiece.hpp"
 #include "Message/Payment.hpp"
 
 #include <libtorrent/bt_peer_connection.hpp>
@@ -153,11 +155,11 @@ BuyerPeerPlugin::BuyerPeerPlugin(BuyerTorrentPlugin * plugin,
     , _clientState(ClientState::no_bitswapr_message_sent)
     , _payorSlot(-1) // deterministic sentinel value
     , _indexOfAssignedPiece(-1) // deterministic sentinel value
-    , _pieceSize(0)
-    , _blockSize(0)
-    , _numberOfBlocksInPiece(0)
-    , _numberOfBlocksRequested(0)
-    , _numberOfBlocksReceived(0) {
+    , _pieceSize(-1) { // deterministic sentinel value
+    //, _blockSize(0)
+    //, _numberOfBlocksInPiece(0)
+    //, _numberOfBlocksRequested(0)
+    //, _numberOfBlocksReceived(0) {
 }
 
 BuyerPeerPlugin::~BuyerPeerPlugin() {
@@ -295,45 +297,10 @@ bool BuyerPeerPlugin::on_not_interested() {
 
 bool BuyerPeerPlugin::on_piece(libtorrent::peer_request const& piece, libtorrent::disk_buffer_holder & data) {
 
-    qCDebug(_category) << "on_piece";
+    qCDebug(_category) << "Ignoring piece message.";
 
-    // Check that peer is sending a state compatible message
-    if(_clientState != ClientState::waiting_for_requests_to_be_serviced)
-        throw std::exception("Peer sent on_piece at incorrect stage."); // Handle properly later
-
-    // _clientState == ClientState::waiting_for_requests_to_be_serviced =>
-    Q_ASSERT(_peerBEP10SupportStatus == BEPSupportStatus::supported);
-    Q_ASSERT(_peerBitSwaprBEPSupportStatus == BEPSupportStatus::supported);
-    Q_ASSERT(_peerState.lastAction() == PeerState::LastValidAction::signed_refund ||
-             _peerState.lastAction() == PeerState::LastValidAction::sent_valid_piece);
-
-    // Check that this is indeed the piece for which we have issued requests
-    if(piece.piece != _indexOfAssignedPiece)
-        throw std::exception("Peer sent piece message for incorrect piece."); // Handle properly later
-
-    // Check that we actually requested this block
-    if(!_unservicedRequests.contains(piece))
-        throw std::exception("Peer sent piece which was not requested"); // Handle properly later
-
-    // Remove request from set of unserviced requests
-    _unservicedRequests.remove(piece);
-
-    // Note that last request was serviced now
-    _whenLastRequestServiced = QDateTime::currentDateTime();
-
-    // Update block download counter
-    _numberOfBlocksReceived++;
-
-    // Update state if we have no outstanding requests
-    if(_numberOfBlocksInPiece == _numberOfBlocksReceived)
-        _clientState = ClientState::waiting_for_libtorrent_to_validate_piece;
-
-    // Make new requests if pipeline is running low
-    if(_unservicedRequests.size() < _requestPipelineRefillBound)
-        refillPipeline();
-
-    // Use normal piece message handler
-    return false;
+    // Signal that we handled message
+    return true;
 }
 
 bool BuyerPeerPlugin::on_suggest(int index) {
@@ -400,18 +367,19 @@ void BuyerPeerPlugin::on_piece_pass(int index) {
     // on_piece_pass() =>
     Q_ASSERT(_indexOfAssignedPiece == index); // peer should only be relaying blocks I am requesting
     Q_ASSERT(_clientState == ClientState::waiting_for_libtorrent_to_validate_piece);
-    Q_ASSERT(_peerState.lastAction() == PeerState::LastValidAction::signed_refund ||
-            _peerState.lastAction() == PeerState::LastValidAction::sent_valid_piece); // presumes that we would have stopped peer if it started sending pieces without being asked
-    Q_ASSERT(_numberOfBlocksInPiece == _numberOfBlocksReceived);
-    Q_ASSERT(_numberOfBlocksRequested == _numberOfBlocksReceived);
-    Q_ASSERT(_unservicedRequests.empty());
+    //Q_ASSERT(_peerState.lastAction() == PeerState::LastValidAction::signed_refund ||
+    //        _peerState.lastAction() == PeerState::LastValidAction::sent_valid_piece); // presumes that we would have stopped peer if it started sending pieces without being asked
+
+    //Q_ASSERT(_numberOfBlocksInPiece == _numberOfBlocksReceived);
+    //Q_ASSERT(_numberOfBlocksRequested == _numberOfBlocksReceived);
+    //Q_ASSERT(_unservicedRequests.empty());
 
     // Make a payment
     const Signature & paymentSignature = _plugin->makePaymentAndGetPaymentSignature(this);
     sendExtendedMessage(Payment(paymentSignature));
 
     // Remember that piece was downloaded
-    _downloadedPieces.insert(_indexOfAssignedPiece);
+    _downloadedValidPieces.insert(_indexOfAssignedPiece);
 
     // Notify torrent plugin that piece has been downloaded
     _plugin->pieceDownloaded(_indexOfAssignedPiece);
@@ -451,6 +419,7 @@ bool BuyerPeerPlugin::write_request(libtorrent::peer_request const & peerRequest
     return true;
 }
 
+/**
 quint32 BuyerPeerPlugin::refillPipeline() {
 
     // Pipeline params must be well founded <=>
@@ -492,6 +461,7 @@ quint32 BuyerPeerPlugin::refillPipeline() {
         _unservicedRequests.insert(r);
     }
 }
+*/
 
 BuyerPeerPlugin::Status BuyerPeerPlugin::status() const {
     return Status(_peerState, _clientState);
@@ -569,19 +539,19 @@ void BuyerPeerPlugin::setUnservicedRequests(const QSet<libtorrent::peer_request>
 }
 
 QDateTime BuyerPeerPlugin::whenLastRequestServiced() const {
-    return _whenLastRequestServiced;
+    return _whenLastSentFullPiece;
 }
 
 void BuyerPeerPlugin::setWhenLastRequestServiced(const QDateTime &whenLastRequestServiced) {
-    _whenLastRequestServiced = whenLastRequestServiced;
+    _whenLastSentFullPiece = whenLastRequestServiced;
 }
 
 QSet<int> BuyerPeerPlugin::downloadedPieces() const {
-    return _downloadedPieces;
+    return _downloadedValidPieces;
 }
 
 void BuyerPeerPlugin::setDownloadedPieces(const QSet<int> & downloadedPieces) {
-    _downloadedPieces = downloadedPieces;
+    _downloadedValidPieces = downloadedPieces;
 }
 
 void BuyerPeerPlugin::processObserve(const Observe * m) {
@@ -633,7 +603,7 @@ void BuyerPeerPlugin::processSell(const Sell * m) {
 
     // If peer has not been invited, and plugin says ok,
     // then we send invite
-    if(_clientState == ClientState::no_bitswapr_message_sent &&
+    if(_clientState == ClientState::buyer_mode_announced &&
             _plugin->inviteSeller(m->minPrice(), m->minLock())) {
 
         // invite to join contract
@@ -641,7 +611,8 @@ void BuyerPeerPlugin::processSell(const Sell * m) {
 
         // and remember invitation
         _clientState = ClientState::invited_to_contract;
-    }
+    } else
+        qCDebug(_category) << "Did not invite seller.";
 }
 
 void BuyerPeerPlugin::processJoinContract(const JoinContract * m) {
@@ -704,6 +675,60 @@ void BuyerPeerPlugin::processRefundSigned(const RefundSigned * m) {
 
 void BuyerPeerPlugin::processReady(const Ready * m) {
     throw std::exception("Ready message should never be sent to buyer mode peer.");
+}
+
+void BuyerPeerPlugin::processRequestFullPiece(const RequestFullPiece * m) {
+    throw std::exception("RequestFullPiece message should never be sent to buyer mode peer.");
+}
+
+void BuyerPeerPlugin::processFullPiece(const FullPiece * m) = 0 {
+
+    // Check that peer is sending a state compatible message
+    if(_clientState != ClientState::waiting_for_full_piece)
+        throw std::exception("Peer Full Piece at incorrect stage."); // Handle properly later
+
+    // _clientState == ClientState::waiting_for_requests_to_be_serviced =>
+    Q_ASSERT(_peerBEP10SupportStatus == BEPSupportStatus::supported);
+    Q_ASSERT(_peerBitSwaprBEPSupportStatus == BEPSupportStatus::supported);
+    //Q_ASSERT(_peerState.lastAction() == PeerState::LastValidAction::signed_refund ||
+    //         _peerState.lastAction() == PeerState::LastValidAction::sent_valid_piece);
+
+    // Check that this is indeed the piece for which we have issued requests
+    //if(piece.piece != _indexOfAssignedPiece)
+    //    throw std::exception("Peer sent piece message for incorrect piece."); // Handle properly later
+
+    // Check that we actually requested this block
+    //if(!_unservicedRequests.contains(piece))
+    //    throw std::exception("Peer sent piece which was not requested"); // Handle properly later
+
+    // Remove request from set of unserviced requests
+    //_unservicedRequests.remove(piece);
+
+    // Note that last request was serviced now
+    //_whenLastSentFullPiece = QDateTime::currentDateTime();
+
+    // Update block download counter
+    //_numberOfBlocksReceived++;
+
+    // Update state if we have no outstanding requests
+    //if(_numberOfBlocksInPiece == _numberOfBlocksReceived)
+    //    _clientState = ClientState::waiting_for_libtorrent_to_validate_piece;
+
+    // Make new requests if pipeline is running low
+    //if(_unservicedRequests.size() < _requestPipelineRefillBound)
+    //    refillPipeline();
+
+    // Get payload piece data
+    const QVector<char> & piece = m->piece();
+
+    // Ask libtorrent to validate piece
+    bool validLength = checkLengthAndValidatePiece(_indexOfAssignedPiece, piece);
+
+    // Update state if
+    if(validLength)
+        _clientState = ClientState::waiting_for_libtorrent_to_validate_piece;
+    else
+        throw std::exception("Full piece message had invalid length.");
 }
 
 void BuyerPeerPlugin::processPayment(const Payment * m) {

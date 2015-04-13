@@ -21,7 +21,7 @@ public:
     virtual quint32 length() const;
     virtual void write(QDataStream & stream) const;
 
-    // Getters
+    // Getters and setters
     quint32 maxPrice() const;
     void setMaxPrice(quint32 maxPrice);
 

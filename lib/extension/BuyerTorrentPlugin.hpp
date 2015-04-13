@@ -240,6 +240,9 @@ public:
     // Increments payment counter in payment channel, and generates signature
     Signature makePaymentAndGetPaymentSignature(BuyerPeerPlugin * peerPlugin);
 
+    // Ask libtorrent to validate piece
+    bool checkLengthAndValidatePiece(int pieceIndex, const QVector<char> & pieceData);
+
     // Generate plugin status
     Status status() const;
 

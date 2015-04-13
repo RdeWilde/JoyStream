@@ -301,8 +301,11 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
     QByteArray byteArray(body.begin, body.end - body.begin);
     QDataStream dataStream(&byteArray, QIODevice::ReadOnly);
 
+    // Length of extended message, excluding the bep 10 id and extended message id.
+    int lengthOfExtendedMessagePayload = byteArray.length();
+
     // Parse message
-    ExtendedMessagePayload * m = ExtendedMessagePayload::fromRaw(messageType, dataStream);
+    ExtendedMessagePayload * m = ExtendedMessagePayload::fromRaw(messageType, dataStream, lengthOfExtendedMessagePayload);
 
     // Drop if message was malformed
     if(m == NULL) {

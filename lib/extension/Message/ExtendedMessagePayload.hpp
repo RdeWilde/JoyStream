@@ -11,7 +11,7 @@ class ExtendedMessagePayload
 public:
 
     // Message factory based on only payload, header is encoded in type argument
-    static ExtendedMessagePayload * fromRaw(MessageType type, QDataStream & stream);
+    static ExtendedMessagePayload * fromRaw(MessageType type, QDataStream & stream, int lengthOfExtendedMessagePayload);
 
     /**
      * Virtual methods that subclassing messages have to implement

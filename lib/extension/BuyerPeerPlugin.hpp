@@ -125,13 +125,16 @@ public:
 
         // At least one request message has been sent, for which no piece message
         // has yet been returned
-        waiting_for_requests_to_be_serviced,
+        //waiting_for_requests_to_be_serviced,
 
-        // All sent requests have been serviced by peer
+        // Not been assigned piece
         needs_to_be_assigned_piece,
 
-        // We have received piece messages for all blocks in currently assigned piece,
-        // hence we are waiting for libtorrent to fire on_piece_pass() or on_piece_failed()
+        // We have requested a full piece, and we are waiting for it to arrive
+        waiting_for_full_piece,
+
+        // We are waiting for libtorrent to fire on_piece_pass() or on_piece_failed()
+        // on a full piece which was recently received
         waiting_for_libtorrent_to_validate_piece
 
     };
@@ -202,7 +205,7 @@ public:
     virtual void tick();
     virtual bool write_request(libtorrent::peer_request const & peerRequest);
 
-    quint32 refillPipeline();
+    //quint32 refillPipeline();
 
     Status status() const;
 
@@ -286,38 +289,39 @@ private:
     int _pieceSize;
 
     // Byte length of blocks
-    int _blockSize;
+    //int _blockSize;
 
     // The number of blocks in the presently assigned piece
-    int _numberOfBlocksInPiece;
+    //int _numberOfBlocksInPiece;
 
     // The number of blocks requested
-    int _numberOfBlocksRequested;
+    //int _numberOfBlocksRequested;
 
     // The number of blocks which were requested and were subsequently received in a piece message
-    int _numberOfBlocksReceived;
+    //int _numberOfBlocksReceived;
 
     // Block indexes for block requests which have been issued, but not responded to
-    QSet<libtorrent::peer_request> _unservicedRequests;
+    //QSet<libtorrent::peer_request> _unservicedRequests;
 
-    // Time when last request was serviced
-    QDateTime _whenLastRequestServiced;
+    // Time when last FullPiece was serviced
+    //QDateTime _whenLastSentFullPiece;
 
     // Piece indexes, in download order, of
     // all valid pieces downloaded from seller peer during this session
-    QSet<int> _downloadedPieces;
+    QList<int> _downloadedValidPieces;
 
     /**
      * In the future the next two pipeline variables have to be
      * dynamically adjusted based on connection latency and
      * downstream bandwidth.
-     */
+
 
     // The maximum number of requests which can be pipelined
     const static quint32 _requestPipelineLength = 10;
 
     // Refill pipline when it falls below this bound
     const static quint32 _requestPipelineRefillBound = 5;
+    */
 
     // Processess message
     virtual void processObserve(const Observe * m);
@@ -328,8 +332,9 @@ private:
     virtual void processSignRefund(const SignRefund * m);
     virtual void processRefundSigned(const RefundSigned * m);
     virtual void processReady(const Ready * m);
+    virtual void processRequestFullPiece(const RequestFullPiece * m);
+    virtual void processFullPiece(const FullPiece * m);
     virtual void processPayment(const Payment * m);
-    //virtual void processEnd(const End * m);
 
     // Resets plugin in response to peer sending a mode message
     void peerModeReset();

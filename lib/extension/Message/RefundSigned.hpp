@@ -14,6 +14,9 @@ public:
     // Construct from members
     RefundSigned(const Signature & sig);
 
+    // Constructor based on raw payload
+    RefundSigned(QDataStream & stream, quint8 lengthOfSignature);
+
     // Virtual methods that subclassing messages have to implement
     virtual MessageType messageType() const;
     virtual quint32 length() const;

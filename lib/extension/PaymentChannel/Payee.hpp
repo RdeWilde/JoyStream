@@ -241,9 +241,6 @@ private:
     // Price increment per payment
     quint64 _price;
 
-    // Maximum number of non change outputs of payment channel contract
-    quint32 _maximumNumberOfSellers;
-
     // Controls payee portion of contract output
     KeyPair _payeeContractKeys;
 
