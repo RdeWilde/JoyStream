@@ -31,3 +31,11 @@ quint32 Payment::length() const {
 void Payment::write(QDataStream & stream) const {
     _sig.writeToStream(stream);
 }
+
+Signature Payment::sig() const {
+    return _sig;
+}
+
+void Payment::setSig(const Signature & sig) {
+    _sig = sig;
+}

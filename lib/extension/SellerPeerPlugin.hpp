@@ -17,6 +17,10 @@
 
 class SellerTorrentPlugin;
 
+namespace libtorrent {
+    struct disk_io_job;
+}
+
 class SellerPeerPlugin : public PeerPlugin
 {
 public:
@@ -78,9 +82,9 @@ public:
         // Constructor from members
         PeerState(LastValidAction lastAction,
                   FailureMode failureMode,
-                  const Buy & lastBuySent,
-                  const SignRefund & lastSignRefundSent,
-                  const Payment & lastPaymentSent);
+                  const Buy & lastBuyReceived,
+                  const SignRefund & lastSignRefundReceived,
+                  const Payment & lastPaymentReceived);
 
         // Getters and setters
         LastValidAction lastAction() const;
@@ -89,14 +93,14 @@ public:
         FailureMode failureMode() const;
         void setFailureMode(FailureMode failureMode);
 
-        Buy lastBuySent() const;
-        void setLastBuySent(const Buy & lastBuySent);
+        Buy lastBuyReceived() const;
+        void setLastBuyReceived(const Buy & lastBuyReceived);
 
-        SignRefund lastSignRefundSent() const;
-        void setLastSignRefundSent(const SignRefund & lastSignRefundSent);
+        SignRefund lastSignRefundReceived() const;
+        void setLastSignRefundReceived(const SignRefund & lastSignRefundReceived);
 
-        Payment lastPaymentSent() const;
-        void setLastPaymentSent(const Payment & lastPaymentSent);
+        Payment lastPaymentReceived() const;
+        void setLastPaymentReceived(const Payment & lastPaymentReceived);
 
     private:
 
@@ -107,9 +111,11 @@ public:
         FailureMode _failureMode;
 
         // Message payloads received
-        Buy _lastBuySent;
-        SignRefund _lastSignRefundSent;
-        Payment _lastPaymentSent; // May be invalid, the valid payment is saved in Payee
+        // Is updated so long as it is state compatible,
+        // content may be invalid.
+        Buy _lastBuyReceived;
+        SignRefund _lastSignRefundReceived;
+        Payment _lastPaymentReceived; // May be invalid, the valid payment is saved in Payee
     };
 
     /**
@@ -136,13 +142,17 @@ public:
         ignored_sign_refund_invitation,
 
         // Waiting for first request, after the ready message was sent
-        awaiting_piece_request_after_ready_announced,
+        awaiting_fullpiece_request_after_ready_announced,
 
         // Waiting for payment
         awaiting_payment,
 
         // Waiting for next request, after a payment was made
-        awaiting_piece_request_after_payment
+        awaiting_piece_request_after_payment,
+
+        // We are doing async reading of a piece from disk,
+        // which occurs when when a valid full piece request arrives
+        reading_piece_from_disk,
     };
 
     /**
@@ -180,11 +190,7 @@ public:
     // Constructor
     SellerPeerPlugin(SellerTorrentPlugin * torrentPlugin,
                      libtorrent::bt_peer_connection * connection,
-                     quint32 minPrice,
-                     quint32 minLock,
-                     quint32 maxSellers,
-                     const KeyPair & payeeContractKeys,
-                     const KeyPair & payeePaymentKeys,
+                     const Payee::Configuration & payeeConfiguration,
                      QLoggingCategory & category);
 
     // Destructor
@@ -218,6 +224,9 @@ public:
     virtual void tick();
     virtual bool write_request(libtorrent::peer_request const & peerRequest);
 
+    // Handler
+    void disk_async_read_handler(int, const libtorrent::disk_io_job & job);
+
     // Getters and setters
     virtual PluginMode mode() const;
 
@@ -237,7 +246,7 @@ private:
 
     /**
      * Seller terms
-     */
+
 
     // Piece price (in satoshi units)
     quint32 _minPrice;
@@ -248,22 +257,7 @@ private:
     // Maximum number of sellers accepted in contract
     quint32 _maxSellers;
 
-    //
-    KeyPair _payeeContractKeys;
-
-    //
-    KeyPair _payeePaymentKeys;
-
-    /**
-     * Joining contract terms
      */
-
-    // Key for seller output in contract
-    PublicKey _contractPk;
-
-    // Key for payment to seller
-    PublicKey _finalPk;
-
 
     /**
      * Request/Piece management
@@ -281,6 +275,12 @@ private:
     // Requests serviced, in order
     //QList<libtorrent::peer_request> _serviced;
 
+    /**
+     * Piece reading management
+     */
+
+    QVector<libtorrent::disk_io_job> _completedAsyncReads;
+
     // Processess message
     virtual void processObserve(const Observe * m);
     virtual void processBuy(const Buy * m);
@@ -290,7 +290,7 @@ private:
     virtual void processSignRefund(const SignRefund * m);
     virtual void processRefundSigned(const RefundSigned * m);
     virtual void processReady(const Ready * m);
-    virtual void processRequestFullPiece(const RequestFullPiece * m) = 0;
+    virtual void processRequestFullPiece(const RequestFullPiece * m);
     virtual void processFullPiece(const FullPiece * m) = 0;
     virtual void processPayment(const Payment * m);
 

@@ -280,17 +280,21 @@ private:
     // Wallet
     Wallet * _wallet;
 
-    // Maximum price accepted (satoshies)
-    quint64 _maxPrice;
+        /**
+         * Remove these later? perhaps just keep in Payor.
+         */
 
-    // Maximum lock time (the number of seconds elapsed since 1970-01-01T00:00 UTC)
-    quint32 _maxLock;
+        // Maximum price accepted (satoshies)
+        quint64 _maxPrice;
 
-    // Maximum fee per byte in contract transaction (satoshies)
-    quint64 _maxFeePerByte;
+        // Maximum lock time (the number of seconds elapsed since 1970-01-01T00:00 UTC)
+        quint32 _maxLock;
 
-    // Number of sellers
-    quint32 _numberOfSellers;
+        // Maximum fee per byte in contract transaction (satoshies)
+        quint64 _maxFeePerByte;
+
+        // Number of sellers
+        quint32 _numberOfSellers;
 
     // Payment channel
     Payor _payor;

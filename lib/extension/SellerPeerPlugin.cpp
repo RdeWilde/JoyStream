@@ -11,14 +11,14 @@ SellerPeerPlugin::PeerState::PeerState()
 
 SellerPeerPlugin::PeerState::PeerState(LastValidAction lastAction,
                                        FailureMode failureMode,
-                                       const Buy & lastBuySent,
-                                       const SignRefund & lastSignRefundSent,
-                                       const Payment & lastPaymentSent)
+                                       const Buy & lastBuyReceived,
+                                       const SignRefund & lastSignRefundReceived,
+                                       const Payment & lastPaymentReceived)
     : _lastAction(lastAction)
     , _failureMode(failureMode)
-    , _lastBuySent(lastBuySent)
-    , _lastSignRefundSent(lastSignRefundSent)
-    , _lastPaymentSent(lastPaymentSent) {
+    , _lastBuyReceived(lastBuyReceived)
+    , _lastSignRefundReceived(lastSignRefundReceived)
+    , _lastPaymentReceived(lastPaymentReceived) {
 }
 
 SellerPeerPlugin::PeerState::LastValidAction SellerPeerPlugin::PeerState::lastAction() const {
@@ -37,28 +37,36 @@ void SellerPeerPlugin::PeerState::setFailureMode(FailureMode failureMode) {
     _failureMode = failureMode;
 }
 
-Buy SellerPeerPlugin::PeerState::lastBuySent() const {
-    return _lastBuySent;
+Payment SellerPeerPlugin::PeerState::lastPaymentReceived() const {
+    return _lastPaymentReceived;
 }
 
-void SellerPeerPlugin::PeerState::setLastBuySent(const Buy & lastBuySent) {
-    _lastBuySent = lastBuySent;
+void SellerPeerPlugin::PeerState::setLastPaymentReceived(const Payment & lastPaymentReceived) {
+    _lastPaymentReceived = lastPaymentReceived;
 }
 
-SignRefund SellerPeerPlugin::PeerState::lastSignRefundSent() const {
-    return _lastSignRefundSent;
+SignRefund SellerPeerPlugin::PeerState::lastSignRefundReceived() const {
+    return _lastSignRefundReceived;
 }
 
-void SellerPeerPlugin::PeerState::setLastSignRefundSent(const SignRefund & lastSignRefundSent) {
-    _lastSignRefundSent = lastSignRefundSent;
+void SellerPeerPlugin::PeerState::setLastSignRefundReceived(const SignRefund & lastSignRefundReceived) {
+    _lastSignRefundReceived = lastSignRefundReceived;
 }
 
-Payment SellerPeerPlugin::PeerState::lastPaymentSent() const {
-    return _lastPaymentSent;
+JoinContract SellerPeerPlugin::PeerState::lastJoinContractReceived() const {
+    return _lastJoinContractReceived;
 }
 
-void SellerPeerPlugin::PeerState::setLastPaymentSent(const Payment & lastPaymentSent) {
-    _lastPaymentSent = lastPaymentSent;
+void SellerPeerPlugin::PeerState::setLastJoinContractReceived(const JoinContract & lastJoinContractReceived) {
+    _lastJoinContractReceived = lastJoinContractReceived;
+}
+
+Buy SellerPeerPlugin::PeerState::lastBuyReceived() const {
+    return _lastBuyReceived;
+}
+
+void SellerPeerPlugin::PeerState::setLastBuyReceived(const Buy & lastBuyReceived){
+    _lastBuyReceived = lastBuyReceived;
 }
 
 /**
@@ -108,26 +116,24 @@ void SellerPeerPlugin::Status::setClientState(ClientState clientState) {
 #include "Message/FullPiece.hpp"
 #include "Message/Payment.hpp"
 
+#include "BitCoin/BitSwaprjs.hpp" // get_tx_outpoint
+
 #include <libtorrent/bt_peer_connection.hpp>
+#include <libtorrent/storage.hpp> // libtorrent::disk_io_job
 
 #include <QLoggingCategory>
 
 SellerPeerPlugin::SellerPeerPlugin(SellerTorrentPlugin * torrentPlugin,
                                    libtorrent::bt_peer_connection * connection,
-                                   quint32 minPrice,
-                                   quint32 minLock,
-                                   quint32 maxSellers,
-                                   const PublicKey & contractPk,
-                                   const PublicKey & finalPk,
+                                   const Payee::Configuration & payeeConfiguration,
                                    QLoggingCategory & category)
     : PeerPlugin(torrentPlugin, connection, category)
     , _plugin(torrentPlugin)
     , _clientState(ClientState::no_bitswapr_message_sent)
-    , _minPrice(minPrice)
-    , _minLock(minLock)
-    , _maxSellers(maxSellers)
-    , _contractPk(contractPk)
-    , _finalPk(finalPk) {
+    , _payee(payeeConfiguration) {
+    //, _minPrice(minPrice)
+    //, _minLock(minLock)
+    //, _maxSellers(maxSellers) {
 }
 
 SellerPeerPlugin::~SellerPeerPlugin() {
@@ -165,7 +171,7 @@ bool SellerPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & han
     if(keepPlugin) {
 
         // send mode message
-        sendExtendedMessage(Sell(_plugin->minPrice(), _plugin->minLock()));
+        sendExtendedMessage(Sell(_payee.price(), _payee.lockTime(), _payee.maximumNumberOfSellers())); // _plugin->minPrice(), _plugin->minLock()
 
         // and update new client state correspondingly
         _clientState = ClientState::seller_mode_announced;
@@ -400,8 +406,6 @@ void SellerPeerPlugin::processObserve(const Observe * m) {
     // Do processing in response to mode reset
     peerModeReset();
 
-    // May arrive at any time, hence no _peerState.lastAction() invariant to check
-
     // Update peer state with new valid action
     _peerState.setLastAction(PeerState::LastValidAction::mode_announced);
 
@@ -416,7 +420,7 @@ void SellerPeerPlugin::processBuy(const Buy * m) {
 
     // Update peer state with new valid action
     _peerState.setLastAction(PeerState::LastValidAction::mode_announced);
-    _peerState.setLastBuySent(*m);
+    _peerState.setLastBuyReceived(*m);
 
     // Note that peer is buyer
     _peerModeAnnounced = PeerModeAnnounced::buyer;
@@ -436,27 +440,34 @@ void SellerPeerPlugin::processSell(const Sell * m) {
 
 void SellerPeerPlugin::processJoinContract(const JoinContract * m) {
 
-    if(_clientState != ClientState::seller_mode_announced ||
-       _clientState != ClientState::ignored_contract_invitation)
+    if(_clientState != ClientState::seller_mode_announced &&
+            _clientState != ClientState::ignored_contract_invitation)
         throw std::exception("JoinContract message should only be sent in response to an announced seller mode.");
 
-    // If peer has not been invited, and plugin says ok,
-    // then we send invite
-    if(_minPrice <= m->maxPrice() &&
-       _minLock <= m->maxLock() &&
-       _maxSellers >= m->minSellers()) {
+    // _clientState != seller_mode_announced,ignored_contract_invitation =>
+    Q_ASSERT(_payee.state() == Payee::State::waiting_for_payor_information);
+
+    // Check that buy terms are compatible
+    const Buy & lastBuyReceived = _peerState.lastBuyReceived();
+
+    if(_payee.price() <=  lastBuyReceived.maxPrice() &&
+       _payee.lockTime() <= lastBuyReceived.maxLock() &&
+       _payee.maximumNumberOfSellers() >= lastBuyReceived.minSellers()) {
 
         // invite to join contract
-        sendExtendedMessage(JoiningContract(_payeeContractKeys.pk(), _payeePaymentKeys.pk()));
+        sendExtendedMessage(JoiningContract(_payee.payeeContractKeys().pk(), _payee.payeePaymentKeys().pk()));
 
         // and remember invitation
         _clientState = ClientState::joined_contract;
 
+        qCDebug(_category) << "Joined contract.";
+
     } else {
 
+        // Remember that invite was ignored
         _clientState = ClientState::ignored_contract_invitation;
 
-        qCDebug(_category) << "Did not invite seller, terms were incompatible.";
+        qCDebug(_category) << "Ignored contract invitation.";
     }
 }
 
@@ -469,14 +480,32 @@ void SellerPeerPlugin::processSignRefund(const SignRefund * m) {
     if(_clientState != ClientState::joined_contract)
         throw std::exception("SignRefund message should only be sent in response to joining the contract.");
 
+    // _clientState == ClientState::joined_contract =>
+    Q_ASSERT(_payee.state() == Payee::State::waiting_for_payor_information || // if this is first signing
+             _payee.state() == Payee::State::has_all_information_required); // signed before and kept data
+
     // Save sign refund message
     _peerState.setLastSignRefundSent(*m);
 
-    //
-    _payee.registerPayeeInformation(quint32 lockTime, quint32 price, quint32 maximumNumberOfSellers, const KeyPair & payeeContractKeys, const KeyPair & payeePaymentKeys);
+    // Update payee with most recent
+    bool spent;
+    const OutPoint fundingOutPoint(m->hash(), m->index());
+    quint64 funds = BitSwaprjs::get_tx_outpoint(fundingOutPoint, spent);
 
-    // Save payor information in payee
-    _payee.registerPayorInformation(OutPoint(m->hash(), m->index()), contract pk ?, m->pk(), m->);
+    // Check if outpoint is unspent
+    if(!spent) {
+
+        // Check that it has enough funding?
+
+        // Register informaiton for payor
+        _payee.registerPayorInformation(fundingOutPoint, m->contractPk(), m->finalPk(), funds);
+
+    } else {
+
+        // Some sort of error
+
+        throw std::exception("fundingOutPoint was spent.");
+    }
 
     // Create refund signature
     Signature refundSignature = _payee.generateRefundSignature();
@@ -486,6 +515,8 @@ void SellerPeerPlugin::processSignRefund(const SignRefund * m) {
 
     // Update state
     _clientState = ClientState::signed_refund;
+
+    qCDebug(_category) << "Signed refund.";
 }
 
 void SellerPeerPlugin::processRefundSigned(const RefundSigned * m) {
@@ -493,21 +524,61 @@ void SellerPeerPlugin::processRefundSigned(const RefundSigned * m) {
 }
 
 void SellerPeerPlugin::processReady(const Ready * m) {
+
     qCDebug(_category) << "Ready.";
+
+    if(_clientState != ClientState::signed_refund)
+        throw std::exception("Ready message should only be sent in response to signing a refund.");
+
+    // Start timer or something, to start looking for contract
+
+    // Update client state
+    _clientState = ClientState::awaiting_fullpiece_request_after_ready_announced;
 }
 
 void SellerPeerPlugin::processRequestFullPiece(const RequestFullPiece * m) {
 
+    if(_clientState != ClientState::awaiting_fullpiece_request_after_ready_announced &&
+       _clientState != ClientState::awaiting_piece_request_after_payment)
+        throw std::exception("RequestFullPiece message should only be sent in response to signing a refund or a full piece.");
 
-    // service request?
+    // _clientState values =>
+    Q_ASSERT(_payee.state() == Payee::State::has_all_information_required);
 
-    // get piece
+    // false => ()
+    Q_ASSERT(_clientState != ClientState::awaiting_piece_request_after_payment ||
+            !_sendFullPieces.isEmpty());
+
+    // Check piece validity
+    if(m->pieceIndex() < 0 || m->pieceIndex() >= num_pieces)
+        throw std::exception("Invalid full piece requested.");
+
+    // Remember piece
+    _lastRequestedFullPiece = m->pieceIndex();
+
+    // Update client state
+    _clientState = ClientState::reading_piece_from_disk;
+
+    // Start call to read piece
+    _plugin->disk_async_read(this);
 
     //_torrent.filesystem().async_read(r, boost::bind(&smart_ban_plugin::on_read_ok_block, shared_from_this(), *i, _1, _2));
+}
 
-    // send piece message
+void SellerPeerPlugin::disk_async_read_handler(int, const libtorrent::disk_io_job & job) {
 
-    // mark if we have sent a full piece??
+    Q_ASSERT(_clientState == ClientState::reading_piece_from_disk);
+    Q_ASSERT(_payee.state() == Payee::State::has_all_information_required);
+
+    // Save data
+
+    //job.
+
+    // Was this last one
+
+    // if so, call to final handler and update state
+
+    // if not, make a new async call
 
 }
 
@@ -517,10 +588,26 @@ void SellerPeerPlugin::processFullPiece(const FullPiece * m) {
 
 void SellerPeerPlugin::processPayment(const Payment * m) {
 
-    // Check state
+    if(_clientState != ClientState::awaiting_payment)
+        throw std::exception("Payment message should only be sent in response to a full piece message.");
 
-    // check that payment is valid
+    // _clientState values =>
+    Q_ASSERT(_payee.state() = Payee::State::has_all_information_required);
+
+    // Validate payment
+    bool valid = _payee.registerPayment(m->sig());
+
+    if(!valid) {
+
+        // Update error state in some way
+
+        throw std::exception("Invalid payment received.");
+    }
 
     // Update state
+    _clientState = ClientState::awaiting_piece_request_after_payment;
+}
 
+void SellerPeerPlugin::peerModeReset() {
+    //Properly reset payee (state)?
 }

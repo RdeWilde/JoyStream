@@ -15,7 +15,7 @@ public:
     SignRefund();
 
     // Constructor from members
-    SignRefund(const TxId & hash, quint32 index, quint64 value, const PublicKey & pk);
+    SignRefund(const TxId & hash, quint32 index, quint64 value, const PublicKey & contractPk, const PublicKey & finalPk);
 
     // Constructor based on raw payload
     SignRefund(QDataStream & stream);
@@ -35,8 +35,11 @@ public:
     quint64 value() const;
     void setValue(quint64 value);
 
-    PublicKey pk() const;
-    void setPk(const PublicKey & pk);
+    PublicKey contractPk() const;
+    void setContractPk(const PublicKey & contractPk);
+
+    PublicKey finalPk() const;
+    void setFinalPk(const PublicKey & finalPk);
 
 private:
 
@@ -50,7 +53,10 @@ private:
     quint64 _value;
 
     // Contract output buyer multisig key
-    PublicKey _pk;
+    PublicKey _contractPk;
+
+    // Payment/Refund buyer output
+    PublicKey _finalPk;
 };
 
 #endif // SIGN_REFUND_HPP

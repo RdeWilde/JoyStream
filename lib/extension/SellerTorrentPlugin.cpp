@@ -203,6 +203,14 @@ void SellerTorrentPlugin::on_add_peer(libtorrent::tcp::endpoint const & endPoint
     */
 }
 
+int SellerTorrentPlugin::disk_async_read_piece(SellerPeerPlugin * peer, ) {
+
+    // Check which piece has been assigned to this peer
+
+    // Generate N async reads based on corresponding peer_requests
+    // callback is routine in given peer
+
+}
 
 /**
 boost::weak_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::peerPlugin(const libtorrent::tcp::endpoint & endPoint) const {

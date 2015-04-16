@@ -332,3 +332,29 @@ void BitSwaprjs::broadcast_contract(const OutPoint & fundingOutPoint, const Priv
     //return TxId(result.toString());
     return;
 }
+
+quint64 BitSwaprjs::get_tx_outpoint(const OutPoint & point, bool & spent) {
+
+    // Encode parameters into json
+    QJsonObject params {
+        {"OutPoint", point.toJson()},
+    };
+
+    // Make call
+    QJsonValue result = nodeBlockingCall("get_tx_outpoint", QJsonValue(params));
+
+    // Parse results
+    QJsonObject dump = result.toObject();
+
+    bool success = dump["success"].toBool();
+
+    if(!success)
+        throw std::exception("Some sort of bitswaprjs error occured.");
+
+    QJsonObject result = dump["result"].toObject();
+
+    quint64 value = result["value"].toDouble();
+    spent = result["spent"].toBool();
+
+    return value;
+}

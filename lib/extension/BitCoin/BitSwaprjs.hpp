@@ -65,6 +65,13 @@ public:
      */
     static void broadcast_contract(const OutPoint & fundingOutPoint, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput);
 
+
+    /**
+     * Query block chain
+     */
+
+    static quint64 get_tx_outpoint(const OutPoint & point, bool & spent);
+
 private:
 
     QString _node;

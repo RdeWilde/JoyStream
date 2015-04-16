@@ -19,7 +19,8 @@ public:
     enum class State {
 
         // Information, provided by payee, required for receiving payments has not been set (using registerPayeeInformation)
-        waiting_for_payee_information,
+        // WHY DO WE EVEN NEED THIS, WE CONTROL THIS INFORMATION ANYWAY
+        // waiting_for_payee_information,
 
         // Information, provided by payor, required for receiving payments has not been set (using registerPayorInformation)
         waiting_for_payor_information,
@@ -187,11 +188,27 @@ public:
     // Default constructor
     Payee();
 
+    // Constructor based on members
+    Payee(State state,
+            quint64 numberOfPaymentsMade,
+            const Signature & lastValidPayorPaymentSignature,
+            quint32 lockTime,
+            quint64 price,
+            quint32 maximumNumberOfSellers,
+            const KeyPair & payeeContractKeys,
+            const KeyPair & payeePaymentKeys,
+            const OutPoint & contractOutPoint,
+            const PublicKey & payorContractPk,
+            const PublicKey & payorFinalPk,
+            quint64 funds);
+
     // Constructor based on configuration
     Payee(const Payee::Configuration & configuration);
 
+    /**
     // When payee configurations are chosen
     void registerPayeeInformation(quint32 lockTime, quint32 price, quint32 maximumNumberOfSellers, const KeyPair & payeeContractKeys, const KeyPair & payeePaymentKeys);
+    */
 
     // When contract information is known, as advertised in
     void registerPayorInformation(const OutPoint & contractOutPoint, const PublicKey & payorContractPk, const PublicKey & payorFinalPk, quint64 funds);
@@ -224,6 +241,43 @@ public:
     bool isContractValid() const;
     */
 
+    // Getters and setters
+    State state() const;
+    void setState(State state);
+
+    quint64 numberOfPaymentsMade() const;
+    void setNumberOfPaymentsMade(quint64 numberOfPaymentsMade);
+
+    Signature lastValidPayorPaymentSignature() const;
+    void setLastValidPayorPaymentSignature(const Signature & lastValidPayorPaymentSignature);
+
+    quint32 lockTime() const;
+    void setLockTime(quint32 lockTime);
+
+    quint64 price() const;
+    void setPrice(quint64 price);
+
+    quint32 maximumNumberOfSellers() const;
+    void setMaximumNumberOfSellers(quint32 maximumNumberOfSellers);
+
+    KeyPair payeeContractKeys() const;
+    void setPayeeContractKeys(const KeyPair & payeeContractKeys);
+
+    KeyPair payeePaymentKeys() const;
+    void setPayeePaymentKeys(const KeyPair & payeePaymentKeys);
+
+    OutPoint contractOutPoint() const;
+    void setContractOutPoint(const OutPoint & contractOutPoint);
+
+    PublicKey payorContractPk() const;
+    void setPayorContractPk(const PublicKey & payorContractPk);
+
+    PublicKey payorFinalPk() const;
+    void setPayorFinalPk(const PublicKey & payorFinalPk);
+
+    quint64 funds() const;
+    void setFunds(quint64 funds);
+
 private:
 
     // Payee state
@@ -240,6 +294,9 @@ private:
 
     // Price increment per payment
     quint64 _price;
+
+    // Maximum numer of sellers in contract
+    quint32 _maximumNumberOfSellers;
 
     // Controls payee portion of contract output
     KeyPair _payeeContractKeys;

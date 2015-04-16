@@ -194,21 +194,48 @@ void Payee::Configuration::setFunds(const quint64 funds) {
 Payee::Payee() {
 }
 
-Payee::Payee(const Payee::Configuration & configuration)
-    : _state(configuration.state())
-    , _numberOfPaymentsMade(configuration.numberOfPaymentsMade())
-    , _lastValidPayorPaymentSignature(configuration.lastValidPayorPaymentSignature())
-    , _lockTime(configuration.lockTime())
-    , _price(configuration.price())
-    , _maximumNumberOfSellers(configuration.maximumNumberOfSellers())
-    , _payeeContractKeys(configuration.payeeContractKeys())
-    , _payeePaymentKeys(configuration.payeePaymentKeys())
-    , _contractOutPoint(configuration.contractOutPoint())
-    , _payorContractPk(configuration.payorContractPk())
-    , _payorFinalPk(configuration.payorFinalPk())
-    , _funds(configuration.funds()) {
+Payee::Payee(State state,
+             quint64 numberOfPaymentsMade,
+             const Signature & lastValidPayorPaymentSignature,
+             quint32 lockTime,
+             quint64 price,
+             quint32 maximumNumberOfSellers,
+             const KeyPair & payeeContractKeys,
+             const KeyPair & payeePaymentKeys,
+             const OutPoint & contractOutPoint,
+             const PublicKey & payorContractPk,
+             const PublicKey & payorFinalPk,
+             quint64 funds)
+    : _state(state)
+    , _numberOfPaymentsMade(numberOfPaymentsMade)
+    , _lastValidPayorPaymentSignature(lastValidPayorPaymentSignature)
+    , _lockTime(lockTime)
+    , _price(price)
+    , _maximumNumberOfSellers(maximumNumberOfSellers)
+    , _payeeContractKeys(payeeContractKeys)
+    , _payeePaymentKeys(payeePaymentKeys)
+    , _contractOutPoint(contractOutPoint)
+    , _payorContractPk(payorContractPk)
+    , _payorFinalPk(payorFinalPk)
+    , _funds(funds) {
 }
 
+Payee::Payee(const Payee::Configuration & c)
+    : Payee(c.state(),
+            c.numberOfPaymentsMade(),
+            c.lastValidPayorPaymentSignature(),
+            c.lockTime(),
+            c.price(),
+            c.maximumNumberOfSellers(),
+            c.payeeContractKeys(),
+            c.payeePaymentKeys(),
+            c.contractOutPoint(),
+            c.payorContractPk(),
+            c.payorFinalPk(),
+            c.funds()) {
+}
+
+/**
 void Payee::registerPayeeInformation(quint32 lockTime, quint32 price, quint32 maximumNumberOfSellers, const KeyPair & payeeContractKeys, const KeyPair & payeePaymentKeys) {
 
     // Check state
@@ -218,10 +245,10 @@ void Payee::registerPayeeInformation(quint32 lockTime, quint32 price, quint32 ma
     _state = State::waiting_for_payor_information;
     _lockTime = lockTime;
     _price = price;
-    _maximumNumberOfSellers = maximumNumberOfSellers;
     _payeeContractKeys = payeeContractKeys;
     _payeePaymentKeys = payeePaymentKeys;
 }
+*/
 
 void Payee::registerPayorInformation(const OutPoint & contractOutPoint, const PublicKey & payorContractPk, const PublicKey & payorFinalPk, quint64 funds) {
 
@@ -297,6 +324,102 @@ bool Payee::checkNextPaymentSignature(const Signature & payorPaymentSignature) c
                                                  _payeeContractKeys.pk(),
                                                  refundOutput,
                                                  paymentOutput);
+}
+
+Payee::State Payee::state() const {
+    return _state;
+}
+
+void Payee::setState(State state) {
+    _state = state;
+}
+
+quint64 Payee::numberOfPaymentsMade() const {
+    return _numberOfPaymentsMade;
+}
+
+void Payee::setNumberOfPaymentsMade(quint64 numberOfPaymentsMade) {
+    _numberOfPaymentsMade = numberOfPaymentsMade;
+}
+
+Signature Payee::lastValidPayorPaymentSignature() const {
+    return _lastValidPayorPaymentSignature;
+}
+
+void Payee::setLastValidPayorPaymentSignature(const Signature & lastValidPayorPaymentSignature) {
+    _lastValidPayorPaymentSignature = lastValidPayorPaymentSignature;
+}
+
+quint32 Payee::lockTime() const {
+    return _lockTime;
+}
+
+void Payee::setLockTime(quint32 lockTime) {
+    _lockTime = lockTime;
+}
+
+quint64 Payee::price() const {
+    return _price;
+}
+
+void Payee::setPrice(quint64 price) {
+    _price = price;
+}
+
+quint32 Payee::maximumNumberOfSellers() const {
+    return _maximumNumberOfSellers;
+}
+
+void Payee::setMaximumNumberOfSellers(quint32 maximumNumberOfSellers) {
+    _maximumNumberOfSellers = maximumNumberOfSellers;
+}
+
+KeyPair Payee::payeeContractKeys() const {
+    return _payeeContractKeys;
+}
+
+void Payee::setPayeeContractKeys(const KeyPair & payeeContractKeys) {
+    _payeeContractKeys = payeeContractKeys;
+}
+
+KeyPair Payee::payeePaymentKeys() const {
+    return _payeePaymentKeys;
+}
+
+void Payee::setPayeePaymentKeys(const KeyPair & payeePaymentKeys) {
+    _payeePaymentKeys = payeePaymentKeys;
+}
+
+OutPoint Payee::contractOutPoint() const {
+    return _contractOutPoint;
+}
+
+void Payee::setContractOutPoint(const OutPoint & contractOutPoint) {
+    _contractOutPoint = contractOutPoint;
+}
+
+PublicKey Payee::payorContractPk() const {
+    return _payorContractPk;
+}
+
+void Payee::setPayorContractPk(const PublicKey & payorContractPk) {
+    _payorContractPk = payorContractPk;
+}
+
+PublicKey Payee::payorFinalPk() const {
+    return _payorFinalPk;
+}
+
+void Payee::setPayorFinalPk(const PublicKey & payorFinalPk) {
+    _payorFinalPk = payorFinalPk;
+}
+
+quint64 Payee::funds() const {
+    return _funds;
+}
+
+void Payee::setFunds(quint64 funds) {
+    _funds = funds;
 }
 
 /**

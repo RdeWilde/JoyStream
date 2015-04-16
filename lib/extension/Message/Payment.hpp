@@ -22,6 +22,10 @@ public:
     virtual quint32 length() const;
     virtual void write(QDataStream & stream) const;
 
+    // Getters and setters
+    Signature sig() const;
+    void setSig(const Signature & sig);
+
 private:
 
     // Buyer payment signature

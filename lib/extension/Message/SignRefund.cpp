@@ -6,15 +6,16 @@
 SignRefund::SignRefund() {
 }
 
-SignRefund::SignRefund(const TxId & hash, quint32 index, quint64 value, const PublicKey & pk)
+SignRefund::SignRefund(const TxId & hash, quint32 index, quint64 value, const PublicKey & contractPk, const PublicKey & finalPk)
     : _hash(hash)
     , _index(index)
     , _value(value)
-    , _pk(pk) {
+    , _contractPk(contractPk)
+    , _finalPk(finalPk) {
 }
 
 SignRefund::SignRefund(QDataStream & stream) {
-    stream >> _hash >> _index >> _value >> _pk;
+    stream >> _hash >> _index >> _value >> _contractPk >> _finalPk;
 }
 
 MessageType SignRefund::messageType() const {
@@ -22,11 +23,11 @@ MessageType SignRefund::messageType() const {
 }
 
 quint32 SignRefund::length() const {
-    return TxId::length + sizeof(quint32) + sizeof(quint64) + PublicKey::length;
+    return TxId::length + sizeof(quint32) + sizeof(quint64) + PublicKey::length + PublicKey::length;
 }
 
 void SignRefund::write(QDataStream & stream) const {
-    stream << _hash << _index << _value << _pk;
+    stream << _hash << _index << _value << _contractPk << _finalPk;
 }
 
 TxId SignRefund::hash() const {
@@ -53,10 +54,18 @@ void SignRefund::setValue(quint64 value) {
     _value = value;
 }
 
-PublicKey SignRefund::pk() const {
-    return _pk;
+PublicKey SignRefund::contractPk() const {
+    return _contractPk;
 }
 
-void SignRefund::setPk(const PublicKey & pk) {
-    _pk = pk;
+void SignRefund::setContractPk(const PublicKey & contractPk) {
+    _contractPk = contractPk;
+}
+
+PublicKey SignRefund::finalPk() const {
+    return _finalPk;
+}
+
+void SignRefund::setFinalPk(const PublicKey & finalPk) {
+    _finalPk = finalPk;
 }

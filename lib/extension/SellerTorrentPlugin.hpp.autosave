@@ -93,7 +93,6 @@ public:
     //
     int disk_async_read_piece(SellerPeerPlugin * peer, );
 
-
     // Getters and setters
     virtual PluginMode pluginMode() const;
 
