@@ -11,7 +11,7 @@ public:
     RequestFullPiece();
 
     // Constructor based on members
-    RequestFullPiece(unsigned int pieceIndex);
+    RequestFullPiece(int pieceIndex);
 
     // Constructor based on raw payload
     RequestFullPiece(QDataStream & stream);
@@ -28,7 +28,7 @@ public:
 private:
 
     // Index of piece being requested
-    unsigned int _pieceIndex;
+    int _pieceIndex;
 };
 
 #endif // REQUEST_FULL_PIECE_HPP

@@ -3,6 +3,9 @@
 
 #include <QDataStream>
 
+Sell::Sell() {
+}
+
 Sell::Sell(quint32 minPrice, quint32 minLock, quint32 maxSellers)
     : _minPrice(minPrice)
     , _minLock(minLock)

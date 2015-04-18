@@ -65,8 +65,7 @@ public:
      * never by other threads, as this causes synchronization
      * failures.
      */
-    //virtual boost::shared_ptr<libtorrent::torrent_plugin> new_torrent(libtorrent::torrent * torrent, void * userData);
-    virtual void added(boost::weak_ptr<libtorrent::aux::session_impl> session);
+    virtual void added(libtorrent::aux::session_impl * session);
     virtual void on_alert(libtorrent::alert const * a);
     virtual void on_tick();
     virtual bool on_optimistic_unchoke(std::vector<libtorrent::policy::peer*> & peers);
@@ -99,13 +98,14 @@ private:
     // Wallet
     Wallet * _wallet;
 
-    // Libtorrent session. Is set by added() call, not constructor
-    boost::weak_ptr<libtorrent::aux::session_impl> _session;
+    // Libtorrent session.
+    // Is set by added() libtorrent hook, not constructor
+    libtorrent::aux::session_impl * _session;
 
     // Maps info hash to pointer to torrent plugin,
     // has to be TorrentPlugin weak pointer, since this is
     // what libtorrent requires
-    QMap<libtorrent::sha1_hash, boost::weak_ptr<libtorrent::torrent_plugin> > _plugins;
+    QMap<libtorrent::sha1_hash, boost::shared_ptr<libtorrent::torrent_plugin> > _plugins;
 
     // BitCoind wrapper
     BitCoindRPC::Client _btcClient;

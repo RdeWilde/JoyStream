@@ -193,7 +193,7 @@ public:
 
     // Constructor from members
     BuyerTorrentPlugin(Plugin * plugin,
-                       const boost::weak_ptr<libtorrent::torrent> & torrent,
+                       const boost::shared_ptr<libtorrent::torrent> & torrent,
                        Wallet * wallet,
                        const Configuration & configuration,
                        const UnspentP2PKHOutput & utxo,
@@ -214,13 +214,13 @@ public:
     virtual void on_add_peer(const libtorrent::tcp::endpoint & endPoint, int src, int flags);
 
     // Get peer_plugin if present, otherwise NULL pointer is wrapped
-    //virtual boost::weak_ptr<libtorrent::peer_plugin> peerPlugin(const libtorrent::tcp::endpoint & endPoint) const;
+    //virtual boost::sharedPluginPtr<libtorrent::peer_plugin> peerPlugin(const libtorrent::tcp::endpoint & endPoint) const;
 
     // Checks if seller can be invited on given terms
     bool inviteSeller(quint32 minPrice, quint32 minLock) const;
 
     // Attempts to add seller to contract
-    bool sellerWantsToJoinContract(BuyerPeerPlugin * peer, quint64 price, const PublicKey & contractPk, const PublicKey & finalPk, quint32 refundLockTime);
+    bool sellerWantsToJoinContract(BuyerPeerPlugin * peer, quint64 price, quint32 refundLockTime, const PublicKey & contractPk, const PublicKey & finalPk);
 
     // Verifies signature, and also broadcasts contract if full set of signatures has been aquired
     bool sellerProvidedRefundSignature(BuyerPeerPlugin * peer, const Signature & refundSignature);
@@ -275,7 +275,7 @@ private:
     // Maps endpoint to weak peer plugin pointer, is peer_plugin, since this is
     // the type of weak_ptr libtrrrent requires, hence might as well put it
     // in this type, rather than corresponding subclass of TorrentPlugin.
-    QMap<libtorrent::tcp::endpoint, boost::weak_ptr<BuyerPeerPlugin> > _peers;
+    QMap<libtorrent::tcp::endpoint, boost::shared_ptr<BuyerPeerPlugin> > _peers;
 
     // Wallet
     Wallet * _wallet;

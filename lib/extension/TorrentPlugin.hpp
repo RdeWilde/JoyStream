@@ -8,7 +8,7 @@
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
 
-#include <boost/weak_ptr.hpp>
+//#include <boost/weak_ptr.hpp>
 
 #include <QObject>
 #include <QMap>
@@ -79,7 +79,7 @@ public:
 
     // Constructor from member fields
     TorrentPlugin(Plugin * plugin,
-                  const boost::weak_ptr<libtorrent::torrent> & torrent,
+                  const boost::shared_ptr<libtorrent::torrent> & torrent,
                   const TorrentPlugin::Configuration & configuration,
                   QLoggingCategory & category);
 
@@ -108,7 +108,7 @@ public:
      * Routines called by libtorrent network thread from other plugin objects
      */
     // Get peer plugin, throws std::exception if there is no match
-    //virtual boost::weak_ptr<libtorrent::peer_plugin> peerPlugin(const libtorrent::tcp::endpoint & endPoint) const = 0;
+    //virtual boost::shared_ptr<libtorrent::peer_plugin> peerPlugin(const libtorrent::tcp::endpoint & endPoint) const = 0;
 
     // Process torrent plugin requests
     // void processTorrentPluginRequest(const TorrentPluginRequest * request);
@@ -123,13 +123,18 @@ public:
     virtual PluginMode pluginMode() const = 0;
     //virtual const TorrentPlugin::Configuration getTorrentPluginConfiguration() = 0;
 
+    boost::shared_ptr<libtorrent::torrent> torrent() const;
+    void setTorrent(const boost::shared_ptr<libtorrent::torrent> & torrent);
+
 protected:
 
-    // Parent plugin for BitSwapr: SHOULD THIS BE WEAK_PTR ?
+    // Parent plugin for BitSwapr
+    // Should this be boost::shared_ptr, since life time of object is managed by it?
+    // on the other hand, we loose Plugin behaviour through libtorrent::plugin pointer, which we need!
     Plugin * _plugin;
 
     // Torrent for this torrent_plugin
-    boost::weak_ptr<libtorrent::torrent> _torrent;
+    boost::shared_ptr<libtorrent::torrent> _torrent;
 
     // Set of all endpoints known to not have extension. Is populated by previous failed extended handshakes.
     QSet<libtorrent::tcp::endpoint> _peersWithoutExtension;
@@ -141,7 +146,7 @@ protected:
     QLoggingCategory & _category;
 
     // Torrent info hash
-    libtorrent::sha1_hash _infoHash;
+    //libtorrent::sha1_hash _infoHash;
 
     /**
     // Plugin is active and therefore does tick() processing.

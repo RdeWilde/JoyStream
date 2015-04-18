@@ -36,18 +36,18 @@ void SellerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
     quint32 minFeePerByte = ui->minFeeLineEdit->text().toInt();
 
+    quint32 maxNumberOfSellers = 2;
+
     QTime maxContractConfirmationDelayTime = ui->maxContractConfirmationDelayTimeEdit->time();
     quint32 maxContractConfirmationDelay = maxContractConfirmationDelayTime.hour()*3600 + maxContractConfirmationDelayTime.minute()*60 + maxContractConfirmationDelayTime.second();;
 
-    // Create configuration
-    SellerTorrentPlugin::Configuration configuration(true,
-                                                     minPrice,
-                                                     minLock,
-                                                     minFeePerByte,
-                                                     maxContractConfirmationDelay);
-
     // Set in seller mode
-    _controller->startSellerTorrentPlugin(_torrentInfo.info_hash(), configuration);
+    _controller->startSellerTorrentPlugin(_torrentInfo.info_hash(), SellerTorrentPlugin::Configuration(true,
+                                                                                                        minPrice,
+                                                                                                        minLock,
+                                                                                                        minFeePerByte,
+                                                                                                        maxNumberOfSellers,
+                                                                                                        maxContractConfirmationDelay));
 
     // close window
     done(0);

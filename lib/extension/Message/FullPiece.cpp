@@ -1,6 +1,7 @@
 #include "FullPiece.hpp"
-
 #include "MessageType.hpp"
+
+#include <QDataStream>
 
 FullPiece::FullPiece() {
 }
@@ -18,7 +19,6 @@ FullPiece::FullPiece(QDataStream & stream, int lengthOfPiece)
     // Check that we were able to read full piece
     if(result != lengthOfPiece)
         throw std::exception("Was unable to read full piece from stream.");
-
 }
 
 MessageType FullPiece::messageType() const {

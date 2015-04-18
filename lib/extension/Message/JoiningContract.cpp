@@ -1,6 +1,11 @@
 #include "JoiningContract.hpp"
 #include "MessageType.hpp"
+
 #include <QDataStream>
+
+JoiningContract::JoiningContract() {
+
+}
 
 JoiningContract::JoiningContract(const PublicKey & contractPk, const PublicKey & finalPk)
     : _contractPk(contractPk)

@@ -10,6 +10,9 @@ class Sell : public ExtendedMessagePayload
 
 public:
 
+    // Default constructor
+    Sell();
+
     // Constructor based on members
     Sell(quint32 minPrice, quint32 minLock, quint32 maxSellers);
 

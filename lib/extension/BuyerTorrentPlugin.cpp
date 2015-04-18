@@ -180,7 +180,7 @@ void BuyerTorrentPlugin::Configuration::setNumberOfSellers(quint32 numberOfSelle
 #define SIGN_REFUND_MAX_DELAY 5*1000
 
 BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
-                                       const boost::weak_ptr<libtorrent::torrent> & torrent,
+                                       const boost::shared_ptr<libtorrent::torrent> & torrent,
                                        Wallet * wallet,
                                        const BuyerTorrentPlugin::Configuration & configuration,
                                        const UnspentP2PKHOutput & utxo,
@@ -196,13 +196,8 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
     , _numberOfUnassignedPieces(0)
     , _assignmentLowerBound(0) {
 
-    // Get pointer to torrent, required for setup
-    boost::shared_ptr<libtorrent::torrent> sharedPtr = _torrent.lock();
-
-    Q_ASSERT(sharedPtr);
-
     // Get torrent info
-    const libtorrent::torrent_info & torrentInfo = sharedPtr->torrent_file();
+    const libtorrent::torrent_info & torrentInfo = _torrent->torrent_file();
 
     // Start clock for when picking sellers can begin
     _timeSincePluginStarted.start();
@@ -282,7 +277,7 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
                             //libtorrent::torrent_handle::query_pieces +
                             //libtorrent::torrent_handle::query_distributed_copies;
 
-    sharedPtr->status(&torrentStatus, flags);
+    _torrent->status(&torrentStatus, flags);
     _blockSize = torrentStatus.block_size;
 
     for(int i = 0;i < numberOfPieces;i++) {
@@ -294,7 +289,7 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
         int numberOfBlocksInPiece = (int) ceil(((double)pieceSize) / _blockSize);
 
         // Do we already have the valid piece
-        if(!sharedPtr->have_piece(i)) {
+        if(!_torrent->have_piece(i)) {
 
             // Add piece vector of pieces
             _pieces.push_back(Piece(i, pieceSize, numberOfBlocksInPiece, Piece::State::unassigned, NULL));
@@ -340,7 +335,7 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
 
 
     // Add to collection
-    _peers[endPoint] = boost::weak_ptr<BuyerPeerPlugin>(sharedPeerPluginPtr);
+    _peers[endPoint] = sharedPeerPluginPtr;
 
     qCDebug(_category) << "Buyer #" << _peers.count() << endPointString.c_str() << "added.";
 
@@ -381,7 +376,7 @@ void BuyerTorrentPlugin::tick() {
     }
 
     // Send status update to controller
-    sendTorrentPluginAlert(BuyerTorrentPluginStatusAlert(_infoHash, status()));
+    sendTorrentPluginAlert(BuyerTorrentPluginStatusAlert(_torrent->info_hash(), status()));
 }
 
 bool BuyerTorrentPlugin::on_resume() {
@@ -415,7 +410,7 @@ bool BuyerTorrentPlugin::inviteSeller(quint32 minPrice, quint32 minLock) const {
             minLock <= _maxLock;
 }
 
-bool BuyerTorrentPlugin::sellerWantsToJoinContract(BuyerPeerPlugin * peer, quint64 price, const PublicKey & contractPk, const PublicKey & finalPk, quint32 refundLockTime) {
+bool BuyerTorrentPlugin::sellerWantsToJoinContract(BuyerPeerPlugin * peer, quint64 price, quint32 refundLockTime, const PublicKey & contractPk, const PublicKey & finalPk) {
 
     // Check payor is trying to find sellers
     if(_payor.state() != Payor::State::waiting_for_full_set_of_sellers) {
@@ -471,7 +466,7 @@ bool BuyerTorrentPlugin::sellerWantsToJoinContract(BuyerPeerPlugin * peer, quint
             Q_ASSERT(channel.state() == Payor::Channel::State::assigned);
 
             // Create sign_refund message
-            SignRefund m(contractHash, index, channel.funds(), channel.payorFinalKeyPair().pk());
+            SignRefund m(contractHash, index, channel.funds(), channel.payorContractKeyPair().pk(), channel.payorFinalKeyPair().pk());
 
             // Get corresponding buyer peer plugin
             BuyerPeerPlugin * channelPeer = _slotToPluginMapping[index];
@@ -481,7 +476,7 @@ bool BuyerTorrentPlugin::sellerWantsToJoinContract(BuyerPeerPlugin * peer, quint
             // sign_refund message not yet sent
             // =>
             Q_ASSERT(channelPeer->clientState() == BuyerPeerPlugin::ClientState::invited_to_contract);
-            Q_ASSERT(channelPeer->peerState().lastAction() == BuyerPeerPlugin::PeerState::LastValidAction::joined_contract);
+            //Q_ASSERT(channelPeer->peerState().lastAction() == BuyerPeerPlugin::PeerState::LastValidAction::joined_contract);
             Q_ASSERT(channelPeer->peerState().failureMode() == BuyerPeerPlugin::PeerState::FailureMode::not_failed);
 
             // Have plugin send message
@@ -500,12 +495,9 @@ bool BuyerTorrentPlugin::sellerWantsToJoinContract(BuyerPeerPlugin * peer, quint
 
 bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, const Signature & refundSignature) {
 
-    //if(_state != State::waiting_for_payor_to_be_ready)
-
-    // OBS: MAY NEED TO BE EXCEPTION INSTEAD, DEPENDING ON WHETHER PEER PLUGINS
-    // CAN LEGALLY EVER CALL THIS!
-    // peer plugin .... =>
+    // call conditions =>
     Q_ASSERT(_state == State::waiting_for_payor_to_be_ready);
+    Q_ASSERT(peer->clientState() == BuyerPeerPlugin::ClientState::asked_for_refund_signature);
 
     // Check that signature is valid
     bool wasValid = _payor.processRefundSignature(peer->payorSlot(), refundSignature);
@@ -513,6 +505,8 @@ bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, c
     // Return that signature was invalid
     if(!wasValid)
         return false;
+    else
+        peer->setClientState(BuyerPeerPlugin::ClientState::received_valid_refund_signature_and_waiting_for_others);
 
     // Check if we have all signatures
     if(_payor.allRefundsSigned()) {
@@ -528,9 +522,8 @@ bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, c
             BuyerPeerPlugin * p = *i;
 
             // _payor.allRefundSigned =>
-            Q_ASSERT(p == peer && p->clientState() == BuyerPeerPlugin::ClientState::asked_for_refund_signature);
             Q_ASSERT(p->clientState() == BuyerPeerPlugin::ClientState::received_valid_refund_signature_and_waiting_for_others);
-            Q_ASSERT(p->peerState().lastAction() == BuyerPeerPlugin::PeerState::LastValidAction::signed_refund);
+            //Q_ASSERT(p->peerState().lastAction() == BuyerPeerPlugin::PeerState::LastValidAction::signed_refund);
 
             // Send ready message
             p->sendExtendedMessage(Ready());
@@ -559,7 +552,7 @@ bool BuyerTorrentPlugin::assignPieceToPeerPlugin(BuyerPeerPlugin * peerPlugin) {
     Q_ASSERT(_state == State::downloading_pieces);
     Q_ASSERT(peerPlugin->clientState() == BuyerPeerPlugin::ClientState::needs_to_be_assigned_piece);
     Q_ASSERT(_peerPluginsWithoutPieceAssignment.contains(peerPlugin));
-    Q_ASSERT(peerPlugin->unservicedRequests().empty());
+    //Q_ASSERT(peerPlugin->unservicedRequests().empty());
 
     // Try to get next piece
     int pieceIndex;
@@ -589,11 +582,11 @@ bool BuyerTorrentPlugin::assignPieceToPeerPlugin(BuyerPeerPlugin * peerPlugin) {
      // Update peer plugin
      //peerPlugin->setAssignedPiece(true);
      peerPlugin->setIndexOfAssignedPiece(pieceIndex);
-     peerPlugin->setPieceSize(piece.length());
-     peerPlugin->setBlockSize(_blockSize); // Does not change from piece to piece, put in peer configuration or something later
-     peerPlugin->setNumberOfBlocksInPiece(piece.numberOfBlocks());
-     peerPlugin->setNumberOfBlocksRequested(0);
-     peerPlugin->setNumberOfBlocksReceived(0);
+     //peerPlugin->setPieceSize(piece.length());
+     //peerPlugin->setBlockSize(_blockSize); // Does not change from piece to piece, put in peer configuration or something later
+     //peerPlugin->setNumberOfBlocksInPiece(piece.numberOfBlocks());
+     //peerPlugin->setNumberOfBlocksRequested(0);
+     //peerPlugin->setNumberOfBlocksReceived(0);
      //instead: peerPlugin->assignPiece(piece);
 
      // Remove from set of unassigned peer plugins, if its there
@@ -675,20 +668,15 @@ bool BuyerTorrentPlugin::checkLengthAndValidatePiece(int pieceIndex, const QVect
     // This routine should only be called if following holds
     Q_ASSERT(_state == State::downloading_pieces);
 
-    // Get torrent
-    boost::shared_ptr<libtorrent::torrent> torrent = _torrent.lock();
-
-    Q_ASSERT(torrent);
-
     // Check that piece has correct length
-    if(pieceData.size() != torrent->torrent_file().piece_size(pieceIndex))
+    if(pieceData.size() != _torrent->torrent_file().piece_size(pieceIndex))
         return false;
 
     // Tell libtorrent to validate piece
     // last argument is a flag which presently seems to only test
     // flags & torrent::overwrite_existing, which seems to be whether
     // the piece should be overwritten if it is already present
-    torrent->add_piece(pieceIndex, pieceData.data(), 0);
+    _torrent->add_piece(pieceIndex, pieceData.data(), 0);
 
     return true;
 }
@@ -698,27 +686,21 @@ BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
      // Build list of buyer peer statuses
      QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> peers;
 
-     for(QMap<libtorrent::tcp::endpoint, boost::weak_ptr<BuyerPeerPlugin> >::const_iterator i = _peers.constBegin(),
-             end(_peers.constEnd());i != end;i++) {
-
-         // Try to get shared pointer, and get status for peer plugin
-         if(boost::shared_ptr<BuyerPeerPlugin> sharedPtr = i.value().lock())
-             peers[i.key()] = sharedPtr->status();
-         else
-             qCDebug(_category) << "BuyerPeerPlugin was invalid!";
-     }
+     for(QMap<libtorrent::tcp::endpoint, boost::shared_ptr<BuyerPeerPlugin> >::const_iterator i = _peers.constBegin(),
+             end(_peers.constEnd());i != end;i++)
+         peers[i.key()] = (i.value())->status();
 
      // Return final status
      return Status(_state, peers, _payor.status());
  }
 
  /**
- boost::weak_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::peerPlugin(const libtorrent::tcp::endpoint & endPoint) const {
+ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::peerPlugin(const libtorrent::tcp::endpoint & endPoint) const {
 
      if(_peers.contains(endPoint)) {
          return _peers[endPoint];
      else
-         return boost::weak_ptr<libtorrent::peer_plugin>(NULL);
+         return boost::shared_ptr<libtorrent::peer_plugin>(NULL);
 
  }
 

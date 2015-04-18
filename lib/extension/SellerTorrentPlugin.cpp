@@ -1,6 +1,7 @@
 #include "SellerTorrentPlugin.hpp"
 #include "PluginMode.hpp"
 #include "SellerPeerPlugin.hpp"
+#include "BitCoin/Wallet.hpp"
 
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/peer_connection.hpp>
@@ -8,6 +9,9 @@
 #include <libtorrent/socket_io.hpp> // print_endpoint
 
 #include <QLoggingCategory>
+//#include <QtMath> // qCeil
+
+//#include <boost/bind.hpp>
 
 /**
  * @brief SellerTorrentPlugin::Configuration
@@ -17,44 +21,21 @@ SellerTorrentPlugin::Configuration::Configuration() {
 
 }
 
-SellerTorrentPlugin::Configuration::Configuration(bool enableBanningSets, quint64 minPrice, quint32 minLock, quint64 minFeePerByte, quint32 maxContractConfirmationDelay)
+SellerTorrentPlugin::Configuration::Configuration(bool enableBanningSets,
+                                                  quint64 minPrice,
+                                                  quint32 minLock,
+                                                  quint64 minFeePerByte,
+                                                  quint32 maxNumberOfSellers,
+                                                  quint32 maxContractConfirmationDelay)
     : TorrentPlugin::Configuration(enableBanningSets)
     , _minPrice(minPrice)
     , _minLock(minLock)
     , _minFeePerByte(minFeePerByte)
+    , _maxNumberOfSellers(maxNumberOfSellers)
     , _maxContractConfirmationDelay(maxContractConfirmationDelay) {
 }
 
 SellerTorrentPlugin::Configuration::Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry) {
-
-}
-
-quint32 SellerTorrentPlugin::Configuration::maxContractConfirmationDelay() const {
-    return _maxContractConfirmationDelay;
-}
-
-void SellerTorrentPlugin::Configuration::setMaxContractConfirmationDelay(quint32 maxContractConfirmationDelay) {
-    _maxContractConfirmationDelay = maxContractConfirmationDelay;
-}
-
-quint64 SellerTorrentPlugin::Configuration::minFeePerByte() const {
-    return _minFeePerByte;
-}
-
-void SellerTorrentPlugin::Configuration::setMinFeePerByte(quint64 minFeePerByte) {
-    _minFeePerByte = minFeePerByte;
-}
-
-quint32 SellerTorrentPlugin::Configuration::minLock() const {
-    return _minLock;
-}
-
-void SellerTorrentPlugin::Configuration::setMinLock(quint32 minLock) {
-    _minLock = minLock;
-}
-
-PluginMode SellerTorrentPlugin::Configuration::pluginMode() const {
-    return PluginMode::Seller;
 }
 
 quint64 SellerTorrentPlugin::Configuration::minPrice() const {
@@ -65,12 +46,48 @@ void SellerTorrentPlugin::Configuration::setMinPrice(quint64 minPrice) {
     _minPrice = minPrice;
 }
 
+quint32 SellerTorrentPlugin::Configuration::minLock() const {
+    return _minLock;
+}
+
+void SellerTorrentPlugin::Configuration::setMinLock(quint32 minLock) {
+    _minLock = minLock;
+}
+
+quint64 SellerTorrentPlugin::Configuration::minFeePerByte() const {
+    return _minFeePerByte;
+}
+
+void SellerTorrentPlugin::Configuration::setMinFeePerByte(quint64 minFeePerByte) {
+    _minFeePerByte = minFeePerByte;
+}
+
+quint32 SellerTorrentPlugin::Configuration::maxNumberOfSellers() const {
+    return _maxNumberOfSellers;
+}
+
+void SellerTorrentPlugin::Configuration::setMaxNumberOfSellers(quint32 minNumberOfSellers) {
+    _maxNumberOfSellers = minNumberOfSellers;
+}
+
+quint32 SellerTorrentPlugin::Configuration::maxContractConfirmationDelay() const {
+    return _maxContractConfirmationDelay;
+}
+
+void SellerTorrentPlugin::Configuration::setMaxContractConfirmationDelay(quint32 maxContractConfirmationDelay) {
+    _maxContractConfirmationDelay = maxContractConfirmationDelay;
+}
+
+PluginMode SellerTorrentPlugin::Configuration::pluginMode() const {
+    return PluginMode::Seller;
+}
+
 /**
  * SellerTorrentPlugin
  */
 
 SellerTorrentPlugin::SellerTorrentPlugin(Plugin * plugin,
-                                         const boost::weak_ptr<libtorrent::torrent> & torrent,
+                                         const boost::shared_ptr<libtorrent::torrent> & torrent,
                                          const SellerTorrentPlugin::Configuration & configuration,
                                          QLoggingCategory & category)
     : TorrentPlugin(plugin, torrent, configuration, category)
@@ -105,32 +122,48 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
     // Create seller peer
     libtorrent::bt_peer_connection * bittorrentPeerConnection = static_cast<libtorrent::bt_peer_connection*>(peerConnection);
 
+    // Get fresh key pairs for seller side of contract
+    QList<Wallet::Entry> contractKeysEntry = _wallet->generateNewKeys(1, Wallet::Purpose::SellerInContractOutput).values();
+    KeyPair payeeContractKeys = contractKeysEntry.front().keyPair();
+
+    QList<Wallet::Entry> paymentKeysEntry = _wallet->generateNewKeys(1, Wallet::Purpose::ContractPayment).values();
+    KeyPair payeePaymentKeys = paymentKeysEntry.front().keyPair();
+
+    // Get block size, peer requires it
+    libtorrent::torrent_status st;
+    _torrent->status(&st,0);
+    int blockSize = st.block_size;
+
     // Create shared pointer to new seller peer plugin
     boost::shared_ptr<SellerPeerPlugin> sharedPeerPluginPtr(new SellerPeerPlugin(this,
-                                                                                bittorrentPeerConnection,
-                                                                                _category));
+                                                                                 bittorrentPeerConnection,
+                                                                                 Payee::Configuration(Payee::State::waiting_for_payor_information,
+                                                                                                      0,
+                                                                                                      Signature(),
+                                                                                                      _minLock,
+                                                                                                      _minPrice,
+                                                                                                      _maxNumberOfSellers,
+                                                                                                      payeeContractKeys,
+                                                                                                      payeePaymentKeys,
+                                                                                                      OutPoint(),
+                                                                                                      PublicKey(),
+                                                                                                      PublicKey(),
+                                                                                                      0),
+                                                                                 _torrent->torrent_file(),
+                                                                                 blockSize,
+                                                                                 _category));
     // Add to collection
-    _peers[endPoint] = boost::weak_ptr<SellerPeerPlugin>(sharedPeerPluginPtr);
+    _peers[endPoint] = sharedPeerPluginPtr;
 
-    if(boost::shared_ptr<libtorrent::torrent> sharedTorrentPtr = _torrent.lock()) {
 
-        std::string name = sharedTorrentPtr->name();
+    qCDebug(_category) << "Seller #" << _peers.size() << endPointString.c_str() << "added to " << _torrent->name().c_str();
 
-        qCDebug(_category) << "Seller #" << _peers.size() << endPointString.c_str() << "added to " << name.c_str();
+    // Emit peer added signal
+    // Should not be here, should be when a payment channel actually starts
+    //emit peerAdded(peerPlugin->getPeerPluginId());
 
-        // Emit peer added signal
-        // Should not be here, should be when a payment channel actually starts
-        //emit peerAdded(peerPlugin->getPeerPluginId());
-
-        // Return pointer to plugin as required
-        return sharedPeerPluginPtr;
-
-    } else {
-
-        qCDebug(_category) << "_torrent pointer invalid.";
-
-        return boost::shared_ptr<libtorrent::peer_plugin>(NULL);
-    }
+    // Return pointer to plugin as required
+    return sharedPeerPluginPtr;
 }
 
 void SellerTorrentPlugin::on_piece_pass(int index) {
@@ -203,22 +236,80 @@ void SellerTorrentPlugin::on_add_peer(libtorrent::tcp::endpoint const & endPoint
     */
 }
 
-int SellerTorrentPlugin::disk_async_read_piece(SellerPeerPlugin * peer, ) {
-
-    // Check which piece has been assigned to this peer
-
-    // Generate N async reads based on corresponding peer_requests
-    // callback is routine in given peer
-
+void SellerTorrentPlugin::async_read(const libtorrent::peer_request & r,
+                                     const boost::function<void(int, libtorrent::disk_io_job const&)> & handler,
+                                     int cache_line_size,
+                                     int cache_expiry) {
+    _torrent->filesystem().async_read(r, handler, cache_line_size, cache_expiry);
 }
 
 /**
-boost::weak_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::peerPlugin(const libtorrent::tcp::endpoint & endPoint) const {
+int SellerTorrentPlugin::disk_async_read_piece(SellerPeerPlugin * peer) {
+
+    // Get torrent file
+    libtorrent::torrent_info torrentFile = _torrent->torrent_file();
+
+    // Get total number of pieces
+    int totalNumberOfPieces = torrentFile.num_pieces();
+    Q_ASSERT(peer->totalNumberOfPieces() == totalNumberOfPieces);
+
+    // Get piece which should be read
+    int piece = peer->lastRequestedFullPiece();
+
+    // Get size of given piece
+    int pieceSize = torrentFile.piece_size(piece);
+
+    // Get block size
+    libtorrent::torrent_status status;
+    _torrent->status(&status, 0);
+    int block_size = status.block_size;
+
+    // Assert some piece invariants which caller should maintain
+    Q_ASSERT(peer->completedAsyncReads().size() == 0);
+    Q_ASSERT(peer->numberOfAsyncReadsCompleted() == 0);
+    Q_ASSERT(peer->clientState() == SellerPeerPlugin::ClientState::reading_piece_from_disk);
+    Q_ASSERT(piece >= 0);
+    Q_ASSERT(piece < totalNumberOfPieces);
+
+    // Calculate number of blocks in the piece
+    int numberOfBlocksInPiece = qCeil(((double)pieceSize) / block_size);
+
+    // Create space in peer for the future callbacks
+    peer->setCompletedAsyncReads(QVector<libtorrent::disk_io_job>(numberOfBlocksInPiece));
+
+    // Tell peer how large this piece is, is required
+    peer->setLastRequestedFullPieceSize(pieceSize);
+
+    // Generate one request per block
+    libtorrent::piece_manager & manager = _torrent->filesystem();
+
+    for(int block = 0;block < numberOfBlocksInPiece;block++) {
+
+        // Build request
+        libtorrent::peer_request request;
+        request.piece = piece;
+        request.start = block*block_size;
+
+        // take into account that last block may be smaller
+        request.length = (block < numberOfBlocksInPiece - 1) ? block_size : pieceSize - request.start;
+
+        // Make request of piece manager
+        manager.async_read(request, boost::bind(&SellerPeerPlugin::disk_async_read_handler, peer, block, _1, _2));
+
+        qCDebug(_category) << "async_read block " << block;
+    }
+
+    return numberOfBlocksInPiece;
+}
+*/
+
+/**
+boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::peerPlugin(const libtorrent::tcp::endpoint & endPoint) const {
 
     if(_peers.contains(endPoint)) {
         return _peers[endPoint];
     else
-        return boost::weak_ptr<libtorrent::peer_plugin>(NULL);
+        return boost::shared_ptr<libtorrent::peer_plugin>(NULL);
 
 }
 */
@@ -298,6 +389,14 @@ quint64 SellerTorrentPlugin::minFeePerByte() const {
 
 void SellerTorrentPlugin::setMinFeePerByte(quint64 minFeePerByte) {
     _minFeePerByte = minFeePerByte;
+}
+
+quint32 SellerTorrentPlugin::maxNumberOfSellers() const {
+    return _maxNumberOfSellers;
+}
+
+void SellerTorrentPlugin::setMaxNumberOfSellers(quint32 minNumberOfSellers) {
+    _maxNumberOfSellers = minNumberOfSellers;
 }
 
 quint32 SellerTorrentPlugin::maxContractConfirmationDelay() const {

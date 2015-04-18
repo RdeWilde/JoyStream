@@ -8,6 +8,9 @@ class JoiningContract : public ExtendedMessagePayload
 {
 public:
 
+    // Default constructor
+    JoiningContract();
+
     // Construct from members
     JoiningContract(const PublicKey & contractPk, const PublicKey & finalPk);
 

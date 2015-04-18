@@ -81,22 +81,13 @@ void TorrentPlugin::Configuration::setEnableBanningSets(bool enableBanningSets) 
  */
 
 TorrentPlugin::TorrentPlugin(Plugin * plugin,
-                             const boost::weak_ptr<libtorrent::torrent> & torrent,
+                             const boost::shared_ptr<libtorrent::torrent> & torrent,
                              const TorrentPlugin::Configuration & configuration,
                              QLoggingCategory & category)
     : _plugin(plugin)
     , _torrent(torrent)
     , _enableBanningSets(configuration.enableBanningSets())
     , _category(category) {
-
-
-    if(boost::shared_ptr<libtorrent::torrent> torrentSharedPtr = torrent.lock()) {
-
-        // Grab info hash
-        _infoHash = torrentSharedPtr->info_hash();
-
-    } else
-        qCDebug(_category) << "Invalid torrent pointer passed.";
 }
 
 TorrentPlugin::~TorrentPlugin() {
@@ -106,10 +97,10 @@ TorrentPlugin::~TorrentPlugin() {
 }
 
 /**
-boost::weak_ptr<libtorrent::peer_plugin> TorrentPlugin::peerPlugin(const libtorrent::tcp::endpoint & endPoint) {
+boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::peerPlugin(const libtorrent::tcp::endpoint & endPoint) {
 
     // Lookup plugin based on endpoint
-    QMap<libtorrent::tcp::endpoint, boost::weak_ptr<libtorrent::peer_plugin> >::const_iterator i = _peerPlugins.find(endPoint);
+    QMap<libtorrent::tcp::endpoint, boost::shared_ptr<libtorrent::peer_plugin> >::const_iterator i = _peerPlugins.find(endPoint);
 
     // Return weak pointer for match, otherwise throw exception
     if(i != _peerPlugins.end())
@@ -148,11 +139,19 @@ void TorrentPlugin::addToIrregularPeersSet(const libtorrent::tcp::endpoint & end
     _irregularPeer.insert(endPoint);
 }
 
-bool TorrentPlugin::isPeerWellBehaved(libtorrent::peer_connection * connection) const {
+boost::shared_ptr<libtorrent::torrent> TorrentPlugin::torrent() const {
+    return _torrent;
+}
 
+void TorrentPlugin::setTorrent(const boost::shared_ptr<libtorrent::torrent> &torrent) {
+    _torrent = torrent;
+}
+
+bool TorrentPlugin::isPeerWellBehaved(libtorrent::peer_connection * connection) const {
+    
     // Get endpoint of connection
     const libtorrent::tcp::endpoint & endPoint = connection->remote();
-
+    
     // If we are using banning sets, then check this peer
     if(_enableBanningSets) {
 
@@ -201,12 +200,7 @@ void TorrentPlugin::processTorrentPluginRequest(const TorrentPluginRequest * req
 */
 
 void TorrentPlugin::sendTorrentPluginAlert(const TorrentPluginAlert & alert) {
-
-    // Get shared pointer, if possible
-    if(boost::shared_ptr<libtorrent::torrent> torrentSharedPtr = _torrent.lock())
-        torrentSharedPtr->alerts().post_alert(alert);
-    else
-        qCDebug(_category) << "Torrent no longer exists, cannot send alert via torrent.";
+    _torrent->alerts().post_alert(alert);
 }
 
 /*

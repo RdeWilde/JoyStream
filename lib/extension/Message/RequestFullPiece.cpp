@@ -1,6 +1,7 @@
 #include "RequestFullPiece.hpp"
-
 #include "MessageType.hpp"
+
+#include <QDataStream>
 
 RequestFullPiece::RequestFullPiece() {
 }

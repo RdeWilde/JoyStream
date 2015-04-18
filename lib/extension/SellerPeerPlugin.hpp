@@ -8,12 +8,16 @@
 #include "Message/Buy.hpp"
 #include "Message/SignRefund.hpp"
 #include "Message/Payment.hpp"
+#include "Message/RequestFullPiece.hpp"
 
 //#include "extension/BitCoin/PublicKey.hpp"
 //#include "extension/BitCoin/TxId.hpp"
 //#include "extension/BitCoin/Signature.hpp"
 
+#include <libtorrent/torrent_info.hpp>
+
 #include <QSet>
+#include <QVector>
 
 class SellerTorrentPlugin;
 
@@ -32,6 +36,7 @@ public:
 
     public:
 
+        /**
         // Enumeration of possible states
         // a peer can have when facing seller
         // and last message sent was
@@ -46,6 +51,7 @@ public:
             made_request,
             made_payment
         };
+        */
 
         // Bad states
         enum class FailureMode {
@@ -80,15 +86,18 @@ public:
         PeerState();
 
         // Constructor from members
-        PeerState(LastValidAction lastAction,
+        PeerState(//LastValidAction lastAction,
                   FailureMode failureMode,
                   const Buy & lastBuyReceived,
                   const SignRefund & lastSignRefundReceived,
-                  const Payment & lastPaymentReceived);
+                  const Payment & lastPaymentReceived,
+                  const RequestFullPiece & lastRequestFullPieceReceived);
 
         // Getters and setters
+        /**
         LastValidAction lastAction() const;
         void setLastAction(LastValidAction lastAction);
+        */
 
         FailureMode failureMode() const;
         void setFailureMode(FailureMode failureMode);
@@ -102,10 +111,13 @@ public:
         Payment lastPaymentReceived() const;
         void setLastPaymentReceived(const Payment & lastPaymentReceived);
 
+        RequestFullPiece lastRequestFullPieceReceived() const;
+        void setLastRequestFullPieceReceived(const RequestFullPiece &lastRequestFullPieceReceived);
+
     private:
 
         // Last valid action of peer
-        LastValidAction _lastAction;
+        //LastValidAction _lastAction;
 
         // How peer may have failed
         FailureMode _failureMode;
@@ -116,6 +128,7 @@ public:
         Buy _lastBuyReceived;
         SignRefund _lastSignRefundReceived;
         Payment _lastPaymentReceived; // May be invalid, the valid payment is saved in Payee
+        RequestFullPiece _lastRequestFullPieceReceived;
     };
 
     /**
@@ -191,6 +204,8 @@ public:
     SellerPeerPlugin(SellerTorrentPlugin * torrentPlugin,
                      libtorrent::bt_peer_connection * connection,
                      const Payee::Configuration & payeeConfiguration,
+                     libtorrent::torrent_info torrentFile,
+                     int blockSize,
                      QLoggingCategory & category);
 
     // Destructor
@@ -224,15 +239,34 @@ public:
     virtual void tick();
     virtual bool write_request(libtorrent::peer_request const & peerRequest);
 
-    // Handler
-    void disk_async_read_handler(int, const libtorrent::disk_io_job & job);
+    // Handler used by block read call
+    void disk_async_read_handler(int block, int, const libtorrent::disk_io_job & job);
 
     // Getters and setters
     virtual PluginMode mode() const;
 
+    ClientState clientState() const;
+    void setClientState(const ClientState &clientState);
+
+    int lastRequestedFullPiece() const;
+    void setLastRequestedFullPiece(int lastRequestedFullPiece);
+
+    int lastRequestedFullPieceSize() const;
+    void setLastRequestedFullPieceSize(int lastRequestedFullPieceSize);
+
+    quint32 numberOfAsyncReadsCompleted() const;
+    void setNumberOfAsyncReadsCompleted(quint32 numberOfAsyncReadsCompleted);
+
+    QVector<libtorrent::disk_io_job> completedAsyncReads() const;
+    void setCompletedAsyncReads(const QVector<libtorrent::disk_io_job> &completedAsyncReads);
+
+    quint32 totalNumberOfPieces() const;
+    void setTotalNumberOfPieces(quint32 totalNumberOfPieces);
+
 private:
 
     // Torrent level plugin
+    // Should we use a boost::shared_ptr instead since object lifetime is managed by it?
     SellerTorrentPlugin * _plugin;
 
     // State of peer
@@ -260,14 +294,24 @@ private:
      */
 
     /**
+     * Torrent information and status
+     */
+
+    // Meta data in torrent file
+    libtorrent::torrent_info _torrentFile;
+
+    // Block size used
+    int _blockSize;
+
+    /**
      * Request/Piece management
      */
 
-    // Last full piece request
-    int _lastRequestedFullPiece;
+    // Last full piece request: The piece currently being read from disk/transmitted
+    //int _lastRequestedFullPiece;
 
     // Full pieces sent
-    QList<int> _sendFullPieces;
+    QList<int> _fullPiecesSent;
 
     // Requests received but not serviced, in order
     //QList<libtorrent::peer_request> _sPendingRequests;
@@ -276,12 +320,21 @@ private:
     //QList<libtorrent::peer_request> _serviced;
 
     /**
-     * Piece reading management
+     * Piece reading management:
+     * The values in this section are only relevant when
+     * _clientState == ClientState::reading_piece_from_disk
      */
 
+    // The number of reads completed so far
+    quint32 _numberOfAsyncReadsCompleted;
+
+    // Vector of block read operations, where read operation is located
+    // in position of corresponding block number.
     QVector<libtorrent::disk_io_job> _completedAsyncReads;
 
-    // Processess message
+    /**
+     *  Processess message
+     */
     virtual void processObserve(const Observe * m);
     virtual void processBuy(const Buy * m);
     virtual void processSell(const Sell * m);
@@ -291,7 +344,7 @@ private:
     virtual void processRefundSigned(const RefundSigned * m);
     virtual void processReady(const Ready * m);
     virtual void processRequestFullPiece(const RequestFullPiece * m);
-    virtual void processFullPiece(const FullPiece * m) = 0;
+    virtual void processFullPiece(const FullPiece * m);
     virtual void processPayment(const Payment * m);
 
     // Resets plugin in response to peer sending a mode message

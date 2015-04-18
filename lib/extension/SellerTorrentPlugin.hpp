@@ -4,6 +4,8 @@
 #include "TorrentPlugin.hpp"
 #include "SellerPeerPlugin.hpp"
 
+class Wallet;
+
 class SellerTorrentPlugin : public TorrentPlugin
 {
 public:
@@ -32,7 +34,12 @@ public:
         Configuration();
 
         // Constructor from members
-        Configuration(bool enableBanningSets, quint64 minPrice, quint32 minLock, quint64 minFeePerByte, quint32 maxContractConfirmationDelay);
+        Configuration(bool enableBanningSets,
+                      quint64 minPrice,
+                      quint32 minLock,
+                      quint64 minFeePerByte,
+                      quint32 maxNumberOfSellers,
+                      quint32 maxContractConfirmationDelay);
 
         // Constructor from dictionary
         Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry);
@@ -49,6 +56,9 @@ public:
         quint64 minFeePerByte() const;
         void setMinFeePerByte(quint64 minFeePerByte);
 
+        quint32 maxNumberOfSellers() const;
+        void setMaxNumberOfSellers(quint32 maxNumberOfSellers);
+
         quint32 maxContractConfirmationDelay() const;
         void setMaxContractConfirmationDelay(quint32 maxContractConfirmationDelay);
 
@@ -63,13 +73,16 @@ public:
         // Minimum fee per byte in contract transaction (satoshies)
         quint64 _minFeePerByte;
 
+        // Number of sellers
+        quint32 _maxNumberOfSellers;
+
         // Maximum time (s) for which seller is willing to seed without contract getting at least one confirmation
         quint32 _maxContractConfirmationDelay;
     };
 
     // Constructor
     SellerTorrentPlugin(Plugin * plugin,
-                        const boost::weak_ptr<libtorrent::torrent> & torrent,
+                        const boost::shared_ptr<libtorrent::torrent> & torrent,
                         const SellerTorrentPlugin::Configuration & configuration,
                         QLoggingCategory & category);
 
@@ -88,11 +101,17 @@ public:
     virtual void on_add_peer(const libtorrent::tcp::endpoint & endPoint, int src, int flags);
 
     // Get peer_plugin if present, otherwise NULL pointer is wrapped
-    //virtual boost::weak_ptr<libtorrent::peer_plugin> peerPlugin(const libtorrent::tcp::endpoint & endPoint) const;
+    //virtual boost::shared_ptr<libtorrent::peer_plugin> peerPlugin(const libtorrent::tcp::endpoint & endPoint) const;
 
-    //
-    int disk_async_read_piece(SellerPeerPlugin * peer, );
+    // Schedules asynchronous reads for all the blocks in the piece
+    // presently assigned to the given peer
+    //int disk_async_read_piece(SellerPeerPlugin * peer);
 
+    // Issues asynchronous read operation to piece manager
+    void async_read(const libtorrent::peer_request & r,
+                    const boost::function<void(int, libtorrent::disk_io_job const&)> & handler,
+                    int cache_line_size = 0,
+                    int cache_expiry = 0);
 
     // Getters and setters
     virtual PluginMode pluginMode() const;
@@ -106,6 +125,9 @@ public:
     quint64 minFeePerByte() const;
     void setMinFeePerByte(quint64 minFeePerByte);
 
+    quint32 maxNumberOfSellers() const;
+    void setMaxNumberOfSellers(quint32 maxNumberOfSellers);
+
     quint32 maxContractConfirmationDelay() const;
     void setMaxContractConfirmationDelay(quint32 maxContractConfirmationDelay);
 
@@ -114,7 +136,10 @@ private:
     // Maps endpoint to weak peer plugin pointer, is peer_plugin, since this is
     // the type of weak_ptr libtrrrent requires, hence might as well put it
     // in this type, rather than corresponding subclass of TorrentPlugin.
-    QMap<libtorrent::tcp::endpoint, boost::weak_ptr<SellerPeerPlugin> > _peers;
+    QMap<libtorrent::tcp::endpoint, boost::shared_ptr<SellerPeerPlugin> > _peers;
+
+    // Wallet
+    Wallet * _wallet;
 
     // Maximum price accepted (satoshies)
     quint64 _minPrice;
@@ -124,6 +149,9 @@ private:
 
     // Minimum fee per byte in contract transaction (satoshies)
     quint64 _minFeePerByte;
+
+    // Number of sellers
+    quint32 _maxNumberOfSellers;
 
     // Maximum time (s) for which seller is willing to seed without contract getting at least one confirmation
     quint32 _maxContractConfirmationDelay;

@@ -5,22 +5,25 @@
  */
 
 SellerPeerPlugin::PeerState::PeerState()
-    : _lastAction(LastValidAction::no_bitswapr_message_sent)
-    , _failureMode(FailureMode::not_failed) {
+    : //_lastAction(LastValidAction::no_bitswapr_message_sent)
+    _failureMode(FailureMode::not_failed) {
 }
 
-SellerPeerPlugin::PeerState::PeerState(LastValidAction lastAction,
+SellerPeerPlugin::PeerState::PeerState(//LastValidAction lastAction,
                                        FailureMode failureMode,
                                        const Buy & lastBuyReceived,
                                        const SignRefund & lastSignRefundReceived,
-                                       const Payment & lastPaymentReceived)
-    : _lastAction(lastAction)
-    , _failureMode(failureMode)
+                                       const Payment & lastPaymentReceived,
+                                       const RequestFullPiece & lastRequestFullPieceReceived)
+    : //_lastAction(lastAction)
+      _failureMode(failureMode)
     , _lastBuyReceived(lastBuyReceived)
     , _lastSignRefundReceived(lastSignRefundReceived)
-    , _lastPaymentReceived(lastPaymentReceived) {
+    , _lastPaymentReceived(lastPaymentReceived)
+    , _lastRequestFullPieceReceived(lastRequestFullPieceReceived){
 }
 
+/**
 SellerPeerPlugin::PeerState::LastValidAction SellerPeerPlugin::PeerState::lastAction() const {
     return _lastAction;
 }
@@ -28,6 +31,7 @@ SellerPeerPlugin::PeerState::LastValidAction SellerPeerPlugin::PeerState::lastAc
 void SellerPeerPlugin::PeerState::setLastAction(LastValidAction lastAction) {
     _lastAction = lastAction;
 }
+*/
 
 SellerPeerPlugin::PeerState::FailureMode SellerPeerPlugin::PeerState::failureMode() const {
     return _failureMode;
@@ -53,20 +57,20 @@ void SellerPeerPlugin::PeerState::setLastSignRefundReceived(const SignRefund & l
     _lastSignRefundReceived = lastSignRefundReceived;
 }
 
-JoinContract SellerPeerPlugin::PeerState::lastJoinContractReceived() const {
-    return _lastJoinContractReceived;
-}
-
-void SellerPeerPlugin::PeerState::setLastJoinContractReceived(const JoinContract & lastJoinContractReceived) {
-    _lastJoinContractReceived = lastJoinContractReceived;
-}
-
 Buy SellerPeerPlugin::PeerState::lastBuyReceived() const {
     return _lastBuyReceived;
 }
 
 void SellerPeerPlugin::PeerState::setLastBuyReceived(const Buy & lastBuyReceived){
     _lastBuyReceived = lastBuyReceived;
+}
+
+RequestFullPiece SellerPeerPlugin::PeerState::lastRequestFullPieceReceived() const {
+    return _lastRequestFullPieceReceived;
+}
+
+void SellerPeerPlugin::PeerState::setLastRequestFullPieceReceived(const RequestFullPiece & lastRequestFullPieceReceived) {
+    _lastRequestFullPieceReceived = lastRequestFullPieceReceived;
 }
 
 /**
@@ -122,15 +126,30 @@ void SellerPeerPlugin::Status::setClientState(ClientState clientState) {
 #include <libtorrent/storage.hpp> // libtorrent::disk_io_job
 
 #include <QLoggingCategory>
+#include <QtMath> // qCeil
+
+#include <boost/bind.hpp>
 
 SellerPeerPlugin::SellerPeerPlugin(SellerTorrentPlugin * torrentPlugin,
                                    libtorrent::bt_peer_connection * connection,
                                    const Payee::Configuration & payeeConfiguration,
+                                   libtorrent::torrent_info torrentFile,
+                                   int blockSize,
                                    QLoggingCategory & category)
     : PeerPlugin(torrentPlugin, connection, category)
     , _plugin(torrentPlugin)
+    , _peerState(//PeerState::LastValidAction::no_bitswapr_message_sent,
+                 PeerState::FailureMode::not_failed,
+                 Buy(),
+                 SignRefund(),
+                 Payment(),
+                 RequestFullPiece())
     , _clientState(ClientState::no_bitswapr_message_sent)
-    , _payee(payeeConfiguration) {
+    , _payee(payeeConfiguration)
+    , _torrentFile(torrentFile)
+    , _blockSize(blockSize)
+    , _numberOfAsyncReadsCompleted(0) {
+
     //, _minPrice(minPrice)
     //, _minLock(minLock)
     //, _maxSellers(maxSellers) {
@@ -401,13 +420,63 @@ PluginMode SellerPeerPlugin::mode() const {
     return PluginMode::Seller;
 }
 
+SellerPeerPlugin::ClientState SellerPeerPlugin::clientState() const {
+    return _clientState;
+}
+
+void SellerPeerPlugin::setClientState(const ClientState & clientState) {
+    _clientState = clientState;
+}
+
+/**
+quint32 SellerPeerPlugin::totalNumberOfPieces() const {
+    return _totalNumberOfPieces;
+}
+
+void SellerPeerPlugin::setTotalNumberOfPieces(quint32 totalNumberOfPieces) {
+    _totalNumberOfPieces = totalNumberOfPieces;
+}
+
+int SellerPeerPlugin::lastRequestedFullPiece() const {
+    return _lastRequestedFullPiece;
+}
+
+void SellerPeerPlugin::setLastRequestedFullPiece(int lastRequestedFullPiece) {
+    _lastRequestedFullPiece = lastRequestedFullPiece;
+}
+
+int SellerPeerPlugin::lastRequestedFullPieceSize() const {
+    return _lastRequestedFullPieceSize;
+}
+
+void SellerPeerPlugin::setLastRequestedFullPieceSize(int lastRequestedFullPieceSize) {
+    _lastRequestedFullPieceSize = lastRequestedFullPieceSize;
+}
+*/
+
+quint32 SellerPeerPlugin::numberOfAsyncReadsCompleted() const {
+    return _numberOfAsyncReadsCompleted;
+}
+
+void SellerPeerPlugin::setNumberOfAsyncReadsCompleted(quint32 asyncReadsCompleted) {
+    _numberOfAsyncReadsCompleted = asyncReadsCompleted;
+}
+
+QVector<libtorrent::disk_io_job> SellerPeerPlugin::completedAsyncReads() const {
+    return _completedAsyncReads;
+}
+
+void SellerPeerPlugin::setCompletedAsyncReads(const QVector<libtorrent::disk_io_job> &completedAsyncReads) {
+    _completedAsyncReads = completedAsyncReads;
+}
+
 void SellerPeerPlugin::processObserve(const Observe * m) {
 
     // Do processing in response to mode reset
     peerModeReset();
 
     // Update peer state with new valid action
-    _peerState.setLastAction(PeerState::LastValidAction::mode_announced);
+    //_peerState.setLastAction(PeerState::LastValidAction::mode_announced);
 
     // Note that peer is in observe mode
     _peerModeAnnounced = PeerModeAnnounced::observer;
@@ -419,7 +488,7 @@ void SellerPeerPlugin::processBuy(const Buy * m) {
     peerModeReset();
 
     // Update peer state with new valid action
-    _peerState.setLastAction(PeerState::LastValidAction::mode_announced);
+    //_peerState.setLastAction(PeerState::LastValidAction::mode_announced);
     _peerState.setLastBuyReceived(*m);
 
     // Note that peer is buyer
@@ -432,7 +501,7 @@ void SellerPeerPlugin::processSell(const Sell * m) {
     peerModeReset();
 
     // Update peer state with new valid action
-    _peerState.setLastAction(PeerState::LastValidAction::mode_announced);
+    //_peerState.setLastAction(PeerState::LastValidAction::mode_announced);
 
     // Note that peer is in observe mode
     _peerModeAnnounced = PeerModeAnnounced::seller;
@@ -485,7 +554,7 @@ void SellerPeerPlugin::processSignRefund(const SignRefund * m) {
              _payee.state() == Payee::State::has_all_information_required); // signed before and kept data
 
     // Save sign refund message
-    _peerState.setLastSignRefundSent(*m);
+    _peerState.setLastSignRefundReceived(*m);
 
     // Update payee with most recent
     bool spent;
@@ -544,42 +613,100 @@ void SellerPeerPlugin::processRequestFullPiece(const RequestFullPiece * m) {
 
     // _clientState values =>
     Q_ASSERT(_payee.state() == Payee::State::has_all_information_required);
-
-    // false => ()
+    // true => ()
     Q_ASSERT(_clientState != ClientState::awaiting_piece_request_after_payment ||
-            !_sendFullPieces.isEmpty());
+            !_fullPiecesSent.isEmpty());
+    Q_ASSERT(_completedAsyncReads.size() == 0);
+    Q_ASSERT(_numberOfAsyncReadsCompleted == 0);
 
     // Check piece validity
-    if(m->pieceIndex() < 0 || m->pieceIndex() >= num_pieces)
+    if(m->pieceIndex() < 0 || m->pieceIndex() >= _torrentFile.num_pieces())
         throw std::exception("Invalid full piece requested.");
 
-    // Remember piece
-    _lastRequestedFullPiece = m->pieceIndex();
+    // Update peer state
+    _peerState.setLastRequestFullPieceReceived(*m);
 
     // Update client state
     _clientState = ClientState::reading_piece_from_disk;
 
-    // Start call to read piece
-    _plugin->disk_async_read(this);
+    // Get size of given piece
+    int pieceSize = _torrentFile.piece_size(m->pieceIndex());
 
-    //_torrent.filesystem().async_read(r, boost::bind(&smart_ban_plugin::on_read_ok_block, shared_from_this(), *i, _1, _2));
+    // Calculate number of blocks in the piece
+    int numberOfBlocksInPiece = qCeil(((double)pieceSize) / _blockSize);
+
+    // Create space in peer for the future callbacks
+    _completedAsyncReads = QVector<libtorrent::disk_io_job>(numberOfBlocksInPiece);
+
+    // Generate one request per block
+    for(int block = 0;block < numberOfBlocksInPiece;block++) {
+
+        // Build request
+        libtorrent::peer_request request;
+        request.piece = m->pieceIndex();
+        request.start = block*_blockSize;
+
+        // take into account that last block may be smaller
+        request.length = (block < numberOfBlocksInPiece - 1) ? _blockSize : pieceSize - request.start;
+
+        // Make request of piece manager
+        _plugin->async_read(request, boost::bind(&SellerPeerPlugin::disk_async_read_handler, this, block, _1, _2));
+
+        qCDebug(_category) << "async_read block " << block << " in piece " << m->pieceIndex();
+    }
 }
 
-void SellerPeerPlugin::disk_async_read_handler(int, const libtorrent::disk_io_job & job) {
+void SellerPeerPlugin::disk_async_read_handler(int block, int a, const libtorrent::disk_io_job & job) {
 
-    Q_ASSERT(_clientState == ClientState::reading_piece_from_disk);
+    // Check peer plugin
+    Q_ASSERT(_numberOfAsyncReadsCompleted > 0 && _numberOfAsyncReadsCompleted <= _completedAsyncReads.size());
+    Q_ASSERT(_clientState == SellerPeerPlugin::ClientState::reading_piece_from_disk);
     Q_ASSERT(_payee.state() == Payee::State::has_all_information_required);
 
-    // Save data
+    // Check request
+    if(a != job.buffer_size)
+        throw std::exception("Some sort of read error occured.");
 
-    //job.
+    // Save result
+    _completedAsyncReads[block] = job;
 
-    // Was this last one
+    // Count write
+    Q_ASSERT(_numberOfAsyncReadsCompleted < _completedAsyncReads.size());
+    _numberOfAsyncReadsCompleted++;
 
-    // if so, call to final handler and update state
+    // Was this last block?
+    if(_numberOfAsyncReadsCompleted == _completedAsyncReads.size()) {
 
-    // if not, make a new async call
+        // Container for piece data
+        QVector<char> pieceData(_peerState.lastRequestFullPieceReceived().pieceIndex());
 
+        char * pieceDataPtr = pieceData.data();
+
+        // Create full piece message
+        for(QVector<libtorrent::disk_io_job>::const_iterator i = _completedAsyncReads.constBegin(),
+            end(_completedAsyncReads.constEnd());i != end;i++) {
+
+            // Get disk job
+            const libtorrent::disk_io_job & j = *i;
+
+            // Copy data into standard vector
+            memcpy(pieceDataPtr, j.buffer, j.buffer_size);
+
+            // Increment pointer
+            pieceDataPtr += j.buffer_size;
+        }
+
+        Q_ASSERT(pieceDataPtr - pieceData.data() == pieceData.size());
+
+        // Send message
+        sendExtendedMessage(FullPiece(pieceData));
+
+        // Update client state
+        _fullPiecesSent.append(job.piece);
+        _numberOfAsyncReadsCompleted = 0;
+        _completedAsyncReads.clear();
+        _clientState = ClientState::awaiting_payment;
+    }
 }
 
 void SellerPeerPlugin::processFullPiece(const FullPiece * m) {
@@ -592,7 +719,7 @@ void SellerPeerPlugin::processPayment(const Payment * m) {
         throw std::exception("Payment message should only be sent in response to a full piece message.");
 
     // _clientState values =>
-    Q_ASSERT(_payee.state() = Payee::State::has_all_information_required);
+    Q_ASSERT(_payee.state() == Payee::State::has_all_information_required);
 
     // Validate payment
     bool valid = _payee.registerPayment(m->sig());
@@ -600,9 +727,9 @@ void SellerPeerPlugin::processPayment(const Payment * m) {
     if(!valid) {
 
         // Update error state in some way
-
         throw std::exception("Invalid payment received.");
-    }
+    } else
+        qCDebug(_category) << "Valid payment received";
 
     // Update state
     _clientState = ClientState::awaiting_piece_request_after_payment;

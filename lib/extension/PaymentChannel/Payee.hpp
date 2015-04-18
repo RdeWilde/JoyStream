@@ -97,7 +97,7 @@ public:
         // Constructor from members
         Configuration(State state,
                       quint64 numberOfPaymentsMade,
-                      Signature & lastValidPayorPaymentSignature,
+                      const Signature & lastValidPayorPaymentSignature,
                       quint32 lockTime,
                       quint64 price,
                       quint32 maximumNumberOfSellers,
