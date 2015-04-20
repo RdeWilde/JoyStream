@@ -14,7 +14,7 @@
 //#include "extension/BitCoin/TxId.hpp"
 //#include "extension/BitCoin/Signature.hpp"
 
-#include <libtorrent/torrent_info.hpp>
+//#include <libtorrent/torrent_info.hpp>
 
 #include <QSet>
 #include <QVector>
@@ -204,8 +204,8 @@ public:
     SellerPeerPlugin(SellerTorrentPlugin * torrentPlugin,
                      libtorrent::bt_peer_connection * connection,
                      const Payee::Configuration & payeeConfiguration,
-                     libtorrent::torrent_info torrentFile,
-                     int blockSize,
+                     //const libtorrent::torrent_info & torrentFile,
+                     int numberOfPieces,
                      QLoggingCategory & category);
 
     // Destructor
@@ -240,7 +240,14 @@ public:
     virtual bool write_request(libtorrent::peer_request const & peerRequest);
 
     // Handler used by block read call
-    void disk_async_read_handler(int block, int, const libtorrent::disk_io_job & job);
+    //void disk_async_read_handler(int block, int, const libtorrent::disk_io_job & job);
+
+    // Handler for piece call back, piece data is not owned by us,
+    // and is therefore not freed
+    void pieceRead(int piece, const char * buffer, int size);
+
+    // Called when piece reading failed
+    void pieceReadFailed(int piece);
 
     // Getters and setters
     virtual PluginMode mode() const;
@@ -298,10 +305,14 @@ private:
      */
 
     // Meta data in torrent file
-    libtorrent::torrent_info _torrentFile;
+    //libtorrent::torrent_info _torrentFile;
 
     // Block size used
-    int _blockSize;
+    //int _blockSize;
+
+    // Number of pieces in torrent file
+    // used to check validity of full piece requests
+    int _numberOfPieces;
 
     /**
      * Request/Piece management
@@ -323,7 +334,7 @@ private:
      * Piece reading management:
      * The values in this section are only relevant when
      * _clientState == ClientState::reading_piece_from_disk
-     */
+
 
     // The number of reads completed so far
     quint32 _numberOfAsyncReadsCompleted;
@@ -331,6 +342,7 @@ private:
     // Vector of block read operations, where read operation is located
     // in position of corresponding block number.
     QVector<libtorrent::disk_io_job> _completedAsyncReads;
+    */
 
     /**
      *  Processess message

@@ -103,9 +103,13 @@ private:
     libtorrent::aux::session_impl * _session;
 
     // Maps info hash to pointer to torrent plugin,
-    // has to be TorrentPlugin weak pointer, since this is
-    // what libtorrent requires
-    QMap<libtorrent::sha1_hash, boost::shared_ptr<libtorrent::torrent_plugin> > _plugins;
+    //QMap<libtorrent::sha1_hash, boost::shared_ptr<libtorrent::torrent_plugin> > _plugins;
+
+    //QMap<libtorrent::sha1_hash, boost::shared_ptr<TorrentPlugin> > _plugins;
+
+    QMap<libtorrent::sha1_hash, boost::shared_ptr<BuyerTorrentPlugin> > _buyerPlugins;
+    QMap<libtorrent::sha1_hash, boost::shared_ptr<SellerTorrentPlugin> > _sellerPlugins;
+
 
     // BitCoind wrapper
     BitCoindRPC::Client _btcClient;

@@ -6,6 +6,10 @@
 
 class Wallet;
 
+namespace libtorrent {
+    struct read_piece_alert;
+}
+
 class SellerTorrentPlugin : public TorrentPlugin
 {
 public:
@@ -107,11 +111,19 @@ public:
     // presently assigned to the given peer
     //int disk_async_read_piece(SellerPeerPlugin * peer);
 
+    /**
     // Issues asynchronous read operation to piece manager
     void async_read(const libtorrent::peer_request & r,
                     const boost::function<void(int, libtorrent::disk_io_job const&)> & handler,
                     int cache_line_size = 0,
                     int cache_expiry = 0);
+    */
+
+    // Schedules asynchronous read of piece to this peer
+    void readPiece(SellerPeerPlugin * peer, int piece);
+
+    // Call back after piece read
+    void pieceRead(const libtorrent::read_piece_alert * alert);
 
     // Getters and setters
     virtual PluginMode pluginMode() const;
@@ -137,6 +149,9 @@ private:
     // the type of weak_ptr libtrrrent requires, hence might as well put it
     // in this type, rather than corresponding subclass of TorrentPlugin.
     QMap<libtorrent::tcp::endpoint, boost::shared_ptr<SellerPeerPlugin> > _peers;
+
+    // Maintains mapping between piece index and peers that are waiting for this it
+    QMap<int, QSet<SellerPeerPlugin *> > _outstandingPieceRequests;
 
     // Wallet
     Wallet * _wallet;

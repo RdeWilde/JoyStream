@@ -1032,8 +1032,7 @@ Controller::Controller(const Configuration & configuration, bool showView, QNetw
         _session.add_dht_router(*i); // Add router to session
 
     // Add plugin extension
-    boost::shared_ptr<libtorrent::plugin> plugin_shared_ptr(_plugin);
-    _session.add_extension(plugin_shared_ptr);
+    _session.add_extension(boost::shared_ptr<libtorrent::plugin>(_plugin));
 
     // Start DHT node
     _session.start_dht();

@@ -433,7 +433,9 @@ private:
     QNetworkAccessManager & _manager;
 
     // Plugin: constructor initializatin list expects plugin to appear after category_
-    // should this be weak?
+
+    // Should this be boost::shared_ptr<Plugin>, since life time of object is managed by it?
+    // on the other hand, we loose Plugin behaviour through libtorrent::plugin pointer, which we need!
     Plugin * _plugin;
 
     // Port range for which libtorrent should try to listen

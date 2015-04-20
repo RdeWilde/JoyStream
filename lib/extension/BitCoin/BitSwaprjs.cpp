@@ -341,10 +341,10 @@ quint64 BitSwaprjs::get_tx_outpoint(const OutPoint & point, bool & spent) {
     };
 
     // Make call
-    QJsonValue result = nodeBlockingCall("get_tx_outpoint", QJsonValue(params));
+    QJsonValue nodeResult = nodeBlockingCall("get_tx_outpoint", QJsonValue(params));
 
     // Parse results
-    QJsonObject dump = result.toObject();
+    QJsonObject dump = nodeResult.toObject();
 
     bool success = dump["success"].toBool();
 

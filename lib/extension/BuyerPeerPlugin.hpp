@@ -7,6 +7,8 @@
 #include "BitCoin/TxId.hpp"
 #include "BitCoin/PublicKey.hpp"
 #include "Utilities.hpp" // uint qHash(const libtorrent::peer_request & request);
+#include "Message/Sell.hpp"
+#include "Message/JoiningContract.hpp"
 
 #include <QSet>
 
@@ -26,6 +28,7 @@ public:
 
     public:
 
+        /**
         // Enumeration of possible states
         // a peer can have when facing buyer
         // and last message sent was
@@ -38,6 +41,7 @@ public:
             signed_refund,
             sent_valid_piece
         };
+        */
 
         // Bad states
         enum class FailureMode {
@@ -53,47 +57,38 @@ public:
         PeerState();
 
         // Constructor from members
-        PeerState(LastValidAction lastAction,
+        PeerState(//LastValidAction lastAction,
                   FailureMode failureMode,
-                  quint64 minPrice,
-                  quint32 _minLock,
-                  const PublicKey & contractPk,
-                  const PublicKey & finalPk);
+                  const Sell & lastSellReceived,
+                  const JoiningContract & lastJoiningContractReceived);
 
         // Getters and setters
-        LastValidAction lastAction() const;
-        void setLastAction(LastValidAction lastAction);
+
+        //LastValidAction lastAction() const;
+        //void setLastAction(LastValidAction lastAction);
 
         FailureMode failureMode() const;
         void setFailureMode(FailureMode failureMode);
 
-        quint64 minPrice() const;
-        void setMinPrice(quint64 minPrice);
+        Sell lastSellReceived() const;
+        void setLastSellReceived(const Sell &lastSellReceived);
 
-        quint32 minLock() const;
-        void setMinLock(quint32 minLock);
-
-        PublicKey contractPk() const;
-        void setContractPk(const PublicKey & contractPk);
-
-        PublicKey finalPk() const;
-        void setFinalPk(const PublicKey & finalPk);
+        JoiningContract lastJoiningContractReceived() const;
+        void setLastJoiningContractReceived(const JoiningContract &lastJoiningContractReceived);
 
     private:
 
         // Last valid action of peer
-        LastValidAction _lastAction;
+        //LastValidAction _lastAction;
 
         // How peer may have failed
         FailureMode _failureMode;
 
-        // seller mode fields
-        quint64 _minPrice;
-        quint32 _minLock;
+        // Last seller message
+        Sell _lastSellReceived;
 
-        // joining contract fields
-        PublicKey _contractPk;
-        PublicKey _finalPk;
+        // Last joining contract message
+        JoiningContract _lastJoiningContractReceived;
     };
 
     /**
@@ -225,8 +220,8 @@ public:
     int indexOfAssignedPiece() const;
     void setIndexOfAssignedPiece(int indexOfAssignedPiece);
 
-    int pieceSize() const;
-    void setPieceSize(int pieceSize);
+    //int pieceSize() const;
+    //void setPieceSize(int pieceSize);
 
     int blockSize() const;
     void setBlockSize(int blockSize);
@@ -246,14 +241,15 @@ public:
     QDateTime whenLastRequestServiced() const;
     void setWhenLastRequestServiced(const QDateTime &whenLastRequestServiced);
 
-    QSet<int> downloadedPieces() const;
-    void setDownloadedPieces(const QSet<int> &downloadedPieces);
+    QList<int> downloadedPieces() const;
+    void setDownloadedPieces(const QList<int> &downloadedPieces);
 
     virtual PluginMode mode() const;
 
 private:
 
     // Torrent level plugin
+    // Should we use a boost::shared_ptr instead since object lifetime is managed by it?
     BuyerTorrentPlugin * _plugin;
 
     // State of peer
@@ -286,7 +282,7 @@ private:
     int _indexOfAssignedPiece;
 
     // Byte length of presently assigned piece
-    int _pieceSize;
+    //int _pieceSize;
 
     // Byte length of blocks
     //int _blockSize;

@@ -5,26 +5,21 @@
  */
 
 BuyerPeerPlugin::PeerState::PeerState()
-    : _lastAction(LastValidAction::no_bitswapr_message_sent)
-    , _failureMode(FailureMode::not_failed)
-    , _minPrice(0)
-    , _minLock(0) {
+    : //_lastAction(LastValidAction::no_bitswapr_message_sent)
+     _failureMode(FailureMode::not_failed) {
 }
 
-BuyerPeerPlugin::PeerState::PeerState(LastValidAction lastAction,
+BuyerPeerPlugin::PeerState::PeerState(//LastValidAction lastAction,
                                         FailureMode failureMode,
-                                        quint64 minPrice,
-                                        quint32 minLock,
-                                        const PublicKey & contractPk,
-                                        const PublicKey & finalPk)
-    : _lastAction(lastAction)
-    , _failureMode(failureMode)
-    , _minPrice(minPrice)
-    , _minLock(minLock)
-    , _contractPk(contractPk)
-    , _finalPk(finalPk) {
+                                        const Sell & lastSellReceived,
+                                        const JoiningContract & lastJoiningContractReceived)
+    : //_lastAction(lastAction)
+      _failureMode(failureMode)
+    , _lastSellReceived(lastSellReceived)
+    , _lastJoiningContractReceived(lastJoiningContractReceived) {
 }
 
+/*
 BuyerPeerPlugin::PeerState::LastValidAction BuyerPeerPlugin::PeerState::lastAction() const {
     return _lastAction;
 }
@@ -32,6 +27,7 @@ BuyerPeerPlugin::PeerState::LastValidAction BuyerPeerPlugin::PeerState::lastActi
 void BuyerPeerPlugin::PeerState::setLastAction(LastValidAction lastAction) {
     _lastAction = lastAction;
 }
+*/
 
 BuyerPeerPlugin::PeerState::FailureMode BuyerPeerPlugin::PeerState::failureMode() const {
     return _failureMode;
@@ -41,6 +37,14 @@ void BuyerPeerPlugin::PeerState::setFailureMode(FailureMode failureMode) {
     _failureMode = failureMode;
 }
 
+JoiningContract BuyerPeerPlugin::PeerState::lastJoiningContractReceived() const {
+    return _lastJoiningContractReceived;
+}
+
+void BuyerPeerPlugin::PeerState::setLastJoiningContractReceived(const JoiningContract &lastJoiningContractReceived) {
+    _lastJoiningContractReceived = lastJoiningContractReceived;
+}
+/**
 quint64 BuyerPeerPlugin::PeerState::minPrice() const {
     return _minPrice;
 }
@@ -71,6 +75,15 @@ quint32 BuyerPeerPlugin::PeerState::minLock() const {
 
 void BuyerPeerPlugin::PeerState::setMinLock(quint32 minLock) {
     _minLock = minLock;
+}
+*/
+
+Sell BuyerPeerPlugin::PeerState::lastSellReceived() const {
+    return _lastSellReceived;
+}
+
+void BuyerPeerPlugin::PeerState::setLastSellReceived(const Sell &lastSellReceived) {
+    _lastSellReceived = lastSellReceived;
 }
 
 BuyerPeerPlugin::PeerState BuyerPeerPlugin::peerState() const {
@@ -152,10 +165,14 @@ BuyerPeerPlugin::BuyerPeerPlugin(BuyerTorrentPlugin * plugin,
                                  QLoggingCategory & category)
     : PeerPlugin(plugin, connection, category)
     , _plugin(plugin)
+    , _peerState(//PeerState::LastValidAction::no_bitswapr_message_sent,
+                 PeerState::FailureMode::not_failed,
+                 Sell(),
+                 JoiningContract())
     , _clientState(ClientState::no_bitswapr_message_sent)
     , _payorSlot(-1) // deterministic sentinel value
-    , _indexOfAssignedPiece(-1) // deterministic sentinel value
-    , _pieceSize(-1) { // deterministic sentinel value
+    , _indexOfAssignedPiece(-1) { // deterministic sentinel value
+    //, _pieceSize(-1) { // deterministic sentinel value
     //, _blockSize(0)
     //, _numberOfBlocksInPiece(0)
     //, _numberOfBlocksRequested(0)
@@ -379,7 +396,7 @@ void BuyerPeerPlugin::on_piece_pass(int index) {
     sendExtendedMessage(Payment(paymentSignature));
 
     // Remember that piece was downloaded
-    _downloadedValidPieces.insert(_indexOfAssignedPiece);
+    _downloadedValidPieces.append(_indexOfAssignedPiece);
 
     // Notify torrent plugin that piece has been downloaded
     _plugin->pieceDownloaded(_indexOfAssignedPiece);
@@ -489,6 +506,7 @@ void BuyerPeerPlugin::setIndexOfAssignedPiece(int indexOfAssignedPiece) {
     _indexOfAssignedPiece = indexOfAssignedPiece;
 }
 
+/**
 int BuyerPeerPlugin::pieceSize() const {
     return _pieceSize;
 }
@@ -545,12 +563,13 @@ QDateTime BuyerPeerPlugin::whenLastRequestServiced() const {
 void BuyerPeerPlugin::setWhenLastRequestServiced(const QDateTime &whenLastRequestServiced) {
     _whenLastSentFullPiece = whenLastRequestServiced;
 }
+*/
 
-QSet<int> BuyerPeerPlugin::downloadedPieces() const {
+QList<int> BuyerPeerPlugin::downloadedPieces() const {
     return _downloadedValidPieces;
 }
 
-void BuyerPeerPlugin::setDownloadedPieces(const QSet<int> & downloadedPieces) {
+void BuyerPeerPlugin::setDownloadedPieces(const QList<int> & downloadedPieces) {
     _downloadedValidPieces = downloadedPieces;
 }
 
@@ -562,7 +581,7 @@ void BuyerPeerPlugin::processObserve(const Observe * m) {
     // May arrive at any time, hence no _peerState.lastAction() invariant to check
 
     // Update peer state with new valid action
-    _peerState.setLastAction(PeerState::LastValidAction::mode_announced);
+    //_peerState.setLastAction(PeerState::LastValidAction::mode_announced);
 
     // Note that peer is in observe mode
     _peerModeAnnounced = PeerModeAnnounced::observer;
@@ -578,7 +597,7 @@ void BuyerPeerPlugin::processBuy(const Buy * m) {
     // May arrive at any time, hence no _peerState.lastAction() invariant to check
 
     // Update peer state with new valid action
-    _peerState.setLastAction(PeerState::LastValidAction::mode_announced);
+    //_peerState.setLastAction(PeerState::LastValidAction::mode_announced);
 
     // Note that peer is in buyer mode
     _peerModeAnnounced = PeerModeAnnounced::buyer;
@@ -594,9 +613,8 @@ void BuyerPeerPlugin::processSell(const Sell * m) {
     // May arrive at any time, hence no _peerState.lastAction() invariant to check
 
     // Update peer state with new valid action
-    _peerState.setLastAction(PeerState::LastValidAction::mode_announced);
-    _peerState.setMinPrice(m->minPrice());
-    _peerState.setMinLock(m->minLock());
+    //_peerState.setLastAction(PeerState::LastValidAction::mode_announced);
+    _peerState.setLastSellReceived(*m);
 
     // Note that peer is seller
     _peerModeAnnounced = PeerModeAnnounced::seller;
@@ -626,19 +644,21 @@ void BuyerPeerPlugin::processJoiningContract(const JoiningContract * m) {
         throw std::exception("JoiningContract message should only be sent in response to a contract invitation.");
 
     // _clientState == ClientState::invited_to_contract =>
-    Q_ASSERT(_peerState.lastAction() == PeerState::LastValidAction::mode_announced);
+    //Q_ASSERT(_peerState.lastAction() == PeerState::LastValidAction::mode_announced);
 
     // Update peer state
-    _peerState.setLastAction(PeerState::LastValidAction::joined_contract);
-    _peerState.setContractPk(m->contractPk());
-    _peerState.setFinalPk(m->finalPk());
+    //_peerState.setLastAction(PeerState::LastValidAction::joined_contract);
+    _peerState.setLastJoiningContractReceived(*m);
 
     // Tell torrent plugin about contract joining attempt
+    const Sell & sell = _peerState.lastSellReceived();
+    const JoiningContract & joinContract = _peerState.lastJoiningContractReceived();
+
     _plugin->sellerWantsToJoinContract(this,
-                                        _peerState.minPrice(),
-                                        _peerState.contractPk(),
-                                        _peerState.finalPk(),
-                                        _peerState.minLock());
+                                       sell.minPrice(),
+                                       sell.minLock(),
+                                       joinContract.contractPk(),
+                                       joinContract.finalPk());
 }
 
 void BuyerPeerPlugin::processSignRefund(const SignRefund * m) {
@@ -652,15 +672,18 @@ void BuyerPeerPlugin::processRefundSigned(const RefundSigned * m) {
         throw std::exception("RefundSigned message should only be sent in response to a refund signature invitation.");
 
     // _clientState != ClientState::asked_for_refund_signature =>
-    Q_ASSERT(_peerState.lastAction() == PeerState::LastValidAction::joined_contract);
+    //Q_ASSERT(_peerState.lastAction() == PeerState::LastValidAction::joined_contract);
 
     // Tell torrent plugin about refund signing attempt
+    // Also updates _clientState
     bool wasValid = _plugin->sellerProvidedRefundSignature(this, m->sig());
 
     // Update peer state
-    if(wasValid)
-        _peerState.setLastAction(PeerState::LastValidAction::signed_refund);
-    else {
+    if(wasValid) {
+
+        //_peerState.setLastAction(PeerState::LastValidAction::signed_refund);
+
+    } else {
 
         // We could come here just because peer was late to respond with an old
         // signature, or we had to reset a contract
@@ -681,7 +704,7 @@ void BuyerPeerPlugin::processRequestFullPiece(const RequestFullPiece * m) {
     throw std::exception("RequestFullPiece message should never be sent to buyer mode peer.");
 }
 
-void BuyerPeerPlugin::processFullPiece(const FullPiece * m) = 0 {
+void BuyerPeerPlugin::processFullPiece(const FullPiece * m) {
 
     // Check that peer is sending a state compatible message
     if(_clientState != ClientState::waiting_for_full_piece)
@@ -722,7 +745,7 @@ void BuyerPeerPlugin::processFullPiece(const FullPiece * m) = 0 {
     const QVector<char> & piece = m->piece();
 
     // Ask libtorrent to validate piece
-    bool validLength = checkLengthAndValidatePiece(_indexOfAssignedPiece, piece);
+    bool validLength = _plugin->checkLengthAndValidatePiece(_indexOfAssignedPiece, piece);
 
     // Update state if
     if(validLength)

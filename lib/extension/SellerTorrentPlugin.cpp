@@ -7,6 +7,7 @@
 #include <libtorrent/peer_connection.hpp>
 #include <libtorrent/bt_peer_connection.hpp>
 #include <libtorrent/socket_io.hpp> // print_endpoint
+#include <libtorrent/alert_types.hpp>
 
 #include <QLoggingCategory>
 //#include <QtMath> // qCeil
@@ -129,10 +130,12 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
     QList<Wallet::Entry> paymentKeysEntry = _wallet->generateNewKeys(1, Wallet::Purpose::ContractPayment).values();
     KeyPair payeePaymentKeys = paymentKeysEntry.front().keyPair();
 
+    /**
     // Get block size, peer requires it
     libtorrent::torrent_status st;
     _torrent->status(&st,0);
     int blockSize = st.block_size;
+    */
 
     // Create shared pointer to new seller peer plugin
     boost::shared_ptr<SellerPeerPlugin> sharedPeerPluginPtr(new SellerPeerPlugin(this,
@@ -149,8 +152,7 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
                                                                                                       PublicKey(),
                                                                                                       PublicKey(),
                                                                                                       0),
-                                                                                 _torrent->torrent_file(),
-                                                                                 blockSize,
+                                                                                 _torrent->torrent_file().num_pieces(),
                                                                                  _category));
     // Add to collection
     _peers[endPoint] = sharedPeerPluginPtr;
@@ -236,11 +238,49 @@ void SellerTorrentPlugin::on_add_peer(libtorrent::tcp::endpoint const & endPoint
     */
 }
 
+/**
 void SellerTorrentPlugin::async_read(const libtorrent::peer_request & r,
                                      const boost::function<void(int, libtorrent::disk_io_job const&)> & handler,
                                      int cache_line_size,
                                      int cache_expiry) {
+
     _torrent->filesystem().async_read(r, handler, cache_line_size, cache_expiry);
+}
+*/
+
+void SellerTorrentPlugin::readPiece(SellerPeerPlugin * peer, int piece) {
+
+    // Register read piece request
+    _torrent->read_piece(piece);
+
+    // There should never be queued multiple reads by same peer of same piece
+    Q_ASSERT(!_outstandingPieceRequests[piece].contains(peer));
+
+    // Register this peer as a subscriber to a piece read request of this piece
+    _outstandingPieceRequests[piece].insert(peer);
+}
+
+void SellerTorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) {
+
+    // There should be at least one peer registered for this piece
+    Q_ASSERT(!_outstandingPieceRequests[alert->piece].empty());
+
+    // Make a callback for each peer registered
+    const QSet<SellerPeerPlugin *> & peers = _outstandingPieceRequests[alert->piece];
+
+    // Iterate peers
+    for(QSet<SellerPeerPlugin *>::const_iterator i = peers.constBegin(),
+        end(peers.constEnd()); i != end;i++) {
+
+        // Notify peer plugin of result
+        if(alert->ec)
+            (*i)->pieceReadFailed(alert->piece);
+        else
+            (*i)->pieceRead(alert->piece, alert->buffer.get(), alert->size);
+    }
+
+    // Remove all peers registered for this piece
+    _outstandingPieceRequests.remove(alert->piece);
 }
 
 /**
