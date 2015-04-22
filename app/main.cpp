@@ -151,7 +151,7 @@ void main(int argc, char* argv[]) {
      */
 
     // Create logging category: uten logging til skjerm
-    QLoggingCategory * sellerCategory = global_log_manager.createLogger("peer", true, false); // ("peer", false, false)
+    QLoggingCategory * sellerCategory = global_log_manager.createLogger("peer", false, false); // ("peer", false, false)
 
     // Create peer client
     controllerConfiguration.setWalletFile("C:/Users/Sindre/Desktop/BUILD_DEBUG/app/debug/seller_wallet.dat");
@@ -184,7 +184,7 @@ void main(int argc, char* argv[]) {
     // Start event loop: this is the only Qt event loop in the entire application
     app.exec();
 
-    std::cout << "Application event loop exited, application closing." << std::endl;
+        std::cout << "Application event loop exited, application closing." << std::endl;
 }
 
 bool updateManager() {

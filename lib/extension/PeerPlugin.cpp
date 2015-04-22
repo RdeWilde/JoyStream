@@ -223,12 +223,21 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
     libtorrent::entry::dictionary_type mDictionaryEntry;
     mDictionaryEntry = mEntry.dict();
 
-    // Create peer mapping
-    ExtendedMessageIdMapping peerMapping(mDictionaryEntry);
+    /**
+    for(std::map<std::string, libtorrent::entry>::const_iterator i = mDictionaryEntry.cbegin(),
+        end(mDictionaryEntry.cend()); i != end;i++) {
 
-    // Set peer mapping in configuration
-    //_peerPluginConfiguration.setPeerMapping(peerMapping);
-    _peerMapping = peerMapping;
+        std::string key = (*i).first;
+        libtorrent::entry value = (*i).second;
+        std::string valueStr = value.to_string();
+
+        qCWarning(_category) << key.c_str() << ": " << valueStr.c_str();
+
+    }
+    */
+
+    // Create peer mapping    
+    _peerMapping = ExtendedMessageIdMapping(mDictionaryEntry);
 
     // Check that peer mapping is valid: all messages are present, and duplicate ids
     if(!_peerMapping.isValid()) {

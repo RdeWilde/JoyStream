@@ -103,8 +103,10 @@ const std::map<MessageType, const char *> Utilities::messageTypeToNameMapping() 
     m[MessageType::sign_refund] = "sign_refund";
     m[MessageType::refund_signed] = "refund_signed";
     m[MessageType::ready] = "ready";
+    m[MessageType::request_full_piece] = "request_full_piece";
+    m[MessageType::full_piece] = "full_piece";
     m[MessageType::payment] = "payment";
-    //m[MessageType::end] = "end";
+
 
     // Return mapping
     return m;
@@ -136,7 +138,7 @@ MessageType Utilities::messageType(const std::string & messageName) {
             end(m.end()); i != end;i++) {
 
         // return type if name matches
-        if(messageName.compare(i->second))
+        if(messageName.compare(i->second) == 0)
             return i->first;
     }
 

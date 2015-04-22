@@ -333,7 +333,6 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
                                                                            btConnection,
                                                                            _category));
 
-
     // Add to collection
     _peers[endPoint] = sharedPeerPluginPtr;
 

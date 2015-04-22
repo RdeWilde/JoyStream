@@ -195,7 +195,7 @@ char const * BuyerPeerPlugin::type() const {
 
 void BuyerPeerPlugin::on_disconnect(libtorrent::error_code const & ec) {
 
-    qCDebug(_category) << "on_disconnect";
+    qCDebug(_category) << "on_disconnect:" << ec.message().c_str();
 
     //_connectionAlive = false;
 }
@@ -215,6 +215,8 @@ bool BuyerPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & hand
     if(_clientState != ClientState::no_bitswapr_message_sent) {
         throw std::exception("Extended handshake initiated at incorrect state.");
     }
+
+    qCDebug(_category) << "Extended handshake arrived.";
 
     // Use base class extension handhsake processor
     bool keepPlugin = PeerPlugin::on_extension_handshake(handshake);

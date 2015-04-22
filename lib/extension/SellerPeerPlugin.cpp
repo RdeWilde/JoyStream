@@ -185,7 +185,11 @@ void SellerPeerPlugin::on_connected() {
 
 bool SellerPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake) {
 
-    Q_ASSERT(_clientState == ClientState::no_bitswapr_message_sent);
+    if(_clientState != ClientState::no_bitswapr_message_sent) {
+        throw std::exception("Extended handshake initiated at incorrect state.");
+    }
+
+    qCDebug(_category) << "Extended handshake arrived.";
 
     // Use base class extension handhsake processor
     bool keepPlugin = PeerPlugin::on_extension_handshake(handshake);

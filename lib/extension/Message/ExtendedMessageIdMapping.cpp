@@ -33,8 +33,20 @@ ExtendedMessageIdMapping::ExtendedMessageIdMapping(const std::map<std::string, l
 
     // Iterate dictionary and copy mappings
     for(std::map<std::string, libtorrent::entry>::const_iterator i = m.begin(),
-            end(m.end()); i != end;i++)
-        _mapping[Utilities::messageType(i->first)] = (i->second).integer();
+            end(m.end()); i != end;i++) {
+
+        try {
+
+            // Try to convert string to message type
+            MessageType message = Utilities::messageType(i->first);
+
+            // It worked, so store id in mapping
+            _mapping[message] = (i->second).integer();
+
+        } catch(std::exception e) {
+            // This was not a message for this extension
+        }
+    }
 }
 
 ExtendedMessageIdMapping & ExtendedMessageIdMapping::operator=(const ExtendedMessageIdMapping & rhs) {
@@ -45,6 +57,8 @@ ExtendedMessageIdMapping & ExtendedMessageIdMapping::operator=(const ExtendedMes
     // Return self reference
     return *this;
 }
+
+#include <qDebug>
 
 void ExtendedMessageIdMapping::writeToDictionary(std::map<std::string, libtorrent::entry> & m) {
 
