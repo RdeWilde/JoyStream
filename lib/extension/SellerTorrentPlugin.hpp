@@ -87,6 +87,7 @@ public:
     // Constructor
     SellerTorrentPlugin(Plugin * plugin,
                         const boost::shared_ptr<libtorrent::torrent> & torrent,
+                        Wallet * wallet,
                         const SellerTorrentPlugin::Configuration & configuration,
                         QLoggingCategory & category);
 

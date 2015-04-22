@@ -200,11 +200,21 @@ void BuyerPeerPlugin::on_disconnect(libtorrent::error_code const & ec) {
     //_connectionAlive = false;
 }
 
+
+/**
+ * Called when the peer is successfully connected. Note that incoming
+ * connections will have been connected by the time the peer plugin is
+ * attached to it, and won't have this hook called.
+ */
 void BuyerPeerPlugin::on_connected() {
 
 }
 
 bool BuyerPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake) {
+
+    if(_clientState != ClientState::no_bitswapr_message_sent) {
+        throw std::exception("Extended handshake initiated at incorrect state.");
+    }
 
     // Use base class extension handhsake processor
     bool keepPlugin = PeerPlugin::on_extension_handshake(handshake);

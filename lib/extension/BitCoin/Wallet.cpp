@@ -310,9 +310,9 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
           const TxOEvent & event = i.value();
 
           // Check that it is endeed an unspent output which is not locked
-          if(event.type() == TxOEvent::Type::Receive &&
-                  !_send.contains(event.outpoint()) &&
-                  _locked.contains(event.outpoint()))
+          if(event.type() == TxOEvent::Type::Receive && // receive event
+                  !_send.contains(event.outpoint()) && // has not been spent
+                  !_locked.contains(event.outpoint())) // is not locked
               utxos.append(event);
       }
 

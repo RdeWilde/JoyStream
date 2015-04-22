@@ -8,6 +8,7 @@
 class QDataStream;
 class QString;
 
+//
 class PublicKey
 {
 public:
@@ -15,8 +16,7 @@ public:
     // Byte length of raw data
     static const quint32 length = 33;
 
-    // Construct from base58 encoded string
-    // e.g. 02520b32e461ec9e6b685d0e8603cc9b345bda4624aeb753a02333340d66909c83
+    // Construct from hex encoded string of DER encoded compressed public key
     PublicKey(const QString & string);
 
     // Default/Copy constructor and assignment operator needed to put in container.
@@ -39,14 +39,14 @@ public:
     bool operator<(const PublicKey & o) const;
     bool operator==(const PublicKey & o) const;
 
-    std::vector<unsigned char> buffer() const;
-    void setBuffer(const std::vector<unsigned char> & buffer);
+    std::vector<char> buffer() const;
+    void setBuffer(const std::vector<char> & buffer);
 
 private:
 
-    // Raw data
+    // DER encoded compressed public key
     // 0 is most significant byte for comparisons
-    std::vector<unsigned char> _buffer;
+    std::vector<char> _buffer;
 };
 
 uint qHash(const PublicKey & o);

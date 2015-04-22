@@ -7,6 +7,22 @@
 PublicKey::PublicKey(const QString & string)
     : _buffer(length, 0) {
 
+    // Check that string has correct length
+    if(string.length() != 2*length)
+        throw std::exception("String argument is of incorrect length, should be 2*length.");
+    else {
+
+        // Decode from hex format
+        QByteArray b = QByteArray::fromHex(string.toLatin1());
+
+        Q_ASSERT(b.length() == length);
+
+        // Copy into buffer
+        memcpy(_buffer.data(), b.constData(), length);
+    }
+
+    /** Old code which decoded base58
+
     // Turn into std::string
     std::string stdString = string.toStdString();
 
@@ -16,6 +32,7 @@ PublicKey::PublicKey(const QString & string)
     // Check that decoding worked
     if(!result)
         throw std::exception("Decoding base58 did not work.");
+        */
 }
 
 PublicKey::PublicKey()
@@ -51,16 +68,23 @@ bool PublicKey::isClear() const {
 
 QString PublicKey::toString() const {
 
+    /**
     // Base58 encode
     std::string result = EncodeBase58(_buffer);
 
     return QString::fromStdString(result);
+    */
+
+    QByteArray b = QByteArray::fromRawData(_buffer.data(), length);
+    std::string s = b.toHex().toStdString();
+
+    return QString::fromStdString(s);
 }
 
 QDataStream & operator<<(QDataStream& stream, const PublicKey & o) {
 
     // Write to stream from buffer
-    std::vector<unsigned char> buffer = o.buffer();
+    std::vector<char> buffer = o.buffer();
 
     int bytesWritten = stream.writeRawData((const char *)(buffer.data()), PublicKey::length);
 
@@ -73,7 +97,7 @@ QDataStream & operator<<(QDataStream& stream, const PublicKey & o) {
 QDataStream & operator>>(QDataStream& stream, PublicKey & o) {
 
     // Allocate buffer
-    std::vector<unsigned char> buffer(PublicKey::length, 0);
+    std::vector<char> buffer(PublicKey::length, 0);
 
     // Read from stream to buffer
     int bytesRead = stream.readRawData((char *)(buffer.data()), PublicKey::length);
@@ -90,7 +114,7 @@ QDataStream & operator>>(QDataStream& stream, PublicKey & o) {
 bool PublicKey::operator<(const PublicKey & o) const {
 
     // Get buffer
-    std::vector<unsigned char> & oBuffer = o.buffer();
+    std::vector<char> & oBuffer = o.buffer();
 
     // 0 is most significant byte
     for(unsigned int i = 0;i < length;i++) {
@@ -111,11 +135,11 @@ bool PublicKey::operator==(const PublicKey & o) const {
     return _buffer == o.buffer();
 }
 
-std::vector<unsigned char> PublicKey::buffer() const {
+std::vector<char> PublicKey::buffer() const {
     return _buffer;
 }
 
-void PublicKey::setBuffer(const std::vector<unsigned char> & buffer) {
+void PublicKey::setBuffer(const std::vector<char> & buffer) {
     _buffer = buffer;
 }
 

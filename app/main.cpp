@@ -9,10 +9,14 @@
 #include "lib/Config.hpp"
 #include "lib/ControllerTracker.hpp"
 #include "lib/controller/Controller.hpp"
+#include "lib/extension/BuyerTorrentPlugin.hpp" // for configurations
+#include "lib/extension/SellerTorrentPlugin.hpp" // for configurations
 #include "lib/logger/LoggerManager.hpp"
+
 //#include "lib/controller/ControllerConfiguration.hpp"
 //#include "lib/controller/TorrentConfiguration.hpp"
 //#include "lib/extension/TorrentPluginConfiguration.hpp"
+
 #include "lib/extension/PluginMode.hpp"
 
 #include <libtorrent/torrent_info.hpp>
@@ -98,7 +102,7 @@ void main(int argc, char* argv[]) {
      * Load torrent ================================================
      */
 
-    // Torrent file: (UTORRENT-TEST.torrent, VUZE-test.mp4.torrent)
+    // VUZE-test.mp4.torrent: Rise and Rise of BitCoin
     const char * torrent  = "C:/Users/Sindre/Desktop/TORRENTS/VUZE-test.mp4.torrent";
 
     libtorrent::error_code ec;
@@ -109,6 +113,9 @@ void main(int argc, char* argv[]) {
         return;
     }
 
+    // Create a controller tracker
+    ControllerTracker controllerTracker;
+
     /**
      * Buyer =======================================================
      */
@@ -118,9 +125,9 @@ void main(int argc, char* argv[]) {
 
     // Create main client
     controllerConfiguration.setWalletFile("C:/Users/Sindre/Desktop/BUILD_DEBUG/app/debug/buyer_wallet.dat");
-    Controller buyerClient(controllerConfiguration, true, manager, "Faucet http://faucet.xeno-genesis.com/",*buyerCategory);
+    Controller buyerClient(controllerConfiguration, true, manager, "Faucet http://faucet.xeno-genesis.com/", *buyerCategory);
 
-    std::cout << "Started main client." << std::endl;
+    std::cout << "Started buyer client." << std::endl;
 
     // Create configuration
     Controller::Torrent::Configuration buyerTorrentConfiguration(torrentInfo.info_hash()
@@ -134,34 +141,45 @@ void main(int argc, char* argv[]) {
     // Add to client
     buyerClient.addTorrent(buyerTorrentConfiguration);
 
+    // Track controller
+    controllerTracker.addClient(&buyerClient);
+
+
+
     /**
      * Seller =======================================================
      */
-/*
+
     // Create logging category: uten logging til skjerm
-    QLoggingCategory * sellerCategory = global_log_manager.createLogger("peer", false, false);
+    QLoggingCategory * sellerCategory = global_log_manager.createLogger("peer", true, false); // ("peer", false, false)
 
     // Create peer client
     controllerConfiguration.setWalletFile("C:/Users/Sindre/Desktop/BUILD_DEBUG/app/debug/seller_wallet.dat");
-    Controller sellerClient(controllerConfiguration, true, *sellerCategory);
+    Controller sellerClient(controllerConfiguration, true, manager, "Faucet http://faucet.xeno-genesis.com/", *sellerCategory);
 
-    std::cout << "Started peer client." << std::endl;
+    std::cout << "Started seller client." << std::endl;
 
     // Create configuration
-    TorrentConfiguration sellerTorrentConfiguration(torrentInfo.info_hash()
+    // plain vanilla torrent
+    Controller::Torrent::Configuration sellerTorrentConfiguration(torrentInfo.info_hash()
                                                   ,torrentInfo.name()
                                                   ,std::string("C:/Users/Sindre/Desktop/SAVE_OUTPUT/PEER")
                                                   ,std::vector<char>()
                                                   ,libtorrent::add_torrent_params::flag_update_subscribe
                                                   ,&torrentInfo);
 
+    SellerTorrentPlugin::Configuration SellerTorrentPluginConfiguration(true,
+                                                                        10, // 10 satoshies per piece!
+                                                                        60*10,// 10 minutes
+                                                                        0* 100000, // minfeeperbyte
+                                                                        1,
+                                                                        30); // maximum confirmation delay
+
     // Add to client
-    sellerClient.addTorrent(sellerTorrentConfiguration, false);
-*/
-    // Create a controller tracker
-    ControllerTracker controllerTracker;
-    controllerTracker.addClient(&buyerClient);
-    //controllerTracker.addClient(&sellerClient);
+    sellerClient.addTorrent(sellerTorrentConfiguration, SellerTorrentPluginConfiguration);
+
+    // Track controller
+    controllerTracker.addClient(&sellerClient);
 
     // Start event loop: this is the only Qt event loop in the entire application
     app.exec();

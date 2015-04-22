@@ -24,12 +24,14 @@
 Plugin::Plugin(Controller * controller, Wallet * wallet, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category)
     : _controller(controller)
     , _wallet(wallet)
+    /**
     , _btcClient("127.0.0.1"
                  ,8332
                  ,"bitcoinrpc"
                  ,"DDKVyZDNros2cKvkk5KpGmJWGazzYMezoWTeKaXcqxEj"
                  ,bitcoindAccount
                  ,manager)
+                     */
     , _category(category)
     , _getBalanceReply(NULL)
     , _addedToSession(false) {
@@ -349,7 +351,7 @@ bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, co
     if(boost::shared_ptr<libtorrent::torrent> sharedTorrentPtr = weakTorrentPtr.lock()) {
 
         // Create plugin with given configuration
-        boost::shared_ptr<libtorrent::torrent_plugin> sharedPluginPtr(new SellerTorrentPlugin(this, sharedTorrentPtr, configuration, _category));
+        boost::shared_ptr<libtorrent::torrent_plugin> sharedPluginPtr(new SellerTorrentPlugin(this, sharedTorrentPtr, _wallet, configuration, _category));
 
         // Install plugin on torrent
         sharedTorrentPtr->add_extension(sharedPluginPtr);
@@ -369,6 +371,7 @@ bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, co
 
 void Plugin::processStatus() {
 
+    /**
     if(_getBalanceReply == NULL)
         _getBalanceReply = _btcClient.getBalance();
     else if(_getBalanceReply->isFinished()) {
@@ -383,4 +386,5 @@ void Plugin::processStatus() {
         // Create and send plugin status alert
         sendAlertToSession(PluginStatusAlert(balance));
     }
+    */
 }

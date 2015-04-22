@@ -199,7 +199,7 @@ QList<QStandardItem *> WalletDialog::toModelViewRow(const Wallet::TxOEvent & eve
     if(event.blockHeight() == 0)
         confirmations = "Unconfirmed";
     else
-        confirmations = QString::number(_wallet->latestBlockHeight() - event.blockHeight());
+        confirmations = QString::number(_wallet->latestBlockHeight() - event.blockHeight() + 1);
 
     items << new QStandardItem(confirmations);
 

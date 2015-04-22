@@ -29,7 +29,9 @@ SellerTorrentPluginConfigurationDialog::~SellerTorrentPluginConfigurationDialog(
 void SellerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
     // Grab fields
-    quint32 minPrice = ui->minPriceLineEdit->text().toInt();
+    // https://en.bitcoin.it/wiki/Units
+    // 100000 satoshi == 1 mBTC = 1/1000 BTC
+    quint32 minPrice = 100000 * ui->minPriceLineEdit->text().toInt();
 
     QTime minLockTime = ui->minLockTimeEdit->time();
     quint32 minLock = minLockTime.hour()*3600 + minLockTime.minute()*60 + minLockTime.second();

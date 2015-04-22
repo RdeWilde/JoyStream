@@ -600,12 +600,14 @@ Payor::Payor(const Payor::Configuration & configuration)
     , _contractHash(configuration.contractHash())
     , _numberOfSignatures(configuration.numberOfSignatures()) {
 
+
     // Populate _channels vector
     const QVector<Channel::Configuration> & channelConfigurations = configuration.channels();
 
     for(QVector<Channel::Configuration>::const_iterator i = channelConfigurations.constBegin(),
         end(channelConfigurations.constEnd()); i != end;i++)
         _channels.append(Channel(*i));
+
 }
 
 quint32 Payor::assignUnassignedSlot(quint64 price, const PublicKey & payeeContractPk, const PublicKey & payeeFinalPk, quint32 refundLockTime) {

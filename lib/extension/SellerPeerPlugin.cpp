@@ -169,11 +169,16 @@ char const * SellerPeerPlugin::type() const {
  */
 void SellerPeerPlugin::on_disconnect(libtorrent::error_code const & ec) {
 
-    qCDebug(_category) << "on_disconnect";
+    qCDebug(_category) << "on_disconnect:" << ec.message().c_str();
 
     //_connectionAlive = false;
 }
 
+/**
+ * Called when the peer is successfully connected. Note that incoming
+ * connections will have been connected by the time the peer plugin is
+ * attached to it, and won't have this hook called.
+ */
 void SellerPeerPlugin::on_connected() {
 
 }
@@ -354,11 +359,11 @@ void SellerPeerPlugin::sent_unchoke()  {
 
 /*
  * Called when libtorrent think this peer should be disconnected.
- * If the plugin returns false, the peer will not be disconnected.
+ * If the plugin returns false, the peer will not be disconnected by libtorrent.
  */
 bool SellerPeerPlugin::can_disconnect(libtorrent::error_code const & ec)  {
 
-    qCDebug(_category) << "can_disconnect";
+    qCDebug(_category) << "can_disconnect:" << ec.message().c_str();
 
     // CRITICAL
     return true;

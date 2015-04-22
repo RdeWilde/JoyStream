@@ -31,10 +31,13 @@ BuyerTorrentPluginConfigurationDialog::~BuyerTorrentPluginConfigurationDialog() 
 void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
     // Get max price
-    quint64 maxPrice = ui->maxPriceLineEdit->text().toInt();
+    // https://en.bitcoin.it/wiki/Units
+    // 100000 satoshi == 1 mBTC = 1/1000 BTC
+    quint64 minimalFunds = 100000 * ui->maxPriceLineEdit->text().toInt();
+
+    quint64 maxPrice = minimalFunds / _torrentInfo.num_pieces();
 
     // Get funding output - this has to be grabbed from wallet/chain later
-    quint64 minimalFunds = _torrentInfo.num_pieces()*maxPrice;
     UnspentP2PKHOutput utxo = _wallet->getUtxo(minimalFunds, 1);
 
     // Check that an utxo was indeed found
@@ -52,13 +55,16 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
     QTime maxLockTime = ui->maxLockTimeEdit->time();
     quint32 maxLock = maxLockTime.hour()*3600 + maxLockTime.minute()*60 + maxLockTime.second();
 
+    // max fee per byte
+    quint64 maxFeePerByte = 100000 * ui->feeLineEdit->text().toInt();
+
     // Number of sellers
     qint32 numberOfSellers = ui->minPeersLineEdit->text().toInt();
 
     BuyerTorrentPlugin::Configuration configuration(false,
                                                     maxPrice,
                                                     maxLock,
-                                                    0,
+                                                    maxFeePerByte,
                                                     numberOfSellers);
 
     // Set in seller mode

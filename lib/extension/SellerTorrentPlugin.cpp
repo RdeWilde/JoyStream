@@ -87,14 +87,19 @@ PluginMode SellerTorrentPlugin::Configuration::pluginMode() const {
  * SellerTorrentPlugin
  */
 
+#include "BitCoin/Wallet.hpp"
+
 SellerTorrentPlugin::SellerTorrentPlugin(Plugin * plugin,
                                          const boost::shared_ptr<libtorrent::torrent> & torrent,
+                                         Wallet * wallet,
                                          const SellerTorrentPlugin::Configuration & configuration,
                                          QLoggingCategory & category)
     : TorrentPlugin(plugin, torrent, configuration, category)
+    , _wallet(wallet)
     , _minPrice(configuration.minPrice())
     , _minLock(configuration.minLock())
     , _minFeePerByte(configuration.minFeePerByte())
+    , _maxNumberOfSellers(configuration.maxNumberOfSellers())
     , _maxContractConfirmationDelay(configuration.maxContractConfirmationDelay()) {
 }
 
@@ -111,11 +116,12 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
     const libtorrent::tcp::endpoint & endPoint = peerConnection->remote();
     std::string endPointString = libtorrent::print_endpoint(endPoint);
 
-    qCDebug(_category) << "New connection from" << endPointString.c_str();
+    qCDebug(_category) << "Established connection with " << endPointString.c_str() << "on " << _torrent->name().c_str();
 
     // Check if this peer should be accepted, if not
     // a null is returned, hence plugin is not installed
     if(!TorrentPlugin::isPeerWellBehaved(peerConnection)) {
+
         qCDebug(_category) << "Rejected connection from peer, peer plugin not installed.";
         return boost::shared_ptr<libtorrent::peer_plugin>();
     }
@@ -156,7 +162,6 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
                                                                                  _category));
     // Add to collection
     _peers[endPoint] = sharedPeerPluginPtr;
-
 
     qCDebug(_category) << "Seller #" << _peers.size() << endPointString.c_str() << "added to " << _torrent->name().c_str();
 

@@ -112,7 +112,7 @@ private:
 
 
     // BitCoind wrapper
-    BitCoindRPC::Client _btcClient;
+    //BitCoindRPC::Client _btcClient;
 
     // Logging category
     QLoggingCategory & _category;
