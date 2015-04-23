@@ -6,4 +6,5 @@ quint32 NoPayloadMessage::length() const {
 }
 
 void NoPayloadMessage::write(QDataStream & stream) const {
+    // Nothing to write
 }

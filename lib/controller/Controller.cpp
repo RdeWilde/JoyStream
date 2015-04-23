@@ -414,6 +414,14 @@ Controller::Configuration::Configuration() {
 
     // Set session settings
 
+    /* connections_limit:
+     * sets a global limit on the number of connections opened.
+     * The number of connections is set to a hard minimum of at least two per torrent,
+     * so if you set a too low connections limit,
+     * and open too many torrents, the limit will not be met.
+     */
+    //sessionSettings.connections_limit =
+
     /* user_agent:
     *	the client identification to the tracker. The recommended format of
     *	this string is: "ClientName/ClientVersion libtorrent/libtorrentVersion".

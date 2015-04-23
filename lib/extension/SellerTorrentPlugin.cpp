@@ -183,7 +183,7 @@ void SellerTorrentPlugin::on_piece_failed(int index) {
 
 void SellerTorrentPlugin::tick() {
 
-    qCDebug(_category) << "SellerTorrentPlugin.tick()";
+    //qCDebug(_category) << "SellerTorrentPlugin.tick()";
 
     /*
     // No processing is done before a successful extended handshake

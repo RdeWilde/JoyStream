@@ -151,7 +151,7 @@ void main(int argc, char* argv[]) {
      */
 
     // Create logging category: uten logging til skjerm
-    QLoggingCategory * sellerCategory = global_log_manager.createLogger("peer", false, false); // ("peer", false, false)
+    QLoggingCategory * sellerCategory = global_log_manager.createLogger("seller", true, false); // ("seller", false, false)
 
     // Create peer client
     controllerConfiguration.setWalletFile("C:/Users/Sindre/Desktop/BUILD_DEBUG/app/debug/seller_wallet.dat");

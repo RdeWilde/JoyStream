@@ -367,9 +367,10 @@ void SellerPeerPlugin::sent_unchoke()  {
  */
 bool SellerPeerPlugin::can_disconnect(libtorrent::error_code const & ec)  {
 
-    qCDebug(_category) << "can_disconnect:" << ec.message().c_str();
+    //qCDebug(_category) << "can_disconnect:" << ec.message().c_str();
 
     // CRITICAL
+    //    return false;
     return true;
 }
 
@@ -410,7 +411,7 @@ void SellerPeerPlugin::on_piece_failed(int index)  {
  * Called aproximately once every second
  */
 void SellerPeerPlugin::tick()  {
-    qCDebug(_category) << "SellerPeerPlugin.tick()";
+    //qCDebug(_category) << "SellerPeerPlugin.tick()";
 }
 
 /*
@@ -517,6 +518,8 @@ void SellerPeerPlugin::processSell(const Sell * m) {
 
 void SellerPeerPlugin::processJoinContract(const JoinContract * m) {
 
+    qCDebug(_category) << "processJoinContract";
+
     if(_clientState != ClientState::seller_mode_announced &&
             _clientState != ClientState::ignored_contract_invitation)
         throw std::exception("JoinContract message should only be sent in response to an announced seller mode.");
@@ -553,6 +556,8 @@ void SellerPeerPlugin::processJoiningContract(const JoiningContract * m) {
 }
 
 void SellerPeerPlugin::processSignRefund(const SignRefund * m) {
+
+    qCDebug(_category) << "processSignRefund";
 
     if(_clientState != ClientState::joined_contract)
         throw std::exception("SignRefund message should only be sent in response to joining the contract.");
@@ -602,7 +607,7 @@ void SellerPeerPlugin::processRefundSigned(const RefundSigned * m) {
 
 void SellerPeerPlugin::processReady(const Ready * m) {
 
-    qCDebug(_category) << "Ready.";
+    qCDebug(_category) << "processReady";
 
     if(_clientState != ClientState::signed_refund)
         throw std::exception("Ready message should only be sent in response to signing a refund.");
@@ -614,6 +619,8 @@ void SellerPeerPlugin::processReady(const Ready * m) {
 }
 
 void SellerPeerPlugin::processRequestFullPiece(const RequestFullPiece * m) {
+
+    qCDebug(_category) << "processRequestFullPiece";
 
     if(_clientState != ClientState::awaiting_fullpiece_request_after_ready_announced &&
        _clientState != ClientState::awaiting_piece_request_after_payment)
@@ -728,6 +735,8 @@ void SellerPeerPlugin::disk_async_read_handler(int block, int a, const libtorren
 
 void SellerPeerPlugin::pieceRead(int piece, const char * buffer, int size) {
 
+    qCDebug(_category) << "pieceRead" << piece;
+
     Q_ASSERT(_clientState == ClientState::reading_piece_from_disk);
     Q_ASSERT(piece == _peerState.lastRequestFullPieceReceived().pieceIndex());
     Q_ASSERT(_payee.state() == Payee::State::has_all_information_required);
@@ -750,6 +759,8 @@ void SellerPeerPlugin::pieceRead(int piece, const char * buffer, int size) {
 
 void SellerPeerPlugin::pieceReadFailed(int piece) {
 
+    qCDebug(_category) << "pieceReadFailed" << piece;
+
     Q_ASSERT(_clientState == ClientState::reading_piece_from_disk);
     Q_ASSERT(piece == _peerState.lastRequestFullPieceReceived().pieceIndex());
     Q_ASSERT(_payee.state() == Payee::State::has_all_information_required);
@@ -764,6 +775,8 @@ void SellerPeerPlugin::processFullPiece(const FullPiece * m) {
 }
 
 void SellerPeerPlugin::processPayment(const Payment * m) {
+
+    qCDebug(_category) << "processPayment";
 
     if(_clientState != ClientState::awaiting_payment)
         throw std::exception("Payment message should only be sent in response to a full piece message.");

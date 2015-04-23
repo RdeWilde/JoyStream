@@ -108,6 +108,13 @@
      <height>22</height>
     </rect>
    </property>
+   <property name="time">
+    <time>
+     <hour>1</hour>
+     <minute>0</minute>
+     <second>0</second>
+    </time>
+   </property>
   </widget>
   <widget class="QLabel" name="maxPriceLabel">
    <property name="geometry">
@@ -143,6 +150,13 @@
      <width>141</width>
      <height>22</height>
     </rect>
+   </property>
+   <property name="time">
+    <time>
+     <hour>1</hour>
+     <minute>0</minute>
+     <second>0</second>
+    </time>
    </property>
   </widget>
   <widget class="QLabel" name="feeLabel">

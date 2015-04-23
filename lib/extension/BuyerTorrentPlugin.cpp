@@ -321,6 +321,7 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
     // Check if this peer should be accepted, if not
     // a null is returned, hence plugin is not installed
     if(!TorrentPlugin::isPeerWellBehaved(connection)) {
+
         qCDebug(_category) << "Rejected connection from peer, peer plugin not installed.";
         return boost::shared_ptr<libtorrent::peer_plugin>();
     }
@@ -352,7 +353,7 @@ void BuyerTorrentPlugin::on_piece_failed(int index) {
 
 void BuyerTorrentPlugin::tick() {
 
-    qCDebug(_category) << "BuyerTorrentPlugin.tick()";
+    //qCDebug(_category) << "BuyerTorrentPlugin.tick()";
 
     // If we are downloading, then try to assign them to peers without pieces assigned
     if(_state == State::downloading_pieces) {

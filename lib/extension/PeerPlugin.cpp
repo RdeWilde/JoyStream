@@ -50,7 +50,7 @@ PeerPlugin::PeerPlugin(TorrentPlugin * plugin,
 PeerPlugin::~PeerPlugin() {
 
     // Lets log, so we understand when libtorrent disposes of shared pointer
-    qCDebug(_category) << "~PeerPlugin() called.";
+    //qCDebug(_category) << "~PeerPlugin() called.";
 }
 
 /*
@@ -273,7 +273,7 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
 // IS NOT ACTUALLY CALLED FOR EXTENDED HANDSHAKE ITSELF.
 bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_interval body) {
 
-    qCDebug(_category) << "buyer:on_extended(" << length << "," << msg << ")";
+    qCDebug(_category) << "on_extended(id =" << msg << ", length=" << length << ")";
 
     // Ignore message if peer has not successfully completed BEP43 handshake (yet, or perhaps never will)
     if(_peerBitSwaprBEPSupportStatus != BEPSupportStatus::supported) {
@@ -306,15 +306,21 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
         return true;
     }
 
-    // Wrap data in QDataStream
-    QByteArray byteArray(body.begin, body.end - body.begin);
-    QDataStream dataStream(&byteArray, QIODevice::ReadOnly);
+    // WRAP in QByteAray: No copying is done, and no ownership is taken!
+    // http://doc.qt.io/qt-4.8/qbytearray.html#fromRawData
+    QByteArray byteArray = QByteArray::fromRawData(body.begin, body.end - body.begin);
 
     // Length of extended message, excluding the bep 10 id and extended message id.
     int lengthOfExtendedMessagePayload = byteArray.length();
 
+    // Wrap data in byte array in stream
+    QDataStream stream(&byteArray, QIODevice::ReadOnly);
+
+    // Explicitly set endianness
+    stream.setByteOrder(QDataStream::BigEndian);
+
     // Parse message
-    ExtendedMessagePayload * m = ExtendedMessagePayload::fromRaw(messageType, dataStream, lengthOfExtendedMessagePayload);
+    ExtendedMessagePayload * m = ExtendedMessagePayload::fromRaw(messageType, stream, lengthOfExtendedMessagePayload);
 
     // Drop if message was malformed
     if(m == NULL) {
@@ -353,11 +359,17 @@ void PeerPlugin::sendExtendedMessage(const ExtendedMessagePayload & extendedMess
     // Length of message full message
     quint32 messageLength = 4 + 1 + 1 + extendedMessage.length();
 
-    // Allocate message buffer
+    // Length value in outer BitTorrent header
+    quint32 messageLengthField = 1 + 1 + extendedMessage.length();
+
+    // Allocate message array buffer
     QByteArray byteArray(messageLength, 0);
 
     // Wrap buffer in stream
-    QDataStream stream(byteArray);
+    QDataStream stream(&byteArray, QIODevice::WriteOnly);
+
+    // Set byte order explicitly
+    stream.setByteOrder(QDataStream::BigEndian);
 
     /**
      * Write both headers to stream:
@@ -365,13 +377,15 @@ void PeerPlugin::sendExtendedMessage(const ExtendedMessagePayload & extendedMess
      */
 
     // Message length
-    stream << messageLength;
+    stream << messageLengthField;
 
     // BEP10 message id
     stream << static_cast<quint8>(libtorrent::bt_peer_connection::msg_extended); // should always be 20
 
     // Extended message id
     stream << _peerMapping.id(extendedMessage.messageType());
+    
+    qCDebug(_category) << "SENT:" << Utilities::messageName(extendedMessage.messageType());
 
     // Write message into buffer through stream
     extendedMessage.write(stream);
@@ -400,7 +414,7 @@ void PeerPlugin::processExtendedMessage(ExtendedMessagePayload * m) {
     // Get message type
     MessageType messageType = m->messageType();
 
-    qCDebug(_category) << Utilities::messageName(messageType);
+    qCDebug(_category) << "RECEIVED:" << Utilities::messageName(messageType);
 
     try {
 
@@ -431,15 +445,22 @@ void PeerPlugin::processExtendedMessage(ExtendedMessagePayload * m) {
             case MessageType::ready:
                 processReady(reinterpret_cast<Ready *>(m));
                 break;
+
+            case MessageType::request_full_piece:
+                processRequestFullPiece(reinterpret_cast<RequestFullPiece *>(m));
+                break;
+
+            case MessageType::full_piece:
+                processFullPiece(reinterpret_cast<FullPiece *>(m));
+                break;
+
             case MessageType::payment:
                 processPayment(reinterpret_cast<Payment *>(m));
                 break;
 
-                /*
-            case MessageType::end:
-                processEnd(static_cast<End *>(m));
-                break;
-                */
+            default:
+
+                Q_ASSERT(false);
         }
 
     } catch (std::exception & e) {

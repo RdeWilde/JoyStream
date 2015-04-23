@@ -195,6 +195,14 @@ char const * BuyerPeerPlugin::type() const {
 
 void BuyerPeerPlugin::on_disconnect(libtorrent::error_code const & ec) {
 
+    /**
+     *
+     * m_torrent->num_peers() >= m_torrent->max_connections()
+            && ses.num_connections() >= ses.max_connections()
+            && c.remote().address() != m_torrent->current_tracker().address()
+
+     */
+
     qCDebug(_category) << "on_disconnect:" << ec.message().c_str();
 
     //_connectionAlive = false;
@@ -369,9 +377,10 @@ void BuyerPeerPlugin::sent_unchoke() {
  */
 bool BuyerPeerPlugin::can_disconnect(libtorrent::error_code const & ec) {
 
-    qCDebug(_category) << "can_disconnect";
+    //qCDebug(_category) << "can_disconnect:" << ec.message().c_str();
 
     // CRITICAL
+    //return true;
     return true;
 }
 
@@ -641,8 +650,10 @@ void BuyerPeerPlugin::processSell(const Sell * m) {
 
         // and remember invitation
         _clientState = ClientState::invited_to_contract;
+
+        qCDebug(_category) << "Invited seller";
     } else
-        qCDebug(_category) << "Did not invite seller.";
+        qCDebug(_category) << "Did not invite seller";
 }
 
 void BuyerPeerPlugin::processJoinContract(const JoinContract * m) {
