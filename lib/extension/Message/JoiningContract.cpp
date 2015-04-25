@@ -12,6 +12,10 @@ JoiningContract::JoiningContract(const PublicKey & contractPk, const PublicKey &
     , _finalPk(finalPk) {
 }
 
+JoiningContract::JoiningContract(QDataStream & stream) {
+    stream >> _contractPk >> _finalPk;
+}
+
 PublicKey JoiningContract::contractPk() const {
     return _contractPk;
 }

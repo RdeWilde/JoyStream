@@ -14,6 +14,9 @@ public:
     // Construct from members
     JoiningContract(const PublicKey & contractPk, const PublicKey & finalPk);
 
+    // Constructor based on raw payload
+    JoiningContract(QDataStream & stream);
+
     // Getter
     PublicKey contractPk() const;
     PublicKey finalPk() const;

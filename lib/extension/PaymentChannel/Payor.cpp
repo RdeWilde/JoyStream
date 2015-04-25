@@ -628,10 +628,8 @@ quint32 Payor::assignUnassignedSlot(quint64 price, const PublicKey & payeeContra
 
         if(s.state() == Channel::State::unassigned) {
 
-            // Count number of unassigned slots
-            numberUnassigned++;
-
-            // Pick first unassigned slot
+            // If this is first unassigned slot we find,
+            // then we pick it
             if(numberUnassigned == 0) {
 
                 // And save payee configurations for slot
@@ -645,6 +643,9 @@ quint32 Payor::assignUnassignedSlot(quint64 price, const PublicKey & payeeContra
                 // and slot index
                 slotIndex = i;
             }
+
+            // Count number of unassigned slots
+            numberUnassigned++;
         }
     }
 

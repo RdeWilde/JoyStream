@@ -273,7 +273,19 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
 // IS NOT ACTUALLY CALLED FOR EXTENDED HANDSHAKE ITSELF.
 bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_interval body) {
 
-    qCDebug(_category) << "on_extended(id =" << msg << ", length=" << length << ")";
+    // Length of extended message, excluding the bep 10 id and extended message id.
+    int lengthOfExtendedMessagePayload = body.left();
+
+    // Do we have full message
+    if(length != lengthOfExtendedMessagePayload) {
+
+        // Output progress
+        qCDebug(_category) << "on_extended(id =" << msg << ", length =" << length << "): %" << ((float)(100*lengthOfExtendedMessagePayload))/length;
+
+        // No other plugin should look at this
+        return true;
+    } else
+        qCDebug(_category) << "on_extended(id =" << msg << ", length =" << length << ")";
 
     // Ignore message if peer has not successfully completed BEP43 handshake (yet, or perhaps never will)
     if(_peerBitSwaprBEPSupportStatus != BEPSupportStatus::supported) {
@@ -308,10 +320,7 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
 
     // WRAP in QByteAray: No copying is done, and no ownership is taken!
     // http://doc.qt.io/qt-4.8/qbytearray.html#fromRawData
-    QByteArray byteArray = QByteArray::fromRawData(body.begin, body.end - body.begin);
-
-    // Length of extended message, excluding the bep 10 id and extended message id.
-    int lengthOfExtendedMessagePayload = byteArray.length();
+    QByteArray byteArray = QByteArray::fromRawData(body.begin, lengthOfExtendedMessagePayload);
 
     // Wrap data in byte array in stream
     QDataStream stream(&byteArray, QIODevice::ReadOnly);
@@ -354,16 +363,19 @@ void PeerPlugin::processPeerPluginRequest(const PeerPluginRequest * peerPluginRe
 }
 */
 
-void PeerPlugin::sendExtendedMessage(const ExtendedMessagePayload & extendedMessage) {
+void PeerPlugin::sendExtendedMessage(const ExtendedMessagePayload & extendedMessagePayload) {
+
+    // Get length of
+    quint32 extendedMessagePayloadLength = extendedMessagePayload.length();
 
     // Length of message full message
-    quint32 messageLength = 4 + 1 + 1 + extendedMessage.length();
+    quint32 fullMessageLength = 4 + 1 + 1 + extendedMessagePayloadLength;
 
     // Length value in outer BitTorrent header
-    quint32 messageLengthField = 1 + 1 + extendedMessage.length();
+    quint32 fullMessageLengthFieldValue = 1 + 1 + extendedMessagePayloadLength;
 
     // Allocate message array buffer
-    QByteArray byteArray(messageLength, 0);
+    QByteArray byteArray(fullMessageLength, 0);
 
     // Wrap buffer in stream
     QDataStream stream(&byteArray, QIODevice::WriteOnly);
@@ -377,18 +389,24 @@ void PeerPlugin::sendExtendedMessage(const ExtendedMessagePayload & extendedMess
      */
 
     // Message length
-    stream << messageLengthField;
+    stream << fullMessageLengthFieldValue;
 
     // BEP10 message id
-    stream << static_cast<quint8>(libtorrent::bt_peer_connection::msg_extended); // should always be 20
+    stream << static_cast<quint8>(libtorrent::bt_peer_connection::msg_extended); // should always be 20 according to BEP10 spec
 
     // Extended message id
-    stream << _peerMapping.id(extendedMessage.messageType());
-    
-    qCDebug(_category) << "SENT:" << Utilities::messageName(extendedMessage.messageType());
+    stream << _peerMapping.id(extendedMessagePayload.messageType());
 
     // Write message into buffer through stream
-    extendedMessage.write(stream);
+    qint64 preWritePosition = stream.device()->pos();
+    extendedMessagePayload.write(stream);
+    qint64 postWritePosition = stream.device()->pos();
+
+    qint64 written = postWritePosition - preWritePosition;
+
+    Q_ASSERT(written == extendedMessagePayloadLength);
+
+    qCDebug(_category) << "SENT:" << Utilities::messageName(extendedMessagePayload.messageType()) << " = " << written << "bytes";
 
     // If message was written properly buffer, then send buffer to peer
     if(stream.status() != QDataStream::Status::Ok)
@@ -399,7 +417,9 @@ void PeerPlugin::sendExtendedMessage(const ExtendedMessagePayload & extendedMess
         const char * constData = byteArray.constData(); // is zero terminated, but we dont care
 
         // Send message buffer
-        _connection->send_buffer(constData, messageLength);
+        _connection->send_buffer(constData, byteArray.length());
+
+        // Do some sort of catching of error if sending did not work??
 
         // Start/Restart timer
         if(_timeSinceLastMessageSent.isNull())
