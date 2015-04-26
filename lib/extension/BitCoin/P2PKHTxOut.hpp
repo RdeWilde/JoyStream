@@ -9,16 +9,19 @@ class P2PKHTxOut
 {
 public:
 
-    /**
-     * Default/Copy constructor and assignemtn operator needed to put in container.
-     */
+    // Default constructor
     P2PKHTxOut();
-    P2PKHTxOut(const P2PKHTxOut& p2pkhTxOut);
-    P2PKHTxOut & operator=(const P2PKHTxOut& p2pkhTxOut);
 
     // Constructor from members
-    P2PKHTxOut(quint64 value, const PublicKey& pk);
+    P2PKHTxOut(quint64 value, const PublicKey & pk);
 
+    // Copy constructor
+    P2PKHTxOut(const P2PKHTxOut& p2pkhTxOut);
+
+    // Assignment operator
+    P2PKHTxOut & operator=(const P2PKHTxOut& p2pkhTxOut);
+
+    // Converts to json
     QJsonObject json() const;
 
     // Getters and setters

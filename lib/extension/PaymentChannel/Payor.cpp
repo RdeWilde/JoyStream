@@ -324,14 +324,6 @@ void Payor::Channel::paymentMade() {
     _numberOfPaymentsMade++;
 }
 
-QJsonObject Payor::Channel::json() const {
-    return QJsonObject {
-                {"funds", static_cast<qint64>(_funds)},
-                {"firstPk", _payorContractKeyPair.pk().toString()},
-                {"secondPk", _payeeContractPk.toString()}
-            };
-}
-
 Payor::Channel::Status Payor::Channel::status() const {
 
     return Payor::Channel::Status(_index,
@@ -499,16 +491,20 @@ Payor::Configuration::Configuration() {
 
 Payor::Configuration::Configuration(State state,
                                     const QVector<Channel::Configuration> & channels,
-                                    const OutPoint & fundingOutPoint,
-                                    const KeyPair & fundingOutputKeyPair,
+                                    const UnspentP2PKHOutput & utxo,
+                                    //const OutPoint & fundingOutPoint,
+                                    //quint64 fundingValue,
+                                    //const KeyPair & fundingOutputKeyPair,
                                     const KeyPair & changeOutputKeyPair,
                                     quint64 changeValue,
                                     const TxId & contractHash,
                                     quint32 numberOfSignatures)
     : _state(state)
     , _channels(channels)
-    , _fundingOutPoint(fundingOutPoint)
-    , _fundingOutputKeyPair(fundingOutputKeyPair)
+    //, _fundingOutPoint(fundingOutPoint)
+    //, _fundingValue(fundingValue)
+    //, _fundingOutputKeyPair(fundingOutputKeyPair)
+    , _utxo(utxo)
     , _changeOutputKeyPair(changeOutputKeyPair)
     , _changeValue(changeValue)
     , _contractHash(contractHash)
@@ -531,12 +527,29 @@ void Payor::Configuration::setChannels(const QVector<Payor::Channel::Configurati
     _channels = channels;
 }
 
+UnspentP2PKHOutput Payor::Configuration::utxo() const {
+    return _utxo;
+}
+
+void Payor::Configuration::setUtxo(const UnspentP2PKHOutput &utxo) {
+    _utxo = utxo;
+}
+
+/**
 OutPoint Payor::Configuration::fundingOutPoint() const {
     return _fundingOutPoint;
 }
 
 void Payor::Configuration::setFundingOutPoint(const OutPoint & fundingOutPoint) {
     _fundingOutPoint = fundingOutPoint;
+}
+
+quint64 Payor::Configuration::fundingValue() const {
+    return _fundingValue;
+}
+
+void Payor::Configuration::setFundingValue(quint64 fundingValue) {
+    _fundingValue = fundingValue;
 }
 
 KeyPair Payor::Configuration::fundingOutputKeyPair() const {
@@ -546,6 +559,7 @@ KeyPair Payor::Configuration::fundingOutputKeyPair() const {
 void Payor::Configuration::setFundingOutputKeyPair(const KeyPair & fundingOutputKeyPair) {
     _fundingOutputKeyPair = fundingOutputKeyPair;
 }
+*/
 
 KeyPair Payor::Configuration::changeOutputKeyPair() const {
     return _changeOutputKeyPair;
@@ -593,8 +607,10 @@ Payor::Payor() {
 
 Payor::Payor(const Payor::Configuration & configuration)
     : _state(configuration.state())
-    , _fundingOutPoint(configuration.fundingOutPoint())
-    , _fundingOutputKeyPair(configuration.fundingOutputKeyPair())
+    , _utxo(configuration.utxo())
+    //, _fundingOutPoint(configuration.fundingOutPoint())
+    //, _fundingValue(configuration.fundingValue())
+    //, _fundingOutputKeyPair(configuration.fundingOutputKeyPair())
     , _changeOutputKeyPair(configuration.changeOutputKeyPair())
     , _changeValue(configuration.changeValue())
     , _contractHash(configuration.contractHash())
@@ -658,10 +674,20 @@ quint32 Payor::assignUnassignedSlot(quint64 price, const PublicKey & payeeContra
         // Update state to reflect that we are now waiting for signatures
         _state = State::waiting_for_full_set_of_refund_signatures;
 
+        // Build contract outputs
+        QVector<P2SHTxOut> contractOutputs;
+
+        for(QVector<Channel>::const_iterator i = _channels.constBegin(),
+            end = _channels.constEnd();i != end;i++)
+            contractOutputs.append(P2SHTxOut(i->funds(), i->payorContractKeyPair().pk(), i->payeeContractPk()));
+
+
         // Compute and set _contractHash
-        _contractHash = BitSwaprjs::compute_contract_hash(_fundingOutPoint,
-                                                          _fundingOutputKeyPair.sk(),
-                                                          _channels,
+        _contractHash = BitSwaprjs::compute_contract_hash(_utxo,
+                                                          //_fundingOutPoint,
+                                                          //_fundingValue,
+                                                          //_fundingOutputKeyPair.sk(),
+                                                          contractOutputs,
                                                           P2PKHTxOut(_changeValue, _changeOutputKeyPair.pk()));
 
         // Compute all refund signatures
@@ -749,10 +775,18 @@ bool Payor::processRefundSignature(quint32 index, const Signature & signature) {
 
 void Payor::broadcast_contract() {
 
+    // Build contract outputs
+    QVector<P2SHTxOut> contractOutputs;
+
+    for(QVector<Channel>::const_iterator i = _channels.constBegin(),
+        end = _channels.constEnd();i != end;i++)
+        contractOutputs.append(P2SHTxOut(i->funds(), i->payorContractKeyPair().pk(), i->payeeContractPk()));
+
     // Compute and set _contractHash
-    BitSwaprjs::broadcast_contract(_fundingOutPoint,
-                                  _fundingOutputKeyPair.sk(),
-                                  _channels,
+    BitSwaprjs::broadcast_contract(//_fundingOutPoint,
+                                  //_fundingOutputKeyPair.sk(),
+                                  _utxo,
+                                  contractOutputs,
                                   P2PKHTxOut(_changeValue, _changeOutputKeyPair.pk()));
 
 }
@@ -889,6 +923,7 @@ QVector<Payor::Channel> & Payor::channels() {
     return _channels;
 }
 
+/**
 OutPoint Payor::fundingOutPoint() const {
     return _fundingOutPoint;
 }
@@ -896,6 +931,7 @@ OutPoint Payor::fundingOutPoint() const {
 void Payor::setFundingOutPoint(const OutPoint &fundingOutput) {
     _fundingOutPoint = fundingOutput;
 }
+*/
 
 TxId Payor::contractHash() const {
     return _contractHash;

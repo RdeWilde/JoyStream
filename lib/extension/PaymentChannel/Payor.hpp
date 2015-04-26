@@ -8,6 +8,8 @@
 #include "extension/BitCoin/Signature.hpp"
 #include "extension/BitCoin/OutPoint.hpp"
 
+#include "extension/BitCoin/UnspentP2PKHOutput.hpp"
+
 #include <QVector>
 
 /**
@@ -268,8 +270,6 @@ public:
         // Registers that a payment was made
         void paymentMade();
 
-        QJsonObject json() const;
-
         Status status() const;
 
         // Getters and setters
@@ -408,8 +408,7 @@ public:
         // Constructor for a fresh payor.
         Configuration(State state,
                       const QVector<Channel::Configuration> & channels,
-                      const OutPoint & fundingOutPoint,
-                      const KeyPair & fundingOutputKeyPair,
+                      const UnspentP2PKHOutput & utxo,
                       const KeyPair & changeOutputKeyPair,
                       quint64 changeValue,
                       const TxId & contractHash,
@@ -422,11 +421,19 @@ public:
         QVector<Channel::Configuration> channels() const;
         void setChannels(const QVector<Channel::Configuration> & channels);
 
+        UnspentP2PKHOutput utxo() const;
+        void setUtxo(const UnspentP2PKHOutput &utxo);
+
+        /**
         OutPoint fundingOutPoint() const;
         void setFundingOutPoint(const OutPoint & fundingOutPoint);
 
+        quint64 fundingValue() const;
+        void setFundingValue(quint64 fundingValue);
+
         KeyPair fundingOutputKeyPair() const;
         void setFundingOutputKeyPair(const KeyPair & fundingOutputKeyPair);
+        */
 
         KeyPair changeOutputKeyPair() const;
         void setChangeOutputKeyPair(const KeyPair & changeOutputKeyPair);
@@ -449,10 +456,16 @@ public:
         QVector<Channel::Configuration> _channels;
 
         // Unspent output funding channel
-        OutPoint _fundingOutPoint;
+        //OutPoint _fundingOutPoint;
+
+        // Value of output funding channel (had to add due to bitcore requirements, remove later?)
+        //quint64 _fundingValue;
 
         // Controls output funding channel
-        KeyPair _fundingOutputKeyPair;
+        //KeyPair _fundingOutputKeyPair;
+
+        // Funding
+        UnspentP2PKHOutput _utxo;
 
         // Controls change output in contract
         KeyPair _changeOutputKeyPair;
@@ -552,10 +565,16 @@ private:
     QVector<Channel> _channels;
 
     // Unspent output funding channel
-    OutPoint _fundingOutPoint;
+    //OutPoint _fundingOutPoint;
+
+    // Value of output funding channel (had to add due to bitcore requirements, remove later?)
+    //quint64 _fundingValue;
 
     // Controls output funding channel
-    KeyPair _fundingOutputKeyPair;
+    //KeyPair _fundingOutputKeyPair;
+
+    // Funding
+    UnspentP2PKHOutput _utxo;
 
     // Controls change output in contract
     KeyPair _changeOutputKeyPair;
@@ -565,6 +584,8 @@ private:
     // determines how much is paid in contract fee implicitly.
     quint64 _changeValue;
 
+    //
+    quint64 _fee;
 
     /**
      * Contract:

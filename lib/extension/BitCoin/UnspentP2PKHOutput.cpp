@@ -1,33 +1,60 @@
 #include "UnspentP2PKHOutput.hpp"
 
+#include <QJsonObject>
+
 UnspentP2PKHOutput::UnspentP2PKHOutput() {
 }
 
-UnspentP2PKHOutput::UnspentP2PKHOutput(const KeyPair & fundingOutputKeyPair, const OutPoint & fundingOutput, quint64 fundingValue)
-    : _fundingOutputKeyPair(fundingOutputKeyPair)
-    , _fundingOutput(fundingOutput)
-    , _fundingValue(fundingValue) {
+UnspentP2PKHOutput::UnspentP2PKHOutput(const KeyPair & keyPair, const OutPoint & output, quint64 value)
+    : _keyPair(keyPair)
+    , _outPoint(output)
+    , _value(value) {
 }
 
-KeyPair UnspentP2PKHOutput::fundingOutputKeyPair() const {
-    return _fundingOutputKeyPair;
+UnspentP2PKHOutput::UnspentP2PKHOutput(const QJsonObject & json) {
+
+    QJsonValue keyPairValue = json["keyPair"];
+    Q_ASSERT(keyPairValue.isObject());
+    _keyPair = KeyPair(keyPairValue.toObject());
+
+    QJsonValue outPointValue = json["outPoint"];
+    Q_ASSERT(outPointValue.isObject());
+    _outPoint = OutPoint(outPointValue.toObject());
+
+    QJsonValue valueValue = json["value"];
+    Q_ASSERT(valueValue.isDouble());
+    _value = valueValue.toDouble();
 }
 
-void UnspentP2PKHOutput::setFundingOutputKeyPair(const KeyPair &fundingOutputKeyPair) {
-    _fundingOutputKeyPair = fundingOutputKeyPair;
+QJsonObject UnspentP2PKHOutput::json() const {
+
+    return QJsonObject{
+        {"keyPair", _keyPair.json()},
+        {"outPoint", _outPoint.json()},
+        {"value", static_cast<int>(_value)}
+    };
 }
 
-OutPoint UnspentP2PKHOutput::fundingOutput() const {
-    return _fundingOutput;
+KeyPair UnspentP2PKHOutput::keyPair() const {
+    return _keyPair;
 }
 
-void UnspentP2PKHOutput::setFundingOutput(const OutPoint &fundingOutput) {
-    _fundingOutput = fundingOutput;
-}
-quint64 UnspentP2PKHOutput::fundingValue() const {
-    return _fundingValue;
+void UnspentP2PKHOutput::setKeyPair(const KeyPair &keyPair) {
+    _keyPair = keyPair;
 }
 
-void UnspentP2PKHOutput::setFundingValue(quint64 fundingValue) {
-    _fundingValue = fundingValue;
+OutPoint UnspentP2PKHOutput::outPoint() const {
+    return _outPoint;
+}
+
+void UnspentP2PKHOutput::setOutPoint(const OutPoint &outPoint) {
+    _outPoint = outPoint;
+}
+
+quint64 UnspentP2PKHOutput::value() const {
+    return _value;
+}
+
+void UnspentP2PKHOutput::setValue(quint64 value) {
+    _value = value;
 }

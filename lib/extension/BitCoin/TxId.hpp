@@ -12,13 +12,17 @@ public:
     // Byte length of raw data
     static const quint32 length = 32;
 
+    // Defualt constructor
+    TxId();
+
+    // Copy constructor
+    TxId(const TxId & o);
+
     // Construct from hex encoded string, hence length of string must be 2*length
     // e.g. 71d19ec329ece037de94a77dfcb9e2d1a3738e1f364e953adc82048e1f567d67
     TxId(const QString & string);
 
-    // Default/Copy constructor and assignemtn operator needed to put in container.
-    TxId();
-    TxId(const TxId & o);
+    // Asignemtn operator
     TxId & operator=(const TxId & o);
 
     // Utilities

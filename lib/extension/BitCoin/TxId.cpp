@@ -3,6 +3,15 @@
 #include <QDataStream>
 #include <QHash>
 
+TxId::TxId() {
+    // Clear buffer
+    clear();
+}
+
+TxId::TxId(const TxId & o) {
+    memcpy(_buffer, o.buffer(), length);
+}
+
 TxId::TxId(const QString & string) {
 
     // Check that string has correct length
@@ -18,16 +27,6 @@ TxId::TxId(const QString & string) {
         // Copy into buffer
         memcpy(_buffer, b.constData(), length);
     }
-}
-
-TxId::TxId() {
-
-    // Clear buffer
-    clear();
-}
-
-TxId::TxId(const TxId & o) {
-    *this = o;
 }
 
 TxId & TxId::operator=(const TxId & o) {

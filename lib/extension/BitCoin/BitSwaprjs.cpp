@@ -1,12 +1,12 @@
 #include "BitSwaprjs.hpp"
 #include "KeyPair.hpp"
 #include "P2PKHTxOut.hpp"
+#include "P2SHTxOut.hpp"
 #include "UnspentP2PKHOutput.hpp"
 
 //#include "extension/PaymentChannel/Contract.hpp"
 //#include "extension/PaymentChannel/Refund.hpp"
 
-#include "extension/PaymentChannel/Payor.hpp"
 
 #include "Signature.hpp"
 
@@ -121,19 +121,24 @@ QList<KeyPair> BitSwaprjs::generate_fresh_key_pairs(int numberOfPairs) {
     return keyPairs;
 }
 
-TxId BitSwaprjs::compute_contract_hash(const OutPoint & fundingOutPoint, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput) {
+TxId BitSwaprjs::compute_contract_hash(const UnspentP2PKHOutput & utxo, const QVector<P2SHTxOut> & contractOutputs, const P2PKHTxOut & changeOutput) {
+
+//compute_contract_hash(const OutPoint & fundingOutPoint, const quint64 fundingValue, const PrivateKey & sk, const QVector<P2SHTxOut> & contractOutputs, const P2PKHTxOut & changeOutput) {
 
     // Encode parameters into json
     QJsonArray p2shTxOuts;
 
-    for(QVector<Payor::Channel>::const_iterator i = channels.begin(), end(channels.end()); i != end;i++)
+    for(QVector<P2SHTxOut>::const_iterator i = contractOutputs.constBegin(),
+        end(contractOutputs.constEnd()); i != end;i++)
         p2shTxOuts.append(i->json());
 
     QJsonObject params {
-        {"fundingOutput", fundingOutPoint.toJson()},
+        //{"fundingOutput", fundingOutPoint.json()},
+        //{"fundingValue", static_cast<int>(fundingValue)},
+        //{"sk", sk.toString()}
+        {"utxo", utxo.json()},
         {"p2shTxOuts", p2shTxOuts},
         {"change", changeOutput.json()},
-        {"sk", sk.toString()}
     };
 
     // Make call
@@ -147,7 +152,7 @@ Signature BitSwaprjs::compute_refund_signature(const OutPoint & contractOutputPo
 
     // Create parameters
     QJsonObject params {
-        {"contractOutputPoint", contractOutputPoint.toJson()},
+        {"contractOutputPoint", contractOutputPoint.json()},
         {"sk", sk.toString()},
         {"firstPk", firstPk.toString()},
         {"secondPk", secondPk.toString()},
@@ -167,7 +172,7 @@ Signature BitSwaprjs::compute_payment_signature(const OutPoint & contractOutputP
 
     // Create parameters
     QJsonObject params {
-        {"contractOutputPoint", contractOutputPoint.toJson()},
+        {"contractOutputPoint", contractOutputPoint.json()},
         {"sk", sk.toString()},
         {"firstPk", firstPk.toString()},
         {"secondPk", secondPk.toString()},
@@ -186,7 +191,7 @@ bool BitSwaprjs::check_refund_signatures(const OutPoint & contractOutputPoint, c
 
     // Create parameters
     QJsonObject params {
-        {"contractOutputPoint", contractOutputPoint.toJson()},
+        {"contractOutputPoint", contractOutputPoint.json()},
         {"payorSignature", payorSignature.toString()},
         {"payeeSignature", payeeSignature.toString()},
         {"firstPk", firstPk.toString()},
@@ -206,7 +211,7 @@ bool BitSwaprjs::check_payment_signatures(const OutPoint & contractOutputPoint, 
 
     // Create parameters
     QJsonObject params {
-        {"contractOutputPoint", contractOutputPoint.toJson()},
+        {"contractOutputPoint", contractOutputPoint.json()},
         {"payorSignature", payorSignature.toString()},
         {"payeeSignature", payeeSignature.toString()},
         {"firstPk", firstPk.toString()},
@@ -310,19 +315,20 @@ quint32 BitSwaprjs::get_latest_block() {
     return heightValue.toDouble();
 }
 
-void BitSwaprjs::broadcast_contract(const OutPoint & fundingOutPoint, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput) {
+void BitSwaprjs::broadcast_contract(const UnspentP2PKHOutput & utxo, const QVector<P2SHTxOut> & contractOutputs, const P2PKHTxOut & changeOutput) {
+//(const OutPoint & fundingOutPoint, const PrivateKey & sk, const QVector<P2SHTxOut> & contractOutputs, const P2PKHTxOut & changeOutput) {
 
     // Encode parameters into json
     QJsonArray p2shTxOuts;
 
-    for(QVector<Payor::Channel>::const_iterator i = channels.begin(), end(channels.end()); i != end;i++)
+    for(QVector<P2SHTxOut>::const_iterator i = contractOutputs.constBegin(),
+        end(contractOutputs.constEnd()); i != end;i++)
         p2shTxOuts.append(i->json());
 
     QJsonObject params {
-        {"fundingOutput", fundingOutPoint.toJson()},
+        {"utxo", utxo.json()},
         {"p2shTxOuts", p2shTxOuts},
         {"change", changeOutput.json()},
-        {"sk", sk.toString()}
     };
 
     // Make call
@@ -337,7 +343,7 @@ quint64 BitSwaprjs::get_tx_outpoint(const OutPoint & point, bool & spent) {
 
     // Encode parameters into json
     QJsonObject params {
-        {"OutPoint", point.toJson()},
+        {"OutPoint", point.json()},
     };
 
     // Make call

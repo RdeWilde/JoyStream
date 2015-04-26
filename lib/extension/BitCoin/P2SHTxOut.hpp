@@ -3,18 +3,25 @@
 
 #include "extension/BitCoin/PublicKey.hpp"
 
+class QJsonObject;
+
 class P2SHTxOut
 {
 public:
-    /**
-     * Default/Copy constructor and assignemtn operator needed to put in container.
-     */
+
     P2SHTxOut();
-    P2SHTxOut(const P2SHTxOut& p2shTxOut);
-    P2SHTxOut & operator=(const P2SHTxOut& p2shTxOut);
 
     // Constructor based on members
     P2SHTxOut(quint64 value, const PublicKey & firstPk, const PublicKey & secondPk);
+
+    // Copy constructor
+    P2SHTxOut(const P2SHTxOut& p2shTxOut);
+
+    // Assignement operator
+    P2SHTxOut & operator=(const P2SHTxOut& p2shTxOut);
+
+    // Turns into json
+    QJsonObject json() const;
 
     // Getters and setters
     quint64 value() const;

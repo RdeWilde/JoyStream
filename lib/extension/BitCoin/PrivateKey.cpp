@@ -4,8 +4,16 @@
 #include <QDataStream>
 #include <QHash>
 
+PrivateKey::PrivateKey()
+    : _buffer(length, 0) {
+}
+
+PrivateKey::PrivateKey(const PrivateKey & o)
+    : _buffer(o.buffer()) {
+}
+
 PrivateKey::PrivateKey(const QString & string)
-    : _buffer(length, 0){
+    : _buffer(length, 0) {
 
     // Turn into std::string
     std::string stdString = string.toStdString();
@@ -16,14 +24,6 @@ PrivateKey::PrivateKey(const QString & string)
     // Check that decoding worked
     if(!result)
         throw std::exception("Decoding base58 did not work.");
-}
-
-PrivateKey::PrivateKey()
-    : _buffer(length, 0) {
-}
-
-PrivateKey::PrivateKey(const PrivateKey & o) {
-    *this = o;
 }
 
 PrivateKey & PrivateKey::operator=(const PrivateKey & o) {

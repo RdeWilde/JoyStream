@@ -4,6 +4,8 @@
 #include "KeyPair.hpp"
 #include "OutPoint.hpp"
 
+class QJsonObject;
+
 class UnspentP2PKHOutput
 {
 public:
@@ -12,28 +14,34 @@ public:
     UnspentP2PKHOutput();
 
     // Constructor from members
-    UnspentP2PKHOutput(const KeyPair & _fundingOutputKeyPair, const OutPoint & fundingOutput, quint64 fundingValue);
+    UnspentP2PKHOutput(const KeyPair & keyPair, const OutPoint & outPoint, quint64 setValue);
+
+    // Constructor from json
+    UnspentP2PKHOutput(const QJsonObject & json);
+
+    // Encode as json
+    QJsonObject json() const;
 
     // Getters and setters
-    KeyPair fundingOutputKeyPair() const;
-    void setFundingOutputKeyPair(const KeyPair & fundingOutputKeyPair);
+    KeyPair keyPair() const;
+    void setKeyPair(const KeyPair & keyPair);
 
-    OutPoint fundingOutput() const;
-    void setFundingOutput(const OutPoint & fundingOutput);
+    OutPoint outPoint() const;
+    void setOutPoint(const OutPoint & outPoint);
 
-    quint64 fundingValue() const;
-    void setFundingValue(quint64 fundingValue);
+    quint64 value() const;
+    void setValue(quint64 value);
 
 private:
 
     // Controls utxo
-    KeyPair _fundingOutputKeyPair;
+    KeyPair _keyPair;
 
-    // TxId+index
-    OutPoint _fundingOutput;
+    // (TxId,index)
+    OutPoint _outPoint;
 
     // Value of output
-    quint64 _fundingValue;
+    quint64 _value;
 
 };
 

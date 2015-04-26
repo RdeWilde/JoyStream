@@ -9,13 +9,17 @@ class OutPoint
 {
 public:
 
-    // Default/Copy constructor and assignemtn operator needed to put in container.
+    // Default constructor
     OutPoint();
-    OutPoint(const OutPoint& outputPoint);
-    OutPoint & operator=(const OutPoint& outputPoint);
 
     // Constructor
     OutPoint(const TxId & txId, quint32 index);
+
+    // Copy constructor
+    OutPoint(const OutPoint& outputPoint);
+
+    // Assignment operator
+    OutPoint & operator=(const OutPoint& outputPoint);
 
     // Constructor from json
     OutPoint(const QJsonObject & json);
@@ -24,7 +28,8 @@ public:
     friend bool operator==(const OutPoint & lhs, const OutPoint & rhs);
     friend bool operator<(const OutPoint & lhs, const OutPoint & rhs);
 
-    QJsonObject toJson() const;
+    // Encode as json
+    QJsonObject json() const;
 
     // Flat representation, so outpoint can be used as json key
     OutPoint(const QString & string);

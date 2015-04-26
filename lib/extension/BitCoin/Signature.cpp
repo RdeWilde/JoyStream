@@ -6,14 +6,14 @@
 Signature::Signature(){
 }
 
-Signature::Signature(const Signature & signature) {
-    *this = signature;
+Signature::Signature(const Signature & signature)
+    : _buffer(signature.buffer()) {
 }
 
 Signature::Signature(const QString & string) {
 
     // Check that string has correct length
-    if(string.length() > 2*MAX_SIGNATURE_LENGTH)
+    if(string.length() > 2*maxLength)
         throw std::exception("String argument is of incorrect length, should be 2*MAX_SIGNATURE_LENGTH.");
     else {
 
@@ -62,7 +62,7 @@ QString Signature::toString() const {
 int Signature::readFromStream(QDataStream & stream, int length) {
 
     // Check that signature is not to large
-    if(length > MAX_SIGNATURE_LENGTH)
+    if(length > maxLength)
         throw std::exception("Length argument is to large, should be MAX_SIGNATURE_LENGTH.");
 
     // Allocate buffer

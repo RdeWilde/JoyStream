@@ -9,9 +9,13 @@
 OutPoint::OutPoint() {
 }
 
-OutPoint::OutPoint(const OutPoint& o) {
-    _txId = o.txId();
-    _index = o.index();
+OutPoint::OutPoint(const TxId & txId, quint32 index)
+    : _txId(txId)
+    , _index(index) {
+}
+
+OutPoint::OutPoint(const OutPoint& o)
+    : OutPoint(o.txId(), o.index()) {
 }
 
 OutPoint & OutPoint::operator=(const OutPoint& o) {
@@ -21,18 +25,13 @@ OutPoint & OutPoint::operator=(const OutPoint& o) {
     return *this;
 }
 
-OutPoint::OutPoint(const TxId & txId, quint32 index)
-    : _txId(txId)
-    , _index(index) {
-}
-
 OutPoint::OutPoint(const QJsonObject & json) {
 
     // _hash
-    _txId = TxId(Utilities::GET_STRING(json, "_hash"));
+    _txId = TxId(Utilities::GET_STRING(json, "hash"));
 
     // _index
-    _index = Utilities::GET_DOUBLE(json, "_index");
+    _index = Utilities::GET_DOUBLE(json, "index");
 }
 
 /*
@@ -55,10 +54,10 @@ bool operator<(const OutPoint & lhs, const OutPoint & rhs) {
     return (lhs.txId() < rhs.txId()) || ((lhs.txId() == rhs.txId()) && (lhs.index() < rhs.index()));
 }
 
-QJsonObject OutPoint::toJson() const {
+QJsonObject OutPoint::json() const {
     return QJsonObject {
-        {"_hash", _txId.toString()},
-        {"_index", static_cast<int>(_index)}
+        {"hash", _txId.toString()},
+        {"index", static_cast<int>(_index)}
     };
 }
 

@@ -4,6 +4,14 @@
 #include <QDataStream>
 #include <QHash>
 
+PublicKey::PublicKey()
+    : _buffer(length, 0) {
+}
+
+PublicKey::PublicKey(const PublicKey & o)
+    : _buffer(o.buffer()) {
+}
+
 PublicKey::PublicKey(const QString & string)
     : _buffer(length, 0) {
 
@@ -33,14 +41,6 @@ PublicKey::PublicKey(const QString & string)
     if(!result)
         throw std::exception("Decoding base58 did not work.");
         */
-}
-
-PublicKey::PublicKey()
-    : _buffer(length, 0) {
-}
-
-PublicKey::PublicKey(const PublicKey & o) {
-    *this = o;
 }
 
 PublicKey & PublicKey::operator=(const PublicKey & o) {

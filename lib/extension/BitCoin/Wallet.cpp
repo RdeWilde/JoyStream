@@ -28,28 +28,28 @@ Wallet::TxOEvent::TxOEvent(Type type,
 Wallet::TxOEvent::TxOEvent(const QJsonObject & json) {
 
     // _type
-    QString type = Utilities::GET_STRING(json, "_type");
+    QString type = Utilities::GET_STRING(json, "type");
 
     if(type == "Send")
         _type = Type::Send;
     else if(type == "Receive")
         _type = Type::Receive;
     else
-        throw new std::exception("_type key must value among: {Send, Receive}");
+        throw new std::exception("type key must value among: {Send, Receive}");
 
     // _outpoint
-    QJsonObject outpoint = Utilities::GET_OBJECT(json, "_outpoint");
+    QJsonObject outpoint = Utilities::GET_OBJECT(json, "outpoint");
     _outpoint = OutPoint(outpoint);
 
     // _value
-    _value = Utilities::GET_DOUBLE(json, "_value");
+    _value = Utilities::GET_DOUBLE(json, "value");
 
     // _firstSeen
-    QString firstSeen = Utilities::GET_STRING(json, "_firstSeen");
+    QString firstSeen = Utilities::GET_STRING(json, "firstSeen");
     _firstSeen = QDateTime::fromString(firstSeen, Qt::ISODate);
 
     // _blockHeight
-    _blockHeight = Utilities::GET_DOUBLE(json, "_blockHeight");
+    _blockHeight = Utilities::GET_DOUBLE(json, "blockHeight");
 }
 
 bool Wallet::TxOEvent::operator<(const TxOEvent & o) const {
@@ -67,11 +67,11 @@ QJsonObject Wallet::TxOEvent::toJson() const {
         case Type::Receive: type = "Receive"; break;
     }
 
-    json["_type"] = type;
-    json["_outpoint"] = QJsonValue(_outpoint.toJson());
-    json["_value"] = static_cast<double>(_value);
-    json["_firstSeen"] = _firstSeen.toString(Qt::ISODate);
-    json["_blockHeight"] = static_cast<double>(_blockHeight);
+    json["type"] = type;
+    json["outpoint"] = QJsonValue(_outpoint.json());
+    json["value"] = static_cast<double>(_value);
+    json["firstSeen"] = _firstSeen.toString(Qt::ISODate);
+    json["blockHeight"] = static_cast<double>(_blockHeight);
 
     return json;
 }
@@ -145,17 +145,17 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
   Wallet::Entry::Entry(const QJsonObject & json) {
 
       // _n
-      _n = Utilities::GET_DOUBLE(json, "_n");
+      _n = Utilities::GET_DOUBLE(json, "n");
 
       // _keyPair
-      QJsonValue keyPair = json["_keyPair"];
+      QJsonValue keyPair = json["keyPair"];
       if(keyPair.type() != QJsonValue::Object)
-          throw new std::exception("_keyPair key must map to QJsonValue::OJsonObject type.");
+          throw new std::exception("keyPair key must map to QJsonValue::OJsonObject type.");
 
       _keyPair = KeyPair(keyPair.toObject());
 
       // _purpose
-      QString purpose = Utilities::GET_STRING(json, "_purpose");
+      QString purpose = Utilities::GET_STRING(json, "purpose");
 
       if(purpose == "Receive")
           _purpose = Purpose::Receive;
@@ -170,17 +170,17 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       else if(purpose == "ContractPayment")
           _purpose = Purpose::ContractPayment;
       else
-          throw new std::exception("_type key must have valud among {Receive, ContractChange, BuyerInContractOutput, ContractFinal, SellerInContractOutput, ContractPayment} of type QJsonValue::String.");
+          throw new std::exception("type key must have valud among {Receive, ContractChange, BuyerInContractOutput, ContractFinal, SellerInContractOutput, ContractPayment} of type QJsonValue::String.");
 
       // _generated
-      QString generated = Utilities::GET_STRING(json, "_generated");
+      QString generated = Utilities::GET_STRING(json, "generated");
       _generated = QDateTime::fromString(generated, Qt::ISODate);
 
       // _description
-      _description = Utilities::GET_STRING(json, "_description");
+      _description = Utilities::GET_STRING(json, "description");
 
       // _send
-      QJsonObject send = Utilities::GET_OBJECT(json, "_send");
+      QJsonObject send = Utilities::GET_OBJECT(json, "send");
 
       for(QJsonObject::const_iterator i = send.constBegin();
           i != send.constEnd();i++) {
@@ -192,7 +192,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
           QJsonValue event = i.value();
 
           if(event.type() != QJsonValue::Object)
-              throw new std::exception("_send map must contain QJsonValue::QJsonObject values.");
+              throw new std::exception("send map must contain QJsonValue::QJsonObject values.");
 
           // Turn into object
           TxOEvent txOEvent(event.toObject());
@@ -202,7 +202,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       }
 
       // _receive
-      QJsonObject receive = Utilities::GET_OBJECT(json, "_receive");
+      QJsonObject receive = Utilities::GET_OBJECT(json, "receive");
 
       for(QJsonObject::const_iterator i = receive.constBegin();
           i != receive.constEnd();i++) {
@@ -214,7 +214,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
           QJsonValue event = i.value();
 
           if(event.type() != QJsonValue::Object)
-              throw new std::exception("_receive map must contain QJsonValue::QJsonObject values.");
+              throw new std::exception("receive map must contain QJsonValue::QJsonObject values.");
 
           // Turn into object
           TxOEvent txOEvent(event.toObject());
@@ -257,8 +257,8 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
 
       QJsonObject json;
 
-      json["_n"] = static_cast<int>(_n);
-      json["_keyPair"] = _keyPair.toJson();
+      json["n"] = static_cast<int>(_n);
+      json["keyPair"] = _keyPair.json();
 
       // _purpose
       QString purpose;
@@ -272,13 +272,13 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
         case Purpose::ContractPayment: purpose = "ContractPayment"; break;
       }
 
-      json["_purpose"] = purpose;
+      json["purpose"] = purpose;
 
       // _generated
-      json["_generated"] = _generated.toString(Qt::ISODate);
+      json["generated"] = _generated.toString(Qt::ISODate);
 
       // _description
-      json["_description"] = _description;
+      json["description"] = _description;
 
       // _send
       QJsonObject send;
@@ -286,7 +286,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
           i != _send.constEnd();i++)
           send[i.key().toString()] = i.value().toJson();
 
-      json["_send"] = send;
+      json["send"] = send;
 
       // _receive
       QJsonObject receive;
@@ -294,7 +294,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
           i != _receive.constEnd();i++)
           receive[i.key().toString()] = i.value().toJson();
 
-      json["_receive"] = receive;
+      json["receive"] = receive;
 
       return json;
   }
@@ -445,16 +445,16 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
           return;
 
       // Parse out _walletSeed
-      _walletSeed = Utilities::GET_DOUBLE(walletDictionary, "_walletSeed");
+      _walletSeed = Utilities::GET_DOUBLE(walletDictionary, "walletSeed");
 
       // Parse out _gabLimit
-      _gapLimit = Utilities::GET_DOUBLE(walletDictionary, "_gabLimit");
+      _gapLimit = Utilities::GET_DOUBLE(walletDictionary, "gabLimit");
 
       // Parse out _keyCount
-      _keyCount = Utilities::GET_DOUBLE(walletDictionary, "_keyCount");
+      _keyCount = Utilities::GET_DOUBLE(walletDictionary, "keyCount");
 
       // Parse out _entries
-      QJsonObject entriesDictionary = Utilities::GET_OBJECT(walletDictionary, "_entries");
+      QJsonObject entriesDictionary = Utilities::GET_OBJECT(walletDictionary, "entries");
 
       for(QJsonObject::const_iterator i = entriesDictionary.constBegin();
           i != entriesDictionary.constEnd();i++) {
@@ -478,17 +478,17 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       }
 
       // Parse out _chain
-      QString chain = Utilities::GET_STRING(walletDictionary, "_chain");
+      QString chain = Utilities::GET_STRING(walletDictionary, "chain");
 
       if(chain == "mainnet")
           _network = Network::mainnet;
       else if(chain == "testnet3")
           _network = Network::testnet3;
       else
-          throw new std::exception("_chain key must have value among {mainnet, testnet3}.");
+          throw new std::exception("chain key must have value among {mainnet, testnet3}.");
 
       // _latestBlockHeight
-      _latestBlockHeight = Utilities::GET_DOUBLE(walletDictionary, "_latestBlockHeight");
+      _latestBlockHeight = Utilities::GET_DOUBLE(walletDictionary, "latestBlockHeight");
   }
 
   PrivateKey Wallet::getSk(const PublicKey & pk) {
@@ -518,13 +518,13 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       _mutex.lock();
 
       // _walletSeed
-      wallet["_walletSeed"] = QJsonValue(_walletSeed);
+      wallet["walletSeed"] = QJsonValue(_walletSeed);
 
       // _gabLimit
-      wallet["_gabLimit"] = QJsonValue(_gapLimit);
+      wallet["gabLimit"] = QJsonValue(_gapLimit);
 
       // _keyCount
-      wallet["_keyCount"] = QJsonValue(_keyCount);
+      wallet["keyCount"] = QJsonValue(_keyCount);
 
       // _entries
       QJsonObject entriesObject;
@@ -533,16 +533,16 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
           i != _entries.constEnd();i++)
         entriesObject[(i.key()).toString()] = (i.value()).toJson();
 
-      wallet["_entries"] = entriesObject;
+      wallet["entries"] = entriesObject;
 
       // _chain
       if(_network == Network::mainnet)
-          wallet["_chain"] = "mainnet";
+          wallet["chain"] = "mainnet";
       else
-          wallet["_chain"] = "testnet3";
+          wallet["chain"] = "testnet3";
 
       // _latestBlockHeight
-      wallet["_latestBlockHeight"] = QJsonValue(_latestBlockHeight);
+      wallet["latestBlockHeight"] = QJsonValue(_latestBlockHeight);
 
       _mutex.unlock();
 
@@ -715,7 +715,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
 
       // Return 0 value utxo, which signifies failure.
       UnspentP2PKHOutput utxo;
-      utxo.setFundingValue(0);
+      utxo.setValue(0);
       return utxo;
   }
 

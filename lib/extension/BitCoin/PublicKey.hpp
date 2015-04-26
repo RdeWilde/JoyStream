@@ -8,7 +8,6 @@
 class QDataStream;
 class QString;
 
-//
 class PublicKey
 {
 public:
@@ -16,12 +15,16 @@ public:
     // Byte length of raw data
     static const quint32 length = 33;
 
+    // Default constructor
+    PublicKey();
+
+    // Copy constructor
+    PublicKey(const PublicKey & o);
+
     // Construct from hex encoded string of DER encoded compressed public key
     PublicKey(const QString & string);
 
-    // Default/Copy constructor and assignment operator needed to put in container.
-    PublicKey();
-    PublicKey(const PublicKey & o);
+    // Assignment operator
     PublicKey & operator=(const PublicKey & o);
 
     // Utilities

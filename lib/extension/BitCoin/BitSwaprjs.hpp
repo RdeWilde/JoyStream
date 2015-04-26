@@ -18,7 +18,7 @@ class Refund;
 class Signature;
 
 class OutPoint;
-class Channel;
+//class Channel;
 class P2PKHTxOut;
 class P2SHTxOut;
 class UnspentP2PKHOutput;
@@ -34,8 +34,9 @@ public:
 
     static QList<KeyPair> generate_fresh_key_pairs(int numberOfPairs);
 
-    static TxId compute_contract_hash(const OutPoint & fundingOutPoint, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput);
+    //static TxId compute_contract_hash(const OutPoint & fundingOutPoint, const quint64 fundingValue, const PrivateKey & sk, const QVector<P2SHTxOut> & contractOutputs, const P2PKHTxOut & changeOutput);
 
+    static TxId compute_contract_hash(const UnspentP2PKHOutput & utxo, const QVector<P2SHTxOut> & contractOutputs, const P2PKHTxOut & changeOutput);
 
     /**
      * Signature computing/checking
@@ -63,7 +64,7 @@ public:
     /**
      * Broadcast transactions
      */
-    static void broadcast_contract(const OutPoint & fundingOutPoint, const PrivateKey & sk, const QVector<Payor::Channel> & channels, const P2PKHTxOut & changeOutput);
+    static void broadcast_contract(const UnspentP2PKHOutput & utxo, const QVector<P2SHTxOut> & contractOutputs, const P2PKHTxOut & changeOutput);
 
 
     /**

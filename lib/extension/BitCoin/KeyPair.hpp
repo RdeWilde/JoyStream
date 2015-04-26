@@ -10,20 +10,23 @@ class KeyPair
 {
 public:
 
-    /**
-     * Default/Copy constructor and assignemtn operator needed to put in container.
-     */
+    // Default constructor
     KeyPair();
-    KeyPair(const KeyPair& keyPair);
-    KeyPair & operator=(const KeyPair& rhs);
 
-    // Constructor
+    // Constructor from members
     KeyPair(const PublicKey & pk, const PrivateKey & sk);
+
+    // Copy constructor
+    KeyPair(const KeyPair& keyPair);
+
+    // Assignment operator
+    KeyPair & operator=(const KeyPair& rhs);
 
     // Constructor from json
     KeyPair(const QJsonObject & json);
 
-    QJsonObject toJson() const;
+    // Converts to json
+    QJsonObject json() const;
 
     // Getters and setters
     PublicKey pk() const;

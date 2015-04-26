@@ -1453,7 +1453,7 @@ void Controller::processTorrentCheckedAlert(libtorrent::torrent_checked_alert co
             // Get funding utxo
             const UnspentP2PKHOutput utxo = _wallet.getUtxo(minimalFunds, 1);
 
-            if(utxo.fundingValue() == 0) {
+            if(utxo.value() == 0) {
 
                 qCCritical(_category) << "Could not start buyer mode plugin due to insufficient free funds.";
 

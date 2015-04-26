@@ -1,15 +1,22 @@
 #include "P2SHTxOut.hpp"
 
+#include <QJsonObject>
+
 P2SHTxOut::P2SHTxOut() {
 }
 
-P2SHTxOut::P2SHTxOut(const P2SHTxOut& p2shTxOut) {
-    _value = p2shTxOut.value();
-    _firstPk = p2shTxOut.firstPk();
-    _secondPk =  p2shTxOut.secondPk();
+P2SHTxOut::P2SHTxOut(quint64 value, const PublicKey & firstPk, const PublicKey & secondPk)
+    : _value(value)
+    , _firstPk(firstPk)
+    , _secondPk(secondPk) {
+}
+
+P2SHTxOut::P2SHTxOut(const P2SHTxOut& p2shTxOut)
+    : P2SHTxOut::P2SHTxOut(p2shTxOut.value(), p2shTxOut.firstPk(), p2shTxOut.secondPk()) {
 }
 
 P2SHTxOut & P2SHTxOut::operator=(const P2SHTxOut& p2shTxOut) {
+
     _value = p2shTxOut.value();
     _firstPk = p2shTxOut.firstPk();
     _secondPk =  p2shTxOut.secondPk();
@@ -17,12 +24,16 @@ P2SHTxOut & P2SHTxOut::operator=(const P2SHTxOut& p2shTxOut) {
     return *this;
 }
 
-P2SHTxOut::P2SHTxOut(quint64 value, const PublicKey & firstPk, const PublicKey & secondPk)
-    : _value(value)
-    , _firstPk(firstPk)
-    , _secondPk(secondPk) {
 
+QJsonObject P2SHTxOut::json() const {
+
+    return QJsonObject{
+        {"value", static_cast<qint64>(_value)},
+        {"firstPk", _firstPk.toString()},
+        {"secondPk", _secondPk.toString()}
+    };
 }
+
 quint64 P2SHTxOut::value() const {
     return _value;
 }

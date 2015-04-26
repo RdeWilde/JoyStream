@@ -41,7 +41,7 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
     UnspentP2PKHOutput utxo = _wallet->getUtxo(minimalFunds, 1);
 
     // Check that an utxo was indeed found
-    if(utxo.fundingValue() == 0) {
+    if(utxo.value() == 0) {
 
         // Show modal dialog on same thread, we block untill it is closed
         QMessageBox msgBox;

@@ -209,17 +209,17 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
      */
 
     // Check that we found valid utxo
-    if(utxo.fundingValue() == 0)
+    if(utxo.value() == 0)
         throw std::exception("No utxo found.");
 
     // Figure out how much to lock up with each seller
-    quint64 fundingPerSeller = qFloor(utxo.fundingValue()/configuration.numberOfSellers());
+    quint64 fundingPerSeller = qFloor(utxo.value()/configuration.numberOfSellers());
 
     // Contract transaction fee: Get from where?
     quint64 tx_fee = 0;
 
     // Compute change
-    quint64 changeValue = utxo.fundingValue() - configuration.numberOfSellers()*fundingPerSeller - tx_fee;
+    quint64 changeValue = utxo.value() - configuration.numberOfSellers()*fundingPerSeller - tx_fee;
 
     // Generate keys in wallet
     QList<Wallet::Entry> buyerInContractKeys = _wallet->generateNewKeys(configuration.numberOfSellers(), Wallet::Purpose::BuyerInContractOutput).values();
@@ -250,8 +250,7 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
     // Payor configuration
     Payor::Configuration payorConfiguration(Payor::State::waiting_for_full_set_of_sellers,
                                             channelConfigurations,
-                                            utxo.fundingOutput(),
-                                            utxo.fundingOutputKeyPair(),
+                                            utxo,
                                             changeKey[0].keyPair(),
                                             changeValue,
                                             TxId(),
