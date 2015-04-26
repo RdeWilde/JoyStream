@@ -253,8 +253,9 @@ void Payee::registerPayeeInformation(quint32 lockTime, quint32 price, quint32 ma
 void Payee::registerPayorInformation(const OutPoint & contractOutPoint, const PublicKey & payorContractPk, const PublicKey & payorFinalPk, quint64 funds) {
 
     // Check state
-    if(_state != State::waiting_for_payor_information)
-        throw std::exception("State incompatible request, must be in waiting_for_payor_information state.");
+    if(_state != State::waiting_for_payor_information &&
+       _state != State::has_all_information_required)
+        throw std::exception("State incompatible request, must be in waiting_for_payor_information or has_all_information_required state.");
 
     _state = State::has_all_information_required;
     _contractOutPoint = contractOutPoint;

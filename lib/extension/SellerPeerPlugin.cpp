@@ -570,24 +570,7 @@ void SellerPeerPlugin::processSignRefund(const SignRefund * m) {
     _peerState.setLastSignRefundReceived(*m);
 
     // Update payee with most recent
-    bool spent;
-    const OutPoint fundingOutPoint(m->hash(), m->index());
-    quint64 funds = BitSwaprjs::get_tx_outpoint(fundingOutPoint, spent);
-
-    // Check if outpoint is unspent
-    if(!spent) {
-
-        // Check that it has enough funding?
-
-        // Register informaiton for payor
-        _payee.registerPayorInformation(fundingOutPoint, m->contractPk(), m->finalPk(), funds);
-
-    } else {
-
-        // Some sort of error
-
-        throw std::exception("fundingOutPoint was spent.");
-    }
+    _payee.registerPayorInformation(OutPoint(m->hash(), m->index()), m->contractPk(), m->finalPk(), m->value());
 
     // Create refund signature
     Signature refundSignature = _payee.generateRefundSignature();
@@ -613,6 +596,7 @@ void SellerPeerPlugin::processReady(const Ready * m) {
         throw std::exception("Ready message should only be sent in response to signing a refund.");
 
     // Start timer or something, to start looking for contract
+    //quint64 funds = BitSwaprjs::get_tx_outpoint(fundingOutPoint, spent);
 
     // Update client state
     _clientState = ClientState::awaiting_fullpiece_request_after_ready_announced;
