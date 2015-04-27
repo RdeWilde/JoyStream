@@ -138,41 +138,6 @@ void main(int argc, char* argv[]) {
                                                   //+libtorrent::add_torrent_params::flag_auto_managed
                                                   ,&torrentInfo);
 
-    /**
-    // Create buyer torrent plugin configuration
-    quint64 minimalFunds = 100000 * (1);
-    quint64 maxPrice = minimalFunds / torrentInfo.num_pieces();
-
-    // Get funding output - this has to be grabbed from wallet/chain later
-    UnspentP2PKHOutput utxo = _wallet->getUtxo(minimalFunds, 1);
-
-    // Check that an utxo was indeed found
-    if(utxo.fundingValue() == 0) {
-
-        // Show modal dialog on same thread, we block untill it is closed
-        QMessageBox msgBox;
-        msgBox.setText("No utxo found.");
-        msgBox.exec();
-
-        return;
-    }
-
-    // Maximum Lock time
-    quint32 maxLock = 2*3600 + 1*60 + 1;
-
-    // max fee per byte
-    quint64 maxFeePerByte = (100000 * 0.1) * 1000; // 1/10 mBTC per kB (not KB)
-
-    // Number of sellers
-    qint32 numberOfSellers = 1;
-
-    BuyerTorrentPlugin::Configuration sellerTorrentConfiguration(false,
-                                                                maxPrice,
-                                                                maxLock,
-                                                                maxFeePerByte,
-                                                                numberOfSellers);
-    */
-
     // Add to client
     buyerClient.addTorrent(buyerTorrentConfiguration);
 
@@ -219,7 +184,7 @@ void main(int argc, char* argv[]) {
     // Start event loop: this is the only Qt event loop in the entire application
     app.exec();
 
-        std::cout << "Application event loop exited, application closing." << std::endl;
+    std::cout << "Application event loop exited, application closing." << std::endl;
 }
 
 bool updateManager() {

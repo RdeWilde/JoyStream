@@ -197,7 +197,7 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
     , _assignmentLowerBound(0) {
 
     // Get torrent info
-    const libtorrent::torrent_info & torrentInfo = _torrent->torrent_file();
+    const libtorrent::torrent_info torrentInfo = _torrent->torrent_file();
 
     // Start clock for when picking sellers can begin
     _timeSincePluginStarted.start();
@@ -212,14 +212,15 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
     if(utxo.value() == 0)
         throw std::exception("No utxo found.");
 
-    // Figure out how much to lock up with each seller
-    quint64 fundingPerSeller = qFloor(utxo.value()/configuration.numberOfSellers());
+    // Contract transaction fee is computed AS IF channel is full, change this later!!!
+    // http://bitcoinfees.com/
+    quint64 txFee = _maxFeePerByte*((148 * 1) + (34 * configuration.numberOfSellers()) + 10);
 
-    // Contract transaction fee: Get from where?
-    quint64 tx_fee = 0;
+    // Allocate enough funds to buy full file from each seller at WORST price
+    quint64 fundingPerSeller = torrentInfo.num_pieces()*_maxPrice;
 
     // Compute change
-    quint64 changeValue = utxo.value() - configuration.numberOfSellers()*fundingPerSeller - tx_fee;
+    quint64 changeValue = utxo.value() - txFee - configuration.numberOfSellers()*fundingPerSeller;
 
     // Generate keys in wallet
     QList<Wallet::Entry> buyerInContractKeys = _wallet->generateNewKeys(configuration.numberOfSellers(), Wallet::Purpose::BuyerInContractOutput).values();

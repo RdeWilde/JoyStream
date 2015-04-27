@@ -31,6 +31,8 @@ private slots:
 
     void on_buttonBox_rejected();
 
+    void on_maxPriceLineEdit_textChanged(const QString &arg1);
+
 private:
     Ui::BuyerTorrentPluginConfigurationDialog *ui;
 

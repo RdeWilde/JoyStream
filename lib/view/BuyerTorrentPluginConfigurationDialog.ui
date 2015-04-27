@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>385</width>
-    <height>247</height>
+    <width>247</width>
+    <height>273</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,8 +16,8 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>160</x>
-     <y>196</y>
+     <x>24</x>
+     <y>224</y>
      <width>193</width>
      <height>32</height>
     </rect>
@@ -33,14 +33,14 @@
    <property name="geometry">
     <rect>
      <x>26</x>
-     <y>16</y>
+     <y>8</y>
      <width>225</width>
      <height>43</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
+     <pointsize>12</pointsize>
     </font>
    </property>
    <property name="text">
@@ -51,21 +51,21 @@
    <property name="geometry">
     <rect>
      <x>28</x>
-     <y>144</y>
+     <y>168</y>
      <width>111</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>Minimum #Peers:</string>
+    <string>Minimum #peers:</string>
    </property>
   </widget>
   <widget class="QLineEdit" name="minPeersLineEdit">
    <property name="geometry">
     <rect>
-     <x>212</x>
-     <y>140</y>
-     <width>141</width>
+     <x>162</x>
+     <y>164</y>
+     <width>55</width>
      <height>20</height>
     </rect>
    </property>
@@ -77,21 +77,21 @@
    <property name="geometry">
     <rect>
      <x>28</x>
-     <y>90</y>
+     <y>114</y>
      <width>139</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>maxLock (hours::minutes):</string>
+    <string>Maximum lock time (h:m):</string>
    </property>
   </widget>
   <widget class="QLineEdit" name="maxPriceLineEdit">
    <property name="geometry">
     <rect>
-     <x>212</x>
+     <x>162</x>
      <y>60</y>
-     <width>141</width>
+     <width>55</width>
      <height>20</height>
     </rect>
    </property>
@@ -102,9 +102,9 @@
   <widget class="QTimeEdit" name="maxLockTimeEdit">
    <property name="geometry">
     <rect>
-     <x>212</x>
-     <y>84</y>
-     <width>141</width>
+     <x>162</x>
+     <y>108</y>
+     <width>55</width>
      <height>22</height>
     </rect>
    </property>
@@ -121,33 +121,33 @@
     <rect>
      <x>28</x>
      <y>64</y>
-     <width>85</width>
+     <width>99</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>maxPrice (mBTC):</string>
+    <string>Price/piece (mɃ):</string>
    </property>
   </widget>
   <widget class="QLabel" name="waitTimeLabel">
    <property name="geometry">
     <rect>
      <x>28</x>
-     <y>118</y>
+     <y>142</y>
      <width>139</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>waitTime (hours::minutes):</string>
+    <string>Maximum wait time (h:m):</string>
    </property>
   </widget>
   <widget class="QTimeEdit" name="waitTimeTimeEdit">
    <property name="geometry">
     <rect>
-     <x>212</x>
-     <y>112</y>
-     <width>141</width>
+     <x>162</x>
+     <y>136</y>
+     <width>55</width>
      <height>22</height>
     </rect>
    </property>
@@ -163,26 +163,76 @@
    <property name="geometry">
     <rect>
      <x>28</x>
-     <y>170</y>
+     <y>194</y>
      <width>111</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>Fee/KB (mBTC):</string>
+    <string>Fee/byte (satoshies):</string>
    </property>
   </widget>
   <widget class="QLineEdit" name="feeLineEdit">
    <property name="geometry">
     <rect>
-     <x>212</x>
-     <y>166</y>
-     <width>141</width>
+     <x>162</x>
+     <y>190</y>
+     <width>55</width>
      <height>20</height>
     </rect>
    </property>
    <property name="text">
-    <string>1</string>
+    <string>10</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="totalPriceLabel">
+   <property name="geometry">
+    <rect>
+     <x>28</x>
+     <y>88</y>
+     <width>99</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Total price (mɃ):</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="totalPriceValueLabel">
+   <property name="geometry">
+    <rect>
+     <x>164</x>
+     <y>88</y>
+     <width>99</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>0</string>
+   </property>
+  </widget>
+  <widget class="Line" name="line">
+   <property name="geometry">
+    <rect>
+     <x>28</x>
+     <y>40</y>
+     <width>189</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
    </property>
   </widget>
  </widget>
