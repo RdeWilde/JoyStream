@@ -170,7 +170,8 @@ HEADERS += \
     extension/Request/StartSellerTorrentPlugin.hpp \
     extension/Request/StartObserverTorrentPlugin.hpp \
     extension/Message/RequestFullPiece.hpp \
-    extension/Message/FullPiece.hpp
+    extension/Message/FullPiece.hpp \
+    extension/BitCoin/BitCoin.hpp
 				
 FORMS += \
     view/mainwindow.ui \

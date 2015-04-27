@@ -139,7 +139,7 @@ public:
         Configuration(bool enableBanningSets,
                       quint64 maxPrice,
                       quint32 maxLock,
-                      quint64 maxFeePerByte,
+                      quint64 maxFeePerKb,
                       quint32 numberOfSellers);
 
         // Constructor from copy <=== Why is this here again? who is using this
@@ -169,8 +169,8 @@ public:
         quint32 maxLock() const;
         void setMaxLock(quint32 maxLock);
 
-        quint64 maxFeePerByte() const;
-        void setMaxFeePerByte(quint64 maxFeePerByte);
+        quint64 maxFeePerKb() const;
+        void setMaxFeePerKb(quint64 maxFeePerKb);
 
         quint32 numberOfSellers() const;
         void setNumberOfSellers(quint32 numberOfSellers);
@@ -184,8 +184,8 @@ public:
         // Maximum lock time (the number of seconds elapsed since 1970-01-01T00:00 UTC)
         quint32 _maxLock;
 
-        // Maximum fee per byte in contract transaction (satoshies)
-        quint64 _maxFeePerByte;
+        // Maximum fee per kB in contract transaction (satoshies)
+        quint64 _maxFeePerKb;
 
         // Number of sellers
         quint32 _numberOfSellers;
@@ -243,6 +243,10 @@ public:
     // Ask libtorrent to validate piece
     bool checkLengthAndValidatePiece(int pieceIndex, const QVector<char> & pieceData);
 
+    // Some utility routines
+    static quint64 contractFee(int numberOfSellers, quint64 maxFeePerKb);
+
+
     // Generate plugin status
     Status status() const;
 
@@ -258,8 +262,8 @@ public:
     quint32 maxLock() const;
     void setMaxLock(quint32 maxLock);
 
-    quint64 maxFeePerByte() const;
-    void setMaxFeePerByte(quint64 maxFeePerByte);
+    quint64 maxFeePerKb() const;
+    void setMaxFeePerKb(quint64 maxFeePerKb);
 
     quint32 numberOfSellers() const;
     void setnumberOfSellers(quint32 numberOfSellers);
@@ -291,7 +295,7 @@ private:
         quint32 _maxLock;
 
         // Maximum fee per byte in contract transaction (satoshies)
-        quint64 _maxFeePerByte;
+        quint64 _maxFeePerKb;
 
         // Number of sellers
         quint32 _numberOfSellers;

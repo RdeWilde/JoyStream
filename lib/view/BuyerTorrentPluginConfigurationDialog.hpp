@@ -31,7 +31,11 @@ private slots:
 
     void on_buttonBox_rejected();
 
-    void on_maxPriceLineEdit_textChanged(const QString &arg1);
+    void on_maxTotalSpendLineEdit_textChanged(const QString &arg1);
+
+    void on_feePrKbLineEdit_textChanged(const QString &arg1);
+
+    void on_numPeersLineEdit_textEdited(const QString &arg1);
 
 private:
     Ui::BuyerTorrentPluginConfigurationDialog *ui;
@@ -40,9 +44,16 @@ private:
 
     Wallet * _wallet;
 
-    //libtorrent::sha1_hash _infoHash;
-
     libtorrent::torrent_info _torrentInfo;
+
+    //
+    quint64 maxPriceFromTotalSpend(quint64 maxTotalSpend, quint64 totalFee);
+
+    //
+    quint64 minimalFunds(quint64 maxPrice, qint32 numberOfSellers, quint64 totalFee);
+
+    // Updates the total expenditure field based on the current configuration values
+    void updateTotal();
 };
 
 #endif // BUYERTORRENTPLUGINCONFIGURATIONDIALOG_HPP

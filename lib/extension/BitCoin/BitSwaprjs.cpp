@@ -315,7 +315,7 @@ quint32 BitSwaprjs::get_latest_block() {
     return heightValue.toDouble();
 }
 
-bool BitSwaprjs::broadcast_contract(const UnspentP2PKHOutput & utxo, const QVector<P2SHTxOut> & contractOutputs, const P2PKHTxOut & changeOutput) {
+TxId BitSwaprjs::broadcast_contract(const UnspentP2PKHOutput & utxo, const QVector<P2SHTxOut> & contractOutputs, const P2PKHTxOut & changeOutput) {
 //(const OutPoint & fundingOutPoint, const PrivateKey & sk, const QVector<P2SHTxOut> & contractOutputs, const P2PKHTxOut & changeOutput) {
 
     // Encode parameters into json
@@ -335,7 +335,7 @@ bool BitSwaprjs::broadcast_contract(const UnspentP2PKHOutput & utxo, const QVect
     QJsonValue result = nodeBlockingCall("broadcast_contract", QJsonValue(params));
 
     // Turn string to bool
-    return result.toBool();
+    return TxId(result.toString());
 }
 
 quint64 BitSwaprjs::get_tx_outpoint(const OutPoint & point, bool & spent) {
@@ -346,20 +346,13 @@ quint64 BitSwaprjs::get_tx_outpoint(const OutPoint & point, bool & spent) {
     };
 
     // Make call
-    QJsonValue nodeResult = nodeBlockingCall("get_tx_outpoint", QJsonValue(params));
+    QJsonValue result = nodeBlockingCall("get_tx_outpoint", QJsonValue(params));
 
     // Parse results
-    QJsonObject dump = nodeResult.toObject();
+    QJsonObject nodeResult = result.toObject();
 
-    bool success = dump["success"].toBool();
-
-    if(!success)
-        throw std::exception("Some sort of bitswaprjs error occured.");
-
-    QJsonObject result = dump["result"].toObject();
-
-    quint64 value = result["value"].toDouble();
-    spent = result["spent"].toBool();
+    quint64 value = nodeResult["value"].toDouble();
+    spent = nodeResult["spent"].toBool();
 
     return value;
 }

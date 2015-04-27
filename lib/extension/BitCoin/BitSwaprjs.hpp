@@ -64,7 +64,7 @@ public:
     /**
      * Broadcast transactions
      */
-    static bool broadcast_contract(const UnspentP2PKHOutput & utxo, const QVector<P2SHTxOut> & contractOutputs, const P2PKHTxOut & changeOutput);
+    static TxId broadcast_contract(const UnspentP2PKHOutput & utxo, const QVector<P2SHTxOut> & contractOutputs, const P2PKHTxOut & changeOutput);
 
 
     /**

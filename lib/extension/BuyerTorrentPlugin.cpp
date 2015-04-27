@@ -98,7 +98,7 @@ BuyerTorrentPlugin::Configuration::Configuration(bool enableBanningSets,
     : TorrentPlugin::Configuration(enableBanningSets)
     , _maxPrice(maxPrice)
     , _maxLock(maxLock)
-    , _maxFeePerByte(maxFeePerByte)
+    , _maxFeePerKb(maxFeePerByte)
     , _numberOfSellers(numberOfSellers) {
 }
 
@@ -135,12 +135,12 @@ void BuyerTorrentPlugin::Configuration::setMaxLock(quint32 maxLock) {
     _maxLock = maxLock;
 }
 
-quint64 BuyerTorrentPlugin::Configuration::maxFeePerByte() const {
-    return _maxFeePerByte;
+quint64 BuyerTorrentPlugin::Configuration::maxFeePerKb() const {
+    return _maxFeePerKb;
 }
 
-void BuyerTorrentPlugin::Configuration::setMaxFeePerByte(quint64 maxFeePerByte) {
-    _maxFeePerByte = maxFeePerByte;
+void BuyerTorrentPlugin::Configuration::setMaxFeePerKb(quint64 maxFeePerByte) {
+    _maxFeePerKb = maxFeePerByte;
 }
 
 quint32 BuyerTorrentPlugin::Configuration::numberOfSellers() const {
@@ -170,6 +170,8 @@ void BuyerTorrentPlugin::Configuration::setNumberOfSellers(quint32 numberOfSelle
 #include "BitCoin/Wallet.hpp"
 #include "BitCoin/UnspentP2PKHOutput.hpp"
 
+//#include "extension/BitCoin/BitCoin.hpp"
+
 #include <libtorrent/bt_peer_connection.hpp>
 #include <libtorrent/socket_io.hpp> // print_endpoint
 
@@ -190,7 +192,7 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
     , _wallet(wallet)
     , _maxPrice(configuration.maxPrice())
     , _maxLock(configuration.maxLock())
-    , _maxFeePerByte(configuration.maxFeePerByte())
+    , _maxFeePerKb(configuration.maxFeePerKb())
     , _numberOfSellers(configuration.numberOfSellers())
     , _slotToPluginMapping(configuration.numberOfSellers(), NULL)
     , _numberOfUnassignedPieces(0)
@@ -213,8 +215,7 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
         throw std::exception("No utxo found.");
 
     // Contract transaction fee is computed AS IF channel is full, change this later!!!
-    // http://bitcoinfees.com/
-    quint64 txFee = _maxFeePerByte*((148 * 1) + (34 * configuration.numberOfSellers()) + 10);
+    quint64 txFee = BuyerTorrentPlugin::contractFee(configuration.numberOfSellers(), _maxFeePerKb);
 
     // Allocate enough funds to buy full file from each seller at WORST price
     quint64 fundingPerSeller = torrentInfo.num_pieces()*_maxPrice;
@@ -681,6 +682,15 @@ bool BuyerTorrentPlugin::checkLengthAndValidatePiece(int pieceIndex, const QVect
     return true;
 }
 
+quint64 BuyerTorrentPlugin::contractFee(int numberOfSellers, quint64 maxFeePerKb) {
+
+    // Fee for contract based on fee estimate at http://bitcoinfees.com/
+    quint64 txByteSize =(148*1) + (34*numberOfSellers) + 10;
+    quint64 fee = maxFeePerKb*(txByteSize/1000);
+
+    return fee;
+}
+
 BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
 
      // Build list of buyer peer statuses
@@ -756,12 +766,12 @@ BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
      _maxLock = maxLock;
  }
 
- quint64 BuyerTorrentPlugin::maxFeePerByte() const {
-     return _maxFeePerByte;
+ quint64 BuyerTorrentPlugin::maxFeePerKb() const {
+     return _maxFeePerKb;
  }
 
- void BuyerTorrentPlugin::setMaxFeePerByte(quint64 maxFeePerByte) {
-     _maxFeePerByte = maxFeePerByte;
+ void BuyerTorrentPlugin::setMaxFeePerKb(quint64 maxFeePerByte) {
+     _maxFeePerKb = maxFeePerByte;
  }
 
  quint32 BuyerTorrentPlugin::numberOfSellers() const {
