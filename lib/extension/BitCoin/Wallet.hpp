@@ -121,7 +121,8 @@ public:
         // May not really be needed!!!!!!
         Type _type;
 
-        // Send: spent utxo, Receive: received utxo
+        // Send: txo spent
+        // Receive: utxo created
         OutPoint _outpoint;
 
         // Value of _outpoint
@@ -157,8 +158,8 @@ public:
             Purpose purpose,
             const QDateTime & generated,
             const QString & description,
-            const QMap<OutPoint, TxOEvent> send,
-            const QMap<OutPoint, TxOEvent> receive);
+            const QMap<OutPoint, TxOEvent> & send,
+            const QMap<OutPoint, TxOEvent> & receive);
 
         // Constructor from json dictionary
         Entry(const QJsonObject & json);
@@ -223,7 +224,7 @@ public:
         // Transaction output events
         //QVector<TxOEvent> _txoEvents;
 
-        // Send events, key is utxo spend in event
+        // Send events, key is utxo spent in event
         QMap<OutPoint, TxOEvent> _send;
 
         // Receive events, key is utxo created in event

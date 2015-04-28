@@ -377,11 +377,11 @@ void BuyerPeerPlugin::sent_unchoke() {
  */
 bool BuyerPeerPlugin::can_disconnect(libtorrent::error_code const & ec) {
 
-    //qCDebug(_category) << "can_disconnect:" << ec.message().c_str();
+   // qCDebug(_category) << "can_disconnect:" << ec.message().c_str();
 
     // CRITICAL
     //return true;
-    return true;
+    return false;
 }
 
 /*
@@ -399,12 +399,15 @@ bool BuyerPeerPlugin::on_unknown_message(int length, int msg, libtorrent::buffer
  * Called when a piece that this peer participated in passes the hash_check
  */
 void BuyerPeerPlugin::on_piece_pass(int index) {
-
+/**
     qCDebug(_category) << "on_piece_pass:" << index;
 
     // on_piece_pass() =>
     Q_ASSERT(_indexOfAssignedPiece == index); // peer should only be relaying blocks I am requesting
+
     Q_ASSERT(_clientState == ClientState::waiting_for_libtorrent_to_validate_piece);
+
+
     //Q_ASSERT(_peerState.lastAction() == PeerState::LastValidAction::signed_refund ||
     //        _peerState.lastAction() == PeerState::LastValidAction::sent_valid_piece); // presumes that we would have stopped peer if it started sending pieces without being asked
 
@@ -429,6 +432,7 @@ void BuyerPeerPlugin::on_piece_pass(int index) {
     // In the future, we should perhaps delay this decision, and let
     // tick() in torretn plugin decide, since it has information about down speeds.
     _plugin->assignPieceToPeerPlugin(this);
+    */
 }
 
 /*
@@ -592,6 +596,10 @@ QList<int> BuyerPeerPlugin::downloadedPieces() const {
 
 void BuyerPeerPlugin::setDownloadedPieces(const QList<int> & downloadedPieces) {
     _downloadedValidPieces = downloadedPieces;
+}
+
+void BuyerPeerPlugin::addDownloadedPiece(int index) {
+    _downloadedValidPieces.append(index);
 }
 
 void BuyerPeerPlugin::processObserve(const Observe * m) {
@@ -764,17 +772,8 @@ void BuyerPeerPlugin::processFullPiece(const FullPiece * m) {
     //if(_unservicedRequests.size() < _requestPipelineRefillBound)
     //    refillPipeline();
 
-    // Get payload piece data
-    const QVector<char> & piece = m->piece();
-
     // Ask libtorrent to validate piece
-    bool validLength = _plugin->checkLengthAndValidatePiece(_indexOfAssignedPiece, piece);
-
-    // Update state if
-    if(validLength)
-        _clientState = ClientState::waiting_for_libtorrent_to_validate_piece;
-    else
-        throw std::exception("Full piece message had invalid length.");
+    _plugin->fullPieceArrived(this, m->piece(), m->length());
 }
 
 void BuyerPeerPlugin::processPayment(const Payment * m) {

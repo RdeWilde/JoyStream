@@ -3,7 +3,7 @@
 
 #include "ExtendedMessagePayload.hpp"
 
-#include <QVector>
+#include <boost/shared_array.hpp>
 
 class FullPiece : public ExtendedMessagePayload
 {
@@ -13,10 +13,10 @@ public:
     FullPiece();
 
     // Constructor from members
-    FullPiece(const QVector<char> & piece);
+    FullPiece(const boost::shared_array<char> & piece, int length);
 
     // Constructor based on raw payload
-    FullPiece(QDataStream & stream, int lengthOfPiece);
+    FullPiece(QDataStream & stream, int length);
 
     // Virtual methods that subclassing messages have to implement
     virtual MessageType messageType() const;
@@ -24,15 +24,18 @@ public:
     virtual void write(QDataStream & stream) const;
 
     // Getters and setters
-    QVector<char> piece() const;
-    void setPiece(const QVector<char> & piece);
+    boost::shared_array<char> piece() const;
+    void setPiece(const boost::shared_array<char> & piece);
+
+    void setLength(int length);
 
 private:
 
-    // No need for piece index!
-
     // Piece data;
-    QVector<char> _piece;
+    boost::shared_array<char> _piece;
+
+    // Byte length of piece
+    int _length;
 
 };
 

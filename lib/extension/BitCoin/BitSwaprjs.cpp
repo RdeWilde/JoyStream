@@ -82,9 +82,10 @@ QJsonValue BitSwaprjs::nodeBlockingCall(const QString & method, const QJsonValue
 
     Q_ASSERT(successValue.type() == QJsonValue::Bool);
 
-    if(!successValue.toBool())
+    if(!successValue.toBool()) {
+        qDebug() << o["result"].toString();
         throw std::exception("Error state returned.");
-    else
+    } else
         return o["result"];
 }
 

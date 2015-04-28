@@ -2,7 +2,10 @@
 # Required for including libtorrent headers
 #LIBTORRENT_LOCATION = C:/libtorrent-rasterbar-0.16.18
 #LIBTORRENT_LOCATION = C:/libtorrent-rasterbar-1.0.3
-LIBTORRENT_LOCATION = C:/libtorrent-rasterbar-1.0.4
+#LIBTORRENT_LOCATION = C:/libtorrent-rasterbar-1.0.4
+
+LIBTORRENT_LOCATION = C:/MODIFIED-libtorrent-rasterbar-1.0.4
+
 INCLUDEPATH += $$LIBTORRENT_LOCATION/include
 
 DEFINES += WIN32

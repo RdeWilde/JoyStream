@@ -27,6 +27,10 @@ BuyerTorrentPluginConfigurationDialog::BuyerTorrentPluginConfigurationDialog(Con
 
     // Set total price
     updateTotal();
+
+    // Synchronize wallet so
+    //qDebug() << "Synchronizing wallet.";
+    //_wallet->synchronize();
 }
 
 BuyerTorrentPluginConfigurationDialog::~BuyerTorrentPluginConfigurationDialog() {

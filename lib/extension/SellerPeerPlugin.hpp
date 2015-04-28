@@ -25,6 +25,15 @@ namespace libtorrent {
     struct disk_io_job;
 }
 
+#include <boost/shared_array.hpp>
+
+/**
+* HOW DO YOU FORWARD DECLARE A TEMPLATED TYPE?
+namespace boost {
+    class shared_array<char>;
+}
+*/
+
 class SellerPeerPlugin : public PeerPlugin
 {
 public:
@@ -244,7 +253,7 @@ public:
 
     // Handler for piece call back, piece data is not owned by us,
     // and is therefore not freed
-    void pieceRead(int piece, const char * buffer, int size);
+    void pieceRead(int piece, const boost::shared_array<char> & pieceData, int size);
 
     // Called when piece reading failed
     void pieceReadFailed(int piece);

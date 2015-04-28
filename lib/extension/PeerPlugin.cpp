@@ -329,7 +329,14 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
     stream.setByteOrder(QDataStream::BigEndian);
 
     // Parse message
+    qint64 preReadPosition = stream.device()->pos();
     ExtendedMessagePayload * m = ExtendedMessagePayload::fromRaw(messageType, stream, lengthOfExtendedMessagePayload);
+    qint64 postReadPosition = stream.device()->pos();
+
+    qint64 written = postReadPosition - preReadPosition;
+
+    if(written != lengthOfExtendedMessagePayload)
+        throw std::exception("Extended message payload was malformed");
 
     // Drop if message was malformed
     if(m == NULL) {

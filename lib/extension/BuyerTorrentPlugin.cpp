@@ -162,6 +162,7 @@ void BuyerTorrentPlugin::Configuration::setNumberOfSellers(quint32 numberOfSelle
 #include "Message/Observe.hpp"
 #include "Message/JoinContract.hpp"
 #include "Message/SignRefund.hpp"
+#include "Message/RequestFullPiece.hpp"
 #include "Message/Ready.hpp"
 
 #include "Alert/BuyerTorrentPluginStatuAlert.hpp"
@@ -346,10 +347,49 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
 
 void BuyerTorrentPlugin::on_piece_pass(int index) {
 
+    qCDebug(_category) << "on_piece_pass:" << index;
+
+    // ? =>
+    Q_ASSERT(_state == State::downloading_pieces);
+
+    // Get reference to piece
+    const Piece & p = _pieces[index];
+
+    Q_ASSERT(p.state() == Piece::State::assigned);
+
+    // Get peer
+    BuyerPeerPlugin * peer = p.peerPlugin();
+
+    Q_ASSERT(peer->indexOfAssignedPiece() == index);
+    Q_ASSERT(peer->clientState() == BuyerPeerPlugin::ClientState::waiting_for_libtorrent_to_validate_piece);
+
+    // Make a payment
+    const Signature & paymentSignature = makePaymentAndGetPaymentSignature(peer);
+    peer->sendExtendedMessage(Payment(paymentSignature));
+
+    /**
+     * REGISTER SOME STATS HERE
+     */
+
+    // Update piece
+    piece.setState(Piece::State::fully_downloaded_and_valid);
+    piece.setPeerPlugin(NULL); // for safety
+
+    // Update peer
+    Q_ASSERT(!_peerPluginsWithoutPieceAssignment.contains(peer));
+    _peerPluginsWithoutPieceAssignment.remove(peer);
+    peer->addDownloadedPiece(index); // Remember that piece was downloaded
+    peer->setClientState(BuyerPeerPlugin::ClientState::needs_to_be_assigned_piece);
+
+    // Get a new piece if one is available.
+    // In the future, we should perhaps delay this decision, and let
+    // tick() in torretn plugin decide, since it has information about down speeds.
+    assignPieceToPeerPlugin(peer);
 }
 
 void BuyerTorrentPlugin::on_piece_failed(int index) {
-
+    //qCDebug(_category) << "on_piece_failed" << index;
+    throw std::exception("BuyerTorrentPlugin::on_piece_failed");
 }
 
 void BuyerTorrentPlugin::tick() {
@@ -359,20 +399,20 @@ void BuyerTorrentPlugin::tick() {
     // If we are downloading, then try to assign them to peers without pieces assigned
     if(_state == State::downloading_pieces) {
 
-        qCDebug(_category) << "Trying to assign pieces to peers.";
+        // While there are unassigned pieces and peers without a piece, try to assign
+        while(_numberOfUnassignedPieces > 0 &&
+              !_peerPluginsWithoutPieceAssignment.empty()) {
 
-        // Iterate peers while there are unassigned pieces left
-        for(QSet<BuyerPeerPlugin *>::const_iterator i = _peerPluginsWithoutPieceAssignment.constBegin(),
-            end(_peerPluginsWithoutPieceAssignment.constEnd());
-            i != end && _numberOfUnassignedPieces > 0;i++) {
+            qCDebug(_category) << "Assigning piece to peer.";
 
             // Get peer plugin
-            BuyerPeerPlugin * peerPlugin = *i;
-
-            // Check if peer is giving us a decent down speed?
+            BuyerPeerPlugin * peerPlugin = *(_peerPluginsWithoutPieceAssignment.begin());
 
             // Assign to peer plugin
-            assignPieceToPeerPlugin(peerPlugin);
+            bool assigned = assignPieceToPeerPlugin(peerPlugin);
+
+            // loop invariant =>
+            Q_ASSERT(assigned);
         }
     }
 
@@ -515,6 +555,8 @@ bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, c
         // Construct and broadcast contract
         _payor.broadcast_contract();
 
+        qCDebug(_category) << "Broadcasting contract, txId:" << _payor.contractHash().toString();
+
         // Tell all peers with ready message
         for(QVector<BuyerPeerPlugin *>::iterator i = _slotToPluginMapping.begin(),
             end(_slotToPluginMapping.end()); i != end;i++) {
@@ -580,15 +622,12 @@ bool BuyerTorrentPlugin::assignPieceToPeerPlugin(BuyerPeerPlugin * peerPlugin) {
      piece.setState(Piece::State::assigned);
      piece.setPeerPlugin(peerPlugin);
 
+     // Send request
+     peerPlugin->sendExtendedMessage(RequestFullPiece(pieceIndex));
+
      // Update peer plugin
-     //peerPlugin->setAssignedPiece(true);
+     peerPlugin->setClientState(BuyerPeerPlugin::ClientState::waiting_for_full_piece);
      peerPlugin->setIndexOfAssignedPiece(pieceIndex);
-     //peerPlugin->setPieceSize(piece.length());
-     //peerPlugin->setBlockSize(_blockSize); // Does not change from piece to piece, put in peer configuration or something later
-     //peerPlugin->setNumberOfBlocksInPiece(piece.numberOfBlocks());
-     //peerPlugin->setNumberOfBlocksRequested(0);
-     //peerPlugin->setNumberOfBlocksReceived(0);
-     //instead: peerPlugin->assignPiece(piece);
 
      // Remove from set of unassigned peer plugins, if its there
      _peerPluginsWithoutPieceAssignment.remove(peerPlugin);
@@ -598,6 +637,9 @@ bool BuyerTorrentPlugin::assignPieceToPeerPlugin(BuyerPeerPlugin * peerPlugin) {
 
      // Should never go negative
      Q_ASSERT(_numberOfUnassignedPieces >= 0);
+
+     // Was able to assign piece
+     return true;
  }
 
 int BuyerTorrentPlugin::getNextUnassignedPiece(int startIndex) const {
@@ -633,22 +675,6 @@ int BuyerTorrentPlugin::getNextUnassignedPiece(int startIndex) const {
      throw std::exception("Unable to find any unassigned pieces.");
  }
 
-void BuyerTorrentPlugin::pieceDownloaded(int index) {
-
-    // Check that index is valid
-    Q_ASSERT(index < _pieces.length());
-
-    // Get piece
-    Piece & piece = _pieces[index];
-
-    // Note that peer plugin has no piece at present
-    _peerPluginsWithoutPieceAssignment.insert(piece.peerPlugin());
-
-    // Update state
-    piece.setState(Piece::State::fully_downloaded_and_valid);
-    piece.setPeerPlugin(NULL); // for safety
-}
-
 Signature BuyerTorrentPlugin::makePaymentAndGetPaymentSignature(BuyerPeerPlugin * peerPlugin) {
 
     // This routine should only be called if following holds
@@ -664,22 +690,26 @@ Signature BuyerTorrentPlugin::makePaymentAndGetPaymentSignature(BuyerPeerPlugin 
     return _payor.getPresentPaymentSignature(payorSlot);
 }
 
-bool BuyerTorrentPlugin::checkLengthAndValidatePiece(int pieceIndex, const QVector<char> & pieceData) {
+void BuyerTorrentPlugin::fullPieceArrived(BuyerPeerPlugin * peer, const boost::shared_array<char> & piece, int length) {
 
     // This routine should only be called if following holds
     Q_ASSERT(_state == State::downloading_pieces);
 
+    // Get what piece has been assigned to this peer
+    int pieceIndex = peer->indexOfAssignedPiece();
+
     // Check that piece has correct length
-    if(pieceData.size() != _torrent->torrent_file().piece_size(pieceIndex))
-        return false;
+    if(length != _torrent->torrent_file().piece_size(pieceIndex))
+        throw std::exception("Full piece message had invalid length.");
 
     // Tell libtorrent to validate piece
     // last argument is a flag which presently seems to only test
     // flags & torrent::overwrite_existing, which seems to be whether
     // the piece should be overwritten if it is already present
-    _torrent->add_piece(pieceIndex, pieceData.data(), 0);
+    _torrent->add_piece(pieceIndex, piece.get(), 0);
 
-    return true;
+    // Update client state
+    peer->setClientState(BuyerPeerPlugin::ClientState::waiting_for_libtorrent_to_validate_piece);
 }
 
 quint64 BuyerTorrentPlugin::contractFee(int numberOfSellers, quint64 maxFeePerKb) {

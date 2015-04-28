@@ -244,6 +244,8 @@ public:
     QList<int> downloadedPieces() const;
     void setDownloadedPieces(const QList<int> &downloadedPieces);
 
+    void addDownloadedPiece(int index);
+
     virtual PluginMode mode() const;
 
 private:

@@ -131,8 +131,8 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
                        Purpose purpose,
                        const QDateTime & generated,
                        const QString & description,
-                       const QMap<OutPoint, TxOEvent> send,
-                       const QMap<OutPoint, TxOEvent> receive)
+                       const QMap<OutPoint, TxOEvent> & send,
+                       const QMap<OutPoint, TxOEvent> & receive)
     : _n(n)
     , _keyPair(keyPair)
     , _purpose(purpose)

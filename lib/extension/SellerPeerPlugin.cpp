@@ -130,6 +130,7 @@ void SellerPeerPlugin::Status::setClientState(ClientState clientState) {
 
 #include <boost/bind.hpp>
 
+
 SellerPeerPlugin::SellerPeerPlugin(SellerTorrentPlugin * torrentPlugin,
                                    libtorrent::bt_peer_connection * connection,
                                    const Payee::Configuration & payeeConfiguration,
@@ -717,7 +718,7 @@ void SellerPeerPlugin::disk_async_read_handler(int block, int a, const libtorren
 }
 */
 
-void SellerPeerPlugin::pieceRead(int piece, const char * buffer, int size) {
+void SellerPeerPlugin::pieceRead(int piece, const boost::shared_array<char> & pieceData, int size) {
 
     qCDebug(_category) << "pieceRead" << piece;
 
@@ -725,14 +726,8 @@ void SellerPeerPlugin::pieceRead(int piece, const char * buffer, int size) {
     Q_ASSERT(piece == _peerState.lastRequestFullPieceReceived().pieceIndex());
     Q_ASSERT(_payee.state() == Payee::State::has_all_information_required);
 
-    // Copy data to a piece buffer
-    QVector<char> pieceData(size);
-
-    for(int i = 0;i < size;i++)
-        pieceData[i] = buffer[i];
-
     // Send piece
-    sendExtendedMessage(FullPiece(pieceData));
+    sendExtendedMessage(FullPiece(pieceData, size));
 
     // Note that piece was sent
     _fullPiecesSent.append(piece);

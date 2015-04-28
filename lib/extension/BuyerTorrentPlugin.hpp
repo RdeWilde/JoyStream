@@ -12,6 +12,15 @@
 class Wallet;
 class UnspentP2PKHOutput;
 
+#include <boost/shared_array.hpp>
+
+/**
+* HOW DO YOU FORWARD DECLARE A TEMPLATED TYPE?
+namespace boost {
+    class shared_array<char>;
+}
+*/
+
 /**
  * @brief Torrent plugin for buyer mode.
  */
@@ -241,11 +250,11 @@ public:
     Signature makePaymentAndGetPaymentSignature(BuyerPeerPlugin * peerPlugin);
 
     // Ask libtorrent to validate piece
-    bool checkLengthAndValidatePiece(int pieceIndex, const QVector<char> & pieceData);
+    //bool checkLengthAndValidatePiece(int pieceIndex, const boost::shared_array<char> & piece, int length);
+    void fullPieceArrived(BuyerPeerPlugin * peer, const boost::shared_array<char> & piece, int length);
 
     // Some utility routines
     static quint64 contractFee(int numberOfSellers, quint64 maxFeePerKb);
-
 
     // Generate plugin status
     Status status() const;

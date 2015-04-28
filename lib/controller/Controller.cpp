@@ -1087,6 +1087,9 @@ Controller::Controller(const Configuration & configuration, bool showView, QNetw
         if(QString(_category.categoryName()).compare("default"))
             _view.setWindowTitle(_view.windowTitle() + ", Port:" + QString::number(_session.listen_port()));
     }
+
+    // Synchronize wallet
+    _wallet.synchronize();
 }
 
 void Controller::callPostTorrentUpdates() {

@@ -281,7 +281,7 @@ void SellerTorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) 
         if(alert->ec)
             (*i)->pieceReadFailed(alert->piece);
         else
-            (*i)->pieceRead(alert->piece, alert->buffer.get(), alert->size);
+            (*i)->pieceRead(alert->piece, alert->buffer, alert->size);
     }
 
     // Remove all peers registered for this piece

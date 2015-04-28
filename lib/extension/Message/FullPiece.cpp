@@ -3,21 +3,25 @@
 
 #include <QDataStream>
 
-FullPiece::FullPiece() {
+FullPiece::FullPiece()
+    : _piece(0)
+    , _length(0) {
 }
 
-FullPiece::FullPiece(const QVector<char> & piece)
-    : _piece(piece) {
+FullPiece::FullPiece(const boost::shared_array<char> & piece, int length)
+    : _piece(piece)
+    , _length(length) {
 }
 
-FullPiece::FullPiece(QDataStream & stream, int lengthOfPiece)
-    : _piece(lengthOfPiece) {
+FullPiece::FullPiece(QDataStream & stream, int length)
+    : _piece(new char[length])
+    , _length(length) {
 
-    // Try to fill vector buffer
-    int result = stream.readRawData(_piece.data(), lengthOfPiece);
+    // Try to fill buffer
+    int result = stream.readRawData(_piece.get(), _length);
 
     // Check that we were able to read full piece
-    if(result != lengthOfPiece)
+    if(result != _length)
         throw std::exception("Was unable to read full piece from stream.");
 }
 
@@ -26,17 +30,21 @@ MessageType FullPiece::messageType() const {
 }
 
 quint32 FullPiece::length() const {
-    return _piece.size();
+    return _length;
 }
 
 void FullPiece::write(QDataStream & stream) const {
-    stream << _piece;
+    stream.writeRawData(_piece.get(), _length);
 }
 
-QVector<char> FullPiece::piece() const {
+boost::shared_array<char> FullPiece::piece() const {
     return _piece;
 }
 
-void FullPiece::setPiece(const QVector<char> & piece) {
+void FullPiece::setPiece(const boost::shared_array<char> & piece) {
     _piece = piece;
+}
+
+void FullPiece::setLength(int length) {
+    _length = length;
 }
