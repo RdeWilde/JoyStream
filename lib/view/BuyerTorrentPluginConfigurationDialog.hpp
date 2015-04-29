@@ -46,11 +46,8 @@ private:
 
     libtorrent::torrent_info _torrentInfo;
 
-    //
-    quint64 maxPriceFromTotalSpend(quint64 maxTotalSpend, quint64 totalFee);
-
-    //
-    quint64 minimalFunds(quint64 maxPrice, qint32 numberOfSellers, quint64 totalFee);
+    // Derives maxPrice, for given torrent and parameters
+    quint64 maxPriceFromTotalSpend(quint64 maxTotalSpend, int numberOfSellers, quint64 feePerkB);
 
     // Updates the total expenditure field based on the current configuration values
     void updateTotal();

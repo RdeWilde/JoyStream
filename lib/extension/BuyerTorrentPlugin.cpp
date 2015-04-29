@@ -46,7 +46,7 @@ BuyerTorrentPlugin::Piece::State BuyerTorrentPlugin::Piece::state() const {
     return _state;
 }
 
-void BuyerTorrentPlugin::Piece::setState(const State & state) {
+void BuyerTorrentPlugin::Piece::setState(State state) {
     _state = state;
 }
 
@@ -164,8 +164,9 @@ void BuyerTorrentPlugin::Configuration::setNumberOfSellers(quint32 numberOfSelle
 #include "Message/SignRefund.hpp"
 #include "Message/RequestFullPiece.hpp"
 #include "Message/Ready.hpp"
+#include "Message/Payment.hpp"
 
-#include "Alert/BuyerTorrentPluginStatuAlert.hpp"
+#include "Alert/BuyerTorrentPluginStatusAlert.hpp"
 
 #include "BitCoin/BitSwaprjs.hpp"
 #include "BitCoin/Wallet.hpp"
@@ -212,11 +213,10 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
      */
 
     // Check that we found valid utxo
-    if(utxo.value() == 0)
-        throw std::exception("No utxo found.");
+    Q_ASSERT(utxo.value() != 0);
 
     // Contract transaction fee is computed AS IF channel is full, change this later!!!
-    quint64 txFee = BuyerTorrentPlugin::contractFee(configuration.numberOfSellers(), _maxFeePerKb);
+    quint64 txFee = Payor::contractFee(configuration.numberOfSellers(), _maxFeePerKb);
 
     // Allocate enough funds to buy full file from each seller at WORST price
     quint64 fundingPerSeller = torrentInfo.num_pieces()*_maxPrice;
@@ -349,42 +349,43 @@ void BuyerTorrentPlugin::on_piece_pass(int index) {
 
     qCDebug(_category) << "on_piece_pass:" << index;
 
-    // ? =>
+    // on_piece_pass() =>
     Q_ASSERT(_state == State::downloading_pieces);
 
     // Get reference to piece
-    const Piece & p = _pieces[index];
+    Piece & piece = _pieces[index];
 
-    Q_ASSERT(p.state() == Piece::State::assigned);
+    Q_ASSERT(piece.state() == Piece::State::assigned);
 
     // Get peer
-    BuyerPeerPlugin * peer = p.peerPlugin();
+    BuyerPeerPlugin * peer = piece.peerPlugin();
 
     Q_ASSERT(peer->indexOfAssignedPiece() == index);
     Q_ASSERT(peer->clientState() == BuyerPeerPlugin::ClientState::waiting_for_libtorrent_to_validate_piece);
+    Q_ASSERT(!_peerPluginsWithoutPieceAssignment.contains(peer));
 
     // Make a payment
-    const Signature & paymentSignature = makePaymentAndGetPaymentSignature(peer);
+    Signature paymentSignature = makePaymentAndGetPaymentSignature(peer);
     peer->sendExtendedMessage(Payment(paymentSignature));
 
     /**
      * REGISTER SOME STATS HERE
      */
 
-    // Update piece
-    piece.setState(Piece::State::fully_downloaded_and_valid);
-    piece.setPeerPlugin(NULL); // for safety
-
     // Update peer
-    Q_ASSERT(!_peerPluginsWithoutPieceAssignment.contains(peer));
-    _peerPluginsWithoutPieceAssignment.remove(peer);
     peer->addDownloadedPiece(index); // Remember that piece was downloaded
     peer->setClientState(BuyerPeerPlugin::ClientState::needs_to_be_assigned_piece);
+
+    _peerPluginsWithoutPieceAssignment.insert(peer); // Place back in idle peer pool
 
     // Get a new piece if one is available.
     // In the future, we should perhaps delay this decision, and let
     // tick() in torretn plugin decide, since it has information about down speeds.
     assignPieceToPeerPlugin(peer);
+
+    // Update piece
+    piece.setState(Piece::State::fully_downloaded_and_valid);
+    piece.setPeerPlugin(NULL); // for safety
 }
 
 void BuyerTorrentPlugin::on_piece_failed(int index) {
@@ -710,15 +711,6 @@ void BuyerTorrentPlugin::fullPieceArrived(BuyerPeerPlugin * peer, const boost::s
 
     // Update client state
     peer->setClientState(BuyerPeerPlugin::ClientState::waiting_for_libtorrent_to_validate_piece);
-}
-
-quint64 BuyerTorrentPlugin::contractFee(int numberOfSellers, quint64 maxFeePerKb) {
-
-    // Fee for contract based on fee estimate at http://bitcoinfees.com/
-    quint64 txByteSize =(148*1) + (34*numberOfSellers) + 10;
-    quint64 fee = maxFeePerKb*(txByteSize/1000);
-
-    return fee;
 }
 
 BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {

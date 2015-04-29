@@ -41,7 +41,6 @@ SOURCES += \
     view/SellerTorrentPluginConfigurationDialog.cpp \
     view/BuyerTorrentPluginConfigurationDialog.cpp \
     extension/Alert/TorrentPluginAlert.cpp \
-    extension/Alert/TorrentPluginStatusAlert.cpp \
     extension/BitCoin/Client.cpp \
     extension/Alert/PluginStatusAlert.cpp \
     extension/Message/ExtendedMessagePayload.cpp \
@@ -73,7 +72,6 @@ SOURCES += \
     #extension/PaymentChannel/Payor/Payor.cpp \
     extension/PaymentChannel/Payor.cpp \
     extension/PaymentChannel/Payee.cpp \
-    extension/Alert/BuyerTorrentPluginStatuAlert.cpp \
     extension/BitCoin/UnspentP2PKHOutput.cpp \
     extension/BitCoin/Wallet.cpp \
     view/WalletDialog.cpp \
@@ -85,7 +83,8 @@ SOURCES += \
     extension/Request/StartSellerTorrentPlugin.cpp \
     extension/Request/StartObserverTorrentPlugin.cpp \
     extension/Message/RequestFullPiece.cpp \
-    extension/Message/FullPiece.cpp
+    extension/Message/FullPiece.cpp \
+    extension/Alert/BuyerTorrentPluginStatusAlert.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -121,7 +120,6 @@ HEADERS += \
     view/BuyerTorrentPluginConfigurationDialog.hpp \
     extension/Alert/TorrentPluginAlert.hpp \
     extension/Alert/AlertTypes.hpp \
-    extension/Alert/TorrentPluginStatusAlert.hpp \
     extension/PluginMode.hpp \
     extension/BitCoin/Client.hpp \
     extension/Alert/PluginStatusAlert.hpp \
@@ -160,7 +158,6 @@ HEADERS += \
     extension/BitCoin/P2PKHAddress.hpp \
     extension/BitCoin/OutPoint.hpp \
     extension/PaymentChannel/Payor.hpp \
-    extension/Alert/BuyerTorrentPluginStatuAlert.hpp \
     extension/BitCoin/UnspentP2PKHOutput.hpp \
     extension/BitCoin/Wallet.hpp \
     view/WalletDialog.hpp \
@@ -171,7 +168,8 @@ HEADERS += \
     extension/Request/StartObserverTorrentPlugin.hpp \
     extension/Message/RequestFullPiece.hpp \
     extension/Message/FullPiece.hpp \
-    extension/BitCoin/BitCoin.hpp
+    extension/BitCoin/BitCoin.hpp \
+    extension/Alert/BuyerTorrentPluginStatusAlert.hpp
 				
 FORMS += \
     view/mainwindow.ui \

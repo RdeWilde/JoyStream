@@ -9,7 +9,7 @@
 #include "controller/Controller.hpp"
 #include "extension/TorrentPlugin.hpp"
 #include "extension/PeerPlugin.hpp"
-#include "extension/Alert/TorrentPluginStatusAlert.hpp"
+//#include "extension/Alert/TorrentPluginStatusAlert.hpp"
 #include "extension/Alert/PluginStatusAlert.hpp"
 #include "extension/PeerPluginStatus.hpp"
 
@@ -345,6 +345,7 @@ void MainWindow::updateTorrentStatus(const libtorrent::torrent_status & torrentS
     torrentViewModel->update(torrentStatus);
 }
 
+/**
 void MainWindow::updateTorrentPluginStatus(const TorrentPluginStatusAlert * torrentPluginStatusAlert) {
 
     // Find corresponding TorrentViewModel
@@ -366,9 +367,16 @@ void MainWindow::updateTorrentPluginStatus(const TorrentPluginStatusAlert * torr
     // Balance
     torrentViewModel->updateBalance(torrentPluginStatusAlert->tokensReceived(), torrentPluginStatusAlert->tokensSent());
 }
+*/
 
-void MainWindow::updatePluginStatus(const PluginStatusAlert * p) {
+void MainWindow::updateBuyerTorrentPluginStatus(const BuyerTorrentPlugin::Status & status) {
+    qCDebug(_category) << "MainWindow::updateBuyerTorrentPluginStatus()";
+}
+
+void MainWindow::updatePluginStatus(const Plugin::Status & status) {
     //ui->balanceLabel->setText(QString::number(p->balance()*1000) + "mBTC");
+
+    qCDebug(_category) << "MainWindow::updatePluginStatus()";
 }
 
 void MainWindow::addPeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint) {

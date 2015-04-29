@@ -77,7 +77,7 @@ public:
         void setNumberOfBlocks(int numberOfBlocks);
 
         State state() const;
-        void setState(const State &state);
+        void setState(State state);
 
         BuyerPeerPlugin * peerPlugin() const;
         void setPeerPlugin(BuyerPeerPlugin * peerPlugin);
@@ -252,9 +252,6 @@ public:
     // Ask libtorrent to validate piece
     //bool checkLengthAndValidatePiece(int pieceIndex, const boost::shared_array<char> & piece, int length);
     void fullPieceArrived(BuyerPeerPlugin * peer, const boost::shared_array<char> & piece, int length);
-
-    // Some utility routines
-    static quint64 contractFee(int numberOfSellers, quint64 maxFeePerKb);
 
     // Generate plugin status
     Status status() const;

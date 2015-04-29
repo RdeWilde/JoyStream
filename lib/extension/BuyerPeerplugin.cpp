@@ -109,9 +109,16 @@ void BuyerPeerPlugin::setClientState(ClientState clientState) {
 BuyerPeerPlugin::Status::Status() {
 }
 
-BuyerPeerPlugin::Status::Status(const PeerState & peerState, ClientState clientState)
+BuyerPeerPlugin::Status::Status(const PeerState & peerState,
+                                ClientState clientState,
+                                quint32 payorSlot,
+                                int indexOfAssignedPiece,
+                                const QList<int> & downloadedValidPieces)
     : _peerState(peerState)
-    , _clientState(clientState) {
+    , _clientState(clientState)
+    , _payorSlot(payorSlot)
+    , _indexOfAssignedPiece(indexOfAssignedPiece)
+    , _downloadedValidPieces(downloadedValidPieces) {
 }
 
 BuyerPeerPlugin::PeerState BuyerPeerPlugin::Status::peerState() const {
@@ -128,6 +135,30 @@ BuyerPeerPlugin::ClientState BuyerPeerPlugin::Status::clientState() const {
 
 void BuyerPeerPlugin::Status::setClientState(ClientState clientState) {
     _clientState = clientState;
+}
+
+QList<int> BuyerPeerPlugin::Status::downloadedValidPieces() const {
+    return _downloadedValidPieces;
+}
+
+void BuyerPeerPlugin::Status::setDownloadedValidPieces(const QList<int> &downloadedValidPieces) {
+    _downloadedValidPieces = downloadedValidPieces;
+}
+
+int BuyerPeerPlugin::Status::indexOfAssignedPiece() const {
+    return _indexOfAssignedPiece;
+}
+
+void BuyerPeerPlugin::Status::setIndexOfAssignedPiece(int indexOfAssignedPiece){
+    _indexOfAssignedPiece = indexOfAssignedPiece;
+}
+
+quint32 BuyerPeerPlugin::Status::payorSlot() const {
+    return _payorSlot;
+}
+
+void BuyerPeerPlugin::Status::setPayorSlot(quint32 payorSlot) {
+    _payorSlot = payorSlot;
 }
 
 quint32 BuyerPeerPlugin::payorSlot() const {
@@ -506,7 +537,7 @@ quint32 BuyerPeerPlugin::refillPipeline() {
 */
 
 BuyerPeerPlugin::Status BuyerPeerPlugin::status() const {
-    return Status(_peerState, _clientState);
+    return Status(_peerState, _clientState, _payorSlot, _indexOfAssignedPiece, _downloadedValidPieces);
 }
 
 PluginMode BuyerPeerPlugin::mode() const {

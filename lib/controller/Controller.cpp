@@ -953,7 +953,9 @@ void Controller::Configuration::setLibtorrentSessionSettingsEntry(const libtorre
 //#include "view/addtorrentdialog.hpp"
 #include "controller/Exceptions/ListenOnException.hpp"
 //#include "controller/TorrentConfiguration.hpp"
-#include "extension/Alert/TorrentPluginStatusAlert.hpp"
+//#include "extension/Alert/TorrentPluginStatusAlert.hpp"
+#include "extension/Alert/BuyerTorrentPluginStatusAlert.hpp"
+
 #include "extension/Alert/PluginStatusAlert.hpp"
 //#include "extension/Request/SetConfigurationTorrentPluginRequest.hpp"
 //#include "extension/Request/StartPluginTorrentPluginRequest.hpp"
@@ -1163,15 +1165,12 @@ void Controller::processAlert(const libtorrent::alert * a) {
     } else if(libtorrent::save_resume_data_failed_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_failed_alert>(a)) {
         //qCDebug(_category) << "Save resume data failed alert.";
         processSaveResumeDataFailedAlert(p);
-    } else if(libtorrent::torrent_checked_alert const * p = libtorrent::alert_cast<libtorrent::torrent_checked_alert>(a)) {
-        //qCDebug(_category) << "Torrent checked alert.";
+    } else if(libtorrent::torrent_checked_alert const * p = libtorrent::alert_cast<libtorrent::torrent_checked_alert>(a))
         processTorrentCheckedAlert(p);
-    } else if(TorrentPluginStatusAlert const * p = libtorrent::alert_cast<TorrentPluginStatusAlert>(a)) {
-        //qCDebug(_category) << "Torrent plugin status alert.";
-        processTorrentPluginStatusAlert(p);
-    } else if(PluginStatusAlert const * p = libtorrent::alert_cast<PluginStatusAlert>(a)) {
-        //qCDebug(_category) << "Plugin status alert.";
+    else if(PluginStatusAlert const * p = libtorrent::alert_cast<PluginStatusAlert>(a))
         processPluginStatusAlert(p);
+    else if(const BuyerTorrentPluginStatusAlert * p = libtorrent::alert_cast<BuyerTorrentPluginStatusAlert>(a)) {
+        processBuyerTorrentPluginStatusAlert(p);
     }
 
     // Delete alert
@@ -1445,27 +1444,13 @@ void Controller::processTorrentCheckedAlert(libtorrent::torrent_checked_alert co
             // Reset event
             torrent.setEvent(Torrent::ExpectedEvent::nothing);
 
-        } else if(_pendingBuyerTorrentPluginConfigurations.contains(infoHash)) {
+        } else if(_pendingBuyerTorrentPluginConfigurationAndUtxos.contains(infoHash)) {
 
-            // Remove torrent plugin configuration
-            const BuyerTorrentPlugin::Configuration configuration = _pendingBuyerTorrentPluginConfigurations.take(infoHash);
-
-            // Minimal funds required to fund payment channel
-            quint64 minimalFunds = torrent.torrentInfo()->num_pieces()*configuration.maxPrice();
-
-            // Get funding utxo
-            const UnspentP2PKHOutput utxo = _wallet.getUtxo(minimalFunds, 1);
-
-            if(utxo.value() == 0) {
-
-                qCCritical(_category) << "Could not start buyer mode plugin due to insufficient free funds.";
-
-                // Tell ui some how.
-                return;
-            }
+            // Remove torrent plugin configuration and utxo
+            QPair<BuyerTorrentPlugin::Configuration, UnspentP2PKHOutput> p = _pendingBuyerTorrentPluginConfigurationAndUtxos.take(infoHash);
 
             // Send configuration to plugin
-            _plugin->submitPluginRequest(new StartBuyerTorrentPlugin(infoHash, configuration, utxo));
+            _plugin->submitPluginRequest(new StartBuyerTorrentPlugin(infoHash, p.first, p.second));
 
             // Reset event
             torrent.setEvent(Torrent::ExpectedEvent::nothing);
@@ -1505,12 +1490,18 @@ void Controller::processTorrentCheckedAlert(libtorrent::torrent_checked_alert co
         qCDebug(_category) << "Invalid handle for checked torrent.";
 }
 
+/**
 void Controller::processTorrentPluginStatusAlert(const TorrentPluginStatusAlert * p) {
     _view.updateTorrentPluginStatus(p);
 }
+*/
+
+void Controller::processBuyerTorrentPluginStatusAlert(const BuyerTorrentPluginStatusAlert * p) {
+    _view.updateBuyerTorrentPluginStatus(p->status());
+}
 
 void Controller::processPluginStatusAlert(const PluginStatusAlert * p) {
-    _view.updatePluginStatus(p);
+    _view.updatePluginStatus(p->status());
 }
 
 bool Controller::removeTorrent(const libtorrent::sha1_hash & info_hash) {
@@ -1602,7 +1593,7 @@ bool Controller::addTorrent(const Torrent::Configuration & configuration) {
 
     // !_torrents.contains(info_hash) =>
     Q_ASSERT(!_pendingSellerTorrentPluginConfigurations.contains(info_hash));
-    Q_ASSERT(!_pendingBuyerTorrentPluginConfigurations.contains(info_hash));
+    Q_ASSERT(!_pendingBuyerTorrentPluginConfigurationAndUtxos.contains(info_hash));
     //Q_ASSERT(!_pendingObserverTorrentPluginConfigurations.contains(info_hash));
 
      // Save torrent
@@ -1627,14 +1618,14 @@ bool Controller::addTorrent(const Torrent::Configuration & configuration, const 
     return true;
 }
 
-bool Controller::addTorrent(const Torrent::Configuration & configuration, const BuyerTorrentPlugin::Configuration & pluginConfiguration) {
+bool Controller::addTorrent(const Torrent::Configuration & configuration, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const UnspentP2PKHOutput & utxo) {
 
     // Try to add torrent
     if(!addTorrent(configuration))
         return false;
 
-    // Save plugin configuration
-    _pendingBuyerTorrentPluginConfigurations[configuration.infoHash()] = pluginConfiguration;
+    // Save plugin configuration and utxo
+    _pendingBuyerTorrentPluginConfigurationAndUtxos[configuration.infoHash()] = QPair<BuyerTorrentPlugin::Configuration,UnspentP2PKHOutput>(pluginConfiguration, utxo);
 
     return true;
 }
@@ -1761,6 +1752,10 @@ void Controller::saveStateToFile(const char * file) {
 	// Save to file
     controllerConfiguration.saveToFile(file);
     */
+}
+
+Wallet & Controller::wallet() {
+    return _wallet;
 }
 
 void Controller::begin_close() {

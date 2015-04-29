@@ -5,6 +5,8 @@
 
 #include <libtorrent/alert.hpp>
 
+#include "extension/Plugin.hpp"
+
 class PluginStatusAlert : public libtorrent::alert
 {
 public:
@@ -12,8 +14,13 @@ public:
     // Public member required for alert_cast
     const static int alert_type = PLUGIN_STATUS_ALERT_ID;
 
-    // Constructors
-    PluginStatusAlert(double balance);
+    // Default constructor
+    PluginStatusAlert();
+
+    // Constructor from members
+    PluginStatusAlert(const Plugin::Status & status);
+
+    // Copy constructor
     PluginStatusAlert(const PluginStatusAlert & alert);
 
     // Virtual routines from libtorrent::alert
@@ -23,12 +30,13 @@ public:
     virtual int category() const;
     virtual std::auto_ptr<libtorrent::alert> clone() const;
 
-    // Getters
-    double balance() const;
+    // Getters and setters
+    Plugin::Status status() const;
+    void setStatus(const Plugin::Status &status);
 
 private:
 
-    double _balance;
+    Plugin::Status _status;
 };
 
 #endif // PLUGIN_STATUS_ALERT_HPP

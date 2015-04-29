@@ -146,14 +146,27 @@ public:
         Status();
 
         // Constructor from members
-        Status(const PeerState & peerState, ClientState clientState);
+        Status(const PeerState & peerState,
+               ClientState clientState,
+               quint32 payorSlot,
+               int indexOfAssignedPiece,
+               const QList<int> & downloadedValidPieces);
 
         // Getters and setters
         PeerState peerState() const;
-        void setPeerState(const PeerState &peerState);
+        void setPeerState(const PeerState & peerState);
 
         ClientState clientState() const;
         void setClientState(ClientState clientState);
+
+        quint32 payorSlot() const;
+        void setPayorSlot(const quint32 payorSlot);
+
+        int indexOfAssignedPiece() const;
+        void setIndexOfAssignedPiece(int indexOfAssignedPiece);
+
+        QList<int> downloadedValidPieces() const;
+        void setDownloadedValidPieces(const QList<int> &downloadedValidPieces);
 
     private:
 
@@ -162,6 +175,16 @@ public:
 
         // State of client
         ClientState _clientState;
+
+        // Peer plugin position in Payor
+        quint32 _payorSlot;
+
+        // Index of a piece assigned to this peer
+        int _indexOfAssignedPiece;
+
+        // Piece indexes, in download order, of
+        // all valid pieces downloaded from seller peer during this session
+        QList<int> _downloadedValidPieces;
     };
 
     // Constructor
@@ -260,7 +283,8 @@ private:
     // State of client
     ClientState _clientState;
 
-    // Payor slot: payment channel output slot
+    // Peer plugin position in Payor, only valid if
+    // _clientState ">" ignored_join_contract_from_peer
     /**
      * WHY IS THIS HERE??
      * I cant see a clear benefit at this writing moment, much
@@ -280,7 +304,8 @@ private:
     // NOT NEEDED: Should be inferred from ClientState
     //bool _assignedPiece;
 
-    // Piece index for which this
+    // Index of a piece assigned to this peer, only valid if
+    // _clientState == ClientState::waiting_for_full_piece or ClientState::waiting_for_libtorrent_to_validate_piece
     int _indexOfAssignedPiece;
 
     // Byte length of presently assigned piece

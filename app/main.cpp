@@ -19,6 +19,8 @@
 
 #include "lib/extension/PluginMode.hpp"
 
+#include "lib/extension/BitCoin/BitCoin.hpp" // defines
+
 #include <libtorrent/torrent_info.hpp>
 #include <libtorrent/error_code.hpp>
 
@@ -103,7 +105,8 @@ void main(int argc, char* argv[]) {
      */
 
     // VUZE-test.mp4.torrent: Rise and Rise of BitCoin
-    const char * torrent  = "C:/Users/Sindre/Desktop/TORRENTS/VUZE-test.mp4.torrent";
+    // "C:/Users/Sindre/Desktop/TORRENTS/VUZE-test.mp4.torrent";
+    const char * torrent  = "C:/Users/Sindre/Desktop/TORRENTS/05_Aint_No_Love_Crucified_Aint_No_Love_FROSTWIRE_FROSTCLICK_CREATIVE_COMMONS.mp3.torrent";
 
     libtorrent::error_code ec;
     libtorrent::torrent_info torrentInfo(torrent, ec);
@@ -129,7 +132,7 @@ void main(int argc, char* argv[]) {
 
     std::cout << "Started buyer client." << std::endl;
 
-    // Create buyer torrent plugin configuration
+    // Create buyer torrent configuration
     Controller::Torrent::Configuration buyerTorrentConfiguration(torrentInfo.info_hash()
                                                   ,torrentInfo.name()
                                                   ,std::string("C:/Users/Sindre/Desktop/SAVE_OUTPUT/MAIN")
@@ -138,13 +141,40 @@ void main(int argc, char* argv[]) {
                                                   //+libtorrent::add_torrent_params::flag_auto_managed
                                                   ,&torrentInfo);
 
+    // Create buyer torrent plugin configuration
+
+    // Number of sellers
+    int numberOfSellers = 1;
+
+    // Max fee per kB (satoshi)
+    int maxFeePerkB = static_cast<int>(STANDARD_NUM_SATOSHIES_PER_KB_IN_TX_FEE);
+
+    // Corresponding maximum piece price (satoshi)
+    quint64 maxPrice = 15;
+
+    // Amount needed to fund contract (satoshies)
+    quint64 minFunds = Payor::minimalFunds(maxPrice, numberOfSellers, maxFeePerkB);
+
+    // Get funding output - this has to be grabbed from wallet/chain later
+    UnspentP2PKHOutput utxo = buyerClient.wallet().getUtxo(minFunds, 1);
+
+    // Check that an utxo was indeed found
+    if(utxo.value() == 0) {
+        std::cout << "No utxo found with value no less than:" << minFunds;
+        return;
+    }
+
+    BuyerTorrentPlugin::Configuration configuration(false,
+                                                    maxPrice,
+                                                    2*60*60, // 2h max lock time
+                                                    maxFeePerkB,
+                                                    numberOfSellers);
+
     // Add to client
-    buyerClient.addTorrent(buyerTorrentConfiguration);
+    buyerClient.addTorrent(buyerTorrentConfiguration, configuration, utxo);
 
     // Track controller
     controllerTracker.addClient(&buyerClient);
-
-
 
     /**
      * Seller =======================================================
@@ -170,9 +200,9 @@ void main(int argc, char* argv[]) {
     // Create seller torrent plugin configuration
     SellerTorrentPlugin::Configuration SellerTorrentPluginConfiguration(false,
                                                                         10, // 10 satoshies per piece!
-                                                                        60*60,// 1h maximum lock time
+                                                                        60*60,// 1h min lock time
                                                                         0* 100000, // minfeeperbyte
-                                                                        1,
+                                                                        1, // <== invalid, is per byte, not kb! not used at the moment anyway
                                                                         30); // maximum confirmation delay
 
     // Add to client

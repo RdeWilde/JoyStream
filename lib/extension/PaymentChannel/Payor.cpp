@@ -911,6 +911,19 @@ Contract Payor::contract() const {
 }
 */
 
+quint64 Payor::contractFee(int numberOfSellers, quint64 feePerKb) {
+
+    // Fee for contract based on fee estimate at http://bitcoinfees.com/
+    quint64 txByteSize =(148*1) + (34*numberOfSellers) + 10;
+    quint64 fee = feePerKb*(txByteSize/1000);
+
+    return fee;
+}
+
+quint64 Payor::minimalFunds(quint64 maxPrice, int numberOfSellers, quint64 feePerkB) {
+    return maxPrice*numberOfSellers + contractFee(numberOfSellers, feePerkB);
+}
+
 Payor::State Payor::state() const {
     return _state;
 }

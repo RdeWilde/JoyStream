@@ -21,6 +21,31 @@
 #include <QNetworkReply>
 #include <QLoggingCategory>
 
+
+/**
+ * Plugin::Status
+ */
+
+Plugin::Status::Status()
+    : _balance(0) {
+}
+
+Plugin::Status::Status(quint64 balance)
+    : _balance(balance) {
+}
+
+quint64 Plugin::Status::balance() const {
+    return _balance;
+}
+
+void Plugin::Status::setBalance(quint64 balance) {
+    _balance = balance;
+}
+
+/**
+ * Plugin
+ */
+
 Plugin::Plugin(Controller * controller, Wallet * wallet, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category)
     : _controller(controller)
     , _wallet(wallet)

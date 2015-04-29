@@ -50,6 +50,27 @@ class Plugin : public QObject, public libtorrent::plugin {
 
 public:
 
+    class Status {
+
+    public:
+
+        // Default constructor
+        Status();
+
+        // Constructor from members
+        Status(quint64 balance);
+
+        // Getters and setters
+        quint64 balance() const;
+        void setBalance(quint64 balance);
+
+    private:
+
+
+        // total utxo with 0+ confirmations
+        quint64 _balance;
+    };
+
     // Constructor
     Plugin(Controller * controller, Wallet * wallet, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category);
 

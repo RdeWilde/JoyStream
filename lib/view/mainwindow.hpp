@@ -2,6 +2,9 @@
 #define MAIN_WINDOW_HPP
 
 #include "extension/TorrentPlugin.hpp"
+#include "extension/Plugin.hpp" // Plugin::Status
+#include "extension/BuyerTorrentPlugin.hpp" // BuyerTorrentPlugin::Status
+#include "extension/SellerTorrentPlugin.hpp" // SellerTorrentPlugin::Status
 
 #include <QMainWindow>
 #include <QStandardItemModel>
@@ -26,8 +29,9 @@ class PeerPlugin;
 //class TorrentPluginStatus;
 class PeerPluginStatus;
 class TorrentViewModel;
-class TorrentPluginStatusAlert;
-class PluginStatusAlert;
+//class TorrentPluginStatusAlert;
+//class BuyerTorrentPluginStatus;
+//class PluginStatusAlert;
 
 class Wallet;
 
@@ -51,8 +55,9 @@ public:
 
     void updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector);
     void updateTorrentStatus(const libtorrent::torrent_status & torrentStatus); // start, stopp, stats
-    void updateTorrentPluginStatus(const TorrentPluginStatusAlert * torrentPluginStatusAlert);// TorrentPluginStatus status
-    void updatePluginStatus(const PluginStatusAlert * p);
+    //void updateTorrentPluginStatus(const TorrentPluginStatusAlert * torrentPluginStatusAlert);// TorrentPluginStatus status
+    void updateBuyerTorrentPluginStatus(const BuyerTorrentPlugin::Status & status);
+    void updatePluginStatus(const Plugin::Status & status);
 
     void addPeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint);
     void updatePeerPluginStatus(PeerPluginStatus status);

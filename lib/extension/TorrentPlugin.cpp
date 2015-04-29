@@ -5,7 +5,8 @@
 #include "PeerPluginStatus.hpp" // signal parameter
 #include "controller/Controller.hpp" // needed to connect
 #include "Request/TorrentPluginRequest.hpp"
-#include "Alert/TorrentPluginStatusAlert.hpp"
+//#include "Alert/TorrentPluginStatusAlert.hpp"
+#include "Alert/TorrentPluginAlert.hpp"
 
 #include "controller/Exceptions/InvalidBitSwaprStateEntryException.hpp"
 
