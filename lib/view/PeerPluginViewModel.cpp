@@ -1,5 +1,4 @@
 #include "PeerPluginViewModel.hpp"
-#include "extension/PeerPluginStatus.hpp"
 //#include "extension/PeerPluginState.hpp"
 
 #include <libtorrent/socket_io.hpp>
@@ -11,41 +10,20 @@
 const char * PeerPluginViewModel::columnTitles[] = {"Host", "State", "Balance", "Progress"};
 const int PeerPluginViewModel::numberOfColumns = sizeof(PeerPluginViewModel::columnTitles)/sizeof(char *);
 
-PeerPluginViewModel::PeerPluginViewModel(const libtorrent::tcp::endpoint & endPoint, QStandardItemModel & peerPluginsTableViewModel)
-    : endPoint_(endPoint)
-    , peerPluginsTableViewModel_(peerPluginsTableViewModel)
-{
+PeerPluginViewModel::PeerPluginViewModel(const libtorrent::tcp::endpoint & endPoint)
+    : _endPoint(endPoint)
+    //, _peerPluginsTableViewModel(peerPluginsTableViewModel) {
+    , _hostItem(new QStandardItem())
+    , _stateItem(new QStandardItem())
+    , _balanceItem(new QStandardItem())
+    , _progressItem(new QStandardItem()) {
 
-    /**
-     * Allocate view items
-     * These are later owned by the external QStandardItem
-     * model for the torrent table, hence we do not need to delete.
-     */
-
-    std::string hostAddress = libtorrent::print_endpoint(endPoint);
-    hostItem = new QStandardItem(QString(hostAddress.c_str()));
-    stateItem = new QStandardItem();
-    balanceItem = new QStandardItem();
-    progressItem = new QStandardItem();
-
-    // Set item data, so this is recoverable
-    hostItem->setData(QVariant::fromValue(this));
-    stateItem->setData(QVariant::fromValue(this));
-    balanceItem->setData(QVariant::fromValue(this));
-    progressItem->setData(QVariant::fromValue(this));
-
-    // Add as row to model
-    QList<QStandardItem *> row;
-
-    row.append(hostItem);
-    row.append(stateItem);
-    row.append(balanceItem);
-    row.append(progressItem);
-
-    // Add row to peer plugins table view-model for this torrent
-    peerPluginsTableViewModel_.appendRow(row);
+    // Set host text
+    //std::string hostAddress = libtorrent::print_endpoint(endPoint);
+    //_hostItem->setText(hostAddress.c_str());
 }
 
+/**
 void PeerPluginViewModel::update(PeerPluginStatus status) {
 
     // State
@@ -57,9 +35,10 @@ void PeerPluginViewModel::update(PeerPluginStatus status) {
     // Progress
     updateProgress();
 }
+*/
 
 void PeerPluginViewModel::updateHost(const QString & host) {
-    hostItem->setText(host);
+    _hostItem->setText(host);
 }
 
 /*
@@ -78,13 +57,13 @@ void PeerPluginViewModel::updateState(PeerState state) {
 */
 
 void PeerPluginViewModel::updateBalance(int balance) {
-    balanceItem->setText(QString::number(balance));
+    _balanceItem->setText(QString::number(balance));
 }
 
 void PeerPluginViewModel::updateProgress() {
 
 }
 
-const libtorrent::tcp::endpoint & PeerPluginViewModel::getEndPoint() const {
-    return endPoint_;
+libtorrent::tcp::endpoint PeerPluginViewModel::endPoint() {
+    return _endPoint;
 }

@@ -10,7 +10,9 @@
 #include "Request/StartSellerTorrentPlugin.hpp"
 //#include "Request/StartTorrentPlugin.hpp"
 #include "PeerPlugin.hpp"
+
 #include "Alert/PluginStatusAlert.hpp"
+#include "Alert/TorrentPluginStartedAlert.hpp"
 
 #include "PluginMode.hpp"
 
@@ -27,19 +29,40 @@
  */
 
 Plugin::Status::Status()
-    : _balance(0) {
+    : _totalReceivedSinceStart(0)
+    , _totalSentSinceStart(0)
+    , _totalCurrentlyLockedInChannels(0) {
 }
 
-Plugin::Status::Status(quint64 balance)
-    : _balance(balance) {
+Plugin::Status::Status(quint64 totalReceivedSinceStart, quint64 totalSentSinceStart, quint64 totalCurrentlyLockedInChannels)
+    : _totalReceivedSinceStart(totalReceivedSinceStart)
+    , _totalSentSinceStart(totalSentSinceStart)
+    , _totalCurrentlyLockedInChannels(totalCurrentlyLockedInChannels){
 }
 
-quint64 Plugin::Status::balance() const {
-    return _balance;
+quint64 Plugin::Status::totalCurrentlyLockedInChannels() const {
+    return _totalCurrentlyLockedInChannels;
 }
 
-void Plugin::Status::setBalance(quint64 balance) {
-    _balance = balance;
+void Plugin::Status::setTotalCurrentlyLockedInChannels(quint64 totalCurrentlyLockedInChannels) {
+    _totalCurrentlyLockedInChannels = totalCurrentlyLockedInChannels;
+}
+
+quint64 Plugin::Status::totalSentSinceStart() const {
+    return _totalSentSinceStart;
+}
+
+void Plugin::Status::setTotalSentSinceStart(quint64 totalSentSinceStart) {
+    _totalSentSinceStart = totalSentSinceStart;
+}
+
+quint64 Plugin::Status::totalReceivedSinceStart() const
+{
+    return _totalReceivedSinceStart;
+}
+
+void Plugin::Status::setTotalReceivedSinceStart(quint64 totalReceivedSinceStart) {
+    _totalReceivedSinceStart = totalReceivedSinceStart;
 }
 
 /**
@@ -58,8 +81,11 @@ Plugin::Plugin(Controller * controller, Wallet * wallet, QNetworkAccessManager &
                  ,manager)
                      */
     , _category(category)
-    , _getBalanceReply(NULL)
-    , _addedToSession(false) {
+    //, _getBalanceReply(NULL)
+    , _addedToSession(false)
+    , _totalReceivedSinceStart(0)
+    , _totalSentSinceStart(0)
+    , _totalCurrentlyLockedInChannels(0) {
 }
 
 Plugin::~Plugin() {
@@ -108,9 +134,8 @@ void Plugin::on_tick() {
     // Process requests from controller
     processesRequests();
 
-    //
-    processStatus();
-
+    // Send status
+    sendAlertToSession(PluginStatusAlert(status()));
 }
 
 bool Plugin::on_optimistic_unchoke(std::vector<libtorrent::policy::peer*> & peers) {
@@ -125,12 +150,40 @@ void Plugin::load_state(libtorrent::lazy_entry const & stateEntry) {
 
 }
 
-void Plugin::removeTorrentPlugin(const libtorrent::sha1_hash & info_hash) {
+Plugin::Status Plugin::status() const {
+    return Plugin::Status(_totalReceivedSinceStart, _totalSentSinceStart, _totalCurrentlyLockedInChannels);
+}
 
+quint64 Plugin::registerReceivedFunds(quint64 value) {
+
+    _totalReceivedSinceStart += value;
+    return _totalReceivedSinceStart;
+}
+
+quint64 Plugin::registerSentFunds(quint64 value) {
+
+    _totalSentSinceStart += value;
+    return _totalSentSinceStart;
+}
+
+quint64 Plugin::registerLockedInChannelsFunds(quint64 value) {
+
+    _totalCurrentlyLockedInChannels += value;
+    return _totalCurrentlyLockedInChannels;
+}
+
+quint64 Plugin::registerUnLockedFromChannelFunds(quint64 value) {
+
+    _totalCurrentlyLockedInChannels -= value;
+    return _totalCurrentlyLockedInChannels;
+}
+
+void Plugin::removeTorrentPlugin(const libtorrent::sha1_hash & info_hash) {
+    qCDebug(_category) << "Plugin::removeTorrentPlugin: NOT IMPLEMENTED!!";
 }
 
 void Plugin::sendAlertToSession(const libtorrent::alert & alert) {
-    _session->m_alerts.post_alert(alert);
+    //_session->m_alerts.post_alert(alert);
 }
 
 void Plugin::submitPluginRequest(PluginRequest * pluginRequest) {
@@ -263,6 +316,9 @@ void Plugin::processPluginRequest(const PluginRequest * pluginRequest) {
                 const StartBuyerTorrentPlugin * p = reinterpret_cast<const StartBuyerTorrentPlugin *>(pluginRequest);
 
                 startBuyerTorrentPlugin(p->infoHash(), p->configuration(), p->utxo());
+
+                // Notify controller
+                sendAlertToSession(TorrentPluginStartedAlert(p->infoHash(), PluginMode::Buyer));
             }
 
             break;
@@ -271,8 +327,14 @@ void Plugin::processPluginRequest(const PluginRequest * pluginRequest) {
 
                 const StartSellerTorrentPlugin * p = reinterpret_cast<const StartSellerTorrentPlugin *>(pluginRequest);
                 startSellerTorrentPlugin(p->infoHash(), p->configuration());
-        }
+
+                // Notify controller
+                sendAlertToSession(TorrentPluginStartedAlert(p->infoHash(), PluginMode::Seller));
+            }
+
             break;
+
+        Q_ASSERT(false);
 
     }
 }
@@ -394,9 +456,10 @@ bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, co
     }
 }
 
+/**
 void Plugin::processStatus() {
 
-    /**
+
     if(_getBalanceReply == NULL)
         _getBalanceReply = _btcClient.getBalance();
     else if(_getBalanceReply->isFinished()) {
@@ -411,5 +474,6 @@ void Plugin::processStatus() {
         // Create and send plugin status alert
         sendAlertToSession(PluginStatusAlert(balance));
     }
-    */
+
 }
+*/

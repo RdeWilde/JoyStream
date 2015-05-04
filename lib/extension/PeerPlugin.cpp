@@ -8,6 +8,42 @@
 #include "Message/MessageType.hpp"
 #include "Message/ExtendedMessagePayload.hpp"
 
+/**
+ * PeerPlugin::Status
+ */
+
+PeerPlugin::Status::Status() {
+}
+
+PeerPlugin::Status::Status(PeerModeAnnounced peerModeAnnounced, BEPSupportStatus peerBEP10SupportStatus, BEPSupportStatus peerBitSwaprBEPSupportStatus)
+    : _peerModeAnnounced(peerModeAnnounced)
+    , _peerBEP10SupportStatus(peerBEP10SupportStatus)
+    , _peerBitSwaprBEPSupportStatus(peerBitSwaprBEPSupportStatus) {
+}
+
+BEPSupportStatus PeerPlugin::Status::peerBitSwaprBEPSupportStatus() const {
+    return _peerBitSwaprBEPSupportStatus;
+}
+
+void PeerPlugin::Status::setPeerBitSwaprBEPSupportStatus(BEPSupportStatus peerBitSwaprBEPSupportStatus) {
+    _peerBitSwaprBEPSupportStatus = peerBitSwaprBEPSupportStatus;
+}
+
+BEPSupportStatus PeerPlugin::Status::peerBEP10SupportStatus() const {
+    return _peerBEP10SupportStatus;
+}
+
+void PeerPlugin::Status::setPeerBEP10SupportStatus(BEPSupportStatus peerBEP10SupportStatus) {
+    _peerBEP10SupportStatus = peerBEP10SupportStatus;
+}
+
+PeerPlugin::PeerModeAnnounced PeerPlugin::Status::peerModeAnnounced() const {
+    return _peerModeAnnounced;
+}
+
+void PeerPlugin::Status::setPeerModeAnnounced(PeerModeAnnounced peerModeAnnounced) {
+    _peerModeAnnounced = peerModeAnnounced;
+}
 
 /**
  * PeerPlugin
@@ -523,4 +559,12 @@ bool PeerPlugin::connectionAlive() const {
 
 bool PeerPlugin::lastReceivedMessageWasMalformed() const {
     return _lastReceivedMessageWasMalformed;
+}
+
+PeerPlugin::PeerModeAnnounced PeerPlugin::peerModeAnnounced() const {
+    return _peerModeAnnounced;
+}
+
+void PeerPlugin::setPeerModeAnnounced(PeerModeAnnounced peerModeAnnounced) {
+    _peerModeAnnounced = peerModeAnnounced;
 }

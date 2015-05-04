@@ -267,8 +267,12 @@ public:
     // Gets current block height
     static quint32 blockHeight();
 
-    // Total balance in wallet with utxos with no less than given number of confirmations
-    quint64 balance(quint32 confirmations); // const
+    // Total balance of confirmed (1 conf+) utxo controlled fully (only p2pkh) by keys in wallet
+    quint64 lastComputedBalance(); // const;
+
+    // Computes: Total balance of utxo controlled fully (only p2pkh) by keys in wallet, with given
+    // number of confirmations, or more
+    quint64 computeBalance(quint32 confirmations); // const
 
     // Synchronizes wallet with blockchain
     void synchronize();
@@ -326,6 +330,9 @@ private:
 
     // Latest known block height
     qint64 _latestBlockHeight;
+
+    // Value of last run of computeBalance, which is initially run in ctr
+    quint64 _lastComputedBalance;
 
     // Used by constructor to load wallet from dictionary, is not synchronized
     void fromJson(const QJsonObject & walletDictionary);

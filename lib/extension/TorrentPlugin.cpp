@@ -2,7 +2,7 @@
 //#include "TorrentPluginConfiguration.hpp"
 #include "PeerPlugin.hpp"
 //#include "PeerPluginConfiguration.hpp"
-#include "PeerPluginStatus.hpp" // signal parameter
+//#include "PeerPluginStatus.hpp" // signal parameter
 #include "controller/Controller.hpp" // needed to connect
 #include "Request/TorrentPluginRequest.hpp"
 //#include "Alert/TorrentPluginStatusAlert.hpp"
@@ -17,6 +17,58 @@
 
 #include <QLoggingCategory>
 
+/**
+ * TorrentPlugin::Status
+ */
+
+TorrentPlugin::Status::Status()
+    : _numberOfClassicPeers(0)
+    , _numberOfObserverPeers(0)
+    , _numberOfSellerPeers(0)
+    , _numberOfBuyerPeers(0) {
+}
+
+TorrentPlugin::Status::Status(quint32 numberOfClassicPeers,
+                       quint32 numberOfObserverPeers,
+                       quint32 numberOfSellerPeers,
+                       quint32 numberOfBuyerPeers)
+    : _numberOfClassicPeers(numberOfClassicPeers)
+    , _numberOfObserverPeers(numberOfObserverPeers)
+    , _numberOfSellerPeers(numberOfSellerPeers)
+    , _numberOfBuyerPeers(numberOfBuyerPeers) {
+}
+
+quint32 TorrentPlugin::Status::numberOfClassicPeers() const {
+    return _numberOfClassicPeers;
+}
+
+void TorrentPlugin::Status::setNumberOfClassicPeers(quint32 numberOfClassicPeers) {
+    _numberOfClassicPeers = numberOfClassicPeers;
+}
+
+quint32 TorrentPlugin::Status::numberOfObserverPeers() const {
+    return _numberOfObserverPeers;
+}
+
+void TorrentPlugin::Status::setNumberOfObserverPeers(quint32 numberOfObserverPeers) {
+    _numberOfObserverPeers = numberOfObserverPeers;
+}
+
+quint32 TorrentPlugin::Status::numberOfSellerPeers() const {
+    return _numberOfSellerPeers;
+}
+
+void TorrentPlugin::Status::setNumberOfSellerPeers(quint32 numberOfSellerPeers) {
+    _numberOfSellerPeers = numberOfSellerPeers;
+}
+
+quint32 TorrentPlugin::Status::numberOfBuyerPeers() const {
+    return _numberOfBuyerPeers;
+}
+
+void TorrentPlugin::Status::setNumberOfBuyerPeers(quint32 numberOfBuyerPeers) {
+    _numberOfBuyerPeers = numberOfBuyerPeers;
+}
 
 /**
  * TorrentPlugin::Configuration
@@ -138,6 +190,10 @@ void TorrentPlugin::addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoin
 
 void TorrentPlugin::addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint) {
     _irregularPeer.insert(endPoint);
+}
+
+Plugin * TorrentPlugin::plugin() {
+    return _plugin;
 }
 
 boost::shared_ptr<libtorrent::torrent> TorrentPlugin::torrent() const {

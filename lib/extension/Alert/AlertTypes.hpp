@@ -3,9 +3,10 @@
 
 #include <libtorrent/alert_types.hpp>
 
-#define PLUGIN_STATUS_ALERT_ID (libtorrent::user_alert_id + 1)
-#define TORRENT_PLUGIN_STATUS_ALERT_ID (PLUGIN_STATUS_ALERT_ID + 1)
-#define BUYER_TORRENT_PLUGIN_STATUS_ALERT_ID (TORRENT_PLUGIN_STATUS_ALERT_ID + 1)
-#define SELLER_TORRENT_PLUGIN_STATUS_ALERT_ID (BUYER_TORRENT_PLUGIN_STATUS_ALERT_ID + 1)
+#define PLUGIN_STATUS_ALERT_ID                  (libtorrent::user_alert_id + 1)
+#define TORRENT_PLUGIN_STARTED_ALERT_ID         (libtorrent::user_alert_id + 2)
+#define TORRENT_PLUGIN_STATUS_ALERT_ID          (libtorrent::user_alert_id + 3)
+#define BUYER_TORRENT_PLUGIN_STATUS_ALERT_ID    (libtorrent::user_alert_id + 4)
+#define SELLER_TORRENT_PLUGIN_STATUS_ALERT_ID   (libtorrent::user_alert_id + 5)
 
 #endif // ALERT_TYPES_HPP

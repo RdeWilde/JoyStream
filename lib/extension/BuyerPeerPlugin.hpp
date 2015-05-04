@@ -138,7 +138,7 @@ public:
      * @brief Plugin status, that is a snapshot
      * of important information.
      */
-    class Status {
+    class Status : public PeerPlugin::Status {
 
     public:
 
@@ -146,13 +146,18 @@ public:
         Status();
 
         // Constructor from members
-        Status(const PeerState & peerState,
+        Status(PeerModeAnnounced peerModeAnnounced,
+               BEPSupportStatus peerBEP10SupportStatus,
+               BEPSupportStatus peerBitSwaprBEPSupportStatus,
+               const PeerState & peerState,
                ClientState clientState,
                quint32 payorSlot,
                int indexOfAssignedPiece,
                const QList<int> & downloadedValidPieces);
 
         // Getters and setters
+        virtual PluginMode pluginMode() const;
+
         PeerState peerState() const;
         void setPeerState(const PeerState & peerState);
 
@@ -243,8 +248,9 @@ public:
     int indexOfAssignedPiece() const;
     void setIndexOfAssignedPiece(int indexOfAssignedPiece);
 
-    //int pieceSize() const;
-    //void setPieceSize(int pieceSize);
+    /**
+    int pieceSize() const;
+    void setPieceSize(int pieceSize);
 
     int blockSize() const;
     void setBlockSize(int blockSize);
@@ -257,6 +263,7 @@ public:
 
     int numberOfBlocksReceived() const;
     void setNumberOfBlocksReceived(int numberOfBlocksReceived);
+    */
 
     QSet<libtorrent::peer_request> unservicedRequests() const;
     void setUnservicedRequests(const QSet<libtorrent::peer_request> &unservicedRequests);
@@ -268,6 +275,8 @@ public:
     void setDownloadedPieces(const QList<int> &downloadedPieces);
 
     void addDownloadedPiece(int index);
+
+    quint64 totalAmountSent() const;
 
     virtual PluginMode mode() const;
 

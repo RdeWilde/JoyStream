@@ -10,8 +10,9 @@
 #include <QStandardItemModel>
 #include <QStandardItem>
 #include <QList>
+#include <QMap>
 #include <QPoint>
-#include <QMenu>
+
 #include <QLoggingCategory>
 
 #include <libtorrent/torrent_handle.hpp>
@@ -49,24 +50,38 @@ public:
 
     // Controller calls
     void addTorrent(const libtorrent::sha1_hash & info_hash, const QString & torrentName, int totalSize);
+    void removeTorrent(const libtorrent::sha1_hash & info_hash);
+
     void addTorrentFailed(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec);
 
-    void removeTorrent(const libtorrent::sha1_hash & info_hash);
+    void addTorrentPlugin(const libtorrent::sha1_hash & infoHash, PluginMode mode);
 
     void updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector);
     void updateTorrentStatus(const libtorrent::torrent_status & torrentStatus); // start, stopp, stats
     //void updateTorrentPluginStatus(const TorrentPluginStatusAlert * torrentPluginStatusAlert);// TorrentPluginStatus status
-    void updateBuyerTorrentPluginStatus(const BuyerTorrentPlugin::Status & status);
+
+    void updateBuyerTorrentPluginStatus(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Status & status);
+
     void updatePluginStatus(const Plugin::Status & status);
 
+    //
+    void updateWalletBalance(quint64 balance);
+
     void addPeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint);
-    void updatePeerPluginStatus(PeerPluginStatus status);
+    //void updatePeerPluginStatus(const PeerPluginStatus & status);
     void removePeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint);
 
     // Show parts of view
     void showAddTorrentFromTorrentFileDialog(const QString & torrentFile);
     void showAddTorrentFromMagnetLinkDialog(const QString & magnetLink);
     void showAddTorrentPluginConfigurationDialog(const libtorrent::torrent_info & torrentInfo, const libtorrent::torrent_status & torrentStatus);
+
+public slots:
+
+    // These slots are used to tap into native QMenu ui signals.
+    void showContextMenu(QPoint pos);
+
+    void torrentTableClicked(const QModelIndex & index);
 
 private:
 
@@ -83,21 +98,41 @@ private:
     QLoggingCategory & _category;
 
     /*
-     * View-models
+     * View-model
      */
 
-    // Torrent table
-    QStandardItemModel _torrentTableViewModel; // View model
-    QMenu * _torrentTableContextMenu; // Context menu
-    QModelIndex _torrentTableLastIndexClicked; // Last model index for mouse click
-    std::map<libtorrent::sha1_hash, TorrentViewModel *> _torrentViewModels; // Maps info_hash of models to corresponding TorrentViewModel
+    // Torrent table view model
+    QStandardItemModel _torrentTableViewModel;
 
+    // Last model index for mouse click
+    //QModelIndex _torrentTableLastIndexClicked;
+
+    // Info hash of torrent in the position the torrent holds in the torrent table view
+    QVector<libtorrent::sha1_hash> _torrentInTableRow;
+
+    // Maps info_hash of models to corresponding TorrentViewModel
+    // Must use pointer values since members are QObjects, which cannot be copied and assigned
+    QMap<libtorrent::sha1_hash, TorrentViewModel *> _torrentViewModels;
+
+    /**
+     * Try to avoid this sharding in the future, absorb into TorrentviewModel or something,
+     * just like in controller and plugins.
+     */
+
+    // Maps info hash to seller torrent plugin view model for plugin on corresponding torrent
+    //QMap<libtorrent::sha1_hash, SellerTorrentPluginViewModel *> _sellerTorrentPluginViewModel;
+
+    // Maps info hash to buyer torrent plugin view model for plugin on corresponding torrent
+    //QMap<libtorrent::sha1_hash, BuyerTorrentPluginViewModel *> _buyerTorrentPluginViewModel;
+
+    /**
     // Peer Plugins table
     QMenu * _peerPluginsTableContextMenu; // context menu
     QModelIndex _peerPluginsTableLastIndexClicked; // Last model index for mouse click
+    */
 
-    // Utilities
-    const libtorrent::sha1_hash & getInfoHashOfLastClickedTorrent();
+    // Get view model for torrent in given row
+    TorrentViewModel * torrentViewModelInTableRow(int row);
 
 protected:
 
@@ -109,16 +144,6 @@ private slots: // These slots get signals from view objects.
     void on_addMagnetLinkPushButton_clicked();
 
     void on_walletPushButton_clicked();
-
-public slots:
-
-    // These slots are used to tap into native QMenu ui signals.
-    void showContextMenu(QPoint pos);
-    void pauseMenuAction();
-    void startMenuAction();
-    void removeMenuAction();
-
-    void torrentTableClicked(const QModelIndex & index);
 };
 
 #endif // MAIN_WINDOW_HPP

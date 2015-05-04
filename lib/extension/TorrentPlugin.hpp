@@ -36,6 +36,47 @@ class TorrentPlugin : public QObject, public libtorrent::torrent_plugin {
 
 public:
 
+    class Status {
+
+    public:
+
+        // Default constructor
+        Status();
+
+        // Constructor from members
+        Status(quint32 numberOfClassicPeers,
+               quint32 numberOfObserverPeers,
+               quint32 numberOfSellerPeers,
+               quint32 numberOfBuyerPeers);
+
+        // Getters and setters
+        quint32 numberOfClassicPeers() const;
+        void setNumberOfClassicPeers(quint32 numberOfClassicPeers);
+
+        quint32 numberOfObserverPeers() const;
+        void setNumberOfObserverPeers(quint32 numberOfObserverPeers);
+
+        quint32 numberOfSellerPeers() const;
+        void setNumberOfSellerPeers(quint32 numberOfSellerPeers);
+
+        quint32 numberOfBuyerPeers() const;
+        void setNumberOfBuyerPeers(quint32 numberOfBuyerPeers);
+
+    private:
+
+        // #peers connected to in classic - i.e. non joystream extension enabled mode
+        quint32 _numberOfClassicPeers;
+
+        // #peers connected to with plugin and in observer mode
+        quint32 _numberOfObserverPeers;
+
+        // #peers connected to with plugin and in seller mode
+        quint32 _numberOfSellerPeers;
+
+        // #peers connected to with plugin and in buyer mode
+        quint32 _numberOfBuyerPeers;
+    };
+
     /**
      * @brief
      */
@@ -120,6 +161,9 @@ public:
     /**
      * Getters and setters
      */
+
+    Plugin * plugin();
+
     virtual PluginMode pluginMode() const = 0;
     //virtual const TorrentPlugin::Configuration getTorrentPluginConfiguration() = 0;
 

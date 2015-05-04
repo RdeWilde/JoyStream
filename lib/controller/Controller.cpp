@@ -317,23 +317,24 @@ void Controller::Torrent::Configuration::setInfoHash(const libtorrent::sha1_hash
  */
 
 Controller::Torrent::Torrent() {
-
 }
 
 Controller::Torrent::Torrent(const libtorrent::sha1_hash & infoHash,
                              const std::string & name,
                              const std::string & savePath,
-                            const std::vector<char> & resumeData,
-                            quint64 flags,
-                            libtorrent::torrent_info * torrentInfo,
-                            ExpectedEvent event)
-    :_infoHash(infoHash)
-    ,_name(name)
-    ,_savePath(savePath)
-    ,_resumeData(resumeData)
-    ,_flags(flags)
-    ,_torrentInfo(torrentInfo)
-    ,_event(event) {
+                             const std::vector<char> & resumeData,
+                             quint64 flags,
+                             libtorrent::torrent_info * torrentInfo,
+                             ExpectedEvent event,
+                             PluginInstalled pluginInstalled)
+    : _infoHash(infoHash)
+    , _name(name)
+    , _savePath(savePath)
+    , _resumeData(resumeData)
+    , _flags(flags)
+    , _torrentInfo(torrentInfo)
+    , _event(event)
+    , _pluginInstalled(pluginInstalled) {
 }
 
 libtorrent::torrent_info * Controller::Torrent::torrentInfo() const {
@@ -391,6 +392,15 @@ Controller::Torrent::ExpectedEvent Controller::Torrent::event() const {
 void Controller::Torrent::setEvent(const ExpectedEvent & event) {
     _event = event;
 }
+
+PluginInstalled Controller::Torrent::pluginInstalled() const {
+    return _pluginInstalled;
+}
+
+void Controller::Torrent::setPluginInstalled(PluginInstalled pluginInstalled) {
+    _pluginInstalled = pluginInstalled;
+}
+
 
 /**
  * Controller::Configuration
@@ -957,6 +967,8 @@ void Controller::Configuration::setLibtorrentSessionSettingsEntry(const libtorre
 #include "extension/Alert/BuyerTorrentPluginStatusAlert.hpp"
 
 #include "extension/Alert/PluginStatusAlert.hpp"
+#include "extension/Alert/TorrentPluginStartedAlert.hpp"
+
 //#include "extension/Request/SetConfigurationTorrentPluginRequest.hpp"
 //#include "extension/Request/StartPluginTorrentPluginRequest.hpp"
 //#include "extension/Request/StartTorrentPlugin.hpp"
@@ -1092,6 +1104,9 @@ Controller::Controller(const Configuration & configuration, bool showView, QNetw
 
     // Synchronize wallet
     _wallet.synchronize();
+
+    // Update wallet balance in ui
+    _view.updateWalletBalance(_wallet.lastComputedBalance());
 }
 
 void Controller::callPostTorrentUpdates() {
@@ -1171,6 +1186,8 @@ void Controller::processAlert(const libtorrent::alert * a) {
         processPluginStatusAlert(p);
     else if(const BuyerTorrentPluginStatusAlert * p = libtorrent::alert_cast<BuyerTorrentPluginStatusAlert>(a)) {
         processBuyerTorrentPluginStatusAlert(p);
+    } else if(const TorrentPluginStartedAlert * p = libtorrent::alert_cast<TorrentPluginStartedAlert>(a)) {
+        processTorrentPluginStartedAlert(p);
     }
 
     // Delete alert
@@ -1497,11 +1514,22 @@ void Controller::processTorrentPluginStatusAlert(const TorrentPluginStatusAlert 
 */
 
 void Controller::processBuyerTorrentPluginStatusAlert(const BuyerTorrentPluginStatusAlert * p) {
-    _view.updateBuyerTorrentPluginStatus(p->status());
+    _view.updateBuyerTorrentPluginStatus(p->infoHash(), p->status());
 }
 
 void Controller::processPluginStatusAlert(const PluginStatusAlert * p) {
     _view.updatePluginStatus(p->status());
+}
+
+void Controller::processTorrentPluginStartedAlert(const TorrentPluginStartedAlert * p) {
+
+    Q_ASSERT(_torrents[p->infoHash()].pluginInstalled() == PluginInstalled::None);
+
+    // Update information about plugin installed on torrent
+    _torrents[p->infoHash()].setPluginInstalled(Utilities::PluginModeToPluginInstalled(p->mode()));
+
+    // Notify view
+    _view.addTorrentPlugin(p->infoHash(), p->mode());
 }
 
 bool Controller::removeTorrent(const libtorrent::sha1_hash & info_hash) {
@@ -1583,7 +1611,8 @@ bool Controller::addTorrent(const Torrent::Configuration & configuration) {
                     configuration.resumeData(),
                     configuration.flags(),
                     configuration.torrentInfo(),
-                    Torrent::ExpectedEvent::torrent_checked_alert);
+                    Torrent::ExpectedEvent::torrent_checked_alert,
+                    PluginInstalled::None);
 
     // Warn user if torrent has already been added
     if(_torrents.contains(info_hash)) {

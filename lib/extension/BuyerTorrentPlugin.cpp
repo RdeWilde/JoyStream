@@ -62,10 +62,18 @@ void BuyerTorrentPlugin::Piece::setPeerPlugin(BuyerPeerPlugin *peerPlugin) {
  * BuyerTorrentPlugin::Status
  */
 
-BuyerTorrentPlugin::Status::Status(State state,
+BuyerTorrentPlugin::Status::Status(quint32 numberOfClassicPeers,
+                                   quint32 numberOfObserverPeers,
+                                   quint32 numberOfSellerPeers,
+                                   quint32 numberOfBuyerPeers,
+                                   State state,
                                    const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> & peers,
                                    const Payor::Status & payor)
-    : _state(state)
+    : TorrentPlugin::Status(numberOfClassicPeers,
+                            numberOfObserverPeers,
+                            numberOfSellerPeers,
+                            numberOfBuyerPeers)
+    , _state(state)
     , _peers(peers)
     , _payor(payor) {
 }
@@ -173,6 +181,10 @@ void BuyerTorrentPlugin::Configuration::setNumberOfSellers(quint32 numberOfSelle
 #include "BitCoin/UnspentP2PKHOutput.hpp"
 
 //#include "extension/BitCoin/BitCoin.hpp"
+
+#include "Plugin.hpp"
+
+#include "extension/PeerPlugin.hpp" // PeerModeAnnounced
 
 #include <libtorrent/bt_peer_connection.hpp>
 #include <libtorrent/socket_io.hpp> // print_endpoint
@@ -368,9 +380,8 @@ void BuyerTorrentPlugin::on_piece_pass(int index) {
     Signature paymentSignature = makePaymentAndGetPaymentSignature(peer);
     peer->sendExtendedMessage(Payment(paymentSignature));
 
-    /**
-     * REGISTER SOME STATS HERE
-     */
+    // Note payment
+    _plugin->registerSentFunds(_payor.channels()[peer->payorSlot()].price());
 
     // Update peer
     peer->addDownloadedPiece(index); // Remember that piece was downloaded
@@ -556,6 +567,9 @@ bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, c
         // Construct and broadcast contract
         _payor.broadcast_contract();
 
+        // Register tx fee we are spending
+        _plugin->registerSentFunds(_payor.contractFee(_numberOfSellers, _maxFeePerKb));
+
         qCDebug(_category) << "Broadcasting contract, txId:" << _payor.contractHash().toString();
 
         // Tell all peers with ready message
@@ -578,6 +592,9 @@ bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, c
 
             // Note that peer has not been assigned a piece
             _peerPluginsWithoutPieceAssignment.insert(p);
+
+            // Register funds locked in this channel
+            _plugin->registerLockedInChannelsFunds(_payor.channels()[peer->payorSlot()].funds());
         }
 
         // Update state
@@ -715,15 +732,66 @@ void BuyerTorrentPlugin::fullPieceArrived(BuyerPeerPlugin * peer, const boost::s
 
 BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
 
-     // Build list of buyer peer statuses
-     QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> peers;
+    // Status counters
+    quint32 numberOfClassicPeers = 0,
+    numberOfObserverPeers = 0,
+    numberOfSellerPeers = 0,
+    numberOfBuyerPeers = 0;
 
-     for(QMap<libtorrent::tcp::endpoint, boost::shared_ptr<BuyerPeerPlugin> >::const_iterator i = _peers.constBegin(),
-             end(_peers.constEnd());i != end;i++)
-         peers[i.key()] = (i.value())->status();
+    //quint64 balance = 0;
 
-     // Return final status
-     return Status(_state, peers, _payor.status());
+    // Build list of buyer peer statuses
+    QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> peers;
+
+    /**
+    *
+    * THIS CODE SHOULD BE TORRENT PLUGIN REALLY, BUT A WAY IS REQUIRED
+    *
+    */
+    for(QMap<libtorrent::tcp::endpoint, boost::shared_ptr<BuyerPeerPlugin> >::const_iterator i = _peers.constBegin(),
+         end(_peers.constEnd());i != end;i++) {
+
+        // Get peer
+        boost::shared_ptr<BuyerPeerPlugin> peer = i.value();
+
+        // Count mode of peer
+        switch(peer->peerModeAnnounced()) {
+
+            case PeerPlugin::PeerModeAnnounced::none:
+                if(peer->peerBitSwaprBEPSupportStatus() == BEPSupportStatus::not_supported)
+                    numberOfClassicPeers++;
+                break;
+
+            case PeerPlugin::PeerModeAnnounced::observer:
+                numberOfObserverPeers++;
+                break;
+
+            case PeerPlugin::PeerModeAnnounced::seller:
+                numberOfSellerPeers++;
+                break;
+
+            case PeerPlugin::PeerModeAnnounced::buyer:
+                numberOfBuyerPeers++;
+                break;
+        }
+
+        // Count how much has been paid to this peer
+        //balance += peer->numberOfBlocksReceived() * _payor.channels()[peer->payorSlot()].price();
+
+        // Compute status and save in map
+        peers[i.key()] = peer->status();
+
+    }
+
+    // Return final status
+    return Status(numberOfClassicPeers,
+               numberOfObserverPeers,
+               numberOfSellerPeers,
+               numberOfBuyerPeers,
+               //balance,
+               _state,
+               peers,
+               _payor.status());
  }
 
  /**

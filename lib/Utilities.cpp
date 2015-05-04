@@ -238,3 +238,19 @@ QJsonObject Utilities::GET_OBJECT(const QJsonObject & dictionary, const QString 
 
     return vValue.toObject();
 }
+
+PluginInstalled Utilities::PluginModeToPluginInstalled(PluginMode mode) {
+
+    switch(mode) {
+
+        case PluginMode::Buyer:
+            return PluginInstalled::Buyer;
+
+        case PluginMode::Observer:
+            return PluginInstalled::Observer;
+
+        case PluginMode::Seller:
+            return PluginInstalled::Seller;
+    }
+
+}

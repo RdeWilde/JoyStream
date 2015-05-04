@@ -1,75 +1,107 @@
 #include "TorrentViewModel.hpp"
 #include "peerPluginViewModel.hpp"
-
 #include "extension/PeerPlugin.hpp"
-#include "extension/PeerPluginStatus.hpp"
+#include "controller/Controller.hpp"
 
 #include <QStandardItemModel>
 #include <QStandardItem>
+#include <QDebug>
 
 #include <libtorrent/socket_io.hpp>
 
 const char * TorrentViewModel::columnTitles[] = {"Name", "Size", "Status", "Speed", "Peers", "Mode", "#Channels", "Balance"};
 const int TorrentViewModel::numberOfColumns = sizeof(TorrentViewModel::columnTitles)/sizeof(char *);
 
-TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & info_hash, QStandardItemModel & torrentTableViewModel, QLoggingCategory & category)
-    : info_hash_(info_hash)
-    , torrentTableViewModel_(torrentTableViewModel)
-    , peerPluginsTableViewModel_(0, PeerPluginViewModel::numberOfColumns)
-    , category_(category)
-{
-
-    // Allocate view items
-    // These are later owned by the external QStandardItem
-    // model for the torrent table, hence we do not need to delete
-    nameItem = new QStandardItem();
-    sizeItem  = new QStandardItem();
-    stateItem = new QStandardItem();
-    speedItem = new QStandardItem();
-    peersItem = new QStandardItem();
-    modeItem = new QStandardItem();
-    peerPluginsItem = new QStandardItem();
-    balanceItem = new QStandardItem();
-
-    // Set item data, so this is recoverable
-    nameItem->setData(QVariant::fromValue(this));
-    sizeItem->setData(QVariant::fromValue(this));
-    stateItem->setData(QVariant::fromValue(this));
-    speedItem->setData(QVariant::fromValue(this));
-    peersItem->setData(QVariant::fromValue(this));
-    modeItem->setData(QVariant::fromValue(this));
-    peerPluginsItem->setData(QVariant::fromValue(this));
-    balanceItem->setData(QVariant::fromValue(this));
+TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & infoHash,
+                                   Controller * controller,
+                                   QStandardItemModel * torrentTableViewModel)
+    : _infoHash(infoHash)
+    , _controller(controller)
+    //, _mainWindow(mainWindow)
+    //, _peerPluginsTableViewModel(0, PeerPluginViewModel::numberOfColumns)
+    , _nameItem(new QStandardItem())
+    , _sizeItem(new QStandardItem())
+    , _stateItem(new QStandardItem())
+    , _speedItem(new QStandardItem())
+    , _peersItem(new QStandardItem())
+    , _modeItem(new QStandardItem()) // "None"
+    , _peerPluginsItem(new QStandardItem())
+    , _balanceItem(new QStandardItem()) // "0"
+    , _torrentTableContextMenu()
+    , _pause("Pause", this)
+    , _start("Start", this)
+    , _remove("Remove", this) {
 
     // Add as row to torrentTableViewModel
     QList<QStandardItem *> row;
 
-    row.append(nameItem);
-    row.append(sizeItem);
-    row.append(stateItem);
-    row.append(speedItem);
-    row.append(peersItem);
-    row.append(modeItem);
-    row.append(peerPluginsItem);
-    row.append(balanceItem);
+    row.append(_nameItem);
+    row.append(_sizeItem);
+    row.append(_stateItem);
+    row.append(_speedItem);
+    row.append(_peersItem);
+    row.append(_modeItem);
+    row.append(_peerPluginsItem);
+    row.append(_balanceItem);
 
-    torrentTableViewModel_.appendRow(row);
+    torrentTableViewModel->appendRow(row);
 
-    // Add columns to model
+    // Add menu buttons
+    QObject::connect(&_pause, SIGNAL(triggered()), this, SLOT(pauseMenuAction()));
+    _torrentTableContextMenu.addAction(&_pause);
+
+    QObject::connect(&_start, SIGNAL(triggered()), this, SLOT(startMenuAction()));
+    _torrentTableContextMenu.addAction(&_start);
+
+    QObject::connect(&_remove, SIGNAL(triggered()), this, SLOT(removeMenuAction()));
+    _torrentTableContextMenu.addAction(&_remove);
+
+    /**
+    // Add columns to peer table view model
     for(int i = 0;i < PeerPluginViewModel::numberOfColumns;i++)
-        peerPluginsTableViewModel_.setHorizontalHeaderItem(i, new QStandardItem(PeerPluginViewModel::columnTitles[i]));
+        _peerPluginsTableViewModel.setHorizontalHeaderItem(i, new QStandardItem(PeerPluginViewModel::columnTitles[i]));
+    */
 }
 
 TorrentViewModel::~TorrentViewModel(){
 
+    /**
     // Delete peer plugin view models
-    for(std::map<libtorrent::tcp::endpoint, PeerPluginViewModel *>::iterator i = peerPluginViewModels.begin(),
-            end(peerPluginViewModels.end());i != end;i++)
-        delete i->second;
+    for(QMap<libtorrent::tcp::endpoint, PeerPluginViewModel *>::iterator i = _peerPluginViewModels.begin(),
+            end(_peerPluginViewModels.end());i != end;i++)
+        delete i.value();
+    */
 }
 
-QStandardItemModel * TorrentViewModel::getPeerPluginsTableViewModel() {
-    return &peerPluginsTableViewModel_;
+
+void TorrentViewModel::pauseMenuAction() {
+
+    // Pause torrent
+    bool paused = _controller->pauseTorrent(_infoHash);
+
+    // Torrent was actually paused, i.e. was an actual match found
+    //if(paused)
+    //    qCDebug() << "Invalid torrent handle found.";
+}
+
+void TorrentViewModel::startMenuAction() {
+
+    // Start torrent
+    bool started = _controller->startTorrent(_infoHash);
+
+    // Torrent was actually started, i.e. was an actual match found
+   // if(!started)
+    //    qCDebug() << "Invalid torrent handle found.";
+}
+
+void TorrentViewModel::removeMenuAction() {
+
+    // Remove torrent
+    bool removed = _controller->removeTorrent(_infoHash);
+
+    // Torrent was actually started, i.e. was an actual match found
+    //if(!removed)
+   //     qCDebug() << "Invalid torrent handle found.";
 }
 
 void TorrentViewModel::update(const libtorrent::torrent_status & torrentStatus) {
@@ -82,11 +114,11 @@ void TorrentViewModel::update(const libtorrent::torrent_status & torrentStatus) 
 }
 
 void TorrentViewModel::updateName(const QString & name) {
-    nameItem->setText(name);
+    _nameItem->setText(name);
 }
 
 void TorrentViewModel::updateSize(int size) {
-    sizeItem->setText(QString::number(size));
+    _sizeItem->setText(QString::number(size));
 }
 
 void TorrentViewModel::updateState(bool paused, libtorrent::torrent_status::state_t state, float progress) {
@@ -146,7 +178,7 @@ void TorrentViewModel::updateState(bool paused, libtorrent::torrent_status::stat
     }
 
     // Update item
-    stateItem->setText(itemText);
+    _stateItem->setText(itemText);
 }
 
 void TorrentViewModel::updateSpeed(int downloadRate, int uploadRate) {
@@ -160,7 +192,7 @@ void TorrentViewModel::updateSpeed(int downloadRate, int uploadRate) {
          .append("Kb/s");
 
     // Update item
-    speedItem->setText(speed);
+    _speedItem->setText(speed);
 }
 
 void TorrentViewModel::updatePeers(int numberOfPeers, int numberOfPeersWithExtension) {
@@ -168,33 +200,30 @@ void TorrentViewModel::updatePeers(int numberOfPeers, int numberOfPeersWithExten
     QString peers = QString::number(numberOfPeers) + "|" + QString::number(numberOfPeersWithExtension);
 
     // Update item
-    peersItem->setText(peers);
+    _peersItem->setText(peers);
 }
 
-void TorrentViewModel::updateMode(bool pluginOn, PluginMode mode) {
+void TorrentViewModel::updatePluginInstalled(PluginInstalled mode) {
 
     QString modeText;
 
-    if(!pluginOn)
-        modeText = "Waiting";
-    else {
-
-        switch(mode) {
-            case PluginMode::Observer:
-                modeText = "Observe";
-                break;
-            case PluginMode::Seller:
-                modeText = "Sell";
-                break;
-            case PluginMode::Buyer:
-                modeText = "Buy";
-                break;
-        }
-
+    switch(mode) {
+        case PluginInstalled::Observer :
+            modeText = "Observe";
+            break;
+        case PluginInstalled::Buyer:
+            modeText = "Buyer";
+            break;
+        case PluginInstalled::Seller:
+            modeText = "Seller";
+            break;
+        case PluginInstalled::None:
+            modeText = "None";
+            break;
     }
 
     // Update item
-    modeItem->setText(modeText);
+    _modeItem->setText(modeText);
 }
 
 void TorrentViewModel::updateBalance(int tokensReceived, int tokensSent) {
@@ -202,62 +231,45 @@ void TorrentViewModel::updateBalance(int tokensReceived, int tokensSent) {
     QString balance = QString::number(tokensReceived) + "|" + QString::number(tokensSent);
 
     // Update item
-    balanceItem->setText(balance);
+    _balanceItem->setText(balance);
 }
 
+void TorrentViewModel::showContextMenu(QPoint pos) {
+    _torrentTableContextMenu.popup(pos);
+}
+
+/**
 void TorrentViewModel::addPeerPlugin(const libtorrent::tcp::endpoint & endPoint) {
 
     //const libtorrent::tcp::endpoint & endPoint = peerPlugin->getEndPoint();
 
     // Add to map
-    peerPluginViewModels.insert(std::make_pair(endPoint, new PeerPluginViewModel(endPoint, peerPluginsTableViewModel_)));
-
-    // Notify
-    std::string endPointString = libtorrent::print_endpoint(endPoint);
-    qCDebug(category_) << "addPeerPlugin" << endPointString.c_str();
+    _peerPluginViewModels[endPoint] = new PeerPluginViewModel(endPoint, _peerPluginsTableViewModel);
 }
 
 void TorrentViewModel::removePeerPlugin(const libtorrent::tcp::endpoint & endPoint) {
-    qCDebug(category_) << "removePeerPlugin: NOT IMPLEMENTED";
+
 }
+
 
 void TorrentViewModel::updatePeerPluginState(PeerPluginStatus status) {
 
-    /**
-     * If extension is not enabled, then it should not be registered with us.
-     * If extension is enabled, it may still be it is not registered here,
-     * simply because peerAdded() signal has not been processed yet.
-     */
+    //
+    // If extension is not enabled, then it should not be registered with us.
+    // If extension is enabled, it may still be it is not registered here,
+    // simply because peerAdded() signal has not been processed yet.
+    //
+    // DISABLE THIS CHECK UNTIL THE MESSAGE LOGIC IS SORTED OUT
+    // if(status.peerPlugin_->getPeerBEP43SupportedStatus() != PeerPlugin::PEER_BEP_SUPPORTED_STATUS::supported)
+    //    return;
 
-
-
-    /*
-     * DISABLE THIS CHECK UNTIL THE MESSAGE LOGIC IS SORTED OUT
-     *
-     *
-    if(status.peerPlugin_->getPeerBEP43SupportedStatus() != PeerPlugin::PEER_BEP_SUPPORTED_STATUS::supported)
-        return;
-    */
-
-    // Find Peer
-    const libtorrent::tcp::endpoint & endPoint = status.peerPluginId_.endPoint_;
-    std::map<libtorrent::tcp::endpoint,PeerPluginViewModel *>::iterator mapIterator = peerPluginViewModels.find(endPoint);
-
-    std::string endPointString = libtorrent::print_endpoint(endPoint);
-    qCDebug(category_) << "updatePeerPluginState" << endPointString.c_str();
-
-    if(mapIterator == peerPluginViewModels.end()) {
-        qCCritical(category_) << "No mathching end point found.";
-        return;
-    } else
-        qCCritical(category_) << "end point found.";
-
-    PeerPluginViewModel * peerPluginViewModel = mapIterator->second;
+    Q_ASSERT(_peerPluginViewModels.contains(status.peerPluginId_.endPoint_));
 
     // Update
-    peerPluginViewModel->update(status);
+    _peerPluginViewModels[status.peerPluginId_.endPoint_]->update(status);
 }
+*/
 
-const libtorrent::sha1_hash & TorrentViewModel::getInfoHash() const {
-    return info_hash_;
+libtorrent::sha1_hash TorrentViewModel::infoHash() {
+    return _infoHash;
 }

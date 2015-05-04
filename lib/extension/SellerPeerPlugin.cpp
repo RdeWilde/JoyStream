@@ -81,8 +81,15 @@ SellerPeerPlugin::Status::Status()
     : _clientState(ClientState::no_bitswapr_message_sent) {
 }
 
-SellerPeerPlugin::Status::Status(const PeerState &peerState, ClientState clientState)
-    : _peerState(peerState)
+SellerPeerPlugin::Status::Status(PeerModeAnnounced peerModeAnnounced,
+                                 BEPSupportStatus peerBEP10SupportStatus,
+                                 BEPSupportStatus peerBitSwaprBEPSupportStatus,
+                                 const PeerState & peerState,
+                                 ClientState clientState)
+    : PeerPlugin::Status(peerModeAnnounced,
+                         peerBEP10SupportStatus,
+                         peerBitSwaprBEPSupportStatus)
+    , _peerState(peerState)
     , _clientState(clientState) {
 }
 
@@ -121,6 +128,8 @@ void SellerPeerPlugin::Status::setClientState(ClientState clientState) {
 #include "Message/Payment.hpp"
 
 #include "BitCoin/BitSwaprjs.hpp" // get_tx_outpoint
+
+#include "Plugin.hpp"
 
 #include <libtorrent/bt_peer_connection.hpp>
 #include <libtorrent/storage.hpp> // libtorrent::disk_io_job
@@ -775,6 +784,9 @@ void SellerPeerPlugin::processPayment(const Payment * m) {
 
     // Update state
     _clientState = ClientState::awaiting_piece_request_after_payment;
+
+    // Note payment
+    _plugin->plugin()->registerReceivedFunds(_payee.price());
 }
 
 void SellerPeerPlugin::peerModeReset() {

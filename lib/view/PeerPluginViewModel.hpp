@@ -17,37 +17,36 @@ public:
     static const char * columnTitles[];
     static const int numberOfColumns;
 
-    // Constructor
-    PeerPluginViewModel(const libtorrent::tcp::endpoint & endPoint, QStandardItemModel & peerPluginsTableViewModel);
+    // Default constructor
+    PeerPluginViewModel();
+
+    // Constructor from members
+    PeerPluginViewModel(const libtorrent::tcp::endpoint & endPoint);
 
     // Update routines
-    void update(PeerPluginStatus status);
+    //void update(PeerPluginStatus status);
     void updateHost(const QString & host);
     //void updateState(PeerState);
     void updateBalance(int balance);
     void updateProgress();
 
     // Getters
-    const libtorrent::tcp::endpoint & getEndPoint() const;
+    libtorrent::tcp::endpoint endPoint();
 
 private:
 
     // TCP/IP endpoint
-    libtorrent::tcp::endpoint endPoint_;
-
-    // View model for peer plugins table. Is pointer since it is shared
-    // among objects of this type.
-    QStandardItemModel & peerPluginsTableViewModel_;
+    libtorrent::tcp::endpoint _endPoint;
 
     // Model items, these cannot be by value since the QStandardItemModel
     // takes ownership of objects and deletes them.
-    QStandardItem * hostItem,
-                  * stateItem,
-                  * balanceItem,
-                  * progressItem;
+    QStandardItem * _hostItem,
+                  * _stateItem,
+                  * _balanceItem,
+                  * _progressItem;
 };
 
-#include <QMetaType>
-Q_DECLARE_METATYPE(PeerPluginViewModel *) // QStandardItem::setData(QVariant::fromValue(this))
+//#include <QMetaType>
+//Q_DECLARE_METATYPE(PeerPluginViewModel *) // QStandardItem::setData(QVariant::fromValue(this))
 
 #endif // PEER_PLUGIN_VIEW_MODEL_HPP

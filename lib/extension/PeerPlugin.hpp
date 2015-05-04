@@ -61,6 +61,42 @@ public:
         buyer
     };
 
+
+    class Status {
+
+    public:
+
+        // Defualt constructor
+        Status();
+
+        // Constructor from members
+        Status(PeerModeAnnounced peerModeAnnounced, BEPSupportStatus peerBEP10SupportStatus, BEPSupportStatus peerBitSwaprBEPSupportStatus);
+
+        // Getters and setters
+        virtual PluginMode pluginMode() const = 0;
+
+        PeerModeAnnounced peerModeAnnounced() const;
+        void setPeerModeAnnounced(PeerModeAnnounced peerModeAnnounced);
+
+        BEPSupportStatus peerBEP10SupportStatus() const;
+        void setPeerBEP10SupportStatus(BEPSupportStatus peerBEP10SupportStatus);
+
+        BEPSupportStatus peerBitSwaprBEPSupportStatus() const;
+        void setPeerBitSwaprBEPSupportStatus(BEPSupportStatus peerBitSwaprBEPSupportStatus);
+
+    private:
+
+        // Announced peer mode
+        PeerModeAnnounced _peerModeAnnounced;
+
+        // Indicates whether peer supports BEP10
+        BEPSupportStatus _peerBEP10SupportStatus;
+
+        // Indicates whether peer supports BEP43 .. BitSwapr
+        BEPSupportStatus _peerBitSwaprBEPSupportStatus;
+
+    };
+
     // Constructor
     PeerPlugin(TorrentPlugin * plugin,
                libtorrent::bt_peer_connection * connection,
@@ -126,6 +162,9 @@ public:
     bool connectionAlive() const;
     bool lastReceivedMessageWasMalformed() const;
     virtual PluginMode mode() const = 0;
+
+    PeerModeAnnounced peerModeAnnounced() const;
+    void setPeerModeAnnounced(PeerModeAnnounced peerModeAnnounced);
 
 private:
 

@@ -24,6 +24,9 @@ uint qHash(const libtorrent::peer_request & request);
 
 //class QJsonObject;
 
+#include "extension/PluginMode.hpp"
+#include "controller/PluginInstalled.hpp"
+
 /**
  * Static utility functions
  */
@@ -58,6 +61,9 @@ public:
     static QString GET_STRING(const QJsonObject & dictionary, const QString & key);
     static QJsonArray GET_ARRAY(const QJsonObject & dictionary, const QString & key);
     static QJsonObject GET_OBJECT(const QJsonObject & dictionary, const QString & key);
+
+    // Conversion routine
+    static PluginInstalled PluginModeToPluginInstalled(PluginMode mode);
 };
 
 #endif // UTILITIES_HPP

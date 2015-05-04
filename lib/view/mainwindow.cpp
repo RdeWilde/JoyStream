@@ -11,11 +11,13 @@
 #include "extension/PeerPlugin.hpp"
 //#include "extension/Alert/TorrentPluginStatusAlert.hpp"
 #include "extension/Alert/PluginStatusAlert.hpp"
-#include "extension/PeerPluginStatus.hpp"
+//#include "extension/PeerPluginStatus.hpp"
 
 //#include "extension/TorrentPluginConfiguration.hpp"
 #include "extension/BuyerTorrentPlugin.hpp"
 #include "extension/SellerTorrentPlugin.hpp"
+
+#include "Utilities.hpp" // Utilities::PluginModeToPluginInstalled(PluginMode mode)
 
 #include <QMessageBox>
 #include <QFileDialog>
@@ -33,10 +35,8 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet, QLoggingCategor
     , _controller(controller)
     , _wallet(wallet)
     , _torrentTableViewModel(0, TorrentViewModel::numberOfColumns)
-    , _torrentTableContextMenu(new QMenu(this))
-    , _peerPluginsTableContextMenu(new QMenu(this))
-    , _category(category)
-{
+    , _category(category) {
+
     ui->setupUi(this);
 
     // Alter window title
@@ -47,7 +47,7 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet, QLoggingCategor
     if(categoryName.compare("default"))
         title = QString("Logging: ") + categoryName;
     else
-        title = "BitSwapr - Proof of Concept 1";
+        title = "Proof of Concept 1";
 
     this->setWindowTitle(title);
 
@@ -70,65 +70,51 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet, QLoggingCategor
             SIGNAL(clicked(const QModelIndex &)),
             this,
             SLOT(torrentTableClicked(const QModelIndex &)));
-
-    // Add menu buttons
-    QAction * pauseAction = new QAction("Pause", this);
-    connect(pauseAction, SIGNAL(triggered()), this, SLOT(pauseMenuAction()));
-    _torrentTableContextMenu->addAction(pauseAction);
-
-    QAction * startAction = new QAction("Start", this);
-    connect(startAction, SIGNAL(triggered()), this, SLOT(startMenuAction()));
-    _torrentTableContextMenu->addAction(startAction);
-
-    QAction * removeAction = new QAction("Remove", this);
-    connect(removeAction, SIGNAL(triggered()), this, SLOT(removeMenuAction()));
-    _torrentTableContextMenu->addAction(removeAction);
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
+
     // Delete torrent view models
     //ui->peerPluginsTable->setModel(0); // make sure peer plugin table is not backed by a model
 
-    for(std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator i = _torrentViewModels.begin(),
+    /**
+    for(QMap<libtorrent::sha1_hash, TorrentViewModel>::iterator i = _torrentViewModels.begin(),
         end(_torrentViewModels.end()); i != end;i++)
-        delete i->second;
-
-    // Delete context menus
-    // Do thet take ownership of actions, or do we need to delete them explicitly?
-    delete _torrentTableContextMenu;
-    delete _peerPluginsTableContextMenu;
+        delete i.value();
+        */
 
     // Delete Ui::MainWindow
     delete ui;
 }
 
+TorrentViewModel * MainWindow::torrentViewModelInTableRow(int row) {
+
+    Q_ASSERT(row < _torrentInTableRow.size());
+
+    // Find info hash of torrent
+    libtorrent::sha1_hash infoHash = _torrentInTableRow[row];
+
+    Q_ASSERT(_torrentViewModels.contains(infoHash));
+
+    // Get torrent view model
+    return _torrentViewModels[infoHash];
+}
+
 void MainWindow::showContextMenu(QPoint pos) {
 
-    // Figure out where user clicked
-    _torrentTableLastIndexClicked = ui->torrentsTable->indexAt(pos);
+    // Get model index of click
+    QModelIndex index = ui->torrentsTable->indexAt(pos);
 
-    // Check that the clicked item is valid, e.g. if view is empty
-    if(!_torrentTableLastIndexClicked.isValid())
-        return;
-
-    // Show menu
-    _torrentTableContextMenu->popup(ui->torrentsTable->viewport()->mapToGlobal(pos));
+    // Tell corresponding torrent view model to show context menu
+    torrentViewModelInTableRow(index.row())->showContextMenu(ui->torrentsTable->viewport()->mapToGlobal(pos));
 }
 
 void MainWindow::torrentTableClicked(const QModelIndex & index) {
 
     // Get torrent view model for torrent clicked on
+    TorrentViewModel * torrentViewModel = torrentViewModelInTableRow(index.row());
 
-    // Get item that was clicked
-    QStandardItem * clickedItem = _torrentTableViewModel.itemFromIndex(index);
-
-    // Get torrent view stored in data field
-    QVariant data = clickedItem->data();
-    TorrentViewModel * torrentViewModel = data.value<TorrentViewModel *>();
-
-    // Switch model for peer plugin table view
-    //ui->peerPluginsTable->setModel(torrentViewModel->getPeerPluginsTableViewModel());
+    qCCritical(_category) << "Clicked torrent with info hash"<< torrentViewModel->infoHash().to_string().c_str();
 }
 
 void MainWindow::showAddTorrentFromTorrentFileDialog(const QString & torrentFile) {
@@ -203,45 +189,6 @@ void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torre
     }
 }
 
-void MainWindow::pauseMenuAction() {
-
-    bool paused = _controller->pauseTorrent(getInfoHashOfLastClickedTorrent());
-
-    // Torrent was actually paused, i.e. was an actual match found
-    if(paused)
-        qCDebug(_category) << "No info_hash match found.";
-}
-
-void MainWindow::startMenuAction() {
-
-    bool started = _controller->startTorrent(getInfoHashOfLastClickedTorrent());
-
-    // Torrent was actually started, i.e. was an actual match found
-    if(!started)
-        qCDebug(_category) << "No info_hash match found.";
-}
-
-void MainWindow::removeMenuAction() {
-
-    bool removed = _controller->removeTorrent(getInfoHashOfLastClickedTorrent());
-
-    // Torrent was actually started, i.e. was an actual match found
-    if(!removed)
-        qCDebug(_category) << "No info_hash match found.";
-}
-
-const libtorrent::sha1_hash & MainWindow::getInfoHashOfLastClickedTorrent() {
-
-    // Get view item corresponding to index
-    QStandardItem * torrentTableItem = _torrentTableViewModel.itemFromIndex(_torrentTableLastIndexClicked);
-
-    // Get torrent view model for item
-    QVariant variant = torrentTableItem->data();
-    TorrentViewModel * torrentViewModel = variant.value<TorrentViewModel *>();
-
-    return torrentViewModel->getInfoHash();
-}
-
 void MainWindow::on_addTorrentFilePushButton_clicked()
 {
     // Choose torrent file
@@ -285,15 +232,17 @@ void MainWindow::closeEvent(QCloseEvent * event) {
 
 void MainWindow::addTorrent(const libtorrent::sha1_hash & info_hash, const QString & torrentName, int totalSize) {
 
+    Q_ASSERT(!_torrentViewModels.contains(info_hash));
+
     // Create torrent view model
-    TorrentViewModel * torrentViewModel = new TorrentViewModel(info_hash, _torrentTableViewModel, _category);
+    TorrentViewModel * torrentViewModel = new TorrentViewModel(info_hash, _controller, &_torrentTableViewModel);
 
     // Update known members
     torrentViewModel->updateName(torrentName);
     torrentViewModel->updateSize(totalSize);
 
     // Insert into map
-    _torrentViewModels.insert(std::make_pair(info_hash, torrentViewModel));
+    _torrentViewModels[info_hash] = torrentViewModel;
 }
 
 void MainWindow::addTorrentFailed(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec) {
@@ -304,21 +253,23 @@ void MainWindow::addTorrentFailed(const std::string & name, const libtorrent::sh
 
 void MainWindow::removeTorrent(const libtorrent::sha1_hash & info_hash) {
 
-    // Find corresponding TorrentViewModel
-    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = _torrentViewModels.find(info_hash);
+    Q_ASSERT(_torrentViewModels.contains(info_hash));
 
-    if(mapIterator == _torrentViewModels.end()) {
-        qCCritical(_category) << "No match info_hash found.";
-        return;
-    }
+    // Remove
+    _torrentViewModels.remove(info_hash);
 
     // Reset model for peerPluginsTable,
     // which if this method call is due to a context menu click on torrent table
     // will have set the peerPluginsTable to its model.
     //ui->peerPluginsTable->setModel(0);
+}
 
-    // Remove from map, which will call destuctor
-    _torrentViewModels.erase(mapIterator);
+void MainWindow::addTorrentPlugin(const libtorrent::sha1_hash & infoHash, PluginMode mode) {
+
+    Q_ASSERT(_torrentViewModels.contains(infoHash));
+
+    // Update
+    _torrentViewModels[infoHash]->updatePluginInstalled(Utilities::PluginModeToPluginInstalled(mode));
 }
 
 void MainWindow::updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector) {
@@ -331,18 +282,10 @@ void MainWindow::updateTorrentStatus(const std::vector<libtorrent::torrent_statu
 
 void MainWindow::updateTorrentStatus(const libtorrent::torrent_status & torrentStatus) {
 
-    // Find corresponding TorrentViewModel
-    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = _torrentViewModels.find(torrentStatus.info_hash);
+    Q_ASSERT(_torrentViewModels.contains(torrentStatus.info_hash));
 
-    if(mapIterator == _torrentViewModels.end()) {
-        qCCritical(_category) << "No match info_hash found.";
-        return;
-    }
-
-    TorrentViewModel * torrentViewModel = mapIterator->second;
-
-    // Update
-    torrentViewModel->update(torrentStatus);
+    // Update status
+    _torrentViewModels[torrentStatus.info_hash]->update(torrentStatus);
 }
 
 /**
@@ -369,8 +312,23 @@ void MainWindow::updateTorrentPluginStatus(const TorrentPluginStatusAlert * torr
 }
 */
 
-void MainWindow::updateBuyerTorrentPluginStatus(const BuyerTorrentPlugin::Status & status) {
-    qCDebug(_category) << "MainWindow::updateBuyerTorrentPluginStatus()";
+void MainWindow::updateBuyerTorrentPluginStatus(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Status & status) {
+
+    Q_ASSERT(_torrentViewModels.contains(infoHash));
+
+    // Find corresponding TorrentViewModel
+    TorrentViewModel * torrentViewModel = _torrentViewModels[infoHash];
+
+    /**
+    // Peers
+    torrentViewModel->updatePeers(torrentPluginStatusAlert->numberOfPeers(),torrentPluginStatusAlert->numberOfPeersWithExtension());
+
+    // Mode
+    torrentViewModel->updateMode(torrentPluginStatusAlert->pluginStarted(), torrentPluginStatusAlert->mode());
+
+    // Balance
+    torrentViewModel->updateBalance(torrentPluginStatusAlert->tokensReceived(), torrentPluginStatusAlert->tokensSent());
+    */
 }
 
 void MainWindow::updatePluginStatus(const Plugin::Status & status) {
@@ -379,42 +337,27 @@ void MainWindow::updatePluginStatus(const Plugin::Status & status) {
     qCDebug(_category) << "MainWindow::updatePluginStatus()";
 }
 
+void MainWindow::updateWalletBalance(quint64 balance) {
+    qCDebug(_category) << "updateWalletBalance" << balance;
+}
+
 void MainWindow::addPeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint) {
 
-    qCDebug(_category) << "addPeerPlugin()";
-
-    // Find corresponding TorrentViewModel
-    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = _torrentViewModels.find(info_hash);
-
-    if(mapIterator == _torrentViewModels.end()) {
-        qCCritical(_category) << "No match info_hash found.";
-        return;
-    }
-
-    // Get corresponding torrent view model
-    TorrentViewModel * torrentViewModel = mapIterator->second;
-
-    // Add plugin
-    torrentViewModel->addPeerPlugin(endPoint);
-}
-
-void MainWindow::updatePeerPluginStatus(PeerPluginStatus status) {
-
-    qCDebug(_category) << "updatePeerPluginStatus()";
-
-    // Find corresponding TorrentViewModel
-    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = _torrentViewModels.find(status.peerPluginId_.info_hash_);
-
-    if(mapIterator == _torrentViewModels.end()) {
-        qCCritical(_category) << "No match info_hash found.";
-        return;
-    }
-
-    TorrentViewModel * torrentViewModel = mapIterator->second;
+    Q_ASSERT(_torrentViewModels.contains(info_hash));
 
     // Update
-    torrentViewModel->updatePeerPluginState(status);
+    //_torrentViewModels[info_hash]->addPeerPlugin(endPoint);
 }
+
+/**
+void MainWindow::updatePeerPluginStatus(const PeerPluginStatus & status) {
+
+    Q_ASSERT(_torrentViewModels.contains(status.peerPluginId_.info_hash_));
+
+    // Update
+    _torrentViewModels[status.peerPluginId_.info_hash_]->updatePeerPluginState(status);
+}
+*/
 
 void MainWindow::removePeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint) {
     qCDebug(_category) << "MainWindow::removePeer(): not implemented";

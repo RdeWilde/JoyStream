@@ -58,17 +58,30 @@ public:
         Status();
 
         // Constructor from members
-        Status(quint64 balance);
+        Status(quint64 totalReceivedSinceStart, quint64 totalSentSinceStart, quint64 _totalCurrentlyLockedInChannels);
 
         // Getters and setters
-        quint64 balance() const;
-        void setBalance(quint64 balance);
+        quint64 totalReceivedSinceStart() const;
+        void setTotalReceivedSinceStart(quint64 totalReceivedSinceStart);
+
+        quint64 totalSentSinceStart() const;
+        void setTotalSentSinceStart(quint64 totalSentSinceStart);
+
+        quint64 totalCurrentlyLockedInChannels() const;
+        void setTotalCurrentlyLockedInChannels(quint64 totalCurrentlyLockedInChannels);
 
     private:
 
+        // Amount of funds (satoshies) received since start
+        quint64 _totalReceivedSinceStart;
 
-        // total utxo with 0+ confirmations
-        quint64 _balance;
+        // Amount of funds (satoshies) sent since start
+        quint64 _totalSentSinceStart;
+
+        // Amount of funds (satoshies) presently locked
+        // in channels started during this session.
+        // Obviosuly does not include change in channels!
+        quint64 _totalCurrentlyLockedInChannels;
     };
 
     // Constructor
@@ -93,6 +106,9 @@ public:
     virtual void save_state(libtorrent::entry & stateEntry) const;
     virtual void load_state(libtorrent::lazy_entry const & stateEntry);
 
+    // Return status of plugin
+    Status status() const;
+
     /**
      * Routines called by libtorrent network thread via tick() entry point on
      * torrent plugins.
@@ -101,6 +117,11 @@ public:
      * TORRENT/PEER PLUGIN TYPES
      */
 
+    // Setter routines which update status information
+    quint64 registerReceivedFunds(quint64 value);
+    quint64 registerSentFunds(quint64 value);
+    quint64 registerLockedInChannelsFunds(quint64 value);
+    quint64 registerUnLockedFromChannelFunds(quint64 value);
 
     /**
      * Synchronized routines called from controller by Qt thread.
@@ -173,15 +194,26 @@ private:
     bool startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration, const UnspentP2PKHOutput & utxo);
     bool startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration);
 
+    // Send alert to session object
+    void sendAlertToSession(const libtorrent::alert & alert);
+
     /**
      * Status
      */
 
-    void processStatus();
-    QNetworkReply * _getBalanceReply;
+    // void processStatus();
+    // QNetworkReply * _getBalanceReply;
 
-    // Send alert to session object
-    void sendAlertToSession(const libtorrent::alert & alert);
+    // Amount of funds (satoshies) received since start
+    quint64 _totalReceivedSinceStart;
+
+    // Amount of funds (satoshies) sent since start
+    quint64 _totalSentSinceStart;
+
+    // Amount of funds (satoshies) presently locked
+    // in channels started during this session.
+    // Obviosuly does not include change in channels!
+    quint64 _totalCurrentlyLockedInChannels;
 };
 
 #endif

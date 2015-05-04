@@ -5,6 +5,8 @@
 //#include "extension/TorrentPluginConfiguration.hpp"
 #include "extension/SellerTorrentPlugin.hpp"
 
+#include "extension/BitCoin/BitCoin.hpp"
+
 /*
 SellerTorrentPluginConfigurationDialog::SellerTorrentPluginConfigurationDialog(QWidget *parent) :
     QDialog(parent),
@@ -28,26 +30,40 @@ SellerTorrentPluginConfigurationDialog::~SellerTorrentPluginConfigurationDialog(
 
 void SellerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
-    // Grab fields
-    // https://en.bitcoin.it/wiki/Units
-    // 100000 satoshi == 1 mBTC = 1/1000 BTC
-    quint32 minPrice = 100000 * ui->minPriceLineEdit->text().toInt();
+    // minPrice
+    bool okMinPrice;
+    quint32 minPrice = SATOSHIES_PER_M_BTC * ui->minPriceLineEdit->text().toInt();
 
+    if(!okMinPrice || minPrice < 0)
+        return;
+
+    // minLockTime
     QTime minLockTime = ui->minLockTimeEdit->time();
     quint32 minLock = minLockTime.hour()*3600 + minLockTime.minute()*60 + minLockTime.second();
 
-    quint32 minFeePerByte = ui->minFeeLineEdit->text().toInt();
+    // minFeePerKByte
+    bool okMinFeePerKByte;
+    quint32 minFeePerKByte = ui->minFeeLineEdit->text().toInt(&okMinFeePerKByte);
 
-    quint32 maxNumberOfSellers = 2;
+    if(!okMinFeePerKByte || minFeePerKByte < 0)
+        return;
 
-    QTime maxContractConfirmationDelayTime = ui->maxContractConfirmationDelayTimeEdit->time();
+    // maxNumberOfSellers
+    bool okMaxNumberOfSellers;
+    quint32 maxNumberOfSellers = ui->maxNumberOfSellersLineEdit->text().toInt(&okMaxNumberOfSellers);
+
+    if(!okMaxNumberOfSellers || maxNumberOfSellers < 1)
+        return;
+
+    // maxContractConfirmationDelay
+    QTime maxContractConfirmationDelayTime = ui->maxConfirmationTimeTimeEdit->time();
     quint32 maxContractConfirmationDelay = maxContractConfirmationDelayTime.hour()*3600 + maxContractConfirmationDelayTime.minute()*60 + maxContractConfirmationDelayTime.second();;
 
-    // Set in seller mode
+    // Tell controller to start plugin
     _controller->startSellerTorrentPlugin(_torrentInfo.info_hash(), SellerTorrentPlugin::Configuration(true,
                                                                                                         minPrice,
                                                                                                         minLock,
-                                                                                                        minFeePerByte,
+                                                                                                        minFeePerKByte,
                                                                                                         maxNumberOfSellers,
                                                                                                         maxContractConfirmationDelay));
 

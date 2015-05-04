@@ -2,9 +2,10 @@
 #define CONTROLLER_H
 
 //#include "ControllerConfiguration.hpp"
+#include "PluginInstalled.hpp"
 #include "view/MainWindow.hpp"
 #include "extension/Plugin.hpp"
-#include "extension/PeerPluginStatus.hpp" // needed for QT moc <==== Remove later
+//#include "extension/PeerPluginStatus.hpp" // needed for QT moc <==== Remove later
 #include "extension/BitCoin/Wallet.hpp"
 #include "extension/BitCoin/UnspentP2PKHOutput.hpp"
 
@@ -23,6 +24,7 @@ class TorrentStatus;
 //class TorrentPluginStatusAlert;
 class BuyerTorrentPluginStatusAlert;
 //class SellerTorrentPluginStatusAlert;
+class TorrentPluginStartedAlert;
 class PluginStatusAlert;
 
 namespace libtorrent {
@@ -74,6 +76,38 @@ public:
             // libtorrent::save_resume_data_failed_alert
             save_resume_data_alert
         };
+
+        /**
+         * @brief The Status class
+
+        class Status {
+
+        public:
+
+        private:
+
+            libtorrent::torrent_status::state_t _state;
+
+            float _progress;
+
+            // Download rate (bytes/s)
+            int _downloadRate;
+
+            // Upload rate (bytes/s)
+            int _uploadRate;
+
+            // Total number of peers connected to torrent
+            int _numberOfPeers;
+
+            // Total number of peers with extension
+            int _numberOfPeersWithExtension;
+
+            // Plugin currently installed on this torrent
+            PluginInstalled pluginInstalled;
+
+
+        };
+        */
 
         /**
          * @brief Persistant state of Torrent.
@@ -185,7 +219,8 @@ public:
                 const std::vector<char> & resumeData,
                 quint64 flags,
                 libtorrent::torrent_info * torrentInfo,
-                ExpectedEvent event);
+                ExpectedEvent event,
+                PluginInstalled pluginInstalled);
 
         // Getters and Setters
         libtorrent::sha1_hash infoHash() const;
@@ -209,6 +244,9 @@ public:
         ExpectedEvent event() const;
         void setEvent(const ExpectedEvent &event);
 
+        PluginInstalled pluginInstalled() const;
+        void setPluginInstalled(PluginInstalled pluginInstalled);
+
     private:
 
         // Info hash of torrent
@@ -226,12 +264,14 @@ public:
         // Flags
         quint64 _flags;
 
-        // Metadata in torrent file
-        // We need pointer since we cannot copy torrent_info
+        // Torrent file
         libtorrent::torrent_info * _torrentInfo;
 
         // Next expected event for this torrent
         ExpectedEvent _event;
+
+        // Plugin currently installed on this torrent
+        PluginInstalled _pluginInstalled;
 
         // Add const pointer to const object of type TorrentPlugin in the future?
         // can be used to look at stuff like plugin mode etc.
@@ -458,6 +498,18 @@ private:
     // Torrents added to session
     QMap<libtorrent::sha1_hash, Torrent> _torrents;
 
+    /**
+     *
+     * SIMPLIFY LATER: Put TorrentPlugin::Configuration pointer into Torrent.
+     * Do not refer to it as *pending*, this will bethe configurations the
+     * view is given when any editing of configruations is done, and
+     * which will be pased on to plugin as alert.
+     *
+     * In the case of buyer, put utxo in QMap for keeping pending utxo. They
+     * are indeed pending, and are therefore not part of Torrent.
+     *
+     *
+     */
     // Configurations are placed in these maps when corresponding torrent is added to session,
     // and they are used to start a plugin on the given torrent once a torrent_checked_alert has been
     // issued by session.
@@ -481,6 +533,8 @@ private:
     //void processTorrentPluginStatusAlert(const TorrentPluginStatusAlert * p);
     void processBuyerTorrentPluginStatusAlert(const BuyerTorrentPluginStatusAlert * p);
     void processPluginStatusAlert(const PluginStatusAlert * p);
+
+    void processTorrentPluginStartedAlert(const TorrentPluginStartedAlert * p);
 
     // Start torrent plugin
     void startTorrentPlugin(const libtorrent::sha1_hash & info_hash);

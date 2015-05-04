@@ -104,11 +104,15 @@ public:
      * @brief Plugin status, that is a snapshot
      * of important information.
      */
-    class Status {
+    class Status : public TorrentPlugin::Status {
 
     public:
 
-        Status(State state,
+        Status(quint32 numberOfClassicPeers,
+                quint32 numberOfObserverPeers,
+                quint32 numberOfSellerPeers,
+                quint32 numberOfBuyerPeers,
+                State state,
                 const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> & peers,
                 const Payor::Status & payor);
 

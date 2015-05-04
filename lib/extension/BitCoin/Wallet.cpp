@@ -417,7 +417,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
     , _walletFileName(file)
     , _autoSave(autoSave)
     , _walletFile(file)
-    , _latestBlockHeight(0){
+    , _latestBlockHeight(0) {
 
       // Open wallet file
       if(!_walletFile.open(QIODevice::ReadWrite | QIODevice::Text))
@@ -436,6 +436,9 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
 
       // Load from json
       fromJson(walletDictionary);
+
+      // Compute wallet balance
+      _lastComputedBalance = computeBalance(1);
   }
 
   void Wallet::fromJson(const QJsonObject & walletDictionary) {
@@ -584,7 +587,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       _mutex.unlock();
   }
 
-  quint64 Wallet::balance(quint32 confirmations) {
+  quint64 Wallet::computeBalance(quint32 confirmations) {
 
       _mutex.lock();
 
@@ -613,7 +616,11 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       return balance;
   }
 
+  #include <QDebug>
+
   void Wallet::synchronize() {
+
+      qDebug() << "Wallet::synchronize()";
 
       // Only synchronized when nothing is locked, because this may disturb
 
@@ -853,6 +860,17 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
 
       _mutex.lock();
       copy = _latestBlockHeight;
+      _mutex.unlock();
+
+      return copy;
+  }
+
+  quint64 Wallet::lastComputedBalance() {
+
+      quint64 copy;
+
+      _mutex.lock();
+      copy = _lastComputedBalance;
       _mutex.unlock();
 
       return copy;

@@ -109,16 +109,26 @@ void BuyerPeerPlugin::setClientState(ClientState clientState) {
 BuyerPeerPlugin::Status::Status() {
 }
 
-BuyerPeerPlugin::Status::Status(const PeerState & peerState,
+BuyerPeerPlugin::Status::Status(PeerModeAnnounced peerModeAnnounced,
+                                BEPSupportStatus peerBEP10SupportStatus,
+                                BEPSupportStatus peerBitSwaprBEPSupportStatus,
+                                const PeerState & peerState,
                                 ClientState clientState,
                                 quint32 payorSlot,
                                 int indexOfAssignedPiece,
                                 const QList<int> & downloadedValidPieces)
-    : _peerState(peerState)
+    : PeerPlugin::Status(peerModeAnnounced,
+                         peerBEP10SupportStatus,
+                         peerBitSwaprBEPSupportStatus)
+    , _peerState(peerState)
     , _clientState(clientState)
     , _payorSlot(payorSlot)
     , _indexOfAssignedPiece(indexOfAssignedPiece)
     , _downloadedValidPieces(downloadedValidPieces) {
+}
+
+PluginMode BuyerPeerPlugin::Status::pluginMode() const {
+    return PluginMode::Buyer;
 }
 
 BuyerPeerPlugin::PeerState BuyerPeerPlugin::Status::peerState() const {
@@ -537,7 +547,15 @@ quint32 BuyerPeerPlugin::refillPipeline() {
 */
 
 BuyerPeerPlugin::Status BuyerPeerPlugin::status() const {
-    return Status(_peerState, _clientState, _payorSlot, _indexOfAssignedPiece, _downloadedValidPieces);
+
+    return Status(_peerModeAnnounced,
+                  _peerBEP10SupportStatus,
+                  _peerBitSwaprBEPSupportStatus,
+                  _peerState,
+                  _clientState,
+                  _payorSlot,
+                  _indexOfAssignedPiece,
+                  _downloadedValidPieces);
 }
 
 PluginMode BuyerPeerPlugin::mode() const {

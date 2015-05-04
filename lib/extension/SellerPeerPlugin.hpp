@@ -180,7 +180,7 @@ public:
     /**
      * @brief Plugin status, that is a snapshot of important information.
      */
-    class Status {
+    class Status : public PeerPlugin::Status {
 
     public:
 
@@ -188,7 +188,11 @@ public:
         Status();
 
         // Constructor from members
-        Status(const PeerState & peerState, ClientState clientState);
+        Status(PeerModeAnnounced peerModeAnnounced,
+               BEPSupportStatus peerBEP10SupportStatus,
+               BEPSupportStatus peerBitSwaprBEPSupportStatus,
+               const PeerState & peerState,
+               ClientState clientState);
 
         // Getters and setters
         PeerState peerState() const;
