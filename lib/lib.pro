@@ -91,7 +91,9 @@ SOURCES += \
     view/SellerTorrentPluginViewModel.cpp \
     view/BuyerTorrentPluginViewModel.cpp \
     view/SellerPeerPluginViewModel.cpp \
-    view/BuyerPeerPluginViewModel.cpp
+    view/BuyerPeerPluginViewModel.cpp \
+    extension/Alert/SellerPeerPluginStartedAlert.cpp \
+    extension/Alert/SellerTorrentPluginStatusAlert.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -111,7 +113,6 @@ HEADERS += \
     extension/Message/ExtendedMessageIdMapping.hpp \
     view/TorrentViewModel.hpp \
     Utilities.hpp \
-    view/PeerPluginViewModel.hpp \
     extension/Message/MessageType.hpp \
     extension/PeerPluginId.hpp \
     extension/BEPSupportStatus.hpp \
@@ -184,7 +185,10 @@ HEADERS += \
     view/SellerTorrentPluginViewModel.hpp \
     view/BuyerTorrentPluginViewModel.hpp \
     view/SellerPeerPluginViewModel.hpp \
-    view/BuyerPeerPluginViewModel.hpp
+    view/BuyerPeerPluginViewModel.hpp \
+    view/PeerPluginViewModel.hpp \
+    extension/Alert/SellerPeerPluginStartedAlert.hpp \
+    extension/Alert/SellerTorrentPluginStatusAlert.hpp
 				
 FORMS += \
     view/mainwindow.ui \

@@ -23,7 +23,7 @@
 class TorrentStatus;
 //class TorrentPluginStatusAlert;
 class BuyerTorrentPluginStatusAlert;
-//class SellerTorrentPluginStatusAlert;
+class SellerTorrentPluginStatusAlert;
 class TorrentPluginStartedAlert;
 class PluginStatusAlert;
 
@@ -59,8 +59,14 @@ public:
          */
         enum class ExpectedEvent {
 
-            // Added to session, but not yet checked,
-            // is set when torrent is added to session
+            // libtorrent::add_torrent_alert,
+            // which may indicate sucess or failure
+            torrent_added_alert,
+
+            // libtorrent::torrent_checked_alert,
+            // When a torrent is added, some checking is done
+            // - primarily resume data I think, and when that is completed
+            // the given alert is issued by libtorrent
             torrent_checked_alert,
 
             // User has to specify torrent plugin configuration,
@@ -344,13 +350,14 @@ public:
         //std::vector<TorrentConfiguration *>::const_iterator getBeginTorrentConfigurationsIterator() const;
         //std::vector<TorrentConfiguration *>::const_iterator getEndTorrentConfigurationsIterator() const;
 
+
         /*
         QMap<libtorrent::sha1_hash, QPair<Torrent::Configuration, BuyerTorrentPlugin::Configuration> > buyers() const;
         void setBuyers(const QMap<libtorrent::sha1_hash, QPair<Torrent::Configuration, BuyerTorrentPlugin::Configuration> > & buyers);
 
         QMap<libtorrent::sha1_hash, QPair<Torrent::Configuration, SellerTorrentPlugin::Configuration> > sellers() const;
         void setSellers(const QMap<libtorrent::sha1_hash, QPair<Torrent::Configuration, SellerTorrentPlugin::Configuration> > & sellers);
-*/
+        */
 
         //TorrentPlugin::Configuration *getTorrentPluginConfiguration() const;
         //void setTorrentPluginConfiguration(TorrentPlugin::Configuration *value);
@@ -532,9 +539,11 @@ private:
     void processTorrentCheckedAlert(libtorrent::torrent_checked_alert const * p);
     //void processTorrentPluginStatusAlert(const TorrentPluginStatusAlert * p);
     void processBuyerTorrentPluginStatusAlert(const BuyerTorrentPluginStatusAlert * p);
+    void processSellerTorrentPluginStatusAlert(const SellerTorrentPluginStatusAlert * p);
     void processPluginStatusAlert(const PluginStatusAlert * p);
 
     void processTorrentPluginStartedAlert(const TorrentPluginStartedAlert * p);
+
 
     // Start torrent plugin
     void startTorrentPlugin(const libtorrent::sha1_hash & info_hash);

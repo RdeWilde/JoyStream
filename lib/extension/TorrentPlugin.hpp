@@ -158,17 +158,18 @@ public:
     void addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint);
     void addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint);
 
-    /**
-     * Getters and setters
-     */
-
+    // Getters and setters
     Plugin * plugin();
+
 
     virtual PluginMode pluginMode() const = 0;
     //virtual const TorrentPlugin::Configuration getTorrentPluginConfiguration() = 0;
 
     boost::shared_ptr<libtorrent::torrent> torrent() const;
     void setTorrent(const boost::shared_ptr<libtorrent::torrent> & torrent);
+
+    bool enableBanningSets() const;
+    void setEnableBanningSets(bool enableBanningSets);
 
 protected:
 

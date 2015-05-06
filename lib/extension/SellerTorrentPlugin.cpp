@@ -14,6 +14,26 @@
 
 //#include <boost/bind.hpp>
 
+
+/**
+ * @brief SellerTorrentPlugin::Status
+ */
+
+SellerTorrentPlugin::Status::Status() {
+}
+
+SellerTorrentPlugin::Status::Status(const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerStatuses)
+    : _peerStatuses(peerStatuses) {
+}
+
+QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> SellerTorrentPlugin::Status::peerStatuses() const {
+    return _peerStatuses;
+}
+
+void SellerTorrentPlugin::Status::setPeerStatuses(const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerStatuses) {
+    _peerStatuses = peerStatuses;
+}
+
 /**
  * @brief SellerTorrentPlugin::Configuration
  */
@@ -88,6 +108,8 @@ PluginMode SellerTorrentPlugin::Configuration::pluginMode() const {
  */
 
 #include "BitCoin/Wallet.hpp"
+#include "Alert/SellerTorrentPluginStatusAlert.hpp"
+#include "Alert/SellerPeerPluginStartedAlert.hpp"
 
 SellerTorrentPlugin::SellerTorrentPlugin(Plugin * plugin,
                                          const boost::shared_ptr<libtorrent::torrent> & torrent,
@@ -165,9 +187,8 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
 
     qCDebug(_category) << "Seller #" << _peers.size() << endPointString.c_str() << "added to " << _torrent->name().c_str();
 
-    // Emit peer added signal
-    // Should not be here, should be when a payment channel actually starts
-    //emit peerAdded(peerPlugin->getPeerPluginId());
+    // Notify controller about adding peer
+    sendTorrentPluginAlert(SellerPeerPluginStartedAlert(_torrent->info_hash(), configuration()));
 
     // Return pointer to plugin as required
     return sharedPeerPluginPtr;
@@ -183,17 +204,8 @@ void SellerTorrentPlugin::on_piece_failed(int index) {
 
 void SellerTorrentPlugin::tick() {
 
-    //qCDebug(_category) << "SellerTorrentPlugin.tick()";
-
-    /*
-    // No processing is done before a successful extended handshake
-    if(_peerBitSwaprBEPSupportedStatus != BEPSupportStatus::supported)
-        return;
-    */
-
-    // Call base tick routine
-    //TorrentPlugin::tick();
-
+    // Send status to controller
+    sendTorrentPluginAlert(SellerTorrentPluginStatusAlert(_torrent->info_hash(), status()));
 }
 
 
@@ -286,6 +298,32 @@ void SellerTorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) 
 
     // Remove all peers registered for this piece
     _outstandingPieceRequests.remove(alert->piece);
+}
+
+// Creates status for plugin
+SellerTorrentPlugin::Status SellerTorrentPlugin::status() const {
+
+    // Create map for peer plugin statuses
+    QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> peerStatuses;
+
+    for(QMap<libtorrent::tcp::endpoint, boost::shared_ptr<SellerPeerPlugin> >::const_iterator
+        i = _peers.constBegin(),
+        end = _peers.constEnd(); i != end;i++)
+        peerStatuses[i.key()] = (i.value())->status();
+
+    // Return map of statuses
+    return SellerTorrentPlugin::Status(peerStatuses);
+}
+
+// Creates configuratin for plugin
+SellerTorrentPlugin::Configuration SellerTorrentPlugin::configuration() const {
+
+    return SellerTorrentPlugin::Configuration(enableBanningSets(),
+                                              _minPrice,
+                                              _minLock,
+                                              _minFeePerByte,
+                                              _maxNumberOfSellers,
+                                              _maxContractConfirmationDelay);
 }
 
 /**

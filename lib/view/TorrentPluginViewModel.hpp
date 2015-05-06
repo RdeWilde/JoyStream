@@ -5,12 +5,17 @@
 
 #include <QAction>
 #include <QMap>
+#include <QStandardItemModel>
 
+// Need for this class seems to be questionable, limited se of polymorphism
 class TorrentPluginViewModel : public QObject
 {
     Q_OBJECT
 
 public:
+
+    static const char * columnTitles[];
+    static const int numberOfColumns;
 
     // Default constructor
     TorrentPluginViewModel();
@@ -25,17 +30,21 @@ public:
     libtorrent::sha1_hash infoHash() const;
     void setInfoHash(const libtorrent::sha1_hash & infoHash);
 
+
+
 public slots:
 
-    void viewExtensionMenuAction();
+
 
 private:
 
     // Torrent info hash (perhaps remove later)
     libtorrent::sha1_hash _infoHash;
 
-    // Context menu acton for vieweing extension window
-    QAction _viewExtension;
+    // View model for peer plugin table
+    //QStandardItemModel _peerPluginTableViewModel;
+
+
 };
 
 #endif // TORRENT_PLUGIN_VIEW_MODEL_HPP

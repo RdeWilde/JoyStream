@@ -13,7 +13,7 @@ public:
     const static int alert_type = BUYER_TORRENT_PLUGIN_STATUS_ALERT_ID;
 
     // Constructor from members
-    BuyerTorrentPluginStatusAlert(const libtorrent::sha1_hash & infoHash, BuyerTorrentPlugin::Status status);
+    BuyerTorrentPluginStatusAlert(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Status & status);
 
     // Copy constructor
     BuyerTorrentPluginStatusAlert(const BuyerTorrentPluginStatusAlert & alert);

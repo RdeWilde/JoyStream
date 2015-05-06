@@ -259,6 +259,16 @@ void TorrentPlugin::processTorrentPluginRequest(const TorrentPluginRequest * req
 void TorrentPlugin::sendTorrentPluginAlert(const TorrentPluginAlert & alert) {
     _torrent->alerts().post_alert(alert);
 }
+bool TorrentPlugin::enableBanningSets() const
+{
+    return _enableBanningSets;
+}
+
+void TorrentPlugin::setEnableBanningSets(bool enableBanningSets)
+{
+    _enableBanningSets = enableBanningSets;
+}
+
 
 /*
 TorrentPluginConfiguration TorrentPlugin::config() const {

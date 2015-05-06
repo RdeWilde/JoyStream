@@ -77,11 +77,9 @@ MainWindow::~MainWindow() {
     // Delete torrent view models
     //ui->peerPluginsTable->setModel(0); // make sure peer plugin table is not backed by a model
 
-    /**
-    for(QMap<libtorrent::sha1_hash, TorrentViewModel>::iterator i = _torrentViewModels.begin(),
+    for(QMap<libtorrent::sha1_hash, TorrentViewModel *>::iterator i = _torrentViewModels.begin(),
         end(_torrentViewModels.end()); i != end;i++)
         delete i.value();
-        */
 
     // Delete Ui::MainWindow
     delete ui;
@@ -114,7 +112,7 @@ void MainWindow::torrentTableClicked(const QModelIndex & index) {
     // Get torrent view model for torrent clicked on
     TorrentViewModel * torrentViewModel = torrentViewModelInTableRow(index.row());
 
-    qCCritical(_category) << "Clicked torrent with info hash"<< torrentViewModel->infoHash().to_string().c_str();
+    qCCritical(_category) << "Clicked torrent with info hash"<< _torrentInTableRow[index.row()].to_string().c_str();
 }
 
 void MainWindow::showAddTorrentFromTorrentFileDialog(const QString & torrentFile) {
@@ -269,7 +267,22 @@ void MainWindow::addTorrentPlugin(const libtorrent::sha1_hash & infoHash, Plugin
     Q_ASSERT(_torrentViewModels.contains(infoHash));
 
     // Update
-    _torrentViewModels[infoHash]->updatePluginInstalled(Utilities::PluginModeToPluginInstalled(mode));
+    switch(mode) {
+
+        case PluginMode::Buyer: _torrentViewModels[infoHash]->addBuyerPlugin();
+            break;
+
+        case PluginMode::Seller: _torrentViewModels[infoHash]->addSellerPlugin();
+            break;
+
+        case PluginMode::Observer:
+            Q_ASSERT(false);
+            break;
+
+        Q_ASSERT(false);
+    }
+
+
 }
 
 void MainWindow::updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector) {
@@ -319,16 +332,23 @@ void MainWindow::updateBuyerTorrentPluginStatus(const libtorrent::sha1_hash & in
     // Find corresponding TorrentViewModel
     TorrentViewModel * torrentViewModel = _torrentViewModels[infoHash];
 
-    /**
-    // Peers
-    torrentViewModel->updatePeers(torrentPluginStatusAlert->numberOfPeers(),torrentPluginStatusAlert->numberOfPeersWithExtension());
+    Q_ASSERT(torrentViewModel->pluginInstalled() == PluginInstalled::Buyer);
 
-    // Mode
-    torrentViewModel->updateMode(torrentPluginStatusAlert->pluginStarted(), torrentPluginStatusAlert->mode());
+    // Update view model of plugin
+    torrentViewModel->update(status);
+}
 
-    // Balance
-    torrentViewModel->updateBalance(torrentPluginStatusAlert->tokensReceived(), torrentPluginStatusAlert->tokensSent());
-    */
+void MainWindow::updateSellerTorrentPluginStatus(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Status & status) {
+
+    Q_ASSERT(_torrentViewModels.contains(infoHash));
+
+    // Find corresponding TorrentViewModel
+    TorrentViewModel * torrentViewModel = _torrentViewModels[infoHash];
+
+    Q_ASSERT(torrentViewModel->pluginInstalled() == PluginInstalled::Seller);
+
+    // Update view model of plugin
+    torrentViewModel->update(status);
 }
 
 void MainWindow::updatePluginStatus(const Plugin::Status & status) {

@@ -77,6 +77,8 @@ void SellerPeerPlugin::PeerState::setLastRequestFullPieceReceived(const RequestF
  * SellerPeerPlugin::Status
  */
 
+#include "PluginMode.hpp"
+
 SellerPeerPlugin::Status::Status()
     : _clientState(ClientState::no_bitswapr_message_sent) {
 }
@@ -85,12 +87,18 @@ SellerPeerPlugin::Status::Status(PeerModeAnnounced peerModeAnnounced,
                                  BEPSupportStatus peerBEP10SupportStatus,
                                  BEPSupportStatus peerBitSwaprBEPSupportStatus,
                                  const PeerState & peerState,
-                                 ClientState clientState)
+                                 ClientState clientState,
+                                 const Payee::Status & payeeStatus)
     : PeerPlugin::Status(peerModeAnnounced,
                          peerBEP10SupportStatus,
                          peerBitSwaprBEPSupportStatus)
     , _peerState(peerState)
-    , _clientState(clientState) {
+    , _clientState(clientState)
+    , _payeeStatus(payeeStatus) {
+}
+
+PluginMode SellerPeerPlugin::Status::pluginMode() const {
+    return PluginMode::Seller;
 }
 
 SellerPeerPlugin::PeerState SellerPeerPlugin::Status::peerState() const {
@@ -108,6 +116,15 @@ SellerPeerPlugin::ClientState SellerPeerPlugin::Status::clientState() const {
 void SellerPeerPlugin::Status::setClientState(ClientState clientState) {
     _clientState = clientState;
 }
+
+Payee::Status SellerPeerPlugin::Status::payeeStatus() const {
+    return _payeeStatus;
+}
+
+void SellerPeerPlugin::Status::setPayeeStatus(const Payee::Status & payeeStatus) {
+    _payeeStatus = payeeStatus;
+}
+
 
 /**
  * SellerPeerPlugin
@@ -756,6 +773,16 @@ void SellerPeerPlugin::pieceReadFailed(int piece) {
     qCDebug(_category) << "reading pieceReadFailed " << piece;
 
     throw std::exception("Reading piece failed.");
+}
+
+SellerPeerPlugin::Status SellerPeerPlugin::status() const {
+
+    return Status(_peerModeAnnounced,
+                  _peerBEP10SupportStatus,
+                  _peerBitSwaprBEPSupportStatus,
+                  _peerState,
+                  _clientState,
+                  _payee.status());
 }
 
 void SellerPeerPlugin::processFullPiece(const FullPiece * m) {

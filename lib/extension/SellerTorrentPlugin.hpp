@@ -14,6 +14,26 @@ class SellerTorrentPlugin : public TorrentPlugin
 {
 public:
 
+    class Status {
+
+    public:
+
+        // Default constructor
+        Status();
+
+        // Constructor from members
+        Status(const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerStatuses);
+
+        // Getters and setters
+        QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> peerStatuses() const;
+        void setPeerStatuses(const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerStatuses);
+
+    private:
+
+        // Status of peer plugins
+        QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> _peerStatuses;
+    };
+
     /**
      * @brief Configuration of seller torrent plugin.
      */
@@ -126,6 +146,12 @@ public:
     // Call back after piece read
     void pieceRead(const libtorrent::read_piece_alert * alert);
 
+    // Creates status for plugin
+    Status status() const;
+
+    // Creates configuratin for plugin
+    Configuration configuration() const;
+
     // Getters and setters
     virtual PluginMode pluginMode() const;
 
@@ -151,7 +177,8 @@ private:
     // in this type, rather than corresponding subclass of TorrentPlugin.
     QMap<libtorrent::tcp::endpoint, boost::shared_ptr<SellerPeerPlugin> > _peers;
 
-    // Maintains mapping between piece index and peers that are waiting for this it
+    // Maintains mapping between piece index and peers that are waiting for this.
+    // Will typically just be one, but may be multiple - hence QSet is used
     QMap<int, QSet<SellerPeerPlugin *> > _outstandingPieceRequests;
 
     // Wallet

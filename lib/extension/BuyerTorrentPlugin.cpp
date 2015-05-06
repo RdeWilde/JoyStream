@@ -10,10 +10,12 @@ BuyerTorrentPlugin::Piece::Piece()
     , _peerPlugin(NULL) {
 }
 
-BuyerTorrentPlugin::Piece::Piece(int index, int length, int numberOfBlocks, State state, BuyerPeerPlugin * peerPlugin)
+//BuyerTorrentPlugin::Piece::Piece(int index, int length, int numberOfBlocks, State state, BuyerPeerPlugin * peerPlugin)
+
+BuyerTorrentPlugin::Piece::Piece(int index, State state, BuyerPeerPlugin * peerPlugin)
     : _index(index)
-    , _length(length)
-    , _numberOfBlocks(numberOfBlocks)
+    //, _length(length)
+    //, _numberOfBlocks(numberOfBlocks)
     , _state(state)
     , _peerPlugin(peerPlugin) {
 }
@@ -26,6 +28,7 @@ void BuyerTorrentPlugin::Piece::setIndex(int index) {
     _index = index;
 }
 
+/**
 int BuyerTorrentPlugin::Piece::length() const {
     return _length;
 }
@@ -41,6 +44,7 @@ int BuyerTorrentPlugin::Piece::numberOfBlocks() const {
 void BuyerTorrentPlugin::Piece::setNumberOfBlocks(int numberOfBlocks) {
     _numberOfBlocks = numberOfBlocks;
 }
+*/
 
 BuyerTorrentPlugin::Piece::State BuyerTorrentPlugin::Piece::state() const {
     return _state;
@@ -280,6 +284,23 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
     // Get number of pieces
     int numberOfPieces = torrentInfo.num_pieces();
 
+    for(int i = 0;i < numberOfPieces;i++) {
+
+        // Do we already have the valid piece
+        if(!_torrent->have_piece(i)) {
+
+            // Add piece vector of pieces
+            _pieces.push_back(Piece(i, Piece::State::unassigned, NULL));
+
+            // Count piece as unassigned
+            _numberOfUnassignedPieces++;
+
+        } else // Add to piece vector of pieces, and indicate that we have it
+            _pieces.push_back(Piece(i, Piece::State::fully_downloaded_and_valid, NULL));
+
+    }
+
+    /**
     // Get block size
     libtorrent::torrent_status torrentStatus;
     boost::uint32_t flags = libtorrent::torrent_handle::query_name +
@@ -294,6 +315,7 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
     _torrent->status(&torrentStatus, flags);
     _blockSize = torrentStatus.block_size;
 
+    Old code using blockSize and length piece
     for(int i = 0;i < numberOfPieces;i++) {
 
         // Get byte size of given piece: all pieces, except possibly last one, are of same length
@@ -315,6 +337,7 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
             _pieces.push_back(Piece(i, pieceSize, numberOfBlocksInPiece,Piece::State::fully_downloaded_and_valid, NULL));
 
     }
+    */
 }
 
 boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(libtorrent::peer_connection * connection) {
@@ -872,6 +895,7 @@ BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
     _numberOfSellers = numberOfSellers;
  }
 
+ /**
  int BuyerTorrentPlugin::blockSize() const {
      return _blockSize;
  }
@@ -880,8 +904,6 @@ BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
      _blockSize = blockSize;
  }
 
-
- /*
  const Payor & BuyerTorrentPlugin::payor() const {
      return _payor;
  }

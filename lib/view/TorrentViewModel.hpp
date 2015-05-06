@@ -3,6 +3,11 @@
 
 //#include "extension/PluginMode.hpp"
 #include "controller/PluginInstalled.hpp"
+#include "SellerTorrentPluginViewModel.hpp"
+#include "BuyerTorrentPluginViewModel.hpp"
+
+#include "extension/SellerTorrentPlugin.hpp"
+#include "extension/BuyerTorrentPlugin.hpp"
 
 #include <libtorrent/peer_id.hpp> // sha1_hash
 #include <libtorrent/torrent_handle.hpp> // libtorrent::torrent_status, torrent_status::state_t
@@ -22,6 +27,8 @@ class PeerPlugin;
 class PeerPluginStatus;
 class PeerPluginViewModel;
 class Controller;
+class SellerTorrentPluginViewModel;
+class BuyerTorrentPluginViewModel;
 
 class TorrentViewModel : public QObject
 {
@@ -40,6 +47,10 @@ public:
     // Destructor
     ~TorrentViewModel();
 
+    // Add plugins
+    void addSellerPlugin();
+    void addBuyerPlugin();
+
     // Update view model
     void update(const libtorrent::torrent_status & torrentStatus);
     void updateName(const QString & name);
@@ -47,20 +58,19 @@ public:
     void updateState(bool paused, libtorrent::torrent_status::state_t state, float progress);
     void updateSpeed(int downloadRate, int uploadRate);
     void updatePeers(int numberOfPeers, int numberOfPeersWithExtension);
-    void updatePluginInstalled(PluginInstalled mode);
     void updateBalance(int tokensReceived, int tokensSent);
 
-    /**
-    void addPeerPlugin(const libtorrent::tcp::endpoint & endPoint);
-    void removePeerPlugin(const libtorrent::tcp::endpoint & endPoint);
-    void updatePeerPluginState(PeerPluginStatus status);
-    */
+    // Update plugin view models
+    void update(const BuyerTorrentPlugin::Status & status);
+    void update(const SellerTorrentPlugin::Status & status);
 
     // Pops up context menu at given position
     void showContextMenu(QPoint pos);
 
     // Getters and setters
-    libtorrent::sha1_hash infoHash();
+    //libtorrent::sha1_hash infoHash();
+
+    PluginInstalled pluginInstalled() const;
 
 public slots:
 
@@ -68,6 +78,7 @@ public slots:
     void pauseMenuAction();
     void startMenuAction();
     void removeMenuAction();
+    void viewExtensionMenuAction();
 
 private:
 
@@ -75,6 +86,7 @@ private:
     libtorrent::sha1_hash _infoHash;
 
     // Pointer to main window
+    // Talk to controller through signals in the future perhaps
     Controller * _controller;
 
     // Model items, have to be pointers since QStandardItemModel takes ownership of
@@ -95,6 +107,28 @@ private:
     QAction _pause;
     QAction _start;
     QAction _remove;
+
+    /**
+     * Try to avoid this sharding in the future, absorb into TorrentviewModel or something..
+     * The problem with absorbing into TorrentViewModel is that a torrent does not initially
+     * have a plugin, hence the view model for it must support that properly.
+     */
+
+    // Type of torrent plugin presently installed on torrent
+    PluginInstalled _pluginInstalled;
+
+    // Context menu acton for vieweing extension window
+    QAction _viewExtension;
+
+    // View model for seller plugin which may be installed
+    // This view model is owned by us
+    SellerTorrentPluginViewModel * _sellerTorrentPluginViewModel;
+
+    // View model for buyer plugin which may be installed
+    // This view model is owned by us
+    BuyerTorrentPluginViewModel * _buyerTorrentPluginViewModel;
+
+    void updatePluginInstalled(PluginInstalled mode);
 };
 
 //#include <QMetaType>

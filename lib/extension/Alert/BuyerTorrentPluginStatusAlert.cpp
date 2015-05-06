@@ -1,7 +1,7 @@
 #include "BuyerTorrentPluginStatusAlert.hpp"
 
 
-BuyerTorrentPluginStatusAlert::BuyerTorrentPluginStatusAlert(const libtorrent::sha1_hash & infoHash, BuyerTorrentPlugin::Status status)
+BuyerTorrentPluginStatusAlert::BuyerTorrentPluginStatusAlert(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Status & status)
     : TorrentPluginAlert(infoHash)
     , _status(status){
 }

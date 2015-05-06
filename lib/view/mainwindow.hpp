@@ -24,16 +24,10 @@ namespace Ui {
 class MainWindow;
 }
 
-// Forward declarations
 class Controller;
 class PeerPlugin;
-//class TorrentPluginStatus;
 class PeerPluginStatus;
 class TorrentViewModel;
-//class TorrentPluginStatusAlert;
-//class BuyerTorrentPluginStatus;
-//class PluginStatusAlert;
-
 class Wallet;
 
 class MainWindow : public QMainWindow
@@ -61,6 +55,7 @@ public:
     //void updateTorrentPluginStatus(const TorrentPluginStatusAlert * torrentPluginStatusAlert);// TorrentPluginStatus status
 
     void updateBuyerTorrentPluginStatus(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Status & status);
+    void updateSellerTorrentPluginStatus(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Status & status);
 
     void updatePluginStatus(const Plugin::Status & status);
 
@@ -113,17 +108,6 @@ private:
     // Maps info_hash of models to corresponding TorrentViewModel
     // Must use pointer values since members are QObjects, which cannot be copied and assigned
     QMap<libtorrent::sha1_hash, TorrentViewModel *> _torrentViewModels;
-
-    /**
-     * Try to avoid this sharding in the future, absorb into TorrentviewModel or something,
-     * just like in controller and plugins.
-     */
-
-    // Maps info hash to seller torrent plugin view model for plugin on corresponding torrent
-    //QMap<libtorrent::sha1_hash, SellerTorrentPluginViewModel *> _sellerTorrentPluginViewModel;
-
-    // Maps info hash to buyer torrent plugin view model for plugin on corresponding torrent
-    //QMap<libtorrent::sha1_hash, BuyerTorrentPluginViewModel *> _buyerTorrentPluginViewModel;
 
     /**
     // Peer Plugins table

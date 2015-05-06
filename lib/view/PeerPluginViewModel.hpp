@@ -10,12 +10,14 @@ class PeerPluginStatus;
 class QString;
 //enum class PeerState;
 
+
+/**
+ * This class is likely not productive, remove?
+ */
+
 class PeerPluginViewModel {
 
 public:
-
-    static const char * columnTitles[];
-    static const int numberOfColumns;
 
     // Default constructor
     PeerPluginViewModel();

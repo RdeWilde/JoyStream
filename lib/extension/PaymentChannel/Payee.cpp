@@ -327,6 +327,15 @@ bool Payee::checkNextPaymentSignature(const Signature & payorPaymentSignature) c
                                                  paymentOutput);
 }
 
+Payee::Status Payee::status() const {
+
+    return Status(_state,
+                  _numberOfPaymentsMade,
+                  _lockTime,
+                  _price,
+                  _funds);
+}
+
 Payee::State Payee::state() const {
     return _state;
 }

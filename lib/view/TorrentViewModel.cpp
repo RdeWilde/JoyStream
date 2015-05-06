@@ -24,13 +24,17 @@ TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & infoHash,
     , _stateItem(new QStandardItem())
     , _speedItem(new QStandardItem())
     , _peersItem(new QStandardItem())
-    , _modeItem(new QStandardItem()) // "None"
+    , _modeItem(new QStandardItem())
     , _peerPluginsItem(new QStandardItem())
-    , _balanceItem(new QStandardItem()) // "0"
+    , _balanceItem(new QStandardItem())
     , _torrentTableContextMenu()
     , _pause("Pause", this)
     , _start("Start", this)
-    , _remove("Remove", this) {
+    , _remove("Remove", this)
+    , _pluginInstalled(PluginInstalled::None)
+    , _viewExtension("Extension", this)
+    , _sellerTorrentPluginViewModel(NULL)
+    , _buyerTorrentPluginViewModel(NULL) {
 
     // Add as row to torrentTableViewModel
     QList<QStandardItem *> row;
@@ -56,23 +60,44 @@ TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & infoHash,
     QObject::connect(&_remove, SIGNAL(triggered()), this, SLOT(removeMenuAction()));
     _torrentTableContextMenu.addAction(&_remove);
 
-    /**
-    // Add columns to peer table view model
-    for(int i = 0;i < PeerPluginViewModel::numberOfColumns;i++)
-        _peerPluginsTableViewModel.setHorizontalHeaderItem(i, new QStandardItem(PeerPluginViewModel::columnTitles[i]));
-    */
+    QObject::connect(&_viewExtension, SIGNAL(triggered()), this, SLOT(viewExtensionMenuAction()));
+    // add action to menu only when plugin is installed
 }
 
-TorrentViewModel::~TorrentViewModel(){
-
-    /**
-    // Delete peer plugin view models
-    for(QMap<libtorrent::tcp::endpoint, PeerPluginViewModel *>::iterator i = _peerPluginViewModels.begin(),
-            end(_peerPluginViewModels.end());i != end;i++)
-        delete i.value();
-    */
+TorrentViewModel::~TorrentViewModel() {
 }
 
+void TorrentViewModel::addSellerPlugin() {
+
+    Q_ASSERT(_pluginInstalled == PluginInstalled::None);
+    Q_ASSERT(_sellerTorrentPluginViewModel == NULL);
+    Q_ASSERT(_buyerTorrentPluginViewModel == NULL);
+
+    // Add extension menu button
+    _torrentTableContextMenu.addAction(&_viewExtension);
+
+    // Create view model for plugin
+    _sellerTorrentPluginViewModel = new SellerTorrentPluginViewModel(this, _infoHash);
+
+    // Update mode field
+    updatePluginInstalled(PluginInstalled::Seller);
+}
+
+void TorrentViewModel::addBuyerPlugin() {
+
+    Q_ASSERT(_pluginInstalled == PluginInstalled::None);
+    Q_ASSERT(_sellerTorrentPluginViewModel == NULL);
+    Q_ASSERT(_buyerTorrentPluginViewModel == NULL);
+
+    // Add extension menu button
+    _torrentTableContextMenu.addAction(&_viewExtension);
+
+    // Create view model for plugin
+    _buyerTorrentPluginViewModel = new BuyerTorrentPluginViewModel(this, _infoHash);
+
+    // Update mode field
+    updatePluginInstalled(PluginInstalled::Buyer);
+}
 
 void TorrentViewModel::pauseMenuAction() {
 
@@ -102,6 +127,29 @@ void TorrentViewModel::removeMenuAction() {
     // Torrent was actually started, i.e. was an actual match found
     //if(!removed)
    //     qCDebug() << "Invalid torrent handle found.";
+}
+
+void TorrentViewModel::viewExtensionMenuAction() {
+
+    Q_ASSERT(_pluginInstalled != PluginInstalled::None);
+
+    switch(_pluginInstalled) {
+
+        case PluginInstalled::Buyer:
+            Q_ASSERT(false);
+            break;
+
+        case PluginInstalled::Seller:
+            Q_ASSERT(false);
+            break;
+
+        case PluginInstalled::Observer:
+            Q_ASSERT(false);
+            break;
+
+        case PluginInstalled::None:
+            Q_ASSERT(false);
+    }
 }
 
 void TorrentViewModel::update(const libtorrent::torrent_status & torrentStatus) {
@@ -234,6 +282,24 @@ void TorrentViewModel::updateBalance(int tokensReceived, int tokensSent) {
     _balanceItem->setText(balance);
 }
 
+void TorrentViewModel::update(const BuyerTorrentPlugin::Status & status) {
+
+    Q_ASSERT(_pluginInstalled == PluginInstalled::Buyer);
+    Q_ASSERT(_sellerTorrentPluginViewModel == NULL);
+    Q_ASSERT(_buyerTorrentPluginViewModel != NULL);
+
+    _buyerTorrentPluginViewModel->update(status);
+}
+
+void TorrentViewModel::update(const SellerTorrentPlugin::Status & status) {
+
+    Q_ASSERT(_pluginInstalled == PluginInstalled::Seller);
+    Q_ASSERT(_sellerTorrentPluginViewModel != NULL);
+    Q_ASSERT(_buyerTorrentPluginViewModel == NULL);
+
+    _sellerTorrentPluginViewModel->update(status);
+}
+
 void TorrentViewModel::showContextMenu(QPoint pos) {
     _torrentTableContextMenu.popup(pos);
 }
@@ -268,8 +334,13 @@ void TorrentViewModel::updatePeerPluginState(PeerPluginStatus status) {
     // Update
     _peerPluginViewModels[status.peerPluginId_.endPoint_]->update(status);
 }
-*/
+
 
 libtorrent::sha1_hash TorrentViewModel::infoHash() {
     return _infoHash;
+}
+*/
+
+PluginInstalled TorrentViewModel::pluginInstalled() const {
+    return _pluginInstalled;
 }

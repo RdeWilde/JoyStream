@@ -7,8 +7,8 @@
 #include <QList>
 #include <QStandardItem>
 
-const char * PeerPluginViewModel::columnTitles[] = {"Host", "State", "Balance", "Progress"};
-const int PeerPluginViewModel::numberOfColumns = sizeof(PeerPluginViewModel::columnTitles)/sizeof(char *);
+//const char * PeerPluginViewModel::columnTitles[] = {"Host", "State", "Balance", "Progress"};
+//const int PeerPluginViewModel::numberOfColumns = sizeof(PeerPluginViewModel::columnTitles)/sizeof(char *);
 
 PeerPluginViewModel::PeerPluginViewModel(const libtorrent::tcp::endpoint & endPoint)
     : _endPoint(endPoint)

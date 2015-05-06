@@ -20,6 +20,7 @@
 #include <QVector>
 
 class SellerTorrentPlugin;
+enum class PluginMode;
 
 namespace libtorrent {
     struct disk_io_job;
@@ -192,7 +193,10 @@ public:
                BEPSupportStatus peerBEP10SupportStatus,
                BEPSupportStatus peerBitSwaprBEPSupportStatus,
                const PeerState & peerState,
-               ClientState clientState);
+               ClientState clientState,
+               const Payee::Status & payeeStatus);
+
+        virtual PluginMode pluginMode() const;
 
         // Getters and setters
         PeerState peerState() const;
@@ -200,6 +204,9 @@ public:
 
         ClientState clientState() const;
         void setClientState(ClientState clientState);
+
+        Payee::Status payeeStatus() const;
+        void setPayeeStatus(const Payee::Status &payeeStatus);
 
     private:
 
@@ -261,6 +268,9 @@ public:
 
     // Called when piece reading failed
     void pieceReadFailed(int piece);
+
+    // Peer status
+    Status status() const;
 
     // Getters and setters
     virtual PluginMode mode() const;

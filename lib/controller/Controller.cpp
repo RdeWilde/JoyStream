@@ -341,7 +341,7 @@ libtorrent::torrent_info * Controller::Torrent::torrentInfo() const {
     return _torrentInfo;
 }
 
-void Controller::Torrent::setTorrentInfo(libtorrent::torrent_info *torrentInfo) {
+void Controller::Torrent::setTorrentInfo(libtorrent::torrent_info * torrentInfo) {
     _torrentInfo = torrentInfo;
 }
 
@@ -381,7 +381,7 @@ libtorrent::sha1_hash Controller::Torrent::infoHash() const {
     return _infoHash;
 }
 
-void Controller::Torrent::setInfoHash(const libtorrent::sha1_hash &infoHash){
+void Controller::Torrent::setInfoHash(const libtorrent::sha1_hash & infoHash){
     _infoHash = infoHash;
 }
 
@@ -965,6 +965,7 @@ void Controller::Configuration::setLibtorrentSessionSettingsEntry(const libtorre
 //#include "controller/TorrentConfiguration.hpp"
 //#include "extension/Alert/TorrentPluginStatusAlert.hpp"
 #include "extension/Alert/BuyerTorrentPluginStatusAlert.hpp"
+#include "extension/Alert/SellerTorrentPluginStatusAlert.hpp"
 
 #include "extension/Alert/PluginStatusAlert.hpp"
 #include "extension/Alert/TorrentPluginStartedAlert.hpp"
@@ -1184,11 +1185,12 @@ void Controller::processAlert(const libtorrent::alert * a) {
         processTorrentCheckedAlert(p);
     else if(PluginStatusAlert const * p = libtorrent::alert_cast<PluginStatusAlert>(a))
         processPluginStatusAlert(p);
-    else if(const BuyerTorrentPluginStatusAlert * p = libtorrent::alert_cast<BuyerTorrentPluginStatusAlert>(a)) {
+    else if(const SellerTorrentPluginStatusAlert * p = libtorrent::alert_cast<SellerTorrentPluginStatusAlert>(a))
+        processSellerTorrentPluginStatusAlert(p);
+    else if(const BuyerTorrentPluginStatusAlert * p = libtorrent::alert_cast<BuyerTorrentPluginStatusAlert>(a))
         processBuyerTorrentPluginStatusAlert(p);
-    } else if(const TorrentPluginStartedAlert * p = libtorrent::alert_cast<TorrentPluginStartedAlert>(a)) {
+    else if(const TorrentPluginStartedAlert * p = libtorrent::alert_cast<TorrentPluginStartedAlert>(a))
         processTorrentPluginStartedAlert(p);
-    }
 
     // Delete alert
     delete a;
@@ -1244,40 +1246,27 @@ int Controller::makeResumeDataCallsForAllTorrents() {
 
 void Controller::processTorrentPausedAlert(libtorrent::torrent_paused_alert const * p) {
 
-    // Save resume data if we can!
-    //if(_sourceForLastResumeDataCall == NONE) {
+    // Get handle
+    libtorrent::torrent_handle torrentHandle = p->handle;
 
-        // Check that we have a valid state
-        //if(_numberOfOutstandingResumeDataCalls != 0) {
-//
-//            qCCritical(_category) << "Invalid state, sourceForLastResumeDataCall == NONE && numberOfOutstandingResumeDataCalls != 0, can't save resume data.";
-//            return;
-//        }
+    // Dont save data if we dont need to or can
+    if (!torrentHandle.need_save_resume_data() || !torrentHandle.status().has_metadata)
+        return;
 
-        // Get handle
-        libtorrent::torrent_handle torrentHandle = p->handle;
+    // Set state
+    //_sourceForLastResumeDataCall = TORRENT_PAUSE;
+    //_numberOfOutstandingResumeDataCalls = 1;
 
-        // Dont save data if we dont need to or can
-        if (!torrentHandle.need_save_resume_data() || !torrentHandle.status().has_metadata)
-            return;
+    // Save resume data
+    torrentHandle.save_resume_data();
 
-        // Set state
-        //_sourceForLastResumeDataCall = TORRENT_PAUSE;
-        //_numberOfOutstandingResumeDataCalls = 1;
+    // Get info hash
+    libtorrent::sha1_hash info_hash = torrentHandle.info_hash();
 
-        // Save resume data
-        torrentHandle.save_resume_data();
+    // Grab torrent and set next event to be arrival of save_resume_data alert
+    Q_ASSERT(_torrents.contains(info_hash));
 
-        // Get info hash
-        libtorrent::sha1_hash info_hash = torrentHandle.info_hash();
-
-        // Grab torrent and set next event to be arrival of save_resume_data alert
-        Q_ASSERT(_torrents.contains(info_hash));
-
-        _torrents[info_hash].setEvent(Torrent::ExpectedEvent::save_resume_data_alert);
-
-    //} else
-    //    qCWarning(_category) << "Could not save resume data, so we won't.";
+    _torrents[info_hash].setEvent(Torrent::ExpectedEvent::save_resume_data_alert);
 }
 
 void Controller::processTorrentRemovedAlert(libtorrent::torrent_removed_alert const * p) {
@@ -1321,6 +1310,9 @@ void Controller::processMetadataFailedAlert(libtorrent::metadata_failed_alert co
 
 void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p) {
 
+    Q_ASSERT(_state == State::normal);
+    Q_ASSERT(_torrents[p->params.info_hash].event() == Torrent::ExpectedEvent::torrent_added_alert);
+
     // Name of torrent
     std::string name("N/A");
     int totalSize = 0;
@@ -1342,6 +1334,9 @@ void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p)
 		h.set_download_limit(torrent_download_limit);
 		h.use_interface(outgoing_interface.c_str());
         */
+
+        // Update expected event on torrent
+        _torrents[p->params.info_hash].setEvent(Torrent::ExpectedEvent::torrent_checked_alert);
 
         // Add torrent to view
         _view.addTorrent(p->handle.info_hash(), QString(name.c_str()), totalSize);
@@ -1517,6 +1512,10 @@ void Controller::processBuyerTorrentPluginStatusAlert(const BuyerTorrentPluginSt
     _view.updateBuyerTorrentPluginStatus(p->infoHash(), p->status());
 }
 
+void Controller::processSellerTorrentPluginStatusAlert(const SellerTorrentPluginStatusAlert * p) {
+    _view.updateSellerTorrentPluginStatus(p->infoHash(), p->status());
+}
+
 void Controller::processPluginStatusAlert(const PluginStatusAlert * p) {
     _view.updatePluginStatus(p->status());
 }
@@ -1611,7 +1610,7 @@ bool Controller::addTorrent(const Torrent::Configuration & configuration) {
                     configuration.resumeData(),
                     configuration.flags(),
                     configuration.torrentInfo(),
-                    Torrent::ExpectedEvent::torrent_checked_alert,
+                    Torrent::ExpectedEvent::torrent_added_alert,
                     PluginInstalled::None);
 
     // Warn user if torrent has already been added

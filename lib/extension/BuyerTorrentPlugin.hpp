@@ -64,17 +64,22 @@ public:
         Piece();
 
         // Constructors based on members
-        Piece(int index, int length, int numberOfBlocks, State state, BuyerPeerPlugin * peerPlugin);
+        //Piece(int index, int length, int numberOfBlocks, State state, BuyerPeerPlugin * peerPlugin);
+
+        // Constructors based on members
+        Piece(int index, State state, BuyerPeerPlugin * peerPlugin);
 
         // Getters and setters
         int index() const;
         void setIndex(int index);
 
+        /**
         int length() const;
         void setLength(int length);
 
         int numberOfBlocks() const;
         void setNumberOfBlocks(int numberOfBlocks);
+        */
 
         State state() const;
         void setState(State state);
@@ -91,7 +96,7 @@ public:
         int _length;
 
         // Number of blocks in piece
-        int _numberOfBlocks;
+        //int _numberOfBlocks;
 
         // Piece state
         State _state;
@@ -278,8 +283,10 @@ public:
     quint32 numberOfSellers() const;
     void setnumberOfSellers(quint32 numberOfSellers);
 
+    /**
     int blockSize() const;
     void setBlockSize(int blockSize);
+    */
 
 private:
 
@@ -332,7 +339,7 @@ private:
     QVector<Piece> _pieces;
 
     // The blocksize in the torrent
-    int _blockSize;
+    //int _blockSize;
 
     // The number of pieces which have not been downloaded and not been assigned to a peer
     quint32 _numberOfUnassignedPieces;

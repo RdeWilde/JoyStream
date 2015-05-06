@@ -241,6 +241,9 @@ public:
     bool isContractValid() const;
     */
 
+    // Returns status of payee
+    Status status() const;
+
     // Getters and setters
     State state() const;
     void setState(State state);
