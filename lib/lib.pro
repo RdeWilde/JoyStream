@@ -85,7 +85,6 @@ SOURCES += \
     extension/Message/FullPiece.cpp \
     extension/Alert/BuyerTorrentPluginStatusAlert.cpp \
     extension/Alert/TorrentPluginStartedAlert.cpp \
-    view/BuyerTorrentDialog.cpp \
     view/PeerPluginsDialog.cpp \
     view/TorrentPluginViewModel.cpp \
     view/SellerTorrentPluginViewModel.cpp \
@@ -93,7 +92,13 @@ SOURCES += \
     view/SellerPeerPluginViewModel.cpp \
     view/BuyerPeerPluginViewModel.cpp \
     extension/Alert/SellerPeerPluginStartedAlert.cpp \
-    extension/Alert/SellerTorrentPluginStatusAlert.cpp
+    extension/Alert/SellerTorrentPluginStatusAlert.cpp \
+    view/SellerTorrentPluginDialog.cpp \
+    extension/Alert/StartedSellerTorrentPlugin.cpp \
+    extension/Alert/StartedBuyerTorrentPlugin.cpp \
+    view/BuyerTorrentTorrentDialog.cpp \
+    view/PayorViewModel.cpp \
+    view/ChannelViewModel.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -178,7 +183,6 @@ HEADERS += \
     extension/BitCoin/BitCoin.hpp \
     extension/Alert/BuyerTorrentPluginStatusAlert.hpp \
     extension/Alert/TorrentPluginStartedAlert.hpp \
-    view/BuyerTorrentDialog.hpp \
     view/PeerPluginsDialog.hpp \
     controller/PluginInstalled.hpp \
     view/TorrentPluginViewModel.hpp \
@@ -188,16 +192,23 @@ HEADERS += \
     view/BuyerPeerPluginViewModel.hpp \
     view/PeerPluginViewModel.hpp \
     extension/Alert/SellerPeerPluginStartedAlert.hpp \
-    extension/Alert/SellerTorrentPluginStatusAlert.hpp
+    extension/Alert/SellerTorrentPluginStatusAlert.hpp \
+    view/SellerTorrentPluginDialog.hpp \
+    extension/Alert/StartedSellerTorrentPlugin.hpp \
+    extension/Alert/StartedBuyerTorrentPlugin.hpp \
+    view/BuyerTorrentPluginDialog.hpp \
+    view/PayorViewModel.hpp \
+    view/ChannelViewModel.hpp
 				
 FORMS += \
-    view/mainwindow.ui \
-    view/addtorrentdialog.ui \
     view/SellerTorrentPluginConfigurationDialog.ui \
     view/BuyerTorrentPluginConfigurationDialog.ui \
-    view/walletdialog.ui \
-    view/BuyerTorrentDialog.ui \
-    view/PeerPluginsDialognsdialog.ui
+    view/PeerPluginsDialognsdialog.ui \
+    view/SellerTorrentPluginDialog.ui \
+    view/BuyerTorrentPluginDialog.ui \
+    view/MainWindow.ui \
+    view/AddTorrentDialog.ui \
+    view/WalletDialog.ui
 
 RESOURCES += \
     view/ui.qrc

@@ -13,10 +13,10 @@ const char * TorrentViewModel::columnTitles[] = {"Name", "Size", "Status", "Spee
 const int TorrentViewModel::numberOfColumns = sizeof(TorrentViewModel::columnTitles)/sizeof(char *);
 
 TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & infoHash,
-                                   Controller * controller,
+                                   //Controller * controller,
                                    QStandardItemModel * torrentTableViewModel)
     : _infoHash(infoHash)
-    , _controller(controller)
+    //, _controller(controller)
     //, _mainWindow(mainWindow)
     //, _peerPluginsTableViewModel(0, PeerPluginViewModel::numberOfColumns)
     , _nameItem(new QStandardItem())
@@ -67,7 +67,7 @@ TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & infoHash,
 TorrentViewModel::~TorrentViewModel() {
 }
 
-void TorrentViewModel::addSellerPlugin() {
+void TorrentViewModel::addSellerPlugin(const SellerTorrentPlugin::Configuration & configuration) {
 
     Q_ASSERT(_pluginInstalled == PluginInstalled::None);
     Q_ASSERT(_sellerTorrentPluginViewModel == NULL);
@@ -77,13 +77,14 @@ void TorrentViewModel::addSellerPlugin() {
     _torrentTableContextMenu.addAction(&_viewExtension);
 
     // Create view model for plugin
-    _sellerTorrentPluginViewModel = new SellerTorrentPluginViewModel(this, _infoHash);
+    _sellerTorrentPluginViewModel = new SellerTorrentPluginViewModel(this, _infoHash, configuration);
+
 
     // Update mode field
     updatePluginInstalled(PluginInstalled::Seller);
 }
 
-void TorrentViewModel::addBuyerPlugin() {
+void TorrentViewModel::addBuyerPlugin(const BuyerTorrentPlugin::Configuration & configuration) {
 
     Q_ASSERT(_pluginInstalled == PluginInstalled::None);
     Q_ASSERT(_sellerTorrentPluginViewModel == NULL);
@@ -93,7 +94,7 @@ void TorrentViewModel::addBuyerPlugin() {
     _torrentTableContextMenu.addAction(&_viewExtension);
 
     // Create view model for plugin
-    _buyerTorrentPluginViewModel = new BuyerTorrentPluginViewModel(this, _infoHash);
+    _buyerTorrentPluginViewModel = new BuyerTorrentPluginViewModel(this, _infoHash, configuration);
 
     // Update mode field
     updatePluginInstalled(PluginInstalled::Buyer);
@@ -102,31 +103,46 @@ void TorrentViewModel::addBuyerPlugin() {
 void TorrentViewModel::pauseMenuAction() {
 
     // Pause torrent
+    emit pauseTorrentClicked(_infoHash);
+
+    /**
+    // Pause torrent
     bool paused = _controller->pauseTorrent(_infoHash);
 
     // Torrent was actually paused, i.e. was an actual match found
     //if(paused)
     //    qCDebug() << "Invalid torrent handle found.";
+    */
 }
 
 void TorrentViewModel::startMenuAction() {
 
+    // Start torrent
+    emit startTorrentClicked(_infoHash);
+
+    /**
     // Start torrent
     bool started = _controller->startTorrent(_infoHash);
 
     // Torrent was actually started, i.e. was an actual match found
    // if(!started)
     //    qCDebug() << "Invalid torrent handle found.";
+    */
 }
 
 void TorrentViewModel::removeMenuAction() {
 
+    // Remove torrent
+    emit removeTorrentClicked(_infoHash);
+
+    /**
     // Remove torrent
     bool removed = _controller->removeTorrent(_infoHash);
 
     // Torrent was actually started, i.e. was an actual match found
     //if(!removed)
    //     qCDebug() << "Invalid torrent handle found.";
+   */
 }
 
 void TorrentViewModel::viewExtensionMenuAction() {
@@ -136,11 +152,13 @@ void TorrentViewModel::viewExtensionMenuAction() {
     switch(_pluginInstalled) {
 
         case PluginInstalled::Buyer:
-            Q_ASSERT(false);
+
+            emit showSellerTorrentPluginClicked(_sellerTorrentPluginViewModel);
             break;
 
         case PluginInstalled::Seller:
-            Q_ASSERT(false);
+
+            emit showBuyerTorrentPluginClicked(_buyerTorrentPluginViewModel);
             break;
 
         case PluginInstalled::Observer:

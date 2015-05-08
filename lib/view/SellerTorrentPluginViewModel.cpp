@@ -5,16 +5,11 @@
 const char * SellerTorrentPluginViewModel::columnTitles[] = {"Host", "State", "Contract", "Funds", "Lock", "Price", "#Payments", "Balance"};
 const int SellerTorrentPluginViewModel::numberOfColumns = sizeof(SellerTorrentPluginViewModel::columnTitles)/sizeof(char *);
 
-/**
-SellerTorrentPluginViewModel::SellerTorrentPluginViewModel(TorrentViewModel * parent)
-    : QObject(parent) {
-}
-*/
-
-SellerTorrentPluginViewModel::SellerTorrentPluginViewModel(TorrentViewModel * parent, const libtorrent::sha1_hash & infoHash)
+SellerTorrentPluginViewModel::SellerTorrentPluginViewModel(TorrentViewModel * parent, const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration)
     : QObject(parent)
-    //, TorrentPluginViewModel(infoHash) {
-    , _infoHash(infoHash) {
+    // TorrentPluginViewModel(infoHash)
+    , _infoHash(infoHash)
+    , _configuration(configuration) {
 
     // Add columns to model view model
     for(int i = 0;i < SellerTorrentPluginViewModel::numberOfColumns;i++)
@@ -37,11 +32,11 @@ void SellerTorrentPluginViewModel::addPeer(const libtorrent::tcp::endpoint & end
 
 void SellerTorrentPluginViewModel::update(const SellerTorrentPlugin::Status & status) {
 
-    const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerStatuses = status.peerStatuses();
+    const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerPluginStatuses = status.peerPluginStatuses();
 
     for(QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status>::const_iterator
-        i = peerStatuses.constBegin(),
-        end = peerStatuses.constEnd(); i != end;i++)
+        i = peerPluginStatuses.constBegin(),
+        end = peerPluginStatuses.constEnd(); i != end;i++)
             updatePeer(i.key(), i.value());
 }
 
@@ -55,4 +50,12 @@ void SellerTorrentPluginViewModel::updatePeer(const libtorrent::tcp::endpoint & 
 
 QStandardItemModel * SellerTorrentPluginViewModel::sellerPeerPluginTableViewModel() {
     return &_sellerPeerPluginTableViewModel;
+}
+
+SellerTorrentPlugin::Configuration SellerTorrentPluginViewModel::configuration() const {
+    return _configuration;
+}
+
+void SellerTorrentPluginViewModel::setConfiguration(const SellerTorrentPlugin::Configuration & configuration) {
+    _configuration = configuration;
 }

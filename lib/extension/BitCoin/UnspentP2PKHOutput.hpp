@@ -19,6 +19,9 @@ public:
     // Constructor from json
     UnspentP2PKHOutput(const QJsonObject & json);
 
+    // Comparator
+    bool operator==(const UnspentP2PKHOutput & o) const;
+
     // Encode as json
     QJsonObject json() const;
 
@@ -44,5 +47,8 @@ private:
     quint64 _value;
 
 };
+
+#include <QMetaType>
+Q_DECLARE_METATYPE(const UnspentP2PKHOutput &)
 
 #endif // UNSPENT_P2PKH_OUTPUT_HPP

@@ -118,15 +118,15 @@ public:
                 quint32 numberOfSellerPeers,
                 quint32 numberOfBuyerPeers,
                 State state,
-                const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> & peers,
+                const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> & peerPluginStatuses,
                 const Payor::Status & payor);
 
-        // Getters and Setters
+        // Getters and setters
         State state() const;
         void setState(State state);
 
-        QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> peers() const;
-        void setPeers(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> & peers);
+        QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> peerPluginStatuses() const;
+        void setPeerPluginStatuses(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> & peerPluginStatuses);
 
         Payor::Status payor() const;
         void setPayor(const Payor::Status & payor);
@@ -137,7 +137,7 @@ public:
         State _state;
 
         // Status of peers
-        QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> _peers;
+        QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> _peerPluginStatuses;
 
         // Status of the payor
         Payor::Status _payor;

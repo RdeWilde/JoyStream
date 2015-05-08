@@ -171,7 +171,7 @@ public:
         void setIndexOfAssignedPiece(int indexOfAssignedPiece);
 
         QList<int> downloadedValidPieces() const;
-        void setDownloadedValidPieces(const QList<int> &downloadedValidPieces);
+        void setDownloadedValidPieces(const QList<int> & downloadedValidPieces);
 
     private:
 

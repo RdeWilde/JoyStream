@@ -34,6 +34,10 @@ KeyPair::KeyPair(const QJsonObject & json) {
     _sk = PrivateKey(sk);
 }
 
+bool KeyPair::operator==(const KeyPair & o) const {
+    return _pk == o.pk() && _sk == o.sk();
+}
+
 QJsonObject KeyPair::json() const {
 
     return QJsonObject {

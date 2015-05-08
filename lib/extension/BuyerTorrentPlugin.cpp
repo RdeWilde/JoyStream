@@ -78,7 +78,7 @@ BuyerTorrentPlugin::Status::Status(quint32 numberOfClassicPeers,
                             numberOfSellerPeers,
                             numberOfBuyerPeers)
     , _state(state)
-    , _peers(peers)
+    , _peerPluginStatuses(peers)
     , _payor(payor) {
 }
 

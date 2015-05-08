@@ -23,15 +23,15 @@ SellerTorrentPlugin::Status::Status() {
 }
 
 SellerTorrentPlugin::Status::Status(const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerStatuses)
-    : _peerStatuses(peerStatuses) {
+    : _peerPluginStatuses(peerStatuses) {
 }
 
-QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> SellerTorrentPlugin::Status::peerStatuses() const {
-    return _peerStatuses;
+QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> SellerTorrentPlugin::Status::peerPluginStatuses() const {
+    return _peerPluginStatuses;
 }
 
-void SellerTorrentPlugin::Status::setPeerStatuses(const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerStatuses) {
-    _peerStatuses = peerStatuses;
+void SellerTorrentPlugin::Status::setPeerPluginStatuses(const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerStatuses) {
+    _peerPluginStatuses = peerStatuses;
 }
 
 /**

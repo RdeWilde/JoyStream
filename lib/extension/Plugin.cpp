@@ -12,7 +12,9 @@
 #include "PeerPlugin.hpp"
 
 #include "Alert/PluginStatusAlert.hpp"
-#include "Alert/TorrentPluginStartedAlert.hpp"
+//#include "Alert/TorrentPluginStartedAlert.hpp"
+#include "Alert/StartedSellerTorrentPlugin.hpp"
+#include "Alert/StartedBuyerTorrentPlugin.hpp"
 
 #include "PluginMode.hpp"
 
@@ -316,9 +318,6 @@ void Plugin::processPluginRequest(const PluginRequest * pluginRequest) {
                 const StartBuyerTorrentPlugin * p = reinterpret_cast<const StartBuyerTorrentPlugin *>(pluginRequest);
 
                 startBuyerTorrentPlugin(p->infoHash(), p->configuration(), p->utxo());
-
-                // Notify controller
-                sendAlertToSession(TorrentPluginStartedAlert(p->infoHash(), PluginMode::Buyer));
             }
 
             break;
@@ -326,10 +325,8 @@ void Plugin::processPluginRequest(const PluginRequest * pluginRequest) {
         case PluginRequestType::StartSellerTorrentPlugin: {
 
                 const StartSellerTorrentPlugin * p = reinterpret_cast<const StartSellerTorrentPlugin *>(pluginRequest);
-                startSellerTorrentPlugin(p->infoHash(), p->configuration());
 
-                // Notify controller
-                sendAlertToSession(TorrentPluginStartedAlert(p->infoHash(), PluginMode::Seller));
+                startSellerTorrentPlugin(p->infoHash(), p->configuration());
             }
 
             break;
@@ -394,6 +391,7 @@ bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, con
     // Check that torrent does not already have a plugin installed
     if(_sellerPlugins.contains(infoHash) || _buyerPlugins.contains(infoHash)) {
         qCDebug(_category) << "Torrent already has plugin installed, remove first.";
+        Q_ASSERT(false);
         return false;
     }
 
@@ -412,12 +410,16 @@ bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, con
         // Remember plugin
         _buyerPlugins[infoHash] = boost::dynamic_pointer_cast<BuyerTorrentPlugin>(sharedPluginPtr); // sharedPluginPtr
 
+        // Notify controller
+        sendAlertToSession(StartedBuyerTorrentPlugin(infoHash, configuration));
+
         // Return success indication
         return true;
 
     } else {
 
         qCDebug(_category) << "Torrent deleted, cannot install buyer torrent pluin.";
+        Q_ASSERT(false);
         return false;
     }
 }
@@ -428,6 +430,7 @@ bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, co
     if(_sellerPlugins.contains(infoHash) || _buyerPlugins.contains(infoHash)) {
 
         qCDebug(_category) << "Torrent already has plugin installed, remove first.";
+        Q_ASSERT(false);
         return false;
     }
 
@@ -446,12 +449,16 @@ bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, co
         // Remember plugin
         _sellerPlugins[infoHash] = boost::dynamic_pointer_cast<SellerTorrentPlugin>(sharedPluginPtr); //sharedPluginPtr;
 
+        // Notify controller
+        sendAlertToSession(StartedSellerTorrentPlugin(infoHash, configuration));
+
         // Return success indication
         return true;
 
     } else {
 
         qCDebug(_category) << "Torrent deleted, cannot install seller torrent pluin.";
+        Q_ASSERT(false);
         return false;
     }
 }

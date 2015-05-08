@@ -41,15 +41,15 @@ public:
 
     // Constructor
     TorrentViewModel(const libtorrent::sha1_hash & info_hash,
-                     Controller * controller,
+                     //Controller * controller,
                      QStandardItemModel * torrentTableViewModel);
 
     // Destructor
     ~TorrentViewModel();
 
     // Add plugins
-    void addSellerPlugin();
-    void addBuyerPlugin();
+    void addSellerPlugin(const SellerTorrentPlugin::Configuration & configuration);
+    void addBuyerPlugin(const BuyerTorrentPlugin::Configuration & configuration);
 
     // Update view model
     void update(const libtorrent::torrent_status & torrentStatus);
@@ -80,6 +80,14 @@ public slots:
     void removeMenuAction();
     void viewExtensionMenuAction();
 
+signals:
+
+    void pauseTorrentClicked(const libtorrent::sha1_hash & infoHash);
+    void startTorrentClicked(const libtorrent::sha1_hash & infoHash);
+    void removeTorrentClicked(const libtorrent::sha1_hash & infoHash);
+    void showSellerTorrentPluginClicked(const SellerTorrentPluginViewModel * sellerTorrentPluginViewModel);
+    void showBuyerTorrentPluginClicked(const BuyerTorrentPluginViewModel * buyerTorrentPluginViewModel);
+
 private:
 
     // Hash of torrent
@@ -87,7 +95,7 @@ private:
 
     // Pointer to main window
     // Talk to controller through signals in the future perhaps
-    Controller * _controller;
+    //Controller * _controller;
 
     // Model items, have to be pointers since QStandardItemModel takes ownership of
     // objects and deletes them.

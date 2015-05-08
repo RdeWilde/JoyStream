@@ -958,22 +958,22 @@ void Controller::Configuration::setLibtorrentSessionSettingsEntry(const libtorre
  * Controller
  */
 
-//#include "TorrentStatus.hpp"
 #include "Config.hpp"
-//#include "view/addtorrentdialog.hpp"
 #include "controller/Exceptions/ListenOnException.hpp"
+
 //#include "controller/TorrentConfiguration.hpp"
 //#include "extension/Alert/TorrentPluginStatusAlert.hpp"
+#include "extension/Alert/StartedSellerTorrentPlugin.hpp"
+#include "extension/Alert/StartedBuyerTorrentPlugin.hpp"
+
 #include "extension/Alert/BuyerTorrentPluginStatusAlert.hpp"
 #include "extension/Alert/SellerTorrentPluginStatusAlert.hpp"
-
 #include "extension/Alert/PluginStatusAlert.hpp"
-#include "extension/Alert/TorrentPluginStartedAlert.hpp"
+//#include "extension/Alert/TorrentPluginStartedAlert.hpp"
 
 //#include "extension/Request/SetConfigurationTorrentPluginRequest.hpp"
 //#include "extension/Request/StartPluginTorrentPluginRequest.hpp"
 //#include "extension/Request/StartTorrentPlugin.hpp"
-
 #include "extension/Request/StartSellerTorrentPlugin.hpp"
 #include "extension/Request/StartBuyerTorrentPlugin.hpp"
 #include "extension/Request/StartObserverTorrentPlugin.hpp"
@@ -1131,7 +1131,8 @@ void Controller::removePeerPlugin(libtorrent::sha1_hash info_hash, libtorrent::t
 void Controller::libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::alert> alertAutoPtr) {
 
     /**
-     * CRITICAL: Do not under any circumstance make a new call to libtorrent in this routine, since the network
+     * CRITICAL:
+     * Do not under any circumstance make a new call to libtorrent in this routine, since the network
      * thread in libtorrent will be making this call, and a new call will result in a dead lock.
      */
 
@@ -1185,12 +1186,16 @@ void Controller::processAlert(const libtorrent::alert * a) {
         processTorrentCheckedAlert(p);
     else if(PluginStatusAlert const * p = libtorrent::alert_cast<PluginStatusAlert>(a))
         processPluginStatusAlert(p);
+    else if(const StartedSellerTorrentPlugin * p = libtorrent::alert_cast<StartedSellerTorrentPlugin>(a))
+        processStartedSellerTorrentPlugin(p);
+    else if(const StartedBuyerTorrentPlugin * p = libtorrent::alert_cast<StartedBuyerTorrentPlugin>(a))
+        processStartedBuyerTorrentPlugin(p);
     else if(const SellerTorrentPluginStatusAlert * p = libtorrent::alert_cast<SellerTorrentPluginStatusAlert>(a))
         processSellerTorrentPluginStatusAlert(p);
     else if(const BuyerTorrentPluginStatusAlert * p = libtorrent::alert_cast<BuyerTorrentPluginStatusAlert>(a))
         processBuyerTorrentPluginStatusAlert(p);
-    else if(const TorrentPluginStartedAlert * p = libtorrent::alert_cast<TorrentPluginStartedAlert>(a))
-        processTorrentPluginStartedAlert(p);
+    //else if(const TorrentPluginStartedAlert * p = libtorrent::alert_cast<TorrentPluginStartedAlert>(a))
+    //    processTorrentPluginStartedAlert(p);
 
     // Delete alert
     delete a;
@@ -1508,6 +1513,30 @@ void Controller::processTorrentPluginStatusAlert(const TorrentPluginStatusAlert 
 }
 */
 
+void Controller::processStartedSellerTorrentPlugin(const StartedSellerTorrentPlugin * p) {
+
+    Q_ASSERT(_torrents[p->infoHash()].pluginInstalled() == PluginInstalled::None);
+
+    // Update information about plugin installed on torrent
+    _torrents[p->infoHash()].setPluginInstalled(PluginInstalled::Seller);
+
+    // Notify view
+    //_view.addTorrentPlugin(p->infoHash(), p->mode());
+    _view.registerSellerTorrentPluginStarted(p->infoHash(), p->configuration());
+}
+
+void Controller::processStartedBuyerTorrentPlugin(const StartedBuyerTorrentPlugin * p) {
+
+    Q_ASSERT(_torrents[p->infoHash()].pluginInstalled() == PluginInstalled::None);
+
+    // Update information about plugin installed on torrent
+    _torrents[p->infoHash()].setPluginInstalled(PluginInstalled::Buyer);
+
+    // Notify view
+    //_view.addTorrentPlugin(p->infoHash(), p->mode());
+    _view.registerBuyerTorrentPluginStarted(p->infoHash(), p->configuration());
+}
+
 void Controller::processBuyerTorrentPluginStatusAlert(const BuyerTorrentPluginStatusAlert * p) {
     _view.updateBuyerTorrentPluginStatus(p->infoHash(), p->status());
 }
@@ -1520,6 +1549,7 @@ void Controller::processPluginStatusAlert(const PluginStatusAlert * p) {
     _view.updatePluginStatus(p->status());
 }
 
+/**
 void Controller::processTorrentPluginStartedAlert(const TorrentPluginStartedAlert * p) {
 
     Q_ASSERT(_torrents[p->infoHash()].pluginInstalled() == PluginInstalled::None);
@@ -1530,15 +1560,17 @@ void Controller::processTorrentPluginStartedAlert(const TorrentPluginStartedAler
     // Notify view
     _view.addTorrentPlugin(p->infoHash(), p->mode());
 }
+*/
 
-bool Controller::removeTorrent(const libtorrent::sha1_hash & info_hash) {
+void Controller::removeTorrent(const libtorrent::sha1_hash & info_hash) {
 
     // Find corresponding torrent
     libtorrent::torrent_handle & torrentHandle = _session.find_torrent(info_hash);
 
     // Check that there actually was such a torrent
     if(!torrentHandle.is_valid())
-        return false;
+        Q_ASSERT(false);
+        //return false;
 
     // Remove from session
     // Session will send us torrent_removed_alert alert when torrent has been removed
@@ -1546,17 +1578,18 @@ bool Controller::removeTorrent(const libtorrent::sha1_hash & info_hash) {
     _session.remove_torrent(torrentHandle);
 
     // It worked
-    return true;
+    //return true;
 }
 
-bool Controller::pauseTorrent(const libtorrent::sha1_hash & info_hash) {
+void Controller::pauseTorrent(const libtorrent::sha1_hash & info_hash) {
 
     // Find corresponding torrent
     libtorrent::torrent_handle & torrentHandle = _session.find_torrent(info_hash);
 
     // Check that there actually was such a torrent
     if(!torrentHandle.is_valid())
-        return false;
+        Q_ASSERT(false);
+        //return false;
 
     // Turn off auto managing
     torrentHandle.auto_managed(false);
@@ -1566,17 +1599,18 @@ bool Controller::pauseTorrent(const libtorrent::sha1_hash & info_hash) {
     torrentHandle.pause(libtorrent::torrent_handle::graceful_pause);
 
     // It worked
-    return true;
+    //return true;
 }
 
-bool Controller::startTorrent(const libtorrent::sha1_hash & info_hash) {
+void Controller::startTorrent(const libtorrent::sha1_hash & info_hash) {
 
     // Find corresponding torrent
     libtorrent::torrent_handle & torrentHandle = _session.find_torrent(info_hash);
 
     // Check that there actually was such a torrent
     if(!torrentHandle.is_valid())
-        return false;
+        Q_ASSERT(false);
+        //return false;
 
     // Turn on auto managing
     torrentHandle.auto_managed(true);
@@ -1585,7 +1619,15 @@ bool Controller::startTorrent(const libtorrent::sha1_hash & info_hash) {
     torrentHandle.resume();
 
     // It worked
-    return true;
+    //return true;
+}
+
+void Controller::showSellerTorrentPluginDialog(const SellerTorrentPluginViewModel * model) {
+
+}
+
+void Controller::showBuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel * model) {
+
 }
 
 bool Controller::addTorrent(const Torrent::Configuration & configuration) {

@@ -18,14 +18,8 @@ class SellerPeerPluginViewModel : public QObject // : public PeerPluginViewModel
 
 public:
 
-    // Default constructor
-    SellerPeerPluginViewModel(SellerTorrentPluginViewModel * parent);
-
     // Constructor from members
     SellerPeerPluginViewModel(SellerTorrentPluginViewModel * parent, const libtorrent::tcp::endpoint & endPoint, QStandardItemModel * model);
-
-    // Destructor
-    ~SellerPeerPluginViewModel();
 
     // Update
     void update(const SellerPeerPlugin::Status & status);

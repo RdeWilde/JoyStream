@@ -22,16 +22,16 @@ public:
         Status();
 
         // Constructor from members
-        Status(const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerStatuses);
+        Status(const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerPluginStatuses);
 
         // Getters and setters
-        QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> peerStatuses() const;
-        void setPeerStatuses(const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerStatuses);
+        QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> peerPluginStatuses() const;
+        void setPeerPluginStatuses(const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerPluginStatuses);
 
     private:
 
         // Status of peer plugins
-        QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> _peerStatuses;
+        QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> _peerPluginStatuses;
     };
 
     /**
@@ -91,7 +91,8 @@ public:
         // Maximum price accepted (satoshies)
         quint64 _minPrice;
 
-        // Minimum lock time (the number of seconds elapsed since 1970-01-01T00:00 UTC)
+        // Minimum lock time
+        // Whould have been nice to use QTime, however it is limited to 24h cycle.
         quint32 _minLock;
 
         // Minimum fee per byte in contract transaction (satoshies)
@@ -199,5 +200,8 @@ private:
     // Maximum time (s) for which seller is willing to seed without contract getting at least one confirmation
     quint32 _maxContractConfirmationDelay;
 };
+
+//#include <QMetaType>
+//Q_DECLARE_METATYPE(const SellerTorrentPlugin::Configuration &)
 
 #endif // SELLER_TORRENT_PLUGIN_HPP

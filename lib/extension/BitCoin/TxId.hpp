@@ -54,4 +54,8 @@ private:
 
 uint qHash(const TxId & o);
 
+
+#include <QMetaType>
+Q_DECLARE_METATYPE(const TxId &)
+
 #endif // TX_ID_HPP

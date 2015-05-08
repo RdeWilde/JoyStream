@@ -25,6 +25,9 @@ public:
     // Constructor from json
     KeyPair(const QJsonObject & json);
 
+    // Comparison operator
+    bool operator==(const KeyPair & o) const;
+
     // Converts to json
     QJsonObject json() const;
 

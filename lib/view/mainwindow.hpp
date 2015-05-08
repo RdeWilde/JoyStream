@@ -29,6 +29,8 @@ class PeerPlugin;
 class PeerPluginStatus;
 class TorrentViewModel;
 class Wallet;
+class SellerTorrentPluginViewModel;
+class BuyerTorrentPluginViewModel;
 
 class MainWindow : public QMainWindow
 {
@@ -48,7 +50,9 @@ public:
 
     void addTorrentFailed(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec);
 
-    void addTorrentPlugin(const libtorrent::sha1_hash & infoHash, PluginMode mode);
+    //void addTorrentPlugin(const libtorrent::sha1_hash & infoHash, PluginMode mode);
+    void registerSellerTorrentPluginStarted(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration);
+    void registerBuyerTorrentPluginStarted(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration);
 
     void updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector);
     void updateTorrentStatus(const libtorrent::torrent_status & torrentStatus); // start, stopp, stats
@@ -77,6 +81,10 @@ public slots:
     void showContextMenu(QPoint pos);
 
     void torrentTableClicked(const QModelIndex & index);
+
+    // TorrentViewModel signals by cor
+    void showSellerTorrentPluginDialog(const SellerTorrentPluginViewModel * sellerTorrentPluginViewModel);
+    void showBuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel * buyerTorrentPluginViewModel);
 
 private:
 

@@ -24,6 +24,10 @@ class TorrentStatus;
 //class TorrentPluginStatusAlert;
 class BuyerTorrentPluginStatusAlert;
 class SellerTorrentPluginStatusAlert;
+class StartedSellerTorrentPlugin;
+class StartedBuyerTorrentPlugin;
+
+
 class TorrentPluginStartedAlert;
 class PluginStatusAlert;
 
@@ -439,15 +443,12 @@ public:
     bool addTorrent(const Torrent::Configuration & configuration, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const UnspentP2PKHOutput & utxo);
     //bool addTorrent(const Torrent::Configuration & configuration, const ObserverTorrentPlugin::Configuration & pluginConfiguration);
 
-    bool removeTorrent(const libtorrent::sha1_hash & info_hash);
-    bool pauseTorrent(const libtorrent::sha1_hash & info_hash);
-    bool startTorrent(const libtorrent::sha1_hash & info_hash);
-
     // Start torrent plugin
     //void startTorrentPlugin(const libtorrent::sha1_hash & info_hash, const TorrentPlugin::Configuration * configuration);
     void startSellerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const SellerTorrentPlugin::Configuration & pluginConfiguration);
     void startBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const UnspentP2PKHOutput & utxo);
     //void startObserverTorrentPlugin(const libtorrent::sha1_hash & info_hash, const ObserverTorrentPlugin::Configuration & pluginConfiguration);
+
 
     // Stops libtorrent session, and tries to save_resume data, when all resume data is saved, finalize_close() is called.
     void begin_close();
@@ -456,7 +457,23 @@ public:
     Wallet & wallet();
 
     // Save state of controller
-    Configuration toConfiguration() const;
+    Configuration configuration() const;
+
+public slots:
+
+    /**
+     * View entry points
+     * =================
+     * Primarily called by view objects on the same thread as controller thread,
+     * buy also good routines to use for testing.
+     */
+
+    void pauseTorrent(const libtorrent::sha1_hash & info_hash);
+    void startTorrent(const libtorrent::sha1_hash & info_hash);
+    void removeTorrent(const libtorrent::sha1_hash & info_hash);
+
+    void showSellerTorrentPluginDialog(const SellerTorrentPluginViewModel * model);
+    void showBuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel * model);
 
 private slots:
 
@@ -537,13 +554,16 @@ private:
     void processSaveResumeDataFailedAlert(libtorrent::save_resume_data_failed_alert const * p);
     void processTorrentPausedAlert(libtorrent::torrent_paused_alert const * p);
     void processTorrentCheckedAlert(libtorrent::torrent_checked_alert const * p);
+
+    //void processTorrentPluginStartedAlert(const TorrentPluginStartedAlert * p);
+    void processStartedSellerTorrentPlugin(const StartedSellerTorrentPlugin * p);
+    void processStartedBuyerTorrentPlugin(const StartedBuyerTorrentPlugin * p);
+
     //void processTorrentPluginStatusAlert(const TorrentPluginStatusAlert * p);
     void processBuyerTorrentPluginStatusAlert(const BuyerTorrentPluginStatusAlert * p);
     void processSellerTorrentPluginStatusAlert(const SellerTorrentPluginStatusAlert * p);
+
     void processPluginStatusAlert(const PluginStatusAlert * p);
-
-    void processTorrentPluginStartedAlert(const TorrentPluginStartedAlert * p);
-
 
     // Start torrent plugin
     void startTorrentPlugin(const libtorrent::sha1_hash & info_hash);

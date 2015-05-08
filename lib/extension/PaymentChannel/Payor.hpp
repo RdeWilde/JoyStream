@@ -189,6 +189,7 @@ public:
                    State state,
                    quint64 price,
                    quint64 numberOfPaymentsMade,
+                   quint64 funds,
                    quint32 refundLockTime);
 
             // Getters and setters
@@ -203,6 +204,9 @@ public:
 
             quint64 numberOfPaymentsMade() const;
             void setNumberOfPaymentsMade(quint64 numberOfPaymentsMade);
+
+            quint64 funds() const;
+            void setFunds(quint64 funds);
 
             quint32 refundLockTime() const;
             void setRefundLockTime(quint32 refundLockTime);
@@ -220,6 +224,9 @@ public:
 
             // Number of payments made
             quint64 _numberOfPaymentsMade;
+
+            // Funds allocated to output
+            quint64 _funds;
 
             // Lock time of refund, received in
             quint32 _refundLockTime;
@@ -370,6 +377,8 @@ public:
         // Construct from members
         Status(const QVector<Channel::Status> & channels,
                State state,
+               const UnspentP2PKHOutput & utxo,
+               const TxId & contractTxId,
                quint32 numberOfSignatures);
 
         // Getters and setters
@@ -378,6 +387,12 @@ public:
 
         State state() const;
         void setState(State state);
+
+        UnspentP2PKHOutput utxo() const;
+        void setUtxo(const UnspentP2PKHOutput & utxo);
+
+        TxId contractTxId() const;
+        void setContractTxId(const TxId &contractTxId);
 
         quint32 numberOfSignatures() const;
         void setNumberOfSignatures(quint32 numberOfSignatures);
@@ -389,6 +404,12 @@ public:
 
         // State of payor
         State _state;
+
+        // Funding utxo
+        UnspentP2PKHOutput _utxo;
+
+        // Transaction id of contract
+        TxId _contractTxId;
 
         // Number of valid signatures collected
         quint32 _numberOfSignatures;
@@ -601,7 +622,7 @@ private:
     // Add variable here for number of channels assignd as well
 
     // Contract _contract;
-    TxId _contractHash;
+    TxId _contractTxId;
 
     quint32 _numberOfSignatures;
 };

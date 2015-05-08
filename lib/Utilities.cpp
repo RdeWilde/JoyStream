@@ -11,6 +11,7 @@
 
 #include <libtorrent/socket_io.hpp> // libtorrent::print_endpoint
 #include <QHash>
+
 uint qHash(const libtorrent::tcp::endpoint & endpoint) {
 
     // Convert to std::string
@@ -253,4 +254,19 @@ PluginInstalled Utilities::PluginModeToPluginInstalled(PluginMode mode) {
             return PluginInstalled::Seller;
     }
 
+}
+
+#include <QtMath>
+#include <QTime>
+
+quint8 Utilities::hoursInSeconds(quint32 seconds) {
+    return qFloor(seconds / 3600);
+}
+
+quint8 Utilities::minutesInSeconds(quint32 seconds) {
+    return qFloor(((seconds - 3600 * Utilities::hoursInSeconds(seconds)) / 60));
+}
+
+quint8 Utilities::secondsInSeconds(quint32 seconds) {
+    return seconds - Utilities::hoursInSeconds(seconds)*3600 - Utilities::minutesInSeconds(seconds)*60;
 }

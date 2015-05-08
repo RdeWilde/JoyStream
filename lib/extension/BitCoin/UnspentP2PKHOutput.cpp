@@ -26,6 +26,13 @@ UnspentP2PKHOutput::UnspentP2PKHOutput(const QJsonObject & json) {
     _value = valueValue.toDouble();
 }
 
+bool UnspentP2PKHOutput::operator==(const UnspentP2PKHOutput & o) const {
+
+    return _value == o.value() &&
+           _outPoint == o.outPoint() &&
+           _keyPair == o.keyPair();
+}
+
 QJsonObject UnspentP2PKHOutput::json() const {
 
     return QJsonObject{

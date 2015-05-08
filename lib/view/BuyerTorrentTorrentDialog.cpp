@@ -1,4 +1,4 @@
-#include "BuyerTorrentDialog.hpp"
+#include "BuyerTorrentPluginDialog.hpp"
 #include "ui_BuyerTorrentDialog.h"
 
 #include <libtorrent/socket_io.hpp> // print_endpoint

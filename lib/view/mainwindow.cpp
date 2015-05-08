@@ -2,6 +2,8 @@
 #include "ui_mainwindow.h"
 #include "AddTorrentDialog.hpp"
 #include "TorrentViewModel.hpp"
+#include "SellerTorrentPluginViewModel.hpp"
+#include "BuyerTorrentPluginViewModel.hpp"
 #include "WalletDialog.hpp"
 #include "SellerTorrentPluginConfigurationDialog.hpp"
 #include "BuyerTorrentPluginConfigurationDialog.hpp"
@@ -114,6 +116,15 @@ void MainWindow::torrentTableClicked(const QModelIndex & index) {
 
     qCCritical(_category) << "Clicked torrent with info hash"<< _torrentInTableRow[index.row()].to_string().c_str();
 }
+
+void MainWindow::showSellerTorrentPluginDialog(const SellerTorrentPluginViewModel * sellerTorrentPluginViewModel) {
+
+}
+
+void MainWindow::showBuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel * buyerTorrentPluginViewModel) {
+
+}
+
 
 void MainWindow::showAddTorrentFromTorrentFileDialog(const QString & torrentFile) {
 
@@ -233,7 +244,7 @@ void MainWindow::addTorrent(const libtorrent::sha1_hash & info_hash, const QStri
     Q_ASSERT(!_torrentViewModels.contains(info_hash));
 
     // Create torrent view model
-    TorrentViewModel * torrentViewModel = new TorrentViewModel(info_hash, _controller, &_torrentTableViewModel);
+    TorrentViewModel * torrentViewModel = new TorrentViewModel(info_hash, &_torrentTableViewModel);
 
     // Update known members
     torrentViewModel->updateName(torrentName);
@@ -241,6 +252,14 @@ void MainWindow::addTorrent(const libtorrent::sha1_hash & info_hash, const QStri
 
     // Insert into map
     _torrentViewModels[info_hash] = torrentViewModel;
+
+    // Connect view model signals to controller slots
+    QObject::connect(torrentViewModel, SIGNAL(pauseTorrentClicked(const libtorrent::sha1_hash &)), _controller, SLOT(pauseTorrent(const libtorrent::sha1_hash &)));
+    QObject::connect(torrentViewModel, SIGNAL(startTorrentClicked(const libtorrent::sha1_hash &)), _controller, SLOT(startTorrent(const libtorrent::sha1_hash &)));
+    QObject::connect(torrentViewModel, SIGNAL(removeTorrentClicked(const libtorrent::sha1_hash &)), _controller, SLOT(removeTorrent(const libtorrent::sha1_hash &)));
+
+    QObject::connect(torrentViewModel, SIGNAL(showSellerTorrentPluginClicked(const SellerTorrentPluginViewModel *)), _controller, SLOT(showSellerTorrentPluginDialog(const SellerTorrentPluginViewModel *)));
+    QObject::connect(torrentViewModel, SIGNAL(showBuyerTorrentPluginClicked(const BuyerTorrentPluginViewModel *)), _controller, SLOT(showBuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel *)));
 }
 
 void MainWindow::addTorrentFailed(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec) {
@@ -262,6 +281,7 @@ void MainWindow::removeTorrent(const libtorrent::sha1_hash & info_hash) {
     //ui->peerPluginsTable->setModel(0);
 }
 
+/**
 void MainWindow::addTorrentPlugin(const libtorrent::sha1_hash & infoHash, PluginMode mode) {
 
     Q_ASSERT(_torrentViewModels.contains(infoHash));
@@ -283,6 +303,19 @@ void MainWindow::addTorrentPlugin(const libtorrent::sha1_hash & infoHash, Plugin
     }
 
 
+}*/
+
+void MainWindow::registerSellerTorrentPluginStarted(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration) {
+
+    Q_ASSERT(_torrentViewModels.contains(infoHash));
+    _torrentViewModels[infoHash]->addSellerPlugin(configuration);
+
+}
+
+void MainWindow::registerBuyerTorrentPluginStarted(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration) {
+
+    Q_ASSERT(_torrentViewModels.contains(infoHash));
+    _torrentViewModels[infoHash]->addBuyerPlugin(configuration);
 }
 
 void MainWindow::updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector) {

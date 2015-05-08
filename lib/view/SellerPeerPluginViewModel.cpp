@@ -3,10 +3,6 @@
 
 #include <QStandardItem>
 
-SellerPeerPluginViewModel::SellerPeerPluginViewModel(SellerTorrentPluginViewModel * parent)
-    : QObject(parent) {
-}
-
 SellerPeerPluginViewModel::SellerPeerPluginViewModel(SellerTorrentPluginViewModel * parent, const libtorrent::tcp::endpoint & endPoint, QStandardItemModel * model)
     : QObject(parent)
     , _endPoint(endPoint)
@@ -32,9 +28,6 @@ SellerPeerPluginViewModel::SellerPeerPluginViewModel(SellerTorrentPluginViewMode
     row.append(_balanceItem);
 
     model->appendRow(row);
-}
-
-SellerPeerPluginViewModel::~SellerPeerPluginViewModel() {
 }
 
 void SellerPeerPluginViewModel::update(const SellerPeerPlugin::Status & status) {

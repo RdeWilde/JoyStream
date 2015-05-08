@@ -161,11 +161,13 @@ Payor::Channel::Status::Status(quint32 index,
                                State state,
                                quint64 price,
                                quint64 numberOfPaymentsMade,
+                               quint64 funds,
                                quint32 refundLockTime)
     : _index(index)
     , _state(state)
     , _price(price)
     , _numberOfPaymentsMade(numberOfPaymentsMade)
+    , _funds(funds)
     , _refundLockTime(refundLockTime) {
 }
 
@@ -183,6 +185,14 @@ quint64 Payor::Channel::Status::numberOfPaymentsMade() const {
 
 void Payor::Channel::Status::setNumberOfPaymentsMade(quint64 numberOfPaymentsMade) {
     _numberOfPaymentsMade = numberOfPaymentsMade;
+}
+
+quint64 Payor::Channel::Status::funds() const {
+    return _funds;
+}
+
+void Payor::Channel::Status::setFunds(quint64 funds) {
+    _funds = funds;
 }
 
 quint64 Payor::Channel::Status::price() const {
@@ -451,9 +461,13 @@ void Payor::Channel::setRefundLockTime(quint32 refundLockTime) {
 
 Payor::Status::Status(const QVector<Channel::Status> & channels,
                       State state,
+                      const UnspentP2PKHOutput & utxo,
+                      const TxId & contractTxId,
                       quint32 numberOfSignatures)
     : _channels(channels)
     , _state(state)
+    , _utxo(utxo)
+    , _contractTxId(contractTxId)
     , _numberOfSignatures(numberOfSignatures) {
 }
 
@@ -471,6 +485,22 @@ Payor::State Payor::Status::state() const {
 
 void Payor::Status::setState(State state) {
     _state = state;
+}
+
+UnspentP2PKHOutput Payor::Status::utxo() const {
+    return _utxo;
+}
+
+void Payor::Status::setUtxo(const UnspentP2PKHOutput & utxo) {
+    _utxo = utxo;
+}
+
+TxId Payor::Status::contractTxId() const {
+    return _contractTxId;
+}
+
+void Payor::Status::setContractTxId(const TxId &contractTxId) {
+    _contractTxId = contractTxId;
 }
 
 quint32 Payor::Status::numberOfSignatures() const {
@@ -613,7 +643,7 @@ Payor::Payor(const Payor::Configuration & configuration)
     //, _fundingOutputKeyPair(configuration.fundingOutputKeyPair())
     , _changeOutputKeyPair(configuration.changeOutputKeyPair())
     , _changeValue(configuration.changeValue())
-    , _contractHash(configuration.contractHash())
+    , _contractTxId(configuration.contractHash())
     , _numberOfSignatures(configuration.numberOfSignatures()) {
 
 
@@ -683,7 +713,7 @@ quint32 Payor::assignUnassignedSlot(quint64 price, const PublicKey & payeeContra
 
 
         // Compute and set _contractHash
-        _contractHash = BitSwaprjs::compute_contract_hash(_utxo,
+        _contractTxId = BitSwaprjs::compute_contract_hash(_utxo,
                                                           //_fundingOutPoint,
                                                           //_fundingValue,
                                                           //_fundingOutputKeyPair.sk(),
@@ -692,7 +722,7 @@ quint32 Payor::assignUnassignedSlot(quint64 price, const PublicKey & payeeContra
 
         // Compute all refund signatures
         for(QVector<Channel>::Iterator i = _channels.begin(), end(_channels.end()); i != end;i++)
-            i->computePayorRefundSignature(_contractHash);
+            i->computePayorRefundSignature(_contractTxId);
     }
 
     return slotIndex;
@@ -745,7 +775,7 @@ bool Payor::processRefundSignature(quint32 index, const Signature & signature) {
     Q_ASSERT(s.state() == Channel::State::assigned);
 
     // Check signature
-    bool validSignature = BitSwaprjs::check_refund_signatures(OutPoint(_contractHash, index),
+    bool validSignature = BitSwaprjs::check_refund_signatures(OutPoint(_contractTxId, index),
                                                              s.payorRefundSignature(),
                                                              signature,
                                                              s.payorContractKeyPair().pk(),
@@ -831,7 +861,7 @@ Signature Payor::getPresentPaymentSignature(quint32 index) const {
     // The amount paid so far
     quint64 amountPaid = channel.price()*channel.numberOfPaymentsMade();
 
-    return BitSwaprjs::compute_payment_signature(OutPoint(_contractHash, index),
+    return BitSwaprjs::compute_payment_signature(OutPoint(_contractTxId, index),
                                                  channel.payorContractKeyPair().sk(),
                                                  channel.payorContractKeyPair().pk(),
                                                  channel.payeeContractPk(),
@@ -947,11 +977,11 @@ void Payor::setFundingOutPoint(const OutPoint &fundingOutput) {
 */
 
 TxId Payor::contractHash() const {
-    return _contractHash;
+    return _contractTxId;
 }
 
 void Payor::setContractHash(const TxId & contractHash) {
-    _contractHash = contractHash;
+    _contractTxId = contractHash;
 }
 
 quint32 Payor::numberOfSignatures() const {

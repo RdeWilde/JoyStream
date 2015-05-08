@@ -27,6 +27,8 @@ uint qHash(const libtorrent::peer_request & request);
 #include "extension/PluginMode.hpp"
 #include "controller/PluginInstalled.hpp"
 
+class QTime;
+
 /**
  * Static utility functions
  */
@@ -64,6 +66,12 @@ public:
 
     // Conversion routine
     static PluginInstalled PluginModeToPluginInstalled(PluginMode mode);
+
+    // Converts x-> #units in x
+    static quint8 hoursInSeconds(quint32 seconds);
+    static quint8 minutesInSeconds(quint32 seconds);
+    static quint8 secondsInSeconds(quint32 seconds);
+
 };
 
 #endif // UTILITIES_HPP
