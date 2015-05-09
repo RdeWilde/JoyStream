@@ -52,7 +52,7 @@ public:
 
     //void addTorrentPlugin(const libtorrent::sha1_hash & infoHash, PluginMode mode);
     void registerSellerTorrentPluginStarted(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration);
-    void registerBuyerTorrentPluginStarted(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration);
+    void registerBuyerTorrentPluginStarted(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration, const UnspentP2PKHOutput & utxo);
 
     void updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector);
     void updateTorrentStatus(const libtorrent::torrent_status & torrentStatus); // start, stopp, stats
@@ -80,6 +80,7 @@ public slots:
     // These slots are used to tap into native QMenu ui signals.
     void showContextMenu(QPoint pos);
 
+    // Mouse click on row in torrent table
     void torrentTableClicked(const QModelIndex & index);
 
     // TorrentViewModel signals by cor

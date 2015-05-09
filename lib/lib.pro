@@ -96,9 +96,9 @@ SOURCES += \
     view/SellerTorrentPluginDialog.cpp \
     extension/Alert/StartedSellerTorrentPlugin.cpp \
     extension/Alert/StartedBuyerTorrentPlugin.cpp \
-    view/BuyerTorrentTorrentDialog.cpp \
     view/PayorViewModel.cpp \
-    view/ChannelViewModel.cpp
+    view/ChannelViewModel.cpp \
+    view/BuyerTorrentPluginDialog.cpp
 		
 HEADERS += \
     controller/Controller.hpp \

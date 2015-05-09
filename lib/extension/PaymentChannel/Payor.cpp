@@ -340,7 +340,8 @@ Payor::Channel::Status Payor::Channel::status() const {
                                   _state,
                                   _price,
                                   _numberOfPaymentsMade,
-                                  _refundLockTime);
+                                  _refundLockTime,
+                                  _funds);
 }
 
 quint32 Payor::Channel::index() const {
@@ -891,7 +892,7 @@ Payor::Status Payor::status() const {
         channels.push_back(i->status());
 
     // Create rest of payor status
-    return Status(channels, _state, _numberOfSignatures);
+    return Status(channels, _state, _utxo, _contractTxId, _numberOfSignatures);
 }
 
 quint32 Payor::numberOfChannels() const {

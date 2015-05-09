@@ -5,8 +5,12 @@
 #include "SellerTorrentPluginViewModel.hpp"
 #include "BuyerTorrentPluginViewModel.hpp"
 #include "WalletDialog.hpp"
+
+// Dialogs
 #include "SellerTorrentPluginConfigurationDialog.hpp"
 #include "BuyerTorrentPluginConfigurationDialog.hpp"
+#include "SellerTorrentPluginDialog.hpp"
+#include "BuyerTorrentPluginDialog.hpp"
 
 #include "controller/Controller.hpp"
 #include "extension/TorrentPlugin.hpp"
@@ -112,19 +116,26 @@ void MainWindow::showContextMenu(QPoint pos) {
 void MainWindow::torrentTableClicked(const QModelIndex & index) {
 
     // Get torrent view model for torrent clicked on
-    TorrentViewModel * torrentViewModel = torrentViewModelInTableRow(index.row());
+    //TorrentViewModel * torrentViewModel = torrentViewModelInTableRow(index.row());
 
     qCCritical(_category) << "Clicked torrent with info hash"<< _torrentInTableRow[index.row()].to_string().c_str();
 }
 
 void MainWindow::showSellerTorrentPluginDialog(const SellerTorrentPluginViewModel * sellerTorrentPluginViewModel) {
 
+
 }
 
 void MainWindow::showBuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel * buyerTorrentPluginViewModel) {
 
-}
+    // Create dialog
+    BuyerTorrentPluginDialog dialog(buyerTorrentPluginViewModel);
 
+    // Connect signals to main window and controller slots
+
+    // Show view
+    dialog.exec();
+}
 
 void MainWindow::showAddTorrentFromTorrentFileDialog(const QString & torrentFile) {
 
@@ -312,10 +323,10 @@ void MainWindow::registerSellerTorrentPluginStarted(const libtorrent::sha1_hash 
 
 }
 
-void MainWindow::registerBuyerTorrentPluginStarted(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration) {
+void MainWindow::registerBuyerTorrentPluginStarted(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration, const UnspentP2PKHOutput & utxo) {
 
     Q_ASSERT(_torrentViewModels.contains(infoHash));
-    _torrentViewModels[infoHash]->addBuyerPlugin(configuration);
+    _torrentViewModels[infoHash]->addBuyerPlugin(configuration, utxo);
 }
 
 void MainWindow::updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector) {

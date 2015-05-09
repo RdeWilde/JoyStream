@@ -3,43 +3,43 @@
 
 #include "extension/PaymentChannel/Payor.hpp"
 
-//#include <libtorrent/socket_io.hpp> // libtorrent::tcp::endpoint
+#include <libtorrent/socket_io.hpp> // libtorrent::tcp::endpoint
 
-class PayorViewModel;
-class QStandardItem;
+class ChannelViewModel : public QObject {
 
-class ChannelViewModel {
-
+    Q_OBJECT
 
 public:
 
     // Constructor
-    ChannelViewModel(PayorViewModel * model); //, libtorrent::tcp::endpoint & endPoint);
+    ChannelViewModel(const Payor::Configuration & configuration);
 
-    // Update routine
-    void updateHostItem(libtorrent::tcp::endpoint & endPoint);
-    void updateUploadSpeedItem(quint64 bytesPrSecond);
+    // Getters
+    Payor::Channel::Configuration configuration() const;
+    Payor::Channel::Status status() const;
 
+public slots:
+
+    // Update status
     void update(const Payor::Channel::Status & status);
-    void updateIndexItem(quint32 index);
-    void updateStateItem(Payor::Channel::State state);
-    void updateFundsItem(quint64 funds);
-    void updateRefundLockTime(quint32 refundLockTime);
-    void updatePriceItem(quint64 price);
-    void updateNumberOfPaymentsMadeItem(quint64 numberOfPaymentsMade);
-    void updateBalanceItem(quint64 balance);
+
+signals:
+
+    // Status signals
+    void stateChanged(quint32 index, Payor::Channel::State state);
+    void fundsChanged(quint32 index, quint64 funds);
+    void refundLockTimeChanged(quint32 index, quint32 refundLockTime);
+    void priceChanged(quint32 index, quint64 price);
+    void numberOfPaymentsMadeChanged(quint32 index, quint64 numberOfPaymentsMade);
+    void balanceChanged(quint32 index, quint64 balance);
 
 private:
 
-    QStandardItem * _hostItem,
-                  * _indexItem,
-                  * _stateItem,
-                  * _fundsItem,
-                  * _refundLockTimeItem,
-                  * _priceItem,
-                  * _numberOfPaymentsMadeItem,
-                  * _balanceItem,
-                  * _uploadSpeedItem;
+    // Configurations used to start channel
+    Payor::Channel::Configuration _configuration;
+
+    // Status of channel
+    Payor::Channel::Status _status;
 };
 
 #endif // CHANNEL_VIEW_MODEL_HPP

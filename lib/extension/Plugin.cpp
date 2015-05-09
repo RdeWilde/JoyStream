@@ -411,7 +411,7 @@ bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, con
         _buyerPlugins[infoHash] = boost::dynamic_pointer_cast<BuyerTorrentPlugin>(sharedPluginPtr); // sharedPluginPtr
 
         // Notify controller
-        sendAlertToSession(StartedBuyerTorrentPlugin(infoHash, configuration));
+        sendAlertToSession(StartedBuyerTorrentPlugin(infoHash, configuration, utxo));
 
         // Return success indication
         return true;

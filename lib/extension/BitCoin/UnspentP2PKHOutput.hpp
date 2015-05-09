@@ -49,6 +49,6 @@ private:
 };
 
 #include <QMetaType>
-Q_DECLARE_METATYPE(const UnspentP2PKHOutput &)
+Q_DECLARE_METATYPE(UnspentP2PKHOutput)
 
 #endif // UNSPENT_P2PKH_OUTPUT_HPP

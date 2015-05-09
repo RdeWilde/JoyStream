@@ -79,12 +79,11 @@ void TorrentViewModel::addSellerPlugin(const SellerTorrentPlugin::Configuration 
     // Create view model for plugin
     _sellerTorrentPluginViewModel = new SellerTorrentPluginViewModel(this, _infoHash, configuration);
 
-
     // Update mode field
     updatePluginInstalled(PluginInstalled::Seller);
 }
 
-void TorrentViewModel::addBuyerPlugin(const BuyerTorrentPlugin::Configuration & configuration) {
+void TorrentViewModel::addBuyerPlugin(const BuyerTorrentPlugin::Configuration & configuration, const UnspentP2PKHOutput & utxo) {
 
     Q_ASSERT(_pluginInstalled == PluginInstalled::None);
     Q_ASSERT(_sellerTorrentPluginViewModel == NULL);
@@ -94,7 +93,7 @@ void TorrentViewModel::addBuyerPlugin(const BuyerTorrentPlugin::Configuration & 
     _torrentTableContextMenu.addAction(&_viewExtension);
 
     // Create view model for plugin
-    _buyerTorrentPluginViewModel = new BuyerTorrentPluginViewModel(this, _infoHash, configuration);
+    _buyerTorrentPluginViewModel = new BuyerTorrentPluginViewModel(this, configuration, utxo);
 
     // Update mode field
     updatePluginInstalled(PluginInstalled::Buyer);

@@ -49,7 +49,7 @@ public:
 
     // Add plugins
     void addSellerPlugin(const SellerTorrentPlugin::Configuration & configuration);
-    void addBuyerPlugin(const BuyerTorrentPlugin::Configuration & configuration);
+    void addBuyerPlugin(const BuyerTorrentPlugin::Configuration & configuration, const UnspentP2PKHOutput & utxo);
 
     // Update view model
     void update(const libtorrent::torrent_status & torrentStatus);
@@ -85,6 +85,7 @@ signals:
     void pauseTorrentClicked(const libtorrent::sha1_hash & infoHash);
     void startTorrentClicked(const libtorrent::sha1_hash & infoHash);
     void removeTorrentClicked(const libtorrent::sha1_hash & infoHash);
+
     void showSellerTorrentPluginClicked(const SellerTorrentPluginViewModel * sellerTorrentPluginViewModel);
     void showBuyerTorrentPluginClicked(const BuyerTorrentPluginViewModel * buyerTorrentPluginViewModel);
 

@@ -5,90 +5,61 @@ namespace Ui {
 class BuyerTorrentDialog;
 }
 
-#include <libtorrent/socket.hpp> // tcp::endpoint
+#include "extension/BuyerTorrentPlugin.hpp"
+
+//#include <libtorrent/socket.hpp> // tcp::endpoint
 
 #include <QDialog>
 #include <QStandardItemModel>
-#include <QMenu>
-#include <QModelIndex>
-#include <QMap>
 
-class QStandardItemModel;
-class QMenu;
 
-/**
- * @brief The BuyerTorrentDialog class
- */
-class BuyerTorrentDialog : public QDialog
+class BuyerTorrentPluginViewModel;
+
+class BuyerTorrentPluginDialog : public QDialog
 {
     Q_OBJECT
 
 public:
 
-    /**
-     * View-model of a peer seller
-     */
-    class PeerViewModel {
-
-        static const char * columnTitles[];
-        static const int numberOfColumns;
-
-    public:
-
-        // Default constructor
-        PeerViewModel();
-
-        // Constructor from members
-        PeerViewModel(const libtorrent::tcp::endpoint & endPoint,
-                      quint32 slotIndex,
-                      quint64 funds,
-                      quint64 price,
-                      quint64 balance,
-                      quint32 bytesPrSecond);
-
-        // Update
-        void updateBalance(quint64 balance);
-        void updateSpeed(quint32 bytesPrSecond);
-
-
-    private:
-
-        // Endpoint of peer
-        libtorrent::tcp::endpoint _endPoint;
-
-        // Model items, have to be pointers since QStandardItemModel takes ownership of
-        // objects and deletes them.
-        QStandardItem * _endPointItem,
-                      * _speedItem,
-                      * _channelOutputIndexItem,
-                      * _fundsItem,
-                      * _expirationTimeItem,
-                      * _priceItem,
-                      * _balanceItem;
-    };
-
-    //explicit BuyerTorrentDialog(QWidget *parent = 0);
-
-    //
-    BuyerTorrentDialog();
+    // Constructor
+    BuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel * model);
 
     // Destructor
-    ~BuyerTorrentDialog();
+    ~BuyerTorrentPluginDialog();
+
+public slots:
+
+    // Peer plugin related event
+    void addPeer();
+
+    // Update plugin fields (though not all of these are mutable)
+    void updateState(BuyerTorrentPlugin::State state);
+    void updateConfiguration(const BuyerTorrentPlugin::Configuration & configuration);
+    void updateUtxo(const UnspentP2PKHOutput & utxo);
+
+    /**
+    // Channel assignment related event
+    void assign(quint32 index, libtorrent::tcp::endpoint & endPoint);
+    void unassigned(quint32 index);
+    */
+
+    // Update channel status fields
+    void updateState(quint32 index, Payor::Channel::State state);
+    void updateFunds(quint32 index, quint64 funds);
+    void updateRefundLockTime(quint32 index, quint32 refundLockTime);
+    void updatePrice(quint32 index, quint64 price);
+    void updateNumberOfPaymentsMade(quint32 index, quint64 numberOfPaymentsMade);
+    void updateBalance(quint32 index, quint64 balance);
 
 private:
+
     Ui::BuyerTorrentDialog *ui;
 
-    /*
-     * View-models
-     */
+    // Payor channel table view model
+    QStandardItemModel _channelTableViewModel;
 
-    // Peers table
-    QStandardItemModel * _peersTableViewModel; // View model
-    QMenu * _peersTableContextMenu; // Context menu
-    QModelIndex _peersTableLastIndexClicked; // Last model index for mouse click
-
-    // Maps end point to cooresponding peer view model
-    QMap<libtorrent::tcp::endpoint, PeerViewModel> _peerViewModels;
+    // Buyer peer plugin table view model
+    QStandardItemModel _buyerPeerPluginTableViewModel;
 
 };
 

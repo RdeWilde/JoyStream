@@ -90,6 +90,22 @@ void BuyerTorrentPlugin::Status::setState(State state) {
     _state = state;
 }
 
+QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> BuyerTorrentPlugin::Status::peerPluginStatuses() const {
+    return _peerPluginStatuses;
+}
+
+void BuyerTorrentPlugin::Status::setPeerPluginStatuses(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> & peerPluginStatuses) {
+    _peerPluginStatuses = peerPluginStatuses;
+}
+
+Payor::Status BuyerTorrentPlugin::Status::payor() const {
+    return _payor;
+}
+
+void BuyerTorrentPlugin::Status::setPayor(const Payor::Status & payor) {
+    _payor = payor;
+}
+
 /**
  * BuyerTorrentPlugin::Configuration
  */

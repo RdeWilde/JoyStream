@@ -1534,7 +1534,7 @@ void Controller::processStartedBuyerTorrentPlugin(const StartedBuyerTorrentPlugi
 
     // Notify view
     //_view.addTorrentPlugin(p->infoHash(), p->mode());
-    _view.registerBuyerTorrentPluginStarted(p->infoHash(), p->configuration());
+    _view.registerBuyerTorrentPluginStarted(p->infoHash(), p->configuration(), p->utxo());
 }
 
 void Controller::processBuyerTorrentPluginStatusAlert(const BuyerTorrentPluginStatusAlert * p) {
@@ -1620,14 +1620,6 @@ void Controller::startTorrent(const libtorrent::sha1_hash & info_hash) {
 
     // It worked
     //return true;
-}
-
-void Controller::showSellerTorrentPluginDialog(const SellerTorrentPluginViewModel * model) {
-
-}
-
-void Controller::showBuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel * model) {
-
 }
 
 bool Controller::addTorrent(const Torrent::Configuration & configuration) {

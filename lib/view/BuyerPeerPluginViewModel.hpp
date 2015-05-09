@@ -18,44 +18,31 @@ class BuyerPeerPluginViewModel : public QObject // : public PeerPluginViewModel
 
 public:
 
-    // Constructor from members
-    BuyerPeerPluginViewModel(BuyerTorrentPluginViewModel * parent, const libtorrent::tcp::endpoint & endPoint, QStandardItemModel * model);
+    // Constructor
+    BuyerPeerPluginViewModel(BuyerTorrentPluginViewModel * parent, const libtorrent::tcp::endpoint & endPoint);
 
-    // Update
-    void update(const BuyerPeerPlugin::Status & peerStatus, const Payor::Channel::Status & channelStatus);
-
-    void updateState(BuyerPeerPlugin::ClientState state);
-    void updatePayorSlotItem(quint32 payorSlot);
-    void updateLockTime(const QDateTime & lockTime);
-    void updateFunds(quint64 funds);
-    void updatePrice(quint64 price);
-    void updateNumberOfPaymentsMadeItem(quint64 numPayments);
-    void updateBalanceItem(quint64 balance);
+    // Getters
+    libtorrent::tcp::endpoint endPoint() const;
+    BuyerPeerPlugin::Status status() const;
 
 public slots:
 
+    // Update status
+    void update(const BuyerPeerPlugin::Status & status);
+
 signals:
+
+    // Status signals
+    void clientStateChanged(BuyerPeerPlugin::ClientState state);
+    void payorSlotChanged(quint32 payorSlot);
 
 private:
 
     // Peer endpoint
-    // WHY DO WE NEED THIS?
     libtorrent::tcp::endpoint _endPoint;
 
-    // Regular torrent level information
-
-    // Model items for buyer peer plugin table in BuyerTorrentPluginViewModel
-    QStandardItem * _hostItem, // PeerPlugin::endpoint
-                  * _stateItem; // BuyerPeerPlugin::ClientState
-
-                  * _payorSlotItem, // BuyerPeerPlugin::_payorSlot
-                  * _fundsItem, //
-                  * _lockTime, // Channel::Status::inde
-                  * _priceItem, // Channel::Status::_price
-                  * _numberOfPaymentsMadeItem, // Channel::Status::inde
-                  * _balanceItem; // deduced
-
-
+    // Status of peer plugin
+    BuyerPeerPlugin::Status _status;
 };
 
 #endif // BUYER_PEER_PLUGIN_VIEW_MODEL_HPP

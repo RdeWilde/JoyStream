@@ -52,10 +52,9 @@ private:
     char _buffer[length];
 };
 
-uint qHash(const TxId & o);
-
-
 #include <QMetaType>
-Q_DECLARE_METATYPE(const TxId &)
+Q_DECLARE_METATYPE(TxId)
+
+uint qHash(const TxId & o);
 
 #endif // TX_ID_HPP

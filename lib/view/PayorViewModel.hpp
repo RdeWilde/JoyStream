@@ -4,48 +4,37 @@
 #include "ChannelViewModel.hpp"
 #include "extension/PaymentChannel/Payor.hpp"
 
-#include <QVector>
-#include <QStandardItemModel>
-
 class BuyerTorrentPluginViewModel;
 
-class PayorViewModel
+class PayorViewModel : public QObject
 {
+    Q_OBJECT
 public:
 
-    static const char * columnTitles[];
-    static const int numberOfColumns;
-
     // Constructor from members
-    PayorViewModel(const TxId & contractTxId,
-                   const UnspentP2PKHOutput & utxo,
-                   const QVector<ChannelViewModel> & channelViewModels);
+    PayorViewModel(quint32 numberOfSellers);
+
 
     // Update
     void update(const Payor::Status & status);
 
-    // Getters and setters
-    QStandardItemModel * channelTableViewModel();
+    // Getters
+    QVector<ChannelViewModel *> channelViewModels() const;
 
 signals:
 
     //void statusChanged(const Payor::Status & status);
     void contractTxIdChanged(const TxId & id);
-    void utxoChanged(const UnspentP2PKHOutput & utxo);
+    //void utxoChanged(const UnspentP2PKHOutput & utxo);
 
 private:
 
     // Present transaction id of contract
     TxId _contractTxId;
 
-    // Present utxo funding contract
-    UnspentP2PKHOutput _utxo;
-
     // View Models for all channels
-    QVector<ChannelViewModel> _channelViewModels;
-
-    // Buyer peer plugin table view model
-    QStandardItemModel _channelTableViewModel;
+    // ** We use pointers here since they are QObjects, which cannot be copied **
+    QVector<ChannelViewModel *> _channelViewModels;
 
 };
 

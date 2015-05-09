@@ -358,4 +358,7 @@ private:
     int _assignmentLowerBound;
 };
 
+#include <QMetaType>
+Q_DECLARE_METATYPE(BuyerTorrentPlugin::State)
+
 #endif // BUYER_TORRENT_PLUGIN_HPP
