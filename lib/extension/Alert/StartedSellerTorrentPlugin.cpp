@@ -3,14 +3,18 @@
 StartedSellerTorrentPlugin::StartedSellerTorrentPlugin() {
 }
 
-StartedSellerTorrentPlugin::StartedSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration)
+StartedSellerTorrentPlugin::StartedSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
+                                                       const SellerTorrentPlugin::Configuration & configuration,
+                                                       const SellerTorrentPlugin::Status status)
     : _infoHash(infoHash)
-    , _configuration(configuration) {
+    , _configuration(configuration)
+    , _status(status) {
 }
 
 StartedSellerTorrentPlugin::StartedSellerTorrentPlugin(const StartedSellerTorrentPlugin & alert)
     : _infoHash(alert.infoHash())
-    , _configuration(alert.configuration()) {
+    , _configuration(alert.configuration())
+    , _status(alert.status()){
 }
 
 int StartedSellerTorrentPlugin::type() const {
@@ -48,3 +52,12 @@ SellerTorrentPlugin::Configuration StartedSellerTorrentPlugin::configuration() c
 void StartedSellerTorrentPlugin::setConfiguration(const SellerTorrentPlugin::Configuration & configuration) {
     _configuration = configuration;
 }
+
+SellerTorrentPlugin::Status StartedSellerTorrentPlugin::status() const {
+    return _status;
+}
+
+void StartedSellerTorrentPlugin::setStatus(const SellerTorrentPlugin::Status & status) {
+    _status = status;
+}
+

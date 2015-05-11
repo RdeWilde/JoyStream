@@ -7,20 +7,12 @@
 
 #include "extension/BitCoin/BitCoin.hpp"
 
-/*
-SellerTorrentPluginConfigurationDialog::SellerTorrentPluginConfigurationDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::SellerTorrentPluginConfigurationDialog)
-{
-    ui->setupUi(this);
-}
-*/
-
 SellerTorrentPluginConfigurationDialog::SellerTorrentPluginConfigurationDialog(Controller * controller, Wallet * wallet, const libtorrent::torrent_info & torrentInfo)
     :ui(new Ui::SellerTorrentPluginConfigurationDialog)
     , _controller(controller)
     , _wallet(wallet)
     , _torrentInfo(torrentInfo) {
+
     ui->setupUi(this);
 }
 

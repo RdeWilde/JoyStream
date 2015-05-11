@@ -16,7 +16,7 @@ class BuyerTorrentPluginViewModel : public QObject {
 public:
 
     // Constructor
-    BuyerTorrentPluginViewModel(QObject * parent, const BuyerTorrentPlugin::Status & status);
+    BuyerTorrentPluginViewModel(const BuyerTorrentPlugin::Status & status);
 
     // Destructor
     ~BuyerTorrentPluginViewModel();

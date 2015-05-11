@@ -19,7 +19,10 @@ public:
     StartedBuyerTorrentPlugin();
 
     // Constructor from members
-    StartedBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration, const UnspentP2PKHOutput & utxo);
+    StartedBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
+                              const BuyerTorrentPlugin::Configuration & configuration,
+                              const UnspentP2PKHOutput & utxo,
+                              const BuyerTorrentPlugin::Status & status);
 
     // Copy constructor
     StartedBuyerTorrentPlugin(const StartedBuyerTorrentPlugin & alert);
@@ -41,6 +44,9 @@ public:
     UnspentP2PKHOutput utxo() const;
     void setUtxo(const UnspentP2PKHOutput & utxo);
 
+    BuyerTorrentPlugin::Status status() const;
+    void setStatus(const BuyerTorrentPlugin::Status & status);
+
 private:
 
     // Info hash of torrent started
@@ -51,6 +57,9 @@ private:
 
     // Funding utxo
     UnspentP2PKHOutput _utxo;
+
+    // Starting status
+    BuyerTorrentPlugin::Status _status;
 
 };
 

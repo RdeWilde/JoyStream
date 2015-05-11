@@ -28,9 +28,7 @@ SOURCES += \
     extension/Plugin.cpp \
     extension/PeerPlugin.cpp \
     extension/Message/ExtendedMessageIdMapping.cpp \
-    view/TorrentViewModel.cpp \
     Utilities.cpp \
-    view/PeerPluginViewModel.cpp \
     extension/PeerPluginId.cpp \
     extension/Request/PluginRequest.cpp \
     extension/Request/TorrentPluginRequest.cpp \
@@ -86,20 +84,23 @@ SOURCES += \
     extension/Alert/BuyerTorrentPluginStatusAlert.cpp \
     extension/Alert/TorrentPluginStartedAlert.cpp \
     view/PeerPluginsDialog.cpp \
-    view/TorrentPluginViewModel.cpp \
-    view/SellerTorrentPluginViewModel.cpp \
-    view/BuyerTorrentPluginViewModel.cpp \
-    view/SellerPeerPluginViewModel.cpp \
-    view/BuyerPeerPluginViewModel.cpp \
     extension/Alert/SellerPeerPluginStartedAlert.cpp \
     extension/Alert/SellerTorrentPluginStatusAlert.cpp \
     view/SellerTorrentPluginDialog.cpp \
     extension/Alert/StartedSellerTorrentPlugin.cpp \
     extension/Alert/StartedBuyerTorrentPlugin.cpp \
-    view/PayorViewModel.cpp \
-    view/ChannelViewModel.cpp \
     view/BuyerTorrentPluginDialog.cpp \
-    view/PayeeViewModel.cpp
+    controller/BuyerPeerPluginViewModel.cpp \
+    controller/BuyerTorrentPluginViewModel.cpp \
+    controller/ChannelViewModel.cpp \
+    controller/PayeeViewModel.cpp \
+    controller/PayorViewModel.cpp \
+    controller/PeerPluginViewModel.cpp \
+    controller/SellerPeerPluginViewModel.cpp \
+    controller/SellerTorrentPluginViewModel.cpp \
+    controller/TorrentPluginViewModel.cpp \
+    controller/TorrentViewModel.cpp \
+    view/TorrentView.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -117,7 +118,6 @@ HEADERS += \
     extension/Plugin.hpp \
     extension/PeerPlugin.hpp \
     extension/Message/ExtendedMessageIdMapping.hpp \
-    view/TorrentViewModel.hpp \
     Utilities.hpp \
     extension/Message/MessageType.hpp \
     extension/PeerPluginId.hpp \
@@ -186,21 +186,23 @@ HEADERS += \
     extension/Alert/TorrentPluginStartedAlert.hpp \
     view/PeerPluginsDialog.hpp \
     controller/PluginInstalled.hpp \
-    view/TorrentPluginViewModel.hpp \
-    view/SellerTorrentPluginViewModel.hpp \
-    view/BuyerTorrentPluginViewModel.hpp \
-    view/SellerPeerPluginViewModel.hpp \
-    view/BuyerPeerPluginViewModel.hpp \
-    view/PeerPluginViewModel.hpp \
     extension/Alert/SellerPeerPluginStartedAlert.hpp \
     extension/Alert/SellerTorrentPluginStatusAlert.hpp \
     view/SellerTorrentPluginDialog.hpp \
     extension/Alert/StartedSellerTorrentPlugin.hpp \
     extension/Alert/StartedBuyerTorrentPlugin.hpp \
     view/BuyerTorrentPluginDialog.hpp \
-    view/PayorViewModel.hpp \
-    view/ChannelViewModel.hpp \
-    view/PayeeViewModel.hpp
+    controller/BuyerPeerPluginViewModel.hpp \
+    controller/BuyerTorrentPluginViewModel.hpp \
+    controller/ChannelViewModel.hpp \
+    controller/PayeeViewModel.hpp \
+    controller/PayorViewModel.hpp \
+    controller/PeerPluginViewModel.hpp \
+    controller/SellerPeerPluginViewModel.hpp \
+    controller/SellerTorrentPluginViewModel.hpp \
+    controller/TorrentPluginViewModel.hpp \
+    controller/TorrentViewModel.hpp \
+    view/TorrentView.hpp
 				
 FORMS += \
     view/SellerTorrentPluginConfigurationDialog.ui \

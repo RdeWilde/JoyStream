@@ -8,17 +8,13 @@
 
 #include <QMainWindow>
 #include <QStandardItemModel>
-#include <QStandardItem>
-#include <QList>
-#include <QMap>
-#include <QPoint>
-
-#include <QLoggingCategory>
 
 #include <libtorrent/torrent_handle.hpp>
 #include <libtorrent/add_torrent_params.hpp>
 
-#include <map>
+#include <QMap>
+#include <QPoint>
+#include <QLoggingCategory>
 
 namespace Ui {
 class MainWindow;
@@ -27,6 +23,7 @@ class MainWindow;
 class Controller;
 class PeerPlugin;
 class PeerPluginStatus;
+class TorrentView;
 class TorrentViewModel;
 class Wallet;
 class SellerTorrentPluginViewModel;
@@ -45,17 +42,14 @@ public:
     ~MainWindow();
 
     // Controller calls
-    void addTorrent(const libtorrent::sha1_hash & info_hash, const QString & torrentName, int totalSize);
+    void addTorrent(const libtorrent::sha1_hash & info_hash, const TorrentViewModel * model);
     void removeTorrent(const libtorrent::sha1_hash & info_hash);
-
     void addTorrentFailed(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec);
 
     //void addTorrentPlugin(const libtorrent::sha1_hash & infoHash, PluginMode mode);
     void registerSellerTorrentPluginStarted(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration);
     void registerBuyerTorrentPluginStarted(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration, const UnspentP2PKHOutput & utxo);
 
-    void updateTorrentStatus(const std::vector<libtorrent::torrent_status> & torrentStatusVector);
-    void updateTorrentStatus(const libtorrent::torrent_status & torrentStatus); // start, stopp, stats
     //void updateTorrentPluginStatus(const TorrentPluginStatusAlert * torrentPluginStatusAlert);// TorrentPluginStatus status
 
     void updateBuyerTorrentPluginStatus(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Status & status);
@@ -69,11 +63,6 @@ public:
     void addPeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint);
     //void updatePeerPluginStatus(const PeerPluginStatus & status);
     void removePeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint);
-
-    // Show parts of view
-    void showAddTorrentFromTorrentFileDialog(const QString & torrentFile);
-    void showAddTorrentFromMagnetLinkDialog(const QString & magnetLink);
-    void showAddTorrentPluginConfigurationDialog(const libtorrent::torrent_info & torrentInfo, const libtorrent::torrent_status & torrentStatus);
 
 public slots:
 
@@ -101,31 +90,20 @@ private:
     // Logging category
     QLoggingCategory & _category;
 
-    /*
-     * View-model
-     */
-
     // Torrent table view model
     QStandardItemModel _torrentTableViewModel;
 
-    // Last model index for mouse click
-    //QModelIndex _torrentTableLastIndexClicked;
-
-    // Info hash of torrent in the position the torrent holds in the torrent table view
-    QVector<libtorrent::sha1_hash> _torrentInTableRow;
-
     // Maps info_hash of models to corresponding TorrentViewModel
     // Must use pointer values since members are QObjects, which cannot be copied and assigned
-    QMap<libtorrent::sha1_hash, TorrentViewModel *> _torrentViewModels;
-
-    /**
-    // Peer Plugins table
-    QMenu * _peerPluginsTableContextMenu; // context menu
-    QModelIndex _peerPluginsTableLastIndexClicked; // Last model index for mouse click
-    */
+    QMap<libtorrent::sha1_hash, TorrentView *> _torrentViewModels;
 
     // Get view model for torrent in given row
-    TorrentViewModel * torrentViewModelInTableRow(int row);
+    TorrentView * torrentViewInTableRow(int row);
+
+    // Show parts of view
+    void showAddTorrentFromTorrentFileDialog(const QString & torrentFile);
+    void showAddTorrentFromMagnetLinkDialog(const QString & magnetLink);
+    void showAddTorrentPluginConfigurationDialog(const libtorrent::torrent_info & torrentInfo, const libtorrent::torrent_status & torrentStatus);
 
 protected:
 

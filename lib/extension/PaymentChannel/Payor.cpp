@@ -460,6 +460,10 @@ void Payor::Channel::setRefundLockTime(quint32 refundLockTime) {
  * Payor::Status
  */
 
+Payor::Status::Status() {
+
+}
+
 Payor::Status::Status(const QVector<Channel::Status> & channels,
                       State state,
                       const UnspentP2PKHOutput & utxo,

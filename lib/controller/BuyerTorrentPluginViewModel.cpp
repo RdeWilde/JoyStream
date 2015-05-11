@@ -2,9 +2,8 @@
 #include "TorrentViewModel.hpp"
 #include "BuyerPeerPluginViewModel.hpp"
 
-BuyerTorrentPluginViewModel::BuyerTorrentPluginViewModel(QObject * parent, const BuyerTorrentPlugin::Status & status)
-    : QObject(parent)
-    , _state(status.state())
+BuyerTorrentPluginViewModel::BuyerTorrentPluginViewModel(const BuyerTorrentPlugin::Status & status)
+    : _state(status.state())
     , _payorViewModel(status.payor()) {
 
     // Create view models for all peer plugins

@@ -113,6 +113,8 @@ public:
 
     public:
 
+        Status();
+
         Status(quint32 numberOfClassicPeers,
                 quint32 numberOfObserverPeers,
                 quint32 numberOfSellerPeers,

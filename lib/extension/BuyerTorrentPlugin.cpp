@@ -66,6 +66,9 @@ void BuyerTorrentPlugin::Piece::setPeerPlugin(BuyerPeerPlugin *peerPlugin) {
  * BuyerTorrentPlugin::Status
  */
 
+BuyerTorrentPlugin::Status::Status() {
+}
+
 BuyerTorrentPlugin::Status::Status(quint32 numberOfClassicPeers,
                                    quint32 numberOfObserverPeers,
                                    quint32 numberOfSellerPeers,

@@ -374,6 +374,9 @@ public:
 
     public:
 
+        // Default constructor
+        Status();
+
         // Construct from members
         Status(const QVector<Channel::Status> & channels,
                State state,

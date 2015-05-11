@@ -5,6 +5,7 @@
 #include "PluginInstalled.hpp"
 #include "view/MainWindow.hpp"
 #include "extension/Plugin.hpp"
+#include "TorrentViewModel.hpp"
 //#include "extension/PeerPluginStatus.hpp" // needed for QT moc <==== Remove later
 #include "extension/BitCoin/Wallet.hpp"
 #include "extension/BitCoin/UnspentP2PKHOutput.hpp"
@@ -21,7 +22,6 @@
 #include <QNetworkAccessManager>
 
 class TorrentStatus;
-//class TorrentPluginStatusAlert;
 class BuyerTorrentPluginStatusAlert;
 class SellerTorrentPluginStatusAlert;
 class StartedSellerTorrentPlugin;
@@ -232,30 +232,34 @@ public:
                 ExpectedEvent event,
                 PluginInstalled pluginInstalled);
 
+
+        // Add plugins
+        void addPlugin(const SellerTorrentPlugin::Status & status);
+        void addPlugin(const BuyerTorrentPlugin::Status & status);
+
         // Getters and Setters
         libtorrent::sha1_hash infoHash() const;
-        void setInfoHash(const libtorrent::sha1_hash &infoHash);
 
         std::string name() const;
-        void setName(const std::string &name);
+        void setName(const std::string & name);
 
         std::string savePath() const;
-        void setSavePath(const std::string &savePath);
+        void setSavePath(const std::string & savePath);
 
         std::vector<char> resumeData() const;
-        void setResumeData(const std::vector<char> &resumeData);
+        void setResumeData(const std::vector<char> & resumeData);
 
         quint64 flags() const;
-        void setFlags(const quint64 &flags);
+        void setFlags(quint64 flags);
 
-        libtorrent::torrent_info *torrentInfo() const;
-        void setTorrentInfo(libtorrent::torrent_info *torrentInfo);
+        libtorrent::torrent_info * torrentInfo() const;
 
         ExpectedEvent event() const;
-        void setEvent(const ExpectedEvent &event);
+        void setEvent(ExpectedEvent event);
 
         PluginInstalled pluginInstalled() const;
-        void setPluginInstalled(PluginInstalled pluginInstalled);
+
+        const TorrentViewModel * model() const;
 
     private:
 
@@ -286,6 +290,9 @@ public:
         // Add const pointer to const object of type TorrentPlugin in the future?
         // can be used to look at stuff like plugin mode etc.
         // worth looking at.
+
+        // View model for torrent
+        TorrentViewModel _model;
     };
 
     /**
@@ -424,6 +431,9 @@ public:
     // Constructor starting session with given state
     Controller(const Configuration & configuration, bool showView, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category);
 
+    // Destructor
+    ~Controller();
+
     // Callback routine called by libtorrent dispatcher routine
     void libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::alert> alertAutoPtr);
 
@@ -517,7 +527,9 @@ private:
     QTimer _statusUpdateTimer;
 
     // Torrents added to session
-    QMap<libtorrent::sha1_hash, Torrent> _torrents;
+    // Has to be pointer since since its Torrent::model (TorrentViewModel) isQObject type.
+    // Object is entirely owned by this.
+    QMap<libtorrent::sha1_hash, Torrent *> _torrents;
 
     /**
      *
@@ -561,6 +573,10 @@ private:
     void processSellerTorrentPluginStatusAlert(const SellerTorrentPluginStatusAlert * p);
 
     void processPluginStatusAlert(const PluginStatusAlert * p);
+
+    // Status
+    void update(const std::vector<libtorrent::torrent_status> & statuses);
+    void update(const libtorrent::torrent_status & status);
 
     // Start torrent plugin
     void startTorrentPlugin(const libtorrent::sha1_hash & info_hash);

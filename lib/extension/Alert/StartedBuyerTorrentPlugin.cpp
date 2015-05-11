@@ -3,16 +3,21 @@
 StartedBuyerTorrentPlugin::StartedBuyerTorrentPlugin() {
 }
 
-StartedBuyerTorrentPlugin::StartedBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration, const UnspentP2PKHOutput & utxo)
+StartedBuyerTorrentPlugin::StartedBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
+                                                     const BuyerTorrentPlugin::Configuration & configuration,
+                                                     const UnspentP2PKHOutput & utxo,
+                                                     const BuyerTorrentPlugin::Status & status)
     : _infoHash(infoHash)
     , _configuration(configuration)
-    , _utxo(utxo) {
+    , _utxo(utxo)
+    , _status(status) {
 }
 
 StartedBuyerTorrentPlugin::StartedBuyerTorrentPlugin(const StartedBuyerTorrentPlugin & alert)
     : _infoHash(alert.infoHash())
     , _configuration(alert.configuration())
-    , _utxo(alert.utxo()) {
+    , _utxo(alert.utxo())
+    , _status(alert.status()){
 }
 
 int StartedBuyerTorrentPlugin::type() const {
@@ -58,3 +63,12 @@ UnspentP2PKHOutput StartedBuyerTorrentPlugin::utxo() const {
 void StartedBuyerTorrentPlugin::setUtxo(const UnspentP2PKHOutput &utxo) {
     _utxo = utxo;
 }
+
+BuyerTorrentPlugin::Status StartedBuyerTorrentPlugin::status() const {
+    return _status;
+}
+
+void StartedBuyerTorrentPlugin::setStatus(const BuyerTorrentPlugin::Status &status) {
+    _status = status;
+}
+

@@ -401,8 +401,11 @@ bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, con
     // Get shared torrent pointer
     if(boost::shared_ptr<libtorrent::torrent> sharedTorrentPtr = weakTorrentPtr.lock()) {
 
+        // Create buyer torrent plugin
+        BuyerTorrentPlugin * buyerPlugin = new BuyerTorrentPlugin(this, sharedTorrentPtr, _wallet, configuration, utxo, _category);
+
         // Create plugin with given configuration
-        boost::shared_ptr<libtorrent::torrent_plugin> sharedPluginPtr(new BuyerTorrentPlugin(this, sharedTorrentPtr, _wallet, configuration, utxo, _category));
+        boost::shared_ptr<libtorrent::torrent_plugin> sharedPluginPtr(buyerPlugin);
 
         // Install plugin on torrent
         sharedTorrentPtr->add_extension(sharedPluginPtr);
@@ -411,7 +414,7 @@ bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, con
         _buyerPlugins[infoHash] = boost::dynamic_pointer_cast<BuyerTorrentPlugin>(sharedPluginPtr); // sharedPluginPtr
 
         // Notify controller
-        sendAlertToSession(StartedBuyerTorrentPlugin(infoHash, configuration, utxo));
+        sendAlertToSession(StartedBuyerTorrentPlugin(infoHash, configuration, utxo, buyerPlugin->status()));
 
         // Return success indication
         return true;
@@ -440,8 +443,11 @@ bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, co
     // Get shared torrent pointer
     if(boost::shared_ptr<libtorrent::torrent> sharedTorrentPtr = weakTorrentPtr.lock()) {
 
+        // Create torrent plugin
+        SellerTorrentPlugin * sellerPlugin = new SellerTorrentPlugin(this, sharedTorrentPtr, _wallet, configuration, _category);
+
         // Create plugin with given configuration
-        boost::shared_ptr<libtorrent::torrent_plugin> sharedPluginPtr(new SellerTorrentPlugin(this, sharedTorrentPtr, _wallet, configuration, _category));
+        boost::shared_ptr<libtorrent::torrent_plugin> sharedPluginPtr(sellerPlugin);
 
         // Install plugin on torrent
         sharedTorrentPtr->add_extension(sharedPluginPtr);
@@ -450,7 +456,7 @@ bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, co
         _sellerPlugins[infoHash] = boost::dynamic_pointer_cast<SellerTorrentPlugin>(sharedPluginPtr); //sharedPluginPtr;
 
         // Notify controller
-        sendAlertToSession(StartedSellerTorrentPlugin(infoHash, configuration));
+        sendAlertToSession(StartedSellerTorrentPlugin(infoHash, configuration, sellerPlugin->status()));
 
         // Return success indication
         return true;

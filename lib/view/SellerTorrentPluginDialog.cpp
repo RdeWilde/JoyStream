@@ -1,6 +1,6 @@
 #include "SellerTorrentPluginDialog.hpp"
 #include "ui_SellerTorrentPluginDialog.h"
-#include "SellerTorrentPluginViewModel.hpp"
+#include "controller/SellerTorrentPluginViewModel.hpp"
 
 #include "extension/BitCoin/BitCoin.hpp"
 

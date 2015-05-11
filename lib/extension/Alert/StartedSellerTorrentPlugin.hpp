@@ -19,7 +19,9 @@ public:
     StartedSellerTorrentPlugin();
 
     // Constructor from members
-    StartedSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration);
+    StartedSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
+                               const SellerTorrentPlugin::Configuration & configuration,
+                               const SellerTorrentPlugin::Status status);
 
     // Copy constructor
     StartedSellerTorrentPlugin(const StartedSellerTorrentPlugin & alert);
@@ -38,6 +40,9 @@ public:
     SellerTorrentPlugin::Configuration configuration() const;
     void setConfiguration(const SellerTorrentPlugin::Configuration & configuration);
 
+    SellerTorrentPlugin::Status status() const;
+    void setStatus(const SellerTorrentPlugin::Status & status);
+
 private:
 
     // Info hash of torrent started
@@ -46,6 +51,8 @@ private:
     // Configuration under which plugin was started
     SellerTorrentPlugin::Configuration _configuration;
 
+    // Starting status
+    SellerTorrentPlugin::Status _status;
 };
 
 #endif // STARTED_SELLER_TORRENT_PLUGIN_HPP
