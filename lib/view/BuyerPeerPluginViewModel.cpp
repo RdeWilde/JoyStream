@@ -1,29 +1,24 @@
 #include "BuyerPeerPluginViewModel.hpp"
 #include "BuyerTorrentPluginViewModel.hpp"
 
-BuyerPeerPluginViewModel::BuyerPeerPluginViewModel(BuyerTorrentPluginViewModel * parent, const libtorrent::tcp::endpoint & endPoint)
+BuyerPeerPluginViewModel::BuyerPeerPluginViewModel(QObject * parent, const BuyerPeerPlugin::Status & status)
     : QObject(parent)
-    , _endPoint(endPoint) {
-}
-
-libtorrent::tcp::endpoint BuyerPeerPluginViewModel::endPoint() const {
-    return _endPoint;
-}
-
-BuyerPeerPlugin::Status BuyerPeerPluginViewModel::status() const {
-    return _status;
+    , _status(status) {
 }
 
 void BuyerPeerPluginViewModel::update(const BuyerPeerPlugin::Status & status) {
 
-    //Q_ASSERT(no end point information to assert)
-
-    if(_status.clientState() != status.clientState())
+    if(_status.clientState() != status.clientState()) {
+        _status.setClientState(status.clientState());
         emit clientStateChanged(status.clientState());
+    }
 
-    if(_status.payorSlot() != status.payorSlot())
+    if(_status.payorSlot() != status.payorSlot()) {
+        _status.setPayorSlot(status.payorSlot());
         emit payorSlotChanged(status.payorSlot());
+    }
+}
 
-    // Save new status
-    _status = status;
+BuyerPeerPlugin::Status BuyerPeerPluginViewModel::status() const {
+    return _status;
 }

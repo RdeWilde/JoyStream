@@ -472,9 +472,6 @@ public slots:
     void startTorrent(const libtorrent::sha1_hash & info_hash);
     void removeTorrent(const libtorrent::sha1_hash & info_hash);
 
-    void showSellerTorrentPluginDialog(const SellerTorrentPluginViewModel * model);
-    void showBuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel * model);
-
 private slots:
 
     // Tells session to post updates, is signaled by timer

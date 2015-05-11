@@ -21,6 +21,7 @@ public:
 
     // Comparator
     bool operator==(const UnspentP2PKHOutput & o) const;
+    bool operator!=(const UnspentP2PKHOutput & o) const;
 
     // Encode as json
     QJsonObject json() const;

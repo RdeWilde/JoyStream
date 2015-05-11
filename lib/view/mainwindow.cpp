@@ -128,6 +128,7 @@ void MainWindow::showSellerTorrentPluginDialog(const SellerTorrentPluginViewMode
 
 void MainWindow::showBuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel * buyerTorrentPluginViewModel) {
 
+    /**
     // Create dialog
     BuyerTorrentPluginDialog dialog(buyerTorrentPluginViewModel);
 
@@ -135,6 +136,7 @@ void MainWindow::showBuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel 
 
     // Show view
     dialog.exec();
+    */
 }
 
 void MainWindow::showAddTorrentFromTorrentFileDialog(const QString & torrentFile) {

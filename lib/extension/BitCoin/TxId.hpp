@@ -43,6 +43,7 @@ public:
     // Comparison for use with QMap
     bool operator<(const TxId & o) const;
     bool operator==(const TxId & o) const;
+    bool operator!=(const TxId & o) const;
 
 private:
 

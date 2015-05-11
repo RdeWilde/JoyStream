@@ -77,7 +77,7 @@ void TorrentViewModel::addSellerPlugin(const SellerTorrentPlugin::Configuration 
     _torrentTableContextMenu.addAction(&_viewExtension);
 
     // Create view model for plugin
-    _sellerTorrentPluginViewModel = new SellerTorrentPluginViewModel(this, _infoHash, configuration);
+    //_sellerTorrentPluginViewModel = new SellerTorrentPluginViewModel(this, _infoHash, configuration);
 
     // Update mode field
     updatePluginInstalled(PluginInstalled::Seller);
@@ -93,7 +93,7 @@ void TorrentViewModel::addBuyerPlugin(const BuyerTorrentPlugin::Configuration & 
     _torrentTableContextMenu.addAction(&_viewExtension);
 
     // Create view model for plugin
-    _buyerTorrentPluginViewModel = new BuyerTorrentPluginViewModel(this, configuration, utxo);
+    //_buyerTorrentPluginViewModel = new BuyerTorrentPluginViewModel(this, configuration, utxo);
 
     // Update mode field
     updatePluginInstalled(PluginInstalled::Buyer);

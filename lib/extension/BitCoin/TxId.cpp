@@ -143,6 +143,10 @@ bool TxId::operator==(const TxId & o) const {
     return true;
 }
 
+bool TxId::operator!=(const TxId & o) const {
+    return !(*this == o);
+}
+
 uint qHash(const TxId & o) {
     return qHash(o.toString());
 }

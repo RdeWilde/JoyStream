@@ -37,11 +37,6 @@ public slots:
     void updateConfiguration(const BuyerTorrentPlugin::Configuration & configuration);
     void updateUtxo(const UnspentP2PKHOutput & utxo);
 
-    /**
-    // Channel assignment related event
-    void assign(quint32 index, libtorrent::tcp::endpoint & endPoint);
-    void unassigned(quint32 index);
-    */
 
     // Update channel status fields
     void updateState(quint32 index, Payor::Channel::State state);

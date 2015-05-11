@@ -2,60 +2,102 @@
 #include "TorrentViewModel.hpp"
 #include "SellerPeerPluginViewModel.hpp"
 
-const char * SellerTorrentPluginViewModel::columnTitles[] = {"Host", "State", "Contract", "Funds", "Lock", "Price", "#Payments", "Balance"};
-const int SellerTorrentPluginViewModel::numberOfColumns = sizeof(SellerTorrentPluginViewModel::columnTitles)/sizeof(char *);
 
-SellerTorrentPluginViewModel::SellerTorrentPluginViewModel(TorrentViewModel * parent, const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration)
-    : QObject(parent)
-    // TorrentPluginViewModel(infoHash)
-    , _infoHash(infoHash)
-    , _configuration(configuration) {
+SellerTorrentPluginViewModel::SellerTorrentPluginViewModel(const SellerTorrentPlugin::Status & status)
+    : _minPrice(status.minPrice())
+    , _minLock(status.minLock())
+    , _minFeePerByte(status.minFeePerByte())
+    , _maxNumberOfSellers(status.maxNumberOfSellers())
+    , _maxContractConfirmationDelay(status.maxContractConfirmationDelay()) {
 
-    // Add columns to model view model
-    for(int i = 0;i < SellerTorrentPluginViewModel::numberOfColumns;i++)
-        _sellerPeerPluginTableViewModel.setHorizontalHeaderItem(i, new QStandardItem(SellerTorrentPluginViewModel::columnTitles[i]));
+    // Add peers
+    QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> peerPluginStatuses = status.peerPluginStatuses();
+
+    for(QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status>::const_iterator
+        i = peerPluginStatuses.constBegin(),
+        end = peerPluginStatuses.constEnd();
+        i != end;i++)
+        addPeer(i.key(), i.value());
 }
 
-void SellerTorrentPluginViewModel::addPeer(const libtorrent::tcp::endpoint & endPoint) { //, const SellerTorrentPlugin::Configuration & configuration) {
+SellerTorrentPluginViewModel::~SellerTorrentPluginViewModel() {
+
+    for(QMap<libtorrent::tcp::endpoint, SellerPeerPluginViewModel *>::const_iterator
+        i = _sellerPeerPluginViewModels.constBegin(),
+        end = _sellerPeerPluginViewModels.constEnd();
+        i != end;i++)
+        delete i.value();
+}
+
+void SellerTorrentPluginViewModel::addPeer(const libtorrent::tcp::endpoint & endPoint, const SellerPeerPlugin::Status & status) {
 
     Q_ASSERT(!_sellerPeerPluginViewModels.contains(endPoint));
 
-    // Create view model
-    SellerPeerPluginViewModel * sellerPeerPluginViewModel = new SellerPeerPluginViewModel(this, endPoint, &_sellerPeerPluginTableViewModel);
-
-    // Update view model
-    //sellerPeerPluginViewModel->updatePrice(configuration.minPrice());
-
-    // Add to map
-    _sellerPeerPluginViewModels[endPoint] = sellerPeerPluginViewModel;
+    // Create peer view model and add to map
+    _sellerPeerPluginViewModels[endPoint] = new SellerPeerPluginViewModel(status);
 }
 
 void SellerTorrentPluginViewModel::update(const SellerTorrentPlugin::Status & status) {
 
-    const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerPluginStatuses = status.peerPluginStatuses();
+    if(_minPrice != status.minPrice()) {
+        _minPrice = status.minPrice();
+        emit minPriceChanged(status.minPrice());
+    }
+
+    if(_minLock != status.minLock()) {
+        _minLock = status.minLock();
+        emit minLockChanged(status.minLock());
+    }
+
+    if(_minFeePerByte != status.minFeePerByte()) {
+        _minFeePerByte = status.minFeePerByte();
+        emit minFeePerByteChanged(status.minFeePerByte());
+    }
+
+    if(_maxNumberOfSellers != status.maxNumberOfSellers()) {
+        _maxNumberOfSellers = status.maxNumberOfSellers();
+        emit maxNumberOfSellersChanged(status.maxNumberOfSellers());
+    }
+
+    if(_maxContractConfirmationDelay != status.maxContractConfirmationDelay()) {
+        _maxContractConfirmationDelay = status.maxContractConfirmationDelay();
+        emit maxContractConfirmationDelayChanged(status.maxContractConfirmationDelay());
+    }
+
+    // Update peers
+    QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> peerPluginStatuses = status.peerPluginStatuses();
 
     for(QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status>::const_iterator
         i = peerPluginStatuses.constBegin(),
-        end = peerPluginStatuses.constEnd(); i != end;i++)
-            updatePeer(i.key(), i.value());
+        end = peerPluginStatuses.constEnd();
+        i != end;i++) {
+
+        Q_ASSERT(_sellerPeerPluginViewModels.contains(i.key()));
+
+        _sellerPeerPluginViewModels[i.key()]->update(i.value());
+    }
 }
 
-void SellerTorrentPluginViewModel::updatePeer(const libtorrent::tcp::endpoint & endPoint, const SellerPeerPlugin::Status & status) {
-
-    Q_ASSERT(_sellerPeerPluginViewModels.contains(endPoint));
-
-    // Update view model
-    _sellerPeerPluginViewModels[endPoint]->update(status);
+quint64 SellerTorrentPluginViewModel::minPrice() const {
+    return _minPrice;
 }
 
-QStandardItemModel * SellerTorrentPluginViewModel::sellerPeerPluginTableViewModel() {
-    return &_sellerPeerPluginTableViewModel;
+quint32 SellerTorrentPluginViewModel::minLock() const {
+    return _minLock;
 }
 
-SellerTorrentPlugin::Configuration SellerTorrentPluginViewModel::configuration() const {
-    return _configuration;
+quint64 SellerTorrentPluginViewModel::minFeePerByte() const {
+    return _minFeePerByte;
 }
 
-void SellerTorrentPluginViewModel::setConfiguration(const SellerTorrentPlugin::Configuration & configuration) {
-    _configuration = configuration;
+quint32 SellerTorrentPluginViewModel::maxNumberOfSellers() const {
+    return _maxNumberOfSellers;
+}
+
+quint32 SellerTorrentPluginViewModel::maxContractConfirmationDelay() const {
+    return _maxContractConfirmationDelay;
+}
+
+QMap<libtorrent::tcp::endpoint, SellerPeerPluginViewModel *> SellerTorrentPluginViewModel::sellerPeerPluginViewModels() const {
+    return _sellerPeerPluginViewModels;
 }

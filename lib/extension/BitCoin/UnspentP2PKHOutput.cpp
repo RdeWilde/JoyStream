@@ -33,6 +33,10 @@ bool UnspentP2PKHOutput::operator==(const UnspentP2PKHOutput & o) const {
            _keyPair == o.keyPair();
 }
 
+bool UnspentP2PKHOutput::operator!=(const UnspentP2PKHOutput & o) const {
+    return !(*this == o);
+}
+
 QJsonObject UnspentP2PKHOutput::json() const {
 
     return QJsonObject{

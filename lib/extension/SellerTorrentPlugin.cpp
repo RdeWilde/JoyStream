@@ -22,8 +22,58 @@
 SellerTorrentPlugin::Status::Status() {
 }
 
-SellerTorrentPlugin::Status::Status(const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerStatuses)
-    : _peerPluginStatuses(peerStatuses) {
+SellerTorrentPlugin::Status::Status(quint64 minPrice,
+                                    quint32 minLock,
+                                    quint64 minFeePerByte,
+                                    quint32 maxNumberOfSellers,
+                                    quint32 maxContractConfirmationDelay,
+                                    const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerPluginStatuses)
+    : _minPrice(minPrice)
+    , _minLock(minLock)
+    , _minFeePerByte(minFeePerByte)
+    , _maxNumberOfSellers(maxNumberOfSellers)
+    , _maxContractConfirmationDelay(maxContractConfirmationDelay)
+    , _peerPluginStatuses(peerPluginStatuses) {
+}
+
+quint64 SellerTorrentPlugin::Status::minPrice() const {
+    return _minPrice;
+}
+
+void SellerTorrentPlugin::Status::setMinPrice(quint64 minPrice) {
+    _minPrice = minPrice;
+}
+
+quint32 SellerTorrentPlugin::Status::minLock() const {
+    return _minLock;
+}
+
+void SellerTorrentPlugin::Status::setMinLock(quint32 minLock) {
+    _minLock = minLock;
+}
+
+quint32 SellerTorrentPlugin::Status::maxNumberOfSellers() const {
+    return _maxNumberOfSellers;
+}
+
+void SellerTorrentPlugin::Status::setMaxNumberOfSellers(quint32 maxNumberOfSellers) {
+    _maxNumberOfSellers = maxNumberOfSellers;
+}
+
+quint64 SellerTorrentPlugin::Status::minFeePerByte() const {
+    return _minFeePerByte;
+}
+
+void SellerTorrentPlugin::Status::setMinFeePerByte(quint64 minFeePerByte) {
+    _minFeePerByte = minFeePerByte;
+}
+
+quint32 SellerTorrentPlugin::Status::maxContractConfirmationDelay() const {
+    return _maxContractConfirmationDelay;
+}
+
+void SellerTorrentPlugin::Status::setMaxContractConfirmationDelay(quint32 maxContractConfirmationDelay) {
+    _maxContractConfirmationDelay = maxContractConfirmationDelay;
 }
 
 QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> SellerTorrentPlugin::Status::peerPluginStatuses() const {
@@ -312,7 +362,12 @@ SellerTorrentPlugin::Status SellerTorrentPlugin::status() const {
         peerStatuses[i.key()] = (i.value())->status();
 
     // Return map of statuses
-    return SellerTorrentPlugin::Status(peerStatuses);
+    return SellerTorrentPlugin::Status(_minPrice,
+                                       _minLock,
+                                       _minFeePerByte,
+                                       _maxNumberOfSellers,
+                                       _maxContractConfirmationDelay,
+                                       peerStatuses);
 }
 
 // Creates configuratin for plugin

@@ -3,7 +3,7 @@
 
 #include "extension/PaymentChannel/Payor.hpp"
 
-#include <libtorrent/socket_io.hpp> // libtorrent::tcp::endpoint
+#include <QObject>
 
 class ChannelViewModel : public QObject {
 
@@ -12,10 +12,9 @@ class ChannelViewModel : public QObject {
 public:
 
     // Constructor
-    ChannelViewModel(const Payor::Configuration & configuration);
+    ChannelViewModel(const Payor::Channel::Status & status);
 
     // Getters
-    Payor::Channel::Configuration configuration() const;
     Payor::Channel::Status status() const;
 
 public slots:
@@ -25,18 +24,15 @@ public slots:
 
 signals:
 
-    // Status signals
-    void stateChanged(quint32 index, Payor::Channel::State state);
-    void fundsChanged(quint32 index, quint64 funds);
-    void refundLockTimeChanged(quint32 index, quint32 refundLockTime);
-    void priceChanged(quint32 index, quint64 price);
-    void numberOfPaymentsMadeChanged(quint32 index, quint64 numberOfPaymentsMade);
-    void balanceChanged(quint32 index, quint64 balance);
+    // Status change
+    void stateChanged(Payor::Channel::State state);
+    void fundsChanged(quint64 funds);
+    void refundLockTimeChanged(quint32 refundLockTime);
+    void priceChanged(quint64 price);
+    void numberOfPaymentsMadeChanged(quint64 numberOfPaymentsMade);
+    void balanceChanged(quint64 balance);
 
 private:
-
-    // Configurations used to start channel
-    Payor::Channel::Configuration _configuration;
 
     // Status of channel
     Payor::Channel::Status _status;

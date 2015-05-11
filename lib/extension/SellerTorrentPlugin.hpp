@@ -22,13 +22,48 @@ public:
         Status();
 
         // Constructor from members
-        Status(const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerPluginStatuses);
+        Status(quint64 minPrice,
+               quint32 minLock,
+               quint64 minFeePerByte,
+               quint32 maxNumberOfSellers,
+               quint32 maxContractConfirmationDelay,
+               const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerPluginStatuses);
 
         // Getters and setters
+        quint64 minPrice() const;
+        void setMinPrice(quint64 minPrice);
+
+        quint32 minLock() const;
+        void setMinLock(quint32 minLock);
+
+        quint64 minFeePerByte() const;
+        void setMinFeePerByte(quint64 minFeePerByte);
+
+        quint32 maxNumberOfSellers() const;
+        void setMaxNumberOfSellers(quint32 maxNumberOfSellers);
+
+        quint32 maxContractConfirmationDelay() const;
+        void setMaxContractConfirmationDelay(quint32 maxContractConfirmationDelay);
+
         QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> peerPluginStatuses() const;
         void setPeerPluginStatuses(const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerPluginStatuses);
 
     private:
+
+        // Maximum price accepted (satoshies)
+        quint64 _minPrice;
+
+        // Minimum lock time (the number of seconds elapsed since 1970-01-01T00:00 UTC)
+        quint32 _minLock;
+
+        // Minimum fee per byte in contract transaction (satoshies)
+        quint64 _minFeePerByte;
+
+        // Number of sellers
+        quint32 _maxNumberOfSellers;
+
+        // Maximum time (s) for which seller is willing to seed without contract getting at least one confirmation
+        quint32 _maxContractConfirmationDelay;
 
         // Status of peer plugins
         QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> _peerPluginStatuses;

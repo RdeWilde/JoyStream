@@ -98,7 +98,8 @@ SOURCES += \
     extension/Alert/StartedBuyerTorrentPlugin.cpp \
     view/PayorViewModel.cpp \
     view/ChannelViewModel.cpp \
-    view/BuyerTorrentPluginDialog.cpp
+    view/BuyerTorrentPluginDialog.cpp \
+    view/PayeeViewModel.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -198,7 +199,8 @@ HEADERS += \
     extension/Alert/StartedBuyerTorrentPlugin.hpp \
     view/BuyerTorrentPluginDialog.hpp \
     view/PayorViewModel.hpp \
-    view/ChannelViewModel.hpp
+    view/ChannelViewModel.hpp \
+    view/PayeeViewModel.hpp
 				
 FORMS += \
     view/SellerTorrentPluginConfigurationDialog.ui \

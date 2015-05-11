@@ -17,8 +17,9 @@ class SellerTorrentPluginDialog : public QDialog
 
 public:
 
-    explicit SellerTorrentPluginDialog(QWidget * parent, SellerTorrentPluginViewModel * model);
+    explicit SellerTorrentPluginDialog(QWidget * parent);
 
+    // Destructor
     ~SellerTorrentPluginDialog();
 
     // Converts view information into configuration
@@ -26,7 +27,7 @@ public:
 
 public slots:
 
-    void updateConfiguration(const SellerTorrentPlugin::Configuration & configuration);
+    //void updateConfiguration(const SellerTorrentPlugin::Configuration & configuration);
 
 signals:
 

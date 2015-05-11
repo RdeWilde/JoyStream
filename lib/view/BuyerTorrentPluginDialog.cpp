@@ -18,13 +18,13 @@ BuyerTorrentPluginDialog::BuyerTorrentPluginDialog(const BuyerTorrentPluginViewM
     /**
      * Shallow fields
      */
-    updateState(model->state());
-    updateConfiguration(model->configuration());
-    updateUtxo(model->utxo());
+    //updateState(model->state());
+    //updateConfiguration(model->configuration());
+    //updateUtxo(model->utxo());
 
     /**
      * Payor
-     */
+
     // Add columns to channel table view model
     QStringList channelTableColumnNames;
 
@@ -108,9 +108,11 @@ BuyerTorrentPluginDialog::BuyerTorrentPluginDialog(const BuyerTorrentPluginViewM
                          SLOT(updateBalance(quint32,quint64));
     }
 
+    */
+
     /**
      * Buyer peer plugins
-     */
+
 
     // Add columns to peer plugin table view model
     QStringList buyerPeerPluginTableColumnNames;
@@ -118,6 +120,7 @@ BuyerTorrentPluginDialog::BuyerTorrentPluginDialog(const BuyerTorrentPluginViewM
                                     << "State";
 
     _buyerPeerPluginTableViewModel.setHorizontalHeaderLabels(buyerPeerPluginTableColumnNames);
+*/
 
     /**
     // Add rows to table view model for each channel
@@ -241,6 +244,7 @@ void BuyerTorrentPluginDialog::updateBalance(quint32 index, quint64 balance) {
 
 }
 
+/**
 void ChannelViewModel::updateHostItem(libtorrent::tcp::endpoint & endPoint) {
 
     std::string endPointString = libtorrent::print_endpoint(endPoint);
@@ -299,7 +303,7 @@ void ChannelViewModel::updateUploadSpeedItem(quint64 bytesPrSecond) {
     _uploadSpeedItem->setText(QString::number(bytesPrSecond));
 }
 
-/**
+
 void BuyerPeerPluginViewModel::clientStateChanged(BuyerPeerPlugin::ClientState state) {
 
     // Get text representation of state

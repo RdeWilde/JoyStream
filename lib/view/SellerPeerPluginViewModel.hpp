@@ -3,6 +3,7 @@
 
 //#include "PeerPluginViewModel.hpp"
 #include "extension/SellerPeerPlugin.hpp" // SellerPeerPlugin::Status
+#include "PayeeViewModel.hpp"
 
 #include <libtorrent/socket_io.hpp> // libtorrent::tcp::endpoint
 
@@ -19,36 +20,31 @@ class SellerPeerPluginViewModel : public QObject // : public PeerPluginViewModel
 public:
 
     // Constructor from members
-    SellerPeerPluginViewModel(SellerTorrentPluginViewModel * parent, const libtorrent::tcp::endpoint & endPoint, QStandardItemModel * model);
+    SellerPeerPluginViewModel(const SellerPeerPlugin::Status & status);
 
     // Update
     void update(const SellerPeerPlugin::Status & status);
-    void updateClientState(SellerPeerPlugin::ClientState state);
-    void updateContractOutPointItem(const OutPoint & outPoint);
-    void updateLockTime(const QDateTime & lockTime);
-    void updateFunds(quint64 funds);
-    void updatePrice(quint64 price);
-    void updateNumberOfPaymentsMadeItem(quint64 numPayments);
-    void updateBalanceItem(quint64 balance);
 
-public slots:
+    // Getters
+    SellerPeerPlugin::ClientState clientState() const;
+    const PayeeViewModel * payeeViewModel() const;
+    //QList<int> fullPiecesSent() const;
 
 signals:
 
+    // Update
+    void clientStateChanged(SellerPeerPlugin::ClientState state);
+
 private:
 
-    // Peer endpoint
-    libtorrent::tcp::endpoint _endPoint;
+    // State of client
+    SellerPeerPlugin::ClientState _clientState;
 
-    // Model items for seller peer plugin table in SEllerTorrentPluginViewModel
-    QStandardItem * _hostItem, // PeerPlugin::endpoint
-                  * _clientStateItem, // SellerPeerPlugin::ClientState
-                  * _contractOutPointItem,
-                  * _fundsItem,
-                  * _lockTime,
-                  * _priceItem,
-                  * _numberOfPaymentsMadeItem,
-                  * _balanceItem;
+    // Payee view model
+    PayeeViewModel _payeeViewModel;
+
+    // Full pieces sent
+    //QList<int> _fullPiecesSent;
 };
 
 #endif // SELLER_PEER_PLUGIN_VIEW_MODEL_HPP
