@@ -28,7 +28,7 @@
     </font>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="peers">
     <attribute name="title">
@@ -270,7 +270,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Price/GB (mɃ):</string>
+      <string>Price/piece (mɃ):</string>
      </property>
     </widget>
    </widget>

@@ -1703,6 +1703,7 @@ bool Controller::addTorrent(const Torrent::Configuration & configuration) {
     //Q_ASSERT(!_pendingObserverTorrentPluginConfigurations.contains(info_hash));
 
     // Connect view model signals to controller slots
+    /**
     const TorrentViewModel * viewModel = torrent->model();
 
     QObject::connect(viewModel,
@@ -1719,6 +1720,7 @@ bool Controller::addTorrent(const Torrent::Configuration & configuration) {
                      SIGNAL(remove(libtorrent::sha1_hash)),
                      this,
                      SLOT(removeTorrent(libtorrent::sha1_hash)));
+    */
 
     // Save torrent
     _torrents[info_hash] = torrent;

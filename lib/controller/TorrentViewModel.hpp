@@ -64,7 +64,10 @@ signals:
     void pause(const libtorrent::sha1_hash & infoHash);
     void start(const libtorrent::sha1_hash & infoHash);
     void remove(const libtorrent::sha1_hash & infoHash);
-    void showExtensionDialog(const libtorrent::sha1_hash & infoHash);
+
+    //
+    void sellerTorrentPluginDialogRequested(const SellerTorrentPluginViewModel * model);
+    void buyerTorrentPluginDialogRequested(const BuyerTorrentPluginViewModel * model);
 
 private:
 

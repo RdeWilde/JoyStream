@@ -2,8 +2,9 @@
 #define SELLER_TORRENT_PLUGIN_DIALOG_HPP
 
 #include <QDialog>
+#include <QStandardItemModel>
 
-#include "extension/SellerTorrentPlugin.hpp"
+//#include "extension/SellerTorrentPlugin.hpp"
 
 class SellerTorrentPluginViewModel;
 
@@ -17,25 +18,24 @@ class SellerTorrentPluginDialog : public QDialog
 
 public:
 
-    explicit SellerTorrentPluginDialog(QWidget * parent);
+    // Constructor
+    SellerTorrentPluginDialog(const SellerTorrentPluginViewModel * model);
 
     // Destructor
     ~SellerTorrentPluginDialog();
 
     // Converts view information into configuration
-    SellerTorrentPlugin::Configuration configuration() const;
-
-public slots:
-
-    //void updateConfiguration(const SellerTorrentPlugin::Configuration & configuration);
+    //SellerTorrentPlugin::Configuration configuration() const;
 
 signals:
 
-    // Configuration was updated
-    //void configurationUpdated(const SellerTorrentPlugin::Configuration & configuration);
 
 private:
+
     Ui::SellerTorrentPluginDialog *ui;
+
+    // Seller peer plugin table view model
+    QStandardItemModel _sellerPeerPluginTableViewModel;
 };
 
 #endif // SELLER_TORRENT_PLUGIN_DIALOG_HPP

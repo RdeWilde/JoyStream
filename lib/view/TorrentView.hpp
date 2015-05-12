@@ -22,10 +22,23 @@ class TorrentView : public QObject
 public:
 
     // Constructor
-    TorrentView(const TorrentViewModel * viewModel, QStandardItemModel * itemModel);
+    TorrentView(const libtorrent::torrent_status & status,
+                int size,
+                QStandardItemModel * itemModel);
+
+    // Text conversion routines
+    static QString sizeToString(int size) const;
+    static QString pluginInstalledToString(PluginInstalled pluginInstalled) const;
+    static QString torrentStateToString(bool paused, libtorrent::torrent_status::state_t state, float progress) const;
+    static QString speedToString(int downloadRate, int uploadRate) const;
+    static QString peersToString(int numberOfPeers, int numberOfPeersWithExtension) const;
 
     // Getters
-    QMenu * torrentTableContextMenu();
+    const QMenu * torrentTableContextMenu() const;
+    const QAction * pauseAction() const;
+    const QAction * startAction() const;
+    const QAction * removeAction() const;
+    const QAction * viewExtensionAction() const;
 
 public slots:
 
@@ -38,7 +51,7 @@ private:
 
     // Torrent info hash
     // Required as payload for signals
-    libtorrent::sha1_hash _infoHash;
+    //libtorrent::sha1_hash _infoHash;
 
     // View model pointers
     // Objects are owned by QStandardItemModel passed to ctr
@@ -55,18 +68,10 @@ private:
 
     // Context menu actions
     // Seems to have to be pointers, since they need parent
-    QAction _pause,
-            _start,
-            _remove,
-            _viewExtension;
-
-    // Text conversion routines
-    QString getSizeText(int size);
-    QString getPluginInstalledText(PluginInstalled pluginInstalled);
-    QString getTorrentStateText(bool paused, libtorrent::torrent_status::state_t state, float progress);
-    QString getSpeedText(int downloadRate, int uploadRate);
-    QString getPeersText(int numberOfPeers, int numberOfPeersWithExtension);
-
+    QAction _pauseAction,
+            _startAction,
+            _removeAction,
+            _viewExtensionAction;
 };
 
 #endif // TORRENT_VIEW_HPP

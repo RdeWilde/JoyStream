@@ -1,19 +1,18 @@
 #ifndef BUYER_TORRENT_DIALOG_HPP
 #define BUYER_TORRENT_DIALOG_HPP
 
-namespace Ui {
-class BuyerTorrentDialog;
-}
-
 #include "extension/BuyerTorrentPlugin.hpp"
-
-//#include <libtorrent/socket.hpp> // tcp::endpoint
 
 #include <QDialog>
 #include <QStandardItemModel>
 
+namespace Ui {
+class BuyerTorrentDialog;
+}
 
 class BuyerTorrentPluginViewModel;
+class ChannelView;
+class BuyerPeerPluginView;
 
 class BuyerTorrentPluginDialog : public QDialog
 {
@@ -34,17 +33,10 @@ public slots:
 
     // Update plugin fields (though not all of these are mutable)
     void updateState(BuyerTorrentPlugin::State state);
-    void updateConfiguration(const BuyerTorrentPlugin::Configuration & configuration);
+    //void updateConfiguration(const BuyerTorrentPlugin::Configuration & configuration);
     void updateUtxo(const UnspentP2PKHOutput & utxo);
 
 
-    // Update channel status fields
-    void updateState(quint32 index, Payor::Channel::State state);
-    void updateFunds(quint32 index, quint64 funds);
-    void updateRefundLockTime(quint32 index, quint32 refundLockTime);
-    void updatePrice(quint32 index, quint64 price);
-    void updateNumberOfPaymentsMade(quint32 index, quint64 numberOfPaymentsMade);
-    void updateBalance(quint32 index, quint64 balance);
 
 private:
 
@@ -55,6 +47,12 @@ private:
 
     // Buyer peer plugin table view model
     QStandardItemModel _buyerPeerPluginTableViewModel;
+
+    // Views for channels
+    QVector<ChannelView *> _channelViews;
+
+    // Views for buyer peer plugins
+    QMap<libtorrent::tcp::endpoint, BuyerPeerPluginView *> _buyerPeerPluginViews;
 
 };
 

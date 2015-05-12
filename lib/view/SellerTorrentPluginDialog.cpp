@@ -4,9 +4,8 @@
 
 #include "extension/BitCoin/BitCoin.hpp"
 
-SellerTorrentPluginDialog::SellerTorrentPluginDialog(QWidget * parent)
-    : QDialog(parent)
-    , ui(new Ui::SellerTorrentPluginDialog) {
+SellerTorrentPluginDialog::SellerTorrentPluginDialog(const SellerTorrentPluginViewModel * model)
+    : ui(new Ui::SellerTorrentPluginDialog) {
 
     ui->setupUi(this);
 
@@ -30,6 +29,7 @@ SellerTorrentPluginDialog::~SellerTorrentPluginDialog() {
     delete ui;
 }
 
+/**
 SellerTorrentPlugin::Configuration SellerTorrentPluginDialog::configuration() const {
 
     // minPrice
@@ -69,6 +69,7 @@ SellerTorrentPlugin::Configuration SellerTorrentPluginDialog::configuration() co
                                             maxNumberOfSellers,
                                             maxContractConfirmationDelay);
 }
+*/
 
 #include "Utilities.hpp"
 

@@ -1,11 +1,12 @@
 #include "TorrentView.hpp"
-#include "controller/TorrentViewModel.hpp"
 #include "controller/PluginInstalled.hpp"
 
 #include <QStandardItemModel>
 #include <QStandardItem>
 
-TorrentView::TorrentView(const TorrentViewModel * viewModel, QStandardItemModel * itemModel)
+TorrentView::TorrentView(const libtorrent::torrent_status & status,
+                         int size,
+                         QStandardItemModel * itemModel)
     : _nameItem(new QStandardItem())
     , _sizeItem(new QStandardItem())
     , _stateItem(new QStandardItem())
@@ -13,14 +14,14 @@ TorrentView::TorrentView(const TorrentViewModel * viewModel, QStandardItemModel 
     , _peersItem(new QStandardItem())
     , _modeItem(new QStandardItem())
     , _balanceItem(new QStandardItem())
-    , _pause("Pause", this)
-    , _start("Start", this)
-    , _remove("Remove", this)
-    , _viewExtension("Extension", this) {
+    , _pauseAction("Pause", this)
+    , _startAction("Start", this)
+    , _removeAction("Remove", this)
+    , _viewExtensionAction("Extension", this) {
 
     // Set initial item values
-    updateStatus(viewModel->status());
-    _sizeItem->setText(getSizeText(viewModel->torrentInfo()->total_size()));
+    updateStatus(status);
+    _sizeItem->setText(sizeToString(size));
 
     // Add row to itemModel
     QList<QStandardItem *> items;
@@ -35,80 +36,18 @@ TorrentView::TorrentView(const TorrentViewModel * viewModel, QStandardItemModel 
 
     itemModel->appendRow(items);
 
-    // Connect view model signals to this slot
-    QObject::connect(viewModel,
-                     SIGNAL(pluginInstalledChanged(PluginInstalled)),
-                     this,
-                     SLOT(updatePluginInstalled(PluginInstalled)));
-
-    QObject::connect(viewModel,
-                     SIGNAL(torrentStatusChanged(const libtorrent::torrent_status &)),
-                     this,
-                     SLOT(updateStatus(const libtorrent::torrent_status &)));
-
-
     // Add menu buttons
-    _torrentTableContextMenu.addAction(&_start);
-    _torrentTableContextMenu.addAction(&_pause);
-    _torrentTableContextMenu.addAction(&_remove);
+    _torrentTableContextMenu.addAction(&_startAction);
+    _torrentTableContextMenu.addAction(&_pauseAction);
+    _torrentTableContextMenu.addAction(&_removeAction);
     //_torrentTableContextMenu.addAction(&_viewExtension); // add action to menu only when plugin is installed
-
-    // Connect menu action trigger signals
-    // to corresponding view model slot
-    QObject::connect(&_pause,
-                     SIGNAL(triggered()),
-                     viewModel,
-                     SLOT(pause()));
-
-    QObject::connect(&_start,
-                     SIGNAL(triggered()),
-                     viewModel,
-                     SLOT(start()));
-
-    QObject::connect(&_remove,
-                     SIGNAL(triggered()),
-                     viewModel,
-                     SLOT(remove()));
-
-    QObject::connect(&_viewExtension,
-                     SIGNAL(triggered()),
-                     viewModel,
-                     SLOT(showExtensionDialog()));
 }
 
-QMenu * TorrentView::torrentTableContextMenu() {
-    return &_torrentTableContextMenu;
-}
-
-void TorrentView::updatePluginInstalled(PluginInstalled pluginInstalled) {
-
-    // mode
-    _modeItem->setText(getPluginInstalledText(pluginInstalled));
-}
-
-void TorrentView::updateStatus(const libtorrent::torrent_status & status) {
-
-    // name
-    QString name = QString::fromStdString(status.name);
-    _nameItem->setText(name);
-
-    // state
-    _stateItem->setText(getTorrentStateText(status.paused, status.state, status.progress));
-
-    // speed
-    _speedItem->setText(getSpeedText(status.download_rate, status.upload_rate));
-
-}
-
-void TorrentView::updatePeers(int numberOfPeers, int numberOfPeersWithExtension) {
-    _peersItem->setText(getPeersText(numberOfPeers, numberOfPeersWithExtension));
-}
-
-QString TorrentView::getSizeText(int size) {
+QString TorrentView::sizeToString(int size) const {
     return QString::number(size) + QString("b");
 }
 
-QString TorrentView::getPluginInstalledText(PluginInstalled pluginInstalled) {
+QString TorrentView::pluginInstalledToString(PluginInstalled pluginInstalled) const {
 
     QString text;
 
@@ -127,7 +66,7 @@ QString TorrentView::getPluginInstalledText(PluginInstalled pluginInstalled) {
     return text;
 }
 
-QString TorrentView::getTorrentStateText(bool paused, libtorrent::torrent_status::state_t state, float progress) {
+QString TorrentView::torrentStateToString(bool paused, libtorrent::torrent_status::state_t state, float progress) const {
 
     if(paused)
         return QString("Paused");
@@ -183,7 +122,7 @@ QString TorrentView::getTorrentStateText(bool paused, libtorrent::torrent_status
     return text;
 }
 
-QString TorrentViewModel::getSpeedText(int downloadRate, int uploadRate) {
+QString TorrentView::speedToString(int downloadRate, int uploadRate) const {
 
     QString text;
 
@@ -195,6 +134,51 @@ QString TorrentViewModel::getSpeedText(int downloadRate, int uploadRate) {
     return text;
 }
 
-void TorrentViewModel::getPeersText(int numberOfPeers, int numberOfPeersWithExtension) {
+void TorrentView::peersToString(int numberOfPeers, int numberOfPeersWithExtension) const {
     return QString::number(numberOfPeers) + "|" + QString::number(numberOfPeersWithExtension);
+}
+
+
+QMenu * TorrentView::torrentTableContextMenu() {
+    return &_torrentTableContextMenu;
+}
+
+const QAction * TorrentView::pauseAction() const {
+    return &_pauseAction;
+}
+
+const QAction * TorrentView::startAction() const {
+    return &_startAction;
+}
+
+const QAction * TorrentView::removeAction() const {
+    return &_removeAction;
+}
+
+const QAction * TorrentView::viewExtensionAction() const {
+    return &_viewExtensionAction;
+}
+
+void TorrentView::updatePluginInstalled(PluginInstalled pluginInstalled) {
+
+    // mode
+    _modeItem->setText(pluginInstalledToString(pluginInstalled));
+}
+
+void TorrentView::updateStatus(const libtorrent::torrent_status & status) {
+
+    // name
+    QString name = QString::fromStdString(status.name);
+    _nameItem->setText(name);
+
+    // state
+    _stateItem->setText(torrentStateToString(status.paused, status.state, status.progress));
+
+    // speed
+    _speedItem->setText(speedToString(status.download_rate, status.upload_rate));
+
+}
+
+void TorrentView::updatePeers(int numberOfPeers, int numberOfPeersWithExtension) {
+    _peersItem->setText(peersToString(numberOfPeers, numberOfPeersWithExtension));
 }

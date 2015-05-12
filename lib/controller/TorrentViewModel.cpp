@@ -132,5 +132,28 @@ void TorrentViewModel::remove() {
 }
 
 void TorrentViewModel::showExtensionDialog() {
-    emit showExtensionDialog(_infoHash);
+
+    Q_ASSERT(_pluginInstalled != PluginInstalled::None);
+
+    switch(_pluginInstalled) {
+
+        case PluginInstalled::Seller:
+            Q_ASSERT(_sellerTorrentPluginViewModel != NULL);
+            Q_ASSERT(_buyerTorrentPluginViewModel == NULL);
+
+            emit sellerTorrentPluginDialogRequested(_sellerTorrentPluginViewModel);
+
+        case PluginInstalled::Buyer:
+            Q_ASSERT(_sellerTorrentPluginViewModel == NULL);
+            Q_ASSERT(_buyerTorrentPluginViewModel != NULL);
+
+            emit buyerTorrentPluginDialogRequested(_buyerTorrentPluginViewModel);
+
+        case PluginInstalled::Observer:
+            Q_ASSERT(false);
+
+        case PluginInstalled::None:
+            Q_ASSERT(_buyerTorrentPluginViewModel == NULL);
+            Q_ASSERT(_sellerTorrentPluginViewModel == NULL);
+    }
 }

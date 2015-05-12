@@ -19,7 +19,6 @@ BuyerTorrentPluginDialog::BuyerTorrentPluginDialog(const BuyerTorrentPluginViewM
      * Shallow fields
      */
     //updateState(model->state());
-    //updateConfiguration(model->configuration());
     //updateUtxo(model->utxo());
 
     /**
