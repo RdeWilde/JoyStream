@@ -1,11 +1,37 @@
 #include "ChannelView.hpp"
 
-ChannelView::ChannelView(QObject *parent)
-    : QObject(parent) {
+#include <QStandardItem>
+#include <QStandardItemModel>
+
+ChannelView::ChannelView(QStandardItemModel * model,
+                         Payor::Channel::State state,
+                         quint64 funds,
+                         quint32 refundLockTime,
+                         quint64 price,
+                         quint64 numberOfPaymentsMade,
+                         quint64 balance)
+    : _stateItem(new QStandardItem(stateToString(state)))
+    , _fundsItem(new QStandardItem(fundsToString(funds)))
+    , _refundLockTimeItem(new QStandardItem(refundLockTimeToString(refundLockTime)))
+    , _priceItem(new QStandardItem(priceToString(price)))
+    , _numberOfPaymentMadeItem(new QStandardItem(numberOfPaymentsMadeToString(numberOfPaymentsMade)))
+    , _balanceItem(new QStandardItem(balanceToString(balance))) {
+
+    // Add row to model
+    QList<QStandardItem *> items;
+
+    items << _stateItem
+          << _fundsItem
+          << _refundLockTimeItem
+          << _priceItem
+          << _numberOfPaymentMadeItem
+          << _balanceItem;
+
+    model->appendRow(items);
 
 }
 
-QString ChannelView::stateToString(Payor::Channel::State state) const {
+QString ChannelView::stateToString(Payor::Channel::State state) {
 
     QString text;
 
@@ -24,23 +50,23 @@ QString ChannelView::stateToString(Payor::Channel::State state) const {
     return text;
 }
 
-QString ChannelView::fundsToString(quint64 funds) const {
+QString ChannelView::fundsToString(quint64 funds) {
     return QString::number(funds);
 }
 
-QString ChannelView::refundLockTimeToString(quint32 refundLockTime) const {
+QString ChannelView::refundLockTimeToString(quint32 refundLockTime) {
     return QString::number(refundLockTime);
 }
 
-QString ChannelView::priceToString(quint64 price) const {
+QString ChannelView::priceToString(quint64 price) {
     return QString::number(price);
 }
 
-QString ChannelView::numberOfPaymentsMadeToString(quint64 numberOfPaymentsMade) const {
+QString ChannelView::numberOfPaymentsMadeToString(quint64 numberOfPaymentsMade) {
     return QString::number(numberOfPaymentsMade);
 }
 
-QString ChannelView::balanceToString(quint64 balance) const {
+QString ChannelView::balanceToString(quint64 balance) {
     return QString::number(balance);
 }
 

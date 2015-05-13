@@ -45,54 +45,54 @@ public slots:
 
     // Manage torrents
     void addTorrent(const TorrentViewModel * model);
-    void removeTorrent(const libtorrent::sha1_hash & info_hash);
     void addTorrentFailed(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec);
 
+    /**
     // Torrent Plugin starting events
     //void addTorrentPlugin(const libtorrent::sha1_hash & infoHash, PluginMode mode);
-    void registerSellerTorrentPluginStarted(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration);
-    void registerBuyerTorrentPluginStarted(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration, const UnspentP2PKHOutput & utxo);
+    void startedSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration);
+    void startedBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration, const UnspentP2PKHOutput & utxo);
+
+    // Peer plugin events
+    void addSellerPeerPlugin();
+    void addBuyerPeerPlugin();
 
     // Torrent Plugin status events
     //void updateTorrentPluginStatus(const TorrentPluginStatusAlert * torrentPluginStatusAlert);// TorrentPluginStatus status
     void updateBuyerTorrentPluginStatus(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Status & status);
     void updateSellerTorrentPluginStatus(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Status & status);
+    */
 
     // Plugin status event
     void updatePluginStatus(const Plugin::Status & status);
 
-    //
+    // Wallet balance has changed
     void updateWalletBalance(quint64 balance);
-
-    void addPeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint);
-    //void updatePeerPluginStatus(const PeerPluginStatus & status);
-    void removePeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint);
 
     /**
      * Torrent table events
      */
 
-    // These slots are used to tap into native QMenu ui signals.
-    void showContextMenu(QPoint pos);
+    // Shows context menu, at given position,
+    // for corresponding torrent
+    void showContextMenu(const QPoint & pos);
 
-    // Mouse click on row in torrent table
-    void torrentTableClicked(const QModelIndex & index);
-
-    /**
-     * Show parts of view
-     */
+    // Show parts of view
     void showAddTorrentFromTorrentFileDialog(const QString & torrentFile);
     void showAddTorrentFromMagnetLinkDialog(const QString & magnetLink);
     void showAddTorrentPluginConfigurationDialog(const libtorrent::torrent_info & torrentInfo, const libtorrent::torrent_status & torrentStatus);
+
+    void showTorrentPluginDialog(const libtorrent::sha1_hash & infoHash);
     void showSellerTorrentPluginDialog(const SellerTorrentPluginViewModel * sellerTorrentPluginViewModel);
     void showBuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel * buyerTorrentPluginViewModel);
 
-    /**
-     * Mouse click events
-     */
+    // Mouse click events
     void on_addTorrentFilePushButton_clicked();
     void on_addMagnetLinkPushButton_clicked();
     void on_walletPushButton_clicked();
+
+    // Mouse click on row in torrent table
+    void torrentTableClicked(const QModelIndex & index);
 
 private:
 
@@ -111,12 +111,19 @@ private:
     // Torrent table view model
     QStandardItemModel _torrentTableViewModel;
 
-    // Maps info_hash of models to corresponding torrent view
+    // View for torrent with corresponding info hash
     // Must use pointer values since its a QObject
     QMap<libtorrent::sha1_hash, TorrentView *> _torrentViews;
 
-    // Get view model for torrent in given row
-    TorrentView * torrentViewInTableRow(int row);
+    // Vector with info hash of torrent in corresponding table position
+    // Is used to lookup views based on row selected by user
+    QVector<libtorrent::sha1_hash> _rowToInfoHash;
+
+    // View model for torrent with corresponding info hash
+    QMap<libtorrent::sha1_hash, TorrentViewModel *> _torrentViewModels;
+
+    // Uses _rowToViewMapping to lookup view in _torrentViews
+    TorrentView * rowToView(int row);
 
 protected:
 

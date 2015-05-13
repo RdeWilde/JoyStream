@@ -387,7 +387,7 @@ void Controller::Torrent::setFlags(quint64 flags) {
     _flags = flags;
 }
 
-libtorrent::torrent_info * Controller::Torrent::torrentInfo() const {
+libtorrent::torrent_info * Controller::Torrent::torrentInfo() {
     return _torrentInfo;
 }
 
@@ -403,7 +403,7 @@ PluginInstalled Controller::Torrent::pluginInstalled() const {
     return _pluginInstalled;
 }
 
-const TorrentViewModel * Controller::Torrent::model() const {
+TorrentViewModel * Controller::Torrent::model() {
     return &_model;
 }
 
@@ -1298,8 +1298,9 @@ void Controller::processTorrentRemovedAlert(libtorrent::torrent_removed_alert co
     // Get torrent info hash
     libtorrent::sha1_hash info_hash = p->info_hash;
 
+
     // Remove from view
-    _view.removeTorrent(info_hash);
+    //_view.removeTorrent(info_hash);
 
     qCDebug(_category) << "Found match and removed it.";
 }
@@ -1332,7 +1333,7 @@ void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p)
     Q_ASSERT(_state == State::normal);
     Q_ASSERT(_torrents.contains(p->params.info_hash));
 
-    Torrent * torrent = _torrents[p->params.info_hash]
+    Torrent * torrent = _torrents[p->params.info_hash];
 
     Q_ASSERT(torrent->event() == Torrent::ExpectedEvent::torrent_added_alert);
 
@@ -1361,9 +1362,11 @@ void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p)
         // Update expected event on torrent
         torrent->setEvent(Torrent::ExpectedEvent::torrent_checked_alert);
 
-        // Add torrent to view
+        // Send notification signal
         //_view.addTorrent(p->handle.info_hash(), QString(name.c_str()), totalSize);
-        _view.addTorrent(p->params.info_hash, torrent->model());
+        //_view.addTorrent(p->params.info_hash, torrent->model());
+        _view.addTorrent(torrent->model());
+        emit addedTorrent(torrent->model());
 	}
 }
 
@@ -1382,9 +1385,7 @@ void Controller::processTorrentFinishedAlert(libtorrent::torrent_finished_alert 
 }
 
 void Controller::processStatusUpdateAlert(libtorrent::state_update_alert const * p) {
-
-    //qCCritical(_category) << "Number of state_update_alert alerts" << p->status.size();
-    _view.updateTorrentStatus(p->status);
+    update(p->status);
 }
 
 void Controller::processSaveResumeDataAlert(libtorrent::save_resume_data_alert const * p) {
@@ -1527,16 +1528,11 @@ void Controller::processTorrentCheckedAlert(libtorrent::torrent_checked_alert co
         qCDebug(_category) << "Invalid handle for checked torrent.";
 }
 
-/**
-void Controller::processTorrentPluginStatusAlert(const TorrentPluginStatusAlert * p) {
-    _view.updateTorrentPluginStatus(p);
-}
-*/
-
 void Controller::processStartedSellerTorrentPlugin(const StartedSellerTorrentPlugin * p) {
 
     Q_ASSERT(_torrents.contains(p->infoHash()));
 
+    // Get torrent
     Torrent * torrent = _torrents[p->infoHash()];
 
     Q_ASSERT(torrent->pluginInstalled() == PluginInstalled::None);
@@ -1545,8 +1541,7 @@ void Controller::processStartedSellerTorrentPlugin(const StartedSellerTorrentPlu
     torrent->addPlugin(p->status());
 
     // Notify view
-    //_view.addTorrentPlugin(p->infoHash(), p->mode());
-    _view.registerSellerTorrentPluginStarted(p->infoHash(), p->configuration());
+    //_view.startedSellerTorrentPlugin(p->infoHash(), p->configuration());
 }
 
 void Controller::processStartedBuyerTorrentPlugin(const StartedBuyerTorrentPlugin * p) {
@@ -1561,16 +1556,33 @@ void Controller::processStartedBuyerTorrentPlugin(const StartedBuyerTorrentPlugi
     torrent->addPlugin(p->status());
 
     // Notify view
-    //_view.addTorrentPlugin(p->infoHash(), p->mode());
-    _view.registerBuyerTorrentPluginStarted(p->infoHash(), p->configuration(), p->utxo());
+    //_view.startedBuyerTorrentPlugin(p->infoHash(), p->configuration(), p->utxo());
 }
 
 void Controller::processBuyerTorrentPluginStatusAlert(const BuyerTorrentPluginStatusAlert * p) {
-    _view.updateBuyerTorrentPluginStatus(p->infoHash(), p->status());
+
+    Q_ASSERT(_torrents.contains(p->infoHash()));
+
+    // Get view model for torrent
+    TorrentViewModel * model = _torrents[p->infoHash()]->model();
+
+    Q_ASSERT(model->pluginInstalled() == PluginInstalled::Buyer);
+
+    // Update
+    model->update(p->status());
 }
 
 void Controller::processSellerTorrentPluginStatusAlert(const SellerTorrentPluginStatusAlert * p) {
-    _view.updateSellerTorrentPluginStatus(p->infoHash(), p->status());
+
+    Q_ASSERT(_torrents.contains(p->infoHash()));
+
+    // Get view model for torrent
+    TorrentViewModel * model = _torrents[p->infoHash()]->model();
+
+    Q_ASSERT(model->pluginInstalled() == PluginInstalled::Seller);
+
+    // Update
+    model->update(p->status());
 }
 
 void Controller::processPluginStatusAlert(const PluginStatusAlert * p) {
@@ -1589,22 +1601,12 @@ void Controller::update(const libtorrent::torrent_status & status) {
 
     Q_ASSERT(_torrents.contains(status.info_hash));
 
+    // Get view model
+    TorrentViewModel * model = _torrents[status.info_hash]->model();
+
     // Update status
-    _torrents[status.info_hash]->model()->update(status);
+    model->update(status);
 }
-
-/**
-void Controller::processTorrentPluginStartedAlert(const TorrentPluginStartedAlert * p) {
-
-    Q_ASSERT(_torrents[p->infoHash()].pluginInstalled() == PluginInstalled::None);
-
-    // Update information about plugin installed on torrent
-    _torrents[p->infoHash()].setPluginInstalled(Utilities::PluginModeToPluginInstalled(p->mode()));
-
-    // Notify view
-    _view.addTorrentPlugin(p->infoHash(), p->mode());
-}
-*/
 
 void Controller::removeTorrent(const libtorrent::sha1_hash & info_hash) {
 
@@ -1614,15 +1616,11 @@ void Controller::removeTorrent(const libtorrent::sha1_hash & info_hash) {
     // Check that there actually was such a torrent
     if(!torrentHandle.is_valid())
         Q_ASSERT(false);
-        //return false;
 
     // Remove from session
     // Session will send us torrent_removed_alert alert when torrent has been removed
     // at which point we can remove torrent from model in alert handler
     _session.remove_torrent(torrentHandle);
-
-    // It worked
-    //return true;
 }
 
 void Controller::pauseTorrent(const libtorrent::sha1_hash & info_hash) {
@@ -1633,7 +1631,6 @@ void Controller::pauseTorrent(const libtorrent::sha1_hash & info_hash) {
     // Check that there actually was such a torrent
     if(!torrentHandle.is_valid())
         Q_ASSERT(false);
-        //return false;
 
     // Turn off auto managing
     torrentHandle.auto_managed(false);
@@ -1641,9 +1638,6 @@ void Controller::pauseTorrent(const libtorrent::sha1_hash & info_hash) {
     // Pause
     // We save resume data when the pause alert is issued by libtorrent
     torrentHandle.pause(libtorrent::torrent_handle::graceful_pause);
-
-    // It worked
-    //return true;
 }
 
 void Controller::startTorrent(const libtorrent::sha1_hash & info_hash) {
@@ -1654,16 +1648,12 @@ void Controller::startTorrent(const libtorrent::sha1_hash & info_hash) {
     // Check that there actually was such a torrent
     if(!torrentHandle.is_valid())
         Q_ASSERT(false);
-        //return false;
 
     // Turn on auto managing
     torrentHandle.auto_managed(true);
 
     // Start
     torrentHandle.resume();
-
-    // It worked
-    //return true;
 }
 
 bool Controller::addTorrent(const Torrent::Configuration & configuration) {
@@ -1702,14 +1692,17 @@ bool Controller::addTorrent(const Torrent::Configuration & configuration) {
     Q_ASSERT(!_pendingBuyerTorrentPluginConfigurationAndUtxos.contains(info_hash));
     //Q_ASSERT(!_pendingObserverTorrentPluginConfigurations.contains(info_hash));
 
-    // Connect view model signals to controller slots
     /**
+     * Setup signals and slots
+     */
+
+    // Connect view model signals to controller slots
     const TorrentViewModel * viewModel = torrent->model();
 
     QObject::connect(viewModel,
                      SIGNAL(pause(libtorrent::sha1_hash)),
                      this,
-                     SLOT(pauseTorrent(libtorrent::sha1_hash));
+                     SLOT(pauseTorrent(libtorrent::sha1_hash)));
 
     QObject::connect(viewModel,
                      SIGNAL(start(libtorrent::sha1_hash)),
@@ -1720,7 +1713,13 @@ bool Controller::addTorrent(const Torrent::Configuration & configuration) {
                      SIGNAL(remove(libtorrent::sha1_hash)),
                      this,
                      SLOT(removeTorrent(libtorrent::sha1_hash)));
-    */
+
+    // NOTE:
+    // The remaining signals model
+    // * pluginInstalledChanged(PluginInstalled pluginInstalled)
+    // * torrentStatusChanged(const libtorrent::torrent_status & status)
+    // should be wired up by controller users upon
+    // capturing addedTorrent(const TorrentViewModel *) signal.
 
     // Save torrent
     _torrents[info_hash] = torrent;

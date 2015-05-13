@@ -6,26 +6,178 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>488</width>
-    <height>234</height>
+    <width>485</width>
+    <height>353</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Extension</string>
   </property>
   <widget class="QTabWidget" name="tabs">
    <property name="geometry">
     <rect>
      <x>8</x>
-     <y>10</y>
+     <y>52</y>
      <width>469</width>
-     <height>215</height>
+     <height>293</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>12</pointsize>
+    </font>
    </property>
    <property name="currentIndex">
     <number>0</number>
    </property>
-   <widget class="QWidget" name="peers">
+   <widget class="QWidget" name="contract">
+    <attribute name="title">
+     <string>Contract</string>
+    </attribute>
+    <widget class="QTableView" name="channelsTableView">
+     <property name="geometry">
+      <rect>
+       <x>12</x>
+       <y>106</y>
+       <width>439</width>
+       <height>141</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="stateFieldLabel">
+     <property name="geometry">
+      <rect>
+       <x>14</x>
+       <y>10</y>
+       <width>49</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>State</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="stateLabel">
+     <property name="geometry">
+      <rect>
+       <x>116</x>
+       <y>10</y>
+       <width>337</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>N/A</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="utxoFieldLabel">
+     <property name="geometry">
+      <rect>
+       <x>14</x>
+       <y>34</y>
+       <width>49</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>UTXO</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="utxoLabel">
+     <property name="geometry">
+      <rect>
+       <x>116</x>
+       <y>34</y>
+       <width>335</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>N/A</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="contractTxIdFieldLabel">
+     <property name="geometry">
+      <rect>
+       <x>14</x>
+       <y>58</y>
+       <width>91</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Contract TxId</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="contractTxIdLabel">
+     <property name="geometry">
+      <rect>
+       <x>116</x>
+       <y>58</y>
+       <width>335</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>N/A</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="channelsTableViewLabel">
+     <property name="geometry">
+      <rect>
+       <x>14</x>
+       <y>82</y>
+       <width>91</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Channels</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="tab">
     <attribute name="title">
      <string>Peers</string>
     </attribute>
@@ -33,45 +185,55 @@
      <property name="geometry">
       <rect>
        <x>12</x>
-       <y>16</y>
+       <y>12</y>
        <width>439</width>
-       <height>157</height>
+       <height>239</height>
       </rect>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QWidget" name="settings">
-    <attribute name="title">
-     <string>Settings</string>
-    </attribute>
-    <widget class="QPushButton" name="pushButton">
-     <property name="geometry">
-      <rect>
-       <x>364</x>
-       <y>154</y>
-       <width>75</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Apply</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label">
-     <property name="geometry">
-      <rect>
-       <x>176</x>
-       <y>160</y>
-       <width>179</width>
-       <height>13</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Changes will only apply to new peers</string>
      </property>
     </widget>
    </widget>
   </widget>
+  <widget class="QLabel" name="extensionStateFieldLabel">
+   <property name="geometry">
+    <rect>
+     <x>22</x>
+     <y>18</y>
+     <width>47</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>State:</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="extensionStateLabel">
+   <property name="geometry">
+    <rect>
+     <x>68</x>
+     <y>18</y>
+     <width>399</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>12</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>N/A</string>
+   </property>
+  </widget>
+  <zorder>extensionStateFieldLabel</zorder>
+  <zorder>extensionStateLabel</zorder>
+  <zorder>tabs</zorder>
  </widget>
  <resources/>
  <connections/>

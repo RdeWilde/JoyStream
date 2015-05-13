@@ -2,11 +2,11 @@
 #define TORRENT_VIEW_HPP
 
 #include <libtorrent/sha1_hash.hpp>
+#include <libtorrent/torrent_handle.hpp> // libtorrent::torrent_status::state_t
 
 #include <QMenu>
 #include <QAction>
 
-class TorrentViewModel;
 class QStandardItemModel;
 class QStandardItem;
 enum class PluginInstalled;
@@ -24,21 +24,20 @@ public:
     // Constructor
     TorrentView(const libtorrent::torrent_status & status,
                 int size,
-                QStandardItemModel * itemModel);
+                PluginInstalled pluginInstalled,
+                QStandardItemModel * model);
 
     // Text conversion routines
-    static QString sizeToString(int size) const;
-    static QString pluginInstalledToString(PluginInstalled pluginInstalled) const;
-    static QString torrentStateToString(bool paused, libtorrent::torrent_status::state_t state, float progress) const;
-    static QString speedToString(int downloadRate, int uploadRate) const;
-    static QString peersToString(int numberOfPeers, int numberOfPeersWithExtension) const;
+    static QString sizeToString(int size);
+    static QString pluginInstalledToString(PluginInstalled pluginInstalled);
+    static QString torrentStateToString(bool paused, libtorrent::torrent_status::state_t state, float progress);
+    static QString speedToString(int downloadRate, int uploadRate);
+    static QString peersToString(int numberOfPeers, int numberOfPeersWithExtension);
 
     // Getters
-    const QMenu * torrentTableContextMenu() const;
     const QAction * pauseAction() const;
     const QAction * startAction() const;
     const QAction * removeAction() const;
-    const QAction * viewExtensionAction() const;
 
 public slots:
 
@@ -47,11 +46,23 @@ public slots:
     void updateStatus(const libtorrent::torrent_status & status);
     void updatePeers(int numberOfPeers, int numberOfPeersWithExtension);
 
+    // Popup context menu in given point
+    void showContextMenu(const QPoint & point);
+
+    // Shows extension dialog
+    // Slot is primarily meant for _viewExtensionAction::triggered()
+    void viewExtension();
+
+signals:
+
+    // Issued when viewExtension() slot is called
+    void requestedViewingExtension(const libtorrent::sha1_hash & infoHash);
+
 private:
 
-    // Torrent info hash
-    // Required as payload for signals
-    //libtorrent::sha1_hash _infoHash;
+    // Info hash of torrent
+    // Is required to send signals based on user interaction
+    libtorrent::sha1_hash _infoHash;
 
     // View model pointers
     // Objects are owned by QStandardItemModel passed to ctr

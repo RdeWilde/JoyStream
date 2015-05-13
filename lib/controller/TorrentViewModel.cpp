@@ -58,8 +58,10 @@ void TorrentViewModel::addPlugin(const BuyerTorrentPlugin::Status & status) {
     Q_ASSERT(_pluginInstalled == PluginInstalled::None);
     _pluginInstalled = PluginInstalled::Buyer;
 
+    // Create view model and save in map
     _buyerTorrentPluginViewModel = new BuyerTorrentPluginViewModel(status);
 
+    // Connect up slots to
     emit pluginInstalledChanged(PluginInstalled::Buyer);
 }
 
@@ -88,7 +90,7 @@ void TorrentViewModel::update(const BuyerTorrentPlugin::Status & status) {
 }
 
 libtorrent::sha1_hash TorrentViewModel::infoHash() const {
-    return _infoHash();
+    return _infoHash;
 }
 
 QString TorrentViewModel::name() const {
@@ -131,6 +133,7 @@ void TorrentViewModel::remove() {
     emit remove(_infoHash);
 }
 
+/**
 void TorrentViewModel::showExtensionDialog() {
 
     Q_ASSERT(_pluginInstalled != PluginInstalled::None);
@@ -157,3 +160,4 @@ void TorrentViewModel::showExtensionDialog() {
             Q_ASSERT(_sellerTorrentPluginViewModel == NULL);
     }
 }
+*/

@@ -6,10 +6,12 @@
 
 TorrentView::TorrentView(const libtorrent::torrent_status & status,
                          int size,
-                         QStandardItemModel * itemModel)
-    : _nameItem(new QStandardItem())
-    , _sizeItem(new QStandardItem())
-    , _stateItem(new QStandardItem())
+                         PluginInstalled pluginInstalled,
+                         QStandardItemModel * model)
+    : _infoHash(status.info_hash)
+    , _nameItem(new QStandardItem())
+    , _sizeItem(new QStandardItem(sizeToString(size)))
+    , _stateItem(new QStandardItem(pluginInstalledToString(pluginInstalled)))
     , _speedItem(new QStandardItem())
     , _peersItem(new QStandardItem())
     , _modeItem(new QStandardItem())
@@ -17,11 +19,10 @@ TorrentView::TorrentView(const libtorrent::torrent_status & status,
     , _pauseAction("Pause", this)
     , _startAction("Start", this)
     , _removeAction("Remove", this)
-    , _viewExtensionAction("Extension", this) {
+    , _viewExtensionAction("View extension", this) {
 
     // Set initial item values
     updateStatus(status);
-    _sizeItem->setText(sizeToString(size));
 
     // Add row to itemModel
     QList<QStandardItem *> items;
@@ -34,20 +35,26 @@ TorrentView::TorrentView(const libtorrent::torrent_status & status,
           << _modeItem
           << _balanceItem;
 
-    itemModel->appendRow(items);
+    model->appendRow(items);
 
     // Add menu buttons
     _torrentTableContextMenu.addAction(&_startAction);
     _torrentTableContextMenu.addAction(&_pauseAction);
     _torrentTableContextMenu.addAction(&_removeAction);
-    //_torrentTableContextMenu.addAction(&_viewExtension); // add action to menu only when plugin is installed
+    // add action to menu only when plugin is installed
+
+    // Connect viewing extension menu choice to slot on this object
+    QObject::connect(&_viewExtensionAction,
+                     SIGNAL(triggered()),
+                     this,
+                     SLOT(viewExtension()));
 }
 
-QString TorrentView::sizeToString(int size) const {
+QString TorrentView::sizeToString(int size) {
     return QString::number(size) + QString("b");
 }
 
-QString TorrentView::pluginInstalledToString(PluginInstalled pluginInstalled) const {
+QString TorrentView::pluginInstalledToString(PluginInstalled pluginInstalled) {
 
     QString text;
 
@@ -66,7 +73,7 @@ QString TorrentView::pluginInstalledToString(PluginInstalled pluginInstalled) co
     return text;
 }
 
-QString TorrentView::torrentStateToString(bool paused, libtorrent::torrent_status::state_t state, float progress) const {
+QString TorrentView::torrentStateToString(bool paused, libtorrent::torrent_status::state_t state, float progress) {
 
     if(paused)
         return QString("Paused");
@@ -122,7 +129,7 @@ QString TorrentView::torrentStateToString(bool paused, libtorrent::torrent_statu
     return text;
 }
 
-QString TorrentView::speedToString(int downloadRate, int uploadRate) const {
+QString TorrentView::speedToString(int downloadRate, int uploadRate) {
 
     QString text;
 
@@ -134,13 +141,8 @@ QString TorrentView::speedToString(int downloadRate, int uploadRate) const {
     return text;
 }
 
-void TorrentView::peersToString(int numberOfPeers, int numberOfPeersWithExtension) const {
+QString TorrentView::peersToString(int numberOfPeers, int numberOfPeersWithExtension) {
     return QString::number(numberOfPeers) + "|" + QString::number(numberOfPeersWithExtension);
-}
-
-
-QMenu * TorrentView::torrentTableContextMenu() {
-    return &_torrentTableContextMenu;
 }
 
 const QAction * TorrentView::pauseAction() const {
@@ -155,14 +157,13 @@ const QAction * TorrentView::removeAction() const {
     return &_removeAction;
 }
 
-const QAction * TorrentView::viewExtensionAction() const {
-    return &_viewExtensionAction;
-}
-
 void TorrentView::updatePluginInstalled(PluginInstalled pluginInstalled) {
 
     // mode
     _modeItem->setText(pluginInstalledToString(pluginInstalled));
+
+    // add action to menu
+    _torrentTableContextMenu.addAction(&_viewExtensionAction);
 }
 
 void TorrentView::updateStatus(const libtorrent::torrent_status & status) {
@@ -181,4 +182,12 @@ void TorrentView::updateStatus(const libtorrent::torrent_status & status) {
 
 void TorrentView::updatePeers(int numberOfPeers, int numberOfPeersWithExtension) {
     _peersItem->setText(peersToString(numberOfPeers, numberOfPeersWithExtension));
+}
+
+void TorrentView::showContextMenu(const QPoint & point) {
+    _torrentTableContextMenu.popup(point);
+}
+
+void TorrentView::viewExtension() {
+    emit requestedViewingExtension(_infoHash);
 }

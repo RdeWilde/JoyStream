@@ -52,7 +52,6 @@ public slots:
     void pause();
     void start();
     void remove();
-    void showExtensionDialog();
 
 signals:
 
@@ -64,10 +63,6 @@ signals:
     void pause(const libtorrent::sha1_hash & infoHash);
     void start(const libtorrent::sha1_hash & infoHash);
     void remove(const libtorrent::sha1_hash & infoHash);
-
-    //
-    void sellerTorrentPluginDialogRequested(const SellerTorrentPluginViewModel * model);
-    void buyerTorrentPluginDialogRequested(const BuyerTorrentPluginViewModel * model);
 
 private:
 

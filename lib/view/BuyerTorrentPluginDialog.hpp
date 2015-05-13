@@ -21,22 +21,39 @@ class BuyerTorrentPluginDialog : public QDialog
 public:
 
     // Constructor
-    BuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel * model);
+    BuyerTorrentPluginDialog(BuyerTorrentPlugin::State pluginState,
+                             Payor::State payorState,
+                             const TxId & id,
+                             const UnspentP2PKHOutput & utxo);
+
+    // Text conversion routines
+    static QString pluginStateToString(BuyerTorrentPlugin::State state);
+    static QString payorStateToString(Payor::State state);
+    static QString contractTxIdToString(const TxId & id);
+    static QString utxoToString(const UnspentP2PKHOutput & utxo);
 
     // Destructor
     ~BuyerTorrentPluginDialog();
 
+    // Getters
+    QStandardItemModel * channelTableViewModel();
+    QStandardItemModel * buyerPeerPluginTableViewModel();
+    QVector<ChannelView *> channelViews() const;
+    QMap<libtorrent::tcp::endpoint, BuyerPeerPluginView *> buyerPeerPluginViews() const;
+
 public slots:
 
-    // Peer plugin related event
-    void addPeer();
+    // Adds channels and peers,
+    // but they must already be connected up properly with their
+    // view models, and ptr ownership is transferred with this call
+    void addChannel(ChannelView * view);
+    void addPeer(const libtorrent::tcp::endpoint & endPoint, BuyerPeerPluginView * view);
 
-    // Update plugin fields (though not all of these are mutable)
-    void updateState(BuyerTorrentPlugin::State state);
-    //void updateConfiguration(const BuyerTorrentPlugin::Configuration & configuration);
+    // Update
+    void updatePluginState(BuyerTorrentPlugin::State state);
+    void updatePayorState(Payor::State state);
+    void updateContractTxId(const TxId & id);
     void updateUtxo(const UnspentP2PKHOutput & utxo);
-
-
 
 private:
 
@@ -49,9 +66,11 @@ private:
     QStandardItemModel _buyerPeerPluginTableViewModel;
 
     // Views for channels
+    // Pointers are owned by *this object
     QVector<ChannelView *> _channelViews;
 
     // Views for buyer peer plugins
+    // Pointers are owned by *this object
     QMap<libtorrent::tcp::endpoint, BuyerPeerPluginView *> _buyerPeerPluginViews;
 
 };

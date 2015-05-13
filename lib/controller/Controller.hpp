@@ -88,7 +88,8 @@ public:
         };
 
         /**
-         * @brief The Status class
+         * This class is for the moment not used, we just use libtorrent::torrent_status fully,
+         * but in the future this should change.
 
         class Status {
 
@@ -252,14 +253,14 @@ public:
         quint64 flags() const;
         void setFlags(quint64 flags);
 
-        libtorrent::torrent_info * torrentInfo() const;
+        libtorrent::torrent_info * torrentInfo();
 
         ExpectedEvent event() const;
         void setEvent(ExpectedEvent event);
 
         PluginInstalled pluginInstalled() const;
 
-        const TorrentViewModel * model() const;
+        TorrentViewModel * model();
 
     private:
 
@@ -459,7 +460,6 @@ public:
     void startBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const UnspentP2PKHOutput & utxo);
     //void startObserverTorrentPlugin(const libtorrent::sha1_hash & info_hash, const ObserverTorrentPlugin::Configuration & pluginConfiguration);
 
-
     // Stops libtorrent session, and tries to save_resume data, when all resume data is saved, finalize_close() is called.
     void begin_close();
 
@@ -488,6 +488,9 @@ private slots:
     void callPostTorrentUpdates();
 
 signals:
+
+    // Sent when libtorrent::add_torrent_alert is received from libtorrent
+    void addedTorrent(const TorrentViewModel * model);
 
     // Emitted after finalize_close(), that is when controller is 100% done
     void closed();

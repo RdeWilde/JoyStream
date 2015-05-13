@@ -8,51 +8,38 @@
 #include <QAction>
 
 class QStandardItem;
+class QStandardItemModel;
 
 class BuyerPeerPluginView : public QObject
 {
     Q_OBJECT
 public:
-    explicit BuyerPeerPluginView(QObject *parent = 0);
-
+    explicit BuyerPeerPluginView(const libtorrent::tcp::endpoint & endPoint,
+                                 BuyerPeerPlugin::ClientState state,
+                                 quint32 payorSlot,
+                                 QStandardItemModel * model);
 
     // Text conversion routines
-    /**
-    static QString stateToString(Payor::Channel::State state) const;
-    static QString fundsToString(quint64 funds) const;
-    static QString refundLockTimeToString(quint32 refundLockTime) const;
-    static QString priceToString(quint64 price) const;
-    static QString numberOfPaymentsMadeToString(quint64 numberOfPaymentsMade) const;
-    static QString balanceToString(quint64 balance) const;
-    */
-
-    // Getters
+    static QString endPointToString(const libtorrent::tcp::endpoint & endPoint);
+    static QString clientStateToString(BuyerPeerPlugin::ClientState state);
+    static QString payorSlotToString(quint32 payorSlot);
 
 public slots:
-    /**
-    // Update channel status fields
-    void updateState(Payor::Channel::State state);
-    void updateFunds(quint64 funds);
-    void updateRefundLockTime(quint32 refundLockTime);
-    void updatePrice(quint64 price);
-    void updateNumberOfPaymentsMade(quint64 numberOfPaymentsMade);
-    void updateBalance(quint64 balance);
-    */
+
+    // Update fields
+    void updateEndPoint(const libtorrent::tcp::endpoint & endPoint);
+    void updateClientState(BuyerPeerPlugin::ClientState clientState);
+    void updatePayorSlot(quint32 payorSlot);
 
 signals:
 
 private:
 
-
     // View model pointers
     // Objects are owned by QStandardItemModel passed to ctr
-    QStandardItem * _nameItem,
-                  * _sizeItem,
-                  * _stateItem,
-                  * _speedItem,
-                  * _peersItem,
-                  * _modeItem,
-                  * _balanceItem;
+    QStandardItem * _endPointItem,
+                  * _clientStateItem,
+                  * _payorSlotItem;
 
     // Context menu
     //QMenu _torrentTableContextMenu;

@@ -5,7 +5,7 @@
 #include "TorrentView.hpp"
 #include "controller/SellerTorrentPluginViewModel.hpp"
 #include "controller/BuyerTorrentPluginViewModel.hpp"
-#include "TorrentViewModel.hpp"
+#include "controller/TorrentViewModel.hpp"
 
 // Dialogs
 #include "SellerTorrentPluginConfigurationDialog.hpp"
@@ -98,71 +98,32 @@ MainWindow::~MainWindow() {
     // Delete torrent view models
     //ui->peerPluginsTable->setModel(0); // make sure peer plugin table is not backed by a model
 
-    for(QMap<libtorrent::sha1_hash, TorrentViewModel *>::iterator i = _torrentViews.begin(),
-        end(_torrentViews.end()); i != end;i++)
+    for(QMap<libtorrent::sha1_hash, TorrentView *>::const_iterator
+        i = _torrentViews.cbegin(),
+        end = _torrentViews.cend();
+        i != end;i++)
         delete i.value();
 
     // Delete Ui::MainWindow
     delete ui;
 }
 
-TorrentView * MainWindow::torrentViewInTableRow(int row) {
-
-    Q_ASSERT(_torrentViews.contains(infoHash));
-
-    // Get torrent view model
-    return _torrentViews[infoHash];
-}
-
-void MainWindow::showContextMenu(QPoint pos) {
+void MainWindow::showContextMenu(const QPoint & pos) {
 
     // Get model index of click
     QModelIndex index = ui->torrentsTable->indexAt(pos);
 
+    // Get view
+    TorrentView * view = rowToView(index.row());
+
     // Tell corresponding torrent view model to show context menu
-    torrentViewModelInTableRow(index.row())->showContextMenu(ui->torrentsTable->viewport()->mapToGlobal(pos));
-}
-
-void MainWindow::torrentTableClicked(const QModelIndex & index) {
-
-    // Get torrent view model for torrent clicked on
-    //TorrentViewModel * torrentViewModel = torrentViewModelInTableRow(index.row());
-
-    qCCritical(_category) << "Clicked torrent with info hash"<< _torrentInTableRow[index.row()].to_string().c_str();
-}
-
-void MainWindow::showSellerTorrentPluginDialog(const SellerTorrentPluginViewModel * sellerTorrentPluginViewModel) {
-
-
-}
-
-void MainWindow::showBuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel * buyerTorrentPluginViewModel) {
-
-    /**
-    // Create dialog
-    BuyerTorrentPluginDialog dialog(buyerTorrentPluginViewModel);
-
-    // Connect signals to main window and controller slots
-
-    // Show view
-    dialog.exec();
-    */
+    // turn into point in proper reference frame (is this really needed???)
+    view->showContextMenu(ui->torrentsTable->viewport()->mapToGlobal(pos));
 }
 
 void MainWindow::showAddTorrentFromTorrentFileDialog(const QString & torrentFile) {
 
-    // Check that torrent file exists
-    if(!QFile::exists(torrentFile)) {
-        qCCritical(_category) << "Torrent file " << torrentFile.toStdString().c_str() << " does not exist.";
-        return;
-    }
-
     // Show window for adding torrent with torrent file
-    /**
-     * Starts new event loop,
-     * no more libtorrent alerts are processed in mean time,
-     * change at a later time
-     */
     AddTorrentDialog addTorrentDialog(_controller, _category, torrentFile, true);
     addTorrentDialog.exec();
 }
@@ -170,11 +131,6 @@ void MainWindow::showAddTorrentFromTorrentFileDialog(const QString & torrentFile
 void MainWindow::showAddTorrentFromMagnetLinkDialog(const QString & magnetLink) {
 
     // Show window for adding torrent with magnet link
-    /**
-     * Starts new event loop,
-     * no more libtorrent alerts are processed in mean time,
-     * change at a later time
-     */
     AddTorrentDialog addTorrentDialog(_controller, _category, magnetLink, false);
     addTorrentDialog.exec();
 }
@@ -182,14 +138,6 @@ void MainWindow::showAddTorrentFromMagnetLinkDialog(const QString & magnetLink) 
 void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torrent_info & torrentInfo, const libtorrent::torrent_status & torrentStatus) {
 
     // Show window for adding torrent with magnet link
-    /**
-     * Starts new event loop,
-     * no more libtorrent alerts are processed in mean time,
-     * change at a later time
-     *
-     * I think the statement above is incorrect, check later.
-     */
-
     QMessageBox msgBox;
     msgBox.setText("Choose plugin mode.");
 
@@ -219,6 +167,54 @@ void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torre
         SellerTorrentPluginConfigurationDialog sellerTorrentPluginConfigurationDialog(_controller, _wallet, torrentInfo);
         sellerTorrentPluginConfigurationDialog.exec();
     }
+}
+
+void MainWindow::showTorrentPluginDialog(const libtorrent::sha1_hash & infoHash) {
+
+    Q_ASSERT(_torrentViews.contains(infoHash));
+    Q_ASSERT(_torrentViewModels.contains(infoHash));
+
+    // Grab model
+    TorrentViewModel * model = _torrentViewModels[infoHash];
+
+    // Figure out which plugin type is installed
+    PluginInstalled plugin = model->pluginInstalled();
+
+    switch(plugin) {
+
+        case PluginInstalled::Seller:
+            showSellerTorrentPluginDialog(model->sellerTorrentPluginViewModel());
+            break;
+
+        case PluginInstalled::Buyer:
+            showBuyerTorrentPluginDialog(model->buyerTorrentPluginViewModel());
+            break;
+
+        case PluginInstalled::Observer:
+            Q_ASSERT(false);
+
+        case PluginInstalled::None:
+            Q_ASSERT(false);
+
+    }
+}
+
+void MainWindow::showSellerTorrentPluginDialog(const SellerTorrentPluginViewModel * model) {
+
+
+}
+
+void MainWindow::showBuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel * model) {
+
+    /**
+    // Create dialog
+    BuyerTorrentPluginDialog dialog(buyerTorrentPluginViewModel);
+
+    // Connect signals to main window and controller slots
+
+    // Show view
+    dialog.exec();
+    */
 }
 
 void MainWindow::on_addTorrentFilePushButton_clicked()
@@ -253,22 +249,12 @@ void MainWindow::on_addMagnetLinkPushButton_clicked()
     showAddTorrentFromMagnetLinkDialog(magnetLink);
 }
 
-void MainWindow::closeEvent(QCloseEvent * event) {
-
-    // Notify controller
-    _controller->begin_close();
-
-    // But do not close, which causes event loop exit
-    event->ignore();
-}
-
 void MainWindow::addTorrent(const TorrentViewModel * model) {
 
-    Q_ASSERT(!_torrentViews.contains(info_hash));
-
     // Create torrent view model
-    TorrentView * view = new TorrentView(TorrentViewModel::status(),
+    TorrentView * view = new TorrentView(model->status(),
                                          model->torrentInfo()->total_size(),
+                                         model->pluginInstalled(),
                                          &_torrentTableViewModel);
 
     // Connect: model signals to view slots
@@ -282,7 +268,7 @@ void MainWindow::addTorrent(const TorrentViewModel * model) {
                      view,
                      SLOT(updateStatus(const libtorrent::torrent_status &)));
 
-    // Connect: view menu actions to controller slots
+    // Connect: view menu actions to model slots
     QObject::connect(view->pauseAction(),
                      SIGNAL(triggered()),
                      model,
@@ -298,24 +284,23 @@ void MainWindow::addTorrent(const TorrentViewModel * model) {
                      model,
                      SLOT(remove()));
 
-    QObject::connect(view->viewExtensionAction(),
-                     SIGNAL(triggered()),
-                     model,
-                     SLOT(showExtensionDialog()));
-
-    // Connect: model signals to main window slot
-    QObject::connect(model,
-                     SIGNAL(sellerTorrentPluginDialogRequested(const SellerTorrentPluginViewModel*)),
+    // Connect: view menu action to main window slot
+    QObject::connect(view,
+                     SIGNAL(requestedViewingExtension(libtorrent::sha1_hash)),
                      this,
-                     SLOT(showSellerTorrentPluginDialog(const SellerTorrentPluginViewModel*)));
+                     SLOT(showTorrentPluginDialog(libtorrent::sha1_hash)));
 
-    QObject::connect(model,
-                     SIGNAL(buyerTorrentPluginDialogRequested(const BuyerTorrentPluginViewModel*)),
-                     this,
-                     SLOT(showBuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel*)));
+    // Insert into view map
+    _torrentViews[model->infoHash()] = view;
 
-    // Insert into map
-    _torrentViews[info_hash] = view;
+    // Insert model into view map
+    _torrentViewModels[model->infoHash()] = model;
+
+    // Insert view into row mapping
+    _rowToInfoHash.append(model->infoHash());
+
+    Q_ASSERT(_torrentViews.size() == _rowToInfoHash.size());
+    Q_ASSERT(_torrentViews.size() == _torrentViewModels.size());
 }
 
 void MainWindow::addTorrentFailed(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec) {
@@ -324,110 +309,59 @@ void MainWindow::addTorrentFailed(const std::string & name, const libtorrent::sh
     std::cerr << "Failed to add torrent " << name.c_str() << " because: " << ec.message().c_str() << std::endl;
 }
 
-void MainWindow::removeTorrent(const libtorrent::sha1_hash & info_hash) {
-
-    Q_ASSERT(_torrentViews.contains(info_hash));
-
-    // Remove
-    _torrentViews.remove(info_hash);
-
-    // Reset model for peerPluginsTable,
-    // which if this method call is due to a context menu click on torrent table
-    // will have set the peerPluginsTable to its model.
-    //ui->peerPluginsTable->setModel(0);
-}
-
 /**
-void MainWindow::addTorrentPlugin(const libtorrent::sha1_hash & infoHash, PluginMode mode) {
-
-    Q_ASSERT(_torrentViewModels.contains(infoHash));
-
-    // Update
-    switch(mode) {
-
-        case PluginMode::Buyer: _torrentViewModels[infoHash]->addBuyerPlugin();
-            break;
-
-        case PluginMode::Seller: _torrentViewModels[infoHash]->addSellerPlugin();
-            break;
-
-        case PluginMode::Observer:
-            Q_ASSERT(false);
-            break;
-
-        Q_ASSERT(false);
-    }
-
-
-}*/
-
-void MainWindow::registerSellerTorrentPluginStarted(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration) {
+void MainWindow::startedSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration) {
 
     Q_ASSERT(_torrentViews.contains(infoHash));
-    _torrentViews[infoHash]->addPlugin(configuration);
+    //_torrentViews[infoHash]->addPlugin(configuration);
+
+}
+
+void MainWindow::startedBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration, const UnspentP2PKHOutput & utxo) {
+
+    Q_ASSERT(_torrentViews.contains(infoHash));
+    //_torrentViews[infoHash]->addPlugin(configuration, utxo);
+
 
     //QObject::connect(torrentViewModel, SIGNAL(showSellerTorrentPluginClicked(const SellerTorrentPluginViewModel *)), _controller, SLOT(showSellerTorrentPluginDialog(const SellerTorrentPluginViewModel *)));
     //QObject::connect(torrentViewModel, SIGNAL(showBuyerTorrentPluginClicked(const BuyerTorrentPluginViewModel *)), _controller, SLOT(showBuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel *)));
 }
 
-void MainWindow::registerBuyerTorrentPluginStarted(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration, const UnspentP2PKHOutput & utxo) {
+void MainWindow::addSellerPeerPlugin() {
 
-    Q_ASSERT(_torrentViews.contains(infoHash));
-    _torrentViews[infoHash]->addPlugin(configuration, utxo);
-
-    //QObject::connect(torrentViewModel, SIGNAL(showSellerTorrentPluginClicked(const SellerTorrentPluginViewModel *)), _controller, SLOT(showSellerTorrentPluginDialog(const SellerTorrentPluginViewModel *)));
-    //QObject::connect(torrentViewModel, SIGNAL(showBuyerTorrentPluginClicked(const BuyerTorrentPluginViewModel *)), _controller, SLOT(showBuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel *)));
 }
 
-/**
-void MainWindow::updateTorrentPluginStatus(const TorrentPluginStatusAlert * torrentPluginStatusAlert) {
+void MainWindow::addBuyerPeerPlugin() {
 
-    // Find corresponding TorrentViewModel
-    std::map<libtorrent::sha1_hash, TorrentViewModel *>::iterator mapIterator = _torrentViewModels.find(torrentPluginStatusAlert->infoHash());
-
-    if(mapIterator == _torrentViewModels.end()) {
-        qCCritical(_category) << "No matching info_hash found.";
-        return;
-    }
-
-    TorrentViewModel * torrentViewModel = mapIterator->second;
-
-    // Peers
-    torrentViewModel->updatePeers(torrentPluginStatusAlert->numberOfPeers(),torrentPluginStatusAlert->numberOfPeersWithExtension());
-
-    // Mode
-    torrentViewModel->updateMode(torrentPluginStatusAlert->pluginStarted(), torrentPluginStatusAlert->mode());
-
-    // Balance
-    torrentViewModel->updateBalance(torrentPluginStatusAlert->tokensReceived(), torrentPluginStatusAlert->tokensSent());
 }
-*/
+
 
 void MainWindow::updateBuyerTorrentPluginStatus(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Status & status) {
 
     Q_ASSERT(_torrentViews.contains(infoHash));
 
     // Find corresponding TorrentViewModel
-    TorrentViewModel * torrentViewModel = _torrentViews[infoHash];
+    TorrentView * view = _torrentViews[infoHash];
 
-    Q_ASSERT(torrentViewModel->pluginInstalled() == PluginInstalled::Buyer);
+    Q_ASSERT(view->pluginInstalled() == PluginInstalled::Buyer);
 
     // Update view model of plugin
-    torrentViewModel->update(status);
+    view->update(status);
 }
 
 void MainWindow::updateSellerTorrentPluginStatus(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Status & status) {
 
     Q_ASSERT(_torrentViews.contains(infoHash));
 
-    // Find corresponding TorrentViewModel
-    TorrentViewModel * torrentViewModel = _torrentViews[infoHash];
+    // Find corresponding view
+    TorrentView * view = _torrentViews[infoHash];
 
-    Q_ASSERT(torrentViewModel->pluginInstalled() == PluginInstalled::Seller);
+    Q_ASSERT(view->pluginInstalled() == PluginInstalled::Seller);
 
     // Update view model of plugin
-    torrentViewModel->update(status);
+    view->update(status);
 }
+*/
 
 void MainWindow::updatePluginStatus(const Plugin::Status & status) {
     //ui->balanceLabel->setText(QString::number(p->balance()*1000) + "mBTC");
@@ -439,28 +373,6 @@ void MainWindow::updateWalletBalance(quint64 balance) {
     qCDebug(_category) << "updateWalletBalance" << balance;
 }
 
-void MainWindow::addPeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint) {
-
-    Q_ASSERT(_torrentViews.contains(info_hash));
-
-    // Update
-    //_torrentViewModels[info_hash]->addPeerPlugin(endPoint);
-}
-
-/**
-void MainWindow::updatePeerPluginStatus(const PeerPluginStatus & status) {
-
-    Q_ASSERT(_torrentViewModels.contains(status.peerPluginId_.info_hash_));
-
-    // Update
-    _torrentViewModels[status.peerPluginId_.info_hash_]->updatePeerPluginState(status);
-}
-*/
-
-void MainWindow::removePeerPlugin(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endPoint) {
-    qCDebug(_category) << "MainWindow::removePeer(): not implemented";
-}
-
 void MainWindow::on_walletPushButton_clicked() {
 
     // Create dialog
@@ -468,4 +380,28 @@ void MainWindow::on_walletPushButton_clicked() {
 
     // Start processing new event loop
     dialog.exec();
+}
+
+void MainWindow::torrentTableClicked(const QModelIndex & index) {
+
+    // Get torrent view model for torrent clicked on
+    //TorrentViewModel * torrentViewModel = torrentViewModelInTableRow(index.row());
+    //qCCritical(_category) << "Clicked torrent with info hash"<< _rowToInfoHash[index.row()].to_string().c_str();
+}
+
+TorrentView * MainWindow::rowToView(int row) {
+
+    Q_ASSERT(row < _rowToInfoHash.size());
+    Q_ASSERT(_torrentViews.contains(_rowToInfoHash[row]));
+
+    return _torrentViews[_rowToInfoHash[row]];
+}
+
+void MainWindow::closeEvent(QCloseEvent * event) {
+
+    // Notify controller
+    _controller->begin_close();
+
+    // But do not close, which causes event loop exit
+    event->ignore();
 }
