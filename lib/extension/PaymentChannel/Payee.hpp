@@ -48,7 +48,7 @@ public:
         Status();
 
         // Constructor from members
-        Status(State state, quint64 numberOfPaymentsMade, quint32 lockTime, quint64 price, quint64 funds);
+        Status(State state, quint64 numberOfPaymentsMade, quint32 lockTime, quint64 price, const OutPoint & contractOutPoint, quint64 funds);
 
         // Getters and setters
         State state() const;
@@ -62,6 +62,9 @@ public:
 
         quint64 price() const;
         void setPrice(quint64 price);
+
+        OutPoint contractOutPoint() const;
+        void setContractOutPoint(const OutPoint &contractOutPoint);
 
         quint64 funds() const;
         void setFunds(quint64 funds);
@@ -79,6 +82,9 @@ public:
 
         // Price increment per payment
         quint64 _price;
+
+        // Contract outpoint from which payments originate
+        OutPoint _contractOutPoint;
 
         // Amount (#satoshies) assigned to contract output
         quint64 _funds;

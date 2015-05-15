@@ -26,7 +26,8 @@ signals:
 
     // Update
     void stateChanged(Payee::State state);
-    void numberOfPaymentsMadeChagned(quint64 numberOfPaymentsMade);
+    void contractOutPointChanged(const OutPoint & o);
+    void numberOfPaymentsMadeChanged(quint64 numberOfPaymentsMade);
     void lockTimeChanged(quint32 lockTime);
     void priceChanged(quint64 price);
     void fundsChanged(quint64 funds);

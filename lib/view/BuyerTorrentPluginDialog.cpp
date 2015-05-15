@@ -86,6 +86,9 @@ BuyerTorrentPluginDialog::BuyerTorrentPluginDialog(QWidget * parent,
         i != end;i++)
         _channelViews.append(new ChannelView(this, *i, &_channelTableViewModel));
 
+    // Set model for channels table
+    ui->channelsTableView->setModel(&_channelTableViewModel);
+
     /**
      * Peer plugins
      */
@@ -105,6 +108,9 @@ BuyerTorrentPluginDialog::BuyerTorrentPluginDialog(QWidget * parent,
         end = peerViewModels.constEnd();
         i != end;i++)
         addPeer(i.value());
+
+    // Set model for channels table
+    ui->peerPluginsTableView->setModel(&_buyerPeerPluginTableViewModel);
 }
 
 QString BuyerTorrentPluginDialog::pluginStateToString(BuyerTorrentPlugin::State state) {

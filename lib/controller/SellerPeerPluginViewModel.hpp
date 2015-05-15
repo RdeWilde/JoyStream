@@ -20,12 +20,15 @@ class SellerPeerPluginViewModel : public QObject // : public PeerPluginViewModel
 public:
 
     // Constructor from members
-    SellerPeerPluginViewModel(QObject * parent, const SellerPeerPlugin::Status & status);
+    SellerPeerPluginViewModel(QObject * parent,
+                              const libtorrent::tcp::endpoint & endPoint,
+                              const SellerPeerPlugin::Status & status);
 
     // Update
     void update(const SellerPeerPlugin::Status & status);
 
     // Getters
+    libtorrent::tcp::endpoint endPoint() const;
     SellerPeerPlugin::ClientState clientState() const;
     const PayeeViewModel * payeeViewModel() const;
     //QList<int> fullPiecesSent() const;
@@ -36,6 +39,9 @@ signals:
     void clientStateChanged(SellerPeerPlugin::ClientState state);
 
 private:
+
+    // Peer endpoint
+    libtorrent::tcp::endpoint _endPoint;
 
     // State of client
     SellerPeerPlugin::ClientState _clientState;

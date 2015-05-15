@@ -72,6 +72,8 @@ public:
     static quint8 minutesInSeconds(quint32 seconds);
     static quint8 secondsInSeconds(quint32 seconds);
 
+    static QTime secondsToQTime(quint32 seconds);
+
 };
 
 #endif // UTILITIES_HPP

@@ -13,9 +13,14 @@ void PayeeViewModel::update(const Payee::Status & status) {
         emit stateChanged(status.state());
     }
 
+    if(_status.contractOutPoint() != status.contractOutPoint()) {
+        _status.setContractOutPoint(status.contractOutPoint());
+        emit contractOutPointChanged(status.contractOutPoint());
+    }
+
     if(_status.numberOfPaymentsMade() != status.numberOfPaymentsMade()) {
         _status.setNumberOfPaymentsMade(status.numberOfPaymentsMade());
-        emit numberOfPaymentsMadeChagned(status.numberOfPaymentsMade());
+        emit numberOfPaymentsMadeChanged(status.numberOfPaymentsMade());
     }
 
     if(_status.lockTime() != status.lockTime()) {

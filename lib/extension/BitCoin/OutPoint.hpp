@@ -26,6 +26,7 @@ public:
 
     // Comparison for use with QMap
     friend bool operator==(const OutPoint & lhs, const OutPoint & rhs);
+    friend bool operator!=(const OutPoint & lhs, const OutPoint & rhs);
     friend bool operator<(const OutPoint & lhs, const OutPoint & rhs);
 
     // Encode as json

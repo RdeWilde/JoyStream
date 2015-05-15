@@ -270,3 +270,12 @@ quint8 Utilities::minutesInSeconds(quint32 seconds) {
 quint8 Utilities::secondsInSeconds(quint32 seconds) {
     return seconds - Utilities::hoursInSeconds(seconds)*3600 - Utilities::minutesInSeconds(seconds)*60;
 }
+
+QTime Utilities::secondsToQTime(quint32 seconds) {
+
+    quint8 h = Utilities::hoursInSeconds(seconds);
+    quint8 m = Utilities::minutesInSeconds(seconds);
+    quint8 s = Utilities::secondsInSeconds(seconds);
+
+    return QTime(h,m,s);
+}

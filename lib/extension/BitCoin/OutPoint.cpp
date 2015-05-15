@@ -44,6 +44,10 @@ bool operator==(const OutPoint & lhs, const OutPoint & rhs) {
     return (lhs.txId() < rhs.txId()) || ((lhs.txId() == rhs.txId()) && (lhs.index() < rhs.index()));
 }
 
+bool operator!=(const OutPoint & lhs, const OutPoint & rhs) {
+    return !(lhs == rhs);
+}
+
 /*
 bool OutPoint::operator<(const OutPoint & o) {
     return (_txId < o.txId()) || ((_txId == o.txId()) && (_index < o.index()));

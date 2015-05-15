@@ -15,14 +15,16 @@ class BuyerPeerPluginView : public QObject
 {
     Q_OBJECT
 public:
-    explicit BuyerPeerPluginView(QObject * parent,
-                                 const BuyerPeerPluginViewModel * peerModel,
-                                 QStandardItemModel * model);
+    BuyerPeerPluginView(QObject * parent,
+                        const BuyerPeerPluginViewModel * peerModel,
+                        QStandardItemModel * model);
 
     // Text conversion routines
     static QString endPointToString(const libtorrent::tcp::endpoint & endPoint);
     static QString clientStateToString(BuyerPeerPlugin::ClientState state);
     static QString payorSlotToString(quint32 payorSlot);
+
+signals:
 
 public slots:
 
@@ -30,8 +32,6 @@ public slots:
     void updateEndPoint(const libtorrent::tcp::endpoint & endPoint);
     void updateClientState(BuyerPeerPlugin::ClientState clientState);
     void updatePayorSlot(quint32 payorSlot);
-
-signals:
 
 private:
 

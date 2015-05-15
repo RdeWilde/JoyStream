@@ -3,8 +3,11 @@
 
 #include <QStandardItem>
 
-SellerPeerPluginViewModel::SellerPeerPluginViewModel(QObject * parent, const SellerPeerPlugin::Status & status)
+SellerPeerPluginViewModel::SellerPeerPluginViewModel(QObject * parent,
+                                                     const libtorrent::tcp::endpoint & endPoint,
+                                                     const SellerPeerPlugin::Status & status)
     : QObject(parent)
+    , _endPoint(endPoint)
     , _clientState(status.clientState())
     , _payeeViewModel(this, status.payeeStatus()) {
 }
@@ -17,6 +20,10 @@ void SellerPeerPluginViewModel::update(const SellerPeerPlugin::Status & status) 
     }
 
     _payeeViewModel.update(status.payeeStatus());
+}
+
+libtorrent::tcp::endpoint SellerPeerPluginViewModel::endPoint() const {
+    return _endPoint;
 }
 
 SellerPeerPlugin::ClientState SellerPeerPluginViewModel::clientState() const {

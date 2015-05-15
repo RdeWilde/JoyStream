@@ -10,11 +10,12 @@
 Payee::Status::Status() {
 }
 
-Payee::Status::Status(State state, quint64 numberOfPaymentsMade, quint32 lockTime, quint64 price, quint64 funds)
+Payee::Status::Status(State state, quint64 numberOfPaymentsMade, quint32 lockTime, quint64 price, const OutPoint & contractOutPoint, quint64 funds)
     : _state(state)
     , _numberOfPaymentsMade(numberOfPaymentsMade)
     , _lockTime(lockTime)
     , _price(price)
+    , _contractOutPoint(contractOutPoint)
     , _funds(funds) {
 }
 
@@ -48,6 +49,14 @@ quint64 Payee::Status::price() const {
 
 void Payee::Status::setPrice(quint64 price) {
     _price = price;
+}
+
+OutPoint Payee::Status::contractOutPoint() const {
+    return _contractOutPoint;
+}
+
+void Payee::Status::setContractOutPoint(const OutPoint &contractOutPoint) {
+    _contractOutPoint = contractOutPoint;
 }
 
 quint64 Payee::Status::funds() const {
@@ -333,6 +342,7 @@ Payee::Status Payee::status() const {
                   _numberOfPaymentsMade,
                   _lockTime,
                   _price,
+                  _contractOutPoint,
                   _funds);
 }
 

@@ -23,7 +23,7 @@ BuyerPeerPluginView::BuyerPeerPluginView(QObject * parent,
 
     model->appendRow(items);
 
-    // Connect model signals to view slots
+    // Connect view model signals to slots of this view object
     QObject::connect(peerModel,
                      SIGNAL(clientStateChanged(BuyerPeerPlugin::ClientState)),
                      this,

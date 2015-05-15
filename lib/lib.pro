@@ -102,7 +102,8 @@ SOURCES += \
     controller/TorrentViewModel.cpp \
     view/TorrentView.cpp \
     view/ChannelView.cpp \
-    view/BuyerPeerPluginView.cpp
+    view/BuyerPeerPluginView.cpp \
+    view/SellerPeerPluginView.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -206,7 +207,8 @@ HEADERS += \
     controller/TorrentViewModel.hpp \
     view/TorrentView.hpp \
     view/ChannelView.hpp \
-    view/BuyerPeerPluginView.hpp
+    view/BuyerPeerPluginView.hpp \
+    view/SellerPeerPluginView.hpp
 				
 FORMS += \
     view/SellerTorrentPluginConfigurationDialog.ui \
