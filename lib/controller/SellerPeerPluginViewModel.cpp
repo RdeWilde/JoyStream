@@ -3,9 +3,10 @@
 
 #include <QStandardItem>
 
-SellerPeerPluginViewModel::SellerPeerPluginViewModel(const SellerPeerPlugin::Status & status)
-    : _clientState(status.clientState())
-    , _payeeViewModel(status.payeeStatus()) {
+SellerPeerPluginViewModel::SellerPeerPluginViewModel(QObject * parent, const SellerPeerPlugin::Status & status)
+    : QObject(parent)
+    , _clientState(status.clientState())
+    , _payeeViewModel(this, status.payeeStatus()) {
 }
 
 void SellerPeerPluginViewModel::update(const SellerPeerPlugin::Status & status) {

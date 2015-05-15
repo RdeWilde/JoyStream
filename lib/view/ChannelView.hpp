@@ -9,6 +9,7 @@
 
 class QStandardItem;
 class QStandardItemModel;
+class ChannelViewModel;
 
 class ChannelView : public QObject
 {
@@ -16,13 +17,9 @@ class ChannelView : public QObject
 public:
 
     // Constructor
-    ChannelView(QStandardItemModel * model,
-                Payor::Channel::State state,
-                quint64 funds,
-                quint32 refundLockTime,
-                quint64 price,
-                quint64 numberOfPaymentsMade,
-                quint64 balance);
+    ChannelView(QObject * parent,
+                const ChannelViewModel * channelViewModel,
+                QStandardItemModel * model);
 
     // Text conversion routines
     static QString stateToString(Payor::Channel::State state);

@@ -19,7 +19,8 @@ class SellerTorrentPluginDialog : public QDialog
 public:
 
     // Constructor
-    SellerTorrentPluginDialog(const SellerTorrentPluginViewModel * model);
+    SellerTorrentPluginDialog(QWidget * parent,
+                              const SellerTorrentPluginViewModel * model);
 
     // Destructor
     ~SellerTorrentPluginDialog();

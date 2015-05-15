@@ -22,6 +22,7 @@ TorrentViewModel::TorrentViewModel(BuyerTorrentPluginViewModel * model)
     , _buyerTorrentPluginViewModel(model) {
 }
 
+/**
 TorrentViewModel::~TorrentViewModel() {
 
     switch(_pluginInstalled) {
@@ -42,13 +43,14 @@ TorrentViewModel::~TorrentViewModel() {
             Q_ASSERT(_sellerTorrentPluginViewModel == NULL);
     }
 }
+*/
 
 void TorrentViewModel::addPlugin(const SellerTorrentPlugin::Status & status) {
 
     Q_ASSERT(_pluginInstalled == PluginInstalled::None);
     _pluginInstalled = PluginInstalled::Seller;
 
-    _sellerTorrentPluginViewModel = new SellerTorrentPluginViewModel(status);
+    _sellerTorrentPluginViewModel = new SellerTorrentPluginViewModel(this, status);
 
     emit pluginInstalledChanged(PluginInstalled::Seller);
 }
@@ -59,7 +61,7 @@ void TorrentViewModel::addPlugin(const BuyerTorrentPlugin::Status & status) {
     _pluginInstalled = PluginInstalled::Buyer;
 
     // Create view model and save in map
-    _buyerTorrentPluginViewModel = new BuyerTorrentPluginViewModel(status);
+    _buyerTorrentPluginViewModel = new BuyerTorrentPluginViewModel(this, status);
 
     // Connect up slots to
     emit pluginInstalledChanged(PluginInstalled::Buyer);
@@ -119,18 +121,6 @@ SellerTorrentPluginViewModel * TorrentViewModel::sellerTorrentPluginViewModel() 
 
 BuyerTorrentPluginViewModel * TorrentViewModel::buyerTorrentPluginViewModel() const {
     return _buyerTorrentPluginViewModel;
-}
-
-void TorrentViewModel::pause() {
-    emit pause(_infoHash);
-}
-
-void TorrentViewModel::start() {
-    emit start(_infoHash);
-}
-
-void TorrentViewModel::remove() {
-    emit remove(_infoHash);
 }
 
 /**

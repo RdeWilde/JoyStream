@@ -10,6 +10,7 @@
 class QStandardItemModel;
 class QStandardItem;
 enum class PluginInstalled;
+class TorrentViewModel;
 
 namespace libtorrent {
     struct torrent_status;
@@ -22,9 +23,8 @@ class TorrentView : public QObject
 public:
 
     // Constructor
-    TorrentView(const libtorrent::torrent_status & status,
-                int size,
-                PluginInstalled pluginInstalled,
+    TorrentView(QObject * parent,
+                const TorrentViewModel * torrentViewModel,
                 QStandardItemModel * model);
 
     // Text conversion routines
@@ -33,11 +33,6 @@ public:
     static QString torrentStateToString(bool paused, libtorrent::torrent_status::state_t state, float progress);
     static QString speedToString(int downloadRate, int uploadRate);
     static QString peersToString(int numberOfPeers, int numberOfPeersWithExtension);
-
-    // Getters
-    const QAction * pauseAction() const;
-    const QAction * startAction() const;
-    const QAction * removeAction() const;
 
 public slots:
 
@@ -49,13 +44,28 @@ public slots:
     // Popup context menu in given point
     void showContextMenu(const QPoint & point);
 
-    // Shows extension dialog
-    // Slot is primarily meant for _viewExtensionAction::triggered()
+    /**
+     * Ui event related slots, e.g. from menus and buttons
+     */
+
+    // _torrentTableContextMenu context QMenu
+    void pause();
+    void start();
+    void remove();
     void viewExtension();
 
 signals:
 
-    // Issued when viewExtension() slot is called
+
+    /**
+     * Ui event related signals corresponding with slots above,
+     * where torrent identitiy is added.
+     */
+
+    // _torrentTableContextMenu context QMenu
+    void pauseTorrentRequested(const libtorrent::sha1_hash & infoHash);
+    void startTorrentRequested(const libtorrent::sha1_hash & infoHash);
+    void removeTorrentRequested(const libtorrent::sha1_hash & infoHash);
     void requestedViewingExtension(const libtorrent::sha1_hash & infoHash);
 
 private:
@@ -68,7 +78,7 @@ private:
     // Objects are owned by QStandardItemModel passed to ctr
     QStandardItem * _nameItem,
                   * _sizeItem,
-                  * _stateItem,
+                  * _pluginInstalledItem,
                   * _speedItem,
                   * _peersItem,
                   * _modeItem,

@@ -16,10 +16,11 @@ class BuyerTorrentPluginViewModel : public QObject {
 public:
 
     // Constructor
-    BuyerTorrentPluginViewModel(const BuyerTorrentPlugin::Status & status);
+    BuyerTorrentPluginViewModel(QObject * parent,
+                                const BuyerTorrentPlugin::Status & status);
 
     // Destructor
-    ~BuyerTorrentPluginViewModel();
+    //~BuyerTorrentPluginViewModel();
 
     // Add a model view for a new buyer peer plugin
     void addPeer(const libtorrent::tcp::endpoint & endPoint, const BuyerPeerPlugin::Status & status);
@@ -38,6 +39,9 @@ signals:
 
     // State change
     void stateChanged(BuyerTorrentPlugin::State state);
+
+    // Peer added
+    void peerAdded(const libtorrent::tcp::endpoint & endPoint, const BuyerPeerPluginViewModel * model);
 
 private:
 

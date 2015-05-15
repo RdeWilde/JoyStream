@@ -2,9 +2,11 @@
 #include "TorrentViewModel.hpp"
 #include "BuyerPeerPluginViewModel.hpp"
 
-BuyerTorrentPluginViewModel::BuyerTorrentPluginViewModel(const BuyerTorrentPlugin::Status & status)
-    : _state(status.state())
-    , _payorViewModel(status.payor()) {
+BuyerTorrentPluginViewModel::BuyerTorrentPluginViewModel(QObject * parent,
+                                                         const BuyerTorrentPlugin::Status & status)
+    : QObject(parent)
+    , _state(status.state())
+    , _payorViewModel(this, status.payor()) {
 
     // Create view models for all peer plugins
     QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> statuses = status.peerPluginStatuses();
@@ -15,6 +17,7 @@ BuyerTorrentPluginViewModel::BuyerTorrentPluginViewModel(const BuyerTorrentPlugi
         addPeer(i.key(), i.value());
 }
 
+/**
 BuyerTorrentPluginViewModel::~BuyerTorrentPluginViewModel() {
 
     for(QMap<libtorrent::tcp::endpoint, BuyerPeerPluginViewModel *>::const_iterator
@@ -23,13 +26,20 @@ BuyerTorrentPluginViewModel::~BuyerTorrentPluginViewModel() {
         i != end;i++)
         delete i.value();
 }
+*/
 
 void BuyerTorrentPluginViewModel::addPeer(const libtorrent::tcp::endpoint & endPoint, const BuyerPeerPlugin::Status & status) {
 
     Q_ASSERT(!_buyerPeerPluginViewModels.contains(endPoint));
 
-    // Create new view models and add to map
-    _buyerPeerPluginViewModels[endPoint] = new BuyerPeerPluginViewModel(this, status);
+    // Create new view model
+    BuyerPeerPluginViewModel * model = new BuyerPeerPluginViewModel(this, endPoint, status);
+
+    // Add to map
+    _buyerPeerPluginViewModels[endPoint] = model;
+
+    // Notify signal was added
+    emit peerAdded(endPoint, model);
 }
 
 void BuyerTorrentPluginViewModel::update(const BuyerTorrentPlugin::Status & status) {

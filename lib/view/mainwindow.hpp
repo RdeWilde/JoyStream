@@ -120,7 +120,7 @@ private:
     QVector<libtorrent::sha1_hash> _rowToInfoHash;
 
     // View model for torrent with corresponding info hash
-    QMap<libtorrent::sha1_hash, TorrentViewModel *> _torrentViewModels;
+    QMap<libtorrent::sha1_hash, const TorrentViewModel *> _torrentViewModels;
 
     // Uses _rowToViewMapping to lookup view in _torrentViews
     TorrentView * rowToView(int row);

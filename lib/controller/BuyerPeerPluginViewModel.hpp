@@ -11,12 +11,15 @@ class BuyerPeerPluginViewModel : public QObject
 public:
 
     // Constructor
-    BuyerPeerPluginViewModel(QObject * parent, const BuyerPeerPlugin::Status & status);
+    BuyerPeerPluginViewModel(QObject * parent,
+                             const libtorrent::tcp::endpoint & endPoint,
+                             const BuyerPeerPlugin::Status & status);
 
     // Update status
     void update(const BuyerPeerPlugin::Status & status);
 
     // Getters
+    libtorrent::tcp::endpoint endPoint() const;
     BuyerPeerPlugin::Status status() const;
 
 signals:
@@ -26,6 +29,9 @@ signals:
     void payorSlotChanged(quint32 payorSlot);
 
 private:
+
+    // Peer endpoint
+    libtorrent::tcp::endpoint _endPoint;
 
     // Status of peer plugin
     BuyerPeerPlugin::Status _status;

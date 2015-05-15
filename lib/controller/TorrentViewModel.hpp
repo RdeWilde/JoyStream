@@ -20,12 +20,13 @@ class TorrentViewModel : public QObject
 public:
 
     // Constructor
+    // Has no parent since Torrent is not QObject
     TorrentViewModel();
     TorrentViewModel(SellerTorrentPluginViewModel * model);
     TorrentViewModel(BuyerTorrentPluginViewModel * model);
 
     // Destructor
-    ~TorrentViewModel();
+    //~TorrentViewModel();
 
     // Add plugins
     void addPlugin(const SellerTorrentPlugin::Status & status);
@@ -45,13 +46,6 @@ public:
     libtorrent::torrent_status status() const;
     SellerTorrentPluginViewModel * sellerTorrentPluginViewModel() const;
     BuyerTorrentPluginViewModel * buyerTorrentPluginViewModel() const;
-
-public slots:
-
-    // Incoming view signals, e.g. from menus and buttons
-    void pause();
-    void start();
-    void remove();
 
 signals:
 

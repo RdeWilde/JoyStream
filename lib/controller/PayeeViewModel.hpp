@@ -13,7 +13,8 @@ class PayeeViewModel : public QObject
 public:
 
     // Constructor
-    PayeeViewModel(const Payee::Status & status);
+    PayeeViewModel(QObject * parent,
+                   const Payee::Status & status);
 
     // Update
     void update(const Payee::Status & status);

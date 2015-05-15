@@ -1,21 +1,20 @@
 #include "ChannelView.hpp"
+#include "controller/ChannelViewModel.hpp"
 
 #include <QStandardItem>
 #include <QStandardItemModel>
 
-ChannelView::ChannelView(QStandardItemModel * model,
-                         Payor::Channel::State state,
-                         quint64 funds,
-                         quint32 refundLockTime,
-                         quint64 price,
-                         quint64 numberOfPaymentsMade,
-                         quint64 balance)
-    : _stateItem(new QStandardItem(stateToString(state)))
-    , _fundsItem(new QStandardItem(fundsToString(funds)))
-    , _refundLockTimeItem(new QStandardItem(refundLockTimeToString(refundLockTime)))
-    , _priceItem(new QStandardItem(priceToString(price)))
-    , _numberOfPaymentMadeItem(new QStandardItem(numberOfPaymentsMadeToString(numberOfPaymentsMade)))
-    , _balanceItem(new QStandardItem(balanceToString(balance))) {
+ChannelView::ChannelView(QObject * parent,
+                         const ChannelViewModel * channelViewModel,
+                         QStandardItemModel * model)
+    : QObject(parent)
+    , _index(channelViewModel->index())
+    , _stateItem(new QStandardItem(stateToString(channelViewModel->status().state())))
+    , _fundsItem(new QStandardItem(fundsToString(channelViewModel->status().funds())))
+    , _refundLockTimeItem(new QStandardItem(refundLockTimeToString(channelViewModel->status().refundLockTime())))
+    , _priceItem(new QStandardItem(priceToString(channelViewModel->status().price())))
+    , _numberOfPaymentMadeItem(new QStandardItem(numberOfPaymentsMadeToString(channelViewModel->status().numberOfPaymentsMade())))
+    , _balanceItem(new QStandardItem(balanceToString(channelViewModel->status().price() * channelViewModel->status().numberOfPaymentsMade()))) {
 
     // Add row to model
     QList<QStandardItem *> items;
@@ -28,6 +27,37 @@ ChannelView::ChannelView(QStandardItemModel * model,
           << _balanceItem;
 
     model->appendRow(items);
+
+    // Connect view model signals to slots
+    QObject::connect(channelViewModel,
+                     SIGNAL(stateChanged(Payor::Channel::State)),
+                     this,
+                     SLOT(updateState(Payor::Channel::State)));
+
+    QObject::connect(channelViewModel,
+                     SIGNAL(fundsChanged(quint64)),
+                     this,
+                     SLOT(updateFunds(quint64)));
+
+    QObject::connect(channelViewModel,
+                     SIGNAL(refundLockTimeChanged(quint32)),
+                     this,
+                     SLOT(updateRefundLockTime(quint32)));
+
+    QObject::connect(channelViewModel,
+                     SIGNAL(priceChanged(quint64)),
+                     this,
+                     SLOT(updatePrice(quint64)));
+
+    QObject::connect(channelViewModel,
+                     SIGNAL(numberOfPaymentsMadeChanged(quint64)),
+                     this,
+                     SLOT(updateNumberOfPaymentsMade(quint64)));
+
+    QObject::connect(channelViewModel,
+                     SIGNAL(balanceChanged(quint64)),
+                     this,
+                     SLOT(updateBalance(quint64)));
 
 }
 

@@ -1,8 +1,9 @@
 #include "PayorViewModel.hpp"
 #include "ChannelViewModel.hpp"
 
-PayorViewModel::PayorViewModel(const Payor::Status & status)
-    : _state(status.state())
+PayorViewModel::PayorViewModel(QObject * parent, const Payor::Status & status)
+    : QObject(parent)
+    , _state(status.state())
     , _utxo(status.utxo())
     , _contractTxId(status.contractTxId())
     , _numberOfSignatures(status.numberOfSignatures()) {
@@ -10,12 +11,11 @@ PayorViewModel::PayorViewModel(const Payor::Status & status)
     // Create view models for all channels
     QVector<Payor::Channel::Status> channelStatuses = status.channels();
 
-    for(QVector<Payor::Channel::Status>::const_iterator
-        i = channelStatuses.constBegin(),
-        end = channelStatuses.constEnd();i != end;i++)
-        _channelViewModels.append(new ChannelViewModel(*i));
+    for(int i = 0;i < channelStatuses.size();i++)
+        _channelViewModels.append(new ChannelViewModel(this, i, channelStatuses[i]));
 }
 
+/**
 PayorViewModel::~PayorViewModel() {
 
     for(QVector<ChannelViewModel *>::const_iterator
@@ -23,6 +23,7 @@ PayorViewModel::~PayorViewModel() {
         end = _channelViewModels.constEnd();i != end;i++)
         delete (*i);
 }
+*/
 
 void PayorViewModel::update(const Payor::Status & status) {
 

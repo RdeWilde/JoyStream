@@ -4,8 +4,10 @@
 
 #include "extension/BitCoin/BitCoin.hpp"
 
-SellerTorrentPluginDialog::SellerTorrentPluginDialog(const SellerTorrentPluginViewModel * model)
-    : ui(new Ui::SellerTorrentPluginDialog) {
+SellerTorrentPluginDialog::SellerTorrentPluginDialog(QWidget * parent,
+                                                     const SellerTorrentPluginViewModel * model)
+    : QDialog(parent)
+    , ui(new Ui::SellerTorrentPluginDialog) {
 
     ui->setupUi(this);
 

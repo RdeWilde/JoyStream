@@ -9,14 +9,14 @@
 
 class QStandardItem;
 class QStandardItemModel;
+class BuyerPeerPluginViewModel;
 
 class BuyerPeerPluginView : public QObject
 {
     Q_OBJECT
 public:
-    explicit BuyerPeerPluginView(const libtorrent::tcp::endpoint & endPoint,
-                                 BuyerPeerPlugin::ClientState state,
-                                 quint32 payorSlot,
+    explicit BuyerPeerPluginView(QObject * parent,
+                                 const BuyerPeerPluginViewModel * peerModel,
                                  QStandardItemModel * model);
 
     // Text conversion routines

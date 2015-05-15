@@ -13,6 +13,7 @@ class BuyerTorrentDialog;
 class BuyerTorrentPluginViewModel;
 class ChannelView;
 class BuyerPeerPluginView;
+class BuyerPeerPluginViewModel;
 
 class BuyerTorrentPluginDialog : public QDialog
 {
@@ -21,10 +22,8 @@ class BuyerTorrentPluginDialog : public QDialog
 public:
 
     // Constructor
-    BuyerTorrentPluginDialog(BuyerTorrentPlugin::State pluginState,
-                             Payor::State payorState,
-                             const TxId & id,
-                             const UnspentP2PKHOutput & utxo);
+    BuyerTorrentPluginDialog(QWidget * parent,
+                             const BuyerTorrentPluginViewModel * model);
 
     // Text conversion routines
     static QString pluginStateToString(BuyerTorrentPlugin::State state);
@@ -44,10 +43,8 @@ public:
 public slots:
 
     // Adds channels and peers,
-    // but they must already be connected up properly with their
-    // view models, and ptr ownership is transferred with this call
-    void addChannel(ChannelView * view);
-    void addPeer(const libtorrent::tcp::endpoint & endPoint, BuyerPeerPluginView * view);
+    //void addChannel(const ChannelViewModel * model);
+    void addPeer(const BuyerPeerPluginViewModel * model);
 
     // Update
     void updatePluginState(BuyerTorrentPlugin::State state);

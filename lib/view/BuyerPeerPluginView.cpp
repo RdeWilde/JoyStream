@@ -1,17 +1,18 @@
 #include "BuyerPeerPluginView.hpp"
+#include "controller/BuyerPeerPluginViewModel.hpp"
 
 #include <libtorrent/socket_io.hpp> // print_endpoint
 
 #include <QStandardItem>
 #include <QStandardItemModel>
 
-BuyerPeerPluginView::BuyerPeerPluginView(const libtorrent::tcp::endpoint & endPoint,
-                                         BuyerPeerPlugin::ClientState state,
-                                         quint32 payorSlot,
+BuyerPeerPluginView::BuyerPeerPluginView(QObject * parent,
+                                         const BuyerPeerPluginViewModel * peerModel,
                                          QStandardItemModel * model)
-    : _endPointItem(new QStandardItem(endPointToString(endPoint)))
-    , _clientStateItem(new QStandardItem(clientStateToString(state)))
-    , _payorSlotItem(new QStandardItem(payorSlotToString(payorSlot))) {
+    : QObject(parent)
+    , _endPointItem(new QStandardItem(endPointToString(peerModel->endPoint())))
+    , _clientStateItem(new QStandardItem(clientStateToString(peerModel->status().clientState())))
+    , _payorSlotItem(new QStandardItem(payorSlotToString(peerModel->status().payorSlot()))) {
 
     // Add row to model
     QList<QStandardItem *> items;
@@ -21,6 +22,17 @@ BuyerPeerPluginView::BuyerPeerPluginView(const libtorrent::tcp::endpoint & endPo
           << _payorSlotItem;
 
     model->appendRow(items);
+
+    // Connect model signals to view slots
+    QObject::connect(peerModel,
+                     SIGNAL(clientStateChanged(BuyerPeerPlugin::ClientState)),
+                     this,
+                     SLOT(updateClientState(BuyerPeerPlugin::ClientState)));
+
+    QObject::connect(peerModel,
+                     SIGNAL(payorSlotChanged(quint32)),
+                     this,
+                     SLOT(updatePayorSlot(quint32)));
 }
 
 QString BuyerPeerPluginView::endPointToString(const libtorrent::tcp::endpoint & endPoint) {

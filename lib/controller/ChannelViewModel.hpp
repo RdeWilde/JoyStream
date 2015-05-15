@@ -12,9 +12,12 @@ class ChannelViewModel : public QObject {
 public:
 
     // Constructor
-    ChannelViewModel(const Payor::Channel::Status & status);
+    ChannelViewModel(QObject * parent,
+                     quint32 index,
+                     const Payor::Channel::Status & status);
 
     // Getters
+    quint32 index() const;
     Payor::Channel::Status status() const;
 
 public slots:
@@ -33,6 +36,9 @@ signals:
     void balanceChanged(quint64 balance);
 
 private:
+
+    // Channel index in pyor
+    quint32 _index;
 
     // Status of channel
     Payor::Channel::Status _status;

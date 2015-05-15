@@ -13,6 +13,8 @@ class QString;
 
 /**
  * This class is likely not productive, remove?
+ *
+ * DONT THINK IT IS EVEN BEING USED!!!!!
  */
 
 class PeerPluginViewModel {

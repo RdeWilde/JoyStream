@@ -7,7 +7,11 @@
 #include <QMap>
 #include <QStandardItemModel>
 
-// Need for this class seems to be questionable, limited se of polymorphism
+/**
+ * Need for this class seems to be questionable, limited se of polymorphism
+ *
+ * I DONT THINK THIS CLASS IS EVEN USED ANYMORE !!!
+ */
 class TorrentPluginViewModel : public QObject
 {
     Q_OBJECT

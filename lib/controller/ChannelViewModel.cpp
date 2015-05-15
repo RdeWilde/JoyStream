@@ -1,10 +1,13 @@
 #include "ChannelViewModel.hpp"
 #include "extension/BitCoin/BitCoin.hpp"
 
-ChannelViewModel::ChannelViewModel(const Payor::Channel::Status & status)
-    : _status(status) {
+ChannelViewModel::ChannelViewModel(QObject * parent,
+                                   quint32 index,
+                                   const Payor::Channel::Status & status)
+    : QObject(parent)
+    , _index(index)
+    , _status(status) {
 }
-
 
 void ChannelViewModel::update(const Payor::Channel::Status & status) {
 
@@ -39,6 +42,10 @@ void ChannelViewModel::update(const Payor::Channel::Status & status) {
 
     if(updateBalance)
         emit balanceChanged(status.price()*status.numberOfPaymentsMade());
+}
+
+quint32 ChannelViewModel::index() const {
+    return _index;
 }
 
 Payor::Channel::Status ChannelViewModel::status() const {

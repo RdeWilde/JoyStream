@@ -20,7 +20,7 @@ class SellerPeerPluginViewModel : public QObject // : public PeerPluginViewModel
 public:
 
     // Constructor from members
-    SellerPeerPluginViewModel(const SellerPeerPlugin::Status & status);
+    SellerPeerPluginViewModel(QObject * parent, const SellerPeerPlugin::Status & status);
 
     // Update
     void update(const SellerPeerPlugin::Status & status);

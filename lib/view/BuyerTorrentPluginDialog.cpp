@@ -1,26 +1,68 @@
 #include "BuyerTorrentPluginDialog.hpp"
 #include "ui_BuyerTorrentPluginDialog.h"
 
+#include "controller/BuyerTorrentPluginViewModel.hpp"
+#include "controller/BuyerPeerPluginViewModel.hpp"
+#include "ChannelView.hpp"
+#include "BuyerPeerPluginView.hpp"
+
 #include <libtorrent/socket_io.hpp> // print_endpoint
 
 /**
  * BuyerTorrentDialog
  */
 
-BuyerTorrentPluginDialog::BuyerTorrentPluginDialog(BuyerTorrentPlugin::State pluginState,
-                                                   Payor::State payorState,
-                                                   const TxId & id,
-                                                   const UnspentP2PKHOutput & utxo)
-    : ui(new Ui::BuyerTorrentDialog) {
+BuyerTorrentPluginDialog::BuyerTorrentPluginDialog(QWidget * parent,
+                                                   const BuyerTorrentPluginViewModel * model)
+    : QDialog(parent)
+    , ui(new Ui::BuyerTorrentDialog) {
 
     // Setup Qt ui
     ui->setupUi(this);
 
+    const PayorViewModel * payorViewModel = model->payorViewModel();
+
     // Main fields
-    updatePluginState(pluginState);
-    updatePayorState(payorState);
-    updateContractTxId(id);
-    updateUtxo(utxo);
+    updatePluginState(model->state());
+
+    updatePayorState(payorViewModel->state());
+    updateContractTxId(payorViewModel->contractTxId());
+    updateUtxo(payorViewModel->utxo());
+
+    /**
+     * Connect model signals to view slots
+     */
+
+    // addChannel, in future
+
+    QObject::connect(model,
+                     SIGNAL(peerAdded(libtorrent::tcp::endpoint,const BuyerPeerPluginViewModel*)),
+                     this,
+                     SLOT(addPeer(libtorrent::tcp::endpoint,const BuyerPeerPluginView*)));
+
+    QObject::connect(model,
+                     SIGNAL(stateChanged(BuyerTorrentPlugin::State)),
+                     this,
+                     SLOT(updatePluginState(BuyerTorrentPlugin::State)));
+
+    QObject::connect(payorViewModel,
+                     SIGNAL(stateChanged(Payor::State)),
+                     this,
+                     SLOT(updatePayorState(Payor::State)));
+
+    QObject::connect(payorViewModel,
+                     SIGNAL(contractTxIdChanged(TxId)),
+                     this,
+                     SLOT(updateContractTxId(TxId)));
+
+    QObject::connect(payorViewModel,
+                     SIGNAL(utxoChanged(UnspentP2PKHOutput)),
+                     this,
+                     SLOT(updateUtxo(UnspentP2PKHOutput)));
+
+    /**
+     * Channels
+     */
 
     // Add columns to channel table view model
     QStringList channelTableColumnNames;
@@ -35,6 +77,18 @@ BuyerTorrentPluginDialog::BuyerTorrentPluginDialog(BuyerTorrentPlugin::State plu
 
     _channelTableViewModel.setHorizontalHeaderLabels(channelTableColumnNames);
 
+    // Create channel views
+    QVector<ChannelViewModel *> channelViewModels = payorViewModel->channelViewModels();
+
+    for(QVector<ChannelViewModel *>::const_iterator
+        i = channelViewModels.constBegin(),
+        end = channelViewModels.constEnd();
+        i != end;i++)
+        _channelViews.append(new ChannelView(this, *i, &_channelTableViewModel));
+
+    /**
+     * Peer plugins
+     */
     // Add columns to peer plugin table view model
     QStringList buyerPeerPluginTableColumnNames;
     buyerPeerPluginTableColumnNames << "Host"
@@ -42,6 +96,15 @@ BuyerTorrentPluginDialog::BuyerTorrentPluginDialog(BuyerTorrentPlugin::State plu
                                     << "Slot";
 
     _buyerPeerPluginTableViewModel.setHorizontalHeaderLabels(buyerPeerPluginTableColumnNames);
+
+    // Create peer plugin views
+    QMap<libtorrent::tcp::endpoint, BuyerPeerPluginViewModel *> peerViewModels = model->buyerPeerPluginViewModels();
+
+    for(QMap<libtorrent::tcp::endpoint, BuyerPeerPluginViewModel *>::const_iterator
+        i = peerViewModels.constBegin(),
+        end = peerViewModels.constEnd();
+        i != end;i++)
+        addPeer(i.value());
 }
 
 QString BuyerTorrentPluginDialog::pluginStateToString(BuyerTorrentPlugin::State state) {
@@ -102,6 +165,7 @@ BuyerTorrentPluginDialog::~BuyerTorrentPluginDialog() {
 
     delete ui;
 
+    /**
     for(QVector<ChannelView *>::const_iterator
         i = _channelViews.constBegin(),
         end = _channelViews.constEnd();
@@ -113,17 +177,16 @@ BuyerTorrentPluginDialog::~BuyerTorrentPluginDialog() {
         end = _buyerPeerPluginViews.constEnd();
         i != end;i++)
         delete i.value();
+    */
 }
 
-void BuyerTorrentPluginDialog::addChannel(ChannelView * view) {
-    _channelViews.append(view);
-}
+void BuyerTorrentPluginDialog::addPeer(const BuyerPeerPluginViewModel * model) {
 
-void BuyerTorrentPluginDialog::addPeer(const libtorrent::tcp::endpoint & endPoint, BuyerPeerPluginView * view) {
+    libtorrent::tcp::endpoint endPoint = model->endPoint();
 
     Q_ASSERT(!_buyerPeerPluginViews.contains(endPoint));
 
-    _buyerPeerPluginViews[endPoint] = view;
+    _buyerPeerPluginViews[endPoint] = new BuyerPeerPluginView(this, model, &_buyerPeerPluginTableViewModel);
 }
 
 void BuyerTorrentPluginDialog::updatePluginState(BuyerTorrentPlugin::State state) {

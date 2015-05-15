@@ -1,7 +1,9 @@
 #include "PayeeViewModel.hpp"
 
-PayeeViewModel::PayeeViewModel(const Payee::Status & status)
-    : _status(status) {
+PayeeViewModel::PayeeViewModel(QObject * parent,
+                               const Payee::Status & status)
+    : QObject(parent)
+    , _status(status) {
 }
 
 void PayeeViewModel::update(const Payee::Status & status) {
@@ -35,4 +37,3 @@ void PayeeViewModel::update(const Payee::Status & status) {
 Payee::Status PayeeViewModel::status() const {
     return _status;
 }
-

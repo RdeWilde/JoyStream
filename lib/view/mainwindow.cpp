@@ -175,7 +175,7 @@ void MainWindow::showTorrentPluginDialog(const libtorrent::sha1_hash & infoHash)
     Q_ASSERT(_torrentViewModels.contains(infoHash));
 
     // Grab model
-    TorrentViewModel * model = _torrentViewModels[infoHash];
+    const TorrentViewModel * model = _torrentViewModels[infoHash];
 
     // Figure out which plugin type is installed
     PluginInstalled plugin = model->pluginInstalled();
@@ -201,20 +201,20 @@ void MainWindow::showTorrentPluginDialog(const libtorrent::sha1_hash & infoHash)
 
 void MainWindow::showSellerTorrentPluginDialog(const SellerTorrentPluginViewModel * model) {
 
+    // Create dialog
+    SellerTorrentPluginDialog dialog(this, model);
 
+    // Show view
+    dialog.exec();
 }
 
 void MainWindow::showBuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel * model) {
 
-    /**
     // Create dialog
-    BuyerTorrentPluginDialog dialog(buyerTorrentPluginViewModel);
-
-    // Connect signals to main window and controller slots
+    BuyerTorrentPluginDialog dialog(this, model);
 
     // Show view
     dialog.exec();
-    */
 }
 
 void MainWindow::on_addTorrentFilePushButton_clicked()
@@ -252,39 +252,26 @@ void MainWindow::on_addMagnetLinkPushButton_clicked()
 void MainWindow::addTorrent(const TorrentViewModel * model) {
 
     // Create torrent view model
-    TorrentView * view = new TorrentView(model->status(),
-                                         model->torrentInfo()->total_size(),
-                                         model->pluginInstalled(),
+    TorrentView * view = new TorrentView(this,
+                                         model,
                                          &_torrentTableViewModel);
 
-    // Connect: model signals to view slots
-    QObject::connect(model,
-                     SIGNAL(pluginInstalledChanged(PluginInstalled)),
-                     view,
-                     SLOT(updatePluginInstalled(PluginInstalled)));
-
-    QObject::connect(model,
-                     SIGNAL(torrentStatusChanged(const libtorrent::torrent_status &)),
-                     view,
-                     SLOT(updateStatus(const libtorrent::torrent_status &)));
-
-    // Connect: view menu actions to model slots
-    QObject::connect(view->pauseAction(),
-                     SIGNAL(triggered()),
-                     model,
-                     SLOT(pause()));
-
-    QObject::connect(view->startAction(),
-                     SIGNAL(triggered()),
-                     model,
-                     SLOT(start()));
-
-    QObject::connect(view->removeAction(),
-                     SIGNAL(triggered()),
-                     model,
-                     SLOT(remove()));
-
     // Connect: view menu action to main window slot
+    QObject::connect(view,
+                     SIGNAL(pauseTorrentRequested(libtorrent::sha1_hash)),
+                     _controller,
+                     SLOT(pauseTorrent(libtorrent::sha1_hash)));
+
+    QObject::connect(view,
+                     SIGNAL(startTorrentRequested(libtorrent::sha1_hash)),
+                     _controller,
+                     SLOT(startTorrent(libtorrent::sha1_hash)));
+
+    QObject::connect(view,
+                     SIGNAL(removeTorrentRequested(libtorrent::sha1_hash)),
+                     _controller,
+                     SLOT(removeTorrent(libtorrent::sha1_hash)));
+
     QObject::connect(view,
                      SIGNAL(requestedViewingExtension(libtorrent::sha1_hash)),
                      this,

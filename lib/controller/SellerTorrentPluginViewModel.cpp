@@ -2,9 +2,9 @@
 #include "TorrentViewModel.hpp"
 #include "SellerPeerPluginViewModel.hpp"
 
-
-SellerTorrentPluginViewModel::SellerTorrentPluginViewModel(const SellerTorrentPlugin::Status & status)
-    : _minPrice(status.minPrice())
+SellerTorrentPluginViewModel::SellerTorrentPluginViewModel(QObject * parent, const SellerTorrentPlugin::Status & status)
+    : QObject(parent)
+    , _minPrice(status.minPrice())
     , _minLock(status.minLock())
     , _minFeePerByte(status.minFeePerByte())
     , _maxNumberOfSellers(status.maxNumberOfSellers())
@@ -20,6 +20,7 @@ SellerTorrentPluginViewModel::SellerTorrentPluginViewModel(const SellerTorrentPl
         addPeer(i.key(), i.value());
 }
 
+/**
 SellerTorrentPluginViewModel::~SellerTorrentPluginViewModel() {
 
     for(QMap<libtorrent::tcp::endpoint, SellerPeerPluginViewModel *>::const_iterator
@@ -29,12 +30,14 @@ SellerTorrentPluginViewModel::~SellerTorrentPluginViewModel() {
         delete i.value();
 }
 
+*/
+
 void SellerTorrentPluginViewModel::addPeer(const libtorrent::tcp::endpoint & endPoint, const SellerPeerPlugin::Status & status) {
 
     Q_ASSERT(!_sellerPeerPluginViewModels.contains(endPoint));
 
     // Create peer view model and add to map
-    _sellerPeerPluginViewModels[endPoint] = new SellerPeerPluginViewModel(status);
+    _sellerPeerPluginViewModels[endPoint] = new SellerPeerPluginViewModel(this, status);
 }
 
 void SellerTorrentPluginViewModel::update(const SellerTorrentPlugin::Status & status) {

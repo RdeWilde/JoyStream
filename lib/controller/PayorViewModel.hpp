@@ -13,10 +13,10 @@ class PayorViewModel : public QObject
 public:
 
     // Constructor
-    PayorViewModel(const Payor::Status & status);
+    PayorViewModel(QObject * parent, const Payor::Status & status);
 
     // Destructor
-    ~PayorViewModel();
+    //~PayorViewModel();
 
     // Update
     void update(const Payor::Status & status);
@@ -36,8 +36,8 @@ signals:
 
     // Status change
     void stateChanged(Payor::State state);
-    void utxoChanged(const UnspentP2PKHOutput & utxo);
     void contractTxIdChanged(const TxId & id);
+    void utxoChanged(const UnspentP2PKHOutput & utxo);
     void numberOfSignaturesChanged(quint32 numberOfSignatures);
 
 private:

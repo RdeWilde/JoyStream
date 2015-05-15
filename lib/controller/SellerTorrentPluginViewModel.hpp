@@ -15,10 +15,10 @@ class SellerTorrentPluginViewModel : public QObject
 public:
 
     // Constructor
-    SellerTorrentPluginViewModel(const SellerTorrentPlugin::Status & status);
+    SellerTorrentPluginViewModel(QObject * parent, const SellerTorrentPlugin::Status & status);
 
     // Destuctor
-    ~SellerTorrentPluginViewModel();
+    //~SellerTorrentPluginViewModel();
 
     // Add a model view for a new seller peer plugin
     void addPeer(const libtorrent::tcp::endpoint & endPoint, const SellerPeerPlugin::Status & status);
