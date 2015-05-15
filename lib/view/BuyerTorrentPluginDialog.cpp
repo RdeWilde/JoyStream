@@ -36,9 +36,9 @@ BuyerTorrentPluginDialog::BuyerTorrentPluginDialog(QWidget * parent,
     // addChannel, in future
 
     QObject::connect(model,
-                     SIGNAL(peerAdded(libtorrent::tcp::endpoint,const BuyerPeerPluginViewModel*)),
+                     SIGNAL(peerAdded(const BuyerPeerPluginViewModel*)),
                      this,
-                     SLOT(addPeer(libtorrent::tcp::endpoint,const BuyerPeerPluginView*)));
+                     SLOT(addPeer(const BuyerPeerPluginViewModel*)));
 
     QObject::connect(model,
                      SIGNAL(stateChanged(BuyerTorrentPlugin::State)),

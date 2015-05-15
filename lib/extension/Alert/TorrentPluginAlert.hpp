@@ -9,11 +9,11 @@ class TorrentPluginAlert : public libtorrent::alert {
 
 public:
 
-    // Default constructor
-    TorrentPluginAlert();
-
-    // Constructor
+    // Constructor from members
     TorrentPluginAlert(const libtorrent::sha1_hash & infoHash);
+
+    // Copy constructor
+    TorrentPluginAlert(const TorrentPluginAlert & alert);
 
     // Virtual routines from libtorrent::alert
     virtual int type() const = 0;

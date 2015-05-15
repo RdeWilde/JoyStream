@@ -17,9 +17,6 @@ public:
     // Constructor
     SellerTorrentPluginViewModel(QObject * parent, const SellerTorrentPlugin::Status & status);
 
-    // Destuctor
-    //~SellerTorrentPluginViewModel();
-
     // Add a model view for a new seller peer plugin
     void addPeer(const libtorrent::tcp::endpoint & endPoint, const SellerPeerPlugin::Status & status);
 
@@ -42,6 +39,9 @@ signals:
     void minFeePerByteChanged(quint64 minFeePerByte);
     void maxNumberOfSellersChanged(quint32 maxNumberOfSellers);
     void maxContractConfirmationDelayChanged(quint32 maxContractConfirmationDelay);
+
+    // Peer added
+    void peerAdded(const SellerPeerPluginViewModel * model);
 
 private:
 

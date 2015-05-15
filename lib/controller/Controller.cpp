@@ -975,6 +975,8 @@ void Controller::Configuration::setLibtorrentSessionSettingsEntry(const libtorre
 #include "extension/Alert/SellerTorrentPluginStatusAlert.hpp"
 #include "extension/Alert/PluginStatusAlert.hpp"
 //#include "extension/Alert/TorrentPluginStartedAlert.hpp"
+#include "extension/Alert/SellerPeerAddedAlert.hpp"
+#include "extension/Alert/BuyerPeerAddedAlert.hpp"
 
 //#include "extension/Request/SetConfigurationTorrentPluginRequest.hpp"
 //#include "extension/Request/StartPluginTorrentPluginRequest.hpp"
@@ -1208,6 +1210,11 @@ void Controller::processAlert(const libtorrent::alert * a) {
         processSellerTorrentPluginStatusAlert(p);
     else if(const BuyerTorrentPluginStatusAlert * p = libtorrent::alert_cast<BuyerTorrentPluginStatusAlert>(a))
         processBuyerTorrentPluginStatusAlert(p);
+    else if(const SellerPeerAddedAlert * p = libtorrent::alert_cast<SellerPeerAddedAlert>(a))
+        processSellerPeerAddedAlert(p);
+    else if(const BuyerPeerAddedAlert * p = libtorrent::alert_cast<BuyerPeerAddedAlert>(a))
+        processBuyerPeerAddedAlert(p);
+
     //else if(const TorrentPluginStartedAlert * p = libtorrent::alert_cast<TorrentPluginStartedAlert>(a))
     //    processTorrentPluginStartedAlert(p);
 
@@ -1587,6 +1594,24 @@ void Controller::processSellerTorrentPluginStatusAlert(const SellerTorrentPlugin
 
 void Controller::processPluginStatusAlert(const PluginStatusAlert * p) {
     _view.updatePluginStatus(p->status());
+}
+
+void Controller::processSellerPeerAddedAlert(const SellerPeerAddedAlert * p) {
+
+    Q_ASSERT(_torrents.contains(p->infoHash()));
+
+    Torrent * torrent = _torrents[p->infoHash()];
+
+    torrent->model()->addPeer(p->endPoint(), p->status());
+}
+
+void Controller::processBuyerPeerAddedAlert(const BuyerPeerAddedAlert * p) {
+
+    Q_ASSERT(_torrents.contains(p->infoHash()));
+
+    Torrent * torrent = _torrents[p->infoHash()];
+
+    torrent->model()->addPeer(p->endPoint(), p->status());
 }
 
 void Controller::update(const std::vector<libtorrent::torrent_status> & statuses) {

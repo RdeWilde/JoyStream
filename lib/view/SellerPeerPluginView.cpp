@@ -19,7 +19,6 @@ SellerPeerPluginView::SellerPeerPluginView(QObject * parent,
     , _numberOfPaymentMadeItem(new QStandardItem())
     , _balanceItem(new QStandardItem()) {
 
-
     // Add row to model
     QList<QStandardItem *> items;
 

@@ -67,6 +67,24 @@ void TorrentViewModel::addPlugin(const BuyerTorrentPlugin::Status & status) {
     emit pluginInstalledChanged(PluginInstalled::Buyer);
 }
 
+void TorrentViewModel::addPeer(const libtorrent::tcp::endpoint & endPoint, const SellerPeerPlugin::Status & status) {
+
+    Q_ASSERT(_pluginInstalled == PluginInstalled::Seller);
+    Q_ASSERT(_sellerTorrentPluginViewModel != NULL);
+    Q_ASSERT(_buyerTorrentPluginViewModel == NULL);
+
+    _sellerTorrentPluginViewModel->addPeer(endPoint, status);
+}
+
+void TorrentViewModel::addPeer(const libtorrent::tcp::endpoint & endPoint, const BuyerPeerPlugin::Status & status) {
+
+    Q_ASSERT(_pluginInstalled == PluginInstalled::Buyer);
+    Q_ASSERT(_sellerTorrentPluginViewModel == NULL);
+    Q_ASSERT(_buyerTorrentPluginViewModel != NULL);
+
+    _buyerTorrentPluginViewModel->addPeer(endPoint, status);
+}
+
 void TorrentViewModel::update(const libtorrent::torrent_status & status) {
 
     _status = status;

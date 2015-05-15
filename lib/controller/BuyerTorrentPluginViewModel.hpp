@@ -41,7 +41,7 @@ signals:
     void stateChanged(BuyerTorrentPlugin::State state);
 
     // Peer added
-    void peerAdded(const libtorrent::tcp::endpoint & endPoint, const BuyerPeerPluginViewModel * model);
+    void peerAdded(const BuyerPeerPluginViewModel * model);
 
 private:
 

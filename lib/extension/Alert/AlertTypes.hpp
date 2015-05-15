@@ -17,4 +17,7 @@
 #define BUYER_PEER_PLUGIN_STARTED_ALERT_ID      (libtorrent::user_alert_id + 7)
 #define SELLER_PEER_PLUGIN_STARTED_ALERT_ID     (libtorrent::user_alert_id + 8)
 
+#define BUYER_PEER_ADDED_ALERT_ID               (libtorrent::user_alert_id + 9)
+#define SELLER_PEER_ADDED_ALERT_ID              (libtorrent::user_alert_id + 10)
+
 #endif // ALERT_TYPES_HPP

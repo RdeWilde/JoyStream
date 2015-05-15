@@ -1,8 +1,5 @@
 #include "TorrentPluginStartedAlert.hpp"
 
-TorrentPluginStartedAlert::TorrentPluginStartedAlert() {
-}
-
 TorrentPluginStartedAlert::TorrentPluginStartedAlert(const libtorrent::sha1_hash & infoHash, PluginMode mode)
     : _infoHash(infoHash)
     , _mode(mode) {

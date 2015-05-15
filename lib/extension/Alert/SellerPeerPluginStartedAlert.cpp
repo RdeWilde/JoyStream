@@ -6,7 +6,7 @@ SellerPeerPluginStartedAlert::SellerPeerPluginStartedAlert(const libtorrent::sha
 }
 
 SellerPeerPluginStartedAlert::SellerPeerPluginStartedAlert(const SellerPeerPluginStartedAlert & alert)
-    : TorrentPluginAlert(alert.infoHash())
+    : TorrentPluginAlert(alert)
     , _configuration(alert.configuration()) {
 }
 

@@ -17,6 +17,12 @@ SellerTorrentPluginDialog::SellerTorrentPluginDialog(QWidget * parent,
     /**
      * Connect model signals to view slots
      */
+
+    QObject::connect(model,
+                     SIGNAL(peerAdded(const SellerPeerPluginViewModel*)),
+                     this,
+                     SLOT(addPeer(const SellerPeerPluginViewModel*)));
+
     QObject::connect(model,
                      SIGNAL(minPriceChanged(quint64)),
                      this,

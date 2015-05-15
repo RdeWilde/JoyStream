@@ -103,7 +103,9 @@ SOURCES += \
     view/TorrentView.cpp \
     view/ChannelView.cpp \
     view/BuyerPeerPluginView.cpp \
-    view/SellerPeerPluginView.cpp
+    view/SellerPeerPluginView.cpp \
+    extension/Alert/BuyerPeerAddedAlert.cpp \
+    extension/Alert/SellerPeerAddedAlert.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -208,7 +210,9 @@ HEADERS += \
     view/TorrentView.hpp \
     view/ChannelView.hpp \
     view/BuyerPeerPluginView.hpp \
-    view/SellerPeerPluginView.hpp
+    view/SellerPeerPluginView.hpp \
+    extension/Alert/BuyerPeerAddedAlert.hpp \
+    extension/Alert/SellerPeerAddedAlert.hpp
 				
 FORMS += \
     view/SellerTorrentPluginConfigurationDialog.ui \

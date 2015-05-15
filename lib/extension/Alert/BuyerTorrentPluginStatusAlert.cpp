@@ -7,7 +7,7 @@ BuyerTorrentPluginStatusAlert::BuyerTorrentPluginStatusAlert(const libtorrent::s
 }
 
 BuyerTorrentPluginStatusAlert::BuyerTorrentPluginStatusAlert(const BuyerTorrentPluginStatusAlert & alert)
-    : TorrentPluginAlert(alert.infoHash())
+    : TorrentPluginAlert(alert)
     , _status(alert.status()){
 }
 
@@ -24,7 +24,7 @@ std::string BuyerTorrentPluginStatusAlert::message() const {
 }
 
 int BuyerTorrentPluginStatusAlert::category() const {
-    return libtorrent::alert::stats_notification;
+    return libtorrent::alert::status_notification;
 }
 
 std::auto_ptr<libtorrent::alert> BuyerTorrentPluginStatusAlert::clone() const {

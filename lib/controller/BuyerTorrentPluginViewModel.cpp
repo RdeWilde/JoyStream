@@ -38,8 +38,8 @@ void BuyerTorrentPluginViewModel::addPeer(const libtorrent::tcp::endpoint & endP
     // Add to map
     _buyerPeerPluginViewModels[endPoint] = model;
 
-    // Notify signal was added
-    emit peerAdded(endPoint, model);
+    // Notify that peer was added
+    emit peerAdded(model);
 }
 
 void BuyerTorrentPluginViewModel::update(const BuyerTorrentPlugin::Status & status) {
@@ -54,8 +54,17 @@ void BuyerTorrentPluginViewModel::update(const BuyerTorrentPlugin::Status & stat
 
     for(QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status>::const_iterator
         i = peerPluginStatuses.constBegin(),
-        end = peerPluginStatuses.constEnd(); i != end;i++)
-        _buyerPeerPluginViewModels[i.key()]->update(i.value());
+        end = peerPluginStatuses.constEnd(); i != end;i++) {
+
+        // Get peer endpoint
+        libtorrent::tcp::endpoint endPoint = i.key();
+
+        Q_ASSERT(_buyerPeerPluginViewModels.contains(endPoint));
+
+        // Update status
+        _buyerPeerPluginViewModels[endPoint]->update(i.value());
+    }
+
 
     // Payor status
     _payorViewModel.update(status.payor());

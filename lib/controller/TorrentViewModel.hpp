@@ -32,6 +32,10 @@ public:
     void addPlugin(const SellerTorrentPlugin::Status & status);
     void addPlugin(const BuyerTorrentPlugin::Status & status);
 
+    // Add peers on plugins
+    void addPeer(const libtorrent::tcp::endpoint & endPoint, const SellerPeerPlugin::Status & status);
+    void addPeer(const libtorrent::tcp::endpoint & endPoint, const BuyerPeerPlugin::Status & status);
+
     // Update
     void update(const libtorrent::torrent_status & status);
     void update(const SellerTorrentPlugin::Status & status);

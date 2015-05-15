@@ -22,14 +22,15 @@
 #include <QNetworkAccessManager>
 
 class TorrentStatus;
+
+class TorrentPluginStartedAlert;
+class PluginStatusAlert;
 class BuyerTorrentPluginStatusAlert;
 class SellerTorrentPluginStatusAlert;
 class StartedSellerTorrentPlugin;
 class StartedBuyerTorrentPlugin;
-
-
-class TorrentPluginStartedAlert;
-class PluginStatusAlert;
+class SellerPeerAddedAlert;
+class BuyerPeerAddedAlert;
 
 namespace libtorrent {
     class peer_connection;
@@ -576,6 +577,9 @@ private:
     void processSellerTorrentPluginStatusAlert(const SellerTorrentPluginStatusAlert * p);
 
     void processPluginStatusAlert(const PluginStatusAlert * p);
+
+    void processSellerPeerAddedAlert(const SellerPeerAddedAlert * p);
+    void processBuyerPeerAddedAlert(const BuyerPeerAddedAlert * p);
 
     // Status
     void update(const std::vector<libtorrent::torrent_status> & statuses);

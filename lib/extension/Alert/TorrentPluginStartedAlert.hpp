@@ -14,9 +14,6 @@ public:
     // Public member required for alert_cast
     const static int alert_type = TORRENT_PLUGIN_STARTED_ALERT_ID;
 
-    // Default constructor
-    TorrentPluginStartedAlert();
-
     // Constructor from members
     TorrentPluginStartedAlert(const libtorrent::sha1_hash & infoHash, PluginMode mode);
 

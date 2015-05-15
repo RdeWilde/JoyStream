@@ -6,7 +6,7 @@ SellerTorrentPluginStatusAlert::SellerTorrentPluginStatusAlert(const libtorrent:
 }
 
 SellerTorrentPluginStatusAlert::SellerTorrentPluginStatusAlert(const SellerTorrentPluginStatusAlert & alert)
-    : TorrentPluginAlert(alert.infoHash())
+    : TorrentPluginAlert(alert)
     , _status(alert.status()) {
 }
 

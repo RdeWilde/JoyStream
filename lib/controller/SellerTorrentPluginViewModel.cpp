@@ -36,8 +36,14 @@ void SellerTorrentPluginViewModel::addPeer(const libtorrent::tcp::endpoint & end
 
     Q_ASSERT(!_sellerPeerPluginViewModels.contains(endPoint));
 
-    // Create peer view model and add to map
-    _sellerPeerPluginViewModels[endPoint] = new SellerPeerPluginViewModel(this, endPoint, status);
+    // Create new view model
+    SellerPeerPluginViewModel * model = new SellerPeerPluginViewModel(this, endPoint, status);
+
+    // Add to map
+    _sellerPeerPluginViewModels[endPoint] = model;
+
+    // Notify that peer was added
+    emit peerAdded(model);
 }
 
 void SellerTorrentPluginViewModel::update(const SellerTorrentPlugin::Status & status) {
@@ -75,9 +81,13 @@ void SellerTorrentPluginViewModel::update(const SellerTorrentPlugin::Status & st
         end = peerPluginStatuses.constEnd();
         i != end;i++) {
 
-        Q_ASSERT(_sellerPeerPluginViewModels.contains(i.key()));
+        // Get endpoint
+        libtorrent::tcp::endpoint endPoint = i.key();
 
-        _sellerPeerPluginViewModels[i.key()]->update(i.value());
+        Q_ASSERT(_sellerPeerPluginViewModels.contains(endPoint));
+
+        // Update
+        _sellerPeerPluginViewModels[endPoint]->update(i.value());
     }
 }
 
