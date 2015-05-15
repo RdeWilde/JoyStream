@@ -14,18 +14,62 @@ SellerTorrentPluginDialog::SellerTorrentPluginDialog(QWidget * parent,
 
     ui->setupUi(this);
 
-    // Set view of configuration
     /**
-     * FUTURE
-     * connect plugin view model configuraion update signals
-     * to slots on this dialog/view object
+     * Connect model signals to view slots
+     */
+    QObject::connect(model,
+                     SIGNAL(minPriceChanged(quint64)),
+                     this,
+                     SLOT(updateMinPrice(quint64)));
 
-    QObject::connect(SellerTorrentPluginViewModel,
-                     SIGNAL(),)
+    QObject::connect(model,
+                     SIGNAL(minLockChanged(quint32)),
+                     this,
+                     SLOT(updateMinLockTime(quint32)));
 
+    QObject::connect(model,
+                     SIGNAL(minFeePerByteChanged(quint64)),
+                     this,
+                     SLOT(updateMinFeePerByte(quint64)));
+
+    QObject::connect(model,
+                     SIGNAL(maxNumberOfSellersChanged(quint32)),
+                     this,
+                     SLOT(updateMaxNumberOfSellers(quint32)));
+
+    QObject::connect(model,
+                     SIGNAL(maxContractConfirmationDelayChanged(quint32)),
+                     this,
+                     SLOT(updateMaxContractConfirmationDelay(quint32)));
+
+    /**
+     * Setup table
+     */
+
+    // Add columns to channel table view model
+    QStringList peersTableColumnNames;
+
+    peersTableColumnNames << "Index"
+                          << "State"
+                          << "Funds"
+                          << "Lock"
+                          << "Price"
+                          << "#Payments"
+                          << "Balance";
+
+    _sellerPeerPluginTableViewModel.setHorizontalHeaderLabels(peersTableColumnNames);
+
+    // Create peer views and connect to table view model
+    QMap<libtorrent::tcp::endpoint, SellerPeerPluginViewModel *> sellerPeerPluginViewModels = model->sellerPeerPluginViewModels();
+
+    for(QMap<libtorrent::tcp::endpoint, SellerPeerPluginViewModel *>::const_iterator
+        i = sellerPeerPluginViewModels.constBegin(),
+        end = sellerPeerPluginViewModels.constEnd();
+        i != end;i++)
+        addPeer(i.value());
 
     // Set table view model
-    ui->peerPluginsTableView->setModel(_sellerPeerPluginTableViewModel);*/
+    ui->peerPluginsTableView->setModel(&_sellerPeerPluginTableViewModel);
 }
 
 SellerTorrentPluginDialog::~SellerTorrentPluginDialog() {
@@ -63,6 +107,10 @@ void SellerTorrentPluginDialog::updateMinLockTime(quint32 minLockTime) {
 
 void SellerTorrentPluginDialog::updateMinFeePerByte(quint64 minFeePerByte) {
     ui->minFeeLineEdit->setText(minFeePerByteToString(minFeePerByte));
+}
+
+void SellerTorrentPluginDialog::updateMaxNumberOfSellers(quint32 maxNumberOfSellers) {
+    ui->maxNumberOfSellersLineEdit->setText(QString::number(maxNumberOfSellers));
 }
 
 void SellerTorrentPluginDialog::updateMaxContractConfirmationDelay(quint32 delay) {

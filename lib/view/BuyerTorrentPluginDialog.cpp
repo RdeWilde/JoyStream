@@ -77,7 +77,7 @@ BuyerTorrentPluginDialog::BuyerTorrentPluginDialog(QWidget * parent,
 
     _channelTableViewModel.setHorizontalHeaderLabels(channelTableColumnNames);
 
-    // Create channel views
+    // Create channel views and add to table model
     QVector<ChannelViewModel *> channelViewModels = payorViewModel->channelViewModels();
 
     for(QVector<ChannelViewModel *>::const_iterator
@@ -100,7 +100,7 @@ BuyerTorrentPluginDialog::BuyerTorrentPluginDialog(QWidget * parent,
 
     _buyerPeerPluginTableViewModel.setHorizontalHeaderLabels(buyerPeerPluginTableColumnNames);
 
-    // Create peer plugin views
+    // Create peer plugin views and connect to table view model
     QMap<libtorrent::tcp::endpoint, BuyerPeerPluginViewModel *> peerViewModels = model->buyerPeerPluginViewModels();
 
     for(QMap<libtorrent::tcp::endpoint, BuyerPeerPluginViewModel *>::const_iterator

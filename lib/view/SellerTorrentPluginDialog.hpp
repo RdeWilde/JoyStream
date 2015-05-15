@@ -47,6 +47,7 @@ public slots:
     void updateMinPrice(quint64 minPrice);
     void updateMinLockTime(quint32 minLockTime);
     void updateMinFeePerByte(quint64 minFeePerByte);
+    void updateMaxNumberOfSellers(quint32 maxNumberOfSellers);
     void updateMaxContractConfirmationDelay(quint32 delay);
 
 private:
