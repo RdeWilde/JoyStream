@@ -353,7 +353,7 @@ void MainWindow::updateSellerTorrentPluginStatus(const libtorrent::sha1_hash & i
 void MainWindow::updatePluginStatus(const Plugin::Status & status) {
     //ui->balanceLabel->setText(QString::number(p->balance()*1000) + "mBTC");
 
-    qCDebug(_category) << "MainWindow::updatePluginStatus()";
+    //qCDebug(_category) << "MainWindow::updatePluginStatus()";
 }
 
 void MainWindow::updateWalletBalance(quint64 balance) {

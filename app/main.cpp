@@ -153,16 +153,10 @@ void main(int argc, char* argv[]) {
     quint64 maxPrice = 15;
 
     // Amount needed to fund contract (satoshies)
-    quint64 minFunds = Payor::minimalFunds(maxPrice, numberOfSellers, maxFeePerkB);
+    quint64 minFunds = Payor::minimalFunds(torrentInfo.num_pieces(),maxPrice, numberOfSellers, maxFeePerkB);
 
     // Get funding output - this has to be grabbed from wallet/chain later
     UnspentP2PKHOutput utxo = buyerClient.wallet().getUtxo(minFunds, 1);
-
-    // Check that an utxo was indeed found
-    if(utxo.value() == 0) {
-        std::cout << "No utxo found with value no less than:" << minFunds;
-        return;
-    }
 
     BuyerTorrentPlugin::Configuration configuration(false,
                                                     maxPrice,
@@ -170,15 +164,21 @@ void main(int argc, char* argv[]) {
                                                     maxFeePerkB,
                                                     numberOfSellers);
 
-    // Add to client
-    buyerClient.addTorrent(buyerTorrentConfiguration, configuration, utxo);
+    // Check that an utxo was indeed found
+    if(utxo.value() == 0) {
+        std::cout << "No utxo found with value no less than:" << minFunds;
 
+        buyerClient.addTorrent(buyerTorrentConfiguration);
+    } else {
+        // Add to client
+        buyerClient.addTorrent(buyerTorrentConfiguration, configuration, utxo);
+    }
     // Track controller
     controllerTracker.addClient(&buyerClient);
 
     /**
      * Seller =======================================================
-     */
+
 
     // Create logging category: uten logging til skjerm
     QLoggingCategory * sellerCategory = global_log_manager.createLogger("seller", true, false); // ("seller", false, false)
@@ -210,6 +210,7 @@ void main(int argc, char* argv[]) {
 
     // Track controller
     controllerTracker.addClient(&sellerClient);
+*/
 
     // Start event loop: this is the only Qt event loop in the entire application
     app.exec();

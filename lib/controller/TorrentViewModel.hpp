@@ -21,9 +21,15 @@ public:
 
     // Constructor
     // Has no parent since Torrent is not QObject
-    TorrentViewModel();
+    TorrentViewModel(const libtorrent::sha1_hash & infoHash,
+                     const std::string & name,
+                     const std::string & savePath,
+                     libtorrent::torrent_info * torrentInfo,
+                     PluginInstalled pluginInstalled);
+    /**
     TorrentViewModel(SellerTorrentPluginViewModel * model);
     TorrentViewModel(BuyerTorrentPluginViewModel * model);
+    */
 
     // Destructor
     //~TorrentViewModel();

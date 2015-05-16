@@ -159,7 +159,7 @@ PluginMode SellerTorrentPlugin::Configuration::pluginMode() const {
 
 #include "BitCoin/Wallet.hpp"
 #include "Alert/SellerTorrentPluginStatusAlert.hpp"
-#include "Alert/SellerPeerPluginStartedAlert.hpp"
+#include "Alert/SellerPeerAddedAlert.hpp"
 
 SellerTorrentPlugin::SellerTorrentPlugin(Plugin * plugin,
                                          const boost::shared_ptr<libtorrent::torrent> & torrent,
@@ -216,29 +216,43 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
     */
 
     // Create shared pointer to new seller peer plugin
-    boost::shared_ptr<SellerPeerPlugin> sharedPeerPluginPtr(new SellerPeerPlugin(this,
-                                                                                 bittorrentPeerConnection,
-                                                                                 Payee::Configuration(Payee::State::waiting_for_payor_information,
-                                                                                                      0,
-                                                                                                      Signature(),
-                                                                                                      _minLock,
-                                                                                                      _minPrice,
-                                                                                                      _maxNumberOfSellers,
-                                                                                                      payeeContractKeys,
-                                                                                                      payeePaymentKeys,
-                                                                                                      OutPoint(),
-                                                                                                      PublicKey(),
-                                                                                                      PublicKey(),
-                                                                                                      0),
-                                                                                 _torrent->torrent_file().num_pieces(),
-                                                                                 _category));
+    SellerPeerPlugin * peerPlugin = new SellerPeerPlugin(this,
+                                                         bittorrentPeerConnection,
+                                                         Payee::Configuration(Payee::State::waiting_for_payor_information,
+                                                                              0,
+                                                                              Signature(),
+                                                                              _minLock,
+                                                                              _minPrice,
+                                                                              _maxNumberOfSellers,
+                                                                              payeeContractKeys,
+                                                                              payeePaymentKeys,
+                                                                              OutPoint(),
+                                                                              PublicKey(),
+                                                                              PublicKey(),
+                                                                              0),
+                                                         _torrent->torrent_file().num_pieces(),
+                                                         _category);
+
+
+    boost::shared_ptr<SellerPeerPlugin> sharedPeerPluginPtr(peerPlugin);
+
+
     // Add to collection
     _peers[endPoint] = sharedPeerPluginPtr;
 
     qCDebug(_category) << "Seller #" << _peers.size() << endPointString.c_str() << "added to " << _torrent->name().c_str();
 
     // Notify controller about adding peer
-    sendTorrentPluginAlert(SellerPeerPluginStartedAlert(_torrent->info_hash(), configuration()));
+    /**
+    sendTorrentPluginAlert(SellerPeerPluginStartedAlert(_torrent->info_hash(),
+                                                        configuration()));
+    */
+
+
+    // Alert that peer was added
+    sendTorrentPluginAlert(SellerPeerAddedAlert(_torrent->info_hash(),
+                                               endPoint,
+                                               peerPlugin->status()));
 
     // Return pointer to plugin as required
     return sharedPeerPluginPtr;

@@ -567,7 +567,7 @@ public:
 
     // Some utility routines
     static quint64 contractFee(int numberOfSellers, quint64 feePerKb);
-    static quint64 minimalFunds(quint64 maxPrice, int numberOfSellers, quint64 feePerkB);
+    static quint64 minimalFunds(quint32 numberOfPiecesInTorrent, quint64 maxPrice, int numberOfSellers, quint64 feePerkB);
 
     // Getters and setters
     State state() const;

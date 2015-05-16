@@ -4,12 +4,19 @@
 #include "BuyerTorrentPluginViewModel.hpp"
 #include "extension/PeerPlugin.hpp"
 
-TorrentViewModel::TorrentViewModel()
-    : _pluginInstalled(PluginInstalled::None)
-    , _sellerTorrentPluginViewModel(NULL)
-    , _buyerTorrentPluginViewModel(NULL) {
+TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & infoHash,
+                                   const std::string & name,
+                                   const std::string & savePath,
+                                   libtorrent::torrent_info * torrentInfo,
+                                   PluginInstalled pluginInstalled)
+    : _infoHash(infoHash)
+    , _name(QString::fromStdString(name))
+    , _savePath(QString::fromStdString(savePath))
+    , _torrentInfo(torrentInfo)
+    , _pluginInstalled(pluginInstalled) {
 }
 
+/**
 TorrentViewModel::TorrentViewModel(SellerTorrentPluginViewModel * model)
     : _pluginInstalled(PluginInstalled::Seller)
     , _sellerTorrentPluginViewModel(model)
@@ -21,6 +28,7 @@ TorrentViewModel::TorrentViewModel(BuyerTorrentPluginViewModel * model)
     , _sellerTorrentPluginViewModel(NULL)
     , _buyerTorrentPluginViewModel(model) {
 }
+*/
 
 /**
 TorrentViewModel::~TorrentViewModel() {

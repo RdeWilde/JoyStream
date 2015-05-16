@@ -316,8 +316,10 @@ void Controller::Torrent::Configuration::setInfoHash(const libtorrent::sha1_hash
  * Controller::Torrent
  */
 
+/*
 Controller::Torrent::Torrent() {
 }
+*/
 
 Controller::Torrent::Torrent(const libtorrent::sha1_hash & infoHash,
                              const std::string & name,
@@ -334,7 +336,12 @@ Controller::Torrent::Torrent(const libtorrent::sha1_hash & infoHash,
     , _flags(flags)
     , _torrentInfo(torrentInfo)
     , _event(event)
-    , _pluginInstalled(pluginInstalled) {
+    , _pluginInstalled(pluginInstalled)
+    , _model(infoHash,
+             name,
+             savePath,
+             torrentInfo,
+             pluginInstalled) {
 }
 
 void Controller::Torrent::addPlugin(const SellerTorrentPlugin::Status & status) {
@@ -1065,7 +1072,7 @@ Controller::Controller(const Configuration & configuration, bool showView, QNetw
     _session.add_extension(boost::shared_ptr<libtorrent::plugin>(_plugin));
 
     // Start DHT node
-    _session.start_dht();
+    //_session.start_dht();
 
     // Start timer which calls session.post_torrent_updates at regular intervals
     _statusUpdateTimer.setInterval(POST_TORRENT_UPDATES_DELAY);

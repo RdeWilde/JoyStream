@@ -84,7 +84,6 @@ SOURCES += \
     extension/Alert/BuyerTorrentPluginStatusAlert.cpp \
     extension/Alert/TorrentPluginStartedAlert.cpp \
     view/PeerPluginsDialog.cpp \
-    extension/Alert/SellerPeerPluginStartedAlert.cpp \
     extension/Alert/SellerTorrentPluginStatusAlert.cpp \
     view/SellerTorrentPluginDialog.cpp \
     extension/Alert/StartedSellerTorrentPlugin.cpp \
@@ -191,7 +190,6 @@ HEADERS += \
     extension/Alert/TorrentPluginStartedAlert.hpp \
     view/PeerPluginsDialog.hpp \
     controller/PluginInstalled.hpp \
-    extension/Alert/SellerPeerPluginStartedAlert.hpp \
     extension/Alert/SellerTorrentPluginStatusAlert.hpp \
     view/SellerTorrentPluginDialog.hpp \
     extension/Alert/StartedSellerTorrentPlugin.hpp \

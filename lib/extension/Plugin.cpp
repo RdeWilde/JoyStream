@@ -185,7 +185,7 @@ void Plugin::removeTorrentPlugin(const libtorrent::sha1_hash & info_hash) {
 }
 
 void Plugin::sendAlertToSession(const libtorrent::alert & alert) {
-    //_session->m_alerts.post_alert(alert);
+    _session->m_alerts.post_alert(alert);
 }
 
 void Plugin::submitPluginRequest(PluginRequest * pluginRequest) {

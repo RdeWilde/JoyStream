@@ -46,17 +46,17 @@ TorrentView::TorrentView(QObject * parent,
     // Connect: view menu actions to model slots
     QObject::connect(&_startAction,
                      SIGNAL(triggered()),
-                     torrentViewModel,
+                     this,
                      SLOT(start()));
 
     QObject::connect(&_pauseAction,
                      SIGNAL(triggered()),
-                     torrentViewModel,
+                     this,
                      SLOT(pause()));
 
     QObject::connect(&_removeAction,
                      SIGNAL(triggered()),
-                     torrentViewModel,
+                     this,
                      SLOT(remove()));
 
     // Connect viewing extension menu choice to slot on this object

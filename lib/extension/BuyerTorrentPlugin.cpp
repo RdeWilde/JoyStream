@@ -198,6 +198,7 @@ void BuyerTorrentPlugin::Configuration::setNumberOfSellers(quint32 numberOfSelle
 #include "Message/Payment.hpp"
 
 #include "Alert/BuyerTorrentPluginStatusAlert.hpp"
+#include "Alert/BuyerPeerAddedAlert.hpp"
 
 #include "BitCoin/BitSwaprjs.hpp"
 #include "BitCoin/Wallet.hpp"
@@ -386,14 +387,19 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
     libtorrent::bt_peer_connection * btConnection = static_cast<libtorrent::bt_peer_connection*>(connection);
 
     // Create seller buyer peer plugin
-    boost::shared_ptr<BuyerPeerPlugin> sharedPeerPluginPtr(new BuyerPeerPlugin(this,
-                                                                           btConnection,
-                                                                           _category));
+    BuyerPeerPlugin * peerPlugin = new BuyerPeerPlugin(this, btConnection, _category);
+
+    boost::shared_ptr<BuyerPeerPlugin> sharedPeerPluginPtr(peerPlugin);
 
     // Add to collection
     _peers[endPoint] = sharedPeerPluginPtr;
 
     qCDebug(_category) << "Buyer #" << _peers.count() << endPointString.c_str() << "added.";
+
+    // Alert that peer was added
+    sendTorrentPluginAlert(BuyerPeerAddedAlert(_torrent->info_hash(),
+                                               endPoint,
+                                               peerPlugin->status()));
 
     // Return pointer to plugin as required
     return sharedPeerPluginPtr;

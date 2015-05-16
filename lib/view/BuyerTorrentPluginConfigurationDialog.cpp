@@ -60,7 +60,7 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
     quint64 maxPrice = maxPriceFromTotalSpend(maxTotalSpend, numberOfSellers, feePerkB);
 
     // Amount needed to fund contract (satoshies)
-    quint64 minFunds = Payor::minimalFunds(maxPrice, numberOfSellers, feePerkB);
+    quint64 minFunds = Payor::minimalFunds(_torrentInfo.num_pieces(), maxPrice, numberOfSellers, feePerkB);
 
     // Get funding output - this has to be grabbed from wallet/chain later
     UnspentP2PKHOutput utxo = _wallet->getUtxo(minFunds, 1);
@@ -134,7 +134,7 @@ void BuyerTorrentPluginConfigurationDialog::updateTotal() {
     quint64 maxPrice = maxPriceFromTotalSpend(maxTotalSpend, numberOfSellers, feePerkB);
 
     // Amount needed to fund contract (satoshies)
-    quint64 minFunds = Payor::minimalFunds(maxPrice, numberOfSellers, feePerkB);
+    quint64 minFunds = Payor::minimalFunds(_torrentInfo.num_pieces(), maxPrice, numberOfSellers, feePerkB);
 
     // Update total price label
     ui->totalValueLabel->setText(QString::number(minFunds/SATOSHIES_PER_M_BTC) + "mɃ");
