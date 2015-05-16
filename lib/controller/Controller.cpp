@@ -489,6 +489,9 @@ Controller::Configuration::Configuration() {
     *	cases where simulations are run on the same machie, and all peers
     *	in a swarm has the same IP address.
     **/
+
+    // THIS SHOULD REALLY ONLY BE TRUE WHEN WE ARE DOING TEST ON THE SAME MACHINE
+    // NOT IN GENERAL
     sessionSettings.allow_multiple_connections_per_ip = true;
 
     /* use_disk_read_ahead

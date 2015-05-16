@@ -139,7 +139,7 @@ QString SellerPeerPluginView::contractOutPointString(const OutPoint & o) {
 }
 
 QString SellerPeerPluginView::fundsToString(quint64 funds) {
-    return QString::number(funds);
+    return QString::number(funds) + "Ƀ";
 }
 
 QString SellerPeerPluginView::refundLockTimeString(quint32 refundLockTime) {

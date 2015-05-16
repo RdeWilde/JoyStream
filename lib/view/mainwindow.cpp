@@ -369,13 +369,13 @@ void MainWindow::updateSellerTorrentPluginStatus(const libtorrent::sha1_hash & i
 void MainWindow::updatePluginStatus(const Plugin::Status & status) {
     //ui->balanceLabel->setText(QString::number(p->balance()*1000) + "mBTC");
 
-    ui->spentBalanceLabel->setText(QString::number(status.totalSentSinceStart()) + "฿");
-    ui->earnedBalanceLabel->setText(QString::number(status.totalReceivedSinceStart()) + "฿");
+    ui->spentBalanceLabel->setText(QString::number(status.totalSentSinceStart()) + "Ƀ");
+    ui->earnedBalanceLabel->setText(QString::number(status.totalReceivedSinceStart()) + "Ƀ");
 }
 
 void MainWindow::updateWalletBalance(quint64 balance) {
     //qCDebug(_category) << "updateWalletBalance" << balance;
-    ui->balanceLabel->setText(QString::number(balance) + "฿");
+    ui->balanceLabel->setText(QString::number(balance) + "Ƀ");
 }
 
 void MainWindow::on_walletPushButton_clicked() {

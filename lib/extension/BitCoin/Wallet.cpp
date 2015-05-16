@@ -63,8 +63,12 @@ QJsonObject Wallet::TxOEvent::toJson() const {
     QString type;
     switch(_type) {
 
-        case Type::Send: type = "Send"; break;
-        case Type::Receive: type = "Receive"; break;
+        case Type::Send:
+            type = "Send";
+            break;
+        case Type::Receive:
+            type = "Receive";
+            break;
     }
 
     json["type"] = type;

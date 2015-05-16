@@ -92,7 +92,7 @@ QString ChannelView::stateToString(Payor::Channel::State state) {
 }
 
 QString ChannelView::fundsToString(quint64 funds) {
-    return QString::number(funds);
+    return QString::number(funds) + "Ƀ";
 }
 
 QString ChannelView::refundLockTimeToString(quint32 refundLockTime) {
@@ -100,7 +100,7 @@ QString ChannelView::refundLockTimeToString(quint32 refundLockTime) {
 }
 
 QString ChannelView::priceToString(quint64 price) {
-    return QString::number(price);
+    return QString::number(price) + "Ƀ";
 }
 
 QString ChannelView::numberOfPaymentsMadeToString(quint64 numberOfPaymentsMade) {
@@ -108,7 +108,7 @@ QString ChannelView::numberOfPaymentsMadeToString(quint64 numberOfPaymentsMade) 
 }
 
 QString ChannelView::balanceToString(quint64 balance) {
-    return QString::number(balance);
+    return QString::number(balance) + "Ƀ";
 }
 
 void ChannelView::updateState(Payor::Channel::State state) {

@@ -161,7 +161,6 @@ public:
     // Getters and setters
     Plugin * plugin();
 
-
     virtual PluginMode pluginMode() const = 0;
     //virtual const TorrentPlugin::Configuration getTorrentPluginConfiguration() = 0;
 

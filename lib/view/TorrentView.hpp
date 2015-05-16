@@ -33,6 +33,7 @@ public:
     static QString torrentStateToString(bool paused, libtorrent::torrent_status::state_t state, float progress);
     static QString speedToString(int downloadRate, int uploadRate);
     static QString peersToString(int numberOfPeers, int numberOfPeersWithExtension);
+    static QString balanceToString(quint64 balance);
 
 public slots:
 
@@ -40,6 +41,7 @@ public slots:
     void updatePluginInstalled(PluginInstalled pluginInstalled);
     void updateStatus(const libtorrent::torrent_status & status);
     void updatePeers(int numberOfPeers, int numberOfPeersWithExtension);
+    void updateBalance(quint64 balance);
 
     // Popup context menu in given point
     void showContextMenu(const QPoint & point);

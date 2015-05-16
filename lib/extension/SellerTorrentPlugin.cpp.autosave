@@ -407,8 +407,10 @@ SellerTorrentPlugin::Status SellerTorrentPlugin::status() const {
 
     for(QMap<libtorrent::tcp::endpoint, boost::shared_ptr<SellerPeerPlugin> >::const_iterator
         i = _peers.constBegin(),
-        end = _peers.constEnd(); i != end;i++)
+        end = _peers.constEnd(); i != end;i++) {
         peerStatuses[i.key()] = (i.value())->status();
+        
+    }
 
     // Return map of statuses
     return SellerTorrentPlugin::Status(_minPrice,

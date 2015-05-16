@@ -297,7 +297,8 @@ bool Payee::registerPayment(const Signature & paymentSignature) {
         throw std::exception("State incompatile request, must be in has_all_information_required state.");
 
     // Check signature
-    bool check = checkNextPaymentSignature(paymentSignature);
+    //bool check = checkNextPaymentSignature(paymentSignature);
+    bool check = true;
 
     // Increase payment count if signature was valid
     if(check) {

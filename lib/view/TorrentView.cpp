@@ -98,10 +98,13 @@ QString TorrentView::pluginInstalledToString(PluginInstalled pluginInstalled) {
 
         case PluginInstalled::Seller:
             text = "Seller";
+            break;
         case PluginInstalled::Buyer:
             text = "Buyer";
+            break;
         case PluginInstalled::Observer:
             text = "Observer";
+            break;
         case PluginInstalled::None:
             text = "None";
     }
@@ -181,7 +184,15 @@ QString TorrentView::peersToString(int numberOfPeers, int numberOfPeersWithExten
     return QString::number(numberOfPeers) + "|" + QString::number(numberOfPeersWithExtension);
 }
 
+QString TorrentView::balanceToString(quint64 balance) {
+    return QString::number(balance) + "Ƀ";
+}
+
 void TorrentView::updatePluginInstalled(PluginInstalled pluginInstalled) {
+
+    /**
+     * Should just happen once
+     */
 
     // pluginInstalledItem
     _pluginInstalledItem->setText(pluginInstalledToString(pluginInstalled));
@@ -206,6 +217,10 @@ void TorrentView::updateStatus(const libtorrent::torrent_status & status) {
 
 void TorrentView::updatePeers(int numberOfPeers, int numberOfPeersWithExtension) {
     _peersItem->setText(peersToString(numberOfPeers, numberOfPeersWithExtension));
+}
+
+void TorrentView::updateBalance(quint64 balance) {
+    _balanceItem->setText(balanceToString(balance));
 }
 
 void TorrentView::showContextMenu(const QPoint & point) {
