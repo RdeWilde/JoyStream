@@ -23,6 +23,11 @@ BuyerPeerPluginView::BuyerPeerPluginView(QObject * parent,
 
     model->appendRow(items);
 
+    // Center content
+    _endPointItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _clientStateItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _payorSlotItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+
     // Connect view model signals to slots of this view object
     QObject::connect(peerModel,
                      SIGNAL(clientStateChanged(BuyerPeerPlugin::ClientState)),

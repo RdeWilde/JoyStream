@@ -49,7 +49,8 @@ private:
 
     // View model pointers
     // Objects are owned by QStandardItemModel passed to ctr
-    QStandardItem * _stateItem,
+    QStandardItem * _indexItem,
+                  * _stateItem,
                   * _fundsItem,
                   * _refundLockTimeItem,
                   * _priceItem,

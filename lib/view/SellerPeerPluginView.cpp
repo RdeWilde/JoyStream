@@ -33,6 +33,16 @@ SellerPeerPluginView::SellerPeerPluginView(QObject * parent,
 
     model->appendRow(items);
 
+    // Center content
+    _endPointItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _clientStateItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _contractOutPointItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _fundsItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _refundLockTimeItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _priceItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _numberOfPaymentMadeItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _balanceItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+
     // Connect view model signals to slots of this view object
     QObject::connect(peerModel,
                      SIGNAL(clientStateChanged(SellerPeerPlugin::ClientState)),

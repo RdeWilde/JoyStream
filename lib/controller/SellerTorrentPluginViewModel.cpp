@@ -32,7 +32,19 @@ SellerTorrentPluginViewModel::~SellerTorrentPluginViewModel() {
 
 */
 
+#include <libtorrent/socket_io.hpp> // libtorrent::print_endpoint
+#include <QDebug>
+
 void SellerTorrentPluginViewModel::addPeer(const libtorrent::tcp::endpoint & endPoint, const SellerPeerPlugin::Status & status) {
+
+    // Convert to std::string
+    std::string endPointStdString = libtorrent::print_endpoint(endPoint);
+
+    // Convert to QString
+    QString endPointQString = endPointStdString.c_str();
+
+    qDebug() << "addPeer:" << endPointQString;
+
 
     Q_ASSERT(!_sellerPeerPluginViewModels.contains(endPoint));
 

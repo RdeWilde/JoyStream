@@ -9,6 +9,7 @@ ChannelView::ChannelView(QObject * parent,
                          QStandardItemModel * model)
     : QObject(parent)
     , _index(channelViewModel->index())
+    , _indexItem(new QStandardItem(QString::number(_index)))
     , _stateItem(new QStandardItem(stateToString(channelViewModel->status().state())))
     , _fundsItem(new QStandardItem(fundsToString(channelViewModel->status().funds())))
     , _refundLockTimeItem(new QStandardItem(refundLockTimeToString(channelViewModel->status().refundLockTime())))
@@ -19,7 +20,8 @@ ChannelView::ChannelView(QObject * parent,
     // Add row to model
     QList<QStandardItem *> items;
 
-    items << _stateItem
+    items << _indexItem
+          << _stateItem
           << _fundsItem
           << _refundLockTimeItem
           << _priceItem
@@ -27,6 +29,15 @@ ChannelView::ChannelView(QObject * parent,
           << _balanceItem;
 
     model->appendRow(items);
+
+    // Align cell content
+    _indexItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _stateItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _fundsItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _refundLockTimeItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _priceItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _numberOfPaymentMadeItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _balanceItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
 
     // Connect view model signals to slots
     QObject::connect(channelViewModel,

@@ -316,19 +316,13 @@ void Controller::Torrent::Configuration::setInfoHash(const libtorrent::sha1_hash
  * Controller::Torrent
  */
 
-/*
-Controller::Torrent::Torrent() {
-}
-*/
-
 Controller::Torrent::Torrent(const libtorrent::sha1_hash & infoHash,
                              const std::string & name,
                              const std::string & savePath,
                              const std::vector<char> & resumeData,
                              quint64 flags,
                              libtorrent::torrent_info * torrentInfo,
-                             ExpectedEvent event,
-                             PluginInstalled pluginInstalled)
+                             ExpectedEvent event)
     : _infoHash(infoHash)
     , _name(name)
     , _savePath(savePath)
@@ -336,12 +330,11 @@ Controller::Torrent::Torrent(const libtorrent::sha1_hash & infoHash,
     , _flags(flags)
     , _torrentInfo(torrentInfo)
     , _event(event)
-    , _pluginInstalled(pluginInstalled)
+    , _pluginInstalled(PluginInstalled::None)
     , _model(infoHash,
              name,
              savePath,
-             torrentInfo,
-             pluginInstalled) {
+             torrentInfo) {
 }
 
 void Controller::Torrent::addPlugin(const SellerTorrentPlugin::Status & status) {
@@ -1071,6 +1064,8 @@ Controller::Controller(const Configuration & configuration, bool showView, QNetw
     // Add plugin extension
     _session.add_extension(boost::shared_ptr<libtorrent::plugin>(_plugin));
 
+    //libtorrent::session_settings s = _session.settings();
+
     // Start DHT node
     //_session.start_dht();
 
@@ -1710,8 +1705,7 @@ bool Controller::addTorrent(const Torrent::Configuration & configuration) {
                                     configuration.resumeData(),
                                     configuration.flags(),
                                     configuration.torrentInfo(),
-                                    Torrent::ExpectedEvent::torrent_added_alert,
-                                    PluginInstalled::None);
+                                    Torrent::ExpectedEvent::torrent_added_alert);
 
     // Warn user if torrent has already been added
     if(_torrents.contains(info_hash)) {

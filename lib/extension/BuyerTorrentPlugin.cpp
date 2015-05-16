@@ -383,6 +383,12 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
         return boost::shared_ptr<libtorrent::peer_plugin>();
     }
 
+    if(_peers.contains(endPoint)) {
+
+        qCDebug(_category) << "Already added peer, REJECTING.";
+        return boost::shared_ptr<libtorrent::peer_plugin>();
+    }
+
     // Create bittorrent peer connection
     libtorrent::bt_peer_connection * btConnection = static_cast<libtorrent::bt_peer_connection*>(connection);
 
@@ -410,7 +416,11 @@ void BuyerTorrentPlugin::on_piece_pass(int index) {
     qCDebug(_category) << "on_piece_pass:" << index;
 
     // on_piece_pass() =>
-    Q_ASSERT(_state == State::downloading_pieces);
+    //Q_ASSERT(_state == State::downloading_pieces);
+    if(_state != State::downloading_pieces) {
+        qCDebug(_category) << "Ingoring piece from unkown source" << index;
+        return;
+    }
 
     // Get reference to piece
     Piece & piece = _pieces[index];
@@ -777,6 +787,46 @@ void BuyerTorrentPlugin::fullPieceArrived(BuyerPeerPlugin * peer, const boost::s
     // Update client state
     peer->setClientState(BuyerPeerPlugin::ClientState::waiting_for_libtorrent_to_validate_piece);
 }
+
+quint64 BuyerTorrentPlugin::totalSentSinceStart() const {
+
+    // Iterate channels in payor and count total amount sent
+    int numberOfChannels = _payor.numberOfChannels();
+
+    // Add tx fee of contract itself
+    quint64 total = _payor.contractFee(numberOfChannels, _maxFeePerKb);
+
+    for(int i = 0; i < numberOfChannels;i++) {
+
+        // Get channel
+        const Payor::Channel & channel = _payor.channel(i);
+
+        // Count how much was paid to channel
+        total += channel.numberOfPaymentsMade() * channel.price();
+    }
+
+    return total;
+}
+
+/**
+quint64 BuyerTorrentPlugin::totalCurrentlyLockedInChannels() const {
+
+    // Iterate channels in payor and count total amount sent
+    int numberOfChannels = _payor.numberOfChannels();
+    quint64 total = 0;
+
+    for(int i = 0; i < numberOfChannels;i++) {
+
+        // Get channel
+        const Payor::Channel & channel = _payor.channel(i);
+
+        // Count how much is locked up
+        total += channel.funds();
+    }
+
+    return total;
+}
+*/
 
 BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
 

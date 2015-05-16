@@ -24,10 +24,17 @@ BuyerTorrentPluginDialog::BuyerTorrentPluginDialog(QWidget * parent,
 
     // Main fields
     updatePluginState(model->state());
-
     updatePayorState(payorViewModel->state());
     updateContractTxId(payorViewModel->contractTxId());
     updateUtxo(payorViewModel->utxo());
+
+    // Hide top status label,no use
+    ui->extensionStateLabel->setVisible(false);
+
+    // Make selectable
+    ui->stateLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    ui->utxoLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    ui->contractTxIdLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
     /**
      * Connect model signals to view slots
@@ -200,7 +207,7 @@ void BuyerTorrentPluginDialog::updatePluginState(BuyerTorrentPlugin::State state
 }
 
 void BuyerTorrentPluginDialog::updatePayorState(Payor::State state) {
-    ui->stateFieldLabel->setText(payorStateToString(state));
+    ui->stateLabel->setText(payorStateToString(state));
 }
 
 void BuyerTorrentPluginDialog::updateContractTxId(const TxId & id) {

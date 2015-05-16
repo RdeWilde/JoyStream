@@ -221,9 +221,6 @@ public:
             //const TorrentPlugin::Configuration * _torrentPluginConfiguration;
         };
 
-        // Default constructor
-        Torrent();
-
         // Constructor from members
         Torrent(const libtorrent::sha1_hash & infoHash,
                 const std::string & name,
@@ -231,9 +228,7 @@ public:
                 const std::vector<char> & resumeData,
                 quint64 flags,
                 libtorrent::torrent_info * torrentInfo,
-                ExpectedEvent event,
-                PluginInstalled pluginInstalled);
-
+                ExpectedEvent event);
 
         // Add plugins
         void addPlugin(const SellerTorrentPlugin::Status & status);

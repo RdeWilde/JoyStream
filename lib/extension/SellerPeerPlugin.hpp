@@ -269,6 +269,9 @@ public:
     // Called when piece reading failed
     void pieceReadFailed(int piece);
 
+    //
+    //quint64 totalReceivedSinceStart() const;
+
     // Peer status
     Status status() const;
 

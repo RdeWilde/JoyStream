@@ -78,10 +78,10 @@ private:
     // Objects are owned by QStandardItemModel passed to ctr
     QStandardItem * _nameItem,
                   * _sizeItem,
-                  * _pluginInstalledItem,
+                  * _stateItem,
                   * _speedItem,
                   * _peersItem,
-                  * _modeItem,
+                  * _pluginInstalledItem,
                   * _balanceItem;
 
     // Context menu

@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>868</width>
-    <height>348</height>
+    <width>1051</width>
+    <height>340</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>BitSwapr [prototype]</string>
+   <string>JoyStream [prototype]</string>
   </property>
   <property name="windowIcon">
    <iconset>
@@ -22,9 +22,9 @@
     <property name="geometry">
      <rect>
       <x>8</x>
-      <y>92</y>
-      <width>851</width>
-      <height>227</height>
+      <y>98</y>
+      <width>1035</width>
+      <height>221</height>
      </rect>
     </property>
     <property name="font">
@@ -36,7 +36,7 @@
    <widget class="QPushButton" name="addTorrentFilePushButton">
     <property name="geometry">
      <rect>
-      <x>154</x>
+      <x>306</x>
       <y>28</y>
       <width>111</width>
       <height>39</height>
@@ -48,13 +48,13 @@
      </font>
     </property>
     <property name="text">
-     <string>Torrent File</string>
+     <string>Add Torrent</string>
     </property>
    </widget>
    <widget class="QPushButton" name="addMagnetLinkPushButton">
     <property name="geometry">
      <rect>
-      <x>26</x>
+      <x>188</x>
       <y>28</y>
       <width>111</width>
       <height>39</height>
@@ -72,27 +72,30 @@
    <widget class="QLabel" name="earnedBalanceLabel">
     <property name="geometry">
      <rect>
-      <x>594</x>
-      <y>30</y>
-      <width>71</width>
-      <height>27</height>
+      <x>616</x>
+      <y>26</y>
+      <width>105</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>16</pointsize>
+      <pointsize>20</pointsize>
      </font>
     </property>
+    <property name="layoutDirection">
+     <enum>Qt::LeftToRight</enum>
+    </property>
     <property name="text">
-     <string>456mɃ</string>
+     <string>N/A</string>
     </property>
    </widget>
    <widget class="QLabel" name="earnedTitleQlabel">
     <property name="geometry">
      <rect>
-      <x>616</x>
+      <x>680</x>
       <y>54</y>
-      <width>45</width>
+      <width>41</width>
       <height>19</height>
      </rect>
     </property>
@@ -108,7 +111,7 @@
    <widget class="Line" name="line">
     <property name="geometry">
      <rect>
-      <x>670</x>
+      <x>740</x>
       <y>20</y>
       <width>3</width>
       <height>61</height>
@@ -121,7 +124,7 @@
    <widget class="QLabel" name="spentTitleLabel">
     <property name="geometry">
      <rect>
-      <x>714</x>
+      <x>828</x>
       <y>54</y>
       <width>35</width>
       <height>19</height>
@@ -139,25 +142,25 @@
    <widget class="QLabel" name="spentBalanceLabel">
     <property name="geometry">
      <rect>
-      <x>682</x>
-      <y>30</y>
-      <width>71</width>
+      <x>754</x>
+      <y>26</y>
+      <width>105</width>
       <height>27</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>16</pointsize>
+      <pointsize>20</pointsize>
      </font>
     </property>
     <property name="text">
-     <string>116mɃ</string>
+     <string>N/A</string>
     </property>
    </widget>
    <widget class="Line" name="line_2">
     <property name="geometry">
      <rect>
-      <x>760</x>
+      <x>880</x>
       <y>20</y>
       <width>3</width>
       <height>61</height>
@@ -170,27 +173,30 @@
    <widget class="QLabel" name="balanceLabel">
     <property name="geometry">
      <rect>
-      <x>770</x>
-      <y>30</y>
-      <width>79</width>
-      <height>27</height>
+      <x>890</x>
+      <y>26</y>
+      <width>150</width>
+      <height>33</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>16</pointsize>
+      <pointsize>20</pointsize>
      </font>
     </property>
+    <property name="layoutDirection">
+     <enum>Qt::LeftToRight</enum>
+    </property>
     <property name="text">
-     <string>2231mɃ</string>
+     <string>N/A</string>
     </property>
    </widget>
    <widget class="QLabel" name="balanceTitleLabel">
     <property name="geometry">
      <rect>
-      <x>802</x>
+      <x>996</x>
       <y>54</y>
-      <width>51</width>
+      <width>45</width>
       <height>19</height>
      </rect>
     </property>
@@ -206,7 +212,7 @@
    <widget class="QPushButton" name="walletPushButton">
     <property name="geometry">
      <rect>
-      <x>300</x>
+      <x>432</x>
       <y>28</y>
       <width>111</width>
       <height>39</height>
@@ -224,7 +230,7 @@
    <widget class="Line" name="line_3">
     <property name="geometry">
      <rect>
-      <x>282</x>
+      <x>424</x>
       <y>18</y>
       <width>3</width>
       <height>61</height>
@@ -232,6 +238,22 @@
     </property>
     <property name="orientation">
      <enum>Qt::Vertical</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="logoLabel">
+    <property name="geometry">
+     <rect>
+      <x>34</x>
+      <y>16</y>
+      <width>133</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap>images/joy_small.png</pixmap>
     </property>
    </widget>
   </widget>

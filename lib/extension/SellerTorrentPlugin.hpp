@@ -182,6 +182,9 @@ public:
     // Call back after piece read
     void pieceRead(const libtorrent::read_piece_alert * alert);
 
+    // Amount of funds (satoshies) received since start
+    //quint64 totalReceivedSinceStart() const;
+
     // Creates status for plugin
     Status status() const;
 

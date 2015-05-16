@@ -264,6 +264,14 @@ public:
     //bool checkLengthAndValidatePiece(int pieceIndex, const boost::shared_array<char> & piece, int length);
     void fullPieceArrived(BuyerPeerPlugin * peer, const boost::shared_array<char> & piece, int length);
 
+    // Amount of funds (satoshies) sent since start
+    quint64 totalSentSinceStart() const;
+
+    // Amount of funds (satoshies) presently locked
+    // in channels started during this session.
+    // Obviosuly does not include change in channels!
+    quint64 totalCurrentlyLockedInChannels() const;
+
     // Generate plugin status
     Status status() const;
 

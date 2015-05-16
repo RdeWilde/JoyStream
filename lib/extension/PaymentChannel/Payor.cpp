@@ -951,7 +951,8 @@ Contract Payor::contract() const {
 quint64 Payor::contractFee(int numberOfSellers, quint64 feePerKb) {
 
     // Fee for contract based on fee estimate at http://bitcoinfees.com/
-    quint64 txByteSize =(148*1) + (34*numberOfSellers) + 10;
+    // WE ADD ONE OUTPUT FOR THE CHANGE
+    quint64 txByteSize =(148*1) + (34*(numberOfSellers + 1) + 10);
     quint64 fee = qCeil(feePerKb*((float)txByteSize/1000));
 
     return fee;
@@ -971,6 +972,11 @@ void Payor::setState(State state) {
 
 QVector<Payor::Channel> & Payor::channels() {
     return _channels;
+}
+
+const Payor::Channel & Payor::channel(int i) const {
+    Q_ASSERT(i >= 0 && i < _channels.size());
+    return _channels[i];
 }
 
 /**

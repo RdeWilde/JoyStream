@@ -574,6 +574,7 @@ public:
     void setState(State state);
 
     QVector<Channel> & channels();
+    const Payor::Channel & channel(int i) const;
 
     OutPoint fundingOutPoint() const;
     void setFundingOutPoint(const OutPoint & fundingOutPoint);

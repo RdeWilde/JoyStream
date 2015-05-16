@@ -198,6 +198,12 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
         return boost::shared_ptr<libtorrent::peer_plugin>();
     }
 
+    if(_peers.contains(endPoint)) {
+
+        qCDebug(_category) << "Already added peer, REJECTING.";
+        return boost::shared_ptr<libtorrent::peer_plugin>();
+    }
+
     // Create seller peer
     libtorrent::bt_peer_connection * bittorrentPeerConnection = static_cast<libtorrent::bt_peer_connection*>(peerConnection);
 
@@ -363,6 +369,27 @@ void SellerTorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) 
     // Remove all peers registered for this piece
     _outstandingPieceRequests.remove(alert->piece);
 }
+
+/**
+quint64 SellerTorrentPlugin::totalReceivedSinceStart() const {
+
+    quint64 total = 0;
+
+    for(QMap<libtorrent::tcp::endpoint, boost::shared_ptr<SellerPeerPlugin> >::const_iterator
+        i = _peers.constBegin(),
+        end = _peers.constEnd();
+        i != end;i++) {
+
+        // Get peer plugin
+        const boost::shared_ptr<SellerPeerPlugin> & peer = *i;
+
+        // Count how much has been received
+        total += peer->totalReceivedSinceStart();
+    }
+
+    return total;
+}
+*/
 
 // Creates status for plugin
 SellerTorrentPlugin::Status SellerTorrentPlugin::status() const {

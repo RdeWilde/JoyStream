@@ -178,7 +178,7 @@ void main(int argc, char* argv[]) {
 
     /**
      * Seller =======================================================
-
+    */
 
     // Create logging category: uten logging til skjerm
     QLoggingCategory * sellerCategory = global_log_manager.createLogger("seller", true, false); // ("seller", false, false)
@@ -210,7 +210,6 @@ void main(int argc, char* argv[]) {
 
     // Track controller
     controllerTracker.addClient(&sellerClient);
-*/
 
     // Start event loop: this is the only Qt event loop in the entire application
     app.exec();

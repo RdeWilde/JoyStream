@@ -153,8 +153,50 @@ void Plugin::load_state(libtorrent::lazy_entry const & stateEntry) {
 }
 
 Plugin::Status Plugin::status() const {
-    return Plugin::Status(_totalReceivedSinceStart, _totalSentSinceStart, _totalCurrentlyLockedInChannels);
+    return Plugin::Status(_totalReceivedSinceStart,
+                          _totalSentSinceStart,
+                          _totalCurrentlyLockedInChannels);
 }
+
+/**
+quint64 Plugin::totalReceivedSinceStart() const {
+
+    quint64 total = 0;
+    for(QMap<libtorrent::sha1_hash, boost::shared_ptr<SellerTorrentPlugin> >::const_iterator
+        i = _sellerPlugins.constBegin(),
+        end = _sellerPlugins.constEnd();
+        i != end;i++)
+        total += i.value()->totalReceivedSinceStart();
+
+    return total;
+}
+
+
+quint64 Plugin::totalSentSinceStart() const {
+
+    quint64 total = 0;
+    for(QMap<libtorrent::sha1_hash, boost::shared_ptr<BuyerTorrentPlugin> >::const_iterator
+        i = _buyerPlugins.constBegin(),
+        end = _buyerPlugins.constEnd();
+        i != end;i++)
+        total += i.value()->totalSentSinceStart();
+
+    return total;
+}
+
+quint64 Plugin::totalCurrentlyLockedInChannels() const {
+
+    quint64 total = 0;
+    for(QMap<libtorrent::sha1_hash, boost::shared_ptr<BuyerTorrentPlugin> >::const_iterator
+        i = _buyerPlugins.constBegin(),
+        end = _buyerPlugins.constEnd();
+        i != end;i++)
+        total += i.value()->totalCurrentlyLockedInChannels();
+
+    return total;
+}
+*/
+
 
 quint64 Plugin::registerReceivedFunds(quint64 value) {
 

@@ -7,13 +7,14 @@
 TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & infoHash,
                                    const std::string & name,
                                    const std::string & savePath,
-                                   libtorrent::torrent_info * torrentInfo,
-                                   PluginInstalled pluginInstalled)
+                                   libtorrent::torrent_info * torrentInfo)
     : _infoHash(infoHash)
     , _name(QString::fromStdString(name))
     , _savePath(QString::fromStdString(savePath))
     , _torrentInfo(torrentInfo)
-    , _pluginInstalled(pluginInstalled) {
+    , _pluginInstalled(PluginInstalled::None)
+    , _sellerTorrentPluginViewModel(NULL)
+    , _buyerTorrentPluginViewModel(NULL) {
 }
 
 /**

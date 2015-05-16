@@ -11,10 +11,10 @@ TorrentView::TorrentView(QObject * parent,
     , _infoHash(torrentViewModel->infoHash())
     , _nameItem(new QStandardItem())
     , _sizeItem(new QStandardItem(sizeToString(torrentViewModel->torrentInfo()->total_size())))
-    , _pluginInstalledItem(new QStandardItem(pluginInstalledToString(torrentViewModel->pluginInstalled())))
+    , _stateItem(new QStandardItem())
     , _speedItem(new QStandardItem())
     , _peersItem(new QStandardItem())
-    , _modeItem(new QStandardItem())
+    , _pluginInstalledItem(new QStandardItem(pluginInstalledToString(torrentViewModel->pluginInstalled())))
     , _balanceItem(new QStandardItem())
     , _pauseAction("Pause", this)
     , _startAction("Start", this)
@@ -29,13 +29,22 @@ TorrentView::TorrentView(QObject * parent,
 
     items << _nameItem
           << _sizeItem
-          << _pluginInstalledItem
+          << _stateItem
           << _speedItem
           << _peersItem
-          << _modeItem
+          << _pluginInstalledItem
           << _balanceItem;
 
     model->appendRow(items);
+
+    // Center content
+    _nameItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _sizeItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _stateItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _speedItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _peersItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _pluginInstalledItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _balanceItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
 
     // Add menu buttons
     _torrentTableContextMenu.addAction(&_startAction);
@@ -174,8 +183,8 @@ QString TorrentView::peersToString(int numberOfPeers, int numberOfPeersWithExten
 
 void TorrentView::updatePluginInstalled(PluginInstalled pluginInstalled) {
 
-    // mode
-    _modeItem->setText(pluginInstalledToString(pluginInstalled));
+    // pluginInstalledItem
+    _pluginInstalledItem->setText(pluginInstalledToString(pluginInstalled));
 
     // add action to menu
     _torrentTableContextMenu.addAction(&_viewExtensionAction);
@@ -188,7 +197,7 @@ void TorrentView::updateStatus(const libtorrent::torrent_status & status) {
     _nameItem->setText(name);
 
     // state
-    _pluginInstalledItem->setText(torrentStateToString(status.paused, status.state, status.progress));
+    _stateItem->setText(torrentStateToString(status.paused, status.state, status.progress));
 
     // speed
     _speedItem->setText(speedToString(status.download_rate, status.upload_rate));

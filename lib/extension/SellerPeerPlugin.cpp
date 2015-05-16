@@ -394,7 +394,7 @@ void SellerPeerPlugin::sent_unchoke()  {
  */
 bool SellerPeerPlugin::can_disconnect(libtorrent::error_code const & ec)  {
 
-    //qCDebug(_category) << "can_disconnect:" << ec.message().c_str();
+    qCDebug(_category) << "can_disconnect:" << ec.message().c_str();
 
     // CRITICAL
     //    return false;

@@ -66,14 +66,30 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet, QLoggingCategor
     columnNames << "Name"
                 << "Size"
                 << "State"
+                << "Speed"
                 << "Peers"
-                << "Mode"
+                << "Extension"
                 << "Balance";
 
     _torrentTableViewModel.setHorizontalHeaderLabels(columnNames);
 
     // Set table model to view model
     ui->torrentsTable->setModel(&_torrentTableViewModel);
+
+    // Set column width
+    ui->torrentsTable->setColumnWidth(0, 400);
+    ui->torrentsTable->setColumnWidth(1, 90);
+    ui->torrentsTable->setColumnWidth(2, 120);
+    ui->torrentsTable->setColumnWidth(3, 90);
+    ui->torrentsTable->setColumnWidth(4, 90);
+
+    // Hide button
+    ui->addMagnetLinkPushButton->setVisible(false);
+
+    // Align spending/wallet info labels
+    ui->earnedBalanceLabel->setAlignment(Qt::AlignRight);
+    ui->spentBalanceLabel->setAlignment(Qt::AlignRight);
+    ui->balanceLabel->setAlignment(Qt::AlignRight);
 
     /**
      * Context menu on table view
@@ -353,11 +369,13 @@ void MainWindow::updateSellerTorrentPluginStatus(const libtorrent::sha1_hash & i
 void MainWindow::updatePluginStatus(const Plugin::Status & status) {
     //ui->balanceLabel->setText(QString::number(p->balance()*1000) + "mBTC");
 
-    //qCDebug(_category) << "MainWindow::updatePluginStatus()";
+    ui->spentBalanceLabel->setText(QString::number(status.totalSentSinceStart()) + "฿");
+    ui->earnedBalanceLabel->setText(QString::number(status.totalReceivedSinceStart()) + "฿");
 }
 
 void MainWindow::updateWalletBalance(quint64 balance) {
-    qCDebug(_category) << "updateWalletBalance" << balance;
+    //qCDebug(_category) << "updateWalletBalance" << balance;
+    ui->balanceLabel->setText(QString::number(balance) + "฿");
 }
 
 void MainWindow::on_walletPushButton_clicked() {

@@ -55,8 +55,9 @@ SellerTorrentPluginDialog::SellerTorrentPluginDialog(QWidget * parent,
     // Add columns to channel table view model
     QStringList peersTableColumnNames;
 
-    peersTableColumnNames << "Index"
+    peersTableColumnNames << "Host"
                           << "State"
+                          << "Contract"
                           << "Funds"
                           << "Lock"
                           << "Price"

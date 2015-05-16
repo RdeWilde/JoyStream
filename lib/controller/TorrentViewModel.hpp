@@ -24,8 +24,7 @@ public:
     TorrentViewModel(const libtorrent::sha1_hash & infoHash,
                      const std::string & name,
                      const std::string & savePath,
-                     libtorrent::torrent_info * torrentInfo,
-                     PluginInstalled pluginInstalled);
+                     libtorrent::torrent_info * torrentInfo);
     /**
     TorrentViewModel(SellerTorrentPluginViewModel * model);
     TorrentViewModel(BuyerTorrentPluginViewModel * model);

@@ -110,18 +110,40 @@ public:
     Status status() const;
 
     /**
+     * LOL ALL OFF THESE ARE FLAWED, OF COURSE
+     * IT THE VALUES HAVE TO ACCUMULATE FROM START,
+     * NO USE JUST COUNTING TORRENTS ALIVE NOW.
+     * MORONIC.
+     *
+
+    // Amount of funds (satoshies) received since start
+    // across all seller plugins
+    quint64 totalReceivedSinceStart() const;
+
+    // Amount of funds (satoshies) sent since start
+    quint64 totalSentSinceStart() const;
+
+    // Amount of funds (satoshies) presently locked
+    // in channels started during this session.
+    // Obviosuly does not include change in channels!
+    quint64 totalCurrentlyLockedInChannels() const;
+    */
+
+    /**
      * Routines called by libtorrent network thread via tick() entry point on
      * torrent plugins.
      *
      * THESE SHOULD NOT BE PUBLIC, RATHER MAKE THEM PRIVATE AND ADD FRIENDING WITH
      * TORRENT/PEER PLUGIN TYPES
-     */
+    */
 
     // Setter routines which update status information
     quint64 registerReceivedFunds(quint64 value);
     quint64 registerSentFunds(quint64 value);
     quint64 registerLockedInChannelsFunds(quint64 value);
+
     quint64 registerUnLockedFromChannelFunds(quint64 value);
+
 
     /**
      * Synchronized routines called from controller by Qt thread.
@@ -214,6 +236,7 @@ private:
     // in channels started during this session.
     // Obviosuly does not include change in channels!
     quint64 _totalCurrentlyLockedInChannels;
+
 };
 
 #endif

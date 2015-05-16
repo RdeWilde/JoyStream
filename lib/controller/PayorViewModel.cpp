@@ -50,7 +50,7 @@ void PayorViewModel::update(const Payor::Status & status) {
     // Update each channel view model with new status
     QVector<Payor::Channel::Status> channelStatuses = status.channels();
 
-    Q_ASSERT(_channelViewModels.size() != channelStatuses.size());
+    Q_ASSERT(_channelViewModels.size() == channelStatuses.size());
 
     for(int i = 0;i < _channelViewModels.size();i++)
         _channelViewModels[i]->update(channelStatuses[i]);
