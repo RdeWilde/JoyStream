@@ -253,6 +253,12 @@ void TorrentView::updateStartedBuyerTorrentPlugin(const BuyerTorrentPluginViewMo
 
 void TorrentView::updateStartedSellerTorrentPlugin(const SellerTorrentPluginViewModel * model) {
 
+    // pluginInstalledItem
+    _pluginInstalledItem->setText("Seller");
+
+    // add action to menu
+    _torrentTableContextMenu.addAction(&_viewExtensionAction);
+
     // Set initial values
     updateNumberOfBuyers(model->numberOfBuyerPeers());
     updateNumberOfSellers(model->numberOfSellerPeers());

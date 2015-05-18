@@ -492,7 +492,7 @@ void PeerPlugin::processExtendedMessage(ExtendedMessagePayload * m) {
 
     qCDebug(_category) << "RECEIVED:" << Utilities::messageName(messageType);
 
-    try {
+    //try {
 
         // Call relevant message handler
         switch(messageType) {
@@ -538,7 +538,7 @@ void PeerPlugin::processExtendedMessage(ExtendedMessagePayload * m) {
 
                 Q_ASSERT(false);
         }
-
+/**
     } catch (std::exception & e) {
 
         qCCritical(_category) << "Extended message was state incompatible:" << e.what();
@@ -546,6 +546,7 @@ void PeerPlugin::processExtendedMessage(ExtendedMessagePayload * m) {
         // Note incompatibility
         _lastMessageWasStateIncompatible = true;
     }
+    */
 }
 
 bool PeerPlugin::peerTimedOut(int maxDelay) const {

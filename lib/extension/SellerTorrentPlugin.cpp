@@ -188,7 +188,7 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
     const libtorrent::tcp::endpoint & endPoint = peerConnection->remote();
     std::string endPointString = libtorrent::print_endpoint(endPoint);
 
-    qCDebug(_category) << "Established connection with " << endPointString.c_str() << "on " << _torrent->name().c_str();
+    qCDebug(_category) << "New connection with " << endPointString.c_str(); // << "on " << _torrent->name().c_str();
 
     // Check if this peer should be accepted, if not
     // a null is returned, hence plugin is not installed
@@ -248,7 +248,11 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
 
     boost::shared_ptr<SellerPeerPlugin> sharedPeerPluginPtr(peerPlugin);
 
-    qCDebug(_category) << "Seller #" << _peers.size() << endPointString.c_str() << "added to " << _torrent->name().c_str();
+
+    // Add to collection
+    _peers[endPoint] = sharedPeerPluginPtr;
+
+    qCDebug(_category) << "Seller plugin #" << _peers.size() << endPointString.c_str() << "added"; // to " << _torrent->name().c_str();
 
     // Notify controller about adding peer
     /**

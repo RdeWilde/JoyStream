@@ -237,7 +237,7 @@ bool SellerPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & han
 
 bool SellerPeerPlugin::on_have(int index) {
 
-    qCDebug(_category) << "Ignoring have message.";
+    //qCDebug(_category) << "Ignoring have message.";
 
     // Signal that we handled message
     return true;
@@ -245,7 +245,7 @@ bool SellerPeerPlugin::on_have(int index) {
 
 bool SellerPeerPlugin::on_bitfield(libtorrent::bitfield const & bitfield) {
 
-    qCDebug(_category) << "Ignoring bitfield";
+    //qCDebug(_category) << "Ignoring bitfield";
 
     // Signal that we handled message
     return true;
@@ -253,7 +253,7 @@ bool SellerPeerPlugin::on_bitfield(libtorrent::bitfield const & bitfield) {
 
 bool SellerPeerPlugin::on_have_all()  {
 
-    qCDebug(_category) << "Ignoring have all message.";
+    //qCDebug(_category) << "Ignoring have all message.";
 
     // Signal that we handled message
     return true;
@@ -261,7 +261,7 @@ bool SellerPeerPlugin::on_have_all()  {
 
 bool SellerPeerPlugin::on_reject(libtorrent::peer_request const & peerRequest) {
 
-    qCDebug(_category) << "Ignoring reject message.";
+    //qCDebug(_category) << "Ignoring reject message.";
 
     // Signal that we handled message
     return true;
@@ -269,7 +269,7 @@ bool SellerPeerPlugin::on_reject(libtorrent::peer_request const & peerRequest) {
 
 bool SellerPeerPlugin::on_request(libtorrent::peer_request const & peerRequest)  {
 
-    qCDebug(_category) << "Ignoring reject message.";
+    //qCDebug(_category) << "Ignoring reject message.";
 
     // Signal that we handled message
     return true;
@@ -303,7 +303,7 @@ bool SellerPeerPlugin::on_request(libtorrent::peer_request const & peerRequest) 
 
 bool SellerPeerPlugin::on_unchoke()  {
 
-    qCDebug(_category) << "Ignoring unchoke message.";
+    //qCDebug(_category) << "Ignoring unchoke message.";
 
     // Signal that we handled message
     return true;
@@ -311,7 +311,7 @@ bool SellerPeerPlugin::on_unchoke()  {
 
 bool SellerPeerPlugin::on_interested()  {
 
-    qCDebug(_category) << "Ignoring interested message.";
+    //qCDebug(_category) << "Ignoring interested message.";
 
     // Signal that we handled message
     return true;
@@ -319,7 +319,7 @@ bool SellerPeerPlugin::on_interested()  {
 
 bool SellerPeerPlugin::on_allowed_fast(int index)  {
 
-    qCDebug(_category) << "Ignoring allowed fast message.";
+    //qCDebug(_category) << "Ignoring allowed fast message.";
 
     // Signal that we handled message
     return true;
@@ -327,7 +327,7 @@ bool SellerPeerPlugin::on_allowed_fast(int index)  {
 
 bool SellerPeerPlugin::on_have_none()  {
 
-    qCDebug(_category) << "Ignoring have none message.";
+    //qCDebug(_category) << "Ignoring have none message.";
 
     // Signal that we handled message
     return true;
@@ -335,7 +335,7 @@ bool SellerPeerPlugin::on_have_none()  {
 
 bool SellerPeerPlugin::on_choke()  {
 
-    qCDebug(_category) << "Ignoring choke message.";
+    //qCDebug(_category) << "Ignoring choke message.";
 
     // Signal that we handled message
     return true;
@@ -343,7 +343,7 @@ bool SellerPeerPlugin::on_choke()  {
 
 bool SellerPeerPlugin::on_not_interested()  {
 
-    qCDebug(_category) << "Ignoring not intereste message.";
+    //qCDebug(_category) << "Ignoring not intereste message.";
 
     // Signal that we handled message
     return true;
@@ -351,7 +351,7 @@ bool SellerPeerPlugin::on_not_interested()  {
 
 bool SellerPeerPlugin::on_piece(libtorrent::peer_request const & piece, libtorrent::disk_buffer_holder & data)  {
 
-    qCDebug(_category) << "Ignoring piece message.";
+    //qCDebug(_category) << "Ignoring piece message.";
 
     // Signal that we handled message
     return true;
@@ -359,7 +359,7 @@ bool SellerPeerPlugin::on_piece(libtorrent::peer_request const & piece, libtorre
 
 bool SellerPeerPlugin::on_suggest(int index)  {
 
-    qCDebug(_category) << "Ignoring suggest message.";
+    //qCDebug(_category) << "Ignoring suggest message.";
 
     // Signal that we handled message
     return true;
@@ -367,7 +367,7 @@ bool SellerPeerPlugin::on_suggest(int index)  {
 
 bool SellerPeerPlugin::on_cancel(libtorrent::peer_request const & peerRequest)  {
 
-    qCDebug(_category) << "Ignoring cancel message.";
+    //qCDebug(_category) << "Ignoring cancel message.";
 
     // Signal that we handled message
     return true;
@@ -375,7 +375,7 @@ bool SellerPeerPlugin::on_cancel(libtorrent::peer_request const & peerRequest)  
 
 bool SellerPeerPlugin::on_dont_have(int index)  {
 
-    qCDebug(_category) << "Ignoring dont have message.";
+    //qCDebug(_category) << "Ignoring dont have message.";
 
     // Signal that we handled message
     return true;
@@ -417,7 +417,7 @@ bool SellerPeerPlugin::on_unknown_message(int length, int msg, libtorrent::buffe
  */
 void SellerPeerPlugin::on_piece_pass(int index)  {
 
-    qCDebug(_category) << "Ignoring on_piece_pass.";
+    //qCDebug(_category) << "Ignoring on_piece_pass.";
 
     // Use default handler?
     return;
@@ -428,7 +428,7 @@ void SellerPeerPlugin::on_piece_pass(int index)  {
  */
 void SellerPeerPlugin::on_piece_failed(int index)  {
 
-    qCDebug(_category) << "Ignoring on_piece_failed.";
+    //qCDebug(_category) << "Ignoring on_piece_failed.";
 
     // Use default handler?
     return;

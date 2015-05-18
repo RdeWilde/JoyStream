@@ -615,9 +615,12 @@ bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, c
     bool wasValid = _payor.processRefundSignature(peer->payorSlot(), refundSignature);
 
     // Return that signature was invalid
-    if(!wasValid)
+    if(!wasValid) {
+
+        Q_ASSERT(false); // should not happen now
+
         return false;
-    else
+    } else
         peer->setClientState(BuyerPeerPlugin::ClientState::received_valid_refund_signature_and_waiting_for_others);
 
     // Check if we have all signatures
