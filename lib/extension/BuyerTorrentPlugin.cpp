@@ -830,66 +830,35 @@ quint64 BuyerTorrentPlugin::totalCurrentlyLockedInChannels() const {
 
 BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
 
-    // Status counters
-    quint32 numberOfClassicPeers = 0,
-    numberOfObserverPeers = 0,
-    numberOfSellerPeers = 0,
-    numberOfBuyerPeers = 0;
+    // Get
+    QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> peerPluginStatuses;
 
-    //quint64 balance = 0;
-
-    // Build list of buyer peer statuses
-    QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> peers;
-
-    /**
-    *
-    * THIS CODE SHOULD BE TORRENT PLUGIN REALLY, BUT A WAY IS REQUIRED
-    *
-    */
     for(QMap<libtorrent::tcp::endpoint, boost::shared_ptr<BuyerPeerPlugin> >::const_iterator i = _peers.constBegin(),
          end(_peers.constEnd());i != end;i++) {
 
         // Get peer
         boost::shared_ptr<BuyerPeerPlugin> peer = i.value();
 
-        // Count mode of peer
-        switch(peer->peerModeAnnounced()) {
-
-            case PeerPlugin::PeerModeAnnounced::none:
-                if(peer->peerBitSwaprBEPSupportStatus() == BEPSupportStatus::not_supported)
-                    numberOfClassicPeers++;
-                break;
-
-            case PeerPlugin::PeerModeAnnounced::observer:
-                numberOfObserverPeers++;
-                break;
-
-            case PeerPlugin::PeerModeAnnounced::seller:
-                numberOfSellerPeers++;
-                break;
-
-            case PeerPlugin::PeerModeAnnounced::buyer:
-                numberOfBuyerPeers++;
-                break;
-        }
-
         // Count how much has been paid to this peer
         //balance += peer->numberOfBlocksReceived() * _payor.channels()[peer->payorSlot()].price();
 
         // Compute status and save in map
-        peers[i.key()] = peer->status();
+        peerPluginStatuses[i.key()] = peer->status();
 
     }
 
+    // Compute base level status
+    TorrentPlugin::Status s = TorrentPlugin::status();
+
     // Return final status
-    return Status(numberOfClassicPeers,
-               numberOfObserverPeers,
-               numberOfSellerPeers,
-               numberOfBuyerPeers,
-               //balance,
-               _state,
-               peers,
-               _payor.status());
+    return Status(s.numberOfClassicPeers(),
+                  s.numberOfObserverPeers(),
+                  s.numberOfSellerPeers(),
+                  s.numberOfBuyerPeers(),
+                  //balance,
+                  _state,
+                  peerPluginStatuses,
+                  _payor.status());
  }
 
  /**
@@ -986,5 +955,20 @@ BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
 
  PluginMode BuyerTorrentPlugin::pluginMode() const {
      return PluginMode::Buyer;
+ }
+
+ QList<libtorrent::tcp::endpoint> BuyerTorrentPlugin::endPoints() const {
+     return _peers.keys();
+ }
+
+ const PeerPlugin * BuyerTorrentPlugin::peerPlugin(const libtorrent::tcp::endpoint & endPoint) const {
+
+     if(_peers.contains(endPoint)) {
+
+         boost::shared_ptr<BuyerPeerPlugin> p = _peers[endPoint];
+         return p.get();
+
+     }
+         return NULL;
  }
 

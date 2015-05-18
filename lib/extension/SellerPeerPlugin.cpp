@@ -456,6 +456,14 @@ PluginMode SellerPeerPlugin::mode() const {
     return PluginMode::Seller;
 }
 
+SellerPeerPlugin::PeerState SellerPeerPlugin::peerState() const {
+    return _peerState;
+}
+
+void SellerPeerPlugin::setPeerState(const PeerState & peerState) {
+    _peerState = peerState;
+}
+
 SellerPeerPlugin::ClientState SellerPeerPlugin::clientState() const {
     return _clientState;
 }

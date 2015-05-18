@@ -277,6 +277,8 @@ public:
 
     // Getters and setters
     virtual PluginMode pluginMode() const;
+    QList<libtorrent::tcp::endpoint> endPoints() const;
+    const PeerPlugin * peerPlugin(const libtorrent::tcp::endpoint & endPoint) const;
 
     State state() const;
     void setState(const State & state);

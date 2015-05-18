@@ -71,8 +71,6 @@ public:
 
         // Status of peer plugins
         QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> _peerPluginStatuses;
-
-        quint
     };
 
     /**
@@ -196,6 +194,8 @@ public:
 
     // Creates configuratin for plugin
     Configuration configuration() const;
+    QList<libtorrent::tcp::endpoint> endPoints() const;
+    const PeerPlugin * peerPlugin(const libtorrent::tcp::endpoint & endPoint) const;
 
     // Getters and setters
     virtual PluginMode pluginMode() const;

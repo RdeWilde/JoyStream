@@ -19,7 +19,7 @@ TorrentView::TorrentView(QObject * parent,
     , _pauseAction("Pause", this)
     , _startAction("Start", this)
     , _removeAction("Remove", this)
-    , _viewExtensionAction("View extension", this) {
+    , _viewExtensionAction("Extension", this) {
 
     // Set initial item values
     updateStatus(torrentViewModel->status());

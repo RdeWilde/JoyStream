@@ -192,6 +192,57 @@ void TorrentPlugin::addToIrregularPeersSet(const libtorrent::tcp::endpoint & end
     _irregularPeer.insert(endPoint);
 }
 
+TorrentPlugin::Status TorrentPlugin::status() const {
+
+    // Setup counters
+    quint32 numberOfClassicPeers = 0,
+            numberOfObserverPeers = 0,
+            numberOfSellerPeers = 0,
+            numberOfBuyerPeers = 0;
+
+    // Get all endpoints
+    QList<libtorrent::tcp::endpoint> allEndPoints = endPoints();
+
+    for(QList<libtorrent::tcp::endpoint>::const_iterator
+        i = allEndPoints.constBegin(),
+        end = allEndPoints.constEnd();
+        i != end;i++) {
+
+        // Get peer
+        const PeerPlugin * peer = peerPlugin(*i);
+
+        Q_ASSERT(peer != NULL);
+
+        // Check mode towards mode counters
+        BEPSupportStatus supportStatus = peer->peerBitSwaprBEPSupportStatus();
+
+        if(supportStatus == BEPSupportStatus::supported) {
+
+            switch(peer->peerModeAnnounced()) {
+
+                case PeerPlugin::PeerModeAnnounced::none:
+                    break;
+                case PeerPlugin::PeerModeAnnounced::buyer:
+                    numberOfBuyerPeers++;
+                    break;
+                case PeerPlugin::PeerModeAnnounced::seller:
+                    numberOfSellerPeers++;
+                    break;
+                case PeerPlugin::PeerModeAnnounced::observer:
+                    numberOfObserverPeers;
+                    break;
+            }
+
+        } else if(supportStatus == BEPSupportStatus::not_supported)
+            numberOfClassicPeers++;
+    }
+
+    return Status(numberOfClassicPeers,
+                  numberOfObserverPeers,
+                  numberOfSellerPeers,
+                  numberOfBuyerPeers);
+}
+
 Plugin * TorrentPlugin::plugin() {
     return _plugin;
 }
@@ -259,6 +310,15 @@ void TorrentPlugin::processTorrentPluginRequest(const TorrentPluginRequest * req
 void TorrentPlugin::sendTorrentPluginAlert(const TorrentPluginAlert & alert) {
     _torrent->alerts().post_alert(alert);
 }
+
+/**
+void TorrentPlugin::addPeerPlugin(PeerPlugin * peerPlugin) {
+    Q_ASSERT(!_peers.contains(peerPlugin->endPoint()));
+
+    _peers[peerPlugin->endPoint()] = peerPlugin;
+}
+*/
+
 bool TorrentPlugin::enableBanningSets() const
 {
     return _enableBanningSets;

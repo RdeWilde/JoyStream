@@ -278,6 +278,9 @@ public:
     // Getters and setters
     virtual PluginMode mode() const;
 
+    PeerState peerState() const;
+    void setPeerState(const PeerState &peerState);
+
     ClientState clientState() const;
     void setClientState(const ClientState &clientState);
 
@@ -295,6 +298,7 @@ public:
 
     quint32 totalNumberOfPieces() const;
     void setTotalNumberOfPieces(quint32 totalNumberOfPieces);
+
 
 private:
 

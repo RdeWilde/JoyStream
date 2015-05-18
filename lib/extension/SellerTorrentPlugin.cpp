@@ -250,10 +250,6 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
 
     boost::shared_ptr<SellerPeerPlugin> sharedPeerPluginPtr(peerPlugin);
 
-
-    // Add to collection
-    _peers[endPoint] = sharedPeerPluginPtr;
-
     qCDebug(_category) << "Seller #" << _peers.size() << endPointString.c_str() << "added to " << _torrent->name().c_str();
 
     // Notify controller about adding peer
@@ -407,11 +403,24 @@ SellerTorrentPlugin::Status SellerTorrentPlugin::status() const {
 
     for(QMap<libtorrent::tcp::endpoint, boost::shared_ptr<SellerPeerPlugin> >::const_iterator
         i = _peers.constBegin(),
-        end = _peers.constEnd(); i != end;i++)
-        peerStatuses[i.key()] = (i.value())->status();
+        end = _peers.constEnd(); i != end;i++) {
+
+        // Get peer
+        const boost::shared_ptr<SellerPeerPlugin> & peer = i.value();
+
+        // Compute status and save in map
+        peerStatuses[i.key()] = peer->status();
+    }
+
+    // Compute base level status
+    TorrentPlugin::Status s = TorrentPlugin::status();
 
     // Return map of statuses
-    return SellerTorrentPlugin::Status(_minPrice,
+    return SellerTorrentPlugin::Status(s.numberOfClassicPeers(),
+                                       s.numberOfObserverPeers(),
+                                       s.numberOfSellerPeers(),
+                                       s.numberOfBuyerPeers(),
+                                       _minPrice,
                                        _minLock,
                                        _minFeePerByte,
                                        _maxNumberOfSellers,
@@ -428,6 +437,21 @@ SellerTorrentPlugin::Configuration SellerTorrentPlugin::configuration() const {
                                               _minFeePerByte,
                                               _maxNumberOfSellers,
                                               _maxContractConfirmationDelay);
+}
+
+QList<libtorrent::tcp::endpoint> SellerTorrentPlugin::endPoints() const {
+    return _peers.keys();
+}
+
+const PeerPlugin * SellerTorrentPlugin::peerPlugin(const libtorrent::tcp::endpoint & endPoint) const {
+
+    if(_peers.contains(endPoint)) {
+
+        boost::shared_ptr<SellerPeerPlugin> p = _peers[endPoint];
+        return p.get();
+
+    }
+        return NULL;
 }
 
 /**

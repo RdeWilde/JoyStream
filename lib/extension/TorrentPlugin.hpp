@@ -158,10 +158,15 @@ public:
     void addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint);
     void addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint);
 
+    Status status() const;
+
     // Getters and setters
     Plugin * plugin();
 
     virtual PluginMode pluginMode() const = 0;
+    virtual QList<libtorrent::tcp::endpoint> endPoints() const = 0;
+    virtual const PeerPlugin * peerPlugin(const libtorrent::tcp::endpoint & endPoint) const = 0;
+
     //virtual const TorrentPlugin::Configuration getTorrentPluginConfiguration() = 0;
 
     boost::shared_ptr<libtorrent::torrent> torrent() const;
@@ -208,10 +213,18 @@ protected:
     // Send torrent plugin alert to libtorrent session
     void sendTorrentPluginAlert(const TorrentPluginAlert & alert);
 
+    // Adds the given peer plugin pointer to the peer map
+    //void addPeerPlugin(PeerPlugin * peerPlugin);
+
 private:
 
     // Use banning of peers
     bool _enableBanningSets;
+
+    // Regular pointers to peer plugin objects.
+    // These are owned by subclass torrent plugin, and is managed by
+    // shared_ptrs to the corresponding subclass of PeerPlugin.
+    //QMap<libtorrent::tcp::endpoint, PeerPlugin * > _peers;
 };
 
 #endif // TORRENT_PLUGIN_HPP
