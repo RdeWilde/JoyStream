@@ -95,6 +95,8 @@ public:
         // Indicates whether peer supports BEP43 .. BitSwapr
         BEPSupportStatus _peerBitSwaprBEPSupportStatus;
 
+        // Net amount of funds (satoshies) sent
+        quint64 _balance;
     };
 
     // Constructor
@@ -162,6 +164,7 @@ public:
     bool connectionAlive() const;
     bool lastReceivedMessageWasMalformed() const;
     virtual PluginMode mode() const = 0;
+    virtual quint64 balance() const = 0;
 
     PeerModeAnnounced peerModeAnnounced() const;
     void setPeerModeAnnounced(PeerModeAnnounced peerModeAnnounced);

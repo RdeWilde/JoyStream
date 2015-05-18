@@ -23,6 +23,9 @@ public:
     // Update
     void update(const SellerTorrentPlugin::Status & status);
 
+    // Update statics: does not send signals
+    void setStatics(const SellerTorrentPlugin::Status & status);
+
     // Getters
     quint64 minPrice() const;
     quint32 minLock() const;
@@ -30,6 +33,12 @@ public:
     quint32 maxNumberOfSellers() const;
     quint32 maxContractConfirmationDelay() const;
     QMap<libtorrent::tcp::endpoint, SellerPeerPluginViewModel *> sellerPeerPluginViewModels() const;
+
+    quint32 numberOfClassicPeers() const;
+    quint32 numberOfObserverPeers() const;
+    quint32 numberOfSellerPeers() const;
+    quint32 numberOfBuyerPeers() const;
+    quint64 balance() const;
 
 signals:
 
@@ -39,6 +48,12 @@ signals:
     void minFeePerByteChanged(quint64 minFeePerByte);
     void maxNumberOfSellersChanged(quint32 maxNumberOfSellers);
     void maxContractConfirmationDelayChanged(quint32 maxContractConfirmationDelay);
+
+    void numberOfClassicPeersChanged(quint32 num);
+    void numberOfObserverPeersChanged(quint32 num);
+    void numberOfSellerPeersChanged(quint32 num);
+    void numberOfBuyerPeersChanged(quint32 num);
+    void balanceChanged(quint64 balance);
 
     // Peer added
     void peerAdded(const SellerPeerPluginViewModel * model);
@@ -63,6 +78,15 @@ private:
     // Maps endpoint to view model for corresponding seller peer plugin
     // We use pointers since SellerPeerPluginViewModel are QObjects
     QMap<libtorrent::tcp::endpoint, SellerPeerPluginViewModel *> _sellerPeerPluginViewModels;
+
+    /**
+     * Summary statistics
+     */
+    quint32 _numberOfClassicPeers,
+            _numberOfObserverPeers,
+            _numberOfSellerPeers,
+            _numberOfBuyerPeers;
+    quint64 _balance;
 };
 
 #endif // SELLER_TORRENT_PLUGIN_VIEW_MODEL_HPP

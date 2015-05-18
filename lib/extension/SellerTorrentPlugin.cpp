@@ -22,21 +22,13 @@
 SellerTorrentPlugin::Status::Status() {
 }
 
-SellerTorrentPlugin::Status::Status(quint32 numberOfClassicPeers,
-                                    quint32 numberOfObserverPeers,
-                                    quint32 numberOfSellerPeers,
-                                    quint32 numberOfBuyerPeers,
-                                    quint64 minPrice,
+SellerTorrentPlugin::Status::Status(quint64 minPrice,
                                     quint32 minLock,
                                     quint64 minFeePerByte,
                                     quint32 maxNumberOfSellers,
                                     quint32 maxContractConfirmationDelay,
                                     const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerPluginStatuses)
-    : TorrentPlugin::Status(numberOfClassicPeers,
-                            numberOfObserverPeers,
-                            numberOfSellerPeers,
-                            numberOfBuyerPeers)
-    , _minPrice(minPrice)
+    : _minPrice(minPrice)
     , _minLock(minLock)
     , _minFeePerByte(minFeePerByte)
     , _maxNumberOfSellers(maxNumberOfSellers)
@@ -413,14 +405,10 @@ SellerTorrentPlugin::Status SellerTorrentPlugin::status() const {
     }
 
     // Compute base level status
-    TorrentPlugin::Status s = TorrentPlugin::status();
+    //TorrentPlugin::Status s = TorrentPlugin::status();
 
     // Return map of statuses
-    return SellerTorrentPlugin::Status(s.numberOfClassicPeers(),
-                                       s.numberOfObserverPeers(),
-                                       s.numberOfSellerPeers(),
-                                       s.numberOfBuyerPeers(),
-                                       _minPrice,
+    return SellerTorrentPlugin::Status(_minPrice,
                                        _minLock,
                                        _minFeePerByte,
                                        _maxNumberOfSellers,

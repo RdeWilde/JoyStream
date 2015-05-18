@@ -56,11 +56,29 @@ public:
     SellerTorrentPluginViewModel * sellerTorrentPluginViewModel() const;
     BuyerTorrentPluginViewModel * buyerTorrentPluginViewModel() const;
 
+    /**
+    // Summary statics from plugin
+    quint32 numberOfClassicPeers() const;
+    quint32 numberOfObserverPeers() const;
+    quint32 numberOfSellerPeers() const;
+    quint32 numberOfBuyerPeers() const;
+    quint64 balance() const;
+    */
+
 signals:
 
     // Status changed
     void pluginInstalledChanged(PluginInstalled pluginInstalled);
     void torrentStatusChanged(const libtorrent::torrent_status & status);
+
+    /**
+    // Summary statics from plugin
+    void numberOfClassicPeersChanged(quint32 num);
+    void numberOfObserverPeersChanged(quint32 num);
+    void numberOfSellerPeersChanged(quint32 num);
+    void numberOfBuyerPeersChanged(quint32 num);
+    void balanceChanged(quint64 balance);
+    */
 
     // Action invocation
     void pause(const libtorrent::sha1_hash & infoHash);

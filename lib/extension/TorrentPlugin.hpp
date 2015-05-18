@@ -36,6 +36,8 @@ class TorrentPlugin : public QObject, public libtorrent::torrent_plugin {
 
 public:
 
+    /**
+     * This data is derivable, is not part of status.
     class Status {
 
     public:
@@ -76,6 +78,7 @@ public:
         // #peers connected to with plugin and in buyer mode
         quint32 _numberOfBuyerPeers;
     };
+    */
 
     /**
      * @brief
@@ -158,7 +161,7 @@ public:
     void addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint);
     void addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint);
 
-    Status status() const;
+    //Status status() const;
 
     // Getters and setters
     Plugin * plugin();

@@ -109,19 +109,15 @@ public:
      * @brief Plugin status, that is a snapshot
      * of important information.
      */
-    class Status : public TorrentPlugin::Status {
+    class Status { //  : public TorrentPlugin::Status
 
     public:
 
         Status();
 
-        Status(quint32 numberOfClassicPeers,
-                quint32 numberOfObserverPeers,
-                quint32 numberOfSellerPeers,
-                quint32 numberOfBuyerPeers,
-                State state,
-                const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> & peerPluginStatuses,
-                const Payor::Status & payor);
+        Status(State state,
+               const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> & peerPluginStatuses,
+               const Payor::Status & payor);
 
         // Getters and setters
         State state() const;
@@ -266,6 +262,9 @@ public:
 
     // Amount of funds (satoshies) sent since start
     quint64 totalSentSinceStart() const;
+
+    // Amount of funds (satoshies) sent since start over given channel
+    quint64 channelBalance(int i) const;
 
     // Amount of funds (satoshies) presently locked
     // in channels started during this session.

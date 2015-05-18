@@ -69,18 +69,10 @@ void BuyerTorrentPlugin::Piece::setPeerPlugin(BuyerPeerPlugin *peerPlugin) {
 BuyerTorrentPlugin::Status::Status() {
 }
 
-BuyerTorrentPlugin::Status::Status(quint32 numberOfClassicPeers,
-                                   quint32 numberOfObserverPeers,
-                                   quint32 numberOfSellerPeers,
-                                   quint32 numberOfBuyerPeers,
-                                   State state,
+BuyerTorrentPlugin::Status::Status(State state,
                                    const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> & peers,
                                    const Payor::Status & payor)
-    : TorrentPlugin::Status(numberOfClassicPeers,
-                            numberOfObserverPeers,
-                            numberOfSellerPeers,
-                            numberOfBuyerPeers)
-    , _state(state)
+    : _state(state)
     , _peerPluginStatuses(peers)
     , _payor(payor) {
 }
@@ -808,6 +800,15 @@ quint64 BuyerTorrentPlugin::totalSentSinceStart() const {
     return total;
 }
 
+quint64 BuyerTorrentPlugin::channelBalance(int i) const {
+
+    Q_ASSERT(i < _payor.numberOfChannels());
+
+    const Payor::Channel & c = _payor.channel(i);
+
+    return c.price() * c.numberOfPaymentsMade();
+}
+
 /**
 quint64 BuyerTorrentPlugin::totalCurrentlyLockedInChannels() const {
 
@@ -848,15 +849,10 @@ BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
     }
 
     // Compute base level status
-    TorrentPlugin::Status s = TorrentPlugin::status();
+    //TorrentPlugin::Status s = TorrentPlugin::status();
 
     // Return final status
-    return Status(s.numberOfClassicPeers(),
-                  s.numberOfObserverPeers(),
-                  s.numberOfSellerPeers(),
-                  s.numberOfBuyerPeers(),
-                  //balance,
-                  _state,
+    return Status(_state,
                   peerPluginStatuses,
                   _payor.status());
  }

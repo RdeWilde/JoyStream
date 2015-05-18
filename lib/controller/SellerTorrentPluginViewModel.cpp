@@ -8,7 +8,14 @@ SellerTorrentPluginViewModel::SellerTorrentPluginViewModel(QObject * parent, con
     , _minLock(status.minLock())
     , _minFeePerByte(status.minFeePerByte())
     , _maxNumberOfSellers(status.maxNumberOfSellers())
-    , _maxContractConfirmationDelay(status.maxContractConfirmationDelay()) {
+    , _maxContractConfirmationDelay(status.maxContractConfirmationDelay())
+    /**
+    , _numberOfClassicPeers(0)
+    , _numberOfObserverPeers(0)
+    , _numberOfSellerPeers(0)
+    , _numberOfBuyerPeers(0)
+    , _balance(0)*/
+    {
 
     // Add peers
     QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> peerPluginStatuses = status.peerPluginStatuses();
@@ -18,6 +25,9 @@ SellerTorrentPluginViewModel::SellerTorrentPluginViewModel(QObject * parent, con
         end = peerPluginStatuses.constEnd();
         i != end;i++)
         addPeer(i.key(), i.value());
+
+    // Sets statistics variables
+    setStatics(status);
 }
 
 /**
@@ -101,6 +111,88 @@ void SellerTorrentPluginViewModel::update(const SellerTorrentPlugin::Status & st
         // Update
         _sellerPeerPluginViewModels[endPoint]->update(i.value());
     }
+
+    /*
+     *  Update statistics
+     */
+
+    // Copy old stats
+    quint32 numberOfClassicPeers = _numberOfClassicPeers,
+            numberOfObserverPeers = _numberOfObserverPeers,
+            numberOfSellerPeers = _numberOfSellerPeers,
+            numberOfBuyerPeers = _numberOfBuyerPeers;
+
+    quint64 balance = _balance;
+
+    // Recompute and save new values
+    setStatics(status);
+
+    // Send signal for changed values
+    if(numberOfClassicPeers != _numberOfClassicPeers)
+        emit numberOfClassicPeersChanged(_numberOfClassicPeers);
+
+    if(numberOfObserverPeers != _numberOfObserverPeers)
+        emit numberOfObserverPeersChanged(_numberOfObserverPeers);
+
+    if(numberOfSellerPeers != _numberOfSellerPeers)
+        emit numberOfSellerPeersChanged(_numberOfSellerPeers);
+
+    if(numberOfBuyerPeers != _numberOfBuyerPeers)
+        emit numberOfBuyerPeersChanged(_numberOfBuyerPeers);
+
+    if(balance != _balance)
+        emit balanceChanged(_balance);
+
+}
+
+void SellerTorrentPluginViewModel::setStatics(const SellerTorrentPlugin::Status & status) {
+
+    // Reset counters
+    _numberOfClassicPeers = 0;
+    _numberOfObserverPeers = 0;
+    _numberOfSellerPeers = 0;
+    _numberOfBuyerPeers = 0;
+    _balance = 0;
+
+    // Update peers
+    QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> peerPluginStatuses = status.peerPluginStatuses();
+
+    for(QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status>::const_iterator
+        i = peerPluginStatuses.constBegin(),
+        end = peerPluginStatuses.constEnd();
+        i != end;i++) {
+
+        // Get endpoint
+        const SellerPeerPlugin::Status & peer = i.value();
+
+        // Check mode towards mode counters
+        BEPSupportStatus supportStatus = peer.peerBitSwaprBEPSupportStatus();
+
+        if(supportStatus == BEPSupportStatus::supported) {
+
+            switch(peer.peerModeAnnounced()) {
+
+                case PeerPlugin::PeerModeAnnounced::none:
+                    break;
+                case PeerPlugin::PeerModeAnnounced::buyer:
+                    _numberOfBuyerPeers++;
+                    break;
+                case PeerPlugin::PeerModeAnnounced::seller:
+                    _numberOfSellerPeers++;
+                    break;
+                case PeerPlugin::PeerModeAnnounced::observer:
+                    _numberOfObserverPeers;
+                    break;
+            }
+
+        } else if(supportStatus == BEPSupportStatus::not_supported)
+            _numberOfClassicPeers++;
+
+        // count balance
+        const Payee::Status & payeeStatus = peer.payeeStatus();
+        _balance += payeeStatus.price() * payeeStatus.numberOfPaymentsMade();
+    }
+
 }
 
 quint64 SellerTorrentPluginViewModel::minPrice() const {
@@ -125,4 +217,24 @@ quint32 SellerTorrentPluginViewModel::maxContractConfirmationDelay() const {
 
 QMap<libtorrent::tcp::endpoint, SellerPeerPluginViewModel *> SellerTorrentPluginViewModel::sellerPeerPluginViewModels() const {
     return _sellerPeerPluginViewModels;
+}
+
+quint32 SellerTorrentPluginViewModel::numberOfClassicPeers() const {
+   return _numberOfClassicPeers;
+}
+
+quint32 SellerTorrentPluginViewModel::numberOfObserverPeers() const {
+    return _numberOfObserverPeers;
+}
+
+quint32 SellerTorrentPluginViewModel::numberOfSellerPeers() const {
+    return _numberOfSellerPeers;
+}
+
+quint32 SellerTorrentPluginViewModel::numberOfBuyerPeers() const {
+    return _numberOfBuyerPeers;
+}
+
+quint64 SellerTorrentPluginViewModel::balance() const {
+    return _balance;
 }

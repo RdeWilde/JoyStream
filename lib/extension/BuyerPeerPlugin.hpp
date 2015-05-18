@@ -279,6 +279,7 @@ public:
     quint64 totalAmountSent() const;
 
     virtual PluginMode mode() const;
+    virtual quint64 balance() const;
 
 private:
 

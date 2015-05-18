@@ -277,6 +277,7 @@ public:
 
     // Getters and setters
     virtual PluginMode mode() const;
+    virtual quint64 balance() const;
 
     PeerState peerState() const;
     void setPeerState(const PeerState &peerState);

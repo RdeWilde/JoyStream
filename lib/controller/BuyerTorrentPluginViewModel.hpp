@@ -28,6 +28,9 @@ public:
     // Update
     void update(const BuyerTorrentPlugin::Status & status);
 
+    // Update statics: does not send signals
+    void setStatics(const BuyerTorrentPlugin::Status & status);
+
     // Getters
     BuyerTorrentPlugin::State state() const;
 
@@ -39,6 +42,12 @@ signals:
 
     // State change
     void stateChanged(BuyerTorrentPlugin::State state);
+
+    void numberOfClassicPeersChanged(quint32 num);
+    void numberOfObserverPeersChanged(quint32 num);
+    void numberOfSellerPeersChanged(quint32 num);
+    void numberOfBuyerPeersChanged(quint32 num);
+    void balanceChanged(quint64 balance);
 
     // Peer added
     void peerAdded(const BuyerPeerPluginViewModel * model);
@@ -54,6 +63,15 @@ private:
 
     // View model of payor
     PayorViewModel _payorViewModel;
+
+    /**
+     * Summary statistics
+     */
+    quint32 _numberOfClassicPeers,
+            _numberOfObserverPeers,
+            _numberOfSellerPeers,
+            _numberOfBuyerPeers;
+    quint64 _balance;
 };
 
 #endif // BUYER_TORRENT_PLUGIN_VIEW_MODEL_HPP

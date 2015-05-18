@@ -65,9 +65,101 @@ void BuyerTorrentPluginViewModel::update(const BuyerTorrentPlugin::Status & stat
         _buyerPeerPluginViewModels[endPoint]->update(i.value());
     }
 
-
     // Payor status
     _payorViewModel.update(status.payor());
+
+    /*
+     *  Update statistics
+     */
+
+    // Copy old stats
+    quint32 numberOfClassicPeers = _numberOfClassicPeers,
+            numberOfObserverPeers = _numberOfObserverPeers,
+            numberOfSellerPeers = _numberOfSellerPeers,
+            numberOfBuyerPeers = _numberOfBuyerPeers;
+
+    quint64 balance = _balance;
+
+    // Recompute and save new values
+    setStatics(status);
+
+    // Send signal for changed values
+    if(numberOfClassicPeers != _numberOfClassicPeers)
+        emit numberOfClassicPeersChanged(_numberOfClassicPeers);
+
+    if(numberOfObserverPeers != _numberOfObserverPeers)
+        emit numberOfObserverPeersChanged(_numberOfObserverPeers);
+
+    if(numberOfSellerPeers != _numberOfSellerPeers)
+        emit numberOfSellerPeersChanged(_numberOfSellerPeers);
+
+    if(numberOfBuyerPeers != _numberOfBuyerPeers)
+        emit numberOfBuyerPeersChanged(_numberOfBuyerPeers);
+
+    if(balance != _balance)
+        emit balanceChanged(_balance);
+
+}
+
+void BuyerTorrentPluginViewModel::setStatics(const BuyerTorrentPlugin::Status & status) {
+
+    // Reset counters
+    _numberOfClassicPeers = 0;
+    _numberOfObserverPeers = 0;
+    _numberOfSellerPeers = 0;
+    _numberOfBuyerPeers = 0;
+    _balance = 0;
+
+    // Update peers
+    QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> peerPluginStatuses = status.peerPluginStatuses();
+
+    for(QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status>::const_iterator
+        i = peerPluginStatuses.constBegin(),
+        end = peerPluginStatuses.constEnd();
+        i != end;i++) {
+
+        // Get endpoint
+        const BuyerPeerPlugin::Status & peer = i.value();
+
+        // Check mode towards mode counters
+        BEPSupportStatus supportStatus = peer.peerBitSwaprBEPSupportStatus();
+
+        if(supportStatus == BEPSupportStatus::supported) {
+
+            switch(peer.peerModeAnnounced()) {
+
+                case PeerPlugin::PeerModeAnnounced::none:
+                    break;
+                case PeerPlugin::PeerModeAnnounced::buyer:
+                    _numberOfBuyerPeers++;
+                    break;
+                case PeerPlugin::PeerModeAnnounced::seller:
+                    _numberOfSellerPeers++;
+                    break;
+                case PeerPlugin::PeerModeAnnounced::observer:
+                    _numberOfObserverPeers;
+                    break;
+            }
+
+        } else if(supportStatus == BEPSupportStatus::not_supported)
+            _numberOfClassicPeers++;
+    }
+
+    // Iterate payor status
+    const Payor::Status & payorStatus = status.payor();
+    QVector<Payor::Channel::Status> channels = payorStatus.channels();
+
+    for(QVector<Payor::Channel::Status>::const_iterator
+        i = channels.constBegin(),
+        end = channels.constEnd();
+        i != end;i++) {
+
+        // Get channel status
+        const Payor::Channel::Status & channelStatus = *i;
+
+        // Count towards balance
+        _balance += channelStatus.price() * channelStatus.numberOfPaymentsMade();
+    }
 }
 
 BuyerTorrentPlugin::State BuyerTorrentPluginViewModel::state() const {

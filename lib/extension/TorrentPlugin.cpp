@@ -19,7 +19,7 @@
 
 /**
  * TorrentPlugin::Status
- */
+
 
 TorrentPlugin::Status::Status()
     : _numberOfClassicPeers(0)
@@ -69,6 +69,7 @@ quint32 TorrentPlugin::Status::numberOfBuyerPeers() const {
 void TorrentPlugin::Status::setNumberOfBuyerPeers(quint32 numberOfBuyerPeers) {
     _numberOfBuyerPeers = numberOfBuyerPeers;
 }
+*/
 
 /**
  * TorrentPlugin::Configuration
@@ -192,6 +193,7 @@ void TorrentPlugin::addToIrregularPeersSet(const libtorrent::tcp::endpoint & end
     _irregularPeer.insert(endPoint);
 }
 
+/**
 TorrentPlugin::Status TorrentPlugin::status() const {
 
     // Setup counters
@@ -242,7 +244,7 @@ TorrentPlugin::Status TorrentPlugin::status() const {
                   numberOfSellerPeers,
                   numberOfBuyerPeers);
 }
-
+*/
 Plugin * TorrentPlugin::plugin() {
     return _plugin;
 }

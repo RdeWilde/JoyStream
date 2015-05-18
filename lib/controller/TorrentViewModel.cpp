@@ -149,6 +149,27 @@ SellerTorrentPluginViewModel * TorrentViewModel::sellerTorrentPluginViewModel() 
 BuyerTorrentPluginViewModel * TorrentViewModel::buyerTorrentPluginViewModel() const {
     return _buyerTorrentPluginViewModel;
 }
+/**
+quint32 TorrentViewModel::numberOfClassicPeers() {
+
+}
+
+quint32 TorrentViewModel::numberOfObserverPeers() {
+
+}
+
+quint32 TorrentViewModel::numberOfSellerPeers() {
+
+}
+
+quint32 TorrentViewModel::numberOfBuyerPeers() {
+
+}
+
+quint64 TorrentViewModel::balance() {
+
+}
+*/
 
 /**
 void TorrentViewModel::showExtensionDialog() {

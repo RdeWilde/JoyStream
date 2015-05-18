@@ -456,6 +456,10 @@ PluginMode SellerPeerPlugin::mode() const {
     return PluginMode::Seller;
 }
 
+quint64 SellerPeerPlugin::balance() const {
+    return _payee.price() * _payee.numberOfPaymentsMade();
+}
+
 SellerPeerPlugin::PeerState SellerPeerPlugin::peerState() const {
     return _peerState;
 }

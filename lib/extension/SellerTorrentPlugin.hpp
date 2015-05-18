@@ -14,7 +14,7 @@ class SellerTorrentPlugin : public TorrentPlugin
 {
 public:
 
-    class Status : public TorrentPlugin::Status {
+    class Status {
 
     public:
 
@@ -22,11 +22,7 @@ public:
         Status();
 
         // Constructor from members
-        Status(quint32 numberOfClassicPeers,
-               quint32 numberOfObserverPeers,
-               quint32 numberOfSellerPeers,
-               quint32 numberOfBuyerPeers,
-               quint64 minPrice,
+        Status(quint64 minPrice,
                quint32 minLock,
                quint64 minFeePerByte,
                quint32 maxNumberOfSellers,

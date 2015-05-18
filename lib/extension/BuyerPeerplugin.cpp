@@ -562,6 +562,10 @@ PluginMode BuyerPeerPlugin::mode() const {
     return PluginMode::Buyer;
 }
 
+quint64 BuyerPeerPlugin::balance() const {
+    return _plugin->channelBalance(_payorSlot);
+}
+
 /**
 bool BuyerPeerPlugin::assignedPiece() const {
     return _assignedPiece;
