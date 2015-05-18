@@ -38,6 +38,12 @@ public:
 
     const PayorViewModel * payorViewModel() const;
 
+    quint32 numberOfClassicPeers() const;
+    quint32 numberOfObserverPeers() const;
+    quint32 numberOfSellerPeers() const;
+    quint32 numberOfBuyerPeers() const;
+    quint64 balance() const;
+
 signals:
 
     // State change

@@ -462,6 +462,9 @@ public:
     // Returns reference to the wallet
     Wallet & wallet();
 
+    // Get view model for given torrent
+    const TorrentViewModel * torrentViewModel(const libtorrent::sha1_hash & infoHash) const;
+
     // Save state of controller
     Configuration configuration() const;
 

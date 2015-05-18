@@ -63,6 +63,11 @@ public slots:
     void updateSellerTorrentPluginStatus(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Status & status);
     */
 
+    // Plugins started
+    //void startedSellerTorrentPlugin(const SellerTorrentPluginViewModel * model);
+    //void startedBuyerTorrentPlugin(const BuyerTorrentPluginViewModel * model);
+    //void startedTorrentPlugin(const libtorrent::sha1_hash & infoHash);
+
     // Plugin status event
     void updatePluginStatus(const Plugin::Status & status);
 
@@ -120,7 +125,7 @@ private:
     QVector<libtorrent::sha1_hash> _rowToInfoHash;
 
     // View model for torrent with corresponding info hash
-    QMap<libtorrent::sha1_hash, const TorrentViewModel *> _torrentViewModels;
+    //QMap<libtorrent::sha1_hash, const TorrentViewModel *> _torrentViewModels;
 
     // Uses _rowToViewMapping to lookup view in _torrentViews
     TorrentView * rowToView(int row);

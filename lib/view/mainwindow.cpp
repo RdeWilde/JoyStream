@@ -67,7 +67,8 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet, QLoggingCategor
                 << "Size"
                 << "State"
                 << "Speed"
-                << "Peers"
+                << "#Buyers"
+                << "#Sellers"
                 << "Extension"
                 << "Balance";
 
@@ -79,9 +80,12 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet, QLoggingCategor
     // Set column width
     ui->torrentsTable->setColumnWidth(0, 400);
     ui->torrentsTable->setColumnWidth(1, 90);
-    ui->torrentsTable->setColumnWidth(2, 120);
-    ui->torrentsTable->setColumnWidth(3, 90);
-    ui->torrentsTable->setColumnWidth(4, 90);
+    ui->torrentsTable->setColumnWidth(2, 140);
+    ui->torrentsTable->setColumnWidth(3, 140);
+    ui->torrentsTable->setColumnWidth(4, 50);
+    ui->torrentsTable->setColumnWidth(5, 50);
+    ui->torrentsTable->setColumnWidth(6, 90);
+    ui->torrentsTable->setColumnWidth(7, 50);
 
     // Hide button
     ui->addMagnetLinkPushButton->setVisible(false);
@@ -188,10 +192,10 @@ void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torre
 void MainWindow::showTorrentPluginDialog(const libtorrent::sha1_hash & infoHash) {
 
     Q_ASSERT(_torrentViews.contains(infoHash));
-    Q_ASSERT(_torrentViewModels.contains(infoHash));
+    //Q_ASSERT(_torrentViewModels.contains(infoHash));
 
     // Grab model
-    const TorrentViewModel * model = _torrentViewModels[infoHash];
+    const TorrentViewModel * model = _controller->torrentViewModel(infoHash);// _torrentViewModels[infoHash];
 
     // Figure out which plugin type is installed
     PluginInstalled plugin = model->pluginInstalled();
@@ -297,13 +301,13 @@ void MainWindow::addTorrent(const TorrentViewModel * model) {
     _torrentViews[model->infoHash()] = view;
 
     // Insert model into view map
-    _torrentViewModels[model->infoHash()] = model;
+    //_torrentViewModels[model->infoHash()] = model;
 
     // Insert view into row mapping
     _rowToInfoHash.append(model->infoHash());
 
     Q_ASSERT(_torrentViews.size() == _rowToInfoHash.size());
-    Q_ASSERT(_torrentViews.size() == _torrentViewModels.size());
+    //Q_ASSERT(_torrentViews.size() == _torrentViewModels.size());
 }
 
 void MainWindow::addTorrentFailed(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec) {
@@ -363,6 +367,38 @@ void MainWindow::updateSellerTorrentPluginStatus(const libtorrent::sha1_hash & i
 
     // Update view model of plugin
     view->update(status);
+}
+*/
+
+/**
+void MainWindow::startedTorrentPlugin(const libtorrent::sha1_hash & infoHash) {
+
+    Q_ASSERT(_torrentViews.contains(infoHash));
+
+    // Get view
+    TorrentView * view = _torrentViews[infoHash];
+
+    // Get view-model
+    const TorrentViewModel * model = _controller->torrentViewModel(infoHash);
+
+    Q_ASSERT(model != NULL);
+
+    // Setup signals and slots
+    PluginInstalled installed = model->pluginInstalled();
+
+    if(installed == PluginInstalled::Buyer) {
+
+        const BuyerTorrentPluginViewModel * buyerTorrentPluginViewModel = model->buyerTorrentPluginViewModel();
+
+
+
+    } else if (installed == PluginInstalled::Seller) {
+
+        const SellerTorrentPluginViewModel * sellerTorrentPluginViewModel = model->sellerTorrentPluginViewModel();
+
+
+    }
+
 }
 */
 

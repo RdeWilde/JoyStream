@@ -1552,8 +1552,8 @@ void Controller::processStartedSellerTorrentPlugin(const StartedSellerTorrentPlu
     // Update information about plugin installed on torrent
     torrent->addPlugin(p->status());
 
-    // Notify view
-    //_view.startedSellerTorrentPlugin(p->infoHash(), p->configuration());
+    // Tell view
+    //_view.startedSellerTorrentPlugin(torrent->model()->sellerTorrentPluginViewModel());
 }
 
 void Controller::processStartedBuyerTorrentPlugin(const StartedBuyerTorrentPlugin * p) {
@@ -1569,6 +1569,9 @@ void Controller::processStartedBuyerTorrentPlugin(const StartedBuyerTorrentPlugi
 
     // Notify view
     //_view.startedBuyerTorrentPlugin(p->infoHash(), p->configuration(), p->utxo());
+
+    // Tell view
+    //_view.startedBuyerTorrentPlugin(torrent->model()->buyerTorrentPluginViewModel());
 }
 
 void Controller::processBuyerTorrentPluginStatusAlert(const BuyerTorrentPluginStatusAlert * p) {
@@ -1900,6 +1903,14 @@ void Controller::saveStateToFile(const char * file) {
 
 Wallet & Controller::wallet() {
     return _wallet;
+}
+
+const TorrentViewModel * Controller::torrentViewModel(const libtorrent::sha1_hash & infoHash) const {
+
+    if(!_torrents.contains(infoHash))
+        return NULL;
+    else
+        return _torrents[infoHash]->model();
 }
 
 void Controller::begin_close() {

@@ -11,6 +11,8 @@ class QStandardItemModel;
 class QStandardItem;
 enum class PluginInstalled;
 class TorrentViewModel;
+class BuyerTorrentPluginViewModel;
+class SellerTorrentPluginViewModel;
 
 namespace libtorrent {
     struct torrent_status;
@@ -38,9 +40,14 @@ public:
 public slots:
 
     // Update
-    void updatePluginInstalled(PluginInstalled pluginInstalled);
+    //void updatePluginInstalled(PluginInstalled pluginInstalled);
+    void updateStartedBuyerTorrentPlugin(const BuyerTorrentPluginViewModel * model);
+    void updateStartedSellerTorrentPlugin(const SellerTorrentPluginViewModel * model);
+
     void updateStatus(const libtorrent::torrent_status & status);
-    void updatePeers(int numberOfPeers, int numberOfPeersWithExtension);
+    //void updatePeers(int numberOfPeers, int numberOfPeersWithExtension);
+    void updateNumberOfBuyers(quint32 num);
+    void updateNumberOfSellers(quint32 num);
     void updateBalance(quint64 balance);
 
     // Popup context menu in given point
@@ -58,6 +65,7 @@ public slots:
 
 signals:
 
+    //void pluginInstalled(const libtorrent::sha1_hash & infoHash);
 
     /**
      * Ui event related signals corresponding with slots above,
@@ -82,7 +90,8 @@ private:
                   * _sizeItem,
                   * _stateItem,
                   * _speedItem,
-                  * _peersItem,
+                  * _buyersItem,
+                  * _sellersItem,
                   * _pluginInstalledItem,
                   * _balanceItem;
 

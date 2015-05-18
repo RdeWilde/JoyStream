@@ -15,6 +15,10 @@ BuyerTorrentPluginViewModel::BuyerTorrentPluginViewModel(QObject * parent,
         i = statuses.constBegin(),
         end = statuses.constEnd();i != end;i++)
         addPeer(i.key(), i.value());
+
+
+    // Compute and save new values
+    setStatics(status);
 }
 
 /**
@@ -172,4 +176,24 @@ QMap<libtorrent::tcp::endpoint, BuyerPeerPluginViewModel *> BuyerTorrentPluginVi
 
 const PayorViewModel * BuyerTorrentPluginViewModel::payorViewModel() const {
     return &_payorViewModel;
+}
+
+quint32 BuyerTorrentPluginViewModel::numberOfClassicPeers() const {
+    return _numberOfClassicPeers;
+}
+
+quint32 BuyerTorrentPluginViewModel::numberOfObserverPeers() const {
+    return _numberOfObserverPeers;
+}
+
+quint32 BuyerTorrentPluginViewModel::numberOfSellerPeers() const {
+    return _numberOfSellerPeers;
+}
+
+quint32 BuyerTorrentPluginViewModel::numberOfBuyerPeers() const {
+    return _numberOfBuyerPeers;
+}
+
+quint64 BuyerTorrentPluginViewModel::balance() const {
+    return _balance;
 }
