@@ -61,7 +61,8 @@ void TorrentViewModel::addPlugin(const SellerTorrentPlugin::Status & status) {
 
     _sellerTorrentPluginViewModel = new SellerTorrentPluginViewModel(this, status);
 
-    emit pluginInstalledChanged(PluginInstalled::Seller);
+    //emit pluginInstalledChanged(PluginInstalled::Seller);
+    emit startedSellerTorrentPlugin(_sellerTorrentPluginViewModel);
 }
 
 void TorrentViewModel::addPlugin(const BuyerTorrentPlugin::Status & status) {
@@ -72,8 +73,8 @@ void TorrentViewModel::addPlugin(const BuyerTorrentPlugin::Status & status) {
     // Create view model and save in map
     _buyerTorrentPluginViewModel = new BuyerTorrentPluginViewModel(this, status);
 
-    // Connect up slots to
-    emit pluginInstalledChanged(PluginInstalled::Buyer);
+    //emit pluginInstalledChanged(PluginInstalled::Buyer);
+    emit startedBuyerTorrentPlugin(_buyerTorrentPluginViewModel);
 }
 
 void TorrentViewModel::addPeer(const libtorrent::tcp::endpoint & endPoint, const SellerPeerPlugin::Status & status) {

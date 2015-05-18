@@ -68,8 +68,11 @@ public:
 signals:
 
     // Status changed
-    void pluginInstalledChanged(PluginInstalled pluginInstalled);
+    //void pluginInstalledChanged(PluginInstalled pluginInstalled);
     void torrentStatusChanged(const libtorrent::torrent_status & status);
+
+    void startedBuyerTorrentPlugin(const BuyerTorrentPluginViewModel * model);
+    void startedSellerTorrentPlugin(const SellerTorrentPluginViewModel * model);
 
     /**
     // Summary statics from plugin

@@ -194,11 +194,17 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
     // a null is returned, hence plugin is not installed
     if(!TorrentPlugin::isPeerWellBehaved(peerConnection)) {
 
+        // DISCONNECT
+        peerConnection->disconnect(libtorrent::error_code());
+
         qCDebug(_category) << "Rejected connection from peer, peer plugin not installed.";
         return boost::shared_ptr<libtorrent::peer_plugin>();
     }
 
     if(_peers.contains(endPoint)) {
+
+        // DISCONNECT
+        peerConnection->disconnect(libtorrent::error_code());
 
         qCDebug(_category) << "Already added peer, REJECTING.";
         return boost::shared_ptr<libtorrent::peer_plugin>();

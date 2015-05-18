@@ -359,6 +359,8 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
      * The peer_connection will be valid as long as the shared_ptr is being held by the
      * torrent object. So, it is generally a good idea to not keep a shared_ptr to
      * your own peer_plugin. If you want to keep references to it, use weak_ptr.
+     *
+     * THE ABOVE DOES NOT FULLY MAKE SENSE.
      */
 
     // Get end point to look up sets
@@ -371,6 +373,9 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
     // a null is returned, hence plugin is not installed
     if(!TorrentPlugin::isPeerWellBehaved(connection)) {
 
+        // DISCONNECT
+        connection->disconnect(libtorrent::error_code());
+
         qCDebug(_category) << "Rejected connection from peer, peer plugin not installed.";
         return boost::shared_ptr<libtorrent::peer_plugin>();
     }
@@ -378,6 +383,10 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
     if(_peers.contains(endPoint)) {
 
         qCDebug(_category) << "Already added peer, REJECTING.";
+
+        // DISCONNECT
+        connection->disconnect(libtorrent::error_code());
+
         return boost::shared_ptr<libtorrent::peer_plugin>();
     }
 

@@ -175,7 +175,8 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
         qCWarning(_category) << "Peer didn't support BEP10, but it sent extended handshake.";
 
         // Do no keep extension around
-        return false;
+        //return false;
+        return true;
     }
 
     /**
@@ -195,7 +196,8 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
         qCWarning(_category) << "Malformed handshake received: not dictionary.";
 
         // Do no keep extension around
-        return false;
+        //return false;
+        return true;
     }
 
     // Check if plugin key is there
@@ -212,7 +214,8 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
         qCDebug(_category) << "Extension not supported.";
 
         // Do no keep extension around
-        return false;
+        //return false;
+        return true;
 
     } else
         qCDebug(_category) << "Extension version" << version << "supported.";
@@ -231,7 +234,8 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
         qCWarning(_category) << "Malformed handshake received: m key not present.";
 
         // Do no keep extension around
-        return false;
+        //return false;
+        return true;
     }
 
     // Get peer mapping
@@ -252,7 +256,8 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
         qCWarning(_category) << "Malformed handshake received: m key not mapping to dictionary.";
 
         // Do no keep extension around
-        return false;
+        //return false;
+        return true;
     }
 
     // Make conversion to dictionary entry
@@ -299,6 +304,7 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
     _peerBitSwaprBEPSupportStatus = BEPSupportStatus::supported;
 
     // Tell libtorrent that our extension should be kept in the loop for this peer
+    //return false;
     return true;
 }
 
@@ -308,6 +314,13 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
 // be able to handle it this is not called for web seeds.
 // IS NOT ACTUALLY CALLED FOR EXTENDED HANDSHAKE ITSELF.
 bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_interval body) {
+
+    // Does the peer even support extension?
+    if(_peerBitSwaprBEPSupportStatus != BEPSupportStatus::supported) {
+
+        qCDebug(_category) << "Ignoring extended message from peer without extension.";
+        return false;
+    }
 
     // Length of extended message, excluding the bep 10 id and extended message id.
     int lengthOfExtendedMessagePayload = body.left();

@@ -80,10 +80,22 @@ TorrentView::TorrentView(QObject * parent,
                      SLOT(viewExtension()));
 
     // Connect: view model signals to slots on this object
+    /**
     QObject::connect(torrentViewModel,
                      SIGNAL(pluginInstalledChanged(PluginInstalled)),
                      this,
                      SLOT(updatePluginInstalled(PluginInstalled)));
+    */
+
+    QObject::connect(torrentViewModel,
+                     SIGNAL(startedBuyerTorrentPlugin(const BuyerTorrentPluginViewModel*)),
+                     this,
+                     SLOT(updateStartedBuyerTorrentPlugin(const BuyerTorrentPluginViewModel*)));
+
+    QObject::connect(torrentViewModel,
+                     SIGNAL(startedSellerTorrentPlugin(const SellerTorrentPluginViewModel*)),
+                     this,
+                     SLOT(updateStartedSellerTorrentPlugin(const SellerTorrentPluginViewModel*)));
 
     QObject::connect(torrentViewModel,
                      SIGNAL(torrentStatusChanged(const libtorrent::torrent_status &)),

@@ -155,7 +155,7 @@ QString BuyerTorrentPluginDialog::payorStateToString(Payor::State state) {
             break;
 
         case Payor::State::can_pay:
-            text = "Can pay on channel(s)";
+            text = "Can pay on channel";
             break;
 
         case Payor::State::all_contract_outputs_spent:
