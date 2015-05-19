@@ -818,11 +818,13 @@ void Payor::broadcast_contract() {
         contractOutputs.append(P2SHTxOut(i->funds(), i->payorContractKeyPair().pk(), i->payeeContractPk()));
 
     // Compute and set _contractHash
-    BitSwaprjs::broadcast_contract(//_fundingOutPoint,
+    TxId broadcastedTxId = BitSwaprjs::broadcast_contract(//_fundingOutPoint,
                                   //_fundingOutputKeyPair.sk(),
                                   _utxo,
                                   contractOutputs,
                                   P2PKHTxOut(_changeValue, _changeOutputKeyPair.pk()));
+
+    Q_ASSERT(broadcastedTxId == _contractTxId);
 
 }
 

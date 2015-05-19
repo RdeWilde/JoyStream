@@ -195,6 +195,7 @@ public:
     // Constructor
     BuyerPeerPlugin(BuyerTorrentPlugin * plugin,
                     libtorrent::bt_peer_connection * connection,
+                    bool scheduledForDeletingInNextTorrentPluginTick,
                     QLoggingCategory & category);
 
     // Destructor

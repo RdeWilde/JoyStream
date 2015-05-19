@@ -184,82 +184,50 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
      * your own peer_plugin. If you want to keep references to it, use weak_ptr.
      */
 
-    // Get end point to look up sets
+    /**
+     * Note: You cannot disconnect this peer here, e.g. by using peer_connection::disconnect().
+     * This is because, at this point (new_connection), the connection has not been
+     * added to a torrent level peer list, and the disconnection asserts that the peer has
+     * to be in this list. Disconnects must be done later.
+     */
+
+    // Get end point
     const libtorrent::tcp::endpoint & endPoint = peerConnection->remote();
+
+    // Print notification
     std::string endPointString = libtorrent::print_endpoint(endPoint);
 
     qCDebug(_category) << "New connection with " << endPointString.c_str(); // << "on " << _torrent->name().c_str();
+
+    // Create bittorrent peer connection
+    libtorrent::bt_peer_connection * bittorrentPeerConnection = static_cast<libtorrent::bt_peer_connection*>(peerConnection);
+
+    // Create shared pointer to new seller peer plugin
+    SellerPeerPlugin * peerPlugin;
 
     // Check if this peer should be accepted, if not
     // a null is returned, hence plugin is not installed
     if(!TorrentPlugin::isPeerWellBehaved(peerConnection)) {
 
-        // DISCONNECT
-        peerConnection->disconnect(libtorrent::error_code());
+        qCDebug(_category) << "Peer is on ban list, rejected connection from peer, peer plugin not installed.";
+        peerPlugin = createSellerPeerPluginScheduledForDeletion(bittorrentPeerConnection);
 
-        qCDebug(_category) << "Rejected connection from peer, peer plugin not installed.";
-        return boost::shared_ptr<libtorrent::peer_plugin>();
+    } else if(_peers.contains(endPoint)) {
+
+        qCDebug(_category) << "Already added peer, rejected connection from peer, peer plugin not installed.";
+        peerPlugin = createSellerPeerPluginScheduledForDeletion(bittorrentPeerConnection);
+
+    } else {
+
+        qCDebug(_category) << "Installed seller plugin #" << _peers.size() << endPointString.c_str();
+        peerPlugin = createRegularSellerPeerPlugin(bittorrentPeerConnection);
     }
 
-    if(_peers.contains(endPoint)) {
-
-        // DISCONNECT
-        peerConnection->disconnect(libtorrent::error_code());
-
-        qCDebug(_category) << "Already added peer, REJECTING.";
-        return boost::shared_ptr<libtorrent::peer_plugin>();
-    }
-
-    // Create seller peer
-    libtorrent::bt_peer_connection * bittorrentPeerConnection = static_cast<libtorrent::bt_peer_connection*>(peerConnection);
-
-    // Get fresh key pairs for seller side of contract
-    QList<Wallet::Entry> contractKeysEntry = _wallet->generateNewKeys(1, Wallet::Purpose::SellerInContractOutput).values();
-    KeyPair payeeContractKeys = contractKeysEntry.front().keyPair();
-
-    QList<Wallet::Entry> paymentKeysEntry = _wallet->generateNewKeys(1, Wallet::Purpose::ContractPayment).values();
-    KeyPair payeePaymentKeys = paymentKeysEntry.front().keyPair();
-
-    /**
-    // Get block size, peer requires it
-    libtorrent::torrent_status st;
-    _torrent->status(&st,0);
-    int blockSize = st.block_size;
-    */
-
-    // Create shared pointer to new seller peer plugin
-    SellerPeerPlugin * peerPlugin = new SellerPeerPlugin(this,
-                                                         bittorrentPeerConnection,
-                                                         Payee::Configuration(Payee::State::waiting_for_payor_information,
-                                                                              0,
-                                                                              Signature(),
-                                                                              _minLock,
-                                                                              _minPrice,
-                                                                              _maxNumberOfSellers,
-                                                                              payeeContractKeys,
-                                                                              payeePaymentKeys,
-                                                                              OutPoint(),
-                                                                              PublicKey(),
-                                                                              PublicKey(),
-                                                                              0),
-                                                         _torrent->torrent_file().num_pieces(),
-                                                         _category);
-
-
+    // Create shared pointer
     boost::shared_ptr<SellerPeerPlugin> sharedPeerPluginPtr(peerPlugin);
-
 
     // Add to collection
     _peers[endPoint] = sharedPeerPluginPtr;
-
-    qCDebug(_category) << "Seller plugin #" << _peers.size() << endPointString.c_str() << "added"; // to " << _torrent->name().c_str();
-
-    // Notify controller about adding peer
-    /**
-    sendTorrentPluginAlert(SellerPeerPluginStartedAlert(_torrent->info_hash(),
-                                                        configuration()));
-    */
-
 
     // Alert that peer was added
     sendTorrentPluginAlert(SellerPeerAddedAlert(_torrent->info_hash(),
@@ -268,6 +236,44 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
 
     // Return pointer to plugin as required
     return sharedPeerPluginPtr;
+}
+
+SellerPeerPlugin * SellerTorrentPlugin::createRegularSellerPeerPlugin(libtorrent::bt_peer_connection * connection) {
+
+    // Get fresh key pairs for seller side of contract
+    QList<Wallet::Entry> contractKeysEntry = _wallet->generateNewKeys(1, Wallet::Purpose::SellerInContractOutput).values();
+    KeyPair payeeContractKeys = contractKeysEntry.front().keyPair();
+
+    QList<Wallet::Entry> paymentKeysEntry = _wallet->generateNewKeys(1, Wallet::Purpose::ContractPayment).values();
+    KeyPair payeePaymentKeys = paymentKeysEntry.front().keyPair();
+
+    return new SellerPeerPlugin(this,
+                                connection,
+                                false,
+                                Payee::Configuration(Payee::State::waiting_for_payor_information,
+                                                     0,
+                                                     Signature(),
+                                                     _minLock,
+                                                     _minPrice,
+                                                     _maxNumberOfSellers,
+                                                     payeeContractKeys,
+                                                     payeePaymentKeys,
+                                                     OutPoint(),
+                                                     PublicKey(),
+                                                     PublicKey(),
+                                                     0),
+                                _torrent->torrent_file().num_pieces(),
+                                _category);
+}
+
+SellerPeerPlugin * SellerTorrentPlugin::createSellerPeerPluginScheduledForDeletion(libtorrent::bt_peer_connection * connection) {
+
+    return new SellerPeerPlugin(this,
+                                connection,
+                                true,
+                                Payee::Configuration(),
+                                0,
+                                _category);
 }
 
 void SellerTorrentPlugin::on_piece_pass(int index) {
@@ -282,6 +288,13 @@ void SellerTorrentPlugin::tick() {
 
     // Send status to controller
     sendTorrentPluginAlert(SellerTorrentPluginStatusAlert(_torrent->info_hash(), status()));
+
+    // Delete pieces
+    int count = deleteAndDisconnectPeers();
+
+    if(count > 0)
+        qCDebug(_category) << "Disconnected and deleted" << count << "peers.";
+
 }
 
 
@@ -614,4 +627,36 @@ quint32 SellerTorrentPlugin::maxContractConfirmationDelay() const {
 
 void SellerTorrentPlugin::setMaxContractConfirmationDelay(quint32 maxContractConfirmationDelay) {
     _maxContractConfirmationDelay = maxContractConfirmationDelay;
+}
+
+// ** NEEDS TO BE ABSTRACTED TO PARENT CLASS **
+int SellerTorrentPlugin::deleteAndDisconnectPeers() {
+
+    // Deletion counter
+    int count = 0;
+
+    // Iterate peers
+    for(QMap<libtorrent::tcp::endpoint, boost::shared_ptr<SellerPeerPlugin> >::iterator
+        i = _peers.begin(),
+        end = _peers.end();
+        i != end;i++) {
+
+        // Get pointer
+        boost::shared_ptr<SellerPeerPlugin> ptr = i.value();
+
+        // Check if peer plugin is installed
+        if(ptr->scheduledForDeletingInNextTorrentPluginTick()) {
+
+            // Disconnect connection
+            ptr->connection()->disconnect(ptr->deletionErrorCode());
+
+            // Delete plugin from map
+            i = _peers.erase(i);
+
+            // Count deletion
+            count++;
+        }
+    }
+
+    return count;
 }

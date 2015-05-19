@@ -203,8 +203,12 @@ void BuyerPeerPlugin::setPayorSlot(quint32 payorSlot) {
 
 BuyerPeerPlugin::BuyerPeerPlugin(BuyerTorrentPlugin * plugin,
                                  libtorrent::bt_peer_connection * connection,
+                                 bool scheduledForDeletingInNextTorrentPluginTick,
                                  QLoggingCategory & category)
-    : PeerPlugin(plugin, connection, category)
+    : PeerPlugin(plugin,
+                 connection,
+                 scheduledForDeletingInNextTorrentPluginTick,
+                 category)
     , _plugin(plugin)
     , _peerState(//PeerState::LastValidAction::no_bitswapr_message_sent,
                  PeerState::FailureMode::not_failed,

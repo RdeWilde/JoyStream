@@ -80,7 +80,7 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet, QLoggingCategor
     // Set column width
     ui->torrentsTable->setColumnWidth(0, 400);
     ui->torrentsTable->setColumnWidth(1, 90);
-    ui->torrentsTable->setColumnWidth(2, 100);
+    ui->torrentsTable->setColumnWidth(2, 140);
     ui->torrentsTable->setColumnWidth(3, 140);
     ui->torrentsTable->setColumnWidth(4, 70);
     ui->torrentsTable->setColumnWidth(5, 70);

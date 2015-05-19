@@ -102,6 +102,7 @@ public:
     // Constructor
     PeerPlugin(TorrentPlugin * plugin,
                libtorrent::bt_peer_connection * connection,
+               bool scheduledForDeletingInNextTorrentPluginTick,
                QLoggingCategory & category);
 
     /**
@@ -156,6 +157,8 @@ public:
     void processExtendedMessage(ExtendedMessagePayload * extendedMessage);
 
     // Getters
+    libtorrent::bt_peer_connection * connection();
+
     bool peerTimedOut(int maxDelay) const;
     BEPSupportStatus peerBEP10SupportStatus() const;
     BEPSupportStatus peerBitSwaprBEPSupportStatus() const;
@@ -168,6 +171,12 @@ public:
 
     PeerModeAnnounced peerModeAnnounced() const;
     void setPeerModeAnnounced(PeerModeAnnounced peerModeAnnounced);
+
+    bool scheduledForDeletingInNextTorrentPluginTick() const;
+    void setScheduledForDeletingInNextTorrentPluginTick(bool scheduledForDeletingInNextTorrentPluginTick);
+
+    libtorrent::error_code deletionErrorCode() const;
+    void setDeletionErrorCode(const libtorrent::error_code &deletionErrorCode);
 
 private:
 
@@ -194,6 +203,10 @@ protected:
 
     // Last message was not compatible with state of plugin
     bool _lastMessageWasStateIncompatible;
+
+    // Set when peer plugin should be disconnected and deleted by corresponding torrent plugin
+    bool _scheduledForDeletingInNextTorrentPluginTick;
+    libtorrent::error_code _deletionErrorCode;
 
     // Mapping from messages to BEP10 ID of client
     ExtendedMessageIdMapping _clientMapping;

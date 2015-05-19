@@ -159,11 +159,15 @@ void SellerPeerPlugin::Status::setPayeeStatus(const Payee::Status & payeeStatus)
 
 SellerPeerPlugin::SellerPeerPlugin(SellerTorrentPlugin * torrentPlugin,
                                    libtorrent::bt_peer_connection * connection,
+                                   bool scheduledForDeletingInNextTorrentPluginTick,
                                    const Payee::Configuration & payeeConfiguration,
                                    //const libtorrent::torrent_info & torrentFile,
                                    int numberOfPieces,
                                    QLoggingCategory & category)
-    : PeerPlugin(torrentPlugin, connection, category)
+    : PeerPlugin(torrentPlugin,
+                 connection,
+                 scheduledForDeletingInNextTorrentPluginTick,
+                 category)
     , _plugin(torrentPlugin)
     , _peerState(//PeerState::LastValidAction::no_bitswapr_message_sent,
                  PeerState::FailureMode::not_failed,

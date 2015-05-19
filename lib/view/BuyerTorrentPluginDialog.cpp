@@ -22,11 +22,16 @@ BuyerTorrentPluginDialog::BuyerTorrentPluginDialog(QWidget * parent,
 
     const PayorViewModel * payorViewModel = model->payorViewModel();
 
+    // Make contract label clickable
+    //ui->contractTxIdLabel->setTextFormat(Qt::RichText);
+    //ui->contractTxIdLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    //ui->contractTxIdLabel->setOpenExternalLinks(true);
+
     // Main fields
     updatePluginState(model->state());
     updatePayorState(payorViewModel->state());
-    updateContractTxId(payorViewModel->contractTxId());
     updateUtxo(payorViewModel->utxo());
+    updateContractTxId(payorViewModel->contractTxId());
 
     // Hide top status label,no use
     ui->extensionStateLabel->setVisible(false);
@@ -211,6 +216,8 @@ void BuyerTorrentPluginDialog::updatePayorState(Payor::State state) {
 }
 
 void BuyerTorrentPluginDialog::updateContractTxId(const TxId & id) {
+    //ui->contractTxIdLabel->setText("<a href=\"http://explorer.chain.com/transactions\">" + contractTxIdToString(id) + "</a>");
+
     ui->contractTxIdLabel->setText(contractTxIdToString(id));
 }
 

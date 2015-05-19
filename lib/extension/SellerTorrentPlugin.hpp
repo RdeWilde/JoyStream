@@ -161,6 +161,9 @@ public:
     virtual void on_state(int s);
     virtual void on_add_peer(const libtorrent::tcp::endpoint & endPoint, int src, int flags);
 
+    SellerPeerPlugin * createRegularSellerPeerPlugin(libtorrent::bt_peer_connection * connection);
+    SellerPeerPlugin * createSellerPeerPluginScheduledForDeletion(libtorrent::bt_peer_connection * connection);
+
     // Get peer_plugin if present, otherwise NULL pointer is wrapped
     //virtual boost::shared_ptr<libtorrent::peer_plugin> peerPlugin(const libtorrent::tcp::endpoint & endPoint) const;
 
@@ -239,6 +242,11 @@ private:
 
     // Maximum time (s) for which seller is willing to seed without contract getting at least one confirmation
     quint32 _maxContractConfirmationDelay;
+
+    // Delete and disconnect peers which have PeerPlugin::_scheduledForDeletingInNextTorrentPluginTick == true
+    // ** NEEDS TO BE ABSTRACTED TO PARENT CLASS **
+    int deleteAndDisconnectPeers();
+
 };
 
 //#include <QMetaType>

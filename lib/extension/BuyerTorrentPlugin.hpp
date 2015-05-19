@@ -367,6 +367,10 @@ private:
     // Is required to ensure in order downloading from correct position in file, e.g.,
     // if user has seeked to this position recently.
     int _assignmentLowerBound;
+
+    // Delete and disconnect peers which have PeerPlugin::_scheduledForDeletingInNextTorrentPluginTick == true
+    // ** NEEDS TO BE ABSTRACTED TO PARENT CLASS **
+    int deleteAndDisconnectPeers();
 };
 
 #include <QMetaType>

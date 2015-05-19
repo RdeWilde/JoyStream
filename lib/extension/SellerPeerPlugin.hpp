@@ -223,8 +223,8 @@ public:
     // Constructor
     SellerPeerPlugin(SellerTorrentPlugin * torrentPlugin,
                      libtorrent::bt_peer_connection * connection,
+                     bool scheduledForDeletingInNextTorrentPluginTick,
                      const Payee::Configuration & payeeConfiguration,
-                     //const libtorrent::torrent_info & torrentFile,
                      int numberOfPieces,
                      QLoggingCategory & category);
 

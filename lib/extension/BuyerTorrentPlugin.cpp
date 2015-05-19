@@ -352,56 +352,59 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
     */
 }
 
-boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(libtorrent::peer_connection * connection) {
+boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(libtorrent::peer_connection * peerConnection) {
 
     /**
      * Libtorrent docs (http://libtorrent.org/reference-Plugins.html#peer_plugin):
      * The peer_connection will be valid as long as the shared_ptr is being held by the
      * torrent object. So, it is generally a good idea to not keep a shared_ptr to
      * your own peer_plugin. If you want to keep references to it, use weak_ptr.
-     *
-     * THE ABOVE DOES NOT FULLY MAKE SENSE.
      */
 
-    // Get end point to look up sets
-    const libtorrent::tcp::endpoint & endPoint = connection->remote();
+    /**
+     * Note: You cannot disconnect this peer here, e.g. by using peer_connection::disconnect().
+     * This is because, at this point (new_connection), the connection has not been
+     * added to a torrent level peer list, and the disconnection asserts that the peer has
+     * to be in this list. Disconnects must be done later.
+     */
+
+    // Get end point
+    const libtorrent::tcp::endpoint & endPoint = peerConnection->remote();
+
+    // Print notification
     std::string endPointString = libtorrent::print_endpoint(endPoint);
 
-    qCDebug(_category) << "New connection from" << endPointString.c_str();
+    qCDebug(_category) << "New connection with " << endPointString.c_str(); // << "on " << _torrent->name().c_str();
+
+    // Create bittorrent peer connection
+    libtorrent::bt_peer_connection * btConnection = static_cast<libtorrent::bt_peer_connection*>(peerConnection);
+
+    // Create seller buyer peer plugin
+    BuyerPeerPlugin * peerPlugin;
 
     // Check if this peer should be accepted, if not
     // a null is returned, hence plugin is not installed
-    if(!TorrentPlugin::isPeerWellBehaved(connection)) {
+    if(!TorrentPlugin::isPeerWellBehaved(peerConnection)) {
 
-        // DISCONNECT
-        connection->disconnect(libtorrent::error_code());
+        qCDebug(_category) << "Peer is on ban list, rejected connection from peer, peer plugin not installed.";
+        peerPlugin = new BuyerPeerPlugin(this, btConnection, true, _category);
 
-        qCDebug(_category) << "Rejected connection from peer, peer plugin not installed.";
-        return boost::shared_ptr<libtorrent::peer_plugin>();
+    } else if(_peers.contains(endPoint)) {
+
+        qCDebug(_category) << "Already added peer, rejected connection from peer, peer plugin not installed.";
+        peerPlugin = new BuyerPeerPlugin(this, btConnection, true, _category);
+
+    } else {
+
+        qCDebug(_category) << "Installed buyer plugin #" << _peers.count() << endPointString.c_str();
+        peerPlugin = new BuyerPeerPlugin(this, btConnection, false, _category);
     }
 
-    if(_peers.contains(endPoint)) {
-
-        qCDebug(_category) << "Already added peer, REJECTING.";
-
-        // DISCONNECT
-        connection->disconnect(libtorrent::error_code());
-
-        return boost::shared_ptr<libtorrent::peer_plugin>();
-    }
-
-    // Create bittorrent peer connection
-    libtorrent::bt_peer_connection * btConnection = static_cast<libtorrent::bt_peer_connection*>(connection);
-
-    // Create seller buyer peer plugin
-    BuyerPeerPlugin * peerPlugin = new BuyerPeerPlugin(this, btConnection, _category);
-
+    // Create shared pointer
     boost::shared_ptr<BuyerPeerPlugin> sharedPeerPluginPtr(peerPlugin);
 
     // Add to collection
     _peers[endPoint] = sharedPeerPluginPtr;
-
-    qCDebug(_category) << "Buyer #" << _peers.count() << endPointString.c_str() << "added.";
 
     // Alert that peer was added
     sendTorrentPluginAlert(BuyerPeerAddedAlert(_torrent->info_hash(),
@@ -486,6 +489,12 @@ void BuyerTorrentPlugin::tick() {
             Q_ASSERT(assigned);
         }
     }
+
+    // Delete pieces
+    int count = deleteAndDisconnectPeers();
+
+    if(count > 0)
+        qCDebug(_category) << "Disconnected and deleted" << count << "peers.";
 
     // Send status update to controller
     sendTorrentPluginAlert(BuyerTorrentPluginStatusAlert(_torrent->info_hash(), status()));
@@ -980,3 +989,34 @@ BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
          return NULL;
  }
 
+ // ** NEEDS TO BE ABSTRACTED TO PARENT CLASS **
+ int BuyerTorrentPlugin::deleteAndDisconnectPeers() {
+
+     // Deletion counter
+     int count = 0;
+
+     // Iterate peers
+     for(QMap<libtorrent::tcp::endpoint, boost::shared_ptr<BuyerPeerPlugin> >::iterator
+         i = _peers.begin(),
+         end = _peers.end();
+         i != end;i++) {
+
+         // Get pointer
+         boost::shared_ptr<BuyerPeerPlugin> ptr = i.value();
+
+         // Check if peer plugin is installed
+         if(ptr->scheduledForDeletingInNextTorrentPluginTick()) {
+
+             // Disconnect connection
+             ptr->connection()->disconnect(ptr->deletionErrorCode());
+
+             // Delete plugin from map
+             i = _peers.erase(i);
+
+             // Count deletion
+             count++;
+         }
+     }
+
+     return count;
+ }

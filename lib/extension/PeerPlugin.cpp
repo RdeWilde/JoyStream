@@ -71,6 +71,7 @@ void PeerPlugin::Status::setPeerModeAnnounced(PeerModeAnnounced peerModeAnnounce
 
 PeerPlugin::PeerPlugin(TorrentPlugin * plugin,
                        libtorrent::bt_peer_connection * connection,
+                       bool scheduledForDeletingInNextTorrentPluginTick,
                        QLoggingCategory & category)
     : _plugin(plugin)
     , _connection(connection)
@@ -78,6 +79,7 @@ PeerPlugin::PeerPlugin(TorrentPlugin * plugin,
     , _peerModeAnnounced(PeerModeAnnounced::none)
     , _lastReceivedMessageWasMalformed(false)
     , _lastMessageWasStateIncompatible(false)
+    , _scheduledForDeletingInNextTorrentPluginTick(scheduledForDeletingInNextTorrentPluginTick)
     , _peerBEP10SupportStatus(BEPSupportStatus::unknown)
     , _peerBitSwaprBEPSupportStatus(BEPSupportStatus::supported)
     , _category(category) {
@@ -549,6 +551,10 @@ void PeerPlugin::processExtendedMessage(ExtendedMessagePayload * m) {
     */
 }
 
+libtorrent::bt_peer_connection * PeerPlugin::connection() {
+    return _connection;
+}
+
 bool PeerPlugin::peerTimedOut(int maxDelay) const {
     return (!_timeSinceLastMessageSent.isNull()) && (_timeSinceLastMessageSent.elapsed() > maxDelay);
 }
@@ -582,3 +588,22 @@ PeerPlugin::PeerModeAnnounced PeerPlugin::peerModeAnnounced() const {
 void PeerPlugin::setPeerModeAnnounced(PeerModeAnnounced peerModeAnnounced) {
     _peerModeAnnounced = peerModeAnnounced;
 }
+
+bool PeerPlugin::scheduledForDeletingInNextTorrentPluginTick() const {
+    return _scheduledForDeletingInNextTorrentPluginTick;
+}
+
+void PeerPlugin::setScheduledForDeletingInNextTorrentPluginTick(bool scheduledForDeletingInNextTorrentPluginTick) {
+    _scheduledForDeletingInNextTorrentPluginTick = scheduledForDeletingInNextTorrentPluginTick;
+}
+libtorrent::error_code PeerPlugin::deletionErrorCode() const
+{
+    return _deletionErrorCode;
+}
+
+void PeerPlugin::setDeletionErrorCode(const libtorrent::error_code &deletionErrorCode)
+{
+    _deletionErrorCode = deletionErrorCode;
+}
+
+
