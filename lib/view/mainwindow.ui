@@ -32,15 +32,15 @@
    <widget class="QPushButton" name="addTorrentFilePushButton">
     <property name="geometry">
      <rect>
-      <x>320</x>
-      <y>28</y>
-      <width>111</width>
-      <height>39</height>
+      <x>336</x>
+      <y>32</y>
+      <width>93</width>
+      <height>33</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>12</pointsize>
+      <pointsize>10</pointsize>
      </font>
     </property>
     <property name="text">
@@ -52,8 +52,8 @@
      <rect>
       <x>320</x>
       <y>72</y>
-      <width>111</width>
-      <height>39</height>
+      <width>17</width>
+      <height>17</height>
      </rect>
     </property>
     <property name="font">
@@ -208,15 +208,15 @@
    <widget class="QPushButton" name="walletPushButton">
     <property name="geometry">
      <rect>
-      <x>446</x>
-      <y>28</y>
-      <width>111</width>
-      <height>39</height>
+      <x>448</x>
+      <y>32</y>
+      <width>91</width>
+      <height>33</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>12</pointsize>
+      <pointsize>10</pointsize>
      </font>
     </property>
     <property name="text">
@@ -239,8 +239,8 @@
    <widget class="QLabel" name="logoLabel">
     <property name="geometry">
      <rect>
-      <x>28</x>
-      <y>8</y>
+      <x>18</x>
+      <y>12</y>
       <width>237</width>
       <height>75</height>
      </rect>

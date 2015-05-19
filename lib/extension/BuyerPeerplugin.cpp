@@ -506,6 +506,11 @@ bool BuyerPeerPlugin::write_request(libtorrent::peer_request const & peerRequest
     return true;
 }
 
+
+void BuyerPeerPlugin::close_connection() {
+    _connection->disconnect(_deletionErrorCode);
+}
+
 /**
 quint32 BuyerPeerPlugin::refillPipeline() {
 

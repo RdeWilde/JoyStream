@@ -168,7 +168,7 @@ public:
 
     virtual PluginMode pluginMode() const = 0;
     virtual QList<libtorrent::tcp::endpoint> endPoints() const = 0;
-    virtual const PeerPlugin * peerPlugin(const libtorrent::tcp::endpoint & endPoint) const = 0;
+    //virtual const PeerPlugin * peerPlugin(const libtorrent::tcp::endpoint & endPoint) const = 0;
 
     //virtual const TorrentPlugin::Configuration getTorrentPluginConfiguration() = 0;
 
@@ -186,6 +186,7 @@ protected:
     Plugin * _plugin;
 
     // Torrent for this torrent_plugin
+    // Should this be weak_ptr really?
     boost::shared_ptr<libtorrent::torrent> _torrent;
 
     // Set of all endpoints known to not have extension. Is populated by previous failed extended handshakes.

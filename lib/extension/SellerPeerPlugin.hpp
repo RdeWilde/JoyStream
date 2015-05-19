@@ -269,6 +269,9 @@ public:
     // Called when piece reading failed
     void pieceReadFailed(int piece);
 
+    // Closes the peer connection
+    void close_connection();
+
     //
     //quint64 totalReceivedSinceStart() const;
 

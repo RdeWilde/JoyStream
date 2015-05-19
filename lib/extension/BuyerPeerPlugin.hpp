@@ -231,6 +231,8 @@ public:
 
     //quint32 refillPipeline();
 
+    void close_connection();
+
     Status status() const;
 
     // Getters and setters

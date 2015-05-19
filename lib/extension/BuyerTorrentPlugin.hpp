@@ -277,7 +277,7 @@ public:
     // Getters and setters
     virtual PluginMode pluginMode() const;
     QList<libtorrent::tcp::endpoint> endPoints() const;
-    const PeerPlugin * peerPlugin(const libtorrent::tcp::endpoint & endPoint) const;
+    //const PeerPlugin * peerPlugin(const libtorrent::tcp::endpoint & endPoint) const;
 
     State state() const;
     void setState(const State & state);
@@ -307,10 +307,12 @@ private:
     // Maps endpoint to weak peer plugin pointer, is peer_plugin, since this is
     // the type of weak_ptr libtrrrent requires, hence might as well put it
     // in this type, rather than corresponding subclass of TorrentPlugin.
-    QMap<libtorrent::tcp::endpoint, boost::shared_ptr<BuyerPeerPlugin> > _peers;
+    QMap<libtorrent::tcp::endpoint, boost::weak_ptr<BuyerPeerPlugin> > _peers;
 
     // Wallet
     Wallet * _wallet;
+
+
 
         /**
          * Remove these later? perhaps just keep in Payor.
@@ -327,6 +329,9 @@ private:
 
         // Number of sellers
         quint32 _numberOfSellers;
+
+
+
 
     // Payment channel
     Payor _payor;

@@ -234,7 +234,7 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
     boost::shared_ptr<SellerPeerPlugin> sharedPeerPluginPtr(peerPlugin);
 
     // Add to collection
-    _peers[endPoint] = sharedPeerPluginPtr;
+    _peers[endPoint] = boost::weak_ptr<SellerPeerPlugin>(sharedPeerPluginPtr);
 
     // Return pointer to plugin as required
     return sharedPeerPluginPtr;
@@ -418,15 +418,25 @@ SellerTorrentPlugin::Status SellerTorrentPlugin::status() const {
     // Create map for peer plugin statuses
     QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> peerStatuses;
 
-    for(QMap<libtorrent::tcp::endpoint, boost::shared_ptr<SellerPeerPlugin> >::const_iterator
+    for(QMap<libtorrent::tcp::endpoint, boost::weak_ptr<SellerPeerPlugin> >::const_iterator
         i = _peers.constBegin(),
-        end = _peers.constEnd(); i != end;i++) {
+        end = _peers.constEnd();
+        i != end;i++) {
 
         // Get peer
-        const boost::shared_ptr<SellerPeerPlugin> & peer = i.value();
+        const boost::weak_ptr<SellerPeerPlugin> weakPtr = i.value();
 
-        // Compute status and save in map
-        peerStatuses[i.key()] = peer->status();
+        // Make sure peer plugin is still valid
+        if(const boost::shared_ptr<SellerPeerPlugin> sharedPtr = weakPtr.lock()) {
+
+            // Compute status and save in map
+            peerStatuses[i.key()] = sharedPtr->status();
+
+        } else {
+
+            // Peer entry will instead be deleted in delete routine,
+            // doing it here undermines the const correctness of routine.
+        }
     }
 
     // Compute base level status
@@ -456,6 +466,7 @@ QList<libtorrent::tcp::endpoint> SellerTorrentPlugin::endPoints() const {
     return _peers.keys();
 }
 
+/**
 const PeerPlugin * SellerTorrentPlugin::peerPlugin(const libtorrent::tcp::endpoint & endPoint) const {
 
     if(_peers.contains(endPoint)) {
@@ -466,6 +477,7 @@ const PeerPlugin * SellerTorrentPlugin::peerPlugin(const libtorrent::tcp::endpoi
     }
         return NULL;
 }
+*/
 
 /**
 int SellerTorrentPlugin::disk_async_read_piece(SellerPeerPlugin * peer) {
@@ -638,29 +650,41 @@ int SellerTorrentPlugin::deleteAndDisconnectPeers() {
     int count = 0;
 
     // Iterate peers
-    for(QMap<libtorrent::tcp::endpoint, boost::shared_ptr<SellerPeerPlugin> >::iterator
+    for(QMap<libtorrent::tcp::endpoint, boost::weak_ptr<SellerPeerPlugin> >::iterator
         i = _peers.begin(),
         end = _peers.end();
         i != end;i++) {
 
         // Get pointer
-        boost::shared_ptr<SellerPeerPlugin> ptr = i.value();
+        boost::weak_ptr<SellerPeerPlugin> weakPtr = i.value();
 
-        // Check if peer plugin is installed
-        if(ptr->scheduledForDeletingInNextTorrentPluginTick()) {
+        // Check if plugin object still exists
+        if(boost::shared_ptr<SellerPeerPlugin> sharedPtr = weakPtr.lock()) {
 
-            // Disconnect connection
-            ptr->connection()->disconnect(ptr->deletionErrorCode());
+            // Check if peer plugin is installed
+            if(sharedPtr->scheduledForDeletingInNextTorrentPluginTick()) {
+
+                // Disconnect connection
+                sharedPtr->close_connection();
+
+                /**
+                 * SEND ALERT, but notice that this peer may never actually have
+                 * been announced if it was never accepted in new_connection.
+                 */
+
+                // Delete plugin from map
+                i = _peers.erase(i);
+
+                // Count removal FROM MAP, object may have been deleted by libtorrent
+                count++;
+            }
+
+        } else {
 
             // Delete plugin from map
             i = _peers.erase(i);
 
-            /**
-             * SEND ALERT, but notice that this peer may never actually have
-             * been announced if it was never accepted in new_connection.
-             */
-
-            // Count deletion
+            // Count removal FROM MAP, object may have been deleted by libtorrent
             count++;
         }
     }

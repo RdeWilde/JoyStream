@@ -791,6 +791,10 @@ void SellerPeerPlugin::pieceReadFailed(int piece) {
     throw std::exception("Reading piece failed.");
 }
 
+void SellerPeerPlugin::close_connection() {
+    _connection->disconnect(_deletionErrorCode);
+}
+
 SellerPeerPlugin::Status SellerPeerPlugin::status() const {
 
     return Status(_peerModeAnnounced,

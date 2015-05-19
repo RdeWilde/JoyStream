@@ -386,12 +386,12 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
     // a null is returned, hence plugin is not installed
     if(!TorrentPlugin::isPeerWellBehaved(peerConnection)) {
 
-        qCDebug(_category) << "Peer is on ban list, rejected connection from peer, peer plugin not installed.";
+        qCDebug(_category) << "Peer is on ban list, scheduling peer for disconnection and plugin for deletion.";
         peerPlugin = new BuyerPeerPlugin(this, btConnection, true, _category);
 
     } else if(_peers.contains(endPoint)) {
 
-        qCDebug(_category) << "Already added peer, rejected connection from peer, peer plugin not installed.";
+        qCDebug(_category) << "Already added peer, scheduling peer for disconnection and plugin for deletion.";
         peerPlugin = new BuyerPeerPlugin(this, btConnection, true, _category);
 
     } else {
@@ -636,7 +636,7 @@ bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, c
     if(_payor.allRefundsSigned()) {
 
         // Construct and broadcast contract
-        _payor.broadcast_contract();
+        //_payor.broadcast_contract();
 
         // Register tx fee we are spending
         _plugin->registerSentFunds(_payor.contractFee(_numberOfSellers, _maxFeePerKb));
@@ -852,21 +852,28 @@ quint64 BuyerTorrentPlugin::totalCurrentlyLockedInChannels() const {
 
 BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
 
-    // Get
+    // Create map for peer plugin statuses
     QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> peerPluginStatuses;
 
-    for(QMap<libtorrent::tcp::endpoint, boost::shared_ptr<BuyerPeerPlugin> >::const_iterator i = _peers.constBegin(),
-         end(_peers.constEnd());i != end;i++) {
+    for(QMap<libtorrent::tcp::endpoint, boost::weak_ptr<BuyerPeerPlugin> >::const_iterator
+        i = _peers.constBegin(),
+        end = _peers.constEnd();
+        i != end;i++) {
 
         // Get peer
-        boost::shared_ptr<BuyerPeerPlugin> peer = i.value();
+        boost::weak_ptr<BuyerPeerPlugin> weakPtr = i.value();
 
-        // Count how much has been paid to this peer
-        //balance += peer->numberOfBlocksReceived() * _payor.channels()[peer->payorSlot()].price();
+        // Make sure peer plugin is still valid
+        if(const boost::shared_ptr<BuyerPeerPlugin> sharedPtr = weakPtr.lock()) {
 
-        // Compute status and save in map
-        peerPluginStatuses[i.key()] = peer->status();
+            // Compute status and save in map
+            peerPluginStatuses[i.key()] = sharedPtr->status();
 
+        } else {
+
+            // Peer entry will instead be deleted in delete routine,
+            // doing it here undermines the const correctness of routine.
+        }
     }
 
     // Compute base level status
@@ -978,6 +985,7 @@ BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
      return _peers.keys();
  }
 
+ /**
  const PeerPlugin * BuyerTorrentPlugin::peerPlugin(const libtorrent::tcp::endpoint & endPoint) const {
 
      if(_peers.contains(endPoint)) {
@@ -988,6 +996,7 @@ BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
      }
          return NULL;
  }
+*/
 
  // ** NEEDS TO BE ABSTRACTED TO PARENT CLASS **
  int BuyerTorrentPlugin::deleteAndDisconnectPeers() {
@@ -996,29 +1005,41 @@ BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
      int count = 0;
 
      // Iterate peers
-     for(QMap<libtorrent::tcp::endpoint, boost::shared_ptr<BuyerPeerPlugin> >::iterator
+     for(QMap<libtorrent::tcp::endpoint, boost::weak_ptr<BuyerPeerPlugin> >::iterator
          i = _peers.begin(),
          end = _peers.end();
          i != end;i++) {
 
          // Get pointer
-         boost::shared_ptr<BuyerPeerPlugin> ptr = i.value();
+         boost::weak_ptr<BuyerPeerPlugin> weakPtr = i.value();
 
-         // Check if peer plugin is installed
-         if(ptr->scheduledForDeletingInNextTorrentPluginTick()) {
+         // Check if plugin object still exists
+         if(boost::shared_ptr<BuyerPeerPlugin> sharedPtr = weakPtr.lock()) {
 
-             // Disconnect connection
-             ptr->connection()->disconnect(ptr->deletionErrorCode());
+             // Check if peer plugin is installed
+             if(sharedPtr->scheduledForDeletingInNextTorrentPluginTick()) {
+
+                 // Disconnect connection
+                 sharedPtr->close_connection();
+
+                 /**
+                  * SEND ALERT, but notice that this peer may never actually have
+                  * been announced if it was never accepted in new_connection.
+                  */
+
+                 // Delete plugin from map
+                 i = _peers.erase(i);
+
+                 // Count removal FROM MAP, object may have been deleted by libtorrent
+                 count++;
+             }
+
+         } else {
 
              // Delete plugin from map
              i = _peers.erase(i);
 
-             /**
-              * SEND ALERT, but notice that this peer may never actually have
-              * been announced if it was never accepted in new_connection.
-              */
-
-             // Count deletion
+             // Count removal FROM MAP, object may have been deleted by libtorrent
              count++;
          }
      }

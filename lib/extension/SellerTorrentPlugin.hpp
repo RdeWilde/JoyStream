@@ -194,7 +194,7 @@ public:
     // Creates configuratin for plugin
     Configuration configuration() const;
     QList<libtorrent::tcp::endpoint> endPoints() const;
-    const PeerPlugin * peerPlugin(const libtorrent::tcp::endpoint & endPoint) const;
+    //const PeerPlugin * peerPlugin(const libtorrent::tcp::endpoint & endPoint) const;
 
     // Getters and setters
     virtual PluginMode pluginMode() const;
@@ -219,7 +219,7 @@ private:
     // Maps endpoint to weak peer plugin pointer, is peer_plugin, since this is
     // the type of weak_ptr libtrrrent requires, hence might as well put it
     // in this type, rather than corresponding subclass of TorrentPlugin.
-    QMap<libtorrent::tcp::endpoint, boost::shared_ptr<SellerPeerPlugin> > _peers;
+    QMap<libtorrent::tcp::endpoint, boost::weak_ptr<SellerPeerPlugin> > _peers;
 
     // Maintains mapping between piece index and peers that are waiting for this.
     // Will typically just be one, but may be multiple - hence QSet is used
