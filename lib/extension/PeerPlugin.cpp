@@ -294,7 +294,8 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
         qCDebug(_category) << "m key does not contain mapping for all messages.";
 
         // Do no keep extension around
-        return false;
+        //return false;
+        return true;
     }
 
     // Notify

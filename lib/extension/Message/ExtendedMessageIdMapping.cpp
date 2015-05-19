@@ -35,6 +35,13 @@ ExtendedMessageIdMapping::ExtendedMessageIdMapping(const std::map<std::string, l
     for(std::map<std::string, libtorrent::entry>::const_iterator i = m.begin(),
             end(m.end()); i != end;i++) {
 
+        /**
+         * The reason we do not break if we get a mismatch is
+         * because all m keys will contain mappings not for
+         * our extension, so we have to go through it all and
+         * recover all mappings which pertain to us.
+         */
+
         try {
 
             // Try to convert string to message type
@@ -46,6 +53,7 @@ ExtendedMessageIdMapping::ExtendedMessageIdMapping(const std::map<std::string, l
         } catch(std::exception e) {
             // This was not a message for this extension
         }
+
     }
 }
 

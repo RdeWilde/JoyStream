@@ -377,6 +377,7 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
     qCDebug(_category) << "New connection with " << endPointString.c_str(); // << "on " << _torrent->name().c_str();
 
     // Create bittorrent peer connection
+    Q_ASSERT(peerConnection->type() == libtorrent::peer_connection::bittorrent_connection);
     libtorrent::bt_peer_connection * btConnection = static_cast<libtorrent::bt_peer_connection*>(peerConnection);
 
     // Create seller buyer peer plugin
@@ -409,7 +410,7 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
     boost::shared_ptr<BuyerPeerPlugin> sharedPeerPluginPtr(peerPlugin);
 
     // Add to collection
-    _peers[endPoint] = sharedPeerPluginPtr;
+    _peers[endPoint] = boost::weak_ptr<BuyerPeerPlugin>(sharedPeerPluginPtr);
 
     // Return pointer to plugin as required
     return sharedPeerPluginPtr;
@@ -1008,7 +1009,7 @@ BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
      for(QMap<libtorrent::tcp::endpoint, boost::weak_ptr<BuyerPeerPlugin> >::iterator
          i = _peers.begin(),
          end = _peers.end();
-         i != end;i++) {
+         i != end;) { // We do not uconditionally increment iterator (i++), since we may erase in loop
 
          // Get pointer
          boost::weak_ptr<BuyerPeerPlugin> weakPtr = i.value();
@@ -1032,7 +1033,8 @@ BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
 
                  // Count removal FROM MAP, object may have been deleted by libtorrent
                  count++;
-             }
+             } else
+                 i++;
 
          } else {
 

@@ -239,8 +239,8 @@
    <widget class="QLabel" name="logoLabel">
     <property name="geometry">
      <rect>
-      <x>18</x>
-      <y>12</y>
+      <x>56</x>
+      <y>8</y>
       <width>237</width>
       <height>75</height>
      </rect>
