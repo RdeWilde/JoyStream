@@ -398,6 +398,11 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
 
         qCDebug(_category) << "Installed buyer plugin #" << _peers.count() << endPointString.c_str();
         peerPlugin = new BuyerPeerPlugin(this, btConnection, false, _category);
+
+        // Alert that peer was added
+        sendTorrentPluginAlert(BuyerPeerAddedAlert(_torrent->info_hash(),
+                                                   endPoint,
+                                                   peerPlugin->status()));
     }
 
     // Create shared pointer
@@ -405,11 +410,6 @@ boost::shared_ptr<libtorrent::peer_plugin> BuyerTorrentPlugin::new_connection(li
 
     // Add to collection
     _peers[endPoint] = sharedPeerPluginPtr;
-
-    // Alert that peer was added
-    sendTorrentPluginAlert(BuyerPeerAddedAlert(_torrent->info_hash(),
-                                               endPoint,
-                                               peerPlugin->status()));
 
     // Return pointer to plugin as required
     return sharedPeerPluginPtr;
@@ -1012,6 +1012,11 @@ BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
 
              // Delete plugin from map
              i = _peers.erase(i);
+
+             /**
+              * SEND ALERT, but notice that this peer may never actually have
+              * been announced if it was never accepted in new_connection.
+              */
 
              // Count deletion
              count++;

@@ -6,16 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1076</width>
+    <width>1088</width>
     <height>340</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>JoyStream [prototype]</string>
-  </property>
-  <property name="windowIcon">
-   <iconset>
-    <normaloff>../../../resources/BitSwapr_mark_32.png</normaloff>../../../resources/BitSwapr_mark_32.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QTableView" name="torrentsTable">
@@ -23,7 +19,7 @@
      <rect>
       <x>8</x>
       <y>98</y>
-      <width>1061</width>
+      <width>1073</width>
       <height>221</height>
      </rect>
     </property>
@@ -36,7 +32,7 @@
    <widget class="QPushButton" name="addTorrentFilePushButton">
     <property name="geometry">
      <rect>
-      <x>306</x>
+      <x>320</x>
       <y>28</y>
       <width>111</width>
       <height>39</height>
@@ -54,8 +50,8 @@
    <widget class="QPushButton" name="addMagnetLinkPushButton">
     <property name="geometry">
      <rect>
-      <x>188</x>
-      <y>28</y>
+      <x>320</x>
+      <y>72</y>
       <width>111</width>
       <height>39</height>
      </rect>
@@ -212,7 +208,7 @@
    <widget class="QPushButton" name="walletPushButton">
     <property name="geometry">
      <rect>
-      <x>432</x>
+      <x>446</x>
       <y>28</y>
       <width>111</width>
       <height>39</height>
@@ -230,7 +226,7 @@
    <widget class="Line" name="line_3">
     <property name="geometry">
      <rect>
-      <x>424</x>
+      <x>438</x>
       <y>18</y>
       <width>3</width>
       <height>61</height>
@@ -243,17 +239,14 @@
    <widget class="QLabel" name="logoLabel">
     <property name="geometry">
      <rect>
-      <x>34</x>
-      <y>16</y>
-      <width>133</width>
-      <height>61</height>
+      <x>28</x>
+      <y>8</y>
+      <width>237</width>
+      <height>75</height>
      </rect>
     </property>
     <property name="text">
      <string/>
-    </property>
-    <property name="pixmap">
-     <pixmap>images/joy_small.png</pixmap>
     </property>
    </widget>
   </widget>

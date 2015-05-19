@@ -46,6 +46,10 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet, QLoggingCategor
 
     ui->setupUi(this);
 
+    // Set logo the ugly way since resources are not working
+    QPixmap map("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/images/joystream-transparent-logo.png");
+    ui->logoLabel->setPixmap(map);
+
     // Alter window title
     QString categoryName = _category.categoryName();
     QString title;

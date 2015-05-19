@@ -203,36 +203,38 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
     libtorrent::bt_peer_connection * bittorrentPeerConnection = static_cast<libtorrent::bt_peer_connection*>(peerConnection);
 
     // Create shared pointer to new seller peer plugin
-    SellerPeerPlugin * peerPlugin;
+    SellerPeerPlugin * peerPlugin = NULL;
 
     // Check if this peer should be accepted, if not
     // a null is returned, hence plugin is not installed
     if(!TorrentPlugin::isPeerWellBehaved(peerConnection)) {
 
-        qCDebug(_category) << "Peer is on ban list, rejected connection from peer, peer plugin not installed.";
+        qCDebug(_category) << "Peer is on ban list, scheduling peer for disconnection and plugin for deletion.";
         peerPlugin = createSellerPeerPluginScheduledForDeletion(bittorrentPeerConnection);
 
     } else if(_peers.contains(endPoint)) {
 
-        qCDebug(_category) << "Already added peer, rejected connection from peer, peer plugin not installed.";
+        qCDebug(_category) << "Already added peer, scheduling peer for disconnection and plugin for deletion.";
         peerPlugin = createSellerPeerPluginScheduledForDeletion(bittorrentPeerConnection);
 
     } else {
 
         qCDebug(_category) << "Installed seller plugin #" << _peers.size() << endPointString.c_str();
         peerPlugin = createRegularSellerPeerPlugin(bittorrentPeerConnection);
+
+        // Alert that peer was added
+        sendTorrentPluginAlert(SellerPeerAddedAlert(_torrent->info_hash(),
+                                                   endPoint,
+                                                   peerPlugin->status()));
     }
+
+    Q_ASSERT(peerPlugin != NULL);
 
     // Create shared pointer
     boost::shared_ptr<SellerPeerPlugin> sharedPeerPluginPtr(peerPlugin);
 
     // Add to collection
     _peers[endPoint] = sharedPeerPluginPtr;
-
-    // Alert that peer was added
-    sendTorrentPluginAlert(SellerPeerAddedAlert(_torrent->info_hash(),
-                                               endPoint,
-                                               peerPlugin->status()));
 
     // Return pointer to plugin as required
     return sharedPeerPluginPtr;
@@ -652,6 +654,11 @@ int SellerTorrentPlugin::deleteAndDisconnectPeers() {
 
             // Delete plugin from map
             i = _peers.erase(i);
+
+            /**
+             * SEND ALERT, but notice that this peer may never actually have
+             * been announced if it was never accepted in new_connection.
+             */
 
             // Count deletion
             count++;
