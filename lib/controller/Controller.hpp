@@ -31,6 +31,8 @@ class StartedSellerTorrentPlugin;
 class StartedBuyerTorrentPlugin;
 class SellerPeerAddedAlert;
 class BuyerPeerAddedAlert;
+class SellerPeerPluginRemovedAlert;
+class BuyerPeerPluginRemovedAlert;
 
 namespace libtorrent {
     class peer_connection;
@@ -76,6 +78,10 @@ public:
 
             // User has to specify torrent plugin configuration,
             // is set when user dialog is started
+            //
+            // ** THIS SHOULD POTENTIALLY BE REMOVED, IS TO
+            // TIGHTLY COUPLED WITH VIEW DETAILS,
+            // FIND BETTER SOLUTION**
             torrent_plugin_configuration_from_user,
 
             //
@@ -431,11 +437,26 @@ public:
     // Destructor
     ~Controller();
 
+    /**
+     * Libtorrent entry points
+     */
+
     // Callback routine called by libtorrent dispatcher routine
+    //
+    // * CRITICAL:
+    // * Do not under any circumstance make a new call to libtorrent in this routine, since the network
+    // * thread in libtorrent will be making this call, and a new call will result in a dead lock.
+    //
     void libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::alert> alertAutoPtr);
 
     // Invocations of this method are queued, and dispatcher callback
     Q_INVOKABLE void processAlert(libtorrent::alert const * a);
+
+    /**
+     * Plugin entry points
+     */
+    Q_INVOKABLE void sellerPeerPluginRemoved(const libtorrent::sha1_hash & infoHash, const libtorrent::tcp::endpoint & endPoint);
+
 
     /**
      * View entry points
@@ -578,6 +599,10 @@ private:
 
     void processSellerPeerAddedAlert(const SellerPeerAddedAlert * p);
     void processBuyerPeerAddedAlert(const BuyerPeerAddedAlert * p);
+
+    void processSellerPeerPluginRemovedAlert(const SellerPeerPluginRemovedAlert * p);
+    void processBuyerPeerPluginRemovedAlert(const BuyerPeerPluginRemovedAlert * p);
+
 
     // Status
     void update(const std::vector<libtorrent::torrent_status> & statuses);

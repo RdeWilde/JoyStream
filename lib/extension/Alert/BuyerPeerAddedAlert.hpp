@@ -10,7 +10,7 @@ class BuyerPeerAddedAlert : public TorrentPluginAlert
 public:
 
     // Public member required for alert_cast
-    const static int alert_type = BUYER_PEER_ADDED_ALERT_ID;
+    const static int alert_type = BUYER_PEER_PLUGIN_ADDED_ALERT_ID;
 
     // Constructor from members
     BuyerPeerAddedAlert(const libtorrent::sha1_hash & infoHash,
@@ -29,10 +29,10 @@ public:
 
     // Getters and setters
     libtorrent::tcp::endpoint endPoint() const;
-    void setEndPoint(const libtorrent::tcp::endpoint &endPoint);
+    //void setEndPoint(const libtorrent::tcp::endpoint &endPoint);
 
     BuyerPeerPlugin::Status status() const;
-    void setStatus(const BuyerPeerPlugin::Status &status);
+    //void setStatus(const BuyerPeerPlugin::Status &status);
 
 private:
 

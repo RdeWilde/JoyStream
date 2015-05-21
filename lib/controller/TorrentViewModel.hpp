@@ -41,6 +41,9 @@ public:
     void addPeer(const libtorrent::tcp::endpoint & endPoint, const SellerPeerPlugin::Status & status);
     void addPeer(const libtorrent::tcp::endpoint & endPoint, const BuyerPeerPlugin::Status & status);
 
+    // Remove peer
+    void removePeer(const libtorrent::tcp::endpoint & endPoint);
+
     // Update
     void update(const libtorrent::torrent_status & status);
     void update(const SellerTorrentPlugin::Status & status);

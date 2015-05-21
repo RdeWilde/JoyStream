@@ -980,6 +980,8 @@ void Controller::Configuration::setLibtorrentSessionSettingsEntry(const libtorre
 //#include "extension/Alert/TorrentPluginStartedAlert.hpp"
 #include "extension/Alert/SellerPeerAddedAlert.hpp"
 #include "extension/Alert/BuyerPeerAddedAlert.hpp"
+#include "extension/Alert/SellerPeerPluginRemovedAlert.hpp"
+#include "extension/Alert/BuyerPeerPluginRemovedAlert.hpp"
 
 //#include "extension/Request/SetConfigurationTorrentPluginRequest.hpp"
 //#include "extension/Request/StartPluginTorrentPluginRequest.hpp"
@@ -1151,14 +1153,9 @@ void Controller::removePeerPlugin(libtorrent::sha1_hash info_hash, libtorrent::t
 
 void Controller::libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::alert> alertAutoPtr) {
 
-    /**
-     * CRITICAL:
-     * Do not under any circumstance make a new call to libtorrent in this routine, since the network
-     * thread in libtorrent will be making this call, and a new call will result in a dead lock.
-     */
-
     // Grab alert pointer and release the auto pointer, this way the alert is not automatically
-    // deleted when alertAutoPtr goes out of scope. Registering auto_ptr with MOC is not worth trying.
+    // deleted when alertAutoPtr goes out of scope.
+    // **Registering auto_ptr with MOC is not worth trying**
     const libtorrent::alert * a = alertAutoPtr.release();
 
     // Tell bitswapr thread to run processAlert later with given alert as argument
@@ -1219,12 +1216,20 @@ void Controller::processAlert(const libtorrent::alert * a) {
         processSellerPeerAddedAlert(p);
     else if(const BuyerPeerAddedAlert * p = libtorrent::alert_cast<BuyerPeerAddedAlert>(a))
         processBuyerPeerAddedAlert(p);
+    else if(const SellerPeerPluginRemovedAlert * p = libtorrent::alert_cast<SellerPeerPluginRemovedAlert>(a))
+        processSellerPeerPluginRemovedAlert(p);
+    else if(const BuyerPeerPluginRemovedAlert * p = libtorrent::alert_cast<BuyerPeerPluginRemovedAlert>(a))
+        processBuyerPeerPluginRemovedAlert(p);
 
     //else if(const TorrentPluginStartedAlert * p = libtorrent::alert_cast<TorrentPluginStartedAlert>(a))
     //    processTorrentPluginStartedAlert(p);
 
     // Delete alert
     delete a;
+}
+
+void Controller::sellerPeerPluginRemoved(const libtorrent::sha1_hash & infoHash, const libtorrent::tcp::endpoint & endPoint) {
+
 }
 
 /**
@@ -1620,6 +1625,32 @@ void Controller::processBuyerPeerAddedAlert(const BuyerPeerAddedAlert * p) {
     Torrent * torrent = _torrents[p->infoHash()];
 
     torrent->model()->addPeer(p->endPoint(), p->status());
+}
+
+void Controller::processSellerPeerPluginRemovedAlert(const SellerPeerPluginRemovedAlert * p) {
+
+    Q_ASSERT(_torrents.contains(p->infoHash()));
+
+    // Grab torrent
+    Torrent * torrent = _torrents[p->infoHash()];
+
+    Q_ASSERT(torrent->pluginInstalled() == PluginInstalled::Seller);
+
+    // Notify view model
+    torrent->model()->removePeer(p->endPoint());
+}
+
+void Controller::processBuyerPeerPluginRemovedAlert(const BuyerPeerPluginRemovedAlert * p) {
+
+    Q_ASSERT(_torrents.contains(p->infoHash()));
+
+    // Grab torrent
+    Torrent * torrent = _torrents[p->infoHash()];
+
+    Q_ASSERT(torrent->pluginInstalled() == PluginInstalled::Buyer);
+
+    // Notify view model
+    torrent->model()->removePeer(p->endPoint());
 }
 
 void Controller::update(const std::vector<libtorrent::torrent_status> & statuses) {

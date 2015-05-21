@@ -38,14 +38,18 @@ libtorrent::tcp::endpoint BuyerPeerAddedAlert::endPoint() const {
     return _endPoint;
 }
 
+/**
 void BuyerPeerAddedAlert::setEndPoint(const libtorrent::tcp::endpoint & endPoint) {
     _endPoint = endPoint;
 }
+*/
 
 BuyerPeerPlugin::Status BuyerPeerAddedAlert::status() const {
     return _status;
 }
 
+/**
 void BuyerPeerAddedAlert::setStatus(const BuyerPeerPlugin::Status & status) {
     _status = status;
 }
+*/

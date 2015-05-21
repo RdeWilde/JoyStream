@@ -1,5 +1,5 @@
-#ifndef SELLER_PEER_ADDED_ALERT_HPP
-#define SELLER_PEER_ADDED_ALERT_HPP
+#ifndef SELLER_PEER_PLUGIN_ADDED_ALERT_HPP
+#define SELLER_PEER_PLUGIN_ADDED_ALERT_HPP
 
 #include "TorrentPluginAlert.hpp"
 #include "AlertTypes.hpp"
@@ -10,7 +10,7 @@ class SellerPeerAddedAlert : public TorrentPluginAlert
 public:
 
     // Public member required for alert_cast
-    const static int alert_type = SELLER_PEER_ADDED_ALERT_ID;
+    const static int alert_type = SELLER_PEER_PLUGIN_ADDED_ALERT_ID;
 
     // Constructor from members
     SellerPeerAddedAlert(const libtorrent::sha1_hash & infoHash,
@@ -43,4 +43,4 @@ private:
     SellerPeerPlugin::Status _status;
 };
 
-#endif // SELLER_PEER_ADDED_ALERT_HPP
+#endif // SELLER_PEER_PLUGIN_ADDED_ALERT_HPP

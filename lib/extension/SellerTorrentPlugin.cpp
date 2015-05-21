@@ -160,6 +160,7 @@ PluginMode SellerTorrentPlugin::Configuration::pluginMode() const {
 #include "BitCoin/Wallet.hpp"
 #include "Alert/SellerTorrentPluginStatusAlert.hpp"
 #include "Alert/SellerPeerAddedAlert.hpp"
+#include "Alert/SellerPeerPluginRemovedAlert.hpp"
 
 SellerTorrentPlugin::SellerTorrentPlugin(Plugin * plugin,
                                          const boost::shared_ptr<libtorrent::torrent> & torrent,
@@ -427,7 +428,6 @@ void SellerTorrentPlugin::on_peer_plugin_disconnect(SellerPeerPlugin * peerPlugi
 
     qCDebug(_category) << "on_disconnect ["<< (peerPlugin->connection()->is_outgoing() ? "outgoing" : "incoming") << "]:" << ec.message().c_str();
 
-
     if(!peerPlugin->scheduledForDeletingInNextTorrentPluginTick()) {
 
         // Scheduled for deletion <=> must NOT be in peers map
@@ -449,6 +449,9 @@ void SellerTorrentPlugin::on_peer_plugin_disconnect(SellerPeerPlugin * peerPlugi
 
         // Place in deletion list
         _peersScheduledForDeletion.append(weakPtr);
+
+        // Send alert for peer plugin removal
+        sendTorrentPluginAlert(SellerPeerPluginRemovedAlert(_torrent->info_hash(), sharedPtr->endPoint()));
 
     } else {
 

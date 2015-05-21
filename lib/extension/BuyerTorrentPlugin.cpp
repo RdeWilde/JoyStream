@@ -191,6 +191,7 @@ void BuyerTorrentPlugin::Configuration::setNumberOfSellers(quint32 numberOfSelle
 
 #include "Alert/BuyerTorrentPluginStatusAlert.hpp"
 #include "Alert/BuyerPeerAddedAlert.hpp"
+#include "Alert/BuyerPeerPluginRemovedAlert.hpp"
 
 #include "BitCoin/BitSwaprjs.hpp"
 #include "BitCoin/Wallet.hpp"
@@ -892,6 +893,9 @@ void BuyerTorrentPlugin::on_peer_plugin_disconnect(BuyerPeerPlugin * peerPlugin,
 
         // Place in deletion list
         _peersScheduledForDeletion.append(weakPtr);
+
+        // Send alert for peer plugin removal
+        sendTorrentPluginAlert(BuyerPeerPluginRemovedAlert(_torrent->info_hash(), sharedPtr->endPoint()));
 
     } else {
 

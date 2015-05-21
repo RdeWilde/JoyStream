@@ -20,6 +20,9 @@ public:
     // Add a model view for a new seller peer plugin
     void addPeer(const libtorrent::tcp::endpoint & endPoint, const SellerPeerPlugin::Status & status);
 
+    // Remove a model view for an existing seller peer plugin
+    void removePeer(const libtorrent::tcp::endpoint & endPoint);
+
     // Update
     void update(const SellerTorrentPlugin::Status & status);
 
@@ -57,6 +60,7 @@ signals:
 
     // Peer added
     void peerAdded(const SellerPeerPluginViewModel * model);
+    void peerRemoved(const libtorrent::tcp::endpoint & endPoint);
 
 private:
 

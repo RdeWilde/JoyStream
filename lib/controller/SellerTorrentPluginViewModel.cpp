@@ -69,6 +69,20 @@ void SellerTorrentPluginViewModel::addPeer(const libtorrent::tcp::endpoint & end
     emit peerAdded(model);
 }
 
+void SellerTorrentPluginViewModel::removePeer(const libtorrent::tcp::endpoint & endPoint) {
+
+    Q_ASSERT(_sellerPeerPluginViewModels.contains(endPoint));
+
+    // Remove view model
+    SellerPeerPluginViewModel * model = _sellerPeerPluginViewModels.take(endPoint);
+
+    // Delete model
+    delete model;
+
+    // Notify about event
+    emit peerRemoved(endPoint);
+}
+
 void SellerTorrentPluginViewModel::update(const SellerTorrentPlugin::Status & status) {
 
     if(_minPrice != status.minPrice()) {
