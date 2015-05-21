@@ -8,7 +8,7 @@
 
 SellerPeerPluginView::SellerPeerPluginView(QObject * parent,
                                            const SellerPeerPluginViewModel * peerModel,
-                                           QStandardItemModel * model)
+                                           QStandardItemModel * itemModel)
     : QObject(parent)
     , _endPointItem(new QStandardItem())
     , _clientStateItem(new QStandardItem())
@@ -17,7 +17,8 @@ SellerPeerPluginView::SellerPeerPluginView(QObject * parent,
     , _refundLockTimeItem(new QStandardItem())
     , _priceItem(new QStandardItem())
     , _numberOfPaymentMadeItem(new QStandardItem())
-    , _balanceItem(new QStandardItem()) {
+    , _balanceItem(new QStandardItem())
+    , _itemModel(itemModel) {
 
     // Add row to model
     QList<QStandardItem *> items;
@@ -31,7 +32,7 @@ SellerPeerPluginView::SellerPeerPluginView(QObject * parent,
           << _numberOfPaymentMadeItem
           << _balanceItem;
 
-    model->appendRow(items);
+    _itemModel->appendRow(items);
 
     // Center content
     _endPointItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
@@ -76,6 +77,12 @@ SellerPeerPluginView::SellerPeerPluginView(QObject * parent,
                      this,
                      SLOT(updateFunds(quint64)));
 
+}
+
+SellerPeerPluginView::~SellerPeerPluginView() {
+
+    // Release row
+    _itemModel->removeRow(_clientStateItem->row());
 }
 
 QString SellerPeerPluginView::endPointToString(const libtorrent::tcp::endpoint & endPoint) {

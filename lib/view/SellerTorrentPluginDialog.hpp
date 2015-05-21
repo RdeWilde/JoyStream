@@ -40,6 +40,9 @@ public slots:
     // Adds peer
     void addPeer(const SellerPeerPluginViewModel * model);
 
+    // Remove peer
+    void removePeer(const libtorrent::tcp::endpoint & endPoint);
+
     // Update present configuration??
     // May be relevant, e.g. if another view changes it,
     // but we would need to add plugin Alert for this.

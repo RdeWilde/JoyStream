@@ -15,9 +15,14 @@ class BuyerPeerPluginView : public QObject
 {
     Q_OBJECT
 public:
+
+    // Constructor
     BuyerPeerPluginView(QObject * parent,
                         const BuyerPeerPluginViewModel * peerModel,
-                        QStandardItemModel * model);
+                        QStandardItemModel * itemModel);
+
+    // Destructor
+    ~BuyerPeerPluginView();
 
     // Text conversion routines
     static QString endPointToString(const libtorrent::tcp::endpoint & endPoint);
@@ -34,6 +39,9 @@ public slots:
     void updatePayorSlot(quint32 payorSlot);
 
 private:
+
+    // Reference to model which takes ownership of items
+    QStandardItemModel * _itemModel;
 
     // View model pointers
     // Objects are owned by QStandardItemModel passed to ctr

@@ -45,6 +45,7 @@ public slots:
     // Adds channels and peers,
     //void addChannel(const ChannelViewModel * model);
     void addPeer(const BuyerPeerPluginViewModel * model);
+    void removePeer(const libtorrent::tcp::endpoint & endPoint);
 
     // Update
     void updatePluginState(BuyerTorrentPlugin::State state);

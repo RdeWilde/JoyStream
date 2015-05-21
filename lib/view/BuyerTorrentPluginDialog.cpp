@@ -53,6 +53,11 @@ BuyerTorrentPluginDialog::BuyerTorrentPluginDialog(QWidget * parent,
                      SLOT(addPeer(const BuyerPeerPluginViewModel*)));
 
     QObject::connect(model,
+                     SIGNAL(peerRemoved(libtorrent::tcp::endpoint)),
+                     this,
+                     SLOT(removePeer(libtorrent::tcp::endpoint)));
+
+    QObject::connect(model,
                      SIGNAL(stateChanged(BuyerTorrentPlugin::State)),
                      this,
                      SLOT(updatePluginState(BuyerTorrentPlugin::State)));
@@ -180,22 +185,7 @@ QString BuyerTorrentPluginDialog::utxoToString(const UnspentP2PKHOutput & utxo) 
 }
 
 BuyerTorrentPluginDialog::~BuyerTorrentPluginDialog() {
-
     delete ui;
-
-    /**
-    for(QVector<ChannelView *>::const_iterator
-        i = _channelViews.constBegin(),
-        end = _channelViews.constEnd();
-        i != end;i++)
-        delete (*i);
-
-    for(QMap<libtorrent::tcp::endpoint, BuyerPeerPluginView *>::const_iterator
-        i = _buyerPeerPluginViews.constBegin(),
-        end = _buyerPeerPluginViews.constEnd();
-        i != end;i++)
-        delete i.value();
-    */
 }
 
 void BuyerTorrentPluginDialog::addPeer(const BuyerPeerPluginViewModel * model) {
@@ -205,6 +195,17 @@ void BuyerTorrentPluginDialog::addPeer(const BuyerPeerPluginViewModel * model) {
     Q_ASSERT(!_buyerPeerPluginViews.contains(endPoint));
 
     _buyerPeerPluginViews[endPoint] = new BuyerPeerPluginView(this, model, &_buyerPeerPluginTableViewModel);
+}
+
+void BuyerTorrentPluginDialog::removePeer(const libtorrent::tcp::endpoint & endPoint) {
+
+    Q_ASSERT(_buyerPeerPluginViews.contains(endPoint));
+
+    // Take out peer plugin view
+    BuyerPeerPluginView * view = _buyerPeerPluginViews.take(endPoint);
+
+    // Delete view
+    delete view;
 }
 
 void BuyerTorrentPluginDialog::updatePluginState(BuyerTorrentPlugin::State state) {

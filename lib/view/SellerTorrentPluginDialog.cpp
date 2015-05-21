@@ -24,6 +24,11 @@ SellerTorrentPluginDialog::SellerTorrentPluginDialog(QWidget * parent,
                      SLOT(addPeer(const SellerPeerPluginViewModel*)));
 
     QObject::connect(model,
+                     SIGNAL(peerRemoved(libtorrent::tcp::endpoint)),
+                     this,
+                     SLOT(removePeer(libtorrent::tcp::endpoint)));
+
+    QObject::connect(model,
                      SIGNAL(minPriceChanged(quint64)),
                      this,
                      SLOT(updateMinPrice(quint64)));
@@ -102,6 +107,17 @@ void SellerTorrentPluginDialog::addPeer(const SellerPeerPluginViewModel * model)
     Q_ASSERT(!_sellerPeerPluginViews.contains(endPoint));
 
     _sellerPeerPluginViews[endPoint] = new SellerPeerPluginView(this, model, &_sellerPeerPluginTableViewModel);
+}
+
+void SellerTorrentPluginDialog::removePeer(const libtorrent::tcp::endpoint & endPoint) {
+
+    Q_ASSERT(_sellerPeerPluginViews.contains(endPoint));
+
+    // Take out peer plugin view
+    SellerPeerPluginView * view = _sellerPeerPluginViews.take(endPoint);
+
+    // Delete view
+    delete view;
 }
 
 void SellerTorrentPluginDialog::updateMinPrice(quint64 minPrice) {
