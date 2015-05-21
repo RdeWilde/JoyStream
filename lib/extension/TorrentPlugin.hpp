@@ -4,11 +4,12 @@
 #include "BEPSupportStatus.hpp"
 //#include "TorrentPluginConfiguration.hpp"
 #include "Utilities.hpp" // uint qHash(const libtorrent::tcp::endpoint & endpoint)
+#include "PeerPlugin.hpp" // boost::weak_ptr<PeerPlugin>
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
 
-//#include <boost/weak_ptr.hpp>
+#include <boost/weak_ptr.hpp> // boost::weak_ptr<PeerPlugin>
 
 #include <QObject>
 #include <QMap>
@@ -195,6 +196,9 @@ protected:
     // Set of endpoints banned for irregular conduct during extended protocol
     QSet<libtorrent::tcp::endpoint> _irregularPeer;
 
+    // List of peer plugins scheduled for deletion
+    //QList<boost::weak_ptr<PeerPlugin> > _peersScheduledForDeletion;
+
     // Logging category
     QLoggingCategory & _category;
 
@@ -219,6 +223,9 @@ protected:
 
     // Adds the given peer plugin pointer to the peer map
     //void addPeerPlugin(PeerPlugin * peerPlugin);
+
+    // Delete and disconnect peers which have PeerPlugin::_scheduledForDeletingInNextTorrentPluginTick == true
+    // int deleteAndDisconnectPeers();
 
 private:
 

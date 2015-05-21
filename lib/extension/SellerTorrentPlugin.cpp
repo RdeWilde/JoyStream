@@ -185,7 +185,8 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
      */
 
     /**
-     * Note: You cannot disconnect this peer here, e.g. by using peer_connection::disconnect().
+     * DISCONNECTING PEERS:
+     * You cannot disconnect this peer here, e.g. by using peer_connection::disconnect().
      * This is because, at this point (new_connection), the connection has not been
      * added to a torrent level peer list, and the disconnection asserts that the peer has
      * to be in this list. Disconnects must be done later.
@@ -197,7 +198,7 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
     // Print notification
     std::string endPointString = libtorrent::print_endpoint(endPoint);
 
-    qCDebug(_category) << "New connection with " << endPointString.c_str(); // << "on " << _torrent->name().c_str();
+    qCDebug(_category) << "New" << (peerConnection->is_outgoing() ? "outgoing" : "incoming") << "connection with" << endPointString.c_str(); // << "on " << _torrent->name().c_str();
 
     // Create bittorrent peer connection
     Q_ASSERT(peerConnection->type() == libtorrent::peer_connection::bittorrent_connection);
@@ -235,7 +236,10 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
     boost::shared_ptr<SellerPeerPlugin> sharedPeerPluginPtr(peerPlugin);
 
     // Add to collection
-    _peers[endPoint] = boost::weak_ptr<SellerPeerPlugin>(sharedPeerPluginPtr);
+    if(peerPlugin->scheduledForDeletingInNextTorrentPluginTick())
+        _peersScheduledForDeletion.append(sharedPeerPluginPtr);
+    else
+        _peers[endPoint] = boost::weak_ptr<SellerPeerPlugin>(sharedPeerPluginPtr);
 
     // Return pointer to plugin as required
     return sharedPeerPluginPtr;
@@ -292,12 +296,15 @@ void SellerTorrentPlugin::tick() {
     // Send status to controller
     sendTorrentPluginAlert(SellerTorrentPluginStatusAlert(_torrent->info_hash(), status()));
 
-    // Delete pieces
-    int count = deleteAndDisconnectPeers();
+    // Delete peer plugins
+    int toBeDeleted = _peersScheduledForDeletion.size();
+    int actuallyDeleted = deleteAndDisconnectPeers();
 
-    if(count > 0)
-        qCDebug(_category) << "Disconnected and deleted" << count << "peers.";
+    Q_ASSERT(toBeDeleted == actuallyDeleted);
+    Q_ASSERT(_peersScheduledForDeletion.empty());
 
+    if(actuallyDeleted > 0)
+        qCDebug(_category) << "Disconnected and deleted" << actuallyDeleted << "peer plugins.";
 }
 
 
@@ -412,6 +419,81 @@ quint64 SellerTorrentPlugin::totalReceivedSinceStart() const {
     return total;
 }
 */
+
+void SellerTorrentPlugin::on_peer_plugin_disconnect(SellerPeerPlugin * peerPlugin, libtorrent::error_code const & ec) {
+
+    // Get endpoint
+    libtorrent::tcp::endpoint endPoint = peerPlugin->endPoint();
+
+    qCDebug(_category) << "on_disconnect ["<< (peerPlugin->connection()->is_outgoing() ? "outgoing" : "incoming") << "]:" << ec.message().c_str();
+
+
+    if(!peerPlugin->scheduledForDeletingInNextTorrentPluginTick()) {
+
+        // Scheduled for deletion <=> must NOT be in peers map
+        Q_ASSERT(_peers.contains(endPoint));
+
+        // Remove peer plugin from map
+        boost::weak_ptr<SellerPeerPlugin> weakPtr = _peers.take(endPoint);
+
+        // ASSERT: is same plugin
+        Q_ASSERT(!weakPtr.expired());
+        boost::shared_ptr<SellerPeerPlugin> sharedPtr = weakPtr.lock();
+        Q_ASSERT(sharedPtr.get() == peerPlugin);
+
+        // Schedule for prompt deletion
+        peerPlugin->setScheduledForDeletingInNextTorrentPluginTick(true);
+
+        // Save error_code which
+        peerPlugin->setDeletionErrorCode(ec);
+
+        // Place in deletion list
+        _peersScheduledForDeletion.append(weakPtr);
+
+    } else {
+
+        /**
+         * SLOW ASSERT:
+         * _peers does not contain peer pluing
+         */
+        if(_peers.contains(endPoint)) {
+
+            boost::weak_ptr<SellerPeerPlugin> weakPtr = _peers[endPoint];
+
+            // ASSERT: is NOT same plugin
+            Q_ASSERT(!weakPtr.expired());
+            boost::shared_ptr<SellerPeerPlugin> sharedPtr = weakPtr.lock();
+            Q_ASSERT(sharedPtr.get() != peerPlugin);
+
+        }
+
+        /**
+         * SLOW ASSERT:
+         * _peersScheduledForDeletion does contain peer plugin
+         */
+        bool present = false;
+        for(QList<boost::weak_ptr<SellerPeerPlugin> >::const_iterator
+            i = _peersScheduledForDeletion.constBegin(),
+            end = _peersScheduledForDeletion.constEnd();
+            i != end;i++) {
+
+            // Get weak ptr
+            const boost::weak_ptr<SellerPeerPlugin> weakPtr = *i;
+
+            if(!weakPtr.expired()) {
+
+                const boost::shared_ptr<SellerPeerPlugin> sharedPtr = weakPtr.lock();
+
+                if(sharedPtr.get() == peerPlugin) {
+                    present = true;
+                    break;
+                }
+            }
+        }
+
+        Q_ASSERT(present);
+    }
+}
 
 // Creates status for plugin
 SellerTorrentPlugin::Status SellerTorrentPlugin::status() const {
@@ -644,6 +726,7 @@ void SellerTorrentPlugin::setMaxContractConfirmationDelay(quint32 maxContractCon
     _maxContractConfirmationDelay = maxContractConfirmationDelay;
 }
 
+/**
 // ** NEEDS TO BE ABSTRACTED TO PARENT CLASS **
 int SellerTorrentPlugin::deleteAndDisconnectPeers() {
 
@@ -651,9 +734,9 @@ int SellerTorrentPlugin::deleteAndDisconnectPeers() {
     int count = 0;
 
     // Iterate peers
-    for(QMap<libtorrent::tcp::endpoint, boost::weak_ptr<SellerPeerPlugin> >::iterator
-        i = _peers.begin(),
-        end = _peers.end();
+    for(QList<boost::weak_ptr<SellerPeerPlugin> >::iterator
+        i = _peersScheduledForDeletion.begin(),
+        end = _peersScheduledForDeletion.end();
         i != end;) {  // We do not uconditionally increment iterator (i++), since we may erase in loop
 
         boost::weak_ptr<SellerPeerPlugin> weakPtr = i.value();
@@ -667,10 +750,8 @@ int SellerTorrentPlugin::deleteAndDisconnectPeers() {
                 // Disconnect connection
                 sharedPtr->close_connection();
 
-                /**
-                 * SEND ALERT, but notice that this peer may never actually have
-                 * been announced if it was never accepted in new_connection.
-                 */
+                // SEND ALERT, but notice that this peer may never actually have
+                // been announced if it was never accepted in new_connection.
 
                 // Delete plugin from map
                 i = _peers.erase(i);
@@ -690,5 +771,37 @@ int SellerTorrentPlugin::deleteAndDisconnectPeers() {
         }
     }
 
+    return count;
+}
+*/
+
+int SellerTorrentPlugin::deleteAndDisconnectPeers() {
+
+    // Iterate peers and try to disconnect all which are still valid
+    for(QList<boost::weak_ptr<SellerPeerPlugin> >::iterator
+        i = _peersScheduledForDeletion.begin(),
+        end = _peersScheduledForDeletion.end();
+        i != end;i++) {
+
+        // Get weak pointer
+        boost::weak_ptr<SellerPeerPlugin> weakPtr = *i;
+
+        // Check if plugin object still exists
+        if(boost::shared_ptr<SellerPeerPlugin> sharedPtr = weakPtr.lock()) {
+
+            Q_ASSERT(sharedPtr->scheduledForDeletingInNextTorrentPluginTick());
+
+            // Disconnect connection
+            sharedPtr->close_connection();
+        }
+    }
+
+    // Get list count being cleared
+    int count = _peersScheduledForDeletion.size();
+
+    // Clear list
+    _peersScheduledForDeletion.clear();
+
+    // Return size
     return count;
 }

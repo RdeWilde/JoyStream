@@ -271,6 +271,16 @@ public:
     // Obviosuly does not include change in channels!
     quint64 totalCurrentlyLockedInChannels() const;
 
+    // Removes entry for plugin with give endpoint from _peers QMap
+    //bool removePluginIfInPeersMap(const libtorrent::tcp::endpoint & endPoint);
+
+    /**
+     * Peer plugin Libtorrent event handlers
+     */
+
+    // peer_plugin::on_disconnect
+    void on_peer_plugin_disconnect(BuyerPeerPlugin * peerPlugin, libtorrent::error_code const & ec);
+
     // Generate plugin status
     Status status() const;
 
@@ -308,6 +318,10 @@ private:
     // the type of weak_ptr libtrrrent requires, hence might as well put it
     // in this type, rather than corresponding subclass of TorrentPlugin.
     QMap<libtorrent::tcp::endpoint, boost::weak_ptr<BuyerPeerPlugin> > _peers;
+
+    // List of peer plugins scheduled for deletion
+    // ** NEEDS TO BE ABSTRACTED TO PARENT CLASS **
+    QList<boost::weak_ptr<BuyerPeerPlugin> > _peersScheduledForDeletion;
 
     // Wallet
     Wallet * _wallet;

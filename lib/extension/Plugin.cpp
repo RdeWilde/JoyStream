@@ -334,7 +334,7 @@ void Plugin::processesRequests() {
 
 void Plugin::processPluginRequest(const PluginRequest * pluginRequest) {
 
-    qCDebug(_category) << "processPluginRequest";
+    //qCDebug(_category) << "processPluginRequest";
 
     switch(pluginRequest->getPluginRequestType()) {
 

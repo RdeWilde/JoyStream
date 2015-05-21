@@ -188,6 +188,13 @@ public:
     // Amount of funds (satoshies) received since start
     //quint64 totalReceivedSinceStart() const;
 
+    /**
+     * Peer plugin Libtorrent event handlers
+     */
+
+    // peer_plugin::on_disconnect
+    void on_peer_plugin_disconnect(SellerPeerPlugin * peerPlugin, libtorrent::error_code const & ec);
+
     // Creates status for plugin
     Status status() const;
 
@@ -220,6 +227,10 @@ private:
     // the type of weak_ptr libtrrrent requires, hence might as well put it
     // in this type, rather than corresponding subclass of TorrentPlugin.
     QMap<libtorrent::tcp::endpoint, boost::weak_ptr<SellerPeerPlugin> > _peers;
+
+    // List of peer plugins scheduled for deletion
+    // ** NEEDS TO BE ABSTRACTED TO PARENT CLASS **
+    QList<boost::weak_ptr<SellerPeerPlugin> > _peersScheduledForDeletion;
 
     // Maintains mapping between piece index and peers that are waiting for this.
     // Will typically just be one, but may be multiple - hence QSet is used

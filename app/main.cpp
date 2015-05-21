@@ -130,8 +130,6 @@ void main(int argc, char* argv[]) {
     controllerConfiguration.setWalletFile("C:/Users/Sindre/Desktop/BUILD_DEBUG/app/debug/buyer_wallet.dat");
     Controller buyerClient(controllerConfiguration, true, manager, "Faucet http://faucet.xeno-genesis.com/", *buyerCategory);
 
-    std::cout << "Started buyer client." << std::endl;
-
     // Create buyer torrent configuration
     Controller::Torrent::Configuration buyerTorrentConfiguration(torrentInfo.info_hash()
                                                   ,torrentInfo.name()
@@ -158,8 +156,9 @@ void main(int argc, char* argv[]) {
     // Get funding output - this has to be grabbed from wallet/chain later
     //UnspentP2PKHOutput utxo = buyerClient.wallet().getUtxo(minFunds, 1);
 
-    UnspentP2PKHOutput utxo(KeyPair(),
-                            OutPoint(),
+    UnspentP2PKHOutput utxo(KeyPair(PublicKey("024f6f05e6f105fa0aaccfc36af9497d3929c4b33cbc8575445154e762f82eb08c"),
+                                    PrivateKey("cNxShXWpyWug45tEieHgFCnfMCCMcmh6cKSQjh5peUDPJ5nZ49Hy")),
+                            OutPoint(TxId("99bd7714e8e4881c2766bea0ce6ca44ab9463417dd5040ae3664f41d7353df4c"),8),
                             minFunds);
 
     BuyerTorrentPlugin::Configuration configuration(false,
@@ -190,8 +189,6 @@ void main(int argc, char* argv[]) {
     // Create peer client
     controllerConfiguration.setWalletFile("C:/Users/Sindre/Desktop/BUILD_DEBUG/app/debug/seller_wallet.dat");
     Controller sellerClient(controllerConfiguration, true, manager, "Faucet http://faucet.xeno-genesis.com/", *sellerCategory);
-
-    std::cout << "Started seller client." << std::endl;
 
     // Create torrent configuration
     Controller::Torrent::Configuration sellerTorrentConfiguration(torrentInfo.info_hash()

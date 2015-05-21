@@ -96,6 +96,8 @@ PeerPlugin::~PeerPlugin() {
  */
 void PeerPlugin::add_handshake(libtorrent::entry & handshake) {
 
+    //Q_ASSERT(!_scheduledForDeletingInNextTorrentPluginTick);
+
     /**
       * We can safely assume hanshake has proper structure, that is
       * 1) is dictionary entry
@@ -120,6 +122,38 @@ void PeerPlugin::add_handshake(libtorrent::entry & handshake) {
     _clientMapping.writeToDictionary(m);
 }
 
+
+/**
+ * m_pc.disconnect(errors::pex_message_too_large, 2);
+ * m_pc.disconnect(errors::too_frequent_pex);
+ * m_pc.remote().address()
+
+void PeerPlugin::on_disconnect(libtorrent::error_code const & ec) {
+
+    qCDebug(_category) << "on_disconnect ["<< (_connection->is_outgoing() ? "outgoing" : "incoming") << "]:" << ec.message().c_str();
+
+    // Remove from map of peers if present
+    bool wasRemoved = removePluginIfInPeersMap(_endPoint);
+
+    if(!_scheduledForDeletingInNextTorrentPluginTick) {
+
+        // Scheduled for deletion <=> must NOT be in peers map
+        Q_ASSERT(wasRemoved);
+
+        // Schedule for prompt deletion
+        _scheduledForDeletingInNextTorrentPluginTick = true;
+
+        // MUST BE PLACED IN DELETION QLIST!!
+
+        // Save error_code which
+        _deletionErrorCode = ec;
+
+    } else
+        // Scheduled for deletion <=> must NOT be in peers map
+        Q_ASSERT(!wasRemoved);
+}
+*/
+
 /*
  * This is called when the initial BASIC BT handshake is received.
  * Returning false means that the other end doesn't support this
@@ -133,6 +167,8 @@ void PeerPlugin::add_handshake(libtorrent::entry & handshake) {
  * checking if the client supports extended messaging.
  */
 bool PeerPlugin::on_handshake(char const * reserved_bits) {
+
+    //Q_ASSERT(!_scheduledForDeletingInNextTorrentPluginTick);
 
     //qCDebug(_category) << "on_handshake";
 
@@ -158,6 +194,17 @@ bool PeerPlugin::on_handshake(char const * reserved_bits) {
  * the peer_connection and destructed. this is not called for web seeds
  */
 bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake) {
+
+    // Check that peer plugin is still valid
+    if(_scheduledForDeletingInNextTorrentPluginTick) {
+
+        // http://www.libtorrent.org/reference-Plugins.html
+        // if (on_extension_handshake) returns false, it means that this extension isn't supported by this peer.
+        // It will result in this peer_plugin being removed from the peer_connection and destructed.
+        // this is not called for web seeds
+        qCDebug(_category) << "Extended handshake ignored since peer_plugin i scheduled for deletion.";
+        return false;
+    }
 
     // Write what client is trying to handshake us, should now be possible given initial hand shake
     libtorrent::peer_info peerInfo;
@@ -317,6 +364,13 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
 // be able to handle it this is not called for web seeds.
 // IS NOT ACTUALLY CALLED FOR EXTENDED HANDSHAKE ITSELF.
 bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_interval body) {
+
+    // Check peer plugin integrity
+    if(_scheduledForDeletingInNextTorrentPluginTick) {
+
+        qCDebug(_category) << "Ignoring extended message since peer_plugin is scheduled for deletion.";
+        return false;
+    }
 
     // Does the peer even support extension?
     if(_peerBitSwaprBEPSupportStatus != BEPSupportStatus::supported) {
@@ -597,6 +651,7 @@ bool PeerPlugin::scheduledForDeletingInNextTorrentPluginTick() const {
 void PeerPlugin::setScheduledForDeletingInNextTorrentPluginTick(bool scheduledForDeletingInNextTorrentPluginTick) {
     _scheduledForDeletingInNextTorrentPluginTick = scheduledForDeletingInNextTorrentPluginTick;
 }
+
 libtorrent::error_code PeerPlugin::deletionErrorCode() const
 {
     return _deletionErrorCode;

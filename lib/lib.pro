@@ -223,7 +223,7 @@ FORMS += \
     view/WalletDialog.ui
 
 RESOURCES += \
-    ../views/gui/resources.qrc
+    ../views/gui/src/resources.qrc
 
 # Required for including libtorrent and boost headers
 include(../defaults.pri)

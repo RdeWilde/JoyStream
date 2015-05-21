@@ -232,27 +232,9 @@ char const * BuyerPeerPlugin::type() const {
     return "BitSwapr payment buyer peer plugin.";
 }
 
-/*
- * m_pc.disconnect(errors::pex_message_too_large, 2);
- * m_pc.disconnect(errors::too_frequent_pex);
- * m_pc.remote().address()
- */
-
 void BuyerPeerPlugin::on_disconnect(libtorrent::error_code const & ec) {
-
-    /**
-     *
-     * m_torrent->num_peers() >= m_torrent->max_connections()
-            && ses.num_connections() >= ses.max_connections()
-            && c.remote().address() != m_torrent->current_tracker().address()
-
-     */
-
-    qCDebug(_category) << "on_disconnect:" << ec.message().c_str();
-
-    //_connectionAlive = false;
+    _plugin->on_peer_plugin_disconnect(this, ec);
 }
-
 
 /**
  * Called when the peer is successfully connected. Note that incoming

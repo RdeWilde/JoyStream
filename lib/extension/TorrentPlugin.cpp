@@ -314,6 +314,39 @@ void TorrentPlugin::sendTorrentPluginAlert(const TorrentPluginAlert & alert) {
 }
 
 /**
+void TorrentPlugin::deleteAndDisconnectPeers() {
+
+    // Iterate peers and try to disconnect all which are still valid
+    for(QList<boost::weak_ptr<PeerPlugin> >::iterator
+        i = _peersScheduledForDeletion.begin(),
+        end = _peersScheduledForDeletion.end();
+        i != end;i++) {
+
+        // Get weak pointer
+        boost::weak_ptr<PeerPlugin> weakPtr = i.value();
+
+        // Check if plugin object still exists
+        if(boost::shared_ptr<PeerPlugin> sharedPtr = weakPtr.lock()) {
+
+            Q_ASSERT(sharedPtr->scheduledForDeletingInNextTorrentPluginTick());
+
+            // Disconnect connection
+            sharedPtr->close_connection();
+        }
+    }
+
+    // Get list count being cleared
+    int count = _peersScheduledForDeletion.size();
+
+    // Clear list
+    _peersScheduledForDeletion.clear();
+
+    // Return size
+    return count;
+}
+*/
+
+/**
 void TorrentPlugin::addPeerPlugin(PeerPlugin * peerPlugin) {
     Q_ASSERT(!_peers.contains(peerPlugin->endPoint()));
 

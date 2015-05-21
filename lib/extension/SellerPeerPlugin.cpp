@@ -193,16 +193,9 @@ char const * SellerPeerPlugin::type() const {
     return "BitSwapr payment seller peer plugin.";
 }
 
-/*
- * m_pc.disconnect(errors::pex_message_too_large, 2);
- * m_pc.disconnect(errors::too_frequent_pex);
- * m_pc.remote().address()
- */
 void SellerPeerPlugin::on_disconnect(libtorrent::error_code const & ec) {
 
-    qCDebug(_category) << "on_disconnect:" << ec.message().c_str();
-
-    //_connectionAlive = false;
+    _plugin->on_peer_plugin_disconnect(this, ec);
 }
 
 /**
@@ -442,6 +435,14 @@ void SellerPeerPlugin::on_piece_failed(int index)  {
  * Called aproximately once every second
  */
 void SellerPeerPlugin::tick()  {
+
+
+    // Check that peer plugin is still valid
+    if(_scheduledForDeletingInNextTorrentPluginTick)
+        qCDebug(_category) << "SellerPeerPlugin.tick: Waiting to die";
+    else
+        qCDebug(_category) << "SellerPeerPlugin.tick: Alive and well";
+
     //qCDebug(_category) << "SellerPeerPlugin.tick()";
 }
 
