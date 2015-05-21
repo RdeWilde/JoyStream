@@ -805,6 +805,10 @@ void BuyerTorrentPlugin::fullPieceArrived(BuyerPeerPlugin * peer, const boost::s
     // last argument is a flag which presently seems to only test
     // flags & torrent::overwrite_existing, which seems to be whether
     // the piece should be overwritten if it is already present
+    //
+    // libtorrent::torrent_plugin::on_piece_pass()
+    // libtorrent::torrent_plugin::on_piece_failed()
+    // processes result of checking
     _torrent->add_piece(pieceIndex, piece.get(), 0);
 
     // Update client state

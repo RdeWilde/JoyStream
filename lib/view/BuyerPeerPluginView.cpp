@@ -10,7 +10,7 @@ BuyerPeerPluginView::BuyerPeerPluginView(QObject * parent,
                                          const BuyerPeerPluginViewModel * peerModel,
                                          QStandardItemModel * itemModel)
     : QObject(parent)
-    , _endPointItem(new QStandardItem(endPointToString(peerModel->endPoint())))
+    , _endPointItem(new QStandardItem())
     , _clientStateItem(new QStandardItem(clientStateToString(peerModel->status().clientState())))
     , _payorSlotItem(new QStandardItem(payorSlotToString(peerModel->status().payorSlot())))
     , _itemModel(itemModel) {
@@ -23,6 +23,13 @@ BuyerPeerPluginView::BuyerPeerPluginView(QObject * parent,
           << _payorSlotItem;
 
     _itemModel->appendRow(items);
+
+    // Set data
+    updateEndPoint(peerModel->endPoint());
+
+    BuyerPeerPlugin::Status status = peerModel->status();
+    updateClientState(status.clientState());
+    updatePayorSlot(status.payorSlot());
 
     // Center content
     _endPointItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
@@ -44,7 +51,8 @@ BuyerPeerPluginView::BuyerPeerPluginView(QObject * parent,
 BuyerPeerPluginView::~BuyerPeerPluginView() {
 
     // Release row
-    _itemModel->removeRow(_endPointItem->row());
+    int row = _endPointItem->row();
+    _itemModel->removeRow(row);
 }
 
 QString BuyerPeerPluginView::endPointToString(const libtorrent::tcp::endpoint & endPoint) {

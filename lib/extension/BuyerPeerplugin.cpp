@@ -426,7 +426,10 @@ bool BuyerPeerPlugin::on_unknown_message(int length, int msg, libtorrent::buffer
  * Called when a piece that this peer participated in passes the hash_check
  */
 void BuyerPeerPlugin::on_piece_pass(int index) {
-/**
+ /**
+  * This processing is done in torrent plugin on_tick event
+  *
+  *
     qCDebug(_category) << "on_piece_pass:" << index;
 
     // on_piece_pass() =>

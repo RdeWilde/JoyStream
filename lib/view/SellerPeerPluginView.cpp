@@ -34,6 +34,20 @@ SellerPeerPluginView::SellerPeerPluginView(QObject * parent,
 
     _itemModel->appendRow(items);
 
+    // Set data
+    updateEndPoint(peerModel->endPoint());
+    updateClientState(peerModel->clientState());
+
+    const PayeeViewModel * model = peerModel->payeeViewModel();
+    Payee::Status status = model->status();
+
+    updateContractOutPointItem(status.contractOutPoint());
+    updateFunds(status.funds());
+    updateRefundLockTime(status.lockTime());
+    updatePrice(status.price());
+    updateNumberOfPaymentMade(status.numberOfPaymentsMade());
+    updateBalance(status.price() * status.numberOfPaymentsMade());
+
     // Center content
     _endPointItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
     _clientStateItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
@@ -82,7 +96,8 @@ SellerPeerPluginView::SellerPeerPluginView(QObject * parent,
 SellerPeerPluginView::~SellerPeerPluginView() {
 
     // Release row
-    _itemModel->removeRow(_clientStateItem->row());
+    int row = _clientStateItem->row();
+    _itemModel->removeRow(row);
 }
 
 QString SellerPeerPluginView::endPointToString(const libtorrent::tcp::endpoint & endPoint) {

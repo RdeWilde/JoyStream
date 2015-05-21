@@ -41,6 +41,8 @@ public slots:
     // Update fields
     void updateEndPoint(const libtorrent::tcp::endpoint & endPoint);
     void updateClientState(SellerPeerPlugin::ClientState state);
+
+
     void updateContractOutPointItem(const OutPoint & o);
     void updateFunds(quint64 funds);
     void updateRefundLockTime(quint32 refundLockTime);
