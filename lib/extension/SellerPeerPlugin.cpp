@@ -436,8 +436,8 @@ void SellerPeerPlugin::on_piece_failed(int index)  {
  */
 void SellerPeerPlugin::tick()  {
 
-    //if(_scheduledForDeletingInNextTorrentPluginTick)
-    //    return;
+    if(_scheduledForDeletingInNextTorrentPluginTick)
+        return;
 
     /**
     // Check that peer plugin is still valid
@@ -447,7 +447,7 @@ void SellerPeerPlugin::tick()  {
         qCDebug(_category) << "SellerPeerPlugin.tick: Alive and well";
         */
 
-    qCDebug(_category) << "SellerPeerPlugin.tick()";
+    //qCDebug(_category) << "SellerPeerPlugin.tick()";
 }
 
 /*
@@ -679,8 +679,6 @@ void SellerPeerPlugin::processRequestFullPiece(const RequestFullPiece * m) {
     // Do async read of piece
     _plugin->readPiece(this, m->pieceIndex());
 
-    qCDebug(_category) << "reading piece " << m->pieceIndex();
-
     /**
     // Get size of given piece
     int pieceSize = _torrentFile.piece_size(m->pieceIndex());
@@ -766,8 +764,6 @@ void SellerPeerPlugin::disk_async_read_handler(int block, int a, const libtorren
 */
 
 void SellerPeerPlugin::pieceRead(int piece, const boost::shared_array<char> & pieceData, int size) {
-
-    qCDebug(_category) << "pieceRead" << piece;
 
     Q_ASSERT(_clientState == ClientState::reading_piece_from_disk);
     Q_ASSERT(piece == _peerState.lastRequestFullPieceReceived().pieceIndex());

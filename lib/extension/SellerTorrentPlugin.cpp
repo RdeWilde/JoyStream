@@ -367,11 +367,16 @@ void SellerTorrentPlugin::async_read(const libtorrent::peer_request & r,
 
 void SellerTorrentPlugin::readPiece(SellerPeerPlugin * peer, int piece) {
 
-    // Register read piece request
-    _torrent->read_piece(piece);
-
     // There should never be queued multiple reads by same peer of same piece
     Q_ASSERT(!_outstandingPieceRequests[piece].contains(peer));
+
+    // Register read piece request if it has not already been requested
+    if(_outstandingPieceRequests[piece].empty()) {
+
+        qCDebug(_category) << "[" << _outstandingPieceRequests[piece].size() <<"]Requested piece" << piece << "by" << libtorrent::print_address(peer->endPoint().address()).c_str();
+        _torrent->read_piece(piece);
+    } else
+        qCDebug(_category) << "[" << _outstandingPieceRequests[piece].size() <<"]Skipping requested piece" << piece << "by" << libtorrent::print_address(peer->endPoint().address()).c_str();
 
     // Register this peer as a subscriber to a piece read request of this piece
     _outstandingPieceRequests[piece].insert(peer);
@@ -389,11 +394,20 @@ void SellerTorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) 
     for(QSet<SellerPeerPlugin *>::const_iterator i = peers.constBegin(),
         end(peers.constEnd()); i != end;i++) {
 
+        // Get peer pointer
+        SellerPeerPlugin * peerPlugin = *i;
+
         // Notify peer plugin of result
-        if(alert->ec)
+        if(alert->ec) {
+
+            qCDebug(_category) << "Failed reading piece" << alert->piece << "for" << libtorrent::print_address(peerPlugin->endPoint().address()).c_str();
+
             (*i)->pieceReadFailed(alert->piece);
-        else
+        } else {
+
+            qCDebug(_category) << "Read piece" << alert->piece << "for" << libtorrent::print_address(peerPlugin->endPoint().address()).c_str();
             (*i)->pieceRead(alert->piece, alert->buffer, alert->size);
+        }
     }
 
     // Remove all peers registered for this piece
