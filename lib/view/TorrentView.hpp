@@ -7,7 +7,6 @@
 #include <QMenu>
 #include <QAction>
 
-class QStandardItemModel;
 class QStandardItem;
 enum class PluginInstalled;
 class TorrentViewModel;
@@ -27,10 +26,17 @@ public:
     // Constructor
     TorrentView(QObject * parent,
                 const TorrentViewModel * torrentViewModel,
-                QStandardItemModel * model);
+                QStandardItem * nameItem,
+                QStandardItem * sizeItem,
+                QStandardItem * stateItem,
+                QStandardItem * speedItem,
+                QStandardItem * buyersItem,
+                QStandardItem * sellersItem,
+                QStandardItem * pluginInstalledItem,
+                QStandardItem * balanceItem);
 
     // Text conversion routines
-    static QString sizeToString(int size);
+    static QString sizeToString(qint64 size);
     static QString pluginInstalledToString(PluginInstalled pluginInstalled);
     static QString torrentStateToString(bool paused, libtorrent::torrent_status::state_t state, float progress);
     static QString speedToString(int downloadRate, int uploadRate);
@@ -40,12 +46,14 @@ public:
 public slots:
 
     // Update
-    //void updatePluginInstalled(PluginInstalled pluginInstalled);
+    void updatePluginInstalled(PluginInstalled pluginInstalled);
+
     void updateStartedBuyerTorrentPlugin(const BuyerTorrentPluginViewModel * model);
     void updateStartedSellerTorrentPlugin(const SellerTorrentPluginViewModel * model);
 
     void updateStatus(const libtorrent::torrent_status & status);
     //void updatePeers(int numberOfPeers, int numberOfPeersWithExtension);
+    void updateSize(qint64 totalSize);
     void updateNumberOfBuyers(quint32 num);
     void updateNumberOfSellers(quint32 num);
     void updateBalance(quint64 balance);
@@ -85,7 +93,7 @@ private:
     libtorrent::sha1_hash _infoHash;
 
     // View model pointers
-    // Objects are owned by QStandardItemModel passed to ctr
+    // Objects are owned by QStandardItemModel, not us
     QStandardItem * _nameItem,
                   * _sizeItem,
                   * _stateItem,

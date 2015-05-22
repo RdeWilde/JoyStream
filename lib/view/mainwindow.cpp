@@ -275,10 +275,43 @@ void MainWindow::on_addMagnetLinkPushButton_clicked()
 
 void MainWindow::addTorrent(const TorrentViewModel * model) {
 
+    // Create item
+    // Will be taken by _torrentTableViewModel, and hence managed by it
+    QStandardItem * nameItem = new QStandardItem(),
+                  * sizeItem = new QStandardItem(),
+                  * stateItem = new QStandardItem(),
+                  * speedItem = new QStandardItem(),
+                  * buyersItem = new QStandardItem(),
+                  * sellersItem = new QStandardItem(),
+                  * pluginInstalledItem = new QStandardItem(),
+                  * balanceItem = new QStandardItem();
+
+    // Create row for items
+    QList<QStandardItem *> items;
+
+    items << nameItem
+          << sizeItem
+          << stateItem
+          << speedItem
+          << buyersItem
+          << sellersItem
+          << pluginInstalledItem
+          << balanceItem;
+
+    // Add row to view model
+    _torrentTableViewModel.appendRow(items);
+
     // Create torrent view model
     TorrentView * view = new TorrentView(this,
                                          model,
-                                         &_torrentTableViewModel);
+                                         nameItem,
+                                         sizeItem,
+                                         stateItem,
+                                         speedItem,
+                                         buyersItem,
+                                         sellersItem,
+                                         pluginInstalledItem,
+                                         balanceItem);
 
     // Connect: view menu action to main window slot
     QObject::connect(view,

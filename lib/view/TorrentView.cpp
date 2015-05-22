@@ -3,43 +3,38 @@
 #include "controller/SellerTorrentPluginViewModel.hpp"
 #include "controller/BuyerTorrentPluginViewModel.hpp"
 
-#include <QStandardItemModel>
 #include <QStandardItem>
 
 TorrentView::TorrentView(QObject * parent,
                          const TorrentViewModel * torrentViewModel,
-                         QStandardItemModel * model)
+                         QStandardItem * nameItem,
+                         QStandardItem * sizeItem,
+                         QStandardItem * stateItem,
+                         QStandardItem * speedItem,
+                         QStandardItem * buyersItem,
+                         QStandardItem * sellersItem,
+                         QStandardItem * pluginInstalledItem,
+                         QStandardItem * balanceItem)
     : QObject(parent)
     , _infoHash(torrentViewModel->infoHash())
-    , _nameItem(new QStandardItem())
-    , _sizeItem(new QStandardItem(sizeToString(torrentViewModel->torrentInfo()->total_size())))
-    , _stateItem(new QStandardItem())
-    , _speedItem(new QStandardItem())
-    , _buyersItem(new QStandardItem())
-    , _sellersItem(new QStandardItem())
-    , _pluginInstalledItem(new QStandardItem(pluginInstalledToString(torrentViewModel->pluginInstalled())))
-    , _balanceItem(new QStandardItem())
+    , _nameItem(nameItem)
+    , _sizeItem(sizeItem)
+    , _stateItem(stateItem)
+    , _speedItem(speedItem)
+    , _buyersItem(buyersItem)
+    , _sellersItem(sellersItem)
+    , _pluginInstalledItem(pluginInstalledItem)
+    , _balanceItem(balanceItem)
     , _pauseAction("Pause", this)
     , _startAction("Start", this)
     , _removeAction("Remove", this)
-    , _viewExtensionAction("Extension", this) {
+    , _viewExtensionAction("View", this) {
 
-    // Set initial item values
+    // Set values
     updateStatus(torrentViewModel->status());
-
-    // Add row to itemModel
-    QList<QStandardItem *> items;
-
-    items << _nameItem
-          << _sizeItem
-          << _stateItem
-          << _speedItem
-          << _buyersItem
-          << _sellersItem
-          << _pluginInstalledItem
-          << _balanceItem;
-
-    model->appendRow(items);
+    const libtorrent::torrent_info * torrentInfo = torrentViewModel->torrentInfo();
+    updateSize(torrentInfo->total_size());
+    updatePluginInstalled(torrentViewModel->pluginInstalled());
 
     // Center content
     _nameItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
@@ -103,7 +98,7 @@ TorrentView::TorrentView(QObject * parent,
                      SLOT(updateStatus(const libtorrent::torrent_status &)));
 }
 
-QString TorrentView::sizeToString(int size) {
+QString TorrentView::sizeToString(qint64 size) {
     return QString::number(size) + QString("b");
 }
 
@@ -205,21 +200,9 @@ QString TorrentView::balanceToString(quint64 balance) {
     return QString::number(balance) + "Ƀ";
 }
 
-/**
 void TorrentView::updatePluginInstalled(PluginInstalled pluginInstalled) {
-
-    // Should just happen once
-
-    // pluginInstalledItem
     _pluginInstalledItem->setText(pluginInstalledToString(pluginInstalled));
-
-    // add action to menu
-    _torrentTableContextMenu.addAction(&_viewExtensionAction);
-
-    // Notify rest of vie
-    emit pluginInstalled(_infoHash);
 }
-*/
 
 void TorrentView::updateStartedBuyerTorrentPlugin(const BuyerTorrentPluginViewModel * model) {
 
@@ -257,6 +240,7 @@ void TorrentView::updateStartedSellerTorrentPlugin(const SellerTorrentPluginView
     _pluginInstalledItem->setText("Seller");
 
     // add action to menu
+    _torrentTableContextMenu.addSection("Extension");
     _torrentTableContextMenu.addAction(&_viewExtensionAction);
 
     // Set initial values
@@ -301,6 +285,10 @@ void TorrentView::updatePeers(int numberOfPeers, int numberOfPeersWithExtension)
     _peersItem->setText(peersToString(numberOfPeers, numberOfPeersWithExtension));
 }
 */
+
+void TorrentView::updateSize(qint64 totalSize) {
+    _sizeItem->setText(sizeToString(totalSize));
+}
 
 void TorrentView::updateNumberOfBuyers(quint32 num) {
     _buyersItem->setText(QString::number(num));
