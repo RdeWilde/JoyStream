@@ -123,6 +123,8 @@ void main(int argc, char* argv[]) {
      * Buyer =======================================================
      */
 
+
+
     // Create logging category: med logging til skjerm
     QLoggingCategory * buyerCategory = global_log_manager.createLogger("buyer", true, false);
 
@@ -142,7 +144,7 @@ void main(int argc, char* argv[]) {
     // Create buyer torrent plugin configuration
 
     // Number of sellers
-    int numberOfSellers = 1;
+    int numberOfSellers = 2;
 
     // Max fee per kB (satoshi)
     int maxFeePerkB = static_cast<int>(STANDARD_NUM_SATOSHIES_PER_KB_IN_TX_FEE);
@@ -183,34 +185,53 @@ void main(int argc, char* argv[]) {
      * Seller =======================================================
     */
 
-    // Create logging category: uten logging til skjerm
-    QLoggingCategory * sellerCategory = global_log_manager.createLogger("seller", true, false); // ("seller", false, false)
+    QVector<Controller *> controllers(numberOfSellers);
+    QVector<std::string> loggNames(numberOfSellers);
+    QVector<std::string> walletFileName(numberOfSellers);
+    QVector<std::string> outPutDir(numberOfSellers);
 
-    // Create peer client
-    controllerConfiguration.setWalletFile("C:/Users/Sindre/Desktop/BUILD_DEBUG/app/debug/seller_wallet.dat");
-    Controller sellerClient(controllerConfiguration, true, manager, "Faucet http://faucet.xeno-genesis.com/", *sellerCategory);
+    for(int i = 0;i < numberOfSellers;i++) {
 
-    // Create torrent configuration
-    Controller::Torrent::Configuration sellerTorrentConfiguration(torrentInfo.info_hash()
-                                                  ,torrentInfo.name()
-                                                  ,std::string("C:/Users/Sindre/Desktop/SAVE_OUTPUT/PEER")
-                                                  ,std::vector<char>()
-                                                  ,libtorrent::add_torrent_params::flag_update_subscribe
-                                                  ,&torrentInfo);
+        bool showGui = false;
 
-    // Create seller torrent plugin configuration
-    SellerTorrentPlugin::Configuration SellerTorrentPluginConfiguration(false,
-                                                                        10, // 10 satoshies per piece!
-                                                                        60*60,// 1h min lock time
-                                                                        0* 100000, // minfeeperbyte
-                                                                        1, // <== invalid, is per byte, not kb! not used at the moment anyway
-                                                                        30); // maximum confirmation delay
+        // Create logging category: uten logging til skjerm
+        loggNames[i] = (std::string("seller_") + std::to_string(i+1));
+        QLoggingCategory * sellerCategory = global_log_manager.createLogger(loggNames[i].c_str(), showGui, false); // ("seller", false, false)
 
-    // Add to client
-    sellerClient.addTorrent(sellerTorrentConfiguration, SellerTorrentPluginConfiguration);
+        // Create peer client
+        walletFileName[i] = (std::string("C:/Users/Sindre/Desktop/BUILD_DEBUG/app/debug/seller_wallet_") + std::to_string(i+1) + std::string(".dat"));
+        controllerConfiguration.setWalletFile(walletFileName[i].c_str());
 
-    // Track controller
-    controllerTracker.addClient(&sellerClient);
+        Controller * sellerClient = new Controller(controllerConfiguration, true, manager, "Faucet http://faucet.xeno-genesis.com/", *sellerCategory);
+        controllers[i] = (sellerClient);
+
+        // Create torrent configuration
+        outPutDir[i] = (std::string("C:/Users/Sindre/Desktop/SAVE_OUTPUT/seller_") + std::to_string(i+1));
+
+        // DELETE FOLDER
+
+        Controller::Torrent::Configuration sellerTorrentConfiguration(torrentInfo.info_hash()
+                                                      ,torrentInfo.name()
+                                                      ,outPutDir[i]
+                                                      ,std::vector<char>()
+                                                      ,libtorrent::add_torrent_params::flag_update_subscribe
+                                                      ,&torrentInfo);
+
+        // Create seller torrent plugin configuration
+        SellerTorrentPlugin::Configuration SellerTorrentPluginConfiguration(false,
+                                                                            10, // 10 satoshies per piece!
+                                                                            60*60,// 1h min lock time
+                                                                            0* 100000, // minfeeperbyte, <== invalid, is per byte, not kb! not used at the moment anyway
+                                                                            numberOfSellers,
+                                                                            30); // maximum confirmation delay
+
+        // Add to client
+        sellerClient->addTorrent(sellerTorrentConfiguration, SellerTorrentPluginConfiguration);
+
+        // Track controller
+        controllerTracker.addClient(sellerClient);
+
+    }
 
     // Start event loop: this is the only Qt event loop in the entire application
     app.exec();

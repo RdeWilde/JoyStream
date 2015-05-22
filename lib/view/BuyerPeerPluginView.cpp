@@ -4,25 +4,16 @@
 #include <libtorrent/socket_io.hpp> // print_endpoint
 
 #include <QStandardItem>
-#include <QStandardItemModel>
 
 BuyerPeerPluginView::BuyerPeerPluginView(QObject * parent,
                                          const BuyerPeerPluginViewModel * peerModel,
-                                         QStandardItemModel * itemModel)
+                                         QStandardItem * endPointItem,
+                                         QStandardItem * clientStateItem,
+                                         QStandardItem * payorSlotItem)
     : QObject(parent)
-    , _endPointItem(new QStandardItem())
-    , _clientStateItem(new QStandardItem(clientStateToString(peerModel->status().clientState())))
-    , _payorSlotItem(new QStandardItem(payorSlotToString(peerModel->status().payorSlot())))
-    , _itemModel(itemModel) {
-
-    // Add row to model
-    QList<QStandardItem *> items;
-
-    items << _endPointItem
-          << _clientStateItem
-          << _payorSlotItem;
-
-    _itemModel->appendRow(items);
+    , _endPointItem(endPointItem)
+    , _clientStateItem(clientStateItem)
+    , _payorSlotItem(payorSlotItem) {
 
     // Set data
     updateEndPoint(peerModel->endPoint());
@@ -46,13 +37,6 @@ BuyerPeerPluginView::BuyerPeerPluginView(QObject * parent,
                      SIGNAL(payorSlotChanged(quint32)),
                      this,
                      SLOT(updatePayorSlot(quint32)));
-}
-
-BuyerPeerPluginView::~BuyerPeerPluginView() {
-
-    // Release row
-    int row = _endPointItem->row();
-    _itemModel->removeRow(row);
 }
 
 QString BuyerPeerPluginView::endPointToString(const libtorrent::tcp::endpoint & endPoint) {
@@ -122,4 +106,28 @@ void BuyerPeerPluginView::updateClientState(BuyerPeerPlugin::ClientState clientS
 
 void BuyerPeerPluginView::updatePayorSlot(quint32 payorSlot) {
     _payorSlotItem->setText(payorSlotToString(payorSlot));
+}
+
+QStandardItem *BuyerPeerPluginView::payorSlotItem() const {
+    return _payorSlotItem;
+}
+
+void BuyerPeerPluginView::setPayorSlotItem(QStandardItem *payorSlotItem) {
+    _payorSlotItem = payorSlotItem;
+}
+
+QStandardItem *BuyerPeerPluginView::clientStateItem() const {
+    return _clientStateItem;
+}
+
+void BuyerPeerPluginView::setClientStateItem(QStandardItem *clientStateItem) {
+    _clientStateItem = clientStateItem;
+}
+
+QStandardItem *BuyerPeerPluginView::endPointItem() const {
+    return _endPointItem;
+}
+
+void BuyerPeerPluginView::setEndPointItem(QStandardItem *endPointItem) {
+    _endPointItem = endPointItem;
 }

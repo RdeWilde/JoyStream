@@ -8,7 +8,6 @@
 #include <QAction>
 
 class QStandardItem;
-class QStandardItemModel;
 class BuyerPeerPluginViewModel;
 
 class BuyerPeerPluginView : public QObject
@@ -19,15 +18,24 @@ public:
     // Constructor
     BuyerPeerPluginView(QObject * parent,
                         const BuyerPeerPluginViewModel * peerModel,
-                        QStandardItemModel * itemModel);
-
-    // Destructor
-    ~BuyerPeerPluginView();
+                        QStandardItem * endPointItem,
+                        QStandardItem * clientStateItem,
+                        QStandardItem * payorSlotItem);
 
     // Text conversion routines
     static QString endPointToString(const libtorrent::tcp::endpoint & endPoint);
     static QString clientStateToString(BuyerPeerPlugin::ClientState state);
     static QString payorSlotToString(quint32 payorSlot);
+
+    // Getters and setters
+    QStandardItem *endPointItem() const;
+    void setEndPointItem(QStandardItem *endPointItem);
+
+    QStandardItem *clientStateItem() const;
+    void setClientStateItem(QStandardItem *clientStateItem);
+
+    QStandardItem *payorSlotItem() const;
+    void setPayorSlotItem(QStandardItem *payorSlotItem);
 
 signals:
 
@@ -39,9 +47,6 @@ public slots:
     void updatePayorSlot(quint32 payorSlot);
 
 private:
-
-    // Reference to model which takes ownership of items
-    QStandardItemModel * _itemModel;
 
     // View model pointers
     // Objects are owned by QStandardItemModel passed to ctr

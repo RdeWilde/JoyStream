@@ -106,7 +106,42 @@ void SellerTorrentPluginDialog::addPeer(const SellerPeerPluginViewModel * model)
 
     Q_ASSERT(!_sellerPeerPluginViews.contains(endPoint));
 
-    _sellerPeerPluginViews[endPoint] = new SellerPeerPluginView(this, model, &_sellerPeerPluginTableViewModel);
+    // Creating row items
+    QStandardItem * endPointItem = new QStandardItem(),
+                  * clientStateItem = new QStandardItem(),
+                  * contractOutPointItem = new QStandardItem(),
+                  * fundsItem = new QStandardItem(),
+                  * refundLockTimeItem = new QStandardItem(),
+                  * priceItem = new QStandardItem(),
+                  * numberOfPaymentMadeItem = new QStandardItem(),
+                  * balanceItem = new QStandardItem();
+
+    // Create item row
+    QList<QStandardItem *> items;
+
+    items << endPointItem
+          << clientStateItem
+          << contractOutPointItem
+          << fundsItem
+          << refundLockTimeItem
+          << priceItem
+          << numberOfPaymentMadeItem
+          << balanceItem;
+
+    // Add row to model
+    _sellerPeerPluginTableViewModel.appendRow(items);
+
+    // Create peer view
+    _sellerPeerPluginViews[endPoint] = new SellerPeerPluginView(this,
+                                                                model,
+                                                                endPointItem,
+                                                                clientStateItem,
+                                                                contractOutPointItem,
+                                                                fundsItem,
+                                                                refundLockTimeItem,
+                                                                priceItem,
+                                                                numberOfPaymentMadeItem,
+                                                                balanceItem);
 }
 
 void SellerTorrentPluginDialog::removePeer(const libtorrent::tcp::endpoint & endPoint) {

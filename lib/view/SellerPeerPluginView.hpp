@@ -8,7 +8,6 @@
 #include <QAction>
 
 class QStandardItem;
-class QStandardItemModel;
 class SellerPeerPluginViewModel;
 
 class SellerPeerPluginView : public QObject
@@ -19,10 +18,14 @@ public:
     // Constructor
     SellerPeerPluginView(QObject *parent,
                          const SellerPeerPluginViewModel * peerModel,
-                         QStandardItemModel * itemModel);
-
-    // Destructor
-    ~SellerPeerPluginView();
+                         QStandardItem * endPointItem,
+                         QStandardItem * clientStateItem,
+                         QStandardItem * contractOutPointItem,
+                         QStandardItem * fundsItem,
+                         QStandardItem * refundLockTimeItem,
+                         QStandardItem * priceItem,
+                         QStandardItem * numberOfPaymentMadeItem,
+                         QStandardItem * balanceItem);
 
     // Text conversion routines
     static QString endPointToString(const libtorrent::tcp::endpoint & endPoint);
@@ -33,6 +36,31 @@ public:
     static QString priceToString(quint64 price);
     static QString numberOfPaymentMadeToString(quint32 numberOfPaymentMade);
     static QString balanceToString(quint32 balance);
+
+    // Getters and setters
+    QStandardItem *endPointItem() const;
+    void setEndPointItem(QStandardItem *endPointItem);
+
+    QStandardItem *clientStateItem() const;
+    void setClientStateItem(QStandardItem *clientStateItem);
+
+    QStandardItem *contractOutPointItem() const;
+    void setContractOutPointItem(QStandardItem *contractOutPointItem);
+
+    QStandardItem *fundsItem() const;
+    void setFundsItem(QStandardItem *fundsItem);
+
+    QStandardItem *refundLockTimeItem() const;
+    void setRefundLockTimeItem(QStandardItem *refundLockTimeItem);
+
+    QStandardItem *priceItem() const;
+    void setPriceItem(QStandardItem *priceItem);
+
+    QStandardItem *numberOfPaymentMadeItem() const;
+    void setNumberOfPaymentMadeItem(QStandardItem *numberOfPaymentMadeItem);
+
+    QStandardItem *balanceItem() const;
+    void setBalanceItem(QStandardItem *balanceItem);
 
 signals:
 
@@ -51,9 +79,6 @@ public slots:
     void updateBalance(quint32 balance);
 
 private:
-
-    // Reference to model which takes ownership of items
-    QStandardItemModel * _itemModel;
 
     // View model pointers
     // Objects are owned by QStandardItemModel passed to ctr

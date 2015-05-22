@@ -194,7 +194,27 @@ void BuyerTorrentPluginDialog::addPeer(const BuyerPeerPluginViewModel * model) {
 
     Q_ASSERT(!_buyerPeerPluginViews.contains(endPoint));
 
-    _buyerPeerPluginViews[endPoint] = new BuyerPeerPluginView(this, model, &_buyerPeerPluginTableViewModel);
+    // Creating row items
+    QStandardItem * endPointItem = new QStandardItem(),
+                  * clientStateItem = new QStandardItem(),
+                  * payorSlotItem = new QStandardItem();
+
+    // Create item row
+    QList<QStandardItem *> items;
+
+    items << endPointItem
+          << clientStateItem
+          << payorSlotItem;
+
+    // Add row to model
+    _buyerPeerPluginTableViewModel.appendRow(items);
+
+    // Create peer view
+    _buyerPeerPluginViews[endPoint] = new BuyerPeerPluginView(this,
+                                                              model,
+                                                              endPointItem,
+                                                              clientStateItem,
+                                                              payorSlotItem);
 }
 
 void BuyerTorrentPluginDialog::removePeer(const libtorrent::tcp::endpoint & endPoint) {
@@ -203,6 +223,12 @@ void BuyerTorrentPluginDialog::removePeer(const libtorrent::tcp::endpoint & endP
 
     // Take out peer plugin view
     BuyerPeerPluginView * view = _buyerPeerPluginViews.take(endPoint);
+
+    // Get index of endpoint item
+    QModelIndex index = _buyerPeerPluginTableViewModel.indexFromItem(view->endPointItem());
+
+    // Release row for this item, which corresponds to peer view
+    _buyerPeerPluginTableViewModel.removeRow(index.row());
 
     // Delete view
     delete view;

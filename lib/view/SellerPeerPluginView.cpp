@@ -4,35 +4,26 @@
 #include <libtorrent/socket_io.hpp> // print_endpoint
 
 #include <QStandardItem>
-#include <QStandardItemModel>
 
 SellerPeerPluginView::SellerPeerPluginView(QObject * parent,
                                            const SellerPeerPluginViewModel * peerModel,
-                                           QStandardItemModel * itemModel)
+                                           QStandardItem * endPointItem,
+                                           QStandardItem * clientStateItem,
+                                           QStandardItem * contractOutPointItem,
+                                           QStandardItem * fundsItem,
+                                           QStandardItem * refundLockTimeItem,
+                                           QStandardItem * priceItem,
+                                           QStandardItem * numberOfPaymentMadeItem,
+                                           QStandardItem * balanceItem)
     : QObject(parent)
-    , _endPointItem(new QStandardItem())
-    , _clientStateItem(new QStandardItem())
-    , _contractOutPointItem(new QStandardItem())
-    , _fundsItem(new QStandardItem())
-    , _refundLockTimeItem(new QStandardItem())
-    , _priceItem(new QStandardItem())
-    , _numberOfPaymentMadeItem(new QStandardItem())
-    , _balanceItem(new QStandardItem())
-    , _itemModel(itemModel) {
-
-    // Add row to model
-    QList<QStandardItem *> items;
-
-    items << _endPointItem
-          << _clientStateItem
-          << _contractOutPointItem
-          << _fundsItem
-          << _refundLockTimeItem
-          << _priceItem
-          << _numberOfPaymentMadeItem
-          << _balanceItem;
-
-    _itemModel->appendRow(items);
+    , _endPointItem(endPointItem)
+    , _clientStateItem(clientStateItem)
+    , _contractOutPointItem(contractOutPointItem)
+    , _fundsItem(fundsItem)
+    , _refundLockTimeItem(refundLockTimeItem)
+    , _priceItem(priceItem)
+    , _numberOfPaymentMadeItem(numberOfPaymentMadeItem)
+    , _balanceItem(balanceItem) {
 
     // Set data
     updateEndPoint(peerModel->endPoint());
@@ -91,13 +82,6 @@ SellerPeerPluginView::SellerPeerPluginView(QObject * parent,
                      this,
                      SLOT(updateFunds(quint64)));
 
-}
-
-SellerPeerPluginView::~SellerPeerPluginView() {
-
-    // Release row
-    int row = _clientStateItem->row();
-    _itemModel->removeRow(row);
 }
 
 QString SellerPeerPluginView::endPointToString(const libtorrent::tcp::endpoint & endPoint) {
@@ -210,4 +194,68 @@ void SellerPeerPluginView::updateNumberOfPaymentMade(quint64 numberOfPaymentMade
 
 void SellerPeerPluginView::updateBalance(quint32 balance) {
     _balanceItem->setText(balanceToString(balance));
+}
+
+QStandardItem *SellerPeerPluginView::balanceItem() const {
+    return _balanceItem;
+}
+
+void SellerPeerPluginView::setBalanceItem(QStandardItem *balanceItem) {
+    _balanceItem = balanceItem;
+}
+
+QStandardItem *SellerPeerPluginView::numberOfPaymentMadeItem() const {
+    return _numberOfPaymentMadeItem;
+}
+
+void SellerPeerPluginView::setNumberOfPaymentMadeItem(QStandardItem *numberOfPaymentMadeItem) {
+    _numberOfPaymentMadeItem = numberOfPaymentMadeItem;
+}
+
+QStandardItem *SellerPeerPluginView::priceItem() const {
+    return _priceItem;
+}
+
+void SellerPeerPluginView::setPriceItem(QStandardItem *priceItem) {
+    _priceItem = priceItem;
+}
+
+QStandardItem *SellerPeerPluginView::refundLockTimeItem() const {
+    return _refundLockTimeItem;
+}
+
+void SellerPeerPluginView::setRefundLockTimeItem(QStandardItem *refundLockTimeItem) {
+    _refundLockTimeItem = refundLockTimeItem;
+}
+
+QStandardItem *SellerPeerPluginView::fundsItem() const {
+    return _fundsItem;
+}
+
+void SellerPeerPluginView::setFundsItem(QStandardItem *fundsItem) {
+    _fundsItem = fundsItem;
+}
+
+QStandardItem *SellerPeerPluginView::contractOutPointItem() const {
+    return _contractOutPointItem;
+}
+
+void SellerPeerPluginView::setContractOutPointItem(QStandardItem *contractOutPointItem) {
+    _contractOutPointItem = contractOutPointItem;
+}
+
+QStandardItem *SellerPeerPluginView::clientStateItem() const {
+    return _clientStateItem;
+}
+
+void SellerPeerPluginView::setClientStateItem(QStandardItem *clientStateItem) {
+    _clientStateItem = clientStateItem;
+}
+
+QStandardItem *SellerPeerPluginView::endPointItem() const {
+    return _endPointItem;
+}
+
+void SellerPeerPluginView::setEndPointItem(QStandardItem *endPointItem) {
+    _endPointItem = endPointItem;
 }
