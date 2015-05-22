@@ -261,3 +261,16 @@ CONFIG(debug, debug|release) {
 
 # Linking with boost
 LIBS += -L$$BOOST_LOCATION/stage/lib
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../streamingserver/streamingserver-lib/release/ -lstreamingserver-lib
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../streamingserver/streamingserver-lib/debug/ -lstreamingserver-lib
+else:unix: LIBS += -L$$OUT_PWD/../streamingserver/streamingserver-lib/ -lstreamingserver-lib
+
+INCLUDEPATH += $$PWD/../streamingserver/streamingserver-lib/include
+DEPENDPATH += $$PWD/../streamingserver/streamingserver-lib
+
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../streamingserver/streamingserver-lib/release/libstreamingserver-lib.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../streamingserver/streamingserver-lib/debug/libstreamingserver-lib.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../streamingserver/streamingserver-lib/release/streamingserver-lib.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../streamingserver/streamingserver-lib/debug/streamingserver-lib.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../streamingserver/streamingserver-lib/libstreamingserver-lib.a
