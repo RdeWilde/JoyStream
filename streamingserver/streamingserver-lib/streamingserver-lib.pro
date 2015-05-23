@@ -11,9 +11,9 @@ QT += core network
 INCLUDEPATH = include
 
 HEADERS += \
-    include/streamingserver/HttpServer.hpp \
-    include/streamingserver/HttpConnectionHandler.hpp
+    include/streamingserver/StreamingServer.hpp \
+    include/streamingserver/Stream.hpp
 
 SOURCES += \
-    src/HttpServer.cpp \
-    src/HttpConnectionHandler.cpp
+    src/StreamingServer.cpp \
+    src/Stream.cpp

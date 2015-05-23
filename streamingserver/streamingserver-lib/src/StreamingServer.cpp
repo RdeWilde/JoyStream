@@ -1,11 +1,11 @@
 /** Adapted from https://github.com/richmoore/qt-examples/blob/master/httpserver/httpserver.cpp */
 
-#include "streamingserver/HttpServer.hpp"
-#include "streamingserver/HttpConnectionHandler.hpp"
+#include "streamingserver/StreamingServer.hpp"
+#include "streamingserver/Stream.hpp"
 
 #include <QTcpSocket>
 
-HttpServer::HttpServer(quint16 port, QObject *parent)
+StreamingServer::StreamingServer(quint16 port, QObject *parent)
     : QObject(parent)
     , _server(this) {
 
@@ -29,21 +29,29 @@ HttpServer::HttpServer(quint16 port, QObject *parent)
         qDebug() << "Could not start server listening on port:" << port;
 }
 
-HttpServer::~HttpServer() {
+StreamingServer::~StreamingServer() {
     qDebug() << "Destroying server";
 }
 
-void HttpServer::handleConnection() {
+void StreamingServer::handleConnection() {
 
     qDebug() << "New connection arrived.";
 
     // Create handler for each pending connection
     // socket is owned by _server
-    while(QTcpSocket * socket = _server.nextPendingConnection())
-        new HttpConnectionHandler(socket, this);
+    while(QTcpSocket * socket = _server.nextPendingConnection()) {
+
+        // Create stream
+        Stream * stream = new Stream(socket, this);
+
+        // Notify about stream being started
+        emit streamStarted(stream);
+    }
 }
 
-void HttpServer::handleAcceptError(QAbstractSocket::SocketError socketError) {
+void StreamingServer::handleAcceptError(QAbstractSocket::SocketError socketError) {
 
     qDebug() << "Failed to accept connection.";
+
+    emit streamCreationError(socketError);
 }
