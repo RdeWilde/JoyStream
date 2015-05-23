@@ -262,6 +262,7 @@ CONFIG(debug, debug|release) {
 # Linking with boost
 LIBS += -L$$BOOST_LOCATION/stage/lib
 
+# streamingserver-lib
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../streamingserver/streamingserver-lib/release/ -lstreamingserver-lib
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../streamingserver/streamingserver-lib/debug/ -lstreamingserver-lib
 else:unix: LIBS += -L$$OUT_PWD/../streamingserver/streamingserver-lib/ -lstreamingserver-lib

@@ -4,21 +4,35 @@
 #define HTTP_SERVER_HPP
 
 #include <QObject>
-
-class QTcpServer;
+#include <QTcpServer>
+#include <QAbstractSocket> // is nested enum QAbstractSocket::SocketError
 
 class HttpServer : public QObject
 {
     Q_OBJECT
 public:
-    HttpServer(quint16 port, QObject *parent=0);
+
+    // Constructor
+    HttpServer(quint16 port, QObject * parent = 0);
+
     ~HttpServer();
 
-protected slots:
+public slots:
+
+    // Checks server for pending connections
     void handleConnection();
 
+    // Checks server for pending error
+    void handleAcceptError(QAbstractSocket::SocketError socketError);
+
+signals:
+
+    //void streamStarted
+
 private:
-    QTcpServer *server;
+
+    // TCP server
+    QTcpServer _server;
 };
 
 #endif // HTTP_SERVER_HPP

@@ -1,12 +1,11 @@
-#include <QApplication>
+#include <QCoreApplication>
 
 #include "TestLoggerManager.hpp"
 #include "TestTxId.hpp"
 
 int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv);
-    //app.setAttribute(Qt::AA_Use96Dpi, true);
+    QCoreApplication app(argc, argv);
 
     TestLoggerManager tcTestLoggerManager;
     QTest::qExec(&tcTestLoggerManager, argc, argv);
