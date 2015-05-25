@@ -1,6 +1,5 @@
-
-# Required for including libtorrent and boost headers
-include(../defaults.pri)
+include(../boost.pri)
+include(../libtorrent.pri)
 
 TARGET = tests
 TEMPLATE = app
@@ -11,8 +10,6 @@ TEMPLATE = app
 CONFIG += qtestlib
 CONFIG += link_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
 QT     += core
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets # Needed for including QApplication
 
 INCLUDEPATH += $$PWD # be able to include w.r.t root of this project
 

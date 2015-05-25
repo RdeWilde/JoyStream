@@ -7,9 +7,9 @@
 static qint64 MAX_REQUEST_LINE_LENGTH = 2048;
 
 Stream::Stream(QTcpSocket * socket, QObject * parent)
-    : QObject(parent),
-      _state(State::WaitingForFirstRequestLine),
-      _socket(socket) {
+    : QObject(parent)
+    , _state(State::WaitingForFirstRequestLine)
+    , _socket(socket) {
 
     // Connect connection data arrival signal to handler slot
     QObject::connect(_socket, SIGNAL(readyRead()), this, SLOT(readSocket()));
@@ -51,8 +51,64 @@ void Stream::readSocket() {
 
 }
 
-void Stream::sendDataRange(int start, const char * data) {
+void Stream::sendDataRange(const QString & contentType,
+                           const QList<const boost::shared_array<char> > & data,
+                           int offsetInFirstChunk,
+                           int offsetInLastArray) {
 
+    qDebug() << "sendDataRange" << contentType << "," << offsetInFirstChunk << "," << offsetInLastArray;
+
+    // LOOK AT RESPONSE IN BROWSER
+
+    // Check that this is data for the most recent
+    // request we issue :_mostRecentlyRequestedRange
+    /**
+            res.writeHead(206, {
+                "Content-Range": "bytes " + start + "-" + end + "/" + total,
+                "Accept-Ranges": "bytes",
+                "Content-Length": chunksize,
+                "Content-Type": "video/mp4"
+            });
+
+
+      - Either a Content-Range header field (section 14.16) indicating
+        the range included with this response, or a multipart/byteranges
+        Content-Type including Content-Range fields for each part. If a
+        Content-Length header field is present in the response, its
+        value MUST match the actual number of OCTETs transmitted in the
+        message-body.
+      - Date
+      - ETag and/or Content-Location, if the header would have been sent
+        in a 200 response to the same request
+      - Expires, Cache-Control, and/or Vary, if the field-value might
+        differ from that sent in any previous response for the same
+        variant
+
+
+    QString headers("HTTP/1.1 200 OK\n" \
+                    "Content-Length: %1\n" \
+                    "\n");
+
+    QString body("<html><body>" \
+                 "<h1>It works!</h1>"         \
+                 "HTTP connection from %1"    \
+                 "</body></html>");
+
+    body = body.arg(_socket->peerAddress().toString());
+
+    _socket->write(headers.arg(body.toUtf8().length()).toUtf8());
+    _socket->write(body.toUtf8());
+    _socket->flush(); // Needed before change 86186
+    */
+
+}
+
+void Stream::invalidRangeRequested(int start) {
+
+    qDebug() << "invalidRangeRequested" << start;
+
+    // End stream
+    endOnError(Error::InvalidRangeRequested);
 }
 
 void Stream::readRequestLine() {
@@ -60,8 +116,8 @@ void Stream::readRequestLine() {
     // If we have a full line, then parse it
     if (_socket->canReadLine()) {
 
-        Q_ASSERT(_state == State::WaitingForFirstRequestLine ||
-                 _state == State::ReadingRequestLine);
+        Q_ASSERT((_state == State::WaitingForFirstRequestLine && _requestedPath.size() == 0) ||
+                 (_state == State::ReadingRequestLine && _requestedPath.size() != 0));
 
         // Read request line
         QByteArray requestLine = _socket->readLine();
@@ -115,11 +171,15 @@ void Stream::readRequestLine() {
 void Stream::readRequestHeaders() {
 
     Q_ASSERT(_state == State::ReadingRequestHeaders);
+    Q_ASSERT(_requestedPath.size() != 0);
 
     // While there is a full line to read, read it
     while (_socket->canReadLine()) {
 
+        // Read header line
         QByteArray headerLine = _socket->readLine();
+
+        //qDebug() << "Read header line:" << headerLine;
 
         // If all headers have now been read, then process full request
         if (headerLine == QByteArrayLiteral("\r\n") || headerLine == QByteArrayLiteral("\n"))
@@ -127,25 +187,23 @@ void Stream::readRequestHeaders() {
         else {
 
             // Split header line to recover name and value
-            int indexOfFirstColon = headerLine.indexOf(':');
+            bool ok;
+            QPair<QByteArray, QByteArray> splittedHeaderLine = splitInHalf(headerLine, ':', ok);
 
-            // Check that splitting is possible, i.e. there is at least one colon
-            if (indexOfFirstColon == -1) {
+            // Was splitting possible?
+            if(ok) {
 
-                qDebug() << "Header line is missing colon:" << headerLine;
+                qDebug() << splittedHeaderLine.first << ':'<< splittedHeaderLine.second;
 
-                endOnError(Error::HeaderLineMissingColon);
+                // Insert into header map
+                _headers.insert(splittedHeaderLine.first.toUpper(), splittedHeaderLine.second.trimmed());
 
             } else {
 
-                // Grab header name and value
-                QByteArray header = headerLine.left(indexOfFirstColon);
-                QByteArray value = headerLine.mid(indexOfFirstColon+1);
+                qDebug() << "Header line is missing colon:" << headerLine;
 
-                // Insert into header map
-                _headers.insert(header.toUpper(), value.trimmed());
-
-                qDebug() << header.toUpper() << value.trimmed();
+                // End
+                endOnError(Error::HeaderLineMissingColon);
             }
         }
     }
@@ -153,20 +211,100 @@ void Stream::readRequestHeaders() {
 
 void Stream::processRequest() {
 
-    QString headers("HTTP/1.1 200 OK\n" \
-                    "Content-Length: %1\n" \
-                    "\n");
+    Q_ASSERT(_state == State::ReadingRequestHeaders);
+    Q_ASSERT(_requestedPath.size() != 0);
 
-    QString body("<html><body>" \
-                 "<h1>It works!</h1>"         \
-                 "HTTP connection from %1"    \
-                 "</body></html>");
+    // Try to recover range field
+    QByteArray range = QByteArrayLiteral("RANGE");
 
-    body = body.arg(_socket->peerAddress().toString());
+    // If range exists, try to use it
+    if(_headers.contains(range)) {
 
-    _socket->write(headers.arg(body.toUtf8().length()).toUtf8());
-    _socket->write(body.toUtf8());
-    _socket->flush(); // Needed before change 86186
+        // Lets just assume there is only one range field for now
+        QList<QByteArray> headers = _headers.values("plenty");
+
+        Q_ASSERT(headers.size() == 1);
+
+        QByteArray rangeValue = headers.front();
+
+        // Remove "bytes"
+        rangeValue.replace("bytes","");
+
+        // Split range into start and end, if possible.
+        bool ok;
+        QPair<QByteArray, QByteArray> splittedRangeValue = splitInHalf(rangeValue, '-', ok);
+
+        // Was it possible?
+        if(ok) {
+
+            bool couldConvertStartOfRange;
+            int start = splittedRangeValue.first.toInt(&couldConvertStartOfRange);
+
+            bool couldConvertEndOfRange;
+            int end = splittedRangeValue.first.toInt(&couldConvertEndOfRange);
+
+            // Could actual range values be recovered?
+            if(couldConvertStartOfRange && couldConvertEndOfRange) {
+
+                // Make request for spesific range
+                qDebug() << "Requesting range [" << start << "," << end << "]";
+
+                // Save range start
+                _mostRecentlyRequestedStartOfRange = start;
+
+                // Send range request notification
+                emit rangeRequested(start, end);
+
+            } else {
+
+                qDebug() << "Could not parse range header line:" << rangeValue;
+
+                // End
+                endOnError(Error::InvalidRangeHeaderLine);
+
+                return;
+            }
+
+        } else {
+
+            // Try to see if we can just recover start of range
+            bool couldConvertStartOfRange;
+            int start = rangeValue.toInt(&couldConvertStartOfRange);
+
+            if(couldConvertStartOfRange)  {
+
+                // Make request for start
+                qDebug() << "Requesting start" << start;
+
+                // Save range start
+                _mostRecentlyRequestedStartOfRange = start;
+
+                // Send range request notification
+                emit startRequested(start);
+
+            } else {
+
+                qDebug() << "Could not parse range header line:" << rangeValue;
+
+                // End
+                endOnError(Error::InvalidRangeHeaderLine);
+
+                return;
+            }
+
+        }
+
+    } else {
+
+        // Just dump first part of file?
+        qDebug() << "Requesting 0";
+
+        // Save range start
+        _mostRecentlyRequestedStartOfRange = 0;
+
+        // Send range request notification
+        emit startRequested(0);
+    }
 
     // Reset for next request
     _state = State::ReadingRequestLine;
@@ -207,4 +345,24 @@ void Stream::endOnError(Error error) {
 
     // Delete *this stream later from event loop
     deleteLater();
+}
+
+QPair<QByteArray, QByteArray> Stream::splitInHalf(QByteArray data, char c, bool & ok) {
+
+    // Return value
+    QPair<QByteArray, QByteArray> returnValue;
+
+    // Split line
+    int indexOfFirstColon = data.indexOf(c);
+
+    // Check that splitting is possible, i.e. there is at least one delimiter
+    if (indexOfFirstColon == -1)
+        ok = false;
+    else {
+        ok = true;
+        returnValue.first = data.left(indexOfFirstColon);
+        returnValue.second = data.mid(indexOfFirstColon+1);
+    }
+
+    return returnValue;
 }

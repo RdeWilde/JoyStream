@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1088</width>
-    <height>340</height>
+    <width>1073</width>
+    <height>339</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <widget class="QTableView" name="torrentsTable">
     <property name="geometry">
      <rect>
-      <x>8</x>
+      <x>0</x>
       <y>98</y>
       <width>1073</width>
       <height>221</height>
@@ -32,7 +32,7 @@
    <widget class="QPushButton" name="addTorrentFilePushButton">
     <property name="geometry">
      <rect>
-      <x>336</x>
+      <x>278</x>
       <y>32</y>
       <width>93</width>
       <height>33</height>
@@ -50,7 +50,7 @@
    <widget class="QPushButton" name="addMagnetLinkPushButton">
     <property name="geometry">
      <rect>
-      <x>320</x>
+      <x>268</x>
       <y>72</y>
       <width>17</width>
       <height>17</height>
@@ -68,7 +68,7 @@
    <widget class="QLabel" name="earnedBalanceLabel">
     <property name="geometry">
      <rect>
-      <x>616</x>
+      <x>632</x>
       <y>26</y>
       <width>105</width>
       <height>31</height>
@@ -89,7 +89,7 @@
    <widget class="QLabel" name="earnedTitleQlabel">
     <property name="geometry">
      <rect>
-      <x>680</x>
+      <x>696</x>
       <y>54</y>
       <width>41</width>
       <height>19</height>
@@ -107,7 +107,7 @@
    <widget class="Line" name="line">
     <property name="geometry">
      <rect>
-      <x>740</x>
+      <x>756</x>
       <y>20</y>
       <width>3</width>
       <height>61</height>
@@ -120,7 +120,7 @@
    <widget class="QLabel" name="spentTitleLabel">
     <property name="geometry">
      <rect>
-      <x>828</x>
+      <x>844</x>
       <y>54</y>
       <width>35</width>
       <height>19</height>
@@ -138,7 +138,7 @@
    <widget class="QLabel" name="spentBalanceLabel">
     <property name="geometry">
      <rect>
-      <x>754</x>
+      <x>770</x>
       <y>26</y>
       <width>105</width>
       <height>27</height>
@@ -156,7 +156,7 @@
    <widget class="Line" name="line_2">
     <property name="geometry">
      <rect>
-      <x>880</x>
+      <x>896</x>
       <y>20</y>
       <width>3</width>
       <height>61</height>
@@ -169,7 +169,7 @@
    <widget class="QLabel" name="balanceLabel">
     <property name="geometry">
      <rect>
-      <x>890</x>
+      <x>906</x>
       <y>26</y>
       <width>150</width>
       <height>33</height>
@@ -190,7 +190,7 @@
    <widget class="QLabel" name="balanceTitleLabel">
     <property name="geometry">
      <rect>
-      <x>996</x>
+      <x>1012</x>
       <y>54</y>
       <width>45</width>
       <height>19</height>
@@ -208,7 +208,7 @@
    <widget class="QPushButton" name="walletPushButton">
     <property name="geometry">
      <rect>
-      <x>448</x>
+      <x>392</x>
       <y>32</y>
       <width>91</width>
       <height>33</height>
@@ -226,10 +226,10 @@
    <widget class="Line" name="line_3">
     <property name="geometry">
      <rect>
-      <x>438</x>
-      <y>18</y>
-      <width>3</width>
-      <height>61</height>
+      <x>380</x>
+      <y>28</y>
+      <width>4</width>
+      <height>43</height>
      </rect>
     </property>
     <property name="orientation">
@@ -239,7 +239,7 @@
    <widget class="QLabel" name="logoLabel">
     <property name="geometry">
      <rect>
-      <x>56</x>
+      <x>20</x>
       <y>8</y>
       <width>237</width>
       <height>75</height>
@@ -247,6 +247,37 @@
     </property>
     <property name="text">
      <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="settingsPushButton">
+    <property name="geometry">
+     <rect>
+      <x>508</x>
+      <y>32</y>
+      <width>91</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Settings</string>
+    </property>
+   </widget>
+   <widget class="Line" name="line_4">
+    <property name="geometry">
+     <rect>
+      <x>488</x>
+      <y>28</y>
+      <width>16</width>
+      <height>43</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Vertical</enum>
     </property>
    </widget>
   </widget>

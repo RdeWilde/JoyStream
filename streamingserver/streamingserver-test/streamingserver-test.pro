@@ -1,3 +1,4 @@
+include (../../boost.pri)
 
 TEMPLATE = app
 TARGET = streamingserver-test
@@ -12,7 +13,11 @@ CONFIG += link_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usa
 QT += core network
 
 SOURCES += \
-    main.cpp
+    main.cpp \
+    TestStream.cpp
+
+HEADERS += \
+    TestStream.hpp
 
 #INCLUDEPATH += $$PWD # be able to include w.r.t root of this project
 
@@ -29,3 +34,4 @@ else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../stre
 else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../streamingserver-lib/release/streamingserver-lib.lib
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../streamingserver-lib/debug/streamingserver-lib.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../streamingserver-lib/libstreamingserver-lib.a
+

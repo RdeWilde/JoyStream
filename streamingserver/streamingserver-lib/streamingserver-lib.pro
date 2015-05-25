@@ -1,3 +1,4 @@
+include (../../boost.pri)
 
 TEMPLATE = lib
 TARGET = streamingserver-lib
@@ -8,7 +9,7 @@ CONFIG  += c++11 # Needed for class enum
 
 QT += core network
 
-INCLUDEPATH = include
+INCLUDEPATH += include
 
 HEADERS += \
     include/streamingserver/StreamingServer.hpp \

@@ -1,15 +1,16 @@
+include (../boost.pri)
+include(../libtorrent.pri)
 
-# Qt Project
 TARGET = QtBitSwapr
 TEMPLATE = lib
 
 CONFIG  += staticlib
 CONFIG  += create_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
-CONFIG  += console
 CONFIG  += c++11 # Needed for class enum
 
 QT     += core gui network
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets # Needed for including QApplication
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets # QMainWindow, QDialog
+
 
 INCLUDEPATH += $$PWD # be able to include w.r.t root of this project
 
@@ -229,40 +230,7 @@ FORMS += \
 RESOURCES += \
     ../views/gui/src/resources.qrc
 
-# Required for including libtorrent and boost headers
-include(../defaults.pri)
-
-####################################
-# Linking with Libtorrent RELEASE
-####################################
-CONFIG(release, debug|release) {
-
-    DEFINES += NDEBUG
-
-    LIBS += -L$$LIBTORRENT_LOCATION/bin/msvc-12.0/release/address-model-64/boost-source/deprecated-functions-off/link-static/threading-multi -llibtorrent
-
-    message("Release Configuration")
-}
-
-####################################
-# Linking with Libtorrent DEBUG
-####################################
-CONFIG(debug, debug|release) {
-
-    DEFINES += TORRENT_DEBUG
-
-    LIBS += -L$$LIBTORRENT_LOCATION/bin/msvc-12.0/debug/address-model-64/boost-source/deprecated-functions-off/link-static/threading-multi -llibtorrent
-
-    # The mailinglist suggested this to be able
-    LIBS += DbgHelp.lib
-
-    message("Debug Configuration")
-}
-
-# Linking with boost
-LIBS += -L$$BOOST_LOCATION/stage/lib
-
-# streamingserver-lib
+# streamingserver-lib  ###############################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../streamingserver/streamingserver-lib/release/ -lstreamingserver-lib
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../streamingserver/streamingserver-lib/debug/ -lstreamingserver-lib
 else:unix: LIBS += -L$$OUT_PWD/../streamingserver/streamingserver-lib/ -lstreamingserver-lib

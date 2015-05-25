@@ -4,22 +4,14 @@
 #include <QDir>
 #include <QNetworkAccessManager>
 
-#include <iostream>
-
-#include "lib/Config.hpp"
-#include "lib/ControllerTracker.hpp"
-#include "lib/controller/Controller.hpp"
-#include "lib/extension/BuyerTorrentPlugin.hpp" // for configurations
-#include "lib/extension/SellerTorrentPlugin.hpp" // for configurations
-#include "lib/logger/LoggerManager.hpp"
-
-//#include "lib/controller/ControllerConfiguration.hpp"
-//#include "lib/controller/TorrentConfiguration.hpp"
-//#include "lib/extension/TorrentPluginConfiguration.hpp"
-
-#include "lib/extension/PluginMode.hpp"
-
-#include "lib/extension/BitCoin/BitCoin.hpp" // defines
+#include <lib/Config.hpp>
+#include <lib/ControllerTracker.hpp>
+#include <lib/controller/Controller.hpp>
+#include <lib/extension/BuyerTorrentPlugin.hpp> // for configurations
+#include <lib/extension/SellerTorrentPlugin.hpp> // for configurations
+#include <lib/logger/LoggerManager.hpp>
+#include <lib/extension/PluginMode.hpp>
+#include <lib/extension/BitCoin/BitCoin.hpp> // defines
 
 #include <libtorrent/torrent_info.hpp>
 #include <libtorrent/error_code.hpp>
@@ -86,10 +78,9 @@ void main(int argc, char* argv[]) {
         // Check that file exists, and that it actually is a file
         if(!QFile::exists(file)) {
 
-            std::cerr << "WARNING: parameter file "
-                      << fileString.c_str()
-                      << " does not exist." << std::endl
-                      << "Try fresh run option if problem persists" << std::endl << std::endl;
+            qDebug() << "WARNING: parameter file"
+                     << fileString.c_str()
+                     << "does not exist. Try fresh run option if problem persists";
 
             exit(EXIT_FAILURE);
 
@@ -112,7 +103,7 @@ void main(int argc, char* argv[]) {
     libtorrent::torrent_info torrentInfo(torrent, ec);
 
     if(ec) {
-        std::cerr << "Invalid torrent file 1: " << ec.message().c_str();
+        qDebug() << "Invalid torrent file 1: " << ec.message().c_str();
         return;
     }
 
@@ -198,7 +189,7 @@ void main(int argc, char* argv[]) {
 
         // Check that an utxo was indeed found
         if(utxo.value() == 0) {
-            std::cout << "No utxo found with value no less than:" << minFunds;
+            qDebug() << "No utxo found with value no less than:" << minFunds;
 
             buyerClient->addTorrent(buyerTorrentConfiguration);
         } else {
@@ -267,7 +258,7 @@ void main(int argc, char* argv[]) {
     // Start event loop: this is the only Qt event loop in the entire application
     app.exec();
 
-    std::cout << "Application event loop exited, application closing." << std::endl;
+    qDebug() << "Application event loop exited, application closing.";
 }
 
 bool updateManager() {

@@ -385,7 +385,12 @@ void SellerTorrentPlugin::readPiece(SellerPeerPlugin * peer, int piece) {
 void SellerTorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) {
 
     // There should be at least one peer registered for this piece
-    Q_ASSERT(!_outstandingPieceRequests[alert->piece].empty());
+    //Q_ASSERT(!_outstandingPieceRequests[alert->piece].empty());
+    if(_outstandingPieceRequests[alert->piece].empty()) {
+
+        qCDebug(_category) << "Ignoring piece read, must be for streaming server.";
+        return;
+    }
 
     // Make a callback for each peer registered
     const QSet<SellerPeerPlugin *> & peers = _outstandingPieceRequests[alert->piece];

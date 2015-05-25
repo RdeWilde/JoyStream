@@ -4,6 +4,10 @@
 #include <QObject>
 #include <QMultiMap>
 
+#ifndef Q_MOC_RUN
+#include <boost/shared_array.hpp>
+#endif Q_MOC_RUN
+
 class QTcpSocket;
 
 class Stream : public QObject
@@ -26,7 +30,7 @@ public:
         // We have yet to read the end of all headers in a request
         ReadingRequestHeaders,
 
-        // Stream ended
+        // Stream ended: Why this?
         Done,
 
         // Stream is in error state, and
@@ -50,6 +54,11 @@ public:
         // Last header line read is missing a colon
         HeaderLineMissingColon,
 
+        // Could not parse range header line
+        InvalidRangeHeaderLine,
+
+        // Range was not compatible with underlying content
+        InvalidRangeRequested
 
     };
 
@@ -68,17 +77,23 @@ public slots:
     // Try to read socket and parse data into request
     void readSocket();
 
-    // Sends range of data
-    void sendDataRange(int start, const char * data);
+    // Sends data
+    void sendDataRange(const QString & contentType,
+                       const QList<const boost::shared_array<char> > & data,
+                       int offsetInFirstChunk,
+                       int offsetInLastArray);
 
-    // Closes socket
-    // think more about how to do this properly to avoid
-    // leaks void close();
+    // A request starting at given position was invalid
+    void invalidRangeRequested(int start);
 
 signals:
 
     // The given byte range of the data stream was requested
     void rangeRequested(int start, int end);
+
+    // A chunk starting at given position has been requested, but no spesific end,
+    // Its up to slot recipient to choose how big of a range to provide
+    void startRequested(int start);
 
     // Given error occured, stream has been closed
     // and will be promptly deleted.
@@ -86,6 +101,8 @@ signals:
 
 private:
 
+    // Processes contents of _headers as if they
+    // represent a full request
     void processRequest();
 
     // Tries to read request line from socket
@@ -94,6 +111,7 @@ private:
     // Tries to read
     void readRequestHeaders();
 
+    // Sends given response with given error code to client
     void sendError(int code);
 
 private:
@@ -121,6 +139,16 @@ private:
     // for this field.
     // More on this: https://tools.ietf.org/html/rfc7230#section-3.2.2
     QMultiMap<QByteArray, QByteArray> _headers;
+
+    // Start of most recently requested range.
+    // This is used to know whether to relay data ranges to the client,
+    // as they may have expired.
+    // We only keep track of start because not all requests
+    // from client will include and end of range.
+    int _mostRecentlyRequestedStartOfRange;
+
+    // Simple splitting utility used for processing request line
+    QPair<QByteArray, QByteArray> splitInHalf(QByteArray data, char c, bool & ok);
 };
 
 #endif // HTTP_CONNECTION_HANDLER_HPP
