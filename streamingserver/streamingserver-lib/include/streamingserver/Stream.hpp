@@ -62,6 +62,35 @@ public:
 
     };
 
+    class Piece {
+
+    public:
+
+        // Constructor
+        Piece(int index, int length, const boost::shared_array<char> & data);
+
+        // Getters and setters
+        int index() const;
+        void setIndex(int index);
+
+        int length() const;
+        void setLength(int length);
+
+        boost::shared_array<char> data() const;
+        void setData(const boost::shared_array<char> &data);
+
+    private:
+
+        // Index of piece
+        int _index;
+
+        // Byte length of piece
+        int _length;
+
+        // Raw data in piece
+        boost::shared_array<char> _data;
+    };
+
     // Constructor
     Stream(QTcpSocket * socket, QObject * parent = 0);
 
@@ -71,17 +100,25 @@ public:
     // Getters
     QByteArray requestedPath() const;
 
-
 public slots:
 
     // Try to read socket and parse data into request
     void readSocket();
 
-    // Sends data
+    // Sends response with data over socket to client
+    // * contentType = type of data, e.g. "video/mp4"
+    // * start,end = what subrange of total underlying data stream is being transmitted
+    // * total = full range of data stream
+    // * pieces = actual data
+    // * offsetInFirstPiece = offset to start writing from in first piece
+    // * offsetInLastPiece
     void sendDataRange(const QString & contentType,
-                       const QList<const boost::shared_array<char> > & data,
-                       int offsetInFirstChunk,
-                       int offsetInLastArray);
+                       int start,
+                       int end,
+                       int total,
+                       const QVector<Piece> pieces,
+                       int offsetInFirstPiece,
+                       int offsetInLastPiece);
 
     // A request starting at given position was invalid
     void invalidRangeRequested(int start);

@@ -1,5 +1,44 @@
 #include "streamingserver/Stream.hpp"
 
+/**
+ * Stream::Piece
+ */
+
+Stream::Piece::Piece(int index, int length, const boost::shared_array<char> & data)
+    : _index(index)
+    , _length(length)
+    , _data(data) {
+}
+
+
+int Stream::Piece::index() const {
+    return _index;
+}
+
+void Stream::Piece::setIndex(int index) {
+    _index = index;
+}
+
+int Stream::Piece::length() const {
+    return _length;
+}
+
+void Stream::Piece::setLength(int length) {
+    _length = length;
+}
+
+boost::shared_array<char> Stream::Piece::data() const {
+    return _data;
+}
+
+void Stream::Piece::setData(const boost::shared_array<char> &data) {
+    _data = data;
+}
+
+/**
+ * Stream
+ */
+
 #include <QDebug>
 #include <QHostAddress>
 #include <QTcpSocket>
@@ -52,25 +91,26 @@ void Stream::readSocket() {
 }
 
 void Stream::sendDataRange(const QString & contentType,
-                           const QList<const boost::shared_array<char> > & data,
-                           int offsetInFirstChunk,
-                           int offsetInLastArray) {
+                           int start,
+                           int end,
+                           int total,
+                           const QVector<Piece> pieces,
+                           int offsetInFirstPiece,
+                           int offsetInLastPiece) {
 
-    qDebug() << "sendDataRange" << contentType << "," << offsetInFirstChunk << "," << offsetInLastArray;
+    qDebug() << "sendDataRange"
+             << contentType
+             << ", #pieces=" << pieces.size()
+             << "," << offsetInFirstPiece
+             << "," << offsetInLastPiece;
 
-    // LOOK AT RESPONSE IN BROWSER
+    Q_ASSERT(pieces.size() > 0);
+    Q_ASSERT(start < end);
+    Q_ASSERT(end < total);
 
-    // Check that this is data for the most recent
-    // request we issue :_mostRecentlyRequestedRange
+    // Build response header
     /**
-            res.writeHead(206, {
-                "Content-Range": "bytes " + start + "-" + end + "/" + total,
-                "Accept-Ranges": "bytes",
-                "Content-Length": chunksize,
-                "Content-Type": "video/mp4"
-            });
-
-
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
       - Either a Content-Range header field (section 14.16) indicating
         the range included with this response, or a multipart/byteranges
         Content-Type including Content-Range fields for each part. If a
@@ -78,29 +118,79 @@ void Stream::sendDataRange(const QString & contentType,
         value MUST match the actual number of OCTETs transmitted in the
         message-body.
       - Date
+
       - ETag and/or Content-Location, if the header would have been sent
         in a 200 response to the same request
       - Expires, Cache-Control, and/or Vary, if the field-value might
         differ from that sent in any previous response for the same
         variant
-
-
-    QString headers("HTTP/1.1 200 OK\n" \
-                    "Content-Length: %1\n" \
-                    "\n");
-
-    QString body("<html><body>" \
-                 "<h1>It works!</h1>"         \
-                 "HTTP connection from %1"    \
-                 "</body></html>");
-
-    body = body.arg(_socket->peerAddress().toString());
-
-    _socket->write(headers.arg(body.toUtf8().length()).toUtf8());
-    _socket->write(body.toUtf8());
-    _socket->flush(); // Needed before change 86186
     */
 
+    // Length of actual data range being sent with this response
+    int contentLength = end - start + 1;
+
+    QString header = QString("HTTP/1.1 206 Partial Content\n") +
+                     QString("Content-Range: bytes ") + QString::number(start) + QString("-") + QString::number(end) + QString("/") + QString::number(total) + QString("\n") +
+                     QString("Accept-Ranges: bytes\n") +
+                     QString("Content-Length: ") + QString::number(contentLength) + QString("\n") +
+                     QString("Content-Type: ") + contentType + QString("\n") +
+                     QString("\n"); // Extra new lin required
+
+    // Write response header
+    _socket->write(header.toUtf8());
+
+    // Recomputed length of data sent, used for assert
+    int recomputedContentLength = 0;
+
+    // If we only have one piece, than just count what part of it is in range
+    if(pieces.length() == 1) {
+
+        // Its the same piece!
+        Q_ASSERT(offsetInLastPiece > offsetInFirstPiece);
+
+        // Add to length (which is really full length in this case)
+        recomputedContentLength = offsetInLastPiece - offsetInFirstPiece + 1;
+
+        // Get piece data
+        const boost::shared_array<char> & data = pieces.front().data();
+
+        // Write sub range of piece
+        _socket->write(data.get() + offsetInFirstPiece, recomputedContentLength);
+
+    } else {
+
+        // First piece may, potentially, not be a full piece, but rather a postfix
+        const Piece & piece = pieces.front();
+
+        recomputedContentLength = piece.length() - offsetInFirstPiece;
+        _socket->write(piece.data().get() + offsetInFirstPiece, recomputedContentLength);
+
+        // Iterate rest of pieces, starting at second piece
+        for(int i = 1;i < pieces.length();i++) {
+
+            // Get piece
+            const Piece & piece = pieces.front();
+
+            // Treat last piece separately
+            if(i == pieces.length() - 1) {
+
+                // Last piece may, potentially, not be a full piece, but rather a prefix
+                recomputedContentLength += offsetInLastPiece + 1;
+                _socket->write(piece.data().get(), offsetInLastPiece + 1);
+
+            } else {
+
+                // Interior pieces are written in full
+                recomputedContentLength += piece.length();
+                _socket->write(piece.data().get(), piece.length());
+
+            }
+        }
+    }
+
+    Q_ASSERT(recomputedContentLength == contentLength);
+
+    _socket->flush(); // Needed before change 86186 <== ?
 }
 
 void Stream::invalidRangeRequested(int start) {
