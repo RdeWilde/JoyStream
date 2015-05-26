@@ -4,11 +4,10 @@
 #include <QObject>
 #include <QMultiMap>
 
-#ifndef Q_MOC_RUN
-#include <boost/shared_array.hpp>
-#endif Q_MOC_RUN
+#include "Piece.hpp"
 
 class QTcpSocket;
+class StreamingServer;
 
 class Stream : public QObject
 {
@@ -62,37 +61,8 @@ public:
 
     };
 
-    class Piece {
-
-    public:
-
-        // Constructor
-        Piece(int index, int length, const boost::shared_array<char> & data);
-
-        // Getters and setters
-        int index() const;
-        void setIndex(int index);
-
-        int length() const;
-        void setLength(int length);
-
-        boost::shared_array<char> data() const;
-        void setData(const boost::shared_array<char> &data);
-
-    private:
-
-        // Index of piece
-        int _index;
-
-        // Byte length of piece
-        int _length;
-
-        // Raw data in piece
-        boost::shared_array<char> _data;
-    };
-
     // Constructor
-    Stream(QTcpSocket * socket, QObject * parent = 0);
+    Stream(QTcpSocket * socket, QObject * parent);
 
     // Destructor
     ~Stream();
@@ -116,7 +86,7 @@ public slots:
                        int start,
                        int end,
                        int total,
-                       const QVector<Piece> pieces,
+                       const QVector<Piece> & pieces,
                        int offsetInFirstPiece,
                        int offsetInLastPiece);
 
@@ -124,6 +94,12 @@ public slots:
     void invalidRangeRequested(int start);
 
 signals:
+
+    // Client announced requested path for the first time, which should
+    // never change for subsequent requests. This signal should be connected
+    // using Qt::DirectConnection, since this information has to be
+    // processed synchronously to allow recipient to catch *first* request.
+    void requestedPathAnnounced(const Stream * handler, const QByteArray & requestedPath);
 
     // The given byte range of the data stream was requested
     void rangeRequested(int start, int end);

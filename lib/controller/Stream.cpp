@@ -1,44 +1,4 @@
-#include "streamingserver/Stream.hpp"
-
-/**
- * Stream::Piece
- */
-
-Stream::Piece::Piece(int index, int length, const boost::shared_array<char> & data)
-    : _index(index)
-    , _length(length)
-    , _data(data) {
-}
-
-
-int Stream::Piece::index() const {
-    return _index;
-}
-
-void Stream::Piece::setIndex(int index) {
-    _index = index;
-}
-
-int Stream::Piece::length() const {
-    return _length;
-}
-
-void Stream::Piece::setLength(int length) {
-    _length = length;
-}
-
-boost::shared_array<char> Stream::Piece::data() const {
-    return _data;
-}
-
-void Stream::Piece::setData(const boost::shared_array<char> &data) {
-    _data = data;
-}
-
-/**
- * Stream
- */
-
+#include "Stream.hpp"
 #include <QDebug>
 #include <QHostAddress>
 #include <QTcpSocket>
@@ -94,7 +54,7 @@ void Stream::sendDataRange(const QString & contentType,
                            int start,
                            int end,
                            int total,
-                           const QVector<Piece> pieces,
+                           const QVector<Piece> & pieces,
                            int offsetInFirstPiece,
                            int offsetInLastPiece) {
 
@@ -235,6 +195,9 @@ void Stream::readRequestLine() {
                 // Save requested path
                 _requestedPath = requestLineSections[1];
 
+                // Notifiy that path has been announced
+                emit requestedPathAnnounced(this, _requestedPath);
+
             } else if(_requestedPath != requestLineSections[1]) {
 
                 qDebug() << "Changed request path from" << _requestedPath << "to" << requestLineSections[1];
@@ -256,6 +219,10 @@ void Stream::readRequestLine() {
     // If we dont have a full line, yet more than the given limit, then end stream
     else if (_socket->bytesAvailable() > MAX_REQUEST_LINE_LENGTH)
         endOnError(Error::RequestLineLengthToLong);
+
+    // In case we ended header processing due to end of header, lets
+    // try to process the next request in case it has arrived
+    readRequestLine();
 }
 
 void Stream::readRequestHeaders() {
@@ -272,9 +239,15 @@ void Stream::readRequestHeaders() {
         //qDebug() << "Read header line:" << headerLine;
 
         // If all headers have now been read, then process full request
-        if (headerLine == QByteArrayLiteral("\r\n") || headerLine == QByteArrayLiteral("\n"))
+        if (headerLine == QByteArrayLiteral("\r\n") || headerLine == QByteArrayLiteral("\n")) {
+
+            // Process request
             processRequest();
-        else {
+
+            // end header reading
+            break;
+
+        } else {
 
             // Split header line to recover name and value
             bool ok;

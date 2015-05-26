@@ -1,14 +1,13 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-//#include "ControllerConfiguration.hpp"
 #include "PluginInstalled.hpp"
 #include "view/MainWindow.hpp"
 #include "extension/Plugin.hpp"
 #include "TorrentViewModel.hpp"
-//#include "extension/PeerPluginStatus.hpp" // needed for QT moc <==== Remove later
 #include "extension/BitCoin/Wallet.hpp"
 #include "extension/BitCoin/UnspentP2PKHOutput.hpp"
+#include "StreamingServer.hpp"
 
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>
@@ -22,7 +21,6 @@
 #include <QNetworkAccessManager>
 
 class TorrentStatus;
-
 class TorrentPluginStartedAlert;
 class PluginStatusAlert;
 class BuyerTorrentPluginStatusAlert;
@@ -296,6 +294,8 @@ public:
 
         // View model for torrent
         TorrentViewModel _model;
+
+        //
     };
 
     /**
@@ -457,7 +457,6 @@ public:
      */
     Q_INVOKABLE void sellerPeerPluginRemoved(const libtorrent::sha1_hash & infoHash, const libtorrent::tcp::endpoint & endPoint);
 
-
     /**
      * View entry points
      * =================
@@ -507,6 +506,13 @@ private slots:
     // Tells session to post updates, is signaled by timer
     void callPostTorrentUpdates();
 
+    // Streaming server signals
+    void registerStream(const Stream * handler);
+    void handleFailedStreamCreation(QAbstractSocket::SocketError socketError);
+
+    // Stream signal
+    void registerRequestedPathOnStream(const Stream * handler, const QByteArray & requestedPath) const;
+
 signals:
 
     // Sent when libtorrent::add_torrent_alert is received from libtorrent
@@ -530,6 +536,7 @@ private:
     QLoggingCategory & _category;
 
     // Network access manager reference
+    // Use * instead
     QNetworkAccessManager & _manager;
 
     // Plugin: constructor initializatin list expects plugin to appear after category_
@@ -544,6 +551,7 @@ private:
     std::pair<int, int> _portRange;
 
     // View
+    // ** Factor out later **
     MainWindow _view;
 
     // Timer which calls session.post_torrent_updates() at regular intervals
@@ -553,6 +561,9 @@ private:
     // Has to be pointer since since its Torrent::model (TorrentViewModel) isQObject type.
     // Object is entirely owned by this.
     QMap<libtorrent::sha1_hash, Torrent *> _torrents;
+
+    // Streaming server used
+    StreamingServer _server;
 
     /**
      *
@@ -566,6 +577,7 @@ private:
      *
      *
      */
+
     // Configurations are placed in these maps when corresponding torrent is added to session,
     // and they are used to start a plugin on the given torrent once a torrent_checked_alert has been
     // issued by session.
@@ -586,6 +598,7 @@ private:
     void processSaveResumeDataFailedAlert(libtorrent::save_resume_data_failed_alert const * p);
     void processTorrentPausedAlert(libtorrent::torrent_paused_alert const * p);
     void processTorrentCheckedAlert(libtorrent::torrent_checked_alert const * p);
+    void processReadPieceAlert(const libtorrent::read_piece_alert * p);
 
     //void processTorrentPluginStartedAlert(const TorrentPluginStartedAlert * p);
     void processStartedSellerTorrentPlugin(const StartedSellerTorrentPlugin * p);
@@ -602,7 +615,6 @@ private:
 
     void processSellerPeerPluginRemovedAlert(const SellerPeerPluginRemovedAlert * p);
     void processBuyerPeerPluginRemovedAlert(const BuyerPeerPluginRemovedAlert * p);
-
 
     // Status
     void update(const std::vector<libtorrent::torrent_status> & statuses);

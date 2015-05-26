@@ -71,9 +71,8 @@ void Plugin::Status::setTotalReceivedSinceStart(quint64 totalReceivedSinceStart)
  * Plugin
  */
 
-Plugin::Plugin(Controller * controller, Wallet * wallet, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category)
-    : _controller(controller)
-    , _wallet(wallet)
+Plugin::Plugin(Wallet * wallet, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category)
+    : _wallet(wallet)
     /**
     , _btcClient("127.0.0.1"
                  ,8332
@@ -122,7 +121,7 @@ void Plugin::on_alert(libtorrent::alert const * a) {
         // Send alert to plugin
         _sellerPlugins[infoHash]->pieceRead(p);
 
-        qCDebug(_category) << "Read piece alert.";
+        //qCDebug(_category) << "Read piece alert.";
     }
 
 }

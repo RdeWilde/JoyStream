@@ -969,11 +969,12 @@ void Controller::Configuration::setLibtorrentSessionSettingsEntry(const libtorre
 #include "Config.hpp"
 #include "controller/Exceptions/ListenOnException.hpp"
 
+#include "Stream.hpp"
+
 //#include "controller/TorrentConfiguration.hpp"
 //#include "extension/Alert/TorrentPluginStatusAlert.hpp"
 #include "extension/Alert/StartedSellerTorrentPlugin.hpp"
 #include "extension/Alert/StartedBuyerTorrentPlugin.hpp"
-
 #include "extension/Alert/BuyerTorrentPluginStatusAlert.hpp"
 #include "extension/Alert/SellerTorrentPluginStatusAlert.hpp"
 #include "extension/Alert/PluginStatusAlert.hpp"
@@ -1021,22 +1022,23 @@ Q_DECLARE_METATYPE(libtorrent::torrent_status)
 Q_DECLARE_METATYPE(const libtorrent::alert*)
 
 Controller::Controller(const Configuration & configuration, bool showView, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category)
-    :_state(State::normal)
-    ,_session(libtorrent::fingerprint(CLIENT_FINGERPRINT, BITSWAPR_VERSION_MAJOR, BITSWAPR_VERSION_MINOR, 0, 0),
-              libtorrent::session::add_default_plugins,
-              libtorrent::alert::error_notification +
-              libtorrent::alert::tracker_notification +
-              libtorrent::alert::debug_notification +
-              libtorrent::alert::status_notification +
-              libtorrent::alert::progress_notification +
-              libtorrent::alert::performance_warning +
-              libtorrent::alert::stats_notification)
-    ,_wallet(configuration.walletFile(), true) // add autosave to configuration later?? does user even need to control that?
-    ,_category(category)
-    ,_manager(manager)
-    ,_plugin(new Plugin(this, &_wallet, _manager, bitcoindAccount, _category))
-    ,_portRange(configuration.getPortRange())
-    ,_view(this, &_wallet, _category) {
+    : _state(State::normal)
+    , _session(libtorrent::fingerprint(CLIENT_FINGERPRINT, BITSWAPR_VERSION_MAJOR, BITSWAPR_VERSION_MINOR, 0, 0),
+               libtorrent::session::add_default_plugins,
+               libtorrent::alert::error_notification +
+               libtorrent::alert::tracker_notification +
+               libtorrent::alert::debug_notification +
+               libtorrent::alert::status_notification +
+               libtorrent::alert::progress_notification +
+               libtorrent::alert::performance_warning +
+               libtorrent::alert::stats_notification)
+    , _wallet(configuration.walletFile(), true) // add autosave to configuration later?? does user even need to control that?
+    , _category(category)
+    , _manager(manager)
+    , _plugin(new Plugin(&_wallet, _manager, bitcoindAccount, _category))
+    , _portRange(configuration.getPortRange())
+    , _view(this, &_wallet, _category)
+    , _server(9999, this) {
 
     // Register types for signal and slots
     qRegisterMetaType<libtorrent::sha1_hash>();
@@ -1050,6 +1052,17 @@ Controller::Controller(const Configuration & configuration, bool showView, QNetw
 
     // Set libtorrent to call processAlert when alert is created
     _session.set_alert_dispatch(boost::bind(&Controller::libtorrent_alert_dispatcher_callback, this, _1));
+
+    // Connect streaming server signals
+    QObject::connect(&_server,
+                     SIGNAL(streamStarted(const Stream*)),
+                     this,
+                     SLOT(registerStream(const Stream*)));
+
+    QObject::connect(&_server,
+                     SIGNAL(streamCreationError(QAbstractSocket::SocketError socketError)),
+                     this,
+                     SLOT(handleFailedStreamCreation(QAbstractSocket::SocketError socketError)));
 
 	// Set session settings - these acrobatics with going back and forth seem to indicate that I may have done it incorrectly
 	std::vector<char> buffer;
@@ -1137,6 +1150,65 @@ void Controller::callPostTorrentUpdates() {
     _session.post_torrent_updates();
 }
 
+void Controller::registerStream(const Stream * handler) {
+
+    // Make sure to handle stream path announcement signal synchronously
+    QObject::connect(handler,
+                     SIGNAL(requestedPathAnnounced(const Stream*,QByteArray)),
+                     this,
+                     SLOT(registerRequestedPathOnStream(const Stream*,QByteArray)),
+                     Qt::DirectConnection);
+}
+
+void Controller::handleFailedStreamCreation(QAbstractSocket::SocketError socketError) {
+    qCDebug(_category) << "handleFailedStreamCreation";
+}
+
+void Controller::registerRequestedPathOnStream(const Stream * stream, const QByteArray & requestedPath) const {
+
+    // Turn into info hash
+    libtorrent::sha1_hash infoHash(requestedPath.toStdString());
+
+    if(_torrents.contains(infoHash)) {
+
+        const TorrentViewModel * viewModel = _torrents[infoHash]->model();
+
+        // Connect stream signals to view model slots
+        QObject::connect(stream,
+                         SIGNAL(rangeRequested(int, int)),
+                         viewModel,
+                         SLOT(getRange(int,int)));
+
+        QObject::connect(stream,
+                         SIGNAL(startRequested(int)),
+                         viewModel,
+                         SLOT(getStart(int)));
+
+        QObject::connect(stream,
+                         SIGNAL(errorOccured(Stream::Error)),
+                         viewModel,
+                         SLOT(errorOccured(Stream::Error)));
+
+        // Connect view model signals to stream slots
+        QObject::connect(viewModel,
+                         SIGNAL(dataRangeRead(QString,int,int,int,QVector<Stream::Piece>,int,int)),
+                         stream,
+                         SLOT(sendDataRange(QString,int,int,int,QVector<Stream::Piece>,int,int)));
+
+        QObject::connect(viewModel,
+                         SIGNAL(receivedInvalidRange(int)),
+                         stream,
+                         SLOT(invalidRangeRequested(int)));
+
+
+    } else {
+
+        qCDebug(_category) << "Requested path does not correspond to any presently active torrent.";
+
+        Q_ASSERT(false); // <== no clean way to deal with this, as this slot is called synchronously
+    }
+}
+
 /*
 void Controller::addPeerPlugin(libtorrent::sha1_hash info_hash, libtorrent::tcp::endpoint endPoint) {
     view.addPeerPlugin(info_hash, endPoint);
@@ -1170,38 +1242,29 @@ void Controller::processAlert(const libtorrent::alert * a) {
     // if(something)
     //    something;
 
-    //qCDebug(_category) << a->what();
-
     // In each case, tell bitswapr thread to run the given method
-    if(libtorrent::metadata_received_alert const * p = libtorrent::alert_cast<libtorrent::metadata_received_alert>(a)) {
-        //qCDebug(_category) << "Metadata received alert";
+    if(libtorrent::metadata_received_alert const * p = libtorrent::alert_cast<libtorrent::metadata_received_alert>(a))
         processMetadataReceivedAlert(p);
-    } else if(libtorrent::metadata_failed_alert const * p = libtorrent::alert_cast<libtorrent::metadata_failed_alert>(a)) {
-        qCDebug(_category) << "Metadata failed alert";
+    else if(libtorrent::metadata_failed_alert const * p = libtorrent::alert_cast<libtorrent::metadata_failed_alert>(a))
         processMetadataFailedAlert(p);
-    } else if(libtorrent::add_torrent_alert const * p = libtorrent::alert_cast<libtorrent::add_torrent_alert>(a)) {
-        //qCDebug(_category) << "Add torrent alert";
+    else if(libtorrent::add_torrent_alert const * p = libtorrent::alert_cast<libtorrent::add_torrent_alert>(a))
         processAddTorrentAlert(p);
-    } else if (libtorrent::torrent_finished_alert const * p = libtorrent::alert_cast<libtorrent::torrent_finished_alert>(a)) {
-        //qCDebug(_category) << "torrent_finished_alert";
+    else if (libtorrent::torrent_finished_alert const * p = libtorrent::alert_cast<libtorrent::torrent_finished_alert>(a))
         processTorrentFinishedAlert(p);
-    } else if (libtorrent::torrent_paused_alert const * p = libtorrent::alert_cast<libtorrent::torrent_paused_alert>(a)) {
-        //qCDebug(_category) << "Torrent paused alert.";
+    else if (libtorrent::torrent_paused_alert const * p = libtorrent::alert_cast<libtorrent::torrent_paused_alert>(a))
         processTorrentPausedAlert(p);
-    } else if (libtorrent::state_update_alert const * p = libtorrent::alert_cast<libtorrent::state_update_alert>(a)) {
-        //qCDebug(_category) << "State update alert.";
+    else if (libtorrent::state_update_alert const * p = libtorrent::alert_cast<libtorrent::state_update_alert>(a))
         processStatusUpdateAlert(p);
-    } else if(libtorrent::torrent_removed_alert const * p = libtorrent::alert_cast<libtorrent::torrent_removed_alert>(a)) {
-        //qCDebug(_category) << "Torrent removed alert.";
+    else if(libtorrent::torrent_removed_alert const * p = libtorrent::alert_cast<libtorrent::torrent_removed_alert>(a))
         processTorrentRemovedAlert(p);
-    } else if(libtorrent::save_resume_data_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_alert>(a)) {
-        //qCDebug(_category) << "Save resume data alert.";
+    else if(libtorrent::save_resume_data_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_alert>(a))
         processSaveResumeDataAlert(p);
-    } else if(libtorrent::save_resume_data_failed_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_failed_alert>(a)) {
-        //qCDebug(_category) << "Save resume data failed alert.";
+    else if(libtorrent::save_resume_data_failed_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_failed_alert>(a))
         processSaveResumeDataFailedAlert(p);
-    } else if(libtorrent::torrent_checked_alert const * p = libtorrent::alert_cast<libtorrent::torrent_checked_alert>(a))
+    else if(libtorrent::torrent_checked_alert const * p = libtorrent::alert_cast<libtorrent::torrent_checked_alert>(a))
         processTorrentCheckedAlert(p);
+    else if(libtorrent::read_piece_alert const * p = libtorrent::alert_cast<libtorrent::read_piece_alert>(a))
+        processReadPieceAlert(p);
     else if(PluginStatusAlert const * p = libtorrent::alert_cast<PluginStatusAlert>(a))
         processPluginStatusAlert(p);
     else if(const StartedSellerTorrentPlugin * p = libtorrent::alert_cast<StartedSellerTorrentPlugin>(a))
@@ -1543,6 +1606,20 @@ void Controller::processTorrentCheckedAlert(libtorrent::torrent_checked_alert co
 
     } else
         qCDebug(_category) << "Invalid handle for checked torrent.";
+}
+
+void Controller::processReadPieceAlert(const libtorrent::read_piece_alert * p) {
+
+    // Get info hash for torrent from which this read piece comes from
+    const libtorrent::sha1_hash infoHash = p->handle.info_hash();
+
+    Q_ASSERT(_torrents.contains(infoHash));
+
+    // Notify torrent view model
+    _torrents[infoHash]->model()->pieceRead(p->ec,
+                                            p->buffer,
+                                            p->piece,
+                                            p->size);
 }
 
 void Controller::processStartedSellerTorrentPlugin(const StartedSellerTorrentPlugin * p) {

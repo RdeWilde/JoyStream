@@ -4,6 +4,8 @@
 #include "BuyerTorrentPluginViewModel.hpp"
 #include "extension/PeerPlugin.hpp"
 
+#include <QDebug>
+
 TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & infoHash,
                                    const std::string & name,
                                    const std::string & savePath,
@@ -14,7 +16,15 @@ TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & infoHash,
     , _torrentInfo(torrentInfo)
     , _pluginInstalled(PluginInstalled::None)
     , _sellerTorrentPluginViewModel(NULL)
-    , _buyerTorrentPluginViewModel(NULL) {
+    , _buyerTorrentPluginViewModel(NULL)
+    , _currentlyServicingRangeRequest(false) {
+
+    // Where does file start end? what pieces,and what offset in pieces?
+    //
+    //int _firstPieceWhereStreamBegins;
+    //int _lastPieceWhereStreamEnds;
+    //_defaultRangeLength = how much
+    //_contentType = what type of data is this
 }
 
 /**
@@ -149,6 +159,13 @@ void TorrentViewModel::update(const BuyerTorrentPlugin::Status & status) {
     _buyerTorrentPluginViewModel->update(status);
 }
 
+void TorrentViewModel::pieceRead(const libtorrent::error_code & ec,
+                                 const boost::shared_array<char> & buffer,
+                                 int piece,
+                                 int size) {
+
+}
+
 libtorrent::sha1_hash TorrentViewModel::infoHash() const {
     return _infoHash;
 }
@@ -180,6 +197,32 @@ SellerTorrentPluginViewModel * TorrentViewModel::sellerTorrentPluginViewModel() 
 BuyerTorrentPluginViewModel * TorrentViewModel::buyerTorrentPluginViewModel() const {
     return _buyerTorrentPluginViewModel;
 }
+
+void TorrentViewModel::getRange(int start, int end) {
+
+    /**
+    void dataRangeRead(const QString & contentType,
+                       int start,
+                       int end,
+                       int total,
+                       const QVector<Stream::Piece> pieces,
+                       int offsetInFirstPiece,
+                       int offsetInLastPiece);
+
+    // A request starting at given position was invalid
+    void receivedInvalidRange(int start);
+    */
+
+}
+
+void TorrentViewModel::getStart(int start) {
+    getRange(start, start + _defaultRangeLength);
+}
+
+void TorrentViewModel::errorOccured(Stream::Error errorOccured) {
+    qDebug() << "TorrentViewModel::errorOccured";
+}
+
 /**
 quint32 TorrentViewModel::numberOfClassicPeers() {
 

@@ -85,7 +85,7 @@ public:
     };
 
     // Constructor
-    Plugin(Controller * controller, Wallet * wallet, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category);
+    Plugin(Wallet * wallet, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category);
 
     // Destructor
     ~Plugin();
@@ -155,9 +155,6 @@ public:
     void submitPeerPluginRequest(PeerPluginRequest * peerPluginRequest);
 
 private:
-
-    // Controller
-    Controller * _controller;
 
     // Wallet
     Wallet * _wallet;

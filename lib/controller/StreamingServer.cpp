@@ -1,7 +1,7 @@
 /** Adapted from https://github.com/richmoore/qt-examples/blob/master/httpserver/httpserver.cpp */
 
-#include "streamingserver/StreamingServer.hpp"
-#include "streamingserver/Stream.hpp"
+#include "StreamingServer.hpp"
+#include "Stream.hpp"
 
 #include <QTcpSocket>
 
@@ -28,6 +28,12 @@ StreamingServer::StreamingServer(quint16 port, QObject *parent)
     else
         qDebug() << "Could not start server listening on port:" << port;
 }
+
+/**
+void StreamingServer::announceRequest(const Stream * stream, const QByteArray & requestedPath) const{
+
+}
+*/
 
 StreamingServer::~StreamingServer() {
     qDebug() << "Destroying server";
