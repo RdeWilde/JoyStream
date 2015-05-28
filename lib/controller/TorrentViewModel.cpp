@@ -16,15 +16,16 @@ TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & infoHash,
     , _torrentInfo(torrentInfo)
     , _pluginInstalled(PluginInstalled::None)
     , _sellerTorrentPluginViewModel(NULL)
-    , _buyerTorrentPluginViewModel(NULL)
+    , _buyerTorrentPluginViewModel(NULL) {
+
+    /**
+    , _fileIndex(0)
+    , _total(_torrentInfo->file_at(_fileIndex).size)
+    , _contentType("video/mp4")
+    , _defaultRangeLength(1024*1024) // 1 MB
     , _currentlyServicingRangeRequest(false) {
 
-    // Where does file start end? what pieces,and what offset in pieces?
-    //
-    //int _firstPieceWhereStreamBegins;
-    //int _lastPieceWhereStreamEnds;
-    //_defaultRangeLength = how much
-    //_contentType = what type of data is this
+    Q_ASSERT(!_torrentInfo->file_at(_fileIndex).pad_file);*/
 }
 
 /**
@@ -159,12 +160,67 @@ void TorrentViewModel::update(const BuyerTorrentPlugin::Status & status) {
     _buyerTorrentPluginViewModel->update(status);
 }
 
+/**
 void TorrentViewModel::pieceRead(const libtorrent::error_code & ec,
                                  const boost::shared_array<char> & buffer,
-                                 int piece,
+                                 int pieceIndex,
                                  int size) {
 
+    // Do nothing if no range request is being serviced
+    if(!_currentlyServicingRangeRequest)
+        return;
+
+    // Skip pieces which are not relevant to present request range
+    if(pieceIndex < _pieces.front().index() || pieceIndex > _pieces.last().index())
+        return;
+
+    // Check that there was no error
+    if(ec) {
+
+        qDebug() << ec.message();
+        Q_ASSERT(false);
+    }
+
+    // Get piece
+    Piece & piece = _pieces[pieceIndex - _pieces.front().index()];
+
+    Q_ASSERT(piece.length() == size);
+
+    // Do nothing if we already have read this piece
+    if(piece.hasValidData())
+        return;
+    else {
+
+        // Otherwise
+
+        // Save data
+        piece.setData(buffer);
+
+        // Note that we now have valid data
+        piece.setHasValidData(true);
+
+        // Count towards number of valid pieces read
+        _numberOfOutstandingPieces--;
+
+        Q_ASSERT(_numberOfOutstandingPieces >= 0);
+
+        // Check if we are done, if so send signal and clean up
+        if(_numberOfOutstandingPieces == 0) {
+
+            emit dataRangeRead(_contentType,
+                               _start,
+                               _end,
+                               _total,
+                               _pieces,
+                               _startOffsetInFirstPiece,
+                               _stopOffsetInLastPiece);
+
+            // Exit range request servicing mode
+            _currentlyServicingRangeRequest = false;
+        }
+    }
 }
+*/
 
 libtorrent::sha1_hash TorrentViewModel::infoHash() const {
     return _infoHash;
@@ -198,21 +254,86 @@ BuyerTorrentPluginViewModel * TorrentViewModel::buyerTorrentPluginViewModel() co
     return _buyerTorrentPluginViewModel;
 }
 
+/**
 void TorrentViewModel::getRange(int start, int end) {
 
-    /**
-    void dataRangeRead(const QString & contentType,
-                       int start,
-                       int end,
-                       int total,
-                       const QVector<Stream::Piece> pieces,
-                       int offsetInFirstPiece,
-                       int offsetInLastPiece);
+    // Check that the requested range is valid
+    if(start < 0 || end >= _total || end <= start) {
 
-    // A request starting at given position was invalid
-    void receivedInvalidRange(int start);
-    */
+        // Send notification
+        emit receivedInvalidRange(_start);
 
+        return;
+    }
+
+    //
+    // Note that any previously active request will simply
+    // be overwritten below
+    //
+
+    if(_currentlyServicingRangeRequest)
+        qDebug() << "Dropping currently active request for [" << _start << "," << _end << "]";
+
+    // Note that request is being serviced
+    _currentlyServicingRangeRequest = true;
+
+    // Save range
+    _start = start;
+    _end = end;
+
+    // Figure out how many full pieces must be read
+    int rangeSize = _end - _start + 1;
+
+    // Figure out what piece and offset this the request range in this file starts at
+    libtorrent::peer_request r = _torrentInfo->map_file(_fileIndex, _start, rangeSize);
+
+    Q_ASSERT(r.length == rangeSize);
+
+    // Iterate through all pieces corresponding to given range [_start, _end] of file
+    // and setup the required state to process the piece reads,
+    // as well as requesting piece reads
+    _numberOfOutstandingPieces = 0;
+    _startOffsetInFirstPiece = r.start;
+    _pieces.clear();
+
+    int firstPieceSize = _torrentInfo->piece_size(r.piece);
+
+    // Treat a range which is within a single piece as an exception
+    if(r.start + r.length <= firstPieceSize) { // NB: rangeSize > firstPieceSize does not test this
+
+        _numberOfOutstandingPieces = 1;
+        _stopOffsetInLastPiece = r.start + r.length - 1;
+        _pieces.push_back(Piece(r.piece, firstPieceSize, false, boost::shared_array<char>(NULL)));
+
+        // Request that piece is read
+        emit pieceNeeded(r.piece);
+
+    } else {
+
+        int requiredDataInFirstPiece = firstPieceSize - r.start;
+
+        // Figure out how many pieces in total are touched by range
+        int numberOfPiecesAfterFirst = (r.length - requiredDataInFirstPiece) / _torrentInfo->piece_length();
+        _numberOfOutstandingPieces = 1 + numberOfPiecesAfterFirst;
+
+        for(int i = r.piece;i < _numberOfOutstandingPieces;i++) {
+
+            // Get size of this piece, where
+            // last piece may be shorter than rest, which are uniform
+            int pieceSize = _torrentInfo->piece_size(i);
+
+            // Crate piece object
+            _pieces.push_back(Piece(i, pieceSize, false, boost::shared_array<char>(NULL)));
+
+            // Request that piece is read
+            emit pieceNeeded(i);
+        }
+
+        Q_ASSERT(_pieces.size() == _numberOfOutstandingPieces);
+
+        // How much of range oveflows into last piece
+        _stopOffsetInLastPiece = (r.length - requiredDataInFirstPiece) % _torrentInfo->piece_length();
+    }
 }
 
 void TorrentViewModel::getStart(int start) {
@@ -223,7 +344,6 @@ void TorrentViewModel::errorOccured(Stream::Error errorOccured) {
     qDebug() << "TorrentViewModel::errorOccured";
 }
 
-/**
 quint32 TorrentViewModel::numberOfClassicPeers() {
 
 }

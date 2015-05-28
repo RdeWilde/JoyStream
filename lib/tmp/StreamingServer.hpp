@@ -36,8 +36,7 @@ signals:
 
 private:
 
-    // TCP server
-    QTcpServer _server;
+
 };
 
 #endif // STREAMING_SERVER_HPP

@@ -321,15 +321,17 @@ Controller::Torrent::Torrent(const libtorrent::sha1_hash & infoHash,
                              const std::string & savePath,
                              const std::vector<char> & resumeData,
                              quint64 flags,
-                             libtorrent::torrent_info * torrentInfo,
-                             ExpectedEvent event)
+                             const libtorrent::torrent_handle & handle,
+                             //libtorrent::torrent_info * torrentInfo,
+                             Status event)
     : _infoHash(infoHash)
     , _name(name)
     , _savePath(savePath)
     , _resumeData(resumeData)
     , _flags(flags)
-    , _torrentInfo(torrentInfo)
-    , _event(event)
+    , _handle(handle)
+    //, _torrentInfo(torrentInfo)
+    , _status(event)
     , _pluginInstalled(PluginInstalled::None)
     , _model(infoHash,
              name,
@@ -387,16 +389,26 @@ void Controller::Torrent::setFlags(quint64 flags) {
     _flags = flags;
 }
 
+/**
 libtorrent::torrent_info * Controller::Torrent::torrentInfo() {
     return _torrentInfo;
 }
+*/
 
-Controller::Torrent::ExpectedEvent Controller::Torrent::event() const {
-    return _event;
+libtorrent::torrent_handle Controller::Torrent::handle() const {
+    return _handle;
 }
 
-void Controller::Torrent::setEvent(ExpectedEvent event) {
-    _event = event;
+void Controller::Torrent::setHandle(const libtorrent::torrent_handle & handle) {
+    _handle = handle;
+}
+
+Controller::Torrent::Status Controller::Torrent::status() const {
+    return _status;
+}
+
+void Controller::Torrent::setStatus(Status event) {
+    _status = event;
 }
 
 PluginInstalled Controller::Torrent::pluginInstalled() const {
@@ -405,6 +417,30 @@ PluginInstalled Controller::Torrent::pluginInstalled() const {
 
 TorrentViewModel * Controller::Torrent::model() {
     return &_model;
+}
+
+void Controller::Torrent::addStream(Stream * stream) {
+    return _streams.insert(stream);
+}
+
+void Controller::Torrent::removeStream(Stream * stream) {
+    return _streams.remove(stream);
+}
+
+void Controller::Torrent::pieceRead(const boost::shared_array<char> & buffer,
+                                    int pieceIndex,
+                                    int size) {
+
+    // Iterate streams and notify them
+    for(QSet<Stream *>::iterator i = _streams.constBegin(), end = _streams.constEnd(); i != end;i++)
+        (*i)->pieceRead(buffer, pieceIndex, size);
+}
+
+void Controller::Torrent::pieceFinished(int piece) {
+
+    // Iterate streams and notify them
+    for(QSet<Stream *>::iterator i = _streams.constBegin(), end = _streams.constEnd(); i != end;i++)
+        (*i)->pieceFinished(piece);
 }
 
 /**
@@ -1037,8 +1073,8 @@ Controller::Controller(const Configuration & configuration, bool showView, QNetw
     , _manager(manager)
     , _plugin(new Plugin(&_wallet, _manager, bitcoindAccount, _category))
     , _portRange(configuration.getPortRange())
-    , _view(this, &_wallet, _category)
-    , _server(9999, this) {
+    , _view(this, &_wallet, _category) {
+    //, _server(9999, this) {
 
     // Register types for signal and slots
     qRegisterMetaType<libtorrent::sha1_hash>();
@@ -1053,6 +1089,7 @@ Controller::Controller(const Configuration & configuration, bool showView, QNetw
     // Set libtorrent to call processAlert when alert is created
     _session.set_alert_dispatch(boost::bind(&Controller::libtorrent_alert_dispatcher_callback, this, _1));
 
+    /**
     // Connect streaming server signals
     QObject::connect(&_server,
                      SIGNAL(streamStarted(const Stream*)),
@@ -1063,6 +1100,27 @@ Controller::Controller(const Configuration & configuration, bool showView, QNetw
                      SIGNAL(streamCreationError(QAbstractSocket::SocketError socketError)),
                      this,
                      SLOT(handleFailedStreamCreation(QAbstractSocket::SocketError socketError)));
+    */
+
+    // Connect server signals to corresponding controller slots
+    QObject::connect(&_streamingServer,
+                     SIGNAL(newConnection()),
+                     this,
+                     SLOT(handleConnection()));
+
+    QObject::connect(&_streamingServer,
+                     SIGNAL(acceptError(QAbstractSocket::SocketError)),
+                     this,
+                     SLOT(handleAcceptError(QAbstractSocket::SocketError)));
+
+    // Start listening
+    bool success = _streamingServer.listen(QHostAddress::Any); // auto selects port
+
+    if(success)
+        qDebug() << "Start server listening on port:" << _streamingServer.serverPort();
+    else
+        qDebug() << "Could not start server listening on port:" << _streamingServer.serverPort();
+
 
 	// Set session settings - these acrobatics with going back and forth seem to indicate that I may have done it incorrectly
 	std::vector<char> buffer;
@@ -1150,6 +1208,25 @@ void Controller::callPostTorrentUpdates() {
     _session.post_torrent_updates();
 }
 
+void Controller::handleConnection() {
+
+    // Create handler for each pending connection
+    // socket is owned by _server
+    while(QTcpSocket * socket = _server.nextPendingConnection()) {
+
+        qDebug(_category) << "New connection opened.";
+
+        // Create stream
+        Stream * stream = new Stream(socket, this);
+    }
+}
+
+void Controller::handleAcceptError(QAbstractSocket::SocketError socketError) {
+
+    qDebug(_category) << "Failed to accept connection.";
+}
+
+/**
 void Controller::registerStream(const Stream * handler) {
 
     // Make sure to handle stream path announcement signal synchronously
@@ -1209,6 +1286,19 @@ void Controller::registerRequestedPathOnStream(const Stream * stream, const QByt
     }
 }
 
+void Controller::readPiece(int piece) {
+    //_session.
+
+    _session.get_torrents()
+
+    // We must ask plugin sto download from a givne position in response
+    // to a range reset
+
+    // and the nonly read pieces ones we actually know they have been
+    // downloaded...
+}
+*/
+
 /*
 void Controller::addPeerPlugin(libtorrent::sha1_hash info_hash, libtorrent::tcp::endpoint endPoint) {
     view.addPeerPlugin(info_hash, endPoint);
@@ -1265,6 +1355,8 @@ void Controller::processAlert(const libtorrent::alert * a) {
         processTorrentCheckedAlert(p);
     else if(libtorrent::read_piece_alert const * p = libtorrent::alert_cast<libtorrent::read_piece_alert>(a))
         processReadPieceAlert(p);
+    else if(libtorrent::piece_finished_alert const * p = libtorrent::alert_cast<libtorrent::piece_finished_alert>(a))
+        processPieceFinishedAlert(p);
     else if(PluginStatusAlert const * p = libtorrent::alert_cast<PluginStatusAlert>(a))
         processPluginStatusAlert(p);
     else if(const StartedSellerTorrentPlugin * p = libtorrent::alert_cast<StartedSellerTorrentPlugin>(a))
@@ -1324,7 +1416,7 @@ int Controller::makeResumeDataCallsForAllTorrents() {
         Torrent * torrent = _torrents[infoHash];
 
         // Dont save data if
-        if (torrent->event() != Torrent::ExpectedEvent::nothing // are in wrong state
+        if (torrent->status() != Torrent::Status::nothing // are in wrong state
             || !h.is_valid() // dont have valid handle
             || !h.need_save_resume_data() // dont need to
             || !h.status().has_metadata) // or dont have metadata
@@ -1337,7 +1429,7 @@ int Controller::makeResumeDataCallsForAllTorrents() {
         resumeCallsMade++;
 
         // Change expected event of torrent
-        _torrents[infoHash]->setEvent(Torrent::ExpectedEvent::save_resume_data_alert);
+        _torrents[infoHash]->setStatus(Torrent::Status::asked_for_resume_data);
     }
 
     return resumeCallsMade;
@@ -1365,7 +1457,7 @@ void Controller::processTorrentPausedAlert(libtorrent::torrent_paused_alert cons
     // Grab torrent and set next event to be arrival of save_resume_data alert
     Q_ASSERT(_torrents.contains(info_hash));
 
-    _torrents[info_hash]->setEvent(Torrent::ExpectedEvent::save_resume_data_alert);
+    _torrents[info_hash]->setStatus(Torrent::Status::asked_for_resume_data);
 }
 
 void Controller::processTorrentRemovedAlert(libtorrent::torrent_removed_alert const * p) {
@@ -1413,22 +1505,22 @@ void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p)
     Q_ASSERT(_state == State::normal);
     Q_ASSERT(_torrents.contains(p->params.info_hash));
 
+    // Get torrent
     Torrent * torrent = _torrents[p->params.info_hash];
 
-    Q_ASSERT(torrent->event() == Torrent::ExpectedEvent::torrent_added_alert);
-
-    // Name of torrent
-    std::string name("N/A");
-    int totalSize = 0;
-    if(p->params.ti.get() != 0) {
-        name = p->params.ti->name();
-        totalSize = (p->params.ti)->total_size();
-    } else
-        name = p->params.name;
+    Q_ASSERT(torrent->status() == Torrent::Status::being_async_added_to_session);
 
     // Check if there was an error
     if (p->error) {
-        _view.addTorrentFailed(name, p->params.info_hash, p->error);
+
+        qCDebug(_category) << "Adding torrent failed, must be removed.";
+
+        /**
+         * Remove torrent here, so that it does not hanga around and cause problems.
+         */
+
+        // old name arg: p->params.ti.get() != 0 ? p->params.ti->name() : name = p->params.name
+        _view.addTorrentFailed(p->params.name, p->params.info_hash, p->error);
     } else {
 
         /*
@@ -1439,8 +1531,11 @@ void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p)
 		h.use_interface(outgoing_interface.c_str());
         */
 
+        // Give copy of handle
+        torrent->setHandle(p->handle);
+
         // Update expected event on torrent
-        torrent->setEvent(Torrent::ExpectedEvent::torrent_checked_alert);
+        torrent->setStatus(Torrent::Status::torrent_checked);
 
         // Send notification signal
         //_view.addTorrent(p->handle.info_hash(), QString(name.c_str()), totalSize);
@@ -1478,10 +1573,10 @@ void Controller::processSaveResumeDataAlert(libtorrent::save_resume_data_alert c
     Torrent * torrent = _torrents[info_hash];
 
     // Check that alert was expected
-    Q_ASSERT(torrent->event() == Torrent::ExpectedEvent::save_resume_data_alert);
+    Q_ASSERT(torrent->status() == Torrent::Status::asked_for_resume_data);
 
     // Reset expected event
-    torrent->setEvent(Torrent::ExpectedEvent::nothing);
+    torrent->setStatus(Torrent::Status::nothing);
 
     // Create resume data buffer
     std::vector<char> resumeData;
@@ -1501,7 +1596,7 @@ void Controller::processSaveResumeDataAlert(libtorrent::save_resume_data_alert c
             end = _torrents.end(); i != end;i++) {
 
             // End processing if alert is expected
-            if((i.value())->event() == Torrent::ExpectedEvent::save_resume_data_alert)
+            if((i.value())->event() == Torrent::Status::asked_for_resume_data)
                 return;
         }
 
@@ -1533,7 +1628,7 @@ void Controller::processTorrentCheckedAlert(libtorrent::torrent_checked_alert co
         Torrent * torrent = _torrents[infoHash];
 
         // Assert that torrent_checked_alert was expected
-        Q_ASSERT(torrent->event() == Torrent::ExpectedEvent::torrent_checked_alert);
+        Q_ASSERT(torrent->status() == Torrent::Status::torrent_checked);
 
         /**
         // if a configuration was saved, i.e. started from disk, then we just use it
@@ -1560,7 +1655,7 @@ void Controller::processTorrentCheckedAlert(libtorrent::torrent_checked_alert co
             _plugin->submitPluginRequest(new StartSellerTorrentPlugin(infoHash, configuration));
 
             // Reset event
-            torrent->setEvent(Torrent::ExpectedEvent::nothing);
+            torrent->setStatus(Torrent::Status::nothing);
 
         } else if(_pendingBuyerTorrentPluginConfigurationAndUtxos.contains(infoHash)) {
 
@@ -1571,7 +1666,7 @@ void Controller::processTorrentCheckedAlert(libtorrent::torrent_checked_alert co
             _plugin->submitPluginRequest(new StartBuyerTorrentPlugin(infoHash, p.first, p.second));
 
             // Reset event
-            torrent->setEvent(Torrent::ExpectedEvent::nothing);
+            torrent->setStatus(Torrent::Status::nothing);
 
         } /** else if(_pendingObserverTorrentPluginConfigurations.contains(info_hash)) {
 
@@ -1594,8 +1689,8 @@ void Controller::processTorrentCheckedAlert(libtorrent::torrent_checked_alert co
             // Get torrent status
             libtorrent::torrent_status torrentStatus = h.status();
 
-            // Expect user to set configurations
-            torrent->setEvent(Torrent::ExpectedEvent::torrent_plugin_configuration_from_user);
+            // No longer used: Expect user to set configurations
+            //torrent->setStatus(Torrent::Status::torrent_plugin_configuration_from_user);
 
             /**
              * LATER THIS SHOULD BE ASYNC.
@@ -1615,11 +1710,32 @@ void Controller::processReadPieceAlert(const libtorrent::read_piece_alert * p) {
 
     Q_ASSERT(_torrents.contains(infoHash));
 
+    /**
     // Notify torrent view model
     _torrents[infoHash]->model()->pieceRead(p->ec,
                                             p->buffer,
                                             p->piece,
                                             p->size);
+    */
+
+    if(p->ec) {
+        qCDebug(_category) << "There was some sort of error in reading a piece: " << p->ec.message();
+    } else {
+
+        // Notify torrent
+        _torrents[infoHash]->pieceRead(p->buffer, p->piece, p->size);
+    }
+}
+
+void Controller::processPieceFinishedAlert(const libtorrent::piece_finished_alert * p) {
+
+    // Get info hash for torrent from which this read piece comes from
+    const libtorrent::sha1_hash infoHash = p->handle.info_hash();
+
+    Q_ASSERT(_torrents.contains(infoHash));
+
+    // Notify torrent
+    _torrents[infoHash]->pieceFinished(p->piece_index);
 }
 
 void Controller::processStartedSellerTorrentPlugin(const StartedSellerTorrentPlugin * p) {
@@ -1818,8 +1934,9 @@ bool Controller::addTorrent(const Torrent::Configuration & configuration) {
                                     configuration.name(),
                                     configuration.resumeData(),
                                     configuration.flags(),
-                                    configuration.torrentInfo(),
-                                    Torrent::ExpectedEvent::torrent_added_alert);
+                                    //configuration.torrentInfo(),
+                                    libtorrent::torrent_handle(), // proper handle is set when torrent has been added
+                                    Torrent::Status::being_async_added_to_session);
 
     // Warn user if torrent has already been added
     if(_torrents.contains(info_hash)) {
@@ -1907,8 +2024,8 @@ void Controller::startTorrentPlugin(const libtorrent::sha1_hash & info_hash, con
     // Grab torrent
     Torrent & torrent = _torrents[info_hash];
 
-    // It must always have given event expected
-    Q_ASSERT(torrent.event() == Torrent::ExpectedEvent::torrent_plugin_configuration_from_user);
+    Q_ASSERT(torrent->status() != Torrent::Status::being_async_added_to_session &&
+            torrent->status() != Torrent::Status::torrent_added_but_not_checked);
 
     // Send configuration to plugin
     _plugin->submitPluginRequest(new StartTorrentPlugin(info_hash, configuration));
@@ -1925,14 +2042,11 @@ void Controller::startSellerTorrentPlugin(const libtorrent::sha1_hash & info_has
     // Grab torrent
     Torrent * torrent = _torrents[info_hash];
 
-    // It must always have given event expected
-    if(torrent->event() != Torrent::ExpectedEvent::torrent_plugin_configuration_from_user) {
-        throw std::exception("Torrent has incorrect state.");
-        return;
-    }
+    Q_ASSERT(torrent->status() != Torrent::Status::being_async_added_to_session &&
+            torrent->status() != Torrent::Status::torrent_added_but_not_checked);
 
     // Reset event
-    torrent->setEvent(Torrent::ExpectedEvent::nothing);
+    torrent->setStatus(Torrent::Status::nothing);
 
     // Send configuration to plugin
     _plugin->submitPluginRequest(new StartSellerTorrentPlugin(info_hash, pluginConfiguration));
@@ -1945,14 +2059,11 @@ void Controller::startBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash
     // Grab torrent
     Torrent * torrent = _torrents[info_hash];
 
-    // It must always have given event expected
-    if(torrent->event() != Torrent::ExpectedEvent::torrent_plugin_configuration_from_user) {
-        throw std::exception("Torrent has incorrect state.");
-        return;
-    }
+    Q_ASSERT(torrent->status() != Torrent::Status::being_async_added_to_session &&
+            torrent->status() != Torrent::Status::torrent_added_but_not_checked);
 
     // Reset event
-    torrent->setEvent(Torrent::ExpectedEvent::nothing);
+    torrent->setStatus(Torrent::Status::nothing);
 
     // Send configuration to plugin
     _plugin->submitPluginRequest(new StartBuyerTorrentPlugin(info_hash, pluginConfiguration, utxo));
@@ -2048,6 +2159,63 @@ void Controller::begin_close() {
 
         qCDebug(_category) << "Attempting to generate resume data for " << numberOutStanding << " torrents.";
     }
+}
+
+libtorrent::torrent_handle Controller::getTorrentHandle(const libtorrent::sha1_hash & infoHash) const {
+
+    if(_torrents.contains(infoHash))
+        return _torrents[infoHash]->handle();
+    else
+        return libtorrent::torrent_handle();
+}
+
+libtorrent::torrent_handle Controller::registerStream(Stream * stream) {
+
+    // Get requested path
+    std::string pathString = stream->requestedPath().toStdString();
+
+    // If the string is not 20 chars, then it cannot be info hash
+    if(pathString.length() != 20)
+        return libtorrent::torrent_handle();
+
+    // Create info hash from path string
+    libtorrent::sha1_hash infoHash(pathString);
+
+    // If no torrent exist with given info hash, just return default handle
+    if(!_torrents.contains(infoHash))
+        return libtorrent::torrent_handle();
+
+     // Get torrent
+     Torrent * torrent = _torrents[infoHash];
+
+     // Add stream
+     torrent->addStream(stream);
+
+     // Get handle
+     libtorrent::torrent_handle h = torrent->handle();
+
+     Q_ASSERT(h.is_valid());
+
+     return h;
+}
+
+void Controller::unRegisterStream(Stream * stream) {
+
+    libtorrent::sha1_hash infoHash = stream->handle().info_hash();
+
+    if(_torrents.contains(infoHash))
+        _torrents[infoHash]->removeStream(stream);
+    else
+        qCDebug(_category) << "Failed unregistering stream, torrent does not exist.";
+}
+
+void Controller::unRegisterStream(Stream * stream, Stream::Error error) {
+
+    unRegisterStream(Stream * stream);
+
+    qCDebug(_category) << "Stream unregistered due to some error.";
+
+    //emit some sort of signal about error
 }
 
 void Controller::finalize_close() {

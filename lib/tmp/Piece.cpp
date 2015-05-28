@@ -1,9 +1,18 @@
 #include "Piece.hpp"
 
-Piece::Piece(int index, int length, const boost::shared_array<char> & data)
+Piece::Piece()
+    : _hasValidData(false) {
+}
+
+Piece::Piece(int index, int length, bool hasValidData, const boost::shared_array<char> & data)
     : _index(index)
     , _length(length)
+    , _hasValidData(hasValidData)
     , _data(data) {
+}
+
+Piece::Piece(const Piece & piece)
+    : Piece(piece.index(), piece.length(), piece.hasValidData(), piece.data()) {
 }
 
 int Piece::index() const {
@@ -20,6 +29,14 @@ int Piece::length() const {
 
 void Piece::setLength(int length) {
     _length = length;
+}
+
+bool Piece::hasValidData() const {
+    return _hasValidData;
+}
+
+void Piece::setHasValidData(bool hasValidData) {
+    _hasValidData = hasValidData;
 }
 
 boost::shared_array<char> Piece::data() const {

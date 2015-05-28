@@ -107,9 +107,7 @@ SOURCES += \
     extension/Alert/SellerPeerAddedAlert.cpp \
     extension/Alert/BuyerPeerPluginRemovedAlert.cpp \
     extension/Alert/SellerPeerPluginRemovedAlert.cpp \
-    controller/Stream.cpp \
-    controller/StreamingServer.cpp \
-    controller/Piece.cpp
+    controller/Stream.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -218,9 +216,7 @@ HEADERS += \
     extension/Alert/SellerPeerAddedAlert.hpp \
     extension/Alert/BuyerPeerPluginRemovedAlert.hpp \
     extension/Alert/SellerPeerPluginRemovedAlert.hpp \
-    controller/Stream.hpp \
-    controller/StreamingServer.hpp \
-    controller/Piece.hpp
+    controller/Stream.hpp
 				
 FORMS += \
     view/SellerTorrentPluginConfigurationDialog.ui \

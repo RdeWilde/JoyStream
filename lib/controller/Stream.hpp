@@ -1,13 +1,17 @@
 #ifndef HTTP_CONNECTION_HANDLER_HPP
 #define HTTP_CONNECTION_HANDLER_HPP
 
+#include <libtorrent/torrent_handle.hpp>
+
 #include <QObject>
 #include <QMultiMap>
 
-#include "Piece.hpp"
+#ifndef Q_MOC_RUN
+#include <boost/shared_array.hpp>
+#endif Q_MOC_RUN
 
 class QTcpSocket;
-class StreamingServer;
+class Controller;
 
 class Stream : public QObject
 {
@@ -15,8 +19,8 @@ class Stream : public QObject
 
 public:
 
-    // Handler state
-    enum class State {
+    // Status associated with processing socket
+    enum class SocketProcessingState {
 
         // Initial state of stream
         // the only circumstance under which _requestedPath
@@ -30,15 +34,17 @@ public:
         ReadingRequestHeaders,
 
         // Stream ended: Why this?
-        Done,
+        //Done,
 
-        // Stream is in error state, and
-        // details of error are communicated
-        // by error signal
-        Error
+        // Socket closed by peer
+        SocketClosedByPeer,
+
+        // Socket was closed by us,
+        // check error state to see if it was graceful
+        SocketClosedByUs
     };
 
-    // Different errors which may occur
+    // Error states
     enum class Error {
 
         // Client input was not a GET method call
@@ -57,91 +63,132 @@ public:
         InvalidRangeHeaderLine,
 
         // Range was not compatible with underlying content
-        InvalidRangeRequested
+        InvalidRangeRequested,
+
+        // Provided path did not have a valid info hash,
+        // that is one corresponding to a torrent added to controller
+        InvalidInfoHash,
 
     };
 
+    // A request for a piece
+    class PieceRequest {
+
+    public:
+
+        // Status of a request
+        enum class Status {
+
+            // libtorrent::finished_piece_alert
+            waiting_for_it_be_downloaded,
+
+            // libtorrent::read_piece_alert
+            waiting_for_it_to_be_read,
+
+            // received libtorrent::read_piece_alert and saved
+            ready_in_buffer,
+
+            // ther was some sort of error in libtorrent::read_piece_alert
+            read_piece_failed
+        };
+
+        PieceRequest(int index, int length, Status status, const boost::shared_array<char> & buffer);
+
+        // Getters and setters
+        int index() const;
+        void setIndex(int index);
+
+        int length() const;
+        void setLength(int length);
+
+        Status status() const;
+        void setStatus(Status status);
+
+        boost::shared_array<char> buffer() const;
+        void setBuffer(const boost::shared_array<char> & buffer);
+
+    private:
+
+        // Index of piece
+        int _index;
+
+        // Byte length of piece
+        int _length;
+
+        // Status of request
+        Status _status;
+
+        // Data, length is in _length
+        boost::shared_array<char> _buffer;
+    };
+
     // Constructor
-    Stream(QTcpSocket * socket, QObject * parent);
+    Stream(QTcpSocket * socket, Controller * controller);
 
     // Destructor
     ~Stream();
 
+    // Given piece was read
+    void pieceRead(const boost::shared_array<char> & buffer, int pieceIndex, int size);
+
+    // Given piece was downloaded and checked
+    void pieceFinished(int piece);
+
     // Getters
     QByteArray requestedPath() const;
+
+    libtorrent::torrent_handle handle() const;
 
 public slots:
 
     // Try to read socket and parse data into request
     void readSocket();
 
-    // Sends response with data over socket to client
-    // * contentType = type of data, e.g. "video/mp4"
-    // * start,end = what subrange of total underlying data stream is being transmitted
-    // * total = full range of data stream
-    // * pieces = actual data
-    // * offsetInFirstPiece = offset to start writing from in first piece
-    // * offsetInLastPiece
-    void sendDataRange(const QString & contentType,
-                       int start,
-                       int end,
-                       int total,
-                       const QVector<Piece> & pieces,
-                       int offsetInFirstPiece,
-                       int offsetInLastPiece);
-
-    // A request starting at given position was invalid
-    void invalidRangeRequested(int start);
-
-signals:
-
-    // Client announced requested path for the first time, which should
-    // never change for subsequent requests. This signal should be connected
-    // using Qt::DirectConnection, since this information has to be
-    // processed synchronously to allow recipient to catch *first* request.
-    void requestedPathAnnounced(const Stream * handler, const QByteArray & requestedPath);
-
-    // The given byte range of the data stream was requested
-    void rangeRequested(int start, int end);
-
-    // A chunk starting at given position has been requested, but no spesific end,
-    // Its up to slot recipient to choose how big of a range to provide
-    void startRequested(int start);
-
-    // Given error occured, stream has been closed
-    // and will be promptly deleted.
-    void errorOccured(Error errorOccured);
+    // Socket has been closed
+    void socketWasClosed();
 
 private:
 
-    // Processes contents of _headers as if they
-    // represent a full request
+    // Processes contents of _headers as if they represent a full request
     void processRequest();
 
     // Tries to read request line from socket
-    void readRequestLine();
+    void readRequestLineFromSocket();
 
-    // Tries to read
-    void readRequestHeaders();
+    // Tries to read request header lines from socket
+    void readRequestHeadersFromSocket();
 
-    // Sends given response with given error code to client
-    void sendError(int code);
+    // Simple splitting utility used for processing request liness
+    static QPair<QByteArray, QByteArray> splitInHalf(QByteArray data, char c, bool & ok) const;
 
-private:
+    // Sends error to client, closes connection
+    // and schedules deletion of stream from event loop
+    void sendErrorToPeerAndEndStream(Error errorOccured);
+
+    // Tries to get pieces within given file range
+    void getStreamPieces(int start, int end);
+
+    // Tries to get pieces starting at given file offset for standard range size (_defaultRangeLength)
+    void getStreamPieces(int start);
+
+    // Sends response with data over socket to client
+    void sendStream();
+
+    // Controller to which stream corresponds
+    Controller * _controller;
 
     // Sate of handler
-    State _state;
+    SocketProcessingState _socketProcessingState;
 
     // Socket for connection
     QTcpSocket * _socket;
 
-    // Sends error signal, sends error to client, closes connection
-    // and schedules deletion of *this from event loop
-    void endOnError(Error errorOccured);
+    // Handle of torrent to which this stream corresponds
+    libtorrent::torrent_handle _handle;
 
     /**
-     * Below is data associated with most recent request being
-     * parsed and processed.
+     * Client socket data for most recent request
+     * ===================
      */
 
     // Contains path requested, is only valid
@@ -160,8 +207,40 @@ private:
     // from client will include and end of range.
     int _mostRecentlyRequestedStartOfRange;
 
-    // Simple splitting utility used for processing request line
-    QPair<QByteArray, QByteArray> splitInHalf(QByteArray data, char c, bool & ok);
+    /**
+     * Piece reading related state
+     * ===================
+     */
+    // The index of the *single* in the torrent which can be streamed
+    int _fileIndex;
+
+    // Total byte size of file
+    int _total;
+
+    // Content type of content
+    QString _contentType;
+
+    // The number of bytes
+    int _defaultRangeLength;
+
+    // Whether range request is being serviced
+    bool _currentlyServicingRangeRequest;
+
+    ////
+    //// Everything below here is computed from the last request
+    //// and is kept around.
+    ////
+
+    // Most recent request
+    int _start, _end;
+
+    // The number of pieces for which we have not yet read data,
+    // that is where status of piece
+    // is != PieceRequest::Status::ready_in_buffer
+    int _numberOfPiecesNotRead;
+
+    // Piece requests for current requested range
+    QVector<PieceRequest> _pieceRequests;
 };
 
 #endif // HTTP_CONNECTION_HANDLER_HPP

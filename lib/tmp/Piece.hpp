@@ -9,8 +9,14 @@ class Piece {
 
 public:
 
+    // Default constructor
+    Piece();
+
     // Constructor
-    Piece(int index, int length, const boost::shared_array<char> & data);
+    Piece(int index, int length, bool hasValidData, const boost::shared_array<char> & data);
+
+    // Copy constructor
+    Piece(const Piece & piece);
 
     // Getters and setters
     int index() const;
@@ -18,6 +24,9 @@ public:
 
     int length() const;
     void setLength(int length);
+
+    bool hasValidData() const;
+    void setHasValidData(bool hasValidData);
 
     boost::shared_array<char> data() const;
     void setData(const boost::shared_array<char> &data);
@@ -29,6 +38,9 @@ private:
 
     // Byte length of piece
     int _length;
+
+    // Whether _data is valid
+    bool _hasValidData;
 
     // Raw data in piece
     boost::shared_array<char> _data;
