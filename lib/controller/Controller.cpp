@@ -2177,15 +2177,15 @@ libtorrent::torrent_handle Controller::getTorrentHandle(const libtorrent::sha1_h
 
 libtorrent::torrent_handle Controller::registerStream(Stream * stream) {
 
-    // Get requested path
-    std::string pathString = stream->requestedPath().toStdString();
+    // Decode hex string
+    QByteArray hexDecodedInfoHash = QByteArray::fromHex(tream->requestedPath());
 
-    // If the string is not 20 chars, then it cannot be info hash
-    if(pathString.length() != 20)
+    // Must be 20 bytes
+    if(hexDecodedInfoHash.length() != 20)
         return libtorrent::torrent_handle();
 
-    // Create info hash from path string
-    libtorrent::sha1_hash infoHash(pathString);
+    // Create info hash
+    libtorrent::sha1_hash infoHash(hexDecodedInfoHash.constData());
 
     // If no torrent exist with given info hash, just return default handle
     if(!_torrents.contains(infoHash))

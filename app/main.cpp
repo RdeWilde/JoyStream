@@ -115,15 +115,15 @@ void main(int argc, char* argv[]) {
      */
 
     // Number of Buyers
-    int buyer_count = 5;
-    bool buyer_show_gui = false;
-    bool buyer_std_logg = false;
+    int buyer_count = 1;
+    bool buyer_show_gui = true;
+    bool buyer_std_logg = true;
 
 
     // Number of sellers
     int seller_count = 1;
-    bool seller_show_gui = true;
-    bool seller_std_logg = true;
+    bool seller_show_gui = false;
+    bool seller_std_logg = false;
 
     /**
      * Buyer =======================================================

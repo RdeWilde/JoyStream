@@ -484,8 +484,10 @@ void BuyerTorrentPlugin::tick() {
 
             qCDebug(_category) << "Assigning piece to peer.";
 
-            // Get peer plugin
+            // Get the "first" peer plugin in set, but doe not remove
             BuyerPeerPlugin * peerPlugin = *(_peerPluginsWithoutPieceAssignment.begin());
+
+            Q_ASSERT(peerPlugin->clientState() == BuyerPeerPlugin::ClientState::needs_to_be_assigned_piece);
 
             // Assign to peer plugin
             bool assigned = assignPieceToPeerPlugin(peerPlugin);
@@ -629,6 +631,7 @@ bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, c
     // call conditions =>
     Q_ASSERT(_state == State::waiting_for_payor_to_be_ready);
     Q_ASSERT(peer->clientState() == BuyerPeerPlugin::ClientState::asked_for_refund_signature);
+    Q_ASSERT(_peerPluginsWithoutPieceAssignment.empty());
 
     // Check that signature is valid
     bool wasValid = _payor.processRefundSignature(peer->payorSlot(), refundSignature);
@@ -702,10 +705,6 @@ bool BuyerTorrentPlugin::assignPieceToPeerPlugin(BuyerPeerPlugin * peerPlugin) {
     try {
         pieceIndex = getNextUnassignedPiece(_assignmentLowerBound);
     } catch (std::exception & e) {
-
-        // No unassigned pieces presently available, so add to set of unassigne peer plugins
-        _peerPluginsWithoutPieceAssignment.insert(peerPlugin);
-
         // and signal failure
         return false;
     }

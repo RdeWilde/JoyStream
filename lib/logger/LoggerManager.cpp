@@ -120,6 +120,7 @@ void handler(QtMsgType type, const QMessageLogContext & messageLogContext, const
             messageType = "Fatal: ";
     }
 
+    /**
     QString messageSource;
     messageSource.append("[")
             .append(messageLogContext.line)
@@ -128,6 +129,7 @@ void handler(QtMsgType type, const QMessageLogContext & messageLogContext, const
             .append("@")
             .append(messageLogContext.file)
             .append("] ");
+    */
 
     // Write to file
     QTextStream(category.file) << messageType << msg << "\n"; // << messageSource

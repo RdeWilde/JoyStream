@@ -335,7 +335,7 @@ void MainWindow::addTorrent(const TorrentViewModel * model) {
                      SLOT(showTorrentPluginDialog(libtorrent::sha1_hash)));
 
     QObject::connect(view,
-                     SIGNAL(requestedViewingExtension(libtorrent::sha1_hash)),
+                     SIGNAL(requestedStreamingPlayback(libtorrent::sha1_hash)),
                      this,
                      SLOT(startVLC(libtorrent::sha1_hash)));
 
@@ -475,7 +475,12 @@ void MainWindow::torrentTableClicked(const QModelIndex & index) {
 void MainWindow::startVLC(const libtorrent::sha1_hash & infoHash) const {
 
     // Start VLC at local host on given port asking for this info hash
-    QString url = "http://localhost:" + QString::number(_controller->getServerPort()) + QString::fromStdString(infoHash.to_string());
+
+    // Turn info hash into hex string
+    std::string infoHashHexString = libtorrent::to_hex(infoHash.to_string());
+
+    // Use to build path
+    QString url = "http://localhost:" + QString::number(_controller->getServerPort()) + QString::fromStdString(infoHashHexString);
 
     qDebug() << "Starting VLC pointing at:" << url;
 

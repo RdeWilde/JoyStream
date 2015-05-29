@@ -279,8 +279,8 @@ void TorrentView::updateStartedSellerTorrentPlugin(const SellerTorrentPluginView
 void TorrentView::updateStatus(const libtorrent::torrent_status & status) {
 
     // name
-    //QString name = QString::fromStdString(status.name);
-    //_nameItem->setText(name);
+    QString name = QString::fromStdString(status.name);
+    _nameItem->setText(name);
 
     // state
     _stateItem->setText(torrentStateToString(status.paused, status.state, status.progress));
