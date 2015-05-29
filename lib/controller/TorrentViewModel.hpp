@@ -59,12 +59,21 @@ public:
 
     // Getters
     libtorrent::sha1_hash infoHash() const;
+
     QString name() const;
+
     QString savePath() const;
+
+    //int totalSize() const;
+
     const libtorrent::torrent_info * torrentInfo() const;
+
     PluginInstalled pluginInstalled() const;
+
     libtorrent::torrent_status status() const;
+
     SellerTorrentPluginViewModel * sellerTorrentPluginViewModel() const;
+
     BuyerTorrentPluginViewModel * buyerTorrentPluginViewModel() const;
 
     /**

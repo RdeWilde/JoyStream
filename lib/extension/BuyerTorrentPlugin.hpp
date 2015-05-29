@@ -309,6 +309,9 @@ public:
     void setBlockSize(int blockSize);
     */
 
+    int assignmentLowerBound() const;
+    void setAssignmentLowerBound(int assignmentLowerBound);
+
 private:
 
     // What stage is plugin
@@ -343,8 +346,6 @@ private:
 
         // Number of sellers
         quint32 _numberOfSellers;
-
-
 
 
     // Payment channel

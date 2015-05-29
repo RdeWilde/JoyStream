@@ -28,7 +28,8 @@ TorrentView::TorrentView(QObject * parent,
     , _pauseAction("Pause", this)
     , _startAction("Start", this)
     , _removeAction("Remove", this)
-    , _viewExtensionAction("View", this) {
+    , _viewExtensionAction("View", this)
+    , _streamAction("Stream", this) {
 
     // Set values
     updateStatus(torrentViewModel->status());
@@ -73,6 +74,12 @@ TorrentView::TorrentView(QObject * parent,
                      SIGNAL(triggered()),
                      this,
                      SLOT(viewExtension()));
+
+    QObject::connect(&_streamAction,
+                     SIGNAL(triggered()),
+                     this,
+                     SLOT(startStreamPlayback()));
+
 
     // Connect: view model signals to slots on this object
     /**
@@ -212,6 +219,9 @@ void TorrentView::updateStartedBuyerTorrentPlugin(const BuyerTorrentPluginViewMo
     // add action to menu
     _torrentTableContextMenu.addAction(&_viewExtensionAction);
 
+    // add streaming action to menu
+    _torrentTableContextMenu.addAction(&_streamAction);
+
     // Set initial values
     updateNumberOfBuyers(model->numberOfBuyerPeers());
     updateNumberOfSellers(model->numberOfSellerPeers());
@@ -269,8 +279,8 @@ void TorrentView::updateStartedSellerTorrentPlugin(const SellerTorrentPluginView
 void TorrentView::updateStatus(const libtorrent::torrent_status & status) {
 
     // name
-    QString name = QString::fromStdString(status.name);
-    _nameItem->setText(name);
+    //QString name = QString::fromStdString(status.name);
+    //_nameItem->setText(name);
 
     // state
     _stateItem->setText(torrentStateToString(status.paused, status.state, status.progress));
@@ -320,4 +330,8 @@ void TorrentView::remove() {
 
 void TorrentView::viewExtension() {
     emit requestedViewingExtension(_infoHash);
+}
+
+void TorrentView::startStreamPlayback() {
+    emit requestedStreamingPlayback(_infoHash);
 }

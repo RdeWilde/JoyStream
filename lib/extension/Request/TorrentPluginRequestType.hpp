@@ -3,8 +3,9 @@
 
 // Type of torrent plugin request
 enum class TorrentPluginRequestType {
-    StartBuyerTorrentPlugin,
-    StartSellerTorrentPlugin
+    //StartBuyerTorrentPlugin,
+    //StartSellerTorrentPlugin,
+    ChangeDownloadLocation
 
 };
 

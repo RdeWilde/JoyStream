@@ -12,7 +12,7 @@
 #include <libtorrent/peer.hpp>
 #include <libtorrent/entry.hpp>
 #include <libtorrent/lazy_entry.hpp>
-#include <libtorrent/peer_id.hpp> // libtorrent::sha1_hash
+#include <libtorrent/sha1_hash.hpp>
 #include <libtorrent/aux_/session_impl.hpp>
 
 #include <boost/weak_ptr.hpp>
@@ -40,9 +40,11 @@ namespace libtorrent {
     class session_impl;
 }
 
+/**
 namespace boost {
     template<class T> class shared_ptr;
 }
+*/
 
 class Plugin : public QObject, public libtorrent::plugin {
 
@@ -165,11 +167,10 @@ private:
 
     // Maps info hash to pointer to torrent plugin,
     //QMap<libtorrent::sha1_hash, boost::shared_ptr<libtorrent::torrent_plugin> > _plugins;
-
     //QMap<libtorrent::sha1_hash, boost::shared_ptr<TorrentPlugin> > _plugins;
 
-    QMap<libtorrent::sha1_hash, boost::shared_ptr<BuyerTorrentPlugin> > _buyerPlugins;
-    QMap<libtorrent::sha1_hash, boost::shared_ptr<SellerTorrentPlugin> > _sellerPlugins;
+    QMap<libtorrent::sha1_hash, boost::weak_ptr<BuyerTorrentPlugin> > _buyerPlugins;
+    QMap<libtorrent::sha1_hash, boost::weak_ptr<SellerTorrentPlugin> > _sellerPlugins;
 
 
     // BitCoind wrapper
@@ -198,8 +199,10 @@ private:
     QQueue<PeerPluginRequest *> _peerPluginRequestQueue; // queue
     QMutex _peerPluginRequestQueueMutex; // mutex protecting queue
 
+    // Processing routines
     void processesRequests();
     void processPluginRequest(const PluginRequest * pluginRequest);
+    void processTorrentPluginRequest(const TorrentPluginRequest * torrentPluginRequest);
 
     // Removes torrent plugin
     // 1) Remove plugin from torrentPlugins_ map

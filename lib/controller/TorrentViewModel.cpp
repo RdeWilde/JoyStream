@@ -25,7 +25,8 @@ TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & infoHash,
     , _defaultRangeLength(1024*1024) // 1 MB
     , _currentlyServicingRangeRequest(false) {
 
-    Q_ASSERT(!_torrentInfo->file_at(_fileIndex).pad_file);*/
+    Q_ASSERT(!_torrentInfo->file_at(_fileIndex).pad_file);
+    */
 }
 
 /**

@@ -70,6 +70,7 @@ public slots:
     void start();
     void remove();
     void viewExtension();
+    void startStreamPlayback();
 
 signals:
 
@@ -85,6 +86,7 @@ signals:
     void startTorrentRequested(const libtorrent::sha1_hash & infoHash);
     void removeTorrentRequested(const libtorrent::sha1_hash & infoHash);
     void requestedViewingExtension(const libtorrent::sha1_hash & infoHash);
+    void requestedStreamingPlayback(const libtorrent::sha1_hash & infoHash);
 
 private:
 
@@ -111,7 +113,8 @@ private:
     QAction _pauseAction,
             _startAction,
             _removeAction,
-            _viewExtensionAction;
+            _viewExtensionAction,
+            _streamAction;
 };
 
 #endif // TORRENT_VIEW_HPP

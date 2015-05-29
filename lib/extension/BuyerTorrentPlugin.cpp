@@ -1060,6 +1060,15 @@ BuyerTorrentPlugin::Status BuyerTorrentPlugin::status() const {
     _numberOfSellers = numberOfSellers;
  }
 
+ int BuyerTorrentPlugin::assignmentLowerBound() const {
+     return _assignmentLowerBound;
+ }
+
+ void BuyerTorrentPlugin::setAssignmentLowerBound(int assignmentLowerBound) {
+     _assignmentLowerBound = assignmentLowerBound;
+ }
+
+
  /**
  int BuyerTorrentPlugin::blockSize() const {
      return _blockSize;

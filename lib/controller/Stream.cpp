@@ -4,6 +4,10 @@
  * Stream::PieceRequest
  */
 
+Stream::PieceRequest::PieceRequest() {
+
+}
+
 Stream::PieceRequest::PieceRequest(int index, int length, Status status, const boost::shared_array<char> & buffer)
     : _index(index)
     , _length(length)
@@ -257,7 +261,7 @@ void Stream::readRequestLineFromSocket() {
                 _handle = _controller->registerStream(this);
 
                 // End if it was not valid
-                if(!handle.is_valid()) {
+                if(!_handle.is_valid()) {
 
                     qDebug() << "Not a valid info_hash:" << _requestedPath;
                     sendErrorToPeerAndEndStream(Error::InvalidInfoHash);
@@ -277,7 +281,7 @@ void Stream::readRequestLineFromSocket() {
 
                 _defaultRangeLength = torrentInfo->piece_length() * 10;
                 _fileIndex = 0;
-                _total = torrentInfo->file_at(_fileIndex).size;
+                _totalLengthOfFile = torrentInfo->file_at(_fileIndex).size;
                 _contentType = "video/mp4";
                 _defaultRangeLength = 1024*1024; // 1 MB
                 _currentlyServicingRangeRequest = false;
@@ -358,7 +362,7 @@ void Stream::readRequestHeadersFromSocket() {
 }
 
 
-QPair<QByteArray, QByteArray> Stream::splitInHalf(QByteArray data, char c, bool & ok) const {
+QPair<QByteArray, QByteArray> Stream::splitInHalf(QByteArray data, char c, bool & ok) {
 
     // Return value
     QPair<QByteArray, QByteArray> returnValue;
@@ -511,7 +515,7 @@ void Stream::processRequest() {
 void Stream::getStreamPieces(int start, int end) {
 
     // Check that the requested range is valid
-    if(start < 0 || end >= _total || end <= start) {
+    if(start < 0 || end >= _totalLengthOfFile || end <= start) {
 
         qDebug() << "Invalid range request [" << start << "," << end << "]";
 
@@ -550,11 +554,19 @@ void Stream::getStreamPieces(int start, int end) {
     // Figure which pieces where range [_start, _end] of file begins
     libtorrent::peer_request rStart = torrentInfo->map_file(_fileIndex, _start, 0);
 
+    // Save offset needed later when writing stream to socket
+    _startOffsetInFirstPiece = rStart.start;
+
     // Figure which pieces where range [_start, _end] of file ends
     libtorrent::peer_request rEnd = torrentInfo->map_file(_fileIndex, _end, 0);
 
+    // Save offset needed later when writing piece data to socket
+    _stopOffsetInLastPiece = rEnd.start;
+
     // Iterate piece indexes and setup piece requests
     _numberOfPiecesNotRead = rEnd.piece - rStart.piece + 1;
+
+    bool atLeastOnePieceIsNotDownloaded = false;
 
     for(int i = rStart.piece;i < rEnd.piece;i++) {
 
@@ -566,8 +578,23 @@ void Stream::getStreamPieces(int start, int end) {
 
             // and add piece request
             _pieceRequests.push_back(PieceRequest(i, torrentInfo->piece_size(i), PieceRequest::Status::waiting_for_it_to_be_read, boost::shared_array<char>(NULL)));
-        } else // otherwise, we have to just wait for it to be available
+
+        } else {
+
+            // otherwise, we have to just wait for it to be available
             _pieceRequests.push_back(PieceRequest(i, torrentInfo->piece_size(i), PieceRequest::Status::waiting_for_it_be_downloaded, boost::shared_array<char>(NULL)));
+
+            // if this is the first piece not downloaded, then tell controller to get plugin to download from new this position
+            if(!atLeastOnePieceIsNotDownloaded) {
+
+                atLeastOnePieceIsNotDownloaded = true;
+
+                qDebug() << "Relocating download point since the following pieces has not been downloaded" << i;
+
+                // Ask controller to relocate buyer plugin download
+                _controller->changeDownloadingLocationFromThisPiece(torrentInfo->info_hash(), i);
+            }
+        }
     }
 
     Q_ASSERT(_pieceRequests.size() == _numberOfPiecesNotRead);
@@ -577,92 +604,13 @@ void Stream::getStreamPieces(int start) {
     getStreamPieces(start, start + _defaultRangeLength);
 }
 
-void Stream::sendStream() {
+void Stream::sendStream() const{
 
-   /**
-   const QString & contentType,
-   int start,
-   int end,
-   int total,
-   const QVector<Piece> & pieces,
-   int offsetInFirstPiece,
-   int offsetInLastPiece
-   */
-
-    // * contentType = type of data, e.g. "video/mp4"
-    // * start,end = what subrange of total underlying data stream is being transmitted
-    // * total = full range of data stream
-    // * pieces = actual data
-    // * startOffsetInFirstPiece = Offset to start in first piece (inclusive)
-    // * stopOffsetInLastPiece = Offset to stop in last piece (inclusive)
-
-
-    /**
-     * Figure out offsets in first and last pieces
-     *
-     *
-     *
-     *
-     *
-
-    // Offset to start in first piece (inclusive)
-    int _startOffsetInFirstPiece;
-
-    // Offset to stop in last piece (inclusive)
-    int _stopOffsetInLastPiece;
-
-
-
-
-    int firstPieceSize = _torrentInfo->piece_size(r.piece);
-
-    // Treat a range which is within a single piece as an exception
-    if(r.start + r.length <= firstPieceSize) { // NB: rangeSize > firstPieceSize does not test this
-
-        _numberOfOutstandingPieces = 1;
-        _stopOffsetInLastPiece = r.start + r.length - 1;
-        _pieces.push_back(Piece(r.piece, firstPieceSize, false, boost::shared_array<char>(NULL)));
-
-        // Request that piece is read
-        emit pieceNeeded(r.piece);
-
-    } else {
-
-        int requiredDataInFirstPiece = firstPieceSize - r.start;
-
-        // Figure out how many pieces in total are touched by range
-        int numberOfPiecesAfterFirst = (r.length - requiredDataInFirstPiece) / _torrentInfo->piece_length();
-        _numberOfOutstandingPieces = 1 + numberOfPiecesAfterFirst;
-
-        for(int i = r.piece;i < _numberOfOutstandingPieces;i++) {
-
-            // Get size of this piece, where
-            // last piece may be shorter than rest, which are uniform
-            int pieceSize = _torrentInfo->piece_size(i);
-
-            // Crate piece object
-            _pieces.push_back(Piece(i, pieceSize, false, boost::shared_array<char>(NULL)));
-
-            // Request that piece is read
-            emit pieceNeeded(i);
-        }
-
-        Q_ASSERT(_pieces.size() == _numberOfOutstandingPieces);
-
-        // How much of range oveflows into last piece
-        _stopOffsetInLastPiece = (r.length - requiredDataInFirstPiece) % _torrentInfo->piece_length();
-    }
-    */
-
-    qDebug() << "sendDataRange"
-             << contentType
-             << ", #pieces=" << pieces.size()
-             << "," << offsetInFirstPiece
-             << "," << offsetInLastPiece;
+    qDebug() << "sendStream";
 
     Q_ASSERT(!_pieceRequests.empty());
     Q_ASSERT(_start < _end);
-    Q_ASSERT(_end < _total);
+    Q_ASSERT(_end < _totalLengthOfFile);
 
     // Build response header
     /**
@@ -683,68 +631,67 @@ void Stream::sendStream() {
     */
 
     // Length of actual data range being sent with this response
-    int contentLength = end - start + 1;
+    int streamLength = _end - _start + 1;
 
     QString header = QString("HTTP/1.1 206 Partial Content\n") +
-                     QString("Content-Range: bytes ") + QString::number(start) + QString("-") + QString::number(end) + QString("/") + QString::number(total) + QString("\n") +
+                     QString("Content-Range: bytes ") + QString::number(_start) + QString("-") + QString::number(_end) + QString("/") + QString::number(_totalLengthOfFile) + QString("\n") +
                      QString("Accept-Ranges: bytes\n") +
-                     QString("Content-Length: ") + QString::number(contentLength) + QString("\n") +
-                     QString("Content-Type: ") + contentType + QString("\n") +
+                     QString("Content-Length: ") + QString::number(streamLength) + QString("\n") +
+                     QString("Content-Type: ") + _contentType + QString("\n") +
                      QString("\n"); // Extra new lin required
 
     // Write response header
     _socket->write(header.toUtf8());
 
-    // Recomputed length of data sent, used for assert
-    int recomputedContentLength = 0;
+    // Write stream by iterating pieces
+    // Requires awarness of first and last piece edge cases,
+    // so it gets a bit involved
 
-    // If we only have one piece, than just count what part of it is in range
-    if(pieces.length() == 1) {
+    // Torrent file needed to get piece offsets in first and last piece
 
-        // Its the same piece!
-        Q_ASSERT(offsetInLastPiece > offsetInFirstPiece);
+    Q_ASSERT(_handle.is_valid()); // more clever here in the future
 
-        // Add to length (which is really full length in this case)
-        recomputedContentLength = offsetInLastPiece - offsetInFirstPiece + 1;
+    boost::intrusive_ptr<libtorrent::torrent_info const> torrentInfo =_handle.torrent_file();
 
-        // Get piece data
-        const boost::shared_array<char> & data = pieces.front().data();
+    // We should always have metadata if a stream has been started
+    Q_ASSERT(torrentInfo != NULL);
 
-        // Write sub range of piece
-        _socket->write(data.get() + offsetInFirstPiece, recomputedContentLength);
+    // counter used for invariant later
+    int numberOfBytesWritten = 0;
+    for(int i = 0;i < _pieceRequests.size();i++) {
 
-    } else {
+        // Get piece request
+        const PieceRequest & pieceRequest = _pieceRequests[i];
 
-        // First piece may, potentially, not be a full piece, but rather a postfix
-        const Piece & piece = pieces.front();
+        // Handle first piece as special case,
+        // as it likely not be written fully
+        if(i == 0) {
 
-        recomputedContentLength = piece.length() - offsetInFirstPiece;
-        _socket->write(piece.data().get() + offsetInFirstPiece, recomputedContentLength);
+            // How much is left of piece from start offset to end of piece
+            int sizeOfRestOfPiece = pieceRequest.length() - _startOffsetInFirstPiece;
 
-        // Iterate rest of pieces, starting at second piece
-        for(int i = 1;i < pieces.length();i++) {
+            // How much should be written of piece
+            // It may be that we should not write full piece,
+            // if the requested range is subset of a single piece!
+            int sizeOfPiecePostfixToWrite = (streamLength > sizeOfRestOfPiece) ? sizeOfRestOfPiece : streamLength;
 
-            // Get piece
-            const Piece & piece = pieces.front();
+            // Send subrange of piece
+            _socket->write(pieceRequest.buffer().get() + _startOffsetInFirstPiece, sizeOfPiecePostfixToWrite);
 
-            // Treat last piece separately
-            if(i == pieces.length() - 1) {
+            // Count bytes written
+            numberOfBytesWritten += sizeOfPiecePostfixToWrite;
 
-                // Last piece may, potentially, not be a full piece, but rather a prefix
-                recomputedContentLength += offsetInLastPiece + 1;
-                _socket->write(piece.data().get(), offsetInLastPiece + 1);
+        } else {
 
-            } else {
+            // Send subrange of piece
+            _socket->write(pieceRequest.buffer().get(), _stopOffsetInLastPiece + 1);
 
-                // Interior pieces are written in full
-                recomputedContentLength += piece.length();
-                _socket->write(piece.data().get(), piece.length());
-
-            }
+            // Count bytes written
+            numberOfBytesWritten += _stopOffsetInLastPiece + 1;
         }
     }
 
-    Q_ASSERT(recomputedContentLength == contentLength);
+    Q_ASSERT(numberOfBytesWritten == streamLength);
 
     _socket->flush(); // Needed before change 86186 <== ?
 }

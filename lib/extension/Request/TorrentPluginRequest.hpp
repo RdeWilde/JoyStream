@@ -3,7 +3,7 @@
 
 #include "TorrentPluginRequestType.hpp"
 
-#include <libtorrent/peer_id.hpp> // sha1_hash
+#include <libtorrent/sha1_hash.hpp>
 
 class TorrentPluginRequest {
 

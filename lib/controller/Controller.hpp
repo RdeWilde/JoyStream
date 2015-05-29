@@ -239,8 +239,8 @@ public:
                 const std::string & savePath,
                 const std::vector<char> & resumeData,
                 quint64 flags,
-                const libtorrent::torrent_handle & handle,
-                //libtorrent::torrent_info * torrentInfo,
+                //const libtorrent::torrent_handle & handle,
+                libtorrent::torrent_info * torrentInfo,
                 Status status);
 
         // Add plugins
@@ -302,12 +302,12 @@ public:
         quint64 _flags;
 
         // Handle to torrent
+        // A valid handle is only set after the torrent has been added
+        // successfully to session
         libtorrent::torrent_handle _handle;
 
-        /**
         // Torrent file
-        libtorrent::torrent_info * _torrentInfo;
-        */
+        //libtorrent::torrent_info * _torrentInfo;
 
         // Status
         Status _status;
@@ -519,9 +519,13 @@ public:
 
     // Returns torrent handle for torrent with give info hash, if no such torrent has been registered
     // then an invalid handle is passed
-    libtorrent::torrent_handle getTorrentHandle(const libtorrent::sha1_hash & infoHash) const;
+    //libtorrent::torrent_handle getTorrentHandle(const libtorrent::sha1_hash & infoHash) const;
 
-    /** THIS ROUTINE MUST BE HIDDEN FROM CONTROLLER USER IN THE FUTURE **/
+    /**
+     * Stram management stuff
+     * THIS ROUTINE MUST BE HIDDEN FROM CONTROLLER USER IN THE FUTURE
+     **/
+
     // If there is a torrent for the given info hash, then the given stream is added to the
     // torrents streams set, and lastly a handle for the torrent is removed. Otherwise,
     // same rules as getTorrentHandle apply.
@@ -530,6 +534,13 @@ public:
     // Removes stream registration
     void unRegisterStream(Stream * stream);
     void unRegisterStream(Stream * stream, Stream::Error error);
+
+    // If torrent corresponding to the given info hash has a buyer torrent plugin installed,
+    // then the plugin is requested to alter download location
+    void changeDownloadingLocationFromThisPiece(const libtorrent::sha1_hash & infoHash, int pieceIndex);
+
+    // Returns port server is presently listening on
+    quint16 getServerPort() const;
 
     // Returns reference to the wallet
     Wallet & wallet();

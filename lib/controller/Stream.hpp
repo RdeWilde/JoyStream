@@ -5,6 +5,7 @@
 
 #include <QObject>
 #include <QMultiMap>
+#include <QVector>
 
 #ifndef Q_MOC_RUN
 #include <boost/shared_array.hpp>
@@ -68,7 +69,6 @@ public:
         // Provided path did not have a valid info hash,
         // that is one corresponding to a torrent added to controller
         InvalidInfoHash,
-
     };
 
     // A request for a piece
@@ -91,6 +91,9 @@ public:
             // ther was some sort of error in libtorrent::read_piece_alert
             read_piece_failed
         };
+
+        // Default constructor for QVector
+        PieceRequest();
 
         PieceRequest(int index, int length, Status status, const boost::shared_array<char> & buffer);
 
@@ -159,7 +162,7 @@ private:
     void readRequestHeadersFromSocket();
 
     // Simple splitting utility used for processing request liness
-    static QPair<QByteArray, QByteArray> splitInHalf(QByteArray data, char c, bool & ok) const;
+    static QPair<QByteArray, QByteArray> splitInHalf(QByteArray data, char c, bool & ok);
 
     // Sends error to client, closes connection
     // and schedules deletion of stream from event loop
@@ -172,7 +175,7 @@ private:
     void getStreamPieces(int start);
 
     // Sends response with data over socket to client
-    void sendStream();
+    void sendStream() const;
 
     // Controller to which stream corresponds
     Controller * _controller;
@@ -215,7 +218,7 @@ private:
     int _fileIndex;
 
     // Total byte size of file
-    int _total;
+    int _totalLengthOfFile;
 
     // Content type of content
     QString _contentType;
@@ -233,6 +236,12 @@ private:
 
     // Most recent request
     int _start, _end;
+
+    // Offset in first piece to which _start corresponds
+    int _startOffsetInFirstPiece;
+
+    // Offset in last piece to which _end corresponds
+    int _stopOffsetInLastPiece;
 
     // The number of pieces for which we have not yet read data,
     // that is where status of piece

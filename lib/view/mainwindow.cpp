@@ -334,6 +334,11 @@ void MainWindow::addTorrent(const TorrentViewModel * model) {
                      this,
                      SLOT(showTorrentPluginDialog(libtorrent::sha1_hash)));
 
+    QObject::connect(view,
+                     SIGNAL(requestedViewingExtension(libtorrent::sha1_hash)),
+                     this,
+                     SLOT(startVLC(libtorrent::sha1_hash)));
+
     // Insert into view map
     _torrentViews[model->infoHash()] = view;
 
@@ -465,6 +470,21 @@ void MainWindow::torrentTableClicked(const QModelIndex & index) {
     // Get torrent view model for torrent clicked on
     //TorrentViewModel * torrentViewModel = torrentViewModelInTableRow(index.row());
     //qCCritical(_category) << "Clicked torrent with info hash"<< _rowToInfoHash[index.row()].to_string().c_str();
+}
+
+void MainWindow::startVLC(const libtorrent::sha1_hash & infoHash) const {
+
+    // Start VLC at local host on given port asking for this info hash
+    QString url = "http://localhost:" + QString::number(_controller->getServerPort()) + QString::fromStdString(infoHash.to_string());
+
+    qDebug() << "Starting VLC pointing at:" << url;
+
+    // Show address in message box
+    QMessageBox msgBox;
+
+    msgBox.setText("Go to: " + url);
+    msgBox.setDetailedText(url);
+    msgBox.exec();
 }
 
 TorrentView * MainWindow::rowToView(int row) {

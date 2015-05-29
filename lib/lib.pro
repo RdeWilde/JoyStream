@@ -107,7 +107,8 @@ SOURCES += \
     extension/Alert/SellerPeerAddedAlert.cpp \
     extension/Alert/BuyerPeerPluginRemovedAlert.cpp \
     extension/Alert/SellerPeerPluginRemovedAlert.cpp \
-    controller/Stream.cpp
+    controller/Stream.cpp \
+    extension/Request/ChangeDownloadLocation.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -216,7 +217,8 @@ HEADERS += \
     extension/Alert/SellerPeerAddedAlert.hpp \
     extension/Alert/BuyerPeerPluginRemovedAlert.hpp \
     extension/Alert/SellerPeerPluginRemovedAlert.hpp \
-    controller/Stream.hpp
+    controller/Stream.hpp \
+    extension/Request/ChangeDownloadLocation.hpp
 				
 FORMS += \
     view/SellerTorrentPluginConfigurationDialog.ui \

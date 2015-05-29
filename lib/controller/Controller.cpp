@@ -321,15 +321,14 @@ Controller::Torrent::Torrent(const libtorrent::sha1_hash & infoHash,
                              const std::string & savePath,
                              const std::vector<char> & resumeData,
                              quint64 flags,
-                             const libtorrent::torrent_handle & handle,
-                             //libtorrent::torrent_info * torrentInfo,
+                             libtorrent::torrent_info * torrentInfo,
                              Status event)
     : _infoHash(infoHash)
     , _name(name)
     , _savePath(savePath)
     , _resumeData(resumeData)
     , _flags(flags)
-    , _handle(handle)
+    //, _handle(handle)
     //, _torrentInfo(torrentInfo)
     , _status(event)
     , _pluginInstalled(PluginInstalled::None)
@@ -420,11 +419,11 @@ TorrentViewModel * Controller::Torrent::model() {
 }
 
 void Controller::Torrent::addStream(Stream * stream) {
-    return _streams.insert(stream);
+    _streams.insert(stream);
 }
 
 void Controller::Torrent::removeStream(Stream * stream) {
-    return _streams.remove(stream);
+    _streams.remove(stream);
 }
 
 void Controller::Torrent::pieceRead(const boost::shared_array<char> & buffer,
@@ -432,14 +431,18 @@ void Controller::Torrent::pieceRead(const boost::shared_array<char> & buffer,
                                     int size) {
 
     // Iterate streams and notify them
-    for(QSet<Stream *>::iterator i = _streams.constBegin(), end = _streams.constEnd(); i != end;i++)
+    for(QSet<Stream *>::iterator i = _streams.begin(),
+        end = _streams.end();
+        i != end;i++)
         (*i)->pieceRead(buffer, pieceIndex, size);
 }
 
 void Controller::Torrent::pieceFinished(int piece) {
 
     // Iterate streams and notify them
-    for(QSet<Stream *>::iterator i = _streams.constBegin(), end = _streams.constEnd(); i != end;i++)
+    for(QSet<Stream *>::iterator i = _streams.begin(),
+        end = _streams.end();
+        i != end;i++)
         (*i)->pieceFinished(piece);
 }
 
@@ -1026,6 +1029,7 @@ void Controller::Configuration::setLibtorrentSessionSettingsEntry(const libtorre
 #include "extension/Request/StartSellerTorrentPlugin.hpp"
 #include "extension/Request/StartBuyerTorrentPlugin.hpp"
 #include "extension/Request/StartObserverTorrentPlugin.hpp"
+#include "extension/Request/ChangeDownloadLocation.hpp"
 
 #include <libtorrent/alert_types.hpp>
 #include <libtorrent/error_code.hpp>
@@ -1212,7 +1216,7 @@ void Controller::handleConnection() {
 
     // Create handler for each pending connection
     // socket is owned by _server
-    while(QTcpSocket * socket = _server.nextPendingConnection()) {
+    while(QTcpSocket * socket = _streamingServer.nextPendingConnection()) {
 
         qDebug(_category) << "New connection opened.";
 
@@ -1596,7 +1600,7 @@ void Controller::processSaveResumeDataAlert(libtorrent::save_resume_data_alert c
             end = _torrents.end(); i != end;i++) {
 
             // End processing if alert is expected
-            if((i.value())->event() == Torrent::Status::asked_for_resume_data)
+            if((i.value())->status() == Torrent::Status::asked_for_resume_data)
                 return;
         }
 
@@ -1719,7 +1723,7 @@ void Controller::processReadPieceAlert(const libtorrent::read_piece_alert * p) {
     */
 
     if(p->ec) {
-        qCDebug(_category) << "There was some sort of error in reading a piece: " << p->ec.message();
+        qCDebug(_category) << "There was some sort of error in reading a piece: " << QString::fromStdString(p->ec.message());
     } else {
 
         // Notify torrent
@@ -1934,8 +1938,8 @@ bool Controller::addTorrent(const Torrent::Configuration & configuration) {
                                     configuration.name(),
                                     configuration.resumeData(),
                                     configuration.flags(),
-                                    //configuration.torrentInfo(),
-                                    libtorrent::torrent_handle(), // proper handle is set when torrent has been added
+                                    configuration.torrentInfo(),
+                                    //libtorrent::torrent_handle(), // proper handle is set when torrent has been added
                                     Torrent::Status::being_async_added_to_session);
 
     // Warn user if torrent has already been added
@@ -2161,6 +2165,7 @@ void Controller::begin_close() {
     }
 }
 
+/**
 libtorrent::torrent_handle Controller::getTorrentHandle(const libtorrent::sha1_hash & infoHash) const {
 
     if(_torrents.contains(infoHash))
@@ -2168,6 +2173,7 @@ libtorrent::torrent_handle Controller::getTorrentHandle(const libtorrent::sha1_h
     else
         return libtorrent::torrent_handle();
 }
+*/
 
 libtorrent::torrent_handle Controller::registerStream(Stream * stream) {
 
@@ -2211,11 +2217,35 @@ void Controller::unRegisterStream(Stream * stream) {
 
 void Controller::unRegisterStream(Stream * stream, Stream::Error error) {
 
-    unRegisterStream(Stream * stream);
+    unRegisterStream(stream);
 
     qCDebug(_category) << "Stream unregistered due to some error.";
 
     //emit some sort of signal about error
+}
+
+void Controller::changeDownloadingLocationFromThisPiece(const libtorrent::sha1_hash & infoHash, int pieceIndex) {
+
+    // Check that torrent exists
+    if(!_torrents.contains(infoHash)) {
+
+        qCDebug(_category) << "Changing download location requested for torrent which does not exist.";
+        return;
+    }
+
+    // Check that
+    if(_torrents[infoHash]->pluginInstalled() != PluginInstalled::Buyer) {
+
+        qCDebug(_category) << "Changing download location requested for with plugin which does not have a buyer torrent plugin installed on torrent.";
+        return;
+    }
+
+    // Ask torrent to relocate
+    _plugin->submitTorrentPluginRequest(new ChangeDownloadLocation(infoHash, pieceIndex));
+}
+
+quint16 Controller::getServerPort() const {
+   return _streamingServer.serverPort();
 }
 
 void Controller::finalize_close() {

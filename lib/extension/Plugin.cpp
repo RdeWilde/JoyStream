@@ -3,12 +3,15 @@
 #include "SellerTorrentPlugin.hpp"
 #include "BuyerTorrentPlugin.hpp"
 //#include "TorrentPluginConfiguration.hpp"
+
 #include "Request/PluginRequest.hpp"
 #include "Request/TorrentPluginRequest.hpp"
 #include "Request/PeerPluginRequest.hpp"
 #include "Request/StartBuyerTorrentPlugin.hpp"
 #include "Request/StartSellerTorrentPlugin.hpp"
 //#include "Request/StartTorrentPlugin.hpp"
+#include "Request/ChangeDownloadLocation.hpp"
+
 #include "PeerPlugin.hpp"
 
 #include "Alert/PluginStatusAlert.hpp"
@@ -119,9 +122,13 @@ void Plugin::on_alert(libtorrent::alert const * a) {
         Q_ASSERT(_sellerPlugins.contains(infoHash));
 
         // Send alert to plugin
-        _sellerPlugins[infoHash]->pieceRead(p);
+        if(boost::shared_ptr<SellerTorrentPlugin> sharedPtr = _sellerPlugins[infoHash].lock())
+            sharedPtr->pieceRead(p);
+        else {
 
-        //qCDebug(_category) << "Read piece alert.";
+            qCDebug(_category) << "Could not process read piece alert, since seller torrent plugin has expired.";
+            Q_ASSERT(false);
+        }
     }
 
 }
@@ -256,45 +263,38 @@ void Plugin::submitPeerPluginRequest(PeerPluginRequest * peerPluginRequest) {
 void Plugin::processesRequests() {
 
     // Iterate _pluginRequestQueue
+    _pluginRequestQueueMutex.lock();
     while (!_pluginRequestQueue.empty()) {
 
         // Removes the head request in the queue and returns it
         PluginRequest * pluginRequest = _pluginRequestQueue.dequeue();
 
-        // process
+        // Process plugin request
         processPluginRequest(pluginRequest);
 
-        // delete
+        // Delete request
         delete pluginRequest;
     }
-
+    _pluginRequestQueueMutex.unlock();
 
     // Iterate _torrentPluginRequestQueue
+    _torrentPluginRequestQueueMutex.lock();
     while (!_torrentPluginRequestQueue.empty()) {
-
-        qCDebug(_category) << "Cannot process torrent plugin request.";
 
         // Removes the head request in the queue and returns it
         TorrentPluginRequest * torrentPluginRequest = _torrentPluginRequestQueue.dequeue();
 
-        /**
-        // find corresponding torrent plugin
-        std::map<libtorrent::sha1_hash, TorrentPlugin *>::iterator i = _torrentPlugins.find(torrentPluginRequest->_info_hash);
+        // Process torrent plugin request
+        processTorrentPluginRequest(torrentPluginRequest);
 
-        // process it if it exists
-        if(i != _torrentPlugins.end())
-            (i->second)->processTorrentPluginRequest(torrentPluginRequest);
-        else
-            qCDebug(_category) << "Discarded request for torrent plugin which does not exist.";
-        */
-
-        // delete
+        // Delete request
         delete torrentPluginRequest;
 
     }
-
+    _torrentPluginRequestQueueMutex.unlock();
 
     // Iterate _peerPluginRequestQueue
+    _peerPluginRequestQueueMutex.lock();
     while (!_peerPluginRequestQueue.empty()) {
 
         qCDebug(_category) << "Cannot process peer plugin request.";
@@ -328,12 +328,11 @@ void Plugin::processesRequests() {
         // delete
         delete peerPluginRequest;
     }
+    _peerPluginRequestQueueMutex.unlock();
 
 }
 
 void Plugin::processPluginRequest(const PluginRequest * pluginRequest) {
-
-    //qCDebug(_category) << "processPluginRequest";
 
     switch(pluginRequest->getPluginRequestType()) {
 
@@ -352,7 +351,6 @@ void Plugin::processPluginRequest(const PluginRequest * pluginRequest) {
 
         break;
     */
-
 
         case PluginRequestType::StartBuyerTorrentPlugin: {
 
@@ -375,6 +373,36 @@ void Plugin::processPluginRequest(const PluginRequest * pluginRequest) {
         Q_ASSERT(false);
 
     }
+}
+
+void Plugin::processTorrentPluginRequest(const TorrentPluginRequest * torrentPluginRequest) {
+
+    switch(torrentPluginRequest->getTorrentPluginRequestType()) {
+
+        case TorrentPluginRequestType::ChangeDownloadLocation: {
+
+            const ChangeDownloadLocation * p = reinterpret_cast<const ChangeDownloadLocation *>(torrentPluginRequest);
+
+            Q_ASSERT(_buyerPlugins.contains(p->info_hash()));
+
+            if(boost::shared_ptr<BuyerTorrentPlugin> sharedPtr = _buyerPlugins[p->info_hash()].lock()) {
+
+                // Should we check status of this plugin?
+                // if its not downloading, then this will have no effect anyway
+
+                sharedPtr->setAssignmentLowerBound(p->pieceIndex());
+            } else {
+                qCDebug(_category) << "Could not change download location since buyer torrent plugin had expired.";
+                Q_ASSERT(false);
+            }
+        }
+
+        break;
+
+        Q_ASSERT(false);
+
+    }
+
 }
 
 /**
@@ -446,13 +474,13 @@ bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, con
         BuyerTorrentPlugin * buyerPlugin = new BuyerTorrentPlugin(this, sharedTorrentPtr, _wallet, configuration, utxo, _category);
 
         // Create plugin with given configuration
-        boost::shared_ptr<libtorrent::torrent_plugin> sharedPluginPtr(buyerPlugin);
+        boost::shared_ptr<BuyerTorrentPlugin> sharedPluginPtr(buyerPlugin);
 
         // Install plugin on torrent
         sharedTorrentPtr->add_extension(sharedPluginPtr);
 
         // Remember plugin
-        _buyerPlugins[infoHash] = boost::dynamic_pointer_cast<BuyerTorrentPlugin>(sharedPluginPtr); // sharedPluginPtr
+        _buyerPlugins[infoHash] = boost::weak_ptr<BuyerTorrentPlugin>(sharedPluginPtr);
 
         // Notify controller
         sendAlertToSession(StartedBuyerTorrentPlugin(infoHash, configuration, utxo, buyerPlugin->status()));
@@ -488,13 +516,13 @@ bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, co
         SellerTorrentPlugin * sellerPlugin = new SellerTorrentPlugin(this, sharedTorrentPtr, _wallet, configuration, _category);
 
         // Create plugin with given configuration
-        boost::shared_ptr<libtorrent::torrent_plugin> sharedPluginPtr(sellerPlugin);
+        boost::shared_ptr<SellerTorrentPlugin> sharedPluginPtr(sellerPlugin);
 
         // Install plugin on torrent
         sharedTorrentPtr->add_extension(sharedPluginPtr);
 
         // Remember plugin
-        _sellerPlugins[infoHash] = boost::dynamic_pointer_cast<SellerTorrentPlugin>(sharedPluginPtr); //sharedPluginPtr;
+        _sellerPlugins[infoHash] = boost::weak_ptr<SellerTorrentPlugin>(sharedPluginPtr);
 
         // Notify controller
         sendAlertToSession(StartedSellerTorrentPlugin(infoHash, configuration, sellerPlugin->status()));

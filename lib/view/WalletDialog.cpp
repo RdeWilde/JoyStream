@@ -63,6 +63,15 @@ void WalletDialog::clearWalletTableView() {
 
 void WalletDialog::updateWalletTableView() {
 
+    // Clear out old rows from view model, and repopulate
+    _walletTableViewModel.clear();
+
+    // You have to readd columns to model view model
+    _walletTableViewModel.setHorizontalHeaderItem(0, new QStandardItem("Date"));
+    _walletTableViewModel.setHorizontalHeaderItem(1, new QStandardItem("Type"));
+    _walletTableViewModel.setHorizontalHeaderItem(2, new QStandardItem("Value"));
+    _walletTableViewModel.setHorizontalHeaderItem(3, new QStandardItem("#Confirmations"));
+
     // Get wallet entries
     const QMap<PublicKey, Wallet::Entry> & entries = _wallet->entries();
 

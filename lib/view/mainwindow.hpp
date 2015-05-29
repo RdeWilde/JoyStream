@@ -99,6 +99,9 @@ public slots:
     // Mouse click on row in torrent table
     void torrentTableClicked(const QModelIndex & index);
 
+    // Start VLC video player
+    void startVLC(const libtorrent::sha1_hash & infoHash) const;
+
 private:
 
     // View
