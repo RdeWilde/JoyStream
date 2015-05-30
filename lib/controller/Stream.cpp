@@ -163,39 +163,51 @@ void Stream::pieceFinished(int pieceIndex) {
 
 void Stream::readSocket() {
 
-    switch(_socketProcessingState) {
+    // Whether socket ended in one full request
+    bool socketEndedInFullRequest = false;
 
-        case SocketProcessingState::WaitingForFirstRequestLine:
-            // Just do the same thing as State::ReadingRequestLine case
+    // Try to read all full lines available
+    while(_socket->canReadLine() &&
+          _socketProcessingState != SocketProcessingState::SocketClosedByPeer &&
+          _socketProcessingState != SocketProcessingState::SocketClosedByUs) {
 
-        case SocketProcessingState::ReadingRequestLine:
-            readRequestLineFromSocket();
-            break;
+        // We have to reset this, incase multiple requests were ready, e.g. with fast seeking
+        socketEndedInFullRequest = false;
 
-        case SocketProcessingState::ReadingRequestHeaders:
-            readRequestHeadersFromSocket();
-            break;
+        // Read line
+        QByteArray line = _socket->readLine();
 
-        /**
-        case SocketProcessingState::Done:
+        // Should hold by loop condition
+        Q_ASSERT(line.length() > 0);
 
-            if (_socket->bytesAvailable())
-                qWarning("Data received when done!");
-
-            break;
-        */
-
-        case SocketProcessingState::SocketClosedByPeer:
-            qWarning("Data received after socket closed by peer?");
-            Q_ASSERT(false);
-            break;
-
-        case SocketProcessingState::SocketClosedByUs:
-            qWarning("Read socket after socket was closed by us? we may be in error state also.");
-            Q_ASSERT(false);
-            break;
+        if(_socketProcessingState == SocketProcessingState::WaitingForFirstRequestLine ||
+           _socketProcessingState == SocketProcessingState::ReadingRequestLine)
+            readAndProcessRequestLineFromSocket(line);
+        else if(_socketProcessingState == SocketProcessingState::ReadingRequestHeaders)
+           socketEndedInFullRequest = readRequestHeaderLineFromSocket(line);
+        else
+            Q_ASSERT(false); // all cases should have been covered
     }
 
+    // We dont have a full line, due to loop stop condition,
+    // yet socket has more than the line length limit, then end stream
+    if (_socket->bytesAvailable() > MAX_REQUEST_LINE_LENGTH) {
+
+        sendErrorToPeerAndEndStream(Error::RequestLineLengthToLong);
+        return;
+    }
+
+    // If socket ended in one full request, and nothing more then
+    if(socketEndedInFullRequest) {
+
+        // process it
+        processRequest();
+
+        // and reset for next request
+        _socketProcessingState = SocketProcessingState::ReadingRequestLine;
+        _requestedPath.clear();
+        _headers.clear();
+    }
 }
 
 void Stream::socketWasClosed() {
@@ -223,147 +235,106 @@ void Stream::socketWasClosed() {
     deleteLater();
 }
 
-void Stream::readRequestLineFromSocket() {
+void Stream::readAndProcessRequestLineFromSocket(const QByteArray & line) {
 
-    // If we have a full line, then parse it
-    if (_socket->canReadLine()) {
+    // Make sure we are supposed to be reading request line
+    Q_ASSERT((_socketProcessingState == SocketProcessingState::WaitingForFirstRequestLine && _requestedPath.size() == 0) ||
+             (_socketProcessingState == SocketProcessingState::ReadingRequestLine && _requestedPath.size() != 0));
 
-        // Make sure we are supposed to be reading request line
-        Q_ASSERT((_socketProcessingState == SocketProcessingState::WaitingForFirstRequestLine && _requestedPath.size() == 0) ||
-                 (_socketProcessingState == SocketProcessingState::ReadingRequestLine && _requestedPath.size() != 0));
+    // Split to recover method used
+    QList<QByteArray> requestLineSections = line.split(' ');
 
-        // Read request line
-        QByteArray requestLine = _socket->readLine();
+    // We only support GET
+    if (requestLineSections[0].toUpper() != QByteArrayLiteral("GET")) {
 
-        // Split to recover method used
-        QList<QByteArray> requestLineSections = requestLine.split(' ');
-
-        // We only support GET
-        if (requestLineSections[0].toUpper() != QByteArrayLiteral("GET")) {
-
-            qDebug() << "Not a GET request line:" << requestLineSections[0];
-
-            // End stream
-            sendErrorToPeerAndEndStream(Error::NotAGET);
-
-        } else {
-
-            // Save requested path if this is the first time we see it
-            if(_socketProcessingState == SocketProcessingState::WaitingForFirstRequestLine) {
-
-                qDebug() << "Got request for:" << requestLineSections[1];
-
-                Q_ASSERT(_requestedPath.size() == 0);
-
-                // Save requested path
-                _requestedPath = requestLineSections[1];
-
-                // Remove first symbol, which should be "/"
-                _requestedPath.remove(0,1);
-
-                // Try to get torrent handle and subscribe to piece events if this request is valid
-                _handle = _controller->registerStream(this);
-
-                // End if it was not valid
-                if(!_handle.is_valid()) {
-
-                    qDebug() << "Not a valid info_hash:" << _requestedPath;
-                    sendErrorToPeerAndEndStream(Error::InvalidInfoHash);
-                    return;
-                }
-
-                /**
-                 * Setup information about torrent
-                 * IN THE FUTURE THIS NEEDS TO BE MORE CLEVER AND MAY INVOLVE USER INPUT,
-                 * THERE ARE A FEW GITHUB ISSUES ON THIS.
-                 */
-
-                boost::intrusive_ptr<libtorrent::torrent_info const> torrentInfo =_handle.torrent_file();
-
-                // We should always have metadata if a stream has been started
-                Q_ASSERT(torrentInfo != NULL);
-
-                _defaultRangeLength = torrentInfo->piece_length() * 10;
-                _fileIndex = 0;
-                _totalLengthOfFile = torrentInfo->file_at(_fileIndex).size;
-                _contentType = "video/mp4";
-
-                // Cancel any range request presently being serviced, here comes a new one
-                _currentlyServicingRangeRequest = false;
-
-            } // If its not the first time, make sure its the same path, otherwise the peer is misbehaving
-            else if(_requestedPath != requestLineSections[1]) {
-
-                qDebug() << "Changed request path from" << _requestedPath << "to" << requestLineSections[1];
-
-                // End stream
-                sendErrorToPeerAndEndStream(Error::ChangedRequestPath);
-
-                // Done
-                return;
-            }
-
-            // Update state
-            _socketProcessingState = SocketProcessingState::ReadingRequestHeaders;
-
-            // Try to read headers in case they are readable
-            readRequestHeadersFromSocket();
-        }
+        qDebug() << "Not a GET request line:" << requestLineSections[0];
+        sendErrorToPeerAndEndStream(Error::NotAGET);
+        return;
     }
-    // If we dont have a full line, yet more than the given limit, then end stream
-    else if (_socket->bytesAvailable() > MAX_REQUEST_LINE_LENGTH)
-        sendErrorToPeerAndEndStream(Error::RequestLineLengthToLong);
 
-    // In case we ended header processing due to end of header, lets
-    // try to process the next request in case it has arrived
-    readRequestLineFromSocket();
+    // Save requested path if this is the first time we see it
+    if(_socketProcessingState == SocketProcessingState::WaitingForFirstRequestLine) {
+
+        qDebug() << "Got request for:" << requestLineSections[1];
+
+        Q_ASSERT(_requestedPath.size() == 0);
+
+        // Save requested path
+        _requestedPath = requestLineSections[1];
+
+        // Remove first symbol, which should be "/"
+        _requestedPath.remove(0,1);
+
+        // Try to get torrent handle and subscribe to piece events if this request is valid
+        _handle = _controller->registerStream(this);
+
+        // End if it was not valid
+        if(!_handle.is_valid()) {
+
+            qDebug() << "Not a valid info_hash:" << _requestedPath;
+            sendErrorToPeerAndEndStream(Error::InvalidInfoHash);
+            return;
+        }
+
+        /**
+         * Setup information about torrent
+         * IN THE FUTURE THIS NEEDS TO BE MORE CLEVER AND MAY INVOLVE USER INPUT,
+         * THERE ARE A FEW GITHUB ISSUES ON THIS.
+         */
+
+        boost::intrusive_ptr<libtorrent::torrent_info const> torrentInfo =_handle.torrent_file();
+
+        // We should always have metadata if a stream has been started
+        Q_ASSERT(torrentInfo != NULL);
+
+        _defaultRangeLength = torrentInfo->piece_length() * 10;
+        _fileIndex = 0;
+        _totalLengthOfFile = torrentInfo->file_at(_fileIndex).size;
+        _contentType = "audio/mpeg"; // video/mp4";
+
+        // Cancel any range request presently being serviced, here comes a new one
+        _currentlyServicingRangeRequest = false;
+
+    } // If its not the first time, make sure its the same path, otherwise the peer is misbehaving
+    else if(_requestedPath != requestLineSections[1]) {
+
+        qDebug() << "Changed request path from" << _requestedPath << "to" << requestLineSections[1];
+        sendErrorToPeerAndEndStream(Error::ChangedRequestPath);
+        return;
+    }
+
+    // Update state
+    _socketProcessingState = SocketProcessingState::ReadingRequestHeaders;
 }
 
-void Stream::readRequestHeadersFromSocket() {
+bool Stream::readRequestHeaderLineFromSocket(const QByteArray & line) {
 
     Q_ASSERT(_socketProcessingState == SocketProcessingState::ReadingRequestHeaders);
     Q_ASSERT(_requestedPath.size() != 0);
 
-    // While there is a full line to read, read it
-    while (_socket->canReadLine()) {
+    // If all headers have now been read, then process full request
+    if (line == QByteArrayLiteral("\r\n") || line == QByteArrayLiteral("\n"))
+        return true;
 
-        // Read header line
-        QByteArray headerLine = _socket->readLine();
+    // Split header line to recover name and value
+    bool ok;
+    QPair<QByteArray, QByteArray> splittedHeaderLine = splitInHalf(line, ':', ok);
 
-        //qDebug() << "Read header line:" << headerLine;
+    // Was splitting possible?
+    if(ok) {
 
-        // If all headers have now been read, then process full request
-        if (headerLine == QByteArrayLiteral("\r\n") || headerLine == QByteArrayLiteral("\n")) {
+        qDebug() << splittedHeaderLine.first << ':'<< splittedHeaderLine.second;
 
-            // Process request
-            processRequest();
+        // Insert into header map
+        _headers.insert(splittedHeaderLine.first.toUpper(), splittedHeaderLine.second.trimmed());
 
-            // end header reading
-            break;
+    } else {
 
-        } else {
-
-            // Split header line to recover name and value
-            bool ok;
-            QPair<QByteArray, QByteArray> splittedHeaderLine = splitInHalf(headerLine, ':', ok);
-
-            // Was splitting possible?
-            if(ok) {
-
-                qDebug() << splittedHeaderLine.first << ':'<< splittedHeaderLine.second;
-
-                // Insert into header map
-                _headers.insert(splittedHeaderLine.first.toUpper(), splittedHeaderLine.second.trimmed());
-
-            } else {
-
-                qDebug() << "Header line is missing colon:" << headerLine;
-
-                // End
-                sendErrorToPeerAndEndStream(Error::HeaderLineMissingColon);
-            }
-        }
+        qDebug() << "Header line is missing colon:" << line;
+        sendErrorToPeerAndEndStream(Error::HeaderLineMissingColon);
     }
+
+    return false;
 }
 
 
@@ -457,9 +428,6 @@ void Stream::processRequest() {
                 // Make request for spesific range
                 qDebug() << "Requesting range [" << start << "," << end << "]";
 
-                // Save range start
-                _mostRecentlyRequestedStartOfRange = start;
-
                 // Send range request notification
                 getStreamPieces(start, end);
 
@@ -484,9 +452,6 @@ void Stream::processRequest() {
                 // Make request for start
                 qDebug() << "Requesting start" << start;
 
-                // Save range start
-                _mostRecentlyRequestedStartOfRange = start;
-
                 // Send range request notification
                 getStreamPieces(start);
 
@@ -504,20 +469,9 @@ void Stream::processRequest() {
 
     } else {
 
-        // Just dump first part of file?
-        qDebug() << "Requesting 0";
-
-        // Save range start
-        _mostRecentlyRequestedStartOfRange = 0;
-
-        // Send range request notification
+        // Just dump first part of file
         getStreamPieces(0);
     }
-
-    // Reset for next request
-    _socketProcessingState = SocketProcessingState::ReadingRequestLine;
-    _requestedPath.clear();
-    _headers.clear();
 }
 
 void Stream::getStreamPieces(int start, int end) {

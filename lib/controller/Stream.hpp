@@ -156,10 +156,11 @@ private:
     void processRequest();
 
     // Tries to read request line from socket
-    void readRequestLineFromSocket();
+    void readAndProcessRequestLineFromSocket(const QByteArray & line);
 
-    // Tries to read request header lines from socket
-    void readRequestHeadersFromSocket();
+    // Tries to read request header lines from socket, returns
+    // whether a full request could be completed, results are in _headers
+    bool readRequestHeaderLineFromSocket(const QByteArray & line);
 
     // Simple splitting utility used for processing request liness
     static QPair<QByteArray, QByteArray> splitInHalf(QByteArray data, char c, bool & ok);
@@ -202,13 +203,6 @@ private:
     // for this field.
     // More on this: https://tools.ietf.org/html/rfc7230#section-3.2.2
     QMultiMap<QByteArray, QByteArray> _headers;
-
-    // Start of most recently requested range.
-    // This is used to know whether to relay data ranges to the client,
-    // as they may have expired.
-    // We only keep track of start because not all requests
-    // from client will include and end of range.
-    int _mostRecentlyRequestedStartOfRange;
 
     /**
      * Piece reading related state
