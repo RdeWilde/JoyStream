@@ -480,7 +480,7 @@ void MainWindow::startVLC(const libtorrent::sha1_hash & infoHash) const {
     std::string infoHashHexString = libtorrent::to_hex(infoHash.to_string());
 
     // Use to build path
-    QString url = "http://localhost:" + QString::number(_controller->getServerPort()) + QString::fromStdString(infoHashHexString);
+    QString url = "http://localhost:" + QString::number(_controller->getServerPort()) + "/" + QString::fromStdString(infoHashHexString);
 
     qDebug() << "Starting VLC pointing at:" << url;
 

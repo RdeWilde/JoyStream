@@ -2178,7 +2178,7 @@ libtorrent::torrent_handle Controller::getTorrentHandle(const libtorrent::sha1_h
 libtorrent::torrent_handle Controller::registerStream(Stream * stream) {
 
     // Decode hex string
-    QByteArray hexDecodedInfoHash = QByteArray::fromHex(tream->requestedPath());
+    QByteArray hexDecodedInfoHash = QByteArray::fromHex(stream->requestedPath());
 
     // Must be 20 bytes
     if(hexDecodedInfoHash.length() != 20)

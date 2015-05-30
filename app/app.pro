@@ -4,7 +4,7 @@ include (../libtorrent.pri)
 TARGET = BitSwapr
 TEMPLATE = app
 
-#CONFIG  += console
+CONFIG  += console
 CONFIG  += link_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
 QT      += core network
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets # Needed for including QApplication

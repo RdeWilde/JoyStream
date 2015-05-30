@@ -62,7 +62,8 @@ Stream::Stream(QTcpSocket * socket, Controller * controller)
     : QObject(controller)
     , _controller(controller)
     , _socketProcessingState(SocketProcessingState::WaitingForFirstRequestLine)
-    , _socket(socket) {
+    , _socket(socket)
+    , _currentlyServicingRangeRequest(false) {
 
     // Connect socket signals to stream slots
     QObject::connect(_socket,
@@ -257,6 +258,9 @@ void Stream::readRequestLineFromSocket() {
                 // Save requested path
                 _requestedPath = requestLineSections[1];
 
+                // Remove first symbol, which should be "/"
+                _requestedPath.remove(0,1);
+
                 // Try to get torrent handle and subscribe to piece events if this request is valid
                 _handle = _controller->registerStream(this);
 
@@ -283,7 +287,8 @@ void Stream::readRequestLineFromSocket() {
                 _fileIndex = 0;
                 _totalLengthOfFile = torrentInfo->file_at(_fileIndex).size;
                 _contentType = "video/mp4";
-                _defaultRangeLength = 1024*1024; // 1 MB
+
+                // Cancel any range request presently being serviced, here comes a new one
                 _currentlyServicingRangeRequest = false;
 
             } // If its not the first time, make sure its the same path, otherwise the peer is misbehaving
@@ -377,6 +382,9 @@ QPair<QByteArray, QByteArray> Stream::splitInHalf(QByteArray data, char c, bool 
         ok = true;
         returnValue.first = data.left(indexOfFirstColon);
         returnValue.second = data.mid(indexOfFirstColon+1);
+
+        // Remove carrige return and newline at end of line
+        returnValue.second = returnValue.second.trimmed();
     }
 
     return returnValue;
@@ -601,7 +609,7 @@ void Stream::getStreamPieces(int start, int end) {
 }
 
 void Stream::getStreamPieces(int start) {
-    getStreamPieces(start, start + _defaultRangeLength);
+    getStreamPieces(start, start + _defaultRangeLength - 1);
 }
 
 void Stream::sendStream() const{
