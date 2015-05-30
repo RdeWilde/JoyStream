@@ -1118,7 +1118,7 @@ Controller::Controller(const Configuration & configuration, bool showView, QNetw
                      SLOT(handleAcceptError(QAbstractSocket::SocketError)));
 
     // Start listening
-    bool success = _streamingServer.listen(QHostAddress::Any); // auto selects port
+    bool success = _streamingServer.listen(QHostAddress::Any, 9999); // auto selects port by removing port arg
 
     if(success)
         qDebug() << "Start server listening on port:" << _streamingServer.serverPort();

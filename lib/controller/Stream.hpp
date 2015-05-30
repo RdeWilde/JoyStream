@@ -54,6 +54,9 @@ public:
         // Request line was longer than MAX_REQUEST_LINE_LENGTH
         RequestLineLengthToLong,
 
+        // It must atleast be \x where x is one or more chars
+        RequestedPathToShort,
+
         // Client sent a new request path
         ChangedRequestPath,
 
@@ -219,9 +222,6 @@ private:
 
     // The number of bytes
     int _defaultRangeLength;
-
-    // Whether range request is being serviced
-    bool _currentlyServicingRangeRequest;
 
     ////
     //// Everything below here is computed from the last request

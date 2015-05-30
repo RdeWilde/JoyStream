@@ -62,8 +62,7 @@ Stream::Stream(QTcpSocket * socket, Controller * controller)
     : QObject(controller)
     , _controller(controller)
     , _socketProcessingState(SocketProcessingState::WaitingForFirstRequestLine)
-    , _socket(socket)
-    , _currentlyServicingRangeRequest(false) {
+    , _socket(socket) {
 
     // Connect socket signals to stream slots
     QObject::connect(_socket,
@@ -86,14 +85,10 @@ Stream::~Stream() {
 
 void Stream::pieceRead(const boost::shared_array<char> & buffer, int pieceIndex, int size) {
 
-    // Do nothing if no range request is being serviced
-    if(!_currentlyServicingRangeRequest)
-        return;
-
-    Q_ASSERT(!_pieceRequests.empty());
-
-    // Skip pieces which are not relevant to present request range
-    if(pieceIndex < _pieceRequests.front().index() || pieceIndex > _pieceRequests.last().index())
+    // Do nothing if no range request is being serviced, or this piece is not in that range
+    if(_pieceRequests.empty() ||
+       pieceIndex < _pieceRequests.front().index() ||
+       pieceIndex > _pieceRequests.last().index())
         return;
 
     // Get piece request
@@ -120,6 +115,8 @@ void Stream::pieceRead(const boost::shared_array<char> & buffer, int pieceIndex,
     // Count piece as read
     _numberOfPiecesNotRead--;
 
+    Q_ASSERT(_numberOfPiecesNotRead >= 0);
+
     // Do we have all pieces now?
     if(_numberOfPiecesNotRead == 0) {
 
@@ -133,14 +130,10 @@ void Stream::pieceRead(const boost::shared_array<char> & buffer, int pieceIndex,
 
 void Stream::pieceFinished(int pieceIndex) {
 
-    // Do nothing if no range request is being serviced
-    if(!_currentlyServicingRangeRequest)
-        return;
-
-    Q_ASSERT(!_pieceRequests.empty());
-
-    // Skip pieces which are not relevant to present request range
-    if(pieceIndex < _pieceRequests.front().index() || pieceIndex > _pieceRequests.last().index())
+    // Do nothing if no range request is being serviced, or this piece is not in that range
+    if(_pieceRequests.empty() ||
+       pieceIndex < _pieceRequests.front().index() ||
+       pieceIndex > _pieceRequests.last().index())
         return;
 
     // Get piece request
@@ -205,7 +198,6 @@ void Stream::readSocket() {
 
         // and reset for next request
         _socketProcessingState = SocketProcessingState::ReadingRequestLine;
-        _requestedPath.clear();
         _headers.clear();
     }
 }
@@ -247,23 +239,29 @@ void Stream::readAndProcessRequestLineFromSocket(const QByteArray & line) {
     // We only support GET
     if (requestLineSections[0].toUpper() != QByteArrayLiteral("GET")) {
 
-        qDebug() << "Not a GET request line:" << requestLineSections[0];
+        qDebug() << "Not a GET method call:" << requestLineSections[0];
         sendErrorToPeerAndEndStream(Error::NotAGET);
         return;
+    } else if(requestLineSections[1].size() < 2) {
+
+        qDebug() << "Requested path to short:" << requestLineSections[1];
+        sendErrorToPeerAndEndStream(Error::RequestedPathToShort);
+        return;
     }
+
+    // Remove first symbol, which should be "/"
+    const QByteArray newRequestedPath = requestLineSections[1].remove(0,1);
 
     // Save requested path if this is the first time we see it
     if(_socketProcessingState == SocketProcessingState::WaitingForFirstRequestLine) {
 
-        qDebug() << "Got request for:" << requestLineSections[1];
+        qDebug() << "Got request for:" << newRequestedPath;
 
         Q_ASSERT(_requestedPath.size() == 0);
+        Q_ASSERT(_pieceRequests.empty());
 
         // Save requested path
-        _requestedPath = requestLineSections[1];
-
-        // Remove first symbol, which should be "/"
-        _requestedPath.remove(0,1);
+        _requestedPath = newRequestedPath;
 
         // Try to get torrent handle and subscribe to piece events if this request is valid
         _handle = _controller->registerStream(this);
@@ -292,19 +290,17 @@ void Stream::readAndProcessRequestLineFromSocket(const QByteArray & line) {
         _totalLengthOfFile = torrentInfo->file_at(_fileIndex).size;
         _contentType = "audio/mpeg"; // video/mp4";
 
-        // Cancel any range request presently being serviced, here comes a new one
-        _currentlyServicingRangeRequest = false;
+        // Update state
+        _socketProcessingState = SocketProcessingState::ReadingRequestHeaders;
 
     } // If its not the first time, make sure its the same path, otherwise the peer is misbehaving
-    else if(_requestedPath != requestLineSections[1]) {
+    else if(_requestedPath != newRequestedPath) {
 
-        qDebug() << "Changed request path from" << _requestedPath << "to" << requestLineSections[1];
+        qDebug() << "Changed request path from" << _requestedPath << "to" << newRequestedPath;
         sendErrorToPeerAndEndStream(Error::ChangedRequestPath);
         return;
     }
 
-    // Update state
-    _socketProcessingState = SocketProcessingState::ReadingRequestHeaders;
 }
 
 bool Stream::readRequestHeaderLineFromSocket(const QByteArray & line) {
@@ -386,7 +382,6 @@ void Stream::sendErrorToPeerAndEndStream(Error error) {
     // Delete *this stream later from event loop
     deleteLater();
 }
-
 
 void Stream::processRequest() {
 
@@ -487,22 +482,19 @@ void Stream::getStreamPieces(int start, int end) {
         return;
     }
 
-    if(_currentlyServicingRangeRequest)
-        qDebug() << "Dropping currently active request for [" << _start << "," << _end << "]";
-
     /**
      * Note that any previously active request will simply
      * be overwritten below
      */
 
-    // The only way there are pending requests is if
-    Q_ASSERT(_pieceRequests.empty() || _currentlyServicingRangeRequest);
+    if(!_pieceRequests.empty()) {
 
-    // Note that request is being serviced, if one was not before
-    _currentlyServicingRangeRequest = true;
+        qDebug() << "Dropping currently active request for [" << _start << "," << _end << "]";
+        _pieceRequests.clear();
+    }
+
     _start = start;
     _end = end;
-    _pieceRequests.clear();
 
     // << Do something more sophisticated later >>
     Q_ASSERT(_handle.is_valid());
