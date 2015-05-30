@@ -119,7 +119,9 @@ void Plugin::on_alert(libtorrent::alert const * a) {
         // Get info hash for torrent from which this read piece comes from
         const libtorrent::sha1_hash infoHash = p->handle.info_hash();
 
-        Q_ASSERT(_sellerPlugins.contains(infoHash));
+        // Piece is not relevant unless we have a seller for given torrent
+        if(!_sellerPlugins.contains(infoHash))
+            return;
 
         // Send alert to plugin
         if(boost::shared_ptr<SellerTorrentPlugin> sharedPtr = _sellerPlugins[infoHash].lock())

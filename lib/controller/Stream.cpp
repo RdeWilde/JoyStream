@@ -576,7 +576,7 @@ void Stream::getStreamPieces(int start, int end) {
 
     bool atLeastOnePieceIsNotDownloaded = false;
 
-    for(int i = rStart.piece;i < rEnd.piece;i++) {
+    for(int i = rStart.piece;i <= rEnd.piece;i++) {
 
         // Check if valid copy of piece has been downloaded
         if(_handle.have_piece(i)) {
