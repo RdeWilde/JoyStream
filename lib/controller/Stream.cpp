@@ -128,7 +128,7 @@ void Stream::pieceRead(const boost::shared_array<char> & buffer, int pieceIndex,
     }
 }
 
-void Stream::pieceFinished(int pieceIndex) {
+void Stream::pieceDownloaded(int pieceIndex) {
 
     // Do nothing if no range request is being serviced, or this piece is not in that range
     if(_pieceRequests.empty() ||
@@ -177,6 +177,7 @@ void Stream::readSocket() {
            _socketProcessingState == SocketProcessingState::ReadingRequestLine)
             readAndProcessRequestLineFromSocket(line);
         else if(_socketProcessingState == SocketProcessingState::ReadingRequestHeaders)
+            // Even if a full request was found, it may not be processed if there is another one in the pipe
            socketEndedInFullRequest = readRequestHeaderLineFromSocket(line);
         else
             Q_ASSERT(false); // all cases should have been covered
@@ -290,9 +291,6 @@ void Stream::readAndProcessRequestLineFromSocket(const QByteArray & line) {
         _totalLengthOfFile = torrentInfo->file_at(_fileIndex).size;
         _contentType = "audio/mpeg"; // video/mp4";
 
-        // Update state
-        _socketProcessingState = SocketProcessingState::ReadingRequestHeaders;
-
     } // If its not the first time, make sure its the same path, otherwise the peer is misbehaving
     else if(_requestedPath != newRequestedPath) {
 
@@ -301,6 +299,8 @@ void Stream::readAndProcessRequestLineFromSocket(const QByteArray & line) {
         return;
     }
 
+    // Update state
+    _socketProcessingState = SocketProcessingState::ReadingRequestHeaders;
 }
 
 bool Stream::readRequestHeaderLineFromSocket(const QByteArray & line) {
@@ -333,7 +333,6 @@ bool Stream::readRequestHeaderLineFromSocket(const QByteArray & line) {
     return false;
 }
 
-
 QPair<QByteArray, QByteArray> Stream::splitInHalf(QByteArray data, char c, bool & ok) {
 
     // Return value
@@ -355,6 +354,79 @@ QPair<QByteArray, QByteArray> Stream::splitInHalf(QByteArray data, char c, bool 
     }
 
     return returnValue;
+}
+
+
+void Stream::processRequest() {
+
+    Q_ASSERT(_socketProcessingState == SocketProcessingState::ReadingRequestHeaders);
+    Q_ASSERT(_requestedPath.size() != 0);
+
+    // Try to recover range field
+    QByteArray range = QByteArrayLiteral("RANGE");
+
+    // If range exists, try to use it
+    if(_headers.contains(range)) {
+
+        // Lets just assume there is only one range field for now
+        QList<QByteArray> headers = _headers.values(range);
+
+        // Lets just support one range field for now
+        Q_ASSERT(headers.size() == 1);
+        QByteArray rangeValue = headers.front();
+
+        // Remove "bytes"
+        rangeValue.replace("bytes=","");
+
+        // Split range into start and end, if possible.
+        bool ok;
+        QPair<QByteArray, QByteArray> splittedRangeValue = splitInHalf(rangeValue, '-', ok);
+
+        // Was it possible?
+        if(ok) {
+
+            bool couldConvertStartOfRange;
+            int start = splittedRangeValue.first.toInt(&couldConvertStartOfRange);
+
+            if(!couldConvertStartOfRange) {
+
+                qDebug() << "Could not recover start of range:" << splittedRangeValue.first;
+
+                sendErrorToPeerAndEndStream(Error::InvalidRangeHeaderLine);
+
+            } else if(splittedRangeValue.second == QByteArrayLiteral("")) // If end of range is empty, then just use start
+                getStreamPieces(start);
+            else {
+
+                bool couldConvertEndOfRange;
+                int end = splittedRangeValue.second.toInt(&couldConvertEndOfRange);
+
+                // Could actual range values be recovered?
+                if(couldConvertEndOfRange) {
+
+                    qDebug() << "Requesting range [" << start << "," << end << "]";
+
+                    // Send range request notification
+                    getStreamPieces(start, end);
+
+                } else {
+
+                    qDebug() << "Could not convert en of range:" << splittedRangeValue.second;
+
+                    sendErrorToPeerAndEndStream(Error::InvalidRangeHeaderLine);
+                }
+            }
+
+        } else {
+
+            qDebug() << "Range header missing - :" << rangeValue;
+
+            sendErrorToPeerAndEndStream(Error::InvalidRangeHeaderLine);
+        }
+
+    } else
+        // Just dump first part of file
+        getStreamPieces(0);
 }
 
 void Stream::sendErrorToPeerAndEndStream(Error error) {
@@ -381,92 +453,6 @@ void Stream::sendErrorToPeerAndEndStream(Error error) {
 
     // Delete *this stream later from event loop
     deleteLater();
-}
-
-void Stream::processRequest() {
-
-    Q_ASSERT(_socketProcessingState == SocketProcessingState::ReadingRequestHeaders);
-    Q_ASSERT(_requestedPath.size() != 0);
-
-    // Try to recover range field
-    QByteArray range = QByteArrayLiteral("RANGE");
-
-    // If range exists, try to use it
-    if(_headers.contains(range)) {
-
-        // Lets just assume there is only one range field for now
-        QList<QByteArray> headers = _headers.values("plenty");
-
-        Q_ASSERT(headers.size() == 1);
-
-        QByteArray rangeValue = headers.front();
-
-        // Remove "bytes"
-        rangeValue.replace("bytes","");
-
-        // Split range into start and end, if possible.
-        bool ok;
-        QPair<QByteArray, QByteArray> splittedRangeValue = splitInHalf(rangeValue, '-', ok);
-
-        // Was it possible?
-        if(ok) {
-
-            bool couldConvertStartOfRange;
-            int start = splittedRangeValue.first.toInt(&couldConvertStartOfRange);
-
-            bool couldConvertEndOfRange;
-            int end = splittedRangeValue.first.toInt(&couldConvertEndOfRange);
-
-            // Could actual range values be recovered?
-            if(couldConvertStartOfRange && couldConvertEndOfRange) {
-
-                // Make request for spesific range
-                qDebug() << "Requesting range [" << start << "," << end << "]";
-
-                // Send range request notification
-                getStreamPieces(start, end);
-
-            } else {
-
-                qDebug() << "Could not parse range header line:" << rangeValue;
-
-                // End
-                sendErrorToPeerAndEndStream(Error::InvalidRangeHeaderLine);
-
-                return;
-            }
-
-        } else {
-
-            // Try to see if we can just recover start of range
-            bool couldConvertStartOfRange;
-            int start = rangeValue.toInt(&couldConvertStartOfRange);
-
-            if(couldConvertStartOfRange)  {
-
-                // Make request for start
-                qDebug() << "Requesting start" << start;
-
-                // Send range request notification
-                getStreamPieces(start);
-
-            } else {
-
-                qDebug() << "Could not parse range header line:" << rangeValue;
-
-                // End
-                sendErrorToPeerAndEndStream(Error::InvalidRangeHeaderLine);
-
-                return;
-            }
-
-        }
-
-    } else {
-
-        // Just dump first part of file
-        getStreamPieces(0);
-    }
 }
 
 void Stream::getStreamPieces(int start, int end) {
@@ -637,11 +623,15 @@ void Stream::sendStream() const{
 
         } else {
 
+            // How much of prefix of piece should be writte:
+            // for last piece, use stored offset, for internal piece write full piece
+            int sizeOfPiecePrefixToWrite = (i == _pieceRequests.size() - 1) ? _stopOffsetInLastPiece + 1 : pieceRequest.length();
+
             // Send subrange of piece
-            _socket->write(pieceRequest.buffer().get(), _stopOffsetInLastPiece + 1);
+            _socket->write(pieceRequest.buffer().get(), sizeOfPiecePrefixToWrite);
 
             // Count bytes written
-            numberOfBytesWritten += _stopOffsetInLastPiece + 1;
+            numberOfBytesWritten += sizeOfPiecePrefixToWrite;
         }
     }
 

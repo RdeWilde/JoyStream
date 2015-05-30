@@ -138,7 +138,7 @@ public:
     void pieceRead(const boost::shared_array<char> & buffer, int pieceIndex, int size);
 
     // Given piece was downloaded and checked
-    void pieceFinished(int piece);
+    void pieceDownloaded(int piece);
 
     // Getters
     QByteArray requestedPath() const;
@@ -155,9 +155,6 @@ public slots:
 
 private:
 
-    // Processes contents of _headers as if they represent a full request
-    void processRequest();
-
     // Tries to read request line from socket
     void readAndProcessRequestLineFromSocket(const QByteArray & line);
 
@@ -167,6 +164,9 @@ private:
 
     // Simple splitting utility used for processing request liness
     static QPair<QByteArray, QByteArray> splitInHalf(QByteArray data, char c, bool & ok);
+
+    // Processes contents of _headers as if they represent a full request
+    void processRequest();
 
     // Sends error to client, closes connection
     // and schedules deletion of stream from event loop

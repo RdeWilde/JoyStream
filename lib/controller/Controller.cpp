@@ -443,7 +443,7 @@ void Controller::Torrent::pieceFinished(int piece) {
     for(QSet<Stream *>::iterator i = _streams.begin(),
         end = _streams.end();
         i != end;i++)
-        (*i)->pieceFinished(piece);
+        (*i)->pieceDownloaded(piece);
 }
 
 /**
