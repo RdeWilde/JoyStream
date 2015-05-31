@@ -19,16 +19,6 @@
 
 #include <QDebug>
 
-BitSwaprjs::BitSwaprjs()
-    : _node("C:\\Program Files\\nodejs\\node.exe")
-    , _module("C:\\Users\\Sindre\\Documents\\GitHub\\BitSwaprjs\\index.js") {
-}
-
-BitSwaprjs::BitSwaprjs(const QString & node, const QString & module)
-    : _node(node)
-    , _module(module) {
-}
-
 QJsonValue BitSwaprjs::nodeBlockingCall(const QString & method, const QJsonValue & params) {
 
     // Build input dictionary for node script

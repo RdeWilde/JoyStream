@@ -472,9 +472,7 @@ void MainWindow::torrentTableClicked(const QModelIndex & index) {
     //qCCritical(_category) << "Clicked torrent with info hash"<< _rowToInfoHash[index.row()].to_string().c_str();
 }
 
-void MainWindow::startVLC(const libtorrent::sha1_hash & infoHash) const {
-
-    // Start VLC at local host on given port asking for this info hash
+void MainWindow::startVLC(const libtorrent::sha1_hash & infoHash) {
 
     // Turn info hash into hex string
     std::string infoHashHexString = libtorrent::to_hex(infoHash.to_string());
@@ -482,14 +480,18 @@ void MainWindow::startVLC(const libtorrent::sha1_hash & infoHash) const {
     // Use to build path
     QString url = "http://localhost:" + QString::number(_controller->getServerPort()) + "/" + QString::fromStdString(infoHashHexString);
 
+    // Start VLC at local host on given port asking for this info hash
     qDebug() << "Starting VLC pointing at:" << url;
 
-    // Show address in message box
-    QMessageBox msgBox;
+    // Escaped VLC path
+    QString vlcExecutable = "\"C:/Program Files (x86)/VideoLAN/VLC/vlc.exe\"";
 
-    msgBox.setText("Go to: " + url);
-    msgBox.setDetailedText(url);
-    msgBox.exec();
+    // Launch VLC pointing at URL
+    _processLauncher.start(vlcExecutable); // QStringList() << url
+
+    // Check that it started
+    if(_processLauncher.state() != QProcess::UnknownError)
+        qDebug() << "Could not start VLC.";
 }
 
 TorrentView * MainWindow::rowToView(int row) {

@@ -15,6 +15,7 @@
 #include <QMap>
 #include <QPoint>
 #include <QLoggingCategory>
+#include <QProcess>
 
 namespace Ui {
 class MainWindow;
@@ -100,7 +101,7 @@ public slots:
     void torrentTableClicked(const QModelIndex & index);
 
     // Start VLC video player
-    void startVLC(const libtorrent::sha1_hash & infoHash) const;
+    void startVLC(const libtorrent::sha1_hash & infoHash);
 
 private:
 
@@ -129,6 +130,11 @@ private:
 
     // View model for torrent with corresponding info hash
     //QMap<libtorrent::sha1_hash, const TorrentViewModel *> _torrentViewModels;
+
+    // Used to launch processes, e.g. VLC,
+    // has to be member, since it cannot go out of scope, since that kills
+    // all started processes
+    QProcess _processLauncher;
 
     // Uses _rowToViewMapping to lookup view in _torrentViews
     TorrentView * rowToView(int row);

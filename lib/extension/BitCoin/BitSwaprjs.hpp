@@ -28,10 +28,6 @@ class BitSwaprjs
 {
 public:
 
-    BitSwaprjs();
-
-    BitSwaprjs(const QString & node, const QString & module);
-
     static QList<KeyPair> generate_fresh_key_pairs(int numberOfPairs);
 
     //static TxId compute_contract_hash(const OutPoint & fundingOutPoint, const quint64 fundingValue, const PrivateKey & sk, const QVector<P2SHTxOut> & contractOutputs, const P2PKHTxOut & changeOutput);
@@ -74,10 +70,6 @@ public:
     static quint64 get_tx_outpoint(const OutPoint & point, bool & spent);
 
 private:
-
-    QString _node;
-
-    QString _module;
 
     static QJsonValue nodeBlockingCall(const QString & method, const QJsonValue & params);
 };

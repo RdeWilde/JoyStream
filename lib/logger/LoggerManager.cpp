@@ -132,7 +132,7 @@ void handler(QtMsgType type, const QMessageLogContext & messageLogContext, const
     */
 
     // Write to file
-    QTextStream(category.file) << messageType << msg << "\n"; // << messageSource
+    QTextStream(category.file) << msg << "\n"; // << messageSource << messageType
 
     // and flush
     category.file->flush();
@@ -140,7 +140,7 @@ void handler(QtMsgType type, const QMessageLogContext & messageLogContext, const
     // Write to screen
     if(category.useStandardOutput)
         std::cerr << "[" << messageLogContext.category << "]: "
-                  << messageType.toStdString().c_str()
+                  //<< messageType.toStdString().c_str()
                   << msg.toStdString().c_str()
                   << std::endl;
 
