@@ -28,22 +28,12 @@
     </font>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="contract">
     <attribute name="title">
      <string>Contract</string>
     </attribute>
-    <widget class="QTableView" name="channelsTableView">
-     <property name="geometry">
-      <rect>
-       <x>12</x>
-       <y>106</y>
-       <width>723</width>
-       <height>141</height>
-      </rect>
-     </property>
-    </widget>
     <widget class="QLabel" name="stateFieldLabel">
      <property name="geometry">
       <rect>
@@ -176,17 +166,27 @@
       <string>Channels</string>
      </property>
     </widget>
+    <widget class="QTreeView" name="channelsTableView">
+     <property name="geometry">
+      <rect>
+       <x>12</x>
+       <y>105</y>
+       <width>723</width>
+       <height>141</height>
+      </rect>
+     </property>
+    </widget>
    </widget>
    <widget class="QWidget" name="tab">
     <attribute name="title">
      <string>Peers</string>
     </attribute>
-    <widget class="QTableView" name="peerPluginsTableView">
+    <widget class="QTreeView" name="peerPluginsTableView">
      <property name="geometry">
       <rect>
        <x>12</x>
        <y>12</y>
-       <width>1003</width>
+       <width>725</width>
        <height>239</height>
       </rect>
      </property>

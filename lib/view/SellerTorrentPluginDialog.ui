@@ -34,19 +34,14 @@
     <attribute name="title">
      <string>Peers</string>
     </attribute>
-    <widget class="QTableView" name="peerPluginsTableView">
+    <widget class="QTreeView" name="peerPluginsTableView">
      <property name="geometry">
       <rect>
        <x>12</x>
        <y>16</y>
-       <width>821</width>
+       <width>819</width>
        <height>167</height>
       </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>10</pointsize>
-      </font>
      </property>
     </widget>
    </widget>

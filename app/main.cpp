@@ -121,7 +121,7 @@ void main(int argc, char* argv[]) {
 
 
     // Number of sellers
-    int seller_count = 1;
+    int seller_count = 0;
     bool seller_show_gui = false;
     bool seller_std_logg = false;
 

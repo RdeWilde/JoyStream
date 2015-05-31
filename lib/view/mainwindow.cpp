@@ -487,7 +487,7 @@ void MainWindow::startVLC(const libtorrent::sha1_hash & infoHash) {
     QString vlcExecutable = "\"C:/Program Files (x86)/VideoLAN/VLC/vlc.exe\"";
 
     // Launch VLC pointing at URL
-    _processLauncher.start(vlcExecutable); // QStringList() << url
+    _processLauncher.start(vlcExecutable, QStringList() << url);
 
     // Check that it started
     if(_processLauncher.state() != QProcess::UnknownError)
