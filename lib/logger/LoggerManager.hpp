@@ -47,7 +47,7 @@ public:
     ~LoggerManager();
 
     // Creates a new category
-    QLoggingCategory * createLogger(const char * name, bool chainStandardHandler, bool useStandardOutput);
+    QLoggingCategory * createLogger(const char * name, bool useStandardOutput, bool chainStandardHandler);
 
 };
 

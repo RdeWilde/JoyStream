@@ -46,21 +46,37 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet, QLoggingCategor
 
     ui->setupUi(this);
 
+    /**
+     *
+     */
+
     // Set logo the ugly way since resources are not working
     QPixmap map("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/joystream-transparent-logo.png");
-    ui->logoLabel->setPixmap(map);
+    //ui->logoLabel->setPixmap(map);
 
     // Alter window title
-    QString categoryName = _category.categoryName();
-    QString title;
+    this->setWindowTitle("JoyStream"); // _category.categoryName()
 
-    // Set title depending on if we are logging or not
-    if(categoryName.compare("default"))
-        title = QString("Logging: ") + categoryName;
-    else
-        title = "POC I";
+    // Set icon
+    QPixmap iconMap("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/window_logo.png");
+    this->setWindowIcon(iconMap);
 
-    this->setWindowTitle(title);
+    QPixmap addIcon("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/add.png");
+    this->ui->addTorrentFilePushButton->setIcon(addIcon);
+
+    QPixmap walletIcon("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/wallet.png");
+    this->ui->walletPushButton->setIcon(walletIcon);
+
+    QPixmap settingsIcon("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/settings.png");
+    this->ui->settingsPushButton->setIcon(settingsIcon);
+
+    /**
+     *
+    QFont torrentTableHeaderFont = this->ui->torrentsTable->header()->font();
+    torrentTableHeaderFont.setPointSize(12);
+    this->ui->torrentsTable->header()->setFont(torrentTableHeaderFont);
+     */
+
 
     /**
      * Add columns to model view model
@@ -165,14 +181,17 @@ void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torre
     QMessageBox msgBox;
     msgBox.setText("Choose plugin mode.");
 
-    QPushButton * passivePushButton = msgBox.addButton(tr("Observe"), QMessageBox::ActionRole);
+    QPushButton * classicPushButton = msgBox.addButton(tr("Classic"), QMessageBox::ActionRole);
+    QPushButton * observerPushButton = msgBox.addButton(tr("Observer"), QMessageBox::ActionRole);
     QPushButton * buyerPushButton = msgBox.addButton(tr("Buy"), QMessageBox::ActionRole);
     QPushButton * sellerPushButton = msgBox.addButton(tr("Sell"), QMessageBox::ActionRole);
 
     // Show modal dialog on same thread, we block untill it is closed
     msgBox.exec();
 
-    if (msgBox.clickedButton() == passivePushButton) {
+    if(msgBox.clickedButton() == classicPushButton) {
+
+    } else if (msgBox.clickedButton() == observerPushButton) {
 
         // Set in passive mode
         //_controller->updateTorrentPluginConfiguration(infoHash, new TorrentPluginConfiguration(true));

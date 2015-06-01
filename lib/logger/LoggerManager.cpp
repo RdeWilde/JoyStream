@@ -38,7 +38,7 @@ LoggerManager::~LoggerManager() {
     qInstallMessageHandler(defaultHandler);
 }
 
-QLoggingCategory * LoggerManager::createLogger(const char * name, bool chainStandardHandler = false, bool useStandardOutput = false) {
+QLoggingCategory * LoggerManager::createLogger(const char * name, bool useStandardOutput = false, bool chainStandardHandler = false) {
 
     // Acquire lock
     mutex.lock();

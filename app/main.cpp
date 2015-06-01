@@ -97,7 +97,9 @@ void main(int argc, char* argv[]) {
 
     // VUZE-test.mp4.torrent: Rise and Rise of BitCoin
     // "C:/Users/Sindre/Desktop/TORRENTS/VUZE-test.mp4.torrent";
-    const char * torrent  = "C:/Users/Sindre/Desktop/TORRENTS/05_Aint_No_Love_Crucified_Aint_No_Love_FROSTWIRE_FROSTCLICK_CREATIVE_COMMONS.mp3.torrent";
+
+    //const char * torrent  = "C:/Users/Sindre/Desktop/TORRENTS/05_Aint_No_Love_Crucified_Aint_No_Love_FROSTWIRE_FROSTCLICK_CREATIVE_COMMONS.mp3.torrent";
+    const char * torrent  = "C:/Users/Sindre/Desktop/TORRENTS/Aint No Love Crucified.mp3.torrent";
 
     libtorrent::error_code ec;
     libtorrent::torrent_info torrentInfo(torrent, ec);
@@ -117,13 +119,13 @@ void main(int argc, char* argv[]) {
     // Number of Buyers
     int buyer_count = 1;
     bool buyer_show_gui = true;
-    bool buyer_std_logg = true;
+    bool buyer_use_stdout_logg = buyer_show_gui;
 
 
     // Number of sellers
-    int seller_count = 0;
-    bool seller_show_gui = false;
-    bool seller_std_logg = false;
+    int seller_count = 1;
+    bool seller_show_gui = true;
+    bool seller_use_stdout_logg = seller_show_gui;
 
     /**
      * Buyer =======================================================
@@ -138,7 +140,7 @@ void main(int argc, char* argv[]) {
 
         // Create logging category: med logging til skjerm
         buyer_loggNames[i] = (std::string("buyer_") + std::to_string(i+1));
-        QLoggingCategory * buyerCategory = global_log_manager.createLogger(buyer_loggNames[i].c_str(), false, buyer_std_logg);
+        QLoggingCategory * buyerCategory = global_log_manager.createLogger(buyer_loggNames[i].c_str(), buyer_use_stdout_logg, false);
 
         // Create wallet name
         buyer_walletFileName[i] = (std::string("C:/Users/Sindre/Desktop/BUILD_DEBUG/app/debug/buyer_wallet") + std::to_string(i+1) + std::string(".dat"));
@@ -214,7 +216,7 @@ void main(int argc, char* argv[]) {
 
         // Create logging category: uten logging til skjerm
         seller_loggNames[i] = (std::string("seller_") + std::to_string(i+1));
-        QLoggingCategory * sellerCategory = global_log_manager.createLogger(seller_loggNames[i].c_str(), false, seller_std_logg);
+        QLoggingCategory * sellerCategory = global_log_manager.createLogger(seller_loggNames[i].c_str(), seller_use_stdout_logg, false);
 
         // Create wallet name
         seller_walletFileName[i] = (std::string("C:/Users/Sindre/Desktop/BUILD_DEBUG/app/debug/seller_wallet_") + std::to_string(i+1) + std::string(".dat"));

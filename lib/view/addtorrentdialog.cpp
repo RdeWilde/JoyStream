@@ -18,6 +18,28 @@ AddTorrentDialog::AddTorrentDialog(Controller * controller, QLoggingCategory & c
     // Setup ui using QtCreator routine
     ui->setupUi(this);
 
+    /**
+     * Setup signals and slots
+     */
+
+    // Ok in button box should cause adding of torrent
+    QObject::connect(ui->buttonBox,
+                     SIGNAL(accepted()),
+                     this,
+                     SLOT(clickedAcceptPushButton()));
+
+    // Handle save to folder button
+    QObject::connect(ui->saveToFolderPushButton,
+                     SIGNAL(clicked()),
+                     this,
+                     SLOT(clickedSaveToFolderPushButton()));
+
+    // Handle cancel by shutting down dialog window
+    QObject::connect(ui->buttonBox,
+                     SIGNAL(rejected()),
+                     this,
+                     SLOT(reject()));
+
     // Error code
     libtorrent::error_code ec;
 
@@ -57,7 +79,7 @@ AddTorrentDialog::~AddTorrentDialog() {
         delete _torrentInfo;
 }
 
-void AddTorrentDialog::on_AddTorrentDialog_accepted() {
+void AddTorrentDialog::clickedAcceptPushButton() {
 
     // Info hash
     libtorrent::sha1_hash info_hash;
@@ -98,17 +120,11 @@ void AddTorrentDialog::on_AddTorrentDialog_accepted() {
     // Add torrent, user will later have to supply torrent plugin configuration
     _controller->addTorrent(configuration);
 
-    // Close window
-    done(0);
+    // Exit event loop
+    close();
 }
 
-void AddTorrentDialog::on_AddTorrentDialog_rejected() {
-
-    // Close window
-    done(0);
-}
-
-void AddTorrentDialog::on_saveToFolderPushButton_clicked() {
+void AddTorrentDialog::clickedSaveToFolderPushButton() {
 
     // Show directory chooser
     QString path = QFileDialog::getExistingDirectory (this, tr("Directory"), "C:\\");

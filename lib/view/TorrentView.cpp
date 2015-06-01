@@ -28,7 +28,7 @@ TorrentView::TorrentView(QObject * parent,
     , _pauseAction("Pause", this)
     , _startAction("Start", this)
     , _removeAction("Remove", this)
-    , _viewExtensionAction("View", this)
+    , _viewExtensionAction("Extension", this)
     , _streamAction("Stream", this) {
 
     // Set values
@@ -217,6 +217,7 @@ void TorrentView::updateStartedBuyerTorrentPlugin(const BuyerTorrentPluginViewMo
     _pluginInstalledItem->setText("Buyer");
 
     // add action to menu
+    _torrentTableContextMenu.addSection("");
     _torrentTableContextMenu.addAction(&_viewExtensionAction);
 
     // add streaming action to menu
@@ -250,7 +251,7 @@ void TorrentView::updateStartedSellerTorrentPlugin(const SellerTorrentPluginView
     _pluginInstalledItem->setText("Seller");
 
     // add action to menu
-    _torrentTableContextMenu.addSection("Extension");
+    _torrentTableContextMenu.addSection("");
     _torrentTableContextMenu.addAction(&_viewExtensionAction);
 
     // Set initial values

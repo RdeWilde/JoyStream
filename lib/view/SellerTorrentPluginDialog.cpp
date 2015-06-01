@@ -14,6 +14,13 @@ SellerTorrentPluginDialog::SellerTorrentPluginDialog(QWidget * parent,
 
     ui->setupUi(this);
 
+    // Main fields
+    updateMinPrice(model->minPrice());
+    updateMinLockTime(model->minLock());
+    updateMinFeePerByte(model->minFeePerByte());
+    updateMaxNumberOfSellers(model->maxNumberOfSellers());
+    updateMaxContractConfirmationDelay(model->maxContractConfirmationDelay());
+
     /**
      * Connect model signals to view slots
      */

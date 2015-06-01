@@ -31,11 +31,9 @@ public:
 
 private slots:
 
-    void on_AddTorrentDialog_accepted();
+    void clickedAcceptPushButton();
 
-    void on_AddTorrentDialog_rejected();
-
-    void on_saveToFolderPushButton_clicked();
+    void clickedSaveToFolderPushButton();
 
 private:
 

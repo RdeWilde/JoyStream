@@ -1080,6 +1080,8 @@ Controller::Controller(const Configuration & configuration, bool showView, QNetw
     , _view(this, &_wallet, _category) {
     //, _server(9999, this) {
 
+    qCDebug(_category) << "Libtorrent session started on port" << QString::number(_session.listen_port());
+
     // Register types for signal and slots
     qRegisterMetaType<libtorrent::sha1_hash>();
     qRegisterMetaType<std::string>();
@@ -1118,13 +1120,12 @@ Controller::Controller(const Configuration & configuration, bool showView, QNetw
                      SLOT(handleAcceptError(QAbstractSocket::SocketError)));
 
     // Start listening
-    bool success = _streamingServer.listen(QHostAddress::Any, 9999); // auto selects port by removing port arg
+    bool success = _streamingServer.listen(QHostAddress::Any); // auto selects port by removing port arg
 
     if(success)
-        qDebug() << "Start server listening on port:" << _streamingServer.serverPort();
+        qCDebug(_category) << "Started streaming server on port:" << _streamingServer.serverPort();
     else
-        qDebug() << "Could not start server listening on port:" << _streamingServer.serverPort();
-
+        qCDebug(_category) << "Could not start streaming server on port:" << _streamingServer.serverPort();
 
 	// Set session settings - these acrobatics with going back and forth seem to indicate that I may have done it incorrectly
 	std::vector<char> buffer;
@@ -1184,13 +1185,8 @@ Controller::Controller(const Configuration & configuration, bool showView, QNetw
     }
 
     // Show view
-    if(showView) {
+    if(showView)
         _view.show();
-
-        // Set port in title if we are logging
-        if(QString(_category.categoryName()).compare("default"))
-            _view.setWindowTitle(_view.windowTitle() + ", Port:" + QString::number(_session.listen_port()));
-    }
 
     // Synchronize wallet
     //_wallet.synchronize();
