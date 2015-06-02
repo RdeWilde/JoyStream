@@ -1077,7 +1077,7 @@ Controller::Controller(const Configuration & configuration, bool showView, QNetw
     , _manager(manager)
     , _plugin(new Plugin(&_wallet, _manager, bitcoindAccount, _category))
     , _portRange(configuration.getPortRange())
-    , _view(this, &_wallet, _category) {
+    , _view(this, &_wallet) {
     //, _server(9999, this) {
 
     qCDebug(_category) << "Libtorrent session started on port" << QString::number(_session.listen_port());

@@ -32,17 +32,18 @@
 #include <QInputDialog>
 #include <QAction>
 #include <QCloseEvent>
+#include <QDebug>
+#include <QMimeData>
 
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>
 #include <libtorrent/torrent_handle.hpp>
 
-MainWindow::MainWindow(Controller * controller, Wallet * wallet, QLoggingCategory & category)
+MainWindow::MainWindow(Controller * controller, Wallet * wallet)
     : ui(new Ui::MainWindow)
     , _controller(controller)
     , _wallet(wallet)
-    , _torrentTableViewModel(0, 6)
-    , _category(category) {
+    , _torrentTableViewModel(0, 6) {
 
     ui->setupUi(this);
 
@@ -55,7 +56,7 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet, QLoggingCategor
     //ui->logoLabel->setPixmap(map);
 
     // Alter window title
-    this->setWindowTitle("JoyStream"); // _category.categoryName()
+    this->setWindowTitle("JoyStream");
 
     // Set icon
     QPixmap iconMap("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/window_logo.png");
@@ -131,6 +132,9 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet, QLoggingCategor
             SIGNAL(clicked(const QModelIndex &)),
             this,
             SLOT(torrentTableClicked(const QModelIndex &)));
+
+    // Accept drag and drop
+    setAcceptDrops(true);
 }
 
 MainWindow::~MainWindow() {
@@ -164,14 +168,14 @@ void MainWindow::showContextMenu(const QPoint & pos) {
 void MainWindow::showAddTorrentFromTorrentFileDialog(const QString & torrentFile) {
 
     // Show window for adding torrent with torrent file
-    AddTorrentDialog addTorrentDialog(_controller, _category, torrentFile, true);
+    AddTorrentDialog addTorrentDialog(_controller, torrentFile, true);
     addTorrentDialog.exec();
 }
 
 void MainWindow::showAddTorrentFromMagnetLinkDialog(const QString & magnetLink) {
 
     // Show window for adding torrent with magnet link
-    AddTorrentDialog addTorrentDialog(_controller, _category, magnetLink, false);
+    AddTorrentDialog addTorrentDialog(_controller, magnetLink, false);
     addTorrentDialog.exec();
 }
 
@@ -196,7 +200,7 @@ void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torre
         // Set in passive mode
         //_controller->updateTorrentPluginConfiguration(infoHash, new TorrentPluginConfiguration(true));
 
-        qCDebug(_category) << "Not implemented.";
+        qDebug() << "Not implemented.";
 
     } else if (msgBox.clickedButton() == buyerPushButton) {
 
@@ -471,7 +475,7 @@ void MainWindow::updatePluginStatus(const Plugin::Status & status) {
 }
 
 void MainWindow::updateWalletBalance(quint64 balance) {
-    //qCDebug(_category) << "updateWalletBalance" << balance;
+    //qCDebug() << "updateWalletBalance" << balance;
     ui->balanceLabel->setText(QString::number(balance) + "Ƀ");
 }
 
@@ -488,7 +492,7 @@ void MainWindow::torrentTableClicked(const QModelIndex & index) {
 
     // Get torrent view model for torrent clicked on
     //TorrentViewModel * torrentViewModel = torrentViewModelInTableRow(index.row());
-    //qCCritical(_category) << "Clicked torrent with info hash"<< _rowToInfoHash[index.row()].to_string().c_str();
+    //qCCritical() << "Clicked torrent with info hash"<< _rowToInfoHash[index.row()].to_string().c_str();
 }
 
 void MainWindow::startVLC(const libtorrent::sha1_hash & infoHash) {
@@ -528,4 +532,12 @@ void MainWindow::closeEvent(QCloseEvent * event) {
 
     // But do not close, which causes event loop exit
     event->ignore();
+}
+
+void MainWindow::dropEvent(QDropEvent *e) {
+
+    foreach (const QUrl &url, e->mimeData()->urls()) {
+        const QString &fileName = url.toLocalFile();
+        qDebug() << "Dropped file:" << fileName;
+    }
 }

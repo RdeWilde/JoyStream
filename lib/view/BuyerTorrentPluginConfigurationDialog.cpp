@@ -66,6 +66,8 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
     if(!okMaxTotalSpend || maxTotalSpend < 0) {
 
+        msgBox.setText("Invalid max total spend: " + ui->maxTotalSpendLineEdit->text());
+        msgBox.exec();
         return;
     }
 

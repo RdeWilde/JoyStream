@@ -3,7 +3,6 @@
 
 #include <QDialog>
 #include <QString>
-#include <QLoggingCategory>
 
 #include "controller/Controller.hpp"
 
@@ -24,7 +23,7 @@ class AddTorrentDialog : public QDialog
 public:
 
     // Constructors
-    AddTorrentDialog(Controller * controller, QLoggingCategory & category, const QString & resource, bool isTorrentFile);
+    AddTorrentDialog(Controller * controller, const QString & resource, bool isTorrentFile);
 
     // explicit AddTorrentDialog(QWidget *parent = 0);
     ~AddTorrentDialog();
@@ -42,9 +41,6 @@ private:
 
     // Controller
     Controller * _controller;
-
-    // Logging category
-    QLoggingCategory & _category;
 
     /**
      * INPUTS CONTROLLER VIEW

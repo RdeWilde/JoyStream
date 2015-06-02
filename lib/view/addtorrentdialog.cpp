@@ -3,14 +3,14 @@
 //#include "controller/TorrentConfiguration.hpp"
 
 #include <QFileDialog>
+#include <QDebug>
 
 #include <libtorrent/magnet_uri.hpp> // libtorrent::parse_magnet_uri
 #include <libtorrent/add_torrent_params.hpp> // parsing torrent magnet/file
 
-AddTorrentDialog::AddTorrentDialog(Controller * controller, QLoggingCategory & category, const QString & resource, bool isTorrentFile)
+AddTorrentDialog::AddTorrentDialog(Controller * controller, const QString & resource, bool isTorrentFile)
     : ui(new Ui::AddTorrentDialog)
     , _controller(controller)
-    , _category(category)
     , _resource(resource)
     , _isTorrentFile(isTorrentFile)
     , _torrentInfo(NULL) {
@@ -50,7 +50,7 @@ AddTorrentDialog::AddTorrentDialog(Controller * controller, QLoggingCategory & c
 
         // Was torrent file valid?
         if(ec) {
-            qCCritical(_category) << "Invalid torrent file: " << ec.message().c_str();
+            qDebug() << "Invalid torrent file: " << ec.message().c_str();
             return;
         }
 
@@ -64,7 +64,7 @@ AddTorrentDialog::AddTorrentDialog(Controller * controller, QLoggingCategory & c
 
         // Was magnet link malformed
         if(ec) {
-            qCWarning(_category) << "Invalid magnet link: " << ec.message().c_str();
+            qDebug() << "Invalid magnet link: " << ec.message().c_str();
             return;
         }
     }

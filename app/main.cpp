@@ -179,13 +179,9 @@ void main(int argc, char* argv[]) {
         quint64 minFunds = Payor::minimalFunds(torrentInfo.num_pieces(),maxPrice, seller_count, maxFeePerkB);
 
         // Get funding output - this has to be grabbed from wallet/chain later
-        //UnspentP2PKHOutput utxo = buyerClient.wallet().getUtxo(minFunds, 1);
+        UnspentP2PKHOutput utxo = buyerClient->wallet().getUtxo(minFunds, 1);
 
-        UnspentP2PKHOutput utxo(KeyPair(PublicKey("024f6f05e6f105fa0aaccfc36af9497d3929c4b33cbc8575445154e762f82eb08c"),
-                                        PrivateKey("cNxShXWpyWug45tEieHgFCnfMCCMcmh6cKSQjh5peUDPJ5nZ49Hy")),
-                                OutPoint(TxId("99bd7714e8e4881c2766bea0ce6ca44ab9463417dd5040ae3664f41d7353df4c"),8),
-                                minFunds);
-
+        // Create configuration
         BuyerTorrentPlugin::Configuration configuration(false,
                                                         maxPrice,
                                                         maxLockTime,

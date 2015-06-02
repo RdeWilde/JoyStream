@@ -37,7 +37,7 @@ class MainWindow : public QMainWindow
 public:
 
     // Constructor
-    MainWindow(Controller * controller, Wallet * wallet, QLoggingCategory & category);
+    MainWindow(Controller * controller, Wallet * wallet);
 
     // Destructor
     ~MainWindow();
@@ -114,9 +114,6 @@ private:
     // Wallet
     Wallet * _wallet;
 
-    // Logging category
-    QLoggingCategory & _category;
-
     // Torrent table view model
     QStandardItemModel _torrentTableViewModel;
 
@@ -142,6 +139,9 @@ private:
 protected:
 
     void closeEvent(QCloseEvent *event);
+
+    // Handler for dropping torrent file on client
+    void dropEvent(QDropEvent *e);
 };
 
 #endif // MAIN_WINDOW_HPP
