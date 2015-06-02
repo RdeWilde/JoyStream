@@ -117,7 +117,7 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_rejected() {
 
 quint64 BuyerTorrentPluginConfigurationDialog::maxPriceFromTotalSpend(quint64 maxTotalSpend, int numberOfSellers, quint64 feePerkB) {
 
-    quint64 totalFee = Payor::contractFee(numberOfSellers, feePerkB);
+    quint64 totalFee = Payor::computeContractFee(numberOfSellers, feePerkB);
 
     return qFloor(((double)maxTotalSpend - totalFee)/_torrentInfo.num_pieces());
 }

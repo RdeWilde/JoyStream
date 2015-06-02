@@ -167,6 +167,9 @@ void BuyerTorrentPluginViewModel::setStatics(const BuyerTorrentPlugin::Status & 
     const Payor::Status & payorStatus = status.payor();
     QVector<Payor::Channel::Status> channels = payorStatus.channels();
 
+    // Total amount of funds in outputs, is used to deduce tx fee
+    quint64 netOutputValue = payorStatus.changeValue();
+
     for(QVector<Payor::Channel::Status>::const_iterator
         i = channels.constBegin(),
         end = channels.constEnd();
@@ -177,7 +180,16 @@ void BuyerTorrentPluginViewModel::setStatics(const BuyerTorrentPlugin::Status & 
 
         // Count towards balance
         _balance += channelStatus.price() * channelStatus.numberOfPaymentsMade();
+
+        // Count output funds
+        netOutputValue += channelStatus.funds();
     }
+
+    // Count spent fees towards total spending in plugin
+    quint64 contractFee = payorStatus.utxo().value() - netOutputValue;
+    Q_ASSERT(contractFee >= 0);
+
+    _balance += contractFee;
 }
 
 BuyerTorrentPlugin::State BuyerTorrentPluginViewModel::state() const {

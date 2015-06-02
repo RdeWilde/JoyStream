@@ -340,8 +340,8 @@ Payor::Channel::Status Payor::Channel::status() const {
                                   _state,
                                   _price,
                                   _numberOfPaymentsMade,
-                                  _refundLockTime,
-                                  _funds);
+                                  _funds,
+                                  _refundLockTime);
 }
 
 quint32 Payor::Channel::index() const {
@@ -467,11 +467,15 @@ Payor::Status::Status() {
 Payor::Status::Status(const QVector<Channel::Status> & channels,
                       State state,
                       const UnspentP2PKHOutput & utxo,
+                      quint64 changeValue,
+                      quint64 contractFee,
                       const TxId & contractTxId,
                       quint32 numberOfSignatures)
     : _channels(channels)
     , _state(state)
     , _utxo(utxo)
+    , _changeValue(changeValue)
+    , _contractFee(contractFee)
     , _contractTxId(contractTxId)
     , _numberOfSignatures(numberOfSignatures) {
 }
@@ -498,6 +502,22 @@ UnspentP2PKHOutput Payor::Status::utxo() const {
 
 void Payor::Status::setUtxo(const UnspentP2PKHOutput & utxo) {
     _utxo = utxo;
+}
+
+quint64 Payor::Status::changeValue() const {
+    return _changeValue;
+}
+
+void Payor::Status::setChangeValue(quint64 changeValue) {
+    _changeValue = changeValue;
+}
+
+quint64 Payor::Status::contractFee() const {
+    return _contractFee;
+}
+
+void Payor::Status::setContractFee(quint64 contractFee) {
+    _contractFee = contractFee;
 }
 
 TxId Payor::Status::contractTxId() const {
@@ -532,6 +552,7 @@ Payor::Configuration::Configuration(State state,
                                     //const KeyPair & fundingOutputKeyPair,
                                     const KeyPair & changeOutputKeyPair,
                                     quint64 changeValue,
+                                    quint64 contractFee,
                                     const TxId & contractHash,
                                     quint32 numberOfSignatures)
     : _state(state)
@@ -542,6 +563,7 @@ Payor::Configuration::Configuration(State state,
     , _utxo(utxo)
     , _changeOutputKeyPair(changeOutputKeyPair)
     , _changeValue(changeValue)
+    , _contractFee(contractFee)
     , _contractHash(contractHash)
     , _numberOfSignatures(numberOfSignatures) {
 }
@@ -612,6 +634,14 @@ void Payor::Configuration::setChangeValue(quint64 changeValue) {
     _changeValue = changeValue;
 }
 
+quint64 Payor::Configuration::contractFee() const {
+    return _contractFee;
+}
+
+void Payor::Configuration::setContractFee(quint64 contractFee) {
+    _contractFee = contractFee;
+}
+
 TxId Payor::Configuration::contractHash() const {
     return _contractHash;
 }
@@ -648,17 +678,31 @@ Payor::Payor(const Payor::Configuration & configuration)
     //, _fundingOutputKeyPair(configuration.fundingOutputKeyPair())
     , _changeOutputKeyPair(configuration.changeOutputKeyPair())
     , _changeValue(configuration.changeValue())
+    , _contractFee(configuration.contractFee())
     , _contractTxId(configuration.contractHash())
     , _numberOfSignatures(configuration.numberOfSignatures()) {
-
 
     // Populate _channels vector
     const QVector<Channel::Configuration> & channelConfigurations = configuration.channels();
 
-    for(QVector<Channel::Configuration>::const_iterator i = channelConfigurations.constBegin(),
-        end(channelConfigurations.constEnd()); i != end;i++)
-        _channels.append(Channel(*i));
+    // Counter for net output value, used to check integrity of fee
+    quint64 netOutputValue = _changeValue;
 
+    for(QVector<Channel::Configuration>::const_iterator i = channelConfigurations.constBegin(),
+        end(channelConfigurations.constEnd()); i != end;i++) {
+
+        // Get configuration
+        const Channel::Configuration channelConfiguration(*i);
+
+        // Count funds
+        netOutputValue += channelConfiguration.funds();
+
+        // Create channel
+        _channels.append(Channel(channelConfiguration));
+    }
+
+    if(_contractFee != _utxo.value() - netOutputValue)
+        throw std::exception("input, outputs, change and fee does not match.");
 }
 
 quint32 Payor::assignUnassignedSlot(quint64 price, const PublicKey & payeeContractPk, const PublicKey & payeeFinalPk, quint32 refundLockTime) {
@@ -901,7 +945,7 @@ Payor::Status Payor::status() const {
         channels.push_back(i->status());
 
     // Create rest of payor status
-    return Status(channels, _state, _utxo, _contractTxId, _numberOfSignatures);
+    return Status(channels, _state, _utxo, _changeValue, _contractFee, _contractTxId, _numberOfSignatures);
 }
 
 quint32 Payor::numberOfChannels() const {
@@ -953,7 +997,7 @@ Contract Payor::contract() const {
 
 #include <QtMath>
 
-quint64 Payor::contractFee(int numberOfSellers, quint64 feePerKb) {
+quint64 Payor::computeContractFee(int numberOfSellers, quint64 feePerKb) {
 
     // Fee for contract based on fee estimate at http://bitcoinfees.com/
     // WE ADD ONE OUTPUT FOR THE CHANGE
@@ -964,7 +1008,7 @@ quint64 Payor::contractFee(int numberOfSellers, quint64 feePerKb) {
 }
 
 quint64 Payor::minimalFunds(quint32 numberOfPiecesInTorrent, quint64 maxPrice, int numberOfSellers, quint64 feePerkB) {
-    return maxPrice*numberOfSellers*numberOfPiecesInTorrent + contractFee(numberOfSellers, feePerkB);
+    return maxPrice*numberOfSellers*numberOfPiecesInTorrent + computeContractFee(numberOfSellers, feePerkB);
 }
 
 Payor::State Payor::state() const {
@@ -1008,4 +1052,8 @@ quint32 Payor::numberOfSignatures() const {
 
 void Payor::setNumberOfSignatures(quint32 numberOfSignatures) {
     _numberOfSignatures = numberOfSignatures;
+}
+
+quint64 Payor::contractFee() const {
+    return _contractFee;
 }

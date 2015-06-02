@@ -245,13 +245,13 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
     Q_ASSERT(utxo.value() != 0);
 
     // Contract transaction fee is computed AS IF channel is full, change this later!!!
-    quint64 txFee = Payor::contractFee(configuration.numberOfSellers(), _maxFeePerKb);
+    quint64 contractFee = Payor::computeContractFee(configuration.numberOfSellers(), _maxFeePerKb);
 
     // Allocate enough funds to buy full file from each seller at WORST price
     quint64 fundingPerSeller = torrentInfo.num_pieces()*_maxPrice;
 
     // Compute change
-    quint64 changeValue = utxo.value() - txFee - configuration.numberOfSellers()*fundingPerSeller;
+    quint64 changeValue = utxo.value() - contractFee - configuration.numberOfSellers()*fundingPerSeller;
 
     // Generate keys in wallet
     QList<Wallet::Entry> buyerInContractKeys = _wallet->generateNewKeys(configuration.numberOfSellers(), Wallet::Purpose::BuyerInContractOutput).values();
@@ -285,6 +285,7 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
                                             utxo,
                                             changeKey[0].keyPair(),
                                             changeValue,
+                                            contractFee,
                                             TxId(),
                                             0);
     // Set payor
@@ -654,7 +655,7 @@ bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, c
         //_payor.broadcast_contract();
 
         // Register tx fee we are spending
-        _plugin->registerSentFunds(_payor.contractFee(_numberOfSellers, _maxFeePerKb));
+        _plugin->registerSentFunds(_payor.contractFee());
 
         qCDebug(_category) << "Broadcasting contract, txId:" << _payor.contractHash().toString();
 
@@ -822,7 +823,7 @@ quint64 BuyerTorrentPlugin::totalSentSinceStart() const {
     int numberOfChannels = _payor.numberOfChannels();
 
     // Add tx fee of contract itself
-    quint64 total = _payor.contractFee(numberOfChannels, _maxFeePerKb);
+    quint64 total = _payor.computeContractFee(numberOfChannels, _maxFeePerKb);
 
     for(int i = 0; i < numberOfChannels;i++) {
 

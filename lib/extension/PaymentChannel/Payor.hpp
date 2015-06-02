@@ -381,6 +381,8 @@ public:
         Status(const QVector<Channel::Status> & channels,
                State state,
                const UnspentP2PKHOutput & utxo,
+               quint64 changeValue,
+               quint64 contractFee,
                const TxId & contractTxId,
                quint32 numberOfSignatures);
 
@@ -393,6 +395,12 @@ public:
 
         UnspentP2PKHOutput utxo() const;
         void setUtxo(const UnspentP2PKHOutput & utxo);
+
+        quint64 changeValue() const;
+        void setChangeValue(quint64 changeValue);
+
+        quint64 contractFee() const;
+        void setContractFee(quint64 contractFee);
 
         TxId contractTxId() const;
         void setContractTxId(const TxId &contractTxId);
@@ -410,6 +418,14 @@ public:
 
         // Funding utxo
         UnspentP2PKHOutput _utxo;
+
+        // Change amount sent back to payor,
+        // this value, together with the _funds in all the slots
+        // determines how much is paid in contract fee implicitly.
+        quint64 _changeValue;
+
+        // Contract fee
+        quint64 _contractFee;
 
         // Transaction id of contract
         TxId _contractTxId;
@@ -435,6 +451,7 @@ public:
                       const UnspentP2PKHOutput & utxo,
                       const KeyPair & changeOutputKeyPair,
                       quint64 changeValue,
+                      quint64 contractFee,
                       const TxId & contractHash,
                       quint32 numberOfSignatures);
 
@@ -465,11 +482,15 @@ public:
         quint64 changeValue() const;
         void setChangeValue(quint64 changeValue);
 
+        quint64 contractFee() const;
+        void setContractFee(quint64 contractFee);
+
         TxId contractHash() const;
         void setContractHash(const TxId & contractHash);
 
         quint32 numberOfSignatures() const;
         void setNumberOfSignatures(quint32 numberOfSignatures);
+
 
     private:
 
@@ -499,9 +520,13 @@ public:
         // determines how much is paid in contract fee implicitly.
         quint64 _changeValue;
 
+        // Contract fee
+        quint64 _contractFee;
+
         // Contract _contract;
         TxId _contractHash;
 
+        // Number of valid refund signatures
         quint32 _numberOfSignatures;
 
     };
@@ -566,7 +591,7 @@ public:
     bool allRefundsSigned() const;
 
     // Some utility routines
-    static quint64 contractFee(int numberOfSellers, quint64 feePerKb);
+    static quint64 computeContractFee(int numberOfSellers, quint64 feePerKb);
     static quint64 minimalFunds(quint32 numberOfPiecesInTorrent, quint64 maxPrice, int numberOfSellers, quint64 feePerkB);
 
     // Getters and setters
@@ -584,6 +609,8 @@ public:
 
     quint32 numberOfSignatures() const;
     void setNumberOfSignatures(quint32 numberOfSignatures);
+
+    quint64 contractFee() const;
 
 private:
 
@@ -613,8 +640,8 @@ private:
     // determines how much is paid in contract fee implicitly.
     quint64 _changeValue;
 
-    //
-    quint64 _fee;
+    // Contract fee
+    quint64 _contractFee;
 
     /**
      * Contract:
