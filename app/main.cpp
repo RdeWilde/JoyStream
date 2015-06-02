@@ -11,7 +11,7 @@
 #include <lib/extension/SellerTorrentPlugin.hpp> // for configurations
 #include <lib/logger/LoggerManager.hpp>
 #include <lib/extension/PluginMode.hpp>
-#include <lib/extension/BitCoin/BitCoin.hpp> // defines
+#include <lib/extension/BitCoin/BitCoin.hpp> // defines STANDARD_NUM_SATOSHIES_PER_KB_IN_TX_FEE
 
 #include <libtorrent/torrent_info.hpp>
 #include <libtorrent/error_code.hpp>
@@ -166,11 +166,14 @@ void main(int argc, char* argv[]) {
                                                       //+libtorrent::add_torrent_params::flag_auto_managed
                                                       ,&torrentInfo);
 
-        // Max fee per kB (satoshi)
-        int maxFeePerkB = static_cast<int>(STANDARD_NUM_SATOSHIES_PER_KB_IN_TX_FEE);
+        // Maximum piece price (satoshi)
+        quint64 maxPrice = 38;
 
-        // Corresponding maximum piece price (satoshi)
-        quint64 maxPrice = 15;
+        // Maximum lock time on refund
+        int maxLockTime = 5*3600;
+
+        // Max fee per kB (satoshi)
+        int maxFeePerkB = 1*static_cast<int>(STANDARD_NUM_SATOSHIES_PER_KB_IN_TX_FEE);
 
         // Amount needed to fund contract (satoshies)
         quint64 minFunds = Payor::minimalFunds(torrentInfo.num_pieces(),maxPrice, seller_count, maxFeePerkB);
@@ -185,7 +188,7 @@ void main(int argc, char* argv[]) {
 
         BuyerTorrentPlugin::Configuration configuration(false,
                                                         maxPrice,
-                                                        2*60*60, // 2h max lock time
+                                                        maxLockTime,
                                                         maxFeePerkB,
                                                         seller_count);
 
@@ -198,9 +201,9 @@ void main(int argc, char* argv[]) {
             // Add to client
             buyerClient->addTorrent(buyerTorrentConfiguration, configuration, utxo);
         }
+
         // Track controller
         controllerTracker.addClient(buyerClient);
-
     }
 
     /**
@@ -241,13 +244,25 @@ void main(int argc, char* argv[]) {
                                                       ,libtorrent::add_torrent_params::flag_update_subscribe
                                                       ,&torrentInfo);
 
+        // Min fee per kB (satoshi)
+        int minFeePerkB = static_cast<int>(STANDARD_NUM_SATOSHIES_PER_KB_IN_TX_FEE);
+
+        // Maximum piece price (satoshi)
+        quint64 minPrice = 10;
+
+        // Minimum lock time on refund
+        int minLockTime = 2*3600;
+
+        // Maximum contract confirmation delay
+        quint32 maxContractConfirmationDelay = 17*60;
+
         // Create seller torrent plugin configuration
         SellerTorrentPlugin::Configuration SellerTorrentPluginConfiguration(false,
-                                                                            10, // 10 satoshies per piece!
-                                                                            60*60,// 1h min lock time
-                                                                            0* 100000, // minfeeperbyte, <== invalid, is per byte, not kb! not used at the moment anyway
+                                                                            minPrice,
+                                                                            minLockTime,
+                                                                            minFeePerkB,
                                                                             seller_count,
-                                                                            30); // maximum confirmation delay
+                                                                            maxContractConfirmationDelay);
 
         // Add to client
         sellerClient->addTorrent(sellerTorrentConfiguration, SellerTorrentPluginConfiguration);

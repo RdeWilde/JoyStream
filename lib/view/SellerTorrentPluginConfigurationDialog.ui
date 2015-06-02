@@ -78,12 +78,12 @@
     <rect>
      <x>22</x>
      <y>148</y>
-     <width>85</width>
+     <width>109</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>Lock time (h:m):</string>
+    <string>Min. Lock time (h:m):</string>
    </property>
   </widget>
   <widget class="QLineEdit" name="minFeeLineEdit">
@@ -96,7 +96,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>1</string>
+    <string>0.1</string>
    </property>
   </widget>
   <widget class="QLabel" name="minFeeLabel">
@@ -109,7 +109,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Min. feet/kB (mɃ):</string>
+    <string>Min. fee/kB (mɃ):</string>
    </property>
   </widget>
   <widget class="QTimeEdit" name="minLockTimeEdit">
@@ -120,6 +120,13 @@
      <width>57</width>
      <height>22</height>
     </rect>
+   </property>
+   <property name="time">
+    <time>
+     <hour>3</hour>
+     <minute>0</minute>
+     <second>0</second>
+    </time>
    </property>
   </widget>
   <widget class="Line" name="line">
@@ -161,7 +168,7 @@
     <string>1</string>
    </property>
   </widget>
-  <widget class="QLabel" name="maxWaitTimeLabel">
+  <widget class="QLabel" name="maxConfirmationTimeLabel">
    <property name="geometry">
     <rect>
      <x>22</x>
@@ -179,14 +186,14 @@
     <rect>
      <x>166</x>
      <y>176</y>
-     <width>55</width>
+     <width>57</width>
      <height>22</height>
     </rect>
    </property>
    <property name="time">
     <time>
-     <hour>1</hour>
-     <minute>0</minute>
+     <hour>0</hour>
+     <minute>15</minute>
      <second>0</second>
     </time>
    </property>

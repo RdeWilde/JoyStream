@@ -7,6 +7,8 @@
 
 #include "extension/BitCoin/BitCoin.hpp"
 
+#include <QMessageBox>
+
 SellerTorrentPluginConfigurationDialog::SellerTorrentPluginConfigurationDialog(Controller * controller, Wallet * wallet, const libtorrent::torrent_info & torrentInfo)
     :ui(new Ui::SellerTorrentPluginConfigurationDialog)
     , _controller(controller)
@@ -22,12 +24,19 @@ SellerTorrentPluginConfigurationDialog::~SellerTorrentPluginConfigurationDialog(
 
 void SellerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
+    // Message box used to alert user if invalid value is provided
+    QMessageBox msgBox;
+
     // minPrice
     bool okMinPrice;
-    quint32 minPrice = SATOSHIES_PER_M_BTC * ui->minPriceLineEdit->text().toInt();
+    quint32 minPrice = static_cast<int>(SATOSHIES_PER_M_BTC * ui->minPriceLineEdit->text().toDouble(&okMinPrice));
 
-    if(!okMinPrice || minPrice < 0)
+    if(!okMinPrice || minPrice < 0) {
+
+        msgBox.setText("Invalid price value: " + ui->minPriceLineEdit->text());
+        msgBox.exec();
         return;
+    }
 
     // minLockTime
     QTime minLockTime = ui->minLockTimeEdit->time();
@@ -35,17 +44,25 @@ void SellerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
     // minFeePerKByte
     bool okMinFeePerKByte;
-    quint32 minFeePerKByte = ui->minFeeLineEdit->text().toInt(&okMinFeePerKByte);
+    quint32 minFeePerKByte = static_cast<int>(SATOSHIES_PER_M_BTC * ui->minFeeLineEdit->text().toDouble(&okMinFeePerKByte));
 
-    if(!okMinFeePerKByte || minFeePerKByte < 0)
+    if(!okMinFeePerKByte || minFeePerKByte < 0) {
+
+        msgBox.setText("Invalid fee per kB: " + ui->minFeeLineEdit->text());
+        msgBox.exec();
         return;
+    }
 
     // maxNumberOfSellers
     bool okMaxNumberOfSellers;
     quint32 maxNumberOfSellers = ui->maxNumberOfSellersLineEdit->text().toInt(&okMaxNumberOfSellers);
 
-    if(!okMaxNumberOfSellers || maxNumberOfSellers < 1)
+    if(!okMaxNumberOfSellers || maxNumberOfSellers < 1) {
+
+        msgBox.setText("Invalid max #sellers: " + ui->maxNumberOfSellersLineEdit->text());
+        msgBox.exec();
         return;
+    }
 
     // maxContractConfirmationDelay
     QTime maxContractConfirmationDelayTime = ui->maxConfirmationTimeTimeEdit->time();

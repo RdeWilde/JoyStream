@@ -110,7 +110,7 @@
    </property>
    <property name="time">
     <time>
-     <hour>1</hour>
+     <hour>9</hour>
      <minute>0</minute>
      <second>0</second>
     </time>
@@ -129,7 +129,7 @@
     <string>Maximum total spend (mɃ):</string>
    </property>
   </widget>
-  <widget class="QLabel" name="waitTimeLabel">
+  <widget class="QLabel" name="waitConfirmationTimeLabel">
    <property name="geometry">
     <rect>
      <x>28</x>
@@ -142,7 +142,7 @@
     <string>Maximum wait time (h:m):</string>
    </property>
   </widget>
-  <widget class="QTimeEdit" name="waitTimeTimeEdit">
+  <widget class="QTimeEdit" name="maxConfirmationTimeTimeEdit">
    <property name="geometry">
     <rect>
      <x>172</x>

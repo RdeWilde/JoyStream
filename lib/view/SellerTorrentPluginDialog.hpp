@@ -30,7 +30,7 @@ public:
     // Text conversion routines
     static QString minPriceToString(quint64 minPrice);
     static QString minLockTimeToString(quint32 minLockTime);
-    static QString minFeePerByteToString(quint64 minFeePerByte);
+    static QString minFeePerkBToString(quint64 minFeePerByte);
 
     // Converts view information into configuration
     //SellerTorrentPlugin::Configuration configuration() const;
@@ -49,7 +49,7 @@ public slots:
     // Can also be used to just set values upon start.
     void updateMinPrice(quint64 minPrice);
     void updateMinLockTime(quint32 minLockTime);
-    void updateMinFeePerByte(quint64 minFeePerByte);
+    void updateMinFeePerkB(quint64 minFeePerByte);
     void updateMaxNumberOfSellers(quint32 maxNumberOfSellers);
     void updateMaxContractConfirmationDelay(quint32 delay);
 

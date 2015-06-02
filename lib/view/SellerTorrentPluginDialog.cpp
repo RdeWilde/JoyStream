@@ -17,9 +17,13 @@ SellerTorrentPluginDialog::SellerTorrentPluginDialog(QWidget * parent,
     // Main fields
     updateMinPrice(model->minPrice());
     updateMinLockTime(model->minLock());
-    updateMinFeePerByte(model->minFeePerByte());
+    updateMinFeePerkB(model->minFeePerByte());
     updateMaxNumberOfSellers(model->maxNumberOfSellers());
     updateMaxContractConfirmationDelay(model->maxContractConfirmationDelay());
+
+    // Hide confirmation time, since we dont use it yet
+    //ui->maxConfirmationTimeTimeEdit->setVisible(false);
+    //ui->maxConfirmationTimeLabel->setVisible(false);
 
     /**
      * Connect model signals to view slots
@@ -48,7 +52,7 @@ SellerTorrentPluginDialog::SellerTorrentPluginDialog(QWidget * parent,
     QObject::connect(model,
                      SIGNAL(minFeePerByteChanged(quint64)),
                      this,
-                     SLOT(updateMinFeePerByte(quint64)));
+                     SLOT(updateMinFeePerkB(quint64)));
 
     QObject::connect(model,
                      SIGNAL(maxNumberOfSellersChanged(quint32)),
@@ -96,15 +100,15 @@ SellerTorrentPluginDialog::~SellerTorrentPluginDialog() {
 }
 
 QString SellerTorrentPluginDialog::minPriceToString(quint64 minPrice) {
-    return QString::number(minPrice) + "Ƀ";
+    return QString::number(minPrice);
 }
 
 QString SellerTorrentPluginDialog::minLockTimeToString(quint32 minLockTime) {
-    return QString::number(minLockTime) + "s";
+    return QString::number(minLockTime);
 }
 
-QString SellerTorrentPluginDialog::minFeePerByteToString(quint64 minFeePerByte) {
-    return QString::number(minFeePerByte) + "Ƀ";
+QString SellerTorrentPluginDialog::minFeePerkBToString(quint64 minFeePerByte) {
+    return QString::number((float)minFeePerByte/SATOSHIES_PER_M_BTC);
 }
 
 void SellerTorrentPluginDialog::addPeer(const SellerPeerPluginViewModel * model) {
@@ -170,8 +174,8 @@ void SellerTorrentPluginDialog::updateMinLockTime(quint32 minLockTime) {
     ui->minLockTimeEdit->setTime(Utilities::secondsToQTime(minLockTime));
 }
 
-void SellerTorrentPluginDialog::updateMinFeePerByte(quint64 minFeePerByte) {
-    ui->minFeeLineEdit->setText(minFeePerByteToString(minFeePerByte));
+void SellerTorrentPluginDialog::updateMinFeePerkB(quint64 minFeePerByte) {
+    ui->minFeeLineEdit->setText(minFeePerkBToString(minFeePerByte));
 }
 
 void SellerTorrentPluginDialog::updateMaxNumberOfSellers(quint32 maxNumberOfSellers) {

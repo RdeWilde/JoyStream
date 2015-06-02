@@ -1521,7 +1521,10 @@ void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p)
 
         // old name arg: p->params.ti.get() != 0 ? p->params.ti->name() : name = p->params.name
         _view.addTorrentFailed(p->params.name, p->params.info_hash, p->error);
+
     } else {
+
+        qCDebug(_category) << "Adding torrent succeeded.";
 
         /*
 		h.set_max_connections(max_connections_per_torrent);

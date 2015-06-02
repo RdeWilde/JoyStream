@@ -35,26 +35,39 @@ BuyerTorrentPluginConfigurationDialog::~BuyerTorrentPluginConfigurationDialog() 
 
 void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
+    // Message box used to alert user if invalid value is provided
+    QMessageBox msgBox;
+
     // Number of sellers
     bool okNumberOfSellers;
     int numberOfSellers = ui->numPeersLineEdit->text().toInt(&okNumberOfSellers);
 
-    if(!okNumberOfSellers || numberOfSellers < 0)
+    if(!okNumberOfSellers || numberOfSellers < 0) {
+
+        msgBox.setText("Invalid #sellers: " + ui->numPeersLineEdit->text());
+        msgBox.exec();
         return;
+    }
 
     // Max fee per kB (satoshi)
     bool okFeePerkB;
     int feePerkB = static_cast<int>(SATOSHIES_PER_M_BTC * ui->feePrKbLineEdit->text().toDouble(&okFeePerkB));
 
-    if(!okFeePerkB || feePerkB < 0)
+    if(!okFeePerkB || feePerkB < 0) {
+
+        msgBox.setText("Invalid fee per kb: " + ui->feePrKbLineEdit->text());
+        msgBox.exec();
         return;
+    }
 
     // The total amount the buyer at most wants to spend (satoshi)
     bool okMaxTotalSpend;
     int maxTotalSpend = static_cast<int>(SATOSHIES_PER_M_BTC * ui->maxTotalSpendLineEdit->text().toDouble(&okMaxTotalSpend));
 
-    if(!okMaxTotalSpend || maxTotalSpend < 0)
+    if(!okMaxTotalSpend || maxTotalSpend < 0) {
+
         return;
+    }
 
     // Corresponding maximum piece price (satoshi)
     quint64 maxPrice = maxPriceFromTotalSpend(maxTotalSpend, numberOfSellers, feePerkB);
@@ -109,26 +122,41 @@ quint64 BuyerTorrentPluginConfigurationDialog::maxPriceFromTotalSpend(quint64 ma
 
 void BuyerTorrentPluginConfigurationDialog::updateTotal() {
 
+    // Message box used to alert user if invalid value is provided
+    QMessageBox msgBox;
+
     // Number of sellers
     bool okNumberOfSellers;
     int numberOfSellers = ui->numPeersLineEdit->text().toInt(&okNumberOfSellers);
 
-    if(!okNumberOfSellers || numberOfSellers < 0)
+    if(!okNumberOfSellers || numberOfSellers < 0) {
+
+        msgBox.setText("Invalid #sellers: " + ui->numPeersLineEdit->text());
+        msgBox.exec();
         return;
+    }
 
     // Max fee per kB (satoshi)
     bool okFeePerkB;
     int feePerkB = static_cast<int>(SATOSHIES_PER_M_BTC * ui->feePrKbLineEdit->text().toDouble(&okFeePerkB));
 
-    if(!okFeePerkB || feePerkB < 0)
+    if(!okFeePerkB || feePerkB < 0) {
+
+        msgBox.setText("Invalid fee per kb: " + ui->feePrKbLineEdit->text());
+        msgBox.exec();
         return;
+    }
 
     // The total amount the buyer at most wants to spend (satoshi)
     bool okMaxTotalSpend;
     int maxTotalSpend = static_cast<int>(SATOSHIES_PER_M_BTC * ui->maxTotalSpendLineEdit->text().toDouble(&okMaxTotalSpend));
 
-    if(!okMaxTotalSpend || maxTotalSpend < 0)
+    if(!okMaxTotalSpend || maxTotalSpend < 0) {
+
+        msgBox.setText("Invalid fee per kb: " + ui->feePrKbLineEdit->text());
+        msgBox.exec();
         return;
+    }
 
     // Corresponding maximum piece price (satoshi)
     quint64 maxPrice = maxPriceFromTotalSpend(maxTotalSpend, numberOfSellers, feePerkB);
@@ -137,7 +165,7 @@ void BuyerTorrentPluginConfigurationDialog::updateTotal() {
     quint64 minFunds = Payor::minimalFunds(_torrentInfo.num_pieces(), maxPrice, numberOfSellers, feePerkB);
 
     // Update total price label
-    ui->totalValueLabel->setText(QString::number(minFunds/SATOSHIES_PER_M_BTC) + "mɃ");
+    ui->totalValueLabel->setText(QString::number((float)minFunds/SATOSHIES_PER_M_BTC) + "mɃ");
 }
 
 void BuyerTorrentPluginConfigurationDialog::on_maxTotalSpendLineEdit_textChanged(const QString &arg1) {
