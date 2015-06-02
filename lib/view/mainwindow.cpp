@@ -80,16 +80,19 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet)
     earnedBalancePalette.setColor(ui->earnedBalanceLabel->foregroundRole(), Qt::green);
     //palette.setColor(ui->pLabel->foregroundRole(), Qt::yellow);
     ui->earnedBalanceLabel->setPalette(earnedBalancePalette);
+    ui->earnedTitleQlabel->setPalette(earnedBalancePalette);
 
     QPalette spentBalancePalette = ui->spentBalanceLabel->palette();
     spentBalancePalette.setColor(ui->spentBalanceLabel->foregroundRole(), Qt::red);
     //palette.setColor(ui->pLabel->foregroundRole(), Qt::yellow);
     ui->spentBalanceLabel->setPalette(spentBalancePalette);
+    ui->spentTitleLabel->setPalette(spentBalancePalette);
 
     QPalette balanceLabelPalette = ui->balanceLabel->palette();
     balanceLabelPalette.setColor(ui->balanceLabel->foregroundRole(), Qt::blue);
     //palette.setColor(ui->pLabel->foregroundRole(), Qt::yellow);
     ui->balanceLabel->setPalette(balanceLabelPalette);
+    ui->balanceTitleLabel->setPalette(balanceLabelPalette);
 
     /**
      *
