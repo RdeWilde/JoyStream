@@ -201,7 +201,7 @@
   <widget class="QLabel" name="totalLabel">
    <property name="geometry">
     <rect>
-     <x>38</x>
+     <x>28</x>
      <y>146</y>
      <width>111</width>
      <height>16</height>
@@ -219,9 +219,9 @@
   <widget class="QLabel" name="totalValueLabel">
    <property name="geometry">
     <rect>
-     <x>172</x>
+     <x>144</x>
      <y>146</y>
-     <width>55</width>
+     <width>83</width>
      <height>16</height>
     </rect>
    </property>

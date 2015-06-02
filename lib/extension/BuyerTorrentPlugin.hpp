@@ -233,7 +233,7 @@ public:
     //virtual boost::sharedPluginPtr<libtorrent::peer_plugin> peerPlugin(const libtorrent::tcp::endpoint & endPoint) const;
 
     // Checks if seller can be invited on given terms
-    bool inviteSeller(quint32 minPrice, quint32 minLock) const;
+    //bool inviteSeller(quint32 minPrice, quint32 minLock) const;
 
     // Attempts to add seller to contract
     bool sellerWantsToJoinContract(BuyerPeerPlugin * peer, quint64 price, quint32 refundLockTime, const PublicKey & contractPk, const PublicKey & finalPk);

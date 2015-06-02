@@ -29,11 +29,14 @@ void SellerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
     // minPrice
     bool okMinPrice;
-    quint32 minPrice = static_cast<int>(SATOSHIES_PER_M_BTC * ui->minPriceLineEdit->text().toDouble(&okMinPrice));
+    quint32 minSatoshiesPrGB = static_cast<int>(SATOSHIES_PER_M_BTC * ui->minPriceLineEdit->text().toDouble(&okMinPrice));
+    float piecesPrGB = ((float)1000*1000*1000) /_torrentInfo.piece_length();
+
+    quint32 minPrice = static_cast<int>(minSatoshiesPrGB/piecesPrGB);
 
     if(!okMinPrice || minPrice < 0) {
 
-        msgBox.setText("Invalid price value: " + ui->minPriceLineEdit->text());
+        msgBox.setText("Invalid per GB price value: " + ui->minPriceLineEdit->text());
         msgBox.exec();
         return;
     }
@@ -69,7 +72,7 @@ void SellerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
     quint32 maxContractConfirmationDelay = maxContractConfirmationDelayTime.hour()*3600 + maxContractConfirmationDelayTime.minute()*60 + maxContractConfirmationDelayTime.second();;
 
     // Tell controller to start plugin
-    _controller->startSellerTorrentPlugin(_torrentInfo.info_hash(), SellerTorrentPlugin::Configuration(true,
+    _controller->startSellerTorrentPlugin(_torrentInfo.info_hash(), SellerTorrentPlugin::Configuration(false,
                                                                                                         minPrice,
                                                                                                         minLock,
                                                                                                         minFeePerKByte,

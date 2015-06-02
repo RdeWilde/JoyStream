@@ -695,10 +695,16 @@ void BuyerPeerPlugin::processSell(const Sell * m) {
     // Note that peer is seller
     _peerModeAnnounced = PeerModeAnnounced::seller;
 
-    // If peer has not been invited, and plugin says ok,
-    // then we send invite
-    if(_clientState == ClientState::buyer_mode_announced &&
-            _plugin->inviteSeller(m->minPrice(), m->minLock())) {
+    // Check conditions for invitation
+    if(_clientState != ClientState::buyer_mode_announced)
+        qCDebug(_category) << "Did not invite seller, client is not in ClientState::buyer_mode_announced state.";
+    else if(_plugin->state() != BuyerTorrentPlugin::State::waiting_for_payor_to_be_ready)
+        qCDebug(_category) << "Did not invite seller, torrent plugin is not in BuyerTorrentPlugin::State::waiting_for_payor_to_be_ready state.";
+    else if(m->minPrice() > _plugin->maxPrice())
+        qCDebug(_category) << "Did not invite seller, had min. price" << m->minPrice() << ", which exceed our max price" << _plugin->maxPrice();
+    else if(m->minLock() > _plugin->maxLock())
+        qCDebug(_category) << "Did not invite seller, had min. lock time" << m->minLock() << "s, which exceed our max lock time" << _plugin->maxLock() << "s";
+    else {
 
         // invite to join contract
         sendExtendedMessage(JoinContract());
@@ -707,8 +713,7 @@ void BuyerPeerPlugin::processSell(const Sell * m) {
         _clientState = ClientState::invited_to_contract;
 
         qCDebug(_category) << "Invited seller";
-    } else
-        qCDebug(_category) << "Did not invite seller";
+    }
 }
 
 void BuyerPeerPlugin::processJoinContract(const JoinContract * m) {

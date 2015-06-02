@@ -532,6 +532,7 @@ void BuyerTorrentPlugin::on_add_peer(const libtorrent::tcp::endpoint & endPoint,
 
 }
 
+/**
 bool BuyerTorrentPlugin::inviteSeller(quint32 minPrice, quint32 minLock) const {
 
     // Check that we are
@@ -542,6 +543,7 @@ bool BuyerTorrentPlugin::inviteSeller(quint32 minPrice, quint32 minLock) const {
             minPrice <= _maxPrice &&
             minLock <= _maxLock;
 }
+*/
 
 bool BuyerTorrentPlugin::sellerWantsToJoinContract(BuyerPeerPlugin * peer, quint64 price, quint32 refundLockTime, const PublicKey & contractPk, const PublicKey & finalPk) {
 

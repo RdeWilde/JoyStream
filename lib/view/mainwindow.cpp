@@ -90,7 +90,7 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet)
                 << "Speed"
                 << "#Buyers"
                 << "#Sellers"
-                << "Extension"
+                << "Mode"
                 << "Balance";
 
     _torrentTableViewModel.setHorizontalHeaderLabels(columnNames);
