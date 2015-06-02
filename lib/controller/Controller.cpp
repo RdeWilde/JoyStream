@@ -2176,15 +2176,8 @@ libtorrent::torrent_handle Controller::getTorrentHandle(const libtorrent::sha1_h
 
 libtorrent::torrent_handle Controller::registerStream(Stream * stream) {
 
-    // Decode hex string
-    QByteArray hexDecodedInfoHash = QByteArray::fromHex(stream->requestedPath());
-
-    // Must be 20 bytes
-    if(hexDecodedInfoHash.length() != 20)
-        return libtorrent::torrent_handle();
-
-    // Create info hash
-    libtorrent::sha1_hash infoHash(hexDecodedInfoHash.constData());
+    // Get info hash of torrent requested in stream
+    libtorrent::sha1_hash infoHash = stream->infoHash();
 
     // If no torrent exist with given info hash, just return default handle
     if(!_torrents.contains(infoHash))
@@ -2206,7 +2199,7 @@ libtorrent::torrent_handle Controller::registerStream(Stream * stream) {
 
 void Controller::unRegisterStream(Stream * stream) {
 
-    libtorrent::sha1_hash infoHash = stream->handle().info_hash();
+    libtorrent::sha1_hash infoHash = stream->infoHash();
 
     if(_torrents.contains(infoHash))
         _torrents[infoHash]->removeStream(stream);

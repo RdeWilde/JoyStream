@@ -143,7 +143,7 @@ public:
     // Getters
     QByteArray requestedPath() const;
 
-    libtorrent::torrent_handle handle() const;
+    libtorrent::sha1_hash infoHash() const;
 
 public slots:
 
@@ -192,6 +192,14 @@ private:
 
     // Handle of torrent to which this stream corresponds
     libtorrent::torrent_handle _handle;
+
+    // Info hash for torrent which has been requested
+    // Is deduced from the requested path supplied by peer,
+    // which should never change. The reason _handle, which
+    // can generate an info hash, is not enough,
+    // is because the handle may have expired, or not yet been
+    // established.
+    libtorrent::sha1_hash _infoHash;
 
     /**
      * Client socket data for most recent request

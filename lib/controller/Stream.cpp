@@ -221,8 +221,9 @@ void Stream::socketWasClosed() {
      */
     _socketProcessingState = SocketProcessingState::SocketClosedByPeer;
 
-    // Notify controller
-    _controller->unRegisterStream(this);
+    // If we registered to begin with, then unregister with controller,
+    if(_socketProcessingState != SocketProcessingState::WaitingForFirstRequestLine)
+        _controller->unRegisterStream(this);
 
     // Delete *this stream later from event loop
     deleteLater();
@@ -264,13 +265,27 @@ void Stream::readAndProcessRequestLineFromSocket(const QByteArray & line) {
         // Save requested path
         _requestedPath = newRequestedPath;
 
+        // Decode hex string
+        QByteArray hexDecodedInfoHash = QByteArray::fromHex(_requestedPath);
+
+        // Must be 20 bytes
+        if(hexDecodedInfoHash.length() != 20) {
+
+            qDebug() << "Info hash is not 20 bytes:" << _requestedPath;
+            sendErrorToPeerAndEndStream(Error::InvalidInfoHash);
+            return;
+        }
+
+        // Create info hash
+        _infoHash = libtorrent::sha1_hash(hexDecodedInfoHash.constData());
+
         // Try to get torrent handle and subscribe to piece events if this request is valid
         _handle = _controller->registerStream(this);
 
         // End if it was not valid
         if(!_handle.is_valid()) {
 
-            qDebug() << "Not a valid info_hash:" << _requestedPath;
+            qDebug() << "Info hash does not match any added torrent:" << _requestedPath;
             sendErrorToPeerAndEndStream(Error::InvalidInfoHash);
             return;
         }
@@ -288,8 +303,25 @@ void Stream::readAndProcessRequestLineFromSocket(const QByteArray & line) {
 
         _defaultRangeLength = torrentInfo->piece_length() * 10;
         _fileIndex = 0;
-        _totalLengthOfFile = torrentInfo->file_at(_fileIndex).size;
-        _contentType = "audio/mpeg"; // video/mp4";
+
+        // Get file entry
+        libtorrent::file_entry fileEntry = torrentInfo->file_at(_fileIndex);
+
+        // Save size of file
+        _totalLengthOfFile = fileEntry.size;
+
+        // Detect content type
+        QString path = QString::fromStdString(fileEntry.path);
+
+        if(path.contains(QString("mp3"), Qt::CaseInsensitive))
+            _contentType = "audio/mpeg";
+        else if(path.contains(QString("mp4"), Qt::CaseInsensitive))
+            _contentType = "video/mp4";
+        else {
+
+            qDebug() << "Cannot deduce content-type from file:" << path;
+            Q_ASSERT(false);
+        }
 
     } // If its not the first time, make sure its the same path, otherwise the peer is misbehaving
     else if(_requestedPath != newRequestedPath) {
@@ -442,7 +474,7 @@ void Stream::sendErrorToPeerAndEndStream(Error error) {
                     "Content-Length: %2\n" \
                     "\n");
 
-    QByteArray body("<html><body><h1>Error :-(</h1></body></html>");
+    QByteArray body("<html><body>Error</body></html>");
 
     _socket->write(headers.arg(400).arg(body.length()).toUtf8());
     _socket->write(body);
@@ -644,6 +676,6 @@ QByteArray Stream::requestedPath() const {
     return _requestedPath;
 }
 
-libtorrent::torrent_handle Stream::handle() const {
-    return _handle;
+libtorrent::sha1_hash Stream::infoHash() const  {
+    return _infoHash;
 }
