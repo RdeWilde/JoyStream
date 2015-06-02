@@ -2,6 +2,7 @@
 #include "controller/TorrentViewModel.hpp"
 #include "controller/SellerTorrentPluginViewModel.hpp"
 #include "controller/BuyerTorrentPluginViewModel.hpp"
+#include "DataSizeRepresentation.hpp"
 
 #include <QStandardItem>
 
@@ -106,7 +107,7 @@ TorrentView::TorrentView(QObject * parent,
 }
 
 QString TorrentView::sizeToString(qint64 size) {
-    return QString::number(size) + QString("b");
+    return DataSizeRepresentation(size, DataSizeRepresentation::Base::Byte).toString();
 }
 
 QString TorrentView::pluginInstalledToString(PluginInstalled pluginInstalled) {
@@ -189,18 +190,14 @@ QString TorrentView::torrentStateToString(bool paused, libtorrent::torrent_statu
 
 QString TorrentView::speedToString(int downloadRate, int uploadRate) {
 
-    QString text;
+    QString downloadSpeedString = DataSizeRepresentation(downloadRate, DataSizeRepresentation::Base::Bit).toString() + "/s";
+    QString uploadSpeedString = DataSizeRepresentation(uploadRate, DataSizeRepresentation::Base::Bit).toString() + "/s";
 
-    text.append(QString::number(downloadRate/1024))
-         .append("Kb/s | ")
-         .append(QString::number(uploadRate/1024))
-         .append("Kb/s");
-
-    return text;
+    return downloadSpeedString + QString(" | ") + uploadSpeedString;
 }
 
 QString TorrentView::peersToString(int numberOfPeers, int numberOfPeersWithExtension) {
-    return QString::number(numberOfPeers) + "|" + QString::number(numberOfPeersWithExtension);
+    return QString::number(numberOfPeers) + QString(" | ") + QString::number(numberOfPeersWithExtension);
 }
 
 QString TorrentView::balanceToString(quint64 balance) {

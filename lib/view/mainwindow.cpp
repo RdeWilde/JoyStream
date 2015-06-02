@@ -34,6 +34,7 @@
 #include <QCloseEvent>
 #include <QDebug>
 #include <QMimeData>
+#include <QLabel>
 
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>
@@ -48,28 +49,47 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet)
     ui->setupUi(this);
 
     /**
-     *
+     * Setup icons
      */
 
     // Set logo the ugly way since resources are not working
-    QPixmap map("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/joystream-transparent-logo.png");
+    //QPixmap map("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/joystream-transparent-logo.png");
     //ui->logoLabel->setPixmap(map);
 
     // Alter window title
-    this->setWindowTitle("JoyStream");
+    setWindowTitle("JoyStream");
 
     // Set icon
     QPixmap iconMap("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/window_logo.png");
-    this->setWindowIcon(iconMap);
+    setWindowIcon(iconMap);
 
     QPixmap addIcon("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/add.png");
-    this->ui->addTorrentFilePushButton->setIcon(addIcon);
+    ui->addTorrentFilePushButton->setIcon(addIcon);
 
     QPixmap walletIcon("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/wallet.png");
-    this->ui->walletPushButton->setIcon(walletIcon);
+    ui->walletPushButton->setIcon(walletIcon);
 
     QPixmap settingsIcon("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/settings.png");
-    this->ui->settingsPushButton->setIcon(settingsIcon);
+    ui->settingsPushButton->setIcon(settingsIcon);
+
+    /**
+     * Setup colours of bitcon balances
+     */
+
+    QPalette earnedBalancePalette = ui->earnedBalanceLabel->palette();
+    earnedBalancePalette.setColor(ui->earnedBalanceLabel->foregroundRole(), Qt::green);
+    //palette.setColor(ui->pLabel->foregroundRole(), Qt::yellow);
+    ui->earnedBalanceLabel->setPalette(earnedBalancePalette);
+
+    QPalette spentBalancePalette = ui->spentBalanceLabel->palette();
+    spentBalancePalette.setColor(ui->spentBalanceLabel->foregroundRole(), Qt::red);
+    //palette.setColor(ui->pLabel->foregroundRole(), Qt::yellow);
+    ui->spentBalanceLabel->setPalette(spentBalancePalette);
+
+    QPalette balanceLabelPalette = ui->balanceLabel->palette();
+    balanceLabelPalette.setColor(ui->balanceLabel->foregroundRole(), Qt::blue);
+    //palette.setColor(ui->pLabel->foregroundRole(), Qt::yellow);
+    ui->balanceLabel->setPalette(balanceLabelPalette);
 
     /**
      *
@@ -99,10 +119,10 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet)
     ui->torrentsTable->setModel(&_torrentTableViewModel);
 
     // Set column width
-    ui->torrentsTable->setColumnWidth(0, 400);
+    ui->torrentsTable->setColumnWidth(0, 350);
     ui->torrentsTable->setColumnWidth(1, 90);
     ui->torrentsTable->setColumnWidth(2, 140);
-    ui->torrentsTable->setColumnWidth(3, 140);
+    ui->torrentsTable->setColumnWidth(3, 190);
     ui->torrentsTable->setColumnWidth(4, 70);
     ui->torrentsTable->setColumnWidth(5, 70);
     ui->torrentsTable->setColumnWidth(6, 90);
