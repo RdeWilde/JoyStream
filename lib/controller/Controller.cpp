@@ -533,6 +533,19 @@ Controller::Configuration::Configuration() {
     // NOT IN GENERAL
     sessionSettings.allow_multiple_connections_per_ip = true;
 
+
+    // the maximum times we try to connect to a peer before stop connecting
+    // again. If a peer succeeds, its failcounter is reset. If a peer is
+    // retrieved from a peer source (other than DHT) the failcount is
+    // decremented by one, allowing another try.
+    // DEFAULT = 3
+    sessionSettings.max_failcount;
+
+    // the number of seconds to wait to reconnect to a peer. this time is
+    // multiplied with the failcount.
+    // DEFAULT = 60
+    sessionSettings.min_reconnect_time = 3;
+
     /* use_disk_read_ahead
     *	defaults to true and will attempt to optimize disk reads by giving
     *	the operating system heads up of disk read requests as they are

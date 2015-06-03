@@ -95,8 +95,8 @@ void main(int argc, char* argv[]) {
      * Load torrent ================================================
      */
 
-    //const char * torrent = "C:/Users/Sindre/Desktop/TORRENTS/RRB.torrent";
-    const char * torrent  = "C:/Users/Sindre/Desktop/TORRENTS/Aint No Love Crucified.mp3.torrent";
+    const char * torrent = "C:/Users/Sindre/Desktop/TORRENTS/RRB.torrent";
+    //const char * torrent  = "C:/Users/Sindre/Desktop/TORRENTS/Aint No Love Crucified.mp3.torrent";
 
     libtorrent::error_code ec;
     libtorrent::torrent_info torrentInfo(torrent, ec);
