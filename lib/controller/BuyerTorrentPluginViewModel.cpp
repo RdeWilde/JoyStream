@@ -185,11 +185,12 @@ void BuyerTorrentPluginViewModel::setStatics(const BuyerTorrentPlugin::Status & 
         netOutputValue += channelStatus.funds();
     }
 
-    // Count spent fees towards total spending in plugin
+    // Count spent fees towards total spending in plugin IF  payor has actually started
     quint64 contractFee = payorStatus.utxo().value() - netOutputValue;
     Q_ASSERT(contractFee >= 0);
 
-    _balance -= contractFee;
+    if(_state != BuyerTorrentPlugin::State::waiting_for_payor_to_be_ready)
+        _balance -= contractFee;
 }
 
 BuyerTorrentPlugin::State BuyerTorrentPluginViewModel::state() const {
