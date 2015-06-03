@@ -45,7 +45,7 @@ public:
     quint32 numberOfObserverPeers() const;
     quint32 numberOfSellerPeers() const;
     quint32 numberOfBuyerPeers() const;
-    quint64 balance() const;
+    qint64 balance() const;
 
 signals:
 
@@ -56,7 +56,7 @@ signals:
     void numberOfObserverPeersChanged(quint32 num);
     void numberOfSellerPeersChanged(quint32 num);
     void numberOfBuyerPeersChanged(quint32 num);
-    void balanceChanged(quint64 balance);
+    void balanceChanged(qint64 balance);
 
     // Peer added
     void peerAdded(const BuyerPeerPluginViewModel * model);
@@ -81,7 +81,8 @@ private:
             _numberOfObserverPeers,
             _numberOfSellerPeers,
             _numberOfBuyerPeers;
-    quint64 _balance;
+
+    qint64 _balance;
 };
 
 #endif // BUYER_TORRENT_PLUGIN_VIEW_MODEL_HPP

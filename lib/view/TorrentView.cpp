@@ -190,8 +190,8 @@ QString TorrentView::torrentStateToString(bool paused, libtorrent::torrent_statu
 
 QString TorrentView::speedToString(int downloadRate, int uploadRate) {
 
-    QString downloadSpeedString = DataSizeRepresentation(downloadRate, DataSizeRepresentation::Base::Bit).toString() + "/s";
-    QString uploadSpeedString = DataSizeRepresentation(uploadRate, DataSizeRepresentation::Base::Bit).toString() + "/s";
+    QString downloadSpeedString = DataSizeRepresentation(downloadRate, DataSizeRepresentation::Base::Byte).toString() + "/s";
+    QString uploadSpeedString = DataSizeRepresentation(uploadRate, DataSizeRepresentation::Base::Byte).toString() + "/s";
 
     return downloadSpeedString + QString(" | ") + uploadSpeedString;
 }
@@ -200,8 +200,13 @@ QString TorrentView::peersToString(int numberOfPeers, int numberOfPeersWithExten
     return QString::number(numberOfPeers) + QString(" | ") + QString::number(numberOfPeersWithExtension);
 }
 
-QString TorrentView::balanceToString(quint64 balance) {
-    return QString::number(balance) + "Ƀ";
+QString TorrentView::balanceToString(qint64 balance) {
+
+    if(balance == 0)
+        return "0";
+    else {
+        return QString::number(balance) + "Ƀ";
+    }
 }
 
 void TorrentView::updatePluginInstalled(PluginInstalled pluginInstalled) {
@@ -237,9 +242,9 @@ void TorrentView::updateStartedBuyerTorrentPlugin(const BuyerTorrentPluginViewMo
                      SLOT(updateNumberOfSellers(quint32)));
 
     QObject::connect(model,
-                     SIGNAL(balanceChanged(quint64)),
+                     SIGNAL(balanceChanged(qint64)),
                      this,
-                     SLOT(updateBalance(quint64)));
+                     SLOT(updateBalance(qint64)));
 }
 
 void TorrentView::updateStartedSellerTorrentPlugin(const SellerTorrentPluginViewModel * model) {
@@ -268,9 +273,9 @@ void TorrentView::updateStartedSellerTorrentPlugin(const SellerTorrentPluginView
                      SLOT(updateNumberOfSellers(quint32)));
 
     QObject::connect(model,
-                     SIGNAL(balanceChanged(quint64)),
+                     SIGNAL(balanceChanged(qint64)),
                      this,
-                     SLOT(updateBalance(quint64)));
+                     SLOT(updateBalance(qint64)));
 }
 
 
@@ -306,7 +311,7 @@ void TorrentView::updateNumberOfSellers(quint32 num) {
     _sellersItem->setText(QString::number(num));
 }
 
-void TorrentView::updateBalance(quint64 balance) {
+void TorrentView::updateBalance(qint64 balance) {
     _balanceItem->setText(balanceToString(balance));
 }
 

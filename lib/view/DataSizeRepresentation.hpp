@@ -64,8 +64,8 @@ public:
     double unitsWithPrefix(Prefix prefix) const;
 
     // Returns string form of representation
-    QString toString(Prefix prefix, TextFormat format = TextFormat::Short, int precision = 2) const;
-    QString toString(TextFormat format = TextFormat::Short, int precision = 2) const;
+    QString toString(Prefix prefix, TextFormat format = TextFormat::Short, int precision = 1) const;
+    QString toString(TextFormat format = TextFormat::Short, int precision = 1) const;
 
     // Static utilities
     static QString prefixToString(Prefix prefix, TextFormat format = TextFormat::Short);

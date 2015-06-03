@@ -60,7 +60,7 @@ double DataSizeRepresentation::unitsWithPrefix(Prefix prefix) const {
 }
 
 QString DataSizeRepresentation::toString(Prefix prefix, TextFormat format, int precision) const {
-    return QString::number(unitsWithPrefix(prefix), 'g', precision) + prefixToString(prefix, format) + baseToString(_base, format);
+    return QString::number(unitsWithPrefix(prefix), 'f', precision) + prefixToString(prefix, format) + baseToString(_base, format);
 }
 
 QString DataSizeRepresentation::toString(TextFormat format, int precision) const {

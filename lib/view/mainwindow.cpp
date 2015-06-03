@@ -57,10 +57,11 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet)
     //ui->logoLabel->setPixmap(map);
 
     // Alter window title
-    setWindowTitle("JoyStream");
+    setWindowTitle("BitSwapr"); // JoyStream
 
     // Set icon
-    QPixmap iconMap("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/window_logo.png");
+    //QPixmap iconMap("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/window_logo.png");
+    QPixmap iconMap("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/BitSwapr_mark_32.png");
     setWindowIcon(iconMap);
 
     QPixmap addIcon("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/add.png");

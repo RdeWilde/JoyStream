@@ -41,7 +41,7 @@ public:
     static QString torrentStateToString(bool paused, libtorrent::torrent_status::state_t state, float progress);
     static QString speedToString(int downloadRate, int uploadRate);
     static QString peersToString(int numberOfPeers, int numberOfPeersWithExtension);
-    static QString balanceToString(quint64 balance);
+    static QString balanceToString(qint64 balance);
 
 public slots:
 
@@ -56,7 +56,7 @@ public slots:
     void updateSize(qint64 totalSize);
     void updateNumberOfBuyers(quint32 num);
     void updateNumberOfSellers(quint32 num);
-    void updateBalance(quint64 balance);
+    void updateBalance(qint64 balance);
 
     // Popup context menu in given point
     void showContextMenu(const QPoint & point);
@@ -93,6 +93,12 @@ private:
     // Info hash of torrent
     // Is required to send signals based on user interaction
     libtorrent::sha1_hash _infoHash;
+
+    // Plugin installed on torrent
+    // Has to be kept around since it informs how
+    // torrent is displayed, e.g. with colouring
+    // and sign of balance
+    //PluginInstalled _pluginInstalled;
 
     // View model pointers
     // Objects are owned by QStandardItemModel, not us

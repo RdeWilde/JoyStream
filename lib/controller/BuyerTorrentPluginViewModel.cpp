@@ -96,7 +96,7 @@ void BuyerTorrentPluginViewModel::update(const BuyerTorrentPlugin::Status & stat
             numberOfSellerPeers = _numberOfSellerPeers,
             numberOfBuyerPeers = _numberOfBuyerPeers;
 
-    quint64 balance = _balance;
+    qint64 balance = _balance;
 
     // Recompute and save new values
     setStatics(status);
@@ -179,7 +179,7 @@ void BuyerTorrentPluginViewModel::setStatics(const BuyerTorrentPlugin::Status & 
         const Payor::Channel::Status & channelStatus = *i;
 
         // Count towards balance
-        _balance += channelStatus.price() * channelStatus.numberOfPaymentsMade();
+        _balance -= channelStatus.price() * channelStatus.numberOfPaymentsMade();
 
         // Count output funds
         netOutputValue += channelStatus.funds();
@@ -189,7 +189,7 @@ void BuyerTorrentPluginViewModel::setStatics(const BuyerTorrentPlugin::Status & 
     quint64 contractFee = payorStatus.utxo().value() - netOutputValue;
     Q_ASSERT(contractFee >= 0);
 
-    _balance += contractFee;
+    _balance -= contractFee;
 }
 
 BuyerTorrentPlugin::State BuyerTorrentPluginViewModel::state() const {
@@ -220,6 +220,6 @@ quint32 BuyerTorrentPluginViewModel::numberOfBuyerPeers() const {
     return _numberOfBuyerPeers;
 }
 
-quint64 BuyerTorrentPluginViewModel::balance() const {
+qint64 BuyerTorrentPluginViewModel::balance() const {
     return _balance;
 }

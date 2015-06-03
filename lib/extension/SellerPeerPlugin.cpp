@@ -834,7 +834,7 @@ void SellerPeerPlugin::processPayment(const Payment * m) {
     _clientState = ClientState::awaiting_piece_request_after_payment;
 
     // Note payment
-    _plugin->plugin()->registerReceivedFunds(_payee.price());
+    _plugin->addToBalance(_payee.price());
 }
 
 void SellerPeerPlugin::peerModeReset() {

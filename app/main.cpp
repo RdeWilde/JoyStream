@@ -95,10 +95,7 @@ void main(int argc, char* argv[]) {
      * Load torrent ================================================
      */
 
-    // VUZE-test.mp4.torrent: Rise and Rise of BitCoin
-    // "C:/Users/Sindre/Desktop/TORRENTS/VUZE-test.mp4.torrent";
-
-    //const char * torrent  = "C:/Users/Sindre/Desktop/TORRENTS/05_Aint_No_Love_Crucified_Aint_No_Love_FROSTWIRE_FROSTCLICK_CREATIVE_COMMONS.mp3.torrent";
+    //const char * torrent = "C:/Users/Sindre/Desktop/TORRENTS/RRB.torrent";
     const char * torrent  = "C:/Users/Sindre/Desktop/TORRENTS/Aint No Love Crucified.mp3.torrent";
 
     libtorrent::error_code ec;
@@ -120,7 +117,6 @@ void main(int argc, char* argv[]) {
     int buyer_count = 1;
     bool buyer_show_gui = true;
     bool buyer_use_stdout_logg = buyer_show_gui;
-
 
     // Number of sellers
     int seller_count = 1;

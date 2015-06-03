@@ -245,9 +245,12 @@ TorrentPlugin::Status TorrentPlugin::status() const {
                   numberOfBuyerPeers);
 }
 */
+
+/**
 Plugin * TorrentPlugin::plugin() {
     return _plugin;
 }
+*/
 
 boost::shared_ptr<libtorrent::torrent> TorrentPlugin::torrent() const {
     return _torrent;

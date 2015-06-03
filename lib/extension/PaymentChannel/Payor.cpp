@@ -912,14 +912,16 @@ Signature Payor::getPresentPaymentSignature(quint32 index) const {
     // The amount paid so far
     quint64 amountPaid = channel.price()*channel.numberOfPaymentsMade();
 
-    //return Signature();
+    return Signature();
 
+    /**
     return BitSwaprjs::compute_payment_signature(OutPoint(_contractTxId, index),
                                                  channel.payorContractKeyPair().sk(),
                                                  channel.payorContractKeyPair().pk(),
                                                  channel.payeeContractPk(),
                                                  P2PKHTxOut(channel.funds() - amountPaid, channel.payorFinalKeyPair().pk()),
                                                  P2PKHTxOut(amountPaid, channel.payeeContractPk()));
+                                                 */
 
 }
 

@@ -165,7 +165,8 @@ public:
     //Status status() const;
 
     // Getters and setters
-    Plugin * plugin();
+
+    //Plugin * plugin();
 
     virtual PluginMode pluginMode() const = 0;
     virtual QList<libtorrent::tcp::endpoint> endPoints() const = 0;

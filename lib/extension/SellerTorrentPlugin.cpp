@@ -1,4 +1,5 @@
 #include "SellerTorrentPlugin.hpp"
+#include "Plugin.hpp"
 #include "PluginMode.hpp"
 #include "SellerPeerPlugin.hpp"
 #include "BitCoin/Wallet.hpp"
@@ -27,12 +28,14 @@ SellerTorrentPlugin::Status::Status(quint64 minPrice,
                                     quint64 minFeePerByte,
                                     quint32 maxNumberOfSellers,
                                     quint32 maxContractConfirmationDelay,
+                                    qint64 balance,
                                     const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerPluginStatuses)
     : _minPrice(minPrice)
     , _minLock(minLock)
     , _minFeePerByte(minFeePerByte)
     , _maxNumberOfSellers(maxNumberOfSellers)
     , _maxContractConfirmationDelay(maxContractConfirmationDelay)
+    , _balance(balance)
     , _peerPluginStatuses(peerPluginStatuses) {
 }
 
@@ -74,6 +77,14 @@ quint32 SellerTorrentPlugin::Status::maxContractConfirmationDelay() const {
 
 void SellerTorrentPlugin::Status::setMaxContractConfirmationDelay(quint32 maxContractConfirmationDelay) {
     _maxContractConfirmationDelay = maxContractConfirmationDelay;
+}
+
+qint64 SellerTorrentPlugin::Status::balance() const {
+    return _balance;
+}
+
+void SellerTorrentPlugin::Status::setBalance(qint64 balance) {
+    _balance = balance;
 }
 
 QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> SellerTorrentPlugin::Status::peerPluginStatuses() const {
@@ -173,7 +184,8 @@ SellerTorrentPlugin::SellerTorrentPlugin(Plugin * plugin,
     , _minLock(configuration.minLock())
     , _minFeePerByte(configuration.minFeePerByte())
     , _maxNumberOfSellers(configuration.maxNumberOfSellers())
-    , _maxContractConfirmationDelay(configuration.maxContractConfirmationDelay()) {
+    , _maxContractConfirmationDelay(configuration.maxContractConfirmationDelay())
+    , _balance(0) {
 }
 
 boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(libtorrent::peer_connection * peerConnection) {
@@ -517,6 +529,17 @@ void SellerTorrentPlugin::on_peer_plugin_disconnect(SellerPeerPlugin * peerPlugi
     }
 }
 
+qint64 SellerTorrentPlugin::addToBalance(quint64 revenue) {
+
+    // Notify plugin
+    _plugin->registerReceivedFunds(revenue);
+
+    // Add to balance
+    _balance += revenue;
+
+    return _balance;
+}
+
 // Creates status for plugin
 SellerTorrentPlugin::Status SellerTorrentPlugin::status() const {
 
@@ -553,6 +576,7 @@ SellerTorrentPlugin::Status SellerTorrentPlugin::status() const {
                                        _minFeePerByte,
                                        _maxNumberOfSellers,
                                        _maxContractConfirmationDelay,
+                                       _balance,
                                        peerStatuses);
 }
 

@@ -27,6 +27,7 @@ public:
                quint64 minFeePerByte,
                quint32 maxNumberOfSellers,
                quint32 maxContractConfirmationDelay,
+               qint64 balance,
                const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerPluginStatuses);
 
         // Getters and setters
@@ -44,6 +45,9 @@ public:
 
         quint32 maxContractConfirmationDelay() const;
         void setMaxContractConfirmationDelay(quint32 maxContractConfirmationDelay);
+
+        qint64 balance() const;
+        void setBalance(qint64 balance);
 
         QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> peerPluginStatuses() const;
         void setPeerPluginStatuses(const QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> & peerPluginStatuses);
@@ -64,6 +68,9 @@ public:
 
         // Maximum time (s) for which seller is willing to seed without contract getting at least one confirmation
         quint32 _maxContractConfirmationDelay;
+
+        // Net revenue across all peers since session started
+        qint64 _balance;
 
         // Status of peer plugins
         QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> _peerPluginStatuses;
@@ -195,6 +202,9 @@ public:
     // peer_plugin::on_disconnect
     void on_peer_plugin_disconnect(SellerPeerPlugin * peerPlugin, libtorrent::error_code const & ec);
 
+    // Updates balance of torrent plugin
+    qint64 addToBalance(quint64 revenue);
+
     // Creates status for plugin
     Status status() const;
 
@@ -253,6 +263,13 @@ private:
 
     // Maximum time (s) for which seller is willing to seed without contract getting at least one confirmation
     quint32 _maxContractConfirmationDelay;
+
+    /**
+     * Statistics
+     */
+
+    // Net revenue across all peers since session started
+    qint64 _balance;
 
     // Delete and disconnect peers which have PeerPlugin::_scheduledForDeletingInNextTorrentPluginTick == true
     // ** NEEDS TO BE ABSTRACTED TO PARENT CLASS **

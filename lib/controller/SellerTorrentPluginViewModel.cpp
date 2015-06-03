@@ -8,7 +8,9 @@ SellerTorrentPluginViewModel::SellerTorrentPluginViewModel(QObject * parent, con
     , _minLock(status.minLock())
     , _minFeePerByte(status.minFeePerByte())
     , _maxNumberOfSellers(status.maxNumberOfSellers())
+    , _balance(status.balance())
     , _maxContractConfirmationDelay(status.maxContractConfirmationDelay())
+
     /**
     , _numberOfClassicPeers(0)
     , _numberOfObserverPeers(0)
@@ -105,6 +107,11 @@ void SellerTorrentPluginViewModel::update(const SellerTorrentPlugin::Status & st
         emit maxNumberOfSellersChanged(status.maxNumberOfSellers());
     }
 
+    if(_balance != status.balance()) {
+        _balance = status.balance();
+        emit balanceChanged(_balance);
+    }
+
     if(_maxContractConfirmationDelay != status.maxContractConfirmationDelay()) {
         _maxContractConfirmationDelay = status.maxContractConfirmationDelay();
         emit maxContractConfirmationDelayChanged(status.maxContractConfirmationDelay());
@@ -137,8 +144,6 @@ void SellerTorrentPluginViewModel::update(const SellerTorrentPlugin::Status & st
             numberOfSellerPeers = _numberOfSellerPeers,
             numberOfBuyerPeers = _numberOfBuyerPeers;
 
-    quint64 balance = _balance;
-
     // Recompute and save new values
     setStatics(status);
 
@@ -155,9 +160,6 @@ void SellerTorrentPluginViewModel::update(const SellerTorrentPlugin::Status & st
     if(numberOfBuyerPeers != _numberOfBuyerPeers)
         emit numberOfBuyerPeersChanged(_numberOfBuyerPeers);
 
-    if(balance != _balance)
-        emit balanceChanged(_balance);
-
 }
 
 void SellerTorrentPluginViewModel::setStatics(const SellerTorrentPlugin::Status & status) {
@@ -167,7 +169,6 @@ void SellerTorrentPluginViewModel::setStatics(const SellerTorrentPlugin::Status 
     _numberOfObserverPeers = 0;
     _numberOfSellerPeers = 0;
     _numberOfBuyerPeers = 0;
-    _balance = 0;
 
     // Update peers
     QMap<libtorrent::tcp::endpoint, SellerPeerPlugin::Status> peerPluginStatuses = status.peerPluginStatuses();
@@ -202,10 +203,6 @@ void SellerTorrentPluginViewModel::setStatics(const SellerTorrentPlugin::Status 
 
         } else if(supportStatus == BEPSupportStatus::not_supported)
             _numberOfClassicPeers++;
-
-        // count balance
-        const Payee::Status & payeeStatus = peer.payeeStatus();
-        _balance += payeeStatus.price() * payeeStatus.numberOfPaymentsMade();
     }
 
 }
@@ -250,6 +247,6 @@ quint32 SellerTorrentPluginViewModel::numberOfBuyerPeers() const {
     return _numberOfBuyerPeers;
 }
 
-quint64 SellerTorrentPluginViewModel::balance() const {
+qint64 SellerTorrentPluginViewModel::balance() const {
     return _balance;
 }

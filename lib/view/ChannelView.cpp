@@ -96,7 +96,7 @@ QString ChannelView::fundsToString(quint64 funds) {
 }
 
 QString ChannelView::refundLockTimeToString(quint32 refundLockTime) {
-    return QString::number(refundLockTime);
+    return QString::number(refundLockTime) + "s";
 }
 
 QString ChannelView::priceToString(quint64 price) {

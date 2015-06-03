@@ -78,7 +78,7 @@ SellerPeerPluginView::SellerPeerPluginView(QObject * parent,
                      SLOT(updatePrice(quint64)));
 
     QObject::connect(payeeViewModel,
-                     SIGNAL(funds(quint64)),
+                     SIGNAL(fundsChanged(quint64)),
                      this,
                      SLOT(updateFunds(quint64)));
 
