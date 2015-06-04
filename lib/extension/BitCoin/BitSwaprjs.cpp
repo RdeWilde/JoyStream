@@ -329,6 +329,47 @@ TxId BitSwaprjs::broadcast_contract(const UnspentP2PKHOutput & utxo, const QVect
     return TxId(result.toString());
 }
 
+
+bool BitSwaprjs::broadcast_refund(const OutPoint & contractOutputPoint, const Signature &payorSignature, const Signature &payeeSignature, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime) {
+
+    // Create parameters
+    QJsonObject params {
+        {"contractOutputPoint", contractOutputPoint.json()},
+        {"payorSignature", payorSignature.toString()},
+        {"payeeSignature", payeeSignature.toString()},
+        {"firstPk", firstPk.toString()},
+        {"secondPk", secondPk.toString()},
+        {"refundOutput", refundOutput.json()},
+        {"refundLockTime", static_cast<qint64>(refundLockTime)}
+    };
+
+    // Make call
+    QJsonValue result = nodeBlockingCall("broadcast_contract_output_spending_tx", QJsonValue(params));
+
+    // Turn into bool result
+    return result.toBool();
+}
+
+bool BitSwaprjs::broadcast_payment(const OutPoint & contractOutputPoint, const Signature &payorSignature, const Signature &payeeSignature, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, const P2PKHTxOut & paymentOutput) {
+
+    // Create parameters
+    QJsonObject params {
+        {"contractOutputPoint", contractOutputPoint.json()},
+        {"payorSignature", payorSignature.toString()},
+        {"payeeSignature", payeeSignature.toString()},
+        {"firstPk", firstPk.toString()},
+        {"secondPk", secondPk.toString()},
+        {"refundOutput", refundOutput.json()},
+        {"paymentOutput", paymentOutput.json()}
+    };
+
+    // Make call
+    QJsonValue result = nodeBlockingCall("broadcast_contract_output_spending_tx", QJsonValue(params));
+
+    // Turn into bool result
+    return result.toBool();
+}
+
 quint64 BitSwaprjs::get_tx_outpoint(const OutPoint & point, bool & spent) {
 
     // Encode parameters into json
