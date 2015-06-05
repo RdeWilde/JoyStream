@@ -16,6 +16,7 @@
 #include <QPoint>
 #include <QLoggingCategory>
 #include <QProcess>
+#include <QTimer>
 
 namespace Ui {
 class MainWindow;
@@ -103,6 +104,9 @@ public slots:
     // Start VLC video player
     void startVLC(const libtorrent::sha1_hash & infoHash);
 
+    // Stupid hook to update wallet balance, kill later.
+    void updateWalletBalanceHook();
+
 private:
 
     // View
@@ -132,6 +136,9 @@ private:
     // has to be member, since it cannot go out of scope, since that kills
     // all started processes
     QProcess _processLauncher;
+
+    // Complete hack, will be event driven later, only for demo on 05.06.2015
+    QTimer _walletBalanceUpdateTimer;
 
     // Uses _rowToViewMapping to lookup view in _torrentViews
     TorrentView * rowToView(int row);
