@@ -119,7 +119,7 @@ void main(int argc, char* argv[]) {
     bool buyer_use_stdout_logg = buyer_show_gui;
 
     // Number of sellers
-    int seller_count = 1;
+    int seller_count = 0;
     bool seller_show_gui = true;
     bool seller_use_stdout_logg = seller_show_gui;
 

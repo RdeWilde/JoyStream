@@ -301,7 +301,7 @@ void Stream::readAndProcessRequestLineFromSocket(const QByteArray & line) {
         // We should always have metadata if a stream has been started
         Q_ASSERT(torrentInfo != NULL);
 
-        _defaultRangeLength = torrentInfo->piece_length() * 10;
+        _defaultRangeLength = torrentInfo->piece_length() * 3; //
         _fileIndex = 0;
 
         // Get file entry
