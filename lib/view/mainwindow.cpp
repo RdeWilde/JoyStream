@@ -52,26 +52,20 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet)
     /**
      * Setup icons
      */
-
-    // Set logo the ugly way since resources are not working
-    //QPixmap map("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/joystream-transparent-logo.png");
-    //ui->logoLabel->setPixmap(map);
-
     // Alter window title
     setWindowTitle("BitSwapr"); // JoyStream
 
     // Set icon
-    //QPixmap iconMap("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/window_logo.png");
-    QPixmap iconMap("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/BitSwapr_mark_32.png");
+    QPixmap iconMap("C:/ART/images/BitSwapr_mark_32.png");
     setWindowIcon(iconMap);
 
-    QPixmap addIcon("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/Add_button_inside_black_circle_32.png");
+    QPixmap addIcon("C:/ART/images/Add_button_inside_black_circle_32.png");
     ui->addTorrentFilePushButton->setIcon(addIcon);
 
-    QPixmap walletIcon("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/Bitcoin_pocket_or_wallet_32.png");
+    QPixmap walletIcon("C:/ART/images/Bitcoin_pocket_or_wallet_32.png");
     ui->walletPushButton->setIcon(walletIcon);
 
-    QPixmap settingsIcon("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/Settings_Work_Tool_32.png");
+    QPixmap settingsIcon("C:/ART/images/Settings_Work_Tool_32.png");
     ui->settingsPushButton->setIcon(settingsIcon);
 
     /**
