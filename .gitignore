@@ -22,7 +22,7 @@ $RECYCLE.BIN/
 # Qt user project files
 # =========================
 
-*.user
+QtBitSwapr.pro.user*
 
 # OSX
 # =========================
