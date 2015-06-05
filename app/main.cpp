@@ -95,8 +95,8 @@ void main(int argc, char* argv[]) {
      * Load torrent ================================================
      */
 
-    const char * torrent = "C:/Users/Sindre/Desktop/TORRENTS/RRB.torrent";
-    //const char * torrent  = "C:/Users/Sindre/Desktop/TORRENTS/Aint No Love Crucified.mp3.torrent";
+    //const char * torrent = "C:/Users/Sindre/Desktop/TORRENTS/RRB.torrent";
+    const char * torrent  = "C:/Users/Sindre/Desktop/TORRENTS/Aint No Love Crucified.mp3.torrent";
 
     libtorrent::error_code ec;
     libtorrent::torrent_info torrentInfo(torrent, ec);
@@ -119,7 +119,7 @@ void main(int argc, char* argv[]) {
     bool buyer_use_stdout_logg = buyer_show_gui;
 
     // Number of sellers
-    int seller_count = 0;
+    int seller_count = 1;
     bool seller_show_gui = true;
     bool seller_use_stdout_logg = seller_show_gui;
 

@@ -318,7 +318,7 @@ bool Payee::checkNextPaymentSignature(const Signature & payorPaymentSignature) c
     // Setup new payment outputs
     quint64 paid = (_numberOfPaymentsMade + 1) * _price;
     P2PKHTxOut refundOutput(_funds - paid, _payorFinalPk);
-    P2PKHTxOut paymentOutput(_funds + paid, _payeePaymentKeys.pk());
+    P2PKHTxOut paymentOutput(paid, _payeePaymentKeys.pk());
 
     // Compute payee signature
     Signature payeePaymentSignature = BitSwaprjs::compute_payment_signature(_contractOutPoint,
@@ -346,7 +346,7 @@ bool Payee::broadcastLastPayment() const {
     // Setup new payment outputs
     quint64 paid = (_numberOfPaymentsMade) * _price;
     P2PKHTxOut refundOutput(_funds - paid, _payorFinalPk);
-    P2PKHTxOut paymentOutput(_funds + paid, _payeePaymentKeys.pk());
+    P2PKHTxOut paymentOutput(paid, _payeePaymentKeys.pk());
 
     // Compute payee signature
     Signature payeePaymentSignature = BitSwaprjs::compute_payment_signature(_contractOutPoint,
