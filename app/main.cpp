@@ -95,8 +95,8 @@ void main(int argc, char* argv[]) {
      * Load torrent ================================================
      */
 
-    const char * torrent = "C:/Users/Sindre/Desktop/TORRENTS/RRB.torrent";
-    //const char * torrent  = "C:/Users/Sindre/Desktop/TORRENTS/Aint No Love Crucified.mp3.torrent";
+    const char * torrent = "C:/TORRENTS/RRB.torrent";
+    //const char * torrent  = "C:/TORRENTS/Aint No Love Crucified.mp3.torrent";
 
     libtorrent::error_code ec;
     libtorrent::torrent_info torrentInfo(torrent, ec);
@@ -139,7 +139,7 @@ void main(int argc, char* argv[]) {
         QLoggingCategory * buyerCategory = global_log_manager.createLogger(buyer_loggNames[i].c_str(), buyer_use_stdout_logg, false);
 
         // Create wallet name
-        buyer_walletFileName[i] = (std::string("C:/Users/Sindre/Desktop/BUILD_DEBUG/app/debug/buyer_wallet") + std::to_string(i+1) + std::string(".dat"));
+        buyer_walletFileName[i] = (std::string("c:/WALLETS/buyer_wallet") + std::to_string(i+1) + std::string(".dat"));
         controllerConfiguration.setWalletFile(buyer_walletFileName[i].c_str());
 
         // Create main client
@@ -151,7 +151,7 @@ void main(int argc, char* argv[]) {
         buyer_controllers[i] = buyerClient;
 
         // Create output directory name
-        buyer_outPutDir[i] = (std::string("C:/Users/Sindre/Desktop/SAVE_OUTPUT/buyer_") + std::to_string(i+1));
+        buyer_outPutDir[i] = (std::string("C:/SAVE_OUTPUT/buyer_") + std::to_string(i+1));
 
         // Create buyer torrent configuration
         Controller::Torrent::Configuration buyerTorrentConfiguration(torrentInfo.info_hash()
@@ -217,7 +217,7 @@ void main(int argc, char* argv[]) {
         QLoggingCategory * sellerCategory = global_log_manager.createLogger(seller_loggNames[i].c_str(), seller_use_stdout_logg, false);
 
         // Create wallet name
-        seller_walletFileName[i] = (std::string("C:/Users/Sindre/Desktop/BUILD_DEBUG/app/debug/seller_wallet_") + std::to_string(i+1) + std::string(".dat"));
+        seller_walletFileName[i] = (std::string("c:/WALLETS/seller_wallet_") + std::to_string(i+1) + std::string(".dat"));
         controllerConfiguration.setWalletFile(seller_walletFileName[i].c_str());
 
         // Create peer client
@@ -229,7 +229,7 @@ void main(int argc, char* argv[]) {
         seller_controllers[i] = sellerClient;
 
         // Create output directory name
-        seller_outPutDir[i] = (std::string("C:/Users/Sindre/Desktop/SAVE_OUTPUT/seller_") + std::to_string(i+1));
+        seller_outPutDir[i] = (std::string("C:/SAVE_OUTPUT/seller_") + std::to_string(i+1));
 
         // Create torrent configuration
         Controller::Torrent::Configuration sellerTorrentConfiguration(torrentInfo.info_hash()
