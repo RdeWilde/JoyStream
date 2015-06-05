@@ -296,37 +296,37 @@ Payment Channel::payment(const Hash &contractHash) const {
 }
 */
 
-void Payor::Channel::computePayorRefundSignature(const TxId &contractHash) {
+void Payor::Channel::computeAndSetPayorRefundSignature(const TxId &contractHash) {
 
     // Check that channel has been assigned
     if(_state != State::assigned)
         throw std::exception("State incompatile request, must be in assigned state.");
 
     // Make call to compute signature
-    OutPoint contractOutPoint(contractHash, _index);
-    P2PKHTxOut refundTxOut(_funds, _payorFinalKeyPair.pk());
-
-    // remove PKs later, no reason we need them
-
-    _payorRefundSignature = BitSwaprjs::compute_refund_signature(contractOutPoint,
-                                                                      _payorContractKeyPair.sk(),
-                                                                      _payorContractKeyPair.pk(),
-                                                                      _payeeContractPk,
-                                                                      refundTxOut,
-                                                                      _refundLockTime);
+    // remove PKs later, no reason we need them?? <== is this true
+    _payorRefundSignature = BitSwaprjs::compute_refund_signature(OutPoint(contractHash, _index),
+                                                                 _payorContractKeyPair.sk(),
+                                                                 _payorContractKeyPair.pk(),
+                                                                 _payeeContractPk,
+                                                                 P2PKHTxOut(_funds, _payorFinalKeyPair.pk()),
+                                                                 _refundLockTime);
 }
 
-Signature Payor::Channel::paymentSignature(const TxId &contractHash) const {
+Signature Payor::Channel::paymentSignature(const TxId & contractHash) const {
+
+    //return Signature();
 
     // Create pamynent
     //Payment payment = payment(contractHash);
 
-    /**
-      QJsonObject raw = payment.rawTransaction();
-      return _payorContractKeyPair.sk().sign(raw, sighash);
-      */
+    quint64 paid = _numberOfPaymentsMade*_price;
 
-    return Signature();
+    return BitSwaprjs::compute_payment_signature(OutPoint(contractHash, _index),
+                                                 _payorContractKeyPair.sk(),
+                                                 _payorContractKeyPair.pk(),
+                                                 _payeeContractPk,
+                                                 P2PKHTxOut(_funds - paid, _payorFinalKeyPair.pk()),
+                                                 P2PKHTxOut(paid, _payeeFinalPk));
 }
 
 
@@ -420,7 +420,7 @@ Signature Payor::Channel::payorRefundSignature() const {
     return _payorRefundSignature;
 }
 
-void Payor::Channel::setPayorRefundSignature(const Signature & payorRefundSignature) {
+void Payor::Channel::computeAndSetPayorRefundSignature(const Signature & payorRefundSignature) {
     _payorRefundSignature = payorRefundSignature;
 }
 
@@ -771,7 +771,7 @@ quint32 Payor::assignUnassignedSlot(quint64 price, const PublicKey & payeeContra
 
         // Compute all refund signatures
         for(QVector<Channel>::Iterator i = _channels.begin(), end(_channels.end()); i != end;i++)
-            i->computePayorRefundSignature(_contractTxId);
+            i->computeAndSetPayorRefundSignature(_contractTxId);
     }
 
     return slotIndex;
@@ -909,20 +909,10 @@ Signature Payor::getPresentPaymentSignature(quint32 index) const {
 
     Q_ASSERT(channel.state() == Channel::State::refund_signed);
 
-    // The amount paid so far
-    quint64 amountPaid = channel.price()*channel.numberOfPaymentsMade();
+    // compute present payment signature for channel signature
+    Signature presentSignature = channel.paymentSignature(_contractTxId);
 
-    return Signature();
-
-    /**
-    return BitSwaprjs::compute_payment_signature(OutPoint(_contractTxId, index),
-                                                 channel.payorContractKeyPair().sk(),
-                                                 channel.payorContractKeyPair().pk(),
-                                                 channel.payeeContractPk(),
-                                                 P2PKHTxOut(channel.funds() - amountPaid, channel.payorFinalKeyPair().pk()),
-                                                 P2PKHTxOut(amountPaid, channel.payeeContractPk()));
-                                                 */
-
+    return presentSignature;
 }
 
 bool Payor::claimRefund(quint32 index) const {

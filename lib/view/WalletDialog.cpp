@@ -25,6 +25,12 @@ WalletDialog::WalletDialog(Wallet * wallet) :
     // Set table model to view model
     ui->walletTableView->setModel(&_walletTableViewModel);
 
+    // Fix column with
+    ui->walletTableView->setColumnWidth(0, 180);
+    ui->walletTableView->setColumnWidth(1, 50);
+    ui->walletTableView->setColumnWidth(2, 50);
+    ui->walletTableView->setColumnWidth(3, 20);
+
     // Populate view
     refresh();
 }
@@ -71,6 +77,12 @@ void WalletDialog::updateWalletTableView() {
     _walletTableViewModel.setHorizontalHeaderItem(1, new QStandardItem("Type"));
     _walletTableViewModel.setHorizontalHeaderItem(2, new QStandardItem("Value"));
     _walletTableViewModel.setHorizontalHeaderItem(3, new QStandardItem("#Confirmations"));
+
+    // Fix column with
+    ui->walletTableView->setColumnWidth(0, 180);
+    ui->walletTableView->setColumnWidth(1, 50);
+    ui->walletTableView->setColumnWidth(2, 50);
+    ui->walletTableView->setColumnWidth(3, 20);
 
     // Get wallet entries
     const QMap<PublicKey, Wallet::Entry> & entries = _wallet->entries();

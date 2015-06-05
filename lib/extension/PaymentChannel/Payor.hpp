@@ -269,7 +269,7 @@ public:
         //Payment payment(const Hash &contractHash) const;
 
         // Compute payor refund signature
-        void computePayorRefundSignature(const TxId &contractHash);
+        void computeAndSetPayorRefundSignature(const TxId &contractHash);
 
         // Payment signature
         Signature paymentSignature(const TxId &contractHash) const;
@@ -308,7 +308,7 @@ public:
         void setPayeeFinalPk(const PublicKey & payeeFinalPk);
 
         Signature payorRefundSignature() const;
-        void setPayorRefundSignature(const Signature & payorRefundSignature);
+        void computeAndSetPayorRefundSignature(const Signature & payorRefundSignature);
 
         Signature payeeRefundSignature() const;
         void setPayeeRefundSignature(const Signature & payeeRefundSignature);

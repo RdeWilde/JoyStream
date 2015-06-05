@@ -95,8 +95,8 @@ void main(int argc, char* argv[]) {
      * Load torrent ================================================
      */
 
-    const char * torrent = "C:/Users/Sindre/Desktop/TORRENTS/RRB.torrent";
-    //const char * torrent  = "C:/Users/Sindre/Desktop/TORRENTS/Aint No Love Crucified.mp3.torrent";
+    //const char * torrent = "C:/Users/Sindre/Desktop/TORRENTS/RRB.torrent";
+    const char * torrent  = "C:/Users/Sindre/Desktop/TORRENTS/Aint No Love Crucified.mp3.torrent";
 
     libtorrent::error_code ec;
     libtorrent::torrent_info torrentInfo(torrent, ec);
@@ -163,7 +163,7 @@ void main(int argc, char* argv[]) {
                                                       ,&torrentInfo);
 
         // Maximum piece price (satoshi)
-        quint64 maxPrice = 38;
+        quint64 maxPrice = 300;
 
         // Maximum lock time on refund
         int maxLockTime = 5*3600;
@@ -240,7 +240,7 @@ void main(int argc, char* argv[]) {
         int minFeePerkB = static_cast<int>(STANDARD_NUM_SATOSHIES_PER_KB_IN_TX_FEE);
 
         // Maximum piece price (satoshi)
-        quint64 minPrice = 10;
+        quint64 minPrice = 100;
 
         // Minimum lock time on refund
         int minLockTime = 2*3600;

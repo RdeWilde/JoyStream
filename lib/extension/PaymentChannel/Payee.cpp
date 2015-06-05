@@ -297,8 +297,8 @@ bool Payee::registerPayment(const Signature & paymentSignature) {
         throw std::exception("State incompatile request, must be in has_all_information_required state.");
 
     // Check signature
-    //bool check = checkNextPaymentSignature(paymentSignature);
-    bool check = true;
+    bool check = checkNextPaymentSignature(paymentSignature);
+    //bool check = true;
 
     // Increase payment count if signature was valid
     if(check) {
@@ -330,6 +330,34 @@ bool Payee::checkNextPaymentSignature(const Signature & payorPaymentSignature) c
     // Check signature
     return BitSwaprjs::check_payment_signatures(_contractOutPoint,
                                                  payorPaymentSignature,
+                                                 payeePaymentSignature,
+                                                 _payorContractPk,
+                                                 _payeeContractKeys.pk(),
+                                                 refundOutput,
+                                                 paymentOutput);
+}
+
+bool Payee::broadcastLastPayment() const {
+
+    // Check state
+    if(_state != State::has_all_information_required)
+        throw std::exception("State incompatile request, must be in has_all_information_required state.");
+
+    // Setup new payment outputs
+    quint64 paid = (_numberOfPaymentsMade) * _price;
+    P2PKHTxOut refundOutput(_funds - paid, _payorFinalPk);
+    P2PKHTxOut paymentOutput(_funds + paid, _payeePaymentKeys.pk());
+
+    // Compute payee signature
+    Signature payeePaymentSignature = BitSwaprjs::compute_payment_signature(_contractOutPoint,
+                                                                             _payeeContractKeys.sk(),
+                                                                             _payorContractPk,
+                                                                             _payeeContractKeys.pk(),
+                                                                             refundOutput,
+                                                                             paymentOutput);
+    // Check signature
+    return BitSwaprjs::broadcast_payment(_contractOutPoint,
+                                                 _lastValidPayorPaymentSignature,
                                                  payeePaymentSignature,
                                                  _payorContractPk,
                                                  _payeeContractKeys.pk(),

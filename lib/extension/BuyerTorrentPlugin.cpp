@@ -193,7 +193,7 @@ void BuyerTorrentPlugin::Configuration::setNumberOfSellers(quint32 numberOfSelle
 #include "Alert/BuyerPeerAddedAlert.hpp"
 #include "Alert/BuyerPeerPluginRemovedAlert.hpp"
 
-#include "BitCoin/BitSwaprjs.hpp"
+//#include "BitCoin/BitSwaprjs.hpp"
 #include "BitCoin/Wallet.hpp"
 #include "BitCoin/UnspentP2PKHOutput.hpp"
 
@@ -652,7 +652,7 @@ bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, c
     if(_payor.allRefundsSigned()) {
 
         // Construct and broadcast contract
-        //_payor.broadcast_contract();
+        _payor.broadcast_contract();
 
         // Register tx fee we are spending
         _plugin->registerSentFunds(_payor.contractFee());

@@ -686,11 +686,12 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
 
   UnspentP2PKHOutput Wallet::getUtxo(quint64 minimalValue, quint32 minimalNumberOfConfirmations) {
 
+      /**
     return         UnspentP2PKHOutput(KeyPair(PublicKey("024f6f05e6f105fa0aaccfc36af9497d3929c4b33cbc8575445154e762f82eb08c"),
                                              PrivateKey("cNxShXWpyWug45tEieHgFCnfMCCMcmh6cKSQjh5peUDPJ5nZ49Hy")),
                                      OutPoint(TxId("99bd7714e8e4881c2766bea0ce6ca44ab9463417dd5040ae3664f41d7353df4c"),8),
                                      minimalValue);
-
+*/
       _mutex.lock();
 
       // Go through entries

@@ -176,6 +176,12 @@ public:
         // We are doing async reading of a piece from disk,
         // which occurs when when a valid full piece request arrives
         reading_piece_from_disk,
+
+        // We are trying to get the last payment received confirmed
+        trying_to_claim_last_payment,
+
+        //
+        last_payment_confirmed
     };
 
     /**
@@ -271,6 +277,9 @@ public:
 
     // Closes the peer connection
     void close_connection();
+
+    // Tries to broadcast most recent payment received
+    void tryToClaimPayment();
 
     //
     //quint64 totalReceivedSinceStart() const;

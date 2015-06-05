@@ -141,6 +141,8 @@ TxId BitSwaprjs::compute_contract_hash(const UnspentP2PKHOutput & utxo, const QV
 
 Signature BitSwaprjs::compute_refund_signature(const OutPoint & contractOutputPoint, const PrivateKey &sk, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime) {
 
+    return Signature();
+
     // Create parameters
     QJsonObject params {
         {"contractOutputPoint", contractOutputPoint.json()},
@@ -160,6 +162,7 @@ Signature BitSwaprjs::compute_refund_signature(const OutPoint & contractOutputPo
 
 Signature BitSwaprjs::compute_payment_signature(const OutPoint & contractOutputPoint, const PrivateKey &sk, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, const P2PKHTxOut & paymentOutput) {
 
+    return Signature();
 
     // Create parameters
     QJsonObject params {
@@ -180,6 +183,8 @@ Signature BitSwaprjs::compute_payment_signature(const OutPoint & contractOutputP
 
 bool BitSwaprjs::check_refund_signatures(const OutPoint & contractOutputPoint, const Signature & payorSignature, const Signature & payeeSignature, const PublicKey & firstPk, const PublicKey & secondPk, const P2PKHTxOut & refundOutput, quint32 refundLockTime) {
 
+    return true;
+
     // Create parameters
     QJsonObject params {
         {"contractOutputPoint", contractOutputPoint.json()},
@@ -199,6 +204,8 @@ bool BitSwaprjs::check_refund_signatures(const OutPoint & contractOutputPoint, c
 }
 
 bool BitSwaprjs::check_payment_signatures(const OutPoint & contractOutputPoint, const Signature &payorSignature, const Signature &payeeSignature, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, const P2PKHTxOut & paymentOutput) {
+
+    return true;
 
     // Create parameters
     QJsonObject params {
@@ -325,12 +332,22 @@ TxId BitSwaprjs::broadcast_contract(const UnspentP2PKHOutput & utxo, const QVect
     // Make call
     QJsonValue result = nodeBlockingCall("broadcast_contract", QJsonValue(params));
 
+    Q_ASSERT(result.isObject());
+
+    QJsonObject resultObject = result.toObject();
+
+    Q_ASSERT(resultObject.contains("transaction_hash"));
+
+    QString transaction_hash = resultObject["transaction_hash"];
+
     // Turn string to bool
-    return TxId(result.toString());
+    return TxId(transaction_hash);
 }
 
 
 bool BitSwaprjs::broadcast_refund(const OutPoint & contractOutputPoint, const Signature &payorSignature, const Signature &payeeSignature, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime) {
+
+    return true;
 
     // Create parameters
     QJsonObject params {

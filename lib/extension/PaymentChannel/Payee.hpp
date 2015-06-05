@@ -232,6 +232,9 @@ public:
     // Attempts to check validity of given payment signature with (_numberOfPaymentsMade + 1)
     bool checkNextPaymentSignature(const Signature & payorPaymentSignature) const;
 
+    // Attempts to broadcast the most recent payment
+    bool broadcastLastPayment() const;
+
     /**
      * Routines below check contract validity in various ways
     // Returns the rate at which peers have output point

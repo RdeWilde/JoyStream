@@ -796,6 +796,19 @@ void SellerPeerPlugin::close_connection() {
     _connection->disconnect(_deletionErrorCode);
 }
 
+void SellerPeerPlugin::tryToClaimPayment() {
+
+    Q_ASSERT(_clientState == SellerPeerPlugin::ClientState::awaiting_payment ||
+             _clientState == SellerPeerPlugin::ClientState::awaiting_piece_request_after_payment ||
+             _clientState == SellerPeerPlugin::ClientState::reading_piece_from_disk);
+
+    qCDebug(_category) << "Trying to claim peer plugin payment";
+
+    // Try to broadcast payment
+    _payee.broadcastLastPayment();
+
+}
+
 SellerPeerPlugin::Status SellerPeerPlugin::status() const {
 
     return Status(_peerModeAnnounced,

@@ -484,6 +484,20 @@ void SellerTorrentPlugin::on_peer_plugin_disconnect(SellerPeerPlugin * peerPlugi
         // Send alert for peer plugin removal
         sendTorrentPluginAlert(SellerPeerPluginRemovedAlert(_torrent->info_hash(), sharedPtr->endPoint()));
 
+        // Try to clo
+        SellerPeerPlugin::ClientState clientState = peerPlugin->clientState();
+
+        if(clientState == SellerPeerPlugin::ClientState::awaiting_payment ||
+           clientState == SellerPeerPlugin::ClientState::awaiting_piece_request_after_payment ||
+           clientState == SellerPeerPlugin::ClientState::reading_piece_from_disk) {
+
+            // Make ONE stab at claiming payment
+            peerPlugin->tryToClaimPayment();
+
+            // Alter state
+            peerPlugin->setClientState(SellerPeerPlugin::ClientState::trying_to_claim_last_payment);
+        }
+
     } else {
 
         /**
