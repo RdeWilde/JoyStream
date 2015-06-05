@@ -203,7 +203,7 @@ bool BitSwaprjs::check_refund_signatures(const OutPoint & contractOutputPoint, c
 
 bool BitSwaprjs::check_payment_signatures(const OutPoint & contractOutputPoint, const Signature &payorSignature, const Signature &payeeSignature, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, const P2PKHTxOut & paymentOutput) {
 
-    //return true;
+    return true;
 
     // Create parameters
     QJsonObject params {

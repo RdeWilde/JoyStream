@@ -161,13 +161,14 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet)
     // Accept drag and drop
     setAcceptDrops(true);
 
-    // Capure wallet balance update timer, and have i fire every 5s
+    // Capure wallet balance update timer,
     connect(&_walletBalanceUpdateTimer,
             SIGNAL(timeout()),
             this,
             SLOT(updateWalletBalanceHook()));
 
-    _walletBalanceUpdateTimer.start(5000);
+    // and have i fire every 30s
+    _walletBalanceUpdateTimer.start(30000);
 }
 
 MainWindow::~MainWindow() {
