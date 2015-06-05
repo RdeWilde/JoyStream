@@ -64,13 +64,13 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet)
     QPixmap iconMap("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/BitSwapr_mark_32.png");
     setWindowIcon(iconMap);
 
-    QPixmap addIcon("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/add.png");
+    QPixmap addIcon("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/Add_button_inside_black_circle_32.png");
     ui->addTorrentFilePushButton->setIcon(addIcon);
 
-    QPixmap walletIcon("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/wallet.png");
+    QPixmap walletIcon("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/Bitcoin_pocket_or_wallet_32.png");
     ui->walletPushButton->setIcon(walletIcon);
 
-    QPixmap settingsIcon("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/settings.png");
+    QPixmap settingsIcon("C:/Users/Sindre/Documents/GitHub/QtBitSwapr/views/gui/src/images/Settings_Work_Tool_32.png");
     ui->settingsPushButton->setIcon(settingsIcon);
 
     /**

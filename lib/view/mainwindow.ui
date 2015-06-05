@@ -28,9 +28,9 @@
     <property name="geometry">
      <rect>
       <x>18</x>
-      <y>30</y>
-      <width>93</width>
-      <height>33</height>
+      <y>14</y>
+      <width>50</width>
+      <height>50</height>
      </rect>
     </property>
     <property name="font">
@@ -39,14 +39,20 @@
      </font>
     </property>
     <property name="text">
-     <string>Add</string>
+     <string/>
+    </property>
+    <property name="iconSize">
+     <size>
+      <width>64</width>
+      <height>64</height>
+     </size>
     </property>
    </widget>
    <widget class="QPushButton" name="addMagnetLinkPushButton">
     <property name="geometry">
      <rect>
-      <x>254</x>
-      <y>72</y>
+      <x>260</x>
+      <y>60</y>
       <width>17</width>
       <height>17</height>
      </rect>
@@ -64,7 +70,7 @@
     <property name="geometry">
      <rect>
       <x>540</x>
-      <y>22</y>
+      <y>16</y>
       <width>150</width>
       <height>31</height>
      </rect>
@@ -88,7 +94,7 @@
     <property name="geometry">
      <rect>
       <x>652</x>
-      <y>50</y>
+      <y>44</y>
       <width>41</width>
       <height>19</height>
      </rect>
@@ -106,7 +112,7 @@
     <property name="geometry">
      <rect>
       <x>712</x>
-      <y>16</y>
+      <y>10</y>
       <width>3</width>
       <height>61</height>
      </rect>
@@ -119,7 +125,7 @@
     <property name="geometry">
      <rect>
       <x>844</x>
-      <y>50</y>
+      <y>44</y>
       <width>35</width>
       <height>19</height>
      </rect>
@@ -137,7 +143,7 @@
     <property name="geometry">
      <rect>
       <x>724</x>
-      <y>22</y>
+      <y>16</y>
       <width>150</width>
       <height>27</height>
      </rect>
@@ -155,7 +161,7 @@
     <property name="geometry">
      <rect>
       <x>896</x>
-      <y>16</y>
+      <y>10</y>
       <width>3</width>
       <height>61</height>
      </rect>
@@ -168,7 +174,7 @@
     <property name="geometry">
      <rect>
       <x>906</x>
-      <y>22</y>
+      <y>16</y>
       <width>150</width>
       <height>33</height>
      </rect>
@@ -189,7 +195,7 @@
     <property name="geometry">
      <rect>
       <x>1012</x>
-      <y>50</y>
+      <y>44</y>
       <width>45</width>
       <height>19</height>
      </rect>
@@ -206,10 +212,10 @@
    <widget class="QPushButton" name="walletPushButton">
     <property name="geometry">
      <rect>
-      <x>132</x>
-      <y>30</y>
-      <width>91</width>
-      <height>33</height>
+      <x>88</x>
+      <y>14</y>
+      <width>50</width>
+      <height>50</height>
      </rect>
     </property>
     <property name="font">
@@ -218,16 +224,22 @@
      </font>
     </property>
     <property name="text">
-     <string>Wallet</string>
+     <string/>
+    </property>
+    <property name="iconSize">
+     <size>
+      <width>64</width>
+      <height>64</height>
+     </size>
     </property>
    </widget>
    <widget class="QPushButton" name="settingsPushButton">
     <property name="geometry">
      <rect>
-      <x>248</x>
-      <y>30</y>
-      <width>91</width>
-      <height>33</height>
+      <x>158</x>
+      <y>14</y>
+      <width>50</width>
+      <height>50</height>
      </rect>
     </property>
     <property name="font">
@@ -236,16 +248,22 @@
      </font>
     </property>
     <property name="text">
-     <string>Settings</string>
+     <string/>
+    </property>
+    <property name="iconSize">
+     <size>
+      <width>64</width>
+      <height>64</height>
+     </size>
     </property>
    </widget>
    <widget class="QTreeView" name="torrentsTable">
     <property name="geometry">
      <rect>
       <x>-2</x>
-      <y>92</y>
+      <y>80</y>
       <width>1075</width>
-      <height>227</height>
+      <height>239</height>
      </rect>
     </property>
     <property name="font">
@@ -260,10 +278,10 @@
    <widget class="Line" name="line_5">
     <property name="geometry">
      <rect>
-      <x>236</x>
+      <x>146</x>
       <y>16</y>
-      <width>3</width>
-      <height>61</height>
+      <width>4</width>
+      <height>47</height>
      </rect>
     </property>
     <property name="orientation">
@@ -273,10 +291,10 @@
    <widget class="Line" name="line_4">
     <property name="geometry">
      <rect>
-      <x>122</x>
+      <x>70</x>
       <y>16</y>
-      <width>3</width>
-      <height>61</height>
+      <width>16</width>
+      <height>47</height>
      </rect>
     </property>
     <property name="orientation">
