@@ -338,7 +338,7 @@ TxId BitSwaprjs::broadcast_contract(const UnspentP2PKHOutput & utxo, const QVect
 
     Q_ASSERT(resultObject.contains("transaction_hash"));
 
-    QString transaction_hash = resultObject["transaction_hash"];
+    QString transaction_hash = resultObject["transaction_hash"].toString();
 
     // Turn string to bool
     return TxId(transaction_hash);
@@ -368,6 +368,8 @@ bool BitSwaprjs::broadcast_refund(const OutPoint & contractOutputPoint, const Si
 }
 
 bool BitSwaprjs::broadcast_payment(const OutPoint & contractOutputPoint, const Signature &payorSignature, const Signature &payeeSignature, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, const P2PKHTxOut & paymentOutput) {
+
+    return true;
 
     // Create parameters
     QJsonObject params {

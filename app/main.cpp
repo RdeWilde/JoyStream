@@ -95,8 +95,8 @@ void main(int argc, char* argv[]) {
      * Load torrent ================================================
      */
 
-    //const char * torrent = "C:/Users/Sindre/Desktop/TORRENTS/RRB.torrent";
-    const char * torrent  = "C:/Users/Sindre/Desktop/TORRENTS/Aint No Love Crucified.mp3.torrent";
+    const char * torrent = "C:/Users/Sindre/Desktop/TORRENTS/RRB.torrent";
+    //const char * torrent  = "C:/Users/Sindre/Desktop/TORRENTS/Aint No Love Crucified.mp3.torrent";
 
     libtorrent::error_code ec;
     libtorrent::torrent_info torrentInfo(torrent, ec);
@@ -173,6 +173,9 @@ void main(int argc, char* argv[]) {
 
         // Amount needed to fund contract (satoshies)
         quint64 minFunds = Payor::minimalFunds(torrentInfo.num_pieces(),maxPrice, seller_count, maxFeePerkB);
+
+        // Synch wallet
+        buyerClient->wallet().synchronize();
 
         // Get funding output - this has to be grabbed from wallet/chain later
         UnspentP2PKHOutput utxo = buyerClient->wallet().getUtxo(minFunds, 1);
