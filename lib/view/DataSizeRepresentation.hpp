@@ -12,7 +12,7 @@ class DataSizeRepresentation
 {
 public:
 
-    // Prefix used for representation,
+    // Prefix used for representation
     // ======================
     // It determines the exponent on the base size
     enum class Prefix {
@@ -67,10 +67,6 @@ public:
     QString toString(Prefix prefix, TextFormat format = TextFormat::Short, int precision = 1) const;
     QString toString(TextFormat format = TextFormat::Short, int precision = 1) const;
 
-    // Static utilities
-    static QString prefixToString(Prefix prefix, TextFormat format = TextFormat::Short);
-    static QString baseToString(Base base, TextFormat format = TextFormat::Short);
-
     // Getters and setters
     quint64 numberOfBaseUnits() const;
     void setNumberOfBaseUnits(quint64 numberOfBaseUnits);
@@ -85,6 +81,10 @@ private:
 
     // Base for representation
     Base _base;
+
+    // Static utilities
+    static QString prefixToString(Prefix prefix, TextFormat format = TextFormat::Short);
+    static QString baseToString(Base base, TextFormat format = TextFormat::Short);
 
     static quint8 prefixToExponent(Prefix prefix);
     static Prefix exponentToPrefix(quint8 power);

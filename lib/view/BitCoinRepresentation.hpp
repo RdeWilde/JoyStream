@@ -1,0 +1,131 @@
+#ifndef BITCOIN_REPRESENTATION_HPP
+#define BITCOIN_REPRESENTATION_HPP
+
+#include <QtGlobal>
+#include <QMap>
+
+class QString;
+
+// Manage crypto currency representaion
+
+class BitCoinRepresentation
+{
+public:
+
+    // Fiat types
+    enum class Fiat {
+        USD,
+        Euro,
+        Pound,
+        Yen
+    };
+
+    // Prefix used for bitcoin
+    // Based on https://en.bitcoin.it/wiki/Units
+    // ======================
+    enum class BitCoinPrefix {
+        Satoshi,    // 10^0
+        //Finney,   // 10^1
+        Micro,      // 10^2, also called: bit
+        Milli,      // 10^5, also called: millibit, millicoin, millie
+        Centi,      // 10^6, also called: bitcent
+        //Deci,     // 10^7
+        None,       // 10^8, 1 BTC
+        //Deca,     // 10^9
+        Kilo,       // 10^(8+3)
+        //Mega      // 10^(8+3+3)
+    };
+
+    // Bitcoin prefix to power bijection
+    static QMap<BitCoinPrefix, int> bitCoinPrefixToPower;
+    static QMap<int, BitCoinPrefix> powerToBitCoinPrefix;
+
+    // Prefix used for fiat currency
+    // Based on http://en.wikipedia.org/wiki/Metric_prefix
+    enum class MetricPrefix {
+        Pico,   // 10^-12
+        Nano,   // 10^-9
+        Micro,  // 10^-6
+        Milli,  // 10^-3
+        Centi,  // 10^-2
+        None    // 10^0 (unity)
+    };
+
+    // Metric prefix to power bijection
+    static QMap<MetricPrefix, int> metricPrefixToPower;
+    static QMap<int, MetricPrefix> powerToMetricPrefix;
+
+    /**
+     * Constructors
+     */
+
+    // Constructor from raw number of satoshies
+    BitCoinRepresentation(quint64 satoshies);
+
+    // Constructor from prefixed crypto currency amount
+    BitCoinRepresentation(BitCoinPrefix prefix, double units);
+
+    // Constructor from fiat
+    // fiatToBTCExchangeRate := number of fiat units BitCoinPrefix::None units of satoshies buys
+    BitCoinRepresentation(double fiatUnits, double fiatToBTCExchangeRate);
+
+    /**
+     * Convert to QString routines
+     */
+
+    // BitCoin representation with best prefix
+    QString toString(int precision = 1) const;
+
+    // Fiat representation with best prefix
+    QString toString(Fiat fiat, double fiatToBTCExchangeRate, int precision = 1) const;
+
+    // Number of BitCoins
+    // Is very useful since dealing with fiat requires dealing with exchange rates,
+    // which are always /btc.
+    quint64 numberOfBTC() const;
+
+private:
+
+    // Raw number of satoshies
+    quint64 _satoshies;
+
+    /**
+     * Prefix processing
+     */
+
+    // Returns best prefix
+    BitCoinPrefix bestPrefix() const;
+    MetricPrefix bestPrefix(double fiatToBTCExchangeRate) const;
+
+    // Computes the significand for given prefix
+    double unitsWithPrefix(BitCoinPrefix prefix) const;
+    double unitsWithPrefix(MetricPrefix prefix, double fiatToBTCExchangeRate) const;
+
+    /**
+     * To string conversion
+     */
+
+    // Find best exponent for
+    // Move into some utilitie wrapper later, shouldnt be here, can be used
+    // by data representation class also
+    static int bestExponent(double raw, quint8 base, const QList<int> & exponents);
+
+    // BitCoin representation with given prefix
+    QString toString(BitCoinPrefix prefix, int precision = 1) const;
+
+    // Fiat representation with given prefix
+    QString toString(Fiat fiat, MetricPrefix prefix, double fiatToBTCExchangeRate, int precision = 1) const;
+
+    // Static utilities
+    static quint64 satoshiesInABTC();
+
+    static QString prefixToString(BitCoinPrefix prefix);
+    static QString prefixToString(MetricPrefix prefix);
+
+    //static quint8 prefixToExponent(BitCoinPrefix prefix);
+    //static int prefixToExponent(MetricPrefix prefix);
+
+    static QString fiatToSymbol(Fiat fiat);
+};
+
+#endif // BITCOIN_REPRESENTATION_HPP

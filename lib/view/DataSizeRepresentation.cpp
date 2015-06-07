@@ -67,6 +67,23 @@ QString DataSizeRepresentation::toString(TextFormat format, int precision) const
     return toString(bestPrefix(), format, precision);
 }
 
+quint64 DataSizeRepresentation::numberOfBaseUnits() const {
+    return _numberOfBaseUnits;
+}
+
+void DataSizeRepresentation::setNumberOfBaseUnits(quint64 quantity) {
+    _numberOfBaseUnits = quantity;
+}
+
+DataSizeRepresentation::Base DataSizeRepresentation::base() const {
+    return _base;
+}
+
+void DataSizeRepresentation::setBase(Base base) {
+    _base = base;
+}
+
+
 QString DataSizeRepresentation::prefixToString(Prefix prefix, TextFormat format) {
 
     switch(prefix) {
@@ -92,22 +109,6 @@ QString DataSizeRepresentation::baseToString(Base base, TextFormat format) {
         default:
             Q_ASSERT(false);
     }
-}
-
-quint64 DataSizeRepresentation::numberOfBaseUnits() const {
-    return _numberOfBaseUnits;
-}
-
-void DataSizeRepresentation::setNumberOfBaseUnits(quint64 quantity) {
-    _numberOfBaseUnits = quantity;
-}
-
-DataSizeRepresentation::Base DataSizeRepresentation::base() const {
-    return _base;
-}
-
-void DataSizeRepresentation::setBase(Base base) {
-    _base = base;
 }
 
 quint8 DataSizeRepresentation::prefixToExponent(Prefix prefix) {

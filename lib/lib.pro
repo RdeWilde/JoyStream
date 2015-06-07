@@ -109,7 +109,8 @@ SOURCES += \
     extension/Alert/SellerPeerPluginRemovedAlert.cpp \
     controller/Stream.cpp \
     extension/Request/ChangeDownloadLocation.cpp \
-    view/DataSizeRepresentation.cpp
+    view/DataSizeRepresentation.cpp \
+    view/BitCoinRepresentation.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -220,7 +221,8 @@ HEADERS += \
     extension/Alert/SellerPeerPluginRemovedAlert.hpp \
     controller/Stream.hpp \
     extension/Request/ChangeDownloadLocation.hpp \
-    view/DataSizeRepresentation.hpp
+    view/DataSizeRepresentation.hpp \
+    view/BitCoinRepresentation.hpp
 				
 FORMS += \
     view/SellerTorrentPluginConfigurationDialog.ui \
