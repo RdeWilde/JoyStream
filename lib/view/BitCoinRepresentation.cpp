@@ -70,6 +70,7 @@ BitCoinRepresentation::BitCoinRepresentation(BitCoinPrefix prefix, double quanti
     // Compute amount of satoshies
     double numberOfSatoshies = pow(10, bitCoinPrefixToPower[prefix]) * quantity;
 
+    /**
     // Check if we get integer number of satoshies, otherwise
     // quanitity has too many decimals for prefix.
     // NB!: Is this safe? what about floating point magic
@@ -77,6 +78,11 @@ BitCoinRepresentation::BitCoinRepresentation(BitCoinPrefix prefix, double quanti
         throw std::exception("Invalid representation provided, does not give integer quanitity of satoshies.");
     else
         _satoshies = static_cast<quint64>(numberOfSatoshies);
+    */
+
+    // THERE IS NO GOOD WAY TO DEAL WITH BROKEN FLOATS COMING FROM BTC EXCHANGE RATES
+    // SO WE JUST ROUND
+    _satoshies = static_cast<quint64>(numberOfSatoshies);
 }
 
 BitCoinRepresentation::BitCoinRepresentation(MetricPrefix prefix, double fiatUnits, double fiatToBTCExchangeRate)
