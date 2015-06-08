@@ -79,8 +79,8 @@ BitCoinRepresentation::BitCoinRepresentation(BitCoinPrefix prefix, double quanti
         _satoshies = static_cast<quint64>(numberOfSatoshies);
 }
 
-BitCoinRepresentation::BitCoinRepresentation(double fiatUnits, double fiatToBTCExchangeRate)
-    : BitCoinRepresentation(BitCoinPrefix::None, fiatUnits/fiatToBTCExchangeRate){
+BitCoinRepresentation::BitCoinRepresentation(MetricPrefix prefix, double fiatUnits, double fiatToBTCExchangeRate)
+    : BitCoinRepresentation(BitCoinPrefix::None, (pow(10, metricPrefixToPower[prefix]) * fiatUnits)/fiatToBTCExchangeRate){
 }
 
 BitCoinRepresentation::BitCoinPrefix BitCoinRepresentation::bestPrefix() const {
@@ -205,9 +205,18 @@ double BitCoinRepresentation::numberOfBTC() const {
     return numberOfBitCoins;
 }
 
+quint64 BitCoinRepresentation::satoshies() const {
+    return _satoshies;
+}
+
+void BitCoinRepresentation::setSatoshies(quint64 satoshies) {
+    _satoshies = satoshies;
+}
+
 QString BitCoinRepresentation::prefixToString(BitCoinPrefix prefix) {
 
     switch(prefix) {
+
         case BitCoinPrefix::Satoshi: return "s";
         case BitCoinPrefix::Micro: return "μ";
         case BitCoinPrefix::Milli: return "m";

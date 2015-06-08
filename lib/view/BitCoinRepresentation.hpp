@@ -10,6 +10,7 @@ class QString;
 class BitCoinDisplaySettings;
 
 // Manage crypto currency representaion
+// Should probably just have static routines
 class BitCoinRepresentation
 {
 public:
@@ -61,7 +62,7 @@ public:
 
     // Constructor from fiat
     // fiatToBTCExchangeRate := number of fiat units BitCoinPrefix::None units of satoshies buys
-    BitCoinRepresentation(double fiatUnits, double fiatToBTCExchangeRate);
+    BitCoinRepresentation(MetricPrefix prefix, double fiatUnits, double fiatToBTCExchangeRate);
 
     /**
      * Convert to QString routines
@@ -80,6 +81,9 @@ public:
     // Is very useful since dealing with fiat requires dealing with exchange rates,
     // which are always /btc.
     double numberOfBTC() const;
+
+    quint64 satoshies() const;
+    void setSatoshies(quint64 satoshies);
 
 private:
 

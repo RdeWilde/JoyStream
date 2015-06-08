@@ -119,7 +119,7 @@ void main(int argc, char* argv[]) {
     bool buyer_use_stdout_logg = buyer_show_gui;
 
     // Number of sellers
-    int seller_count = 1;
+    int seller_count = 0;
     bool seller_show_gui = true;
     bool seller_use_stdout_logg = seller_show_gui;
 
@@ -187,6 +187,7 @@ void main(int argc, char* argv[]) {
                                                         maxFeePerkB,
                                                         seller_count);
 
+        /**
         // Check that an utxo was indeed found
         if(utxo.value() == 0) {
             qDebug() << "No utxo found with value no less than:" << minFunds;
@@ -196,6 +197,7 @@ void main(int argc, char* argv[]) {
             // Add to client
             buyerClient->addTorrent(buyerTorrentConfiguration, configuration, utxo);
         }
+        */
 
         // Track controller
         controllerTracker.addClient(buyerClient);

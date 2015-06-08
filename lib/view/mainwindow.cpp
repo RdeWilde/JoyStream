@@ -47,8 +47,8 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet)
     , _controller(controller)
     , _wallet(wallet)
     , _torrentTableViewModel(0, 6)
-    , _walletBalanceUpdateTimer() {
-    //, _bitcoinDisplaySettings(Fiat::USD, 225) {
+    , _walletBalanceUpdateTimer()
+    , _bitcoinDisplaySettings(Fiat::USD, 225) {
 
     ui->setupUi(this);
 
@@ -236,13 +236,13 @@ void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torre
     } else if (msgBox.clickedButton() == buyerPushButton) {
 
         //Show buyer configuration dialog
-        BuyerTorrentPluginConfigurationDialog buyerTorrentPluginConfigurationDialog(_controller, _wallet, torrentInfo);
+        BuyerTorrentPluginConfigurationDialog buyerTorrentPluginConfigurationDialog(_controller, _wallet, torrentInfo, &_bitcoinDisplaySettings);
         buyerTorrentPluginConfigurationDialog.exec();
 
     } else if (msgBox.clickedButton() == sellerPushButton) {
 
         //Show seller configuration dialog
-        SellerTorrentPluginConfigurationDialog sellerTorrentPluginConfigurationDialog(_controller, _wallet, torrentInfo);
+        SellerTorrentPluginConfigurationDialog sellerTorrentPluginConfigurationDialog(_controller, _wallet, torrentInfo, &_bitcoinDisplaySettings);
         sellerTorrentPluginConfigurationDialog.exec();
     }
 }
@@ -528,7 +528,7 @@ void MainWindow::on_walletPushButton_clicked() {
 
 void MainWindow::torrentTableClicked(const QModelIndex & index) {
 
-    // Get torrent view model for torrent clicked on
+    // Get torrent view mod el for torrent clicked on
     //TorrentViewModel * torrentViewModel = torrentViewModelInTableRow(index.row());
     //qCCritical() << "Clicked torrent with info hash"<< _rowToInfoHash[index.row()].to_string().c_str();
 }

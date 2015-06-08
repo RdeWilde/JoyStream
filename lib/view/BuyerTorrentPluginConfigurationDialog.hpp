@@ -12,6 +12,7 @@ class BuyerTorrentPluginConfigurationDialog;
 
 class Controller;
 class Wallet;
+class BitCoinDisplaySettings;
 
 class BuyerTorrentPluginConfigurationDialog : public QDialog
 {
@@ -21,7 +22,7 @@ public:
 
     //explicit BuyerTorrentPluginConfigurationDialog(QWidget *parent = 0);
 
-    BuyerTorrentPluginConfigurationDialog(Controller * controller, Wallet * wallet, const libtorrent::torrent_info & torrentInfo);
+    BuyerTorrentPluginConfigurationDialog(Controller * controller, Wallet * wallet, const libtorrent::torrent_info & torrentInfo, const BitCoinDisplaySettings * settings);
 
     // Destructor
     ~BuyerTorrentPluginConfigurationDialog();
@@ -45,6 +46,8 @@ private:
     Wallet * _wallet;
 
     libtorrent::torrent_info _torrentInfo;
+
+    const BitCoinDisplaySettings * _settings;
 
     // Derives maxPrice, for given torrent and parameters
     quint64 maxPriceFromTotalSpend(quint64 maxTotalSpend, int numberOfSellers, quint64 feePerkB);
