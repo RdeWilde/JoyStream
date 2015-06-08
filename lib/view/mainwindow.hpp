@@ -6,6 +6,8 @@
 #include "extension/BuyerTorrentPlugin.hpp" // BuyerTorrentPlugin::Status
 #include "extension/SellerTorrentPlugin.hpp" // SellerTorrentPlugin::Status
 
+#include "BitCoinDisplaySettings.hpp"
+
 #include <QMainWindow>
 #include <QStandardItemModel>
 
@@ -139,6 +141,9 @@ private:
 
     // Complete hack, will be event driven later, only for demo on 05.06.2015
     QTimer _walletBalanceUpdateTimer;
+
+    // How bitcoin should be displayed in entire view
+    BitCoinDisplaySettings _bitcoinDisplaySettings;
 
     // Uses _rowToViewMapping to lookup view in _torrentViews
     TorrentView * rowToView(int row);

@@ -9,6 +9,7 @@
 
 class QStandardItem;
 class SellerPeerPluginViewModel;
+class BitCoinDisplaySettings;
 
 class SellerPeerPluginView : public QObject
 {
@@ -18,6 +19,7 @@ public:
     // Constructor
     SellerPeerPluginView(QObject *parent,
                          const SellerPeerPluginViewModel * peerModel,
+                         const BitCoinDisplaySettings * settings,
                          QStandardItem * endPointItem,
                          QStandardItem * clientStateItem,
                          QStandardItem * contractOutPointItem,
@@ -31,11 +33,11 @@ public:
     static QString endPointToString(const libtorrent::tcp::endpoint & endPoint);
     static QString clientStateToString(SellerPeerPlugin::ClientState state);
     static QString contractOutPointString(const OutPoint & o);
-    static QString fundsToString(quint64 funds);
+    QString fundsToString(quint64 funds);
     static QString refundLockTimeString(quint32 refundLockTime);
-    static QString priceToString(quint64 price);
+    QString priceToString(quint64 price);
     static QString numberOfPaymentMadeToString(quint32 numberOfPaymentMade);
-    static QString balanceToString(quint32 balance);
+    QString balanceToString(quint32 balance);
 
     // Getters and setters
     QStandardItem *endPointItem() const;
@@ -79,6 +81,9 @@ public slots:
     void updateBalance(quint32 balance);
 
 private:
+
+    // Display settings for bitcoin
+    const BitCoinDisplaySettings * _settings;
 
     // View model pointers
     // Objects are owned by QStandardItemModel passed to ctr

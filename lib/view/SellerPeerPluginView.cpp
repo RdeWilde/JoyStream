@@ -1,5 +1,6 @@
 #include "SellerPeerPluginView.hpp"
 #include "controller/SellerPeerPluginViewModel.hpp"
+#include "BitCoinRepresentation.hpp"
 
 #include <libtorrent/socket_io.hpp> // print_endpoint
 
@@ -7,6 +8,7 @@
 
 SellerPeerPluginView::SellerPeerPluginView(QObject * parent,
                                            const SellerPeerPluginViewModel * peerModel,
+                                           const BitCoinDisplaySettings * settings,
                                            QStandardItem * endPointItem,
                                            QStandardItem * clientStateItem,
                                            QStandardItem * contractOutPointItem,
@@ -16,6 +18,7 @@ SellerPeerPluginView::SellerPeerPluginView(QObject * parent,
                                            QStandardItem * numberOfPaymentMadeItem,
                                            QStandardItem * balanceItem)
     : QObject(parent)
+    , _settings(settings)
     , _endPointItem(endPointItem)
     , _clientStateItem(clientStateItem)
     , _contractOutPointItem(contractOutPointItem)
@@ -145,7 +148,8 @@ QString SellerPeerPluginView::contractOutPointString(const OutPoint & o) {
 }
 
 QString SellerPeerPluginView::fundsToString(quint64 funds) {
-    return QString::number(funds) + "Ƀ";
+    //return QString::number(funds) + "Ƀ";
+    return BitCoinRepresentation(funds).toString(_settings);
 }
 
 QString SellerPeerPluginView::refundLockTimeString(quint32 refundLockTime) {
@@ -153,7 +157,8 @@ QString SellerPeerPluginView::refundLockTimeString(quint32 refundLockTime) {
 }
 
 QString SellerPeerPluginView::priceToString(quint64 price) {
-    return QString::number(price) + "Ƀ";
+    //return QString::number(price) + "Ƀ";
+    return BitCoinRepresentation(price).toString(_settings);
 }
 
 QString SellerPeerPluginView::numberOfPaymentMadeToString(quint32 numberOfPaymentMade) {
@@ -161,7 +166,8 @@ QString SellerPeerPluginView::numberOfPaymentMadeToString(quint32 numberOfPaymen
 }
 
 QString SellerPeerPluginView::balanceToString(quint32 balance) {
-return QString::number(balance) + "Ƀ";
+    //return QString::number(balance) + "Ƀ";
+    return BitCoinRepresentation(balance).toString(_settings);
 }
 
 void SellerPeerPluginView::updateEndPoint(const libtorrent::tcp::endpoint & endPoint) {

@@ -13,6 +13,7 @@ class SellerTorrentPluginDialog;
 class SellerTorrentPluginViewModel;
 class SellerPeerPluginViewModel;
 class SellerPeerPluginView;
+class BitCoinDisplaySettings;
 
 class SellerTorrentPluginDialog : public QDialog
 {
@@ -22,13 +23,14 @@ public:
 
     // Constructor
     SellerTorrentPluginDialog(QWidget * parent,
-                              const SellerTorrentPluginViewModel * model);
+                              const SellerTorrentPluginViewModel * model,
+                              const BitCoinDisplaySettings * settings);
 
     // Destructor
     ~SellerTorrentPluginDialog();
 
     // Text conversion routines
-    static QString minPriceToString(quint64 minPrice);
+    static QString minPriceToString(quint64 minPrice, const BitCoinDisplaySettings * settings);
     static QString minLockTimeToString(quint32 minLockTime);
     static QString minFeePerkBToString(quint64 minFeePerByte);
 
@@ -56,6 +58,9 @@ public slots:
 private:
 
     Ui::SellerTorrentPluginDialog *ui;
+
+    // Display settings
+    const BitCoinDisplaySettings * _settings;
 
     // Seller peer plugin table view model
     QStandardItemModel _sellerPeerPluginTableViewModel;

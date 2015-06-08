@@ -12,6 +12,7 @@ enum class PluginInstalled;
 class TorrentViewModel;
 class BuyerTorrentPluginViewModel;
 class SellerTorrentPluginViewModel;
+class BitCoinDisplaySettings;
 
 namespace libtorrent {
     struct torrent_status;
@@ -26,6 +27,7 @@ public:
     // Constructor
     TorrentView(QObject * parent,
                 const TorrentViewModel * torrentViewModel,
+                const BitCoinDisplaySettings * settings,
                 QStandardItem * nameItem,
                 QStandardItem * sizeItem,
                 QStandardItem * stateItem,
@@ -41,7 +43,7 @@ public:
     static QString torrentStateToString(bool paused, libtorrent::torrent_status::state_t state, float progress);
     static QString speedToString(int downloadRate, int uploadRate);
     static QString peersToString(int numberOfPeers, int numberOfPeersWithExtension);
-    static QString balanceToString(qint64 balance);
+    static QString balanceToString(qint64 balance, const BitCoinDisplaySettings * settings);
 
 public slots:
 
@@ -57,6 +59,7 @@ public slots:
     void updateNumberOfBuyers(quint32 num);
     void updateNumberOfSellers(quint32 num);
     void updateBalance(qint64 balance);
+
 
     // Popup context menu in given point
     void showContextMenu(const QPoint & point);
@@ -93,6 +96,9 @@ private:
     // Info hash of torrent
     // Is required to send signals based on user interaction
     libtorrent::sha1_hash _infoHash;
+
+    // Display settings for bitcoin
+    const BitCoinDisplaySettings * _settings;
 
     // Plugin installed on torrent
     // Has to be kept around since it informs how

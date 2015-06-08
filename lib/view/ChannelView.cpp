@@ -1,21 +1,25 @@
 #include "ChannelView.hpp"
 #include "controller/ChannelViewModel.hpp"
+#include "BitCoinDisplaySettings.hpp"
+#include "BitCoinRepresentation.hpp"
 
 #include <QStandardItem>
 #include <QStandardItemModel>
 
 ChannelView::ChannelView(QObject * parent,
                          const ChannelViewModel * channelViewModel,
-                         QStandardItemModel * model)
+                         QStandardItemModel * model,
+                         const BitCoinDisplaySettings * settings)
     : QObject(parent)
+    , _settings(settings)
     , _index(channelViewModel->index())
     , _indexItem(new QStandardItem(QString::number(_index)))
     , _stateItem(new QStandardItem(stateToString(channelViewModel->status().state())))
-    , _fundsItem(new QStandardItem(fundsToString(channelViewModel->status().funds())))
+    , _fundsItem(new QStandardItem(fundsToString(channelViewModel->status().funds(), settings)))
     , _refundLockTimeItem(new QStandardItem(refundLockTimeToString(channelViewModel->status().refundLockTime())))
-    , _priceItem(new QStandardItem(priceToString(channelViewModel->status().price())))
+    , _priceItem(new QStandardItem(priceToString(channelViewModel->status().price(), settings)))
     , _numberOfPaymentMadeItem(new QStandardItem(numberOfPaymentsMadeToString(channelViewModel->status().numberOfPaymentsMade())))
-    , _balanceItem(new QStandardItem(balanceToString(channelViewModel->status().price() * channelViewModel->status().numberOfPaymentsMade()))) {
+    , _balanceItem(new QStandardItem(balanceToString(channelViewModel->status().price() * channelViewModel->status().numberOfPaymentsMade(), settings))) {
 
     // Add row to model
     QList<QStandardItem *> items;
@@ -91,24 +95,27 @@ QString ChannelView::stateToString(Payor::Channel::State state) {
     return text;
 }
 
-QString ChannelView::fundsToString(quint64 funds) {
-    return QString::number(funds) + "Ƀ";
+QString ChannelView::fundsToString(quint64 funds, const BitCoinDisplaySettings * settings) {
+    //return QString::number(funds) + "Ƀ";
+    return BitCoinRepresentation(funds).toString(settings);
 }
 
 QString ChannelView::refundLockTimeToString(quint32 refundLockTime) {
     return QString::number(refundLockTime) + "s";
 }
 
-QString ChannelView::priceToString(quint64 price) {
-    return QString::number(price) + "Ƀ";
+QString ChannelView::priceToString(quint64 price, const BitCoinDisplaySettings * settings) {
+    //return QString::number(price) + "Ƀ";
+    return BitCoinRepresentation(price).toString(settings);
 }
 
 QString ChannelView::numberOfPaymentsMadeToString(quint64 numberOfPaymentsMade) {
     return QString::number(numberOfPaymentsMade);
 }
 
-QString ChannelView::balanceToString(quint64 balance) {
-    return QString::number(balance) + "Ƀ";
+QString ChannelView::balanceToString(quint64 balance, const BitCoinDisplaySettings * settings) {
+    //return QString::number(balance) + "Ƀ";
+    return BitCoinRepresentation(balance).toString(settings);
 }
 
 void ChannelView::updateState(Payor::Channel::State state) {
@@ -116,7 +123,7 @@ void ChannelView::updateState(Payor::Channel::State state) {
 }
 
 void ChannelView::updateFunds(quint64 funds) {
-    _fundsItem->setText(fundsToString(funds));
+    _fundsItem->setText(fundsToString(funds, _settings));
 }
 
 void ChannelView::updateRefundLockTime(quint32 refundLockTime) {
@@ -124,7 +131,7 @@ void ChannelView::updateRefundLockTime(quint32 refundLockTime) {
 }
 
 void ChannelView::updatePrice(quint64 price) {
-    _priceItem->setText(priceToString(price));
+    _priceItem->setText(priceToString(price, _settings));
 }
 
 void ChannelView::updateNumberOfPaymentsMade(quint64 numberOfPaymentsMade) {
@@ -132,5 +139,5 @@ void ChannelView::updateNumberOfPaymentsMade(quint64 numberOfPaymentsMade) {
 }
 
 void ChannelView::updateBalance(quint64 balance) {
-    _balanceItem->setText(balanceToString(balance));
+    _balanceItem->setText(balanceToString(balance, _settings));
 }

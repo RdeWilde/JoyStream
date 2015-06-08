@@ -3,11 +3,14 @@
 #include "controller/SellerTorrentPluginViewModel.hpp"
 #include "controller/BuyerTorrentPluginViewModel.hpp"
 #include "DataSizeRepresentation.hpp"
+#include "BitCoinRepresentation.hpp"
+#include "BitCoinDisplaySettings.hpp"
 
 #include <QStandardItem>
 
 TorrentView::TorrentView(QObject * parent,
                          const TorrentViewModel * torrentViewModel,
+                         const BitCoinDisplaySettings * settings,
                          QStandardItem * nameItem,
                          QStandardItem * sizeItem,
                          QStandardItem * stateItem,
@@ -18,6 +21,7 @@ TorrentView::TorrentView(QObject * parent,
                          QStandardItem * balanceItem)
     : QObject(parent)
     , _infoHash(torrentViewModel->infoHash())
+    , _settings(settings)
     , _nameItem(nameItem)
     , _sizeItem(sizeItem)
     , _stateItem(stateItem)
@@ -200,13 +204,9 @@ QString TorrentView::peersToString(int numberOfPeers, int numberOfPeersWithExten
     return QString::number(numberOfPeers) + QString(" | ") + QString::number(numberOfPeersWithExtension);
 }
 
-QString TorrentView::balanceToString(qint64 balance) {
-
-    if(balance == 0)
-        return "0";
-    else {
-        return QString::number(balance) + "Ƀ";
-    }
+QString TorrentView::balanceToString(qint64 balance, const BitCoinDisplaySettings * settings) {
+    //return BitCoinRepresentation(balance).toString(BitCoinRepresentation::Fiat::USD, rate);
+    return  BitCoinRepresentation(balance).toString(settings);
 }
 
 void TorrentView::updatePluginInstalled(PluginInstalled pluginInstalled) {
@@ -278,7 +278,6 @@ void TorrentView::updateStartedSellerTorrentPlugin(const SellerTorrentPluginView
                      SLOT(updateBalance(qint64)));
 }
 
-
 void TorrentView::updateStatus(const libtorrent::torrent_status & status) {
 
     // name
@@ -312,7 +311,7 @@ void TorrentView::updateNumberOfSellers(quint32 num) {
 }
 
 void TorrentView::updateBalance(qint64 balance) {
-    _balanceItem->setText(balanceToString(balance));
+    _balanceItem->setText(balanceToString(balance, _settings));
 }
 
 void TorrentView::showContextMenu(const QPoint & point) {

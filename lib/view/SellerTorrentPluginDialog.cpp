@@ -1,16 +1,20 @@
 #include "SellerTorrentPluginDialog.hpp"
 #include "ui_SellerTorrentPluginDialog.h"
 #include "controller/SellerTorrentPluginViewModel.hpp"
+#include "BitCoinDisplaySettings.hpp"
 #include "controller/SellerPeerPluginViewModel.hpp"
 #include "SellerPeerPluginView.hpp"
+#include "BitCoinRepresentation.hpp"
 
 #include "extension/BitCoin/BitCoin.hpp"
 #include "Utilities.hpp" // time conversion
 
 SellerTorrentPluginDialog::SellerTorrentPluginDialog(QWidget * parent,
-                                                     const SellerTorrentPluginViewModel * model)
+                                                     const SellerTorrentPluginViewModel * model,
+                                                     const BitCoinDisplaySettings * settings)
     : QDialog(parent)
-    , ui(new Ui::SellerTorrentPluginDialog) {
+    , ui(new Ui::SellerTorrentPluginDialog)
+    , _settings(settings) {
 
     ui->setupUi(this);
 
@@ -99,8 +103,9 @@ SellerTorrentPluginDialog::~SellerTorrentPluginDialog() {
     delete ui;
 }
 
-QString SellerTorrentPluginDialog::minPriceToString(quint64 minPrice) {
-    return QString::number(minPrice);
+QString SellerTorrentPluginDialog::minPriceToString(quint64 minPrice, const BitCoinDisplaySettings * settings) {
+    //return QString::number(minPrice);
+    return BitCoinRepresentation(minPrice).toString(settings);
 }
 
 QString SellerTorrentPluginDialog::minLockTimeToString(quint32 minLockTime) {
@@ -145,6 +150,7 @@ void SellerTorrentPluginDialog::addPeer(const SellerPeerPluginViewModel * model)
     // Create peer view
     _sellerPeerPluginViews[endPoint] = new SellerPeerPluginView(this,
                                                                 model,
+                                                                _settings,
                                                                 endPointItem,
                                                                 clientStateItem,
                                                                 contractOutPointItem,
@@ -167,7 +173,7 @@ void SellerTorrentPluginDialog::removePeer(const libtorrent::tcp::endpoint & end
 }
 
 void SellerTorrentPluginDialog::updateMinPrice(quint64 minPrice) {
-    ui->minPriceLineEdit->setText(minPriceToString(minPrice));
+    ui->minPriceLineEdit->setText(minPriceToString(minPrice, _settings));
 }
 
 void SellerTorrentPluginDialog::updateMinLockTime(quint32 minLockTime) {

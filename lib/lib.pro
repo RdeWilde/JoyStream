@@ -110,7 +110,8 @@ SOURCES += \
     controller/Stream.cpp \
     extension/Request/ChangeDownloadLocation.cpp \
     view/DataSizeRepresentation.cpp \
-    view/BitCoinRepresentation.cpp
+    view/BitCoinRepresentation.cpp \
+    view/BitCoinDisplaySettings.cpp
 		
 HEADERS += \
     controller/Controller.hpp \
@@ -222,7 +223,9 @@ HEADERS += \
     controller/Stream.hpp \
     extension/Request/ChangeDownloadLocation.hpp \
     view/DataSizeRepresentation.hpp \
-    view/BitCoinRepresentation.hpp
+    view/BitCoinRepresentation.hpp \
+    view/BitCoinDisplaySettings.hpp \
+    view/Fiat.hpp
 				
 FORMS += \
     view/SellerTorrentPluginConfigurationDialog.ui \

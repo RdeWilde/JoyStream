@@ -2,6 +2,7 @@
 #include "ui_BuyerTorrentPluginDialog.h"
 
 #include "controller/BuyerTorrentPluginViewModel.hpp"
+#include "BitCoinDisplaySettings.hpp"
 #include "controller/BuyerPeerPluginViewModel.hpp"
 #include "ChannelView.hpp"
 #include "BuyerPeerPluginView.hpp"
@@ -13,9 +14,11 @@
  */
 
 BuyerTorrentPluginDialog::BuyerTorrentPluginDialog(QWidget * parent,
-                                                   const BuyerTorrentPluginViewModel * model)
+                                                   const BuyerTorrentPluginViewModel * model,
+                                                   const BitCoinDisplaySettings * settings)
     : QDialog(parent)
-    , ui(new Ui::BuyerTorrentDialog) {
+    , ui(new Ui::BuyerTorrentDialog)
+    , _settings(settings) {
 
     // Setup Qt ui
     ui->setupUi(this);
@@ -101,7 +104,7 @@ BuyerTorrentPluginDialog::BuyerTorrentPluginDialog(QWidget * parent,
         i = channelViewModels.constBegin(),
         end = channelViewModels.constEnd();
         i != end;i++)
-        _channelViews.append(new ChannelView(this, *i, &_channelTableViewModel));
+        _channelViews.append(new ChannelView(this, *i, &_channelTableViewModel, _settings));
 
     // Set model for channels table
     ui->channelsTableView->setModel(&_channelTableViewModel);

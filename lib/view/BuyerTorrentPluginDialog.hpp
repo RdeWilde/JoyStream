@@ -14,6 +14,7 @@ class BuyerTorrentPluginViewModel;
 class ChannelView;
 class BuyerPeerPluginView;
 class BuyerPeerPluginViewModel;
+class BitCoinDisplaySettings;
 
 class BuyerTorrentPluginDialog : public QDialog
 {
@@ -23,7 +24,8 @@ public:
 
     // Constructor
     BuyerTorrentPluginDialog(QWidget * parent,
-                             const BuyerTorrentPluginViewModel * model);
+                             const BuyerTorrentPluginViewModel * model,
+                             const BitCoinDisplaySettings * settings);
 
     // Text conversion routines
     static QString pluginStateToString(BuyerTorrentPlugin::State state);
@@ -56,6 +58,9 @@ public slots:
 private:
 
     Ui::BuyerTorrentDialog *ui;
+
+    // Display settings for bitcoins
+    const BitCoinDisplaySettings * _settings;
 
     // Payor channel table view model
     QStandardItemModel _channelTableViewModel;

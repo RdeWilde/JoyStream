@@ -7,6 +7,8 @@
 #include "controller/BuyerTorrentPluginViewModel.hpp"
 #include "controller/TorrentViewModel.hpp"
 
+#include "BitCoinRepresentation.hpp"
+
 // Dialogs
 #include "SellerTorrentPluginConfigurationDialog.hpp"
 #include "BuyerTorrentPluginConfigurationDialog.hpp"
@@ -45,7 +47,8 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet)
     , _controller(controller)
     , _wallet(wallet)
     , _torrentTableViewModel(0, 6)
-    , _walletBalanceUpdateTimer() {
+    , _walletBalanceUpdateTimer()
+    , _bitcoinDisplaySettings(Fiat::USD, 225) {
 
     ui->setupUi(this);
 
@@ -277,7 +280,7 @@ void MainWindow::showTorrentPluginDialog(const libtorrent::sha1_hash & infoHash)
 void MainWindow::showSellerTorrentPluginDialog(const SellerTorrentPluginViewModel * model) {
 
     // Create dialog
-    SellerTorrentPluginDialog dialog(this, model);
+    SellerTorrentPluginDialog dialog(this, model, &_bitcoinDisplaySettings);
 
     // Show view
     dialog.exec();
@@ -286,7 +289,7 @@ void MainWindow::showSellerTorrentPluginDialog(const SellerTorrentPluginViewMode
 void MainWindow::showBuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel * model) {
 
     // Create dialog
-    BuyerTorrentPluginDialog dialog(this, model);
+    BuyerTorrentPluginDialog dialog(this, model , &_bitcoinDisplaySettings);
 
     // Show view
     dialog.exec();
@@ -355,6 +358,7 @@ void MainWindow::addTorrent(const TorrentViewModel * model) {
     // Create torrent view model
     TorrentView * view = new TorrentView(this,
                                          model,
+                                         &_bitcoinDisplaySettings,
                                          nameItem,
                                          sizeItem,
                                          stateItem,
@@ -498,13 +502,19 @@ void MainWindow::startedTorrentPlugin(const libtorrent::sha1_hash & infoHash) {
 void MainWindow::updatePluginStatus(const Plugin::Status & status) {
     //ui->balanceLabel->setText(QString::number(p->balance()*1000) + "mBTC");
 
-    ui->spentBalanceLabel->setText(QString::number(status.totalSentSinceStart()) + "Ƀ");
-    ui->earnedBalanceLabel->setText(QString::number(status.totalReceivedSinceStart()) + "Ƀ");
+    QString stringSpentBalance = BitCoinRepresentation(status.totalSentSinceStart()).toString(&_bitcoinDisplaySettings);
+    ui->spentBalanceLabel->setText(stringSpentBalance);
+
+    QString stringEarnedBalance = BitCoinRepresentation(status.totalReceivedSinceStart()).toString(&_bitcoinDisplaySettings);
+    ui->earnedBalanceLabel->setText(stringEarnedBalance);
 }
 
 void MainWindow::updateWalletBalance(quint64 balance) {
     //qCDebug() << "updateWalletBalance" << balance;
-    ui->balanceLabel->setText(QString::number(balance) + "Ƀ");
+
+    QString stringBalance = BitCoinRepresentation(balance).toString(&_bitcoinDisplaySettings);
+
+    ui->balanceLabel->setText(stringBalance);
 }
 
 void MainWindow::on_walletPushButton_clicked() {
@@ -547,12 +557,15 @@ void MainWindow::startVLC(const libtorrent::sha1_hash & infoHash) {
 
 void MainWindow::updateWalletBalanceHook() {
 
+    /**
+
     // Synch with chain
     _wallet->synchronize();
 
     quint64 balance = _wallet->computeBalance(0);
 
     updateWalletBalance(balance);
+    */
 }
 
 TorrentView * MainWindow::rowToView(int row) {

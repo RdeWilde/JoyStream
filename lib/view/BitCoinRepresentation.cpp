@@ -1,4 +1,5 @@
 #include "BitCoinRepresentation.hpp"
+#include "BitCoinDisplaySettings.hpp"
 
 #include <QString>
 
@@ -48,8 +49,9 @@ BitCoinRepresentation::powerToMetricPrefix = QMap<int, BitCoinRepresentation::Me
                                                 {0, BitCoinRepresentation::MetricPrefix::None}
                                             };
 
-BitCoinRepresentation::BitCoinRepresentation(quint64 satoshies)
-    : _satoshies(satoshies) {
+BitCoinRepresentation::BitCoinRepresentation(qint64 satoshies)
+    : _satoshies(satoshies < 0 ? -satoshies : satoshies)
+    , _isNegative(satoshies < 0 ? true : false) {
 
     Q_ASSERT(BitCoinRepresentation::bitCoinPrefixToPower.size() == BitCoinRepresentation::powerToBitCoinPrefix.size());
     Q_ASSERT(BitCoinRepresentation::metricPrefixToPower.size() == BitCoinRepresentation::powerToMetricPrefix.size());
@@ -59,6 +61,11 @@ BitCoinRepresentation::BitCoinRepresentation(BitCoinPrefix prefix, double quanti
 
     Q_ASSERT(BitCoinRepresentation::bitCoinPrefixToPower.size() == BitCoinRepresentation::powerToBitCoinPrefix.size());
     Q_ASSERT(BitCoinRepresentation::metricPrefixToPower.size() == BitCoinRepresentation::powerToMetricPrefix.size());
+
+    if(quantity < 0) {
+        _isNegative = true;
+        quantity = -quantity;
+    }
 
     // Compute amount of satoshies
     double numberOfSatoshies = pow(10, bitCoinPrefixToPower[prefix]) * quantity;
@@ -70,7 +77,6 @@ BitCoinRepresentation::BitCoinRepresentation(BitCoinPrefix prefix, double quanti
         throw std::exception("Invalid representation provided, does not give integer quanitity of satoshies.");
     else
         _satoshies = static_cast<quint64>(numberOfSatoshies);
-
 }
 
 BitCoinRepresentation::BitCoinRepresentation(double fiatUnits, double fiatToBTCExchangeRate)
@@ -110,7 +116,7 @@ int BitCoinRepresentation::bestExponent(double raw, quint8 base, const QList<int
     int i = 0;
 
     // Power accumulator
-    double power = 1;
+    double power = pow(base, exponents[0]);
 
     while(raw > power && i < exponents.size()-1) {
 
@@ -155,7 +161,11 @@ double BitCoinRepresentation::unitsWithPrefix(MetricPrefix prefix, double fiatTo
 }
 
 QString BitCoinRepresentation::toString(BitCoinPrefix prefix, int precision) const {
-    return QString::number(unitsWithPrefix(prefix), 'f', precision) + prefixToString(prefix) + QString("Ƀ");
+
+    if(_satoshies == 0)
+        return QString("0Ƀ");
+    else
+        return (_isNegative ? QString("-") : QString("")) + QString::number(unitsWithPrefix(prefix), 'f', precision) + prefixToString(prefix) + QString("Ƀ");
 }
 
 QString BitCoinRepresentation::toString(int precision) const {
@@ -163,14 +173,31 @@ QString BitCoinRepresentation::toString(int precision) const {
 }
 
 QString BitCoinRepresentation::toString(Fiat fiat, MetricPrefix prefix, double fiatToBTCExchangeRate, int precision) const {
-    return fiatToSymbol(fiat) + QString::number(unitsWithPrefix(prefix, fiatToBTCExchangeRate), 'f', precision) + prefixToString(prefix);
+
+    if(_satoshies == 0)
+        return QString("$0");
+    else
+        return (_isNegative ? QString("-") : QString("")) + fiatToSymbol(fiat) + QString::number(unitsWithPrefix(prefix, fiatToBTCExchangeRate), 'f', precision) + prefixToString(prefix);
 }
 
 QString BitCoinRepresentation::toString(Fiat fiat, double fiatToBTCExchangeRate, int precision) const {
     return toString(fiat, bestPrefix(fiatToBTCExchangeRate), fiatToBTCExchangeRate, precision);
 }
 
-quint64 BitCoinRepresentation::numberOfBTC() const {
+QString BitCoinRepresentation::toString(const BitCoinDisplaySettings * settings) const {
+
+    switch(settings->currency()) {
+
+        case BitCoinDisplaySettings::Currency::BitCoin:
+            return toString(settings->precision());
+        case BitCoinDisplaySettings::Currency::Fiat:
+            return toString(settings->fiat(), settings->rate(), settings->precision());
+        default:
+            Q_ASSERT(false);
+    }
+}
+
+double BitCoinRepresentation::numberOfBTC() const {
 
     quint64 satoshiesInABitCoin = pow(10, bitCoinPrefixToPower[BitCoinPrefix::None]);
     double numberOfBitCoins = ((double)_satoshies) / satoshiesInABitCoin;
@@ -200,7 +227,7 @@ QString BitCoinRepresentation::prefixToString(MetricPrefix prefix) {
         case MetricPrefix::Nano: return QString("n");
         case MetricPrefix::Micro: return QString("μ");
         case MetricPrefix::Milli: return QString("m");
-        case MetricPrefix::Centi: return QString("c");
+        case MetricPrefix::Centi: return QString("¢");
         case MetricPrefix::None: return QString("");
 
         default:

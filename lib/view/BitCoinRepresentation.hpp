@@ -1,24 +1,18 @@
 #ifndef BITCOIN_REPRESENTATION_HPP
 #define BITCOIN_REPRESENTATION_HPP
 
+#include "Fiat.hpp"
+
 #include <QtGlobal>
 #include <QMap>
 
 class QString;
+class BitCoinDisplaySettings;
 
 // Manage crypto currency representaion
-
 class BitCoinRepresentation
 {
 public:
-
-    // Fiat types
-    enum class Fiat {
-        USD,
-        Euro,
-        Pound,
-        Yen
-    };
 
     // Prefix used for bitcoin
     // Based on https://en.bitcoin.it/wiki/Units
@@ -60,7 +54,7 @@ public:
      */
 
     // Constructor from raw number of satoshies
-    BitCoinRepresentation(quint64 satoshies);
+    BitCoinRepresentation(qint64 satoshies);
 
     // Constructor from prefixed crypto currency amount
     BitCoinRepresentation(BitCoinPrefix prefix, double units);
@@ -79,15 +73,21 @@ public:
     // Fiat representation with best prefix
     QString toString(Fiat fiat, double fiatToBTCExchangeRate, int precision = 1) const;
 
+    // Representation based on display settings
+    QString toString(const BitCoinDisplaySettings * settings) const;
+
     // Number of BitCoins
     // Is very useful since dealing with fiat requires dealing with exchange rates,
     // which are always /btc.
-    quint64 numberOfBTC() const;
+    double numberOfBTC() const;
 
 private:
 
-    // Raw number of satoshies
+    // Raw number of satoshies, is always positive
     quint64 _satoshies;
+
+    // Whether amount is negative
+    bool _isNegative;
 
     /**
      * Prefix processing

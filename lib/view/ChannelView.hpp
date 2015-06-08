@@ -10,6 +10,7 @@
 class QStandardItem;
 class QStandardItemModel;
 class ChannelViewModel;
+class BitCoinDisplaySettings;
 
 class ChannelView : public QObject
 {
@@ -19,15 +20,16 @@ public:
     // Constructor
     ChannelView(QObject * parent,
                 const ChannelViewModel * channelViewModel,
-                QStandardItemModel * model);
+                QStandardItemModel * model,
+                const BitCoinDisplaySettings * settings);
 
     // Text conversion routines
     static QString stateToString(Payor::Channel::State state);
-    static QString fundsToString(quint64 funds);
+    static QString fundsToString(quint64 funds, const BitCoinDisplaySettings * settings);
     static QString refundLockTimeToString(quint32 refundLockTime);
-    static QString priceToString(quint64 price);
+    static QString priceToString(quint64 price, const BitCoinDisplaySettings * settings);
     static QString numberOfPaymentsMadeToString(quint64 numberOfPaymentsMade);
-    static QString balanceToString(quint64 balance);
+    static QString balanceToString(quint64 balance, const BitCoinDisplaySettings * settings);
 
 public slots:
 
@@ -42,6 +44,9 @@ public slots:
 signals:
 
 private:
+
+    // BitCoin display settings
+    const BitCoinDisplaySettings * _settings;
 
     // Index of channel in payor
     // Is required to send signals based on user interaction
