@@ -104,8 +104,12 @@ SellerTorrentPluginDialog::~SellerTorrentPluginDialog() {
 }
 
 QString SellerTorrentPluginDialog::minPriceToString(quint64 minPrice, const BitCoinDisplaySettings * settings) {
-    //return QString::number(minPrice);
-    return BitCoinRepresentation(minPrice).toString(settings);
+    return QString::number(minPrice);
+    //return BitCoinRepresentation(minPrice).toString(settings);
+
+    //BitCoinRepresentation rep(minPrice);
+    //rep.unitsWithPrefix()
+
 }
 
 QString SellerTorrentPluginDialog::minLockTimeToString(quint32 minLockTime) {

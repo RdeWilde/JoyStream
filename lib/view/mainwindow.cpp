@@ -47,8 +47,8 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet)
     , _controller(controller)
     , _wallet(wallet)
     , _torrentTableViewModel(0, 6)
-    , _walletBalanceUpdateTimer()
-    , _bitcoinDisplaySettings(Fiat::USD, 225) {
+    , _walletBalanceUpdateTimer() {
+    //, _bitcoinDisplaySettings(Fiat::USD, 225) {
 
     ui->setupUi(this);
 
@@ -520,7 +520,7 @@ void MainWindow::updateWalletBalance(quint64 balance) {
 void MainWindow::on_walletPushButton_clicked() {
 
     // Create dialog
-    WalletDialog dialog(_wallet);
+    WalletDialog dialog(_wallet, &_bitcoinDisplaySettings);
 
     // Start processing new event loop
     dialog.exec();

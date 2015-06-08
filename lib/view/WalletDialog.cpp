@@ -1,16 +1,20 @@
 #include "WalletDialog.hpp"
 #include "ui_walletdialog.h"
+#include "extension/BitCoin/Wallet.hpp"
+#include "BitCoinDisplaySettings.hpp"
+#include "BitCoinRepresentation.hpp"
 
 #include <QInputDialog>
 #include <QMessageBox>
 
-#include "extension/BitCoin/Wallet.hpp"
-
 //WalletDialog::WalletDialog(QWidget *parent, Wallet * wallet) {}
 
-WalletDialog::WalletDialog(Wallet * wallet) :
-    ui(new Ui::WalletDialog),
-    _wallet(wallet) {
+WalletDialog::WalletDialog(Wallet * wallet,
+                           const BitCoinDisplaySettings * settings)
+    : ui(new Ui::WalletDialog)
+    , _wallet(wallet)
+    , _settings(settings) {
+
     ui->setupUi(this);
 
     // Setup View model
@@ -211,7 +215,8 @@ QList<QStandardItem *> WalletDialog::toModelViewRow(const Wallet::TxOEvent & eve
     items << new QStandardItem(type);
 
     // Value
-    QString value = QString::number(event.value());
+    //QString value = QString::number(event.value());
+    QString value = BitCoinRepresentation(event.value()).toString(_settings);
     items << new QStandardItem(value);
 
     // Confirmations

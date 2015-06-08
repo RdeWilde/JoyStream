@@ -12,6 +12,7 @@ class WalletDialog;
 
 class Wallet;
 class QMenu;
+class BitCoinDisplaySettings;
 
 class WalletDialog : public QDialog
 {
@@ -20,7 +21,7 @@ class WalletDialog : public QDialog
 public:
     //explicit WalletDialog(QWidget *parent = 0)
 
-    WalletDialog(Wallet * wallet);
+    WalletDialog(Wallet * wallet, const BitCoinDisplaySettings * settings);
     ~WalletDialog();
 
     // Updates view
@@ -43,6 +44,8 @@ private:
     Ui::WalletDialog *ui;
 
     Wallet * _wallet;
+
+    const BitCoinDisplaySettings * _settings;
 
     /**
      * View-models
