@@ -157,11 +157,6 @@ void main(int argc, char* argv[]) {
                                                                 5*3600, // Maximum lock time on refund (seconds)
                                                                 BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.1).satoshies(), // Max fee per kB (satoshi)
                                                                 1) // #sellers
-                           << BuyerTorrentPlugin::Configuration(false,
-                                                                300, // Maximum piece price (satoshi)
-                                                                10*3600, // Maximum lock time on refund (seconds)
-                                                                BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.1).satoshies(), // Max fee per kB (satoshi)
-                                                                1) // #sellers
                            );
 
     // Sellers

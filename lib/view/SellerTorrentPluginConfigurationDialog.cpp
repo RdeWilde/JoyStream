@@ -93,7 +93,15 @@ void SellerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
         // Quit if user chose no
         if(buttonPressed == QMessageBox::StandardButton::No)
             return;
+    } else if(minPrice * _torrentInfo.num_pieces() <= 546) {
+
+        QMessageBox::critical(this,
+                              "Dust limit",
+                              "Pick a price no less than : " + QString::number((float)546/_torrentInfo.num_pieces()) + " (satoshies)");
+        return;
+
     }
+
 
     // ============================================================
     // minLockTime
