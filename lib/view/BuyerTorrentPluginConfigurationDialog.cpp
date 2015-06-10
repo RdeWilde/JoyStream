@@ -93,16 +93,14 @@ bool BuyerTorrentPluginConfigurationDialog::tryToGetMaxTotalSpend(quint64 & maxT
 
 void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
-    // Message box used to alert user if invalid value is provided
-    QMessageBox msgBox;
-
     // Number of sellers
     int numberOfSellers;
 
     if(!tryToGetNumberOfSellers(numberOfSellers)) {
 
-        msgBox.setText("Invalid #sellers: " + ui->numPeersLineEdit->text());
-        msgBox.exec();
+        QMessageBox::critical(this,
+                              "Invalid #sellers",
+                              "Must be positive number: " + ui->numPeersLineEdit->text());
         return;
     }
 
@@ -111,8 +109,9 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
     if(!tryToGetFeePerkB(feePerkB)) {
 
-        msgBox.setText("Invalid fee per kb: " + ui->feePrKbLineEdit->text());
-        msgBox.exec();
+        QMessageBox::critical(this,
+                              "Invalid fee per kb",
+                              "Must be positive number: " + ui->feePrKbLineEdit->text());
         return;
     }
 
@@ -121,8 +120,11 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
     quint64 maxTotalSpend;
 
     if(!tryToGetMaxTotalSpend(maxTotalSpend)) {
-        msgBox.setText("Invalid max total spend: " + ui->maxTotalSpendLineEdit->text());
-        msgBox.exec();
+
+        QMessageBox::critical(this,
+                              "Invalid max total spend",
+                              "Must be positive number: " + ui->maxTotalSpendLineEdit->text());
+        return;
     }
 
     // Maximum piece price (satoshies)

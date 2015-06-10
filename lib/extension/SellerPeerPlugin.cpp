@@ -840,8 +840,14 @@ void SellerPeerPlugin::processPayment(const Payment * m) {
 
         // Update error state in some way
         throw std::exception("Invalid payment received.");
-    } else
+    } else {
+
+        // Note payment
+        _plugin->addToBalance(_payee.price());
+
         qCDebug(_category) << "Valid payment received";
+
+    }
 
     // Update state
     _clientState = ClientState::awaiting_piece_request_after_payment;

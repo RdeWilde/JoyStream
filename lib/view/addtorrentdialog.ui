@@ -48,7 +48,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>C:\TORRRENT_OUTPUT</string>
+    <string>C:\</string>
    </property>
   </widget>
   <widget class="QLabel" name="saveToFolderLabel">

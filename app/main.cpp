@@ -25,6 +25,8 @@
 // Forward declarations
 bool updateManager();
 
+libtorrent::torrent_info load_torrent(const char * path);
+
 Controller::Torrent::Configuration create_torrent_configuration(libtorrent::torrent_info & torrentInfo, const QString & name);
 
 Controller * create_controller(Controller::Configuration controllerConfiguration, QNetworkAccessManager & manager,
@@ -176,16 +178,17 @@ void main(int argc, char* argv[]) {
     qDebug() << "Application event loop exited, application closing.";
 }
 
-libtorrent::torrent_info load_torrent(const QString & path) {
+libtorrent::torrent_info load_torrent(const char * path) {
 
     libtorrent::error_code ec;
-    libtorrent::torrent_info torrentInfo("C:/TORRENTS/Rise and Rrise of BitCoin.torrent", ec);
+    libtorrent::torrent_info torrentInfo(path, ec);
 
     if(ec) {
         qDebug() << "Invalid torrent file 1: " << ec.message().c_str();
-        return;
+        throw std::exception();
     }
 
+    return torrentInfo;
 }
 
 Controller::Torrent::Configuration create_torrent_configuration(libtorrent::torrent_info & torrentInfo, const QString & name) {

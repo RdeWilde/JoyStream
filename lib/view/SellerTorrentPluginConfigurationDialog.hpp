@@ -24,8 +24,19 @@ public:
 
     ~SellerTorrentPluginConfigurationDialog();
 
+    // Try to read off ui fields
+    // Return value indicates validity of corresponding ui field,
+    // and passed reference is only modified with valid value if
+    // return value is true
+    bool tryToGetPricePrGB(quint64 & minSatoshiesPrGB) const;
+
+    // Compute minPrice from price pr. GB (in satoshies)
+    quint32 minPriceFromPricePrGB(quint64 pricePrGB) const;
+
 private slots:
     void on_buttonBox_accepted();
+
+    void on_minPriceLineEdit_textChanged(const QString &arg1);
 
 private:
 
@@ -42,6 +53,9 @@ private:
 
     // Torrent file
     libtorrent::torrent_info _torrentInfo;
+
+    // Updates min price field based on present input fields
+    void updateComputedSatoshiesMinPriceValue();
 };
 
 #endif // SELLER_TORRENT_PLUGIN_CONFIGURATION_DIALOG_HPP
