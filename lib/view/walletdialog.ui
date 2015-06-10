@@ -105,6 +105,9 @@
      <height>192</height>
     </rect>
    </property>
+   <property name="indentation">
+    <number>0</number>
+   </property>
   </widget>
  </widget>
  <resources/>

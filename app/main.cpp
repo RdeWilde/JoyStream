@@ -25,9 +25,10 @@
 // Forward declarations
 bool updateManager();
 
-Controller::Torrent::Configuration create_controller(Controller::Configuration controllerConfiguration, QNetworkAccessManager & manager,
-                                                     bool show_gui, bool use_stdout_logg, libtorrent::torrent_info & torrentInfo,
-                                                     Controller * controller, QString name);
+Controller::Torrent::Configuration create_torrent_configuration(libtorrent::torrent_info & torrentInfo, const QString & name);
+
+Controller * create_controller(Controller::Configuration controllerConfiguration, QNetworkAccessManager & manager,
+                                                     bool show_gui, bool use_stdout_logg, libtorrent::torrent_info & torrentInfo, const QString & name);
 
 void add_buyers_with_plugin(Controller::Configuration controllerConfiguration, QNetworkAccessManager & manager, ControllerTracker & controllerTracker,
                             bool show_gui, bool use_stdout_logg, libtorrent::torrent_info & torrentInfo,
@@ -110,7 +111,7 @@ void main(int argc, char* argv[]) {
      */
 
     libtorrent::error_code ec;
-    libtorrent::torrent_info torrentInfo("C:/TORRENTS/RRB.torrent", ec);
+    libtorrent::torrent_info torrentInfo("C:/TORRENTS/Rise and Rrise of BitCoin.torrent", ec);
 
     if(ec) {
         qDebug() << "Invalid torrent file 1: " << ec.message().c_str();
@@ -127,14 +128,12 @@ void main(int argc, char* argv[]) {
     int seller_count = 1;
 
     // Buyers
-    Controller * loneBuyer = NULL;
-    Controller::Torrent::Configuration torrentConfiguration = create_controller(controllerConfiguration, manager,
-                                                                                true, true, torrentInfo,
-                                                                                loneBuyer, QString("lone_buyer"));
-    loneBuyer->addTorrent(torrentConfiguration);
+    Controller * loneBuyer = create_controller(controllerConfiguration, manager, true, true, torrentInfo, QString("lone_buyer"));
+
     controllerTracker.addClient(loneBuyer);
 
     // Sellers
+    /**
     add_sellers_with_plugin(controllerConfiguration, manager, controllerTracker, true , true, torrentInfo,
                             QVector<SellerTorrentPlugin::Configuration>()
 
@@ -145,6 +144,7 @@ void main(int argc, char* argv[]) {
                                                                   seller_count, // Max #seller
                                                                   17*60) // Maximum contract confirmation delay (seconds)
                             );
+                            */
     /**
      * Paid uploading
 
@@ -160,6 +160,8 @@ void main(int argc, char* argv[]) {
                            );
 
     // Sellers
+    Controller * loneSeller = create_controller(controllerConfiguration, manager, true, true, torrentInfo, QString("lone_seller"));;
+    controllerTracker.addClient(loneBuyer);
 
     */
 
@@ -174,12 +176,26 @@ void main(int argc, char* argv[]) {
 }
 
 /**
+ * Create torrent configuration
+ */
+
+Controller::Torrent::Configuration create_torrent_configuration(libtorrent::torrent_info & torrentInfo, const QString & name) {
+
+    return Controller::Torrent::Configuration(torrentInfo.info_hash()
+                                              ,torrentInfo.name()
+                                              ,name.toStdString()
+                                              ,std::vector<char>()
+                                              ,libtorrent::add_torrent_params::flag_update_subscribe
+                                              //+libtorrent::add_torrent_params::flag_auto_managed
+                                              ,&torrentInfo);
+}
+
+/**
  * Create controller
  */
 
-Controller::Torrent::Configuration create_controller(Controller::Configuration controllerConfiguration, QNetworkAccessManager & manager,
-                                                       bool show_gui, bool use_stdout_logg, libtorrent::torrent_info & torrentInfo,
-                                                       Controller * controller, QString name) {
+Controller * create_controller(Controller::Configuration controllerConfiguration, QNetworkAccessManager & manager,
+                                                       bool show_gui, bool use_stdout_logg, libtorrent::torrent_info & torrentInfo, const QString & name) {
 
     // Create logging category
     QLoggingCategory * category = global_log_manager.createLogger(name, use_stdout_logg, false);
@@ -188,20 +204,11 @@ Controller::Torrent::Configuration create_controller(Controller::Configuration c
     controllerConfiguration.setWalletFile(QString("C:/WALLETS/") + name + QString("_wallet.dat"));
 
     // Create controller: Dangling, but we don't care
-    controller = new Controller(controllerConfiguration,
-                                              show_gui,
-                                              manager,
-                                              "Faucet http://faucet.xeno-genesis.com/",
-                                              *category);
-
-    // Create buyer torrent configuration
-    return Controller::Torrent::Configuration(torrentInfo.info_hash()
-                                              ,torrentInfo.name()
-                                              ,(QString("C:/SAVE_OUTPUT/") + name).toStdString()
-                                              ,std::vector<char>()
-                                              ,libtorrent::add_torrent_params::flag_update_subscribe
-                                              //+libtorrent::add_torrent_params::flag_auto_managed
-                                              ,&torrentInfo);
+    return new Controller(controllerConfiguration,
+                         show_gui,
+                         manager,
+                         "Faucet http://faucet.xeno-genesis.com/",
+                         *category);
 }
 
 /**
@@ -213,11 +220,14 @@ void add_buyers_with_plugin(Controller::Configuration controllerConfiguration, Q
 
     for(int i = 0;i < configurations.size();i++) {
 
+        // Create controller name
+        QString name = QString("buyer_") + QString::number(i+1);
+
         // Create controller and torrent configuration
-        Controller * controller = NULL;
-        Controller::Torrent::Configuration torrentConfiguration = create_controller(controllerConfiguration, manager,
-                                                                                    show_gui, use_stdout_logg, torrentInfo,
-                                                                                    controller, QString("buyer_") + QString::number(i+1));
+        Controller * controller = create_controller(controllerConfiguration, manager, show_gui, use_stdout_logg, torrentInfo, name);
+
+        // Create torrent configuration
+        Controller::Torrent::Configuration torrentConfiguration = create_torrent_configuration(torrentInfo, name);
 
         // Grab configuration
         const BuyerTorrentPlugin::Configuration & pluginConfiguration = configurations[i];
@@ -261,11 +271,14 @@ void add_sellers_with_plugin(Controller::Configuration controllerConfiguration, 
 
     for(int i = 0;i < configurations.size();i++) {
 
+        // Create name
+        QString name = QString("seller_") + QString::number(i+1);
+
         // Create controller and torrent configuration
-        Controller * controller = NULL;
-        Controller::Torrent::Configuration torrentConfiguration = create_controller(controllerConfiguration, manager,
-                                                                                    show_gui, use_stdout_logg, torrentInfo,
-                                                                                    controller, QString("seller_") + QString::number(i+1));
+        Controller * controller = create_controller(controllerConfiguration, manager, show_gui, use_stdout_logg, torrentInfo, name);
+
+        // Create torrent configuration
+        Controller::Torrent::Configuration torrentConfiguration = create_torrent_configuration(torrentInfo, name);
 
         // Grab configuration
         const SellerTorrentPlugin::Configuration & pluginConfiguration = configurations[i];
