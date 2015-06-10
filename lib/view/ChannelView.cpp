@@ -1,7 +1,7 @@
 #include "ChannelView.hpp"
 #include "controller/ChannelViewModel.hpp"
-#include "BitCoinDisplaySettings.hpp"
-#include "BitCoinRepresentation.hpp"
+#include <common/BitCoinRepresentation.hpp>
+#include <common/BitCoinDisplaySettings.hpp>
 
 #include <QStandardItem>
 #include <QStandardItemModel>

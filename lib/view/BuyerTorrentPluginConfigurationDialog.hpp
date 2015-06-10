@@ -27,6 +27,14 @@ public:
     // Destructor
     ~BuyerTorrentPluginConfigurationDialog();
 
+    // Try to read off ui fields.
+    // Return value indicates validity of corresponding ui field,
+    // and passed reference is only modified with valid value if
+    // return value is true
+    bool tryToGetNumberOfSellers(int & numberOfSellers) const;
+    bool tryToGetFeePerkB(int & feePerkB) const;
+    bool tryToGetMaxTotalSpend(quint64 & maxTotalSpend) const;
+
 private slots:
     void on_buttonBox_accepted();
 

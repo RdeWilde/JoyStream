@@ -227,6 +227,7 @@ public:
 
             // Metadata in torrent file
             // We need pointer since we cannot copy torrent_info
+            // Why cant this be const again??
             libtorrent::torrent_info * _torrentInfo;
 
             // Have to use pointer to get polymorphism. :/

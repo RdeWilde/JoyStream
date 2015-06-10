@@ -1,7 +1,7 @@
 #include "SellerTorrentPluginConfigurationDialog.hpp"
 #include "ui_SellerTorrentPluginConfigurationDialog.h"
-#include "BitCoinDisplaySettings.hpp"
-#include "BitCoinRepresentation.hpp"
+#include <common/BitCoinRepresentation.hpp>
+#include <common/BitCoinDisplaySettings.hpp>
 #include "controller/Controller.hpp"
 //#include "extension/TorrentPluginConfiguration.hpp"
 #include "extension/SellerTorrentPlugin.hpp"

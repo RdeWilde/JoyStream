@@ -38,7 +38,7 @@ LoggerManager::~LoggerManager() {
     qInstallMessageHandler(defaultHandler);
 }
 
-QLoggingCategory * LoggerManager::createLogger(const char * name, bool useStandardOutput = false, bool chainStandardHandler = false) {
+QLoggingCategory * LoggerManager::createLogger(const QString & name, bool useStandardOutput = false, bool chainStandardHandler = false) {
 
     // Acquire lock
     mutex.lock();
@@ -53,8 +53,12 @@ QLoggingCategory * LoggerManager::createLogger(const char * name, bool useStanda
     // Create category logger
     LoggerManager::Category category;
     category.name = name;
-    category.file = new QFile(QString(name) + ".txt");
-    category.qCategory = new QLoggingCategory(name);
+    category.file = new QFile(name + ".txt");
+
+    // Need const char * to name which persist, i.e. on heap, thanks QLoggingCategory :/
+    const QByteArray * rawByteArrayOnHeap = new QByteArray(name.toLatin1());
+
+    category.qCategory = new QLoggingCategory(rawByteArrayOnHeap->constData());
     category.chainStandardHandler = chainStandardHandler;
     category.useStandardOutput = useStandardOutput;
 

@@ -69,10 +69,10 @@
    <widget class="QLabel" name="earnedBalanceLabel">
     <property name="geometry">
      <rect>
-      <x>540</x>
+      <x>676</x>
       <y>16</y>
-      <width>150</width>
-      <height>31</height>
+      <width>100</width>
+      <height>33</height>
      </rect>
     </property>
     <property name="font">
@@ -93,7 +93,7 @@
    <widget class="QLabel" name="earnedTitleQlabel">
     <property name="geometry">
      <rect>
-      <x>652</x>
+      <x>736</x>
       <y>44</y>
       <width>41</width>
       <height>19</height>
@@ -111,7 +111,7 @@
    <widget class="Line" name="line">
     <property name="geometry">
      <rect>
-      <x>712</x>
+      <x>798</x>
       <y>10</y>
       <width>3</width>
       <height>61</height>
@@ -124,7 +124,7 @@
    <widget class="QLabel" name="spentTitleLabel">
     <property name="geometry">
      <rect>
-      <x>844</x>
+      <x>880</x>
       <y>44</y>
       <width>35</width>
       <height>19</height>
@@ -142,10 +142,10 @@
    <widget class="QLabel" name="spentBalanceLabel">
     <property name="geometry">
      <rect>
-      <x>724</x>
+      <x>816</x>
       <y>16</y>
-      <width>150</width>
-      <height>27</height>
+      <width>100</width>
+      <height>33</height>
      </rect>
     </property>
     <property name="font">
@@ -160,7 +160,7 @@
    <widget class="Line" name="line_2">
     <property name="geometry">
      <rect>
-      <x>896</x>
+      <x>932</x>
       <y>10</y>
       <width>3</width>
       <height>61</height>
@@ -173,9 +173,9 @@
    <widget class="QLabel" name="balanceLabel">
     <property name="geometry">
      <rect>
-      <x>906</x>
+      <x>950</x>
       <y>16</y>
-      <width>150</width>
+      <width>100</width>
       <height>33</height>
      </rect>
     </property>
@@ -194,7 +194,7 @@
    <widget class="QLabel" name="balanceTitleLabel">
     <property name="geometry">
      <rect>
-      <x>1012</x>
+      <x>1006</x>
       <y>44</y>
       <width>45</width>
       <height>19</height>

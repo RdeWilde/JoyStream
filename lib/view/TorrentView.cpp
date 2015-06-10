@@ -2,9 +2,9 @@
 #include "controller/TorrentViewModel.hpp"
 #include "controller/SellerTorrentPluginViewModel.hpp"
 #include "controller/BuyerTorrentPluginViewModel.hpp"
-#include "DataSizeRepresentation.hpp"
-#include "BitCoinRepresentation.hpp"
-#include "BitCoinDisplaySettings.hpp"
+#include <common/DataSizeRepresentation.hpp>
+#include <common/BitCoinRepresentation.hpp>
+#include <common/BitCoinDisplaySettings.hpp>
 
 #include <QStandardItem>
 

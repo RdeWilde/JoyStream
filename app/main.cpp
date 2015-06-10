@@ -13,6 +13,8 @@
 #include <lib/extension/PluginMode.hpp>
 #include <lib/extension/BitCoin/BitCoin.hpp> // defines STANDARD_NUM_SATOSHIES_PER_KB_IN_TX_FEE
 
+#include <common/BitCoinRepresentation.hpp>
+
 #include <libtorrent/torrent_info.hpp>
 #include <libtorrent/error_code.hpp>
 
@@ -22,6 +24,14 @@
 
 // Forward declarations
 bool updateManager();
+
+void add_buyers_with_plugin(Controller::Configuration controllerConfiguration, QNetworkAccessManager & manager, ControllerTracker & controllerTracker,
+                            bool show_gui, bool use_stdout_logg, libtorrent::torrent_info & torrentInfo,
+                            const QVector<BuyerTorrentPlugin::Configuration> & configurations);
+
+void add_sellers_with_plugin(Controller::Configuration controllerConfiguration, QNetworkAccessManager & manager, ControllerTracker & controllerTracker,
+                             bool show_gui, bool use_stdout_logg, libtorrent::torrent_info & torrentInfo,
+                             const QVector<SellerTorrentPlugin::Configuration> & configurations);
 
 // BitSwapr entry point
 void main(int argc, char* argv[]) {
@@ -95,11 +105,8 @@ void main(int argc, char* argv[]) {
      * Load torrent ================================================
      */
 
-    const char * torrent = "C:/TORRENTS/RRB.torrent";
-    //const char * torrent  = "C:/TORRENTS/Aint No Love Crucified.mp3.torrent";
-
     libtorrent::error_code ec;
-    libtorrent::torrent_info torrentInfo(torrent, ec);
+    libtorrent::torrent_info torrentInfo("C:/TORRENTS/RRB.torrent", ec);
 
     if(ec) {
         qDebug() << "Invalid torrent file 1: " << ec.message().c_str();
@@ -110,69 +117,88 @@ void main(int argc, char* argv[]) {
     ControllerTracker controllerTracker;
 
     /**
-     * Experiment paramters ========================================
+     * Downloading & streaming
      */
 
-    // Number of Buyers
-    int buyer_count = 1;
-    bool buyer_show_gui = true;
-    bool buyer_use_stdout_logg = buyer_show_gui;
-
-    // Number of sellers
     int seller_count = 1;
-    bool seller_show_gui = true;
-    bool seller_use_stdout_logg = seller_show_gui;
+
+    // Buyers
+    add_buyers_with_plugin(controllerConfiguration, manager, controllerTracker, true , true, torrentInfo,
+                           QVector<BuyerTorrentPlugin::Configuration>()
+
+                           << BuyerTorrentPlugin::Configuration(false,
+                                                                300, // Maximum piece price (satoshi)
+                                                                5*3600, // Maximum lock time on refund (seconds)
+                                                                BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.1).satoshies(), // Max fee per kB (satoshi)
+                                                                seller_count) // #sellers
+                           );
+
+    // Sellers
+    add_sellers_with_plugin(controllerConfiguration, manager, controllerTracker, true , true, torrentInfo,
+                            QVector<SellerTorrentPlugin::Configuration>()
+
+                            << SellerTorrentPlugin::Configuration(false,
+                                                                  25, // Minimum piece price (satoshi)
+                                                                  2*3600, // Minimum lock time on refund (seconds)
+                                                                  BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.01).satoshies(), // Min fee per kB (satoshi)
+                                                                  seller_count, // Max #seller
+                                                                  17*60) // Maximum contract confirmation delay (seconds)
+                            );
+    /**
+     * Paid uploading
+
+
+    // Buyers
+
+    // Sellers
+
+    */
 
     /**
-     * Buyer =======================================================
+     * Run
      */
 
-    QVector<Controller *> buyer_controllers(buyer_count);
-    QVector<std::string> buyer_loggNames(buyer_count);
-    QVector<std::string> buyer_walletFileName(buyer_count);
-    QVector<std::string> buyer_outPutDir(buyer_count);
+    // Start event loop: this is the only Qt event loop in the entire application
+    app.exec();
 
-    for(int i = 0;i < buyer_count;i++) {
+    qDebug() << "Application event loop exited, application closing.";
+}
 
-        // Create logging category: med logging til skjerm
-        buyer_loggNames[i] = (std::string("buyer_") + std::to_string(i+1));
-        QLoggingCategory * buyerCategory = global_log_manager.createLogger(buyer_loggNames[i].c_str(), buyer_use_stdout_logg, false);
+/**
+ * Buyers =======================================================
+ */
+void add_buyers_with_plugin(Controller::Configuration controllerConfiguration, QNetworkAccessManager & manager, ControllerTracker & controllerTracker,
+                            bool show_gui, bool use_stdout_logg, libtorrent::torrent_info & torrentInfo,
+                            const QVector<BuyerTorrentPlugin::Configuration> & configurations) {
+
+    for(int i = 0;i < configurations.size();i++) {
+
+        // Create logging category
+        QLoggingCategory * category = global_log_manager.createLogger(QString("buyer_") + QString::number(i+1), use_stdout_logg, false);
 
         // Create wallet name
-        buyer_walletFileName[i] = (std::string("c:/WALLETS/buyer_wallet") + std::to_string(i+1) + std::string(".dat"));
-        controllerConfiguration.setWalletFile(buyer_walletFileName[i].c_str());
+        controllerConfiguration.setWalletFile(QString("c:/WALLETS/buyer_wallet") + QString::number(i+1) + QString(".dat"));
 
-        // Create main client
+        // Create controller: Dangling, but we don't care
         Controller * buyerClient = new Controller(controllerConfiguration,
-                                                  buyer_show_gui,
+                                                  show_gui,
                                                   manager,
                                                   "Faucet http://faucet.xeno-genesis.com/",
-                                                  *buyerCategory);
-        buyer_controllers[i] = buyerClient;
-
-        // Create output directory name
-        buyer_outPutDir[i] = (std::string("C:/SAVE_OUTPUT/buyer_") + std::to_string(i+1));
+                                                  *category);
 
         // Create buyer torrent configuration
         Controller::Torrent::Configuration buyerTorrentConfiguration(torrentInfo.info_hash()
                                                       ,torrentInfo.name()
-                                                      ,buyer_outPutDir[i]
+                                                      ,(std::string("C:/SAVE_OUTPUT/buyer_") + std::to_string(i+1))
                                                       ,std::vector<char>()
                                                       ,libtorrent::add_torrent_params::flag_update_subscribe
                                                       //+libtorrent::add_torrent_params::flag_auto_managed
                                                       ,&torrentInfo);
-
-        // Maximum piece price (satoshi)
-        quint64 maxPrice = 300;
-
-        // Maximum lock time on refund
-        int maxLockTime = 5*3600;
-
-        // Max fee per kB (satoshi)
-        int maxFeePerkB = 1*static_cast<int>(STANDARD_NUM_SATOSHIES_PER_KB_IN_TX_FEE);
+        // Grab configuration
+        const BuyerTorrentPlugin::Configuration & pluginConfiguration = configurations[i];
 
         // Amount needed to fund contract (satoshies)
-        quint64 minFunds = Payor::minimalFunds(torrentInfo.num_pieces(),maxPrice, seller_count, maxFeePerkB);
+        quint64 minFunds = Payor::minimalFunds(torrentInfo.num_pieces(), pluginConfiguration.maxPrice(), pluginConfiguration.numberOfSellers(), pluginConfiguration.maxFeePerKb());
 
         // Synch wallet
         buyerClient->wallet().synchronize();
@@ -180,99 +206,66 @@ void main(int argc, char* argv[]) {
         // Get funding output - this has to be grabbed from wallet/chain later
         UnspentP2PKHOutput utxo = buyerClient->wallet().getUtxo(minFunds, 1);
 
-        // Create configuration
-        BuyerTorrentPlugin::Configuration configuration(false,
-                                                        maxPrice,
-                                                        maxLockTime,
-                                                        maxFeePerkB,
-                                                        seller_count);
-
-        /**
         // Check that an utxo was indeed found
         if(utxo.value() == 0) {
+
             qDebug() << "No utxo found with value no less than:" << minFunds;
 
-            buyerClient->addTorrent(buyerTorrentConfiguration);
+            throw std::exception("No utxo found with sufficient funds.");
+
+            //buyerClient->addTorrent(buyerTorrentConfiguration);
+
         } else {
+
             // Add to client
-            buyerClient->addTorrent(buyerTorrentConfiguration, configuration, utxo);
+            buyerClient->addTorrent(buyerTorrentConfiguration, pluginConfiguration, utxo);
+
         }
-        */
 
         // Track controller
         controllerTracker.addClient(buyerClient);
     }
+}
 
-    /**
-     * Seller =======================================================
-    */
+/**
+ * Sellers =======================================================
+ */
+void add_sellers_with_plugin(Controller::Configuration controllerConfiguration, QNetworkAccessManager & manager, ControllerTracker & controllerTracker,
+                             bool show_gui, bool use_stdout_logg, libtorrent::torrent_info & torrentInfo,
+                             const QVector<SellerTorrentPlugin::Configuration> & configurations) {
 
-    QVector<Controller *> seller_controllers(seller_count);
-    QVector<std::string> seller_loggNames(seller_count);
-    QVector<std::string> seller_walletFileName(seller_count);
-    QVector<std::string> seller_outPutDir(seller_count);
+    for(int i = 0;i < configurations.size();i++) {
 
-    for(int i = 0;i < seller_count;i++) {
-
-        // Create logging category: uten logging til skjerm
-        seller_loggNames[i] = (std::string("seller_") + std::to_string(i+1));
-        QLoggingCategory * sellerCategory = global_log_manager.createLogger(seller_loggNames[i].c_str(), seller_use_stdout_logg, false);
+        // Create logging category
+        QLoggingCategory * category = global_log_manager.createLogger(QString("seller_") + QString::number(i+1), use_stdout_logg, false);
 
         // Create wallet name
-        seller_walletFileName[i] = (std::string("c:/WALLETS/seller_wallet_") + std::to_string(i+1) + std::string(".dat"));
-        controllerConfiguration.setWalletFile(seller_walletFileName[i].c_str());
+        controllerConfiguration.setWalletFile(QString("c:/WALLETS/seller_wallet") + QString::number(i+1) + QString(".dat"));
 
-        // Create peer client
+        // Create controller: Dangling, but we don't care
         Controller * sellerClient = new Controller(controllerConfiguration,
-                                                   seller_show_gui,
+                                                   show_gui,
                                                    manager,
                                                    "Faucet http://faucet.xeno-genesis.com/",
-                                                   *sellerCategory);
-        seller_controllers[i] = sellerClient;
-
-        // Create output directory name
-        seller_outPutDir[i] = (std::string("C:/SAVE_OUTPUT/seller_") + std::to_string(i+1));
+                                                   *category);
 
         // Create torrent configuration
         Controller::Torrent::Configuration sellerTorrentConfiguration(torrentInfo.info_hash()
                                                       ,torrentInfo.name()
-                                                      ,seller_outPutDir[i]
+                                                      ,(std::string("C:/SAVE_OUTPUT/seller_") + std::to_string(i+1))
                                                       ,std::vector<char>()
                                                       ,libtorrent::add_torrent_params::flag_update_subscribe
                                                       ,&torrentInfo);
 
-        // Min fee per kB (satoshi)
-        int minFeePerkB = static_cast<int>(STANDARD_NUM_SATOSHIES_PER_KB_IN_TX_FEE);
-
-        // Maximum piece price (satoshi)
-        quint64 minPrice = 20;
-
-        // Minimum lock time on refund
-        int minLockTime = 2*3600;
-
-        // Maximum contract confirmation delay
-        quint32 maxContractConfirmationDelay = 17*60;
-
-        // Create seller torrent plugin configuration
-        SellerTorrentPlugin::Configuration SellerTorrentPluginConfiguration(false,
-                                                                            minPrice,
-                                                                            minLockTime,
-                                                                            minFeePerkB,
-                                                                            seller_count,
-                                                                            maxContractConfirmationDelay);
+        // Grab configuration
+        const SellerTorrentPlugin::Configuration & pluginConfiguration = configurations[i];
 
         // Add to client
-        sellerClient->addTorrent(sellerTorrentConfiguration, SellerTorrentPluginConfiguration);
+        sellerClient->addTorrent(sellerTorrentConfiguration, pluginConfiguration);
 
         // Track controller
         controllerTracker.addClient(sellerClient);
-
     }
-
-    // Start event loop: this is the only Qt event loop in the entire application
-    app.exec();
-
-    qDebug() << "Application event loop exited, application closing.";
 }
 
 bool updateManager() {

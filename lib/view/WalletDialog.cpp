@@ -1,8 +1,8 @@
 #include "WalletDialog.hpp"
 #include "ui_walletdialog.h"
 #include "extension/BitCoin/Wallet.hpp"
-#include "BitCoinDisplaySettings.hpp"
-#include "BitCoinRepresentation.hpp"
+#include <common/BitCoinDisplaySettings.hpp>
+#include <common/BitCoinRepresentation.hpp>
 
 #include <QInputDialog>
 #include <QMessageBox>

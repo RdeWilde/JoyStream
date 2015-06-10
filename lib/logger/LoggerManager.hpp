@@ -15,7 +15,7 @@ public:
     struct Category {
 
         // Name
-        const char * name;
+        QString name;
 
         // File where messages are outputted
         QFile * file;
@@ -47,7 +47,7 @@ public:
     ~LoggerManager();
 
     // Creates a new category
-    QLoggingCategory * createLogger(const char * name, bool useStandardOutput, bool chainStandardHandler);
+    QLoggingCategory * createLogger(const QString & name, bool useStandardOutput, bool chainStandardHandler);
 
 };
 

@@ -7,7 +7,8 @@
 #include "controller/BuyerTorrentPluginViewModel.hpp"
 #include "controller/TorrentViewModel.hpp"
 
-#include "BitCoinRepresentation.hpp"
+#include <common/BitCoinRepresentation.hpp>
+#include <common/BitCoinDisplaySettings.hpp>
 
 // Dialogs
 #include "SellerTorrentPluginConfigurationDialog.hpp"
@@ -56,10 +57,11 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet)
      * Setup icons
      */
     // Alter window title
-    setWindowTitle("BitSwapr"); // JoyStream
+    setWindowTitle("JoyStream"); // BitSwapr
 
     // Set icon
-    QPixmap iconMap("C:/ART/images/BitSwapr_mark_32.png");
+    //QPixmap iconMap("C:/ART/images/BitSwapr_mark_32.png");
+    QPixmap iconMap("C:/ART/images/window_logo.png");
     setWindowIcon(iconMap);
 
     QPixmap addIcon("C:/ART/images/Add_button_inside_black_circle_32.png");
@@ -217,7 +219,7 @@ void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torre
     msgBox.setText("Choose plugin mode.");
 
     QPushButton * classicPushButton = msgBox.addButton(tr("Classic"), QMessageBox::ActionRole);
-    QPushButton * observerPushButton = msgBox.addButton(tr("Observer"), QMessageBox::ActionRole);
+    //QPushButton * observerPushButton = msgBox.addButton(tr("Observer"), QMessageBox::ActionRole);
     QPushButton * buyerPushButton = msgBox.addButton(tr("Buy"), QMessageBox::ActionRole);
     QPushButton * sellerPushButton = msgBox.addButton(tr("Sell"), QMessageBox::ActionRole);
 
@@ -226,14 +228,14 @@ void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torre
 
     if(msgBox.clickedButton() == classicPushButton) {
 
-    } else if (msgBox.clickedButton() == observerPushButton) {
+    } /** else if (msgBox.clickedButton() == observerPushButton) {
 
         // Set in passive mode
         //_controller->updateTorrentPluginConfiguration(infoHash, new TorrentPluginConfiguration(true));
 
         qDebug() << "Not implemented.";
 
-    } else if (msgBox.clickedButton() == buyerPushButton) {
+    } */ else if (msgBox.clickedButton() == buyerPushButton) {
 
         //Show buyer configuration dialog
         BuyerTorrentPluginConfigurationDialog buyerTorrentPluginConfigurationDialog(_controller, _wallet, torrentInfo, &_bitcoinDisplaySettings);

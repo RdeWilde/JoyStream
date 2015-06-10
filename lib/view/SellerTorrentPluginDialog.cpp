@@ -1,10 +1,11 @@
 #include "SellerTorrentPluginDialog.hpp"
 #include "ui_SellerTorrentPluginDialog.h"
 #include "controller/SellerTorrentPluginViewModel.hpp"
-#include "BitCoinDisplaySettings.hpp"
 #include "controller/SellerPeerPluginViewModel.hpp"
 #include "SellerPeerPluginView.hpp"
-#include "BitCoinRepresentation.hpp"
+
+#include <common/BitCoinRepresentation.hpp>
+#include <common/BitCoinDisplaySettings.hpp>
 
 #include "extension/BitCoin/BitCoin.hpp"
 #include "Utilities.hpp" // time conversion

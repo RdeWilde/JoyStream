@@ -1,6 +1,6 @@
 #include "SellerPeerPluginView.hpp"
 #include "controller/SellerPeerPluginViewModel.hpp"
-#include "BitCoinRepresentation.hpp"
+#include <common/BitCoinRepresentation.hpp>
 
 #include <libtorrent/socket_io.hpp> // print_endpoint
 

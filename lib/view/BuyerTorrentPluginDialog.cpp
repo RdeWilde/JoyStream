@@ -1,8 +1,7 @@
 #include "BuyerTorrentPluginDialog.hpp"
 #include "ui_BuyerTorrentPluginDialog.h"
-
 #include "controller/BuyerTorrentPluginViewModel.hpp"
-#include "BitCoinDisplaySettings.hpp"
+#include <common/BitCoinDisplaySettings.hpp>
 #include "controller/BuyerPeerPluginViewModel.hpp"
 #include "ChannelView.hpp"
 #include "BuyerPeerPluginView.hpp"
