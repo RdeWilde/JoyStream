@@ -23,6 +23,14 @@ class P2PKHTxOut;
 class P2SHTxOut;
 class UnspentP2PKHOutput;
 
+#define SKIP_TX_BROADCAST // Neither contract, payments or refunds are broadcasted
+#define SKIP_SIGNATURE_GENERATION_VERIFICATION // No signatures are produced or checked
+
+// Enforce: defined(SKIP_SIGNATURE_GENERATION_VERIFICATION) => defined(SKIP_TX_BROADCAST)
+#ifdef SKIP_SIGNATURE_GENERATION_VERIFICATION
+    #define SKIP_TX_BROADCAST
+#endif
+
 // Wraps BitSwaprjs
 class BitSwaprjs
 {

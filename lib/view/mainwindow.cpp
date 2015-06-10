@@ -67,7 +67,8 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet)
     QPixmap addIcon("C:/ART/images/Add_button_inside_black_circle_32.png");
     ui->addTorrentFilePushButton->setIcon(addIcon);
 
-    QPixmap walletIcon("C:/ART/images/Bitcoin_pocket_or_wallet_32.png");
+    //QPixmap walletIcon("C:/ART/images/Bitcoin_pocket_or_wallet_32.png");
+    QPixmap walletIcon("C:/ART/images/Card_wallet_32.png");
     ui->walletPushButton->setIcon(walletIcon);
 
     QPixmap settingsIcon("C:/ART/images/Settings_Work_Tool_32.png");
@@ -132,8 +133,9 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet)
     ui->torrentsTable->setColumnWidth(6, 90);
     ui->torrentsTable->setColumnWidth(7, 50);
 
-    // Hide button
+    // Hide buttons
     ui->addMagnetLinkPushButton->setVisible(false);
+    ui->settingsPushButton->setVisible(false);
 
     // Align spending/wallet info labels
     ui->earnedBalanceLabel->setAlignment(Qt::AlignRight);

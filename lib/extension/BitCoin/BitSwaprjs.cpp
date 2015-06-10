@@ -139,7 +139,9 @@ TxId BitSwaprjs::compute_contract_hash(const UnspentP2PKHOutput & utxo, const QV
 
 Signature BitSwaprjs::compute_refund_signature(const OutPoint & contractOutputPoint, const PrivateKey &sk, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime) {
 
+#ifdef SKIP_SIGNATURE_GENERATION_VERIFICATION
     return Signature();
+#endif
 
     // Create parameters
     QJsonObject params {
@@ -160,7 +162,9 @@ Signature BitSwaprjs::compute_refund_signature(const OutPoint & contractOutputPo
 
 Signature BitSwaprjs::compute_payment_signature(const OutPoint & contractOutputPoint, const PrivateKey &sk, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, const P2PKHTxOut & paymentOutput) {
 
+#ifdef SKIP_SIGNATURE_GENERATION_VERIFICATION
     return Signature();
+#endif
 
     // Create parameters
     QJsonObject params {
@@ -181,7 +185,9 @@ Signature BitSwaprjs::compute_payment_signature(const OutPoint & contractOutputP
 
 bool BitSwaprjs::check_refund_signatures(const OutPoint & contractOutputPoint, const Signature & payorSignature, const Signature & payeeSignature, const PublicKey & firstPk, const PublicKey & secondPk, const P2PKHTxOut & refundOutput, quint32 refundLockTime) {
 
+#ifdef SKIP_SIGNATURE_GENERATION_VERIFICATION
     return true;
+#endif
 
     // Create parameters
     QJsonObject params {
@@ -203,7 +209,9 @@ bool BitSwaprjs::check_refund_signatures(const OutPoint & contractOutputPoint, c
 
 bool BitSwaprjs::check_payment_signatures(const OutPoint & contractOutputPoint, const Signature &payorSignature, const Signature &payeeSignature, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, const P2PKHTxOut & paymentOutput) {
 
+#ifdef SKIP_SIGNATURE_GENERATION_VERIFICATION
     return true;
+#endif
 
     // Create parameters
     QJsonObject params {
@@ -313,7 +321,10 @@ quint32 BitSwaprjs::get_latest_block() {
 
 TxId BitSwaprjs::broadcast_contract(const UnspentP2PKHOutput & utxo, const QVector<P2SHTxOut> & contractOutputs, const P2PKHTxOut & changeOutput) {
 
+#ifdef SKIP_TX_BROADCAST
+    // Just return correct hash. Is needed as payor does compare it to see if tx was broadcasted
     return compute_contract_hash(utxo, contractOutputs, changeOutput);
+#endif
 
     // Encode parameters into json
     QJsonArray p2shTxOuts;
@@ -346,7 +357,9 @@ TxId BitSwaprjs::broadcast_contract(const UnspentP2PKHOutput & utxo, const QVect
 
 bool BitSwaprjs::broadcast_refund(const OutPoint & contractOutputPoint, const Signature &payorSignature, const Signature &payeeSignature, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, quint32 refundLockTime) {
 
+#ifdef SKIP_TX_BROADCAST
     return true;
+#endif
 
     // Create parameters
     QJsonObject params {
@@ -368,7 +381,9 @@ bool BitSwaprjs::broadcast_refund(const OutPoint & contractOutputPoint, const Si
 
 bool BitSwaprjs::broadcast_payment(const OutPoint & contractOutputPoint, const Signature &payorSignature, const Signature &payeeSignature, const PublicKey &firstPk, const PublicKey &secondPk, const P2PKHTxOut &refundOutput, const P2PKHTxOut & paymentOutput) {
 
+#ifdef SKIP_TX_BROADCAST
     return true;
+#endif
 
     // Create parameters
     QJsonObject params {
