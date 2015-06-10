@@ -31,6 +31,7 @@ signals:
     void lockTimeChanged(quint32 lockTime);
     void priceChanged(quint64 price);
     void fundsChanged(quint64 funds);
+    void balanceChanged(quint64 balance);
 
 private:
 

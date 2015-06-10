@@ -17,9 +17,9 @@
 
 #define PAYMENT_PROTOCOL_VERSION 1
 
-#define EXTENSION_NAME "bm_payment" // extension name
+#define EXTENSION_NAME "btc_payment" // extension name
 
-#define APPLICATION_NAME "BitSwapr"
+#define APPLICATION_NAME "JoyStream" // "BitSwapr"
 
 #define APPLICATION_DESCRIPTION "A cryptocurrency enabled BitTorrent client."
 

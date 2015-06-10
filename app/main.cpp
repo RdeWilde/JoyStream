@@ -141,7 +141,7 @@ void main(int argc, char* argv[]) {
      */
 
     // Load torrent
-    libtorrent::torrent_info torrentInfo = load_torrent("C:/TORRENTS/Aint No Love Crucified.mp3.torrent");
+    libtorrent::torrent_info torrentInfo = load_torrent("C:/TORRENTS/Rise and Rrise of BitCoin.torrent"); // C:/TORRENTS/Aint No Love Crucified.mp3.torrent
 
     // Buyers
     add_buyers_with_plugin(controllerConfiguration, manager, controllerTracker, true , true, torrentInfo,

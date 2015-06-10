@@ -8,6 +8,13 @@ PayeeViewModel::PayeeViewModel(QObject * parent,
 
 void PayeeViewModel::update(const Payee::Status & status) {
 
+    quint64 oldBalance = _status.price()*_status.numberOfPaymentsMade();
+    quint64 newBalance = status.price()*status.numberOfPaymentsMade();
+
+    if(oldBalance != newBalance) {
+        emit balanceChanged(newBalance);
+    }
+
     if(_status.state() != status.state()) {
         _status.setState(status.state());
         emit stateChanged(status.state());

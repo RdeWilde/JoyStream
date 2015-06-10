@@ -78,7 +78,7 @@ public slots:
     void updateRefundLockTime(quint32 refundLockTime);
     void updatePrice(quint64 price);
     void updateNumberOfPaymentMade(quint64 numberOfPaymentMade);
-    void updateBalance(quint32 balance);
+    void updateBalance(quint64 balance);
 
 private:
 

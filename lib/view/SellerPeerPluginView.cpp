@@ -85,6 +85,11 @@ SellerPeerPluginView::SellerPeerPluginView(QObject * parent,
                      this,
                      SLOT(updateFunds(quint64)));
 
+    QObject::connect(payeeViewModel,
+                     SIGNAL(balanceChanged(quint64)),
+                     this,
+                     SLOT(updateBalance(quint64)));
+
 }
 
 QString SellerPeerPluginView::endPointToString(const libtorrent::tcp::endpoint & endPoint) {
@@ -198,7 +203,7 @@ void SellerPeerPluginView::updateNumberOfPaymentMade(quint64 numberOfPaymentMade
     _numberOfPaymentMadeItem->setText(numberOfPaymentMadeToString(numberOfPaymentMade));
 }
 
-void SellerPeerPluginView::updateBalance(quint32 balance) {
+void SellerPeerPluginView::updateBalance(quint64 balance) {
     _balanceItem->setText(balanceToString(balance));
 }
 

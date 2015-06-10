@@ -208,7 +208,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Piece price (satoshies):</string>
+    <string>Price/piece (satoshies):</string>
    </property>
   </widget>
   <widget class="QLabel" name="computedSatoshiesMinPriceValue">
