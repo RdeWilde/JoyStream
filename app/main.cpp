@@ -106,24 +106,15 @@ void main(int argc, char* argv[]) {
     // Network access manager instance used by all code trying to use network
     QNetworkAccessManager manager;
 
-    /**
-     * Load torrent ================================================
-     */
-
-    libtorrent::error_code ec;
-    libtorrent::torrent_info torrentInfo("C:/TORRENTS/Rise and Rrise of BitCoin.torrent", ec);
-
-    if(ec) {
-        qDebug() << "Invalid torrent file 1: " << ec.message().c_str();
-        return;
-    }
-
     // Create a controller tracker
     ControllerTracker controllerTracker;
 
     /**
      * Downloading & streaming
-    int seller_count = 1;
+     *
+
+    // Load torrent
+    libtorrent::torrent_info torrentInfo = load_torrent("C:/TORRENTS/Rise and Rrise of BitCoin.torrent");
 
     // Buyers
     Controller * loneBuyer = create_controller(controllerConfiguration, manager, true, true, torrentInfo, QString("lone_buyer"));
@@ -138,14 +129,17 @@ void main(int argc, char* argv[]) {
                                                                   10, // Minimum piece price (satoshi)
                                                                   2*3600, // Minimum lock time on refund (seconds)
                                                                   BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.01).satoshies(), // Min fee per kB (satoshi)
-                                                                  seller_count, // Max #seller
+                                                                  1, // Max #seller
                                                                   17*60) // Maximum contract confirmation delay (seconds)
                             );
     */
 
     /**
      * Paid uploading
-    */
+     */
+
+    // Load torrent
+    libtorrent::torrent_info torrentInfo = load_torrent("C:/TORRENTS/Aint No Love Crucified.mp3.torrent");
 
     // Buyers
     add_buyers_with_plugin(controllerConfiguration, manager, controllerTracker, true , true, torrentInfo,
@@ -182,9 +176,17 @@ void main(int argc, char* argv[]) {
     qDebug() << "Application event loop exited, application closing.";
 }
 
-/**
- * Create torrent configuration
- */
+libtorrent::torrent_info load_torrent(const QString & path) {
+
+    libtorrent::error_code ec;
+    libtorrent::torrent_info torrentInfo("C:/TORRENTS/Rise and Rrise of BitCoin.torrent", ec);
+
+    if(ec) {
+        qDebug() << "Invalid torrent file 1: " << ec.message().c_str();
+        return;
+    }
+
+}
 
 Controller::Torrent::Configuration create_torrent_configuration(libtorrent::torrent_info & torrentInfo, const QString & name) {
 
@@ -196,10 +198,6 @@ Controller::Torrent::Configuration create_torrent_configuration(libtorrent::torr
                                               //+libtorrent::add_torrent_params::flag_auto_managed
                                               ,&torrentInfo);
 }
-
-/**
- * Create controller
- */
 
 Controller * create_controller(Controller::Configuration controllerConfiguration, QNetworkAccessManager & manager,
                                                        bool show_gui, bool use_stdout_logg, libtorrent::torrent_info & torrentInfo, const QString & name) {
@@ -218,9 +216,6 @@ Controller * create_controller(Controller::Configuration controllerConfiguration
                          *category);
 }
 
-/**
- * Buyers =======================================================
- */
 void add_buyers_with_plugin(Controller::Configuration controllerConfiguration, QNetworkAccessManager & manager, ControllerTracker & controllerTracker,
                             bool show_gui, bool use_stdout_logg, libtorrent::torrent_info & torrentInfo,
                             const QVector<BuyerTorrentPlugin::Configuration> & configurations) {
@@ -269,9 +264,6 @@ void add_buyers_with_plugin(Controller::Configuration controllerConfiguration, Q
     }
 }
 
-/**
- * Sellers =======================================================
- */
 void add_sellers_with_plugin(Controller::Configuration controllerConfiguration, QNetworkAccessManager & manager, ControllerTracker & controllerTracker,
                              bool show_gui, bool use_stdout_logg, libtorrent::torrent_info & torrentInfo,
                              const QVector<SellerTorrentPlugin::Configuration> & configurations) {
