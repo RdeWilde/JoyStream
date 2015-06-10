@@ -1201,11 +1201,8 @@ Controller::Controller(const Configuration & configuration, bool showView, QNetw
     if(showView)
         _view.show();
 
-    // Synchronize wallet
-    //_wallet.synchronize();
-
     // Update wallet balance in ui
-    _view.updateWalletBalance(_wallet.lastComputedBalance());
+    _view.updateWalletBalance(_wallet.lastComputedZeroConfBalance());
 }
 
 Controller::~Controller() {

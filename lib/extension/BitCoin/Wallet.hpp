@@ -18,8 +18,10 @@ class UnspentP2PKHOutput;
 /**
  * @brief Naive Btc Micropayment wallet
  */
-class Wallet
+class Wallet : public QObject
 {
+    Q_OBJECT
+
 public:
 
     /**
@@ -268,7 +270,7 @@ public:
     static quint32 blockHeight();
 
     // Total balance of confirmed (1 conf+) utxo controlled fully (only p2pkh) by keys in wallet
-    quint64 lastComputedBalance(); // const;
+    quint64 lastComputedZeroConfBalance(); // const;
 
     // Computes: Total balance of utxo controlled fully (only p2pkh) by keys in wallet, with given
     // number of confirmations, or more
@@ -297,6 +299,11 @@ public:
     quint64 latestBlockHeight();  // const
 
     quint32 numberOfTransactions(); // const
+
+signals:
+
+    // The unconfirmed balance was changed
+    void zeroConfBalanceChanged(quint64 balance) const;
 
 private:
 
@@ -331,8 +338,8 @@ private:
     // Latest known block height
     qint64 _latestBlockHeight;
 
-    // Value of last run of computeBalance, which is initially run in ctr
-    quint64 _lastComputedBalance;
+    // Value of last run of computeBalance(0), which is initially run in ctr
+    quint64 _lastComputedZeroConfBalance;
 
     // Used by constructor to load wallet from dictionary, is not synchronized
     void fromJson(const QJsonObject & walletDictionary);

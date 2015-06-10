@@ -442,7 +442,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       fromJson(walletDictionary);
 
       // Compute wallet balance
-      _lastComputedBalance = computeBalance(1);
+      _lastComputedZeroConfBalance = computeBalance(0);
   }
 
   void Wallet::fromJson(const QJsonObject & walletDictionary) {
@@ -678,6 +678,14 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
           save();
 
       _mutex.unlock();
+
+      quint64 balance = computeBalance(0);
+
+      if(_lastComputedZeroConfBalance != balance) {
+
+          _lastComputedZeroConfBalance = balance;
+          emit zeroConfBalanceChanged(balance);
+      }
   }
 
   QString Wallet::toAddress(const PublicKey & pk) const {
@@ -875,12 +883,12 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       return copy;
   }
 
-  quint64 Wallet::lastComputedBalance() {
+  quint64 Wallet::lastComputedZeroConfBalance() {
 
       quint64 copy;
 
       _mutex.lock();
-      copy = _lastComputedBalance;
+      copy = _lastComputedZeroConfBalance;
       _mutex.unlock();
 
       return copy;

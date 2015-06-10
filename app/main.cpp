@@ -123,8 +123,6 @@ void main(int argc, char* argv[]) {
 
     /**
      * Downloading & streaming
-     */
-
     int seller_count = 1;
 
     // Buyers
@@ -133,37 +131,46 @@ void main(int argc, char* argv[]) {
     controllerTracker.addClient(loneBuyer);
 
     // Sellers
-    /**
-    add_sellers_with_plugin(controllerConfiguration, manager, controllerTracker, true , true, torrentInfo,
+    add_sellers_with_plugin(controllerConfiguration, manager, controllerTracker, false , true, torrentInfo,
                             QVector<SellerTorrentPlugin::Configuration>()
 
                             << SellerTorrentPlugin::Configuration(false,
-                                                                  25, // Minimum piece price (satoshi)
+                                                                  10, // Minimum piece price (satoshi)
                                                                   2*3600, // Minimum lock time on refund (seconds)
                                                                   BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.01).satoshies(), // Min fee per kB (satoshi)
                                                                   seller_count, // Max #seller
                                                                   17*60) // Maximum contract confirmation delay (seconds)
                             );
-                            */
+    */
+
     /**
      * Paid uploading
+    */
 
     // Buyers
     add_buyers_with_plugin(controllerConfiguration, manager, controllerTracker, true , true, torrentInfo,
                            QVector<BuyerTorrentPlugin::Configuration>()
 
                            << BuyerTorrentPlugin::Configuration(false,
-                                                                300, // Maximum piece price (satoshi)
+                                                                178, // Maximum piece price (satoshi)
+                                                                4*3600, // Maximum lock time on refund (seconds)
+                                                                BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.1).satoshies(), // Max fee per kB (satoshi)
+                                                                1) // #sellers
+                           << BuyerTorrentPlugin::Configuration(false,
+                                                                88, // Maximum piece price (satoshi)
                                                                 5*3600, // Maximum lock time on refund (seconds)
                                                                 BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.1).satoshies(), // Max fee per kB (satoshi)
-                                                                seller_count) // #sellers
+                                                                1) // #sellers
+                           << BuyerTorrentPlugin::Configuration(false,
+                                                                300, // Maximum piece price (satoshi)
+                                                                10*3600, // Maximum lock time on refund (seconds)
+                                                                BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.1).satoshies(), // Max fee per kB (satoshi)
+                                                                1) // #sellers
                            );
 
     // Sellers
-    Controller * loneSeller = create_controller(controllerConfiguration, manager, true, true, torrentInfo, QString("lone_seller"));;
-    controllerTracker.addClient(loneBuyer);
-
-    */
+    Controller * loneSeller = create_controller(controllerConfiguration, manager, true, true, torrentInfo, QString("lone_seller"));
+    controllerTracker.addClient(loneSeller);
 
     /**
      * Run
@@ -183,7 +190,7 @@ Controller::Torrent::Configuration create_torrent_configuration(libtorrent::torr
 
     return Controller::Torrent::Configuration(torrentInfo.info_hash()
                                               ,torrentInfo.name()
-                                              ,name.toStdString()
+                                              ,(QString("C:/SAVE_OUTPUT/") + name).toStdString()
                                               ,std::vector<char>()
                                               ,libtorrent::add_torrent_params::flag_update_subscribe
                                               //+libtorrent::add_torrent_params::flag_auto_managed

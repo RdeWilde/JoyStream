@@ -162,6 +162,12 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet)
     // Accept drag and drop
     setAcceptDrops(true);
 
+    // Update balance when it changes
+    QObject::connect(_wallet,
+                     SIGNAL(zeroConfBalanceChanged(quint64)),
+                     this,
+                     SLOT(updateWalletBalance(quint64)));
+
     // Capure wallet balance update timer,
     connect(&_walletBalanceUpdateTimer,
             SIGNAL(timeout()),
@@ -302,7 +308,7 @@ void MainWindow::showBuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel 
 void MainWindow::on_addTorrentFilePushButton_clicked()
 {
     // Choose torrent file
-    QString torrentFile = QFileDialog::getOpenFileName(this, tr("Open Torrent"), "/home/jana", tr("Torrent file (*.torrent)"));
+    QString torrentFile = QFileDialog::getOpenFileName(this, tr("Open Torrent"), "C:/TORRENTS", tr("Torrent file (*.torrent)"));
 
     // Exit if no file chosen
     if(torrentFile.isNull())
@@ -562,13 +568,8 @@ void MainWindow::startVLC(const libtorrent::sha1_hash & infoHash) {
 void MainWindow::updateWalletBalanceHook() {
 
     /**
-
     // Synch with chain
     _wallet->synchronize();
-
-    quint64 balance = _wallet->computeBalance(0);
-
-    updateWalletBalance(balance);
     */
 }
 
