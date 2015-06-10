@@ -171,7 +171,7 @@ QString BitCoinRepresentation::toString(BitCoinPrefix prefix, int precision) con
     if(_satoshies == 0)
         return QString("0Ƀ");
     else
-        return (_isNegative ? QString("-") : QString("")) + QString::number(unitsWithPrefix(prefix), 'f', precision) + prefixToString(prefix) + QString("Ƀ");
+        return (_isNegative ? QString("-") : QString("")) + QString::number(unitsWithPrefix(prefix), 'f', precision) + " " + prefixToString(prefix) + QString("Ƀ");
 }
 
 QString BitCoinRepresentation::toString(int precision) const {
@@ -183,7 +183,7 @@ QString BitCoinRepresentation::toString(Fiat fiat, MetricPrefix prefix, double f
     if(_satoshies == 0)
         return QString("$0");
     else
-        return (_isNegative ? QString("-") : QString("")) + fiatToSymbol(fiat) + QString::number(unitsWithPrefix(prefix, fiatToBTCExchangeRate), 'f', precision) + prefixToString(prefix);
+        return (_isNegative ? QString("-") : QString("")) + fiatToSymbol(fiat) + QString::number(unitsWithPrefix(prefix, fiatToBTCExchangeRate), 'f', precision) + " " + prefixToString(prefix);
 }
 
 QString BitCoinRepresentation::toString(Fiat fiat, double fiatToBTCExchangeRate, int precision) const {
