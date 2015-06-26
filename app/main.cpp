@@ -1,3 +1,10 @@
+/**
+ * Copyright (C) JoyStream - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
+ */
+
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QString>
@@ -113,7 +120,7 @@ void main(int argc, char* argv[]) {
 
     /**
      * Downloading & streaming
-     *
+
 
     // Load torrent
     libtorrent::torrent_info torrentInfo = load_torrent("C:/TORRENTS/Rise and Rrise of BitCoin.torrent");
@@ -134,6 +141,7 @@ void main(int argc, char* argv[]) {
                                                                   1, // Max #seller
                                                                   17*60) // Maximum contract confirmation delay (seconds)
                             );
+
     */
 
     /**
@@ -143,10 +151,10 @@ void main(int argc, char* argv[]) {
     // Load torrent
     // "C:/TORRENTS/Rise and Rrise of BitCoin.torrent"
     // "C:/TORRENTS/Aint No Love Crucified.mp3.torrent"
-    libtorrent::torrent_info torrentInfo = load_torrent("C:/TORRENTS/Aint No Love Crucified.mp3.torrent");
+    libtorrent::torrent_info torrentInfo = load_torrent("C:/TORRENTS/Rise and Rrise of BitCoin.torrent");
 
     // Buyers
-    add_buyers_with_plugin(controllerConfiguration, manager, controllerTracker, true , true, torrentInfo,
+    add_buyers_with_plugin(controllerConfiguration, manager, controllerTracker, false, true, torrentInfo,
                            QVector<BuyerTorrentPlugin::Configuration>()
 
                            << BuyerTorrentPlugin::Configuration(false,
@@ -154,17 +162,19 @@ void main(int argc, char* argv[]) {
                                                                 4*3600, // Maximum lock time on refund (seconds)
                                                                 BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.1).satoshies(), // Max fee per kB (satoshi)
                                                                 1) // #sellers
-                           /**<< BuyerTorrentPlugin::Configuration(false,
+                           << BuyerTorrentPlugin::Configuration(false,
                                                                 88, // Maximum piece price (satoshi)
                                                                 5*3600, // Maximum lock time on refund (seconds)
                                                                 BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.1).satoshies(), // Max fee per kB (satoshi)
                                                                 1) // #sellers
-                            */
+
                            );
 
     // Sellers
     Controller * loneSeller = create_controller(controllerConfiguration, manager, true, true, torrentInfo, QString("lone_seller"));
     controllerTracker.addClient(loneSeller);
+
+
 
     /**
      * Run
