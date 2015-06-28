@@ -77,7 +77,7 @@ public:
         Status();
 
         // Constructor from members
-        Status(PeerModeAnnounced peerModeAnnounced, BEPSupportStatus peerBEP10SupportStatus, BEPSupportStatus peerBitSwaprBEPSupportStatus);
+        Status(PeerModeAnnounced peerModeAnnounced, BEPSupportStatus peerBEP10SupportStatus, BEPSupportStatus peerJoyStreamBEPSupportStatus);
 
         // Getters and setters
         virtual PluginMode pluginMode() const = 0;
@@ -88,8 +88,8 @@ public:
         BEPSupportStatus peerBEP10SupportStatus() const;
         void setPeerBEP10SupportStatus(BEPSupportStatus peerBEP10SupportStatus);
 
-        BEPSupportStatus peerBitSwaprBEPSupportStatus() const;
-        void setPeerBitSwaprBEPSupportStatus(BEPSupportStatus peerBitSwaprBEPSupportStatus);
+        BEPSupportStatus peerJoyStreamBEPSupportStatus() const;
+        void setPeerBitSwaprBEPSupportStatus(BEPSupportStatus peerJoyStreamBEPSupportStatus);
 
     private:
 

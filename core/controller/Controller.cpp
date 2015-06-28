@@ -1082,7 +1082,7 @@ Q_DECLARE_METATYPE(const libtorrent::alert*)
 
 Controller::Controller(const Configuration & configuration, bool showView, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category)
     : _state(State::normal)
-    , _session(libtorrent::fingerprint(CLIENT_FINGERPRINT, BITSWAPR_VERSION_MAJOR, BITSWAPR_VERSION_MINOR, 0, 0),
+    , _session(libtorrent::fingerprint(CLIENT_FINGERPRINT, JOYSTREAM_VERSION_MAJOR, JOYSTREAM_VERSION_MINOR, 0, 0),
                libtorrent::session::add_default_plugins,
                libtorrent::alert::error_notification +
                libtorrent::alert::tracker_notification +

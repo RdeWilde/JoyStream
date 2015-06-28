@@ -1,4 +1,4 @@
-QtBitSwapr
+JoyStream
 ==========
 
-Qt project for BitSwapr.
+Qt project for JoyStream client.

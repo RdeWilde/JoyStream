@@ -28,7 +28,7 @@ PeerPlugin::Status::Status(PeerModeAnnounced peerModeAnnounced, BEPSupportStatus
     , _peerBitSwaprBEPSupportStatus(peerBitSwaprBEPSupportStatus) {
 }
 
-BEPSupportStatus PeerPlugin::Status::peerBitSwaprBEPSupportStatus() const {
+BEPSupportStatus PeerPlugin::Status::peerJoyStreamBEPSupportStatus() const {
     return _peerBitSwaprBEPSupportStatus;
 }
 
@@ -116,9 +116,9 @@ void PeerPlugin::add_handshake(libtorrent::entry & handshake) {
 
     // Add top level key for client identification
     QString clientIdentifier = QString(" ")
-                                + QString::number(BITSWAPR_VERSION_MAJOR)
+                                + QString::number(JOYSTREAM_VERSION_MAJOR)
                                 + QString(".")
-                                + QString::number(BITSWAPR_VERSION_MINOR);
+                                + QString::number(JOYSTREAM_VERSION_MINOR);
 
     handshake["v"] = clientIdentifier.toStdString();
 

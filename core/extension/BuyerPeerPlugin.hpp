@@ -155,7 +155,7 @@ public:
         // Constructor from members
         Status(PeerModeAnnounced peerModeAnnounced,
                BEPSupportStatus peerBEP10SupportStatus,
-               BEPSupportStatus peerBitSwaprBEPSupportStatus,
+               BEPSupportStatus peerJoyStreamBEPSupportStatus,
                const PeerState & peerState,
                ClientState clientState,
                quint32 payorSlot,

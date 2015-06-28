@@ -147,7 +147,7 @@ void BuyerTorrentPluginViewModel::setStatics(const BuyerTorrentPlugin::Status & 
         const BuyerPeerPlugin::Status & peer = i.value();
 
         // Check mode towards mode counters
-        BEPSupportStatus supportStatus = peer.peerBitSwaprBEPSupportStatus();
+        BEPSupportStatus supportStatus = peer.peerJoyStreamBEPSupportStatus();
 
         if(supportStatus == BEPSupportStatus::supported) {
 

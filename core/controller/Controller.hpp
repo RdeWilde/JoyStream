@@ -372,7 +372,7 @@ public:
          * "libtorrentSettings" -> entry::dictionary_type object from session.save_state().
          *
          * "portRange" -> entry::list_type object with two positive integers used as start (first) and end (second)
-         * of port range for running bitswapr.
+         * of port range for running client.
          *
          * "dhtRouters" -> entry::list_type object with entry::list_type objects with two elements, each encoding a dht router by the host (first)
          * and port (second).

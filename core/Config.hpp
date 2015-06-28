@@ -11,8 +11,8 @@
 
 #define CLIENT_FINGERPRINT "BM" // Bedeho Mender, was almost no other ones left (https://wiki.theory.org/BitTorrentSpecification)
 
-#define BITSWAPR_VERSION_MAJOR 0
-#define BITSWAPR_VERSION_MINOR 1
+#define JOYSTREAM_VERSION_MAJOR 0
+#define JOYSTREAM_VERSION_MINOR 1
 
 // Time between each time session.pop_alerts() is called, in milliseconds
 //#define CONTROLLER_POP_ALERTS_DELAY 200
@@ -26,7 +26,7 @@
 
 #define EXTENSION_NAME "btc_payment" // extension name
 
-#define APPLICATION_NAME "JoyStream" // "BitSwapr"
+#define APPLICATION_NAME "JoyStream"
 
 #define APPLICATION_DESCRIPTION "A cryptocurrency enabled BitTorrent client."
 

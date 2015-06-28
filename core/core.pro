@@ -3,10 +3,10 @@
 # Proprietary and confidential
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
 
-include (../boost.pri)
+include(../boost.pri)
 include(../libtorrent.pri)
 
-TARGET = QtBitSwapr
+TARGET = core
 TEMPLATE = lib
 
 CONFIG  += staticlib
@@ -144,7 +144,6 @@ HEADERS += \
     extension/Request/TorrentPluginRequestType.hpp \
     extension/Request/PluginRequestType.hpp \
     extension/Request/PeerPluginRequestType.hpp \
-    extension/Request/SetPluginModeTorrentPluginRequest.hpp \
     view/SellerTorrentPluginConfigurationDialog.hpp \
     view/BuyerTorrentPluginConfigurationDialog.hpp \
     extension/Alert/TorrentPluginAlert.hpp \
@@ -164,12 +163,10 @@ HEADERS += \
     extension/Message/Buy.hpp \
     extension/Message/Payment.hpp \
     extension/BitCoin/PrivateKey.hpp \
-    extension/PayorPaymentChannel.hpp \
     extension/PeerAction.hpp \
     extension/Message/Ready.hpp \
     extension/Message/NoPayloadMessage.hpp \
     extension/SellModePeerAction.hpp \
-    BuyModePeerAction.hpp \
     extension/BuyModePeerAction.hpp \
     extension/BuyerTorrentPlugin.hpp \
     extension/SellerTorrentPlugin.hpp \
@@ -180,8 +177,6 @@ HEADERS += \
     extension/BitCoin/OutputSigHash.hpp \
     extension/BitCoin/P2SHTxOut.hpp \
     extension/BitCoin/P2PKHTxOut.hpp \
-    extension/PaymentChannel/Refund.hpp \
-    extension/PaymentChannel/Contract.hpp \
     extension/BitCoin/BitSwaprjs.hpp \
     extension/PaymentChannel/Payee.hpp \
     extension/BitCoin/P2PKHAddress.hpp \
@@ -241,9 +236,6 @@ FORMS += \
     view/MainWindow.ui \
     view/AddTorrentDialog.ui \
     view/WalletDialog.ui
-
-RESOURCES += \
-    ../views/gui/src/resources.qrc
 
 # common ###############################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../common/release/ -lcommon

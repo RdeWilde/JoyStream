@@ -11,14 +11,14 @@
 #include <QDir>
 #include <QNetworkAccessManager>
 
-#include <lib/Config.hpp>
-#include <lib/ControllerTracker.hpp>
-#include <lib/controller/Controller.hpp>
-#include <lib/extension/BuyerTorrentPlugin.hpp> // for configurations
-#include <lib/extension/SellerTorrentPlugin.hpp> // for configurations
-#include <lib/logger/LoggerManager.hpp>
-#include <lib/extension/PluginMode.hpp>
-#include <lib/extension/BitCoin/BitCoin.hpp> // defines STANDARD_NUM_SATOSHIES_PER_KB_IN_TX_FEE
+#include <core/Config.hpp>
+#include <core/ControllerTracker.hpp>
+#include <core/controller/Controller.hpp>
+#include <core/extension/BuyerTorrentPlugin.hpp> // for configurations
+#include <core/extension/SellerTorrentPlugin.hpp> // for configurations
+#include <core/logger/LoggerManager.hpp>
+#include <core/extension/PluginMode.hpp>
+#include <core/extension/BitCoin/BitCoin.hpp> // defines STANDARD_NUM_SATOSHIES_PER_KB_IN_TX_FEE
 
 #include <common/BitCoinRepresentation.hpp>
 
@@ -47,13 +47,13 @@ void add_sellers_with_plugin(Controller::Configuration controllerConfiguration, 
                              bool show_gui, bool use_stdout_logg, libtorrent::torrent_info & torrentInfo,
                              const QVector<SellerTorrentPlugin::Configuration> & configurations);
 
-// BitSwapr entry point
+// JoyStream entry point
 void main(int argc, char* argv[]) {
 
     // Create Qt application: all objects created after this point are owned by this thread
     QApplication app(argc, argv);
     QApplication::setApplicationName(APPLICATION_NAME);
-    QApplication::setApplicationVersion(QString::number(BITSWAPR_VERSION_MAJOR) + "." + QString::number(BITSWAPR_VERSION_MINOR));
+    QApplication::setApplicationVersion(QString::number(JOYSTREAM_VERSION_MAJOR) + "." + QString::number(JOYSTREAM_VERSION_MINOR));
 
     // Setup command line parsing
     QCommandLineParser parser;
