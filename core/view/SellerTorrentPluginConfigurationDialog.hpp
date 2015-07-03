@@ -13,7 +13,7 @@
 #include <QDialog>
 
 class Controller;
-class Wallet;
+class OldWallet;
 class BitCoinDisplaySettings;
 
 namespace Ui {
@@ -27,7 +27,7 @@ class SellerTorrentPluginConfigurationDialog : public QDialog
 public:
     //explicit SellerTorrentPluginConfigurationDialog(QWidget *parent = 0);
 
-    SellerTorrentPluginConfigurationDialog(Controller * controller, Wallet * wallet, const libtorrent::torrent_info & torrentInfo, const BitCoinDisplaySettings * settings);
+    SellerTorrentPluginConfigurationDialog(Controller * controller, OldWallet * wallet, const libtorrent::torrent_info & torrentInfo, const BitCoinDisplaySettings * settings);
 
     ~SellerTorrentPluginConfigurationDialog();
 
@@ -51,7 +51,7 @@ private:
 
     Controller * _controller;
 
-    Wallet * _wallet;
+    OldWallet * _wallet;
 
     const BitCoinDisplaySettings * _settings;
 

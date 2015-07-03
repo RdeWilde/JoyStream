@@ -22,7 +22,7 @@
 #include <QMessageBox>
 #include <QVector>
 
-BuyerTorrentPluginConfigurationDialog::BuyerTorrentPluginConfigurationDialog(Controller * controller, Wallet * wallet, const libtorrent::torrent_info & torrentInfo, const BitCoinDisplaySettings * settings)
+BuyerTorrentPluginConfigurationDialog::BuyerTorrentPluginConfigurationDialog(Controller * controller, OldWallet * wallet, const libtorrent::torrent_info & torrentInfo, const BitCoinDisplaySettings * settings)
     : ui(new Ui::BuyerTorrentPluginConfigurationDialog)
     , _controller(controller)
     , _wallet(wallet)

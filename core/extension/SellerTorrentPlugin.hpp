@@ -11,7 +11,7 @@
 #include "TorrentPlugin.hpp"
 #include "SellerPeerPlugin.hpp"
 
-class Wallet;
+class OldWallet;
 
 namespace libtorrent {
     struct read_piece_alert;
@@ -157,7 +157,7 @@ public:
     // Constructor
     SellerTorrentPlugin(Plugin * plugin,
                         const boost::shared_ptr<libtorrent::torrent> & torrent,
-                        Wallet * wallet,
+                        OldWallet * wallet,
                         const SellerTorrentPlugin::Configuration & configuration,
                         QLoggingCategory & category);
 
@@ -254,7 +254,7 @@ private:
     QMap<int, QSet<SellerPeerPlugin *> > _outstandingPieceRequests;
 
     // Wallet
-    Wallet * _wallet;
+    OldWallet * _wallet;
 
     // Maximum price accepted (satoshies)
     quint64 _minPrice;

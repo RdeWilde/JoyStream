@@ -253,7 +253,7 @@ QString BitSwaprjs::to_address(const PublicKey & pk) {
 }
 
 //QList<Wallet::TxOEvent> BitSwaprjs::get_key_events(const QList<PublicKey> & list) {
-QMap<PublicKey, QList<Wallet::TxOEvent>> BitSwaprjs::get_key_events(const QSet<PublicKey> & keys) {
+QMap<PublicKey, QList<OldWallet::TxOEvent>> BitSwaprjs::get_key_events(const QSet<PublicKey> & keys) {
 
     QJsonArray pks;
 
@@ -273,12 +273,12 @@ QMap<PublicKey, QList<Wallet::TxOEvent>> BitSwaprjs::get_key_events(const QSet<P
     Q_ASSERT(result.type() == QJsonValue::Object);
     QJsonObject resultMap = result.toObject();
 
-    QMap<PublicKey, QList<Wallet::TxOEvent>> map;
+    QMap<PublicKey, QList<OldWallet::TxOEvent>> map;
 
     for(QJsonObject::const_iterator i = resultMap.constBegin();
         i != resultMap.constEnd();i++) {
 
-        QList<Wallet::TxOEvent> txOEvents;
+        QList<OldWallet::TxOEvent> txOEvents;
 
         QJsonValue & eventList = i.value();
         Q_ASSERT(eventList.type() == QJsonValue::Array);
@@ -296,7 +296,7 @@ QMap<PublicKey, QList<Wallet::TxOEvent>> BitSwaprjs::get_key_events(const QSet<P
             QJsonObject o = element.toObject();
 
             // Parse
-            Wallet::TxOEvent event(o);
+            OldWallet::TxOEvent event(o);
 
             // Add to events array
             txOEvents.append(event);

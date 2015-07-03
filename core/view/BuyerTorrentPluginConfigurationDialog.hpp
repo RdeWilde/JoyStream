@@ -18,7 +18,7 @@ class BuyerTorrentPluginConfigurationDialog;
 }
 
 class Controller;
-class Wallet;
+class OldWallet;
 class BitCoinDisplaySettings;
 
 class BuyerTorrentPluginConfigurationDialog : public QDialog
@@ -29,7 +29,7 @@ public:
 
     //explicit BuyerTorrentPluginConfigurationDialog(QWidget *parent = 0);
 
-    BuyerTorrentPluginConfigurationDialog(Controller * controller, Wallet * wallet, const libtorrent::torrent_info & torrentInfo, const BitCoinDisplaySettings * settings);
+    BuyerTorrentPluginConfigurationDialog(Controller * controller, OldWallet * wallet, const libtorrent::torrent_info & torrentInfo, const BitCoinDisplaySettings * settings);
 
     // Destructor
     ~BuyerTorrentPluginConfigurationDialog();
@@ -58,7 +58,7 @@ private:
 
     Controller * _controller;
 
-    Wallet * _wallet;
+    OldWallet * _wallet;
 
     libtorrent::torrent_info _torrentInfo;
 

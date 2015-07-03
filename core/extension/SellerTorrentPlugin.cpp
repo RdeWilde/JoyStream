@@ -182,7 +182,7 @@ PluginMode SellerTorrentPlugin::Configuration::pluginMode() const {
 
 SellerTorrentPlugin::SellerTorrentPlugin(Plugin * plugin,
                                          const boost::shared_ptr<libtorrent::torrent> & torrent,
-                                         Wallet * wallet,
+                                         OldWallet * wallet,
                                          const SellerTorrentPlugin::Configuration & configuration,
                                          QLoggingCategory & category)
     : TorrentPlugin(plugin, torrent, configuration, category)
@@ -268,10 +268,10 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
 SellerPeerPlugin * SellerTorrentPlugin::createRegularSellerPeerPlugin(libtorrent::bt_peer_connection * connection) {
 
     // Get fresh key pairs for seller side of contract
-    QList<Wallet::Entry> contractKeysEntry = _wallet->generateNewKeys(1, Wallet::Purpose::SellerInContractOutput).values();
+    QList<OldWallet::Entry> contractKeysEntry = _wallet->generateNewKeys(1, OldWallet::Purpose::SellerInContractOutput).values();
     KeyPair payeeContractKeys = contractKeysEntry.front().keyPair();
 
-    QList<Wallet::Entry> paymentKeysEntry = _wallet->generateNewKeys(1, Wallet::Purpose::ContractPayment).values();
+    QList<OldWallet::Entry> paymentKeysEntry = _wallet->generateNewKeys(1, OldWallet::Purpose::ContractPayment).values();
     KeyPair payeePaymentKeys = paymentKeysEntry.front().keyPair();
 
     return new SellerPeerPlugin(this,

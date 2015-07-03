@@ -551,7 +551,7 @@ public:
     quint16 getServerPort() const;
 
     // Returns reference to the wallet
-    Wallet & wallet();
+    OldWallet & wallet();
 
     // Get view model for given torrent
     const TorrentViewModel * torrentViewModel(const libtorrent::sha1_hash & infoHash) const;
@@ -623,7 +623,7 @@ private:
     libtorrent::session _session;
 
     // Wallet used
-    Wallet _wallet;
+    OldWallet _wallet;
 
     // Logging category
     QLoggingCategory & _category;

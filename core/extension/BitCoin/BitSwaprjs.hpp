@@ -66,7 +66,7 @@ public:
     // We wont bother with an address class as that gets complicated with all the different address types.
     static QString to_address(const PublicKey & pk);
 
-    static QMap<PublicKey, QList<Wallet::TxOEvent>> get_key_events(const QSet<PublicKey> & keys);
+    static QMap<PublicKey, QList<OldWallet::TxOEvent>> get_key_events(const QSet<PublicKey> & keys);
 
     static quint32 get_latest_block();
 

@@ -16,7 +16,7 @@
 
 //WalletDialog::WalletDialog(QWidget *parent, Wallet * wallet) {}
 
-WalletDialog::WalletDialog(Wallet * wallet,
+WalletDialog::WalletDialog(OldWallet * wallet,
                            const BitCoinDisplaySettings * settings)
     : ui(new Ui::WalletDialog)
     , _wallet(wallet)
@@ -96,29 +96,29 @@ void WalletDialog::updateWalletTableView() {
     ui->walletTableView->setColumnWidth(3, 20);
 
     // Get wallet entries
-    const QMap<PublicKey, Wallet::Entry> & entries = _wallet->entries();
+    const QMap<PublicKey, OldWallet::Entry> & entries = _wallet->entries();
 
     // List of all events
-    QList<Wallet::TxOEvent> events;
+    QList<OldWallet::TxOEvent> events;
 
     // Iterate wallet entries
-    for(QMap<PublicKey, Wallet::Entry>::const_iterator i = entries.constBegin();
+    for(QMap<PublicKey, OldWallet::Entry>::const_iterator i = entries.constBegin();
         i != entries.constEnd();i++) {
 
         // Get entry
-        const Wallet::Entry & entry = i.value();
+        const OldWallet::Entry & entry = i.value();
 
         // For each entry, iterate entry events (send and receive)
 
         // send
-        const QMap<OutPoint, Wallet::TxOEvent> & send = entry.send();
-        for(QMap<OutPoint, Wallet::TxOEvent>::const_iterator j = send.constBegin();
+        const QMap<OutPoint, OldWallet::TxOEvent> & send = entry.send();
+        for(QMap<OutPoint, OldWallet::TxOEvent>::const_iterator j = send.constBegin();
             j != send.constEnd();j++)
             events.append(j.value());
 
         // receive
-        const QMap<OutPoint, Wallet::TxOEvent> & receive = entry.receive();
-        for(QMap<OutPoint, Wallet::TxOEvent>::const_iterator j = receive.constBegin();
+        const QMap<OutPoint, OldWallet::TxOEvent> & receive = entry.receive();
+        for(QMap<OutPoint, OldWallet::TxOEvent>::const_iterator j = receive.constBegin();
             j != receive.constEnd();j++)
             events.append(j.value());
     }
@@ -127,7 +127,7 @@ void WalletDialog::updateWalletTableView() {
     qSort(events.begin(), events.end());
 
     // Iterate and add to table view model
-    for(QList<Wallet::TxOEvent>::const_iterator i = events.constBegin();
+    for(QList<OldWallet::TxOEvent>::const_iterator i = events.constBegin();
         i != events.constEnd();i++)
         _walletTableViewModel.appendRow(toModelViewRow(*i));
 
@@ -203,7 +203,7 @@ void WalletDialog::updateWalletTableView() {
 
 }
 
-QList<QStandardItem *> WalletDialog::toModelViewRow(const Wallet::TxOEvent & event) const {
+QList<QStandardItem *> WalletDialog::toModelViewRow(const OldWallet::TxOEvent & event) const {
 
     // Create new row
     QList<QStandardItem *> items;
@@ -215,8 +215,8 @@ QList<QStandardItem *> WalletDialog::toModelViewRow(const Wallet::TxOEvent & eve
     QString type;
     switch(event.type()) {
 
-        case Wallet::TxOEvent::Type::Send: type = "Sending"; break;
-        case Wallet::TxOEvent::Type::Receive: type = "Receive"; break;
+        case OldWallet::TxOEvent::Type::Send: type = "Sending"; break;
+        case OldWallet::TxOEvent::Type::Receive: type = "Receive"; break;
     }
 
     items << new QStandardItem(type);
@@ -260,7 +260,7 @@ void WalletDialog::on_receivePushButton_clicked() {
         return;
 
     // Get wallet entry
-    Wallet::Entry entry = _wallet->addReceiveKey(description, Wallet::Purpose::Receive);
+    OldWallet::Entry entry = _wallet->addReceiveKey(description, OldWallet::Purpose::Receive);
 
     // Get address
     QString address = _wallet->toAddress(entry.keyPair().pk());
