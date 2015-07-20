@@ -5,13 +5,15 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, July 5 2015
  */
 
-#ifndef NETWORK
-#define NETWORK
+#include <wallet/slot.hpp>
 
-enum class Network {
-    testnet3,
-    mainnet
-};
+Slot::Slot()
+{
 
-#endif // NETWORK
+}
+
+Slot::~Slot()
+{
+
+}
 

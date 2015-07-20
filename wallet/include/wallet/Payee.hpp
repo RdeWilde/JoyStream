@@ -5,13 +5,14 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, July 5 2015
  */
 
-#ifndef NETWORK
-#define NETWORK
+#ifndef PAYEE_H
+#define PAYEE_H
 
-enum class Network {
-    testnet3,
-    mainnet
+class Payee
+{
+public:
+    Payee();
+    ~Payee();
 };
 
-#endif // NETWORK
-
+#endif // PAYEE_H

@@ -5,13 +5,15 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, July 5 2015
  */
 
-#ifndef NETWORK
-#define NETWORK
+#include <wallet/WalletKeyControllingReceiveAddress.hpp>
 
-enum class Network {
-    testnet3,
-    mainnet
-};
+WalletKeyControllingReceiveAddress::WalletKeyControllingReceiveAddress()
+{
 
-#endif // NETWORK
+}
+
+WalletKeyControllingReceiveAddress::~WalletKeyControllingReceiveAddress()
+{
+
+}
 

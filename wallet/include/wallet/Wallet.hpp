@@ -1,3 +1,10 @@
+/**
+ * Copyright (C) JoyStream - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, July 5 2015
+ */
+
 #ifndef WALLET_HPP
 #define WALLET_HPP
 
@@ -8,6 +15,12 @@
 #include <QtSql>
 #include <QDateTime>
 #include <QByteArray>
+
+class WalletKey;
+class ReceiveAddress;
+class Payer;
+class Payee;
+class Slot;
 
 class Wallet : public QObject
 {
@@ -25,31 +38,27 @@ public:
     // Check basic integrity of wallet database
     static bool validateWalletStructure(QSqlDatabase & db);
 
-    // generate receive address
+    /**
+     * List wallet content
+     */
 
-    // get utxo
+    // List all receive addresses in the wallet
+    //QList<ReceiveAddress> listReceiveAddresses();
 
-    // list utxo
+    // List wallet utxo set
+    //QList<Output listUtxo();
 
-    // list receive addresses
+    /**
+     * Get
+     */
 
+    // Get and utxo
+    // utxo getUtxo();
 
-signals:
-
-
-    // new utxo
-
-    // spent utxo
-
-    // double spend detected
-
-    // new transaction added
-
-    // reorg?
+    // Generate receive address
+    // ReceiveAddress getReceiveAddress();
 
 public slots:
-
-
 
 private:
 
@@ -75,20 +84,47 @@ private:
     /**
      * SQL table schemas
      */
+    static QSqlQuery createWalletKeyTableQuery();
+    static QSqlQuery createReceiveAddressTableQuery();
+    static QSqlQuery createReceiveAddressPurposeTableQuery();
+    static QSqlQuery createWalletKeyControllingReceiveAddressTableQuery();
+    static QSqlQuery createTransactionTableQuery();
+    static QSqlQuery createInputTableQuery();
+    static QSqlQuery createScriptTypeTableQuery();
+    static QSqlQuery createOutputTableQuery();
+    static QSqlQuery createPayerTableQuery();
+    static QSqlQuery createSlotTableQuery();
+    static QSqlQuery createSlotStateTableQuery();
+    static QSqlQuery createPayeeTableQuery();
+    static QSqlQuery createPayeeStateTableQuery();
 
-    static QString createPrivateKeyTableQuery();
-    static QString createKeyPurposeTableQuery();
-    static QString createReceiveAddressTableQuery();
-    static QString createPrivateKeyControllingReceiveAddressTableQuery();
-    static QString createTransactionTableQuery();
-    static QString createInputTableQuery();
-    static QString createScriptTypeTableQuery();
-    static QString createOutputTableQuery();
-    static QString createPayerTableQuery();
-    static QString createSlotTableQuery();
-    static QString createSlotStateTableQuery();
-    static QString createPayeeTableQuery();
-    static QString createPayeeStateTableQuery();
+    /**
+     * SQL insert statement !template!
+     * Add make bingings to use
+     */
+    static QSqlQuery insertWalletKeyQuery();
+    static QSqlQuery insertReceiveAddressQuery();
+    static QSqlQuery insertReceiveAddressPurposeQuery();
+    //static QSqlQuery insertPrivateKeyControllingReceiveAddressQuery();
+    static QSqlQuery insertTransactionQuery();
+    static QSqlQuery insertInputQuery();
+    static QSqlQuery insertScriptTypeQuery();
+    static QSqlQuery insertOutputQuery();
+    static QSqlQuery insertPayerQuery();
+    static QSqlQuery insertSlotQuery();
+    static QSqlQuery insertSlotStateQuery();
+    static QSqlQuery insertPayeeQuery();
+    static QSqlQuery insertPayeeStateQuery();
+
+    /**
+     * SQL insert queries
+     */
+    static QSqlQuery insertQuery(const WalletKey & walletKey);
+    static QSqlQuery insertQuery(const ReceiveAddress & receiveAddress);
+    //
+    static QSqlQuery insertQuery(const Payer & payer);
+    static QSqlQuery insertQuery(const Payee & payee);
+    static QSqlQuery insertQuery(const Slot & slot);
 };
 
 #endif // WALLET_HPP

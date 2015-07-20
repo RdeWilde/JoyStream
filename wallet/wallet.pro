@@ -19,7 +19,23 @@ INCLUDEPATH += $$PWD/include # be able to include w.r.t root of this project
 
 HEADERS += \
     include/wallet/Wallet.hpp \
-    include/wallet/Network.hpp
+    include/wallet/Network.hpp \
+    include/wallet/WalletKey.hpp \
+    include/wallet/WalletKeyControllingReceiveAddress.hpp \
+    include/wallet/Payee.hpp \
+    include/wallet/Slot.hpp \
+    include/wallet/ReceiveAddress.hpp \
+    include/wallet/SPVValidator.hpp \
+    include/wallet/SPVWAllet.hpp \
+    include/wallet/Payer.hpp
 
 SOURCES += \
-    src/Wallet.cpp
+    src/Wallet.cpp \
+    src/WalletKey.cpp \
+    src/WalletKeyControllingReceiveAddress.cpp \
+    src/Payee.cpp \
+    src/Slot.cpp \
+    src/ReceiveAddress.cpp \
+    src/SPVValidator.cpp \
+    src/SPVWAllet.cpp \
+    src/Payer.cpp

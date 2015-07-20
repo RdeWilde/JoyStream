@@ -5,13 +5,23 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, July 5 2015
  */
 
-#ifndef NETWORK
-#define NETWORK
+#ifndef RECEIVE_ADDRESS
+#define RECEIVE_ADDRESS
 
-enum class Network {
-    testnet3,
-    mainnet
+#include <QDateTime>
+
+class ReceiveAddress {
+
+public:
+
+private:
+
+    //
+    // Address
+
+    // When address was requestd
+    QDateTime _requested;
 };
 
-#endif // NETWORK
+#endif // RECEIVE_ADDRESS
 

@@ -5,13 +5,6 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, July 5 2015
  */
 
-#ifndef NETWORK
-#define NETWORK
+#include "wallet/ReceiveAddress.hpp"
 
-enum class Network {
-    testnet3,
-    mainnet
-};
-
-#endif // NETWORK
 

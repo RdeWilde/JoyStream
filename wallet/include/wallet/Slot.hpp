@@ -5,13 +5,15 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, July 5 2015
  */
 
-#ifndef NETWORK
-#define NETWORK
+#ifndef SLOT_H
+#define SLOT_H
 
-enum class Network {
-    testnet3,
-    mainnet
+
+class Slot
+{
+public:
+    Slot();
+    ~Slot();
 };
 
-#endif // NETWORK
-
+#endif // SLOT_H
