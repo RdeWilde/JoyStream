@@ -58,6 +58,19 @@ public:
     // Generate receive address
     // ReceiveAddress getReceiveAddress();
 
+    /**
+     * Attempts to insert object in wallet database,
+     * (explain what happens in the event of failure)
+
+    void add(const WalletKey & walletKey);
+    void add(const WalletKey & walletKey);
+    void add(const ReceiveAddress & receiveAddress);
+
+    void add(const Payer & payer);
+    void add(const Payee & payee);
+    void add(const Slot & slot);
+    */
+
 public slots:
 
 private:
@@ -81,13 +94,13 @@ private:
 
     // utxo
 
+
+
     /**
      * SQL table schemas
      */
-    static QSqlQuery createWalletKeyTableQuery();
-    static QSqlQuery createReceiveAddressTableQuery();
-    static QSqlQuery createReceiveAddressPurposeTableQuery();
-    static QSqlQuery createWalletKeyControllingReceiveAddressTableQuery();
+
+
     static QSqlQuery createTransactionTableQuery();
     static QSqlQuery createInputTableQuery();
     static QSqlQuery createScriptTypeTableQuery();
@@ -102,7 +115,7 @@ private:
      * SQL insert statement !template!
      * Add make bingings to use
      */
-    static QSqlQuery insertWalletKeyQuery();
+
     static QSqlQuery insertReceiveAddressQuery();
     static QSqlQuery insertReceiveAddressPurposeQuery();
     //static QSqlQuery insertPrivateKeyControllingReceiveAddressQuery();
@@ -115,6 +128,8 @@ private:
     static QSqlQuery insertSlotStateQuery();
     static QSqlQuery insertPayeeQuery();
     static QSqlQuery insertPayeeStateQuery();
+
+
 
     /**
      * SQL insert queries

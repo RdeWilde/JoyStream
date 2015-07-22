@@ -7,10 +7,47 @@
 
 #include <wallet/WalletKey.hpp>
 
-WalletKey::WalletKey() {
-
+WalletKey::WalletKey(quint64 index, const Coin::PrivateKey & privateKey, const QDateTime & generated)
+    : _index(index)
+    , _privateKey(privateKey)
+    , _generated(generated) {
 }
 
+QSqlQuery WalletKey::createTableQuery() {
+
+    return QSqlQuery("\
+    CREATE TABLE WalletKey (\
+        index           INTEGER     PRIMARY KEY,\
+        privateKey      BLOB        NOT NULL,\
+        generated       INTEGER     NOT NULL\
+    )");
+}
+
+static QSqlQuery unboundedInsertQuery() {
+
+    return QSqlQuery("\
+    INSERT INTO PrivateKey \
+    (index, privateKey, generated)\
+    VALUES\
+    (:index, :privateKey, :generated)\
+    ");
+}
+
+QSqlQuery WalletKey::insertQuery() {
+
+    // Get templated query
+    QSqlQuery query = unboundedInsertQuery();
+
+    // bind wallet key values
+    query.bindValue(":index", _index);
+    query.bindValue(":privateKey", _privateKey);
+    //query.bindValue(":keyPurposeId", WalletKey::encodePurpose(walletKey.purpose()));
+    query.bindValue(":generated", _generated.toMSecsSinceEpoch());
+
+    return query;
+}
+
+/*
 quint8 WalletKey::encodePurpose(Purpose purpose) {
 
     switch(purpose) {
@@ -40,15 +77,17 @@ WalletKey::Purpose WalletKey::decodePurpose(quint8 encoded) {
             Q_ASSERT(false);
     }
 }
+*/
 
-quint64 WalletKey::walletSequenceNumber() const {
-    return _walletSequenceNumber;
+quint64 WalletKey::index() const {
+    return _index;
 }
 
-void WalletKey::setWalletSequenceNumber(quint64 walletSequenceNumber) {
-    _walletSequenceNumber = walletSequenceNumber;
+void WalletKey::setIndex(quint64 index) {
+    _index = index;
 }
 
+/*
 WalletKey::Purpose WalletKey::purpose() const {
     return _purpose;
 }
@@ -56,6 +95,7 @@ WalletKey::Purpose WalletKey::purpose() const {
 void WalletKey::setPurpose(Purpose purpose) {
     _purpose = purpose;
 }
+*/
 
 QDateTime WalletKey::generated() const {
     return _generated;

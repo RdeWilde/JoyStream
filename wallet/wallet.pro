@@ -24,10 +24,13 @@ HEADERS += \
     include/wallet/WalletKeyControllingReceiveAddress.hpp \
     include/wallet/Payee.hpp \
     include/wallet/Slot.hpp \
-    include/wallet/ReceiveAddress.hpp \
     include/wallet/SPVValidator.hpp \
     include/wallet/SPVWAllet.hpp \
-    include/wallet/Payer.hpp
+    include/wallet/Payer.hpp \
+    include/wallet/WalletEntity.hpp \
+    include/wallet/CoinWrappers.hpp \
+    include/wallet/AddressType.hpp \
+    include/wallet/WalletAddress.hpp
 
 SOURCES += \
     src/Wallet.cpp \
@@ -35,7 +38,8 @@ SOURCES += \
     src/WalletKeyControllingReceiveAddress.cpp \
     src/Payee.cpp \
     src/Slot.cpp \
-    src/ReceiveAddress.cpp \
     src/SPVValidator.cpp \
     src/SPVWAllet.cpp \
-    src/Payer.cpp
+    src/Payer.cpp \
+    src/WalletEntity.cpp \
+    src/WalletAddress.cpp

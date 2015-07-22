@@ -41,47 +41,6 @@ bool Wallet::validateWalletStructure(QSqlDatabase & db) {
     return true;
 }
 
-QSqlQuery Wallet::createWalletKeyTableQuery() {
-
-    return QSqlQuery("\
-    CREATE TABLE WalletKey (\
-        id              INTEGER     PRIMARY KEY,\
-        key             BLOB        NOT NULL,\
-        generated       INTEGER     NOT NULL\
-    )");
-}
-
-QSqlQuery Wallet::createReceiveAddressTableQuery() {
-
-    return QSqlQuery("\
-    CREATE TABLE ReceiveAddress (\
-        address         BLOB        PRIMARY KEY,\
-        purpose         INTEGER     NOT NULL FOREIGN KEY REFERENCES ReceiveAddressPurpose(id),\
-        requested       INTEGER     NOT NULL,\
-        description     TEXT\
-    )");
-}
-
-QSqlQuery Wallet::createReceiveAddressPurposeTableQuery() {
-
-    return QSqlQuery("\
-    CREATE TABLE ReceiveAddressPurpose (\
-        id              INTEGER     PRIMARY KEY,\
-        description     TEXT        NOT NULL\
-    )");
-}
-
-QSqlQuery Wallet::createWalletKeyControllingReceiveAddressTableQuery() {
-
-    return QSqlQuery("\
-    CREATE TABLE WalletKeyControllingReceiveAddress (\
-        address         BLOB        FOREIGN KEY REFERENCES ReceiveAddress(address),\
-        walletKeyId     INTEGER     FOREIGN KEY REFERENCES WalletKey(id),\
-        position        INTEGER     NOT NULL,\
-        PRIMARY KEY(address, walletKeyId, position)\
-    )");
-}
-
 QSqlQuery Wallet::createTransactionTableQuery() {
 
     return QSqlQuery("\
@@ -205,16 +164,6 @@ QSqlQuery Wallet::createPayeeStateTableQuery() {
     )");
 }
 
-QSqlQuery Wallet::insertWalletKeyQuery() {
-
-    return QSqlQuery("\
-    INSERT INTO PrivateKey \
-    (id, key, keyPurposeId, generated, description)\
-    VALUES\
-    (:id, :key, :keyPurposeId, :generated, :description)\
-    ");
-}
-
 QSqlQuery Wallet::insertReceiveAddressQuery() {
 
     return QSqlQuery("\
@@ -336,20 +285,7 @@ QSqlQuery Wallet::insertPayeeStateQuery() {
     )");
 }
 
-QSqlQuery Wallet::insertQuery(const WalletKey & walletKey) {
 
-    // Get templated key query
-    QSqlQuery query = insertWalletKeyQuery();
-
-    // bind wallet key values
-    query.bindValue(":id", walletKey.walletSequenceNumber());
-    //query.bindValue(":key", ...);
-    query.bindValue(":keyPurposeId", WalletKey::encodePurpose(walletKey.purpose()));
-    query.bindValue(":generated", walletKey.generated().toMSecsSinceEpoch());
-    query.bindValue(":description", walletKey.description());
-
-    return query;
-}
 
 QSqlQuery Wallet::insertQuery(const ReceiveAddress & receiveAddress) {
 
