@@ -8,8 +8,11 @@ class WalletAddress {
 
 public:
 
-    // Constructor
-    WalletAddress(const WalletKey & walletKey, const Coin::Address _address);
+    // Constructor from members
+    WalletAddress(const WalletKey & walletKey, const Coin::Address address);
+
+    // Constructor from dbase record
+    // WalletAddress(const QSqlRecord & record);
 
     // Query which creates table corresponding to entity
     static QSqlQuery createTableQuery();
@@ -29,7 +32,7 @@ public:
 
 private:
 
-    //
+    // Key to which address corresponds
     WalletKey _walletKey;
 
     // Address

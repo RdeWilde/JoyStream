@@ -9,10 +9,9 @@ QSqlQuery WalletAddress::createTableQuery() {
 
     return QSqlQuery("\
     CREATE TABLE WalletAddress (\
-        walletKeyIndex  BLOB        PRIMARY KEY,\
-        purpose         INTEGER     NOT NULL FOREIGN KEY REFERENCES ReceiveAddressPurpose(id),\
-        requested       INTEGER     NOT NULL,\
-        description     TEXT\
+        walletKeyIndex  BLOB        FOREIGN KEY REFERENCES walletKeyIndex(id),\
+        address         BLOB        NOT NULL UNIQUE,\
+        PRIMARY KEY()\
     )");
 }
 

@@ -99,8 +99,6 @@ private:
     /**
      * SQL table schemas
      */
-
-
     static QSqlQuery createTransactionTableQuery();
     static QSqlQuery createInputTableQuery();
     static QSqlQuery createScriptTypeTableQuery();
@@ -128,18 +126,6 @@ private:
     static QSqlQuery insertSlotStateQuery();
     static QSqlQuery insertPayeeQuery();
     static QSqlQuery insertPayeeStateQuery();
-
-
-
-    /**
-     * SQL insert queries
-     */
-    static QSqlQuery insertQuery(const WalletKey & walletKey);
-    static QSqlQuery insertQuery(const ReceiveAddress & receiveAddress);
-    //
-    static QSqlQuery insertQuery(const Payer & payer);
-    static QSqlQuery insertQuery(const Payee & payee);
-    static QSqlQuery insertQuery(const Slot & slot);
 };
 
 #endif // WALLET_HPP
