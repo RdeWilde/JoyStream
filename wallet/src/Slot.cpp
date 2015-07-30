@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, July 5 2015
  */
 
-#include <wallet/slot.hpp>
+#include <wallet/Slot.hpp>
 
 Slot::Slot()
 {

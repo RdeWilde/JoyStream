@@ -4,12 +4,14 @@
 #include <wallet/WalletKey.hpp>
 #include <wallet/CoinWrappers.hpp>
 
+class QSqlQuery;
+
 class WalletAddress {
 
 public:
 
     // Constructor from members
-    WalletAddress(const WalletKey & walletKey, const Coin::Address address);
+    WalletAddress(const WalletKey & walletKey, const Coin::P2PKHAddress & address);
 
     // Constructor from dbase record
     // WalletAddress(const QSqlRecord & record);
@@ -27,8 +29,8 @@ public:
     WalletKey walletKey() const;
     void setWalletKey(const WalletKey & walletKey);
 
-    Coin::Address address() const;
-    void setAddress(const Coin::Address & address);
+    Coin::P2PKHAddress address() const;
+    void setAddress(const Coin::P2PKHAddress & address);
 
 private:
 
@@ -36,7 +38,7 @@ private:
     WalletKey _walletKey;
 
     // Address
-    Coin::Address _address;
+    Coin::P2PKHAddress _address;
 };
 
 #endif // WALLET_ADDRESS

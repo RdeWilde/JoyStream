@@ -4,6 +4,8 @@
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, June 28 2015
 
 include(../boost.pri)
+include(../coincore.pri)
+include(../coinq.pri)
 
 TARGET = wallet
 TEMPLATE = lib
@@ -42,4 +44,5 @@ SOURCES += \
     src/SPVWAllet.cpp \
     src/Payer.cpp \
     src/WalletEntity.cpp \
-    src/WalletAddress.cpp
+    src/WalletAddress.cpp \
+    src/CoinWrappers.cpp

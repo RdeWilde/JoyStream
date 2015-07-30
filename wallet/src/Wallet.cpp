@@ -16,10 +16,10 @@ Wallet::Wallet(const QString & walletFile)
     _db.setDatabaseName(walletFile);
 
     if(!_db.open())
-        throw std::exception("Could not open wallet file");
+        throw std::runtime_error("Could not open wallet file");
 
     if(!validateWalletStructure(_db))
-        throw std::exception("Invalid wallet structure.");
+        throw std::runtime_error("Invalid wallet structure.");
 
     // Load metadata
 
@@ -286,7 +286,7 @@ QSqlQuery Wallet::insertPayeeStateQuery() {
 }
 
 
-
+/**
 QSqlQuery Wallet::insertQuery(const ReceiveAddress & receiveAddress) {
 
     // Get templated key query
@@ -318,3 +318,4 @@ QSqlQuery Wallet::insertQuery(const Slot & slot) {
 
     return query;
 }
+*/

@@ -3,7 +3,17 @@
 # Proprietary and confidential
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
 
-BOOST_LOCATION = C:/boost_1_57_0
+# Windows boost location
+win32 {
 
-INCLUDEPATH += $$BOOST_LOCATION
-LIBS += -L$$BOOST_LOCATION/stage/lib
+    BOOST_LOCATION = C:/boost_1_57_0
+
+    INCLUDEPATH += $$BOOST_LOCATION
+    LIBS += -L$$BOOST_LOCATION/stage/lib
+
+}
+
+# Mac boost configuration
+# macx: include(../macxconf.pri)
+
+# Unix boost locatin

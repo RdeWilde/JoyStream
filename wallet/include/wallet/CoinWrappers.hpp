@@ -6,7 +6,19 @@
 #include <wallet/Network.hpp>
 #include <wallet/AddressType.hpp>
 
+class QByteArray;
+
 namespace Coin {
+
+static QByteArray uchar_vector_to_QByteArray(const uchar_vector & v);
+
+template
+
+
+
+class fixed_length_uchar_vector : public uchar_vector {
+
+};
 
 class PublicKey {
 
@@ -39,9 +51,11 @@ class PrivateKey {
 public:
 
     // Length of raw publi key. 32
-    static int length;
+    static const int length;
 
     PrivateKey(const uchar_vector_secure & raw);
+
+    // Destructor which zeros out _raw
 
     uchar_vector_secure raw() const;
 
@@ -59,12 +73,14 @@ public:
     // btc signatures, ask Codeshark
 
     // Maximum length
-    static int maxLength;
+    static const int maxLength;
 
     Signature(const uchar_vector_secure & raw);
 
+    // Destructor which zeros out _raw
+
     // Length of signature
-    std::vector::size_type length() const;
+    std::vector<unsigned char>::size_type length() const;
 
     // Getters and setters
     uchar_vector_secure raw() const;
@@ -79,23 +95,34 @@ class Address {
 
 public:
 
-    Address(Network network);
+    Address(Network network, const uchar_vector & payload);
 
-    virtual std::string toBase58CheckEncoding() const = 0;
-    virtual uchar_vector payload() const = 0;
-    virtual AddressType type() const = 0;
+    // Deduce address type
+    static Network getNetwork(std::string & base58CheckEncodedAddress);
+    static AddressType getType(std::string & base58CheckEncodedAddress);
+
+    // Base58CheckEncode
+    std::string toBase58CheckEncoding();
 
     // Getters and setters
     Network network() const;
     void setNetwork(Network network);
+
+    AddressType type() const;
+    void setType(AddressType type);
+
+    uchar_vector getPayload() const;
+    void setPayload(const uchar_vector &payload);
 
 protected:
 
     // Network to which this address corresponds
     Network _network;
 
+    // Type of address
+    AddressType _type;
 
-    // keep?
+    // Raw address payload
     uchar_vector _payload;
 };
 
@@ -120,6 +147,7 @@ private:
 
 };
 
+/**
 class PSHAddress : public Address {
 
 public:
@@ -143,6 +171,7 @@ private:
     // controls redemption of p2sh output
     uchar_vector _serializedRedeemScriptHash;
 };
+*/
 
 class TxId {
 

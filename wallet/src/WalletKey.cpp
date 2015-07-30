@@ -7,6 +7,9 @@
 
 #include <wallet/WalletKey.hpp>
 
+#include <QSqlQuery>
+#include <QVariant>
+
 WalletKey::WalletKey(quint64 index, const Coin::PrivateKey & privateKey, const QDateTime & generated)
     : _index(index)
     , _privateKey(privateKey)
@@ -39,8 +42,8 @@ QSqlQuery WalletKey::insertQuery() {
     QSqlQuery query = unboundedInsertQuery();
 
     // bind wallet key values
-    query.bindValue(":index", _index);
-    query.bindValue(":privateKey", _privateKey);
+    query.bindValue(":index", static_cast<uint>(_index));
+    query.bindValue(":privateKey", Coin::uchar_vector_to_QByteArray(_privateKey.raw()));
     //query.bindValue(":keyPurposeId", WalletKey::encodePurpose(walletKey.purpose()));
     query.bindValue(":generated", _generated.toMSecsSinceEpoch());
 
@@ -105,6 +108,7 @@ void WalletKey::setGenerated(const QDateTime & generated) {
     _generated = generated;
 }
 
+/**
 QString WalletKey::description() const {
     return _description;
 }
@@ -112,3 +116,4 @@ QString WalletKey::description() const {
 void WalletKey::setDescription(const QString & description) {
     _description = description;
 }
+*/

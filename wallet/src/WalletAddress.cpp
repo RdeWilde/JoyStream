@@ -1,6 +1,8 @@
 #include <wallet/WalletAddress.hpp>
 
-WalletAddress::WalletAddress(const WalletKey & walletKey, const Coin::Address & address)
+#include <QSqlQuery>
+
+WalletAddress::WalletAddress(const WalletKey & walletKey, const Coin::P2PKHAddress & address)
     : _walletKey(walletKey)
     , _address(address) {
 }
@@ -31,10 +33,10 @@ void WalletAddress::setWalletKey(const WalletKey & walletKey) {
     _walletKey = walletKey;
 }
 
-Coin::Address WalletAddress::address() const {
+Coin::P2PKHAddress WalletAddress::address() const {
     return _address;
 }
 
-void WalletAddress::setAddress(const Coin::Address & address) {
+void WalletAddress::setAddress(const Coin::P2PKHAddress & address) {
     _address = address;
 }

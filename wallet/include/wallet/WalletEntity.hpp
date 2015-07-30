@@ -9,11 +9,10 @@ class WalletEntity
 public:
 
     // Query which creates table corresponding to entity
-    static virtual QSqlQuery createTableQuery() = 0;
+    virtual QSqlQuery createTableQuery() = 0;
 
     // (Unbound) Query which inserts record in table
-    static virtual QSqlQuery unboundInsertQuery() = 0;
-
+    virtual QSqlQuery unboundInsertQuery() = 0;
 
 
 private:
