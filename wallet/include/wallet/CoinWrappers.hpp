@@ -12,13 +12,22 @@ namespace Coin {
 
 static QByteArray uchar_vector_to_QByteArray(const uchar_vector & v);
 
-template
-
-
-
+/**
+template<unsigned int length>
 class fixed_length_uchar_vector : public uchar_vector {
 
+public:
+
+    fixed_length_uchar_vector();
+
+private:
+
+
+
+
+
 };
+*/
 
 class PublicKey {
 
@@ -91,50 +100,45 @@ private:
     uchar_vector_secure _raw;
 };
 
+// Deduce address network
+static Network getNetwork(std::string & base58CheckEncodedAddress);
+
+// Deduce address type
+static AddressType getType(std::string & base58CheckEncodedAddress);
+
+/**
 class Address {
 
 public:
 
     Address(Network network, const uchar_vector & payload);
 
-    // Deduce address type
-    static Network getNetwork(std::string & base58CheckEncodedAddress);
-    static AddressType getType(std::string & base58CheckEncodedAddress);
-
     // Base58CheckEncode
-    std::string toBase58CheckEncoding();
+    virtual std::string toBase58CheckEncoding() = 0;
 
     // Getters and setters
     Network network() const;
     void setNetwork(Network network);
 
-    AddressType type() const;
-    void setType(AddressType type);
-
-    uchar_vector getPayload() const;
-    void setPayload(const uchar_vector &payload);
+    virtual AddressType type() const = 0;
 
 protected:
 
     // Network to which this address corresponds
     Network _network;
-
-    // Type of address
-    AddressType _type;
-
-    // Raw address payload
-    uchar_vector _payload;
 };
+*/
 
-class P2PKHAddress : public Address {
+class P2PKHAddress {
 
 public:
 
-    P2PKHAddress(const PublicKey & publicKey, Network network);
+    P2PKHAddress(Network network, const PublicKey & publicKey);
+
     P2PKHAddress(const std::string & base58CheckEncoded);
 
-    virtual std::string toBase58CheckEncoding() const;
-    virtual AddressType type() const;
+    std::string toBase58CheckEncoding() const;
+    AddressType type() const;
 
     // Getters and setters
     uchar_vector publicKeyHash() const;
@@ -142,13 +146,16 @@ public:
 
 private:
 
+    // Network to which this address corresponds
+    Network _network;
+
     // Bitcoin public key hash
     uchar_vector _publicKeyHash;
 
 };
 
 /**
-class PSHAddress : public Address {
+class PSHAddress {
 
 public:
 

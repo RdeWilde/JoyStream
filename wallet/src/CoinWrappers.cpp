@@ -122,26 +122,32 @@ uchar_vector_secure Signature::raw() const {
     return _raw;
 }
 
+
+
+Network getNetwork(std::string & base58CheckEncodedAddress) {
+
+    // do checks and testing
+
+    // throw exception if ntohing matches
+}
+
+AddressType getType(std::string & base58CheckEncodedAddress) {
+
+    // do checks and testing
+
+    // throw exception if ntohing matches
+}
+
 /**
  * Address
- */
 
-Address::Address(Network network)
-    : _network(network) {
-}
 
-Network Address::getNetwork(std::string & base58CheckEncodedAddress) {
+Address::Address(Network network, AddressType type, const uchar_vector & payload)
+    : _network(network)
+    , _type(type)
+    , _payload(payload) {
 
-    // do checks and testing
-
-    // throw exception if ntohing matches
-}
-
-AddressType Address::getType(std::string & base58CheckEncodedAddress) {
-
-    // do checks and testing
-
-    // throw exception if ntohing matches
+    // check that payload length and type field match
 }
 
 Network Address::network() const {
@@ -167,17 +173,16 @@ uchar_vector Address::getPayload() const {
 void Address::setPayload(const uchar_vector & payload) {
     _payload = payload;
 }
+ */
 
 /**
  * P2PKHAddress
  */
 
-P2PKHAddress::P2PKHAddress(const PublicKey & publicKey, Network network)
-    : Address(network) {
+P2PKHAddress::P2PKHAddress(Network network, const PublicKey & publicKey)
+    : _network(network) {
 
-    // hash public key
-
-    // store
+    // hash public key, and store in _publicKeyHash
 }
 
 P2PKHAddress::P2PKHAddress(const std::string & base58CheckEncoded) {
@@ -197,6 +202,9 @@ uchar_vector P2PKHAddress::publicKeyHash() const {
 }
 
 void P2PKHAddress::setPublicKeyHash(const uchar_vector & publicKeyHash) {
+
+    // Checkt the length of argument
+
     _publicKeyHash = publicKeyHash;
 }
 
