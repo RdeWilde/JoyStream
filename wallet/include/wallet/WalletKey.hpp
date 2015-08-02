@@ -32,6 +32,9 @@ public:
     // Contructor from members
     WalletKey(quint64 index, const Coin::PrivateKey & privateKey, const QDateTime & generated);
 
+    // Constructor from record
+    // WalletKey(const QSqlRecord & record);
+
     // Query which creates table corresponding to entity
     static QSqlQuery createTableQuery();
 
@@ -52,11 +55,11 @@ public:
     //Purpose purpose() const;
     //void setPurpose(Purpose purpose);
 
+    Coin::PrivateKey privateKey() const;
+    void setPrivateKey(const Coin::PrivateKey & privateKey);
+
     QDateTime generated() const;
     void setGenerated(const QDateTime & generated);
-
-    QString description() const;
-    void setDescription(const QString & description);
 
 private:
 

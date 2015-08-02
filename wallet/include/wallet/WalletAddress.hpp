@@ -11,9 +11,9 @@ class WalletAddress {
 public:
 
     // Constructor from members
-    WalletAddress(const WalletKey & walletKey, const Coin::P2PKHAddress & address);
+    WalletAddress(quint64 walletKeyIndex, const Coin::P2PKHAddress & address);
 
-    // Constructor from dbase record
+    // Constructor from record
     // WalletAddress(const QSqlRecord & record);
 
     // Query which creates table corresponding to entity
@@ -26,16 +26,16 @@ public:
     QSqlQuery insertQuery();
 
     // Getters and setters
-    WalletKey walletKey() const;
-    void setWalletKey(const WalletKey & walletKey);
+    quint64 walletKeyIndex() const;
+    void setWalletKeyIndex(quint64 walletKeyIndex);
 
     Coin::P2PKHAddress address() const;
     void setAddress(const Coin::P2PKHAddress & address);
 
 private:
 
-    // Key to which address corresponds
-    WalletKey _walletKey;
+    // Index of wallet key to which this address corresponds
+    quint64 _walletKeyIndex;
 
     // Address
     Coin::P2PKHAddress _address;

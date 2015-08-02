@@ -26,7 +26,7 @@ QSqlQuery WalletKey::createTableQuery() {
     )");
 }
 
-static QSqlQuery unboundedInsertQuery() {
+static QSqlQuery WalletKey::unboundedInsertQuery() {
 
     return QSqlQuery("\
     INSERT INTO PrivateKey \
@@ -90,6 +90,24 @@ void WalletKey::setIndex(quint64 index) {
     _index = index;
 }
 
+Coin::PrivateKey WalletKey::privateKey() const {
+    return _privateKey;
+}
+
+void WalletKey::setPrivateKey(const Coin::PrivateKey & privateKey) {
+    _privateKey = privateKey;
+}
+
+QDateTime WalletKey::generated() const {
+    return _generated;
+}
+
+void WalletKey::setGenerated(const QDateTime & generated) {
+    _generated = generated;
+}
+
+
+
 /*
 WalletKey::Purpose WalletKey::purpose() const {
     return _purpose;
@@ -100,20 +118,3 @@ void WalletKey::setPurpose(Purpose purpose) {
 }
 */
 
-QDateTime WalletKey::generated() const {
-    return _generated;
-}
-
-void WalletKey::setGenerated(const QDateTime & generated) {
-    _generated = generated;
-}
-
-/**
-QString WalletKey::description() const {
-    return _description;
-}
-
-void WalletKey::setDescription(const QString & description) {
-    _description = description;
-}
-*/

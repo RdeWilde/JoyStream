@@ -9,7 +9,7 @@
 #ifndef INVALID_BITSWAPR_STATE_ENTRY_EXCEPTION
 #define INVALID_BITSWAPR_STATE_ENTRY_EXCEPTION
 
-#include <libtorrent\entry.hpp>
+#include <libtorrent/entry.hpp>
 
 class InvalidBitSwaprStateEntryException : public std::exception {
 

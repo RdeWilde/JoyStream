@@ -12,7 +12,7 @@ TEMPLATE = lib
 
 CONFIG  += staticlib
 CONFIG  += create_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
-CONFIG  += c++11 # Needed for class enum
+CONFIG  += c++11 # Needed for class enum, std::array
 
 QT      += core sql
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets # QMainWindow, QDialog
@@ -32,7 +32,8 @@ HEADERS += \
     include/wallet/WalletEntity.hpp \
     include/wallet/CoinWrappers.hpp \
     include/wallet/AddressType.hpp \
-    include/wallet/WalletAddress.hpp
+    include/wallet/WalletAddress.hpp \
+    include/wallet/BlockHeader.hpp
 
 SOURCES += \
     src/Wallet.cpp \
@@ -45,4 +46,6 @@ SOURCES += \
     src/Payer.cpp \
     src/WalletEntity.cpp \
     src/WalletAddress.cpp \
-    src/CoinWrappers.cpp
+    src/CoinWrappers.cpp \
+    src/BlockHeader.cpp \
+    src/CoinWrappers_templated_functions.cpp

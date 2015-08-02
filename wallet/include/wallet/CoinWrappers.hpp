@@ -6,28 +6,13 @@
 #include <wallet/Network.hpp>
 #include <wallet/AddressType.hpp>
 
+#include <array>
+
 class QByteArray;
 
 namespace Coin {
 
 static QByteArray uchar_vector_to_QByteArray(const uchar_vector & v);
-
-/**
-template<unsigned int length>
-class fixed_length_uchar_vector : public uchar_vector {
-
-public:
-
-    fixed_length_uchar_vector();
-
-private:
-
-
-
-
-
-};
-*/
 
 class PublicKey {
 
@@ -63,6 +48,8 @@ public:
     static const int length;
 
     PrivateKey(const uchar_vector_secure & raw);
+
+    ~PrivateKey();
 
     // Destructor which zeros out _raw
 
@@ -133,16 +120,30 @@ class P2PKHAddress {
 
 public:
 
+    // Length of pubkeyhash field in address (20)
+    static const int pubKeyHashLength;
+
+    // Constructor from members
     P2PKHAddress(Network network, const PublicKey & publicKey);
 
+    // Constructor from raw encoded address
+    P2PKHAddress(const uchar_vector & raw);
+
+    // Constructor from base58check encoded string
     P2PKHAddress(const std::string & base58CheckEncoded);
 
+    // Raw byte encoding of address
+    uchar_vector raw() const;
+
+    // base58Check encoding of address
     std::string toBase58CheckEncoding() const;
+
+    // Type of address: remove later
     AddressType type() const;
 
     // Getters and setters
     uchar_vector publicKeyHash() const;
-    void setPublicKeyHash(const uchar_vector &publicKeyHash);
+    void setPublicKeyHash(const uchar_vector & publicKeyHash);
 
 private:
 
@@ -180,16 +181,102 @@ private:
 };
 */
 
+// Byte lengths of various data types
+#define TXID_BYTE_LENGTH 20
+#define BLOCKID_BYTE_LENGTH 32
+#define TRANSACTIONMERKLETREEROOT_BYTE_LENGTH 32
+
+typedef std::array<unsigned char, TXID_BYTE_LENGTH> TxId;
+typedef std::array<unsigned char, BLOCKID_BYTE_LENGTH> BlockId;
+typedef std::array<unsigned char, TRANSACTIONMERKLETREEROOT_BYTE_LENGTH> TransactionMerkleTreeRoot;
+
+// Turn uchar_vector into std::array of given length
+template<unsigned array_length>
+std::array<unsigned char, array_length> toArray(const uchar_vector & vector);
+
+// Turn std::array of given length into uchar_vector
+template<unsigned array_length>
+uchar_vector toUCharVector(const std::array<unsigned char, array_length> & array);
+
+// Include implementations of templated functions,
+// needed due to C++ templating madness
+#include "src/CoinWrappers_templated_functions.cpp"
+
+/**
+class TxId : public std::array<unsigned char, TXID_LENGTH> {
+
+public:
+
+    // Byte length of transaction id
+    static const unsigned int length;
+
+    // Constructor from member
+    TxId(const uchar_vector & vector);
+
+    // Get as unsigned character vector
+    uchar_vector touchar_vector() const;
+
+private:
+
+    // Transaction raw byte array
+     _raw;
+};
+
+
 class TxId {
 
 public:
 
+    // Byte length of transaction id
+    static const unsigned int length;
+
+    // Constructor from member
+    TxId(const uchar_vector & vector);
+
+    // Get as unsigned character vector
+    uchar_vector touchar_vector() const;
 
 private:
 
-    // Transaction id
-    uchar_vector _txId;
+    // Transaction raw byte array
+    std::array<unsigned char, TXID_LENGTH> _raw;
 };
+
+
+// Id of block, i.e. hash of block header
+class BlockId {
+
+public:
+
+    // Byte length of block id
+    static const unsigned int length;
+
+    BlockId
+
+private:
+
+    // Raw byte array representation of block id
+    std::array<unsigned char, BLOCKID_BYTE_LENGTH> _raw;
+};
+
+// Same as above only different length
+class TransactionMerkleTreeRoot {
+
+public:
+
+    // Byte length of merkle tree root
+    static const unsigned int length;
+
+    TransactionMerkleTreeRoot(const uchar_vector & vector);
+
+
+
+private:
+
+    // Raw byte array represetnation of merkle tree root
+    std::array<unsigned char, MERKLE_TREE_ROOT_BYTE_LENGTH> _raw;
+};
+*/
 
 }
 #endif // COIN_CORE_WRAPPERS

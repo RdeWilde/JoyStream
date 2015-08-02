@@ -456,7 +456,7 @@ void Controller::Torrent::pieceFinished(int piece) {
  * Controller::Configuration
  */
 
-#include "exceptions/InvalidBitSwaprStateEntryException.hpp"
+#include "Exceptions/InvalidBitSwaprStateEntryException.hpp"
 #include "Config.hpp"
 #include "Utilities.hpp"
 
@@ -1189,7 +1189,7 @@ Controller::Controller(const Configuration & configuration, bool showView, QNetw
 
     // Add all torrents, but this ust be AFTER session.listen_on(),
     // because otherwise adding to session won't work.
-    QVector<Torrent::Configuration> & torrents = configuration.torrents();
+    QVector<Torrent::Configuration> torrents = configuration.torrents();
 
     for(QVector<Torrent::Configuration>::const_iterator i = torrents.begin(),
             end(torrents.end());i != end; ++i) {
@@ -1887,7 +1887,7 @@ void Controller::update(const libtorrent::torrent_status & status) {
 void Controller::removeTorrent(const libtorrent::sha1_hash & info_hash) {
 
     // Find corresponding torrent
-    libtorrent::torrent_handle & torrentHandle = _session.find_torrent(info_hash);
+    libtorrent::torrent_handle torrentHandle = _session.find_torrent(info_hash);
 
     // Check that there actually was such a torrent
     if(!torrentHandle.is_valid())
@@ -1902,7 +1902,7 @@ void Controller::removeTorrent(const libtorrent::sha1_hash & info_hash) {
 void Controller::pauseTorrent(const libtorrent::sha1_hash & info_hash) {
 
     // Find corresponding torrent
-    libtorrent::torrent_handle & torrentHandle = _session.find_torrent(info_hash);
+    libtorrent::torrent_handle torrentHandle = _session.find_torrent(info_hash);
 
     // Check that there actually was such a torrent
     if(!torrentHandle.is_valid())
@@ -1919,7 +1919,7 @@ void Controller::pauseTorrent(const libtorrent::sha1_hash & info_hash) {
 void Controller::startTorrent(const libtorrent::sha1_hash & info_hash) {
 
     // Find corresponding torrent
-    libtorrent::torrent_handle & torrentHandle = _session.find_torrent(info_hash);
+    libtorrent::torrent_handle torrentHandle = _session.find_torrent(info_hash);
 
     // Check that there actually was such a torrent
     if(!torrentHandle.is_valid())

@@ -3,10 +3,12 @@
 # Proprietary and confidential
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
 
+LIBTORRENT_NAME = libtorrent-rasterbar-1.0.5
+
 # Windows
 win32 {
 
-    LIBTORRENT_LOCATION = C:/MODIFIED-libtorrent-rasterbar-1.0.5
+    LIBTORRENT_LOCATION = C:/$$LIBTORRENT_NAME
 
     DEFINES += WIN32
 
@@ -22,7 +24,7 @@ win32 {
 # Unix
 unix:!macx {
 
-    LIBTORRENT_LOCATION = /home/bedeho/JoyStream/Development/libs/libtorrent-rasterbar-1.0.5
+    LIBTORRENT_LOCATION = /home/bedeho/JoyStream/Development/libs/$$LIBTORRENT_NAME
 
     # Linking
     CONFIG(release, debug|release) {

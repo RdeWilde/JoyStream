@@ -85,6 +85,18 @@ PrivateKey::PrivateKey(const uchar_vector_secure & raw)
     }
 }
 
+PrivateKey::~PrivateKey() {
+
+    // Clear memory
+    for(uchar_vector_secure::iterator i = _raw.begin(),
+        end = _raw.end();
+        i != end;
+        i++)
+        *i = 0;
+
+}
+
+
 uchar_vector_secure PrivateKey::raw() const {
     return _raw;
 }
@@ -179,14 +191,21 @@ void Address::setPayload(const uchar_vector & payload) {
  * P2PKHAddress
  */
 
+const int P2PKHAddress::pubKeyHashLength = 20;
+
 P2PKHAddress::P2PKHAddress(Network network, const PublicKey & publicKey)
     : _network(network) {
 
     // hash public key, and store in _publicKeyHash
 }
 
-P2PKHAddress::P2PKHAddress(const std::string & base58CheckEncoded) {
+P2PKHAddress::P2PKHAddress(const uchar_vector & raw) {
+    // decode network and pubkey hash, and also do checksum validation
+}
 
+P2PKHAddress::P2PKHAddress(const std::string & base58CheckEncoded) {
+    // Decode string to byte form
+    // Call raw ctr version.
 }
 
 std::string P2PKHAddress::toBase58CheckEncoding() const {
@@ -210,7 +229,6 @@ void P2PKHAddress::setPublicKeyHash(const uchar_vector & publicKeyHash) {
 
 /**
  * P2SHAddress
-
 
 PSHAddress::PSHAddress(const std::vector<PublicKey> & publicKeys, uint8_t numSigsRequired, Network network)
     : Address(network) {
@@ -260,3 +278,47 @@ void PSHAddress::setSerializedRedeemScriptHash(const uchar_vector &serializedRed
 }
 
 */
+
+/**
+ * Block Id
+
+const int BlockId::length = BLOCK_ID_LENGTH;
+
+// TxId
+
+const unsigned int TxId::length = TXID_LENGTH;
+
+TxId::TxId(const uchar_vector & vector) {
+
+    // Check that vector is of correct length
+    uchar_vector::size_type vectorLength = vector.size();
+
+    if(vectorLength != TXID_LENGTH) {
+
+        std::stringstream s;
+
+        s << "Transaction id must be of length "
+          << TXID_LENGTH
+          << ", but was of length"
+          << vectorLength;
+
+        throw std::runtime_error(s.str());
+    } else {
+        vector.
+    }
+
+}
+
+uchar_vector TxId::touchar_vector()() const {
+    return uchar_vector(_raw.begin(), _raw.end());
+}
+
+
+// BlockId
+
+const unsigned int BlockId::length = BLOCKID_BYTE_LENGTH;
+
+// TransactionMerkleTreeRoot
+const unsigned int TransactionMerkleTreeRoot::length = MERKLE_TREE_ROOT_BYTE_LENGTH;
+
+ */
