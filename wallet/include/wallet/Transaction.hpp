@@ -11,9 +11,22 @@ class Transaction {
 
 public:
 
-    Transaction();
+    Transaction(const Coin::TxId & transactionId, quint32 version, quint32 lockTime, QDateTime seen, const Coin::BlockId & blockId, quint64 fee);
+
+    // Constructor from record
+    // BlockHeader(const QSqlRecord & record);
+
+    // Query which creates table corresponding to entity
+    static QSqlQuery createTableQuery();
+
+    // (Unbound) Query which inserts wallet key record into correspodning table
+    static QSqlQuery unboundedInsertQuery();
+
+    // Query inserting this wallet key into corresponding table
+    QSqlQuery insertQuery();
 
     // Getters and seters
+
 private:
 
     // Transaction id
@@ -25,7 +38,7 @@ private:
     // Transaction lock time
     quint32 _lockTime;
 
-    //
+    // When transaction was first seen on network
     QDateTime _seen;
 
     // Block id of block to which transaction belongs

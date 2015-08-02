@@ -49,4 +49,5 @@ SOURCES += \
     src/WalletAddress.cpp \
     src/CoinWrappers.cpp \
     src/BlockHeader.cpp \
-    src/CoinWrappers_templated_functions.cpp
+    src/CoinWrappers_templated_functions.cpp \
+    src/Transaction.cpp

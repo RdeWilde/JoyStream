@@ -181,11 +181,32 @@ private:
 };
 */
 
+// (type safe length) fixed length array of unsigned chars
+template<unsigned array_length>
+class fixed_uchar_array : public std::array<unsigned char, array_length> {
+
+public:
+
+    // Construct form unsigned char vector
+    fixed_uchar_array(const uchar_vector & vector);
+    fixed_uchar_array(const QByteArray & byteArray);
+
+    // Convert to unsigned char vector
+    uchar_vector toUCharVector() const;
+    QByteArray toByteArray() const;
+}
+
 // Byte lengths of various data types
 #define TXID_BYTE_LENGTH 20
 #define BLOCKID_BYTE_LENGTH 32
 #define TRANSACTIONMERKLETREEROOT_BYTE_LENGTH 32
 
+// Define Bitcoin types as spesific length fixed uchar arrays
+typedef fixed_uchar_array<TXID_BYTE_LENGTH> TxId;
+typedef fixed_uchar_array<BLOCKID_BYTE_LENGTH> BlockId;
+typedef fixed_uchar_array<TRANSACTIONMERKLETREEROOT_BYTE_LENGTH> TransactionMerkleTreeRoot;
+
+/**
 typedef std::array<unsigned char, TXID_BYTE_LENGTH> TxId;
 typedef std::array<unsigned char, BLOCKID_BYTE_LENGTH> BlockId;
 typedef std::array<unsigned char, TRANSACTIONMERKLETREEROOT_BYTE_LENGTH> TransactionMerkleTreeRoot;
@@ -201,6 +222,7 @@ uchar_vector toUCharVector(const std::array<unsigned char, array_length> & array
 // Include implementations of templated functions,
 // needed due to C++ templating madness
 #include "src/CoinWrappers_templated_functions.cpp"
+*/
 
 /**
 class TxId : public std::array<unsigned char, TXID_LENGTH> {
@@ -279,4 +301,5 @@ private:
 */
 
 }
+
 #endif // COIN_CORE_WRAPPERS

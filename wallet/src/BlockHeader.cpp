@@ -22,7 +22,7 @@ BlockHeader::BlockHeader(const Coin::BlockId & blockId,
     , _totalProofOfWork(totalProofOfWork) {
 }
 
-static QSqlQuery BlockHeader::createTableQuery() {
+QSqlQuery BlockHeader::createTableQuery() {
 
     return QSqlQuery("\
     CREATE TABLE BlockHeader (\
@@ -41,7 +41,7 @@ static QSqlQuery BlockHeader::createTableQuery() {
     )");
 }
 
-static QSqlQuery BlockHeader::unboundedInsertQuery() {
+QSqlQuery BlockHeader::unboundedInsertQuery() {
 
     return QSqlQuery("\
                      INSERT INTO BlockHeader \
@@ -56,7 +56,7 @@ QSqlQuery BlockHeader::insertQuery() {
     // Get templated query
     QSqlQuery query = unboundedInsertQuery();
 
-    // bind wallet key values
+    // Bind values to query fields
     query.bindValue(":blockId", Coin::uchar_vector_to_QByteArray(Coin::toUCharVector(_blockId)));
     query.bindValue(":version", _version);
     query.bindValue(":previousBlockId", Coin::uchar_vector_to_QByteArray(Coin::toUCharVector(_previousBlockId)));

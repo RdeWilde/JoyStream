@@ -279,6 +279,14 @@ void PSHAddress::setSerializedRedeemScriptHash(const uchar_vector &serializedRed
 
 */
 
+fixed_uchar_array::fixed_uchar_array(const uchar_vector & vector) {
+
+ }
+
+fixed_uchar_array::fixed_uchar_array(const QByteArray & byteArray) {
+
+}
+
 /**
  * Block Id
 
