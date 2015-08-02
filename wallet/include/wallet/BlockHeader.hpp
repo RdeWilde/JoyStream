@@ -19,7 +19,7 @@ public:
                 const QDateTime & timeStamp,
                 quint32 nBits,
                 quint32 nonce,
-                quint64 numberOfTransactions,
+                quint64 transactionCount,
                 bool isOnMainChain,
                 quint32 totalProofOfWork);
 
@@ -57,8 +57,8 @@ public:
     quint32 nonce() const;
     void setNonce(quint32 nonce);
 
-    quint64 numberOfTransactions() const;
-    void setNumberOfTransactions(quint64 numberOfTransactions);
+    quint64 transactionCount() const;
+    void setTransactionCount(quint64 transactionCount);
 
     bool isOnMainChain() const;
     void setIsOnMainChain(bool isOnMainChain);
@@ -90,7 +90,7 @@ private:
     quint32 _nonce;
 
     // The number of transactions in block to which this header corresponds
-    quint64 _numberOfTransactions;
+    quint64 _transactionCount;
 
     // Whether header corresponds to block currently on main chain
     // (look closer into this later)

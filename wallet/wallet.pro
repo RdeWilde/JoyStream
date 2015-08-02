@@ -33,7 +33,8 @@ HEADERS += \
     include/wallet/CoinWrappers.hpp \
     include/wallet/AddressType.hpp \
     include/wallet/WalletAddress.hpp \
-    include/wallet/BlockHeader.hpp
+    include/wallet/BlockHeader.hpp \
+    include/wallet/Transaction.hpp
 
 SOURCES += \
     src/Wallet.cpp \

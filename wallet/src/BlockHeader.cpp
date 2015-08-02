@@ -18,7 +18,7 @@ BlockHeader::BlockHeader(const Coin::BlockId & blockId,
     , _timeStamp(timeStamp)
     , _nBits(nBits)
     , _nonce(nonce)
-    , _numberOfTransactions(numberOfTransactions)
+    , _transactionCount(numberOfTransactions)
     , _totalProofOfWork(totalProofOfWork) {
 }
 
@@ -28,7 +28,7 @@ static QSqlQuery BlockHeader::createTableQuery() {
     CREATE TABLE BlockHeader (\
         blockId             BLOB        NOT NULL,\
         version             INTEGER     NOT NULL,\
-        prevoiousBlockId    BLOB        NOT NULL,\
+        previousBlockId     BLOB        NOT NULL,\
         merkleRoot          BLOB        NOT NULL,\
         timeStamp           INTEGER     NOT NULL,\
         bits                INTEGER     NOT NULL,\
@@ -37,7 +37,7 @@ static QSqlQuery BlockHeader::createTableQuery() {
         isOnMainChain       INTEGER     NOT NULL,\
         totalProofOfWork    INTEGER     NOT NULL,\
         PRIMARY KEY(blockId)\
-        UNIQUE(version, prevoiousBlockId, merkleRoot, timeStamp, bits, nonce, transactionCount) ,\
+        UNIQUE(version, previousBlockId, merkleRoot, timeStamp, bits, nonce) ,\
     )");
 }
 
@@ -45,9 +45,9 @@ static QSqlQuery BlockHeader::unboundedInsertQuery() {
 
     return QSqlQuery("\
                      INSERT INTO BlockHeader \
-                     (blockId, version, prevoiousBlockId, merkleRoot, timeStamp, bits, nonce, transactionCount, isOnMainChain, totalProofOfWork)\
+                     (blockId, version, previousBlockId, merkleRoot, timeStamp, bits, nonce, transactionCount, isOnMainChain, totalProofOfWork)\
                      VALUES\
-                     (:blockId, :version, :prevoiousBlockId, :merkleRoot, :timeStamp, :bits, :nonce, :transactionCount, :isOnMainChain, :totalProofOfWork)\
+                     (:blockId, :version, :previousBlockId, :merkleRoot, :timeStamp, :bits, :nonce, :transactionCount, :isOnMainChain, :totalProofOfWork)\
                      ");
 }
 
@@ -57,8 +57,16 @@ QSqlQuery BlockHeader::insertQuery() {
     QSqlQuery query = unboundedInsertQuery();
 
     // bind wallet key values
-    query.bindValue(":walletKeyIndex", static_cast<uint>(_walletKeyIndex));
-    query.bindValue(":address", Coin::uchar_vector_to_QByteArray(_address.raw()));
+    query.bindValue(":blockId", Coin::uchar_vector_to_QByteArray(Coin::toUCharVector(_blockId)));
+    query.bindValue(":version", _version);
+    query.bindValue(":previousBlockId", Coin::uchar_vector_to_QByteArray(Coin::toUCharVector(_previousBlockId)));
+    query.bindValue(":merkleRoot", Coin::uchar_vector_to_QByteArray(Coin::toUCharVector(_root)));
+    query.bindValue(":timeStamp", _timeStamp.toMSecsSinceEpoch());
+    query.bindValue(":bits", _nBits);
+    query.bindValue(":nonce", _nonce);
+    query.bindValue(":transactionCount", _transactionCount);
+    query.bindValue(":isOnMainChain", _isOnMainChain ? 1 : 0);
+    query.bindValue(":totalProofOfWork", _totalProofOfWork);
 
     return query;
 }
@@ -119,12 +127,12 @@ void BlockHeader::setNonce(quint32 nonce){
     _nonce = nonce;
 }
 
-quint64 BlockHeader::numberOfTransactions() const {
-    return _numberOfTransactions;
+quint64 BlockHeader::transactionCount() const {
+    return _transactionCount;
 }
 
-void BlockHeader::setNumberOfTransactions(quint64 numberOfTransactions) {
-    _numberOfTransactions = numberOfTransactions;
+void BlockHeader::setTransactionCount(quint64 numberOfTransactions) {
+    _transactionCount = numberOfTransactions;
 }
 
 bool BlockHeader::isOnMainChain() const {
