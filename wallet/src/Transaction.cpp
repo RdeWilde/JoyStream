@@ -1,6 +1,9 @@
 
 #include <wallet/Transaction.hpp>
 
+#include <QSqlQuery>
+#include <QVariant> // QSqlQuery::bind needs it
+
 Transaction::Transaction(const Coin::TxId & transactionId,
                          quint32 version,
                          quint32 lockTime,
@@ -46,11 +49,11 @@ QSqlQuery Transaction::insertQuery() {
     QSqlQuery query = unboundedInsertQuery();
 
     // Bind values to query fields
-    query.bindValue(":transactionId", _transactionId <== add some stuff here);
+    query.bindValue(":transactionId", _transactionId.toByteArray());
     query.bindValue(":version", _version);
     query.bindValue(":lockTime", _lockTime);
     query.bindValue(":seen", _seen.toMSecsSinceEpoch());
-    query.bindValue(":blockId", _blockId <== add stuff here);
+    query.bindValue(":blockId", _blockId.toByteArray());
     query.bindValue(":fee", _fee);
 
     return query;

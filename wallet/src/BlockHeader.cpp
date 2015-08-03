@@ -1,6 +1,9 @@
 
 #include <wallet/BlockHeader.hpp>
 
+#include <QSqlQuery>
+#include <QVariant> // QSqlQuery::bind needs it
+
 BlockHeader::BlockHeader(const Coin::BlockId & blockId,
                 quint32 version,
                 const Coin::BlockId & previousBlockId,
@@ -57,10 +60,10 @@ QSqlQuery BlockHeader::insertQuery() {
     QSqlQuery query = unboundedInsertQuery();
 
     // Bind values to query fields
-    query.bindValue(":blockId", Coin::uchar_vector_to_QByteArray(Coin::toUCharVector(_blockId)));
+    query.bindValue(":blockId", _blockId.toByteArray());
     query.bindValue(":version", _version);
-    query.bindValue(":previousBlockId", Coin::uchar_vector_to_QByteArray(Coin::toUCharVector(_previousBlockId)));
-    query.bindValue(":merkleRoot", Coin::uchar_vector_to_QByteArray(Coin::toUCharVector(_root)));
+    query.bindValue(":previousBlockId", _previousBlockId.toByteArray());
+    query.bindValue(":merkleRoot", _root.toByteArray());
     query.bindValue(":timeStamp", _timeStamp.toMSecsSinceEpoch());
     query.bindValue(":bits", _nBits);
     query.bindValue(":nonce", _nonce);

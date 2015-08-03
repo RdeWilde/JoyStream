@@ -19,6 +19,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets # QMainWindow, QDialog
 
 INCLUDEPATH += $$PWD/include # be able to include w.r.t root of this project
 
+QMAKE_CXXFLAGS += -std=c++11
+
 HEADERS += \
     include/wallet/Wallet.hpp \
     include/wallet/Network.hpp \
@@ -34,7 +36,8 @@ HEADERS += \
     include/wallet/AddressType.hpp \
     include/wallet/WalletAddress.hpp \
     include/wallet/BlockHeader.hpp \
-    include/wallet/Transaction.hpp
+    include/wallet/Transaction.hpp \
+    include/wallet/OutPoint.hpp
 
 SOURCES += \
     src/Wallet.cpp \
@@ -50,4 +53,5 @@ SOURCES += \
     src/CoinWrappers.cpp \
     src/BlockHeader.cpp \
     src/CoinWrappers_templated_functions.cpp \
-    src/Transaction.cpp
+    src/Transaction.cpp \
+    src/OutPoint.cpp

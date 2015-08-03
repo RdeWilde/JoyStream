@@ -8,7 +8,7 @@
 #include <wallet/WalletKey.hpp>
 
 #include <QSqlQuery>
-#include <QVariant>
+#include <QVariant> // QSqlQuery::bind needs it
 
 WalletKey::WalletKey(quint64 index, const Coin::PrivateKey & privateKey, const QDateTime & generated)
     : _index(index)
@@ -26,7 +26,7 @@ QSqlQuery WalletKey::createTableQuery() {
     )");
 }
 
-static QSqlQuery WalletKey::unboundedInsertQuery() {
+QSqlQuery WalletKey::unboundedInsertQuery() {
 
     return QSqlQuery("\
     INSERT INTO PrivateKey \

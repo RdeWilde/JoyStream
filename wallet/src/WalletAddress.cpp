@@ -1,6 +1,7 @@
 #include <wallet/WalletAddress.hpp>
 
 #include <QSqlQuery>
+#include <QVariant> // QSqlQuery::bind needs it
 
 WalletAddress::WalletAddress(quint64 walletKeyIndex, const Coin::P2PKHAddress & address)
     : _walletKeyIndex(walletKeyIndex)
@@ -33,7 +34,8 @@ QSqlQuery WalletAddress::insertQuery() {
     QSqlQuery query = unboundedInsertQuery();
 
     // bind wallet key values
-    query.bindValue(":walletKeyIndex", static_cast<uint>(_walletKeyIndex));
+    uint d = static_cast<uint>(_walletKeyIndex);
+    query.bindValue(":walletKeyIndex", QVariant(d));
     query.bindValue(":address", Coin::uchar_vector_to_QByteArray(_address.raw()));
 
     return query;

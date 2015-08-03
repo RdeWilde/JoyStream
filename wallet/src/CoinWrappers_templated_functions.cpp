@@ -1,5 +1,6 @@
 #include <wallet/CoinWrappers.hpp>
 
+/**
 template<unsigned array_length>
 std::array<unsigned char, array_length> toArray(const uchar_vector & vector) {
 
@@ -34,3 +35,4 @@ template<unsigned array_length>
 uchar_vector toUCharVector(const std::array<unsigned char, array_length> & array) {
     return uchar_vector(array.cbegin(), array.cend());
 }
+*/

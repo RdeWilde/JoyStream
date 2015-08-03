@@ -16,6 +16,65 @@ QByteArray uchar_vector_to_QByteArray(const uchar_vector & v) {
 }
 
 /**
+ * fixed_uchar_array
+ */
+
+template<unsigned array_length>
+fixed_uchar_array<array_length>::fixed_uchar_array(const uchar_vector & vector) {
+
+    const char * start = vector.data();
+    fill(static_cast<const unsigned char *>(start), vector.size());
+}
+
+template<unsigned array_length>
+fixed_uchar_array<array_length>::fixed_uchar_array(const QByteArray & byteArray) {
+
+    const char * start = byteArray.constData();
+    fill(static_cast<const unsigned char *>(start), byteArray.size());
+}
+
+template<unsigned array_length>
+void fixed_uchar_array<array_length>::fill(const unsigned char * start, int length) {
+
+    if(length != array_length) {
+
+        std::stringstream s;
+
+        s << "Required "
+          << array_length
+          << " bytes, but was provided"
+          << length;
+
+        throw std::runtime_error(s.str());
+    } else {
+
+        // Copy content into array
+        for(int i = 0;i < array_length;i++)
+            this[i] = start[i];
+    }
+}
+
+template<unsigned array_length>
+uchar_vector fixed_uchar_array<array_length>::toUCharVector() const {
+
+    // Get pointer to data
+    const unsigned char * data = static_cast<const unsigned char *>(this->data());
+
+    // Construct vector and return it
+    return uchar_vector(data, array_length);
+}
+
+template<unsigned array_length>
+QByteArray fixed_uchar_array<array_length>::toByteArray() const {
+
+    // Get pointer to data
+    const char * data = reinterpret_cast<const char *>(this->data());
+
+    // Construct byte array and return it
+    return QByteArray(data, array_length);
+}
+
+/**
  * PublicKey
  */
 
@@ -278,14 +337,6 @@ void PSHAddress::setSerializedRedeemScriptHash(const uchar_vector &serializedRed
 }
 
 */
-
-fixed_uchar_array::fixed_uchar_array(const uchar_vector & vector) {
-
- }
-
-fixed_uchar_array::fixed_uchar_array(const QByteArray & byteArray) {
-
-}
 
 /**
  * Block Id

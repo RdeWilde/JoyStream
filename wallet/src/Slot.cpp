@@ -7,6 +7,9 @@
 
 #include <wallet/Slot.hpp>
 
+#include <QSqlQuery>
+#include <QVariant> // QSqlQuery::bind needs it
+
 Slot::Slot()
 {
 

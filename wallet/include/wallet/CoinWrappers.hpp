@@ -12,7 +12,41 @@ class QByteArray;
 
 namespace Coin {
 
-static QByteArray uchar_vector_to_QByteArray(const uchar_vector & v);
+QByteArray uchar_vector_to_QByteArray(const uchar_vector & v);
+
+// (type safe length) fixed length array of unsigned chars
+template<unsigned array_length>
+class fixed_uchar_array : public std::array<unsigned char, array_length> {
+
+public:
+
+    // Construct form unsigned char vector
+    fixed_uchar_array(const uchar_vector & vector);
+    fixed_uchar_array(const QByteArray & byteArray);
+
+    // Convert to unsigned char vector
+    uchar_vector toUCharVector() const;
+    QByteArray toByteArray() const;
+
+private:
+
+    // Try to fill array with content starting at start
+    void fill(const unsigned char * start, int length);
+};
+
+// Byte lengths of various data types
+#define TXID_BYTE_LENGTH 20
+#define BLOCKID_BYTE_LENGTH 32
+#define TRANSACTIONMERKLETREEROOT_BYTE_LENGTH 32
+
+// Define Bitcoin types as spesific length fixed uchar arrays
+typedef fixed_uchar_array<TXID_BYTE_LENGTH> TxId;
+typedef fixed_uchar_array<BLOCKID_BYTE_LENGTH> BlockId;
+typedef fixed_uchar_array<TRANSACTIONMERKLETREEROOT_BYTE_LENGTH> TransactionMerkleTreeRoot;
+
+/**
+ * Public Key
+ */
 
 class PublicKey {
 
@@ -49,6 +83,7 @@ public:
 
     PrivateKey(const uchar_vector_secure & raw);
 
+    // Safe private key destructor
     ~PrivateKey();
 
     // Destructor which zeros out _raw
@@ -88,10 +123,10 @@ private:
 };
 
 // Deduce address network
-static Network getNetwork(std::string & base58CheckEncodedAddress);
+Network getNetwork(std::string & base58CheckEncodedAddress);
 
 // Deduce address type
-static AddressType getType(std::string & base58CheckEncodedAddress);
+AddressType getType(std::string & base58CheckEncodedAddress);
 
 /**
 class Address {
@@ -181,32 +216,8 @@ private:
 };
 */
 
-// (type safe length) fixed length array of unsigned chars
-template<unsigned array_length>
-class fixed_uchar_array : public std::array<unsigned char, array_length> {
-
-public:
-
-    // Construct form unsigned char vector
-    fixed_uchar_array(const uchar_vector & vector);
-    fixed_uchar_array(const QByteArray & byteArray);
-
-    // Convert to unsigned char vector
-    uchar_vector toUCharVector() const;
-    QByteArray toByteArray() const;
-}
-
-// Byte lengths of various data types
-#define TXID_BYTE_LENGTH 20
-#define BLOCKID_BYTE_LENGTH 32
-#define TRANSACTIONMERKLETREEROOT_BYTE_LENGTH 32
-
-// Define Bitcoin types as spesific length fixed uchar arrays
-typedef fixed_uchar_array<TXID_BYTE_LENGTH> TxId;
-typedef fixed_uchar_array<BLOCKID_BYTE_LENGTH> BlockId;
-typedef fixed_uchar_array<TRANSACTIONMERKLETREEROOT_BYTE_LENGTH> TransactionMerkleTreeRoot;
-
 /**
+ * old style
 typedef std::array<unsigned char, TXID_BYTE_LENGTH> TxId;
 typedef std::array<unsigned char, BLOCKID_BYTE_LENGTH> BlockId;
 typedef std::array<unsigned char, TRANSACTIONMERKLETREEROOT_BYTE_LENGTH> TransactionMerkleTreeRoot;

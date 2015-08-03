@@ -7,6 +7,9 @@
 
 #include <wallet/Payer.hpp>
 
+#include <QSqlQuery>
+#include <QVariant> // QSqlQuery::bind needs it
+
 Payer::Payer()
 {
 
