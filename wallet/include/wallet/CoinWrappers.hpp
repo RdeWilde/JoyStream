@@ -40,7 +40,7 @@ private:
 #define TRANSACTIONMERKLETREEROOT_BYTE_LENGTH 32
 
 // Define Bitcoin types as spesific length fixed uchar arrays
-typedef fixed_uchar_array<TXID_BYTE_LENGTH> TxId;
+typedef fixed_uchar_array<TXID_BYTE_LENGTH> TransactionId;
 typedef fixed_uchar_array<BLOCKID_BYTE_LENGTH> BlockId;
 typedef fixed_uchar_array<TRANSACTIONMERKLETREEROOT_BYTE_LENGTH> TransactionMerkleTreeRoot;
 

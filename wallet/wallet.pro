@@ -37,7 +37,10 @@ HEADERS += \
     include/wallet/WalletAddress.hpp \
     include/wallet/BlockHeader.hpp \
     include/wallet/Transaction.hpp \
-    include/wallet/OutPoint.hpp
+    include/wallet/OutPoint.hpp \
+    include/wallet/Input.hpp \
+    include/wallet/TransactionHasInput.hpp \
+    include/wallet/Output.hpp
 
 SOURCES += \
     src/Wallet.cpp \
@@ -54,4 +57,7 @@ SOURCES += \
     src/BlockHeader.cpp \
     src/CoinWrappers_templated_functions.cpp \
     src/Transaction.cpp \
-    src/OutPoint.cpp
+    src/OutPoint.cpp \
+    src/Input.cpp \
+    src/TransactionHasInput.cpp \
+    src/Output.cpp

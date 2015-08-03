@@ -1,0 +1,77 @@
+
+#include <wallet/Input.hpp>
+
+#include <QSqlQuery>
+#include <QVariant> // QSqlQuery::bind needs it
+
+Input::Input(const OutPoint & outPoint, const QByteArray & scriptSig, quint32 sequence)
+    : _outPoint(outPoint)
+    , _scriptSig(scriptSig)
+    , _sequence(sequence) {
+}
+
+/**
+Input::Input(const QSqlRecord & record) {
+}
+*/
+
+QSqlQuery Input::createTableQuery() {
+
+    return QSqlQuery("\
+    CREATE TABLE Input (\
+        outPointTransactionId       BLOB,\
+        outPointOutputIndex         INTEGER     NOT NULL,\
+        scriptSig                   BLOG        NOT NULL,\
+        sequence                    INTEGER     NOT NULL,\
+        PRIMARY KEY(outPointTransactionId, outPointOutputIndex, scriptSig, sequence),\
+        FOREIGN KEY (outPointTransactionId, outPointOutputIndex) REFERENCES OutPoint(transactionId, outputIndex)\
+    )");
+}
+
+QSqlQuery Input::unboundedInsertQuery() {
+
+    return QSqlQuery("\
+    INSERT INTO Input \
+    (outPointTransactionId, outPointOutputIndex, scriptSig, sequence)\
+    VALUES\
+    (:outPointTransactionId, :outPointOutputIndex, :scriptSig, :sequence)\
+    ");
+}
+
+QSqlQuery Input::insertQuery() {
+
+    // Get templated query
+    QSqlQuery query = unboundedInsertQuery();
+
+    // Bind values to query fields
+    query.bindValue(":outPointTransactionId", _outPoint.transactionId().toByteArray());
+    query.bindValue(":outPointOutputIndex", _outPoint.outputIndex());
+    query.bindValue(":scriptSig", _scriptSig);
+    query.bindValue(":sequence", _sequence);
+
+    return query;
+}
+
+OutPoint Input::outPoint() const {
+    return _outPoint;
+}
+
+void Input::setOutPoint(const OutPoint & outPoint){
+    _outPoint = outPoint;
+}
+
+QByteArray Input::scriptSig() const {
+    return _scriptSig;
+}
+
+void Input::setScriptSig(const QByteArray & scriptSig) {
+    _scriptSig = scriptSig;
+}
+
+quint32 Input::sequence() const {
+    return _sequence;
+}
+
+void Input::setSequence(quint32 sequence) {
+    _sequence = sequence;
+}

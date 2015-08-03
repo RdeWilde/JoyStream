@@ -4,7 +4,7 @@
 #include <QSqlQuery>
 #include <QVariant> // QSqlQuery::bind needs it
 
-Transaction::Transaction(const Coin::TxId & transactionId,
+Transaction::Transaction(const Coin::TransactionId & transactionId,
                          quint32 version,
                          quint32 lockTime,
                          QDateTime seen,
@@ -28,7 +28,7 @@ QSqlQuery Transaction::createTableQuery() {
         seen                INTEGER     NOT NULL,\
         blockId             BLOB,\
         fee                 INTEGER     NOT NULL,\
-        PRIMARY KEY(transactionId)\
+        PRIMARY KEY(transactionId),\
         FOREIGN KEY blockId REFERENCES BlockHeader(bockId)\
     )");
 }

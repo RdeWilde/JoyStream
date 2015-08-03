@@ -11,7 +11,8 @@ class Transaction {
 
 public:
 
-    Transaction(const Coin::TxId & transactionId, quint32 version, quint32 lockTime, QDateTime seen, const Coin::BlockId & blockId, quint64 fee);
+    // Constructor from members
+    Transaction(const Coin::TransactionId & transactionId, quint32 version, quint32 lockTime, QDateTime seen, const Coin::BlockId & blockId, quint64 fee);
 
     // Constructor from record
     // BlockHeader(const QSqlRecord & record);
@@ -30,7 +31,7 @@ public:
 private:
 
     // Transaction id
-    Coin::TxId _transactionId;
+    Coin::TransactionId _transactionId;
 
     // Version of transaction
     quint32 _version;

@@ -1,18 +1,19 @@
-#ifndef OUTPOINT
-#define OUTPOINT
+#ifndef TRANSACTION_HAS_INPUT_HPP
+#define TRANSACTION_HAS_INPUT_HPP
 
 #include <wallet/CoinWrappers.hpp>
+#include <wallet/Transaction.hpp>
+#include <wallet/Input.hpp>
 
-#include <QtGlobal> // quint32
-
-class QSqlQuery;
-
-class OutPoint {
+class TransactionHasInput {
 
 public:
 
-    // Constructor from members
-    OutPoint(const Coin::TransactionId & transactionId, quint32 outputIndex);
+    // Construct from members
+    TransactionHasInput(const Coin::TransactionId & transactionId, const Input & input);
+
+    // Constructor from record
+    // TransactionHasInput(const QSqlRecord & record);
 
     // Query which creates table corresponding to entity
     static QSqlQuery createTableQuery();
@@ -27,17 +28,16 @@ public:
     Coin::TransactionId transactionId() const;
     void setTransactionId(const Coin::TransactionId & transactionId);
 
-    quint32 outputIndex() const;
-    void setOutputIndex(quint32 outputIndex);
+    Input input() const;
+    void setInput(const Input & input);
 
 private:
 
-    // Transaction id
+    // Id of transaction
     Coin::TransactionId _transactionId;
 
-    // Index of transaction output
-    quint32 _outputIndex;
+    // Input in transaction
+    Input _input;
 };
 
-#endif // OUTPOINT
-
+#endif // TRANSACTIONHASINPUT_HPP

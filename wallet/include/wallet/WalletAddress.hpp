@@ -11,7 +11,7 @@ class WalletAddress {
 public:
 
     // Constructor from members
-    WalletAddress(quint64 walletKeyIndex, const Coin::P2PKHAddress & address);
+    WalletAddress(quint64 waalletKeyIndex, const Coin::P2PKHAddress & address);
 
     // Constructor from record
     // WalletAddress(const QSqlRecord & record);
