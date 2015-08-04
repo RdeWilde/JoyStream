@@ -15,30 +15,30 @@ OutPoint::OutPoint(const Coin::TransactionId & transactionId, quint32 outputInde
     , _outputIndex(outputIndex) {
 }
 
-QSqlQuery OutPoint::createTableQuery() {
+QSqlQuery OutPoint::createTableQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     CREATE TABLE OutPoint (\
         transactionId       BLOB,\
         outputIndex         INTEGER,\
         PRIMARY KEY(transactionId, outputIndex)\
-    )");
+    )", db);
 }
 
-QSqlQuery OutPoint::unboundedInsertQuery() {
+QSqlQuery OutPoint::unboundedInsertQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     INSERT INTO OutPoint \
     (transactionId, outputIndex)\
     VALUES\
     (:transactionId, :outputIndex)\
-    ");
+    ", db);
 }
 
-QSqlQuery OutPoint::insertQuery() {
+QSqlQuery OutPoint::insertQuery(QSqlDatabase db) {
 
     // Get templated query
-    QSqlQuery query = unboundedInsertQuery();
+    QSqlQuery query = unboundedInsertQuery(db);
 
     // Bind values to query fields
     query.bindValue(":transactionId", _transactionId.toByteArray());
@@ -62,5 +62,3 @@ quint32 OutPoint::outputIndex() const {
 void OutPoint::setOutputIndex(quint32 outputIndex) {
     _outputIndex = outputIndex;
 }
-
-

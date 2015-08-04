@@ -15,7 +15,7 @@ WalletAddress::WalletAddress(quint64 walletKeyIndex, const Coin::P2PKHAddress & 
     , _address(address) {
 }
 
-QSqlQuery WalletAddress::createTableQuery() {
+QSqlQuery WalletAddress::createTableQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     CREATE TABLE WalletAddress (\
@@ -24,23 +24,23 @@ QSqlQuery WalletAddress::createTableQuery() {
         PRIMARY KEY(walletKeyIndex),\
         FOREIGN KEY REFERENCES walletKeyIndex(id),\
         UNIQUE(address)\
-    )");
+    )", db);
 }
 
-QSqlQuery WalletAddress::unboundedInsertQuery() {
+QSqlQuery WalletAddress::unboundedInsertQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
                      INSERT INTO WalletAddress \
                      (walletKeyIndex, address)\
                      VALUES\
                      (:walletKeyIndex, :address)\
-                     ");
+                     ", db);
 }
 
-QSqlQuery WalletAddress::insertQuery() {
+QSqlQuery WalletAddress::insertQuery(QSqlDatabase db) {
 
     // Get templated query
-    QSqlQuery query = unboundedInsertQuery();
+    QSqlQuery query = unboundedInsertQuery(db);
 
     // bind wallet key values
     uint d = static_cast<uint>(_walletKeyIndex);

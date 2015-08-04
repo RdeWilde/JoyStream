@@ -8,6 +8,7 @@
 #include <wallet/BlockHeader.hpp>
 
 #include <QSqlQuery>
+
 #include <QVariant> // QSqlQuery::bind needs it
 
 BlockHeader::BlockHeader(const Coin::BlockId & blockId,
@@ -31,7 +32,7 @@ BlockHeader::BlockHeader(const Coin::BlockId & blockId,
     , _totalProofOfWork(totalProofOfWork) {
 }
 
-QSqlQuery BlockHeader::createTableQuery() {
+QSqlQuery BlockHeader::createTableQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     CREATE TABLE BlockHeader (\
@@ -47,23 +48,23 @@ QSqlQuery BlockHeader::createTableQuery() {
         totalProofOfWork    INTEGER     NOT NULL,\
         PRIMARY KEY(blockId)\
         UNIQUE(version, previousBlockId, merkleRoot, timeStamp, bits, nonce) ,\
-    )");
+    )", db);
 }
 
-QSqlQuery BlockHeader::unboundedInsertQuery() {
+QSqlQuery BlockHeader::unboundedInsertQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
                      INSERT INTO BlockHeader \
                      (blockId, version, previousBlockId, merkleRoot, timeStamp, bits, nonce, transactionCount, isOnMainChain, totalProofOfWork)\
                      VALUES\
                      (:blockId, :version, :previousBlockId, :merkleRoot, :timeStamp, :bits, :nonce, :transactionCount, :isOnMainChain, :totalProofOfWork)\
-                     ");
+                     ", db);
 }
 
-QSqlQuery BlockHeader::insertQuery() {
+QSqlQuery BlockHeader::insertQuery(QSqlDatabase db) {
 
     // Get templated query
-    QSqlQuery query = unboundedInsertQuery();
+    QSqlQuery query = unboundedInsertQuery(db);
 
     // Bind values to query fields
     query.bindValue(":blockId", _blockId.toByteArray());

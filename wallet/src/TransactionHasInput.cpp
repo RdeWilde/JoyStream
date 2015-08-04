@@ -15,7 +15,7 @@ TransactionHasInput::TransactionHasInput(const Coin::TransactionId & transaction
     , _input(input) {
 }
 
-QSqlQuery TransactionHasInput::createTableQuery() {
+QSqlQuery TransactionHasInput::createTableQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     CREATE TABLE TransactionHasInput (\
@@ -28,23 +28,23 @@ QSqlQuery TransactionHasInput::createTableQuery() {
         PRIMARY KEY(transactionId, index),\
         FOREIGN KEY transactionId REFERENCES Transaction(transactionId),\
         FOREIGN KEY (outPointTransactionId, outPointOutputIndex, scriptSig, sequence) REFERENCES Input(outPointTransactionId, outPointOutputIndex, scriptSig, sequence)\
-    )");
+    )", db);
 }
 
-QSqlQuery TransactionHasInput::unboundedInsertQuery() {
+QSqlQuery TransactionHasInput::unboundedInsertQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     INSERT INTO TransactionHasInput \
     (transactionId, index, outPointTransactionId, outPointOutputIndex, scriptSig, sequence)\
     VALUES\
     (:transactionId, :index, :outPointTransactionId, :outPointOutputIndex, :scriptSig, :sequence)\
-    ");
+    ", db);
 }
 
-QSqlQuery TransactionHasInput::insertQuery() {
+QSqlQuery TransactionHasInput::insertQuery(QSqlDatabase db) {
 
     // Get templated query
-    QSqlQuery query = unboundedInsertQuery();
+    QSqlQuery query = unboundedInsertQuery(db);
 
     // Bind values to query fields
     query.bindValue(":transactionId", _transactionId.toByteArray());

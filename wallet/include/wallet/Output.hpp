@@ -13,6 +13,7 @@
 #include <QByteArray>
 
 class QSqlQuery;
+class QSqlDatabase;
 
 class Output {
 
@@ -25,10 +26,10 @@ public:
     // Output(const QSqlRecord & record);
 
     // Query which creates table corresponding to entity
-    static QSqlQuery createTableQuery();
+    static QSqlQuery createTableQuery(QSqlDatabase db);
 
     // (Unbound) Query which inserts wallet key record into correspodning table
-    static QSqlQuery unboundedInsertQuery();
+    static QSqlQuery unboundedInsertQuery(QSqlDatabase db);
 
     // Getters and setters
     quint64 value() const;

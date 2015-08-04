@@ -24,7 +24,7 @@ Transaction::Transaction(const Coin::TransactionId & transactionId,
         , _fee(fee) {
 }
 
-QSqlQuery Transaction::createTableQuery() {
+QSqlQuery Transaction::createTableQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     CREATE TABLE Transaction (\
@@ -36,23 +36,23 @@ QSqlQuery Transaction::createTableQuery() {
         fee                 INTEGER     NOT NULL,\
         PRIMARY KEY(transactionId),\
         FOREIGN KEY blockId REFERENCES BlockHeader(bockId)\
-    )");
+    )", db);
 }
 
-QSqlQuery Transaction::unboundedInsertQuery() {
+QSqlQuery Transaction::unboundedInsertQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     INSERT INTO Transaction \
     (transactionId, version, lockTime, seen, blockId, fee)\
     VALUES\
     (:transactionId, :version, :lockTime, :seen, :blockId, :fee)\
-    ");
+    ", db);
 }
 
-QSqlQuery Transaction::insertQuery() {
+QSqlQuery Transaction::insertQuery(QSqlDatabase db) {
 
     // Get templated query
-    QSqlQuery query = unboundedInsertQuery();
+    QSqlQuery query = unboundedInsertQuery(db);
 
     // Bind values to query fields
     query.bindValue(":transactionId", _transactionId.toByteArray());

@@ -13,6 +13,7 @@
 #include <QDateTime>
 
 class QSqlQuery;
+class QSqlDatabase;
 
 class WalletKey
 {
@@ -36,13 +37,13 @@ public:
     // WalletKey(const QSqlRecord & record);
 
     // Query which creates table corresponding to entity
-    static QSqlQuery createTableQuery();
+    static QSqlQuery createTableQuery(QSqlDatabase db);
 
     // (Unbound) Query which inserts wallet key record into correspodning table
-    static QSqlQuery unboundedInsertQuery();
+    static QSqlQuery unboundedInsertQuery(QSqlDatabase db);
 
     // Query inserting this wallet key into corresponding table
-    QSqlQuery insertQuery();
+    QSqlQuery insertQuery(QSqlDatabase db);
 
     // Conversion routines
     //static quint8 encodePurpose(Purpose purpose);

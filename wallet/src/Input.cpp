@@ -21,7 +21,7 @@ Input::Input(const QSqlRecord & record) {
 }
 */
 
-QSqlQuery Input::createTableQuery() {
+QSqlQuery Input::createTableQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     CREATE TABLE Input (\
@@ -31,23 +31,23 @@ QSqlQuery Input::createTableQuery() {
         sequence                    INTEGER     NOT NULL,\
         PRIMARY KEY(outPointTransactionId, outPointOutputIndex, scriptSig, sequence),\
         FOREIGN KEY (outPointTransactionId, outPointOutputIndex) REFERENCES OutPoint(transactionId, outputIndex)\
-    )");
+    )", db);
 }
 
-QSqlQuery Input::unboundedInsertQuery() {
+QSqlQuery Input::unboundedInsertQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     INSERT INTO Input \
     (outPointTransactionId, outPointOutputIndex, scriptSig, sequence)\
     VALUES\
     (:outPointTransactionId, :outPointOutputIndex, :scriptSig, :sequence)\
-    ");
+    ", db);
 }
 
-QSqlQuery Input::insertQuery() {
+QSqlQuery Input::insertQuery(QSqlDatabase db) {
 
     // Get templated query
-    QSqlQuery query = unboundedInsertQuery();
+    QSqlQuery query = unboundedInsertQuery(db);
 
     // Bind values to query fields
     query.bindValue(":outPointTransactionId", _outPoint.transactionId().toByteArray());

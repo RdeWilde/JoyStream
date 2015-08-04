@@ -16,7 +16,7 @@ quint8 Payee::encodeState(State state) {
         case State::waiting_for_payor_information: return 0;
         case State::has_all_information_required: return 1;
 
-        defualt:
+        default:
             Q_ASSERT(false);
     }
 }
@@ -62,7 +62,7 @@ Payee::Payee(quint64 id,
     , _paymentTransactionId(paymentTransactionId) {
 }
 
-QSqlQuery Payee::createTableQuery() {
+QSqlQuery Payee::createTableQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     CREATE TABLE Payee (\
@@ -83,23 +83,23 @@ QSqlQuery Payee::createTableQuery() {
         FOREIGN KEY payeeContractWalletKeyId REFERENCES WalletKey(index),\
         FOREIGN KEY payeePaymentWalletKeyId REFERENCES WalletKey(index),\
         FOREIGN KEY paymentTransactionId REFERENCES Transaction(id)\
-    )");
+    )", db);
 }
 
-QSqlQuery Payee::unboundedInsertQuery() {
+QSqlQuery Payee::unboundedInsertQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     INSERT INTO Payer \
     (id, state, numberOfPaymentsMade, lastValidPayerPaymentSignature, price, funds, maximumNumberOfSellers, payeeContractWalletKeyId, contractTransactionId, contractOutput, payerContractPublicKey, payerFinalPublicKey, paymentTransactionId)\
     VALUES\
     (:id, :state, :numberOfPaymentsMade, :lastValidPayerPaymentSignature, :price, :funds, :maximumNumberOfSellers, :payeeContractWalletKeyId, :contractTransactionId, :contractOutput, :payerContractPublicKey, :payerFinalPublicKey, :paymentTransactionId)\
-    ");
+    ", db);
 }
 
-QSqlQuery Payee::insertQuery() {
+QSqlQuery Payee::insertQuery(QSqlDatabase db) {
 
     // Get templated query
-    QSqlQuery query = unboundedInsertQuery();
+    QSqlQuery query = unboundedInsertQuery(db);
 
     // Bind values to query fields
     query.bindValue(":id", _id);

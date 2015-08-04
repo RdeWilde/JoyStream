@@ -66,7 +66,7 @@ Slot::Slot(quint64 payerId,
     , _refundLockTime(refundLockTime) {
 }
 
-QSqlQuery Slot::createTableQuery() {
+QSqlQuery Slot::createTableQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     CREATE TABLE Slot (\
@@ -91,23 +91,23 @@ QSqlQuery Slot::createTableQuery() {
         FOREIGN KEY payerContractWalletKeyId REFERENCES WalletKey(index),\
         FOREIGN KEY payerFinalWalletKeyId REFERENCES WalletKey(index),\
         FOREIGN KEY refundTransactionId REFERENCES Transaction(transactionId)\
-    )");
+    )", db);
 }
 
-QSqlQuery Slot::unboundedInsertQuery() {
+QSqlQuery Slot::unboundedInsertQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     INSERT INTO Payer \
     (payerId, index, state, price, numberOfPaymentsMade, funds, payerContractWalletKeyId, payerFinalWalletKeyId, payeeContractPublicKey, payeeFinalPublicKey, refundSignature, lastPaymentSignature, refundFee, paymentFee, refundTransactionId, refundLockTime)\
     VALUES\
     (:payerId, :index, :state, :price, :numberOfPaymentsMade, :funds, :payerContractWalletKeyId, :payerFinalWalletKeyId, :payeeContractPublicKey, :payeeFinalPublicKey, :refundSignature, :lastPaymentSignature, :refundFee, :paymentFee, :refundTransactionId, :refundLockTime)\
-    ");
+    ", db);
 }
 
-QSqlQuery Slot::insertQuery() {
+QSqlQuery Slot::insertQuery(QSqlDatabase db) {
 
     // Get templated query
-    QSqlQuery query = unboundedInsertQuery();
+    QSqlQuery query = unboundedInsertQuery(db);
 
     // Bind values to query fields
     query.bindValue(":payerId", _payerId);

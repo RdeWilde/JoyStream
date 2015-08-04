@@ -13,6 +13,7 @@
 #include <QtGlobal> // quint32
 
 class QSqlQuery;
+class QSqlDatabase;
 
 class OutPoint {
 
@@ -22,13 +23,13 @@ public:
     OutPoint(const Coin::TransactionId & transactionId, quint32 outputIndex);
 
     // Query which creates table corresponding to entity
-    static QSqlQuery createTableQuery();
+    static QSqlQuery createTableQuery(QSqlDatabase db);
 
     // (Unbound) Query which inserts wallet key record into correspodning table
-    static QSqlQuery unboundedInsertQuery();
+    static QSqlQuery unboundedInsertQuery(QSqlDatabase db);
 
     // Query inserting this wallet key into corresponding table
-    QSqlQuery insertQuery();
+    QSqlQuery insertQuery(QSqlDatabase db);
 
     // Getters and setters
     Coin::TransactionId transactionId() const;

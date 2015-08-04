@@ -30,8 +30,6 @@ public:
     // Opens wallet
     explicit Wallet(const QString & walletFile);
 
-    ~Wallet();
-
     // Create an empty wallet
     static void createEmptyWallet(const QString & walletFile, Network network, const QByteArray & seed);
 
@@ -94,11 +92,8 @@ private:
 
     // utxo
 
-
-
     /**
-     * SQL table schemas
-     */
+    // SQL table schemas
     static QSqlQuery createTransactionTableQuery();
     static QSqlQuery createInputTableQuery();
     static QSqlQuery createScriptTypeTableQuery();
@@ -109,10 +104,8 @@ private:
     static QSqlQuery createPayeeTableQuery();
     static QSqlQuery createPayeeStateTableQuery();
 
-    /**
-     * SQL insert statement !template!
-     * Add make bingings to use
-     */
+    // SQL insert statement !template!
+    // Add make bingings to use
 
     static QSqlQuery insertReceiveAddressQuery();
     static QSqlQuery insertReceiveAddressPurposeQuery();
@@ -126,6 +119,7 @@ private:
     static QSqlQuery insertSlotStateQuery();
     static QSqlQuery insertPayeeQuery();
     static QSqlQuery insertPayeeStateQuery();
+    */
 };
 
 #endif // WALLET_HPP

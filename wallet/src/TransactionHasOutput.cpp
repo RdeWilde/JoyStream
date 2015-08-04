@@ -20,7 +20,7 @@ TransactionHasOutput::TransactionHasOutput(const Coin::TransactionId & transacti
 // Constructor from record
 // TransactionHasOutput(const QSqlRecord & record);
 
-QSqlQuery TransactionHasOutput::createTableQuery() {
+QSqlQuery TransactionHasOutput::createTableQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     CREATE TABLE TransactionHasInput (\
@@ -31,23 +31,23 @@ QSqlQuery TransactionHasOutput::createTableQuery() {
         PRIMARY KEY(transactionId, index),\
         FOREIGN KEY transactionId REFERENCES Transaction(transactionId),\
         FOREIGN KEY (value, pubKeyScript) REFERENCES Output(value, pubKeyScript)\
-    )");
+    )", db);
 }
 
-QSqlQuery TransactionHasOutput::unboundedInsertQuery() {
+QSqlQuery TransactionHasOutput::unboundedInsertQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     INSERT INTO TransactionHasInput \
     (transactionId, index, value, pubKeyScript)\
     VALUES\
     (:transactionId, :index, :value, :pubKeyScript)\
-    ");
+    ", db);
 }
 
-QSqlQuery TransactionHasOutput::insertQuery() {
+QSqlQuery TransactionHasOutput::insertQuery(QSqlDatabase db) {
 
     // Get templated query
-    QSqlQuery query = unboundedInsertQuery();
+    QSqlQuery query = unboundedInsertQuery(db);
 
     // Bind values to query fields
     query.bindValue(":transactionId", _transactionId.toByteArray());

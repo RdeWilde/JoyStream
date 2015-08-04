@@ -10,7 +10,14 @@
 #include <QSqlQuery>
 #include <QVariant> // QSqlQuery::bind needs it
 
-QSqlQuery OuputFundsPayer::createTableQuery() {
+OuputFundsPayer::OuputFundsPayer(quint64 value, const QByteArray & pubKeyScript, quint64 payerId)
+    : _value(value)
+    , _pubKeyScript(pubKeyScript)
+    , _payerId(payerId){
+
+}
+
+QSqlQuery OuputFundsPayer::createTableQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     CREATE TABLE OuputFundsPayer (\
@@ -19,23 +26,23 @@ QSqlQuery OuputFundsPayer::createTableQuery() {
         payerId         INTEGER,\
         PRIMARY KEY(value, pubKeyScript, payerId),\
         FOREIGN KEY payerId REFERENCES Payer(id)\
-    )");
+    )", db);
 }
 
-QSqlQuery OuputFundsPayer::unboundedInsertQuery() {
+QSqlQuery OuputFundsPayer::unboundedInsertQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     INSERT INTO Payer \
     (value, pubKeyScript, payerId)\
     VALUES\
     (:value, :pubKeyScript, :payerId)\
-    ");
+    ", db);
 }
 
-QSqlQuery OuputFundsPayer::insertQuery() {
+QSqlQuery OuputFundsPayer::insertQuery(QSqlDatabase db) {
 
     // Get templated query
-    QSqlQuery query = unboundedInsertQuery();
+    QSqlQuery query = unboundedInsertQuery(db);
 
     // Bind values to query fields
     query.bindValue(":value", _value);

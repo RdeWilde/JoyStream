@@ -42,7 +42,7 @@ Payer::Payer(quint64 id, const Coin::TransactionId & contractTransactionId, Stat
     , _description(description) {
 }
 
-QSqlQuery Payer::createTableQuery() {
+QSqlQuery Payer::createTableQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     CREATE TABLE Payer (\
@@ -54,23 +54,23 @@ QSqlQuery Payer::createTableQuery() {
         description             TEXT,\
         PRIMARY KEY(id),\
         FOREIGN KEY contractTransactionId REFERENCES Transaction(transactionId)\
-    )");
+    )", db);
 }
 
-QSqlQuery Payer::unboundedInsertQuery() {
+QSqlQuery Payer::unboundedInsertQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     INSERT INTO Payer \
     (id, contractTransactionId, contractFee, stateId, created, description)\
     VALUES\
     (:id, :contractTransactionId, :contractFee, :stateId, :created, :description)\
-    ");
+    ", db);
 }
 
-QSqlQuery Payer::insertQuery() {
+QSqlQuery Payer::insertQuery(QSqlDatabase db) {
 
     // Get templated query
-    QSqlQuery query = unboundedInsertQuery();
+    QSqlQuery query = unboundedInsertQuery(db);
 
     // Bind values to query fields
     query.bindValue(":id", _id);

@@ -7,6 +7,20 @@
 
 #include <wallet/Wallet.hpp>
 #include <wallet/WalletKey.hpp>
+#include <wallet/WalletAddress.hpp>
+#include <wallet/BlockHeader.hpp>
+#include <wallet/Transaction.hpp>
+#include <wallet/OutPoint.hpp>
+#include <wallet/Input.hpp>
+#include <wallet/TransactionHasInput.hpp>
+#include <wallet/Output.hpp>
+#include <wallet/TransactionHasOutput.hpp>
+#include <wallet/InBoundPayment.hpp>
+#include <wallet/OutBoundPayment.hpp>
+#include <wallet/Payer.hpp>
+#include <wallet/OuputFundsPayer.hpp>
+#include <wallet/Slot.hpp>
+#include <wallet/Payee.hpp>
 
 Wallet::Wallet(const QString & walletFile)
     : _walletFile(walletFile)
@@ -28,19 +42,56 @@ Wallet::Wallet(const QString & walletFile)
     // Build utxo
 }
 
-Wallet::~Wallet() {
-
-}
-
 void Wallet::createEmptyWallet(const QString & walletFile, Network network, const QByteArray & seed) {
 
-    // Metadata
+    // Create connection to database
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+
+    Q_ASSERT(db.isValid());
+
+    // Add metadata
+    /**
+    // Wallet (SQLite database) file
+    QString _walletFile;
+
+    // Database connection
+    QSqlDatabase _db;
+
+    // Network wallet corresponds to
+    Network _network;
+
+    // Time when wallet was created
+    QDateTime _created;
+
+    // Seed
+    QByteArray _seed;
+    */
+
+    // Create tables
+    bool result;
+
+    result = WalletKey::createTableQuery(db).exec();
+    result = WalletAddress::createTableQuery(db).exec();
+    result = BlockHeader::createTableQuery(db).exec();
+    result = Transaction::createTableQuery(db).exec();
+    result = OutPoint::createTableQuery(db).exec();
+    result = Input::createTableQuery(db).exec();
+    result = TransactionHasInput::createTableQuery(db).exec();
+    result = Output::createTableQuery(db).exec();
+    result = TransactionHasOutput::createTableQuery(db).exec();
+    result = InBoundPayment::createTableQuery(db).exec();
+    result = OutBoundPayment::createTableQuery(db).exec();
+    result = Payer::createTableQuery(db).exec();
+    result = OuputFundsPayer::createTableQuery(db).exec();
+    result = Slot::createTableQuery(db).exec();
+    result = Payee::createTableQuery(db).exec();
 }
 
 bool Wallet::validateWalletStructure(QSqlDatabase & db) {
     return true;
 }
 
+/**
 QSqlQuery Wallet::createTransactionTableQuery() {
 
     return QSqlQuery("\
@@ -184,7 +235,6 @@ QSqlQuery Wallet::insertReceiveAddressPurposeQuery() {
     ");
 }
 
-/**
 QSqlQuery Wallet::insertPrivateKeyControllingReceiveAddressQuery() {
 
     return QSqlQuery("\
@@ -194,7 +244,7 @@ QSqlQuery Wallet::insertPrivateKeyControllingReceiveAddressQuery() {
     (:address, :privateKeyId, :position)\
     ");
 }
-*/
+
 QSqlQuery Wallet::insertTransactionQuery() {
 
     return QSqlQuery("\
@@ -286,7 +336,7 @@ QSqlQuery Wallet::insertPayeeStateQuery() {
 }
 
 
-/**
+
 QSqlQuery Wallet::insertQuery(const ReceiveAddress & receiveAddress) {
 
     // Get templated key query

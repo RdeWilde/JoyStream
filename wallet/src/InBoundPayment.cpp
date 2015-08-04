@@ -20,7 +20,7 @@ InBoundPayment::InBoundPayment(quint64 id, quint64 receiveAddressWalletKeyIndex,
 
 //InBoundPayment::InBoundPayment(const QSqlRecord & record);
 
-QSqlQuery InBoundPayment::createTableQuery() {
+QSqlQuery InBoundPayment::createTableQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     CREATE TABLE InBoundPayment (\
@@ -30,23 +30,23 @@ QSqlQuery InBoundPayment::createTableQuery() {
         created                         INTEGER     NOT NULL,\
         PRIMARY KEY(id),\
         FOREIGN KEY receiveAddressWalletKeyIndex REFERENCES WalletAddress(walletKeyIndex)\
-    )");
+    )", db);
 }
 
-QSqlQuery InBoundPayment::unboundedInsertQuery() {
+QSqlQuery InBoundPayment::unboundedInsertQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     INSERT INTO TransactionHasInput \
     (id, receiveAddressWalletKeyIndex, note, created)\
     VALUES\
     (:id, :receiveAddressWalletKeyIndex, :note, :created)\
-    ");
+    ", db);
 }
 
-QSqlQuery InBoundPayment::insertQuery() {
+QSqlQuery InBoundPayment::insertQuery(QSqlDatabase db) {
 
     // Get templated query
-    QSqlQuery query = unboundedInsertQuery();
+    QSqlQuery query = unboundedInsertQuery(db);
 
     // Bind values to query fields
     query.bindValue(":id", _id);

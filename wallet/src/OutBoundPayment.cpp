@@ -23,7 +23,7 @@ OutBoundPayment::OutBoundPayment(quint64 paymentId, const Coin::P2PKHAddress & t
 
 // OutBoundPayment::OutBoundPayment(const QSqlRecord & record);
 
-QSqlQuery OutBoundPayment::createTableQuery() {
+QSqlQuery OutBoundPayment::createTableQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     CREATE TABLE OutBoundPayment (\
@@ -36,23 +36,23 @@ QSqlQuery OutBoundPayment::createTableQuery() {
         created                         INTEGER     NOT NULL,\
         PRIMARY KEY(paymentId),\
         FOREIGN KEY changeAddressWalletKeyIndex REFERENCES WalletAddress(walletKeyIndex)\
-    )");
+    )", db);
 }
 
-QSqlQuery OutBoundPayment::unboundedInsertQuery() {
+QSqlQuery OutBoundPayment::unboundedInsertQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     INSERT INTO TransactionHasInput \
     (paymentId, toAddress, changeAddressWalletKeyIndex, amount, fee, note, created)\
     VALUES\
     (:paymentId, :toAddress, :changeAddressWalletKeyIndex, :amount, :fee, :note, :created)\
-    ");
+    ", db);
 }
 
-QSqlQuery OutBoundPayment::insertQuery() {
+QSqlQuery OutBoundPayment::insertQuery(QSqlDatabase db) {
 
     // Get templated query
-    QSqlQuery query = unboundedInsertQuery();
+    QSqlQuery query = unboundedInsertQuery(db);
 
     // Bind values to query fields
     query.bindValue(":paymentId", _id);

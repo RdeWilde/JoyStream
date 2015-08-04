@@ -16,30 +16,30 @@ WalletKey::WalletKey(quint64 index, const Coin::PrivateKey & privateKey, const Q
     , _generated(generated) {
 }
 
-QSqlQuery WalletKey::createTableQuery() {
+QSqlQuery WalletKey::createTableQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     CREATE TABLE WalletKey (\
         index           INTEGER     PRIMARY KEY,\
         privateKey      BLOB        NOT NULL,\
         generated       INTEGER     NOT NULL\
-    )");
+    )", db);
 }
 
-QSqlQuery WalletKey::unboundedInsertQuery() {
+QSqlQuery WalletKey::unboundedInsertQuery(QSqlDatabase db) {
 
     return QSqlQuery("\
     INSERT INTO PrivateKey \
     (index, privateKey, generated)\
     VALUES\
     (:index, :privateKey, :generated)\
-    ");
+    ", db);
 }
 
-QSqlQuery WalletKey::insertQuery() {
+QSqlQuery WalletKey::insertQuery(QSqlDatabase db) {
 
     // Get templated query
-    QSqlQuery query = unboundedInsertQuery();
+    QSqlQuery query = unboundedInsertQuery(db);
 
     // bind wallet key values
     query.bindValue(":index", static_cast<uint>(_index));
