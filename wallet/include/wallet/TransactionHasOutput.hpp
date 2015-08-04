@@ -5,22 +5,22 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 3 2015
  */
 
-#ifndef TRANSACTION_HAS_INPUT_HPP
-#define TRANSACTION_HAS_INPUT_HPP
+#ifndef TRANSACTION_HAS_OUTPUT_HPP
+#define TRANSACTION_HAS_OUTPUT_HPP
 
 #include <wallet/CoinWrappers.hpp>
 #include <wallet/Transaction.hpp>
-#include <wallet/Input.hpp>
+#include <wallet/Output.hpp>
 
-class TransactionHasInput {
+class TransactionHasOutput {
 
 public:
 
     // Construct from members
-    TransactionHasInput(const Coin::TransactionId & transactionId, const Input & input);
+    TransactionHasOutput(const Coin::TransactionId & transactionId, quint32 index, const Output & output);
 
     // Constructor from record
-    // TransactionHasInput(const QSqlRecord & record);
+    // TransactionHasOutput(const QSqlRecord & record);
 
     // Query which creates table corresponding to entity
     static QSqlQuery createTableQuery();
@@ -38,19 +38,20 @@ public:
     quint32 index() const;
     void setIndex(quint32 index);
 
-    Input input() const;
-    void setInput(const Input & input);
+    Output output() const;
+    void setOutput(const Output & output);
 
 private:
 
     // Id of transaction
     Coin::TransactionId _transactionId;
 
-    // Index of input in transaction
+    // Index of output in transaction
     quint32 _index;
 
     // Input in transaction
-    Input _input;
+    Output _output;
 };
 
-#endif // TRANSACTIONHASINPUT_HPP
+#endif // TRANSACTION_HAS_OUTPUT_HPP
+

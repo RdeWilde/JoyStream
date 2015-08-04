@@ -2,11 +2,11 @@
  * Copyright (C) JoyStream - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
- * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 3 2015
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, July 5 2015
  */
 
-#ifndef OUTPUT_HPP
-#define OUTPUT_HPP
+#ifndef OUPUT_FUNDS_PAYER_HPP
+#define OUPUT_FUNDS_PAYER_HPP
 
 #include <wallet/CoinWrappers.hpp>
 
@@ -14,15 +14,16 @@
 
 class QSqlQuery;
 
-class Output {
+// Many-to-many association entity
+class OuputFundsPayer {
 
 public:
 
     // Constructor from members
-    Output(quint64 value, const QByteArray & pubKeyScript, quint64 walletKeyIndex);
+    OuputFundsPayer(quint64 _value, const QByteArray & pubKeyScript, quint64 _payerId);
 
     // Constructor from record
-    // Output(const QSqlRecord & record);
+    // OuputFundsPayer(const QSqlRecord & record);
 
     // Query which creates table corresponding to entity
     static QSqlQuery createTableQuery();
@@ -30,17 +31,24 @@ public:
     // (Unbound) Query which inserts wallet key record into correspodning table
     static QSqlQuery unboundedInsertQuery();
 
+    // Query inserting this wallet key into corresponding table
+    QSqlQuery insertQuery();
+
     // Getters and setters
     quint64 value() const;
     void setValue(quint64 value);
 
     QByteArray pubKeyScript() const;
-    void setPubKeyScript(const QByteArray & pubKeyScript);
+    void setPubKeyScript(const QByteArray &pubKeyScript);
 
-    quint64 walletKeyIndex() const;
-    void setWalletKeyIndex(quint64 walletKeyIndex);
+    quint64 payerId() const;
+    void setPayerId(quint64 payerId);
 
 private:
+
+    /**
+     * Output PK
+     */
 
     // Number of satoshies in output
     quint64 _value;
@@ -48,9 +56,11 @@ private:
     // Serialized output script
     QByteArray _pubKeyScript;
 
-    // Address to which this address corresponds
-    quint64 _walletKeyIndex;
+    // dont think we need an index
+
+    // Payer to which output funds
+    quint64 _payerId;
 };
 
-#endif // OUTPUT_HPP
+#endif // OUPUT_FUNDS_PAYER_HPP
 

@@ -10,13 +10,31 @@
 #include <QSqlQuery>
 #include <QVariant> // QSqlQuery::bind needs it
 
-Slot::Slot()
-{
+quint8 Slot::encodeState(State state) {
 
+    switch(state) {
+        case State::unassigned: return 0;
+        case State::assigned: return 1;
+        case State::refund_signed: return 2;
+
+        default:
+            Q_ASSERT(false);
+    }
 }
 
-Slot::~Slot()
-{
+Slot::State Slot::decodeState(quint8 state) {
+
+    switch(state) {
+        case 0: return State::unassigned;
+        case 1: return State::assigned;
+        case 2: return State::refund_signed;
+
+        default:
+            Q_ASSERT(false);
+    }
+}
+
+Slot::Slot() {
 
 }
 
