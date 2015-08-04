@@ -10,6 +10,8 @@
 
 #include <wallet/CoinWrappers.hpp>
 
+#include <QtGlobal>
+
 class QSqlQuery;
 
 class Slot
@@ -29,32 +31,88 @@ public:
     static quint8 encodeState(State state);
     static State decodeState(quint8 state);
 
-    Slot();
+    // Constructor from members
+    Slot(quint64 payerId,
+         quint32 index,
+         State state,
+         quint64 price,
+         quint64 numberOfPaymentsMade,
+         quint64 funds,
+         quint64 payerContractWalletKeyId,
+         quint64 payerFinalWalletKeyId,
+         const Coin::PublicKey & payeeContractPublicKey,
+         const Coin::PublicKey & payeeFinalPublicKey,
+         const Coin::Signature & refundSignature,
+         const Coin::Signature & lastPaymentSignature,
+         quint64 refundFee,
+         quint64 paymentFee,
+         quint32 refundLockTime);
+
+    // Constructor from record
+    // Slot(const QSqlRecord & record);
+
+    // Query which creates table corresponding to entity
+    static QSqlQuery createTableQuery();
+
+    // (Unbound) Query which inserts wallet key record into correspodning table
+    static QSqlQuery unboundedInsertQuery();
+
+    // Query inserting this wallet key into corresponding table
+    QSqlQuery insertQuery();
+
+    // Getters and setters
+    quint64 payerId() const;
+    void setPayerId(quint64 payerId);
+
+    quint32 index() const;
+    void setIndex(quint32 index);
+
+    State state() const;
+    void setState(State state);
+
+    quint64 price() const;
+    void setPrice(quint64 price);
+
+    quint64 numberOfPaymentsMade() const;
+    void setNumberOfPaymentsMade(quint64 numberOfPaymentsMade);
+
+    quint64 funds() const;
+    void setFunds(quint64 funds);
+
+    quint64 payerContractWalletKeyId() const;
+    void setPayerContractWalletKeyId(quint64 payerContractWalletKeyId);
+
+    quint64 payerFinalWalletKeyId() const;
+    void setPayerFinalWalletKeyId(quint64 payerFinalWalletKeyId);
+
+    Coin::PublicKey payeeContractPublicKey() const;
+    void setPayeeContractPublicKey(const Coin::PublicKey & payeeContractPublicKey);
+
+    Coin::PublicKey payeeFinalPublicKey() const;
+    void setPayeeFinalPublicKey(const Coin::PublicKey & payeeFinalPublicKey);
+
+    Coin::Signature refundSignature() const;
+    void setRefundSignature(const Coin::Signature & refundSignature);
+
+    Coin::Signature lastPaymentSignature() const;
+    void setLastPaymentSignature(const Coin::Signature & lastPaymentSignature);
+
+    quint64 refundFee() const;
+    void setRefundFee(quint64 refundFee);
+
+    quint64 paymentFee() const;
+    void setPaymentFee(quint64 paymentFee);
+
+    quint32 refundLockTime() const;
+    void setRefundLockTime(quint32 refundLockTime);
 
 private:
 
+    // Payer to which this slot correponds.
     quint64 _payerId;
 
     // Index in contract
     quint32 _index;
-
-
-    state
-    price
-    numberOfPaymentsMade
-    funds
-    refundLockTime
-    payerContractWalletKeyId
-    payerFinalWalletKeyId
-    payeeContractPublicKey
-    payeeFinalPublicKey
-    refundSignature
-    lastPaymentSignature
-    refundFee
-    paymentFee
-    refundTransactionId
-
-
 
     // Slot state
     State _state;
@@ -68,31 +126,31 @@ private:
     // Funds allocated to output
     quint64 _funds;
 
-    // Controls payour output of multisig
-    KeyPair _payorContractKeyPair;
+    // Id of private key which controls payer portion of corresponding contract multisig output.
+    quint64 _payerContractWalletKeyId;
 
-    // Controls final payment to payor
-    KeyPair _payorFinalKeyPair;
+    // Id of private key which controls refund, change payment of corresponding contract multisig output.
+    quint64 _payerFinalWalletKeyId;
 
-    // Controls payee output of multisig, received in joinin_contract.pk
-    PublicKey _payeeContractPk;
+    // Controlls payee portion of corresponding contract output, with raw encoding.
+    Coin::PublicKey _payeeContractPublicKey;
 
-    // Controls payee payments, received in sign_refund.pk
-    PublicKey _payeeFinalPk;
+    // Controlls payee payment, with raw encoding.
+    Coin::PublicKey _payeeFinalPublicKey;
 
-    // Controls refund for payor
-    Signature _payorRefundSignature;
+    // Refund signature provided by payee
+    Coin::Signature _refundSignature;
 
-    // Controls refund for payee
-    Signature _payeeRefundSignature;
+    // Last payment signature provided by payee
+    Coin::Signature _lastPaymentSignature;
 
-    // Fee used in refund transaction, is unlikely to vary across slots,
+    // Fee used in refund transaction, in satoshis.
     quint64 _refundFee;
 
-    // Fee used in payment transaction
+    // Fee used in payment transaction, in satoshis.
     quint64 _paymentFee;
 
-    // Lock time of refund, received in
+    // Transaction id of refund transaction
     quint32 _refundLockTime;
 };
 
