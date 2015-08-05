@@ -22,6 +22,8 @@
 #include <wallet/Slot.hpp>
 #include <wallet/Payee.hpp>
 
+#include <wallet/Metadata.hpp>
+
 Wallet::Wallet(const QString & walletFile)
     : _walletFile(walletFile)
     , _db(QSqlDatabase::addDatabase("QSQLITE")) {
@@ -36,6 +38,9 @@ Wallet::Wallet(const QString & walletFile)
         throw std::runtime_error("Invalid wallet structure.");
 
     // Load metadata
+    _network = Metadata::getNetwork(_db);
+    _seed = Metadata::getSeed(_db);
+    _created = Metadata::getCreated(_db);
 
     // Load key pools
 
@@ -49,42 +54,58 @@ void Wallet::createEmptyWallet(const QString & walletFile, Network network, cons
 
     Q_ASSERT(db.isValid());
 
-    // Add metadata
-    /**
-    // Wallet (SQLite database) file
-    QString _walletFile;
+    // Create metdata key-value store
+    Metadata::createTable(db);
 
-    // Database connection
-    QSqlDatabase _db;
-
-    // Network wallet corresponds to
-    Network _network;
-
-    // Time when wallet was created
-    QDateTime _created;
-
-    // Seed
-    QByteArray _seed;
-    */
+    // Populate with default values
+    Metadata::populateTable(db, seed, network, QDateTime::currentDateTime());
 
     // Create tables
-    bool result;
-
-    result = WalletKey::createTableQuery(db).exec();
-    result = WalletAddress::createTableQuery(db).exec();
-    result = BlockHeader::createTableQuery(db).exec();
-    result = Transaction::createTableQuery(db).exec();
-    result = OutPoint::createTableQuery(db).exec();
-    result = Input::createTableQuery(db).exec();
-    result = TransactionHasInput::createTableQuery(db).exec();
-    result = Output::createTableQuery(db).exec();
-    result = TransactionHasOutput::createTableQuery(db).exec();
-    result = InBoundPayment::createTableQuery(db).exec();
-    result = OutBoundPayment::createTableQuery(db).exec();
-    result = Payer::createTableQuery(db).exec();
-    result = OuputFundsPayer::createTableQuery(db).exec();
-    result = Slot::createTableQuery(db).exec();
-    result = Payee::createTableQuery(db).exec();
+    if(!WalletKey::createTableQuery(db).exec()) {
+        throw std::runtime_error("Could not create WalletKey table.");
+    }
+    if(!WalletAddress::createTableQuery(db).exec()) {
+        throw std::runtime_error("Could not create WalletAddress table.");
+    }
+    if(!BlockHeader::createTableQuery(db).exec()) {
+        throw std::runtime_error("Could not create BlockHeader table.");
+    }
+    if(!Transaction::createTableQuery(db).exec()) {
+        throw std::runtime_error("Could not create Transaction table.");
+    }
+    if(!OutPoint::createTableQuery(db).exec()) {
+        throw std::runtime_error("Could not create OutPoint table.");
+    }
+    if(!Input::createTableQuery(db).exec()) {
+        throw std::runtime_error("Could not create Input table.");
+    }
+    if(!TransactionHasInput::createTableQuery(db).exec()) {
+        throw std::runtime_error("Could not create TransactionHasInput table.");
+    }
+    if(!Output::createTableQuery(db).exec()) {
+        throw std::runtime_error("Could not create Output table.");
+    }
+    if(!TransactionHasOutput::createTableQuery(db).exec()) {
+        throw std::runtime_error("Could not create TransactionHasOutput table.");
+    }
+    if(!InBoundPayment::createTableQuery(db).exec()) {
+        throw std::runtime_error("Could not create InBoundPayment table.");
+    }
+    if(!OutBoundPayment::createTableQuery(db).exec()) {
+        throw std::runtime_error("Could not create OutBoundPayment table.");
+    }
+    if(!Payer::createTableQuery(db).exec()) {
+        throw std::runtime_error("Could not create Payer table.");
+    }
+    if(!OuputFundsPayer::createTableQuery(db).exec()) {
+        throw std::runtime_error("Could not create OuputFundsPayer table.");
+    }
+    if(!Slot::createTableQuery(db).exec()) {
+        throw std::runtime_error("Could not create Slot table.");
+    }
+    if(!Payee::createTableQuery(db).exec()) {
+        throw std::runtime_error("Could not create Payee table.");
+    }
 }
 
 bool Wallet::validateWalletStructure(QSqlDatabase & db) {

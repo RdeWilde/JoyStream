@@ -221,7 +221,7 @@ void BuyerTorrentPlugin::Configuration::setNumberOfSellers(quint32 numberOfSelle
 
 BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
                                        const boost::shared_ptr<libtorrent::torrent> & torrent,
-                                       OldWallet * wallet,
+                                       Wallet * wallet,
                                        const BuyerTorrentPlugin::Configuration & configuration,
                                        const UnspentP2PKHOutput & utxo,
                                        QLoggingCategory & category)
@@ -261,9 +261,9 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
     quint64 changeValue = utxo.value() - contractFee - configuration.numberOfSellers()*fundingPerSeller;
 
     // Generate keys in wallet
-    QList<OldWallet::Entry> buyerInContractKeys = _wallet->generateNewKeys(configuration.numberOfSellers(), OldWallet::Purpose::BuyerInContractOutput).values();
-    QList<OldWallet::Entry> buyerFinalKeys = _wallet->generateNewKeys(configuration.numberOfSellers(), OldWallet::Purpose::ContractFinal).values();
-    QList<OldWallet::Entry> changeKey = _wallet->generateNewKeys(1, OldWallet::Purpose::ContractChange).values();
+    QList<Wallet::Entry> buyerInContractKeys = _wallet->generateNewKeys(configuration.numberOfSellers(), Wallet::Purpose::BuyerInContractOutput).values();
+    QList<Wallet::Entry> buyerFinalKeys = _wallet->generateNewKeys(configuration.numberOfSellers(), Wallet::Purpose::ContractFinal).values();
+    QList<Wallet::Entry> changeKey = _wallet->generateNewKeys(1, Wallet::Purpose::ContractChange).values();
 
     Q_ASSERT(buyerInContractKeys.count() == configuration.numberOfSellers());
     Q_ASSERT(buyerFinalKeys.count() == configuration.numberOfSellers());

@@ -25,7 +25,7 @@ class UnspentP2PKHOutput;
 /**
  * @brief Naive Btc Micropayment wallet
  */
-class OldWallet : public QObject
+class Wallet : public QObject
 {
     Q_OBJECT
 
@@ -253,7 +253,7 @@ public:
     };
 
     // Constructor from wallet file
-    OldWallet(const QString & file, bool autoSave);
+    Wallet(const QString & file, bool autoSave);
 
     /**
      * Many of the routines below are semantically const, however

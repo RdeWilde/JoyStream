@@ -2139,7 +2139,7 @@ void Controller::saveStateToFile(const char * file) {
     */
 }
 
-OldWallet & Controller::wallet() {
+Wallet & Controller::wallet() {
     return _wallet;
 }
 

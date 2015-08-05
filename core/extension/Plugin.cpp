@@ -81,7 +81,7 @@ void Plugin::Status::setTotalReceivedSinceStart(quint64 totalReceivedSinceStart)
  * Plugin
  */
 
-Plugin::Plugin(OldWallet * wallet, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category)
+Plugin::Plugin(Wallet * wallet, QNetworkAccessManager & manager, QString bitcoindAccount, QLoggingCategory & category)
     : _wallet(wallet)
     /**
     , _btcClient("127.0.0.1"

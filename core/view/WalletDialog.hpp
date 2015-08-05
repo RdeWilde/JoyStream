@@ -17,7 +17,7 @@ namespace Ui {
 class WalletDialog;
 }
 
-class OldWallet;
+class Wallet;
 class QMenu;
 class BitCoinDisplaySettings;
 
@@ -28,7 +28,7 @@ class WalletDialog : public QDialog
 public:
     //explicit WalletDialog(QWidget *parent = 0)
 
-    WalletDialog(OldWallet * wallet, const BitCoinDisplaySettings * settings);
+    WalletDialog(Wallet * wallet, const BitCoinDisplaySettings * settings);
     ~WalletDialog();
 
     // Updates view
@@ -40,7 +40,7 @@ public:
     // Clears and repopulates walletTableView
     void updateWalletTableView();
 
-    QList<QStandardItem *> toModelViewRow(const OldWallet::TxOEvent & event) const;
+    QList<QStandardItem *> toModelViewRow(const Wallet::TxOEvent & event) const;
 
 private slots:
     void on_receivePushButton_clicked();
@@ -50,7 +50,7 @@ private slots:
 private:
     Ui::WalletDialog *ui;
 
-    OldWallet * _wallet;
+    Wallet * _wallet;
 
     const BitCoinDisplaySettings * _settings;
 

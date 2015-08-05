@@ -50,7 +50,7 @@
 #include <libtorrent/add_torrent_params.hpp>
 #include <libtorrent/torrent_handle.hpp>
 
-MainWindow::MainWindow(Controller * controller, OldWallet * wallet)
+MainWindow::MainWindow(Controller * controller, Wallet * wallet)
     : ui(new Ui::MainWindow)
     , _controller(controller)
     , _wallet(wallet)

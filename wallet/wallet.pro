@@ -44,7 +44,8 @@ HEADERS += \
     include/wallet/TransactionHasOutput.hpp \
     include/wallet/InBoundPayment.hpp \
     include/wallet/OutBoundPayment.hpp \
-    include/wallet/OuputFundsPayer.hpp
+    include/wallet/OuputFundsPayer.hpp \
+    include/wallet/Metadata.hpp
 
 SOURCES += \
     src/Wallet.cpp \
@@ -68,4 +69,5 @@ SOURCES += \
     src/TransactionHasOutput.cpp \
     src/InBoundPayment.cpp \
     src/OutBoundPayment.cpp \
-    src/OuputFundsPayer.cpp
+    src/OuputFundsPayer.cpp \
+    src/Metadata.cpp

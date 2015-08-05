@@ -17,10 +17,10 @@
  * Wallet::TxOEvent
  */
 
-OldWallet::TxOEvent::TxOEvent() {
+Wallet::TxOEvent::TxOEvent() {
 }
 
-OldWallet::TxOEvent::TxOEvent(Type type,
+Wallet::TxOEvent::TxOEvent(Type type,
                            const OutPoint & outpoint,
                            const quint64 value,
                            const QDateTime & firstSeen,
@@ -32,7 +32,7 @@ OldWallet::TxOEvent::TxOEvent(Type type,
     , _blockHeight(blockHeight) {
 }
 
-OldWallet::TxOEvent::TxOEvent(const QJsonObject & json) {
+Wallet::TxOEvent::TxOEvent(const QJsonObject & json) {
 
     // _type
     QString type = Utilities::GET_STRING(json, "type");
@@ -59,11 +59,11 @@ OldWallet::TxOEvent::TxOEvent(const QJsonObject & json) {
     _blockHeight = Utilities::GET_DOUBLE(json, "blockHeight");
 }
 
-bool OldWallet::TxOEvent::operator<(const TxOEvent & o) const {
+bool Wallet::TxOEvent::operator<(const TxOEvent & o) const {
     return _firstSeen < o.firstSeen();
 }
 
-QJsonObject OldWallet::TxOEvent::toJson() const {
+QJsonObject Wallet::TxOEvent::toJson() const {
 
     QJsonObject json;
 
@@ -87,43 +87,43 @@ QJsonObject OldWallet::TxOEvent::toJson() const {
     return json;
 }
 
-OldWallet::TxOEvent::Type OldWallet::TxOEvent::type() const {
+Wallet::TxOEvent::Type Wallet::TxOEvent::type() const {
     return _type;
 }
 
-void OldWallet::TxOEvent::setType(Type type){
+void Wallet::TxOEvent::setType(Type type){
     _type = type;
 }
 
-OutPoint OldWallet::TxOEvent::outpoint() const {
+OutPoint Wallet::TxOEvent::outpoint() const {
     return _outpoint;
 }
 
-void OldWallet::TxOEvent::setOutpoint(const OutPoint & outpoint) {
+void Wallet::TxOEvent::setOutpoint(const OutPoint & outpoint) {
     _outpoint = outpoint;
 }
 
-quint64 OldWallet::TxOEvent::value() const {
+quint64 Wallet::TxOEvent::value() const {
     return _value;
 }
 
-void OldWallet::TxOEvent::setValue(quint64 value) {
+void Wallet::TxOEvent::setValue(quint64 value) {
     _value = value;
 }
 
-QDateTime OldWallet::TxOEvent::firstSeen() const {
+QDateTime Wallet::TxOEvent::firstSeen() const {
     return _firstSeen;
 }
 
-void OldWallet::TxOEvent::setFirstSeen(const QDateTime & firstSeen) {
+void Wallet::TxOEvent::setFirstSeen(const QDateTime & firstSeen) {
     _firstSeen = firstSeen;
 }
 
-quint32 OldWallet::TxOEvent::blockHeight() const {
+quint32 Wallet::TxOEvent::blockHeight() const {
     return _blockHeight;
 }
 
-void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
+void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
     _blockHeight = blockHeight;
 }
 
@@ -133,11 +133,11 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
 
 #include <QJsonArray>
 
-  OldWallet::Entry::Entry() {
+  Wallet::Entry::Entry() {
 
   }
 
-  OldWallet::Entry::Entry(quint32 n,
+  Wallet::Entry::Entry(quint32 n,
                        const KeyPair & keyPair,
                        Purpose purpose,
                        const QDateTime & generated,
@@ -153,7 +153,7 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
     , _receive(receive) {
   }
 
-  OldWallet::Entry::Entry(const QJsonObject & json) {
+  Wallet::Entry::Entry(const QJsonObject & json) {
 
       // _n
       _n = Utilities::GET_DOUBLE(json, "n");
@@ -251,20 +251,20 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       */
   }
 
-  void OldWallet::Entry::lockUtxo(const OutPoint & outPoint) {
+  void Wallet::Entry::lockUtxo(const OutPoint & outPoint) {
 
       _locked.insert(outPoint);
   }
 
-  bool OldWallet::Entry::isLocked(const OutPoint & outPoint) const {
+  bool Wallet::Entry::isLocked(const OutPoint & outPoint) const {
       return _locked.contains(outPoint);
   }
 
-  void OldWallet::Entry::unlockUtxo(const OutPoint & outPoint) {
+  void Wallet::Entry::unlockUtxo(const OutPoint & outPoint) {
       _locked.remove(outPoint);
   }
 
-  QJsonObject OldWallet::Entry::toJson() const {
+  QJsonObject Wallet::Entry::toJson() const {
 
       QJsonObject json;
 
@@ -310,9 +310,9 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       return json;
   }
 
-  QList<OldWallet::TxOEvent> OldWallet::Entry::getFreeUtxo() const {
+  QList<Wallet::TxOEvent> Wallet::Entry::getFreeUtxo() const {
 
-      QList<OldWallet::TxOEvent> utxos;
+      QList<Wallet::TxOEvent> utxos;
 
       for(QMap<OutPoint, TxOEvent>::const_iterator i = _receive.constBegin();
           i != _receive.constEnd();i++) {
@@ -330,7 +330,7 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       return utxos;
   }
 
-  bool OldWallet::Entry::isUTxO(const OutPoint & outPoint) const {
+  bool Wallet::Entry::isUTxO(const OutPoint & outPoint) const {
       return _receive.contains(outPoint) && !_send.contains(outPoint);
   }
 
@@ -352,59 +352,59 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
   }
 */
 
-  quint32 OldWallet::Entry::n() const {
+  quint32 Wallet::Entry::n() const {
       return _n;
   }
 
-  void OldWallet::Entry::setN(quint32 n) {
+  void Wallet::Entry::setN(quint32 n) {
       _n = n;
   }
 
-  KeyPair OldWallet::Entry::keyPair() const {
+  KeyPair Wallet::Entry::keyPair() const {
       return _keyPair;
   }
 
-  void OldWallet::Entry::setKeyPair(const KeyPair & keyPair) {
+  void Wallet::Entry::setKeyPair(const KeyPair & keyPair) {
       _keyPair = keyPair;
   }
 
-  OldWallet::Purpose OldWallet::Entry::purpose() const {
+  Wallet::Purpose Wallet::Entry::purpose() const {
       return _purpose;
   }
 
-  void OldWallet::Entry::setPurpose(Purpose purpose) {
+  void Wallet::Entry::setPurpose(Purpose purpose) {
       _purpose = purpose;
   }
 
-  QDateTime OldWallet::Entry::generated() const {
+  QDateTime Wallet::Entry::generated() const {
       return _generated;
   }
 
-  void OldWallet::Entry::setGenerated(const QDateTime & added) {
+  void Wallet::Entry::setGenerated(const QDateTime & added) {
       _generated = added;
   }
 
-  QString OldWallet::Entry::description() const {
+  QString Wallet::Entry::description() const {
       return _description;
   }
 
-  void OldWallet::Entry::setDescription(const QString & description) {
+  void Wallet::Entry::setDescription(const QString & description) {
       _description = description;
   }
 
-  QMap<OutPoint, OldWallet::TxOEvent> OldWallet::Entry::receive() const {
+  QMap<OutPoint, Wallet::TxOEvent> Wallet::Entry::receive() const {
       return _receive;
   }
 
-  void OldWallet::Entry::setReceive(const QMap<OutPoint, TxOEvent> &receive) {
+  void Wallet::Entry::setReceive(const QMap<OutPoint, TxOEvent> &receive) {
       _receive = receive;
   }
 
-  QMap<OutPoint, OldWallet::TxOEvent> OldWallet::Entry::send() const {
+  QMap<OutPoint, Wallet::TxOEvent> Wallet::Entry::send() const {
       return _send;
   }
 
-  void OldWallet::Entry::setSend(const QMap<OutPoint, OldWallet::TxOEvent> &send) {
+  void Wallet::Entry::setSend(const QMap<OutPoint, Wallet::TxOEvent> &send) {
       _send = send;
   }
 
@@ -418,7 +418,7 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
 
 #include "UnspentP2PKHOutput.hpp"
 
-  OldWallet::OldWallet(const QString & file, bool autoSave)
+  Wallet::Wallet(const QString & file, bool autoSave)
     : // add some of these hard coded values as explicit args in the future
       _walletSeed(0)
     , _gapLimit(1)
@@ -452,7 +452,7 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       _lastComputedZeroConfBalance = computeBalance(0);
   }
 
-  void OldWallet::fromJson(const QJsonObject & walletDictionary) {
+  void Wallet::fromJson(const QJsonObject & walletDictionary) {
 
       // If wallet was empty, we are done loading
       if(walletDictionary.size() == 0)
@@ -505,7 +505,7 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       _latestBlockHeight = Utilities::GET_DOUBLE(walletDictionary, "latestBlockHeight");
   }
 
-  PrivateKey OldWallet::getSk(const PublicKey & pk) {
+  PrivateKey Wallet::getSk(const PublicKey & pk) {
 
       _mutex.lock();
 
@@ -525,7 +525,7 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       return e.keyPair().sk();
   }
 
-  QJsonObject OldWallet::toJson() {
+  QJsonObject Wallet::toJson() {
 
       QJsonObject wallet;
 
@@ -563,7 +563,7 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       return wallet;
   }
 
-  int OldWallet::numberOfKeysInWallet() {
+  int Wallet::numberOfKeysInWallet() {
 
       int num;
 
@@ -574,7 +574,7 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       return num;
   }
 
-  void OldWallet::save() {
+  void Wallet::save() {
 
       _mutex.lock();
 
@@ -598,7 +598,7 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       _mutex.unlock();
   }
 
-  quint64 OldWallet::computeBalance(quint32 confirmations) {
+  quint64 Wallet::computeBalance(quint32 confirmations) {
 
       _mutex.lock();
 
@@ -629,7 +629,7 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
 
   #include <QDebug>
 
-  void OldWallet::synchronize() {
+  void Wallet::synchronize() {
 
       qDebug() << "Wallet::synchronize()";
 
@@ -644,26 +644,26 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       if(list.size() > 0) {
 
           // Get events
-          QMap<PublicKey, QList<OldWallet::TxOEvent>>  & keyEvents = BitSwaprjs::get_key_events(QSet<PublicKey>::fromList(list));
+          QMap<PublicKey, QList<Wallet::TxOEvent>>  & keyEvents = BitSwaprjs::get_key_events(QSet<PublicKey>::fromList(list));
 
-          for(QMap<PublicKey, QList<OldWallet::TxOEvent>>::const_iterator i = keyEvents.constBegin();
+          for(QMap<PublicKey, QList<Wallet::TxOEvent>>::const_iterator i = keyEvents.constBegin();
               i != keyEvents.constEnd();i++) {
 
               // Key
               const PublicKey & key = i.key();
 
               // Event list
-              const QList<OldWallet::TxOEvent> & list = i.value();
+              const QList<Wallet::TxOEvent> & list = i.value();
 
               // Iterate list and crate new send and receiv maps
               QMap<OutPoint, TxOEvent> send, receive;
 
-              for(QList<OldWallet::TxOEvent>::const_iterator j = list.constBegin();
+              for(QList<Wallet::TxOEvent>::const_iterator j = list.constBegin();
                   j != list.constEnd();j++) {
 
-                  const OldWallet::TxOEvent & event = *j;
+                  const Wallet::TxOEvent & event = *j;
 
-                  if(event.type() == OldWallet::TxOEvent::Type::Receive) {
+                  if(event.type() == Wallet::TxOEvent::Type::Receive) {
                       receive[event.outpoint()] = event;
                   } else {
                       send[event.outpoint()] = event;
@@ -695,11 +695,11 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       }
   }
 
-  QString OldWallet::toAddress(const PublicKey & pk) const {
+  QString Wallet::toAddress(const PublicKey & pk) const {
       return BitSwaprjs::to_address(pk);
   }
 
-  UnspentP2PKHOutput OldWallet::getUtxo(quint64 minimalValue, quint32 minimalNumberOfConfirmations) {
+  UnspentP2PKHOutput Wallet::getUtxo(quint64 minimalValue, quint32 minimalNumberOfConfirmations) {
 
       /**
     return         UnspentP2PKHOutput(KeyPair(PublicKey("024f6f05e6f105fa0aaccfc36af9497d3929c4b33cbc8575445154e762f82eb08c"),
@@ -717,13 +717,13 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
           Entry & entry = i.value();
 
           // Get free utxo in entry
-          const QList<OldWallet::TxOEvent> & freeUtxo = entry.getFreeUtxo();
+          const QList<Wallet::TxOEvent> & freeUtxo = entry.getFreeUtxo();
 
           // Find utxo which matches
-          for(QList<OldWallet::TxOEvent>::const_iterator i = freeUtxo.constBegin();
+          for(QList<Wallet::TxOEvent>::const_iterator i = freeUtxo.constBegin();
               i != freeUtxo.constEnd();i++) {
 
-              const OldWallet::TxOEvent & event = *i;
+              const Wallet::TxOEvent & event = *i;
 
               // Check that utxo has enough value and confirmations, and is not locked
               if(event.value() >= minimalValue &&
@@ -753,7 +753,7 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
 
 #include <QDebug>
 
-  OldWallet::Entry OldWallet::addReceiveKey(const QString & description, Purpose purpose) {
+  Wallet::Entry Wallet::addReceiveKey(const QString & description, Purpose purpose) {
 
       _mutex.lock();
 
@@ -793,14 +793,14 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       return entry;
   }
 
-  QMap<PublicKey, OldWallet::Entry> OldWallet::generateNewKeys(quint8 numberOfKeys, Purpose purpose) {
+  QMap<PublicKey, Wallet::Entry> Wallet::generateNewKeys(quint8 numberOfKeys, Purpose purpose) {
 
       // Generate key pair: future use _walletSeed and _keyCount to generate fresh key: PrivateKey(H(seed + n))
       const QList<KeyPair> & pairs = BitSwaprjs::generate_fresh_key_pairs(numberOfKeys);
 
       _mutex.lock();
 
-      QMap<PublicKey, OldWallet::Entry> newEntries;
+      QMap<PublicKey, Wallet::Entry> newEntries;
 
       // Create new key
       for(quint8 i = 0;i < numberOfKeys;i++) {
@@ -857,7 +857,7 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
   }
 */
 
-  QMap<PublicKey, OldWallet::Entry> OldWallet::entries() {
+  QMap<PublicKey, Wallet::Entry> Wallet::entries() {
 
       QMap<PublicKey, Entry> copy;
 
@@ -868,18 +868,18 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       return copy;
   }
 
-  void OldWallet::setEntries(const QMap<PublicKey, Entry> &entries) {
+  void Wallet::setEntries(const QMap<PublicKey, Entry> &entries) {
 
       _mutex.lock();
       _entries = entries;
       _mutex.unlock();
   }
 
-  OldWallet::Entry & OldWallet::entry(const PublicKey & publicKey) {
+  Wallet::Entry & Wallet::entry(const PublicKey & publicKey) {
       return _entries[publicKey];
   }
 
-  quint64 OldWallet::latestBlockHeight() {
+  quint64 Wallet::latestBlockHeight() {
 
       quint64 copy;
 
@@ -890,7 +890,7 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       return copy;
   }
 
-  quint64 OldWallet::lastComputedZeroConfBalance() {
+  quint64 Wallet::lastComputedZeroConfBalance() {
 
       quint64 copy;
 
@@ -901,7 +901,7 @@ void OldWallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       return copy;
   }
 
-  quint32 OldWallet::numberOfTransactions() {
+  quint32 Wallet::numberOfTransactions() {
 
       quint32 count = 0;
 

@@ -16,7 +16,7 @@
 
 #include <QMessageBox>
 
-SellerTorrentPluginConfigurationDialog::SellerTorrentPluginConfigurationDialog(Controller * controller, OldWallet * wallet, const libtorrent::torrent_info & torrentInfo, const BitCoinDisplaySettings * settings)
+SellerTorrentPluginConfigurationDialog::SellerTorrentPluginConfigurationDialog(Controller * controller, Wallet * wallet, const libtorrent::torrent_info & torrentInfo, const BitCoinDisplaySettings * settings)
     :ui(new Ui::SellerTorrentPluginConfigurationDialog)
     , _controller(controller)
     , _wallet(wallet)

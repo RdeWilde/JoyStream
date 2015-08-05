@@ -36,7 +36,7 @@ class PeerPlugin;
 class PeerPluginStatus;
 class TorrentView;
 class TorrentViewModel;
-class OldWallet;
+class Wallet;
 class SellerTorrentPluginViewModel;
 class BuyerTorrentPluginViewModel;
 
@@ -47,7 +47,7 @@ class MainWindow : public QMainWindow
 public:
 
     // Constructor
-    MainWindow(Controller * controller, OldWallet * wallet);
+    MainWindow(Controller * controller, Wallet * wallet);
 
     // Destructor
     ~MainWindow();
@@ -125,7 +125,7 @@ private:
     Controller * _controller;
 
     // Wallet
-    OldWallet * _wallet;
+    Wallet * _wallet;
 
     // Torrent table view model
     QStandardItemModel _torrentTableViewModel;
