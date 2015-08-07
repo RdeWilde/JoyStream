@@ -4,6 +4,8 @@
 #include <QByteArray>
 #include <QSqlDatabase>
 #include <QSqlQuery>
+#include <QVariant>
+#include <QDateTime>
 
 const QByteArray Metadata::_networkKey = QByteArray("network");
 const QByteArray Metadata::_seedKey = QByteArray("seed");
@@ -40,7 +42,9 @@ void Metadata::populateTable(QSqlDatabase db, const QByteArray & seed, Network n
 
     // network
     insertQuery.bindValue(":key", _createdKey);
-    insertQuery.bindValue(":value", QByteArray(created.toMSecsSinceEpoch()));
+
+    uint createdUint = static_cast<uint>(created.toMSecsSinceEpoch());
+    insertQuery.bindValue(":value", QByteArray::number(createdUint));
     Q_ASSERT(insertQuery.exec());
         //throw std::runtime_error("Could not insert network key-value.");
 }
@@ -72,8 +76,8 @@ void Metadata::setCreated(QSqlDatabase db, const QDateTime & created) {
 QByteArray Metadata::encodeNetwork(Network network) {
 
     switch(network) {
-        case Network::testnet3: return QByteArray(0);
-        case Network::mainnet: return QByteArray(1);
+        case Network::testnet3: return QByteArray::number(0);
+        case Network::mainnet: return QByteArray::number(1);
         default:
                 Q_ASSERT(false);
     }
@@ -82,7 +86,7 @@ QByteArray Metadata::encodeNetwork(Network network) {
 Network Metadata::decodeNetwork(const QByteArray & blob) {
 
     bool ok;
-    uint encodedNetwork = blob.toUInt(ok);
+    uint encodedNetwork = blob.toUInt(&ok);
 
     Q_ASSERT(ok);
 

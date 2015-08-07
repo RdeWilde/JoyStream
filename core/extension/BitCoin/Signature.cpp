@@ -21,7 +21,7 @@ Signature::Signature(const QString & string) {
 
     // Check that string has correct length
     if(string.length() > 2*maxLength)
-        throw std::exception("String argument is of incorrect length, should be 2*MAX_SIGNATURE_LENGTH.");
+        throw std::runtime_error("String argument is of incorrect length, should be 2*MAX_SIGNATURE_LENGTH.");
     else {
 
         // Decode from hex format
@@ -70,7 +70,7 @@ int Signature::readFromStream(QDataStream & stream, int length) {
 
     // Check that signature is not to large
     if(length > maxLength)
-        throw std::exception("Length argument is to large, should be MAX_SIGNATURE_LENGTH.");
+        throw std::runtime_error("Length argument is to large, should be MAX_SIGNATURE_LENGTH.");
 
     // Allocate buffer
     _buffer = std::vector<unsigned char>(length, 0);
@@ -80,7 +80,7 @@ int Signature::readFromStream(QDataStream & stream, int length) {
     int bytesRead = stream.readRawData(data, length);
 
     if(bytesRead != length)
-        throw new std::exception("Could not read length bytes.");
+        throw new std::runtime_error("Could not read length bytes.");
 
     return bytesRead;
 }
@@ -95,7 +95,7 @@ int Signature::writeToStream(QDataStream & stream) const {
     int bytesWritten = stream.writeRawData(data, _buffer.size());
 
     if(bytesWritten != _buffer.size())
-        throw new std::exception("Could not write length bytes.");
+        throw new std::runtime_error("Could not write length bytes.");
 
     return bytesWritten;
 }

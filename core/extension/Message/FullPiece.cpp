@@ -29,7 +29,7 @@ FullPiece::FullPiece(QDataStream & stream, int length)
 
     // Check that we were able to read full piece
     if(result != _length)
-        throw std::exception("Was unable to read full piece from stream.");
+        throw std::runtime_error("Was unable to read full piece from stream.");
 }
 
 MessageType FullPiece::messageType() const {

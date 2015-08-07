@@ -90,7 +90,7 @@ QJsonValue Client::parse(QNetworkReply * reply) {
     QNetworkReply::NetworkError e = reply->error();
 
     if(e != QNetworkReply::NoError)
-        throw std::exception("Network request error.");
+        throw std::runtime_error("Network request error.");
 
     // Parse into json
 
@@ -107,7 +107,7 @@ QJsonValue Client::parse(QNetworkReply * reply) {
         QString errorString = "RPC request error: " + error.toString();
 
         // Throw exception with given error
-        throw std::exception(errorString.toLatin1());
+        throw std::runtime_error(errorString.toLatin1().toStdString());
     }
 
     // Return result object

@@ -21,7 +21,7 @@ Payment::Payment(QDataStream & stream, quint8 lengthOfSignature) {
 
     // Check that signature has valid length
     if(lengthOfSignature > Signature::maxLength)
-        throw std::exception("Maximum signature length exceeded.");
+        throw std::runtime_error("Maximum signature length exceeded.");
 
     // Read signature
     _sig.readFromStream(stream, lengthOfSignature);

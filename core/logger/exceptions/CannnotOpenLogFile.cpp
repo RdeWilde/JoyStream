@@ -11,6 +11,6 @@ CannnotOpenLogFile::CannnotOpenLogFile(const QFile * file) : file_(file) {
     whatMessage += file_->fileName().toStdString() + " is already registered with category logger.";
 }
 
-const char * CannnotOpenLogFile::what() const {
+const char * CannnotOpenLogFile::what() const throw() {
     return whatMessage.c_str();
 }

@@ -255,7 +255,7 @@ void BuyerPeerPlugin::on_connected() {
 bool BuyerPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake) {
 
     if(_clientState != ClientState::no_bitswapr_message_sent) {
-        throw std::exception("Extended handshake initiated at incorrect state.");
+        throw std::runtime_error("Extended handshake initiated at incorrect state.");
     }
 
     qCDebug(_category) << "Extended handshake arrived.";
@@ -724,14 +724,14 @@ void BuyerPeerPlugin::processSell(const Sell * m) {
 }
 
 void BuyerPeerPlugin::processJoinContract(const JoinContract * m) {
-    throw std::exception("JoinContract message should never be sent to buyer mode peer.");
+    throw std::runtime_error("JoinContract message should never be sent to buyer mode peer.");
 }
 
 void BuyerPeerPlugin::processJoiningContract(const JoiningContract * m) {
 
     // Check that we are in correct stage
     if(_clientState != ClientState::invited_to_contract)
-        throw std::exception("JoiningContract message should only be sent in response to a contract invitation.");
+        throw std::runtime_error("JoiningContract message should only be sent in response to a contract invitation.");
 
     // _clientState == ClientState::invited_to_contract =>
     //Q_ASSERT(_peerState.lastAction() == PeerState::LastValidAction::mode_announced);
@@ -752,14 +752,14 @@ void BuyerPeerPlugin::processJoiningContract(const JoiningContract * m) {
 }
 
 void BuyerPeerPlugin::processSignRefund(const SignRefund * m) {
-    throw std::exception("SignRefund message should never be sent to buyer mode peer.");
+    throw std::runtime_error("SignRefund message should never be sent to buyer mode peer.");
 }
 
 void BuyerPeerPlugin::processRefundSigned(const RefundSigned * m) {
 
     // Check that we are in correct stage
     if(_clientState != ClientState::asked_for_refund_signature)
-        throw std::exception("RefundSigned message should only be sent in response to a refund signature invitation.");
+        throw std::runtime_error("RefundSigned message should only be sent in response to a refund signature invitation.");
 
     // _clientState != ClientState::asked_for_refund_signature =>
     //Q_ASSERT(_peerState.lastAction() == PeerState::LastValidAction::joined_contract);
@@ -787,18 +787,18 @@ void BuyerPeerPlugin::processRefundSigned(const RefundSigned * m) {
 }
 
 void BuyerPeerPlugin::processReady(const Ready * m) {
-    throw std::exception("Ready message should never be sent to buyer mode peer.");
+    throw std::runtime_error("Ready message should never be sent to buyer mode peer.");
 }
 
 void BuyerPeerPlugin::processRequestFullPiece(const RequestFullPiece * m) {
-    throw std::exception("RequestFullPiece message should never be sent to buyer mode peer.");
+    throw std::runtime_error("RequestFullPiece message should never be sent to buyer mode peer.");
 }
 
 void BuyerPeerPlugin::processFullPiece(const FullPiece * m) {
 
     // Check that peer is sending a state compatible message
     if(_clientState != ClientState::waiting_for_full_piece)
-        throw std::exception("Peer Full Piece at incorrect stage."); // Handle properly later
+        throw std::runtime_error("Peer Full Piece at incorrect stage."); // Handle properly later
 
     // _clientState == ClientState::waiting_for_requests_to_be_serviced =>
     Q_ASSERT(_peerBEP10SupportStatus == BEPSupportStatus::supported);
@@ -836,7 +836,7 @@ void BuyerPeerPlugin::processFullPiece(const FullPiece * m) {
 }
 
 void BuyerPeerPlugin::processPayment(const Payment * m) {
-    throw std::exception("Payment message should never be sent to buyer mode peer.");
+    throw std::runtime_error("Payment message should never be sent to buyer mode peer.");
 }
 
 void BuyerPeerPlugin::peerModeReset() {

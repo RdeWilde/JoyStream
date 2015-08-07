@@ -256,7 +256,7 @@ void Payee::registerPayeeInformation(quint32 lockTime, quint32 price, quint32 ma
 
     // Check state
     if(_state != State::waiting_for_payee_information)
-        throw std::exception("State incompatible request, must be in waiting_for_payee_information state.");
+        throw std::runtime_error("State incompatible request, must be in waiting_for_payee_information state.");
 
     _state = State::waiting_for_payor_information;
     _lockTime = lockTime;
@@ -271,7 +271,7 @@ void Payee::registerPayorInformation(const OutPoint & contractOutPoint, const Pu
     // Check state
     if(_state != State::waiting_for_payor_information &&
        _state != State::has_all_information_required)
-        throw std::exception("State incompatible request, must be in waiting_for_payor_information or has_all_information_required state.");
+        throw std::runtime_error("State incompatible request, must be in waiting_for_payor_information or has_all_information_required state.");
 
     _state = State::has_all_information_required;
     _contractOutPoint = contractOutPoint;
@@ -284,7 +284,7 @@ Signature Payee::generateRefundSignature() const {
 
     // Check state
     if(_state != State::has_all_information_required)
-        throw std::exception("State incompatile request, must be in has_all_information_required state.");
+        throw std::runtime_error("State incompatile request, must be in has_all_information_required state.");
 
     // Compute refund signature
     Signature sig = BitSwaprjs::compute_refund_signature(_contractOutPoint,
@@ -301,7 +301,7 @@ bool Payee::registerPayment(const Signature & paymentSignature) {
 
     // Check state
     if(_state != State::has_all_information_required)
-        throw std::exception("State incompatile request, must be in has_all_information_required state.");
+        throw std::runtime_error("State incompatile request, must be in has_all_information_required state.");
 
     // Check signature
     bool check = checkNextPaymentSignature(paymentSignature);
@@ -320,7 +320,7 @@ bool Payee::checkNextPaymentSignature(const Signature & payorPaymentSignature) c
 
     // Check state
     if(_state != State::has_all_information_required)
-        throw std::exception("State incompatile request, must be in has_all_information_required state.");
+        throw std::runtime_error("State incompatile request, must be in has_all_information_required state.");
 
     // Setup new payment outputs
     quint64 paid = (_numberOfPaymentsMade + 1) * _price;
@@ -348,7 +348,7 @@ bool Payee::broadcastLastPayment() const {
 
     // Check state
     if(_state != State::has_all_information_required)
-        throw std::exception("State incompatile request, must be in has_all_information_required state.");
+        throw std::runtime_error("State incompatile request, must be in has_all_information_required state.");
 
     // Setup new payment outputs
     quint64 paid = (_numberOfPaymentsMade) * _price;

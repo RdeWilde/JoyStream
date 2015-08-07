@@ -5,6 +5,6 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#include "controller/Exceptions/MissingInfoHashViewRequestException.hpp"
+#include "controller/exceptions/MissingInfoHashViewRequestException.hpp"
 
 MissingInfoHashViewRequestException::MissingInfoHashViewRequestException(const libtorrent::add_torrent_params & params_) : params(params_) {}

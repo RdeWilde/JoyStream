@@ -17,6 +17,7 @@ CONFIG  += c++11 # Needed for class enum
 QT      += core gui network
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets # QMainWindow, QDialog
 
+
 INCLUDEPATH += $$PWD # be able to include w.r.t root of this project
 
 SOURCES += \

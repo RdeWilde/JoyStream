@@ -73,7 +73,7 @@ ExtendedMessageIdMapping & ExtendedMessageIdMapping::operator=(const ExtendedMes
     return *this;
 }
 
-#include <qDebug>
+#include <QDebug>
 
 void ExtendedMessageIdMapping::writeToDictionary(std::map<std::string, libtorrent::entry> & m) {
 
@@ -90,7 +90,7 @@ quint8 ExtendedMessageIdMapping::id(MessageType messageType) const {
 
     // Throw exception if no match, otherwise return id
     if(i == _mapping.end())
-        throw std::exception("Incomplete mapping, no id for message type.");
+        throw std::runtime_error("Incomplete mapping, no id for message type.");
     else
         return i->second;
 }
@@ -117,9 +117,9 @@ MessageType ExtendedMessageIdMapping::messageType(quint8 id) const {
 
     // If there was note exactly one
     if(found.size() > 1)
-        throw std::exception("Invalid mapping, repeating id.");
+        throw std::runtime_error("Invalid mapping, repeating id.");
     else if(found.size() < 1)
-        throw std::exception("Mapping does not contain id."); // May be invalid mapping, or invalid id
+        throw std::runtime_error("Mapping does not contain id."); // May be invalid mapping, or invalid id
     else
         return found.front(); // Return message found
 }

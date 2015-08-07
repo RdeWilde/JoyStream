@@ -15,7 +15,7 @@
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
 #include <libtorrent/alert.hpp>
-#include <libtorrent/policy.hpp>
+//#include <libtorrent/policy.hpp>
 #include <libtorrent/peer.hpp>
 #include <libtorrent/entry.hpp>
 #include <libtorrent/lazy_entry.hpp>

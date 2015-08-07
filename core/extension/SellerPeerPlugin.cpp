@@ -217,7 +217,7 @@ void SellerPeerPlugin::on_connected() {
 bool SellerPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake) {
 
     if(_clientState != ClientState::no_bitswapr_message_sent) {
-        throw std::exception("Extended handshake initiated at incorrect state.");
+        throw std::runtime_error("Extended handshake initiated at incorrect state.");
     }
 
     qCDebug(_category) << "Extended handshake arrived.";
@@ -577,7 +577,7 @@ void SellerPeerPlugin::processJoinContract(const JoinContract * m) {
 
     if(_clientState != ClientState::seller_mode_announced &&
             _clientState != ClientState::ignored_contract_invitation)
-        throw std::exception("JoinContract message should only be sent in response to an announced seller mode.");
+        throw std::runtime_error("JoinContract message should only be sent in response to an announced seller mode.");
 
     // _clientState != seller_mode_announced,ignored_contract_invitation =>
     Q_ASSERT(_payee.state() == Payee::State::waiting_for_payor_information);
@@ -607,7 +607,7 @@ void SellerPeerPlugin::processJoinContract(const JoinContract * m) {
 }
 
 void SellerPeerPlugin::processJoiningContract(const JoiningContract * m) {
-    throw std::exception("JoiningContract message should never be sent to seller mode peer.");
+    throw std::runtime_error("JoiningContract message should never be sent to seller mode peer.");
 }
 
 void SellerPeerPlugin::processSignRefund(const SignRefund * m) {
@@ -615,7 +615,7 @@ void SellerPeerPlugin::processSignRefund(const SignRefund * m) {
     qCDebug(_category) << "processSignRefund";
 
     if(_clientState != ClientState::joined_contract)
-        throw std::exception("SignRefund message should only be sent in response to joining the contract.");
+        throw std::runtime_error("SignRefund message should only be sent in response to joining the contract.");
 
     // _clientState == ClientState::joined_contract =>
     Q_ASSERT(_payee.state() == Payee::State::waiting_for_payor_information || // if this is first signing
@@ -640,7 +640,7 @@ void SellerPeerPlugin::processSignRefund(const SignRefund * m) {
 }
 
 void SellerPeerPlugin::processRefundSigned(const RefundSigned * m) {
-    throw std::exception("RefundSigned message should never be sent to seller mode peer.");
+    throw std::runtime_error("RefundSigned message should never be sent to seller mode peer.");
 }
 
 void SellerPeerPlugin::processReady(const Ready * m) {
@@ -648,7 +648,7 @@ void SellerPeerPlugin::processReady(const Ready * m) {
     qCDebug(_category) << "processReady";
 
     if(_clientState != ClientState::signed_refund)
-        throw std::exception("Ready message should only be sent in response to signing a refund.");
+        throw std::runtime_error("Ready message should only be sent in response to signing a refund.");
 
     // Start timer or something, to start looking for contract
     //quint64 funds = BitSwaprjs::get_tx_outpoint(fundingOutPoint, spent);
@@ -663,7 +663,7 @@ void SellerPeerPlugin::processRequestFullPiece(const RequestFullPiece * m) {
 
     if(_clientState != ClientState::awaiting_fullpiece_request_after_ready_announced &&
        _clientState != ClientState::awaiting_piece_request_after_payment)
-        throw std::exception("RequestFullPiece message should only be sent in response to signing a refund or a full piece.");
+        throw std::runtime_error("RequestFullPiece message should only be sent in response to signing a refund or a full piece.");
 
     // _clientState values =>
     Q_ASSERT(_payee.state() == Payee::State::has_all_information_required);
@@ -675,7 +675,7 @@ void SellerPeerPlugin::processRequestFullPiece(const RequestFullPiece * m) {
 
     // Check piece validity
     if(m->pieceIndex() < 0 || m->pieceIndex() >= _numberOfPieces) //  _torrentFile.num_pieces()
-        throw std::exception("Invalid full piece requested.");
+        throw std::runtime_error("Invalid full piece requested.");
 
     // Update peer state
     _peerState.setLastRequestFullPieceReceived(*m);
@@ -796,7 +796,7 @@ void SellerPeerPlugin::pieceReadFailed(int piece) {
 
     qCDebug(_category) << "reading pieceReadFailed " << piece;
 
-    throw std::exception("Reading piece failed.");
+    throw std::runtime_error("Reading piece failed.");
 }
 
 void SellerPeerPlugin::close_connection() {
@@ -827,7 +827,7 @@ SellerPeerPlugin::Status SellerPeerPlugin::status() const {
 }
 
 void SellerPeerPlugin::processFullPiece(const FullPiece * m) {
-    throw std::exception("FullPiece message should never be sent to seller mode peer.");
+    throw std::runtime_error("FullPiece message should never be sent to seller mode peer.");
 }
 
 void SellerPeerPlugin::processPayment(const Payment * m) {
@@ -835,7 +835,7 @@ void SellerPeerPlugin::processPayment(const Payment * m) {
     qCDebug(_category) << "processPayment";
 
     if(_clientState != ClientState::awaiting_payment)
-        throw std::exception("Payment message should only be sent in response to a full piece message.");
+        throw std::runtime_error("Payment message should only be sent in response to a full piece message.");
 
     // _clientState values =>
     Q_ASSERT(_payee.state() == Payee::State::has_all_information_required);
@@ -846,7 +846,7 @@ void SellerPeerPlugin::processPayment(const Payment * m) {
     if(!valid) {
 
         // Update error state in some way
-        throw std::exception("Invalid payment received.");
+        throw std::runtime_error("Invalid payment received.");
     } else {
         qCDebug(_category) << "Valid payment received";
     }

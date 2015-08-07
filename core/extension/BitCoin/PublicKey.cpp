@@ -24,7 +24,7 @@ PublicKey::PublicKey(const QString & string)
 
     // Check that string has correct length
     if(string.length() != 2*length)
-        throw std::exception("String argument is of incorrect length, should be 2*length.");
+        throw std::runtime_error("String argument is of incorrect length, should be 2*length.");
     else {
 
         // Decode from hex format
@@ -46,7 +46,7 @@ PublicKey::PublicKey(const QString & string)
 
     // Check that decoding worked
     if(!result)
-        throw std::exception("Decoding base58 did not work.");
+        throw std::runtime_error("Decoding base58 did not work.");
         */
 }
 
@@ -96,7 +96,7 @@ QDataStream & operator<<(QDataStream& stream, const PublicKey & o) {
     int bytesWritten = stream.writeRawData((const char *)(buffer.data()), PublicKey::length);
 
     if(bytesWritten != PublicKey::length)
-        throw new std::exception("Could not write PublicKey::length bytes.");
+        throw new std::runtime_error("Could not write PublicKey::length bytes.");
 
     return stream;
 }
@@ -110,7 +110,7 @@ QDataStream & operator>>(QDataStream& stream, PublicKey & o) {
     int bytesRead = stream.readRawData((char *)(buffer.data()), PublicKey::length);
 
     if(bytesRead != PublicKey::length)
-        throw new std::exception("Could not read PublicKey::length bytes.");
+        throw new std::runtime_error("Could not read PublicKey::length bytes.");
 
     // Update buffer
     o.setBuffer(buffer);
@@ -121,7 +121,7 @@ QDataStream & operator>>(QDataStream& stream, PublicKey & o) {
 bool PublicKey::operator<(const PublicKey & o) const {
 
     // Get buffer
-    std::vector<char> & oBuffer = o.buffer();
+    std::vector<char> oBuffer = o.buffer();
 
     // 0 is most significant byte
     for(unsigned int i = 0;i < length;i++) {

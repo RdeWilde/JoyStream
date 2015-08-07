@@ -1,3 +1,10 @@
+/**
+ * Copyright (C) JoyStream - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
+ */
+
 #include "Utilities.hpp"
 #include "extension/Message/MessageType.hpp"
 
@@ -122,7 +129,7 @@ const char * Utilities::messageName(MessageType type) {
     std::map<MessageType, const char *>::const_iterator i = m.find(type);
 
     if(i == m.end())
-        throw std::exception("No name registered for type, messageTypeToNameMapping() does not contain all types!");
+        throw std::runtime_error("No name registered for type, messageTypeToNameMapping() does not contain all types!");
     else
         return i->second;
 }
@@ -143,7 +150,7 @@ MessageType Utilities::messageType(const std::string & messageName) {
             return i->first;
     }
 
-    throw std::exception("Unknown message name passed.");
+    throw std::runtime_error("Unknown message name passed.");
 }
 
 const std::set<MessageType> Utilities::allMessageTypes() {
@@ -178,7 +185,7 @@ bool Utilities::GET_BOOL(const QJsonObject & dictionary, const QString & key) {
     // Check that it has correct type
     if(vValue.type() != QJsonValue::Bool) {
         QString str = key + " key does not exist or is not of type QJsonValue::Bool.";
-        throw new std::exception(str.toLatin1().constData());
+        throw new std::runtime_error(str.toLatin1().constData());
     }
 
     return vValue.toBool();
@@ -192,7 +199,7 @@ double Utilities::GET_DOUBLE(const QJsonObject & dictionary, const QString & key
     // Check that it has correct type
     if(vValue.type() != QJsonValue::Double) {
         QString str = key + " key does not exist or is not of type QJsonValue::Double.";
-        throw new std::exception(str.toLatin1().constData());
+        throw new std::runtime_error(str.toLatin1().constData());
     }
 
     return vValue.toDouble();
@@ -206,7 +213,7 @@ QString Utilities::GET_STRING(const QJsonObject & dictionary, const QString & ke
     // Check that it has correct type
     if(vValue.type() != QJsonValue::String) {
         QString str = key + " key does not exist or is not of type QJsonValue::String.";
-        throw new std::exception(str.toLatin1().constData());
+        throw new std::runtime_error(str.toLatin1().constData());
     }
 
     return vValue.toString();
@@ -220,7 +227,7 @@ QJsonArray Utilities::GET_ARRAY(const QJsonObject & dictionary, const QString & 
     // Check that it has correct type
     if(vValue.type() != QJsonValue::Array) {
         QString str = key + " key does not exist or is not of type QJsonValue::Array.";
-        throw new std::exception(str.toLatin1().constData());
+        throw new std::runtime_error(str.toLatin1().constData());
     }
 
     return vValue.toArray();
@@ -234,7 +241,7 @@ QJsonObject Utilities::GET_OBJECT(const QJsonObject & dictionary, const QString 
     // Check that it has correct type
     if(vValue.type() != QJsonValue::Object) {
         QString str = key + " key does not exist or is not of type QJsonValue::Object.";
-        throw new std::exception(str.toLatin1().constData());
+        throw new std::runtime_error(str.toLatin1().constData());
     }
 
     return vValue.toObject();

@@ -6,7 +6,7 @@
  */
 
 #include "WalletDialog.hpp"
-#include "ui_walletdialog.h"
+#include "ui_WalletDialog.h"
 #include "extension/BitCoin/Wallet.hpp"
 #include <common/BitCoinDisplaySettings.hpp>
 #include <common/BitCoinRepresentation.hpp>
@@ -70,7 +70,7 @@ void WalletDialog::clearWalletTableView() {
     for(int i = rowCount-1;i >= 0;i--) {
 
         // Get list
-        QList<QStandardItem *> & list = _walletTableViewModel.takeRow(i);
+        QList<QStandardItem *> list = _walletTableViewModel.takeRow(i);
 
         for(QList<QStandardItem *>::iterator itr = list.begin();
             itr != list.end();itr++)

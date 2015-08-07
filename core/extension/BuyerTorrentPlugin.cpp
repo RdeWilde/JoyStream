@@ -476,7 +476,7 @@ void BuyerTorrentPlugin::on_piece_pass(int index) {
 
 void BuyerTorrentPlugin::on_piece_failed(int index) {
     //qCDebug(_category) << "on_piece_failed" << index;
-    throw std::exception("BuyerTorrentPlugin::on_piece_failed");
+    throw std::runtime_error("BuyerTorrentPlugin::on_piece_failed");
 }
 
 void BuyerTorrentPlugin::tick() {
@@ -780,7 +780,7 @@ int BuyerTorrentPlugin::getNextUnassignedPiece(int startIndex) const {
      }
 
      // We did not find anything
-     throw std::exception("Unable to find any unassigned pieces.");
+     throw std::runtime_error("Unable to find any unassigned pieces.");
  }
 
 Signature BuyerTorrentPlugin::makePaymentAndGetPaymentSignature(BuyerPeerPlugin * peerPlugin) {
@@ -808,7 +808,7 @@ void BuyerTorrentPlugin::fullPieceArrived(BuyerPeerPlugin * peer, const boost::s
 
     // Check that piece has correct length
     if(length != _torrent->torrent_file().piece_size(pieceIndex))
-        throw std::exception("Full piece message had invalid length.");
+        throw std::runtime_error("Full piece message had invalid length.");
 
     // Tell libtorrent to validate piece
     // last argument is a flag which presently seems to only test

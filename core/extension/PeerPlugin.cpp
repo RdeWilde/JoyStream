@@ -75,6 +75,7 @@ void PeerPlugin::Status::setPeerModeAnnounced(PeerModeAnnounced peerModeAnnounce
 #include <libtorrent/peer_info.hpp>
 
 #include <QLoggingCategory>
+#include <QDataStream>
 
 PeerPlugin::PeerPlugin(TorrentPlugin * plugin,
                        libtorrent::bt_peer_connection * connection,
@@ -449,7 +450,7 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
     qint64 written = postReadPosition - preReadPosition;
 
     if(written != lengthOfExtendedMessagePayload)
-        throw std::exception("Extended message payload was malformed");
+        throw std::runtime_error("Extended message payload was malformed");
 
     // Drop if message was malformed
     if(m == NULL) {

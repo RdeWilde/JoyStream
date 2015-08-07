@@ -23,7 +23,7 @@ TxId::TxId(const QString & string) {
 
     // Check that string has correct length
     if(string.length() != 2*length)
-        throw std::exception("String argument is of incorrect length, should be 2*length.");
+        throw std::runtime_error("String argument is of incorrect length, should be 2*length.");
     else {
 
         // Decode from hex format
@@ -48,7 +48,7 @@ char TxId::at(unsigned int index) const {
 
     // Check that buffer is not exceeded
     if(index + 1 > length)
-        throw std::exception("Index exceeds buffer.");
+        throw std::runtime_error("Index exceeds buffer.");
     else
         return _buffer[index];
 }
@@ -57,7 +57,7 @@ void TxId::set(unsigned int index, char value) {
 
     // Check that buffer is not exceeded
     if(index + 1 > length)
-        throw std::exception("Index exceeds buffer.");
+        throw std::runtime_error("Index exceeds buffer.");
     else
         _buffer[index] = value;
 }
@@ -106,7 +106,7 @@ QDataStream & operator<<(QDataStream& stream, const TxId & o) {
     int bytesWritten = stream.writeRawData(o.buffer(), TxId::length);
 
     if(bytesWritten != TxId::length)
-        throw new std::exception("Could not write TxId::length bytes.");
+        throw new std::runtime_error("Could not write TxId::length bytes.");
 
     return stream;
 }
@@ -117,7 +117,7 @@ QDataStream & operator>>(QDataStream& stream, TxId & o) {
     int bytesRead = stream.readRawData(o.buffer(), TxId::length);
 
     if(bytesRead != TxId::length)
-        throw new std::exception("Could not read TxId::length bytes.");
+        throw new std::runtime_error("Could not read TxId::length bytes.");
 
     return stream;
 }

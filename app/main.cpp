@@ -25,6 +25,19 @@
 #include <libtorrent/torrent_info.hpp>
 #include <libtorrent/error_code.hpp>
 
+// "C:/TORRENTS/Rise and Rrise of BitCoin.torrent"
+// "/home/bedeho/Downloads/The.Rise.and.Rise.of.Bitcoin.2014.720p.HDrip.x264.AAC.torrent"
+#define RR_BITCOIN_TORRENT "/home/bedeho/Downloads/The.Rise.and.Rise.of.Bitcoin.2014.720p.HDrip.x264.AAC.torrent"
+
+// "C:/TORRENTS/Rise and Rrise of BitCoin.torrent"
+// "C:/TORRENTS/Aint No Love Crucified.mp3.torrent"
+
+//#define WALLET_LOCATION "C:/WALLETS/"
+#define WALLET_LOCATION "/home/bedeho/JoyStream/wallets/"
+
+//#define SAVE_LOCATION "C:/SAVE_OUTPUT/"
+#define SAVE_LOCATION "/home/bedeho/JoyStream/save_location/"
+
 #ifndef Q_MOC_RUN
 #include <boost/intrusive_ptr.hpp>
 #endif Q_MOC_RUN
@@ -48,7 +61,7 @@ void add_sellers_with_plugin(Controller::Configuration controllerConfiguration, 
                              const QVector<SellerTorrentPlugin::Configuration> & configurations);
 
 // JoyStream entry point
-void main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 
     // Create Qt application: all objects created after this point are owned by this thread
     QApplication app(argc, argv);
@@ -123,7 +136,7 @@ void main(int argc, char* argv[]) {
 
 
     // Load torrent
-    libtorrent::torrent_info torrentInfo = load_torrent("C:/TORRENTS/Rise and Rrise of BitCoin.torrent");
+    libtorrent::torrent_info torrentInfo = load_torrent(RR_BITCOIN_TORRENT);
 
     // Buyers
     Controller * loneBuyer = create_controller(controllerConfiguration, manager, true, true, torrentInfo, QString("lone_buyer"));
@@ -149,32 +162,27 @@ void main(int argc, char* argv[]) {
      */
 
     // Load torrent
-    // "C:/TORRENTS/Rise and Rrise of BitCoin.torrent"
-    // "C:/TORRENTS/Aint No Love Crucified.mp3.torrent"
-    libtorrent::torrent_info torrentInfo = load_torrent("C:/TORRENTS/Rise and Rrise of BitCoin.torrent");
-
+    libtorrent::torrent_info torrentInfo = load_torrent(RR_BITCOIN_TORRENT);
+/**
     // Buyers
     add_buyers_with_plugin(controllerConfiguration, manager, controllerTracker, false, true, torrentInfo,
                            QVector<BuyerTorrentPlugin::Configuration>()
-
                            << BuyerTorrentPlugin::Configuration(false,
                                                                 178, // Maximum piece price (satoshi)
                                                                 4*3600, // Maximum lock time on refund (seconds)
                                                                 BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.1).satoshies(), // Max fee per kB (satoshi)
                                                                 1) // #sellers
-                           << BuyerTorrentPlugin::Configuration(false,
-                                                                88, // Maximum piece price (satoshi)
-                                                                5*3600, // Maximum lock time on refund (seconds)
-                                                                BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.1).satoshies(), // Max fee per kB (satoshi)
-                                                                1) // #sellers
+//                           << BuyerTorrentPlugin::Configuration(false,
+//                                                                88, // Maximum piece price (satoshi)
+//                                                                5*3600, // Maximum lock time on refund (seconds)
+//                                                                BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.1).satoshies(), // Max fee per kB (satoshi)
+//                                                                1) // #sellers
 
                            );
-
+*/
     // Sellers
     Controller * loneSeller = create_controller(controllerConfiguration, manager, true, true, torrentInfo, QString("lone_seller"));
     controllerTracker.addClient(loneSeller);
-
-
 
     /**
      * Run
@@ -184,6 +192,8 @@ void main(int argc, char* argv[]) {
     app.exec();
 
     qDebug() << "Application event loop exited, application closing.";
+
+    return 0;
 }
 
 libtorrent::torrent_info load_torrent(const char * path) {
@@ -203,7 +213,7 @@ Controller::Torrent::Configuration create_torrent_configuration(libtorrent::torr
 
     return Controller::Torrent::Configuration(torrentInfo.info_hash()
                                               ,torrentInfo.name()
-                                              ,(QString("C:/SAVE_OUTPUT/") + name).toStdString()
+                                              ,(QString(SAVE_LOCATION) + name).toStdString()
                                               ,std::vector<char>()
                                               ,libtorrent::add_torrent_params::flag_update_subscribe
                                               //+libtorrent::add_torrent_params::flag_auto_managed
@@ -217,7 +227,7 @@ Controller * create_controller(Controller::Configuration controllerConfiguration
     QLoggingCategory * category = global_log_manager.createLogger(name, use_stdout_logg, false);
 
     // Create wallet name
-    controllerConfiguration.setWalletFile(QString("C:/WALLETS/") + name + QString("_wallet.dat"));
+    controllerConfiguration.setWalletFile(QString(WALLET_LOCATION) + name + QString("_wallet.dat"));
 
     // Create controller: Dangling, but we don't care
     return new Controller(controllerConfiguration,

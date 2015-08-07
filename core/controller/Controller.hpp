@@ -352,7 +352,7 @@ public:
         // Constructor using members
         Configuration(const libtorrent::entry & libtorrentSessionSettingsEntry,
                       const std::pair<int, int> & portRange,
-                      const std::vector<std::pair<std::string, int>> & dhtRouters,
+                      const std::vector<std::pair<std::string, int> > & dhtRouters,
                       const QVector<Torrent::Configuration> & torrents,
                       const QString walletFile);
 
@@ -397,7 +397,7 @@ public:
 
         std::pair<int, int> getPortRange() const;
 
-        std::vector<std::pair<std::string, int>> getDhtRouters() const;
+        std::vector<std::pair<std::string, int> > getDhtRouters() const;
 
         //std::vector<TorrentConfiguration *>::const_iterator getBeginTorrentConfigurationsIterator() const;
         //std::vector<TorrentConfiguration *>::const_iterator getEndTorrentConfigurationsIterator() const;
@@ -459,7 +459,7 @@ public:
         std::pair<int, int> _portRange;
 
         // Dht routers
-        std::vector<std::pair<std::string, int>> _dhtRouters;
+        std::vector<std::pair<std::string, int> > _dhtRouters;
 
         // Torrent configurations
         QVector<Torrent::Configuration> _torrents;
@@ -489,7 +489,7 @@ public:
     // thread in libtorrent will be making this call, and a new call will result in a dead lock.
     //
     /** THIS ROUTINE MUST BE HIDDEN FROM CONTROLLER USER IN THE FUTURE **/
-    void libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::alert> alertAutoPtr);
+    void libtorrent_alert_dispatcher_callback(const std::auto_ptr<libtorrent::alert> & alertAutoPtr);
 
     // Invocations of this method are queued, and dispatcher callback
     /** THIS ROUTINE MUST BE HIDDEN FROM CONTROLLER USER IN THE FUTURE **/

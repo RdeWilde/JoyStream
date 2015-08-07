@@ -12,7 +12,7 @@
  * Controller::Torrent::Configuration
  */
 
-#include "Exceptions/InvalidBitSwaprStateEntryException.hpp"
+#include "exceptions/InvalidBitSwaprStateEntryException.hpp"
 #include "extension/PluginMode.hpp"
 
 Controller::Torrent::Configuration::Configuration() {
@@ -456,7 +456,7 @@ void Controller::Torrent::pieceFinished(int piece) {
  * Controller::Configuration
  */
 
-#include "Exceptions/InvalidBitSwaprStateEntryException.hpp"
+#include "exceptions/InvalidBitSwaprStateEntryException.hpp"
 #include "Config.hpp"
 #include "Utilities.hpp"
 
@@ -1025,7 +1025,7 @@ void Controller::Configuration::setLibtorrentSessionSettingsEntry(const libtorre
  */
 
 #include "Config.hpp"
-#include "controller/Exceptions/ListenOnException.hpp"
+#include "controller/exceptions/ListenOnException.hpp"
 
 #include "Stream.hpp"
 
@@ -1181,6 +1181,7 @@ Controller::Controller(const Configuration & configuration, bool showView, QNetw
 
 	// Start listening
 	boost::system::error_code listenOnErrorCode;
+
     _session.listen_on(_portRange, listenOnErrorCode);
 
     // Throw
@@ -1329,15 +1330,21 @@ void Controller::removePeerPlugin(libtorrent::sha1_hash info_hash, libtorrent::t
 }
 */
 
-void Controller::libtorrent_alert_dispatcher_callback(std::auto_ptr<libtorrent::alert> alertAutoPtr) {
+void Controller::libtorrent_alert_dispatcher_callback(const std::auto_ptr<libtorrent::alert> & alertAutoPtr) {
 
     // Grab alert pointer and release the auto pointer, this way the alert is not automatically
     // deleted when alertAutoPtr goes out of scope.
     // **Registering auto_ptr with MOC is not worth trying**
-    const libtorrent::alert * a = alertAutoPtr.release();
+    //const libtorrent::alert * a = alertAutoPtr.release();
+
+    const libtorrent::alert * a = alertAutoPtr.get();
+
+    std::auto_ptr<libtorrent::alert> stdAutoPtr = a->clone();
+
+    libtorrent::alert * freedPointer = stdAutoPtr.release();
 
     // Tell bitswapr thread to run processAlert later with given alert as argument
-    QMetaObject::invokeMethod(this, "processAlert", Q_ARG(const libtorrent::alert*, a));
+    QMetaObject::invokeMethod(this, "processAlert", Q_ARG(const libtorrent::alert*, freedPointer));
 }
 
 void Controller::processAlert(const libtorrent::alert * a) {

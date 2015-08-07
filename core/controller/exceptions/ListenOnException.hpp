@@ -6,8 +6,8 @@
  */
 
 
-#ifndef LISTEN_ON_EXCEPTION_H
-#define LISTEN_ON_EXCEPTION_H
+#ifndef LISTEN_ON_EXCEPTION_HPP
+#define LISTEN_ON_EXCEPTION_HPP
 
 #ifndef Q_MOC_RUN
 #include <boost/system/error_code.hpp>
@@ -15,12 +15,13 @@
 
 class ListenOnException : public std::exception {
 
-private:
-	boost::system::error_code listenOnErrorCode;
-
 public:
-	ListenOnException(boost::system::error_code listenOnErrorCode_);
-	const char * what() const throw ();
+        ListenOnException(boost::system::error_code listenOnErrorCode_);
+        const char * what() const throw ();
+
+private:
+
+        boost::system::error_code listenOnErrorCode;
 };
 
-#endif
+#endif LISTEN_ON_EXCEPTION_HPP

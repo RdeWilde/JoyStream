@@ -6,7 +6,7 @@
  */
 
 #include "view/AddTorrentDialog.hpp"
-#include "ui_addtorrentdialog.h"
+#include "ui_AddTorrentDialog.h"
 //#include "controller/TorrentConfiguration.hpp"
 
 #include <QFileDialog>

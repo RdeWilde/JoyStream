@@ -81,7 +81,7 @@ QJsonValue BitSwaprjs::nodeBlockingCall(const QString & method, const QJsonValue
 
     if(!successValue.toBool()) {
         qDebug() << o["result"].toString();
-        throw std::exception("Error state returned.");
+        throw std::runtime_error("Error state returned.");
     } else
         return o["result"];
 }
@@ -280,7 +280,7 @@ QMap<PublicKey, QList<Wallet::TxOEvent>> BitSwaprjs::get_key_events(const QSet<P
 
         QList<Wallet::TxOEvent> txOEvents;
 
-        QJsonValue & eventList = i.value();
+        const QJsonValue & eventList = i.value();
         Q_ASSERT(eventList.type() == QJsonValue::Array);
         QJsonArray resultArray = eventList.toArray();
 
@@ -288,7 +288,7 @@ QMap<PublicKey, QList<Wallet::TxOEvent>> BitSwaprjs::get_key_events(const QSet<P
             j != resultArray.constEnd();j++) {
 
             // Grab element
-            QJsonValue & element = *j;
+            const QJsonValue & element = *j;
 
             Q_ASSERT(element.type() == QJsonValue::Object);
 
@@ -317,7 +317,7 @@ quint32 BitSwaprjs::get_latest_block() {
     // Parse
     Q_ASSERT(result.type() == QJsonValue::Object);
 
-    QJsonObject & blockObject = result.toObject();
+    const QJsonObject & blockObject = result.toObject();
 
     QJsonValue heightValue = blockObject["height"];
 

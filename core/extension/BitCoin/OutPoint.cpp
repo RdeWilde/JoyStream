@@ -77,7 +77,7 @@ OutPoint::OutPoint(const QString & string) {
     QStringList list = string.split("-");
 
     if(list.size() != 2)
-        throw new std::exception("Only a single delimiter - should occur in string.");
+        throw new std::runtime_error("Only a single delimiter - should occur in string.");
 
     // Parse _hash
     _txId = TxId(list[0]);
@@ -89,7 +89,7 @@ OutPoint::OutPoint(const QString & string) {
     _index = rightToken.toInt(&ok);
 
     if(!ok)
-        throw new std::exception("Could not convert second token.");
+        throw new std::runtime_error("Could not convert second token.");
 }
 
 QString OutPoint::toString() const {

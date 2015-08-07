@@ -12,7 +12,11 @@ namespace libtorrent {
     class entry;
 }
 
-enum class MessageType;
+
+// Forward declaring did not work with gcc
+//enum class MessageType;
+// so we are using inclusion instead
+#include "extension/Message/MessageType.hpp"
 
 #include <set>
 #include <map>

@@ -19,6 +19,7 @@
 #include <QMap>
 #include <QVector>
 #include <QSet>
+#include <QMutex>
 
 class UnspentP2PKHOutput;
 

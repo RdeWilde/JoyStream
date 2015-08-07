@@ -307,7 +307,7 @@ void Payor::Channel::computeAndSetPayorRefundSignature(const TxId &contractHash)
 
     // Check that channel has been assigned
     if(_state != State::assigned)
-        throw std::exception("State incompatile request, must be in assigned state.");
+        throw std::runtime_error("State incompatile request, must be in assigned state.");
 
     // Make call to compute signature
     // remove PKs later, no reason we need them?? <== is this true
@@ -709,14 +709,14 @@ Payor::Payor(const Payor::Configuration & configuration)
     }
 
     if(_contractFee != _utxo.value() - netOutputValue)
-        throw std::exception("input, outputs, change and fee does not match.");
+        throw std::runtime_error("input, outputs, change and fee does not match.");
 }
 
 quint32 Payor::assignUnassignedSlot(quint64 price, const PublicKey & payeeContractPk, const PublicKey & payeeFinalPk, quint32 refundLockTime) {
 
     // Check payor is trying to find sellers
     if(_state != State::waiting_for_full_set_of_sellers)
-        throw std::exception("State incompatile request, must be in waiting_for_full_set_of_sellers state.");
+        throw std::runtime_error("State incompatile request, must be in waiting_for_full_set_of_sellers state.");
 
     // Find a slot which is unassigned,
     // and also count the total number of unassigned slots
@@ -787,11 +787,11 @@ quint32 Payor::assignUnassignedSlot(quint64 price, const PublicKey & payeeContra
 void Payor::unassignSlot(quint32 index) {
 
     if(_state != State::waiting_for_full_set_of_sellers && _state != State::waiting_for_full_set_of_refund_signatures)
-        throw std::exception("State incompatile request, must be in State::waiting_for_full_set_of_sellers or State::waiting_for_full_set_of_refund_signatures state.");
+        throw std::runtime_error("State incompatile request, must be in State::waiting_for_full_set_of_sellers or State::waiting_for_full_set_of_refund_signatures state.");
 
     // Check that index is valid
     if(index >= _channels.size())
-        throw std::exception("Invalid index.");
+        throw std::runtime_error("Invalid index.");
 
     // Update slot state
     _channels[index].setState(Channel::State::unassigned);
@@ -819,11 +819,11 @@ bool Payor::processRefundSignature(quint32 index, const Signature & signature) {
 
     // Check that refunds are being collected
     if(_state != State::waiting_for_full_set_of_refund_signatures)
-        throw std::exception("State incompatile request, must be in State::waiting_for_full_set_of_refund_signatures state.");
+        throw std::runtime_error("State incompatile request, must be in State::waiting_for_full_set_of_refund_signatures state.");
 
     // Check that index is valid
     if(index >= _channels.size())
-        throw std::exception("Invalid index.");
+        throw std::runtime_error("Invalid index.");
 
     // Get channel
     Channel & s = _channels[index];
@@ -883,11 +883,11 @@ quint64 Payor::incrementPaymentCounter(quint32 index) {
 
     // Check that we are paying
     if(_state != State::can_pay)
-        throw std::exception("State incompatile request, must be in State::paying state.");
+        throw std::runtime_error("State incompatile request, must be in State::paying state.");
 
     // Check that index is valid
     if(index >= _channels.size())
-        throw std::exception("Invalid index.");
+        throw std::runtime_error("Invalid index.");
 
     // Get channel
     Channel & channel = _channels[index];
@@ -905,11 +905,11 @@ Signature Payor::getPresentPaymentSignature(quint32 index) const {
 
     // Check that we are paying
     if(_state != State::can_pay)
-        throw std::exception("State incompatile request, must be in State::paying state.");
+        throw std::runtime_error("State incompatile request, must be in State::paying state.");
 
     // Check that index is valid
     if(index >= _channels.size())
-        throw std::exception("Invalid index.");
+        throw std::runtime_error("Invalid index.");
 
     // Get channel
     const Channel & channel = _channels[index];
@@ -981,7 +981,7 @@ Contract Payor::contract() const {
 
     // Check that a full set of sellers has been established
     if(_state != State::waiting_for_full_set_of_refund_signatures)
-        throw std::exception("State incompatile request, must be in State::waiting_for_full_set_of_refund_signatures state.");
+        throw std::runtime_error("State incompatile request, must be in State::waiting_for_full_set_of_refund_signatures state.");
 
     // Build contract
     Contract contract(_fundingOutput, _slots.size(), P2PKHTxOut(_changeValue, _changeOutputKeyPair.pk()));

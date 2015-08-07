@@ -6,7 +6,7 @@
  */
 
 #include "MainWindow.hpp"
-#include "ui_mainwindow.h"
+#include "ui_MainWindow.h"
 #include "AddTorrentDialog.hpp"
 #include "WalletDialog.hpp"
 #include "TorrentView.hpp"

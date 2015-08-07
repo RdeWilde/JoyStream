@@ -6,7 +6,7 @@
  */
 
 #include "TorrentViewModel.hpp"
-#include "peerPluginViewModel.hpp"
+#include "PeerPluginViewModel.hpp"
 #include "SellerTorrentPluginViewModel.hpp"
 #include "BuyerTorrentPluginViewModel.hpp"
 #include "extension/PeerPlugin.hpp"

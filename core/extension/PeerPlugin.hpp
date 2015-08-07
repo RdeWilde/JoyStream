@@ -18,6 +18,7 @@
 #include <libtorrent/lazy_entry.hpp>
 #include <libtorrent/bitfield.hpp>
 #include <libtorrent/peer_request.hpp>
+#include <libtorrent/bt_peer_connection.hpp>
 #include <libtorrent/disk_buffer_holder.hpp>
 #include <libtorrent/buffer.hpp>
 #include <libtorrent/peer_id.hpp> // sha1_hash

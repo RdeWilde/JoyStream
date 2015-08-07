@@ -13,6 +13,6 @@ DuplicateLog::DuplicateLog(const QString & name)
     whatMessage += name_.toStdString() + " is already registered with category logger.";
 }
 
-const char * DuplicateLog::what() const {
+const char * DuplicateLog::what() const throw() {
     return whatMessage.c_str();
 }

@@ -30,7 +30,7 @@ PrivateKey::PrivateKey(const QString & string)
 
     // Check that decoding worked
     if(!result)
-        throw std::exception("Decoding base58 did not work.");
+        throw std::runtime_error("Decoding base58 did not work.");
 }
 
 PrivateKey & PrivateKey::operator=(const PrivateKey & o) {
@@ -72,7 +72,7 @@ QDataStream & operator<<(QDataStream& stream, const PrivateKey & o) {
     int bytesWritten = stream.writeRawData((const char *)(buffer.data()), PrivateKey::length);
 
     if(bytesWritten != PrivateKey::length)
-        throw new std::exception("Could not write PrivateKey::length bytes.");
+        throw new std::runtime_error("Could not write PrivateKey::length bytes.");
 
     return stream;
 }
@@ -86,7 +86,7 @@ QDataStream & operator>>(QDataStream& stream, PrivateKey & o) {
     int bytesRead = stream.readRawData((char *)(buffer.data()), PrivateKey::length);
 
     if(bytesRead != PrivateKey::length)
-        throw new std::exception("Could not read PrivateKey::length bytes.");
+        throw new std::runtime_error("Could not read PrivateKey::length bytes.");
 
     // Update buffer
     o.setBuffer(buffer);
@@ -97,7 +97,7 @@ QDataStream & operator>>(QDataStream& stream, PrivateKey & o) {
 bool PrivateKey::operator<(const PrivateKey & o) const {
 
     // Get buffer
-    std::vector<unsigned char> & oBuffer = o.buffer();
+    std::vector<unsigned char> oBuffer = o.buffer();
 
     // 0 is most significant byte
     for(unsigned int i = 0;i < length;i++) {

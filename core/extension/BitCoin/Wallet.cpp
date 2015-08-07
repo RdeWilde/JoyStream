@@ -42,7 +42,7 @@ Wallet::TxOEvent::TxOEvent(const QJsonObject & json) {
     else if(type == "Receive")
         _type = Type::Receive;
     else
-        throw new std::exception("type key must value among: {Send, Receive}");
+        throw std::runtime_error("type key must value among: {Send, Receive}");
 
     // _outpoint
     QJsonObject outpoint = Utilities::GET_OBJECT(json, "outpoint");
@@ -161,7 +161,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       // _keyPair
       QJsonValue keyPair = json["keyPair"];
       if(keyPair.type() != QJsonValue::Object)
-          throw new std::exception("keyPair key must map to QJsonValue::OJsonObject type.");
+          throw std::runtime_error("keyPair key must map to QJsonValue::OJsonObject type.");
 
       _keyPair = KeyPair(keyPair.toObject());
 
@@ -181,7 +181,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       else if(purpose == "ContractPayment")
           _purpose = Purpose::ContractPayment;
       else
-          throw new std::exception("type key must have valud among {Receive, ContractChange, BuyerInContractOutput, ContractFinal, SellerInContractOutput, ContractPayment} of type QJsonValue::String.");
+          throw std::runtime_error("type key must have valud among {Receive, ContractChange, BuyerInContractOutput, ContractFinal, SellerInContractOutput, ContractPayment} of type QJsonValue::String.");
 
       // _generated
       QString generated = Utilities::GET_STRING(json, "generated");
@@ -203,7 +203,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
           QJsonValue event = i.value();
 
           if(event.type() != QJsonValue::Object)
-              throw new std::exception("send map must contain QJsonValue::QJsonObject values.");
+              throw std::runtime_error("send map must contain QJsonValue::QJsonObject values.");
 
           // Turn into object
           TxOEvent txOEvent(event.toObject());
@@ -225,7 +225,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
           QJsonValue event = i.value();
 
           if(event.type() != QJsonValue::Object)
-              throw new std::exception("receive map must contain QJsonValue::QJsonObject values.");
+              throw std::runtime_error("receive map must contain QJsonValue::QJsonObject values.");
 
           // Turn into object
           TxOEvent txOEvent(event.toObject());
@@ -345,7 +345,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
 
       // Check if outpoint already in map
       if(_outputs.contains(outpoint))
-          throw new std::exception("Output already part of _outputs in KeyEntry.");
+          throw std::runtime_error("Output already part of _outputs in KeyEntry.");
 
       // Store in map
       _outputs[outpoint] = output;
@@ -432,7 +432,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
 
       // Open wallet file
       if(!_walletFile.open(QIODevice::ReadWrite | QIODevice::Text))
-          throw new std::exception("Could not open wallet file.");
+          throw std::runtime_error("Could not open wallet file.");
 
       // Read entire file
       QByteArray walletRaw = _walletFile.readAll();
@@ -477,7 +477,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
           QJsonValue publicKeyValue = i.key();
 
           if(publicKeyValue.type() != QJsonValue::String)
-              throw new std::exception("key in _entries not of type QJsonValue::String.");
+              throw std::runtime_error("key in _entries not of type QJsonValue::String.");
 
           PublicKey key(publicKeyValue.toString());
 
@@ -485,7 +485,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
           QJsonValue keyInformationValue = i.value();
 
           if(keyInformationValue.type() != QJsonValue::Object)
-            throw new std::exception("value in _entries not of type QJsonValue::Object.");
+            throw std::runtime_error("value in _entries not of type QJsonValue::Object.");
 
           // Save mapping
           _entries[key] = Entry(keyInformationValue.toObject());
@@ -499,7 +499,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       else if(chain == "testnet3")
           _network = Network::testnet3;
       else
-          throw new std::exception("chain key must have value among {mainnet, testnet3}.");
+          throw std::runtime_error("chain key must have value among {mainnet, testnet3}.");
 
       // _latestBlockHeight
       _latestBlockHeight = Utilities::GET_DOUBLE(walletDictionary, "latestBlockHeight");
@@ -514,7 +514,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
 
           _mutex.unlock();
 
-          throw new std::exception("No such public key in wallet.");
+          throw std::runtime_error("No such public key in wallet.");
 
       }
 
@@ -633,18 +633,20 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
 
       qDebug() << "Wallet::synchronize()";
 
+      return;
+
       // Only synchronized when nothing is locked, because this may disturb
 
       _mutex.lock();
 
       // For each private key, find all outputs, and update entry based on what
       // you found, that is add new outputs, and update values in old ones.
-      QList<PublicKey> & list = _entries.keys();
+      const QList<PublicKey> & list = _entries.keys();
 
       if(list.size() > 0) {
 
           // Get events
-          QMap<PublicKey, QList<Wallet::TxOEvent>>  & keyEvents = BitSwaprjs::get_key_events(QSet<PublicKey>::fromList(list));
+          const QMap<PublicKey, QList<Wallet::TxOEvent>>  & keyEvents = BitSwaprjs::get_key_events(QSet<PublicKey>::fromList(list));
 
           for(QMap<PublicKey, QList<Wallet::TxOEvent>>::const_iterator i = keyEvents.constBegin();
               i != keyEvents.constEnd();i++) {
@@ -761,7 +763,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
       QList<KeyPair> pairs = BitSwaprjs::generate_fresh_key_pairs(1);
 
       if(pairs.size() != 1)
-          throw std::exception("Could not generate new key.");
+          throw std::runtime_error("Could not generate new key.");
 
       KeyPair & pair = pairs[0];
 
@@ -836,7 +838,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
 
       // Check if key already has entry
       if(_entries.contains(pk))
-          throw new std::exception("key already has entry in wallet.");
+          throw std::runtime_error("key already has entry in wallet.");
 
       // Add to map
       _entries[pk] = entry;
@@ -847,7 +849,7 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
 
       // Check if key is in map
       if(!_entries.contains(pk))
-          throw new std::exception("key does not have entry in wallet.");
+          throw std::runtime_error("key does not have entry in wallet.");
 
       // Get reference to entry
       Entry & entry = _entries[pk];

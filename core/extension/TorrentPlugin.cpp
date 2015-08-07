@@ -15,7 +15,7 @@
 //#include "Alert/TorrentPluginStatusAlert.hpp"
 #include "Alert/TorrentPluginAlert.hpp"
 
-#include "controller/Exceptions/InvalidBitSwaprStateEntryException.hpp"
+#include "controller/exceptions/InvalidBitSwaprStateEntryException.hpp"
 
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/peer_connection.hpp>
