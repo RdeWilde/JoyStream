@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#include "BitCoinRepresentation.hpp"
-#include "BitCoinDisplaySettings.hpp"
+#include <common/BitCoinRepresentation.hpp>
+#include <common/BitCoinDisplaySettings.hpp>
 
 #include <QString>
 

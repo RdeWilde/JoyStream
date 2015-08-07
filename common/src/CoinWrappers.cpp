@@ -5,13 +5,62 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 3 2015
  */
 
-#include <wallet/CoinWrappers.hpp>
+#include <common/CoinWrappers.hpp>
 
 #include <QByteArray>
 
 #include <sstream> // stringstream
 
 using namespace Coin;
+
+/**
+ * AddressType
+ */
+
+// https://en.bitcoin.it/wiki/List_of_address_prefixes
+unsigned int toBase58CheckVersion(AddressType type, Network network) {
+
+    switch(type) {
+
+        case AddressType::PayToPublicKeyHash:
+
+            if(network == Network::mainnet)
+                return 0x0; // decimal 0
+            else if(network == Network::testnet3)
+                return 0x6F; // decimal 111;
+
+            break;
+
+        case AddressType::PayToScriptHash:
+
+            break;
+
+            if(network == Network::mainnet)
+                return 0x5; // decimal 5
+            else if(network == Network::testnet3)
+                return 0xC4; // decimal 96
+
+        default:
+            Q_ASSERT(false);
+    }
+}
+
+std::pair<AddressType, Network> versionToAddressInformation(unsigned int version)  {
+
+    switch(version) {
+
+        case 0x0: return std::make_pair(AddressType::PayToPublicKeyHash, Network::mainnet);
+        case 0x6F: return std::make_pair(AddressType::PayToPublicKeyHash, Network::testnet3);
+        case 0x5: return std::make_pair(AddressType::PayToScriptHash, Network::mainnet);
+        case 0xC4: return std::make_pair(AddressType::PayToScriptHash, Network::testnet3);
+        default:
+            Q_ASSERT(false);
+    }
+}
+
+/**
+ * fixed_uchar_array
+ */
 
 QByteArray uchar_vector_to_QByteArray(const uchar_vector & v) {
 
@@ -21,10 +70,6 @@ QByteArray uchar_vector_to_QByteArray(const uchar_vector & v) {
     // Create
     return QByteArray(data, v.size());
 }
-
-/**
- * fixed_uchar_array
- */
 
 template<unsigned array_length>
 fixed_uchar_array<array_length>::fixed_uchar_array(const uchar_vector & vector) {

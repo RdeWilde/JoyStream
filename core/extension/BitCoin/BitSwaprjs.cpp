@@ -14,6 +14,8 @@
 //#include "extension/PaymentChannel/Contract.hpp"
 //#include "extension/PaymentChannel/Refund.hpp"
 
+#include <CoinCore/
+
 
 #include "Signature.hpp"
 
@@ -88,6 +90,12 @@ QJsonValue BitSwaprjs::nodeBlockingCall(const QString & method, const QJsonValue
 
 QList<KeyPair> BitSwaprjs::generate_fresh_key_pairs(int numberOfPairs) {
 
+
+
+    return QList<KeyPair>();
+
+    /**
+
     // Make call to generate keys
     QJsonValue result = nodeBlockingCall("generate_fresh_key_pairs", QJsonValue(numberOfPairs));
 
@@ -117,6 +125,7 @@ QList<KeyPair> BitSwaprjs::generate_fresh_key_pairs(int numberOfPairs) {
     }
 
     return keyPairs;
+    */
 }
 
 TxId BitSwaprjs::compute_contract_hash(const UnspentP2PKHOutput & utxo, const QVector<P2SHTxOut> & contractOutputs, const P2PKHTxOut & changeOutput) {

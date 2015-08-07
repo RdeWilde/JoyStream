@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#include "DataSizeRepresentation.hpp"
+#include <common/DataSizeRepresentation.hpp>
 
 #include <QString>
 

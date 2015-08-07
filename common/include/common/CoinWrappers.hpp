@@ -10,14 +10,43 @@
 
 #include <stdutils/uchar_vector.h>
 
-#include <wallet/Network.hpp>
-#include <wallet/AddressType.hpp>
-
 #include <array>
 
 class QByteArray;
 
 namespace Coin {
+
+/**
+ * Network
+ */
+
+enum class Network {
+    testnet3,
+    mainnet
+};
+
+/**
+ * AddressType
+ */
+
+enum class AddressType {
+    PayToPublicKeyHash,
+    //PayToPublicKey,
+    PayToScriptHash
+    //Multisig,
+
+    //Data // Does this have address format
+};
+
+#include <utility> // std::pair
+
+// https://en.bitcoin.it/wiki/List_of_address_prefixes
+static unsigned int toBase58CheckVersion(AddressType type, Network network);
+static std::pair<AddressType, Network> versionToAddressInformation(unsigned int version);
+
+/**
+ * fixed_uchar_array
+ */
 
 QByteArray uchar_vector_to_QByteArray(const uchar_vector & v);
 

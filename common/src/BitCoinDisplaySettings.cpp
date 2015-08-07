@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#include "BitCoinDisplaySettings.hpp"
+#include <common/BitCoinDisplaySettings.hpp>
 
 BitCoinDisplaySettings::BitCoinDisplaySettings(int precision)
     : _currency(Currency::BitCoin)
