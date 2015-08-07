@@ -8,7 +8,7 @@
 #ifndef BLOCK_HEADER_HPP
 #define BLOCK_HEADER_HPP
 
-#include <wallet/CoinWrappers.hpp>
+#include <common/CoinWrappers.hpp>
 
 #include <QDateTime>
 

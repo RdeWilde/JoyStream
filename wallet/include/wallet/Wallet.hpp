@@ -8,7 +8,7 @@
 #ifndef WALLET_HPP
 #define WALLET_HPP
 
-#include "Network.hpp"
+#include <common/CoinWrappers.hpp>
 
 #include <QObject>
 #include <QString>
@@ -31,7 +31,7 @@ public:
     explicit Wallet(const QString & walletFile);
 
     // Create an empty wallet
-    static void createEmptyWallet(const QString & walletFile, Network network, const QByteArray & seed);
+    static void createEmptyWallet(const QString & walletFile, Coin::Network network, const QByteArray & seed);
 
     // Check basic integrity of wallet database
     static bool validateWalletStructure(QSqlDatabase & db);
@@ -80,7 +80,7 @@ private:
     QSqlDatabase _db;
 
     // Network wallet corresponds to
-    Network _network;
+    Coin::Network _network;
 
     // Time when wallet was created
     QDateTime _created;

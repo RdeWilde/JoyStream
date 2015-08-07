@@ -5,7 +5,7 @@
 
 include(../boost.pri)
 include(../libtorrent.pri)
-include(../coincore.pri)
+include(../mSIGNA.pri)
 
 TARGET = core
 TEMPLATE = lib

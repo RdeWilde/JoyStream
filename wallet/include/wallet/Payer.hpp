@@ -8,7 +8,7 @@
 #ifndef PAYER_HPP
 #define PAYER_HPP
 
-#include <wallet/CoinWrappers.hpp>
+#include <common/CoinWrappers.hpp>
 
 #include <QDateTime>
 

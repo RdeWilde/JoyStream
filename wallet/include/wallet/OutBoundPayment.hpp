@@ -8,7 +8,7 @@
 #ifndef OUTBOUND_PAYMENT_HPP
 #define OUTBOUND_PAYMENT_HPP
 
-#include <wallet/CoinWrappers.hpp>
+#include <common/CoinWrappers.hpp>
 
 #include <QDateTime>
 

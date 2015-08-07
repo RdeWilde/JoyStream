@@ -8,7 +8,7 @@
 #ifndef INBOUND_PAYMENT_HPP
 #define INBOUND_PAYMENT_HPP
 
-#include <wallet/CoinWrappers.hpp>
+#include <common/CoinWrappers.hpp>
 
 #include <QDateTime>
 

@@ -8,8 +8,7 @@
 #ifndef OUPUT_FUNDS_PAYER_HPP
 #define OUPUT_FUNDS_PAYER_HPP
 
-#include <wallet/CoinWrappers.hpp>
-
+#include <common/CoinWrappers.hpp>
 #include <QByteArray>
 
 class QSqlQuery;

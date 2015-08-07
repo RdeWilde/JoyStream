@@ -8,7 +8,7 @@
 #ifndef PAYEE_HPP
 #define PAYEE_HPP
 
-#include <wallet/CoinWrappers.hpp>
+#include <common/CoinWrappers.hpp>
 
 #include <QtGlobal>
 

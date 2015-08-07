@@ -8,7 +8,7 @@
 #ifndef TRANSACTION_HPP
 #define TRANSACTION_HPP
 
-#include <wallet/CoinWrappers.hpp>
+#include <common/CoinWrappers.hpp>
 
 #include <QDateTime>
 

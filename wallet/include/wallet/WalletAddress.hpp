@@ -9,7 +9,6 @@
 #define WALLET_ADDRESS
 
 #include <wallet/WalletKey.hpp>
-#include <wallet/CoinWrappers.hpp>
 
 class QSqlQuery;
 class QSqlDatabase;

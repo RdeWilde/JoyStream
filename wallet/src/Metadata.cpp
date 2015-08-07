@@ -23,7 +23,7 @@ void Metadata::createTable(QSqlDatabase db) {
 
 }
 
-void Metadata::populateTable(QSqlDatabase db, const QByteArray & seed, Network network, const QDateTime & created) {
+void Metadata::populateTable(QSqlDatabase db, const QByteArray & seed, Coin::Network network, const QDateTime & created) {
 
     // Create query
     QSqlQuery insertQuery("INSERT INTO Metadata (key, value) VALUES (:key, :value)", db);
@@ -49,11 +49,11 @@ void Metadata::populateTable(QSqlDatabase db, const QByteArray & seed, Network n
         //throw std::runtime_error("Could not insert network key-value.");
 }
 
-Network Metadata::getNetwork(QSqlDatabase db) {
+Coin::Network Metadata::getNetwork(QSqlDatabase db) {
 
 }
 
-void Metadata::setNetwork(QSqlDatabase db, Network network) {
+void Metadata::setNetwork(QSqlDatabase db, Coin::Network network) {
 
 }
 
@@ -73,17 +73,17 @@ void Metadata::setCreated(QSqlDatabase db, const QDateTime & created) {
 
 }
 
-QByteArray Metadata::encodeNetwork(Network network) {
+QByteArray Metadata::encodeNetwork(Coin::Network network) {
 
     switch(network) {
-        case Network::testnet3: return QByteArray::number(0);
-        case Network::mainnet: return QByteArray::number(1);
+        case Coin::Network::testnet3: return QByteArray::number(0);
+        case Coin::Network::mainnet: return QByteArray::number(1);
         default:
                 Q_ASSERT(false);
     }
 }
 
-Network Metadata::decodeNetwork(const QByteArray & blob) {
+Coin::Network Metadata::decodeNetwork(const QByteArray & blob) {
 
     bool ok;
     uint encodedNetwork = blob.toUInt(&ok);
@@ -92,8 +92,8 @@ Network Metadata::decodeNetwork(const QByteArray & blob) {
 
     switch(encodedNetwork) {
 
-        case 0: return Network::testnet3;
-        case 1: return Network::mainnet;
+        case 0: return Coin::Network::testnet3;
+        case 1: return Coin::Network::mainnet;
         default:
             Q_ASSERT(false);
     }

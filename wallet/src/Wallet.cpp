@@ -47,7 +47,7 @@ Wallet::Wallet(const QString & walletFile)
     // Build utxo
 }
 
-void Wallet::createEmptyWallet(const QString & walletFile, Network network, const QByteArray & seed) {
+void Wallet::createEmptyWallet(const QString & walletFile, Coin::Network network, const QByteArray & seed) {
 
     // Create connection to database
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");

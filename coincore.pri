@@ -3,12 +3,6 @@
 # Proprietary and confidential
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, July 29 2015
 
-# Place in some global location
-MSIGNA_DEPS_LOCATION = /home/bedeho/JoyStream/Development/libs/mSIGNA/deps
-
-# Location of CoinCore folder in mSIGNA
-COINCORE_LOCATION = $$MSIGNA_DEPS_LOCATION/CoinCore
-
 # Windows
 win32 {
 
@@ -16,6 +10,8 @@ win32 {
 
 # Unix
 unix:!macx {
+
+    MSIGNA_LOCATION = /home/bedeho/JoyStream/Development/libs/mSIGNA/sysroot
 
     INCLUDEPATH += $$COINCORE_LOCATION/src
 

@@ -1,7 +1,7 @@
 #ifndef METADATA_HPP
 #define METADATA_HPP
 
-#include <wallet/Network.hpp>
+#include <common/CoinWrappers.hpp>
 
 class QSqlQuery;
 class QSqlDatabase;
@@ -15,10 +15,10 @@ public:
 
     static void createTable(QSqlDatabase db);
 
-    static void populateTable(QSqlDatabase db, const QByteArray & seed, Network network, const QDateTime & created);
+    static void populateTable(QSqlDatabase db, const QByteArray & seed, Coin::Network network, const QDateTime & created);
 
-    static Network getNetwork(QSqlDatabase db);
-    static void setNetwork(QSqlDatabase db, Network network);
+    static Coin::Network getNetwork(QSqlDatabase db);
+    static void setNetwork(QSqlDatabase db, Coin::Network network);
 
     static QByteArray getSeed(QSqlDatabase db);
     static void setSeed(QSqlDatabase db, const QByteArray & seed);
@@ -34,8 +34,8 @@ private:
     static const QByteArray _createdKey;
 
     // Encode network as blob
-    static QByteArray encodeNetwork(Network network);
-    static Network decodeNetwork(const QByteArray & blob);
+    static QByteArray encodeNetwork(Coin::Network network);
+    static Coin::Network decodeNetwork(const QByteArray & blob);
 };
 
 #endif // METADATA_HPP

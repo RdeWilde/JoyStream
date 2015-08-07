@@ -8,8 +8,7 @@
 #ifndef WALLET_KEY_HPP
 #define WALLET_KEY_HPP
 
-#include <wallet/CoinWrappers.hpp>
-
+#include <common/CoinWrappers.hpp>
 #include <QDateTime>
 
 class QSqlQuery;

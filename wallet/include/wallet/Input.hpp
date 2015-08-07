@@ -8,7 +8,7 @@
 #ifndef INPUT_HPP
 #define INPUT_HPP
 
-#include <wallet/CoinWrappers.hpp>
+#include <common/CoinWrappers.hpp>
 #include <wallet/OutPoint.hpp>
 
 #include <QByteArray>

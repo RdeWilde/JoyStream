@@ -3,7 +3,7 @@
 # Proprietary and confidential
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
 
-include(../coincore.pri) # need stdutils/uchar_vector.h
+include(../mSIGNA.pri) # need stdutils/uchar_vector.h
 
 TARGET = common
 TEMPLATE = lib

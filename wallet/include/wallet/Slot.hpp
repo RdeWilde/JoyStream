@@ -8,7 +8,7 @@
 #ifndef SLOT_HPP
 #define SLOT_HPP
 
-#include <wallet/CoinWrappers.hpp>
+#include <common/CoinWrappers.hpp>
 
 #include <QtGlobal>
 

@@ -8,7 +8,7 @@
 #ifndef TRANSACTION_HAS_OUTPUT_HPP
 #define TRANSACTION_HAS_OUTPUT_HPP
 
-#include <wallet/CoinWrappers.hpp>
+#include <common/CoinWrappers.hpp>
 #include <wallet/Transaction.hpp>
 #include <wallet/Output.hpp>
 

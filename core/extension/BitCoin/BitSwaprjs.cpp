@@ -14,8 +14,7 @@
 //#include "extension/PaymentChannel/Contract.hpp"
 //#include "extension/PaymentChannel/Refund.hpp"
 
-#include <CoinCore/
-
+#include <common/CoinWrappers.hpp>
 
 #include "Signature.hpp"
 
@@ -89,7 +88,6 @@ QJsonValue BitSwaprjs::nodeBlockingCall(const QString & method, const QJsonValue
 }
 
 QList<KeyPair> BitSwaprjs::generate_fresh_key_pairs(int numberOfPairs) {
-
 
 
     return QList<KeyPair>();
