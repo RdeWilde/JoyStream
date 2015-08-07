@@ -14,6 +14,8 @@
 #include <QInputDialog>
 #include <QMessageBox>
 
+#include <QDebug> // <== temproray
+
 //WalletDialog::WalletDialog(QWidget *parent, Wallet * wallet) {}
 
 WalletDialog::WalletDialog(Wallet * wallet,
@@ -128,8 +130,12 @@ void WalletDialog::updateWalletTableView() {
 
     // Iterate and add to table view model
     for(QList<Wallet::TxOEvent>::const_iterator i = events.constBegin();
-        i != events.constEnd();i++)
-        _walletTableViewModel.appendRow(toModelViewRow(*i));
+        i != events.constEnd();i++) {
+
+        qDebug() << "Skipping: _walletTableViewModel.appendRow() ";
+
+        //_walletTableViewModel.appendRow(toModelViewRow(*i));
+    }
 
     /**
     // Get wallet entries
@@ -203,6 +209,7 @@ void WalletDialog::updateWalletTableView() {
 
 }
 
+/**
 QList<QStandardItem *> WalletDialog::toModelViewRow(const Wallet::TxOEvent & event) const {
 
     // Create new row
@@ -238,6 +245,7 @@ QList<QStandardItem *> WalletDialog::toModelViewRow(const Wallet::TxOEvent & eve
 
     return items;
 }
+*/
 
 WalletDialog::~WalletDialog() {
     delete ui;

@@ -13,7 +13,8 @@
 #include <QStringList>
 #include <QHash>
 
-OutPoint::OutPoint() {
+OutPoint::OutPoint()
+    : _index(0){
 }
 
 OutPoint::OutPoint(const TxId & txId, quint32 index)

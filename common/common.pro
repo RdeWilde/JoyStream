@@ -28,3 +28,4 @@ SOURCES += \
     src/DataSizeRepresentation.cpp \
     src/BitCoinDisplaySettings.cpp \
     src/CoinWrappers.cpp
+

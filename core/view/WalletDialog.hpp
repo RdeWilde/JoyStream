@@ -40,7 +40,7 @@ public:
     // Clears and repopulates walletTableView
     void updateWalletTableView();
 
-    QList<QStandardItem *> toModelViewRow(const Wallet::TxOEvent & event) const;
+    //QList<QStandardItem *> toModelViewRow(const Wallet::TxOEvent & event) const;
 
 private slots:
     void on_receivePushButton_clicked();

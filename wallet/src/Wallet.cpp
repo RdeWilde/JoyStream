@@ -25,8 +25,13 @@
 #include <wallet/Metadata.hpp>
 
 Wallet::Wallet(const QString & walletFile)
-    : _walletFile(walletFile)
-    , _db(QSqlDatabase::addDatabase("QSQLITE")) {
+    : _mutex(QMutex::Recursive) // allows same thread to call multiple synchronized sections in sequence
+    , _walletFile(walletFile)
+    , _db(QSqlDatabase::addDatabase("QSQLITE"))
+    , _latestBlockHeight(0)
+    , _lastComputedZeroConfBalance(0) {
+
+    // If it doesnt exist, create an empty one, if it does exist,
 
     // Try to open database
     _db.setDatabaseName(walletFile);
@@ -112,7 +117,24 @@ bool Wallet::validateWalletStructure(QSqlDatabase & db) {
     return true;
 }
 
+quint64 Wallet::lastComputedZeroConfBalance() {
+
+    quint64 copy;
+
+    _mutex.lock();
+    copy = _lastComputedZeroConfBalance;
+    _mutex.unlock();
+
+    return copy;
+}
+
 /**
+  UnspentP2PKHOutput Wallet::getUtxo(quint64 minimalValue, quint32 minimalNumberOfConfirmations) {
+
+      return UnspentP2PKHOutput();
+  }
+
+
 QSqlQuery Wallet::createTransactionTableQuery() {
 
     return QSqlQuery("\

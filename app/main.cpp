@@ -19,6 +19,7 @@
 #include <core/logger/LoggerManager.hpp>
 #include <core/extension/PluginMode.hpp>
 #include <core/extension/BitCoin/BitCoin.hpp> // defines STANDARD_NUM_SATOSHIES_PER_KB_IN_TX_FEE
+#include <core/extension/BitCoin/UnspentP2PKHOutput.hpp>
 
 #include <common/BitCoinRepresentation.hpp>
 
@@ -259,10 +260,10 @@ void add_buyers_with_plugin(Controller::Configuration controllerConfiguration, Q
         quint64 minFunds = Payor::minimalFunds(torrentInfo.num_pieces(), pluginConfiguration.maxPrice(), pluginConfiguration.numberOfSellers(), pluginConfiguration.maxFeePerKb());
 
         // Synch wallet
-        controller->wallet().synchronize();
+        //controller->wallet().synchronize();
 
         // Get funding output - this has to be grabbed from wallet/chain later
-        UnspentP2PKHOutput utxo = controller->wallet().getUtxo(minFunds, 1);
+        UnspentP2PKHOutput utxo; // = controller->wallet().getUtxo(minFunds, 1);
 
         // Check that an utxo was indeed found
         if(utxo.value() == 0) {

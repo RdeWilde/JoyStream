@@ -142,7 +142,8 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
     quint64 minFunds = Payor::minimalFunds(_torrentInfo.num_pieces(), maxPrice, numberOfSellers, feePerkB);
 
     // Get funding output - this has to be grabbed from wallet/chain later
-    UnspentP2PKHOutput utxo = _wallet->getUtxo(minFunds, 1);
+    UnspentP2PKHOutput utxo; // = _wallet->getUtxo(minFunds, 1);
+    qDebug() << "Skipping grabbing real utxo, just empty crap for now";
 
     // Check that an utxo was indeed found
     if(utxo.value() == 0) {

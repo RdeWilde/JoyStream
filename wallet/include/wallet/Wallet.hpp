@@ -56,6 +56,12 @@ public:
     // Generate receive address
     // ReceiveAddress getReceiveAddress();
 
+
+    //Entry getAndLockEntry();
+    //UnspentP2PKHOutput getUtxo(quint64 minimalValue, quint32 minimalNumberOfConfirmations);
+
+    quint64 lastComputedZeroConfBalance();
+
     /**
      * Attempts to insert object in wallet database,
      * (explain what happens in the event of failure)
@@ -73,6 +79,9 @@ public slots:
 
 private:
 
+    // Synchronizes wallet calls
+    QMutex _mutex;
+
     // Wallet (SQLite database) file
     QString _walletFile;
 
@@ -87,6 +96,18 @@ private:
 
     // Seed
     QByteArray _seed;
+
+    /**
+     * State
+     */
+
+    // Latest known block height
+    qint64 _latestBlockHeight;
+
+    // Value of last run of computeBalance(0), which is initially run in ctr
+    quint64 _lastComputedZeroConfBalance;
+
+
 
     // key pools
 

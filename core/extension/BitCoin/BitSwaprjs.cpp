@@ -89,7 +89,6 @@ QJsonValue BitSwaprjs::nodeBlockingCall(const QString & method, const QJsonValue
 
 QList<KeyPair> BitSwaprjs::generate_fresh_key_pairs(int numberOfPairs) {
 
-
     return QList<KeyPair>();
 
     /**
@@ -259,6 +258,7 @@ QString BitSwaprjs::to_address(const PublicKey & pk) {
     return result.toString();
 }
 
+/**
 //QList<Wallet::TxOEvent> BitSwaprjs::get_key_events(const QList<PublicKey> & list) {
 QMap<PublicKey, QList<Wallet::TxOEvent>> BitSwaprjs::get_key_events(const QSet<PublicKey> & keys) {
 
@@ -315,6 +315,7 @@ QMap<PublicKey, QList<Wallet::TxOEvent>> BitSwaprjs::get_key_events(const QSet<P
 
     return map;
 }
+*/
 
 quint32 BitSwaprjs::get_latest_block() {
 

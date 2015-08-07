@@ -12,10 +12,12 @@
 #include "view/MainWindow.hpp"
 #include "extension/Plugin.hpp"
 #include "TorrentViewModel.hpp"
-#include "extension/BitCoin/Wallet.hpp"
+//#include "extension/BitCoin/Wallet.hpp"
 #include "extension/BitCoin/UnspentP2PKHOutput.hpp"
 //#include "StreamingServer.hpp"
 #include "Stream.hpp"
+
+#include <wallet/Wallet.hpp>
 
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>

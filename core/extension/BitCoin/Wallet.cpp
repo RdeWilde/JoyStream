@@ -631,9 +631,10 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
 
   void Wallet::synchronize() {
 
-      qDebug() << "Wallet::synchronize()";
+      qDebug() << "Wallet::synchronize(): commented out";
 
       return;
+      /**
 
       // Only synchronized when nothing is locked, because this may disturb
 
@@ -695,6 +696,8 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
           _lastComputedZeroConfBalance = balance;
           emit zeroConfBalanceChanged(balance);
       }
+
+      */
   }
 
   QString Wallet::toAddress(const PublicKey & pk) const {
@@ -708,7 +711,8 @@ void Wallet::TxOEvent::setBlockHeight(quint32 blockHeight) {
                                              PrivateKey("cNxShXWpyWug45tEieHgFCnfMCCMcmh6cKSQjh5peUDPJ5nZ49Hy")),
                                      OutPoint(TxId("99bd7714e8e4881c2766bea0ce6ca44ab9463417dd5040ae3664f41d7353df4c"),8),
                                      minimalValue);
-*/
+    */
+
       _mutex.lock();
 
       // Go through entries

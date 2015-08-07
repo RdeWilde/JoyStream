@@ -1091,7 +1091,7 @@ Controller::Controller(const Configuration & configuration, bool showView, QNetw
                libtorrent::alert::progress_notification +
                libtorrent::alert::performance_warning +
                libtorrent::alert::stats_notification)
-    , _wallet(configuration.walletFile(), true) // add autosave to configuration later?? does user even need to control that?
+    , _wallet(configuration.walletFile()) // add autosave to configuration later?? does user even need to control that?
     , _category(category)
     , _manager(manager)
     , _plugin(new Plugin(&_wallet, _manager, bitcoindAccount, _category))

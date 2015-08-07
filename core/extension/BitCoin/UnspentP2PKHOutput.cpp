@@ -9,7 +9,8 @@
 
 #include <QJsonObject>
 
-UnspentP2PKHOutput::UnspentP2PKHOutput() {
+UnspentP2PKHOutput::UnspentP2PKHOutput()
+    : _value(0){
 }
 
 UnspentP2PKHOutput::UnspentP2PKHOutput(const KeyPair & keyPair, const OutPoint & output, quint64 value)

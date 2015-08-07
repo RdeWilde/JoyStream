@@ -14,7 +14,7 @@ CONFIG  += staticlib
 CONFIG  += create_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
 CONFIG  += c++11 # Needed for class enum
 
-QT      += core gui network
+QT      += core gui network sql # sql is for wallet
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets # QMainWindow, QDialog
 
 INCLUDEPATH += $$PWD # be able to include w.r.t root of this project
@@ -76,7 +76,7 @@ SOURCES += \
     extension/PaymentChannel/Payor.cpp \
     extension/PaymentChannel/Payee.cpp \
     extension/BitCoin/UnspentP2PKHOutput.cpp \
-    extension/BitCoin/Wallet.cpp \
+    #extension/BitCoin/Wallet.cpp \
     view/WalletDialog.cpp \
     extension/BitCoin/PublicKey.cpp \
     extension/BitCoin/TxId.cpp \
@@ -184,7 +184,7 @@ HEADERS += \
     extension/BitCoin/OutPoint.hpp \
     extension/PaymentChannel/Payor.hpp \
     extension/BitCoin/UnspentP2PKHOutput.hpp \
-    extension/BitCoin/Wallet.hpp \
+    #extension/BitCoin/Wallet.hpp \
     view/WalletDialog.hpp \
     extension/BitCoin/TxId.hpp \
     extension/BitCoin/base58.hpp \
@@ -244,10 +244,24 @@ else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../common/debug/ -l
 else:unix: LIBS += -L$$OUT_PWD/../common/ -lcommon
 
 INCLUDEPATH += $$PWD/../common/include
-DEPENDPATH += $$PWD/../common
+DEPENDPATH += $$PWD/../common/include
 
 win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/release/libcommon.a
 else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/debug/libcommon.a
 else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/release/common.lib
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/debug/common.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.a
+
+# wallet ###############################################################
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../wallet/release/ -lwallet
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../wallet/debug/ -lwallet
+else:unix: LIBS += -L$$OUT_PWD/../wallet/ -lwallet
+
+INCLUDEPATH += $$PWD/../wallet/include
+DEPENDPATH += $$PWD/../wallet/include
+
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/release/libwallet.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/debug/libwallet.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/release/wallet.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/debug/wallet.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../wallet/libwallet.a

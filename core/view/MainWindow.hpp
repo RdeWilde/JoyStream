@@ -12,9 +12,7 @@
 #include "extension/Plugin.hpp" // Plugin::Status
 #include "extension/BuyerTorrentPlugin.hpp" // BuyerTorrentPlugin::Status
 #include "extension/SellerTorrentPlugin.hpp" // SellerTorrentPlugin::Status
-//#include <common/BitCoinDisplaySettings.hpp>
-
-#include "common/BitCoinDisplaySettings.hpp"
+#include <common/BitCoinDisplaySettings.hpp>
 
 #include <libtorrent/torrent_handle.hpp>
 #include <libtorrent/add_torrent_params.hpp>
