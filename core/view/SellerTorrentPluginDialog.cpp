@@ -13,13 +13,13 @@
 
 #include <common/BitCoinRepresentation.hpp>
 #include <common/BitCoinDisplaySettings.hpp>
+#include <common/TimeTools.hpp> // time conversion
 
 #include "extension/BitCoin/BitCoin.hpp"
-#include "Utilities.hpp" // time conversion
 
 SellerTorrentPluginDialog::SellerTorrentPluginDialog(QWidget * parent,
                                                      const SellerTorrentPluginViewModel * model,
-                                                     const BitCoinDisplaySettings * settings)
+                                                     const BitcoinDisplaySettings * settings)
     : QDialog(parent)
     , ui(new Ui::SellerTorrentPluginDialog)
     , _settings(settings) {
@@ -111,7 +111,7 @@ SellerTorrentPluginDialog::~SellerTorrentPluginDialog() {
     delete ui;
 }
 
-QString SellerTorrentPluginDialog::minPriceToString(quint64 minPrice, const BitCoinDisplaySettings * settings) {
+QString SellerTorrentPluginDialog::minPriceToString(quint64 minPrice, const BitcoinDisplaySettings * settings) {
     return QString::number(minPrice);
     //return BitCoinRepresentation(minPrice).toString(settings);
 
@@ -189,7 +189,7 @@ void SellerTorrentPluginDialog::updateMinPrice(quint64 minPrice) {
 }
 
 void SellerTorrentPluginDialog::updateMinLockTime(quint32 minLockTime) {
-    ui->minLockTimeEdit->setTime(Utilities::secondsToQTime(minLockTime));
+    ui->minLockTimeEdit->setTime(TimeTools::secondsToQTime(minLockTime));
 }
 
 void SellerTorrentPluginDialog::updateMinFeePerkB(quint64 minFeePerByte) {
@@ -201,7 +201,7 @@ void SellerTorrentPluginDialog::updateMaxNumberOfSellers(quint32 maxNumberOfSell
 }
 
 void SellerTorrentPluginDialog::updateMaxContractConfirmationDelay(quint32 delay) {
-    ui->maxConfirmationTimeTimeEdit->setTime(Utilities::secondsToQTime(delay));
+    ui->maxConfirmationTimeTimeEdit->setTime(TimeTools::secondsToQTime(delay));
 }
 
 /**

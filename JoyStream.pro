@@ -18,3 +18,4 @@ core.depends = wallet
 
 app.depends = common
 app.depends = core
+app.depends = wallet

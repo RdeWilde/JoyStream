@@ -5,69 +5,69 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#include <common/BitCoinRepresentation.hpp>
-#include <common/BitCoinDisplaySettings.hpp>
+#include <common/BitcoinRepresentation.hpp>
+#include <common/BitcoinDisplaySettings.hpp>
 
 #include <QString>
 
 #include <cmath>
 
-QMap<BitCoinRepresentation::BitCoinPrefix, int>
-BitCoinRepresentation::bitCoinPrefixToPower = QMap<BitCoinRepresentation::BitCoinPrefix, int>
+QMap<BitcoinRepresentation::BitCoinPrefix, int>
+BitcoinRepresentation::bitCoinPrefixToPower = QMap<BitcoinRepresentation::BitCoinPrefix, int>
                                             {
-                                                {BitCoinRepresentation::BitCoinPrefix::Satoshi, 0},
-                                                {BitCoinRepresentation::BitCoinPrefix::Micro, 2},
-                                                {BitCoinRepresentation::BitCoinPrefix::Milli, 5},
-                                                {BitCoinRepresentation::BitCoinPrefix::Centi, 6},
-                                                {BitCoinRepresentation::BitCoinPrefix::None, 8},
-                                                {BitCoinRepresentation::BitCoinPrefix::Kilo, 11}
+                                                {BitcoinRepresentation::BitCoinPrefix::Satoshi, 0},
+                                                {BitcoinRepresentation::BitCoinPrefix::Micro, 2},
+                                                {BitcoinRepresentation::BitCoinPrefix::Milli, 5},
+                                                {BitcoinRepresentation::BitCoinPrefix::Centi, 6},
+                                                {BitcoinRepresentation::BitCoinPrefix::None, 8},
+                                                {BitcoinRepresentation::BitCoinPrefix::Kilo, 11}
                                             };
 
-QMap<int, BitCoinRepresentation::BitCoinPrefix>
-BitCoinRepresentation::powerToBitCoinPrefix = QMap<int, BitCoinRepresentation::BitCoinPrefix>
+QMap<int, BitcoinRepresentation::BitCoinPrefix>
+BitcoinRepresentation::powerToBitCoinPrefix = QMap<int, BitcoinRepresentation::BitCoinPrefix>
                                             {
-                                                {0, BitCoinRepresentation::BitCoinPrefix::Satoshi},
-                                                {2, BitCoinRepresentation::BitCoinPrefix::Micro},
-                                                {5, BitCoinRepresentation::BitCoinPrefix::Milli},
-                                                {6, BitCoinRepresentation::BitCoinPrefix::Centi},
-                                                {8, BitCoinRepresentation::BitCoinPrefix::None},
-                                                {11, BitCoinRepresentation::BitCoinPrefix::Kilo}
+                                                {0, BitcoinRepresentation::BitCoinPrefix::Satoshi},
+                                                {2, BitcoinRepresentation::BitCoinPrefix::Micro},
+                                                {5, BitcoinRepresentation::BitCoinPrefix::Milli},
+                                                {6, BitcoinRepresentation::BitCoinPrefix::Centi},
+                                                {8, BitcoinRepresentation::BitCoinPrefix::None},
+                                                {11, BitcoinRepresentation::BitCoinPrefix::Kilo}
                                             };
 
-QMap<BitCoinRepresentation::MetricPrefix, int>
-BitCoinRepresentation::metricPrefixToPower = QMap<BitCoinRepresentation::MetricPrefix, int>
+QMap<BitcoinRepresentation::MetricPrefix, int>
+BitcoinRepresentation::metricPrefixToPower = QMap<BitcoinRepresentation::MetricPrefix, int>
                                             {
-                                                {BitCoinRepresentation::MetricPrefix::Pico, -12},
-                                                {BitCoinRepresentation::MetricPrefix::Nano, -9},
-                                                {BitCoinRepresentation::MetricPrefix::Micro, -6},
-                                                {BitCoinRepresentation::MetricPrefix::Milli, -3},
-                                                {BitCoinRepresentation::MetricPrefix::Centi, -2},
-                                                {BitCoinRepresentation::MetricPrefix::None, 0}
+                                                {BitcoinRepresentation::MetricPrefix::Pico, -12},
+                                                {BitcoinRepresentation::MetricPrefix::Nano, -9},
+                                                {BitcoinRepresentation::MetricPrefix::Micro, -6},
+                                                {BitcoinRepresentation::MetricPrefix::Milli, -3},
+                                                {BitcoinRepresentation::MetricPrefix::Centi, -2},
+                                                {BitcoinRepresentation::MetricPrefix::None, 0}
                                             };
 
-QMap<int, BitCoinRepresentation::MetricPrefix>
-BitCoinRepresentation::powerToMetricPrefix = QMap<int, BitCoinRepresentation::MetricPrefix>
+QMap<int, BitcoinRepresentation::MetricPrefix>
+BitcoinRepresentation::powerToMetricPrefix = QMap<int, BitcoinRepresentation::MetricPrefix>
                                             {
-                                                {-12, BitCoinRepresentation::MetricPrefix::Pico},
-                                                {-9, BitCoinRepresentation::MetricPrefix::Nano},
-                                                {-6, BitCoinRepresentation::MetricPrefix::Micro},
-                                                {-3, BitCoinRepresentation::MetricPrefix::Milli},
-                                                {-2, BitCoinRepresentation::MetricPrefix::Centi},
-                                                {0, BitCoinRepresentation::MetricPrefix::None}
+                                                {-12, BitcoinRepresentation::MetricPrefix::Pico},
+                                                {-9, BitcoinRepresentation::MetricPrefix::Nano},
+                                                {-6, BitcoinRepresentation::MetricPrefix::Micro},
+                                                {-3, BitcoinRepresentation::MetricPrefix::Milli},
+                                                {-2, BitcoinRepresentation::MetricPrefix::Centi},
+                                                {0, BitcoinRepresentation::MetricPrefix::None}
                                             };
 
-BitCoinRepresentation::BitCoinRepresentation(qint64 satoshies)
+BitcoinRepresentation::BitcoinRepresentation(qint64 satoshies)
     : _satoshies(satoshies < 0 ? -satoshies : satoshies)
     , _isNegative(satoshies < 0 ? true : false) {
 
-    Q_ASSERT(BitCoinRepresentation::bitCoinPrefixToPower.size() == BitCoinRepresentation::powerToBitCoinPrefix.size());
-    Q_ASSERT(BitCoinRepresentation::metricPrefixToPower.size() == BitCoinRepresentation::powerToMetricPrefix.size());
+    Q_ASSERT(BitcoinRepresentation::bitCoinPrefixToPower.size() == BitcoinRepresentation::powerToBitCoinPrefix.size());
+    Q_ASSERT(BitcoinRepresentation::metricPrefixToPower.size() == BitcoinRepresentation::powerToMetricPrefix.size());
 }
 
-BitCoinRepresentation::BitCoinRepresentation(BitCoinPrefix prefix, double quantity) {
+BitcoinRepresentation::BitcoinRepresentation(BitCoinPrefix prefix, double quantity) {
 
-    Q_ASSERT(BitCoinRepresentation::bitCoinPrefixToPower.size() == BitCoinRepresentation::powerToBitCoinPrefix.size());
-    Q_ASSERT(BitCoinRepresentation::metricPrefixToPower.size() == BitCoinRepresentation::powerToMetricPrefix.size());
+    Q_ASSERT(BitcoinRepresentation::bitCoinPrefixToPower.size() == BitcoinRepresentation::powerToBitCoinPrefix.size());
+    Q_ASSERT(BitcoinRepresentation::metricPrefixToPower.size() == BitcoinRepresentation::powerToMetricPrefix.size());
 
     if(quantity < 0) {
         _isNegative = true;
@@ -92,11 +92,11 @@ BitCoinRepresentation::BitCoinRepresentation(BitCoinPrefix prefix, double quanti
     _satoshies = static_cast<quint64>(numberOfSatoshies);
 }
 
-BitCoinRepresentation::BitCoinRepresentation(MetricPrefix prefix, double fiatUnits, double fiatToBTCExchangeRate)
-    : BitCoinRepresentation(BitCoinPrefix::None, (pow(10, metricPrefixToPower[prefix]) * fiatUnits)/fiatToBTCExchangeRate){
+BitcoinRepresentation::BitcoinRepresentation(MetricPrefix prefix, double fiatUnits, double fiatToBTCExchangeRate)
+    : BitcoinRepresentation(BitCoinPrefix::None, (pow(10, metricPrefixToPower[prefix]) * fiatUnits)/fiatToBTCExchangeRate){
 }
 
-BitCoinRepresentation::BitCoinPrefix BitCoinRepresentation::bestPrefix() const {
+BitcoinRepresentation::BitCoinPrefix BitcoinRepresentation::bestPrefix() const {
 
     // Get best exponent
     int best = bestExponent(_satoshies, 10, powerToBitCoinPrefix.keys());
@@ -107,7 +107,7 @@ BitCoinRepresentation::BitCoinPrefix BitCoinRepresentation::bestPrefix() const {
     return powerToBitCoinPrefix[best];
 }
 
-BitCoinRepresentation::MetricPrefix BitCoinRepresentation::bestPrefix(double fiatToBTCExchangeRate) const {
+BitcoinRepresentation::MetricPrefix BitcoinRepresentation::bestPrefix(double fiatToBTCExchangeRate) const {
 
     double numberOfDollars = numberOfBTC() * fiatToBTCExchangeRate;
 
@@ -120,7 +120,7 @@ BitCoinRepresentation::MetricPrefix BitCoinRepresentation::bestPrefix(double fia
     return powerToMetricPrefix[best];
 }
 
-int BitCoinRepresentation::bestExponent(double raw, quint8 base, const QList<int> & exponents) {
+int BitcoinRepresentation::bestExponent(double raw, quint8 base, const QList<int> & exponents) {
 
     // Find first available
     // power of base which is greater than raw
@@ -162,18 +162,18 @@ int BitCoinRepresentation::bestExponent(double raw, quint8 base, const QList<int
     }
 }
 
-double BitCoinRepresentation::unitsWithPrefix(BitCoinPrefix prefix) const {
+double BitcoinRepresentation::unitsWithPrefix(BitCoinPrefix prefix) const {
     return ((double)_satoshies) / pow(10, bitCoinPrefixToPower[prefix]);
 }
 
-double BitCoinRepresentation::unitsWithPrefix(MetricPrefix prefix, double fiatToBTCExchangeRate) const {
+double BitcoinRepresentation::unitsWithPrefix(MetricPrefix prefix, double fiatToBTCExchangeRate) const {
 
     double totalAmountOfFiat = numberOfBTC() * fiatToBTCExchangeRate;
 
     return totalAmountOfFiat / pow(10, metricPrefixToPower[prefix]);
 }
 
-QString BitCoinRepresentation::toString(BitCoinPrefix prefix, int precision) const {
+QString BitcoinRepresentation::toString(BitCoinPrefix prefix, int precision) const {
 
     if(_satoshies == 0)
         return QString("0Ƀ");
@@ -181,11 +181,11 @@ QString BitCoinRepresentation::toString(BitCoinPrefix prefix, int precision) con
         return (_isNegative ? QString("-") : QString("")) + QString::number(unitsWithPrefix(prefix), 'f', precision) + " " + prefixToString(prefix) + QString("Ƀ");
 }
 
-QString BitCoinRepresentation::toString(int precision) const {
+QString BitcoinRepresentation::toString(int precision) const {
     return toString(bestPrefix(), precision);
 }
 
-QString BitCoinRepresentation::toString(Fiat fiat, MetricPrefix prefix, double fiatToBTCExchangeRate, int precision) const {
+QString BitcoinRepresentation::toString(Fiat fiat, MetricPrefix prefix, double fiatToBTCExchangeRate, int precision) const {
 
     if(_satoshies == 0)
         return QString("$0");
@@ -193,24 +193,24 @@ QString BitCoinRepresentation::toString(Fiat fiat, MetricPrefix prefix, double f
         return (_isNegative ? QString("-") : QString("")) + fiatToSymbol(fiat) + QString::number(unitsWithPrefix(prefix, fiatToBTCExchangeRate), 'f', precision) + " " + prefixToString(prefix);
 }
 
-QString BitCoinRepresentation::toString(Fiat fiat, double fiatToBTCExchangeRate, int precision) const {
+QString BitcoinRepresentation::toString(Fiat fiat, double fiatToBTCExchangeRate, int precision) const {
     return toString(fiat, bestPrefix(fiatToBTCExchangeRate), fiatToBTCExchangeRate, precision);
 }
 
-QString BitCoinRepresentation::toString(const BitCoinDisplaySettings * settings) const {
+QString BitcoinRepresentation::toString(const BitcoinDisplaySettings * settings) const {
 
     switch(settings->currency()) {
 
-        case BitCoinDisplaySettings::Currency::BitCoin:
+        case BitcoinDisplaySettings::Currency::BitCoin:
             return toString(settings->precision());
-        case BitCoinDisplaySettings::Currency::Fiat:
+        case BitcoinDisplaySettings::Currency::Fiat:
             return toString(settings->fiat(), settings->rate(), settings->precision());
         default:
             Q_ASSERT(false);
     }
 }
 
-double BitCoinRepresentation::numberOfBTC() const {
+double BitcoinRepresentation::numberOfBTC() const {
 
     quint64 satoshiesInABitCoin = pow(10, bitCoinPrefixToPower[BitCoinPrefix::None]);
     double numberOfBitCoins = ((double)_satoshies) / satoshiesInABitCoin;
@@ -218,15 +218,15 @@ double BitCoinRepresentation::numberOfBTC() const {
     return numberOfBitCoins;
 }
 
-quint64 BitCoinRepresentation::satoshies() const {
+quint64 BitcoinRepresentation::satoshies() const {
     return _satoshies;
 }
 
-void BitCoinRepresentation::setSatoshies(quint64 satoshies) {
+void BitcoinRepresentation::setSatoshies(quint64 satoshies) {
     _satoshies = satoshies;
 }
 
-QString BitCoinRepresentation::prefixToString(BitCoinPrefix prefix) {
+QString BitcoinRepresentation::prefixToString(BitCoinPrefix prefix) {
 
     switch(prefix) {
 
@@ -242,7 +242,7 @@ QString BitCoinRepresentation::prefixToString(BitCoinPrefix prefix) {
     }
 }
 
-QString BitCoinRepresentation::prefixToString(MetricPrefix prefix) {
+QString BitcoinRepresentation::prefixToString(MetricPrefix prefix) {
 
     switch(prefix) {
         case MetricPrefix::Pico: return QString("p");
@@ -290,7 +290,7 @@ int BitCoinRepresentation::prefixToExponent(MetricPrefix prefix) {
 }
 */
 
-QString BitCoinRepresentation::fiatToSymbol(Fiat fiat) {
+QString BitcoinRepresentation::fiatToSymbol(Fiat fiat) {
 
     switch(fiat) {
         case Fiat::USD: return QString("$");

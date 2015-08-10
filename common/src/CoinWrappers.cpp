@@ -9,16 +9,35 @@
 
 #include <QByteArray>
 
-#include <sstream> // stringstream
-
 using namespace Coin;
+//using namespace Coin::Utilities;
 
 /**
- * AddressType
- */
+unsigned int extendedPrivateKeyVersionBytes(Network network) {
 
-// https://en.bitcoin.it/wiki/List_of_address_prefixes
-unsigned int toBase58CheckVersion(AddressType type, Network network) {
+    switch(network) {
+
+        case Network::testnet3: return 0x04358394;
+        case Network::mainnet: return 0x0488ADE4;
+        default:
+            Q_ASSERT(false);
+    }
+}
+
+unsigned int extendedPublicKeyVersionBytes(Network network) {
+
+    switch(network) {
+
+        case Network::testnet3: return 0x043587CF;
+        case Network::mainnet: return 0x0488B21E;
+        default:
+            Q_ASSERT(false);
+    }
+}
+
+
+
+unsigned int toBase58CheckVersionBytes(AddressType type, Network network) {
 
     switch(type) {
 
@@ -45,206 +64,31 @@ unsigned int toBase58CheckVersion(AddressType type, Network network) {
     }
 }
 
-std::pair<AddressType, Network> versionToAddressInformation(unsigned int version)  {
+AddressType versionByteToAddressType(unsigned int version) {
 
     switch(version) {
 
-        case 0x0: return std::make_pair(AddressType::PayToPublicKeyHash, Network::mainnet);
-        case 0x6F: return std::make_pair(AddressType::PayToPublicKeyHash, Network::testnet3);
-        case 0x5: return std::make_pair(AddressType::PayToScriptHash, Network::mainnet);
-        case 0xC4: return std::make_pair(AddressType::PayToScriptHash, Network::testnet3);
+        case 0x0: return AddressType::PayToPublicKeyHash;
+        case 0x6F: return AddressType::PayToPublicKeyHash;
+        case 0x5: return AddressType::PayToScriptHash;
+        case 0xC4: return AddressType::PayToScriptHash;
         default:
             Q_ASSERT(false);
     }
 }
 
-/**
- * fixed_uchar_array
- */
+Network versionByteToNetwork(unsigned int version) {
 
-QByteArray uchar_vector_to_QByteArray(const uchar_vector & v) {
+    switch(version) {
 
-    // Reinterpret from unsigned to signed char
-    const char * data = reinterpret_cast<const char *>(v.data());
-
-    // Create
-    return QByteArray(data, v.size());
-}
-
-template<unsigned array_length>
-fixed_uchar_array<array_length>::fixed_uchar_array(const uchar_vector & vector) {
-
-    const char * start = vector.data();
-    fill(static_cast<const unsigned char *>(start), vector.size());
-}
-
-template<unsigned array_length>
-fixed_uchar_array<array_length>::fixed_uchar_array(const QByteArray & byteArray) {
-
-    const char * start = byteArray.constData();
-    fill(static_cast<const unsigned char *>(start), byteArray.size());
-}
-
-template<unsigned array_length>
-void fixed_uchar_array<array_length>::fill(const unsigned char * start, int length) {
-
-    if(length != array_length) {
-
-        std::stringstream s;
-
-        s << "Required "
-          << array_length
-          << " bytes, but was provided"
-          << length;
-
-        throw std::runtime_error(s.str());
-    } else {
-
-        // Copy content into array
-        for(int i = 0;i < array_length;i++)
-            this[i] = start[i];
+        case 0x0: return Network::mainnet;
+        case 0x6F: return Network::testnet3;
+        case 0x5: return Network::mainnet;
+        case 0xC4: return Network::testnet3;
+        default:
+            Q_ASSERT(false);
     }
 }
-
-template<unsigned array_length>
-uchar_vector fixed_uchar_array<array_length>::toUCharVector() const {
-
-    // Get pointer to data
-    const unsigned char * data = static_cast<const unsigned char *>(this->data());
-
-    // Construct vector and return it
-    return uchar_vector(data, array_length);
-}
-
-template<unsigned array_length>
-QByteArray fixed_uchar_array<array_length>::toByteArray() const {
-
-    // Get pointer to data
-    const char * data = reinterpret_cast<const char *>(this->data());
-
-    // Construct byte array and return it
-    return QByteArray(data, array_length);
-}
-
-/**
- * PublicKey
- */
-
-const int PublicKey::compressedLength = 33;
-const int PublicKey::unCompressedLength = 65;
-
-PublicKey::PublicKey(const uchar_vector & raw)
-    : _raw(raw) {
-
-    // Validate length
-    std::vector<unsigned char>::size_type length = _raw.size();
-
-    if(length != PublicKey::compressedLength &&
-            length != PublicKey::unCompressedLength) {
-
-        std::stringstream s;
-
-        s << "Invaid public key length found, must be "
-          << PublicKey::compressedLength << " (compressed) or"
-          << PublicKey::unCompressedLength << " (uncompressed), but found: " << length;
-
-        throw std::runtime_error(s.str());
-    }
-}
-
-PublicKey::PublicKey(const PublicKey & publicKey)
-    : _raw(publicKey.raw()) {
-}
-
-bool PublicKey::operator==(const PublicKey & rhs) {
-}
-
-bool PublicKey::operator!=(const PublicKey & rhs) {
-
-}
-
-bool PublicKey::isCompressed() const {
-    return _raw.size() == PublicKey::compressedLength;
-}
-
-uchar_vector PublicKey::raw() const {
-    return _raw;
-}
-
-/**
- * PrivateKey
- */
-
-const int PrivateKey::length = 32;
-
-PrivateKey::PrivateKey(const uchar_vector_secure & raw)
-    : _raw(raw) {
-
-    // Validate length
-    std::vector<unsigned char>::size_type length = _raw.size();
-
-    // Valiate length
-    if(length != PrivateKey::length) {
-
-        std::stringstream s;
-
-        s << "Invaid private key length found, must be "
-          << PrivateKey::length << ", but found: "
-          << length;
-
-        throw std::runtime_error(s.str());
-    }
-}
-
-PrivateKey::~PrivateKey() {
-
-    // Clear memory
-    for(uchar_vector_secure::iterator i = _raw.begin(),
-        end = _raw.end();
-        i != end;
-        i++)
-        *i = 0;
-
-}
-
-
-uchar_vector_secure PrivateKey::raw() const {
-    return _raw;
-}
-
-/**
- * Signature
- */
-
-const int Signature::maxLength = 73;
-
-Signature::Signature(const uchar_vector_secure & raw)
-    : _raw(raw) {
-
-    // Validate length
-    std::vector<unsigned char>::size_type length = _raw.size();
-
-    // Check that the maximum length is not exceeded
-    if(raw.size() > Signature::maxLength) {
-
-        std::stringstream s;
-
-        s << "Invaid signature length found, must be no longer than"
-          << Signature::maxLength << ", but found: "
-          << length;
-
-        throw std::runtime_error(s.str());
-    }
-}
-
-std::vector<unsigned char>::size_type Signature::length() const  {
-    return _raw.size();
-}
-
-uchar_vector_secure Signature::raw() const {
-    return _raw;
-}
-
 
 
 Network getNetwork(std::string & base58CheckEncodedAddress) {
@@ -260,6 +104,18 @@ AddressType getType(std::string & base58CheckEncodedAddress) {
 
     // throw exception if ntohing matches
 }
+*/
+
+/**
+QByteArray uchar_vector_to_QByteArray(const uchar_vector & v) {
+
+    // Reinterpret from unsigned to signed char
+    const char * data = reinterpret_cast<const char *>(v.data());
+
+    // Create
+    return QByteArray(data, v.size());
+}
+*/
 
 /**
  * Address
@@ -297,46 +153,6 @@ void Address::setPayload(const uchar_vector & payload) {
     _payload = payload;
 }
  */
-
-/**
- * P2PKHAddress
- */
-
-const int P2PKHAddress::pubKeyHashLength = 20;
-
-P2PKHAddress::P2PKHAddress(Network network, const PublicKey & publicKey)
-    : _network(network) {
-
-    // hash public key, and store in _publicKeyHash
-}
-
-P2PKHAddress::P2PKHAddress(const uchar_vector & raw) {
-    // decode network and pubkey hash, and also do checksum validation
-}
-
-P2PKHAddress::P2PKHAddress(const std::string & base58CheckEncoded) {
-    // Decode string to byte form
-    // Call raw ctr version.
-}
-
-std::string P2PKHAddress::toBase58CheckEncoding() const {
-
-}
-
-AddressType P2PKHAddress::type() const {
-    return AddressType::PayToPublicKeyHash;
-}
-
-uchar_vector P2PKHAddress::publicKeyHash() const {
-    return _publicKeyHash;
-}
-
-void P2PKHAddress::setPublicKeyHash(const uchar_vector & publicKeyHash) {
-
-    // Checkt the length of argument
-
-    _publicKeyHash = publicKeyHash;
-}
 
 /**
  * P2SHAddress

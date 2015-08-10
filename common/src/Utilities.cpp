@@ -5,19 +5,29 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#include "Utilities.hpp"
-#include "extension/Message/MessageType.hpp"
+#include <common/Utilities.hpp>
 
-#include <libtorrent/entry.hpp>
-#include <libtorrent/bencode.hpp> // bdecode()
+#include <stdutils/uchar_vector.h>
 
-#include <QString>
+#include <QByteArray>
 
-#include <fstream>
-#include <vector>
+namespace Coin {
+
+    QByteArray toByteArray(const uchar_vector & raw) {
+
+        // Get pointer to data
+        const char * data = reinterpret_cast<const char *>(raw.data());
+
+        // Construct byte array and return it
+        return QByteArray(data, raw.size());
+    }
+
+}
 
 #include <libtorrent/socket_io.hpp> // libtorrent::print_endpoint
+#include <QString>
 #include <QHash>
+
 
 uint qHash(const libtorrent::tcp::endpoint & endpoint) {
 
@@ -31,6 +41,7 @@ uint qHash(const libtorrent::tcp::endpoint & endpoint) {
     return qHash(endPointQString);
 }
 
+/**
 uint qHash(const libtorrent::peer_request & request) {
 
     // Encode as string, since encoding as int requires knowing size of either request dimension,
@@ -40,6 +51,22 @@ uint qHash(const libtorrent::peer_request & request) {
     // Hash it
     return qHash(stringEncoding);
 }
+*/
+
+/*
+#include "Utilities.hpp"
+#include "extension/Message/MessageType.hpp"
+
+#include <libtorrent/entry.hpp>
+#include <libtorrent/bencode.hpp> // bdecode()
+
+#include <QString>
+
+#include <fstream>
+#include <vector>
+
+#include <libtorrent/socket_io.hpp> // libtorrent::print_endpoint
+#include <QHash>
 
 bool Utilities::loadBencodedEntry(const char * fileName, libtorrent::entry & destinationEntry) {
 
@@ -286,3 +313,4 @@ QTime Utilities::secondsToQTime(quint32 seconds) {
 
     return QTime(h,m,s);
 }
+*/

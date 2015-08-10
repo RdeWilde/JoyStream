@@ -5,6 +5,9 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, July 5 2015
  */
 
+#include <common/Network.hpp>
+#include <common/KeyPair.hpp>
+
 #include <wallet/Wallet.hpp>
 #include <wallet/WalletKey.hpp>
 #include <wallet/WalletAddress.hpp>
@@ -31,7 +34,14 @@ Wallet::Wallet(const QString & walletFile)
     , _latestBlockHeight(0)
     , _lastComputedZeroConfBalance(0) {
 
-    // If it doesnt exist, create an empty one, if it does exist,
+    // If wallet does not exist, then create it
+    if(!QFile(walletFile).exists()) {
+
+        // Build error message
+        QString errorMessage = "Was unable to load wallet file: " + walletFile;
+
+        throw std::runtime_error(errorMessage.toStdString());
+    }
 
     // Try to open database
     _db.setDatabaseName(walletFile);
@@ -115,6 +125,10 @@ void Wallet::createEmptyWallet(const QString & walletFile, Coin::Network network
 
 bool Wallet::validateWalletStructure(QSqlDatabase & db) {
     return true;
+}
+
+QSet<Coin::KeyPair> Wallet::generateNewKeys(quint8 numberOfKeys) {
+
 }
 
 quint64 Wallet::lastComputedZeroConfBalance() {

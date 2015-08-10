@@ -46,10 +46,10 @@ win32 {
     }
 }
 
-LIBTORRENT_LOCATION = /home/bedeho/JoyStream/Development/libs/libtorrent-rasterbar-1.0.5
-
 # Unix
 unix:!macx {
+
+    LIBTORRENT_LOCATION = /home/bedeho/JoyStream/Development/libs/$$LIBTORRENT_NAME
 
     DEFINES += TORRENT_NO_DEPRECATE
     #DEFINES += TORRENT_DISABLE_LOGGING

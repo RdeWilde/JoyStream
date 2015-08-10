@@ -14,8 +14,8 @@
 #include "controller/BuyerTorrentPluginViewModel.hpp"
 #include "controller/TorrentViewModel.hpp"
 
-#include <common/BitCoinRepresentation.hpp>
-#include <common/BitCoinDisplaySettings.hpp>
+#include <common/BitcoinRepresentation.hpp>
+#include <common/BitcoinDisplaySettings.hpp>
 
 // Dialogs
 #include "SellerTorrentPluginConfigurationDialog.hpp"
@@ -34,7 +34,7 @@
 #include "extension/BuyerTorrentPlugin.hpp"
 #include "extension/SellerTorrentPlugin.hpp"
 
-#include "Utilities.hpp" // Utilities::PluginModeToPluginInstalled(PluginMode mode)
+//#include "Utilities.hpp" // Utilities::PluginModeToPluginInstalled(PluginMode mode)
 
 #include <QMessageBox>
 #include <QFileDialog>
@@ -519,17 +519,17 @@ void MainWindow::startedTorrentPlugin(const libtorrent::sha1_hash & infoHash) {
 void MainWindow::updatePluginStatus(const Plugin::Status & status) {
     //ui->balanceLabel->setText(QString::number(p->balance()*1000) + "mBTC");
 
-    QString stringSpentBalance = BitCoinRepresentation(status.totalSentSinceStart()).toString(&_bitcoinDisplaySettings);
+    QString stringSpentBalance = BitcoinRepresentation(status.totalSentSinceStart()).toString(&_bitcoinDisplaySettings);
     ui->spentBalanceLabel->setText(stringSpentBalance);
 
-    QString stringEarnedBalance = BitCoinRepresentation(status.totalReceivedSinceStart()).toString(&_bitcoinDisplaySettings);
+    QString stringEarnedBalance = BitcoinRepresentation(status.totalReceivedSinceStart()).toString(&_bitcoinDisplaySettings);
     ui->earnedBalanceLabel->setText(stringEarnedBalance);
 }
 
 void MainWindow::updateWalletBalance(quint64 balance) {
     //qCDebug() << "updateWalletBalance" << balance;
 
-    QString stringBalance = BitCoinRepresentation(balance).toString(&_bitcoinDisplaySettings);
+    QString stringBalance = BitcoinRepresentation(balance).toString(&_bitcoinDisplaySettings);
 
     ui->balanceLabel->setText(stringBalance);
 }

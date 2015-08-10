@@ -8,7 +8,9 @@
 #ifndef BLOCK_HEADER_HPP
 #define BLOCK_HEADER_HPP
 
-#include <common/CoinWrappers.hpp>
+//#include <common/CoinWrappers.hpp>
+#include <common/BlockId.hpp>
+#include <common/TransactionMerkleTreeRoot.hpp>
 
 #include <QDateTime>
 

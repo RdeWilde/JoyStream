@@ -8,7 +8,10 @@
 #ifndef PAYEE_HPP
 #define PAYEE_HPP
 
-#include <common/CoinWrappers.hpp>
+//#include <common/CoinWrappers.hpp>
+#include <common/Signature.hpp>
+#include <common/TransactionId.hpp>
+#include <common/PublicKey.hpp>
 
 #include <QtGlobal>
 

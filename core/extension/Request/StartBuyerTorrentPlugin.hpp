@@ -12,7 +12,7 @@
 #include <libtorrent/sha1_hash.hpp>
 
 #include "extension/BuyerTorrentPlugin.hpp"
-#include "extension/BitCoin/UnspentP2PKHOutput.hpp"
+#include <common/UnspentP2PKHOutput.hpp>
 
 class StartBuyerTorrentPlugin : public PluginRequest
 {
@@ -22,7 +22,7 @@ public:
     StartBuyerTorrentPlugin();
 
     // Constructor from members
-    StartBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration configuration, const UnspentP2PKHOutput & utxo);
+    StartBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration configuration, const Coin::UnspentP2PKHOutput & utxo);
 
     // Returns request type
     virtual PluginRequestType getPluginRequestType() const;
@@ -34,8 +34,8 @@ public:
     BuyerTorrentPlugin::Configuration configuration() const;
     void setConfiguration(const BuyerTorrentPlugin::Configuration & configuration);
 
-    UnspentP2PKHOutput utxo() const;
-    void setUtxo(const UnspentP2PKHOutput & utxo);
+    Coin::UnspentP2PKHOutput utxo() const;
+    void setUtxo(const Coin::UnspentP2PKHOutput & utxo);
 
 private:
 
@@ -46,7 +46,7 @@ private:
     BuyerTorrentPlugin::Configuration _configuration;
 
     // Utxo funds buyer torrent plugin
-    UnspentP2PKHOutput _utxo;
+    Coin::UnspentP2PKHOutput _utxo;
 };
 
 #endif // START_BUYER_TORRENT_PLUGIN_HPP

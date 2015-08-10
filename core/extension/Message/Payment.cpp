@@ -13,14 +13,14 @@
 Payment::Payment() {
 }
 
-Payment::Payment(const Signature & sig)
+Payment::Payment(const Coin::Signature & sig)
     : _sig(sig) {
 }
 
 Payment::Payment(QDataStream & stream, quint8 lengthOfSignature) {
 
     // Check that signature has valid length
-    if(lengthOfSignature > Signature::maxLength)
+    if(lengthOfSignature > Coin::Signature::maxLength)
         throw std::runtime_error("Maximum signature length exceeded.");
 
     // Read signature
@@ -39,10 +39,10 @@ void Payment::write(QDataStream & stream) const {
     _sig.writeToStream(stream);
 }
 
-Signature Payment::sig() const {
+Coin::Signature Payment::sig() const {
     return _sig;
 }
 
-void Payment::setSig(const Signature & sig) {
+void Payment::setSig(const Coin::Signature & sig) {
     _sig = sig;
 }

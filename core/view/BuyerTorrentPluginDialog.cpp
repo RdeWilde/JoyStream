@@ -8,7 +8,7 @@
 #include "BuyerTorrentPluginDialog.hpp"
 #include "ui_BuyerTorrentPluginDialog.h"
 #include "controller/BuyerTorrentPluginViewModel.hpp"
-#include <common/BitCoinDisplaySettings.hpp>
+#include <common/BitcoinDisplaySettings.hpp>
 #include "controller/BuyerPeerPluginViewModel.hpp"
 #include "ChannelView.hpp"
 #include "BuyerPeerPluginView.hpp"
@@ -21,7 +21,7 @@
 
 BuyerTorrentPluginDialog::BuyerTorrentPluginDialog(QWidget * parent,
                                                    const BuyerTorrentPluginViewModel * model,
-                                                   const BitCoinDisplaySettings * settings)
+                                                   const BitcoinDisplaySettings * settings)
     : QDialog(parent)
     , ui(new Ui::BuyerTorrentDialog)
     , _settings(settings) {

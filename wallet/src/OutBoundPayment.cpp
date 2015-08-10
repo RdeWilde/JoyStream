@@ -56,7 +56,7 @@ QSqlQuery OutBoundPayment::insertQuery(QSqlDatabase db) {
 
     // Bind values to query fields
     query.bindValue(":paymentId", _id);
-    query.bindValue(":toAddress", Coin::uchar_vector_to_QByteArray(_toAddress.publicKeyHash()));
+    query.bindValue(":toAddress", _toAddress.pubKeyHash().toByteArray());
     query.bindValue(":changeAddressWalletKeyIndex", _changeAddressWalletKeyIndex);
     query.bindValue(":amount", _amount);
     query.bindValue(":fee", _fee);

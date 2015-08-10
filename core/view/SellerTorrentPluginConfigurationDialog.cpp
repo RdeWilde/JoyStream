@@ -7,16 +7,16 @@
 
 #include "SellerTorrentPluginConfigurationDialog.hpp"
 #include "ui_SellerTorrentPluginConfigurationDialog.h"
-#include <common/BitCoinRepresentation.hpp>
-#include <common/BitCoinDisplaySettings.hpp>
+#include <common/BitcoinRepresentation.hpp>
+#include <common/BitcoinDisplaySettings.hpp>
 #include "controller/Controller.hpp"
 //#include "extension/TorrentPluginConfiguration.hpp"
 #include "extension/SellerTorrentPlugin.hpp"
-#include "extension/BitCoin/BitCoin.hpp"
+#include <common/Bitcoin.hpp>
 
 #include <QMessageBox>
 
-SellerTorrentPluginConfigurationDialog::SellerTorrentPluginConfigurationDialog(Controller * controller, Wallet * wallet, const libtorrent::torrent_info & torrentInfo, const BitCoinDisplaySettings * settings)
+SellerTorrentPluginConfigurationDialog::SellerTorrentPluginConfigurationDialog(Controller * controller, Wallet * wallet, const libtorrent::torrent_info & torrentInfo, const BitcoinDisplaySettings * settings)
     :ui(new Ui::SellerTorrentPluginConfigurationDialog)
     , _controller(controller)
     , _wallet(wallet)
@@ -30,7 +30,7 @@ SellerTorrentPluginConfigurationDialog::SellerTorrentPluginConfigurationDialog(C
     ui->minFeeLineEdit->setVisible(false);
 
     // Set label based on bitconi display settings
-    if(_settings->currency() == BitCoinDisplaySettings::Currency::BitCoin) {
+    if(_settings->currency() == BitcoinDisplaySettings::Currency::BitCoin) {
         ui->minPriceLabel->setText("Price (mɃ/GB):");
         //ui->minPriceLineEdit->setText("3");
     } else { // == BitCoinDisplaySettings::Currency::Fiat
@@ -56,10 +56,10 @@ bool SellerTorrentPluginConfigurationDialog::tryToGetPricePrGB(quint64 & minSato
     else {
 
         // Convert to satoshies
-        if(_settings->currency() == BitCoinDisplaySettings::Currency::BitCoin)
-            minSatoshiesPrGB = BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, x).satoshies();
+        if(_settings->currency() == BitcoinDisplaySettings::Currency::BitCoin)
+            minSatoshiesPrGB = BitcoinRepresentation(BitcoinRepresentation::BitCoinPrefix::Milli, x).satoshies();
         else
-            minSatoshiesPrGB = BitCoinRepresentation(BitCoinRepresentation::MetricPrefix::Centi, x, _settings->rate()).satoshies();
+            minSatoshiesPrGB = BitcoinRepresentation(BitcoinRepresentation::MetricPrefix::Centi, x, _settings->rate()).satoshies();
     }
 }
 

@@ -13,14 +13,14 @@
 RefundSigned::RefundSigned() {
 }
 
-RefundSigned::RefundSigned(const Signature & sig)
+RefundSigned::RefundSigned(const Coin::Signature & sig)
     : _sig(sig) {
 }
 
 RefundSigned::RefundSigned(QDataStream & stream, quint8 lengthOfSignature) {
 
     // Check that signature has valid length
-    if(lengthOfSignature > Signature::maxLength)
+    if(lengthOfSignature > Coin::Signature::maxLength)
         throw std::runtime_error("Maximum signature length exceeded.");
 
     // Read signature
@@ -39,10 +39,10 @@ void RefundSigned::write(QDataStream & stream) const {
     _sig.writeToStream(stream);
 }
 
-Signature RefundSigned::sig() const {
+Coin::Signature RefundSigned::sig() const {
     return _sig;
 }
 
-void RefundSigned::setSig(const Signature & sig) {
+void RefundSigned::setSig(const Coin::Signature & sig) {
     _sig = sig;
 }

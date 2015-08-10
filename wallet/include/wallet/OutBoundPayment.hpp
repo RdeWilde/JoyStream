@@ -8,7 +8,8 @@
 #ifndef OUTBOUND_PAYMENT_HPP
 #define OUTBOUND_PAYMENT_HPP
 
-#include <common/CoinWrappers.hpp>
+//#include <common/CoinWrappers.hpp>
+#include <common/P2PKHAddress.hpp>
 
 #include <QDateTime>
 

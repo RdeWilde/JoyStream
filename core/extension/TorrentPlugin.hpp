@@ -10,7 +10,7 @@
 
 #include "BEPSupportStatus.hpp"
 //#include "TorrentPluginConfiguration.hpp"
-#include "Utilities.hpp" // uint qHash(const libtorrent::tcp::endpoint & endpoint)
+#include <common/Utilities.hpp> // uint qHash(const libtorrent::tcp::endpoint & endpoint)
 #include "PeerPlugin.hpp" // boost::weak_ptr<PeerPlugin>
 
 #include <libtorrent/extensions.hpp>

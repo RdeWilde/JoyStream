@@ -43,7 +43,7 @@ QSqlQuery WalletKey::insertQuery(QSqlDatabase db) {
 
     // bind wallet key values
     query.bindValue(":index", static_cast<uint>(_index));
-    query.bindValue(":privateKey", Coin::uchar_vector_to_QByteArray(_privateKey.raw()));
+    query.bindValue(":privateKey", _privateKey.toByteArray());
     //query.bindValue(":keyPurposeId", WalletKey::encodePurpose(walletKey.purpose()));
     query.bindValue(":generated", _generated.toMSecsSinceEpoch());
 

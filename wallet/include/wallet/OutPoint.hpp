@@ -8,7 +8,8 @@
 #ifndef OUTPOINT
 #define OUTPOINT
 
-#include <common/CoinWrappers.hpp>
+#include <common/TransactionId.hpp>
+//#include <common/CoinWrappers.hpp>
 
 #include <QtGlobal> // quint32
 

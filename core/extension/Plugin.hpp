@@ -8,7 +8,7 @@
 #ifndef PLUGIN_HPP
 #define PLUGIN_HPP
 
-#include "BitCoin/Client.hpp"
+//#include "BitCoin/Client.hpp"
 #include "SellerTorrentPlugin.hpp"
 #include "BuyerTorrentPlugin.hpp"
 
@@ -40,11 +40,16 @@ class TorrentPluginConfiguration;
 //class BuyerTorrentPlugin::Configuration;
 //class SellerTorrentPlugin::Configuration;
 class QNetworkReply;
+class QNetworkAccessManager;
 class Wallet;
 
 namespace libtorrent {
     class alert;
     class session_impl;
+}
+
+namespace Coin {
+    class UnspentP2PKHOutput;
 }
 
 /**
@@ -220,7 +225,7 @@ private:
     // Start plugin
     //bool startTorrentPlugin(const libtorrent::sha1_hash & infoHash, const TorrentPlugin::Configuration * configuration);
 
-    bool startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration, const UnspentP2PKHOutput & utxo);
+    bool startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration, const Coin::UnspentP2PKHOutput & utxo);
     bool startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration);
 
     // Send alert to session object

@@ -8,9 +8,9 @@
 #ifndef PAYEE_HPP
 #define PAYEE_HPP
 
-#include "extension/BitCoin/KeyPair.hpp"
-#include "extension/BitCoin/OutPoint.hpp"
-#include "extension/BitCoin/Signature.hpp"
+#include <common/KeyPair.hpp>
+#include <common/OutPoint.hpp>
+#include <common/Signature.hpp>
 
 /**
  * Manages the payee side of a 1-to-N payment channel using design in CBEP.
@@ -55,7 +55,7 @@ public:
         Status();
 
         // Constructor from members
-        Status(State state, quint64 numberOfPaymentsMade, quint32 lockTime, quint64 price, const OutPoint & contractOutPoint, quint64 funds);
+        Status(State state, quint64 numberOfPaymentsMade, quint32 lockTime, quint64 price, const Coin::OutPoint & contractOutPoint, quint64 funds);
 
         // Getters and setters
         State state() const;
@@ -70,8 +70,8 @@ public:
         quint64 price() const;
         void setPrice(quint64 price);
 
-        OutPoint contractOutPoint() const;
-        void setContractOutPoint(const OutPoint &contractOutPoint);
+        Coin::OutPoint contractOutPoint() const;
+        void setContractOutPoint(const Coin::OutPoint & contractOutPoint);
 
         quint64 funds() const;
         void setFunds(quint64 funds);
@@ -91,7 +91,7 @@ public:
         quint64 _price;
 
         // Contract outpoint from which payments originate
-        OutPoint _contractOutPoint;
+        Coin::OutPoint _contractOutPoint;
 
         // Amount (#satoshies) assigned to contract output
         quint64 _funds;
@@ -110,15 +110,15 @@ public:
         // Constructor from members
         Configuration(State state,
                       quint64 numberOfPaymentsMade,
-                      const Signature & lastValidPayorPaymentSignature,
+                      const Coin::Signature & lastValidPayorPaymentSignature,
                       quint32 lockTime,
                       quint64 price,
                       quint32 maximumNumberOfSellers,
-                      const KeyPair & payeeContractKeys,
-                      const KeyPair & payeePaymentKeys,
-                      const OutPoint & contractOutPoint,
-                      const PublicKey & payorContractPk,
-                      const PublicKey & payorFinalPk,
+                      const Coin::KeyPair & payeeContractKeys,
+                      const Coin::KeyPair & payeePaymentKeys,
+                      const Coin::OutPoint & contractOutPoint,
+                      const Coin::PublicKey & payorContractPk,
+                      const Coin::PublicKey & payorFinalPk,
                       quint64 funds);
 
         // Getters and setters
@@ -128,8 +128,8 @@ public:
         quint64 numberOfPaymentsMade() const;
         void setNumberOfPaymentsMade(quint64 numberOfPaymentsMade);
 
-        Signature lastValidPayorPaymentSignature() const;
-        void setLastValidPayorPaymentSignature(const Signature & lastValidPayorPaymentSignature);
+        Coin::Signature lastValidPayorPaymentSignature() const;
+        void setLastValidPayorPaymentSignature(const Coin::Signature & lastValidPayorPaymentSignature);
 
         quint32 lockTime() const;
         void setLockTime(quint32 lockTime);
@@ -140,20 +140,20 @@ public:
         quint32 maximumNumberOfSellers() const;
         void setMaximumNumberOfSellers(quint32 maximumNumberOfSellers);
 
-        KeyPair payeeContractKeys() const;
-        void setPayeeContractKeys(const KeyPair & payeeContractKeys);
+        Coin::KeyPair payeeContractKeys() const;
+        void setPayeeContractKeys(const Coin::KeyPair & payeeContractKeys);
 
-        KeyPair payeePaymentKeys() const;
-        void setPayeePaymentKeys(const KeyPair & payeePaymentKeys);
+        Coin::KeyPair payeePaymentKeys() const;
+        void setPayeePaymentKeys(const Coin::KeyPair & payeePaymentKeys);
 
-        OutPoint contractOutPoint() const;
-        void setContractOutPoint(const OutPoint & contractOutPoint);
+        Coin::OutPoint contractOutPoint() const;
+        void setContractOutPoint(const Coin::OutPoint & contractOutPoint);
 
-        PublicKey payorContractPk() const;
-        void setPayorContractPk(const PublicKey & payorContractPk);
+        Coin::PublicKey payorContractPk() const;
+        void setPayorContractPk(const Coin::PublicKey & payorContractPk);
 
-        PublicKey payorFinalPk() const;
-        void setPayorFinalPk(const PublicKey & payorFinalPk);
+        Coin::PublicKey payorFinalPk() const;
+        void setPayorFinalPk(const Coin::PublicKey & payorFinalPk);
 
         quint64 funds() const;
         void setFunds(quint64 funds);
@@ -167,7 +167,7 @@ public:
         quint64 _numberOfPaymentsMade;
 
         // The last valid payment signature received, corresponds to _numberOfPaymentsMade
-        Signature _lastValidPayorPaymentSignature;
+        Coin::Signature _lastValidPayorPaymentSignature;
 
         // Payment channel lock time
         quint32 _lockTime;
@@ -179,19 +179,19 @@ public:
         quint32 _maximumNumberOfSellers;
 
         // Controls payee portion of contract output
-        KeyPair _payeeContractKeys;
+        Coin::KeyPair _payeeContractKeys;
 
         // Controls payee output in payment _lastValidPaymentSignature
-        KeyPair _payeePaymentKeys;
+        Coin::KeyPair _payeePaymentKeys;
 
         // Contract outpoint from which payments originate
-        OutPoint _contractOutPoint;
+        Coin::OutPoint _contractOutPoint;
 
         // Payor key in contract output
-        PublicKey _payorContractPk;
+        Coin::PublicKey _payorContractPk;
 
         // Payor key in output in refund and payment
-        PublicKey _payorFinalPk;
+        Coin::PublicKey _payorFinalPk;
 
         // Amount (#satoshies) assigned to contract output
         quint64 _funds;
@@ -204,15 +204,15 @@ public:
     // Constructor based on members
     Payee(State state,
             quint64 numberOfPaymentsMade,
-            const Signature & lastValidPayorPaymentSignature,
+            const Coin::Signature & lastValidPayorPaymentSignature,
             quint32 lockTime,
             quint64 price,
             quint32 maximumNumberOfSellers,
-            const KeyPair & payeeContractKeys,
-            const KeyPair & payeePaymentKeys,
-            const OutPoint & contractOutPoint,
-            const PublicKey & payorContractPk,
-            const PublicKey & payorFinalPk,
+            const Coin::KeyPair & payeeContractKeys,
+            const Coin::KeyPair & payeePaymentKeys,
+            const Coin::OutPoint & contractOutPoint,
+            const Coin::PublicKey & payorContractPk,
+            const Coin::PublicKey & payorFinalPk,
             quint64 funds);
 
     // Constructor based on configuration
@@ -224,20 +224,20 @@ public:
     */
 
     // When contract information is known, as advertised in
-    void registerPayorInformation(const OutPoint & contractOutPoint, const PublicKey & payorContractPk, const PublicKey & payorFinalPk, quint64 funds);
+    void registerPayorInformation(const Coin::OutPoint & contractOutPoint, const Coin::PublicKey & payorContractPk, const Coin::PublicKey & payorFinalPk, quint64 funds);
 
     // Creates refund signature
     // ==================================================
-    Signature generateRefundSignature() const;
+    Coin::Signature generateRefundSignature() const;
 
     // Attempts to register payment if signature is valid
     // ==================================================
     // A valid signature will lead to an increase of _numberOfPaymentsMade,
     // and storing signature in _lastValidPayorPaymentSignature
-    bool registerPayment(const Signature & payorPaymentSignature);
+    bool registerPayment(const Coin::Signature & payorPaymentSignature);
 
     // Attempts to check validity of given payment signature with (_numberOfPaymentsMade + 1)
-    bool checkNextPaymentSignature(const Signature & payorPaymentSignature) const;
+    bool checkNextPaymentSignature(const Coin::Signature & payorPaymentSignature) const;
 
     // Attempts to broadcast the most recent payment
     bool broadcastLastPayment() const;
@@ -267,8 +267,8 @@ public:
     quint64 numberOfPaymentsMade() const;
     void setNumberOfPaymentsMade(quint64 numberOfPaymentsMade);
 
-    Signature lastValidPayorPaymentSignature() const;
-    void setLastValidPayorPaymentSignature(const Signature & lastValidPayorPaymentSignature);
+    Coin::Signature lastValidPayorPaymentSignature() const;
+    void setLastValidPayorPaymentSignature(const Coin::Signature & lastValidPayorPaymentSignature);
 
     quint32 lockTime() const;
     void setLockTime(quint32 lockTime);
@@ -279,20 +279,20 @@ public:
     quint32 maximumNumberOfSellers() const;
     void setMaximumNumberOfSellers(quint32 maximumNumberOfSellers);
 
-    KeyPair payeeContractKeys() const;
-    void setPayeeContractKeys(const KeyPair & payeeContractKeys);
+    Coin::KeyPair payeeContractKeys() const;
+    void setPayeeContractKeys(const Coin::KeyPair & payeeContractKeys);
 
-    KeyPair payeePaymentKeys() const;
-    void setPayeePaymentKeys(const KeyPair & payeePaymentKeys);
+    Coin::KeyPair payeePaymentKeys() const;
+    void setPayeePaymentKeys(const Coin::KeyPair & payeePaymentKeys);
 
-    OutPoint contractOutPoint() const;
-    void setContractOutPoint(const OutPoint & contractOutPoint);
+    Coin::OutPoint contractOutPoint() const;
+    void setContractOutPoint(const Coin::OutPoint & contractOutPoint);
 
-    PublicKey payorContractPk() const;
-    void setPayorContractPk(const PublicKey & payorContractPk);
+    Coin::PublicKey payorContractPk() const;
+    void setPayorContractPk(const Coin::PublicKey & payorContractPk);
 
-    PublicKey payorFinalPk() const;
-    void setPayorFinalPk(const PublicKey & payorFinalPk);
+    Coin::PublicKey payorFinalPk() const;
+    void setPayorFinalPk(const Coin::PublicKey & payorFinalPk);
 
     quint64 funds() const;
     void setFunds(quint64 funds);
@@ -306,7 +306,7 @@ private:
     quint64 _numberOfPaymentsMade;
 
     // The last valid payment signature received, corresponds to _numberOfPaymentsMade
-    Signature _lastValidPayorPaymentSignature;
+    Coin::Signature _lastValidPayorPaymentSignature;
 
     // Payment channel lock time
     quint32 _lockTime;
@@ -318,19 +318,19 @@ private:
     quint32 _maximumNumberOfSellers;
 
     // Controls payee portion of contract output
-    KeyPair _payeeContractKeys;
+    Coin::KeyPair _payeeContractKeys;
 
     // Controls payee output in payment _lastValidPaymentSignature
-    KeyPair _payeePaymentKeys;
+    Coin::KeyPair _payeePaymentKeys;
 
     // Contract outpoint from which payments originate
-    OutPoint _contractOutPoint;
+    Coin::OutPoint _contractOutPoint;
 
     // Payor key in contract output
-    PublicKey _payorContractPk;
+    Coin::PublicKey _payorContractPk;
 
     // Payor key in output in refund and payment
-    PublicKey _payorFinalPk;
+    Coin::PublicKey _payorFinalPk;
 
     // Amount (#satoshies) assigned to contract output
     quint64 _funds;

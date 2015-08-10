@@ -13,8 +13,8 @@
 SignRefund::SignRefund() {
 }
 
-SignRefund::SignRefund(const TxId & hash, quint32 index, quint64 value, const PublicKey & contractPk, const PublicKey & finalPk)
-    : _hash(hash)
+SignRefund::SignRefund(const Coin::TransactionId & contractTxId, quint32 index, quint64 value, const Coin::PublicKey & contractPk, const Coin::PublicKey & finalPk)
+    : _contractTxId(contractTxId)
     , _index(index)
     , _value(value)
     , _contractPk(contractPk)
@@ -22,7 +22,7 @@ SignRefund::SignRefund(const TxId & hash, quint32 index, quint64 value, const Pu
 }
 
 SignRefund::SignRefund(QDataStream & stream) {
-    stream >> _hash >> _index >> _value >> _contractPk >> _finalPk;
+    stream >> _contractTxId >> _index >> _value >> _contractPk >> _finalPk;
 }
 
 MessageType SignRefund::messageType() const {
@@ -30,19 +30,19 @@ MessageType SignRefund::messageType() const {
 }
 
 quint32 SignRefund::length() const {
-    return TxId::length + sizeof(quint32) + sizeof(quint64) + PublicKey::length + PublicKey::length;
+    return Coin::TransactionId::length() + sizeof(quint32) + sizeof(quint64) + Coin::PublicKey::length() + Coin::PublicKey::length();
 }
 
 void SignRefund::write(QDataStream & stream) const {
-    stream << _hash << _index << _value << _contractPk << _finalPk;
+    stream << _contractTxId << _index << _value << _contractPk << _finalPk;
 }
 
-TxId SignRefund::hash() const {
-    return _hash;
+Coin::TransactionId SignRefund::contractTxId() const {
+    return _contractTxId;
 }
 
-void SignRefund::setHash(const TxId & hash) {
-    _hash = hash;
+void SignRefund::setContractTxId(const Coin::TransactionId & contractTxId) {
+    _contractTxId = contractTxId;
 }
 
 quint32 SignRefund::index() const {
@@ -61,18 +61,18 @@ void SignRefund::setValue(quint64 value) {
     _value = value;
 }
 
-PublicKey SignRefund::contractPk() const {
+Coin::PublicKey SignRefund::contractPk() const {
     return _contractPk;
 }
 
-void SignRefund::setContractPk(const PublicKey & contractPk) {
+void SignRefund::setContractPk(const Coin::PublicKey & contractPk) {
     _contractPk = contractPk;
 }
 
-PublicKey SignRefund::finalPk() const {
+Coin::PublicKey SignRefund::finalPk() const {
     return _finalPk;
 }
 
-void SignRefund::setFinalPk(const PublicKey & finalPk) {
+void SignRefund::setFinalPk(const Coin::PublicKey & finalPk) {
     _finalPk = finalPk;
 }

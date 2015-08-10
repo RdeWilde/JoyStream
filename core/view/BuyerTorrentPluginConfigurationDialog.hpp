@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef BUYERTORRENTPLUGINCONFIGURATIONDIALOG_HPP
-#define BUYERTORRENTPLUGINCONFIGURATIONDIALOG_HPP
+#ifndef BUYER_TORRENT_PLUGIN_CONFIGURATION_DIALOG_HPP
+#define BUYER_TORRENT_PLUGIN_CONFIGURATION_DIALOG_HPP
 
 #include <QDialog>
 
@@ -19,7 +19,7 @@ class BuyerTorrentPluginConfigurationDialog;
 
 class Controller;
 class Wallet;
-class BitCoinDisplaySettings;
+class BitcoinDisplaySettings;
 
 class BuyerTorrentPluginConfigurationDialog : public QDialog
 {
@@ -29,7 +29,7 @@ public:
 
     //explicit BuyerTorrentPluginConfigurationDialog(QWidget *parent = 0);
 
-    BuyerTorrentPluginConfigurationDialog(Controller * controller, Wallet * wallet, const libtorrent::torrent_info & torrentInfo, const BitCoinDisplaySettings * settings);
+    BuyerTorrentPluginConfigurationDialog(Controller * controller, Wallet * wallet, const libtorrent::torrent_info & torrentInfo, const BitcoinDisplaySettings * settings);
 
     // Destructor
     ~BuyerTorrentPluginConfigurationDialog();
@@ -62,7 +62,7 @@ private:
 
     libtorrent::torrent_info _torrentInfo;
 
-    const BitCoinDisplaySettings * _settings;
+    const BitcoinDisplaySettings * _settings;
 
     // Derives maxPrice, for given torrent and parameters
     quint64 maxPriceFromTotalSpend(quint64 maxTotalSpend, int numberOfSellers, quint64 feePerkB);
@@ -71,4 +71,4 @@ private:
     void updateTotal();
 };
 
-#endif // BUYERTORRENTPLUGINCONFIGURATIONDIALOG_HPP
+#endif // BUYER_TORRENT_PLUGIN_CONFIGURATION_DIALOG_HPP

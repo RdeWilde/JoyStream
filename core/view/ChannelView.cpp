@@ -7,8 +7,8 @@
 
 #include "ChannelView.hpp"
 #include "controller/ChannelViewModel.hpp"
-#include <common/BitCoinRepresentation.hpp>
-#include <common/BitCoinDisplaySettings.hpp>
+#include <common/BitcoinRepresentation.hpp>
+#include <common/BitcoinDisplaySettings.hpp>
 
 #include <QStandardItem>
 #include <QStandardItemModel>
@@ -16,7 +16,7 @@
 ChannelView::ChannelView(QObject * parent,
                          const ChannelViewModel * channelViewModel,
                          QStandardItemModel * model,
-                         const BitCoinDisplaySettings * settings)
+                         const BitcoinDisplaySettings * settings)
     : QObject(parent)
     , _settings(settings)
     , _index(channelViewModel->index())
@@ -102,27 +102,27 @@ QString ChannelView::stateToString(Payor::Channel::State state) {
     return text;
 }
 
-QString ChannelView::fundsToString(quint64 funds, const BitCoinDisplaySettings * settings) {
+QString ChannelView::fundsToString(quint64 funds, const BitcoinDisplaySettings * settings) {
     //return QString::number(funds) + "Ƀ";
-    return BitCoinRepresentation(funds).toString(settings);
+    return BitcoinRepresentation(funds).toString(settings);
 }
 
 QString ChannelView::refundLockTimeToString(quint32 refundLockTime) {
     return QString::number(refundLockTime) + "s";
 }
 
-QString ChannelView::priceToString(quint64 price, const BitCoinDisplaySettings * settings) {
+QString ChannelView::priceToString(quint64 price, const BitcoinDisplaySettings * settings) {
     //return QString::number(price) + "Ƀ";
-    return BitCoinRepresentation(price).toString(settings);
+    return BitcoinRepresentation(price).toString(settings);
 }
 
 QString ChannelView::numberOfPaymentsMadeToString(quint64 numberOfPaymentsMade) {
     return QString::number(numberOfPaymentsMade);
 }
 
-QString ChannelView::balanceToString(quint64 balance, const BitCoinDisplaySettings * settings) {
+QString ChannelView::balanceToString(quint64 balance, const BitcoinDisplaySettings * settings) {
     //return QString::number(balance) + "Ƀ";
-    return BitCoinRepresentation(balance).toString(settings);
+    return BitcoinRepresentation(balance).toString(settings);
 }
 
 void ChannelView::updateState(Payor::Channel::State state) {

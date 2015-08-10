@@ -8,7 +8,8 @@
 #ifndef PAYER_HPP
 #define PAYER_HPP
 
-#include <common/CoinWrappers.hpp>
+//#include <common/CoinWrappers.hpp>
+#include <common/TransactionId.hpp>
 
 #include <QDateTime>
 

@@ -8,7 +8,9 @@
 #ifndef TRANSACTION_HPP
 #define TRANSACTION_HPP
 
-#include <common/CoinWrappers.hpp>
+//#include <common/CoinWrappers.hpp>
+#include <common/TransactionId.hpp>
+#include <common/BlockId.hpp>
 
 #include <QDateTime>
 

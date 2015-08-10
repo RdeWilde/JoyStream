@@ -15,6 +15,8 @@
 #include <libtorrent/alert.hpp>
 #include <libtorrent/sha1_hash.hpp>
 
+#include <common/UnspentP2PKHOutput.hpp>
+
 class StartedBuyerTorrentPlugin : public libtorrent::alert
 {
 public:
@@ -28,7 +30,7 @@ public:
     // Constructor from members
     StartedBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
                               const BuyerTorrentPlugin::Configuration & configuration,
-                              const UnspentP2PKHOutput & utxo,
+                              const Coin::UnspentP2PKHOutput & utxo,
                               const BuyerTorrentPlugin::Status & status);
 
     // Copy constructor
@@ -48,8 +50,8 @@ public:
     BuyerTorrentPlugin::Configuration configuration() const;
     void setConfiguration(const BuyerTorrentPlugin::Configuration & configuration);
 
-    UnspentP2PKHOutput utxo() const;
-    void setUtxo(const UnspentP2PKHOutput & utxo);
+    Coin::UnspentP2PKHOutput utxo() const;
+    void setUtxo(const Coin::UnspentP2PKHOutput & utxo);
 
     BuyerTorrentPlugin::Status status() const;
     void setStatus(const BuyerTorrentPlugin::Status & status);
@@ -63,7 +65,7 @@ private:
     BuyerTorrentPlugin::Configuration _configuration;
 
     // Funding utxo
-    UnspentP2PKHOutput _utxo;
+    Coin::UnspentP2PKHOutput _utxo;
 
     // Starting status
     BuyerTorrentPlugin::Status _status;

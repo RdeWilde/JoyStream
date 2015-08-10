@@ -12,7 +12,7 @@
 #include "extension/Plugin.hpp" // Plugin::Status
 #include "extension/BuyerTorrentPlugin.hpp" // BuyerTorrentPlugin::Status
 #include "extension/SellerTorrentPlugin.hpp" // SellerTorrentPlugin::Status
-#include <common/BitCoinDisplaySettings.hpp>
+#include <common/BitcoinDisplaySettings.hpp>
 
 #include <libtorrent/torrent_handle.hpp>
 #include <libtorrent/add_torrent_params.hpp>
@@ -148,7 +148,7 @@ private:
     QTimer _walletBalanceUpdateTimer;
 
     // How bitcoin should be displayed in entire view
-    BitCoinDisplaySettings _bitcoinDisplaySettings;
+    BitcoinDisplaySettings _bitcoinDisplaySettings;
 
     // Uses _rowToViewMapping to lookup view in _torrentViews
     TorrentView * rowToView(int row);

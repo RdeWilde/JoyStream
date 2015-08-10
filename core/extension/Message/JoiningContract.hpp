@@ -9,7 +9,7 @@
 #define JOINING_CONTRACT_HPP
 
 #include "ExtendedMessagePayload.hpp"
-#include "extension/BitCoin/PublicKey.hpp"
+#include <common/PublicKey.hpp>
 
 class JoiningContract : public ExtendedMessagePayload
 {
@@ -19,14 +19,14 @@ public:
     JoiningContract();
 
     // Construct from members
-    JoiningContract(const PublicKey & contractPk, const PublicKey & finalPk);
+    JoiningContract(const Coin::PublicKey & contractPk, const Coin::PublicKey & finalPk);
 
     // Constructor based on raw payload
     JoiningContract(QDataStream & stream);
 
     // Getter
-    PublicKey contractPk() const;
-    PublicKey finalPk() const;
+    Coin::PublicKey contractPk() const;
+    Coin::PublicKey finalPk() const;
 
     // Virtual methods that subclassing messages have to implement
     virtual MessageType messageType() const;
@@ -36,10 +36,10 @@ public:
 private:
 
     // Key for seller output in contract
-    PublicKey _contractPk;
+    Coin::PublicKey _contractPk;
 
     // Key for payment to seller
-    PublicKey _finalPk;
+    Coin::PublicKey _finalPk;
 };
 
 #endif // JOINING_CONTRACT_HPP

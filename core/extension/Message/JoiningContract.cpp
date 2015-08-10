@@ -14,7 +14,7 @@ JoiningContract::JoiningContract() {
 
 }
 
-JoiningContract::JoiningContract(const PublicKey & contractPk, const PublicKey & finalPk)
+JoiningContract::JoiningContract(const Coin::PublicKey & contractPk, const Coin::PublicKey & finalPk)
     : _contractPk(contractPk)
     , _finalPk(finalPk) {
 }
@@ -23,11 +23,11 @@ JoiningContract::JoiningContract(QDataStream & stream) {
     stream >> _contractPk >> _finalPk;
 }
 
-PublicKey JoiningContract::contractPk() const {
+Coin::PublicKey JoiningContract::contractPk() const {
     return _contractPk;
 }
 
-PublicKey JoiningContract::finalPk() const {
+Coin::PublicKey JoiningContract::finalPk() const {
     return _finalPk;
 }
 
@@ -36,7 +36,7 @@ MessageType JoiningContract::messageType() const {
 }
 
 quint32 JoiningContract::length() const {
-    return PublicKey::length + PublicKey::length;
+    return Coin::PublicKey::length() + Coin::PublicKey::length();
 }
 
 void JoiningContract::write(QDataStream & stream) const {

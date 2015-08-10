@@ -34,7 +34,7 @@ SOURCES += \
     extension/Plugin.cpp \
     extension/PeerPlugin.cpp \
     extension/Message/ExtendedMessageIdMapping.cpp \
-    Utilities.cpp \
+    #Utilities.cpp \
     extension/PeerPluginId.cpp \
     extension/Request/PluginRequest.cpp \
     extension/Request/TorrentPluginRequest.cpp \
@@ -44,10 +44,10 @@ SOURCES += \
     view/SellerTorrentPluginConfigurationDialog.cpp \
     view/BuyerTorrentPluginConfigurationDialog.cpp \
     extension/Alert/TorrentPluginAlert.cpp \
-    extension/BitCoin/Client.cpp \
+    #extension/BitCoin/Client.cpp \
     extension/Alert/PluginStatusAlert.cpp \
     extension/Message/ExtendedMessagePayload.cpp \
-    extension/BitCoin/Signature.cpp \
+    #bextension/BitCoin/Signature.cpp \
     extension/Message/JoiningContract.cpp \
     extension/Message/SignRefund.cpp \
     extension/Message/RefundSigned.cpp \
@@ -61,27 +61,27 @@ SOURCES += \
     extension/BuyerTorrentPlugin.cpp \
     extension/SellerTorrentPlugin.cpp \
     extension/SellerPeerPlugin.cpp \
-    extension/BitCoin/KeyPair.cpp \
-    extension/BitCoin/P2SHTxOut.cpp \
-    extension/BitCoin/P2PKHTxOut.cpp \
+    ##extension/BitCoin/KeyPair.cpp \
+    ##extension/BitCoin/P2SHTxOut.cpp \
+    ##extension/BitCoin/P2PKHTxOut.cpp \
     #extension/PaymentChannel/Refund.cpp \
     #extension/PaymentChannel/Payment.cpp \
     #extension/PaymentChannel/Contract.cpp \
-    extension/BitCoin/BitSwaprjs.cpp \
+    ##extension/BitCoin/BitSwaprjs.cpp \
     #extension/PaymentChannel/Payee/Payee.cpp \
     #extension/PaymentChannel/Payor/Channel.cpp \
-    extension/BitCoin/OutPoint.cpp \
+    ##extension/BitCoin/OutPoint.cpp \
     extension/BuyerPeerPlugin.cpp \
     #extension/PaymentChannel/Payor/Payor.cpp \
     extension/PaymentChannel/Payor.cpp \
     extension/PaymentChannel/Payee.cpp \
-    extension/BitCoin/UnspentP2PKHOutput.cpp \
+    ##extension/BitCoin/UnspentP2PKHOutput.cpp \
     #extension/BitCoin/Wallet.cpp \
     view/WalletDialog.cpp \
-    extension/BitCoin/PublicKey.cpp \
-    extension/BitCoin/TxId.cpp \
-    extension/BitCoin/base58.cpp \
-    extension/BitCoin/PrivateKey.cpp \
+    ##extension/BitCoin/PublicKey.cpp \
+    ##extension/BitCoin/TxId.cpp \
+    ##extension/BitCoin/base58.cpp \
+    ##extension/BitCoin/PrivateKey.cpp \
     extension/Request/StartBuyerTorrentPlugin.cpp \
     extension/Request/StartSellerTorrentPlugin.cpp \
     extension/Request/StartObserverTorrentPlugin.cpp \
@@ -115,10 +115,12 @@ SOURCES += \
     extension/Alert/SellerPeerPluginRemovedAlert.cpp \
     controller/Stream.cpp \
     extension/Request/ChangeDownloadLocation.cpp \
+    extension/Message/ExtendedMessageTools.cpp
     #view/DataSizeRepresentation.cpp \
     #view/BitCoinRepresentation.cpp \
     #view/BitCoinDisplaySettings.cpp
-		
+
+
 HEADERS += \
     controller/Controller.hpp \
     controller/exceptions/InvalidBitSwaprStateEntryException.hpp \
@@ -135,7 +137,7 @@ HEADERS += \
     extension/Plugin.hpp \
     extension/PeerPlugin.hpp \
     extension/Message/ExtendedMessageIdMapping.hpp \
-    Utilities.hpp \
+    #Utilities.hpp \
     extension/Message/MessageType.hpp \
     extension/PeerPluginId.hpp \
     extension/BEPSupportStatus.hpp \
@@ -150,11 +152,11 @@ HEADERS += \
     extension/Alert/TorrentPluginAlert.hpp \
     extension/Alert/AlertTypes.hpp \
     extension/PluginMode.hpp \
-    extension/BitCoin/Client.hpp \
+    ##extension/BitCoin/Client.hpp \
     extension/Alert/PluginStatusAlert.hpp \
     extension/Message/ExtendedMessagePayload.hpp \
-    extension/BitCoin/PublicKey.hpp \
-    extension/BitCoin/Signature.hpp \
+    ##extension/BitCoin/PublicKey.hpp \
+    ##extension/BitCoin/Signature.hpp \
     extension/Message/JoiningContract.hpp \
     extension/Message/SignRefund.hpp \
     extension/Message/RefundSigned.hpp \
@@ -163,7 +165,7 @@ HEADERS += \
     extension/Message/JoinContract.hpp \
     extension/Message/Buy.hpp \
     extension/Message/Payment.hpp \
-    extension/BitCoin/PrivateKey.hpp \
+    ##extension/BitCoin/PrivateKey.hpp \
     extension/PeerAction.hpp \
     extension/Message/Ready.hpp \
     extension/Message/NoPayloadMessage.hpp \
@@ -173,21 +175,21 @@ HEADERS += \
     extension/SellerTorrentPlugin.hpp \
     extension/BuyerPeerPlugin.hpp \
     extension/SellerPeerPlugin.hpp \
-    extension/BitCoin/KeyPair.hpp \
-    extension/BitCoin/FixedBuffer.hpp \
-    extension/BitCoin/OutputSigHash.hpp \
-    extension/BitCoin/P2SHTxOut.hpp \
-    extension/BitCoin/P2PKHTxOut.hpp \
-    extension/BitCoin/BitSwaprjs.hpp \
+    ##extension/BitCoin/KeyPair.hpp \
+    ##extension/BitCoin/FixedBuffer.hpp \
+    ##extension/BitCoin/OutputSigHash.hpp \
+    ##extension/BitCoin/P2SHTxOut.hpp \
+    ##extension/BitCoin/P2PKHTxOut.hpp \
+    ##extension/BitCoin/BitSwaprjs.hpp \
     extension/PaymentChannel/Payee.hpp \
-    extension/BitCoin/P2PKHAddress.hpp \
-    extension/BitCoin/OutPoint.hpp \
+    ##extension/BitCoin/P2PKHAddress.hpp \
+    ##extension/BitCoin/OutPoint.hpp \
     extension/PaymentChannel/Payor.hpp \
-    extension/BitCoin/UnspentP2PKHOutput.hpp \
+    ##extension/BitCoin/UnspentP2PKHOutput.hpp \
     #extension/BitCoin/Wallet.hpp \
     view/WalletDialog.hpp \
-    extension/BitCoin/TxId.hpp \
-    extension/BitCoin/base58.hpp \
+    ##extension/BitCoin/TxId.hpp \
+    ##extension/BitCoin/base58.hpp \
     extension/Request/StartBuyerTorrentPlugin.hpp \
     extension/Request/StartSellerTorrentPlugin.hpp \
     extension/Request/StartObserverTorrentPlugin.hpp \
@@ -223,11 +225,13 @@ HEADERS += \
     extension/Alert/SellerPeerPluginRemovedAlert.hpp \
     controller/Stream.hpp \
     extension/Request/ChangeDownloadLocation.hpp \
+    extension/Message/ExtendedMessageTools.hpp \
     #view/DataSizeRepresentation.hpp \
     #view/BitCoinRepresentation.hpp \
     #view/BitCoinDisplaySettings.hpp \
     #view/Fiat.hpp
-				
+
+
 FORMS += \
     view/SellerTorrentPluginConfigurationDialog.ui \
     view/BuyerTorrentPluginConfigurationDialog.ui \

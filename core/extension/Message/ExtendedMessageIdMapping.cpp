@@ -6,7 +6,7 @@
  */
 
 #include "ExtendedMessageIdMapping.hpp"
-#include "Utilities.hpp" // const char * messageName(MessageType type)
+#include "ExtendedMessageTools.hpp" // const char * messageName(MessageType type)
 
 #include <vector>
 #include <exception>
@@ -52,7 +52,7 @@ ExtendedMessageIdMapping::ExtendedMessageIdMapping(const std::map<std::string, l
         try {
 
             // Try to convert string to message type
-            MessageType message = Utilities::messageType(i->first);
+            MessageType message = ExtendedMessageTools::messageType(i->first);
 
             // It worked, so store id in mapping
             _mapping[message] = (i->second).integer();
@@ -80,7 +80,7 @@ void ExtendedMessageIdMapping::writeToDictionary(std::map<std::string, libtorren
     // Iterate mappings and dump to dictionary
     for(std::map<MessageType, quint8>::const_iterator i = _mapping.begin(),
         end(_mapping.end()); i != end;i++)
-        m[Utilities::messageName(i->first)] = i->second;
+        m[ExtendedMessageTools::messageName(i->first)] = i->second;
 }
 
 quint8 ExtendedMessageIdMapping::id(MessageType messageType) const {
@@ -128,7 +128,7 @@ MessageType ExtendedMessageIdMapping::messageType(quint8 id) const {
 bool ExtendedMessageIdMapping::isValid() const {
 
     // Get the number of messages
-    int numberOfMessages = Utilities::numberOfMessageTypes();
+    int numberOfMessages = ExtendedMessageTools::numberOfMessageTypes();
 
     // Has the right number of mappings
     if(_mapping.size() != numberOfMessages)
@@ -152,7 +152,7 @@ bool ExtendedMessageIdMapping::isValid() const {
 void ExtendedMessageIdMapping::setAllStartingAt(quint8 _id) {
 
     // Get the set of all messages
-    const std::set<MessageType> allMessageTypes = Utilities::allMessageTypes();
+    const std::set<MessageType> allMessageTypes = ExtendedMessageTools::allMessageTypes();
 
     // Create mapping for all messages, starting at _id
     for(std::set<MessageType>::const_iterator i = allMessageTypes.begin(),

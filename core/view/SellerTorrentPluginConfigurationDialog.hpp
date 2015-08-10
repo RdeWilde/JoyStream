@@ -14,7 +14,7 @@
 
 class Controller;
 class Wallet;
-class BitCoinDisplaySettings;
+class BitcoinDisplaySettings;
 
 namespace Ui {
 class SellerTorrentPluginConfigurationDialog;
@@ -27,7 +27,7 @@ class SellerTorrentPluginConfigurationDialog : public QDialog
 public:
     //explicit SellerTorrentPluginConfigurationDialog(QWidget *parent = 0);
 
-    SellerTorrentPluginConfigurationDialog(Controller * controller, Wallet * wallet, const libtorrent::torrent_info & torrentInfo, const BitCoinDisplaySettings * settings);
+    SellerTorrentPluginConfigurationDialog(Controller * controller, Wallet * wallet, const libtorrent::torrent_info & torrentInfo, const BitcoinDisplaySettings * settings);
 
     ~SellerTorrentPluginConfigurationDialog();
 
@@ -53,7 +53,7 @@ private:
 
     Wallet * _wallet;
 
-    const BitCoinDisplaySettings * _settings;
+    const BitcoinDisplaySettings * _settings;
 
     // Hash of torrent
     //libtorrent::sha1_hash _infoHash;

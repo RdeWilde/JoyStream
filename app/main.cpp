@@ -18,9 +18,10 @@
 #include <core/extension/SellerTorrentPlugin.hpp> // for configurations
 #include <core/logger/LoggerManager.hpp>
 #include <core/extension/PluginMode.hpp>
-#include <core/extension/BitCoin/BitCoin.hpp> // defines STANDARD_NUM_SATOSHIES_PER_KB_IN_TX_FEE
-#include <core/extension/BitCoin/UnspentP2PKHOutput.hpp>
 
+#include <core/extension/BitCoin/BitCoin.hpp> // defines STANDARD_NUM_SATOSHIES_PER_KB_IN_TX_FEE
+
+#include <common/UnspentP2PKHOutput.hpp>
 #include <common/BitCoinRepresentation.hpp>
 
 #include <libtorrent/torrent_info.hpp>
@@ -227,6 +228,10 @@ Controller * create_controller(Controller::Configuration controllerConfiguration
     // Create logging category
     QLoggingCategory * category = global_log_manager.createLogger(name, use_stdout_logg, false);
 
+    // Create wallet?
+
+    //Wallet::createEmptyWallet(walletFile, Coin::Network::testnet3, QByteArray());
+
     // Create wallet name
     controllerConfiguration.setWalletFile(QString(WALLET_LOCATION) + name + QString("_wallet.dat"));
 
@@ -263,7 +268,7 @@ void add_buyers_with_plugin(Controller::Configuration controllerConfiguration, Q
         //controller->wallet().synchronize();
 
         // Get funding output - this has to be grabbed from wallet/chain later
-        UnspentP2PKHOutput utxo; // = controller->wallet().getUtxo(minFunds, 1);
+        Coin::UnspentP2PKHOutput utxo; // = controller->wallet().getUtxo(minFunds, 1);
 
         // Check that an utxo was indeed found
         if(utxo.value() == 0) {

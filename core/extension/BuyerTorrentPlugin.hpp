@@ -17,7 +17,10 @@
 #include <queue>          // std::priority_queue
 
 class Wallet;
+
+namespace Coin {
 class UnspentP2PKHOutput;
+}
 
 #include <boost/shared_array.hpp>
 
@@ -219,7 +222,7 @@ public:
                        const boost::shared_ptr<libtorrent::torrent> & torrent,
                        Wallet * wallet,
                        const Configuration & configuration,
-                       const UnspentP2PKHOutput & utxo,
+                       const Coin::UnspentP2PKHOutput & utxo,
                        QLoggingCategory & category);
 
     /**
@@ -243,10 +246,10 @@ public:
     //bool inviteSeller(quint32 minPrice, quint32 minLock) const;
 
     // Attempts to add seller to contract
-    bool sellerWantsToJoinContract(BuyerPeerPlugin * peer, quint64 price, quint32 refundLockTime, const PublicKey & contractPk, const PublicKey & finalPk);
+    bool sellerWantsToJoinContract(BuyerPeerPlugin * peer, quint64 price, quint32 refundLockTime, const Coin::PublicKey & contractPk, const Coin::PublicKey & finalPk);
 
     // Verifies signature, and also broadcasts contract if full set of signatures has been aquired
-    bool sellerProvidedRefundSignature(BuyerPeerPlugin * peer, const Signature & refundSignature);
+    bool sellerProvidedRefundSignature(BuyerPeerPlugin * peer, const Coin::Signature & refundSignature);
 
     // Find peers which presently have not been assigned a piece, and assign piece.
     bool assignPieceToPeerPlugin(BuyerPeerPlugin * peer);
@@ -261,7 +264,7 @@ public:
     void pieceDownloaded(int index);
 
     // Increments payment counter in payment channel, and generates signature
-    Signature makePaymentAndGetPaymentSignature(BuyerPeerPlugin * peerPlugin);
+    Coin::Signature makePaymentAndGetPaymentSignature(BuyerPeerPlugin * peerPlugin);
 
     // Ask libtorrent to validate piece
     //bool checkLengthAndValidatePiece(int pieceIndex, const boost::shared_array<char> & piece, int length);

@@ -21,7 +21,7 @@ class BuyerTorrentPluginViewModel;
 class ChannelView;
 class BuyerPeerPluginView;
 class BuyerPeerPluginViewModel;
-class BitCoinDisplaySettings;
+class BitcoinDisplaySettings;
 
 class BuyerTorrentPluginDialog : public QDialog
 {
@@ -32,13 +32,13 @@ public:
     // Constructor
     BuyerTorrentPluginDialog(QWidget * parent,
                              const BuyerTorrentPluginViewModel * model,
-                             const BitCoinDisplaySettings * settings);
+                             const BitcoinDisplaySettings * settings);
 
     // Text conversion routines
     static QString pluginStateToString(BuyerTorrentPlugin::State state);
     static QString payorStateToString(Payor::State state);
-    static QString contractTxIdToString(const TxId & id);
-    static QString utxoToString(const UnspentP2PKHOutput & utxo);
+    static QString contractTxIdToString(const Coin::TransactionId & id);
+    static QString utxoToString(const Coin::UnspentP2PKHOutput & utxo);
 
     // Destructor
     ~BuyerTorrentPluginDialog();
@@ -59,15 +59,15 @@ public slots:
     // Update
     void updatePluginState(BuyerTorrentPlugin::State state);
     void updatePayorState(Payor::State state);
-    void updateContractTxId(const TxId & id);
-    void updateUtxo(const UnspentP2PKHOutput & utxo);
+    void updateContractTxId(const Coin::TransactionId & id);
+    void updateUtxo(const Coin::UnspentP2PKHOutput & utxo);
 
 private:
 
     Ui::BuyerTorrentDialog *ui;
 
     // Display settings for bitcoins
-    const BitCoinDisplaySettings * _settings;
+    const BitcoinDisplaySettings * _settings;
 
     // Payor channel table view model
     QStandardItemModel _channelTableViewModel;

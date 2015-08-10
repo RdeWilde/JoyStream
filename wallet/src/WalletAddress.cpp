@@ -44,8 +44,8 @@ QSqlQuery WalletAddress::insertQuery(QSqlDatabase db) {
 
     // bind wallet key values
     uint d = static_cast<uint>(_walletKeyIndex);
-    query.bindValue(":walletKeyIndex", QVariant(d));
-    query.bindValue(":address", Coin::uchar_vector_to_QByteArray(_address.raw()));
+    query.bindValue(":walletKeyIndex", d);
+    query.bindValue(":address", _address.pubKeyHash().toByteArray());
 
     return query;
 }

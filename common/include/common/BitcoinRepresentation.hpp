@@ -14,11 +14,11 @@
 #include <QMap>
 
 class QString;
-class BitCoinDisplaySettings;
+class BitcoinDisplaySettings;
 
 // Manage crypto currency representaion
 // Should probably just have static routines
-class BitCoinRepresentation
+class BitcoinRepresentation
 {
 public:
 
@@ -34,7 +34,7 @@ public:
         //Deci,     // 10^7
         None,       // 10^8, 1 BTC
         //Deca,     // 10^9
-        Kilo,       // 10^(8+3)
+        Kilo        // 10^(8+3)
         //Mega      // 10^(8+3+3)
     };
 
@@ -62,14 +62,14 @@ public:
      */
 
     // Constructor from raw number of satoshies
-    BitCoinRepresentation(qint64 satoshies);
+    BitcoinRepresentation(qint64 satoshies);
 
     // Constructor from prefixed crypto currency amount
-    BitCoinRepresentation(BitCoinPrefix prefix, double units);
+    BitcoinRepresentation(BitCoinPrefix prefix, double units);
 
     // Constructor from fiat
     // fiatToBTCExchangeRate := number of fiat units BitCoinPrefix::None units of satoshies buys
-    BitCoinRepresentation(MetricPrefix prefix, double fiatUnits, double fiatToBTCExchangeRate);
+    BitcoinRepresentation(MetricPrefix prefix, double fiatUnits, double fiatToBTCExchangeRate);
 
     /**
      * Convert to QString routines
@@ -82,7 +82,7 @@ public:
     QString toString(Fiat fiat, double fiatToBTCExchangeRate, int precision = 1) const;
 
     // Representation based on display settings
-    QString toString(const BitCoinDisplaySettings * settings) const;
+    QString toString(const BitcoinDisplaySettings * settings) const;
 
     // Number of BitCoins
     // Is very useful since dealing with fiat requires dealing with exchange rates,

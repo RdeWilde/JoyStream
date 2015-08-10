@@ -9,7 +9,7 @@
 #define REFUND_SIGNED_HPP
 
 #include "ExtendedMessagePayload.hpp"
-#include "extension/BitCoin/Signature.hpp"
+#include <common/Signature.hpp>
 
 class RefundSigned : public ExtendedMessagePayload
 {
@@ -19,7 +19,7 @@ public:
     RefundSigned();
 
     // Construct from members
-    RefundSigned(const Signature & sig);
+    RefundSigned(const Coin::Signature & sig);
 
     // Constructor based on raw payload
     RefundSigned(QDataStream & stream, quint8 lengthOfSignature);
@@ -30,13 +30,13 @@ public:
     virtual void write(QDataStream & stream) const;
 
     // Getters and setters
-    Signature sig() const;
-    void setSig(const Signature & sig);
+    Coin::Signature sig() const;
+    void setSig(const Coin::Signature & sig);
 
 private:
 
     // Seller refund signature
-    Signature _sig;
+    Coin::Signature _sig;
 };
 
 #endif // REFUND_SIGNED_HPP

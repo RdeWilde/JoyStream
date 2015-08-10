@@ -118,10 +118,10 @@ QSqlQuery Slot::insertQuery(QSqlDatabase db) {
     query.bindValue(":funds", _funds);
     query.bindValue(":payerContractWalletKeyId", _payerContractWalletKeyId);
     query.bindValue(":payerFinalWalletKeyId", _payerFinalWalletKeyId);
-    query.bindValue(":payeeContractPublicKey", Coin::uchar_vector_to_QByteArray(_payeeContractPublicKey.raw()));
-    query.bindValue(":payeeFinalPublicKey", Coin::uchar_vector_to_QByteArray(_payeeFinalPublicKey.raw()));
-    query.bindValue(":refundSignature", Coin::uchar_vector_to_QByteArray(_refundSignature.raw()));
-    query.bindValue(":lastPaymentSignature", Coin::uchar_vector_to_QByteArray(_lastPaymentSignature.raw()));
+    query.bindValue(":payeeContractPublicKey", _payeeContractPublicKey.toByteArray());
+    query.bindValue(":payeeFinalPublicKey", _payeeFinalPublicKey.toByteArray());
+    query.bindValue(":refundSignature", _refundSignature.toByteArray());
+    query.bindValue(":lastPaymentSignature", _lastPaymentSignature.toByteArray());
     query.bindValue(":refundFee", _refundFee);
     query.bindValue(":paymentFee", _paymentFee);
     query.bindValue(":refundLockTime", _refundLockTime);

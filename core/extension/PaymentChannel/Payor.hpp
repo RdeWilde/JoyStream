@@ -8,14 +8,13 @@
 #ifndef PAYOR_HPP
 #define PAYOR_HPP
 
-#include "extension/BitCoin/PublicKey.hpp"
-#include "extension/BitCoin/PrivateKey.hpp"
-#include "extension/BitCoin/KeyPair.hpp"
-#include "extension/BitCoin/TxId.hpp"
-#include "extension/BitCoin/Signature.hpp"
-#include "extension/BitCoin/OutPoint.hpp"
-
-#include "extension/BitCoin/UnspentP2PKHOutput.hpp"
+#include <common/PublicKey.hpp>
+#include <common/PrivateKey.hpp>
+#include <common/KeyPair.hpp>
+#include <common/TransactionId.hpp>
+#include <common/Signature.hpp>
+#include <common/OutPoint.hpp>
+#include <common/UnspentP2PKHOutput.hpp>
 
 #include <QVector>
 
@@ -80,12 +79,12 @@ public:
                           quint64 price,
                           quint64 numberOfPaymentsMade,
                           quint64 funds,
-                          const KeyPair & payorContractKeyPair,
-                          const KeyPair & payorFinalKeyPair,
-                          const PublicKey & payeeContractPk,
-                          const PublicKey & payeeFinalPk,
-                          const Signature & payorRefundSignature,
-                          const Signature & payeeRefundSignature,
+                          const Coin::KeyPair & payorContractKeyPair,
+                          const Coin::KeyPair & payorFinalKeyPair,
+                          const Coin::PublicKey & payeeContractPk,
+                          const Coin::PublicKey & payeeFinalPk,
+                          const Coin::Signature & payorRefundSignature,
+                          const Coin::Signature & payeeRefundSignature,
                           quint64 refundFee,
                           quint64 paymentFee,
                           quint32 refundLockTime);
@@ -106,23 +105,23 @@ public:
             quint64 funds() const;
             void setFunds(quint64 funds);
 
-            KeyPair payorContractKeyPair() const;
-            void setPayorContractKeyPair(const KeyPair & payorContractKeyPair);
+            Coin::KeyPair payorContractKeyPair() const;
+            void setPayorContractKeyPair(const Coin::KeyPair & payorContractKeyPair);
 
-            KeyPair payorFinalKeyPair() const;
-            void setPayorFinalKeyPair(const KeyPair & payorFinalKeyPair);
+            Coin::KeyPair payorFinalKeyPair() const;
+            void setPayorFinalKeyPair(const Coin::KeyPair & payorFinalKeyPair);
 
-            PublicKey payeeContractPk() const;
-            void setPayeeContractPk(const PublicKey & payeeContractPk);
+            Coin::PublicKey payeeContractPk() const;
+            void setPayeeContractPk(const Coin::PublicKey & payeeContractPk);
 
-            PublicKey payeeFinalPk() const;
-            void setPayeeFinalPk(const PublicKey & payeeFinalPk);
+            Coin::PublicKey payeeFinalPk() const;
+            void setPayeeFinalPk(const Coin::PublicKey & payeeFinalPk);
 
-            Signature payorRefundSignature() const;
-            void setPayorRefundSignature(const Signature & payorRefundSignature);
+            Coin::Signature payorRefundSignature() const;
+            void setPayorRefundSignature(const Coin::Signature & payorRefundSignature);
 
-            Signature payeeRefundSignature() const;
-            void setPayeeRefundSignature(const Signature & payeeRefundSignature);
+            Coin::Signature payeeRefundSignature() const;
+            void setPayeeRefundSignature(const Coin::Signature & payeeRefundSignature);
 
             quint64 refundFee() const;
             void setRefundFee(quint64 refundFee);
@@ -152,22 +151,22 @@ public:
             quint64 _funds;
 
             // Controls payour output of multisig
-            KeyPair _payorContractKeyPair;
+            Coin::KeyPair _payorContractKeyPair;
 
             // Controls final payment to payor
-            KeyPair _payorFinalKeyPair;
+            Coin::KeyPair _payorFinalKeyPair;
 
             // Controls payee output of multisig, received in joinin_contract.pk
-            PublicKey _payeeContractPk;
+            Coin::PublicKey _payeeContractPk;
 
             // Controls payee payments, received in sign_refund.pk
-            PublicKey _payeeFinalPk;
+            Coin::PublicKey _payeeFinalPk;
 
             // Controls refund for payor
-            Signature _payorRefundSignature;
+            Coin::Signature _payorRefundSignature;
 
             // Controls refund for payee
-            Signature _payeeRefundSignature;
+            Coin::Signature _payeeRefundSignature;
 
             // Fee used in refund transaction, is unlikely to vary across slots,
             quint64 _refundFee;
@@ -255,12 +254,12 @@ public:
              quint64 price,
              quint64 numberOfPaymentsMade,
              quint64 funds,
-             const KeyPair & payorContractKeyPair,
-             const KeyPair & payorFinalKeyPair,
-             const PublicKey & payeeContractPk,
-             const PublicKey & payeeFinalPk,
-             const Signature & payorRefundSignature,
-             const Signature & payeeRefundSignature,
+             const Coin::KeyPair & payorContractKeyPair,
+             const Coin::KeyPair & payorFinalKeyPair,
+             const Coin::PublicKey & payeeContractPk,
+             const Coin::PublicKey & payeeFinalPk,
+             const Coin::Signature & payorRefundSignature,
+             const Coin::Signature & payeeRefundSignature,
              quint64 refundFee,
              quint64 paymentFee,
              quint32 refundLockTime);
@@ -276,10 +275,10 @@ public:
         //Payment payment(const Hash &contractHash) const;
 
         // Compute payor refund signature
-        void computeAndSetPayorRefundSignature(const TxId &contractHash);
+        void computeAndSetPayorRefundSignature(const Coin::TransactionId & contractHash);
 
         // Payment signature
-        Signature paymentSignature(const TxId &contractHash) const;
+        Coin::Signature paymentSignature(const Coin::TransactionId & contractHash) const;
 
         // Registers that a payment was made
         void paymentMade();
@@ -302,23 +301,23 @@ public:
         quint64 funds() const;
         void setFunds(quint64 funds);
 
-        KeyPair payorContractKeyPair() const;
-        void setPayorContractKeyPair(const KeyPair & payorContractKeyPair);
+        Coin::KeyPair payorContractKeyPair() const;
+        void setPayorContractKeyPair(const Coin::KeyPair & payorContractKeyPair);
 
-        KeyPair payorFinalKeyPair() const;
-        void setPayorFinalKeyPair(const KeyPair & payorFinalKeyPair);
+        Coin::KeyPair payorFinalKeyPair() const;
+        void setPayorFinalKeyPair(const Coin::KeyPair & payorFinalKeyPair);
 
-        PublicKey payeeContractPk() const;
-        void setPayeeContractPk(const PublicKey & payeeContractPk);
+        Coin::PublicKey payeeContractPk() const;
+        void setPayeeContractPk(const Coin::PublicKey & payeeContractPk);
 
-        PublicKey payeeFinalPk() const;
-        void setPayeeFinalPk(const PublicKey & payeeFinalPk);
+        Coin::PublicKey payeeFinalPk() const;
+        void setPayeeFinalPk(const Coin::PublicKey & payeeFinalPk);
 
-        Signature payorRefundSignature() const;
-        void computeAndSetPayorRefundSignature(const Signature & payorRefundSignature);
+        Coin::Signature payorRefundSignature() const;
+        void computeAndSetPayorRefundSignature(const Coin::Signature & payorRefundSignature);
 
-        Signature payeeRefundSignature() const;
-        void setPayeeRefundSignature(const Signature & payeeRefundSignature);
+        Coin::Signature payeeRefundSignature() const;
+        void setPayeeRefundSignature(const Coin::Signature & payeeRefundSignature);
 
         quint64 refundFee() const;
         void setRefundFee(quint64 refundFee);
@@ -347,22 +346,22 @@ public:
         quint64 _funds;
 
         // Controls payour output of multisig
-        KeyPair _payorContractKeyPair;
+        Coin::KeyPair _payorContractKeyPair;
 
         // Controls final payment to payor
-        KeyPair _payorFinalKeyPair;
+        Coin::KeyPair _payorFinalKeyPair;
 
         // Controls payee output of multisig, received in joinin_contract.pk
-        PublicKey _payeeContractPk;
+        Coin::PublicKey _payeeContractPk;
 
         // Controls payee payments, received in sign_refund.pk
-        PublicKey _payeeFinalPk;
+        Coin::PublicKey _payeeFinalPk;
 
         // Controls refund for payor
-        Signature _payorRefundSignature;
+        Coin::Signature _payorRefundSignature;
 
         // Controls refund for payee
-        Signature _payeeRefundSignature;
+        Coin::Signature _payeeRefundSignature;
 
         // Fee used in refund transaction, is unlikely to vary across slots,
         quint64 _refundFee;
@@ -387,10 +386,10 @@ public:
         // Construct from members
         Status(const QVector<Channel::Status> & channels,
                State state,
-               const UnspentP2PKHOutput & utxo,
+               const Coin::UnspentP2PKHOutput & utxo,
                quint64 changeValue,
                quint64 contractFee,
-               const TxId & contractTxId,
+               const Coin::TransactionId & contractTxId,
                quint32 numberOfSignatures);
 
         // Getters and setters
@@ -400,8 +399,8 @@ public:
         State state() const;
         void setState(State state);
 
-        UnspentP2PKHOutput utxo() const;
-        void setUtxo(const UnspentP2PKHOutput & utxo);
+        Coin::UnspentP2PKHOutput utxo() const;
+        void setUtxo(const Coin::UnspentP2PKHOutput & utxo);
 
         quint64 changeValue() const;
         void setChangeValue(quint64 changeValue);
@@ -409,8 +408,8 @@ public:
         quint64 contractFee() const;
         void setContractFee(quint64 contractFee);
 
-        TxId contractTxId() const;
-        void setContractTxId(const TxId &contractTxId);
+        Coin::TransactionId contractTxId() const;
+        void setContractTxId(const Coin::TransactionId & contractTxId);
 
         quint32 numberOfSignatures() const;
         void setNumberOfSignatures(quint32 numberOfSignatures);
@@ -424,7 +423,7 @@ public:
         State _state;
 
         // Funding utxo
-        UnspentP2PKHOutput _utxo;
+        Coin::UnspentP2PKHOutput _utxo;
 
         // Change amount sent back to payor,
         // this value, together with the _funds in all the slots
@@ -435,7 +434,7 @@ public:
         quint64 _contractFee;
 
         // Transaction id of contract
-        TxId _contractTxId;
+        Coin::TransactionId _contractTxId;
 
         // Number of valid signatures collected
         quint32 _numberOfSignatures;
@@ -455,11 +454,11 @@ public:
         // Constructor for a fresh payor.
         Configuration(State state,
                       const QVector<Channel::Configuration> & channels,
-                      const UnspentP2PKHOutput & utxo,
-                      const KeyPair & changeOutputKeyPair,
+                      const Coin::UnspentP2PKHOutput & utxo,
+                      const Coin::KeyPair & changeOutputKeyPair,
                       quint64 changeValue,
                       quint64 contractFee,
-                      const TxId & contractHash,
+                      const Coin::TransactionId & contractHash,
                       quint32 numberOfSignatures);
 
         // Getters and setters
@@ -469,8 +468,8 @@ public:
         QVector<Channel::Configuration> channels() const;
         void setChannels(const QVector<Channel::Configuration> & channels);
 
-        UnspentP2PKHOutput utxo() const;
-        void setUtxo(const UnspentP2PKHOutput &utxo);
+        Coin::UnspentP2PKHOutput utxo() const;
+        void setUtxo(const Coin::UnspentP2PKHOutput &utxo);
 
         /**
         OutPoint fundingOutPoint() const;
@@ -483,8 +482,8 @@ public:
         void setFundingOutputKeyPair(const KeyPair & fundingOutputKeyPair);
         */
 
-        KeyPair changeOutputKeyPair() const;
-        void setChangeOutputKeyPair(const KeyPair & changeOutputKeyPair);
+        Coin::KeyPair changeOutputKeyPair() const;
+        void setChangeOutputKeyPair(const Coin::KeyPair & changeOutputKeyPair);
 
         quint64 changeValue() const;
         void setChangeValue(quint64 changeValue);
@@ -492,8 +491,8 @@ public:
         quint64 contractFee() const;
         void setContractFee(quint64 contractFee);
 
-        TxId contractHash() const;
-        void setContractHash(const TxId & contractHash);
+        Coin::TransactionId contractHash() const;
+        void setContractHash(const Coin::TransactionId & contractHash);
 
         quint32 numberOfSignatures() const;
         void setNumberOfSignatures(quint32 numberOfSignatures);
@@ -517,10 +516,10 @@ public:
         //KeyPair _fundingOutputKeyPair;
 
         // Funding
-        UnspentP2PKHOutput _utxo;
+        Coin::UnspentP2PKHOutput _utxo;
 
         // Controls change output in contract
-        KeyPair _changeOutputKeyPair;
+        Coin::KeyPair _changeOutputKeyPair;
 
         // Change amount sent back to payor,
         // this value, together with the _funds in all the slots
@@ -531,7 +530,7 @@ public:
         quint64 _contractFee;
 
         // Contract _contract;
-        TxId _contractHash;
+        Coin::TransactionId _contractHash;
 
         // Number of valid refund signatures
         quint32 _numberOfSignatures;
@@ -549,7 +548,7 @@ public:
     // If one is found then the
     // given payee slot configurations are saved in slot,
     // and if this was last unassigned slot, then payor state is switched.
-    quint32 assignUnassignedSlot(quint64 price, const PublicKey & contractPk, const PublicKey & finalPk, quint32 refundLockTime);
+    quint32 assignUnassignedSlot(quint64 price, const Coin::PublicKey & contractPk, const Coin::PublicKey & finalPk, quint32 refundLockTime);
 
     // Resets slot state to unassigned
     // ===============================
@@ -566,7 +565,7 @@ public:
     // 1) saves signature
     // 2) updates slot state refund_assigned
     // 3) updates payor state to all_signed, if all all are now signed.
-    bool processRefundSignature(quint32 index, const Signature & signature);
+    bool processRefundSignature(quint32 index, const Coin::Signature & signature);
 
     // Broadcast the current contract
     // ============================================
@@ -578,7 +577,7 @@ public:
 
     // Returns the payment signature for the present payment increment of given slot
     // ============================================
-    Signature getPresentPaymentSignature(quint32 index) const;
+    Coin::Signature getPresentPaymentSignature(quint32 index) const;
 
     // Attempts to claim refund for given slot
     // Returns false iff (time lock has not experied on refund or output has been double spent)
@@ -608,11 +607,11 @@ public:
     QVector<Channel> & channels();
     const Payor::Channel & channel(int i) const;
 
-    OutPoint fundingOutPoint() const;
-    void setFundingOutPoint(const OutPoint & fundingOutPoint);
+    Coin::OutPoint fundingOutPoint() const;
+    void setFundingOutPoint(const Coin::OutPoint & fundingOutPoint);
 
-    TxId contractHash() const;
-    void setContractHash(const TxId & contractHash);
+    Coin::TransactionId contractHash() const;
+    void setContractHash(const Coin::TransactionId & contractHash);
 
     quint32 numberOfSignatures() const;
     void setNumberOfSignatures(quint32 numberOfSignatures);
@@ -637,10 +636,10 @@ private:
     //KeyPair _fundingOutputKeyPair;
 
     // Funding
-    UnspentP2PKHOutput _utxo;
+    Coin::UnspentP2PKHOutput _utxo;
 
     // Controls change output in contract
-    KeyPair _changeOutputKeyPair;
+    Coin::KeyPair _changeOutputKeyPair;
 
     // Change amount sent back to payor,
     // this value, together with the _funds in all the slots
@@ -660,7 +659,7 @@ private:
     // Add variable here for number of channels assignd as well
 
     // Contract _contract;
-    TxId _contractTxId;
+    Coin::TransactionId _contractTxId;
 
     quint32 _numberOfSignatures;
 };

@@ -13,7 +13,7 @@
 #include "extension/Plugin.hpp"
 #include "TorrentViewModel.hpp"
 //#include "extension/BitCoin/Wallet.hpp"
-#include "extension/BitCoin/UnspentP2PKHOutput.hpp"
+#include <common/UnspentP2PKHOutput.hpp>
 //#include "StreamingServer.hpp"
 #include "Stream.hpp"
 
@@ -515,13 +515,13 @@ public:
     // Manage torrents
     bool addTorrent(const Torrent::Configuration & configuration);
     bool addTorrent(const Torrent::Configuration & configuration, const SellerTorrentPlugin::Configuration & pluginConfiguration);
-    bool addTorrent(const Torrent::Configuration & configuration, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const UnspentP2PKHOutput & utxo);
+    bool addTorrent(const Torrent::Configuration & configuration, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const Coin::UnspentP2PKHOutput & utxo);
     //bool addTorrent(const Torrent::Configuration & configuration, const ObserverTorrentPlugin::Configuration & pluginConfiguration);
 
     // Start torrent plugin
     //void startTorrentPlugin(const libtorrent::sha1_hash & info_hash, const TorrentPlugin::Configuration * configuration);
     void startSellerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const SellerTorrentPlugin::Configuration & pluginConfiguration);
-    void startBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const UnspentP2PKHOutput & utxo);
+    void startBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const Coin::UnspentP2PKHOutput & utxo);
     //void startObserverTorrentPlugin(const libtorrent::sha1_hash & info_hash, const ObserverTorrentPlugin::Configuration & pluginConfiguration);
 
     // Stops libtorrent session, and tries to save_resume data, when all resume data is saved, finalize_close() is called.
@@ -678,7 +678,7 @@ private:
     // issued by session.
     //QMap<libtorrent::sha1_hash, const TorrentPlugin::Configuration *> _pendingConfigurations;
     QMap<libtorrent::sha1_hash, SellerTorrentPlugin::Configuration> _pendingSellerTorrentPluginConfigurations;
-    QMap<libtorrent::sha1_hash, QPair<BuyerTorrentPlugin::Configuration, UnspentP2PKHOutput> > _pendingBuyerTorrentPluginConfigurationAndUtxos;
+    QMap<libtorrent::sha1_hash, QPair<BuyerTorrentPlugin::Configuration, Coin::UnspentP2PKHOutput> > _pendingBuyerTorrentPluginConfigurationAndUtxos;
     //QMap<libtorrent::sha1_hash, UnspentP2PKHOutput> _pendingBuyerTorrentPluginUtxos;
     //QMap<libtorrent::sha1_hash, ObserverTorrentPlugin::Configuration> _pendingObserverTorrentPluginConfigurations;
 

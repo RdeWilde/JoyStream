@@ -31,9 +31,9 @@ public:
     // Getters
     Payor::State state() const;
 
-    UnspentP2PKHOutput utxo() const;
+    Coin::UnspentP2PKHOutput utxo() const;
 
-    TxId contractTxId() const;
+    Coin::TransactionId contractTxId() const;
 
     quint32 numberOfSignatures() const;
 
@@ -43,8 +43,8 @@ signals:
 
     // Status change
     void stateChanged(Payor::State state);
-    void contractTxIdChanged(const TxId & id);
-    void utxoChanged(const UnspentP2PKHOutput & utxo);
+    void contractTxIdChanged(const Coin::TransactionId & id);
+    void utxoChanged(const Coin::UnspentP2PKHOutput & utxo);
     void numberOfSignaturesChanged(quint32 numberOfSignatures);
 
 private:
@@ -53,10 +53,10 @@ private:
     Payor::State _state;
 
     // Funding utxo
-    UnspentP2PKHOutput _utxo;
+    Coin::UnspentP2PKHOutput _utxo;
 
     // Transaction id of contract
-    TxId _contractTxId;
+    Coin::TransactionId _contractTxId;
 
     // Number of valid signatures collected
     quint32 _numberOfSignatures;

@@ -7,22 +7,23 @@
 
 #include "BuyerTorrentPluginConfigurationDialog.hpp"
 #include "ui_BuyerTorrentPluginConfigurationDialog.h"
-#include <common/BitCoinRepresentation.hpp>
-#include <common/BitCoinDisplaySettings.hpp>
+#include <common/BitcoinRepresentation.hpp>
+#include <common/BitcoinDisplaySettings.hpp>
 #include "extension/PluginMode.hpp"
 //#include "extension/TorrentPluginConfiguration.hpp"
 #include "extension/BuyerTorrentPlugin.hpp" // BuyerTorrentPlugin::Configuration, BuyerTorrentPlugin::contractFee
 #include "controller/Controller.hpp"
-#include "extension/BitCoin/Wallet.hpp"
-#include "extension/BitCoin/BitSwaprjs.hpp"
-#include "extension/BitCoin/UnspentP2PKHOutput.hpp"
-#include "extension/BitCoin/BitCoin.hpp"
+
+#include <wallet/Wallet.hpp>
+//#include "extension/Bitcoin/BitSwaprjs.hpp"
+#include <common/UnspentP2PKHOutput.hpp>
+#include <common/Bitcoin.hpp>
 
 #include <QtMath>
 #include <QMessageBox>
 #include <QVector>
 
-BuyerTorrentPluginConfigurationDialog::BuyerTorrentPluginConfigurationDialog(Controller * controller, Wallet * wallet, const libtorrent::torrent_info & torrentInfo, const BitCoinDisplaySettings * settings)
+BuyerTorrentPluginConfigurationDialog::BuyerTorrentPluginConfigurationDialog(Controller * controller, Wallet * wallet, const libtorrent::torrent_info & torrentInfo, const BitcoinDisplaySettings * settings)
     : ui(new Ui::BuyerTorrentPluginConfigurationDialog)
     , _controller(controller)
     , _wallet(wallet)
@@ -38,7 +39,7 @@ BuyerTorrentPluginConfigurationDialog::BuyerTorrentPluginConfigurationDialog(Con
     ui->maxConfirmationTimeTimeEdit->setVisible(false);
 
     // Set label based on bitconi display settings
-    if(_settings->currency() == BitCoinDisplaySettings::Currency::BitCoin)
+    if(_settings->currency() == BitcoinDisplaySettings::Currency::BitCoin)
         ui->maxTotalSpendLabel->setText("Maximum total spend (mɃ):");
     else  // == BitCoinDisplaySettings::Currency::Fiat
         ui->maxTotalSpendLabel->setText("Maximum total spend (¢):");
@@ -89,10 +90,10 @@ bool BuyerTorrentPluginConfigurationDialog::tryToGetMaxTotalSpend(quint64 & maxT
         return false;
     else {
 
-        if(_settings->currency() == BitCoinDisplaySettings::Currency::BitCoin)
-            maxTotalSpend = BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, x).satoshies();
+        if(_settings->currency() == BitcoinDisplaySettings::Currency::BitCoin)
+            maxTotalSpend = BitcoinRepresentation(BitcoinRepresentation::BitCoinPrefix::Milli, x).satoshies();
         else
-            maxTotalSpend = BitCoinRepresentation(BitCoinRepresentation::MetricPrefix::Centi, x, _settings->rate()).satoshies();
+            maxTotalSpend = BitcoinRepresentation(BitcoinRepresentation::MetricPrefix::Centi, x, _settings->rate()).satoshies();
 
         return true;
     }
@@ -142,7 +143,7 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
     quint64 minFunds = Payor::minimalFunds(_torrentInfo.num_pieces(), maxPrice, numberOfSellers, feePerkB);
 
     // Get funding output - this has to be grabbed from wallet/chain later
-    UnspentP2PKHOutput utxo; // = _wallet->getUtxo(minFunds, 1);
+    Coin::UnspentP2PKHOutput utxo; // = _wallet->getUtxo(minFunds, 1);
     qDebug() << "Skipping grabbing real utxo, just empty crap for now";
 
     // Check that an utxo was indeed found
@@ -213,7 +214,7 @@ void BuyerTorrentPluginConfigurationDialog::updateTotal() {
     quint64 minFunds = Payor::minimalFunds(_torrentInfo.num_pieces(), maxPrice, numberOfSellers, feePerkB);
 
     // Update total price label
-    QString minFundsString = BitCoinRepresentation(minFunds).toString(_settings);
+    QString minFundsString = BitcoinRepresentation(minFunds).toString(_settings);
     ui->totalValueLabel->setText(minFundsString);
 }
 

@@ -458,7 +458,7 @@ void Controller::Torrent::pieceFinished(int piece) {
 
 #include "exceptions/InvalidBitSwaprStateEntryException.hpp"
 #include "Config.hpp"
-#include "Utilities.hpp"
+//#include "Utilities.hpp"
 
 Controller::Configuration::Configuration() {
 
@@ -1686,7 +1686,7 @@ void Controller::processTorrentCheckedAlert(libtorrent::torrent_checked_alert co
         } else if(_pendingBuyerTorrentPluginConfigurationAndUtxos.contains(infoHash)) {
 
             // Remove torrent plugin configuration and utxo
-            QPair<BuyerTorrentPlugin::Configuration, UnspentP2PKHOutput> p = _pendingBuyerTorrentPluginConfigurationAndUtxos.take(infoHash);
+            QPair<BuyerTorrentPlugin::Configuration, Coin::UnspentP2PKHOutput> p = _pendingBuyerTorrentPluginConfigurationAndUtxos.take(infoHash);
 
             // Send configuration to plugin
             _plugin->submitPluginRequest(new StartBuyerTorrentPlugin(infoHash, p.first, p.second));
@@ -2026,14 +2026,14 @@ bool Controller::addTorrent(const Torrent::Configuration & configuration, const 
     return true;
 }
 
-bool Controller::addTorrent(const Torrent::Configuration & configuration, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const UnspentP2PKHOutput & utxo) {
+bool Controller::addTorrent(const Torrent::Configuration & configuration, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const Coin::UnspentP2PKHOutput & utxo) {
 
     // Try to add torrent
     if(!addTorrent(configuration))
         return false;
 
     // Save plugin configuration and utxo
-    _pendingBuyerTorrentPluginConfigurationAndUtxos[configuration.infoHash()] = QPair<BuyerTorrentPlugin::Configuration,UnspentP2PKHOutput>(pluginConfiguration, utxo);
+    _pendingBuyerTorrentPluginConfigurationAndUtxos[configuration.infoHash()] = QPair<BuyerTorrentPlugin::Configuration, Coin::UnspentP2PKHOutput>(pluginConfiguration, utxo);
 
     return true;
 }
@@ -2078,7 +2078,7 @@ void Controller::startSellerTorrentPlugin(const libtorrent::sha1_hash & info_has
     _plugin->submitPluginRequest(new StartSellerTorrentPlugin(info_hash, pluginConfiguration));
 }
 
-void Controller::startBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const UnspentP2PKHOutput & utxo) {
+void Controller::startBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const Coin::UnspentP2PKHOutput & utxo) {
 
     Q_ASSERT(_torrents.contains(info_hash));
 

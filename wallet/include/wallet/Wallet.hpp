@@ -8,7 +8,7 @@
 #ifndef WALLET_HPP
 #define WALLET_HPP
 
-#include <common/CoinWrappers.hpp>
+//#include <common/CoinWrappers.hpp>
 
 #include <QObject>
 #include <QString>
@@ -21,6 +21,11 @@ class ReceiveAddress;
 class Payer;
 class Payee;
 class Slot;
+
+namespace Coin {
+    enum class Network;
+    class KeyPair;
+}
 
 class Wallet : public QObject
 {
@@ -56,6 +61,8 @@ public:
     // Generate receive address
     // ReceiveAddress getReceiveAddress();
 
+    // Generate a fresh set of key pairs
+    QSet<Coin::KeyPair> generateNewKeys(quint8 numberOfKeys);
 
     //Entry getAndLockEntry();
     //UnspentP2PKHOutput getUtxo(quint64 minimalValue, quint32 minimalNumberOfConfirmations);
@@ -106,8 +113,6 @@ private:
 
     // Value of last run of computeBalance(0), which is initially run in ctr
     quint64 _lastComputedZeroConfBalance;
-
-
 
     // key pools
 

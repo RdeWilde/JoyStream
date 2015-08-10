@@ -10,14 +10,14 @@
 #include "controller/SellerTorrentPluginViewModel.hpp"
 #include "controller/BuyerTorrentPluginViewModel.hpp"
 #include <common/DataSizeRepresentation.hpp>
-#include <common/BitCoinRepresentation.hpp>
-#include <common/BitCoinDisplaySettings.hpp>
+#include <common/BitcoinRepresentation.hpp>
+#include <common/BitcoinDisplaySettings.hpp>
 
 #include <QStandardItem>
 
 TorrentView::TorrentView(QObject * parent,
                          const TorrentViewModel * torrentViewModel,
-                         const BitCoinDisplaySettings * settings,
+                         const BitcoinDisplaySettings * settings,
                          QStandardItem * nameItem,
                          QStandardItem * sizeItem,
                          QStandardItem * stateItem,
@@ -211,9 +211,9 @@ QString TorrentView::peersToString(int numberOfPeers, int numberOfPeersWithExten
     return QString::number(numberOfPeers) + QString(" | ") + QString::number(numberOfPeersWithExtension);
 }
 
-QString TorrentView::balanceToString(qint64 balance, const BitCoinDisplaySettings * settings) {
+QString TorrentView::balanceToString(qint64 balance, const BitcoinDisplaySettings * settings) {
     //return BitCoinRepresentation(balance).toString(BitCoinRepresentation::Fiat::USD, rate);
-    return  BitCoinRepresentation(balance).toString(settings);
+    return  BitcoinRepresentation(balance).toString(settings);
 }
 
 void TorrentView::updatePluginInstalled(PluginInstalled pluginInstalled) {

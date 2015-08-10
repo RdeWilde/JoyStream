@@ -8,8 +8,8 @@
 #include "WalletDialog.hpp"
 #include "ui_WalletDialog.h"
 #include "extension/BitCoin/Wallet.hpp"
-#include <common/BitCoinDisplaySettings.hpp>
-#include <common/BitCoinRepresentation.hpp>
+#include <common/BitcoinDisplaySettings.hpp>
+#include <common/BitcoinRepresentation.hpp>
 
 #include <QInputDialog>
 #include <QMessageBox>
@@ -19,7 +19,7 @@
 //WalletDialog::WalletDialog(QWidget *parent, Wallet * wallet) {}
 
 WalletDialog::WalletDialog(Wallet * wallet,
-                           const BitCoinDisplaySettings * settings)
+                           const BitcoinDisplaySettings * settings)
     : ui(new Ui::WalletDialog)
     , _wallet(wallet)
     , _settings(settings) {

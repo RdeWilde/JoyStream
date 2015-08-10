@@ -8,7 +8,10 @@
 #ifndef SLOT_HPP
 #define SLOT_HPP
 
-#include <common/CoinWrappers.hpp>
+//#include <common/CoinWrappers.hpp>
+
+#include <common/PublicKey.hpp>
+#include <common/Signature.hpp>
 
 #include <QtGlobal>
 

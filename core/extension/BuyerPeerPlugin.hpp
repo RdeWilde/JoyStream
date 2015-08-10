@@ -11,9 +11,10 @@
 #include "PeerPlugin.hpp"
 #include "PluginMode.hpp"
 
-#include "BitCoin/TxId.hpp"
-#include "BitCoin/PublicKey.hpp"
-#include "Utilities.hpp" // uint qHash(const libtorrent::peer_request & request);
+#include <common/TransactionId.hpp>
+#include <common/PublicKey.hpp>
+
+//#include "Utilities.hpp" // uint qHash(const libtorrent::peer_request & request);
 #include "Message/Sell.hpp"
 #include "Message/JoiningContract.hpp"
 

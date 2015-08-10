@@ -28,7 +28,8 @@
 
 #include "PluginMode.hpp"
 
-#include "BitCoin/Wallet.hpp"
+//#include "BitCoin/Wallet.hpp"
+#include <wallet/Wallet.hpp>
 
 #include <boost/shared_ptr.hpp>
 
@@ -464,7 +465,7 @@ bool Plugin::startTorrentPlugin(const libtorrent::sha1_hash & infoHash, const To
 }
 */
 
-bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration, const UnspentP2PKHOutput & utxo) {
+bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration, const Coin::UnspentP2PKHOutput & utxo) {
 
     // Check that torrent does not already have a plugin installed
     if(_sellerPlugins.contains(infoHash) || _buyerPlugins.contains(infoHash)) {

@@ -105,15 +105,15 @@ QSqlQuery Payee::insertQuery(QSqlDatabase db) {
     query.bindValue(":id", _id);
     query.bindValue(":state", encodeState(_state));
     query.bindValue(":numberOfPaymentsMade", _numberOfPaymentsMade);
-    query.bindValue(":lastValidPayerPaymentSignature", Coin::uchar_vector_to_QByteArray(_lastValidPayerPaymentSignature.raw()));
+    query.bindValue(":lastValidPayerPaymentSignature", _lastValidPayerPaymentSignature.toByteArray());
     query.bindValue(":price", _price);
     query.bindValue(":funds", _funds);
     query.bindValue(":maximumNumberOfSellers", _maximumNumberOfSellers);
     query.bindValue(":payeeContractWalletKeyId", _payeeContractWalletKeyId);
     query.bindValue(":contractTransactionId", _contractTransactionId.toByteArray());
     query.bindValue(":contractOutput", _contractOutput);
-    query.bindValue(":payerContractPublicKey", Coin::uchar_vector_to_QByteArray(_payerContractPublicKey.raw()));
-    query.bindValue(":payerFinalPublicKey", Coin::uchar_vector_to_QByteArray(_payerFinalPublicKey.raw()));
+    query.bindValue(":payerContractPublicKey", _payerContractPublicKey.toByteArray());
+    query.bindValue(":payerFinalPublicKey", _payerFinalPublicKey.toByteArray());
     query.bindValue(":paymentTransactionId", _paymentTransactionId.toByteArray());
 
     return query;

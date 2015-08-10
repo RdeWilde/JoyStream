@@ -201,8 +201,8 @@ void BuyerTorrentPlugin::Configuration::setNumberOfSellers(quint32 numberOfSelle
 #include "Alert/BuyerPeerPluginRemovedAlert.hpp"
 
 //#include "BitCoin/BitSwaprjs.hpp"
-#include "BitCoin/Wallet.hpp"
-#include "BitCoin/UnspentP2PKHOutput.hpp"
+#include <wallet/Wallet.hpp>
+#include <common/UnspentP2PKHOutput.hpp>
 
 //#include "extension/BitCoin/BitCoin.hpp"
 
@@ -223,7 +223,7 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
                                        const boost::shared_ptr<libtorrent::torrent> & torrent,
                                        Wallet * wallet,
                                        const BuyerTorrentPlugin::Configuration & configuration,
-                                       const UnspentP2PKHOutput & utxo,
+                                       const Coin::UnspentP2PKHOutput & utxo,
                                        QLoggingCategory & category)
     : TorrentPlugin(plugin, torrent, configuration, category)
     , _state(State::waiting_for_payor_to_be_ready)
@@ -261,9 +261,9 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
     quint64 changeValue = utxo.value() - contractFee - configuration.numberOfSellers()*fundingPerSeller;
 
     // Generate keys in wallet
-    QList<Wallet::Entry> buyerInContractKeys = _wallet->generateNewKeys(configuration.numberOfSellers(), Wallet::Purpose::BuyerInContractOutput).values();
-    QList<Wallet::Entry> buyerFinalKeys = _wallet->generateNewKeys(configuration.numberOfSellers(), Wallet::Purpose::ContractFinal).values();
-    QList<Wallet::Entry> changeKey = _wallet->generateNewKeys(1, Wallet::Purpose::ContractChange).values();
+    QSet<Coin::KeyPair> buyerInContractKeys = _wallet->generateNewKeys(configuration.numberOfSellers()); //, Wallet::Purpose::BuyerInContractOutput).values();
+    QSet<Coin::KeyPair> buyerFinalKeys = _wallet->generateNewKeys(configuration.numberOfSellers()); //, Wallet::Purpose::ContractFinal).values();
+    QSet<Coin::KeyPair> changeKey = _wallet->generateNewKeys(1); //, Wallet::Purpose::ContractChange).values();
 
     Q_ASSERT(buyerInContractKeys.count() == configuration.numberOfSellers());
     Q_ASSERT(buyerFinalKeys.count() == configuration.numberOfSellers());

@@ -11,7 +11,7 @@
 #include "Fiat.hpp"
 
 // Manages how an amount of bitcoin should be displayed, for now in text
-class BitCoinDisplaySettings
+class BitcoinDisplaySettings
 {
 public:
 
@@ -21,10 +21,10 @@ public:
     };
 
     // Constructor for showing BitCoin
-    BitCoinDisplaySettings(int precision = 1);
+    BitcoinDisplaySettings(int precision = 1);
 
     // Constructor for fiat
-    BitCoinDisplaySettings(Fiat fiat, float rate, int precision = 1);
+    BitcoinDisplaySettings(Fiat fiat, float rate, int precision = 1);
 
     // Getters and setters
     Currency currency() const;

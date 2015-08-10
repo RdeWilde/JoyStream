@@ -9,7 +9,7 @@
 #define PAYMENT_HPP
 
 #include "ExtendedMessagePayload.hpp"
-#include "extension/BitCoin/Signature.hpp"
+#include <common/Signature.hpp>
 
 class Payment : public ExtendedMessagePayload
 {
@@ -19,7 +19,7 @@ public:
     Payment();
 
     // Constructor from members
-    Payment(const Signature & sig);
+    Payment(const Coin::Signature & sig);
 
     // Constructor based on raw payload
     Payment(QDataStream & stream, quint8 lengthOfSignature);
@@ -30,13 +30,13 @@ public:
     virtual void write(QDataStream & stream) const;
 
     // Getters and setters
-    Signature sig() const;
-    void setSig(const Signature & sig);
+    Coin::Signature sig() const;
+    void setSig(const Coin::Signature & sig);
 
 private:
 
     // Buyer payment signature
-    Signature _sig;
+    Coin::Signature _sig;
 };
 
 #endif // PAYMENT_HPP

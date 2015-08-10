@@ -68,7 +68,7 @@ void PeerPlugin::Status::setPeerModeAnnounced(PeerModeAnnounced peerModeAnnounce
 #include "Message/Payment.hpp"
 #include "Message/End.hpp"
 */
-#include "Utilities.hpp"
+#include "Message/ExtendedMessageTools.hpp"
 
 #include <libtorrent/bt_peer_connection.hpp> // bt_peer_connection, bt_peer_connection::msg_extended
 #include <libtorrent/socket_io.hpp>
@@ -527,7 +527,7 @@ void PeerPlugin::sendExtendedMessage(const ExtendedMessagePayload & extendedMess
 
     Q_ASSERT(written == extendedMessagePayloadLength);
 
-    qCDebug(_category) << "SENT:" << Utilities::messageName(extendedMessagePayload.messageType()) << " = " << written << "bytes";
+    qCDebug(_category) << "SENT:" << ExtendedMessageTools::messageName(extendedMessagePayload.messageType()) << " = " << written << "bytes";
 
     // If message was written properly buffer, then send buffer to peer
     if(stream.status() != QDataStream::Status::Ok)
@@ -555,7 +555,7 @@ void PeerPlugin::processExtendedMessage(ExtendedMessagePayload * m) {
     // Get message type
     MessageType messageType = m->messageType();
 
-    qCDebug(_category) << "RECEIVED:" << Utilities::messageName(messageType);
+    qCDebug(_category) << "RECEIVED:" << ExtendedMessageTools::messageName(messageType);
 
     //try {
 

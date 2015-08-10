@@ -16,7 +16,7 @@
 
 class QStandardItem;
 class SellerPeerPluginViewModel;
-class BitCoinDisplaySettings;
+class BitcoinDisplaySettings;
 
 class SellerPeerPluginView : public QObject
 {
@@ -26,7 +26,7 @@ public:
     // Constructor
     SellerPeerPluginView(QObject *parent,
                          const SellerPeerPluginViewModel * peerModel,
-                         const BitCoinDisplaySettings * settings,
+                         const BitcoinDisplaySettings * settings,
                          QStandardItem * endPointItem,
                          QStandardItem * clientStateItem,
                          QStandardItem * contractOutPointItem,
@@ -90,7 +90,7 @@ public slots:
 private:
 
     // Display settings for bitcoin
-    const BitCoinDisplaySettings * _settings;
+    const BitcoinDisplaySettings * _settings;
 
     // View model pointers
     // Objects are owned by QStandardItemModel passed to ctr

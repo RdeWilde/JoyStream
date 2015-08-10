@@ -8,108 +8,46 @@
 #ifndef COIN_CORE_WRAPPERS
 #define COIN_CORE_WRAPPERS
 
-#include <stdutils/uchar_vector.h>
+#include <stdint.h>
 
-#include <array>
+#include <common/Network.hpp>
+#include <common/AddressType.hpp>
 
 class QByteArray;
 
 namespace Coin {
 
 /**
- * Network
+ * Routines for generating version bytes for bip32 extended key serialization
+ * 4 byte: version bytes (mainnet: 0x0488B21E public, 0x0488ADE4 private; testnet: 0x043587CF public, 0x04358394 private)
  */
-
-enum class Network {
-    testnet3,
-    mainnet
-};
+unsigned int extendedPrivateKeyVersionBytes(Network network);
+unsigned int extendedPublicKeyVersionBytes(Network network);
 
 /**
- * AddressType
+ * Process Bitcoin addresses according to
+ * https://en.bitcoin.it/wiki/List_of_address_prefixes
  */
 
-enum class AddressType {
-    PayToPublicKeyHash,
-    //PayToPublicKey,
-    PayToScriptHash
-    //Multisig,
+// Generate version byte
+unsigned int toBase58CheckVersionBytes(AddressType type, Network network);
 
-    //Data // Does this have address format
-};
+// Recover address type from version byte
+AddressType versionByteToAddressType(unsigned int version);
 
-#include <utility> // std::pair
+// Recover network type from version byte
+Network versionByteToNetwork(unsigned int version);
 
-// https://en.bitcoin.it/wiki/List_of_address_prefixes
-static unsigned int toBase58CheckVersion(AddressType type, Network network);
-static std::pair<AddressType, Network> versionToAddressInformation(unsigned int version);
+// Deduce address network
+//Network getNetwork(std::string & base58CheckEncodedAddress);
+
+// Deduce address type
+//AddressType getType(std::string & base58CheckEncodedAddress);
+
+// Convert uchar vector to bytearray
+//QByteArray uchar_vector_to_QByteArray(const uchar_vector & v);
 
 /**
- * fixed_uchar_array
- */
-
-QByteArray uchar_vector_to_QByteArray(const uchar_vector & v);
-
-// (type safe length) fixed length array of unsigned chars
-template<unsigned array_length>
-class fixed_uchar_array : public std::array<unsigned char, array_length> {
-
-public:
-
-    // Construct form unsigned char vector
-    fixed_uchar_array(const uchar_vector & vector);
-    fixed_uchar_array(const QByteArray & byteArray);
-
-    // Convert to unsigned char vector
-    uchar_vector toUCharVector() const;
-    QByteArray toByteArray() const;
-
-private:
-
-    // Try to fill array with content starting at start
-    void fill(const unsigned char * start, int length);
-};
-
-// Byte lengths of various data types
-#define TXID_BYTE_LENGTH 20
-#define BLOCKID_BYTE_LENGTH 32
-#define TRANSACTIONMERKLETREEROOT_BYTE_LENGTH 32
-
-// Define Bitcoin types as spesific length fixed uchar arrays
-typedef fixed_uchar_array<TXID_BYTE_LENGTH> TransactionId;
-typedef fixed_uchar_array<BLOCKID_BYTE_LENGTH> BlockId;
-typedef fixed_uchar_array<TRANSACTIONMERKLETREEROOT_BYTE_LENGTH> TransactionMerkleTreeRoot;
-
-/**
- * Public Key
- */
-
-class PublicKey {
-
-public:
-
-    // Length of compressed public key representation
-    static const int compressedLength;
-
-    // Length of uncompressed public key representation
-    static const int unCompressedLength;
-
-    PublicKey(const uchar_vector & raw);
-    PublicKey(const PublicKey & publicKey);
-
-    bool operator==(const PublicKey & rhs);
-    bool operator!=(const PublicKey & rhs);
-
-    bool isCompressed() const;
-
-    uchar_vector raw() const;
-
-private:
-
-    // Raw public key, either uncompressed or compressed
-    uchar_vector _raw;
-};
-
 class PrivateKey {
 
 public:
@@ -158,13 +96,7 @@ private:
     uchar_vector_secure _raw;
 };
 
-// Deduce address network
-Network getNetwork(std::string & base58CheckEncodedAddress);
 
-// Deduce address type
-AddressType getType(std::string & base58CheckEncodedAddress);
-
-/**
 class Address {
 
 public:
@@ -186,45 +118,6 @@ protected:
     Network _network;
 };
 */
-
-class P2PKHAddress {
-
-public:
-
-    // Length of pubkeyhash field in address (20)
-    static const int pubKeyHashLength;
-
-    // Constructor from members
-    P2PKHAddress(Network network, const PublicKey & publicKey);
-
-    // Constructor from raw encoded address
-    P2PKHAddress(const uchar_vector & raw);
-
-    // Constructor from base58check encoded string
-    P2PKHAddress(const std::string & base58CheckEncoded);
-
-    // Raw byte encoding of address
-    uchar_vector raw() const;
-
-    // base58Check encoding of address
-    std::string toBase58CheckEncoding() const;
-
-    // Type of address: remove later
-    AddressType type() const;
-
-    // Getters and setters
-    uchar_vector publicKeyHash() const;
-    void setPublicKeyHash(const uchar_vector & publicKeyHash);
-
-private:
-
-    // Network to which this address corresponds
-    Network _network;
-
-    // Bitcoin public key hash
-    uchar_vector _publicKeyHash;
-
-};
 
 /**
 class PSHAddress {

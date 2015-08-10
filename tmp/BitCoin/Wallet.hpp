@@ -304,7 +304,7 @@ public:
     void setEntries(const QMap<PublicKey, Entry> &entries);
     Entry & entry(const PublicKey & publicKey);
 
-    quint64 latestBlockHeight();  // const
+    quint64 latestBlockHeight(); // const
 
     quint32 numberOfTransactions(); // const
 

@@ -11,7 +11,7 @@
 #include <QDialog>
 #include <QStandardItemModel>
 
-#include "extension/BitCoin/Wallet.hpp" // Required to forward declare Wallet::TxOEvent
+//#include <wallet/Wallet.hpp> // Required to forward declare Wallet::TxOEvent
 
 namespace Ui {
 class WalletDialog;
@@ -19,7 +19,7 @@ class WalletDialog;
 
 class Wallet;
 class QMenu;
-class BitCoinDisplaySettings;
+class BitcoinDisplaySettings;
 
 class WalletDialog : public QDialog
 {
@@ -28,7 +28,7 @@ class WalletDialog : public QDialog
 public:
     //explicit WalletDialog(QWidget *parent = 0)
 
-    WalletDialog(Wallet * wallet, const BitCoinDisplaySettings * settings);
+    WalletDialog(Wallet * wallet, const BitcoinDisplaySettings * settings);
     ~WalletDialog();
 
     // Updates view
@@ -52,7 +52,7 @@ private:
 
     Wallet * _wallet;
 
-    const BitCoinDisplaySettings * _settings;
+    const BitcoinDisplaySettings * _settings;
 
     /**
      * View-models
