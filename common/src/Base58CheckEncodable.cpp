@@ -14,10 +14,14 @@
 
 #include <sstream> // stringstream
 
+//#include <CoinCore/CoinNodeData.h>
+
 namespace Coin {
 
 // Based on https://en.bitcoin.it/wiki/List_of_address_prefixes
 uint32_t toVersionValue(Base58CheckEncodable encodable, Network network) {
+
+    //Coin::Transaction id;
 
     if(network == Network::testnet3) {
 

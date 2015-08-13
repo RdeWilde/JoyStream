@@ -12,11 +12,11 @@
 namespace Coin {
 
 PrivateKey::PrivateKey()
-    : FixedUCharArray<PRIVATE_KEY_BYTE_LENGTH>() {
+    : UCharArray<PRIVATE_KEY_BYTE_LENGTH>() {
 }
 
 PrivateKey::PrivateKey(const uchar_vector & vector)
-    : FixedUCharArray<PRIVATE_KEY_BYTE_LENGTH>(vector) {
+    : UCharArray<PRIVATE_KEY_BYTE_LENGTH>(vector) {
 }
 
 PrivateKey::~PrivateKey() {
@@ -96,6 +96,10 @@ QString PrivateKey::toWIF(Network network, PublicKeyCompression compression) con
     std::string encoded = toBase58Check(payload, versionBytes);
 
     return QString::fromStdString(encoded);
+}
+
+PublicKey PrivateKey::derivePublicKey() const {
+    throw std::runtime_error("not implemented");
 }
 
 }

@@ -8,13 +8,13 @@
 #ifndef TRANSACTION_MERKLE_TREE_ROOT_HPP
 #define TRANSACTION_MERKLE_TREE_ROOT_HPP
 
-#include <common/FixedUCharArray.hpp>
+#include <common/UCharArray.hpp>
 
 #define TRANSACTIONMERKLETREEROOT_BYTE_LENGTH 32
 
 namespace Coin {
 
-typedef FixedUCharArray<TRANSACTIONMERKLETREEROOT_BYTE_LENGTH> TransactionMerkleTreeRoot;
+typedef UCharArray<TRANSACTIONMERKLETREEROOT_BYTE_LENGTH> TransactionMerkleTreeRoot;
 
 }
 

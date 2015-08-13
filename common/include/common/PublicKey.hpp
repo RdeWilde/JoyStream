@@ -8,7 +8,7 @@
 #ifndef PUBLIC_KEY_HPP
 #define PUBLIC_KEY_HPP
 
-#include <common/FixedUCharArray.hpp>
+#include <common/UCharArray.hpp>
 
 #define COMPRESSED_PUBLIC_KEY_BYTE_LENGTH 33
 #define UNCOMPRESSED_PUBLIC_KEY_BYTE_LENGTH 33
@@ -16,7 +16,7 @@
 namespace Coin {
 
 // Compressed public key
-typedef FixedUCharArray<COMPRESSED_PUBLIC_KEY_BYTE_LENGTH> PublicKey;
+typedef UCharArray<COMPRESSED_PUBLIC_KEY_BYTE_LENGTH> PublicKey;
 
 /**
 class PublicKey : public FixedUCharArray<COMPRESSED_PUBLIC_KEY_BYTE_LENGTH> {

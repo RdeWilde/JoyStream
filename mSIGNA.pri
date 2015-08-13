@@ -3,6 +3,10 @@
 # Proprietary and confidential
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, August 7 2015
 
+##########################
+# mSIGNA
+##########################
+
 # Windows
 win32 {
 

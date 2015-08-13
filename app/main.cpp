@@ -12,17 +12,16 @@
 #include <QNetworkAccessManager>
 
 #include <core/Config.hpp>
-#include <core/ControllerTracker.hpp>
+#include <core/controller/ControllerTracker.hpp>
 #include <core/controller/Controller.hpp>
+#include <core/logger/LoggerManager.hpp>
 #include <core/extension/BuyerTorrentPlugin.hpp> // for configurations
 #include <core/extension/SellerTorrentPlugin.hpp> // for configurations
-#include <core/logger/LoggerManager.hpp>
 #include <core/extension/PluginMode.hpp>
 
-#include <core/extension/BitCoin/BitCoin.hpp> // defines STANDARD_NUM_SATOSHIES_PER_KB_IN_TX_FEE
-
+#include <common/Bitcoin.hpp> // defines STANDARD_NUM_SATOSHIES_PER_KB_IN_TX_FEE
 #include <common/UnspentP2PKHOutput.hpp>
-#include <common/BitCoinRepresentation.hpp>
+#include <common/BitcoinRepresentation.hpp>
 
 #include <libtorrent/torrent_info.hpp>
 #include <libtorrent/error_code.hpp>
@@ -45,20 +44,18 @@
 #endif Q_MOC_RUN
 
 // Forward declarations
-bool updateManager();
-
 libtorrent::torrent_info load_torrent(const char * path);
 
 Controller::Torrent::Configuration create_torrent_configuration(libtorrent::torrent_info & torrentInfo, const QString & name);
 
-Controller * create_controller(Controller::Configuration controllerConfiguration, QNetworkAccessManager & manager,
+Controller * create_controller(Controller::Configuration controllerConfiguration, QNetworkAccessManager * manager,
                                                      bool show_gui, bool use_stdout_logg, libtorrent::torrent_info & torrentInfo, const QString & name);
 
-void add_buyers_with_plugin(Controller::Configuration controllerConfiguration, QNetworkAccessManager & manager, ControllerTracker & controllerTracker,
+void add_buyers_with_plugin(Controller::Configuration controllerConfiguration, QNetworkAccessManager * manager, ControllerTracker & controllerTracker,
                             bool show_gui, bool use_stdout_logg, libtorrent::torrent_info & torrentInfo,
                             const QVector<BuyerTorrentPlugin::Configuration> & configurations);
 
-void add_sellers_with_plugin(Controller::Configuration controllerConfiguration, QNetworkAccessManager & manager, ControllerTracker & controllerTracker,
+void add_sellers_with_plugin(Controller::Configuration controllerConfiguration, QNetworkAccessManager * manager, ControllerTracker & controllerTracker,
                              bool show_gui, bool use_stdout_logg, libtorrent::torrent_info & torrentInfo,
                              const QVector<SellerTorrentPlugin::Configuration> & configurations);
 
@@ -91,11 +88,14 @@ int main(int argc, char* argv[]) {
     // Call update manager, if allowed
     if(!parser.isSet(showNoUpdateOption)) {
 
+        /**
         bool doRestart = updateManager();
 
         if(doRestart) {
             // Call update runner
         }
+        */
+
     }
 
     // Check console flag
@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
                            );
 */
     // Sellers
-    Controller * loneSeller = create_controller(controllerConfiguration, manager, true, true, torrentInfo, QString("lone_seller"));
+    Controller * loneSeller = create_controller(controllerConfiguration, &manager, true, true, torrentInfo, QString("lone_seller"));
     controllerTracker.addClient(loneSeller);
 
     /**
@@ -222,7 +222,7 @@ Controller::Torrent::Configuration create_torrent_configuration(libtorrent::torr
                                               ,&torrentInfo);
 }
 
-Controller * create_controller(Controller::Configuration controllerConfiguration, QNetworkAccessManager & manager,
+Controller * create_controller(Controller::Configuration controllerConfiguration, QNetworkAccessManager * manager,
                                                        bool show_gui, bool use_stdout_logg, libtorrent::torrent_info & torrentInfo, const QString & name) {
 
     // Create logging category
@@ -233,17 +233,16 @@ Controller * create_controller(Controller::Configuration controllerConfiguration
     //Wallet::createEmptyWallet(walletFile, Coin::Network::testnet3, QByteArray());
 
     // Create wallet name
-    controllerConfiguration.setWalletFile(QString(WALLET_LOCATION) + name + QString("_wallet.dat"));
+    //controllerConfiguration.setWalletFile(QString(WALLET_LOCATION) + name + QString("_wallet.dat"));
 
     // Create controller: Dangling, but we don't care
     return new Controller(controllerConfiguration,
-                         show_gui,
+                          NULL,
                          manager,
-                         "Faucet http://faucet.xeno-genesis.com/",
                          *category);
 }
 
-void add_buyers_with_plugin(Controller::Configuration controllerConfiguration, QNetworkAccessManager & manager, ControllerTracker & controllerTracker,
+void add_buyers_with_plugin(Controller::Configuration controllerConfiguration, QNetworkAccessManager * manager, ControllerTracker & controllerTracker,
                             bool show_gui, bool use_stdout_logg, libtorrent::torrent_info & torrentInfo,
                             const QVector<BuyerTorrentPlugin::Configuration> & configurations) {
 
@@ -291,7 +290,7 @@ void add_buyers_with_plugin(Controller::Configuration controllerConfiguration, Q
     }
 }
 
-void add_sellers_with_plugin(Controller::Configuration controllerConfiguration, QNetworkAccessManager & manager, ControllerTracker & controllerTracker,
+void add_sellers_with_plugin(Controller::Configuration controllerConfiguration, QNetworkAccessManager * manager, ControllerTracker & controllerTracker,
                              bool show_gui, bool use_stdout_logg, libtorrent::torrent_info & torrentInfo,
                              const QVector<SellerTorrentPlugin::Configuration> & configurations) {
 
@@ -299,6 +298,15 @@ void add_sellers_with_plugin(Controller::Configuration controllerConfiguration, 
 
         // Create name
         QString name = QString("seller_") + QString::number(i+1);
+
+        /**
+        // Show view
+        if(showView)
+            _view.show();
+
+        // Update wallet balance in ui
+        _view.updateWalletBalance(_wallet->lastComputedZeroConfBalance());
+        */
 
         // Create controller and torrent configuration
         Controller * controller = create_controller(controllerConfiguration, manager, show_gui, use_stdout_logg, torrentInfo, name);
@@ -315,19 +323,4 @@ void add_sellers_with_plugin(Controller::Configuration controllerConfiguration, 
         // Track controller
         controllerTracker.addClient(controller);
     }
-}
-
-bool updateManager() {
-
-    // If we have just downloaded a new binary, then run it and then quit
-
-    // Query blockchain or most recent location
-
-    // Connect to location and check what version is there
-
-    // If its newer, download it to particular location
-
-    // then return to restart:
-
-    return true;
 }

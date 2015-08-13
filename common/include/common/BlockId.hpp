@@ -8,13 +8,13 @@
 #ifndef BLOCK_ID_HPP
 #define BLOCK_ID_HPP
 
-#include <common/FixedUCharArray.hpp>
+#include <common/UCharArray.hpp>
 
 #define BLOCKID_BYTE_LENGTH 32
 
 namespace Coin {
 
-    typedef FixedUCharArray<BLOCKID_BYTE_LENGTH> BlockId;
+    typedef UCharArray<BLOCKID_BYTE_LENGTH> BlockId;
 }
 
 #endif // BLOCK_ID_HPP

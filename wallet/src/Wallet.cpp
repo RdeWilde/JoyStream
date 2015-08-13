@@ -7,7 +7,6 @@
 
 #include <common/Network.hpp>
 #include <common/KeyPair.hpp>
-
 #include <wallet/Wallet.hpp>
 #include <wallet/WalletKey.hpp>
 #include <wallet/WalletAddress.hpp>
@@ -24,13 +23,12 @@
 #include <wallet/OuputFundsPayer.hpp>
 #include <wallet/Slot.hpp>
 #include <wallet/Payee.hpp>
-
 #include <wallet/Metadata.hpp>
 
 Wallet::Wallet(const QString & walletFile)
     : _mutex(QMutex::Recursive) // allows same thread to call multiple synchronized sections in sequence
     , _walletFile(walletFile)
-    , _db(QSqlDatabase::addDatabase("QSQLITE"))
+    , _db(QSqlDatabase::addDatabase(DATABASE_TYPE))
     , _latestBlockHeight(0)
     , _lastComputedZeroConfBalance(0) {
 
@@ -38,7 +36,7 @@ Wallet::Wallet(const QString & walletFile)
     if(!QFile(walletFile).exists()) {
 
         // Build error message
-        QString errorMessage = "Was unable to load wallet file: " + walletFile;
+        QString errorMessage = "Was unable to read wallet file: " + walletFile;
 
         throw std::runtime_error(errorMessage.toStdString());
     }
@@ -53,21 +51,41 @@ Wallet::Wallet(const QString & walletFile)
         throw std::runtime_error("Invalid wallet structure.");
 
     // Load metadata
+    /**
     _network = Metadata::getNetwork(_db);
     _seed = Metadata::getSeed(_db);
     _created = Metadata::getCreated(_db);
+    */
 
-    // Load key pools
+    _seed = Metadata::getSeed(_db);
+
+    // Set keychain based on seed
+    _keyChain = _seed.generateHDKeychain();
+
+    // Build key pool
+    updateKeyPool();
 
     // Build utxo
+    updateUtxo();
 }
 
-void Wallet::createEmptyWallet(const QString & walletFile, Coin::Network network, const QByteArray & seed) {
+void Wallet::createNewWallet(const QString & walletFile, Coin::Network network, const Seed & seed) {
 
     // Create connection to database
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
 
     Q_ASSERT(db.isValid());
+
+    // Create database file
+    db.setDatabaseName(walletFile);
+
+    if(!db.open()) {
+
+        // Build error message and throw exception
+        QString errorMessage = "Could create wallet file: " + walletFile;
+
+        throw std::runtime_error(errorMessage.toStdString());
+    }
 
     // Create metdata key-value store
     Metadata::createTable(db);
@@ -75,10 +93,11 @@ void Wallet::createEmptyWallet(const QString & walletFile, Coin::Network network
     // Populate with default values
     Metadata::populateTable(db, seed, network, QDateTime::currentDateTime());
 
-    // Create tables
+    // Create relational tables
     if(!WalletKey::createTableQuery(db).exec()) {
         throw std::runtime_error("Could not create WalletKey table.");
     }
+    /**
     if(!WalletAddress::createTableQuery(db).exec()) {
         throw std::runtime_error("Could not create WalletAddress table.");
     }
@@ -121,13 +140,33 @@ void Wallet::createEmptyWallet(const QString & walletFile, Coin::Network network
     if(!Payee::createTableQuery(db).exec()) {
         throw std::runtime_error("Could not create Payee table.");
     }
+    */
 }
 
 bool Wallet::validateWalletStructure(QSqlDatabase & db) {
     return true;
 }
 
-QSet<Coin::KeyPair> Wallet::generateNewKeys(quint8 numberOfKeys) {
+// Number of transaction
+quint32 Wallet::numberOfTransactions() {
+    return 77777;
+}
+
+// Number of keys in the wallet
+quint64 Wallet::numberOfKeysInWallet() {
+    return 2222;
+}
+
+QList<Coin::KeyPair> Wallet::getFreshKeys(quint8 numberOfKeys) {
+
+    // If key pool does not have enough, then generate new keys
+
+    return QList<Coin::KeyPair>();
+}
+
+void Wallet::releaseKeys(const QSet<Coin::KeyPair> & keys) {
+
+    // for each key, if it is in dbase, but not in use, then place in key pool:
 
 }
 
@@ -140,6 +179,46 @@ quint64 Wallet::lastComputedZeroConfBalance() {
     _mutex.unlock();
 
     return copy;
+}
+
+void Wallet::updateKeyPool() {
+
+    // Net change to key pool
+    quint32 diff = 0;
+
+    _mutex.lock();
+
+    // Scrap current pool
+    _keyPairPool.clear();
+
+    // Find all keys not currently used
+
+    // Put in key pool
+
+    _mutex.unlock();
+
+    // Send signal of what changes were
+    emit keyPoolUpdated(diff);
+}
+
+void Wallet::updateUtxo() {
+
+    // Net change to txo
+    quint32 diff = 0;
+
+    _mutex.lock();
+
+    // Scrap current utxo
+    //_utxo.clear();
+
+    // Find all utxo
+
+    // Put in utxo
+
+
+    // Send signal of what changes were
+    emit utxoUpdated(diff);
+
 }
 
 /**

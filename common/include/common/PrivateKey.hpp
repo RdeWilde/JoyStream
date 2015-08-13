@@ -8,16 +8,23 @@
 #ifndef PRIVATE_KEY_HPP
 #define PRIVATE_KEY_HPP
 
-#include <common/FixedUCharArray.hpp>
+#include <common/UCharArray.hpp>
 #include <common/Network.hpp>
+#include <common/PublicKey.hpp>
 #include <common/PublicKeyCompression.hpp>
 
 #define PRIVATE_KEY_BYTE_LENGTH 32
 
+// WARNING: NEEDS SECURE ALLOCATOR & DESTRUCTOR
+// WARNING: NEEDS SECURE ALLOCATOR & DESTRUCTOR
+// WARNING: NEEDS SECURE ALLOCATOR & DESTRUCTOR
+// WARNING: NEEDS SECURE ALLOCATOR & DESTRUCTOR
+// WARNING: NEEDS SECURE ALLOCATOR & DESTRUCTOR
+
 namespace Coin {
 
 // Later make the allocation/copying anti-page secure
-class PrivateKey : public FixedUCharArray<PRIVATE_KEY_BYTE_LENGTH> {
+class PrivateKey : public UCharArray<PRIVATE_KEY_BYTE_LENGTH> {
 
 public:
 
@@ -35,6 +42,8 @@ public:
 
     // WIF Encode private key
     QString toWIF(Network network, PublicKeyCompression compression) const;
+
+    PublicKey derivePublicKey() const;
 };
 
 }

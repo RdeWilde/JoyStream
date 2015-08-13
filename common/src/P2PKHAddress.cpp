@@ -5,7 +5,7 @@
 
 namespace Coin {
 
-P2PKHAddress::P2PKHAddress(Network network, const FixedUCharArray<P2PKH_ADDRESS_PAYLOAD_BYTE_LENGTH> & pubKeyHash)
+P2PKHAddress::P2PKHAddress(Network network, const UCharArray<P2PKH_ADDRESS_PAYLOAD_BYTE_LENGTH> & pubKeyHash)
     : _network(network)
     , _pubKeyHash(pubKeyHash) {
 }
@@ -47,11 +47,11 @@ void P2PKHAddress::setNetwork(Network network) {
     _network = network;
 }
 
-FixedUCharArray<P2PKH_ADDRESS_PAYLOAD_BYTE_LENGTH> P2PKHAddress::pubKeyHash() const {
+UCharArray<P2PKH_ADDRESS_PAYLOAD_BYTE_LENGTH> P2PKHAddress::pubKeyHash() const {
     return _pubKeyHash;
 }
 
-void P2PKHAddress::setPubKeyHash(const FixedUCharArray<P2PKH_ADDRESS_PAYLOAD_BYTE_LENGTH> & pubKeyHash) {
+void P2PKHAddress::setPubKeyHash(const UCharArray<P2PKH_ADDRESS_PAYLOAD_BYTE_LENGTH> & pubKeyHash) {
     _pubKeyHash = pubKeyHash;
 }
 

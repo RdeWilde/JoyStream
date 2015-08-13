@@ -20,7 +20,7 @@ Signature::Signature() {
 Signature::Signature(const uchar_vector & raw) {
 
     // Check that input is no longer than
-    uchar_vector::size_type inputLength;
+    uchar_vector::size_type inputLength = raw.size();
 
     if(inputLength > maxLength) {
 
@@ -40,14 +40,17 @@ Signature::Signature(const uchar_vector & raw) {
 Signature::Signature(const QString & string) {
 
     // Check that string has correct length
-    if(string.length() > 2*maxLength)
+
+    int stringLength = string.length();
+
+    if(stringLength > 2*maxLength)
         throw std::runtime_error("String argument is of incorrect length, should be 2*MAX_SIGNATURE_LENGTH.");
     else {
 
         // Decode from hex format
         QByteArray b = QByteArray::fromHex(string.toLatin1());
 
-        Q_ASSERT(b.length()*2 == string.length());
+        Q_ASSERT(b.length()*2 == stringLength);
 
         // Read into vector buffer
         unsigned const char * begin = (unsigned const char *)b.constBegin();

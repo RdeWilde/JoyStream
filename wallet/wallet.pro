@@ -3,10 +3,9 @@
 # Proprietary and confidential
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, June 28 2015
 
-include(../boost.pri)
 include(../mSIGNA.pri)
-#include(../coincore.pri)
-#include(../coinq.pri)
+include(../openssl.pri)
+include(../boost.pri)
 
 TARGET = wallet
 TEMPLATE = lib
@@ -16,7 +15,6 @@ CONFIG  += create_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-
 CONFIG  += c++11 # Needed for class enum, std::array
 
 QT      += core sql
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets # QMainWindow, QDialog
 
 INCLUDEPATH += $$PWD/include # be able to include w.r.t root of this project
 
@@ -44,7 +42,8 @@ HEADERS += \
     include/wallet/InBoundPayment.hpp \
     include/wallet/OutBoundPayment.hpp \
     include/wallet/OuputFundsPayer.hpp \
-    include/wallet/Metadata.hpp
+    include/wallet/Metadata.hpp \
+    include/wallet/Seed.hpp
 
 SOURCES += \
     src/Wallet.cpp \
@@ -68,9 +67,10 @@ SOURCES += \
     src/InBoundPayment.cpp \
     src/OutBoundPayment.cpp \
     src/OuputFundsPayer.cpp \
-    src/Metadata.cpp
+    src/Metadata.cpp \
+    src/Seed.cpp
 
-# common
+# common ###############################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../common/release/ -lcommon
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../common/debug/ -lcommon
 else:unix: LIBS += -L$$OUT_PWD/../common/ -lcommon

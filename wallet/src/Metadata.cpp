@@ -1,5 +1,6 @@
 
 #include <wallet/Metadata.hpp>
+#include <wallet/Seed.hpp>
 
 #include <QByteArray>
 #include <QSqlDatabase>
@@ -23,7 +24,7 @@ void Metadata::createTable(QSqlDatabase db) {
 
 }
 
-void Metadata::populateTable(QSqlDatabase db, const QByteArray & seed, Coin::Network network, const QDateTime & created) {
+void Metadata::populateTable(QSqlDatabase db, const Seed & seed, Coin::Network network, const QDateTime & created) {
 
     // Create query
     QSqlQuery insertQuery("INSERT INTO Metadata (key, value) VALUES (:key, :value)", db);
@@ -34,9 +35,9 @@ void Metadata::populateTable(QSqlDatabase db, const QByteArray & seed, Coin::Net
     Q_ASSERT(insertQuery.exec());
         //throw std::runtime_error("Could not insert network key-value.");
 
-    // network
+    // seed
     insertQuery.bindValue(":key", _seedKey);
-    insertQuery.bindValue(":value", seed);
+    insertQuery.bindValue(":value", seed.toByteArray());
     Q_ASSERT(insertQuery.exec());
         //throw std::runtime_error("Could not insert seed key-value.");
 
@@ -57,6 +58,15 @@ void Metadata::setNetwork(QSqlDatabase db, Coin::Network network) {
 
 }
 
+Seed Metadata::getSeed(QSqlDatabase db) {
+
+}
+
+void Metadata::setSeed(QSqlDatabase db, const Seed & seed) {
+
+}
+
+/**
 QByteArray Metadata::getSeed(QSqlDatabase db) {
 
 }
@@ -64,6 +74,7 @@ QByteArray Metadata::getSeed(QSqlDatabase db) {
 void Metadata::setSeed(QSqlDatabase db, const QByteArray & seed) {
 
 }
+*/
 
 QDateTime Metadata::getCreated(QSqlDatabase db) {
 

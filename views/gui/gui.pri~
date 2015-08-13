@@ -1,0 +1,143 @@
+# Copyright (C) JoyStream - All Rights Reserved
+# Unauthorized copying of this file, via any medium is strictly prohibited
+# Proprietary and confidential
+# Written by Bedeho Mender <bedeho.mender@gmail.com>, August 12 2015
+
+
+SOURCES += \
+    core/src/controller/Controller.cpp \
+    core/src/ControllerTracker.cpp \
+    core/src/controller/exceptions/InvalidBitSwaprStateEntryException.cpp \
+    core/src/controller/exceptions/ListenOnException.cpp \
+    core/src/controller/exceptions/MissingInfoHashViewRequestException.cpp \
+
+    core/src/extension/TorrentPlugin.cpp \
+    core/src/extension/Plugin.cpp \
+    core/src/extension/PeerPlugin.cpp \
+    core/src/extension/PeerPluginId.cpp \
+    core/src/extension/Request/PluginRequest.cpp \
+    core/src/extension/Request/TorrentPluginRequest.cpp \
+    core/src/extension/Request/PeerPluginRequest.cpp \
+    core/src/extension/Request/StartBuyerTorrentPlugin.cpp \
+    core/src/extension/Request/StartSellerTorrentPlugin.cpp \
+    core/src/extension/Request/StartObserverTorrentPlugin.cpp \
+
+    #core/src/extension/Request/SetConfigurationTorrentPluginRequest.cpp \
+    #core/src/extension/Request/SetPluginModeTorrentPluginRequest.cpp \
+    #core/src/extension/BitCoin/Client.cpp \
+
+    core/src/logger/LoggerManager.cpp \
+    core/src/logger/exceptions/CannnotOpenLogFile.cpp \
+    core/src/logger/exceptions/DuplicateLog.cpp \
+
+    core/src/extension/Message/ExtendedMessageIdMapping.cpp \
+    core/src/extension/Message/ExtendedMessagePayload.cpp \
+    core/src/extension/Message/JoiningContract.cpp \
+    core/src/extension/Message/SignRefund.cpp \
+    core/src/extension/Message/RefundSigned.cpp \
+    core/src/extension/Message/Buy.cpp \
+    core/src/extension/Message/Sell.cpp \
+    core/src/extension/Message/Observe.cpp \
+    core/src/extension/Message/JoinContract.cpp \
+    core/src/extension/Message/Payment.cpp \
+    core/src/extension/Message/Ready.cpp \
+    core/src/extension/Message/NoPayloadMessage.cpp \
+    core/src/extension/Message/RequestFullPiece.cpp \
+    core/src/extension/Message/FullPiece.cpp \
+
+    core/src/extension/BuyerTorrentPlugin.cpp \
+    core/src/extension/SellerTorrentPlugin.cpp \
+    core/src/extension/SellerPeerPlugin.cpp \
+    core/src/extension/BuyerPeerPlugin.cpp \
+    core/src/extension/PaymentChannel/Payor.cpp \
+    core/src/extension/PaymentChannel/Payee.cpp \
+
+    core/src/extension/Alert/TorrentPluginAlert.cpp \
+    core/src/extension/Alert/PluginStatusAlert.cpp \
+    core/src/extension/Alert/BuyerTorrentPluginStatusAlert.cpp \
+    core/src/extension/Alert/TorrentPluginStartedAlert.cpp \
+    core/src/extension/Alert/SellerTorrentPluginStatusAlert.cpp \
+    core/src/extension/Alert/StartedSellerTorrentPlugin.cpp \
+    core/src/extension/Alert/StartedBuyerTorrentPlugin.cpp \
+    #core/src/extension/BitCoin/KeyPair.cpp \
+    #core/src/extension/BitCoin/P2SHTxOut.cpp \
+    #core/src/extension/BitCoin/P2PKHTxOut.cpp \
+    #core/src/extension/PaymentChannel/Refund.cpp \
+    #core/src/extension/PaymentChannel/Payment.cpp \
+    #core/src/extension/PaymentChannel/Contract.cpp \
+    #core/src/extension/BitCoin/BitSwaprjs.cpp \
+    #core/src/extension/PaymentChannel/Payee/Payee.cpp \
+    #core/src/extension/PaymentChannel/Payor/Channel.cpp \
+    #core/src/extension/BitCoin/OutPoint.cpp \
+    #core/src/extension/PaymentChannel/Payor/Payor.cpp \
+    #core/src/extension/BitCoin/UnspentP2PKHOutput.cpp \
+    #core/src/extension/BitCoin/Wallet.cpp \
+    #core/src/extension/BitCoin/PublicKey.cpp \
+    #core/src/extension/BitCoin/TxId.cpp \
+    #core/src/extension/BitCoin/base58.cpp \
+    #core/src/extension/BitCoin/PrivateKey.cpp \
+    #core/src/extension/BitCoin/Signature.cpp \
+
+    core/src/controller/BuyerPeerPluginViewModel.cpp \
+    core/src/controller/BuyerTorrentPluginViewModel.cpp \
+    core/src/controller/ChannelViewModel.cpp \
+    core/src/controller/PayeeViewModel.cpp \
+    core/src/controller/PayorViewModel.cpp \
+    core/src/controller/PeerPluginViewModel.cpp \
+    core/src/controller/SellerPeerPluginViewModel.cpp \
+    core/src/controller/SellerTorrentPluginViewModel.cpp \
+    core/src/controller/TorrentPluginViewModel.cpp \
+    core/src/controller/TorrentViewModel.cpp \
+    core/src/controller/Stream.cpp \
+
+    core/src/extension/Alert/BuyerPeerAddedAlert.cpp \
+    core/src/extension/Alert/SellerPeerAddedAlert.cpp \
+    core/src/extension/Alert/BuyerPeerPluginRemovedAlert.cpp \
+    core/src/extension/Alert/SellerPeerPluginRemovedAlert.cpp \
+    core/src/extension/Request/ChangeDownloadLocation.cpp \
+    core/src/extension/Message/ExtendedMessageTools.cpp
+
+    src/view/MainWindow.cpp \
+    src/view/WalletDialog.cpp \
+    src/view/SellerTorrentPluginConfigurationDialog.cpp \
+    src/view/BuyerTorrentPluginConfigurationDialog.cpp \
+    src/view/SellerTorrentPluginDialog.cpp \
+    src/view/BuyerTorrentPluginDialog.cpp \
+    src/view/AddTorrentDialog.cpp \
+    src/view/TorrentView.cpp \
+    src/view/ChannelView.cpp \
+    src/view/BuyerPeerPluginView.cpp \
+    src/view/SellerPeerPluginView.cpp \
+    src/view/PeerPluginsDialog.cpp \
+    #src/view/DataSizeRepresentation.cpp \
+    #src/view/BitCoinRepresentation.cpp \
+    #src/view/BitCoinDisplaySettings.cpp
+
+
+HEADERS += \
+    include/gui/MainWindow.hpp \
+    include/gui/AddTorrentDialog.hpp \
+    include/gui/SellerTorrentPluginConfigurationDialog.hpp \
+    include/gui/BuyerTorrentPluginConfigurationDialog.hpp \
+    include/gui/WalletDialog.hpp \
+    include/gui/PeerPluginsDialog.hpp \
+    include/gui/SellerTorrentPluginDialog.hpp \
+    include/gui/BuyerTorrentPluginDialog.hpp \
+    include/gui/TorrentView.hpp \
+    include/gui/ChannelView.hpp \
+    include/gui/BuyerPeerPluginView.hpp \
+    include/gui/SellerPeerPluginView.hpp \
+    #include/gui/DataSizeRepresentation.hpp \
+    #include/gui/BitCoinRepresentation.hpp \
+    #include/gui/BitCoinDisplaySettings.hpp \
+    #include/gui/Fiat.hpp
+
+FORMS += \
+    ui/SellerTorrentPluginConfigurationDialog.ui \
+    ui/BuyerTorrentPluginConfigurationDialog.ui \
+    ui/PeerPluginsDialognsdialog.ui \
+    ui/SellerTorrentPluginDialog.ui \
+    ui/BuyerTorrentPluginDialog.ui \
+    ui/MainWindow.ui \
+    ui/AddTorrentDialog.ui \
+    ui/WalletDialog.ui

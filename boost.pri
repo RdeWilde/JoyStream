@@ -20,7 +20,7 @@ DEFINES += BOOST_EXCEPTION_DISABLE
 # <test if this is still needed>
 DEFINES += BOOST_ASIO_HEADER_ONLY
 
-# Windows boost location
+# Windows
 win32 {
 
     BOOST_LOCATION = C:/boost_1_57_0
@@ -30,10 +30,7 @@ win32 {
 
 }
 
-# Mac boost configuration
-# macx: include(../macxconf.pri)
-
-# Unix boost locatin
+# Mac
 
 # Unix
 unix:!macx {
@@ -45,29 +42,29 @@ unix:!macx {
          -lboost_thread \
          -lboost_system \
          -lboost_filesystem \
-         -lssl \
-         -lcrypto \
-         #-lidn \
+         -lboost_regex \
          -lpthread \
          -lz
 
-    CONFIG(release, debug|release) {
-
+#    CONFIG(release, debug|release) {
+#
+#        INCLUDEPATH += /usr/local/include
+#
 #        LIBS += \
 #             -L/usr/local/lib \
 #             -lboost_thread \
 #             -lboost_system \
 #             -lboost_filesystem \
-#             -lssl \
-#             -lcrypto \
-#             #-lidn \
+#             -lboost_regex \
 #             -lpthread \
 #             -lz
-
-    } else {
-
+#
+#    } else {
+#
 #       # only bullshit way I found to link with debug build
 #       BOOST_BUILD_LOCATION = /home/bedeho/build_boost/boost/bin.v2/libs
+#
+#       INCLUDEPATH += /usr/local/include
 #
 #       LIBS += -L$$BOOST_BUILD_LOCATION/thread/build/gcc-4.8/debug/link-static/threading-multi \
 #               -lboost_thread
@@ -77,6 +74,7 @@ unix:!macx {
 #
 #       LIBS += -L$$BOOST_BUILD_LOCATION/filesystem/build/gcc-4.8/debug/link-static/threading-multi \
 #              -lboost_filesystem
+#
+#    }
 
-    }
 }

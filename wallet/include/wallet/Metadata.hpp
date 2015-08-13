@@ -3,6 +3,8 @@
 
 #include <common/CoinWrappers.hpp>
 
+class Seed;
+
 class QSqlQuery;
 class QSqlDatabase;
 class QByteArray;
@@ -15,13 +17,18 @@ public:
 
     static void createTable(QSqlDatabase db);
 
-    static void populateTable(QSqlDatabase db, const QByteArray & seed, Coin::Network network, const QDateTime & created);
+    static void populateTable(QSqlDatabase db, const Seed & seed, Coin::Network network, const QDateTime & created);
 
     static Coin::Network getNetwork(QSqlDatabase db);
     static void setNetwork(QSqlDatabase db, Coin::Network network);
 
+    /**
     static QByteArray getSeed(QSqlDatabase db);
     static void setSeed(QSqlDatabase db, const QByteArray & seed);
+    */
+
+    static Seed getSeed(QSqlDatabase db);
+    static void setSeed(QSqlDatabase db, const Seed & seed);
 
     static QDateTime getCreated(QSqlDatabase db);
     static void setCreated(QSqlDatabase db, const QDateTime & created);

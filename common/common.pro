@@ -3,8 +3,10 @@
 # Proprietary and confidential
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
 
-include(../libtorrent.pri)
+include(../libtorrent.pri) # THERE IS ALMOST NOE LIBTORRENT CODE HERE, SO PERHAPS FACTOR OUT LATER
 include(../mSIGNA.pri)
+include(../openssl.pri)
+include(../boost.pri)
 
 TARGET = common
 TEMPLATE = lib
@@ -15,9 +17,7 @@ CONFIG  += c++11 # Needed for class enum
 
 QT      += core
 
-INCLUDEPATH += $$PWD/include # be able to include w.r.t root of this project
-
-INCLUDEPATH += $$PWD # include in src folder
+INCLUDEPATH += $$PWD/include
 
 HEADERS += \
     include/common/DataSizeRepresentation.hpp \
@@ -25,7 +25,6 @@ HEADERS += \
     include/common/CoinWrappers.hpp \
     include/common/Network.hpp \
     include/common/AddressType.hpp \
-    include/common/FixedUCharArray.hpp \
     include/common/PrivateKey.hpp \
     include/common/PublicKey.hpp \
     include/common/Signature.hpp \
@@ -43,7 +42,9 @@ HEADERS += \
     include/common/TimeTools.hpp \
     include/common/Bitcoin.hpp \
     include/common/BitcoinDisplaySettings.hpp \
-    include/common/BitcoinRepresentation.hpp
+    include/common/BitcoinRepresentation.hpp \
+    include/common/UCharArray.hpp \
+    include/common/OutPoint.hpp
     #include/common/RawCompressedPublicKey.hpp \
     #include/common/P2PKHAddress.hpp
 
@@ -66,4 +67,3 @@ SOURCES += \
     src/TimeTools.cpp \
     src/BitcoinDisplaySettings.cpp \
     src/BitcoinRepresentation.cpp
-

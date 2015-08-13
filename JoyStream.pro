@@ -9,7 +9,9 @@ SUBDIRS     = \
             common \
             core \
             app \
-            wallet
+            wallet \
+            views
+
 
 wallet.depends = common
 
@@ -19,3 +21,6 @@ core.depends = wallet
 app.depends = common
 app.depends = core
 app.depends = wallet
+app.depends = views
+
+#views.gui

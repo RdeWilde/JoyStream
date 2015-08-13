@@ -28,14 +28,15 @@ OutPoint::OutPoint(const OutPoint& o)
     : OutPoint(o.transactionId(), o.index()) {
 }
 
-/**
 OutPoint & OutPoint::operator=(const OutPoint& o) {
-    _txId = o.txId();
+
+    _txId = o.transactionId();
     _index = o.index();
 
     return *this;
 }
 
+/**
 OutPoint::OutPoint(const QJsonObject & json) {
 
     // _hash

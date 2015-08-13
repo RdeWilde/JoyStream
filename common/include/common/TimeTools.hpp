@@ -15,11 +15,11 @@ class QTime;
 namespace TimeTools {
 
 // Converts x-> #units in x
-static quint8 hoursInSeconds(quint32 seconds);
-static quint8 minutesInSeconds(quint32 seconds);
-static quint8 secondsInSeconds(quint32 seconds);
+quint8 hoursInSeconds(quint32 seconds);
+quint8 minutesInSeconds(quint32 seconds);
+quint8 secondsInSeconds(quint32 seconds);
 
-static QTime secondsToQTime(quint32 seconds);
+QTime secondsToQTime(quint32 seconds);
 
 }
 
