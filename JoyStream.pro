@@ -22,5 +22,3 @@ app.depends = common
 app.depends = core
 app.depends = wallet
 app.depends = views
-
-#views.gui

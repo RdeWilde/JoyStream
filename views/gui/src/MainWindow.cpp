@@ -141,6 +141,41 @@ MainWindow::MainWindow(Controller * controller, Wallet * wallet)
     ui->balanceLabel->setAlignment(Qt::AlignRight);
 
     /**
+     * Connect controller signals with view slots
+     */
+    QObject::connect(controller,
+                     SIGNAL(addedTorrent(const TorrentViewModel*)),
+                     this,
+                     SLOT(addTorrent(const TorrentViewModel*)));
+
+    QObject::connect(controller,
+                     SIGNAL(closed()),
+                     this,
+                     SLOT(close()));
+
+    QObject::connect(controller,
+                     SIGNAL(failedToAddTorrent(std::string,libtorrent::sha1_hash,libtorrent::error_code)),
+                     this,
+                     SLOT(addTorrentFailed(std::string,libtorrent::sha1_hash,libtorrent::error_code)));
+
+    QObject::connect(controller,
+                     SIGNAL(pluginStatusUpdate(Plugin::Status)),
+                     this,
+                     SLOT(updatePluginStatus(Plugin::Status)));
+
+    QObject::connect(controller,
+                    SIGNAL(torrentCheckedButHasNoPlugin(libtorrent::torrent_info,libtorrent::torrent_status)),
+                    this,
+                    SLOT(showAddTorrentPluginConfigurationDialog(libtorrent::torrent_info,libtorrent::torrent_status)));
+
+    /**
+    QObject::connect(controller,
+                     SIGNAL(torrentPluginStarted()),
+                     this,
+                     SLOT()
+    */
+
+    /**
      * Context menu on table view
      */
 

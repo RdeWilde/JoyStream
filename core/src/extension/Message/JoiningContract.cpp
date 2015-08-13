@@ -9,13 +9,9 @@
 #include <core/extension/Message/MessageType.hpp>
 
 #include <QDataStream>
+#include <common/PublicKey.hpp>
 
 JoiningContract::JoiningContract() {
-
-    QDataStream stream;
-    Coin::PublicKey contractPk;
-    Coin::operator << (stream, contractPk);
-    stream << contractPk;
 }
 
 JoiningContract::JoiningContract(const Coin::PublicKey & contractPk, const Coin::PublicKey & finalPk)
@@ -24,7 +20,10 @@ JoiningContract::JoiningContract(const Coin::PublicKey & contractPk, const Coin:
 }
 
 JoiningContract::JoiningContract(QDataStream & stream) {
-    stream >> _contractPk >> _finalPk;
+
+    // DOESN'T LINK: stream >> _contractPk >> _finalPk;
+    Coin::operator >> (stream, _contractPk);
+    Coin::operator >> (stream, _finalPk);
 }
 
 Coin::PublicKey JoiningContract::contractPk() const {
@@ -44,5 +43,8 @@ quint32 JoiningContract::length() const {
 }
 
 void JoiningContract::write(QDataStream & stream) const {
-    stream << _contractPk << _finalPk;
+
+    // DOESN'T LINK: stream << _contractPk << _finalPk;
+    Coin::operator << (stream, _contractPk);
+    Coin::operator << (stream, _finalPk);
 }

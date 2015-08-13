@@ -22,7 +22,13 @@ SignRefund::SignRefund(const Coin::TransactionId & contractTxId, quint32 index, 
 }
 
 SignRefund::SignRefund(QDataStream & stream) {
-    stream >> _contractTxId >> _index >> _value >> _contractPk >> _finalPk;
+
+    // DOESN'T LINK: stream >> _contractTxId >> _index >> _value >> _contractPk >> _finalPk;
+    Coin::operator >> (stream, _contractTxId);
+    stream >> _index;
+    stream >> _value;
+    Coin::operator >> (stream, _contractPk);
+    Coin::operator >> (stream, _finalPk);
 }
 
 MessageType SignRefund::messageType() const {
@@ -34,7 +40,13 @@ quint32 SignRefund::length() const {
 }
 
 void SignRefund::write(QDataStream & stream) const {
-    stream << _contractTxId << _index << _value << _contractPk << _finalPk;
+
+    // DOESN'T LINK: stream << _contractTxId << _index << _value << _contractPk << _finalPk
+    Coin::operator << (stream, _contractTxId);
+    stream << _index;
+    stream << _value;
+    Coin::operator << (stream, _contractPk);
+    Coin::operator << (stream, _finalPk);
 }
 
 Coin::TransactionId SignRefund::contractTxId() const {
