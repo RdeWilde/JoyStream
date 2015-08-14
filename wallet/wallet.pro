@@ -43,7 +43,8 @@ HEADERS += \
     include/wallet/OutBoundPayment.hpp \
     include/wallet/OuputFundsPayer.hpp \
     include/wallet/Metadata.hpp \
-    include/wallet/Seed.hpp
+    include/wallet/Seed.hpp \
+    include/wallet/WalletUtilities.hpp
 
 SOURCES += \
     src/Wallet.cpp \
@@ -68,7 +69,8 @@ SOURCES += \
     src/OutBoundPayment.cpp \
     src/OuputFundsPayer.cpp \
     src/Metadata.cpp \
-    src/Seed.cpp
+    src/Seed.cpp \
+    src/WalletUtilities.cpp
 
 # common ###############################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../common/release/ -lcommon

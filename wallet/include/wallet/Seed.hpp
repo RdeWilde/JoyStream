@@ -32,6 +32,12 @@ public:
     // Default constructor
     Seed();
 
+    // Constructor from raw data
+    Seed(const QByteArray & raw);
+
+    // Constructor from raw data
+    Seed(const char * raw);
+
     // Constructor from hex encoded string
     Seed(const QString & hexEncoded);
 

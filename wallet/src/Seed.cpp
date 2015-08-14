@@ -36,6 +36,15 @@ const QList<Seed> Seed::testSeeds = QList<Seed>()
 Seed::Seed() {
 }
 
+Seed::Seed(const char * raw)
+    : Coin::UCharArray<WALLET_SEED_BYTE_LENGTH>(raw) {
+}
+
+Seed::Seed(const QByteArray & raw)
+    : Coin::UCharArray<WALLET_SEED_BYTE_LENGTH>(raw) {
+}
+
+
 Seed::Seed(const QString & hexEncoded)
     : Coin::UCharArray<WALLET_SEED_BYTE_LENGTH>(hexEncoded) {
 }

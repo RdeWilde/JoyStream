@@ -60,8 +60,7 @@ private:
     static QByteArray encodeNetwork(Coin::Network network);
     static Coin::Network decodeNetwork(const QByteArray & blob);
 
-    static QByteArray encodeDateTime(const QDateTime & dateTime);
-    static QDateTime decodeDateTime(const QByteArray & encodedDateTime);
+
 };
 
 #endif // METADATA_HPP

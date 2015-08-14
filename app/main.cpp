@@ -280,13 +280,22 @@ Controller * create_controller(Controller::Configuration controllerConfiguration
     if(!QFile(walletFile).exists()) {
 
         qDebug() << "Creating a fresh wallet " << walletFile;
-        Wallet::createNewWallet(walletFile, BITCOIN_NETWORK, Seed::testSeeds[*seedId]);
+
+        Seed seed = Seed::testSeeds[*seedId];
+        Wallet::createNewWallet(walletFile, BITCOIN_NETWORK, seed);
 
         seedId++;
+
+        // DEBUG
+        Wallet w(walletFile);
+        Q_ASSERT(w.network() == BITCOIN_NETWORK);
+        Q_ASSERT(w.seed() == seed);
     }
 
     // Load wallet
     Wallet * wallet = new Wallet(walletFile);
+
+
 
     // Create controller: Dangling, but we don't care
     Controller * controller = new Controller(controllerConfiguration, wallet, manager, *category);

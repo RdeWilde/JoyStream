@@ -30,10 +30,13 @@ public:
     UCharArray(const uchar_vector & vector);
 
     // Constructor from hex encoded string
-    UCharArray(const QString & hexEncoded);
+    UCharArray(const QString & hexEncodedString);
+
+    // Constructor from hex encoded string
+    UCharArray(const char * hexEncodedString);
 
     // Constructor from raw byte array
-    UCharArray(const QByteArray & byteArray);
+    UCharArray(const QByteArray & raw);
 
     // Return length
     static unsigned int length();
@@ -152,10 +155,15 @@ UCharArray<array_length>::UCharArray(const QString & hexEncoded) {
 }
 
 template<unsigned int array_length>
-UCharArray<array_length>::UCharArray(const QByteArray & byteArray) {
+UCharArray<array_length>::UCharArray(const char * hexEncodedString)
+    : UCharArray<array_length>(QString(hexEncodedString)) {
+}
+
+template<unsigned int array_length>
+UCharArray<array_length>::UCharArray(const QByteArray & raw) {
 
     // Check that byte array has correct length
-    uchar_vector::size_type byteArrayLength = byteArray.size();
+    uchar_vector::size_type byteArrayLength = raw.size();
 
     if(byteArrayLength != array_length) {
 
@@ -170,7 +178,7 @@ UCharArray<array_length>::UCharArray(const QByteArray & byteArray) {
         throw std::runtime_error(s.str());
 
     } else
-        fill(static_cast<const unsigned char *>(byteArray.constData()), byteArrayLength);
+        fill((const unsigned char *)(raw.constData()), byteArrayLength);
 }
 
 template<unsigned int array_length>

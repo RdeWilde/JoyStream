@@ -19,13 +19,13 @@
 #include <QByteArray>
 
 class WalletKey;
-class ReceiveAddress;
 class Payer;
 class Payee;
 class Slot;
 
 namespace Coin {
     enum class Network;
+    class P2PKHAddress;
     //class KeyPair;
 }
 
@@ -55,6 +55,20 @@ public:
     static bool validateWalletStructure(QSqlDatabase & db);
 
     /**
+     * Getters : Unsynched because these values are read-only,
+     * is therefore also const since mutex is not needed.
+     */
+
+    // Network wallet corresponds to
+    Coin::Network network() const;
+
+    // Time when wallet was created
+    QDateTime created() const;
+
+    // Wallet seed
+    Seed seed() const;
+
+    /**
      * List wallet content
      */
 
@@ -64,64 +78,51 @@ public:
     // List wallet utxo set
     //QList<Output listUtxo();
 
-
-    // Number of transaction
-    quint32 numberOfTransactions(); // const
-
-    // Number of keys in the wallet
-    quint64 numberOfKeysInWallet();  // const
-
-    /**
-     * Get
-     */
-
-    // Network wallet corresponds to
-    Coin::Network network() const;
-
-    // Time when wallet was created
-    QDateTime created() const;
-
     // Get and utxo
     // utxo getUtxo();
 
-    // Generate receive address
-    // ReceiveAddress getReceiveAddress();
+    // Number of transaction
+    quint64 numberOfTransactions();
 
-    // Returns the given number of fresh key pairs
-    QList<Coin::KeyPair> getFreshKeys(quint8 numberOfKeys);
+    // Number of keys in the wallet
+    quint64 numberOfKeysInWallet();
+
+    // Last 0-confirmation balance computed
+    quint64 lastComputedZeroConfBalance();
+
+    // Gets hd key index of next key
+    quint64 nextHdIndex();
+
+    /**
+     * Read operations
+     */
+
+    // Generate receive address p2pkh address
+    // corresponding to a fresh private
+    //Coin::P2PKHAddress getReceiveAddress();
+
+    // Returns a fresh private key which persists in wallet
+    // NB: These keys are have no corresponding addresses
+    // which are monitored for inbound/outbound? transactions,
+    Coin::PrivateKey issueKey();
 
     // Return the given set of keys to key pool.
     // It is checked that a given key is actually not in use
     // before it is placed in the key pool.
-    void releaseKeys(const QSet<Coin::KeyPair> & keys);
+    //void releaseKeys(const QSet<Coin::KeyPair> & keys);
 
     //Entry getAndLockEntry();
     //UnspentP2PKHOutput getUtxo(quint64 minimalValue, quint32 minimalNumberOfConfirmations);
 
-    quint64 lastComputedZeroConfBalance();
-
     /**
-     * State modifying operation
+     * State managing operation
      */
 
     // Scraps current key pool, and rebuilds based on dbase
-    void updateKeyPool();
+    //void updateKeyPool();
 
     // Scraps current utxo, and rebuilds based on dbase
-    void updateUtxo();
-
-    /**
-     * Attempts to insert object in wallet database,
-     * (explain what happens in the event of failure)
-
-    void add(const WalletKey & walletKey);
-    void add(const WalletKey & walletKey);
-    void add(const ReceiveAddress & receiveAddress);
-
-    void add(const Payer & payer);
-    void add(const Payee & payee);
-    void add(const Slot & slot);
-    */
+    void updateUtxoSet();
 
 signals:
 
@@ -135,7 +136,6 @@ signals:
     void zeroConfBalanceChanged(quint64);
 
 public slots:
-
 
 private:
 
@@ -155,15 +155,7 @@ private:
     QDateTime _created;
 
     // Seed
-    //    QByteArray _seed;
     Seed _seed;
-
-    /**
-     * HD key chain manager
-     */
-
-    //
-    //Coin::HDSeed _seedManager;
 
     // Key chain used in wallet for get derivation
     Coin::HDKeychain _keyChain;
@@ -172,14 +164,17 @@ private:
      * State
      */
 
+    // Index of next key
+    quint64 _nextHdIndex;
+
     // Latest known block height
     qint64 _latestBlockHeight;
 
     // Value of last run of computeBalance(0), which is initially run in ctr
     quint64 _lastComputedZeroConfBalance;
 
-    // Key pair pool <== perhaps drop as managed state, since its such an easy thing to derive?
-    QSet<Coin::KeyPair> _keyPairPool;
+    // Key pool
+    //QSet<Coin::PrivateKey> _keyPool;
 
     // Utxo <== keep as managed state, since it becomes kind of expensive to keep rederiving
     //QMap< outpoint, output> _utxo;

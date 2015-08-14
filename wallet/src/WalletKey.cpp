@@ -10,34 +10,46 @@
 #include <QSqlQuery>
 #include <QVariant> // QSqlQuery::bind needs it
 
-WalletKey::WalletKey(quint64 index, const Coin::PrivateKey & privateKey, const QDateTime & generated)
+WalletKey::WalletKey(quint64 index, const Coin::PrivateKey & privateKey, const QDateTime & generated, bool issued)
     : _index(index)
     , _privateKey(privateKey)
-    , _generated(generated) {
+    , _generated(generated)
+    , _issued(issued) {
 }
 
 QSqlQuery WalletKey::createTableQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
-    query.prepare("\
-    CREATE TABLE WalletKey (\
-        index           INTEGER,\
-        privateKey      BLOB        NOT NULL,\
-        generated       INTEGER     NOT NULL,\
-        PRIMARY KEY(index)\
-    )");
+    query.prepare(
+    "CREATE TABLE WalletKey ( "
+        "[index]         INTEGER, "
+        "privateKey      BLOB        NOT NULL, "
+        "generated       INTEGER     NOT NULL, "
+        "issued          BOOL        NOT NULL,"
+        "PRIMARY KEY([index]) "
+    ")");
 
     return query;
 }
 
+quint64 WalletKey::numberOfKeysInWallet(QSqlDatabase db) {
+    //needed
+}
+
+/**
+QSqlQuery WalletKey::getUnIssuedKeys() {
+
+}
+*/
+
 QSqlQuery WalletKey::unboundedInsertQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
-    INSERT INTO PrivateKey \
-    (index, privateKey, generated)\
-    VALUES\
-    (:index, :privateKey, :generated)\
-    ", db);
+    return QSqlQuery(
+    "INSERT INTO WalletKey "
+    "([index], privateKey, generated, issued) "
+    "VALUES "
+    "(:index, :privateKey, :generated, :issued) "
+    , db);
 }
 
 QSqlQuery WalletKey::insertQuery(QSqlDatabase db) {
@@ -50,6 +62,7 @@ QSqlQuery WalletKey::insertQuery(QSqlDatabase db) {
     query.bindValue(":privateKey", _privateKey.toByteArray());
     //query.bindValue(":keyPurposeId", WalletKey::encodePurpose(walletKey.purpose()));
     query.bindValue(":generated", _generated.toMSecsSinceEpoch());
+    query.bindValue(":issued", _issued);
 
     return query;
 }
@@ -110,7 +123,13 @@ void WalletKey::setGenerated(const QDateTime & generated) {
     _generated = generated;
 }
 
+bool WalletKey::issued() const {
+    return _issued;
+}
 
+void WalletKey::setIssued(bool issued) {
+    _issued = issued;
+}
 
 /*
 WalletKey::Purpose WalletKey::purpose() const {
@@ -121,4 +140,3 @@ void WalletKey::setPurpose(Purpose purpose) {
     _purpose = purpose;
 }
 */
-

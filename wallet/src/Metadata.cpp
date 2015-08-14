@@ -7,6 +7,7 @@
 
 #include <wallet/Metadata.hpp>
 #include <wallet/Seed.hpp>
+#include <wallet/WalletUtilities.hpp> // date conversion
 
 #include <QByteArray>
 #include <QSqlDatabase>
@@ -21,23 +22,19 @@ const QByteArray Metadata::_createdKey = QByteArray("created");
 
 void Metadata::createKeyValueStore(QSqlDatabase db, const Seed & seed, Coin::Network network, const QDateTime & created) {
 
-    ///////////////////////////////
-    // Create (two-column) table //
-    ///////////////////////////////
+    // Create (two-column) table
 
     // Try to execute query
-    QSqlQuery result = db.exec("\
-    CREATE TABLE Metadata (\
-        key BLOB,\
-        value BLOB,\
-        PRIMARY KEY(key)\
-    )");
+    QSqlQuery result = db.exec(
+    "CREATE TABLE Metadata ("
+        "[key] BLOB,"
+        "value BLOB,"
+        "PRIMARY KEY([key])"
+    ")");
 
     Q_ASSERT(result.lastError().type() == QSqlError::NoError);
 
-    ////////////////////////////////////////////////////////////
-    // Create one row per key-val pair you wish to represents //
-    ////////////////////////////////////////////////////////////
+    // Create one row per key-val pair you wish to represents
 
     // Create query
     QSqlQuery query = createInsertQuery(db);
@@ -79,6 +76,7 @@ QByteArray Metadata::get(QSqlDatabase db, const QByteArray & key) {
 
     QSqlError e = query.lastError();
     Q_ASSERT(e.type() == QSqlError::NoError);
+    Q_ASSERT(query.first());
 
     // Return result
     QVariant valueField = query.value(0);
@@ -157,7 +155,7 @@ QSqlQuery Metadata::createUpdateQuery(QSqlDatabase db) {
 QSqlQuery Metadata::createSelectQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
-    query.prepare("SELECT value FROM Metadata WHERE key = :key");
+    query.prepare("SELECT value FROM Metadata WHERE [key] = :key");
 
     return query;
 }
@@ -186,18 +184,4 @@ Coin::Network Metadata::decodeNetwork(const QByteArray & blob) {
         default:
             Q_ASSERT(false);
     }
-}
-
-QByteArray Metadata::encodeDateTime(const QDateTime & dateTime) {
-    return QByteArray::number(dateTime.toMSecsSinceEpoch());
-}
-
-QDateTime Metadata::decodeDateTime(const QByteArray & encodedDateTime) {
-
-    bool ok;
-    uint dateTimeMSecsSinceEpoch = encodedDateTime.toUInt(&ok);
-
-    Q_ASSERT(ok);
-
-    return QDateTime::fromMSecsSinceEpoch(dateTimeMSecsSinceEpoch);
 }

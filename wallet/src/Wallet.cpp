@@ -25,10 +25,12 @@
 #include <wallet/Payee.hpp>
 #include <wallet/Metadata.hpp>
 
+#include <CoinCore/typedefs.h> // bytes_t
+
 Wallet::Wallet(const QString & walletFile)
-    : _mutex(QMutex::Recursive) // allows same thread to call multiple synchronized sections in sequence
+    : _mutex(QMutex::NonRecursive) // Same thread cannot aquire same lock multiple times
     , _walletFile(walletFile)
-    , _db(QSqlDatabase::addDatabase(DATABASE_TYPE))
+    , _db(QSqlDatabase::addDatabase(DATABASE_TYPE, QFileInfo(walletFile).fileName()))
     , _latestBlockHeight(0)
     , _lastComputedZeroConfBalance(0) {
 
@@ -59,16 +61,25 @@ Wallet::Wallet(const QString & walletFile)
     _keyChain = _seed.generateHDKeychain();
 
     // Build key pool
-    updateKeyPool();
+    //updateKeyPool();
+
+    // We count the number of keys in the wallet
+    // so that the hd index counter can be set
+    _nextHdIndex = WalletKey::numberOfKeysInWallet(_db);
 
     // Build utxo
-    updateUtxo();
+    //updateUtxoSet();
 }
 
 void Wallet::createNewWallet(const QString & walletFile, Coin::Network network, const Seed & seed) {
 
-    // Create connection to database
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    // Create connection to database:
+    // We need non-default connection names, as testing will involve
+    // running multiple clients which each start their own connections
+    QString connectionName = QFileInfo(walletFile).fileName();
+
+    // Create connection
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", connectionName);
 
     Q_ASSERT(db.isValid());
 
@@ -87,16 +98,10 @@ void Wallet::createNewWallet(const QString & walletFile, Coin::Network network, 
     Metadata::createKeyValueStore(db, seed, network, QDateTime::currentDateTime());
 
     // Create relational tables
-    QSqlQuery query;
+    QSqlQuery query = WalletKey::createTableQuery(db);
+    bool itWorked = query.exec();
 
-    // Error variable for each query
-    QSqlError e;
-
-    query = WalletKey::createTableQuery(db);
-    query.exec();
-    e = query.lastError();
-
-    Q_ASSERT(e.type() == QSqlError::NoError);
+    Q_ASSERT(itWorked);
 
     /**
     if(!WalletAddress::createTableQuery(db).exec()) {
@@ -142,23 +147,15 @@ void Wallet::createNewWallet(const QString & walletFile, Coin::Network network, 
         throw std::runtime_error("Could not create Payee table.");
     }
     */
+
+    // Close connection: Is this requried? I think destructor does this anyway.
+    db.close();
 }
 
 bool Wallet::validateWalletStructure(QSqlDatabase & db) {
     return true;
 }
 
-// Number of transaction
-quint32 Wallet::numberOfTransactions() {
-    return 77777;
-}
-
-// Number of keys in the wallet
-quint64 Wallet::numberOfKeysInWallet() {
-    return 2222;
-}
-
-// Network wallet corresponds to
 Coin::Network Wallet::network() const {
     return _network;
 }
@@ -167,30 +164,75 @@ QDateTime Wallet::created() const {
     return _created;
 }
 
-QList<Coin::KeyPair> Wallet::getFreshKeys(quint8 numberOfKeys) {
-
-    // If key pool does not have enough, then generate new keys
-
-    return QList<Coin::KeyPair>();
+Seed Wallet::seed() const {
+    return _seed;
 }
 
+quint32 Wallet::numberOfTransactions() {
+    return 0;
+}
+
+quint64 Wallet::numberOfKeysInWallet() const {
+    return nextHdIndex();
+}
+
+quint64 Wallet::lastComputedZeroConfBalance() {
+
+    quint64 balance;
+
+    _mutex.lock();
+    balance = _lastComputedZeroConfBalance;
+    _mutex.unlock();
+
+    return balance;
+}
+
+quint64 Wallet::nextHdIndex() {
+    return _nextHdIndex;
+}
+
+//Coin::P2PKHAddress Wallet::getReceiveAddress() {
+//
+//}
+
+Coin::PrivateKey Wallet::issueKey() {
+
+    /**
+     * UPDATE IN THE FUTURE TO WORK WITH KEY POOL
+     */
+
+    Coin::KeyPair key;
+
+    _mutex.lock();
+
+    // Generate a new key by
+    bytes_t rawPrivateKey = _keyChain.getPrivateSigningKey(_nextHdIndex);
+    key = Coin::KeyPair(rawPrivateKey);
+
+    // Add to wallet key table
+    QSqlQuery query = WalletKey(_nextHdIndex, key, QDateTime::currentDateTime(), true).insertQuery(_db);
+    query.exec();
+
+    QSqlError e = query.lastError();
+    Q_ASSERT(e.type() == QSqlError::NoError);
+
+    // Add to key count
+    _nextHdIndex++;
+
+    _mutex.unlock();
+
+    return key;
+}
+
+/**
 void Wallet::releaseKeys(const QSet<Coin::KeyPair> & keys) {
 
     // for each key, if it is in dbase, but not in use, then place in key pool:
 
 }
+*/
 
-quint64 Wallet::lastComputedZeroConfBalance() {
-
-    quint64 copy;
-
-    _mutex.lock();
-    copy = _lastComputedZeroConfBalance;
-    _mutex.unlock();
-
-    return copy;
-}
-
+/**
 void Wallet::updateKeyPool() {
 
     // Net change to key pool
@@ -199,7 +241,7 @@ void Wallet::updateKeyPool() {
     _mutex.lock();
 
     // Scrap current pool
-    _keyPairPool.clear();
+    _keyPool.clear();
 
     // Find all keys not currently used
 
@@ -210,8 +252,9 @@ void Wallet::updateKeyPool() {
     // Send signal of what changes were
     emit keyPoolUpdated(diff);
 }
+*/
 
-void Wallet::updateUtxo() {
+void Wallet::updateUtxoSet() {
 
     // Net change to txo
     quint32 diff = 0;
@@ -225,10 +268,10 @@ void Wallet::updateUtxo() {
 
     // Put in utxo
 
+    _mutex.unlock();
 
     // Send signal of what changes were
     emit utxoUpdated(diff);
-
 }
 
 /**
@@ -480,8 +523,6 @@ QSqlQuery Wallet::insertPayeeStateQuery() {
     (:id, :text)\
     )");
 }
-
-
 
 QSqlQuery Wallet::insertQuery(const ReceiveAddress & receiveAddress) {
 

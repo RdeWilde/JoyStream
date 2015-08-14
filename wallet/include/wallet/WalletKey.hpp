@@ -32,7 +32,7 @@ public:
     */
 
     // Contructor from members
-    WalletKey(quint64 index, const Coin::PrivateKey & privateKey, const QDateTime & generated);
+    WalletKey(quint64 index, const Coin::PrivateKey & privateKey, const QDateTime & generated, bool issued);
 
     // Constructor from record
     // WalletKey(const QSqlRecord & record);
@@ -42,6 +42,16 @@ public:
 
     // (Unbound) Query which inserts wallet key record into correspodning table
     static QSqlQuery unboundedInsertQuery(QSqlDatabase db);
+
+    ///////////////////////
+
+    // Counts the number of keys in the wallet
+    static quint64 numberOfKeysInWallet(QSqlDatabase db);
+
+    // Select query returning all wallet keys which have not yet been issued
+    static QSqlQuery getUnIssuedKeys();
+
+    //////////////////////
 
     // Query inserting this wallet key into corresponding table
     QSqlQuery insertQuery(QSqlDatabase db);
@@ -63,9 +73,12 @@ public:
     QDateTime generated() const;
     void setGenerated(const QDateTime & generated);
 
+    bool issued() const;
+    void setIssued(bool issued);
+
 private:
 
-    // The sequence number is wallet
+    // The (hd) index number is wallet
     quint64 _index;
 
     // Private key
@@ -76,6 +89,12 @@ private:
 
     // When key was generated
     QDateTime _generated;
+
+    // Has key been issued,
+    // that is been returned to wallet user in any way.
+    // An issued may still not actually have been used, but
+    // it should still not be reissued (
+    bool _issued;
 };
 
 #endif // WALLET_KEY_HPP

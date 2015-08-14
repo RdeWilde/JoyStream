@@ -266,10 +266,10 @@ SellerPeerPlugin * SellerTorrentPlugin::createRegularSellerPeerPlugin(libtorrent
 
     // Get fresh key pairs for seller side of contract
     //QList<Wallet::Entry> contractKeysEntry = _wallet->generateNewKeys(1, Wallet::Purpose::SellerInContractOutput).values();
-    QList<Coin::KeyPair> contractKeysEntry = _wallet->getFreshKeys(1);
+    QList<Coin::KeyPair> contractKeysEntry = _wallet->issueKeys(1);
     Coin::KeyPair payeeContractKeys = contractKeysEntry.front();
 
-    QList<Coin::KeyPair> paymentKeysEntry = _wallet->getFreshKeys(1);
+    QList<Coin::KeyPair> paymentKeysEntry = _wallet->issueKeys(1);
     Coin::KeyPair payeePaymentKeys = paymentKeysEntry.front();
 
     return new SellerPeerPlugin(this,
