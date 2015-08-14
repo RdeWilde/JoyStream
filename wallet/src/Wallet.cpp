@@ -51,13 +51,9 @@ Wallet::Wallet(const QString & walletFile)
         throw std::runtime_error("Invalid wallet structure.");
 
     // Load metadata
-    /**
     _network = Metadata::getNetwork(_db);
     _seed = Metadata::getSeed(_db);
     _created = Metadata::getCreated(_db);
-    */
-
-    _seed = Metadata::getSeed(_db);
 
     // Set keychain based on seed
     _keyChain = _seed.generateHDKeychain();
@@ -82,21 +78,26 @@ void Wallet::createNewWallet(const QString & walletFile, Coin::Network network, 
     if(!db.open()) {
 
         // Build error message and throw exception
-        QString errorMessage = "Could create wallet file: " + walletFile;
+        QString errorMessage = "Could not open wallet file: " + walletFile;
 
         throw std::runtime_error(errorMessage.toStdString());
     }
 
-    // Create metdata key-value store
-    Metadata::createTable(db);
-
-    // Populate with default values
-    Metadata::populateTable(db, seed, network, QDateTime::currentDateTime());
+    // Create metdata key-value store, and add rows for keys, and corresponding default values
+    Metadata::createKeyValueStore(db, seed, network, QDateTime::currentDateTime());
 
     // Create relational tables
-    if(!WalletKey::createTableQuery(db).exec()) {
-        throw std::runtime_error("Could not create WalletKey table.");
-    }
+    QSqlQuery query;
+
+    // Error variable for each query
+    QSqlError e;
+
+    query = WalletKey::createTableQuery(db);
+    query.exec();
+    e = query.lastError();
+
+    Q_ASSERT(e.type() == QSqlError::NoError);
+
     /**
     if(!WalletAddress::createTableQuery(db).exec()) {
         throw std::runtime_error("Could not create WalletAddress table.");
@@ -155,6 +156,15 @@ quint32 Wallet::numberOfTransactions() {
 // Number of keys in the wallet
 quint64 Wallet::numberOfKeysInWallet() {
     return 2222;
+}
+
+// Network wallet corresponds to
+Coin::Network Wallet::network() const {
+    return _network;
+}
+
+QDateTime Wallet::created() const {
+    return _created;
 }
 
 QList<Coin::KeyPair> Wallet::getFreshKeys(quint8 numberOfKeys) {

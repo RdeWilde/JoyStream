@@ -75,6 +75,12 @@ public:
      * Get
      */
 
+    // Network wallet corresponds to
+    Coin::Network network() const;
+
+    // Time when wallet was created
+    QDateTime created() const;
+
     // Get and utxo
     // utxo getUtxo();
 
@@ -142,13 +148,11 @@ private:
     // Database connection
     QSqlDatabase _db;
 
-    /**
     // Network wallet corresponds to
     Coin::Network _network;
 
     // Time when wallet was created
     QDateTime _created;
-    */
 
     // Seed
     //    QByteArray _seed;

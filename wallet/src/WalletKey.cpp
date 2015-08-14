@@ -18,12 +18,16 @@ WalletKey::WalletKey(quint64 index, const Coin::PrivateKey & privateKey, const Q
 
 QSqlQuery WalletKey::createTableQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
+    QSqlQuery query(db);
+    query.prepare("\
     CREATE TABLE WalletKey (\
-        index           INTEGER     PRIMARY KEY,\
+        index           INTEGER,\
         privateKey      BLOB        NOT NULL,\
-        generated       INTEGER     NOT NULL\
-    )", db);
+        generated       INTEGER     NOT NULL,\
+        PRIMARY KEY(index)\
+    )");
+
+    return query;
 }
 
 QSqlQuery WalletKey::unboundedInsertQuery(QSqlDatabase db) {

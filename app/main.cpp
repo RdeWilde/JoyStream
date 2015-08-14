@@ -274,10 +274,10 @@ Controller * create_controller(Controller::Configuration controllerConfiguration
     QLoggingCategory * category = global_log_manager.createLogger(name, use_stdout_logg, false);
 
     // Load wallet
-    QString walletFile = QString(WALLET_LOCATION) + name + QString("_wallet.dat");
+    QString walletFile = QString(WALLET_LOCATION) + name + QString("_wallet.sqlite3");
 
     // Create wallet if it does not exist
-    if(QFile(walletFile).exists()) {
+    if(!QFile(walletFile).exists()) {
 
         qDebug() << "Creating a fresh wallet " << walletFile;
         Wallet::createNewWallet(walletFile, BITCOIN_NETWORK, Seed::testSeeds[*seedId]);
@@ -293,6 +293,7 @@ Controller * create_controller(Controller::Configuration controllerConfiguration
 
     if(show_gui) {
         MainWindow * view = new MainWindow(controller, wallet);
+        view->show();
     }
 
     return controller;
