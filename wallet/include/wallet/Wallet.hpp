@@ -19,6 +19,7 @@
 #include <QByteArray>
 
 class WalletKey;
+class WalletAddress;
 class Payer;
 class Payee;
 class Slot;
@@ -27,7 +28,7 @@ namespace Coin {
     enum class Network;
     class P2PKHAddress;
     class Transaction;
-    //class KeyPair;
+    //class KeyPair;   
 }
 
 // The number keys in a newly populated key pool
@@ -97,9 +98,9 @@ public:
      * Read operations
      */
 
-    // Generate receive address p2pkh address
+    // Generate p2pkh receive address
     // corresponding to a fresh private
-    //Coin::P2PKHAddress getReceiveAddress();
+    Coin::P2PKHAddress getReceiveAddress();
 
     // Returns a fresh private key which persists in wallet
     // **NB: These keys are have no corresponding addresses

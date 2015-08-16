@@ -10,6 +10,7 @@
 #include <wallet/Wallet.hpp>
 #include <common/BitcoinDisplaySettings.hpp>
 #include <common/BitcoinRepresentation.hpp>
+#include <common/P2PKHAddress.hpp>
 
 #include <QInputDialog>
 #include <QMessageBox>
@@ -271,25 +272,18 @@ void WalletDialog::on_receivePushButton_clicked() {
     if(!ok || description.isEmpty())
         return;
 
-    /**
-
-    // Get wallet entry
-    Wallet::Entry entry = _wallet->addReceiveKey(description, Wallet::Purpose::Receive);
-
     // Get address
-    QString address = _wallet->toAddress(entry.keyPair().pk());
+    Coin::P2PKHAddress address = _wallet->getReceiveAddress();
+
+    // Get base58check encodi
+    QString encodedAddress = address.toBase58CheckEncoding();
 
     // Show address in message box
     QMessageBox msgBox;
 
-    msgBox.setText("Added: " + address);
-    msgBox.setDetailedText(address);
-    // + " : " + entry.keyPair().pk().toString() + " : " + entry.keyPair().sk().toString() );
+    msgBox.setText("Added: " + encodedAddress);
+    msgBox.setDetailedText(encodedAddress);
     msgBox.exec();
-
-    // Update view model
-    refresh();
-    */
 }
 
 void WalletDialog::on_synchronizePushButton_clicked() {

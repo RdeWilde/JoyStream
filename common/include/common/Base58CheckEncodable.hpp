@@ -14,12 +14,6 @@
 
 #include <common/Network.hpp>
 
-/**
-namespace std {
-    class string;
-}
-*/
-
 class uchar_vector;
 
 /**
@@ -69,6 +63,7 @@ enum class Base58CheckEncodable {
 
     EXTENDED_PRIVATE_KEY, // bip32
     EXTENDED_PUBLIC_KEY // bip32
+
     //ENCRYPTED_PRIVATE_KEY // bip38
 };
 

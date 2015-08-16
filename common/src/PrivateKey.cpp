@@ -7,7 +7,9 @@
 
 #include <common/PrivateKey.hpp>
 #include <common/Base58CheckEncodable.hpp>
+#include <common/PublicKey.hpp>
 #include <CoinCore/Base58Check.h>
+#include <CoinCore/secp256k1.h>
 
 namespace Coin {
 
@@ -20,8 +22,6 @@ PrivateKey::PrivateKey(const uchar_vector & vector)
 }
 
 PrivateKey::~PrivateKey() {
-
-    // Clear out memory when freeing key
     clear();
 }
 
@@ -91,6 +91,7 @@ QString PrivateKey::toWIF(Network network, PublicKeyCompression compression) con
     // Add 1 byte indicator if key corresponds to compressed pubkey
     if(compression == PublicKeyCompression::Compressed)
         payload.push_back(WIF_PRIVATE_KEY_FOR_COMPRESSED_PUBKEY_BYTE);
+    else Q_ASSERT(false); // We really should only ever have private keys corresponding to compressed public keys at the moment
 
     // Base58Check encode and return result
     std::string encoded = toBase58Check(payload, versionBytes);
@@ -100,9 +101,14 @@ QString PrivateKey::toWIF(Network network, PublicKeyCompression compression) con
 
 PublicKey PrivateKey::toPublicKey() const {
 
-    throw std::runtime_error("not implemented");
-    // https://github.com/ciphrex/mSIGNA/blob/master/deps/CoinCore/src/secp256k1.h
-    return PublicKey();
+    // Wrap in key class
+    CoinCrypto::secp256k1_key sk;
+    sk.setPrivKey(this->toUCharVector());
+
+    // Convert to compressed public key
+    bytes_t publicKey = sk.getPubKey(true);
+
+    return PublicKey(publicKey);
 }
 
 }

@@ -44,7 +44,8 @@ HEADERS += \
     include/common/UCharArray.hpp \
     include/common/typesafeOutPoint.hpp \
     include/common/Payment.hpp \
-    include/common/P2SHAddress.hpp
+    include/common/P2SHAddress.hpp \
+    include/common/PubKeyHash.hpp
     #include/common/RawCompressedPublicKey.hpp \
 
 SOURCES += \

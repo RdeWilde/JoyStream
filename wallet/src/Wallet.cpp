@@ -198,9 +198,30 @@ quint64 Wallet::nextHdIndex() {
     return nextHdIndex;
 }
 
-//Coin::P2PKHAddress Wallet::getReceiveAddress() {
-//
-//}
+Coin::P2PKHAddress Wallet::getReceiveAddress() {
+
+    // Generate fresh key
+    Coin::PrivateKey sk = issueKey();
+
+    // Get corresponding public key
+    Coin::PublicKey pk = sk.toPublicKey();
+
+    // Generate correspondig p2pkh address
+    Coin::P2PKHAddress address(_network, pk);
+
+    // Insert into database
+    _mutex.lock();
+
+    // Create wallet address object
+
+    // get query
+
+    // execute
+
+    _mutex.unlock();
+
+    return address;
+}
 
 Coin::PrivateKey Wallet::issueKey() {
 

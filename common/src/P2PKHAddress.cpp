@@ -7,13 +7,18 @@
 
 #include <common/P2PKHAddress.hpp>
 #include <common/Base58CheckEncodable.hpp>
+#include <common/PublicKey.hpp>
 #include <CoinCore/Base58Check.h>
 
 namespace Coin {
 
-P2PKHAddress::P2PKHAddress(Network network, const UCharArray<P2PKH_ADDRESS_PAYLOAD_BYTE_LENGTH> & pubKeyHash)
+P2PKHAddress::P2PKHAddress(Network network, const PubKeyHash & pubKeyHash)
     : _network(network)
     , _pubKeyHash(pubKeyHash) {
+}
+
+P2PKHAddress::P2PKHAddress(Network network, const Coin::PublicKey & pk)
+    : P2PKHAddress::P2PKHAddress(network, pk.toPubKeyHash()) {
 }
 
 // Base58CheckEncoded p2pkh address
@@ -31,7 +36,7 @@ P2PKHAddress P2PKHAddress::fromBase58CheckEncoding(const QString & encoded) {
         throw std::runtime_error("Argument was not a p2pkh address.");
 
     // Create address and return
-    return P2PKHAddress(network, pubKeyHash);
+    return P2PKHAddress(network, PubKeyHash(pubKeyHash));
 }
 
 QString P2PKHAddress::toBase58CheckEncoding() const {
@@ -53,11 +58,11 @@ void P2PKHAddress::setNetwork(Network network) {
     _network = network;
 }
 
-UCharArray<P2PKH_ADDRESS_PAYLOAD_BYTE_LENGTH> P2PKHAddress::pubKeyHash() const {
+PubKeyHash P2PKHAddress::pubKeyHash() const {
     return _pubKeyHash;
 }
 
-void P2PKHAddress::setPubKeyHash(const UCharArray<P2PKH_ADDRESS_PAYLOAD_BYTE_LENGTH> & pubKeyHash) {
+void P2PKHAddress::setPubKeyHash(const PubKeyHash & pubKeyHash) {
     _pubKeyHash = pubKeyHash;
 }
 

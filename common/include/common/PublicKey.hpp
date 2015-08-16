@@ -9,27 +9,32 @@
 #define COIN_PUBLIC_KEY_HPP
 
 #include <common/UCharArray.hpp>
+#include <common/PubKeyHash.hpp>
 
 #define COMPRESSED_PUBLIC_KEY_BYTE_LENGTH 33
 #define UNCOMPRESSED_PUBLIC_KEY_BYTE_LENGTH 33
 
 namespace Coin {
 
-// Compressed public key
-typedef UCharArray<COMPRESSED_PUBLIC_KEY_BYTE_LENGTH> PublicKey;
+enum class Network;
 
-/**
-class PublicKey : public FixedUCharArray<COMPRESSED_PUBLIC_KEY_BYTE_LENGTH> {
+// Compressed public key
+//typedef UCharArray<COMPRESSED_PUBLIC_KEY_BYTE_LENGTH> PublicKey;
+
+// Compresed public key
+class PublicKey : public UCharArray<COMPRESSED_PUBLIC_KEY_BYTE_LENGTH> {
 
 public:
 
-    // Factory from encoded string
-    static std::pair<PublicKey, Network> fromBase58CheckEncoding(const QString & encoded);
+    // Defualt constructor
+    PublicKey();
 
-    // Encode public key
-    QString toBase58CheckEncoding(Network network);
+    // Constructor from raw compressed key
+    PublicKey(const uchar_vector & rawCompressedKey);
+
+    // Public key hash, e.g. for addresses
+    PubKeyHash toPubKeyHash() const;
 };
-*/
 
 }
 

@@ -8,19 +8,22 @@
 #ifndef COIN_P2PKH_ADDRESS_HPP
 #define COIN_P2PKH_ADDRESS_HPP
 
-#include <common/UCharArray.hpp>
-#include <common/Network.hpp>
-
-#define P2PKH_ADDRESS_PAYLOAD_BYTE_LENGTH 20
+#include <common/PubKeyHash.hpp>
 
 namespace Coin {
+
+enum class Network;
+class PublicKey;
 
 class P2PKHAddress {
 
 public:
 
+    // Constructor from public keys
+    P2PKHAddress(Network network, const PubKeyHash & pubKeyHash);
+
     // Constructor from members
-    P2PKHAddress(Network network, const UCharArray<P2PKH_ADDRESS_PAYLOAD_BYTE_LENGTH> & pubKeyHash);
+    P2PKHAddress(Network network, const Coin::PublicKey & pk);
 
     // Factory from Base58CheckEncoding
     static P2PKHAddress fromBase58CheckEncoding(const QString & encoded);
@@ -35,8 +38,8 @@ public:
     Network network() const;
     void setNetwork(Network network);
 
-    UCharArray<P2PKH_ADDRESS_PAYLOAD_BYTE_LENGTH> pubKeyHash() const;
-    void setPubKeyHash(const UCharArray<P2PKH_ADDRESS_PAYLOAD_BYTE_LENGTH> & pubKeyHash);
+    PubKeyHash pubKeyHash() const;
+    void setPubKeyHash(const PubKeyHash & pubKeyHash);
 
 private:
 
@@ -44,7 +47,7 @@ private:
     Network _network;
 
     // Pub key hash
-    UCharArray<P2PKH_ADDRESS_PAYLOAD_BYTE_LENGTH> _pubKeyHash;
+    PubKeyHash _pubKeyHash;
 
 };
 
