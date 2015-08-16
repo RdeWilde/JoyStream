@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 8 2015
  */
 
-#ifndef PUBLIC_KEY_COMPRESSION_HPP
-#define PUBLIC_KEY_COMPRESSION_HPP
+#ifndef COIN_PUBLIC_KEY_COMPRESSION_HPP
+#define COIN_PUBLIC_KEY_COMPRESSION_HPP
 
 namespace Coin {
 
@@ -17,5 +17,5 @@ enum class PublicKeyCompression {
 
 }
 
-#endif // PUBLICKEYCOMPRESSION
+#endif // COIN_PUBLIC_KEY_COMPRESSION
 

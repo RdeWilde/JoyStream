@@ -2,38 +2,32 @@
  * Copyright (C) JoyStream - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
- * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 15 2015
  */
 
-#ifndef P2PKH_TX_OUT_HPP
-#define P2PKH_TX_OUT_HPP
+#ifndef COIN_PAYMENT_HPP
+#define COIN_PAYMENT_HPP
 
 #include <common/PublicKey.hpp>
 
-//class QJsonObject;
-
 namespace Coin {
 
-class P2PKHTxOut
-{
+// Represents a payment to a public key
+class Payment {
+
 public:
 
     // Default constructor
-    P2PKHTxOut();
+    Payment();
 
     // Constructor from members
-    P2PKHTxOut(quint64 value, const PublicKey & pk);
+    Payment(quint64 value, const PublicKey & pk);
 
     // Copy constructor
-    P2PKHTxOut(const P2PKHTxOut & p2pkhTxOut);
+    Payment(const Payment & o);
 
     // Assignment operator
-    P2PKHTxOut & operator=(const P2PKHTxOut & p2pkhTxOut);
-
-    /**
-    // Converts to json
-    QJsonObject json() const;
-    */
+    Payment & operator=(const Payment & o);
 
     // Getters and setters
     quint64 value() const;
@@ -49,8 +43,12 @@ private:
 
     // Public key controlling output
     PublicKey _pk;
+
 };
+
 
 }
 
-#endif // P2PKH_TX_OUT_HPP
+
+#endif // COIN_PAYMENT_HPP
+

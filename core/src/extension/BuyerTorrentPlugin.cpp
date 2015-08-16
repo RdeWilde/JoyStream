@@ -199,8 +199,9 @@ void BuyerTorrentPlugin::Configuration::setNumberOfSellers(quint32 numberOfSelle
 #include <core/extension/Alert/BuyerPeerPluginRemovedAlert.hpp>
 #include <core/extension/Plugin.hpp>
 #include <core/extension/PeerPlugin.hpp> // PeerModeAnnounced
-#include <wallet/Wallet.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
+#include <CoinCore/CoinNodeData.h> // Coin::Transaction
+#include <wallet/Wallet.hpp>
 
 #include <libtorrent/bt_peer_connection.hpp>
 #include <libtorrent/socket_io.hpp> // print_endpoint
@@ -253,9 +254,9 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
     quint64 changeValue = utxo.value() - contractFee - configuration.numberOfSellers()*fundingPerSeller;
 
     // Generate keys in wallet
-    QList<Coin::KeyPair> buyerInContractKeys = _wallet->issueKeys(configuration.numberOfSellers()); //, Wallet::Purpose::BuyerInContractOutput).values();
-    QList<Coin::KeyPair> buyerFinalKeys = _wallet->issueKeys(configuration.numberOfSellers()); //, Wallet::Purpose::ContractFinal).values();
-    QList<Coin::KeyPair> changeKey = _wallet->issueKeys(1); //, Wallet::Purpose::ContractChange).values();
+    QList<Coin::KeyPair> buyerInContractKeys = _wallet->issueKeyPairs(configuration.numberOfSellers()); //, Wallet::Purpose::BuyerInContractOutput).values();
+    QList<Coin::KeyPair> buyerFinalKeys = _wallet->issueKeyPairs(configuration.numberOfSellers()); //, Wallet::Purpose::ContractFinal).values();
+    QList<Coin::KeyPair> changeKey = _wallet->issueKeyPairs(1); //, Wallet::Purpose::ContractChange).values();
 
     Q_ASSERT(buyerInContractKeys.count() == configuration.numberOfSellers());
     Q_ASSERT(buyerFinalKeys.count() == configuration.numberOfSellers());
@@ -651,7 +652,12 @@ bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, c
     if(_payor.allRefundsSigned()) {
 
         // Construct and broadcast contract
-        _payor.broadcast_contract();
+        //_payor.broadcast_contract();
+        Coin::Transaction tx = _payor.contractTransaction();
+
+        Q_ASSERT(tx.getHashLittleEndian() == _payor.contractHash().toUCharVector());
+
+        _wallet->broadcast(tx);
 
         // Register tx fee we are spending
         _plugin->registerSentFunds(_payor.contractFee());

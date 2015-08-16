@@ -2,38 +2,41 @@
  * Copyright (C) JoyStream - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
- * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 15 2015
  */
 
-#ifndef P2SH_TX_OUT_HPP
-#define P2SH_TX_OUT_HPP
+#ifndef COMMITMENT_HPP
+#define COMMITMENT_HPP
 
 #include <common/PublicKey.hpp>
 
-//class QJsonObject;
-
 namespace Coin {
 
-class P2SHTxOut
+class StandardTxOut;
+
+// Commitment of participants in a channel
+// I DONT THINK THIS IS NEEDED, REMOVE LATER?
+class Commitment
 {
 public:
 
     // Default constructor
-    P2SHTxOut();
+    Commitment();
 
     // Constructor based on members
-    P2SHTxOut(quint64 value, const PublicKey & firstPk, const PublicKey & secondPk);
+    Commitment(quint64 value, const PublicKey & firstPk, const PublicKey & secondPk);
 
     // Copy constructor
-    P2SHTxOut(const P2SHTxOut& p2shTxOut);
+    Commitment(const Commitment& o);
 
     // Assignement operator
-    P2SHTxOut & operator=(const P2SHTxOut & p2shTxOut);
+    Commitment & operator=(const Commitment & o);
 
-    /**
-    // Turns into json
-    QJsonObject json() const;
-    */
+    // Corresponding P2SH 2-2 multisig address
+    //Coin::P2SHAddress toP2SHAddress(Network network) const;
+
+    // Corresponding transaction output
+    Coin::StandardTxOut toTxOut() const;
 
     // Getters and setters
     quint64 value() const;
@@ -59,4 +62,4 @@ private:
 
 }
 
-#endif // P2SH_TX_OUT_HPP
+#endif // COMMITMENT_HPP

@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef BITCOIN_REPRESENTATION_HPP
-#define BITCOIN_REPRESENTATION_HPP
+#ifndef COIN_BITCOIN_REPRESENTATION_HPP
+#define COIN_BITCOIN_REPRESENTATION_HPP
 
 #include "Fiat.hpp"
 
@@ -139,4 +139,4 @@ private:
     static QString fiatToSymbol(Fiat fiat);
 };
 
-#endif // BITCOIN_REPRESENTATION_HPP
+#endif // COIN_BITCOIN_REPRESENTATION_HPP

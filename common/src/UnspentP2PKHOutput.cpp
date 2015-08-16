@@ -15,7 +15,7 @@ UnspentP2PKHOutput::UnspentP2PKHOutput()
     : _value(0){
 }
 
-UnspentP2PKHOutput::UnspentP2PKHOutput(const KeyPair & keyPair, const OutPoint & output, quint64 value)
+UnspentP2PKHOutput::UnspentP2PKHOutput(const KeyPair & keyPair, const typesafeOutPoint & output, quint64 value)
     : _keyPair(keyPair)
     , _outPoint(output)
     , _value(value) {
@@ -68,11 +68,11 @@ void UnspentP2PKHOutput::setKeyPair(const KeyPair &keyPair) {
     _keyPair = keyPair;
 }
 
-OutPoint UnspentP2PKHOutput::outPoint() const {
+typesafeOutPoint UnspentP2PKHOutput::outPoint() const {
     return _outPoint;
 }
 
-void UnspentP2PKHOutput::setOutPoint(const OutPoint &outPoint) {
+void UnspentP2PKHOutput::setOutPoint(const typesafeOutPoint &outPoint) {
     _outPoint = outPoint;
 }
 

@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef OUT_POINT_HPP
-#define OUT_POINT_HPP
+#ifndef COIN_typesafeOUT_POINT_HPP
+#define COIN_typesafeOUT_POINT_HPP
 
 #include <common/TransactionId.hpp>
 
@@ -14,21 +14,21 @@
 
 namespace Coin {
 
-class OutPoint
+class typesafeOutPoint
 {
 public:
 
     // Default constructor
-    OutPoint();
+    typesafeOutPoint();
 
     // Constructor
-    OutPoint(const TransactionId & transactionId, quint32 index);
+    typesafeOutPoint(const TransactionId & transactionId, quint32 index);
 
     // Copy constructor
-    OutPoint(const OutPoint& outputPoint);
+    typesafeOutPoint(const typesafeOutPoint& outputPoint);
 
     // Assignment operator
-    OutPoint & operator=(const OutPoint& outputPoint);
+    typesafeOutPoint & operator=(const typesafeOutPoint& outputPoint);
 
     /**
     // Constructor from json
@@ -39,12 +39,13 @@ public:
     */
 
     // Comparison for use with QMap
-    friend bool operator==(const OutPoint & lhs, const OutPoint & rhs);
-    friend bool operator!=(const OutPoint & lhs, const OutPoint & rhs);
-    friend bool operator<(const OutPoint & lhs, const OutPoint & rhs);
+    friend bool operator==(const typesafeOutPoint & lhs, const typesafeOutPoint & rhs);
+    friend bool operator!=(const typesafeOutPoint & lhs, const typesafeOutPoint & rhs);
+    friend bool operator<(const typesafeOutPoint & lhs, const typesafeOutPoint & rhs);
 
     // Flat representation, so outpoint can be used as json key
-    OutPoint(const QString & string);
+    typesafeOutPoint(const QString & string);
+
     QString toString() const;
 
     // Getters and setters
@@ -65,6 +66,6 @@ private:
 
 }
 
-uint qHash(const Coin::OutPoint & o);
+uint qHash(const Coin::typesafeOutPoint & o);
 
-#endif // OUT_POINT_HPP
+#endif // COIN_typesafeOUT_POINT_HPP

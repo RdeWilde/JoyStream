@@ -5,11 +5,11 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef UNSPENT_P2PKH_OUTPUT_HPP
-#define UNSPENT_P2PKH_OUTPUT_HPP
+#ifndef COIN_UNSPENT_P2PKH_OUTPUT_HPP
+#define COIN_UNSPENT_P2PKH_OUTPUT_HPP
 
 #include <common/KeyPair.hpp>
-#include <common/OutPoint.hpp>
+#include <common/typesafeOutPoint.hpp>
 
 //class QJsonObject;
 
@@ -23,7 +23,7 @@ public:
     UnspentP2PKHOutput();
 
     // Constructor from members
-    UnspentP2PKHOutput(const KeyPair & keyPair, const OutPoint & outPoint, quint64 setValue);
+    UnspentP2PKHOutput(const KeyPair & keyPair, const typesafeOutPoint & outPoint, quint64 setValue);
 
     // Constructor from json
     UnspentP2PKHOutput(const QJsonObject & json);
@@ -41,8 +41,8 @@ public:
     KeyPair keyPair() const;
     void setKeyPair(const KeyPair & keyPair);
 
-    OutPoint outPoint() const;
-    void setOutPoint(const OutPoint & outPoint);
+    typesafeOutPoint outPoint() const;
+    void setOutPoint(const typesafeOutPoint & outPoint);
 
     quint64 value() const;
     void setValue(quint64 value);
@@ -53,7 +53,7 @@ private:
     KeyPair _keyPair;
 
     // (TxId,index)
-    OutPoint _outPoint;
+    typesafeOutPoint _outPoint;
 
     // Value of output
     quint64 _value;
@@ -65,4 +65,4 @@ private:
 #include <QMetaType>
 Q_DECLARE_METATYPE(Coin::UnspentP2PKHOutput)
 
-#endif // UNSPENT_P2PKH_OUTPUT_HPP
+#endif // COIN_UNSPENT_P2PKH_OUTPUT_HPP

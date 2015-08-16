@@ -155,7 +155,7 @@ QString SellerPeerPluginView::clientStateToString(SellerPeerPlugin::ClientState 
     return text;
 }
 
-QString SellerPeerPluginView::contractOutPointString(const Coin::OutPoint & o) {
+QString SellerPeerPluginView::contractOutPointString(const Coin::typesafeOutPoint & o) {
     return o.toString();
 }
 
@@ -190,7 +190,7 @@ void SellerPeerPluginView::updateClientState(SellerPeerPlugin::ClientState state
     _clientStateItem->setText(clientStateToString(state));
 }
 
-void SellerPeerPluginView::updateContractOutPointItem(const Coin::OutPoint & o) {
+void SellerPeerPluginView::updateContractOutPointItem(const Coin::typesafeOutPoint & o) {
     _contractOutPointItem->setText(contractOutPointString(o));
 }
 

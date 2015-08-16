@@ -277,8 +277,8 @@ public:
     // Closes the peer connection
     void close_connection();
 
-    // Tries to broadcast most recent payment received
-    void tryToClaimPayment();
+    // Returns transaction for last received valid payment
+    Coin::Transaction lastPaymentTransaction() const;
 
     //
     //quint64 totalReceivedSinceStart() const;

@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 9 2015
  */
 
-#ifndef P2PKH_ADDRESS_HPP
-#define P2PKH_ADDRESS_HPP
+#ifndef COIN_P2PKH_ADDRESS_HPP
+#define COIN_P2PKH_ADDRESS_HPP
 
 #include <common/UCharArray.hpp>
 #include <common/Network.hpp>
@@ -28,6 +28,9 @@ public:
     // Base58CheckEncode
     QString toBase58CheckEncoding() const;
 
+    // Generate output script
+    //uchar_vector toScriptPubKey() const;
+
     // Getters and setters
     Network network() const;
     void setNetwork(Network network);
@@ -47,4 +50,4 @@ private:
 
 }
 
-#endif // P2PKH_ADDRESS_HPP
+#endif // COIN_P2PKH_ADDRESS_HPP

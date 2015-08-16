@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#include <common/OutPoint.hpp>
+#include <common/typesafeOutPoint.hpp>
 //#include <common/Utilities.hpp>
 
 //#include <QJsonObject>
@@ -15,20 +15,20 @@
 
 namespace Coin {
 
-OutPoint::OutPoint()
+typesafeOutPoint::typesafeOutPoint()
     : _index(0){
 }
 
-OutPoint::OutPoint(const TransactionId & txId, quint32 index)
+typesafeOutPoint::typesafeOutPoint(const TransactionId & txId, quint32 index)
     : _txId(txId)
     , _index(index) {
 }
 
-OutPoint::OutPoint(const OutPoint& o)
-    : OutPoint(o.transactionId(), o.index()) {
+typesafeOutPoint::typesafeOutPoint(const typesafeOutPoint& o)
+    : typesafeOutPoint(o.transactionId(), o.index()) {
 }
 
-OutPoint & OutPoint::operator=(const OutPoint& o) {
+typesafeOutPoint & typesafeOutPoint::operator=(const typesafeOutPoint& o) {
 
     _txId = o.transactionId();
     _index = o.index();
@@ -60,11 +60,11 @@ bool OutPoint::operator==(const OutPoint & o) {
 }
 */
 
-bool operator==(const OutPoint & lhs, const OutPoint & rhs) {
+bool operator==(const typesafeOutPoint & lhs, const typesafeOutPoint & rhs) {
     return (lhs.transactionId() < rhs.transactionId()) || ((lhs.transactionId() == rhs.transactionId()) && (lhs.index() < rhs.index()));
 }
 
-bool operator!=(const OutPoint & lhs, const OutPoint & rhs) {
+bool operator!=(const typesafeOutPoint & lhs, const typesafeOutPoint & rhs) {
     return !(lhs == rhs);
 }
 
@@ -74,7 +74,7 @@ bool OutPoint::operator<(const OutPoint & o) {
 }
 */
 
-bool operator<(const OutPoint & lhs, const OutPoint & rhs) {
+bool operator<(const typesafeOutPoint & lhs, const typesafeOutPoint & rhs) {
     return (lhs.transactionId() < rhs.transactionId()) || ((lhs.transactionId() == rhs.transactionId()) && (lhs.index() < rhs.index()));
 }
 
@@ -98,30 +98,31 @@ OutPoint::OutPoint(const QString & string) {
     if(!ok)
         throw new std::runtime_error("Could not convert second token.");
 }
-
-QString OutPoint::toString() const {
-    return _txId.toString() + "-" + QString::number(_index);
-}
 */
 
-TransactionId OutPoint::transactionId() const {
+QString typesafeOutPoint::toString() const {
+    return _txId.toHex() + "-" + QString::number(_index);
+}
+
+
+TransactionId typesafeOutPoint::transactionId() const {
     return _txId;
 }
 
-void OutPoint::setTransactionId(const TransactionId & txId){
+void typesafeOutPoint::setTransactionId(const TransactionId & txId){
     _txId = txId;
 }
 
-quint32 OutPoint::index() const {
+quint32 typesafeOutPoint::index() const {
     return _index;
 }
 
-void OutPoint::setIndex(quint32 index) {
+void typesafeOutPoint::setIndex(quint32 index) {
     _index = index;
 }
 
 }
 
-uint qHash(const Coin::OutPoint & o) {
+uint qHash(const Coin::typesafeOutPoint & o) {
     return qHash(o.toString());
 }

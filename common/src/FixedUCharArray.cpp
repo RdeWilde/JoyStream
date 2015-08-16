@@ -5,8 +5,6 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 8 2015
  */
 
-#include <common/FixedUCharArray.hpp>
-
 #include <QByteArray>
 #include <QDataStream>
 #include <QString>
@@ -18,12 +16,12 @@
 namespace Coin {
 
 template<unsigned int array_length>
-FixedUCharArray<array_length>::FixedUCharArray() {
+UCharArray<array_length>::UCharArray() {
     clear();
 }
 
 template<unsigned int array_length>
-FixedUCharArray<array_length>::FixedUCharArray(const uchar_vector & vector) {
+UCharArray<array_length>::UCharArray(const uchar_vector & vector) {
 
     // Check that vector has correct length
     uchar_vector::size_type vectorLength = vector.size();
@@ -45,7 +43,7 @@ FixedUCharArray<array_length>::FixedUCharArray(const uchar_vector & vector) {
 }
 
 template<unsigned int array_length>
-FixedUCharArray<array_length>::FixedUCharArray(const QString & hexEncoded) {
+UCharArray<array_length>::UCharArray(const QString & hexEncoded) {
 
     // Check that string has correct length
     if(hexEncoded.length() != 2*array_length) {
@@ -68,15 +66,21 @@ FixedUCharArray<array_length>::FixedUCharArray(const QString & hexEncoded) {
         Q_ASSERT(b.length() == array_length);
 
         // Copy into array
-        fill(static_cast<const unsigned char *>(b.constData()), array_length);
+        // Does not work => static_cast<const unsigned char *>(b.constData())
+        fill((const unsigned char *)(b.constData()), array_length);
     }
 }
 
 template<unsigned int array_length>
-FixedUCharArray<array_length>::FixedUCharArray(const QByteArray & byteArray) {
+UCharArray<array_length>::UCharArray(const char * hexEncodedString)
+    : UCharArray<array_length>(QString(hexEncodedString)) {
+}
+
+template<unsigned int array_length>
+UCharArray<array_length>::UCharArray(const QByteArray & raw) {
 
     // Check that byte array has correct length
-    uchar_vector::size_type byteArrayLength = byteArray.size();
+    uchar_vector::size_type byteArrayLength = raw.size();
 
     if(byteArrayLength != array_length) {
 
@@ -91,23 +95,23 @@ FixedUCharArray<array_length>::FixedUCharArray(const QByteArray & byteArray) {
         throw std::runtime_error(s.str());
 
     } else
-        fill(static_cast<const unsigned char *>(byteArray.constData()), byteArrayLength);
+        fill((const unsigned char *)(raw.constData()), byteArrayLength);
 }
 
 template<unsigned int array_length>
-unsigned int FixedUCharArray<array_length>::length() {
+unsigned int UCharArray<array_length>::length() {
     return array_length;
 }
 
 template<unsigned int array_length>
-void FixedUCharArray<array_length>::clear() {
+void UCharArray<array_length>::clear() {
 
     for(int i = 0;i < array_length;i++)
         this->at(i) = 0;
 }
 
 template<unsigned int array_length>
-bool FixedUCharArray<array_length>::isClear() const {
+bool UCharArray<array_length>::isClear() const {
 
     for(int i = 0;i < array_length;i++) {
         if(this[i] != 0)
@@ -118,17 +122,19 @@ bool FixedUCharArray<array_length>::isClear() const {
 }
 
 template<unsigned int array_length>
-QString FixedUCharArray<array_length>::toHex() const {
+QString UCharArray<array_length>::toHex() const {
+
+    const char * ptr = (const char *)(this->data()); // this conversion is not safe ? think
 
     // Wrap in byte array
-    QByteArray byteArray(this->data(), array_length);
+    QByteArray byteArray(ptr, array_length);
 
     // Convert to hex and return
     return QString(byteArray.toHex());
 }
 
 template<unsigned int array_length>
-uchar_vector FixedUCharArray<array_length>::toUCharVector() const {
+uchar_vector UCharArray<array_length>::toUCharVector() const {
 
     // Get pointer to data
     const unsigned char * data = static_cast<const unsigned char *>(this->data());
@@ -138,7 +144,7 @@ uchar_vector FixedUCharArray<array_length>::toUCharVector() const {
 }
 
 template<unsigned int array_length>
-QByteArray FixedUCharArray<array_length>::toByteArray() const {
+QByteArray UCharArray<array_length>::toByteArray() const {
 
     // Get pointer to data
     const char * data = reinterpret_cast<const char *>(this->data());
@@ -148,7 +154,7 @@ QByteArray FixedUCharArray<array_length>::toByteArray() const {
 }
 
 template<unsigned int array_length>
-void FixedUCharArray<array_length>::fill(const unsigned char * start, int length) {
+void UCharArray<array_length>::fill(const unsigned char * start, int length) {
 
     if(length != array_length) {
 
@@ -169,7 +175,7 @@ void FixedUCharArray<array_length>::fill(const unsigned char * start, int length
 }
 
 template<unsigned int array_length>
-QDataStream & operator<<(QDataStream& stream, const FixedUCharArray<array_length> & o) {
+QDataStream & operator<<(QDataStream& stream, const Coin::UCharArray<array_length> & o) {
 
     // Write to stream from buffer
     int bytesWritten = stream.writeRawData((const char *)(o.data()), array_length);
@@ -189,7 +195,7 @@ QDataStream & operator<<(QDataStream& stream, const FixedUCharArray<array_length
 }
 
 template<unsigned int array_length>
-QDataStream & operator>>(QDataStream& stream, FixedUCharArray<array_length> & o) {
+QDataStream & operator>>(QDataStream& stream, Coin::UCharArray<array_length> & o) {
 
     // Read from stream to array
     int bytesRead = stream.readRawData((char *)(o.data()), array_length);
@@ -210,22 +216,17 @@ QDataStream & operator>>(QDataStream& stream, FixedUCharArray<array_length> & o)
 /**
 template<unsigned int array_length>
 bool FixedUCharArray<array_length>::operator<(const FixedUCharArray<array_length> & o) const {
-
     // 0 is most significant byte
     for(unsigned int i = 0;i < length;i++) {
-
         unsigned char a = this->at(i);
         unsigned char b = o[i];
-
         if(a > b)
             return false;
         else if(a < b)
             return true;
     }
-
     return false;
 }
-
 template<unsigned int array_length>
 bool FixedUCharArray<array_length>::operator==(const FixedUCharArray<array_length> & o) const {
     return _buffer == o.buffer();
@@ -233,7 +234,7 @@ bool FixedUCharArray<array_length>::operator==(const FixedUCharArray<array_lengt
 */
 
 template<unsigned int array_length>
-uint qHash(const FixedUCharArray<array_length> & o) {
+uint qHash(const Coin::UCharArray<array_length> & o) {
     return qHash(o.toHex());
 }
 

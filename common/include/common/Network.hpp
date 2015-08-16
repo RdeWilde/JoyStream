@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 8 2015
  */
 
-#ifndef NETWORK_HPP
-#define NETWORK_HPP
+#ifndef COIN_NETWORK_HPP
+#define COIN_NETWORK_HPP
 
 namespace Coin {
 
@@ -20,5 +20,5 @@ enum class Network {
 
 }
 
-#endif // NETWORK_HPP
+#endif // COIN_NETWORK_HPP
 

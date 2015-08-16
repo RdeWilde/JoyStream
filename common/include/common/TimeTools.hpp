@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 9 2015
  */
 
-#ifndef TIME_TOOLS_HPP
-#define TIME_TOOLS_HPP
+#ifndef COIN_TIME_TOOLS_HPP
+#define COIN_TIME_TOOLS_HPP
 
 #include <QtGlobal> // quint32
 
@@ -23,5 +23,5 @@ QTime secondsToQTime(quint32 seconds);
 
 }
 
-#endif // TIME_TOOLS_HPP
+#endif // COIN_TIME_TOOLS_HPP
 

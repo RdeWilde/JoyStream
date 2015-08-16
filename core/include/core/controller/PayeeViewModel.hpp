@@ -33,7 +33,7 @@ signals:
 
     // Update
     void stateChanged(Payee::State state);
-    void contractOutPointChanged(const Coin::OutPoint & o);
+    void contractOutPointChanged(const Coin::typesafeOutPoint & o);
     void numberOfPaymentsMadeChanged(quint64 numberOfPaymentsMade);
     void lockTimeChanged(quint32 lockTime);
     void priceChanged(quint64 price);

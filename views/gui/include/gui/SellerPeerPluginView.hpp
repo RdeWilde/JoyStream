@@ -39,7 +39,7 @@ public:
     // Text conversion routines
     static QString endPointToString(const libtorrent::tcp::endpoint & endPoint);
     static QString clientStateToString(SellerPeerPlugin::ClientState state);
-    static QString contractOutPointString(const Coin::OutPoint & o);
+    static QString contractOutPointString(const Coin::typesafeOutPoint & o);
     QString fundsToString(quint64 funds);
     static QString refundLockTimeString(quint32 refundLockTime);
     QString priceToString(quint64 price);
@@ -80,7 +80,7 @@ public slots:
     void updateClientState(SellerPeerPlugin::ClientState state);
 
 
-    void updateContractOutPointItem(const Coin::OutPoint & o);
+    void updateContractOutPointItem(const Coin::typesafeOutPoint & o);
     void updateFunds(quint64 funds);
     void updateRefundLockTime(quint32 refundLockTime);
     void updatePrice(quint64 price);

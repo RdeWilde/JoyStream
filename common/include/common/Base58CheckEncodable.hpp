@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 8 2015
  */
 
-#ifndef BASE58CHECK_ENCODABLE_HPP
-#define BASE58CHECK_ENCODABLE_HPP
+#ifndef COIN_BASE58CHECK_ENCODABLE_HPP
+#define COIN_BASE58CHECK_ENCODABLE_HPP
 
 #include <vector>
 #include <string>
@@ -92,4 +92,4 @@ void decodeBase58CheckEncoding(const std::string & encoded, Base58CheckEncodable
 
 }
 
-#endif // BASE58CHECK_ENCODABLE_HPP
+#endif // COIN_BASE58CHECK_ENCODABLE_HPP

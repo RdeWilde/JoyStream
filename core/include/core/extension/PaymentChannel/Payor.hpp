@@ -13,10 +13,16 @@
 #include <common/KeyPair.hpp>
 #include <common/TransactionId.hpp>
 #include <common/Signature.hpp>
-#include <common/OutPoint.hpp>
+#include <common/typesafeOutPoint.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
 
 #include <QVector>
+
+class Contract;
+
+namespace Coin {
+    class Transaction;
+}
 
 /**
  * Manages the payor side of a 1-to-N payment channel using design in CBEP.
@@ -278,7 +284,11 @@ public:
         void computeAndSetPayorRefundSignature(const Coin::TransactionId & contractHash);
 
         // Payment signature
-        Coin::Signature paymentSignature(const Coin::TransactionId & contractHash) const;
+        Coin::Signature createPaymentSignature(const Coin::TransactionId & contractHash) const;
+
+        // Validates payee refund signature
+        bool validateRefundSignature(const Coin::TransactionId & contractHash,
+                                     const Coin::Signature & payeeSig) const;
 
         // Registers that a payment was made
         void paymentMade();
@@ -558,6 +568,15 @@ public:
     // new signatures are now required.
     void unassignSlot(quint32 index);
 
+    // Generates contract transaction
+    // ===============================
+    // Explain ...
+    //Contract contract() const;
+
+    // Generates contract transaction
+    // ===============================
+    Coin::Transaction contractTransaction() const;
+
     // Returns validity of signature for given slot
     // ============================================
     // If payor is collecting signatures
@@ -567,10 +586,6 @@ public:
     // 3) updates payor state to all_signed, if all all are now signed.
     bool processRefundSignature(quint32 index, const Coin::Signature & signature);
 
-    // Broadcast the current contract
-    // ============================================
-    void broadcast_contract();
-
     // Increments the payment counter for the given channel
     // ============================================
     quint64 incrementPaymentCounter(quint32 index);
@@ -578,13 +593,6 @@ public:
     // Returns the payment signature for the present payment increment of given slot
     // ============================================
     Coin::Signature getPresentPaymentSignature(quint32 index) const;
-
-    // Attempts to claim refund for given slot
-    // Returns false iff (time lock has not experied on refund or output has been double spent)
-    bool claimRefund(quint32 index) const;
-
-    // Checks if output is spent
-    bool spent(quint32 index) const;
 
     Status status() const;
 
@@ -607,8 +615,8 @@ public:
     QVector<Channel> & channels();
     const Payor::Channel & channel(int i) const;
 
-    Coin::OutPoint fundingOutPoint() const;
-    void setFundingOutPoint(const Coin::OutPoint & fundingOutPoint);
+    Coin::typesafeOutPoint fundingOutPoint() const;
+    void setFundingOutPoint(const Coin::typesafeOutPoint & fundingOutPoint);
 
     Coin::TransactionId contractHash() const;
     void setContractHash(const Coin::TransactionId & contractHash);

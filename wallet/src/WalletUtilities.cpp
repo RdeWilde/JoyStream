@@ -7,6 +7,9 @@
 
 #include <wallet/WalletUtilities.hpp>
 
+#include <QByteArray>
+#include <QDateTime>
+
 QByteArray WalletUtilities::encodeDateTime(const QDateTime & dateTime) {
     return QByteArray::number(dateTime.toMSecsSinceEpoch());
 }

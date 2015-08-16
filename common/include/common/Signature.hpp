@@ -7,8 +7,8 @@
 
 #include <stdutils/uchar_vector.h>
 
-#ifndef SIGNATURE_HPP
-#define SIGNATURE_HPP
+#ifndef COIN_SIGNATURE_HPP
+#define COIN_SIGNATURE_HPP
 
 class QString;
 class QDataStream;
@@ -73,5 +73,5 @@ private:
 
 }
 
-#endif // SIGNATURE_HPP
+#endif // COIN_SIGNATURE_HPP
 

@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 8 2015
  */
 
-#ifndef PRIVATE_KEY_HPP
-#define PRIVATE_KEY_HPP
+#ifndef COIN_PRIVATE_KEY_HPP
+#define COIN_PRIVATE_KEY_HPP
 
 #include <common/UCharArray.hpp>
 #include <common/Network.hpp>
@@ -43,9 +43,10 @@ public:
     // WIF Encode private key
     QString toWIF(Network network, PublicKeyCompression compression) const;
 
-    PublicKey derivePublicKey() const;
+    // Generates the correponding (compressed) public key
+    PublicKey toPublicKey() const;
 };
 
 }
 
-#endif // PRIVATE_KEY_HPP
+#endif // COIN_PRIVATE_KEY_HPP

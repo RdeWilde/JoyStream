@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 8 2015
  */
 
-#ifndef TRANSACTION_MERKLE_TREE_ROOT_HPP
-#define TRANSACTION_MERKLE_TREE_ROOT_HPP
+#ifndef COIN_TRANSACTION_MERKLE_TREE_ROOT_HPP
+#define COIN_TRANSACTION_MERKLE_TREE_ROOT_HPP
 
 #include <common/UCharArray.hpp>
 
@@ -18,4 +18,4 @@ typedef UCharArray<TRANSACTIONMERKLETREEROOT_BYTE_LENGTH> TransactionMerkleTreeR
 
 }
 
-#endif // TRANSACTION_MERKLE_TREE_ROOT_HPP
+#endif // COIN_TRANSACTION_MERKLE_TREE_ROOT_HPP

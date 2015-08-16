@@ -58,7 +58,7 @@ void Metadata::createKeyValueStore(QSqlDatabase db, const Seed & seed, Coin::Net
 
     // created
     query.bindValue(":key", _createdKey);
-    query.bindValue(":value", encodeDateTime(created));
+    query.bindValue(":value", WalletUtilities::encodeDateTime(created));
     query.exec();
 
     e = query.lastError();
@@ -129,7 +129,7 @@ QDateTime Metadata::getCreated(QSqlDatabase db) {
     QByteArray created = Metadata::get(db, _createdKey);
 
     // Decode and return
-    return decodeDateTime(created);
+    return WalletUtilities::decodeDateTime(created);
 }
 
 void Metadata::setCreated(QSqlDatabase db, const QDateTime & created) {

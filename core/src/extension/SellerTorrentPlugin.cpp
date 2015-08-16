@@ -176,6 +176,7 @@ PluginMode SellerTorrentPlugin::Configuration::pluginMode() const {
 #include <core/extension/Alert/SellerPeerPluginRemovedAlert.hpp>
 
 #include <wallet/Wallet.hpp>
+#include <CoinCore/CoinNodeData.h>
 
 SellerTorrentPlugin::SellerTorrentPlugin(Plugin * plugin,
                                          const boost::shared_ptr<libtorrent::torrent> & torrent,
@@ -266,10 +267,10 @@ SellerPeerPlugin * SellerTorrentPlugin::createRegularSellerPeerPlugin(libtorrent
 
     // Get fresh key pairs for seller side of contract
     //QList<Wallet::Entry> contractKeysEntry = _wallet->generateNewKeys(1, Wallet::Purpose::SellerInContractOutput).values();
-    QList<Coin::KeyPair> contractKeysEntry = _wallet->issueKeys(1);
+    QList<Coin::KeyPair> contractKeysEntry = _wallet->issueKeyPairs(1);
     Coin::KeyPair payeeContractKeys = contractKeysEntry.front();
 
-    QList<Coin::KeyPair> paymentKeysEntry = _wallet->issueKeys(1);
+    QList<Coin::KeyPair> paymentKeysEntry = _wallet->issueKeyPairs(1);
     Coin::KeyPair payeePaymentKeys = paymentKeysEntry.front();
 
     return new SellerPeerPlugin(this,
@@ -283,7 +284,7 @@ SellerPeerPlugin * SellerTorrentPlugin::createRegularSellerPeerPlugin(libtorrent
                                                      _maxNumberOfSellers,
                                                      payeeContractKeys,
                                                      payeePaymentKeys,
-                                                     Coin::OutPoint(),
+                                                     Coin::typesafeOutPoint(),
                                                      Coin::PublicKey(),
                                                      Coin::PublicKey(),
                                                      0),
@@ -496,8 +497,18 @@ void SellerTorrentPlugin::on_peer_plugin_disconnect(SellerPeerPlugin * peerPlugi
            clientState == SellerPeerPlugin::ClientState::awaiting_piece_request_after_payment ||
            clientState == SellerPeerPlugin::ClientState::reading_piece_from_disk) {
 
+            qCDebug(_category) << "Trying to claim peer plugin payment";
+
             // Make ONE stab at claiming payment
-            peerPlugin->tryToClaimPayment();
+            Coin::Transaction tx = peerPlugin->lastPaymentTransaction();
+
+            /**
+             * Try to broadcast!!
+             * In the future, keep track of how this turned out, and also rebroadcast,
+             * and also track IP of peers which coincide with failed claims.
+             * Detect double spends, etc.
+             */
+            _wallet->broadcast(tx);
 
             // Alter state
             peerPlugin->setClientState(SellerPeerPlugin::ClientState::trying_to_claim_last_payment);

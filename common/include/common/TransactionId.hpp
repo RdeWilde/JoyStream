@@ -1,5 +1,5 @@
-#ifndef TRANSACTION_ID_HPP
-#define TRANSACTION_ID_HPP
+#ifndef COIN_TRANSACTION_ID_HPP
+#define COIN_TRANSACTION_ID_HPP
 
 #include <common/UCharArray.hpp>
 
@@ -12,4 +12,4 @@ typedef UCharArray<TXID_BYTE_LENGTH> TransactionId;
 
 }
 
-#endif // TRANSACTION_ID_HPP
+#endif // COIN_TRANSACTION_ID_HPP

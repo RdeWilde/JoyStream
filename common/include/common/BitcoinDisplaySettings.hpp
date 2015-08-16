@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef BITCOIN_DISPLAY_SETTINGS_HPP
-#define BITCOIN_DISPLAY_SETTINGS_HPP
+#ifndef COIN_BITCOIN_DISPLAY_SETTINGS_HPP
+#define COIN_BITCOIN_DISPLAY_SETTINGS_HPP
 
 #include "Fiat.hpp"
 
@@ -55,4 +55,4 @@ private:
     int _precision;
 };
 
-#endif // BITCOIN_DISPLAY_SETTINGS_HPP
+#endif // COIN_BITCOIN_DISPLAY_SETTINGS_HPP

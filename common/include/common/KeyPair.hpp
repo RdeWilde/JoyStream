@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef KEYPAIR_HPP
-#define KEYPAIR_HPP
+#ifndef COIN_KEYPAIR_HPP
+#define COIN_KEYPAIR_HPP
 
 #include <common/PublicKey.hpp>
 #include <common/PrivateKey.hpp>
@@ -62,4 +62,4 @@ private:
 
 }
 
-#endif // KEYPAIR_HPP
+#endif // COIN_KEYPAIR_HPP

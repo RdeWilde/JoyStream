@@ -20,6 +20,7 @@
 #include <core/extension/PluginMode.hpp>
 #include <common/Bitcoin.hpp> // defines STANDARD_NUM_SATOSHIES_PER_KB_IN_TX_FEE
 #include <common/UnspentP2PKHOutput.hpp>
+#include <common/typesafeOutPoint.hpp>
 #include <common/BitcoinRepresentation.hpp>
 #include <gui/MainWindow.hpp>
 #include <wallet/Wallet.hpp>

@@ -168,11 +168,11 @@ Seed Wallet::seed() const {
     return _seed;
 }
 
-quint32 Wallet::numberOfTransactions() {
+quint64 Wallet::numberOfTransactions() {
     return 0;
 }
 
-quint64 Wallet::numberOfKeysInWallet() const {
+quint64 Wallet::numberOfKeysInWallet() {
     return nextHdIndex();
 }
 
@@ -188,7 +188,14 @@ quint64 Wallet::lastComputedZeroConfBalance() {
 }
 
 quint64 Wallet::nextHdIndex() {
-    return _nextHdIndex;
+
+    quint64 nextHdIndex;
+
+    _mutex.lock();
+    nextHdIndex = _nextHdIndex;
+    _mutex.unlock();
+
+    return nextHdIndex;
 }
 
 //Coin::P2PKHAddress Wallet::getReceiveAddress() {
@@ -201,13 +208,13 @@ Coin::PrivateKey Wallet::issueKey() {
      * UPDATE IN THE FUTURE TO WORK WITH KEY POOL
      */
 
-    Coin::KeyPair key;
+    Coin::PrivateKey key;
 
     _mutex.lock();
 
     // Generate a new key by
     bytes_t rawPrivateKey = _keyChain.getPrivateSigningKey(_nextHdIndex);
-    key = Coin::KeyPair(rawPrivateKey);
+    key = Coin::PrivateKey(rawPrivateKey);
 
     // Add to wallet key table
     QSqlQuery query = WalletKey(_nextHdIndex, key, QDateTime::currentDateTime(), true).insertQuery(_db);
@@ -222,6 +229,27 @@ Coin::PrivateKey Wallet::issueKey() {
     _mutex.unlock();
 
     return key;
+}
+
+QList<Coin::KeyPair> Wallet::issueKeyPairs(quint64 numberOfPairs) {
+
+    // List of keys to return
+    QList<Coin::KeyPair> keys;
+
+    // Create each pair and add to list
+    for(quint64 i = 0;i < numberOfPairs;i++) {
+
+        // Generate private key
+        Coin::PrivateKey sk = issueKey();
+
+        // Generate corresponding (compressd) public key
+        Coin::PublicKey pk = sk.toPublicKey();
+
+        // Add key pair to list
+        keys.append(Coin::KeyPair(pk, sk));
+    }
+
+    return keys;
 }
 
 /**
@@ -272,6 +300,16 @@ void Wallet::updateUtxoSet() {
 
     // Send signal of what changes were
     emit utxoUpdated(diff);
+}
+
+void Wallet::broadcast(const Coin::Transaction & tx) {
+
+    _mutex.lock();
+
+    // do something: may not need to be mutexed
+    // save tx in wallet?
+
+    _mutex.unlock();
 }
 
 /**

@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef DATA_SIZE_REPRESENTATION_HPP
-#define DATA_SIZE_REPRESENTATION_HPP
+#ifndef COIN_DATA_SIZE_REPRESENTATION_HPP
+#define COIN_DATA_SIZE_REPRESENTATION_HPP
 
 #include <QtGlobal>
 
@@ -98,4 +98,4 @@ private:
     static quint16 sizeOfBase(Base base);
 };
 
-#endif // DATA_SIZE_REPRESENTATION_HPP
+#endif // COIN_DATA_SIZE_REPRESENTATION_HPP

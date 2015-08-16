@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef BITCOIN_HPP
-#define BITCOIN_HPP
+#ifndef COIN_BITCOIN_HPP
+#define COIN_BITCOIN_HPP
 
 // KEEP IN MIND:
 // https://en.bitcoin.it/wiki/Units
@@ -17,5 +17,5 @@
 
 #define STANDARD_NUM_SATOSHIES_PER_KB_IN_TX_FEE 10000
 
-#endif // BITCOIN_HPP
+#endif // COIN_BITCOIN_HPP
 

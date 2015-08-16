@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 8 2015
  */
 
-#ifndef PUBLIC_KEY_HPP
-#define PUBLIC_KEY_HPP
+#ifndef COIN_PUBLIC_KEY_HPP
+#define COIN_PUBLIC_KEY_HPP
 
 #include <common/UCharArray.hpp>
 
@@ -35,4 +35,4 @@ public:
 
 //uint qHash(const Coin::PublicKey & o);
 
-#endif // PUBLIC_KEY_HPP
+#endif // COIN_PUBLIC_KEY_HPP

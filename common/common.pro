@@ -35,8 +35,6 @@ HEADERS += \
     include/common/PublicKeyCompression.hpp \
     include/common/KeyPair.hpp \
     include/common/P2PKHAddress.hpp \
-    include/common/P2PKHTxOut.hpp \
-    include/common/P2SHTxOut.hpp \
     include/common/UnspentP2PKHOutput.hpp \
     include/common/Utilities.hpp \
     include/common/TimeTools.hpp \
@@ -44,26 +42,26 @@ HEADERS += \
     include/common/BitcoinDisplaySettings.hpp \
     include/common/BitcoinRepresentation.hpp \
     include/common/UCharArray.hpp \
-    include/common/OutPoint.hpp
+    include/common/typesafeOutPoint.hpp \
+    include/common/Payment.hpp \
+    include/common/P2SHAddress.hpp
     #include/common/RawCompressedPublicKey.hpp \
-    #include/common/P2PKHAddress.hpp
 
 SOURCES += \
     src/DataSizeRepresentation.cpp \
     src/CoinWrappers.cpp \
-    # src/FixedUCharArray.cpp \
+    # src/UCharArray.cpp \
     src/PublicKey.cpp \
     src/PrivateKey.cpp \
     src/Base58CheckEncodable.cpp \
     src/Signature.cpp \
-    #src/P2PKHAddress.cpp
     src/KeyPair.cpp \
-    src/OutPoint.cpp \
     src/P2PKHAddress.cpp \
-    src/P2PKHTxOut.cpp \
-    src/P2SHTxOut.cpp \
     src/UnspentP2PKHOutput.cpp \
     src/Utilities.cpp \
     src/TimeTools.cpp \
     src/BitcoinDisplaySettings.cpp \
-    src/BitcoinRepresentation.cpp
+    src/BitcoinRepresentation.cpp \
+    src/typesafeOutPoint.cpp \
+    src/Payment.cpp \
+    src/P2SHAddress.cpp

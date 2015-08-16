@@ -71,6 +71,10 @@ SOURCES += \
     src/extension/BuyerPeerPlugin.cpp \
     src/extension/PaymentChannel/Payor.cpp \
     src/extension/PaymentChannel/Payee.cpp \
+    src/extension/PaymentChannel/Contract.cpp \
+    src/extension/PaymentChannel/Commitment.cpp \
+    #src/extension/PaymentChannel/Payment.cpp \
+    src/extension/PaymentChannel/Refund.cpp \
     src/controller/BuyerPeerPluginViewModel.cpp \
     src/controller/BuyerTorrentPluginViewModel.cpp \
     src/controller/ChannelViewModel.cpp \
@@ -81,7 +85,7 @@ SOURCES += \
     src/controller/SellerTorrentPluginViewModel.cpp \
     src/controller/TorrentPluginViewModel.cpp \
     src/controller/TorrentViewModel.cpp \
-    src/controller/Stream.cpp \
+    src/controller/Stream.cpp
 
 HEADERS += \
     include/core/controller/Controller.hpp \
@@ -134,6 +138,10 @@ HEADERS += \
     include/core/extension/SellerPeerPlugin.hpp \
     include/core/extension/PaymentChannel/Payee.hpp \
     include/core/extension/PaymentChannel/Payor.hpp \
+    include/core/extension/PaymentChannel/Contract.hpp \
+    include/core/extension/PaymentChannel/Commitment.hpp \
+    #include/core/extension/PaymentChannel/Payment.hpp \
+    include/core/extension/PaymentChannel/Refund.hpp \
     include/core/extension/Alert/BuyerPeerAddedAlert.hpp \
     include/core/extension/Alert/SellerPeerAddedAlert.hpp \
     include/core/extension/Alert/BuyerPeerPluginRemovedAlert.hpp \

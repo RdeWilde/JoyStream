@@ -26,6 +26,7 @@ class Slot;
 namespace Coin {
     enum class Network;
     class P2PKHAddress;
+    class Transaction;
     //class KeyPair;
 }
 
@@ -43,7 +44,6 @@ class Wallet : public QObject
 {
     Q_OBJECT
 public:
-
 
     // Opens wallet
     explicit Wallet(const QString & walletFile);
@@ -102,9 +102,15 @@ public:
     //Coin::P2PKHAddress getReceiveAddress();
 
     // Returns a fresh private key which persists in wallet
-    // NB: These keys are have no corresponding addresses
-    // which are monitored for inbound/outbound? transactions,
+    // **NB: These keys are have no corresponding addresses
+    // which are monitored for inbound/outbound? transactions**
     Coin::PrivateKey issueKey();
+
+    // Returns a list of key pairs, with ordered ascendingly in terms
+    // of index.
+    // **NB: These keys are have no corresponding addresses
+    // which are monitored for inbound/outbound? transactions**
+    QList<Coin::KeyPair> issueKeyPairs(quint64 numberOfPairs);
 
     // Return the given set of keys to key pool.
     // It is checked that a given key is actually not in use
@@ -123,6 +129,12 @@ public:
 
     // Scraps current utxo, and rebuilds based on dbase
     void updateUtxoSet();
+
+    /**
+     * Bitcoin network communication
+     */
+
+    void broadcast(const Coin::Transaction & tx);
 
 signals:
 

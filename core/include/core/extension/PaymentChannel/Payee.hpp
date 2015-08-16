@@ -9,8 +9,12 @@
 #define PAYEE_HPP
 
 #include <common/KeyPair.hpp>
-#include <common/OutPoint.hpp>
+#include <common/typesafeOutPoint.hpp>
 #include <common/Signature.hpp>
+
+namespace Coin {
+    class Transaction;
+}
 
 /**
  * Manages the payee side of a 1-to-N payment channel using design in CBEP.
@@ -55,7 +59,7 @@ public:
         Status();
 
         // Constructor from members
-        Status(State state, quint64 numberOfPaymentsMade, quint32 lockTime, quint64 price, const Coin::OutPoint & contractOutPoint, quint64 funds);
+        Status(State state, quint64 numberOfPaymentsMade, quint32 lockTime, quint64 price, const Coin::typesafeOutPoint & contractOutPoint, quint64 funds);
 
         // Getters and setters
         State state() const;
@@ -70,8 +74,8 @@ public:
         quint64 price() const;
         void setPrice(quint64 price);
 
-        Coin::OutPoint contractOutPoint() const;
-        void setContractOutPoint(const Coin::OutPoint & contractOutPoint);
+        Coin::typesafeOutPoint contractOutPoint() const;
+        void setContractOutPoint(const Coin::typesafeOutPoint & contractOutPoint);
 
         quint64 funds() const;
         void setFunds(quint64 funds);
@@ -91,7 +95,7 @@ public:
         quint64 _price;
 
         // Contract outpoint from which payments originate
-        Coin::OutPoint _contractOutPoint;
+        Coin::typesafeOutPoint _contractOutPoint;
 
         // Amount (#satoshies) assigned to contract output
         quint64 _funds;
@@ -116,7 +120,7 @@ public:
                       quint32 maximumNumberOfSellers,
                       const Coin::KeyPair & payeeContractKeys,
                       const Coin::KeyPair & payeePaymentKeys,
-                      const Coin::OutPoint & contractOutPoint,
+                      const Coin::typesafeOutPoint & contractOutPoint,
                       const Coin::PublicKey & payorContractPk,
                       const Coin::PublicKey & payorFinalPk,
                       quint64 funds);
@@ -146,8 +150,8 @@ public:
         Coin::KeyPair payeePaymentKeys() const;
         void setPayeePaymentKeys(const Coin::KeyPair & payeePaymentKeys);
 
-        Coin::OutPoint contractOutPoint() const;
-        void setContractOutPoint(const Coin::OutPoint & contractOutPoint);
+        Coin::typesafeOutPoint contractOutPoint() const;
+        void setContractOutPoint(const Coin::typesafeOutPoint & contractOutPoint);
 
         Coin::PublicKey payorContractPk() const;
         void setPayorContractPk(const Coin::PublicKey & payorContractPk);
@@ -185,7 +189,7 @@ public:
         Coin::KeyPair _payeePaymentKeys;
 
         // Contract outpoint from which payments originate
-        Coin::OutPoint _contractOutPoint;
+        Coin::typesafeOutPoint _contractOutPoint;
 
         // Payor key in contract output
         Coin::PublicKey _payorContractPk;
@@ -210,7 +214,7 @@ public:
             quint32 maximumNumberOfSellers,
             const Coin::KeyPair & payeeContractKeys,
             const Coin::KeyPair & payeePaymentKeys,
-            const Coin::OutPoint & contractOutPoint,
+            const Coin::typesafeOutPoint & contractOutPoint,
             const Coin::PublicKey & payorContractPk,
             const Coin::PublicKey & payorFinalPk,
             quint64 funds);
@@ -224,7 +228,7 @@ public:
     */
 
     // When contract information is known, as advertised in
-    void registerPayorInformation(const Coin::OutPoint & contractOutPoint, const Coin::PublicKey & payorContractPk, const Coin::PublicKey & payorFinalPk, quint64 funds);
+    void registerPayorInformation(const Coin::typesafeOutPoint & contractOutPoint, const Coin::PublicKey & payorContractPk, const Coin::PublicKey & payorFinalPk, quint64 funds);
 
     // Creates refund signature
     // ==================================================
@@ -239,8 +243,11 @@ public:
     // Attempts to check validity of given payment signature with (_numberOfPaymentsMade + 1)
     bool checkNextPaymentSignature(const Coin::Signature & payorPaymentSignature) const;
 
-    // Attempts to broadcast the most recent payment
-    bool broadcastLastPayment() const;
+    // Attempts to validate the contract transaction
+    bool validateContractTrasaction(const Coin::Transaction & transaction) const;
+
+    // Generates transaction for last payment
+    Coin::Transaction lastPaymentTransaction() const;
 
     /**
      * Routines below check contract validity in various ways
@@ -285,8 +292,8 @@ public:
     Coin::KeyPair payeePaymentKeys() const;
     void setPayeePaymentKeys(const Coin::KeyPair & payeePaymentKeys);
 
-    Coin::OutPoint contractOutPoint() const;
-    void setContractOutPoint(const Coin::OutPoint & contractOutPoint);
+    Coin::typesafeOutPoint contractOutPoint() const;
+    void setContractOutPoint(const Coin::typesafeOutPoint & contractOutPoint);
 
     Coin::PublicKey payorContractPk() const;
     void setPayorContractPk(const Coin::PublicKey & payorContractPk);
@@ -324,7 +331,7 @@ private:
     Coin::KeyPair _payeePaymentKeys;
 
     // Contract outpoint from which payments originate
-    Coin::OutPoint _contractOutPoint;
+    Coin::typesafeOutPoint _contractOutPoint;
 
     // Payor key in contract output
     Coin::PublicKey _payorContractPk;

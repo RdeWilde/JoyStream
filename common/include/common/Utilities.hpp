@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef UTILITIES_HPP
-#define UTILITIES_HPP
+#ifndef COIN_UTILITIES_HPP
+#define COIN_UTILITIES_HPP
 
 class QByteArray;
 class uchar_vector;
@@ -23,4 +23,4 @@ uint qHash(const libtorrent::tcp::endpoint & endpoint);
 //#include <libtorrent/peer_connection.hpp> // libtorrent::peer_request
 //uint qHash(const libtorrent::peer_request & request);
 
-#endif // UTILITIES_HPP
+#endif // COIN_UTILITIES_HPP

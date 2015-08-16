@@ -6,12 +6,13 @@
  */
 
 #include <gui/BuyerTorrentPluginDialog.hpp>
+#include "ui_BuyerTorrentPluginDialog.h"
 #include <gui/ChannelView.hpp>
 #include <gui/BuyerPeerPluginView.hpp>
-#include "ui_BuyerTorrentPluginDialog.h"
 #include <core/controller/BuyerTorrentPluginViewModel.hpp>
-#include <common/BitcoinDisplaySettings.hpp>
 #include <core/controller/BuyerPeerPluginViewModel.hpp>
+#include <common/typesafeOutPoint.hpp>
+#include <common/BitcoinDisplaySettings.hpp>
 
 #include <libtorrent/socket_io.hpp> // print_endpoint
 

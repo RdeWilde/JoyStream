@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 8 2015
  */
 
-#ifndef BLOCK_ID_HPP
-#define BLOCK_ID_HPP
+#ifndef COIN_BLOCK_ID_HPP
+#define COIN_BLOCK_ID_HPP
 
 #include <common/UCharArray.hpp>
 
@@ -17,4 +17,4 @@ namespace Coin {
     typedef UCharArray<BLOCKID_BYTE_LENGTH> BlockId;
 }
 
-#endif // BLOCK_ID_HPP
+#endif // COIN_BLOCK_ID_HPP

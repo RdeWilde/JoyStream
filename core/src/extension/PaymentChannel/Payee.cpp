@@ -6,7 +6,7 @@
  */
 
 #include <core/extension/PaymentChannel/Payee.hpp>
-#include <common/P2PKHTxOut.hpp>
+#include <common/Payment.hpp>
 
 /**
  * Payee::Status
@@ -15,7 +15,7 @@
 Payee::Status::Status() {
 }
 
-Payee::Status::Status(State state, quint64 numberOfPaymentsMade, quint32 lockTime, quint64 price, const Coin::OutPoint & contractOutPoint, quint64 funds)
+Payee::Status::Status(State state, quint64 numberOfPaymentsMade, quint32 lockTime, quint64 price, const Coin::typesafeOutPoint & contractOutPoint, quint64 funds)
     : _state(state)
     , _numberOfPaymentsMade(numberOfPaymentsMade)
     , _lockTime(lockTime)
@@ -56,11 +56,11 @@ void Payee::Status::setPrice(quint64 price) {
     _price = price;
 }
 
-Coin::OutPoint Payee::Status::contractOutPoint() const {
+Coin::typesafeOutPoint Payee::Status::contractOutPoint() const {
     return _contractOutPoint;
 }
 
-void Payee::Status::setContractOutPoint(const Coin::OutPoint &contractOutPoint) {
+void Payee::Status::setContractOutPoint(const Coin::typesafeOutPoint &contractOutPoint) {
     _contractOutPoint = contractOutPoint;
 }
 
@@ -87,7 +87,7 @@ Payee::Configuration::Configuration(State state,
                                     quint32 maximumNumberOfSellers,
                                     const Coin::KeyPair & payeeContractKeys,
                                     const Coin::KeyPair & payeePaymentKeys,
-                                    const Coin::OutPoint & contractOutPoint,
+                                    const Coin::typesafeOutPoint & contractOutPoint,
                                     const Coin::PublicKey & payorContractPk,
                                     const Coin::PublicKey & payorFinalPk,
                                     quint64 funds)
@@ -169,11 +169,11 @@ void Payee::Configuration::setPayeePaymentKeys(const Coin::KeyPair & payeePaymen
     _payeePaymentKeys = payeePaymentKeys;
 }
 
-Coin::OutPoint Payee::Configuration::contractOutPoint() const {
+Coin::typesafeOutPoint Payee::Configuration::contractOutPoint() const {
     return _contractOutPoint;
 }
 
-void Payee::Configuration::setContractOutPoint(const Coin::OutPoint & contractOutPoint) {
+void Payee::Configuration::setContractOutPoint(const Coin::typesafeOutPoint & contractOutPoint) {
     _contractOutPoint = contractOutPoint;
 }
 
@@ -205,6 +205,8 @@ void Payee::Configuration::setFunds(const quint64 funds) {
  * Payee
  */
 
+#include <CoinCore/StandardTransactions.h>
+
 Payee::Payee() {
 }
 
@@ -216,7 +218,7 @@ Payee::Payee(State state,
              quint32 maximumNumberOfSellers,
              const Coin::KeyPair & payeeContractKeys,
              const Coin::KeyPair & payeePaymentKeys,
-             const Coin::OutPoint & contractOutPoint,
+             const Coin::typesafeOutPoint & contractOutPoint,
              const Coin::PublicKey & payorContractPk,
              const Coin::PublicKey & payorFinalPk,
              quint64 funds)
@@ -264,7 +266,7 @@ void Payee::registerPayeeInformation(quint32 lockTime, quint32 price, quint32 ma
 }
 */
 
-void Payee::registerPayorInformation(const Coin::OutPoint & contractOutPoint, const Coin::PublicKey & payorContractPk, const Coin::PublicKey & payorFinalPk, quint64 funds) {
+void Payee::registerPayorInformation(const Coin::typesafeOutPoint & contractOutPoint, const Coin::PublicKey & payorContractPk, const Coin::PublicKey & payorFinalPk, quint64 funds) {
 
     // Check state
     if(_state != State::waiting_for_payor_information &&
@@ -326,8 +328,8 @@ bool Payee::checkNextPaymentSignature(const Coin::Signature & payorPaymentSignat
 
     // Setup new payment outputs
     quint64 paid = (_numberOfPaymentsMade + 1) * _price;
-    Coin::P2PKHTxOut refundOutput(_funds - paid, _payorFinalPk);
-    Coin::P2PKHTxOut paymentOutput(paid, _payeePaymentKeys.pk());
+    Coin::Payment refund(_funds - paid, _payorFinalPk);
+    Coin::Payment payment(paid, _payeePaymentKeys.pk());
 
     /**
 
@@ -351,7 +353,11 @@ bool Payee::checkNextPaymentSignature(const Coin::Signature & payorPaymentSignat
         return true;
 }
 
-bool Payee::broadcastLastPayment() const {
+bool Payee::validateContractTrasaction(const Coin::Transaction & transaction) const {
+    return true;
+}
+
+Coin::Transaction Payee::lastPaymentTransaction() const {
 
     // Check state
     if(_state != State::has_all_information_required)
@@ -359,8 +365,8 @@ bool Payee::broadcastLastPayment() const {
 
     // Setup new payment outputs
     quint64 paid = (_numberOfPaymentsMade) * _price;
-    Coin::P2PKHTxOut refundOutput(_funds - paid, _payorFinalPk);
-    Coin::P2PKHTxOut paymentOutput(paid, _payeePaymentKeys.pk());
+    Coin::Payment refund(_funds - paid, _payorFinalPk);
+    Coin::Payment payment(paid, _payeePaymentKeys.pk());
 
     /**
 
@@ -381,7 +387,7 @@ bool Payee::broadcastLastPayment() const {
                                                  paymentOutput);
     */
 
-    return true;
+    return Coin::Transaction();
 }
 
 Payee::Status Payee::status() const {
@@ -458,11 +464,11 @@ void Payee::setPayeePaymentKeys(const Coin::KeyPair & payeePaymentKeys) {
     _payeePaymentKeys = payeePaymentKeys;
 }
 
-Coin::OutPoint Payee::contractOutPoint() const {
+Coin::typesafeOutPoint Payee::contractOutPoint() const {
     return _contractOutPoint;
 }
 
-void Payee::setContractOutPoint(const Coin::OutPoint & contractOutPoint) {
+void Payee::setContractOutPoint(const Coin::typesafeOutPoint & contractOutPoint) {
     _contractOutPoint = contractOutPoint;
 }
 
@@ -489,17 +495,3 @@ quint64 Payee::funds() const {
 void Payee::setFunds(quint64 funds) {
     _funds = funds;
 }
-
-/**
-float Payee::outputPointVisible() const {
-
-    // random bs
-    return 0.5;
-}
-
-bool Payee::isContractValid() const {
-
-    // random bs
-    return true;
-}
-*/

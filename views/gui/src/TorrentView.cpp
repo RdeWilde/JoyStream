@@ -213,7 +213,7 @@ QString TorrentView::peersToString(int numberOfPeers, int numberOfPeersWithExten
 
 QString TorrentView::balanceToString(qint64 balance, const BitcoinDisplaySettings * settings) {
     //return BitCoinRepresentation(balance).toString(BitCoinRepresentation::Fiat::USD, rate);
-    return  BitcoinRepresentation(balance).toString(settings);
+    return BitcoinRepresentation(balance).toString(settings);
 }
 
 void TorrentView::updatePluginInstalled(PluginInstalled pluginInstalled) {

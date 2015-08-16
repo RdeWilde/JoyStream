@@ -230,8 +230,7 @@ void Payor::Channel::Status::setIndex(quint32 index) {
  * Payor::Channel
  */
 
-#include <common/P2PKHTxOut.hpp>
-//#include <common/itCoin/BitSwaprjs.hpp"
+#include <common/Payment.hpp>
 
 #include <QJsonObject>
 
@@ -286,6 +285,7 @@ Payor::Channel::Channel(quint32 index,
 }
 
 /**
+ * REMOVE BOTH OF THESE LATER
 Refund Channel::refund(const Hash &contractHash) const {
     return Refund(OutputPoint(contractHash, _index),
                   P2PKHTxOut(_funds - _refundFee, _payorContractKeyPair.pk(), _payeeContractPk),
@@ -321,7 +321,7 @@ void Payor::Channel::computeAndSetPayorRefundSignature(const Coin::TransactionId
     */
 }
 
-Coin::Signature Payor::Channel::paymentSignature(const Coin::TransactionId & contractHash) const {
+Coin::Signature Payor::Channel::createPaymentSignature(const Coin::TransactionId & contractHash) const {
 
     //return Signature();
 
@@ -341,6 +341,14 @@ Coin::Signature Payor::Channel::paymentSignature(const Coin::TransactionId & con
                                                  Coin::P2PKHTxOut(_funds - paid, _payorFinalKeyPair.pk()),
                                                  Coin::P2PKHTxOut(paid, _payeeFinalPk));
     */
+}
+
+bool Payor::Channel::validateRefundSignature(const Coin::TransactionId & contractHash,
+                             const Coin::Signature & payeeSig) const {
+
+    /**
+     * IMPLEMENT LATER
+     */
 }
 
 
@@ -676,10 +684,12 @@ void Payor::Configuration::setNumberOfSignatures(quint32 numberOfSignatures) {
  * Payor
  */
 
-#include <common/P2SHTxOut.hpp>
+#include <core/extension/PaymentChannel/Commitment.hpp>
+#include <core/extension/PaymentChannel/Contract.hpp>
+#include  <core/extension/PaymentChannel/Refund.hpp>
+#include <CoinCore/StandardTransactions.h> // Transaction...
 
-//#include "extension/BitCoin/Wallet.hpp"
-//#include "extension/BitCoin/BitSwaprjs.hpp"
+#include <QVector>
 
 Payor::Payor() {
 }
@@ -728,7 +738,8 @@ quint32 Payor::assignUnassignedSlot(quint64 price, const Coin::PublicKey & payee
     // Find a slot which is unassigned,
     // and also count the total number of unassigned slots
     quint32 numberUnassigned = 0;
-    quint32 slotIndex = -1;
+    quint32 slotIndex;
+    bool slotAssigned = false;
 
     for(quint32 i = 0;i < _channels.size();i++) {
 
@@ -751,6 +762,9 @@ quint32 Payor::assignUnassignedSlot(quint64 price, const Coin::PublicKey & payee
 
                 // and slot index
                 slotIndex = i;
+
+                // Remember that slot was assigned
+                slotAssigned = true;
             }
 
             // Count number of unassigned slots
@@ -759,7 +773,7 @@ quint32 Payor::assignUnassignedSlot(quint64 price, const Coin::PublicKey & payee
     }
 
     // There must be an unassigned slot, given the _state check above.
-    Q_ASSERT(slotIndex != -1);
+    Q_ASSERT(slotAssigned);
 
     // If this was the last unasigned slot, then alter state
     if(numberUnassigned == 1) {
@@ -767,22 +781,14 @@ quint32 Payor::assignUnassignedSlot(quint64 price, const Coin::PublicKey & payee
         // Update state to reflect that we are now waiting for signatures
         _state = State::waiting_for_full_set_of_refund_signatures;
 
-        // Build contract outputs
-        QVector<Coin::P2SHTxOut> contractOutputs;
+        // Generate the contract transaction
+        //Contract c = contract();
+        //Coin::Transaction tx = c.transaction();
+        Coin::Transaction tx = contractTransaction();
 
-        for(QVector<Channel>::const_iterator i = _channels.constBegin(),
-            end = _channels.constEnd();i != end;i++)
-            contractOutputs.append(Coin::P2SHTxOut(i->funds(), i->payorContractKeyPair().pk(), i->payeeContractPk()));
-
-        // Compute and set _contractHash
-        /**
-        _contractTxId = BitSwaprjs::compute_contract_hash(_utxo,
-                                                          //_fundingOutPoint,
-                                                          //_fundingValue,
-                                                          //_fundingOutputKeyPair.sk(),
-                                                          contractOutputs,
-                                                          Coin::P2PKHTxOut(_changeValue, _changeOutputKeyPair.pk()));
-        */
+        // Get contract tx id
+        // It's in Little Endian byte order (least-significant byte first) in the protocol, but it's written out in Big Endian byte order (most-significant byte first) as most other numbers in English normally are.
+        _contractTxId = tx.getHashLittleEndian();
 
         // Compute all refund signatures
         for(QVector<Channel>::Iterator i = _channels.begin(), end(_channels.end()); i != end;i++)
@@ -823,6 +829,72 @@ void Payor::unassignSlot(quint32 index) {
     _numberOfSignatures = 0;
 }
 
+/**
+Contract Payor::contract() const {
+
+    // Build contract outputs
+    QVector<Coin::Commitment> contractOutputs;
+
+    for(QVector<Channel>::const_iterator
+        i = _channels.constBegin(),
+        end = _channels.constEnd();
+        i != end;
+        i++)
+        contractOutputs.append(Coin::Commitment(i->funds(), i->payorContractKeyPair().pk(), i->payeeContractPk()));
+
+    // Create contract
+    Contract c = Contract(_utxo, contractOutputs, Coin::Payment(_changeValue, _changeOutputKeyPair.pk()));
+
+    return c;
+}
+*/
+
+Coin::Transaction Payor::contractTransaction() const {
+
+    return Coin::Transaction();
+
+    /**
+    // Create transaction
+    Coin::Transaction transaction;
+
+    // Create input spending utxo
+    Coin::typesafeOutPoint outPoint = _funding.outPoint();
+
+    Coin::P2AddressTxIn txIn(outPoint.transactionId().toUCharVector(),
+                             outPoint.index(),
+                             _funding.keyPair().pk().toUCharVector());
+
+    // Add input
+    transaction.addInput(txIn);
+
+    // Add all outputs
+    for(QVector<Coin::Commitment>::const_iterator
+        i = _channelCommitments.constBegin(),
+        end = _channelCommitments.constEnd();
+        i != end;
+        i++) {
+
+        // Get commitment
+        Coin::Commitment c = *i;
+
+        // Create corresponding contract transaction output
+        Coin::StandardTxOut txOut = c.toTxOut();
+
+        // Add to transaction
+        transaction.addOutput(txOut);
+    }
+
+    // Add refund
+    Coin::StandardTxOut refundOutput;
+    //transaction.addOutput(refundOutput);
+
+    // Sign!
+    //?
+
+    return transaction;
+    */
+}
+
 bool Payor::processRefundSignature(quint32 index, const Coin::Signature & signature) {
 
     // Check that refunds are being collected
@@ -839,16 +911,7 @@ bool Payor::processRefundSignature(quint32 index, const Coin::Signature & signat
     Q_ASSERT(s.state() == Channel::State::assigned);
 
     // Check signature
-    /**
-    bool validSignature = BitSwaprjs::check_refund_signatures(OutPoint(_contractTxId, index),
-                                                             s.payorRefundSignature(),
-                                                             signature,
-                                                             s.payorContractKeyPair().pk(),
-                                                             s.payeeContractPk(),
-                                                             P2PKHTxOut(s.funds(), s.payorFinalKeyPair().pk()),
-                                                             s.refundLockTime());
-    */
-    bool validSignature = true;
+    bool validSignature = s.validateRefundSignature(_contractTxId, signature);
 
     // If it matched, then alter state and save signature
     if(validSignature) {
@@ -868,28 +931,6 @@ bool Payor::processRefundSignature(quint32 index, const Coin::Signature & signat
     }
 
     return validSignature;
-}
-
-void Payor::broadcast_contract() {
-
-    // Build contract outputs
-    QVector<Coin::P2SHTxOut> contractOutputs;
-
-    for(QVector<Channel>::const_iterator i = _channels.constBegin(),
-        end = _channels.constEnd();i != end;i++)
-        contractOutputs.append(Coin::P2SHTxOut(i->funds(), i->payorContractKeyPair().pk(), i->payeeContractPk()));
-
-    // Compute and set _contractHash
-    /**
-    Coin::TransactionId broadcastedTxId = BitSwaprjs::broadcast_contract(//_fundingOutPoint,
-                                  //_fundingOutputKeyPair.sk(),
-                                  _utxo,
-                                  contractOutputs,
-                                  P2PKHTxOut(_changeValue, _changeOutputKeyPair.pk()));
-
-    Q_ASSERT(broadcastedTxId == _contractTxId);
-    */
-
 }
 
 quint64 Payor::incrementPaymentCounter(quint32 index) {
@@ -930,21 +971,9 @@ Coin::Signature Payor::getPresentPaymentSignature(quint32 index) const {
     Q_ASSERT(channel.state() == Channel::State::refund_signed);
 
     // compute present payment signature for channel signature
-    Coin::Signature presentSignature = channel.paymentSignature(_contractTxId);
+    Coin::Signature presentSignature = channel.createPaymentSignature(_contractTxId);
 
     return presentSignature;
-}
-
-bool Payor::claimRefund(quint32 index) const {
-
-    // Try to spend refund
-    return false;
-}
-
-bool Payor::spent(quint32 index) const {
-
-    // Check if cannel payment has been spent
-    return false;
 }
 
 Payor::Status Payor::status() const {

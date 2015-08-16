@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 8 2015
  */
 
-#ifndef ADDRESS_TYPE_HPP
-#define ADDRESS_TYPE_HPP
+#ifndef COIN_ADDRESS_TYPE_HPP
+#define COIN_ADDRESS_TYPE_HPP
 
 namespace Coin {
 
@@ -25,4 +25,4 @@ enum class AddressType {
 
 }
 
-#endif // ADDRESS_TYPE_HPP
+#endif // COIN_ADDRESS_TYPE_HPP

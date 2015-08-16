@@ -98,8 +98,11 @@ QString PrivateKey::toWIF(Network network, PublicKeyCompression compression) con
     return QString::fromStdString(encoded);
 }
 
-PublicKey PrivateKey::derivePublicKey() const {
+PublicKey PrivateKey::toPublicKey() const {
+
     throw std::runtime_error("not implemented");
+    // https://github.com/ciphrex/mSIGNA/blob/master/deps/CoinCore/src/secp256k1.h
+    return PublicKey();
 }
 
 }

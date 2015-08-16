@@ -152,6 +152,8 @@ void SellerPeerPlugin::Status::setPayeeStatus(const Payee::Status & payeeStatus)
 #include <core/extension/Message/Payment.hpp>
 #include <core/extension/Plugin.hpp>
 
+#include <CoinCore/CoinNodeData.h>
+
 #include <libtorrent/bt_peer_connection.hpp>
 #include <libtorrent/storage.hpp> // libtorrent::disk_io_job
 
@@ -621,7 +623,7 @@ void SellerPeerPlugin::processSignRefund(const SignRefund * m) {
     _peerState.setLastSignRefundReceived(*m);
 
     // Update payee with most recent
-    _payee.registerPayorInformation(Coin::OutPoint(m->contractTxId(), m->index()), m->contractPk(), m->finalPk(), m->value());
+    _payee.registerPayorInformation(Coin::typesafeOutPoint(m->contractTxId(), m->index()), m->contractPk(), m->finalPk(), m->value());
 
     // Create refund signature
     Coin::Signature refundSignature = _payee.generateRefundSignature();
@@ -799,17 +801,15 @@ void SellerPeerPlugin::close_connection() {
     _connection->disconnect(_deletionErrorCode);
 }
 
-void SellerPeerPlugin::tryToClaimPayment() {
+Coin::Transaction SellerPeerPlugin::lastPaymentTransaction() const {
 
     Q_ASSERT(_clientState == SellerPeerPlugin::ClientState::awaiting_payment ||
              _clientState == SellerPeerPlugin::ClientState::awaiting_piece_request_after_payment ||
              _clientState == SellerPeerPlugin::ClientState::reading_piece_from_disk);
 
-    qCDebug(_category) << "Trying to claim peer plugin payment";
+    Q_ASSERT(_payee.state() != Payee::State::has_all_information_required);
 
-    // Try to broadcast payment
-    _payee.broadcastLastPayment();
-
+    return _payee.lastPaymentTransaction();
 }
 
 SellerPeerPlugin::Status SellerPeerPlugin::status() const {

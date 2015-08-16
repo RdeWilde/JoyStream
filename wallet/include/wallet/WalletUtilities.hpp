@@ -7,6 +7,8 @@ class QDateTime;
 
 class WalletUtilities {
 
+public:
+
     static QByteArray encodeDateTime(const QDateTime & dateTime);
     static QDateTime decodeDateTime(const QByteArray & encodedDateTime);
 
