@@ -22,25 +22,33 @@ InBoundPayment::InBoundPayment(quint64 id, quint64 receiveAddressWalletKeyIndex,
 
 QSqlQuery InBoundPayment::createTableQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
-    CREATE TABLE InBoundPayment (\
-        id                              INTEGER,\
-        receiveAddressWalletKeyIndex    INTEGER     NOT NULL,\
-        note                            TEXT        NOT NULL,\
-        created                         INTEGER     NOT NULL,\
-        PRIMARY KEY(id),\
-        FOREIGN KEY receiveAddressWalletKeyIndex REFERENCES WalletAddress(walletKeyIndex)\
-    )", db);
+    QSqlQuery query(db);
+
+    query.prepare(
+    "CREATE TABLE InBoundPayment ( "
+        "id                              INTEGER, "
+        "receiveAddressWalletKeyIndex    INTEGER     NOT NULL, "
+        "note                            TEXT        NOT NULL, "
+        "created                         INTEGER     NOT NULL, "
+        "PRIMARY KEY(id), "
+        "FOREIGN KEY receiveAddressWalletKeyIndex REFERENCES WalletAddress(walletKeyIndex) "
+    ")");
+
+    return query;
 }
 
 QSqlQuery InBoundPayment::unboundedInsertQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
-    INSERT INTO TransactionHasInput \
-    (id, receiveAddressWalletKeyIndex, note, created)\
-    VALUES\
-    (:id, :receiveAddressWalletKeyIndex, :note, :created)\
-    ", db);
+    QSqlQuery query(db);
+
+    query.prepare(
+    "INSERT INTO TransactionHasInput "
+        "(id, receiveAddressWalletKeyIndex, note, created) "
+    "VALUES "
+        "(:id, :receiveAddressWalletKeyIndex, :note, :created) "
+    );
+
+    return query;
 }
 
 QSqlQuery InBoundPayment::insertQuery(QSqlDatabase db) {

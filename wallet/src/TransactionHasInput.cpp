@@ -17,28 +17,35 @@ TransactionHasInput::TransactionHasInput(const Coin::TransactionId & transaction
 
 QSqlQuery TransactionHasInput::createTableQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
-    CREATE TABLE TransactionHasInput (\
-        transactionId               BLOB        NOT NULL,\
-        index                       INTEGER     NOT NULL,\
-        outPointTransactionId       BLOB        NOT NULL,\
-        outPointOutputIndex         INTEGER     NOT NULL,\
-        scriptSig                   BLOG        NOT NULL,\
-        sequence                    INTEGER     NOT NULL,\
-        PRIMARY KEY(transactionId, index),\
-        FOREIGN KEY transactionId REFERENCES Transaction(transactionId),\
-        FOREIGN KEY (outPointTransactionId, outPointOutputIndex, scriptSig, sequence) REFERENCES Input(outPointTransactionId, outPointOutputIndex, scriptSig, sequence)\
-    )", db);
+    QSqlQuery query(db);
+
+    query.prepare(
+    "CREATE TABLE TransactionHasInput ( "
+        "transactionId               BLOB        NOT NULL, "
+        "index                       INTEGER     NOT NULL, "
+        "outPointTransactionId       BLOB        NOT NULL, "
+        "outPointOutputIndex         INTEGER     NOT NULL, "
+        "scriptSig                   BLOG        NOT NULL, "
+        "sequence                    INTEGER     NOT NULL, "
+        "PRIMARY KEY(transactionId, index), "
+        "FOREIGN KEY transactionId REFERENCES Transaction(transactionId), "
+        "FOREIGN KEY (outPointTransactionId, outPointOutputIndex, scriptSig, sequence) REFERENCES Input(outPointTransactionId, outPointOutputIndex, scriptSig, sequence) "
+    ")");
+
+    return query;
 }
 
 QSqlQuery TransactionHasInput::unboundedInsertQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
-    INSERT INTO TransactionHasInput \
-    (transactionId, index, outPointTransactionId, outPointOutputIndex, scriptSig, sequence)\
-    VALUES\
-    (:transactionId, :index, :outPointTransactionId, :outPointOutputIndex, :scriptSig, :sequence)\
-    ", db);
+    QSqlQuery query(db);
+
+    query.prepare (
+    "INSERT INTO TransactionHasInput "
+        "(transactionId, index, outPointTransactionId, outPointOutputIndex, scriptSig, sequence) "
+    "VALUES "
+        "(:transactionId, :index, :outPointTransactionId, :outPointOutputIndex, :scriptSig, :sequence) ");
+
+    return query;
 }
 
 QSqlQuery TransactionHasInput::insertQuery(QSqlDatabase db) {

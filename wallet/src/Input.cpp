@@ -23,25 +23,33 @@ Input::Input(const QSqlRecord & record) {
 
 QSqlQuery Input::createTableQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
-    CREATE TABLE Input (\
-        outPointTransactionId       BLOB,\
-        outPointOutputIndex         INTEGER     NOT NULL,\
-        scriptSig                   BLOG        NOT NULL,\
-        sequence                    INTEGER     NOT NULL,\
-        PRIMARY KEY(outPointTransactionId, outPointOutputIndex, scriptSig, sequence),\
-        FOREIGN KEY (outPointTransactionId, outPointOutputIndex) REFERENCES OutPoint(transactionId, outputIndex)\
-    )", db);
+    QSqlQuery query(db);
+
+    query.prepare(
+    "CREATE TABLE Input ( "
+        "outPointTransactionId       BLOB, "
+        "outPointOutputIndex         INTEGER     NOT NULL, "
+        "scriptSig                   BLOG        NOT NULL, "
+        "sequence                    INTEGER     NOT NULL, "
+        "PRIMARY KEY(outPointTransactionId, outPointOutputIndex, scriptSig, sequence), "
+        "FOREIGN KEY (outPointTransactionId, outPointOutputIndex) REFERENCES OutPoint(transactionId, outputIndex) "
+    ")");
+
+    return query;
 }
 
 QSqlQuery Input::unboundedInsertQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
-    INSERT INTO Input \
-    (outPointTransactionId, outPointOutputIndex, scriptSig, sequence)\
-    VALUES\
-    (:outPointTransactionId, :outPointOutputIndex, :scriptSig, :sequence)\
-    ", db);
+    QSqlQuery query(db);
+
+    query.prepare(
+    "INSERT INTO Input "
+        "(outPointTransactionId, outPointOutputIndex, scriptSig, sequence) "
+    "VALUES "
+        "(:outPointTransactionId, :outPointOutputIndex, :scriptSig, :sequence) "
+    );
+
+    return query;
 }
 
 QSqlQuery Input::insertQuery(QSqlDatabase db) {

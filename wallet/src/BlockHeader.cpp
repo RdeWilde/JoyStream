@@ -34,31 +34,37 @@ BlockHeader::BlockHeader(const Coin::BlockId & blockId,
 
 QSqlQuery BlockHeader::createTableQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
-    CREATE TABLE BlockHeader (\
-        blockId             BLOB        NOT NULL,\
-        version             INTEGER     NOT NULL,\
-        previousBlockId     BLOB        NOT NULL,\
-        merkleRoot          BLOB        NOT NULL,\
-        timeStamp           INTEGER     NOT NULL,\
-        bits                INTEGER     NOT NULL,\
-        nonce               INTEGER     NOT NULL,\
-        transactionCount    INTEGER     NOT NULL,\
-        isOnMainChain       INTEGER     NOT NULL,\
-        totalProofOfWork    INTEGER     NOT NULL,\
-        PRIMARY KEY(blockId)\
-        UNIQUE(version, previousBlockId, merkleRoot, timeStamp, bits, nonce) ,\
-    )", db);
+    QSqlQuery query(db);
+
+    query.prepare(
+    "CREATE TABLE BlockHeader ( "
+        "blockId             BLOB        NOT NULL, "
+        "version             INTEGER     NOT NULL, "
+        "previousBlockId     BLOB        NOT NULL, "
+        "merkleRoot          BLOB        NOT NULL, "
+        "timeStamp           INTEGER     NOT NULL, "
+        "bits                INTEGER     NOT NULL, "
+        "nonce               INTEGER     NOT NULL, "
+        "transactionCount    INTEGER     NOT NULL, "
+        "isOnMainChain       INTEGER     NOT NULL, "
+        "totalProofOfWork    INTEGER     NOT NULL, "
+        "PRIMARY KEY(blockId), "
+        "UNIQUE(version, previousBlockId, merkleRoot, timeStamp, bits, nonce) "
+    ")");
 }
 
 QSqlQuery BlockHeader::unboundedInsertQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
-                     INSERT INTO BlockHeader \
-                     (blockId, version, previousBlockId, merkleRoot, timeStamp, bits, nonce, transactionCount, isOnMainChain, totalProofOfWork)\
-                     VALUES\
-                     (:blockId, :version, :previousBlockId, :merkleRoot, :timeStamp, :bits, :nonce, :transactionCount, :isOnMainChain, :totalProofOfWork)\
-                     ", db);
+    QSqlQuery query(db);
+
+    query.prepare(
+    "INSERT INTO BlockHeader "
+        "(blockId, version, previousBlockId, merkleRoot, timeStamp, bits, nonce, transactionCount, isOnMainChain, totalProofOfWork) "
+    "VALUES "
+        "(:blockId, :version, :previousBlockId, :merkleRoot, :timeStamp, :bits, :nonce, :transactionCount, :isOnMainChain, :totalProofOfWork) "
+    );
+
+    return query;
 }
 
 QSqlQuery BlockHeader::insertQuery(QSqlDatabase db) {

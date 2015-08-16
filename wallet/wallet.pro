@@ -24,7 +24,6 @@ QMAKE_CXXFLAGS += -std=c++11
 HEADERS += \
     include/wallet/Wallet.hpp \
     include/wallet/WalletKey.hpp \
-    include/wallet/WalletKeyControllingReceiveAddress.hpp \
     include/wallet/Payee.hpp \
     include/wallet/Slot.hpp \
     include/wallet/SPVValidator.hpp \
@@ -49,7 +48,6 @@ HEADERS += \
 SOURCES += \
     src/Wallet.cpp \
     src/WalletKey.cpp \
-    src/WalletKeyControllingReceiveAddress.cpp \
     src/Payee.cpp \
     src/Slot.cpp \
     src/SPVValidator.cpp \
@@ -58,7 +56,6 @@ SOURCES += \
     src/WalletEntity.cpp \
     src/WalletAddress.cpp \
     src/BlockHeader.cpp \
-    src/CoinWrappers_templated_functions.cpp \
     src/Transaction.cpp \
     src/OutPoint.cpp \
     src/Input.cpp \

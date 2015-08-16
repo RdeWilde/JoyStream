@@ -20,11 +20,12 @@ WalletKey::WalletKey(quint64 index, const Coin::PrivateKey & privateKey, const Q
 QSqlQuery WalletKey::createTableQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
+
     query.prepare(
     "CREATE TABLE WalletKey ( "
         "[index]         INTEGER, "
         "privateKey      BLOB        NOT NULL, "
-        "generated       INTEGER     NOT NULL, "
+        "generated       DATETIME    NOT NULL, "
         "issued          BOOL        NOT NULL,"
         "PRIMARY KEY([index]) "
     ")");
@@ -33,7 +34,7 @@ QSqlQuery WalletKey::createTableQuery(QSqlDatabase db) {
 }
 
 quint64 WalletKey::numberOfKeysInWallet(QSqlDatabase db) {
-    //needed
+    return 0;
 }
 
 /**
@@ -44,12 +45,16 @@ QSqlQuery WalletKey::getUnIssuedKeys() {
 
 QSqlQuery WalletKey::unboundedInsertQuery(QSqlDatabase db) {
 
-    return QSqlQuery(
+    QSqlQuery query(db);
+
+    query.prepare(
     "INSERT INTO WalletKey "
-    "([index], privateKey, generated, issued) "
+        "([index], privateKey, generated, issued) "
     "VALUES "
-    "(:index, :privateKey, :generated, :issued) "
-    , db);
+        "(:index, :privateKey, :generated, :issued) "
+    );
+
+    return query;
 }
 
 QSqlQuery WalletKey::insertQuery(QSqlDatabase db) {
@@ -60,9 +65,10 @@ QSqlQuery WalletKey::insertQuery(QSqlDatabase db) {
     // bind wallet key values
     query.bindValue(":index", static_cast<uint>(_index));
     query.bindValue(":privateKey", _privateKey.toByteArray());
-    //query.bindValue(":keyPurposeId", WalletKey::encodePurpose(walletKey.purpose()));
     query.bindValue(":generated", _generated.toMSecsSinceEpoch());
     query.bindValue(":issued", _issued);
+
+    //query.bindValue(":keyPurposeId", WalletKey::encodePurpose(walletKey.purpose()));
 
     return query;
 }

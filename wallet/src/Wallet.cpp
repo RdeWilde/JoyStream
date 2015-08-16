@@ -240,7 +240,6 @@ Coin::PrivateKey Wallet::issueKey() {
     // Add to wallet key table
     QSqlQuery query = WalletKey(_nextHdIndex, key, QDateTime::currentDateTime(), true).insertQuery(_db);
     query.exec();
-
     QSqlError e = query.lastError();
     Q_ASSERT(e.type() == QSqlError::NoError);
 
@@ -279,9 +278,7 @@ void Wallet::releaseKeys(const QSet<Coin::KeyPair> & keys) {
     // for each key, if it is in dbase, but not in use, then place in key pool:
 
 }
-*/
 
-/**
 void Wallet::updateKeyPool() {
 
     // Net change to key pool

@@ -26,27 +26,34 @@ Transaction::Transaction(const Coin::TransactionId & transactionId,
 
 QSqlQuery Transaction::createTableQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
-    CREATE TABLE Transaction (\
-        transactionId       BLOB,\
-        version             INTEGER     NOT NULL,\
-        lockTime            INTEGER     NOT NULL,\
-        seen                INTEGER     NOT NULL,\
-        blockId             BLOB,\
-        fee                 INTEGER     NOT NULL,\
-        PRIMARY KEY(transactionId),\
-        FOREIGN KEY blockId REFERENCES BlockHeader(bockId)\
-    )", db);
+    QSqlQuery query(db);
+
+    query.prepare(
+    "CREATE TABLE Transaction ( "
+        "transactionId       BLOB, "
+        "version             INTEGER     NOT NULL, "
+        "lockTime            INTEGER     NOT NULL, "
+        "seen                INTEGER     NOT NULL, "
+        "blockId             BLOB, "
+        "fee                 INTEGER     NOT NULL, "
+        "PRIMARY KEY(transactionId), "
+        "FOREIGN KEY blockId REFERENCES BlockHeader(bockId) "
+    ")");
+
+    return query;
 }
 
 QSqlQuery Transaction::unboundedInsertQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
-    INSERT INTO Transaction \
-    (transactionId, version, lockTime, seen, blockId, fee)\
-    VALUES\
-    (:transactionId, :version, :lockTime, :seen, :blockId, :fee)\
-    ", db);
+    QSqlQuery query(db);
+
+    query.prepare(
+    "INSERT INTO Transaction "
+        "(transactionId, version, lockTime, seen, blockId, fee) "
+    "VALUES "
+        "(:transactionId, :version, :lockTime, :seen, :blockId, :fee)");
+
+    return query;
 }
 
 QSqlQuery Transaction::insertQuery(QSqlDatabase db) {

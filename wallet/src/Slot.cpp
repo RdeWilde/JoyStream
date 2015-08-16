@@ -68,40 +68,47 @@ Slot::Slot(quint64 payerId,
 
 QSqlQuery Slot::createTableQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
-    CREATE TABLE Slot (\
-        payerId                     INTEGER,\
-        index                       INTEGER,\
-        state                       INTEGER     NOT NULL,\
-        price                       INTEGER,\
-        numberOfPaymentsMade        INTEGER     NOT NULL,\
-        funds                       INTEGER     NOT NULL,\
-        payerContractWalletKeyId    INTEGER     NOT NULL,\
-        payerFinalWalletKeyId       INTEGER     NOT NULL,\
-        payeeContractPublicKey      BLOB,\
-        payeeFinalPublicKey         BLOB,\
-        refundSignature             BLOB,\
-        lastPaymentSignature        BLOB,\
-        refundFee                   INTEGER,\
-        paymentFee                  INTEGER,\
-        refundTransactionId         BLOB,\
-        refundLockTime              INTEGER,\
-        PRIMARY KEY(payerId,index),\
-        FOREIGN KEY payerId REFERENCES Payer(id),\
-        FOREIGN KEY payerContractWalletKeyId REFERENCES WalletKey(index),\
-        FOREIGN KEY payerFinalWalletKeyId REFERENCES WalletKey(index),\
-        FOREIGN KEY refundTransactionId REFERENCES Transaction(transactionId)\
-    )", db);
+    QSqlQuery query(db);
+
+    query.prepare(
+    "CREATE TABLE Slot ( "
+        "payerId                     INTEGER, "
+        "index                       INTEGER, "
+        "state                       INTEGER     NOT NULL,"
+        "price                       INTEGER, "
+        "numberOfPaymentsMade        INTEGER     NOT NULL, "
+        "funds                       INTEGER     NOT NULL, "
+        "payerContractWalletKeyId    INTEGER     NOT NULL, "
+        "payerFinalWalletKeyId       INTEGER     NOT NULL, "
+        "payeeContractPublicKey      BLOB, "
+        "payeeFinalPublicKey         BLOB, "
+        "refundSignature             BLOB, "
+        "lastPaymentSignature        BLOB, "
+        "refundFee                   INTEGER, "
+        "paymentFee                  INTEGER, "
+        "refundTransactionId         BLOB, "
+        "refundLockTime              INTEGER, "
+        "PRIMARY KEY(payerId,index), "
+        "FOREIGN KEY payerId REFERENCES Payer(id), "
+        "FOREIGN KEY payerContractWalletKeyId REFERENCES WalletKey(index), "
+        "FOREIGN KEY payerFinalWalletKeyId REFERENCES WalletKey(index), "
+        "FOREIGN KEY refundTransactionId REFERENCES Transaction(transactionId) "
+    ")");
+
+    return query;
 }
 
 QSqlQuery Slot::unboundedInsertQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
-    INSERT INTO Payer \
-    (payerId, index, state, price, numberOfPaymentsMade, funds, payerContractWalletKeyId, payerFinalWalletKeyId, payeeContractPublicKey, payeeFinalPublicKey, refundSignature, lastPaymentSignature, refundFee, paymentFee, refundTransactionId, refundLockTime)\
-    VALUES\
-    (:payerId, :index, :state, :price, :numberOfPaymentsMade, :funds, :payerContractWalletKeyId, :payerFinalWalletKeyId, :payeeContractPublicKey, :payeeFinalPublicKey, :refundSignature, :lastPaymentSignature, :refundFee, :paymentFee, :refundTransactionId, :refundLockTime)\
-    ", db);
+    QSqlQuery query(db);
+
+    query.prepare(
+    "INSERT INTO Payer "
+        "(payerId, index, state, price, numberOfPaymentsMade, funds, payerContractWalletKeyId, payerFinalWalletKeyId, payeeContractPublicKey, payeeFinalPublicKey, refundSignature, lastPaymentSignature, refundFee, paymentFee, refundTransactionId, refundLockTime) "
+    "VALUES "
+        "(:payerId, :index, :state, :price, :numberOfPaymentsMade, :funds, :payerContractWalletKeyId, :payerFinalWalletKeyId, :payeeContractPublicKey, :payeeFinalPublicKey, :refundSignature, :lastPaymentSignature, :refundFee, :paymentFee, :refundTransactionId, :refundLockTime) ");
+
+    return query;
 }
 
 QSqlQuery Slot::insertQuery(QSqlDatabase db) {

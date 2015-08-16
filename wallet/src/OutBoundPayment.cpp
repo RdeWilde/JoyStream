@@ -25,28 +25,34 @@ OutBoundPayment::OutBoundPayment(quint64 paymentId, const Coin::P2PKHAddress & t
 
 QSqlQuery OutBoundPayment::createTableQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
-    CREATE TABLE OutBoundPayment (\
-        paymentId                       INTEGER,\
-        toAddress                       BLOB        NOT NULL,\
-        changeAddressWalletKeyIndex     INTEGER     ,\
-        amount                          INTEGER     NOT NULL,\
-        fee                             INTEGER     NOT NULL,\
-        note                            TEXT,\
-        created                         INTEGER     NOT NULL,\
-        PRIMARY KEY(paymentId),\
-        FOREIGN KEY changeAddressWalletKeyIndex REFERENCES WalletAddress(walletKeyIndex)\
-    )", db);
+    QSqlQuery query(db);
+
+    query.prepare(
+    "CREATE TABLE OutBoundPayment ( "
+        "paymentId                       INTEGER, "
+        "toAddress                       BLOB        NOT NULL, "
+        "changeAddressWalletKeyIndex     INTEGER, "
+        "amount                          INTEGER     NOT NULL, "
+        "fee                             INTEGER     NOT NULL, "
+        "note                            TEXT, "
+        "created                         INTEGER     NOT NULL, "
+        "PRIMARY KEY(paymentId), "
+        "FOREIGN KEY changeAddressWalletKeyIndex REFERENCES WalletAddress(walletKeyIndex) "
+    ")");
+
+    return query;
 }
 
 QSqlQuery OutBoundPayment::unboundedInsertQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
-    INSERT INTO TransactionHasInput \
-    (paymentId, toAddress, changeAddressWalletKeyIndex, amount, fee, note, created)\
-    VALUES\
-    (:paymentId, :toAddress, :changeAddressWalletKeyIndex, :amount, :fee, :note, :created)\
-    ", db);
+    QSqlQuery query(db);
+
+    query.prepare(
+    "INSERT INTO TransactionHasInput "
+        "(paymentId, toAddress, changeAddressWalletKeyIndex, amount, fee, note, created) "
+    "VALUES "
+        "(:paymentId, :toAddress, :changeAddressWalletKeyIndex, :amount, :fee, :note, :created) "
+    );
 }
 
 QSqlQuery OutBoundPayment::insertQuery(QSqlDatabase db) {

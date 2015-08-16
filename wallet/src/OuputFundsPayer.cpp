@@ -19,24 +19,32 @@ OuputFundsPayer::OuputFundsPayer(quint64 value, const QByteArray & pubKeyScript,
 
 QSqlQuery OuputFundsPayer::createTableQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
-    CREATE TABLE OuputFundsPayer (\
-        value           INTEGER,\
-        pubKeyScript    BLOB,\
-        payerId         INTEGER,\
-        PRIMARY KEY(value, pubKeyScript, payerId),\
-        FOREIGN KEY payerId REFERENCES Payer(id)\
-    )", db);
+    QSqlQuery query(db);
+
+    query.prepare(
+    "CREATE TABLE OuputFundsPayer ( "
+        "value           INTEGER, "
+        "pubKeyScript    BLOB, "
+        "payerId         INTEGER, "
+        "PRIMARY KEY(value, pubKeyScript, payerId), "
+        "FOREIGN KEY payerId REFERENCES Payer(id) "
+    ")");
+
+    return query;
 }
 
 QSqlQuery OuputFundsPayer::unboundedInsertQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
-    INSERT INTO Payer \
-    (value, pubKeyScript, payerId)\
-    VALUES\
-    (:value, :pubKeyScript, :payerId)\
-    ", db);
+    QSqlQuery query(db);
+
+    query.prepare(
+    "INSERT INTO Payer "
+        "(value, pubKeyScript, payerId) "
+    "VALUES "
+        "(:value, :pubKeyScript, :payerId) "
+    );
+
+    return query;
 }
 
 QSqlQuery OuputFundsPayer::insertQuery(QSqlDatabase db) {

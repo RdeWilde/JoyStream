@@ -64,36 +64,44 @@ Payee::Payee(quint64 id,
 
 QSqlQuery Payee::createTableQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
-    CREATE TABLE Payee (\
-        id                              INTEGER,\
-        state                           INTEGER     NOT NULL,\
-        numberOfPaymentsMade            INTEGER     NOT NULL,\
-        lastValidPayerPaymentSignature  BLOB,\
-        price                           INTEGER     NOT NULL,\
-        funds                           INTEGER,\
-        maximumNumberOfSellers          INTEGER     NOT NULL,\
-        payeeContractWalletKeyId        INTEGER     NOT NULL,\
-        contractTransactionId           BLOB,\
-        contractOutput                  INTEGER,\
-        payerContractPublicKey          BLOB,\
-        payerFinalPublicKey             BLOB,\
-        paymentTransactionId            BLOB,\
-        PRIMARY KEY(id),\
-        FOREIGN KEY payeeContractWalletKeyId REFERENCES WalletKey(index),\
-        FOREIGN KEY payeePaymentWalletKeyId REFERENCES WalletKey(index),\
-        FOREIGN KEY paymentTransactionId REFERENCES Transaction(id)\
-    )", db);
+    QSqlQuery query(db);
+
+    query.prepare(
+    "CREATE TABLE Payee ( "
+        "id                              INTEGER, "
+        "state                           INTEGER     NOT NULL, "
+        "numberOfPaymentsMade            INTEGER     NOT NULL, "
+        "lastValidPayerPaymentSignature  BLOB, "
+        "price                           INTEGER     NOT NULL, "
+        "funds                           INTEGER, "
+        "maximumNumberOfSellers          INTEGER     NOT NULL, "
+        "payeeContractWalletKeyId        INTEGER     NOT NULL, "
+        "contractTransactionId           BLOB, "
+        "contractOutput                  INTEGER, "
+        "payerContractPublicKey          BLOB, "
+        "payerFinalPublicKey             BLOB, "
+        "paymentTransactionId            BLOB, "
+        "PRIMARY KEY(id), "
+        "FOREIGN KEY payeeContractWalletKeyId REFERENCES WalletKey(index), "
+        "FOREIGN KEY payeePaymentWalletKeyId REFERENCES WalletKey(index), "
+        "FOREIGN KEY paymentTransactionId REFERENCES Transaction(id) "
+    ")");
+
+    return query;
 }
 
 QSqlQuery Payee::unboundedInsertQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
-    INSERT INTO Payer \
-    (id, state, numberOfPaymentsMade, lastValidPayerPaymentSignature, price, funds, maximumNumberOfSellers, payeeContractWalletKeyId, contractTransactionId, contractOutput, payerContractPublicKey, payerFinalPublicKey, paymentTransactionId)\
-    VALUES\
-    (:id, :state, :numberOfPaymentsMade, :lastValidPayerPaymentSignature, :price, :funds, :maximumNumberOfSellers, :payeeContractWalletKeyId, :contractTransactionId, :contractOutput, :payerContractPublicKey, :payerFinalPublicKey, :paymentTransactionId)\
-    ", db);
+    QSqlQuery query(db);
+
+    query.prepare(
+    "INSERT INTO Payer "
+        "(id, state, numberOfPaymentsMade, lastValidPayerPaymentSignature, price, funds, maximumNumberOfSellers, payeeContractWalletKeyId, contractTransactionId, contractOutput, payerContractPublicKey, payerFinalPublicKey, paymentTransactionId) "
+    "VALUES "
+        "(:id, :state, :numberOfPaymentsMade, :lastValidPayerPaymentSignature, :price, :funds, :maximumNumberOfSellers, :payeeContractWalletKeyId, :contractTransactionId, :contractOutput, :payerContractPublicKey, :payerFinalPublicKey, :paymentTransactionId) "
+    );
+
+    return query;
 }
 
 QSqlQuery Payee::insertQuery(QSqlDatabase db) {

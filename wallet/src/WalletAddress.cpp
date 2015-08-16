@@ -17,24 +17,32 @@ WalletAddress::WalletAddress(quint64 walletKeyIndex, const Coin::P2PKHAddress & 
 
 QSqlQuery WalletAddress::createTableQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
-    CREATE TABLE WalletAddress (\
-        walletKeyIndex  INTEGER,\
-        address         BLOB        NOT NULL,\
-        PRIMARY KEY(walletKeyIndex),\
-        FOREIGN KEY REFERENCES walletKeyIndex(id),\
-        UNIQUE(address)\
-    )", db);
+    QSqlQuery query(db);
+
+    query.prepare(
+    "CREATE TABLE WalletAddress ( "
+        "walletKeyIndex  INTEGER, "
+        "address         BLOB        NOT NULL, "
+        "PRIMARY KEY(walletKeyIndex), "
+        "FOREIGN KEY REFERENCES walletKeyIndex(id), "
+        "UNIQUE(address) "
+    ")");
+
+    return query;
 }
 
 QSqlQuery WalletAddress::unboundedInsertQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
-                     INSERT INTO WalletAddress \
-                     (walletKeyIndex, address)\
-                     VALUES\
-                     (:walletKeyIndex, :address)\
-                     ", db);
+    QSqlQuery query(db);
+
+    query.prepare(
+    "INSERT INTO WalletAddress "
+        "(walletKeyIndex, address) "
+    "VALUES "
+        "(:walletKeyIndex, :address) "
+    );
+
+    return query;
 }
 
 QSqlQuery WalletAddress::insertQuery(QSqlDatabase db) {

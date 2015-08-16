@@ -18,24 +18,32 @@ Output::Output(quint64 value, const QByteArray & pubKeyScript, quint64 walletKey
 
 QSqlQuery Output::createTableQuery(QSqlDatabase db)  {
 
-    return QSqlQuery("\
-    CREATE TABLE Output (\
-        value           INTEGER,\
-        pubKeyScript    BLOB,\
-        walletKeyIndex  INTEGER     NOT NULL,\
-        PRIMARY KEY(value, pubKeyScript),\
-        FOREIGN KEY(walletKeyIndex) REFERENCES WalletAddress(walletKeyIndex)\
-    )", db);
+    QSqlQuery query(db);
+
+    query.prepare(
+    "CREATE TABLE Output ( "
+        "value           INTEGER, "
+        "pubKeyScript    BLOB, "
+        "walletKeyIndex  INTEGER     NOT NULL, "
+        "PRIMARY KEY(value, pubKeyScript), "
+        "FOREIGN KEY(walletKeyIndex) REFERENCES WalletAddress(walletKeyIndex) "
+    ")");
+
+    return query;
 }
 
 QSqlQuery Output::unboundedInsertQuery(QSqlDatabase db) {
 
-    return QSqlQuery("\
-    INSERT INTO Output \
-    (value, pubKeyScript, walletKeyIndex)\
-    VALUES\
-    (:value, :outPointOutputIndex, :scriptSig, :sequence)\
-    ", db);
+    QSqlQuery query(db);
+
+    query.prepare(
+    "INSERT INTO Output "
+        "(value, pubKeyScript, walletKeyIndex) "
+    "VALUES "
+        "(:value, :pubKeyScript, :walletKeyIndex) "
+    );
+
+    return query;
 }
 
 quint64 Output::value() const {
