@@ -8,11 +8,11 @@
 #ifndef WALLET_ADDRESS
 #define WALLET_ADDRESS
 
-//#include <wallet/WalletKey.hpp>
 #include <common/P2PKHAddress.hpp>
 
 class QSqlQuery;
 class QSqlDatabase;
+class QSqlRecord;
 
 class WalletAddress {
 
@@ -22,7 +22,7 @@ public:
     WalletAddress(quint64 walletKeyIndex, const Coin::P2PKHAddress & address);
 
     // Constructor from record
-    // WalletAddress(const QSqlRecord & record);
+    WalletAddress(const QSqlRecord & record);
 
     // Query which creates table corresponding to entity
     static QSqlQuery createTableQuery(QSqlDatabase db);
@@ -32,6 +32,9 @@ public:
 
     // Query inserting this wallet key into corresponding table
     QSqlQuery insertQuery(QSqlDatabase db);
+
+    // Lists all addresses in wallet
+    static QList<WalletAddress> listAllAddresss(QSqlDatabase db);
 
     // Getters and setters
     quint64 walletKeyIndex() const;

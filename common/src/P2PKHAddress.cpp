@@ -12,6 +12,10 @@
 
 namespace Coin {
 
+P2PKHAddress::P2PKHAddress()
+    : _network(Network::testnet3) {
+}
+
 P2PKHAddress::P2PKHAddress(Network network, const PubKeyHash & pubKeyHash)
     : _network(network)
     , _pubKeyHash(pubKeyHash) {

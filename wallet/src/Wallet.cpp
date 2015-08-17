@@ -65,7 +65,15 @@ Wallet::Wallet(const QString & walletFile)
 
     // We count the number of keys in the wallet
     // so that the hd index counter can be set
-    _nextHdIndex = WalletKey::numberOfKeysInWallet(_db);
+    try {
+
+        // Exception is thrown if wallet is empty, otherwise
+        // the biggest index is returned.
+        _nextIndex = WalletKey::maxIndex(_db) + 1;
+
+    } catch(std::runtime_error & e) {
+        _nextIndex = 0;
+    }
 
     // Build utxo
     //updateUtxoSet();
@@ -98,54 +106,48 @@ void Wallet::createNewWallet(const QString & walletFile, Coin::Network network, 
     Metadata::createKeyValueStore(db, seed, network, QDateTime::currentDateTime());
 
     // Create relational tables
-    QSqlQuery query = WalletKey::createTableQuery(db);
-    bool itWorked = query.exec();
+    // Working variables used in each query
+    QSqlQuery query;
+    QSqlError e;
 
-    Q_ASSERT(itWorked);
+    // WalletKey
+    query = WalletKey::createTableQuery(db);
+    query.exec();
+    e = query.lastError();
+    Q_ASSERT(e.type() == QSqlError::NoError);
+
+    // WalletAddress
+    query = WalletAddress::createTableQuery(db);
+    query.exec();
+    e = query.lastError();
+    Q_ASSERT(e.type() == QSqlError::NoError);
 
     /**
-    if(!WalletAddress::createTableQuery(db).exec()) {
-        throw std::runtime_error("Could not create WalletAddress table.");
-    }
-    if(!BlockHeader::createTableQuery(db).exec()) {
-        throw std::runtime_error("Could not create BlockHeader table.");
-    }
-    if(!Transaction::createTableQuery(db).exec()) {
-        throw std::runtime_error("Could not create Transaction table.");
-    }
-    if(!OutPoint::createTableQuery(db).exec()) {
-        throw std::runtime_error("Could not create OutPoint table.");
-    }
-    if(!Input::createTableQuery(db).exec()) {
-        throw std::runtime_error("Could not create Input table.");
-    }
-    if(!TransactionHasInput::createTableQuery(db).exec()) {
-        throw std::runtime_error("Could not create TransactionHasInput table.");
-    }
-    if(!Output::createTableQuery(db).exec()) {
-        throw std::runtime_error("Could not create Output table.");
-    }
-    if(!TransactionHasOutput::createTableQuery(db).exec()) {
-        throw std::runtime_error("Could not create TransactionHasOutput table.");
-    }
-    if(!InBoundPayment::createTableQuery(db).exec()) {
-        throw std::runtime_error("Could not create InBoundPayment table.");
-    }
-    if(!OutBoundPayment::createTableQuery(db).exec()) {
-        throw std::runtime_error("Could not create OutBoundPayment table.");
-    }
-    if(!Payer::createTableQuery(db).exec()) {
-        throw std::runtime_error("Could not create Payer table.");
-    }
-    if(!OuputFundsPayer::createTableQuery(db).exec()) {
-        throw std::runtime_error("Could not create OuputFundsPayer table.");
-    }
-    if(!Slot::createTableQuery(db).exec()) {
-        throw std::runtime_error("Could not create Slot table.");
-    }
-    if(!Payee::createTableQuery(db).exec()) {
-        throw std::runtime_error("Could not create Payee table.");
-    }
+      BlockHeader::createTableQuery(db).exec()
+
+      Transaction::createTableQuery(db).exec()
+
+      OutPoint::createTableQuery(db).exec()
+
+      Input::createTableQuery(db).exec()
+
+      TransactionHasInput::createTableQuery(db).exec()
+
+      Output::createTableQuery(db).exec()
+
+      TransactionHasOutput::createTableQuery(db).exec()
+
+      InBoundPayment::createTableQuery(db).exec()
+
+      OutBoundPayment::createTableQuery(db).exec()
+
+      Payer::createTableQuery(db).exec()
+
+      OuputFundsPayer::createTableQuery(db).exec()
+
+      Slot::createTableQuery(db).exec()
+
+      Payee::createTableQuery(db).exec()
     */
 
     // Close connection: Is this requried? I think destructor does this anyway.
@@ -173,7 +175,7 @@ quint64 Wallet::numberOfTransactions() {
 }
 
 quint64 Wallet::numberOfKeysInWallet() {
-    return nextHdIndex();
+    return WalletKey::numberOfKeysInWallet(_db);
 }
 
 quint64 Wallet::lastComputedZeroConfBalance() {
@@ -187,68 +189,43 @@ quint64 Wallet::lastComputedZeroConfBalance() {
     return balance;
 }
 
+/**
 quint64 Wallet::nextHdIndex() {
 
     quint64 nextHdIndex;
 
     _mutex.lock();
-    nextHdIndex = _nextHdIndex;
+    nextHdIndex = _nextIndex;
     _mutex.unlock();
 
     return nextHdIndex;
 }
+*/
 
-Coin::P2PKHAddress Wallet::getReceiveAddress() {
+WalletAddress Wallet::getReceiveAddress() {
 
-    // Generate fresh key
-    Coin::PrivateKey sk = issueKey();
+    // Generate fresh wallet key
+    WalletKey walletKey = issueKey();
+
+    // Get private key
+    Coin::PrivateKey sk = walletKey.privateKey();
 
     // Get corresponding public key
-    Coin::PublicKey pk = sk.toPublicKey();
+    Coin::PublicKey pk =  sk.toPublicKey();
 
     // Generate correspondig p2pkh address
     Coin::P2PKHAddress address(_network, pk);
 
-    // Insert into database
-    _mutex.lock();
+    // Create wallet address
+    WalletAddress walletAddress(walletKey.index(), address);
 
-    // Create wallet address object
-
-    // get query
-
-    // execute
-
-    _mutex.unlock();
-
-    return address;
-}
-
-Coin::PrivateKey Wallet::issueKey() {
-
-    /**
-     * UPDATE IN THE FUTURE TO WORK WITH KEY POOL
-     */
-
-    Coin::PrivateKey key;
-
-    _mutex.lock();
-
-    // Generate a new key by
-    bytes_t rawPrivateKey = _keyChain.getPrivateSigningKey(_nextHdIndex);
-    key = Coin::PrivateKey(rawPrivateKey);
-
-    // Add to wallet key table
-    QSqlQuery query = WalletKey(_nextHdIndex, key, QDateTime::currentDateTime(), true).insertQuery(_db);
+    // Insert into wallet
+    QSqlQuery query = walletAddress.insertQuery(_db);
     query.exec();
     QSqlError e = query.lastError();
     Q_ASSERT(e.type() == QSqlError::NoError);
 
-    // Add to key count
-    _nextHdIndex++;
-
-    _mutex.unlock();
-
-    return key;
+    return walletAddress;
 }
 
 QList<Coin::KeyPair> Wallet::issueKeyPairs(quint64 numberOfPairs) {
@@ -259,8 +236,11 @@ QList<Coin::KeyPair> Wallet::issueKeyPairs(quint64 numberOfPairs) {
     // Create each pair and add to list
     for(quint64 i = 0;i < numberOfPairs;i++) {
 
-        // Generate private key
-        Coin::PrivateKey sk = issueKey();
+        // Isse new wallet key
+        WalletKey walletKey = issueKey();
+
+        // Get private key
+        Coin::PrivateKey sk = walletKey.privateKey();
 
         // Generate corresponding (compressd) public key
         Coin::PublicKey pk = sk.toPublicKey();
@@ -270,6 +250,43 @@ QList<Coin::KeyPair> Wallet::issueKeyPairs(quint64 numberOfPairs) {
     }
 
     return keys;
+}
+
+WalletKey Wallet::issueKey() {
+
+    /**
+     * ==========================================
+     * UPDATE IN THE FUTURE TO WORK WITH KEY POOL
+     * ==========================================
+     */
+
+    Coin::PrivateKey key;
+
+    // We aquire lock so we protect our value of _nextIndex
+    _mutex.lock();
+
+    // Generate a new key by
+    bytes_t rawPrivateKey = _keyChain.getPrivateSigningKey(_nextIndex);
+    key = Coin::PrivateKey(rawPrivateKey);
+
+    // Create wallet key entry
+    WalletKey walletKey(_nextIndex, key, QDateTime::currentDateTime(), true);
+
+    // Add to table
+    QSqlQuery query = walletKey.insertQuery(_db);
+    query.exec();
+    QSqlError e = query.lastError();
+    Q_ASSERT(e.type() == QSqlError::NoError);
+
+    // Add to key count
+    Q_ASSERT(_nextIndex == WalletKey::maxIndex(_db));
+
+    // Increment to next index
+    _nextIndex++;
+
+    _mutex.unlock();
+
+    return walletKey;
 }
 
 /**

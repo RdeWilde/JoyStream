@@ -8,6 +8,7 @@
 #include <wallet/WalletKey.hpp>
 
 #include <QSqlQuery>
+#include <QSqlError>
 #include <QVariant> // QSqlQuery::bind needs it
 
 WalletKey::WalletKey(quint64 index, const Coin::PrivateKey & privateKey, const QDateTime & generated, bool issued)
@@ -26,22 +27,14 @@ QSqlQuery WalletKey::createTableQuery(QSqlDatabase db) {
         "[index]         INTEGER, "
         "privateKey      BLOB        NOT NULL, "
         "generated       DATETIME    NOT NULL, "
-        "issued          BOOL        NOT NULL,"
+        "issued          BOOL        NOT NULL, "
         "PRIMARY KEY([index]) "
     ")");
 
+    // PRIMARY KEY([index]) AUTOINCREMENT
+
     return query;
 }
-
-quint64 WalletKey::numberOfKeysInWallet(QSqlDatabase db) {
-    return 0;
-}
-
-/**
-QSqlQuery WalletKey::getUnIssuedKeys() {
-
-}
-*/
 
 QSqlQuery WalletKey::unboundedInsertQuery(QSqlDatabase db) {
 
@@ -71,6 +64,55 @@ QSqlQuery WalletKey::insertQuery(QSqlDatabase db) {
     //query.bindValue(":keyPurposeId", WalletKey::encodePurpose(walletKey.purpose()));
 
     return query;
+}
+
+/**
+QSqlQuery WalletKey::getUnIssuedKeys() {
+
+}
+*/
+
+quint64 WalletKey::maxIndex(QSqlDatabase db) {
+
+    // Select max value in column
+    QSqlQuery query("SELECT MAX([index]) FROM WalletKey", db);
+
+    QSqlError e = query.lastError();
+    Q_ASSERT(e.type() == QSqlError::NoError);
+    Q_ASSERT(query.first());
+
+    // Grab result
+    QVariant result = query.value(0);
+
+    // If its NULL, then the table was empty
+    if(result.isNull())
+        throw std::runtime_error("Table was empty");
+    else {
+
+        bool ok;
+        quint64 maxIndex = result.toULongLong(&ok);
+
+        Q_ASSERT(ok);
+
+        return maxIndex;
+    }
+}
+
+quint64 WalletKey::numberOfKeysInWallet(QSqlDatabase db) {
+
+    // Select row count from table
+    QSqlQuery query("SELECT COUNT(*) FROM WalletAddress", db);
+
+    QSqlError e = query.lastError();
+    Q_ASSERT(e.type() == QSqlError::NoError);
+    Q_ASSERT(query.first());
+
+    bool ok;
+    quint64 numberOfKeysInWallet = query.value(0).toULongLong(&ok);
+
+    Q_ASSERT(ok);
+
+    return numberOfKeysInWallet;
 }
 
 /*

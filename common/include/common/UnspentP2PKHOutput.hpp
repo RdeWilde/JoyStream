@@ -15,6 +15,12 @@
 
 namespace Coin {
 
+/**
+ * Refactor this later into something which can hold a
+ * set of utxo, not just one, and also what the coinage
+ * of inputs are and so on, so that fee calculation can be
+ * improved. (does this even matter in fee market?)
+ */
 class UnspentP2PKHOutput
 {
 public:

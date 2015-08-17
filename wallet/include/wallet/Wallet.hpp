@@ -26,7 +26,7 @@ class Slot;
 
 namespace Coin {
     enum class Network;
-    class P2PKHAddress;
+    //class P2PKHAddress;
     class Transaction;
     //class KeyPair;   
 }
@@ -91,8 +91,12 @@ public:
     // Last 0-confirmation balance computed
     quint64 lastComputedZeroConfBalance();
 
+    /**
+     * DONT INCLUDE, USAGE MUST BE SYNCHED
+     * , WHICH PEOPLE WILL FORGET.
     // Gets hd key index of next key
     quint64 nextHdIndex();
+    */
 
     /**
      * Read operations
@@ -100,12 +104,7 @@ public:
 
     // Generate p2pkh receive address
     // corresponding to a fresh private
-    Coin::P2PKHAddress getReceiveAddress();
-
-    // Returns a fresh private key which persists in wallet
-    // **NB: These keys are have no corresponding addresses
-    // which are monitored for inbound/outbound? transactions**
-    Coin::PrivateKey issueKey();
+    WalletAddress getReceiveAddress();
 
     // Returns a list of key pairs, with ordered ascendingly in terms
     // of index.
@@ -113,6 +112,12 @@ public:
     // which are monitored for inbound/outbound? transactions**
     QList<Coin::KeyPair> issueKeyPairs(quint64 numberOfPairs);
 
+    // Returns a fresh private key which persists in wallet
+    // **NB: These keys are have no corresponding addresses
+    // which are monitored for inbound/outbound? transactions**
+    WalletKey issueKey();
+
+    // KEY POOL MANAGMENET: (for the future)
     // Return the given set of keys to key pool.
     // It is checked that a given key is actually not in use
     // before it is placed in the key pool.
@@ -153,6 +158,9 @@ public slots:
 private:
 
     // Synchronizes wallet calls
+    // It may be worth adding different mutexes
+    // for different routines or variables
+    // in the future.
     QMutex _mutex;
 
     // Wallet (SQLite database) file
@@ -178,7 +186,7 @@ private:
      */
 
     // Index of next key
-    quint64 _nextHdIndex;
+    quint64 _nextIndex;
 
     // Latest known block height
     qint64 _latestBlockHeight;

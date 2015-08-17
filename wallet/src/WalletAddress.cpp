@@ -8,11 +8,24 @@
 #include <wallet/WalletAddress.hpp>
 
 #include <QSqlQuery>
+#include <QSqlRecord>
+#include <QSqlError>
 #include <QVariant> // QSqlQuery::bind needs it
 
 WalletAddress::WalletAddress(quint64 walletKeyIndex, const Coin::P2PKHAddress & address)
     : _walletKeyIndex(walletKeyIndex)
     , _address(address) {
+}
+
+WalletAddress::WalletAddress(const QSqlRecord & record) {
+
+    // walletKeyIndex column
+    bool ok;
+    _walletKeyIndex = record.value("walletKeyIndex").toULongLong(&ok);
+    Q_ASSERT(ok);
+
+    // address
+   _address = Coin::P2PKHAddress::fromBase58CheckEncoding(record.value("address").toString());
 }
 
 QSqlQuery WalletAddress::createTableQuery(QSqlDatabase db) {
@@ -22,9 +35,9 @@ QSqlQuery WalletAddress::createTableQuery(QSqlDatabase db) {
     query.prepare(
     "CREATE TABLE WalletAddress ( "
         "walletKeyIndex  INTEGER, "
-        "address         BLOB        NOT NULL, "
+        "address         TEXT        NOT NULL, "
         "PRIMARY KEY(walletKeyIndex), "
-        "FOREIGN KEY REFERENCES walletKeyIndex(id), "
+        "FOREIGN KEY(walletKeyIndex) REFERENCES WalletKey, " // (index)
         "UNIQUE(address) "
     ")");
 
@@ -53,9 +66,35 @@ QSqlQuery WalletAddress::insertQuery(QSqlDatabase db) {
     // bind wallet key values
     uint d = static_cast<uint>(_walletKeyIndex);
     query.bindValue(":walletKeyIndex", d);
-    query.bindValue(":address", _address.pubKeyHash().toByteArray());
+    query.bindValue(":address", _address.toBase58CheckEncoding());
 
     return query;
+}
+
+QList<WalletAddress> WalletAddress::listAllAddresss(QSqlDatabase db) {
+
+    // List of addresses
+    QList<WalletAddress> list;
+
+    // Select count
+    QSqlQuery query("SELECT * FROM WalletAddress", db);
+    QSqlError e = query.lastError();
+    Q_ASSERT(e.type() == QSqlError::NoError);
+
+    // Iterate records
+    while(query.next()) {
+
+        // Grab record
+        QSqlRecord record = query.record();
+
+        // Create wallet address
+        WalletAddress walletAddress(record);
+
+        // Add to ist
+        list.append(walletAddress);
+    }
+
+    return list;
 }
 
 quint64 WalletAddress::walletKeyIndex() const {

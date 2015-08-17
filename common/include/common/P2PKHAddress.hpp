@@ -19,6 +19,9 @@ class P2PKHAddress {
 
 public:
 
+    // Default constructor
+    P2PKHAddress();
+
     // Constructor from public keys
     P2PKHAddress(Network network, const PubKeyHash & pubKeyHash);
 

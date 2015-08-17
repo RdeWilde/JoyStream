@@ -8,7 +8,6 @@
 #ifndef WALLET_KEY_HPP
 #define WALLET_KEY_HPP
 
-//#include <common/CoinWrappers.hpp>
 #include <common/PrivateKey.hpp>
 
 #include <QDateTime>
@@ -43,18 +42,22 @@ public:
     // (Unbound) Query which inserts wallet key record into correspodning table
     static QSqlQuery unboundedInsertQuery(QSqlDatabase db);
 
-    ///////////////////////
+    // Query inserting this wallet key into corresponding table
+    QSqlQuery insertQuery(QSqlDatabase db);
+
+    /**
+     * Queries
+     */
+
+    // Select query returning all wallet keys which have not yet been issued
+    //static QSqlQuery getUnIssuedKeys();
+
+    // Finds biggest index in table, throws exception if
+    // table is empty
+    static quint64 maxIndex(QSqlDatabase db);
 
     // Counts the number of keys in the wallet
     static quint64 numberOfKeysInWallet(QSqlDatabase db);
-
-    // Select query returning all wallet keys which have not yet been issued
-    static QSqlQuery getUnIssuedKeys();
-
-    //////////////////////
-
-    // Query inserting this wallet key into corresponding table
-    QSqlQuery insertQuery(QSqlDatabase db);
 
     // Conversion routines
     //static quint8 encodePurpose(Purpose purpose);
