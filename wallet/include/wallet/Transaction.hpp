@@ -16,12 +16,18 @@
 class QSqlQuery;
 class QSqlDatabase;
 
+namespace Coin {
+    class Transaction;
+}
+
 namespace Wallet {
 namespace Transaction {
 
     class Record {
 
     public:
+
+        typedef Coin::TransactionId PrimaryKey;
 
         // Constructor from members
         Record(const Coin::TransactionId & transactionId, quint32 version, quint32 lockTime, QDateTime seen, const Coin::BlockId & blockId, quint64 fee);
@@ -61,6 +67,12 @@ namespace Transaction {
 
     // (Unbound) Query which inserts wallet key record into correspodning table
     QSqlQuery unboundedInsertQuery(QSqlDatabase db);
+
+    // Tries to recover the transaction with the given wallet it
+    Record getTransaction(QSqlDatabase db, const Record::PrimaryKey & PK);
+
+    // Lists all transactions in wallet
+    QList<Record> allTransactions(QSqlDatabase db);
 
 }
 }

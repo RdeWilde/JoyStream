@@ -22,7 +22,7 @@ namespace Wallet {
 //const QByteArray Metadata::_seedKey = QByteArray("seed");
 //const QByteArray Metadata::_createdKey = QByteArray("created");
 
-void Metadata::createKeyValueStore(QSqlDatabase db, const Seed & seed, Coin::Network network, const QDateTime & created) {
+void Metadata::createKeyValueStore(QSqlDatabase db, const Coin::Seed & seed, Coin::Network network, const QDateTime & created) {
 
     // Create (two-column) table
 
@@ -112,16 +112,16 @@ void Metadata::setNetwork(QSqlDatabase db, Coin::Network network) {
     Metadata::update(db, _networkKey, encodeNetwork(network));
 }
 
-Seed Metadata::getSeed(QSqlDatabase db) {
+Coin::Seed Metadata::getSeed(QSqlDatabase db) {
 
     // Read key-val pair
     QByteArray seed = Metadata::get(db, _seedKey);
 
     // Decode and return
-    return Seed(seed);
+    return Coin::Seed(seed);
 }
 
-void Metadata::setSeed(QSqlDatabase db, const Seed & seed) {
+void Metadata::setSeed(QSqlDatabase db, const Coin::Seed & seed) {
     Metadata::update(db, _seedKey, seed.toByteArray());
 }
 

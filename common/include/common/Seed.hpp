@@ -20,7 +20,6 @@
 
 namespace Coin {
     class HDKeychain;
-}
 
 class Seed : public Coin::UCharArray<WALLET_SEED_BYTE_LENGTH> {
 
@@ -69,5 +68,6 @@ signals:
     //void finishedAsyncGenerating(Seed s);
 };
 
-#endif // SEED_HPP
+}
 
+#endif // SEED_HPP

@@ -41,7 +41,9 @@ HEADERS += \
     include/wallet/Key.hpp \
     include/wallet/Manager.hpp \
     include/wallet/Address.hpp \
-    include/wallet/Utilities.hpp
+    include/wallet/Utilities.hpp \
+    include/wallet/UtxoCreated.hpp \
+    include/wallet/UtxoDestroyed.hpp
 
 SOURCES += \
     src/Payee.cpp \
@@ -63,7 +65,9 @@ SOURCES += \
     src/Key.cpp \
     src/Manager.cpp \
     src/Address.cpp \
-    src/Utilities.cpp
+    src/Utilities.cpp \
+    src/UtxoCreated.cpp \
+    src/UtxoDestroyed.cpp
 
 # common ###############################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../common/release/ -lcommon

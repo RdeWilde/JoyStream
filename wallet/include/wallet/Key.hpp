@@ -9,6 +9,7 @@
 #define WALLET_KEY_HPP
 
 #include <common/PrivateKey.hpp>
+
 #include <QDateTime>
 
 class QSqlQuery;

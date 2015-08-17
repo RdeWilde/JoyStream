@@ -24,8 +24,11 @@
 #include <wallet/Slot.hpp>
 #include <wallet/Payee.hpp>
 #include <wallet/Metadata.hpp>
+#include <wallet/UtxoCreated.hpp>
+#include <wallet/UtxoDestroyed.hpp>
 
 #include <CoinCore/typedefs.h> // bytes_t
+#include <CoinCore/CoinNodeData.h> // Transaction types: outpoints, transactions, ...
 
 namespace Wallet {
 
@@ -81,7 +84,7 @@ Manager::Manager(const QString & walletFile)
     //updateUtxoSet();
 }
 
-void Manager::createNewWallet(const QString & walletFile, Coin::Network network, const Seed & seed) {
+void Manager::createNewWallet(const QString & walletFile, Coin::Network network, const Coin::Seed & seed) {
 
     // Create connection to database:
     // We need non-default connection names, as testing will involve
@@ -115,34 +118,58 @@ void Manager::createNewWallet(const QString & walletFile, Coin::Network network,
     // Key
     query = Key::createTableQuery(db);
     query.exec();
-    e = query.lastError();
-    Q_ASSERT(e.type() == QSqlError::NoError);
+    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
 
     // Address
     query = Address::createTableQuery(db);
     query.exec();
-    e = query.lastError();
-    Q_ASSERT(e.type() == QSqlError::NoError);
+    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+
+    // BlockHeader
+    query = BlockHeader::createTableQuery(db);
+    query.exec();
+    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+
+    // OutPoint
+    query = OutPoint::createTableQuery(db);
+    query.exec();
+    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+
+    // Input
+    query = Input::createTableQuery(db);
+    query.exec();
+    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+
+    // Output
+    query = Output::createTableQuery(db);
+    query.exec();
+    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+
+    // Transaction
+    query = Transaction::createTableQuery(db);
+    query.exec();
+    QString text = query.lastError().text();
+    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+
+    // TransactionHasInput
+    query = TransactionHasInput::createTableQuery(db);
+    query.exec();
+    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+
+    // TransactionHasOutput
+    query = TransactionHasOutput::createTableQuery(db);
+    query.exec();
+    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
 
     /**
-      BlockHeader::createTableQuery(db).exec()
 
-      Transaction::createTableQuery(db).exec()
 
-      OutPoint::createTableQuery(db).exec()
-
-      Input::createTableQuery(db).exec()
-
-      TransactionHasInput::createTableQuery(db).exec()
-
-      Output::createTableQuery(db).exec()
-
-      TransactionHasOutput::createTableQuery(db).exec()
-
+      ===============================
       InBoundPayment::createTableQuery(db).exec()
 
       OutBoundPayment::createTableQuery(db).exec()
 
+      ===============================
       Payer::createTableQuery(db).exec()
 
       OuputFundsPayer::createTableQuery(db).exec()
@@ -168,16 +195,8 @@ QDateTime Manager::created() const {
     return _created;
 }
 
-Seed Manager::seed() const {
+Coin::Seed Manager::seed() const {
     return _seed;
-}
-
-quint64 Manager::numberOfTransactions() {
-    return 0;
-}
-
-quint64 Manager::numberOfKeysInWallet() {
-    return Key::numberOfKeysInWallet(_db);
 }
 
 quint64 Manager::lastComputedZeroConfBalance() {
@@ -231,6 +250,60 @@ QList<Coin::KeyPair> Manager::issueKeyPairs(quint64 numberOfPairs) {
     }
 
     return keys;
+}
+
+quint64 Manager::numberOfKeysInWallet() {
+    return Key::numberOfKeysInWallet(_db);
+}
+
+void Manager::addBlockHeader(const Coin::BlockHeader & blockHeader) {
+
+    emit blockHeaderAdded(blockHeader);
+}
+
+void Manager::addOutPut(const Coin::TxOut & txOut) {
+
+    emit outPutAdded(txOut);
+}
+
+void Manager::addOutPoint(const Coin::OutPoint & outPoint) {
+
+    emit outPointAdded(outPoint);
+}
+
+void Manager::addInput(const Coin::TxIn & txIn) {
+
+    emit inputAdded(txIn);
+}
+
+void Manager::addTransaction(const Coin::Transaction & transaction) {
+
+    // - check that transaction does not exist
+    //  -- create record
+    //  -- insert it
+    // - kkk
+
+    emit transactionAdded(transaction);
+}
+
+Coin::Transaction Manager::getTransaction(const Coin::TransactionId & transactionId) {
+    throw std::runtime_error("not implemented");
+}
+
+QList<Coin::Transaction> Manager::allTransactions() {
+    throw std::runtime_error("not implemented");
+}
+
+quint64 Manager::numberOfTransactions() {
+    throw std::runtime_error("not implemented");
+}
+
+QList<UtxoCreated> getAllUtxoCreated() {
+    throw std::runtime_error("not implemented");
+}
+
+QList<UtxoDestroyed> getAllUtxoDestroyed() {
+    throw std::runtime_error("not implemented");
 }
 
 /**

@@ -52,7 +52,6 @@ namespace TransactionHasInput {
         Input::Record _input;
     };
 
-
     // Query which creates table corresponding to entity
     QSqlQuery createTableQuery(QSqlDatabase db);
 

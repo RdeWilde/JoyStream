@@ -12,7 +12,10 @@
 
 #include <QByteArray>
 
-class Seed;
+namespace Coin {
+    class Seed;
+}
+
 class QSqlQuery;
 class QSqlDatabase;
 class QDateTime;
@@ -24,7 +27,7 @@ namespace Metadata {
     // Key value store built on top of sql table, bit weird.
 
     // Create key-value store and set initial values
-    void createKeyValueStore(QSqlDatabase db, const Seed & seed, Coin::Network network, const QDateTime & created);
+    void createKeyValueStore(QSqlDatabase db, const Coin::Seed & seed, Coin::Network network, const QDateTime & created);
 
     // Key-val getter
     QByteArray get(QSqlDatabase db, const QByteArray & key);
@@ -39,8 +42,8 @@ namespace Metadata {
     Coin::Network getNetwork(QSqlDatabase db);
     void setNetwork(QSqlDatabase db, Coin::Network network);
 
-    Seed getSeed(QSqlDatabase db);
-    void setSeed(QSqlDatabase db, const Seed & seed);
+    Coin::Seed getSeed(QSqlDatabase db);
+    void setSeed(QSqlDatabase db, const Coin::Seed & seed);
 
     QDateTime getCreated(QSqlDatabase db);
     void setCreated(QSqlDatabase db, const QDateTime & created);

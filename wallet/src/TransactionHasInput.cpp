@@ -67,13 +67,13 @@ QSqlQuery createTableQuery(QSqlDatabase db) {
     query.prepare(
     "CREATE TABLE TransactionHasInput ( "
         "transactionId               BLOB        NOT NULL, "
-        "index                       INTEGER     NOT NULL, "
+        "[index]                     INTEGER     NOT NULL, "
         "outPointTransactionId       BLOB        NOT NULL, "
         "outPointOutputIndex         INTEGER     NOT NULL, "
         "scriptSig                   BLOG        NOT NULL, "
         "sequence                    INTEGER     NOT NULL, "
-        "PRIMARY KEY(transactionId, index), "
-        "FOREIGN KEY(transactionId) REFERENCES Transaction(transactionId), "
+        "PRIMARY KEY(transactionId, [index]), "
+        "FOREIGN KEY(transactionId) REFERENCES [Transaction](transactionId), "
         "FOREIGN KEY(outPointTransactionId, outPointOutputIndex, scriptSig, sequence) REFERENCES Input(outPointTransactionId, outPointOutputIndex, scriptSig, sequence) "
     ")");
 

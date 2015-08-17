@@ -112,7 +112,7 @@ namespace BlockHeader {
     QSqlQuery createTableQuery(QSqlDatabase db);
 
     // (Unbound) Query which inserts wallet key record into correspodning table
-    QSqlQuery unboundedInsertQuery(QSqlDatabase db);
+    QSqlQuery unBoundedInsertQuery(QSqlDatabase db);
 
 }
 }

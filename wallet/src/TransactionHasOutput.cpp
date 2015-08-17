@@ -66,14 +66,14 @@ QSqlQuery createTableQuery(QSqlDatabase db) {
     QSqlQuery query(db);
 
     query.prepare(
-    "CREATE TABLE TransactionHasInput ( "
+    "CREATE TABLE TransactionHasOutput ( "
         "transactionId   BLOB, "
-        "index           INTEGER, "
+        "[index]         INTEGER, "
         "value           INTEGER     NOT NULL, "
         "pubKeyScript    BLOB        NOT NULL, "
-        "PRIMARY KEY(transactionId, index), "
-        "FOREIGN KEY transactionId REFERENCES Transaction(transactionId), "
-        "FOREIGN KEY (value, pubKeyScript) REFERENCES Output(value, pubKeyScript) "
+        "PRIMARY KEY(transactionId, [index]), "
+        "FOREIGN KEY(transactionId) REFERENCES [Transaction](transactionId), "
+        "FOREIGN KEY(value, pubKeyScript) REFERENCES Output(value, pubKeyScript) "
     ")");
 
     return query;
@@ -84,8 +84,8 @@ QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
     QSqlQuery query(db);
 
     query.prepare(
-    "INSERT INTO TransactionHasInput "
-        "(transactionId, index, value, pubKeyScript)"
+    "INSERT INTO TransactionHasOutput "
+        "(transactionId, [index], value, pubKeyScript)"
     "VALUES "
         "(:transactionId, :index, :value, :pubKeyScript)");
 

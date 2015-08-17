@@ -22,8 +22,9 @@
 #include <common/UnspentP2PKHOutput.hpp>
 #include <common/typesafeOutPoint.hpp>
 #include <common/BitcoinRepresentation.hpp>
+#include <common/Seed.hpp>
 #include <gui/MainWindow.hpp>
-#include <wallet/Wallet.hpp>
+#include <wallet/Manager.hpp>
 
 #include <libtorrent/torrent_info.hpp>
 #include <libtorrent/error_code.hpp>
@@ -282,7 +283,7 @@ Controller * create_controller(Controller::Configuration controllerConfiguration
 
         qDebug() << "Creating a fresh wallet " << walletFile;
 
-        Seed seed = Seed::testSeeds[*seedId];
+        Coin::Seed seed = Coin::Seed::testSeeds[*seedId];
         Wallet::Manager::createNewWallet(walletFile, BITCOIN_NETWORK, seed);
 
         seedId++;

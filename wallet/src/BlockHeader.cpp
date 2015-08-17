@@ -38,7 +38,7 @@ Record::Record(const Coin::BlockId & blockId,
 QSqlQuery Record::insertQuery(QSqlDatabase db) {
 
     // Get templated query
-    QSqlQuery query = unboundedInsertQuery(db);
+    QSqlQuery query = unBoundedInsertQuery(db);
 
     // Bind values to query fields
     query.bindValue(":blockId", _blockId.toByteArray());
@@ -154,9 +154,11 @@ QSqlQuery createTableQuery(QSqlDatabase db) {
         "PRIMARY KEY(blockId), "
         "UNIQUE(version, previousBlockId, merkleRoot, timeStamp, bits, nonce) "
     ")");
+
+    return query;
 }
 
-QSqlQuery unboundedInsertQuery(QSqlDatabase db) {
+QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
