@@ -10,7 +10,10 @@
 #include <QSqlQuery>
 #include <QVariant> // QSqlQuery::bind needs it
 
-Input::Input(const OutPoint & outPoint, const QByteArray & scriptSig, quint32 sequence)
+namespace Wallet {
+namespace Input {
+
+Record::Record(const OutPoint::Record & outPoint, const QByteArray & scriptSig, quint32 sequence)
     : _outPoint(outPoint)
     , _scriptSig(scriptSig)
     , _sequence(sequence) {
@@ -21,7 +24,45 @@ Input::Input(const QSqlRecord & record) {
 }
 */
 
-QSqlQuery Input::createTableQuery(QSqlDatabase db) {
+QSqlQuery Record::insertQuery(QSqlDatabase db) {
+
+    // Get templated query
+    QSqlQuery query = unBoundedInsertQuery(db);
+
+    // Bind values to query fields
+    query.bindValue(":outPointTransactionId", _outPoint.transactionId().toByteArray());
+    query.bindValue(":outPointOutputIndex", _outPoint.outputIndex());
+    query.bindValue(":scriptSig", _scriptSig);
+    query.bindValue(":sequence", _sequence);
+
+    return query;
+}
+
+OutPoint::Record Record::outPoint() const {
+    return _outPoint;
+}
+
+void Record::setOutPoint(const OutPoint::Record & outPoint){
+    _outPoint = outPoint;
+}
+
+QByteArray Record::scriptSig() const {
+    return _scriptSig;
+}
+
+void Record::setScriptSig(const QByteArray & scriptSig) {
+    _scriptSig = scriptSig;
+}
+
+quint32 Record::sequence() const {
+    return _sequence;
+}
+
+void Record::setSequence(quint32 sequence) {
+    _sequence = sequence;
+}
+
+QSqlQuery createTableQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -32,13 +73,13 @@ QSqlQuery Input::createTableQuery(QSqlDatabase db) {
         "scriptSig                   BLOG        NOT NULL, "
         "sequence                    INTEGER     NOT NULL, "
         "PRIMARY KEY(outPointTransactionId, outPointOutputIndex, scriptSig, sequence), "
-        "FOREIGN KEY (outPointTransactionId, outPointOutputIndex) REFERENCES OutPoint(transactionId, outputIndex) "
+        "FOREIGN KEY(outPointTransactionId, outPointOutputIndex) REFERENCES OutPoint(transactionId, outputIndex) "
     ")");
 
     return query;
 }
 
-QSqlQuery Input::unboundedInsertQuery(QSqlDatabase db) {
+QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -52,40 +93,5 @@ QSqlQuery Input::unboundedInsertQuery(QSqlDatabase db) {
     return query;
 }
 
-QSqlQuery Input::insertQuery(QSqlDatabase db) {
-
-    // Get templated query
-    QSqlQuery query = unboundedInsertQuery(db);
-
-    // Bind values to query fields
-    query.bindValue(":outPointTransactionId", _outPoint.transactionId().toByteArray());
-    query.bindValue(":outPointOutputIndex", _outPoint.outputIndex());
-    query.bindValue(":scriptSig", _scriptSig);
-    query.bindValue(":sequence", _sequence);
-
-    return query;
 }
-
-OutPoint Input::outPoint() const {
-    return _outPoint;
-}
-
-void Input::setOutPoint(const OutPoint & outPoint){
-    _outPoint = outPoint;
-}
-
-QByteArray Input::scriptSig() const {
-    return _scriptSig;
-}
-
-void Input::setScriptSig(const QByteArray & scriptSig) {
-    _scriptSig = scriptSig;
-}
-
-quint32 Input::sequence() const {
-    return _sequence;
-}
-
-void Input::setSequence(quint32 sequence) {
-    _sequence = sequence;
 }

@@ -10,7 +10,10 @@
 #include <QSqlQuery>
 #include <QVariant> // QSqlQuery::bind needs it
 
-Transaction::Transaction(const Coin::TransactionId & transactionId,
+namespace Wallet {
+namespace Transaction {
+
+Record::Record(const Coin::TransactionId & transactionId,
                          quint32 version,
                          quint32 lockTime,
                          QDateTime seen,
@@ -24,7 +27,23 @@ Transaction::Transaction(const Coin::TransactionId & transactionId,
         , _fee(fee) {
 }
 
-QSqlQuery Transaction::createTableQuery(QSqlDatabase db) {
+QSqlQuery Record::insertQuery(QSqlDatabase db) {
+
+    // Get templated query
+    QSqlQuery query = unboundedInsertQuery(db);
+
+    // Bind values to query fields
+    query.bindValue(":transactionId", _transactionId.toByteArray());
+    query.bindValue(":version", _version);
+    query.bindValue(":lockTime", _lockTime);
+    query.bindValue(":seen", _seen.toMSecsSinceEpoch());
+    query.bindValue(":blockId", _blockId.toByteArray());
+    query.bindValue(":fee", _fee);
+
+    return query;
+}
+
+QSqlQuery createTableQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -43,7 +62,7 @@ QSqlQuery Transaction::createTableQuery(QSqlDatabase db) {
     return query;
 }
 
-QSqlQuery Transaction::unboundedInsertQuery(QSqlDatabase db) {
+QSqlQuery unboundedInsertQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -56,18 +75,5 @@ QSqlQuery Transaction::unboundedInsertQuery(QSqlDatabase db) {
     return query;
 }
 
-QSqlQuery Transaction::insertQuery(QSqlDatabase db) {
-
-    // Get templated query
-    QSqlQuery query = unboundedInsertQuery(db);
-
-    // Bind values to query fields
-    query.bindValue(":transactionId", _transactionId.toByteArray());
-    query.bindValue(":version", _version);
-    query.bindValue(":lockTime", _lockTime);
-    query.bindValue(":seen", _seen.toMSecsSinceEpoch());
-    query.bindValue(":blockId", _blockId.toByteArray());
-    query.bindValue(":fee", _fee);
-
-    return query;
+}
 }

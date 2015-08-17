@@ -5,56 +5,61 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 3 2015
  */
 
-#ifndef INPUT_HPP
-#define INPUT_HPP
+#ifndef WALLET_INPUT_HPP
+#define WALLET_INPUT_HPP
 
-#include <common/CoinWrappers.hpp>
 #include <wallet/OutPoint.hpp>
 
 #include <QByteArray>
 
 class QSqlDatabase;
 
-class Input {
+namespace Wallet {
+namespace Input {
 
-public:
+    class Record {
 
-    // Constructor for members
-    Input(const OutPoint & outPoint, const QByteArray & scriptSig, quint32 sequenc);
+    public:
 
-    // Constructor from record
-    // Input(const QSqlRecord & record);
+        // Constructor for members
+        Record(const OutPoint::Record & outPoint, const QByteArray & scriptSig, quint32 sequenc);
+
+        // Constructor from record
+        // Input(const QSqlRecord & record);
+
+        // Query inserting this wallet key into corresponding table
+        QSqlQuery insertQuery(QSqlDatabase db);
+
+        // Getters and setters
+        OutPoint::Record outPoint() const;
+        void setOutPoint(const OutPoint::Record & outPoint);
+
+        QByteArray scriptSig() const;
+        void setScriptSig(const QByteArray & scriptSig);
+
+        quint32 sequence() const;
+        void setSequence(quint32 sequence);
+
+    private:
+
+        // OutPoint being spent by input
+        OutPoint::Record _outPoint;
+
+        // Serialized Input script
+        QByteArray _scriptSig;
+
+        // Input sequence number
+        quint32 _sequence;
+
+    };
 
     // Query which creates table corresponding to entity
-    static QSqlQuery createTableQuery(QSqlDatabase db);
+    QSqlQuery createTableQuery(QSqlDatabase db);
 
     // (Unbound) Query which inserts wallet key record into correspodning table
-    static QSqlQuery unboundedInsertQuery(QSqlDatabase db);
+    QSqlQuery unBoundedInsertQuery(QSqlDatabase db);
 
-    // Query inserting this wallet key into corresponding table
-    QSqlQuery insertQuery(QSqlDatabase db);
+}
+}
 
-    // Getters and setters
-    OutPoint outPoint() const;
-    void setOutPoint(const OutPoint & outPoint);
-
-    QByteArray scriptSig() const;
-    void setScriptSig(const QByteArray & scriptSig);
-
-    quint32 sequence() const;
-    void setSequence(quint32 sequence);
-
-private:
-
-    // OutPoint being spent by input
-    OutPoint _outPoint;
-
-    // Serialized Input script
-    QByteArray _scriptSig;
-
-    // Input sequence number
-    quint32 _sequence;
-
-};
-
-#endif // INPUT_HPP
+#endif // WALLET_INPUT_HPP

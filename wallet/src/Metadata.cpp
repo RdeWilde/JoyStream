@@ -6,8 +6,8 @@
  */
 
 #include <wallet/Metadata.hpp>
-#include <wallet/Seed.hpp>
-#include <wallet/WalletUtilities.hpp> // date conversion
+#include <wallet/Utilities.hpp> // date conversion
+#include <common/Seed.hpp>
 
 #include <QByteArray>
 #include <QSqlDatabase>
@@ -16,9 +16,11 @@
 #include <QDateTime>
 #include <QSqlError>
 
-const QByteArray Metadata::_networkKey = QByteArray("network");
-const QByteArray Metadata::_seedKey = QByteArray("seed");
-const QByteArray Metadata::_createdKey = QByteArray("created");
+namespace Wallet {
+
+//const QByteArray Metadata::_networkKey = QByteArray("network");
+//const QByteArray Metadata::_seedKey = QByteArray("seed");
+//const QByteArray Metadata::_createdKey = QByteArray("created");
 
 void Metadata::createKeyValueStore(QSqlDatabase db, const Seed & seed, Coin::Network network, const QDateTime & created) {
 
@@ -37,7 +39,7 @@ void Metadata::createKeyValueStore(QSqlDatabase db, const Seed & seed, Coin::Net
     // Create one row per key-val pair you wish to represents
 
     // Create query
-    QSqlQuery query = createInsertQuery(db);
+    QSqlQuery query = unBoundedInsertQuery(db);
 
     // Error variable for each query
     QSqlError e;
@@ -58,7 +60,7 @@ void Metadata::createKeyValueStore(QSqlDatabase db, const Seed & seed, Coin::Net
 
     // created
     query.bindValue(":key", _createdKey);
-    query.bindValue(":value", WalletUtilities::encodeDateTime(created));
+    query.bindValue(":value", Wallet::Utilities::encodeDateTime(created));
     query.exec();
 
     e = query.lastError();
@@ -68,7 +70,7 @@ void Metadata::createKeyValueStore(QSqlDatabase db, const Seed & seed, Coin::Net
 QByteArray Metadata::get(QSqlDatabase db, const QByteArray & key) {
 
     // Get select query
-    QSqlQuery query = Metadata::createSelectQuery(db);
+    QSqlQuery query = Metadata::unBoundedSelectQuery(db);
     query.bindValue(":key", key);
 
     // Make select query
@@ -86,7 +88,7 @@ QByteArray Metadata::get(QSqlDatabase db, const QByteArray & key) {
 void Metadata::update(QSqlDatabase db, const QByteArray & key, const QByteArray & value) {
 
     // Get update query
-    QSqlQuery query = Metadata::createUpdateQuery(db);
+    QSqlQuery query = Metadata::unBoundedUpdateQuery(db);
     query.bindValue(":key", key);
     query.bindValue(":value", value);
 
@@ -129,14 +131,14 @@ QDateTime Metadata::getCreated(QSqlDatabase db) {
     QByteArray created = Metadata::get(db, _createdKey);
 
     // Decode and return
-    return WalletUtilities::decodeDateTime(created);
+    return Wallet::Utilities::decodeDateTime(created);
 }
 
 void Metadata::setCreated(QSqlDatabase db, const QDateTime & created) {
     Metadata::update(db, _createdKey, QByteArray::number(created.toMSecsSinceEpoch()));
 }
 
-QSqlQuery Metadata::createInsertQuery(QSqlDatabase db) {
+QSqlQuery Metadata::unBoundedInsertQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
     query.prepare("INSERT INTO Metadata (key, value) VALUES (:key, :value)");
@@ -144,7 +146,7 @@ QSqlQuery Metadata::createInsertQuery(QSqlDatabase db) {
     return query;
 }
 
-QSqlQuery Metadata::createUpdateQuery(QSqlDatabase db) {
+QSqlQuery Metadata::unBoundedUpdateQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
     query.prepare("UPDATE Metadata SET value = :value WHERE key = :key");
@@ -152,7 +154,7 @@ QSqlQuery Metadata::createUpdateQuery(QSqlDatabase db) {
     return query;
 }
 
-QSqlQuery Metadata::createSelectQuery(QSqlDatabase db) {
+QSqlQuery Metadata::unBoundedSelectQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
     query.prepare("SELECT value FROM Metadata WHERE [key] = :key");
@@ -184,4 +186,6 @@ Coin::Network Metadata::decodeNetwork(const QByteArray & blob) {
         default:
             Q_ASSERT(false);
     }
+}
+
 }

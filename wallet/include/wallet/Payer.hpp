@@ -5,10 +5,9 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, July 5 2015
  */
 
-#ifndef PAYER_HPP
-#define PAYER_HPP
+#ifndef WALLET_PAYER_HPP
+#define WALLET_PAYER_HPP
 
-//#include <common/CoinWrappers.hpp>
 #include <common/TransactionId.hpp>
 
 #include <QDateTime>
@@ -16,9 +15,8 @@
 class QSqlQuery;
 class QSqlDatabase;
 
-class Payer
-{
-public:
+namespace Wallet {
+namespace Payer {
 
     /**
      * @brief States of a payer.
@@ -39,63 +37,70 @@ public:
         all_contract_outputs_spent
     };
 
-    // State to encoding bijection
-    static quint8 encodeState(State state);
-    static State decodeState(quint8 state);
+    class Record
+    {
+    public:
 
-    // Constructor from members
-    Payer(quint64 id, const Coin::TransactionId & contractTransactionId, State state, const QDateTime & created, const QString & description);
+        // State to encoding bijection
+        static quint8 encodeState(State state);
+        static State decodeState(quint8 state);
 
-    // Constructor from record
-    // Payer(const QSqlRecord & record);
+        // Constructor from members
+        Record(quint64 id, const Coin::TransactionId & contractTransactionId, State state, const QDateTime & created, const QString & description);
+
+        // Constructor from record
+        // Payer(const QSqlRecord & record);
+
+        // Query inserting this wallet key into corresponding table
+        QSqlQuery insertQuery(QSqlDatabase db);
+
+        // Getters and setters
+        quint64 id() const;
+        void setId(quint64 id);
+
+        Coin::TransactionId contractTransactionId() const;
+        void setContractTransactionId(const Coin::TransactionId & contractTransactionId);
+
+        quint64 contractFee() const;
+        void setContractFee(quint64 contractFee);
+
+        State state() const;
+        void setState(State state);
+
+        QDateTime created() const;
+        void setCreated(const QDateTime & created);
+
+        QString description() const;
+        void setDescription(const QString & description);
+
+    private:
+
+        // Id of payer
+        quint64 _id;
+
+        // Transaction id of contract
+        Coin::TransactionId _contractTransactionId;
+
+        // Number of satoshies used as fee in contract
+        quint64 _contractFee;
+
+        // State of payer
+        State _state;
+
+        // When payer was created
+        QDateTime _created;
+
+        // Description of payer
+        QString _description;
+    };
 
     // Query which creates table corresponding to entity
-    static QSqlQuery createTableQuery(QSqlDatabase db);
+    QSqlQuery createTableQuery(QSqlDatabase db);
 
     // (Unbound) Query which inserts wallet key record into correspodning table
-    static QSqlQuery unboundedInsertQuery(QSqlDatabase db);
+    QSqlQuery unboundedInsertQuery(QSqlDatabase db);
 
-    // Query inserting this wallet key into corresponding table
-    QSqlQuery insertQuery(QSqlDatabase db);
+}
+}
 
-    // Getters and setters
-    quint64 id() const;
-    void setId(quint64 id);
-
-    Coin::TransactionId contractTransactionId() const;
-    void setContractTransactionId(const Coin::TransactionId & contractTransactionId);
-
-    quint64 contractFee() const;
-    void setContractFee(quint64 contractFee);
-
-    State state() const;
-    void setState(State state);
-
-    QDateTime created() const;
-    void setCreated(const QDateTime & created);
-
-    QString description() const;
-    void setDescription(const QString & description);
-
-private:
-
-    // Id of payer
-    quint64 _id;
-
-    // Transaction id of contract
-    Coin::TransactionId _contractTransactionId;
-
-    // Number of satoshies used as fee in contract
-    quint64 _contractFee;
-
-    // State of payer
-    State _state;
-
-    // When payer was created
-    QDateTime _created;
-
-    // Description of payer
-    QString _description;
-};
-
-#endif // PAYER_HPP
+#endif // WALLET_PAYER_HPP

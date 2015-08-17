@@ -7,9 +7,9 @@
 
 #include <common/Network.hpp>
 #include <common/KeyPair.hpp>
-#include <wallet/Wallet.hpp>
-#include <wallet/WalletKey.hpp>
-#include <wallet/WalletAddress.hpp>
+#include <wallet/Manager.hpp>
+#include <wallet/Key.hpp>
+#include <wallet/Address.hpp>
 #include <wallet/BlockHeader.hpp>
 #include <wallet/Transaction.hpp>
 #include <wallet/OutPoint.hpp>
@@ -26,6 +26,8 @@
 #include <wallet/Metadata.hpp>
 
 #include <CoinCore/typedefs.h> // bytes_t
+
+namespace Wallet {
 
 Manager::Manager(const QString & walletFile)
     : _mutex(QMutex::NonRecursive) // Same thread cannot aquire same lock multiple times
@@ -69,7 +71,7 @@ Manager::Manager(const QString & walletFile)
 
         // Exception is thrown if wallet is empty, otherwise
         // the biggest index is returned.
-        _nextIndex = WalletKey::maxIndex(_db) + 1;
+        _nextIndex = Key::maxIndex(_db) + 1;
 
     } catch(std::runtime_error & e) {
         _nextIndex = 0;
@@ -110,14 +112,14 @@ void Manager::createNewWallet(const QString & walletFile, Coin::Network network,
     QSqlQuery query;
     QSqlError e;
 
-    // WalletKey
-    query = WalletKey::createTableQuery(db);
+    // Key
+    query = Key::createTableQuery(db);
     query.exec();
     e = query.lastError();
     Q_ASSERT(e.type() == QSqlError::NoError);
 
-    // WalletAddress
-    query = WalletAddress::createTableQuery(db);
+    // Address
+    query = Address::createTableQuery(db);
     query.exec();
     e = query.lastError();
     Q_ASSERT(e.type() == QSqlError::NoError);
@@ -175,7 +177,7 @@ quint64 Manager::numberOfTransactions() {
 }
 
 quint64 Manager::numberOfKeysInWallet() {
-    return WalletKey::numberOfKeysInWallet(_db);
+    return Key::numberOfKeysInWallet(_db);
 }
 
 quint64 Manager::lastComputedZeroConfBalance() {
@@ -207,7 +209,7 @@ Coin::PrivateKey Manager::issueKey() {
 }
 
 Coin::P2PKHAddress Manager::getReceiveAddress() {
-    return _getReceiveAddress().address();
+    return _createReceiveAddress().address();
 }
 
 QList<Coin::KeyPair> Manager::issueKeyPairs(quint64 numberOfPairs) {
@@ -289,7 +291,7 @@ void Manager::broadcast(const Coin::Transaction & tx) {
     _mutex.unlock();
 }
 
-WalletKey::Record Manager::_issueKey() {
+Key::Record Manager::_issueKey() {
 
     /**
      * ==========================================
@@ -307,7 +309,7 @@ WalletKey::Record Manager::_issueKey() {
     key = Coin::PrivateKey(rawPrivateKey);
 
     // Create wallet key entry
-    WalletKey::Record record(_nextIndex, key, QDateTime::currentDateTime(), true);
+    Key::Record record(_nextIndex, key, QDateTime::currentDateTime(), true);
 
     // Add to table
     QSqlQuery query = record.insertQuery(_db);
@@ -316,7 +318,7 @@ WalletKey::Record Manager::_issueKey() {
     Q_ASSERT(e.type() == QSqlError::NoError);
 
     // Add to key count
-    Q_ASSERT(_nextIndex == WalletKey::maxIndex(_db));
+    Q_ASSERT(_nextIndex == Key::maxIndex(_db));
 
     // Increment to next index
     _nextIndex++;
@@ -326,28 +328,27 @@ WalletKey::Record Manager::_issueKey() {
     return record;
 }
 
-WalletAddress Manager::_getReceiveAddress() {
+Address::Record Manager::_createReceiveAddress() {
 
     // Generate fresh wallet key
-    WalletKey::Record walletKeyRecord = _issueKey();
+    Key::Record keyRecord = _issueKey();
 
     // Get private key
-    Coin::PrivateKey sk = walletKeyRecord.sk();
+    Coin::PrivateKey sk = keyRecord.sk();
 
     // Get corresponding public key
     Coin::PublicKey pk =  sk.toPublicKey();
 
-    // Generate correspondig p2pkh address
-    Coin::P2PKHAddress address(_network, pk);
-
     // Create wallet address
-    WalletAddress walletAddress(walletKeyRecord.index(), address);
+    Address::Record addressRecord(keyRecord.index(), Coin::P2PKHAddress(_network, pk));
 
     // Insert into wallet
-    QSqlQuery query = walletAddress.insertQuery(_db);
+    QSqlQuery query = addressRecord.insertQuery(_db);
     query.exec();
     QSqlError e = query.lastError();
     Q_ASSERT(e.type() == QSqlError::NoError);
 
-    return walletAddress;
+    return addressRecord;
+}
+
 }

@@ -5,10 +5,9 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, July 5 2015
  */
 
-#ifndef PAYEE_HPP
-#define PAYEE_HPP
+#ifndef WALLET_PAYEE_HPP
+#define WALLET_PAYEE_HPP
 
-//#include <common/CoinWrappers.hpp>
 #include <common/Signature.hpp>
 #include <common/TransactionId.hpp>
 #include <common/PublicKey.hpp>
@@ -18,9 +17,8 @@
 class QSqlQuery;
 class QSqlDatabase;
 
-class Payee
-{
-public:
+namespace Wallet {
+namespace Payee {
 
     /**
      * @brief The payee state
@@ -46,82 +44,92 @@ public:
         */
     };
 
-    // State to encoding bijection
-    static quint8 encodeState(State state);
-    static State decodeState(quint8 state);
+    class Record
+    {
+    public:
 
-    Payee(quint64 id,
-          State state,
-          quint64 numberOfPaymentsMade,
-          const Coin::Signature & lastValidPayerPaymentSignature,
-          quint64 price,
-          quint64 funds,
-          quint32 maximumNumberOfSellers,
-          quint64 payeeContractWalletKeyId,
-          quint64 payeePaymentWalletKeyId,
-          const Coin::TransactionId & contractTransactionId,
-          quint32 contractOutput,
-          const Coin::PublicKey & payerContractPublicKey,
-          const Coin::PublicKey & payerFinalPublicKey,
-          const Coin::TransactionId & paymentTransactionId);
 
-    // Constructor from record
-    // Payee(const QSqlRecord & record);
+
+        // State to encoding bijection
+        static quint8 encodeState(State state);
+        static State decodeState(quint8 state);
+
+        Record(quint64 id,
+              State state,
+              quint64 numberOfPaymentsMade,
+              const Coin::Signature & lastValidPayerPaymentSignature,
+              quint64 price,
+              quint64 funds,
+              quint32 maximumNumberOfSellers,
+              quint64 payeeContractWalletKeyId,
+              quint64 payeePaymentWalletKeyId,
+              const Coin::TransactionId & contractTransactionId,
+              quint32 contractOutput,
+              const Coin::PublicKey & payerContractPublicKey,
+              const Coin::PublicKey & payerFinalPublicKey,
+              const Coin::TransactionId & paymentTransactionId);
+
+        // Constructor from record
+        // Payee(const QSqlRecord & record);
+
+
+        // Query inserting this wallet key into corresponding table
+        QSqlQuery insertQuery(QSqlDatabase db);
+
+        // Getters and setters
+
+    private:
+
+        // Payee id
+        quint64 _id;
+
+        // State of payee
+        State _state;
+
+        // The number of valid payments made to payee
+        quint64 _numberOfPaymentsMade;
+
+        // Signature corresponding to last valid payment
+        Coin::Signature _lastValidPayerPaymentSignature;
+
+        // Exchange price in satoshis
+        quint64 _price;
+
+        // Number of satoshies locked up in channel
+        quint64 _funds;
+
+        // The maximum number of sellers in the contract
+        quint32 _maximumNumberOfSellers;
+
+        // Id of private key controlling payee portion of contract output
+        quint64 _payeeContractWalletKeyId;
+
+        // Id of private key controlling payments
+        quint64 _payeePaymentWalletKeyId;
+
+        // Transaction id of contract
+        Coin::TransactionId _contractTransactionId;
+
+        // Output in contract
+        quint32 _contractOutput;
+
+        // Controlling payer portion of contract multisig output
+        Coin::PublicKey _payerContractPublicKey;
+
+        // Controlling change in final payment spending contract output
+        Coin::PublicKey _payerFinalPublicKey;
+
+        // Transactin id of refund transaction for slot
+        Coin::TransactionId _paymentTransactionId;
+    };
 
     // Query which creates table corresponding to entity
-    static QSqlQuery createTableQuery(QSqlDatabase db);
+    QSqlQuery createTableQuery(QSqlDatabase db);
 
     // (Unbound) Query which inserts wallet key record into correspodning table
-    static QSqlQuery unboundedInsertQuery(QSqlDatabase db);
+    QSqlQuery unBoundedInsertQuery(QSqlDatabase db);
 
-    // Query inserting this wallet key into corresponding table
-    QSqlQuery insertQuery(QSqlDatabase db);
+}
+}
 
-    // Getters and setters
-
-private:
-
-    // Payee id
-    quint64 _id;
-
-    // State of payee
-    State _state;
-
-    // The number of valid payments made to payee
-    quint64 _numberOfPaymentsMade;
-
-    // Signature corresponding to last valid payment
-    Coin::Signature _lastValidPayerPaymentSignature;
-
-    // Exchange price in satoshis
-    quint64 _price;
-
-    // Number of satoshies locked up in channel
-    quint64 _funds;
-
-    // The maximum number of sellers in the contract
-    quint32 _maximumNumberOfSellers;
-
-    // Id of private key controlling payee portion of contract output
-    quint64 _payeeContractWalletKeyId;
-
-    // Id of private key controlling payments
-    quint64 _payeePaymentWalletKeyId;
-
-    // Transaction id of contract
-    Coin::TransactionId _contractTransactionId;
-
-    // Output in contract
-    quint32 _contractOutput;
-
-    // Controlling payer portion of contract multisig output
-    Coin::PublicKey _payerContractPublicKey;
-
-    // Controlling change in final payment spending contract output
-    Coin::PublicKey _payerFinalPublicKey;
-
-    // Transactin id of refund transaction for slot
-    Coin::TransactionId _paymentTransactionId;
-};
-
-#endif // PAYEE_HPP
+#endif // WALLET_PAYEE_HPP

@@ -5,17 +5,18 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, July 5 2015
  */
 
-#include <wallet/WalletKey.hpp>
+#include <wallet/Key.hpp>
 
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QVariant> // QSqlQuery::bind needs it
 
 /**
- * WalletKey::Record
+ * Wallet::Key::Record
  */
 
-namespace WalletKey {
+namespace Wallet {
+namespace Key {
 
 Record::Record(quint64 index, const Coin::PrivateKey & privateKey, const QDateTime & generated, bool issued)
     : _index(index)
@@ -83,7 +84,7 @@ void Record::setPurpose(Purpose purpose) {
 */
 
 /**
- * WalletKey
+ * Wallet::Key
  */
 
 QSqlQuery createTableQuery(QSqlDatabase db) {
@@ -91,7 +92,7 @@ QSqlQuery createTableQuery(QSqlDatabase db) {
     QSqlQuery query(db);
 
     query.prepare(
-    "CREATE TABLE WalletKey ( "
+    "CREATE TABLE Key ( "
         "[index]         INTEGER, "
         "privateKey      BLOB        NOT NULL, "
         "generated       DATETIME    NOT NULL, "
@@ -109,7 +110,7 @@ QSqlQuery unboundedInsertQuery(QSqlDatabase db) {
     QSqlQuery query(db);
 
     query.prepare(
-    "INSERT INTO WalletKey "
+    "INSERT INTO Key "
         "([index], privateKey, generated, issued) "
     "VALUES "
         "(:index, :privateKey, :generated, :issued) "
@@ -121,7 +122,7 @@ QSqlQuery unboundedInsertQuery(QSqlDatabase db) {
 quint64 maxIndex(QSqlDatabase db) {
 
     // Select max value in column
-    QSqlQuery query("SELECT MAX([index]) FROM WalletKey", db);
+    QSqlQuery query("SELECT MAX([index]) FROM Key", db);
 
     QSqlError e = query.lastError();
     Q_ASSERT(e.type() == QSqlError::NoError);
@@ -147,7 +148,7 @@ quint64 maxIndex(QSqlDatabase db) {
 quint64 numberOfKeysInWallet(QSqlDatabase db) {
 
     // Select row count from table
-    QSqlQuery query("SELECT COUNT(*) FROM WalletAddress", db);
+    QSqlQuery query("SELECT COUNT(*) FROM Key", db);
 
     QSqlError e = query.lastError();
     Q_ASSERT(e.type() == QSqlError::NoError);
@@ -193,4 +194,5 @@ WalletKey::Purpose WalletKey::decodePurpose(quint8 encoded) {
 }
 */
 
+}
 }

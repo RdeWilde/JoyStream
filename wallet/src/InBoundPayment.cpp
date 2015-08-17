@@ -11,7 +11,10 @@
 #include <QSqlQuery>
 #include <QVariant> // QSqlQuery::bind needs it
 
-InBoundPayment::InBoundPayment(quint64 id, quint64 receiveAddressWalletKeyIndex, const QString & note, const QDateTime & created)
+namespace Wallet {
+namespace InBoundPayment {
+
+Record::Record(quint64 id, quint64 receiveAddressWalletKeyIndex, const QString & note, const QDateTime & created)
     : _id(id)
     , _receiveAddressWalletKeyIndex(receiveAddressWalletKeyIndex)
     , _note(note)
@@ -20,7 +23,53 @@ InBoundPayment::InBoundPayment(quint64 id, quint64 receiveAddressWalletKeyIndex,
 
 //InBoundPayment::InBoundPayment(const QSqlRecord & record);
 
-QSqlQuery InBoundPayment::createTableQuery(QSqlDatabase db) {
+QSqlQuery Record::insertQuery(QSqlDatabase db) {
+
+    // Get templated query
+    QSqlQuery query = unBoundedInsertQuery(db);
+
+    // Bind values to query fields
+    query.bindValue(":id", _id);
+    query.bindValue(":receiveAddressWalletKeyIndex", _receiveAddressWalletKeyIndex);
+    query.bindValue(":note", _note);
+    query.bindValue(":created", _created.toMSecsSinceEpoch());
+
+    return query;
+}
+
+quint64 Record::paymentId() const {
+    return _id;
+}
+
+void Record::setPaymentId(quint64 id) {
+    _id = id;
+}
+
+quint64 Record::receiveAddressWalletKeyIndex() const {
+    return _receiveAddressWalletKeyIndex;
+}
+
+void Record::setReceiveAddressWalletKeyIndex(quint64 receiveAddressWalletKeyIndex) {
+    _receiveAddressWalletKeyIndex = receiveAddressWalletKeyIndex;
+}
+
+QString Record::note() const {
+    return _note;
+}
+
+void Record::setNote(const QString & note) {
+    _note = note;
+}
+
+QDateTime Record::created() const {
+    return _created;
+}
+
+void Record::setCreated(const QDateTime & created) {
+    _created = created;
+}
+
+QSqlQuery createTableQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -37,7 +86,7 @@ QSqlQuery InBoundPayment::createTableQuery(QSqlDatabase db) {
     return query;
 }
 
-QSqlQuery InBoundPayment::unboundedInsertQuery(QSqlDatabase db) {
+QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -51,48 +100,5 @@ QSqlQuery InBoundPayment::unboundedInsertQuery(QSqlDatabase db) {
     return query;
 }
 
-QSqlQuery InBoundPayment::insertQuery(QSqlDatabase db) {
-
-    // Get templated query
-    QSqlQuery query = unboundedInsertQuery(db);
-
-    // Bind values to query fields
-    query.bindValue(":id", _id);
-    query.bindValue(":receiveAddressWalletKeyIndex", _receiveAddressWalletKeyIndex);
-    query.bindValue(":note", _note);
-    query.bindValue(":created", _created.toMSecsSinceEpoch());
-
-    return query;
 }
-
-quint64 InBoundPayment::paymentId() const {
-    return _id;
-}
-
-void InBoundPayment::setPaymentId(quint64 id) {
-    _id = id;
-}
-
-quint64 InBoundPayment::receiveAddressWalletKeyIndex() const {
-    return _receiveAddressWalletKeyIndex;
-}
-
-void InBoundPayment::setReceiveAddressWalletKeyIndex(quint64 receiveAddressWalletKeyIndex) {
-    _receiveAddressWalletKeyIndex = receiveAddressWalletKeyIndex;
-}
-
-QString InBoundPayment::note() const {
-    return _note;
-}
-
-void InBoundPayment::setNote(const QString & note) {
-    _note = note;
-}
-
-QDateTime InBoundPayment::created() const {
-    return _created;
-}
-
-void InBoundPayment::setCreated(const QDateTime & created) {
-    _created = created;
 }

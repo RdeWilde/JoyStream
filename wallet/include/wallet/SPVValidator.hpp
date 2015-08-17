@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 3 2015
  */
 
-#ifndef SPVVALIDATOR_HPP
-#define SPVVALIDATOR_HPP
+#ifndef WALLET_SPVVALIDATOR_HPP
+#define WALLET_SPVVALIDATOR_HPP
 
 
 class SPVValidator
@@ -16,4 +16,4 @@ public:
     ~SPVValidator();
 };
 
-#endif // SPVVALIDATOR_HPP
+#endif // WALLET_SPVVALIDATOR_HPP

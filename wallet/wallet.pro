@@ -19,18 +19,14 @@ QT      += core sql
 INCLUDEPATH += $$PWD/include # be able to include w.r.t root of this project
 
 # not sure if this is needed, CONFIG + c++11 should be enough, but something was failing at one point
-QMAKE_CXXFLAGS += -std=c++11
+#QMAKE_CXXFLAGS += -std=c++11
 
 HEADERS += \
-    include/wallet/Wallet.hpp \
-    include/wallet/WalletKey.hpp \
     include/wallet/Payee.hpp \
     include/wallet/Slot.hpp \
     include/wallet/SPVValidator.hpp \
     include/wallet/SPVWAllet.hpp \
     include/wallet/Payer.hpp \
-    include/wallet/WalletEntity.hpp \
-    include/wallet/WalletAddress.hpp \
     include/wallet/BlockHeader.hpp \
     include/wallet/Transaction.hpp \
     include/wallet/OutPoint.hpp \
@@ -42,19 +38,17 @@ HEADERS += \
     include/wallet/OutBoundPayment.hpp \
     include/wallet/OuputFundsPayer.hpp \
     include/wallet/Metadata.hpp \
-    include/wallet/Seed.hpp \
-    include/wallet/WalletUtilities.hpp
+    include/wallet/Key.hpp \
+    include/wallet/Manager.hpp \
+    include/wallet/Address.hpp \
+    include/wallet/Utilities.hpp
 
 SOURCES += \
-    src/Wallet.cpp \
-    src/WalletKey.cpp \
     src/Payee.cpp \
     src/Slot.cpp \
     src/SPVValidator.cpp \
     src/SPVWAllet.cpp \
     src/Payer.cpp \
-    src/WalletEntity.cpp \
-    src/WalletAddress.cpp \
     src/BlockHeader.cpp \
     src/Transaction.cpp \
     src/OutPoint.cpp \
@@ -66,8 +60,10 @@ SOURCES += \
     src/OutBoundPayment.cpp \
     src/OuputFundsPayer.cpp \
     src/Metadata.cpp \
-    src/Seed.cpp \
-    src/WalletUtilities.cpp
+    src/Key.cpp \
+    src/Manager.cpp \
+    src/Address.cpp \
+    src/Utilities.cpp
 
 # common ###############################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../common/release/ -lcommon

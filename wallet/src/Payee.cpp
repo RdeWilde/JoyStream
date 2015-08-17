@@ -10,7 +10,10 @@
 #include <QSqlQuery>
 #include <QVariant> // QSqlQuery::bind needs it
 
-quint8 Payee::encodeState(State state) {
+namespace Wallet {
+namespace Payee {
+
+quint8 Record::encodeState(State state) {
 
     switch(state) {
         case State::waiting_for_payor_information: return 0;
@@ -21,7 +24,7 @@ quint8 Payee::encodeState(State state) {
     }
 }
 
-Payee::State Payee::decodeState(quint8 state) {
+State Record::decodeState(quint8 state) {
 
     switch(state) {
         case 0: return State::waiting_for_payor_information;
@@ -32,7 +35,7 @@ Payee::State Payee::decodeState(quint8 state) {
     }
 }
 
-Payee::Payee(quint64 id,
+Record::Record(quint64 id,
              State state,
              quint64 numberOfPaymentsMade,
              const Coin::Signature & lastValidPayerPaymentSignature,
@@ -62,7 +65,30 @@ Payee::Payee(quint64 id,
     , _paymentTransactionId(paymentTransactionId) {
 }
 
-QSqlQuery Payee::createTableQuery(QSqlDatabase db) {
+QSqlQuery Record::insertQuery(QSqlDatabase db) {
+
+    // Get templated query
+    QSqlQuery query = unBoundedInsertQuery(db);
+
+    // Bind values to query fields
+    query.bindValue(":id", _id);
+    query.bindValue(":state", encodeState(_state));
+    query.bindValue(":numberOfPaymentsMade", _numberOfPaymentsMade);
+    query.bindValue(":lastValidPayerPaymentSignature", _lastValidPayerPaymentSignature.toByteArray());
+    query.bindValue(":price", _price);
+    query.bindValue(":funds", _funds);
+    query.bindValue(":maximumNumberOfSellers", _maximumNumberOfSellers);
+    query.bindValue(":payeeContractWalletKeyId", _payeeContractWalletKeyId);
+    query.bindValue(":contractTransactionId", _contractTransactionId.toByteArray());
+    query.bindValue(":contractOutput", _contractOutput);
+    query.bindValue(":payerContractPublicKey", _payerContractPublicKey.toByteArray());
+    query.bindValue(":payerFinalPublicKey", _payerFinalPublicKey.toByteArray());
+    query.bindValue(":paymentTransactionId", _paymentTransactionId.toByteArray());
+
+    return query;
+}
+
+QSqlQuery createTableQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -90,7 +116,7 @@ QSqlQuery Payee::createTableQuery(QSqlDatabase db) {
     return query;
 }
 
-QSqlQuery Payee::unboundedInsertQuery(QSqlDatabase db) {
+QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -104,25 +130,5 @@ QSqlQuery Payee::unboundedInsertQuery(QSqlDatabase db) {
     return query;
 }
 
-QSqlQuery Payee::insertQuery(QSqlDatabase db) {
-
-    // Get templated query
-    QSqlQuery query = unboundedInsertQuery(db);
-
-    // Bind values to query fields
-    query.bindValue(":id", _id);
-    query.bindValue(":state", encodeState(_state));
-    query.bindValue(":numberOfPaymentsMade", _numberOfPaymentsMade);
-    query.bindValue(":lastValidPayerPaymentSignature", _lastValidPayerPaymentSignature.toByteArray());
-    query.bindValue(":price", _price);
-    query.bindValue(":funds", _funds);
-    query.bindValue(":maximumNumberOfSellers", _maximumNumberOfSellers);
-    query.bindValue(":payeeContractWalletKeyId", _payeeContractWalletKeyId);
-    query.bindValue(":contractTransactionId", _contractTransactionId.toByteArray());
-    query.bindValue(":contractOutput", _contractOutput);
-    query.bindValue(":payerContractPublicKey", _payerContractPublicKey.toByteArray());
-    query.bindValue(":payerFinalPublicKey", _payerFinalPublicKey.toByteArray());
-    query.bindValue(":paymentTransactionId", _paymentTransactionId.toByteArray());
-
-    return query;
+}
 }

@@ -5,8 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 11 2015
  */
 
-#include <wallet/Seed.hpp>
-
+#include <common/Seed.hpp>
 #include <CoinCore/hdkeys.h>
 
 #include <openssl/rand.h>

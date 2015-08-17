@@ -8,52 +8,57 @@
 #ifndef TRANSACTION_HAS_OUTPUT_HPP
 #define TRANSACTION_HAS_OUTPUT_HPP
 
-#include <common/CoinWrappers.hpp>
 #include <wallet/Transaction.hpp>
 #include <wallet/Output.hpp>
 
 class QSqlDatabase;
 
-class TransactionHasOutput {
+namespace Wallet {
+namespace TransactionHasOutput {
 
-public:
+    class Record {
 
-    // Construct from members
-    TransactionHasOutput(const Coin::TransactionId & transactionId, quint32 index, const Output & output);
+    public:
 
-    // Constructor from record
-    // TransactionHasOutput(const QSqlRecord & record);
+        // Construct from members
+        Record(const Coin::TransactionId & transactionId, quint32 index, const Output::Record & output);
+
+        // Constructor from record
+        // Record(const QSqlRecord & record);
+
+        // Query inserting this wallet key into corresponding table
+        QSqlQuery insertQuery(QSqlDatabase db);
+
+        // Getters and setters
+        Coin::TransactionId transactionId() const;
+        void setTransactionId(const Coin::TransactionId & transactionId);
+
+        quint32 index() const;
+        void setIndex(quint32 index);
+
+        Output::Record output() const;
+        void setOutput(const Output::Record & output);
+
+    private:
+
+        // Id of transaction
+        Coin::TransactionId _transactionId;
+
+        // Index of output in transaction
+        quint32 _index;
+
+        // Input in transaction
+        Output::Record _output;
+    };
 
     // Query which creates table corresponding to entity
-    static QSqlQuery createTableQuery(QSqlDatabase db);
+    QSqlQuery createTableQuery(QSqlDatabase db);
 
     // (Unbound) Query which inserts wallet key record into correspodning table
-    static QSqlQuery unboundedInsertQuery(QSqlDatabase db);
+    QSqlQuery unBoundedInsertQuery(QSqlDatabase db);
 
-    // Query inserting this wallet key into corresponding table
-    QSqlQuery insertQuery(QSqlDatabase db);
-
-    // Getters and setters
-    Coin::TransactionId transactionId() const;
-    void setTransactionId(const Coin::TransactionId & transactionId);
-
-    quint32 index() const;
-    void setIndex(quint32 index);
-
-    Output output() const;
-    void setOutput(const Output & output);
-
-private:
-
-    // Id of transaction
-    Coin::TransactionId _transactionId;
-
-    // Index of output in transaction
-    quint32 _index;
-
-    // Input in transaction
-    Output _output;
-};
+}
+}
 
 #endif // TRANSACTION_HAS_OUTPUT_HPP
 

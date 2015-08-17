@@ -1061,7 +1061,7 @@ Q_DECLARE_METATYPE(libtorrent::torrent_status)
 // Register type for QMetaObject::invokeMethod
 Q_DECLARE_METATYPE(const libtorrent::alert*)
 
-Controller::Controller(const Configuration & configuration, Manager * wallet, QNetworkAccessManager * manager, QLoggingCategory & category)
+Controller::Controller(const Configuration & configuration, Wallet::Manager * wallet, QNetworkAccessManager * manager, QLoggingCategory & category)
     : _state(State::normal)
     , _session(libtorrent::fingerprint(CLIENT_FINGERPRINT, JOYSTREAM_VERSION_MAJOR, JOYSTREAM_VERSION_MINOR, 0, 0),
                libtorrent::session::add_default_plugins,
@@ -2125,7 +2125,7 @@ void Controller::saveStateToFile(const char * file) {
     */
 }
 
-Manager * Controller::wallet() {
+Wallet::Manager * Controller::wallet() {
     return _wallet;
 }
 

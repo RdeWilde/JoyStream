@@ -10,13 +10,40 @@
 #include <QSqlQuery>
 #include <QVariant> // QSqlQuery::bind needs it
 
-Output::Output(quint64 value, const QByteArray & pubKeyScript, quint64 walletKeyIndex)
+namespace Wallet {
+namespace Output {
+
+Record::Record(quint64 value, const QByteArray & pubKeyScript, quint64 keyIndex)
     : _value(value)
     , _pubKeyScript(pubKeyScript)
-    , _walletKeyIndex(walletKeyIndex) {
+    , _keyIndex(keyIndex) {
 }
 
-QSqlQuery Output::createTableQuery(QSqlDatabase db)  {
+quint64 Record::value() const {
+    return _value;
+}
+
+void Record::setValue(quint64 value) {
+    _value = value;
+}
+
+QByteArray Record::pubKeyScript() const {
+    return _pubKeyScript;
+}
+
+void Record::setPubKeyScript(const QByteArray & pubKeyScript) {
+    _pubKeyScript = pubKeyScript;
+}
+
+quint64 Record::keyIndex() const {
+    return _keyIndex;
+}
+
+void Record::setKeyIndex(quint64 keyIndex) {
+    _keyIndex = keyIndex;
+}
+
+QSqlQuery createTableQuery(QSqlDatabase db)  {
 
     QSqlQuery query(db);
 
@@ -24,48 +51,27 @@ QSqlQuery Output::createTableQuery(QSqlDatabase db)  {
     "CREATE TABLE Output ( "
         "value           INTEGER, "
         "pubKeyScript    BLOB, "
-        "walletKeyIndex  INTEGER     NOT NULL, "
+        "keyIndex        INTEGER     NOT NULL, "
         "PRIMARY KEY(value, pubKeyScript), "
-        "FOREIGN KEY(walletKeyIndex) REFERENCES WalletAddress(walletKeyIndex) "
+        "FOREIGN KEY(keyIndex) REFERENCES Address(keyIndex) "
     ")");
 
     return query;
 }
 
-QSqlQuery Output::unboundedInsertQuery(QSqlDatabase db) {
+QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
     query.prepare(
     "INSERT INTO Output "
-        "(value, pubKeyScript, walletKeyIndex) "
+        "(value, pubKeyScript, keyIndex) "
     "VALUES "
-        "(:value, :pubKeyScript, :walletKeyIndex) "
+        "(:value, :pubKeyScript, :keyIndex) "
     );
 
     return query;
 }
 
-quint64 Output::value() const {
-    return _value;
 }
-
-void Output::setValue(quint64 value) {
-    _value = value;
-}
-
-QByteArray Output::pubKeyScript() const {
-    return _pubKeyScript;
-}
-
-void Output::setPubKeyScript(const QByteArray & pubKeyScript) {
-    _pubKeyScript = pubKeyScript;
-}
-
-quint64 Output::walletKeyIndex() const {
-    return _walletKeyIndex;
-}
-
-void Output::setWalletKeyIndex(quint64 walletKeyIndex) {
-    _walletKeyIndex = walletKeyIndex;
 }

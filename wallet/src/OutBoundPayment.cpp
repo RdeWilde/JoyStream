@@ -5,13 +5,15 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 3 2015
  */
 
-
 #include <wallet/OutBoundPayment.hpp>
 
 #include <QSqlQuery>
 #include <QVariant> // QSqlQuery::bind needs it
 
-OutBoundPayment::OutBoundPayment(quint64 paymentId, const Coin::P2PKHAddress & toAddress, quint64 changeAddressWalletKeyIndex, quint64 amount, quint64 fee, const QString & note, const QDateTime & created)
+namespace Wallet {
+namespace OutBoundPayment {
+
+Record::Record(quint64 paymentId, const Coin::P2PKHAddress & toAddress, quint64 changeAddressWalletKeyIndex, quint64 amount, quint64 fee, const QString & note, const QDateTime & created)
     : _id(paymentId)
     , _toAddress(toAddress)
     , _changeAddressWalletKeyIndex(changeAddressWalletKeyIndex)
@@ -21,9 +23,81 @@ OutBoundPayment::OutBoundPayment(quint64 paymentId, const Coin::P2PKHAddress & t
     , _created(created) {
 }
 
-// OutBoundPayment::OutBoundPayment(const QSqlRecord & record);
+// Record::Record(const QSqlRecord & record);
+QSqlQuery Record::insertQuery(QSqlDatabase db) {
 
-QSqlQuery OutBoundPayment::createTableQuery(QSqlDatabase db) {
+    // Get templated query
+    QSqlQuery query = unBoundedInsertQuery(db);
+
+    // Bind values to query fields
+    query.bindValue(":paymentId", _id);
+    query.bindValue(":toAddress", _toAddress.pubKeyHash().toByteArray());
+    query.bindValue(":changeAddressWalletKeyIndex", _changeAddressWalletKeyIndex);
+    query.bindValue(":amount", _amount);
+    query.bindValue(":fee", _fee);
+    query.bindValue(":note", _note);
+    query.bindValue(":created", _created);
+
+    return query;
+}
+
+quint64 Record::id() const {
+    return _id;
+}
+
+void Record::setId(quint64 paymentId) {
+    _id = paymentId;
+}
+
+Coin::P2PKHAddress Record::toAddress() const {
+    return _toAddress;
+}
+
+void Record::setToAddress(const Coin::P2PKHAddress & toAddress) {
+    _toAddress = toAddress;
+}
+
+quint64 Record::changeAddressWalletKeyIndex() const {
+    return _changeAddressWalletKeyIndex;
+}
+
+void Record::setChangeAddressWalletKeyIndex(quint64 changeAddressWalletKeyIndex) {
+    _changeAddressWalletKeyIndex = changeAddressWalletKeyIndex;
+}
+
+quint64 Record::amount() const {
+    return _amount;
+}
+
+void Record::setAmount(quint64 amount) {
+    _amount = amount;
+}
+
+quint64 Record::fee() const {
+    return _fee;
+}
+
+void Record::setFee(quint64 fee) {
+    _fee = fee;
+}
+
+QString Record::note() const {
+    return _note;
+}
+
+void Record::setNote(const QString & note) {
+    _note = note;
+}
+
+QDateTime Record::created() const {
+    return _created;
+}
+
+void Record::setCreated(const QDateTime & created) {
+    _created = created;
+}
+
+QSqlQuery createTableQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -43,7 +117,7 @@ QSqlQuery OutBoundPayment::createTableQuery(QSqlDatabase db) {
     return query;
 }
 
-QSqlQuery OutBoundPayment::unboundedInsertQuery(QSqlDatabase db) {
+QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -55,75 +129,6 @@ QSqlQuery OutBoundPayment::unboundedInsertQuery(QSqlDatabase db) {
     );
 }
 
-QSqlQuery OutBoundPayment::insertQuery(QSqlDatabase db) {
 
-    // Get templated query
-    QSqlQuery query = unboundedInsertQuery(db);
-
-    // Bind values to query fields
-    query.bindValue(":paymentId", _id);
-    query.bindValue(":toAddress", _toAddress.pubKeyHash().toByteArray());
-    query.bindValue(":changeAddressWalletKeyIndex", _changeAddressWalletKeyIndex);
-    query.bindValue(":amount", _amount);
-    query.bindValue(":fee", _fee);
-    query.bindValue(":note", _note);
-    query.bindValue(":created", _created);
-
-    return query;
 }
-
-quint64 OutBoundPayment::id() const {
-    return _id;
-}
-
-void OutBoundPayment::setId(quint64 paymentId) {
-    _id = paymentId;
-}
-
-Coin::P2PKHAddress OutBoundPayment::toAddress() const {
-    return _toAddress;
-}
-
-void OutBoundPayment::setToAddress(const Coin::P2PKHAddress & toAddress) {
-    _toAddress = toAddress;
-}
-
-quint64 OutBoundPayment::changeAddressWalletKeyIndex() const {
-    return _changeAddressWalletKeyIndex;
-}
-
-void OutBoundPayment::setChangeAddressWalletKeyIndex(quint64 changeAddressWalletKeyIndex) {
-    _changeAddressWalletKeyIndex = changeAddressWalletKeyIndex;
-}
-
-quint64 OutBoundPayment::amount() const {
-    return _amount;
-}
-
-void OutBoundPayment::setAmount(quint64 amount) {
-    _amount = amount;
-}
-
-quint64 OutBoundPayment::fee() const {
-    return _fee;
-}
-
-void OutBoundPayment::setFee(quint64 fee) {
-    _fee = fee;
-}
-
-QString OutBoundPayment::note() const {
-    return _note;
-}
-
-void OutBoundPayment::setNote(const QString & note) {
-    _note = note;
-}
-
-QDateTime OutBoundPayment::created() const {
-    return _created;
-}
-
-void OutBoundPayment::setCreated(const QDateTime & created) {
-    _created = created;
 }

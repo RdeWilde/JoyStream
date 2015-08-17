@@ -14,7 +14,8 @@
 class QSqlQuery;
 class QSqlDatabase;
 
-namespace WalletKey {
+namespace Wallet {
+namespace Key {
 
     /**
     enum class Purpose {
@@ -94,6 +95,7 @@ namespace WalletKey {
     // Conversion routines
     //static quint8 encodePurpose(Purpose purpose);
     //static Purpose decodePurpose(quint8 encoded);
+}
 }
 
 #endif // WALLET_KEY_HPP

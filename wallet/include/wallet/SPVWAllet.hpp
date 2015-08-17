@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 3 2015
  */
 
-#ifndef SPVWALLET_HPP
-#define SPVWALLET_HPP
+#ifndef WALLET_SPVWALLET_HPP
+#define WALLET_SPVWALLET_HPP
 
 
 class SPVWAllet
@@ -16,4 +16,4 @@ public:
     ~SPVWAllet();
 };
 
-#endif // SPVWALLET_HPP
+#endif // WALLET_SPVWALLET_HPP

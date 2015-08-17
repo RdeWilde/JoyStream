@@ -45,13 +45,12 @@ HEADERS += \
     include/common/typesafeOutPoint.hpp \
     include/common/Payment.hpp \
     include/common/P2SHAddress.hpp \
-    include/common/PubKeyHash.hpp
-    #include/common/RawCompressedPublicKey.hpp \
+    include/common/PubKeyHash.hpp \
+    include/common/Seed.hpp
 
 SOURCES += \
     src/DataSizeRepresentation.cpp \
     src/CoinWrappers.cpp \
-    # src/UCharArray.cpp \
     src/PublicKey.cpp \
     src/PrivateKey.cpp \
     src/Base58CheckEncodable.cpp \
@@ -65,4 +64,5 @@ SOURCES += \
     src/BitcoinRepresentation.cpp \
     src/typesafeOutPoint.cpp \
     src/Payment.cpp \
-    src/P2SHAddress.cpp
+    src/P2SHAddress.cpp \
+    src/Seed.cpp

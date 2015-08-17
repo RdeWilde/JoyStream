@@ -11,7 +11,10 @@
 
 #include <QVariant> // QSqlQuery::bind needs it
 
-BlockHeader::BlockHeader(const Coin::BlockId & blockId,
+namespace Wallet {
+namespace BlockHeader {
+
+Record::Record(const Coin::BlockId & blockId,
                 quint32 version,
                 const Coin::BlockId & previousBlockId,
                 const Coin::TransactionMerkleTreeRoot & root,
@@ -32,7 +35,107 @@ BlockHeader::BlockHeader(const Coin::BlockId & blockId,
     , _totalProofOfWork(totalProofOfWork) {
 }
 
-QSqlQuery BlockHeader::createTableQuery(QSqlDatabase db) {
+QSqlQuery Record::insertQuery(QSqlDatabase db) {
+
+    // Get templated query
+    QSqlQuery query = unboundedInsertQuery(db);
+
+    // Bind values to query fields
+    query.bindValue(":blockId", _blockId.toByteArray());
+    query.bindValue(":version", _version);
+    query.bindValue(":previousBlockId", _previousBlockId.toByteArray());
+    query.bindValue(":merkleRoot", _root.toByteArray());
+    query.bindValue(":timeStamp", _timeStamp.toMSecsSinceEpoch());
+    query.bindValue(":bits", _nBits);
+    query.bindValue(":nonce", _nonce);
+    query.bindValue(":transactionCount", _transactionCount);
+    query.bindValue(":isOnMainChain", _isOnMainChain ? 1 : 0);
+    query.bindValue(":totalProofOfWork", _totalProofOfWork);
+
+    return query;
+}
+
+Coin::BlockId Record::blockId() const {
+    return _blockId;
+}
+
+void Record::setBlockId(const Coin::BlockId & blockId) {
+    _blockId = blockId;
+}
+
+quint32 Record::version() const {
+    return _version;
+}
+
+void Record::setVersion(quint32 version) {
+    _version = version;
+}
+
+Coin::BlockId Record::previousBlockId() const {
+    return _previousBlockId;
+}
+
+void Record::setPreviousBlockId(const Coin::BlockId & previousBlockId) {
+    _previousBlockId = previousBlockId;
+}
+
+Coin::TransactionMerkleTreeRoot Record::root() const {
+    return _root;
+}
+
+void Record::setRoot(const Coin::TransactionMerkleTreeRoot & root) {
+    _root = root;
+}
+
+QDateTime Record::timeStamp() const {
+    return _timeStamp;
+}
+
+void Record::setTimeStamp(const QDateTime & timeStamp) {
+    _timeStamp = timeStamp;
+}
+
+quint32 Record::nBits() const {
+    return _nBits;
+}
+
+void Record::setNBits(quint32 nBits) {
+    _nBits = nBits;
+}
+
+quint32 Record::nonce() const {
+    return _nonce;
+}
+
+void Record::setNonce(quint32 nonce){
+    _nonce = nonce;
+}
+
+quint64 Record::transactionCount() const {
+    return _transactionCount;
+}
+
+void Record::setTransactionCount(quint64 numberOfTransactions) {
+    _transactionCount = numberOfTransactions;
+}
+
+bool Record::isOnMainChain() const {
+    return _isOnMainChain;
+}
+
+void Record::setIsOnMainChain(bool isOnMainChain) {
+    _isOnMainChain = isOnMainChain;
+}
+
+quint32 Record::totalProofOfWork() const {
+    return _totalProofOfWork;
+}
+
+void Record::setTotalProofOfWork(quint32 totalProofOfWork) {
+    _totalProofOfWork = totalProofOfWork;
+}
+
+QSqlQuery createTableQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -53,7 +156,7 @@ QSqlQuery BlockHeader::createTableQuery(QSqlDatabase db) {
     ")");
 }
 
-QSqlQuery BlockHeader::unboundedInsertQuery(QSqlDatabase db) {
+QSqlQuery unboundedInsertQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -67,102 +170,5 @@ QSqlQuery BlockHeader::unboundedInsertQuery(QSqlDatabase db) {
     return query;
 }
 
-QSqlQuery BlockHeader::insertQuery(QSqlDatabase db) {
-
-    // Get templated query
-    QSqlQuery query = unboundedInsertQuery(db);
-
-    // Bind values to query fields
-    query.bindValue(":blockId", _blockId.toByteArray());
-    query.bindValue(":version", _version);
-    query.bindValue(":previousBlockId", _previousBlockId.toByteArray());
-    query.bindValue(":merkleRoot", _root.toByteArray());
-    query.bindValue(":timeStamp", _timeStamp.toMSecsSinceEpoch());
-    query.bindValue(":bits", _nBits);
-    query.bindValue(":nonce", _nonce);
-    query.bindValue(":transactionCount", _transactionCount);
-    query.bindValue(":isOnMainChain", _isOnMainChain ? 1 : 0);
-    query.bindValue(":totalProofOfWork", _totalProofOfWork);
-
-    return query;
 }
-
-Coin::BlockId BlockHeader::blockId() const {
-    return _blockId;
-}
-
-void BlockHeader::setBlockId(const Coin::BlockId & blockId) {
-    _blockId = blockId;
-}
-
-quint32 BlockHeader::version() const {
-    return _version;
-}
-
-void BlockHeader::setVersion(quint32 version) {
-    _version = version;
-}
-
-Coin::BlockId BlockHeader::previousBlockId() const {
-    return _previousBlockId;
-}
-
-void BlockHeader::setPreviousBlockId(const Coin::BlockId & previousBlockId) {
-    _previousBlockId = previousBlockId;
-}
-
-Coin::TransactionMerkleTreeRoot BlockHeader::root() const {
-    return _root;
-}
-
-void BlockHeader::setRoot(const Coin::TransactionMerkleTreeRoot & root) {
-    _root = root;
-}
-
-QDateTime BlockHeader::timeStamp() const {
-    return _timeStamp;
-}
-
-void BlockHeader::setTimeStamp(const QDateTime & timeStamp) {
-    _timeStamp = timeStamp;
-}
-
-quint32 BlockHeader::nBits() const {
-    return _nBits;
-}
-
-void BlockHeader::setNBits(quint32 nBits) {
-    _nBits = nBits;
-}
-
-quint32 BlockHeader::nonce() const {
-    return _nonce;
-}
-
-void BlockHeader::setNonce(quint32 nonce){
-    _nonce = nonce;
-}
-
-quint64 BlockHeader::transactionCount() const {
-    return _transactionCount;
-}
-
-void BlockHeader::setTransactionCount(quint64 numberOfTransactions) {
-    _transactionCount = numberOfTransactions;
-}
-
-bool BlockHeader::isOnMainChain() const {
-    return _isOnMainChain;
-}
-
-void BlockHeader::setIsOnMainChain(bool isOnMainChain) {
-    _isOnMainChain = isOnMainChain;
-}
-
-quint32 BlockHeader::totalProofOfWork() const {
-    return _totalProofOfWork;
-}
-
-void BlockHeader::setTotalProofOfWork(quint32 totalProofOfWork) {
-    _totalProofOfWork = totalProofOfWork;
 }

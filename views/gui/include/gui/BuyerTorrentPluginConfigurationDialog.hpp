@@ -17,9 +17,13 @@ namespace Ui {
 class BuyerTorrentPluginConfigurationDialog;
 }
 
+namespace Wallet {
+    class Manager;
+}
+
 class Controller;
-class Manager;
 class BitcoinDisplaySettings;
+
 
 class BuyerTorrentPluginConfigurationDialog : public QDialog
 {
@@ -29,7 +33,7 @@ public:
 
     //explicit BuyerTorrentPluginConfigurationDialog(QWidget *parent = 0);
 
-    BuyerTorrentPluginConfigurationDialog(Controller * controller, Manager * wallet, const libtorrent::torrent_info & torrentInfo, const BitcoinDisplaySettings * settings);
+    BuyerTorrentPluginConfigurationDialog(Controller * controller, Wallet::Manager * wallet, const libtorrent::torrent_info & torrentInfo, const BitcoinDisplaySettings * settings);
 
     // Destructor
     ~BuyerTorrentPluginConfigurationDialog();
@@ -58,7 +62,7 @@ private:
 
     Controller * _controller;
 
-    Manager * _wallet;
+    Wallet::Manager * _wallet;
 
     libtorrent::torrent_info _torrentInfo;
 

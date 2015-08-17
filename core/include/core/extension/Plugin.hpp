@@ -41,7 +41,10 @@ class TorrentPluginConfiguration;
 //class SellerTorrentPlugin::Configuration;
 class QNetworkReply;
 class QNetworkAccessManager;
-class Manager;
+
+namespace Wallet {
+    class Manager;
+}
 
 namespace libtorrent {
     class alert;
@@ -99,7 +102,7 @@ public:
     };
 
     // Constructor
-    Plugin(Manager * wallet, QNetworkAccessManager * manager, QLoggingCategory & category);
+    Plugin(Wallet::Manager * wallet, QNetworkAccessManager * manager, QLoggingCategory & category);
 
     // Destructor
     ~Plugin();
@@ -171,7 +174,7 @@ public:
 private:
 
     // Wallet
-    Manager * _wallet;
+    Wallet::Manager * _wallet;
 
     // Libtorrent session.
     // Is set by added() libtorrent hook, not constructor

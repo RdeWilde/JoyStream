@@ -10,17 +10,58 @@
 #include <QSqlQuery>
 #include <QVariant> // QSqlQuery::bind needs it
 
+namespace Wallet {
+namespace TransactionHasOutput {
+
 // Construct from members
-TransactionHasOutput::TransactionHasOutput(const Coin::TransactionId & transactionId, quint32 index, const Output & output)
+Record::Record(const Coin::TransactionId & transactionId, quint32 index, const Output::Record & output)
     : _transactionId(transactionId)
     , _index(index)
     , _output(output) {
 }
 
 // Constructor from record
-// TransactionHasOutput(const QSqlRecord & record);
+// Record(const QSqlRecord & record);
 
-QSqlQuery TransactionHasOutput::createTableQuery(QSqlDatabase db) {
+QSqlQuery Record::insertQuery(QSqlDatabase db) {
+
+    // Get templated query
+    QSqlQuery query = unBoundedInsertQuery(db);
+
+    // Bind values to query fields
+    query.bindValue(":transactionId", _transactionId.toByteArray());
+    query.bindValue(":index", _index);
+    query.bindValue(":value",  _output.value());
+    query.bindValue(":pubKeyScript", _output.pubKeyScript());
+
+    return query;
+}
+
+Coin::TransactionId Record::transactionId() const {
+    return _transactionId;
+}
+
+void Record::setTransactionId(const Coin::TransactionId & transactionId) {
+    _transactionId = transactionId;
+}
+
+quint32 Record::index() const {
+    return _index;
+}
+
+void Record::setIndex(quint32 index) {
+    _index = index;
+}
+
+Output::Record Record::output() const {
+    return _output;
+}
+
+void Record::setOutput(const Output::Record & output) {
+    _output = output;
+}
+
+QSqlQuery createTableQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -38,7 +79,7 @@ QSqlQuery TransactionHasOutput::createTableQuery(QSqlDatabase db) {
     return query;
 }
 
-QSqlQuery TransactionHasOutput::unboundedInsertQuery(QSqlDatabase db) {
+QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -51,40 +92,5 @@ QSqlQuery TransactionHasOutput::unboundedInsertQuery(QSqlDatabase db) {
     return query;
 }
 
-QSqlQuery TransactionHasOutput::insertQuery(QSqlDatabase db) {
-
-    // Get templated query
-    QSqlQuery query = unboundedInsertQuery(db);
-
-    // Bind values to query fields
-    query.bindValue(":transactionId", _transactionId.toByteArray());
-    query.bindValue(":index", _index);
-    query.bindValue(":value",  _output.value());
-    query.bindValue(":pubKeyScript", _output.pubKeyScript());
-
-    return query;
 }
-
-Coin::TransactionId TransactionHasOutput::transactionId() const {
-    return _transactionId;
-}
-
-void TransactionHasOutput::setTransactionId(const Coin::TransactionId & transactionId) {
-    _transactionId = transactionId;
-}
-
-quint32 TransactionHasOutput::index() const {
-    return _index;
-}
-
-void TransactionHasOutput::setIndex(quint32 index) {
-    _index = index;
-}
-
-Output TransactionHasOutput::output() const {
-    return _output;
-}
-
-void TransactionHasOutput::setOutput(const Output & output) {
-    _output = output;
 }

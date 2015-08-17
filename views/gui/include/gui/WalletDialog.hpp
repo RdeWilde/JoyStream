@@ -17,7 +17,10 @@ namespace Ui {
 class WalletDialog;
 }
 
-class Manager;
+namespace Wallet {
+    class Manager;
+}
+
 class QMenu;
 class BitcoinDisplaySettings;
 
@@ -28,7 +31,7 @@ class WalletDialog : public QDialog
 public:
     //explicit WalletDialog(QWidget *parent = 0)
 
-    WalletDialog(Manager * wallet, const BitcoinDisplaySettings * settings);
+    WalletDialog(Wallet::Manager * wallet, const BitcoinDisplaySettings * settings);
     ~WalletDialog();
 
     // Updates view
@@ -50,7 +53,7 @@ private slots:
 private:
     Ui::WalletDialog *ui;
 
-    Manager * _wallet;
+    Wallet::Manager * _wallet;
 
     const BitcoinDisplaySettings * _settings;
 

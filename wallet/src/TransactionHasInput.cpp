@@ -10,12 +10,57 @@
 #include <QSqlQuery>
 #include <QVariant> // QSqlQuery::bind needs it
 
-TransactionHasInput::TransactionHasInput(const Coin::TransactionId & transactionId, const Input & input)
+namespace Wallet {
+namespace TransactionHasInput {
+
+Record::Record(const Coin::TransactionId & transactionId, const Input::Record & input)
     : _transactionId(transactionId)
     , _input(input) {
 }
 
-QSqlQuery TransactionHasInput::createTableQuery(QSqlDatabase db) {
+QSqlQuery Record::insertQuery(QSqlDatabase db) {
+
+    // Get templated query
+    QSqlQuery query = unBoundedInsertQuery(db);
+
+    // Bind values to query fields
+    query.bindValue(":transactionId", _transactionId.toByteArray());
+    query.bindValue(":index", _index);
+
+    OutPoint::Record outPoint = _input.outPoint();
+    query.bindValue(":outPointTransactionId", outPoint.transactionId().toByteArray());
+    query.bindValue(":outPointOutputIndex", outPoint.outputIndex());
+    query.bindValue(":scriptSig",  _input.scriptSig());
+    query.bindValue(":sequence", _input.sequence());
+
+    return query;
+}
+
+Coin::TransactionId Record::transactionId() const {
+    return _transactionId;
+}
+
+void Record::setTransactionId(const Coin::TransactionId & transactionId) {
+    _transactionId = transactionId;
+}
+
+quint32 Record::index() const {
+    return _index;
+}
+
+void Record::setIndex(quint32 index) {
+    _index = index;
+}
+
+Input::Record Record::input() const {
+    return _input;
+}
+
+void Record::setInput(const Input::Record & input) {
+    _input = input;
+}
+
+QSqlQuery createTableQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -28,14 +73,14 @@ QSqlQuery TransactionHasInput::createTableQuery(QSqlDatabase db) {
         "scriptSig                   BLOG        NOT NULL, "
         "sequence                    INTEGER     NOT NULL, "
         "PRIMARY KEY(transactionId, index), "
-        "FOREIGN KEY transactionId REFERENCES Transaction(transactionId), "
-        "FOREIGN KEY (outPointTransactionId, outPointOutputIndex, scriptSig, sequence) REFERENCES Input(outPointTransactionId, outPointOutputIndex, scriptSig, sequence) "
+        "FOREIGN KEY(transactionId) REFERENCES Transaction(transactionId), "
+        "FOREIGN KEY(outPointTransactionId, outPointOutputIndex, scriptSig, sequence) REFERENCES Input(outPointTransactionId, outPointOutputIndex, scriptSig, sequence) "
     ")");
 
     return query;
 }
 
-QSqlQuery TransactionHasInput::unboundedInsertQuery(QSqlDatabase db) {
+QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -48,44 +93,5 @@ QSqlQuery TransactionHasInput::unboundedInsertQuery(QSqlDatabase db) {
     return query;
 }
 
-QSqlQuery TransactionHasInput::insertQuery(QSqlDatabase db) {
-
-    // Get templated query
-    QSqlQuery query = unboundedInsertQuery(db);
-
-    // Bind values to query fields
-    query.bindValue(":transactionId", _transactionId.toByteArray());
-    query.bindValue(":index", _index);
-
-    OutPoint outPoint = _input.outPoint();
-    query.bindValue(":outPointTransactionId", outPoint.transactionId().toByteArray());
-    query.bindValue(":outPointOutputIndex", outPoint.outputIndex());
-    query.bindValue(":scriptSig",  _input.scriptSig());
-    query.bindValue(":sequence", _input.sequence());
-
-    return query;
 }
-
-Coin::TransactionId TransactionHasInput::transactionId() const {
-    return _transactionId;
-}
-
-void TransactionHasInput::setTransactionId(const Coin::TransactionId & transactionId) {
-    _transactionId = transactionId;
-}
-
-quint32 TransactionHasInput::index() const {
-    return _index;
-}
-
-void TransactionHasInput::setIndex(quint32 index) {
-    _index = index;
-}
-
-Input TransactionHasInput::input() const {
-    return _input;
-}
-
-void TransactionHasInput::setInput(const Input & input) {
-    _input = input;
 }

@@ -5,11 +5,11 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, July 5 2015
  */
 
-#ifndef WALLET_HPP
-#define WALLET_HPP
+#ifndef WALLET_MANAGER_HPP
+#define WALLET_MANAGER_HPP
 
 #include <CoinCore/hdkeys.h>
-#include <wallet/Seed.hpp>
+#include <common/Seed.hpp>
 #include <common/KeyPair.hpp>
 
 #include <QObject>
@@ -18,7 +18,6 @@
 #include <QDateTime>
 #include <QByteArray>
 
-class WalletAddress;
 class Payer;
 class Payee;
 class Slot;
@@ -30,10 +29,6 @@ namespace Coin {
     //class KeyPair;   
 }
 
-namespace WalletKey {
-    class Record;
-}
-
 // The number keys in a newly populated key pool
 #define KEY_POOL_FRESH_SIZE 100
 
@@ -43,6 +38,16 @@ namespace WalletKey {
 
 // Name of database type to use with QSqlDatabase::addDatabas
 #define DATABASE_TYPE "QSQLITE"
+
+namespace Wallet {
+
+namespace Key {
+    class Record;
+}
+
+namespace Address {
+    class Record;
+}
 
 class Manager : public QObject
 {
@@ -205,12 +210,14 @@ private:
 
     // Generate p2pkh receive address
     // corresponding to a fresh private
-    WalletAddress _getReceiveAddress();
+    Address::Record _createReceiveAddress();
 
     // Returns a fresh private key which persists in wallet
     // **NB: These keys are have no corresponding addresses
     // which are monitored for inbound/outbound? transactions**
-    WalletKey::Record _issueKey();
+    Key::Record _issueKey();
 };
 
-#endif // WALLET_HPP
+}
+
+#endif // WALLET_MANAGER_HPP

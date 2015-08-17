@@ -180,7 +180,7 @@ PluginMode SellerTorrentPlugin::Configuration::pluginMode() const {
 
 SellerTorrentPlugin::SellerTorrentPlugin(Plugin * plugin,
                                          const boost::shared_ptr<libtorrent::torrent> & torrent,
-                                         Manager * wallet,
+                                         Wallet::Manager * wallet,
                                          const SellerTorrentPlugin::Configuration & configuration,
                                          QLoggingCategory & category)
     : TorrentPlugin(plugin, torrent, configuration, category)

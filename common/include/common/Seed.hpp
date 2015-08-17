@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 11 2015
  */
 
-#ifndef SEED
-#define SEED
+#ifndef SEED_HPP
+#define SEED_HPP
 
 #include <common/UCharArray.hpp>
 
@@ -69,5 +69,5 @@ signals:
     //void finishedAsyncGenerating(Seed s);
 };
 
-#endif // SEED
+#endif // SEED_HPP
 

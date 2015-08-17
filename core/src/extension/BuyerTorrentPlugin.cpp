@@ -214,7 +214,7 @@ void BuyerTorrentPlugin::Configuration::setNumberOfSellers(quint32 numberOfSelle
 
 BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
                                        const boost::shared_ptr<libtorrent::torrent> & torrent,
-                                       Manager * wallet,
+                                       Wallet::Manager * wallet,
                                        const BuyerTorrentPlugin::Configuration & configuration,
                                        const Coin::UnspentP2PKHOutput & utxo,
                                        QLoggingCategory & category)

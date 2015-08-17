@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, July 5 2015
  */
 
-#ifndef SLOT_HPP
-#define SLOT_HPP
+#ifndef WALLET_SLOT_HPP
+#define WALLET_SLOT_HPP
 
 //#include <common/CoinWrappers.hpp>
 
@@ -158,4 +158,4 @@ private:
     quint32 _refundLockTime;
 };
 
-#endif // SLOT_HPP
+#endif // WALLET_SLOT_HPP

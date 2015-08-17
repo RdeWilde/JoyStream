@@ -19,7 +19,7 @@
 
 //WalletDialog::WalletDialog(QWidget *parent, Wallet * wallet) {}
 
-WalletDialog::WalletDialog(Manager * wallet,
+WalletDialog::WalletDialog(Wallet::Manager * wallet,
                            const BitcoinDisplaySettings * settings)
     : ui(new Ui::WalletDialog)
     , _wallet(wallet)

@@ -5,16 +5,19 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 14 2015
  */
 
-#include <wallet/WalletUtilities.hpp>
+#include <wallet/Utilities.hpp>
 
 #include <QByteArray>
 #include <QDateTime>
 
-QByteArray WalletUtilities::encodeDateTime(const QDateTime & dateTime) {
+namespace Wallet {
+namespace Utilities {
+
+QByteArray encodeDateTime(const QDateTime & dateTime) {
     return QByteArray::number(dateTime.toMSecsSinceEpoch());
 }
 
-QDateTime WalletUtilities::decodeDateTime(const QByteArray & encodedDateTime) {
+QDateTime decodeDateTime(const QByteArray & encodedDateTime) {
 
     bool ok;
     ulong dateTimeMSecsSinceEpoch = encodedDateTime.toULong(&ok);
@@ -22,4 +25,7 @@ QDateTime WalletUtilities::decodeDateTime(const QByteArray & encodedDateTime) {
     Q_ASSERT(ok);
 
     return QDateTime::fromMSecsSinceEpoch(dateTimeMSecsSinceEpoch);
+}
+
+}
 }
