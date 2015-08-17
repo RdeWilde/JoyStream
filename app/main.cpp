@@ -283,18 +283,18 @@ Controller * create_controller(Controller::Configuration controllerConfiguration
         qDebug() << "Creating a fresh wallet " << walletFile;
 
         Seed seed = Seed::testSeeds[*seedId];
-        Wallet::createNewWallet(walletFile, BITCOIN_NETWORK, seed);
+        Manager::createNewWallet(walletFile, BITCOIN_NETWORK, seed);
 
         seedId++;
 
         // DEBUG
-        Wallet w(walletFile);
+        Manager w(walletFile);
         Q_ASSERT(w.network() == BITCOIN_NETWORK);
         Q_ASSERT(w.seed() == seed);
     }
 
     // Load wallet
-    Wallet * wallet = new Wallet(walletFile);
+    Manager * wallet = new Manager(walletFile);
 
 
 

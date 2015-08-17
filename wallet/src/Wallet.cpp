@@ -27,7 +27,7 @@
 
 #include <CoinCore/typedefs.h> // bytes_t
 
-Wallet::Wallet(const QString & walletFile)
+Manager::Manager(const QString & walletFile)
     : _mutex(QMutex::NonRecursive) // Same thread cannot aquire same lock multiple times
     , _walletFile(walletFile)
     , _db(QSqlDatabase::addDatabase(DATABASE_TYPE, QFileInfo(walletFile).fileName()))
@@ -79,7 +79,7 @@ Wallet::Wallet(const QString & walletFile)
     //updateUtxoSet();
 }
 
-void Wallet::createNewWallet(const QString & walletFile, Coin::Network network, const Seed & seed) {
+void Manager::createNewWallet(const QString & walletFile, Coin::Network network, const Seed & seed) {
 
     // Create connection to database:
     // We need non-default connection names, as testing will involve
@@ -154,31 +154,31 @@ void Wallet::createNewWallet(const QString & walletFile, Coin::Network network, 
     db.close();
 }
 
-bool Wallet::validateWalletStructure(QSqlDatabase & db) {
+bool Manager::validateWalletStructure(QSqlDatabase & db) {
     return true;
 }
 
-Coin::Network Wallet::network() const {
+Coin::Network Manager::network() const {
     return _network;
 }
 
-QDateTime Wallet::created() const {
+QDateTime Manager::created() const {
     return _created;
 }
 
-Seed Wallet::seed() const {
+Seed Manager::seed() const {
     return _seed;
 }
 
-quint64 Wallet::numberOfTransactions() {
+quint64 Manager::numberOfTransactions() {
     return 0;
 }
 
-quint64 Wallet::numberOfKeysInWallet() {
+quint64 Manager::numberOfKeysInWallet() {
     return WalletKey::numberOfKeysInWallet(_db);
 }
 
-quint64 Wallet::lastComputedZeroConfBalance() {
+quint64 Manager::lastComputedZeroConfBalance() {
 
     quint64 balance;
 
@@ -202,33 +202,15 @@ quint64 Wallet::nextHdIndex() {
 }
 */
 
-WalletAddress Wallet::getReceiveAddress() {
-
-    // Generate fresh wallet key
-    WalletKey walletKey = issueKey();
-
-    // Get private key
-    Coin::PrivateKey sk = walletKey.privateKey();
-
-    // Get corresponding public key
-    Coin::PublicKey pk =  sk.toPublicKey();
-
-    // Generate correspondig p2pkh address
-    Coin::P2PKHAddress address(_network, pk);
-
-    // Create wallet address
-    WalletAddress walletAddress(walletKey.index(), address);
-
-    // Insert into wallet
-    QSqlQuery query = walletAddress.insertQuery(_db);
-    query.exec();
-    QSqlError e = query.lastError();
-    Q_ASSERT(e.type() == QSqlError::NoError);
-
-    return walletAddress;
+Coin::PrivateKey Manager::issueKey() {
+    return _issueKey().sk();
 }
 
-QList<Coin::KeyPair> Wallet::issueKeyPairs(quint64 numberOfPairs) {
+Coin::P2PKHAddress Manager::getReceiveAddress() {
+    return _getReceiveAddress().address();
+}
+
+QList<Coin::KeyPair> Manager::issueKeyPairs(quint64 numberOfPairs) {
 
     // List of keys to return
     QList<Coin::KeyPair> keys;
@@ -236,11 +218,8 @@ QList<Coin::KeyPair> Wallet::issueKeyPairs(quint64 numberOfPairs) {
     // Create each pair and add to list
     for(quint64 i = 0;i < numberOfPairs;i++) {
 
-        // Isse new wallet key
-        WalletKey walletKey = issueKey();
-
         // Get private key
-        Coin::PrivateKey sk = walletKey.privateKey();
+        Coin::PrivateKey sk = issueKey();
 
         // Generate corresponding (compressd) public key
         Coin::PublicKey pk = sk.toPublicKey();
@@ -250,43 +229,6 @@ QList<Coin::KeyPair> Wallet::issueKeyPairs(quint64 numberOfPairs) {
     }
 
     return keys;
-}
-
-WalletKey Wallet::issueKey() {
-
-    /**
-     * ==========================================
-     * UPDATE IN THE FUTURE TO WORK WITH KEY POOL
-     * ==========================================
-     */
-
-    Coin::PrivateKey key;
-
-    // We aquire lock so we protect our value of _nextIndex
-    _mutex.lock();
-
-    // Generate a new key by
-    bytes_t rawPrivateKey = _keyChain.getPrivateSigningKey(_nextIndex);
-    key = Coin::PrivateKey(rawPrivateKey);
-
-    // Create wallet key entry
-    WalletKey walletKey(_nextIndex, key, QDateTime::currentDateTime(), true);
-
-    // Add to table
-    QSqlQuery query = walletKey.insertQuery(_db);
-    query.exec();
-    QSqlError e = query.lastError();
-    Q_ASSERT(e.type() == QSqlError::NoError);
-
-    // Add to key count
-    Q_ASSERT(_nextIndex == WalletKey::maxIndex(_db));
-
-    // Increment to next index
-    _nextIndex++;
-
-    _mutex.unlock();
-
-    return walletKey;
 }
 
 /**
@@ -317,7 +259,7 @@ void Wallet::updateKeyPool() {
 }
 */
 
-void Wallet::updateUtxoSet() {
+void Manager::updateUtxoSet() {
 
     // Net change to txo
     quint32 diff = 0;
@@ -337,7 +279,7 @@ void Wallet::updateUtxoSet() {
     emit utxoUpdated(diff);
 }
 
-void Wallet::broadcast(const Coin::Transaction & tx) {
+void Manager::broadcast(const Coin::Transaction & tx) {
 
     _mutex.lock();
 
@@ -347,285 +289,65 @@ void Wallet::broadcast(const Coin::Transaction & tx) {
     _mutex.unlock();
 }
 
-/**
-  UnspentP2PKHOutput Wallet::getUtxo(quint64 minimalValue, quint32 minimalNumberOfConfirmations) {
+WalletKey::Record Manager::_issueKey() {
 
-      return UnspentP2PKHOutput();
-  }
+    /**
+     * ==========================================
+     * UPDATE IN THE FUTURE TO WORK WITH KEY POOL
+     * ==========================================
+     */
 
+    Coin::PrivateKey key;
 
-QSqlQuery Wallet::createTransactionTableQuery() {
+    // We aquire lock so we protect our value of _nextIndex
+    _mutex.lock();
 
-    return QSqlQuery("\
-    CREATE TABLE Transaction (\
-        id              BLOB        PRIMARY KEY,\
-        version         INTEGER     NOT NULL,\
-        lockTime        INTEGER     NOT NULL,\
-        seen            INTEGER     NOT NULL,\
-        blockNumber     INTEGER\
-    )");
+    // Generate a new key by
+    bytes_t rawPrivateKey = _keyChain.getPrivateSigningKey(_nextIndex);
+    key = Coin::PrivateKey(rawPrivateKey);
+
+    // Create wallet key entry
+    WalletKey::Record record(_nextIndex, key, QDateTime::currentDateTime(), true);
+
+    // Add to table
+    QSqlQuery query = record.insertQuery(_db);
+    query.exec();
+    QSqlError e = query.lastError();
+    Q_ASSERT(e.type() == QSqlError::NoError);
+
+    // Add to key count
+    Q_ASSERT(_nextIndex == WalletKey::maxIndex(_db));
+
+    // Increment to next index
+    _nextIndex++;
+
+    _mutex.unlock();
+
+    return record;
 }
 
-QSqlQuery Wallet::createInputTableQuery() {
+WalletAddress Manager::_getReceiveAddress() {
 
-    return QSqlQuery("\
-    CREATE TABLE Input (\
-        outPointTransactionId   BLOB,\
-        outPointOutput          INTEGER,\
-        PRIMARY KEY (outPointTransactionId, outPointOutput)\
-        scriptSig               BLOB        NOT NULL,\
-        sequence                INTEGER     NOT NULL,\
-        scriptTypeId            INTEGER     NOT NULL FOREIGN KEY REFERENCES ScriptType(id)\
-    )");
+    // Generate fresh wallet key
+    WalletKey::Record walletKeyRecord = _issueKey();
+
+    // Get private key
+    Coin::PrivateKey sk = walletKeyRecord.sk();
+
+    // Get corresponding public key
+    Coin::PublicKey pk =  sk.toPublicKey();
+
+    // Generate correspondig p2pkh address
+    Coin::P2PKHAddress address(_network, pk);
+
+    // Create wallet address
+    WalletAddress walletAddress(walletKeyRecord.index(), address);
+
+    // Insert into wallet
+    QSqlQuery query = walletAddress.insertQuery(_db);
+    query.exec();
+    QSqlError e = query.lastError();
+    Q_ASSERT(e.type() == QSqlError::NoError);
+
+    return walletAddress;
 }
-
-QSqlQuery Wallet::createScriptTypeTableQuery() {
-
-    return QSqlQuery("\
-    CREATE TABLE ScriptType (\
-        id              INTEGER     PRIMARY KEY,\
-        description     TEXT        NOT NULL\
-    )");
-}
-
-QSqlQuery Wallet::createOutputTableQuery() {
-
-    return QSqlQuery("\
-    CREATE TABLE Output (\
-        transactionId           BLOB        NOT NULL FOREIGN KEY REFERENCES Transaction(id),\
-        output                  INTEGER,\
-        PRIMARY KEY (transactionId, output),\
-        value                   INTEGER     NOT NULL,\
-        scriptPubKey            BLOB        NOT NULL,\
-        sciptTypeId             INTEGER     NOT NULL FOREIGN KEY REFERENCES ScriptType(id),\
-        receiveAddress          BLOB        FOREIGN KEY REFERENCES ReceiveAddress(address)\
-    )");
-}
-
-QSqlQuery Wallet::createPayerTableQuery() {
-
-    return QSqlQuery("\
-    CREATE TABLE Payer (\
-        fundingTransactionId   BLOB,\
-        fundingOutput          INTEGER,\
-        PRIMARY KEY (fundingTransactionId,fundingOutput),\
-        created                INTEGER      NOT NULL,\
-        description            TEXT\
-    )");
-}
-
-QSqlQuery Wallet::createSlotTableQuery() {
-
-    return QSqlQuery("\
-    CREATE TABLE Slot (\
-        payerFundingTransactionId   BLOB,\
-        payerFundingOutput          INTEGER,\
-        FOREIGN KEY (payerFundingTransactionId,payerFundingOutput) REFERENCES Output(transactionId, output),\
-        index                       INTEGER,\
-        PRIMARY KEY(payerFundingTransactionId, payerFundingOutput, index),\
-        slotStateId                 INTEGER     NOT NULL FOREIGN KEY REFERENCES SlotState(id),\
-        price                       INTEGER,\
-        numberOfPaymentsMade        INTEGER     NOT NULL,\
-        funds                       INTEGER,\
-        lockTime                    INTEGER,\
-        payerContractPrivateKeyId   INTEGER     NOT NULL FOREIGN KEY REFERENCES PrivateKey(id),\
-        payerFinalPrivateKeyId      INTEGER     NOT NULL FOREIGN KEY REFERNCES PrivateKey(id),\
-        payeeContractPublicKey      BLOB,\
-        payeeFinalPublicKey         BLOB,\
-        refundSignature             BLOB,\
-        lastPaymentSignature        BLOB,\
-        refundFee                   INTEGER,\
-        paymentFee                  INTEGER\
-    )");
-}
-
-QSqlQuery Wallet::createSlotStateTableQuery() {
-
-    return QSqlQuery("\
-    CREATE TABLE SlotState (\
-        id              INTEGER     PRIMARY KEY,\
-        description     TEXT        NOT NULL\
-    )");
-}
-
-QSqlQuery Wallet::createPayeeTableQuery() {
-
-    return QSqlQuery("\
-    CREATE TABLE Payee (\
-        id                              INTEGER     PRIMARY KEY,\
-        payeeStateId                    INTEGER     NOT NULL FOREIGN KEY REFERENCES PayeeState(id),\
-        numberOfPaymentsMade            INTEGER     NOT NULL,\
-        lastValidPayerPaymentSignature  BLOB,\
-        price                           INTEGER     NOT NULL,\
-        funds                           INTEGER,\
-        maximumNumberOfSellers          INTEGER     NOT NULL,\
-        payeeContractPrivateKeyId       INTEGER     NOT NULL FOREIGN KEY REFERENCES PrivateKey(id),\
-        payeePaymentPrivateKeyId        INTEGER     NOT NYLL FOREIGN KEY REFERENCES PrivateKey(id),\
-        contractTransaction             BLOB,\
-        contractOutput                  INTEGER,\
-        payerContractPublicKey          BLOB,\
-        payerFinalPublicKey             BLOB\
-    )");
-}
-
-QSqlQuery Wallet::createPayeeStateTableQuery() {
-
-    return QSqlQuery("\
-    CREATE TABLE PayeeState (\
-        id                              INTEGER     PRIMARY KEY,\
-        text                            TEXT        NOT NULL\
-    )");
-}
-
-QSqlQuery Wallet::insertReceiveAddressQuery() {
-
-    return QSqlQuery("\
-    INSERT INTO ReceiveAddress \
-    (address, requested)\
-    VALUES\
-    (:address, :requested)\
-    ");
-}
-
-QSqlQuery Wallet::insertReceiveAddressPurposeQuery() {
-
-    return QSqlQuery("\
-    INSERT INTO ReceiveAddressPurpose \
-    (id, description)\
-    VALUES\
-    (:id, :description)\
-    ");
-}
-
-QSqlQuery Wallet::insertPrivateKeyControllingReceiveAddressQuery() {
-
-    return QSqlQuery("\
-    INSERT INTO PrivateKeyControllingReceiveAddress \
-    (address, privateKeyId, position)\
-    VALUES\
-    (:address, :privateKeyId, :position)\
-    ");
-}
-
-QSqlQuery Wallet::insertTransactionQuery() {
-
-    return QSqlQuery("\
-    INSERT INTO Transaction \
-    (id, version, lockTime, seen, blockNumber)\
-    VALUES\
-    (:id, :version, :lockTime, :seen, :blockNumber)\
-    )");
-}
-
-QSqlQuery Wallet::insertInputQuery() {
-
-    return QSqlQuery("\
-    INSERT INTO Input \
-    (outPointTransactionId, outPointOutput, scriptSig, sequence, scriptTypeId)\
-    VALUES\
-    (:outPointTransactionId, :outPointOutput, :scriptSig, :sequence, :scriptTypeId)\
-    )");
-}
-
-QSqlQuery Wallet::insertScriptTypeQuery() {
-
-    return QSqlQuery("\
-    INSERT INTO ScriptType \
-    (id, description)\
-    VALUES\
-    (:id, :description)\
-    )");
-}
-
-QSqlQuery Wallet::insertOutputQuery() {
-
-    return QSqlQuery("\
-    INSERT INTO Output \
-    (transactionId, output, value, scriptPubKey, sciptTypeId, receiveAddress)\
-    VALUES\
-    (:transactionId, :output, :value, :scriptPubKey, :sciptTypeId, :receiveAddress)\
-    )");
-}
-
-QSqlQuery Wallet::insertPayerQuery() {
-
-    return QSqlQuery("\
-    INSERT INTO Payer \
-    (fundingTransactionId, fundingOutput, created, description)\
-    VALUES\
-    (:fundingTransactionId, :fundingOutput, :created, :description)\
-    )");
-}
-
-QSqlQuery Wallet::insertSlotQuery() {
-
-    return QSqlQuery("\
-    INSERT INTO Slot \
-    (payerFundingTransactionId, payerFundingOutput, index, slotStateId, price, numberOfPaymentsMade, funds, lockTime, payerContractPrivateKeyId, payerFinalPrivateKeyId, payeeContractPublicKey, payeeFinalPublicKey, refundSignature, lastPaymentSignature, refundFee, paymentFee)\
-    VALUES\
-    (:payerFundingTransactionId, :payerFundingOutput, :index, :slotStateId, :price, :numberOfPaymentsMade, :funds, :lockTime, :payerContractPrivateKeyId, :payerFinalPrivateKeyId, :payeeContractPublicKey, :payeeFinalPublicKey, :refundSignature, :lastPaymentSignature, :refundFee, :paymentFee)\
-    )");
-}
-
-QSqlQuery Wallet::insertSlotStateQuery() {
-
-    return QSqlQuery("\
-    INSERT INTO SlotState \
-    (id, description)\
-    VALUES\
-    (:id, :description)\
-    )");
-}
-
-QSqlQuery Wallet::insertPayeeQuery() {
-
-    return QSqlQuery("\
-    INSERT INTO Payee \
-    (id, payeeStateId, numberOfPaymentsMade, lastValidPayerPaymentSignature, price, funds, maximumNumberOfSellers, payeeContractPrivateKeyId, payeePaymentPrivateKeyId, contractTransaction, contractOutput, payerContractPublicKey, payerFinalPublicKey)\
-    VALUES\
-    (:id, :payeeStateId, :numberOfPaymentsMade, :lastValidPayerPaymentSignature, :price, :funds, :maximumNumberOfSellers, :payeeContractPrivateKeyId, :payeePaymentPrivateKeyId, :contractTransaction, :contractOutput, :payerContractPublicKey, :payerFinalPublicKey)\
-    )");
-}
-
-QSqlQuery Wallet::insertPayeeStateQuery() {
-
-    return QSqlQuery("\
-    INSERT INTO PayeeState \
-    (id, text)\
-    VALUES\
-    (:id, :text)\
-    )");
-}
-
-QSqlQuery Wallet::insertQuery(const ReceiveAddress & receiveAddress) {
-
-    // Get templated key query
-    QSqlQuery query = insertReceiveAddressQuery();
-
-    return query;
-}
-
-QSqlQuery Wallet::insertQuery(const Payer & payer) {
-
-    // Get templated key query
-    QSqlQuery query = insertPayerQuery();
-
-    return query;
-}
-
-QSqlQuery Wallet::insertQuery(const Payee & payee) {
-
-    // Get templated key query
-    QSqlQuery query = insertPayeeQuery();
-
-    return query;
-}
-
-QSqlQuery Wallet::insertQuery(const Slot & slot) {
-
-    // Get templated key query
-    QSqlQuery query = insertSlotQuery();
-
-    return query;
-}
-*/

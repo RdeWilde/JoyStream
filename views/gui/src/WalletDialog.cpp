@@ -8,7 +8,6 @@
 #include <gui/WalletDialog.hpp>
 #include "ui_WalletDialog.h"
 #include <wallet/Wallet.hpp>
-#include <wallet/WalletAddress.hpp>
 #include <common/BitcoinDisplaySettings.hpp>
 #include <common/BitcoinRepresentation.hpp>
 #include <common/P2PKHAddress.hpp>
@@ -20,7 +19,7 @@
 
 //WalletDialog::WalletDialog(QWidget *parent, Wallet * wallet) {}
 
-WalletDialog::WalletDialog(Wallet * wallet,
+WalletDialog::WalletDialog(Manager * wallet,
                            const BitcoinDisplaySettings * settings)
     : ui(new Ui::WalletDialog)
     , _wallet(wallet)
@@ -274,10 +273,10 @@ void WalletDialog::on_receivePushButton_clicked() {
         return;
 
     // Get address
-    WalletAddress walletAddress = _wallet->getReceiveAddress();
+    Coin::P2PKHAddress address = _wallet->getReceiveAddress();
 
     // Get base58check encodi
-    QString encodedAddress = walletAddress.address().toBase58CheckEncoding();
+    QString encodedAddress = address.toBase58CheckEncoding();
 
     // Show address in message box
     QMessageBox msgBox;

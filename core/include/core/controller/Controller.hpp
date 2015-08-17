@@ -38,7 +38,7 @@ class SellerPeerAddedAlert;
 class BuyerPeerAddedAlert;
 class SellerPeerPluginRemovedAlert;
 class BuyerPeerPluginRemovedAlert;
-class Wallet;
+class Manager;
 
 namespace libtorrent {
     class peer_connection;
@@ -460,7 +460,7 @@ public:
     };
 
     // Constructor starting session with given state
-    Controller(const Configuration & configuration, Wallet * wallet, QNetworkAccessManager * manager, QLoggingCategory & category);
+    Controller(const Configuration & configuration, Manager * wallet, QNetworkAccessManager * manager, QLoggingCategory & category);
 
     // Destructor
     ~Controller();
@@ -541,7 +541,7 @@ public:
     quint16 getServerPort() const;
 
     // Returns reference to the wallet
-    Wallet * wallet();
+    Manager * wallet();
 
     // Get view model for given torrent
     const TorrentViewModel * torrentViewModel(const libtorrent::sha1_hash & infoHash) const;
@@ -626,7 +626,7 @@ private:
     libtorrent::session _session;
 
     // Wallet used
-    Wallet * _wallet;
+    Manager * _wallet;
 
     // Logging category
     QLoggingCategory & _category;

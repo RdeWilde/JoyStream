@@ -41,7 +41,7 @@
 #include <QMimeData>
 #include <QLabel>
 
-MainWindow::MainWindow(Controller * controller, Wallet * wallet)
+MainWindow::MainWindow(Controller * controller, Manager * wallet)
     : ui(new Ui::MainWindow)
     , _controller(controller)
     , _wallet(wallet)

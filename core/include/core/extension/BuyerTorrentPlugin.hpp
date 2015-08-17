@@ -16,7 +16,7 @@
 
 #include <queue>          // std::priority_queue
 
-class Wallet;
+class Manager;
 
 namespace Coin {
 class UnspentP2PKHOutput;
@@ -220,7 +220,7 @@ public:
     // Constructor from members
     BuyerTorrentPlugin(Plugin * plugin,
                        const boost::shared_ptr<libtorrent::torrent> & torrent,
-                       Wallet * wallet,
+                       Manager * wallet,
                        const Configuration & configuration,
                        const Coin::UnspentP2PKHOutput & utxo,
                        QLoggingCategory & category);
@@ -337,7 +337,7 @@ private:
     QList<boost::weak_ptr<BuyerPeerPlugin> > _peersScheduledForDeletion;
 
     // Wallet
-    Wallet * _wallet;
+    Manager * _wallet;
 
 
 

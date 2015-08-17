@@ -18,7 +18,6 @@
 #include <QDateTime>
 #include <QByteArray>
 
-class WalletKey;
 class WalletAddress;
 class Payer;
 class Payee;
@@ -26,9 +25,13 @@ class Slot;
 
 namespace Coin {
     enum class Network;
-    //class P2PKHAddress;
+    class P2PKHAddress;
     class Transaction;
     //class KeyPair;   
+}
+
+namespace WalletKey {
+    class Record;
 }
 
 // The number keys in a newly populated key pool
@@ -41,13 +44,13 @@ namespace Coin {
 // Name of database type to use with QSqlDatabase::addDatabas
 #define DATABASE_TYPE "QSQLITE"
 
-class Wallet : public QObject
+class Manager : public QObject
 {
     Q_OBJECT
 public:
 
     // Opens wallet
-    explicit Wallet(const QString & walletFile);
+    explicit Manager(const QString & walletFile);
 
     // Create an empty wallet
     static void createNewWallet(const QString & walletFile, Coin::Network network, const Seed & seed);
@@ -102,20 +105,20 @@ public:
      * Read operations
      */
 
+    // Returns a fresh private key which persists in wallet
+    // **NB: These keys are have no corresponding addresses
+    // which are monitored for inbound/outbound? transactions**
+    Coin::PrivateKey issueKey();
+
     // Generate p2pkh receive address
-    // corresponding to a fresh private
-    WalletAddress getReceiveAddress();
+    // corresponding to a fresh private.
+    Coin::P2PKHAddress getReceiveAddress();
 
     // Returns a list of key pairs, with ordered ascendingly in terms
     // of index.
     // **NB: These keys are have no corresponding addresses
     // which are monitored for inbound/outbound? transactions**
     QList<Coin::KeyPair> issueKeyPairs(quint64 numberOfPairs);
-
-    // Returns a fresh private key which persists in wallet
-    // **NB: These keys are have no corresponding addresses
-    // which are monitored for inbound/outbound? transactions**
-    WalletKey issueKey();
 
     // KEY POOL MANAGMENET: (for the future)
     // Return the given set of keys to key pool.
@@ -199,6 +202,15 @@ private:
 
     // Utxo <== keep as managed state, since it becomes kind of expensive to keep rederiving
     //QMap< outpoint, output> _utxo;
+
+    // Generate p2pkh receive address
+    // corresponding to a fresh private
+    WalletAddress _getReceiveAddress();
+
+    // Returns a fresh private key which persists in wallet
+    // **NB: These keys are have no corresponding addresses
+    // which are monitored for inbound/outbound? transactions**
+    WalletKey::Record _issueKey();
 };
 
 #endif // WALLET_HPP
