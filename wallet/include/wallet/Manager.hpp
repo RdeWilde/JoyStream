@@ -29,6 +29,8 @@ namespace Coin {
     class BlockHeader;
     class Transaction;
     class KeyPair;
+
+    class CoinBlockHeader;
 }
 
 // The number keys in a newly populated key pool
@@ -140,8 +142,11 @@ public:
      * Transactions
      */
 
-    // Adds a block header to wallet, throws exception if it already exists
-    void addBlockHeader(const Coin::BlockHeader & blockHeader);
+    // Adds a block header to wallet, returns true IFF this was successfull (throws exception if it already exists)
+    bool addBlockHeader(const Coin::CoinBlockHeader & blockHeader,
+                        quint64 numberOfTransactions,
+                        bool isOnMainChain,
+                        quint32 totalProofOfWork);
 
     // Add outpoint to wallet, throws exception if it already exists
     void addOutPoint(const Coin::OutPoint & outPoint);
@@ -218,7 +223,7 @@ signals:
      */
 
     // BlockHeader was added through addBlockHeader()
-    void blockHeaderAdded(const Coin::BlockHeader & blockHeader);
+    void blockHeaderAdded(const Coin::CoinBlockHeader & blockHeader);
 
     // OutPoint was added through addOutPoint()
     void outPointAdded(const Coin::OutPoint & outPoint);

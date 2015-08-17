@@ -16,6 +16,10 @@
 class QSqlQuery;
 class QSqlDatabase;
 
+namespace Coin {
+    class CoinBlockHeader;
+}
+
 namespace Wallet {
 namespace BlockHeader {
 
@@ -34,6 +38,12 @@ namespace BlockHeader {
                     quint64 transactionCount,
                     bool isOnMainChain,
                     quint32 totalProofOfWork);
+
+        // Constructor from block header
+        Record(const Coin::CoinBlockHeader & blockHeader,
+               quint64 numberOfTransactions,
+               bool isOnMainChain,
+               quint32 totalProofOfWork);
 
         // Constructor from record
         // BlockHeader(const QSqlRecord & record);

@@ -28,7 +28,7 @@
 #include <wallet/UtxoDestroyed.hpp>
 
 #include <CoinCore/typedefs.h> // bytes_t
-#include <CoinCore/CoinNodeData.h> // Transaction types: outpoints, transactions, ...
+#include <CoinCore/CoinNodeData.h> // Coin::CoinBlockHeader, Transaction types: outpoints, transactions, ...
 
 namespace Wallet {
 
@@ -163,7 +163,6 @@ void Manager::createNewWallet(const QString & walletFile, Coin::Network network,
 
     /**
 
-
       ===============================
       InBoundPayment::createTableQuery(db).exec()
 
@@ -256,9 +255,26 @@ quint64 Manager::numberOfKeysInWallet() {
     return Key::numberOfKeysInWallet(_db);
 }
 
-void Manager::addBlockHeader(const Coin::BlockHeader & blockHeader) {
+bool Manager::addBlockHeader(const Coin::CoinBlockHeader & blockHeader,
+                             quint64 numberOfTransactions,
+                             bool isOnMainChain,
+                             quint32 totalProofOfWork) {
 
-    emit blockHeaderAdded(blockHeader);
+    // Create insert query
+    BlockHeader::Record record(blockHeader,
+                               numberOfTransactions,
+                               isOnMainChain,
+                               totalProofOfWork);
+
+    QSqlQuery query = record.insertQuery(_db);
+    query.exec();
+
+    if(query.lastError().type() != QSqlError::NoError)
+        return false;
+    else {
+        emit blockHeaderAdded(blockHeader);
+        return false;
+    }
 }
 
 void Manager::addOutPut(const Coin::TxOut & txOut) {

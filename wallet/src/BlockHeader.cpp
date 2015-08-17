@@ -6,9 +6,10 @@
  */
 
 #include <wallet/BlockHeader.hpp>
+#include <CoinCore/CoinNodeData.h> // Coin::CoinBlockHeader
 
 #include <QSqlQuery>
-
+#include <QDateTime>
 #include <QVariant> // QSqlQuery::bind needs it
 
 namespace Wallet {
@@ -33,6 +34,22 @@ Record::Record(const Coin::BlockId & blockId,
     , _nonce(nonce)
     , _transactionCount(numberOfTransactions)
     , _totalProofOfWork(totalProofOfWork) {
+}
+
+Record::Record(const Coin::CoinBlockHeader & h,
+               quint64 numberOfTransactions,
+               bool isOnMainChain,
+               quint32 totalProofOfWork)
+    : Record(h.getHashLittleEndian(),
+             h.version(),
+             h.prevBlockHash(),
+             h.merkleRoot(),
+             QDateTime::fromMSecsSinceEpoch(h.timestamp()),
+             h.bits(),
+             h.nonce(),
+             numberOfTransactions,
+             isOnMainChain,
+             totalProofOfWork) {
 }
 
 QSqlQuery Record::insertQuery(QSqlDatabase db) {
