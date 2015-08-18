@@ -11,7 +11,7 @@
 #include <common/PublicKey.hpp>
 #include <common/PrivateKey.hpp>
 
-class QJsonObject;
+//class QJsonObject;
 
 namespace Coin {
 

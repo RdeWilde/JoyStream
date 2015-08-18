@@ -20,7 +20,7 @@
 #include <core/extension/Alert/StartedSellerTorrentPlugin.hpp>
 #include <core/extension/Alert/StartedBuyerTorrentPlugin.hpp>
 #include <core/extension/PluginMode.hpp>
-#include <wallet/Wallet.hpp>
+#include <wallet/Manager.hpp>
 
 #include <boost/shared_ptr.hpp>
 

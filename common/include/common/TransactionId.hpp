@@ -3,7 +3,7 @@
 
 #include <common/UCharArray.hpp>
 
-#define TXID_BYTE_LENGTH 20
+#define TXID_BYTE_LENGTH 32
 
 namespace Coin {
 

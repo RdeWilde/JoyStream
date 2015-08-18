@@ -53,7 +53,7 @@ void Record::setIndex(quint32 index) {
     _index = index;
 }
 
-Output::Record Record::output() const {
+Output::Record Record::outPut() const {
     return _output;
 }
 

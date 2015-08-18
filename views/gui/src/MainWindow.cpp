@@ -25,7 +25,7 @@
 #include <core/extension/SellerTorrentPlugin.hpp>
 #include <common/BitcoinRepresentation.hpp>
 #include <common/BitcoinDisplaySettings.hpp>
-#include <wallet/Wallet.hpp>
+#include <wallet/Manager.hpp>
 
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>

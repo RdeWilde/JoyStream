@@ -6,10 +6,8 @@
  */
 
 #include <common/typesafeOutPoint.hpp>
-//#include <common/Utilities.hpp>
+#include <CoinCore/CoinNodeData.h> // Coin::OutPoint
 
-//#include <QJsonObject>
-//#include <QJsonValue>
 #include <QStringList>
 #include <QHash>
 
@@ -36,30 +34,6 @@ typesafeOutPoint & typesafeOutPoint::operator=(const typesafeOutPoint& o) {
     return *this;
 }
 
-/**
-OutPoint::OutPoint(const QJsonObject & json) {
-
-    // _hash
-    _txId = TxId(Utilities::GET_STRING(json, "hash"));
-
-    // _index
-    _index = Utilities::GET_DOUBLE(json, "index");
-}
-
-QJsonObject OutPoint::json() const {
-    return QJsonObject {
-        {"hash", _txId.toString()},
-        {"index", static_cast<int>(_index)}
-    };
-}
-*/
-
-/*
-bool OutPoint::operator==(const OutPoint & o) {
-    return _txId == o.txId() && _index == o.index();
-}
-*/
-
 bool operator==(const typesafeOutPoint & lhs, const typesafeOutPoint & rhs) {
     return (lhs.transactionId() < rhs.transactionId()) || ((lhs.transactionId() == rhs.transactionId()) && (lhs.index() < rhs.index()));
 }
@@ -68,42 +42,17 @@ bool operator!=(const typesafeOutPoint & lhs, const typesafeOutPoint & rhs) {
     return !(lhs == rhs);
 }
 
-/*
-bool OutPoint::operator<(const OutPoint & o) {
-    return (_txId < o.txId()) || ((_txId == o.txId()) && (_index < o.index()));
-}
-*/
-
 bool operator<(const typesafeOutPoint & lhs, const typesafeOutPoint & rhs) {
     return (lhs.transactionId() < rhs.transactionId()) || ((lhs.transactionId() == rhs.transactionId()) && (lhs.index() < rhs.index()));
 }
-
-/**
-OutPoint::OutPoint(const QString & string) {
-
-    QStringList list = string.split("-");
-
-    if(list.size() != 2)
-        throw new std::runtime_error("Only a single delimiter - should occur in string.");
-
-    // Parse _hash
-    _txId = TxId(list[0]);
-
-    // Parse _index
-    bool ok;
-    QString rightToken = list[1];
-
-    _index = rightToken.toInt(&ok);
-
-    if(!ok)
-        throw new std::runtime_error("Could not convert second token.");
-}
-*/
 
 QString typesafeOutPoint::toString() const {
     return _txId.toHex() + "-" + QString::number(_index);
 }
 
+Coin::OutPoint typesafeOutPoint::getClassicOutPoint() const {
+    return Coin::OutPoint(_txId.toUCharVector(), _index);
+}
 
 TransactionId typesafeOutPoint::transactionId() const {
     return _txId;

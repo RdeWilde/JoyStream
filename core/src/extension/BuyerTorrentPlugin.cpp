@@ -201,7 +201,7 @@ void BuyerTorrentPlugin::Configuration::setNumberOfSellers(quint32 numberOfSelle
 #include <core/extension/PeerPlugin.hpp> // PeerModeAnnounced
 #include <common/UnspentP2PKHOutput.hpp>
 #include <CoinCore/CoinNodeData.h> // Coin::Transaction
-#include <wallet/Wallet.hpp>
+#include <wallet/Manager.hpp>
 
 #include <libtorrent/bt_peer_connection.hpp>
 #include <libtorrent/socket_io.hpp> // print_endpoint

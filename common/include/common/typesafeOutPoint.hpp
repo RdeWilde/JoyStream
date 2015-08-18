@@ -14,6 +14,8 @@
 
 namespace Coin {
 
+class OutPoint;
+
 class typesafeOutPoint
 {
 public:
@@ -47,6 +49,8 @@ public:
     typesafeOutPoint(const QString & string);
 
     QString toString() const;
+
+    Coin::OutPoint getClassicOutPoint() const;
 
     // Getters and setters
     TransactionId transactionId() const;

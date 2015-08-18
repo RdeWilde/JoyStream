@@ -32,7 +32,6 @@ HEADERS += \
     include/wallet/OutPoint.hpp \
     include/wallet/Input.hpp \
     include/wallet/TransactionHasInput.hpp \
-    include/wallet/Output.hpp \
     include/wallet/TransactionHasOutput.hpp \
     include/wallet/InBoundPayment.hpp \
     include/wallet/OutBoundPayment.hpp \
@@ -43,7 +42,8 @@ HEADERS += \
     include/wallet/Address.hpp \
     include/wallet/Utilities.hpp \
     include/wallet/UtxoCreated.hpp \
-    include/wallet/UtxoDestroyed.hpp
+    include/wallet/UtxoDestroyed.hpp \
+    include/wallet/Output.hpp
 
 SOURCES += \
     src/Payee.cpp \
@@ -56,7 +56,6 @@ SOURCES += \
     src/OutPoint.cpp \
     src/Input.cpp \
     src/TransactionHasInput.cpp \
-    src/Output.cpp \
     src/TransactionHasOutput.cpp \
     src/InBoundPayment.cpp \
     src/OutBoundPayment.cpp \
@@ -67,7 +66,8 @@ SOURCES += \
     src/Address.cpp \
     src/Utilities.cpp \
     src/UtxoCreated.cpp \
-    src/UtxoDestroyed.cpp
+    src/UtxoDestroyed.cpp \
+    src/Output.cpp
 
 # common ###############################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../common/release/ -lcommon

@@ -9,7 +9,7 @@
 #include <core/extension/Plugin.hpp>
 #include <core/extension/PluginMode.hpp>
 #include <core/extension/SellerPeerPlugin.hpp>
-#include <wallet/Wallet.hpp>
+#include <wallet/Manager.hpp>
 
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/peer_connection.hpp>
@@ -175,7 +175,7 @@ PluginMode SellerTorrentPlugin::Configuration::pluginMode() const {
 #include <core/extension/Alert/SellerPeerAddedAlert.hpp>
 #include <core/extension/Alert/SellerPeerPluginRemovedAlert.hpp>
 
-#include <wallet/Wallet.hpp>
+#include <wallet/Manager.hpp>
 #include <CoinCore/CoinNodeData.h>
 
 SellerTorrentPlugin::SellerTorrentPlugin(Plugin * plugin,

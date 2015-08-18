@@ -149,16 +149,16 @@ public:
                         quint32 totalProofOfWork);
 
     // Add outpoint to wallet, throws exception if it already exists
-    void addOutPoint(const Coin::OutPoint & outPoint);
-
-    // Add output to wallet, throws exception if it already exists
-    void addOutPut(const Coin::TxOut & txOut);
+    bool addOutPoint(const Coin::OutPoint & outPoint);
 
     // Add input to wallet, throws exception if it already exists
-    void addInput(const Coin::TxIn & txIn);
+    bool addInput(const Coin::TxIn & txIn);
+
+    // Add output to wallet, throws exception if it already exists
+    bool addOutput(const Coin::TxOut & txOut);
 
     // Add transaction to wallet, throws exception if it already exists
-    void addTransaction(const Coin::Transaction & transaction);
+    bool addTransaction(const Coin::Transaction & transaction);
 
     // Tries to recover the transaction with the given wallet it
     Coin::Transaction getTransaction(const Coin::TransactionId & transactionId);

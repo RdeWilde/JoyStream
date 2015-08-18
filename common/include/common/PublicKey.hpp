@@ -12,7 +12,7 @@
 #include <common/PubKeyHash.hpp>
 
 #define COMPRESSED_PUBLIC_KEY_BYTE_LENGTH 33
-#define UNCOMPRESSED_PUBLIC_KEY_BYTE_LENGTH 33
+#define UNCOMPRESSED_PUBLIC_KEY_BYTE_LENGTH 65
 
 namespace Coin {
 

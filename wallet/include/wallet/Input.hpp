@@ -24,6 +24,8 @@ namespace Input {
         // Constructor for members
         Record(const OutPoint::Record & outPoint, const QByteArray & scriptSig, quint32 sequenc);
 
+
+
         // Constructor from record
         // Input(const QSqlRecord & record);
 

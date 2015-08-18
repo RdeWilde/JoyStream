@@ -21,7 +21,7 @@ namespace TransactionHasOutput {
     public:
 
         // Construct from members
-        Record(const Coin::TransactionId & transactionId, quint32 index, const Output::Record & output);
+        Record(const Coin::TransactionId & transactionId, quint32 index, const Output::Record & outPut);
 
         // Constructor from record
         // Record(const QSqlRecord & record);
@@ -36,8 +36,8 @@ namespace TransactionHasOutput {
         quint32 index() const;
         void setIndex(quint32 index);
 
-        Output::Record output() const;
-        void setOutput(const Output::Record & output);
+        Output::Record outPut() const;
+        void setOutput(const Output::Record & outPut);
 
     private:
 

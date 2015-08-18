@@ -1029,7 +1029,7 @@ void Controller::Configuration::setLibtorrentSessionSettingsEntry(const libtorre
 #include <core/extension/Request/StartBuyerTorrentPlugin.hpp>
 #include <core/extension/Request/StartObserverTorrentPlugin.hpp>
 #include <core/extension/Request/ChangeDownloadLocation.hpp>
-#include <wallet/Wallet.hpp>
+#include <wallet/Manager.hpp>
 
 #include <libtorrent/alert_types.hpp>
 #include <libtorrent/error_code.hpp>

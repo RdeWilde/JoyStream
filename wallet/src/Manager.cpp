@@ -266,9 +266,11 @@ bool Manager::addBlockHeader(const Coin::CoinBlockHeader & blockHeader,
                                isOnMainChain,
                                totalProofOfWork);
 
+    // Execute query
     QSqlQuery query = record.insertQuery(_db);
     query.exec();
 
+    // Check if insert was successful
     if(query.lastError().type() != QSqlError::NoError)
         return false;
     else {
@@ -277,22 +279,72 @@ bool Manager::addBlockHeader(const Coin::CoinBlockHeader & blockHeader,
     }
 }
 
-void Manager::addOutPut(const Coin::TxOut & txOut) {
+bool Manager::addOutPoint(const Coin::OutPoint & outPoint) {
+
+    // Create insert query
+    OutPoint::Record record(outPoint);
+
+    // Execute query
+    QSqlQuery query = record.insertQuery(_db);
+    query.exec();
+
+    // Check if insert was successful
+    if(query.lastError().type() != QSqlError::NoError)
+        return false;
+    else {
+        emit outPointAdded(outPoint);
+        return false;
+    }
+}
+
+bool Manager::addInput(const Coin::TxIn & txIn) {
+
+    /**
+    // Try to add input?
+
+    // Create insert query
+    Input::Record record(r, txIn);
+
+    // Execute query
+    QSqlQuery query = record.insertQuery(_db);
+    query.exec();
+
+    // Check if insert was successful
+    if(query.lastError().type() != QSqlError::NoError)
+        return false;
+    else {
+        emit inputAdded(txIn);
+        return false;
+    }
+    */
+
+    return false;
+}
+
+bool Manager::addOutput(const Coin::TxOut & txOut) {
+
+    // Create insert query
+    Output::Record record(txIn);
+
+    // Execute query
+    QSqlQuery query = record.insertQuery(_db);
+    query.exec();
+
+    // Check if insert was successful
+    if(query.lastError().type() != QSqlError::NoError)
+        return false;
+    else {
+        emit inputAdded(txIn);
+        return false;
+    }
+
 
     emit outPutAdded(txOut);
+
+    return true;
 }
 
-void Manager::addOutPoint(const Coin::OutPoint & outPoint) {
-
-    emit outPointAdded(outPoint);
-}
-
-void Manager::addInput(const Coin::TxIn & txIn) {
-
-    emit inputAdded(txIn);
-}
-
-void Manager::addTransaction(const Coin::Transaction & transaction) {
+bool Manager::addTransaction(const Coin::Transaction & transaction) {
 
     // - check that transaction does not exist
     //  -- create record
@@ -300,6 +352,7 @@ void Manager::addTransaction(const Coin::Transaction & transaction) {
     // - kkk
 
     emit transactionAdded(transaction);
+    return true;
 }
 
 Coin::Transaction Manager::getTransaction(const Coin::TransactionId & transactionId) {
