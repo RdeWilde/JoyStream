@@ -9,6 +9,7 @@
 #define WALLET_OUTPUT_HPP
 
 #include <QByteArray>
+#include <QVariant>
 
 class QSqlQuery;
 class QSqlDatabase;
@@ -16,49 +17,45 @@ class QSqlDatabase;
 namespace Wallet {
 namespace Output {
 
+    struct PK {
+
+        PK();
+        PK(quint64 value, const QByteArray & scriptPubKey);
+
+        // Number of satoshies in output
+        quint64 _value;
+
+        // Serialized output script
+        QByteArray _scriptPubKey;
+    };
+
     struct Record {
 
-        struct PK {
-
-            PK();
-            PK(quint64 value, const QByteArray & pubKeyScript);
-
-            // Number of satoshies in output
-            quint64 _value;
-
-            // Serialized output script
-            QByteArray _pubKeyScript;
-        };
-
         Record();
-        Record(const PK & pk, quint64 keyIndex);
-
+        Record(const PK & pk, const QVariant & keyIndex);
         // Output(const QSqlRecord & record);
-
-        // Prepared insert query
-        QSqlQuery insertQuery(QSqlDatabase db);
 
         // Primary key
         PK _pk;
 
         // Address to which this address corresponds
-        // QVariant is used over quint64 to support null values
+        // QVariant is used over quint64 to support NULL values
         // since column can hold null values
-        quint64 _keyIndex;
+        //quint64 _keyIndex;
+        QVariant _keyIndex;
     };
 
-    // Query which creates table corresponding to entity
-    QSqlQuery createTable(QSqlDatabase db);
+    // Creates table, returns true IFF it worked
+    bool createTable(QSqlDatabase & db);
 
-    // (Unbound) Query which inserts wallet key record into correspodning table
-    QSqlQuery unBoundedInsertQuery(QSqlDatabase db);
+    // Insert
+    bool insert(QSqlDatabase & db, const Record & record);
 
     // Whether record with given private key exists
-    bool exists(QSqlDatabase & db, const Record::PK & pk, Record & r);
-    bool exists(QSqlDatabase & db, const Record::PK & pk);
+    bool exists(QSqlDatabase & db, const PK & pk, Record & r);
+    bool exists(QSqlDatabase & db, const PK & pk);
 
 }
 }
 
 #endif // WALLET_OUTPUT_HPP
-

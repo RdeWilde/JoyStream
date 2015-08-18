@@ -33,6 +33,8 @@
 #include <CoinCore/CoinNodeData.h> // Coin::CoinBlockHeader, Transaction types: outpoints, transactions, ...
 #include <CoinQ/CoinQ_script.h> // getAddressForTxOutScript
 
+#include <QString>
+
 namespace Wallet {
 
 Manager::Manager(const QString & walletFile)
@@ -329,35 +331,27 @@ bool Manager::addOutput(const Coin::TxOut & txOut) {
     Address::Record record;
     bool exists = Manager::getAddressForOutput(txOut, record);
 
-    // Create output primary key
+    // Create primary key for output
+    Output::PK pk(txOut.value, Coin::toByteArray(txOut.scriptPubKey));
 
+    if(Output::exists(_db, pk)) {
 
-    // We are done ifit already exists ...
-
-
-    /**
-
-    // Is there a wallet key with this
-    quint64 keyIndex = ...();
-
-    // Create insert query
-    Output::Record record(Output::Record::PK(txOut.value, txOut.scriptPubKey), keyIndex);
-
-    // Execute query
-    QSqlQuery query = record.insertQuery(_db);
-    query.exec();
-
-    // Check if insert was successful
-    if(query.lastError().type() != QSqlError::NoError)
-        return false;
-    else {
-        emit outputAdded(txOut);
+        Q_ASSERT(exists); // output exists => outpoint exists
+        _mutex.unlock();
         return false;
     }
 
-    emit outputAdded(txOut);
-    */
+    // Create output record
+    Output::Record outputRecord(pk, exists ? QVariant(record._keyIndex) : QVariant());
 
+    // Insert it
+    bool ok = Output::insert(_db, outputRecord);
+    Q_ASSERT(ok);
+
+    // Signal event
+    emit outputAdded(txOut);
+
+    _mutex.unlock();
     return true;
 }
 
@@ -530,11 +524,13 @@ Key::Record Manager::_issueKey() {
 bool Manager::getAddressForOutput(const Coin::TxOut & txOut, Address::Record & record) {
 
     // Deduce address from output script
-    std::string base58CheckEncodedAddress = CoinQ::Script::getAddressForTxOutScript(txOut.scriptPubKey, Coin::networkToAddressVersions(_network));
-    Coin::P2PKHAddress address = Coin::P2PKHAddress::fromBase58CheckEncoding(base58CheckEncodedAddress);
+    QString base58CheckEncodedString = QString::fromStdString(CoinQ::Script::getAddressForTxOutScript(txOut.scriptPubKey, Coin::networkToAddressVersions(_network)));
+
+    // Get address from base58checkencoded string
+    Coin::P2PKHAddress address = Coin::P2PKHAddress::fromBase58CheckEncoding(base58CheckEncodedString);
     Q_ASSERT(address.network() == _network);
 
-    return Address::exists(_db, address, record);
+    return Address::findFromAddress(_db, address, record);
 }
 
 }

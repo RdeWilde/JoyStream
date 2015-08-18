@@ -22,23 +22,13 @@ namespace OuputFundsPayer { // Many-to-many association entity
     public:
 
         // Constructor from members
-        Record(quint64 value, const QByteArray & pubKeyScript, quint64 _payerId);
+        Record(quint64 value, const QByteArray & scriptPubKey, quint64 _payerId);
 
         // Constructor from record
         // Record(const QSqlRecord & record);
 
         // Query inserting this wallet key into corresponding table
         QSqlQuery insertQuery(QSqlDatabase db);
-
-        // Getters and setters
-        quint64 value() const;
-        void setValue(quint64 value);
-
-        QByteArray pubKeyScript() const;
-        void setPubKeyScript(const QByteArray &pubKeyScript);
-
-        quint64 payerId() const;
-        void setPayerId(quint64 payerId);
 
     private:
 
@@ -50,7 +40,7 @@ namespace OuputFundsPayer { // Many-to-many association entity
         quint64 _value;
 
         // Serialized output script
-        QByteArray _pubKeyScript;
+        QByteArray _scriptPubKey;
 
         // dont think we need an index
 

@@ -27,16 +27,4 @@ const unsigned char mainnetAddressVersions[] = {P2PKH_ADDRESS_MAINNET_VERSION_VA
 const unsigned char * networkToAddressVersions(Network network);
 
 }
-
-/**
- * Neither of the two below should really be here... this is a Coin:: utilities
- * ---------- figure out who uses them, and move ---------------
- */
-
-//#include <libtorrent/socket.hpp> // libtorrent::tcp::endpoint
-uint qHash(const libtorrent::tcp::endpoint & endpoint);
-
-//#include <libtorrent/peer_connection.hpp> // libtorrent::peer_request
-//uint qHash(const libtorrent::peer_request & request);
-
 #endif // COIN_UTILITIES_HPP

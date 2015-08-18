@@ -24,7 +24,7 @@ Record::PK::PK(const Coin::TransactionId & transactionId, quint32 index)
 Record::Record() {
 }
 
-Record::Record(const PK & pk, const Output::Record::PK & output)
+Record::Record(const PK & pk, const Output::PK & output)
     : _pk(pk)
     , _output(output) {
 }
@@ -38,10 +38,10 @@ QSqlQuery createTable(QSqlDatabase db) {
         "transactionId   BLOB, "
         "[index]         INTEGER, "
         "value           INTEGER     NOT NULL, "
-        "pubKeyScript    BLOB        NOT NULL, "
+        "scriptPubKey    BLOB        NOT NULL, "
         "PRIMARY KEY(transactionId, [index]), "
         "FOREIGN KEY(transactionId) REFERENCES [Transaction](transactionId), "
-        "FOREIGN KEY(value, pubKeyScript) REFERENCES Output(value, pubKeyScript) "
+        "FOREIGN KEY(value, scriptPubKey) REFERENCES Output(value, scriptPubKey) "
     ")");
 
     return query;
@@ -56,7 +56,7 @@ QSqlQuery Record::insertQuery(QSqlDatabase db) {
     query.bindValue(":transactionId", _pk._transactionId.toByteArray());
     query.bindValue(":index", _pk._index);
     query.bindValue(":value",  _output._value);
-    query.bindValue(":pubKeyScript", _output._pubKeyScript);
+    query.bindValue(":scriptPubKey", _output._scriptPubKey);
 
     return query;
 }
@@ -67,9 +67,9 @@ QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
 
     query.prepare(
     "INSERT INTO TransactionHasOutput "
-        "(transactionId, [index], value, pubKeyScript)"
+        "(transactionId, [index], value, scriptPubKey)"
     "VALUES "
-        "(:transactionId, :index, :value, :pubKeyScript)");
+        "(:transactionId, :index, :value, :scriptPubKey)");
 
     return query;
 }

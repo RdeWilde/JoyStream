@@ -13,9 +13,9 @@
 namespace Wallet {
 namespace OuputFundsPayer {
 
-Record::Record(quint64 value, const QByteArray & pubKeyScript, quint64 payerId)
+Record::Record(quint64 value, const QByteArray & scriptPubKey, quint64 payerId)
     : _value(value)
-    , _pubKeyScript(pubKeyScript)
+    , _scriptPubKey(scriptPubKey)
     , _payerId(payerId){
 
 }
@@ -27,36 +27,11 @@ QSqlQuery Record::insertQuery(QSqlDatabase db) {
 
     // Bind values to query fields
     query.bindValue(":value", _value);
-    query.bindValue(":pubKeyScript", _pubKeyScript);
+    query.bindValue(":scriptPubKey", _scriptPubKey);
     query.bindValue(":payerId", _payerId);
 
     return query;
 }
-
-quint64 Record::value() const {
-    return _value;
-}
-
-void Record::setValue(quint64 value) {
-    _value = value;
-}
-
-QByteArray Record::pubKeyScript() const {
-    return _pubKeyScript;
-}
-
-void Record::setPubKeyScript(const QByteArray & pubKeyScript) {
-    _pubKeyScript = pubKeyScript;
-}
-
-quint64 Record::payerId() const {
-    return _payerId;
-}
-
-void Record::setPayerId(quint64 payerId) {
-    _payerId = payerId;
-}
-
 
 QSqlQuery createTableQuery(QSqlDatabase db) {
 
@@ -65,9 +40,9 @@ QSqlQuery createTableQuery(QSqlDatabase db) {
     query.prepare(
     "CREATE TABLE OuputFundsPayer ( "
         "value           INTEGER, "
-        "pubKeyScript    BLOB, "
+        "scriptPubKey    BLOB, "
         "payerId         INTEGER, "
-        "PRIMARY KEY(value, pubKeyScript, payerId), "
+        "PRIMARY KEY(value, scriptPubKey, payerId), "
         "FOREIGN KEY payerId REFERENCES Payer(id) "
     ")");
 
@@ -80,9 +55,9 @@ QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
 
     query.prepare(
     "INSERT INTO Payer "
-        "(value, pubKeyScript, payerId) "
+        "(value, scriptPubKey, payerId) "
     "VALUES "
-        "(:value, :pubKeyScript, :payerId) "
+        "(:value, :scriptPubKey, :payerId) "
     );
 
     return query;

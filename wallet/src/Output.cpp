@@ -8,75 +8,74 @@
 #include <wallet/Output.hpp>
 
 #include <QSqlQuery>
+#include <QSqlError>
 #include <QVariant> // QSqlQuery::bind needs it
 
 namespace Wallet {
 namespace Output {
 
-Record::PK::PK() {
+PK::PK() {
 }
 
-Record::PK::PK(quint64 value, const QByteArray & pubKeyScript)
+PK::PK(quint64 value, const QByteArray & scriptPubKey)
     : _value(value)
-    , _pubKeyScript(pubKeyScript) {
+    , _scriptPubKey(scriptPubKey) {
 }
 
 Record::Record() {
 }
 
-Record::Record(const PK & pk, quint64 keyIndex)
+Record::Record(const PK & pk, const QVariant & keyIndex)
     : _pk(pk)
     , _keyIndex(keyIndex) {
 }
 
-QSqlQuery Record::insertQuery(QSqlDatabase db) {
-
-    // Get templated query
-    QSqlQuery query = unBoundedInsertQuery(db);
-
-    // bind wallet key values
-    query.bindValue(":value", _pk._value);
-    query.bindValue(":pubKeyScript", _pk._pubKeyScript);
-    query.bindValue(":keyIndex", _keyIndex);
-
-    return query;
-}
-
-QSqlQuery createTable(QSqlDatabase db)  {
+bool createTable(QSqlDatabase & db)  {
 
     QSqlQuery query(db);
 
     query.prepare(
     "CREATE TABLE Output ( "
         "value           INTEGER, "
-        "pubKeyScript    BLOB, "
+        "scriptPubKey    BLOB, "
         "keyIndex        INTEGER     NOT NULL, "
-        "PRIMARY KEY(value, pubKeyScript), "
+        "PRIMARY KEY(value, scriptPubKey), "
         "FOREIGN KEY(keyIndex) REFERENCES Address(keyIndex) "
     ")");
 
-    return query;
+    query.exec();
+
+    return (query.lastError().type() == QSqlError::NoError);
 }
 
-QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
 
+bool insert(QSqlDatabase & db, const Record & record) {
+
+    // Prepare insert query
     QSqlQuery query(db);
 
     query.prepare(
     "INSERT INTO Output "
-        "(value, pubKeyScript, keyIndex) "
+        "(value, scriptPubKey, keyIndex) "
     "VALUES "
-        "(:value, :pubKeyScript, :keyIndex) "
+        "(:value, :scriptPubKey, :keyIndex) "
     );
 
-    return query;
+    // bind wallet key values
+    query.bindValue(":value", record._pk._value);
+    query.bindValue(":scriptPubKey", record._pk._scriptPubKey);
+    query.bindValue(":keyIndex", record._keyIndex);
+
+    query.exec();
+
+    return (query.lastError().type() == QSqlError::NoError);
 }
 
-bool exists(QSqlDatabase & db, const Record::PK & pk, Record & r) {
+bool exists(QSqlDatabase & db, const PK & pk, Record & r) {
     throw std::runtime_error("not implemented");
 }
 
-bool exists(QSqlDatabase & db, const Record::PK & pk) {
+bool exists(QSqlDatabase & db, const PK & pk) {
     Record r;
     return exists(db, pk, r);
 }

@@ -31,7 +31,7 @@ namespace TransactionHasOutput {
         };
 
         Record();
-        Record(const PK & pk, const Output::Record::PK & output);
+        Record(const PK & pk, const Output::PK & output);
 
         // Constructor from record
         // Record(const QSqlRecord & record);
@@ -43,7 +43,7 @@ namespace TransactionHasOutput {
         PK _pk;
 
         // Input in transaction
-        Output::Record::PK _output;
+        Output::PK _output;
     };
 
     // Query which creates table corresponding to entity

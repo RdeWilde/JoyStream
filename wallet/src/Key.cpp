@@ -31,20 +31,6 @@ Record::Record(PK index,
     , _issued(issued) {
 }
 
-/**
-Purpose Record::purpose() const {
-    return _purpose;
-}
-
-void Record::setPurpose(Purpose purpose) {
-    _purpose = purpose;
-}
-*/
-
-/**
- * Wallet::Key
- */
-
 bool createTable(QSqlDatabase db) {
 
     QSqlQuery query(db);

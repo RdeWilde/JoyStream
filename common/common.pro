@@ -46,7 +46,8 @@ HEADERS += \
     include/common/Payment.hpp \
     include/common/P2SHAddress.hpp \
     include/common/PubKeyHash.hpp \
-    include/common/Seed.hpp
+    include/common/Seed.hpp \
+    include/common/LibtorrentUtilities.hpp
 
 SOURCES += \
     src/DataSizeRepresentation.cpp \
@@ -65,4 +66,5 @@ SOURCES += \
     src/typesafeOutPoint.cpp \
     src/Payment.cpp \
     src/P2SHAddress.cpp \
-    src/Seed.cpp
+    src/Seed.cpp \
+    src/LibtorrentUtilities.cpp
