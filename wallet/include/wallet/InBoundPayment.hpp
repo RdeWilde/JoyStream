@@ -17,9 +17,7 @@ class QSqlDatabase;
 namespace Wallet {
 namespace InBoundPayment {
 
-    class Record {
-
-    public:
+    struct Record {
 
         // Construct from members
         Record(quint64 id, quint64 receiveAddressWalletKeyIndex, const QString & note, const QDateTime & created);
@@ -29,21 +27,6 @@ namespace InBoundPayment {
 
         // Query inserting this wallet key into corresponding table
         QSqlQuery insertQuery(QSqlDatabase db);
-
-        // Getters and setters
-        quint64 paymentId() const;
-        void setPaymentId(quint64 paymentId);
-
-        quint64 receiveAddressWalletKeyIndex() const;
-        void setReceiveAddressWalletKeyIndex(quint64 receiveAddressWalletKeyIndex);
-
-        QString note() const;
-        void setNote(const QString & note);
-
-        QDateTime created() const;
-        void setCreated(const QDateTime & created);
-
-    private:
 
         // Payment identifier
         quint64 _id;
@@ -63,6 +46,12 @@ namespace InBoundPayment {
 
     // (Unbound) Query which inserts wallet key record into correspodning table
     QSqlQuery unBoundedInsertQuery(QSqlDatabase db);
+
+    /**
+    // Checks whether record exists with given primary key, if so, it is written to r
+    bool exists(QSqlDatabase db, const Record::PK & pk, Record & r);
+    bool exists(QSqlDatabase db, const Record::PK & pk);
+    */
 
 }
 }

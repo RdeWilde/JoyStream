@@ -13,55 +13,23 @@
 namespace Wallet {
 namespace TransactionHasOutput {
 
-// Construct from members
-Record::Record(const Coin::TransactionId & transactionId, quint32 index, const Output::Record & output)
+Record::PK::PK() {
+}
+
+Record::PK::PK(const Coin::TransactionId & transactionId, quint32 index)
     : _transactionId(transactionId)
-    , _index(index)
+    , _index(index) {
+}
+
+Record::Record() {
+}
+
+Record::Record(const PK & pk, const Output::Record::PK & output)
+    : _pk(pk)
     , _output(output) {
 }
 
-// Constructor from record
-// Record(const QSqlRecord & record);
-
-QSqlQuery Record::insertQuery(QSqlDatabase db) {
-
-    // Get templated query
-    QSqlQuery query = unBoundedInsertQuery(db);
-
-    // Bind values to query fields
-    query.bindValue(":transactionId", _transactionId.toByteArray());
-    query.bindValue(":index", _index);
-    query.bindValue(":value",  _output.value());
-    query.bindValue(":pubKeyScript", _output.pubKeyScript());
-
-    return query;
-}
-
-Coin::TransactionId Record::transactionId() const {
-    return _transactionId;
-}
-
-void Record::setTransactionId(const Coin::TransactionId & transactionId) {
-    _transactionId = transactionId;
-}
-
-quint32 Record::index() const {
-    return _index;
-}
-
-void Record::setIndex(quint32 index) {
-    _index = index;
-}
-
-Output::Record Record::outPut() const {
-    return _output;
-}
-
-void Record::setOutput(const Output::Record & output) {
-    _output = output;
-}
-
-QSqlQuery createTableQuery(QSqlDatabase db) {
+QSqlQuery createTable(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -79,6 +47,20 @@ QSqlQuery createTableQuery(QSqlDatabase db) {
     return query;
 }
 
+QSqlQuery Record::insertQuery(QSqlDatabase db) {
+
+    // Get templated query
+    QSqlQuery query = unBoundedInsertQuery(db);
+
+    // Bind values to query fields
+    query.bindValue(":transactionId", _pk._transactionId.toByteArray());
+    query.bindValue(":index", _pk._index);
+    query.bindValue(":value",  _output._value);
+    query.bindValue(":pubKeyScript", _output._pubKeyScript);
+
+    return query;
+}
+
 QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
@@ -90,6 +72,15 @@ QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
         "(:transactionId, :index, :value, :pubKeyScript)");
 
     return query;
+}
+
+bool exists(QSqlDatabase & db, const Record::PK & pk, Record & r) {
+    throw std::runtime_error("not implemented");
+}
+
+bool exists(QSqlDatabase & db, const Record::PK & pk) {
+    Record r;
+    return exists(db, pk, r);
 }
 
 }

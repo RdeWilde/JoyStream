@@ -21,43 +21,12 @@ namespace Coin {
 namespace Wallet {
 namespace OutPoint {
 
-    class Record {
+    struct PK {
 
-    public:
+        PK();
+        PK(const Coin::TransactionId & transactionId, quint32 outputIndex);
+        PK(const Coin::OutPoint & o);
 
-        struct PK {
-
-            // Transaction id
-            Coin::TransactionId _transactionId;
-            // Had to use this nasty work around since mSIGNA is not type safe
-            //unsigned char _hash[TXID_BYTE_LENGTH];
-
-            // Index of transaction output
-            quint32 _outputIndex;
-
-        };
-
-        /**
-        // Constructor from members
-        Record(const Coin::TransactionId & transactionId, quint32 outputIndex);
-        */
-
-        // Constructor from outpoints
-        Record(const Coin::OutPoint & o);
-
-        // Query inserting this wallet key into corresponding table
-        QSqlQuery insertQuery(QSqlDatabase db);
-
-        // Getters and setters
-        Coin::TransactionId transactionId() const;
-        void setTransactionId(const Coin::TransactionId & transactionId);
-
-        quint32 outputIndex() const;
-        void setOutputIndex(quint32 outputIndex);
-
-    private:
-
-        /**
         // Transaction id
         Coin::TransactionId _transactionId;
         // Had to use this nasty work around since mSIGNA is not type safe
@@ -65,17 +34,26 @@ namespace OutPoint {
 
         // Index of transaction output
         quint32 _outputIndex;
-        */
+    };
+
+    struct Record {
+
+        Record();
+        Record(const PK & pk);
 
         // Primary key
         PK _pk;
     };
 
-    // Query which creates table corresponding to entity
-    QSqlQuery createTableQuery(QSqlDatabase db);
+    // Create table, returns true IFF it worked
+    bool createTable(QSqlDatabase db);
 
-    // (Unbound) Query which inserts wallet key record into correspodning table
-    QSqlQuery unBoundedInsertQuery(QSqlDatabase db);
+    // Insert into table, returns true IFF it worked
+    bool insert(QSqlDatabase db, const Record & record);
+
+    // Checks whether record exists with given primary key, if so, it is written to r
+    bool exists(QSqlDatabase db, const PK & pk, Record & r);
+    bool exists(QSqlDatabase db, const PK & pk);
 
 }
 }

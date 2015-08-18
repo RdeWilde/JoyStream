@@ -8,6 +8,7 @@
 #ifndef WALLET_ADDRESS_HPP
 #define WALLET_ADDRESS_HPP
 
+#include <wallet/Key.hpp>
 #include <common/P2PKHAddress.hpp>
 
 class QSqlQuery;
@@ -17,44 +18,36 @@ class QSqlRecord;
 namespace Wallet {
 namespace Address {
 
-    class Record {
+    // Primary key
+    typedef Key::PK PK;
 
-    public:
+    struct Record {
 
-        // Constructor from members
-        Record(quint64 keyIndex, const Coin::P2PKHAddress & address);
-
-        // Constructor from record
+        Record();
+        Record(PK keyIndex, const Coin::P2PKHAddress & address);
         Record(const QSqlRecord & record);
 
-        // Query inserting this wallet key into corresponding table
-        QSqlQuery insertQuery(QSqlDatabase db);
 
-        // Getters and setters
-        quint64 keyIndex() const;
-        void setKeyIndex(quint64 keyIndex);
-
-        Coin::P2PKHAddress address() const;
-        void setAddress(const Coin::P2PKHAddress & address);
-
-    private:
 
         // Index of wallet key to which this address corresponds
-        quint64 _keyIndex;
+        PK _keyIndex;
 
-        // Address
+        // Address (is unique)
         Coin::P2PKHAddress _address;
     };
 
-    // Query which creates table corresponding to entity
-    QSqlQuery createTableQuery(QSqlDatabase db);
-
-    // (Unbound) Query which inserts wallet key record into correspodning table
-    QSqlQuery unboundedInsertQuery(QSqlDatabase db);
+    bool createTable(QSqlDatabase db);
+    bool insert(QSqlDatabase db, const Record & record);
 
     // Lists all addresses in wallet
     QList<Record> allRecords(QSqlDatabase db);
 
+    // Checks whether record exists with given primary key, if so, it is written to r
+    bool exists(QSqlDatabase & db, const PK & pk, Record & r);
+    bool exists(QSqlDatabase & db, const PK & pk);
+
+    // Finds record with given address, returns true IFF it exists, writes result into supplied record r
+    bool findFromAddress(QSqlDatabase & db, const Coin::P2PKHAddress & address, Record & r);
 }
 }
 

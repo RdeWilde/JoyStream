@@ -14,13 +14,16 @@
 namespace Wallet {
 namespace Transaction {
 
-Record::Record(const Coin::TransactionId & transactionId,
+Record::Record(){
+}
+
+Record::Record(const PK & pk,
                 quint32 version,
                 quint32 lockTime,
                 QDateTime seen,
                 const Coin::BlockId & blockId,
                 quint64 fee)
-        : _transactionId(transactionId)
+        : _pk(pk)
         , _version(version)
         , _lockTime(lockTime)
         , _seen(seen)
@@ -31,10 +34,10 @@ Record::Record(const Coin::TransactionId & transactionId,
 QSqlQuery Record::insertQuery(QSqlDatabase db) {
 
     // Get templated query
-    QSqlQuery query = unboundedInsertQuery(db);
+    QSqlQuery query = unBoundedInsertQuery(db);
 
     // Bind values to query fields
-    query.bindValue(":transactionId", _transactionId.toByteArray());
+    query.bindValue(":transactionId", _pk.toByteArray());
     query.bindValue(":version", _version);
     query.bindValue(":lockTime", _lockTime);
     query.bindValue(":seen", _seen.toMSecsSinceEpoch());
@@ -44,7 +47,7 @@ QSqlQuery Record::insertQuery(QSqlDatabase db) {
     return query;
 }
 
-QSqlQuery createTableQuery(QSqlDatabase db) {
+QSqlQuery createTable(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -63,7 +66,7 @@ QSqlQuery createTableQuery(QSqlDatabase db) {
     return query;
 }
 
-QSqlQuery unboundedInsertQuery(QSqlDatabase db) {
+QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -76,7 +79,7 @@ QSqlQuery unboundedInsertQuery(QSqlDatabase db) {
     return query;
 }
 
-Record getTransaction(QSqlDatabase db, const Record::PrimaryKey & PK) {
+Record getTransaction(QSqlDatabase db, const Record::PK & pk) {
     throw std::runtime_error("not implemented");
 }
 
@@ -84,6 +87,14 @@ QList<Record> allTransactions(QSqlDatabase db) {
     throw std::runtime_error("not implemented");
 }
 
+bool exists(QSqlDatabase & db, const Record::PK & pk, Record & r) {
+    throw std::runtime_error("not implemented");
+}
+
+bool exists(QSqlDatabase & db, const Record::PK & pk) {
+    Record r;
+    return exists(db, pk, r);
+}
 
 }
 }

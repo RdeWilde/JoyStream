@@ -232,7 +232,7 @@ signals:
     void inputAdded(const Coin::TxIn & txIn);
 
     // Output was added through addOutPut()
-    void outPutAdded(const Coin::TxOut & txOut);
+    void outputAdded(const Coin::TxOut & txOut);
 
     // Transaction was added through addTransaction()
     void transactionAdded(const Coin::Transaction & transaction);
@@ -302,6 +302,9 @@ private:
     // **NB: These keys are have no corresponding addresses
     // which are monitored for inbound/outbound? transactions**
     Key::Record _issueKey();
+
+    // Determines address in output script and tries to recover record in wallet, if one exists
+    bool getAddressForOutput(const Coin::TxOut & txOut, Address::Record & record);
 };
 
 }

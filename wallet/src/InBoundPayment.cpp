@@ -37,38 +37,6 @@ QSqlQuery Record::insertQuery(QSqlDatabase db) {
     return query;
 }
 
-quint64 Record::paymentId() const {
-    return _id;
-}
-
-void Record::setPaymentId(quint64 id) {
-    _id = id;
-}
-
-quint64 Record::receiveAddressWalletKeyIndex() const {
-    return _receiveAddressWalletKeyIndex;
-}
-
-void Record::setReceiveAddressWalletKeyIndex(quint64 receiveAddressWalletKeyIndex) {
-    _receiveAddressWalletKeyIndex = receiveAddressWalletKeyIndex;
-}
-
-QString Record::note() const {
-    return _note;
-}
-
-void Record::setNote(const QString & note) {
-    _note = note;
-}
-
-QDateTime Record::created() const {
-    return _created;
-}
-
-void Record::setCreated(const QDateTime & created) {
-    _created = created;
-}
-
 QSqlQuery createTableQuery(QSqlDatabase db) {
 
     QSqlQuery query(db);

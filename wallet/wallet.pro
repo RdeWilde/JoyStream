@@ -43,7 +43,8 @@ HEADERS += \
     include/wallet/Utilities.hpp \
     include/wallet/UtxoCreated.hpp \
     include/wallet/UtxoDestroyed.hpp \
-    include/wallet/Output.hpp
+    include/wallet/Output.hpp \
+    include/wallet/NullAble.hpp
 
 SOURCES += \
     src/Payee.cpp \

@@ -1,3 +1,4 @@
+
 /**
  * Copyright (C) JoyStream - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
@@ -8,6 +9,7 @@
 #include <common/Utilities.hpp>
 
 #include <stdutils/uchar_vector.h>
+#include <common/Network.hpp>
 
 #include <QByteArray>
 
@@ -20,6 +22,16 @@ namespace Coin {
 
         // Construct byte array and return it
         return QByteArray(data, raw.size());
+    }
+
+    const unsigned char * networkToAddressVersions(Network network) {
+
+        switch(network) {
+            case Network::testnet3: return testnet3AddressVersions;
+            case Network::mainnet: return mainnetAddressVersions;
+            default:
+                    Q_ASSERT(false);
+        }
     }
 
 }

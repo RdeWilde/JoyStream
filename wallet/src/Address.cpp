@@ -19,7 +19,10 @@ namespace Address {
  * Wallet::Address::Record
  */
 
-Record::Record(quint64 keyIndex, const Coin::P2PKHAddress & address)
+Record::Record() {
+}
+
+Record::Record(PK keyIndex, const Coin::P2PKHAddress & address)
     : _keyIndex(keyIndex)
     , _address(address) {
 }
@@ -35,40 +38,11 @@ Record::Record(const QSqlRecord & record) {
    _address = Coin::P2PKHAddress::fromBase58CheckEncoding(record.value("address").toString());
 }
 
-QSqlQuery Record::insertQuery(QSqlDatabase db) {
-
-    // Get templated query
-    QSqlQuery query = unboundedInsertQuery(db);
-
-    // bind wallet key values
-    uint d = static_cast<uint>(_keyIndex);
-    query.bindValue(":keyIndex", d);
-    query.bindValue(":address", _address.toBase58CheckEncoding());
-
-    return query;
-}
-
-quint64 Record::keyIndex() const {
-    return _keyIndex;
-}
-
-void Record::setKeyIndex(quint64 keyIndex) {
-    _keyIndex = keyIndex;
-}
-
-Coin::P2PKHAddress Record::address() const {
-    return _address;
-}
-
-void Record::setAddress(const Coin::P2PKHAddress & address) {
-    _address = address;
-}
-
 /**
  * Wallet::Address
  */
 
-QSqlQuery createTableQuery(QSqlDatabase db) {
+bool createTable(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -81,11 +55,14 @@ QSqlQuery createTableQuery(QSqlDatabase db) {
         "UNIQUE(address) "
     ")");
 
-    return query;
+    query.exec();
+
+    return (query.lastError().type() == QSqlError::NoError);
 }
 
-QSqlQuery unboundedInsertQuery(QSqlDatabase db) {
+bool insert(QSqlDatabase db, const Record & record) {
 
+    // Create insert query
     QSqlQuery query(db);
 
     query.prepare(
@@ -95,7 +72,14 @@ QSqlQuery unboundedInsertQuery(QSqlDatabase db) {
         "(:keyIndex, :address) "
     );
 
-    return query;
+    // bind wallet key values
+    uint d = static_cast<uint>(record._keyIndex);
+    query.bindValue(":keyIndex", d);
+    query.bindValue(":address", record._address.toBase58CheckEncoding());
+
+    query.exec();
+
+    return (query.lastError().type() == QSqlError::NoError);
 }
 
 
@@ -123,6 +107,42 @@ QList<Record> allRecords(QSqlDatabase db) {
     }
 
     return list;
+}
+
+bool exists(QSqlDatabase & db, const PK & pk, Record & r) {
+    throw std::runtime_error("not implemented");
+}
+
+bool exists(QSqlDatabase & db, const PK & pk) {
+    Record r;
+    return exists(db, pk, r);
+}
+
+bool findFromAddress(QSqlDatabase & db, const Coin::P2PKHAddress & address, Record & r) {
+
+    // Select record with given address field
+    QSqlQuery query(db);
+    query.prepare("SELECT * FROM Address WHERE address = :address");
+    query.bindValue(":address", address.toBase58CheckEncoding());
+    query.exec();
+
+    QSqlError e = query.lastError();
+    Q_ASSERT(e.type() == QSqlError::NoError);
+
+    if(query.size() == 0)
+        return false;
+    else if(query.size() == 1) {
+
+        // Grab record
+        QSqlRecord sqlRecord = query.record();
+
+        // Write record to destination
+        r = Record(sqlRecord);
+
+        return true;
+
+    } else
+        Q_ASSERT(false); // unique field, so at most one result
 }
 
 }

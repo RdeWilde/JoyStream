@@ -13,8 +13,19 @@
 namespace Wallet {
 namespace TransactionHasInput {
 
-Record::Record(const Coin::TransactionId & transactionId, const Input::Record & input)
+Record::PK::PK() {
+}
+
+Record::PK::PK(const Coin::TransactionId & transactionId, quint32 index)
     : _transactionId(transactionId)
+    , _index(index) {
+}
+
+Record::Record() {
+}
+
+Record::Record(const PK & pk, const Input::Record & input)
+    : _pk(pk)
     , _input(input) {
 }
 
@@ -24,43 +35,17 @@ QSqlQuery Record::insertQuery(QSqlDatabase db) {
     QSqlQuery query = unBoundedInsertQuery(db);
 
     // Bind values to query fields
-    query.bindValue(":transactionId", _transactionId.toByteArray());
-    query.bindValue(":index", _index);
-
-    OutPoint::Record outPoint = _input.outPoint();
-    query.bindValue(":outPointTransactionId", outPoint.transactionId().toByteArray());
-    query.bindValue(":outPointOutputIndex", outPoint.outputIndex());
-    query.bindValue(":scriptSig",  _input.scriptSig());
-    query.bindValue(":sequence", _input.sequence());
+    query.bindValue(":transactionId", _pk._transactionId.toByteArray());
+    query.bindValue(":index", _pk._index);
+    query.bindValue(":outPointTransactionId", _input._pk._outPointPK._transactionId.toByteArray());
+    query.bindValue(":outPointOutputIndex", _input._pk._outPointPK._outputIndex);
+    query.bindValue(":scriptSig",  _input._pk._scriptSig);
+    query.bindValue(":sequence", _input._pk._sequence);
 
     return query;
 }
 
-Coin::TransactionId Record::transactionId() const {
-    return _transactionId;
-}
-
-void Record::setTransactionId(const Coin::TransactionId & transactionId) {
-    _transactionId = transactionId;
-}
-
-quint32 Record::index() const {
-    return _index;
-}
-
-void Record::setIndex(quint32 index) {
-    _index = index;
-}
-
-Input::Record Record::input() const {
-    return _input;
-}
-
-void Record::setInput(const Input::Record & input) {
-    _input = input;
-}
-
-QSqlQuery createTableQuery(QSqlDatabase db) {
+QSqlQuery createTable(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -91,6 +76,15 @@ QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
         "(:transactionId, :index, :outPointTransactionId, :outPointOutputIndex, :scriptSig, :sequence) ");
 
     return query;
+}
+
+bool exists(QSqlDatabase & db, const Record::PK & pk, Record & r) {
+    throw std::runtime_error("not implemented");
+}
+
+bool exists(QSqlDatabase & db, const Record::PK & pk) {
+    Record r;
+    return exists(db, pk, r);
 }
 
 }

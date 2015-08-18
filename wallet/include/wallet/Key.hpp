@@ -29,39 +29,22 @@ namespace Key {
     };
     */
 
-    class Record {
+    // Primary key
+    typedef quint64 PK;
 
-    public:
+    struct Record {
 
-        // Contructor from members
-        Record(quint64 index, const Coin::PrivateKey & sk, const QDateTime & generated, bool issued);
+        Record();
+        Record(PK index,
+               const Coin::PrivateKey & sk,
+               const QDateTime & generated,
+               bool issued);
 
         // Constructor from record
         // Record(const QSqlRecord & record);
 
-        // Query inserting this wallet key into corresponding table
-        QSqlQuery insertQuery(QSqlDatabase db);
-
-        // Getters and setters
-        quint64 index() const;
-        void setIndex(quint64 index);
-
-        //Purpose purpose() const;
-        //void setPurpose(Purpose purpose);
-
-        Coin::PrivateKey sk() const;
-        void setSk(const Coin::PrivateKey & sk);
-
-        QDateTime generated() const;
-        void setGenerated(const QDateTime & generated);
-
-        bool issued() const;
-        void setIssued(bool issued);
-
-    private:
-
         // The (hd) index number is wallet
-        quint64 _index;
+        PK _index;
 
         // Private key
         Coin::PrivateKey _sk;
@@ -81,13 +64,12 @@ namespace Key {
     };
 
     // Query which creates table corresponding to entity
-    QSqlQuery createTableQuery(QSqlDatabase db);
+    bool createTable(QSqlDatabase db);
 
-    // (Unbound) Query which inserts wallet key record into correspodning table
-    QSqlQuery unboundedInsertQuery(QSqlDatabase db);
+    // Prepared insert query
+    bool insert(QSqlDatabase db, const Record & r);
 
-    // Finds biggest index in table, throws exception if
-    // table is empty
+    // Finds biggest index in table, throws exception if table is empty
     quint64 maxIndex(QSqlDatabase db);
 
     // Counts the number of keys in the wallet
@@ -96,6 +78,10 @@ namespace Key {
     // Conversion routines
     //static quint8 encodePurpose(Purpose purpose);
     //static Purpose decodePurpose(quint8 encoded);
+
+    // Checks whether record exists with given primary key, if so, it is written to r
+    bool exists(QSqlDatabase & db, const PK & pk, Record & r);
+    bool exists(QSqlDatabase & db, const PK & pk);
 }
 }
 

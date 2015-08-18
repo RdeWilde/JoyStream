@@ -5,8 +5,6 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, July 5 2015
  */
 
-#include <common/Network.hpp>
-#include <common/KeyPair.hpp>
 #include <wallet/Manager.hpp>
 #include <wallet/Key.hpp>
 #include <wallet/Address.hpp>
@@ -27,13 +25,18 @@
 #include <wallet/UtxoCreated.hpp>
 #include <wallet/UtxoDestroyed.hpp>
 
+#include <common/Network.hpp>
+#include <common/KeyPair.hpp>
+#include <common/Utilities.hpp>
+
 #include <CoinCore/typedefs.h> // bytes_t
 #include <CoinCore/CoinNodeData.h> // Coin::CoinBlockHeader, Transaction types: outpoints, transactions, ...
+#include <CoinQ/CoinQ_script.h> // getAddressForTxOutScript
 
 namespace Wallet {
 
 Manager::Manager(const QString & walletFile)
-    : _mutex(QMutex::NonRecursive) // Same thread cannot aquire same lock multiple times
+    : _mutex(QMutex::Recursive) // Same thread CAN aquire same lock multiple times, but must do parity unlocks
     , _walletFile(walletFile)
     , _db(QSqlDatabase::addDatabase(DATABASE_TYPE, QFileInfo(walletFile).fileName()))
     , _latestBlockHeight(0)
@@ -114,52 +117,23 @@ void Manager::createNewWallet(const QString & walletFile, Coin::Network network,
     // Working variables used in each query
     QSqlQuery query;
     QSqlError e;
+    bool ok;
 
     // Key
-    query = Key::createTableQuery(db);
-    query.exec();
-    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+    ok = Key::createTable(db);
+    Q_ASSERT(ok);
 
     // Address
-    query = Address::createTableQuery(db);
-    query.exec();
-    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+    ok = Address::createTable(db);
 
     // BlockHeader
-    query = BlockHeader::createTableQuery(db);
-    query.exec();
-    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
-
-    // OutPoint
-    query = OutPoint::createTableQuery(db);
-    query.exec();
-    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
-
-    // Input
-    query = Input::createTableQuery(db);
-    query.exec();
-    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
-
-    // Output
-    query = Output::createTableQuery(db);
-    query.exec();
-    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
-
-    // Transaction
-    query = Transaction::createTableQuery(db);
-    query.exec();
-    QString text = query.lastError().text();
-    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
-
-    // TransactionHasInput
-    query = TransactionHasInput::createTableQuery(db);
-    query.exec();
-    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
-
-    // TransactionHasOutput
-    query = TransactionHasOutput::createTableQuery(db);
-    query.exec();
-    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+    BlockHeader::createTable(db);
+    OutPoint::createTable(db);
+    Input::createTable(db);
+    Output::createTable(db);
+    Transaction::createTable(db);
+    TransactionHasInput::createTable(db);
+    TransactionHasOutput::createTable(db);
 
     /**
 
@@ -223,11 +197,11 @@ quint64 Wallet::nextHdIndex() {
 */
 
 Coin::PrivateKey Manager::issueKey() {
-    return _issueKey().sk();
+    return _issueKey()._sk;
 }
 
 Coin::P2PKHAddress Manager::getReceiveAddress() {
-    return _createReceiveAddress().address();
+    return _createReceiveAddress()._address;
 }
 
 QList<Coin::KeyPair> Manager::issueKeyPairs(quint64 numberOfPairs) {
@@ -255,76 +229,119 @@ quint64 Manager::numberOfKeysInWallet() {
     return Key::numberOfKeysInWallet(_db);
 }
 
-bool Manager::addBlockHeader(const Coin::CoinBlockHeader & blockHeader,
-                             quint64 numberOfTransactions,
-                             bool isOnMainChain,
-                             quint32 totalProofOfWork) {
+bool Manager::addBlockHeader(const Coin::CoinBlockHeader & blockHeader, quint64 numberOfTransactions, bool isOnMainChain, quint32 totalProofOfWork) {
 
-    // Create insert query
-    BlockHeader::Record record(blockHeader,
-                               numberOfTransactions,
-                               isOnMainChain,
-                               totalProofOfWork);
+    // Create private key to check if record exists
+    BlockHeader::PK pk(blockHeader.getHashLittleEndian());
 
-    // Execute query
-    QSqlQuery query = record.insertQuery(_db);
-    query.exec();
+    // Lock so that checking existence and insertion are atomic
+    _mutex.lock();
 
-    // Check if insert was successful
-    if(query.lastError().type() != QSqlError::NoError)
-        return false;
-    else {
-        emit blockHeaderAdded(blockHeader);
+    // We are done if it already exists
+    if(BlockHeader::exists(_db, pk)) {
+
+        _mutex.unlock();
         return false;
     }
+
+    // Create record
+    BlockHeader::Record record(blockHeader, numberOfTransactions, isOnMainChain, totalProofOfWork);
+
+    // Insert record
+    bool ok = BlockHeader::insert(_db, record);
+    Q_ASSERT(ok);
+
+    // Signal event
+    emit blockHeaderAdded(blockHeader); // drop the extra stuff!!
+
+    _mutex.unlock();
+    return true;
 }
 
 bool Manager::addOutPoint(const Coin::OutPoint & outPoint) {
 
-    // Create insert query
-    OutPoint::Record record(outPoint);
+    // Create private key
+    OutPoint::PK pk(outPoint.getHashLittleEndian(), outPoint.index);
 
-    // Execute query
-    QSqlQuery query = record.insertQuery(_db);
-    query.exec();
+    // Lock so that checking existence and insertion are atomic
+    _mutex.lock();
 
-    // Check if insert was successful
-    if(query.lastError().type() != QSqlError::NoError)
-        return false;
-    else {
-        emit outPointAdded(outPoint);
+    // We are done if it already exists
+    if(OutPoint::exists(_db, pk)) {
+
+        _mutex.unlock();
         return false;
     }
+
+    // Create record
+    OutPoint::Record record(pk);
+
+    // Insert record
+    bool ok = OutPoint::insert(_db, record);
+    Q_ASSERT(ok);
+
+    // Signal event
+    emit outPointAdded(outPoint);
+
+    _mutex.unlock();
+    return true;
 }
 
 bool Manager::addInput(const Coin::TxIn & txIn) {
 
-    /**
-    // Try to add input?
+    // Lets blindly attempt to add outpoint, it may or may not work
+    addOutPoint(txIn.previousOut);
 
-    // Create insert query
-    Input::Record record(r, txIn);
+    // Create private key
+    const char * raw = (const char *)txIn.scriptSig.data();
+    Input::PK pk(txIn.previousOut, QByteArray::fromRawData(raw,txIn.scriptSig.size()), txIn.sequence);
 
-    // Execute query
-    QSqlQuery query = record.insertQuery(_db);
-    query.exec();
+    // Lock so that checking existence and insertion are atomic
+    _mutex.lock();
 
-    // Check if insert was successful
-    if(query.lastError().type() != QSqlError::NoError)
-        return false;
-    else {
-        emit inputAdded(txIn);
+    // We are done if it already exists
+    if(Input::exists(_db, pk)) {
+
+        _mutex.unlock();
         return false;
     }
-    */
 
-    return false;
+    // Create record
+    Input::Record record(pk);
+
+    // Insert it
+    bool ok = Input::insert(_db, record);
+    Q_ASSERT(ok);
+
+    // Signal event
+    emit inputAdded(txIn);
+
+    _mutex.unlock();
+    return true;
 }
 
 bool Manager::addOutput(const Coin::TxOut & txOut) {
 
+    // Lock so that checking existence and insertion are atomic
+    _mutex.lock();
+
+    // Get corresponding record for address corresponding to output script, if it exists
+    Address::Record record;
+    bool exists = Manager::getAddressForOutput(txOut, record);
+
+    // Create output primary key
+
+
+    // We are done ifit already exists ...
+
+
+    /**
+
+    // Is there a wallet key with this
+    quint64 keyIndex = ...();
+
     // Create insert query
-    Output::Record record(txIn);
+    Output::Record record(Output::Record::PK(txOut.value, txOut.scriptPubKey), keyIndex);
 
     // Execute query
     QSqlQuery query = record.insertQuery(_db);
@@ -334,25 +351,51 @@ bool Manager::addOutput(const Coin::TxOut & txOut) {
     if(query.lastError().type() != QSqlError::NoError)
         return false;
     else {
-        emit inputAdded(txIn);
+        emit outputAdded(txOut);
         return false;
     }
 
-
-    emit outPutAdded(txOut);
+    emit outputAdded(txOut);
+    */
 
     return true;
 }
 
 bool Manager::addTransaction(const Coin::Transaction & transaction) {
 
-    // - check that transaction does not exist
-    //  -- create record
-    //  -- insert it
-    // - kkk
+    // Lock so that checking existence and insertion are atomic
+    _mutex.lock();
 
-    emit transactionAdded(transaction);
-    return true;
+    /**
+    if(!Transaction::exists(Record::PK())) {
+
+        // inputs
+        // addInput(const Coin::TxIn & txIn)
+
+        // outputs
+        // addOutput(const Coin::TxOut & txOut)
+
+        // Tx
+
+        // Hasinput
+        // TransactionHasOutput : add hidden routines
+
+        // Has output
+        // TransactionHasInput: add hidden routine
+
+        emit transactionAdded(transaction);
+
+        _mutex.unlock();
+        return true;
+
+    } else {
+        _mutex.unlock();
+        return false;
+    }
+
+    */
+
+    return false;
 }
 
 Coin::Transaction Manager::getTransaction(const Coin::TransactionId & transactionId) {
@@ -433,6 +476,27 @@ void Manager::broadcast(const Coin::Transaction & tx) {
     _mutex.unlock();
 }
 
+Address::Record Manager::_createReceiveAddress() {
+
+    // Generate fresh wallet key
+    Key::Record keyRecord = _issueKey();
+
+    // Get private key
+    Coin::PrivateKey sk = keyRecord._sk;
+
+    // Get corresponding public key
+    Coin::PublicKey pk = sk.toPublicKey();
+
+    // Create wallet address
+    Address::Record addressRecord(keyRecord._index, Coin::P2PKHAddress(_network, pk));
+
+    // Insert into wallet
+    Address::insert(_db, addressRecord);
+
+    return addressRecord;
+}
+
+
 Key::Record Manager::_issueKey() {
 
     /**
@@ -441,25 +505,18 @@ Key::Record Manager::_issueKey() {
      * ==========================================
      */
 
-    Coin::PrivateKey key;
-
     // We aquire lock so we protect our value of _nextIndex
     _mutex.lock();
 
     // Generate a new key by
     bytes_t rawPrivateKey = _keyChain.getPrivateSigningKey(_nextIndex);
-    key = Coin::PrivateKey(rawPrivateKey);
+    Coin::PrivateKey key = Coin::PrivateKey(rawPrivateKey);
 
     // Create wallet key entry
     Key::Record record(_nextIndex, key, QDateTime::currentDateTime(), true);
 
     // Add to table
-    QSqlQuery query = record.insertQuery(_db);
-    query.exec();
-    QSqlError e = query.lastError();
-    Q_ASSERT(e.type() == QSqlError::NoError);
-
-    // Add to key count
+    Key::insert(_db, record);
     Q_ASSERT(_nextIndex == Key::maxIndex(_db));
 
     // Increment to next index
@@ -470,27 +527,14 @@ Key::Record Manager::_issueKey() {
     return record;
 }
 
-Address::Record Manager::_createReceiveAddress() {
+bool Manager::getAddressForOutput(const Coin::TxOut & txOut, Address::Record & record) {
 
-    // Generate fresh wallet key
-    Key::Record keyRecord = _issueKey();
+    // Deduce address from output script
+    std::string base58CheckEncodedAddress = CoinQ::Script::getAddressForTxOutScript(txOut.scriptPubKey, Coin::networkToAddressVersions(_network));
+    Coin::P2PKHAddress address = Coin::P2PKHAddress::fromBase58CheckEncoding(base58CheckEncodedAddress);
+    Q_ASSERT(address.network() == _network);
 
-    // Get private key
-    Coin::PrivateKey sk = keyRecord.sk();
-
-    // Get corresponding public key
-    Coin::PublicKey pk =  sk.toPublicKey();
-
-    // Create wallet address
-    Address::Record addressRecord(keyRecord.index(), Coin::P2PKHAddress(_network, pk));
-
-    // Insert into wallet
-    QSqlQuery query = addressRecord.insertQuery(_db);
-    query.exec();
-    QSqlError e = query.lastError();
-    Q_ASSERT(e.type() == QSqlError::NoError);
-
-    return addressRecord;
+    return Address::exists(_db, address, record);
 }
 
 }

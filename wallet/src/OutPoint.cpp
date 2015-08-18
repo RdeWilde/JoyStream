@@ -7,58 +7,37 @@
 
 #include <wallet/OutPoint.hpp>
 #include <CoinCore/CoinNodeData.h> // Coin::OutPoint
-//#include <common/typesafeOutPoint.hpp>
 
 #include <QSqlQuery>
+#include <QSqlError>
 #include <QVariant> // QSqlQuery::bind needs it
 
 namespace Wallet {
 namespace OutPoint {
 
-/**
-Record::Record(const Coin::TransactionId & transactionId, quint32 outputIndex)
+PK::PK() {
+}
+
+PK::PK(const Coin::TransactionId & transactionId, quint32 outputIndex)
     : _transactionId(transactionId)
     , _outputIndex(outputIndex) {
 }
-*/
 
-Record::Record(const Coin::OutPoint & o)
-    : _outputIndex(o.index)
-    , _transactionId(uchar_vector(o.hash, Coin::TransactionId::length())) {
-    //memcpy(this->_hash, o.hash, Coin::TransactionId::length());
+PK::PK(const Coin::OutPoint & o)
+    : PK(uchar_vector(o.hash, Coin::TransactionId::length()), o.index) {
 }
 
-QSqlQuery Record::insertQuery(QSqlDatabase db) {
-
-    // Get templated query
-    QSqlQuery query = unBoundedInsertQuery(db);
-
-    // Bind values to query fields
-    query.bindValue(":transactionId", _transactionId.toByteArray()); //QByteArray((const char *)_hash, TXID_BYTE_LENGTH)
-    query.bindValue(":outputIndex", _outputIndex);
-
-    return query;
+Record::Record() {
 }
 
-Coin::TransactionId Record::transactionId() const {
-    return _transactionId;
+Record::Record(const PK & pk)
+    : _pk(pk) {
 }
 
-void Record::setTransactionId(const Coin::TransactionId & transactionId) {
-    _transactionId = transactionId;
-}
-
-quint32 Record::outputIndex() const {
-    return _outputIndex;
-}
-
-void Record::setOutputIndex(quint32 outputIndex) {
-    _outputIndex = outputIndex;
-}
-
-QSqlQuery createTableQuery(QSqlDatabase db) {
+bool createTable(QSqlDatabase db) {
 
     QSqlQuery query(db);
+
     query.prepare(
     "CREATE TABLE OutPoint ( "
         "transactionId       BLOB, "
@@ -66,10 +45,12 @@ QSqlQuery createTableQuery(QSqlDatabase db) {
         "PRIMARY KEY(transactionId, outputIndex) "
     ")");
 
-    return query;
+    query.exec();
+
+    return (query.lastError().type() == QSqlError::NoError);
 }
 
-QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
+bool insert(QSqlDatabase db, const Record & record) {
 
     QSqlQuery query(db);
 
@@ -80,7 +61,22 @@ QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
         "(:transactionId, :outputIndex) "
     );
 
-    return query;
+    // Bind values to query fields
+    query.bindValue(":transactionId", record._pk._transactionId.toByteArray());
+    query.bindValue(":outputIndex", record._pk._outputIndex);
+
+    query.exec();
+
+    return (query.lastError().type() == QSqlError::NoError);
+}
+
+bool exists(QSqlDatabase db, const PK & pk, Record & r) {
+    throw std::runtime_error("not implemented");
+}
+
+bool exists(QSqlDatabase db, const PK & pk) {
+    Record r;
+    return exists(db, pk, r);
 }
 
 }

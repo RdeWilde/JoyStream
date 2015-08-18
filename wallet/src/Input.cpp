@@ -8,61 +8,29 @@
 #include <wallet/Input.hpp>
 
 #include <QSqlQuery>
+#include <QSqlError>
 #include <QVariant> // QSqlQuery::bind needs it
 
 namespace Wallet {
 namespace Input {
 
-Record::Record(const OutPoint::Record & outPoint, const QByteArray & scriptSig, quint32 sequence)
-    : _outPoint(outPoint)
+PK::PK() {
+}
+
+PK::PK(const OutPoint::PK & outPointPK, const QByteArray & scriptSig, quint32 sequence)
+    : _outPointPK(outPointPK)
     , _scriptSig(scriptSig)
     , _sequence(sequence) {
 }
 
-/**
-Input::Input(const QSqlRecord & record) {
-}
-*/
-
-QSqlQuery Record::insertQuery(QSqlDatabase db) {
-
-    // Get templated query
-    QSqlQuery query = unBoundedInsertQuery(db);
-
-    // Bind values to query fields
-    query.bindValue(":outPointTransactionId", _outPoint.transactionId().toByteArray());
-    query.bindValue(":outPointOutputIndex", _outPoint.outputIndex());
-    query.bindValue(":scriptSig", _scriptSig);
-    query.bindValue(":sequence", _sequence);
-
-    return query;
+Record::Record() {
 }
 
-OutPoint::Record Record::outPoint() const {
-    return _outPoint;
+Record::Record(const PK & pk)
+    : _pk(pk) {
 }
 
-void Record::setOutPoint(const OutPoint::Record & outPoint){
-    _outPoint = outPoint;
-}
-
-QByteArray Record::scriptSig() const {
-    return _scriptSig;
-}
-
-void Record::setScriptSig(const QByteArray & scriptSig) {
-    _scriptSig = scriptSig;
-}
-
-quint32 Record::sequence() const {
-    return _sequence;
-}
-
-void Record::setSequence(quint32 sequence) {
-    _sequence = sequence;
-}
-
-QSqlQuery createTableQuery(QSqlDatabase db) {
+bool createTable(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -76,11 +44,15 @@ QSqlQuery createTableQuery(QSqlDatabase db) {
         "FOREIGN KEY(outPointTransactionId, outPointOutputIndex) REFERENCES OutPoint(transactionId, outputIndex) "
     ")");
 
-    return query;
+    query.exec();
+
+    return (query.lastError().type() == QSqlError::NoError);
 }
 
-QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
 
+bool insert(QSqlDatabase db, const Record & record) {
+
+    // Create insert query
     QSqlQuery query(db);
 
     query.prepare(
@@ -90,7 +62,25 @@ QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
         "(:outPointTransactionId, :outPointOutputIndex, :scriptSig, :sequence) "
     );
 
-    return query;
+    // Bind values to query fields
+    query.bindValue(":outPointTransactionId", record._pk._outPointPK._transactionId.toByteArray());
+    query.bindValue(":outPointOutputIndex", record._pk._outPointPK._outputIndex);
+    query.bindValue(":scriptSig", record._pk._scriptSig);
+    query.bindValue(":sequence", record._pk._sequence);
+
+    query.exec();
+
+    return (query.lastError().type() == QSqlError::NoError);
+}
+
+
+bool exists(QSqlDatabase & db, const PK & pk, Record & r) {
+    throw std::runtime_error("not implemented");
+}
+
+bool exists(QSqlDatabase & db, const PK & pk) {
+    Record r;
+    return exists(db, pk, r);
 }
 
 }

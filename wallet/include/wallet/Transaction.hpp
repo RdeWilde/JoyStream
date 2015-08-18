@@ -27,10 +27,16 @@ namespace Transaction {
 
     public:
 
-        typedef Coin::TransactionId PrimaryKey;
+        typedef Coin::TransactionId PK;
 
-        // Constructor from members
-        Record(const Coin::TransactionId & transactionId, quint32 version, quint32 lockTime, QDateTime seen, const Coin::BlockId & blockId, quint64 fee);
+
+        Record();
+        Record(const PK & pk,
+               quint32 version,
+               quint32 lockTime,
+               QDateTime seen,
+               const Coin::BlockId & blockId,
+               quint64 fee);
 
         // Constructor from record
         // Record(const QSqlRecord & record);
@@ -38,12 +44,10 @@ namespace Transaction {
         // Query inserting this wallet key into corresponding table
         QSqlQuery insertQuery(QSqlDatabase db);
 
-        // Getters and seters
-
     private:
 
         // Transaction id
-        Coin::TransactionId _transactionId;
+        PK _pk; //transactionId;
 
         // Version of transaction
         quint32 _version;
@@ -63,17 +67,20 @@ namespace Transaction {
     };
 
     // Query which creates table corresponding to entity
-    QSqlQuery createTableQuery(QSqlDatabase db);
+    QSqlQuery createTable(QSqlDatabase db);
 
     // (Unbound) Query which inserts wallet key record into correspodning table
-    QSqlQuery unboundedInsertQuery(QSqlDatabase db);
+    QSqlQuery unBoundedInsertQuery(QSqlDatabase db);
 
     // Tries to recover the transaction with the given wallet it
-    Record getTransaction(QSqlDatabase db, const Record::PrimaryKey & PK);
+    Record getTransaction(QSqlDatabase db, const Record::PK & pk);
 
     // Lists all transactions in wallet
     QList<Record> allTransactions(QSqlDatabase db);
 
+    // Checks whether record exists with given primary key, if so, it is written to r
+    bool exists(QSqlDatabase & db, const Record::PK & pk, Record & r);
+    bool exists(QSqlDatabase & db, const Record::PK & pk);
 }
 }
 

@@ -8,8 +8,6 @@
 #ifndef WALLET_OUTPUT_HPP
 #define WALLET_OUTPUT_HPP
 
-#include <common/CoinWrappers.hpp>
-
 #include <QByteArray>
 
 class QSqlQuery;
@@ -18,43 +16,46 @@ class QSqlDatabase;
 namespace Wallet {
 namespace Output {
 
-    class Record {
+    struct Record {
 
-    public:
+        struct PK {
 
-        // Constructor from members
-        Record(quint64 value, const QByteArray & pubKeyScript, quint64 keyIndex);
+            PK();
+            PK(quint64 value, const QByteArray & pubKeyScript);
 
-        // Constructor from record
+            // Number of satoshies in output
+            quint64 _value;
+
+            // Serialized output script
+            QByteArray _pubKeyScript;
+        };
+
+        Record();
+        Record(const PK & pk, quint64 keyIndex);
+
         // Output(const QSqlRecord & record);
 
-        // Getters and setters
-        quint64 value() const;
-        void setValue(quint64 value);
+        // Prepared insert query
+        QSqlQuery insertQuery(QSqlDatabase db);
 
-        QByteArray pubKeyScript() const;
-        void setPubKeyScript(const QByteArray & pubKeyScript);
-
-        quint64 keyIndex() const;
-        void setKeyIndex(quint64 keyIndex);
-
-    private:
-
-        // Number of satoshies in output
-        quint64 _value;
-
-        // Serialized output script
-        QByteArray _pubKeyScript;
+        // Primary key
+        PK _pk;
 
         // Address to which this address corresponds
+        // QVariant is used over quint64 to support null values
+        // since column can hold null values
         quint64 _keyIndex;
     };
 
     // Query which creates table corresponding to entity
-    QSqlQuery createTableQuery(QSqlDatabase db);
+    QSqlQuery createTable(QSqlDatabase db);
 
     // (Unbound) Query which inserts wallet key record into correspodning table
     QSqlQuery unBoundedInsertQuery(QSqlDatabase db);
+
+    // Whether record with given private key exists
+    bool exists(QSqlDatabase & db, const Record::PK & pk, Record & r);
+    bool exists(QSqlDatabase & db, const Record::PK & pk);
 
 }
 }

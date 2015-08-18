@@ -13,37 +13,36 @@
 namespace Wallet {
 namespace Output {
 
-Record::Record(quint64 value, const QByteArray & pubKeyScript, quint64 keyIndex)
+Record::PK::PK() {
+}
+
+Record::PK::PK(quint64 value, const QByteArray & pubKeyScript)
     : _value(value)
-    , _pubKeyScript(pubKeyScript)
+    , _pubKeyScript(pubKeyScript) {
+}
+
+Record::Record() {
+}
+
+Record::Record(const PK & pk, quint64 keyIndex)
+    : _pk(pk)
     , _keyIndex(keyIndex) {
 }
 
-quint64 Record::value() const {
-    return _value;
+QSqlQuery Record::insertQuery(QSqlDatabase db) {
+
+    // Get templated query
+    QSqlQuery query = unBoundedInsertQuery(db);
+
+    // bind wallet key values
+    query.bindValue(":value", _pk._value);
+    query.bindValue(":pubKeyScript", _pk._pubKeyScript);
+    query.bindValue(":keyIndex", _keyIndex);
+
+    return query;
 }
 
-void Record::setValue(quint64 value) {
-    _value = value;
-}
-
-QByteArray Record::pubKeyScript() const {
-    return _pubKeyScript;
-}
-
-void Record::setPubKeyScript(const QByteArray & pubKeyScript) {
-    _pubKeyScript = pubKeyScript;
-}
-
-quint64 Record::keyIndex() const {
-    return _keyIndex;
-}
-
-void Record::setKeyIndex(quint64 keyIndex) {
-    _keyIndex = keyIndex;
-}
-
-QSqlQuery createTableQuery(QSqlDatabase db)  {
+QSqlQuery createTable(QSqlDatabase db)  {
 
     QSqlQuery query(db);
 
@@ -71,6 +70,15 @@ QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
     );
 
     return query;
+}
+
+bool exists(QSqlDatabase & db, const Record::PK & pk, Record & r) {
+    throw std::runtime_error("not implemented");
+}
+
+bool exists(QSqlDatabase & db, const Record::PK & pk) {
+    Record r;
+    return exists(db, pk, r);
 }
 
 }

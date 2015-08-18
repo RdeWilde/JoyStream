@@ -17,35 +17,16 @@ class QSqlDatabase;
 namespace Wallet {
 namespace Input {
 
-    class Record {
+    // Primary key
+    struct PK {
 
-    public:
-
-        // Constructor for members
-        Record(const OutPoint::Record & outPoint, const QByteArray & scriptSig, quint32 sequenc);
-
-
-
-        // Constructor from record
-        // Input(const QSqlRecord & record);
-
-        // Query inserting this wallet key into corresponding table
-        QSqlQuery insertQuery(QSqlDatabase db);
-
-        // Getters and setters
-        OutPoint::Record outPoint() const;
-        void setOutPoint(const OutPoint::Record & outPoint);
-
-        QByteArray scriptSig() const;
-        void setScriptSig(const QByteArray & scriptSig);
-
-        quint32 sequence() const;
-        void setSequence(quint32 sequence);
-
-    private:
+        PK();
+        PK(const OutPoint::PK & outPointPK,
+           const QByteArray & scriptSig,
+           quint32 sequence);
 
         // OutPoint being spent by input
-        OutPoint::Record _outPoint;
+        OutPoint::PK _outPointPK;
 
         // Serialized Input script
         QByteArray _scriptSig;
@@ -55,11 +36,27 @@ namespace Input {
 
     };
 
-    // Query which creates table corresponding to entity
-    QSqlQuery createTableQuery(QSqlDatabase db);
+    struct Record {
 
-    // (Unbound) Query which inserts wallet key record into correspodning table
-    QSqlQuery unBoundedInsertQuery(QSqlDatabase db);
+        Record();
+        Record(const PK & pk);
+
+        // Constructor from record
+        // Input(const QSqlRecord & record);
+
+        // Primary key
+        PK _pk;
+    };
+
+    // Creates table, returns true IFF it worked
+    bool createTable(QSqlDatabase db);
+
+    // Insert record, returns true IFF it worked
+    bool insert(QSqlDatabase db, const Record & record);
+
+    // Checks whether record exists with given primary key, if so, it is written to r
+    bool exists(QSqlDatabase & db, const PK & pk, Record & r);
+    bool exists(QSqlDatabase & db, const PK & pk);
 
 }
 }
