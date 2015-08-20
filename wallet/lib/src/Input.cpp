@@ -55,8 +55,17 @@ Record::Record(const QSqlRecord & record) {
     _pk = Input::PK(outPointPk, scriptSig, sequence);
 }
 
+Coin::TxIn Record::toInput() {
 
-bool createTable(QSqlDatabase db) {
+    Coin::TransactionId outPointTransactionId = _pk._outPoint._transactionId.toByteArray();
+    quint32 outPointOutputIndex = _pk._outPoint._index;
+    QByteArray scriptSig = _pk._scriptSig;
+    quint32 sequence = _pk._sequence;
+
+    return Coin::TxIn(Coin::OutPoint(outPointTransactionId.toUCharVector(), outPointOutputIndex), Coin::toUCharVector(scriptSig), sequence);
+}
+
+bool createTable(QSqlDatabase & db) {
 
     QSqlQuery query(db);
 
@@ -76,7 +85,7 @@ bool createTable(QSqlDatabase db) {
 }
 
 
-bool insert(QSqlDatabase db, const Record & record) {
+bool insert(QSqlDatabase & db, const Record & record) {
 
     // Create insert query
     QSqlQuery query(db);

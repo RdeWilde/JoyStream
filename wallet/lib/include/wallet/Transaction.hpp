@@ -58,6 +58,8 @@ namespace Transaction {
         Record(const Coin::Transaction & transaction, const QDateTime & seen);
         Record(const QSqlRecord & record);
 
+        Coin::Transaction toTransaction() const;
+
         // Transaction id
         PK _pk; //transactionId;
 
@@ -83,9 +85,6 @@ namespace Transaction {
 
     // Insert record, returns true IFF it worked
     bool insert(QSqlDatabase & db, const Record & record);
-
-    // Tries to recover the transaction with the given wallet it
-    Record getTransaction(QSqlDatabase & db, const PK & pk);
 
     // Lists all transactions in wallet
     QList<Record> allTransactions(QSqlDatabase & db);

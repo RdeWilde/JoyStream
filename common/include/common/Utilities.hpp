@@ -15,7 +15,9 @@ class uchar_vector;
 
 namespace Coin {
 
-QByteArray toByteArray(const uchar_vector & raw);
+QByteArray toByteArray(const uchar_vector & vector);
+
+uchar_vector toUCharVector(const QByteArray & array);
 
 // Used to provide version array for mSIGNA libs.
 // Returns 1 byte version byte for p2pkh and p2sh addresses on given network

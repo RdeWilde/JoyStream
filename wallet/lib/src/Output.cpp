@@ -46,6 +46,10 @@ Record::Record(const QSqlRecord & record) {
     _keyIndex = record.value("keyIndex").toByteArray();
 }
 
+Coin::TxOut Record::toOutput() {
+    return Coin::TxOut(_pk._value, Coin::toUCharVector(_pk._scriptPubKey));
+}
+
 bool createTable(QSqlDatabase & db)  {
 
     QSqlQuery query(db);

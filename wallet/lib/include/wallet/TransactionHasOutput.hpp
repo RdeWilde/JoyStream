@@ -51,6 +51,8 @@ namespace TransactionHasOutput {
     bool exists(QSqlDatabase & db, const PK & pk, Record & r);
     bool exists(QSqlDatabase & db, const PK & pk);
 
+    std::vector<Coin::TxOut> outputsOfTransaction(QSqlDatabase & db, const Coin::TransactionId & transactionId);
+
 }
 }
 

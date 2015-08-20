@@ -2,6 +2,9 @@
 #define TESTWALLET_HPP
 
 #include <QtTest/QtTest>
+//#include <CoinCore/hdkeys.h>
+
+#include <QSqlDatabase>
 
 #define WALLET_FILE_NAME "test-wallet"
 
@@ -14,6 +17,10 @@ class TestWallet : public QObject
     Q_OBJECT
 
     Wallet::Manager * _manager;
+
+    // Database used by wallet
+    QSqlDatabase _db;
+    //Coin::HDKeychain _keyChain;
 
 private slots:
 
@@ -29,6 +36,13 @@ private slots:
 
     //void input_data();
     void input();
+
+    void key();
+
+    void address();
+
+    void tx();
+
 
     // called after all non inittestcase
     void cleanupTestCase();

@@ -43,6 +43,8 @@ namespace OutPoint {
         Record(const PK & pk);
         Record(const QSqlRecord & record);
 
+        Coin::OutPoint toOutPoint() const;
+
         // Primary key
         PK _pk;
     };

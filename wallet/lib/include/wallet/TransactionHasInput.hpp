@@ -53,6 +53,7 @@ namespace TransactionHasInput {
     bool exists(QSqlDatabase & db, const PK & pk, Record & r);
     bool exists(QSqlDatabase & db, const PK & pk);
 
+    std::vector<Coin::TxIn> inputsOfTransaction(QSqlDatabase & db, const Coin::TransactionId & transactionId);
 }
 }
 

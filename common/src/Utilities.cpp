@@ -23,6 +23,16 @@ namespace Coin {
         return QByteArray(data, raw.size());
     }
 
+    uchar_vector toUCharVector(const QByteArray & array) {
+
+        // Get pointer to data
+        const unsigned char * data = (const unsigned char *)array.data();
+
+        // Construct uchar_vector
+        return uchar_vector(data, array.size());
+
+    }
+
     const unsigned char * networkToAddressVersions(Network network) {
 
         switch(network) {

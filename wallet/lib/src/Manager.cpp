@@ -38,10 +38,39 @@
 
 namespace Wallet {
 
+QSqlDatabase Manager::openDatabaseConnection(const QString & walletFile) {
+
+    // Create connection
+    // We need non-default connection names, as testing will involve
+    // running multiple clients which each start their own connections
+    QSqlDatabase db;
+
+    if(QSqlDatabase::connectionNames().contains(walletFile))
+        db = QSqlDatabase::database(walletFile);
+    else
+        db = QSqlDatabase::addDatabase("QSQLITE", walletFile);
+
+    Q_ASSERT(db.isValid());
+
+    // Create database file
+    db.setDatabaseName(QFileInfo(walletFile).fileName());
+
+    if(!db.open()) {
+
+        // Build error message and throw exception
+        QString errorMessage = "Could not open connection with database in file: " + walletFile;
+
+        throw std::runtime_error(errorMessage.toStdString());
+    }
+
+    return db;
+
+}
+
 Manager::Manager(const QString & walletFile)
     : _mutex(QMutex::Recursive) // Same thread CAN aquire same lock multiple times, but must do parity unlocks
     , _walletFile(walletFile)
-    , _db(QSqlDatabase::addDatabase(DATABASE_TYPE, QFileInfo(walletFile).fileName()))
+    , _db(Manager::openDatabaseConnection(walletFile))
     , _latestBlockHeight(0)
     , _lastComputedZeroConfBalance(0) {
 
@@ -53,12 +82,6 @@ Manager::Manager(const QString & walletFile)
 
         throw std::runtime_error(errorMessage.toStdString());
     }
-
-    // Try to open database
-    _db.setDatabaseName(walletFile);
-
-    if(!_db.open())
-        throw std::runtime_error("Could not open wallet file");
 
     if(!validateWalletStructure(_db))
         throw std::runtime_error("Invalid wallet structure.");
@@ -93,29 +116,12 @@ Manager::Manager(const QString & walletFile)
 void Manager::createNewWallet(const QString & walletFile, Coin::Network network, const Coin::Seed & seed) {
 
     // If the wallet file already exists, throw exception
-    if(QFile::exists(walletFile))
-        throw std::runtime_error("wallet file already exists.");
-
-    // Create connection to database:
-    // We need non-default connection names, as testing will involve
-    // running multiple clients which each start their own connections
-    QString connectionName = QFileInfo(walletFile).fileName();
-
-    // Create connection
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", connectionName);
-
-    Q_ASSERT(db.isValid());
-
-    // Create database file
-    db.setDatabaseName(walletFile);
-
-    if(!db.open()) {
-
-        // Build error message and throw exception
-        QString errorMessage = "Could not open wallet file: " + walletFile;
-
-        throw std::runtime_error(errorMessage.toStdString());
+    if(QFile::exists(walletFile)) {
+        throw std::runtime_error("Cannot create new wallet, one already exists, please delete manually"); // : " + walletFile
     }
+
+    // Open database connection
+    QSqlDatabase db = Manager::openDatabaseConnection(walletFile);
 
     // Create metdata key-value store, and add rows for keys, and corresponding default values
     Metadata::createKeyValueStore(db, seed, network, QDateTime::currentDateTime());
@@ -442,7 +448,24 @@ bool Manager::registerTransactionInBlock(const Coin::TransactionId  & transactio
 */
 
 Coin::Transaction Manager::getTransaction(const Coin::TransactionId & transactionId) {
-    throw std::runtime_error("not implemented");
+
+    // Get transaction body
+    Transaction::Record txRecord;
+    bool exists = Transaction::exists(_db, transactionId, txRecord);
+
+    // Throw exception if transaction is not in wallet, make type safe exception later
+    if(!exists)
+        throw std::runtime_error("Transaction does not exist in wallet");
+
+    Coin::Transaction tx = txRecord.toTransaction();
+
+    // Get inputs
+    tx.inputs = TransactionHasInput::inputsOfTransaction(_db, transactionId);
+
+    // Get outputs
+    tx.outputs = TransactionHasOutput::outputsOfTransaction(_db, transactionId);
+
+    return tx;
 }
 
 QList<Coin::Transaction> Manager::allTransactions() {

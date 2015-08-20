@@ -44,6 +44,15 @@ Record::Record(const QSqlRecord & record) {
     _fee = record.value("fee");
 }
 
+Coin::Transaction Record::toTransaction() const {
+
+    Coin::Transaction tx;
+    tx.version = _version;
+    tx.lockTime = _lockTime;
+
+    return tx;
+}
+
 quint64 Record::fee() const {
     return _fee.toULongLong();
 }
@@ -88,10 +97,6 @@ bool insert(QSqlDatabase & db, const Record & record) {
     query.exec();
 
     return (query.lastError().type() == QSqlError::NoError);
-}
-
-Record getTransaction(QSqlDatabase & db, const PK & pk) {
-    throw std::runtime_error("not implemented");
 }
 
 QList<Record> allTransactions(QSqlDatabase & db) {

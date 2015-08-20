@@ -41,6 +41,8 @@ namespace Output {
         Record(const PK & pk, const QVariant & keyIndex);
         Record(const QSqlRecord & record);
 
+        Coin::TxOut toOutput();
+
         // Primary key
         PK _pk;
 

@@ -48,20 +48,21 @@ namespace Input {
         Record(const PK & pk);
         Record(const QSqlRecord & record);
 
+        Coin::TxIn toInput();
+
         // Primary key
         PK _pk;
     };
 
     // Creates table, returns true IFF it worked
-    bool createTable(QSqlDatabase db);
+    bool createTable(QSqlDatabase & db);
 
     // Insert record, returns true IFF it worked
-    bool insert(QSqlDatabase db, const Record & record);
+    bool insert(QSqlDatabase & db, const Record & record);
 
     // Checks whether record exists with given primary key, if so, it is written to r
     bool exists(QSqlDatabase & db, const PK & pk, Record & r);
     bool exists(QSqlDatabase & db, const PK & pk);
-
 }
 }
 

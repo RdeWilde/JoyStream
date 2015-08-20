@@ -72,6 +72,9 @@ class Manager : public QObject
     Q_OBJECT
 public:
 
+    // Opens a connection to a database in given path, gives connection name of file
+    static QSqlDatabase openDatabaseConnection(const QString & walletFile);
+
     // Opens wallet
     explicit Manager(const QString & walletFile);
 

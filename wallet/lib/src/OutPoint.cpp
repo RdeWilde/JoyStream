@@ -43,6 +43,10 @@ Record::Record(const QSqlRecord & record) {
     _pk = PK(transactionId, index);
 }
 
+Coin::OutPoint Record::toOutPoint() const {
+    return Coin::OutPoint(_pk._transactionId.toUCharVector(), _pk._index);
+}
+
 bool createTable(QSqlDatabase db) {
 
     QSqlQuery query(db);

@@ -6,6 +6,7 @@
  */
 
 #include <wallet/TransactionHasOutput.hpp>
+#include <CoinCore/CoinNodeData.h> // Coin::TxOut
 
 #include <QSqlQuery>
 #include <QSqlError>
@@ -115,6 +116,50 @@ bool exists(QSqlDatabase & db, const PK & pk, Record & r) {
 bool exists(QSqlDatabase & db, const PK & pk) {
     Record r;
     return exists(db, pk, r);
+}
+
+std::vector<Coin::TxOut> outputsOfTransaction(QSqlDatabase & db, const Coin::TransactionId & transactionId) {
+
+    std::vector<Coin::TxOut> outputs;
+
+    // Prepare select query
+    QSqlQuery query(db);
+
+    // Order by increasing index so that we can add to inputs vector in order
+    query.prepare("SELECT * FROM TransactionHasOutput WHERE "
+                  "transactionId = :transactionId ORDER BY [index] ASC");
+
+    // Bind values to query fields
+    query.bindValue(":transactionId", transactionId.toByteArray());
+
+    query.exec();
+
+    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+
+    // Iterate record
+    int index = 0; // assert variable
+    while(query.next()) {
+
+        // Get raw record
+        QSqlRecord rawRecord = query.record();
+
+        bool ok;
+        Q_ASSERT(rawRecord.value("index").toUInt(&ok) == index);
+        Q_ASSERT(ok);
+
+        // Create input record
+        Output::Record outputRecord(rawRecord);
+
+        // Convert to input
+        Coin::TxOut out = outputRecord.toOutput();
+
+        // Add to vector
+        outputs.push_back(out);
+
+        index++;
+    }
+
+    return outputs;
 }
 
 }
