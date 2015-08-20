@@ -13,6 +13,11 @@
 
 class QSqlQuery;
 class QSqlDatabase;
+class QSqlRecord;
+
+namespace Coin {
+    class TxOut;
+}
 
 namespace Wallet {
 namespace Output {
@@ -21,6 +26,7 @@ namespace Output {
 
         PK();
         PK(quint64 value, const QByteArray & scriptPubKey);
+        PK(const Coin::TxOut & out);
 
         // Number of satoshies in output
         quint64 _value;
@@ -33,7 +39,7 @@ namespace Output {
 
         Record();
         Record(const PK & pk, const QVariant & keyIndex);
-        // Output(const QSqlRecord & record);
+        Record(const QSqlRecord & record);
 
         // Primary key
         PK _pk;

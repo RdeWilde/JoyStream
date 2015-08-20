@@ -27,6 +27,7 @@
 
 #include <common/Network.hpp>
 #include <common/KeyPair.hpp>
+#include <common/TransactionId.hpp>
 #include <common/Utilities.hpp>
 
 #include <CoinCore/typedefs.h> // bytes_t
@@ -121,21 +122,32 @@ void Manager::createNewWallet(const QString & walletFile, Coin::Network network,
     QSqlError e;
     bool ok;
 
-    // Key
     ok = Key::createTable(db);
     Q_ASSERT(ok);
 
-    // Address
     ok = Address::createTable(db);
+    Q_ASSERT(ok);
 
-    // BlockHeader
-    BlockHeader::createTable(db);
-    OutPoint::createTable(db);
-    Input::createTable(db);
-    Output::createTable(db);
-    Transaction::createTable(db);
-    TransactionHasInput::createTable(db);
-    TransactionHasOutput::createTable(db);
+    ok = BlockHeader::createTable(db);
+    Q_ASSERT(ok);
+
+    ok = OutPoint::createTable(db);
+    Q_ASSERT(ok);
+
+    ok = Input::createTable(db);
+    Q_ASSERT(ok);
+
+    ok = Output::createTable(db);
+    Q_ASSERT(ok);
+
+    ok = Transaction::createTable(db);
+    Q_ASSERT(ok);
+
+    ok = TransactionHasInput::createTable(db);
+    Q_ASSERT(ok);
+
+    ok = TransactionHasOutput::createTable(db);
+    Q_ASSERT(ok);
 
     /**
 
@@ -199,7 +211,7 @@ quint64 Wallet::nextHdIndex() {
 */
 
 Coin::PrivateKey Manager::issueKey() {
-    return _issueKey()._sk;
+    return _issueKey()._privateKey;
 }
 
 Coin::P2PKHAddress Manager::getReceiveAddress() {
@@ -262,24 +274,18 @@ bool Manager::addBlockHeader(const Coin::CoinBlockHeader & blockHeader, quint64 
 
 bool Manager::addOutPoint(const Coin::OutPoint & outPoint) {
 
-    // Create private key
-    OutPoint::PK pk(outPoint.getHashLittleEndian(), outPoint.index);
-
     // Lock so that checking existence and insertion are atomic
     _mutex.lock();
 
     // We are done if it already exists
-    if(OutPoint::exists(_db, pk)) {
+    if(OutPoint::exists(_db, outPoint)) {
 
         _mutex.unlock();
         return false;
     }
 
-    // Create record
-    OutPoint::Record record(pk);
-
     // Insert record
-    bool ok = OutPoint::insert(_db, record);
+    bool ok = OutPoint::insert(_db, OutPoint::PK(outPoint));
     Q_ASSERT(ok);
 
     // Signal event
@@ -294,25 +300,18 @@ bool Manager::addInput(const Coin::TxIn & txIn) {
     // Lets blindly attempt to add outpoint, it may or may not work
     addOutPoint(txIn.previousOut);
 
-    // Create private key
-    const char * raw = (const char *)txIn.scriptSig.data();
-    Input::PK pk(txIn.previousOut, QByteArray::fromRawData(raw,txIn.scriptSig.size()), txIn.sequence);
-
     // Lock so that checking existence and insertion are atomic
     _mutex.lock();
 
     // We are done if it already exists
-    if(Input::exists(_db, pk)) {
+    if(Input::exists(_db, txIn)) {
 
         _mutex.unlock();
         return false;
     }
 
-    // Create record
-    Input::Record record(pk);
-
-    // Insert it
-    bool ok = Input::insert(_db, record);
+    // Insert record
+    bool ok = Input::insert(_db, Input::PK(txIn));
     Q_ASSERT(ok);
 
     // Signal event
@@ -327,22 +326,20 @@ bool Manager::addOutput(const Coin::TxOut & txOut) {
     // Lock so that checking existence and insertion are atomic
     _mutex.lock();
 
-    // Get corresponding record for address corresponding to output script, if it exists
-    Address::Record record;
-    bool exists = Manager::getAddressForOutput(txOut, record);
-
     // Create primary key for output
     Output::PK pk(txOut.value, Coin::toByteArray(txOut.scriptPubKey));
 
     if(Output::exists(_db, pk)) {
-
-        Q_ASSERT(exists); // output exists => outpoint exists
         _mutex.unlock();
         return false;
     }
 
+    // Get corresponding record for address corresponding to output script, if it exists
+    Address::Record record;
+    bool outputAddressIsControlledByWallet = Manager::getAddressForOutput(txOut, record);
+
     // Create output record
-    Output::Record outputRecord(pk, exists ? QVariant(record._keyIndex) : QVariant());
+    Output::Record outputRecord(pk, outputAddressIsControlledByWallet ? QVariant(record._keyIndex) : QVariant());
 
     // Insert it
     bool ok = Output::insert(_db, outputRecord);
@@ -350,6 +347,15 @@ bool Manager::addOutput(const Coin::TxOut & txOut) {
 
     // Signal event
     emit outputAdded(txOut);
+
+    /**
+    // Calculate fee forany transaction which may be depending on this
+    // IF IT WAS ADDED, CALL FEE CALCULATION ROUTINE
+    // // 4. fee re-calculation for any OTHER transaction  IF: !noOutputAdded -> this may have lead to us being able to
+    //         quint64 fee;
+    //    FOR:
+    //    calculateAndSetFee(transaction.getHashLittleEndian(), fee);
+    */
 
     _mutex.unlock();
     return true;
@@ -360,37 +366,76 @@ bool Manager::addTransaction(const Coin::Transaction & transaction) {
     // Lock so that checking existence and insertion are atomic
     _mutex.lock();
 
-    /**
-    if(!Transaction::exists(Record::PK())) {
+    Coin::TransactionId transactionId(transaction.getHashLittleEndian());
 
-        // inputs
-        // addInput(const Coin::TxIn & txIn)
-
-        // outputs
-        // addOutput(const Coin::TxOut & txOut)
-
-        // Tx
-
-        // Hasinput
-        // TransactionHasOutput : add hidden routines
-
-        // Has output
-        // TransactionHasInput: add hidden routine
-
-        emit transactionAdded(transaction);
-
-        _mutex.unlock();
-        return true;
-
-    } else {
+    // If the transaction has already been added, we are done
+    if(Transaction::exists(_db, transactionId)) {
         _mutex.unlock();
         return false;
+    } else {
+
+        // Add transaction
+        bool added = Transaction::insert(_db, Transaction::Record(transaction, QDateTime::currentDateTime())); // Change later
+        Q_ASSERT(added);
+
+        // Send signal
+        emit transactionAdded(transaction);
+
+        // Add inputs
+        for(quint32 i = 0; i < transaction.inputs.size();i++) {
+
+            // Get input and add
+            Coin::TxIn in = transaction.inputs[i];
+            addInput(in);
+
+            // Add TransactionHasInput
+            TransactionHasInput::insert(_db, TransactionHasInput::Record(TransactionHasInput::PK(transactionId, i), in));
+
+            // =================================
+            // REGISTER UTXO DESTRUCTION EVENT
+            // REMOVE FROM UTXO (update balances)
+            // =================================
+        }
+
+        // Add outputs
+        for(quint32 i = 0; i < transaction.outputs.size();i++) {
+
+            // Get output and add
+            Coin::TxOut out = transaction.outputs[i];
+            addOutput(out);
+
+            // Add TransactionHasOutput
+            TransactionHasOutput::insert(_db, TransactionHasOutput::Record(TransactionHasOutput::PK(transactionId, i), out));
+
+            // =============================
+            // REGISTER UTXO CREATION EVENT
+            // ADD TO UTXO (update balances)
+            // =============================
+        }
+
+        // Tries to calculate and set fee
+        quint64 fee;
+        //calculateAndSetFee(transactionId, fee);
+
+        _mutex.unlock(); // <--- may be possible to move up
+        return true;
     }
-
-    */
-
-    return false;
 }
+
+bool Manager::calculateAndSetFee(const Coin::TransactionId & transactionId, quint64 & fee) {
+    throw std::runtime_error("not implemented");
+    emit feeFound(transactionId, fee);
+}
+
+Transaction::ChainMembership Manager::bestChainMemberShip(const Coin::TransactionId & transactionId) {
+    throw std::runtime_error("not implemented");
+}
+
+/**
+bool Manager::registerTransactionInBlock(const Coin::TransactionId  & transactionId, const Coin::BlockId & blockId, .. merkle proof) {
+
+}
+*/
 
 Coin::Transaction Manager::getTransaction(const Coin::TransactionId & transactionId) {
     throw std::runtime_error("not implemented");
@@ -401,7 +446,7 @@ QList<Coin::Transaction> Manager::allTransactions() {
 }
 
 quint64 Manager::numberOfTransactions() {
-    throw std::runtime_error("not implemented");
+    return Transaction::getTransactionCount(_db);
 }
 
 QList<UtxoCreated> getAllUtxoCreated() {
@@ -440,24 +485,39 @@ void Wallet::updateKeyPool() {
 }
 */
 
-void Manager::updateUtxoSet() {
+quint64 Manager::updateUtxoSet() {
 
-    // Net change to txo
-    quint32 diff = 0;
+    quint64 utxoSetSize;
 
     _mutex.lock();
 
     // Scrap current utxo
-    //_utxo.clear();
+    _utxo.clear();
 
     // Find all utxo
 
     // Put in utxo
 
+    utxoSetSize = _utxo.size();
     _mutex.unlock();
 
     // Send signal of what changes were
-    emit utxoUpdated(diff);
+    emit utxoUpdated(utxoSetSize);
+
+    return utxoSetSize;
+}
+
+bool Manager::releaseUtxo(const Coin::typesafeOutPoint & o) {
+
+    bool wasActuallyReleased;
+
+    _mutex.lock();
+
+    //wasActuallyReleased = _lockedOutPoints.remove(o);
+
+    _mutex.unlock();
+
+    return wasActuallyReleased;
 }
 
 void Manager::broadcast(const Coin::Transaction & tx) {
@@ -476,7 +536,7 @@ Address::Record Manager::_createReceiveAddress() {
     Key::Record keyRecord = _issueKey();
 
     // Get private key
-    Coin::PrivateKey sk = keyRecord._sk;
+    Coin::PrivateKey sk = keyRecord._privateKey;
 
     // Get corresponding public key
     Coin::PublicKey pk = sk.toPublicKey();
@@ -489,7 +549,6 @@ Address::Record Manager::_createReceiveAddress() {
 
     return addressRecord;
 }
-
 
 Key::Record Manager::_issueKey() {
 
@@ -527,10 +586,18 @@ bool Manager::getAddressForOutput(const Coin::TxOut & txOut, Address::Record & r
     QString base58CheckEncodedString = QString::fromStdString(CoinQ::Script::getAddressForTxOutScript(txOut.scriptPubKey, Coin::networkToAddressVersions(_network)));
 
     // Get address from base58checkencoded string
-    Coin::P2PKHAddress address = Coin::P2PKHAddress::fromBase58CheckEncoding(base58CheckEncodedString);
-    Q_ASSERT(address.network() == _network);
+    try {
 
-    return Address::findFromAddress(_db, address, record);
+        Coin::P2PKHAddress address = Coin::P2PKHAddress::fromBase58CheckEncoding(base58CheckEncodedString);
+        Q_ASSERT(address.network() == _network);
+
+        return Address::findFromAddress(_db, address, record);
+
+    } catch (std::runtime_error & e) {
+
+        // Wasn't valid p2pkh address (e.g p2sh)
+        return false;
+    }
 }
 
 }

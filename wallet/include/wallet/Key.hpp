@@ -14,6 +14,7 @@
 
 class QSqlQuery;
 class QSqlDatabase;
+class QSqlRecord;
 
 namespace Wallet {
 namespace Key {
@@ -39,15 +40,13 @@ namespace Key {
                const Coin::PrivateKey & sk,
                const QDateTime & generated,
                bool issued);
-
-        // Constructor from record
-        // Record(const QSqlRecord & record);
+        Record(const QSqlRecord & record);
 
         // The (hd) index number is wallet
         PK _index;
 
         // Private key
-        Coin::PrivateKey _sk;
+        Coin::PrivateKey _privateKey;
 
         // Purpose for which key was generated
         //Purpose _purpose;

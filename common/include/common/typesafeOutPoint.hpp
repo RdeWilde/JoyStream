@@ -10,8 +10,6 @@
 
 #include <common/TransactionId.hpp>
 
-//class QJsonObject;
-
 namespace Coin {
 
 class OutPoint;
@@ -27,18 +25,12 @@ public:
     typesafeOutPoint(const TransactionId & transactionId, quint32 index);
 
     // Copy constructor
-    typesafeOutPoint(const typesafeOutPoint& outputPoint);
+    typesafeOutPoint(const typesafeOutPoint& outPoint);
+
+    typesafeOutPoint(const OutPoint & outPoint);
 
     // Assignment operator
     typesafeOutPoint & operator=(const typesafeOutPoint& outputPoint);
-
-    /**
-    // Constructor from json
-    OutPoint(const QJsonObject & json);
-
-    // Encode as json
-    QJsonObject json() const;
-    */
 
     // Comparison for use with QMap
     friend bool operator==(const typesafeOutPoint & lhs, const typesafeOutPoint & rhs);

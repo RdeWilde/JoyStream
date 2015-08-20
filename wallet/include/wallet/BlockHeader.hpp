@@ -15,6 +15,7 @@
 
 class QSqlQuery;
 class QSqlDatabase;
+class QSqlRecord;
 
 namespace Coin {
     class CoinBlockHeader;
@@ -32,22 +33,18 @@ namespace BlockHeader {
         Record(PK blockId,
                 quint32 version,
                 const Coin::BlockId & previousBlockId,
-                const Coin::TransactionMerkleTreeRoot & root,
+                const Coin::TransactionMerkleTreeRoot & merkleRoot,
                 const QDateTime & timeStamp,
                 quint32 nBits,
                 quint32 nonce,
                 quint64 transactionCount,
                 bool isOnMainChain,
                 quint32 totalProofOfWork);
-
-        // Constructor from block header
         Record(const Coin::CoinBlockHeader & blockHeader,
                quint64 numberOfTransactions,
                bool isOnMainChain,
                quint32 totalProofOfWork);
-
-        // Constructor from record
-        // BlockHeader(const QSqlRecord & record);
+        Record(const QSqlRecord & record);
 
         // Primary key: Block id of block to which this header corresponds
         PK _blockId;
@@ -59,7 +56,7 @@ namespace BlockHeader {
         Coin::BlockId _previousBlockId;
 
         // Root of transaction merkle tree for block to which this header corresponds
-        Coin::TransactionMerkleTreeRoot _root;
+        Coin::TransactionMerkleTreeRoot _merkleRoot;
 
         // Block creation time stamp (nTime)
         QDateTime _timeStamp;
@@ -87,9 +84,6 @@ namespace BlockHeader {
 
     // Insert record in table, return true iff it worked
     bool insert(QSqlDatabase db, const Record & record);
-
-    // (Unbound) Query which inserts wallet key record into correspodning table
-    //QSqlQuery unBoundedInsertQuery(QSqlDatabase db);
 
     // Checks whether record exists with given primary key, if so, it is written to r
     bool exists(QSqlDatabase db, const PK & pk, Record & r);

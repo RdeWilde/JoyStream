@@ -8,15 +8,17 @@
 #include <wallet/TransactionHasInput.hpp>
 
 #include <QSqlQuery>
+#include <QSqlError>
+#include <QSqlRecord>
 #include <QVariant> // QSqlQuery::bind needs it
 
 namespace Wallet {
 namespace TransactionHasInput {
 
-Record::PK::PK() {
+PK::PK() {
 }
 
-Record::PK::PK(const Coin::TransactionId & transactionId, quint32 index)
+PK::PK(const Coin::TransactionId & transactionId, quint32 index)
     : _transactionId(transactionId)
     , _index(index) {
 }
@@ -24,28 +26,27 @@ Record::PK::PK(const Coin::TransactionId & transactionId, quint32 index)
 Record::Record() {
 }
 
-Record::Record(const PK & pk, const Input::Record & input)
+Record::Record(const PK & pk, const Input::PK & input)
     : _pk(pk)
     , _input(input) {
 }
 
-QSqlQuery Record::insertQuery(QSqlDatabase db) {
+Record::Record(const QSqlRecord & record) {
 
-    // Get templated query
-    QSqlQuery query = unBoundedInsertQuery(db);
+    Coin::TransactionId transactionId = record.value("transactionId").toByteArray();
+    quint32 index = record.value("[index]").toUInt();
+    //quint32 index = record.value("index").toUInt();
+    _pk = PK(transactionId, index);
 
-    // Bind values to query fields
-    query.bindValue(":transactionId", _pk._transactionId.toByteArray());
-    query.bindValue(":index", _pk._index);
-    query.bindValue(":outPointTransactionId", _input._pk._outPointPK._transactionId.toByteArray());
-    query.bindValue(":outPointOutputIndex", _input._pk._outPointPK._outputIndex);
-    query.bindValue(":scriptSig",  _input._pk._scriptSig);
-    query.bindValue(":sequence", _input._pk._sequence);
+    QByteArray outPointTransactionId = record.value("outPointTransactionId").toByteArray();
+    quint32 outPointOutputIndex = record.value("outPointOutputIndex").toUInt();
+    QByteArray scriptSig = record.value("scriptSig").toByteArray();
+    quint32 sequence = record.value("sequence").toUInt();
 
-    return query;
+    _input = Input::PK(OutPoint::PK(outPointTransactionId, outPointOutputIndex), scriptSig, sequence);
 }
 
-QSqlQuery createTable(QSqlDatabase db) {
+bool createTable(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -62,11 +63,14 @@ QSqlQuery createTable(QSqlDatabase db) {
         "FOREIGN KEY(outPointTransactionId, outPointOutputIndex, scriptSig, sequence) REFERENCES Input(outPointTransactionId, outPointOutputIndex, scriptSig, sequence) "
     ")");
 
-    return query;
+    query.exec();
+
+    return (query.lastError().type() == QSqlError::NoError);
 }
 
-QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
+bool insert(QSqlDatabase & db, const Record & record) {
 
+    // Prepare insert query
     QSqlQuery query(db);
 
     query.prepare (
@@ -75,14 +79,47 @@ QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
     "VALUES "
         "(:transactionId, :index, :outPointTransactionId, :outPointOutputIndex, :scriptSig, :sequence) ");
 
-    return query;
+    // Bind values to query fields
+    query.bindValue(":transactionId", record._pk._transactionId.toByteArray());
+    query.bindValue(":index", record._pk._index);
+    query.bindValue(":outPointTransactionId", record._input._outPoint._transactionId.toByteArray());
+    query.bindValue(":outPointOutputIndex", record._input._outPoint._index);
+    query.bindValue(":scriptSig",  record._input._scriptSig);
+    query.bindValue(":sequence", record._input._sequence);
+
+    query.exec();
+
+    return (query.lastError().type() == QSqlError::NoError);
 }
 
-bool exists(QSqlDatabase & db, const Record::PK & pk, Record & r) {
-    throw std::runtime_error("not implemented");
+bool exists(QSqlDatabase & db, const PK & pk, Record & r) {
+
+    // Prepare select query
+    QSqlQuery query(db);
+
+    query.prepare("SELECT * FROM TransactionHasInput WHERE "
+                  "transactionId = :transactionId AND "
+                  "[index] = :index");
+
+    // Bind values to query fields
+    query.bindValue(":transactionId", pk._transactionId.toByteArray());
+    query.bindValue(":index", pk._index);
+
+    query.exec();
+
+    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+
+    if(!query.first())
+        return false;
+
+    r = Record(query.record());
+
+    Q_ASSERT(!query.next());
+
+    return true;
 }
 
-bool exists(QSqlDatabase & db, const Record::PK & pk) {
+bool exists(QSqlDatabase & db, const PK & pk) {
     Record r;
     return exists(db, pk, r);
 }

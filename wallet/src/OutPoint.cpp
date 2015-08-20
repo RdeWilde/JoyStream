@@ -10,6 +10,7 @@
 
 #include <QSqlQuery>
 #include <QSqlError>
+#include <QSqlRecord>
 #include <QVariant> // QSqlQuery::bind needs it
 
 namespace Wallet {
@@ -20,7 +21,7 @@ PK::PK() {
 
 PK::PK(const Coin::TransactionId & transactionId, quint32 outputIndex)
     : _transactionId(transactionId)
-    , _outputIndex(outputIndex) {
+    , _index(outputIndex) {
 }
 
 PK::PK(const Coin::OutPoint & o)
@@ -34,6 +35,14 @@ Record::Record(const PK & pk)
     : _pk(pk) {
 }
 
+Record::Record(const QSqlRecord & record) {
+
+    Coin::TransactionId transactionId = record.value("transactionId").toByteArray();
+    quint32 index = record.value("index").toUInt();
+
+    _pk = PK(transactionId, index);
+}
+
 bool createTable(QSqlDatabase db) {
 
     QSqlQuery query(db);
@@ -41,8 +50,8 @@ bool createTable(QSqlDatabase db) {
     query.prepare(
     "CREATE TABLE OutPoint ( "
         "transactionId       BLOB, "
-        "outputIndex         INTEGER, "
-        "PRIMARY KEY(transactionId, outputIndex) "
+        "[index]             INTEGER, "
+        "PRIMARY KEY(transactionId, [index]) "
     ")");
 
     query.exec();
@@ -56,14 +65,14 @@ bool insert(QSqlDatabase db, const Record & record) {
 
     query.prepare(
     "INSERT INTO OutPoint "
-        "(transactionId, outputIndex) "
+        "(transactionId, [index]) "
     "VALUES "
-        "(:transactionId, :outputIndex) "
+        "(:transactionId, :index) "
     );
 
     // Bind values to query fields
     query.bindValue(":transactionId", record._pk._transactionId.toByteArray());
-    query.bindValue(":outputIndex", record._pk._outputIndex);
+    query.bindValue(":index", record._pk._index);
 
     query.exec();
 
@@ -71,7 +80,28 @@ bool insert(QSqlDatabase db, const Record & record) {
 }
 
 bool exists(QSqlDatabase db, const PK & pk, Record & r) {
-    throw std::runtime_error("not implemented");
+
+    // Prepare select query
+    QSqlQuery query(db);
+
+    query.prepare("SELECT * FROM OutPoint WHERE transactionId = :transactionId AND [index] = :index");
+
+    // Bind values to query fields
+    query.bindValue(":transactionId", pk._transactionId.toByteArray());
+    query.bindValue(":index", pk._index);
+
+    query.exec();
+
+    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+
+    if(!query.first())
+        return false;
+
+    r = Record(query.record());
+
+    Q_ASSERT(!query.next());
+
+    return true;
 }
 
 bool exists(QSqlDatabase db, const PK & pk) {

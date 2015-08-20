@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 3 2015
  */
 
-#ifndef TRANSACTION_HAS_OUTPUT_HPP
-#define TRANSACTION_HAS_OUTPUT_HPP
+#ifndef WALLET_TRANSACTION_HAS_OUTPUT_HPP
+#define WALLET_TRANSACTION_HAS_OUTPUT_HPP
 
 #include <wallet/Transaction.hpp>
 #include <wallet/Output.hpp>
@@ -16,28 +16,23 @@ class QSqlDatabase;
 namespace Wallet {
 namespace TransactionHasOutput {
 
+    struct PK {
+
+        PK();
+        PK(const Transaction::PK & transactionId, quint32 index);
+
+        // Id of transaction
+        Transaction::PK _transactionId;
+
+        // Index of output in transaction
+        quint32 _index;
+    };
+
     struct Record {
-
-        struct PK {
-
-            PK();
-            PK(const Coin::TransactionId & transactionId, quint32 index);
-
-            // Id of transaction
-            Coin::TransactionId _transactionId;
-
-            // Index of output in transaction
-            quint32 _index;
-        };
 
         Record();
         Record(const PK & pk, const Output::PK & output);
-
-        // Constructor from record
-        // Record(const QSqlRecord & record);
-
-        // Query inserting this wallet key into corresponding table
-        QSqlQuery insertQuery(QSqlDatabase db);
+        Record(const QSqlRecord & record);
 
         // Primary key
         PK _pk;
@@ -46,18 +41,18 @@ namespace TransactionHasOutput {
         Output::PK _output;
     };
 
-    // Query which creates table corresponding to entity
-    QSqlQuery createTable(QSqlDatabase db);
+    // Creates table, return true IFF it worked
+    bool createTable(QSqlDatabase & db);
 
-    // (Unbound) Query which inserts wallet key record into correspodning table
-    QSqlQuery unBoundedInsertQuery(QSqlDatabase db);
+    // Insert record, returns true IFF it was inserted
+    bool insert(QSqlDatabase & db, const Record & record);
 
     // Checks whether record exists with given primary key, if so, it is written to r
-    bool exists(QSqlDatabase & db, const Record::PK & pk, Record & r);
-    bool exists(QSqlDatabase & db, const Record::PK & pk);
+    bool exists(QSqlDatabase & db, const PK & pk, Record & r);
+    bool exists(QSqlDatabase & db, const PK & pk);
 
 }
 }
 
-#endif // TRANSACTION_HAS_OUTPUT_HPP
+#endif // WALLET_TRANSACTION_HAS_OUTPUT_HPP
 

@@ -8,9 +8,15 @@
 #ifndef WALLET_MANAGER_HPP
 #define WALLET_MANAGER_HPP
 
+#include <wallet/UtxoCreated.hpp>
+#include <wallet/UtxoDestroyed.hpp>
+#include <wallet/Transaction.hpp>
+
 #include <CoinCore/hdkeys.h>
 #include <common/Seed.hpp>
 #include <common/TransactionId.hpp> // cannot be forward declard
+#include <common/UnspentP2PKHOutput.hpp>
+#include <common/typesafeOutPoint.hpp> // for qHash for QSet
 
 #include <QObject>
 #include <QString>
@@ -60,9 +66,6 @@ namespace Payee {
 namespace Slot {
     class Record;
 }
-
-class UtxoCreated;
-class UtxoDestroyed;
 
 class Manager : public QObject
 {
@@ -160,6 +163,16 @@ public:
     // Add transaction to wallet, throws exception if it already exists
     bool addTransaction(const Coin::Transaction & transaction);
 
+    // Calculates fees for transaction
+    bool calculateAndSetFee(const Coin::TransactionId & transactionId, quint64 & fee);
+
+    // Gets best chain membership for given transaction, or throws exception if transaction is not in wallet
+    Transaction::ChainMembership bestChainMemberShip(const Coin::TransactionId & transactionId);
+
+    // Registers the membership of a transaction in a given block,
+    // throws exceptions if either block or transaction are not already in the wallet
+    //bool registerTransactionInBlock(const Coin::TransactionId  & transactionId, const Coin::BlockId & blockId, .. merkle proof);
+
     // Tries to recover the transaction with the given wallet it
     Coin::Transaction getTransaction(const Coin::TransactionId & transactionId);
 
@@ -186,20 +199,21 @@ public:
     //void releaseUtxo(const Coin::UnspentP2PKHOutput & utxo);
 
     // List all wallet utxo which have been created
-    QList<UtxoCreated> getAllUtxoCreated();
+    QList<UtxoCreated> getAllUtxoCreated(const QDateTime & lowerBound);
 
     // List all wallet utxo which has been destroyed
-    QList<UtxoDestroyed> getAllUtxoDestroyed();
+    QList<UtxoDestroyed> getAllUtxoDestroyed(const QDateTime & lowerBound);
     
-    /**
-     * State managing operation
-     */
-
     // Scraps current key pool, and rebuilds based on dbase
     //void updateKeyPool();
 
-    // Scraps current utxo, and rebuilds based on dbase
-    void updateUtxoSet();
+    // Scraps current utxo, and rebuilds based on dbase,
+    // returns size of current utxo set
+    quint64 updateUtxoSet();
+
+    // Releases the corresponding output from locked set,
+    // returns whether any output was actually locked with this outpoint
+    bool releaseUtxo(const Coin::typesafeOutPoint & o);
 
     /**
      * Bitcoin network communication
@@ -212,8 +226,8 @@ signals:
     // When updateKeyPool() is done
     void keyPoolUpdated(quint32 diff);
 
-    // When updateUtxo() is done
-    void utxoUpdated(quint32 diff);
+    // When updateUtxo() is done, and gives size of new utxo set
+    void utxoUpdated(quint64 size);
 
     // Balance change
     void zeroConfBalanceChanged(quint64);
@@ -236,6 +250,13 @@ signals:
 
     // Transaction was added through addTransaction()
     void transactionAdded(const Coin::Transaction & transaction);
+
+    // An output was added which allowed the computation of a transaction
+    // for which the fee was not previously known
+    void feeFound(const Coin::TransactionId & transacionId, quint64 fee);
+
+    // Transaction has a new best chain membership status
+    void newBestChainMemberShip(const Coin::TransactionId & transactionId, const Transaction::ChainMembership & membership);
 
     /**
      * Utxo
@@ -291,8 +312,14 @@ private:
     // Key pool
     //QSet<Coin::PrivateKey> _keyPool;
 
-    // Utxo <== keep as managed state, since it becomes kind of expensive to keep rederiving
-    //QMap< outpoint, output> _utxo;
+    // Unspent outputs on present main chain
+    QSet<Coin::UnspentP2PKHOutput> _utxo;
+
+    // Outpoints which are utxo, but which have been resereved for
+    // use by some external client. While in this set
+    // a corresponding output is never exporter in response to
+    // a utxo request from a client.
+    //QSet<Coin::typesafeOutPoint> _lockedOutPoints;
 
     // Generate p2pkh receive address
     // corresponding to a fresh private
@@ -305,6 +332,7 @@ private:
 
     // Determines address in output script and tries to recover record in wallet, if one exists
     bool getAddressForOutput(const Coin::TxOut & txOut, Address::Record & record);
+
 };
 
 }

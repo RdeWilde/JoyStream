@@ -9,6 +9,7 @@
 
 #include <QSqlQuery>
 #include <QSqlError>
+#include <QSqlRecord>
 #include <QVariant> // QSqlQuery::bind needs it
 
 /**
@@ -26,9 +27,19 @@ Record::Record(PK index,
                const QDateTime & generated,
                bool issued)
     : _index(index)
-    , _sk(privateKey)
+    , _privateKey(privateKey)
     , _generated(generated)
     , _issued(issued) {
+}
+
+Record::Record(const QSqlRecord & record) {
+
+    _index = record.value("index").toULongLong();
+    _privateKey = record.value("privateKey").toByteArray();
+
+    QString generated = record.value("generated").toString();
+    _generated = QDateTime::fromString(generated, Qt::DateFormat::ISODate);
+    _issued = record.value("issued").toBool();
 }
 
 bool createTable(QSqlDatabase db) {
@@ -65,7 +76,7 @@ bool insert(QSqlDatabase db, const Record & r) {
 
     // bind wallet key values
     query.bindValue(":index", static_cast<uint>(r._index));
-    query.bindValue(":privateKey", r._sk.toByteArray());
+    query.bindValue(":privateKey", r._privateKey.toByteArray());
     query.bindValue(":generated", r._generated.toMSecsSinceEpoch());
     query.bindValue(":issued", r._issued);
 
@@ -120,7 +131,27 @@ quint64 numberOfKeysInWallet(QSqlDatabase db) {
 }
 
 bool exists(QSqlDatabase & db, const PK & pk, Record & r) {
-    throw std::runtime_error("not implemented");
+
+    // Prepare select query
+    QSqlQuery query(db);
+
+    query.prepare("SELECT * FROM Key WHERE [index] = :index");
+
+    // Bind values to query fields
+    query.bindValue(":index", pk);
+
+    query.exec();
+
+    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+
+    if(!query.first())
+        return false;
+
+    r = Record(query.record());
+
+    Q_ASSERT(!query.next());
+
+    return true;
 }
 
 bool exists(QSqlDatabase & db, const PK & pk) {

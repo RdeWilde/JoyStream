@@ -7,7 +7,7 @@
 
 #include <gui/WalletDialog.hpp>
 #include "ui_WalletDialog.h"
-#include <wallet/Wallet.hpp>
+#include <wallet/Manager.hpp>
 #include <common/BitcoinDisplaySettings.hpp>
 #include <common/BitcoinRepresentation.hpp>
 #include <common/P2PKHAddress.hpp>
@@ -50,6 +50,17 @@ WalletDialog::WalletDialog(Wallet::Manager * wallet,
 }
 
 void WalletDialog::refresh() {
+
+    //tes
+    Coin::Transaction tx;
+    Coin::TxIn in(Coin::OutPoint(uchar_vector(0000),666),uchar_vector("222"),1234);
+    tx.addInput(in);
+
+    Coin::TxOut out(0101010, uchar_vector("1111111"));
+    tx.addOutput(out);
+
+    bool itworked = _wallet->addTransaction(tx);
+
 
     // Clear view model
     clearWalletTableView();

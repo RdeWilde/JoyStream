@@ -9,7 +9,7 @@
 #include <CoinCore/CoinNodeData.h> // Coin::Transaction
 
 #include <QSqlQuery>
-#include <QVariant> // QSqlQuery::bind needs it
+#include <QSqlError>
 
 namespace Wallet {
 namespace Transaction {
@@ -20,34 +20,35 @@ Record::Record(){
 Record::Record(const PK & pk,
                 quint32 version,
                 quint32 lockTime,
-                QDateTime seen,
-                const Coin::BlockId & blockId,
-                quint64 fee)
+                const QDateTime & seen,
+                const QVariant & fee)
         : _pk(pk)
         , _version(version)
         , _lockTime(lockTime)
         , _seen(seen)
-        , _blockId(blockId)
         , _fee(fee) {
 }
 
-QSqlQuery Record::insertQuery(QSqlDatabase db) {
-
-    // Get templated query
-    QSqlQuery query = unBoundedInsertQuery(db);
-
-    // Bind values to query fields
-    query.bindValue(":transactionId", _pk.toByteArray());
-    query.bindValue(":version", _version);
-    query.bindValue(":lockTime", _lockTime);
-    query.bindValue(":seen", _seen.toMSecsSinceEpoch());
-    query.bindValue(":blockId", _blockId.toByteArray());
-    query.bindValue(":fee", _fee);
-
-    return query;
+Record::Record(const Coin::Transaction & transaction, const QDateTime & seen)
+    : Record(transaction.getHashLittleEndian(), transaction.version, transaction.lockTime, seen, QVariant()) {
 }
 
-QSqlQuery createTable(QSqlDatabase db) {
+Record::Record(const QSqlRecord & record) {
+
+    _pk = record.value("transactionId").toByteArray();
+    _version = record.value("version").toUInt();
+    _lockTime = record.value("lockTime").toUInt();
+
+    QString seen = record.value("seen").toString();
+    _seen = QDateTime::fromString(seen, Qt::DateFormat::ISODate);
+    _fee = record.value("fee");
+}
+
+quint64 Record::fee() const {
+    return _fee.toULongLong();
+}
+
+bool createTable(QSqlDatabase & db) {
 
     QSqlQuery query(db);
 
@@ -56,42 +57,85 @@ QSqlQuery createTable(QSqlDatabase db) {
         "transactionId       BLOB, "
         "version             INTEGER     NOT NULL, "
         "lockTime            INTEGER     NOT NULL, "
-        "seen                INTEGER     NOT NULL, "
-        "blockId             BLOB, "
-        "fee                 INTEGER     NOT NULL, "
-        "PRIMARY KEY(transactionId), "
-        "FOREIGN KEY(blockId) REFERENCES BlockHeader " // (bockId)
+        "seen                DATETIME,"
+        "fee                 INTEGER, "
+        "PRIMARY KEY(transactionId) "
     ")");
 
-    return query;
+    query.exec();
+
+    return (query.lastError().type() == QSqlError::NoError);
 }
 
-QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
+bool insert(QSqlDatabase & db, const Record & record) {
 
+    // Prepare insert query
     QSqlQuery query(db);
 
     query.prepare(
     "INSERT INTO [Transaction] "
-        "(transactionId, version, lockTime, seen, blockId, fee) "
+        "(transactionId, version, lockTime, seen, fee) "
     "VALUES "
-        "(:transactionId, :version, :lockTime, :seen, :blockId, :fee)");
+        "(:transactionId, :version, :lockTime, :seen, :fee)");
 
-    return query;
+    // Bind values to query fields
+    query.bindValue(":transactionId", record._pk.toByteArray());
+    query.bindValue(":version", record._version);
+    query.bindValue(":lockTime", record._lockTime);
+    query.bindValue(":seen", record._seen);
+    query.bindValue(":fee", record._fee);
+
+    query.exec();
+
+    return (query.lastError().type() == QSqlError::NoError);
 }
 
-Record getTransaction(QSqlDatabase db, const Record::PK & pk) {
+Record getTransaction(QSqlDatabase & db, const PK & pk) {
     throw std::runtime_error("not implemented");
 }
 
-QList<Record> allTransactions(QSqlDatabase db) {
+QList<Record> allTransactions(QSqlDatabase & db) {
     throw std::runtime_error("not implemented");
 }
 
-bool exists(QSqlDatabase & db, const Record::PK & pk, Record & r) {
-    throw std::runtime_error("not implemented");
+quint64 getTransactionCount(QSqlDatabase & db) {
+
+    QSqlQuery query(db);
+
+    query.prepare("SELECT COUNT(*) FROM [Transaction]");
+    query.exec();
+
+    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+    Q_ASSERT(query.first());
+
+    return query.value(0).toULongLong();
 }
 
-bool exists(QSqlDatabase & db, const Record::PK & pk) {
+bool exists(QSqlDatabase & db, const PK & pk, Record & r) {
+
+    // Prepare select query
+    QSqlQuery query(db);
+
+    query.prepare("SELECT * FROM [Transaction] WHERE transactionId = :transactionId");
+
+    // Bind values to query fields
+    query.bindValue(":transactionId", pk.toByteArray());
+
+    query.exec();
+
+    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+
+    if(!query.first())
+        return false;
+
+    r = Record(query.record());
+
+    Q_ASSERT(!query.next());
+
+    return true;
+}
+
+bool exists(QSqlDatabase & db, const PK & pk) {
     Record r;
     return exists(db, pk, r);
 }

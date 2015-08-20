@@ -8,57 +8,50 @@
 #ifndef WALLET_TRANSACTION_HAS_INPUT_HPP
 #define WALLET_TRANSACTION_HAS_INPUT_HPP
 
-//#include <common/CoinWrappers.hpp>
 #include <wallet/Transaction.hpp>
 #include <wallet/Input.hpp>
 
 class QSqlDatabase;
+class QSqlRecord;
 
 namespace Wallet {
 namespace TransactionHasInput {
 
+    struct PK {
+
+        PK();
+        PK(const Transaction::PK & transactionId, quint32 index);
+
+        // Id of transaction
+        Transaction::PK _transactionId;
+
+        // Index of input in transaction
+        quint32 _index;
+
+    };
+
     struct Record {
 
-        struct PK {
-
-            PK();
-            PK(const Coin::TransactionId & transactionId, quint32 index);
-
-            // Id of transaction
-            Coin::TransactionId _transactionId;
-
-            // Index of input in transaction
-            quint32 _index;
-
-        };
-
         Record();
-        Record(const PK & pk, const Input::Record & input);
-
-        // Constructor from record
-        // Record(const QSqlRecord & record);
-
-        // Query inserting this wallet key into corresponding table
-        QSqlQuery insertQuery(QSqlDatabase db);
-
-    private:
+        Record(const PK & pk, const Input::PK & input);
+        Record(const QSqlRecord & record);
 
         // Primary key
         PK _pk;
 
         // Input in transaction
-        Input::Record _input;
+        Input::PK _input;
     };
 
     // Query which creates table corresponding to entity
-    QSqlQuery createTable(QSqlDatabase db);
+    bool createTable(QSqlDatabase db);
 
-    // (Unbound) Query which inserts wallet key record into correspodning table
-    QSqlQuery unBoundedInsertQuery(QSqlDatabase db);
+    // Query inserting this wallet key into corresponding table
+    bool insert(QSqlDatabase & db, const Record & record);
 
     // Checks whether record exists with given primary key, if so, it is written to r
-    bool exists(QSqlDatabase & db, const Record::PK & pk, Record & r);
-    bool exists(QSqlDatabase & db, const Record::PK & pk);
+    bool exists(QSqlDatabase & db, const PK & pk, Record & r);
+    bool exists(QSqlDatabase & db, const PK & pk);
 
 }
 }

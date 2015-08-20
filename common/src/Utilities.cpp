@@ -17,7 +17,7 @@ namespace Coin {
     QByteArray toByteArray(const uchar_vector & raw) {
 
         // Get pointer to data
-        const char * data = reinterpret_cast<const char *>(raw.data());
+        const char * data = (const char *)raw.data();
 
         // Construct byte array and return it
         return QByteArray(data, raw.size());

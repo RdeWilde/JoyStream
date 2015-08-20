@@ -34,6 +34,9 @@ public:
     // Constructor from raw key
     PrivateKey(const uchar_vector & vector);
 
+
+    PrivateKey(const QByteArray & array);
+
     // Secure destruction private key
     ~PrivateKey();
 

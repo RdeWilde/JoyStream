@@ -13,6 +13,7 @@
 
 class QSqlQuery;
 class QSqlDatabase;
+class QSqlRecord;
 
 namespace Coin {
     class OutPoint;
@@ -33,13 +34,14 @@ namespace OutPoint {
         //unsigned char _hash[TXID_BYTE_LENGTH];
 
         // Index of transaction output
-        quint32 _outputIndex;
+        quint32 _index;
     };
 
     struct Record {
 
         Record();
         Record(const PK & pk);
+        Record(const QSqlRecord & record);
 
         // Primary key
         PK _pk;

@@ -10,8 +10,7 @@
 
 #include <common/KeyPair.hpp>
 #include <common/typesafeOutPoint.hpp>
-
-//class QJsonObject;
+//#include <CoinCore/CoinNodeData.h> // Coin::OutPoint
 
 namespace Coin {
 
@@ -38,11 +37,6 @@ public:
     bool operator==(const UnspentP2PKHOutput & o) const;
     bool operator!=(const UnspentP2PKHOutput & o) const;
 
-    /**
-    // Encode as json
-    QJsonObject json() const;
-    */
-
     // Getters and setters
     KeyPair keyPair() const;
     void setKeyPair(const KeyPair & keyPair);
@@ -58,11 +52,17 @@ private:
     // Controls utxo
     KeyPair _keyPair;
 
-    // (TxId,index)
+    // OutPoint being spent
     typesafeOutPoint _outPoint;
 
     // Value of output
     quint64 _value;
+
+    /**
+      we may need scriptPubKey so that we can create spendingsignatures,
+      but as long as its p2pkh we can always regenerate from keypair.
+      Coin::Output _ouput
+    */
 
 };
 

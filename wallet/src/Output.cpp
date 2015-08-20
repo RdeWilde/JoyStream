@@ -6,9 +6,12 @@
  */
 
 #include <wallet/Output.hpp>
+#include <CoinCore/CoinNodeData.h> // TxOut
+#include <common/Utilities.hpp> // toByteArray
 
 #include <QSqlQuery>
 #include <QSqlError>
+#include <QSqlRecord>
 #include <QVariant> // QSqlQuery::bind needs it
 
 namespace Wallet {
@@ -22,12 +25,25 @@ PK::PK(quint64 value, const QByteArray & scriptPubKey)
     , _scriptPubKey(scriptPubKey) {
 }
 
+PK::PK(const Coin::TxOut & out)
+    : PK(out.value, Coin::toByteArray(out.scriptPubKey)) {
+}
+
 Record::Record() {
 }
 
 Record::Record(const PK & pk, const QVariant & keyIndex)
     : _pk(pk)
     , _keyIndex(keyIndex) {
+}
+
+Record::Record(const QSqlRecord & record) {
+
+    quint64 value =  record.value("value").toULongLong();
+    QByteArray scriptPubKey = record.value("scriptPubKey").toByteArray();
+
+    _pk = PK(value, scriptPubKey);
+    _keyIndex = record.value("keyIndex").toByteArray();
 }
 
 bool createTable(QSqlDatabase & db)  {
@@ -38,7 +54,7 @@ bool createTable(QSqlDatabase & db)  {
     "CREATE TABLE Output ( "
         "value           INTEGER, "
         "scriptPubKey    BLOB, "
-        "keyIndex        INTEGER     NOT NULL, "
+        "keyIndex        INTEGER, "
         "PRIMARY KEY(value, scriptPubKey), "
         "FOREIGN KEY(keyIndex) REFERENCES Address(keyIndex) "
     ")");
@@ -72,7 +88,28 @@ bool insert(QSqlDatabase & db, const Record & record) {
 }
 
 bool exists(QSqlDatabase & db, const PK & pk, Record & r) {
-    throw std::runtime_error("not implemented");
+
+    // Prepare select query
+    QSqlQuery query(db);
+
+    query.prepare("SELECT * FROM Output WHERE value = :value AND scriptPubKey = :scriptPubKey");
+
+    // Bind values to query fields
+    query.bindValue(":value", pk._value);
+    query.bindValue(":scriptPubKey", pk._scriptPubKey);
+
+    query.exec();
+
+    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+
+    if(!query.first())
+        return false;
+
+    r = Record(query.record());
+
+    Q_ASSERT(!query.next());
+
+    return true;
 }
 
 bool exists(QSqlDatabase & db, const PK & pk) {

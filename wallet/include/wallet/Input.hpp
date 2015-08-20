@@ -13,6 +13,11 @@
 #include <QByteArray>
 
 class QSqlDatabase;
+class QSqlRecord;
+
+namespace Coin {
+    class TxIn;
+}
 
 namespace Wallet {
 namespace Input {
@@ -24,9 +29,10 @@ namespace Input {
         PK(const OutPoint::PK & outPointPK,
            const QByteArray & scriptSig,
            quint32 sequence);
+        PK(const Coin::TxIn & in);
 
         // OutPoint being spent by input
-        OutPoint::PK _outPointPK;
+        OutPoint::PK _outPoint;
 
         // Serialized Input script
         QByteArray _scriptSig;
@@ -40,9 +46,7 @@ namespace Input {
 
         Record();
         Record(const PK & pk);
-
-        // Constructor from record
-        // Input(const QSqlRecord & record);
+        Record(const QSqlRecord & record);
 
         // Primary key
         PK _pk;

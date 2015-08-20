@@ -11,6 +11,7 @@
 #include <QSqlQuery>
 #include <QDateTime>
 #include <QSqlError>
+#include <QSqlRecord>
 #include <QVariant> // QSqlQuery::bind needs it
 
 namespace Wallet {
@@ -22,7 +23,7 @@ Record::Record(){
 Record::Record(PK blockId,
                 quint32 version,
                 const Coin::BlockId & previousBlockId,
-                const Coin::TransactionMerkleTreeRoot & root,
+                const Coin::TransactionMerkleTreeRoot & merkleRoot,
                 const QDateTime & timeStamp,
                 quint32 nBits,
                 quint32 nonce,
@@ -32,11 +33,12 @@ Record::Record(PK blockId,
     : _blockId(blockId)
     , _version(version)
     , _previousBlockId(previousBlockId)
-    , _root(root)
+    , _merkleRoot(merkleRoot)
     , _timeStamp(timeStamp)
     , _nBits(nBits)
     , _nonce(nonce)
     , _transactionCount(numberOfTransactions)
+    , _isOnMainChain(isOnMainChain)
     , _totalProofOfWork(totalProofOfWork) {
 }
 
@@ -54,6 +56,27 @@ Record::Record(const Coin::CoinBlockHeader & h,
              numberOfTransactions,
              isOnMainChain,
              totalProofOfWork) {
+}
+
+Record::Record(const QSqlRecord & record){
+
+    _blockId = record.value("blockId").toByteArray();
+    _version = record.value("version").toUInt();
+    _previousBlockId = record.value("previousBlockId").toByteArray();
+    _merkleRoot = record.value("merkleRoot").toByteArray();
+
+    bool ok;
+    qint64 seenMs = record.value("timeStamp").toLongLong(&ok);
+    Q_ASSERT(ok);
+    _timeStamp = QDateTime::fromMSecsSinceEpoch(seenMs);
+
+    _nBits = record.value("version").toUInt();
+    _nonce = record.value("nonce").toUInt();
+    _transactionCount = record.value("timeStamp").toULongLong(&ok);
+    Q_ASSERT(ok);
+
+    _isOnMainChain = record.value("isOnMainChain").toBool();
+    _totalProofOfWork = record.value("version").toUInt();
 }
 
 bool createTable(QSqlDatabase db) {
@@ -96,7 +119,7 @@ bool insert(QSqlDatabase db, const Record & record) {
     query.bindValue(":blockId", record._blockId.toByteArray());
     query.bindValue(":version", record._version);
     query.bindValue(":previousBlockId", record._previousBlockId.toByteArray());
-    query.bindValue(":merkleRoot", record._root.toByteArray());
+    query.bindValue(":merkleRoot", record._merkleRoot.toByteArray());
     query.bindValue(":timeStamp", record._timeStamp.toMSecsSinceEpoch());
     query.bindValue(":bits", record._nBits);
     query.bindValue(":nonce", record._nonce);
@@ -108,24 +131,29 @@ bool insert(QSqlDatabase db, const Record & record) {
 
     return (query.lastError().type() == QSqlError::NoError);
 }
-/**
-QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
-
-    QSqlQuery query(db);
-
-    query.prepare(
-    "INSERT INTO BlockHeader "
-        "(blockId, version, previousBlockId, merkleRoot, timeStamp, bits, nonce, transactionCount, isOnMainChain, totalProofOfWork) "
-    "VALUES "
-        "(:blockId, :version, :previousBlockId, :merkleRoot, :timeStamp, :bits, :nonce, :transactionCount, :isOnMainChain, :totalProofOfWork) "
-    );
-
-    return query;
-}
-*/
 
 bool exists(QSqlDatabase db, const PK & pk, Record & r) {
-    throw std::runtime_error("not implemented");
+
+    // Prepare select query
+    QSqlQuery query(db);
+
+    query.prepare("SELECT * FROM BlockHeader WHERE blockId = :blockId");
+
+    // Bind values to query fields
+    query.bindValue(":blockId", pk.toByteArray());
+
+    query.exec();
+
+    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+
+    if(!query.first())
+        return false;
+
+    r = Record(query.record());
+
+    Q_ASSERT(!query.next());
+
+    return true;
 }
 
 bool exists(QSqlDatabase db, const PK & pk) {

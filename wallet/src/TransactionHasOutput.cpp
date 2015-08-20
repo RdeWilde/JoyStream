@@ -8,15 +8,16 @@
 #include <wallet/TransactionHasOutput.hpp>
 
 #include <QSqlQuery>
+#include <QSqlError>
 #include <QVariant> // QSqlQuery::bind needs it
 
 namespace Wallet {
 namespace TransactionHasOutput {
 
-Record::PK::PK() {
+PK::PK() {
 }
 
-Record::PK::PK(const Coin::TransactionId & transactionId, quint32 index)
+PK::PK(const Coin::TransactionId & transactionId, quint32 index)
     : _transactionId(transactionId)
     , _index(index) {
 }
@@ -29,7 +30,20 @@ Record::Record(const PK & pk, const Output::PK & output)
     , _output(output) {
 }
 
-QSqlQuery createTable(QSqlDatabase db) {
+Record::Record(const QSqlRecord & record) {
+
+    Coin::TransactionId transactionId = record.value("transactionId").toByteArray();
+    quint32 index = record.value("[index]").toUInt();
+    //quint32 index = record.value("index").toUInt();
+    _pk = PK(transactionId, index);
+
+    quint64 value = record.value("value").toULongLong();
+    QByteArray scriptPubKey = record.value("scriptPubKey").toByteArray();
+
+    _output = Output::PK(value, scriptPubKey);
+}
+
+bool createTable(QSqlDatabase & db) {
 
     QSqlQuery query(db);
 
@@ -44,25 +58,14 @@ QSqlQuery createTable(QSqlDatabase db) {
         "FOREIGN KEY(value, scriptPubKey) REFERENCES Output(value, scriptPubKey) "
     ")");
 
-    return query;
+    query.exec();
+
+    return (query.lastError().type() == QSqlError::NoError);
 }
 
-QSqlQuery Record::insertQuery(QSqlDatabase db) {
+bool insert(QSqlDatabase & db, const Record & record) {
 
-    // Get templated query
-    QSqlQuery query = unBoundedInsertQuery(db);
-
-    // Bind values to query fields
-    query.bindValue(":transactionId", _pk._transactionId.toByteArray());
-    query.bindValue(":index", _pk._index);
-    query.bindValue(":value",  _output._value);
-    query.bindValue(":scriptPubKey", _output._scriptPubKey);
-
-    return query;
-}
-
-QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
-
+    // Prepare insert query
     QSqlQuery query(db);
 
     query.prepare(
@@ -71,14 +74,45 @@ QSqlQuery unBoundedInsertQuery(QSqlDatabase db) {
     "VALUES "
         "(:transactionId, :index, :value, :scriptPubKey)");
 
-    return query;
+    // Bind values to query fields
+    query.bindValue(":transactionId", record._pk._transactionId.toByteArray());
+    query.bindValue(":index", record._pk._index);
+    query.bindValue(":value",  record._output._value);
+    query.bindValue(":scriptPubKey", record._output._scriptPubKey);
+
+    query.exec();
+
+    return (query.lastError().type() == QSqlError::NoError);
 }
 
-bool exists(QSqlDatabase & db, const Record::PK & pk, Record & r) {
-    throw std::runtime_error("not implemented");
+bool exists(QSqlDatabase & db, const PK & pk, Record & r) {
+
+    // Prepare select query
+    QSqlQuery query(db);
+
+    query.prepare("SELECT * FROM TransactionHasOutput WHERE "
+                  "transactionId = :transactionId AND "
+                  "[index] = :index");
+
+    // Bind values to query fields
+    query.bindValue(":transactionId", pk._transactionId.toByteArray());
+    query.bindValue(":index", pk._index);
+
+    query.exec();
+
+    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+
+    if(!query.first())
+        return false;
+
+    r = Record(query.record());
+
+    Q_ASSERT(!query.next());
+
+    return true;
 }
 
-bool exists(QSqlDatabase & db, const Record::PK & pk) {
+bool exists(QSqlDatabase & db, const PK & pk) {
     Record r;
     return exists(db, pk, r);
 }

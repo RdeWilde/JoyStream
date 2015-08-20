@@ -11,7 +11,9 @@
 #include <common/TransactionId.hpp>
 #include <common/BlockId.hpp>
 
+#include <QVariant>
 #include <QDateTime>
+#include <QSqlRecord>
 
 class QSqlQuery;
 class QSqlDatabase;
@@ -23,28 +25,38 @@ namespace Coin {
 namespace Wallet {
 namespace Transaction {
 
-    class Record {
+    struct ChainMembership {
 
-    public:
+        enum class Status {
+            NOT_MINED,
+            MINED_ON_FORK,
+            MINED_ON_MAINCHAIN
+        };
 
-        typedef Coin::TransactionId PK;
+        Status _status;
 
+        // Block to which transaction belongs.
+        // Only valid if _status != NOT_MINED
+        Coin::BlockId _block;
+
+        // Height of given block
+        // Only valid if _status != NOT_MINED
+        quint64 _blockHeight;
+    };
+
+    typedef Coin::TransactionId PK;
+
+    struct Record {
 
         Record();
         Record(const PK & pk,
                quint32 version,
                quint32 lockTime,
-               QDateTime seen,
-               const Coin::BlockId & blockId,
-               quint64 fee);
+               const QDateTime & seen,
+               const QVariant & fee);
 
-        // Constructor from record
-        // Record(const QSqlRecord & record);
-
-        // Query inserting this wallet key into corresponding table
-        QSqlQuery insertQuery(QSqlDatabase db);
-
-    private:
+        Record(const Coin::Transaction & transaction, const QDateTime & seen);
+        Record(const QSqlRecord & record);
 
         // Transaction id
         PK _pk; //transactionId;
@@ -58,31 +70,33 @@ namespace Transaction {
         // When transaction was first seen on network
         QDateTime _seen;
 
-        // Block id of block to which transaction belongs
-        Coin::BlockId _blockId;
-
         // Fee associated with transaction
-        quint64 _fee;
+        // Change to QVariant, to support the possibility of NULL valuess
+        // quint64 _fee;
+        QVariant _fee;
 
+        quint64 fee() const;
     };
 
-    // Query which creates table corresponding to entity
-    QSqlQuery createTable(QSqlDatabase db);
+    // Creates table
+    bool createTable(QSqlDatabase & db);
 
-    // (Unbound) Query which inserts wallet key record into correspodning table
-    QSqlQuery unBoundedInsertQuery(QSqlDatabase db);
+    // Insert record, returns true IFF it worked
+    bool insert(QSqlDatabase & db, const Record & record);
 
     // Tries to recover the transaction with the given wallet it
-    Record getTransaction(QSqlDatabase db, const Record::PK & pk);
+    Record getTransaction(QSqlDatabase & db, const PK & pk);
 
     // Lists all transactions in wallet
-    QList<Record> allTransactions(QSqlDatabase db);
+    QList<Record> allTransactions(QSqlDatabase & db);
+
+    // Count number of transactions i wallet
+    quint64 getTransactionCount(QSqlDatabase & db);
 
     // Checks whether record exists with given primary key, if so, it is written to r
-    bool exists(QSqlDatabase & db, const Record::PK & pk, Record & r);
-    bool exists(QSqlDatabase & db, const Record::PK & pk);
+    bool exists(QSqlDatabase & db, const PK & pk, Record & r);
+    bool exists(QSqlDatabase & db, const PK & pk);
 }
 }
 
 #endif // WALLET_TRANSACTION_HPP
-

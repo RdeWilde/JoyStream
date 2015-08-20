@@ -21,6 +21,10 @@ PrivateKey::PrivateKey(const uchar_vector & vector)
     : UCharArray<PRIVATE_KEY_BYTE_LENGTH>(vector) {
 }
 
+PrivateKey::PrivateKey(const QByteArray & array)
+    : UCharArray<PRIVATE_KEY_BYTE_LENGTH>(array) {
+}
+
 PrivateKey::~PrivateKey() {
     clear();
 }

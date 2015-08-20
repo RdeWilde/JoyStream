@@ -22,8 +22,13 @@ typesafeOutPoint::typesafeOutPoint(const TransactionId & txId, quint32 index)
     , _index(index) {
 }
 
-typesafeOutPoint::typesafeOutPoint(const typesafeOutPoint& o)
+typesafeOutPoint::typesafeOutPoint(const typesafeOutPoint & o)
     : typesafeOutPoint(o.transactionId(), o.index()) {
+}
+
+typesafeOutPoint::typesafeOutPoint(const OutPoint & outPoint)
+    : _txId(outPoint.getHashLittleEndian())
+    , _index(outPoint.index) {
 }
 
 typesafeOutPoint & typesafeOutPoint::operator=(const typesafeOutPoint& o) {

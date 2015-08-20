@@ -27,8 +27,6 @@ namespace Address {
         Record(PK keyIndex, const Coin::P2PKHAddress & address);
         Record(const QSqlRecord & record);
 
-
-
         // Index of wallet key to which this address corresponds
         PK _keyIndex;
 

@@ -110,7 +110,27 @@ QList<Record> allRecords(QSqlDatabase db) {
 }
 
 bool exists(QSqlDatabase & db, const PK & pk, Record & r) {
-    throw std::runtime_error("not implemented");
+
+    // Prepare select query
+    QSqlQuery query(db);
+
+    query.prepare("SELECT * FROM Address WHERE keyIndex = :keyIndex");
+
+    // Bind values to query fields
+    query.bindValue(":keyIndex", pk);
+
+    query.exec();
+
+    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+
+    if(!query.first())
+        return false;
+
+    r = Record(query.record());
+
+    Q_ASSERT(!query.next());
+
+    return true;
 }
 
 bool exists(QSqlDatabase & db, const PK & pk) {
