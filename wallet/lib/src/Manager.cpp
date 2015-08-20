@@ -534,6 +534,10 @@ void Manager::broadcast(const Coin::Transaction & tx) {
     _mutex.unlock();
 }
 
+ QSqlDatabase Manager::db() {
+     return _db;
+ }
+
 Address::Record Manager::_createReceiveAddress() {
 
     // Generate fresh wallet key

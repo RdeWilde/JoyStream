@@ -221,6 +221,12 @@ public:
 
     void broadcast(const Coin::Transaction & tx);
 
+    /**
+     * Raw database link: Remove later? only used for testing
+     */
+
+    QSqlDatabase db();
+
 signals:
 
     // When updateKeyPool() is done

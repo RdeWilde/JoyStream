@@ -75,7 +75,7 @@ bool insert(QSqlDatabase & db, const Record & record) {
 
     query.prepare (
     "INSERT INTO TransactionHasInput "
-        "(transactionId, index, outPointTransactionId, outPointOutputIndex, scriptSig, sequence) "
+        "(transactionId, [index], outPointTransactionId, outPointOutputIndex, scriptSig, sequence) "
     "VALUES "
         "(:transactionId, :index, :outPointTransactionId, :outPointOutputIndex, :scriptSig, :sequence) ");
 

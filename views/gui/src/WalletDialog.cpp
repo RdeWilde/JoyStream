@@ -51,17 +51,18 @@ WalletDialog::WalletDialog(Wallet::Manager * wallet,
 
 void WalletDialog::refresh() {
 
-    /**
     //tes
     Coin::Transaction tx;
-    Coin::TxIn in(Coin::OutPoint(uchar_vector(0000),666),uchar_vector("222"),1234);
+    Coin::OutPoint outPoint(uchar_vector("6404f7cfc0cc00e402247c309345978d0c021edecad6e3f613b1575b7d7aa160"), 666);
+    Coin::TxIn in(outPoint, uchar_vector("222"), 1234);
     tx.addInput(in);
 
-    Coin::TxOut out(0101010, uchar_vector("1111111"));
+    Coin::TxOut out(33, uchar_vector("1111111"));
     tx.addOutput(out);
 
     bool itworked = _wallet->addTransaction(tx);
-    */
+
+    qDebug() << QString::fromStdString(tx.getHashLittleEndian().getHex());
 
     // Clear view model
     clearWalletTableView();

@@ -12,4 +12,6 @@ typedef UCharArray<TXID_BYTE_LENGTH> TransactionId;
 
 }
 
+Q_DECLARE_METATYPE(Coin::TransactionId)
+
 #endif // COIN_TRANSACTION_ID_HPP
