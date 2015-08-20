@@ -73,18 +73,18 @@ else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../common/libcommon.a
 
 # wallet ###############################################################
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../wallet/release/ -lwallet
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../wallet/debug/ -lwallet
-else:unix: LIBS += -L$$OUT_PWD/../../wallet/ -lwallet
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../wallet/lib/release/ -lwallet
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../wallet/lib/debug/ -lwallet
+else:unix: LIBS += -L$$OUT_PWD/../../wallet/lib/ -lwallet
 
-INCLUDEPATH += $$PWD/../../wallet/include
-DEPENDPATH += $$PWD/../../wallet/include
+INCLUDEPATH += $$PWD/../../wallet/lib/include
+DEPENDPATH += $$PWD/../../wallet/lib/include
 
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../wallet/release/libwallet.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../wallet/debug/libwallet.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../wallet/release/wallet.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../wallet/debug/wallet.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../wallet/libwallet.a
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../wallet/lib/release/libwallet.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../wallet/lib/debug/libwallet.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../wallet/lib/release/wallet.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../wallet/lib/debug/wallet.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../wallet/lib/libwallet.a
 
 # common ###############################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../core/release/ -lcore

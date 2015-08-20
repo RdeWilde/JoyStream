@@ -51,6 +51,7 @@ WalletDialog::WalletDialog(Wallet::Manager * wallet,
 
 void WalletDialog::refresh() {
 
+    /**
     //tes
     Coin::Transaction tx;
     Coin::TxIn in(Coin::OutPoint(uchar_vector(0000),666),uchar_vector("222"),1234);
@@ -60,7 +61,7 @@ void WalletDialog::refresh() {
     tx.addOutput(out);
 
     bool itworked = _wallet->addTransaction(tx);
-
+    */
 
     // Clear view model
     clearWalletTableView();

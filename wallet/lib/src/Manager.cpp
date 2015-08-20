@@ -92,6 +92,10 @@ Manager::Manager(const QString & walletFile)
 
 void Manager::createNewWallet(const QString & walletFile, Coin::Network network, const Coin::Seed & seed) {
 
+    // If the wallet file already exists, throw exception
+    if(QFile::exists(walletFile))
+        throw std::runtime_error("wallet file already exists.");
+
     // Create connection to database:
     // We need non-default connection names, as testing will involve
     // running multiple clients which each start their own connections
