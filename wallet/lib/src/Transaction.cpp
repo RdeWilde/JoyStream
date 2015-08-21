@@ -38,9 +38,7 @@ Record::Record(const QSqlRecord & record) {
     _pk = record.value("transactionId").toByteArray();
     _version = record.value("version").toUInt();
     _lockTime = record.value("lockTime").toUInt();
-
-    QString seen = record.value("seen").toString();
-    _seen = QDateTime::fromString(seen, Qt::DateFormat::ISODate);
+    _seen = record.value("seen").toDateTime();
     _fee = record.value("fee");
 }
 
@@ -98,6 +96,7 @@ bool insert(QSqlDatabase & db, const Record & record) {
 
     return (query.lastError().type() == QSqlError::NoError);
 }
+
 
 QList<Record> allTransactions(QSqlDatabase & db) {
     throw std::runtime_error("not implemented");

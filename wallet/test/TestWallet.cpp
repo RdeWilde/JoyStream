@@ -3,13 +3,14 @@
 #include <common/Network.hpp>
 #include <common/TransactionId.hpp>
 #include <common/Seed.hpp>
+#include <common/Utilities.hpp> // Coin::networkToAddressVersions
 #include <wallet/Key.hpp>
 #include <wallet/Address.hpp>
 #include <wallet/Manager.hpp>
 #include <wallet/OutPoint.hpp>
 
 #include <CoinCore/CoinNodeData.h>
-
+#include <CoinQ/CoinQ_script.h>
 
 void TestWallet::initTestCase() {
 
@@ -20,14 +21,13 @@ void TestWallet::initTestCase() {
     Coin::Seed seed = Coin::Seed::testSeeds[0];
 
     // Create wallet
-    Wallet::Manager::createNewWallet(WALLET_FILE_NAME, Coin::Network::testnet3, seed);
+    Wallet::Manager::createNewWallet(WALLET_FILE_NAME, NETWORK_TYPE, seed);
 
     // Open the wallet
     _manager = new Wallet::Manager(WALLET_FILE_NAME);
 
     //
     _db = _manager->db();
-
 }
 
 /**
@@ -103,28 +103,78 @@ void TestWallet::address() {
 
 void TestWallet::tx() {
 
-    //tes
+    // Create transaction
     Coin::Transaction tx;
-    Coin::OutPoint outPoint(uchar_vector("6404f7cfc0cc00e402247c309345978d0c021edecad6e3f613b1575b7d7aa160"), 666);
-    Coin::TxIn in(outPoint, uchar_vector("222"), 1234);
+
+    Coin::TxIn in(Coin::OutPoint(uchar_vector("6404f7cfc0cc00e402247c309345978d0c021edecad6e3f613b1575b7d7aa160"), 666),
+                  uchar_vector("222"),
+                  1234);
     tx.addInput(in);
 
     Coin::TxOut out(33, uchar_vector("1111111"));
     tx.addOutput(out);
 
-    bool itworked = _manager->addTransaction(tx);
+    // Add to wallet
+    QVERIFY(_manager->addTransaction(tx));
 
-    QVERIFY(itworked);
-
-    //qDebug() << QString::fromStdString(tx.getHashLittleEndian().getHex());
-
+    // Grab from wallet and check that it is the same
     Coin::Transaction tx2 = _manager->getTransaction(tx.getHashLittleEndian());
-
     QVERIFY(tx.getHashLittleEndian() == tx2.getHashLittleEndian());
 
+    // Alter it and check that it's different
     tx2.version = 0;
-
     QVERIFY(tx.getHashLittleEndian() != tx2.getHashLittleEndian());
+
+}
+
+void TestWallet::listutxo() {
+
+    // How many outputs
+    int numberOfOutputs = 2;
+
+    // Create transaction to add
+    Coin::Transaction tx;
+
+    for(int i = 0; i < numberOfOutputs;i++) {
+
+        // Get receive address
+        Coin::P2PKHAddress address = _manager->getReceiveAddress();
+
+        // Generate output script
+        uchar_vector scriptPubKey = CoinQ::Script::getTxOutScriptForAddress(address.toBase58CheckEncoding().toStdString(), Coin::networkToAddressVersions(NETWORK_TYPE));
+
+        // Generate output
+        Coin::TxOut out(i*3 + 1, scriptPubKey);
+
+        // Add to transaction
+        tx.addOutput(out);
+    }
+
+    // Add to wallet
+    QVERIFY(_manager->addTransaction(tx));
+
+    // Get utxo
+    QList<Coin::UnspentP2PKHOutput> zeroConfUtxo = _manager->listUtxo(0);
+
+    // Check that it is the right size
+    QVERIFY(zeroConfUtxo.size() == numberOfOutputs);
+
+    //
+    // Add a transaction which spends one of the outputs
+    //
+
+    Coin::Transaction spendingTx;
+    Coin::OutPoint out(tx.getHashLittleEndian(),0); // outpoint referencing first outputo tx above
+    spendingTx.addInput(Coin::TxIn(out, uchar_vector("12345"), 4444));
+
+    // Add to wallet
+    QVERIFY(_manager->addTransaction(spendingTx));
+
+    // Get utxo
+    QList<Coin::UnspentP2PKHOutput> zeroConfUtxo2 = _manager->listUtxo(0);
+
+    // Check that it is the right size
+    QVERIFY(zeroConfUtxo2.size() == numberOfOutputs - 1);
 
 }
 

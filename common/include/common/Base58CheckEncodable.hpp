@@ -21,18 +21,18 @@ class uchar_vector;
  */
 
 // testnet3
-#define P2PKH_ADDRESS_TESTNET3_VERSION_VALUE        0x0         // dec: 0, base58: 1
-#define P2SH_ADDRESS_TESTNET3_VERSION_VALUE         0x5         // dec: 5, base58: 3
-#define WIF_PRIVATE_KEY_TESTNET3_VERSION_VALUE      0x80        // dec: 128, base58: 5
-#define EXTENDED_PRIVATE_KEY_TESTNET3_VERSION_VALUE 0x0488ADE4  // dec: 4136173228, base58: xprv
-#define EXTENDED_PUBLIC_KEY_TESTNET3_VERSION_VALUE  0x0488B21E  // dec: 413617830, base58: xpub
+#define P2PKH_ADDRESS_TESTNET3_VERSION_VALUE        0x6F        // dec: 111, base58: m or n ?
+#define P2SH_ADDRESS_TESTNET3_VERSION_VALUE         0xC4        // dec: 196, base58: 2
+#define WIF_PRIVATE_KEY_TESTNET3_VERSION_VALUE      0xEF        // dec: 239, base58: 9 == uncompressed pubkey, c == compressed pubkey
+#define EXTENDED_PRIVATE_KEY_TESTNET3_VERSION_VALUE 0x04358394  // dec: 453131148, base58: tprv
+#define EXTENDED_PUBLIC_KEY_TESTNET3_VERSION_VALUE  0x043587CF  // dec: 453135207, base58: tpub
 
 // mainnet
-#define P2PKH_ADDRESS_MAINNET_VERSION_VALUE         0x6F        // dec: 111, base58: m or n ?
-#define P2SH_ADDRESS_MAINNET_VERSION_VALUE          0xC4        // dec: 196, base58: 2
-#define WIF_PRIVATE_KEY_MAINNET_VERSION_VALUE       0xEF        // dec: 239, base58: 9 == uncompressed pubkey, c == compressed pubkey
-#define EXTENDED_PRIVATE_KEY_MAINNET_VERSION_VALUE  0x04358394  // dec: 453131148, base58: tprv
-#define EXTENDED_PUBLIC_KEY_MAINNET_VERSION_VALUE   0x043587CF  // dec: 453135207, base58: tpub
+#define P2PKH_ADDRESS_MAINNET_VERSION_VALUE         0x0         // dec: 0, base58: 1
+#define P2SH_ADDRESS_MAINNET_VERSION_VALUE          0x5         // dec: 5, base58: 3
+#define WIF_PRIVATE_KEY_MAINNET_VERSION_VALUE       0x80        // dec: 128, base58: 5
+#define EXTENDED_PRIVATE_KEY_MAINNET_VERSION_VALUE  0x0488ADE4  // dec: 4136173228, base58: xprv
+#define EXTENDED_PUBLIC_KEY_MAINNET_VERSION_VALUE   0x0488B21E  // dec: 413617830, base58: xpub
 
 /**
  * Base58Check payload sizes

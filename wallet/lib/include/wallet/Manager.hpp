@@ -67,7 +67,8 @@ namespace Slot {
     class Record;
 }
 
-class Manager : public QObject
+class
+        Manager : public QObject
 {
     Q_OBJECT
 public:
@@ -152,7 +153,8 @@ public:
     bool addBlockHeader(const Coin::CoinBlockHeader & blockHeader,
                         quint64 numberOfTransactions,
                         bool isOnMainChain,
-                        quint32 totalProofOfWork);
+                        quint32 totalProofOfWork,
+                        quint64 blockHeight);
 
     // Add outpoint to wallet, throws exception if it already exists
     bool addOutPoint(const Coin::OutPoint & outPoint);
@@ -194,6 +196,9 @@ public:
     /**
      * Utxo
      */
+
+    // Lists the utxo with a minimal number of confirmations: DOES NOT
+    QList<Coin::UnspentP2PKHOutput> listUtxo(quint64 minimalConfirmations = 1);
 
     // Lock utxo
     //QList<Coin::UnspentP2PKHOutput> lockUtxo(quint64 minimalAmount, quint64 minimalConfirmations = 1);
@@ -313,7 +318,7 @@ private:
     quint64 _nextIndex;
 
     // Latest known block height
-    qint64 _latestBlockHeight;
+    quint64 _latestBlockHeight;
 
     // Value of last run of computeBalance(0), which is initially run in ctr
     quint64 _lastComputedZeroConfBalance;

@@ -146,23 +146,21 @@ bool findFromAddress(QSqlDatabase & db, const Coin::P2PKHAddress & address, Reco
     query.bindValue(":address", address.toBase58CheckEncoding());
     query.exec();
 
-    QSqlError e = query.lastError();
-    Q_ASSERT(e.type() == QSqlError::NoError);
+    Q_ASSERT(query.lastError().type() == QSqlError::NoError);
 
-    if(query.size() == 0)
+    if(!query.first())
         return false;
-    else if(query.size() == 1) {
 
-        // Grab record
-        QSqlRecord sqlRecord = query.record();
+    // Grab record
+    QSqlRecord sqlRecord = query.record();
 
-        // Write record to destination
-        r = Record(sqlRecord);
+    // Should only be one!
+    Q_ASSERT(!query.next());
 
-        return true;
+    // Write record to destination
+    r = Record(sqlRecord);
 
-    } else
-        Q_ASSERT(false); // unique field, so at most one result
+    return true;
 }
 
 }

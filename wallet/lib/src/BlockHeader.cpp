@@ -29,7 +29,8 @@ Record::Record(PK blockId,
                 quint32 nonce,
                 quint64 numberOfTransactions,
                 bool isOnMainChain,
-                quint32 totalProofOfWork)
+                quint32 totalProofOfWork,
+                quint64 blockHeight)
     : _blockId(blockId)
     , _version(version)
     , _previousBlockId(previousBlockId)
@@ -39,13 +40,15 @@ Record::Record(PK blockId,
     , _nonce(nonce)
     , _transactionCount(numberOfTransactions)
     , _isOnMainChain(isOnMainChain)
-    , _totalProofOfWork(totalProofOfWork) {
+    , _totalProofOfWork(totalProofOfWork)
+    , _blockHeight(blockHeight){
 }
 
 Record::Record(const Coin::CoinBlockHeader & h,
                quint64 numberOfTransactions,
                bool isOnMainChain,
-               quint32 totalProofOfWork)
+               quint32 totalProofOfWork,
+               quint64 blockHeight)
     : Record(h.getHashLittleEndian(),
              h.version(),
              h.prevBlockHash(),
@@ -55,7 +58,8 @@ Record::Record(const Coin::CoinBlockHeader & h,
              h.nonce(),
              numberOfTransactions,
              isOnMainChain,
-             totalProofOfWork) {
+             totalProofOfWork,
+             blockHeight) {
 }
 
 Record::Record(const QSqlRecord & record){
@@ -64,15 +68,12 @@ Record::Record(const QSqlRecord & record){
     _version = record.value("version").toUInt();
     _previousBlockId = record.value("previousBlockId").toByteArray();
     _merkleRoot = record.value("merkleRoot").toByteArray();
-
-    bool ok;
-    qint64 seenMs = record.value("timeStamp").toLongLong(&ok);
-    Q_ASSERT(ok);
-    _timeStamp = QDateTime::fromMSecsSinceEpoch(seenMs);
-
+    _timeStamp = record.value("timeStamp").toDateTime();
     _nBits = record.value("version").toUInt();
     _nonce = record.value("nonce").toUInt();
-    _transactionCount = record.value("timeStamp").toULongLong(&ok);
+
+    bool ok;
+    _transactionCount = record.value("transactionCount").toULongLong(&ok);
     Q_ASSERT(ok);
 
     _isOnMainChain = record.value("isOnMainChain").toBool();
@@ -95,6 +96,7 @@ bool createTable(QSqlDatabase db) {
         "transactionCount    INTEGER     NOT NULL, "
         "isOnMainChain       INTEGER     NOT NULL, "
         "totalProofOfWork    INTEGER     NOT NULL, "
+        "blockHeight         INTEGER     NOT NULL, "
         "PRIMARY KEY(blockId), "
         "UNIQUE(version, previousBlockId, merkleRoot, timeStamp, bits, nonce) "
     ")");

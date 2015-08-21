@@ -39,11 +39,13 @@ namespace BlockHeader {
                 quint32 nonce,
                 quint64 transactionCount,
                 bool isOnMainChain,
-                quint32 totalProofOfWork);
+                quint32 totalProofOfWork,
+                quint64 _blockHeight);
         Record(const Coin::CoinBlockHeader & blockHeader,
                quint64 numberOfTransactions,
                bool isOnMainChain,
-               quint32 totalProofOfWork);
+               quint32 totalProofOfWork,
+               quint64 _blockHeight);
         Record(const QSqlRecord & record);
 
         // Primary key: Block id of block to which this header corresponds
@@ -76,6 +78,9 @@ namespace BlockHeader {
 
         // Total proof of work on all blocks up to and including this one
         quint32 _totalProofOfWork;
+
+        // Height of block on given chain
+        quint64 _blockHeight;
 
     };
 

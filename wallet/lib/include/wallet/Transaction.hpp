@@ -42,6 +42,8 @@ namespace Transaction {
         // Height of given block
         // Only valid if _status != NOT_MINED
         quint64 _blockHeight;
+
+        quint64 _netProofOfWork;
     };
 
     typedef Coin::TransactionId PK;

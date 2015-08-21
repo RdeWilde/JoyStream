@@ -7,6 +7,7 @@
 #include <QSqlDatabase>
 
 #define WALLET_FILE_NAME "test-wallet"
+#define NETWORK_TYPE Coin::Network::testnet3
 
 namespace Wallet {
     class Manager;
@@ -42,6 +43,8 @@ private slots:
     void address();
 
     void tx();
+
+    void listutxo();
 
 
     // called after all non inittestcase

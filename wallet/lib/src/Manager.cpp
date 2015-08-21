@@ -35,6 +35,8 @@
 #include <CoinQ/CoinQ_script.h> // getAddressForTxOutScript
 
 #include <QString>
+#include <QSqlRecord>
+#include <QVariant>
 
 namespace Wallet {
 
@@ -109,6 +111,9 @@ Manager::Manager(const QString & walletFile)
         _nextIndex = 0;
     }
 
+    //
+    //_latestBlockHeight
+
     // Build utxo
     //updateUtxoSet();
 }
@@ -127,9 +132,6 @@ void Manager::createNewWallet(const QString & walletFile, Coin::Network network,
     Metadata::createKeyValueStore(db, seed, network, QDateTime::currentDateTime());
 
     // Create relational tables
-    // Working variables used in each query
-    QSqlQuery query;
-    QSqlError e;
     bool ok;
 
     ok = Key::createTable(db);
@@ -253,7 +255,7 @@ quint64 Manager::numberOfKeysInWallet() {
     return Key::numberOfKeysInWallet(_db);
 }
 
-bool Manager::addBlockHeader(const Coin::CoinBlockHeader & blockHeader, quint64 numberOfTransactions, bool isOnMainChain, quint32 totalProofOfWork) {
+bool Manager::addBlockHeader(const Coin::CoinBlockHeader & blockHeader, quint64 numberOfTransactions, bool isOnMainChain, quint32 totalProofOfWork, quint64 blockHeight) {
 
     // Create private key to check if record exists
     BlockHeader::PK pk(blockHeader.getHashLittleEndian());
@@ -269,7 +271,7 @@ bool Manager::addBlockHeader(const Coin::CoinBlockHeader & blockHeader, quint64 
     }
 
     // Create record
-    BlockHeader::Record record(blockHeader, numberOfTransactions, isOnMainChain, totalProofOfWork);
+    BlockHeader::Record record(blockHeader, numberOfTransactions, isOnMainChain, totalProofOfWork, blockHeight);
 
     // Insert record
     bool ok = BlockHeader::insert(_db, record);
@@ -475,6 +477,83 @@ QList<Coin::Transaction> Manager::allTransactions() {
 quint64 Manager::numberOfTransactions() {
     return Transaction::getTransactionCount(_db);
 }
+
+ QList<Coin::UnspentP2PKHOutput> Manager::listUtxo(quint64 minimalConfirmations) {
+
+     QList<Coin::UnspentP2PKHOutput> list;
+
+     // If we don't want zero conf, then we have to join with blockheader
+     if(minimalConfirmations > 0) {
+
+         throw std::runtime_error("not implemented");
+
+         // Determinest lower block we care about
+         quint64 lowestBlockHeightOfInterest = _latestBlockHeight - minimalConfirmations;
+
+     } else {
+
+         // Semantics: return all outputs controlled by wallet which are not spent by any other transaction
+         // we know about
+        QString sql = "SELECT "
+                      "   [Transaction].transactionId, "
+                      "   [Transaction].seen, "
+                      "   TransactionHasOutput.[index], "
+                      "   TransactionHasOutput.value, "
+                      "   TransactionHasOutput.scriptPubKey, "
+                      "   [Key].privateKey, "
+                      "   Output.keyIndex "
+                      "   "
+                      " FROM "
+                      "   [Transaction] JOIN "
+                      "   TransactionHasOutput JOIN "
+                      "   Output JOIN "
+                      "   [Key] "
+                      " ON "
+                      "   [Transaction].transactionId = TransactionHasOutput.transactionId AND "
+                      "   TransactionHasOutput.value = Output.value AND "
+                      "   TransactionHasOutput.scriptPubKey = Output.scriptPubKey AND "
+                      "   Output.keyIndex IS NOT NULL AND "
+                      "   [Key].[index] = Output.keyIndex "
+                      " WHERE NOT EXISTS ( "
+                      " SELECT "
+                      "   * "
+                      " FROM "
+                      "   TransactionHasInput "
+                      " WHERE "
+                      "   TransactionHasInput.outPointTransactionId = TransactionHasOutput.transactionId AND "
+                      "   TransactionHasInput.outPointOutputIndex = TransactionHasOutput.[index] "
+                      ") ";
+
+
+        // Perform query
+        QSqlQuery query(sql, _db);
+
+        Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+
+        while(query.next()) {
+
+            // Turn record into unspent output
+            QSqlRecord record = query.record();
+
+            Coin::TransactionId transactionId(record.value("transactionId").toByteArray());
+            QDateTime seen = record.value("seen").toDateTime();
+
+            bool ok;
+            quint32 index = record.value("index").toUInt(&ok);
+            quint64 value = record.value("value").toULongLong(&ok);
+            QByteArray scriptPubKey = record.value("scriptPubKey").toByteArray();
+            Coin::PrivateKey privateKey(record.value("privateKey").toByteArray());
+
+            // Add to list
+            list.append(Coin::UnspentP2PKHOutput(Coin::KeyPair(privateKey.toPublicKey(), privateKey),
+                                                 Coin::typesafeOutPoint(transactionId,index),
+                                                 value));
+        }
+
+     }
+
+     return list;
+ }
 
 QList<UtxoCreated> getAllUtxoCreated() {
     throw std::runtime_error("not implemented");

@@ -147,10 +147,13 @@ void decodeBase58CheckEncoding(const std::string & encoded, Base58CheckEncodable
     uchar_vector::size_type actualPayloadLength = actualPayload.size();
 
     // Treat WIF keys as special, as they can have two different payload lengths
-    if(encodable == Base58CheckEncodable::WIF_PRIVATE_KEY) {
+    if(actualEncoded == Base58CheckEncodable::WIF_PRIVATE_KEY) {
 
-        if(actualPayloadLength != WIF_PRIVATE_KEY_FOR_UNCOMPRESSED_PUBKEY_PAYLOAD_LENGTH &&
-                actualPayloadLength != WIF_PRIVATE_KEY_FOR_COMPRESSED_PUBKEY_PAYLOAD_LENGTH) {
+        if(actualPayloadLength == WIF_PRIVATE_KEY_FOR_UNCOMPRESSED_PUBKEY_PAYLOAD_LENGTH)
+            throw std::runtime_error("not implemented decoding wif encoded private keys for uncompressed public keys");
+        else if(actualPayloadLength == WIF_PRIVATE_KEY_FOR_COMPRESSED_PUBKEY_PAYLOAD_LENGTH)
+            throw std::runtime_error("not implemented decoding wif encoded private keys for uncompressed public keys");
+        else {
 
             // Create and throw eror message
             std::stringstream s;
@@ -170,7 +173,7 @@ void decodeBase58CheckEncoding(const std::string & encoded, Base58CheckEncodable
         // Deduce expected payload length from version bytes
         uint32_t expectedPayLoadLength;
 
-        switch(encodable) {
+        switch(actualEncoded) {
 
             case Base58CheckEncodable::P2PKH_ADDRESS:           expectedPayLoadLength = P2PKH_ADDRESS_PAYLOAD_LENGTH; break;
             case Base58CheckEncodable::P2SH_ADDRESS:            expectedPayLoadLength = P2SH_ADDRESS_PAYLOAD_LENGTH; break;
