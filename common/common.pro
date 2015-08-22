@@ -22,7 +22,6 @@ INCLUDEPATH += $$PWD/include
 HEADERS += \
     include/common/DataSizeRepresentation.hpp \
     include/common/Fiat.hpp \
-    include/common/CoinWrappers.hpp \
     include/common/Network.hpp \
     include/common/AddressType.hpp \
     include/common/PrivateKey.hpp \
@@ -51,7 +50,6 @@ HEADERS += \
 
 SOURCES += \
     src/DataSizeRepresentation.cpp \
-    src/CoinWrappers.cpp \
     src/PublicKey.cpp \
     src/PrivateKey.cpp \
     src/Base58CheckEncodable.cpp \

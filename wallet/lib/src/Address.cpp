@@ -109,7 +109,7 @@ QList<Record> allRecords(QSqlDatabase db) {
     return list;
 }
 
-bool exists(QSqlDatabase & db, const PK & pk, Record & r) {
+bool exists(QSqlDatabase db, const PK & pk, Record & r) {
 
     // Prepare select query
     QSqlQuery query(db);
@@ -133,12 +133,12 @@ bool exists(QSqlDatabase & db, const PK & pk, Record & r) {
     return true;
 }
 
-bool exists(QSqlDatabase & db, const PK & pk) {
+bool exists(QSqlDatabase db, const PK & pk) {
     Record r;
     return exists(db, pk, r);
 }
 
-bool findFromAddress(QSqlDatabase & db, const Coin::P2PKHAddress & address, Record & r) {
+bool findFromAddress(QSqlDatabase db, const Coin::P2PKHAddress & address, Record & r) {
 
     // Select record with given address field
     QSqlQuery query(db);

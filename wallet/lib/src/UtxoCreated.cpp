@@ -9,26 +9,17 @@
 
 namespace Wallet {
 
-UtxoCreated::UtxoCreated(const Coin::typesafeOutPoint & outPointCreated, const Coin::TxOut & newUtxo, const QDateTime & seen)
-    : _outPointCreated(outPointCreated)
-    , _newUtxo(newUtxo)
+UtxoCreated::UtxoCreated(const Coin::UnspentP2PKHOutput & utxo, const QDateTime & seen)
+    : _utxo(utxo)
     , _seen(seen) {
 }
 
-Coin::typesafeOutPoint UtxoCreated::outPointCreated() const {
-    return _outPointCreated;
+Coin::UnspentP2PKHOutput UtxoCreated::utxo() const {
+    return _utxo;
 }
 
-void UtxoCreated::setOutPointCreated(const Coin::typesafeOutPoint & outPointCreated) {
-    _outPointCreated = outPointCreated;
-}
-
-Coin::TxOut UtxoCreated::newUtxo() const {
-    return _newUtxo;
-}
-
-void UtxoCreated::setNewUtxo(const Coin::TxOut & newUtxo) {
-    _newUtxo = newUtxo;
+void UtxoCreated::setUtxo(const Coin::UnspentP2PKHOutput & utxo) {
+    _utxo = utxo;
 }
 
 QDateTime UtxoCreated::seen() const {

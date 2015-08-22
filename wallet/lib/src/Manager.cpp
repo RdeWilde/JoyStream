@@ -112,7 +112,11 @@ Manager::Manager(const QString & walletFile)
     }
 
     //
-    //_latestBlockHeight
+    //_latestBlockHeight =
+
+    // Compute zero conf balance
+    _lastComputedZeroConfBalance = balance(0);
+    emit zeroConfBalanceChanged(_lastComputedZeroConfBalance);
 
     // Build utxo
     //updateUtxoSet();
@@ -209,25 +213,30 @@ quint64 Manager::lastComputedZeroConfBalance() {
     return balance;
 }
 
-/**
-quint64 Wallet::nextHdIndex() {
-
-    quint64 nextHdIndex;
-
-    _mutex.lock();
-    nextHdIndex = _nextIndex;
-    _mutex.unlock();
-
-    return nextHdIndex;
-}
-*/
-
 Coin::PrivateKey Manager::issueKey() {
     return _issueKey()._privateKey;
 }
 
 Coin::P2PKHAddress Manager::getReceiveAddress() {
-    return _createReceiveAddress()._address;
+
+    // Get new address
+    Coin::P2PKHAddress address = _createReceiveAddress()._address;
+
+    // Send signal about it
+    emit addressCreated(address);
+
+    return address;
+}
+
+QList<Coin::P2PKHAddress> Manager::listReceiveAddresses() {
+
+    /**
+     *
+     *
+     *
+     *
+     */
+
 }
 
 QList<Coin::KeyPair> Manager::issueKeyPairs(quint64 numberOfPairs) {
@@ -429,11 +438,28 @@ bool Manager::addTransaction(const Coin::Transaction & transaction) {
         quint64 fee;
         //calculateAndSetFee(transactionId, fee);
 
+        /////////////////////////
+        // Recompute balance zero conf balance
+        // WARNINGS: should really only consider effect of this one tx, in
+        // terms of destroying and creating utxos. But do it later.
+        /////////////////////////
+        quint64 newBalance = balance(0);
+
+        if(newBalance != _lastComputedZeroConfBalance) {
+
+            // Send signal
+            emit zeroConfBalanceChanged(newBalance);
+
+            // Save new balance
+            _lastComputedZeroConfBalance = newBalance;
+        }
+
         _mutex.unlock(); // <--- may be possible to move up
         return true;
     }
 }
 
+/**
 bool Manager::calculateAndSetFee(const Coin::TransactionId & transactionId, quint64 & fee) {
     throw std::runtime_error("not implemented");
     emit feeFound(transactionId, fee);
@@ -443,7 +469,7 @@ Transaction::ChainMembership Manager::bestChainMemberShip(const Coin::Transactio
     throw std::runtime_error("not implemented");
 }
 
-/**
+
 bool Manager::registerTransactionInBlock(const Coin::TransactionId  & transactionId, const Coin::BlockId & blockId, .. merkle proof) {
 
 }
@@ -478,7 +504,7 @@ quint64 Manager::numberOfTransactions() {
     return Transaction::getTransactionCount(_db);
 }
 
- QList<Coin::UnspentP2PKHOutput> Manager::listUtxo(quint64 minimalConfirmations) {
+QList<Coin::UnspentP2PKHOutput> Manager::listUtxo(quint64 minimalConfirmations) {
 
      QList<Coin::UnspentP2PKHOutput> list;
 
@@ -540,7 +566,11 @@ quint64 Manager::numberOfTransactions() {
 
             bool ok;
             quint32 index = record.value("index").toUInt(&ok);
+            Q_ASSERT(ok);
+
             quint64 value = record.value("value").toULongLong(&ok);
+            Q_ASSERT(ok);
+
             QByteArray scriptPubKey = record.value("scriptPubKey").toByteArray();
             Coin::PrivateKey privateKey(record.value("privateKey").toByteArray());
 
@@ -553,64 +583,236 @@ quint64 Manager::numberOfTransactions() {
      }
 
      return list;
+}
+
+QList<Coin::UnspentP2PKHOutput> Manager::lockUtxo(quint64 minimalAmount, quint64 minimalConfirmations) {
+
+     QList<Coin::UnspentP2PKHOutput> list;
+
+     // lock so now one else tries to claim utxo members at the same time
+     _mutex.lock();
+
+     // Get utxo
+     QList<Coin::UnspentP2PKHOutput> utxo = listUtxo(minimalConfirmations);
+
+     // Add up as many as possible to make balance
+     // Needs to be radically improved by balancing three contradictory objectives
+     // - use as few utxos as possible to lower size of spending tx, and thus lowering requird fee
+     // - exceed required quantity with the least amount to avoid having to have a change output.
+     // - optimize for coinage spending to minimize feess
+     QSet<Coin::typesafeOutPoint> lockingCandidateOutPoints;
+     quint64 currentBalance = 0;
+
+     for(QList<Coin::UnspentP2PKHOutput>::const_iterator i = utxo.constBegin(),
+         end = utxo.constEnd();
+         i != end;
+         i++) {
+
+         // get unspent output
+         Coin::UnspentP2PKHOutput unspent = *i;
+
+         // Disregard if it is already locked
+         if(_lockedOutPoints.contains(unspent.outPoint()))
+            continue;
+
+         // Otherwise use this output
+         currentBalance += unspent.value();
+         list.append(unspent);
+         lockingCandidateOutPoints.insert(unspent.outPoint());
+
+         if(currentBalance >= minimalAmount) {
+
+             // lock all utxo used
+             _lockedOutPoints.unite(lockingCandidateOutPoints);
+             break;
+         }
+     }
+     _mutex.unlock();
+
+     // If we did not make full balance, then return empty list
+     if(currentBalance < minimalAmount)
+         list.clear();
+
+     return list;
  }
 
-QList<UtxoCreated> getAllUtxoCreated() {
-    throw std::runtime_error("not implemented");
+QList<UtxoCreated> Manager::getAllUtxoCreated(quint64 minimalConfirmations) {
+
+    QList<UtxoCreated> list;
+
+    // If we don't want zero conf, then we have to join with blockheader
+    if(minimalConfirmations > 0) {
+
+        throw std::runtime_error("not implemented");
+
+        // Determinest lower block we care about
+        quint64 lowestBlockHeightOfInterest = _latestBlockHeight - minimalConfirmations;
+
+    } else {
+
+        // Semantics: return all outputs controlled by wallet which are not spent by any other transaction
+        // we know about
+       QString sql = "SELECT "
+                     "   [Transaction].transactionId, "
+                     "   [Transaction].seen, "
+                     "   TransactionHasOutput.[index], "
+                     "   TransactionHasOutput.value, "
+                     "   TransactionHasOutput.scriptPubKey, "
+                     "   [Key].privateKey, "
+                     "   Output.keyIndex "
+                     "   "
+                     " FROM "
+                     "   [Transaction] JOIN "
+                     "   TransactionHasOutput JOIN "
+                     "   Output JOIN "
+                     "   [Key] "
+                     " ON "
+                     "   [Transaction].transactionId = TransactionHasOutput.transactionId AND "
+                     "   TransactionHasOutput.value = Output.value AND "
+                     "   TransactionHasOutput.scriptPubKey = Output.scriptPubKey AND "
+                     "   Output.keyIndex IS NOT NULL AND "
+                     "   [Key].[index] = Output.keyIndex ";
+
+       // Perform query
+       QSqlQuery query(sql, _db);
+
+       Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+
+       while(query.next()) {
+
+           // Turn record into unspent output
+           QSqlRecord record = query.record();
+
+           Coin::TransactionId transactionId(record.value("transactionId").toByteArray());
+           QDateTime seen = record.value("seen").toDateTime();
+
+           bool ok;
+           quint32 index = record.value("index").toUInt(&ok);
+           Q_ASSERT(ok);
+
+           quint64 value = record.value("value").toULongLong(&ok);
+           Q_ASSERT(ok);
+
+           QByteArray scriptPubKey = record.value("scriptPubKey").toByteArray();
+           Coin::PrivateKey privateKey(record.value("privateKey").toByteArray());
+
+           // Add to list
+           Coin::UnspentP2PKHOutput utxo(Coin::KeyPair(privateKey.toPublicKey(), privateKey), Coin::typesafeOutPoint(transactionId, index), value);
+           list.append(UtxoCreated(utxo, seen));
+       }
+
+    }
+
+    return list;
 }
 
-QList<UtxoDestroyed> getAllUtxoDestroyed() {
-    throw std::runtime_error("not implemented");
+QList<UtxoDestroyed> Manager::getAllUtxoDestroyed(quint64 minimalConfirmations) {
+
+    QList<UtxoDestroyed> list;
+
+    // If we don't want zero conf, then we have to join with blockheader
+    if(minimalConfirmations > 0) {
+
+        throw std::runtime_error("not implemented");
+
+        // Determinest lower block we care about
+        quint64 lowestBlockHeightOfInterest = _latestBlockHeight - minimalConfirmations;
+
+    } else {
+
+        // Semantics: return all outputs controlled by wallet which are not spent by any other transaction
+        // we know about
+       QString sql = "SELECT "
+                     "   [Transaction].seen, "
+                     "   TransactionHasInput.transactionId, "
+                     "   TransactionHasInput.[index], "
+                     "   TransactionHasInput.outPointTransactionId, "
+                     "   TransactionHasInput.outPointOutputIndex, "
+                     "   TransactionHasInput.scriptSig, "
+                     "   TransactionHasInput.sequence, "
+                     "   TransactionHasOutput.value, "
+                     "   TransactionHasOutput.scriptPubKey "
+                     " FROM "
+                     "   [Transaction] JOIN "
+                     "   TransactionHasInput JOIN "
+                     "   TransactionHasOutput JOIN "
+                     "   Output "
+                     " ON "
+                     "   [Transaction].transactionId = TransactionHasInput.transactionId AND "
+                     "   TransactionHasInput.outPointTransactionId = TransactionHasOutput.transactionId AND "
+                     "   TransactionHasInput.outPointOutputIndex = TransactionHasOutput.[index] AND "
+                     "   Output.value = TransactionHasOutput.value AND "
+                     "   Output.scriptPubKey = TransactionHasOutput.scriptPubKey AND "
+                     "   Output.keyIndex IS NOT NULL";
+
+       // Perform query
+       QSqlQuery query(sql, _db);
+
+       Q_ASSERT(query.lastError().type() == QSqlError::NoError);
+
+       while(query.next()) {
+
+           bool ok; // integer conversion result indicator
+
+           // Turn record into unspent output
+           QSqlRecord record = query.record();
+
+           QDateTime seen = record.value("seen").toDateTime();
+           Coin::TransactionId spendingTx(record.value("transactionId").toByteArray());
+
+           quint32 indexOfInputInSpendingTx = record.value("index").toUInt(&ok);
+           Q_ASSERT(ok);
+
+           Coin::TransactionId outPointTransactionId(record.value("outPointTransactionId").toByteArray());
+           quint32 outPointOutputIndex = record.value("outPointOutputIndex").toUInt(&ok);
+           //Q_ASSERT(ok);
+
+           QByteArray scriptSig = record.value("scriptSig").toByteArray();
+           quint32 sequence = record.value("sequence").toUInt(&ok);
+           Q_ASSERT(ok);
+
+           quint64 value = record.value("value").toULongLong(&ok);
+           Q_ASSERT(ok);
+
+           QByteArray scriptPubKey = record.value("scriptPubKey").toByteArray();
+
+           // Create UtxoDestroyed members
+           Coin::OutPoint outpoint(outPointTransactionId.toUCharVector(), outPointOutputIndex);
+           Coin::TxIn inputInSpendingTx(outpoint, Coin::toUCharVector(scriptSig), sequence);
+
+           Coin::TxOut oldUtxo(value, Coin::toUCharVector(scriptPubKey));
+
+           // Add to list
+           Wallet::UtxoDestroyed utxoDestroyed(spendingTx,
+                                               seen,
+                                               indexOfInputInSpendingTx,
+                                               inputInSpendingTx,
+                                               oldUtxo);
+
+           list.append(utxoDestroyed);
+       }
+
+    }
+
+    return list;
 }
 
-/**
-void Wallet::releaseKeys(const QSet<Coin::KeyPair> & keys) {
+quint64 Manager::balance(quint64 minimalConfirmations) {
 
-    // for each key, if it is in dbase, but not in use, then place in key pool:
+    quint64 balance = 0;
 
-}
+    // Find utxo
+    QList<Coin::UnspentP2PKHOutput> list = listUtxo(minimalConfirmations);
 
-void Wallet::updateKeyPool() {
+    // Iterate
+    for(QList<Coin::UnspentP2PKHOutput>::const_iterator i = list.constBegin(),
+        end = list.constEnd();
+        i != end;
+        i++)
+        // count towards total balance
+        balance += (*i).value();
 
-    // Net change to key pool
-    quint32 diff = 0;
-
-    _mutex.lock();
-
-    // Scrap current pool
-    _keyPool.clear();
-
-    // Find all keys not currently used
-
-    // Put in key pool
-
-    _mutex.unlock();
-
-    // Send signal of what changes were
-    emit keyPoolUpdated(diff);
-}
-*/
-
-quint64 Manager::updateUtxoSet() {
-
-    quint64 utxoSetSize;
-
-    _mutex.lock();
-
-    // Scrap current utxo
-    _utxo.clear();
-
-    // Find all utxo
-
-    // Put in utxo
-
-    utxoSetSize = _utxo.size();
-    _mutex.unlock();
-
-    // Send signal of what changes were
-    emit utxoUpdated(utxoSetSize);
-
-    return utxoSetSize;
+    return balance;
 }
 
 bool Manager::releaseUtxo(const Coin::typesafeOutPoint & o) {
@@ -619,7 +821,10 @@ bool Manager::releaseUtxo(const Coin::typesafeOutPoint & o) {
 
     _mutex.lock();
 
-    //wasActuallyReleased = _lockedOutPoints.remove(o);
+    wasActuallyReleased = _lockedOutPoints.remove(o);
+
+    if(wasActuallyReleased)
+        emit utxoReleased(o);
 
     _mutex.unlock();
 
@@ -627,6 +832,8 @@ bool Manager::releaseUtxo(const Coin::typesafeOutPoint & o) {
 }
 
 void Manager::broadcast(const Coin::Transaction & tx) {
+
+    throw std::runtime_error("not implemented");
 
     _mutex.lock();
 

@@ -43,5 +43,110 @@ namespace Coin {
         }
     }
 
+    /**
+    unsigned int extendedPrivateKeyVersionBytes(Network network) {
+
+        switch(network) {
+
+            case Network::testnet3: return 0x04358394;
+            case Network::mainnet: return 0x0488ADE4;
+            default:
+                Q_ASSERT(false);
+        }
+    }
+
+    unsigned int extendedPublicKeyVersionBytes(Network network) {
+
+        switch(network) {
+
+            case Network::testnet3: return 0x043587CF;
+            case Network::mainnet: return 0x0488B21E;
+            default:
+                Q_ASSERT(false);
+        }
+    }
+
+
+
+    unsigned int toBase58CheckVersionBytes(AddressType type, Network network) {
+
+        switch(type) {
+
+            case AddressType::PayToPublicKeyHash:
+
+                if(network == Network::mainnet)
+                    return 0x0; // decimal 0
+                else if(network == Network::testnet3)
+                    return 0x6F; // decimal 111;
+
+                break;
+
+            case AddressType::PayToScriptHash:
+
+                break;
+
+                if(network == Network::mainnet)
+                    return 0x5; // decimal 5
+                else if(network == Network::testnet3)
+                    return 0xC4; // decimal 96
+
+            default:
+                Q_ASSERT(false);
+        }
+    }
+
+    AddressType versionByteToAddressType(unsigned int version) {
+
+        switch(version) {
+
+            case 0x0: return AddressType::PayToPublicKeyHash;
+            case 0x6F: return AddressType::PayToPublicKeyHash;
+            case 0x5: return AddressType::PayToScriptHash;
+            case 0xC4: return AddressType::PayToScriptHash;
+            default:
+                Q_ASSERT(false);
+        }
+    }
+
+    Network versionByteToNetwork(unsigned int version) {
+
+        switch(version) {
+
+            case 0x0: return Network::mainnet;
+            case 0x6F: return Network::testnet3;
+            case 0x5: return Network::mainnet;
+            case 0xC4: return Network::testnet3;
+            default:
+                Q_ASSERT(false);
+        }
+    }
+
+
+    Network getNetwork(std::string & base58CheckEncodedAddress) {
+
+        // do checks and testing
+
+        // throw exception if ntohing matches
+    }
+
+    AddressType getType(std::string & base58CheckEncodedAddress) {
+
+        // do checks and testing
+
+        // throw exception if ntohing matches
+    }
+    */
+
+    /**
+    QByteArray uchar_vector_to_QByteArray(const uchar_vector & v) {
+
+        // Reinterpret from unsigned to signed char
+        const char * data = reinterpret_cast<const char *>(v.data());
+
+        // Create
+        return QByteArray(data, v.size());
+    }
+    */
+
 }
 

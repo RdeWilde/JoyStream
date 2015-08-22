@@ -50,7 +50,7 @@ Coin::TxOut Record::toOutput() {
     return Coin::TxOut(_pk._value, Coin::toUCharVector(_pk._scriptPubKey));
 }
 
-bool createTable(QSqlDatabase & db)  {
+bool createTable(QSqlDatabase db)  {
 
     QSqlQuery query(db);
 
@@ -69,7 +69,7 @@ bool createTable(QSqlDatabase & db)  {
 }
 
 
-bool insert(QSqlDatabase & db, const Record & record) {
+bool insert(QSqlDatabase db, const Record & record) {
 
     // Prepare insert query
     QSqlQuery query(db);
@@ -91,7 +91,7 @@ bool insert(QSqlDatabase & db, const Record & record) {
     return (query.lastError().type() == QSqlError::NoError);
 }
 
-bool exists(QSqlDatabase & db, const PK & pk, Record & r) {
+bool exists(QSqlDatabase db, const PK & pk, Record & r) {
 
     // Prepare select query
     QSqlQuery query(db);
@@ -116,7 +116,7 @@ bool exists(QSqlDatabase & db, const PK & pk, Record & r) {
     return true;
 }
 
-bool exists(QSqlDatabase & db, const PK & pk) {
+bool exists(QSqlDatabase db, const PK & pk) {
     Record r;
     return exists(db, pk, r);
 }

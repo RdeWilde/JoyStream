@@ -55,7 +55,7 @@ quint64 Record::fee() const {
     return _fee.toULongLong();
 }
 
-bool createTable(QSqlDatabase & db) {
+bool createTable(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -74,7 +74,7 @@ bool createTable(QSqlDatabase & db) {
     return (query.lastError().type() == QSqlError::NoError);
 }
 
-bool insert(QSqlDatabase & db, const Record & record) {
+bool insert(QSqlDatabase db, const Record & record) {
 
     // Prepare insert query
     QSqlQuery query(db);
@@ -98,11 +98,11 @@ bool insert(QSqlDatabase & db, const Record & record) {
 }
 
 
-QList<Record> allTransactions(QSqlDatabase & db) {
+QList<Record> allTransactions(QSqlDatabase db) {
     throw std::runtime_error("not implemented");
 }
 
-quint64 getTransactionCount(QSqlDatabase & db) {
+quint64 getTransactionCount(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -115,7 +115,7 @@ quint64 getTransactionCount(QSqlDatabase & db) {
     return query.value(0).toULongLong();
 }
 
-bool exists(QSqlDatabase & db, const PK & pk, Record & r) {
+bool exists(QSqlDatabase db, const PK & pk, Record & r) {
 
     // Prepare select query
     QSqlQuery query(db);
@@ -139,7 +139,7 @@ bool exists(QSqlDatabase & db, const PK & pk, Record & r) {
     return true;
 }
 
-bool exists(QSqlDatabase & db, const PK & pk) {
+bool exists(QSqlDatabase db, const PK & pk) {
     Record r;
     return exists(db, pk, r);
 }

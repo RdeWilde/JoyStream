@@ -8,8 +8,7 @@
 #ifndef WALLET_UTXO_CREATED_HPP
 #define WALLET_UTXO_CREATED_HPP
 
-#include <common/typesafeOutPoint.hpp>
-#include <CoinCore/CoinNodeData.h> // Output
+#include <common/UnspentP2PKHOutput.hpp>
 
 #include <QDateTime>
 
@@ -19,26 +18,23 @@ namespace Wallet {
 
     public:
 
-        UtxoCreated(const Coin::typesafeOutPoint & outPointCreated, const Coin::TxOut & newUtxo, const QDateTime & seen);
+        UtxoCreated(const Coin::UnspentP2PKHOutput & utxo,
+                    const QDateTime & seen);
 
-        // Getters and setters
-        Coin::typesafeOutPoint outPointCreated() const;
-        void setOutPointCreated(const Coin::typesafeOutPoint &outPointCreated);
-
-        Coin::TxOut newUtxo() const;
-        void setNewUtxo(const Coin::TxOut &newUtxo);
+        Coin::UnspentP2PKHOutput utxo() const;
+        void setUtxo(const Coin::UnspentP2PKHOutput & utxo);
 
         QDateTime seen() const;
-        void setSeen(const QDateTime &seen);
+        void setSeen(const QDateTime & seen);
 
     private:
 
-        //
-        Coin::typesafeOutPoint _outPointCreated;
-        Coin::TxOut _newUtxo;
+        Coin::UnspentP2PKHOutput _utxo;
 
         // When transation was first seen
         QDateTime _seen;
+
+
     };
 
 }

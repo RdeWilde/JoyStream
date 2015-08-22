@@ -40,7 +40,7 @@ typesafeOutPoint & typesafeOutPoint::operator=(const typesafeOutPoint& o) {
 }
 
 bool operator==(const typesafeOutPoint & lhs, const typesafeOutPoint & rhs) {
-    return (lhs.transactionId() < rhs.transactionId()) || ((lhs.transactionId() == rhs.transactionId()) && (lhs.index() < rhs.index()));
+    return (lhs.transactionId() == rhs.transactionId()) && (lhs.index() == rhs.index());
 }
 
 bool operator!=(const typesafeOutPoint & lhs, const typesafeOutPoint & rhs) {
@@ -78,5 +78,9 @@ void typesafeOutPoint::setIndex(quint32 index) {
 }
 
 uint qHash(const Coin::typesafeOutPoint & o) {
-    return qHash(o.toString());
+
+    QByteArray total = o.transactionId().toByteArray();
+    total.push_back(QByteArray::number(o.index()));
+
+    return qHash(total);
 }

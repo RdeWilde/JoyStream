@@ -41,11 +41,11 @@ namespace Address {
     QList<Record> allRecords(QSqlDatabase db);
 
     // Checks whether record exists with given primary key, if so, it is written to r
-    bool exists(QSqlDatabase & db, const PK & pk, Record & r);
-    bool exists(QSqlDatabase & db, const PK & pk);
+    bool exists(QSqlDatabase db, const PK & pk, Record & r);
+    bool exists(QSqlDatabase db, const PK & pk);
 
     // Finds record with given address, returns true IFF it exists, writes result into supplied record r
-    bool findFromAddress(QSqlDatabase & db, const Coin::P2PKHAddress & address, Record & r);
+    bool findFromAddress(QSqlDatabase db, const Coin::P2PKHAddress & address, Record & r);
 }
 }
 

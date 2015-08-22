@@ -103,13 +103,6 @@ public:
     quint64 lastComputedZeroConfBalance();
 
     /**
-     * DONT INCLUDE, USAGE MUST BE SYNCHED
-     * , WHICH PEOPLE WILL FORGET.
-    // Gets hd key index of next key
-    quint64 nextHdIndex();
-    */
-
-    /**
      * Keys
      */
 
@@ -136,7 +129,7 @@ public:
     Coin::P2PKHAddress getReceiveAddress();
 
     // List all receive addresses in the wallet
-    //QList<ReceiveAddress> listReceiveAddresses();
+    QList<Coin::P2PKHAddress> listReceiveAddresses();
 
     // KEY POOL MANAGMENET: (for the future)
     // ====================================
@@ -168,6 +161,7 @@ public:
     // Add transaction to wallet, throws exception if it already exists
     bool addTransaction(const Coin::Transaction & transaction);
 
+    /**
     // Calculates fees for transaction
     bool calculateAndSetFee(const Coin::TransactionId & transactionId, quint64 & fee);
 
@@ -176,7 +170,8 @@ public:
 
     // Registers the membership of a transaction in a given block,
     // throws exceptions if either block or transaction are not already in the wallet
-    //bool registerTransactionInBlock(const Coin::TransactionId  & transactionId, const Coin::BlockId & blockId, .. merkle proof);
+    bool registerTransactionInBlock(const Coin::TransactionId  & transactionId, const Coin::BlockId & blockId, .. merkle proof);
+    */
 
     // Tries to recover the transaction with the given wallet it
     Coin::Transaction getTransaction(const Coin::TransactionId & transactionId);
@@ -191,37 +186,30 @@ public:
      * Payments
      */
 
-    // ....
+
 
     /**
      * Utxo
      */
 
     // Lists the utxo with a minimal number of confirmations: DOES NOT
-    QList<Coin::UnspentP2PKHOutput> listUtxo(quint64 minimalConfirmations = 1);
+    QList<Coin::UnspentP2PKHOutput> listUtxo(quint64 minimalConfirmations = 0);
 
     // Lock utxo
-    //QList<Coin::UnspentP2PKHOutput> lockUtxo(quint64 minimalAmount, quint64 minimalConfirmations = 1);
-
-    // Release a utxo
-    //void releaseUtxo(const Coin::UnspentP2PKHOutput & utxo);
-
-    // List all wallet utxo which have been created
-    QList<UtxoCreated> getAllUtxoCreated(const QDateTime & lowerBound);
-
-    // List all wallet utxo which has been destroyed
-    QList<UtxoDestroyed> getAllUtxoDestroyed(const QDateTime & lowerBound);
-    
-    // Scraps current key pool, and rebuilds based on dbase
-    //void updateKeyPool();
-
-    // Scraps current utxo, and rebuilds based on dbase,
-    // returns size of current utxo set
-    quint64 updateUtxoSet();
+    QList<Coin::UnspentP2PKHOutput> lockUtxo(quint64 minimalAmount, quint64 minimalConfirmations = 0);
 
     // Releases the corresponding output from locked set,
     // returns whether any output was actually locked with this outpoint
     bool releaseUtxo(const Coin::typesafeOutPoint & o);
+
+    // List all wallet utxo which have been created
+    QList<UtxoCreated> getAllUtxoCreated(quint64 minimalConfirmations = 0);
+
+    // List all wallet utxo which has been destroyed
+    QList<UtxoDestroyed> getAllUtxoDestroyed(quint64 minimalConfirmations = 0);
+
+    // Find balance at given number of confirmations
+    quint64 balance(quint64 minimalConfirmations = 0);
 
     /**
      * Bitcoin network communication
@@ -237,14 +225,18 @@ public:
 
 signals:
 
+    /**
+     * Keys
+     */
+
     // When updateKeyPool() is done
-    void keyPoolUpdated(quint32 diff);
+    //void keyPoolUpdated(quint32 diff);
 
-    // When updateUtxo() is done, and gives size of new utxo set
-    void utxoUpdated(quint64 size);
+    /**
+     * Addresses
+     */
 
-    // Balance change
-    void zeroConfBalanceChanged(quint64);
+    void addressCreated(const Coin::P2PKHAddress & address);
 
     /**
      * Transactions
@@ -276,11 +268,17 @@ signals:
      * Utxo
      */
 
-    // Wallet utxo which was created
+    // Utxo which was created
     void utxoCreated(const UtxoCreated & event);
 
-    // Wallet utxo was destroyed
+    // Utxo was destroyed
     void utxoDestroyed(const UtxoDestroyed & event);
+
+    // Utxo was unlocked
+    void utxoReleased(const Coin::typesafeOutPoint & o);
+
+    // Balance change
+    void zeroConfBalanceChanged(quint64);
 
 public slots:
 
@@ -333,7 +331,7 @@ private:
     // use by some external client. While in this set
     // a corresponding output is never exporter in response to
     // a utxo request from a client.
-    //QSet<Coin::typesafeOutPoint> _lockedOutPoints;
+    QSet<Coin::typesafeOutPoint> _lockedOutPoints;
 
     // Generate p2pkh receive address
     // corresponding to a fresh private

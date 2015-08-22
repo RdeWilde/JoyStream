@@ -52,8 +52,8 @@ namespace TransactionMinedInBlock {
     bool insert(QSqlDatabase db, const Record & record);
 
     // Checks whether record exists with given primary key, if so, it is written to r
-    bool exists(QSqlDatabase & db, const PK & pk, Record & r);
-    bool exists(QSqlDatabase & db, const PK & pk);
+    bool exists(QSqlDatabase db, const PK & pk, Record & r);
+    bool exists(QSqlDatabase db, const PK & pk);
 
 }
 }

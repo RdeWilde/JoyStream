@@ -83,20 +83,20 @@ namespace Transaction {
     };
 
     // Creates table
-    bool createTable(QSqlDatabase & db);
+    bool createTable(QSqlDatabase db);
 
     // Insert record, returns true IFF it worked
-    bool insert(QSqlDatabase & db, const Record & record);
+    bool insert(QSqlDatabase db, const Record & record);
 
     // Lists all transactions in wallet
-    QList<Record> allTransactions(QSqlDatabase & db);
+    QList<Record> allTransactions(QSqlDatabase db);
 
     // Count number of transactions i wallet
-    quint64 getTransactionCount(QSqlDatabase & db);
+    quint64 getTransactionCount(QSqlDatabase db);
 
     // Checks whether record exists with given primary key, if so, it is written to r
-    bool exists(QSqlDatabase & db, const PK & pk, Record & r);
-    bool exists(QSqlDatabase & db, const PK & pk);
+    bool exists(QSqlDatabase db, const PK & pk, Record & r);
+    bool exists(QSqlDatabase db, const PK & pk);
 }
 }
 

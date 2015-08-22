@@ -130,7 +130,7 @@ quint64 numberOfKeysInWallet(QSqlDatabase db) {
     return numberOfKeysInWallet;
 }
 
-bool exists(QSqlDatabase & db, const PK & pk, Record & r) {
+bool exists(QSqlDatabase db, const PK & pk, Record & r) {
 
     // Prepare select query
     QSqlQuery query(db);
@@ -154,7 +154,7 @@ bool exists(QSqlDatabase & db, const PK & pk, Record & r) {
     return true;
 }
 
-bool exists(QSqlDatabase & db, const PK & pk) {
+bool exists(QSqlDatabase db, const PK & pk) {
 
     Record r;
     return exists(db, pk, r);

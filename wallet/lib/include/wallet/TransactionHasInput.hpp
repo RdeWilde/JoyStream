@@ -47,13 +47,13 @@ namespace TransactionHasInput {
     bool createTable(QSqlDatabase db);
 
     // Query inserting this wallet key into corresponding table
-    bool insert(QSqlDatabase & db, const Record & record);
+    bool insert(QSqlDatabase db, const Record & record);
 
     // Checks whether record exists with given primary key, if so, it is written to r
-    bool exists(QSqlDatabase & db, const PK & pk, Record & r);
-    bool exists(QSqlDatabase & db, const PK & pk);
+    bool exists(QSqlDatabase db, const PK & pk, Record & r);
+    bool exists(QSqlDatabase db, const PK & pk);
 
-    std::vector<Coin::TxIn> inputsOfTransaction(QSqlDatabase & db, const Coin::TransactionId & transactionId);
+    std::vector<Coin::TxIn> inputsOfTransaction(QSqlDatabase db, const Coin::TransactionId & transactionId);
 }
 }
 

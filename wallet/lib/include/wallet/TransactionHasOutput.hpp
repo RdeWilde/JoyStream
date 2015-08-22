@@ -42,16 +42,16 @@ namespace TransactionHasOutput {
     };
 
     // Creates table, return true IFF it worked
-    bool createTable(QSqlDatabase & db);
+    bool createTable(QSqlDatabase db);
 
     // Insert record, returns true IFF it was inserted
-    bool insert(QSqlDatabase & db, const Record & record);
+    bool insert(QSqlDatabase db, const Record & record);
 
     // Checks whether record exists with given primary key, if so, it is written to r
-    bool exists(QSqlDatabase & db, const PK & pk, Record & r);
-    bool exists(QSqlDatabase & db, const PK & pk);
+    bool exists(QSqlDatabase db, const PK & pk, Record & r);
+    bool exists(QSqlDatabase db, const PK & pk);
 
-    std::vector<Coin::TxOut> outputsOfTransaction(QSqlDatabase & db, const Coin::TransactionId & transactionId);
+    std::vector<Coin::TxOut> outputsOfTransaction(QSqlDatabase db, const Coin::TransactionId & transactionId);
 
 }
 }

@@ -52,7 +52,7 @@ private:
     // Controls utxo
     KeyPair _keyPair;
 
-    // OutPoint being spent
+    // OutPoint locating utxo
     typesafeOutPoint _outPoint;
 
     // Value of output

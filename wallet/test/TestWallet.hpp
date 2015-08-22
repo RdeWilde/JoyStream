@@ -2,9 +2,10 @@
 #define TESTWALLET_HPP
 
 #include <QtTest/QtTest>
-//#include <CoinCore/hdkeys.h>
 
-#include <QSqlDatabase>
+namespace Coin {
+    class Transaction;
+}
 
 #define WALLET_FILE_NAME "test-wallet"
 #define NETWORK_TYPE Coin::Network::testnet3
@@ -19,17 +20,16 @@ class TestWallet : public QObject
 
     Wallet::Manager * _manager;
 
-    // Database used by wallet
-    QSqlDatabase _db;
-    //Coin::HDKeychain _keyChain;
-
 private slots:
 
-    // called before everything else
-    void initTestCase();
+    // called before *each* non-built in test case
+    void init();
+
+    // called after *each* non-built in test case
+    void cleanup();
 
     /**
-     * Routines for adding and searching for the given data type to wallet
+     * Test routines
      */
 
     //void outPoint_data();
@@ -46,9 +46,11 @@ private slots:
 
     void listutxo();
 
+    void lockutxo();
 
-    // called after all non inittestcase
-    void cleanupTestCase();
+public:
+
+    Coin::Transaction createWalletTx(quint32 numberOfOutputs);
 };
 
 #endif // TESTWALLET_HPP

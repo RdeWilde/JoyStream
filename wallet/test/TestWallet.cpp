@@ -12,7 +12,11 @@
 #include <CoinCore/CoinNodeData.h>
 #include <CoinQ/CoinQ_script.h>
 
-void TestWallet::initTestCase() {
+#include <QSqlDatabase>
+
+#define DB _manager->db()
+
+void TestWallet::init() {
 
     // Delete any lingering wallet file
     QFile::remove(WALLET_FILE_NAME);
@@ -26,8 +30,12 @@ void TestWallet::initTestCase() {
     // Open the wallet
     _manager = new Wallet::Manager(WALLET_FILE_NAME);
 
-    //
-    _db = _manager->db();
+}
+
+void TestWallet::cleanup() {
+
+    delete _manager;
+    _manager = NULL;
 }
 
 /**
@@ -52,20 +60,21 @@ void TestWallet::outPoint() {
     QVERIFY(!_manager->addOutPoint(original));
 
     // check that its there
-    QVERIFY(Wallet::OutPoint::exists(_db, Wallet::OutPoint::PK(original)));
+    QVERIFY(Wallet::OutPoint::exists(DB, Wallet::OutPoint::PK(original)));
 
     // check that different tx isnt there
     Coin::OutPoint other_tx(uchar_vector("6404f7cfc0cc00e4234123414125978d0c021edecad6e3f613b1575b7d7aa160"), 11);
-    QVERIFY(!Wallet::OutPoint::exists(_db, Wallet::OutPoint::PK(other_tx)));
+    QVERIFY(!Wallet::OutPoint::exists(DB, Wallet::OutPoint::PK(other_tx)));
 
     // check that different index isnt there
     Coin::OutPoint other_index(uchar_vector("6404f7cfc0cc00e402247c309345978d0c021edecad6e3f613b1575b7d7aa160"), 666);
-    QVERIFY(!Wallet::OutPoint::exists(_db, Wallet::OutPoint::PK(other_index)));
+    QVERIFY(!Wallet::OutPoint::exists(DB, Wallet::OutPoint::PK(other_index)));
 
     // try to get it out, and that its the same
     Wallet::OutPoint::Record record;
-    bool exists = Wallet::OutPoint::exists(_db, original, record);
+    bool exists = Wallet::OutPoint::exists(DB, original, record);
     QVERIFY(exists);
+
     // No comparison operator!!
     //QVERIFY(record.toOutPoint() == original);
     QVERIFY(record.toOutPoint().getSerialized() == original.getSerialized());
@@ -85,7 +94,8 @@ void TestWallet::key() {
 
     // Check that it has been inserted
     Wallet::Key::Record record;
-    QVERIFY(Wallet::Key::exists(_db, 0, record));
+    bool exists = Wallet::Key::exists(DB, 0, record);
+    QVERIFY(exists);
 
     // Equal to inserted original
     QVERIFY(sk == record._privateKey);
@@ -94,7 +104,7 @@ void TestWallet::key() {
     QVERIFY(Coin::PrivateKey() != record._privateKey);
 
     // Nothing else has been inserted
-    QVERIFY(!Wallet::Key::exists(_db, 1));
+    QVERIFY(!Wallet::Key::exists(DB, 1));
 }
 
 void TestWallet::address() {
@@ -130,7 +140,104 @@ void TestWallet::tx() {
 void TestWallet::listutxo() {
 
     // How many outputs
-    int numberOfOutputs = 2;
+    quint32 numberOfOutputs = 2;
+
+    // Create transaction
+    Coin::Transaction tx = createWalletTx(numberOfOutputs);
+
+    // Add to wallet
+    QVERIFY(_manager->addTransaction(tx));
+
+    // Check that it is the right size
+    QList<Coin::UnspentP2PKHOutput> zeroConfUtxo_1 = _manager->listUtxo(0);
+    QVERIFY(zeroConfUtxo_1.size() == numberOfOutputs);
+
+    // Check that there are numberOfOutputs utxo created events
+    QList<Wallet::UtxoCreated> utxoCreated_1 = _manager->getAllUtxoCreated(0);
+    QVERIFY(utxoCreated_1.size() == numberOfOutputs);
+
+    // Check that there are 0 utxo destroyed events
+    QList<Wallet::UtxoDestroyed> utxoDestroyed_1 = _manager->getAllUtxoDestroyed(0);
+    QVERIFY(utxoDestroyed_1.size() == 0);
+
+    //
+    // Add a transaction which spends one of the outputs
+    //
+
+    Coin::Transaction spendingTx;
+    Coin::OutPoint out(tx.getHashLittleEndian(),0); // outpoint referencing first outputo tx above
+    spendingTx.addInput(Coin::TxIn(out, uchar_vector("12345"), 4444));
+
+    // Add to wallet
+    QVERIFY(_manager->addTransaction(spendingTx));
+
+    // Get utxo
+    QList<Coin::UnspentP2PKHOutput> zeroConfUtxo_2 = _manager->listUtxo(0);
+    QList<Wallet::UtxoCreated> utxoCreated_2 = _manager->getAllUtxoCreated(0);
+
+    // Check that it is the right size
+    QVERIFY(zeroConfUtxo_2.size() == numberOfOutputs - 1);
+    QVERIFY(utxoCreated_2.size() == numberOfOutputs); // still same number of utxo created
+
+    // Check that there are 1 utxo destroyed events
+    QList<Wallet::UtxoDestroyed> utxoDestroyed_2 = _manager->getAllUtxoDestroyed(0);
+    QVERIFY(utxoDestroyed_2.size() == 1);
+
+}
+
+void TestWallet::lockutxo() {
+
+    // How many outputs
+    quint32 numberOfOutputs = 5;
+
+    // Create transaction
+    Coin::Transaction tx = createWalletTx(numberOfOutputs);
+
+    // Add to wallet
+    QVERIFY(_manager->addTransaction(tx));
+
+    // lock something we should be able to log
+    quint64 quantityToLock = 8;
+    QList<Coin::UnspentP2PKHOutput> list = _manager->lockUtxo(quantityToLock, 0);
+    QVERIFY(!list.isEmpty());
+
+    // count up how much we locked up
+    quint64 totalLocked = 0;
+    for(QList<Coin::UnspentP2PKHOutput>::const_iterator i = list.constBegin(),
+        end = list.constEnd();
+        i != end;
+        i++) {
+
+        Coin::UnspentP2PKHOutput output = *i;
+        totalLocked += output.value();
+    }
+
+    QVERIFY(totalLocked >= quantityToLock);
+
+    // Fail to lock a huge amount
+    QVERIFY(_manager->lockUtxo(100000, 0).isEmpty());
+
+    // Release, and see utxo grow back
+    quint32 remainingUtxoSize = _manager->listUtxo(0).size();
+
+    for(QList<Coin::UnspentP2PKHOutput>::const_iterator i = list.constBegin(),
+        end = list.constEnd();
+        i != end;
+        i++) {
+
+        // release
+        Coin::UnspentP2PKHOutput output = *i;
+
+        QVERIFY(_manager->releaseUtxo(output.outPoint()));
+    }
+
+    // We need some better test here that everyhthing was indeed released
+
+    // Check we are back at original size
+    //QVERIFY(oldUtxoSize + numberOfOutputs = );
+}
+
+Coin::Transaction TestWallet::createWalletTx(quint32 numberOfOutputs) {
 
     // Create transaction to add
     Coin::Transaction tx;
@@ -150,32 +257,7 @@ void TestWallet::listutxo() {
         tx.addOutput(out);
     }
 
-    // Add to wallet
-    QVERIFY(_manager->addTransaction(tx));
-
-    // Get utxo
-    QList<Coin::UnspentP2PKHOutput> zeroConfUtxo = _manager->listUtxo(0);
-
-    // Check that it is the right size
-    QVERIFY(zeroConfUtxo.size() == numberOfOutputs);
-
-    //
-    // Add a transaction which spends one of the outputs
-    //
-
-    Coin::Transaction spendingTx;
-    Coin::OutPoint out(tx.getHashLittleEndian(),0); // outpoint referencing first outputo tx above
-    spendingTx.addInput(Coin::TxIn(out, uchar_vector("12345"), 4444));
-
-    // Add to wallet
-    QVERIFY(_manager->addTransaction(spendingTx));
-
-    // Get utxo
-    QList<Coin::UnspentP2PKHOutput> zeroConfUtxo2 = _manager->listUtxo(0);
-
-    // Check that it is the right size
-    QVERIFY(zeroConfUtxo2.size() == numberOfOutputs - 1);
-
+    return tx;
 }
 
 /*
@@ -191,10 +273,6 @@ void TestWallet::input_data() {
 
 }
 */
-
-void TestWallet::cleanupTestCase() {
-
-}
 
 QTEST_MAIN(TestWallet)
 #include "moc_TestWallet.cpp"

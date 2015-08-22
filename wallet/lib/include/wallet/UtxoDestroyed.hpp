@@ -22,18 +22,21 @@ namespace Wallet {
 
         UtxoDestroyed(const Coin::TransactionId & spendingTx,
                       const QDateTime & seen,
-                      const Coin::typesafeOutPoint outPointDestroyed,
+                      quint32 indexOfInputInSpendingTx,
+                      const Coin::TxIn & inputInSpendingTx,
                       const Coin::TxOut & oldUtxo);
 
-        // Getters and setters
         Coin::TransactionId spendingTx() const;
-        void setSpendingTx(const Coin::TransactionId & spendingTx);
+        void setSpendingTx(const Coin::TransactionId &spendingTx);
 
         QDateTime seen() const;
         void setSeen(const QDateTime & seen);
 
-        Coin::typesafeOutPoint outPointDestroyed() const;
-        void setOutPointDestroyed(const Coin::typesafeOutPoint & outPointDestroyed);
+        quint32 indexOfInputInSpendingTx() const;
+        void setIndexOfInputInSpendingTx(quint32 indexOfInputInSpendingTx);
+
+        Coin::TxIn inputInSpendingTx() const;
+        void setInputInSpendingTx(const Coin::TxIn & inputInSpendingTx);
 
         Coin::TxOut oldUtxo() const;
         void setOldUtxo(const Coin::TxOut & oldUtxo);
@@ -43,11 +46,16 @@ namespace Wallet {
         // Transaction spending output
         Coin::TransactionId _spendingTx;
 
-        // When transation was first seen
+        // When spending transation was first seen
         QDateTime _seen;
 
-        // Outpoint and output destroyed
-        Coin::typesafeOutPoint _outPointDestroyed;
+        // Index of spening input in the spending transaction
+        quint32 _indexOfInputInSpendingTx;
+
+        // The actual input doing the spending
+        Coin::TxIn _inputInSpendingTx;
+
+        // Output being spent (in previous transaction)
         Coin::TxOut _oldUtxo;
     };
 }

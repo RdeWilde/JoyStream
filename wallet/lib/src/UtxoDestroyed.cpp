@@ -10,12 +10,14 @@
 namespace Wallet {
 
 UtxoDestroyed::UtxoDestroyed(const Coin::TransactionId & spendingTx,
-                              const QDateTime & seen,
-                              const Coin::typesafeOutPoint outPointDestroyed,
-                              const Coin::TxOut & oldUtxo)
+                             const QDateTime & seen,
+                             quint32 indexOfInputInSpendingTx,
+                             const Coin::TxIn & inputInSpendingTx,
+                             const Coin::TxOut & oldUtxo)
     : _spendingTx(spendingTx)
     , _seen(seen)
-    , _outPointDestroyed(outPointDestroyed)
+    , _indexOfInputInSpendingTx(indexOfInputInSpendingTx)
+    , _inputInSpendingTx(inputInSpendingTx)
     , _oldUtxo(oldUtxo) {
 }
 
@@ -35,12 +37,20 @@ void UtxoDestroyed::setSeen(const QDateTime & seen) {
     _seen = seen;
 }
 
-Coin::typesafeOutPoint UtxoDestroyed::outPointDestroyed() const {
-    return _outPointDestroyed;
+quint32 UtxoDestroyed::indexOfInputInSpendingTx() const {
+    return _indexOfInputInSpendingTx;
 }
 
-void UtxoDestroyed::setOutPointDestroyed(const Coin::typesafeOutPoint & outPointDestroyed) {
-    _outPointDestroyed = outPointDestroyed;
+void UtxoDestroyed::setIndexOfInputInSpendingTx(quint32 indexOfInputInSpendingTx) {
+    _indexOfInputInSpendingTx = indexOfInputInSpendingTx;
+}
+
+Coin::TxIn UtxoDestroyed::inputInSpendingTx() const {
+    return _inputInSpendingTx;
+}
+
+void UtxoDestroyed::setInputInSpendingTx(const Coin::TxIn & inputInSpendingTx) {
+    _inputInSpendingTx = inputInSpendingTx;
 }
 
 Coin::TxOut UtxoDestroyed::oldUtxo() const {

@@ -44,7 +44,7 @@ Record::Record(const QSqlRecord & record) {
     _output = Output::PK(value, scriptPubKey);
 }
 
-bool createTable(QSqlDatabase & db) {
+bool createTable(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -64,7 +64,7 @@ bool createTable(QSqlDatabase & db) {
     return (query.lastError().type() == QSqlError::NoError);
 }
 
-bool insert(QSqlDatabase & db, const Record & record) {
+bool insert(QSqlDatabase db, const Record & record) {
 
     // Prepare insert query
     QSqlQuery query(db);
@@ -86,7 +86,7 @@ bool insert(QSqlDatabase & db, const Record & record) {
     return (query.lastError().type() == QSqlError::NoError);
 }
 
-bool exists(QSqlDatabase & db, const PK & pk, Record & r) {
+bool exists(QSqlDatabase db, const PK & pk, Record & r) {
 
     // Prepare select query
     QSqlQuery query(db);
@@ -118,7 +118,7 @@ bool exists(QSqlDatabase & db, const PK & pk) {
     return exists(db, pk, r);
 }
 
-std::vector<Coin::TxOut> outputsOfTransaction(QSqlDatabase & db, const Coin::TransactionId & transactionId) {
+std::vector<Coin::TxOut> outputsOfTransaction(QSqlDatabase db, const Coin::TransactionId & transactionId) {
 
     std::vector<Coin::TxOut> outputs;
 

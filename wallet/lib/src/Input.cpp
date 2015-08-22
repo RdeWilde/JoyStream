@@ -65,7 +65,7 @@ Coin::TxIn Record::toInput() {
     return Coin::TxIn(Coin::OutPoint(outPointTransactionId.toUCharVector(), outPointOutputIndex), Coin::toUCharVector(scriptSig), sequence);
 }
 
-bool createTable(QSqlDatabase & db) {
+bool createTable(QSqlDatabase db) {
 
     QSqlQuery query(db);
 
@@ -85,7 +85,7 @@ bool createTable(QSqlDatabase & db) {
 }
 
 
-bool insert(QSqlDatabase & db, const Record & record) {
+bool insert(QSqlDatabase db, const Record & record) {
 
     // Create insert query
     QSqlQuery query(db);
@@ -109,7 +109,7 @@ bool insert(QSqlDatabase & db, const Record & record) {
 }
 
 
-bool exists(QSqlDatabase & db, const PK & pk, Record & r) {
+bool exists(QSqlDatabase db, const PK & pk, Record & r) {
 
     // Prepare select query
     QSqlQuery query(db);
@@ -140,7 +140,7 @@ bool exists(QSqlDatabase & db, const PK & pk, Record & r) {
     return true;
 }
 
-bool exists(QSqlDatabase & db, const PK & pk) {
+bool exists(QSqlDatabase db, const PK & pk) {
     Record r;
     return exists(db, pk, r);
 }

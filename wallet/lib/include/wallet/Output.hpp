@@ -54,14 +54,14 @@ namespace Output {
     };
 
     // Creates table, returns true IFF it worked
-    bool createTable(QSqlDatabase & db);
+    bool createTable(QSqlDatabase db);
 
     // Insert
-    bool insert(QSqlDatabase & db, const Record & record);
+    bool insert(QSqlDatabase db, const Record & record);
 
     // Whether record with given private key exists
-    bool exists(QSqlDatabase & db, const PK & pk, Record & r);
-    bool exists(QSqlDatabase & db, const PK & pk);
+    bool exists(QSqlDatabase db, const PK & pk, Record & r);
+    bool exists(QSqlDatabase db, const PK & pk);
 
 }
 }
