@@ -32,7 +32,8 @@ SOURCES += \
     src/ChannelView.cpp \
     src/BuyerPeerPluginView.cpp \
     src/SellerPeerPluginView.cpp \
-    src/PeerPluginsDialog.cpp
+    src/PeerPluginsDialog.cpp \
+    src/UtxoEventViewModel.cpp
 
 HEADERS += \
     include/gui/MainWindow.hpp \
@@ -46,7 +47,8 @@ HEADERS += \
     include/gui/TorrentView.hpp \
     include/gui/ChannelView.hpp \
     include/gui/BuyerPeerPluginView.hpp \
-    include/gui/SellerPeerPluginView.hpp
+    include/gui/SellerPeerPluginView.hpp \
+    include/gui/UtxoEventViewModel.hpp
 
 FORMS += \
     ui/SellerTorrentPluginConfigurationDialog.ui \

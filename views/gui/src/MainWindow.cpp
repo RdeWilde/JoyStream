@@ -101,6 +101,11 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet)
     this->ui->torrentsTable->header()->setFont(torrentTableHeaderFont);
      */
 
+    /**
+     * Set initial balances
+     */
+    updateWalletBalance(_wallet->lastComputedZeroConfBalance());
+    updatePluginStatus(Plugin::Status(0, 0, 0));
 
     /**
      * Add columns to model view model
@@ -195,12 +200,19 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet)
     // Accept drag and drop
     setAcceptDrops(true);
 
+    /**
+     * Wallet signals
+     */
+
     // Update balance when it changes
     QObject::connect(_wallet,
                      SIGNAL(zeroConfBalanceChanged(quint64)),
                      this,
                      SLOT(updateWalletBalance(quint64)));
 
+
+
+    /**
     // Capure wallet balance update timer,
     connect(&_walletBalanceUpdateTimer,
             SIGNAL(timeout()),
@@ -209,6 +221,7 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet)
 
     // and have i fire every 30s
     _walletBalanceUpdateTimer.start(30000);
+    */
 }
 
 MainWindow::~MainWindow() {
@@ -598,13 +611,15 @@ void MainWindow::startVLC(const libtorrent::sha1_hash & infoHash) {
         qDebug() << "Could not start VLC.";
 }
 
+ /**
 void MainWindow::updateWalletBalanceHook() {
 
-    /**
+
     // Synch with chain
     _wallet->synchronize();
-    */
+
 }
+*/
 
 TorrentView * MainWindow::rowToView(int row) {
 

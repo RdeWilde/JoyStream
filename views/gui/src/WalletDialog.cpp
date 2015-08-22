@@ -8,6 +8,8 @@
 #include <gui/WalletDialog.hpp>
 #include "ui_WalletDialog.h"
 #include <wallet/Manager.hpp>
+#include <wallet/UtxoCreated.hpp>
+#include <wallet/UtxoDestroyed.hpp>
 #include <common/BitcoinDisplaySettings.hpp>
 #include <common/BitcoinRepresentation.hpp>
 #include <common/P2PKHAddress.hpp>
@@ -15,9 +17,7 @@
 #include <QInputDialog>
 #include <QMessageBox>
 
-#include <QDebug> // <== temproray
-
-//WalletDialog::WalletDialog(QWidget *parent, Wallet * wallet) {}
+#include <QDebug> // <== temporary
 
 WalletDialog::WalletDialog(Wallet::Manager * wallet,
                            const BitcoinDisplaySettings * settings)
@@ -27,43 +27,65 @@ WalletDialog::WalletDialog(Wallet::Manager * wallet,
 
     ui->setupUi(this);
 
+    // Freeze size of dialog
+    setFixedSize(size());
+
     // Setup View model
     this->setWindowTitle("Wallet");
 
     // Add columns to model view model
     _walletTableViewModel.setHorizontalHeaderItem(0, new QStandardItem("Date"));
-    _walletTableViewModel.setHorizontalHeaderItem(1, new QStandardItem("Type"));
-    _walletTableViewModel.setHorizontalHeaderItem(2, new QStandardItem("Value"));
-    _walletTableViewModel.setHorizontalHeaderItem(3, new QStandardItem("#Confirmations"));
+    //_walletTableViewModel.setHorizontalHeaderItem(1, new QStandardItem("Type"));
+    _walletTableViewModel.setHorizontalHeaderItem(1, new QStandardItem("Value"));
+    _walletTableViewModel.setHorizontalHeaderItem(2, new QStandardItem("#Confirmations"));
+
+    // Setup sorting on the date column
+    _walletTableViewModel.sort(0,Qt::DescendingOrder );
 
     // Set table model to view model
     ui->walletTableView->setModel(&_walletTableViewModel);
 
     // Fix column with
-    ui->walletTableView->setColumnWidth(0, 180);
-    ui->walletTableView->setColumnWidth(1, 50);
+    ui->walletTableView->setColumnWidth(0, 120);
+    //ui->walletTableView->setColumnWidth(1, 50);
+    ui->walletTableView->setColumnWidth(1, 100);
     ui->walletTableView->setColumnWidth(2, 50);
-    ui->walletTableView->setColumnWidth(3, 20);
 
     // Populate view
-    refresh();
+    updateNumberOfKeysInWallet(_wallet->numberOfKeysInWallet());
+    updateNumberOfTransactions(_wallet->numberOfTransactions());
+
+    // List wallet events and create view models for each one
+    QList<Wallet::UtxoCreated> utxoCreated = _wallet->getAllUtxoCreated(0);
+
+    for(QList<Wallet::UtxoCreated>::const_iterator
+        i = utxoCreated.constBegin(),
+        end = utxoCreated.constEnd();
+        i != end;
+        i++)
+        _utxoViewModels.push_back(UtxoEventViewModel(&_walletTableViewModel, *i, _settings));
+
+
+    QList<Wallet::UtxoDestroyed> utxoDestroyed = _wallet->getAllUtxoDestroyed(0);
+
+    for(QList<Wallet::UtxoDestroyed>::const_iterator
+        i = utxoDestroyed.constBegin(),
+        end = utxoDestroyed.constEnd();
+        i != end;
+        i++)
+        _utxoViewModels.push_back(UtxoEventViewModel(&_walletTableViewModel, *i, _settings));
+
+    // Connect wallet signals
+
+
 }
 
+/**
 void WalletDialog::refresh() {
-
-    // Clear view model
-    clearWalletTableView();
 
     // Update view model
     updateWalletTableView();
 
-    // Get number of keys in wallet
-    int numberOfKeys = _wallet->numberOfKeysInWallet();
-    ui->numKeys->setText(QString("#Keys: ") + QString::number(numberOfKeys));
-
-    // Get number of transactions in wallet
-    int numberOfTransactions = _wallet->numberOfTransactions();
-    ui->numTransactions->setText(QString("#Transactions: ") + QString::number(numberOfTransactions));
 }
 
 void WalletDialog::clearWalletTableView() {
@@ -98,7 +120,7 @@ void WalletDialog::updateWalletTableView() {
     ui->walletTableView->setColumnWidth(2, 50);
     ui->walletTableView->setColumnWidth(3, 20);
 
-    /**
+
 
     // Get wallet entries
     const QMap<PublicKey, Wallet::Entry> & entries = _wallet->entries();
@@ -139,10 +161,7 @@ void WalletDialog::updateWalletTableView() {
 
         //_walletTableViewModel.appendRow(toModelViewRow(*i));
     }
-    */
 
-
-    /**
     // Get wallet entries
     const QMap<PublicKey, Wallet::Entry> & entries = _wallet->entries();
 
@@ -210,11 +229,8 @@ void WalletDialog::updateWalletTableView() {
         }
     }
 
-    */
-
 }
 
-/**
 QList<QStandardItem *> WalletDialog::toModelViewRow(const Wallet::TxOEvent & event) const {
 
     // Create new row
@@ -258,6 +274,7 @@ WalletDialog::~WalletDialog() {
 
 void WalletDialog::on_receivePushButton_clicked() {
 
+    /**
     // Get description
     bool ok;
 
@@ -271,6 +288,7 @@ void WalletDialog::on_receivePushButton_clicked() {
     // Check that description was provided
     if(!ok || description.isEmpty())
         return;
+    */
 
     // Get address
     Coin::P2PKHAddress address = _wallet->getReceiveAddress();
@@ -292,5 +310,13 @@ void WalletDialog::on_synchronizePushButton_clicked() {
     //_wallet->synchronize();
 
     // Update view model
-    refresh();
+    //refresh();
+}
+
+void WalletDialog::updateNumberOfKeysInWallet(quint64 numberOfKeys) {
+    ui->numKeys->setText(QString("#Keys: ") + QString::number(numberOfKeys));
+}
+
+void WalletDialog::updateNumberOfTransactions(quint64 numberOfTransactions) {
+    ui->numTransactions->setText(QString("#Transactions: ") + QString::number(numberOfTransactions));
 }

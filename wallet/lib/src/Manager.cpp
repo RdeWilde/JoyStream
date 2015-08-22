@@ -29,6 +29,7 @@
 #include <common/KeyPair.hpp>
 #include <common/TransactionId.hpp>
 #include <common/Utilities.hpp>
+#include <common/P2PKHAddress.hpp>
 
 #include <CoinCore/typedefs.h> // bytes_t
 #include <CoinCore/CoinNodeData.h> // Coin::CoinBlockHeader, Transaction types: outpoints, transactions, ...
@@ -55,7 +56,7 @@ QSqlDatabase Manager::openDatabaseConnection(const QString & walletFile) {
     Q_ASSERT(db.isValid());
 
     // Create database file
-    db.setDatabaseName(QFileInfo(walletFile).fileName());
+    db.setDatabaseName(walletFile);
 
     if(!db.open()) {
 

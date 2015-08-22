@@ -115,7 +115,7 @@ public slots:
     void startVLC(const libtorrent::sha1_hash & infoHash);
 
     // Stupid hook to update wallet balance, kill later.
-    void updateWalletBalanceHook();
+    //void updateWalletBalanceHook();
 
 private:
 

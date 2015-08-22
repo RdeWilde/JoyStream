@@ -10,8 +10,9 @@
 
 #include <QDialog>
 #include <QStandardItemModel>
+#include <gui/UtxoEventViewModel.hpp>
 
-//#include <wallet/Wallet.hpp> // Required to forward declare Wallet::TxOEvent
+#include <QMap>
 
 namespace Ui {
 class WalletDialog;
@@ -29,6 +30,7 @@ class WalletDialog : public QDialog
     Q_OBJECT
 
 public:
+
     //explicit WalletDialog(QWidget *parent = 0)
 
     WalletDialog(Wallet::Manager * wallet, const BitcoinDisplaySettings * settings);
@@ -38,7 +40,7 @@ public:
     void refresh();
 
     // Clear view model table
-    void clearWalletTableView();
+    //void clearWalletTableView();
 
     // Clears and repopulates walletTableView
     void updateWalletTableView();
@@ -46,9 +48,14 @@ public:
     //QList<QStandardItem *> toModelViewRow(const Wallet::TxOEvent & event) const;
 
 private slots:
+
     void on_receivePushButton_clicked();
 
     void on_synchronizePushButton_clicked();
+
+    void updateNumberOfKeysInWallet(quint64 numberOfKeys);
+
+    void updateNumberOfTransactions(quint64 numberOfTransactions);
 
 private:
     Ui::WalletDialog *ui;
@@ -57,11 +64,14 @@ private:
 
     const BitcoinDisplaySettings * _settings;
 
+    QList<UtxoEventViewModel> _utxoViewModels;
+
     /**
      * View-models
      */
 
     QStandardItemModel _walletTableViewModel; // View model
+
     QMenu * _walletTableContextMenu; // Context menu
     QModelIndex _walletTableLastIndexClicked; // Last model index for mouse click
 

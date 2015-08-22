@@ -6,6 +6,7 @@
  */
 
 #include <wallet/Address.hpp>
+#include <common/P2PKHAddress.hpp>
 
 #include <QSqlQuery>
 #include <QSqlRecord>

@@ -6,20 +6,23 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>503</width>
-    <height>332</height>
+    <width>509</width>
+    <height>293</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
   <widget class="QPushButton" name="sendPushButton">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
-     <x>392</x>
-     <y>274</y>
+     <x>420</x>
+     <y>250</y>
      <width>75</width>
-     <height>23</height>
+     <height>31</height>
     </rect>
    </property>
    <property name="text">
@@ -29,10 +32,10 @@
   <widget class="QPushButton" name="receivePushButton">
    <property name="geometry">
     <rect>
-     <x>310</x>
-     <y>274</y>
+     <x>338</x>
+     <y>250</y>
      <width>75</width>
-     <height>23</height>
+     <height>31</height>
     </rect>
    </property>
    <property name="text">
@@ -42,41 +45,23 @@
   <widget class="QLabel" name="numKeys">
    <property name="geometry">
     <rect>
-     <x>18</x>
-     <y>280</y>
-     <width>233</width>
-     <height>16</height>
+     <x>10</x>
+     <y>250</y>
+     <width>201</width>
+     <height>21</height>
     </rect>
    </property>
    <property name="text">
     <string/>
    </property>
   </widget>
-  <widget class="QLabel" name="label">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>12</y>
-     <width>145</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>Transactions</string>
-   </property>
-  </widget>
   <widget class="QLabel" name="numTransactions">
    <property name="geometry">
     <rect>
-     <x>18</x>
-     <y>290</y>
-     <width>233</width>
-     <height>16</height>
+     <x>10</x>
+     <y>270</y>
+     <width>201</width>
+     <height>21</height>
     </rect>
    </property>
    <property name="text">
@@ -86,23 +71,23 @@
   <widget class="QPushButton" name="synchronizePushButton">
    <property name="geometry">
     <rect>
-     <x>228</x>
-     <y>274</y>
-     <width>75</width>
-     <height>23</height>
+     <x>250</x>
+     <y>250</y>
+     <width>81</width>
+     <height>31</height>
     </rect>
    </property>
    <property name="text">
-    <string>Synchronize</string>
+    <string>test</string>
    </property>
   </widget>
   <widget class="QTreeView" name="walletTableView">
    <property name="geometry">
     <rect>
-     <x>16</x>
-     <y>44</y>
-     <width>471</width>
-     <height>192</height>
+     <x>0</x>
+     <y>0</y>
+     <width>511</width>
+     <height>241</height>
     </rect>
    </property>
    <property name="indentation">
