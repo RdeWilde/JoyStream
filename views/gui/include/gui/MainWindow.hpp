@@ -24,6 +24,8 @@
 #include <QLoggingCategory>
 #include <QProcess>
 #include <QTimer>
+#include <QStatusBar>
+#include <QLabel>
 
 namespace Ui {
 class MainWindow;
@@ -127,6 +129,10 @@ private:
 
     // Wallet
     Wallet::Manager * _wallet;
+
+    // Status bar at bottom of the page
+    QStatusBar _statusBar;
+    QLabel _statusLabel;
 
     // Torrent table view model
     QStandardItemModel _torrentTableViewModel;

@@ -52,25 +52,35 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet)
     ui->setupUi(this);
 
     /**
-     * Setup icons
+     * Look of main windw
      */
     // Alter window title
-    setWindowTitle("JoyStream"); // BitSwapr
+    setWindowTitle("JoyStream");
 
+    // Freeze size of dialog
+    setFixedSize(size());
+
+    // Status bar
+    _statusLabel.setText("Release 0.0.1, auto-update expected in by: 11.02.09)");
+    _statusBar.addWidget(&_statusLabel);
+    setStatusBar(&_statusBar);
+
+    /**
     // Set icon
-    //QPixmap iconMap("C:/ART/images/BitSwapr_mark_32.png");
-    QPixmap iconMap("C:/ART/images/window_logo.png");
-    setWindowIcon(iconMap);
+    setWindowIcon(QIcon(":/prefix/test"));
 
-    QPixmap addIcon("C:/ART/images/Add_button_inside_black_circle_32.png");
-    ui->addTorrentFilePushButton->setIcon(addIcon);
+    ui->addTorrentFilePushButton->setIcon(QIcon(":/prefix/test"));
 
     //QPixmap walletIcon("C:/ART/images/Bitcoin_pocket_or_wallet_32.png");
     QPixmap walletIcon("C:/ART/images/Card_wallet_32.png");
     ui->walletPushButton->setIcon(walletIcon);
 
-    QPixmap settingsIcon("C:/ART/images/Settings_Work_Tool_32.png");
+    // "C:/ART/images/Settings_Work_Tool_32.png"
+    QPixmap settingsIcon(":/images/add"); //
+    //QIcon settingsIcon(":/images/resources/Settings_Work_Tool_32.png");
+
     ui->settingsPushButton->setIcon(settingsIcon);
+    */
 
     /**
      * Setup colours of bitcon balances
@@ -137,8 +147,8 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet)
     ui->torrentsTable->setColumnWidth(7, 50);
 
     // Hide buttons
-    ui->addMagnetLinkPushButton->setVisible(false);
-    ui->settingsPushButton->setVisible(false);
+    //ui->addMagnetLinkPushButton->setVisible(false);
+    //ui->settingsPushButton->setVisible(false);
 
     // Align spending/wallet info labels
     ui->earnedBalanceLabel->setAlignment(Qt::AlignRight);

@@ -1,7 +1,0 @@
-<RCC>
-    <qresource prefix="/images">
-        <file>images/Bitcoin_Logo_31.png</file>
-        <file>images/BitSwapr_mark_32.png</file>
-        <file>images/BitSwaprResized.png</file>
-    </qresource>
-</RCC>

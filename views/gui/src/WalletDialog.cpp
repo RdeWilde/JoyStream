@@ -65,7 +65,6 @@ WalletDialog::WalletDialog(Wallet::Manager * wallet,
         i++)
         _utxoViewModels.push_back(UtxoEventViewModel(&_walletTableViewModel, *i, _settings));
 
-
     QList<Wallet::UtxoDestroyed> utxoDestroyed = _wallet->getAllUtxoDestroyed(0);
 
     for(QList<Wallet::UtxoDestroyed>::const_iterator
@@ -76,6 +75,10 @@ WalletDialog::WalletDialog(Wallet::Manager * wallet,
         _utxoViewModels.push_back(UtxoEventViewModel(&_walletTableViewModel, *i, _settings));
 
     // Connect wallet signals
+    QObject::connect(_wallet,
+                     SIGNAL(numberOfKeysInWalletChanged(quint64)),
+                     this,
+                     SLOT(updateNumberOfKeysInWallet(quint64)));
 
 
 }

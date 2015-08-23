@@ -229,6 +229,8 @@ signals:
      * Keys
      */
 
+    void numberOfKeysInWalletChanged(quint64 numberOfKeysInWallet);
+
     // When updateKeyPool() is done
     //void keyPoolUpdated(quint32 diff);
 

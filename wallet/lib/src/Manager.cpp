@@ -215,6 +215,7 @@ quint64 Manager::lastComputedZeroConfBalance() {
 }
 
 Coin::PrivateKey Manager::issueKey() {
+    //emit numberOfKeysInWalletChanged(quint64 numberOfKeysInWallet);
     return _issueKey()._privateKey;
 }
 

@@ -7,16 +7,19 @@ TEMPLATE    = subdirs
 
 SUBDIRS     = \
             common \
-            core \
-            app \
             wallet \
-            views
-
+            core \
+            views \
+            app
 
 wallet.depends = common
 
 core.depends = common
 core.depends = wallet
+
+views.depends = common
+views.depends = wallet
+views.depends = core
 
 app.depends = common
 app.depends = core
