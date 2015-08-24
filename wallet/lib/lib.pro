@@ -21,8 +21,6 @@ INCLUDEPATH += $$PWD/include # be able to include w.r.t root of this project
 HEADERS += \
     include/wallet/Payee.hpp \
     include/wallet/Slot.hpp \
-    include/wallet/SPVValidator.hpp \
-    include/wallet/SPVWAllet.hpp \
     include/wallet/Payer.hpp \
     include/wallet/BlockHeader.hpp \
     include/wallet/Transaction.hpp \
@@ -42,13 +40,12 @@ HEADERS += \
     include/wallet/UtxoDestroyed.hpp \
     include/wallet/Output.hpp \
     include/wallet/NullAble.hpp \
-    include/wallet/TransactionMinedInBlock.hpp
+    include/wallet/TransactionMinedInBlock.hpp \
+    include/wallet/SPVClient.hpp
 
 SOURCES += \
     src/Payee.cpp \
     src/Slot.cpp \
-    src/SPVValidator.cpp \
-    src/SPVWAllet.cpp \
     src/Payer.cpp \
     src/BlockHeader.cpp \
     src/Transaction.cpp \
@@ -67,7 +64,8 @@ SOURCES += \
     src/UtxoCreated.cpp \
     src/UtxoDestroyed.cpp \
     src/Output.cpp \
-    src/TransactionMinedInBlock.cpp
+    src/TransactionMinedInBlock.cpp \
+    src/SPVClient.cpp
 
 # common  ###############################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../common/release/ -lcommon

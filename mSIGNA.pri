@@ -24,9 +24,9 @@ unix:!macx {
     INCLUDEPATH += $$MSIGNA_SYSROOT/include
 
     LIBS += -L$$MSIGNA_SYSROOT/lib \
-            -lCoinCore \
             -lCoinDB \
             -lCoinQ \
+            -lCoinCore \
             -llogger \
             -lsysutils
 }

@@ -39,6 +39,14 @@ namespace Coin {
     class CoinBlockHeader;
 }
 
+namespace CoinQ {
+    namespace Network {
+        class NetworkSync;
+    }
+}
+
+class CoinQBlockTreeMem;
+
 // The number keys in a newly populated key pool
 #define KEY_POOL_FRESH_SIZE 100
 
@@ -50,6 +58,8 @@ namespace Coin {
 #define DATABASE_TYPE "QSQLITE"
 
 namespace Wallet {
+
+class SPVClient;
 
 namespace Key {
     class Record;
@@ -67,8 +77,7 @@ namespace Slot {
     class Record;
 }
 
-class
-        Manager : public QObject
+class Manager : public QObject
 {
     Q_OBJECT
 public:
@@ -79,11 +88,16 @@ public:
     // Opens wallet
     explicit Manager(const QString & walletFile);
 
+    ~Manager();
+
     // Create an empty wallet
     static void createNewWallet(const QString & walletFile, Coin::Network network, const Coin::Seed & seed);
 
     // Check basic integrity of wallet database
     static bool validateWalletStructure(QSqlDatabase & db);
+
+    // Setup signals and slots
+    void startSPVClient(const QString & blockHeaderStore, const QString & host);
 
     /**
      * Getters : Unsynched because these values are read-only,
@@ -158,8 +172,6 @@ public:
     // Add output to wallet, throws exception if it already exists
     bool addOutput(const Coin::TxOut & txOut);
 
-    // Add transaction to wallet, throws exception if it already exists
-    bool addTransaction(const Coin::Transaction & transaction);
 
     /**
     // Calculates fees for transaction
@@ -218,10 +230,23 @@ public:
     void broadcast(const Coin::Transaction & tx);
 
     /**
+     * SPV client callbacks
+     */
+    void blockStoreLoaded(const CoinQBlockTreeMem & blocktree);
+
+
+
+    /**
      * Raw database link: Remove later? only used for testing
      */
 
     QSqlDatabase db();
+
+public slots:
+
+
+    // Add transaction to wallet, throws exception if it already exists
+    bool addTransaction(const Coin::Transaction & transaction);
 
 signals:
 
@@ -282,8 +307,6 @@ signals:
     // Balance change
     void zeroConfBalanceChanged(quint64);
 
-public slots:
-
 private:
 
     // Synchronizes wallet calls
@@ -309,6 +332,12 @@ private:
 
     // Key chain used in wallet for get derivation
     Coin::HDKeychain _keyChain;
+
+    /**
+     * SPV clients
+     * host name -> spv client object for host
+     */
+    QMap<QString, CoinQ::Network::NetworkSync *> _clients;
 
     /**
      * State

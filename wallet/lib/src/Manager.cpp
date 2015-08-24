@@ -24,6 +24,7 @@
 #include <wallet/Metadata.hpp>
 #include <wallet/UtxoCreated.hpp>
 #include <wallet/UtxoDestroyed.hpp>
+#include <wallet/SPVClient.hpp>
 
 #include <common/Network.hpp>
 #include <common/KeyPair.hpp>
@@ -34,6 +35,7 @@
 #include <CoinCore/typedefs.h> // bytes_t
 #include <CoinCore/CoinNodeData.h> // Coin::CoinBlockHeader, Transaction types: outpoints, transactions, ...
 #include <CoinQ/CoinQ_script.h> // getAddressForTxOutScript
+#include <CoinQ/CoinQ_blocks.h> // CoinQBlockTreeMem
 
 #include <QString>
 #include <QSqlRecord>
@@ -123,6 +125,11 @@ Manager::Manager(const QString & walletFile)
     //updateUtxoSet();
 }
 
+Manager::~Manager(){
+
+    // .stop, and delete all objects in _spvClients[host] = client;
+}
+
 void Manager::createNewWallet(const QString & walletFile, Coin::Network network, const Coin::Seed & seed) {
 
     // If the wallet file already exists, throw exception
@@ -191,6 +198,171 @@ bool Manager::validateWalletStructure(QSqlDatabase & db) {
     return true;
 }
 
+void Manager::startSPVClient(const QString & blockHeaderStore, const QString & host) {
+
+    if(_clients.contains(host))
+        throw std::runtime_error("SPV client for host already exists.");
+
+    // Pick default paramters for network being used
+    CoinQ::NetworkSelector selector(_network == Coin::Network::testnet3 ? "testnet3" : "bitcoin");
+    CoinQ::CoinParams coinParams = selector.getCoinParams();
+
+    // Create new client
+    CoinQ::Network::NetworkSync * client = new CoinQ::Network::NetworkSync(coinParams);
+
+    // Add to map
+    _clients[host] = client;
+
+    // Get list of addresses and outpoints to add to bloom filter
+    const QSet<Coin::P2PKHAddress> addresses = QSet<Coin::P2PKHAddress>();
+    const QSet<Coin::typesafeOutPoint> outPoints = QSet<Coin::typesafeOutPoint>();
+
+    // Create bloom filter and populate with all receive addresses
+    // and relevant outpoints
+    // NBNBNBNB!!!!: <--- is this filter copied or what?
+    Coin::BloomFilter filter(addresses.size() + outPoints.size(), 0.001, 0, 0); // <-- factor out into settings class; //
+
+    // Add addresses to the bloom filter
+    for(QSet<Coin::P2PKHAddress>::const_iterator i = addresses.constBegin(),
+        end = addresses.constEnd();
+        i != end;
+        i++);
+        //filter.insert(*i);
+
+    // Add addresses to the bloom filter
+    for(QSet<Coin::typesafeOutPoint>::const_iterator i = outPoints.constBegin(),
+        end = outPoints.constEnd();
+        i != end;
+        i++);
+        //filter.insert(*i);
+
+    // Set filter to be used by p2p client
+    client->setBloomFilter(filter);
+
+    /**
+     * Setup handlers for spv client events
+     */
+
+    // Load headers from block store
+    client->loadHeaders(blockHeaderStore.toStdString(), false, [&](const CoinQBlockTreeMem& blocktree) {
+
+        QMetaObject::invokeMethod(this, "blockStoreLoaded", Q_ARG(const CoinQBlockTreeMem &, blocktree));
+
+        return true; // !g_bShutdown; <--- what is this for?
+    });
+
+
+/**
+    _spvP2PClient.subscribeStarted([&]() {
+       std::cout << std::endl << " started." << std::endl;
+    });
+
+    _spvP2PClient.subscribeStopped([&]() {
+       std::cout << std::endl << " stopped." << std::endl;
+    });
+
+    _spvP2PClient.subscribeOpen([&]() {
+       std::cout << std::endl << " open." << std::endl;
+    });
+
+    _spvP2PClient.subscribeClose([&]() {
+       std::cout << std::endl << " closed." << std::endl;
+    });
+
+    _spvP2PClient.subscribeTimeout([&]() {
+       std::cout << std::endl << " timeout." << std::endl;
+    });
+
+    _spvP2PClient.subscribeConnectionError([&](const string& error, int code) {
+       std::cout << std::endl << " connection error: " << error << std::endl;
+    });
+
+    _spvP2PClient.subscribeProtocolError([&](const string& error, int code) {
+       std::cout << std::endl << " protocol error: " << error << std::endl;
+    });
+
+    _spvP2PClient.subscribeBlockTreeError([&](const string& error, int code) {
+       std::cout << std::endl << " block tree error: " << error << std::endl;
+    });
+
+    _spvP2PClient.subscribeSynchingHeaders([&]() {
+       std::cout << std::endl << " fetching headers." << std::endl;
+    });
+
+    _spvP2PClient.subscribeHeadersSynched([&]() {
+       std::cout << std::endl << " headers synched." << std::endl;
+       hashvector_t hashes;
+       _spvP2PClient.syncBlocks(hashes, time(NULL) - 10*60*60); // Start 10 hours earlier
+    });
+
+    _spvP2PClient.subscribeSynchingBlocks([&]() {
+       std::cout << std::endl << " fetching blocks." << std::endl;
+    });
+
+    _spvP2PClient.subscribeBlocksSynched([&]() {
+       std::cout << std::endl << " blocks synched." << std::endl;
+
+       std::cout << std::endl << "Fetching mempool..." << std::endl;
+       _spvP2PClient.getMempool();
+    });
+
+    _spvP2PClient.subscribeStatus([&](const string& status) {
+       std::cout << std::endl << " status: " << status << std::endl;
+    });
+
+    _spvP2PClient.subscribeNewTx([&](const Transaction& tx) {
+       std::cout << std::endl << "NEW TX: " << tx.getHashLittleEndian().getHex() << std::endl;
+    });
+
+    _spvP2PClient.subscribeMerkleTx([&](const ChainMerkleBlock& merkleBlock, const Transaction& tx, unsigned int txIndex, unsigned int txTotal)
+    {
+       std::cout << "  tx (" << txIndex << "/" << (txTotal - 1) << "): " << tx.getHashLittleEndian().getHex() << std::endl;
+    });
+
+    _spvP2PClient.subscribeBlock([&](const ChainBlock& block) {
+       std::cout << std::endl << "NEW BLOCK: " << block.blockHeader.getHashLittleEndian().getHex() << " height: " << block.height << std::endl;
+    });
+
+    _spvP2PClient.subscribeMerkleBlock([&](const ChainMerkleBlock& merkleblock) {
+
+        std::cout << std::endl << "NEW MERKLE BLOCK" << std::endl
+                    << "  hash: " << merkleblock.blockHeader.getHashLittleEndian().getHex() << std::endl
+                    << "  height: " << merkleblock.height << std::endl;
+
+        try
+        {
+            PartialMerkleTree tree(merkleblock.nTxs, merkleblock.hashes, merkleblock.flags, merkleblock.merkleRoot());
+            std::vector<uchar_vector> txhashes = tree.getTxHashesLittleEndianVector();
+            unsigned int i = 0;
+            std::cout << "should contain txs:" << std::endl;
+            for (auto& txhash: txhashes) { std::cout << "  tx " << i++ << ": " << uchar_vector(txhash).getHex() << std::endl; }
+        }
+        catch (const exception& e)
+        {
+           std::cout << "Error constructing partial merkle tree: " << e.what() << std::endl;
+        }
+
+        std::cout << "--------------------" << std::endl;
+        blockTxIndex = 0;
+    });
+
+    _spvP2PClient.subscribeAddBestChain([&](const ChainHeader& header) {
+       std::cout << std::endl << " added to best chain: " << header.getHashLittleEndian().getHex() << " height: " << header.height << std::endl;
+    });
+
+    _spvP2PClient.subscribeRemoveBestChain([&](const ChainHeader& header) {
+       std::cout << std::endl << " removed from best chain: " << header.getHashLittleEndian().getHex() << " height: " << header.height << std::endl;
+    });
+
+    _spvP2PClient.subscribeBlockTreeChanged([&]() {
+       std::cout << std::endl << " block tree changed." << std::endl;
+    });
+    */
+
+    // Start client
+    client->start(host.toStdString(), coinParams.default_port());
+}
+
 Coin::Network Manager::network() const {
     return _network;
 }
@@ -238,6 +410,8 @@ QList<Coin::P2PKHAddress> Manager::listReceiveAddresses() {
      *
      *
      */
+
+    throw std::runtime_error("not implemented");
 
 }
 
@@ -848,6 +1022,12 @@ void Manager::broadcast(const Coin::Transaction & tx) {
  QSqlDatabase Manager::db() {
      return _db;
  }
+
+
+ void Manager::blockStoreLoaded(const CoinQBlockTreeMem& blocktree) {
+    std::cout << "Best height: " << blocktree.getBestHeight() << " Total work: " << blocktree.getTotalWork().getDec() << std::endl;
+ }
+
 
 Address::Record Manager::_createReceiveAddress() {
 
