@@ -304,7 +304,7 @@ Controller * create_controller(Controller::Configuration controllerConfiguration
     QString host = Wallet::Manager::dnsSeeds(BITCOIN_NETWORK)[dns_seed_counter++];
     Q_ASSERT(dns_seed_counter <= Wallet::Manager::dnsSeeds(BITCOIN_NETWORK).size());
 
-    QString blockHeaderStore = QString(BLOCKSTORE_LOCATION) + name + QString("_blockstore.txt");
+    QString blockHeaderStore = QString(BLOCKSTORE_LOCATION) + name + QString(nameFromNetwork(BITCOIN_NETWORK)) + QString("_blockstore.txt");
     wallet->startSPVClient(blockHeaderStore, host);
 
     // Create controller: Dangling, but we don't care

@@ -18,6 +18,13 @@ enum class Network {
     mainnet
 };
 
+/**
+ * Conversion routines
+ */
+
+const char * nameFromNetwork(Network network);
+Network networkFromName(const char * name);
+
 }
 
 #endif // COIN_NETWORK_HPP

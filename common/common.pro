@@ -65,4 +65,5 @@ SOURCES += \
     src/Payment.cpp \
     src/P2SHAddress.cpp \
     src/Seed.cpp \
-    src/LibtorrentUtilities.cpp
+    src/LibtorrentUtilities.cpp \
+    src/Network.cpp

@@ -87,6 +87,7 @@ public:
 
     // Returns bootstrap seed list based on given network, nodes come from
     // chainparams.cpp in Bitcoin core.
+    // https://github.com/bitcoin/bitcoin/blob/master/src/chainparams.cpp
     static QStringList dnsSeeds(Coin::Network network);
 
     // Opens a connection to a database in given path, gives connection name of file
