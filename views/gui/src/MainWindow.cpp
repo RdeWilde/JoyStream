@@ -374,6 +374,7 @@ void MainWindow::on_addTorrentFilePushButton_clicked()
     showAddTorrentFromTorrentFileDialog(torrentFile);
 }
 
+/**
 void MainWindow::on_addMagnetLinkPushButton_clicked()
 {
     // Input magnet link
@@ -392,6 +393,7 @@ void MainWindow::on_addMagnetLinkPushButton_clicked()
     // Open dialog for adding torrent from magnet link
     showAddTorrentFromMagnetLinkDialog(magnetLink);
 }
+*/
 
 void MainWindow::addTorrent(const TorrentViewModel * model) {
 

@@ -26,6 +26,8 @@
 #include <gui/MainWindow.hpp>
 #include <wallet/Manager.hpp>
 
+#include <logger/logger.h>
+
 #include <libtorrent/torrent_info.hpp>
 #include <libtorrent/error_code.hpp>
 
@@ -38,6 +40,7 @@
 
 //#define WALLET_LOCATION "C:/WALLETS/"
 #define WALLET_LOCATION "/home/bedeho/JoyStream/wallets/"
+#define BLOCKSTORE_LOCATION "/home/bedeho/JoyStream/block_store/"
 
 //#define SAVE_LOCATION "C:/SAVE_OUTPUT/"
 #define SAVE_LOCATION "/home/bedeho/JoyStream/save_location/"
@@ -49,6 +52,10 @@
 #include <boost/intrusive_ptr.hpp>
 #endif Q_MOC_RUN
 
+// global counters used to pick correct dns and wallet seed for given session
+int wallet_seed_counter = 0;
+int dns_seed_counter = 0;
+
 // Forward declarations
 libtorrent::torrent_info load_torrent(const char * path);
 
@@ -59,8 +66,7 @@ Controller * create_controller(Controller::Configuration controllerConfiguration
                                bool show_gui,
                                bool use_stdout_logg,
                                libtorrent::torrent_info & torrentInfo,
-                               const QString & name,
-                               int * seedId);
+                               const QString & name);
 
 void add_buyers_with_plugin(Controller::Configuration controllerConfiguration,
                             QNetworkAccessManager * manager,
@@ -68,8 +74,7 @@ void add_buyers_with_plugin(Controller::Configuration controllerConfiguration,
                             bool show_gui,
                             bool use_stdout_logg,
                             libtorrent::torrent_info & torrentInfo,
-                            const QVector<BuyerTorrentPlugin::Configuration> & configurations,
-                            int * seedId);
+                            const QVector<BuyerTorrentPlugin::Configuration> & configurations);
 
 void add_sellers_with_plugin(Controller::Configuration controllerConfiguration,
                              QNetworkAccessManager * manager,
@@ -77,8 +82,7 @@ void add_sellers_with_plugin(Controller::Configuration controllerConfiguration,
                              bool show_gui,
                              bool use_stdout_logg,
                              libtorrent::torrent_info & torrentInfo,
-                             const QVector<SellerTorrentPlugin::Configuration> & configurations,
-                             int * seedId);
+                             const QVector<SellerTorrentPlugin::Configuration> & configurations);
 
 // JoyStream entry point
 int main(int argc, char* argv[]) {
@@ -148,14 +152,18 @@ int main(int argc, char* argv[]) {
             controllerConfiguration = Controller::Configuration(fileString.c_str());
     }
 
+    /***
+     * DISABLE LATER DISABLE LATER
+     */
+
+    std::cout << std::endl << "Initializing logger to file netsync.log..." << std::endl;
+    INIT_LOGGER("netsync.log");
+
     // Network access manager instance used by all code trying to use network
     QNetworkAccessManager manager;
 
     // Create a controller tracker
     ControllerTracker controllerTracker;
-
-    // Counts through seed id
-    int PREDETERMINED_SEED_ID = 0;
 
     /**
      * Downloading & streaming
@@ -224,8 +232,7 @@ int main(int argc, char* argv[]) {
                                                 true,
                                                 true,
                                                 torrentInfo,
-                                                QString("lone_seller"),
-                                                &PREDETERMINED_SEED_ID);
+                                                QString("lone_seller"));
     controllerTracker.addClient(loneSeller);
 
     /**
@@ -269,8 +276,7 @@ Controller * create_controller(Controller::Configuration controllerConfiguration
                                bool show_gui,
                                bool use_stdout_logg,
                                libtorrent::torrent_info & torrentInfo,
-                               const QString & name,
-                               int * seedId) {
+                               const QString & name) {
 
     // Create logging category
     QLoggingCategory * category = global_log_manager.createLogger(name, use_stdout_logg, false);
@@ -283,21 +289,23 @@ Controller * create_controller(Controller::Configuration controllerConfiguration
 
         qDebug() << "Creating a fresh wallet " << walletFile;
 
-        Coin::Seed seed = Coin::Seed::testSeeds[*seedId];
+        // Get predefined seed
+        Coin::Seed seed = Coin::Seed::testSeeds[wallet_seed_counter++];
+        Q_ASSERT(wallet_seed_counter <= Coin::Seed::testSeeds.size());
+
+        // Create wallet
         Wallet::Manager::createNewWallet(walletFile, BITCOIN_NETWORK, seed);
-
-        seedId++;
-
-        // DEBUG
-        Wallet::Manager w(walletFile);
-        Q_ASSERT(w.network() == BITCOIN_NETWORK);
-        Q_ASSERT(w.seed() == seed);
     }
 
     // Load wallet
     Wallet::Manager * wallet = new Wallet::Manager(walletFile);
 
+    // Start spv client
+    QString host = Wallet::Manager::dnsSeeds(BITCOIN_NETWORK)[dns_seed_counter++];
+    Q_ASSERT(dns_seed_counter <= Wallet::Manager::dnsSeeds(BITCOIN_NETWORK).size());
 
+    QString blockHeaderStore = QString(BLOCKSTORE_LOCATION) + name + QString("_blockstore.txt");
+    wallet->startSPVClient(blockHeaderStore, host);
 
     // Create controller: Dangling, but we don't care
     Controller * controller = new Controller(controllerConfiguration, wallet, manager, *category);
@@ -316,8 +324,7 @@ void add_buyers_with_plugin(Controller::Configuration controllerConfiguration,
                             bool show_gui,
                             bool use_stdout_logg,
                             libtorrent::torrent_info & torrentInfo,
-                            const QVector<BuyerTorrentPlugin::Configuration> & configurations,
-                            int * seedId) {
+                            const QVector<BuyerTorrentPlugin::Configuration> & configurations) {
 
     for(int i = 0;i < configurations.size();i++) {
 
@@ -325,7 +332,7 @@ void add_buyers_with_plugin(Controller::Configuration controllerConfiguration,
         QString name = QString("buyer_") + QString::number(i+1);
 
         // Create controller and torrent configuration
-        Controller * controller = create_controller(controllerConfiguration, manager, show_gui, use_stdout_logg, torrentInfo, name, seedId);
+        Controller * controller = create_controller(controllerConfiguration, manager, show_gui, use_stdout_logg, torrentInfo, name);
 
         // Create torrent configuration
         Controller::Torrent::Configuration torrentConfiguration = create_torrent_configuration(torrentInfo, name);
@@ -335,9 +342,6 @@ void add_buyers_with_plugin(Controller::Configuration controllerConfiguration,
 
         // Amount needed to fund contract (satoshies)
         quint64 minFunds = Payor::minimalFunds(torrentInfo.num_pieces(), pluginConfiguration.maxPrice(), pluginConfiguration.numberOfSellers(), pluginConfiguration.maxFeePerKb());
-
-        // Synch wallet
-        //controller->wallet().synchronize();
 
         // Get funding output - this has to be grabbed from wallet/chain later
         Coin::UnspentP2PKHOutput utxo; // = controller->wallet().getUtxo(minFunds, 1);
@@ -365,8 +369,7 @@ void add_buyers_with_plugin(Controller::Configuration controllerConfiguration,
 
 void add_sellers_with_plugin(Controller::Configuration controllerConfiguration, QNetworkAccessManager * manager, ControllerTracker & controllerTracker,
                              bool show_gui, bool use_stdout_logg, libtorrent::torrent_info & torrentInfo,
-                             const QVector<SellerTorrentPlugin::Configuration> & configurations,
-                             int * seedId) {
+                             const QVector<SellerTorrentPlugin::Configuration> & configurations) {
 
     for(int i = 0;i < configurations.size();i++) {
 
@@ -383,7 +386,7 @@ void add_sellers_with_plugin(Controller::Configuration controllerConfiguration, 
         */
 
         // Create controller and torrent configuration
-        Controller * controller = create_controller(controllerConfiguration, manager, show_gui, use_stdout_logg, torrentInfo, name, seedId);
+        Controller * controller = create_controller(controllerConfiguration, manager, show_gui, use_stdout_logg, torrentInfo, name);
 
         // Create torrent configuration
         Controller::Torrent::Configuration torrentConfiguration = create_torrent_configuration(torrentInfo, name);

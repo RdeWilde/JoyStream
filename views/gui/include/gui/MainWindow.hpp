@@ -107,7 +107,7 @@ public slots:
 
     // Mouse click events
     void on_addTorrentFilePushButton_clicked();
-    void on_addMagnetLinkPushButton_clicked();
+    //void on_addMagnetLinkPushButton_clicked();
     void on_walletPushButton_clicked();
 
     // Mouse click on row in torrent table

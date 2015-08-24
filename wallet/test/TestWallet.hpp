@@ -8,7 +8,9 @@ namespace Coin {
 }
 
 #define WALLET_FILE_NAME "test-wallet"
+#define WALLET_SEED Coin::Seed::testSeeds[0]
 #define NETWORK_TYPE Coin::Network::testnet3
+
 
 namespace Wallet {
     class Manager;
@@ -31,6 +33,9 @@ private slots:
     /**
      * Test routines
      */
+
+    //
+    void createWallet();
 
     //void outPoint_data();
     void outPoint();

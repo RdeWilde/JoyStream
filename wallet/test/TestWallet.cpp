@@ -16,13 +16,20 @@
 
 #define DB _manager->db()
 
+void TestWallet::createWallet() {
+
+    // check that we get what we created when loading back in
+    QVERIFY(_manager->seed() == WALLET_SEED);
+    QVERIFY(_manager->network() == NETWORK_TYPE);
+}
+
 void TestWallet::init() {
 
     // Delete any lingering wallet file
     QFile::remove(WALLET_FILE_NAME);
 
     // Use test seed to generate key chain
-    Coin::Seed seed = Coin::Seed::testSeeds[0];
+    Coin::Seed seed = WALLET_SEED;
 
     // Create wallet
     Wallet::Manager::createNewWallet(WALLET_FILE_NAME, NETWORK_TYPE, seed);

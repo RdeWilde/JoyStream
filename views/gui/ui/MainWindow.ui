@@ -13,10 +13,6 @@
   <property name="windowTitle">
    <string>JoyStream</string>
   </property>
-  <property name="windowIcon">
-   <iconset>
-    <normaloff>../../../../../Desktop/icon.gif</normaloff>../../../../../Desktop/icon.gif</iconset>
-  </property>
   <property name="iconSize">
    <size>
     <width>32</width>

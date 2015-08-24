@@ -43,6 +43,31 @@
 
 namespace Wallet {
 
+void Manager::test_routine() {
+    std::cout << "void test_routine();";
+}
+
+QStringList Manager::dnsSeeds(Coin::Network network) {
+
+    if(network == Coin::Network::mainnet) {
+
+        return QStringList() << "seed.bitcoin.sipa.be"
+                             << "dnsseed.bluematt.me"
+                             << "dnsseed.bitcoin.dashjr.org"
+                             << "seed.bitcoinstats.com"
+                             << "bitseed.xf2.org"
+                             << "seed.bitcoin.jonasschnelli.ch";
+
+    } else if(network == Coin::Network::testnet3) {
+
+        return QStringList() << "testnet-seed.alexykot.me"
+                             << "testnet-seed.bitcoin.petertodd.org"
+                             << "testnet-seed.bluematt.me"
+                             << "testnet-seed.bitcoin.schildbach.de";
+    } else
+        Q_ASSERT(false);
+}
+
 QSqlDatabase Manager::openDatabaseConnection(const QString & walletFile) {
 
     // Create connection
@@ -214,13 +239,14 @@ void Manager::startSPVClient(const QString & blockHeaderStore, const QString & h
     _clients[host] = client;
 
     // Get list of addresses and outpoints to add to bloom filter
-    const QSet<Coin::P2PKHAddress> addresses = QSet<Coin::P2PKHAddress>();
-    const QSet<Coin::typesafeOutPoint> outPoints = QSet<Coin::typesafeOutPoint>();
+    const QSet<Coin::P2PKHAddress> addresses = QSet<Coin::P2PKHAddress>(); // QList<Coin::P2PKHAddress> Manager::listReceiveAddresses()
+    const QSet<Coin::typesafeOutPoint> outPoints = QSet<Coin::typesafeOutPoint>(); // ?
 
     // Create bloom filter and populate with all receive addresses
     // and relevant outpoints
     // NBNBNBNB!!!!: <--- is this filter copied or what?
-    Coin::BloomFilter filter(addresses.size() + outPoints.size(), 0.001, 0, 0); // <-- factor out into settings class; //
+    // addresses.size() + outPoints.size()
+    Coin::BloomFilter filter(10, 0.001, 0, 0); // <-- factor out into settings class; //
 
     // Add addresses to the bloom filter
     for(QSet<Coin::P2PKHAddress>::const_iterator i = addresses.constBegin(),
@@ -237,20 +263,21 @@ void Manager::startSPVClient(const QString & blockHeaderStore, const QString & h
         //filter.insert(*i);
 
     // Set filter to be used by p2p client
-    client->setBloomFilter(filter);
+    //client->setBloomFilter(filter);
 
     /**
      * Setup handlers for spv client events
      */
 
     // Load headers from block store
-    client->loadHeaders(blockHeaderStore.toStdString(), false, [&](const CoinQBlockTreeMem& blocktree) {
+    std::string str1 = blockHeaderStore.toStdString();
+    client->loadHeaders(str1, false, [&](const CoinQBlockTreeMem & blocktree) {
 
-        QMetaObject::invokeMethod(this, "blockStoreLoaded", Q_ARG(const CoinQBlockTreeMem &, blocktree));
+        //QMetaObject::invokeMethod(this, "blockStoreLoaded", Q_ARG(const CoinQBlockTreeMem &, blocktree));
+        this->test_routine();
 
         return true; // !g_bShutdown; <--- what is this for?
     });
-
 
 /**
     _spvP2PClient.subscribeStarted([&]() {
@@ -359,8 +386,11 @@ void Manager::startSPVClient(const QString & blockHeaderStore, const QString & h
     });
     */
 
-    // Start client
-    client->start(host.toStdString(), coinParams.default_port());
+    // Start client:
+    std::string stdHost = host.toStdString();
+    std::string port = coinParams.default_port();
+
+    client->start(stdHost, port);
 }
 
 Coin::Network Manager::network() const {

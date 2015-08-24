@@ -23,6 +23,7 @@
 #include <QtSql>
 #include <QDateTime>
 #include <QByteArray>
+#include <QStringList>
 
 namespace Coin {
     enum class Network;
@@ -81,6 +82,12 @@ class Manager : public QObject
 {
     Q_OBJECT
 public:
+
+    void test_routine();
+
+    // Returns bootstrap seed list based on given network, nodes come from
+    // chainparams.cpp in Bitcoin core.
+    static QStringList dnsSeeds(Coin::Network network);
 
     // Opens a connection to a database in given path, gives connection name of file
     static QSqlDatabase openDatabaseConnection(const QString & walletFile);
