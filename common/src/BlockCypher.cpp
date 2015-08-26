@@ -10,7 +10,6 @@
 
 #include <QJsonArray>
 
-namespace Wallet {
 namespace BlockCypher {
 
 const char * endPoint(Coin::Network network) {
@@ -85,13 +84,16 @@ QJsonObject Wallet::toJson() const {
     };
 }
 
-void Wallet::getWallet(QNetworkRequest * request, const QString & name) {
+void getWallet(QNetworkRequest * request, const QString & name) {
 
 }
 
-void Wallet::addAddress(QNetworkRequest * request, const QString & name, const Coin::P2PKHAddress & address) {
+void addAddress(QNetworkRequest * request, const QString & name, const Coin::P2PKHAddress & address) {
 
 }
 
+void pushRawTransaction(const QString & rawTransaction) {
+
 }
+
 }

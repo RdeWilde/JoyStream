@@ -47,6 +47,7 @@ HEADERS += \
     include/common/PubKeyHash.hpp \
     include/common/Seed.hpp \
     include/common/LibtorrentUtilities.hpp
+    include/common/BlockCypher.hpp
 
 SOURCES += \
     src/DataSizeRepresentation.cpp \
@@ -67,3 +68,4 @@ SOURCES += \
     src/Seed.cpp \
     src/LibtorrentUtilities.cpp \
     src/Network.cpp
+    src/BlockCypher.cpp

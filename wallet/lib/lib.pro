@@ -40,8 +40,7 @@ HEADERS += \
     include/wallet/UtxoDestroyed.hpp \
     include/wallet/Output.hpp \
     include/wallet/NullAble.hpp \
-    include/wallet/TransactionMinedInBlock.hpp \
-    include/wallet/BlockCypher.hpp
+    include/wallet/TransactionMinedInBlock.hpp
 
 SOURCES += \
     src/Payee.cpp \
@@ -65,7 +64,6 @@ SOURCES += \
     src/UtxoDestroyed.cpp \
     src/Output.cpp \
     src/TransactionMinedInBlock.cpp \
-    src/BlockCypher.cpp
 
 # common  ###############################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../common/release/ -lcommon
