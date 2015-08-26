@@ -48,6 +48,20 @@
 // Network to use
 #define BITCOIN_NETWORK Coin::Network::testnet3
 
+/**
+ * TEMPORARY-TEMPORARY-TEMPORARY-TEMPORARY
+ */
+
+#include <CoinCore/typedefs.h> // bytes_t
+#include <CoinCore/CoinNodeData.h> // Coin::CoinBlockHeader, Transaction types: outpoints, transactions, ...
+#include <CoinCore/BloomFilter.h>
+#include <CoinQ/CoinQ_script.h> // getAddressForTxOutScript
+#include <CoinQ/CoinQ_blocks.h> // CoinQBlockTreeMem
+#include <CoinQ/CoinQ_netsync.h>
+
+
+
+
 #ifndef Q_MOC_RUN
 #include <boost/intrusive_ptr.hpp>
 #endif Q_MOC_RUN
@@ -151,13 +165,6 @@ int main(int argc, char* argv[]) {
         } else // Load state from file
             controllerConfiguration = Controller::Configuration(fileString.c_str());
     }
-
-    /***
-     * DISABLE LATER DISABLE LATER
-     */
-
-    std::cout << std::endl << "Initializing logger to file netsync.log..." << std::endl;
-    INIT_LOGGER("netsync.log");
 
     // Network access manager instance used by all code trying to use network
     QNetworkAccessManager manager;
@@ -305,7 +312,7 @@ Controller * create_controller(Controller::Configuration controllerConfiguration
     Q_ASSERT(dns_seed_counter <= Wallet::Manager::dnsSeeds(BITCOIN_NETWORK).size());
 
     QString blockHeaderStore = QString(BLOCKSTORE_LOCATION) + name + QString(nameFromNetwork(BITCOIN_NETWORK)) + QString("_blockstore.txt");
-    wallet->startSPVClient(blockHeaderStore, host);
+    //wallet->startSPVClient(blockHeaderStore, host);
 
     // Create controller: Dangling, but we don't care
     Controller * controller = new Controller(controllerConfiguration, wallet, manager, *category);

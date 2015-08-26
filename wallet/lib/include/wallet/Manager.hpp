@@ -60,8 +60,6 @@ class CoinQBlockTreeMem;
 
 namespace Wallet {
 
-class SPVClient;
-
 namespace Key {
     class Record;
 }
@@ -106,6 +104,8 @@ public:
 
     // Setup signals and slots
     void startSPVClient(const QString & blockHeaderStore, const QString & host);
+
+    void startSPVClient_old(const QString & blockHeaderStore, const QString & host);
 
     /**
      * Getters : Unsynched because these values are read-only,
@@ -180,6 +180,8 @@ public:
     // Add output to wallet, throws exception if it already exists
     bool addOutput(const Coin::TxOut & txOut);
 
+    // Add transaction to wallet, throws exception if it already exists
+    bool addTransaction(const Coin::Transaction & transaction);
 
     /**
     // Calculates fees for transaction
@@ -238,13 +240,6 @@ public:
     void broadcast(const Coin::Transaction & tx);
 
     /**
-     * SPV client callbacks
-     */
-    void blockStoreLoaded(const CoinQBlockTreeMem & blocktree);
-
-
-
-    /**
      * Raw database link: Remove later? only used for testing
      */
 
@@ -252,9 +247,10 @@ public:
 
 public slots:
 
-
-    // Add transaction to wallet, throws exception if it already exists
-    bool addTransaction(const Coin::Transaction & transaction);
+    /**
+     * SPV client callbacks
+     */
+    Q_INVOKABLE void blockStoreLoaded(const CoinQBlockTreeMem & blocktree);
 
 signals:
 
