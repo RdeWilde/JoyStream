@@ -22,15 +22,51 @@
 
 # Windows
 win32 {
+   CONFIG(release, debug|release) {
+      BOOST_LIB_SUFFIX = -mt-s
+   } else {
+      BOOST_LIB_SUFFIX = -mt-sd
+   }
 
-    BOOST_LOCATION = C:/boost_1_57_0
+    BOOST_THREAD_LIB_SUFFIX = _win32
 
-    INCLUDEPATH += $$BOOST_LOCATION
-    LIBS += -L$$BOOST_LOCATION/stage/lib
+    INCLUDEPATH += /usr/i686-w64-mingw32/include
 
+    LIBS += \
+        -L/usr/i686-w64-mingw32/lib \
+        -L/usr/i686-w64-mingw32/plugins/platforms \
+        -L/usr/i686-w64-mingw32/plugins/imageformats \
+        -L/usr/i686-w64-mingw32/plugins/bearer \
+        -L/usr/i686-w64-mingw32/plugins/sqldrivers \
+        -static-libgcc -static-libstdc++ -static \
+        -lpthread \
+        -lws2_32 \
+        -lmswsock
+
+   LIBS += \
+    -lboost_system$$BOOST_LIB_SUFFIX \
+    -lboost_filesystem$$BOOST_LIB_SUFFIX \
+    -lboost_regex$$BOOST_LIB_SUFFIX \
+    -lboost_thread$$BOOST_THREAD_LIB_SUFFIX$$BOOST_LIB_SUFFIX \
+    -lboost_serialization$$BOOST_LIB_SUFFIX \
+    -lz
 }
 
 # Mac
+macx {
+    DEFINES -= BOOST_ASIO_HEADER_ONLY
+
+    INCLUDEPATH += /usr/local/include
+
+    LIBS += \
+         -L/usr/local/lib \
+         -lboost_thread \
+         -lboost_system \
+         -lboost_filesystem \
+         -lboost_regex \
+         -lpthread \
+         -lz
+}
 
 # Unix
 unix:!macx {

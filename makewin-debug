@@ -1,0 +1,5 @@
+#!/bin/bash
+set -x
+export PATH=/usr/i686-w64-mingw32/host/bin:$PATH
+qmake JoyStream.pro -r -spec win32-g++ CONFIG+=debug && make debug && strip app/debug/app.exe
+

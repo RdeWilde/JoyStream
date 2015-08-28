@@ -9,6 +9,16 @@
 
 # Windows
 win32 {
+    MSIGNA_SYSROOT = /home/mokhtar/JoyStream-32bit/mSIGNA/sysroot
+
+    INCLUDEPATH += $$MSIGNA_SYSROOT/include
+
+    LIBS += -L$$MSIGNA_SYSROOT/lib \
+            #-lCoinDB \
+            #-lCoinQ \
+            -lCoinCore \
+            #-llogger \
+            #-lsysutils
 
 }
 
@@ -25,4 +35,24 @@ unix:!macx {
             -lCoinCore \
             #-llogger \
             #-lsysutils
+}
+
+# Mac
+macx {
+
+    CONFIG(release, debug|release) {
+        MSIGNA_SYSROOT = /Users/mokhtar/JoyStream/mSIGNA/sysroot
+    } else {
+        #todo - update to debug build
+        MSIGNA_SYSROOT = /Users/mokhtar/JoyStream/mSIGNA/sysroot
+    }
+
+    INCLUDEPATH += $$MSIGNA_SYSROOT/include
+
+    LIBS += -L$$MSIGNA_SYSROOT/lib \
+            -lCoinDB \
+            -lCoinQ \
+            -lCoinCore \
+            -llogger \
+            -lsysutils
 }

@@ -13,35 +13,29 @@ CONFIG(release, debug|release) {
 # Windows
 win32 {
 
-    LIBTORRENT_LOCATION = C:/$$LIBTORRENT_NAME
+    LIBTORRENT_LOCATION = /home/mokhtar/JoyStream-32bit/libtorrent-libtorrent-1_0_5
 
     # LIBTORRENT DEFINES
-    DEFINES += BOOST_ALL_NO_LIB
+    DEFINES += TORRENT_LINKING_STATIC
+    DEFINES += TORRENT_DISABLE_GEO_IP
+
     DEFINES += BOOST_ASIO_HASH_MAP_BUCKETS=1021
     DEFINES += BOOST_ASIO_SEPARATE_COMPILATION
+    DEFINES += BOOST_ASIO_ENABLE_CANCELIO
     DEFINES += BOOST_EXCEPTION_DISABLE
+
     DEFINES += BOOST_SYSTEM_STATIC_LINK=1
-    DEFINES += TORRENT_USE_OPENSSL
+
     DEFINES += UNICODE
     DEFINES += _UNICODE
     DEFINES += WIN32
     DEFINES += _WIN32
-    DEFINES += WIN32_LEAN_AND_MEAN
-    DEFINES += _WIN32_WINNT=0x0500
-    DEFINES += _WIN32_IE=0x0500
-    DEFINES += _CRT_SECURE_NO_DEPRECATE
-    DEFINES += _SCL_SECURE_NO_DEPRECATE
-    DEFINES += __USE_W32_SOCKETS
-    DEFINES += _FILE_OFFSET_BITS=64
-    DEFINES += WITH_SHIPPED_GEOIP_H
 
-    # Linking
-    CONFIG(release, debug|release) {
-        LIBS += -L$$LIBTORRENT_LOCATION/bin/msvc-12.0/release/address-model-64/boost-source/deprecated-functions-off/link-static/threading-multi -llibtorrent
-    } else {
-        LIBS += -L$$LIBTORRENT_LOCATION/bin/msvc-12.0/debug/address-model-64/boost-source/deprecated-functions-off/link-static/threading-multi -llibtorrent
-        LIBS += DbgHelp.lib # The mailinglist suggested this to be able to debug with MSVC, try LIBS += libdbghelp for mingw
-    }
+ CONFIG(release, debug|release) {
+    LIBS += -L$$LIBTORRENT_LOCATION/bin/gcc-mingw-mingw32/release/address-model-32/link-static/runtime-link-static/target-os-windows/threadapi-win32/threading-multi/ -ltorrent
+ } else {
+    LIBS += -L$$LIBTORRENT_LOCATION/bin/gcc-mingw-mingw32/debug/address-model-32/link-static/runtime-link-static/target-os-windows/threadapi-win32/threading-multi/ -ltorrent
+ }
 }
 
 # Unix
@@ -82,3 +76,25 @@ unix:!macx {
         #DEFINES += BOOST_ASIO_ENABLE_CANCELIO
         #DEFINES += TORRENT_LINKING_SHARED
         #DEFINES += TORRENT_NO_DEPRECATE
+
+# Mac
+macx {
+
+    #library built with: bjam address-model=64 deprecated-functions=off boost-link=shared geoip=off link=static
+    LIBTORRENT_LOCATION =/Users/mokhtar/JoyStream/libtorrent-libtorrent-1_0_5
+
+    DEFINES += TORRENT_NO_DEPRECATE
+    #DEFINES += TORRENT_DISABLE_LOGGING
+    #DEFINES += TORRENT_USE_OPENSSL
+    DEFINES += TORRENT_DISABLE_GEO_IP
+
+    # Linking
+    CONFIG(release, debug|release) {
+        LIBS += -L$$LIBTORRENT_LOCATION/bin/darwin-4.2.1/debug/address-model-64/boost-link-shared/deprecated-functions-off/link-static/threading-multi -ltorrent
+
+    } else {
+        LIBS += -L$$LIBTORRENT_LOCATION/bin/darwin-4.2.1/debug/address-model-64/boost-link-shared/deprecated-functions-off/link-static/threading-multi -ltorrent
+   }
+}
+
+INCLUDEPATH += $$LIBTORRENT_LOCATION/include
