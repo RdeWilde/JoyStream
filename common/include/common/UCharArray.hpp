@@ -77,7 +77,7 @@ protected:
 };
 
 template<unsigned int array_length>
-uint qHash(const UCharArray<array_length> & array);
+unsigned int qHash(const UCharArray<array_length> & array);
 
 }
 

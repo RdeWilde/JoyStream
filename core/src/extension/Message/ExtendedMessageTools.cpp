@@ -6,6 +6,7 @@
  */
 
 #include <core/extension/Message/ExtendedMessageTools.hpp>
+#include <string>
 
 namespace ExtendedMessageTools {
 
