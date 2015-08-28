@@ -16,6 +16,7 @@ CONFIG  += create_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-
 CONFIG  += c++11 # Needed for class enum
 
 QT      += core
+QT      += network # used by blockcypher module
 
 INCLUDEPATH += $$PWD/include
 
@@ -46,7 +47,7 @@ HEADERS += \
     include/common/P2SHAddress.hpp \
     include/common/PubKeyHash.hpp \
     include/common/Seed.hpp \
-    include/common/LibtorrentUtilities.hpp
+    include/common/LibtorrentUtilities.hpp \
     include/common/BlockCypher.hpp
 
 SOURCES += \
@@ -67,5 +68,5 @@ SOURCES += \
     src/P2SHAddress.cpp \
     src/Seed.cpp \
     src/LibtorrentUtilities.cpp \
-    src/Network.cpp
+    src/Network.cpp \
     src/BlockCypher.cpp

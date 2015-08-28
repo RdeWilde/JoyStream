@@ -5,30 +5,18 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 3 2015
  */
 
-#include <wallet/BlockCypher.hpp>
-#include <common/Network.hpp>
+#include <common/BlockCypher.hpp>
 
 #include <QJsonArray>
+#include <QNetworkRequest>
 
-namespace BlockCypher {
-
-const char * endPoint(Coin::Network network) {
-
-    if(network == Coin::Network::mainnet)
-        return BLOCKCYPHER_MAINNET_ENDPOINT;
-    else if(network == Coin::Network::testnet3)
-        return BLOCKCYPHER_TESTNET3_ENDPOINT;
-
-    Q_ASSERT(false);
-}
-
-Wallet::Wallet(const QString & token, const QString & name, const QList<Coin::P2PKHAddress> & addresses)
+BlockCypher::Wallet::Wallet(const QString & token, const QString & name, const QList<Coin::P2PKHAddress> & addresses)
     : _token(token)
     , _name(name)
     , _addresses(addresses) {
 }
 
-Wallet::Wallet(const QJsonObject & json) {
+BlockCypher::Wallet::Wallet(const QJsonObject & json) {
 
     Q_ASSERT(json.contains("token"));
     QJsonValue tokenVal = json["token"];
@@ -62,7 +50,7 @@ Wallet::Wallet(const QJsonObject & json) {
     }
 }
 
-QJsonObject Wallet::toJson() const {
+QJsonObject BlockCypher::Wallet::toJson() const {
 
     QJsonArray addressesArray;
 
@@ -84,16 +72,61 @@ QJsonObject Wallet::toJson() const {
     };
 }
 
-void getWallet(QNetworkRequest * request, const QString & name) {
+void BlockCypher::getWallet(QNetworkRequest * request, const QString & name) {
+
+    // Example get wallet with name "alice": curl https://api.blockcypher.com/v1/btc/main/wallets/alice?token=YOURTOKEN
+
+    // Create url
+    QString url = _endPoint + "wallets/" + name + "?token=" + QString(BLOCKCYPHER_TOKEN);
+
+    // Set url on request
+    request->setUrl(url);
+}
+
+void BlockCypher::addAddress(QNetworkRequest * request, const QString & name, const QList<Coin::P2PKHAddress> & addresses) {
+
+    // Example get wallet with name "alice": curl https://api.blockcypher.com/v1/btc/main/wallets/alice?token=YOURTOKEN
+    // /wallets/$NAME/addresses	POST	Wallet	Wallet
+
+    // Create url
+    QString url = _endPoint + "wallets/" + name + "/addresses?token=" + QString(BLOCKCYPHER_TOKEN);
+
+    // Create wallet with
+    Wallet wallet(_token, name, addresses);
+
+    wallet.toJson()
+
+            QByteArray payload = QJsonDocument(RPCJson).toJson();
+
+    QByteArray payload()
+
+
+
+
+    // Set url on request
+    request->setUrl(url);
+}
+
+void BlockCypher::pushRawTransaction(const QString & rawTransaction) {
+
+    // * Resource     Method	Request Object	Return Object
+    // * /txs/push    POST	{“tx”:$TXHEX}	TX
 
 }
 
-void addAddress(QNetworkRequest * request, const QString & name, const Coin::P2PKHAddress & address) {
+QString BlockCypher::endPoint(Coin::Network network) {
 
+    if(network == Coin::Network::mainnet)
+        return QString(BLOCKCYPHER_MAINNET_ENDPOINT);
+    else if(network == Coin::Network::testnet3)
+        return QString(BLOCKCYPHER_TESTNET3_ENDPOINT);
+
+    Q_ASSERT(false);
 }
 
-void pushRawTransaction(const QString & rawTransaction) {
-
-}
+BlockCypher::BlockCypher(Coin::Network network, const QString & token)
+    : _network(network)
+    , _endPoint(endPoint(_network))
+    , _token(token) {
 
 }
