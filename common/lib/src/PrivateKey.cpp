@@ -29,6 +29,18 @@ PrivateKey::~PrivateKey() {
     clear();
 }
 
+PrivateKey PrivateKey::generate() {
+
+    // Create fresh private keys
+    CoinCrypto::secp256k1_key key;
+
+    // Generate key
+    key.newKey();
+
+    // Create private key from raw uchar data
+    return PrivateKey(key.getPrivKey());
+}
+
 PrivateKey PrivateKey::fromWIF(const QString & encoded) {
 
     // Decode string

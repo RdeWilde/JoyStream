@@ -33,12 +33,13 @@ public:
 
     // Constructor from raw key
     PrivateKey(const uchar_vector & vector);
-
-
     PrivateKey(const QByteArray & array);
 
     // Secure destruction private key
     ~PrivateKey();
+
+    // Generates fresh key
+    static PrivateKey generate();
 
     // Factory from WIF encoded private key (for compressed pubkey)
     static PrivateKey fromWIF(const QString & encoded);
