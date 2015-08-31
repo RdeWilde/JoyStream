@@ -121,10 +121,3 @@ namespace Coin {
          return CoinCrypto::secp256k1_verify(signatureCheckingKey, signingHash, signature);
      }
 }
-
-/**
-
-  examples using the code to create txs with: p2pkh, p2sh, paychan, etc.
-*/
-
-

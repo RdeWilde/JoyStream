@@ -89,11 +89,5 @@ namespace Coin {
 
 
 
-
-    // create spending tx ?
-
-    // extract sig from tx?
-
-
 }
 #endif // COIN_UTILITIES_HPP
