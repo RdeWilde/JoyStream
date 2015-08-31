@@ -57,4 +57,43 @@ Network versionByteToNetwork(unsigned int version);
 //AddressType getType(std::string & base58CheckEncodedAddress);
 
 }
+
+
+/**
+ * Signing and spending stuff
+ */
+
+#include <CoinCore/CoinNodeData.h>
+#include <CoinQ/CoinQ_script.h> // Declare CoinQ::Script::Script::type_t, is internal to class, so cannot be forward declared
+
+namespace Coin {
+
+    // SIGHASH_ALL type sighash for transaction <tx> corresponding to input
+    // index <input> with signing scriptSig from inputScriptBuilder
+    bytes_t sighash(const Coin::Transaction & tx, uint input, const CoinQ::Script::Script & inputScriptBuilder);
+
+    // DER encoded signature (without trailing sighash flag) corresponding to <privateKey> on input <inputToSign> of transaction <tx>.
+    // All scriptSigs in <tx> are irrelevant to resulting signature, and might as well be empty
+    secure_bytes_t createSignature(const Coin::Transaction & tx,
+                                   uint inputToSign,
+                                   const CoinQ::Script::Script & inputScriptBuilder,
+                                   const uchar_vector & privateKey);
+
+    // Whether DER encoded signature <signature> (without trailing sighash flag) is a valid SIGHASH_ALL signature for public key <publicKey> on input <inputToCheck> of transaction <tx>
+    // All scriptSigs in <tx> are irrelevant to resulting signature, and might as well be empty
+    bool verifySignature(const Coin::Transaction & tx,
+                         uint inputToCheck,
+                         const CoinQ::Script::Script & inputScriptBuilder,
+                         const secure_bytes_t & signature,
+                         const bytes_t & publicKey);
+
+
+
+
+    // create spending tx ?
+
+    // extract sig from tx?
+
+
+}
 #endif // COIN_UTILITIES_HPP

@@ -9,6 +9,7 @@
 
 #include <QJsonArray>
 #include <QNetworkRequest>
+#include <QJsonDocument>
 
 BlockCypher::Wallet::Wallet(const QString & token, const QString & name, const QList<Coin::P2PKHAddress> & addresses)
     : _token(token)
@@ -85,8 +86,9 @@ void BlockCypher::getWallet(QNetworkRequest * request, const QString & name) {
 
 void BlockCypher::addAddress(QNetworkRequest * request, const QString & name, const QList<Coin::P2PKHAddress> & addresses) {
 
-    // Example get wallet with name "alice": curl https://api.blockcypher.com/v1/btc/main/wallets/alice?token=YOURTOKEN
-    // /wallets/$NAME/addresses	POST	Wallet	Wallet
+    // Example get wallet with name "alice":
+    // curl https://api.blockcypher.com/v1/btc/main/wallets/alice/addresses?token=YOURTOKEN
+    // /wallets/$NAME/addresses     POST	Wallet	Wallet
 
     // Create url
     QString url = _endPoint + "wallets/" + name + "/addresses?token=" + QString(BLOCKCYPHER_TOKEN);
@@ -94,17 +96,15 @@ void BlockCypher::addAddress(QNetworkRequest * request, const QString & name, co
     // Create wallet with
     Wallet wallet(_token, name, addresses);
 
-    wallet.toJson()
+    // Turn into wallet into json,
+    QJsonObject json = wallet.toJson();
 
-            QByteArray payload = QJsonDocument(RPCJson).toJson();
-
-    QByteArray payload()
-
-
-
+    // Turn json into string encoded payload
+    QByteArray payload = QJsonDocument(json).toJson();
 
     // Set url on request
     request->setUrl(url);
+    //request->se
 }
 
 void BlockCypher::pushRawTransaction(const QString & rawTransaction) {

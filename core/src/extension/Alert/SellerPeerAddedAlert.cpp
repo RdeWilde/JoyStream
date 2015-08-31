@@ -37,7 +37,7 @@ int SellerPeerAddedAlert::category() const {
     return libtorrent::alert::status_notification;
 }
 
-std::auto_ptr<libtorrent::alert> SellerPeerAddedAlert::clone() const {
+std::auto_ptr<libtorrent::alert> SellerPeerAddedAlert::clone_impl() const {
     return std::auto_ptr<libtorrent::alert>(new SellerPeerAddedAlert(*this));
 }
 

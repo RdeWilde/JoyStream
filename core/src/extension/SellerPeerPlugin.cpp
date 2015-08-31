@@ -798,7 +798,7 @@ void SellerPeerPlugin::pieceReadFailed(int piece) {
 }
 
 void SellerPeerPlugin::close_connection() {
-    _connection->disconnect(_deletionErrorCode);
+    _connection->disconnect(_deletionErrorCode, libtorrent::operation_t::op_bittorrent);
 }
 
 Coin::Transaction SellerPeerPlugin::lastPaymentTransaction() const {

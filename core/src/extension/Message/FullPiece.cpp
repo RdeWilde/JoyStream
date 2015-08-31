@@ -11,8 +11,7 @@
 #include <QDataStream>
 
 FullPiece::FullPiece()
-    : _piece(0)
-    , _length(0) {
+    :  _length(0) { //_piece(0)
 }
 
 FullPiece::FullPiece(const boost::shared_array<char> & piece, int length)

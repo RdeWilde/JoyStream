@@ -500,7 +500,7 @@ bool BuyerPeerPlugin::write_request(libtorrent::peer_request const & peerRequest
 
 
 void BuyerPeerPlugin::close_connection() {
-    _connection->disconnect(_deletionErrorCode);
+    _connection->disconnect(_deletionErrorCode, libtorrent::operation_t::op_bittorrent);
 }
 
 /**

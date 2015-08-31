@@ -146,9 +146,11 @@ void Plugin::on_tick() {
     sendAlertToSession(PluginStatusAlert(status()));
 }
 
+/**
 bool Plugin::on_optimistic_unchoke(std::vector<libtorrent::policy::peer*> & peers) {
     return false;
 }
+*/
 
 void Plugin::save_state(libtorrent::entry & stateEntry) const {
 

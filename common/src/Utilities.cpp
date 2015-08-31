@@ -67,5 +67,64 @@ namespace Coin {
     }
     */
 
+#include <CoinCore/secp256k1.h>
+
+    bytes_t sighash(const Coin::Transaction & tx, uint input, const CoinQ::Script::Script & inputScriptBuilder) {
+
+        // Make copy of original tx, since it will be modified
+        Coin::Transaction txCopy = tx;
+
+        // Clear all input scripts
+        for(std::vector<TxIn>::iterator i = txCopy.inputs.begin(),
+            end = txCopy.inputs.end(); i != end;i++)
+            (*i).scriptSig.clear();
+
+        // Set script sig for input to be signed
+       txCopy.inputs[input].scriptSig = inputScriptBuilder.txinscript(CoinQ::Script::Script::sigtype_t::SIGN);
+
+       // Compute sighash
+       bytes_t signingHash = txCopy.getHashWithAppendedCode(CoinQ::Script::SigHashType::SIGHASH_ALL);
+
+       return signingHash;
+    }
+
+     secure_bytes_t createSignature(const Coin::Transaction & tx,
+                                    uint inputToSign,
+                                    const CoinQ::Script::Script & inputScriptBuilder,
+                                    const uchar_vector & privateKey) {
+
+        // Generate sighash
+        bytes_t signingHash = sighash(tx, inputToSign, inputScriptBuilder);
+
+        // Create signing key
+        CoinCrypto::secp256k1_key signingKey;
+        signingKey.setPrivKey(privateKey);
+
+        // Comute signature and return
+        return CoinCrypto::secp256k1_sign(signingKey, signingHash);
+     }
+
+     bool verifySignature(const Coin::Transaction & tx,
+                          uint inputToCheck,
+                          const CoinQ::Script::Script & inputScriptBuilder,
+                          const secure_bytes_t & signature,
+                          const bytes_t & publicKey) {
+
+         // Generate sighash
+         bytes_t signingHash = sighash(tx, inputToCheck, inputScriptBuilder);
+
+         // Create signature checking key
+         CoinCrypto::secp256k1_key signatureCheckingKey;
+         signatureCheckingKey.setPubKey(publicKey);
+
+         // Check signature and return
+         return CoinCrypto::secp256k1_verify(signatureCheckingKey, signingHash, signature);
+     }
 }
+
+/**
+
+  examples using the code to create txs with: p2pkh, p2sh, paychan, etc.
+*/
+
 

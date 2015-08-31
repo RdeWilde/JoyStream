@@ -31,7 +31,7 @@ public:
     virtual char const* what() const;
     virtual std::string message() const;
     virtual int category() const;
-    virtual std::auto_ptr<libtorrent::alert> clone() const;
+    virtual std::auto_ptr<libtorrent::alert> clone_impl() const;
 
     // Getters and setters
     libtorrent::tcp::endpoint endPoint() const;

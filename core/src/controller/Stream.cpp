@@ -303,7 +303,7 @@ void Stream::readAndProcessRequestLineFromSocket(const QByteArray & line) {
          * THERE ARE A FEW GITHUB ISSUES ON THIS.
          */
 
-        boost::intrusive_ptr<libtorrent::torrent_info const> torrentInfo =_handle.torrent_file();
+        boost::shared_ptr<libtorrent::torrent_info const> torrentInfo =_handle.torrent_file();
 
         // We should always have metadata if a stream has been started
         Q_ASSERT(torrentInfo != NULL);
@@ -525,7 +525,7 @@ void Stream::getStreamPieces(int start, int end) {
     Q_ASSERT(_handle.is_valid());
 
     // Get torrent file
-    boost::intrusive_ptr<libtorrent::torrent_info const> torrentInfo = _handle.torrent_file();
+    boost::shared_ptr<libtorrent::torrent_info const> torrentInfo = _handle.torrent_file();
 
     // We should always have metadata if a stream has been started
     Q_ASSERT(torrentInfo != NULL);
@@ -556,12 +556,12 @@ void Stream::getStreamPieces(int start, int end) {
             _handle.read_piece(i);
 
             // and add piece request
-            _pieceRequests.push_back(PieceRequest(i, torrentInfo->piece_size(i), PieceRequest::Status::waiting_for_it_to_be_read, boost::shared_array<char>(NULL)));
+            _pieceRequests.push_back(PieceRequest(i, torrentInfo->piece_size(i), PieceRequest::Status::waiting_for_it_to_be_read, boost::shared_array<char>()));
 
         } else {
 
             // otherwise, we have to just wait for it to be available
-            _pieceRequests.push_back(PieceRequest(i, torrentInfo->piece_size(i), PieceRequest::Status::waiting_for_it_be_downloaded, boost::shared_array<char>(NULL)));
+            _pieceRequests.push_back(PieceRequest(i, torrentInfo->piece_size(i), PieceRequest::Status::waiting_for_it_be_downloaded, boost::shared_array<char>()));
 
             // if this is the first piece not downloaded, then tell controller to get plugin to download from new this position
             if(!atLeastOnePieceIsNotDownloaded) {
@@ -630,7 +630,7 @@ void Stream::sendStream() const{
 
     Q_ASSERT(_handle.is_valid()); // more clever here in the future
 
-    boost::intrusive_ptr<libtorrent::torrent_info const> torrentInfo =_handle.torrent_file();
+    boost::shared_ptr<libtorrent::torrent_info const> torrentInfo =_handle.torrent_file();
 
     // We should always have metadata if a stream has been started
     Q_ASSERT(torrentInfo != NULL);

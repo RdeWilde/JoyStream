@@ -15,16 +15,12 @@ win32 {
 # Unix
 unix:!macx {
 
-    CONFIG(release, debug|release) {
-        MSIGNA_SYSROOT = /home/bedeho/JoyStream/Development/libs/mSIGNA-release/sysroot
-    } else {
-        MSIGNA_SYSROOT = /home/bedeho/JoyStream/Development/libs/mSIGNA-debug/sysroot
-    }
+    MSIGNA_SYSROOT = /home/bedeho/JoyStream/Development/libs/mSIGNA/sysroot
 
     INCLUDEPATH += $$MSIGNA_SYSROOT/include
 
     LIBS += -L$$MSIGNA_SYSROOT/lib \
-            -lCoinDB \
+            #-lCoinDB \
             -lCoinQ \
             -lCoinCore \
             -llogger \

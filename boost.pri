@@ -3,10 +3,10 @@
 # Proprietary and confidential
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
 
-DEFINES += BOOST_ASIO_SEPARATE_COMPILATION
-DEFINES += BOOST_ASIO_HASH_MAP_BUCKETS=1021
-DEFINES += BOOST_ASIO_ENABLE_CANCELIO
-DEFINES += BOOST_EXCEPTION_DISABLE
+#DEFINES += BOOST_ASIO_SEPARATE_COMPILATION
+#DEFINES += BOOST_ASIO_HASH_MAP_BUCKETS=1021
+#DEFINES += BOOST_ASIO_ENABLE_CANCELIO
+#DEFINES += BOOST_EXCEPTION_DISABLE
 
 # Took two days to find this: is required at least for boost 1.58.0
 # =================================================================
@@ -18,7 +18,7 @@ DEFINES += BOOST_EXCEPTION_DISABLE
 # which is included in error.hpp conditional BOOST_ASIO_HEADER_ONLY macro being defined.
 # Not sure how the code gets included in release mode, but it does
 # <test if this is still needed>
-DEFINES += BOOST_ASIO_HEADER_ONLY
+#DEFINES += BOOST_ASIO_HEADER_ONLY
 
 # Windows
 win32 {

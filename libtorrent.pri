@@ -49,31 +49,40 @@ win32 {
 # Unix
 unix:!macx {
 
-    LIBTORRENT_LOCATION = /home/bedeho/JoyStream/Development/libs/$$LIBTORRENT_NAME
 
-    DEFINES += TORRENT_NO_DEPRECATE
-    #DEFINES += TORRENT_DISABLE_LOGGING
-    #DEFINES += TORRENT_USE_OPENSSL
-    DEFINES += TORRENT_DISABLE_GEO_IP
+    INCLUDEPATH += /usr/local/include
+    LIBS += -L/usr/local/lib -ltorrent-rasterbar
+
+    DEFINES += TORRENT_DISABLE_LOGGING
+    DEFINES += TORRENT_USE_OPENSSL
+    DEFINES += BOOST_ASIO_HASH_MAP_BUCKETS=1021
+    DEFINES += BOOST_EXCEPTION_DISABLE
+    DEFINES += BOOST_ASIO_ENABLE_CANCELIO
+    DEFINES += TORRENT_LINKING_SHARED
+
+    #LIBTORRENT_LOCATION = /home/bedeho/JoyStream/Development/libs/$$LIBTORRENT_NAME
+    #
+    #DEFINES += TORRENT_NO_DEPRECATE
+    ##DEFINES += TORRENT_DISABLE_LOGGING
+    ##DEFINES += TORRENT_USE_OPENSSL
+    #DEFINES += TORRENT_DISABLE_GEO_IP
 
     # Linking
-    CONFIG(release, debug|release) {
-
-        #LIBTORRENT_LOCATION = /home/bedeho/JoyStream/Development/libs/libtorrent-release-install
-
-        LIBS += -L$$LIBTORRENT_LOCATION/bin/gcc-4.8/release/address-model-64/deprecated-functions-off/link-static/threading-multi -ltorrent
-        #LIBS += -L$$LIBTORRENT_LOCATION/lib -llibtorrent-rasterbar
-
-        DEFINES += NDEBUG
-    } else {
-
-        #LIBTORRENT_LOCATION = /home/bedeho/JoyStream/Development/libs/libtorrent-debug-install
-
-        LIBS += -L$$LIBTORRENT_LOCATION/bin/gcc-4.8/debug/address-model-64/deprecated-functions-off/link-static/threading-multi -ltorrent
-        #LIBS += -L$$LIBTORRENT_LOCATION/lib -llibtorrent-rasterbar
-
-        DEFINES += TORRENT_DEBUG
-    }
+    #CONFIG(release, debug|release) {
+#
+#        #LIBTORRENT_LOCATION = /home/bedeho/JoyStream/Development/libs/libtorrent-release-install#
+#
+#        LIBS += -L$$LIBTORRENT_LOCATION/bin/gcc-4.8/release/address-model-64/deprecated-functions-off/link-static/threading-multi -ltorrent
+#        #LIBS += -L$$LIBTORRENT_LOCATION/lib -llibtorrent-rasterbar#
+#
+#        DEFINES += NDEBUG
+#    } else {#
+#
+#        #LIBTORRENT_LOCATION = /home/bedeho/JoyStream/Development/libs/libtorrent-debug-install
+#
+#        LIBS += -L$$LIBTORRENT_LOCATION/bin/gcc-4.8/debug/address-model-64/deprecated-functions-off/link-static/threading-multi -ltorrent
+#        #LIBS += -L$$LIBTORRENT_LOCATION/lib -llibtorrent-rasterbar
+#
+#        DEFINES += TORRENT_DEBUG
+#    }
 }
-
-INCLUDEPATH += $$LIBTORRENT_LOCATION/include

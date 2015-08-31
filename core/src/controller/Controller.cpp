@@ -252,7 +252,7 @@ libtorrent::add_torrent_params Controller::Torrent::Configuration::toAddTorrentP
     params.flags = _flags;
 
     if(_torrentInfo != NULL)
-        params.ti = boost::intrusive_ptr<libtorrent::torrent_info>(_torrentInfo);
+        params.ti = boost::shared_ptr<libtorrent::torrent_info>(_torrentInfo);
 
     //params.userdata = static_cast<void *>(_torrentPluginConfiguration);
 
@@ -1483,7 +1483,7 @@ void Controller::processMetadataReceivedAlert(libtorrent::metadata_received_aler
     if (h.is_valid()) {
 
         // get torrent info
-        boost::intrusive_ptr<libtorrent::torrent_info const> torrentInfoIntrusivePtr = h.torrent_file();
+        boost::shared_ptr<libtorrent::torrent_info const> torrentInfoIntrusivePtr = h.torrent_file();
 
         //const libtorrent::torrent_info & torrentInfo = h.get_torrent_info();
 
@@ -1682,7 +1682,7 @@ void Controller::processTorrentCheckedAlert(libtorrent::torrent_checked_alert co
         }*/ else {
 
             // Get torrent information
-            boost::intrusive_ptr<libtorrent::torrent_info const> torrentInfoIntrusivePtr = h.torrent_file();
+            boost::shared_ptr<libtorrent::torrent_info const> torrentInfoIntrusivePtr = h.torrent_file();
             const libtorrent::torrent_info * torrentInfoPtr = torrentInfoIntrusivePtr.get();
             libtorrent::torrent_info torrentInfo = *torrentInfoPtr; //h.get_torrent_info();
 

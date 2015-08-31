@@ -33,7 +33,7 @@ int TorrentPluginStartedAlert::category() const {
     return libtorrent::alert::status_notification;
 }
 
-std::auto_ptr<libtorrent::alert> TorrentPluginStartedAlert::clone() const {
+std::auto_ptr<libtorrent::alert> TorrentPluginStartedAlert::clone_impl() const {
     return std::auto_ptr<alert>(new TorrentPluginStartedAlert(*this));
 }
 

@@ -119,7 +119,7 @@ public:
     virtual void added(libtorrent::aux::session_impl * session);
     virtual void on_alert(libtorrent::alert const * a);
     virtual void on_tick();
-    virtual bool on_optimistic_unchoke(std::vector<libtorrent::policy::peer*> & peers);
+    //virtual bool on_optimistic_unchoke(std::vector<peer_connection_handle> & /* peers */);
     virtual void save_state(libtorrent::entry & stateEntry) const;
     virtual void load_state(libtorrent::lazy_entry const & stateEntry);
 

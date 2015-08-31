@@ -15,12 +15,12 @@ win32 {
 # Unix
 unix:!macx {
 
-	OPENSSL_LOCATION = /usr/local/ssl
+    OPENSSL_LOCATION = /usr/lib/x86_64-linux-gnu
 
-	INCLUDEPATH += $$OPENSSL_LOCATION/include
+    INCLUDEPATH += $$OPENSSL_LOCATION/include
 
-	LIBS += -L$$OPENSSL_LOCATION/lib \
-		-lcrypto \
-		-lssl \
-		-ldl
+    LIBS += -L$$OPENSSL_LOCATION/lib \
+            -lcrypto \
+            -lssl \
+            -ldl
 }
