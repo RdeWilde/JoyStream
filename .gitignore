@@ -24,6 +24,7 @@ $RECYCLE.BIN/
 
 QtBitSwapr.pro.user*
 JoyStream.pro.user
+*.user.*
 
 # OSX
 # =========================
@@ -51,3 +52,6 @@ Temporary Items
 
 # Qt created auto save
 *.autosave*
+
+# Temporary files
+*~
