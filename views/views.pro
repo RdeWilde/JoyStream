@@ -5,7 +5,4 @@
 
 TEMPLATE    = subdirs
 
-SUBDIRS     = \
-            cli \
-            gui \
-            web 
+SUBDIRS     = gui
