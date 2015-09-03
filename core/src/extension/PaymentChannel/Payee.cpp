@@ -205,7 +205,7 @@ void Payee::Configuration::setFunds(const quint64 funds) {
  * Payee
  */
 
-#include <CoinCore/StandardTransactions.h>
+#include <CoinCore/CoinNodeData.h>
 
 Payee::Payee() {
 }

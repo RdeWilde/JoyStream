@@ -7,7 +7,6 @@
 
 #include <common/P2PKHAddress.hpp>
 #include <common/Base58CheckEncodable.hpp>
-#include <common/PublicKey.hpp>
 #include <CoinCore/Base58Check.h>
 
 namespace Coin {
@@ -19,10 +18,6 @@ P2PKHAddress::P2PKHAddress()
 P2PKHAddress::P2PKHAddress(Network network, const PubKeyHash & pubKeyHash)
     : _network(network)
     , _pubKeyHash(pubKeyHash) {
-}
-
-P2PKHAddress::P2PKHAddress(Network network, const Coin::PublicKey & pk)
-    : P2PKHAddress::P2PKHAddress(network, pk.toPubKeyHash()) {
 }
 
 // Base58CheckEncoded p2pkh address

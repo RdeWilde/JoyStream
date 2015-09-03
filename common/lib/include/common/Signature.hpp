@@ -53,8 +53,11 @@ public:
     // Hex encoded signature
     QString toString() const;
 
-    // Encode as byte array
+    // Raw data
     QByteArray toByteArray() const;
+
+    // Raw data
+    uchar_vector toUCharVector() const;
 
     // Stream processing
     int readFromStream(QDataStream & stream, int length);

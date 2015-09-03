@@ -36,7 +36,7 @@ public:
     //Coin::P2SHAddress toP2SHAddress(Network network) const;
 
     // Corresponding transaction output
-    Coin::StandardTxOut toTxOut() const;
+    //Coin::StandardTxOut toTxOut() const;
 
     // Getters and setters
     quint64 value() const;

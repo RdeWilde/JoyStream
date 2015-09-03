@@ -34,9 +34,10 @@
 #include <CoinCore/typedefs.h> // bytes_t
 #include <CoinCore/CoinNodeData.h> // Coin::CoinBlockHeader, Transaction types: outpoints, transactions, ...
 #include <CoinCore/BloomFilter.h>
-#include <CoinQ/CoinQ_script.h> // getAddressForTxOutScript
-#include <CoinQ/CoinQ_blocks.h> // CoinQBlockTreeMem
-#include <CoinQ/CoinQ_netsync.h>
+
+//#include <CoinQ/CoinQ_script.h> // getAddressForTxOutScript
+//#include <CoinQ/CoinQ_blocks.h> // CoinQBlockTreeMem
+//#include <CoinQ/CoinQ_netsync.h>
 
 #include <QString>
 #include <QSqlRecord>
@@ -223,6 +224,10 @@ bool Manager::validateWalletStructure(QSqlDatabase & db) {
 
 void Manager::startSPVClient(const QString & blockHeaderStore, const QString & host) {
 
+    throw std::runtime_error("disabled");
+
+    /**
+
     // Pick default paramters for network being used
     CoinQ::NetworkSelector selector("testnet3");
     CoinQ::CoinParams coinParams = selector.getCoinParams();
@@ -235,10 +240,12 @@ void Manager::startSPVClient(const QString & blockHeaderStore, const QString & h
     std::string port = coinParams.default_port();
 
     client->start(stdHost, port);
+    */
 }
 
 void Manager::startSPVClient_old(const QString & blockHeaderStore, const QString & host) {
 
+    /**
     if(_clients.contains(host))
         throw std::runtime_error("SPV client for host already exists.");
 
@@ -279,9 +286,9 @@ void Manager::startSPVClient_old(const QString & blockHeaderStore, const QString
     // Set filter to be used by p2p client
     //client->setBloomFilter(filter);
 
-    /**
-     * Setup handlers for spv client events
-     */
+    //////////////////////////////////////
+    // Setup handlers for spv client events
+    //////////////////////////////////////
 
     // Load headers from block store
     std::string str1 = blockHeaderStore.toStdString();
@@ -396,13 +403,14 @@ void Manager::startSPVClient_old(const QString & blockHeaderStore, const QString
     client->subscribeBlockTreeChanged([&]() {
        std::cout << std::endl << " block tree changed." << std::endl;
     });
-    */
+
 
     // Start client:
     std::string stdHost = host.toStdString();
     std::string port = coinParams.default_port();
 
     client->start(stdHost, port);
+    */
 }
 
 
@@ -1066,11 +1074,11 @@ QSqlDatabase Manager::db() {
     return _db;
 }
 
-
 void Manager::blockStoreLoaded(const CoinQBlockTreeMem & blocktree) {
-    std::cout << "Best height: " << blocktree.getBestHeight() << " Total work: " << blocktree.getTotalWork().getDec() << std::endl;
-}
 
+    throw std::runtime_error("disabled");
+    //std::cout << "Best height: " << blocktree.getBestHeight() << " Total work: " << blocktree.getTotalWork().getDec() << std::endl;
+}
 
 Address::Record Manager::_createReceiveAddress() {
 
@@ -1084,7 +1092,7 @@ Address::Record Manager::_createReceiveAddress() {
     Coin::PublicKey pk = sk.toPublicKey();
 
     // Create wallet address
-    Address::Record addressRecord(keyRecord._index, Coin::P2PKHAddress(_network, pk));
+    Address::Record addressRecord(keyRecord._index, Coin::P2PKHAddress(_network, pk.toPubKeyHash()));
 
     // Insert into wallet
     Address::insert(_db, addressRecord);
@@ -1124,6 +1132,9 @@ Key::Record Manager::_issueKey() {
 
 bool Manager::getAddressForOutput(const Coin::TxOut & txOut, Address::Record & record) {
 
+    std::runtime_error("disabled");
+
+    /**
     // Deduce address from output script
     QString base58CheckEncodedString = QString::fromStdString(CoinQ::Script::getAddressForTxOutScript(txOut.scriptPubKey, Coin::networkToAddressVersions(_network)));
 
@@ -1140,6 +1151,7 @@ bool Manager::getAddressForOutput(const Coin::TxOut & txOut, Address::Record & r
         // Wasn't valid p2pkh address (e.g p2sh)
         return false;
     }
+    */
 }
 
 }

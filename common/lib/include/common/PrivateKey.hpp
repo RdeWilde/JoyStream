@@ -10,13 +10,24 @@
 
 #include <common/UCharArray.hpp>
 #include <common/Network.hpp>
-#include <common/PublicKeyCompression.hpp>
 
 #define PRIVATE_KEY_BYTE_LENGTH 32
+
+/**
+namespace CoinQ {
+namespace Script {
+enum SigHashType;
+}
+}
+*/
 
 namespace Coin {
 
 class PublicKey;
+class Signature;
+class Transaction;
+enum class PublicKeyCompression;
+enum class SigHashType;
 
 // Later make the allocation/copying anti-page secure
 // WARNING: NEEDS SECURE ALLOCATOR & DESTRUCTOR
@@ -46,6 +57,18 @@ public:
 
     // WIF Encode private key
     QString toWIF(Network network, PublicKeyCompression compression) const;
+
+    // Sign raw data
+    Signature sign(const uchar_vector & message) const;
+
+    // Sign transaction in given sighash mode on given input for spending
+    // output with given output script
+    // *** SUPPORT DIFFERENT SIGHASH TYPES IN THE FUTURE ***
+    Signature sign(const Coin::Transaction & tx, uint inputToSign, const uchar_vector & scriptPubKey, SigHashType type) const;
+
+    // Sign transaction in SIGHASH_ALL mode on given input for spending
+    // output with p2kh output controlled by this private key
+    Signature sign(const Coin::Transaction & tx, uint inputToSign) const;
 
     // Generates the correponding (compressed) public key
     PublicKey toPublicKey() const;

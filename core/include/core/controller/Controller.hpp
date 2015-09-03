@@ -57,6 +57,7 @@ public:
      * @brief
      */
     enum class State {
+        //waiting_for_session_to_start,
         normal,
         waiting_for_resume_data_while_closing
     };
@@ -450,7 +451,16 @@ public:
          * than using entry type, however that gets messy and/or
          * requires lots of extra work for various reasons.
          */
+
+        //// SWITCH TO THIS LATER //////////////////
+        // libtorrent::settings_pack settings;
+        ///////////////////////////////////////////
+
         libtorrent::entry _libtorrentSessionSettingsEntry;
+
+        ///////////////////////////////////////////
+        // libtorrent::dht_settings dht;
+        ///////////////////////////////////////////
 
         // Listening port range: DO WE EVEN NEED THIS? IT MAY BE PART OF DHT_SETTINGS ENTRY?
         std::pair<int, int> _portRange;
@@ -478,22 +488,30 @@ public:
     // Callback routine called by libtorrent dispatcher routine
     //
     // CRITICAL:
-    // Do not under any circumstance make a new call to libtorrent in this routine, since the network
+    // Do not under any circumstance have a call to libtorrent in this routine, since the network
     // thread in libtorrent will be making this call, and a new call will result in a dead lock.
     //
-    /** THIS ROUTINE MUST BE HIDDEN FROM CONTROLLER USER IN THE FUTURE **/
-    void libtorrent_alert_dispatcher_callback(const std::auto_ptr<libtorrent::alert> & alertAutoPtr);
-
-    // Invocations of this method are queued, and dispatcher callback
-    /** THIS ROUTINE MUST BE HIDDEN FROM CONTROLLER USER IN THE FUTURE **/
-    Q_INVOKABLE void processAlert(libtorrent::alert const * a);
+    /** THIS ROUTINE MUST NOT BE PUBLICLY VISIBLE IN THE FUTURE **/
+    //void libtorrent_alert_dispatcher_callback(const std::auto_ptr<libtorrent::alert> & alertAutoPtr);
+    void libtorrent_entry_point_alert_notification();
 
     /**
      * Plugin entry points
      * =================
      * What are terms for calling this again?
      */
-    Q_INVOKABLE void sellerPeerPluginRemoved(const libtorrent::sha1_hash & infoHash, const libtorrent::tcp::endpoint & endPoint);
+     void sellerPeerPluginRemoved(const libtorrent::sha1_hash & infoHash, const libtorrent::tcp::endpoint & endPoint);
+
+     /**
+      * Alert processing
+      * ==================
+      */
+
+     // Process all pending alerts in the libtorrent queue
+     Q_INVOKABLE void processAlertQueue();
+
+     // Process a spesific request
+     void processAlert(const libtorrent::alert * a);
 
     /**
      * Inspection/Controlling controller
@@ -625,8 +643,10 @@ private:
     // State of controller
     State _state;
 	
-    // Underlying libtorrent session
-    libtorrent::session _session;
+    // Underlying libtorrent session,
+    // has to be pointer since it needs sessings_pack,
+    // which can only be built postfix calls
+    libtorrent::session * _session;
 
     // Wallet used
     Wallet::Manager * _wallet;
@@ -685,6 +705,7 @@ private:
     // Routine for processig libtorrent alerts
     void processMetadataReceivedAlert(libtorrent::metadata_received_alert const * p);
     void processMetadataFailedAlert(libtorrent::metadata_failed_alert const * p);
+    void processListenFailedAlert(libtorrent::listen_failed_alert const * p);
     void processAddTorrentAlert(libtorrent::add_torrent_alert const * p);
     void processTorrentFinishedAlert(libtorrent::torrent_finished_alert const * p);
     void processStatusUpdateAlert(libtorrent::state_update_alert const * p);

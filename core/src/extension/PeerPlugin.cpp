@@ -186,7 +186,9 @@ bool PeerPlugin::on_handshake(char const * reserved_bits) {
  * by this peer. It will result in this peer_plugin being removed from
  * the peer_connection and destructed. this is not called for web seeds
  */
-bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake) {
+bool PeerPlugin::on_extension_handshake(libtorrent::bdecode_node const & handshake) { // (libtorrent::lazy_entry const & handshake) {
+
+    /**
 
     // Check that peer plugin is still valid
     if(_scheduledForDeletingInNextTorrentPluginTick) {
@@ -221,10 +223,10 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
         return true;
     }
 
-    /**
-     * We cannot trust structure of entry, since it is from peer,
-     * hence we must check it properly.
-     */
+     //////////////////////////////////////////////////
+     // We cannot trust structure of entry, since it is from peer,
+     // hence we must check it properly.
+     //////////////////////////////////////////////////
 
     // If its not a dictionary, we are done
     if(handshake.type() != libtorrent::lazy_entry::dict_t) {
@@ -306,18 +308,18 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
     libtorrent::entry::dictionary_type mDictionaryEntry;
     mDictionaryEntry = mEntry.dict();
 
-    /**
-    for(std::map<std::string, libtorrent::entry>::const_iterator i = mDictionaryEntry.cbegin(),
-        end(mDictionaryEntry.cend()); i != end;i++) {
-
-        std::string key = (*i).first;
-        libtorrent::entry value = (*i).second;
-        std::string valueStr = value.to_string();
-
-        qCWarning(_category) << key.c_str() << ": " << valueStr.c_str();
-
-    }
-    */
+    //////////////////////////////////////////////////
+    //for(std::map<std::string, libtorrent::entry>::const_iterator i = mDictionaryEntry.cbegin(),
+    //    end(mDictionaryEntry.cend()); i != end;i++) {
+    //
+    //    std::string key = (*i).first;
+    //    libtorrent::entry value = (*i).second;
+    //    std::string valueStr = value.to_string();
+    //
+    //    qCWarning(_category) << key.c_str() << ": " << valueStr.c_str();
+    //
+    //}
+    //////////////////////////////////////////////////
 
     // Create peer mapping    
     _peerMapping = ExtendedMessageIdMapping(mDictionaryEntry);
@@ -345,6 +347,7 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
 
     // All messages were present, hence the protocol is supported
     _peerBitSwaprBEPSupportStatus = BEPSupportStatus::supported;
+    */
 
     // Tell libtorrent that our extension should be kept in the loop for this peer
     //return false;

@@ -98,6 +98,15 @@ QByteArray Signature::toByteArray() const {
     return QByteArray(data, _raw.size());
 }
 
+uchar_vector Signature::toUCharVector() const {
+
+    // Get pointer to data
+    const unsigned char * data = reinterpret_cast<const unsigned char *>(_raw.data());
+
+    // Construct byte array and return it
+    return uchar_vector(data, _raw.size());
+}
+
 int Signature::readFromStream(QDataStream & stream, int length) {
 
     // Check that signature is not to large

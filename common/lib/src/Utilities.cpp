@@ -7,8 +7,10 @@
 
 #include <common/Utilities.hpp>
 
+//#include <CoinCore/secp256k1.h>
 #include <stdutils/uchar_vector.h>
 #include <common/Network.hpp>
+#include <common/SigHashType.hpp>
 
 #include <QByteArray>
 
@@ -43,6 +45,32 @@ namespace Coin {
         }
     }
 
+    uchar_vector opPushData(uint32_t nBytes)
+    {
+        uchar_vector rval;
+        if (nBytes <= 0x4b) {
+            rval.push_back((unsigned char)nBytes);
+        }
+        else if (nBytes <= 0xff) {
+            rval.push_back(0x4c);
+            rval.push_back((unsigned char)nBytes);
+        }
+        else if (nBytes <= 0xffff) {
+            rval.push_back(0x4d);
+            rval.push_back((unsigned char)(nBytes & 0xff));
+            rval.push_back((unsigned char)(nBytes >> 8));
+        }
+        else {
+            rval.push_back(0x4e);
+            rval.push_back((unsigned char)(nBytes & 0xff));
+            rval.push_back((unsigned char)((nBytes >> 8) & 0xff));
+            rval.push_back((unsigned char)((nBytes >> 16) & 0xff));
+            rval.push_back((unsigned char)(nBytes >> 24));
+        }
+
+        return rval;
+    }
+
     /**
     unsigned int extendedPrivateKeyVersionBytes(Network network) {
 
@@ -67,9 +95,15 @@ namespace Coin {
     }
     */
 
-#include <CoinCore/secp256k1.h>
+    // bytes_t sighash(const Coin::Transaction & tx, uint input, const CoinQ::Script::Script & inputScriptBuilder) {
+    uchar_vector sighash(const Coin::Transaction & tx,
+                    uint input,
+                    const uchar_vector & scriptPubKey,
+                    SigHashType type) {
 
-    bytes_t sighash(const Coin::Transaction & tx, uint input, const CoinQ::Script::Script & inputScriptBuilder) {
+        // We only support this for now
+        if(type != Coin::SigHashType::all)
+            throw std::runtime_error("unsupported sighash type, only sighash_all is supported");
 
         // Make copy of original tx, since it will be modified
         Coin::Transaction txCopy = tx;
@@ -79,15 +113,19 @@ namespace Coin {
             end = txCopy.inputs.end(); i != end;i++)
             (*i).scriptSig.clear();
 
+        /**
+         * // Clear all op_codeseperators from scriptPubKey
+         * uchar_vector cleanScriptPubKey = clearCodeSeperators(scriptPubKey);
+         */
+
         // Set script sig for input to be signed
-       txCopy.inputs[input].scriptSig = inputScriptBuilder.txinscript(CoinQ::Script::Script::sigtype_t::SIGN);
+        txCopy.inputs[input].scriptSig = scriptPubKey;
 
-       // Compute sighash
-       bytes_t signingHash = txCopy.getHashWithAppendedCode(CoinQ::Script::SigHashType::SIGHASH_ALL);
-
-       return signingHash;
+        // Compute sighash and return
+        return txCopy.getHashWithAppendedCode(valueForSighashType(type));
     }
 
+    /**
      secure_bytes_t createSignature(const Coin::Transaction & tx,
                                     uint inputToSign,
                                     const CoinQ::Script::Script & inputScriptBuilder,
@@ -104,20 +142,17 @@ namespace Coin {
         return CoinCrypto::secp256k1_sign(signingKey, signingHash);
      }
 
+
      bool verifySignature(const Coin::Transaction & tx,
                           uint inputToCheck,
                           const CoinQ::Script::Script & inputScriptBuilder,
                           const secure_bytes_t & signature,
                           const bytes_t & publicKey) {
 
+
          // Generate sighash
          bytes_t signingHash = sighash(tx, inputToCheck, inputScriptBuilder);
 
-         // Create signature checking key
-         CoinCrypto::secp256k1_key signatureCheckingKey;
-         signatureCheckingKey.setPubKey(publicKey);
-
-         // Check signature and return
-         return CoinCrypto::secp256k1_verify(signatureCheckingKey, signingHash, signature);
      }
+     */
 }

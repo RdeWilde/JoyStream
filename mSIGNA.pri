@@ -21,7 +21,7 @@ unix:!macx {
 
     LIBS += -L$$MSIGNA_SYSROOT/lib \
             #-lCoinDB \
-            -lCoinQ \
+            #-lCoinQ \
             -lCoinCore \
             -llogger \
             -lsysutils

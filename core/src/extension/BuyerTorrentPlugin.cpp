@@ -280,7 +280,8 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
                                                       0,
                                                       0));
     // Payor configuration
-    Payor::Configuration payorConfiguration(Payor::State::waiting_for_full_set_of_sellers,
+    Payor::Configuration payorConfiguration(_wallet->network(),
+                                            Payor::State::waiting_for_full_set_of_sellers,
                                             channelConfigurations,
                                             utxo,
                                             changeKey[0],

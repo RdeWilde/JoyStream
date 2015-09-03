@@ -3,10 +3,6 @@
 # Proprietary and confidential
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, June 28 2015
 
-include(../../mSIGNA.pri)
-include(../../openssl.pri)
-include(../../boost.pri)
-
 TARGET = wallet
 TEMPLATE = lib
 
@@ -66,15 +62,20 @@ SOURCES += \
     src/TransactionMinedInBlock.cpp \
 
 # common  ###############################################################
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../common/release/ -lcommon
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../common/debug/ -lcommon
-else:unix: LIBS += -L$$OUT_PWD/../../common/ -lcommon
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../common/lib/release/ -lcommon
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../common/lib/debug/ -lcommon
+else:unix: LIBS += -L$$OUT_PWD/../../common/lib/ -lcommon
 
-INCLUDEPATH += $$PWD/../../common/include
-DEPENDPATH += $$PWD/../../common/include
+INCLUDEPATH += $$PWD/../../common/lib/include
+DEPENDPATH += $$PWD/../../common/lib/include
 
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../common/release/libcommon.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../common/debug/libcommon.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../common/release/common.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../common/debug/common.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../common/libcommon.a
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../common/lib/release/libcommon.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../common/lib/debug/libcommon.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../common/lib/release/common.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../common/lib/debug/common.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../common/lib/libcommon.a
+
+
+include(../../mSIGNA.pri)
+include(../../openssl.pri)
+include(../../boost.pri)

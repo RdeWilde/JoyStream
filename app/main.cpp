@@ -31,12 +31,10 @@
 #include <libtorrent/torrent_info.hpp>
 #include <libtorrent/error_code.hpp>
 
-// "C:/TORRENTS/Rise and Rrise of BitCoin.torrent"
-// "/home/bedeho/Downloads/The.Rise.and.Rise.of.Bitcoin.2014.720p.HDrip.x264.AAC.torrent"
-#define RR_BITCOIN_TORRENT "/home/bedeho/Downloads/The.Rise.and.Rise.of.Bitcoin.2014.720p.HDrip.x264.AAC.torrent"
-
-// "C:/TORRENTS/Rise and Rrise of BitCoin.torrent"
-// "C:/TORRENTS/Aint No Love Crucified.mp3.torrent"
+// Torrent file
+#define RRB_TORRENT "/home/bedeho/Downloads/The.Rise.and.Rise.of.Bitcoin.2014.720p.HDrip.x264.AAC.torrent"
+#define LUBUNTU_TORRENT "/home/bedeho/Downloads/Lubuntu 14.04.3 LTS Desktop amd64 CD.torrent"
+#define TORRENT_FILE LUBUNTU_TORRENT
 
 //#define WALLET_LOCATION "C:/WALLETS/"
 #define WALLET_LOCATION "/home/bedeho/JoyStream/wallets/"
@@ -59,12 +57,9 @@
 #include <CoinQ/CoinQ_blocks.h> // CoinQBlockTreeMem
 #include <CoinQ/CoinQ_netsync.h>
 
-
-
-
-#ifndef Q_MOC_RUN
-#include <boost/intrusive_ptr.hpp>
-#endif Q_MOC_RUN
+//#ifndef Q_MOC_RUN
+//#include <boost/intrusive_ptr.hpp>
+//#endif Q_MOC_RUN
 
 // global counters used to pick correct dns and wallet seed for given session
 int wallet_seed_counter = 0;
@@ -173,11 +168,11 @@ int main(int argc, char* argv[]) {
     ControllerTracker controllerTracker;
 
     /**
-     * Downloading & streaming
-
+     * SCENARIO: Downloading & streaming
+     * =================================
 
     // Load torrent
-    libtorrent::torrent_info torrentInfo = load_torrent(RR_BITCOIN_TORRENT);
+    libtorrent::torrent_info torrentInfo = load_torrent(TORRENT_FILE);
 
     // Buyers
     Controller * loneBuyer = create_controller(controllerConfiguration,
@@ -212,11 +207,26 @@ int main(int argc, char* argv[]) {
 
     /**
      * Paid uploading
+     * =================================
      */
 
     // Load torrent
-    libtorrent::torrent_info torrentInfo = load_torrent(RR_BITCOIN_TORRENT);
-/**
+    libtorrent::torrent_info torrentInfo = load_torrent(TORRENT_FILE);
+
+    // Sellers
+    Controller * loneSeller = create_controller(controllerConfiguration,
+                                                &manager,
+                                                true,
+                                                true,
+                                                torrentInfo,
+                                                QString("lone_seller"));
+
+    controllerTracker.addClient(loneSeller);
+
+    // TEMPORARY AUTO
+    //loneSeller->addTorrent(create_torrent_configuration(torrentInfo, "Ubuntu"));
+
+    /**
     // Buyers
     add_buyers_with_plugin(controllerConfiguration, manager, controllerTracker, false, true, torrentInfo,
                            QVector<BuyerTorrentPlugin::Configuration>()
@@ -232,15 +242,8 @@ int main(int argc, char* argv[]) {
                                                                 1), // #sellers
                            &PREDETERMINED_SEED_ID
                            );
-*/
-    // Sellers
-    Controller * loneSeller = create_controller(controllerConfiguration,
-                                                &manager,
-                                                true,
-                                                true,
-                                                torrentInfo,
-                                                QString("lone_seller"));
-    controllerTracker.addClient(loneSeller);
+    */
+
 
     /**
      * Run
@@ -261,7 +264,7 @@ libtorrent::torrent_info load_torrent(const char * path) {
 
     if(ec) {
         qDebug() << "Invalid torrent file 1: " << ec.message().c_str();
-        throw std::exception();
+        throw std::runtime_error("Could not load torrent file");
     }
 
     return torrentInfo;

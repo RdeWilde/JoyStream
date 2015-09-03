@@ -3,8 +3,6 @@
 # Proprietary and confidential
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
 
-LIBTORRENT_NAME = libtorrent-rasterbar-1.0.5
-
 # common to all platform
 CONFIG(release, debug|release) {
     DEFINES += NDEBUG
@@ -49,40 +47,37 @@ win32 {
 # Unix
 unix:!macx {
 
+    CONFIG(release, debug|release) {
 
-    INCLUDEPATH += /usr/local/include
-    LIBS += -L/usr/local/lib -ltorrent-rasterbar
+        #LIBTORRENT_LOCAL_BUILD = /home/bedeho/JoyStream/Development/libs/libtorrent-build
 
-    DEFINES += TORRENT_DISABLE_LOGGING
-    DEFINES += TORRENT_USE_OPENSSL
-    DEFINES += BOOST_ASIO_HASH_MAP_BUCKETS=1021
-    DEFINES += BOOST_EXCEPTION_DISABLE
-    DEFINES += BOOST_ASIO_ENABLE_CANCELIO
-    DEFINES += TORRENT_LINKING_SHARED
+        #INCLUDEPATH += $$LIBTORRENT_LOCAL_BUILD/include
 
-    #LIBTORRENT_LOCATION = /home/bedeho/JoyStream/Development/libs/$$LIBTORRENT_NAME
-    #
-    #DEFINES += TORRENT_NO_DEPRECATE
-    ##DEFINES += TORRENT_DISABLE_LOGGING
-    ##DEFINES += TORRENT_USE_OPENSSL
-    #DEFINES += TORRENT_DISABLE_GEO_IP
+        # SHARED ==============================
+        #LIBS += -L$$LIBTORRENT_LOCAL_BUILD/lib -ltorrent-rasterbar
 
-    # Linking
-    #CONFIG(release, debug|release) {
-#
-#        #LIBTORRENT_LOCATION = /home/bedeho/JoyStream/Development/libs/libtorrent-release-install#
-#
-#        LIBS += -L$$LIBTORRENT_LOCATION/bin/gcc-4.8/release/address-model-64/deprecated-functions-off/link-static/threading-multi -ltorrent
-#        #LIBS += -L$$LIBTORRENT_LOCATION/lib -llibtorrent-rasterbar#
-#
-#        DEFINES += NDEBUG
-#    } else {#
-#
-#        #LIBTORRENT_LOCATION = /home/bedeho/JoyStream/Development/libs/libtorrent-debug-install
-#
-#        LIBS += -L$$LIBTORRENT_LOCATION/bin/gcc-4.8/debug/address-model-64/deprecated-functions-off/link-static/threading-multi -ltorrent
-#        #LIBS += -L$$LIBTORRENT_LOCATION/lib -llibtorrent-rasterbar
-#
-#        DEFINES += TORRENT_DEBUG
-#    }
+        #DEFINES += TORRENT_DISABLE_LOGGING
+        #DEFINES += TORRENT_USE_OPENSSL
+        #DEFINES += BOOST_ASIO_HASH_MAP_BUCKETS=1021
+        #DEFINES += BOOST_EXCEPTION_DISABLE
+        #DEFINES += BOOST_ASIO_ENABLE_CANCELIO
+        #DEFINES += TORRENT_LINKING_SHARED
+        #DEFINES += TORRENT_NO_DEPRECATE
+
+    } else {
+
+        LIBTORRENT_LOCAL_BUILD = /home/bedeho/JoyStream/Development/libs/libtorrent-debug-build
+
+        INCLUDEPATH += $$LIBTORRENT_LOCAL_BUILD/include
+
+        LIBS += -L$$LIBTORRENT_LOCAL_BUILD/lib -l:libtorrent-rasterbar.a
+
+        # STATIC ==============================
+
+        DEFINES += TORRENT_DISABLE_LOGGING
+        DEFINES += TORRENT_NO_DEPRECATE
+        #DEFINES += TORRENT_DISABLE_GEO_IP
+        DEFINES += BOOST_EXCEPTION_DISABLE
+        DEFINES += BOOST_ASIO_ENABLE_CANCELIO
+    }
 }

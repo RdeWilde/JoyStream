@@ -6,10 +6,18 @@
  */
 
 #include <common/PrivateKey.hpp>
-#include <common/Base58CheckEncodable.hpp>
 #include <common/PublicKey.hpp>
+#include <common/PublicKeyCompression.hpp>
+#include <common/Base58CheckEncodable.hpp>
+#include <common/Signature.hpp>
+#include <common/SigHashType.hpp>
+#include <common/Utilities.hpp> // sighash
+
 #include <CoinCore/Base58Check.h>
 #include <CoinCore/secp256k1.h>
+
+// not sure if this will stay
+//#include <CoinQ/CoinQ_script.h> // CoinQ::Script::Script
 
 namespace Coin {
 
@@ -113,6 +121,29 @@ QString PrivateKey::toWIF(Network network, PublicKeyCompression compression) con
     std::string encoded = toBase58Check(payload, versionBytes);
 
     return QString::fromStdString(encoded);
+}
+
+Signature PrivateKey::sign(const uchar_vector & data) const {
+
+    // Create signing key
+    CoinCrypto::secp256k1_key signingKey;
+    signingKey.setPrivKey(toUCharVector());
+
+    // Comute signature and return
+    return Signature(CoinCrypto::secp256k1_sign(signingKey, data));
+}
+
+Signature PrivateKey::sign(const Coin::Transaction & tx, uint inputToSign, const uchar_vector & scriptPubKey, SigHashType type) const {
+
+    // Generate sighash
+    bytes_t hash = sighash(tx, inputToSign, scriptPubKey, type);
+
+    // Create signature and return
+    return sign(hash);
+}
+
+Signature PrivateKey::sign(const Coin::Transaction & tx, uint inputToSign) const {
+    return sign(tx, inputToSign, toPublicKey().toPubKeyHash().toScriptPubKey(), SigHashType::all);
 }
 
 PublicKey PrivateKey::toPublicKey() const {

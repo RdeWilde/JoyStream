@@ -126,7 +126,8 @@ public:
     virtual void on_disconnect(libtorrent::error_code const & ec) = 0;
     virtual void on_connected() = 0;
     virtual bool on_handshake(char const* reserved_bits);
-    virtual bool on_extension_handshake(libtorrent::lazy_entry const & handshake);
+    //virtual bool on_extension_handshake(libtorrent::lazy_entry const & handshake);
+    virtual bool on_extension_handshake(libtorrent::bdecode_node const&);
     virtual bool on_have(int index) = 0;
     virtual bool on_bitfield(libtorrent::bitfield const & bitfield) = 0;
     virtual bool on_have_all() = 0;

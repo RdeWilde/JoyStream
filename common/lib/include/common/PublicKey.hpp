@@ -17,6 +17,7 @@
 namespace Coin {
 
 enum class Network;
+class Signature;
 
 // Compressed public key
 //typedef UCharArray<COMPRESSED_PUBLIC_KEY_BYTE_LENGTH> PublicKey;
@@ -32,8 +33,13 @@ public:
     // Constructor from raw compressed key
     PublicKey(const uchar_vector & rawCompressedKey);
 
+    // Whether signature <sig> is valid for the private key corresponding
+    // public key <pk> on message <message>
+    bool verify(const uchar_vector & message, const Signature & sig) const;
+
     // Public key hash, e.g. for addresses
     PubKeyHash toPubKeyHash() const;
+
 };
 
 }

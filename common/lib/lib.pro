@@ -48,7 +48,9 @@ HEADERS += \
     include/common/PubKeyHash.hpp \
     include/common/Seed.hpp \
     include/common/LibtorrentUtilities.hpp \
-    include/common/BlockCypher.hpp
+    include/common/BlockCypher.hpp \
+    include/common/RedeemScriptHash.hpp \
+    include/common/SigHashType.hpp
 
 SOURCES += \
     src/DataSizeRepresentation.cpp \
@@ -69,4 +71,7 @@ SOURCES += \
     src/Seed.cpp \
     src/LibtorrentUtilities.cpp \
     src/Network.cpp \
-    src/BlockCypher.cpp
+    src/BlockCypher.cpp \
+    src/PubKeyHash.cpp \
+    src/RedeemScriptHash.cpp \
+    src/SigHashType.cpp

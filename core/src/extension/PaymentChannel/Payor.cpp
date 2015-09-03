@@ -231,6 +231,9 @@ void Payor::Channel::Status::setIndex(quint32 index) {
  */
 
 #include <common/Payment.hpp>
+//#include <CoinQ/CoinQ_script.h>
+#include <common/RedeemScriptHash.hpp>
+#include <CoinCore/CoinNodeData.h> // Coin::TxOut
 
 #include <QJsonObject>
 
@@ -302,6 +305,19 @@ Payment Channel::payment(const Hash &contractHash) const {
                    P2PKHTxOut(amountPaid - _paymentFee, _payorContractKeyPair.pk()));
 }
 */
+
+Coin::TxOut Payor::Channel::contractOutput() const {
+
+    // Check that channel has been assigned
+    if(_state != State::assigned)
+        throw std::runtime_error("State incompatile request, must be in assigned state.");
+
+    // Create redeem script hash for 2of2 p2sh redeem script
+    Coin::RedeemScriptHash hash = Coin::RedeemScriptHash::multisig(std::vector<Coin::PublicKey>({_payorContractKeyPair.pk(), _payeeContractPk}), 2);
+
+    // Create and return output
+    return Coin::TxOut(_funds, hash.toScriptPubKey());
+}
 
 void Payor::Channel::computeAndSetPayorRefundSignature(const Coin::TransactionId & contractHash) {
 
@@ -566,7 +582,8 @@ Payor::Configuration::Configuration() {
 
 }
 
-Payor::Configuration::Configuration(State state,
+Payor::Configuration::Configuration(Coin::Network network,
+                                    State state,
                                     const QVector<Channel::Configuration> & channels,
                                     const Coin::UnspentP2PKHOutput & utxo,
                                     //const OutPoint & fundingOutPoint,
@@ -577,7 +594,8 @@ Payor::Configuration::Configuration(State state,
                                     quint64 contractFee,
                                     const Coin::TransactionId & contractHash,
                                     quint32 numberOfSignatures)
-    : _state(state)
+    : _network(network)
+    , _state(state)
     , _channels(channels)
     //, _fundingOutPoint(fundingOutPoint)
     //, _fundingValue(fundingValue)
@@ -684,10 +702,9 @@ void Payor::Configuration::setNumberOfSignatures(quint32 numberOfSignatures) {
  * Payor
  */
 
-#include <core/extension/PaymentChannel/Commitment.hpp>
-#include <core/extension/PaymentChannel/Contract.hpp>
-#include  <core/extension/PaymentChannel/Refund.hpp>
-#include <CoinCore/StandardTransactions.h> // Transaction...
+//#include <core/extension/PaymentChannel/Commitment.hpp>
+//#include <core/extension/PaymentChannel/Contract.hpp>
+//#include  <core/extension/PaymentChannel/Refund.hpp>
 
 #include <QVector>
 
@@ -829,70 +846,29 @@ void Payor::unassignSlot(quint32 index) {
     _numberOfSignatures = 0;
 }
 
-/**
-Contract Payor::contract() const {
-
-    // Build contract outputs
-    QVector<Coin::Commitment> contractOutputs;
-
-    for(QVector<Channel>::const_iterator
-        i = _channels.constBegin(),
-        end = _channels.constEnd();
-        i != end;
-        i++)
-        contractOutputs.append(Coin::Commitment(i->funds(), i->payorContractKeyPair().pk(), i->payeeContractPk()));
-
-    // Create contract
-    Contract c = Contract(_utxo, contractOutputs, Coin::Payment(_changeValue, _changeOutputKeyPair.pk()));
-
-    return c;
-}
-*/
-
 Coin::Transaction Payor::contractTransaction() const {
 
-    return Coin::Transaction();
-
-    /**
     // Create transaction
     Coin::Transaction transaction;
 
-    // Create input spending utxo
-    Coin::typesafeOutPoint outPoint = _funding.outPoint();
+    // Iterate channels and generate outputs
+    for(int i = 0;i < _channels.size();i++)
+        transaction.addOutput(_channels[i].contractOutput());
 
-    Coin::P2AddressTxIn txIn(outPoint.transactionId().toUCharVector(),
-                             outPoint.index(),
-                             _funding.keyPair().pk().toUCharVector());
+    /**
+    // Add refund output
+    transaction.addOutput(Coin::TxOut(_changeValue, _changeOutputKeyPair.pk().toPubKeyHash().toScriptPubKey()));
 
-    // Add input
-    transaction.addInput(txIn);
+    // Add input financing transaction
+    CoinQ::Script::Script scriptBuilder(CoinQ::Script::Script::type_t::PAY_TO_PUBKEY_HASH,
+                                        1,
+                                        std::vector<bytes_t>()),
+                                        )
 
-    // Add all outputs
-    for(QVector<Coin::Commitment>::const_iterator
-        i = _channelCommitments.constBegin(),
-        end = _channelCommitments.constEnd();
-        i != end;
-        i++) {
-
-        // Get commitment
-        Coin::Commitment c = *i;
-
-        // Create corresponding contract transaction output
-        Coin::StandardTxOut txOut = c.toTxOut();
-
-        // Add to transaction
-        transaction.addOutput(txOut);
-    }
-
-    // Add refund
-    Coin::StandardTxOut refundOutput;
-    //transaction.addOutput(refundOutput);
-
-    // Sign!
-    //?
-
-    return transaction;
+    // Script(type_t type, unsigned int minsigs, const std::vector<bytes_t>& pubkeys, const std::vector<bytes_t>& sigs = std::vector<bytes_t>());
+    // Sign
     */
+
 }
 
 bool Payor::processRefundSignature(quint32 index, const Coin::Signature & signature) {

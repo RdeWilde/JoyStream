@@ -240,7 +240,8 @@ public:
     char const * type() const;
     virtual void on_disconnect(libtorrent::error_code const & ec);
     virtual void on_connected();
-    virtual bool on_extension_handshake(libtorrent::lazy_entry const & handshake);
+    //virtual bool on_extension_handshake(libtorrent::lazy_entry const & handshake);
+    virtual bool on_extension_handshake(const libtorrent::bdecode_node & handshake);
     virtual bool on_have(int index);
     virtual bool on_bitfield(libtorrent::bitfield const & bitfield);
     virtual bool on_have_all();

@@ -44,7 +44,7 @@ public:
     static bool validateContractTrasaction(const Coin::Transaction & transaction);
 
     // The transaction corresponding to the contract
-    Coin::Transaction transaction() const;
+    //Coin::Transaction transaction() const;
 
     //
     //static Coin::OLD_P2SHTxOut Contract::toP2SHTxOut();

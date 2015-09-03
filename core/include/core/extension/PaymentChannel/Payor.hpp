@@ -22,6 +22,7 @@ class Contract;
 
 namespace Coin {
     class Transaction;
+    class TxOut;
 }
 
 /**
@@ -280,6 +281,9 @@ public:
         // Payment transaction for slot, based on current _numberOfPaymentsMade value
         //Payment payment(const Hash &contractHash) const;
 
+        // Generates contract output for channel
+        Coin::TxOut contractOutput() const;
+
         // Compute payor refund signature
         void computeAndSetPayorRefundSignature(const Coin::TransactionId & contractHash);
 
@@ -462,7 +466,8 @@ public:
         Configuration();
 
         // Constructor for a fresh payor.
-        Configuration(State state,
+        Configuration(Coin::Network network,
+                      State state,
                       const QVector<Channel::Configuration> & channels,
                       const Coin::UnspentP2PKHOutput & utxo,
                       const Coin::KeyPair & changeOutputKeyPair,
@@ -509,6 +514,8 @@ public:
 
 
     private:
+
+        Coin::Network _network;
 
         // Payor state
         State _state;
@@ -627,6 +634,9 @@ public:
     quint64 contractFee() const;
 
 private:
+
+    // Network
+    Coin::Network _network;
 
     // Payor state
     State _state;

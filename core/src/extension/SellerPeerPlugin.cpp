@@ -212,7 +212,8 @@ void SellerPeerPlugin::on_connected() {
 
 }
 
-bool SellerPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake) {
+//bool SellerPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake) {
+bool SellerPeerPlugin::on_extension_handshake(const libtorrent::bdecode_node & handshake) {
 
     if(_clientState != ClientState::no_bitswapr_message_sent) {
         throw std::runtime_error("Extended handshake initiated at incorrect state.");

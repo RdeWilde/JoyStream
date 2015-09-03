@@ -342,7 +342,6 @@ private:
     Wallet::Manager * _wallet;
 
 
-
         /**
          * Remove these later? perhaps just keep in Payor.
          */

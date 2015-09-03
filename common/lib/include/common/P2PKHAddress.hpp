@@ -13,7 +13,6 @@
 namespace Coin {
 
 enum class Network;
-class PublicKey;
 
 class P2PKHAddress {
 
@@ -25,17 +24,11 @@ public:
     // Constructor from public keys
     P2PKHAddress(Network network, const PubKeyHash & pubKeyHash);
 
-    // Constructor from members
-    P2PKHAddress(Network network, const Coin::PublicKey & pk);
-
     // Factory from Base58CheckEncoding
     static P2PKHAddress fromBase58CheckEncoding(const QString & encoded);
 
     // Base58CheckEncode
     QString toBase58CheckEncoding() const;
-
-    // Generate output script
-    //uchar_vector toScriptPubKey() const;
 
     // Getters and setters
     Network network() const;
@@ -51,7 +44,6 @@ private:
 
     // Pub key hash
     PubKeyHash _pubKeyHash;
-
 };
 
 }

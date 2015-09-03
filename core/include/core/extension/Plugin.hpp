@@ -121,7 +121,8 @@ public:
     virtual void on_tick();
     //virtual bool on_optimistic_unchoke(std::vector<peer_connection_handle> & /* peers */);
     virtual void save_state(libtorrent::entry & stateEntry) const;
-    virtual void load_state(libtorrent::lazy_entry const & stateEntry);
+    virtual void load_state(const libtorrent::bdecode_node & state);
+    //virtual void load_state(libtorrent::lazy_entry const & stateEntry);
 
     // Return status of plugin
     Status status() const;

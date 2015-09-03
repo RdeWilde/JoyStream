@@ -6,7 +6,7 @@
  */
 
 #include <core/extension/PaymentChannel/Contract.hpp>
-#include <CoinCore/StandardTransactions.h>
+//#include <CoinCore/StandardTransactions.h>
 
 #include <QVector>
 
@@ -24,6 +24,7 @@ bool Contract::validateContractTrasaction(const Coin::Transaction & transaction)
     return true;
 }
 
+/**
 Coin::Transaction Contract::transaction() const {
 
     // Create transaction
@@ -66,7 +67,6 @@ Coin::Transaction Contract::transaction() const {
     return transaction;
 }
 
-/**
 Coin::OLD_P2SHTxOut Contract::toP2SHTxOut() {
 
 }

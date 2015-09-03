@@ -8,17 +8,46 @@
 #ifndef COIN_P2SH_ADDRESS_HPP
 #define COIN_P2SH_ADDRESS_HPP
 
-#include <common/UCharArray.hpp>
 #include <common/Network.hpp>
-
-#define P2SH_ADDRESS_REDEEMSCRIPT_BYTE_LENGTH 20
+#include <common/RedeemScriptHash.hpp>
 
 namespace Coin {
+
+class TxOut;
+
+/**
+ * Consollidate some how with P2PKHAddress type,
+ * they are basically identical.
+ */
 
 class P2SHAddress {
 
 public:
-    const static quint32 redeemScriptLength = P2SH_ADDRESS_REDEEMSCRIPT_BYTE_LENGTH;
+
+    P2SHAddress(Network network, const RedeemScriptHash & redeemScriptHash);
+
+    // Factory from Base58CheckEncoding
+    static P2SHAddress fromBase58CheckEncoding(const QString & encoded);
+
+    // Base58CheckEncode
+    QString toBase58CheckEncoding() const;
+
+    // Transaction output
+    TxOut txOut(quint64 value) const;
+
+    // Getters and setters
+    Network network() const;
+    void setNetwork(Network network);
+
+    RedeemScriptHash redeemScriptHash() const;
+    void setRedeemScriptHash(const RedeemScriptHash & redeemScriptHash);
+
+private:
+
+    Network _network;
+
+    // Hash of serialized redeem script
+    RedeemScriptHash _redeemScriptHash;
 
 };
 

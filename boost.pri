@@ -35,46 +35,16 @@ win32 {
 # Unix
 unix:!macx {
 
-    INCLUDEPATH += /usr/local/include
+INCLUDEPATH += /usr/include
 
-    LIBS += \
-         -L/usr/local/lib \
-         -lboost_thread \
-         -lboost_system \
-         -lboost_filesystem \
-         -lboost_regex \
-         -lpthread \
-         -lz
-
-#    CONFIG(release, debug|release) {
-#
-#        INCLUDEPATH += /usr/local/include
-#
-#        LIBS += \
-#             -L/usr/local/lib \
-#             -lboost_thread \
-#             -lboost_system \
-#             -lboost_filesystem \
-#             -lboost_regex \
-#             -lpthread \
-#             -lz
-#
-#    } else {
-#
-#       # only bullshit way I found to link with debug build
-#       BOOST_BUILD_LOCATION = /home/bedeho/build_boost/boost/bin.v2/libs
-#
-#       INCLUDEPATH += /usr/local/include
-#
-#       LIBS += -L$$BOOST_BUILD_LOCATION/thread/build/gcc-4.8/debug/link-static/threading-multi \
-#               -lboost_thread
-#
-#       LIBS += -L$$BOOST_BUILD_LOCATION/system/build/gcc-4.8/debug/link-static/threading-multi \
-#              -lboost_system
-#
-#       LIBS += -L$$BOOST_BUILD_LOCATION/filesystem/build/gcc-4.8/debug/link-static/threading-multi \
-#              -lboost_filesystem
-#
-#    }
-
+LIBS += \
+        -L/usr/lib/x86_64-linux-gnu \
+        -lboost_thread \
+        -lboost_system \
+        -lboost_chrono \
+        -lboost_random \
+        -lboost_filesystem \
+        -lboost_regex \
+        -lpthread \
+        -lz
 }

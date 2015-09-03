@@ -7,7 +7,7 @@
 
 #include <core/extension/PaymentChannel/Commitment.hpp>
 #include <common/P2SHAddress.hpp>
-#include <CoinCore/StandardTransactions.h>
+//#include <CoinCore/StandardTransactions.h>
 #include <CoinCore/hash.h> // ripemd160, sha256
 
 namespace Coin {
@@ -42,8 +42,10 @@ Commitment & Commitment::operator=(const Commitment & o) {
 //
 //}
 
+/**
 // Corresponding transaction output
 Coin::StandardTxOut Commitment::toTxOut() const {
+
 
     // Create 2-2 multisig redeem script (scriptPubKey)
     // We dont care about address parameter, since we are
@@ -60,6 +62,7 @@ Coin::StandardTxOut Commitment::toTxOut() const {
     return Coin::StandardTxOut();
 
 }
+*/
 
 quint64 Commitment::value() const {
     return _value;

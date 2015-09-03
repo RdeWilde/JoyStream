@@ -156,7 +156,8 @@ void Plugin::save_state(libtorrent::entry & stateEntry) const {
 
 }
 
-void Plugin::load_state(libtorrent::lazy_entry const & stateEntry) {
+//void Plugin::load_state(libtorrent::lazy_entry const & stateEntry) {
+void Plugin::load_state(const libtorrent::bdecode_node & state) {
 
 }
 

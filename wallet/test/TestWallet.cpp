@@ -254,11 +254,8 @@ Coin::Transaction TestWallet::createWalletTx(quint32 numberOfOutputs) {
         // Get receive address
         Coin::P2PKHAddress address = _manager->getReceiveAddress();
 
-        // Generate output script
-        uchar_vector scriptPubKey = CoinQ::Script::getTxOutScriptForAddress(address.toBase58CheckEncoding().toStdString(), Coin::networkToAddressVersions(NETWORK_TYPE));
-
         // Generate output
-        Coin::TxOut out(i*3 + 1, scriptPubKey);
+        Coin::TxOut out(i*3 + 1, address.pubKeyHash().toScriptPubKey());
 
         // Add to transaction
         tx.addOutput(out);
