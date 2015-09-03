@@ -11,6 +11,7 @@
 #include <stdutils/uchar_vector.h>
 #include <common/Network.hpp>
 #include <common/SigHashType.hpp>
+#include <common/TransactionSignature.hpp>
 
 #include <QByteArray>
 
@@ -155,4 +156,34 @@ namespace Coin {
 
      }
      */
+
+    uchar_vector toScriptSigForm(const std::vector<TransactionSignature> & sigs) {
+
+        uchar_vector serialized;
+
+        // Add leading OP_0 bug thing
+        serialized.push_back(0x00); // OP_0
+
+        // Add each signature and corresponding sighash flag
+        for(std::vector<TransactionSignature>::const_iterator i = sigs.cbegin(),
+            end = sigs.cend(); i != end; i++) {
+
+            const TransactionSignature & ts = *i;
+
+            // Get signature
+            Signature s = ts.sig();
+
+            // Add signature length
+            serialized += opPushData(s.length());
+
+            // Add signature
+            serialized += s.toUCharVector();
+
+            // Add sighash flag
+            serialized.push_back(valueForSighashType(ts.type()));
+        }
+
+        return serialized;
+
+    }
 }

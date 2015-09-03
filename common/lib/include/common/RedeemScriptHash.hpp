@@ -14,21 +14,7 @@
 
 namespace Coin {
 
-class PublicKey;
-
-class RedeemScriptHash : public UCharArray<REDEEM_SCRIPT_HASH_BYTE_LENGTH> {
-
-public:
-
-    RedeemScriptHash(const uchar_vector & raw);
-
-    // MofN redeemscript hash
-    static RedeemScriptHash multisig(const std::vector<PublicKey> & keys, uint mininumNumberOfSignatures);
-
-    // Output script
-    uchar_vector toScriptPubKey() const;
-
-};
+typedef class UCharArray<REDEEM_SCRIPT_HASH_BYTE_LENGTH> RedeemScriptHash;
 
 }
 

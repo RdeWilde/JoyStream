@@ -102,7 +102,10 @@ namespace Coin {
 
     */
 
-
+    // Turns into raw: OP_0 ...signatures...
+    // which is used for both p2sh and regular mofn scriptSig
+    class TransactionSignature;
+    uchar_vector toScriptSigForm(const std::vector<TransactionSignature> & sigs);
 
 }
 #endif // COIN_UTILITIES_HPP

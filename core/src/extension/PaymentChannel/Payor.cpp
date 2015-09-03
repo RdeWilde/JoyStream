@@ -233,6 +233,8 @@ void Payor::Channel::Status::setIndex(quint32 index) {
 #include <common/Payment.hpp>
 //#include <CoinQ/CoinQ_script.h>
 #include <common/RedeemScriptHash.hpp>
+#include <common/MultisigScriptPubKey.hpp>
+#include <common/RedeemScriptHash.hpp>
 #include <CoinCore/CoinNodeData.h> // Coin::TxOut
 
 #include <QJsonObject>
@@ -312,11 +314,11 @@ Coin::TxOut Payor::Channel::contractOutput() const {
     if(_state != State::assigned)
         throw std::runtime_error("State incompatile request, must be in assigned state.");
 
-    // Create redeem script hash for 2of2 p2sh redeem script
-    Coin::RedeemScriptHash hash = Coin::RedeemScriptHash::multisig(std::vector<Coin::PublicKey>({_payorContractKeyPair.pk(), _payeeContractPk}), 2);
+    // Create redeem script for 2of2 multisig
+    Coin::MultisigScriptPubKey redeemScript(std::vector<Coin::PublicKey>({_payorContractKeyPair.pk(), _payeeContractPk}), 2);
 
     // Create and return output
-    return Coin::TxOut(_funds, hash.toScriptPubKey());
+    return Coin::TxOut(_funds, redeemScript.scriptHash().toUCharVector());
 }
 
 void Payor::Channel::computeAndSetPayorRefundSignature(const Coin::TransactionId & contractHash) {
