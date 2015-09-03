@@ -33,7 +33,7 @@ int SellerPeerPluginRemovedAlert::category() const {
     return libtorrent::alert::status_notification;
 }
 
-std::auto_ptr<libtorrent::alert> SellerPeerPluginRemovedAlert::clone_impl() const {
+std::auto_ptr<libtorrent::alert> SellerPeerPluginRemovedAlert::clone() const {
     return std::auto_ptr<libtorrent::alert>(new SellerPeerPluginRemovedAlert(*this));
 }
 

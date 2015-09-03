@@ -492,7 +492,7 @@ public:
     // thread in libtorrent will be making this call, and a new call will result in a dead lock.
     //
     /** THIS ROUTINE MUST NOT BE PUBLICLY VISIBLE IN THE FUTURE **/
-    //void libtorrent_alert_dispatcher_callback(const std::auto_ptr<libtorrent::alert> & alertAutoPtr);
+    void libtorrent_alert_dispatcher_callback(const std::auto_ptr<libtorrent::alert> & alertAutoPtr);
     void libtorrent_entry_point_alert_notification();
 
     /**
@@ -508,10 +508,10 @@ public:
       */
 
      // Process all pending alerts in the libtorrent queue
-     Q_INVOKABLE void processAlertQueue();
+     //Q_INVOKABLE void processAlertQueue();
 
      // Process a spesific request
-     void processAlert(const libtorrent::alert * a);
+     Q_INVOKABLE void processAlert(const libtorrent::alert * a);
 
     /**
      * Inspection/Controlling controller

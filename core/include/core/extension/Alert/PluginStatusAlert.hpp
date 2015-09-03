@@ -33,7 +33,7 @@ public:
     virtual char const* what() const;
     virtual std::string message() const;
     virtual int category() const;
-    virtual std::auto_ptr<libtorrent::alert> clone_impl() const;
+    virtual std::auto_ptr<libtorrent::alert> clone() const;
 
     // Getters and setters
     Plugin::Status status() const;

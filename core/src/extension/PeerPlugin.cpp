@@ -186,7 +186,8 @@ bool PeerPlugin::on_handshake(char const * reserved_bits) {
  * by this peer. It will result in this peer_plugin being removed from
  * the peer_connection and destructed. this is not called for web seeds
  */
-bool PeerPlugin::on_extension_handshake(libtorrent::bdecode_node const & handshake) { // (libtorrent::lazy_entry const & handshake) {
+bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake) {
+//bool PeerPlugin::on_extension_handshake(libtorrent::bdecode_node const & handshake) {
 
     /**
 

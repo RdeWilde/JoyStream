@@ -156,8 +156,8 @@ void Plugin::save_state(libtorrent::entry & stateEntry) const {
 
 }
 
-//void Plugin::load_state(libtorrent::lazy_entry const & stateEntry) {
-void Plugin::load_state(const libtorrent::bdecode_node & state) {
+void Plugin::load_state(libtorrent::lazy_entry const & stateEntry) {
+//void Plugin::load_state(const libtorrent::bdecode_node & state) {
 
 }
 
@@ -236,7 +236,8 @@ void Plugin::removeTorrentPlugin(const libtorrent::sha1_hash & info_hash) {
 }
 
 void Plugin::sendAlertToSession(const libtorrent::alert & alert) {
-    //_session->m_alerts.post_alert(alert);
+    _session->m_alerts.post_alert(alert);
+    // emplace_alert<listen_succeeded_alert>(*)
 }
 
 void Plugin::submitPluginRequest(PluginRequest * pluginRequest) {

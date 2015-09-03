@@ -27,7 +27,7 @@ public:
     virtual char const* what() const = 0;
     virtual std::string message() const = 0;
     virtual int category() const = 0;
-    virtual std::auto_ptr<alert> clone_impl() const = 0;
+    virtual std::auto_ptr<alert> clone() const = 0;
 
     // Getters
     libtorrent::sha1_hash infoHash() const;

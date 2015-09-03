@@ -23,6 +23,6 @@ unix:!macx {
             #-lCoinDB \
             #-lCoinQ \
             -lCoinCore \
-            -llogger \
-            -lsysutils
+            #-llogger \
+            #-lsysutils
 }

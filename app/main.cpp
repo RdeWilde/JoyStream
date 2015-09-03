@@ -26,7 +26,7 @@
 #include <gui/MainWindow.hpp>
 #include <wallet/Manager.hpp>
 
-#include <logger/logger.h>
+//#include <logger/logger.h>
 
 #include <libtorrent/torrent_info.hpp>
 #include <libtorrent/error_code.hpp>
@@ -53,13 +53,10 @@
 #include <CoinCore/typedefs.h> // bytes_t
 #include <CoinCore/CoinNodeData.h> // Coin::CoinBlockHeader, Transaction types: outpoints, transactions, ...
 #include <CoinCore/BloomFilter.h>
-#include <CoinQ/CoinQ_script.h> // getAddressForTxOutScript
-#include <CoinQ/CoinQ_blocks.h> // CoinQBlockTreeMem
-#include <CoinQ/CoinQ_netsync.h>
 
-//#ifndef Q_MOC_RUN
-//#include <boost/intrusive_ptr.hpp>
-//#endif Q_MOC_RUN
+//#include <CoinQ/CoinQ_script.h> // getAddressForTxOutScript
+//#include <CoinQ/CoinQ_blocks.h> // CoinQBlockTreeMem
+//#include <CoinQ/CoinQ_netsync.h>
 
 // global counters used to pick correct dns and wallet seed for given session
 int wallet_seed_counter = 0;
@@ -224,7 +221,7 @@ int main(int argc, char* argv[]) {
     controllerTracker.addClient(loneSeller);
 
     // TEMPORARY AUTO
-    //loneSeller->addTorrent(create_torrent_configuration(torrentInfo, "Ubuntu"));
+    loneSeller->addTorrent(create_torrent_configuration(torrentInfo, "Ubuntu"));
 
     /**
     // Buyers

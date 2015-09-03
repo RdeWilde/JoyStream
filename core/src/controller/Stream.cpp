@@ -303,7 +303,8 @@ void Stream::readAndProcessRequestLineFromSocket(const QByteArray & line) {
          * THERE ARE A FEW GITHUB ISSUES ON THIS.
          */
 
-        boost::shared_ptr<libtorrent::torrent_info const> torrentInfo =_handle.torrent_file();
+        //boost::shared_ptr<libtorrent::torrent_info const> torrentInfo =_handle.torrent_file();
+        boost::intrusive_ptr<libtorrent::torrent_info const> torrentInfo =_handle.torrent_file();
 
         // We should always have metadata if a stream has been started
         Q_ASSERT(torrentInfo != NULL);
@@ -529,7 +530,8 @@ void Stream::getStreamPieces(int start, int end) {
     Q_ASSERT(_handle.is_valid());
 
     // Get torrent file
-    boost::shared_ptr<libtorrent::torrent_info const> torrentInfo = _handle.torrent_file();
+    //boost::shared_ptr<libtorrent::torrent_info const> torrentInfo = _handle.torrent_file();
+    boost::intrusive_ptr<libtorrent::torrent_info const> torrentInfo = _handle.torrent_file();
 
     // We should always have metadata if a stream has been started
     Q_ASSERT(torrentInfo != NULL);
@@ -634,7 +636,8 @@ void Stream::sendStream() const{
 
     Q_ASSERT(_handle.is_valid()); // more clever here in the future
 
-    boost::shared_ptr<libtorrent::torrent_info const> torrentInfo =_handle.torrent_file();
+    //boost::shared_ptr<libtorrent::torrent_info const> torrentInfo =_handle.torrent_file();
+    boost::intrusive_ptr<libtorrent::torrent_info const> torrentInfo =_handle.torrent_file();
 
     // We should always have metadata if a stream has been started
     Q_ASSERT(torrentInfo != NULL);

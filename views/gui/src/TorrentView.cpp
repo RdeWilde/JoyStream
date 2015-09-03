@@ -156,10 +156,13 @@ QString TorrentView::torrentStateToString(bool paused, libtorrent::torrent_statu
 
     switch(state) {
 
-        case libtorrent::torrent_status::unused_enum_for_backwards_compatibility:
+        //case libtorrent::torrent_status::unused_enum_for_backwards_compatibility:
+        case libtorrent::torrent_status::queued_for_checking:
 
-            //text = "Queued for checking";
-            text = "Unknown state";
+
+
+            text = "Queued for checking";
+            //text = "Unknown state";
 
             break;
         case libtorrent::torrent_status::checking_files:

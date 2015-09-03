@@ -34,7 +34,7 @@ int PluginStatusAlert::category() const {
     return libtorrent::alert::stats_notification;
 }
 
-std::auto_ptr<libtorrent::alert> PluginStatusAlert::clone_impl() const {
+std::auto_ptr<libtorrent::alert> PluginStatusAlert::clone() const {
     return std::auto_ptr<alert>(new PluginStatusAlert(*this));
 }
 

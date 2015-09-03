@@ -66,17 +66,18 @@ unix:!macx {
 
     } else {
 
-        LIBTORRENT_LOCAL_BUILD = /home/bedeho/JoyStream/Development/libs/libtorrent-debug-build
+        #LIBTORRENT_LOCAL_BUILD = /home/bedeho/JoyStream/Development/libs/libtorrent
+        LIBTORRENT_LOCAL_BUILD = /home/bedeho/JoyStream/Development/libs/libtorrent-rasterbar-1.0.5
 
         INCLUDEPATH += $$LIBTORRENT_LOCAL_BUILD/include
 
-        LIBS += -L$$LIBTORRENT_LOCAL_BUILD/lib -l:libtorrent-rasterbar.a
+        LIBS += -L$$LIBTORRENT_LOCAL_BUILD/bin/gcc-4.9.2/debug/address-model-64/boost-link-shared/deprecated-functions-off/link-static/threading-multi -ltorrent
 
-        # STATIC ==============================
+        #LIBS += -L$$LIBTORRENT_LOCAL_BUILD/bin/gcc-4.9.2/debug/address-model-64/boost-link-shared/deprecated-functions-off/threading-multi -ltorrent
 
         DEFINES += TORRENT_DISABLE_LOGGING
         DEFINES += TORRENT_NO_DEPRECATE
-        #DEFINES += TORRENT_DISABLE_GEO_IP
+        DEFINES += TORRENT_DISABLE_GEO_IP
         DEFINES += BOOST_EXCEPTION_DISABLE
         DEFINES += BOOST_ASIO_ENABLE_CANCELIO
     }

@@ -252,8 +252,8 @@ void BuyerPeerPlugin::on_connected() {
 
 }
 
-//bool BuyerPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake) {
-bool BuyerPeerPlugin::on_extension_handshake(const libtorrent::bdecode_node & handshake) {
+bool BuyerPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake) {
+//bool BuyerPeerPlugin::on_extension_handshake(const libtorrent::bdecode_node & handshake) {
 
     if(_clientState != ClientState::no_bitswapr_message_sent) {
         throw std::runtime_error("Extended handshake initiated at incorrect state.");
@@ -501,7 +501,8 @@ bool BuyerPeerPlugin::write_request(libtorrent::peer_request const & peerRequest
 
 
 void BuyerPeerPlugin::close_connection() {
-    _connection->disconnect(_deletionErrorCode, libtorrent::operation_t::op_bittorrent);
+    //_connection->disconnect(_deletionErrorCode, libtorrent::operation_t::op_bittorrent);
+    _connection->disconnect(_deletionErrorCode);
 }
 
 /**
