@@ -9,15 +9,14 @@
 #include <common/PublicKey.hpp>
 #include <common/PublicKeyCompression.hpp>
 #include <common/Base58CheckEncodable.hpp>
+#include <common/P2PKHScriptPubKey.hpp>
 #include <common/Signature.hpp>
+#include <common/TransactionSignature.hpp>
 #include <common/SigHashType.hpp>
 #include <common/Utilities.hpp> // sighash
 
 #include <CoinCore/Base58Check.h>
 #include <CoinCore/secp256k1.h>
-
-// not sure if this will stay
-//#include <CoinQ/CoinQ_script.h> // CoinQ::Script::Script
 
 namespace Coin {
 
@@ -133,17 +132,17 @@ Signature PrivateKey::sign(const uchar_vector & data) const {
     return Signature(CoinCrypto::secp256k1_sign(signingKey, data));
 }
 
-Signature PrivateKey::sign(const Coin::Transaction & tx, uint inputToSign, const uchar_vector & scriptPubKey, SigHashType type) const {
+TransactionSignature PrivateKey::sign(const Coin::Transaction & tx, uint inputToSign, const uchar_vector & scriptPubKey, SigHashType type) const {
 
     // Generate sighash
     bytes_t hash = sighash(tx, inputToSign, scriptPubKey, type);
 
     // Create signature and return
-    return sign(hash);
+    return TransactionSignature(sign(hash), type);
 }
 
-Signature PrivateKey::sign(const Coin::Transaction & tx, uint inputToSign) const {
-    return sign(tx, inputToSign, toPublicKey().toPubKeyHash().toScriptPubKey(), SigHashType::all);
+TransactionSignature PrivateKey::signForP2PKHSpend(const Coin::Transaction & tx, uint inputToSign) const {
+    return sign(tx, inputToSign, P2PKHScriptPubKey(toPublicKey().toPubKeyHash()).serialize(), SigHashType::all);
 }
 
 PublicKey PrivateKey::toPublicKey() const {

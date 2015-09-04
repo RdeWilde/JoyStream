@@ -16,7 +16,7 @@ P2SHScriptSig::P2SHScriptSig(const std::vector<TransactionSignature> & sigs, con
     , _redeemScript(redeemScript) {
 }
 
-uchar_vector P2SHScriptSig::toSerialized() {
+uchar_vector P2SHScriptSig::serialized() {
     return toScriptSigForm(_sigs) + _redeemScript;
 }
 

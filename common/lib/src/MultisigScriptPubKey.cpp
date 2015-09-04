@@ -23,7 +23,7 @@ MultisigScriptPubKey::MultisigScriptPubKey(const std::vector<PublicKey> & keys, 
 }
 
 // Raw output script
-uchar_vector MultisigScriptPubKey::toSerialized() const {
+uchar_vector MultisigScriptPubKey::serialized() const {
 
     // Copied from Script::Script(type_t type, unsigned int minsigs, const std::vector<bytes_t>& pubkeys, const std::vector<bytes_t>& sigs)
 
@@ -49,7 +49,7 @@ uchar_vector MultisigScriptPubKey::toSerialized() const {
 }
 
 RedeemScriptHash MultisigScriptPubKey::scriptHash() const {
-    return RedeemScriptHash(ripemd160(sha256(toSerialized())));
+    return RedeemScriptHash(ripemd160(sha256(serialized())));
 }
 
 P2SHScriptPubKey MultisigScriptPubKey::p2shScriptPubKey() const {

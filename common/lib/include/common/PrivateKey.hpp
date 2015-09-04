@@ -25,6 +25,7 @@ namespace Coin {
 
 class PublicKey;
 class Signature;
+class TransactionSignature;
 class Transaction;
 enum class PublicKeyCompression;
 enum class SigHashType;
@@ -63,12 +64,11 @@ public:
 
     // Sign transaction in given sighash mode on given input for spending
     // output with given output script
-    // *** SUPPORT DIFFERENT SIGHASH TYPES IN THE FUTURE ***
-    Signature sign(const Coin::Transaction & tx, uint inputToSign, const uchar_vector & scriptPubKey, SigHashType type) const;
+    TransactionSignature sign(const Coin::Transaction & tx, uint inputToSign, const uchar_vector & scriptPubKey, SigHashType type) const;
 
     // Sign transaction in SIGHASH_ALL mode on given input for spending
     // output with p2kh output controlled by this private key
-    Signature sign(const Coin::Transaction & tx, uint inputToSign) const;
+    TransactionSignature signForP2PKHSpend(const Coin::Transaction & tx, uint inputToSign) const;
 
     // Generates the correponding (compressed) public key
     PublicKey toPublicKey() const;

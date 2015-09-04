@@ -14,7 +14,7 @@ MultisigScriptSig::MultisigScriptSig(const std::vector<TransactionSignature> sig
     : _sigs(sigs) {
 }
 
-uchar_vector MultisigScriptSig::toSerialized() const {
+uchar_vector MultisigScriptSig::serialized() const {
     return toScriptSigForm(_sigs);
 }
 

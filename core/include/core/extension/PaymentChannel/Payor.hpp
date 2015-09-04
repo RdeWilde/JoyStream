@@ -23,6 +23,7 @@ class Contract;
 namespace Coin {
     class Transaction;
     class TxOut;
+    class P2SHScriptPubKey;
 }
 
 /**
@@ -281,18 +282,23 @@ public:
         // Payment transaction for slot, based on current _numberOfPaymentsMade value
         //Payment payment(const Hash &contractHash) const;
 
+        // Create p2sh 2of2 multisig scriptPubKey controlling contract output
+        Coin::P2SHScriptPubKey contractOutputScriptPubKey() const;
+
         // Generates contract output for channel
         Coin::TxOut contractOutput() const;
 
+        // (unsigned) Transaction spending contract output
+        Coin::Transaction contractSpendingTransaction(const Coin::TransactionId & contractHash, quint64 returnedToPayor) const;
+
         // Compute payor refund signature
-        void computeAndSetPayorRefundSignature(const Coin::TransactionId & contractHash);
+        Coin::Signature createPayorRefundSignature(const Coin::TransactionId & contractHash) const;
 
         // Payment signature
         Coin::Signature createPaymentSignature(const Coin::TransactionId & contractHash) const;
 
         // Validates payee refund signature
-        bool validateRefundSignature(const Coin::TransactionId & contractHash,
-                                     const Coin::Signature & payeeSig) const;
+        bool validateRefundSignature(const Coin::TransactionId & contractHash, const Coin::Signature & payeeSig) const;
 
         // Registers that a payment was made
         void paymentMade();
@@ -328,7 +334,7 @@ public:
         void setPayeeFinalPk(const Coin::PublicKey & payeeFinalPk);
 
         Coin::Signature payorRefundSignature() const;
-        void computeAndSetPayorRefundSignature(const Coin::Signature & payorRefundSignature);
+        void setPayorRefundSignature(const Coin::Signature & payorRefundSignature);
 
         Coin::Signature payeeRefundSignature() const;
         void setPayeeRefundSignature(const Coin::Signature & payeeRefundSignature);

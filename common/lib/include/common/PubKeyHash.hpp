@@ -14,18 +14,7 @@
 
 namespace Coin {
 
-class PubKeyHash : public UCharArray<PUBKEY_HASH_BYTE_LENGTH> {
-
-public:
-
-    PubKeyHash();
-
-    PubKeyHash(const uchar_vector & raw);
-
-    // Output script
-    uchar_vector toScriptPubKey() const;
-
-};
+typedef UCharArray<PUBKEY_HASH_BYTE_LENGTH> PubKeyHash;
 
 }
 

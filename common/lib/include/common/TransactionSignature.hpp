@@ -20,6 +20,9 @@ public:
 
     TransactionSignature(const Signature & sig, SigHashType _type);
 
+    // Serialized as scriptSig ready: <op load signature><DER signature><1 byte sighash type flag>
+    uchar_vector serializeForScriptSig() const;
+
     // Getters and setters
     Signature sig() const;
     void setSig(const Signature & sig);

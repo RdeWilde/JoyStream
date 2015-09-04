@@ -12,14 +12,18 @@
 
 namespace Coin {
 
+class PublicKey;
+
 class P2SHScriptPubKey {
 
 public:
 
     P2SHScriptPubKey(const RedeemScriptHash & hash);
 
+    P2SHScriptPubKey(const std::vector<PublicKey> & keys, uint mininumNumberOfSignatures);
+
     // Raw p2sh multisig output script: OP_HASH160 [20-byte-hash-value] OP_EQUAL
-    uchar_vector toSerialized() const;
+    uchar_vector serialize() const;
 
 private:
 

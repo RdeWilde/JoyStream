@@ -55,7 +55,9 @@ HEADERS += \
     include/common/P2SHScriptPubKey.hpp \
     include/common/MultisigScriptSig.hpp \
     include/common/TransactionSignature.hpp \
-    include/common/P2SHScriptSig.hpp
+    include/common/P2SHScriptSig.hpp \
+    include/common/P2PKHScriptPubKey.hpp \
+    include/common/P2PKHScriptSig.hpp
 
 SOURCES += \
     src/DataSizeRepresentation.cpp \
@@ -77,10 +79,11 @@ SOURCES += \
     src/LibtorrentUtilities.cpp \
     src/Network.cpp \
     src/BlockCypher.cpp \
-    src/PubKeyHash.cpp \
     src/SigHashType.cpp \
     src/MultisigScriptPubKey.cpp \
     src/P2SHScriptPubKey.cpp \
     src/MultisigScriptSig.cpp \
     src/TransactionSignature.cpp \
-    src/P2SHScriptSig.cpp
+    src/P2SHScriptSig.cpp \
+    src/P2PKHScriptPubKey.cpp \
+    src/P2PKHScriptSig.cpp

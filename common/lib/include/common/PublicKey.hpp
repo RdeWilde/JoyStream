@@ -19,9 +19,6 @@ namespace Coin {
 enum class Network;
 class Signature;
 
-// Compressed public key
-//typedef UCharArray<COMPRESSED_PUBLIC_KEY_BYTE_LENGTH> PublicKey;
-
 // Compresed public key
 class PublicKey : public UCharArray<COMPRESSED_PUBLIC_KEY_BYTE_LENGTH> {
 

@@ -4,6 +4,7 @@
 #include <common/TransactionId.hpp>
 #include <common/Seed.hpp>
 #include <common/Utilities.hpp> // Coin::networkToAddressVersions
+#include <common/P2PKHScriptPubKey.hpp>
 #include <wallet/Key.hpp>
 #include <wallet/Address.hpp>
 #include <wallet/Manager.hpp>
@@ -255,7 +256,7 @@ Coin::Transaction TestWallet::createWalletTx(quint32 numberOfOutputs) {
         Coin::P2PKHAddress address = _manager->getReceiveAddress();
 
         // Generate output
-        Coin::TxOut out(i*3 + 1, address.pubKeyHash().toScriptPubKey());
+        Coin::TxOut out(i*3 + 1, Coin::P2PKHScriptPubKey(address.pubKeyHash()).serialize());
 
         // Add to transaction
         tx.addOutput(out);

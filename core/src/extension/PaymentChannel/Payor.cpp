@@ -230,11 +230,14 @@ void Payor::Channel::Status::setIndex(quint32 index) {
  * Payor::Channel
  */
 
-#include <common/Payment.hpp>
-//#include <CoinQ/CoinQ_script.h>
+//#include <common/Payment.hpp>
 #include <common/RedeemScriptHash.hpp>
 #include <common/MultisigScriptPubKey.hpp>
-#include <common/RedeemScriptHash.hpp>
+#include <common/P2SHScriptPubKey.hpp>
+#include <common/P2PKHScriptPubKey.hpp>
+#include <common/TransactionSignature.hpp>
+#include <common/Utilities.hpp> // DEFAULT_SEQUENCE_NUMBER
+
 #include <CoinCore/CoinNodeData.h> // Coin::TxOut
 
 #include <QJsonObject>
@@ -308,65 +311,95 @@ Payment Channel::payment(const Hash &contractHash) const {
 }
 */
 
+Coin::P2SHScriptPubKey Payor::Channel::contractOutputScriptPubKey() const {
+    return Coin::P2SHScriptPubKey(std::vector<Coin::PublicKey>({_payorContractKeyPair.pk(), _payeeContractPk}), 2);
+}
+
 Coin::TxOut Payor::Channel::contractOutput() const {
 
     // Check that channel has been assigned
     if(_state != State::assigned)
         throw std::runtime_error("State incompatile request, must be in assigned state.");
 
-    // Create redeem script for 2of2 multisig
-    Coin::MultisigScriptPubKey redeemScript(std::vector<Coin::PublicKey>({_payorContractKeyPair.pk(), _payeeContractPk}), 2);
-
     // Create and return output
-    return Coin::TxOut(_funds, redeemScript.scriptHash().toUCharVector());
+    return Coin::TxOut(_funds, contractOutputScriptPubKey().serialize());
 }
 
-void Payor::Channel::computeAndSetPayorRefundSignature(const Coin::TransactionId & contractHash) {
+Coin::Transaction Payor::Channel::contractSpendingTransaction(const Coin::TransactionId & contractHash, quint64 returnedToPayor) const {
+
+    // Build refund transaction
+    Coin::Transaction tx;
+
+    // Set lock time
+    tx.lockTime = _refundLockTime;
+
+    // Add payor refund output
+    tx.addOutput(Coin::TxOut(returnedToPayor, Coin::P2PKHScriptPubKey(_payorFinalKeyPair.pk()).serialize()));
+
+    // Add (unsigned) input spending contract output
+    tx.addInput(Coin::TxIn(Coin::OutPoint(contractHash.toUCharVector(), _index),
+                               uchar_vector(),
+                               DEFAULT_SEQUENCE_NUMBER));
+
+    return tx;
+
+}
+
+Coin::Signature Payor::Channel::createPayorRefundSignature(const Coin::TransactionId & contractHash) const {
 
     // Check that channel has been assigned
     if(_state != State::assigned)
         throw std::runtime_error("State incompatile request, must be in assigned state.");
 
-    // Make call to compute signature
-    // remove PKs later, no reason we need them?? <== is this true
-    /**
-    _payorRefundSignature = BitSwaprjs::compute_refund_signature(Coin::OutPoint(contractHash, _index),
-                                                                 _payorContractKeyPair.sk(),
-                                                                 _payorContractKeyPair.pk(),
-                                                                 _payeeContractPk,
-                                                                 Coin::P2PKHTxOut(_funds, _payorFinalKeyPair.pk()),
-                                                                 _refundLockTime);
-    */
+    // Create transaction for spening contract output
+    Coin::Transaction refund = contractSpendingTransaction(contractHash, _funds);
+
+    // Create payor signature
+    Coin::TransactionSignature ts = _payorContractKeyPair.sk().sign(refund, 0, contractOutputScriptPubKey().serialize(), Coin::SigHashType::all);
+
+    // Return signature
+    return ts.sig();
 }
 
 Coin::Signature Payor::Channel::createPaymentSignature(const Coin::TransactionId & contractHash) const {
 
-    //return Signature();
+    // Check that channel has been assigned
+    if(_state != State::assigned)
+        throw std::runtime_error("State incompatile request, must be in assigned state.");
 
-    // Create pamynent
-    //Payment payment = payment(contractHash);
-
+    // How much has been paid to payee
     quint64 paid = _numberOfPaymentsMade*_price;
 
-    return Coin::Signature();
+    // Create transaction for spening contract output
+    Coin::Transaction payment = contractSpendingTransaction(contractHash, _funds - paid);
 
-    /**
+    // Add payee output
+    payment.addOutput(Coin::TxOut(paid, Coin::P2PKHScriptPubKey(_payeeFinalPk).serialize()));
 
-    return BitSwaprjs::compute_payment_signature(Coin::OutPoint(contractHash, _index),
-                                                 _payorContractKeyPair.sk(),
-                                                 _payorContractKeyPair.pk(),
-                                                 _payeeContractPk,
-                                                 Coin::P2PKHTxOut(_funds - paid, _payorFinalKeyPair.pk()),
-                                                 Coin::P2PKHTxOut(paid, _payeeFinalPk));
-    */
+    // Create payor signature
+    Coin::TransactionSignature ts = _payorContractKeyPair.sk().sign(payment, 0, contractOutputScriptPubKey().serialize(), Coin::SigHashType::all);
+
+    // Return signature
+    return ts.sig();
 }
 
-bool Payor::Channel::validateRefundSignature(const Coin::TransactionId & contractHash,
-                             const Coin::Signature & payeeSig) const {
+bool Payor::Channel::validateRefundSignature(const Coin::TransactionId & contractHash, const Coin::Signature & payeeSig) const {
 
-    /**
-     * IMPLEMENT LATER
-     */
+    // Check that channel has been assigned
+    if(_state != State::assigned)
+        throw std::runtime_error("State incompatible request, must be in assigned state.");
+
+    // Create transaction for spending contract output
+    Coin::Transaction refund = contractSpendingTransaction(contractHash, _funds);
+
+    // Compute sighash
+    uchar_vector sigHash = Coin::sighash(refund,
+                                         0,
+                                         contractOutputScriptPubKey().serialize(),
+                                         Coin::SigHashType::all);
+
+    // Verify that signature is valid for payee public key on sighash
+    return _payeeContractPk.verify(sigHash, payeeSig);
 }
 
 
@@ -460,7 +493,7 @@ Coin::Signature Payor::Channel::payorRefundSignature() const {
     return _payorRefundSignature;
 }
 
-void Payor::Channel::computeAndSetPayorRefundSignature(const Coin::Signature & payorRefundSignature) {
+void Payor::Channel::setPayorRefundSignature(const Coin::Signature & payorRefundSignature) {
     _payorRefundSignature = payorRefundSignature;
 }
 
@@ -707,6 +740,10 @@ void Payor::Configuration::setNumberOfSignatures(quint32 numberOfSignatures) {
 //#include <core/extension/PaymentChannel/Commitment.hpp>
 //#include <core/extension/PaymentChannel/Contract.hpp>
 //#include  <core/extension/PaymentChannel/Refund.hpp>
+#include <common/Utilities.hpp> // DEFAULT_SEQUENCE_NUMBER
+#include <common/TransactionSignature.hpp>
+#include <common/P2PKHScriptPubKey.hpp>
+#include <common/P2PKHScriptSig.hpp>
 
 #include <QVector>
 
@@ -810,8 +847,14 @@ quint32 Payor::assignUnassignedSlot(quint64 price, const Coin::PublicKey & payee
         _contractTxId = tx.getHashLittleEndian();
 
         // Compute all refund signatures
-        for(QVector<Channel>::Iterator i = _channels.begin(), end(_channels.end()); i != end;i++)
-            i->computeAndSetPayorRefundSignature(_contractTxId);
+        for(QVector<Channel>::Iterator i = _channels.begin(), end(_channels.end()); i != end;i++) {
+
+            // Compute refund signature
+            Coin::Signature sig = i->createPayorRefundSignature(_contractTxId);
+
+            // Save it
+            i->setPayorRefundSignature(sig);
+        }
     }
 
     return slotIndex;
@@ -857,20 +900,16 @@ Coin::Transaction Payor::contractTransaction() const {
     for(int i = 0;i < _channels.size();i++)
         transaction.addOutput(_channels[i].contractOutput());
 
-    /**
     // Add refund output
-    transaction.addOutput(Coin::TxOut(_changeValue, _changeOutputKeyPair.pk().toPubKeyHash().toScriptPubKey()));
+    transaction.addOutput(Coin::TxOut(_changeValue, Coin::P2PKHScriptPubKey(_changeOutputKeyPair.pk()).serialize()));
 
-    // Add input financing transaction
-    CoinQ::Script::Script scriptBuilder(CoinQ::Script::Script::type_t::PAY_TO_PUBKEY_HASH,
-                                        1,
-                                        std::vector<bytes_t>()),
-                                        )
+    // Add (unsigned) input spending funding utxo
+    transaction.addInput(Coin::TxIn(_utxo.outPoint().getClassicOutPoint(), uchar_vector(), DEFAULT_SEQUENCE_NUMBER));
 
-    // Script(type_t type, unsigned int minsigs, const std::vector<bytes_t>& pubkeys, const std::vector<bytes_t>& sigs = std::vector<bytes_t>());
-    // Sign
-    */
+    // Creates spending input script
+    setScriptSigToSpendP2PKH(transaction, 0, _utxo.keyPair().sk());
 
+    return transaction;
 }
 
 bool Payor::processRefundSignature(quint32 index, const Coin::Signature & signature) {

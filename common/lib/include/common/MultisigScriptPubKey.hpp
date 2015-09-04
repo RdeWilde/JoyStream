@@ -26,7 +26,7 @@ public:
     MultisigScriptPubKey(const std::vector<PublicKey> & keys, uint mininumNumberOfSignatures);
 
     // Raw output script: m {pubkey}...{pubkey} n OP_CHECKMULTISIG
-    uchar_vector toSerialized() const;
+    uchar_vector serialized() const;
 
     // Hash of serialzied script
     RedeemScriptHash scriptHash() const;

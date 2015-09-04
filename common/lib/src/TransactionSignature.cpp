@@ -6,12 +6,29 @@
  */
 
 #include <common/TransactionSignature.hpp>
+#include <common/Utilities.hpp> // opPushData
 
 namespace Coin {
 
 TransactionSignature::TransactionSignature(const Signature & sig, SigHashType type)
     : _sig(sig)
     , _type(type) {
+}
+
+uchar_vector TransactionSignature::serializeForScriptSig() const {
+
+    uchar_vector serialize;
+
+    // Add signature length indicator
+    serialize += opPushData(_sig.length());
+
+    // Add signature
+    serialize += _sig.toUCharVector();
+
+    // Add sighash type flag
+    serialize += opPushData(valueForSighashType(_type));
+
+    return serialize;
 }
 
 Signature TransactionSignature::sig() const {

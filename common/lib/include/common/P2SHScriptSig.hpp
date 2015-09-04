@@ -20,7 +20,7 @@ public:
 
     P2SHScriptSig(const std::vector<TransactionSignature> & sigs, const uchar_vector & redeemScript);
 
-    uchar_vector toSerialized();
+    uchar_vector serialized();
 
 private:
 

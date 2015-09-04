@@ -6,7 +6,7 @@
  */
 
 #include <common/P2SHScriptPubKey.hpp>
-
+#include <common/MultisigScriptPubKey.hpp>
 
 namespace Coin {
 
@@ -14,7 +14,11 @@ P2SHScriptPubKey::P2SHScriptPubKey(const RedeemScriptHash & hash)
     : _hash(hash) {
 }
 
-uchar_vector P2SHScriptPubKey::toSerialized() const {
+P2SHScriptPubKey::P2SHScriptPubKey(const std::vector<PublicKey> & keys, uint mininumNumberOfSignatures)
+    : P2SHScriptPubKey::P2SHScriptPubKey(Coin::MultisigScriptPubKey(keys, mininumNumberOfSignatures).scriptHash()) {
+}
+
+uchar_vector P2SHScriptPubKey::serialize() const {
 
     // Copied from bytes_t Script::txoutscript() const
 

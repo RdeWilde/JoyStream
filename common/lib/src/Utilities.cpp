@@ -12,6 +12,8 @@
 #include <common/Network.hpp>
 #include <common/SigHashType.hpp>
 #include <common/TransactionSignature.hpp>
+#include <common/PrivateKey.hpp>
+#include <common/P2PKHScriptSig.hpp>
 
 #include <QByteArray>
 
@@ -166,24 +168,26 @@ namespace Coin {
 
         // Add each signature and corresponding sighash flag
         for(std::vector<TransactionSignature>::const_iterator i = sigs.cbegin(),
-            end = sigs.cend(); i != end; i++) {
-
-            const TransactionSignature & ts = *i;
-
-            // Get signature
-            Signature s = ts.sig();
-
-            // Add signature length
-            serialized += opPushData(s.length());
-
-            // Add signature
-            serialized += s.toUCharVector();
-
-            // Add sighash flag
-            serialized.push_back(valueForSighashType(ts.type()));
-        }
+            end = sigs.cend(); i != end; i++)
+            serialized += (*i).serializeForScriptSig();
 
         return serialized;
 
+    }
+
+    void setScriptSigToSpendP2PKH(Coin::Transaction & tx,
+                           uint input,
+                           const Coin::PrivateKey & sk) {
+
+        // Generate signature
+        Coin::TransactionSignature ts = sk.signForP2PKHSpend(tx, input);
+
+        // Generate scriptSig
+        Coin::P2PKHScriptSig scriptSig(sk.toPublicKey(), ts);
+
+        Q_ASSERT(input < tx.inputs.size());
+
+        // Set input script
+        tx.inputs[input].scriptSig = scriptSig.serialized();
     }
 }

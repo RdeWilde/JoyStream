@@ -107,5 +107,12 @@ namespace Coin {
     class TransactionSignature;
     uchar_vector toScriptSigForm(const std::vector<TransactionSignature> & sigs);
 
+    class PrivateKey;
+
+    // Utility routine for spending p2pkh outpoint
+    void setScriptSigToSpendP2PKH(Coin::Transaction & tx,
+                           uint input,
+                           const Coin::PrivateKey & sk);
+
 }
 #endif // COIN_UTILITIES_HPP

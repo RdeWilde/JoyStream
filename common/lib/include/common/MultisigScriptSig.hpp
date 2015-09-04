@@ -24,7 +24,7 @@ public:
     MultisigScriptSig(const std::vector<TransactionSignature> sigs);
 
     // OP_0 ...signatures...
-    uchar_vector toSerialized() const;
+    uchar_vector serialized() const;
 
 private:
 
