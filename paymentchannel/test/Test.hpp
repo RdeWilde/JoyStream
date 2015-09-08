@@ -18,28 +18,15 @@ namespace Coin {
 #define WALLET_SEED Coin::Seed::testSeeds[0]
 #define NETWORK_TYPE Coin::Network::testnet3
 
-
-namespace Wallet {
-    class Manager;
-}
-
 class Test : public QObject
 {
     Q_OBJECT
 
-    //Wallet::Manager * _manager;
-
 private slots:
 
-    // called before *each* non-built in test case
-    void init();
+    void paychan_one_to_one();
 
-    // called after *each* non-built in test case
-    void cleanup();
 
-    /**
-     * Test routines
-     */
 
 };
 

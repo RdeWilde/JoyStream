@@ -24,6 +24,14 @@ KeyPair::KeyPair(const KeyPair& keyPair)
     : KeyPair(keyPair.pk(), keyPair.sk()) {
 }
 
+KeyPair KeyPair::generate() {
+
+    PrivateKey sk = PrivateKey::generate();
+
+    return KeyPair(sk.toPublicKey(), sk);
+
+}
+
 KeyPair & KeyPair::operator=(const KeyPair& rhs) {
 
     _pk = rhs.pk();

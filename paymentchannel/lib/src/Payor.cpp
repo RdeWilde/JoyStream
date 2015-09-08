@@ -297,20 +297,10 @@ Coin::typesafeOutPoint Payor::Channel::contractOutPoint(const Coin::TransactionI
 }
 
 Commitment Payor::Channel::commitment() const {
-
-    // Check that channel has been assigned
-    if(_state != State::assigned)
-        throw std::runtime_error("State incompatible request, must be in assigned state.");
-
     return Commitment(_funds, _payorContractKeyPair.pk(), _payeeContractPk);
 }
 
 Refund Payor::Channel::refund(const Coin::TransactionId & contractTxId) const {
-
-    // Check that channel has been assigned
-    if(_state != State::assigned)
-        throw std::runtime_error("State incompatible request, must be in assigned state.");
-
     // *** no fee !!!
     return Refund(contractOutPoint(contractTxId),
                   commitment(),
@@ -319,10 +309,6 @@ Refund Payor::Channel::refund(const Coin::TransactionId & contractTxId) const {
 }
 
 Settlement Payor::Channel::settlement(const Coin::TransactionId & contractTxId) const {
-
-    // Check that channel has been assigned
-    if(_state != State::assigned)
-        throw std::runtime_error("State incompatible request, must be in assigned state.");
 
     // The amount paid so far
     quint64 amountPaid = _price*_numberOfPaymentsMade;

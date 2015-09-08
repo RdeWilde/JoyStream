@@ -7,269 +7,99 @@
 
 #include <Test.hpp>
 
-//#include <CoinCore/CoinNodeData.h>
-//#include <QSqlDatabase>
-//#define DB _manager->db()
+#include <common/Seed.hpp>
+#include <CoinCore/hdkeys.h>
 
-void Test::init() {
+#include <paymentchannel/Payor.hpp>
+#include <paymentchannel/Payee.hpp>
 
-    /**
+void Test::paychan_one_to_one() {
 
-    // Delete any lingering wallet file
-    QFile::remove(WALLET_FILE_NAME);
+    // Use test seed to generate hd key chain
+    //Coin::HDKeychain chain = WALLET_SEED.generateHDKeychain();
+    //chain.
 
-    // Use test seed to generate key chain
-    Coin::Seed seed = WALLET_SEED;
+    // Setup keys
+    Coin::KeyPair payorContractKeyPair = Coin::KeyPair::generate();
+    Coin::KeyPair payorFinalKeyPair = Coin::KeyPair::generate();
 
-    // Create wallet
-    Wallet::Manager::createNewWallet(WALLET_FILE_NAME, NETWORK_TYPE, seed);
+    Coin::KeyPair payeeContractKeyPair = Coin::KeyPair::generate();
+    Coin::KeyPair payeeFinalKeyPair = Coin::KeyPair::generate();
 
-    // Open the wallet
-    _manager = new Wallet::Manager(WALLET_FILE_NAME);
-    */
+    // Setup channels
+    std::vector<Payor::Channel::Configuration> channels;
 
-}
+    uint64_t source = 3000000,
+            change = 200,
+            contract_fee = 50,
+            funds_in_channel = source - (change + contract_fee);
 
-void Test::cleanup() {
+    uint64_t price = 8;
 
-    //delete _manager;
-    //_manager = NULL;
-}
+    uint32_t lockTime = 1000;
 
-/**
-void TestWallet::outPoint_data() {
+    channels.push_back(Payor::Channel::Configuration(0,
+                                                     Payor::Channel::State::assigned,
+                                                     price,
+                                                     0,
+                                                     funds_in_channel, // total funds
+                                                     payorContractKeyPair,
+                                                     payorFinalKeyPair,
+                                                     payeeContractKeyPair.pk(),
+                                                     payeeFinalKeyPair.pk(),
+                                                     Coin::Signature(),
+                                                     Coin::Signature(),
+                                                     0,
+                                                     0,
+                                                     lockTime));
+    // Setup payor
+    Payor payor(Payor::Configuration(NETWORK_TYPE,
+                                     Payor::State::waiting_for_full_set_of_refund_signatures,
+                                     channels,
+                                     Coin::UnspentP2PKHOutput(Coin::KeyPair(), Coin::typesafeOutPoint(), source),
+                                     Coin::KeyPair::generate(),
+                                     change, // change value
+                                     contract_fee, // contract fee
+                                     Coin::TransactionId(),
+                                     0));
 
-    QTest::addColumn<Coin::TransactionId>("txId");
-    QTest::addColumn<int>("index");
+    // Setup payee
+    Payee payee(Payee::Configuration(Payee::State::has_all_information_required,
+                                     0,
+                                     Coin::Signature(),
+                                     lockTime,
+                                     price,
+                                     1,
+                                     payeeContractKeyPair,
+                                     payeeFinalKeyPair,
+                                     Coin::typesafeOutPoint(),
+                                     payorContractKeyPair.pk(),
+                                     payorFinalKeyPair.pk(),
+                                     funds_in_channel));
 
-    QTest::newRow("first")  << Coin::TransactionId() << 0;
-    QTest::newRow("second") << Coin::TransactionId("1234") << 44;
-}
-*/
+    // Payee generates refund
+    Coin::Signature refundSignature = payee.generateRefundSignature();
 
-/**
-void TestWallet::outPoint() {
+    // Payor validates refund
+    bool wasValid = payor.processRefundSignature(0, refundSignature);
 
-    Coin::OutPoint original(uchar_vector("6404f7cfc0cc00e402247c309345978d0c021edecad6e3f613b1575b7d7aa160"), 11);
+    QVERIFY(wasValid);
 
-    // add
-    QVERIFY(_manager->addOutPoint(original));
+    // Make series of payments
+    int number_of_paymnts = 10;
 
-    // fail to add twice
-    QVERIFY(!_manager->addOutPoint(original));
+    for(int i = 0; i < number_of_paymnts; i++) {
 
-    // check that its there
-    QVERIFY(Wallet::OutPoint::exists(DB, Wallet::OutPoint::PK(original)));
+        // Payor makes payment i
+        Q_ASSERT(payor.incrementPaymentCounter(0) == i+1);
+        Coin::Signature paymentSignature = payor.getPresentPaymentSignature(0);
 
-    // check that different tx isnt there
-    Coin::OutPoint other_tx(uchar_vector("6404f7cfc0cc00e4234123414125978d0c021edecad6e3f613b1575b7d7aa160"), 11);
-    QVERIFY(!Wallet::OutPoint::exists(DB, Wallet::OutPoint::PK(other_tx)));
-
-    // check that different index isnt there
-    Coin::OutPoint other_index(uchar_vector("6404f7cfc0cc00e402247c309345978d0c021edecad6e3f613b1575b7d7aa160"), 666);
-    QVERIFY(!Wallet::OutPoint::exists(DB, Wallet::OutPoint::PK(other_index)));
-
-    // try to get it out, and that its the same
-    Wallet::OutPoint::Record record;
-    bool exists = Wallet::OutPoint::exists(DB, original, record);
-    QVERIFY(exists);
-
-    // No comparison operator!!
-    //QVERIFY(record.toOutPoint() == original);
-    QVERIFY(record.toOutPoint().getSerialized() == original.getSerialized());
-
-}
-
-void TestWallet::input() {
-
-}
-
-void TestWallet::key() {
-
-    //Coin::PrivateKey sk(_keyChain.getPrivateSigningKey(0));
-
-    // Generate fresh key from wallet
-    Coin::PrivateKey sk = _manager->issueKey();
-
-    // Check that it has been inserted
-    Wallet::Key::Record record;
-    bool exists = Wallet::Key::exists(DB, 0, record);
-    QVERIFY(exists);
-
-    // Equal to inserted original
-    QVERIFY(sk == record._privateKey);
-
-    // Different from new random (all null actually) key
-    QVERIFY(Coin::PrivateKey() != record._privateKey);
-
-    // Nothing else has been inserted
-    QVERIFY(!Wallet::Key::exists(DB, 1));
-}
-
-void TestWallet::address() {
-
-}
-
-void TestWallet::tx() {
-
-    // Create transaction
-    Coin::Transaction tx;
-
-    Coin::TxIn in(Coin::OutPoint(uchar_vector("6404f7cfc0cc00e402247c309345978d0c021edecad6e3f613b1575b7d7aa160"), 666),
-                  uchar_vector("222"),
-                  1234);
-    tx.addInput(in);
-
-    Coin::TxOut out(33, uchar_vector("1111111"));
-    tx.addOutput(out);
-
-    // Add to wallet
-    QVERIFY(_manager->addTransaction(tx));
-
-    // Grab from wallet and check that it is the same
-    Coin::Transaction tx2 = _manager->getTransaction(tx.getHashLittleEndian());
-    QVERIFY(tx.getHashLittleEndian() == tx2.getHashLittleEndian());
-
-    // Alter it and check that it's different
-    tx2.version = 0;
-    QVERIFY(tx.getHashLittleEndian() != tx2.getHashLittleEndian());
-
-}
-
-void TestWallet::listutxo() {
-
-    // How many outputs
-    quint32 numberOfOutputs = 2;
-
-    // Create transaction
-    Coin::Transaction tx = createWalletTx(numberOfOutputs);
-
-    // Add to wallet
-    QVERIFY(_manager->addTransaction(tx));
-
-    // Check that it is the right size
-    QList<Coin::UnspentP2PKHOutput> zeroConfUtxo_1 = _manager->listUtxo(0);
-    QVERIFY(zeroConfUtxo_1.size() == numberOfOutputs);
-
-    // Check that there are numberOfOutputs utxo created events
-    QList<Wallet::UtxoCreated> utxoCreated_1 = _manager->getAllUtxoCreated(0);
-    QVERIFY(utxoCreated_1.size() == numberOfOutputs);
-
-    // Check that there are 0 utxo destroyed events
-    QList<Wallet::UtxoDestroyed> utxoDestroyed_1 = _manager->getAllUtxoDestroyed(0);
-    QVERIFY(utxoDestroyed_1.size() == 0);
-
-    //
-    // Add a transaction which spends one of the outputs
-    //
-
-    Coin::Transaction spendingTx;
-    Coin::OutPoint out(tx.getHashLittleEndian(),0); // outpoint referencing first outputo tx above
-    spendingTx.addInput(Coin::TxIn(out, uchar_vector("12345"), 4444));
-
-    // Add to wallet
-    QVERIFY(_manager->addTransaction(spendingTx));
-
-    // Get utxo
-    QList<Coin::UnspentP2PKHOutput> zeroConfUtxo_2 = _manager->listUtxo(0);
-    QList<Wallet::UtxoCreated> utxoCreated_2 = _manager->getAllUtxoCreated(0);
-
-    // Check that it is the right size
-    QVERIFY(zeroConfUtxo_2.size() == numberOfOutputs - 1);
-    QVERIFY(utxoCreated_2.size() == numberOfOutputs); // still same number of utxo created
-
-    // Check that there are 1 utxo destroyed events
-    QList<Wallet::UtxoDestroyed> utxoDestroyed_2 = _manager->getAllUtxoDestroyed(0);
-    QVERIFY(utxoDestroyed_2.size() == 1);
-
-}
-
-void TestWallet::lockutxo() {
-
-    // How many outputs
-    quint32 numberOfOutputs = 5;
-
-    // Create transaction
-    Coin::Transaction tx = createWalletTx(numberOfOutputs);
-
-    // Add to wallet
-    QVERIFY(_manager->addTransaction(tx));
-
-    // lock something we should be able to log
-    quint64 quantityToLock = 8;
-    QList<Coin::UnspentP2PKHOutput> list = _manager->lockUtxo(quantityToLock, 0);
-    QVERIFY(!list.isEmpty());
-
-    // count up how much we locked up
-    quint64 totalLocked = 0;
-    for(QList<Coin::UnspentP2PKHOutput>::const_iterator i = list.constBegin(),
-        end = list.constEnd();
-        i != end;
-        i++) {
-
-        Coin::UnspentP2PKHOutput output = *i;
-        totalLocked += output.value();
+        // Payee validates payment i
+        QVERIFY(payee.registerPayment(paymentSignature));
     }
 
-    QVERIFY(totalLocked >= quantityToLock);
-
-    // Fail to lock a huge amount
-    QVERIFY(_manager->lockUtxo(100000, 0).isEmpty());
-
-    // Release, and see utxo grow back
-    quint32 remainingUtxoSize = _manager->listUtxo(0).size();
-
-    for(QList<Coin::UnspentP2PKHOutput>::const_iterator i = list.constBegin(),
-        end = list.constEnd();
-        i != end;
-        i++) {
-
-        // release
-        Coin::UnspentP2PKHOutput output = *i;
-
-        QVERIFY(_manager->releaseUtxo(output.outPoint()));
-    }
-
-    // We need some better test here that everyhthing was indeed released
-
-    // Check we are back at original size
-    //QVERIFY(oldUtxoSize + numberOfOutputs = );
 }
 
-Coin::Transaction TestWallet::createWalletTx(quint32 numberOfOutputs) {
-
-    // Create transaction to add
-    Coin::Transaction tx;
-
-    for(int i = 0; i < numberOfOutputs;i++) {
-
-        // Get receive address
-        Coin::P2PKHAddress address = _manager->getReceiveAddress();
-
-        // Generate output
-        Coin::TxOut out(i*3 + 1, Coin::P2PKHScriptPubKey(address.pubKeyHash()).serialize());
-
-        // Add to transaction
-        tx.addOutput(out);
-    }
-
-    return tx;
-}
-*/
-
-/*
-void TestWallet::input_data() {
-
-
-    QTest::addColumn<QString>("string");
-    QTest::addColumn<QString>("result");
-
-    QTest::newRow("all lower") << "hello" << "HELLO";
-    QTest::newRow("mixed")     << "Hello" << "HELLO";
-    QTest::newRow("all upper") << "HELLO" << "HELLO";
-
-}
-*/
 
 QTEST_MAIN(Test)
 #include "moc_Test.cpp"

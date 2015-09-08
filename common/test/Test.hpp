@@ -33,7 +33,6 @@ private slots:
 
     void scripts();
 
-
 private:
 
     static bool sighash(const QJsonArray & fixture);

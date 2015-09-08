@@ -28,6 +28,9 @@ public:
     // Copy constructor
     KeyPair(const KeyPair& keyPair);
 
+    // Generate fresh key pair
+    static KeyPair generate();
+
     // Assignment operator
     KeyPair & operator=(const KeyPair& rhs);
 

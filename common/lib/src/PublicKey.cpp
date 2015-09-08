@@ -30,8 +30,20 @@ bool PublicKey::verify(const uchar_vector & message, const Signature & sig) cons
     CoinCrypto::secp256k1_key signatureCheckingKey;
     signatureCheckingKey.setPubKey(toUCharVector());
 
-    // Check signature and return
-    return CoinCrypto::secp256k1_verify(signatureCheckingKey, message, sig.toUCharVector());
+    // Check signature
+    bool verified;
+
+    try {
+
+        verified = CoinCrypto::secp256k1_verify(signatureCheckingKey, message, sig.toUCharVector());
+
+    } catch(const std::runtime_error & e) {
+
+        // We may have error if the input was rejected by openssl
+        return false;
+    }
+
+    return verified;
 }
 
 }
