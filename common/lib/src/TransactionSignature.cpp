@@ -10,7 +10,7 @@
 
 namespace Coin {
 
-TransactionSignature::TransactionSignature(const Signature & sig, SigHashType type)
+TransactionSignature::TransactionSignature(const Signature & sig, const SigHashType & type)
     : _sig(sig)
     , _type(type) {
 }
@@ -26,7 +26,7 @@ uchar_vector TransactionSignature::serializeForScriptSig() const {
     serialize += _sig.toUCharVector();
 
     // Add sighash type flag
-    serialize += opPushData(valueForSighashType(_type));
+    serialize += opPushData(_type.hashCode());
 
     return serialize;
 }

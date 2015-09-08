@@ -199,12 +199,14 @@ void BuyerTorrentPlugin::Configuration::setNumberOfSellers(quint32 numberOfSelle
 #include <core/extension/Alert/BuyerPeerPluginRemovedAlert.hpp>
 #include <core/extension/Plugin.hpp>
 #include <core/extension/PeerPlugin.hpp> // PeerModeAnnounced
+#include <paymentchannel/Contract.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
-#include <CoinCore/CoinNodeData.h> // Coin::Transaction
 #include <wallet/Manager.hpp>
 
 #include <libtorrent/bt_peer_connection.hpp>
 #include <libtorrent/socket_io.hpp> // print_endpoint
+
+#include <CoinCore/CoinNodeData.h> // Coin::Transaction
 
 #include <QtMath> // QFloor
 #include <math.h> // ceil
@@ -263,9 +265,9 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
     Q_ASSERT(changeKey.count() == 1);
 
     // Create channel configurations
-    QVector<Payor::Channel::Configuration> channelConfigurations;
+    std::vector<Payor::Channel::Configuration> channelConfigurations;
     for(int i = 0;i < configuration.numberOfSellers();i++)
-        channelConfigurations.append(Payor::Channel::Configuration(i,
+        channelConfigurations.push_back(Payor::Channel::Configuration(i,
                                                       Payor::Channel::State::unassigned,
                                                       0,
                                                       0,
@@ -443,7 +445,7 @@ void BuyerTorrentPlugin::on_piece_pass(int index) {
 
     Q_ASSERT(peer->indexOfAssignedPiece() == index);
     Q_ASSERT(peer->clientState() == BuyerPeerPlugin::ClientState::waiting_for_libtorrent_to_validate_piece);
-    Q_ASSERT(!_peerPluginsWithoutPieceAssignment.contains(peer));
+    Q_ASSERT(_peerPluginsWithoutPieceAssignment.count(peer) == 0);
 
     // Make a payment
     Coin::Signature paymentSignature = makePaymentAndGetPaymentSignature(peer);
@@ -588,13 +590,13 @@ bool BuyerTorrentPlugin::sellerWantsToJoinContract(BuyerPeerPlugin * peer, quint
          */
 
         // Get channels
-        const QVector<Payor::Channel> & channels = _payor.channels();
+        const std::vector<Payor::Channel> & channels = _payor.channels();
 
         // Iterate
         quint32 index = 0;
         const Coin::TransactionId & contractHash = _payor.contractHash();
-        for(QVector<Payor::Channel>::const_iterator i = channels.constBegin(),
-            end(channels.constEnd()); i != end;i++, index++) {
+        for(std::vector<Payor::Channel>::const_iterator i = channels.cbegin(),
+            end = channels.cend(); i != end;i++, index++) {
 
             // Get channel
             const Payor::Channel & channel = *i;
@@ -654,7 +656,7 @@ bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, c
 
         // Construct and broadcast contract
         //_payor.broadcast_contract();
-        Coin::Transaction tx = _payor.contractTransaction();
+        Coin::Transaction tx = _payor.contract().transaction();
 
         Q_ASSERT(tx.getHashLittleEndian() == _payor.contractHash().toUCharVector());
 
@@ -666,8 +668,7 @@ bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, c
         qCDebug(_category) << "Broadcasting contract, txId:" << _payor.contractHash().toHex();
 
         // Tell all peers with ready message
-        for(QVector<BuyerPeerPlugin *>::iterator i = _slotToPluginMapping.begin(),
-            end(_slotToPluginMapping.end()); i != end;i++) {
+        for(std::vector<BuyerPeerPlugin *>::iterator i = _slotToPluginMapping.begin(), end = _slotToPluginMapping.end(); i != end;i++) {
 
             // Get pointer to plugin
             BuyerPeerPlugin * p = *i;
@@ -705,7 +706,7 @@ bool BuyerTorrentPlugin::assignPieceToPeerPlugin(BuyerPeerPlugin * peerPlugin) {
     // This routine should only be called if following holds
     Q_ASSERT(_state == State::downloading_pieces);
     Q_ASSERT(peerPlugin->clientState() == BuyerPeerPlugin::ClientState::needs_to_be_assigned_piece);
-    Q_ASSERT(_peerPluginsWithoutPieceAssignment.contains(peerPlugin));
+    Q_ASSERT(_peerPluginsWithoutPieceAssignment.count(peerPlugin) == 1);
     //Q_ASSERT(peerPlugin->unservicedRequests().empty());
 
     // Try to get next piece
@@ -737,7 +738,7 @@ bool BuyerTorrentPlugin::assignPieceToPeerPlugin(BuyerPeerPlugin * peerPlugin) {
      peerPlugin->setIndexOfAssignedPiece(pieceIndex);
 
      // Remove from set of unassigned peer plugins, if its there
-     _peerPluginsWithoutPieceAssignment.remove(peerPlugin);
+     _peerPluginsWithoutPieceAssignment.erase(peerPlugin);
 
      // Reduced the number of unassigned pieces
      _numberOfUnassignedPieces--;
@@ -755,7 +756,7 @@ int BuyerTorrentPlugin::getNextUnassignedPiece(int startIndex) const {
      int index = startIndex;
 
      // Find first unasigned piece with index no less than startIndex
-     for(;index < _pieces.length();index++) {
+     for(;index < _pieces.size();index++) {
 
          // Get piece
          const Piece & piece = _pieces[index];

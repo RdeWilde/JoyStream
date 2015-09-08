@@ -75,14 +75,19 @@ namespace Coin {
 
 namespace Coin {
 
-    enum class SigHashType;
+    //enum class SigHashType;
+    class SigHashType;
+
+    /**
+     * MOVE INTO SIGHASHTYPE.HPP FILE
+     */
 
     // Signature hash of type <sighahType> for transaction <tx> corresponding to input
     // index <input> spending an output with script <scriptPubKey>
     uchar_vector sighash(const Coin::Transaction & tx,
                     uint input,
                     const uchar_vector & scriptPubKey,
-                    SigHashType type);
+                    const SigHashType & type);
 
     /**
     // DER encoded signature (without trailing sighash flag) corresponding to <privateKey> on input <inputToSign> of transaction <tx>.

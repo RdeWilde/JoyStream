@@ -2,53 +2,44 @@
  * Copyright (C) JoyStream - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
- * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 15 2015
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, September 5 2015
  */
 
-#ifndef COIN_PAYMENT_HPP
-#define COIN_PAYMENT_HPP
+#ifndef PAYMENTCHANNEL_PAYMENT_HPP
+#define PAYMENTCHANNEL_PAYMENT_HPP
 
-#include <common/PublicKey.hpp>
+#include <common/PubKeyHash.hpp>
 
 namespace Coin {
+    class TxOut;
 
-// Represents a payment to a public key
 class Payment {
 
 public:
 
-    // Default constructor
-    Payment();
+    Payment(int64_t value, const Coin::PubKeyHash & destination);
 
-    // Constructor from members
-    Payment(quint64 value, const PublicKey & pk);
-
-    // Copy constructor
-    Payment(const Payment & o);
-
-    // Assignment operator
-    Payment & operator=(const Payment & o);
+    // Corresponding P2PKH transaction output
+    Coin::TxOut txOut() const;
 
     // Getters and setters
-    quint64 value() const;
-    void setValue(quint64 value);
+    int64_t value() const;
+    void setValue(int64_t value);
 
-    PublicKey pk() const;
-    void setPk(const PublicKey & pk);
+    Coin::PubKeyHash destination() const;
+    void setDestination(const Coin::PubKeyHash & destination);
 
 private:
 
-    // Value of output
-    quint64 _value;
+    // Size of payment (#satoshi)
+    int64_t _value;
 
-    // Public key controlling output
-    PublicKey _pk;
+    // Recipient
+    Coin::PubKeyHash _destination;
 
 };
 
-
 }
 
-
-#endif // COIN_PAYMENT_HPP
+#endif // PAYMENTCHANNEL_PAYMENT_HPP
 

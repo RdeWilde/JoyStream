@@ -5,9 +5,10 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef PAYOR_HPP
-#define PAYOR_HPP
+#ifndef PAYMENTCHANNEL_PAYOR_HPP
+#define PAYMENTCHANNEL_PAYOR_HPP
 
+#include <common/Network.hpp>
 #include <common/PublicKey.hpp>
 #include <common/PrivateKey.hpp>
 #include <common/KeyPair.hpp>
@@ -16,9 +17,10 @@
 #include <common/typesafeOutPoint.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
 
-#include <QVector>
-
 class Contract;
+class Commitment;
+class Refund;
+class Settlement;
 
 namespace Coin {
     class Transaction;
@@ -34,6 +36,9 @@ namespace Coin {
 class Payor
 {
 public:
+
+    // Network
+    const static Coin::Network network;
 
     /**
      * @brief States of a payor.
@@ -69,7 +74,6 @@ public:
             assigned,
             refund_signed
         };
-
 
         /**
          * @brief Peristant state of Channel.
@@ -272,24 +276,29 @@ public:
              quint64 paymentFee,
              quint32 refundLockTime);
 
+        // Outpoint in contract transaction to which channel comitment corresponds
+        Coin::typesafeOutPoint contractOutPoint(const Coin::TransactionId & contractTxId) const;
+
         /**
-         * Payment channel operations
+         * Perhaps hide these two routines, and reintroduce wrappers below
+         * such that payor does not need to deal with them directly.
+         * Later...
          */
 
-        // Refund transaction for slot
-        //Refund refund(const Hash &contractHash) const;
+        // Commitment for channel
+        Commitment commitment() const;
 
-        // Payment transaction for slot, based on current _numberOfPaymentsMade value
-        //Payment payment(const Hash &contractHash) const;
+        // Refund for channel
+        Refund refund(const Coin::TransactionId & contractTxId) const;
 
-        // Create p2sh 2of2 multisig scriptPubKey controlling contract output
-        Coin::P2SHScriptPubKey contractOutputScriptPubKey() const;
+        // Payment for channel
+        Settlement settlement(const Coin::TransactionId & contractTxId) const;
 
-        // Generates contract output for channel
-        Coin::TxOut contractOutput() const;
-
+        /**
         // (unsigned) Transaction spending contract output
-        Coin::Transaction contractSpendingTransaction(const Coin::TransactionId & contractHash, quint64 returnedToPayor) const;
+        Coin::Transaction contractSpendingTransaction(const Coin::TransactionId & contractHash,
+                                                      quint64 returnedToPayor,
+                                                      quint32 refundLockTime = 0) const;
 
         // Compute payor refund signature
         Coin::Signature createPayorRefundSignature(const Coin::TransactionId & contractHash) const;
@@ -299,9 +308,11 @@ public:
 
         // Validates payee refund signature
         bool validateRefundSignature(const Coin::TransactionId & contractHash, const Coin::Signature & payeeSig) const;
+        */
 
-        // Registers that a payment was made
-        void paymentMade();
+        // Increment payment counter, should only be done in response to valid
+        // payment signature
+        void increaseNumberOfPayments();
 
         Status status() const;
 
@@ -310,7 +321,7 @@ public:
         void setIndex(quint32 index);
 
         State state() const;
-        void setState(const State & state);
+        void setState(State state);
 
         quint64 price() const;
         void setPrice(quint64 price);
@@ -404,7 +415,7 @@ public:
         Status();
 
         // Construct from members
-        Status(const QVector<Channel::Status> & channels,
+        Status(const std::vector<Channel::Status> & channels,
                State state,
                const Coin::UnspentP2PKHOutput & utxo,
                quint64 changeValue,
@@ -413,8 +424,8 @@ public:
                quint32 numberOfSignatures);
 
         // Getters and setters
-        QVector<Channel::Status> channels() const;
-        void setChannels(const QVector<Channel::Status> & channels);
+        std::vector<Channel::Status> channels() const;
+        void setChannels(const std::vector<Channel::Status> & channels);
 
         State state() const;
         void setState(State state);
@@ -437,7 +448,7 @@ public:
     private:
 
         // Status of channels
-        QVector<Channel::Status> _channels;
+        std::vector<Channel::Status> _channels;
 
         // State of payor
         State _state;
@@ -474,7 +485,7 @@ public:
         // Constructor for a fresh payor.
         Configuration(Coin::Network network,
                       State state,
-                      const QVector<Channel::Configuration> & channels,
+                      const std::vector<Channel::Configuration> & channels,
                       const Coin::UnspentP2PKHOutput & utxo,
                       const Coin::KeyPair & changeOutputKeyPair,
                       quint64 changeValue,
@@ -486,8 +497,8 @@ public:
         State state() const;
         void setState(State state);
 
-        QVector<Channel::Configuration> channels() const;
-        void setChannels(const QVector<Channel::Configuration> & channels);
+        std::vector<Channel::Configuration> channels() const;
+        void setChannels(const std::vector<Channel::Configuration> & channels);
 
         Coin::UnspentP2PKHOutput utxo() const;
         void setUtxo(const Coin::UnspentP2PKHOutput &utxo);
@@ -527,7 +538,7 @@ public:
         State _state;
 
         // Contract outputs
-        QVector<Channel::Configuration> _channels;
+        std::vector<Channel::Configuration> _channels;
 
         // Unspent output funding channel
         //OutPoint _fundingOutPoint;
@@ -584,11 +595,11 @@ public:
     // Generates contract transaction
     // ===============================
     // Explain ...
-    //Contract contract() const;
+    Contract contract() const;
 
     // Generates contract transaction
     // ===============================
-    Coin::Transaction contractTransaction() const;
+    //Coin::Transaction contractTransaction() const;
 
     // Returns validity of signature for given slot
     // ============================================
@@ -625,7 +636,7 @@ public:
     State state() const;
     void setState(State state);
 
-    QVector<Channel> & channels();
+    std::vector<Channel> & channels();
     const Payor::Channel & channel(int i) const;
 
     Coin::typesafeOutPoint fundingOutPoint() const;
@@ -641,15 +652,13 @@ public:
 
 private:
 
-    // Network
-    Coin::Network _network;
-
     // Payor state
     State _state;
 
     // Contract outputs
-    QVector<Channel> _channels;
+    std::vector<Channel> _channels;
 
+    /**
     // Unspent output funding channel
     //OutPoint _fundingOutPoint;
 
@@ -658,6 +667,7 @@ private:
 
     // Controls output funding channel
     //KeyPair _fundingOutputKeyPair;
+    */
 
     // Funding
     Coin::UnspentP2PKHOutput _utxo;
@@ -688,4 +698,4 @@ private:
     quint32 _numberOfSignatures;
 };
 
-#endif // PAYOR_HPP
+#endif // PAYMENTCHANNEL_PAYOR_HPP

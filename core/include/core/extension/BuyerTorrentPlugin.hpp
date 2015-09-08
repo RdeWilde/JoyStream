@@ -8,11 +8,9 @@
 #ifndef BUYER_TORRENT_PLUGIN_HPP
 #define BUYER_TORRENT_PLUGIN_HPP
 
-#include "TorrentPlugin.hpp"
-#include "PaymentChannel/Payor.hpp"
-#include "BuyerPeerPlugin.hpp"
-
-//#include <QTime>
+#include <core/extension/TorrentPlugin.hpp>
+#include <core/extension/BuyerPeerPlugin.hpp>
+#include <paymentchannel/Payor.hpp>
 
 #include <queue>          // std::priority_queue
 
@@ -368,7 +366,7 @@ private:
      * SO THAT THERE IS TIGHTER ASSOCIATION BETWEEN CHANNELS AND
      * Lets just use sloppy pointers for now!!!!!!!!
      */
-    QVector<BuyerPeerPlugin *> _slotToPluginMapping;
+    std::vector<BuyerPeerPlugin *> _slotToPluginMapping;
 
     // Time since plugin was created, is used to keep track of when to start picking sellers.
     QTime _timeSincePluginStarted;
@@ -378,7 +376,7 @@ private:
      */
 
     // Pieces in torrent file
-    QVector<Piece> _pieces;
+    std::vector<Piece> _pieces;
 
     // The blocksize in the torrent
     //int _blockSize;
@@ -389,7 +387,7 @@ private:
     // Set of peer plugins which have not been assigned a piece.
     // the tick() callback routinely attempts to assign a piece
     // to a peer plugin in this set.
-    QSet<BuyerPeerPlugin *> _peerPluginsWithoutPieceAssignment;
+    std::set<BuyerPeerPlugin *> _peerPluginsWithoutPieceAssignment;
 
     // Keeps track of lower bound for piece indexes which may be assigned.
     // Is updated when full pieces are downloaded contigously, and

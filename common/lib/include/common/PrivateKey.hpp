@@ -28,7 +28,7 @@ class Signature;
 class TransactionSignature;
 class Transaction;
 enum class PublicKeyCompression;
-enum class SigHashType;
+class SigHashType;
 
 // Later make the allocation/copying anti-page secure
 // WARNING: NEEDS SECURE ALLOCATOR & DESTRUCTOR
@@ -64,7 +64,7 @@ public:
 
     // Sign transaction in given sighash mode on given input for spending
     // output with given output script
-    TransactionSignature sign(const Coin::Transaction & tx, uint inputToSign, const uchar_vector & scriptPubKey, SigHashType type) const;
+    TransactionSignature sign(const Coin::Transaction & tx, uint inputToSign, const uchar_vector & scriptPubKey, const SigHashType & type) const;
 
     // Sign transaction in SIGHASH_ALL mode on given input for spending
     // output with p2kh output controlled by this private key

@@ -16,7 +16,7 @@ PayorViewModel::PayorViewModel(QObject * parent, const Payor::Status & status)
     , _numberOfSignatures(status.numberOfSignatures()) {
 
     // Create view models for all channels
-    QVector<Payor::Channel::Status> channelStatuses = status.channels();
+    std::vector<Payor::Channel::Status> channelStatuses = status.channels();
 
     for(int i = 0;i < channelStatuses.size();i++)
         _channelViewModels.append(new ChannelViewModel(this, i, channelStatuses[i]));
@@ -55,7 +55,7 @@ void PayorViewModel::update(const Payor::Status & status) {
     }
 
     // Update each channel view model with new status
-    QVector<Payor::Channel::Status> channelStatuses = status.channels();
+    std::vector<Payor::Channel::Status> channelStatuses = status.channels();
 
     Q_ASSERT(_channelViewModels.size() == channelStatuses.size());
 

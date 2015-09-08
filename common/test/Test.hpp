@@ -10,6 +10,9 @@
 
 #include <QtTest/QtTest>
 
+//class uchar_vector;
+class QJsonObject;
+
 class Test : public QObject
 {
     Q_OBJECT
@@ -20,7 +23,20 @@ private slots:
      * Test routines
      */
 
+    void basic();
+
     void makeAndCheckSig();
+
+    void sighash();
+
+    void addresses();
+
+    void scripts();
+
+
+private:
+
+    static bool sighash(const QJsonArray & fixture);
 };
 
 #endif // COMMON_TEST_HPP

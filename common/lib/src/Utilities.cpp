@@ -102,10 +102,10 @@ namespace Coin {
     uchar_vector sighash(const Coin::Transaction & tx,
                     uint input,
                     const uchar_vector & scriptPubKey,
-                    SigHashType type) {
+                    const SigHashType & type) {
 
         // We only support this for now
-        if(type != Coin::SigHashType::all)
+        if(!type.isStandard())
             throw std::runtime_error("unsupported sighash type, only sighash_all is supported");
 
         // Make copy of original tx, since it will be modified
@@ -125,7 +125,7 @@ namespace Coin {
         txCopy.inputs[input].scriptSig = scriptPubKey;
 
         // Compute sighash and return
-        return txCopy.getHashWithAppendedCode(valueForSighashType(type));
+        return txCopy.getHashWithAppendedCode(type.hashCode());
     }
 
     /**

@@ -1,3 +1,9 @@
+/**
+ * Copyright (C) JoyStream - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, September 7 2015
+ */
 
 #include <common/SigHashType.hpp>
 
@@ -5,32 +11,77 @@
 
 namespace Coin {
 
-unsigned char valueForSighashType(SigHashType type) {
+SigHashType::SigHashType()
+    : _type(MutuallyExclusiveType::all)
+    , _anyOneCanPay(false) {
+}
+
+SigHashType::SigHashType(MutuallyExclusiveType type, bool anyOneCanPay)
+    : _type(type)
+    , _anyOneCanPay(anyOneCanPay) {
+}
+
+SigHashType SigHashType::fromHashCode(uint32_t hashCode) {
+
+    uint32_t masked = (hashCode & SIGHASHTYPE_BITMASK);
+
+    MutuallyExclusiveType type;
+
+    if(flag(MutuallyExclusiveType::all) == masked)
+        type = MutuallyExclusiveType::all;
+    if(flag(MutuallyExclusiveType::none) == masked)
+        type = MutuallyExclusiveType::none;
+    else if(flag(MutuallyExclusiveType::single) == masked)
+        type = MutuallyExclusiveType::single;
+    else
+        throw std::runtime_error("No standard mandatory sighash flag was set.");
+
+    return SigHashType(type, canAnyonePay(hashCode));
+}
+
+bool SigHashType::canAnyonePay(uint32_t hashCode) {
+    return hashCode & SIGHASH_ANYONECANPAY;
+}
+
+SigHashType SigHashType::standard() {
+    return SigHashType(MutuallyExclusiveType::all, false);
+}
+
+bool SigHashType::isStandard() const {
+    return (_type == MutuallyExclusiveType::all) && !_anyOneCanPay;
+}
+
+unsigned char SigHashType::flag(MutuallyExclusiveType type) {
 
     switch(type) {
 
-        case SigHashType::all: return 0x01;
-        case SigHashType::none: return 0x02;
-        case SigHashType::single: return 0x03;
-        case SigHashType::anyonecanpay: return 0x80;
+        case MutuallyExclusiveType::all: return SIGHASH_ALL;
+        case MutuallyExclusiveType::none: return SIGHASH_NONE;
+        case MutuallyExclusiveType::single: return SIGHASH_SINGLE;
 
         default:
-            throw std::runtime_error("Coding error, unsupported SigHashType");
+            throw std::runtime_error("Coding error, unsupported MutuallyExclusiveType");
     }
 }
 
-SigHashType SigHashTypeFromValue(unsigned char value) {
+unsigned char SigHashType::hashCode() const {
+    return flag(_type) | ( _anyOneCanPay ? SIGHASH_ANYONECANPAY : 0);
+}
 
-    switch(value) {
+SigHashType::MutuallyExclusiveType SigHashType::type() const {
+    return _type;
+}
 
-        case 0x01: return SigHashType::all;
-        case 0x02: return SigHashType::none;
-        case 0x03: return SigHashType::single;
-        case 0x80: return SigHashType::anyonecanpay;
+void SigHashType::setType(MutuallyExclusiveType type) {
+    _type = type;
+}
 
-        default:
-            throw std::runtime_error("Invalid sighashtype value");
-    }
+bool SigHashType::anyOneCanPay() const {
+    return _anyOneCanPay;
+}
+
+void SigHashType::setAnyOneCanPay(bool anyOneCanPay) {
+    _anyOneCanPay = anyOneCanPay;
 }
 
 }

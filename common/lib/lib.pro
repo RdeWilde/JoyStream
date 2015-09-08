@@ -43,7 +43,6 @@ HEADERS += \
     include/common/BitcoinRepresentation.hpp \
     include/common/UCharArray.hpp \
     include/common/typesafeOutPoint.hpp \
-    include/common/Payment.hpp \
     include/common/P2SHAddress.hpp \
     include/common/PubKeyHash.hpp \
     include/common/Seed.hpp \
@@ -57,7 +56,8 @@ HEADERS += \
     include/common/TransactionSignature.hpp \
     include/common/P2SHScriptSig.hpp \
     include/common/P2PKHScriptPubKey.hpp \
-    include/common/P2PKHScriptSig.hpp
+    include/common/P2PKHScriptSig.hpp \
+    include/common/Payment.hpp
 
 SOURCES += \
     src/DataSizeRepresentation.cpp \
@@ -73,7 +73,6 @@ SOURCES += \
     src/BitcoinDisplaySettings.cpp \
     src/BitcoinRepresentation.cpp \
     src/typesafeOutPoint.cpp \
-    src/Payment.cpp \
     src/P2SHAddress.cpp \
     src/Seed.cpp \
     src/LibtorrentUtilities.cpp \
@@ -86,4 +85,5 @@ SOURCES += \
     src/TransactionSignature.cpp \
     src/P2SHScriptSig.cpp \
     src/P2PKHScriptPubKey.cpp \
-    src/P2PKHScriptSig.cpp
+    src/P2PKHScriptSig.cpp \
+    src/Payment.cpp

@@ -8,7 +8,7 @@
 #ifndef PAYEE_VIEW_MODEL_HPP
 #define PAYEE_VIEW_MODEL_HPP
 
-#include <core/extension/PaymentChannel/Payee.hpp>
+#include <paymentchannel/Payee.hpp>
 
 #include <QObject>
 

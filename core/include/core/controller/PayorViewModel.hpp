@@ -8,9 +8,10 @@
 #ifndef PAYOR_VIEW_MODEL_HPP
 #define PAYOR_VIEW_MODEL_HPP
 
-#include <core/extension/PaymentChannel/Payor.hpp>
+#include <paymentchannel/Payor.hpp>
 
 #include <QObject>
+#include <QVector>
 
 class ChannelViewModel;
 

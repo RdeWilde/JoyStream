@@ -8,7 +8,7 @@
 #ifndef CHANNEL_VIEW_MODEL_HPP
 #define CHANNEL_VIEW_MODEL_HPP
 
-#include <core/extension/PaymentChannel/Payor.hpp>
+#include <paymentchannel/Payor.hpp>
 
 #include <QObject>
 

@@ -9,11 +9,11 @@
 #define SELLER_PEER_PLUGIN_HPP
 
 #include <core/extension/PeerPlugin.hpp>
-#include <core/extension/PaymentChannel/Payee.hpp>
 #include <core/extension/Message/Buy.hpp>
 #include <core/extension/Message/SignRefund.hpp>
 #include <core/extension/Message/Payment.hpp>
 #include <core/extension/Message/RequestFullPiece.hpp>
+#include <paymentchannel/Payee.hpp>
 
 #include <QSet>
 #include <QVector>

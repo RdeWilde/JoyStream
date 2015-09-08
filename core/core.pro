@@ -64,12 +64,6 @@ SOURCES += \
     src/extension/SellerTorrentPlugin.cpp \
     src/extension/SellerPeerPlugin.cpp \
     src/extension/BuyerPeerPlugin.cpp \
-    src/extension/PaymentChannel/Payor.cpp \
-    src/extension/PaymentChannel/Payee.cpp \
-    src/extension/PaymentChannel/Contract.cpp \
-    src/extension/PaymentChannel/Commitment.cpp \
-    #src/extension/PaymentChannel/Payment.cpp \
-    src/extension/PaymentChannel/Refund.cpp \
     src/controller/BuyerPeerPluginViewModel.cpp \
     src/controller/BuyerTorrentPluginViewModel.cpp \
     src/controller/ChannelViewModel.cpp \
@@ -131,12 +125,6 @@ HEADERS += \
     include/core/extension/SellerTorrentPlugin.hpp \
     include/core/extension/BuyerPeerPlugin.hpp \
     include/core/extension/SellerPeerPlugin.hpp \
-    include/core/extension/PaymentChannel/Payee.hpp \
-    include/core/extension/PaymentChannel/Payor.hpp \
-    include/core/extension/PaymentChannel/Contract.hpp \
-    include/core/extension/PaymentChannel/Commitment.hpp \
-    #include/core/extension/PaymentChannel/Payment.hpp \
-    include/core/extension/PaymentChannel/Refund.hpp \
     include/core/extension/Alert/BuyerPeerAddedAlert.hpp \
     include/core/extension/Alert/SellerPeerAddedAlert.hpp \
     include/core/extension/Alert/BuyerPeerPluginRemovedAlert.hpp \
@@ -162,19 +150,19 @@ HEADERS += \
     include/core/controller/TorrentViewModel.hpp \
     include/core/controller/Stream.hpp
 
-# common ###############################################################
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../common/lib/release/ -lcommon
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../common/lib/debug/ -lcommon
-else:unix: LIBS += -L$$OUT_PWD/../common/lib/ -lcommon
+# paymentchannel ###############################################################
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../paymentchannel/lib/release/ -lpaymentchannel
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../paymentchannel/lib/debug/ -lpaymentchannel
+else:unix: LIBS += -L$$OUT_PWD/../paymentchannel/lib/ -lpaymentchannel
 
-INCLUDEPATH += $$PWD/../common/lib/include
-DEPENDPATH += $$PWD/../common/lib/include
+INCLUDEPATH += $$PWD/../paymentchannel/lib/include
+DEPENDPATH += $$PWD/../paymentchannel/lib/include
 
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/lib/release/libcommon.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/lib/debug/libcommon.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/lib/release/common.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/lib/debug/common.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../common/lib/libcommon.a
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/lib/release/libpaymentchannel.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/lib/debug/libpaymentchannel.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/lib/release/paymentchannel.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/lib/debug/paymentchannel.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/lib/libpaymentchannel.a
 
 # wallet ###############################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../wallet/lib/release/ -lwallet
@@ -190,6 +178,19 @@ else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PW
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/lib/debug/wallet.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../wallet/lib/libwallet.a
 
+# common ###############################################################
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../common/lib/release/ -lcommon
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../common/lib/debug/ -lcommon
+else:unix: LIBS += -L$$OUT_PWD/../common/lib/ -lcommon
+
+INCLUDEPATH += $$PWD/../common/lib/include
+DEPENDPATH += $$PWD/../common/lib/include
+
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/lib/release/libcommon.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/lib/debug/libcommon.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/lib/release/common.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/lib/debug/common.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../common/lib/libcommon.a
 
 include(../libtorrent.pri)
 include(../mSIGNA.pri)

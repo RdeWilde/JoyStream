@@ -132,7 +132,7 @@ Signature PrivateKey::sign(const uchar_vector & data) const {
     return Signature(CoinCrypto::secp256k1_sign(signingKey, data));
 }
 
-TransactionSignature PrivateKey::sign(const Coin::Transaction & tx, uint inputToSign, const uchar_vector & scriptPubKey, SigHashType type) const {
+TransactionSignature PrivateKey::sign(const Coin::Transaction & tx, uint inputToSign, const uchar_vector & scriptPubKey, const SigHashType & type) const {
 
     // Generate sighash
     bytes_t hash = sighash(tx, inputToSign, scriptPubKey, type);
@@ -142,7 +142,7 @@ TransactionSignature PrivateKey::sign(const Coin::Transaction & tx, uint inputTo
 }
 
 TransactionSignature PrivateKey::signForP2PKHSpend(const Coin::Transaction & tx, uint inputToSign) const {
-    return sign(tx, inputToSign, P2PKHScriptPubKey(toPublicKey().toPubKeyHash()).serialize(), SigHashType::all);
+    return sign(tx, inputToSign, P2PKHScriptPubKey(toPublicKey().toPubKeyHash()).serialize(), SigHashType::standard());
 }
 
 PublicKey PrivateKey::toPublicKey() const {

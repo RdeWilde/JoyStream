@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#include <core/extension/PaymentChannel/Payor.hpp>
+#include <paymentchannel/Payor.hpp>
 
 /**
 * Payor::Channel::Configuration
@@ -230,17 +230,17 @@ void Payor::Channel::Status::setIndex(quint32 index) {
  * Payor::Channel
  */
 
-//#include <common/Payment.hpp>
 #include <common/RedeemScriptHash.hpp>
 #include <common/MultisigScriptPubKey.hpp>
 #include <common/P2SHScriptPubKey.hpp>
 #include <common/P2PKHScriptPubKey.hpp>
 #include <common/TransactionSignature.hpp>
 #include <common/Utilities.hpp> // DEFAULT_SEQUENCE_NUMBER
+#include <paymentchannel/Commitment.hpp>
+#include <paymentchannel/Refund.hpp>
+#include <paymentchannel/Settlement.hpp>
 
 #include <CoinCore/CoinNodeData.h> // Coin::TxOut
-
-#include <QJsonObject>
 
 Payor::Channel::Channel() {
 }
@@ -292,59 +292,49 @@ Payor::Channel::Channel(quint32 index,
     , _refundLockTime(refundLockTime) {
 }
 
-/**
- * REMOVE BOTH OF THESE LATER
-Refund Channel::refund(const Hash &contractHash) const {
-    return Refund(OutputPoint(contractHash, _index),
-                  P2PKHTxOut(_funds - _refundFee, _payorContractKeyPair.pk(), _payeeContractPk),
+Coin::typesafeOutPoint Payor::Channel::contractOutPoint(const Coin::TransactionId & contractTxId) const {
+    return Coin::typesafeOutPoint(contractTxId, _index);
+}
+
+Commitment Payor::Channel::commitment() const {
+
+    // Check that channel has been assigned
+    if(_state != State::assigned)
+        throw std::runtime_error("State incompatible request, must be in assigned state.");
+
+    return Commitment(_funds, _payorContractKeyPair.pk(), _payeeContractPk);
+}
+
+Refund Payor::Channel::refund(const Coin::TransactionId & contractTxId) const {
+
+    // Check that channel has been assigned
+    if(_state != State::assigned)
+        throw std::runtime_error("State incompatible request, must be in assigned state.");
+
+    // *** no fee !!!
+    return Refund(contractOutPoint(contractTxId),
+                  commitment(),
+                  Coin::Payment(_funds, _payorFinalKeyPair.pk().toPubKeyHash()),
                   _refundLockTime);
 }
 
-Payment Channel::payment(const Hash &contractHash) const {
+Settlement Payor::Channel::settlement(const Coin::TransactionId & contractTxId) const {
+
+    // Check that channel has been assigned
+    if(_state != State::assigned)
+        throw std::runtime_error("State incompatible request, must be in assigned state.");
 
     // The amount paid so far
     quint64 amountPaid = _price*_numberOfPaymentsMade;
 
-    return Payment(OutputPoint(contractHash, _index),
-                   P2PKHTxOut(_funds - amountPaid, _payorContractKeyPair.pk()),
-                   P2PKHTxOut(amountPaid - _paymentFee, _payorContractKeyPair.pk()));
-}
-*/
-
-Coin::P2SHScriptPubKey Payor::Channel::contractOutputScriptPubKey() const {
-    return Coin::P2SHScriptPubKey(std::vector<Coin::PublicKey>({_payorContractKeyPair.pk(), _payeeContractPk}), 2);
+    // *** no fee !!!
+    return Settlement(contractOutPoint(contractTxId),
+                      commitment(),
+                      Coin::Payment(_funds - amountPaid, _payorFinalKeyPair.pk().toPubKeyHash()),
+                      Coin::Payment(amountPaid, _payeeFinalPk.toPubKeyHash()));
 }
 
-Coin::TxOut Payor::Channel::contractOutput() const {
-
-    // Check that channel has been assigned
-    if(_state != State::assigned)
-        throw std::runtime_error("State incompatile request, must be in assigned state.");
-
-    // Create and return output
-    return Coin::TxOut(_funds, contractOutputScriptPubKey().serialize());
-}
-
-Coin::Transaction Payor::Channel::contractSpendingTransaction(const Coin::TransactionId & contractHash, quint64 returnedToPayor) const {
-
-    // Build refund transaction
-    Coin::Transaction tx;
-
-    // Set lock time
-    tx.lockTime = _refundLockTime;
-
-    // Add payor refund output
-    tx.addOutput(Coin::TxOut(returnedToPayor, Coin::P2PKHScriptPubKey(_payorFinalKeyPair.pk()).serialize()));
-
-    // Add (unsigned) input spending contract output
-    tx.addInput(Coin::TxIn(Coin::OutPoint(contractHash.toUCharVector(), _index),
-                               uchar_vector(),
-                               DEFAULT_SEQUENCE_NUMBER));
-
-    return tx;
-
-}
-
+/**
 Coin::Signature Payor::Channel::createPayorRefundSignature(const Coin::TransactionId & contractHash) const {
 
     // Check that channel has been assigned
@@ -352,14 +342,12 @@ Coin::Signature Payor::Channel::createPayorRefundSignature(const Coin::Transacti
         throw std::runtime_error("State incompatile request, must be in assigned state.");
 
     // Create transaction for spening contract output
-    Coin::Transaction refund = contractSpendingTransaction(contractHash, _funds);
-
-    // Create payor signature
-    Coin::TransactionSignature ts = _payorContractKeyPair.sk().sign(refund, 0, contractOutputScriptPubKey().serialize(), Coin::SigHashType::all);
+    Coin::Transaction refund = contractSpendingTransaction(contractHash, _funds, _refundLockTime);
 
     // Return signature
     return ts.sig();
 }
+
 
 Coin::Signature Payor::Channel::createPaymentSignature(const Coin::TransactionId & contractHash) const {
 
@@ -401,9 +389,9 @@ bool Payor::Channel::validateRefundSignature(const Coin::TransactionId & contrac
     // Verify that signature is valid for payee public key on sighash
     return _payeeContractPk.verify(sigHash, payeeSig);
 }
+*/
 
-
-void Payor::Channel::paymentMade() {
+void Payor::Channel::increaseNumberOfPayments() {
     _numberOfPaymentsMade++;
 }
 
@@ -429,7 +417,7 @@ Payor::Channel::State Payor::Channel::state() const {
     return _state;
 }
 
-void Payor::Channel::setState(const State & state) {
+void Payor::Channel::setState(State state) {
     _state = state;
 }
 
@@ -537,7 +525,7 @@ Payor::Status::Status() {
 
 }
 
-Payor::Status::Status(const QVector<Channel::Status> & channels,
+Payor::Status::Status(const std::vector<Channel::Status> & channels,
                       State state,
                       const Coin::UnspentP2PKHOutput & utxo,
                       quint64 changeValue,
@@ -553,11 +541,11 @@ Payor::Status::Status(const QVector<Channel::Status> & channels,
     , _numberOfSignatures(numberOfSignatures) {
 }
 
-QVector<Payor::Channel::Status> Payor::Status::channels() const {
+std::vector<Payor::Channel::Status> Payor::Status::channels() const {
     return _channels;
 }
 
-void Payor::Status::setChannels(const QVector<Channel::Status> & channels) {
+void Payor::Status::setChannels(const std::vector<Channel::Status> & channels) {
     _channels = channels;
 }
 
@@ -619,7 +607,7 @@ Payor::Configuration::Configuration() {
 
 Payor::Configuration::Configuration(Coin::Network network,
                                     State state,
-                                    const QVector<Channel::Configuration> & channels,
+                                    const std::vector<Channel::Configuration> & channels,
                                     const Coin::UnspentP2PKHOutput & utxo,
                                     //const OutPoint & fundingOutPoint,
                                     //quint64 fundingValue,
@@ -651,11 +639,11 @@ void Payor::Configuration::setState(State state) {
     _state = state;
 }
 
-QVector<Payor::Channel::Configuration> Payor::Configuration::channels() const {
+std::vector<Payor::Channel::Configuration> Payor::Configuration::channels() const {
     return _channels;
 }
 
-void Payor::Configuration::setChannels(const QVector<Payor::Channel::Configuration> & channels) {
+void Payor::Configuration::setChannels(const std::vector<Payor::Channel::Configuration> & channels) {
     _channels = channels;
 }
 
@@ -737,10 +725,12 @@ void Payor::Configuration::setNumberOfSignatures(quint32 numberOfSignatures) {
  * Payor
  */
 
-//#include <core/extension/PaymentChannel/Commitment.hpp>
-//#include <core/extension/PaymentChannel/Contract.hpp>
-//#include  <core/extension/PaymentChannel/Refund.hpp>
+#include <paymentchannel/Commitment.hpp>
+#include <paymentchannel/Contract.hpp>
+#include <paymentchannel/Refund.hpp>
+
 #include <common/Utilities.hpp> // DEFAULT_SEQUENCE_NUMBER
+
 #include <common/TransactionSignature.hpp>
 #include <common/P2PKHScriptPubKey.hpp>
 #include <common/P2PKHScriptSig.hpp>
@@ -763,13 +753,13 @@ Payor::Payor(const Payor::Configuration & configuration)
     , _numberOfSignatures(configuration.numberOfSignatures()) {
 
     // Populate _channels vector
-    const QVector<Channel::Configuration> & channelConfigurations = configuration.channels();
+    const std::vector<Channel::Configuration> & channelConfigurations = configuration.channels();
 
     // Counter for net output value, used to check integrity of fee
     quint64 netOutputValue = _changeValue;
 
-    for(QVector<Channel::Configuration>::const_iterator i = channelConfigurations.constBegin(),
-        end(channelConfigurations.constEnd()); i != end;i++) {
+    for(std::vector<Channel::Configuration>::const_iterator i = channelConfigurations.cbegin(),
+        end = channelConfigurations.cend(); i != end;i++) {
 
         // Get configuration
         const Channel::Configuration channelConfiguration(*i);
@@ -778,7 +768,7 @@ Payor::Payor(const Payor::Configuration & configuration)
         netOutputValue += channelConfiguration.funds();
 
         // Create channel
-        _channels.append(Channel(channelConfiguration));
+        _channels.push_back(Channel(channelConfiguration));
     }
 
     if(_contractFee != _utxo.value() - netOutputValue)
@@ -838,22 +828,24 @@ quint32 Payor::assignUnassignedSlot(quint64 price, const Coin::PublicKey & payee
         _state = State::waiting_for_full_set_of_refund_signatures;
 
         // Generate the contract transaction
-        //Contract c = contract();
-        //Coin::Transaction tx = c.transaction();
-        Coin::Transaction tx = contractTransaction();
+        Contract c = contract();
+        Coin::Transaction tx = c.transaction(); //Coin::Transaction tx = contractTransaction();
 
         // Get contract tx id
-        // It's in Little Endian byte order (least-significant byte first) in the protocol, but it's written out in Big Endian byte order (most-significant byte first) as most other numbers in English normally are.
+        // ** It's in Little Endian byte order (least-significant byte first) in the protocol, but it's written out in Big Endian byte order (most-significant byte first) as most other numbers in English normally are.
         _contractTxId = tx.getHashLittleEndian();
 
         // Compute all refund signatures
-        for(QVector<Channel>::Iterator i = _channels.begin(), end(_channels.end()); i != end;i++) {
+        for(std::vector<Channel>::iterator i = _channels.begin(), end(_channels.end()); i != end;i++) {
 
-            // Compute refund signature
-            Coin::Signature sig = i->createPayorRefundSignature(_contractTxId);
+            // Get refund
+            Refund refund = i->refund(_contractTxId);
 
-            // Save it
-            i->setPayorRefundSignature(sig);
+            // Get refund signature
+            Coin::TransactionSignature refundSignature = refund.transactionSignature(i->payorContractKeyPair().sk());
+
+            // Save signature in channel
+            i->setPayorRefundSignature(refundSignature.sig());
         }
     }
 
@@ -873,7 +865,7 @@ void Payor::unassignSlot(quint32 index) {
     _channels[index].setState(Channel::State::unassigned);
 
     // If some slots had refund signed state, i.e. valid signature, then revert state
-    for(QVector<Channel>::iterator i = _channels.begin(),
+    for(std::vector<Channel>::iterator i = _channels.begin(),
             end(_channels.end()); i != end;i++) {
 
         // Get slot
@@ -891,6 +883,28 @@ void Payor::unassignSlot(quint32 index) {
     _numberOfSignatures = 0;
 }
 
+Contract Payor::contract() const {
+
+    // Check that a full set of sellers has been established
+    if(_state != State::waiting_for_full_set_of_refund_signatures)
+        throw std::runtime_error("State incompatile request, must be in State::waiting_for_full_set_of_refund_signatures state.");
+
+    // Collect channel commitments
+    std::vector<Commitment> commitments;
+
+    for(std::vector<Channel>::const_iterator
+        i =  _channels.cbegin(),
+        end = _channels.cend();
+        i != end;
+        i++)
+        commitments.push_back((*i).commitment());
+
+
+    // Build contract
+    return Contract(_utxo, commitments, Coin::Payment(_changeValue, _changeOutputKeyPair.pk().toPubKeyHash()));
+}
+
+/**
 Coin::Transaction Payor::contractTransaction() const {
 
     // Create transaction
@@ -911,6 +925,7 @@ Coin::Transaction Payor::contractTransaction() const {
 
     return transaction;
 }
+*/
 
 bool Payor::processRefundSignature(quint32 index, const Coin::Signature & signature) {
 
@@ -923,18 +938,18 @@ bool Payor::processRefundSignature(quint32 index, const Coin::Signature & signat
         throw std::runtime_error("Invalid index.");
 
     // Get channel
-    Channel & s = _channels[index];
+    Channel & channel = _channels[index];
 
-    Q_ASSERT(s.state() == Channel::State::assigned);
+    Q_ASSERT(channel.state() == Channel::State::assigned);
 
     // Check signature
-    bool validSignature = s.validateRefundSignature(_contractTxId, signature);
+    bool validSignature = channel.refund(_contractTxId).validate(channel.payeeContractPk(), signature);
 
     // If it matched, then alter state and save signature
     if(validSignature) {
 
-        s.setState(Channel::State::refund_signed);
-        s.setPayeeRefundSignature(signature);
+        channel.setState(Channel::State::refund_signed);
+        channel.setPayeeRefundSignature(signature);
 
         _numberOfSignatures++;
 
@@ -987,18 +1002,21 @@ Coin::Signature Payor::getPresentPaymentSignature(quint32 index) const {
 
     Q_ASSERT(channel.state() == Channel::State::refund_signed);
 
-    // compute present payment signature for channel signature
-    Coin::Signature presentSignature = channel.createPaymentSignature(_contractTxId);
+    // Get settelemnt
+    Settlement settlement = channel.settlement(_contractTxId);
 
-    return presentSignature;
+    // Generate signature
+    Coin::TransactionSignature settlementSignature = settlement.transactionSignature(channel.payorContractKeyPair().sk());
+
+    return settlementSignature.sig();
 }
 
 Payor::Status Payor::status() const {
 
     // Get channel statuses
-    QVector<Channel::Status> channels;
+    std::vector<Channel::Status> channels;
 
-    for(QVector<Channel>::const_iterator i = _channels.begin(),
+    for(std::vector<Channel>::const_iterator i = _channels.begin(),
             end(_channels.end()); i != end;i++)
         channels.push_back(i->status());
 
@@ -1013,8 +1031,8 @@ quint32 Payor::numberOfChannels() const {
 quint32 Payor::numberOfChannelsWithState(Channel::State state) const {
 
     quint32 count = 0;
-    for(QVector<Channel>::const_iterator i = _channels.constBegin(),
-            end(_channels.constEnd()); i != end;i++) {
+    for(std::vector<Channel>::const_iterator i = _channels.cbegin(),
+            end = _channels.cend(); i != end;i++) {
 
         // Get channel
         const Channel & channel = *i;
@@ -1034,24 +1052,6 @@ bool Payor::isFull() const {
 bool Payor::allRefundsSigned() const {
     return numberOfChannelsWithState(Channel::State::refund_signed) == _channels.size();
 }
-
-/**
-Contract Payor::contract() const {
-
-    // Check that a full set of sellers has been established
-    if(_state != State::waiting_for_full_set_of_refund_signatures)
-        throw std::runtime_error("State incompatile request, must be in State::waiting_for_full_set_of_refund_signatures state.");
-
-    // Build contract
-    Contract contract(_fundingOutput, _slots.size(), P2PKHTxOut(_changeValue, _changeOutputKeyPair.pk()));
-
-    // Set outputs
-    for(QVector<Slot>::iterator i = _slots.begin(), end(_slots.end()); i != end;i++)
-        contract.setOutput(P2SHTxOut(*i.funds(), *i.payorContractKeyPair(), *i.payeeContractPk()));
-
-    return contract;
-}
-*/
 
 #include <QtMath>
 
@@ -1077,7 +1077,7 @@ void Payor::setState(State state) {
     _state = state;
 }
 
-QVector<Payor::Channel> & Payor::channels() {
+std::vector<Payor::Channel> & Payor::channels() {
     return _channels;
 }
 

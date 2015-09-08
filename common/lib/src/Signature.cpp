@@ -33,7 +33,8 @@ Signature::Signature(const uchar_vector & raw) {
           << inputLength;
 
         throw std::runtime_error(s.str());
-    }
+    } else
+        setRaw(raw);
 
 }
 

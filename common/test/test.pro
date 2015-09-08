@@ -20,6 +20,8 @@ HEADERS += \
 SOURCES += \
     Test.cpp
 
+INCLUDEPATH += ../lib/include
+
 # common ###############################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../lib/release/ -lcommon
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../lib/debug/ -lcommon

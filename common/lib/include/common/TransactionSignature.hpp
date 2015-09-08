@@ -18,7 +18,7 @@ class TransactionSignature {
 
 public:
 
-    TransactionSignature(const Signature & sig, SigHashType _type);
+    TransactionSignature(const Signature & sig, const SigHashType & type);
 
     // Serialized as scriptSig ready: <op load signature><DER signature><1 byte sighash type flag>
     uchar_vector serializeForScriptSig() const;
@@ -32,8 +32,10 @@ public:
 
 private:
 
+    // Signature
     Signature _sig;
 
+    // Sighash type which is basis for signature
     SigHashType _type;
 
     //unint inputSigned;

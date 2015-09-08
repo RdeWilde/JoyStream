@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef PAYEE_HPP
-#define PAYEE_HPP
+#ifndef PAYMENTCHANNEL_PAYEE_HPP
+#define PAYMENTCHANNEL_PAYEE_HPP
 
 #include <common/KeyPair.hpp>
 #include <common/typesafeOutPoint.hpp>
@@ -14,7 +14,14 @@
 
 namespace Coin {
     class Transaction;
+    class P2SHScriptPubKey;
+    class TxOut;
 }
+
+class Contract;
+class Commitment;
+class Refund;
+class Settlement;
 
 /**
  * Manages the payee side of a 1-to-N payment channel using design in CBEP.
@@ -240,13 +247,12 @@ public:
     // and storing signature in _lastValidPayorPaymentSignature
     bool registerPayment(const Coin::Signature & payorPaymentSignature);
 
-    // Attempts to check validity of given payment signature with (_numberOfPaymentsMade + 1)
-    bool checkNextPaymentSignature(const Coin::Signature & payorPaymentSignature) const;
-
     // Attempts to validate the contract transaction
+    // ==================================================
     bool validateContractTrasaction(const Coin::Transaction & transaction) const;
 
     // Generates transaction for last payment
+    // ==================================================
     Coin::Transaction lastPaymentTransaction() const;
 
     /**
@@ -342,6 +348,19 @@ private:
     // Amount (#satoshies) assigned to contract output
     quint64 _funds;
 
+
+    // Commitment
+    // ==================================================
+    Commitment commitment() const;
+
+    // Refund
+    // ==================================================
+    Refund refund() const;
+
+    // Settlement
+    // ==================================================
+    Settlement settlement(int64_t paymentCount) const;
+
 };
 
-#endif // PAYEE_HPP
+#endif // PAYMENTCHANNEL_PAYEE_HPP

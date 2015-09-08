@@ -23,6 +23,9 @@ QT      += core network sql # sql needed for wallet
 
 INCLUDEPATH += $$PWD # be able to include w.r.t root of this project
 
+# paymentchannel ###############################################################
+INCLUDEPATH += $$PWD/../paymentchannel/lib/include
+
 # gui ###########################################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../views/gui/release/ -lgui
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../views/gui/debug/ -lgui

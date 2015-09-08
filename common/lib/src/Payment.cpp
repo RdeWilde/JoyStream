@@ -2,47 +2,41 @@
  * Copyright (C) JoyStream - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
- * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 15 2015
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, September 5 2015
  */
 
 #include <common/Payment.hpp>
+#include <common/P2PKHScriptPubKey.hpp>
+#include <CoinCore/CoinNodeData.h> // Coin::TxOut
 
 namespace Coin {
 
-Payment::Payment()
-    : _value(0) {
-}
-
-Payment::Payment(quint64 value, const PublicKey & pk)
+Payment::Payment(int64_t value, const Coin::PubKeyHash & destination)
     : _value(value)
-    , _pk(pk){
+    , _destination(destination){
+
 }
 
-Payment::Payment(const Payment & o)
-    : Payment(o.value(), o.pk()) {
+Coin::TxOut Payment::txOut() const {
+    return Coin::TxOut(_value, Coin::P2PKHScriptPubKey(_destination).serialize());
 }
 
-Payment & Payment::operator=(const Payment & o) {
-
-    _value = o.value();
-    _pk = o.pk();
-
-    return *this;
-}
-quint64 Payment::value() const {
+int64_t Payment::value() const {
     return _value;
 }
 
-void Payment::setValue(quint64 value) {
+void Payment::setValue(int64_t value) {
     _value = value;
 }
 
-PublicKey Payment::pk() const {
-    return _pk;
+Coin::PubKeyHash Payment::destination() const {
+    return _destination;
 }
 
-void Payment::setPk(const PublicKey & pk) {
-    _pk = pk;
+void Payment::setDestination(const Coin::PubKeyHash & destination) {
+    _destination = destination;
 }
+
+
 
 }

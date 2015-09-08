@@ -172,14 +172,14 @@ void BuyerTorrentPluginViewModel::setStatics(const BuyerTorrentPlugin::Status & 
 
     // Iterate payor status
     const Payor::Status & payorStatus = status.payor();
-    QVector<Payor::Channel::Status> channels = payorStatus.channels();
+    std::vector<Payor::Channel::Status> channels = payorStatus.channels();
 
     // Total amount of funds in outputs, is used to deduce tx fee
     quint64 netOutputValue = payorStatus.changeValue();
 
-    for(QVector<Payor::Channel::Status>::const_iterator
-        i = channels.constBegin(),
-        end = channels.constEnd();
+    for(std::vector<Payor::Channel::Status>::const_iterator
+        i = channels.cbegin(),
+        end = channels.cend();
         i != end;i++) {
 
         // Get channel status

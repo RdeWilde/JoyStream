@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#include <core/extension/PaymentChannel/Payee.hpp>
+#include <paymentchannel/Payee.hpp>
 #include <common/Payment.hpp>
 
 /**
@@ -206,6 +206,12 @@ void Payee::Configuration::setFunds(const quint64 funds) {
  */
 
 #include <CoinCore/CoinNodeData.h>
+#include <common/P2SHScriptPubKey.hpp>
+#include <common/TransactionSignature.hpp>
+#include <common/SigHashType.hpp>
+#include <paymentchannel/Commitment.hpp>
+#include <paymentchannel/Refund.hpp>
+#include <paymentchannel/Settlement.hpp>
 
 Payee::Payee() {
 }
@@ -280,77 +286,61 @@ void Payee::registerPayorInformation(const Coin::typesafeOutPoint & contractOutP
     _funds = funds;
 }
 
+Commitment Payee::commitment() const {
+
+    if(_state != State::has_all_information_required)
+        throw std::runtime_error("State incompatible request, must be has_all_information_required state.");
+
+    return Commitment(_funds,
+                      _payorContractPk,
+                      _payeeContractKeys.pk());
+}
+
+Refund Payee::refund() const {
+
+    if(_state != State::has_all_information_required)
+        throw std::runtime_error("State incompatible request, must be has_all_information_required state.");
+
+    return Refund(contractOutPoint(),
+                  commitment(),
+                  Coin::Payment(_funds, _payorFinalPk.toPubKeyHash()),
+                  _lockTime);
+}
+
+Settlement Payee::settlement(int64_t paymentCount) const {
+
+    // Setup new payment outputs
+    int64_t paid = paymentCount * _price;
+
+    return Settlement(contractOutPoint(),
+                      commitment(),
+                      Coin::Payment(_funds - paid, _payorFinalPk.toPubKeyHash()),
+                      Coin::Payment(paid, _payeePaymentKeys.pk().toPubKeyHash()));
+}
+
 Coin::Signature Payee::generateRefundSignature() const {
 
-    // Check state
-    if(_state != State::has_all_information_required)
-        throw std::runtime_error("State incompatile request, must be in has_all_information_required state.");
+    // Get refund
+    Refund r = refund();
 
-    // Compute refund signature
-    /**
-    Coin::Signature sig = BitSwaprjs::compute_refund_signature(_contractOutPoint,
-                                                         _payeeContractKeys.sk(),
-                                                         _payorContractPk,
-                                                         _payeeContractKeys.pk(),
-                                                         Coin::P2PKHTxOut(_funds, _payorFinalPk),
-                                                         _lockTime);
-    */
-
-    Coin::Signature sig;
-
-    return sig;
+    // Return signature
+    return r.transactionSignature(_payeeContractKeys.sk()).sig();
 }
 
 bool Payee::registerPayment(const Coin::Signature & paymentSignature) {
 
-    // Check state
-    if(_state != State::has_all_information_required)
-        throw std::runtime_error("State incompatile request, must be in has_all_information_required state.");
+    // Get settlement for next payment
+    Settlement s = settlement(_numberOfPaymentsMade + 1);
 
-    // Check signature
-    bool check = checkNextPaymentSignature(paymentSignature);
-    //bool check = true;
+    bool valid = s.validatePayorSignature(paymentSignature);
 
     // Increase payment count if signature was valid
-    if(check) {
+    if(valid) {
         _numberOfPaymentsMade++;
         _lastValidPayorPaymentSignature = paymentSignature;
     }
 
-    return check;
-}
-
-bool Payee::checkNextPaymentSignature(const Coin::Signature & payorPaymentSignature) const {
-
-    // Check state
-    if(_state != State::has_all_information_required)
-        throw std::runtime_error("State incompatile request, must be in has_all_information_required state.");
-
-    // Setup new payment outputs
-    quint64 paid = (_numberOfPaymentsMade + 1) * _price;
-    Coin::Payment refund(_funds - paid, _payorFinalPk);
-    Coin::Payment payment(paid, _payeePaymentKeys.pk());
-
-    /**
-
-    // Compute payee signature
-    Signature payeePaymentSignature = BitSwaprjs::compute_payment_signature(_contractOutPoint,
-                                                                             _payeeContractKeys.sk(),
-                                                                             _payorContractPk,
-                                                                             _payeeContractKeys.pk(),
-                                                                             refundOutput,
-                                                                             paymentOutput);
-    // Check signature
-    return BitSwaprjs::check_payment_signatures(_contractOutPoint,
-                                                 payorPaymentSignature,
-                                                 payeePaymentSignature,
-                                                 _payorContractPk,
-                                                 _payeeContractKeys.pk(),
-                                                 refundOutput,
-                                                 paymentOutput);
-                                                 */
-
-        return true;
+    return valid;
 }
 
 bool Payee::validateContractTrasaction(const Coin::Transaction & transaction) const {
@@ -359,35 +349,15 @@ bool Payee::validateContractTrasaction(const Coin::Transaction & transaction) co
 
 Coin::Transaction Payee::lastPaymentTransaction() const {
 
-    // Check state
-    if(_state != State::has_all_information_required)
-        throw std::runtime_error("State incompatile request, must be in has_all_information_required state.");
+    // Get settlement for last payment
+    Settlement s = settlement(_numberOfPaymentsMade + 1);
 
-    // Setup new payment outputs
-    quint64 paid = (_numberOfPaymentsMade) * _price;
-    Coin::Payment refund(_funds - paid, _payorFinalPk);
-    Coin::Payment payment(paid, _payeePaymentKeys.pk());
+    // Prepare signatures
+    Coin::TransactionSignature payorTransactionSignature = Coin::TransactionSignature(_lastValidPayorPaymentSignature, Coin::SigHashType::standard());
+    Coin::TransactionSignature payeeTransactionSignature = s.transactionSignature(_payeeContractKeys.sk());
 
-    /**
-
-    // Compute payee signature
-    Coin::Signature payeePaymentSignature = BitSwaprjs::compute_payment_signature(_contractOutPoint,
-                                                                             _payeeContractKeys.sk(),
-                                                                             _payorContractPk,
-                                                                             _payeeContractKeys.pk(),
-                                                                             refundOutput,
-                                                                             paymentOutput);
-    // Check signature
-    return BitSwaprjs::broadcast_payment(_contractOutPoint,
-                                                 _lastValidPayorPaymentSignature,
-                                                 payeePaymentSignature,
-                                                 _payorContractPk,
-                                                 _payeeContractKeys.pk(),
-                                                 refundOutput,
-                                                 paymentOutput);
-    */
-
-    return Coin::Transaction();
+    // Return signed transaction
+    return s.signedTransaction(payorTransactionSignature, payeeTransactionSignature);
 }
 
 Payee::Status Payee::status() const {

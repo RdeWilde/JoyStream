@@ -31,8 +31,8 @@ public:
     // Hash of serialzied script
     RedeemScriptHash scriptHash() const;
 
-    // P2SH multisig output script
-    P2SHScriptPubKey p2shScriptPubKey() const;
+    // P2SH multisig output script:
+    P2SHScriptPubKey toP2SHScriptPubKey() const;
 
 private:
 
