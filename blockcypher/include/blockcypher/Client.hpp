@@ -38,35 +38,42 @@ class QNetworkAccessManager;
 namespace BlockCypher {
 
     class Reply;
+    struct Wallet;
 
     namespace CreateWallet {
         class Reply;
     }
 
-    struct Wallet;
+    namespace GetWallet {
+        class Reply;
+    }
+
 
     class Client {
 
     public:
 
+        Client(QNetworkAccessManager * manager, Coin::Network network, const QString & token);
+
         /**
          * CREATE WALLET
          */
 
-        // Non blocking routine which creates wallet and returns corresponding reply object
-        CreateWallet::Reply * createWalletAsync(const Wallet & requested) const;
+        // Non-blocking routine which creates wallet and returns corresponding reply object
+        CreateWallet::Reply * createWalletAsync(const Wallet & requested);
 
         // Blocking routine which creates wallet, or throws exception if failed
-        Wallet createWallet(const Wallet & requested) const;
+        Wallet createWallet(const Wallet & requested);
 
         /**
          * GET WALLET
          */
 
-        // GET query for getting wallet
-        // http://dev.blockcypher.com/#get-wallet-endpoint
-        void getWallet(QNetworkRequest * request, const QString & name) const;
-        Wallet getWallet(const QString & name) const;
+        // Non-blocking routine which gets a wallet with given name and returns corresponding reply object
+        GetWallet::Reply * getWalletAsync(const QString & name);
+
+        // Blocking routine which creates wallet, or throws exception if failed
+        Wallet getWallet(const QString & name);
 
         /**
          * ADD ADDRESS
@@ -76,13 +83,22 @@ namespace BlockCypher {
         // http://dev.blockcypher.com/#add-addresses-to-wallet-endpoint
         void addAddress(QNetworkRequest * request, const QString & name, const QList<Coin::P2PKHAddress> & addresses);
 
+        /**
+         * PUSH RAW TRANSACTION
+         */
+
         // Push Raw Transaction Endpoint (http://dev.blockcypher.com/#push-raw-transaction-endpoint)
         void pushRawTransaction(const QString & rawTransaction);
+
+        /**
+         * UTILITIES
+         */
 
         // Endpoint for given network
         static QString endPoint(Coin::Network network);
 
-        Client(QNetworkAccessManager * manager, Coin::Network network, const QString & token);
+        QNetworkReply * post(const QString & url, const QJsonObject & data);
+        QNetworkReply * get(const QString & url);
 
     private:
 

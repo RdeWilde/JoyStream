@@ -27,20 +27,35 @@ namespace BlockCypher {
 
         QNetworkReply * reply() const;
 
+    // Apparently virtual slots from
+    // pure virtual routines in base class need not
+    // redeclare as slots:
+    // http://stackoverflow.com/questions/2998216/does-qt-support-virtual-pure-slots
     public slots:
 
-        virtual void QNetworkReplyError(QNetworkReply::NetworkError code) = 0;
+        //void QNetworkReplyError(QNetworkReply::NetworkError code);
 
         virtual void QNetworkReplyFinished() = 0;
+
+    //signals:
+
+        //void error(QNetworkReply::NetworkError code);
 
     protected:
 
         // Reply object associated with operation
         QNetworkReply * _reply;
+
+        //QJsonObject _blockCypherError;
     };
 
+    /**
     // Parse reply into json
     QJsonObject replyToQJsonObject(QNetworkReply * reply);
+    */
+
+    // Parse raw buffer into json
+    QJsonObject rawToQJsonObject(const QByteArray & data);
 
 }
 

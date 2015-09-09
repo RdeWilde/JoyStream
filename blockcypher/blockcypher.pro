@@ -21,13 +21,15 @@ HEADERS += \
     include/blockcypher/Address.hpp \
     include/blockcypher/Client.hpp \
     include/blockcypher/CreateWallet.hpp \
-    include/blockcypher/BlockCypher.hpp
+    include/blockcypher/BlockCypher.hpp \
+    include/blockcypher/GetWallet.hpp
 
 SOURCES += \
     src/Wallet.cpp \
     src/Client.cpp \
     src/CreateWallet.cpp \
-    src/BlockCypher.cpp
+    src/BlockCypher.cpp \
+    src/GetWallet.cpp
 
 # common #############################################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../common/lib/release/ -lcommon

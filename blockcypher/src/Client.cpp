@@ -7,8 +7,9 @@
 
 #include <blockcypher/Client.hpp>
 #include <blockcypher/Wallet.hpp>
-#include <blockcypher/CreateWallet.hpp>
 #include <blockcypher/BlockCypher.hpp>
+#include <blockcypher/CreateWallet.hpp>
+#include <blockcypher/GetWallet.hpp>
 
 #include <QJsonArray>
 #include <QNetworkRequest>
@@ -18,59 +19,73 @@
 
 namespace BlockCypher {
 
-CreateWallet::Reply * Client::createWalletAsync(const Wallet & requested) const {
+Client::Client(QNetworkAccessManager * manager, Coin::Network network, const QString & token)
+    : _manager(manager)
+    , _network(network)
+    , _endPoint(endPoint(_network))
+    , _token(token) {
+}
 
-    // Create url and corresponding request
-    QUrl url(_endPoint + "wallets?token=" + QString(BLOCKCYPHER_TOKEN));
-    QNetworkRequest request(url);
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+CreateWallet::Reply * Client::createWalletAsync(const Wallet & requested) {
 
-    // Create and serialize payload
-    QJsonObject requestedJSON(requested.toJson());
-
-    // Serialize
-    QJsonDocument doc(requestedJSON);
-    QByteArray payload = doc.toJson();
-
-    // Make post request
-    QNetworkReply * reply = _manager->post(request, payload);
+    // Make POST request
+    QNetworkReply * reply = post("wallets?token=" + QString(BLOCKCYPHER_TOKEN), requested.toJson());
 
     // Return reply manager
     return new CreateWallet::Reply(reply, requested);
 }
 
-Wallet Client::createWallet(const Wallet & requested) const {
+Wallet Client::createWallet(const Wallet & requested) {
 
     CreateWallet::Reply * reply = Client::createWalletAsync(requested);
 
     // Block until we have reply finished
-    block(reply);
+    QEventLoop eventloop;
+    QObject::connect(reply,
+                     &CreateWallet::Reply::done,
+                     &eventloop,
+                     &QEventLoop::quit);
+    eventloop.exec();
 
-    if(reply->reply()->error() != QNetworkReply::NetworkError::NoError)
-        throw std::runtime_error("There was some error");
+    CreateWallet::BlockCypherResponse r = reply->response();
 
-    // Return response wallet
-    return reply->response();
+    if(r == CreateWallet::BlockCypherResponse::Created)
+        return reply->created();
+    else
+        throw std::runtime_error(""); // later add message here, e.g. for different scenarios
 }
 
-void Client::getWallet(QNetworkRequest * request, const QString & name) const {
+GetWallet::Reply * Client::getWalletAsync(const QString & name) {
 
-    // Create url
-    QString url = _endPoint + "wallets/" + name + "?token=" + QString(BLOCKCYPHER_TOKEN);
+    // Make GET request
+    QNetworkReply * reply = get("wallets/" + name + "?token=" + QString(BLOCKCYPHER_TOKEN));
 
-    // Set url on request
-    request->setUrl(url);
+    // Return reply manager
+    return new GetWallet::Reply(reply, name);
+
 }
 
-Wallet Client::getWallet(const QString & name) const {
+Wallet Client::getWallet(const QString & name) {
 
+    GetWallet::Reply * reply = Client::getWalletAsync(name);
+
+    // Block until we have reply finished
+    QEventLoop eventloop;
+    QObject::connect(reply,
+                     &GetWallet::Reply::done,
+                     &eventloop,
+                     &QEventLoop::quit);
+    eventloop.exec();
+
+    GetWallet::BlockCypherResponse r = reply->response();
+
+    if(r == GetWallet::BlockCypherResponse::Returned)
+        return reply->wallet();
+    else
+        throw std::runtime_error(""); // later add message here, e.g. for different scenarios
 }
 
 void Client::addAddress(QNetworkRequest * request, const QString & name, const QList<Coin::P2PKHAddress> & addresses) {
-
-    // Example get wallet with name "alice":
-    // curl https://api.blockcypher.com/v1/btc/main/wallets/alice/addresses?token=YOURTOKEN
-    // /wallets/$NAME/addresses     POST	Wallet	Wallet
 
     // Create url
     QString url = _endPoint + "wallets/" + name + "/addresses?token=" + QString(BLOCKCYPHER_TOKEN);
@@ -86,14 +101,12 @@ void Client::addAddress(QNetworkRequest * request, const QString & name, const Q
 
     // Set url on request
     request->setUrl(url);
-    //request->se
 }
 
 void Client::pushRawTransaction(const QString & rawTransaction) {
 
     // * Resource     Method	Request Object	Return Object
     // * /txs/push    POST	{“tx”:$TXHEX}	TX
-
 }
 
 QString Client::endPoint(Coin::Network network) {
@@ -106,29 +119,29 @@ QString Client::endPoint(Coin::Network network) {
     Q_ASSERT(false);
 }
 
-Client::Client(QNetworkAccessManager * manager, Coin::Network network, const QString & token)
-    : _manager(manager)
-    , _network(network)
-    , _endPoint(endPoint(_network))
-    , _token(token) {
+QNetworkReply * Client::post(const QString & url, const QJsonObject & data) {
+
+    // Create url and corresponding request
+    QUrl qurl(_endPoint + url);
+    QNetworkRequest request(qurl);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+
+    // Create and serialize payload
+    QJsonDocument doc(data);
+    QByteArray payload = doc.toJson();
+
+    // Make post request
+    return _manager->post(request, payload);
 }
 
-void Client::block(const BlockCypher::Reply * reply) const {
+QNetworkReply * Client::get(const QString & url) {
 
-    QEventLoop eventloop;
+    // Create url and corresponding request
+    QUrl qurl(_endPoint + url);
+    QNetworkRequest request(qurl);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
 
-    QObject::connect(reply->reply(),
-                     SIGNAL(error(QNetworkReply::NetworkError)),
-                     &eventloop,
-                     SLOT(quit()));
-
-    QObject::connect(reply->reply(),
-                     SIGNAL(finished()),
-                     &eventloop,
-                     SLOT(quit()));
-
-    // block until one of those signals are emitted
-    eventloop.exec();
+    return _manager->get(request);
 }
 
 }

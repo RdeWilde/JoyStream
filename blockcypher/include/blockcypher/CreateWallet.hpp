@@ -10,7 +10,6 @@
 
 #include <blockcypher/BlockCypher.hpp>
 #include <blockcypher/Wallet.hpp>
-#include <common/P2PKHAddress.hpp>
 
 class QNetworkRequest;
 class QNetworkReply;
@@ -31,6 +30,15 @@ namespace CreateWallet {
      * ]}
     */
 
+    enum class BlockCypherResponse {
+        Pending,
+        Created,
+        AlreadyExists,
+        InvalidName, // too long or whatever
+
+        catch_all // temporary
+    };
+
     // QNetworkReply signal handler corresponding to a spesific call
     class Reply : public BlockCypher::Reply {
 
@@ -40,32 +48,30 @@ namespace CreateWallet {
 
         Reply(QNetworkReply * reply, const Wallet & requested);
 
-        // Getters
         Wallet requested() const;
-
-        Wallet response() const;
+        BlockCypherResponse response() const;
+        Wallet created() const;
 
     public slots:
-
-        virtual void QNetworkReplyError(QNetworkReply::NetworkError code);
 
         virtual void QNetworkReplyFinished();
 
     signals:
 
-        // There was a network error
-        void error(QNetworkReply::NetworkError code);
-
-        // The given wallet was returned from the original call
-        void walletCreated(const Wallet & wallet);
+        // Finished processing network reply
+        void done(BlockCypherResponse response);
 
     private:
 
         // Original request to which handler corresponds
         Wallet _requested;
 
-        // Response
-        Wallet _response;
+        // Result of call
+        BlockCypherResponse _response;
+
+        // Created wallet
+        Wallet _created;
+        //QJsonObject _error;
     };
 }
 }

@@ -2,31 +2,32 @@
  * Copyright (C) JoyStream - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
- * Written by Bedeho Mender <bedeho.mender@gmail.com>, September 8 2015
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, September 9 2015
  */
 
-#include <blockcypher/CreateWallet.hpp>
+#include <blockcypher/GetWallet.hpp>
 
 #include <QJsonObject>
 
 namespace BlockCypher {
-namespace CreateWallet {
+namespace GetWallet {
 
-Reply::Reply(QNetworkReply * reply, const Wallet & requested)
+Reply::Reply(QNetworkReply * reply, const QString & name)
     : BlockCypher::Reply(reply)
-    , _requested(requested) {
+    , _name(name)
+    , _response(BlockCypherResponse::Pending) {
 }
 
-Wallet Reply::requested() const {
-    return _requested;
+QString Reply::name() const {
+    return _name;
 }
 
 BlockCypherResponse Reply::response() const {
     return _response;
 }
 
-Wallet Reply::created() const {
-    return _created;
+Wallet Reply::wallet() const {
+    return _wallet;
 }
 
 void Reply::QNetworkReplyFinished() {
@@ -45,10 +46,12 @@ void Reply::QNetworkReplyFinished() {
 
         if(e == QNetworkReply::NoError) {
 
-            _response = BlockCypherResponse::Created;
-            _created = Wallet(BlockCypher::rawToQJsonObject(response));
-            Q_ASSERT(_created == _requested);
+            _response = BlockCypherResponse::Returned;
+            _wallet = Wallet(BlockCypher::rawToQJsonObject(response));
+            Q_ASSERT(_wallet._name == _name);
 
+        } else if(_reply->error() == QNetworkReply::NetworkError::ContentNotFoundError) {
+            _response = BlockCypherResponse::DoesNotExist;
         } else {
 
             _response = BlockCypherResponse::catch_all;
