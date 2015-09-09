@@ -9,7 +9,7 @@
 #define LIBTORRENT_UTILITIES_HPP
 
 #include <libtorrent/socket.hpp> // libtorrent::tcp::endpoint
-uint qHash(const libtorrent::tcp::endpoint & endpoint);
+unsigned int qHash(const libtorrent::tcp::endpoint & endpoint);
 
 //#include <libtorrent/peer_connection.hpp> // libtorrent::peer_request
 //uint qHash(const libtorrent::peer_request & request);
