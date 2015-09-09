@@ -11,7 +11,9 @@ SUBDIRS     = \
             wallet \
             core \
             views \
-            app
+            app \
+            blockcypher \
+            test
 
 paymentchannel.depends = common
 
@@ -30,3 +32,12 @@ app.depends = common
 app.depends = core
 app.depends = wallet
 app.depends = views
+
+test.depends = common
+test.depends = paymentchannel
+test.depends = wallet
+test.depends = core
+test.depends = views
+test.depends = app
+test.depends = blockcypher
+

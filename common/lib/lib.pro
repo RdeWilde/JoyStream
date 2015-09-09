@@ -47,7 +47,6 @@ HEADERS += \
     include/common/PubKeyHash.hpp \
     include/common/Seed.hpp \
     include/common/LibtorrentUtilities.hpp \
-    include/common/BlockCypher.hpp \
     include/common/RedeemScriptHash.hpp \
     include/common/SigHashType.hpp \
     include/common/MultisigScriptPubKey.hpp \
@@ -77,7 +76,6 @@ SOURCES += \
     src/Seed.cpp \
     src/LibtorrentUtilities.cpp \
     src/Network.cpp \
-    src/BlockCypher.cpp \
     src/SigHashType.cpp \
     src/MultisigScriptPubKey.cpp \
     src/P2SHScriptPubKey.cpp \

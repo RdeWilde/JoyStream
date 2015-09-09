@@ -27,6 +27,9 @@ public:
     // Factory from Base58CheckEncoding
     static P2PKHAddress fromBase58CheckEncoding(const QString & encoded);
 
+    // Equality operator
+    bool operator==(const P2PKHAddress & o);
+
     // Base58CheckEncode
     QString toBase58CheckEncoding() const;
 
