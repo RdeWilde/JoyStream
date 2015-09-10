@@ -49,9 +49,12 @@ Wallet Client::createWallet(const Wallet & requested) {
 
     CreateWallet::BlockCypherResponse r = reply->response();
 
-    if(r == CreateWallet::BlockCypherResponse::Created)
+    if(r == CreateWallet::BlockCypherResponse::Created) {
+
+        Q_ASSERT(reply->created() == requested);
+
         return reply->created();
-    else
+    } else
         throw std::runtime_error(""); // later add message here, e.g. for different scenarios
 }
 
@@ -79,29 +82,53 @@ Wallet Client::getWallet(const QString & name) {
 
     GetWallet::BlockCypherResponse r = reply->response();
 
-    if(r == GetWallet::BlockCypherResponse::Returned)
+    if(r == GetWallet::BlockCypherResponse::Returned) {
+
+        Q_ASSERT(reply->wallet()._name == name);
+
         return reply->wallet();
-    else
+    } else
         throw std::runtime_error(""); // later add message here, e.g. for different scenarios
 }
 
-void Client::addAddress(QNetworkRequest * request, const QString & name, const QList<Coin::P2PKHAddress> & addresses) {
+AddAddressToWallet::Reply * Client::addAddressToWalletAsync(const Wallet & requested) {
 
-    // Create url
-    QString url = _endPoint + "wallets/" + name + "/addresses?token=" + QString(BLOCKCYPHER_TOKEN);
+    // Make GET request
+    QNetworkReply * reply = post("wallets/" + requested._name + "/addresses?token=" + QString(BLOCKCYPHER_TOKEN), requested.toJson());
 
-    // Create wallet with
-    Wallet wallet(_token, name, addresses);
-
-    // Turn into wallet into json,
-    QJsonObject json = wallet.toJson();
-
-    // Turn json into string encoded payload
-    QByteArray payload = QJsonDocument(json).toJson();
-
-    // Set url on request
-    request->setUrl(url);
+    // Return reply manager
+    return new AddAddressToWallet::Reply(reply, requested);
 }
+
+
+Wallet Client::addAddressToWallet(const Wallet & requested) {
+
+    AddAddressToWallet::Reply * reply = Client::addAddressToWalletAsync(requested);
+
+    // Block until we have reply finished
+    QEventLoop eventloop;
+    QObject::connect(reply,
+                     &AddAddressToWallet::Reply::done,
+                     &eventloop,
+                     &QEventLoop::quit);
+    eventloop.exec();
+
+    AddAddressToWallet::BlockCypherResponse r = reply->response();
+
+    if(r == AddAddressToWallet::BlockCypherResponse::Created) {
+
+        Wallet created = reply->created();
+
+        // assert that what was requested is inside what was created
+        Q_ASSERT(requested._token == created._token);
+        Q_ASSERT(requested._name == created._name);
+        //Q_ASSERT(requested._addresses.toSet().intersect(created).contains())
+
+        return created;
+    } else
+        throw std::runtime_error(""); // later add message here, e.g. for different scenarios
+}
+
 
 void Client::pushRawTransaction(const QString & rawTransaction) {
 

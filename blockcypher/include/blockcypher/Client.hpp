@@ -8,6 +8,8 @@
 #ifndef BLOCKCYPHER_CLIENT_HPP
 #define BLOCKCYPHER_CLIENT_HPP
 
+//#include <blockcypher/AddAddressToWallet.hpp> // can't forward declare typedef
+
 #include <common/P2PKHAddress.hpp>
 #include <common/TransactionId.hpp>
 #include <common/Network.hpp>
@@ -41,6 +43,7 @@ namespace BlockCypher {
     struct Wallet;
 
     namespace CreateWallet {
+        enum class BlockCypherResponse;
         class Reply;
     }
 
@@ -48,6 +51,10 @@ namespace BlockCypher {
         class Reply;
     }
 
+    namespace AddAddressToWallet {
+        typedef CreateWallet::BlockCypherResponse BlockCypherResponse;
+        typedef CreateWallet::Reply Reply;
+    }
 
     class Client {
 
@@ -79,9 +86,11 @@ namespace BlockCypher {
          * ADD ADDRESS
          */
 
-        // GET query for adding address to wallet
-        // http://dev.blockcypher.com/#add-addresses-to-wallet-endpoint
-        void addAddress(QNetworkRequest * request, const QString & name, const QList<Coin::P2PKHAddress> & addresses);
+        // Non-blocking routine which adds fresh addresses in given wallet, and returns corresponding replyobject
+        AddAddressToWallet::Reply * addAddressToWalletAsync(const Wallet & requested);
+
+        // Add new addresses in given wallet to wallet, returns new total wallet
+        Wallet addAddressToWallet(const Wallet & requested);
 
         /**
          * PUSH RAW TRANSACTION

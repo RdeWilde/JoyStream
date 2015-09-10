@@ -46,7 +46,7 @@ private slots:
 
     void getWallet();
 
-    void address();
+    void addAddresses();
 
     void txref();
 

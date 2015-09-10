@@ -21,10 +21,8 @@ namespace GetWallet {
         Pending,
         Returned,
         DoesNotExist,
-
         InvalidName, // too long or whatever [is this a separate thing from does not exist, as it could nevr have been made?]
-
-        catch_all
+        None // Means there was some network issue, i.e. QNetworkReply::bytesAvailable() == 0
     };
 
     // QNetworkReply signal handler corresponding to a spesific call

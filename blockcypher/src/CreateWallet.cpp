@@ -47,9 +47,10 @@ void Reply::QNetworkReplyFinished() {
 
             _response = BlockCypherResponse::Created;
             _created = Wallet(BlockCypher::rawToQJsonObject(response));
-            Q_ASSERT(_created == _requested);
 
-        } else {
+        } else if(e == QNetworkReply::ContentConflictError)
+            _response = BlockCypherResponse::AlreadyExists;
+        else {
 
             _response = BlockCypherResponse::catch_all;
             qDebug() << QString(response);

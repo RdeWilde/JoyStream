@@ -22,7 +22,8 @@ HEADERS += \
     include/blockcypher/Client.hpp \
     include/blockcypher/CreateWallet.hpp \
     include/blockcypher/BlockCypher.hpp \
-    include/blockcypher/GetWallet.hpp
+    include/blockcypher/GetWallet.hpp \
+    include/blockcypher/AddAddressToWallet.hpp
 
 SOURCES += \
     src/Wallet.cpp \

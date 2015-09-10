@@ -59,6 +59,8 @@ namespace BlockCypher {
         // To retrieve base URL transactions.
         // To get the full URL, concatenate this URL with a transaction’s hash.
         QString _tx_url;
+
+
     };
 }
 

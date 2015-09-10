@@ -11,6 +11,10 @@
 #include <blockcypher/Wallet.hpp>
 
 #include <common/Seed.hpp>
+#include <common/PrivateKey.hpp>
+#include <common/PublicKey.hpp>
+#include <common/P2PKHAddress.hpp>
+
 #include <CoinCore/hdkeys.h>
 
 void Test::init() {
@@ -23,18 +27,21 @@ void Test::cleanup() {
 
 void Test::createWallet() {
 
-    /**
     // Create wallet to request
     QList<Coin::P2PKHAddress> list;
     list.append(Coin::P2PKHAddress());
     list.append(Coin::P2PKHAddress());
 
-    BlockCypher::Wallet requested(BLOCKCYPHER_TOKEN, "my-test5", list);
+    // Request new wallet:
+    // Havent found a sensible way to request new wallet without also
+    // having to implement wallet deletion, so wait for now.
+    //BlockCypher::Wallet requestedNew(BLOCKCYPHER_TOKEN, "my-test5", list);
+    //BlockCypher::Wallet returned = _client->createWallet(requestedNew);
+    //QVERIFY(returned == requestedNew);
 
-    BlockCypher::Wallet returned = _client->createWallet(requested);
-
-    QVERIFY(returned == requested);
-    */
+    // Request wallet which already exists
+    BlockCypher::Wallet requested(BLOCKCYPHER_TOKEN, "addAddresses-testwallet", list);
+    QVERIFY_EXCEPTION_THROWN(_client->createWallet(requested), std::runtime_error);
 }
 
 void Test::getWallet() {
@@ -45,12 +52,22 @@ void Test::getWallet() {
 
     // Check that non-existing wallet is not found
     QVERIFY_EXCEPTION_THROWN(_client->getWallet("unused-wallet-name"), std::runtime_error);
-
 }
 
-void Test::address() {
+void Test::addAddresses() {
 
+    // Get old wallet
+    BlockCypher::Wallet init = _client->getWallet("addAddresses-testwallet");
 
+    // Generate a new public key for which to add the corresponding address to the wallet
+    Coin::P2PKHAddress addr(NETWORK_TYPE, Coin::PublicKey(Coin::PrivateKey::generate().toPublicKey()).toPubKeyHash());
+    BlockCypher::Wallet toBeAdded(init._token, init._name, QList<Coin::P2PKHAddress>() << addr);
+
+    // Add to wallet
+    BlockCypher::Wallet final = _client->addAddressToWallet(toBeAdded);
+
+    // Check that size increased by one
+    QVERIFY(final._addresses.size() == init._addresses.size() + 1);
 }
 
 void Test::txref() {

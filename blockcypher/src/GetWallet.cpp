@@ -33,7 +33,7 @@ Wallet Reply::wallet() const {
 void Reply::QNetworkReplyFinished() {
 
     if(_reply->bytesAvailable() == 0) {
-        _response = BlockCypherResponse::catch_all;
+        _response = BlockCypherResponse::None;
     } else {
 
         // Get response data, without emptying QIODevice
@@ -54,7 +54,7 @@ void Reply::QNetworkReplyFinished() {
             _response = BlockCypherResponse::DoesNotExist;
         } else {
 
-            _response = BlockCypherResponse::catch_all;
+            _response = BlockCypherResponse::None;
             qDebug() << QString(response);
         }
     }
