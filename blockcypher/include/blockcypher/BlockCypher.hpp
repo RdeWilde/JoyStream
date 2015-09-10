@@ -8,6 +8,7 @@
 #ifndef BLOCKCYPHER_HPP
 #define BLOCKCYPHER_HPP
 
+#include <QtDebug>
 #include <QNetworkReply> // cannot forward declare
 
 class QJsonObject;
