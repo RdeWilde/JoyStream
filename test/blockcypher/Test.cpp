@@ -9,6 +9,7 @@
 
 #include <blockcypher/Client.hpp>
 #include <blockcypher/Wallet.hpp>
+#include <blockcypher/Address.hpp>
 
 #include <common/Seed.hpp>
 #include <common/PrivateKey.hpp>
@@ -70,13 +71,12 @@ void Test::addAddresses() {
     QVERIFY(final._addresses.size() == init._addresses.size() + 1);
 }
 
-void Test::txref() {
+void Test::addressEndpoint() {
 
-}
+    BlockCypher::Address addr = _client->addressEndPoint("addAddresses-testwallet");
 
-void Test::wallet() {
-
-    //BlockCypher::Wallet wallet();
+    QVERIFY(addr._balance > 0);
+    QVERIFY(addr._txrefs.size() > 0);
 }
 
 QTEST_MAIN(Test)

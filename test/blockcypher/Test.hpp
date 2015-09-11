@@ -48,9 +48,8 @@ private slots:
 
     void addAddresses();
 
-    void txref();
+    void addressEndpoint();
 
-    void wallet();
 };
 
 #endif // TESTWALLET_HPP

@@ -84,4 +84,5 @@ SOURCES += \
     src/P2SHScriptSig.cpp \
     src/P2PKHScriptPubKey.cpp \
     src/P2PKHScriptSig.cpp \
-    src/Payment.cpp
+    src/Payment.cpp \
+    src/TransactionId.cpp

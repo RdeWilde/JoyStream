@@ -10,6 +10,7 @@
 #include <blockcypher/BlockCypher.hpp>
 #include <blockcypher/CreateWallet.hpp>
 #include <blockcypher/GetWallet.hpp>
+#include <blockcypher/AddressEndPoint.hpp>
 
 #include <QJsonArray>
 #include <QNetworkRequest>
@@ -129,6 +130,49 @@ Wallet Client::addAddressToWallet(const Wallet & requested) {
         throw std::runtime_error(""); // later add message here, e.g. for different scenarios
 }
 
+AddressEndPoint::Reply * Client::addressEndPointAsync(const QString & walletName, bool unspentOnly, uint limit, uint confirmations) {
+
+    QString basic_request_uri = "addrs/" + walletName + "?token=" + QString(BLOCKCYPHER_TOKEN);
+
+    if(unspentOnly)
+        basic_request_uri += "&unspentOnly=1";
+
+    if(limit != 50) // default value
+        basic_request_uri += "&limit=" + limit;
+
+    if(confirmations != -1) // indicates we don care
+        basic_request_uri += "&confirmations=" + confirmations;
+
+    // Make GET request
+    QNetworkReply * reply = get(basic_request_uri);
+
+    // Return reply manager
+    return new AddressEndPoint::Reply(reply, walletName, unspentOnly, limit, confirmations);
+}
+
+Address Client::addressEndPoint(const QString & walletName, bool unspentOnly, uint limit, uint confirmations) {
+
+    AddressEndPoint::Reply * reply = Client::addressEndPointAsync(walletName, unspentOnly, limit, confirmations);
+
+    // Block until we have reply finished
+    QEventLoop eventloop;
+    QObject::connect(reply,
+                     &AddressEndPoint::Reply::done,
+                     &eventloop,
+                     &QEventLoop::quit);
+    eventloop.exec();
+
+    AddressEndPoint::BlockCypherResponse r = reply->response();
+
+    if(r == AddressEndPoint::BlockCypherResponse::Fetched) {
+
+        Address fetched = reply->address();
+
+        return fetched;
+    } else
+        throw std::runtime_error(""); // later add message here, e.g. for different scenarios
+
+}
 
 void Client::pushRawTransaction(const QString & rawTransaction) {
 

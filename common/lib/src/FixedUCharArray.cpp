@@ -99,6 +99,11 @@ UCharArray<array_length>::UCharArray(const QByteArray & raw) {
 }
 
 template<unsigned int array_length>
+void UCharArray<array_length>::reverse() {
+    std::reverse(this->begin(), this->end());
+}
+
+template<unsigned int array_length>
 unsigned int UCharArray<array_length>::length() {
     return array_length;
 }

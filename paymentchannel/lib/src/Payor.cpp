@@ -818,7 +818,10 @@ quint32 Payor::assignUnassignedSlot(quint64 price, const Coin::PublicKey & payee
         Coin::Transaction tx = c.transaction(); //Coin::Transaction tx = contractTransaction();
 
         // Get contract tx id
-        // ** It's in Little Endian byte order (least-significant byte first) in the protocol, but it's written out in Big Endian byte order (most-significant byte first) as most other numbers in English normally are.
+        // https://bitcoin.org/en/developer-reference#hash-byte-order
+        // ** It's in Little Endian byte order (least-significant byte first) in the protocol,
+        // but it's written out in Big Endian byte order (most-significant byte first)
+        // as most other numbers in English normally are.
         _contractTxId = tx.getHashLittleEndian();
 
         // Compute all refund signatures

@@ -41,6 +41,7 @@ namespace BlockCypher {
 
     class Reply;
     struct Wallet;
+    struct Address;
 
     namespace CreateWallet {
         enum class BlockCypherResponse;
@@ -54,6 +55,10 @@ namespace BlockCypher {
     namespace AddAddressToWallet {
         typedef CreateWallet::BlockCypherResponse BlockCypherResponse;
         typedef CreateWallet::Reply Reply;
+    }
+
+    namespace AddressEndPoint {
+        class Reply;
     }
 
     class Client {
@@ -91,6 +96,17 @@ namespace BlockCypher {
 
         // Add new addresses in given wallet to wallet, returns new total wallet
         Wallet addAddressToWallet(const Wallet & requested);
+
+        /**
+         * ADDRESS ENDPOINT
+         * http://dev.blockcypher.com/?shell#address-endpoint
+         */
+
+        // Non-blocking routine which adds fresh addresses in given wallet, and returns corresponding replyobject
+        AddressEndPoint::Reply * addressEndPointAsync(const QString & walletName, bool unspentOnly = true, uint limit = 200, uint confirmations = -1);
+
+        // Add new addresses in given wallet to wallet, returns new total wallet
+        Address addressEndPoint(const QString & walletName, bool unspentOnly = true, uint limit = 200, uint confirmations = -1);
 
         /**
          * PUSH RAW TRANSACTION

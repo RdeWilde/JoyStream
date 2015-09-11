@@ -38,6 +38,9 @@ public:
     // Constructor from raw byte array
     UCharArray(const QByteArray & raw);
 
+    // Reverses representation, to switch between little/big-endian
+    void reverse();
+
     // Return length
     static unsigned int length();
 

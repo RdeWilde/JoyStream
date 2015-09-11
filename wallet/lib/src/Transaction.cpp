@@ -30,7 +30,7 @@ Record::Record(const PK & pk,
 }
 
 Record::Record(const Coin::Transaction & transaction, const QDateTime & seen)
-    : Record(transaction.getHashLittleEndian(), transaction.version, transaction.lockTime, seen, QVariant()) {
+    : Record(transaction.getHash(), transaction.version, transaction.lockTime, seen, QVariant()) {
 }
 
 Record::Record(const QSqlRecord & record) {

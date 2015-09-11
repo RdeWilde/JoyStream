@@ -23,6 +23,12 @@ namespace BlockCypher {
      */
     struct TXRef {
 
+        TXRef(const QJsonObject & o);
+
+        // *** Not returned if querying a wallet/HD wallet. ***
+        // *** Not only P2PKH addresses, all types!!!! ***
+        //Coin::P2PKHAddress _address;
+
         // Height of the block that contains this transaction.
         // If this is an unconfirmed transaction, it will equal -1.
         int _block_height;
@@ -53,15 +59,15 @@ namespace BlockCypher {
         Preference preference;
 
         // True if this output was spent; false otherwise.
-        bool spent;
+        bool _spent;
 
         // True if this is an attempted double spend; false otherwise.
-        bool doble_spend;
+        bool _double_spend;
 
         // Number of subsequent blocks,
         // including the block the transaction is in.
         // Unconfirmed transactions have 0 confirmations.
-        quint32 _confirmations;
+        uint32_t _confirmations;
     };
 
 }
