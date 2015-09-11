@@ -20,7 +20,8 @@ QByteArray encodeDateTime(const QDateTime & dateTime) {
 QDateTime decodeDateTime(const QByteArray & encodedDateTime) {
 
     bool ok;
-    ulong dateTimeMSecsSinceEpoch = encodedDateTime.toULong(&ok);
+    //long long to handle large values on 32-bit systems
+    qulonglong dateTimeMSecsSinceEpoch = encodedDateTime.toULongLong(&ok);
 
     Q_ASSERT(ok);
 
