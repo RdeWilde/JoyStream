@@ -1080,6 +1080,8 @@ void Manager::broadcast(const Coin::Transaction & tx) {
 
     _mutex.lock();
 
+
+
     // do something: may not need to be mutexed
     // save tx in wallet?
 
@@ -1204,6 +1206,46 @@ void Manager::BLOCKCYPHER_rebuild_utxo() {
             _BLOCKCYPHER_utxo.append(Coin::UnspentP2PKHOutput(pair, o, t._value));
         }
     }
+}
+
+void Manager::BLOCKCYPHER_broadcast(const Coin::Transaction & tx) {
+    _BLOCKCYPHER_client->pushRawTransactionAsync(tx);
+}
+
+Coin::UnspentP2PKHOutput Manager::BLOCKCYPHER_lockONEUtxo(quint64 minimalAmount) {
+
+    // lock so now one else tries to claim utxo members at the same time
+    _mutex.lock();
+
+    for(QList<Coin::UnspentP2PKHOutput>::const_iterator i = _BLOCKCYPHER_utxo.constBegin(),
+        end = _BLOCKCYPHER_utxo.constEnd();
+        i != end;
+        i++) {
+
+        // get unspent output
+        Coin::UnspentP2PKHOutput unspent = *i;
+        Coin::typesafeOutPoint o = unspent.outPoint();
+
+        // Disregard if it is already locked
+        if(_lockedOutPoints.contains(o))
+           continue;
+
+        // Return it if its big enough
+
+        if(unspent.value() >= minimalAmount) {
+
+            // Mark as locked
+            _lockedOutPoints.insert(o);
+
+            // exit mutex
+            _mutex.unlock();
+
+            return unspent;
+        }
+    }
+    _mutex.unlock();
+
+    throw std::runtime_error("Unable to find qualifynmg utxo");
 }
 
 QSqlDatabase Manager::db() {

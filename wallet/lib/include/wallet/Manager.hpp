@@ -268,6 +268,12 @@ public:
     // even outputs from unconfirmed txs are included
     void BLOCKCYPHER_rebuild_utxo();
 
+    // Push tx to BlockCypher
+    void BLOCKCYPHER_broadcast(const Coin::Transaction & tx);
+
+    // Finds the "first" instance of an utxo which exceeds given amount
+    Coin::UnspentP2PKHOutput BLOCKCYPHER_lockONEUtxo(quint64 minimalAmount);
+
     /**
      * =============================================
      * BLOCKCYPHER--
