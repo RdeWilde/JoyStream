@@ -40,6 +40,10 @@ CreateWallet::Reply * Client::createWalletAsync(const Wallet & requested) {
 
 Wallet Client::createWallet(const Wallet & requested) {
 
+    if(requested._addresses.isEmpty())
+        throw std::runtime_error("Wallet object must have atleast one address when used to create wallets.");
+
+
     CreateWallet::Reply * reply = Client::createWalletAsync(requested);
 
     // Block until we have reply finished

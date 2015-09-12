@@ -460,15 +460,26 @@ Coin::P2PKHAddress Manager::getReceiveAddress() {
 
 QList<Coin::P2PKHAddress> Manager::listReceiveAddresses() {
 
-    /**
-     *
-     *
-     *
-     *
-     */
+   QList<Address::Record> allRecords = Address::allRecords(_db);
 
-    throw std::runtime_error("not implemented");
+   // Build list
+   QList<Coin::P2PKHAddress> list;
 
+   for(QList<Address::Record>::const_iterator i = allRecords.cbegin(),
+       end = allRecords.cend();
+       i != end;
+       i++) {
+
+       // Grab record
+       Address::Record r = *i;
+
+       // Add to list
+       list.append(r._address);
+   }
+
+   Q_ASSERT(list.size() == allRecords.size());
+
+   return list;
 }
 
 QList<Coin::KeyPair> Manager::issueKeyPairs(quint64 numberOfPairs) {
@@ -1085,9 +1096,45 @@ void Manager::BLOCKCYPHER_init(QNetworkAccessManager * manager) {
     // Set wallet client
     _BLOCKCYPHER_walletName = _seed.toHex().left(20);
 
-    // Get ful list of local addresses
+    // Try to get most recent address object
 
-    // Send it for update to blockcypher
+    try {
+
+        qDebug() << "BLOCKCYPHER: Getting address.";
+        _BLOCKCYPHER_lastAdress = _BLOCKCYPHER_client->addressEndPoint(_BLOCKCYPHER_walletName);
+
+        // updatewallet
+        BLOCKCYPHER_update_remote_wallet(false);
+
+    } catch (const std::runtime_error & e) {
+
+        // assume we get here due to wallet not being created,
+        // rather than some network io error (bad assumption!)
+
+        BLOCKCYPHER_update_remote_wallet(true);
+    }
+
+}
+
+void Manager::BLOCKCYPHER_update_remote_wallet(bool createRatherThanUpdate) {
+
+    // Get receivea adddresses we control
+    QList<Coin::P2PKHAddress> localAddresses = listReceiveAddresses();
+
+    // Wallet to update remotely to
+    BlockCypher::Wallet updatedWallet(BLOCKCYPHER_TOKEN, _BLOCKCYPHER_walletName, localAddresses);
+
+    if(createRatherThanUpdate) {
+
+        qDebug() << "BLOCKCYPHER: Creating a wallet.";
+        BlockCypher::Wallet created = _BLOCKCYPHER_client->createWallet(updatedWallet);
+        Q_ASSERT(created._name == _BLOCKCYPHER_walletName);
+
+    } else {
+
+        qDebug() << "BLOCKCYPHER: Updating a wallet.";
+        _BLOCKCYPHER_client->addAddressToWallet(updatedWallet);
+    }
 }
 
 void Manager::BLOCKCYPHER_rebuild_utxo() {

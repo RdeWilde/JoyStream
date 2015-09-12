@@ -260,6 +260,10 @@ public:
     // Sets wallet name based on wallet seed
     void BLOCKCYPHER_init(QNetworkAccessManager * manager);
 
+    // Repopulate blockcypher wallet with any missing addresses from our
+    // local wallet
+    void BLOCKCYPHER_update_remote_wallet(bool createRatherThanUpdate = false);
+
     // Rebuild utxo using current address list using blockcypher service,
     // even outputs from unconfirmed txs are included
     void BLOCKCYPHER_rebuild_utxo();
@@ -429,7 +433,7 @@ private:
     QList<Coin::UnspentP2PKHOutput> _BLOCKCYPHER_utxo;
 
     // last result of
-    BlockCypher::Address _BLOCKCYPHER_lastWalletAdress;
+    BlockCypher::Address _BLOCKCYPHER_lastAdress;
 
     /**
      * BLOCKCYPHER TEMPORARY ====================
