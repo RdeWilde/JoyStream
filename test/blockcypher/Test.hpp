@@ -50,6 +50,8 @@ private slots:
 
     void addressEndpoint();
 
+    void pushRawTransaction();
+
 };
 
 #endif // TESTWALLET_HPP

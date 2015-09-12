@@ -11,8 +11,10 @@
 #include <blockcypher/CreateWallet.hpp>
 #include <blockcypher/GetWallet.hpp>
 #include <blockcypher/AddressEndPoint.hpp>
+#include <blockcypher/PushRawTransaction.hpp>
 
 #include <QJsonArray>
+#include <QJsonObject>
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QJsonDocument>
@@ -66,7 +68,6 @@ GetWallet::Reply * Client::getWalletAsync(const QString & name) {
 
     // Return reply manager
     return new GetWallet::Reply(reply, name);
-
 }
 
 Wallet Client::getWallet(const QString & name) {
@@ -152,7 +153,7 @@ AddressEndPoint::Reply * Client::addressEndPointAsync(const QString & walletName
 
 Address Client::addressEndPoint(const QString & walletName, bool unspentOnly, uint limit, uint confirmations) {
 
-    AddressEndPoint::Reply * reply = Client::addressEndPointAsync(walletName, unspentOnly, limit, confirmations);
+    AddressEndPoint::Reply * reply = addressEndPointAsync(walletName, unspentOnly, limit, confirmations);
 
     // Block until we have reply finished
     QEventLoop eventloop;
@@ -174,10 +175,41 @@ Address Client::addressEndPoint(const QString & walletName, bool unspentOnly, ui
 
 }
 
-void Client::pushRawTransaction(const QString & rawTransaction) {
+PushRawTransaction::Reply * Client::pushRawTransactionAsync(const Coin::Transaction & toBeBroadcasted) {
 
-    // * Resource     Method	Request Object	Return Object
-    // * /txs/push    POST	{“tx”:$TXHEX}	TX
+    std::string txString = toBeBroadcasted.getSerialized().getHex();
+
+    qDebug() << QString::fromStdString(txString);
+
+    QJsonObject jsonifiedTx {
+        {"tx", QString::fromStdString(txString)}
+    };
+
+    // Make GET request
+    QNetworkReply * reply = post("txs/push", jsonifiedTx);
+
+    // Return reply manager
+    return new PushRawTransaction::Reply(reply, toBeBroadcasted);
+}
+
+bool Client::pushRawTransaction(const Coin::Transaction & toBeBroadcasted) {
+
+    PushRawTransaction::Reply * reply = pushRawTransactionAsync(toBeBroadcasted);
+
+    // Block until we have reply finished
+    QEventLoop eventloop;
+    QObject::connect(reply,
+                     &PushRawTransaction::Reply::done,
+                     &eventloop,
+                     &QEventLoop::quit);
+    eventloop.exec();
+
+    PushRawTransaction::BlockCypherResponse r = reply->response();
+
+    if(r == PushRawTransaction::BlockCypherResponse::Broadcasted) {
+        return true;
+    } else
+        throw std::runtime_error(""); // later add message here, e.g. for different scenarios
 }
 
 QString Client::endPoint(Coin::Network network) {

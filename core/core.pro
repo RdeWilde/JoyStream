@@ -164,6 +164,10 @@ else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PW
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/lib/debug/paymentchannel.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/lib/libpaymentchannel.a
 
+# blockcypher  ###############################################################
+INCLUDEPATH += $$PWD/../blockcypher/include
+DEPENDPATH += $$PWD/../blockcypher/include
+
 # wallet ###############################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../wallet/lib/release/ -lwallet
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../wallet/lib/debug/ -lwallet

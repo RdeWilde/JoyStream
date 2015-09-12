@@ -18,6 +18,18 @@
 #include <common/UnspentP2PKHOutput.hpp>
 #include <common/typesafeOutPoint.hpp> // for qHash for QSet
 
+///////////////////////////////
+// BLOCKCYPHER
+///////////////////////////////
+
+#include <blockcypher/Client.hpp>
+#include <blockcypher/AddressEndPoint.hpp>
+
+
+///////////////////////////////
+// BLOCKCYPHER
+///////////////////////////////
+
 #include <QObject>
 #include <QString>
 #include <QtSql>
@@ -80,8 +92,6 @@ class Manager : public QObject
 {
     Q_OBJECT
 public:
-
-    void test_routine();
 
     // Returns bootstrap seed list based on given network, nodes come from
     // chainparams.cpp in Bitcoin core.
@@ -240,6 +250,27 @@ public:
     void broadcast(const Coin::Transaction & tx);
 
     /**
+     * =============================================
+     * BLOCKCYPHER --
+     * TEMPORARY ENTRY POINTS FOR ALPHA
+     * (man this is ugly)
+     * =============================================
+     */
+
+    // Sets wallet name based on wallet seed
+    void BLOCKCYPHER_init(QNetworkAccessManager * manager);
+
+    // Rebuild utxo using current address list using blockcypher service,
+    // even outputs from unconfirmed txs are included
+    void BLOCKCYPHER_rebuild_utxo();
+
+    /**
+     * =============================================
+     * BLOCKCYPHER--
+     * =============================================
+     */
+
+    /**
      * Raw database link: Remove later? only used for testing
      */
 
@@ -338,6 +369,8 @@ private:
     Coin::HDKeychain _keyChain;
 
     /**
+     * NOT USED:
+     * ===============
      * SPV clients
      * host name -> spv client object for host
      */
@@ -379,6 +412,28 @@ private:
 
     // Determines address in output script and tries to recover record in wallet, if one exists
     bool getAddressForOutput(const Coin::TxOut & txOut, Address::Record & record);
+
+    /**
+     * BLOCKCYPHER TEMPORARY ====================
+     */
+
+    // Blockcypher client
+    // Make pointer so ctr can be called outside
+    // Manager ctr, since this would require ching
+    // signature to put QNetworkAccessManager in there
+    BlockCypher::Client * _BLOCKCYPHER_client;
+
+    // Blockcypher wallet name
+    QString _BLOCKCYPHER_walletName;
+
+    QList<Coin::UnspentP2PKHOutput> _BLOCKCYPHER_utxo;
+
+    // last result of
+    BlockCypher::Address _BLOCKCYPHER_lastWalletAdress;
+
+    /**
+     * BLOCKCYPHER TEMPORARY ====================
+     */
 
 };
 

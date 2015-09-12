@@ -59,19 +59,13 @@ FORMS += \
 RESOURCES += \
     base.qrc
 
-# core ###############################################################
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../core/release/ -lcore
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../core/debug/ -lcore
-else:unix: LIBS += -L$$OUT_PWD/../../core/ -lcore
 
-INCLUDEPATH += $$PWD/../../core/include
-DEPENDPATH += $$PWD/../../core/include
+# paymentchannel ###############################################################
+INCLUDEPATH += $$PWD/../../paymentchannel/lib/include
 
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../core/release/libcore.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../core/debug/libcore.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../core/release/core.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../core/debug/core.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.a
+# blockcypher  ###############################################################
+INCLUDEPATH += $$PWD/../../blockcypher/include
+DEPENDPATH += $$PWD/../../blockcypher/include
 
 # wallet ###############################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../wallet/lib/release/ -lwallet
@@ -87,8 +81,19 @@ else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PW
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../wallet/lib/debug/wallet.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../wallet/lib/libwallet.a
 
-# paymentchannel ###############################################################
-INCLUDEPATH += $$PWD/../../paymentchannel/lib/include
+# core ###############################################################
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../core/release/ -lcore
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../core/debug/ -lcore
+else:unix: LIBS += -L$$OUT_PWD/../../core/ -lcore
+
+INCLUDEPATH += $$PWD/../../core/include
+DEPENDPATH += $$PWD/../../core/include
+
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../core/release/libcore.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../core/debug/libcore.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../core/release/core.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../core/debug/core.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.a
 
 # common ###############################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../common/lib/release/ -lcommon

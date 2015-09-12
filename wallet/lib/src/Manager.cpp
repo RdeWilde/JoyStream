@@ -101,7 +101,10 @@ Manager::Manager(const QString & walletFile)
     , _walletFile(walletFile)
     , _db(Manager::openDatabaseConnection(walletFile))
     , _latestBlockHeight(0)
-    , _lastComputedZeroConfBalance(0) {
+    , _lastComputedZeroConfBalance(0)
+    , _BLOCKCYPHER_client() {
+
+
 
     // If wallet does not exist, then create it
     if(!QFile(walletFile).exists()) {
@@ -244,6 +247,8 @@ void Manager::startSPVClient(const QString & blockHeaderStore, const QString & h
 }
 
 void Manager::startSPVClient_old(const QString & blockHeaderStore, const QString & host) {
+
+    throw std::runtime_error("disabled");
 
     /**
     if(_clients.contains(host))
@@ -1068,6 +1073,58 @@ void Manager::broadcast(const Coin::Transaction & tx) {
     // save tx in wallet?
 
     _mutex.unlock();
+}
+
+void Manager::BLOCKCYPHER_init(QNetworkAccessManager * manager) {
+
+    // Allocate client
+    // We dont really care who manages life tiem of thsi, although it is certainly this,
+    // Only one instance is created per controller instance for process life time
+    _BLOCKCYPHER_client = new BlockCypher::Client(manager, _network, BLOCKCYPHER_TOKEN);
+
+    // Set wallet client
+    _BLOCKCYPHER_walletName = _seed.toHex().left(20);
+
+    // Get ful list of local addresses
+
+    // Send it for update to blockcypher
+}
+
+void Manager::BLOCKCYPHER_rebuild_utxo() {
+
+    // (synchrnously) fetch address object for given wallet
+    BlockCypher::Address address = _BLOCKCYPHER_client->addressEndPoint(_BLOCKCYPHER_walletName);
+
+    // Clear out utxo
+    _BLOCKCYPHER_utxo.clear();
+
+    // Iterate _txrefs and fetch utxos
+    for(std::vector<BlockCypher::TXRef>::const_iterator i = address._txrefs.cbegin(),
+        end = address._txrefs.cend();i != end;i++) {
+
+        // Get TXRef
+        BlockCypher::TXRef t = *i;
+
+        // Add to utxo if its unspent output
+        // is output <=> t._tx_output_n >= 0
+        if(!t._spent && t._tx_output_n >= 0) {
+
+            // Get outpoint
+            Coin::TransactionId txId(t._tx_hash);
+            Coin::typesafeOutPoint o(txId, t._tx_output_n);
+
+            // Check that such an output exists
+            //
+
+            // and what key controls it
+
+            // Find private key controlling given output
+            Coin::KeyPair pair;
+
+            // Add to utxo
+            _BLOCKCYPHER_utxo.append(Coin::UnspentP2PKHOutput(pair, o, t._value));
+        }
+    }
 }
 
 QSqlDatabase Manager::db() {

@@ -101,7 +101,7 @@ namespace AddressEndPoint {
         // Result of call
         BlockCypherResponse _response;
 
-        // Created wallet
+        // Address object for wallet
         Address _address;
 
         //QJsonObject _error;

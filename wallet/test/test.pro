@@ -11,7 +11,9 @@ CONFIG  += link_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-us
 CONFIG  += c++11
 CONFIG  += testcase
 
-QT      += core sql
+QT      += core
+QT      += sql
+QT      += network # network due to blockcypher integration
 QT      += testlib
 
 HEADERS += \
@@ -19,6 +21,10 @@ HEADERS += \
 
 SOURCES += \
     TestWallet.cpp
+
+# blockcypher  ###############################################################
+INCLUDEPATH += $$PWD/../../blockcypher/include
+DEPENDPATH += $$PWD/../../blockcypher/include
 
 # wallet ###############################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../lib/release/ -lwallet

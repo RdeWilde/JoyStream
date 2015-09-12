@@ -19,6 +19,10 @@
 #include <QVector>
 #include <QNetworkReply> // cannot forward declare
 
+namespace Coin {
+    class Transaction;
+}
+
 class QNetworkRequest;
 class QNetworkReply;
 class QNetworkAccessManager;
@@ -58,6 +62,10 @@ namespace BlockCypher {
     }
 
     namespace AddressEndPoint {
+        class Reply;
+    }
+
+    namespace PushRawTransaction {
         class Reply;
     }
 
@@ -112,8 +120,10 @@ namespace BlockCypher {
          * PUSH RAW TRANSACTION
          */
 
-        // Push Raw Transaction Endpoint (http://dev.blockcypher.com/#push-raw-transaction-endpoint)
-        void pushRawTransaction(const QString & rawTransaction);
+        PushRawTransaction::Reply * pushRawTransactionAsync(const Coin::Transaction & toBeBroadcasted);
+
+        // Push Raw Transaction Endpoint
+        bool pushRawTransaction(const Coin::Transaction & toBeBroadcasted);
 
         /**
          * UTILITIES
