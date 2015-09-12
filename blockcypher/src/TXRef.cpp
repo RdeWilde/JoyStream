@@ -14,6 +14,10 @@ namespace BlockCypher {
 
 TXRef::TXRef(const QJsonObject & o) {
 
+    Q_ASSERT(o.contains("address"));
+    Q_ASSERT(o["address"].isString());
+    _addressString = o["address"].toString().toStdString();
+
     Q_ASSERT(o.contains("block_height"));
     Q_ASSERT(o["block_height"].isDouble());
     _block_height = o["block_height"].toInt();

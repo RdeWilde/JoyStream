@@ -29,6 +29,15 @@ namespace BlockCypher {
         // *** Not only P2PKH addresses, all types!!!! ***
         //Coin::P2PKHAddress _address;
 
+        // The address associated with this transaction output.
+        // Only returned when querying an address endpoint
+        // via a wallet/HD wallet name.
+        // *************
+        // **We are not storing as p2pkh address,
+        // **since the returned address can be of any type,
+        // **at least in principle.
+        std::string _addressString;
+
         // Height of the block that contains this transaction.
         // If this is an unconfirmed transaction, it will equal -1.
         int _block_height;

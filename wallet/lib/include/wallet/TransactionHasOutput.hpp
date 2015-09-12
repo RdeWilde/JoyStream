@@ -13,6 +13,10 @@
 
 class QSqlDatabase;
 
+namespace Coin {
+    class PrivateKey;
+}
+
 namespace Wallet {
 namespace TransactionHasOutput {
 
@@ -52,6 +56,7 @@ namespace TransactionHasOutput {
     bool exists(QSqlDatabase db, const PK & pk);
 
     std::vector<Coin::TxOut> outputsOfTransaction(QSqlDatabase db, const Coin::TransactionId & transactionId);
+
 
 }
 }

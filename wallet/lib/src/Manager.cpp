@@ -1113,13 +1113,45 @@ void Manager::BLOCKCYPHER_rebuild_utxo() {
             Coin::TransactionId txId(t._tx_hash);
             Coin::typesafeOutPoint o(txId, t._tx_output_n);
 
-            // Check that such an output exists
-            //
+            // Get address in this output
+            Coin::P2PKHAddress addressInOutput = Coin::P2PKHAddress::fromBase58CheckEncoding(QString::fromStdString(t._addressString));
 
-            // and what key controls it
+            // Get record for this address to find corresponding key index
+            Address::Record a_r;
+            bool foundAddress = Address::findFromAddress(_db, addressInOutput, a_r);
+            Q_ASSERT(foundAddress);
 
-            // Find private key controlling given output
-            Coin::KeyPair pair;
+            // Find private key from this
+            Key::Record k_r;
+            bool keyExists = Key::exists(_db, Key::PK(a_r._keyIndex), k_r);
+            Q_ASSERT(keyExists);
+
+            /**
+             * OMG, look at mess below,
+             * ORM needed so badly...
+
+            // Check that such an output exists,
+            // and what private key, if any, controls it
+            // ** UGLY, at least do call for this one spesific output we care about ***
+            std::vector<Coin::TxOut> txouts = TransactionHasOutput::outputsOfTransaction(_db, txId);
+            Q_ASSERT(txouts.size() > t._tx_output_n);
+
+            Output::Record o_r;
+            bool outputExists = Output::exists(_db, Output::PK(txouts[t._tx_output_n]), o_r);
+            Q_ASSERT(outputExists);
+            Q_ASSERT(!o_r._keyIndex.isNull()); // we should have key for this output
+
+            bool ok;
+            quint64 keyIndex = o_r._keyIndex.toULongLong(ok);
+            Q_ASSERT(ok);
+
+            Key::Record k_r;
+            bool keyExists = Key::exists(_db, Key::PK(keyIndex), k_r);
+            Q_ASSERT(keyExists);
+            */
+
+            // Make key pair
+            Coin::KeyPair pair(k_r._privateKey.toPublicKey(), k_r._privateKey);
 
             // Add to utxo
             _BLOCKCYPHER_utxo.append(Coin::UnspentP2PKHOutput(pair, o, t._value));
