@@ -658,7 +658,15 @@ bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, c
         //_payor.broadcast_contract();
         Coin::Transaction tx = _payor.contract().transaction();
 
-        Q_ASSERT(tx.getHashLittleEndian() == _payor.contractHash().toUCharVector());
+        uchar_vector txHash = tx.getHashLittleEndian();
+        uchar_vector txContractHash = _payor.contractHash().toUCharVector();
+
+        qDebug() << "txHash" << QString::fromStdString(txHash.getHex());
+        qDebug() << "txContractHash" << QString::fromStdString(txContractHash.getHex());
+        qDebug() << "TransactionId test" << QString::fromStdString(Coin::TransactionId(txHash).toUCharVector().getHex());
+
+
+        Q_ASSERT(txHash == txContractHash);
 
         _wallet->broadcast(tx);
 

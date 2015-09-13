@@ -21,6 +21,15 @@
 
 #include <QJsonArray>
 
+void Test::transactionId() {
+
+    /**
+    std::string hxString = vector.getHex();
+    QString hxQString = toHex();
+    Q_ASSERT(QString::fromStdString(hxString) == hxQString);
+    */
+}
+
 void Test::basic() {
 
     // Create fresh private keys

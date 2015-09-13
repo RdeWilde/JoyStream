@@ -12,6 +12,7 @@
 #include <stdutils/uchar_vector.h>
 
 #include <sstream> // stringstream
+#include <string>
 
 namespace Coin {
 
@@ -38,8 +39,9 @@ UCharArray<array_length>::UCharArray(const uchar_vector & vector) {
 
         throw std::runtime_error(s.str());
 
-    } else
+    } else {
         fill(static_cast<const unsigned char *>(vector.data()), vectorLength);
+    }
 }
 
 template<unsigned int array_length>

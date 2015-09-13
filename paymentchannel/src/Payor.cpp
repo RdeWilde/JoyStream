@@ -242,6 +242,8 @@ void Payor::Channel::Status::setIndex(quint32 index) {
 
 #include <CoinCore/CoinNodeData.h> // Coin::TxOut
 
+#include <QDebug>
+
 Payor::Channel::Channel() {
 }
 
@@ -297,10 +299,18 @@ Coin::typesafeOutPoint Payor::Channel::contractOutPoint(const Coin::TransactionI
 }
 
 Commitment Payor::Channel::commitment() const {
+
+    if(_state == State::unassigned)
+        throw std::runtime_error("No valid commitment exists for channel.");
+
     return Commitment(_funds, _payorContractKeyPair.pk(), _payeeContractPk);
 }
 
 Refund Payor::Channel::refund(const Coin::TransactionId & contractTxId) const {
+
+    if(_state == State::unassigned)
+        throw std::runtime_error("No valid commitment exists for channel.");
+
     // *** no fee !!!
     return Refund(contractOutPoint(contractTxId),
                   commitment(),
@@ -309,6 +319,9 @@ Refund Payor::Channel::refund(const Coin::TransactionId & contractTxId) const {
 }
 
 Settlement Payor::Channel::settlement(const Coin::TransactionId & contractTxId) const {
+
+    if(_state == State::unassigned)
+        throw std::runtime_error("No valid commitment exists for channel.");
 
     // The amount paid so far
     quint64 amountPaid = _price*_numberOfPaymentsMade;
@@ -822,7 +835,12 @@ quint32 Payor::assignUnassignedSlot(quint64 price, const Coin::PublicKey & payee
         // ** It's in Little Endian byte order (least-significant byte first) in the protocol,
         // but it's written out in Big Endian byte order (most-significant byte first)
         // as most other numbers in English normally are.
-        _contractTxId = tx.getHashLittleEndian();
+        uchar_vector littleEndianTxHash = tx.getHashLittleEndian();
+        uchar_vector bigEndianTxHash = tx.getHash();
+        qDebug() << "contract little endian" << QString::fromStdString(littleEndianTxHash.getHex());
+        qDebug() << "contract big endian" << QString::fromStdString(bigEndianTxHash.getHex());
+
+        _contractTxId = littleEndianTxHash;
 
         // Compute all refund signatures
         for(std::vector<Channel>::iterator i = _channels.begin(), end(_channels.end()); i != end;i++) {
@@ -843,7 +861,8 @@ quint32 Payor::assignUnassignedSlot(quint64 price, const Coin::PublicKey & payee
 
 void Payor::unassignSlot(quint32 index) {
 
-    if(_state != State::waiting_for_full_set_of_sellers && _state != State::waiting_for_full_set_of_refund_signatures)
+    if(_state != State::waiting_for_full_set_of_sellers &&
+       _state != State::waiting_for_full_set_of_refund_signatures)
         throw std::runtime_error("State incompatile request, must be in State::waiting_for_full_set_of_sellers or State::waiting_for_full_set_of_refund_signatures state.");
 
     // Check that index is valid
@@ -874,10 +893,6 @@ void Payor::unassignSlot(quint32 index) {
 
 Contract Payor::contract() const {
 
-    // Check that a full set of sellers has been established
-    if(_state != State::waiting_for_full_set_of_refund_signatures)
-        throw std::runtime_error("State incompatile request, must be in State::waiting_for_full_set_of_refund_signatures state.");
-
     // Collect channel commitments
     std::vector<Commitment> commitments;
 
@@ -888,6 +903,7 @@ Contract Payor::contract() const {
         i++)
         commitments.push_back((*i).commitment());
 
+    Q_ASSERT(_state != State::waiting_for_full_set_of_sellers);
 
     // Build contract
     return Contract(_utxo, commitments, Coin::Payment(_changeValue, _changeOutputKeyPair.pk().toPubKeyHash()));

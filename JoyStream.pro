@@ -43,4 +43,3 @@ test.depends = core
 test.depends = views
 test.depends = app
 test.depends = blockcypher
-

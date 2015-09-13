@@ -224,30 +224,19 @@ int main(int argc, char* argv[]) {
 
     controllerTracker.addClient(loneSeller);
 
-    /**
-    // TEMPORARY AUTO
-    loneSeller->addTorrent(create_torrent_configuration(torrentInfo, "Ubuntu"));
-
-    Controller * loneSeller2 = create_controller(controllerConfiguration,
-                                                &manager,
-                                                true,
-                                                true,
-                                                torrentInfo,
-                                                QString("lone_seller2"));
-
-    controllerTracker.addClient(loneSeller2);
-    */
-
     // Buyers
-
-    add_buyers_with_plugin(controllerConfiguration, &manager, controllerTracker, true, true, torrentInfo,
+    add_buyers_with_plugin(controllerConfiguration,
+                           &manager,
+                           controllerTracker,
+                           true,
+                           true,
+                           torrentInfo,
                            QVector<BuyerTorrentPlugin::Configuration>()
                            << BuyerTorrentPlugin::Configuration(false,
-                                                                178, // Maximum piece price (satoshi)
+                                                                20, // Maximum piece price (satoshi)
                                                                 4*3600, // Maximum lock time on refund (seconds)
                                                                 10000, // BitCoinRepresentation NOT WORKING FOR WHATEVER REASON: BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.1).satoshies(), // Max fee per kB (satoshi)
                                                                 1) // #sellers
-
 //                           << BuyerTorrentPlugin::Configuration(false,
 //                                                                88, // Maximum piece price (satoshi)
 //                                                                5*3600, // Maximum lock time on refund (seconds)
@@ -255,10 +244,6 @@ int main(int argc, char* argv[]) {
 //                                                                1) // #sellers
 
                            );
-
-    /**
-     * Run
-     */
 
     // Start event loop: this is the only Qt event loop in the entire application
     app.exec();
@@ -314,6 +299,9 @@ Controller * create_controller(Controller::Configuration controllerConfiguration
         Coin::Seed seed = Coin::Seed::testSeeds[wallet_seed_counter];
         Q_ASSERT(wallet_seed_counter <= Coin::Seed::testSeeds.size());
 
+        // Get new random seed
+        //Coin::Seed seed = Coin::Seed::generate();
+
         // Create wallet
         Wallet::Manager::createNewWallet(walletFile, BITCOIN_NETWORK, seed);
     }
@@ -368,13 +356,17 @@ void add_buyers_with_plugin(Controller::Configuration controllerConfiguration,
         Controller::Torrent::Configuration torrentConfiguration = create_torrent_configuration(torrentInfo, name);
 
         // Grab configuration
-        const BuyerTorrentPlugin::Configuration & pluginConfiguration = configurations[i];
+        BuyerTorrentPlugin::Configuration pluginConfiguration = configurations[i];
 
         // Amount needed to fund contract (satoshies)
-        quint64 minFunds = Payor::minimalFunds(torrentInfo.num_pieces(), pluginConfiguration.maxPrice(), pluginConfiguration.numberOfSellers(), pluginConfiguration.maxFeePerKb());
+        quint64 minFunds = Payor::minimalFunds(torrentInfo.num_pieces(),
+                                               pluginConfiguration.maxPrice(),
+                                               pluginConfiguration.numberOfSellers(),
+                                               pluginConfiguration.maxFeePerKb());
 
         // Get funding output - this has to be grabbed from wallet/chain later
-        Coin::UnspentP2PKHOutput utxo; // = controller->wallet().getUtxo(minFunds, 1);
+        //Coin::UnspentP2PKHOutput utxo; // = controller->wallet().getUtxo(minFunds, 1);
+        Coin::UnspentP2PKHOutput utxo = controller->wallet()->BLOCKCYPHER_lock_one_utxo(minFunds);
 
         // Check that an utxo was indeed found
         if(utxo.value() == 0) {

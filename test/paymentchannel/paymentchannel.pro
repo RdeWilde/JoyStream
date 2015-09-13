@@ -1,9 +1,9 @@
 # Copyright (C) JoyStream - All Rights Reserved
 # Unauthorized copying of this file, via any medium is strictly prohibited
 # Proprietary and confidential
-# Written by Bedeho Mender <bedeho.mender@gmail.com>, September 8 2015
+# Written by Bedeho Mender <bedeho.mender@gmail.com>, August 19 2015
 
-TARGET = blockcypher-test
+TARGET = paymentchannel-test
 TEMPLATE = app
 
 CONFIG  += console
@@ -11,7 +11,7 @@ CONFIG  += link_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-us
 CONFIG  += c++11
 CONFIG  += testcase
 
-QT      += core network
+QT      += core sql
 QT      += testlib
 
 HEADERS += \
@@ -34,19 +34,19 @@ else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PW
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../common/debug/common.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../common/libcommon.a
 
-# blockcypher ###################################################################################
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../blockcypher/release/ -lblockcypher
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../blockcypher/debug/ -lblockcypher
-else:unix: LIBS += -L$$OUT_PWD/../../blockcypher/ -lblockcypher
+# paymentchannels ###################################################################################
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../paymentchannel/release/ -lpaymentchannel
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../paymentchannel/debug/ -lpaymentchannel
+else:unix: LIBS += -L$$OUT_PWD/../../paymentchannel/ -lpaymentchannel
 
-INCLUDEPATH += $$PWD/../../blockcypher/include
-DEPENDPATH += $$PWD/../../blockcypher/include
+INCLUDEPATH += $$PWD/../../paymentchannel/include
+DEPENDPATH += $$PWD/../../paymentchannel/include
 
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../blockcypher/release/libblockcypher.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../blockcypher/debug/libblockcypher.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../blockcypher/release/blockcypher.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../blockcypher/debug/blockcypher.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../blockcypher/libblockcypher.a
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/release/libpaymentchannel.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/debug/libpaymentchannel.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/release/paymentchannel.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/debug/paymentchannel.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/libpaymentchannel.a
 
 include(../../mSIGNA.pri)
 include(../../openssl.pri)

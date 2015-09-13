@@ -3,11 +3,6 @@
 # Proprietary and confidential
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
 
-include(../mSIGNA.pri) # needed for stdutils/uchar_vector.h
-include(../libtorrent.pri)
-include(../openssl.pri)
-include(../boost.pri)
-
 TARGET = app
 TEMPLATE = app
 
@@ -24,7 +19,7 @@ QT      += core network sql # sql needed for wallet
 INCLUDEPATH += $$PWD # be able to include w.r.t root of this project
 
 # paymentchannel ###############################################################
-INCLUDEPATH += $$PWD/../paymentchannel/lib/include
+INCLUDEPATH += $$PWD/../paymentchannel/include
 
 # blockcypher  ###############################################################
 INCLUDEPATH += $$PWD/../blockcypher/include
@@ -59,29 +54,35 @@ else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../core/libcore.a
 
 # wallet ###########################################################################
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../wallet/lib/release/ -lwallet
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../wallet/lib/debug/ -lwallet
-else:unix: LIBS += -L$$OUT_PWD/../wallet/lib/ -lwallet
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../wallet/release/ -lwallet
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../wallet/debug/ -lwallet
+else:unix: LIBS += -L$$OUT_PWD/../wallet/ -lwallet
 
-INCLUDEPATH += $$PWD/../wallet/lib/include
-DEPENDPATH += $$PWD/../wallet/lib/include
+INCLUDEPATH += $$PWD/../wallet/include
+DEPENDPATH += $$PWD/../wallet/include
 
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/lib/release/libwallet.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/lib/debug/libwallet.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/lib/release/wallet.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/lib/debug/wallet.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../wallet/lib/libwallet.a
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/release/libwallet.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/debug/libwallet.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/release/wallet.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/debug/wallet.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../wallet/libwallet.a
 
 # common ###########################################################################
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../common/lib/release/ -lcommon
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../common/lib/debug/ -lcommon
-else:unix: LIBS += -L$$OUT_PWD/../common/lib/ -lcommon
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../common/release/ -lcommon
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../common/debug/ -lcommon
+else:unix: LIBS += -L$$OUT_PWD/../common/ -lcommon
 
-INCLUDEPATH += $$PWD/../common/lib/include
-DEPENDPATH += $$PWD/../common/lib/include
+INCLUDEPATH += $$PWD/../common/include
+DEPENDPATH += $$PWD/../common/include
 
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/lib/release/libcommon.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/lib/debug/libcommon.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/lib/release/common.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/lib/debug/common.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../common/lib/libcommon.a
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/release/libcommon.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/debug/libcommon.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/release/common.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/debug/common.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.a
+
+include(../mSIGNA.pri) # needed for stdutils/uchar_vector.h
+include(../libtorrent.pri)
+include(../openssl.pri)
+include(../boost.pri)
+

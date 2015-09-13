@@ -466,7 +466,7 @@ Controller::Configuration::Configuration() {
 
     // Setup session settings
     //libtorrent::se session_settings sessionSettings;
-    //libtorrent::session_settings sessionSettings;
+    libtorrent::session_settings sessionSettings;
 
     // session_settings:
     //	This holds most of the session-wide settings in libtorrent.
@@ -490,26 +490,26 @@ Controller::Configuration::Configuration() {
     // This name will not only be used when making HTTP requests, but also when
     // sending extended headers to peers that support that extension.
 
-    ////sessionSettings.user_agent = CLIENT_FINGERPRINT "/" ;// BITSWAPR_VERSION_MAJOR BITSWAPR_VERSION_MINOR, "LT/" LIBTORRENT_VERSION;
+    sessionSettings.user_agent = CLIENT_FINGERPRINT "/" ;// BITSWAPR_VERSION_MAJOR BITSWAPR_VERSION_MINOR, "LT/" LIBTORRENT_VERSION;
 
     // choking_algorithm:
     //	Specifies which algorithm to use to determine which peers to unchoke.
     //	This setting replaces the deprecated settings auto_up_slots and
     //	auto_upload_slots_rate_based.
     //
-    ////sessionSettings.choking_algorithm = libtorrent::session_settings::auto_expand_choker;
+    sessionSettings.choking_algorithm = libtorrent::session_settings::auto_expand_choker;
 
     // disk_cache_algorithm
     //	tells the disk I/O thread which cache flush algorithm to use.
     //	This is specified by the disk_cache_algo_t enum.
-    ////sessionSettings.disk_cache_algorithm = libtorrent::session_settings::avoid_readback;
+    sessionSettings.disk_cache_algorithm = libtorrent::session_settings::avoid_readback;
 
     // volatile_read_cache
     //	if this is set to true, read cache blocks that are hit by peer read requests
     //	are removed from the disk cache to free up more space. This is useful if you
     //	don't expect the disk cache to create any cache hits from other peers than
     //	the one who triggered the cache line to be read into the cache in the first place.
-    ////sessionSettings.volatile_read_cache = true; // <-- worth taking a closer look at
+    sessionSettings.volatile_read_cache = true; // <-- worth taking a closer look at
 
     // half_open_limit
     //	sets the maximum number of half-open connections libtorrent
@@ -536,7 +536,7 @@ Controller::Configuration::Configuration() {
 
     // THIS SHOULD REALLY ONLY BE TRUE WHEN WE ARE DOING TEST ON THE SAME MACHINE
     // NOT IN GENERAL
-    ////sessionSettings.allow_multiple_connections_per_ip = true;
+    sessionSettings.allow_multiple_connections_per_ip = true;
 
     // the maximum times we try to connect to a peer before stop connecting
     // again. If a peer succeeds, its failcounter is reset. If a peer is
@@ -548,7 +548,7 @@ Controller::Configuration::Configuration() {
     // the number of seconds to wait to reconnect to a peer. this time is
     // multiplied with the failcount.
     // DEFAULT = 60
-    ////sessionSettings.min_reconnect_time = 3;
+    sessionSettings.min_reconnect_time = 3;
 
     // use_disk_read_ahead
     //	defaults to true and will attempt to optimize disk reads by giving
@@ -556,7 +556,7 @@ Controller::Configuration::Configuration() {
     //	queued in the disk job queue. This gives a significant performance
     //	boost for seeding.
 
-    ////sessionSettings.use_disk_read_ahead = true;
+    sessionSettings.use_disk_read_ahead = true;
 
     // disable_hash_checks
     //	controls if downloaded pieces are verified against the piece hashes
@@ -565,7 +565,7 @@ Controller::Configuration::Configuration() {
     //	profiling and simulation scenarios. Do not disable the hash check
     //	for regular bittorrent clients.
 
-    ////sessionSettings.disable_hash_checks = false;
+    sessionSettings.disable_hash_checks = false;
 
     // peer_timeout
     //	the number of seconds to wait for any activity on the peer wire before
@@ -590,15 +590,15 @@ Controller::Configuration::Configuration() {
     //	to true (which it is by default). These rate limits default to unthrottled,
     //	but can be useful in case you want to treat local peers preferentially, but
     //	not quite unthrottled. A value of 0 means unlimited.
-    ////sessionSettings.download_rate_limit = 0;// kbyte/s * 1000 = bytes/s;
-    ////sessionSettings.upload_rate_limit = 0;// kbyte/s * 1000 = byte/s;
-    ////sessionSettings.ignore_limits_on_local_network = false;
+    sessionSettings.download_rate_limit = 0;// kbyte/s * 1000 = bytes/s;
+    sessionSettings.upload_rate_limit = 0;// kbyte/s * 1000 = byte/s;
+    sessionSettings.ignore_limits_on_local_network = false;
 
     // unchoke_slots_limit
     //	the max number of unchoked peers in the session. The number of unchoke slots
     //	may be ignored depending on what choking_algorithm is set to.
     //	A value of -1 means infinite.
-    ////sessionSettings.unchoke_slots_limit = 4; // <-- value suggested by spec, but may be disregarded if choking_algorithm != fixed_slots_choker
+    sessionSettings.unchoke_slots_limit = 4; // <-- value suggested by spec, but may be disregarded if choking_algorithm != fixed_slots_choker
 
     // max_peerlist_size
     //	the maximum number of peers in the list of known peers. These peers are not
@@ -607,7 +607,7 @@ Controller::Configuration::Configuration() {
     //	passed 90% of this limit, and once the size hits the limit, peers are no longer
     //	added to the list. If this limit is set to 0, there is no limit on how many peers
     //	we'll keep in the peer list.
-    ////sessionSettings.max_peerlist_size = 0;
+    sessionSettings.max_peerlist_size = 0;
 
     // cache_size
     //	the disk write and read cache. It is specified in units of 16 KiB blocks.
@@ -623,9 +623,9 @@ Controller::Configuration::Configuration() {
     //	cache_buffer_chunk_size. This defaults to 16 blocks.
     //	Lower numbers saves memory at the expense of more heap allocations.
     //	It must be at least 1.
-    ////sessionSettings.cache_size = -1; // check these values later.
-    ////sessionSettings.use_read_cache = sessionSettings.cache_size > 0;
-    ////sessionSettings.cache_buffer_chunk_size = sessionSettings.cache_size / 100;
+    sessionSettings.cache_size = -1; // check these values later.
+    sessionSettings.use_read_cache = sessionSettings.cache_size > 0;
+    sessionSettings.cache_buffer_chunk_size = sessionSettings.cache_size / 100;
     //sessionSettings.read_cache_line_size =
 
     // allow_reordered_disk_operations
@@ -634,7 +634,7 @@ Controller::Configuration::Configuration() {
     //	to many peers. This assumes a traditional hard drive with a read head and
     //	spinning platters. If your storage medium is a solid state drive,
     //	this optimization doesn't give you an benefits
-    ////sessionSettings.allow_reordered_disk_operations = true;
+    sessionSettings.allow_reordered_disk_operations = true;
 
     // mixed_mode_algorithm
     //	determines how to treat TCP connections when there are uTP connections.
@@ -646,7 +646,7 @@ Controller::Configuration::Configuration() {
     //	on how many of the connections are TCP. This works best if uTP connections are
     //	not rate limited by the global rate limiter, see rate_limit_utp.
     //	see bandwidth_mixed_algo_t for options.
-    ////sessionSettings.mixed_mode_algorithm = libtorrent::session_settings::prefer_tcp;
+    sessionSettings.mixed_mode_algorithm = libtorrent::session_settings::prefer_tcp;
 
     // active management fields
     //	determines how the DHT is used. If this is true, the DHT will only be used for
@@ -664,7 +664,7 @@ Controller::Configuration::Configuration() {
     //sessionSettings.use_dht_as_fallback = false;
 
     // Set dht settings
-    ////libtorrent::dht_settings dhtSettings;
+    libtorrent::dht_settings dhtSettings;
 
     // Set encryption settings
     //libtorrent::pe_settings peerEncryptionSettings;
@@ -674,12 +674,12 @@ Controller::Configuration::Configuration() {
 
     // Create dummy session so that settings can be set
     // and a full session settings entry can be extracted
-    ////libtorrent::session dummySession;
-    ////dummySession.set_settings(sessionSettings);
-    ////dummySession.set_dht_settings(dhtSettings);
+    libtorrent::session dummySession;
+    dummySession.set_settings(sessionSettings);
+    dummySession.set_dht_settings(dhtSettings);
     //dummySession.set_pe_settings(peerEncryptionSettings);
     //dummySession.set_proxy(proxySettings);
-    ////dummySession.save_state(_libtorrentSessionSettingsEntry);
+    dummySession.save_state(_libtorrentSessionSettingsEntry);
 
     // Set port range
     _portRange = std::make_pair(6881, 6889);
