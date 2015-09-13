@@ -1267,7 +1267,8 @@ Coin::UnspentP2PKHOutput Manager::BLOCKCYPHER_lock_one_utxo(quint64 minimalAmoun
     }
     _mutex.unlock();
 
-    throw std::runtime_error("Unable to find qualifynmg utxo");
+    //throw std::runtime_error("Unable to find qualifynmg utxo");
+    return Coin::UnspentP2PKHOutput();
 }
 
 BlockCypher::Address Manager::BLOCKCYPHER_lastAdress() {

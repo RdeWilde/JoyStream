@@ -4,7 +4,7 @@
  * Proprietary and confidential
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
-
+#include <common/BitcoinRepresentation.hpp>
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QString>
@@ -21,7 +21,7 @@
 #include <common/Bitcoin.hpp> // defines STANDARD_NUM_SATOSHIES_PER_KB_IN_TX_FEE
 #include <common/UnspentP2PKHOutput.hpp>
 #include <common/typesafeOutPoint.hpp>
-#include <common/BitcoinRepresentation.hpp>
+
 #include <common/Seed.hpp>
 #include <gui/MainWindow.hpp>
 #include <wallet/Manager.hpp>
@@ -32,9 +32,10 @@
 #include <libtorrent/error_code.hpp>
 
 // Torrent file
-#define RRB_TORRENT "/home/bedeho/Downloads/The.Rise.and.Rise.of.Bitcoin.2014.720p.HDrip.x264.AAC.torrent"
+#define RRB_TORRENT "/home/bedeho/Downloads/The.Rise.and.Rise.of.Bitcoin.2014.720p.HDrip.x264.AAC.MVGroup.org.mp4.torrent"
 #define LUBUNTU_TORRENT "/home/bedeho/Downloads/Lubuntu 14.04.3 LTS Desktop amd64 CD.torrent"
-#define TORRENT_FILE LUBUNTU_TORRENT
+
+#define TORRENT_FILE RRB_TORRENT
 
 //#define WALLET_LOCATION "C:/WALLETS/"
 #define WALLET_LOCATION "/home/bedeho/JoyStream/wallets/"
@@ -89,6 +90,9 @@ void add_sellers_with_plugin(Controller::Configuration controllerConfiguration,
                              bool use_stdout_logg,
                              libtorrent::torrent_info & torrentInfo,
                              const QVector<SellerTorrentPlugin::Configuration> & configurations);
+
+
+
 
 // JoyStream entry point
 int main(int argc, char* argv[]) {
@@ -220,27 +224,37 @@ int main(int argc, char* argv[]) {
 
     controllerTracker.addClient(loneSeller);
 
+    /**
     // TEMPORARY AUTO
     loneSeller->addTorrent(create_torrent_configuration(torrentInfo, "Ubuntu"));
 
-    /**
+    Controller * loneSeller2 = create_controller(controllerConfiguration,
+                                                &manager,
+                                                true,
+                                                true,
+                                                torrentInfo,
+                                                QString("lone_seller2"));
+
+    controllerTracker.addClient(loneSeller2);
+    */
+
     // Buyers
-    add_buyers_with_plugin(controllerConfiguration, manager, controllerTracker, false, true, torrentInfo,
+
+    add_buyers_with_plugin(controllerConfiguration, &manager, controllerTracker, true, true, torrentInfo,
                            QVector<BuyerTorrentPlugin::Configuration>()
                            << BuyerTorrentPlugin::Configuration(false,
                                                                 178, // Maximum piece price (satoshi)
                                                                 4*3600, // Maximum lock time on refund (seconds)
-                                                                BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.1).satoshies(), // Max fee per kB (satoshi)
+                                                                10000, // BitCoinRepresentation NOT WORKING FOR WHATEVER REASON: BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.1).satoshies(), // Max fee per kB (satoshi)
                                                                 1) // #sellers
-                           << BuyerTorrentPlugin::Configuration(false,
-                                                                88, // Maximum piece price (satoshi)
-                                                                5*3600, // Maximum lock time on refund (seconds)
-                                                                BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.1).satoshies(), // Max fee per kB (satoshi)
-                                                                1), // #sellers
-                           &PREDETERMINED_SEED_ID
-                           );
-    */
 
+//                           << BuyerTorrentPlugin::Configuration(false,
+//                                                                88, // Maximum piece price (satoshi)
+//                                                                5*3600, // Maximum lock time on refund (seconds)
+//                                                                10000, // BitCoinRepresentationNOT WORKING FOR WHATEVER REASON: BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.1).satoshies(), // Max fee per kB (satoshi)
+//                                                                1) // #sellers
+
+                           );
 
     /**
      * Run
@@ -297,12 +311,16 @@ Controller * create_controller(Controller::Configuration controllerConfiguration
         qDebug() << "Creating a fresh wallet " << walletFile;
 
         // Get predefined seed
-        Coin::Seed seed = Coin::Seed::testSeeds[wallet_seed_counter++];
+        Coin::Seed seed = Coin::Seed::testSeeds[wallet_seed_counter];
         Q_ASSERT(wallet_seed_counter <= Coin::Seed::testSeeds.size());
 
         // Create wallet
         Wallet::Manager::createNewWallet(walletFile, BITCOIN_NETWORK, seed);
     }
+
+    // WE MUST INCREMENT THIS REGARDLESS OF WHETHER A NEW WALLET IS ACTUALLY CREATED
+    // BECAUSE A GIVEN CALL SHOULD ALWAYS GIVE THE SAME SEED!
+    wallet_seed_counter++;
 
     // Load wallet
     Wallet::Manager * wallet = new Wallet::Manager(walletFile);

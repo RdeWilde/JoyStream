@@ -1046,6 +1046,8 @@ bool Payor::allRefundsSigned() const {
 
 quint64 Payor::computeContractFee(int numberOfSellers, quint64 feePerKb) {
 
+    return 0;
+
     // Fee for contract based on fee estimate at http://bitcoinfees.com/
     // WE ADD ONE OUTPUT FOR THE CHANGE
     quint64 txByteSize =(148*1) + (34*(numberOfSellers + 1) + 10);

@@ -60,6 +60,8 @@ bool SellerTorrentPluginConfigurationDialog::tryToGetPricePrGB(quint64 & minSato
             minSatoshiesPrGB = BitcoinRepresentation(BitcoinRepresentation::BitCoinPrefix::Milli, x).satoshies();
         else
             minSatoshiesPrGB = BitcoinRepresentation(BitcoinRepresentation::MetricPrefix::Centi, x, _settings->rate()).satoshies();
+
+        return true;
     }
 }
 
@@ -78,6 +80,8 @@ void SellerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
     // ============================================================
     // minPrice (satoshies)
 
+    /**
+     * Minimum price based on GB
     quint64 pricePrGB;
     if(!tryToGetPricePrGB(pricePrGB)) {
 
@@ -88,6 +92,10 @@ void SellerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
     }
 
     quint64 minPrice = minPriceFromPricePrGB(pricePrGB);
+    */
+
+    // Direct piece price
+    quint64 minPrice = ui->minPriceLineEdit->text().toLongLong();
 
     // Warn user if selling for free
     if(minPrice == 0) {

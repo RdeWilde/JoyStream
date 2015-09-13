@@ -137,11 +137,13 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
     // ============================================================
     // Amount needed to fund contract (satoshies)
-    quint64 minFunds = Payor::minimalFunds(_torrentInfo.num_pieces(), maxPrice, numberOfSellers, feePerkB);
+    quint64 minFunds = Payor::minimalFunds(_torrentInfo.num_pieces(), maxPrice, numberOfSellers, feePerkB); //
 
     // Get funding output - this has to be grabbed from wallet/chain later
-    Coin::UnspentP2PKHOutput utxo; // = _wallet->getUtxo(minFunds, 1);
-    qDebug() << "Skipping grabbing real utxo, just empty crap for now";
+    Coin::UnspentP2PKHOutput utxo = _wallet->BLOCKCYPHER_lock_one_utxo(minFunds);
+
+    // = _wallet->getUtxo(minFunds, 1);
+    //qDebug() << "Skipping grabbing real utxo, just empty crap for now";
 
     // Check that an utxo was indeed found
     if(utxo.value() == 0) {
@@ -153,6 +155,7 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
         return;
     }
+
 
     // Maximum Lock time
     QTime maxLockTime = ui->maxLockTimeEdit->time();
