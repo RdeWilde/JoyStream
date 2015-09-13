@@ -109,6 +109,7 @@ public slots:
     void on_addTorrentFilePushButton_clicked();
     //void on_addMagnetLinkPushButton_clicked();
     void on_walletPushButton_clicked();
+    void on_topUpWalletPushButton_clicked();
 
     // Mouse click on row in torrent table
     void torrentTableClicked(const QModelIndex & index);
@@ -117,7 +118,7 @@ public slots:
     void startVLC(const libtorrent::sha1_hash & infoHash);
 
     // Stupid hook to update wallet balance, kill later.
-    //void updateWalletBalanceHook();
+    void updateWalletBalanceHook();
 
 private:
 

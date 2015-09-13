@@ -11,8 +11,9 @@
 #include <common/P2PKHAddress.hpp>
 
 #include <blockcypher/TXRef.hpp>
-//#include <blockcypher/TX
+//#include <blockcypher/TX.hpp>
 #include <blockcypher/Wallet.hpp>
+#include <string>
 
 namespace BlockCypher {
 
@@ -27,6 +28,7 @@ namespace BlockCypher {
     struct Address {
 
         Address();
+
         Address(const QJsonObject & o);
 
         // The requested address
@@ -36,7 +38,7 @@ namespace BlockCypher {
 
         // The requested wallet object.
         // *** Only returned if querying by wallet name instead of public address. ***
-        Wallet _wallet;
+        //Wallet _wallet;
 
         // Total amount of satoshis received by this address
         uint64_t _total_received;
@@ -78,7 +80,6 @@ namespace BlockCypher {
         // To retrieve base URL transactions.
         // To get the full URL, concatenate this URL with a transaction’s hash.
         std::string _tx_url;
-
 
     };
 }

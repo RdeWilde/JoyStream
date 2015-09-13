@@ -307,12 +307,17 @@ Controller * create_controller(Controller::Configuration controllerConfiguration
     // Load wallet
     Wallet::Manager * wallet = new Wallet::Manager(walletFile);
 
+    // Initiliaze
+    wallet->BLOCKCYPHER_init(manager);
+
     // Start spv client
+    /**
     QString host = Wallet::Manager::dnsSeeds(BITCOIN_NETWORK)[dns_seed_counter++];
     Q_ASSERT(dns_seed_counter <= Wallet::Manager::dnsSeeds(BITCOIN_NETWORK).size());
 
     QString blockHeaderStore = QString(BLOCKSTORE_LOCATION) + name + QString(nameFromNetwork(BITCOIN_NETWORK)) + QString("_blockstore.txt");
     //wallet->startSPVClient(blockHeaderStore, host);
+    */
 
     // Create controller: Dangling, but we don't care
     Controller * controller = new Controller(controllerConfiguration, wallet, manager, *category);

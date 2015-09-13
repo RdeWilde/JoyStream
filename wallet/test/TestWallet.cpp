@@ -98,7 +98,7 @@ void TestWallet::key() {
     //Coin::PrivateKey sk(_keyChain.getPrivateSigningKey(0));
 
     // Generate fresh key from wallet
-    Coin::PrivateKey sk = _manager->issueKey();
+    Coin::PrivateKey sk = _manager->issueKey(true);
 
     // Check that it has been inserted
     Wallet::Key::Record record;

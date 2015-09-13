@@ -139,15 +139,15 @@ public:
      */
 
     // Returns a fresh private key which persists in wallet
-    // **NB: These keys are have no corresponding addresses
+    // **NB: createReceiveAddress == false <=> These keys are have no corresponding addresses
     // which are monitored for inbound/outbound spends.
-    Coin::PrivateKey issueKey();
+    Coin::PrivateKey issueKey(bool createReceiveAddress);
 
     // Returns a list of key pairs, with ordered ascendingly in terms
     // of index.
     // **NB: These keys are have no corresponding addresses
     // which are monitored for inbound/outbound spends.
-    QList<Coin::KeyPair> issueKeyPairs(quint64 numberOfPairs);
+    QList<Coin::KeyPair> issueKeyPairs(quint64 numberOfPairs, bool createReceiveAddresses);
 
     // Number of keys in the wallet
     quint64 numberOfKeysInWallet();
@@ -260,19 +260,24 @@ public:
     // Sets wallet name based on wallet seed
     void BLOCKCYPHER_init(QNetworkAccessManager * manager);
 
-    // Repopulate blockcypher wallet with any missing addresses from our
-    // local wallet
-    void BLOCKCYPHER_update_remote_wallet(bool createRatherThanUpdate = false);
+    // Try to blockcypher remotewalletusing local wallet addresses
+    BlockCypher::Wallet BLOCKCYPHER_create_remote_wallet();
+
+    // Repopulate blockcypher wallet with any missing addresses from our local wallet
+    BlockCypher::Wallet BLOCKCYPHER_update_remote_wallet();
 
     // Rebuild utxo using current address list using blockcypher service,
     // even outputs from unconfirmed txs are included
-    void BLOCKCYPHER_rebuild_utxo();
+    BlockCypher::Address BLOCKCYPHER_rebuild_utxo();
 
     // Push tx to BlockCypher
     void BLOCKCYPHER_broadcast(const Coin::Transaction & tx);
 
     // Finds the "first" instance of an utxo which exceeds given amount
-    Coin::UnspentP2PKHOutput BLOCKCYPHER_lockONEUtxo(quint64 minimalAmount);
+    Coin::UnspentP2PKHOutput BLOCKCYPHER_lock_one_utxo(quint64 minimalAmount);
+
+    // Last address, set by _rebuild_utxo
+    BlockCypher::Address BLOCKCYPHER_lastAdress();
 
     /**
      * =============================================
@@ -413,12 +418,13 @@ private:
 
     // Generate p2pkh receive address
     // corresponding to a fresh private
-    Address::Record _createReceiveAddress();
+    //Address::Record _createReceiveAddress();
 
     // Returns a fresh private key which persists in wallet
-    // **NB: These keys are have no corresponding addresses
+    // **NB:
+    // createReceiveAddress <=> These keys are have no corresponding addresses
     // which are monitored for inbound/outbound? transactions**
-    Key::Record _issueKey();
+    Key::Record _issueKey(bool createReceiveAddress);
 
     // Determines address in output script and tries to recover record in wallet, if one exists
     bool getAddressForOutput(const Coin::TxOut & txOut, Address::Record & record);

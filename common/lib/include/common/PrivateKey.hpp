@@ -29,6 +29,8 @@ class TransactionSignature;
 class Transaction;
 enum class PublicKeyCompression;
 class SigHashType;
+//class P2PKHAddress;
+//enum class Network;
 
 // Later make the allocation/copying anti-page secure
 // WARNING: NEEDS SECURE ALLOCATOR & DESTRUCTOR

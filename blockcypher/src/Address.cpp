@@ -7,8 +7,10 @@
 
 #include <blockcypher/Address.hpp>
 #include <blockcypher/TXRef.hpp>
+
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QDebug>
 
 namespace BlockCypher {
 
@@ -37,19 +39,24 @@ Address::Address(const QJsonObject & o) {
     Q_ASSERT(o["final_balance"].isDouble());
     _final_balance = o["final_balance"].toInt();
 
-    Q_ASSERT(o.contains("txrefs"));
-    Q_ASSERT(o["txrefs"].isArray());
-    QJsonArray txrefs = o["txrefs"].toArray();
+    // Only exists in some cases, not sure when that is
+    if(o.contains("txrefs")) {
 
-    for(QJsonArray::const_iterator i = txrefs.constBegin(),
-        end = txrefs.constEnd();
-        i != end;
-        i++) {
+        //Q_ASSERT(o.contains("txrefs"));
+        Q_ASSERT(o["txrefs"].isArray());
+        QJsonArray txrefs = o["txrefs"].toArray();
 
-        QJsonValue elm = *i;
+        for(QJsonArray::const_iterator i = txrefs.constBegin(),
+            end = txrefs.constEnd();
+            i != end;
+            i++) {
 
-        _txrefs.push_back(TXRef(elm.toObject()));
-    }
+            QJsonValue elm = *i;
+
+            _txrefs.push_back(TXRef(elm.toObject()));
+        }
+    } else
+        qDebug() << ".txrefs missing in Address object";
 }
 
 }

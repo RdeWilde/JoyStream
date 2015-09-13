@@ -6,6 +6,7 @@
  */
 
 #include <common/PublicKey.hpp>
+#include <common/P2PKHAddress.hpp>
 #include <common/Signature.hpp>
 
 #include <CoinCore/hash.h> // ripemd160(sha256(pubkey))
@@ -44,6 +45,10 @@ bool PublicKey::verify(const uchar_vector & message, const Signature & sig) cons
     }
 
     return verified;
+}
+
+P2PKHAddress PublicKey::toP2PKHAddress(Network network) const{
+    return P2PKHAddress(network, toPubKeyHash());
 }
 
 }

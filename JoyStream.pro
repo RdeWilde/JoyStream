@@ -17,7 +17,10 @@ SUBDIRS     = \
 
 paymentchannel.depends = common
 
+blockcypher.depends = common
+
 wallet.depends = common
+wallet.depends = blockcypher
 # wallet.depends = paymentchannel
 
 core.depends = common

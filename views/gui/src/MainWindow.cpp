@@ -9,6 +9,7 @@
 #include "ui_MainWindow.h"
 #include <gui/AddTorrentDialog.hpp>
 #include <gui/WalletDialog.hpp>
+#include <gui/ReceiveFundsDialog.hpp>
 #include <gui/TorrentView.hpp>
 #include <gui/SellerTorrentPluginConfigurationDialog.hpp>
 #include <gui/BuyerTorrentPluginConfigurationDialog.hpp>
@@ -40,6 +41,7 @@
 #include <QDebug>
 #include <QMimeData>
 #include <QLabel>
+#include <QDesktopServices>
 
 MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet)
     : ui(new Ui::MainWindow)
@@ -47,7 +49,7 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet)
     , _wallet(wallet)
     , _torrentTableViewModel(0, 6)
     , _walletBalanceUpdateTimer()
-    , _bitcoinDisplaySettings(Fiat::USD, 225) {
+    , _bitcoinDisplaySettings() { //(Fiat::USD, 225) {
 
     ui->setupUi(this);
 
@@ -61,9 +63,15 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet)
     setFixedSize(size());
 
     // Status bar
-    _statusLabel.setText("Release 0.0.1, auto-update expected in by: 11.02.09)");
+    _statusLabel.setText("Release 0.0.1, auto-update expected in by: to be announced");
     _statusBar.addWidget(&_statusLabel);
     setStatusBar(&_statusBar);
+
+    /**
+     * buttons and menus
+     */
+
+    ui->walletPushButton->hide();
 
     /**
     // Set icon
@@ -220,18 +228,17 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet)
                      this,
                      SLOT(updateWalletBalance(quint64)));
 
-
-
-    /**
     // Capure wallet balance update timer,
     connect(&_walletBalanceUpdateTimer,
             SIGNAL(timeout()),
             this,
             SLOT(updateWalletBalanceHook()));
 
+    // Do first round to setup initial value
+    updateWalletBalance(_wallet->BLOCKCYPHER_lastAdress()._final_balance);
+
     // and have i fire every 30s
     _walletBalanceUpdateTimer.start(30000);
-    */
 }
 
 MainWindow::~MainWindow() {
@@ -594,6 +601,13 @@ void MainWindow::on_walletPushButton_clicked() {
     dialog.exec();
 }
 
+void MainWindow::on_topUpWalletPushButton_clicked() {
+
+    ReceiveFundsDialog dialog(_wallet);
+    dialog.exec();
+
+}
+
 void MainWindow::torrentTableClicked(const QModelIndex & index) {
 
     // Get torrent view mod el for torrent clicked on
@@ -607,8 +621,13 @@ void MainWindow::startVLC(const libtorrent::sha1_hash & infoHash) {
     std::string infoHashHexString = libtorrent::to_hex(infoHash.to_string());
 
     // Use to build path
-    QString url = "http://localhost:" + QString::number(_controller->getServerPort()) + "/" + QString::fromStdString(infoHashHexString);
+    QString serverUrl = "http://localhost:" + QString::number(_controller->getServerPort()) + "/" + QString::fromStdString(infoHashHexString);
 
+    QUrl url(serverUrl);
+
+    QDesktopServices::openUrl(url);
+
+    /**
     // Start VLC at local host on given port asking for this info hash
     qDebug() << "Starting VLC pointing at:" << url;
 
@@ -621,17 +640,20 @@ void MainWindow::startVLC(const libtorrent::sha1_hash & infoHash) {
     // Check that it started
     if(_processLauncher.state() != QProcess::UnknownError)
         qDebug() << "Could not start VLC.";
+    */
 }
 
- /**
 void MainWindow::updateWalletBalanceHook() {
 
+    // Sync blockcypher wallet
+    _wallet->BLOCKCYPHER_update_remote_wallet();
 
-    // Synch with chain
-    _wallet->synchronize();
+    // recalculate utxo (in case there has been any in/out to existing addresses);
+    BlockCypher::Address addr = _wallet->BLOCKCYPHER_rebuild_utxo();
 
+    // update balance
+    updateWalletBalance(addr._final_balance);
 }
-*/
 
 TorrentView * MainWindow::rowToView(int row) {
 

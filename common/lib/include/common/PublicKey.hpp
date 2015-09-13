@@ -18,6 +18,7 @@ namespace Coin {
 
 enum class Network;
 class Signature;
+class P2PKHAddress;
 
 // Compresed public key
 class PublicKey : public UCharArray<COMPRESSED_PUBLIC_KEY_BYTE_LENGTH> {
@@ -37,6 +38,8 @@ public:
     // Public key hash, e.g. for addresses
     PubKeyHash toPubKeyHash() const;
 
+    // Generate corresponding ntwork
+    P2PKHAddress toP2PKHAddress(Network network) const;
 };
 
 }

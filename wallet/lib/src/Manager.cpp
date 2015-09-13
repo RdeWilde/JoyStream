@@ -442,20 +442,44 @@ quint64 Manager::lastComputedZeroConfBalance() {
     return balance;
 }
 
-Coin::PrivateKey Manager::issueKey() {
+Coin::PrivateKey Manager::issueKey(bool createReceiveAddress) {
     //emit numberOfKeysInWalletChanged(quint64 numberOfKeysInWallet);
-    return _issueKey()._privateKey;
+    return _issueKey(createReceiveAddress)._privateKey;
+}
+
+QList<Coin::KeyPair> Manager::issueKeyPairs(quint64 numberOfPairs, bool createReceiveAddresses) {
+
+    // List of keys to return
+    QList<Coin::KeyPair> keys;
+
+    // Create each pair and add to list
+    for(quint64 i = 0;i < numberOfPairs;i++) {
+
+        // Get private key
+        Coin::PrivateKey sk = issueKey(createReceiveAddresses);
+
+        // Generate corresponding (compressd) public key
+        Coin::PublicKey pk = sk.toPublicKey();
+
+        // Add key pair to list
+        keys.append(Coin::KeyPair(pk, sk));
+    }
+
+    return keys;
+}
+
+quint64 Manager::numberOfKeysInWallet() {
+    return Key::numberOfKeysInWallet(_db);
 }
 
 Coin::P2PKHAddress Manager::getReceiveAddress() {
 
     // Get new address
-    Coin::P2PKHAddress address = _createReceiveAddress()._address;
+    //Coin::P2PKHAddress address = _createReceiveAddress()._address;
+    Key::Record r = _issueKey(true);
 
-    // Send signal about it
-    emit addressCreated(address);
-
-    return address;
+    // Regenerate addressand return it
+    return r._privateKey.toPublicKey().toP2PKHAddress(_network);
 }
 
 QList<Coin::P2PKHAddress> Manager::listReceiveAddresses() {
@@ -480,31 +504,6 @@ QList<Coin::P2PKHAddress> Manager::listReceiveAddresses() {
    Q_ASSERT(list.size() == allRecords.size());
 
    return list;
-}
-
-QList<Coin::KeyPair> Manager::issueKeyPairs(quint64 numberOfPairs) {
-
-    // List of keys to return
-    QList<Coin::KeyPair> keys;
-
-    // Create each pair and add to list
-    for(quint64 i = 0;i < numberOfPairs;i++) {
-
-        // Get private key
-        Coin::PrivateKey sk = issueKey();
-
-        // Generate corresponding (compressd) public key
-        Coin::PublicKey pk = sk.toPublicKey();
-
-        // Add key pair to list
-        keys.append(Coin::KeyPair(pk, sk));
-    }
-
-    return keys;
-}
-
-quint64 Manager::numberOfKeysInWallet() {
-    return Key::numberOfKeysInWallet(_db);
 }
 
 bool Manager::addBlockHeader(const Coin::CoinBlockHeader & blockHeader, quint64 numberOfTransactions, bool isOnMainChain, quint32 totalProofOfWork, quint64 blockHeight) {
@@ -1090,56 +1089,74 @@ void Manager::broadcast(const Coin::Transaction & tx) {
 
 void Manager::BLOCKCYPHER_init(QNetworkAccessManager * manager) {
 
+    qDebug() << "BLOCKCYPHER: Initializing wallet";
+
     // Allocate client
     // We dont really care who manages life tiem of thsi, although it is certainly this,
     // Only one instance is created per controller instance for process life time
     _BLOCKCYPHER_client = new BlockCypher::Client(manager, _network, BLOCKCYPHER_TOKEN);
 
-    // Set wallet client
+    // Set wallet name
     _BLOCKCYPHER_walletName = _seed.toHex().left(20);
 
     // Try to get most recent address object
-
     try {
 
-        qDebug() << "BLOCKCYPHER: Getting address.";
-        _BLOCKCYPHER_lastAdress = _BLOCKCYPHER_client->addressEndPoint(_BLOCKCYPHER_walletName);
-
-        // updatewallet
-        BLOCKCYPHER_update_remote_wallet(false);
+        BLOCKCYPHER_update_remote_wallet();
 
     } catch (const std::runtime_error & e) {
 
-        // assume we get here due to wallet not being created,
+        // assume we get here due to wallet not existing,
         // rather than some network io error (bad assumption!)
 
-        BLOCKCYPHER_update_remote_wallet(true);
+        BLOCKCYPHER_create_remote_wallet();
     }
+
+    BLOCKCYPHER_rebuild_utxo();
 
 }
 
-void Manager::BLOCKCYPHER_update_remote_wallet(bool createRatherThanUpdate) {
+BlockCypher::Wallet Manager::BLOCKCYPHER_create_remote_wallet() {
 
     // Get receivea adddresses we control
     QList<Coin::P2PKHAddress> localAddresses = listReceiveAddresses();
 
+    qDebug() << "BLOCKCYPHER: Creating a remote wallet with " << localAddresses.size() << " addresses.";
+
     // Wallet to update remotely to
-    BlockCypher::Wallet updatedWallet(BLOCKCYPHER_TOKEN, _BLOCKCYPHER_walletName, localAddresses);
+    BlockCypher::Wallet newWallet(BLOCKCYPHER_TOKEN, _BLOCKCYPHER_walletName, localAddresses);
 
-    if(createRatherThanUpdate) {
-
-        qDebug() << "BLOCKCYPHER: Creating a wallet.";
-        BlockCypher::Wallet created = _BLOCKCYPHER_client->createWallet(updatedWallet);
-        Q_ASSERT(created._name == _BLOCKCYPHER_walletName);
-
-    } else {
-
-        qDebug() << "BLOCKCYPHER: Updating a wallet.";
-        _BLOCKCYPHER_client->addAddressToWallet(updatedWallet);
+    // If there are no addresses, make one token address,
+    // as blockcypher api requires it.
+    if(newWallet._addresses.isEmpty()) {
+        newWallet._addresses.append(getReceiveAddress());
     }
+
+    BlockCypher::Wallet created = _BLOCKCYPHER_client->createWallet(newWallet);
+    //Q_ASSERT(created == newWallet);
+
+    return created;
 }
 
-void Manager::BLOCKCYPHER_rebuild_utxo() {
+
+BlockCypher::Wallet Manager::BLOCKCYPHER_update_remote_wallet() {
+
+    // Get receivea adddresses we control
+    QList<Coin::P2PKHAddress> localAddresses = listReceiveAddresses();
+
+    qDebug() << "BLOCKCYPHER: Updating the remote wallet to have " << localAddresses.size() << " addresses.";
+
+    // Wallet to update remotely to
+    BlockCypher::Wallet updatedWallet(BLOCKCYPHER_TOKEN, _BLOCKCYPHER_walletName, localAddresses);
+    BlockCypher::Wallet newWallet = _BLOCKCYPHER_client->addAddressToWallet(updatedWallet);
+    //Q_ASSERT(newWallet == updatedWallet);
+
+    return newWallet;
+}
+
+BlockCypher::Address Manager::BLOCKCYPHER_rebuild_utxo() {
+
+    _mutex.lock();
 
     // (synchrnously) fetch address object for given wallet
     BlockCypher::Address address = _BLOCKCYPHER_client->addressEndPoint(_BLOCKCYPHER_walletName);
@@ -1175,29 +1192,28 @@ void Manager::BLOCKCYPHER_rebuild_utxo() {
             bool keyExists = Key::exists(_db, Key::PK(a_r._keyIndex), k_r);
             Q_ASSERT(keyExists);
 
-            /**
-             * OMG, look at mess below,
-             * ORM needed so badly...
+//            **
+//             * OMG, look at mess below,
+//             * ORM needed so badly...
 
-            // Check that such an output exists,
-            // and what private key, if any, controls it
-            // ** UGLY, at least do call for this one spesific output we care about ***
-            std::vector<Coin::TxOut> txouts = TransactionHasOutput::outputsOfTransaction(_db, txId);
-            Q_ASSERT(txouts.size() > t._tx_output_n);
+//            // Check that such an output exists,
+//            // and what private key, if any, controls it
+//            // ** UGLY, at least do call for this one spesific output we care about ***
+//            std::vector<Coin::TxOut> txouts = TransactionHasOutput::outputsOfTransaction(_db, txId);
+//            Q_ASSERT(txouts.size() > t._tx_output_n);
 
-            Output::Record o_r;
-            bool outputExists = Output::exists(_db, Output::PK(txouts[t._tx_output_n]), o_r);
-            Q_ASSERT(outputExists);
-            Q_ASSERT(!o_r._keyIndex.isNull()); // we should have key for this output
+//            Output::Record o_r;
+//            bool outputExists = Output::exists(_db, Output::PK(txouts[t._tx_output_n]), o_r);
+//            Q_ASSERT(outputExists);
+//            Q_ASSERT(!o_r._keyIndex.isNull()); // we should have key for this output
 
-            bool ok;
-            quint64 keyIndex = o_r._keyIndex.toULongLong(ok);
-            Q_ASSERT(ok);
+//            bool ok;
+//            quint64 keyIndex = o_r._keyIndex.toULongLong(ok);
+//            Q_ASSERT(ok);
 
-            Key::Record k_r;
-            bool keyExists = Key::exists(_db, Key::PK(keyIndex), k_r);
-            Q_ASSERT(keyExists);
-            */
+//            Key::Record k_r;
+//            bool keyExists = Key::exists(_db, Key::PK(keyIndex), k_r);
+//            Q_ASSERT(keyExists);
 
             // Make key pair
             Coin::KeyPair pair(k_r._privateKey.toPublicKey(), k_r._privateKey);
@@ -1206,13 +1222,19 @@ void Manager::BLOCKCYPHER_rebuild_utxo() {
             _BLOCKCYPHER_utxo.append(Coin::UnspentP2PKHOutput(pair, o, t._value));
         }
     }
+
+    _BLOCKCYPHER_lastAdress = address;
+
+    _mutex.unlock();
+
+    return _BLOCKCYPHER_lastAdress;
 }
 
 void Manager::BLOCKCYPHER_broadcast(const Coin::Transaction & tx) {
     _BLOCKCYPHER_client->pushRawTransactionAsync(tx);
 }
 
-Coin::UnspentP2PKHOutput Manager::BLOCKCYPHER_lockONEUtxo(quint64 minimalAmount) {
+Coin::UnspentP2PKHOutput Manager::BLOCKCYPHER_lock_one_utxo(quint64 minimalAmount) {
 
     // lock so now one else tries to claim utxo members at the same time
     _mutex.lock();
@@ -1248,6 +1270,10 @@ Coin::UnspentP2PKHOutput Manager::BLOCKCYPHER_lockONEUtxo(quint64 minimalAmount)
     throw std::runtime_error("Unable to find qualifynmg utxo");
 }
 
+BlockCypher::Address Manager::BLOCKCYPHER_lastAdress() {
+    return _BLOCKCYPHER_lastAdress;
+}
+
 QSqlDatabase Manager::db() {
     return _db;
 }
@@ -1258,10 +1284,11 @@ void Manager::blockStoreLoaded(const CoinQBlockTreeMem & blocktree) {
     //std::cout << "Best height: " << blocktree.getBestHeight() << " Total work: " << blocktree.getTotalWork().getDec() << std::endl;
 }
 
+/**
 Address::Record Manager::_createReceiveAddress() {
 
     // Generate fresh wallet key
-    Key::Record keyRecord = _issueKey();
+    Key::Record keyRecord = _issueKey(true);
 
     // Get private key
     Coin::PrivateKey sk = keyRecord._privateKey;
@@ -1277,8 +1304,9 @@ Address::Record Manager::_createReceiveAddress() {
 
     return addressRecord;
 }
+*/
 
-Key::Record Manager::_issueKey() {
+Key::Record Manager::_issueKey(bool createReceiveAddress) {
 
     /**
      * ==========================================
@@ -1304,6 +1332,19 @@ Key::Record Manager::_issueKey() {
     _nextIndex++;
 
     _mutex.unlock();
+
+    // Insert/create corresponding receive address in Address table
+    if(createReceiveAddress) {
+
+        // Create corresponding p2pkh address
+        Coin::P2PKHAddress address(_network, record._privateKey.toPublicKey().toPubKeyHash());
+
+        // Insert address
+        Address::insert(_db, Address::Record(record._index, address));
+
+        // Send signal about it
+        emit addressCreated(address);
+    }
 
     return record;
 }

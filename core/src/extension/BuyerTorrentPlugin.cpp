@@ -256,9 +256,9 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
     quint64 changeValue = utxo.value() - contractFee - configuration.numberOfSellers()*fundingPerSeller;
 
     // Generate keys in wallet
-    QList<Coin::KeyPair> buyerInContractKeys = _wallet->issueKeyPairs(configuration.numberOfSellers()); //, Wallet::Purpose::BuyerInContractOutput).values();
-    QList<Coin::KeyPair> buyerFinalKeys = _wallet->issueKeyPairs(configuration.numberOfSellers()); //, Wallet::Purpose::ContractFinal).values();
-    QList<Coin::KeyPair> changeKey = _wallet->issueKeyPairs(1); //, Wallet::Purpose::ContractChange).values();
+    QList<Coin::KeyPair> buyerInContractKeys = _wallet->issueKeyPairs(configuration.numberOfSellers(), false); //, Wallet::Purpose::BuyerInContractOutput).values();
+    QList<Coin::KeyPair> buyerFinalKeys = _wallet->issueKeyPairs(configuration.numberOfSellers(), true); //, Wallet::Purpose::ContractFinal).values();
+    QList<Coin::KeyPair> changeKey = _wallet->issueKeyPairs(1, true); //, Wallet::Purpose::ContractChange).values();
 
     Q_ASSERT(buyerInContractKeys.count() == configuration.numberOfSellers());
     Q_ASSERT(buyerFinalKeys.count() == configuration.numberOfSellers());
