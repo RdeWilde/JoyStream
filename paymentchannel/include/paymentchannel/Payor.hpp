@@ -17,6 +17,8 @@
 #include <common/typesafeOutPoint.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
 
+#include <CoinCore/CoinNodeData.h> // Coin::Transaction
+
 class Contract;
 class Commitment;
 class Refund;
@@ -639,11 +641,15 @@ public:
     std::vector<Channel> & channels();
     const Payor::Channel & channel(int i) const;
 
+    /**
     Coin::typesafeOutPoint fundingOutPoint() const;
     void setFundingOutPoint(const Coin::typesafeOutPoint & fundingOutPoint);
 
     Coin::TransactionId contractHash() const;
     void setContractHash(const Coin::TransactionId & contractHash);
+    */
+
+    Coin::TransactionId contractHash() const;
 
     quint32 numberOfSignatures() const;
     void setNumberOfSignatures(quint32 numberOfSignatures);
@@ -693,7 +699,15 @@ private:
     // Add variable here for number of channels assignd as well
 
     // Contract _contract;
-    Coin::TransactionId _contractTxId;
+    //Coin::TransactionId _contractTxId;
+
+    // Contract transaction
+    // =============================================================
+    // ** Reason this is saved is because it should not be
+    // resigned when needed multiple times, as this will change
+    // signature, which will change contract TxId, which may
+    // invalidate channel if not used with care, e.g. if broadcasted
+    Coin::Transaction _contractTx;
 
     quint32 _numberOfSignatures;
 };

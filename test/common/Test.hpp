@@ -23,11 +23,15 @@ private slots:
      * Test routines
      */
 
+    void transactionId();
+
     void basic();
 
     void makeAndCheckSig();
 
     void sighash();
+
+    void signForP2PKHSpend();
 
     void addresses();
 

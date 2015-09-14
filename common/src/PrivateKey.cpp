@@ -18,6 +18,8 @@
 #include <CoinCore/Base58Check.h>
 #include <CoinCore/secp256k1.h>
 
+#include <QDebug>
+
 namespace Coin {
 
 PrivateKey::PrivateKey()
@@ -136,6 +138,8 @@ TransactionSignature PrivateKey::sign(const Coin::Transaction & tx, uint inputTo
 
     // Generate sighash
     bytes_t hash = sighash(tx, inputToSign, scriptPubKey, type);
+
+    //qDebug() << QString::fromStdString(uchar_vector(hash).getHex());
 
     // Create signature and return
     return TransactionSignature(sign(hash), type);

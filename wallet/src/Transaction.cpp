@@ -30,12 +30,12 @@ Record::Record(const PK & pk,
 }
 
 Record::Record(const Coin::Transaction & transaction, const QDateTime & seen)
-    : Record(transaction.getHash(), transaction.version, transaction.lockTime, seen, QVariant()) {
+    : Record(Coin::TransactionId(transaction.getHash()), transaction.version, transaction.lockTime, seen, QVariant()) {
 }
 
 Record::Record(const QSqlRecord & record) {
 
-    _pk = record.value("transactionId").toByteArray();
+    _pk = Coin::TransactionId(record.value("transactionId").toByteArray());
     _version = record.value("version").toUInt();
     _lockTime = record.value("lockTime").toUInt();
     _seen = record.value("seen").toDateTime();

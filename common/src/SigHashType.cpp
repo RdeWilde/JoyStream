@@ -21,6 +21,10 @@ SigHashType::SigHashType(MutuallyExclusiveType type, bool anyOneCanPay)
     , _anyOneCanPay(anyOneCanPay) {
 }
 
+bool SigHashType::operator==(const SigHashType & rhs) {
+    return _type == rhs.type() && _anyOneCanPay == rhs.anyOneCanPay();
+}
+
 SigHashType SigHashType::fromHashCode(uint32_t hashCode) {
 
     uint32_t masked = (hashCode & SIGHASHTYPE_BITMASK);

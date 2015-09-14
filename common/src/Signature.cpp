@@ -73,6 +73,10 @@ Signature & Signature::operator=(const Signature & signature) {
     return *this;
 }
 
+bool Signature::operator==(const Signature & rhs) {
+    return _raw == rhs.raw();
+}
+
 unsigned int Signature::length() const {
     return _raw.size();
 }

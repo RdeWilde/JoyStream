@@ -136,12 +136,12 @@ void TestWallet::tx() {
     QVERIFY(_manager->addTransaction(tx));
 
     // Grab from wallet and check that it is the same
-    Coin::Transaction tx2 = _manager->getTransaction(tx.getHashLittleEndian());
-    QVERIFY(tx.getHashLittleEndian() == tx2.getHashLittleEndian());
+    Coin::Transaction tx2 = _manager->getTransaction(Coin::TransactionId(tx.getHash()));
+    QVERIFY(tx.getHash() == tx2.getHash());
 
     // Alter it and check that it's different
     tx2.version = 0;
-    QVERIFY(tx.getHashLittleEndian() != tx2.getHashLittleEndian());
+    QVERIFY(tx.getHash() != tx2.getHash());
 
 }
 
@@ -173,7 +173,7 @@ void TestWallet::listutxo() {
     //
 
     Coin::Transaction spendingTx;
-    Coin::OutPoint out(tx.getHashLittleEndian(),0); // outpoint referencing first outputo tx above
+    Coin::OutPoint out(tx.getHash(),0); // outpoint referencing first outputo tx above
     spendingTx.addInput(Coin::TxIn(out, uchar_vector("12345"), 4444));
 
     // Add to wallet

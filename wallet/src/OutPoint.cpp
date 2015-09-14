@@ -25,7 +25,7 @@ PK::PK(const Coin::TransactionId & transactionId, quint32 outputIndex)
 }
 
 PK::PK(const Coin::OutPoint & o)
-    : PK(uchar_vector(o.hash, Coin::TransactionId::length()), o.index) {
+    : PK(Coin::TransactionId(uchar_vector(o.hash, Coin::TransactionId::length())), o.index) {
 }
 
 Record::Record() {
@@ -37,7 +37,7 @@ Record::Record(const PK & pk)
 
 Record::Record(const QSqlRecord & record) {
 
-    Coin::TransactionId transactionId = record.value("transactionId").toByteArray();
+    Coin::TransactionId transactionId(record.value("transactionId").toByteArray());
     quint32 index = record.value("index").toUInt();
 
     _pk = PK(transactionId, index);

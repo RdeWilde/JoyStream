@@ -33,7 +33,7 @@ Record::Record(const PK & pk, const Output::PK & output)
 
 Record::Record(const QSqlRecord & record) {
 
-    Coin::TransactionId transactionId = record.value("transactionId").toByteArray();
+    Coin::TransactionId transactionId(record.value("transactionId").toByteArray());
     quint32 index = record.value("[index]").toUInt();
     //quint32 index = record.value("index").toUInt();
     _pk = PK(transactionId, index);

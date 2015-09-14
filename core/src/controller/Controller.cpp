@@ -1755,8 +1755,7 @@ void Controller::processTorrentCheckedAlert(libtorrent::torrent_checked_alert co
         libtorrent::sha1_hash infoHash = h.info_hash();
 
         //qCCritical(_category) << QString::fromStdString(h.info_hash().to_string()); // infoHash.to_string()
-
-        qCCritical(_category) << QString::fromStdString(_torrents.first()->infoHash().to_string());
+        //qCCritical(_category) << QString::fromStdString(_torrents.first()->infoHash().to_string());
 
         // Make sure the torrent exists
         Q_ASSERT(_torrents.contains(infoHash));

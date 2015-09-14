@@ -156,7 +156,7 @@ QString SellerPeerPluginView::clientStateToString(SellerPeerPlugin::ClientState 
 }
 
 QString SellerPeerPluginView::contractOutPointString(const Coin::typesafeOutPoint & o) {
-    return o.toString();
+    return o.toLittleEndianTxIdString();
 }
 
 QString SellerPeerPluginView::fundsToString(quint64 funds) {

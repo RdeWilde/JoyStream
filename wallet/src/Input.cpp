@@ -41,7 +41,7 @@ Record::Record(const PK & pk)
 Record::Record(const QSqlRecord & record) {
 
     // outpoint
-    Coin::TransactionId outPointTransactionId = record.value("outPointTransactionId").toByteArray();
+    Coin::TransactionId outPointTransactionId(record.value("outPointTransactionId").toByteArray());
     quint32 outPointOutputIndex = record.value("outPointOutputIndex").toUInt();
 
     OutPoint::PK outPointPk(outPointTransactionId, outPointOutputIndex);
@@ -57,7 +57,7 @@ Record::Record(const QSqlRecord & record) {
 
 Coin::TxIn Record::toInput() {
 
-    Coin::TransactionId outPointTransactionId = _pk._outPoint._transactionId.toByteArray();
+    Coin::TransactionId outPointTransactionId(_pk._outPoint._transactionId.toByteArray());
     quint32 outPointOutputIndex = _pk._outPoint._index;
     QByteArray scriptSig = _pk._scriptSig;
     quint32 sequence = _pk._sequence;

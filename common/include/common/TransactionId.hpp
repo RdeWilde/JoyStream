@@ -24,15 +24,17 @@ class TransactionId : public UCharArray<TXID_BYTE_LENGTH> {
 public:
 
     TransactionId();
-    TransactionId(const uchar_vector & vector);
-    TransactionId(const QByteArray & array);
 
-    // Constructor from hex encoded string
-    // of little endian byte sequence.
-    // OBS: each byte is reversed whend eco
+    // Protect against inadverdent construction from any form of string,
+    // as endinaness information will be ambigious. Use static
+    // factory for this.
+    explicit TransactionId(const uchar_vector & vector);
+    explicit TransactionId(const QByteArray & array);
+
+    // Constructor from hex encoded string of little endian byte sequence
     static TransactionId fromLittleEndianHex(const std::string & str);
 
-    // Encodes as hex string,
+    // Encodes as hex string of little endian byte sequence
     std::string toLittleEndianHex() const;
 };
 

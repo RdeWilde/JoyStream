@@ -15,6 +15,10 @@ TransactionSignature::TransactionSignature(const Signature & sig, const SigHashT
     , _type(type) {
 }
 
+bool TransactionSignature::operator==(const TransactionSignature & rhs) {
+    return _sig == rhs.sig() && _type == rhs.type();
+}
+
 uchar_vector TransactionSignature::serializeForScriptSig() const {
 
     uchar_vector serialize;

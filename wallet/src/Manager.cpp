@@ -509,7 +509,7 @@ QList<Coin::P2PKHAddress> Manager::listReceiveAddresses() {
 bool Manager::addBlockHeader(const Coin::CoinBlockHeader & blockHeader, quint64 numberOfTransactions, bool isOnMainChain, quint32 totalProofOfWork, quint64 blockHeight) {
 
     // Create private key to check if record exists
-    BlockHeader::PK pk(blockHeader.getHashLittleEndian());
+    BlockHeader::PK pk(blockHeader.getHash());
 
     // Lock so that checking existence and insertion are atomic
     _mutex.lock();
@@ -617,7 +617,7 @@ bool Manager::addOutput(const Coin::TxOut & txOut) {
     // // 4. fee re-calculation for any OTHER transaction  IF: !noOutputAdded -> this may have lead to us being able to
     //         quint64 fee;
     //    FOR:
-    //    calculateAndSetFee(transaction.getHashLittleEndian(), fee);
+    //    calculateAndSetFee(transaction.getHash(), fee);
     */
 
     _mutex.unlock();
@@ -629,7 +629,7 @@ bool Manager::addTransaction(const Coin::Transaction & transaction) {
     // Lock so that checking existence and insertion are atomic
     _mutex.lock();
 
-    Coin::TransactionId transactionId(transaction.getHashLittleEndian());
+    Coin::TransactionId transactionId(transaction.getHash());
 
     // If the transaction has already been added, we are done
     if(Transaction::exists(_db, transactionId)) {
@@ -1075,11 +1075,11 @@ bool Manager::releaseUtxo(const Coin::typesafeOutPoint & o) {
 
 void Manager::broadcast(const Coin::Transaction & tx) {
 
-    throw std::runtime_error("not implemented");
+    //throw std::runtime_error("not implemented");
+
+    qDebug() << "Manager::broadcast(): not implemented";
 
     _mutex.lock();
-
-
 
     // do something: may not need to be mutexed
     // save tx in wallet?

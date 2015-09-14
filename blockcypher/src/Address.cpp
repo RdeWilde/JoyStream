@@ -39,10 +39,21 @@ Address::Address(const QJsonObject & o) {
     Q_ASSERT(o["final_balance"].isDouble());
     _final_balance = o["final_balance"].toInt();
 
+    Q_ASSERT(o.contains("n_tx"));
+    Q_ASSERT(o["n_tx"].isDouble());
+    _n_tx = o["n_tx"].toInt();
+
+    Q_ASSERT(o.contains("unconfirmed_n_tx"));
+    Q_ASSERT(o["unconfirmed_n_tx"].isDouble());
+    _unconfirmed_n_tx = o["unconfirmed_n_tx"].toInt();
+
+    Q_ASSERT(o.contains("final_n_tx"));
+    Q_ASSERT(o["final_n_tx"].isDouble());
+    _final_n_tx = o["final_n_tx"].toInt();
+
     // Only exists in some cases, not sure when that is
     if(o.contains("txrefs")) {
 
-        //Q_ASSERT(o.contains("txrefs"));
         Q_ASSERT(o["txrefs"].isArray());
         QJsonArray txrefs = o["txrefs"].toArray();
 
@@ -55,8 +66,12 @@ Address::Address(const QJsonObject & o) {
 
             _txrefs.push_back(TXRef(elm.toObject()));
         }
-    } else
-        qDebug() << ".txrefs missing in Address object";
+    } //else
+      //  qDebug() << ".txrefs missing in Address object";
+
+    Q_ASSERT(o.contains("tx_url"));
+    Q_ASSERT(o["tx_url"].isString());
+    _tx_url = o["_tx_url"].toString().toStdString();
 }
 
 }

@@ -594,7 +594,8 @@ bool BuyerTorrentPlugin::sellerWantsToJoinContract(BuyerPeerPlugin * peer, quint
 
         // Iterate
         quint32 index = 0;
-        const Coin::TransactionId & contractHash = _payor.contractHash();
+        const Coin::TransactionId contractHash = _payor.contractHash();
+
         for(std::vector<Payor::Channel>::const_iterator i = channels.cbegin(),
             end = channels.cend(); i != end;i++, index++) {
 
@@ -654,20 +655,9 @@ bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, c
     // Check if we have all signatures
     if(_payor.allRefundsSigned()) {
 
-        // Construct and broadcast contract
-        //_payor.broadcast_contract();
+        // Broadcast
+        //.... fix, dont reconstruct....
         Coin::Transaction tx = _payor.contract().transaction();
-
-        uchar_vector txHash = tx.getHashLittleEndian();
-        uchar_vector txContractHash = _payor.contractHash().toUCharVector();
-
-        qDebug() << "txHash" << QString::fromStdString(txHash.getHex());
-        qDebug() << "txContractHash" << QString::fromStdString(txContractHash.getHex());
-        qDebug() << "TransactionId test" << QString::fromStdString(Coin::TransactionId(txHash).toUCharVector().getHex());
-
-
-        Q_ASSERT(txHash == txContractHash);
-
         _wallet->broadcast(tx);
 
         // Register tx fee we are spending

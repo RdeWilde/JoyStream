@@ -40,7 +40,7 @@ public:
     // Flat representation, so outpoint can be used as json key
     typesafeOutPoint(const QString & string);
 
-    QString toString() const;
+    QString toLittleEndianTxIdString() const;
 
     Coin::OutPoint getClassicOutPoint() const;
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>391</width>
-    <height>168</height>
+    <width>654</width>
+    <height>103</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -25,10 +25,10 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>124</y>
+     <x>160</x>
+     <y>50</y>
      <width>371</width>
-     <height>32</height>
+     <height>51</height>
     </rect>
    </property>
    <property name="orientation">
@@ -41,21 +41,26 @@
   <widget class="QLineEdit" name="saveToFolderLineEdit">
    <property name="geometry">
     <rect>
-     <x>120</x>
-     <y>60</y>
-     <width>181</width>
-     <height>21</height>
+     <x>130</x>
+     <y>10</y>
+     <width>401</width>
+     <height>41</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
    <property name="text">
-    <string>C:\</string>
+    <string>/home/bedeho/JoyStream/save_location</string>
    </property>
   </widget>
   <widget class="QLabel" name="saveToFolderLabel">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>60</y>
+     <x>20</x>
+     <y>20</y>
      <width>101</width>
      <height>16</height>
     </rect>
@@ -64,48 +69,17 @@
     <string>Save to folder:</string>
    </property>
   </widget>
-  <widget class="QLabel" name="windowTitleLabel">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>10</y>
-     <width>141</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>Add torrent</string>
-   </property>
-  </widget>
-  <widget class="Line" name="windowTitleLine">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>40</y>
-     <width>371</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-  </widget>
   <widget class="QPushButton" name="saveToFolderPushButton">
    <property name="geometry">
     <rect>
-     <x>310</x>
-     <y>60</y>
-     <width>75</width>
-     <height>23</height>
+     <x>540</x>
+     <y>10</y>
+     <width>101</width>
+     <height>41</height>
     </rect>
    </property>
    <property name="text">
-    <string>Choose</string>
+    <string>Browse</string>
    </property>
   </widget>
  </widget>

@@ -20,6 +20,8 @@ public:
 
     TransactionSignature(const Signature & sig, const SigHashType & type);
 
+    bool operator==(const TransactionSignature & rhs);
+
     // Serialized as scriptSig ready: <op load signature><DER signature><1 byte sighash type flag>
     uchar_vector serializeForScriptSig() const;
 

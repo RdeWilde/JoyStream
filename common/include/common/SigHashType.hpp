@@ -34,6 +34,8 @@ public:
 
     SigHashType(MutuallyExclusiveType type, bool anyOneCanPay);
 
+    bool operator==(const SigHashType & rhs);
+
     // From (little endian) hash code, as it appears in sighash computation step
     static SigHashType fromHashCode(uint32_t hashCode);
 

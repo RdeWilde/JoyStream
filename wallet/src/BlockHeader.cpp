@@ -49,7 +49,7 @@ Record::Record(const Coin::CoinBlockHeader & h,
                bool isOnMainChain,
                quint32 totalProofOfWork,
                quint64 blockHeight)
-    : Record(h.getHashLittleEndian(),
+    : Record(h.getHash(),
              h.version(),
              h.prevBlockHash(),
              h.merkleRoot(),

@@ -16,6 +16,7 @@
 #include <common/P2PKHScriptSig.hpp>
 
 #include <QByteArray>
+#include <QDebug>
 
 namespace Coin {
 
@@ -108,6 +109,9 @@ namespace Coin {
         if(!type.isStandard())
             throw std::runtime_error("unsupported sighash type, only sighash_all is supported");
 
+        if(tx.inputs.size() <= input)
+            throw std::runtime_error("Transaction does not have a corresponding input");
+
         // Make copy of original tx, since it will be modified
         Coin::Transaction txCopy = tx;
 
@@ -179,15 +183,29 @@ namespace Coin {
                            uint input,
                            const Coin::PrivateKey & sk) {
 
+        /**
+        qDebug() << "tx: " << QString::fromStdString(tx.getHash/LittleEndian().getHex());
+        qDebug() << "input: " << input;
+        qDebug() << "sk: " << sk.toHex();
+        */
+
         // Generate signature
         Coin::TransactionSignature ts = sk.signForP2PKHSpend(tx, input);
+
+        //qDebug() << "signature: " << ts.sig().toString();
 
         // Generate scriptSig
         Coin::P2PKHScriptSig scriptSig(sk.toPublicKey(), ts);
 
         Q_ASSERT(input < tx.inputs.size());
 
+        uchar_vector ser_scriptSig = scriptSig.serialized();
+
+        //qDebug() << "scriptSig:" << QString::fromStdString(ser_scriptSig.getHex());
+
         // Set input script
-        tx.inputs[input].scriptSig = scriptSig.serialized();
+        tx.inputs[input].scriptSig = ser_scriptSig;
+
+
     }
 }

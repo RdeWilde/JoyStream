@@ -191,7 +191,7 @@ QString BuyerTorrentPluginDialog::contractTxIdToString(const Coin::TransactionId
 }
 
 QString BuyerTorrentPluginDialog::utxoToString(const Coin::UnspentP2PKHOutput & utxo) {
-    return utxo.outPoint().toString();
+    return utxo.outPoint().toLittleEndianTxIdString();
 }
 
 BuyerTorrentPluginDialog::~BuyerTorrentPluginDialog() {

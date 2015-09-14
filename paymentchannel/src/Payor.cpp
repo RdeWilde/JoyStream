@@ -748,7 +748,7 @@ Payor::Payor(const Payor::Configuration & configuration)
     , _changeOutputKeyPair(configuration.changeOutputKeyPair())
     , _changeValue(configuration.changeValue())
     , _contractFee(configuration.contractFee())
-    , _contractTxId(configuration.contractHash())
+    //, _contractTxId(configuration.contractHash())
     , _numberOfSignatures(configuration.numberOfSignatures()) {
 
     // Populate _channels vector
@@ -828,25 +828,28 @@ quint32 Payor::assignUnassignedSlot(quint64 price, const Coin::PublicKey & payee
 
         // Generate the contract transaction
         Contract c = contract();
-        Coin::Transaction tx = c.transaction(); //Coin::Transaction tx = contractTransaction();
+        _contractTx = c.transaction();
+        //qDebug() << "tx:" << QString::fromStdString(tx.toIndentedString());  // getSerialized().getHex()
 
         // Get contract tx id
         // https://bitcoin.org/en/developer-reference#hash-byte-order
         // ** It's in Little Endian byte order (least-significant byte first) in the protocol,
         // but it's written out in Big Endian byte order (most-significant byte first)
         // as most other numbers in English normally are.
-        uchar_vector littleEndianTxHash = tx.getHashLittleEndian();
-        uchar_vector bigEndianTxHash = tx.getHash();
-        qDebug() << "contract little endian" << QString::fromStdString(littleEndianTxHash.getHex());
-        qDebug() << "contract big endian" << QString::fromStdString(bigEndianTxHash.getHex());
+        //uchar_vector littleEndianTxHash = tx.getHashLittleEndian();
+        //qDebug() << "littleEndianTxHash" << QString::fromStdString(littleEndianTxHash.getHex());
 
-        _contractTxId = littleEndianTxHash;
+        //uchar_vector bigEndianTxHash = tx.getHash();
+        //qDebug() << "contract big endian" << QString::fromStdString(bigEndianTxHash.getHex());
+
+        //_contractTxId = littleEndianTxHash;
 
         // Compute all refund signatures
         for(std::vector<Channel>::iterator i = _channels.begin(), end(_channels.end()); i != end;i++) {
 
             // Get refund
-            Refund refund = i->refund(_contractTxId);
+            Coin::TransactionId contractTxId(_contractTx.getHash());
+            Refund refund = i->refund(contractTxId);
 
             // Get refund signature
             Coin::TransactionSignature refundSignature = refund.transactionSignature(i->payorContractKeyPair().sk());
@@ -948,7 +951,8 @@ bool Payor::processRefundSignature(quint32 index, const Coin::Signature & signat
     Q_ASSERT(channel.state() == Channel::State::assigned);
 
     // Check signature
-    bool validSignature = channel.refund(_contractTxId).validate(channel.payeeContractPk(), signature);
+    Coin::TransactionId contractTxId(_contractTx.getHash());
+    bool validSignature = channel.refund(contractTxId).validate(channel.payeeContractPk(), signature);
 
     // If it matched, then alter state and save signature
     if(validSignature) {
@@ -1008,7 +1012,8 @@ Coin::Signature Payor::getPresentPaymentSignature(quint32 index) const {
     Q_ASSERT(channel.state() == Channel::State::refund_signed);
 
     // Get settelemnt
-    Settlement settlement = channel.settlement(_contractTxId);
+    Coin::TransactionId contractTxId(_contractTx.getHash());
+    Settlement settlement = channel.settlement(contractTxId);
 
     // Generate signature
     Coin::TransactionSignature settlementSignature = settlement.transactionSignature(channel.payorContractKeyPair().sk());
@@ -1026,7 +1031,8 @@ Payor::Status Payor::status() const {
         channels.push_back(i->status());
 
     // Create rest of payor status
-    return Status(channels, _state, _utxo, _changeValue, _contractFee, _contractTxId, _numberOfSignatures);
+    Coin::TransactionId contractTxId(_contractTx.getHash());
+    return Status(channels, _state, _utxo, _changeValue, _contractFee, contractTxId, _numberOfSignatures);
 }
 
 quint32 Payor::numberOfChannels() const {
@@ -1101,14 +1107,13 @@ OutPoint Payor::fundingOutPoint() const {
 void Payor::setFundingOutPoint(const OutPoint &fundingOutput) {
     _fundingOutPoint = fundingOutput;
 }
-*/
-
-Coin::TransactionId Payor::contractHash() const {
-    return _contractTxId;
-}
 
 void Payor::setContractHash(const Coin::TransactionId & contractTxId) {
     _contractTxId = contractTxId;
+}
+*/
+Coin::TransactionId Payor::contractHash() const {
+    return Coin::TransactionId(_contractTx.getHash());
 }
 
 quint32 Payor::numberOfSignatures() const {
