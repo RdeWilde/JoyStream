@@ -24,158 +24,158 @@ bool send_errorlog(QNetworkAccessManager * manager);
 // JoyStream entry point
 int main(int argc, char* argv[]) {
 
-    // Create Qt application: all objects created after this point are owned by this thread
-    QApplication app(argc, argv);
-    QApplication::setApplicationName(APPLICATION_NAME);
-    QApplication::setApplicationVersion(QString::number(APPLICATION_VERSION_MAJOR) + "." + QString::number(APPLICATION_VERSION_MINOR));
+		// Create Qt application: all objects created after this point are owned by this thread
+		QApplication app(argc, argv);
+		QApplication::setApplicationName(APPLICATION_NAME);
+		QApplication::setApplicationVersion(QString::number(APPLICATION_VERSION_MAJOR) + "." + QString::number(APPLICATION_VERSION_MINOR));
 
-    // Setup command line parsing
-    QCommandLineParser parser;
-    parser.setApplicationDescription(APPLICATION_DESCRIPTION);
+		// Setup command line parsing
+		QCommandLineParser parser;
+		parser.setApplicationDescription(APPLICATION_DESCRIPTION);
 
-    // Add options
-    parser.addHelpOption();
-    parser.addVersionOption();
+		// Add options
+		parser.addHelpOption();
+		parser.addVersionOption();
 
-    QCommandLineOption showNoUpdateOption("n", "Do not run update manager.");
-    parser.addOption(showNoUpdateOption);
-    QCommandLineOption showConsoleModeOption("c", "Run in console mode.");
-    parser.addOption(showConsoleModeOption);
-    QCommandLineOption showFreshOption("f", "Create and use a fresh parameter file.");
-    parser.addOption(showFreshOption);
+		QCommandLineOption showNoUpdateOption("n", "Do not run update manager.");
+		parser.addOption(showNoUpdateOption);
+		QCommandLineOption showConsoleModeOption("c", "Run in console mode.");
+		parser.addOption(showConsoleModeOption);
+		QCommandLineOption showFreshOption("f", "Create and use a fresh parameter file.");
+		parser.addOption(showFreshOption);
 
-    // Process the actual command line arguments given by the user
-    parser.process(app);
+		// Process the actual command line arguments given by the user
+		parser.process(app);
 
-    // Call update manager, if allowed
-    if(!parser.isSet(showNoUpdateOption)) {
+		// Call update manager, if allowed
+		if(!parser.isSet(showNoUpdateOption)) {
 
-        /**
-        bool doRestart = updateManager();
+				/**
+				bool doRestart = updateManager();
 
-        if(doRestart) {
-            // Call update runner
-        }
-        */
+				if(doRestart) {
+						// Call update runner
+				}
+				*/
 
-    }
+		}
 
-    // Check console flag
-    bool showView = false;
-    if(!parser.isSet(showConsoleModeOption))
-        showView = true;
+		// Check console flag
+		bool showView = false;
+		if(!parser.isSet(showConsoleModeOption))
+				showView = true;
 
-    // Create logging category
-    bool use_stdout_logg = true;
-    QLoggingCategory * category = global_log_manager.createLogger("main", use_stdout_logg, false);
+		// Create logging category
+		bool use_stdout_logg = true;
+		QLoggingCategory * category = global_log_manager.createLogger("main", use_stdout_logg, false);
 
-    // Network access manager instance used by all code trying to use network
-    QNetworkAccessManager manager;
+		// Network access manager instance used by all code trying to use network
+		QNetworkAccessManager manager;
 
-    try {
+		try {
 
-        // Load default state
-        Controller::Configuration configuration;
+				// Load default state
+				Controller::Configuration configuration;
 
-        // If fresh flag is not passed,
-        // then open existing parameter file
-        // DISABLED: !parser.isSet(showFreshOption)
-        if(false) {
+				// If fresh flag is not passed,
+				// then open existing parameter file
+				// DISABLED: !parser.isSet(showFreshOption)
+				if(false) {
 
-            // Get name of file name
-            QString file = QDir::current().absolutePath() + QDir::separator() + APPLICATION_PARAMETER_FILE_NAME;
-            std::string fileString = file.toStdString();
+						// Get name of file name
+                        QString file = QDir::homePath() + QDir::separator() + APPLICATION_PARAMETER_FILE_NAME;
+						std::string fileString = file.toStdString();
 
-            // Check that file exists, and that it actually is a file
-            if(!QFile::exists(file)) {
+						// Check that file exists, and that it actually is a file
+						if(!QFile::exists(file)) {
 
-                qDebug() << "WARNING: parameter file"
-                         << fileString.c_str()
-                         << "does not exist. Try fresh run option if problem persists";
+								qDebug() << "WARNING: parameter file"
+												 << fileString.c_str()
+												 << "does not exist. Try fresh run option if problem persists";
 
-                exit(EXIT_FAILURE);
+								exit(EXIT_FAILURE);
 
-            } else // Load state from file
-                configuration = Controller::Configuration(fileString.c_str());
-        }
+						} else // Load state from file
+								configuration = Controller::Configuration(fileString.c_str());
+				}
 
-        // Load wallet
-        QString walletFile = QDir::current().absolutePath() + QDir::separator() + QString("wallet.sqlite3");
+				// Load wallet
+				QString walletFile = QDir::homePath() + QDir::separator() + QString("wallet.sqlite3");
 
-        // Create wallet if it does not exist
-        if(!QFile(walletFile).exists()) {
+				// Create wallet if it does not exist
+				if(!QFile(walletFile).exists()) {
 
-            qCDebug((*category)) << "Creating a fresh wallet " << walletFile;
+						qCDebug((*category)) << "Creating a fresh wallet " << walletFile;
 
-            // Get predefined seed
-            //Coin::Seed seed = Coin::Seed::testSeeds[wallet_seed_counter];
-            //Q_ASSERT(wallet_seed_counter <= Coin::Seed::testSeeds.size());
+						// Get predefined seed
+						//Coin::Seed seed = Coin::Seed::testSeeds[wallet_seed_counter];
+						//Q_ASSERT(wallet_seed_counter <= Coin::Seed::testSeeds.size());
 
-            // Get new random seed
-            Coin::Seed seed = Coin::Seed::generate();
+						// Get new random seed
+						Coin::Seed seed = Coin::Seed::generate();
 
-            // Create wallet
-            Wallet::Manager::createNewWallet(walletFile, APPLICATION_BITCOIN_NETWORK, seed);
-        }
+						// Create wallet
+						Wallet::Manager::createNewWallet(walletFile, APPLICATION_BITCOIN_NETWORK, seed);
+				}
 
-        // Load and wallet
-        Wallet::Manager wallet(walletFile);
+				// Load and wallet
+				Wallet::Manager wallet(walletFile);
 
-        // Initiliaze blockcypher interface
-        wallet.BLOCKCYPHER_init(&manager, APPLICATION_BLOCKCYPHER_TOKEN);
+				// Initiliaze blockcypher interface
+				wallet.BLOCKCYPHER_init(&manager, APPLICATION_BLOCKCYPHER_TOKEN);
 
-        // Create controller
-        Controller controller(configuration, &wallet, &manager, *category);
+				// Create controller
+				Controller controller(configuration, &wallet, &manager, *category);
 
-        QObject::connect(&controller,
-                         &Controller::closed,
-                         &app,
-                         &QApplication::quit);
+				QObject::connect(&controller,
+												 &Controller::closed,
+												 &app,
+												 &QApplication::quit);
 
-        // Allocate view and show it
-        MainWindow view(&controller, &wallet, "");
-        view.show();
+				// Allocate view and show it
+				MainWindow view(&controller, &wallet, "");
+				view.show();
 
-        // Start event loop: this is the only Qt event loop in the entire application
-        app.exec();
+				// Start event loop: this is the only Qt event loop in the entire application
+				app.exec();
 
-        qDebug() << "Application event loop exited, application closing.";
+				qDebug() << "Application event loop exited, application closing.";
 
-        return 0;
+				return 0;
 
-    } catch(const std::exception & e) {
+		} catch(const std::exception & e) {
 
-        /**
-         * In the future:
-         * 1) Sepearate exception handling for each part (view, wallet, contoller, configruations, etc)
-         * 2) In each case, module should only throw exceptions which truly should be visible to outside
-         * everything else should be logged and handled gracefully itnernally.
-         */
+				/**
+				 * In the future:
+				 * 1) Sepearate exception handling for each part (view, wallet, contoller, configruations, etc)
+				 * 2) In each case, module should only throw exceptions which truly should be visible to outside
+				 * everything else should be logged and handled gracefully itnernally.
+				 */
 
-        // This is temporary error handling fix for sending off logs to error logging endpoint error.joystream.co
-        // Find more appropriate fix later
+				// This is temporary error handling fix for sending off logs to error logging endpoint error.joystream.co
+				// Find more appropriate fix later
 
-        qCDebug((*category)) << "Catastrophic error due to unhandled exception" << e.what();
-        qCDebug((*category)) << "Sending error log to " << ERROR_LOG_ENDPOINT;
-        send_errorlog(&manager);
-        qCDebug((*category)) << "Shutting down, try to restart software, delete wallet file if problem persists.";
+				qCDebug((*category)) << "Catastrophic error due to unhandled exception" << e.what();
+				qCDebug((*category)) << "Sending error log to " << ERROR_LOG_ENDPOINT;
+				send_errorlog(&manager);
+				qCDebug((*category)) << "Shutting down, try to restart software, delete wallet file if problem persists.";
 
-        return 1;
-    }
+				return 1;
+		}
 }
 
 bool send_errorlog(QNetworkAccessManager * manager) {
 
-    // Read in error file
-    QFile errorFile("main.txt");
+		// Read in error file
+		QFile errorFile("main.txt");
 
-    if(!errorFile.exists())
-        return false;
+		if(!errorFile.exists())
+				return false;
 
-    if(!errorFile.open(QIODevice::ReadOnly))
-        return false;
+		if(!errorFile.open(QIODevice::ReadOnly))
+				return false;
 
-    QByteArray data = errorFile.readAll();
+		QByteArray data = errorFile.readAll();
 
     // cut off excessive part
     data = data.right(ERROR_LOG_MAX_SIZE);
@@ -191,20 +191,20 @@ bool send_errorlog(QNetworkAccessManager * manager) {
     data += "productType():"            + QSysInfo::productType() + "\n";
     data += "productVersion():"         + QSysInfo::productVersion() + "\n";
 
-    // Create url and POST file
-    QUrl url(QString("http://") + ERROR_LOG_ENDPOINT);
-    QNetworkRequest request(url);
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+		// Create url and POST file
+		QUrl url(QString("http://") + ERROR_LOG_ENDPOINT);
+		QNetworkRequest request(url);
+		request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
 
-    QNetworkReply * reply = manager->post(request, data);
+		QNetworkReply * reply = manager->post(request, data);
 
-    // Block until we have reply finished
-    QEventLoop loop;
-    QObject::connect(reply,
-                     &QNetworkReply::finished,
-                     &loop,
-                     &QEventLoop::quit);
-    loop.exec();
+		// Block until we have reply finished
+		QEventLoop loop;
+		QObject::connect(reply,
+										 &QNetworkReply::finished,
+										 &loop,
+										 &QEventLoop::quit);
+		loop.exec();
 
-    return reply->error() == QNetworkReply::NoError;
+		return reply->error() == QNetworkReply::NoError;
 }

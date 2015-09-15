@@ -12,6 +12,7 @@
 #include <QTextStream>
 #include <QMessageLogContext>
 #include <iostream>
+#include <QDir>
 
 LoggerManager global_log_manager;
 
@@ -60,7 +61,7 @@ QLoggingCategory * LoggerManager::createLogger(const QString & name, bool useSta
     // Create category logger
     LoggerManager::Category category;
     category.name = name;
-    category.file = new QFile(name + ".txt");
+    category.file = new QFile(QDir::homePath() + QDir::separator() + name + QString(".txt"));
 
     // Need const char * to name which persist, i.e. on heap, thanks QLoggingCategory :/
     const QByteArray * rawByteArrayOnHeap = new QByteArray(name.toLatin1());
