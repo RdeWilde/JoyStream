@@ -23,14 +23,12 @@
 
 #include <libtorrent/error_code.hpp>
 
-
 void Test::init() {
 
     _wallet_seed_counter = 0;
     _dns_seed_counter = 0;
 
 }
-
 
 void Test::download_and_streaming() {
 
@@ -222,6 +220,16 @@ void Test::add_buyers_with_plugin(const Controller::Configuration & configuratio
 
         // Create torrent configuration
         Controller::Torrent::Configuration torrentConfiguration = create_torrent_configuration(torrentInfo, name);
+
+        // Delete existing (partial) downloads, as we want to start from scratch
+        QString path = QString::fromStdString(torrentConfiguration.savePath());
+        QDir dir(path);
+        dir.setNameFilters(QStringList() << "*.*");
+        dir.setFilter(QDir::Files);
+        foreach(QString dirFile, dir.entryList())
+        {
+            dir.remove(dirFile);
+        }
 
         // Grab configuration
         BuyerTorrentPlugin::Configuration pluginConfiguration = configurations[i];

@@ -186,8 +186,6 @@ bool PeerPlugin::on_handshake(char const * reserved_bits) {
 bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake) {
 //bool PeerPlugin::on_extension_handshake(libtorrent::bdecode_node const & handshake) {
 
-    /**
-
     // Check that peer plugin is still valid
     if(_scheduledForDeletingInNextTorrentPluginTick) {
 
@@ -243,7 +241,7 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
     }
 
     // Check if plugin key is there
-    int version = handshake.dict_find_int_value(EXTENSION_NAME,-1);
+    int version = handshake.dict_find_int_value(CORE_EXTENSION_NAME,-1);
 
     if(version == -1) {
 
@@ -345,7 +343,6 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
 
     // All messages were present, hence the protocol is supported
     _peerBitSwaprBEPSupportStatus = BEPSupportStatus::supported;
-    */
 
     // Tell libtorrent that our extension should be kept in the loop for this peer
     //return false;
@@ -380,7 +377,7 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
     if(length != lengthOfExtendedMessagePayload) {
 
         // Output progress
-        qCDebug(_category) << "on_extended(id =" << msg << ", length =" << length << "): %" << ((float)(100*lengthOfExtendedMessagePayload))/length;
+        ////qCDebug(_category) << "on_extended(id =" << msg << ", length =" << length << "): %" << ((float)(100*lengthOfExtendedMessagePayload))/length;
 
         // No other plugin should look at this
         return true;

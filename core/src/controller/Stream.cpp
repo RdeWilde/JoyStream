@@ -312,9 +312,8 @@ void Stream::readAndProcessRequestLineFromSocket(const QByteArray & line) {
         _defaultRangeLength = torrentInfo->piece_length() * 3; //
         _fileIndex = 0;
 
-        throw std::runtime_error("not implelemented due to deprecation of file_entry stuff");
+        //throw std::runtime_error("not implelemented due to deprecation of file_entry stuff");
 
-        /**
         // Get file entry
         libtorrent::file_entry fileEntry = torrentInfo->file_at(_fileIndex);
 
@@ -333,7 +332,6 @@ void Stream::readAndProcessRequestLineFromSocket(const QByteArray & line) {
             qDebug() << "Cannot deduce content-type from file:" << path;
             Q_ASSERT(false);
         }
-        */
 
     } // If its not the first time, make sure its the same path, otherwise the peer is misbehaving
     else if(_requestedPath != newRequestedPath) {

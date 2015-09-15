@@ -809,7 +809,7 @@ Coin::Transaction SellerPeerPlugin::lastPaymentTransaction() const {
              _clientState == SellerPeerPlugin::ClientState::awaiting_piece_request_after_payment ||
              _clientState == SellerPeerPlugin::ClientState::reading_piece_from_disk);
 
-    Q_ASSERT(_payee.state() != Payee::State::has_all_information_required);
+    Q_ASSERT(_payee.state() == Payee::State::has_all_information_required);
 
     return _payee.lastPaymentTransaction();
 }
