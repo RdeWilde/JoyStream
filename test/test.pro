@@ -6,7 +6,7 @@
 TEMPLATE    = subdirs
 
 SUBDIRS     = \
-            #app \
+            app \
             common \
             #core \
             paymentchannel \

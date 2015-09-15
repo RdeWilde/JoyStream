@@ -2,7 +2,7 @@
  * Copyright (C) JoyStream - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
- * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 30 2015
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, September 14 2015
  */
 
 #ifndef TEST_HPP
@@ -10,17 +10,30 @@
 
 #include <QtTest/QtTest>
 
+#include <core/controller/Controller.hpp> // cant forward declare inner class
+
+#include <libtorrent/torrent_info.hpp> // can this be forward declared perhaps?
+
+class ControllerTracker;
+class QNetworkAccessManager;
+
 class Test : public QObject
 {
     Q_OBJECT
 
+    // Counters used to pick correct dns and wallet seed for given session
+    // **Both are reset between each test**
+    int _wallet_seed_counter = 0,
+        _dns_seed_counter = 0;
+
 private slots:
+
+     // Will be called before each testfunction is executed.
+    void init();
 
     /**
      * Test routines
      */
-
-    void basic();
 
     void download_and_streaming();
 

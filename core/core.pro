@@ -3,6 +3,8 @@
 # Proprietary and confidential
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
 
+include(config.pri)
+
 TARGET = core
 TEMPLATE = lib
 
@@ -13,8 +15,6 @@ CONFIG  += c++11 # Needed for class enum
 QT      += core gui network sql # sql is for wallet
 
 INCLUDEPATH += $$PWD/include
-
-include(config.pri)
 
 SOURCES += \
     src/controller/Controller.cpp \

@@ -3,8 +3,6 @@
 # Proprietary and confidential
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, September 14 2015
 
-# \'\"JoyStream\"\'
-
 DEFINES += APPLICATION_NAME=\'\"JoyStream\"\'
 DEFINES += APPLICATION_DESCRIPTION=\'\"A cryptocurrency enabled BitTorrent client\"\'
 DEFINES += APPLICATION_VERSION_MAJOR=0

@@ -9,6 +9,7 @@
 #define CONTROLLER_TRACKER_HPP
 
 #include <QObject>
+#include <QEventLoop>
 
 #include <core/controller/Controller.hpp>
 
@@ -24,10 +25,16 @@ public:
     // Add client to run
     void addClient(Controller * controller);
 
+    // Blocks untill controllerCount==0
+    void blockUntilAllControllersDone();
+
 private:
 
     // Number of controllers
-    int count;
+    int _controllerCount;
+
+    // Underlying event loop which is executed ones per controllerCount registered
+    QEventLoop _loop;
 
 public slots:
 

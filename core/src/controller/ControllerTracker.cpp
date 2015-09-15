@@ -8,7 +8,8 @@
 #include <core/controller/ControllerTracker.hpp>
 #include <QThread>
 
-ControllerTracker::ControllerTracker() : count(0) {
+ControllerTracker::ControllerTracker()
+       : _controllerCount(0) {
 
 }
 
@@ -18,16 +19,27 @@ void ControllerTracker::addClient(Controller * controller) {
     QObject::connect(controller, SIGNAL(closed()), this, SLOT(controllerClosed()));
 
     // Count client
-    count++;
+    _controllerCount++;
+}
+
+void ControllerTracker::blockUntilAllControllersDone() {
+
+    // While there are still controllers not done
+    while(_controllerCount > 0) {
+
+        // Start event loop
+        _loop.exec();
+    }
+
 }
 
 void ControllerTracker::controllerClosed() {
 
     // Decrase count
-    count--;
+    _controllerCount--;
 
     // If all controllers are done, we kill event loop
-    if(count < 1) {
+    if(_controllerCount < 1) {
         QThread::currentThread()->exit();
     }
 }
