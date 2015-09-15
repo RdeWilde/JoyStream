@@ -54,7 +54,6 @@ win32 {
 
 # Mac
 macx {
-    DEFINES -= BOOST_ASIO_HEADER_ONLY
 
     INCLUDEPATH += /usr/local/include
 

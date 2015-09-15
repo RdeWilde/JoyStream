@@ -50,9 +50,9 @@ macx {
     INCLUDEPATH += $$MSIGNA_SYSROOT/include
 
     LIBS += -L$$MSIGNA_SYSROOT/lib \
-            -lCoinDB \
-            -lCoinQ \
+            #-lCoinDB \
+            #-lCoinQ \
             -lCoinCore \
-            -llogger \
-            -lsysutils
+            #-llogger \
+            #-lsysutils
 }

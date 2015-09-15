@@ -83,17 +83,18 @@ macx {
     #library built with: bjam address-model=64 deprecated-functions=off boost-link=shared geoip=off link=static
     LIBTORRENT_LOCATION =/Users/mokhtar/JoyStream/libtorrent-libtorrent-1_0_5
 
+    DEFINES += TORRENT_DISABLE_LOGGING
     DEFINES += TORRENT_NO_DEPRECATE
-    #DEFINES += TORRENT_DISABLE_LOGGING
-    #DEFINES += TORRENT_USE_OPENSSL
     DEFINES += TORRENT_DISABLE_GEO_IP
+    DEFINES += BOOST_EXCEPTION_DISABLE
+    DEFINES += BOOST_ASIO_ENABLE_CANCELIO
 
     # Linking
     CONFIG(release, debug|release) {
-        LIBS += -L$$LIBTORRENT_LOCATION/bin/darwin-4.2.1/debug/address-model-64/boost-link-shared/deprecated-functions-off/link-static/threading-multi -ltorrent
+        LIBS += -L$$LIBTORRENT_LOCATION/bin/darwin-4.2.1/debug/address-model-64/boost-link-shared/boost-source/deprecated-functions-off/link-static/threading-multi -ltorrent
 
     } else {
-        LIBS += -L$$LIBTORRENT_LOCATION/bin/darwin-4.2.1/debug/address-model-64/boost-link-shared/deprecated-functions-off/link-static/threading-multi -ltorrent
+        LIBS += -L$$LIBTORRENT_LOCATION/bin/darwin-4.2.1/debug/address-model-64/boost-link-shared/boost-source/deprecated-functions-off/link-static/threading-multi -ltorrent
    }
 }
 
