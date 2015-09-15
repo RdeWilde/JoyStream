@@ -7,10 +7,7 @@
 
 #include <Test.hpp>
 
-#include <QNetworkAccessManager>
-
-#include <core/controller/ControllerTracker.hpp>
-
+#include <core/controller/ControllerBarrier.hpp>
 #include <core/logger/LoggerManager.hpp>
 #include <core/extension/BuyerTorrentPlugin.hpp> // for configurations
 #include <core/extension/SellerTorrentPlugin.hpp> // for configurations
@@ -26,7 +23,6 @@
 
 #include <libtorrent/error_code.hpp>
 
-#include <QNetworkAccessManager>
 
 void Test::init() {
 
@@ -34,6 +30,7 @@ void Test::init() {
     _dns_seed_counter = 0;
 
 }
+
 
 void Test::download_and_streaming() {
 
@@ -43,7 +40,7 @@ void Test::download_and_streaming() {
 
 
     // Create a controller tracker
-    ControllerTracker controllerTracker;
+    barrier barrier;
 
     // Load torrent
     libtorrent::torrent_info torrentInfo = load_torrent(TORRENT_FILE);
@@ -56,12 +53,12 @@ void Test::download_and_streaming() {
                                                 torrentInfo,
                                                 QString("lone_buyer"));
 
-    controllerTracker.addClient(loneBuyer);
+    barrier.addClient(loneBuyer);
 
     // Sellers
     add_sellers_with_plugin(controllerConfiguration,
                             manager,
-                            controllerTracker,
+                            barrier,
                             false,
                             true,
                             torrentInfo,
@@ -80,32 +77,34 @@ void Test::download_and_streaming() {
 
 void Test::paid_uploading() {
 
-    // Network io access manager
-    QNetworkAccessManager manager;
-
     // Create a controller tracker
-    ControllerTracker controllerTracker;
+    ControllerBarrier barrier;
 
     // Load default configurations for the controller
-    Controller::Configuration controllerConfiguration;
+    Controller::Configuration configuration;
 
     // Load torrent
     libtorrent::torrent_info torrentInfo = load_torrent(LITTLE_SIMZ_FILE);
 
     // Sellers
-    Controller * loneSeller = create_controller(controllerConfiguration,
-                                                &manager,
-                                                true,
-                                                true,
-                                                torrentInfo,
-                                                QString("lone_seller"));
+    add_sellers_with_plugin(configuration,
+                            barrier,
+                            true,
+                            true,
+                            torrentInfo,
+                            QVector<SellerTorrentPlugin::Configuration>()
 
-    controllerTracker.addClient(loneSeller);
+                            << SellerTorrentPlugin::Configuration(false,
+                                                                  10, // Minimum piece price (satoshi)
+                                                                  2*3600, // Minimum lock time on refund (seconds)
+                                                                  500,//BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.01).satoshies(), // Min fee per kB (satoshi)
+                                                                  1, // Max #seller
+                                                                  17*60) // Maximum contract confirmation delay (seconds)
+                            );
 
     // Buyers
-    add_buyers_with_plugin(controllerConfiguration,
-                           &manager,
-                           controllerTracker,
+    add_buyers_with_plugin(configuration,
+                           barrier,
                            true,
                            true,
                            torrentInfo,
@@ -115,44 +114,13 @@ void Test::paid_uploading() {
                                                                 4*3600, // Maximum lock time on refund (seconds)
                                                                 10000, // BitCoinRepresentation NOT WORKING FOR WHATEVER REASON: BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.1).satoshies(), // Max fee per kB (satoshi)
                                                                 1) // #sellers
-//                           << BuyerTorrentPlugin::Configuration(false,
-//                                                                88, // Maximum piece price (satoshi)
-//                                                                5*3600, // Maximum lock time on refund (seconds)
-//                                                                10000, // BitCoinRepresentationNOT WORKING FOR WHATEVER REASON: BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.1).satoshies(), // Max fee per kB (satoshi)
-//                                                                1) // #sellers
-
                            );
 
-    // Block
-    controllerTracker.blockUntilAllControllersDone();
+    // Wait for both to end
+    barrier.join();
 }
 
-libtorrent::torrent_info Test::load_torrent(const char * path) {
-
-    libtorrent::error_code ec;
-    libtorrent::torrent_info torrentInfo(path, ec);
-
-    if(ec) {
-        qDebug() << "Invalid torrent file 1: " << ec.message().c_str();
-        throw std::runtime_error("Could not load torrent file");
-    }
-
-    return torrentInfo;
-}
-
-Controller::Torrent::Configuration Test::create_torrent_configuration(libtorrent::torrent_info & torrentInfo, const QString & name) {
-
-    return Controller::Torrent::Configuration(torrentInfo.info_hash()
-                                              ,torrentInfo.name()
-                                              ,(QString(TORRENT_LOCATION) + name).toStdString()
-                                              ,std::vector<char>()
-                                              ,libtorrent::add_torrent_params::flag_update_subscribe
-                                              //+libtorrent::add_torrent_params::flag_auto_managed
-                                              ,&torrentInfo);
-}
-
-Controller * Test::create_controller(Controller::Configuration controllerConfiguration,
-                               QNetworkAccessManager * manager,
+Controller * Test::create_controller(const Controller::Configuration & configuration,
                                bool show_gui,
                                bool use_stdout_logg,
                                libtorrent::torrent_info & torrentInfo,
@@ -185,13 +153,13 @@ Controller * Test::create_controller(Controller::Configuration controllerConfigu
     Wallet::Manager * wallet = new Wallet::Manager(walletFile);
 
     // Initiliaze
-    wallet->BLOCKCYPHER_init(manager);
+    wallet->BLOCKCYPHER_init(&_manager);
 
     // Create controller: Dangling, but we don't care
-    Controller * controller = new Controller(controllerConfiguration, wallet, manager, *category);
+    Controller * controller = new Controller(configuration, wallet, &_manager, *category);
 
     if(show_gui) {
-        MainWindow * view = new MainWindow(controller, wallet);
+        MainWindow * view = new MainWindow(controller, wallet, "- [" + name + "]");
         view->show();
     }
 
@@ -199,9 +167,8 @@ Controller * Test::create_controller(Controller::Configuration controllerConfigu
 }
 
 
-void Test::add_sellers_with_plugin(Controller::Configuration controllerConfiguration,
-                                   QNetworkAccessManager * manager,
-                                   ControllerTracker & controllerTracker,
+void Test::add_sellers_with_plugin(const Controller::Configuration & configuration,
+                                   ControllerBarrier & barrier,
                                    bool show_gui,
                                    bool use_stdout_logg,
                                    libtorrent::torrent_info & torrentInfo,
@@ -222,7 +189,7 @@ void Test::add_sellers_with_plugin(Controller::Configuration controllerConfigura
         */
 
         // Create controller and torrent configuration
-        Controller * controller = create_controller(controllerConfiguration, manager, show_gui, use_stdout_logg, torrentInfo, name);
+        Controller * controller = create_controller(configuration, show_gui, use_stdout_logg, torrentInfo, name);
 
         // Create torrent configuration
         Controller::Torrent::Configuration torrentConfiguration = create_torrent_configuration(torrentInfo, name);
@@ -234,13 +201,12 @@ void Test::add_sellers_with_plugin(Controller::Configuration controllerConfigura
         controller->addTorrent(torrentConfiguration, pluginConfiguration);
 
         // Track controller
-        controllerTracker.addClient(controller);
+        barrier.add(controller);
     }
 }
 
-void Test::add_buyers_with_plugin(Controller::Configuration controllerConfiguration,
-                            QNetworkAccessManager * manager,
-                            ControllerTracker & controllerTracker,
+void Test::add_buyers_with_plugin(const Controller::Configuration & configuration,
+                            ControllerBarrier & barrier,
                             bool show_gui,
                             bool use_stdout_logg,
                             libtorrent::torrent_info & torrentInfo,
@@ -252,7 +218,7 @@ void Test::add_buyers_with_plugin(Controller::Configuration controllerConfigurat
         QString name = QString("buyer_") + QString::number(i+1);
 
         // Create controller and torrent configuration
-        Controller * controller = create_controller(controllerConfiguration, manager, show_gui, use_stdout_logg, torrentInfo, name);
+        Controller * controller = create_controller(configuration, show_gui, use_stdout_logg, torrentInfo, name);
 
         // Create torrent configuration
         Controller::Torrent::Configuration torrentConfiguration = create_torrent_configuration(torrentInfo, name);
@@ -287,8 +253,33 @@ void Test::add_buyers_with_plugin(Controller::Configuration controllerConfigurat
         }
 
         // Track controller
-        controllerTracker.addClient(controller);
+        barrier.add(controller);
     }
+}
+
+Controller::Torrent::Configuration create_torrent_configuration(libtorrent::torrent_info & torrentInfo, const QString & name) {
+
+    return Controller::Torrent::Configuration(torrentInfo.info_hash()
+                                              ,torrentInfo.name()
+                                              ,(QString(HOME_LOCATION) + name).toStdString()
+                                              ,std::vector<char>()
+                                              ,libtorrent::add_torrent_params::flag_update_subscribe
+                                              //+libtorrent::add_torrent_params::flag_auto_managed
+                                              ,&torrentInfo);
+}
+
+
+libtorrent::torrent_info load_torrent(const char * path) {
+
+    libtorrent::error_code ec;
+    libtorrent::torrent_info torrentInfo(path, ec);
+
+    if(ec) {
+        qDebug() << "Invalid torrent file 1: " << ec.message().c_str();
+        throw std::runtime_error("Could not load torrent file");
+    }
+
+    return torrentInfo;
 }
 
 QTEST_MAIN(Test)

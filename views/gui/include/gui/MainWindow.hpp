@@ -50,7 +50,7 @@ class MainWindow : public QMainWindow
 public:
 
     // Constructor
-    MainWindow(Controller * controller, Wallet::Manager * wallet);
+    MainWindow(Controller * controller, Wallet::Manager * wallet, const QString & appendToTitle);
 
     // Destructor
     ~MainWindow();

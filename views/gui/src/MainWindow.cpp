@@ -43,7 +43,7 @@
 #include <QLabel>
 #include <QDesktopServices>
 
-MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet)
+MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const QString & appendToTitle)
     : ui(new Ui::MainWindow)
     , _controller(controller)
     , _wallet(wallet)
@@ -57,7 +57,7 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet)
      * Look of main windw
      */
     // Alter window title
-    setWindowTitle("JoyStream");
+    setWindowTitle("JoyStream" + appendToTitle);
 
     // Freeze size of dialog
     setFixedSize(size());
@@ -190,6 +190,16 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet)
                     SIGNAL(torrentCheckedButHasNoPlugin(libtorrent::torrent_info,libtorrent::torrent_status)),
                     this,
                     SLOT(showAddTorrentPluginConfigurationDialog(libtorrent::torrent_info,libtorrent::torrent_status)));
+
+    /**
+     * Didnt work for whatever reason, also watch out for
+     * recusive closing due to close event handling in this view
+     * check out closeEvent routine
+    QObject::connect(controller,
+                     SIGNAL(closed()),
+                     this,
+                     SLOT(close()));
+    */
 
     /**
     QObject::connect(controller,

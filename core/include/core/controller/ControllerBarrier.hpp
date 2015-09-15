@@ -5,28 +5,29 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef CONTROLLER_TRACKER_HPP
-#define CONTROLLER_TRACKER_HPP
+#ifndef CONTROLLER_BARRIER_HPP
+#define CONTROLLER_BARRIER_HPP
 
 #include <QObject>
 #include <QEventLoop>
 
-#include <core/controller/Controller.hpp>
+class Controller;
 
-class ControllerTracker : public QObject
+// Barrier for running multiple controller, e.g. during testing
+class ControllerBarrier : public QObject
 {
     Q_OBJECT
 
 public:
 
     // Constructor
-    ControllerTracker();
+    ControllerBarrier();
 
     // Add client to run
-    void addClient(Controller * controller);
+    void add(Controller * controller);
 
     // Blocks untill controllerCount==0
-    void blockUntilAllControllersDone();
+    void join();
 
 private:
 
@@ -36,11 +37,6 @@ private:
     // Underlying event loop which is executed ones per controllerCount registered
     QEventLoop _loop;
 
-public slots:
-
-    // Accepts signal from controllers
-    void controllerClosed();
-
 };
 
-#endif // CONTROLLER_TRACKER_HPP
+#endif // CONTROLLER_BARRIER_HPP

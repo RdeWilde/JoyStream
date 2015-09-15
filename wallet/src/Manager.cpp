@@ -1086,8 +1086,13 @@ void Manager::BLOCKCYPHER_init(QNetworkAccessManager * manager) {
     // Only one instance is created per controller instance for process life time
     _BLOCKCYPHER_client = new BlockCypher::Client(manager, _network, BLOCKCYPHER_TOKEN);
 
-    // Set wallet name
-    _BLOCKCYPHER_walletName = _seed.toHex().left(20);
+    // Set wallet name has first 25 characters of HEX(SHA256^2(x))
+    uchar_vector hashed = sha256_2(_seed.toUCharVector());
+    std::string fullString = hashed.getHex();
+
+    _BLOCKCYPHER_walletName = QString::fromStdString(fullString.substr(0, 25));
+
+    qDebug() << "BLOCKCYPHER: Wallet name" << _BLOCKCYPHER_walletName;
 
     // Try to get most recent address object
     try {

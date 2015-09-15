@@ -9,22 +9,17 @@
 #define TEST_HPP
 
 #include <QtTest/QtTest>
+#include <QNetworkAccessManager>
 
 #include <core/controller/Controller.hpp> // cant forward declare inner class
 
 #include <libtorrent/torrent_info.hpp> // can this be forward declared perhaps?
 
-class ControllerTracker;
-class QNetworkAccessManager;
+class ControllerBarrier;
 
 class Test : public QObject
 {
     Q_OBJECT
-
-    // Counters used to pick correct dns and wallet seed for given session
-    // **Both are reset between each test**
-    int _wallet_seed_counter = 0,
-        _dns_seed_counter = 0;
 
 private slots:
 
@@ -39,35 +34,42 @@ private slots:
 
     void paid_uploading();
 
-private:
+public:
 
-    libtorrent::torrent_info load_torrent(const char * path);
-
-    Controller::Torrent::Configuration create_torrent_configuration(libtorrent::torrent_info & torrentInfo, const QString & name);
-
-    Controller * create_controller(Controller::Configuration controllerConfiguration,
-                                   QNetworkAccessManager * manager,
+    Controller * create_controller(const Controller::Configuration & configuration,
                                    bool show_gui,
                                    bool use_stdout_logg,
                                    libtorrent::torrent_info & torrentInfo,
                                    const QString & name);
 
-    void add_buyers_with_plugin(Controller::Configuration controllerConfiguration,
-                                QNetworkAccessManager * manager,
-                                ControllerTracker & controllerTracker,
+    void add_buyers_with_plugin(const Controller::Configuration & configuration,
+                                ControllerBarrier & barrier,
                                 bool show_gui,
                                 bool use_stdout_logg,
                                 libtorrent::torrent_info & torrentInfo,
                                 const QVector<BuyerTorrentPlugin::Configuration> & configurations);
 
-    void add_sellers_with_plugin(Controller::Configuration controllerConfiguration,
-                                 QNetworkAccessManager * manager,
-                                 ControllerTracker & controllerTracker,
+    void add_sellers_with_plugin(const Controller::Configuration & configuration,
+                                 ControllerBarrier & barrier,
                                  bool show_gui,
                                  bool use_stdout_logg,
                                  libtorrent::torrent_info & torrentInfo,
                                  const QVector<SellerTorrentPlugin::Configuration> & configurations);
 
+private:
+
+    // Counters used to pick correct dns and wallet seed for given session
+    // **Both are reset between each test**
+    int _wallet_seed_counter = 0,
+        _dns_seed_counter = 0;
+
+    // Manages HTTP access
+    QNetworkAccessManager _manager;
+
 };
+
+libtorrent::torrent_info load_torrent(const char * path);
+
+Controller::Torrent::Configuration create_torrent_configuration(libtorrent::torrent_info & torrentInfo, const QString & name);
 
 #endif // TEST_HPP

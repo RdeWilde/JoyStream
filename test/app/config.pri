@@ -5,35 +5,41 @@
 
 # Windows
 win32 {
-    TESTING_DIRECTORY = "C:/JoyStream/"
+    ROOT_DIRECTORY = "C:/JoyStream/"
 }
 
 # Mac
 macx {
-    TESTING_DIRECTORY = "/Users/mokhtar/JoyStream/"
+    ROOT_DIRECTORY = "/Users/mokhtar/JoyStream/"
 }
 
 # Unix
 unix:!macx {
-    TESTING_DIRECTORY = "/home/bedeho/JoyStream/"
+    ROOT_DIRECTORY = "/home/bedeho/JoyStream/"
 }
 
 # Network to use for testing
 DEFINES += BITCOIN_NETWORK=Coin::Network::testnet3
 
-# Location where wallets are saved/loaded
-WALLET_LOCATION = $${TESTING_DIRECTORY}"WALLETS/"
+# Location where test clients create their home folders,
+# i.e. where they load/save actual torrent data
+HOME_LOCATION = $${ROOT_DIRECTORY}"HOME/"
 
-# Location torrent files and content is saved/loaded from
-TORRENT_LOCATION = $${TESTING_DIRECTORY}"TORRENTS/"
+# Location where wallets are saved/loaded
+WALLET_LOCATION = $${ROOT_DIRECTORY}"WALLETS/"
+
+# Location torrent files are loaded from
+TORRENT_LOCATION = $${ROOT_DIRECTORY}"TORRENTS/"
 
 # Location block header store is saved from in SPV mode
-BLOCKSTORE_LOCATION = $${TESTING_DIRECTORY}"BLOCKSTORE/"
+BLOCKSTORE_LOCATION = $${ROOT_DIRECTORY}"BLOCKSTORE/"
 
 # Location
+DEFINES += HOME_LOCATION=\'\"$${HOME_LOCATION}\"\'
 DEFINES += WALLET_LOCATION=\'\"$${WALLET_LOCATION}\"\'
 DEFINES += TORRENT_LOCATION=\'\"$${TORRENT_LOCATION}\"\'
 DEFINES += BLOCKSTORE_LOCATION=\'\"$${BLOCKSTORE_LOCATION}\"\'
+
 
 # Torrent files
 RISE_AND_RISE_OF_BITCOIN_FILE = "The.Rise.and.Rise.of.Bitcoin.2014.720p.HDrip.x264.AAC.MVGroup.org.mp4.torrent"

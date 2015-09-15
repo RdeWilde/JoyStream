@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
                      &QApplication::quit);
 
     // Allocate view and show it
-    MainWindow view(&controller, &wallet);
+    MainWindow view(&controller, &wallet, "");
     view.show();
 
     // Start event loop: this is the only Qt event loop in the entire application

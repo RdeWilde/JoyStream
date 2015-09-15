@@ -18,7 +18,6 @@ INCLUDEPATH += $$PWD/include
 
 SOURCES += \
     src/controller/Controller.cpp \
-    src/controller/ControllerTracker.cpp \
     src/controller/exceptions/InvalidBitSwaprStateEntryException.cpp \
     src/controller/exceptions/ListenOnException.cpp \
     src/controller/exceptions/MissingInfoHashViewRequestException.cpp \
@@ -76,11 +75,11 @@ SOURCES += \
     src/controller/SellerTorrentPluginViewModel.cpp \
     src/controller/TorrentPluginViewModel.cpp \
     src/controller/TorrentViewModel.cpp \
-    src/controller/Stream.cpp
+    src/controller/Stream.cpp \
+    src/controller/ControllerBarrier.cpp
 
 HEADERS += \
     include/core/controller/Controller.hpp \
-    include/core/controller/ControllerTracker.hpp \
     include/core/controller/exceptions/InvalidBitSwaprStateEntryException.hpp \
     include/core/controller/exceptions/ListenOnException.hpp \
     include/core/controller/exceptions/MissingInfoHashViewRequestException.hpp \
@@ -149,7 +148,8 @@ HEADERS += \
     include/core/controller/SellerTorrentPluginViewModel.hpp \
     include/core/controller/TorrentPluginViewModel.hpp \
     include/core/controller/TorrentViewModel.hpp \
-    include/core/controller/Stream.hpp
+    include/core/controller/Stream.hpp \
+    include/core/controller/ControllerBarrier.hpp
 
 # paymentchannel ###############################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../paymentchannel/release/ -lpaymentchannel
