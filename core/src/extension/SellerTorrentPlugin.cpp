@@ -508,7 +508,10 @@ void SellerTorrentPlugin::on_peer_plugin_disconnect(SellerPeerPlugin * peerPlugi
              * and also track IP of peers which coincide with failed claims.
              * Detect double spends, etc.
              */
-            _wallet->broadcast(tx);
+
+            QMetaObject::invokeMethod(_wallet, "BLOCKCYPHER_broadcast", Q_ARG(const Coin::Transaction, tx));
+
+            //_wallet->broadcast(tx);
 
             // Alter state
             peerPlugin->setClientState(SellerPeerPlugin::ClientState::trying_to_claim_last_payment);

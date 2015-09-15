@@ -26,7 +26,8 @@ TransactionId TransactionId::fromLittleEndianHex(const std::string & str) {
     uchar_vector tmp(str);
 
     // Reverse from little to big endian
-    tmp.reverse();
+    //
+    //tmp.reverse();
 
     // Create transaction id and return
     return TransactionId(tmp);

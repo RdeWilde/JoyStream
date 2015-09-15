@@ -649,7 +649,11 @@ public:
     void setContractHash(const Coin::TransactionId & contractHash);
     */
 
+    Coin::Transaction contractTransaction() const;
+
     Coin::TransactionId contractHash() const;
+
+    uchar_vector contractLittleEndianId() const;
 
     quint32 numberOfSignatures() const;
     void setNumberOfSignatures(quint32 numberOfSignatures);

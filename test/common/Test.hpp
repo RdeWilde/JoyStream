@@ -5,13 +5,10 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 30 2015
  */
 
-#ifndef COMMON_TEST_HPP
-#define COMMON_TEST_HPP
+#ifndef TEST_HPP
+#define TEST_HPP
 
 #include <QtTest/QtTest>
-
-//class uchar_vector;
-class QJsonObject;
 
 class Test : public QObject
 {
@@ -42,4 +39,4 @@ private:
     static bool sighash(const QJsonArray & fixture);
 };
 
-#endif // COMMON_TEST_HPP
+#endif // TEST_HPP

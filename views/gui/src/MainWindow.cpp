@@ -63,7 +63,7 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet)
     setFixedSize(size());
 
     // Status bar
-    _statusLabel.setText("Release 0.0.1, auto-update expected in by: to be announced");
+    _statusLabel.setText("Release 0.0.1, auto-update expected by: to be announced");
     _statusBar.addWidget(&_statusLabel);
     setStatusBar(&_statusBar);
 

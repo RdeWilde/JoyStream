@@ -20,7 +20,7 @@ uchar_vector P2PKHScriptSig::serialized() const {
     uchar_vector serialized;
 
     // Add signature+sighash type
-    serialized += _ts.serializeForScriptSig();
+    serialized += _ts.opPushForScriptSigSerialized();
 
     // Add public key length
     serialized += opPushData(PublicKey::length());

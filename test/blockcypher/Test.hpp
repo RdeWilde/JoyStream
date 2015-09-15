@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, September 6 2015
  */
 
-#ifndef TESTWALLET_HPP
-#define TESTWALLET_HPP
+#ifndef TEST_HPP
+#define TEST_HPP
 
 #include <QtTest/QtTest>
 #include <QNetworkAccessManager>
@@ -54,4 +54,4 @@ private slots:
 
 };
 
-#endif // TESTWALLET_HPP
+#endif // TEST_HPP

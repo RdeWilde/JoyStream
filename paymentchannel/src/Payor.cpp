@@ -1099,6 +1099,16 @@ const Payor::Channel & Payor::channel(int i) const {
     return _channels[i];
 }
 
+Coin::Transaction Payor::contractTransaction() const {
+
+    /**
+    Enforce state here some way?
+    _state == State::waiting_for_full_set_of_sellers
+    */
+
+    return _contractTx;
+}
+
 /**
 OutPoint Payor::fundingOutPoint() const {
     return _fundingOutPoint;
@@ -1114,6 +1124,10 @@ void Payor::setContractHash(const Coin::TransactionId & contractTxId) {
 */
 Coin::TransactionId Payor::contractHash() const {
     return Coin::TransactionId(_contractTx.getHash());
+}
+
+uchar_vector Payor::contractLittleEndianId() const {
+    return _contractTx.getHashLittleEndian();
 }
 
 quint32 Payor::numberOfSignatures() const {

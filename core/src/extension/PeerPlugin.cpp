@@ -10,7 +10,6 @@
 #include <core/extension/Plugin.hpp>
 #include <core/extension/Message/MessageType.hpp>
 #include <core/extension/Message/ExtendedMessagePayload.hpp>
-#include <core/Config.hpp>
 
 /**
  * PeerPlugin::Status
@@ -98,13 +97,12 @@ void PeerPlugin::add_handshake(libtorrent::entry & handshake) {
       */
 
     // Add top level key for extesion version information
-    handshake[EXTENSION_NAME] = 1; // write version, which is 1 for now
+    handshake[CORE_EXTENSION_NAME] = 1; // write version, which is 1 for now
 
     // Add top level key for client identification
-    QString clientIdentifier = QString(" ")
-                                + QString::number(JOYSTREAM_VERSION_MAJOR)
+    QString clientIdentifier = QString::number(CORE_VERSION_MAJOR)
                                 + QString(".")
-                                + QString::number(JOYSTREAM_VERSION_MINOR);
+                                + QString::number(CORE_VERSION_MINOR);
 
     handshake["v"] = clientIdentifier.toStdString();
 
@@ -114,7 +112,6 @@ void PeerPlugin::add_handshake(libtorrent::entry & handshake) {
     // Write mapping to key
     _clientMapping.writeToDictionary(m);
 }
-
 
 /**
  * m_pc.disconnect(errors::pex_message_too_large, 2);

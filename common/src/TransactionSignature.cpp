@@ -19,18 +19,29 @@ bool TransactionSignature::operator==(const TransactionSignature & rhs) {
     return _sig == rhs.sig() && _type == rhs.type();
 }
 
-uchar_vector TransactionSignature::serializeForScriptSig() const {
+uchar_vector TransactionSignature::combinedSignatureAndSighashCode() const {
 
+    uchar_vector combined;
+
+    combined += _sig.toUCharVector();
+    combined.push_back(_type.hashCode());
+
+    return combined;
+}
+
+uchar_vector TransactionSignature::opPushForScriptSigSerialized() const {
+
+    // Serialized script
     uchar_vector serialize;
 
-    // Add signature length indicator
-    serialize += opPushData(_sig.length());
+    // Get combined signature and sighash code
+    uchar_vector comb = combinedSignatureAndSighashCode();
 
-    // Add signature
-    serialize += _sig.toUCharVector();
+    // Add push operation for combined signature and sighash code
+    serialize += opPushData(comb.size());
 
-    // Add sighash type flag
-    serialize += opPushData(_type.hashCode());
+    // Add data
+    serialize += comb;
 
     return serialize;
 }

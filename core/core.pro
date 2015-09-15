@@ -14,6 +14,8 @@ QT      += core gui network sql # sql is for wallet
 
 INCLUDEPATH += $$PWD/include
 
+include(config.pri)
+
 SOURCES += \
     src/controller/Controller.cpp \
     src/controller/ControllerTracker.cpp \
@@ -82,7 +84,6 @@ HEADERS += \
     include/core/controller/exceptions/InvalidBitSwaprStateEntryException.hpp \
     include/core/controller/exceptions/ListenOnException.hpp \
     include/core/controller/exceptions/MissingInfoHashViewRequestException.hpp \
-    include/core/Config.hpp \
     include/core/logger/LoggerManager.hpp \
     include/core/logger/exceptions/DuplicateLog.hpp \
     include/core/logger/exceptions/CannnotOpenLogFile.hpp \

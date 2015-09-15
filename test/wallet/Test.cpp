@@ -1,4 +1,4 @@
-#include "TestWallet.hpp"
+#include "Test.hpp"
 
 #include <common/Network.hpp>
 #include <common/TransactionId.hpp>
@@ -17,14 +17,14 @@
 
 #define DB _manager->db()
 
-void TestWallet::createWallet() {
+void Test::createWallet() {
 
     // check that we get what we created when loading back in
     QVERIFY(_manager->seed() == WALLET_SEED);
     QVERIFY(_manager->network() == NETWORK_TYPE);
 }
 
-void TestWallet::init() {
+void Test::init() {
 
     // Delete any lingering wallet file
     QFile::remove(WALLET_FILE_NAME);
@@ -40,7 +40,7 @@ void TestWallet::init() {
 
 }
 
-void TestWallet::cleanup() {
+void Test::cleanup() {
 
     delete _manager;
     _manager = NULL;
@@ -57,7 +57,7 @@ void TestWallet::outPoint_data() {
 }
 */
 
-void TestWallet::outPoint() {
+void Test::outPoint() {
 
     Coin::OutPoint original(uchar_vector("6404f7cfc0cc00e402247c309345978d0c021edecad6e3f613b1575b7d7aa160"), 11);
 
@@ -89,11 +89,11 @@ void TestWallet::outPoint() {
 
 }
 
-void TestWallet::input() {
+void Test::input() {
 
 }
 
-void TestWallet::key() {
+void Test::key() {
 
     //Coin::PrivateKey sk(_keyChain.getPrivateSigningKey(0));
 
@@ -115,11 +115,11 @@ void TestWallet::key() {
     QVERIFY(!Wallet::Key::exists(DB, 1));
 }
 
-void TestWallet::address() {
+void Test::address() {
 
 }
 
-void TestWallet::tx() {
+void Test::tx() {
 
     // Create transaction
     Coin::Transaction tx;
@@ -145,7 +145,7 @@ void TestWallet::tx() {
 
 }
 
-void TestWallet::listutxo() {
+void Test::listutxo() {
 
     // How many outputs
     quint32 numberOfOutputs = 2;
@@ -193,7 +193,7 @@ void TestWallet::listutxo() {
 
 }
 
-void TestWallet::lockutxo() {
+void Test::lockutxo() {
 
     // How many outputs
     quint32 numberOfOutputs = 5;
@@ -245,7 +245,7 @@ void TestWallet::lockutxo() {
     //QVERIFY(oldUtxoSize + numberOfOutputs = );
 }
 
-Coin::Transaction TestWallet::createWalletTx(quint32 numberOfOutputs) {
+Coin::Transaction Test::createWalletTx(quint32 numberOfOutputs) {
 
     // Create transaction to add
     Coin::Transaction tx;
@@ -279,5 +279,5 @@ void TestWallet::input_data() {
 }
 */
 
-QTEST_MAIN(TestWallet)
-#include "moc_TestWallet.cpp"
+QTEST_MAIN(Test)
+#include "moc_Test.cpp"

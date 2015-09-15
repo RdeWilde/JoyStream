@@ -271,7 +271,7 @@ public:
     BlockCypher::Address BLOCKCYPHER_rebuild_utxo();
 
     // Push tx to BlockCypher
-    void BLOCKCYPHER_broadcast(const Coin::Transaction & tx);
+    Q_INVOKABLE void BLOCKCYPHER_broadcast(const Coin::Transaction & tx);
 
     // Finds the "first" instance of an utxo which exceeds given amount
     Coin::UnspentP2PKHOutput BLOCKCYPHER_lock_one_utxo(quint64 minimalAmount);

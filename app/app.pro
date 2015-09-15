@@ -3,6 +3,8 @@
 # Proprietary and confidential
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
 
+include(config.pri)
+
 TARGET = app
 TEMPLATE = app
 

@@ -1,5 +1,5 @@
-#ifndef TESTWALLET_HPP
-#define TESTWALLET_HPP
+#ifndef TEST_HPP
+#define TEST_HPP
 
 #include <QtTest/QtTest>
 
@@ -16,7 +16,7 @@ namespace Wallet {
     class Manager;
 }
 
-class TestWallet : public QObject
+class Test : public QObject
 {
     Q_OBJECT
 
@@ -58,4 +58,4 @@ public:
     Coin::Transaction createWalletTx(quint32 numberOfOutputs);
 };
 
-#endif // TESTWALLET_HPP
+#endif // TEST_HPP

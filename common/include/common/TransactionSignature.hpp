@@ -22,8 +22,11 @@ public:
 
     bool operator==(const TransactionSignature & rhs);
 
-    // Serialized as scriptSig ready: <op load signature><DER signature><1 byte sighash type flag>
-    uchar_vector serializeForScriptSig() const;
+    // <max 73b DER signature><1 byte sighash code>
+    uchar_vector combinedSignatureAndSighashCode() const;
+
+    // Serialized as scriptSig ready: <OP PUSH next two field><max 73b DER signature><1 byte sighash code>
+    uchar_vector opPushForScriptSigSerialized() const;
 
     // Getters and setters
     Signature sig() const;

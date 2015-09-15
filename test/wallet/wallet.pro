@@ -17,10 +17,10 @@ QT      += network # network due to blockcypher integration
 QT      += testlib
 
 HEADERS += \
-    TestWallet.hpp
+    Test.hpp
 
 SOURCES += \
-    TestWallet.cpp
+    Test.cpp
 
 # blockcypher  ###############################################################
 INCLUDEPATH += $$PWD/../../blockcypher/include

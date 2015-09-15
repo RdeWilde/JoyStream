@@ -173,7 +173,7 @@ namespace Coin {
         // Add each signature and corresponding sighash flag
         for(std::vector<TransactionSignature>::const_iterator i = sigs.cbegin(),
             end = sigs.cend(); i != end; i++)
-            serialized += (*i).serializeForScriptSig();
+            serialized += (*i).opPushForScriptSigSerialized();
 
         return serialized;
 

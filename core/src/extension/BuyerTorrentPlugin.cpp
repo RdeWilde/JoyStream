@@ -656,14 +656,16 @@ bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, c
     if(_payor.allRefundsSigned()) {
 
         // Broadcast
-        //.... fix, dont reconstruct....
-        Coin::Transaction tx = _payor.contract().transaction();
-        _wallet->broadcast(tx);
+        Coin::Transaction tx = _payor.contractTransaction();
+
+        QMetaObject::invokeMethod(_wallet, "BLOCKCYPHER_broadcast", Q_ARG(const Coin::Transaction, tx));
+
+        //_wallet->broadcast(tx);
 
         // Register tx fee we are spending
         _plugin->registerSentFunds(_payor.contractFee());
 
-        qCDebug(_category) << "Broadcasting contract, txId:" << _payor.contractHash().toHex();
+        qCDebug(_category) << "Broadcasting contract, txId:" << QString::fromStdString(_payor.contractLittleEndianId().getHex());
 
         // Tell all peers with ready message
         for(std::vector<BuyerPeerPlugin *>::iterator i = _slotToPluginMapping.begin(), end = _slotToPluginMapping.end(); i != end;i++) {

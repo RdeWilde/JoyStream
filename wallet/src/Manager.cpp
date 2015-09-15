@@ -1074,17 +1074,7 @@ bool Manager::releaseUtxo(const Coin::typesafeOutPoint & o) {
 }
 
 void Manager::broadcast(const Coin::Transaction & tx) {
-
-    //throw std::runtime_error("not implemented");
-
-    qDebug() << "Manager::broadcast(): not implemented";
-
-    _mutex.lock();
-
-    // do something: may not need to be mutexed
-    // save tx in wallet?
-
-    _mutex.unlock();
+    throw std::runtime_error("not implemented");
 }
 
 void Manager::BLOCKCYPHER_init(QNetworkAccessManager * manager) {
@@ -1231,7 +1221,10 @@ BlockCypher::Address Manager::BLOCKCYPHER_rebuild_utxo() {
 }
 
 void Manager::BLOCKCYPHER_broadcast(const Coin::Transaction & tx) {
-    _BLOCKCYPHER_client->pushRawTransactionAsync(tx);
+
+    bool worked = _BLOCKCYPHER_client->pushRawTransaction(tx);
+
+    qDebug() << "BLOCKCYPHER:" << (worked ? "Successfully" : "Failed to") << "broadcasted tx:" << QString::fromStdString(tx.getHashLittleEndian().getHex());
 }
 
 Coin::UnspentP2PKHOutput Manager::BLOCKCYPHER_lock_one_utxo(quint64 minimalAmount) {
@@ -1261,6 +1254,8 @@ Coin::UnspentP2PKHOutput Manager::BLOCKCYPHER_lock_one_utxo(quint64 minimalAmoun
 
             // exit mutex
             _mutex.unlock();
+
+            qDebug() << "Locked utxo: " << unspent.outPoint().toLittleEndianTxIdString();
 
             return unspent;
         }
