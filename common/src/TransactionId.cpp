@@ -6,40 +6,68 @@
  */
 
 #include <common/TransactionId.hpp>
+#include <CoinCore/CoinNodeData.h> // Coin::Transaction
+
+#include <algorithm>
 
 namespace Coin {
 
 TransactionId::TransactionId() {
 }
 
-TransactionId::TransactionId(const uchar_vector & vector)
-    : UCharArray<TXID_BYTE_LENGTH>(vector) {
+TransactionId::TransactionId(const Coin::Transaction & tx)
+    : UCharArray<TXID_BYTE_LENGTH>(tx.getHashLittleEndian()) { // we need RPC bye order, which coincore calls little endian, *incorrectly*
 }
 
-TransactionId::TransactionId(const QByteArray & array)
-    : UCharArray<TXID_BYTE_LENGTH>(array) {
+TransactionId TransactionId::fromInternalByteOrder(const uchar_vector & vector) {
+
+    // Check length
+    if(vector.size() != TXID_BYTE_LENGTH)
+        throw std::runtime_error("Incorrect size");
+
+    // Make copy so we can modify it
+    uchar_vector copy(vector);
+
+    // Convert to RPC byte order
+    copy.reverse();
+
+    // Create blank txid
+    TransactionId id;
+
+    // Fill id with copy
+    id.fill(copy.data());
+
+    return id;
 }
 
-TransactionId TransactionId::fromLittleEndianHex(const std::string & str) {
+TransactionId TransactionId::fromRPCByteOrder(const std::string & str) {
 
-    // Copy raw into uchar buffer
-    uchar_vector tmp(str);
+    // Turn std::string into QByteArray
+    QByteArray hexArray = QByteArray::fromStdString(str);
 
-    // Reverse from little to big endian
-    //
-    //tmp.reverse();
-
-    // Create transaction id and return
-    return TransactionId(tmp);
+    // Use QbyteArray factory
+    return TransactionId::fromRPCByteOrder(QByteArray::fromHex(hexArray));
 }
 
-std::string TransactionId::toLittleEndianHex() const {
+TransactionId TransactionId::fromRPCByteOrder(const QByteArray & array) {
+
+    // Check length
+    if(array.size() != TXID_BYTE_LENGTH)
+        throw std::runtime_error("Incorrect size");
+
+    // Create blank txid
+    TransactionId id;
+
+    // Fill id with copy
+    id.fill((const unsigned char *)array.data());
+
+    return id;
+}
+
+std::string TransactionId::toRPCByteOrder() const {
 
     // Copy raw into buffer
     uchar_vector tmp = toUCharVector();
-
-    // Reverse from big to little endian
-    tmp.reverse();
 
     // Turn into hex string
     return tmp.getHex();

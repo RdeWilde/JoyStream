@@ -27,7 +27,6 @@ void Test::init() {
 
     _wallet_seed_counter = 0;
     _dns_seed_counter = 0;
-
 }
 
 void Test::download_and_streaming() {

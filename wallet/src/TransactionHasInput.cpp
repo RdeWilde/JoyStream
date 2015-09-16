@@ -34,7 +34,7 @@ Record::Record(const PK & pk, const Input::PK & input)
 
 Record::Record(const QSqlRecord & record) {
 
-    Coin::TransactionId transactionId(record.value("transactionId").toByteArray());
+    Coin::TransactionId transactionId = Coin::TransactionId::fromRPCByteOrder(record.value("transactionId").toByteArray());
     quint32 index = record.value("[index]").toUInt();
     //quint32 index = record.value("index").toUInt();
     _pk = PK(transactionId, index);
@@ -44,7 +44,7 @@ Record::Record(const QSqlRecord & record) {
     QByteArray scriptSig = record.value("scriptSig").toByteArray();
     quint32 sequence = record.value("sequence").toUInt();
 
-    _input = Input::PK(OutPoint::PK(Coin::TransactionId(outPointTransactionId), outPointOutputIndex), scriptSig, sequence);
+    _input = Input::PK(OutPoint::PK(Coin::TransactionId::fromRPCByteOrder(outPointTransactionId), outPointOutputIndex), scriptSig, sequence);
 }
 
 bool createTable(QSqlDatabase db) {

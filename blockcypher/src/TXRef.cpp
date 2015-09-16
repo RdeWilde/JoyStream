@@ -26,7 +26,7 @@ TXRef::TXRef(const QJsonObject & o) {
     Q_ASSERT(o["tx_hash"].isString());
     /** is this even correct ***/
     QString tx_hash = o["tx_hash"].toString();
-    _tx_hash = Coin::TransactionId::fromLittleEndianHex(tx_hash.toStdString());
+    _tx_hash = Coin::TransactionId::fromRPCByteOrder(tx_hash.toStdString());
 
     Q_ASSERT(o.contains("tx_input_n"));
     Q_ASSERT(o["tx_input_n"].isDouble());

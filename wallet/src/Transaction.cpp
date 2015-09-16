@@ -35,7 +35,7 @@ Record::Record(const Coin::Transaction & transaction, const QDateTime & seen)
 
 Record::Record(const QSqlRecord & record) {
 
-    _pk = Coin::TransactionId(record.value("transactionId").toByteArray());
+    _pk = Coin::TransactionId::fromRPCByteOrder(record.value("transactionId").toByteArray());
     _version = record.value("version").toUInt();
     _lockTime = record.value("lockTime").toUInt();
     _seen = record.value("seen").toDateTime();

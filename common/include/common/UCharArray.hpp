@@ -70,10 +70,10 @@ public:
     bool operator!=(const FixedUCharArray & rhs) const;
     */
 
-private:
+protected:
 
     // Try to fill array with content starting at start
-    void fill(const unsigned char * start, int length);
+    void fill(const unsigned char * start);
 };
 
 template<unsigned int array_length>

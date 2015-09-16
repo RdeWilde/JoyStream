@@ -37,7 +37,7 @@ Record::Record(const PK & pk)
 
 Record::Record(const QSqlRecord & record) {
 
-    Coin::TransactionId transactionId(record.value("transactionId").toByteArray());
+    Coin::TransactionId transactionId = Coin::TransactionId::fromRPCByteOrder(record.value("transactionId").toByteArray());
     quint32 index = record.value("index").toUInt();
 
     _pk = PK(transactionId, index);

@@ -33,7 +33,7 @@ Record::Record(const PK & pk, const QByteArray & merkleBranch, quint32 index)
 
 Record::Record(const QSqlRecord & record) {
 
-    Coin::TransactionId transactionId(record.value("transactionId").toByteArray());
+    Coin::TransactionId transactionId = Coin::TransactionId::fromRPCByteOrder(record.value("transactionId").toByteArray());
     Coin::BlockId blockId = record.value("blockId").toByteArray();
     _pk = PK(transactionId, blockId);
 

@@ -803,7 +803,7 @@ QList<Coin::UnspentP2PKHOutput> Manager::listUtxo(quint64 minimalConfirmations) 
             // Turn record into unspent output
             QSqlRecord record = query.record();
 
-            Coin::TransactionId transactionId(record.value("transactionId").toByteArray());
+            Coin::TransactionId transactionId = Coin::TransactionId::fromRPCByteOrder(record.value("transactionId").toByteArray());
             QDateTime seen = record.value("seen").toDateTime();
 
             bool ok;
@@ -925,7 +925,7 @@ QList<UtxoCreated> Manager::getAllUtxoCreated(quint64 minimalConfirmations) {
            // Turn record into unspent output
            QSqlRecord record = query.record();
 
-           Coin::TransactionId transactionId(record.value("transactionId").toByteArray());
+           Coin::TransactionId transactionId = Coin::TransactionId::fromRPCByteOrder(record.value("transactionId").toByteArray());
            QDateTime seen = record.value("seen").toDateTime();
 
            bool ok;
@@ -1000,12 +1000,12 @@ QList<UtxoDestroyed> Manager::getAllUtxoDestroyed(quint64 minimalConfirmations) 
            QSqlRecord record = query.record();
 
            QDateTime seen = record.value("seen").toDateTime();
-           Coin::TransactionId spendingTx(record.value("transactionId").toByteArray());
+           Coin::TransactionId spendingTx = Coin::TransactionId::fromRPCByteOrder(record.value("transactionId").toByteArray());
 
            quint32 indexOfInputInSpendingTx = record.value("index").toUInt(&ok);
            Q_ASSERT(ok);
 
-           Coin::TransactionId outPointTransactionId(record.value("outPointTransactionId").toByteArray());
+           Coin::TransactionId outPointTransactionId = Coin::TransactionId::fromRPCByteOrder(record.value("outPointTransactionId").toByteArray());
            quint32 outPointOutputIndex = record.value("outPointOutputIndex").toUInt(&ok);
            //Q_ASSERT(ok);
 

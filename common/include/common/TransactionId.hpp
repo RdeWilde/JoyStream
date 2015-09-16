@@ -14,29 +14,42 @@
 
 namespace Coin {
 
-// Define Bitcoin types as spesific length fixed uchar arrays
-//typedef UCharArray<TXID_BYTE_LENGTH> TransactionId;
+    class Transaction;
 
-// Transaction id, is stored as big endian encoding,
-// i.e. same encoding as on wire.
-class TransactionId : public UCharArray<TXID_BYTE_LENGTH> {
+    // Transaction id using reversed byte order (i.e. block explorer format,
+    // this is used since CoinCore & BlockCypher both use it, and its easier for debugging.
+    //
+    // But here is some more information:
+    // ==================================
+    // Internal byte order transaction id, incorrectly referred to as
+    // "little-endian", is used on wire in outpoints, merkletrees, bloom filters, etc.
+    // This should be distinguished from reversed byte order transaction id, incorrectly
+    // referred to as "big endian", which is used by by blockexplorers
+    // when referencing an individual transaction.
+    // More here: https://github.com/bitcoin-dot-org/bitcoin.org/issues/580
+    //
+    class TransactionId : public UCharArray<TXID_BYTE_LENGTH> {
 
-public:
+    public:
 
-    TransactionId();
+        TransactionId();
 
-    // Protect against inadverdent construction from any form of string,
-    // as endinaness information will be ambigious. Use static
-    // factory for this.
-    explicit TransactionId(const uchar_vector & vector);
-    explicit TransactionId(const QByteArray & array);
+        //  This is safe way to create id, as user does not need to consider endianness
+        explicit TransactionId(const Coin::Transaction & tx);
 
-    // Constructor from hex encoded string of little endian byte sequence
-    static TransactionId fromLittleEndianHex(const std::string & str);
+        // Factory from internal byte order
+        static TransactionId fromInternalByteOrder(const uchar_vector & vector);
 
-    // Encodes as hex string of little endian byte sequence
-    std::string toLittleEndianHex() const;
-};
+        // Factory from hex encoded RPC byte order
+        static TransactionId fromRPCByteOrder(const std::string & str);
+        static TransactionId fromRPCByteOrder(const QByteArray & array);
+
+        // Encodes as internal byte order
+        uchar_vector toInternalByteOrder() const;
+
+        // Encodes as hex of RPC byte order
+        std::string toRPCByteOrder() const;
+    };
 
 }
 

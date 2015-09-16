@@ -40,7 +40,7 @@ UCharArray<array_length>::UCharArray(const uchar_vector & vector) {
         throw std::runtime_error(s.str());
 
     } else {
-        fill(static_cast<const unsigned char *>(vector.data()), vectorLength);
+        fill(static_cast<const unsigned char *>(vector.data()));
     }
 }
 
@@ -69,7 +69,7 @@ UCharArray<array_length>::UCharArray(const QString & hexEncoded) {
 
         // Copy into array
         // Does not work => static_cast<const unsigned char *>(b.constData())
-        fill((const unsigned char *)(b.constData()), array_length);
+        fill((const unsigned char *)(b.constData()));
     }
 }
 
@@ -97,7 +97,7 @@ UCharArray<array_length>::UCharArray(const QByteArray & raw) {
         throw std::runtime_error(s.str());
 
     } else
-        fill((const unsigned char *)(raw.constData()), byteArrayLength);
+        fill((const unsigned char *)(raw.constData()));
 }
 
 template<unsigned int array_length>
@@ -161,24 +161,11 @@ QByteArray UCharArray<array_length>::toByteArray() const {
 }
 
 template<unsigned int array_length>
-void UCharArray<array_length>::fill(const unsigned char * start, int length) {
+void UCharArray<array_length>::fill(const unsigned char * start) {
 
-    if(length != array_length) {
-
-        std::stringstream s;
-
-        s << "Required "
-          << array_length
-          << " bytes, but was provided"
-          << length;
-
-        throw std::runtime_error(s.str());
-    } else {
-
-        // Copy content into array
-        for(int i = 0;i < array_length;i++)
-            this->at(i) = start[i];
-    }
+    // Copy content into array
+    for(int i = 0;i < array_length;i++)
+        this->at(i) = start[i];
 }
 
 template<unsigned int array_length>

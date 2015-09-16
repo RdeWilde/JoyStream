@@ -594,7 +594,7 @@ bool BuyerTorrentPlugin::sellerWantsToJoinContract(BuyerPeerPlugin * peer, quint
 
         // Iterate
         quint32 index = 0;
-        const Coin::TransactionId contractHash = _payor.contractHash();
+        Coin::TransactionId contractHash(_payor.contractTransaction());
 
         for(std::vector<Payor::Channel>::const_iterator i = channels.cbegin(),
             end = channels.cend(); i != end;i++, index++) {
@@ -665,7 +665,7 @@ bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, c
         // Register tx fee we are spending
         _plugin->registerSentFunds(_payor.contractFee());
 
-        qCDebug(_category) << "Broadcasting contract, txId:" << QString::fromStdString(_payor.contractLittleEndianId().getHex());
+        //qCDebug(_category) << "Broadcasting contract TxId:" << QString::fromStdString(_payor.contractHash().getHex());
 
         // Tell all peers with ready message
         for(std::vector<BuyerPeerPlugin *>::iterator i = _slotToPluginMapping.begin(), end = _slotToPluginMapping.end(); i != end;i++) {

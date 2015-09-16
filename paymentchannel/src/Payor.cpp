@@ -1122,13 +1122,6 @@ void Payor::setContractHash(const Coin::TransactionId & contractTxId) {
     _contractTxId = contractTxId;
 }
 */
-Coin::TransactionId Payor::contractHash() const {
-    return Coin::TransactionId(_contractTx.getHash());
-}
-
-uchar_vector Payor::contractLittleEndianId() const {
-    return _contractTx.getHashLittleEndian();
-}
 
 quint32 Payor::numberOfSignatures() const {
     return _numberOfSignatures;

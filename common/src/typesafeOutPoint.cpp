@@ -27,7 +27,7 @@ typesafeOutPoint::typesafeOutPoint(const typesafeOutPoint & o)
 }
 
 typesafeOutPoint::typesafeOutPoint(const OutPoint & outPoint)
-    : _txId(uchar_vector(outPoint.hash, Coin::TransactionId::length()))
+    : _txId(uchar_vector(outPoint.hash, Coin::TransactionId::length())) // TransactionId uses same byte order as coincore
     , _index(outPoint.index) {
 }
 
@@ -52,11 +52,11 @@ bool operator<(const typesafeOutPoint & lhs, const typesafeOutPoint & rhs) {
 }
 
 QString typesafeOutPoint::toLittleEndianTxIdString() const {
-    return QString::fromStdString(_txId.toLittleEndianHex()) + "-" + QString::number(_index);
+    return QString::fromStdString(_txId.toRPCByteOrder()) + "-" + QString::number(_index);
 }
 
 Coin::OutPoint typesafeOutPoint::getClassicOutPoint() const {
-    return Coin::OutPoint(_txId.toUCharVector(), _index);
+    return Coin::OutPoint(_txId.toUCharVector(), _index); // TransactionId uses same byte order as coincore
 }
 
 TransactionId typesafeOutPoint::transactionId() const {
