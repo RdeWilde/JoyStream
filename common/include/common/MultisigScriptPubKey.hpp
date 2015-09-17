@@ -9,7 +9,7 @@
 #define MULTISIG_SCRIPT_PUBKEY_HPP
 
 #include <common/PublicKey.hpp>
-#include <common/RedeemScriptHash.hpp> // cannot forward declare
+//#include <common/RedeemScriptHash.hpp> // cannot forward declare
 
 namespace Coin {
 
@@ -28,8 +28,11 @@ public:
     // Raw output script: m {pubkey}...{pubkey} n OP_CHECKMULTISIG
     uchar_vector serialized() const;
 
+    /**
+    Deprecated!
     // Hash of serialzied script
     RedeemScriptHash scriptHash() const;
+    */
 
     // P2SH multisig output script:
     P2SHScriptPubKey toP2SHScriptPubKey() const;

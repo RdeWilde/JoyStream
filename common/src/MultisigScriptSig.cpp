@@ -15,7 +15,14 @@ MultisigScriptSig::MultisigScriptSig(const std::vector<TransactionSignature> sig
 }
 
 uchar_vector MultisigScriptSig::serialized() const {
-    return toScriptSigForm(_sigs);
+
+    throw std::runtime_error("has no test coverage");
+
+    uchar_vector serialized;
+
+    serialized += serializeForOP_CHECKSIGMULTISIG(_sigs);
+
+    return serialized;
 }
 
 }

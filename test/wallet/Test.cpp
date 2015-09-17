@@ -136,7 +136,7 @@ void Test::tx() {
     QVERIFY(_manager->addTransaction(tx));
 
     // Grab from wallet and check that it is the same
-    Coin::Transaction tx2 = _manager->getTransaction(Coin::TransactionId(tx.getHash()));
+    Coin::Transaction tx2 = _manager->getTransaction(Coin::TransactionId(tx));
     QVERIFY(tx.getHash() == tx2.getHash());
 
     // Alter it and check that it's different
@@ -173,8 +173,8 @@ void Test::listutxo() {
     //
 
     Coin::Transaction spendingTx;
-    Coin::OutPoint out(tx.getHash(),0); // outpoint referencing first outputo tx above
-    spendingTx.addInput(Coin::TxIn(out, uchar_vector("12345"), 4444));
+    Coin::typesafeOutPoint o(Coin::TransactionId(tx), 0); // outpoint referencing first outputo tx above
+    spendingTx.addInput(Coin::TxIn(o.getClassicOutPoint(), uchar_vector("12345"), 4444));
 
     // Add to wallet
     QVERIFY(_manager->addTransaction(spendingTx));

@@ -8,7 +8,6 @@
 #ifndef LIBTORRENT_UTILITIES_HPP
 #define LIBTORRENT_UTILITIES_HPP
 
-
 #include <libtorrent/socket.hpp> // libtorrent::tcp::endpoint
 uint qHash(const libtorrent::tcp::endpoint & endpoint);
 

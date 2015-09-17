@@ -7,15 +7,20 @@
 
 #include <common/P2SHScriptPubKey.hpp>
 #include <common/MultisigScriptPubKey.hpp>
+#include <CoinCore/hash.h>
 
 namespace Coin {
+
+P2SHScriptPubKey::P2SHScriptPubKey(const uchar_vector & redeemScript)
+    : P2SHScriptPubKey(RedeemScriptHash(ripemd160(sha256(redeemScript)))) {
+}
 
 P2SHScriptPubKey::P2SHScriptPubKey(const RedeemScriptHash & hash)
     : _hash(hash) {
 }
 
 P2SHScriptPubKey::P2SHScriptPubKey(const std::vector<PublicKey> & keys, uint mininumNumberOfSignatures)
-    : P2SHScriptPubKey::P2SHScriptPubKey(Coin::MultisigScriptPubKey(keys, mininumNumberOfSignatures).scriptHash()) {
+    : P2SHScriptPubKey::P2SHScriptPubKey(RedeemScriptHash(Coin::MultisigScriptPubKey(keys, mininumNumberOfSignatures).serialized())) {
 }
 
 uchar_vector P2SHScriptPubKey::serialize() const {

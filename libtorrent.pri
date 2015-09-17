@@ -47,12 +47,27 @@ win32 {
 # Unix
 unix:!macx {
 
+    LIBTORRENT_LOCAL_BUILD = /home/bedeho/JoyStream/Development/libs/libtorrent-rasterbar-1.0.5
+
+    INCLUDEPATH += $$LIBTORRENT_LOCAL_BUILD/include
+
     CONFIG(release, debug|release) {
+        LIBS += -L$$LIBTORRENT_LOCAL_BUILD/bin/gcc-4.9.2/release/address-model-64/boost-link-shared/deprecated-functions-off/link-static/threading-multi -ltorrent
+    } else {
+        LIBS += -L$$LIBTORRENT_LOCAL_BUILD/bin/gcc-4.9.2/debug/address-model-64/boost-link-shared/deprecated-functions-off/link-static/threading-multi -ltorrent
+    }
+
+    DEFINES += TORRENT_DISABLE_LOGGING
+    DEFINES += TORRENT_NO_DEPRECATE
+    DEFINES += TORRENT_DISABLE_GEO_IP
+    DEFINES += BOOST_EXCEPTION_DISABLE
+    DEFINES += BOOST_ASIO_ENABLE_CANCELIO
+}
+
 
         #LIBTORRENT_LOCAL_BUILD = /home/bedeho/JoyStream/Development/libs/libtorrent-build
 
         #INCLUDEPATH += $$LIBTORRENT_LOCAL_BUILD/include
-
         # SHARED ==============================
         #LIBS += -L$$LIBTORRENT_LOCAL_BUILD/lib -ltorrent-rasterbar
 
@@ -63,22 +78,3 @@ unix:!macx {
         #DEFINES += BOOST_ASIO_ENABLE_CANCELIO
         #DEFINES += TORRENT_LINKING_SHARED
         #DEFINES += TORRENT_NO_DEPRECATE
-
-    } else {
-
-        #LIBTORRENT_LOCAL_BUILD = /home/bedeho/JoyStream/Development/libs/libtorrent
-        LIBTORRENT_LOCAL_BUILD = /home/bedeho/JoyStream/Development/libs/libtorrent-rasterbar-1.0.5
-
-        INCLUDEPATH += $$LIBTORRENT_LOCAL_BUILD/include
-
-        LIBS += -L$$LIBTORRENT_LOCAL_BUILD/bin/gcc-4.9.2/debug/address-model-64/boost-link-shared/deprecated-functions-off/link-static/threading-multi -ltorrent
-
-        #LIBS += -L$$LIBTORRENT_LOCAL_BUILD/bin/gcc-4.9.2/debug/address-model-64/boost-link-shared/deprecated-functions-off/threading-multi -ltorrent
-
-        DEFINES += TORRENT_DISABLE_LOGGING
-        DEFINES += TORRENT_NO_DEPRECATE
-        DEFINES += TORRENT_DISABLE_GEO_IP
-        DEFINES += BOOST_EXCEPTION_DISABLE
-        DEFINES += BOOST_ASIO_ENABLE_CANCELIO
-    }
-}

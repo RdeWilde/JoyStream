@@ -32,7 +32,21 @@ private slots:
 
     void addresses();
 
-    void scripts();
+    /**
+     * Input and output scripts
+     */
+
+    void P2PKHScriptPubKey();
+    void P2PKHScriptSig();
+
+    void MultisigScriptPubKey();
+    //void MultisigScriptSig();
+
+    void P2SHScriptPubKey();
+    void P2SHScriptSig();
+
+    void P2SHMultisigScriptPubKey();
+    void P2SHMultisigScriptSig();
 
 private:
 

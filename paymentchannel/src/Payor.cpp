@@ -829,26 +829,12 @@ quint32 Payor::assignUnassignedSlot(quint64 price, const Coin::PublicKey & payee
         // Generate the contract transaction
         Contract c = contract();
         _contractTx = c.transaction();
-        //qDebug() << "tx:" << QString::fromStdString(tx.toIndentedString());  // getSerialized().getHex()
-
-        // Get contract tx id
-        // https://bitcoin.org/en/developer-reference#hash-byte-order
-        // ** It's in Little Endian byte order (least-significant byte first) in the protocol,
-        // but it's written out in Big Endian byte order (most-significant byte first)
-        // as most other numbers in English normally are.
-        //uchar_vector littleEndianTxHash = tx.getHashLittleEndian();
-        //qDebug() << "littleEndianTxHash" << QString::fromStdString(littleEndianTxHash.getHex());
-
-        //uchar_vector bigEndianTxHash = tx.getHash();
-        //qDebug() << "contract big endian" << QString::fromStdString(bigEndianTxHash.getHex());
-
-        //_contractTxId = littleEndianTxHash;
 
         // Compute all refund signatures
         for(std::vector<Channel>::iterator i = _channels.begin(), end(_channels.end()); i != end;i++) {
 
             // Get refund
-            Coin::TransactionId contractTxId(_contractTx.getHash());
+            Coin::TransactionId contractTxId(_contractTx);
             Refund refund = i->refund(contractTxId);
 
             // Get refund signature
@@ -951,7 +937,7 @@ bool Payor::processRefundSignature(quint32 index, const Coin::Signature & signat
     Q_ASSERT(channel.state() == Channel::State::assigned);
 
     // Check signature
-    Coin::TransactionId contractTxId(_contractTx.getHash());
+    Coin::TransactionId contractTxId(_contractTx);
     bool validSignature = channel.refund(contractTxId).validate(channel.payeeContractPk(), signature);
 
     // If it matched, then alter state and save signature
@@ -1012,7 +998,7 @@ Coin::Signature Payor::getPresentPaymentSignature(quint32 index) const {
     Q_ASSERT(channel.state() == Channel::State::refund_signed);
 
     // Get settelemnt
-    Coin::TransactionId contractTxId(_contractTx.getHash());
+    Coin::TransactionId contractTxId(_contractTx);
     Settlement settlement = channel.settlement(contractTxId);
 
     // Generate signature
@@ -1031,7 +1017,7 @@ Payor::Status Payor::status() const {
         channels.push_back(i->status());
 
     // Create rest of payor status
-    Coin::TransactionId contractTxId(_contractTx.getHash());
+    Coin::TransactionId contractTxId(_contractTx);
     return Status(channels, _state, _utxo, _changeValue, _contractFee, contractTxId, _numberOfSignatures);
 }
 
@@ -1067,8 +1053,6 @@ bool Payor::allRefundsSigned() const {
 #include <QtMath>
 
 quint64 Payor::computeContractFee(int numberOfSellers, quint64 feePerKb) {
-
-    return 0;
 
     // Fee for contract based on fee estimate at http://bitcoinfees.com/
     // WE ADD ONE OUTPUT FOR THE CHANGE
@@ -1116,10 +1100,6 @@ OutPoint Payor::fundingOutPoint() const {
 
 void Payor::setFundingOutPoint(const OutPoint &fundingOutput) {
     _fundingOutPoint = fundingOutput;
-}
-
-void Payor::setContractHash(const Coin::TransactionId & contractTxId) {
-    _contractTxId = contractTxId;
 }
 */
 

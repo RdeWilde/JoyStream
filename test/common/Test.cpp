@@ -13,11 +13,18 @@
 #include <common/Signature.hpp>
 #include <common/SigHashType.hpp>
 #include <common/TransactionSignature.hpp>
+#include <common/P2PKHScriptPubKey.hpp>
+#include <common/P2PKHScriptSig.hpp>
+#include <common/MultisigScriptPubKey.hpp>
+#include <common/P2SHScriptPubKey.hpp>
+#include <common/P2SHScriptSig.hpp>
 #include <common/Utilities.hpp>
 
 #include <CoinCore/secp256k1.h>
 
 #include <QJsonArray>
+
+#include <QDebug>
 
 void Test::transactionId() {
 
@@ -196,19 +203,197 @@ void Test::addresses() {
     // p2sh
 }
 
-void Test::scripts() {
+void Test::P2PKHScriptPubKey() {
 
-    // p2pkh out
+    /**
+     * Bitcore script test data generator
+    var compressedPK = bitcore.PublicKey('030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc', net);
+    var scriptPubkey = bitcore.Script.buildPublicKeyHashOut(compressedPK);
+    console.log(scriptPubkey);
+    console.log(scriptPubkey.toBuffer());
 
-    // p2pkh in
+    Output:
+    <Script: OP_DUP OP_HASH160 20 0xcbf730e06e5f8e4fc44f071d436a4660ddde3e47 OP_EQUALVERIFY OP_CHECKSIG>
+    <Buffer 76 a9 14 cb f7 30 e0 6e 5f 8e 4f c4 4f 07 1d 43 6a 46 60 dd de 3e 47 88 ac>
+    */
 
-    // mofn out
+    uchar_vector rawPk("030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc");
+    uchar_vector serializedP2PKH("76a914cbf730e06e5f8e4fc44f071d436a4660ddde3e4788ac");
 
-    // mofn in
+    Coin::PublicKey pk(rawPk);
 
-    // p2sh out
+    Coin::P2PKHScriptPubKey script(pk);
 
-    // p2sh in
+    QVERIFY(script.serialize() == serializedP2PKH);
+}
+
+void Test::P2PKHScriptSig() {
+
+    /**
+    // P2PKHScriptSig
+    // NOTICE: PUBLIC KEY AND SIGNATURES DO NOT MATCH, ITS JUST FOR TESTING
+    var compressedPK = bitcore.PublicKey('030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc', net);
+
+    var sigHexaStr = '1cd5e61ab5bfd0d1450997894cb1a53e917f89d82eb43f06fa96f32c96e061aec12fc1188e8b' +
+        '0dc553a2588be2b5b68dbbd7f092894aa3397786e9c769c5348dc6';
+    var sig = Signature.fromCompact(new Buffer(sigHexaStr, 'hex'));
+
+    console.log(sig.toBuffer().toString('hex'));
+
+    var scriptSig = Script.buildPublicKeyHashIn(compressedPK, sig, bitcore.crypto.Signature.SIGHASH_ALL);
+    console.log(scriptSig.toString());
+    console.log(scriptSig.toBuffer().toString('hex'));
+
+    Output:
+    3045022100d5e61ab5bfd0d1450997894cb1a53e917f89d82eb43f06fa96f32c96e061aec102202fc1188e8b0dc553a2588be2b5b68dbbd7f092894aa3397786e9c769c5348dc6
+    72 0x3045022100d5e61ab5bfd0d1450997894cb1a53e917f89d82eb43f06fa96f32c96e061aec102202fc1188e8b0dc553a2588be2b5b68dbbd7f092894aa3397786e9c769c5348dc601 33 0x030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc
+    483045022100d5e61ab5bfd0d1450997894cb1a53e917f89d82eb43f06fa96f32c96e061aec102202fc1188e8b0dc553a2588be2b5b68dbbd7f092894aa3397786e9c769c5348dc60121030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc
+    */
+
+    uchar_vector rawPk("030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc");
+    uchar_vector rawSig("3045022100d5e61ab5bfd0d1450997894cb1a53e917f89d82eb43f06fa96f32c96e061aec102202fc1188e8b0dc553a2588be2b5b68dbbd7f092894aa3397786e9c769c5348dc6");
+    Coin::PublicKey pk(rawPk);
+    Coin::TransactionSignature ts(Coin::Signature(rawSig), Coin::SigHashType::standard());
+    Coin::P2PKHScriptSig sig(pk, ts);
+    uchar_vector serializedP2PKHScriptSig("483045022100d5e61ab5bfd0d1450997894cb1a53e917f89d82eb43f06fa96f32c96e061aec102202fc1188e8b0dc553a2588be2b5b68dbbd7f092894aa3397786e9c769c5348dc60121030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc");
+
+    QVERIFY(sig.serialized() == serializedP2PKHScriptSig);
+}
+
+void Test::MultisigScriptPubKey() {
+
+    /**
+    // MultisigScriptPubKey
+    var compressedPK_1 = bitcore.PublicKey('030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc', net);
+    var compressedPK_2 = bitcore.PublicKey('030589ee559348bd6a7325994f9c8eff12bd5d1111183142bd0dd1a17abc99b0dc', net);
+
+    var scriptPubKey = Script.buildMultisigOut([compressedPK_1, compressedPK_2], 2, {noSorting : true}); // remembe to not sort
+    var redeemScriptHash = bitcore.crypto.Hash.sha256ripemd160(scriptPubKey.toBuffer());
+
+    console.log(scriptPubKey.toString());
+    console.log(scriptPubKey.toBuffer().toString('hex'));
+    console.log(redeemScriptHash.toString('hex'));
+
+    Output:
+    OP_2 33 0x030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc 33 0x030589ee559348bd6a7325994f9c8eff12bd5d1111183142bd0dd1a17abc99b0dc OP_2 OP_CHECKMULTISIG
+    5221030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc21030589ee559348bd6a7325994f9c8eff12bd5d1111183142bd0dd1a17abc99b0dc52ae
+    4fbd6060861fed97ef2b95e6afff4afb2943cc15
+    */
+
+    uchar_vector rawPk_1("030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc");
+    uchar_vector rawPk_2("030589ee559348bd6a7325994f9c8eff12bd5d1111183142bd0dd1a17abc99b0dc");
+    uchar_vector rawScript("5221030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc21030589ee559348bd6a7325994f9c8eff12bd5d1111183142bd0dd1a17abc99b0dc52ae");
+    //uchar_vector rawScriptHash("4fbd6060861fed97ef2b95e6afff4afb2943cc15");
+
+    Coin::PublicKey pk1(rawPk_1);
+    Coin::PublicKey pk2(rawPk_2);
+
+    Coin::MultisigScriptPubKey script(std::vector<Coin::PublicKey>({pk1, pk2}), 2);
+
+    QVERIFY(script.serialized() == rawScript);
+    //QVERIFY(script.scriptHash().toUCharVector() == rawScriptHash);
+}
+
+/**
+void Test::MultisigScriptSig() {
+
+}
+*/
+
+void Test::P2SHScriptPubKey() {
+
+    /*
+    // P2SHScriptPubKey
+    var redeemScript = bitcore.Script("5221030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc21030589ee559348bd6a7325994f9c8eff12bd5d1111183142bd0dd1a17abc99b0dc52ae");
+    var scriptPubKey = bitcore.Script.buildScriptHashOut(redeemScript);
+
+    console.log(redeemScript.toString())
+    console.log(scriptPubKey.toString());
+    console.log(scriptPubKey.toBuffer().toString('hex'));
+
+    Output:
+    OP_2 33 0x030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc 33 0x030589ee559348bd6a7325994f9c8eff12bd5d1111183142bd0dd1a17abc99b0dc OP_2 OP_CHECKMULTISIG
+    OP_HASH160 20 0x4fbd6060861fed97ef2b95e6afff4afb2943cc15 OP_EQUAL
+    a9144fbd6060861fed97ef2b95e6afff4afb2943cc1587
+    */
+
+    uchar_vector rawRedeemScript("5221030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc21030589ee559348bd6a7325994f9c8eff12bd5d1111183142bd0dd1a17abc99b0dc52ae");
+    uchar_vector rawScript("a9144fbd6060861fed97ef2b95e6afff4afb2943cc1587");
+
+    Coin::P2SHScriptPubKey script(rawRedeemScript);
+
+    QVERIFY(script.serialize() == rawScript);
+}
+
+void Test::P2SHScriptSig() {
+
+}
+
+void Test::P2SHMultisigScriptPubKey() {
+    //  MUST turn multisigscripubkey to script hash of type redeemscriphash,
+    // as this is how
+}
+
+
+void Test::P2SHMultisigScriptSig() {
+
+    /**
+    // MultisigScriptSig
+    // NOTICE: PUBLIC KEY AND SIGNATURES DO NOT MATCH, ITS JUST FOR TESTING
+    var compressedPK_1 = bitcore.PublicKey('030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc', net);
+    var compressedPK_2 = bitcore.PublicKey('030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc', net);
+
+    var sigHexaStr_1 = '1cd5e61ab5bfd0d1450997894cb1a53e917f89d82eb43f06fa96f32c96e061aec12fc1188e8b' +
+        '0dc553a2588be2b5b68dbbd7f092894aa3397786e9c769c5348dc6';
+    var sig_1 = Signature.fromCompact(new Buffer(sigHexaStr_1, 'hex'));
+
+    // buildP2SHMultisigIn needs sighash byte added to each signature already
+    var sig_1_buffer = bitcore.util.buffer.concat([
+        sig_1.toDER(),
+        bitcore.util.buffer.integerAsSingleByteBuffer(bitcore.crypto.Signature.SIGHASH_ALL)
+    ]);
+
+
+    var sigHexaStr_2 = '1cd5e61ab5bfd0d1450997894cb1a53e917f89d82eb43f06fa96f32c96e061aec12fc1188e8b' +
+        '0dc553a2588be2b5b68dbbd7f092894aa3397786e9c769c5348dc6';
+    var sig_2 = Signature.fromCompact(new Buffer(sigHexaStr_2, 'hex'));
+    var sig_2_buffer = bitcore.util.buffer.concat([
+        sig_2.toDER(),
+        bitcore.util.buffer.integerAsSingleByteBuffer(bitcore.crypto.Signature.SIGHASH_ALL)
+    ]);
+
+    var scriptSig = Script.buildP2SHMultisigIn([compressedPK_1, compressedPK_2], 2, [sig_1_buffer, sig_2_buffer], {noSorting : true});
+
+    console.log(sig_1.toString());
+    console.log(sig_2.toString());
+    console.log(scriptSig.toString());
+    console.log(scriptSig.toBuffer().toString('hex'));
+
+    Output:
+    3045022100d5e61ab5bfd0d1450997894cb1a53e917f89d82eb43f06fa96f32c96e061aec102202fc1188e8b0dc553a2588be2b5b68dbbd7f092894aa3397786e9c769c5348dc6
+    3045022100d5e61ab5bfd0d1450997894cb1a53e917f89d82eb43f06fa96f32c96e061aec102202fc1188e8b0dc553a2588be2b5b68dbbd7f092894aa3397786e9c769c5348dc6
+    OP_0 72 0x3045022100d5e61ab5bfd0d1450997894cb1a53e917f89d82eb43f06fa96f32c96e061aec102202fc1188e8b0dc553a2588be2b5b68dbbd7f092894aa3397786e9c769c5348dc601 72 0x3045022100d5e61ab5bfd0d1450997894cb1a53e917f89d82eb43f06fa96f32c96e061aec102202fc1188e8b0dc553a2588be2b5b68dbbd7f092894aa3397786e9c769c5348dc601 71 0x5221030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc21030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc52ae
+    00483045022100d5e61ab5bfd0d1450997894cb1a53e917f89d82eb43f06fa96f32c96e061aec102202fc1188e8b0dc553a2588be2b5b68dbbd7f092894aa3397786e9c769c5348dc601483045022100d5e61ab5bfd0d1450997894cb1a53e917f89d82eb43f06fa96f32c96e061aec102202fc1188e8b0dc553a2588be2b5b68dbbd7f092894aa3397786e9c769c5348dc601475221030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc21030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc52ae
+    */
+
+    uchar_vector rawPk_1("030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc");
+    uchar_vector rawPk_2("030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc");
+    uchar_vector rawSig_1("3045022100d5e61ab5bfd0d1450997894cb1a53e917f89d82eb43f06fa96f32c96e061aec102202fc1188e8b0dc553a2588be2b5b68dbbd7f092894aa3397786e9c769c5348dc6");
+    uchar_vector rawSig_2("3045022100d5e61ab5bfd0d1450997894cb1a53e917f89d82eb43f06fa96f32c96e061aec102202fc1188e8b0dc553a2588be2b5b68dbbd7f092894aa3397786e9c769c5348dc6");
+    uchar_vector script("00483045022100d5e61ab5bfd0d1450997894cb1a53e917f89d82eb43f06fa96f32c96e061aec102202fc1188e8b0dc553a2588be2b5b68dbbd7f092894aa3397786e9c769c5348dc601483045022100d5e61ab5bfd0d1450997894cb1a53e917f89d82eb43f06fa96f32c96e061aec102202fc1188e8b0dc553a2588be2b5b68dbbd7f092894aa3397786e9c769c5348dc601475221030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc21030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc52ae");
+
+    Coin::TransactionSignature ts_1(Coin::Signature(rawSig_1), Coin::SigHashType::standard());
+    Coin::TransactionSignature ts_2(Coin::Signature(rawSig_2), Coin::SigHashType::standard());
+
+    Coin::PublicKey pk_1(rawPk_1);
+    Coin::PublicKey pk_2(rawPk_2);
+
+    Coin::MultisigScriptPubKey redeemScript(std::vector<Coin::PublicKey>{pk_1, pk_2}, 2);
+    Coin::P2SHScriptSig sig(std::vector<Coin::TransactionSignature>{ts_1, ts_2}, redeemScript.serialized());
+
+    uchar_vector ser = sig.serialized();
+    //qDebug() << QString::fromStdString(ser.getHex());
+    QVERIFY(script == sig.serialized());
 
 }
 

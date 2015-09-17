@@ -48,12 +48,16 @@ uchar_vector MultisigScriptPubKey::serialized() const {
     return serialized;
 }
 
+/**
+ * Code script hash production code shold not be duplicated
+ * this is in redeemscripthash class now
 RedeemScriptHash MultisigScriptPubKey::scriptHash() const {
     return RedeemScriptHash(ripemd160(sha256(serialized())));
 }
+*/
 
 P2SHScriptPubKey MultisigScriptPubKey::toP2SHScriptPubKey() const {
-    return P2SHScriptPubKey(scriptHash());
+    return P2SHScriptPubKey(RedeemScriptHash(serialized()));
 }
 
 }

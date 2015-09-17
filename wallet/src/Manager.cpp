@@ -509,7 +509,7 @@ QList<Coin::P2PKHAddress> Manager::listReceiveAddresses() {
 bool Manager::addBlockHeader(const Coin::CoinBlockHeader & blockHeader, quint64 numberOfTransactions, bool isOnMainChain, quint32 totalProofOfWork, quint64 blockHeight) {
 
     // Create private key to check if record exists
-    BlockHeader::PK pk(blockHeader.getHash());
+    BlockHeader::PK pk(blockHeader.getHashLittleEndian()); // due to coincore calling big endian for little endian,we want big, or really rpc byte order
 
     // Lock so that checking existence and insertion are atomic
     _mutex.lock();
@@ -629,7 +629,7 @@ bool Manager::addTransaction(const Coin::Transaction & transaction) {
     // Lock so that checking existence and insertion are atomic
     _mutex.lock();
 
-    Coin::TransactionId transactionId(transaction.getHash());
+    Coin::TransactionId transactionId(transaction);
 
     // If the transaction has already been added, we are done
     if(Transaction::exists(_db, transactionId)) {
@@ -1159,6 +1159,8 @@ BlockCypher::Address Manager::BLOCKCYPHER_rebuild_utxo() {
     // Clear out utxo
     _BLOCKCYPHER_utxo.clear();
 
+    //qDebug() << "BLOCKCYPHER_rebuild_utxo";
+
     // Iterate _txrefs and fetch utxos
     for(std::vector<BlockCypher::TXRef>::const_iterator i = address._txrefs.cbegin(),
         end = address._txrefs.cend();i != end;i++) {
@@ -1169,6 +1171,8 @@ BlockCypher::Address Manager::BLOCKCYPHER_rebuild_utxo() {
         // Add to utxo if its unspent output
         // is output <=> t._tx_output_n >= 0
         if(!t._spent && t._tx_output_n >= 0) {
+
+            //qDebug() << QString::fromStdString(t._tx_hash.toRPCByteOrder());
 
             // Get outpoint
             Coin::TransactionId txId(t._tx_hash);
@@ -1229,7 +1233,9 @@ void Manager::BLOCKCYPHER_broadcast(const Coin::Transaction & tx) {
 
     bool worked = _BLOCKCYPHER_client->pushRawTransaction(tx);
 
-    qDebug() << "BLOCKCYPHER:" << (worked ? "Successfully" : "Failed to") << "broadcasted tx:" << QString::fromStdString(tx.getHashLittleEndian().getHex());
+    Coin::TransactionId id(tx);
+
+    qDebug() << "BLOCKCYPHER:" << (worked ? "Successfully" : "Failed to") << "broadcasted tx:" << QString::fromStdString(id.toRPCByteOrder());
 }
 
 Coin::UnspentP2PKHOutput Manager::BLOCKCYPHER_lock_one_utxo(quint64 minimalAmount) {

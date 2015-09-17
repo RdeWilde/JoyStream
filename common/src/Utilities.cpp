@@ -163,9 +163,13 @@ namespace Coin {
      }
      */
 
-    uchar_vector toScriptSigForm(const std::vector<TransactionSignature> & sigs) {
+    uchar_vector serializeForOP_CHECKSIGMULTISIG(const std::vector<TransactionSignature> & sigs) {
 
         uchar_vector serialized;
+
+        // Test if there are any signatures at all before
+        // adding leading OP_0
+        if(sigs.size() > 0) {
 
         // Add leading OP_0 bug thing
         serialized.push_back(0x00); // OP_0
@@ -175,6 +179,8 @@ namespace Coin {
             end = sigs.cend(); i != end; i++)
             serialized += (*i).opPushForScriptSigSerialized();
 
+        }
+
         return serialized;
 
     }
@@ -182,12 +188,6 @@ namespace Coin {
     void setScriptSigToSpendP2PKH(Coin::Transaction & tx,
                            uint input,
                            const Coin::PrivateKey & sk) {
-
-        /**
-        qDebug() << "tx: " << QString::fromStdString(tx.getHash/LittleEndian().getHex());
-        qDebug() << "input: " << input;
-        qDebug() << "sk: " << sk.toHex();
-        */
 
         // Generate signature
         Coin::TransactionSignature ts = sk.signForP2PKHSpend(tx, input);

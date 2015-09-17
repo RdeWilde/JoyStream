@@ -12,11 +12,10 @@
 #include <core/extension/BuyerTorrentPlugin.hpp> // for configurations
 #include <core/extension/SellerTorrentPlugin.hpp> // for configurations
 #include <core/extension/PluginMode.hpp>
-#include <common/Bitcoin.hpp> // defines STANDARD_NUM_SATOSHIES_PER_KB_IN_TX_FEE
+//#include <common/Bitcoin.hpp> // defines STANDARD_NUM_SATOSHIES_PER_KB_IN_TX_FEE
 #include <common/UnspentP2PKHOutput.hpp>
 #include <common/typesafeOutPoint.hpp>
 #include <common/BitcoinRepresentation.hpp>
-
 #include <common/Seed.hpp>
 #include <gui/MainWindow.hpp>
 #include <wallet/Manager.hpp>
@@ -83,6 +82,10 @@ void Test::paid_uploading() {
     // Load torrent
     libtorrent::torrent_info torrentInfo = load_torrent(LITTLE_SIMZ_FILE);
 
+    //BitCoinRepresentation s;
+    //BitCoinRepresentation s(BitCoinRepresentation::BitCoinPrefix::Milli, 0.01);
+    //().satoshies(); // Min fee per kB (satoshi)
+
     // Sellers
     add_sellers_with_plugin(configuration,
                             barrier,
@@ -94,7 +97,7 @@ void Test::paid_uploading() {
                             << SellerTorrentPlugin::Configuration(false,
                                                                   10, // Minimum piece price (satoshi)
                                                                   2*3600, // Minimum lock time on refund (seconds)
-                                                                  500,//BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.01).satoshies(), // Min fee per kB (satoshi)
+                                                                  5000,//BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.01).satoshies(), // Min fee per kB (satoshi)
                                                                   1, // Max #seller
                                                                   17*60) // Maximum contract confirmation delay (seconds)
                             );

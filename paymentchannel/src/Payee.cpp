@@ -350,7 +350,7 @@ bool Payee::validateContractTrasaction(const Coin::Transaction & transaction) co
 Coin::Transaction Payee::lastPaymentTransaction() const {
 
     // Get settlement for last payment
-    Settlement s = settlement(_numberOfPaymentsMade + 1);
+    Settlement s = settlement(_numberOfPaymentsMade);
 
     // Prepare signatures
     Coin::TransactionSignature payorTransactionSignature = Coin::TransactionSignature(_lastValidPayorPaymentSignature, Coin::SigHashType::standard());

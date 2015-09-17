@@ -49,7 +49,7 @@ Record::Record(const Coin::CoinBlockHeader & h,
                bool isOnMainChain,
                quint32 totalProofOfWork,
                quint64 blockHeight)
-    : Record(h.getHash(),
+    : Record(h.getHashLittleEndian(), // due to msigna calling big endian for little endian, what we want is big, or really rpc byte order
              h.version(),
              h.prevBlockHash(),
              h.merkleRoot(),

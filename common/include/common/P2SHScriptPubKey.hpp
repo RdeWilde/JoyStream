@@ -18,6 +18,8 @@ class P2SHScriptPubKey {
 
 public:
 
+    P2SHScriptPubKey(const uchar_vector & redeemScript);
+
     P2SHScriptPubKey(const RedeemScriptHash & hash);
 
     P2SHScriptPubKey(const std::vector<PublicKey> & keys, uint mininumNumberOfSignatures);

@@ -20,7 +20,7 @@ uchar_vector P2SHScriptSig::serialized() {
 
     uchar_vector serialized;
 
-    serialized += toScriptSigForm(_sigs);
+    serialized += serializeForOP_CHECKSIGMULTISIG(_sigs);
     serialized += opPushData(_redeemScript.size());
     serialized += _redeemScript;
 
