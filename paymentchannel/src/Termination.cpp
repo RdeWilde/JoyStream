@@ -53,8 +53,10 @@ Coin::Transaction Termination::signedTransaction(const Coin::TransactionSignatur
     Coin::Transaction tx = unSignedTransaction();
 
     // Create input script with signature
-    tx.inputs[0].scriptSig = Coin::P2SHScriptSig(std::vector<Coin::TransactionSignature>({payorTransactionSignature, payeeTransactionSignature}),
-                                                     _commitment.terminationScriptSig().serialized()).serialized();
+    Coin::P2SHScriptSig scriptSig(std::vector<Coin::TransactionSignature>({payorTransactionSignature, payeeTransactionSignature}),
+                                  _commitment.terminationScriptSig().serialized());
+
+    tx.inputs[0].scriptSig = scriptSig.serialized();
 
     return tx;
 }

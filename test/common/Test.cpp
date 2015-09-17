@@ -320,7 +320,7 @@ void Test::P2SHScriptPubKey() {
     uchar_vector rawRedeemScript("5221030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc21030589ee559348bd6a7325994f9c8eff12bd5d1111183142bd0dd1a17abc99b0dc52ae");
     uchar_vector rawScript("a9144fbd6060861fed97ef2b95e6afff4afb2943cc1587");
 
-    Coin::P2SHScriptPubKey script(rawRedeemScript);
+    Coin::P2SHScriptPubKey script = Coin::P2SHScriptPubKey::fromSerializedRedeemScript(rawRedeemScript);
 
     QVERIFY(script.serialize() == rawScript);
 }

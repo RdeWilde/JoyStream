@@ -18,11 +18,13 @@ class P2SHScriptPubKey {
 
 public:
 
-    P2SHScriptPubKey(const uchar_vector & redeemScript);
+    //P2SHScriptPubKey(const uchar_vector & redeemScript);
 
-    P2SHScriptPubKey(const RedeemScriptHash & hash);
+    explicit P2SHScriptPubKey(const RedeemScriptHash & hash);
 
-    P2SHScriptPubKey(const std::vector<PublicKey> & keys, uint mininumNumberOfSignatures);
+    static P2SHScriptPubKey fromSerializedRedeemScript(const uchar_vector & redeemScript);
+
+    static P2SHScriptPubKey fromMultisig(const std::vector<PublicKey> & keys, uint mininumNumberOfSignatures);
 
     // Raw p2sh multisig output script: OP_HASH160 [20-byte-hash-value] OP_EQUAL
     uchar_vector serialize() const;

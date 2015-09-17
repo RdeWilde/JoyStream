@@ -34,7 +34,7 @@ Commitment & Commitment::operator=(const Commitment & o) {
 }
 
 Coin::P2SHScriptPubKey Commitment::contractOutputScriptPubKey() const {
-    return Coin::P2SHScriptPubKey(std::vector<Coin::PublicKey>({_firstPk, _secondPk}), 2);
+    return Coin::P2SHScriptPubKey::fromMultisig(std::vector<Coin::PublicKey>({_firstPk, _secondPk}), 2);
 }
 
 Coin::TxOut Commitment::contractOutput() const {

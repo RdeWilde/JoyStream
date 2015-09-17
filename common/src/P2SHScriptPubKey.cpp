@@ -11,16 +11,27 @@
 
 namespace Coin {
 
+/**
 P2SHScriptPubKey::P2SHScriptPubKey(const uchar_vector & redeemScript)
     : P2SHScriptPubKey(RedeemScriptHash(ripemd160(sha256(redeemScript)))) {
 }
+*/
 
 P2SHScriptPubKey::P2SHScriptPubKey(const RedeemScriptHash & hash)
     : _hash(hash) {
 }
 
-P2SHScriptPubKey::P2SHScriptPubKey(const std::vector<PublicKey> & keys, uint mininumNumberOfSignatures)
-    : P2SHScriptPubKey::P2SHScriptPubKey(RedeemScriptHash(Coin::MultisigScriptPubKey(keys, mininumNumberOfSignatures).serialized())) {
+P2SHScriptPubKey P2SHScriptPubKey::fromSerializedRedeemScript(const uchar_vector & redeemScript) {
+
+    RedeemScriptHash scriptHash(ripemd160(sha256(redeemScript)));
+    return P2SHScriptPubKey(scriptHash);
+}
+
+P2SHScriptPubKey P2SHScriptPubKey::fromMultisig(const std::vector<PublicKey> & keys, uint mininumNumberOfSignatures) {
+
+    Coin::MultisigScriptPubKey script(keys, mininumNumberOfSignatures);
+
+    return P2SHScriptPubKey::fromSerializedRedeemScript(script.serialized());
 }
 
 uchar_vector P2SHScriptPubKey::serialize() const {
