@@ -21,11 +21,13 @@
 
 void Test::refund() {
 
-    Coin::KeyPair payorPair = Coin::KeyPair::generate();
-    Coin::KeyPair payeePair = Coin::KeyPair::generate();
+    Coin::KeyPair payorContractPair = Coin::KeyPair::generate();
+    Coin::KeyPair payorFinalPair = Coin::KeyPair::generate();
+    Coin::KeyPair payeeContractPair = Coin::KeyPair::generate();
     Coin::typesafeOutPoint contractOutPoint;
-    Commitment commitment(190, payorPair.pk(), payeePair.pk());
-    Coin::Payment toPayor(190, payorPair.pk().toPubKeyHash());
+    Commitment commitment(190, payorContractPair.pk(), payeeContractPair.pk());
+
+    Coin::Payment toPayor(190, payorFinalPair.pk().toPubKeyHash());
     uint32_t lockTime = 100;
 
     Refund r(contractOutPoint,
@@ -33,12 +35,55 @@ void Test::refund() {
              toPayor,
              lockTime);
 
+    // Validate payee refund signature
+    Coin::TransactionSignature payeeRefundSig = r.transactionSignature(payeeContractPair.sk());
+
+    bool validPayeeRefundSig = r.validatePayeeSignature(payeeRefundSig.sig());
+
+    QVERIFY(validPayeeRefundSig);
+    QVERIFY(r.fee() == 0);
+
+    // Validate payee refund signature
+    Coin::TransactionSignature payorRefundSig = r.transactionSignature(payorContractPair.sk());
+
+    bool validPayorRefundSig = r.validatePayorSignature(payorRefundSig.sig());
+
+    QVERIFY(validPayorRefundSig);
+}
+
+void Test::settlement() {
+
+    Coin::KeyPair payorContractPair = Coin::KeyPair::generate();
+    Coin::KeyPair payorFinalPair = Coin::KeyPair::generate();
+    Coin::KeyPair payeeContractPair = Coin::KeyPair::generate();
+    Coin::KeyPair payeeFinalPair = Coin::KeyPair::generate();
+
+    Coin::typesafeOutPoint contractOutPoint;
+    Commitment commitment(180, payorContractPair.pk(), payeeContractPair.pk());
+    Coin::Payment toPayor(90, payorFinalPair.pk().toPubKeyHash());
+    Coin::Payment toPayee(90, payeeFinalPair.pk().toPubKeyHash());
+
+    Settlement s(contractOutPoint,
+             commitment,
+             toPayor,
+             toPayee);
+
     // Generate payee refund signature, hence using payee private key
-    Coin::TransactionSignature payeeRefundSig = r.transactionSignature(payeePair.sk());
+    Coin::TransactionSignature payeePaySig = s.transactionSignature(payeeContractPair.sk());
+    Coin::TransactionSignature payorPaySig = s.transactionSignature(payorContractPair.sk());
 
-    bool validRefundSig = r.validatePayeeSignature(payeeRefundSig.sig());
+    bool validPayeeSettlementSig = s.validatePayeeSignature(payeePaySig.sig());
+    QVERIFY(validPayeeSettlementSig);
 
-    QVERIFY(validRefundSig);
+    bool validPayorSettlementSig = s.validatePayorSignature(payorPaySig.sig());
+    QVERIFY(validPayorSettlementSig);
+
+    QVERIFY(s.fee() == 0);
+
+}
+
+void Test::channel() {
+
 }
 
 void Test::paychan_one_to_one() {

@@ -26,6 +26,14 @@ private slots:
 
     void refund();
 
+    void settlement();
+
+    void channel();
+
+    //void payor();
+
+    //void payee();
+
     void paychan_one_to_one();
 };
 

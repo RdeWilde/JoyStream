@@ -534,6 +534,7 @@ public:
 
     private:
 
+        // Why was this added, not sure it is needed?
         Coin::Network _network;
 
         // Payor state
