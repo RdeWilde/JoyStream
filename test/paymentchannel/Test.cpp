@@ -112,7 +112,7 @@ void Test::paychan_one_to_one() {
     uint32_t lockTime = 1000;
 
     channels.push_back(Payor::Channel::Configuration(0,
-                                                     Payor::Channel::State::assigned,
+                                                     Payor::Channel::State::unassigned,
                                                      price,
                                                      0,
                                                      funds_in_channel, // total funds
@@ -127,17 +127,20 @@ void Test::paychan_one_to_one() {
                                                      lockTime));
     // Setup payor
     Payor payor(Payor::Configuration(NETWORK_TYPE,
-                                     Payor::State::waiting_for_full_set_of_refund_signatures,
+                                     Payor::State::waiting_for_full_set_of_sellers,
                                      channels,
-                                     Coin::UnspentP2PKHOutput(Coin::KeyPair(), Coin::typesafeOutPoint(), source),
+                                     Coin::UnspentP2PKHOutput(Coin::KeyPair::generate(), Coin::typesafeOutPoint(), source),
                                      Coin::KeyPair::generate(),
                                      change, // change value
                                      contract_fee, // contract fee
                                      Coin::TransactionId(),
                                      0));
 
+    payor.assignUnassignedSlot(price, payeeContractKeyPair.pk(), payeeFinalKeyPair.pk(), lockTime);
+    Coin::TransactionId contractId(payor.contractTransaction());
+
     // Setup payee
-    Payee payee(Payee::Configuration(Payee::State::has_all_information_required,
+    Payee payee(Payee::Configuration(Payee::State::waiting_for_payor_information,
                                      0,
                                      Coin::Signature(),
                                      lockTime,
@@ -150,10 +153,17 @@ void Test::paychan_one_to_one() {
                                      payorFinalKeyPair.pk(),
                                      funds_in_channel));
 
+
+    payee.registerPayorInformation(Coin::typesafeOutPoint(contractId, 0),
+                                   payorContractKeyPair.pk(),
+                                   payorFinalKeyPair.pk(),
+                                   funds_in_channel);
+
     // Payee generates refund
     Coin::Signature refundSignature = payee.generateRefundSignature();
 
     // Payor validates refund
+
     bool wasValid = payor.processRefundSignature(0, refundSignature);
 
     QVERIFY(wasValid);

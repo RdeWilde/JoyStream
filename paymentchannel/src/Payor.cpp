@@ -882,6 +882,9 @@ void Payor::unassignSlot(quint32 index) {
 
 Contract Payor::contract() const {
 
+    if(_state == State::waiting_for_full_set_of_sellers)
+        throw std::runtime_error("State incompatile request, no valid contract can be generated without a full set of sellers.");
+
     // Collect channel commitments
     std::vector<Commitment> commitments;
 
@@ -891,8 +894,6 @@ Contract Payor::contract() const {
         i != end;
         i++)
         commitments.push_back((*i).commitment());
-
-    Q_ASSERT(_state != State::waiting_for_full_set_of_sellers);
 
     // Build contract
     return Contract(_utxo, commitments, Coin::Payment(_changeValue, _changeOutputKeyPair.pk().toPubKeyHash()));
