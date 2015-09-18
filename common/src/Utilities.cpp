@@ -171,15 +171,16 @@ namespace Coin {
         // adding leading OP_0
         if(sigs.size() > 0) {
 
-        // Add leading OP_0 bug thing
-        serialized.push_back(0x00); // OP_0
+            // Add leading OP_0 bug thing
+            serialized.push_back(0x00); // OP_0
 
-        // Add each signature and corresponding sighash flag
-        for(std::vector<TransactionSignature>::const_iterator i = sigs.cbegin(),
-            end = sigs.cend(); i != end; i++)
-            serialized += (*i).opPushForScriptSigSerialized();
+            // Add each signature and corresponding sighash flag
+            for(std::vector<TransactionSignature>::const_iterator i = sigs.cbegin(),
+                end = sigs.cend(); i != end; i++)
+                serialized += (*i).opPushForScriptSigSerialized();
 
-        }
+        } else
+            Q_ASSERT(false);
 
         return serialized;
 

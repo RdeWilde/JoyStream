@@ -183,7 +183,7 @@ bool Test::sighash(const QJsonArray & fixture) {
 
     // Parse resulting correct sighash
     uchar_vector expectedResult(fixture.at(4).toString().toStdString());
-    expectedResult.reverse(); // turn into internal byte order
+    expectedResult.reverse(); // turn into rpc??? byte order
 
     // Compute sighash and compare to correct answer
     uchar_vector actualResult(Coin::sighash(tx, input, scriptPubKey, type));

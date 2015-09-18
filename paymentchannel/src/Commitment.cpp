@@ -41,7 +41,7 @@ Coin::TxOut Commitment::contractOutput() const {
     return Coin::TxOut(_value, contractOutputScriptPubKey().serialize());
 }
 
-Coin::MultisigScriptPubKey Commitment::terminationScriptSig() const {
+Coin::MultisigScriptPubKey Commitment::redeemScript() const {
     return Coin::MultisigScriptPubKey(std::vector<Coin::PublicKey>({_firstPk, _secondPk}), 2);
 }
 

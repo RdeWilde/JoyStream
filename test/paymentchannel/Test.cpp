@@ -8,10 +8,38 @@
 #include <Test.hpp>
 
 #include <common/Seed.hpp>
+#include <common/Payment.hpp>
+#include <common/typesafeOutPoint.hpp>
+#include <common/TransactionSignature.hpp>
 #include <CoinCore/hdkeys.h>
 
+#include <paymentchannel/Commitment.hpp>
+#include <paymentchannel/Refund.hpp>
+#include <paymentchannel/Settlement.hpp>
 #include <paymentchannel/Payor.hpp>
 #include <paymentchannel/Payee.hpp>
+
+void Test::refund() {
+
+    Coin::KeyPair payorPair = Coin::KeyPair::generate();
+    Coin::KeyPair payeePair = Coin::KeyPair::generate();
+    Coin::typesafeOutPoint contractOutPoint;
+    Commitment commitment(190, payorPair.pk(), payeePair.pk());
+    Coin::Payment toPayor(190, payorPair.pk().toPubKeyHash());
+    uint32_t lockTime = 100;
+
+    Refund r(contractOutPoint,
+             commitment,
+             toPayor,
+             lockTime);
+
+    // Generate payee refund signature, hence using payee private key
+    Coin::TransactionSignature payeeRefundSig = r.transactionSignature(payeePair.sk());
+
+    bool validRefundSig = r.validatePayeeSignature(payeeRefundSig.sig());
+
+    QVERIFY(validRefundSig);
+}
 
 void Test::paychan_one_to_one() {
 
@@ -86,9 +114,9 @@ void Test::paychan_one_to_one() {
     QVERIFY(wasValid);
 
     // Make series of payments
-    int number_of_paymnts = 10;
+    int number_of_payments = 10;
 
-    for(int i = 0; i < number_of_paymnts; i++) {
+    for(int i = 0; i < number_of_payments; i++) {
 
         // Payor makes payment i
         Q_ASSERT(payor.incrementPaymentCounter(0) == i+1);

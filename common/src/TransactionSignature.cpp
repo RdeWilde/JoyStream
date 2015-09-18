@@ -21,6 +21,7 @@ bool TransactionSignature::operator==(const TransactionSignature & rhs) {
 
 uchar_vector TransactionSignature::combinedSignatureAndSighashCode() const {
 
+
     uchar_vector combined;
 
     combined += _sig.toUCharVector();

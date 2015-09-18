@@ -24,6 +24,8 @@ class Test : public QObject
 
 private slots:
 
+    void refund();
+
     void paychan_one_to_one();
 };
 

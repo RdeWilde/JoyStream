@@ -39,7 +39,7 @@ public:
     Coin::TxOut contractOutput() const;
 
     // 2o2 multisig scriptpubkey
-    Coin::MultisigScriptPubKey terminationScriptSig() const;
+    Coin::MultisigScriptPubKey redeemScript() const;
 
     // Getters and setters
     int64_t value() const;
