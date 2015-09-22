@@ -16,6 +16,7 @@ namespace Coin {
     class Transaction;
     class TransactionSignature;
     class PrivateKey;
+    class SigHashType;
 }
 
 /**
@@ -35,6 +36,9 @@ public:
 
     // Unsigned transaction
     virtual Coin::Transaction unSignedTransaction() const;
+
+    //
+    uchar_vector sighash(Coin::SigHashType type) const;
 
     // Transaction signature
     Coin::TransactionSignature transactionSignature(const Coin::PrivateKey & sk) const;

@@ -36,8 +36,23 @@ Coin::Transaction Termination::unSignedTransaction() const {
     return tx;
 }
 
+uchar_vector Termination::sighash(Coin::SigHashType type) const {
+
+    return Coin::sighash(unSignedTransaction(),
+                   0,
+                   _commitment.redeemScript().serialized(),
+                   type);
+}
+
 Coin::TransactionSignature Termination::transactionSignature(const Coin::PrivateKey & sk) const {
-    return sk.sign(unSignedTransaction(), 0, _commitment.contractOutputScriptPubKey().serialize(), Coin::SigHashType::standard());
+
+    //return sk.sign(unSignedTransaction(), 0, _commitment.redeemScript().serialize(), Coin::SigHashType::standard());
+
+    Coin::SigHashType type = Coin::SigHashType::standard();
+
+    uchar_vector hash = sighash(type);
+
+    return Coin::TransactionSignature(sk.sign(hash), type);
 }
 
 Coin::Transaction Termination::signedTransaction(const Coin::TransactionSignature & payorTransactionSignature,
@@ -53,7 +68,8 @@ Coin::Transaction Termination::signedTransaction(const Coin::TransactionSignatur
     Coin::Transaction tx = unSignedTransaction();
 
     // Create input script with signature
-    Coin::P2SHScriptSig scriptSig(std::vector<Coin::TransactionSignature>({payorTransactionSignature, payeeTransactionSignature}),
+    Coin::P2SHScriptSig scriptSig(std::vector<Coin::TransactionSignature>({payorTransactionSignature,
+                                                                           payeeTransactionSignature}),
                                   _commitment.redeemScript().serialized());
 
     tx.inputs[0].scriptSig = scriptSig.serialized();
@@ -64,13 +80,10 @@ Coin::Transaction Termination::signedTransaction(const Coin::TransactionSignatur
 bool Termination::validate(const Coin::PublicKey & pk, const Coin::Signature & sig) const {
 
     // Compute sighash for unsigned refund
-    uchar_vector sigHash = sighash(unSignedTransaction(),
-                                   0,
-                                   _commitment.contractOutputScriptPubKey().serialize(),
-                                   Coin::SigHashType::standard());
+    uchar_vector h = sighash(Coin::SigHashType::standard());
 
     // Check if signature is valid
-    return pk.verify(sigHash, sig);
+    return pk.verify(h, sig);
 }
 
 bool Termination::validatePayorSignature(const Coin::Signature & sig) const {
