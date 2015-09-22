@@ -830,7 +830,7 @@ quint64 BuyerTorrentPlugin::totalSentSinceStart() const {
     int numberOfChannels = _payor.numberOfChannels();
 
     // Add tx fee of contract itself
-    quint64 total = _payor.computeContractFee(numberOfChannels, _maxFeePerKb);
+    quint64 total = _payor.contractFee();
 
     for(int i = 0; i < numberOfChannels;i++) {
 

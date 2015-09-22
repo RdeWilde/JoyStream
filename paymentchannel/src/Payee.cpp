@@ -209,6 +209,7 @@ void Payee::Configuration::setFunds(const quint64 funds) {
 #include <common/P2SHScriptPubKey.hpp>
 #include <common/TransactionSignature.hpp>
 #include <common/SigHashType.hpp>
+#include <common/Bitcoin.hpp> // TEMPORARY, JUST TO GET HARD CODED SETTLEMENT FEE
 #include <paymentchannel/Commitment.hpp>
 #include <paymentchannel/Refund.hpp>
 #include <paymentchannel/Settlement.hpp>
@@ -301,6 +302,7 @@ Refund Payee::refund() const {
     if(_state != State::has_all_information_required)
         throw std::runtime_error("State incompatible request, must be has_all_information_required state.");
 
+    // *** no fee !!!
     return Refund(contractOutPoint(),
                   commitment(),
                   Coin::Payment(_funds, _payorFinalPk.toPubKeyHash()),
@@ -310,12 +312,24 @@ Refund Payee::refund() const {
 Settlement Payee::settlement(int64_t paymentCount) const {
 
     // Setup new payment outputs
-    int64_t paid = paymentCount * _price;
+    int64_t paid = _price * paymentCount;
 
+    Q_ASSERT(paid <= _funds);
+
+    /*
     return Settlement(contractOutPoint(),
                       commitment(),
                       Coin::Payment(_funds - paid, _payorFinalPk.toPubKeyHash()),
-                      Coin::Payment(paid, _payeePaymentKeys.pk().toPubKeyHash()));
+                      Coin::Payment(paid - (BITCOIN_DUST_LIMIT + PAYCHAN_SETTLEMENT_FEE), _payeePaymentKeys.pk().toPubKeyHash()));
+                      */
+
+    return Settlement::dustLimitAndFeeAwareSettlement(contractOutPoint(),
+                                                      commitment(),
+                                                      _payorFinalPk.toPubKeyHash(),
+                                                      _payeePaymentKeys.pk().toPubKeyHash(),
+                                                      _funds,
+                                                      paid,
+                                                      PAYCHAN_SETTLEMENT_FEE);
 }
 
 Coin::Signature Payee::generateRefundSignature() const {

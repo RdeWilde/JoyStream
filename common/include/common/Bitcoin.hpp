@@ -19,5 +19,7 @@
 
 #define BITCOIN_DUST_LIMIT 546
 
+#define PAYCHAN_SETTLEMENT_FEE 1000 // in satoshies
+
 #endif // COIN_BITCOIN_HPP
 

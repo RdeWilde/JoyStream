@@ -11,6 +11,10 @@
 
 namespace Coin {
 
+Payment::Payment()
+    : _value(0) {
+}
+
 Payment::Payment(int64_t value, const Coin::PubKeyHash & destination)
     : _value(value)
     , _destination(destination){

@@ -93,13 +93,12 @@ void Test::paid_uploading() {
                             true,
                             torrentInfo,
                             QVector<SellerTorrentPlugin::Configuration>()
-
                             << SellerTorrentPlugin::Configuration(false,
-                                                                  10, // Minimum piece price (satoshi)
-                                                                  2*3600, // Minimum lock time on refund (seconds)
-                                                                  5000,//BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.01).satoshies(), // Min fee per kB (satoshi)
-                                                                  1, // Max #seller
-                                                                  17*60) // Maximum contract confirmation delay (seconds)
+                                                                  10,       // Minimum piece price (satoshi)
+                                                                  2*3600,   // Minimum lock time on refund (seconds)
+                                                                  5000,     // BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.01).satoshies(), // Min fee per kB (satoshi)
+                                                                  1,        // Max #seller
+                                                                  17*60)    // Maximum contract confirmation delay (seconds)
                             );
 
     // Buyers
@@ -110,10 +109,10 @@ void Test::paid_uploading() {
                            torrentInfo,
                            QVector<BuyerTorrentPlugin::Configuration>()
                            << BuyerTorrentPlugin::Configuration(false,
-                                                                20, // Maximum piece price (satoshi)
-                                                                4*3600, // Maximum lock time on refund (seconds)
-                                                                10000, // BitCoinRepresentation NOT WORKING FOR WHATEVER REASON: BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.1).satoshies(), // Max fee per kB (satoshi)
-                                                                1) // #sellers
+                                                                20,         // Maximum piece price (satoshi)
+                                                                4*3600,     // Maximum lock time on refund (seconds)
+                                                                10000,      // BitCoinRepresentation NOT WORKING FOR WHATEVER REASON: BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.1).satoshies(), // Max fee per kB (satoshi)
+                                                                1)          // #sellers
                            );
 
     // Wait for both to end

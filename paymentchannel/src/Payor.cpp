@@ -236,6 +236,7 @@ void Payor::Channel::Status::setIndex(quint32 index) {
 #include <common/P2PKHScriptPubKey.hpp>
 #include <common/TransactionSignature.hpp>
 #include <common/Utilities.hpp> // DEFAULT_SEQUENCE_NUMBER
+#include <common/Bitcoin.hpp> // TEMPORARY, JUST TO GET HARD CODED SETTLEMENT FEE
 #include <paymentchannel/Commitment.hpp>
 #include <paymentchannel/Refund.hpp>
 #include <paymentchannel/Settlement.hpp>
@@ -324,13 +325,17 @@ Settlement Payor::Channel::settlement(const Coin::TransactionId & contractTxId) 
         throw std::runtime_error("No valid commitment exists for channel.");
 
     // The amount paid so far
-    quint64 amountPaid = _price*_numberOfPaymentsMade;
+    quint64 paid = _price*_numberOfPaymentsMade;
 
-    // *** no fee !!!
-    return Settlement(contractOutPoint(contractTxId),
-                      commitment(),
-                      Coin::Payment(_funds - amountPaid, _payorFinalKeyPair.pk().toPubKeyHash()),
-                      Coin::Payment(amountPaid, _payeeFinalPk.toPubKeyHash()));
+    Q_ASSERT(paid <= _funds);
+
+    return Settlement::dustLimitAndFeeAwareSettlement(contractOutPoint(contractTxId),
+                                                      commitment(),
+                                                      _payorFinalKeyPair.pk().toPubKeyHash(),
+                                                      _payeeFinalPk.toPubKeyHash(),
+                                                      _funds,
+                                                      paid,
+                                                      PAYCHAN_SETTLEMENT_FEE);
 }
 
 /**
@@ -978,6 +983,10 @@ quint64 Payor::incrementPaymentCounter(quint32 index) {
 
     // Update payment counter
     quint64 number = channel.numberOfPaymentsMade() + 1;
+
+    if(number * channel.price() > channel.funds())
+        throw std::runtime_error("Channel has unsufficient funds to allow additional spending.");
+
     channel.setNumberOfPaymentsMade(number);
 
     return number;
@@ -1064,7 +1073,7 @@ quint64 Payor::computeContractFee(int numberOfSellers, quint64 feePerKb) {
 }
 
 quint64 Payor::minimalFunds(quint32 numberOfPiecesInTorrent, quint64 maxPrice, int numberOfSellers, quint64 feePerkB) {
-    return maxPrice*numberOfSellers*numberOfPiecesInTorrent + computeContractFee(numberOfSellers, feePerkB);
+    return PAYCHAN_SETTLEMENT_FEE*numberOfSellers + (maxPrice*numberOfSellers)*numberOfPiecesInTorrent + computeContractFee(numberOfSellers, feePerkB);
 }
 
 Payor::State Payor::state() const {

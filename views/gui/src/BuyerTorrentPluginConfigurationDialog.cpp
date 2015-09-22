@@ -137,7 +137,10 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
     // ============================================================
     // Amount needed to fund contract (satoshies)
-    quint64 minFunds = Payor::minimalFunds(_torrentInfo.num_pieces(), maxPrice, numberOfSellers, feePerkB); //
+    quint64 minFunds = Payor::minimalFunds(_torrentInfo.num_pieces(),
+                                           maxPrice,
+                                           numberOfSellers,
+                                           feePerkB); //
 
     // Get funding output - this has to be grabbed from wallet/chain later
     Coin::UnspentP2PKHOutput utxo = _wallet->BLOCKCYPHER_lock_one_utxo(minFunds);
@@ -211,7 +214,10 @@ void BuyerTorrentPluginConfigurationDialog::updateTotal() {
     quint64 maxPrice = maxPriceFromTotalSpend(maxTotalSpend, numberOfSellers, feePerkB);
 
     // Amount needed to fund contract (satoshies)
-    quint64 minFunds = Payor::minimalFunds(_torrentInfo.num_pieces(), maxPrice, numberOfSellers, feePerkB);
+    quint64 minFunds = Payor::minimalFunds(_torrentInfo.num_pieces(),
+                                           maxPrice,
+                                           numberOfSellers,
+                                           feePerkB);
 
     // Update total price label
     QString minFundsString = BitcoinRepresentation(minFunds).toString(_settings);

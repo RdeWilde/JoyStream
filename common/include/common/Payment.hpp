@@ -17,6 +17,9 @@ class Payment {
 
 public:
 
+
+    Payment();
+
     Payment(int64_t value, const Coin::PubKeyHash & destination);
 
     // Corresponding P2PKH transaction output
