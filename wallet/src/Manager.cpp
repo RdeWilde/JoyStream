@@ -629,7 +629,7 @@ bool Manager::addTransaction(const Coin::Transaction & transaction) {
     // Lock so that checking existence and insertion are atomic
     _mutex.lock();
 
-    Coin::TransactionId transactionId(transaction);
+    Coin::TransactionId transactionId = Coin::TransactionId::fromTx(transaction);
 
     // If the transaction has already been added, we are done
     if(Transaction::exists(_db, transactionId)) {
@@ -1233,7 +1233,7 @@ void Manager::BLOCKCYPHER_broadcast(const Coin::Transaction & tx) {
 
     bool worked = _BLOCKCYPHER_client->pushRawTransaction(tx);
 
-    Coin::TransactionId id(tx);
+    Coin::TransactionId id = Coin::TransactionId::fromTx(tx);
 
     qDebug() << "BLOCKCYPHER:" << (worked ? "Successfully" : "Failed to") << "broadcasted tx:" << QString::fromStdString(id.toRPCByteOrder());
 }

@@ -36,7 +36,7 @@ void Test::transactionId() {
     Coin::TransactionId id = Coin::TransactionId::fromRPCByteOrder(txId);
 
     // Derive transaction id from transaction, and check that its
-    Coin::TransactionId derivedId(tx);
+    Coin::TransactionId derivedId = Coin::TransactionId::fromTx(tx);
     QVERIFY(derivedId == id);
 
     // Check
@@ -333,7 +333,6 @@ void Test::P2SHMultisigScriptPubKey() {
     //  MUST turn multisigscripubkey to script hash of type redeemscriphash,
     // as this is how
 }
-
 
 void Test::P2SHMultisigScriptSig() {
 

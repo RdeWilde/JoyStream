@@ -834,7 +834,7 @@ quint32 Payor::assignUnassignedSlot(quint64 price, const Coin::PublicKey & payee
         for(std::vector<Channel>::iterator i = _channels.begin(), end(_channels.end()); i != end;i++) {
 
             // Get refund
-            Coin::TransactionId contractTxId(_contractTx);
+            Coin::TransactionId contractTxId = Coin::TransactionId::fromTx(_contractTx);
             Refund refund = i->refund(contractTxId);
 
             // Get refund signature
@@ -938,7 +938,7 @@ bool Payor::processRefundSignature(quint32 index, const Coin::Signature & signat
     Q_ASSERT(channel.state() == Channel::State::assigned);
 
     // Check signature
-    Coin::TransactionId contractTxId(_contractTx);
+    Coin::TransactionId contractTxId = Coin::TransactionId::fromTx(_contractTx);
     bool validSignature = channel.refund(contractTxId).validate(channel.payeeContractPk(), signature);
 
     // If it matched, then alter state and save signature
@@ -999,7 +999,7 @@ Coin::Signature Payor::getPresentPaymentSignature(quint32 index) const {
     Q_ASSERT(channel.state() == Channel::State::refund_signed);
 
     // Get settelemnt
-    Coin::TransactionId contractTxId(_contractTx);
+    Coin::TransactionId contractTxId = Coin::TransactionId::fromTx(_contractTx);
     Settlement settlement = channel.settlement(contractTxId);
 
     // Generate signature
@@ -1018,7 +1018,7 @@ Payor::Status Payor::status() const {
         channels.push_back(i->status());
 
     // Create rest of payor status
-    Coin::TransactionId contractTxId(_contractTx);
+    Coin::TransactionId contractTxId = Coin::TransactionId::fromTx(_contractTx);
     return Status(channels, _state, _utxo, _changeValue, _contractFee, contractTxId, _numberOfSignatures);
 }
 

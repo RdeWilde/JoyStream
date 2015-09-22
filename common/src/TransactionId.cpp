@@ -15,9 +15,18 @@ namespace Coin {
 TransactionId::TransactionId() {
 }
 
+TransactionId TransactionId::fromTx(const Coin::Transaction & tx) {
+
+    uchar_vector v(tx.getHashLittleEndian());
+
+    return TransactionId::fromRPCByteOrder(v);
+}
+
+/**
 TransactionId::TransactionId(const Coin::Transaction & tx)
     : UCharArray<TXID_BYTE_LENGTH>(tx.getHashLittleEndian()) { // we need RPC bye order, which coincore calls little endian, *incorrectly*
 }
+*/
 
 TransactionId TransactionId::fromInternalByteOrder(const uchar_vector & vector) {
 
@@ -62,6 +71,13 @@ TransactionId TransactionId::fromRPCByteOrder(const QByteArray & array) {
     id.fill((const unsigned char *)array.data());
 
     return id;
+}
+
+TransactionId TransactionId::fromRPCByteOrder(const uchar_vector & vector) {
+
+    QByteArray array((const char *)vector.data(), (int)(vector.size()));
+
+    return TransactionId::fromRPCByteOrder(array);
 }
 
 std::string TransactionId::toRPCByteOrder() const {

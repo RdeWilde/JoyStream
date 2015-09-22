@@ -78,12 +78,12 @@ void Test::outPoint() {
     Coin::OutPoint other_index(uchar_vector("6404f7cfc0cc00e402247c309345978d0c021edecad6e3f613b1575b7d7aa160"), 666);
     QVERIFY(!Wallet::OutPoint::exists(DB, Wallet::OutPoint::PK(other_index)));
 
-    // try to get it out, and that its the same
+    // try to get it out,
     Wallet::OutPoint::Record record;
     bool exists = Wallet::OutPoint::exists(DB, original, record);
     QVERIFY(exists);
 
-    // No comparison operator!!
+    // And that its the same: No comparison operator!, use serialized form instead
     //QVERIFY(record.toOutPoint() == original);
     QVERIFY(record.toOutPoint().getSerialized() == original.getSerialized());
 
@@ -136,7 +136,7 @@ void Test::tx() {
     QVERIFY(_manager->addTransaction(tx));
 
     // Grab from wallet and check that it is the same
-    Coin::Transaction tx2 = _manager->getTransaction(Coin::TransactionId(tx));
+    Coin::Transaction tx2 = _manager->getTransaction(Coin::TransactionId::fromTx(tx));
     QVERIFY(tx.getHash() == tx2.getHash());
 
     // Alter it and check that it's different
@@ -173,7 +173,7 @@ void Test::listutxo() {
     //
 
     Coin::Transaction spendingTx;
-    Coin::typesafeOutPoint o(Coin::TransactionId(tx), 0); // outpoint referencing first outputo tx above
+    Coin::typesafeOutPoint o(Coin::TransactionId::fromTx(tx), 0); // outpoint referencing first outputo tx above
     spendingTx.addInput(Coin::TxIn(o.getClassicOutPoint(), uchar_vector("12345"), 4444));
 
     // Add to wallet

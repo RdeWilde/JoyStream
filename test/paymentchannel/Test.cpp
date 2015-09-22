@@ -137,7 +137,7 @@ void Test::paychan_one_to_one() {
                                      0));
 
     payor.assignUnassignedSlot(price, payeeContractKeyPair.pk(), payeeFinalKeyPair.pk(), lockTime);
-    Coin::TransactionId contractId(payor.contractTransaction());
+    Coin::TransactionId contractId = Coin::TransactionId::fromTx(payor.contractTransaction());
 
     // Setup payee
     Payee payee(Payee::Configuration(Payee::State::waiting_for_payor_information,

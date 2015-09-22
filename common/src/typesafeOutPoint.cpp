@@ -27,7 +27,7 @@ typesafeOutPoint::typesafeOutPoint(const typesafeOutPoint & o)
 }
 
 typesafeOutPoint::typesafeOutPoint(const OutPoint & outPoint)
-    : _txId(uchar_vector(outPoint.hash, Coin::TransactionId::length())) // TransactionId uses same byte order as coincore
+    : _txId(Coin::TransactionId::fromRPCByteOrder(uchar_vector(outPoint.hash, Coin::TransactionId::length()))) // TransactionId uses same byte order as coincore
     , _index(outPoint.index) {
 }
 

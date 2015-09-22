@@ -594,7 +594,7 @@ bool BuyerTorrentPlugin::sellerWantsToJoinContract(BuyerPeerPlugin * peer, quint
 
         // Iterate
         quint32 index = 0;
-        Coin::TransactionId contractHash(_payor.contractTransaction());
+        Coin::TransactionId contractHash = Coin::TransactionId::fromTx(_payor.contractTransaction());
 
         for(std::vector<Payor::Channel>::const_iterator i = channels.cbegin(),
             end = channels.cend(); i != end;i++, index++) {

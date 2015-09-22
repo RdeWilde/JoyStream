@@ -25,7 +25,7 @@ PK::PK(const Coin::TransactionId & transactionId, quint32 outputIndex)
 }
 
 PK::PK(const Coin::OutPoint & o)
-    : PK(Coin::TransactionId(uchar_vector(o.hash, Coin::TransactionId::length())), o.index) {
+    : PK(Coin::TransactionId::fromRPCByteOrder(uchar_vector(o.hash, Coin::TransactionId::length())), o.index) {
 }
 
 Record::Record() {
