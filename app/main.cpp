@@ -15,6 +15,7 @@
 #include <common/Seed.hpp>
 #include <gui/MainWindow.hpp>
 #include <wallet/Manager.hpp>
+#include <autoupdater.h>
 
 #define ERROR_LOG_ENDPOINT "error.joystream.co"
 #define ERROR_LOG_MAX_SIZE 200*20
@@ -47,17 +48,12 @@ int main(int argc, char* argv[]) {
 		// Process the actual command line arguments given by the user
 		parser.process(app);
 
+		AutoUpdater au(app);
+
 		// Call update manager, if allowed
-		if(!parser.isSet(showNoUpdateOption)) {
-
-				/**
-				bool doRestart = updateManager();
-
-				if(doRestart) {
-						// Call update runner
-				}
-				*/
-
+		if(!parser.isSet(showNoUpdateOption) && au.newVersionAvailable()) {
+			 au.updateMiniUI();
+			 return 0;
 		}
 
 		// Check console flag

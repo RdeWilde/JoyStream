@@ -12,7 +12,8 @@ CONFIG  += console
 CONFIG  += link_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
 CONFIG  += c++11 # Needed for class enum
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    autoupdater.cpp
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets # QMainWindow, QDialog
 
@@ -87,4 +88,7 @@ include(../mSIGNA.pri) # needed for stdutils/uchar_vector.h
 include(../libtorrent.pri)
 include(../openssl.pri)
 include(../boost.pri)
+
+HEADERS += \
+    autoupdater.h
 
