@@ -1,4 +1,4 @@
 #!/bin/bash
 set -x
 export PATH=/usr/i686-w64-mingw32/host/bin:$PATH
-qmake JoyStream.pro -r -spec win32-g++ && make release
+qmake JoyStream.pro -r -spec win32-g++ DEFINES+=QT_FORCE_ASSERTS && make release
