@@ -210,7 +210,7 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
 
     /**
      * Context menu on table view
-     */
+
 
     // Setup context menu capacity on table view
     ui->torrentsTable->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -224,6 +224,7 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
             SIGNAL(clicked(const QModelIndex &)),
             this,
             SLOT(torrentTableClicked(const QModelIndex &)));
+            */
 
     // Accept drag and drop
     setAcceptDrops(true);
@@ -615,6 +616,29 @@ void MainWindow::on_topUpWalletPushButton_clicked() {
 
     ReceiveFundsDialog dialog(_wallet);
     dialog.exec();
+
+}
+
+void MainWindow::on_updatePushButton_clicked() {
+
+    QMessageBox::StandardButton reply;
+
+    reply = QMessageBox::question(this, "Test", "Quit?", QMessageBox::Yes|QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+        qDebug() << "Yes was clicked";
+    } else {
+        qDebug() << "Yes was *not* clicked";
+    }
+
+    // Note:
+    // To close application:
+    // call slot (with signal or regular call) Controller::void Controller::begin_close.
+    // It will start an asyncrhonous shut down process (primarily due to libtorrent at the moment).
+    // When controller is done, it will emit a Controller::closed signal
+    // which has already been connected to the QApplication::quit event which
+    // stops the application event loop started in main.cpp
+    // with the QApplication::exec()
 
 }
 

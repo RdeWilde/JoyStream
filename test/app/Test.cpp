@@ -80,7 +80,7 @@ void Test::paid_uploading() {
     Controller::Configuration configuration;
 
     // Load torrent
-    libtorrent::torrent_info torrentInfo = load_torrent(LITTLE_SIMZ_FILE);
+    libtorrent::torrent_info torrentInfo = load_torrent(RISE_AND_RISE_OF_BITCOIN_FILE);
 
     //BitCoinRepresentation s;
     //BitCoinRepresentation s(BitCoinRepresentation::BitCoinPrefix::Milli, 0.01);
@@ -248,7 +248,7 @@ void Test::add_buyers_with_plugin(const Controller::Configuration & configuratio
         // Check that an utxo was indeed found
         if(utxo.value() == 0) {
 
-            qDebug() << "No utxo found with value no less than:" << minFunds;
+            qDebug() << "No *single* utxo found enough value to cover:" << minFunds;
 
             //throw std::exception("No utxo found with sufficient funds.");
 
@@ -284,9 +284,10 @@ libtorrent::torrent_info load_torrent(const char * path) {
     libtorrent::torrent_info torrentInfo(path, ec);
 
     if(ec) {
-        qDebug() << "Invalid torrent file 1: " << ec.message().c_str();
+        qDebug() << "Invalid torrent file: " << ec.message().c_str();
         throw std::runtime_error("Could not load torrent file");
-    }
+    } else
+        qDebug() << "Loaded torrent file:" << path;
 
     return torrentInfo;
 }

@@ -312,6 +312,8 @@ void SellerTorrentPlugin::on_piece_failed(int index) {
 
 void SellerTorrentPlugin::tick() {
 
+    qCDebug(_category) << "SellerTorrentPlugin.tick()";
+
     // Send status to controller
     sendTorrentPluginAlert(SellerTorrentPluginStatusAlert(_torrent->info_hash(), status()));
 

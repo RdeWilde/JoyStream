@@ -31,6 +31,9 @@ void Reply::QNetworkReplyFinished() {
         // e.g. due to finished signal and explicit parse call.)
         QByteArray response = _reply->peek(_reply->bytesAvailable());
 
+        qDebug() << "URL:" << _reply->request().url().toString();
+        qDebug() << "RESPONSE:" << response;
+
         // If there was an error, throw exception
         QNetworkReply::NetworkError e = _reply->error();
 

@@ -110,6 +110,7 @@ public slots:
     //void on_addMagnetLinkPushButton_clicked();
     void on_walletPushButton_clicked();
     void on_topUpWalletPushButton_clicked();
+    void on_updatePushButton_clicked();
 
     // Mouse click on row in torrent table
     void torrentTableClicked(const QModelIndex & index);

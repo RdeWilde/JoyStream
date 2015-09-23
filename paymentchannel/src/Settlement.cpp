@@ -36,7 +36,7 @@ Settlement Settlement::dustLimitAndFeeAwareSettlement(const Coin::typesafeOutPoi
                                                       quint64 paid,
                                                       quint64 fee) {
 
-    if(paid <= funds)
+    if(paid > funds)
         throw std::runtime_error("Funds do not cover payment.");
 
     // If payments cover tx fee and dust limit, then

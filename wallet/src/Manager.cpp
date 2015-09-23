@@ -1172,7 +1172,17 @@ BlockCypher::Address Manager::BLOCKCYPHER_rebuild_utxo() {
         // is output <=> t._tx_output_n >= 0
         if(!t._spent && t._tx_output_n >= 0) {
 
-            //qDebug() << QString::fromStdString(t._tx_hash.toRPCByteOrder());
+            // Can't also be input
+            Q_ASSERT(t._tx_input_n < 0);
+
+/**
+                qDebug() << "o[tx_hash].toString():" << o["tx_hash"].toString();
+                qDebug() << "QString tx_hash:" << tx_hash;
+                qDebug() << "_tx_hash:" << QString::fromStdString(_tx_hash.toRPCByteOrder());
+*/
+                if(t._tx_hash.toRPCByteOrder() == "d7b74bdef4df85a61c9b89d9a82b0a5a20d21f0f5c1b50f6f02bd840c4585998") {
+                    int x = 1;
+                }
 
             // Get outpoint
             Coin::TransactionId txId(t._tx_hash);

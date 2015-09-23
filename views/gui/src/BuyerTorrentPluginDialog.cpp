@@ -78,14 +78,14 @@ BuyerTorrentPluginDialog::BuyerTorrentPluginDialog(QWidget * parent,
                      SLOT(updatePayorState(Payor::State)));
 
     QObject::connect(payorViewModel,
-                     SIGNAL(contractTxIdChanged(TxId)),
+                     SIGNAL(contractTxIdChanged(Coin::TransactionId)),
                      this,
-                     SLOT(updateContractTxId(TxId)));
+                     SLOT(updateContractTxId(Coin::TransactionId)));
 
     QObject::connect(payorViewModel,
-                     SIGNAL(utxoChanged(UnspentP2PKHOutput)),
+                     SIGNAL(utxoChanged(Coin::UnspentP2PKHOutput)),
                      this,
-                     SLOT(updateUtxo(UnspentP2PKHOutput)));
+                     SLOT(updateUtxo(Coin::UnspentP2PKHOutput)));
 
     /**
      * Channels

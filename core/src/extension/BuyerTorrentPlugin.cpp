@@ -477,7 +477,7 @@ void BuyerTorrentPlugin::on_piece_failed(int index) {
 
 void BuyerTorrentPlugin::tick() {
 
-    //qCDebug(_category) << "BuyerTorrentPlugin.tick()";
+    qCDebug(_category) << "BuyerTorrentPlugin.tick()";
 
     // If we are downloading, then try to assign them to peers without pieces assigned
     if(_state == State::downloading_pieces) {

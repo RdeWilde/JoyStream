@@ -40,7 +40,6 @@ DEFINES += WALLET_LOCATION=\'\"$${WALLET_LOCATION}\"\'
 DEFINES += TORRENT_LOCATION=\'\"$${TORRENT_LOCATION}\"\'
 DEFINES += BLOCKSTORE_LOCATION=\'\"$${BLOCKSTORE_LOCATION}\"\'
 
-
 # Torrent files
 RISE_AND_RISE_OF_BITCOIN_FILE = "The.Rise.and.Rise.of.Bitcoin.2014.720p.HDrip.x264.AAC.MVGroup.org.mp4.torrent"
 LITTLE_SIMZ_FILE = "Little Simz - AGE 101- DROP 1 - 01 Homosapiens VS Aliens.mp3.torrent"
