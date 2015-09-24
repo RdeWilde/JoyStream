@@ -14,6 +14,7 @@ public:
     AutoUpdater(QApplication&);
     bool newVersionAvailable();
     void updateMiniUI();
+    //void updateFullUI();
     QString updaterPath();
 
 signals:

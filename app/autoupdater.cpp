@@ -1,4 +1,6 @@
 #include "autoupdater.h"
+#include <QDesktopServices>
+#include <QUrl>
 #include <QApplication>
 #include <QProcess>
 #include <iostream>
@@ -52,13 +54,17 @@ void AutoUpdater::updateFullUI(QApplication* app) {
     QProcess *updaterProcess = new QProcess(parent);
     updaterProcess->start(program, arguments);
 }
+
+void AutoUpdater::updateFullUI(){
+  //use _app.applicationDirPath() + "/../../../autoupdate-osx.app"; for OS X
+  QDesktopServices::openUrl(QUrl("file:///" + updaterPath(), QUrl::TolerantMode));
+}
 */
+
 QString AutoUpdater::updaterPath(){
 #ifdef _WIN32
     return _app.applicationDirPath() + "/autoupdate-windows.exe";
 #elif __APPLE__
-    QString path = _app.applicationDirPath() + "/../../../autoupdate-osx.app/Contents/MacOs/installbuilder.sh";
-    std::cout <<  path.toStdString() << std::endl;
     return _app.applicationDirPath() + "/../../../autoupdate-osx.app/Contents/MacOs/installbuilder.sh";
 #elif __linux
     return QString("installebuilder.sh");//figure out location for linux
