@@ -216,6 +216,9 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
 
         // Do no keep extension around
         //return false;
+
+        // KEEP PLUGIN AROUND, SO WE CAN BLOCK REGULAR
+        // BITTORRENT EXCHANGE WHICH MESSES THINGS UP
         return true;
     }
 
@@ -237,6 +240,9 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
 
         // Do no keep extension around
         //return false;
+
+        // KEEP PLUGIN AROUND, SO WE CAN BLOCK REGULAR
+        // BITTORRENT EXCHANGE WHICH MESSES THINGS UP
         return true;
     }
 
@@ -255,6 +261,9 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
 
         // Do no keep extension around
         //return false;
+
+        // KEEP PLUGIN AROUND, SO WE CAN BLOCK REGULAR
+        // BITTORRENT EXCHANGE WHICH MESSES THINGS UP
         return true;
 
     } else
@@ -275,6 +284,9 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
 
         // Do no keep extension around
         //return false;
+
+        // KEEP PLUGIN AROUND, SO WE CAN BLOCK REGULAR
+        // BITTORRENT EXCHANGE WHICH MESSES THINGS UP
         return true;
     }
 
@@ -297,6 +309,9 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
 
         // Do no keep extension around
         //return false;
+
+        // KEEP PLUGIN AROUND, SO WE CAN BLOCK REGULAR
+        // BITTORRENT EXCHANGE WHICH MESSES THINGS UP
         return true;
     }
 
@@ -333,6 +348,9 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
 
         // Do no keep extension around
         //return false;
+
+        // KEEP PLUGIN AROUND, SO WE CAN BLOCK REGULAR
+        // BITTORRENT EXCHANGE WHICH MESSES THINGS UP
         return true;
     }
 
@@ -346,6 +364,7 @@ bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake
 
     // Tell libtorrent that our extension should be kept in the loop for this peer
     //return false;
+
     return true;
 }
 
@@ -377,7 +396,7 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
     if(length != lengthOfExtendedMessagePayload) {
 
         // Output progress
-        //qCDebug(_category) << "on_extended(id =" << msg << ", length =" << length << "): %" << ((float)(100*lengthOfExtendedMessagePayload))/length;
+        qCDebug(_category) << "on_extended(id =" << msg << ", length =" << length << "): %" << ((float)(100*lengthOfExtendedMessagePayload))/length;
 
         // No other plugin should look at this
         return true;

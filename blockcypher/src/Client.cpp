@@ -171,7 +171,7 @@ AddressEndPoint::Reply * Client::addressEndPointAsync(const QString & walletName
     QString basic_request_uri = "addrs/" + walletName + "?token=" + _token;
 
     if(unspentOnly)
-        basic_request_uri += "&unspentOnly=1";
+        basic_request_uri += "&unspentOnly=true";
 
     if(limit != 50) // default value
         basic_request_uri += "&limit=" + limit;

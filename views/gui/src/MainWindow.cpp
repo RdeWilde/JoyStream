@@ -211,7 +211,7 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
 
     /**
      * Context menu on table view
-
+    */
 
     // Setup context menu capacity on table view
     ui->torrentsTable->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -225,7 +225,7 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
             SIGNAL(clicked(const QModelIndex &)),
             this,
             SLOT(torrentTableClicked(const QModelIndex &)));
-            */
+
 
     // Accept drag and drop
     setAcceptDrops(true);

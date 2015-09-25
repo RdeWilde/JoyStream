@@ -99,7 +99,7 @@ namespace Runner {
                                  bool show_gui,
                                  bool use_stdout_logg,
                                  const QString & home,
-                                 libtorrent::torrent_info & torrentInfo,
+                                 const Controller::Torrent::Configuration & torrentConfiguration,
                                  const QVector<SellerTorrentPlugin::Configuration> & configurations,
                                  const QVector<Coin::Seed> seeds,
                                  Coin::Network network,
@@ -124,19 +124,16 @@ namespace Runner {
                                                     manager,
                                                     BlockcypherToken);
 
-            // Check that home directory exists
+            /**
+             * WHEN LOADING DATA FROM CLIENT DIRECTORY
+             *
+            // Go into home directory of client
             QDir dir(home);
-
-            if(!dir.exists())
-                throw std::runtime_error("Home folder does not exist:" + home.toStdString());
-
-            // Create folder for this seller, in case this is first time, and go into it
-            dir.mkdir(name);
             dir.cd(name);
 
             // Create torrent directory, in case this is first time, and go into it
-            dir.mkdir("torrent");
-            dir.cd("torrent");
+            dir.mkdir("torrent_data");
+            dir.cd("torrent_data");
 
             // Check that the torrent data file is there
             QFileInfo torrentFileInfo(dir, QString::fromStdString(torrentInfo.name()));
@@ -145,6 +142,10 @@ namespace Runner {
 
             // Create torrent configuration
             Controller::Torrent::Configuration torrentConfiguration = create_torrent_configuration(torrentInfo, dir.path());
+
+            // Create torrent configuration
+            Controller::Torrent::Configuration torrentConfiguration = create_torrent_configuration(torrentInfo, dir.path());
+            */
 
             // Add to controller
             controller->addTorrent(torrentConfiguration, configurations[i]);
@@ -184,20 +185,17 @@ namespace Runner {
                                                     manager,
                                                     BlockcypherToken);
 
-            // Check that home directory exists
+            // Go into home directory of client
             QDir dir(home);
-
-            if(!dir.exists())
-                throw std::runtime_error("Home folder does not exist:" + home.toStdString());
-
-            // Create torrent configuration
-            QString savePath = home + QDir::separator() + "torrent";
-            Controller::Torrent::Configuration torrentConfiguration = create_torrent_configuration(torrentInfo, savePath);
+            dir.cd(name);
 
             // If directory exists, delete it, and create new one
-            QDir saveDir(savePath);
-            saveDir.rmdir("torrent");
-            saveDir.mkdir("torrent");
+            dir.rmdir("torrent_data");
+            dir.mkdir("torrent_data");
+            dir.cd("torrent_data");
+
+            // Create torrent configuration
+            Controller::Torrent::Configuration torrentConfiguration = create_torrent_configuration(torrentInfo, dir.path());
 
             // Grab configuration
             BuyerTorrentPlugin::Configuration pluginConfiguration = configurations[i];
