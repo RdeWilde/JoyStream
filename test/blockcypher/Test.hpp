@@ -19,8 +19,9 @@ namespace BlockCypher {
     class Client;
 }
 
-#define WALLET_SEED Coin::Seed::testSeeds[0]
-#define NETWORK_TYPE Coin::Network::testnet3
+//#define WALLET_SEED Coin::Seed("27891465891239001238391236589203948574567842549230457167823941893047812940123194312489312840923849010124893128409238490101248931")
+#define TEST_BITCOIN_NETWORK Coin::Network::testnet3
+#define TEST_BLOCKCYPHER_TOKEN "e2b5a8d634aac699b3828af27cb301a3" // Token used for unit testing
 
 class Test : public QObject
 {
@@ -43,6 +44,8 @@ private slots:
      */
 
     void createWallet();
+
+    void deleteWallet();
 
     void getWallet();
 

@@ -5,8 +5,10 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#include <core/controller/ControllerBarrier.hpp>
+#include <runner/ControllerBarrier.hpp>
 #include <core/controller/Controller.hpp>
+
+namespace Runner {
 
 ControllerBarrier::ControllerBarrier()
        : _controllerCount(0) {
@@ -35,5 +37,7 @@ void ControllerBarrier::join() {
         // We woke up, that means a controller stopped, so lets decrease count
         _controllerCount--;
     }
+
+}
 
 }

@@ -1077,14 +1077,17 @@ void Manager::broadcast(const Coin::Transaction & tx) {
     throw std::runtime_error("not implemented");
 }
 
-void Manager::BLOCKCYPHER_init(QNetworkAccessManager * manager) {
+void Manager::BLOCKCYPHER_init(QNetworkAccessManager * manager, const QString & token) {
+
+    // Save token to be used
+    _BLOCKCYPHER_TOKEN = token;
 
     qDebug() << "BLOCKCYPHER: Initializing wallet";
 
     // Allocate client
     // We dont really care who manages life tiem of thsi, although it is certainly this,
     // Only one instance is created per controller instance for process life time
-    _BLOCKCYPHER_client = new BlockCypher::Client(manager, _network, BLOCKCYPHER_TOKEN);
+    _BLOCKCYPHER_client = new BlockCypher::Client(manager, _network, _BLOCKCYPHER_TOKEN);
 
     // Set wallet name has first 25 characters of HEX(SHA256^2(x))
     uchar_vector hashed = sha256_2(_seed.toUCharVector());
@@ -1092,23 +1095,16 @@ void Manager::BLOCKCYPHER_init(QNetworkAccessManager * manager) {
 
     _BLOCKCYPHER_walletName = QString::fromStdString(fullString.substr(0, 25));
 
-    qDebug() << "BLOCKCYPHER: Wallet name" << _BLOCKCYPHER_walletName;
+    qDebug() << "BLOCKCYPHER: Derived wallet name from seed" << _BLOCKCYPHER_walletName;
 
-    // Try to get most recent address object
-    try {
+    // Delete wallet with this name
+    _BLOCKCYPHER_client->deleteWallet(_BLOCKCYPHER_walletName);
 
-        BLOCKCYPHER_update_remote_wallet();
+    // Create wallet with this name
+    BLOCKCYPHER_create_remote_wallet();
 
-    } catch (const std::runtime_error & e) {
-
-        // assume we get here due to wallet not existing,
-        // rather than some network io error (bad assumption!)
-
-        BLOCKCYPHER_create_remote_wallet();
-    }
-
+    // Rebuild utxo
     BLOCKCYPHER_rebuild_utxo();
-
 }
 
 BlockCypher::Wallet Manager::BLOCKCYPHER_create_remote_wallet() {
@@ -1119,7 +1115,7 @@ BlockCypher::Wallet Manager::BLOCKCYPHER_create_remote_wallet() {
     qDebug() << "BLOCKCYPHER: Creating a remote wallet with " << localAddresses.size() << " addresses.";
 
     // Wallet to update remotely to
-    BlockCypher::Wallet newWallet(BLOCKCYPHER_TOKEN, _BLOCKCYPHER_walletName, localAddresses);
+    BlockCypher::Wallet newWallet(_BLOCKCYPHER_TOKEN, _BLOCKCYPHER_walletName, localAddresses);
 
     // If there are no addresses, make one token address,
     // as blockcypher api requires it.
@@ -1142,7 +1138,7 @@ BlockCypher::Wallet Manager::BLOCKCYPHER_update_remote_wallet() {
     qDebug() << "BLOCKCYPHER: Updating the remote wallet to have " << localAddresses.size() << " addresses.";
 
     // Wallet to update remotely to
-    BlockCypher::Wallet updatedWallet(BLOCKCYPHER_TOKEN, _BLOCKCYPHER_walletName, localAddresses);
+    BlockCypher::Wallet updatedWallet(_BLOCKCYPHER_TOKEN, _BLOCKCYPHER_walletName, localAddresses);
     BlockCypher::Wallet newWallet = _BLOCKCYPHER_client->addAddressToWallet(updatedWallet);
     //Q_ASSERT(newWallet == updatedWallet);
 

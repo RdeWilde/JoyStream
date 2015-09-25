@@ -655,7 +655,9 @@ private:
     QLoggingCategory & _category;
 
     // Network access manager reference
-    // Use * instead
+    // *** REMOVE
+    // *** REMOVE
+    // *** IS THERE ANY REASON FOR
     QNetworkAccessManager * _manager;
 
     // Plugin: constructor initializatin list expects plugin to appear after category_

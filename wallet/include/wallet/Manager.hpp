@@ -258,7 +258,7 @@ public:
      */
 
     // Sets wallet name based on wallet seed
-    void BLOCKCYPHER_init(QNetworkAccessManager * manager);
+    void BLOCKCYPHER_init(QNetworkAccessManager * manager, const QString & token);
 
     // Try to blockcypher remotewalletusing local wallet addresses
     BlockCypher::Wallet BLOCKCYPHER_create_remote_wallet();
@@ -441,6 +441,9 @@ private:
 
     // Blockcypher wallet name
     QString _BLOCKCYPHER_walletName;
+
+    // Token which shall be used
+    QString _BLOCKCYPHER_TOKEN;
 
     QList<Coin::UnspentP2PKHOutput> _BLOCKCYPHER_utxo;
 

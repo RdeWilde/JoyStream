@@ -1077,7 +1077,7 @@ Controller::Controller(const Configuration & configuration, Wallet::Manager * wa
     , _wallet(wallet) // add autosave to configuration later?? does user even need to control that?
     , _category(category)
     , _manager(manager)
-    , _plugin(new Plugin(wallet, _manager, _category))
+    , _plugin(new Plugin(wallet, _category))
     , _portRange(configuration.getPortRange()) {
     //, _server(9999, this) {
 

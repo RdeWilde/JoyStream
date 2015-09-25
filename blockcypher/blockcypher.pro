@@ -29,7 +29,8 @@ HEADERS += \
     include/blockcypher/ScriptType.hpp \
     include/blockcypher/TXOutput.hpp \
     include/blockcypher/AddressEndPoint.hpp \
-    include/blockcypher/PushRawTransaction.hpp
+    include/blockcypher/PushRawTransaction.hpp \
+    include/blockcypher/DeleteWallet.hpp
 
 SOURCES += \
     src/Wallet.cpp \
@@ -43,7 +44,8 @@ SOURCES += \
     src/ScriptType.cpp \
     src/Address.cpp \
     src/AddressEndPoint.cpp \
-    src/PushRawTransaction.cpp
+    src/PushRawTransaction.cpp \
+    src/DeleteWallet.cpp
 
 # common #############################################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../common/release/ -lcommon

@@ -13,7 +13,12 @@
 
 class Controller;
 
+namespace Runner {
+
 // Barrier for running multiple controller, e.g. during testing
+// Move back into controller lib????
+// Move back into controller lib????
+// Move back into controller lib????
 class ControllerBarrier : public QObject
 {
     Q_OBJECT
@@ -38,5 +43,7 @@ private:
     QEventLoop _loop;
 
 };
+
+}
 
 #endif // CONTROLLER_BARRIER_HPP

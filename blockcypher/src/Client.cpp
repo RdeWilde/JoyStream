@@ -10,6 +10,7 @@
 #include <blockcypher/BlockCypher.hpp>
 #include <blockcypher/CreateWallet.hpp>
 #include <blockcypher/GetWallet.hpp>
+#include <blockcypher/DeleteWallet.hpp>
 #include <blockcypher/AddressEndPoint.hpp>
 #include <blockcypher/PushRawTransaction.hpp>
 
@@ -32,7 +33,7 @@ Client::Client(QNetworkAccessManager * manager, Coin::Network network, const QSt
 CreateWallet::Reply * Client::createWalletAsync(const Wallet & requested) {
 
     // Make POST request
-    QNetworkReply * reply = post("wallets?token=" + QString(BLOCKCYPHER_TOKEN), requested.toJson());
+    QNetworkReply * reply = post("wallets?token=" + _token, requested.toJson());
 
     // Return reply manager
     return new CreateWallet::Reply(reply, requested);
@@ -42,6 +43,9 @@ Wallet Client::createWallet(const Wallet & requested) {
 
     if(requested._addresses.isEmpty())
         throw std::runtime_error("Wallet object must have atleast one address when used to create wallets.");
+
+    if(requested._token != _token)
+        throw std::runtime_error("Token in wallet is not compatible client");
 
 
     CreateWallet::Reply * reply = Client::createWalletAsync(requested);
@@ -65,10 +69,37 @@ Wallet Client::createWallet(const Wallet & requested) {
         throw std::runtime_error(""); // later add message here, e.g. for different scenarios
 }
 
+DeleteWallet::Reply * Client::deleteWalletAsync(const QString & name) {
+
+    // Make GET request
+    QNetworkReply * reply = deleteResource("wallets/" + name + "?token=" + _token);
+
+    // Return reply manager
+    return new DeleteWallet::Reply(reply, name);
+}
+
+void Client::deleteWallet(const QString & name) {
+
+    DeleteWallet::Reply * reply = Client::deleteWalletAsync(name);
+
+    // Block until we have reply finished
+    QEventLoop eventloop;
+    QObject::connect(reply,
+                     &DeleteWallet::Reply::done,
+                     &eventloop,
+                     &QEventLoop::quit);
+    eventloop.exec();
+
+    DeleteWallet::BlockCypherResponse r = reply->response();
+
+    //if(r != DeleteWallet::BlockCypherResponse::Deleted)
+    //    throw std::runtime_error(""); // later add message here, e.g. for different scenarios
+}
+
 GetWallet::Reply * Client::getWalletAsync(const QString & name) {
 
     // Make GET request
-    QNetworkReply * reply = get("wallets/" + name + "?token=" + QString(BLOCKCYPHER_TOKEN));
+    QNetworkReply * reply = get("wallets/" + name + "?token=" + _token);
 
     // Return reply manager
     return new GetWallet::Reply(reply, name);
@@ -100,7 +131,7 @@ Wallet Client::getWallet(const QString & name) {
 AddAddressToWallet::Reply * Client::addAddressToWalletAsync(const Wallet & requested) {
 
     // Make GET request
-    QNetworkReply * reply = post("wallets/" + requested._name + "/addresses?token=" + QString(BLOCKCYPHER_TOKEN), requested.toJson());
+    QNetworkReply * reply = post("wallets/" + requested._name + "/addresses?token=" + _token, requested.toJson());
 
     // Return reply manager
     return new AddAddressToWallet::Reply(reply, requested);
@@ -137,7 +168,7 @@ Wallet Client::addAddressToWallet(const Wallet & requested) {
 
 AddressEndPoint::Reply * Client::addressEndPointAsync(const QString & walletName, bool unspentOnly, uint limit, uint confirmations) {
 
-    QString basic_request_uri = "addrs/" + walletName + "?token=" + QString(BLOCKCYPHER_TOKEN);
+    QString basic_request_uri = "addrs/" + walletName + "?token=" + _token;
 
     if(unspentOnly)
         basic_request_uri += "&unspentOnly=1";
@@ -249,6 +280,16 @@ QNetworkReply * Client::get(const QString & url) {
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
 
     return _manager->get(request);
+}
+
+QNetworkReply * Client::deleteResource(const QString & url) {
+
+    // Create url and corresponding request
+    QUrl qurl(_endPoint + url);
+    QNetworkRequest request(qurl);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+
+    return _manager->deleteResource(request);
 }
 
 }

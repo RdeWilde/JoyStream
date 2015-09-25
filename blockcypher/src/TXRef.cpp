@@ -26,7 +26,7 @@ TXRef::TXRef(const QJsonObject & o) {
     Q_ASSERT(o["tx_hash"].isString());
     /** is this even correct ***/
     QString tx_hash = o["tx_hash"].toString();
-    qDebug() << o["tx_hash"].toString();
+    //qDebug() << o["tx_hash"].toString();
     _tx_hash = Coin::TransactionId::fromRPCByteOrder(tx_hash.toStdString());
 
     Q_ASSERT(o.contains("tx_input_n"));
@@ -58,12 +58,14 @@ TXRef::TXRef(const QJsonObject & o) {
     Q_ASSERT(o["confirmations"].isDouble());
     _confirmations = o["confirmations"].toInt();
 
+    /**
     qDebug() << "o[tx_hash].toString():" << o["tx_hash"].toString();
     qDebug() << "QString tx_hash:" << tx_hash;
     qDebug() << "_tx_hash:" << QString::fromStdString(_tx_hash.toRPCByteOrder());
 
     if(_tx_hash.toRPCByteOrder() == "d7b74bdef4df85a61c9b89d9a82b0a5a20d21f0f5c1b50f6f02bd840c4585998")
         int x = 1;
+    */
 }
 
 }

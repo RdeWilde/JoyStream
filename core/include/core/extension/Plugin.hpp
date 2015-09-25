@@ -102,7 +102,7 @@ public:
     };
 
     // Constructor
-    Plugin(Wallet::Manager * wallet, QNetworkAccessManager * manager, QLoggingCategory & category);
+    Plugin(Wallet::Manager * wallet, QLoggingCategory & category);
 
     // Destructor
     ~Plugin();

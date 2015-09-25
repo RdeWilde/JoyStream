@@ -20,7 +20,10 @@
 #include <CoinCore/CoinNodeData.h> // Coin::Transaction
 
 void Test::init() {
-    _client = new BlockCypher::Client(&_manager, NETWORK_TYPE, BLOCKCYPHER_TOKEN);
+
+    _client = new BlockCypher::Client(&_manager,
+                                      TEST_BITCOIN_NETWORK,
+                                      TEST_BLOCKCYPHER_TOKEN);
 }
 
 void Test::cleanup() {
@@ -29,24 +32,52 @@ void Test::cleanup() {
 
 void Test::createWallet() {
 
-    // Create wallet to request
-    QList<Coin::P2PKHAddress> list;
-    list.append(Coin::P2PKHAddress());
-    list.append(Coin::P2PKHAddress());
+    // Create address list for wallet, must be at least one address
+    QList<Coin::P2PKHAddress> list = { Coin::P2PKHAddress() };
 
-    // Request new wallet:
-    // Havent found a sensible way to request new wallet without also
-    // having to implement wallet deletion, so wait for now.
-    //BlockCypher::Wallet requestedNew(BLOCKCYPHER_TOKEN, "my-test5", list);
-    //BlockCypher::Wallet returned = _client->createWallet(requestedNew);
-    //QVERIFY(returned == requestedNew);
+    // Random wallet name to be created
+    // ** ugly **
+    QTime time = QTime::currentTime();
+    qsrand((uint)time.msec());
 
-    // Request wallet which already exists
-    BlockCypher::Wallet requested(BLOCKCYPHER_TOKEN, "addAddresses-testwallet", list);
+    QString walletName = "createWallet-" + QString::number(qrand());
+    walletName = walletName.left(25); // take leftmost min(25, walletName.size()) characters
+
+    // Create wallet:
+    BlockCypher::Wallet newWallet(TEST_BLOCKCYPHER_TOKEN, walletName, list);
+    BlockCypher::Wallet returnedWallet = _client->createWallet(newWallet);
+    QVERIFY(returnedWallet == newWallet);
+
+    // Try to create same wallet again
+    BlockCypher::Wallet requested(TEST_BLOCKCYPHER_TOKEN, walletName, list);
     QVERIFY_EXCEPTION_THROWN(_client->createWallet(requested), std::runtime_error);
 }
 
+void Test::deleteWallet() {
+
+    // Create wallet
+    QList<Coin::P2PKHAddress> list = { Coin::P2PKHAddress() };
+    BlockCypher::Wallet newWallet(TEST_BLOCKCYPHER_TOKEN, "temp-wallet", list);
+    BlockCypher::Wallet returnedWallet = _client->createWallet(newWallet);
+    QVERIFY(returnedWallet == newWallet);
+
+    // Delete wallet
+    _client->deleteWallet("temp-wallet");
+
+    // Check that getting it throws and exception,
+    // i.e. it does not work
+}
+
 void Test::getWallet() {
+
+    try {
+        // Try to create wallet, will fail since it mostly exists,
+        // but we need to try to ensure
+        QList<Coin::P2PKHAddress> list = { Coin::P2PKHAddress() };
+        BlockCypher::Wallet newWallet(TEST_BLOCKCYPHER_TOKEN, "my-test", list);
+        _client->createWallet(newWallet);
+    } catch (const std::runtime_error & e) {
+    }
 
     // Check that existing wallet is found
     BlockCypher::Wallet returned = _client->getWallet("my-test");
@@ -59,10 +90,10 @@ void Test::getWallet() {
 void Test::addAddresses() {
 
     // Get old wallet
-    BlockCypher::Wallet init = _client->getWallet("addAddresses-testwallet");
+    BlockCypher::Wallet init = _client->getWallet("my-test");
 
     // Generate a new public key for which to add the corresponding address to the wallet
-    Coin::P2PKHAddress addr(NETWORK_TYPE, Coin::PublicKey(Coin::PrivateKey::generate().toPublicKey()).toPubKeyHash());
+    Coin::P2PKHAddress addr(TEST_BITCOIN_NETWORK, Coin::PublicKey(Coin::PrivateKey::generate().toPublicKey()).toPubKeyHash());
     BlockCypher::Wallet toBeAdded(init._token, init._name, QList<Coin::P2PKHAddress>() << addr);
 
     // Add to wallet
@@ -74,20 +105,18 @@ void Test::addAddresses() {
 
 void Test::addressEndpoint() {
 
-    BlockCypher::Address addr = _client->addressEndPoint("addAddresses-testwallet");
+    BlockCypher::Address addr = _client->addressEndPoint("my-test");
 
     QVERIFY(addr._balance > 0);
-    //QVERIFY(addr._txrefs.size() > 0);
 }
 
 void Test::pushRawTransaction() {
 
     Coin::Transaction test("01000000011935b41d12936df99d322ac8972b74ecff7b79408bbccaf1b2eb8015228beac8000000006b483045022100921fc36b911094280f07d8504a80fbab9b823a25f102e2bc69b14bcd369dfc7902200d07067d47f040e724b556e5bc3061af132d5a47bd96e901429d53c41e0f8cca012102152e2bb5b273561ece7bbe8b1df51a4c44f5ab0bc940c105045e2cc77e618044ffffffff0240420f00000000001976a9145fb1af31edd2aa5a2bbaa24f6043d6ec31f7e63288ac20da3c00000000001976a914efec6de6c253e657a9d5506a78ee48d89762fb3188ac00000000");
 
-    bool broadcasted = _client->pushRawTransaction(test);
+    //bool broadcasted = _client->pushRawTransaction(test);
 
-    QVERIFY(broadcasted);
-
+    //QVERIFY(broadcasted);
 }
 
 QTEST_MAIN(Test)

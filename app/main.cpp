@@ -7,7 +7,6 @@
 
 #include <QApplication>
 #include <QCommandLineParser>
-#include <QString>
 #include <QDir>
 #include <QNetworkAccessManager>
 
@@ -69,7 +68,7 @@ int main(int argc, char* argv[]) {
     if(!parser.isSet(showFreshOption)) {
 
         // Get name of file name
-        QString file = QDir::current().absolutePath() + QDir::separator() + PARAMETER_FILE_NAME;
+        QString file = QDir::current().absolutePath() + QDir::separator() + APPLICATION_PARAMETER_FILE_NAME;
         std::string fileString = file.toStdString();
 
         // Check that file exists, and that it actually is a file
@@ -105,7 +104,7 @@ int main(int argc, char* argv[]) {
         Coin::Seed seed = Coin::Seed::generate();
 
         // Create wallet
-        Wallet::Manager::createNewWallet(walletFile, BITCOIN_NETWORK, seed);
+        Wallet::Manager::createNewWallet(walletFile, APPLICATION_BITCOIN_NETWORK, seed);
     }
 
     // Network access manager instance used by all code trying to use network
@@ -115,7 +114,7 @@ int main(int argc, char* argv[]) {
     Wallet::Manager wallet(walletFile);
 
     // Initiliaze blockcypher interface
-    wallet.BLOCKCYPHER_init(&manager);
+    wallet.BLOCKCYPHER_init(&manager, APPLICATION_BLOCKCYPHER_TOKEN);
 
     // Create controller
     Controller controller(configuration, &wallet, &manager, *category);

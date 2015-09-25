@@ -76,7 +76,7 @@ SOURCES += \
     src/controller/TorrentPluginViewModel.cpp \
     src/controller/TorrentViewModel.cpp \
     src/controller/Stream.cpp \
-    src/controller/ControllerBarrier.cpp
+    #src/controller/ControllerBarrier.cpp
 
 HEADERS += \
     include/core/controller/Controller.hpp \
@@ -149,7 +149,7 @@ HEADERS += \
     include/core/controller/TorrentPluginViewModel.hpp \
     include/core/controller/TorrentViewModel.hpp \
     include/core/controller/Stream.hpp \
-    include/core/controller/ControllerBarrier.hpp
+    #include/core/controller/ControllerBarrier.hpp
 
 # paymentchannel ###############################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../paymentchannel/release/ -lpaymentchannel

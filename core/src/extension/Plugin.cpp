@@ -72,7 +72,7 @@ void Plugin::Status::setTotalReceivedSinceStart(quint64 totalReceivedSinceStart)
  * Plugin
  */
 
-Plugin::Plugin(Wallet::Manager * wallet, QNetworkAccessManager * manager, QLoggingCategory & category)
+Plugin::Plugin(Wallet::Manager * wallet, QLoggingCategory & category)
     : _wallet(wallet)
     /**
     , _btcClient("127.0.0.1"

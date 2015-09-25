@@ -72,6 +72,7 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
      */
 
     ui->walletPushButton->hide();
+    ui->updatePushButton->hide();
 
     /**
     // Set icon

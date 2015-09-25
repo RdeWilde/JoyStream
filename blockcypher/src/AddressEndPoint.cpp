@@ -17,7 +17,8 @@ Reply::Reply(QNetworkReply * reply, const QString & walletName, bool unspentOnly
     , _walletName(walletName)
     , _unspentOnly(unspentOnly)
     , _limit(limit)
-    , _confirmations(confirmations) {
+    , _confirmations(confirmations)
+    , _response(BlockCypherResponse::Pending) {
 }
 
 void Reply::QNetworkReplyFinished() {
@@ -31,8 +32,8 @@ void Reply::QNetworkReplyFinished() {
         // e.g. due to finished signal and explicit parse call.)
         QByteArray response = _reply->peek(_reply->bytesAvailable());
 
-        qDebug() << "URL:" << _reply->request().url().toString();
-        qDebug() << "RESPONSE:" << response;
+        //qDebug() << "URL:" << _reply->request().url().toString();
+        //qDebug() << "RESPONSE:" << response;
 
         // If there was an error, throw exception
         QNetworkReply::NetworkError e = _reply->error();
@@ -47,7 +48,7 @@ void Reply::QNetworkReplyFinished() {
         } else  {
 
             _response = BlockCypherResponse::catch_all;
-            qDebug() << QString(response);
+            //qDebug() << QString(response);
         }
     }
 

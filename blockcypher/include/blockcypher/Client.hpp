@@ -39,7 +39,9 @@ class QNetworkAccessManager;
 
 #define BLOCKCYPHER_MAINNET_ENDPOINT "https://api.blockcypher.com/v1/btc/main/"
 #define BLOCKCYPHER_TESTNET3_ENDPOINT "https://api.blockcypher.com/v1/btc/test3/"
-#define BLOCKCYPHER_TOKEN "aa10fe97a83259a4628d09b125bebf5a"
+//#define BLOCKCYPHER_TOKEN "aa10fe97a83259a4628d09b125bebf5a"
+
+// comment out
 
 namespace BlockCypher {
 
@@ -48,6 +50,11 @@ namespace BlockCypher {
     struct Address;
 
     namespace CreateWallet {
+        enum class BlockCypherResponse;
+        class Reply;
+    }
+
+    namespace DeleteWallet {
         enum class BlockCypherResponse;
         class Reply;
     }
@@ -84,6 +91,16 @@ namespace BlockCypher {
 
         // Blocking routine which creates wallet, or throws exception if failed
         Wallet createWallet(const Wallet & requested);
+
+        /**
+         * DELETE WALLET
+         */
+
+        // Non-blocking routine which deletes wallet and returns corresponding reply object
+        DeleteWallet::Reply * deleteWalletAsync(const QString & name);
+
+        // Blocking routine which deletes wallet, or throws exception if failed
+        void deleteWallet(const QString & name);
 
         /**
          * GET WALLET
@@ -134,6 +151,7 @@ namespace BlockCypher {
 
         QNetworkReply * post(const QString & url, const QJsonObject & data);
         QNetworkReply * get(const QString & url);
+        QNetworkReply * deleteResource(const QString & url);
 
     private:
 

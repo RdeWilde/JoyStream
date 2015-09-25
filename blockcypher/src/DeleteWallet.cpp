@@ -2,38 +2,34 @@
  * Copyright (C) JoyStream - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
- * Written by Bedeho Mender <bedeho.mender@gmail.com>, September 8 2015
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, September 24 2015
  */
 
-#include <blockcypher/CreateWallet.hpp>
-
-#include <QJsonObject>
+#include <blockcypher/DeleteWallet.hpp>
 
 namespace BlockCypher {
-namespace CreateWallet {
+namespace DeleteWallet {
 
-Reply::Reply(QNetworkReply * reply, const Wallet & requested)
+
+Reply::Reply(QNetworkReply * reply, const QString & name)
     : BlockCypher::Reply(reply)
-    , _requested(requested)
+    , _name(name)
     , _response(BlockCypherResponse::Pending) {
 }
 
-Wallet Reply::requested() const {
-    return _requested;
+QString Reply::name() const {
+    return _name;
 }
 
 BlockCypherResponse Reply::response() const {
     return _response;
 }
 
-Wallet Reply::created() const {
-    return _created;
-}
-
 void Reply::QNetworkReplyFinished() {
 
     if(_reply->bytesAvailable() == 0) {
-        _response = BlockCypherResponse::catch_all;
+        //_response = BlockCypherResponse::UnknownError;
+        _response = BlockCypherResponse::Deleted;
     } else {
 
         // Get response data, without emptying QIODevice
@@ -45,15 +41,15 @@ void Reply::QNetworkReplyFinished() {
         QNetworkReply::NetworkError e = _reply->error();
 
         if(e == QNetworkReply::NoError) {
+            _response = BlockCypherResponse::Deleted;
+            //} else if(e == QNetworkReply::ContentConflictError)
+            //_response = BlockCypherResponse::AlreadyExists;
+        } else if(e == QNetworkReply::ContentNotFoundError) {
+            _response = BlockCypherResponse::DidntExist;
+            //throw std::runtime_error("Wallet does not exist");
+        } else {
 
-            _response = BlockCypherResponse::Created;
-            _created = Wallet(BlockCypher::rawToQJsonObject(response));
-
-        } else if(e == QNetworkReply::ContentConflictError)
-            _response = BlockCypherResponse::AlreadyExists;
-        else {
-
-            _response = BlockCypherResponse::catch_all;
+            //_response = BlockCypherResponse::catch_all;
             qDebug() << QString(response);
         }
     }

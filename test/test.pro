@@ -6,10 +6,10 @@
 TEMPLATE    = subdirs
 
 SUBDIRS     = \
-            app \
+            core \
             common \
-            #core \
             paymentchannel \
             #views \
             wallet \
             blockcypher
+

@@ -1,43 +1,44 @@
 # Copyright (C) JoyStream - All Rights Reserved
 # Unauthorized copying of this file, via any medium is strictly prohibited
 # Proprietary and confidential
-# Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
+# Written by Bedeho Mender <bedeho.mender@gmail.com>, Septembe 23 2015
 
 include(config.pri)
 
-TARGET = app-test
+TARGET = localonetoone
 TEMPLATE = app
 
 CONFIG  += console
 CONFIG  += link_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
 CONFIG  += c++11 # Needed for class enum
-CONFIG  += testcase
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets # QMainWindow, QDialog
 
 QT      += core
 QT      += sql
 QT      += network # network due to blockcypher integration
-QT      += testlib
-
-HEADERS += \
-    Test.hpp
 
 SOURCES += \
-    Test.cpp
+    main.cpp
 
 INCLUDEPATH += $$PWD # be able to include w.r.t root of this project
 
-# paymentchannel ###############################################################
-INCLUDEPATH += $$PWD/../../paymentchannel/include
+# runner ########################################################################
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../runner/release/ -lrunner
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../runner/debug/ -lrunner
+else:unix: LIBS += -L$$OUT_PWD/../../runner/ -lrunner
 
-# blockcypher  ###############################################################
-INCLUDEPATH += $$PWD/../../blockcypher/include
-DEPENDPATH += $$PWD/../../blockcypher/include
+INCLUDEPATH += $$PWD/../../runner/include
+DEPENDPATH += $$PWD/../../runner/include
+
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../runner/release/librunner.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../runner/debug/librunner.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../runner/release/runner.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../runner/debug/runner.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../runner/librunner.a
 
 # gui ###########################################################################
-# remove in the future, we should not require ui
-# for testing really
+# remove in the future, we should not require ui for testing really
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../views/gui/release/ -lgui
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../views/gui/debug/ -lgui
@@ -80,6 +81,13 @@ else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PW
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../wallet/debug/wallet.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../wallet/libwallet.a
 
+# blockcypher  ###############################################################
+INCLUDEPATH += $$PWD/../../blockcypher/include
+DEPENDPATH += $$PWD/../../blockcypher/include
+
+# paymentchannel ###############################################################
+INCLUDEPATH += $$PWD/../../paymentchannel/include
+
 # common ###########################################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../common/release/ -lcommon
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../common/debug/ -lcommon
@@ -96,5 +104,5 @@ else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../common/libcommon.a
 
 include(../../mSIGNA.pri) # needed for stdutils/uchar_vector.h
 include(../../libtorrent.pri)
-include(../../openssl.pri)
+#include(../../openssl.pri)
 include(../../boost.pri)

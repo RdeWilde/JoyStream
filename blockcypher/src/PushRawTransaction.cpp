@@ -15,7 +15,8 @@ namespace PushRawTransaction {
 
 Reply::Reply(QNetworkReply * reply, const Coin::Transaction & toBeBroadcasted)
     : BlockCypher::Reply(reply)
-    , _toBeBroadcasted(toBeBroadcasted) {
+    , _toBeBroadcasted(toBeBroadcasted)
+    , _response(BlockCypherResponse::Pending) {
 }
 
 Coin::Transaction Reply::toBeBroadcasted() const {
