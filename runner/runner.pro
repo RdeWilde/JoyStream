@@ -88,7 +88,7 @@ else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.a
 
 # some of these may be removeable later
+include(../openssl.pri)
 include(../libtorrent.pri)
 include(../mSIGNA.pri)
-#include(../openssl.pri)
-#include(../boost.pri)
+include(../boost.pri)
