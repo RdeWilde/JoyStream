@@ -315,6 +315,7 @@ void TorrentPlugin::processTorrentPluginRequest(const TorrentPluginRequest * req
 */
 
 void TorrentPlugin::sendTorrentPluginAlert(const TorrentPluginAlert & alert) {
+    _torrent->alerts().post_alert(alert);
     //_torrent->alerts().emplace_alert(alert);
 }
 

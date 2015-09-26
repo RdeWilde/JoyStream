@@ -13,6 +13,7 @@
 #include <core/controller/BuyerPeerPluginViewModel.hpp>
 #include <common/typesafeOutPoint.hpp>
 #include <common/BitcoinDisplaySettings.hpp>
+#include <blockcypher/BlockExplorer.hpp>
 
 #include <libtorrent/socket_io.hpp> // print_endpoint
 
@@ -22,10 +23,12 @@
 
 BuyerTorrentPluginDialog::BuyerTorrentPluginDialog(QWidget * parent,
                                                    const BuyerTorrentPluginViewModel * model,
-                                                   const BitcoinDisplaySettings * settings)
+                                                   const BitcoinDisplaySettings * settings,
+                                                   Coin::Network network)
     : QDialog(parent)
     , ui(new Ui::BuyerTorrentDialog)
-    , _settings(settings) {
+    , _settings(settings)
+    , _network(network) {
 
     // Setup Qt ui
     ui->setupUi(this);
@@ -50,6 +53,12 @@ BuyerTorrentPluginDialog::BuyerTorrentPluginDialog(QWidget * parent,
     ui->stateLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
     ui->utxoLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
     ui->contractTxIdLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+
+    // Make into web based links
+    /**
+    ui->utxoLabel->setOpenExternalLinks(true);
+    ui->contractTxIdLabel->setOpenExternalLinks(true);
+    */
 
     /**
      * Connect model signals to view slots
@@ -253,13 +262,24 @@ void BuyerTorrentPluginDialog::updatePayorState(Payor::State state) {
 }
 
 void BuyerTorrentPluginDialog::updateContractTxId(const Coin::TransactionId & id) {
-    //ui->contractTxIdLabel->setText("<a href=\"http://explorer.chain.com/transactions\">" + contractTxIdToString(id) + "</a>");
 
-    ui->contractTxIdLabel->setText(contractTxIdToString(id));
+    QString url = BlockCypher::BlockExplorer::link(id, _network);
+    QString str = contractTxIdToString(id);
+
+    //ui->contractTxIdLabel->setText("<a href=\"" + url + "\" />" + str + "</a>");
+    ui->contractTxIdLabel->setText(str);
 }
 
 void BuyerTorrentPluginDialog::updateUtxo(const Coin::UnspentP2PKHOutput & utxo) {
-    ui->utxoLabel->setText(utxoToString(utxo));
+
+    QString url = BlockCypher::BlockExplorer::link(utxo.outPoint().transactionId());
+    QString str = utxoToString(utxo);
+
+    ui->utxoLabel->setText(str);
+    //ui->utxoLabel->setText("<a href=\"" + url + "\" />" + str + "</a>");
+    //ui->utxoLabel->setText("<a href=\"http://www.google.com\" />hello</a>");
+    //ui->utxoLabel->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
+    //ui->utxoLabel->setOpenExternalLinks(true);
 }
 
 QStandardItemModel * BuyerTorrentPluginDialog::channelTableViewModel() {

@@ -39,7 +39,7 @@ P2PKHAddress P2PKHAddress::fromBase58CheckEncoding(const QString & encoded) {
 }
 
 bool P2PKHAddress::operator==(const P2PKHAddress & o) {
-    this->pubKeyHash() == o.pubKeyHash();
+    return _pubKeyHash == o.pubKeyHash() && _network == o.network();
 }
 
 QString P2PKHAddress::toBase58CheckEncoding() const {

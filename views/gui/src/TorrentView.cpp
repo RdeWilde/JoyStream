@@ -65,6 +65,11 @@ TorrentView::TorrentView(QObject * parent,
     _torrentTableContextMenu.addAction(&_removeAction);
     // add action to menu only when plugin is installed
 
+    // disable (temporary) main menu actions
+    _startAction.setEnabled(false);
+    _pauseAction.setEnabled(false);
+    _removeAction.setEnabled(false);
+
     // Connect: view menu actions to model slots
     QObject::connect(&_startAction,
                      SIGNAL(triggered()),

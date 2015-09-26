@@ -1606,9 +1606,8 @@ void Controller::processTorrentRemovedAlert(libtorrent::torrent_removed_alert co
     // Get torrent info hash
     libtorrent::sha1_hash info_hash = p->info_hash;
 
-
     // Remove from view
-    //_view.removeTorrent(info_hash);
+    torrentRemoved(info_hash);
 
     qCDebug(_category) << "Found match and removed it.";
 }
@@ -1684,9 +1683,6 @@ void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p)
         torrent->setStatus(Torrent::Status::torrent_checked);
 
         // Send notification signal
-        //_view.addTorrent(p->handle.info_hash(), QString(name.c_str()), totalSize);
-        //_view.addTorrent(p->params.info_hash, torrent->model());
-        //_view.addTorrent(torrent->model());
         emit addedTorrent(torrent->model());
 	}
 }
@@ -1842,8 +1838,7 @@ void Controller::processTorrentCheckedAlert(libtorrent::torrent_checked_alert co
             // No longer used: Expect user to set configurations
             //torrent->setStatus(Torrent::Status::torrent_plugin_configuration_from_user);
 
-            // Notify view
-            //_view.showAddTorrentPluginConfigurationDialog(torrentInfo, torrentStatus);
+            // Send signal
             emit torrentCheckedButHasNoPlugin(torrentInfo, torrentStatus);
         }
 
@@ -1901,8 +1896,9 @@ void Controller::processStartedSellerTorrentPlugin(const StartedSellerTorrentPlu
     // Update information about plugin installed on torrent
     torrent->addPlugin(p->status());
 
-    // Tell view
-    //_view.startedSellerTorrentPlugin(torrent->model()->sellerTorrentPluginViewModel());
+    // Send signal
+    // *** DISCONTINUED, THESE ARE INSTALLED AS SIGNALS ON TORRENT VIEW MODELS
+    //emit startedSellerTorrentPlugin(torrent->model()->sellerTorrentPluginViewModel());
 }
 
 void Controller::processStartedBuyerTorrentPlugin(const StartedBuyerTorrentPlugin * p) {
@@ -1916,11 +1912,9 @@ void Controller::processStartedBuyerTorrentPlugin(const StartedBuyerTorrentPlugi
     // Update information about plugin installed on torrent
     torrent->addPlugin(p->status());
 
-    // Notify view
-    //_view.startedBuyerTorrentPlugin(p->infoHash(), p->configuration(), p->utxo());
-
-    // Tell view
-    //_view.startedBuyerTorrentPlugin(torrent->model()->buyerTorrentPluginViewModel());
+    // Send signal
+    // *** DISCONTINUED, THESE ARE INSTALLED AS SIGNALS ON TORRENT VIEW MODELS
+    //emit startedBuyerTorrentPlugin(torrent->model()->buyerTorrentPluginViewModel());
 }
 
 void Controller::processBuyerTorrentPluginStatusAlert(const BuyerTorrentPluginStatusAlert * p) {
@@ -1953,8 +1947,6 @@ void Controller::processPluginStatusAlert(const PluginStatusAlert * p) {
 
     //
     emit pluginStatusUpdate(p->status());
-
-    //_view.updatePluginStatus(p->status());
 }
 
 void Controller::processSellerPeerAddedAlert(const SellerPeerAddedAlert * p) {

@@ -211,7 +211,7 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
 
     /**
      * Context menu on table view
-    */
+     */
 
     // Setup context menu capacity on table view
     ui->torrentsTable->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -272,6 +272,10 @@ void MainWindow::showContextMenu(const QPoint & pos) {
 
     // Get model index of click
     QModelIndex index = ui->torrentsTable->indexAt(pos);
+
+    // Check if this was invalid click
+    if(index.row() == -1)
+        return;
 
     // Get view
     TorrentView * view = rowToView(index.row());
@@ -374,7 +378,7 @@ void MainWindow::showSellerTorrentPluginDialog(const SellerTorrentPluginViewMode
 void MainWindow::showBuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel * model) {
 
     // Create dialog
-    BuyerTorrentPluginDialog dialog(this, model , &_bitcoinDisplaySettings);
+    BuyerTorrentPluginDialog dialog(this, model , &_bitcoinDisplaySettings, _wallet->network());
 
     // Show view
     dialog.exec();
@@ -552,9 +556,7 @@ void MainWindow::updateSellerTorrentPluginStatus(const libtorrent::sha1_hash & i
     // Update view model of plugin
     view->update(status);
 }
-*/
 
-/**
 void MainWindow::startedTorrentPlugin(const libtorrent::sha1_hash & infoHash) {
 
     Q_ASSERT(_torrentViews.contains(infoHash));
@@ -692,7 +694,9 @@ void MainWindow::updateWalletBalanceHook() {
 
 TorrentView * MainWindow::rowToView(int row) {
 
-    Q_ASSERT(row < _rowToInfoHash.size());
+    if(row >= _rowToInfoHash.size())
+        throw std::runtime_error("Index greater than number of rows.");
+
     Q_ASSERT(_torrentViews.contains(_rowToInfoHash[row]));
 
     return _torrentViews[_rowToInfoHash[row]];

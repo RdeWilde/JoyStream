@@ -622,12 +622,18 @@ signals:
     // Sent when libtorrent::add_torrent_alert is received from libtorrent
     void addedTorrent(const TorrentViewModel * model);
 
+    // Torrent with given info hash was removed
+    void torrentRemoved(const libtorrent::sha1_hash & info_hash);
+
     // A torrent was not added successfully according to libtorrent session giving
     // a libtorrent::add_torrent_alert p->error was done.
     void failedToAddTorrent(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec);
 
     // A torrent plugin was started
-    void torrentPluginStarted();
+    // *** DISCONTINUED, THESE ARE INSTALLED AS SIGNALS ON TORRENT VIEW MODELS
+    //void torrentPluginStarted();
+    //void startedSellerTorrentPlugin(SellerTorrentPluginViewModel * model);
+    //void startedBuyerTorrentPlugin(BuyerTorrentPluginViewModel * model);
 
     // Notify view
     void torrentCheckedButHasNoPlugin(const libtorrent::torrent_info & torrentInfo, const libtorrent::torrent_status & torrentStatus);

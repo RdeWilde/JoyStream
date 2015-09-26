@@ -190,7 +190,10 @@ namespace Runner {
             dir.cd(name);
 
             // If directory exists, delete it, and create new one
-            dir.rmdir("torrent_data");
+            if(dir.cd("torrent_data")) {
+                dir.removeRecursively();
+                dir.cdUp();
+            }
             dir.mkdir("torrent_data");
             dir.cd("torrent_data");
 

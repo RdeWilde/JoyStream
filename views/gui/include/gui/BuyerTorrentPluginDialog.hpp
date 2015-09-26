@@ -32,7 +32,8 @@ public:
     // Constructor
     BuyerTorrentPluginDialog(QWidget * parent,
                              const BuyerTorrentPluginViewModel * model,
-                             const BitcoinDisplaySettings * settings);
+                             const BitcoinDisplaySettings * settings,
+                             Coin::Network network);
 
     // Text conversion routines
     static QString pluginStateToString(BuyerTorrentPlugin::State state);
@@ -68,6 +69,9 @@ private:
 
     // Display settings for bitcoins
     const BitcoinDisplaySettings * _settings;
+
+    // Network on which
+    Coin::Network _network;
 
     // Payor channel table view model
     QStandardItemModel _channelTableViewModel;

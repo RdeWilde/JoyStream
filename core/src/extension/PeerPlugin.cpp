@@ -396,7 +396,7 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
     if(length != lengthOfExtendedMessagePayload) {
 
         // Output progress
-        qCDebug(_category) << "on_extended(id =" << msg << ", length =" << length << "): %" << ((float)(100*lengthOfExtendedMessagePayload))/length;
+        //qCDebug(_category) << "on_extended(id =" << msg << ", length =" << length << "): %" << ((float)(100*lengthOfExtendedMessagePayload))/length;
 
         // No other plugin should look at this
         return true;

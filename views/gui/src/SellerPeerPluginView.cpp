@@ -68,9 +68,9 @@ SellerPeerPluginView::SellerPeerPluginView(QObject * parent,
     const PayeeViewModel * payeeViewModel = peerModel->payeeViewModel();
 
     QObject::connect(payeeViewModel,
-                     SIGNAL(contractOutPointChanged(OutPoint)),
+                     SIGNAL(contractOutPointChanged(Coin::typesafeOutPoint)),
                      this,
-                     SLOT(updateContractOutPointItem(OutPoint)));
+                     SLOT(updateContractOutPointItem(Coin::typesafeOutPoint)));
 
     QObject::connect(payeeViewModel,
                      SIGNAL(numberOfPaymentsMadeChanged(quint64)),
