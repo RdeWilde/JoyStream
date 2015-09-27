@@ -15,6 +15,10 @@
 #include <common/Seed.hpp>
 
 /**
+ * Demo meant to run two clients, one seller and one buyer,
+ * on tracker - most likely local, since most public
+ * trackers get confused with two clients from same IP.
+ *
  * HOW TO RUN
  * ==============================================================
  *
