@@ -30,7 +30,9 @@ public:
     TorrentViewModel(const libtorrent::sha1_hash & infoHash,
                      const std::string & name,
                      const std::string & savePath,
-                     libtorrent::torrent_info * torrentInfo);
+                     const boost::intrusive_ptr<libtorrent::torrent_info> & torrentFile
+                     //libtorrent::torrent_info * torrentInfo
+                     );
     /**
     TorrentViewModel(SellerTorrentPluginViewModel * model);
     TorrentViewModel(BuyerTorrentPluginViewModel * model);
@@ -72,7 +74,9 @@ public:
 
     //int totalSize() const;
 
-    const libtorrent::torrent_info * torrentInfo() const;
+    //const libtorrent::torrent_info * torrentInfo() const;
+
+    boost::intrusive_ptr<libtorrent::torrent_info> torrentFile() const;
 
     PluginInstalled pluginInstalled() const;
 
@@ -159,7 +163,8 @@ private:
     QString _savePath;
 
     // Torrent file
-    libtorrent::torrent_info * _torrentInfo;
+    //libtorrent::torrent_info * _torrentInfo;
+    boost::intrusive_ptr<libtorrent::torrent_info> _torrentFile;
 
     // Type of torrent plugin presently installed on torrent
     PluginInstalled _pluginInstalled;

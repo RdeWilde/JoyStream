@@ -31,8 +31,8 @@ public:
     // Add client to run
     void add(Controller * controller);
 
-    // Blocks untill controllerCount==0
-    void join();
+    // Erects barrier lasting until controllerCount==0
+    void erect();
 
 private:
 

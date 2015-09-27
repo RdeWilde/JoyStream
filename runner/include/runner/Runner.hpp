@@ -24,7 +24,7 @@ namespace Runner {
 
     libtorrent::torrent_info load_torrent(const char * path);
 
-    Controller::Torrent::Configuration create_torrent_configuration(libtorrent::torrent_info & torrentInfo, const QString & savePath);
+    Controller::Torrent::Configuration create_torrent_configuration(const QString & torrentFilePath, const QString & savePath);
 
     // Creates logger, wallet, controller and view
     Controller * create_client(const Controller::Configuration & configuration,
@@ -61,6 +61,12 @@ namespace Runner {
                                 Coin::Network network,
                                 QNetworkAccessManager * manager,
                                 const QString & BlockcypherToken);
+
+    Coin::UnspentP2PKHOutput find_utxo(int num_pieces,
+                                       const BuyerTorrentPlugin::Configuration & pluginConfiguration,
+                                       Wallet::Manager * wallet);
+
+
 }
 
 #endif // RUNNER_HPP

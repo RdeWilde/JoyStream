@@ -26,7 +26,7 @@ void ControllerBarrier::add(Controller * controller) {
     _controllerCount++;
 }
 
-void ControllerBarrier::join() {
+void ControllerBarrier::erect() {
 
     // While there are still controllers not done
     while(_controllerCount > 0) {

@@ -20,6 +20,7 @@ namespace Runner {
     libtorrent::torrent_info load_torrent(const char * path) {
 
         libtorrent::error_code ec;
+        //libtorrent::torrent_info torrentInfo = new libtorrent::torrent_info(path, ec);
         libtorrent::torrent_info torrentInfo(path, ec);
 
         if(ec) {
@@ -31,15 +32,18 @@ namespace Runner {
         return torrentInfo;
     }
 
-    Controller::Torrent::Configuration create_torrent_configuration(libtorrent::torrent_info & torrentInfo, const QString & savePath) {
+    Controller::Torrent::Configuration create_torrent_configuration(const QString & torrentFilePath, const QString & savePath) {
 
-        return Controller::Torrent::Configuration(torrentInfo.info_hash()
-                                                  ,torrentInfo.name()
-                                                  ,savePath.toStdString()
-                                                  ,std::vector<char>()
-                                                  ,libtorrent::add_torrent_params::flag_update_subscribe
-                                                  //+libtorrent::add_torrent_params::flag_auto_managed
-                                                  ,&torrentInfo);
+        std::string str = torrentFilePath.toStdString();
+
+        boost::intrusive_ptr<libtorrent::torrent_info> torrentFile(new libtorrent::torrent_info(load_torrent(str.c_str())));
+
+        return Controller::Torrent::Configuration(torrentFile->info_hash(),
+                                                  torrentFile->name(),
+                                                  savePath.toStdString(),
+                                                  std::vector<char>(),
+                                                  libtorrent::add_torrent_params::flag_update_subscribe, //+libtorrent::add_torrent_params::flag_auto_managed
+                                                  torrentFile);
     }
 
     Controller * create_client(const Controller::Configuration & configuration,
@@ -64,6 +68,13 @@ namespace Runner {
 
         dir.mkdir(name);
         dir.cd(name);
+
+        // If torrent data directory exists, delete it, and create new one
+        if(dir.cd("torrent_data")) {
+            dir.removeRecursively();
+            dir.cdUp();
+        }
+        dir.mkdir("torrent_data");
 
         // Create/load wallet
         QString walletFile = dir.path() + QDir::separator() + QString("wallet.sqlite3");
@@ -185,48 +196,53 @@ namespace Runner {
                                                     manager,
                                                     BlockcypherToken);
 
-            // Go into home directory of client
-            QDir dir(home);
-            dir.cd(name);
-
-            // If directory exists, delete it, and create new one
-            if(dir.cd("torrent_data")) {
-                dir.removeRecursively();
-                dir.cdUp();
-            }
-            dir.mkdir("torrent_data");
-            dir.cd("torrent_data");
 
             // Create torrent configuration
-            Controller::Torrent::Configuration torrentConfiguration = create_torrent_configuration(torrentInfo, dir.path());
+            Controller::Torrent::Configuration torrentConfiguration;// = create_torrent_configuration(torrentInfo, dir.path());
 
-            // Grab configuration
-            BuyerTorrentPlugin::Configuration pluginConfiguration = configurations[i];
+            // Try to fund plugin, and if it works
+            // add torrent with given plugin to controller,
+            // otherwise nothing is added
+            try {
 
-            // Amount needed to fund contract (satoshies)
-            quint64 minFunds = Payor::minimalFunds(torrentInfo.num_pieces(),
-                                                   pluginConfiguration.maxPrice(),
-                                                   pluginConfiguration.numberOfSellers(),
-                                                   pluginConfiguration.maxFeePerKb());
+                /**
+                BuyerTorrentPlugin::Configuration pluginConfiguration = configurations[i];
 
-            // Get funding output - this has to be grabbed from wallet/chain later
-            //Coin::UnspentP2PKHOutput utxo; // = controller->wallet().getUtxo(minFunds, 1);
-            Coin::UnspentP2PKHOutput utxo = controller->wallet()->BLOCKCYPHER_lock_one_utxo(minFunds);
+                controller->addTorrent(torrentConfiguration, pluginConfiguration, find_utxo(torrentInfo.num_pieces(),
+                                                                                            pluginConfiguration,
+                                                                                           controller->wallet()));
+                */
 
-            // Check that an utxo was indeed found
-            if(utxo.value() == 0) {
-
-                qDebug() << "No *single* utxo found enough value to cover:" << minFunds;
-
-                //throw std::runtime_error("No utxo found with sufficient funds.");
-                //controller->addTorrent(torrentConfiguration);
-
-            } else // Add to controller
-                controller->addTorrent(torrentConfiguration, pluginConfiguration, utxo);
+            } catch (const std::runtime_error & e) {
+                qDebug() << "Torrent not added";
+            }
 
             // Track controller
             barrier.add(controller);
         }
+    }
+
+    Coin::UnspentP2PKHOutput find_utxo(int num_pieces,
+                                       const BuyerTorrentPlugin::Configuration & pluginConfiguration,
+                                       Wallet::Manager * wallet) {
+
+        // Amount needed to fund contract (satoshies)
+        quint64 minFunds = Payor::minimalFunds(num_pieces,
+                                               pluginConfiguration.maxPrice(),
+                                               pluginConfiguration.numberOfSellers(),
+                                               pluginConfiguration.maxFeePerKb());
+
+        // Get funding output - this has to be grabbed from wallet/chain later
+        //Coin::UnspentP2PKHOutput utxo; // = controller->wallet().getUtxo(minFunds, 1);
+        Coin::UnspentP2PKHOutput utxo = wallet->BLOCKCYPHER_lock_one_utxo(minFunds);
+
+        // Check that an utxo was indeed found
+        if(utxo.value() == 0) {
+            qDebug() << "No *single* utxo found enough value to cover:" << minFunds;
+            throw std::runtime_error("No utxo found with sufficient funds.");
+        }
+
+        return utxo;
     }
 
 }

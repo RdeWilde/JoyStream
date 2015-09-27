@@ -46,18 +46,23 @@ const QVector<BuyerTorrentPlugin::Configuration> buyerConfigurations = {
 };
 
 /**
- * HOW TO RUN:
+ * HOW TO RUN
  * ==============================================================
  *
- * 1) Make sure tracker is running on local machine
+ * This application requires two arguments
  *
- * 2) Expects path to folder (without trailing /)
+ * a)
+ *
+ * b)
+ *
+ *
+ *  * 1) Make sure tracker is running on local machine,
+ *    and that all torrents in question have been loaded
+ *    in as being tracked (but not seeded)
+ *
+ * Expects path to folder (without trailing /)
  * which contains two subfolders which you must have created
- * |
- * *--HOME: all the client spesific folders will be created here,
- * |        hence you need not place anything in this folder.
- * |
- * *--TORRENTS: all the torrent files and torrent data,
+ * all the torrent files and torrent data,
  *              hence you must put the right content here.
  *
  * e.g: ./localonetoone /home/bedeho/JoyStream
@@ -77,7 +82,8 @@ int main(int argc, char* argv[]) {
     // Add options
     parser.addHelpOption();
     parser.addVersionOption();
-    parser.addPositionalArgument("root directory", "Root directory which contains HOME and TORRENTS folders.");
+    parser.addPositionalArgument("Torrent file directory", "Directory which contains torrent files needed.");
+    parser.addPositionalArgument("Torrent data directory", "Directory which data for torrent files needed.");
 
     // Process the actual command line arguments given by the user
     parser.process(app);
@@ -85,36 +91,45 @@ int main(int argc, char* argv[]) {
     // Read positional arguments
     QStringList arguments = parser.positionalArguments();
 
-    if(arguments.size() != 1) {
-        std::cerr << "Only one argument should be provided, the root directoy.";
+    if(arguments.size() != 2) {
+        std::cerr << "Exactky two arguments must be provided.";
         return 1;
     }
 
-    // Get first argument
-    QString rootDirectory = arguments.first();
+    // Get first argument: Torrent file directory
+    QString torrentFileDirectory = arguments.first();
 
-    if(!QDir(rootDirectory).exists()) {
-        std::cerr << rootDirectory.toStdString() << " directory does not exist.";
+    if(!QDir(torrentFileDirectory).exists()) {
+        std::cerr << torrentFileDirectory.toStdString() << " directory does not exist.";
         return 1;
     }
+
+    // Get second argument: Torrent data directory
+    QString torrentDataDirectory = arguments[1];
+
+    if(!QDir(torrentDataDirectory).exists()) {
+        std::cerr << torrentDataDirectory.toStdString() << " directory does not exist.";
+        return 1;
+    }
+
+    // Seperator used for paths
+    std::string sep(QDir::separator() == QChar('/') ? "/" : "\\");
+
+    // Dervie torrent file paths
+    std::string torrent_path = torrentFileDirectory.toStdString() + sep;
+    std::string RISE_AND_RISE_OF_BITCOIN_FILE   = torrent_path + "The.Rise.and.Rise.of.Bitcoin.2014.720p.HDrip.x264.AAC.MVGroup.org.mp4.torrent",
+                LITTLE_SIMZ_FILE                = torrent_path + "Little Simz - AGE 101- DROP 1 - 01 Homosapiens VS Aliens.mp3.torrent",
+                APOLLO_FILE                     = torrent_path + "apollo.torrent",
+                HUBBLECAST_FILE                 = torrent_path + "hubblecast.torrent",
+                NASA_FILE                       = torrent_path + "Nasa.torrent",
+                OPENSUSEISO_FILE                = torrent_path + "OpenSUSEiso.torrent",
+                SFC_FILE                        = torrent_path + "sfc.torrent",
+                STOCKFOOTAGECHRISTMAS_FILE      = torrent_path + "stock footage christmas.torrent",
+                USNOW_FILE                      = torrent_path + "us_now.torrent";
 
     // Location where test clients create their home folders,
     // i.e. where they load/save actual wallet/torrent data
-    QString homeDirectory = rootDirectory + QDir::separator() + "HOME";
-
-    // Location where torrent files and data are located
-    std::string sep(QDir::separator() == QChar('/') ? "/" : "\\");
-    std::string torrentsDirectory = rootDirectory.toStdString() + sep + "TORRENTS";
-
-    std::string RISE_AND_RISE_OF_BITCOIN_FILE   = torrentsDirectory + sep + "The.Rise.and.Rise.of.Bitcoin.2014.720p.HDrip.x264.AAC.MVGroup.org.mp4.torrent",
-                LITTLE_SIMZ_FILE                = torrentsDirectory + sep + "Little Simz - AGE 101- DROP 1 - 01 Homosapiens VS Aliens.mp3.torrent",
-                APOLLO_FILE                     = torrentsDirectory + sep + "apollo.torrent",
-                HUBBLECAST_FILE                 = torrentsDirectory + sep + "hubblecast.torrent",
-                NASA_FILE                       = torrentsDirectory + sep + "Nasa.torrent",
-                OPENSUSEISO_FILE                = torrentsDirectory + sep + "OpenSUSEiso.torrent",
-                SFC_FILE                        = torrentsDirectory + sep + "sfc.torrent",
-                STOCKFOOTAGECHRISTMAS_FILE      = torrentsDirectory + sep + "stock footage christmas.torrent",
-                USNOW_FILE                      = torrentsDirectory + sep + "us_now.torrent";
+    QString homeDirectory = QDir::currentPath();
 
     // Network access manager
     QNetworkAccessManager manager;
@@ -125,40 +140,39 @@ int main(int argc, char* argv[]) {
     // Load default configurations for the controller
     Controller::Configuration configuration;
 
-    // Load torrent
-    libtorrent::torrent_info torrentInfo = Runner::load_torrent(RISE_AND_RISE_OF_BITCOIN_FILE.c_str());
+    // Buyer
+    Controller * lone_buyer = Runner::create_client(configuration,
+                                                    true,
+                                                    false,
+                                                    homeDirectory,
+                                                    QString("lone_buyer"),
+                                                    Coin::Seed("22222222245702754273542035678056807968507856907805687056875807896570586786507890586075806786709586078567095867085607865087065986"),
+                                                    LOCALONETOONE_BITCOIN_NETWORK,
+                                                    &manager,
+                                                    LOCALONETOONE_BLOCKCYPHER_TOKEN);
 
-    //BitCoinRepresentation s;
-    //BitCoinRepresentation s(BitCoinRepresentation::BitCoinPrefix::Milli, 0.01);
-    //().satoshies(); // Min fee per kB (satoshi)
 
-    // Sellers
-    Controller::Torrent::Configuration torrentConfiguration = Runner::create_torrent_configuration(torrentInfo, QString::fromStdString(torrentsDirectory));
+    BuyerTorrentPlugin::Configuration(false,
+                                       5,         // Maximum piece price (satoshi)
+                                       4*3600,     // Maximum lock time on refund (seconds)
+                                       10000,      // BitCoinRepresentation NOT WORKING FOR WHATEVER REASON: BitCoinRepresentation(BitCoinRepresentation::BitCoinPrefix::Milli, 0.1).satoshies(), // Max fee per kB (satoshi)
+                                       1);          // #sellers
 
-    Runner::add_sellers_with_plugin(configuration,
-                                    barrier,
-                                    true,
-                                    true,
-                                    homeDirectory,
-                                    torrentConfiguration,
-                                    sellerConfigurations,
-                                    sellerTestSeeds,
-                                    LOCALONETOONE_BITCOIN_NETWORK,
-                                    &manager,
-                                    LOCALONETOONE_BLOCKCYPHER_TOKEN);
-    // Buyers
-    Runner::add_buyers_with_plugin(configuration,
-                                   barrier,
-                                   true,
-                                   true,
-                                   homeDirectory,
-                                   torrentInfo,
-                                   buyerConfigurations,
-                                   buyerTestSeeds,
-                                   LOCALONETOONE_BITCOIN_NETWORK,
-                                   &manager,
-                                   LOCALONETOONE_BLOCKCYPHER_TOKEN);
+    /**
+    lone_buyer->addTorrent(Runner::create_torrent_configuration(torrentInfo, QString::fromStdString(torrentsDirectory));,
+                           pluginConfiguration,
+                           find_utxo(torrentInfo.num_pieces(),
+
+                            ,
+                           lone_buyer->wallet());
+
+
+*/
+
+
 
     // Wait for both to end
-    barrier.join();
+    barrier.erect();
+
+    return 0;
 }

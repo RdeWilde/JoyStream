@@ -158,7 +158,9 @@ public:
                          const std::string & savePath,
                          const std::vector<char> & resumeData,
                          quint64 flags,
-                         libtorrent::torrent_info * torrentInfo);
+                         //const libtorrent::torrent_info & torrentInfo
+                         const boost::intrusive_ptr<libtorrent::torrent_info> & torrentFile
+                          );
                          //const TorrentPlugin::Configuration * torrentPluginConfiguration);
 
             // Constructor from dictionary
@@ -199,11 +201,12 @@ public:
             //const TorrentPlugin::Configuration * torrentPluginConfiguration() const;
             //void setTorrentPluginConfiguration(const TorrentPlugin::Configuration *torrentPluginConfiguration);
 
-            libtorrent::torrent_info * torrentInfo() const;
-            void setTorrentInfo(libtorrent::torrent_info * torrentInfo);
+            boost::intrusive_ptr<libtorrent::torrent_info> torrentFile() const;
+            //libtorrent::torrent_info torrentInfo() const;
+            //void setTorrentInfo(const libtorrent::torrent_info & torrentInfo);
 
             quint64 flags() const;
-            void setFlags(const quint64 & flags);
+            void setFlags(quint64 flags);
 
             std::vector<char> resumeData() const;
             void setResumeData(const std::vector<char> & resumeData);
@@ -235,9 +238,13 @@ public:
             quint64 _flags;
 
             // Metadata in torrent file
-            // We need pointer since we cannot copy torrent_info
+            // We need pointer since its not copy assignable,
+            // hence does not support being set in d
+            //
             // Why cant this be const again??
-            libtorrent::torrent_info * _torrentInfo;
+            boost::intrusive_ptr<libtorrent::torrent_info> _torrentFile;
+
+            //libtorrent::torrent_info _torrentInfo;
 
             // Have to use pointer to get polymorphism. :/
             //const TorrentPlugin::Configuration * _torrentPluginConfiguration;
@@ -250,7 +257,8 @@ public:
                 const std::vector<char> & resumeData,
                 quint64 flags,
                 //const libtorrent::torrent_handle & handle,
-                libtorrent::torrent_info * torrentInfo,
+                //libtorrent::torrent_info * torrentInfo,
+                const boost::intrusive_ptr<libtorrent::torrent_info> & torrentFile,
                 Status status);
 
         // Add plugins

@@ -6,5 +6,6 @@
 TEMPLATE    = subdirs
 
 SUBDIRS     = \
-            localonetoone
+            local-one-to-one \
+            public-one-symmetric
 

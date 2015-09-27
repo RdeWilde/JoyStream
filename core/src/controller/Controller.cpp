@@ -16,7 +16,6 @@
 #include <core/extension/PluginMode.hpp>
 
 Controller::Torrent::Configuration::Configuration() {
-
 }
 
 Controller::Torrent::Configuration::Configuration(const libtorrent::sha1_hash & infoHash,
@@ -24,14 +23,16 @@ Controller::Torrent::Configuration::Configuration(const libtorrent::sha1_hash & 
                                            const std::string & savePath,
                                            const std::vector<char> & resumeData,
                                            quint64 flags,
-                                           libtorrent::torrent_info * torrentInfo)//,
+                                           //const libtorrent::torrent_info & torrentInfo
+                                           const boost::intrusive_ptr<libtorrent::torrent_info> & torrentFile
+                                           )
                                            //const TorrentPlugin::Configuration * torrentPluginConfiguration)
     :_infoHash(infoHash)
     ,_name(name)
     ,_savePath(savePath)
     ,_resumeData(resumeData)
     ,_flags(flags)
-    ,_torrentInfo(torrentInfo) {
+    ,_torrentFile(torrentFile) {
     //,_torrentPluginConfiguration(torrentPluginConfiguration) {
 }
 
@@ -73,6 +74,7 @@ TorrentConfiguration & TorrentConfiguration::operator=(const TorrentConfiguratio
 */
 
 Controller::Torrent::Configuration::Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry) {
+    //: _torrentInfo(libtorrent::sha1_hash()){
 
     /**
     // Check that info_hash is present
@@ -248,17 +250,21 @@ libtorrent::add_torrent_params Controller::Torrent::Configuration::toAddTorrentP
     params.info_hash = _infoHash;
     params.name = _name;
     params.save_path = _savePath;
-    params.resume_data = _resumeData; new std::vector<char>(_resumeData); // We do not own this pointer
+    params.resume_data = _resumeData;// new std::vector<char>(_resumeData); // We do not own this pointer
     params.flags = _flags;
+    params.ti = _torrentFile;
 
-    if(_torrentInfo != NULL)
-        params.ti = boost::intrusive_ptr<libtorrent::torrent_info>(_torrentInfo);
-        //params.ti = boost::shared_ptr<libtorrent::torrent_info>(_torrentInfo);
+    //if(!_torrentInfo.info_hash().is_all_zeros())
+    //    params.ti = boost::intrusive_ptr<libtorrent::torrent_info>(new libtorrent::torrent_info(_torrentInfo));
 
     //params.userdata = static_cast<void *>(_torrentPluginConfiguration);
 
     // Return parameters
     return params;
+}
+
+boost::intrusive_ptr<libtorrent::torrent_info> Controller::Torrent::Configuration::torrentFile() const {
+    return _torrentFile;
 }
 
 /**
@@ -269,21 +275,21 @@ const TorrentPlugin::Configuration * Controller::Torrent::Configuration::torrent
 void Controller::Torrent::Configuration::setTorrentPluginConfiguration(const TorrentPlugin::Configuration *torrentPluginConfiguration) {
     _torrentPluginConfiguration = torrentPluginConfiguration;
 }
-*/
 
-libtorrent::torrent_info * Controller::Torrent::Configuration::torrentInfo() const {
+libtorrent::torrent_info Controller::Torrent::Configuration::torrentInfo() const {
     return _torrentInfo;
 }
 
 void Controller::Torrent::Configuration::setTorrentInfo(libtorrent::torrent_info * torrentInfo) {
     _torrentInfo = torrentInfo;
 }
+*/
 
 quint64 Controller::Torrent::Configuration::flags() const {
     return _flags;
 }
 
-void Controller::Torrent::Configuration::setFlags(const quint64 & flags) {
+void Controller::Torrent::Configuration::setFlags(quint64 flags) {
     _flags = flags;
 }
 
@@ -328,7 +334,8 @@ Controller::Torrent::Torrent(const libtorrent::sha1_hash & infoHash,
                              const std::string & savePath,
                              const std::vector<char> & resumeData,
                              quint64 flags,
-                             libtorrent::torrent_info * torrentInfo,
+                             //libtorrent::torrent_info * torrentInfo,
+                             const boost::intrusive_ptr<libtorrent::torrent_info> & torrentFile,
                              Status event)
     : _infoHash(infoHash)
     , _name(name)
@@ -342,7 +349,7 @@ Controller::Torrent::Torrent(const libtorrent::sha1_hash & infoHash,
     , _model(infoHash,
              name,
              savePath,
-             torrentInfo) {
+             torrentFile) {
 }
 
 void Controller::Torrent::addPlugin(const SellerTorrentPlugin::Status & status) {
@@ -1628,6 +1635,9 @@ void Controller::processMetadataReceivedAlert(libtorrent::metadata_received_aler
 
         // USE THIS INFORMATION FOR SOMETHING LATER
 
+        // Put in model later
+        qCDebug(_category) << "Metadata saved.";
+
     } else
         qCDebug(_category) << "Invalid handle for received metadata.";
 }
@@ -2081,7 +2091,7 @@ bool Controller::addTorrent(const Torrent::Configuration & configuration) {
                                     configuration.name(),
                                     configuration.resumeData(),
                                     configuration.flags(),
-                                    configuration.torrentInfo(),
+                                    configuration.torrentFile(), //.torrentInfo(),
                                     //libtorrent::torrent_handle(), // proper handle is set when torrent has been added
                                     Torrent::Status::being_async_added_to_session);
 

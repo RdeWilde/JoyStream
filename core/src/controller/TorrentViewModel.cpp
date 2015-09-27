@@ -16,11 +16,13 @@
 TorrentViewModel::TorrentViewModel(const libtorrent::sha1_hash & infoHash,
                                    const std::string & name,
                                    const std::string & savePath,
-                                   libtorrent::torrent_info * torrentInfo)
+                                   const boost::intrusive_ptr<libtorrent::torrent_info> & torrentFile)
+                                   //libtorrent::torrent_info * torrentInfo)
     : _infoHash(infoHash)
     , _name(QString::fromStdString(name))
     , _savePath(QString::fromStdString(savePath))
-    , _torrentInfo(torrentInfo)
+    //, _torrentInfo(torrentInfo)
+    , _torrentFile(torrentFile)
     , _pluginInstalled(PluginInstalled::None)
     , _sellerTorrentPluginViewModel(NULL)
     , _buyerTorrentPluginViewModel(NULL) {
@@ -242,9 +244,15 @@ QString TorrentViewModel::savePath() const {
     return _savePath;
 }
 
+boost::intrusive_ptr<libtorrent::torrent_info> TorrentViewModel::torrentFile() const {
+    return _torrentFile;
+}
+
+/**
 const libtorrent::torrent_info * TorrentViewModel::torrentInfo() const {
     return _torrentInfo;
 }
+*/
 
 PluginInstalled TorrentViewModel::pluginInstalled() const {
     return _pluginInstalled;

@@ -5,7 +5,7 @@
 
 include(config.pri)
 
-TARGET = localonetoone
+TARGET = local-one-to-one
 TEMPLATE = app
 
 CONFIG  += console

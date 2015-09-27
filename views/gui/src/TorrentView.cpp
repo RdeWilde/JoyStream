@@ -45,8 +45,9 @@ TorrentView::TorrentView(QObject * parent,
 
     // Set values
     updateStatus(torrentViewModel->status());
-    const libtorrent::torrent_info * torrentInfo = torrentViewModel->torrentInfo();
-    updateSize(torrentInfo->total_size());
+    //const libtorrent::torrent_info * torrentInfo = torrentViewModel->torrentInfo();
+    boost::intrusive_ptr<libtorrent::torrent_info> torrentFile = torrentViewModel->torrentFile();
+    updateSize(torrentFile->total_size());
     updatePluginInstalled(torrentViewModel->pluginInstalled());
 
     // Center content
