@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1071</width>
-    <height>340</height>
+    <height>394</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -259,6 +259,24 @@
     </property>
     <property name="text">
      <string>update</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>320</y>
+      <width>1031</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>This version only works with Bitcoin testnet coins, use faucet to get free coins. Please keep running during testing, restart for imminent updates.</string>
     </property>
    </widget>
   </widget>

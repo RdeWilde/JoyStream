@@ -49,13 +49,19 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
     , _wallet(wallet)
     , _torrentTableViewModel(0, 6)
     , _walletBalanceUpdateTimer()
-    , _bitcoinDisplaySettings() { //(Fiat::USD, 225) {
+    , _bitcoinDisplaySettings() //(Fiat::USD, 225) {
+    , _torrentDirectoryAction("Torrents", this)
+    , _reportBugsAction("Report bugs", this)
+    , _viewInformationAction("Information", this)
+    , _exitAction("Exit", this)
+{
 
     ui->setupUi(this);
 
     /**
      * Look of main windw
      */
+
     // Alter window title
     setWindowTitle("JoyStream" + appendToTitle);
 
@@ -229,6 +235,41 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
 
     // Accept drag and drop
     setAcceptDrops(true);
+
+    /**
+     * Tray icon menu
+     */
+
+    _trayIconContextMenu.addAction(&_torrentDirectoryAction);
+    _trayIconContextMenu.addAction(&_reportBugsAction);
+    //_trayIconContextMenu.addAction(&_viewInformationAction);
+    _trayIconContextMenu.addSeparator();
+    _trayIconContextMenu.addAction(&_exitAction);
+
+    _trayIcon.setContextMenu(&_trayIconContextMenu);
+    _trayIcon.setToolTip("JoyStream Client");
+    _trayIcon.show();
+
+    QObject::connect(&_torrentDirectoryAction,
+                     SIGNAL(triggered()),
+                     this,
+                     SLOT(showTorrentDirectory()));
+
+    QObject::connect(&_reportBugsAction,
+                     SIGNAL(triggered()),
+                     this,
+                     SLOT(reportBugs()));
+
+    QObject::connect(&_viewInformationAction,
+                     SIGNAL(triggered()),
+                     this,
+                     SLOT(viewInformation()));
+
+    QObject::connect(&_exitAction,
+                     SIGNAL(triggered()),
+                     this,
+                     SLOT(initateExit()));
+
 
     /**
      * Wallet signals
@@ -662,7 +703,7 @@ void MainWindow::startVLC(const libtorrent::sha1_hash & infoHash) {
 
     QUrl url(serverUrl);
 
-    QDesktopServices::openUrl(url);
+    //QDesktopServices::openUrl(url);
 
     /**
     // Start VLC at local host on given port asking for this info hash
@@ -692,6 +733,26 @@ void MainWindow::updateWalletBalanceHook() {
     updateWalletBalance(addr._final_balance);
 }
 
+void MainWindow::showTorrentDirectory() {
+    QDesktopServices::openUrl(QUrl("http://www.joystream.co/torrents.html"));
+}
+
+void MainWindow::reportBugs() {
+    QDesktopServices::openUrl(QUrl("https://www.reddit.com/r/JoyStream/comments/3mk8i1/post_bugs_here/"));
+}
+
+void MainWindow::viewInformation() {
+    //QDesktopServices::openUrl(QUrl("http://www.joystream.co/information.html"));
+}
+
+void MainWindow::initateExit() {
+
+    QMessageBox::StandardButton reply = QMessageBox::question(this, "Exit JoyStream", "Are you sure you want to exit?", QMessageBox::Yes|QMessageBox::No);
+
+    if (reply == QMessageBox::Yes)
+        _controller->begin_close();
+}
+
 TorrentView * MainWindow::rowToView(int row) {
 
     if(row >= _rowToInfoHash.size())
@@ -705,7 +766,10 @@ TorrentView * MainWindow::rowToView(int row) {
 void MainWindow::closeEvent(QCloseEvent * event) {
 
     // Notify controller
-    _controller->begin_close();
+    //_controller->begin_close();
+
+    // Minimize window
+    setWindowState(Qt::WindowState::WindowMinimized);
 
     // But do not close, which causes event loop exit
     event->ignore();

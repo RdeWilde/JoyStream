@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>654</width>
-    <height>103</height>
+    <height>132</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -26,7 +26,7 @@
    <property name="geometry">
     <rect>
      <x>160</x>
-     <y>50</y>
+     <y>80</y>
      <width>371</width>
      <height>51</height>
     </rect>
@@ -41,9 +41,9 @@
   <widget class="QLineEdit" name="saveToFolderLineEdit">
    <property name="geometry">
     <rect>
-     <x>80</x>
-     <y>10</y>
-     <width>451</width>
+     <x>20</x>
+     <y>40</y>
+     <width>511</width>
      <height>41</height>
     </rect>
    </property>
@@ -56,30 +56,35 @@
     <string/>
    </property>
   </widget>
-  <widget class="QLabel" name="saveToFolderLabel">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>20</y>
-     <width>101</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Folder:</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="saveToFolderPushButton">
    <property name="geometry">
     <rect>
      <x>540</x>
-     <y>10</y>
+     <y>40</y>
      <width>101</width>
      <height>41</height>
     </rect>
    </property>
    <property name="text">
     <string>Browse</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="saveToFolderLabel_2">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>10</y>
+     <width>531</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Folder to save to, or load from:</string>
    </property>
   </widget>
  </widget>

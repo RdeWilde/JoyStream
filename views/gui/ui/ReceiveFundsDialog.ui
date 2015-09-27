@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>479</width>
-    <height>191</height>
+    <height>158</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -50,9 +50,9 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>140</y>
-     <width>91</width>
-     <height>31</height>
+     <y>100</y>
+     <width>111</width>
+     <height>41</height>
     </rect>
    </property>
    <property name="text">
@@ -63,26 +63,13 @@
    <property name="geometry">
     <rect>
      <x>340</x>
-     <y>130</y>
+     <y>100</y>
      <width>121</width>
      <height>41</height>
     </rect>
    </property>
    <property name="text">
     <string>Close</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_2">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>100</y>
-     <width>411</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>NB: This version of JoyStream only works with testnet coins</string>
    </property>
   </widget>
  </widget>

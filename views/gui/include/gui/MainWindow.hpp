@@ -26,6 +26,9 @@
 #include <QTimer>
 #include <QStatusBar>
 #include <QLabel>
+#include <QSystemTrayIcon>
+#include <QMenu>
+#include <QAction>
 
 namespace Ui {
 class MainWindow;
@@ -121,6 +124,15 @@ public slots:
     // Stupid hook to update wallet balance, kill later.
     void updateWalletBalanceHook();
 
+    /**
+     *
+     */
+
+    void showTorrentDirectory();
+    void reportBugs();
+    void viewInformation();
+    void initateExit();
+
 private:
 
     // View
@@ -160,6 +172,22 @@ private:
 
     // How bitcoin should be displayed in entire view
     BitcoinDisplaySettings _bitcoinDisplaySettings;
+
+    /**
+     * Tray icon
+     */
+
+    // Menu actions in _trayIconContextMenu
+    QAction _torrentDirectoryAction,
+            _reportBugsAction,
+            _viewInformationAction,
+            _exitAction;
+
+    // Context menu for tray
+    QMenu _trayIconContextMenu;
+
+    // Icon placed in system tray
+    QSystemTrayIcon _trayIcon;
 
     // Uses _rowToViewMapping to lookup view in _torrentViews
     TorrentView * rowToView(int row);
