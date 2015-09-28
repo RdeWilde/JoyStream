@@ -50,7 +50,7 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
     , _torrentTableViewModel(0, 6)
     , _walletBalanceUpdateTimer()
     , _bitcoinDisplaySettings() //(Fiat::USD, 225) {
-    , _torrentDirectoryAction("Torrents", this)
+    , _torrentDirectoryAction("Torrent", this)
     , _reportBugsAction("Report bugs", this)
     , _viewInformationAction("Information", this)
     , _exitAction("Exit", this)

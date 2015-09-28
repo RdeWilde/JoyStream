@@ -65,7 +65,8 @@ int main(int argc, char* argv[]) {
 
     // If fresh flag is not passed,
     // then open existing parameter file
-    if(!parser.isSet(showFreshOption)) {
+    // DISABLED: !parser.isSet(showFreshOption)
+    if(false) {
 
         // Get name of file name
         QString file = QDir::current().absolutePath() + QDir::separator() + APPLICATION_PARAMETER_FILE_NAME;
