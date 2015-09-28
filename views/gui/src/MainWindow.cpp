@@ -259,6 +259,9 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
     _trayIconContextMenu.addSeparator();
     _trayIconContextMenu.addAction(&_exitAction);
 
+    QIcon icon(":/icon/trayicon.png");
+    _trayIcon.setIcon(icon);
+
     _trayIcon.setContextMenu(&_trayIconContextMenu);
     _trayIcon.setToolTip("JoyStream Client");
     _trayIcon.show();

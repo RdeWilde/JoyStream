@@ -95,3 +95,6 @@ include(../boost.pri)
 HEADERS += \
     autoupdater.h
 
+RESOURCES += \
+    icon.qrc
+
