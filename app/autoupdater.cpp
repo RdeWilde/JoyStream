@@ -4,6 +4,7 @@
 #include <QApplication>
 #include <QProcess>
 #include <iostream>
+#include <QFile>
 
 AutoUpdater::AutoUpdater(QApplication& app)
     : _app(app)
@@ -17,6 +18,11 @@ bool AutoUpdater::newVersionAvailable() {
     QString program = updaterPath();
     QStringList arguments;
     arguments << "--mode" << "unattended";
+
+    //avoid case on windows if updater is not found or fails to run to return true
+    if( !QFile::exists(program)){
+        return false;
+    }
 
     QProcess *process = new QProcess(parent);
     process->start(program, arguments);
