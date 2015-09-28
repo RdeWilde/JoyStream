@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>411</width>
-    <height>130</height>
+    <height>151</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -78,7 +78,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>0.1</string>
+    <string>0.01</string>
    </property>
   </widget>
   <widget class="QTimeEdit" name="maxLockTimeEdit">
@@ -204,6 +204,24 @@
    </property>
    <property name="text">
     <string>N/A</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>120</y>
+     <width>261</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>*Total spend includes transaction fee</string>
    </property>
   </widget>
  </widget>

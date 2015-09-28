@@ -65,6 +65,8 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
     // Alter window title
     setWindowTitle("JoyStream" + appendToTitle);
 
+    //setWindowIcon(QIcon(":/prefix/test") );
+
     // Freeze size of dialog
     setFixedSize(size());
 
@@ -703,7 +705,7 @@ void MainWindow::startVLC(const libtorrent::sha1_hash & infoHash) {
 
     QUrl url(serverUrl);
 
-    //QDesktopServices::openUrl(url);
+    QDesktopServices::openUrl(url);
 
     /**
     // Start VLC at local host on given port asking for this info hash
@@ -734,7 +736,7 @@ void MainWindow::updateWalletBalanceHook() {
 }
 
 void MainWindow::showTorrentDirectory() {
-    QDesktopServices::openUrl(QUrl("http://www.joystream.co/torrents.html"));
+    QDesktopServices::openUrl(QUrl("https://joystream.co/TorrentList"));
 }
 
 void MainWindow::reportBugs() {
@@ -742,7 +744,7 @@ void MainWindow::reportBugs() {
 }
 
 void MainWindow::viewInformation() {
-    //QDesktopServices::openUrl(QUrl("http://www.joystream.co/information.html"));
+    //QDesktopServices::openUrl(QUrl("https://www.joystream.co/information.html"));
 }
 
 void MainWindow::initateExit() {

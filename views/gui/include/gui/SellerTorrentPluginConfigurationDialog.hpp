@@ -38,10 +38,16 @@ public:
     // Return value indicates validity of corresponding ui field,
     // and passed reference is only modified with valid value if
     // return value is true
-    bool tryToGetPricePrGB(quint64 & minSatoshiesPrGB) const;
+    bool tryToGetTotalPrice(quint64 & minPrice) const;
 
     // Compute minPrice from price pr. GB (in satoshies)
-    quint32 minPriceFromPricePrGB(quint64 pricePrGB) const;
+    //quint32 minPriceFromPricePrGB(quint64 pricePrGB) const;
+
+    // Compute price/GB (in stoshies) from total price (in satoshies)
+    quint64 pricePrGBFromTotalPrice(quint64 price) const;
+
+    // Compute price/piece (in satoshies) from total price (in satoshies)
+    quint64 pricePrPieceFromTotalPrice(quint64 price) const;
 
 private slots:
     void on_buttonBox_accepted();
@@ -65,7 +71,11 @@ private:
     libtorrent::torrent_info _torrentInfo;
 
     // Updates min price field based on present input fields
-    void updateComputedSatoshiesMinPriceValue();
+    //void updateComputedSatoshiesMinPriceValue();
+
+    // Update price per gb based on present total price field
+    void updatePrice();
+
 };
 
 #endif // SELLER_TORRENT_PLUGIN_CONFIGURATION_DIALOG_HPP
