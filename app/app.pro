@@ -3,6 +3,9 @@
 # Proprietary and confidential
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
 
+ICON = joystream.icns
+RC_ICONS = joystream.ico
+
 include(config.pri)
 
 TARGET = app
