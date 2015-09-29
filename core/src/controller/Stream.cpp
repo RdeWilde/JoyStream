@@ -309,7 +309,6 @@ void Stream::readAndProcessRequestLineFromSocket(const QByteArray & line) {
         // We should always have metadata if a stream has been started
         Q_ASSERT(torrentInfo != NULL);
 
-        _defaultRangeLength = torrentInfo->piece_length() * 3; //
         _fileIndex = 0;
 
         //throw std::runtime_error("not implelemented due to deprecation of file_entry stuff");
@@ -319,6 +318,18 @@ void Stream::readAndProcessRequestLineFromSocket(const QByteArray & line) {
 
         // Save size of file
         _totalLengthOfFile = fileEntry.size;
+
+        // Set default length
+        int length = torrentInfo->piece_length() * 3;
+
+        if(_totalLengthOfFile < length) {
+
+            _defaultRangeLength = _totalLengthOfFile;
+
+            qDebug() << " Had to cut range short, set it to" << _defaultRangeLength;
+
+        } else
+            _defaultRangeLength = length;
 
         // Detect content type
         QString path = QString::fromStdString(fileEntry.path);
@@ -502,12 +513,15 @@ void Stream::getStreamPieces(int start, int end) {
     // Check that the requested range is valid
     if(start < 0 || end >= _totalLengthOfFile || end <= start) {
 
-        qDebug() << "Invalid range request [" << start << "," << end << "]";
+        qDebug() << "Invalid range request [" << start << "," << end << "], reseting.";
 
         // End it
-        sendErrorToPeerAndEndStream(Error::InvalidRangeRequested);
+        //sendErrorToPeerAndEndStream(Error::InvalidRangeRequested);
+        //return;
 
-        return;
+        // Reset,
+        start = 0;
+        end = _defaultRangeLength;
     }
 
     /**

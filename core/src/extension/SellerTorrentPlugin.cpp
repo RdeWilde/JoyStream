@@ -505,13 +505,23 @@ void SellerTorrentPlugin::on_peer_plugin_disconnect(SellerPeerPlugin * peerPlugi
             Coin::Transaction tx = peerPlugin->lastPaymentTransaction();
 
             /**
+             * proper solution: give over management of this broadcsting to controller,
+             * which probably will talk to wallet and paychan manager
+             *
+             *
+             *
              * Try to broadcast!!
+
              * In the future, keep track of how this turned out, and also rebroadcast,
              * and also track IP of peers which coincide with failed claims.
              * Detect double spends, etc.
              */
 
             QMetaObject::invokeMethod(_wallet, "BLOCKCYPHER_broadcast", Q_ARG(const Coin::Transaction, tx));
+
+
+
+
 
             //_wallet->broadcast(tx);
 

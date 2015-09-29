@@ -68,7 +68,7 @@ void Reply::QNetworkReplyFinished() {
         } else {
 
             _response = BlockCypherResponse::catch_all;
-            qDebug() << QString(response);
+            qDebug() << "QNetworkReplyFinished error: " << QString(response);
         }
     }
 

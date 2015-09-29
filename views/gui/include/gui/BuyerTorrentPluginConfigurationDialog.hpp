@@ -57,6 +57,10 @@ private slots:
 
     void on_numPeersLineEdit_textEdited(const QString &arg1);
 
+    void on_pricePrPieceSlider_sliderMoved(int position);
+
+    void on_pricePrPieceSlider_sliderReleased();
+
 private:
     Ui::BuyerTorrentPluginConfigurationDialog *ui;
 

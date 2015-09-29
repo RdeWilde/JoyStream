@@ -72,6 +72,8 @@ int main(int argc, char* argv[]) {
     QString RISE_AND_RISE_OF_BITCOIN_FILE   = torrentFileDirectory + QDir::separator() + "The.Rise.and.Rise.of.Bitcoin.2014.720p.HDrip.x264.AAC.MVGroup.org.mp4.torrent",
             LITTLE_SIMZ_FILE                = torrentFileDirectory + QDir::separator() + "Little Simz - AGE 101- DROP 1 - 01 Homosapiens VS Aliens.mp3.torrent";
 
+    QString TORRENT = RISE_AND_RISE_OF_BITCOIN_FILE;
+
     // Get second argument: Torrent data directory
     QString torrentDataDirectory = arguments[1];
 
@@ -112,7 +114,7 @@ int main(int argc, char* argv[]) {
                                                                1          // #sellers
                                                                );
 
-    Controller::Torrent::Configuration buyerTorrentConfiguration = Runner::create_torrent_configuration(RISE_AND_RISE_OF_BITCOIN_FILE, homeDirectory + QDir::separator() + "lone_buyer" + QDir::separator() + "torrent_data");
+    Controller::Torrent::Configuration buyerTorrentConfiguration = Runner::create_torrent_configuration(TORRENT, homeDirectory + QDir::separator() + "lone_buyer" + QDir::separator() + "torrent_data");
 
     try {
 
@@ -148,7 +150,7 @@ int main(int argc, char* argv[]) {
                                                                  17*60    // Maximum contract confirmation delay (seconds)
                                                                  );
 
-    Controller::Torrent::Configuration sellerTorrentConfiguration = Runner::create_torrent_configuration(RISE_AND_RISE_OF_BITCOIN_FILE, torrentDataDirectory);
+    Controller::Torrent::Configuration sellerTorrentConfiguration = Runner::create_torrent_configuration(TORRENT, torrentDataDirectory);
 
     seller->addTorrent(sellerTorrentConfiguration, sellerPluginConfiguration);
 

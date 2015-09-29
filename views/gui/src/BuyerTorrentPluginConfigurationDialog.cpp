@@ -20,6 +20,10 @@
 #include <QMessageBox>
 #include <QVector>
 
+#define SLIDER_MIN 1
+#define SLIDER_MAX 100
+#define SLIDER_TICK 1
+
 BuyerTorrentPluginConfigurationDialog::BuyerTorrentPluginConfigurationDialog(Controller * controller, Wallet::Manager * wallet, const libtorrent::torrent_info & torrentInfo, const BitcoinDisplaySettings * settings)
     : ui(new Ui::BuyerTorrentPluginConfigurationDialog)
     , _controller(controller)
@@ -35,11 +39,18 @@ BuyerTorrentPluginConfigurationDialog::BuyerTorrentPluginConfigurationDialog(Con
     ui->waitConfirmationTimeLabel->setVisible(false);
     ui->maxConfirmationTimeTimeEdit->setVisible(false);
 
+    // Setup slider
+    ui->pricePrPieceSlider->setRange(SLIDER_MIN, SLIDER_MAX);
+    ui->pricePrPieceSlider->setSingleStep(SLIDER_TICK);
+    ui->pricePrPieceSlider->setValue(SLIDER_MIN);
+
+    /**
     // Set label based on bitconi display settings
     if(_settings->currency() == BitcoinDisplaySettings::Currency::BitCoin)
         ui->maxTotalSpendLabel->setText("Maximum total spend (mɃ):");
     else  // == BitCoinDisplaySettings::Currency::Fiat
         ui->maxTotalSpendLabel->setText("Maximum total spend (¢):");
+    */
 
     // Set total price
     updateTotal();
@@ -122,6 +133,7 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
     // ============================================================
     // The total amount the buyer at most wants to spend (satoshies)
+    /**
     quint64 maxTotalSpend;
 
     if(!tryToGetMaxTotalSpend(maxTotalSpend)) {
@@ -131,9 +143,11 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
                               "Must be positive number: " + ui->maxTotalSpendLineEdit->text());
         return;
     }
+    */
 
     // Maximum piece price (satoshies)
-    quint64 maxPrice = maxPriceFromTotalSpend(maxTotalSpend, numberOfSellers, feePerkB);
+    //quint64 maxPrice = maxPriceFromTotalSpend(maxTotalSpend, numberOfSellers, feePerkB);
+    quint64 maxPrice = ui->pricePrPieceSlider->value();
 
     // ============================================================
     // Amount needed to fund contract (satoshies)
@@ -211,7 +225,11 @@ void BuyerTorrentPluginConfigurationDialog::updateTotal() {
         return;
 
     // Corresponding maximum piece price (satoshi)
-    quint64 maxPrice = maxPriceFromTotalSpend(maxTotalSpend, numberOfSellers, feePerkB);
+    //quint64 maxPrice = maxPriceFromTotalSpend(maxTotalSpend, numberOfSellers, feePerkB);
+    quint64 maxPrice = ui->pricePrPieceSlider->value();
+
+    QString maxPriceString = BitcoinRepresentation(maxPrice).toString(_settings);
+    ui->pricePrPieceLabel->setText(maxPriceString);
 
     // Amount needed to fund contract (satoshies)
     quint64 minFunds = Payor::minimalFunds(_torrentInfo.num_pieces(),
@@ -233,5 +251,13 @@ void BuyerTorrentPluginConfigurationDialog::on_feePrKbLineEdit_textChanged(const
 }
 
 void BuyerTorrentPluginConfigurationDialog::on_numPeersLineEdit_textEdited(const QString &arg1) {
+    updateTotal();
+}
+
+void BuyerTorrentPluginConfigurationDialog::on_pricePrPieceSlider_sliderMoved(int position) {
+    updateTotal();
+}
+
+void BuyerTorrentPluginConfigurationDialog::on_pricePrPieceSlider_sliderReleased() {
     updateTotal();
 }

@@ -54,7 +54,11 @@ unix:!macx {
     CONFIG(release, debug|release) {
         LIBS += -L$$LIBTORRENT_LOCAL_BUILD/bin/gcc-4.9.2/release/address-model-64/boost-link-shared/deprecated-functions-off/link-static/threading-multi -ltorrent
     } else {
-        LIBS += -L$$LIBTORRENT_LOCAL_BUILD/bin/gcc-4.9.2/debug/address-model-64/boost-link-shared/deprecated-functions-off/link-static/threading-multi -ltorrent
+        #LIBS += -L$$LIBTORRENT_LOCAL_BUILD/bin/gcc-4.9.2/debug/address-model-64/boost-link-shared/deprecated-functions-off/link-static/threading-multi -ltorrent
+
+        LIBS += -L$$LIBTORRENT_LOCAL_BUILD/bin/gcc-4.9.2/debug/address-model-64/boost-link-shared/deprecated-functions-off/link-static/logging-verbose/threading-multi -ltorrent
+        DEFINES += TORRENT_LOGGING
+        DEFINES += TORRENT_VERBOSE_LOGGING
     }
 
     DEFINES += TORRENT_DISABLE_LOGGING

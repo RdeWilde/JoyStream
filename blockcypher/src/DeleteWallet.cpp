@@ -46,11 +46,12 @@ void Reply::QNetworkReplyFinished() {
             //_response = BlockCypherResponse::AlreadyExists;
         } else if(e == QNetworkReply::ContentNotFoundError) {
             _response = BlockCypherResponse::DidntExist;
+            qDebug() << "Wallet doesnt exist.";
             //throw std::runtime_error("Wallet does not exist");
         } else {
 
             //_response = BlockCypherResponse::catch_all;
-            qDebug() << QString(response);
+            qDebug() << "QNetworkReplyFinished error: " << QString(response);
         }
     }
 

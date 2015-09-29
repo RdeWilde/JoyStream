@@ -15,6 +15,10 @@
 
 #include <QMessageBox>
 
+#define SLIDE_MIN 1
+#define SLIDER_MAX 200
+#define SLIDER_TICK 1
+
 SellerTorrentPluginConfigurationDialog::SellerTorrentPluginConfigurationDialog(Controller * controller, Wallet::Manager * wallet, const libtorrent::torrent_info & torrentInfo, const BitcoinDisplaySettings * settings)
     :ui(new Ui::SellerTorrentPluginConfigurationDialog)
     , _controller(controller)
@@ -28,6 +32,7 @@ SellerTorrentPluginConfigurationDialog::SellerTorrentPluginConfigurationDialog(C
     ui->minFeeLabel->setVisible(false);
     ui->minFeeLineEdit->setVisible(false);
 
+    /**
     // Set label based on bitconi display settings
     if(_settings->currency() == BitcoinDisplaySettings::Currency::BitCoin) {
         ui->minPriceLabel->setText("Price for full torrent (mɃ/GB):");
@@ -36,6 +41,12 @@ SellerTorrentPluginConfigurationDialog::SellerTorrentPluginConfigurationDialog(C
         ui->minPriceLabel->setText("Price for full torrent (¢/GB):");
         //ui->minPriceLineEdit
     }
+    */
+
+    // Setup slider
+    ui->minPriceSlider->setRange(SLIDE_MIN, SLIDER_MAX);
+    ui->minPriceSlider->setSingleStep(SLIDER_TICK);
+    ui->minPriceSlider->setValue(SLIDE_MIN);
 
     // Set inital total to begin with
     updatePrice();
@@ -45,7 +56,8 @@ SellerTorrentPluginConfigurationDialog::~SellerTorrentPluginConfigurationDialog(
     delete ui;
 }
 
-bool SellerTorrentPluginConfigurationDialog::tryToGetTotalPrice(quint64 & price) const {
+/**
+bool SellerTorrentPluginConfigurationDialog::tryToMinPrice(quint64 & minPrice) const {
 
     bool ok;
     double x = ui->minPriceLineEdit->text().toDouble(&ok);
@@ -56,14 +68,14 @@ bool SellerTorrentPluginConfigurationDialog::tryToGetTotalPrice(quint64 & price)
 
         // Convert to satoshies
         if(_settings->currency() == BitcoinDisplaySettings::Currency::BitCoin)
-            price = BitcoinRepresentation(BitcoinRepresentation::BitCoinPrefix::Milli, x).satoshies();
+            minPrice = BitcoinRepresentation(BitcoinRepresentation::BitCoinPrefix::Milli, x).satoshies();
         else
-            price = BitcoinRepresentation(BitcoinRepresentation::MetricPrefix::Centi, x, _settings->rate()).satoshies();
+            minPrice = BitcoinRepresentation(BitcoinRepresentation::MetricPrefix::Centi, x, _settings->rate()).satoshies();
 
         return true;
     }
 }
-
+*/
 /**
 quint32 SellerTorrentPluginConfigurationDialog::minPriceFromPricePrGB(quint64 pricePrGB) const {
 
@@ -78,7 +90,9 @@ quint32 SellerTorrentPluginConfigurationDialog::minPriceFromPricePrGB(quint64 pr
 
 quint64 SellerTorrentPluginConfigurationDialog::pricePrGBFromTotalPrice(quint64 price) const {
 
-    float pricePrByte = (float)price/_torrentInfo.total_size();
+    quint64 totalPrice = price*_torrentInfo.num_pieces();
+
+    float pricePrByte = (float)totalPrice/_torrentInfo.total_size();
 
     float pricePrGB = pricePrByte*(1000*1000*1000);
 
@@ -88,6 +102,7 @@ quint64 SellerTorrentPluginConfigurationDialog::pricePrGBFromTotalPrice(quint64 
         return static_cast<quint64>(ceil(pricePrGB));
 }
 
+/**
 quint64 SellerTorrentPluginConfigurationDialog::pricePrPieceFromTotalPrice(quint64 price) const {
 
     float pricePrPiece = (float)price/_torrentInfo.num_pieces();
@@ -97,6 +112,7 @@ quint64 SellerTorrentPluginConfigurationDialog::pricePrPieceFromTotalPrice(quint
     else
         return static_cast<quint64>(ceil(pricePrPiece));
 }
+*/
 
 void SellerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
@@ -117,21 +133,24 @@ void SellerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
     quint64 minPrice = minPriceFromPricePrGB(pricePrGB);
     */
 
+    /**
     // Total price for torrent
-    //quint64 totalPrice = ui->minPriceLineEdit->text().toLongLong();
+    quint64 totalPrice = ui->minPriceLineEdit->text().toLongLong();
 
-    quint64 totalPrice;
 
-    if(!tryToGetTotalPrice(totalPrice)) {
+    if(!tryToMinPrice(minPrice)) {
 
         QMessageBox::critical(this,
                               "Invalid per GB price value",
                               "Must be positive number: " + ui->minPriceLineEdit->text());
         return;
     }
+    */
 
     // Direct piece price
-    quint64 minPrice = pricePrPieceFromTotalPrice(totalPrice); //static_cast<quint64>(ceil((float)totalPrice / _torrentInfo.num_pieces()));
+    //quint64 minPrice = pricePrPieceFromTotalPrice(minPrice); //static_cast<quint64>(ceil((float)totalPrice / _torrentInfo.num_pieces()));
+
+    quint64 minPrice = ui->minPriceSlider->value();
 
     // Warn user if selling for free
     if(minPrice == 0) {
@@ -216,18 +235,24 @@ void SellerTorrentPluginConfigurationDialog::updateComputedSatoshiesMinPriceValu
 
 void SellerTorrentPluginConfigurationDialog::updatePrice() {
 
-    quint64 totalPrice;
+    quint64 minPrice = ui->minPriceSlider->value();
 
-    if(!tryToGetTotalPrice(totalPrice))
-        return;
+    QString minPriceString = BitcoinRepresentation(minPrice).toString(_settings);
+    ui->pricePrPiece->setText(minPriceString);
 
-    quint64 pricePrGB = pricePrGBFromTotalPrice(totalPrice);
-    ui->pricePerGBLabel->setText(QString::number(pricePrGB));
-
-    quint64 pricePrPiece = pricePrPieceFromTotalPrice(totalPrice);
-    ui->computedSatoshiesMinPriceValue->setText(QString::number(pricePrPiece));
+    quint64 pricePrGB = pricePrGBFromTotalPrice(minPrice);
+    QString pricePrGBString = BitcoinRepresentation(pricePrGB).toString(_settings);
+    ui->pricePerGBLabel->setText(pricePrGBString);
 }
 
 void SellerTorrentPluginConfigurationDialog::on_minPriceLineEdit_textChanged(const QString &arg1) {
+    updatePrice();
+}
+
+void SellerTorrentPluginConfigurationDialog::on_minPriceSlider_sliderMoved(int position) {
+    updatePrice();
+}
+
+void SellerTorrentPluginConfigurationDialog::on_minPriceSlider_sliderReleased() {
     updatePrice();
 }

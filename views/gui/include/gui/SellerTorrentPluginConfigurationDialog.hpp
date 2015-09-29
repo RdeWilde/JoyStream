@@ -38,7 +38,7 @@ public:
     // Return value indicates validity of corresponding ui field,
     // and passed reference is only modified with valid value if
     // return value is true
-    bool tryToGetTotalPrice(quint64 & minPrice) const;
+    //bool tryToMinPrice(quint64 & minPrice) const;
 
     // Compute minPrice from price pr. GB (in satoshies)
     //quint32 minPriceFromPricePrGB(quint64 pricePrGB) const;
@@ -47,12 +47,16 @@ public:
     quint64 pricePrGBFromTotalPrice(quint64 price) const;
 
     // Compute price/piece (in satoshies) from total price (in satoshies)
-    quint64 pricePrPieceFromTotalPrice(quint64 price) const;
+    //quint64 pricePrPieceFromTotalPrice(quint64 price) const;
 
 private slots:
     void on_buttonBox_accepted();
 
     void on_minPriceLineEdit_textChanged(const QString &arg1);
+
+    void on_minPriceSlider_sliderMoved(int position);
+
+    void on_minPriceSlider_sliderReleased();
 
 private:
 

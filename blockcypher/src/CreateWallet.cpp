@@ -49,12 +49,13 @@ void Reply::QNetworkReplyFinished() {
             _response = BlockCypherResponse::Created;
             _created = Wallet(BlockCypher::rawToQJsonObject(response));
 
-        } else if(e == QNetworkReply::ContentConflictError)
+        } else if(e == QNetworkReply::ContentConflictError) {
             _response = BlockCypherResponse::AlreadyExists;
-        else {
+            qDebug() << "Wallet already exists.";
+        } else {
 
             _response = BlockCypherResponse::catch_all;
-            qDebug() << QString(response);
+            qDebug() << "QNetworkReplyFinished error: " << QString(response);
         }
     }
 

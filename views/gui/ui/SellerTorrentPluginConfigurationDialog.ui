@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>404</width>
-    <height>156</height>
+    <width>372</width>
+    <height>141</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,8 +16,8 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>200</x>
-     <y>110</y>
+     <x>170</x>
+     <y>90</y>
      <width>181</width>
      <height>31</height>
     </rect>
@@ -39,14 +39,14 @@
     </rect>
    </property>
    <property name="text">
-    <string>Price for full torrent (*):</string>
+    <string>Price/piece</string>
    </property>
   </widget>
   <widget class="QLineEdit" name="minPriceLineEdit">
    <property name="geometry">
     <rect>
-     <x>320</x>
-     <y>20</y>
+     <x>280</x>
+     <y>210</y>
      <width>57</width>
      <height>20</height>
     </rect>
@@ -171,7 +171,7 @@
    <property name="geometry">
     <rect>
      <x>22</x>
-     <y>70</y>
+     <y>60</y>
      <width>231</width>
      <height>16</height>
     </rect>
@@ -182,14 +182,14 @@
     </font>
    </property>
    <property name="text">
-    <string>satoshies/GB:</string>
+    <string>Price/GB</string>
    </property>
   </widget>
-  <widget class="QLabel" name="computedSatoshiesMinPriceValue">
+  <widget class="QLabel" name="pricePrPiece">
    <property name="geometry">
     <rect>
      <x>320</x>
-     <y>50</y>
+     <y>25</y>
      <width>55</width>
      <height>16</height>
     </rect>
@@ -205,29 +205,11 @@
     <string>N/A</string>
    </property>
   </widget>
-  <widget class="QLabel" name="pricePerGBFieldLabel">
-   <property name="geometry">
-    <rect>
-     <x>22</x>
-     <y>50</y>
-     <width>111</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>10</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>satoshies/piece:</string>
-   </property>
-  </widget>
   <widget class="QLabel" name="pricePerGBLabel">
    <property name="geometry">
     <rect>
      <x>320</x>
-     <y>70</y>
+     <y>55</y>
      <width>55</width>
      <height>16</height>
     </rect>
@@ -244,22 +226,17 @@
     <string>N/A</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label">
+  <widget class="QSlider" name="minPriceSlider">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>120</y>
-     <width>251</width>
-     <height>17</height>
+     <x>180</x>
+     <y>20</y>
+     <width>111</width>
+     <height>29</height>
     </rect>
    </property>
-   <property name="font">
-    <font>
-     <pointsize>8</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>*Price will cover transaction fee</string>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
    </property>
   </widget>
  </widget>
