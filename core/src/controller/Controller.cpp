@@ -1073,7 +1073,7 @@ Q_DECLARE_METATYPE(const libtorrent::alert*)
 Controller::Controller(const Configuration & configuration, Wallet::Manager * wallet, QNetworkAccessManager * manager, QLoggingCategory & category)
     : _state(State::normal)
     , _session(new libtorrent::session(libtorrent::fingerprint(CORE_EXTENSION_FINGERPRINT, CORE_VERSION_MAJOR, CORE_VERSION_MINOR, 0, 0),
-                   libtorrent::session::add_default_plugins,
+                   libtorrent::session::add_default_plugins + libtorrent::session::start_default_features,
                    libtorrent::alert::error_notification +
                    libtorrent::alert::tracker_notification +
                    libtorrent::alert::debug_notification +
