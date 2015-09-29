@@ -18,9 +18,12 @@ TXRef::TXRef(const QJsonObject & o) {
     Q_ASSERT(o["address"].isString());
     _addressString = o["address"].toString().toStdString();
 
-    Q_ASSERT(o.contains("block_height"));
-    Q_ASSERT(o["block_height"].isDouble());
-    _block_height = o["block_height"].toInt();
+    // is not included for unconfirmed txrefs
+    if(o.contains("block_height")) {
+
+        Q_ASSERT(o["block_height"].isDouble());
+        _block_height = o["block_height"].toInt();
+    }
 
     Q_ASSERT(o.contains("tx_hash"));
     Q_ASSERT(o["tx_hash"].isString());

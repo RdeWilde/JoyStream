@@ -103,18 +103,28 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
      * Setup colours of bitcon balances
      */
 
+    // earnedBalanceLabel
     QPalette earnedBalancePalette = ui->earnedBalanceLabel->palette();
     earnedBalancePalette.setColor(ui->earnedBalanceLabel->foregroundRole(), Qt::green);
     //palette.setColor(ui->pLabel->foregroundRole(), Qt::yellow);
     ui->earnedBalanceLabel->setPalette(earnedBalancePalette);
     ui->earnedTitleQlabel->setPalette(earnedBalancePalette);
 
+    // spentBalanceLabel
     QPalette spentBalancePalette = ui->spentBalanceLabel->palette();
     spentBalancePalette.setColor(ui->spentBalanceLabel->foregroundRole(), Qt::red);
     //palette.setColor(ui->pLabel->foregroundRole(), Qt::yellow);
     ui->spentBalanceLabel->setPalette(spentBalancePalette);
     ui->spentTitleLabel->setPalette(spentBalancePalette);
 
+    // unconfirmedBalanceLabel
+    QPalette unconfirmedBalanceLabelPalette = ui->unconfirmedBalanceLabel->palette();
+
+    unconfirmedBalanceLabelPalette.setColor(ui->unconfirmedBalanceLabel->foregroundRole(), Qt::magenta);
+    ui->unconfirmedBalanceLabel->setPalette(unconfirmedBalanceLabelPalette);
+    ui->unconfirmedBalanceTitleLabel->setPalette(unconfirmedBalanceLabelPalette);
+
+    // balanceLabel
     QPalette balanceLabelPalette = ui->balanceLabel->palette();
     balanceLabelPalette.setColor(ui->balanceLabel->foregroundRole(), Qt::blue);
     //palette.setColor(ui->pLabel->foregroundRole(), Qt::yellow);
@@ -131,7 +141,7 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
     /**
      * Set initial balances
      */
-    updateWalletBalance(_wallet->lastComputedZeroConfBalance());
+    //updateWalletBalances(_wallet->lastComputedZeroConfBalance());
     updatePluginStatus(Plugin::Status(0, 0, 0));
 
     /**
@@ -170,6 +180,7 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
     // Align spending/wallet info labels
     ui->earnedBalanceLabel->setAlignment(Qt::AlignRight);
     ui->spentBalanceLabel->setAlignment(Qt::AlignRight);
+    ui->unconfirmedBalanceLabel->setAlignment(Qt::AlignRight);
     ui->balanceLabel->setAlignment(Qt::AlignRight);
 
     /**
@@ -275,13 +286,14 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
 
     /**
      * Wallet signals
-     */
+
 
     // Update balance when it changes
     QObject::connect(_wallet,
                      SIGNAL(zeroConfBalanceChanged(quint64)),
                      this,
-                     SLOT(updateWalletBalance(quint64)));
+                     SLOT(updateWalletBalances(quint64)));
+    */
 
     // Capure wallet balance update timer,
     connect(&_walletBalanceUpdateTimer,
@@ -290,7 +302,8 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
             SLOT(updateWalletBalanceHook()));
 
     // Do first round to setup initial value
-    updateWalletBalance(_wallet->BLOCKCYPHER_lastAdress()._final_balance);
+    BlockCypher::Address a =_wallet->BLOCKCYPHER_lastAdress();
+    updateWalletBalances(a._balance, a._unconfirmed_balance);
 
     // and have i fire every 30s
     _walletBalanceUpdateTimer.start(30000);
@@ -641,12 +654,14 @@ void MainWindow::updatePluginStatus(const Plugin::Status & status) {
     ui->earnedBalanceLabel->setText(stringEarnedBalance);
 }
 
-void MainWindow::updateWalletBalance(quint64 balance) {
+void MainWindow::updateWalletBalances(quint64 confirmedBalance, quint64 unconfirmedBalance) {
     //qCDebug() << "updateWalletBalance" << balance;
 
-    QString stringBalance = BitcoinRepresentation(balance).toString(&_bitcoinDisplaySettings);
+    QString stringConfirmedBalance = BitcoinRepresentation(confirmedBalance).toString(&_bitcoinDisplaySettings);
+    ui->balanceLabel->setText(stringConfirmedBalance);
 
-    ui->balanceLabel->setText(stringBalance);
+    QString stringUnconfirmedBalance = BitcoinRepresentation(unconfirmedBalance).toString(&_bitcoinDisplaySettings);
+    ui->unconfirmedBalanceLabel->setText(stringUnconfirmedBalance);
 }
 
 void MainWindow::on_walletPushButton_clicked() {
@@ -726,13 +741,15 @@ void MainWindow::startVLC(const libtorrent::sha1_hash & infoHash) {
 void MainWindow::updateWalletBalanceHook() {
 
     // Sync blockcypher wallet
+    // MUST BE DONE ALL THE TIME TO CAPTURE
+    // PAYCHAN OUTPUTS/CHANGE/PAYMENTS
     _wallet->BLOCKCYPHER_update_remote_wallet();
 
     // recalculate utxo (in case there has been any in/out to existing addresses);
     BlockCypher::Address addr = _wallet->BLOCKCYPHER_rebuild_utxo();
 
     // update balance
-    updateWalletBalance(addr._final_balance);
+    updateWalletBalances(addr._balance, addr._unconfirmed_balance);
 }
 
 void MainWindow::showTorrentDirectory() {

@@ -77,6 +77,10 @@ namespace BlockCypher {
         // Usually only returned from the standard.
         std::vector<TXRef> _txrefs;
 
+        // Array of unconfirmed transaction inputs and outputs for this address.
+        // Usually only returned from the standard.
+        std::vector<TXRef> _unconfirmed_txrefs;
+
         // To retrieve base URL transactions.
         // To get the full URL, concatenate this URL with a transaction’s hash.
         std::string _tx_url;

@@ -167,7 +167,7 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
 
         // Show modal dialog on same thread, we block untill it is closed
         QMessageBox msgBox;
-        msgBox.setText(QString("No utxo found with value no less than: ") + QString::number(minFunds) + QString("(satoshies)"));
+        msgBox.setText(QString("You need a confirmed balance of at least ") + QString::number(minFunds) + QString("(satoshies), please top up wallet and wait for pending transactions to be confirmed."));
         msgBox.exec();
 
         return;

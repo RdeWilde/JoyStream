@@ -1157,9 +1157,13 @@ BlockCypher::Address Manager::BLOCKCYPHER_rebuild_utxo() {
 
     //qDebug() << "BLOCKCYPHER_rebuild_utxo";
 
-    // Iterate _txrefs and fetch utxos
-    for(std::vector<BlockCypher::TXRef>::const_iterator i = address._txrefs.cbegin(),
-        end = address._txrefs.cend();i != end;i++) {
+    // WE DO BOTH CONFIRMED AND UNCONFIRMED OUTPUTS
+    std::vector<BlockCypher::TXRef> txrefs = address._txrefs;
+    txrefs.insert( txrefs.end(), address._unconfirmed_txrefs.begin(), address._unconfirmed_txrefs.end());
+
+    // Iterate input/outputs and fetch utxos
+    for(std::vector<BlockCypher::TXRef>::const_iterator i = txrefs.cbegin(),
+        end = txrefs.cend();i != end;i++) {
 
         // Get TXRef
         BlockCypher::TXRef t = *i;

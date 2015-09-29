@@ -47,7 +47,7 @@
    <widget class="QLabel" name="earnedBalanceLabel">
     <property name="geometry">
      <rect>
-      <x>648</x>
+      <x>512</x>
       <y>16</y>
       <width>130</width>
       <height>33</height>
@@ -71,7 +71,7 @@
    <widget class="QLabel" name="earnedTitleQlabel">
     <property name="geometry">
      <rect>
-      <x>736</x>
+      <x>600</x>
       <y>44</y>
       <width>41</width>
       <height>19</height>
@@ -89,7 +89,7 @@
    <widget class="Line" name="line">
     <property name="geometry">
      <rect>
-      <x>798</x>
+      <x>662</x>
       <y>10</y>
       <width>3</width>
       <height>61</height>
@@ -102,7 +102,7 @@
    <widget class="QLabel" name="spentTitleLabel">
     <property name="geometry">
      <rect>
-      <x>880</x>
+      <x>745</x>
       <y>44</y>
       <width>35</width>
       <height>19</height>
@@ -120,7 +120,7 @@
    <widget class="QLabel" name="spentBalanceLabel">
     <property name="geometry">
      <rect>
-      <x>816</x>
+      <x>680</x>
       <y>16</y>
       <width>100</width>
       <height>33</height>
@@ -138,7 +138,7 @@
    <widget class="Line" name="line_2">
     <property name="geometry">
      <rect>
-      <x>932</x>
+      <x>936</x>
       <y>10</y>
       <width>3</width>
       <height>61</height>
@@ -151,7 +151,7 @@
    <widget class="QLabel" name="balanceLabel">
     <property name="geometry">
      <rect>
-      <x>950</x>
+      <x>954</x>
       <y>16</y>
       <width>100</width>
       <height>33</height>
@@ -172,7 +172,7 @@
    <widget class="QLabel" name="balanceTitleLabel">
     <property name="geometry">
      <rect>
-      <x>1006</x>
+      <x>1010</x>
       <y>44</y>
       <width>45</width>
       <height>19</height>
@@ -193,8 +193,8 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>510</x>
-      <y>14</y>
+      <x>440</x>
+      <y>20</y>
       <width>50</width>
       <height>50</height>
      </rect>
@@ -253,7 +253,7 @@
      <rect>
       <x>400</x>
       <y>14</y>
-      <width>99</width>
+      <width>31</width>
       <height>51</height>
      </rect>
     </property>
@@ -277,6 +277,58 @@
     </property>
     <property name="text">
      <string>v0.0.1 only works with Bitcoin testnet, use faucet for free coins. Keep running at all times for testing purposes, restart for automatic updates.</string>
+    </property>
+   </widget>
+   <widget class="Line" name="line_3">
+    <property name="geometry">
+     <rect>
+      <x>800</x>
+      <y>10</y>
+      <width>3</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Vertical</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="unconfirmedBalanceLabel">
+    <property name="geometry">
+     <rect>
+      <x>818</x>
+      <y>16</y>
+      <width>100</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>20</pointsize>
+     </font>
+    </property>
+    <property name="layoutDirection">
+     <enum>Qt::LeftToRight</enum>
+    </property>
+    <property name="text">
+     <string>N/A</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="unconfirmedBalanceTitleLabel">
+    <property name="geometry">
+     <rect>
+      <x>842</x>
+      <y>44</y>
+      <width>81</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>unconfirmed</string>
     </property>
    </widget>
   </widget>

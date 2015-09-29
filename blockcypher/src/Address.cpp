@@ -69,6 +69,25 @@ Address::Address(const QJsonObject & o) {
     } //else
       //  qDebug() << ".txrefs missing in Address object";
 
+    // copy paset due to API change last minute
+    // change later
+    if(o.contains("unconfirmed_txrefs")) {
+
+
+        Q_ASSERT(o["unconfirmed_txrefs"].isArray());
+        QJsonArray unconfirmed_txrefs = o["unconfirmed_txrefs"].toArray();
+
+        for(QJsonArray::const_iterator i = unconfirmed_txrefs.constBegin(),
+            end = unconfirmed_txrefs.constEnd();
+            i != end;
+            i++) {
+
+            QJsonValue elm = *i;
+
+            _unconfirmed_txrefs.push_back(TXRef(elm.toObject()));
+        }
+    }
+
     Q_ASSERT(o.contains("tx_url"));
     Q_ASSERT(o["tx_url"].isString());
     _tx_url = o["_tx_url"].toString().toStdString();

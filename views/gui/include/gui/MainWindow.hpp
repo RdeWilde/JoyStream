@@ -89,7 +89,7 @@ public slots:
     void updatePluginStatus(const Plugin::Status & status);
 
     // Wallet balance has changed
-    void updateWalletBalance(quint64 balance);
+    void updateWalletBalances(quint64 confirmedBalance, quint64 unconfirmedBalance);
 
     /**
      * Torrent table events
