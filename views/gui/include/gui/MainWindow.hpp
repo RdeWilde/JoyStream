@@ -198,6 +198,9 @@ protected:
 
     // Handler for dropping torrent file on client
     void dropEvent(QDropEvent *e);
+private slots:
+    void on_torrentsPushButton_clicked();
+    void on_bugsPushButton_clicked();
 };
 
 #endif // MAIN_WINDOW_HPP

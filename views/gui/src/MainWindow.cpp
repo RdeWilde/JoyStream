@@ -801,3 +801,13 @@ void MainWindow::dropEvent(QDropEvent *e) {
         qDebug() << "Dropped file:" << fileName;
     }
 }
+
+void MainWindow::on_torrentsPushButton_clicked()
+{
+    showTorrentDirectory();
+}
+
+void MainWindow::on_bugsPushButton_clicked()
+{
+    reportBugs();
+}

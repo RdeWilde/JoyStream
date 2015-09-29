@@ -8,11 +8,12 @@
 #include <gui/AddTorrentDialog.hpp>
 #include "ui_AddTorrentDialog.h"
 
-#include <QFileDialog>
-#include <QDebug>
-
 #include <libtorrent/magnet_uri.hpp> // libtorrent::parse_magnet_uri
 #include <libtorrent/add_torrent_params.hpp> // parsing torrent magnet/file
+
+#include <QFileDialog>
+#include <QDebug>
+#include <QStandardPaths>
 
 AddTorrentDialog::AddTorrentDialog(Controller * controller, const QString & resource, bool isTorrentFile)
     : ui(new Ui::AddTorrentDialog)
@@ -74,6 +75,10 @@ AddTorrentDialog::AddTorrentDialog(Controller * controller, const QString & reso
             return;
         }
     }
+
+    // Set default folder location
+    //ui-> ->
+    ui->saveToFolderLineEdit->setText(QStandardPaths::standardLocations(QStandardPaths::DownloadLocation).first());
 }
 
 AddTorrentDialog::~AddTorrentDialog() {
