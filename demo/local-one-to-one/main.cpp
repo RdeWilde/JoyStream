@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
     QString RISE_AND_RISE_OF_BITCOIN_FILE   = torrentFileDirectory + QDir::separator() + "The.Rise.and.Rise.of.Bitcoin.2014.720p.HDrip.x264.AAC.MVGroup.org.mp4.torrent",
             LITTLE_SIMZ_FILE                = torrentFileDirectory + QDir::separator() + "Little Simz - AGE 101- DROP 1 - 01 Homosapiens VS Aliens.mp3.torrent";
 
-    QString TORRENT = RISE_AND_RISE_OF_BITCOIN_FILE;
+    QString TORRENT = RISE_AND_RISE_OF_BITCOIN_FILE; //RISE_AND_RISE_OF_BITCOIN_FILE;
 
     // Get second argument: Torrent data directory
     QString torrentDataDirectory = arguments[1];

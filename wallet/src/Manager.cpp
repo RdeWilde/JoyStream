@@ -1095,7 +1095,7 @@ void Manager::BLOCKCYPHER_init(QNetworkAccessManager * manager, const QString & 
 
     _BLOCKCYPHER_walletName = QString::fromStdString(fullString.substr(0, 25));
 
-    qDebug() << "BLOCKCYPHER: Derived wallet name from seed" << _BLOCKCYPHER_walletName;
+    qDebug() << "BLOCKCYPHER: Wallet name derived" << _BLOCKCYPHER_walletName;
 
     // Delete wallet with this name
     _BLOCKCYPHER_client->deleteWallet(_BLOCKCYPHER_walletName);
@@ -1105,8 +1105,8 @@ void Manager::BLOCKCYPHER_init(QNetworkAccessManager * manager, const QString & 
 
     // Rebuild utxo
     BLOCKCYPHER_rebuild_utxo();
-}
 
+}
 BlockCypher::Wallet Manager::BLOCKCYPHER_create_remote_wallet() {
 
     // Get receivea adddresses we control

@@ -743,13 +743,20 @@ void MainWindow::updateWalletBalanceHook() {
     // Sync blockcypher wallet
     // MUST BE DONE ALL THE TIME TO CAPTURE
     // PAYCHAN OUTPUTS/CHANGE/PAYMENTS
-    _wallet->BLOCKCYPHER_update_remote_wallet();
+    try {
 
-    // recalculate utxo (in case there has been any in/out to existing addresses);
-    BlockCypher::Address addr = _wallet->BLOCKCYPHER_rebuild_utxo();
+        _wallet->BLOCKCYPHER_update_remote_wallet();
 
-    // update balance
-    updateWalletBalances(addr._balance, addr._unconfirmed_balance);
+        // recalculate utxo (in case there has been any in/out to existing addresses);
+        BlockCypher::Address addr = _wallet->BLOCKCYPHER_rebuild_utxo();
+
+        // update balance
+        updateWalletBalances(addr._balance, addr._unconfirmed_balance);
+
+    } catch(const std::exception & e) {
+        qDebug() << "Catastrophic failure, could not resync wallet status, most likely due to network i/o failure";
+        return;
+    }
 }
 
 void MainWindow::showTorrentDirectory() {
