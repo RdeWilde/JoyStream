@@ -28,7 +28,7 @@ unix:!macx {
 # Mac
 macx {
 
-        OPENSSL_LOCATION = /usr/local/opt/openssl
+        OPENSSL_LOCATION = /usr/local/ssl
 
 	INCLUDEPATH += $$OPENSSL_LOCATION/include
 

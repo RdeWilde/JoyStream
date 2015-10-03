@@ -91,7 +91,8 @@ macx {
     # Linking
     CONFIG(release, debug|release) {
         #library built with: bjam address-model=64 deprecated-functions=off boost-link=shared boost=source geoip=off link=static asserts=off release
-        LIBS += -L$$LIBTORRENT_LOCATION/bin/darwin-4.2.1/release/address-model-64/asserts-off/boost-link-shared/boost-source/deprecated-functions-off/link-static/threading-multi -ltorrent
+        #LIBS += -L$$LIBTORRENT_LOCATION/bin/darwin-4.2.1/release/address-model-64/asserts-off/boost-link-shared/boost-source/deprecated-functions-off/link-static/threading-multi -ltorrent
+        LIBS += -L$$LIBTORRENT_LOCATION/bin/clang-darwin-4.2.1/release/address-model-64/asserts-off/boost-source/deprecated-functions-off/link-static/threading-multi/ -ltorrent
 
     } else {
         #library built with: bjam address-model=64 deprecated-functions=off boost-link=shared boost=source geoip=off link=static debug
