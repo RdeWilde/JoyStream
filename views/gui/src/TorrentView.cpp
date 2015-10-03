@@ -61,9 +61,11 @@ TorrentView::TorrentView(QObject * parent,
     _balanceItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
 
     // Add menu buttons
+    /**
     _torrentTableContextMenu.addAction(&_startAction);
     _torrentTableContextMenu.addAction(&_pauseAction);
     _torrentTableContextMenu.addAction(&_removeAction);
+    */
     // add action to menu only when plugin is installed
 
     // disable (temporary) main menu actions
@@ -236,7 +238,7 @@ void TorrentView::updateStartedBuyerTorrentPlugin(const BuyerTorrentPluginViewMo
     _pluginInstalledItem->setText("Buyer");
 
     // add action to menu
-    _torrentTableContextMenu.addSection("");
+    //_torrentTableContextMenu.addSection("");
     _torrentTableContextMenu.addAction(&_viewExtensionAction);
 
     // add streaming action to menu
