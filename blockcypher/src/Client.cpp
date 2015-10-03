@@ -221,7 +221,7 @@ PushRawTransaction::Reply * Client::pushRawTransactionAsync(const Coin::Transact
     };
 
     // Make GET request
-    QNetworkReply * reply = post("txs/push", jsonifiedTx);
+    QNetworkReply * reply = post("txs/push?token=" + _token, jsonifiedTx);
 
     // Return reply manager
     return new PushRawTransaction::Reply(reply, toBeBroadcasted);
