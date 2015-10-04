@@ -24,4 +24,8 @@ enum class MessageType {
     payment //, end
 };
 
+const char * MessageTypeToString(MessageType type);
+
+//MessageType StringToMessageType(const char * str);
+
 #endif // MESSAGE_TYPE_HPP

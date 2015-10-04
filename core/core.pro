@@ -76,6 +76,7 @@ SOURCES += \
     src/controller/TorrentPluginViewModel.cpp \
     src/controller/TorrentViewModel.cpp \
     src/controller/Stream.cpp \
+    src/extension/Message/MessageType.cpp
     #src/controller/ControllerBarrier.cpp
 
 HEADERS += \

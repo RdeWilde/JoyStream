@@ -449,15 +449,28 @@ bool PeerPlugin::on_extended(int length, int msg, libtorrent::buffer::const_inte
     ExtendedMessagePayload * m = ExtendedMessagePayload::fromRaw(messageType, stream, lengthOfExtendedMessagePayload);
     qint64 postReadPosition = stream.device()->pos();
 
-    qint64 written = postReadPosition - preReadPosition;
+    qint64 totalReadLength = postReadPosition - preReadPosition;
 
-    if(written != lengthOfExtendedMessagePayload)
-        throw std::runtime_error("Extended message payload was malformed");
+    // Check that the full extended payload was parsed
+    if(totalReadLength != lengthOfExtendedMessagePayload) {
+
+        std::stringstream s;
+
+        // MAKE PROPER TYPED EXCEPTION AT SOME POINT
+        s << "Extended message payload was expected to have length of"
+          << lengthOfExtendedMessagePayload << "bytes"
+          << ", however full valid message was parsed to be of length "
+          << totalReadLength << "bytes"
+          << " and of type "
+          << MessageTypeToString(m->messageType());
+
+        throw std::runtime_error(s.str());
+    }
 
     // Drop if message was malformed
     if(m == NULL) {
 
-        qCDebug(_category) << "Malformed message BitSwapr BEP message received, peer marked for removal.";
+        qCDebug(_category) << "Malformed extended message received, peer marked for removal.";
 
         // Note that message was malformed
         _lastReceivedMessageWasMalformed = true;
