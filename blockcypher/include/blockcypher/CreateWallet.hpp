@@ -48,13 +48,15 @@ namespace CreateWallet {
 
         Reply(QNetworkReply * reply, const Wallet & requested);
 
+        const char * errorMessage() const;
+
         Wallet requested() const;
         BlockCypherResponse response() const;
         Wallet created() const;
 
     public slots:
 
-        virtual void QNetworkReplyFinished();
+        virtual void processReply();
 
     signals:
 

@@ -47,7 +47,6 @@ Wallet Client::createWallet(const Wallet & requested) {
     if(requested._token != _token)
         throw std::runtime_error("Token in wallet is not compatible client");
 
-
     CreateWallet::Reply * reply = Client::createWalletAsync(requested);
 
     // Block until we have reply finished
@@ -65,8 +64,14 @@ Wallet Client::createWallet(const Wallet & requested) {
         Q_ASSERT(reply->created() == requested);
 
         return reply->created();
-    } else
-        throw std::runtime_error(""); // later add message here, e.g. for different scenarios
+    } else {
+
+        // Create full error mesasge
+        QString s = "Client::createWallet - " + reply->errorReport();
+
+        // ADD PROPER EXCEPTION TYPE LATER
+        throw std::runtime_error(s.toStdString());
+    }
 }
 
 DeleteWallet::Reply * Client::deleteWalletAsync(const QString & name) {
@@ -92,8 +97,14 @@ void Client::deleteWallet(const QString & name) {
 
     DeleteWallet::BlockCypherResponse r = reply->response();
 
-    //if(r != DeleteWallet::BlockCypherResponse::Deleted)
-    //    throw std::runtime_error(""); // later add message here, e.g. for different scenarios
+    if(r != DeleteWallet::BlockCypherResponse::Deleted) {
+
+        // Create full error mesasge
+        QString s = "Client::deleteWalletAsync - " + reply->errorReport();
+
+        // ADD PROPER EXCEPTION TYPE LATER
+        throw std::runtime_error(s.toStdString());
+    }
 }
 
 GetWallet::Reply * Client::getWalletAsync(const QString & name) {
@@ -124,8 +135,14 @@ Wallet Client::getWallet(const QString & name) {
         Q_ASSERT(reply->wallet()._name == name);
 
         return reply->wallet();
-    } else
-        throw std::runtime_error(""); // later add message here, e.g. for different scenarios
+    } else {
+
+        // Create full error mesasge
+        QString s = "Client::getWallet - " + reply->errorReport();
+
+        // ADD PROPER EXCEPTION TYPE LATER
+        throw std::runtime_error(s.toStdString());
+    }
 }
 
 AddAddressToWallet::Reply * Client::addAddressToWalletAsync(const Wallet & requested) {
@@ -162,8 +179,14 @@ Wallet Client::addAddressToWallet(const Wallet & requested) {
         //Q_ASSERT(requested._addresses.toSet().intersect(created).contains())
 
         return created;
-    } else
-        throw std::runtime_error(""); // later add message here, e.g. for different scenarios
+    } else {
+
+        // Create full error mesasge
+        QString s = "Client::addAddressToWallet - " + reply->errorReport();
+
+        // ADD PROPER EXCEPTION TYPE LATER
+        throw std::runtime_error(s.toStdString());
+    }
 }
 
 AddressEndPoint::Reply * Client::addressEndPointAsync(const QString & walletName, bool unspentOnly, uint limit, uint confirmations) {
@@ -202,11 +225,19 @@ Address Client::addressEndPoint(const QString & walletName, bool unspentOnly, ui
 
     if(r == AddressEndPoint::BlockCypherResponse::Fetched) {
 
+        Q_ASSERT(reply->error() == QNetworkReply::NoError);
+
         Address fetched = reply->address();
 
         return fetched;
-    } else
-        throw std::runtime_error(""); // later add message here, e.g. for different scenarios
+    }  else {
+
+        // Create full error mesasge
+        QString s = "Client::addressEndPoint - " + reply->errorReport();
+
+        // ADD PROPER EXCEPTION TYPE LATER
+        throw std::runtime_error(s.toStdString());
+    }
 
 }
 
@@ -243,8 +274,14 @@ bool Client::pushRawTransaction(const Coin::Transaction & toBeBroadcasted) {
 
     if(r == PushRawTransaction::BlockCypherResponse::Broadcasted) {
         return true;
-    } else
-        throw std::runtime_error(""); // later add message here, e.g. for different scenarios
+    } else {
+
+        // Create full error mesasge
+        QString s = "Client::pushRawTransaction - " + reply->errorReport();
+
+        // ADD PROPER EXCEPTION TYPE LATER
+        throw std::runtime_error(s.toStdString());
+    }
 }
 
 QString Client::endPoint(Coin::Network network) {

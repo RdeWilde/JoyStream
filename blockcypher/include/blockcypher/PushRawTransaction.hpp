@@ -54,13 +54,15 @@ namespace PushRawTransaction {
 
         Reply(QNetworkReply * reply, const Coin::Transaction & toBeBroadcasted);
 
+        virtual const char * errorMessage() const;
+
         Coin::Transaction toBeBroadcasted() const;
         BlockCypherResponse response() const;
         TX returned() const;
 
     public slots:
 
-        virtual void QNetworkReplyFinished();
+        virtual void processReply();
 
     signals:
 

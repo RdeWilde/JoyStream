@@ -21,39 +21,48 @@ Reply::Reply(QNetworkReply * reply, const QString & walletName, bool unspentOnly
     , _response(BlockCypherResponse::Pending) {
 }
 
-void Reply::QNetworkReplyFinished() {
+void Reply::processReply() {
 
     if(_reply->bytesAvailable() == 0) {
         _response = BlockCypherResponse::catch_all;
     } else {
 
-        // Get response data, without emptying QIODevice
-        //(readAll consumes devices, which breaks multiple parsing calls,
-        // e.g. due to finished signal and explicit parse call.)
-        QByteArray response = _reply->peek(_reply->bytesAvailable());
-
         //qDebug() << "URL:" << _reply->request().url().toString();
-        //qDebug() << "RESPONSE:" << response;
+        //qDebug() << "RESPONSE:" << _rawResponse;
 
-        // If there was an error, throw exception
-        QNetworkReply::NetworkError e = _reply->error();
-
-        if(e == QNetworkReply::NoError) {
+        if(_error == QNetworkReply::NoError) {
 
             _response = BlockCypherResponse::Fetched;
-            _address = Address(BlockCypher::rawToQJsonObject(response));
+            _address = Address(BlockCypher::rawToQJsonObject(_rawResponse));
 
         } else if(_reply->error() == QNetworkReply::NetworkError::ContentNotFoundError) {
             _response = BlockCypherResponse::WalletDoesNotExist;
-            qDebug() << "Wallet does not exist error";
+            qDebug() << "Wallet does not exist error.";
         } else  {
 
             _response = BlockCypherResponse::catch_all;
-            qDebug() << "QNetworkReplyFinished error: " << QString(response);
+            qDebug() << "QNetworkReplyFinished error.";
         }
     }
 
     emit done(_response);
+}
+
+const char * Reply::errorMessage() const {
+
+    if(_error != QNetworkReply::NoError) {
+
+        switch(_response) {
+
+            case BlockCypherResponse::WalletDoesNotExist: return "Wallet does not exist";
+            case BlockCypherResponse::catch_all: return "Catch all error";
+
+            default:
+                Q_ASSERT(false);
+        }
+
+    } else
+        return "";
 }
 
 QString Reply::walletName() const {

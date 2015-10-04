@@ -66,6 +66,8 @@ namespace AddressEndPoint {
 
         Reply(QNetworkReply * reply, const QString & walletName, bool unspentOnly, uint limit, uint confirmations);
 
+        virtual const char * errorMessage() const;
+
         QString walletName() const;
 
         bool unspentOnly() const;
@@ -80,7 +82,7 @@ namespace AddressEndPoint {
 
     public slots:
 
-        virtual void QNetworkReplyFinished();
+        virtual void processReply();
 
     signals:
 

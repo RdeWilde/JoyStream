@@ -18,6 +18,24 @@ Reply::Reply(QNetworkReply * reply, const QString & name)
     , _response(BlockCypherResponse::Pending) {
 }
 
+const char * Reply::errorMessage() const {
+
+    if(_error != QNetworkReply::NoError) {
+
+        switch(_response) {
+
+            case BlockCypherResponse::DoesNotExist: return "Wallet does not exist";
+            case BlockCypherResponse::InvalidName: return "Invalid wallet name";
+            case BlockCypherResponse::catch_all: return "Catch all error";
+
+            default:
+                Q_ASSERT(false);
+        }
+
+    } else
+        return "";
+}
+
 QString Reply::name() const {
     return _name;
 }
@@ -30,10 +48,10 @@ Wallet Reply::wallet() const {
     return _wallet;
 }
 
-void Reply::QNetworkReplyFinished() {
+void Reply::processReply() {
 
     if(_reply->bytesAvailable() == 0) {
-        _response = BlockCypherResponse::None;
+        _response = BlockCypherResponse::catch_all;
     } else {
 
         // Get response data, without emptying QIODevice
@@ -55,7 +73,7 @@ void Reply::QNetworkReplyFinished() {
             qDebug() << "Wallet doesnt exist.";
         } else {
 
-            _response = BlockCypherResponse::None;
+            _response = BlockCypherResponse::catch_all;
             qDebug() << "QNetworkReplyFinished error: " << QString(response);
         }
     }

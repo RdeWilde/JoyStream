@@ -17,6 +17,24 @@ Reply::Reply(QNetworkReply * reply, const QString & name)
     , _response(BlockCypherResponse::Pending) {
 }
 
+const char * Reply::errorMessage() const {
+
+    if(_error != QNetworkReply::NoError) {
+
+        switch(_response) {
+
+            case BlockCypherResponse::DidntExist: return "Wallet didn't' exist";
+            case BlockCypherResponse::InvalidName: return "Invalid wallet name";
+            case BlockCypherResponse::catch_all: return "Catch all error";
+
+            default:
+                Q_ASSERT(false);
+        }
+
+    } else
+        return "";
+}
+
 QString Reply::name() const {
     return _name;
 }
@@ -25,33 +43,23 @@ BlockCypherResponse Reply::response() const {
     return _response;
 }
 
-void Reply::QNetworkReplyFinished() {
+void Reply::processReply() {
 
     if(_reply->bytesAvailable() == 0) {
         //_response = BlockCypherResponse::UnknownError;
+        Q_ASSERT(_error == QNetworkReply::NoError);
         _response = BlockCypherResponse::Deleted;
     } else {
 
-        // Get response data, without emptying QIODevice
-        //(readAll consumes devices, which breaks multiple parsing calls,
-        // e.g. due to finished signal and explicit parse call.)
-        QByteArray response = _reply->peek(_reply->bytesAvailable());
-
-        // If there was an error, throw exception
-        QNetworkReply::NetworkError e = _reply->error();
-
-        if(e == QNetworkReply::NoError) {
+        if(_error == QNetworkReply::NoError) {
             _response = BlockCypherResponse::Deleted;
-            //} else if(e == QNetworkReply::ContentConflictError)
-            //_response = BlockCypherResponse::AlreadyExists;
-        } else if(e == QNetworkReply::ContentNotFoundError) {
+            qDebug() << "Wallet deleted.";
+        } else if(_error == QNetworkReply::ContentNotFoundError) {
             _response = BlockCypherResponse::DidntExist;
             qDebug() << "Wallet doesnt exist.";
-            //throw std::runtime_error("Wallet does not exist");
         } else {
-
-            //_response = BlockCypherResponse::catch_all;
-            qDebug() << "QNetworkReplyFinished error: " << QString(response);
+            _response = BlockCypherResponse::catch_all;
+            qDebug() << "QNetworkReplyFinished error.";
         }
     }
 

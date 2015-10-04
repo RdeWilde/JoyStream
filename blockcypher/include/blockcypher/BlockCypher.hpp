@@ -23,9 +23,18 @@ namespace BlockCypher {
     public:
 
         Reply(QNetworkReply * reply);
+
         ~Reply();
 
         QNetworkReply * reply() const;
+
+        QByteArray rawResponse() const;
+
+        QNetworkReply::NetworkError error() const;
+
+        QString errorReport() const;
+
+        virtual const char * errorMessage() const = 0;
 
     // Apparently virtual slots from
     // pure virtual routines in base class need not
@@ -35,18 +44,22 @@ namespace BlockCypher {
 
         //void QNetworkReplyError(QNetworkReply::NetworkError code);
 
-        virtual void QNetworkReplyFinished() = 0;
+        // Process
+        void QNetworkReplyFinished();
 
-    //signals:
+        //
+        virtual void processReply() = 0;
 
-        //void error(QNetworkReply::NetworkError code);
-
-    protected:
+    public:
 
         // Reply object associated with operation
         QNetworkReply * _reply;
 
-        //QJsonObject _blockCypherError;
+        // Response which comes from
+        QByteArray _rawResponse;
+
+        // The error assocaited with reply
+        QNetworkReply::NetworkError _error;
     };
 
     /**

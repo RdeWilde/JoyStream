@@ -22,7 +22,7 @@ namespace GetWallet {
         Returned,
         DoesNotExist,
         InvalidName, // too long or whatever [is this a separate thing from does not exist, as it could nevr have been made?]
-        None // Means there was some network issue, i.e. QNetworkReply::bytesAvailable() == 0
+        catch_all // Means there was some network issue, i.e. QNetworkReply::bytesAvailable() == 0
     };
 
     // QNetworkReply signal handler corresponding to a spesific call
@@ -34,6 +34,8 @@ namespace GetWallet {
 
         Reply(QNetworkReply * reply, const QString & name);
 
+        virtual const char * errorMessage() const;
+
         // Getters
         QString name() const;
         BlockCypherResponse response() const;
@@ -41,7 +43,7 @@ namespace GetWallet {
 
     //public slots:
 
-        virtual void QNetworkReplyFinished();
+        virtual void processReply();
 
     signals:
 

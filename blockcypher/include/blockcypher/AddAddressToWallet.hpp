@@ -20,6 +20,4 @@ namespace AddAddressToWallet {
 }
 }
 
-
-
 #endif // BLOCKCYPHER_ADDADDRESSTOWALLET_HPP

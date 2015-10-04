@@ -1097,8 +1097,12 @@ void Manager::BLOCKCYPHER_init(QNetworkAccessManager * manager, const QString & 
 
     qDebug() << "BLOCKCYPHER: Wallet name derived" << _BLOCKCYPHER_walletName;
 
-    // Delete wallet with this name
-    _BLOCKCYPHER_client->deleteWallet(_BLOCKCYPHER_walletName);
+    try {
+        // Delete wallet with this name
+        _BLOCKCYPHER_client->deleteWallet(_BLOCKCYPHER_walletName);
+    } catch (const std::runtime_error & e ) {
+        qDebug() << "BLOCKCYPHER: Could not delete wallet.";
+    }
 
     // Create wallet with this name
     BLOCKCYPHER_create_remote_wallet();

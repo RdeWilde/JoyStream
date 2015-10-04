@@ -26,7 +26,7 @@ namespace DeleteWallet {
         Deleted,
         DidntExist,
         InvalidName, // too long or whatever
-        UnknownError // QNetworkReply::bytesAvailable() == 0
+        catch_all // QNetworkReply::bytesAvailable() == 0
     };
 
     class Reply : public BlockCypher::Reply {
@@ -37,12 +37,14 @@ namespace DeleteWallet {
 
         Reply(QNetworkReply * reply, const QString & name);
 
+        const char * errorMessage() const ;
+
         QString name() const;
         BlockCypherResponse response() const;
 
     public slots:
 
-        virtual void QNetworkReplyFinished();
+        virtual void processReply();
 
     signals:
 

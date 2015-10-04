@@ -38,6 +38,30 @@ QNetworkReply * Reply::reply() const {
     return _reply;
 }
 
+QByteArray Reply::rawResponse() const {
+    return _rawResponse;
+}
+
+QNetworkReply::NetworkError Reply::error() const {
+    return _error;
+}
+
+QString Reply::errorReport() const {
+    return QString(errorMessage()) + ": " + _rawResponse;
+}
+
+void Reply::QNetworkReplyFinished() {
+
+    // Get response data, without emptying QIODevice
+    //(readAll consumes devices, which breaks multiple parsing calls,
+    // e.g. due to finished signal and explicit parse call.)
+    _rawResponse = _reply->peek(_reply->bytesAvailable());
+
+    _error = _reply->error();
+
+    processReply();
+}
+
 /**
 void Reply::QNetworkReplyError(QNetworkReply::NetworkError code) {
     emit error(code);
