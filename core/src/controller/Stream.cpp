@@ -63,7 +63,7 @@ void Stream::PieceRequest::setIndex(int index) {
 #include <QHostAddress>
 #include <QTcpSocket>
 
-static qint64 MAX_REQUEST_LINE_LENGTH = 2048;
+static uint MAX_REQUEST_LINE_LENGTH = 2048;
 
 Stream::Stream(QTcpSocket * socket, Controller * controller)
     : QObject(controller)
@@ -319,6 +319,8 @@ void Stream::readAndProcessRequestLineFromSocket(const QByteArray & line) {
         // Save size of file
         _totalLengthOfFile = fileEntry.size;
 
+        Q_ASSERT(_totalLengthOfFile >= 0);
+
         // Set default length
         int length = torrentInfo->piece_length() * 3;
 
@@ -343,6 +345,8 @@ void Stream::readAndProcessRequestLineFromSocket(const QByteArray & line) {
             qDebug() << "Cannot deduce content-type from file:" << path;
             Q_ASSERT(false);
         }
+
+        qDebug() << "Content type requested:" << _contentType;
 
     } // If its not the first time, make sure its the same path, otherwise the peer is misbehaving
     else if(_requestedPath != newRequestedPath) {
@@ -439,7 +443,7 @@ void Stream::processRequest() {
         if(ok) {
 
             bool couldConvertStartOfRange;
-            int start = splittedRangeValue.first.toInt(&couldConvertStartOfRange);
+            quint64 start = splittedRangeValue.first.toULongLong(&couldConvertStartOfRange);
 
             if(!couldConvertStartOfRange) {
 
@@ -447,12 +451,14 @@ void Stream::processRequest() {
 
                 sendErrorToPeerAndEndStream(Error::InvalidRangeHeaderLine);
 
-            } else if(splittedRangeValue.second == QByteArrayLiteral("")) // If end of range is empty, then just use start
+            } else if(splittedRangeValue.second == QByteArrayLiteral("")) { // If end of range is empty, then just use start
+
+                qDebug() << "No end of range specified, using default value";
                 getStreamPieces(start);
-            else {
+            } else {
 
                 bool couldConvertEndOfRange;
-                int end = splittedRangeValue.second.toInt(&couldConvertEndOfRange);
+                quint64 end = splittedRangeValue.second.toULongLong(&couldConvertEndOfRange);
 
                 // Could actual range values be recovered?
                 if(couldConvertEndOfRange) {
@@ -508,12 +514,12 @@ void Stream::sendErrorToPeerAndEndStream(Error error) {
     deleteLater();
 }
 
-void Stream::getStreamPieces(int start, int end) {
+void Stream::getStreamPieces(quint64 start, quint64 end) {
 
     // Check that the requested range is valid
     if(start < 0 || end >= _totalLengthOfFile || end <= start) {
 
-        qDebug() << "Invalid range request [" << start << "," << end << "], reseting.";
+        qDebug() << "Full file is [" << 0 << "," << _totalLengthOfFile << "] Invalid range request [" << start << "," << end << "], reseting.";
 
         // End it
         //sendErrorToPeerAndEndStream(Error::InvalidRangeRequested);
@@ -565,7 +571,7 @@ void Stream::getStreamPieces(int start, int end) {
 
     bool atLeastOnePieceIsNotDownloaded = false;
 
-    for(int i = rStart.piece;i <= rEnd.piece;i++) {
+    for(quint64 i = rStart.piece;i <= rEnd.piece;i++) {
 
         // Check if valid copy of piece has been downloaded
         if(_handle.have_piece(i)) {
@@ -597,8 +603,12 @@ void Stream::getStreamPieces(int start, int end) {
     Q_ASSERT(_pieceRequests.size() == _numberOfPiecesNotRead);
 }
 
-void Stream::getStreamPieces(int start) {
-    getStreamPieces(start, start + _defaultRangeLength - 1);
+void Stream::getStreamPieces(quint64 start) {
+
+    quint64 fullPieceEnd = start + _defaultRangeLength;
+    quint64 maxEnd = _totalLengthOfFile - 1;
+
+    getStreamPieces(start, std::min(fullPieceEnd, maxEnd));
 }
 
 void Stream::sendStream() const{
@@ -628,7 +638,7 @@ void Stream::sendStream() const{
     */
 
     // Length of actual data range being sent with this response
-    int streamLength = _end - _start + 1;
+    quint64 streamLength = _end - _start + 1;
 
     QString header = QString("HTTP/1.1 206 Partial Content\n") +
                      QString("Content-Range: bytes ") + QString::number(_start) + QString("-") + QString::number(_end) + QString("/") + QString::number(_totalLengthOfFile) + QString("\n") +
@@ -655,8 +665,8 @@ void Stream::sendStream() const{
     Q_ASSERT(torrentInfo != NULL);
 
     // counter used for invariant later
-    int numberOfBytesWritten = 0;
-    for(int i = 0;i < _pieceRequests.size();i++) {
+    quint64 numberOfBytesWritten = 0;
+    for(quint64 i = 0;i < _pieceRequests.size();i++) {
 
         // Get piece request
         const PieceRequest & pieceRequest = _pieceRequests[i];
@@ -666,12 +676,12 @@ void Stream::sendStream() const{
         if(i == 0) {
 
             // How much is left of piece from start offset to end of piece
-            int sizeOfRestOfPiece = pieceRequest.length() - _startOffsetInFirstPiece;
+            quint64 sizeOfRestOfPiece = pieceRequest.length() - _startOffsetInFirstPiece;
 
             // How much should be written of piece
             // It may be that we should not write full piece,
             // if the requested range is subset of a single piece!
-            int sizeOfPiecePostfixToWrite = (streamLength > sizeOfRestOfPiece) ? sizeOfRestOfPiece : streamLength;
+            quint64 sizeOfPiecePostfixToWrite = (streamLength > sizeOfRestOfPiece) ? sizeOfRestOfPiece : streamLength;
 
             // Send subrange of piece
             _socket->write(pieceRequest.buffer().get() + _startOffsetInFirstPiece, sizeOfPiecePostfixToWrite);
@@ -683,7 +693,7 @@ void Stream::sendStream() const{
 
             // How much of prefix of piece should be writte:
             // for last piece, use stored offset, for internal piece write full piece
-            int sizeOfPiecePrefixToWrite = (i == _pieceRequests.size() - 1) ? _stopOffsetInLastPiece + 1 : pieceRequest.length();
+            quint64 sizeOfPiecePrefixToWrite = (i == _pieceRequests.size() - 1) ? _stopOffsetInLastPiece + 1 : pieceRequest.length();
 
             // Send subrange of piece
             _socket->write(pieceRequest.buffer().get(), sizeOfPiecePrefixToWrite);

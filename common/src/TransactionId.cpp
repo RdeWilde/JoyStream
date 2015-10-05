@@ -32,7 +32,7 @@ TransactionId TransactionId::fromInternalByteOrder(const uchar_vector & vector) 
 
     // Check length
     if(vector.size() != TXID_BYTE_LENGTH)
-        throw std::runtime_error("Incorrect size");
+        throw std::runtime_error("Incorrect size...");
 
     // Make copy so we can modify it
     uchar_vector copy(vector);
@@ -62,7 +62,7 @@ TransactionId TransactionId::fromRPCByteOrder(const QByteArray & array) {
 
     // Check length
     if(array.size() != TXID_BYTE_LENGTH)
-        throw std::runtime_error("Incorrect size");
+        throw std::runtime_error("Incorrect size..");
 
     // Create blank txid
     TransactionId id;

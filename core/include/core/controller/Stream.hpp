@@ -180,10 +180,10 @@ private:
     void sendErrorToPeerAndEndStream(Error errorOccured);
 
     // Tries to get pieces within given file range
-    void getStreamPieces(int start, int end);
+    void getStreamPieces(quint64 start, quint64 end);
 
     // Tries to get pieces starting at given file offset for standard range size (_defaultRangeLength)
-    void getStreamPieces(int start);
+    void getStreamPieces(quint64 start);
 
     // Sends response with data over socket to client
     void sendStream() const;
@@ -227,16 +227,16 @@ private:
      * ===================
      */
     // The index of the *single* in the torrent which can be streamed
-    int _fileIndex;
+    quint64 _fileIndex;
 
     // Total byte size of file
-    int _totalLengthOfFile;
+    quint64 _totalLengthOfFile;
 
     // Content type of content
     QString _contentType;
 
     // The number of bytes
-    int _defaultRangeLength;
+    quint64 _defaultRangeLength;
 
     ////
     //// Everything below here is computed from the last request
@@ -244,18 +244,18 @@ private:
     ////
 
     // Most recent request
-    int _start, _end;
+    quint64 _start, _end;
 
     // Offset in first piece to which _start corresponds
-    int _startOffsetInFirstPiece;
+    quint64 _startOffsetInFirstPiece;
 
     // Offset in last piece to which _end corresponds
-    int _stopOffsetInLastPiece;
+    quint64 _stopOffsetInLastPiece;
 
     // The number of pieces for which we have not yet read data,
     // that is where status of piece
     // is != PieceRequest::Status::ready_in_buffer
-    int _numberOfPiecesNotRead;
+    quint64 _numberOfPiecesNotRead;
 
     // Piece requests for current requested range
     QVector<PieceRequest> _pieceRequests;
