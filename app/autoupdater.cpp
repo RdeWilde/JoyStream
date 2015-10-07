@@ -24,6 +24,8 @@ bool AutoUpdater::newVersionAvailable() {
         return false;
     }
 
+    std::cout << "checking for updates..." << std::endl;
+
     QProcess *process = new QProcess(parent);
     process->start(program, arguments);
     //blocking main thread..
@@ -73,6 +75,6 @@ QString AutoUpdater::updaterPath(){
 #elif __APPLE__
     return _app.applicationDirPath() + "/../../../autoupdate-osx.app/Contents/MacOs/installbuilder.sh";
 #elif __linux
-    return QString("installebuilder.sh");//figure out location for linux
+    return _app.applicationDirPath() + "/../autoupdate-linux.run";
 #endif
 }
