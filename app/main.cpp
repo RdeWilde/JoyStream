@@ -17,7 +17,7 @@
 #include <wallet/Manager.hpp>
 #include <autoupdater.h>
 
-#define ERROR_LOG_ENDPOINT "error.joystream.co"
+#define ERROR_LOG_ENDPOINT "error.joystream.co/error"
 #define ERROR_LOG_MAX_SIZE 200*20
 
 bool send_errorlog(QNetworkAccessManager * manager);
@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
 bool send_errorlog(QNetworkAccessManager * manager) {
 
 		// Read in error file
-		QFile errorFile("main.txt");
+		QFile errorFile(QDir::homePath() + QDir::separator() + QString("main.txt"));
 
 		if(!errorFile.exists())
 				return false;
