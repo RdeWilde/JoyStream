@@ -17,6 +17,7 @@
 #include <wallet/Manager.hpp>
 
 #define ERROR_LOG_ENDPOINT "error.joystream.co"
+#define ERROR_LOG_MAX_SIZE 200*20
 
 bool send_errorlog(QNetworkAccessManager * manager);
 
@@ -175,6 +176,9 @@ bool send_errorlog(QNetworkAccessManager * manager) {
         return false;
 
     QByteArray data = errorFile.readAll();
+
+    // cut off excessive part
+    data = data.right(ERROR_LOG_MAX_SIZE);
 
     // Machine specs
     data += "\n";
