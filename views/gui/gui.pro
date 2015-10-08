@@ -10,7 +10,12 @@ CONFIG  += staticlib
 CONFIG  += create_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
 CONFIG  += c++11 # Needed for class enum, std::array
 
-QT      += core network sql gui # network is needed due to tcpservers/clients in, sql is needed for wallet
+QT      += core
+QT      += network # network is needed due to tcpservers/clients in, sql is needed for wallet
+QT      += sql
+QT      += gui
+QT      += multimedia        # multimedia
+QT      += multimediawidgets # QVideoWidget
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets # QMainWindow, QDialog
 
@@ -30,7 +35,8 @@ SOURCES += \
     src/SellerPeerPluginView.cpp \
     src/PeerPluginsDialog.cpp \
     src/UtxoEventViewModel.cpp \
-    src/ReceiveFundsDialog.cpp
+    src/ReceiveFundsDialog.cpp \
+    src/MediaPlayerDialog.cpp
 
 HEADERS += \
     include/gui/MainWindow.hpp \
@@ -46,7 +52,8 @@ HEADERS += \
     include/gui/BuyerPeerPluginView.hpp \
     include/gui/SellerPeerPluginView.hpp \
     include/gui/UtxoEventViewModel.hpp \
-    include/gui/ReceiveFundsDialog.hpp
+    include/gui/ReceiveFundsDialog.hpp \
+    include/gui/MediaPlayerDialog.hpp
 
 FORMS += \
     ui/SellerTorrentPluginConfigurationDialog.ui \
@@ -57,7 +64,8 @@ FORMS += \
     ui/MainWindow.ui \
     ui/AddTorrentDialog.ui \
     ui/WalletDialog.ui \
-    ui/ReceiveFundsDialog.ui
+    ui/ReceiveFundsDialog.ui \
+    ui/MediaPlayerDialog.ui
 
 RESOURCES += \
     base.qrc
