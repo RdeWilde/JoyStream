@@ -1171,6 +1171,12 @@ void Manager::BLOCKCYPHER_init(QNetworkAccessManager * manager, const QString & 
     BLOCKCYPHER_rebuild_utxo();
 
 }
+
+void Manager::BLOCKCYPHER_fundWalletFromFaucet(quint64 amount){
+    QString address = getReceiveAddress().toBase58CheckEncoding();
+    _BLOCKCYPHER_client->fundWalletFromFaucet(address, amount);
+}
+
 BlockCypher::Wallet Manager::BLOCKCYPHER_create_remote_wallet() {
 
     // Get receivea adddresses we control

@@ -13,6 +13,7 @@
 #include <blockcypher/DeleteWallet.hpp>
 #include <blockcypher/AddressEndPoint.hpp>
 #include <blockcypher/PushRawTransaction.hpp>
+#include <blockcypher/FundWalletFromFaucet.hpp>
 
 #include <QJsonArray>
 #include <QJsonObject>
@@ -281,6 +282,45 @@ bool Client::pushRawTransaction(const Coin::Transaction & toBeBroadcasted) {
 
         // ADD PROPER EXCEPTION TYPE LATER
         throw std::runtime_error(s.toStdString());
+    }
+}
+
+FundWalletFromFaucet::Reply * Client::fundWalletFromFaucetAsync(QString address, quint64 amount) {
+
+    QJsonObject request {
+        {"address", address},
+        {"amount", QString::number(amount).toDouble()}
+    };
+
+    // Make POST request
+    QNetworkReply * reply = post("faucet?token=" + _token, request);
+
+    // Return reply manager
+    return new FundWalletFromFaucet::Reply(reply);
+}
+
+bool Client::fundWalletFromFaucet(QString address, quint64 amount) {
+
+    FundWalletFromFaucet::Reply * reply = fundWalletFromFaucetAsync(address, amount);
+
+    // Block until we have reply finished
+    QEventLoop eventloop;
+    QObject::connect(reply,
+                     &FundWalletFromFaucet::Reply::done,
+                     &eventloop,
+                     &QEventLoop::quit);
+    eventloop.exec();
+
+    FundWalletFromFaucet::BlockCypherResponse r = reply->response();
+
+    if(r == FundWalletFromFaucet::BlockCypherResponse::Funded) {
+        qDebug() << "Wallet Funded";
+        return true;
+    } else {
+
+        // Create full error mesasge
+        QString s = "Client::fundWalletFromFaucet - " + reply->errorReport();
+        qDebug() << s;
     }
 }
 

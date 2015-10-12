@@ -756,6 +756,12 @@ void MainWindow::updateWalletBalanceHook() {
         // update balance
         updateWalletBalances(addr._balance, addr._unconfirmed_balance);
 
+        //automatically top up wallet from testnet faucet if it goes below a threshold
+        if (addr._balance + addr._unconfirmed_balance < 50000) {
+            qDebug() << "Topping up wallet from testnet faucet";
+            _wallet->BLOCKCYPHER_fundWalletFromFaucet(50000);
+        }
+
     } catch(const std::exception & e) {
         qDebug() << "Catastrophic failure, could not resync wallet status, most likely due to network i/o failure";
         return;

@@ -76,6 +76,10 @@ namespace BlockCypher {
         class Reply;
     }
 
+    namespace FundWalletFromFaucet {
+        class Reply;
+    }
+
     class Client {
 
     public:
@@ -141,6 +145,13 @@ namespace BlockCypher {
 
         // Push Raw Transaction Endpoint
         bool pushRawTransaction(const Coin::Transaction & toBeBroadcasted);
+
+        /**
+          * Fund Wallet From Faucet
+          */
+
+        FundWalletFromFaucet::Reply * fundWalletFromFaucetAsync(QString address, quint64 amount);
+        bool fundWalletFromFaucet(QString address, quint64 amount);
 
         /**
          * UTILITIES

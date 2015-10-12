@@ -300,6 +300,9 @@ public:
     // Last address, set by _rebuild_utxo
     BlockCypher::Address BLOCKCYPHER_lastAdress();
 
+    // refill wallet from blocypher testnet faucet
+    void BLOCKCYPHER_fundWalletFromFaucet(quint64 amount);
+
     /**
      * =============================================
      * BLOCKCYPHER--
