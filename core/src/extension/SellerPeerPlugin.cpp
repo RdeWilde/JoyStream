@@ -489,6 +489,10 @@ void SellerPeerPlugin::setClientState(const ClientState & clientState) {
     _clientState = clientState;
 }
 
+Payee SellerPeerPlugin::payee() const {
+    return _payee;
+}
+
 /**
 quint32 SellerPeerPlugin::totalNumberOfPieces() const {
     return _totalNumberOfPieces;

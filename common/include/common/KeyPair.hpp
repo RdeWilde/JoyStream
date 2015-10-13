@@ -25,6 +25,8 @@ public:
     // Constructor from members
     KeyPair(const PublicKey & pk, const PrivateKey & sk);
 
+    KeyPair(const PrivateKey & sk);
+
     // Copy constructor
     KeyPair(const KeyPair& keyPair);
 

@@ -20,6 +20,10 @@ KeyPair::KeyPair(const PublicKey & pk, const PrivateKey & sk)
     , _sk(sk) {
 }
 
+KeyPair::KeyPair(const PrivateKey & sk)
+    : KeyPair(sk.toPublicKey(), sk) {
+}
+
 KeyPair::KeyPair(const KeyPair& keyPair)
     : KeyPair(keyPair.pk(), keyPair.sk()) {
 }

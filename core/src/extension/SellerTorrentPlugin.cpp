@@ -240,7 +240,17 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
     } else {
 
         qCDebug(_category) << "Installed seller plugin #" << _peers.size() << endPointString.c_str();
-        peerPlugin = createRegularSellerPeerPlugin(bittorrentPeerConnection);
+
+        // Create a new peer plugin
+        QSet<Coin::PrivateKey> payeeContractKeySet = _wallet->getKeys(1, false);
+        QSet<Coin::PrivateKey> paymentKeySet = _wallet->getKeys(1, true);
+
+        Q_ASSERT(payeeContractKeySet.size() == 1);
+        Q_ASSERT(paymentKeySet.size() == 1);
+
+        peerPlugin = createRegularSellerPeerPlugin(payeeContractKeySet.values().first(),
+                                                   paymentKeySet.values().first(),
+                                                   bittorrentPeerConnection);
 
         // Alert that peer was added
         sendTorrentPluginAlert(SellerPeerAddedAlert(_torrent->info_hash(),
@@ -263,8 +273,11 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
     return sharedPeerPluginPtr;
 }
 
-SellerPeerPlugin * SellerTorrentPlugin::createRegularSellerPeerPlugin(libtorrent::bt_peer_connection * connection) {
+SellerPeerPlugin * SellerTorrentPlugin::createRegularSellerPeerPlugin(const Coin::KeyPair & payeeContractKeys,
+                                                                      const Coin::KeyPair & paymentKeys,
+                                                                      libtorrent::bt_peer_connection * connection) {
 
+    /**
     // Get fresh key pairs for seller side of contract
     //QList<Wallet::Entry> contractKeysEntry = _wallet->generateNewKeys(1, Wallet::Purpose::SellerInContractOutput).values();
     QList<Coin::KeyPair> contractKeysEntry = _wallet->issueKeyPairs(1, false);
@@ -272,6 +285,7 @@ SellerPeerPlugin * SellerTorrentPlugin::createRegularSellerPeerPlugin(libtorrent
 
     QList<Coin::KeyPair> paymentKeysEntry = _wallet->issueKeyPairs(1, true);
     Coin::KeyPair payeePaymentKeys = paymentKeysEntry.front();
+    */
 
     return new SellerPeerPlugin(this,
                                 connection,
@@ -283,7 +297,7 @@ SellerPeerPlugin * SellerTorrentPlugin::createRegularSellerPeerPlugin(libtorrent
                                                      _minPrice,
                                                      _maxNumberOfSellers,
                                                      payeeContractKeys,
-                                                     payeePaymentKeys,
+                                                     paymentKeys,
                                                      Coin::typesafeOutPoint(),
                                                      Coin::PublicKey(),
                                                      Coin::PublicKey(),
@@ -495,7 +509,18 @@ void SellerTorrentPlugin::on_peer_plugin_disconnect(SellerPeerPlugin * peerPlugi
         // Try to clo
         SellerPeerPlugin::ClientState clientState = peerPlugin->clientState();
 
-        if(clientState == SellerPeerPlugin::ClientState::awaiting_payment ||
+        if(clientState == SellerPeerPlugin::ClientState::no_bitswapr_message_sent ||
+                clientState == SellerPeerPlugin::ClientState::seller_mode_announced) {
+
+            qCDebug(_category) << "Releasing unused addresses";
+
+            Payee payee = peerPlugin->payee();
+
+            _wallet->releaseKey(payee.payeeContractKeys().sk(), false);
+
+            _wallet->releaseKey(payee.payeePaymentKeys().sk(), true);
+
+        } else if(clientState == SellerPeerPlugin::ClientState::awaiting_payment ||
            clientState == SellerPeerPlugin::ClientState::awaiting_piece_request_after_payment ||
            clientState == SellerPeerPlugin::ClientState::reading_piece_from_disk) {
 
@@ -518,10 +543,6 @@ void SellerTorrentPlugin::on_peer_plugin_disconnect(SellerPeerPlugin * peerPlugi
              */
 
             QMetaObject::invokeMethod(_wallet, "BLOCKCYPHER_broadcast", Q_ARG(const Coin::Transaction, tx));
-
-
-
-
 
             //_wallet->broadcast(tx);
 

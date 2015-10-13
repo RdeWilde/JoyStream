@@ -18,16 +18,22 @@
 #include <common/UnspentP2PKHOutput.hpp>
 #include <common/typesafeOutPoint.hpp> // for qHash for QSet
 
+// Size of newly created, or regenerated, key pool
+#define FRESH_KEY_POOL_SIZE 5
+
+// Lower bound for key pool size, exist in the pool
+// at any given time
+#define MINIMAL_KEY_POOL_SIZE 2
+
 ///////////////////////////////
-// BLOCKCYPHER
+// START BLOCKCYPHER
 ///////////////////////////////
 
 #include <blockcypher/Client.hpp>
 #include <blockcypher/AddressEndPoint.hpp>
 
-
 ///////////////////////////////
-// BLOCKCYPHER
+// END BLOCKCYPHER
 ///////////////////////////////
 
 #include <QObject>
@@ -151,6 +157,21 @@ public:
 
     // Number of keys in the wallet
     quint64 numberOfKeysInWallet();
+
+    /**
+     * Key pool
+     * Quite often, keys and addresses are needed, and then no needed,
+     * in quick succession, creating new keys all teh time bloats the
+     * wallet, and is slow. A better solution is to maintain a pool
+     * of keys for each session, and allow allocating and deallocating
+     * keys in given pool.
+     */
+
+    // Grabs the given number of keys form the given key pool
+    QSet<Coin::PrivateKey> getKeys(uint n, bool hasReceiveAddress);
+
+    // Adds keys back to pool
+    void releaseKey(const Coin::PrivateKey & key, bool hasReceiveAddress);
 
     /**
      * Addresses
@@ -404,8 +425,14 @@ private:
     // Value of last run of computeBalance(0), which is initially run in ctr
     quint64 _lastComputedZeroConfBalance;
 
-    // Key pool
-    //QSet<Coin::PrivateKey> _keyPool;
+    // Key pool of unmonitored keys: does NOT go to SPV/full node queries
+    QSet<Coin::PrivateKey> _noReceiveAddressKeyPool;
+
+    // Key pool of monitored keys: goes to SPV/full node queries
+    QSet<Coin::PrivateKey> _withReceiveAddressKeyPool;
+
+    // Restores the key pool to required if needed
+    uint rePopulateKeyPool(bool hasReceiveAddress);
 
     // Unspent outputs on present main chain
     QSet<Coin::UnspentP2PKHOutput> _utxo;

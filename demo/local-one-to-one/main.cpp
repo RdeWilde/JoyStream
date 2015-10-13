@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
                                                 false,
                                                 homeDirectory,
                                                 QString("lone_buyer"),
-                                                Coin::Seed("22222222245702754273542035678056807968507856907805687056875807896570586786507890586075806786709586078567095867085607865087065986"),
+                                                Coin::Seed("12222222245702754273542035678056807968507856907805687056875807896570586786507890586075806786709586078567095867085607865087065986"),
                                                 LOCALONETOONE_BITCOIN_NETWORK,
                                                 &manager,
                                                 LOCALONETOONE_BLOCKCYPHER_TOKEN);
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
                                                 false,
                                                 homeDirectory,
                                                 QString("lone_seller"),
-                                                Coin::Seed("56984699575934757385634735783465834785347589734857345834975893475934985390128038291038120983091839081203812098381209981381248931"),
+                                                Coin::Seed("16984699575934757385634735783465834785347589734857345834975893475934985390128038291038120983091839081203812098381209981381248931"),
                                                 LOCALONETOONE_BITCOIN_NETWORK,
                                                 &manager,
                                                 LOCALONETOONE_BLOCKCYPHER_TOKEN);

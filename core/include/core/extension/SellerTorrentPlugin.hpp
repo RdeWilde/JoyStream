@@ -177,7 +177,10 @@ public:
     virtual void on_state(int s);
     virtual void on_add_peer(const libtorrent::tcp::endpoint & endPoint, int src, int flags);
 
-    SellerPeerPlugin * createRegularSellerPeerPlugin(libtorrent::bt_peer_connection * connection);
+    SellerPeerPlugin * createRegularSellerPeerPlugin(const Coin::KeyPair & payeeContractKeys,
+                                                     const Coin::KeyPair & paymentKeys,
+                                                     libtorrent::bt_peer_connection * connection);
+
     SellerPeerPlugin * createSellerPeerPluginScheduledForDeletion(libtorrent::bt_peer_connection * connection);
 
     // Get peer_plugin if present, otherwise NULL pointer is wrapped

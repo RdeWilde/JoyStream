@@ -297,6 +297,8 @@ public:
     ClientState clientState() const;
     void setClientState(const ClientState &clientState);
 
+    Payee payee() const;
+
     int lastRequestedFullPiece() const;
     void setLastRequestedFullPiece(int lastRequestedFullPiece);
 
@@ -311,7 +313,6 @@ public:
 
     quint32 totalNumberOfPieces() const;
     void setTotalNumberOfPieces(quint32 totalNumberOfPieces);
-
 
 private:
 

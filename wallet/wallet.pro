@@ -59,7 +59,7 @@ SOURCES += \
     src/UtxoCreated.cpp \
     src/UtxoDestroyed.cpp \
     src/Output.cpp \
-    src/TransactionMinedInBlock.cpp \
+    src/TransactionMinedInBlock.cpp
 
 # blockcypher  ###############################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../blockcypher/release/ -lblockcypher

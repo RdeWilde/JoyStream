@@ -104,8 +104,6 @@ Manager::Manager(const QString & walletFile)
     , _lastComputedZeroConfBalance(0)
     , _BLOCKCYPHER_client() {
 
-
-
     // If wallet does not exist, then create it
     if(!QFile(walletFile).exists()) {
 
@@ -150,6 +148,10 @@ Manager::Manager(const QString & walletFile)
 
     // Build utxo
     //updateUtxoSet();
+
+    // Build key pool
+    rePopulateKeyPool(true);
+    rePopulateKeyPool(false);
 }
 
 Manager::~Manager(){
@@ -470,6 +472,64 @@ QList<Coin::KeyPair> Manager::issueKeyPairs(quint64 numberOfPairs, bool createRe
 
 quint64 Manager::numberOfKeysInWallet() {
     return Key::numberOfKeysInWallet(_db);
+}
+
+QSet<Coin::PrivateKey> Manager::getKeys(uint n, bool hasReceiveAddress) {
+
+    qDebug() << "getKeys" << n << "," << (hasReceiveAddress ? "with receive address" : "no receive address");
+
+    // Pick corresponding pool
+    QSet<Coin::PrivateKey> & pool = (hasReceiveAddress ? _withReceiveAddressKeyPool : _noReceiveAddressKeyPool);
+
+    // Final result to be returned
+    QSet<Coin::PrivateKey> result;
+
+    // Grab as much as required (or possible) from pool
+    QSet<Coin::PrivateKey>::iterator i = pool.begin();
+    uint numberAdded = 0;
+
+    while(i != pool.end() && numberAdded < n) {
+
+        // Use key from pool
+        result.insert(*i);
+
+        // Remove from pool
+        i = pool.erase(i);
+
+        // Keep track
+        numberAdded++;
+    }
+
+    Q_ASSERT(numberAdded <= n);
+
+    // If there weren't enough keys in pool,
+    // create enough new ones automatically.
+    // NB: The reason this is done outside pool is
+    // because it may require much greater space than
+    // pool size
+    for(uint j = 0; j < numberAdded - n; j++)
+        result.insert(issueKey(true));
+
+    Q_ASSERT(result.size() == n);
+
+    // Repopulat pool if required
+    rePopulateKeyPool(hasReceiveAddress);
+
+    // return result
+    return result;
+}
+
+void Manager::releaseKey(const Coin::PrivateKey & key, bool hasReceiveAddress) {
+
+    qDebug() << "releaseKey" << (hasReceiveAddress ? "with receive address" : "no receive address");
+
+    // Future sanity check ( at least as assert):
+    // Check that key exists arleady in dbase and that it indeed does or does not have a receive address
+
+    if(hasReceiveAddress)
+        _withReceiveAddressKeyPool.insert(key);
+    else
+        _noReceiveAddressKeyPool.insert(key);
 }
 
 Coin::P2PKHAddress Manager::getReceiveAddress() {
@@ -1101,7 +1161,7 @@ void Manager::BLOCKCYPHER_init(QNetworkAccessManager * manager, const QString & 
         // Delete wallet with this name
         _BLOCKCYPHER_client->deleteWallet(_BLOCKCYPHER_walletName);
     } catch (const std::runtime_error & e ) {
-        qDebug() << "BLOCKCYPHER: Could not delete wallet.";
+        qDebug() << "BLOCKCYPHER: Could not delete wallet, must be first time with fresh wallet.";
     }
 
     // Create wallet with this name
@@ -1327,6 +1387,28 @@ Address::Record Manager::_createReceiveAddress() {
     return addressRecord;
 }
 */
+
+uint Manager::rePopulateKeyPool(bool hasReceiveAddress) {
+
+    qDebug() << "Repopulating key pool" << (hasReceiveAddress ? "with receive addresses" : "without receive addresses");
+
+    // Pick corresponding pool
+    QSet<Coin::PrivateKey> & pool = (hasReceiveAddress ? _withReceiveAddressKeyPool : _noReceiveAddressKeyPool);
+
+    // Number of keys added
+    uint added = 0;
+
+    if(pool.size() < MINIMAL_KEY_POOL_SIZE) {
+
+        for(uint i = pool.size(); i < FRESH_KEY_POOL_SIZE;i++,added++)
+            pool.insert(issueKey(hasReceiveAddress));
+
+        Q_ASSERT(pool.size() == FRESH_KEY_POOL_SIZE);
+
+    }
+
+    return added;
+}
 
 Key::Record Manager::_issueKey(bool createReceiveAddress) {
 
