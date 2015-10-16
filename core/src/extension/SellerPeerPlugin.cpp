@@ -445,11 +445,13 @@ void SellerPeerPlugin::tick()  {
     if(_scheduledForDeletingInNextTorrentPluginTick)
         return;
 
+    /**
     // Check that peer plugin is still valid
     if(_scheduledForDeletingInNextTorrentPluginTick)
         qCDebug(_category) << "SellerPeerPlugin.tick: Waiting to die";
     else
         qCDebug(_category) << "SellerPeerPlugin.tick: Alive and well";
+    */
 
     //qCDebug(_category) << "SellerPeerPlugin.tick()";
 }
