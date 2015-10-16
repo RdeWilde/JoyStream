@@ -1,4 +1,4 @@
-#include "autoupdater.h"
+#include <AutoUpdater.hpp>
 #include <QDesktopServices>
 #include <QUrl>
 #include <QApplication>
