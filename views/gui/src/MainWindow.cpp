@@ -307,6 +307,7 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
     // Do first round to setup initial value
     BlockCypher::Address a =_wallet->BLOCKCYPHER_lastAdress();
     updateWalletBalances(a._balance, a._unconfirmed_balance);
+    updateWalletBalanceHook();
 
     // and have i fire every 30s
     _walletBalanceUpdateTimer.start(30000);
@@ -759,7 +760,7 @@ void MainWindow::updateWalletBalanceHook() {
         //automatically top up wallet from testnet faucet if it goes below a threshold
         if (addr._balance + addr._unconfirmed_balance < 50000) {
             qDebug() << "Topping up wallet from testnet faucet";
-            _wallet->BLOCKCYPHER_fundWalletFromFaucet(50000);
+            _wallet->BLOCKCYPHER_fundWalletFromFaucet(250000);
         }
 
     } catch(const std::exception & e) {
