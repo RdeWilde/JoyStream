@@ -15,7 +15,7 @@
 #include <common/Seed.hpp>
 #include <gui/MainWindow.hpp>
 #include <wallet/Manager.hpp>
-#include <autoupdater.h>
+#include <AutoUpdater.hpp>
 
 #define ERROR_LOG_ENDPOINT "error.joystream.co/error"
 #define ERROR_LOG_MAX_SIZE 200*20
