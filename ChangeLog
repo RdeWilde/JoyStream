@@ -1,3 +1,5 @@
+v0.3.1
+	* Auto-loading wallet progress window
 v0.3
 	* Improved key management - added a key pool feature
 	* Wallet automatically funded from testnet faucet

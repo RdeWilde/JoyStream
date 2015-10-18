@@ -36,7 +36,8 @@ SOURCES += \
     src/PeerPluginsDialog.cpp \
     src/UtxoEventViewModel.cpp \
     src/ReceiveFundsDialog.cpp \
-    src/MediaPlayerDialog.cpp
+    src/MediaPlayerDialog.cpp \
+    src/FundingWalletProgressDialog.cpp
 
 HEADERS += \
     include/gui/MainWindow.hpp \
@@ -53,7 +54,8 @@ HEADERS += \
     include/gui/SellerPeerPluginView.hpp \
     include/gui/UtxoEventViewModel.hpp \
     include/gui/ReceiveFundsDialog.hpp \
-    include/gui/MediaPlayerDialog.hpp
+    include/gui/MediaPlayerDialog.hpp \
+    include/gui/FundingWalletProgressDialog.hpp
 
 FORMS += \
     ui/SellerTorrentPluginConfigurationDialog.ui \
@@ -65,7 +67,8 @@ FORMS += \
     ui/AddTorrentDialog.ui \
     ui/WalletDialog.ui \
     ui/ReceiveFundsDialog.ui \
-    ui/MediaPlayerDialog.ui
+    ui/MediaPlayerDialog.ui \
+    ui/FundingWalletProgressDialog.ui
 
 RESOURCES += \
     base.qrc
