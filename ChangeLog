@@ -1,8 +1,9 @@
-v0.3.1
+0.3.1
 	* Auto-loading wallet progress window
-v0.3
+	* Low s enforcement in signing routines
+0.3
 	* Improved key management - added a key pool feature
 	* Wallet automatically funded from testnet faucet
-v0.2
+0.2
 	* Added token to pushrawtx
 	* Grey out menu options
