@@ -20,7 +20,7 @@
 #include <common/P2SHScriptSig.hpp>
 #include <common/Utilities.hpp>
 
-#include <CoinCore/secp256k1.h>
+#include <CoinCore/secp256k1_openssl.h>
 
 #include <QJsonArray>
 
@@ -60,13 +60,13 @@ void Test::basic() {
     signatureCheckingKey.setPubKey(key.getPubKey());
 
     // Check valid signature
-    QVERIFY(CoinCrypto::secp256k1_verify(signatureCheckingKey, message, sig));
+    QVERIFY(CoinCrypto::secp256k1_verify(signatureCheckingKey, message, sig, CoinCrypto::SignatureFlag::SIGNATURE_ENFORCE_LOW_S));
 
     // Check false signature
     try {
 
         // Should throw
-        bool hold = CoinCrypto::secp256k1_verify(signatureCheckingKey, message, bytes_t(sig.size()));
+        bool hold = CoinCrypto::secp256k1_verify(signatureCheckingKey, message, bytes_t(sig.size()), CoinCrypto::SignatureFlag::SIGNATURE_ENFORCE_LOW_S);
 
         QVERIFY(!hold);
     } catch (std::runtime_error & e) {
@@ -77,7 +77,7 @@ void Test::basic() {
     try {
 
         // Should throw or be invalid
-        bool holds  = CoinCrypto::secp256k1_verify(signatureCheckingKey, uchar_vector(23, 0), sig);
+        bool holds  = CoinCrypto::secp256k1_verify(signatureCheckingKey, uchar_vector(23, 0), sig, CoinCrypto::SignatureFlag::SIGNATURE_ENFORCE_LOW_S);
 
         QVERIFY(!holds);
     } catch (const std::runtime_error & e) {

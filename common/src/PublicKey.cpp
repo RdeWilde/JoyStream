@@ -10,7 +10,7 @@
 #include <common/Signature.hpp>
 
 #include <CoinCore/hash.h> // ripemd160(sha256(pubkey))
-#include <CoinCore/secp256k1.h> // CoinCrypto::secp256k1_key
+#include <CoinCore/secp256k1_openssl.h> // CoinCrypto::secp256k1_key
 
 namespace Coin {
 
@@ -36,7 +36,7 @@ bool PublicKey::verify(const uchar_vector & message, const Signature & sig) cons
 
     try {
 
-        verified = CoinCrypto::secp256k1_verify(signatureCheckingKey, message, sig.toUCharVector());
+        verified = CoinCrypto::secp256k1_verify(signatureCheckingKey, message, sig.toUCharVector(), CoinCrypto::SignatureFlag::SIGNATURE_ENFORCE_LOW_S);
 
     } catch(const std::runtime_error & e) {
 

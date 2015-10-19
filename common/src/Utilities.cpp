@@ -7,7 +7,6 @@
 
 #include <common/Utilities.hpp>
 
-//#include <CoinCore/secp256k1.h>
 #include <stdutils/uchar_vector.h>
 #include <common/Network.hpp>
 #include <common/SigHashType.hpp>
