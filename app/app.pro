@@ -6,6 +6,14 @@
 ICON = joystream.icns
 RC_ICONS = joystream.ico
 
+win32: VERSION = 0.3.1.0 # major.minor.patch.build
+else: VERSION = 0.3.1    # major.minor.patch
+
+QMAKE_TARGET_COMPANY = JoyStream Inc.
+QMAKE_TARGET_PRODUCT = JoyStream
+QMAKE_TARGET_DESCRIPTION = A new BitTorrent client, with faster speeds, streaming and paid seeding.
+QMAKE_TARGET_COPYRIGHT = JoyStream (c) 2015
+
 include(config.pri)
 
 TARGET = app
