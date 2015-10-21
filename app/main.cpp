@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
 		// Create Qt application: all objects created after this point are owned by this thread
 		QApplication app(argc, argv);
 		QApplication::setApplicationName(APPLICATION_NAME);
-		QApplication::setApplicationVersion(QString::number(APPLICATION_VERSION_MAJOR) + "." + QString::number(APPLICATION_VERSION_MINOR));
+        QApplication::setApplicationVersion(QString::number(APPLICATION_VERSION_MAJOR) + "." + QString::number(APPLICATION_VERSION_MINOR) + "." + QString::number(APPLICATION_VERSION_PATCH));
 
 		// Setup command line parsing
 		QCommandLineParser parser;

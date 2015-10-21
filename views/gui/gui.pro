@@ -136,3 +136,4 @@ include(../../openssl.pri)
 include(../../mSIGNA.pri) # needed for <stdutils/uchar_vector.h>
 include(../../libtorrent.pri)
 include(../../boost.pri)
+include(../../app/config.pri)

@@ -72,7 +72,7 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
     setFixedSize(size());
 
     // Status bar
-    _statusLabel.setText("Release v0.3");
+    _statusLabel.setText("Release v" + QString::number(APPLICATION_VERSION_MAJOR) + "." + QString::number(APPLICATION_VERSION_MINOR) + "." + QString::number(APPLICATION_VERSION_PATCH));
     _statusBar.addWidget(&_statusLabel);
     setStatusBar(&_statusBar);
 
