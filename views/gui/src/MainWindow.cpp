@@ -15,6 +15,7 @@
 #include <gui/BuyerTorrentPluginConfigurationDialog.hpp>
 #include <gui/SellerTorrentPluginDialog.hpp>
 #include <gui/BuyerTorrentPluginDialog.hpp>
+#include <gui/FundingWalletProgressDialog.hpp>
 #include <core/controller/Controller.hpp>
 #include <core/controller/SellerTorrentPluginViewModel.hpp>
 #include <core/controller/BuyerTorrentPluginViewModel.hpp>
@@ -71,7 +72,7 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
     setFixedSize(size());
 
     // Status bar
-    _statusLabel.setText("Release v0.2");
+    _statusLabel.setText("Release v" + QString::number(APPLICATION_VERSION_MAJOR) + "." + QString::number(APPLICATION_VERSION_MINOR) + "." + QString::number(APPLICATION_VERSION_PATCH));
     _statusBar.addWidget(&_statusLabel);
     setStatusBar(&_statusBar);
 
@@ -307,6 +308,8 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
     // Do first round to setup initial value
     BlockCypher::Address a =_wallet->BLOCKCYPHER_lastAdress();
     updateWalletBalances(a._balance, a._unconfirmed_balance);
+    
+    updateWalletBalanceHook();
 
     // and have i fire every 30s
     _walletBalanceUpdateTimer.start(30000);
@@ -748,19 +751,30 @@ void MainWindow::updateWalletBalanceHook() {
     // PAYCHAN OUTPUTS/CHANGE/PAYMENTS
     try {
 
-        _wallet->BLOCKCYPHER_update_remote_wallet();
+        BlockCypher::Address oldAddr =_wallet->BLOCKCYPHER_lastAdress();
+        updateWalletBalances(oldAddr._balance, oldAddr._unconfirmed_balance);
 
+        //automatically top up wallet from testnet faucet if it goes below a threshold
+        if (oldAddr._balance + oldAddr._unconfirmed_balance < RELOAD_WALLET_LOWER_BOUND) {
+
+            qDebug() << "Topping up wallet from testnet faucet";
+
+            FundingWalletProgressDialog dialog(RELOAD_WALLET_AMOUNT, &_bitcoinDisplaySettings);
+
+            dialog.show();
+
+            _wallet->BLOCKCYPHER_fundWalletFromFaucet(RELOAD_WALLET_AMOUNT);
+
+            dialog.hide();
+        }
+
+        _wallet->BLOCKCYPHER_update_remote_wallet();
+        
         // recalculate utxo (in case there has been any in/out to existing addresses);
         BlockCypher::Address addr = _wallet->BLOCKCYPHER_rebuild_utxo();
 
         // update balance
         updateWalletBalances(addr._balance, addr._unconfirmed_balance);
-
-        //automatically top up wallet from testnet faucet if it goes below a threshold
-        if (addr._balance + addr._unconfirmed_balance < 50000) {
-            qDebug() << "Topping up wallet from testnet faucet";
-            _wallet->BLOCKCYPHER_fundWalletFromFaucet(50000);
-        }
 
     } catch(const std::exception & e) {
         qDebug() << "Catastrophic failure, could not resync wallet status, most likely due to network i/o failure";

@@ -15,7 +15,7 @@
 #include <common/Seed.hpp>
 #include <gui/MainWindow.hpp>
 #include <wallet/Manager.hpp>
-#include <autoupdater.h>
+#include <AutoUpdater.hpp>
 
 #define ERROR_LOG_ENDPOINT "error.joystream.co/error"
 #define ERROR_LOG_MAX_SIZE 200*20
@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
 		// Create Qt application: all objects created after this point are owned by this thread
 		QApplication app(argc, argv);
 		QApplication::setApplicationName(APPLICATION_NAME);
-		QApplication::setApplicationVersion(QString::number(APPLICATION_VERSION_MAJOR) + "." + QString::number(APPLICATION_VERSION_MINOR));
+        QApplication::setApplicationVersion(QString::number(APPLICATION_VERSION_MAJOR) + "." + QString::number(APPLICATION_VERSION_MINOR) + "." + QString::number(APPLICATION_VERSION_PATCH));
 
 		// Setup command line parsing
 		QCommandLineParser parser;
