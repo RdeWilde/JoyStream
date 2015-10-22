@@ -1,0 +1,6 @@
+#!/bin/bash
+set -x
+mkdir -p build/release
+cd build/release
+rm -fr app/app.app
+qmake ../../JoyStream.pro -r -spec macx-clang CONFIG+=x86_64 DEFINES+=QT_FORCE_ASSERTS && make && macdeployqt app/app.app
