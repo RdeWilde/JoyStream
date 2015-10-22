@@ -1,0 +1,6 @@
+#!/bin/bash
+set -x
+export PATH=~/Qt/5.5/gcc_64/bin:$PATH
+mkdir -p build/linux-x64
+cd build/linux-x64
+qmake ../../JoyStream.pro -r -spec linux-g++  DEFINES+=QT_FORCE_ASSERTS && make && sudo cp app/app /media/sf_vm-shared/core.bin
