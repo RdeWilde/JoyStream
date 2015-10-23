@@ -46,8 +46,8 @@ namespace Wallet {
     class Manager;
 }
 
-#define RELOAD_WALLET_LOWER_BOUND 50000
-#define RELOAD_WALLET_AMOUNT 200000
+#define RELOAD_WALLET_LOWER_BOUND 250000
+#define RELOAD_WALLET_AMOUNT 500000
 
 class MainWindow : public QMainWindow
 {
