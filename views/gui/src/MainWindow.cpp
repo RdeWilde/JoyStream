@@ -7,6 +7,7 @@
 
 #include <gui/MainWindow.hpp>
 #include "ui_MainWindow.h"
+#include <gui/AddTorrent.hpp>
 #include <gui/AddTorrentDialog.hpp>
 #include <gui/WalletDialog.hpp>
 #include <gui/ReceiveFundsDialog.hpp>
@@ -463,8 +464,10 @@ void MainWindow::on_addTorrentFilePushButton_clicked()
     if(torrentFile.isNull())
         return;
 
-    // Open dialog for adding torrent from file
-    showAddTorrentFromTorrentFileDialog(torrentFile);
+    // adding torrent from file
+    // TODO - fallback to AddTorrentDialog() if standard path doesn't exist or is not writable?
+    std::string save_path = QStandardPaths::standardLocations(QStandardPaths::DownloadLocation).first().toStdString();
+    AddTorrent(_controller, torrentFile, true, save_path);
 }
 
 /**
