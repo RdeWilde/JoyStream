@@ -27,7 +27,7 @@ namespace Metadata {
     // Key value store built on top of sql table, bit weird.
 
     // Create key-value store and set initial values
-    void createKeyValueStore(QSqlDatabase db, const Coin::Seed & seed, Coin::Network network, const QDateTime & created);
+    void createKeyValueStore(QSqlDatabase db, const Coin::Seed & seed, Coin::Network network, const QDateTime & created, const quint32 version);
 
     // Key-val getter
     QByteArray get(QSqlDatabase db, const QByteArray & key);
@@ -48,6 +48,8 @@ namespace Metadata {
     QDateTime getCreated(QSqlDatabase db);
     void setCreated(QSqlDatabase db, const QDateTime & created);
 
+    quint32 getVersion(QSqlDatabase db);
+
     // Generates an unbounded query
     QSqlQuery unBoundedInsertQuery(QSqlDatabase db);
     QSqlQuery unBoundedUpdateQuery(QSqlDatabase db);
@@ -57,6 +59,7 @@ namespace Metadata {
     const QByteArray _networkKey = QByteArray("network");
     const QByteArray _seedKey = QByteArray("seed");
     const QByteArray _createdKey = QByteArray("created");
+    const QByteArray _versionKey = QByteArray("version");
 
     // Encode network as blob
     QByteArray encodeNetwork(Coin::Network network);

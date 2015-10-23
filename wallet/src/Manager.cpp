@@ -120,6 +120,7 @@ Manager::Manager(const QString & walletFile)
     _network = Metadata::getNetwork(_db);
     _seed = Metadata::getSeed(_db);
     _created = Metadata::getCreated(_db);
+    _version = Metadata::getVersion(_db);
 
     // Set keychain based on seed
     _keyChain = _seed.generateHDKeychain();
@@ -170,7 +171,7 @@ void Manager::createNewWallet(const QString & walletFile, Coin::Network network,
     QSqlDatabase db = Manager::openDatabaseConnection(walletFile);
 
     // Create metdata key-value store, and add rows for keys, and corresponding default values
-    Metadata::createKeyValueStore(db, seed, network, QDateTime::currentDateTime());
+    Metadata::createKeyValueStore(db, seed, network, QDateTime::currentDateTime(), WALLET_VERSION_ID);
 
     // Create relational tables
     bool ok;
@@ -429,6 +430,9 @@ QDateTime Manager::created() const {
     return _created;
 }
 
+quint32 Manager::version() const {
+    return _version;
+}
 Coin::Seed Manager::seed() const {
     return _seed;
 }
