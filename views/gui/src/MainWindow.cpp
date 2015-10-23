@@ -448,8 +448,16 @@ void MainWindow::showBuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel 
 
 void MainWindow::on_addTorrentFilePushButton_clicked()
 {
-    // Choose torrent file
-    QString torrentFile = QFileDialog::getOpenFileName(this, tr("Open Torrent"), "C:/TORRENTS", tr("Torrent file (*.torrent)"));
+    // Choose torrent file - start in application sample_torrents folder
+    QString sample_torrents;
+#ifdef _WIN32
+    sample_torrents = QCoreApplication::applicationDirPath() + "/torrents/";
+#elif __APPLE__
+    sample_torrents = QCoreApplication::applicationDirPath() + "/../../../torrents";
+#elif __linux
+    sample_torrents = QCoreApplication::applicationDirPath() + "/../torrents";
+#endif
+    QString torrentFile = QFileDialog::getOpenFileName(this, tr("Open Torrent"), sample_torrents, tr("Torrent file (*.torrent)"));
 
     // Exit if no file chosen
     if(torrentFile.isNull())
