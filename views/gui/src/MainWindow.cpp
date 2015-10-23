@@ -465,9 +465,15 @@ void MainWindow::on_addTorrentFilePushButton_clicked()
         return;
 
     // adding torrent from file
-    // TODO - fallback to AddTorrentDialog() if standard path doesn't exist or is not writable?
-    std::string save_path = QStandardPaths::standardLocations(QStandardPaths::DownloadLocation).first().toStdString();
-    AddTorrent(_controller, torrentFile, true, save_path);
+    QString save_path = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+    // check standard path exists and is writable
+    if(!save_path.isNull() && QFile::exists(save_path) && QFileInfo(save_path).isWritable()){
+        AddTorrent(_controller, torrentFile, true, save_path.toStdString());
+    } else {
+        // fallback to prompting user for a location
+        showAddTorrentFromTorrentFileDialog(torrentFile);
+    }
+
 }
 
 /**
