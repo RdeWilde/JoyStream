@@ -22,7 +22,7 @@ namespace Wallet {
 //const QByteArray Metadata::_seedKey = QByteArray("seed");
 //const QByteArray Metadata::_createdKey = QByteArray("created");
 
-void Metadata::createKeyValueStore(QSqlDatabase db, const Coin::Seed & seed, Coin::Network network, const QDateTime & created) {
+void Metadata::createKeyValueStore(QSqlDatabase db, const Coin::Seed & seed, Coin::Network network, const QDateTime & created, const quint32 version) {
 
     // Create (two-column) table
 
@@ -62,7 +62,13 @@ void Metadata::createKeyValueStore(QSqlDatabase db, const Coin::Seed & seed, Coi
     query.bindValue(":key", _createdKey);
     query.bindValue(":value", Wallet::Utilities::encodeDateTime(created));
     query.exec();
+    e = query.lastError();
+    Q_ASSERT(e.type() == QSqlError::NoError);
 
+    // version
+    query.bindValue(":key", _versionKey);
+    query.bindValue(":value", QByteArray::number(version));
+    query.exec();
     e = query.lastError();
     Q_ASSERT(e.type() == QSqlError::NoError);
 }
@@ -78,11 +84,12 @@ QByteArray Metadata::get(QSqlDatabase db, const QByteArray & key) {
 
     QSqlError e = query.lastError();
     Q_ASSERT(e.type() == QSqlError::NoError);
-    Q_ASSERT(query.first());
-
-    // Return result
-    QVariant valueField = query.value(0);
-    return valueField.toByteArray();
+    if(query.first()){
+        QVariant valueField = query.value(0);
+        return valueField.toByteArray();
+    } else {
+        return QByteArray();
+    }
 }
 
 void Metadata::update(QSqlDatabase db, const QByteArray & key, const QByteArray & value) {
@@ -136,6 +143,15 @@ QDateTime Metadata::getCreated(QSqlDatabase db) {
 
 void Metadata::setCreated(QSqlDatabase db, const QDateTime & created) {
     Metadata::update(db, _createdKey, QByteArray::number(created.toMSecsSinceEpoch()));
+}
+
+quint32 Metadata::getVersion(QSqlDatabase db) {
+
+    // Read key-val pair
+    QByteArray version = Metadata::get(db, _versionKey);
+
+    // Decode and return
+    return version.toInt();
 }
 
 QSqlQuery Metadata::unBoundedInsertQuery(QSqlDatabase db) {
