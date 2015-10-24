@@ -112,6 +112,9 @@ public:
     // Opens wallet
     explicit Manager(const QString & walletFile);
 
+    // Close the wallet
+    void close();
+
     ~Manager();
 
     // Create an empty wallet

@@ -160,6 +160,10 @@ Manager::~Manager(){
     // .stop, and delete all objects in _spvClients[host] = client;
 }
 
+void Manager::close(){
+    _db.close();
+}
+
 void Manager::createNewWallet(const QString & walletFile, Coin::Network network, const Coin::Seed & seed) {
 
     // If the wallet file already exists, throw exception
