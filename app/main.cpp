@@ -197,6 +197,7 @@ bool send_errorlog(QNetworkAccessManager * manager) {
 
     // Machine specs
     data += "\n";
+    data += "JoyStream Version:"        + QCoreApplication::applicationVersion() + "\n";
     data += "buildAbi():"               + QSysInfo::buildAbi() + "\n";
     data += "buildCpuArchitecture():"   + QSysInfo::buildCpuArchitecture() + "\n";
     data += "currentCpuArchitecture():" + QSysInfo::currentCpuArchitecture() + "\n";
