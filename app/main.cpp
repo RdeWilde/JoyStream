@@ -116,6 +116,7 @@ int main(int argc, char* argv[]) {
                     //was created in an earlier version of the app before key pooling was
                     //implemented and we should drop it and create a new one
                     if(wallet->version() == 0) {
+                        wallet->close();
                         qCDebug((*category)) << "Purging old wallet, creating new fresh wallet " << walletFile;
                         deleteWallet(walletFile);
                         createWallet(walletFile);
