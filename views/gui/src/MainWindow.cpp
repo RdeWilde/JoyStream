@@ -7,7 +7,6 @@
 
 #include <gui/MainWindow.hpp>
 #include "ui_MainWindow.h"
-#include <gui/AddTorrent.hpp>
 #include <gui/AddTorrentDialog.hpp>
 #include <gui/WalletDialog.hpp>
 #include <gui/ReceiveFundsDialog.hpp>
@@ -348,17 +347,17 @@ void MainWindow::showContextMenu(const QPoint & pos) {
     view->showContextMenu(ui->torrentsTable->viewport()->mapToGlobal(pos));
 }
 
-void MainWindow::showAddTorrentFromTorrentFileDialog(const QString & torrentFile) {
+void MainWindow::showAddTorrentFromTorrentFileDialog(const Controller::Torrent::Configuration & config) {
 
     // Show window for adding torrent with torrent file
-    AddTorrentDialog addTorrentDialog(_controller, torrentFile, true);
+    AddTorrentDialog addTorrentDialog(_controller, config);
     addTorrentDialog.exec();
 }
 
-void MainWindow::showAddTorrentFromMagnetLinkDialog(const QString & magnetLink) {
+void MainWindow::showAddTorrentFromMagnetLinkDialog(const Controller::Torrent::Configuration & config) {
 
     // Show window for adding torrent with magnet link
-    AddTorrentDialog addTorrentDialog(_controller, magnetLink, false);
+    AddTorrentDialog addTorrentDialog(_controller, config);
     addTorrentDialog.exec();
 }
 
@@ -464,14 +463,27 @@ void MainWindow::on_addTorrentFilePushButton_clicked()
     if(torrentFile.isNull())
         return;
 
-    // adding torrent from file
+    Controller::Torrent::Configuration config;
+
+    try{
+        // create configuration from torrent file
+        config = Controller::Torrent::Configuration::fromTorrentFile(torrentFile);
+
+    } catch(std::runtime_error e){
+        //invalid torrent file
+        return;
+    }
+
+    // use standard download path
     QString save_path = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
-    // check standard path exists and is writable
+
+    // check path exists and is writable
     if(!save_path.isNull() && QFile::exists(save_path) && QFileInfo(save_path).isWritable()){
-        AddTorrent(_controller, torrentFile, true, save_path.toStdString());
+        config.setSavePath(save_path.toStdString());
+        _controller->addTorrent(config);
     } else {
         // fallback to prompting user for a location
-        showAddTorrentFromTorrentFileDialog(torrentFile);
+        showAddTorrentFromTorrentFileDialog(config);
     }
 
 }

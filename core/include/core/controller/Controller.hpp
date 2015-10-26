@@ -19,6 +19,7 @@
 #include <libtorrent/alert.hpp>
 #include <libtorrent/alert_types.hpp>
 #include <libtorrent/torrent_handle.hpp>
+#include <libtorrent/magnet_uri.hpp> // libtorrent::parse_magnet_uri
 
 #include <QObject>
 #include <QTimer>
@@ -168,6 +169,9 @@ public:
 
             // Destructors
             ~Configuration();
+
+            static Configuration fromTorrentFile(const QString & resource);
+            static Configuration fromMagnetLink(const QString & resource);
 
             /**
              * Write state into dictionary

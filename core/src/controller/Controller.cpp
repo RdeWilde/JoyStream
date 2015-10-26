@@ -38,11 +38,72 @@ Controller::Torrent::Configuration::Configuration(const libtorrent::sha1_hash & 
 
 Controller::Torrent::Configuration::~Configuration() {
 
-    /*
-    // Delete if was set to object
-    if(_torrentInfo != NULL)
-        delete _torrentInfo;
-    */
+    //if(_torrentFile != NULL)
+        //delete _torrentFile;
+}
+
+Controller::Torrent::Configuration Controller::Torrent::Configuration::fromTorrentFile(const QString & resource) {
+    // Error code
+    libtorrent::error_code ec;
+
+    // Load torrent file
+    libtorrent::torrent_info * torrentInfo = new libtorrent::torrent_info(resource.toStdString().c_str(), ec);
+
+    // Was torrent file valid?
+    if(ec) {
+        qDebug() << "Invalid torrent file: " << ec.message().c_str();
+        throw (std::runtime_error("Invalid Torrent File"));
+    }
+
+    // Resume data
+    std::vector<char> resume_data;
+
+    // Save Path
+    std::string save_path = "";
+
+    Controller::Torrent::Configuration configuration(torrentInfo->info_hash(),
+                                                      torrentInfo->name(),
+                                                      save_path,
+                                                      resume_data,
+                                                      libtorrent::add_torrent_params::flag_update_subscribe,
+                                                      torrentInfo);
+
+    return configuration;
+}
+
+Controller::Torrent::Configuration Controller::Torrent::Configuration::fromMagnetLink(const QString & resource) {
+    // Error code
+    libtorrent::error_code ec;
+
+    // Magnet link url
+    std::string url = resource.toStdString();
+
+    // parse_magnet_uri
+    libtorrent::add_torrent_params params;
+
+    // Parse link to get info_hash
+    libtorrent::parse_magnet_uri(url, params, ec);
+
+    // Was magnet link malformed
+    if(ec) {
+        qDebug() << "Invalid magnet link: " << ec.message().c_str();
+        throw (std::runtime_error("Invalid Magnet Link"));
+    }
+
+    // Resume data
+    std::vector<char> resume_data;
+
+    // Save Path
+    std::string save_path = "";
+
+    Controller::Torrent::Configuration configuration(params.info_hash,
+                                                      params.name,
+                                                      save_path,
+                                                      resume_data,
+                                                      libtorrent::add_torrent_params::flag_update_subscribe,
+                                                      NULL);
+
+    return configuration;
 }
 
 /*

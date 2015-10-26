@@ -28,7 +28,6 @@ SOURCES += \
     src/BuyerTorrentPluginConfigurationDialog.cpp \
     src/SellerTorrentPluginDialog.cpp \
     src/BuyerTorrentPluginDialog.cpp \
-    src/AddTorrent.cpp \
     src/AddTorrentDialog.cpp \
     src/TorrentView.cpp \
     src/ChannelView.cpp \
@@ -42,7 +41,6 @@ SOURCES += \
 
 HEADERS += \
     include/gui/MainWindow.hpp \
-    include/gui/AddTorrent.hpp \
     include/gui/AddTorrentDialog.hpp \
     include/gui/SellerTorrentPluginConfigurationDialog.hpp \
     include/gui/BuyerTorrentPluginConfigurationDialog.hpp \

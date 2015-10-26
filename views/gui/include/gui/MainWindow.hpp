@@ -8,6 +8,7 @@
 #ifndef MAIN_WINDOW_HPP
 #define MAIN_WINDOW_HPP
 
+#include <core/controller/Controller.hpp>
 #include <core/extension/TorrentPlugin.hpp>
 #include <core/extension/Plugin.hpp> // Plugin::Status
 #include <core/extension/BuyerTorrentPlugin.hpp> // BuyerTorrentPlugin::Status
@@ -103,8 +104,8 @@ public slots:
     void showContextMenu(const QPoint & pos);
 
     // Show parts of view
-    void showAddTorrentFromTorrentFileDialog(const QString & torrentFile);
-    void showAddTorrentFromMagnetLinkDialog(const QString & magnetLink);
+    void showAddTorrentFromTorrentFileDialog(const Controller::Torrent::Configuration & config);
+    void showAddTorrentFromMagnetLinkDialog(const Controller::Torrent::Configuration & config);
     void showAddTorrentPluginConfigurationDialog(const libtorrent::torrent_info & torrentInfo, const libtorrent::torrent_status & torrentStatus);
 
     void showTorrentPluginDialog(const libtorrent::sha1_hash & infoHash);
