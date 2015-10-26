@@ -146,6 +146,20 @@ Wallet Client::getWallet(const QString & name) {
     }
 }
 
+bool Client::walletDoesNotExist(const QString & name){
+    GetWallet::Reply * reply = Client::getWalletAsync(name);
+
+    // Block until we have reply finished
+    QEventLoop eventloop;
+    QObject::connect(reply,
+                     &GetWallet::Reply::done,
+                     &eventloop,
+                     &QEventLoop::quit);
+    eventloop.exec();
+
+    return (reply->response() == GetWallet::BlockCypherResponse::DoesNotExist);
+}
+
 AddAddressToWallet::Reply * Client::addAddressToWalletAsync(const Wallet & requested) {
 
     // Make GET request
