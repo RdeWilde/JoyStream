@@ -43,7 +43,8 @@ namespace Runner {
                                                   savePath.toStdString(),
                                                   std::vector<char>(),
                                                   libtorrent::add_torrent_params::flag_update_subscribe, //+libtorrent::add_torrent_params::flag_auto_managed
-                                                  torrentFile);
+                                                  torrentFile,
+                                                  "");
     }
 
     Controller * create_client(const Controller::Configuration & configuration,

@@ -160,8 +160,8 @@ public:
                          const std::vector<char> & resumeData,
                          quint64 flags,
                          //const libtorrent::torrent_info & torrentInfo
-                         const boost::intrusive_ptr<libtorrent::torrent_info> & torrentFile
-                          );
+                         const boost::intrusive_ptr<libtorrent::torrent_info> & torrentFile,
+                         const std::string url);
                          //const TorrentPlugin::Configuration * torrentPluginConfiguration);
 
             // Constructor from dictionary
@@ -240,6 +240,9 @@ public:
 
             // Flags
             quint64 _flags;
+
+            // Magnet Link Uri
+            std::string _magnetLink;
 
             // Metadata in torrent file
             // We need pointer since its not copy assignable,

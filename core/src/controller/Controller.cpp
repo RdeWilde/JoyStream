@@ -24,15 +24,16 @@ Controller::Torrent::Configuration::Configuration(const libtorrent::sha1_hash & 
                                            const std::vector<char> & resumeData,
                                            quint64 flags,
                                            //const libtorrent::torrent_info & torrentInfo
-                                           const boost::intrusive_ptr<libtorrent::torrent_info> & torrentFile
-                                           )
+                                           const boost::intrusive_ptr<libtorrent::torrent_info> & torrentFile,
+                                           const std::string url)
                                            //const TorrentPlugin::Configuration * torrentPluginConfiguration)
     :_infoHash(infoHash)
     ,_name(name)
     ,_savePath(savePath)
     ,_resumeData(resumeData)
     ,_flags(flags)
-    ,_torrentFile(torrentFile) {
+    ,_torrentFile(torrentFile)
+    ,_magnetLink(url) {
     //,_torrentPluginConfiguration(torrentPluginConfiguration) {
 }
 
@@ -61,12 +62,16 @@ Controller::Torrent::Configuration Controller::Torrent::Configuration::fromTorre
     // Save Path
     std::string save_path = "";
 
+    // Null Magnet Link
+    std::string url = "";
+
     Controller::Torrent::Configuration configuration(torrentInfo->info_hash(),
                                                       torrentInfo->name(),
                                                       save_path,
                                                       resume_data,
                                                       libtorrent::add_torrent_params::flag_update_subscribe,
-                                                      torrentInfo);
+                                                      torrentInfo,
+                                                      url);
 
     return configuration;
 }
@@ -96,12 +101,15 @@ Controller::Torrent::Configuration Controller::Torrent::Configuration::fromMagne
     // Save Path
     std::string save_path = "";
 
+    libtorrent::torrent_info * torrentInfo = new libtorrent::torrent_info(params.info_hash);
+
     Controller::Torrent::Configuration configuration(params.info_hash,
                                                       params.name,
                                                       save_path,
                                                       resume_data,
                                                       libtorrent::add_torrent_params::flag_update_subscribe,
-                                                      NULL);//cannot be null!
+                                                      torrentInfo,
+                                                      url);
 
     return configuration;
 }
@@ -314,6 +322,7 @@ libtorrent::add_torrent_params Controller::Torrent::Configuration::toAddTorrentP
     params.resume_data = _resumeData;// new std::vector<char>(_resumeData); // We do not own this pointer
     params.flags = _flags;
     params.ti = _torrentFile;
+    params.url = _magnetLink;
 
     //if(!_torrentInfo.info_hash().is_all_zeros())
     //    params.ti = boost::intrusive_ptr<libtorrent::torrent_info>(new libtorrent::torrent_info(_torrentInfo));

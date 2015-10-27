@@ -488,7 +488,6 @@ void MainWindow::on_addTorrentFilePushButton_clicked()
 
 }
 
-/**
 void MainWindow::on_addMagnetLinkPushButton_clicked()
 {
     // Input magnet link
@@ -528,7 +527,6 @@ void MainWindow::on_addMagnetLinkPushButton_clicked()
         showAddTorrentFromMagnetLinkDialog(config);
     }
 }
-**/
 
 void MainWindow::addTorrent(const TorrentViewModel * model) {
 

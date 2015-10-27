@@ -114,7 +114,7 @@ public slots:
 
     // Mouse click events
     void on_addTorrentFilePushButton_clicked();
-    //void on_addMagnetLinkPushButton_clicked();
+    void on_addMagnetLinkPushButton_clicked();
     void on_walletPushButton_clicked();
     void on_topUpWalletPushButton_clicked();
     void on_updatePushButton_clicked();
