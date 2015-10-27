@@ -19,6 +19,7 @@
 #include <libtorrent/alert.hpp>
 #include <libtorrent/alert_types.hpp>
 #include <libtorrent/torrent_handle.hpp>
+#include <libtorrent/magnet_uri.hpp> // libtorrent::parse_magnet_uri
 
 #include <QObject>
 #include <QTimer>
@@ -159,8 +160,8 @@ public:
                          const std::vector<char> & resumeData,
                          quint64 flags,
                          //const libtorrent::torrent_info & torrentInfo
-                         const boost::intrusive_ptr<libtorrent::torrent_info> & torrentFile
-                          );
+                         const boost::intrusive_ptr<libtorrent::torrent_info> & torrentFile,
+                         const std::string url);
                          //const TorrentPlugin::Configuration * torrentPluginConfiguration);
 
             // Constructor from dictionary
@@ -168,6 +169,9 @@ public:
 
             // Destructors
             ~Configuration();
+
+            static Configuration fromTorrentFile(const QString & resource);
+            static Configuration fromMagnetLink(const QString & resource);
 
             /**
              * Write state into dictionary
@@ -236,6 +240,9 @@ public:
 
             // Flags
             quint64 _flags;
+
+            // Magnet Link Uri
+            std::string _magnetLink;
 
             // Metadata in torrent file
             // We need pointer since its not copy assignable,
