@@ -1165,11 +1165,23 @@ void Manager::BLOCKCYPHER_init(QNetworkAccessManager * manager, const QString & 
 
     qDebug() << "BLOCKCYPHER: Wallet name derived" << _BLOCKCYPHER_walletName;
 
-    try {
-        // Delete wallet with this name
-        _BLOCKCYPHER_client->deleteWallet(_BLOCKCYPHER_walletName);
-    } catch (const std::runtime_error & e ) {
-        qDebug() << "BLOCKCYPHER: Could not delete wallet, must be first time with fresh wallet.";
+    // try to delete wallet upto 3 times if it exists
+    // to handle delay on Blockcypher side in deleting wallets
+    int tries = 0;
+
+    while(!_BLOCKCYPHER_client->walletDoesNotExist(_BLOCKCYPHER_walletName) && tries < 3){
+        if(tries++){
+            //after at least one call to deleteWallet
+            //TODO: sleep for 500ms ?
+        }
+
+        try {
+            // Delete wallet with this name
+            qDebug() << "Deleting Remote Wallet";
+            _BLOCKCYPHER_client->deleteWallet(_BLOCKCYPHER_walletName);
+        } catch (const std::runtime_error & e ) {
+            qDebug() << "BLOCKCYPHER: Could not delete wallet, must be first time with fresh wallet.";
+        }
     }
 
     // Create wallet with this name
