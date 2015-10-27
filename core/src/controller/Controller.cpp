@@ -101,7 +101,7 @@ Controller::Torrent::Configuration Controller::Torrent::Configuration::fromMagne
                                                       save_path,
                                                       resume_data,
                                                       libtorrent::add_torrent_params::flag_update_subscribe,
-                                                      NULL);
+                                                      NULL);//cannot be null!
 
     return configuration;
 }

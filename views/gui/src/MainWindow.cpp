@@ -497,17 +497,38 @@ void MainWindow::on_addMagnetLinkPushButton_clicked()
                                          tr("Add Magnet Link"),
                                          tr("Magnet link:"),
                                          QLineEdit::Normal,
-                                         QString("magnet:?xt=urn:btih:781ad3adbd9b81b64e4c530712ae9199b1dfbae5&dn=Now+You+See+Me+%282013%29+1080p+EXTENDED+BrRip+x264+-+YIFY&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3"),
+                                         //QString("magnet:?xt=urn:btih:781ad3adbd9b81b64e4c530712ae9199b1dfbae5&dn=Now+You+See+Me+%282013%29+1080p+EXTENDED+BrRip+x264+-+YIFY&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3"),
+                                         QString(""),
                                          &ok);
 
     // Exit if no link provided
     if (!ok || magnetLink.isEmpty())
         return;
 
-    // Open dialog for adding torrent from magnet link
-    showAddTorrentFromMagnetLinkDialog(magnetLink);
+    Controller::Torrent::Configuration config;
+
+    try{
+        // create configuration from torrent file
+        config = Controller::Torrent::Configuration::fromMagnetLink(magnetLink);
+
+    } catch(std::runtime_error e){
+        //invalid magnet link
+        return;
+    }
+
+    // use standard download path
+    QString save_path = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+
+    // check path exists and is writable
+    if(!save_path.isNull() && QFile::exists(save_path) && QFileInfo(save_path).isWritable()){
+        config.setSavePath(save_path.toStdString());
+        _controller->addTorrent(config);
+    } else {
+        // Open dialog for adding torrent
+        showAddTorrentFromMagnetLinkDialog(config);
+    }
 }
-*/
+**/
 
 void MainWindow::addTorrent(const TorrentViewModel * model) {
 
