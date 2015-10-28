@@ -53,13 +53,13 @@ void Reply::processReply() {
 
         if(_error == QNetworkReply::NoError) {
             _response = BlockCypherResponse::Deleted;
-            qDebug() << "Wallet deleted.";
+            qDebug() << "DeleteWallet: Wallet deleted.";
         } else if(_error == QNetworkReply::ContentNotFoundError) {
             _response = BlockCypherResponse::DidntExist;
-            qDebug() << "Wallet doesnt exist.";
+            qDebug() << "DeleteWallet: Wallet doesnt exist.";
         } else {
             _response = BlockCypherResponse::catch_all;
-            qDebug() << "QNetworkReplyFinished error.";
+            qDebug() << "DeleteWallet: QNetworkReplyFinished error.";
         }
     }
 

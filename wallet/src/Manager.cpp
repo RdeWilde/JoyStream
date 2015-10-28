@@ -120,6 +120,7 @@ Manager::Manager(const QString & walletFile)
     _network = Metadata::getNetwork(_db);
     _seed = Metadata::getSeed(_db);
     _created = Metadata::getCreated(_db);
+    _version = Metadata::getVersion(_db);
 
     // Set keychain based on seed
     _keyChain = _seed.generateHDKeychain();
@@ -159,6 +160,10 @@ Manager::~Manager(){
     // .stop, and delete all objects in _spvClients[host] = client;
 }
 
+void Manager::close(){
+    _db.close();
+}
+
 void Manager::createNewWallet(const QString & walletFile, Coin::Network network, const Coin::Seed & seed) {
 
     // If the wallet file already exists, throw exception
@@ -170,7 +175,7 @@ void Manager::createNewWallet(const QString & walletFile, Coin::Network network,
     QSqlDatabase db = Manager::openDatabaseConnection(walletFile);
 
     // Create metdata key-value store, and add rows for keys, and corresponding default values
-    Metadata::createKeyValueStore(db, seed, network, QDateTime::currentDateTime());
+    Metadata::createKeyValueStore(db, seed, network, QDateTime::currentDateTime(), WALLET_VERSION_ID);
 
     // Create relational tables
     bool ok;
@@ -429,6 +434,9 @@ QDateTime Manager::created() const {
     return _created;
 }
 
+quint32 Manager::version() const {
+    return _version;
+}
 Coin::Seed Manager::seed() const {
     return _seed;
 }
@@ -1157,11 +1165,23 @@ void Manager::BLOCKCYPHER_init(QNetworkAccessManager * manager, const QString & 
 
     qDebug() << "BLOCKCYPHER: Wallet name derived" << _BLOCKCYPHER_walletName;
 
-    try {
-        // Delete wallet with this name
-        _BLOCKCYPHER_client->deleteWallet(_BLOCKCYPHER_walletName);
-    } catch (const std::runtime_error & e ) {
-        qDebug() << "BLOCKCYPHER: Could not delete wallet, must be first time with fresh wallet.";
+    // try to delete wallet upto 3 times if it exists
+    // to handle delay on Blockcypher side in deleting wallets
+    int tries = 0;
+
+    while(!_BLOCKCYPHER_client->walletDoesNotExist(_BLOCKCYPHER_walletName) && tries < 3){
+        if(tries++){
+            //after at least one call to deleteWallet
+            //TODO: sleep for 500ms ?
+        }
+
+        try {
+            // Delete wallet with this name
+            qDebug() << "Deleting Remote Wallet";
+            _BLOCKCYPHER_client->deleteWallet(_BLOCKCYPHER_walletName);
+        } catch (const std::runtime_error & e ) {
+            qDebug() << "BLOCKCYPHER: Could not delete wallet, must be first time with fresh wallet.";
+        }
     }
 
     // Create wallet with this name

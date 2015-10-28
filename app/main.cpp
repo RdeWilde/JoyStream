@@ -21,6 +21,8 @@
 #define ERROR_LOG_MAX_SIZE 200*20
 
 bool send_errorlog(QNetworkAccessManager * manager);
+bool deleteWallet(QString filename);
+void createWallet(QString filename);
 
 // JoyStream entry point
 int main(int argc, char* argv[]) {
@@ -98,30 +100,35 @@ int main(int argc, char* argv[]) {
 				// Load wallet
 				QString walletFile = QDir::homePath() + QDir::separator() + QString("wallet.sqlite3");
 
+                Wallet::Manager *wallet;
+
 				// Create wallet if it does not exist
 				if(!QFile(walletFile).exists()) {
+                    qCDebug((*category)) << "Creating a fresh wallet " << walletFile;
+                    createWallet(walletFile);
+                    wallet = new Wallet::Manager(walletFile);
+                } else {
+                    // Load existing wallet
+                    wallet = new Wallet::Manager(walletFile);
 
-						qCDebug((*category)) << "Creating a fresh wallet " << walletFile;
-
-						// Get predefined seed
-						//Coin::Seed seed = Coin::Seed::testSeeds[wallet_seed_counter];
-						//Q_ASSERT(wallet_seed_counter <= Coin::Seed::testSeeds.size());
-
-						// Get new random seed
-						Coin::Seed seed = Coin::Seed::generate();
-
-						// Create wallet
-						Wallet::Manager::createNewWallet(walletFile, APPLICATION_BITCOIN_NETWORK, seed);
-				}
-
-				// Load and wallet
-				Wallet::Manager wallet(walletFile);
+                    //check if the metadata version is set in the database
+                    //value of 0 means the database
+                    //was created in an earlier version of the app before key pooling was
+                    //implemented and we should drop it and create a new one
+                    if(wallet->version() == 0) {
+                        wallet->close();
+                        qCDebug((*category)) << "Purging old wallet, creating new fresh wallet " << walletFile;
+                        deleteWallet(walletFile);
+                        createWallet(walletFile);
+                        wallet = new Wallet::Manager(walletFile);
+                    }
+                }
 
 				// Initiliaze blockcypher interface
-				wallet.BLOCKCYPHER_init(&manager, APPLICATION_BLOCKCYPHER_TOKEN);
+                wallet->BLOCKCYPHER_init(&manager, APPLICATION_BLOCKCYPHER_TOKEN);
 
 				// Create controller
-				Controller controller(configuration, &wallet, &manager, *category);
+                Controller controller(configuration, wallet, &manager, *category);
 
 				QObject::connect(&controller,
 												 &Controller::closed,
@@ -129,7 +136,7 @@ int main(int argc, char* argv[]) {
 												 &QApplication::quit);
 
 				// Allocate view and show it
-				MainWindow view(&controller, &wallet, "");
+                MainWindow view(&controller, wallet, "");
 				view.show();
 
 				// Start event loop: this is the only Qt event loop in the entire application
@@ -160,6 +167,19 @@ int main(int argc, char* argv[]) {
 		}
 }
 
+bool deleteWallet(QString filename) {
+    return QFile::remove(filename);
+}
+
+void createWallet(QString filename) {
+
+    // Get new random seed
+    Coin::Seed seed = Coin::Seed::generate();
+
+    // Create wallet
+    Wallet::Manager::createNewWallet(filename, APPLICATION_BITCOIN_NETWORK, seed);
+}
+
 bool send_errorlog(QNetworkAccessManager * manager) {
 
 		// Read in error file
@@ -178,6 +198,7 @@ bool send_errorlog(QNetworkAccessManager * manager) {
 
     // Machine specs
     data += "\n";
+    data += "JoyStream Version:"        + QCoreApplication::applicationVersion() + "\n";
     data += "buildAbi():"               + QSysInfo::buildAbi() + "\n";
     data += "buildCpuArchitecture():"   + QSysInfo::buildCpuArchitecture() + "\n";
     data += "currentCpuArchitecture():" + QSysInfo::currentCpuArchitecture() + "\n";

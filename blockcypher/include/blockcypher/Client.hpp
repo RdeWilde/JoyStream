@@ -116,6 +116,9 @@ namespace BlockCypher {
         // Blocking routine which creates wallet, or throws exception if failed
         Wallet getWallet(const QString & name);
 
+        // Blocking routine tests if a wallet does NOT exist
+        bool walletDoesNotExist(const QString & name);
+
         /**
          * ADD ADDRESS
          */

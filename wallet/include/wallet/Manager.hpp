@@ -25,6 +25,8 @@
 // at any given time
 #define MINIMAL_KEY_POOL_SIZE 2
 
+#define WALLET_VERSION_ID 1
+
 ///////////////////////////////
 // START BLOCKCYPHER
 ///////////////////////////////
@@ -110,6 +112,9 @@ public:
     // Opens wallet
     explicit Manager(const QString & walletFile);
 
+    // Close the wallet
+    void close();
+
     ~Manager();
 
     // Create an empty wallet
@@ -133,6 +138,9 @@ public:
 
     // Time when wallet was created
     QDateTime created() const;
+
+    // Wallet version ID
+    quint32 version() const;
 
     // Wallet seed
     Coin::Seed seed() const;
@@ -400,6 +408,9 @@ private:
 
     // Time when wallet was created
     QDateTime _created;
+
+    // Version ID of the database
+    quint32 _version;
 
     // Seed
     Coin::Seed _seed;

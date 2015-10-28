@@ -25,17 +25,17 @@
      <rect>
       <x>18</x>
       <y>14</y>
-      <width>100</width>
+      <width>131</width>
       <height>50</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>10</pointsize>
+      <pointsize>13</pointsize>
      </font>
     </property>
     <property name="text">
-     <string>add</string>
+     <string>add torrent file</string>
     </property>
     <property name="iconSize">
      <size>
@@ -232,19 +232,6 @@
      <number>0</number>
     </property>
    </widget>
-   <widget class="QPushButton" name="topUpWalletPushButton">
-    <property name="geometry">
-     <rect>
-      <x>130</x>
-      <y>14</y>
-      <width>100</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>receive</string>
-    </property>
-   </widget>
    <widget class="QPushButton" name="updatePushButton">
     <property name="enabled">
      <bool>false</bool>
@@ -276,7 +263,7 @@
      </font>
     </property>
     <property name="text">
-     <string>This version only works with Bitcoin testnet, use faucet for free coins. Keep running at all times for testing purposes, restart for automatic updates.</string>
+     <string>This version only uses Bitcoin testnet. Keep running at all times for testing purposes, restart for automatic updates.</string>
     </property>
    </widget>
    <widget class="Line" name="line_3">
@@ -334,7 +321,7 @@
    <widget class="Line" name="line_4">
     <property name="geometry">
      <rect>
-      <x>240</x>
+      <x>300</x>
       <y>10</y>
       <width>3</width>
       <height>61</height>
@@ -344,30 +331,41 @@
      <enum>Qt::Vertical</enum>
     </property>
    </widget>
-   <widget class="QPushButton" name="torrentsPushButton">
-    <property name="geometry">
-     <rect>
-      <x>252</x>
-      <y>14</y>
-      <width>100</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>torrents</string>
-    </property>
-   </widget>
    <widget class="QPushButton" name="bugsPushButton">
     <property name="geometry">
      <rect>
-      <x>360</x>
+      <x>330</x>
       <y>14</y>
-      <width>100</width>
+      <width>121</width>
       <height>51</height>
      </rect>
     </property>
     <property name="text">
-     <string>bugs</string>
+     <string>report bugs</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="addMagnetLinkPushButton">
+    <property name="geometry">
+     <rect>
+      <x>150</x>
+      <y>14</y>
+      <width>131</width>
+      <height>50</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>add magnet link</string>
+    </property>
+    <property name="iconSize">
+     <size>
+      <width>64</width>
+      <height>64</height>
+     </size>
     </property>
    </widget>
   </widget>

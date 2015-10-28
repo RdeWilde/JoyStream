@@ -8,6 +8,7 @@
 #ifndef MAIN_WINDOW_HPP
 #define MAIN_WINDOW_HPP
 
+#include <core/controller/Controller.hpp>
 #include <core/extension/TorrentPlugin.hpp>
 #include <core/extension/Plugin.hpp> // Plugin::Status
 #include <core/extension/BuyerTorrentPlugin.hpp> // BuyerTorrentPlugin::Status
@@ -46,8 +47,8 @@ namespace Wallet {
     class Manager;
 }
 
-#define RELOAD_WALLET_LOWER_BOUND 50000
-#define RELOAD_WALLET_AMOUNT 200000
+#define RELOAD_WALLET_LOWER_BOUND 250000
+#define RELOAD_WALLET_AMOUNT 500000
 
 class MainWindow : public QMainWindow
 {
@@ -103,8 +104,8 @@ public slots:
     void showContextMenu(const QPoint & pos);
 
     // Show parts of view
-    void showAddTorrentFromTorrentFileDialog(const QString & torrentFile);
-    void showAddTorrentFromMagnetLinkDialog(const QString & magnetLink);
+    void showAddTorrentFromTorrentFileDialog(const Controller::Torrent::Configuration & config);
+    void showAddTorrentFromMagnetLinkDialog(const Controller::Torrent::Configuration & config);
     void showAddTorrentPluginConfigurationDialog(const libtorrent::torrent_info & torrentInfo, const libtorrent::torrent_status & torrentStatus);
 
     void showTorrentPluginDialog(const libtorrent::sha1_hash & infoHash);
@@ -113,7 +114,7 @@ public slots:
 
     // Mouse click events
     void on_addTorrentFilePushButton_clicked();
-    //void on_addMagnetLinkPushButton_clicked();
+    void on_addMagnetLinkPushButton_clicked();
     void on_walletPushButton_clicked();
     void on_topUpWalletPushButton_clicked();
     void on_updatePushButton_clicked();

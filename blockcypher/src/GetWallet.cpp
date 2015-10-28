@@ -67,14 +67,15 @@ void Reply::processReply() {
             _response = BlockCypherResponse::Returned;
             _wallet = Wallet(BlockCypher::rawToQJsonObject(response));
             Q_ASSERT(_wallet._name == _name);
+            qDebug() << "GetWallet: Wallet found.";
 
         } else if(_reply->error() == QNetworkReply::NetworkError::ContentNotFoundError) {
             _response = BlockCypherResponse::DoesNotExist;
-            qDebug() << "Wallet doesnt exist.";
+            qDebug() << "GetWallet: Wallet doesnt exist.";
         } else {
 
             _response = BlockCypherResponse::catch_all;
-            qDebug() << "QNetworkReplyFinished error: " << QString(response);
+            qDebug() << "GetWallet: QNetworkReplyFinished error: " << QString(response);
         }
     }
 

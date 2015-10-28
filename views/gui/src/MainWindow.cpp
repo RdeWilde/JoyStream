@@ -347,17 +347,17 @@ void MainWindow::showContextMenu(const QPoint & pos) {
     view->showContextMenu(ui->torrentsTable->viewport()->mapToGlobal(pos));
 }
 
-void MainWindow::showAddTorrentFromTorrentFileDialog(const QString & torrentFile) {
+void MainWindow::showAddTorrentFromTorrentFileDialog(const Controller::Torrent::Configuration & config) {
 
     // Show window for adding torrent with torrent file
-    AddTorrentDialog addTorrentDialog(_controller, torrentFile, true);
+    AddTorrentDialog addTorrentDialog(_controller, config);
     addTorrentDialog.exec();
 }
 
-void MainWindow::showAddTorrentFromMagnetLinkDialog(const QString & magnetLink) {
+void MainWindow::showAddTorrentFromMagnetLinkDialog(const Controller::Torrent::Configuration & config) {
 
     // Show window for adding torrent with magnet link
-    AddTorrentDialog addTorrentDialog(_controller, magnetLink, false);
+    AddTorrentDialog addTorrentDialog(_controller, config);
     addTorrentDialog.exec();
 }
 
@@ -448,18 +448,46 @@ void MainWindow::showBuyerTorrentPluginDialog(const BuyerTorrentPluginViewModel 
 
 void MainWindow::on_addTorrentFilePushButton_clicked()
 {
-    // Choose torrent file
-    QString torrentFile = QFileDialog::getOpenFileName(this, tr("Open Torrent"), "C:/TORRENTS", tr("Torrent file (*.torrent)"));
+    // Choose torrent file - start in application sample_torrents folder
+    QString sample_torrents;
+#ifdef _WIN32
+    sample_torrents = QCoreApplication::applicationDirPath() + "/torrents/";
+#elif __APPLE__
+    sample_torrents = QCoreApplication::applicationDirPath() + "/../../../torrents";
+#elif __linux
+    sample_torrents = QCoreApplication::applicationDirPath() + "/../torrents";
+#endif
+    QString torrentFile = QFileDialog::getOpenFileName(this, tr("Open Torrent"), sample_torrents, tr("Torrent file (*.torrent)"));
 
     // Exit if no file chosen
     if(torrentFile.isNull())
         return;
 
-    // Open dialog for adding torrent from file
-    showAddTorrentFromTorrentFileDialog(torrentFile);
+    Controller::Torrent::Configuration config;
+
+    try{
+        // create configuration from torrent file
+        config = Controller::Torrent::Configuration::fromTorrentFile(torrentFile);
+
+    } catch(std::runtime_error e){
+        //invalid torrent file
+        return;
+    }
+
+    // use standard download path
+    QString save_path = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+
+    // check path exists and is writable
+    if(!save_path.isNull() && QFile::exists(save_path) && QFileInfo(save_path).isWritable()){
+        config.setSavePath(save_path.toStdString());
+        _controller->addTorrent(config);
+    } else {
+        // fallback to prompting user for a location
+        showAddTorrentFromTorrentFileDialog(config);
+    }
+
 }
 
-/**
 void MainWindow::on_addMagnetLinkPushButton_clicked()
 {
     // Input magnet link
@@ -468,17 +496,37 @@ void MainWindow::on_addMagnetLinkPushButton_clicked()
                                          tr("Add Magnet Link"),
                                          tr("Magnet link:"),
                                          QLineEdit::Normal,
-                                         QString("magnet:?xt=urn:btih:781ad3adbd9b81b64e4c530712ae9199b1dfbae5&dn=Now+You+See+Me+%282013%29+1080p+EXTENDED+BrRip+x264+-+YIFY&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3"),
+                                         //QString("magnet:?xt=urn:btih:781ad3adbd9b81b64e4c530712ae9199b1dfbae5&dn=Now+You+See+Me+%282013%29+1080p+EXTENDED+BrRip+x264+-+YIFY&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3"),
+                                         QString(""),
                                          &ok);
 
     // Exit if no link provided
     if (!ok || magnetLink.isEmpty())
         return;
 
-    // Open dialog for adding torrent from magnet link
-    showAddTorrentFromMagnetLinkDialog(magnetLink);
+    Controller::Torrent::Configuration config;
+
+    try{
+        // create configuration from torrent file
+        config = Controller::Torrent::Configuration::fromMagnetLink(magnetLink);
+
+    } catch(std::runtime_error e){
+        //invalid magnet link
+        return;
+    }
+
+    // use standard download path
+    QString save_path = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+
+    // check path exists and is writable
+    if(!save_path.isNull() && QFile::exists(save_path) && QFileInfo(save_path).isWritable()){
+        config.setSavePath(save_path.toStdString());
+        _controller->addTorrent(config);
+    } else {
+        // Open dialog for adding torrent
+        showAddTorrentFromMagnetLinkDialog(config);
+    }
 }
-*/
 
 void MainWindow::addTorrent(const TorrentViewModel * model) {
 
