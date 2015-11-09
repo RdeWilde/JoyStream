@@ -21,7 +21,8 @@ CONFIG  += link_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-us
 CONFIG  += c++11 # Needed for class enum
 
 SOURCES += main.cpp \
-    AutoUpdater.cpp
+    AutoUpdater.cpp \
+    Analytics.cpp
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets # QMainWindow, QDialog
 
@@ -98,7 +99,8 @@ include(../openssl.pri)
 include(../boost.pri)
 
 HEADERS += \
-    AutoUpdater.hpp
+    AutoUpdater.hpp \
+    Analytics.hpp
 
 RESOURCES += \
     icon.qrc
