@@ -51,11 +51,9 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
     , _torrentTableViewModel(0, 6)
     , _walletBalanceUpdateTimer()
     , _bitcoinDisplaySettings() //(Fiat::USD, 225) {
-    , _torrentDirectoryAction("Torrent", this)
-    , _reportBugsAction("Report bugs", this)
-    , _viewInformationAction("Information", this)
-    , _exitAction("Exit", this)
-{
+    , _openJoyStream("Open JoyStream", this)
+    , _minimizeToTray("Minimize to tray", this)
+    , _quit("Quit", this) {
 
     ui->setupUi(this);
 
@@ -254,38 +252,32 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
      * Tray icon menu
      */
 
-    _trayIconContextMenu.addAction(&_torrentDirectoryAction);
-    _trayIconContextMenu.addAction(&_reportBugsAction);
-    //_trayIconContextMenu.addAction(&_viewInformationAction);
-    _trayIconContextMenu.addSeparator();
-    _trayIconContextMenu.addAction(&_exitAction);
+    _trayIconContextMenu.addAction(&_openJoyStream);
+    _trayIconContextMenu.addAction(&_minimizeToTray);
+    //_trayIconContextMenu.addSeparator();
+    _trayIconContextMenu.addAction(&_quit);
 
     QIcon icon(":/icon/trayicon.png");
     _trayIcon.setIcon(icon);
 
     _trayIcon.setContextMenu(&_trayIconContextMenu);
-    _trayIcon.setToolTip("JoyStream Client");
+    _trayIcon.setToolTip("JoyStream");
     _trayIcon.show();
 
-    QObject::connect(&_torrentDirectoryAction,
+    QObject::connect(&_openJoyStream,
                      SIGNAL(triggered()),
                      this,
-                     SLOT(showTorrentDirectory()));
+                     SLOT(maximize()));
 
-    QObject::connect(&_reportBugsAction,
+    QObject::connect(&_minimizeToTray,
                      SIGNAL(triggered()),
                      this,
-                     SLOT(reportBugs()));
+                     SLOT(minimizeToTray()));
 
-    QObject::connect(&_viewInformationAction,
+    QObject::connect(&_quit,
                      SIGNAL(triggered()),
                      this,
-                     SLOT(viewInformation()));
-
-    QObject::connect(&_exitAction,
-                     SIGNAL(triggered()),
-                     this,
-                     SLOT(initateExit()));
+                     SLOT(quitApplication()));
 
 
     /**
@@ -830,21 +822,17 @@ void MainWindow::updateWalletBalanceHook() {
     }
 }
 
-void MainWindow::showTorrentDirectory() {
-    QDesktopServices::openUrl(QUrl("https://joystream.co/TorrentList"));
+void MainWindow::maximize() {
+    setWindowState(Qt::WindowState::WindowActive);
 }
 
-void MainWindow::reportBugs() {
-    QDesktopServices::openUrl(QUrl("https://www.reddit.com/r/JoyStream/comments/3mk8i1/post_bugs_here/"));
+void MainWindow::minimizeToTray() {
+    setWindowState(Qt::WindowState::WindowMinimized);
 }
 
-void MainWindow::viewInformation() {
-    //QDesktopServices::openUrl(QUrl("https://www.joystream.co/information.html"));
-}
+void MainWindow::quitApplication() {
 
-void MainWindow::initateExit() {
-
-    QMessageBox::StandardButton reply = QMessageBox::question(this, "Exit JoyStream", "Are you sure you want to exit?", QMessageBox::Yes|QMessageBox::No);
+    QMessageBox::StandardButton reply = QMessageBox::question(this, "Quit JoyStream", "Are you sure you want to exit?", QMessageBox::Yes|QMessageBox::No);
 
     if (reply == QMessageBox::Yes)
         _controller->begin_close();
@@ -863,13 +851,13 @@ TorrentView * MainWindow::rowToView(int row) {
 void MainWindow::closeEvent(QCloseEvent * event) {
 
     // Notify controller
-    //_controller->begin_close();
+    _controller->begin_close();
 
     // Minimize window
-    setWindowState(Qt::WindowState::WindowMinimized);
+    //setWindowState(Qt::WindowState::WindowMinimized);
 
     // But do not close, which causes event loop exit
-    event->ignore();
+    //event->ignore();
 }
 
 void MainWindow::dropEvent(QDropEvent *e) {
@@ -880,12 +868,6 @@ void MainWindow::dropEvent(QDropEvent *e) {
     }
 }
 
-void MainWindow::on_torrentsPushButton_clicked()
-{
-    showTorrentDirectory();
-}
-
-void MainWindow::on_bugsPushButton_clicked()
-{
-    reportBugs();
+void MainWindow::on_bugsPushButton_clicked() {
+    QDesktopServices::openUrl(QUrl("https://www.reddit.com/r/JoyStream/comments/3mk8i1/post_bugs_here/"));
 }
