@@ -438,36 +438,44 @@ void BuyerTorrentPlugin::on_piece_pass(int index) {
     // Get reference to piece
     Piece & piece = _pieces[index];
 
-    Q_ASSERT(piece.state() == Piece::State::assigned);
+    if(piece.state() != Piece::State::assigned) {
+        return;
+    }
 
     // Get peer
     BuyerPeerPlugin * peer = piece.peerPlugin();
 
     Q_ASSERT(peer->indexOfAssignedPiece() == index);
-    Q_ASSERT(peer->clientState() == BuyerPeerPlugin::ClientState::waiting_for_libtorrent_to_validate_piece);
     Q_ASSERT(_peerPluginsWithoutPieceAssignment.count(peer) == 0);
 
-    // Make a payment
-    Coin::Signature paymentSignature = makePaymentAndGetPaymentSignature(peer);
-    peer->sendExtendedMessage(Payment(paymentSignature));
+    if(peer->clientState() == BuyerPeerPlugin::ClientState::waiting_for_libtorrent_to_validate_piece) {
 
-    // Note payment
-    _plugin->registerSentFunds(_payor.channels()[peer->payorSlot()].price());
+        // Make a payment
+        Coin::Signature paymentSignature = makePaymentAndGetPaymentSignature(peer);
+        peer->sendExtendedMessage(Payment(paymentSignature));
 
-    // Update peer
-    peer->addDownloadedPiece(index); // Remember that piece was downloaded
-    peer->setClientState(BuyerPeerPlugin::ClientState::needs_to_be_assigned_piece);
+        // Note payment
+        _plugin->registerSentFunds(_payor.channels()[peer->payorSlot()].price());
 
-    _peerPluginsWithoutPieceAssignment.insert(peer); // Place back in idle peer pool
+        // Update peer
+        peer->addDownloadedPiece(index); // Remember that piece was downloaded
+        peer->setClientState(BuyerPeerPlugin::ClientState::needs_to_be_assigned_piece);
 
-    // Get a new piece if one is available.
-    // In the future, we should perhaps delay this decision, and let
-    // tick() in torretn plugin decide, since it has information about down speeds.
-    assignPieceToPeerPlugin(peer);
+        _peerPluginsWithoutPieceAssignment.insert(peer); // Place back in idle peer pool
 
-    // Update piece
-    piece.setState(Piece::State::fully_downloaded_and_valid);
-    piece.setPeerPlugin(NULL); // for safety
+        // Get a new piece if one is available.
+        // In the future, we should perhaps delay this decision, and let
+        // tick() in torretn plugin decide, since it has information about down speeds.
+        assignPieceToPeerPlugin(peer);
+
+        // Update piece
+        piece.setState(Piece::State::fully_downloaded_and_valid);
+        piece.setPeerPlugin(NULL); // for safety
+
+    } else {
+        //The piece received was not a result of an extended message
+    }
+
 }
 
 void BuyerTorrentPlugin::on_piece_failed(int index) {
