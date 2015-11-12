@@ -355,6 +355,22 @@ void MainWindow::showAddTorrentFromMagnetLinkDialog(const Controller::Torrent::C
 
 void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torrent_info & torrentInfo, const libtorrent::torrent_status & torrentStatus) {
 
+    libtorrent::torrent_status::state_t s = torrentStatus.state;
+
+    // If fully downloaded, show seller configuration dialog
+    if(s == libtorrent::torrent_status::state_t::seeding) {
+        SellerTorrentPluginConfigurationDialog sellerTorrentPluginConfigurationDialog(_controller, _wallet, torrentInfo, &_bitcoinDisplaySettings);
+        sellerTorrentPluginConfigurationDialog.exec();
+    }
+    // If fully downloaded, show seller configuration dialog
+    else if (s == libtorrent::torrent_status::state_t::downloading) {
+        BuyerTorrentPluginConfigurationDialog buyerTorrentPluginConfigurationDialog(_controller, _wallet, torrentInfo, &_bitcoinDisplaySettings);
+        buyerTorrentPluginConfigurationDialog.exec();
+    }
+    else
+        Q_ASSERT(false); //
+
+    /*
     // Show window for adding torrent with magnet link
     QMessageBox msgBox;
     msgBox.setText("Choose plugin mode.");
@@ -369,14 +385,14 @@ void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torre
 
     if(msgBox.clickedButton() == classicPushButton) {
 
-    } /** else if (msgBox.clickedButton() == observerPushButton) {
-
-        // Set in passive mode
-        //_controller->updateTorrentPluginConfiguration(infoHash, new TorrentPluginConfiguration(true));
-
-        qDebug() << "Not implemented.";
-
-    } */ else if (msgBox.clickedButton() == buyerPushButton) {
+      // } else if (msgBox.clickedButton() == observerPushButton) {
+      //
+      //  // Set in passive mode
+      //  //_controller->updateTorrentPluginConfiguration(infoHash, new TorrentPluginConfiguration(true));
+      //
+      //  qDebug() << "Not implemented.";
+      //
+    }  else if (msgBox.clickedButton() == buyerPushButton) {
 
         //Show buyer configuration dialog
         BuyerTorrentPluginConfigurationDialog buyerTorrentPluginConfigurationDialog(_controller, _wallet, torrentInfo, &_bitcoinDisplaySettings);
@@ -384,10 +400,12 @@ void MainWindow::showAddTorrentPluginConfigurationDialog(const libtorrent::torre
 
     } else if (msgBox.clickedButton() == sellerPushButton) {
 
-        //Show seller configuration dialog
+        //Show buyer configuration dialog
         SellerTorrentPluginConfigurationDialog sellerTorrentPluginConfigurationDialog(_controller, _wallet, torrentInfo, &_bitcoinDisplaySettings);
         sellerTorrentPluginConfigurationDialog.exec();
+
     }
+    */
 }
 
 void MainWindow::showTorrentPluginDialog(const libtorrent::sha1_hash & infoHash) {
@@ -869,5 +887,5 @@ void MainWindow::dropEvent(QDropEvent *e) {
 }
 
 void MainWindow::on_bugsPushButton_clicked() {
-    QDesktopServices::openUrl(QUrl("https://www.reddit.com/r/JoyStream/comments/3mk8i1/post_bugs_here/"));
+    QDesktopServices::openUrl(QUrl("https://www.reddit.com/r/JoyStream/comments/3sazif/post_bugs_here/"));
 }
