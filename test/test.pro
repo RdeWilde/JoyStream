@@ -11,5 +11,6 @@ SUBDIRS     = \
             paymentchannel \
             #views \
             wallet \
-            blockcypher
+            blockcypher \ 
+	    mixpanel
 

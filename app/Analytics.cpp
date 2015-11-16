@@ -20,21 +20,52 @@
 #include <QNetworkReply>
 #include <QUrl>
 
-QString Analytics::_defaultAnalyticsHost = DEFAULT_ANALYTICS_HOST;
+
+// Default ping interval (5 min)
+#define DEFUALT_PING_MS_INTERVAL 5*(60*1000)
+
 quint64 Analytics::_defaultPingMsInterval = DEFUALT_PING_MS_INTERVAL;
 
-Analytics::Analytics(QNetworkAccessManager * manager, const QString & host)
+static QString _MixpanelToken;
+
+Analytics::Start::Start(const QString & token, const QString & version)
+    : Mixpanel::Event("start", Event::Properties(token)) {
+
+    // Save version
+    _properties["version"] = version;
+}
+
+Analytics::Ping::Ping(const QString & token, const QString & version)
+    : Mixpanel::Event("ping", Event::Properties(token)) {
+
+    // Save version
+    _properties["version"] = version;
+}
+
+Analytics::PaidDownloadStarted::PaidDownloadStarted(const QString & token, const QString & version)
+    : Mixpanel::Event("paid_download_started", Event::Properties(token)) {
+
+    // Save version
+    _properties["version"] = version;
+}
+
+Analytics::SeedingPaymentsClaimed::SeedingPaymentsClaimed(const QString & token, const QString & version)
+    : Mixpanel::Event("seeding_payments_claimed", Event::Properties(token)) {
+
+    // Save version
+    _properties["version"] = version;
+}
+
+Analytics::Analytics(QNetworkAccessManager * manager, const QString & MixpanelToken, const QString & applicationVersion)
     : _manager(manager)
-    , _host(host)
+    , _mixpanelToken(MixpanelToken)
+    , _applicationVersion(applicationVersion)
     , _started(false)
     , _numberOfAlivePings(0)
     , _numberOfPaidDownloadsStarted(0) {
 
     // Capture timer events
-    QObject::connect(&_pingTimer, &QTimer::timeout, this, &Analytics::sendAlivePing);
-
-    // Capture finished network event
-    QObject::connect(_manager, &QNetworkAccessManager::finished, this, &Analytics::finished);
+    QObject::connect(&_pingTimer, &QTimer::timeout, this, &Analytics::ping);
 }
 
 void Analytics::monitor(Controller * controller) {
@@ -42,30 +73,14 @@ void Analytics::monitor(Controller * controller) {
     QObject::connect(controller, &Controller::addedTorrent, this, &Analytics::paidDownloadStarted);
 }
 
-QUrl Analytics::startEndPoint() const {
-    return QUrl("http://" + _host + "/start");
-}
-
-QUrl Analytics::pingEndPoint() const {
-    return QUrl("http://" + _host + "/ping");
-}
-
-QUrl Analytics::paidDownloadStartedEndPoint() const {
-    return QUrl("http://" + _host + "/paidDownloadStarted");
-}
-
-QUrl Analytics::seedingPaymentsClaimedEndPoint() const {
-    return QUrl("http://" + _host + "/seedingPaymentsClaimed");
-}
-
 void Analytics::start(quint64 pingInterval) {
 
     if(_started)
         throw std::runtime_error("Already started");
 
-    // Send start signal to server
-    QNetworkReply * reply = _manager->get(QNetworkRequest(startEndPoint()));
-    _started = true;
+    // Send start event
+    Start start(_mixpanelToken, _applicationVersion);
+    Mixpanel::sendEvent(start);
 
     // Start ping timer
     _pingTimer.setSingleShot(false);
@@ -73,10 +88,11 @@ void Analytics::start(quint64 pingInterval) {
     _pingTimer.start();
 }
 
-quint64 Analytics::sendAlivePing() {
+quint64 Analytics::ping() {
 
     // Send ping
-    QNetworkReply * reply = _manager->get(QNetworkRequest(pingEndPoint()));
+    Ping ping(_mixpanelToken, _applicationVersion);
+    Mixpanel::sendEvent(ping);
 
     // Update and return counter
     return _numberOfAlivePings++;
@@ -102,7 +118,7 @@ void Analytics::sellerPeerAdded(const SellerPeerPluginViewModel * model) {
 void Analytics::buyerTorrentPluginStateChanged(BuyerTorrentPlugin::State state) {
 
     if(state == BuyerTorrentPlugin::State::downloading_pieces) {
-        paidDownloadStartedEndPoint();
+        paidDownloadStarted();
     }
 }
 
@@ -115,8 +131,9 @@ void Analytics::sellerPeerPluginStateChanged(SellerPeerPlugin::ClientState state
 
 quint64 Analytics::paidDownloadStarted() {
 
-    // Send download started
-    QNetworkReply * reply = _manager->get(QNetworkRequest(paidDownloadStartedEndPoint()));
+    // Send PaidDownloadStarted
+    PaidDownloadStarted paidDownloadStarted(_mixpanelToken, _applicationVersion);
+    Mixpanel::sendEvent(paidDownloadStarted);
 
     // Update and return counter
     return _numberOfPaidDownloadsStarted++;
@@ -124,8 +141,9 @@ quint64 Analytics::paidDownloadStarted() {
 
 quint64 Analytics::claimedSeedingPayment() {
 
-    // Send
-    QNetworkReply * reply = _manager->get(QNetworkRequest(seedingPaymentsClaimedEndPoint()));
+    // Send SeedingPaymentsClaimed
+    SeedingPaymentsClaimed claimedSeedingPayment(_mixpanelToken, _applicationVersion);
+    Mixpanel::sendEvent(claimedSeedingPayment);
 
     // Update and return counter
     return _numberOfSeedingPaymentsClaimed++;

@@ -31,7 +31,9 @@ int main(int argc, char* argv[]) {
     // Create Qt application: all objects created after this point are owned by this thread
     QApplication app(argc, argv);
     QApplication::setApplicationName(APPLICATION_NAME);
-    QApplication::setApplicationVersion(QString::number(APPLICATION_VERSION_MAJOR) + "." + QString::number(APPLICATION_VERSION_MINOR) + "." + QString::number(APPLICATION_VERSION_PATCH));
+
+    QString applicationVersion = QString::number(APPLICATION_VERSION_MAJOR) + "." + QString::number(APPLICATION_VERSION_MINOR) + "." + QString::number(APPLICATION_VERSION_PATCH);
+    QApplication::setApplicationVersion(applicationVersion);
 
     // Setup command line parsing
     QCommandLineParser parser;
@@ -142,7 +144,7 @@ int main(int argc, char* argv[]) {
         view.show();
 
         // Create and start analytics tracking
-        Analytics analytics(&manager, Analytics::_defaultAnalyticsHost);
+        Analytics analytics(&manager, APPLICATION_MIXPANEL_TOKEN, applicationVersion); //, Analytics::_defaultAnalyticsHost);
 
         // Monitor controller
         analytics.monitor(&controller);

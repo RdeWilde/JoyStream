@@ -8,14 +8,11 @@
 #ifndef ANALYTICS_HPP
 #define ANALYTICS_HPP
 
+#include <Mixpanel/Mixpanel.hpp>
+#include <Mixpanel/Event.hpp>
+
 #include <QTimer>
 #include <QObject>
-
-// Default host for analytics calls
-#define DEFAULT_ANALYTICS_HOST "analytics.joystream.co"
-
-// Default ping interval (5 min)
-#define DEFUALT_PING_MS_INTERVAL 5*(60*1000)
 
 class QNetworkAccessManager;
 class Controller;
@@ -38,19 +35,41 @@ class Analytics : public QObject {
 
 public:
 
-    static QString _defaultAnalyticsHost;
     static quint64 _defaultPingMsInterval;
 
-    Analytics(QNetworkAccessManager * manager, const QString & host);
+    /**
+     * These events are currently identical,
+     * but they are likeyl to be differentiated later.
+     */
+
+    class Start : public Mixpanel::Event {
+
+    public:
+        Start(const QString & token, const QString & version);
+    };
+
+    class Ping : public Mixpanel::Event {
+
+    public:
+        Ping(const QString & token, const QString & version);
+    };
+
+    class PaidDownloadStarted : public Mixpanel::Event {
+
+    public:
+        PaidDownloadStarted(const QString & token, const QString & version);
+    };
+
+    class SeedingPaymentsClaimed : public Mixpanel::Event {
+
+    public:
+        SeedingPaymentsClaimed(const QString & token, const QString & version);
+    };
+
+    Analytics(QNetworkAccessManager * manager, const QString & MixpanelToken, const QString & applicationVersion);
 
     // Monitor controller
     void monitor(Controller * controller);
-
-    // Endpoints
-    QUrl startEndPoint() const;
-    QUrl pingEndPoint() const;
-    QUrl paidDownloadStartedEndPoint() const;
-    QUrl seedingPaymentsClaimedEndPoint() const;
 
 public slots:
 
@@ -58,7 +77,7 @@ public slots:
     void start(quint64 pingInterval);
 
     // Send alive ping to server
-    quint64 sendAlivePing();
+    quint64 ping();
 
     // Send paid download started to server
     quint64 paidDownloadStarted();
@@ -93,8 +112,11 @@ private:
     // Network access manager
     QNetworkAccessManager * _manager;
 
-    // Analytics host
-    QString _host;
+    // Token used for Mixpanel API
+    QString _mixpanelToken;
+
+    // Applicatio versio number
+    QString _applicationVersion;
 
     // Used to regularly fire alive pings
     QTimer _pingTimer;
