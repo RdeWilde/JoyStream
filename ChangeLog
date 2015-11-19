@@ -1,14 +1,21 @@
+0.3.3
+    * Added analytics module
+    * Minimize to system tray optional
+    * Auto selection of buy/sell mode
+    * Fix crash when connecting to peers on public trackers
+    * Various UI fixes
+    * Building against latest libtorrent v1.0.7
 0.3.2
-	* Added Magnet Link support
-	* Download to standard path by default
-	* Open sample torrents folder on add torrent
-	* Remove old wallets on startup - exploding wallet fix
+    * Added Magnet Link support
+    * Download to standard path by default
+    * Open sample torrents folder on add torrent
+    * Remove old wallets on startup - exploding wallet fix
 0.3.1
-	* Auto-loading wallet progress window
-	* Low s enforcement in signing routines
+    * Auto-loading wallet progress window
+    * Low s enforcement in signing routines
 0.3
-	* Improved key management - added a key pool feature
-	* Wallet automatically funded from testnet faucet
+    * Improved key management - added a key pool feature
+    * Wallet automatically funded from testnet faucet
 0.2
-	* Added token to pushrawtx
-	* Grey out menu options
+    * Added token to pushrawtx
+    * Grey out menu options
