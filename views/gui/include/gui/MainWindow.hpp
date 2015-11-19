@@ -129,13 +129,11 @@ public slots:
     void updateWalletBalanceHook();
 
     /**
-     *
+     * Alter view
      */
-
-    void showTorrentDirectory();
-    void reportBugs();
-    void viewInformation();
-    void initateExit();
+    void maximize();
+    void minimizeToTray();
+    void quitApplication();
 
 private:
 
@@ -182,10 +180,9 @@ private:
      */
 
     // Menu actions in _trayIconContextMenu
-    QAction _torrentDirectoryAction,
-            _reportBugsAction,
-            _viewInformationAction,
-            _exitAction;
+    QAction _openJoyStream,
+            _minimizeToTray,
+            _quit;
 
     // Context menu for tray
     QMenu _trayIconContextMenu;
@@ -202,8 +199,9 @@ protected:
 
     // Handler for dropping torrent file on client
     void dropEvent(QDropEvent *e);
+
 private slots:
-    void on_torrentsPushButton_clicked();
+
     void on_bugsPushButton_clicked();
 };
 

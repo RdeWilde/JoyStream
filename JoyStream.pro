@@ -6,6 +6,7 @@
 TEMPLATE    = subdirs
 
 SUBDIRS     = \
+            mixpanel \
             common \
             paymentchannel \
             blockcypher \
@@ -47,6 +48,7 @@ views.depends = wallet
 views.depends = core
 
 # app
+app.depends = mixpanel
 app.depends = common
 app.depends = core
 app.depends = wallet

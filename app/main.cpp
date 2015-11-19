@@ -16,6 +16,7 @@
 #include <gui/MainWindow.hpp>
 #include <wallet/Manager.hpp>
 #include <AutoUpdater.hpp>
+#include <Analytics.hpp>
 
 #define ERROR_LOG_ENDPOINT "error.joystream.co/error"
 #define ERROR_LOG_MAX_SIZE 200*20
@@ -27,144 +28,156 @@ void createWallet(QString filename);
 // JoyStream entry point
 int main(int argc, char* argv[]) {
 
-		// Create Qt application: all objects created after this point are owned by this thread
-		QApplication app(argc, argv);
-		QApplication::setApplicationName(APPLICATION_NAME);
-        QApplication::setApplicationVersion(QString::number(APPLICATION_VERSION_MAJOR) + "." + QString::number(APPLICATION_VERSION_MINOR) + "." + QString::number(APPLICATION_VERSION_PATCH));
+    // Create Qt application: all objects created after this point are owned by this thread
+    QApplication app(argc, argv);
+    QApplication::setApplicationName(APPLICATION_NAME);
 
-		// Setup command line parsing
-		QCommandLineParser parser;
-		parser.setApplicationDescription(APPLICATION_DESCRIPTION);
+    QString applicationVersion = QString::number(APPLICATION_VERSION_MAJOR) + "." + QString::number(APPLICATION_VERSION_MINOR) + "." + QString::number(APPLICATION_VERSION_PATCH);
+    QApplication::setApplicationVersion(applicationVersion);
 
-		// Add options
-		parser.addHelpOption();
-		parser.addVersionOption();
+    // Setup command line parsing
+    QCommandLineParser parser;
+    parser.setApplicationDescription(APPLICATION_DESCRIPTION);
 
-		QCommandLineOption showNoUpdateOption("n", "Do not run update manager.");
-		parser.addOption(showNoUpdateOption);
-		QCommandLineOption showConsoleModeOption("c", "Run in console mode.");
-		parser.addOption(showConsoleModeOption);
-		QCommandLineOption showFreshOption("f", "Create and use a fresh parameter file.");
-		parser.addOption(showFreshOption);
+    // Add options
+    parser.addHelpOption();
+    parser.addVersionOption();
 
-		// Process the actual command line arguments given by the user
-		parser.process(app);
+    QCommandLineOption showNoUpdateOption("n", "Do not run update manager.");
+    parser.addOption(showNoUpdateOption);
+    QCommandLineOption showConsoleModeOption("c", "Run in console mode.");
+    parser.addOption(showConsoleModeOption);
+    QCommandLineOption showFreshOption("f", "Create and use a fresh parameter file.");
+    parser.addOption(showFreshOption);
 
-		AutoUpdater au(app);
+    // Process the actual command line arguments given by the user
+    parser.process(app);
 
-		// Call update manager, if allowed
-		if(!parser.isSet(showNoUpdateOption) && au.newVersionAvailable()) {
-			 au.updateMiniUI();
-			 return 0;
-		}
+    AutoUpdater au(app);
 
-		// Check console flag
-		bool showView = false;
-		if(!parser.isSet(showConsoleModeOption))
-				showView = true;
+    // Call update manager, if allowed
+    if(!parser.isSet(showNoUpdateOption) && au.newVersionAvailable()) {
+         au.updateMiniUI();
+         return 0;
+    }
 
-		// Create logging category
-		bool use_stdout_logg = true;
-		QLoggingCategory * category = global_log_manager.createLogger("main", use_stdout_logg, false);
+    // Check console flag
+    bool showView = false;
+    if(!parser.isSet(showConsoleModeOption))
+            showView = true;
 
-		// Network access manager instance used by all code trying to use network
-		QNetworkAccessManager manager;
+    // Create logging category
+    bool use_stdout_logg = true;
+    QLoggingCategory * category = global_log_manager.createLogger("main", use_stdout_logg, false);
 
-		try {
+    // Network access manager instance used by all code trying to use network
+    QNetworkAccessManager manager;
 
-				// Load default state
-				Controller::Configuration configuration;
+    try {
 
-				// If fresh flag is not passed,
-				// then open existing parameter file
-				// DISABLED: !parser.isSet(showFreshOption)
-				if(false) {
+        // Load default state
+        Controller::Configuration configuration;
 
-						// Get name of file name
-                        QString file = QDir::homePath() + QDir::separator() + APPLICATION_PARAMETER_FILE_NAME;
-						std::string fileString = file.toStdString();
+        // If fresh flag is not passed,
+        // then open existing parameter file
+        // DISABLED: !parser.isSet(showFreshOption)
+        if(false) {
 
-						// Check that file exists, and that it actually is a file
-						if(!QFile::exists(file)) {
+            // Get name of file name
+            QString file = QDir::homePath() + QDir::separator() + APPLICATION_PARAMETER_FILE_NAME;
+            std::string fileString = file.toStdString();
 
-								qDebug() << "WARNING: parameter file"
-												 << fileString.c_str()
-												 << "does not exist. Try fresh run option if problem persists";
+            // Check that file exists, and that it actually is a file
+            if(!QFile::exists(file)) {
 
-								exit(EXIT_FAILURE);
+                qDebug() << "WARNING: parameter file"
+                         << fileString.c_str()
+                         << "does not exist. Try fresh run option if problem persists";
 
-						} else // Load state from file
-								configuration = Controller::Configuration(fileString.c_str());
-				}
+                exit(EXIT_FAILURE);
 
-				// Load wallet
-				QString walletFile = QDir::homePath() + QDir::separator() + QString("wallet.sqlite3");
+            } else // Load state from file
+                configuration = Controller::Configuration(fileString.c_str());
+        }
 
-                Wallet::Manager *wallet;
+        // Load wallet
+        QString walletFile = QDir::homePath() + QDir::separator() + QString("wallet.sqlite3");
 
-				// Create wallet if it does not exist
-				if(!QFile(walletFile).exists()) {
-                    qCDebug((*category)) << "Creating a fresh wallet " << walletFile;
-                    createWallet(walletFile);
-                    wallet = new Wallet::Manager(walletFile);
-                } else {
-                    // Load existing wallet
-                    wallet = new Wallet::Manager(walletFile);
+        Wallet::Manager * wallet;
 
-                    //check if the metadata version is set in the database
-                    //value of 0 means the database
-                    //was created in an earlier version of the app before key pooling was
-                    //implemented and we should drop it and create a new one
-                    if(wallet->version() == 0) {
-                        wallet->close();
-                        qCDebug((*category)) << "Purging old wallet, creating new fresh wallet " << walletFile;
-                        deleteWallet(walletFile);
-                        createWallet(walletFile);
-                        wallet = new Wallet::Manager(walletFile);
-                    }
-                }
+        // Create wallet if it does not exist
+        if(!QFile(walletFile).exists()) {
 
-				// Initiliaze blockcypher interface
-                wallet->BLOCKCYPHER_init(&manager, APPLICATION_BLOCKCYPHER_TOKEN);
+            qCDebug((*category)) << "Creating a fresh wallet " << walletFile;
+            createWallet(walletFile);
 
-				// Create controller
-                Controller controller(configuration, wallet, &manager, *category);
+            wallet = new Wallet::Manager(walletFile);
 
-				QObject::connect(&controller,
-												 &Controller::closed,
-												 &app,
-												 &QApplication::quit);
+        } else {
 
-				// Allocate view and show it
-                MainWindow view(&controller, wallet, "");
-				view.show();
+            // Load existing wallet
+            wallet = new Wallet::Manager(walletFile);
 
-				// Start event loop: this is the only Qt event loop in the entire application
-				app.exec();
+            //check if the metadata version is set in the database
+            //value of 0 means the database
+            //was created in an earlier version of the app before key pooling was
+            //implemented and we should drop it and create a new one
+            if(wallet->version() == 0) {
+                wallet->close();
+                qCDebug((*category)) << "Purging old wallet, creating new fresh wallet " << walletFile;
+                deleteWallet(walletFile);
+                createWallet(walletFile);
+                wallet = new Wallet::Manager(walletFile);
+            }
+        }
 
-				qDebug() << "Application event loop exited, application closing.";
+        // Initiliaze blockcypher interface
+        wallet->BLOCKCYPHER_init(&manager, APPLICATION_BLOCKCYPHER_TOKEN);
 
-				return 0;
+        // Create controller
+        Controller controller(configuration, wallet, &manager, *category);
 
-		} catch(const std::exception & e) {
+        QObject::connect(&controller, &Controller::closed, &app, &QApplication::quit);
 
-				/**
-				 * In the future:
-				 * 1) Sepearate exception handling for each part (view, wallet, contoller, configruations, etc)
-				 * 2) In each case, module should only throw exceptions which truly should be visible to outside
-				 * everything else should be logged and handled gracefully itnernally.
-				 */
+        // Allocate view and show it
+        MainWindow view(&controller, wallet, "");
+        view.show();
 
-				// This is temporary error handling fix for sending off logs to error logging endpoint error.joystream.co
-				// Find more appropriate fix later
+        // Create and start analytics tracking
+        Analytics analytics(&manager, APPLICATION_MIXPANEL_TOKEN, applicationVersion); //, Analytics::_defaultAnalyticsHost);
 
-				qCDebug((*category)) << "Catastrophic error due to unhandled exception" << e.what();
-				qCDebug((*category)) << "Sending error log to " << ERROR_LOG_ENDPOINT;
-				send_errorlog(&manager);
-				qCDebug((*category)) << "Shutting down, try to restart software, delete wallet file if problem persists.";
+        // Monitor controller
+        analytics.monitor(&controller);
 
-				return 1;
-		}
+        // Send start signal and regular pings
+        analytics.start(Analytics::_defaultPingMsInterval);
+
+        // Start event loop: this is the only Qt event loop in the entire application
+        app.exec();
+
+        qDebug() << "Application event loop exited, application closing.";
+
+        return 0;
+
+    } catch(const std::exception & e) {
+
+        /**
+         * In the future:
+         * 1) Sepearate exception handling for each part (view, wallet, contoller, configruations, etc)
+         * 2) In each case, module should only throw exceptions which truly should be visible to outside
+         * everything else should be logged and handled gracefully itnernally.
+         */
+
+        // This is temporary error handling fix for sending off logs to error logging endpoint error.joystream.co
+        // Find more appropriate fix later
+
+        qCDebug((*category)) << "Catastrophic error due to unhandled exception" << e.what();
+        qCDebug((*category)) << "Sending error log to " << ERROR_LOG_ENDPOINT;
+        send_errorlog(&manager);
+        qCDebug((*category)) << "Shutting down, try to restart software, delete wallet file if problem persists.";
+
+        return 1;
+    }
 }
 
 bool deleteWallet(QString filename) {
@@ -182,16 +195,16 @@ void createWallet(QString filename) {
 
 bool send_errorlog(QNetworkAccessManager * manager) {
 
-		// Read in error file
-		QFile errorFile(QDir::homePath() + QDir::separator() + QString("main.txt"));
+    // Read in error file
+    QFile errorFile(QDir::homePath() + QDir::separator() + QString("main.txt"));
 
-		if(!errorFile.exists())
-				return false;
+    if(!errorFile.exists())
+            return false;
 
-		if(!errorFile.open(QIODevice::ReadOnly))
-				return false;
+    if(!errorFile.open(QIODevice::ReadOnly))
+            return false;
 
-		QByteArray data = errorFile.readAll();
+    QByteArray data = errorFile.readAll();
 
     // cut off excessive part
     data = data.right(ERROR_LOG_MAX_SIZE);
@@ -208,20 +221,18 @@ bool send_errorlog(QNetworkAccessManager * manager) {
     data += "productType():"            + QSysInfo::productType() + "\n";
     data += "productVersion():"         + QSysInfo::productVersion() + "\n";
 
-		// Create url and POST file
-		QUrl url(QString("http://") + ERROR_LOG_ENDPOINT);
-		QNetworkRequest request(url);
-		request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+    // Create url and POST file
+    QUrl url(QString("http://") + ERROR_LOG_ENDPOINT);
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
 
-		QNetworkReply * reply = manager->post(request, data);
+    QNetworkReply * reply = manager->post(request, data);
 
-		// Block until we have reply finished
-		QEventLoop loop;
-		QObject::connect(reply,
-										 &QNetworkReply::finished,
-										 &loop,
-										 &QEventLoop::quit);
-		loop.exec();
+    // Block until we have reply finished
+    QEventLoop loop;
+    QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
 
-		return reply->error() == QNetworkReply::NoError;
+    loop.exec();
+
+    return reply->error() == QNetworkReply::NoError;
 }
