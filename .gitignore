@@ -59,3 +59,9 @@ Temporary Items
 
 #shadow build dir
 build/
+
+#dependencies
+deps/osx/dist/
+deps/osx/src/
+deps/linux/dist/
+deps/linux/src/

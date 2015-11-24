@@ -70,11 +70,10 @@ macx {
 # Unix
 unix:!macx {
 
-INCLUDEPATH += /usr/include
+    INCLUDEPATH += /usr/local/include
 
-# SHARED
-LIBS += \
-        -L/usr/lib/x86_64-linux-gnu \
+    LIBS += \
+        -L/usr/local/lib \
         -lboost_thread \
         -lboost_system \
         -lboost_chrono \
@@ -83,12 +82,4 @@ LIBS += \
         -lboost_regex \
         -lpthread \
         -lz
-
-#LIBS += /usr/lib/x86_64-linux-gnu/ -lboost_thread
-#LIBS += /usr/lib/x86_64-linux-gnu/ -lboost_system
-#LIBS += /usr/lib/x86_64-linux-gnu/ -lboost_chrono
-#LIBS += /usr/lib/x86_64-linux-gnu/ -lboost_filesystem
-#LIBS += /usr/lib/x86_64-linux-gnu/ -lboost_regex
-#LIBS += /usr/lib/x86_64-linux-gnu/ -lpthread
-#LIBS += /usr/lib/x86_64-linux-gnu/ -lz
 }

@@ -1,6 +1,14 @@
 #!/bin/bash
-set -x
+
+#build dependencies
+pushd deps/osx/
+./build-all.sh
+popd
+
 mkdir -p build/osx
 cd build/osx
 rm -fr app/app.app
-qmake ../../JoyStream.pro -r -spec macx-clang CONFIG+=x86_64 DEFINES+=QT_FORCE_ASSERTS && make && macdeployqt app/app.app
+
+qmake ../../JoyStream.pro -r -spec macx-clang CONFIG+=x86_64 DEFINES+=QT_FORCE_ASSERTS && \
+  make && \
+  macdeployqt app/app.app

@@ -25,7 +25,7 @@ win32 {
 # Unix
 unix:!macx {
 
-    MSIGNA_SYSROOT = /home/bedeho/JoyStream/Development/libs/mSIGNA/sysroot
+    MSIGNA_SYSROOT = $$PWD/deps/linux/src/mSIGNA/sysroot
 
     INCLUDEPATH += $$MSIGNA_SYSROOT/include
 
@@ -40,12 +40,7 @@ unix:!macx {
 # Mac
 macx {
 
-    CONFIG(release, debug|release) {
-        MSIGNA_SYSROOT = /Users/mokhtar/JoyStream/mSIGNA/sysroot
-    } else {
-        #todo - update to debug build
-        MSIGNA_SYSROOT = /Users/mokhtar/JoyStream/mSIGNA/sysroot
-    }
+    MSIGNA_SYSROOT = $$PWD/deps/osx/src/mSIGNA/sysroot
 
     INCLUDEPATH += $$MSIGNA_SYSROOT/include
 

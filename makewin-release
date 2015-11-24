@@ -1,7 +1,8 @@
 #!/bin/bash
-set -x
 export PATH=/usr/i686-w64-mingw32/host/bin:$PATH
 mkdir -p build/win32
 cd build/win32
-qmake ../../JoyStream.pro -r -spec win32-g++ DEFINES+=QT_FORCE_ASSERTS CONFIG+=release && make release && sudo cp app/release/app.exe /media/sf_vm-shared/joystream.exe
+qmake ../../JoyStream.pro -r -spec win32-g++ DEFINES+=QT_FORCE_ASSERTS CONFIG+=release && make release
+
+#sudo cp app/release/app.exe /media/sf_vm-shared/joystream.exe
 
