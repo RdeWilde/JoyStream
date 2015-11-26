@@ -8,31 +8,8 @@ LIB_BOOST_VERSION="1.59.0"
 LIBTORRENT_VERSION="libtorrent-1_0_7"
 LIBTORRENT_TARBALL="${LIBTORRENT_VERSION}.tar.gz"
 
-OPENSSL_VERSION="openssl-1.0.2d"
-OPENSSL_TARBALL="${OPENSSL_VERSION}.tar.gz"
-
 mkdir -p src/
 mkdir -p dist/
-
-pushd src
-if [ ! -r "openssl" ]
-then
-    if [ ! -e "${OPENSSL_TARBALL}" ]
-    then
-      # download openssl
-      echo "Downloding ${OPENSSL_TARBALL}"
-      wget -O ${OPENSSL_TARBALL} "https://www.openssl.org/source/${OPENSSL_TARBALL}"
-    fi
-
-    tar -xzvf "${OPENSSL_TARBALL}"
-    mv ${OPENSSL_VERSION}/ openssl
-    cd openssl/
-    ./Configure shared darwin64-x86_64-cc --openssldir=/usr/local/
-    sed -ie "s/^CFLAG= -/CFLAG= -mmacosx-version-min=10.7 -/" Makefile
-    make
-    make install
-fi
-popd
 
 pushd src
 if [ ! -e "boost" ]
@@ -49,7 +26,6 @@ then
 
   cd boost/
   ./bootstrap.sh
-  patch tools/build/src/tools/darwin.jam ../../boost-patch.diff
 fi
 popd
 ./build-boost.sh
@@ -79,13 +55,11 @@ then
     mkdir -p odb
     cd odb
     # ODB Compiler
-    if [ ! -e "odb-2.4.0-i686-macosx.tar.bz2" ]
+    if [ ! -e "odb_2.4.0-1_amd64.deb" ]
     then
-        wget http://www.codesynthesis.com/download/odb/2.4/odb-2.4.0-i686-macosx.tar.bz2
+        wget http://www.codesynthesis.com/download/odb/2.4/odb_2.4.0-1_amd64.deb
     fi
-    tar -xjvf odb-2.4.0-i686-macosx.tar.bz2
-    echo "export PATH=$(pwd)/odb-2.4.0-i686-macosx/bin:\$PATH" >> ~/.bash_profile
-    source ~/.bash_profile
+    sudo dpkg -i odb_2.4.0-1_amd64.deb
 
     # Common Runtime Library
     if [ ! -e "libodb-2.4.0.tar.bz2" ]
@@ -121,7 +95,6 @@ then
     fi
     tar -xzvf libpng-1.6.19.tar.gz
     cd libpng-1.6.19/
-    CFLAGS=-mmacosx-version-min=10.7 ./configure
     make
     make install
 fi
@@ -134,9 +107,7 @@ then
     git clone https://github.com/ciphrex/mSIGNA.git
     cd mSIGNA/
     git checkout -b v0.9.6 v0.9.6
-    patch deps/mk/os.mk ../../mSIGNA-patch.diff
     cd deps/qrencode-3.4.3
-    CFLAGS=-mmacosx-version-min=10.7 ./configure
     make
     make install
     cd ../stdutils
@@ -155,6 +126,6 @@ then
 
     #optionally build full mSIGNA app
     #cd ../../
-    #./build-all.sh osx
+    #./build-all.sh linux
 fi
 popd

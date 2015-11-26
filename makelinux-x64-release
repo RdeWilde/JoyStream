@@ -1,4 +1,8 @@
 #!/bin/bash
+pushd deps/linux
+./build-all.sh
+popd
+
 mkdir -p build/linux-x64
 cd build/linux-x64
 qmake ../../JoyStream.pro -r -spec linux-g++  DEFINES+=QT_FORCE_ASSERTS && make

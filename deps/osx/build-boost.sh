@@ -1,5 +1,5 @@
 cd src/boost
-bjam toolset=clang address-model=64 link=static \
+./b2 toolset=clang address-model=64 link=static \
 cflags=-mmacosx-version-min=10.7 \
 cxxflags="-std=c++11 -stdlib=libc++" \
 linkflags="-std=c++11 -stdlib=libc++" \
