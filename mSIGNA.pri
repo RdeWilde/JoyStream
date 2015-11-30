@@ -9,7 +9,7 @@
 
 # Windows
 win32 {
-    MSIGNA_SYSROOT = /home/mokhtar/JoyStream-32bit/mSIGNA/sysroot
+    MSIGNA_SYSROOT = $$PWD/deps/win32/src/mSIGNA/sysroot
 
     INCLUDEPATH += $$MSIGNA_SYSROOT/include
 

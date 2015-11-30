@@ -1,5 +1,5 @@
 export BOOST_ROOT=$PWD/src/boost/
-export PREFIX_PATH=$PWD/dist/release/
+PREFIX_PATH=$PWD/dist/release/
 
 cd src/libtorrent
 

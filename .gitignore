@@ -65,3 +65,5 @@ deps/osx/dist/
 deps/osx/src/
 deps/linux/dist/
 deps/linux/src/
+deps/win32/dist/
+deps/win32/src/

@@ -70,7 +70,7 @@ then
     cd libodb-2.4.0
     ./configure
     make
-    make install
+    sudo make install
     cd ..
 
     # Database Runtime Library
@@ -82,7 +82,7 @@ then
     cd libodb-sqlite-2.4.0
     ./configure
     make
-    make install
+    sudo make install
 fi
 popd
 
@@ -96,7 +96,7 @@ then
     tar -xzvf libpng-1.6.19.tar.gz
     cd libpng-1.6.19/
     make
-    make install
+    sudo make install
 fi
 popd
 

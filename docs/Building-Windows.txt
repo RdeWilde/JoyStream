@@ -1,0 +1,37 @@
+Instructions for crosscompiling Joystream 32-bit windows binary
+on Ubuntu 14.04
+
+1) Create fresh ubuntu 14.04 (Trusty Tahr) VM
+    64-bit desktop version
+    (Note: ubuntu 13.xx can also be used, but mingw-w64 only comes with gcc4.6.3 which lacks full support for C++11)
+
+2) Install packages
+    $ sudo apt-get update && sudo apt-get upgrade
+    $ sudo apt-get install ssh git build-essential mingw-w64 gcc-mingw-w64 g++-mingw-w64 binutils-mingw-w64
+
+3) Build Qt5 for windows (zlib and ssl first)
+
+    $ wget http://download.qt-project.org/official_releases/qt/5.5/5.5.0/single/qt-everywhere-opensource-src-5.5.0.tar.gz
+    $ tar -xzvf qt-everywhere-opensource-src-5.5.0.tar.gz
+
+    Fix Qt5.5.0 issues with preprocessor definitions when building with MinGW.
+
+    $ sed -i -e 's/QT_NO_SESSIONMANAGER/__QT_NO_SESSIONMANAGER/g' \
+        ~/qt-everywhere-opensource-src-5.5.0/qtbase/src/gui/kernel/qplatformsessionmanager.h \
+        ~/qt-everywhere-opensource-src-5.5.0/qtbase/src/gui/kernel/qsessionmanager.h
+
+    Fix Qt (WINBOOL bug) - https://bugreports.qt.io/browse/QTBUG-46463
+    patch:
+    https://codereview.qt-project.org/#/c/115707/2/src/imports/qtcanvas3d/context3d_p.h
+
+    Build Qt using script:
+    ./build-qt-release-i686-w64-mingw32.sh
+    
+    #Patch Qt to work with cmake for static build. Windows uses library naming convention name.lib, MinGW uses libname.a.
+    #So we must replace the names:
+
+    $ cd /usr/i686-w64-mingw32/lib/cmake
+    $ sudo sed -i -e 's/\/\([^\.]*\)\.lib/\/lib\1\.a/g' $(find * -type f)
+
+
+

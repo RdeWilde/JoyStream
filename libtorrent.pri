@@ -18,8 +18,8 @@ DEFINES += BOOST_ASIO_ENABLE_CANCELIO
 # Windows
 win32 {
 
-    LIBTORRENT_LOCATION = /home/mokhtar/JoyStream-32bit/libtorrent-libtorrent-1_0_5
-    INCLUDEPATH += $$LIBTORRENT_LOCATION/include
+    LIBTORRENT_LOCATION = $$PWD/deps/win32/dist
+    INCLUDEPATH += $$LIBTORRENT_LOCATION/release/include
 
     # LIBTORRENT DEFINES
     DEFINES += TORRENT_LINKING_STATIC
@@ -34,11 +34,11 @@ win32 {
     DEFINES += WIN32
     DEFINES += _WIN32
 
- CONFIG(release, debug|release) {
-    LIBS += -L$$LIBTORRENT_LOCATION/bin/gcc-mingw-mingw32/release/address-model-32/link-static/runtime-link-static/target-os-windows/threadapi-win32/threading-multi/ -ltorrent
- } else {
-    LIBS += -L$$LIBTORRENT_LOCATION/bin/gcc-mingw-mingw32/debug/address-model-32/link-static/runtime-link-static/target-os-windows/threadapi-win32/threading-multi/ -ltorrent
- }
+    CONFIG(release, debug|release) {
+	LIBS += -L$$LIBTORRENT_LOCATION/release/lib -ltorrent
+    } else {
+	LIBS += -L$$LIBTORRENT_LOCATION/release/lib -ltorrent
+    }
 }
 
 # Unix
