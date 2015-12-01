@@ -1,4 +1,9 @@
 #!/bin/bash
+
+pushd deps/win32/
+./build-all.sh
+popd
+
 export PATH=/usr/i686-w64-mingw32/host/bin:$PATH
 mkdir -p build/win32
 cd build/win32

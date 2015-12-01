@@ -1,0 +1,27 @@
+--- context3d_p.h	2015-12-01 10:34:14.930031746 +0200
++++ context3d_p_new-4ec28967678099650ea05a6d5de88286ea51d958.h	2015-12-01 09:59:26.009125083 +0200
+@@ -88,6 +88,12 @@
+ class CompressedTextureS3TC;
+ class CompressedTexturePVRTC;
+ 
++// MinGW headers try to define BOOL to WINBOOL
++#if defined(BOOL)
++#  define BOOL_OLD_DEFINE BOOL
++#  undef BOOL
++#endif
++
+ class QT_CANVAS3D_EXPORT CanvasContext : public CanvasAbstractObject, protected QOpenGLFunctions
+ {
+     Q_OBJECT
+@@ -1292,6 +1298,11 @@
+     CompressedTexturePVRTC *m_compressedTexturePVRTC;
+ };
+ 
++#if defined(BOOL_OLD_DEFINE)
++#  define BOOL BOOL_OLD_DEFINE
++#  undef BOOL_OLD_DEFINE
++#endif
++
+ QT_CANVAS3D_END_NAMESPACE
+ QT_END_NAMESPACE
+ 

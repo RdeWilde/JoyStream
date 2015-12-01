@@ -9,29 +9,23 @@ on Ubuntu 14.04
     $ sudo apt-get update && sudo apt-get upgrade
     $ sudo apt-get install ssh git build-essential mingw-w64 gcc-mingw-w64 g++-mingw-w64 binutils-mingw-w64
 
-3) Build Qt5 for windows (zlib and ssl first)
+3) clone the JoyStream repo
 
-    $ wget http://download.qt-project.org/official_releases/qt/5.5/5.5.0/single/qt-everywhere-opensource-src-5.5.0.tar.gz
-    $ tar -xzvf qt-everywhere-opensource-src-5.5.0.tar.gz
+   $ git clone https://github.com/JoyStreamApp/JoyStream JoyStream
 
-    Fix Qt5.5.0 issues with preprocessor definitions when building with MinGW.
+4) Buid Qt
 
-    $ sed -i -e 's/QT_NO_SESSIONMANAGER/__QT_NO_SESSIONMANAGER/g' \
-        ~/qt-everywhere-opensource-src-5.5.0/qtbase/src/gui/kernel/qplatformsessionmanager.h \
-        ~/qt-everywhere-opensource-src-5.5.0/qtbase/src/gui/kernel/qsessionmanager.h
+   cd JoyStream/deps/win32/
+   ./build-qt-release-i686-w64-mingw32.sh
 
-    Fix Qt (WINBOOL bug) - https://bugreports.qt.io/browse/QTBUG-46463
-    patch:
-    https://codereview.qt-project.org/#/c/115707/2/src/imports/qtcanvas3d/context3d_p.h
+5) Build JoyStream
 
-    Build Qt using script:
-    ./build-qt-release-i686-w64-mingw32.sh
-    
-    #Patch Qt to work with cmake for static build. Windows uses library naming convention name.lib, MinGW uses libname.a.
-    #So we must replace the names:
+   $ cd ../../
+   $ ./makewin-release
 
-    $ cd /usr/i686-w64-mingw32/lib/cmake
-    $ sudo sed -i -e 's/\/\([^\.]*\)\.lib/\/lib\1\.a/g' $(find * -type f)
+7) Run JoyStream
+
+   copy ./build/win32/app/release/app.exe to a windows machine and run it.
 
 
 

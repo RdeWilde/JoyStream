@@ -12,73 +12,8 @@ LIB_BOOST_VERSION="1.59.0"
 LIBTORRENT_VERSION="libtorrent-1_0_7"
 LIBTORRENT_TARBALL="${LIBTORRENT_VERSION}.tar.gz"
 
-ZLIB_VERSION="zlib-1.2.8"
-SQLITE_VERSION="sqlite-autoconf-3090200"
-OPENSSL_VERSION="openssl-1.0.2d"
-
 mkdir -p src/
 mkdir -p dist/
-
-#
-# OpenSSL
-#
-pushd src
-if [ ! -r "${OPENSSL_VERSION}" ]
-then
-    if [ ! -e "${OPENSSL_VERSION}.tar.gz" ]
-    then
-      wget -O "${OPENSSL_VERSION}.tar.gz" "https://www.openssl.org/source/${OPENSSL_VERSION}.tar.gz"
-    fi
-
-    tar -xzvf "${OPENSSL_VERSION}.tar.gz"
-    cd ${OPENSSL_VERSION}
-    CROSS_COMPILE="${TARGET_ARCH}-" ./Configure mingw64 no-asm no-shared --prefix=/usr/${TARGET_ARCH}
-    make
-    sudo make install_sw
-fi
-popd
-
-#
-# zlib
-#
-pushd src
-if [ ! -e "${ZLIB_VERSION}" ]
-then
-    if [ ! -e "${ZLIB_VERSION}.tar.gz" ]
-    then
-        wget "http://zlib.net/${ZLIB_VERSION}.tar.gz"
-    fi
-
-    tar -xzvf "${ZLIB_VERSION}.tar.gz"
-    cd ${ZLIB_VERSION}
-    CC=${TARGET_ARCH}-gcc AR=${TARGET_ARCH}-ar RANLIB=${TARGET_ARCH}-ranlib ./configure --prefix=/usr/${TARGET_ARCH} --static
-    make
-    sudo make install
-fi
-popd
-
-#
-#  QT - TODO add script here
-#
-
-#
-# sqlite
-#
-pushd src
-if [ ! -e "${SQLITE_VERSION}" ]
-then
-    if [ ! -r "${SQLITE_VERSION}.tar.gz" ]
-    then
-	wget "https://www.sqlite.org/2015/${SQLITE_VERSION}.tar.gz"
-    fi
-
-    tar -xzvf "${SQLITE_VERSION}.tar.gz"
-    cd "${SQLITE_VERSION}/"
-    ./configure --host=${TARGET_ARCH} --target=windows --prefix=/usr/${TARGET_ARCH} CFLAGS=-DSQLITE_ENABLE_UNLOCK_NOTIFY
-    make
-    sudo make install
-fi
-popd
 
 #
 # Boost
