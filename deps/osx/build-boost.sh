@@ -1,3 +1,10 @@
+#!/bin/bash
+
+# Copyright (C) JoyStream - All Rights Reserved
+# Unauthorized copying of this file, via any medium is strictly prohibited
+# Proprietary and confidential
+# Written by Mokhtar Naamani <mokhtar.naamani@gmail.com>, December 1 2015
+
 cd src/boost
 ./b2 toolset=clang address-model=64 link=static \
 cflags=-mmacosx-version-min=10.7 \

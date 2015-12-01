@@ -1,4 +1,10 @@
 #!/bin/bash
+
+# Copyright (C) JoyStream - All Rights Reserved
+# Unauthorized copying of this file, via any medium is strictly prohibited
+# Proprietary and confidential
+# Written by Mokhtar Naamani <mokhtar.naamani@gmail.com>, December 1 2015
+
 set -x
 
 TARGET_ARCH="i686-w64-mingw32"
@@ -72,7 +78,7 @@ popd
 #
 pushd src
 if [ ! -e "qt5-win32-build-release" ]
-then 
+then
     if [ ! -e "qt-everywhere-opensource-src-5.5.0.tar.gz" ]
     then
        wget http://download.qt-project.org/official_releases/qt/5.5/5.5.0/single/qt-everywhere-opensource-src-5.5.0.tar.gz
@@ -110,4 +116,3 @@ then
     sudo sed -i -e 's/\/\([^\.]*\)\.lib/\/lib\1\.a/g' $(find * -type f)
 fi
 popd
-

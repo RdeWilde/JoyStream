@@ -1,3 +1,10 @@
+#!/bin/bash
+
+# Copyright (C) JoyStream - All Rights Reserved
+# Unauthorized copying of this file, via any medium is strictly prohibited
+# Proprietary and confidential
+# Written by Mokhtar Naamani <mokhtar.naamani@gmail.com>, December 1 2015
+
 cd src/boost
 #build without icu (unicode support needed for regex)
 #sudo ./b2 toolset=gcc address-model=64 target-os=linux threading=multi  \

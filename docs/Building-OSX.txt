@@ -1,10 +1,10 @@
-OSX Build Environment Setup for building JoyStream targeting OSX 10.7
----------------------------------------------------------------------
+Build OSX app minimum OSX 10.7
+------------------------------
 
 1) Download and install Qt 5.5
 
    https://www.qt.io/download/
-   
+
    Install it in your home directory: ~/Qt
 
    Add Qt to your PATH:
@@ -23,7 +23,7 @@ OSX Build Environment Setup for building JoyStream targeting OSX 10.7
 
     $ xcode-select --install
 
-5) clone the JoyStream repo
+5) Clone the JoyStream repo
 
    $ git clone https://github.com/JoyStreamApp/JoyStream JoyStream
 

@@ -1,4 +1,5 @@
-Building Joystream on Linux:
+Build Linux app on Ubuntu 14.04
+-------------------------------
 
 1) Install development packages
 
@@ -10,7 +11,7 @@ Building Joystream on Linux:
     gcc should be upgraded to v4.8 for full C++11 support if using ubuntu < 14.xx
     https://askubuntu.com/questions/271388/how-to-install-gcc-4-8
 
-3) Download and install Qt 5.5 
+3) Download and install Qt 5.5
 
     http://www.qt.io/download/
 
@@ -21,7 +22,7 @@ Building Joystream on Linux:
     $ echo "export PATH=~/Qt/5.5/gcc_64/bin:$PATH" >> ~/.profile
     $ source ~/.profile
 
-4) clone JoyStream repo
+4) Clone JoyStream repo
 
    $ git clone https://github.com/JoyStreamApp/JoyStream JoyStream
 
@@ -32,5 +33,4 @@ Building Joystream on Linux:
 
 6) Run JoyStream
 
-   ./build/linux/app/app
-
+   ./build/linux-x64/app/app

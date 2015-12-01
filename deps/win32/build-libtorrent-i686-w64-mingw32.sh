@@ -1,3 +1,10 @@
+#!/bin/bash
+
+# Copyright (C) JoyStream - All Rights Reserved
+# Unauthorized copying of this file, via any medium is strictly prohibited
+# Proprietary and confidential
+# Written by Mokhtar Naamani <mokhtar.naamani@gmail.com>, December 1 2015
+
 export BOOST_ROOT=$PWD/src/boost/
 export PREFIX_PATH=$PWD/dist/release/
 

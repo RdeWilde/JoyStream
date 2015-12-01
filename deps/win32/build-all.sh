@@ -1,4 +1,10 @@
 #!/bin/bash
+
+# Copyright (C) JoyStream - All Rights Reserved
+# Unauthorized copying of this file, via any medium is strictly prohibited
+# Proprietary and confidential
+# Written by Mokhtar Naamani <mokhtar.naamani@gmail.com>, December 1 2015
+
 set -x
 
 WINDOWS_64BIT="x86_64-w64-mingw32"
