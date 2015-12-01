@@ -23,6 +23,4 @@ SOURCES += \
     src/Event.cpp \
     src/Mixpanel.cpp
 
-
-
-
+include(../config.pri)
