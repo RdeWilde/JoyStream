@@ -32,9 +32,10 @@ then
 
   cd boost/
   ./bootstrap.sh
+  cd ../../
+  ./build-boost.sh
 fi
 popd
-./build-boost.sh
 
 pushd src
 if [ ! -e "libtorrent" ]
@@ -50,10 +51,10 @@ then
   mv libtorrent-${LIBTORRENT_VERSION}/ libtorrent
   cd libtorrent/
   patch src/bt_peer_connection.cpp ../../libtorrent-patch.diff
-
+  cd ../../
+  ./build-libtorrent.sh
 fi
 popd
-./build-libtorrent.sh
 
 pushd src
 if [ ! -e "odb" ]

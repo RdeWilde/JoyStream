@@ -39,9 +39,10 @@ then
   cp "../user-config-${TARGET_ARCH}.jam" boost/user-config.jam
   cd boost/
   ./bootstrap.sh --without-icu
+  cd ../../
+  ./build-boost-${TARGET_ARCH}.sh
 fi
 popd
-./build-boost-${TARGET_ARCH}.sh
 
 #
 # libtorrent
@@ -67,10 +68,10 @@ then
   #patch case sensitive include files
   sed -ie "s/^#include <Windows.h>/#include <windows.h>/" ed25519/src/seed.cpp
   sed -ie "s/^#include <Wincrypt.h>/#include <wincrypt.h>/" ed25519/src/seed.cpp
-
+  cd ../../
+  ./build-libtorrent-${TARGET_ARCH}.sh
 fi
 popd
-./build-libtorrent-${TARGET_ARCH}.sh
 
 #
 # ODB
