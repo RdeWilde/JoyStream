@@ -8,7 +8,7 @@
 cd src/boost
 ./b2 toolset=clang address-model=64 link=static \
 cflags=-mmacosx-version-min=10.7 \
-cxxflags="-std=c++11 -stdlib=libc++" \
+cxxflags="-std=c++11 -stdlib=libc++ -fvisibility=hidden" \
 linkflags="-std=c++11 -stdlib=libc++" \
 macosx-version=10.11 \
 macosx-version-min=10.7 \
