@@ -3,15 +3,6 @@
 # Proprietary and confidential
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, August 6 2015
 
-# libtorrent debug and logging settings
-CONFIG(release, debug|release) {
-    DEFINES += NDEBUG
-} else {
-    DEFINES += TORRENT_DEBUG
-    DEFINES += TORRENT_LOGGING
-    DEFINES += TORRENT_VERBOSE_LOGGING
-}
-
 DEFINES += TORRENT_DISABLE_GEO_IP
 DEFINES += TORRENT_NO_DEPRECATE
 DEFINES += TORRENT_LINKING_STATIC
@@ -50,8 +41,12 @@ QMAKE_CXXFLAGS += -isystem $$LIBTORRENT_LOCATION/release/include
 
 CONFIG(release, debug|release) {
     LIBS += -L$$LIBTORRENT_LOCATION/release/lib -ltorrent
+    DEFINES += NDEBUG
 } else {
     LIBS += -L$$LIBTORRENT_LOCATION/debug/lib -ltorrent
+    DEFINES += TORRENT_DEBUG
+    DEFINES += TORRENT_LOGGING
+    DEFINES += TORRENT_VERBOSE_LOGGING
 }
 
 # mSIGNA

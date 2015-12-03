@@ -1,0 +1,7 @@
+#!/bin/bash
+
+mkdir -p build/linux-x64
+cd build/linux-x64
+qmake ../../JoyStream.pro -r -spec linux-g++  CONFIG+=debug && make
+
+#sudo cp app/app /media/sf_vm-shared/core.bin
