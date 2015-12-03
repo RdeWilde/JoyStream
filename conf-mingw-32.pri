@@ -8,7 +8,9 @@ DEFINES += _UNICODE
 DEFINES += WIN32
 DEFINES += _WIN32
 
-INCLUDEPATH += /usr/i686-w64-mingw32/include
+#INCLUDEPATH += /usr/i686-w64-mingw32/include
+QMAKE_CXXFLAGS += -isystem /usr/i686-w64-mingw32/include
+
 LIBS += -L/usr/i686-w64-mingw32/lib
 
 LIBS += \

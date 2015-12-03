@@ -4,7 +4,8 @@
 # Written by Mokhtar Naamani <mokhtar.naamani@gmail.com>, December 1 2015
 
 # compiled dependencies
-INCLUDEPATH += /usr/local/include
+#INCLUDEPATH += /usr/local/include
+QMAKE_CXXFLAGS += -isystem /usr/local/include
 LIBS += -L/usr/local/lib
 
 # libtorrent

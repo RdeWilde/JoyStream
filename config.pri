@@ -45,17 +45,18 @@ LIBS += -lpthread -lz
 LIBS += -lcrypto -lssl
 
 # libtorrent
-INCLUDEPATH += $$LIBTORRENT_LOCATION/release/include
+#INCLUDEPATH += $$LIBTORRENT_LOCATION/release/include
+QMAKE_CXXFLAGS += -isystem $$LIBTORRENT_LOCATION/release/include
 
 CONFIG(release, debug|release) {
     LIBS += -L$$LIBTORRENT_LOCATION/release/lib -ltorrent
 } else {
-    #TODO - make build script for this debug version of libtorrent
     LIBS += -L$$LIBTORRENT_LOCATION/debug/lib -ltorrent
 }
 
 # mSIGNA
-INCLUDEPATH += $$MSIGNA_SYSROOT/include
+#INCLUDEPATH += $$MSIGNA_SYSROOT/include
+QMAKE_CXXFLAGS += -isystem $$MSIGNA_SYSROOT/include
 LIBS += -L$$MSIGNA_SYSROOT/lib -lCoinCore
 
 # Boost
