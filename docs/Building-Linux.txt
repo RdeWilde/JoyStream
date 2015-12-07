@@ -15,12 +15,12 @@ Build Linux app on Ubuntu 14.04
 
     http://www.qt.io/download/
 
-    Install to your home directory: ~/Qt
+    Install to your home directory, for example: ~/Qt
 
-    Add Qt to your PATH:
+    Add Qt tools to your PATH: (change below to match where you installed Qt)
 
-    $ echo "export PATH=~/Qt/5.5/gcc_64/bin:$PATH" >> ~/.profile
-    $ source ~/.profile
+    $ echo "PATH=~/Qt/5.5/gcc_64/bin:\$PATH" >> ~/.profile
+    $ . ~/.profile
 
 4) Clone JoyStream repo
 
