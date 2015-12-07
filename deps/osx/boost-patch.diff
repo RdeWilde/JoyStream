@@ -1,0 +1,14 @@
+--- src/boost/tools/build/src/tools/darwin.jam	2015-08-11 16:53:51.000000000 +0300
++++ src/boost_original/tools/build/src/tools/darwin.jam	2015-10-03 00:45:52.000000000 +0300
+@@ -26,9 +26,11 @@
+ 
+ ## The MacOSX version to compile for, which maps to the SDK to use (sysroot).
+ feature macosx-version : : propagated link-incompatible symmetric optional ;
++feature.extend macosx-version : 10.11 ;
+ 
+ ## The minimal MacOSX version to target.
+ feature macosx-version-min : : propagated optional ;
++feature.extend macosx-version-min : 10.7 ;
+ 
+ ## A dependency, that is forced to be included in the link.
+ feature force-load : : free dependency incidental ;

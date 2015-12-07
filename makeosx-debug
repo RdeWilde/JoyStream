@@ -1,0 +1,9 @@
+#!/bin/bash
+
+mkdir -p build/osx
+cd build/osx
+rm -fr app/app.app
+
+qmake ../../JoyStream.pro -r -spec macx-clang CONFIG+=x86_64 CONFIG+=debug && \
+  make && \
+  macdeployqt app/app.app
