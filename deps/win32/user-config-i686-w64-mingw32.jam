@@ -1,0 +1,2 @@
+#use this custom .jam file for cross compiling boost and libtorrent
+using gcc : mingw32 : i686-w64-mingw32-g++ : <rc>i686-w64-mingw32-windres <archiver>i686-w64-mingw32-ar <ranlib>i686-w64-mingw32-ranlib ;

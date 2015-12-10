@@ -82,7 +82,4 @@ SOURCES += \
     src/Payment.cpp \
     src/TransactionId.cpp
 
-include(../libtorrent.pri) # THERE IS ALMOST NOE LIBTORRENT CODE HERE, SO PERHAPS FACTOR OUT LATER
-include(../mSIGNA.pri)
-include(../openssl.pri)
-include(../boost.pri)
+include(../config.pri)
