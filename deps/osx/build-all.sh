@@ -62,23 +62,26 @@ fi
 popd
 
 pushd src
-if [ ! -e "libtorrent" ]
+if [ ! -e "${LIBTORRENT_TARBALL}" ]
 then
-  if [ ! -e "${LIBTORRENT_TARBALL}" ]
-  then
-    # download libtorrent
-    echo "Downloding ${LIBTORRENT_TARBALL}"
-    wget -O ${LIBTORRENT_TARBALL} "https://github.com/arvidn/libtorrent/archive/${LIBTORRENT_TARBALL}"
-  fi
+  # download libtorrent
+  rm -fr libtorrent/
+  echo "Downloding ${LIBTORRENT_TARBALL}"
+  wget -O ${LIBTORRENT_TARBALL} "https://github.com/arvidn/libtorrent/archive/${LIBTORRENT_TARBALL}"
 
   tar -xzvf ${LIBTORRENT_TARBALL}
   mv libtorrent-${LIBTORRENT_VERSION}/ libtorrent
   cd libtorrent/
   patch src/bt_peer_connection.cpp ../../libtorrent-patch.diff
-  cd ../../
-  ./build-libtorrent.sh
 fi
 popd
+
+if [ "$BUILD_TYPE" == "DEBUG" ]
+  then
+    ./build-libtorrent-debug.sh
+  else
+    ./build-libtorrent.sh
+fi
 
 
 pushd src
