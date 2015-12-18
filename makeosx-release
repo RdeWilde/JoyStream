@@ -8,7 +8,7 @@ popd
 mkdir -p build/osx
 cd build/osx
 rm -fr app/app.app
-
+make clean
 qmake ../../JoyStream.pro -r -spec macx-clang CONFIG+=x86_64 DEFINES+=QT_FORCE_ASSERTS && \
   make && \
   macdeployqt app/app.app

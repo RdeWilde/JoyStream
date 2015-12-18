@@ -1,7 +1,11 @@
 #!/bin/bash
+pushd deps/linux
+BUILD_TYPE="DEBUG" ./build-all.sh
+popd
 
 mkdir -p build/linux-x64
 cd build/linux-x64
+make clean
 qmake ../../JoyStream.pro -r -spec linux-g++  CONFIG+=debug && make
 
 #sudo cp app/app /media/sf_vm-shared/core.bin
