@@ -144,7 +144,7 @@ if [ ! -e "mSIGNA" ]
 then
     git clone https://github.com/ciphrex/mSIGNA.git
     cd mSIGNA/
-    git checkout -b v0.9.6 v0.9.6
+    #git checkout -b v0.9.6 v0.9.6
     patch deps/mk/os.mk ../../mSIGNA-patch.diff
     cd deps/qrencode-3.4.3
     CFLAGS=-mmacosx-version-min=10.7 ./configure

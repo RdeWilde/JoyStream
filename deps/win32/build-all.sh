@@ -147,7 +147,7 @@ popd
 pushd src
 if [ ! -e "mSIGNA" ]
 then
-    git clone https://github.com/mnaamani/mSIGNA.git
+    git clone https://github.com/JoyStreamApp/mSIGNA
     cd mSIGNA/
     git checkout -b windows32bit origin/windows32bit
     cd deps/qrencode-3.4.3
