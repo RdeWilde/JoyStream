@@ -1,9 +1,12 @@
 #!/bin/bash
+pushd deps/osx
+BUILD_TYPE="DEBUG" ./build-all.sh
+popd
 
 mkdir -p build/osx
 cd build/osx
 rm -fr app/app.app
-
+make clean
 qmake ../../JoyStream.pro -r -spec macx-clang CONFIG+=x86_64 CONFIG+=debug && \
   make && \
   macdeployqt app/app.app

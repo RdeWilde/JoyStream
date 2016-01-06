@@ -147,9 +147,9 @@ popd
 pushd src
 if [ ! -e "mSIGNA" ]
 then
-    git clone https://github.com/mnaamani/mSIGNA.git
+    git clone https://github.com/JoyStream/mSIGNA
     cd mSIGNA/
-    git checkout -b windows32bit origin/windows32bit
+    git checkout -b joystream-master origin/joystream-master
     cd deps/qrencode-3.4.3
     ./configure --host=${TARGET_ARCH} --prefix=/usr/${TARGET_ARCH} --without-tools --enable-static --disable-shared
     make

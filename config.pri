@@ -37,12 +37,12 @@ LIBS += -lcrypto -lssl
 
 # libtorrent
 #INCLUDEPATH += $$LIBTORRENT_LOCATION/release/include
-QMAKE_CXXFLAGS += -isystem $$LIBTORRENT_LOCATION/release/include
-
 CONFIG(release, debug|release) {
+    QMAKE_CXXFLAGS += -isystem $$LIBTORRENT_LOCATION/release/include
     LIBS += -L$$LIBTORRENT_LOCATION/release/lib -ltorrent
     DEFINES += NDEBUG
 } else {
+    QMAKE_CXXFLAGS += -isystem $$LIBTORRENT_LOCATION/debug/include
     LIBS += -L$$LIBTORRENT_LOCATION/debug/lib -ltorrent
     DEFINES += TORRENT_DEBUG
     DEFINES += TORRENT_LOGGING
