@@ -114,9 +114,9 @@ popd
 pushd src
 if [ ! -e "mSIGNA" ]
 then
-    git clone https://github.com/ciphrex/mSIGNA.git
+    git clone https://github.com/JoyStream/mSIGNA
     cd mSIGNA/
-    #git checkout -b v0.9.6 v0.9.6
+    git checkout -b joystream-master origin/joystream-master
     cd deps/qrencode-3.4.3
     make
     make install
