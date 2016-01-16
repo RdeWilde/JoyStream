@@ -14,6 +14,9 @@ LIB_BOOST_VERSION="1.59.0"
 LIBTORRENT_VERSION="libtorrent-1_0_7"
 LIBTORRENT_TARBALL="${LIBTORRENT_VERSION}.tar.gz"
 
+LIBPNG_VERSION="libpng-1.6.20"
+LIBPNG_TARBALL="${LIBPNG_VERSION}.tar.gz"
+
 mkdir -p src/
 mkdir -p dist/
 
@@ -97,14 +100,14 @@ fi
 popd
 
 pushd src
-if [ ! -e "libpng-1.6.19" ]
+if [ ! -e "${LIBPNG_VERSION}" ]
 then
-    if [ ! -e "libpng-1.6.19.tar.gz" ]
+    if [ ! -e "${LIBPNG_TARBALL}" ]
     then
-        wget ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng16/libpng-1.6.19.tar.gz
+        wget "ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng16/${LIBPNG_TARBALL}"
     fi
-    tar -xzvf libpng-1.6.19.tar.gz
-    cd libpng-1.6.19/
+    tar -xzvf "${LIBPNG_TARBALL}"
+    cd "${LIBPNG_VERSION}"/
     make
     sudo make install
 fi
