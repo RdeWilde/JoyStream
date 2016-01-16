@@ -18,6 +18,9 @@ LIB_BOOST_VERSION="1.59.0"
 LIBTORRENT_VERSION="libtorrent-1_0_7"
 LIBTORRENT_TARBALL="${LIBTORRENT_VERSION}.tar.gz"
 
+LIBPNG_VERSION="libpng-1.6.20"
+LIBPNG_TARBALL="${LIBPNG_VERSION}.tar.gz"
+
 mkdir -p src/
 mkdir -p dist/
 
@@ -127,21 +130,21 @@ sudo ln -s ../../include/sqlite3.h sqlite3.h
 sudo ln -s ../../include/sqlite3ext.h sqlite3ext.h
 popd
 
-#pushd src
-#if [ ! -e "libpng-1.6.19" ]
-#then
-#    if [ ! -e "libpng-1.6.19.tar.gz" ]
-#    then
-#        wget ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng16/libpng-1.6.19.tar.gz
-#    fi
-#    tar -xzvf libpng-1.6.19.tar.gz
-#    cd libpng-1.6.19/
-#    ./configure --host=${TARGET_ARCH} --target=windows --prefix=/usr/${TARGET_ARCH} \
-#        CPPFLAGS=-I/usr/${TARGET_ARCH}/include LDFLAGS=-L/usr/${TARGET_ARCH}/lib --enable-static --disable-shared
-#    make
-#    sudo make install
-#fi
-#popd
+pushd src
+if [ ! -e "${LIBPNG_VERSION}" ]
+then
+    if [ ! -e "${LIBPNG_TARBALL}" ]
+    then
+        wget "ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng16/${LIBPNG_TARBALL}"
+    fi
+    tar -xzvf "${LIBPNG_TARBALL}"
+    cd "${LIBPNG_VERSION}"/
+    ./configure --host=${TARGET_ARCH} --target=windows --prefix=/usr/${TARGET_ARCH} \
+            CPPFLAGS=-I/usr/${TARGET_ARCH}/include LDFLAGS=-L/usr/${TARGET_ARCH}/lib --enable-static --disable-shared
+    make
+    sudo make install
+fi
+popd
 
 #mSIGNA (bulding only required libraries for JoyStream)
 pushd src
