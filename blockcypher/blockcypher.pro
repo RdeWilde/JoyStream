@@ -51,7 +51,8 @@ SOURCES += \
     src/DeleteWallet.cpp \
     src/BlockExplorer.cpp \
     src/FundWalletFromFaucet.cpp \
-    src/Event.cpp
+    src/Event.cpp \
+    src/TXOutput.cpp
 
 # common #############################################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../common/release/ -lcommon
