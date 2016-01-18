@@ -13,9 +13,9 @@ namespace BlockCypher {
 
     ScriptType toScriptType(const QString & s) {
 
-        if(s == QString("pay-to-script-hash"))
+        if(s == "pay-to-script-hash")
             return ScriptType::pay_to_script_hash;
-        else if(s == QString("pay_to_pubkey_hash"))
+        else if(s == "pay-to-pubkey-hash")
             return ScriptType::pay_to_pubkey_hash;
         else
             Q_ASSERT(false);
