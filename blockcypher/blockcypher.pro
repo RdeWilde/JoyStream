@@ -33,7 +33,8 @@ HEADERS += \
     include/blockcypher/DeleteWallet.hpp \
     include/blockcypher/BlockExplorer.hpp \
     include/blockcypher/FundWalletFromFaucet.hpp \
-    include/blockcypher/Event.hpp
+    include/blockcypher/Event.hpp \
+    include/blockcypher/WsClient.hpp
 
 SOURCES += \
     src/Wallet.cpp \
@@ -52,7 +53,8 @@ SOURCES += \
     src/BlockExplorer.cpp \
     src/FundWalletFromFaucet.cpp \
     src/Event.cpp \
-    src/TXOutput.cpp
+    src/TXOutput.cpp \
+    src/WsClient.cpp
 
 # common #############################################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../common/release/ -lcommon
