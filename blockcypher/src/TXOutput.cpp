@@ -1,53 +1,67 @@
+/**
+ * Copyright (C) JoyStream - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 25 2015
+ */
 
+#include <blockcypher/TXOutput.hpp>
+#include <blockcypher/ScriptType.hpp>
 
-#include "TXOutput.hpp"
-#include "../../../shared_folder/JoyStream/deps/linux/src/mSIGNA/sysroot/include/CoinCore/CoinNodeData.h" // TxIn
-#include "ScriptType.hpp"
 #include <QJsonValue>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QDebug>
 
 namespace BlockCypher {
 
-//Populate TXOutput from QJsonObject
-TXOutput::TXOutput(const QJsonObject & o) {
+    TXOutput::TXOutput(const QJsonObject & o) {
 
-    qDebug() << "\nTXOutput object: " << o;
+        if(!o.contains("value"))
+            throw std::runtime_error("value field is not defined.");
+        else if(!o.value("value").isDouble())
+            throw std::runtime_error("value field is not a double.");
+        else
+            _value = o.value("value").toDouble();
 
-    _value = (qint64)o.value("value").toDouble();
+        if(!o.contains("script"))
+            throw std::runtime_error("script field is not defined.");
+        else if(!o.value("script").isString())
+            throw std::runtime_error("script field is not a string.");
+        else
+            _script = o.value("script").toString();
 
-    //TODO: Raw hexadecimal encoding of the script
-    std::string str = (o.value("script").toString()).toUtf8().constData();
-    _script = uchar_vector(str);
+        if(!o.contains("addresses"))
+            throw std::runtime_error("addresses field is not defined.");
+        else if(!o.value("addresses").isArray())
+            throw std::runtime_error("addresses field is not an array.");
+        else {
 
-    QJsonArray arr = o.value(("addresses")).toArray();
+            QJsonArray addresses = o.value("addresses").toArray();
 
-    foreach (const QJsonValue & value, arr) {
-        QString t = value.toString();
-        _addresses.append(t);
+            foreach (const QJsonValue & value, addresses) {
+
+                if(!value.isString())
+                    throw std::runtime_error("array contained non-string element.");
+                else
+                    _addresses.append(value.toString());
+            }
+        }
+
+        if(!o.contains("script_type"))
+            throw std::runtime_error("script_type is not defined.");
+        else if(!o.value("script_type").isString())
+            throw std::runtime_error("script_type is not a string.");
+        else
+            _script_type = toScriptType(o.value("script_type").toString());
     }
-        _script_type = toScriptType(o.value("script_type").toString());
 
-        //For debugging purposes.
-        qDebug() << "TXOutput, Inserted _value:" << _value;
-        qDebug() << "TXOutput, Inserted _script:" << QString::fromUtf8(_script.getHex().c_str());
-        qDebug() << "TXOutput, Inserted _addresses:" << _addresses;
-        qDebug() << "TXOutput, Inserted _script_type:" << fromScriptType(_script_type);
+    bool TXOutput::operator==(const TXOutput & o) {
+
+        return _value == o._value &&
+               _script == o._script &&
+               _addresses == o._addresses &&
+               _script_type == o._script_type;
+    }
 
 }
-
-bool TXOutput::operator==(const TXOutput & o) {
-   // return value == o.value &&
-   //         script == o.script;
-    // no need to check last one
-    throw std::runtime_error("not done");
-}
-
-//Coin::TxIn TXOutput::toInput() const {
-//    throw std::runtime_error("not done");
-//    return Coin::TxIn();
-//}
-
-} // end namespace BlockCypher

@@ -1,4 +1,7 @@
-#include "event.hpp"
+
+
+#include <blockcypher/Event.hpp>
+
 #include <QDebug>
 
 namespace BlockCypher {

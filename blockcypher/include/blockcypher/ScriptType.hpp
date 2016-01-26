@@ -25,4 +25,3 @@ namespace BlockCypher {
 }
 
 #endif // BLOCKCYPHER_SCRIPT_TYPE_HPP
-
