@@ -105,6 +105,10 @@ namespace BlockCypher {
         }
     }
 
+    Event::Type Event::getPayloadType(const QJsonObject & o) {
+        throw std::runtime_error("not implemented");
+    }
+
 
     // ===== J S O N  M E T H O D S
 

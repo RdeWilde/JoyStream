@@ -1,59 +1,33 @@
-#ifndef TX_HPP
-#define TX_HPP
+/**
+ * Copyright (C) JoyStream - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 26 2016
+ */
 
-#include "TXInput.hpp"
-#include "TXOutput.hpp"
-#include "common/BlockId.hpp"
+#ifndef BLOCKCYPHER_TX_HPP
+#define BLOCKCYPHER_TX_HPP
+
+#include <blockcypher/TXInput.hpp>
+#include <blockcypher/TXOutput.hpp>
+#include <common/BlockId.hpp>
 
 #include <QString>
 #include <QStringList>
 #include <QDateTime>
 #include <QJsonValue>
+#include <QJsonObject>
+#include <QVector>
 
 namespace BlockCypher {
 
     class TX {
 
         public:
+
             TX();
 
-            // S E T  M E T H O D S
-            void setHash(const QString &);
-            void setBlockHeight(const qint32 &);
-            void setAddresses(const QStringList &);
-            void setTotal(const quint64 &);
-            void setFees(const quint64 &);
-            void setReceived(const QDateTime &);
-            void setVersion(const quint32 &);
-            void setLockTime(const quint32 &);
-            void setDoubleSpend(const bool &);
-            void setNumInputs(const int &);
-            void setNumOutputs(const int &);
-            void setConfirmations(const int &);
-            void setInputs(const QList<TXInput> &);
-            void setOutputs(const QList<TXOutput> &);
-            void setConfirmed(const QDateTime &);
-            void setBlockHash(const QString &);
-
-            // =====================================================
-
-            // G E T  M E T H O D S
-            QString getHash(void) const;
-            qint32 getBlockHeight(void) const;
-            QStringList getAddresses(void) const;
-            quint64 getTotal(void) const;
-            quint64 getFees(void) const;
-            QDateTime getReceived(void) const;
-            quint32 getVersion(void) const;
-            quint32 getLockTime(void) const;
-            bool getDoubleSpend(void) const;
-            int getNumInputs(void) const;
-            int getNumOutputs(void) const;
-            int getConfirmations(void) const;
-            QList<TXInput> getInputs(void) const;
-            QList<TXOutput> getOutputs(void) const;
-            QDateTime getConfirmed(void) const;
-            Coin::BlockId getBlockHash(void) const;
+            TX(const QJsonObject & o);
 
         private:
 
@@ -137,9 +111,9 @@ namespace BlockCypher {
             //float _confidence;
 
             // ** inputs : TXInput Array, blockcypher limited to 20 by default.
-            QList<TXInput> _inputs;
+            QVector<TXInput> _inputs;
             // ** outputs : TXOutput Array, blockcypher limited to 20 by default.
-            QList<TXOutput> _outputs;
+            QVector<TXOutput> _outputs;
 
 
             //** block_index : Not sure what this is. Some sort of internal number for block cypher ?
@@ -198,5 +172,6 @@ namespace BlockCypher {
             // this is the BlockCypher URL to query the next set of TXOutputs(within a TX object).
 
     };
-} // end namespace BlockCypher
-#endif // TX_HPP
+}
+
+#endif // BLOCKCYPHER_TX_HPP

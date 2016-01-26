@@ -11,14 +11,22 @@ namespace BlockCypher {
 #define MIN_CONFIDENCE 0
 #define MAX_CONFIDENCE 1
 
-    //Event object - type safe specification.
-    //(for details see notes on each class data member)
     class Event  {
 
-        private :
-            enum class Type;
-
         public:
+
+            // Valid event types.
+            enum class Type {
+                unconfirmed_tx,
+                new_block,
+                confirmed_tx,
+                tx_confirmation,
+                double_spend_tx,
+                tx_confidence
+            };
+
+            // Get type
+            static Type getPayloadType(const QJsonObject & o);
 
             // C O N S T R U C T O R S
             Event();
@@ -52,17 +60,6 @@ namespace BlockCypher {
             QString fromType(Type t) const;
 
             private:
-
-            // Valid event types.
-            enum class Type {
-                unconfirmed_tx,
-                new_block,
-                confirmed_tx,
-                tx_confirmation,
-                double_spend_tx,
-                tx_confidence
-            };
-
 
             //Notes: Pr. 9th January 2016, BlockCypher does not support filtering pr. wallet. on their websocket.
             //This is on their "to-do" list and will be fixed. Remember to use ?token=YOURTOKEN once enabled.
