@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
     // Process the actual command line arguments given by the user
     parser.process(app);
 
-    AutoUpdater au(app);
+    joystream::app::AutoUpdater au(app);
 
     // Call update manager, if allowed
     if(!parser.isSet(showNoUpdateOption) && au.newVersionAvailable()) {
@@ -144,13 +144,13 @@ int main(int argc, char* argv[]) {
         view.show();
 
         // Create and start analytics tracking
-        Analytics analytics(&manager, APPLICATION_MIXPANEL_TOKEN, applicationVersion); //, Analytics::_defaultAnalyticsHost);
+        joystream::app::Analytics analytics(&manager, APPLICATION_MIXPANEL_TOKEN, applicationVersion); //, Analytics::_defaultAnalyticsHost);
 
         // Monitor controller
         analytics.monitor(&controller);
 
         // Send start signal and regular pings
-        analytics.start(Analytics::_defaultPingMsInterval);
+        analytics.start(joystream::app::Analytics::_defaultPingMsInterval);
 
         // Start event loop: this is the only Qt event loop in the entire application
         app.exec();

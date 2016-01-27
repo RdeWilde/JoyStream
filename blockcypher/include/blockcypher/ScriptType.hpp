@@ -10,7 +10,7 @@
 
 class QString;
 
-namespace BlockCypher {
+namespace blockcypher {
 
     // Transaction script types
     enum class ScriptType {

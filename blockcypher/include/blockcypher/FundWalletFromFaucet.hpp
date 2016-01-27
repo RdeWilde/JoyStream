@@ -12,7 +12,7 @@
 #include <blockcypher/TX.hpp>
 #include <CoinCore/CoinNodeData.h> // Coin::Transaction
 
-namespace BlockCypher {
+namespace blockcypher {
 namespace FundWalletFromFaucet {
 
     enum class BlockCypherResponse {
@@ -24,7 +24,7 @@ namespace FundWalletFromFaucet {
     };
 
     // QNetworkReply signal handler corresponding to a spesific call
-    class Reply : public BlockCypher::Reply {
+    class Reply : public blockcypher::Reply {
 
         Q_OBJECT
 

@@ -9,11 +9,11 @@
 
 #include <QJsonObject>
 
-namespace BlockCypher {
+namespace blockcypher {
 namespace AddressEndPoint {
 
 Reply::Reply(QNetworkReply * reply, const QString & walletName, bool unspentOnly, uint limit, uint confirmations)
-    : BlockCypher::Reply(reply)
+    : blockcypher::Reply(reply)
     , _walletName(walletName)
     , _unspentOnly(unspentOnly)
     , _limit(limit)
@@ -33,7 +33,7 @@ void Reply::processReply() {
         if(_error == QNetworkReply::NoError) {
 
             _response = BlockCypherResponse::Fetched;
-            _address = Address(BlockCypher::rawToQJsonObject(_rawResponse));
+            _address = Address(blockcypher::rawToQJsonObject(_rawResponse));
 
         } else if(_reply->error() == QNetworkReply::NetworkError::ContentNotFoundError) {
             _response = BlockCypherResponse::WalletDoesNotExist;

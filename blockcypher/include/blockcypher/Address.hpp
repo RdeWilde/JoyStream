@@ -15,7 +15,7 @@
 #include <blockcypher/Wallet.hpp>
 #include <string>
 
-namespace BlockCypher {
+namespace blockcypher {
 
     /**
      * Address Endpoint (http://dev.blockcypher.com/#address-endpoint)

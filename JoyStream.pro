@@ -11,7 +11,8 @@ SUBDIRS     = \
             paymentchannel \
             blockcypher \
             wallet \
-            #plugin \
+            extension \
+            protocol \
             core \
             views \
             app \
@@ -25,15 +26,19 @@ paymentchannel.depends = common
 # blockcypher
 blockcypher.depends = common
 
+# protocol
+protocol.depends = common
+protocol.depends = paymentchannel
+
 # wallet
 wallet.depends = common
 wallet.depends = blockcypher
 # wallet.depends = paymentchannel # not yet
 
-# plugin
-#plugin.depends = common
-#plugin.depends = blockcypher
-#plugin.depends = wallet
+# extension
+extension.depends = common
+extension.depends = blockcypher
+extension.depends = wallet
 
 # core
 core.depends = common

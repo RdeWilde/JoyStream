@@ -10,11 +10,11 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-namespace BlockCypher {
+namespace blockcypher {
 namespace FundWalletFromFaucet {
 
 Reply::Reply(QNetworkReply * reply)
-    : BlockCypher::Reply(reply)
+    : blockcypher::Reply(reply)
     , _response(BlockCypherResponse::Pending) {
 }
 

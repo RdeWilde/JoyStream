@@ -7,12 +7,12 @@
 
 #include <blockcypher/DeleteWallet.hpp>
 
-namespace BlockCypher {
+namespace blockcypher {
 namespace DeleteWallet {
 
 
 Reply::Reply(QNetworkReply * reply, const QString & name)
-    : BlockCypher::Reply(reply)
+    : blockcypher::Reply(reply)
     , _name(name)
     , _response(BlockCypherResponse::Pending) {
 }

@@ -11,7 +11,7 @@
 #include <QNetworkReply>
 #include <QJsonDocument>
 
-namespace BlockCypher {
+namespace blockcypher {
 
 Reply::Reply(QNetworkReply * reply)
     : _reply(reply) {

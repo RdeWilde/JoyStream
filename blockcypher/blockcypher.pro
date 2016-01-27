@@ -24,17 +24,17 @@ HEADERS += \
     include/blockcypher/BlockCypher.hpp \
     include/blockcypher/GetWallet.hpp \
     include/blockcypher/AddAddressToWallet.hpp \
-    include/blockcypher/TX.hpp \
-    include/blockcypher/TXInput.hpp \
-    include/blockcypher/ScriptType.hpp \
-    include/blockcypher/TXOutput.hpp \
+    #include/blockcypher/TX.hpp \
+    #include/blockcypher/TXInput.hpp \
+    #include/blockcypher/ScriptType.hpp \
+    #include/blockcypher/TXOutput.hpp \
     include/blockcypher/AddressEndPoint.hpp \
     include/blockcypher/PushRawTransaction.hpp \
     include/blockcypher/DeleteWallet.hpp \
     include/blockcypher/BlockExplorer.hpp \
     include/blockcypher/FundWalletFromFaucet.hpp \
-    include/blockcypher/Event.hpp \
-    include/blockcypher/WsClient.hpp
+    #include/blockcypher/Event.hpp \
+    #include/blockcypher/WsClient.hpp
 
 SOURCES += \
     src/Wallet.cpp \
@@ -43,18 +43,18 @@ SOURCES += \
     src/BlockCypher.cpp \
     src/GetWallet.cpp \
     src/TXRef.cpp \
-    src/TX.cpp \
-    src/TXInput.cpp \
-    src/ScriptType.cpp \
+    #src/TX.cpp \
+    #src/TXInput.cpp \
+    #src/ScriptType.cpp \
     src/Address.cpp \
     src/AddressEndPoint.cpp \
     src/PushRawTransaction.cpp \
     src/DeleteWallet.cpp \
     src/BlockExplorer.cpp \
     src/FundWalletFromFaucet.cpp \
-    src/Event.cpp \
-    src/TXOutput.cpp \
-    src/WsClient.cpp
+    #src/Event.cpp \
+    #src/TXOutput.cpp \
+    #src/WsClient.cpp
 
 # common #############################################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../common/release/ -lcommon

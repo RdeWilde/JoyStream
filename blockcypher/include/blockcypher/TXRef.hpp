@@ -10,7 +10,7 @@
 #ifndef BLOCKCYPHER_TXREF_HPP
 #define BLOCKCYPHER_TXREF_HPP
 
-namespace BlockCypher {
+namespace blockcypher {
 
     /**
      * TXRef (http://dev.blockcypher.com/#txref)

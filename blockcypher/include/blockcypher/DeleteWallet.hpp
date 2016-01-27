@@ -13,7 +13,7 @@
 class QNetworkRequest;
 class QNetworkReply;
 
-namespace BlockCypher {
+namespace blockcypher {
 namespace DeleteWallet {
 
     /**
@@ -29,7 +29,7 @@ namespace DeleteWallet {
         catch_all // QNetworkReply::bytesAvailable() == 0
     };
 
-    class Reply : public BlockCypher::Reply {
+    class Reply : public blockcypher::Reply {
 
         Q_OBJECT
 

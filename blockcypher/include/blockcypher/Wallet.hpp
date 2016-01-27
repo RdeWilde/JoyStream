@@ -14,7 +14,7 @@
 class QJsonObject;
 class QNetworkRequest;
 
-namespace BlockCypher {
+namespace blockcypher {
 
     /**
      * Wallet (http://dev.blockcypher.com/#wallet)

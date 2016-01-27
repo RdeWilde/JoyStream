@@ -22,7 +22,7 @@
 #include <QJsonDocument>
 #include <QEventLoop>
 
-namespace BlockCypher {
+namespace blockcypher {
 
 Client::Client(QNetworkAccessManager * manager, Coin::Network network, const QString & token)
     : _manager(manager)

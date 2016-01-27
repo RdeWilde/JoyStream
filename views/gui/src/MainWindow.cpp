@@ -298,7 +298,7 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
             SLOT(updateWalletBalanceHook()));
 
     // Do first round to setup initial value
-    BlockCypher::Address a =_wallet->BLOCKCYPHER_lastAdress();
+    blockcypher::Address a =_wallet->BLOCKCYPHER_lastAdress();
     updateWalletBalances(a._balance, a._unconfirmed_balance);
     
     updateWalletBalanceHook();
@@ -809,7 +809,7 @@ void MainWindow::updateWalletBalanceHook() {
     // PAYCHAN OUTPUTS/CHANGE/PAYMENTS
     try {
 
-        BlockCypher::Address oldAddr =_wallet->BLOCKCYPHER_lastAdress();
+        blockcypher::Address oldAddr =_wallet->BLOCKCYPHER_lastAdress();
         updateWalletBalances(oldAddr._balance, oldAddr._unconfirmed_balance);
 
         //automatically top up wallet from testnet faucet if it goes below a threshold
@@ -829,7 +829,7 @@ void MainWindow::updateWalletBalanceHook() {
         _wallet->BLOCKCYPHER_update_remote_wallet();
         
         // recalculate utxo (in case there has been any in/out to existing addresses);
-        BlockCypher::Address addr = _wallet->BLOCKCYPHER_rebuild_utxo();
+        blockcypher::Address addr = _wallet->BLOCKCYPHER_rebuild_utxo();
 
         // update balance
         updateWalletBalances(addr._balance, addr._unconfirmed_balance);

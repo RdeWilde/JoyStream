@@ -21,7 +21,7 @@ namespace Coin {
     class TxIn;
 }
 
-namespace BlockCypher {
+namespace blockcypher {
 
     /**
      * TXInput (http://dev.blockcypher.com/?shell#txinput)

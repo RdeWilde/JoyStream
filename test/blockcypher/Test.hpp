@@ -15,7 +15,7 @@ namespace Coin {
     class Transaction;
 }
 
-namespace BlockCypher {
+namespace blockcypher {
     class Client;
 }
 
@@ -29,7 +29,7 @@ class Test : public QObject
 
     QNetworkAccessManager _manager;
 
-    BlockCypher::Client * _client;
+    blockcypher::Client * _client;
 
 private slots:
 

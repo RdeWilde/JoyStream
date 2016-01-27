@@ -14,7 +14,7 @@
 
 #define BLOCKCYPHER_EXPLORER_ROOT "https://live.blockcypher.com/"
 
-namespace BlockCypher {
+namespace blockcypher {
 namespace BlockExplorer {
 
     QString urlName(Coin::Network network) {

@@ -9,11 +9,11 @@
 
 #include <QJsonObject>
 
-namespace BlockCypher {
+namespace blockcypher {
 namespace GetWallet {
 
 Reply::Reply(QNetworkReply * reply, const QString & name)
-    : BlockCypher::Reply(reply)
+    : blockcypher::Reply(reply)
     , _name(name)
     , _response(BlockCypherResponse::Pending) {
 }
@@ -65,7 +65,7 @@ void Reply::processReply() {
         if(e == QNetworkReply::NoError) {
 
             _response = BlockCypherResponse::Returned;
-            _wallet = Wallet(BlockCypher::rawToQJsonObject(response));
+            _wallet = Wallet(blockcypher::rawToQJsonObject(response));
             Q_ASSERT(_wallet._name == _name);
             qDebug() << "GetWallet: Wallet found.";
 

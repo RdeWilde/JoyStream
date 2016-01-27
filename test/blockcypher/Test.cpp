@@ -21,7 +21,7 @@
 
 void Test::init() {
 
-    _client = new BlockCypher::Client(&_manager,
+    _client = new blockcypher::Client(&_manager,
                                       TEST_BITCOIN_NETWORK,
                                       TEST_BLOCKCYPHER_TOKEN);
 }
@@ -44,12 +44,12 @@ void Test::createWallet() {
     walletName = walletName.left(25); // take leftmost min(25, walletName.size()) characters
 
     // Create wallet:
-    BlockCypher::Wallet newWallet(TEST_BLOCKCYPHER_TOKEN, walletName, list);
-    BlockCypher::Wallet returnedWallet = _client->createWallet(newWallet);
+    blockcypher::Wallet newWallet(TEST_BLOCKCYPHER_TOKEN, walletName, list);
+    blockcypher::Wallet returnedWallet = _client->createWallet(newWallet);
     QVERIFY(returnedWallet == newWallet);
 
     // Try to create same wallet again
-    BlockCypher::Wallet requested(TEST_BLOCKCYPHER_TOKEN, walletName, list);
+    blockcypher::Wallet requested(TEST_BLOCKCYPHER_TOKEN, walletName, list);
     QVERIFY_EXCEPTION_THROWN(_client->createWallet(requested), std::runtime_error);
 }
 
@@ -57,8 +57,8 @@ void Test::deleteWallet() {
 
     // Create wallet
     QList<Coin::P2PKHAddress> list = { Coin::P2PKHAddress() };
-    BlockCypher::Wallet newWallet(TEST_BLOCKCYPHER_TOKEN, "temp-wallet", list);
-    BlockCypher::Wallet returnedWallet = _client->createWallet(newWallet);
+    blockcypher::Wallet newWallet(TEST_BLOCKCYPHER_TOKEN, "temp-wallet", list);
+    blockcypher::Wallet returnedWallet = _client->createWallet(newWallet);
     QVERIFY(returnedWallet == newWallet);
 
     // Delete wallet
@@ -74,13 +74,13 @@ void Test::getWallet() {
         // Try to create wallet, will fail since it mostly exists,
         // but we need to try to ensure
         QList<Coin::P2PKHAddress> list = { Coin::P2PKHAddress() };
-        BlockCypher::Wallet newWallet(TEST_BLOCKCYPHER_TOKEN, "my-test", list);
+        blockcypher::Wallet newWallet(TEST_BLOCKCYPHER_TOKEN, "my-test", list);
         _client->createWallet(newWallet);
     } catch (const std::runtime_error & e) {
     }
 
     // Check that existing wallet is found
-    BlockCypher::Wallet returned = _client->getWallet("my-test");
+    blockcypher::Wallet returned = _client->getWallet("my-test");
     QVERIFY(returned._name == "my-test");
 
     // Check that non-existing wallet is not found
@@ -90,14 +90,14 @@ void Test::getWallet() {
 void Test::addAddresses() {
 
     // Get old wallet
-    BlockCypher::Wallet init = _client->getWallet("my-test");
+    blockcypher::Wallet init = _client->getWallet("my-test");
 
     // Generate a new public key for which to add the corresponding address to the wallet
     Coin::P2PKHAddress addr(TEST_BITCOIN_NETWORK, Coin::PublicKey(Coin::PrivateKey::generate().toPublicKey()).toPubKeyHash());
-    BlockCypher::Wallet toBeAdded(init._token, init._name, QList<Coin::P2PKHAddress>() << addr);
+    blockcypher::Wallet toBeAdded(init._token, init._name, QList<Coin::P2PKHAddress>() << addr);
 
     // Add to wallet
-    BlockCypher::Wallet final = _client->addAddressToWallet(toBeAdded);
+    blockcypher::Wallet final = _client->addAddressToWallet(toBeAdded);
 
     // Check that size increased by one
     QVERIFY(final._addresses.size() == init._addresses.size() + 1);
@@ -105,7 +105,7 @@ void Test::addAddresses() {
 
 void Test::addressEndpoint() {
 
-    BlockCypher::Address addr = _client->addressEndPoint("my-test");
+    blockcypher::Address addr = _client->addressEndPoint("my-test");
 
     QVERIFY(addr._balance > 0);
 }

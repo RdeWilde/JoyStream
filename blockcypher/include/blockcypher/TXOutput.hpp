@@ -5,8 +5,8 @@
 
 
 //Ugly paths for now.
-#include "../../../shared_folder/JoyStream/blockcypher/include/blockcypher/ScriptType.hpp"
-#include "../../../shared_folder/JoyStream/deps/linux/src/mSIGNA/sysroot/include/stdutils/uchar_vector.h"
+//#include "../../../shared_folder/JoyStream/blockcypher/include/blockcypher/ScriptType.hpp"
+//#include "../../../shared_folder/JoyStream/deps/linux/src/mSIGNA/sysroot/include/stdutils/uchar_vector.h"
 #include <QString>
 #include <QStringList>
 
@@ -17,7 +17,7 @@ namespace Coin {
     class TxOut;
 }
 
-namespace BlockCypher {
+namespace blockcypher {
 
 
     struct TXOutput {

@@ -12,7 +12,7 @@
 #include <QJsonArray>
 #include <QDebug>
 
-namespace BlockCypher {
+namespace blockcypher {
 
 Address::Address() {
 }

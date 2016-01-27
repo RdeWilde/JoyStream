@@ -43,7 +43,7 @@ class QNetworkAccessManager;
 
 // comment out
 
-namespace BlockCypher {
+namespace blockcypher {
 
     class Reply;
     struct Wallet;
@@ -170,7 +170,7 @@ namespace BlockCypher {
     private:
 
         // Blocks until error() or finished() signal arrives
-        void block(const BlockCypher::Reply * reply) const;
+        void block(const blockcypher::Reply * reply) const;
 
         // Network access manager
         QNetworkAccessManager * _manager;

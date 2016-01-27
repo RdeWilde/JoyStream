@@ -263,7 +263,7 @@ void BuyerTorrentPluginDialog::updatePayorState(Payor::State state) {
 
 void BuyerTorrentPluginDialog::updateContractTxId(const Coin::TransactionId & id) {
 
-    QString url = BlockCypher::BlockExplorer::link(id, _network);
+    QString url = blockcypher::BlockExplorer::link(id, _network);
     QString str = contractTxIdToString(id);
 
     //ui->contractTxIdLabel->setText("<a href=\"" + url + "\" />" + str + "</a>");
@@ -272,7 +272,7 @@ void BuyerTorrentPluginDialog::updateContractTxId(const Coin::TransactionId & id
 
 void BuyerTorrentPluginDialog::updateUtxo(const Coin::UnspentP2PKHOutput & utxo) {
 
-    QString url = BlockCypher::BlockExplorer::link(utxo.outPoint().transactionId());
+    QString url = blockcypher::BlockExplorer::link(utxo.outPoint().transactionId());
     QString str = utxoToString(utxo);
 
     ui->utxoLabel->setText(str);

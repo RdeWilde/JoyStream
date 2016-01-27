@@ -18,7 +18,7 @@ namespace Coin {
     //class BlockId;
 }
 
-namespace BlockCypher {
+namespace blockcypher {
 namespace BlockExplorer {
 
     // Networks are encoded in urls as follows

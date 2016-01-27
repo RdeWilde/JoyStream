@@ -10,7 +10,7 @@
 #include <QDateTime>
 #include <QJsonValue>
 
-namespace BlockCypher {
+namespace blockcypher {
 
     class TX {
 

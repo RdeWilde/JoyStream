@@ -14,7 +14,7 @@
 class QNetworkRequest;
 class QNetworkReply;
 
-namespace BlockCypher {
+namespace blockcypher {
 namespace GetWallet {
 
     enum class BlockCypherResponse {
@@ -26,7 +26,7 @@ namespace GetWallet {
     };
 
     // QNetworkReply signal handler corresponding to a spesific call
-    class Reply : public BlockCypher::Reply {
+    class Reply : public blockcypher::Reply {
 
         Q_OBJECT
 

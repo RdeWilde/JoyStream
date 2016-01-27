@@ -290,14 +290,14 @@ public:
     void BLOCKCYPHER_init(QNetworkAccessManager * manager, const QString & token);
 
     // Try to blockcypher remotewalletusing local wallet addresses
-    BlockCypher::Wallet BLOCKCYPHER_create_remote_wallet();
+    blockcypher::Wallet BLOCKCYPHER_create_remote_wallet();
 
     // Repopulate blockcypher wallet with any missing addresses from our local wallet
-    BlockCypher::Wallet BLOCKCYPHER_update_remote_wallet();
+    blockcypher::Wallet BLOCKCYPHER_update_remote_wallet();
 
     // Rebuild utxo using current address list using blockcypher service,
     // even outputs from unconfirmed txs are included
-    BlockCypher::Address BLOCKCYPHER_rebuild_utxo();
+    blockcypher::Address BLOCKCYPHER_rebuild_utxo();
 
     // Push tx to BlockCypher
     Q_INVOKABLE void BLOCKCYPHER_broadcast(const Coin::Transaction & tx);
@@ -306,7 +306,7 @@ public:
     Coin::UnspentP2PKHOutput BLOCKCYPHER_lock_one_utxo(quint64 minimalAmount);
 
     // Last address, set by _rebuild_utxo
-    BlockCypher::Address BLOCKCYPHER_lastAdress();
+    blockcypher::Address BLOCKCYPHER_lastAdress();
 
     // refill wallet from blocypher testnet faucet
     void BLOCKCYPHER_fundWalletFromFaucet(quint64 amount);
@@ -478,7 +478,7 @@ private:
     // Make pointer so ctr can be called outside
     // Manager ctr, since this would require ching
     // signature to put QNetworkAccessManager in there
-    BlockCypher::Client * _BLOCKCYPHER_client;
+    blockcypher::Client * _BLOCKCYPHER_client;
 
     // Blockcypher wallet name
     QString _BLOCKCYPHER_walletName;
@@ -489,7 +489,7 @@ private:
     QList<Coin::UnspentP2PKHOutput> _BLOCKCYPHER_utxo;
 
     // last result of
-    BlockCypher::Address _BLOCKCYPHER_lastAdress;
+    blockcypher::Address _BLOCKCYPHER_lastAdress;
 
     /**
      * BLOCKCYPHER TEMPORARY ====================
