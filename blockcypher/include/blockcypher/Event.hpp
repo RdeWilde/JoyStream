@@ -1,5 +1,12 @@
-#ifndef EVENT_HPP
-#define EVENT_HPP
+/**
+ * Copyright (C) JoyStream - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 26 2016
+ */
+
+#ifndef BLOCKCYPHER_EVENT_HPP
+#define BLOCKCYPHER_EVENT_HPP
 
 #include <QObject>
 #include <QString>
@@ -11,7 +18,7 @@ namespace BlockCypher {
 #define MIN_CONFIDENCE 0
 #define MAX_CONFIDENCE 1
 
-    class Event  {
+    struct Event  {
 
         public:
 
@@ -28,9 +35,8 @@ namespace BlockCypher {
             // Get type
             static Type getPayloadType(const QJsonObject & o);
 
-            // C O N S T R U C T O R S
             Event();
-            //event, optional token
+
             Event(const QString & , const QString & token="");
 
             //Constructor aimed at tx-confidence event
@@ -40,24 +46,6 @@ namespace BlockCypher {
             //Constructor aimed at tx-confirmation event
             //event,address,confirmations,optional token
             Event(const QString & ,const QString &,const unsigned short int &, const QString & token="");
-
-            // S E T  M E T H O D S
-            void setEvent(QString );
-            void setAddress(const QString &);
-            const bool setConfirmations(const unsigned short int &);
-            const bool setConfidence(const float &);
-            void setToken(const QString &);
-
-            // G E T  M E T H O D S
-            Event::Type getEvent() const;
-            QString getAddress() const;
-            unsigned short int getConfirmations() const;
-            float getConfidence() const;
-            QString getToken() const;
-
-            QJsonObject toJson() const;
-            Type toType(const QString &s) const;
-            QString fromType(Type t) const;
 
             private:
 
@@ -93,7 +81,6 @@ namespace BlockCypher {
                                     // to include it (as they can reach API throttling thresholds rapidly).
     };
 
-}//end namespace BlockCypher
+}
 
-
-#endif // EVENT_HPP
+#endif // BLOCKCYPHER_EVENT_HPP

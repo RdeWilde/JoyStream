@@ -1,4 +1,9 @@
-
+/**
+ * Copyright (C) JoyStream - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 26 2016
+ */
 
 #include <blockcypher/Event.hpp>
 
@@ -6,79 +11,29 @@
 
 namespace BlockCypher {
 
-    // ===== C O N S T R U C T O R S
-
     Event::Event() {}
 
-    //Note, token is optional.
-    Event::Event(const QString & event, const QString &token) : _event(toType(event)), _token(token) { }
+    Event::Event(const QString & event, const QString &token)
+        : _event(toType(event)), _token(token) {
+
+    }
 
     //tx-confidence event. Note, token is optional.
-    Event::Event(const QString & event,const float &c, const QString &adr, const QString &token ) :
-        _event(toType(event)),_address(adr),_confidence(c),_token(token) { }
+    Event::Event(const QString & event,const float &c, const QString &adr, const QString &token )
+        : _event(toType(event)),
+          _address(adr),
+          _confidence(c),
+          _token(token) {
+    }
 
     //tx-confirmation event. Note, token is optional.
-    Event::Event(const QString & event,const QString &adr,const unsigned short int &conf, const QString &token) :
-        _event(toType(event)),_address(adr),_confirmations(conf),_token(token) { }
-
-
-    // ===== S E T  M E T H O D S
-
-    void Event::setEvent(QString t) {
-        _event = toType(t);
+    Event::Event(const QString & event,const QString &adr,const unsigned short int &conf, const QString &token)
+        : _event(toType(event)),
+          _address(adr),
+          _confirmations(conf),
+          _token(token) {
     }
 
-    void Event::setAddress(const QString &adr) {
-        //TODO: Check if address is valid based on blockchain used?
-        _address = adr;
-    }
-
-    const bool Event::setConfirmations(const unsigned short int &conf) {
-        if (conf > MAX_CONFIRMATIONS_ALLOWED) {
-            return false;
-        }
-        _confirmations = conf;
-        return true;
-    }
-
-    const bool Event::setConfidence(const float &c) {
-        if (c < MIN_CONFIDENCE || c >MAX_CONFIDENCE) {
-            return false;
-        }
-
-        _confidence = c;
-        return true;
-    }
-
-    void Event::setToken(const QString & token) {
-        _token = token;
-    }
-
-
-    // ===== G E T  M E T H O D S
-
-    Event::Type Event::getEvent() const{
-        return _event;
-    }
-
-    QString Event::getAddress() const {
-        return _address;
-    }
-
-    unsigned short int Event::getConfirmations() const{
-        return _confirmations;
-    }
-
-    float Event::getConfidence() const{
-        return _confidence;
-    }
-
-    QString Event::getToken() const {
-        return _token;
-    }
-
-
-    // ===== E N U M  M E T H O D S
 
     Event::Type Event::toType(const QString &s) const {
 
@@ -108,10 +63,6 @@ namespace BlockCypher {
     Event::Type Event::getPayloadType(const QJsonObject & o) {
         throw std::runtime_error("not implemented");
     }
-
-
-    // ===== J S O N  M E T H O D S
-
 
     //Converts Event object to JSON.
     QJsonObject Event::toJson() const{
@@ -147,8 +98,4 @@ namespace BlockCypher {
         return json_data;
     }
 
-} // end namespace BlockCypher
-
-
-
-
+}

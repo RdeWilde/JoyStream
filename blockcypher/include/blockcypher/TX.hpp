@@ -21,7 +21,7 @@
 
 namespace BlockCypher {
 
-    class TX {
+    struct TX {
 
         public:
 
