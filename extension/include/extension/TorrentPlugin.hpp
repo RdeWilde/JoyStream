@@ -38,9 +38,10 @@ enum class PluginMode;
 /**
  * @brief Abstract type for all torrent plugin types (buyer, seller, observer).
  */
-class TorrentPlugin : public QObject, public libtorrent::torrent_plugin {
+//class TorrentPlugin : public QObject, public libtorrent::torrent_plugin {
+class TorrentPlugin : public libtorrent::torrent_plugin {
 
-    Q_OBJECT
+    //Q_OBJECT
 
 public:
 
@@ -88,46 +89,6 @@ public:
     };
     */
 
-    /**
-     * @brief
-     */
-    class Configuration {
-
-    public:
-
-        // Default constructor
-        Configuration();
-
-        // Copy constructor
-        Configuration(const Configuration & configuration);
-
-        // Constructor from members
-        Configuration(bool enableBanningSets);
-
-        // Constructor from dictionary
-        Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry);
-
-        // Assignment
-        // KeyPair & KeyPair::operator=(const KeyPair& rhs)
-        //Configuration(const Configuration & rhs);
-
-        // Determnes the plugin mode of TorrentPlugin::Configuration object encoded in dictionary
-        static PluginMode pluginMode(libtorrent::entry::dictionary_type & dictionaryEntry);
-
-        // Turn into dictionary
-        void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const;
-
-        // Getters and setters
-        virtual PluginMode pluginMode() const = 0;
-
-        bool enableBanningSets() const;
-        void setEnableBanningSets(bool enableBanningSets);
-
-    protected:
-
-        // Whether peers are banned for bad conduct
-        bool _enableBanningSets;
-    };
 
     // Constructor from member fields
     TorrentPlugin(Plugin * plugin,

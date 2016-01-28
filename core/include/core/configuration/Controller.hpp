@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 27 2016
  */
 
-#ifndef JOYSTREAM_CORE_CONFIGURATIONS_CONTROLLER_HPP
-#define JOYSTREAM_CORE_CONFIGURATIONS_CONTROLLER_HPP
+#ifndef JOYSTREAM_CORE_CONFIGURATION_CONTROLLER_HPP
+#define JOYSTREAM_CORE_CONFIGURATION_CONTROLLER_HPP
 
 #include <core/configurations/Torrent.hpp>
 
@@ -18,7 +18,7 @@ namespace libtorrent {
 
 namespace joystream {
 namespace core {
-namespace configurations {
+namespace configuration {
 
     /**
      * @brief Persistant state of Controller.
@@ -158,5 +158,5 @@ namespace configurations {
 }
 }
 
-#endif // JOYSTREAM_CORE_CONFIGURATIONS_CONTROLLER_HPP
+#endif // JOYSTREAM_CORE_CONFIGURATION_CONTROLLER_HPP
 

@@ -36,13 +36,20 @@ LIBS += -lpthread -lz
 LIBS += -lcrypto -lssl
 
 # libtorrent
-#INCLUDEPATH += $$LIBTORRENT_LOCATION/release/include
 CONFIG(release, debug|release) {
+
+    # Added for the benefit of QtCreator only, next lone does the same thing
+    INCLUDEPATH += $$LIBTORRENT_LOCATION/release/include
     QMAKE_CXXFLAGS += -isystem $$LIBTORRENT_LOCATION/release/include
+
     LIBS += -L$$LIBTORRENT_LOCATION/release/lib -ltorrent
     DEFINES += NDEBUG
 } else {
+
+    # Added for the benefit of QtCreator only, next lone does the same thing
+    INCLUDEPATH += $$LIBTORRENT_LOCATION/debug/include
     QMAKE_CXXFLAGS += -isystem $$LIBTORRENT_LOCATION/debug/include
+
     LIBS += -L$$LIBTORRENT_LOCATION/debug/lib -ltorrent
     DEFINES += TORRENT_DEBUG
     DEFINES += TORRENT_LOGGING

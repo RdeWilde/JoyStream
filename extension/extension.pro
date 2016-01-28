@@ -23,32 +23,16 @@ HEADERS += \
     include/extension/PeerPluginId.hpp \
     include/extension/BEPSupportStatus.hpp \
     include/extension/PluginMode.hpp \
-    include/extension/Request/PluginRequest.hpp \
-    include/extension/Request/TorrentPluginRequest.hpp \
-    include/extension/Request/PeerPluginRequest.hpp \
-    include/extension/Request/TorrentPluginRequestType.hpp \
-    include/extension/Request/PluginRequestType.hpp \
-    include/extension/Request/PeerPluginRequestType.hpp \
-    include/extension/Request/StartBuyerTorrentPlugin.hpp \
-    include/extension/Request/StartSellerTorrentPlugin.hpp \
-    include/extension/Request/StartObserverTorrentPlugin.hpp \
-    include/extension/Request/ChangeDownloadLocation.hpp \
-    include/extension/Message/ExtendedMessageIdMapping.hpp \
-    include/extension/Message/MessageType.hpp \
-    include/extension/Message/ExtendedMessagePayload.hpp \
-    include/extension/Message/JoiningContract.hpp \
-    include/extension/Message/SignRefund.hpp \
-    include/extension/Message/RefundSigned.hpp \
-    include/extension/Message/Sell.hpp \
-    include/extension/Message/Observe.hpp \
-    include/extension/Message/JoinContract.hpp \
-    include/extension/Message/Buy.hpp \
-    include/extension/Message/Payment.hpp \
-    include/extension/Message/Ready.hpp \
-    include/extension/Message/NoPayloadMessage.hpp \
-    include/extension/Message/RequestFullPiece.hpp \
-    include/extension/Message/FullPiece.hpp \
-    include/extension/Message/ExtendedMessageTools.hpp \
+    include/extension/request/PluginRequest.hpp \
+    include/extension/request/TorrentPluginRequest.hpp \
+    include/extension/request/PeerPluginRequest.hpp \
+    include/extension/request/TorrentPluginRequestType.hpp \
+    include/extension/request/PluginRequestType.hpp \
+    include/extension/request/PeerPluginRequestType.hpp \
+    include/extension/request/StartBuyerTorrentPlugin.hpp \
+    include/extension/request/StartSellerTorrentPlugin.hpp \
+    include/extension/request/StartObserverTorrentPlugin.hpp \
+    include/extension/request/ChangeDownloadLocation.hpp \
     include/extension/PeerAction.hpp \
     include/extension/SellModePeerAction.hpp \
     include/extension/BuyModePeerAction.hpp \
@@ -56,94 +40,72 @@ HEADERS += \
     include/extension/SellerTorrentPlugin.hpp \
     include/extension/BuyerPeerPlugin.hpp \
     include/extension/SellerPeerPlugin.hpp \
-    include/extension/Alert/BuyerPeerAddedAlert.hpp \
-    include/extension/Alert/SellerPeerAddedAlert.hpp \
-    include/extension/Alert/BuyerPeerPluginRemovedAlert.hpp \
-    include/extension/Alert/SellerPeerPluginRemovedAlert.hpp \
-    include/extension/Alert/TorrentPluginAlert.hpp \
-    include/extension/Alert/AlertTypes.hpp \
-    include/extension/Alert/PluginStatusAlert.hpp \
-    include/extension/Alert/BuyerTorrentPluginStatusAlert.hpp \
-    include/extension/Alert/TorrentPluginStartedAlert.hpp \
-    include/extension/Alert/SellerTorrentPluginStatusAlert.hpp \
-    include/extension/Alert/StartedSellerTorrentPlugin.hpp \
-    include/extension/Alert/StartedBuyerTorrentPlugin.hpp \
+    include/extension/alert/BuyerPeerAddedAlert.hpp \
+    include/extension/alert/SellerPeerAddedAlert.hpp \
+    include/extension/alert/BuyerPeerPluginRemovedAlert.hpp \
+    include/extension/alert/SellerPeerPluginRemovedAlert.hpp \
+    include/extension/alert/TorrentPluginAlert.hpp \
+    include/extension/alert/AlertTypes.hpp \
+    include/extension/alert/PluginStatusAlert.hpp \
+    include/extension/alert/BuyerTorrentPluginStatusAlert.hpp \
+    include/extension/alert/TorrentPluginStartedAlert.hpp \
+    include/extension/alert/SellerTorrentPluginStatusAlert.hpp \
+    include/extension/alert/StartedSellerTorrentPlugin.hpp \
+    include/extension/alert/StartedBuyerTorrentPlugin.hpp \
     include/extension/status/PeerPlugin.hpp \
-    include/extension/PeerModeAnnounced.hpp
+    include/extension/PeerModeAnnounced.hpp \
+    include/extension/status/BuyerPeerPlugin.hpp \
+    include/extension/status/BuyerTorrentPlugin.hpp \
+    include/extension/configuration/TorrentPlugin.hpp \
+    include/extension/configuration/BuyerTorrentPlugin.hpp \
+    include/extension/status/Plugin.hpp \
+    include/extension/status/SellerPeerPlugin.hpp
 
 SOURCES += \
     src/TorrentPlugin.cpp \
     src/Plugin.cpp \
     src/PeerPlugin.cpp \
     src/PeerPluginId.cpp \
-    src/Request/PluginRequest.cpp \
-    src/Request/TorrentPluginRequest.cpp \
-    src/Request/PeerPluginRequest.cpp \
-    src/Request/StartBuyerTorrentPlugin.cpp \
-    src/Request/StartSellerTorrentPlugin.cpp \
-    src/Request/StartObserverTorrentPlugin.cpp \
-    src/Request/ChangeDownloadLocation.cpp \
-    src/Message/ExtendedMessageIdMapping.cpp \
-    src/Message/ExtendedMessagePayload.cpp \
-    src/Message/JoiningContract.cpp \
-    src/Message/SignRefund.cpp \
-    src/Message/RefundSigned.cpp \
-    src/Message/Buy.cpp \
-    src/Message/Sell.cpp \
-    src/Message/Observe.cpp \
-    src/Message/JoinContract.cpp \
-    src/Message/Payment.cpp \
-    src/Message/Ready.cpp \
-    src/Message/NoPayloadMessage.cpp \
-    src/Message/RequestFullPiece.cpp \
-    src/Message/FullPiece.cpp \
-    src/Message/ExtendedMessageTools.cpp \
-    src/Alert/TorrentPluginAlert.cpp \
-    src/Alert/PluginStatusAlert.cpp \
-    src/Alert/BuyerTorrentPluginStatusAlert.cpp \
-    src/Alert/TorrentPluginStartedAlert.cpp \
-    src/Alert/SellerTorrentPluginStatusAlert.cpp \
-    src/Alert/StartedSellerTorrentPlugin.cpp \
-    src/Alert/StartedBuyerTorrentPlugin.cpp \
-    src/Alert/BuyerPeerAddedAlert.cpp \
-    src/Alert/SellerPeerAddedAlert.cpp \
-    src/Alert/BuyerPeerPluginRemovedAlert.cpp \
-    src/Alert/SellerPeerPluginRemovedAlert.cpp \
+    src/request/PluginRequest.cpp \
+    src/request/TorrentPluginRequest.cpp \
+    src/request/PeerPluginRequest.cpp \
+    src/request/StartBuyerTorrentPlugin.cpp \
+    src/request/StartSellerTorrentPlugin.cpp \
+    src/request/StartObserverTorrentPlugin.cpp \
+    src/request/ChangeDownloadLocation.cpp \
+    src/alert/TorrentPluginAlert.cpp \
+    src/alert/PluginStatusAlert.cpp \
+    src/alert/BuyerTorrentPluginStatusAlert.cpp \
+    src/alert/TorrentPluginStartedAlert.cpp \
+    src/alert/SellerTorrentPluginStatusAlert.cpp \
+    src/alert/StartedSellerTorrentPlugin.cpp \
+    src/alert/StartedBuyerTorrentPlugin.cpp \
+    src/alert/BuyerPeerAddedAlert.cpp \
+    src/alert/SellerPeerAddedAlert.cpp \
+    src/alert/BuyerPeerPluginRemovedAlert.cpp \
+    src/alert/SellerPeerPluginRemovedAlert.cpp \
     src/BuyerTorrentPlugin.cpp \
     src/SellerTorrentPlugin.cpp \
     src/SellerPeerPlugin.cpp \
     src/BuyerPeerPlugin.cpp \
-    src/status/PeerPlugin.cpp
+    src/status/PeerPlugin.cpp \
+    src/configuration/TorrentPlugin.cpp \
+    src/configuration/BuyerTorrentPlugin.cpp \
+    src/status/BuyerTorrentPlugin.cpp \
+    src/status/BuyerPeerPlugin.cpp \
+    src/status/Plugin.cpp
 
 
 # common
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../common/release/ -lcommon
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../common/debug/ -lcommon
-else:unix: LIBS += -L$$OUT_PWD/../common/ -lcommon
-
 INCLUDEPATH += $$PWD/../common/include
 DEPENDPATH += $$PWD/../common/include
 
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/release/libcommon.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/debug/libcommon.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/release/common.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/debug/common.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.a
+# protocol
+INCLUDEPATH += $$PWD/../protocol/include
+DEPENDPATH += $$PWD/../protocol/include
 
 # paymentchannel
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../paymentchannel/release/ -lpaymentchannel
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../paymentchannel/debug/ -lpaymentchannel
-else:unix: LIBS += -L$$OUT_PWD/../paymentchannel/ -lpaymentchannel
-
 INCLUDEPATH += $$PWD/../paymentchannel/include
 DEPENDPATH += $$PWD/../paymentchannel/include
-
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/release/libpaymentchannel.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/debug/libpaymentchannel.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/release/paymentchannel.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/debug/paymentchannel.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/libpaymentchannel.a
-
-
 
 include(../config.pri)

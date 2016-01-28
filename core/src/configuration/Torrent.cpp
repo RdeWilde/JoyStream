@@ -12,7 +12,7 @@
 
 namespace joystream {
 namespace core {
-namespace configurations {
+namespace configuration {
 
     Torrent::Torrent() {
     }

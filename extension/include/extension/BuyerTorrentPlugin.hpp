@@ -118,108 +118,6 @@ namespace extension {
             BuyerPeerPlugin * _peerPlugin;
         };
 
-        /**
-         * @brief Plugin status, that is a snapshot
-         * of important information.
-         */
-        class Status { //  : public TorrentPlugin::Status
-
-        public:
-
-            Status();
-
-            Status(State state,
-                   const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> & peerPluginStatuses,
-                   const Payor::Status & payor);
-
-            // Getters and setters
-            State state() const;
-            void setState(State state);
-
-            QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> peerPluginStatuses() const;
-            void setPeerPluginStatuses(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> & peerPluginStatuses);
-
-            Payor::Status payor() const;
-            void setPayor(const Payor::Status & payor);
-
-        private:
-
-            // State of plugin
-            State _state;
-
-            // Status of peers
-            QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> _peerPluginStatuses;
-
-            // Status of the payor
-            Payor::Status _payor;
-        };
-
-        /**
-         * @brief Configuration of buyer torrent plugin.
-         */
-        class Configuration : public TorrentPlugin::Configuration {
-
-        public:
-
-            // Default constructor
-            Configuration();
-
-            // Constructor from members
-            Configuration(bool enableBanningSets,
-                          quint64 maxPrice,
-                          quint32 maxLock,
-                          quint64 maxFeePerKb,
-                          quint32 numberOfSellers);
-
-            // Constructor from copy <=== Why is this here again? who is using this
-            //Configuration(const Configuration & c);
-
-            // Constructor from dictionary
-            Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry);
-
-            /**
-             * Write configuration into dictionary
-             * ===============================================================
-             *
-             * Buyer torrent plugin configuration as it persists across sessions on disk
-             * encoded as entry::dictionary_type with the following keys:
-             *
-             * IMPLEMENT LATER
-             *
-             */
-            void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const;
-
-            // Getters and setters
-            virtual PluginMode pluginMode() const;
-
-            quint64 maxPrice() const;
-            void setMaxPrice(quint64 maxPrice);
-
-            quint32 maxLock() const;
-            void setMaxLock(quint32 maxLock);
-
-            quint64 maxFeePerKb() const;
-            void setMaxFeePerKb(quint64 maxFeePerKb);
-
-            quint32 numberOfSellers() const;
-            void setNumberOfSellers(quint32 numberOfSellers);
-
-        private:
-
-
-            // Maximum price accepted (satoshies)
-            quint64 _maxPrice;
-
-            // Maximum lock time (the number of seconds elapsed since 1970-01-01T00:00 UTC)
-            quint32 _maxLock;
-
-            // Maximum fee per kB in contract transaction (satoshies)
-            quint64 _maxFeePerKb;
-
-            // Number of sellers
-            quint32 _numberOfSellers;
-        };
-
         // Constructor from members
         BuyerTorrentPlugin(Plugin * plugin,
                            const boost::shared_ptr<libtorrent::torrent> & torrent,
@@ -408,7 +306,5 @@ namespace extension {
 }
 }
 
-#include <QMetaType>
-Q_DECLARE_METATYPE(BuyerTorrentPlugin::State)
 
 #endif // JOYSTREAM_EXTENSION_BUYER_TORRENT_PLUGIN_HPP

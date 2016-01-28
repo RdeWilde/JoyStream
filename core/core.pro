@@ -20,85 +20,55 @@ HEADERS += \
     include/core/logger/LoggerManager.hpp \
     include/core/logger/exceptions/DuplicateLog.hpp \
     include/core/logger/exceptions/CannnotOpenLogFile.hpp \
-    include/core/viewmodels/BuyerPeerPluginViewModel.hpp \
-    include/core/viewmodels/BuyerTorrentPluginViewModel.hpp \
-    include/core/viewmodels/ChannelViewModel.hpp \
-    include/core/viewmodels/PayeeViewModel.hpp \
-    include/core/viewmodels/PayorViewModel.hpp \
-    include/core/viewmodels/PeerPluginViewModel.hpp \
-    include/core/viewmodels/SellerPeerPluginViewModel.hpp \
-    include/core/viewmodels/SellerTorrentPluginViewModel.hpp \
-    include/core/viewmodels/TorrentPluginViewModel.hpp \
-    include/core/viewmodels/TorrentViewModel.hpp \
+    include/core/viewmodel/BuyerPeerPluginViewModel.hpp \
+    include/core/viewmodel/BuyerTorrentPluginViewModel.hpp \
+    include/core/viewmodel/ChannelViewModel.hpp \
+    include/core/viewmodel/PayeeViewModel.hpp \
+    include/core/viewmodel/PayorViewModel.hpp \
+    include/core/viewmodel/PeerPluginViewModel.hpp \
+    include/core/viewmodel/SellerPeerPluginViewModel.hpp \
+    include/core/viewmodel/SellerTorrentPluginViewModel.hpp \
+    include/core/viewmodel/TorrentPluginViewModel.hpp \
+    include/core/viewmodel/TorrentViewModel.hpp \
     include/core/Controller.hpp \
     include/core/PluginInstalled.hpp \
     include/core/Stream.hpp \
-    include/core/configurations/Torrent.hpp \
-    include/core/configurations/Controller.hpp
+    include/core/configuration/Torrent.hpp \
+    include/core/configuration/Controller.hpp
 
 SOURCES += \
     src/logger/LoggerManager.cpp \
     src/logger/exceptions/CannnotOpenLogFile.cpp \
     src/logger/exceptions/DuplicateLog.cpp \
-    src/viewmodels/BuyerPeerPluginViewModel.cpp \
-    src/viewmodels/BuyerTorrentPluginViewModel.cpp \
-    src/viewmodels/ChannelViewModel.cpp \
-    src/viewmodels/PayeeViewModel.cpp \
-    src/viewmodels/PayorViewModel.cpp \
-    src/viewmodels/PeerPluginViewModel.cpp \
-    src/viewmodels/SellerPeerPluginViewModel.cpp \
-    src/viewmodels/SellerTorrentPluginViewModel.cpp \
-    src/viewmodels/TorrentPluginViewModel.cpp \
-    src/viewmodels/TorrentViewModel.cpp \
+    src/viewmodel/BuyerPeerPluginViewModel.cpp \
+    src/viewmodel/BuyerTorrentPluginViewModel.cpp \
+    src/viewmodel/ChannelViewModel.cpp \
+    src/viewmodel/PayeeViewModel.cpp \
+    src/viewmodel/PayorViewModel.cpp \
+    src/viewmodel/PeerPluginViewModel.cpp \
+    src/viewmodel/SellerPeerPluginViewModel.cpp \
+    src/viewmodel/SellerTorrentPluginViewModel.cpp \
+    src/viewmodel/TorrentPluginViewModel.cpp \
+    src/viewmodel/TorrentViewModel.cpp \
     src/Controller.cpp \
     src/Stream.cpp \
-    src/configurations/Torrent.cpp \
-    src/configurations/Controller.cpp
+    src/configuration/Torrent.cpp \
+    src/configuration/Controller.cpp
 
-# paymentchannel ###############################################################
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../paymentchannel/release/ -lpaymentchannel
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../paymentchannel/debug/ -lpaymentchannel
-else:unix: LIBS += -L$$OUT_PWD/../paymentchannel/ -lpaymentchannel
+# extension
+INCLUDEPATH += $$PWD/../extension/include
+DEPENDPATH += $$PWD/../extension/include
 
-INCLUDEPATH += $$PWD/../paymentchannel/include
-DEPENDPATH += $$PWD/../paymentchannel/include
-
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/release/libpaymentchannel.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/debug/libpaymentchannel.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/release/paymentchannel.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/debug/paymentchannel.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/libpaymentchannel.a
-
-# blockcypher  ###############################################################
+# blockcypher
 INCLUDEPATH += $$PWD/../blockcypher/include
 DEPENDPATH += $$PWD/../blockcypher/include
 
-# wallet ###############################################################
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../wallet/release/ -lwallet
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../wallet/debug/ -lwallet
-else:unix: LIBS += -L$$OUT_PWD/../wallet/ -lwallet
-
+# wallet
 INCLUDEPATH += $$PWD/../wallet/include
 DEPENDPATH += $$PWD/../wallet/include
 
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/release/libwallet.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/debug/libwallet.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/release/wallet.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/debug/wallet.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../wallet/libwallet.a
-
-# common ###############################################################
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../common/release/ -lcommon
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../common/debug/ -lcommon
-else:unix: LIBS += -L$$OUT_PWD/../common/ -lcommon
-
+# common
 INCLUDEPATH += $$PWD/../common/include
 DEPENDPATH += $$PWD/../common/include
-
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/release/libcommon.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/debug/libcommon.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/release/common.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/debug/common.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.a
 
 include(../config.pri)

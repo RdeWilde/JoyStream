@@ -15,22 +15,45 @@ QT      += core sql network # network added due to blockcypher integration
 INCLUDEPATH += $$PWD/include # be able to include w.r.t root of this project
 
 HEADERS += \
-
+    include/protocol/Message/SignRefund.hpp \
+    include/protocol/Message/Sell.hpp \
+    include/protocol/Message/RequestFullPiece.hpp \
+    include/protocol/Message/RefundSigned.hpp \
+    include/protocol/Message/Ready.hpp \
+    include/protocol/Message/Payment.hpp \
+    include/protocol/Message/Observe.hpp \
+    include/protocol/Message/NoPayloadMessage.hpp \
+    include/protocol/Message/MessageType.hpp \
+    include/protocol/Message/JoiningContract.hpp \
+    include/protocol/Message/JoinContract.hpp \
+    include/protocol/Message/FullPiece.hpp \
+    include/protocol/Message/ExtendedMessageTools.hpp \
+    include/protocol/Message/ExtendedMessagePayload.hpp \
+    include/protocol/Message/ExtendedMessageIdMapping.hpp \
+    include/protocol/Message/Buy.hpp
 
 SOURCES += \
+    src/Message/SignRefund.cpp \
+    src/Message/Sell.cpp \
+    src/Message/RequestFullPiece.cpp \
+    src/Message/RefundSigned.cpp \
+    src/Message/Ready.cpp \
+    src/Message/Payment.cpp \
+    src/Message/Observe.cpp \
+    src/Message/NoPayloadMessage.cpp \
+    src/Message/MessageType.cpp \
+    src/Message/JoiningContract.cpp \
+    src/Message/JoinContract.cpp \
+    src/Message/FullPiece.cpp \
+    src/Message/ExtendedMessageTools.cpp \
+    src/Message/ExtendedMessagePayload.cpp \
+    src/Message/ExtendedMessageIdMapping.cpp \
+    src/Message/End.cpp \
+    src/Message/Buy.cpp
 
-# common  ###############################################################
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../common/release/ -lcommon
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../common/debug/ -lcommon
-else:unix: LIBS += -L$$OUT_PWD/../common/ -lcommon
 
+# common
 INCLUDEPATH += $$PWD/../common/include
 DEPENDPATH += $$PWD/../common/include
-
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/release/libcommon.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/debug/libcommon.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/release/common.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/debug/common.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.a
 
 include(../config.pri)

@@ -8,11 +8,11 @@
 #ifndef JOYSTREAM_CORE_VIEWMODELS_BUYER_PEER_PLUGIN_VIEW_MODEL_HPP
 #define JOYSTREAM_CORE_VIEWMODELS_BUYER_PEER_PLUGIN_VIEW_MODEL_HPP
 
-#include <extension/BuyerPeerPlugin.hpp> // BuyerPeerPlugin::Status
+#include <extension/status/BuyerPeerPlugin.hpp>
 
 namespace joystream {
 namespace core {
-namespace viewmodels {
+namespace viewmodel {
 
     class BuyerPeerPluginViewModel : public QObject
     {

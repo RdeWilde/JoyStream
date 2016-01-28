@@ -112,100 +112,25 @@ namespace extension {
         _clientState = clientState;
     }
 
-    /**
-     * BuyerPeerPlugin::Status
-     */
-
-    BuyerPeerPlugin::Status::Status() {
-    }
-
-    BuyerPeerPlugin::Status::Status(PeerModeAnnounced peerModeAnnounced,
-                                    BEPSupportStatus peerBEP10SupportStatus,
-                                    BEPSupportStatus peerBitSwaprBEPSupportStatus,
-                                    const PeerState & peerState,
-                                    ClientState clientState,
-                                    quint32 payorSlot,
-                                    int indexOfAssignedPiece,
-                                    const QList<int> & downloadedValidPieces)
-        : PeerPlugin::Status(peerModeAnnounced,
-                             peerBEP10SupportStatus,
-                             peerBitSwaprBEPSupportStatus)
-        , _peerState(peerState)
-        , _clientState(clientState)
-        , _payorSlot(payorSlot)
-        , _indexOfAssignedPiece(indexOfAssignedPiece)
-        , _downloadedValidPieces(downloadedValidPieces) {
-    }
-
-    PluginMode BuyerPeerPlugin::Status::pluginMode() const {
-        return PluginMode::Buyer;
-    }
-
-    BuyerPeerPlugin::PeerState BuyerPeerPlugin::Status::peerState() const {
-        return _peerState;
-    }
-
-    void BuyerPeerPlugin::Status::setPeerState(const PeerState & peerState) {
-        _peerState = peerState;
-    }
-
-    BuyerPeerPlugin::ClientState BuyerPeerPlugin::Status::clientState() const {
-        return _clientState;
-    }
-
-    void BuyerPeerPlugin::Status::setClientState(ClientState clientState) {
-        _clientState = clientState;
-    }
-
-    QList<int> BuyerPeerPlugin::Status::downloadedValidPieces() const {
-        return _downloadedValidPieces;
-    }
-
-    void BuyerPeerPlugin::Status::setDownloadedValidPieces(const QList<int> &downloadedValidPieces) {
-        _downloadedValidPieces = downloadedValidPieces;
-    }
-
-    int BuyerPeerPlugin::Status::indexOfAssignedPiece() const {
-        return _indexOfAssignedPiece;
-    }
-
-    void BuyerPeerPlugin::Status::setIndexOfAssignedPiece(int indexOfAssignedPiece){
-        _indexOfAssignedPiece = indexOfAssignedPiece;
-    }
-
-    quint32 BuyerPeerPlugin::Status::payorSlot() const {
-        return _payorSlot;
-    }
-
-    void BuyerPeerPlugin::Status::setPayorSlot(quint32 payorSlot) {
-        _payorSlot = payorSlot;
-    }
-
-    quint32 BuyerPeerPlugin::payorSlot() const {
-        return _payorSlot;
-    }
-
-    void BuyerPeerPlugin::setPayorSlot(quint32 payorSlot) {
-        _payorSlot = payorSlot;
-    }
 
     /**
      * BuyerPeerPlugin
      */
 
-    #include <core/extension/BuyerTorrentPlugin.hpp>
-    #include <core/extension/PluginMode.hpp>
-    #include <core/extension/Message/Observe.hpp>
-    #include <core/extension/Message/Buy.hpp>
-    #include <core/extension/Message/Sell.hpp>
-    #include <core/extension/Message/JoinContract.hpp>
-    #include <core/extension/Message/JoiningContract.hpp>
-    #include <core/extension/Message/SignRefund.hpp>
-    #include <core/extension/Message/RefundSigned.hpp>
-    #include <core/extension/Message/Ready.hpp>
-    #include <core/extension/Message/RequestFullPiece.hpp>
-    #include <core/extension/Message/FullPiece.hpp>
-    #include <core/extension/Message/Payment.hpp>
+    #include <extension/BuyerTorrentPlugin.hpp>
+    #include <extension/PluginMode.hpp>
+
+    #include <protocol/Message/Observe.hpp>
+    #include <protocol/Message/Buy.hpp>
+    #include <protocol/Message/Sell.hpp>
+    #include <protocol/Message/JoinContract.hpp>
+    #include <protocol/Message/JoiningContract.hpp>
+    #include <protocol/Message/SignRefund.hpp>
+    #include <protocol/Message/RefundSigned.hpp>
+    #include <protocol/Message/Ready.hpp>
+    #include <protocol/Message/RequestFullPiece.hpp>
+    #include <protocol/Message/FullPiece.hpp>
+    #include <protocol/Message/Payment.hpp>
 
     #include <libtorrent/bt_peer_connection.hpp>
 

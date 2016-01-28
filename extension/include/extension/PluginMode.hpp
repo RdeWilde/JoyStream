@@ -5,14 +5,20 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef PLUGIN_MODE_HPP
-#define PLUGIN_MODE_HPP
+#ifndef EXTENSION_PLUGIN_MODE_HPP
+#define EXTENSION_PLUGIN_MODE_HPP
 
-// Mode of torrent or peer plugin when it has been started
-enum class PluginMode {
-    Observer,
-    Seller,
-    Buyer
-};
+namespace joystream {
+namespace extension {
 
-#endif // PLUGIN_MODE_HPP
+    // Mode of torrent or peer plugin when it has been started
+    enum class PluginMode {
+        Observer,
+        Seller,
+        Buyer
+    };
+
+}
+}
+
+#endif // EXTENSION_PLUGIN_MODE_HPP

@@ -14,9 +14,11 @@
 #include <common/TransactionId.hpp>
 #include <common/PublicKey.hpp>
 
+// potentially remove later?
+#include <protocol/Message/Sell.hpp>
+#include <protocol/Message/JoiningContract.hpp>
+
 //#include "Utilities.hpp" // uint qHash(const libtorrent::peer_request & request);
-#include "Message/Sell.hpp"
-#include "Message/JoiningContract.hpp"
 
 #include <QSet>
 
@@ -28,8 +30,8 @@ namespace extension {
     /**
      * @brief Buyer peer plugin
      */
-    class BuyerPeerPlugin : public PeerPlugin
-    {
+    class BuyerPeerPlugin : public PeerPlugin {
+
     public:
 
         /**
@@ -143,64 +145,6 @@ namespace extension {
             // on a full piece which was recently received
             waiting_for_libtorrent_to_validate_piece
 
-        };
-
-        /**
-         * @brief Plugin status, that is a snapshot
-         * of important information.
-         */
-        class Status : public PeerPlugin::Status {
-
-        public:
-
-            // Default constructor
-            Status();
-
-            // Constructor from members
-            Status(PeerModeAnnounced peerModeAnnounced,
-                   BEPSupportStatus peerBEP10SupportStatus,
-                   BEPSupportStatus peerJoyStreamBEPSupportStatus,
-                   const PeerState & peerState,
-                   ClientState clientState,
-                   quint32 payorSlot,
-                   int indexOfAssignedPiece,
-                   const QList<int> & downloadedValidPieces);
-
-            // Getters and setters
-            virtual PluginMode pluginMode() const;
-
-            PeerState peerState() const;
-            void setPeerState(const PeerState & peerState);
-
-            ClientState clientState() const;
-            void setClientState(ClientState clientState);
-
-            quint32 payorSlot() const;
-            void setPayorSlot(const quint32 payorSlot);
-
-            int indexOfAssignedPiece() const;
-            void setIndexOfAssignedPiece(int indexOfAssignedPiece);
-
-            QList<int> downloadedValidPieces() const;
-            void setDownloadedValidPieces(const QList<int> & downloadedValidPieces);
-
-        private:
-
-            // State of peer
-            PeerState _peerState;
-
-            // State of client
-            ClientState _clientState;
-
-            // Peer plugin position in Payor
-            quint32 _payorSlot;
-
-            // Index of a piece assigned to this peer
-            int _indexOfAssignedPiece;
-
-            // Piece indexes, in download order, of
-            // all valid pieces downloaded from seller peer during this session
-            QList<int> _downloadedValidPieces;
         };
 
         // Constructor

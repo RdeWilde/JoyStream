@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#include <core/extension/BuyerTorrentPlugin.hpp>
+#include <extension/BuyerTorrentPlugin.hpp>
 
 /**
  * BuyerTorrentPlugin::Piece
@@ -70,135 +70,25 @@ void BuyerTorrentPlugin::Piece::setPeerPlugin(BuyerPeerPlugin *peerPlugin) {
 }
 
 /**
- * BuyerTorrentPlugin::Status
- */
-
-BuyerTorrentPlugin::Status::Status() {
-}
-
-BuyerTorrentPlugin::Status::Status(State state,
-                                   const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> & peers,
-                                   const Payor::Status & payor)
-    : _state(state)
-    , _peerPluginStatuses(peers)
-    , _payor(payor) {
-}
-
-BuyerTorrentPlugin::State BuyerTorrentPlugin::Status::state() const {
-    return _state;
-}
-
-void BuyerTorrentPlugin::Status::setState(State state) {
-    _state = state;
-}
-
-QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> BuyerTorrentPlugin::Status::peerPluginStatuses() const {
-    return _peerPluginStatuses;
-}
-
-void BuyerTorrentPlugin::Status::setPeerPluginStatuses(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> & peerPluginStatuses) {
-    _peerPluginStatuses = peerPluginStatuses;
-}
-
-Payor::Status BuyerTorrentPlugin::Status::payor() const {
-    return _payor;
-}
-
-void BuyerTorrentPlugin::Status::setPayor(const Payor::Status & payor) {
-    _payor = payor;
-}
-
-/**
- * BuyerTorrentPlugin::Configuration
- */
-
-#include <QLoggingCategory>
-
-#include <libtorrent/entry.hpp>
-
-BuyerTorrentPlugin::Configuration::Configuration() {
-
-}
-
-BuyerTorrentPlugin::Configuration::Configuration(bool enableBanningSets,
-                                                 quint64 maxPrice,
-                                                 quint32 maxLock,
-                                                 quint64 maxFeePerByte,
-                                                 quint32 numberOfSellers)
-    : TorrentPlugin::Configuration(enableBanningSets)
-    , _maxPrice(maxPrice)
-    , _maxLock(maxLock)
-    , _maxFeePerKb(maxFeePerByte)
-    , _numberOfSellers(numberOfSellers) {
-}
-
-BuyerTorrentPlugin::Configuration::Configuration(const libtorrent::entry::dictionary_type & dictionaryEntry)
-    : TorrentPlugin::Configuration(dictionaryEntry) {
-    // IMPLEMENT LATER
-}
-
-void BuyerTorrentPlugin::Configuration::toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const {
-
-    // Call super version
-    //TorrentPlugin::Configuration::toDictionaryEntry(dictionaryEntry);
-
-    // IMPLEMENT LATER
-}
-
-PluginMode BuyerTorrentPlugin::Configuration::pluginMode() const {
-    return PluginMode::Buyer;
-}
-
-quint64 BuyerTorrentPlugin::Configuration::maxPrice() const {
-    return _maxPrice;
-}
-
-void BuyerTorrentPlugin::Configuration::setMaxPrice(quint64 maxPrice) {
-    _maxPrice = maxPrice;
-}
-
-quint32 BuyerTorrentPlugin::Configuration::maxLock() const{
-    return _maxLock;
-}
-
-void BuyerTorrentPlugin::Configuration::setMaxLock(quint32 maxLock) {
-    _maxLock = maxLock;
-}
-
-quint64 BuyerTorrentPlugin::Configuration::maxFeePerKb() const {
-    return _maxFeePerKb;
-}
-
-void BuyerTorrentPlugin::Configuration::setMaxFeePerKb(quint64 maxFeePerByte) {
-    _maxFeePerKb = maxFeePerByte;
-}
-
-quint32 BuyerTorrentPlugin::Configuration::numberOfSellers() const {
-    return _numberOfSellers;
-}
-
-void BuyerTorrentPlugin::Configuration::setNumberOfSellers(quint32 numberOfSellers) {
-    _numberOfSellers = numberOfSellers;
-}
-
-/**
  * BuyerTorrentPlugin
  */
 
-#include <core/extension/BuyerPeerPlugin.hpp>
-#include <core/extension/Message/Buy.hpp>
-#include <core/extension/Message/Sell.hpp>
-#include <core/extension/Message/Observe.hpp>
-#include <core/extension/Message/JoinContract.hpp>
-#include <core/extension/Message/SignRefund.hpp>
-#include <core/extension/Message/RequestFullPiece.hpp>
-#include <core/extension/Message/Ready.hpp>
-#include <core/extension/Message/Payment.hpp>
-#include <core/extension/Alert/BuyerTorrentPluginStatusAlert.hpp>
-#include <core/extension/Alert/BuyerPeerAddedAlert.hpp>
-#include <core/extension/Alert/BuyerPeerPluginRemovedAlert.hpp>
-#include <core/extension/Plugin.hpp>
-#include <core/extension/PeerPlugin.hpp> // PeerModeAnnounced
+#include <extension/BuyerPeerPlugin.hpp>
+#include <extension/alert/BuyerTorrentPluginStatusAlert.hpp>
+#include <extension/alert/BuyerPeerAddedAlert.hpp>
+#include <extension/alert/BuyerPeerPluginRemovedAlert.hpp>
+#include <extension/Plugin.hpp>
+#include <extension/PeerPlugin.hpp> // PeerModeAnnounced
+
+#include <protocol/Message/Buy.hpp>
+#include <protocol/Message/Sell.hpp>
+#include <protocol/Message/Observe.hpp>
+#include <protocol/Message/JoinContract.hpp>
+#include <protocol/Message/SignRefund.hpp>
+#include <protocol/Message/RequestFullPiece.hpp>
+#include <protocol/Message/Ready.hpp>
+#include <protocol/Message/Payment.hpp>
+
 #include <paymentchannel/Contract.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
 #include <wallet/Manager.hpp>

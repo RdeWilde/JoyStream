@@ -36,6 +36,6 @@ namespace extension {
 }
 
 #include <QMetaType>
-Q_DECLARE_METATYPE(PeerPluginId)
+Q_DECLARE_METATYPE(joystream::extension::PeerPluginId)
 
 #endif // EXTENSION_PEERPLUGIN_ID_HPP

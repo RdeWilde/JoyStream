@@ -5,14 +5,14 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 27 2016
  */
 
-#ifndef JOYSTREAM_CORE_CONFIGURATIONS_TORRENT_HPP
-#define JOYSTREAM_CORE_CONFIGURATIONS_TORRENT_HPP
+#ifndef JOYSTREAM_CORE_CONFIGURATION_TORRENT_HPP
+#define JOYSTREAM_CORE_CONFIGURATION_TORRENT_HPP
 
 #include <libtorrent/sha1_hash.hpp>
 
 namespace joystream {
 namespace core {
-namespace configurations {
+namespace configuration {
 
     /**
      * @brief Persistant state of Torrent.

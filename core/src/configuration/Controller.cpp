@@ -13,7 +13,7 @@
 
 namespace joystream {
 namespace core {
-namespace configurations {
+namespace configuration {
 
     Controller::Controller() {
 

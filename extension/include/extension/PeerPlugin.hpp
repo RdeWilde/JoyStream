@@ -8,11 +8,11 @@
 #ifndef EXTENSION_PEER_PLUGIN_HPP
 #define EXTENSION_PEER_PLUGIN_HPP
 
-#include <extension/Request/PeerPluginRequest.hpp>
+#include <extension/request/PeerPluginRequest.hpp>
 #include <extension/BEPSupportStatus.hpp>
-#include <extension/Message/ExtendedMessageIdMapping.hpp>
-
 #include <extension/PeerModeAnnounced.hpp>
+
+#include <protocol/Message/ExtendedMessageIdMapping.hpp>
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/entry.hpp>
@@ -25,7 +25,6 @@
 #include <libtorrent/buffer.hpp>
 #include <libtorrent/peer_id.hpp> // sha1_hash
 
-#include <QObject>
 #include <QDateTime>
 #include <QQueue>
 
@@ -58,9 +57,10 @@ namespace extension {
     /**
      * @brief Abstract parent type for peer plugins, in seller, buyer and observer mode.
      */
-    class PeerPlugin : public QObject, public libtorrent::peer_plugin {
+    class PeerPlugin : public libtorrent::peer_plugin {
+    //class PeerPlugin : public QObject, public libtorrent::peer_plugin {
 
-        Q_OBJECT
+        //Q_OBJECT
 
     public:
 
