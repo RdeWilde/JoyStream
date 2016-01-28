@@ -66,3 +66,6 @@ LIBS += \
 win32 {
   LIBS += -lws2_32 -lmswsock
 }
+
+#odb runtime
+LIBS += -lodb-sqlite -lodb
