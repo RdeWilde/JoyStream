@@ -65,7 +65,7 @@ namespace BlockCypher {
     void WebSocketClient::addEvent(const Event & e) {
 
         // Check that we support this event type
-        if(e.getEvent() == Event::Type::new_block)
+        if(e.type() == Event::Type::new_block)
             throw std::runtime_error("Unsupported event type.");
 
         // Add to list of events

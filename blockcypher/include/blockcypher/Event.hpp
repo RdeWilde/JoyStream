@@ -32,8 +32,12 @@ namespace BlockCypher {
                 tx_confidence
             };
 
-            // Get type
+            // Determine event Type from payload
             static Type getPayloadType(const QJsonObject & o);
+
+            // Convernt between enum Type and string representation
+            static Event::Type stringToType(const QString &s);
+            static QString typeToString(Event::Type type);
 
             Event();
 
@@ -46,6 +50,10 @@ namespace BlockCypher {
             //Constructor aimed at tx-confirmation event
             //event,address,confirmations,optional token
             Event(const QString & ,const QString &,const unsigned short int &, const QString & token="");
+
+            QJsonObject toJson() const;
+
+            Event::Type type() const { return _event; }
 
             private:
 
