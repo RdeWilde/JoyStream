@@ -12,6 +12,8 @@
 #include <QJsonArray>
 #include <QJsonObject>
 
+#include <CoinCore/CoinNodeData.h>
+
 namespace BlockCypher {
 
     TXInput::TXInput(const QJsonObject & o) {
@@ -123,5 +125,10 @@ namespace BlockCypher {
                _script_type == o._script_type &&
                _addresses == o._addresses &&
                _sequence == o._sequence;
+    }
+
+    Coin::TxIn TXInput::toInput() const {
+        Coin::OutPoint outpoint(_prev_hash.toStdString(), _output_index);
+        return Coin::TxIn(outpoint, uchar_vector(_script.toStdString()), _sequence);
     }
 }
