@@ -14,9 +14,9 @@ namespace BlockCypher {
 
     // Transaction script types
     enum class ScriptType {
+        none,
         pay_to_script_hash,
         pay_to_pubkey_hash,
-        none // the case where no
     };
 
     ScriptType toScriptType(const QString & s);
