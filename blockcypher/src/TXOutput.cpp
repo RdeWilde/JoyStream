@@ -13,6 +13,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+#include <CoinCore/CoinNodeData.h>
+
 namespace BlockCypher {
 
     TXOutput::TXOutput(const QJsonObject & o) {
@@ -64,4 +66,7 @@ namespace BlockCypher {
                _script_type == o._script_type;
     }
 
+    Coin::TxOut TXOutput::toOutput() const {
+        return Coin::TxOut(_value, _script.toStdString());
+    }
 }

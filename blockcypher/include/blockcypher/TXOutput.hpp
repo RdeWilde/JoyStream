@@ -48,6 +48,8 @@ namespace BlockCypher {
 
         bool operator==(const TXOutput & o);
 
+        Coin::TxOut toOutput() const;
+
     };
 }
 
