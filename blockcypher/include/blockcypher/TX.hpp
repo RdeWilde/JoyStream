@@ -18,6 +18,11 @@
 #include <QJsonValue>
 #include <QJsonObject>
 #include <QVector>
+#include <QJsonArray>
+
+namespace Coin {
+    class Transaction;
+}
 
 namespace BlockCypher {
 
@@ -25,9 +30,11 @@ namespace BlockCypher {
 
         public:
 
-            TX();
+            TX() {}
 
             TX(const QJsonObject & o);
+
+            Coin::Transaction toTransaction();
 
         private:
 

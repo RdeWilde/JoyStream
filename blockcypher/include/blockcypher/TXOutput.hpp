@@ -44,6 +44,8 @@ namespace BlockCypher {
         // The type of encumbrance script used for this output.
         ScriptType _script_type;
 
+        TXOutput() {}
+
         TXOutput(const QJsonObject & o);
 
         bool operator==(const TXOutput & o);

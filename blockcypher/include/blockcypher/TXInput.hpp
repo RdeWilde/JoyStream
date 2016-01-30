@@ -33,6 +33,8 @@ namespace BlockCypher {
     */
     struct TXInput {
 
+        TXInput() {}
+
         TXInput(const QJsonObject & o);
 
         bool operator==(const TXInput & o);
