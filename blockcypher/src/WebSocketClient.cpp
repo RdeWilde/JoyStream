@@ -50,10 +50,6 @@ namespace BlockCypher {
 
             _webSocket.open(webSocketEndpoint);
 
-            // Send all events
-            foreach( const Event & e, _addedEvents)
-                sendEvent(e);
-
         } else
             throw std::runtime_error("Already connected.");
     }
@@ -85,6 +81,10 @@ namespace BlockCypher {
     }
 
     void WebSocketClient::webSocketConnected() {
+        // Send all events
+        foreach( const Event & e, _addedEvents)
+            sendEvent(e);
+
         emit connected();
     }
 
@@ -154,8 +154,8 @@ namespace BlockCypher {
         Q_ASSERT(isConnected());
 
         // Send JSON version of event
-        QJsonValue eventJSON(e.toJson());
-        _webSocket.sendTextMessage(eventJSON.toString());
+        QByteArray json = (QJsonDocument(e.toJson())).toJson();
+        _webSocket.sendTextMessage(QString(json));
     }
 
 }
