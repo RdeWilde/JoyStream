@@ -22,8 +22,8 @@ namespace BlockCypher {
         if(!o.contains("block_height")){
             throw std::runtime_error("block_height is not a key.");
         } else {
-            if(!o.value("block_height").isString())
-                throw std::runtime_error("block_height is not a string.");
+            if(!o.value("block_height").isDouble())
+                throw std::runtime_error("block_height is not a double.");
 
             _block_height = o.value("block_height").toInt();
         }
@@ -155,7 +155,7 @@ namespace BlockCypher {
         }
     }
 
-    Coin::Transaction TX::toTransaction() {
+    Coin::Transaction TX::toTransaction() const {
         Coin::Transaction tx;
 
         tx.version = _ver;

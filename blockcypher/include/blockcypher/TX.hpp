@@ -34,7 +34,7 @@ namespace BlockCypher {
 
             TX(const QJsonObject & o);
 
-            Coin::Transaction toTransaction();
+            Coin::Transaction toTransaction() const;
 
         private:
 
