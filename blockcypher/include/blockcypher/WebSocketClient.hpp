@@ -71,6 +71,9 @@ namespace BlockCypher {
         // Error on WebSocket
         void error(QAbstractSocket::SocketError e);
 
+        // JSON parsing error
+        void parseError(const QString & err);
+
         // TX payload arrived correponding to the given event type filter
         void txArrived(const TX & tx, Event::Type type);
 

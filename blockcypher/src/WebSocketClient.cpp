@@ -102,24 +102,34 @@ namespace BlockCypher {
     void WebSocketClient::webSocketTextMessageArrived(QString msg) {
 
         // Turn into JSON
-        QJsonDocument doc = QJsonDocument::fromJson(msg.toLatin1());
+        QJsonParseError parse_error;
+        QJsonDocument doc = QJsonDocument::fromJson(msg.toLatin1(), &parse_error);
 
-        if(!doc.isObject())
-            throw std::runtime_error("Receive non-JSON response.");
+        if(parse_error.error != QJsonParseError::NoError || !doc.isObject()) {
+            emit parseError(parse_error.errorString());
+            return;
+        }
 
         QJsonObject JSON = doc.object();
 
         // Deduce what event type it corresponds to
         Event::Type eventType = Event::getPayloadType(JSON);
 
-        // if we don't support it, then throw exception
-        if(eventType == Event::Type::new_block)
-            throw std::runtime_error("Event type not supported.");
+        // if we don't support it, then ignore it
+        if(eventType == Event::Type::new_block) {
+            return;
+        }
 
         // Should we do super slow ASSERTS: we have installed event with same type
 
-        // Turn into TX object
-        TX tx(JSON);
+        TX tx;
+        try{
+            // Turn into TX object
+            tx = TX(JSON);
+        } catch (std::runtime_error & e) {
+            emit parseError(e.what());
+            return;
+        }
 
         // Emit signal
         emit txArrived(tx, eventType);
