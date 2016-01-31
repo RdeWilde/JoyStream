@@ -10,10 +10,6 @@
 namespace joystream {
 namespace core {
 
-    /**
-     * Controller::Torrent
-     */
-
     Controller::Torrent::Torrent(const libtorrent::sha1_hash & infoHash,
                                  const std::string & name,
                                  const std::string & savePath,

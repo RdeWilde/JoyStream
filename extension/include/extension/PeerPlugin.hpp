@@ -8,12 +8,9 @@
 #ifndef EXTENSION_PEER_PLUGIN_HPP
 #define EXTENSION_PEER_PLUGIN_HPP
 
-#include <extension/request/PeerPluginRequest.hpp>
 #include <extension/BEPSupportStatus.hpp>
 #include <extension/PeerModeAnnounced.hpp>
-
-#include <protocol/Message/ExtendedMessageIdMapping.hpp>
-
+#include <extension/ExtendedMessageIdMapping.hpp>
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/entry.hpp>
 #include <libtorrent/error_code.hpp>
@@ -28,45 +25,42 @@
 #include <QDateTime>
 #include <QQueue>
 
-class TorrentPlugin;
-class PeerPluginStatus;
-class PeerPluginRequest;
-class ExtendedMessagePayload;
-class Observe;
-class Buy;
-class Sell;
-class JoinContract;
-class JoiningContract;
-class SignRefund;
-class RefundSigned;
-class Ready;
-class RequestFullPiece;
-class FullPiece;
-class Payment;
-
-enum class PluginMode;
-
-/**
- * We inherit from QObject so we can send signals, and QObject must be first:
- * http://doc.trolltech.com/4.5/moc.html
- */
+#include <string> // can't forward declare std::string
 
 namespace joystream {
+
+namespace protocol {
+
+    class ExtendedMessagePayload;
+    class Observe;
+    class Buy;
+    class Sell;
+    class JoinContract;
+    class JoiningContract;
+    class SignRefund;
+    class RefundSigned;
+    class Ready;
+    class RequestFullPiece;
+    class FullPiece;
+    class Payment;
+}
+
 namespace extension {
+
+    class TorrentPlugin;
+    enum class PluginMode;
 
     /**
      * @brief Abstract parent type for peer plugins, in seller, buyer and observer mode.
      */
     class PeerPlugin : public libtorrent::peer_plugin {
-    //class PeerPlugin : public QObject, public libtorrent::peer_plugin {
-
-        //Q_OBJECT
 
     public:
 
         // Constructor
         PeerPlugin(TorrentPlugin * plugin,
                    libtorrent::bt_peer_connection * connection,
+                   const std::string & bep10ClientIdentifier,
                    bool scheduledForDeletingInNextTorrentPluginTick,
                    QLoggingCategory & category);
 
@@ -117,10 +111,10 @@ namespace extension {
         //void processPeerPluginRequest(const PeerPluginRequest * peerPluginRequest);
 
         // Sends extended message to peer, does not take ownership of pointer
-        void sendExtendedMessage(const ExtendedMessagePayload & extendedMessage);
+        void sendExtendedMessage(const joystream::protocol::ExtendedMessagePayload & extendedMessage);
 
         // Determines the message type, calls correct handler, then frees message
-        void processExtendedMessage(ExtendedMessagePayload * extendedMessage);
+        void processExtendedMessage(joystream::protocol::ExtendedMessagePayload * extendedMessage);
 
         // Getters
         libtorrent::bt_peer_connection * connection();
@@ -153,6 +147,9 @@ namespace extension {
 
         // Connection to peer for this plugin
         libtorrent::bt_peer_connection * _connection;
+
+        // Client identifier used in bep10 handshake v-key
+        std::string _bep10ClientIdentifier;
 
         // Endpoint: can be deduced from connection, but is worth keeping if connection pointer becomes invalid
         libtorrent::tcp::endpoint _endPoint;
@@ -191,17 +188,17 @@ namespace extension {
 
         // Processess message in subclass,
         // are only called if extended handshake has been completed successfully.
-        virtual void processObserve(const Observe * m) = 0;
-        virtual void processBuy(const Buy * m) = 0;
-        virtual void processSell(const Sell * m) = 0;
-        virtual void processJoinContract(const JoinContract * m) = 0;
-        virtual void processJoiningContract(const JoiningContract * m) = 0;
-        virtual void processSignRefund(const SignRefund * m) = 0;
-        virtual void processRefundSigned(const RefundSigned * m) = 0;
-        virtual void processReady(const Ready * m) = 0;
-        virtual void processRequestFullPiece(const RequestFullPiece * m) = 0;
-        virtual void processFullPiece(const FullPiece * m) = 0;
-        virtual void processPayment(const Payment * m) = 0;
+        virtual void processObserve(const joystream::protocol::Observe * m) = 0;
+        virtual void processBuy(const joystream::protocol::Buy * m) = 0;
+        virtual void processSell(const joystream::protocol::Sell * m) = 0;
+        virtual void processJoinContract(const joystream::protocol::JoinContract * m) = 0;
+        virtual void processJoiningContract(const joystream::protocol::JoiningContract * m) = 0;
+        virtual void processSignRefund(const joystream::protocol::SignRefund * m) = 0;
+        virtual void processRefundSigned(const joystream::protocol::RefundSigned * m) = 0;
+        virtual void processReady(const joystream::protocol::Ready * m) = 0;
+        virtual void processRequestFullPiece(const joystream::protocol::RequestFullPiece * m) = 0;
+        virtual void processFullPiece(const joystream::protocol::FullPiece * m) = 0;
+        virtual void processPayment(const joystream::protocol::Payment * m) = 0;
 
     };
 

@@ -5,206 +5,118 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef TORRENT_PLUGIN_HPP
-#define TORRENT_PLUGIN_HPP
+#ifndef JOYSTREAM_EXTENSION_TORRENT_PLUGIN_HPP
+#define JOYSTREAM_EXTENSION_TORRENT_PLUGIN_HPP
 
-#include "BEPSupportStatus.hpp"
-//#include "TorrentPluginConfiguration.hpp"
-#include <common/LibtorrentUtilities.hpp> // uint qHash(const libtorrent::tcp::endpoint & endpoint)
-#include "PeerPlugin.hpp" // boost::weak_ptr<PeerPlugin>
+// For QSet: uint qHash(const libtorrent::tcp::endpoint & endpoint)
+#include <common/LibtorrentUtilities.hpp>
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
-
-#include <boost/weak_ptr.hpp> // boost::weak_ptr<PeerPlugin>
 
 #include <QObject>
 #include <QMap>
 #include <QSet>
 
-// Forward declaration
 class Plugin;
-class PeerPlugin;
-//class PeerPluginId;
-class TorrentPluginStatus;
-class TorrentPluginRequest;
-//class PeerPluginConfiguration;
-//class SetConfigurationTorrentPluginRequest;
-//class SetPluginModeTorrentPluginRequest;
-class TorrentPluginStatusAlert;
+class TorrentPluginConfiguration;
 class TorrentPluginAlert;
 enum class PluginMode;
 
-/**
- * @brief Abstract type for all torrent plugin types (buyer, seller, observer).
- */
-//class TorrentPlugin : public QObject, public libtorrent::torrent_plugin {
-class TorrentPlugin : public libtorrent::torrent_plugin {
+namespace joystream {
+namespace extension {
 
-    //Q_OBJECT
-
-public:
-
-    /**
-     * This data is derivable, is not part of status.
-    class Status {
+    class TorrentPlugin : public libtorrent::torrent_plugin {
 
     public:
 
-        // Default constructor
-        Status();
+        // Constructor from member fields
+        TorrentPlugin(Plugin * plugin,
+                      const boost::shared_ptr<libtorrent::torrent> & torrent,
+                      const TorrentPluginConfiguration & configuration,
+                      QLoggingCategory & category);
 
-        // Constructor from members
-        Status(quint32 numberOfClassicPeers,
-               quint32 numberOfObserverPeers,
-               quint32 numberOfSellerPeers,
-               quint32 numberOfBuyerPeers);
+        /**
+         * Virtual routines
+         */
 
-        // Getters and setters
-        quint32 numberOfClassicPeers() const;
-        void setNumberOfClassicPeers(quint32 numberOfClassicPeers);
+        // Destructor
+        virtual ~TorrentPlugin();
 
-        quint32 numberOfObserverPeers() const;
-        void setNumberOfObserverPeers(quint32 numberOfObserverPeers);
+        // Libtorrent callbacks
+        virtual boost::shared_ptr<libtorrent::peer_plugin> new_connection(libtorrent::peer_connection * connection) = 0;
+        virtual void on_piece_pass(int index) = 0;
+        virtual void on_piece_failed(int index) = 0;
+        virtual void tick() = 0;
+        virtual bool on_resume() = 0;
+        virtual bool on_pause() = 0;
+        virtual void on_files_checked() = 0;
+        virtual void on_state(int s) = 0;
+        virtual void on_add_peer(const libtorrent::tcp::endpoint & endPoint, int src, int flags) = 0;
 
-        quint32 numberOfSellerPeers() const;
-        void setNumberOfSellerPeers(quint32 numberOfSellerPeers);
+        /**
+         * Routines called by libtorrent network thread from other plugin objects
+         */
 
-        quint32 numberOfBuyerPeers() const;
-        void setNumberOfBuyerPeers(quint32 numberOfBuyerPeers);
+        // Adds peer to respective set, and returns whether it was actually added or existed in the set from before.
+        void addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint);
+        void addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint);
+
+        virtual PluginMode pluginMode() const = 0;
+        virtual QList<libtorrent::tcp::endpoint> endPoints() const = 0;
+
+        boost::shared_ptr<libtorrent::torrent> torrent() const;
+        void setTorrent(const boost::shared_ptr<libtorrent::torrent> & torrent);
+
+        bool enableBanningSets() const;
+        void setEnableBanningSets(bool enableBanningSets);
+
+    protected:
+
+        // Parent plugin for BitSwapr
+        // Should this be boost::shared_ptr, since life time of object is managed by it?
+        // on the other hand, we loose Plugin behaviour through libtorrent::plugin pointer, which we need!
+        Plugin * _plugin;
+
+        // Torrent for this torrent_plugin
+        // Should this be weak_ptr really?
+        boost::shared_ptr<libtorrent::torrent> _torrent;
+
+        // Set of all endpoints known to not have extension. Is populated by previous failed extended handshakes.
+        QSet<libtorrent::tcp::endpoint> _peersWithoutExtension;
+
+        // Set of endpoints banned for irregular conduct during extended protocol
+        QSet<libtorrent::tcp::endpoint> _irregularPeer;
+
+        // Logging category
+        QLoggingCategory & _category;
+
+        // Torrent info hash
+        //libtorrent::sha1_hash _infoHash;
+
+        /**
+        // Plugin is active and therefore does tick() processing.
+        // Is set by controller after file torrent metadata is acquired and/or
+        // resume data has been validated.
+        bool _pluginStarted;
+
+        // Tick processor
+        void _tick();
+        */
+
+        // Checks that peer is not banned and that it is a bittorrent connection
+        bool isPeerWellBehaved(libtorrent::peer_connection * connection) const;
+
+        // Send torrent plugin alert to libtorrent session
+        void sendTorrentPluginAlert(const TorrentPluginAlert & alert);
 
     private:
 
-        // #peers connected to in classic - i.e. non joystream extension enabled mode
-        quint32 _numberOfClassicPeers;
-
-        // #peers connected to with plugin and in observer mode
-        quint32 _numberOfObserverPeers;
-
-        // #peers connected to with plugin and in seller mode
-        quint32 _numberOfSellerPeers;
-
-        // #peers connected to with plugin and in buyer mode
-        quint32 _numberOfBuyerPeers;
+        // Use banning of peers
+        bool _enableBanningSets;
     };
-    */
 
+}
+}
 
-    // Constructor from member fields
-    TorrentPlugin(Plugin * plugin,
-                  const boost::shared_ptr<libtorrent::torrent> & torrent,
-                  const TorrentPlugin::Configuration & configuration,
-                  QLoggingCategory & category);
-
-    /**
-     * Virtual routines
-     */
-
-    // Destructor
-    virtual ~TorrentPlugin();
-
-    // Libtorrent callbacks
-    virtual boost::shared_ptr<libtorrent::peer_plugin> new_connection(libtorrent::peer_connection * connection) = 0;
-    virtual void on_piece_pass(int index) = 0;
-    virtual void on_piece_failed(int index) = 0;
-    virtual void tick() = 0;
-    virtual bool on_resume() = 0;
-    virtual bool on_pause() = 0;
-    virtual void on_files_checked() = 0;
-    virtual void on_state(int s) = 0;
-    virtual void on_add_peer(const libtorrent::tcp::endpoint & endPoint, int src, int flags) = 0;
-
-    // Removes peer plugin
-    //virtual void removePeerPlugin(PeerPlugin * plugin) = 0;
-
-    /**
-     * Routines called by libtorrent network thread from other plugin objects
-     */
-    // Get peer plugin, throws std::exception if there is no match
-    //virtual boost::shared_ptr<libtorrent::peer_plugin> peerPlugin(const libtorrent::tcp::endpoint & endPoint) const = 0;
-
-    // Process torrent plugin requests
-    // void processTorrentPluginRequest(const TorrentPluginRequest * request);
-
-    // Adds peer to respective set, and returns whether it was actually added or existed in the set from before.
-    void addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint);
-    void addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint);
-
-    //Status status() const;
-
-    // Getters and setters
-
-    //Plugin * plugin();
-
-    virtual PluginMode pluginMode() const = 0;
-    virtual QList<libtorrent::tcp::endpoint> endPoints() const = 0;
-    //virtual const PeerPlugin * peerPlugin(const libtorrent::tcp::endpoint & endPoint) const = 0;
-
-    //virtual const TorrentPlugin::Configuration getTorrentPluginConfiguration() = 0;
-
-    boost::shared_ptr<libtorrent::torrent> torrent() const;
-    void setTorrent(const boost::shared_ptr<libtorrent::torrent> & torrent);
-
-    bool enableBanningSets() const;
-    void setEnableBanningSets(bool enableBanningSets);
-
-protected:
-
-    // Parent plugin for BitSwapr
-    // Should this be boost::shared_ptr, since life time of object is managed by it?
-    // on the other hand, we loose Plugin behaviour through libtorrent::plugin pointer, which we need!
-    Plugin * _plugin;
-
-    // Torrent for this torrent_plugin
-    // Should this be weak_ptr really?
-    boost::shared_ptr<libtorrent::torrent> _torrent;
-
-    // Set of all endpoints known to not have extension. Is populated by previous failed extended handshakes.
-    QSet<libtorrent::tcp::endpoint> _peersWithoutExtension;
-
-    // Set of endpoints banned for irregular conduct during extended protocol
-    QSet<libtorrent::tcp::endpoint> _irregularPeer;
-
-    // List of peer plugins scheduled for deletion
-    //QList<boost::weak_ptr<PeerPlugin> > _peersScheduledForDeletion;
-
-    // Logging category
-    QLoggingCategory & _category;
-
-    // Torrent info hash
-    //libtorrent::sha1_hash _infoHash;
-
-    /**
-    // Plugin is active and therefore does tick() processing.
-    // Is set by controller after file torrent metadata is acquired and/or
-    // resume data has been validated.
-    bool _pluginStarted;
-
-    // Tick processor
-    void _tick();
-    */
-
-    // Checks that peer is not banned and that it is a bittorrent connection
-    bool isPeerWellBehaved(libtorrent::peer_connection * connection) const;
-
-    // Send torrent plugin alert to libtorrent session
-    void sendTorrentPluginAlert(const TorrentPluginAlert & alert);
-
-    // Adds the given peer plugin pointer to the peer map
-    //void addPeerPlugin(PeerPlugin * peerPlugin);
-
-    // Delete and disconnect peers which have PeerPlugin::_scheduledForDeletingInNextTorrentPluginTick == true
-    // int deleteAndDisconnectPeers();
-
-private:
-
-    // Use banning of peers
-    bool _enableBanningSets;
-
-    // Regular pointers to peer plugin objects.
-    // These are owned by subclass torrent plugin, and is managed by
-    // shared_ptrs to the corresponding subclass of PeerPlugin.
-    //QMap<libtorrent::tcp::endpoint, PeerPlugin * > _peers;
-};
-
-#endif // TORRENT_PLUGIN_HPP
+#endif // JOYSTREAM_EXTENSION_TORRENT_PLUGIN_HPP

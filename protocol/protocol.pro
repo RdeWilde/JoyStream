@@ -15,42 +15,37 @@ QT      += core sql network # network added due to blockcypher integration
 INCLUDEPATH += $$PWD/include # be able to include w.r.t root of this project
 
 HEADERS += \
-    include/protocol/Message/SignRefund.hpp \
-    include/protocol/Message/Sell.hpp \
-    include/protocol/Message/RequestFullPiece.hpp \
-    include/protocol/Message/RefundSigned.hpp \
-    include/protocol/Message/Ready.hpp \
-    include/protocol/Message/Payment.hpp \
-    include/protocol/Message/Observe.hpp \
-    include/protocol/Message/NoPayloadMessage.hpp \
-    include/protocol/Message/MessageType.hpp \
-    include/protocol/Message/JoiningContract.hpp \
-    include/protocol/Message/JoinContract.hpp \
-    include/protocol/Message/FullPiece.hpp \
-    include/protocol/Message/ExtendedMessageTools.hpp \
-    include/protocol/Message/ExtendedMessagePayload.hpp \
-    include/protocol/Message/ExtendedMessageIdMapping.hpp \
-    include/protocol/Message/Buy.hpp
+    include/protocol/ExtendedMessagePayload.hpp \
+    include/protocol/SignRefund.hpp \
+    include/protocol/Sell.hpp \
+    include/protocol/RequestFullPiece.hpp \
+    include/protocol/RefundSigned.hpp \
+    include/protocol/Ready.hpp \
+    include/protocol/Payment.hpp \
+    include/protocol/Observe.hpp \
+    include/protocol/NoPayloadMessage.hpp \
+    include/protocol/MessageType.hpp \
+    include/protocol/JoiningContract.hpp \
+    include/protocol/JoinContract.hpp \
+    include/protocol/FullPiece.hpp \
+    include/protocol/Buy.hpp \
+    include/protocol/MessageType.hpp
 
 SOURCES += \
-    src/Message/SignRefund.cpp \
-    src/Message/Sell.cpp \
-    src/Message/RequestFullPiece.cpp \
-    src/Message/RefundSigned.cpp \
-    src/Message/Ready.cpp \
-    src/Message/Payment.cpp \
-    src/Message/Observe.cpp \
-    src/Message/NoPayloadMessage.cpp \
-    src/Message/MessageType.cpp \
-    src/Message/JoiningContract.cpp \
-    src/Message/JoinContract.cpp \
-    src/Message/FullPiece.cpp \
-    src/Message/ExtendedMessageTools.cpp \
-    src/Message/ExtendedMessagePayload.cpp \
-    src/Message/ExtendedMessageIdMapping.cpp \
-    src/Message/End.cpp \
-    src/Message/Buy.cpp
-
+    src/ExtendedMessagePayload.cpp \
+    src/SignRefund.cpp \
+    src/Sell.cpp \
+    src/RequestFullPiece.cpp \
+    src/RefundSigned.cpp \
+    src/Ready.cpp \
+    src/Payment.cpp \
+    src/Observe.cpp \
+    src/NoPayloadMessage.cpp \
+    src/MessageType.cpp \
+    src/JoiningContract.cpp \
+    src/JoinContract.cpp \
+    src/FullPiece.cpp \
+    src/Buy.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

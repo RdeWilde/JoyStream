@@ -14,82 +14,88 @@
 #include <common/MultisigScriptPubKey.hpp>
 #include <common/PrivateKey.hpp>
 
-Termination::Termination(const Coin::typesafeOutPoint & contractOutPoint,
-                         const Commitment & commitment,
-                         const Coin::Payment & toPayor)
-    : _contractOutPoint(contractOutPoint)
-    , _commitment(commitment)
-    , _toPayor(toPayor) {
+namespace joystream {
+namespace paymentchannel {
+
+    Termination::Termination(const Coin::typesafeOutPoint & contractOutPoint,
+                             const Commitment & commitment,
+                             const Coin::Payment & toPayor)
+        : _contractOutPoint(contractOutPoint)
+        , _commitment(commitment)
+        , _toPayor(toPayor) {
+    }
+
+    Coin::Transaction Termination::unSignedTransaction() const {
+
+        // Build refund transaction
+        Coin::Transaction tx;
+
+        // Add payor refund output
+        tx.addOutput(_toPayor.txOut());
+
+        // Add (unsigned) input spending contract output
+        tx.addInput(Coin::TxIn(_contractOutPoint.getClassicOutPoint(), uchar_vector(), DEFAULT_SEQUENCE_NUMBER));
+
+        return tx;
+    }
+
+    uchar_vector Termination::sighash(Coin::SigHashType type) const {
+
+        return Coin::sighash(unSignedTransaction(),
+                       0,
+                       _commitment.redeemScript().serialized(),
+                       type);
+    }
+
+    Coin::TransactionSignature Termination::transactionSignature(const Coin::PrivateKey & sk) const {
+
+        //return sk.sign(unSignedTransaction(), 0, _commitment.redeemScript().serialize(), Coin::SigHashType::standard());
+
+        Coin::SigHashType type = Coin::SigHashType::standard();
+
+        uchar_vector hash = sighash(type);
+
+        return Coin::TransactionSignature(sk.sign(hash), type);
+    }
+
+    Coin::Transaction Termination::signedTransaction(const Coin::TransactionSignature & payorTransactionSignature,
+                                                     const Coin::TransactionSignature & payeeTransactionSignature) const {
+
+        // Verify that both have appropriate sighash type
+        if(!payorTransactionSignature.type().isStandard())
+            throw std::runtime_error("First signature was not of type SIGHASH_ALL type");
+        else if(!payeeTransactionSignature.type().isStandard())
+            throw std::runtime_error("Second signature was not of type SIGHASH_ALL type");
+
+        // Create (unsigned) transaction
+        Coin::Transaction tx = unSignedTransaction();
+
+        // Create input script with signature
+        Coin::P2SHScriptSig scriptSig(std::vector<Coin::TransactionSignature>({payorTransactionSignature,
+                                                                               payeeTransactionSignature}),
+                                      _commitment.redeemScript().serialized());
+
+        tx.inputs[0].scriptSig = scriptSig.serialized();
+
+        return tx;
+    }
+
+    bool Termination::validate(const Coin::PublicKey & pk, const Coin::Signature & sig) const {
+
+        // Compute sighash for unsigned refund
+        uchar_vector h = sighash(Coin::SigHashType::standard());
+
+        // Check if signature is valid
+        return pk.verify(h, sig);
+    }
+
+    bool Termination::validatePayorSignature(const Coin::Signature & sig) const {
+        return validate(_commitment.firstPk(), sig);
+    }
+
+    bool Termination::validatePayeeSignature(const Coin::Signature & sig) const {
+        return validate(_commitment.secondPk(), sig);
+    }
+
 }
-
-Coin::Transaction Termination::unSignedTransaction() const {
-
-    // Build refund transaction
-    Coin::Transaction tx;
-
-    // Add payor refund output
-    tx.addOutput(_toPayor.txOut());
-
-    // Add (unsigned) input spending contract output
-    tx.addInput(Coin::TxIn(_contractOutPoint.getClassicOutPoint(), uchar_vector(), DEFAULT_SEQUENCE_NUMBER));
-
-    return tx;
-}
-
-uchar_vector Termination::sighash(Coin::SigHashType type) const {
-
-    return Coin::sighash(unSignedTransaction(),
-                   0,
-                   _commitment.redeemScript().serialized(),
-                   type);
-}
-
-Coin::TransactionSignature Termination::transactionSignature(const Coin::PrivateKey & sk) const {
-
-    //return sk.sign(unSignedTransaction(), 0, _commitment.redeemScript().serialize(), Coin::SigHashType::standard());
-
-    Coin::SigHashType type = Coin::SigHashType::standard();
-
-    uchar_vector hash = sighash(type);
-
-    return Coin::TransactionSignature(sk.sign(hash), type);
-}
-
-Coin::Transaction Termination::signedTransaction(const Coin::TransactionSignature & payorTransactionSignature,
-                                                 const Coin::TransactionSignature & payeeTransactionSignature) const {
-
-    // Verify that both have appropriate sighash type
-    if(!payorTransactionSignature.type().isStandard())
-        throw std::runtime_error("First signature was not of type SIGHASH_ALL type");
-    else if(!payeeTransactionSignature.type().isStandard())
-        throw std::runtime_error("Second signature was not of type SIGHASH_ALL type");
-
-    // Create (unsigned) transaction
-    Coin::Transaction tx = unSignedTransaction();
-
-    // Create input script with signature
-    Coin::P2SHScriptSig scriptSig(std::vector<Coin::TransactionSignature>({payorTransactionSignature,
-                                                                           payeeTransactionSignature}),
-                                  _commitment.redeemScript().serialized());
-
-    tx.inputs[0].scriptSig = scriptSig.serialized();
-
-    return tx;
-}
-
-bool Termination::validate(const Coin::PublicKey & pk, const Coin::Signature & sig) const {
-
-    // Compute sighash for unsigned refund
-    uchar_vector h = sighash(Coin::SigHashType::standard());
-
-    // Check if signature is valid
-    return pk.verify(h, sig);
-}
-
-bool Termination::validatePayorSignature(const Coin::Signature & sig) const {
-    return validate(_commitment.firstPk(), sig);
-}
-
-bool Termination::validatePayeeSignature(const Coin::Signature & sig) const {
-    return validate(_commitment.secondPk(), sig);
 }

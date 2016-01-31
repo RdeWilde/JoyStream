@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 14 2015
  */
 
-#ifndef PAYMENTCHANNEL_CONTRACT_HPP
-#define PAYMENTCHANNEL_CONTRACT_HPP
+#ifndef PAYMENT_CHANNEL_CONTRACT_HPP
+#define PAYMENT_CHANNEL_CONTRACT_HPP
 
 #include <common/UnspentP2PKHOutput.hpp>
 #include <common/Payment.hpp>
@@ -18,35 +18,42 @@ namespace Coin {
     class Transaction;
 }
 
-class Contract {
 
-public:
+namespace joystream {
+namespace paymentchannel {
 
-    // Constructor
-    Contract(const Coin::UnspentP2PKHOutput & funding,
-             const std::vector<Commitment> & commitments,
-             const Coin::Payment & change);
+    class Contract {
 
-    // Validate a raw contract
-    //static bool validateContractTrasaction(const Coin::Transaction & transaction);
+    public:
 
-    // Adds commitment, and returns number of commitments in total after adding
-    uint addCommitments(const Commitment & commitment);
+        // Constructor
+        Contract(const Coin::UnspentP2PKHOutput & funding,
+                 const std::vector<Commitment> & commitments,
+                 const Coin::Payment & change);
 
-    // The transaction corresponding to the contract
-    Coin::Transaction transaction() const;
+        // Validate a raw contract
+        //static bool validateContractTrasaction(const Coin::Transaction & transaction);
 
-private:
+        // Adds commitment, and returns number of commitments in total after adding
+        uint addCommitments(const Commitment & commitment);
 
-    // Funding contract
-    Coin::UnspentP2PKHOutput _funding;
+        // The transaction corresponding to the contract
+        Coin::Transaction transaction() const;
 
-    // Commitments for end to end channels
-    std::vector<Commitment> _commitments;
+    private:
 
-    // Change in contract back to payor
-    Coin::Payment _change;
-};
+        // Funding contract
+        Coin::UnspentP2PKHOutput _funding;
 
-#endif // PAYMENTCHANNEL_CONTRACT_HPP
+        // Commitments for end to end channels
+        std::vector<Commitment> _commitments;
+
+        // Change in contract back to payor
+        Coin::Payment _change;
+    };
+
+}
+}
+
+#endif // PAYMENT_CHANNEL_CONTRACT_HPP
 

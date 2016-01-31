@@ -92,9 +92,6 @@ namespace extension {
         //virtual void load_state(const libtorrent::bdecode_node & state);
         virtual void load_state(libtorrent::lazy_entry const & stateEntry);
 
-        // Return status of plugin
-        Status status() const;
-
         /**
          * LOL ALL OFF THESE ARE FLAWED, OF COURSE
          * IT THE VALUES HAVE TO ACCUMULATE FROM START,

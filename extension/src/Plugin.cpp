@@ -122,12 +122,6 @@ namespace extension {
 
     }
 
-    Plugin::Status Plugin::status() const {
-        return Plugin::Status(_totalReceivedSinceStart,
-                              _totalSentSinceStart,
-                              _totalCurrentlyLockedInChannels);
-    }
-
     /**
     quint64 Plugin::totalReceivedSinceStart() const {
 

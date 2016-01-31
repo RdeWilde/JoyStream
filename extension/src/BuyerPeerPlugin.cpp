@@ -111,30 +111,36 @@ namespace extension {
     void BuyerPeerPlugin::setClientState(ClientState clientState) {
         _clientState = clientState;
     }
+}
+}
 
 
-    /**
-     * BuyerPeerPlugin
-     */
+/**
+ * BuyerPeerPlugin
+ */
 
-    #include <extension/BuyerTorrentPlugin.hpp>
-    #include <extension/PluginMode.hpp>
+#include <extension/BuyerTorrentPlugin.hpp>
+#include <extension/PluginMode.hpp>
 
-    #include <protocol/Message/Observe.hpp>
-    #include <protocol/Message/Buy.hpp>
-    #include <protocol/Message/Sell.hpp>
-    #include <protocol/Message/JoinContract.hpp>
-    #include <protocol/Message/JoiningContract.hpp>
-    #include <protocol/Message/SignRefund.hpp>
-    #include <protocol/Message/RefundSigned.hpp>
-    #include <protocol/Message/Ready.hpp>
-    #include <protocol/Message/RequestFullPiece.hpp>
-    #include <protocol/Message/FullPiece.hpp>
-    #include <protocol/Message/Payment.hpp>
+#include <protocol/Observe.hpp>
+#include <protocol/Buy.hpp>
+#include <protocol/Sell.hpp>
+#include <protocol/JoinContract.hpp>
+#include <protocol/JoiningContract.hpp>
+#include <protocol/SignRefund.hpp>
+#include <protocol/RefundSigned.hpp>
+#include <protocol/Ready.hpp>
+#include <protocol/RequestFullPiece.hpp>
+#include <protocol/FullPiece.hpp>
+#include <protocol/Payment.hpp>
 
-    #include <libtorrent/bt_peer_connection.hpp>
+#include <libtorrent/bt_peer_connection.hpp>
 
-    #include <QLoggingCategory>
+#include <QLoggingCategory>
+
+
+namespace joystream {
+namespace extension {
 
     BuyerPeerPlugin::BuyerPeerPlugin(BuyerTorrentPlugin * plugin,
                                      libtorrent::bt_peer_connection * connection,

@@ -7,11 +7,8 @@
 
 #include <extension/PeerPlugin.hpp>
 #include <extension/TorrentPlugin.hpp>
-#include <extension/Plugin.hpp>
-#include <extension/Message/MessageType.hpp>
-#include <extension/Message/ExtendedMessagePayload.hpp>
-#include <extension/Message/ExtendedMessageTools.hpp>
-
+#include <protocol/MessageType.hpp>
+#include <protocol/ExtendedMessagePayload.hpp> // remove later
 #include <libtorrent/bt_peer_connection.hpp> // bt_peer_connection, bt_peer_connection::msg_extended
 #include <libtorrent/socket_io.hpp>
 #include <libtorrent/peer_info.hpp>
@@ -24,10 +21,12 @@ namespace extension {
 
     PeerPlugin::PeerPlugin(TorrentPlugin * plugin,
                            libtorrent::bt_peer_connection * connection,
+                           const std::string & bep10ClientIdentifier,
                            bool scheduledForDeletingInNextTorrentPluginTick,
                            QLoggingCategory & category)
         : _plugin(plugin)
         , _connection(connection)
+        , _bep10ClientIdentifier(bep10ClientIdentifier)
         , _endPoint(connection->remote())
         , _peerModeAnnounced(PeerModeAnnounced::none)
         , _lastReceivedMessageWasMalformed(false)
@@ -57,15 +56,11 @@ namespace extension {
           * 2) has key m which maps to a dictionary entry
           */
 
-        // Add top level key for extesion version information
-        handshake[CORE_EXTENSION_NAME] = 1; // write version, which is 1 for now
+        // Add top level key for extension version information
+        handshake[PLUGIN_NAME] = PLUGIN_VERSION;
 
-        // Add top level key for client identification
-        QString clientIdentifier = QString::number(CORE_VERSION_MAJOR)
-                                    + QString(".")
-                                    + QString::number(CORE_VERSION_MINOR);
-
-        handshake["v"] = clientIdentifier.toStdString();
+        // Add top lvel key for client name and version
+        handshake["v"] = _bep10ClientIdentifier;
 
         // Add m keys for extended message ids
         libtorrent::entry::dictionary_type & m = handshake["m"].dict();
@@ -208,7 +203,7 @@ namespace extension {
         }
 
         // Check if plugin key is there
-        int version = handshake.dict_find_int_value(CORE_EXTENSION_NAME,-1);
+        int version = handshake.dict_find_int_value(PLUGIN_NAME,-1);
 
         if(version == -1) {
 
@@ -374,7 +369,7 @@ namespace extension {
         }
 
         // Is it a BitSwapr BEP message?
-        MessageType messageType;
+        joystream::protocol::MessageType messageType;
 
         try {
             messageType = _peerMapping.messageType(msg);
@@ -407,7 +402,7 @@ namespace extension {
 
         // Parse message
         qint64 preReadPosition = stream.device()->pos();
-        ExtendedMessagePayload * m = ExtendedMessagePayload::fromRaw(messageType, stream, lengthOfExtendedMessagePayload);
+        joystream::protocol::ExtendedMessagePayload * m = joystream::protocol::ExtendedMessagePayload::fromRaw(messageType, stream, lengthOfExtendedMessagePayload);
         qint64 postReadPosition = stream.device()->pos();
 
         qint64 totalReadLength = postReadPosition - preReadPosition;
@@ -423,7 +418,7 @@ namespace extension {
               << ", however full valid message was parsed to be of length "
               << totalReadLength << "bytes"
               << " and of type "
-              << MessageTypeToString(m->messageType());
+              << joystream::protocol::MessageTypeToString(m->messageType());
 
             throw std::runtime_error(s.str());
         }
@@ -460,7 +455,7 @@ namespace extension {
     }
     */
 
-    void PeerPlugin::sendExtendedMessage(const ExtendedMessagePayload & extendedMessagePayload) {
+    void PeerPlugin::sendExtendedMessage(const joystream::protocol::ExtendedMessagePayload & extendedMessagePayload) {
 
         // Get length of
         quint32 extendedMessagePayloadLength = extendedMessagePayload.length();
@@ -503,7 +498,7 @@ namespace extension {
 
         Q_ASSERT(written == extendedMessagePayloadLength);
 
-        qCDebug(_category) << "SENT:" << ExtendedMessageTools::messageName(extendedMessagePayload.messageType()) << " = " << written << "bytes";
+        qCDebug(_category) << "SENT:" << joystream::protocol::messageName(extendedMessagePayload.messageType()) << " = " << written << "bytes";
 
         // If message was written properly buffer, then send buffer to peer
         if(stream.status() != QDataStream::Status::Ok)
@@ -526,53 +521,53 @@ namespace extension {
         }
     }
 
-    void PeerPlugin::processExtendedMessage(ExtendedMessagePayload * m) {
+    void PeerPlugin::processExtendedMessage(joystream::protocol::ExtendedMessagePayload * m) {
 
         // Get message type
-        MessageType messageType = m->messageType();
+        joystream::protocol::MessageType messageType = m->messageType();
 
-        qCDebug(_category) << "RECEIVED:" << ExtendedMessageTools::messageName(messageType);
+        qCDebug(_category) << "RECEIVED:" << joystream::protocol::messageName(messageType);
 
         //try {
 
             // Call relevant message handler
             switch(messageType) {
 
-                case MessageType::observe:
-                    processObserve(reinterpret_cast<Observe *>(m));
+                case joystream::protocol::MessageType::observe:
+                    processObserve(reinterpret_cast<joystream::protocol::Observe *>(m));
                     break;
-                case MessageType::buy:
-                    processBuy(reinterpret_cast<Buy *>(m));
+                case joystream::protocol::MessageType::buy:
+                    processBuy(reinterpret_cast<joystream::protocol::Buy *>(m));
                     break;
-                case MessageType::sell:
-                    processSell(reinterpret_cast<Sell *>(m));
+                case joystream::protocol::MessageType::sell:
+                    processSell(reinterpret_cast<joystream::protocol::Sell *>(m));
                     break;
-                case MessageType::join_contract:
-                    processJoinContract(reinterpret_cast<JoinContract *>(m));
+                case joystream::protocol::MessageType::join_contract:
+                    processJoinContract(reinterpret_cast<joystream::protocol::JoinContract *>(m));
                     break;
-                case MessageType::joining_contract:
-                    processJoiningContract(reinterpret_cast<JoiningContract *>(m));
+                case joystream::protocol::MessageType::joining_contract:
+                    processJoiningContract(reinterpret_cast<joystream::protocol::JoiningContract *>(m));
                     break;
-                case MessageType::sign_refund:
-                    processSignRefund(reinterpret_cast<SignRefund *>(m));
+                case joystream::protocol::MessageType::sign_refund:
+                    processSignRefund(reinterpret_cast<joystream::protocol::SignRefund *>(m));
                     break;
-                case MessageType::refund_signed:
-                    processRefundSigned(reinterpret_cast<RefundSigned *>(m));
+                case joystream::protocol::MessageType::refund_signed:
+                    processRefundSigned(reinterpret_cast<joystream::protocol::RefundSigned *>(m));
                     break;
-                case MessageType::ready:
-                    processReady(reinterpret_cast<Ready *>(m));
-                    break;
-
-                case MessageType::request_full_piece:
-                    processRequestFullPiece(reinterpret_cast<RequestFullPiece *>(m));
+                case joystream::protocol::MessageType::ready:
+                    processReady(reinterpret_cast<joystream::protocol::Ready *>(m));
                     break;
 
-                case MessageType::full_piece:
-                    processFullPiece(reinterpret_cast<FullPiece *>(m));
+                case joystream::protocol::MessageType::request_full_piece:
+                    processRequestFullPiece(reinterpret_cast<joystream::protocol::RequestFullPiece *>(m));
                     break;
 
-                case MessageType::payment:
-                    processPayment(reinterpret_cast<Payment *>(m));
+                case joystream::protocol::MessageType::full_piece:
+                    processFullPiece(reinterpret_cast<joystream::protocol::FullPiece *>(m));
+                    break;
+
+                case joystream::protocol::MessageType::payment:
+                    processPayment(reinterpret_cast<joystream::protocol::Payment *>(m));
                     break;
 
                 default:
@@ -620,7 +615,7 @@ namespace extension {
         return _lastReceivedMessageWasMalformed;
     }
 
-    PeerPlugin::PeerModeAnnounced PeerPlugin::peerModeAnnounced() const {
+    PeerModeAnnounced PeerPlugin::peerModeAnnounced() const {
         return _peerModeAnnounced;
     }
 

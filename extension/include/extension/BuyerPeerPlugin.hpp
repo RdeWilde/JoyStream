@@ -15,10 +15,11 @@
 #include <common/PublicKey.hpp>
 
 // potentially remove later?
-#include <protocol/Message/Sell.hpp>
-#include <protocol/Message/JoiningContract.hpp>
+#include <protocol/Sell.hpp>
+#include <protocol/JoiningContract.hpp>
 
-//#include "Utilities.hpp" // uint qHash(const libtorrent::peer_request & request);
+// QSet: uint qHash(const libtorrent::peer_request & request);
+//#include "Utilities.hpp"
 
 #include <QSet>
 
@@ -188,8 +189,6 @@ namespace extension {
         //quint32 refillPipeline();
 
         void close_connection();
-
-        Status status() const;
 
         // Getters and setters
         PeerState peerState() const;

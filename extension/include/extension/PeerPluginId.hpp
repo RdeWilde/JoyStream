@@ -8,9 +8,8 @@
 #ifndef EXTENSION_PEERPLUGIN_ID_HPP
 #define EXTENSION_PEERPLUGIN_ID_HPP
 
-//#include <libtorrent/peer.hpp> // sha1_hash
 #include <libtorrent/sha1_hash.hpp>
-#include <libtorrent/socket.hpp> // libtorrent::tcp::endpoint
+#include <libtorrent/socket.hpp>
 
 namespace joystream {
 namespace extension {

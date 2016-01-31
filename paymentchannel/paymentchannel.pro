@@ -21,7 +21,13 @@ HEADERS += \
     include/paymentchannel/Payor.hpp \
     include/paymentchannel/Refund.hpp \
     include/paymentchannel/Settlement.hpp \
-    include/paymentchannel/Termination.hpp
+    include/paymentchannel/Termination.hpp \
+    include/paymentchannel/PayeeConfiguration.hpp \
+    include/paymentchannel/PayorConfiguration.hpp \
+    include/paymentchannel/ChannelConfiguration.hpp \
+    include/paymentchannel/PayorState.hpp \
+    include/paymentchannel/ChannelState.hpp \
+    include/paymentchannel/PayeeState.hpp
 
 SOURCES += \
     src/Commitment.cpp \
@@ -30,7 +36,10 @@ SOURCES += \
     src/Payor.cpp \
     src/Refund.cpp \
     src/Settlement.cpp \
-    src/Termination.cpp
+    src/Termination.cpp \
+    src/PayeeConfiguration.cpp \
+    src/PayorConfiguration.cpp \
+    src/ChannelConfiguration.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

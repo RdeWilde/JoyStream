@@ -57,7 +57,8 @@ CONFIG(release, debug|release) {
 }
 
 # mSIGNA
-#INCLUDEPATH += $$MSIGNA_SYSROOT/include
+# Added for the benefit of QtCreator only, next lone does the same thing
+INCLUDEPATH += $$MSIGNA_SYSROOT/include
 QMAKE_CXXFLAGS += -isystem $$MSIGNA_SYSROOT/include
 LIBS += -L$$MSIGNA_SYSROOT/lib -lCoinCore
 
