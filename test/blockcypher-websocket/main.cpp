@@ -24,17 +24,17 @@ int main(int argc, char *argv[])
     });
 
     QObject::connect(&client, &BlockCypher::WebSocketClient::error, [](QAbstractSocket::SocketError e){
-        std::cout << "WEB SOCKET ERROR: " << e;
+        std::cout << "WEB SOCKET ERROR: " << e << std::endl;
     });
 
 
     QObject::connect(&client, &BlockCypher::WebSocketClient::parseError, [](QString e){
-        std::cout << "ERROR: " << e.toStdString();
+        std::cout << "ERROR: " << e.toStdString() << std::endl;
     });
 
     client.addEvent(BlockCypher::Event(BlockCypher::Event::Type::unconfirmed_tx));
 
-    std::cout << "connecting...";
+    std::cout << "connecting...\n";
 
     client.connect();
 

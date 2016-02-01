@@ -26,7 +26,7 @@ namespace Coin {
 
 namespace BlockCypher {
 
-    struct TX {
+    class TX {
 
         public:
 

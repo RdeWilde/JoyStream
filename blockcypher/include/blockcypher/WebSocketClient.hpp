@@ -43,7 +43,7 @@ namespace BlockCypher {
 
     public:
 
-        WebSocketClient(Coin::Network network);
+        WebSocketClient(Coin::Network network, QString token = "");
 
         // Endpoint for given network
         static const char * endPoint(Coin::Network network);
@@ -98,7 +98,7 @@ namespace BlockCypher {
 
         // Sends event to server.
         // Should only be called when we are connected.
-        void sendEvent(const Event & e);
+        void sendEvent(const QJsonObject &obj);
 
         // WebSocket used for communicating
         QWebSocket _webSocket;
@@ -118,6 +118,9 @@ namespace BlockCypher {
         // even before connection has been started,
         // and list is always sent on (re)connect.
         QList<Event> _addedEvents;
+
+        //optinal token to send with event requests
+        QString _apiToken;
     };
 
 }

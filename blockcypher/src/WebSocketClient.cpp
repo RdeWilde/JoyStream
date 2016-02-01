@@ -18,8 +18,8 @@
 
 namespace BlockCypher {
 
-    WebSocketClient::WebSocketClient(Coin::Network network)
-        : webSocketEndpoint(endPoint(network)) {
+    WebSocketClient::WebSocketClient(Coin::Network network, QString token)
+        : webSocketEndpoint(endPoint(network)), _apiToken(token) {
 
         // Capture signals and use a
         QObject::connect(&_pingTimer, &QTimer::timeout, [this](){ sendPing(); });
@@ -64,15 +64,17 @@ namespace BlockCypher {
         if(e.type() == Event::Type::new_block)
             throw std::runtime_error("Unsupported event type.");
 
+        // Add token to event
+        if(!_apiToken.isNull()) {
+            e["token"] = _apiToken;
+        }
+
         // Add to list of events
         _addedEvents.append(e);
 
         // Try to send event if connected
         if(isConnected()) {
-
-            QJsonValue json(e.toJson());
-
-            _webSocket.sendTextMessage(json.toString());
+            sendEvent(e);
         }
     }
 
@@ -100,7 +102,7 @@ namespace BlockCypher {
     }
 
     void WebSocketClient::webSocketTextMessageArrived(QString msg) {
-
+        std::cerr << "RECEIVED: " << msg.toStdString() << std::endl;
         // Turn into JSON
         QJsonParseError parse_error;
         QJsonDocument doc = QJsonDocument::fromJson(msg.toLatin1(), &parse_error);
@@ -117,6 +119,10 @@ namespace BlockCypher {
 
         // if we don't support it, then ignore it
         if(eventType == Event::Type::new_block) {
+            return;
+        }
+
+        if(eventType == Event::Type::pong) {
             return;
         }
 
@@ -147,15 +153,17 @@ namespace BlockCypher {
 
     }
 
-    void WebSocketClient::sendEvent(const Event & e) {
+    void WebSocketClient::sendEvent(const QJsonObject & obj) {
 
         // This private routine should never be called if
         // we are not connected
         Q_ASSERT(isConnected());
 
-        // Send JSON version of event
-        QByteArray json = (QJsonDocument(e.toJson())).toJson();
-        _webSocket.sendTextMessage(QString(json));
+        // serialise event to JSON string and send it
+        QByteArray json = QJsonDocument(obj).toJson();
+        QString txt(json);
+        std::cerr << "SENDING: " << txt.toStdString() << std::endl;
+        _webSocket.sendTextMessage(txt);
     }
 
 }
