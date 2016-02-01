@@ -10,6 +10,7 @@
 
 #include <common/Network.hpp>
 
+#include <QDebug>
 #include <QObject>
 #include <QAbstractSocket>
 #include <QJsonObject>
@@ -58,15 +59,17 @@ namespace BlockCypher {
         _webSocket.close();
     }
 
-    void WebSocketClient::addEvent(const Event & e) {
+    void WebSocketClient::addEvent(Event & e) {
 
         // Check that we support this event type
         if(e.type() == Event::Type::new_block)
             throw std::runtime_error("Unsupported event type.");
 
         // Add token to event
-        if(!_apiToken.isNull()) {
-            e["token"] = _apiToken;
+        if(_apiToken != "") {
+            if(e["token"].isUndefined()) {
+                e["token"] = _apiToken;
+            }
         }
 
         // Add to list of events
@@ -84,7 +87,7 @@ namespace BlockCypher {
 
     void WebSocketClient::webSocketConnected() {
         // Send all events
-        foreach( const Event & e, _addedEvents)
+        foreach(const Event & e, _addedEvents)
             sendEvent(e);
 
         emit connected();
@@ -102,43 +105,50 @@ namespace BlockCypher {
     }
 
     void WebSocketClient::webSocketTextMessageArrived(QString msg) {
-        std::cerr << "RECEIVED: " << msg.toStdString() << std::endl;
+
         // Turn into JSON
         QJsonParseError parse_error;
         QJsonDocument doc = QJsonDocument::fromJson(msg.toLatin1(), &parse_error);
 
+        // we should always check that we have a valid json response.
+        // blockcypher also seems to send an invalid json response of the form:
+        // {"error": Missing address for confidence filter.}  //(note missing quotes around the value)
+        // not sure if this is by design or an error.
         if(parse_error.error != QJsonParseError::NoError || !doc.isObject()) {
             emit parseError(parse_error.errorString());
             return;
         }
 
-        QJsonObject JSON = doc.object();
+        QJsonObject obj = doc.object();
 
-        // Deduce what event type it corresponds to
-        Event::Type eventType = Event::getPayloadType(JSON);
-
-        // if we don't support it, then ignore it
-        if(eventType == Event::Type::new_block) {
+        if(obj.contains("error")) {
+            emit apiError(obj.value("error").toString());
             return;
         }
 
-        if(eventType == Event::Type::pong) {
-            return;
+        // ping response
+        if(obj.contains("event")){
+           if(obj.value("event").toString() == "pong") return;
+           return;
         }
+
+        // Block has 'height', 'depth', and 'chain' properties (TX doesn't)
+        // if any of these properties is in the response then it must be a Block
+        if(obj.contains("height")) return;
 
         // Should we do super slow ASSERTS: we have installed event with same type
 
         TX tx;
         try{
             // Turn into TX object
-            tx = TX(JSON);
+            tx = TX(obj);
         } catch (std::runtime_error & e) {
-            emit parseError(e.what());
+            emit parseError(QString("Parsing TX: ") + QString(e.what()));
             return;
         }
 
         // Emit signal
-        emit txArrived(tx, eventType);
+        emit txArrived(tx);
     }
 
     void WebSocketClient::sendPing(void) {
@@ -162,7 +172,6 @@ namespace BlockCypher {
         // serialise event to JSON string and send it
         QByteArray json = QJsonDocument(obj).toJson();
         QString txt(json);
-        std::cerr << "SENDING: " << txt.toStdString() << std::endl;
         _webSocket.sendTextMessage(txt);
     }
 

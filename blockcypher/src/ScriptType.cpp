@@ -21,7 +21,7 @@ namespace BlockCypher {
             return ScriptType::pay_to_multi_pubkey_hash;
         else if(s == "pay-to-pubkey")
             return ScriptType::pay_to_pubkey;
-        else if(s == "null_data")
+        else if(s == "null-data")
             return ScriptType::null_data;
         else
             Q_ASSERT(false);

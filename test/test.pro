@@ -14,5 +14,3 @@ SUBDIRS     = \
             blockcypher \ 
             mixpanel \
             blockcypher-websocket
-
-

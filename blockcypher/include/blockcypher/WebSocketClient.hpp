@@ -49,7 +49,7 @@ namespace BlockCypher {
         static const char * endPoint(Coin::Network network);
 
         // Add event filter
-        void addEvent(const Event & e);
+        void addEvent(Event & e);
 
         // Connect to server
         void connect();
@@ -74,8 +74,11 @@ namespace BlockCypher {
         // JSON parsing error
         void parseError(const QString & err);
 
-        // TX payload arrived correponding to the given event type filter
-        void txArrived(const TX & tx, Event::Type type);
+        // API error
+        void apiError(const QString & err);
+
+        // TX payload arrived
+        void txArrived(const TX & tx);
 
         // void blockArrived(const Block & block);
 

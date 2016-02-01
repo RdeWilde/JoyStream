@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     BlockCypher::WebSocketClient client(Coin::Network::mainnet);
 
     QObject::connect(&client, &BlockCypher::WebSocketClient::txArrived,
-                     [](const BlockCypher::TX & tx, BlockCypher::Event::Type type){
+                     [](const BlockCypher::TX & tx){
 
         std::cout << tx.toTransaction().toString() << std::endl;
     });
@@ -29,10 +29,16 @@ int main(int argc, char *argv[])
 
 
     QObject::connect(&client, &BlockCypher::WebSocketClient::parseError, [](QString e){
-        std::cout << "ERROR: " << e.toStdString() << std::endl;
+        std::cout << "PARSE ERROR: " << e.toStdString() << std::endl;
     });
 
-    client.addEvent(BlockCypher::Event(BlockCypher::Event::Type::unconfirmed_tx));
+    QObject::connect(&client, &BlockCypher::WebSocketClient::apiError, [](QString e){
+        std::cout << "API ERROR: " << e.toStdString() << std::endl;
+    });
+
+    BlockCypher::Event ev(BlockCypher::Event::Type::unconfirmed_tx);
+
+    client.addEvent(ev);
 
     std::cout << "connecting...\n";
 

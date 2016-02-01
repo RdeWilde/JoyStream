@@ -15,6 +15,10 @@
 
 #include <blockcypher/ScriptType.hpp>
 
+namespace Coin {
+    class TransactionId;
+}
+
 namespace BlockCypher {
 
 
@@ -28,36 +32,31 @@ public:
 
     // event types.
     enum class Type {
+        //we can optinally filter by hash, address or script type
         unconfirmed_tx,
         new_block,
         confirmed_tx,
-        tx_confirmation,
         double_spend_tx,
-        tx_confidence,
+
+        //require hash or address
+        tx_confirmation, //address or transaction hash
+        tx_confidence, //requires address
+
         pong //we only receive pong events, we should not send them
     };
-
-    // Determine event Type from payload
-    static Type getPayloadType(const QJsonObject & o);
 
     // Convernt between enum Type and string representation
     static Event::Type stringToType(const QString &s);
     static const char * typeToString(Event::Type type);
 
-    // default constructor sets event type to confirmed_tx
     Event();
 
     // double_spend_tx, confirmed_tx, unconfirmed_tx, new_block,
-    // tx_confidence (with default confidence level 0.99)
-    // tx_confirmation (with default confirmations = 2)
     Event (Event::Type type);
 
-    // tx_confidence
-    Event (Event::Type type, const float & confidence);
-
-    // tx_confirmation
-    Event(Event::Type type, const int & confirmations);
-
+    static Event makeTxConfirmation(int confirmations, Coin::TransactionId txid);
+    static Event makeTxConfirmation(int confirmations, QString address);
+    static Event makeTxConfidence(double confidence, QString address);
 
     // add optional keys with setters
 
@@ -76,6 +75,8 @@ public:
     // return event type
     Event::Type type() const;
 
+private:
+    static Event makeTxConfirmation(int confirmations);
 };
 
 }

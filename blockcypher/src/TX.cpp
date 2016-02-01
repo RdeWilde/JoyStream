@@ -169,7 +169,7 @@ namespace BlockCypher {
             tx.addOutput(output.toOutput());
         }
 
-        Q_ASSERT(_hash.toStdString() == tx.hash().getHex());
+        //Q_ASSERT(_hash.toStdString() == tx.hash().getHex());
         return tx;
     }
 }
