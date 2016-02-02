@@ -234,7 +234,7 @@ private:
     friend class odb::access;
 
     #pragma db id
-    std::string txid_; //rpc byte order
+    std::string txid_; //reverse byte order
     #pragma db readonly
     uint32_t version_;
     #pragma db readonly
