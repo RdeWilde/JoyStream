@@ -9,40 +9,41 @@
 #define JOYSTREAM_CORE_CONFIGURATION_TORRENT_HPP
 
 #include <libtorrent/sha1_hash.hpp>
+#include <libtorrent/entry.hpp> // libtorrent::entry::dictionary_type
+#include <libtorrent/torrent_info.hpp>
+#include <boost/intrusive_ptr.hpp>
+
+namespace libtorrent {
+    struct TORRENT_EXPORT add_torrent_params;
+}
 
 namespace joystream {
 namespace core {
-namespace configuration {
 
-    /**
-     * @brief Persistant state of Torrent.
-     */
-    class Torrent {
+    class TorrentConfiguration {
 
     public:
 
         // Default constructor
-        Torrent();
+        TorrentConfiguration();
 
         // Constructor from members
-        Torrent(const libtorrent::sha1_hash & infoHash,
+        TorrentConfiguration(const libtorrent::sha1_hash & infoHash,
                      const std::string & name,
                      const std::string & savePath,
                      const std::vector<char> & resumeData,
-                     quint64 flags,
-                     //const libtorrent::torrent_info & torrentInfo
+                     boost::uint64_t flags,
                      const boost::intrusive_ptr<libtorrent::torrent_info> & torrentFile,
                      const std::string url);
-                     //const TorrentPlugin::Configuration * torrentPluginConfiguration);
 
         // Constructor from dictionary
-        Torrent(const libtorrent::entry::dictionary_type & dictionaryEntry);
+        TorrentConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry);
 
         // Destructors
-        ~Torrent();
+        ~TorrentConfiguration();
 
-        static Torrent fromTorrentFile(const QString & resource);
-        static Torrent fromMagnetLink(const QString & resource);
+        static TorrentConfiguration fromTorrentFile(const std::string & file);
+        static TorrentConfiguration fromMagnetLink(const std::string & magnetLink);
 
         /**
          * Write state into dictionary
@@ -80,8 +81,8 @@ namespace configuration {
         //libtorrent::torrent_info torrentInfo() const;
         //void setTorrentInfo(const libtorrent::torrent_info & torrentInfo);
 
-        quint64 flags() const;
-        void setFlags(quint64 flags);
+        boost::uint64_t flags() const;
+        void setFlags(boost::uint64_t flags);
 
         std::vector<char> resumeData() const;
         void setResumeData(const std::vector<char> & resumeData);
@@ -110,7 +111,7 @@ namespace configuration {
         std::vector<char> _resumeData;
 
         // Flags
-        quint64 _flags;
+        boost::uint64_t _flags;
 
         // Magnet Link Uri
         std::string _magnetLink;
@@ -128,7 +129,6 @@ namespace configuration {
         //const TorrentPlugin::Configuration * _torrentPluginConfiguration;
     };
 
-}
 }
 }
 

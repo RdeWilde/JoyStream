@@ -7,118 +7,6 @@
 
 #include <extension/BuyerPeerPlugin.hpp>
 
-namespace joystream {
-namespace extension {
-
-    /**
-     * BuyerPeerPlugin::PeerState
-     */
-
-    BuyerPeerPlugin::PeerState::PeerState()
-        : //_lastAction(LastValidAction::no_bitswapr_message_sent)
-         _failureMode(FailureMode::not_failed) {
-    }
-
-    BuyerPeerPlugin::PeerState::PeerState(//LastValidAction lastAction,
-                                            FailureMode failureMode,
-                                            const Sell & lastSellReceived,
-                                            const JoiningContract & lastJoiningContractReceived)
-        : //_lastAction(lastAction)
-          _failureMode(failureMode)
-        , _lastSellReceived(lastSellReceived)
-        , _lastJoiningContractReceived(lastJoiningContractReceived) {
-    }
-
-    /*
-    BuyerPeerPlugin::PeerState::LastValidAction BuyerPeerPlugin::PeerState::lastAction() const {
-        return _lastAction;
-    }
-
-    void BuyerPeerPlugin::PeerState::setLastAction(LastValidAction lastAction) {
-        _lastAction = lastAction;
-    }
-    */
-
-    BuyerPeerPlugin::PeerState::FailureMode BuyerPeerPlugin::PeerState::failureMode() const {
-        return _failureMode;
-    }
-
-    void BuyerPeerPlugin::PeerState::setFailureMode(FailureMode failureMode) {
-        _failureMode = failureMode;
-    }
-
-    JoiningContract BuyerPeerPlugin::PeerState::lastJoiningContractReceived() const {
-        return _lastJoiningContractReceived;
-    }
-
-    void BuyerPeerPlugin::PeerState::setLastJoiningContractReceived(const JoiningContract &lastJoiningContractReceived) {
-        _lastJoiningContractReceived = lastJoiningContractReceived;
-    }
-    /**
-    quint64 BuyerPeerPlugin::PeerState::minPrice() const {
-        return _minPrice;
-    }
-
-    void BuyerPeerPlugin::PeerState::setMinPrice(quint64 minPrice) {
-        _minPrice = minPrice;
-    }
-
-    PublicKey BuyerPeerPlugin::PeerState::contractPk() const {
-        return _contractPk;
-    }
-
-    void BuyerPeerPlugin::PeerState::setContractPk(const PublicKey & contractPk) {
-        _contractPk = contractPk;
-    }
-
-    PublicKey BuyerPeerPlugin::PeerState::finalPk() const {
-        return _finalPk;
-    }
-
-    void BuyerPeerPlugin::PeerState::setFinalPk(const PublicKey & finalPk) {
-        _finalPk = finalPk;
-    }
-
-    quint32 BuyerPeerPlugin::PeerState::minLock() const {
-        return _minLock;
-    }
-
-    void BuyerPeerPlugin::PeerState::setMinLock(quint32 minLock) {
-        _minLock = minLock;
-    }
-    */
-
-    Sell BuyerPeerPlugin::PeerState::lastSellReceived() const {
-        return _lastSellReceived;
-    }
-
-    void BuyerPeerPlugin::PeerState::setLastSellReceived(const Sell &lastSellReceived) {
-        _lastSellReceived = lastSellReceived;
-    }
-
-    BuyerPeerPlugin::PeerState BuyerPeerPlugin::peerState() const {
-        return _peerState;
-    }
-
-    void BuyerPeerPlugin::setPeerState(const PeerState & peerState) {
-        _peerState = peerState;
-    }
-
-    BuyerPeerPlugin::ClientState BuyerPeerPlugin::clientState() const {
-        return _clientState;
-    }
-
-    void BuyerPeerPlugin::setClientState(ClientState clientState) {
-        _clientState = clientState;
-    }
-}
-}
-
-
-/**
- * BuyerPeerPlugin
- */
-
 #include <extension/BuyerTorrentPlugin.hpp>
 #include <extension/PluginMode.hpp>
 
@@ -138,24 +26,25 @@ namespace extension {
 
 #include <QLoggingCategory>
 
-
 namespace joystream {
 namespace extension {
 
     BuyerPeerPlugin::BuyerPeerPlugin(BuyerTorrentPlugin * plugin,
                                      libtorrent::bt_peer_connection * connection,
+                                     const std::string & bep10ClientIdentifier,
                                      bool scheduledForDeletingInNextTorrentPluginTick,
                                      QLoggingCategory & category)
         : PeerPlugin(plugin,
                      connection,
+                     bep10ClientIdentifier,
                      scheduledForDeletingInNextTorrentPluginTick,
                      category)
         , _plugin(plugin)
         , _peerState(//PeerState::LastValidAction::no_bitswapr_message_sent,
-                     PeerState::FailureMode::not_failed,
-                     Sell(),
-                     JoiningContract())
-        , _clientState(ClientState::no_bitswapr_message_sent)
+                     BuyerPeerPluginPeerState::FailureMode::not_failed,
+                     joystream::protocol::Sell(),
+                     joystream::protocol::JoiningContract())
+        , _clientState(BuyerPeerPluginClientState::no_bitswapr_message_sent)
         , _payorSlot(-1) // deterministic sentinel value
         , _indexOfAssignedPiece(-1) { // deterministic sentinel value
         //, _pieceSize(-1) { // deterministic sentinel value
@@ -189,7 +78,7 @@ namespace extension {
     bool BuyerPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake) {
     //bool BuyerPeerPlugin::on_extension_handshake(const libtorrent::bdecode_node & handshake) {
 
-        if(_clientState != ClientState::no_bitswapr_message_sent) {
+        if(_clientState != BuyerPeerPluginClientState::no_bitswapr_message_sent) {
             throw std::runtime_error("Extended handshake initiated at incorrect state.");
         }
 
@@ -202,11 +91,11 @@ namespace extension {
         if(keepPlugin) {
 
             // send mode message
-            sendExtendedMessage(Buy(_plugin->maxPrice(), _plugin->maxLock(), _plugin->numberOfSellers()));
+            sendExtendedMessage(joystream::protocol::Buy(_plugin->maxPrice(), _plugin->maxLock(), _plugin->numberOfSellers()));
             // _plugin->maxFeePerByte()
 
             // and update new client state correspondingly
-            _clientState = ClientState::buyer_mode_announced;
+            _clientState = BuyerPeerPluginClientState::buyer_mode_announced;
         }
 
         // Return status to libtorrent
@@ -482,7 +371,7 @@ namespace extension {
         }
     }
     */
-
+/**
     BuyerPeerPlugin::Status BuyerPeerPlugin::status() const {
 
         return Status(_peerModeAnnounced,
@@ -494,6 +383,7 @@ namespace extension {
                       _indexOfAssignedPiece,
                       _downloadedValidPieces);
     }
+*/
 
     PluginMode BuyerPeerPlugin::mode() const {
         return PluginMode::Buyer;
@@ -592,7 +482,7 @@ namespace extension {
         _downloadedValidPieces.append(index);
     }
 
-    void BuyerPeerPlugin::processObserve(const Observe * m) {
+    void BuyerPeerPlugin::processObserve(const joystream::protocol::Observe * m) {
 
         // Do processing in response to mode reset
         peerModeReset();
@@ -608,7 +498,7 @@ namespace extension {
         // We dont do anything else, since we cant buy from peer in observer mode
     }
 
-    void BuyerPeerPlugin::processBuy(const Buy * m) {
+    void BuyerPeerPlugin::processBuy(const joystream::protocol::Buy * m) {
 
         // Do processing in response to mode reset
         peerModeReset();
@@ -624,7 +514,7 @@ namespace extension {
         // We dont do anything else, since we cant buy from peer in buyer mode
     }
 
-    void BuyerPeerPlugin::processSell(const Sell * m) {
+    void BuyerPeerPlugin::processSell(const joystream::protocol::Sell * m) {
 
         // Do processing in response to mode reset
         peerModeReset();
@@ -639,9 +529,9 @@ namespace extension {
         _peerModeAnnounced = PeerModeAnnounced::seller;
 
         // Check conditions for invitation
-        if(_clientState != ClientState::buyer_mode_announced)
+        if(_clientState != BuyerPeerPluginClientState::buyer_mode_announced)
             qCDebug(_category) << "Did not invite seller, client is not in ClientState::buyer_mode_announced state.";
-        else if(_plugin->state() != BuyerTorrentPlugin::State::waiting_for_payor_to_be_ready)
+        else if(_plugin->state() != BuyerTorrentPluginState::waiting_for_payor_to_be_ready)
             qCDebug(_category) << "Did not invite seller, torrent plugin is not in BuyerTorrentPlugin::State::waiting_for_payor_to_be_ready state.";
         else if(m->minPrice() > _plugin->maxPrice())
             qCDebug(_category) << "Did not invite seller, had min. price" << m->minPrice() << ", which exceed our max price" << _plugin->maxPrice();
@@ -650,23 +540,23 @@ namespace extension {
         else {
 
             // invite to join contract
-            sendExtendedMessage(JoinContract());
+            sendExtendedMessage(joystream::protocol::JoinContract());
 
             // and remember invitation
-            _clientState = ClientState::invited_to_contract;
+            _clientState = BuyerPeerPluginClientState::invited_to_contract;
 
             qCDebug(_category) << "Invited seller";
         }
     }
 
-    void BuyerPeerPlugin::processJoinContract(const JoinContract * m) {
+    void BuyerPeerPlugin::processJoinContract(const joystream::protocol::JoinContract * m) {
         throw std::runtime_error("JoinContract message should never be sent to buyer mode peer.");
     }
 
-    void BuyerPeerPlugin::processJoiningContract(const JoiningContract * m) {
+    void BuyerPeerPlugin::processJoiningContract(const joystream::protocol::JoiningContract * m) {
 
         // Check that we are in correct stage
-        if(_clientState != ClientState::invited_to_contract)
+        if(_clientState != BuyerPeerPluginClientState::invited_to_contract)
             throw std::runtime_error("JoiningContract message should only be sent in response to a contract invitation.");
 
         // _clientState == ClientState::invited_to_contract =>
@@ -677,8 +567,8 @@ namespace extension {
         _peerState.setLastJoiningContractReceived(*m);
 
         // Tell torrent plugin about contract joining attempt
-        const Sell & sell = _peerState.lastSellReceived();
-        const JoiningContract & joinContract = _peerState.lastJoiningContractReceived();
+        const joystream::protocol::Sell & sell = _peerState.lastSellReceived();
+        const joystream::protocol::JoiningContract & joinContract = _peerState.lastJoiningContractReceived();
 
         _plugin->sellerWantsToJoinContract(this,
                                            sell.minPrice(),
@@ -687,14 +577,14 @@ namespace extension {
                                            joinContract.finalPk());
     }
 
-    void BuyerPeerPlugin::processSignRefund(const SignRefund * m) {
+    void BuyerPeerPlugin::processSignRefund(const joystream::protocol::SignRefund * m) {
         throw std::runtime_error("SignRefund message should never be sent to buyer mode peer.");
     }
 
-    void BuyerPeerPlugin::processRefundSigned(const RefundSigned * m) {
+    void BuyerPeerPlugin::processRefundSigned(const joystream::protocol::RefundSigned * m) {
 
         // Check that we are in correct stage
-        if(_clientState != ClientState::asked_for_refund_signature)
+        if(_clientState != BuyerPeerPluginClientState::asked_for_refund_signature)
             throw std::runtime_error("RefundSigned message should only be sent in response to a refund signature invitation.");
 
         // _clientState != ClientState::asked_for_refund_signature =>
@@ -722,18 +612,18 @@ namespace extension {
         }
     }
 
-    void BuyerPeerPlugin::processReady(const Ready * m) {
+    void BuyerPeerPlugin::processReady(const joystream::protocol::Ready * m) {
         throw std::runtime_error("Ready message should never be sent to buyer mode peer.");
     }
 
-    void BuyerPeerPlugin::processRequestFullPiece(const RequestFullPiece * m) {
+    void BuyerPeerPlugin::processRequestFullPiece(const joystream::protocol::RequestFullPiece * m) {
         throw std::runtime_error("RequestFullPiece message should never be sent to buyer mode peer.");
     }
 
-    void BuyerPeerPlugin::processFullPiece(const FullPiece * m) {
+    void BuyerPeerPlugin::processFullPiece(const joystream::protocol::FullPiece * m) {
 
         // Check that peer is sending a state compatible message
-        if(_clientState != ClientState::waiting_for_full_piece)
+        if(_clientState != BuyerPeerPluginClientState::waiting_for_full_piece)
             throw std::runtime_error("Peer Full Piece at incorrect stage."); // Handle properly later
 
         // _clientState == ClientState::waiting_for_requests_to_be_serviced =>
@@ -771,7 +661,7 @@ namespace extension {
         _plugin->fullPieceArrived(this, m->piece(), m->length());
     }
 
-    void BuyerPeerPlugin::processPayment(const Payment * m) {
+    void BuyerPeerPlugin::processPayment(const joystream::protocol::Payment * m) {
         throw std::runtime_error("Payment message should never be sent to buyer mode peer.");
     }
 

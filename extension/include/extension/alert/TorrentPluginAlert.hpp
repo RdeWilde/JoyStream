@@ -5,36 +5,44 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef TORRENT_PLUGIN_ALERT_HPP
-#define TORRENT_PLUGIN_ALERT_HPP
+#ifndef EXTENSION_TORRENT_PLUGIN_ALERT_HPP
+#define EXTENSION_TORRENT_PLUGIN_ALERT_HPP
 
 #include <libtorrent/alert.hpp>
 #include <libtorrent/sha1_hash.hpp>
 
-// Abstract type for all torrent plugin alerts
-class TorrentPluginAlert : public libtorrent::alert {
+namespace joystream {
+namespace extension {
+namespace alert {
 
-public:
+    // Abstract type for all torrent plugin alerts
+    class TorrentPluginAlert : public libtorrent::alert {
 
-    // Constructor from members
-    TorrentPluginAlert(const libtorrent::sha1_hash & infoHash);
+    public:
 
-    // Copy constructor
-    TorrentPluginAlert(const TorrentPluginAlert & alert);
+        // Constructor from members
+        TorrentPluginAlert(const libtorrent::sha1_hash & infoHash);
 
-    // Virtual routines from libtorrent::alert
-    virtual int type() const = 0;
-    virtual char const* what() const = 0;
-    virtual std::string message() const = 0;
-    virtual int category() const = 0;
-    virtual std::auto_ptr<alert> clone() const = 0;
+        // Copy constructor
+        TorrentPluginAlert(const TorrentPluginAlert & alert);
 
-    // Getters
-    libtorrent::sha1_hash infoHash() const;
+        // Virtual routines from libtorrent::alert
+        virtual int type() const = 0;
+        virtual char const* what() const = 0;
+        virtual std::string message() const = 0;
+        virtual int category() const = 0;
+        virtual std::auto_ptr<alert> clone() const = 0;
 
-protected:
+        // Getters
+        libtorrent::sha1_hash infoHash() const;
 
-    libtorrent::sha1_hash _infoHash;
-};
+    protected:
 
-#endif // TORRENT_PLUGIN_ALERT_HPP
+        libtorrent::sha1_hash _infoHash;
+    };
+
+}
+}
+}
+
+#endif // EXTENSION_TORRENT_PLUGIN_ALERT_HPP

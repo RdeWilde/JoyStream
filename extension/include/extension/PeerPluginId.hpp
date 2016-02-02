@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef EXTENSION_PEERPLUGIN_ID_HPP
-#define EXTENSION_PEERPLUGIN_ID_HPP
+#ifndef JOYSTEAM_EXTENSION_PEERPLUGIN_ID_HPP
+#define JOYSTEAM_EXTENSION_PEERPLUGIN_ID_HPP
 
 #include <libtorrent/sha1_hash.hpp>
 #include <libtorrent/socket.hpp>
@@ -37,4 +37,4 @@ namespace extension {
 #include <QMetaType>
 Q_DECLARE_METATYPE(joystream::extension::PeerPluginId)
 
-#endif // EXTENSION_PEERPLUGIN_ID_HPP
+#endif // JOYSTEAM_EXTENSION_PEERPLUGIN_ID_HPP

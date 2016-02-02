@@ -5,37 +5,45 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef START_SELLER_TORRENT_PLUGIN_HPP
-#define START_SELLER_TORRENT_PLUGIN_HPP
+#ifndef JOYSTREAM_EXTENSION_REQUEST_START_SELLER_TORRENT_PLUGIN_HPP
+#define JOYSTREAM_EXTENSION_REQUEST_START_SELLER_TORRENT_PLUGIN_HPP
 
-#include <core/extension/Request/PluginRequest.hpp>
-#include <core/extension/SellerTorrentPlugin.hpp>
+#include <extension/request/PluginRequest.hpp>
+#include <extension/SellerTorrentPluginConfiguration.hpp>
 #include <libtorrent/sha1_hash.hpp>
 
-class StartSellerTorrentPlugin : public PluginRequest
-{
-public:
+namespace joystream {
+namespace extension {
+namespace request {
 
-    // Constructor from members
-    StartSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration);
+    class StartSellerTorrentPlugin : public PluginRequest {
 
-    // Returns request type
-    virtual PluginRequestType getPluginRequestType() const;
+    public:
 
-    // Getters and setters
-    libtorrent::sha1_hash infoHash() const;
-    void setInfoHash(const libtorrent::sha1_hash &infoHash);
+        // Constructor from members
+        StartSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const SellerTorrentPluginConfiguration & configuration);
 
-    SellerTorrentPlugin::Configuration configuration() const;
-    void setConfiguration(const SellerTorrentPlugin::Configuration & configuration);
+        // Returns request type
+        virtual PluginRequestType getPluginRequestType() const;
 
-private:
+        // Getters and setters
+        libtorrent::sha1_hash infoHash() const;
+        void setInfoHash(const libtorrent::sha1_hash &infoHash);
 
-    // Torrent info_hash
-    libtorrent::sha1_hash _infoHash;
+        SellerTorrentPluginConfiguration configuration() const;
+        void setConfiguration(const SellerTorrentPluginConfiguration & configuration);
 
-    // Seller torrent plugin configuration
-    SellerTorrentPlugin::Configuration _configuration;
-};
+    private:
 
-#endif // START_SELLER_TORRENT_PLUGIN_HPP
+        // Torrent info_hash
+        libtorrent::sha1_hash _infoHash;
+
+        // Seller torrent plugin configuration
+        SellerTorrentPluginConfiguration _configuration;
+    };
+
+}
+}
+}
+
+#endif // JOYSTREAM_EXTENSION_REQUEST_START_SELLER_TORRENT_PLUGIN_HPP

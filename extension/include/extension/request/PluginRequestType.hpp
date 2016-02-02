@@ -5,18 +5,24 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef PLUGIN_REQUEST_TYPE_HPP
-#define PLUGIN_REQUEST_TYPE_HPP
+#ifndef JOYSTREAM_EXTENSION_REQUEST_PLUGIN_REQUEST_TYPE_HPP
+#define JOYSTREAM_EXTENSION_REQUEST_PLUGIN_REQUEST_TYPE_HPP
 
-// Plugin request type
-enum class PluginRequestType {
 
-    StartBuyerTorrentPlugin,
-    StartSellerTorrentPlugin,
-    StartObserverTorrentPlugin
+namespace joystream {
+namespace extension {
+namespace request{
 
-    //StartTorrentPlugin
+    enum class PluginRequestType {
 
-};
+        StartBuyerTorrentPlugin,
+        StartSellerTorrentPlugin,
+        StartObserverTorrentPlugin
 
-#endif // PLUGIN_REQUEST_TYPE_HPP
+        //StartTorrentPlugin
+
+    };
+}
+}
+}
+#endif // JOYSTREAM_EXTENSION_REQUEST_PLUGIN_REQUEST_TYPE_HPP

@@ -5,49 +5,57 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef SELLER_PEER_PLUGIN_ADDED_ALERT_HPP
-#define SELLER_PEER_PLUGIN_ADDED_ALERT_HPP
+#ifndef EXTENSION_SELLER_PEER_PLUGIN_ADDED_ALERT_HPP
+#define EXTENSION_SELLER_PEER_PLUGIN_ADDED_ALERT_HPP
 
-#include <core/extension/Alert/TorrentPluginAlert.hpp>
-#include <core/extension/Alert/AlertTypes.hpp>
-#include <core/extension/SellerPeerPlugin.hpp>
+#include <extension/alert/TorrentPluginAlert.hpp>
+#include <extension/alert/AlertTypes.hpp>
+#include <extension/SellerPeerPluginStatus.hpp>
 
-class SellerPeerAddedAlert : public TorrentPluginAlert
-{
-public:
+namespace joystream {
+namespace extension {
+namespace alert {
 
-    // Public member required for alert_cast
-    const static int alert_type = SELLER_PEER_PLUGIN_ADDED_ALERT_ID;
+    class SellerPeerAddedAlert : public TorrentPluginAlert {
 
-    // Constructor from members
-    SellerPeerAddedAlert(const libtorrent::sha1_hash & infoHash,
-                        const libtorrent::tcp::endpoint & endPoint,
-                        const SellerPeerPlugin::Status & status);
+    public:
 
-    // Copy Constructor
-    SellerPeerAddedAlert(const SellerPeerAddedAlert & alert);
+        // Public member required for alert_cast
+        const static int alert_type = SELLER_PEER_PLUGIN_ADDED_ALERT_ID;
 
-    // Virtual routines from libtrorrent::alert
-    virtual int type() const;
-    virtual char const* what() const;
-    virtual std::string message() const;
-    virtual int category() const;
-    virtual std::auto_ptr<alert> clone() const;
+        // Constructor from members
+        SellerPeerAddedAlert(const libtorrent::sha1_hash & infoHash,
+                            const libtorrent::tcp::endpoint & endPoint,
+                            const SellerPeerPluginStatus & status);
 
-    // Getters and setters
-    libtorrent::tcp::endpoint endPoint() const;
-    void setEndPoint(const libtorrent::tcp::endpoint &endPoint);
+        // Copy Constructor
+        SellerPeerAddedAlert(const SellerPeerAddedAlert & alert);
 
-    SellerPeerPlugin::Status status() const;
-    void setStatus(const SellerPeerPlugin::Status &status);
+        // Virtual routines from libtrorrent::alert
+        virtual int type() const;
+        virtual char const* what() const;
+        virtual std::string message() const;
+        virtual int category() const;
+        virtual std::auto_ptr<alert> clone() const;
 
-private:
+        // Getters and setters
+        libtorrent::tcp::endpoint endPoint() const;
+        void setEndPoint(const libtorrent::tcp::endpoint & endPoint);
 
-    // Endpoint for peer started
-    libtorrent::tcp::endpoint _endPoint;
+        SellerPeerPluginStatus status() const;
+        void setStatus(const SellerPeerPluginStatus & status);
 
-    // Status for started peer
-    SellerPeerPlugin::Status _status;
-};
+    private:
 
-#endif // SELLER_PEER_PLUGIN_ADDED_ALERT_HPP
+        // Endpoint for peer started
+        libtorrent::tcp::endpoint _endPoint;
+
+        // Status for started peer
+        SellerPeerPluginStatus _status;
+    };
+
+}
+}
+}
+
+#endif // EXTENSION_SELLER_PEER_PLUGIN_ADDED_ALERT_HPP

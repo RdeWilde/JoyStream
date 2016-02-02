@@ -8,26 +8,22 @@
 #ifndef JOYSTREAM_EXTENSION_CONFIGURATION_BUYER_TORRENT_PLUGIN_HPP
 #define JOYSTREAM_EXTENSION_CONFIGURATION_BUYER_TORRENT_PLUGIN_HPP
 
-#include <extension/configuration/TorrentPlugin.hpp>
+#include <extension/TorrentPluginConfiguration.hpp>
 
 #include <QtGlobal> // temporary due to quints
 
 namespace joystream {
 namespace extension {
-namespace configuration {
 
-    /**
-     * @brief Configuration of buyer torrent plugin.
-     */
-    class BuyerTorrentPlugin : public TorrentPlugin {
+    class BuyerTorrentPluginConfiguration : public TorrentPluginConfiguration {
 
     public:
 
         // Default constructor
-        BuyerTorrentPlugin();
+        BuyerTorrentPluginConfiguration();
 
         // Constructor from members
-        BuyerTorrentPlugin(bool enableBanningSets,
+        BuyerTorrentPluginConfiguration(bool enableBanningSets,
                       quint64 maxPrice,
                       quint32 maxLock,
                       quint64 maxFeePerKb,
@@ -37,7 +33,7 @@ namespace configuration {
         //Configuration(const Configuration & c);
 
         // Constructor from dictionary
-        BuyerTorrentPlugin(const libtorrent::entry::dictionary_type & dictionaryEntry);
+        BuyerTorrentPluginConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry);
 
         /**
          * Write configuration into dictionary
@@ -84,7 +80,5 @@ namespace configuration {
 
 }
 }
-}
 
 #endif // JOYSTREAM_EXTENSION_CONFIGURATION_BUYER_TORRENT_PLUGIN_HPP
-

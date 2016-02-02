@@ -5,23 +5,22 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 27 2016
  */
 
-#include <core/configurations/Torrent.hpp>
+#include <core/TorrentConfiguration.hpp>
 
-//#include <core/exceptions/InvalidBitSwaprStateEntryException.hpp>
-//#include <core/extension/PluginMode.hpp>
+#include <libtorrent/add_torrent_params.hpp>
+#include <libtorrent/magnet_uri.hpp> // parse_magnet_uri
 
 namespace joystream {
 namespace core {
-namespace configuration {
 
-    Torrent::Torrent() {
+    TorrentConfiguration::TorrentConfiguration() {
     }
 
-    Torrent::Torrent(const libtorrent::sha1_hash & infoHash,
+    TorrentConfiguration::TorrentConfiguration(const libtorrent::sha1_hash & infoHash,
                                                const std::string & name,
                                                const std::string & savePath,
                                                const std::vector<char> & resumeData,
-                                               quint64 flags,
+                                               boost::uint64_t flags,
                                                //const libtorrent::torrent_info & torrentInfo
                                                const boost::intrusive_ptr<libtorrent::torrent_info> & torrentFile,
                                                const std::string url)
@@ -36,22 +35,23 @@ namespace configuration {
         //,_torrentPluginConfiguration(torrentPluginConfiguration) {
     }
 
-    Torrent::~Torrent() {
+    TorrentConfiguration::~TorrentConfiguration() {
 
         //if(_torrentFile != NULL)
             //delete _torrentFile;
     }
 
-    Torrent Torrent::fromTorrentFile(const QString & resource) {
+    TorrentConfiguration TorrentConfiguration::fromTorrentFile(const std::string & resource) {
+
         // Error code
         libtorrent::error_code ec;
 
         // Load torrent file
-        libtorrent::torrent_info * torrentInfo = new libtorrent::torrent_info(resource.toStdString().c_str(), ec);
+        boost::intrusive_ptr<libtorrent::torrent_info> torrentFile(new libtorrent::torrent_info(resource.c_str(), ec));
 
         // Was torrent file valid?
         if(ec) {
-            qDebug() << "Invalid torrent file: " << ec.message().c_str();
+            //qDebug() << "Invalid torrent file: " << ec.message().c_str();
             throw (std::runtime_error("Invalid Torrent File"));
         }
 
@@ -64,33 +64,32 @@ namespace configuration {
         // Null Magnet Link
         std::string url = "";
 
-        Torrent configuration(torrentInfo->info_hash(),
-                                                          torrentInfo->name(),
-                                                          save_path,
-                                                          resume_data,
-                                                          libtorrent::add_torrent_params::flag_update_subscribe,
-                                                          torrentInfo,
-                                                          url);
+        // Create configuration
+        TorrentConfiguration configuration(torrentFile->info_hash(),
+                                          torrentFile->name(),
+                                          save_path,
+                                          resume_data,
+                                          libtorrent::add_torrent_params::flag_update_subscribe,
+                                          torrentFile,
+                                          url);
 
         return configuration;
     }
 
-    Torrent Torrent::fromMagnetLink(const QString & resource) {
+    TorrentConfiguration TorrentConfiguration::fromMagnetLink(const std::string & magnetLink) {
+
         // Error code
         libtorrent::error_code ec;
-
-        // Magnet link url
-        std::string url = resource.toStdString();
 
         // parse_magnet_uri
         libtorrent::add_torrent_params params;
 
         // Parse link to get info_hash
-        libtorrent::parse_magnet_uri(url, params, ec);
+        libtorrent::parse_magnet_uri(magnetLink, params, ec);
 
         // Was magnet link malformed
         if(ec) {
-            qDebug() << "Invalid magnet link: " << ec.message().c_str();
+            //qDebug() << "Invalid magnet link: " << ec.message().c_str();
             throw (std::runtime_error("Invalid Magnet Link"));
         }
 
@@ -100,15 +99,17 @@ namespace configuration {
         // Save Path
         std::string save_path = "";
 
-        libtorrent::torrent_info * torrentInfo = new libtorrent::torrent_info(params.info_hash);
+        // Magnet link torrent_info
+        boost::intrusive_ptr<libtorrent::torrent_info> torrentMagnetInfo(new libtorrent::torrent_info(params.info_hash));
 
-        Torrent configuration(params.info_hash,
+        // Create configuration
+        TorrentConfiguration configuration(params.info_hash,
                                                           params.name,
                                                           save_path,
                                                           resume_data,
                                                           libtorrent::add_torrent_params::flag_update_subscribe,
-                                                          torrentInfo,
-                                                          url);
+                                                          torrentMagnetInfo,
+                                                          magnetLink);
 
         return configuration;
     }
@@ -138,7 +139,7 @@ namespace configuration {
     }
     */
 
-    Torrent::Torrent(const libtorrent::entry::dictionary_type & dictionaryEntry) {
+    TorrentConfiguration::TorrentConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry) {
         //: _torrentInfo(libtorrent::sha1_hash()){
 
         /**
@@ -273,7 +274,7 @@ namespace configuration {
     */
     }
 
-    void Torrent::toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const {
+    void TorrentConfiguration::toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const {
 
         /**
         // _infoHash
@@ -307,7 +308,7 @@ namespace configuration {
         */
     }
 
-    libtorrent::add_torrent_params Torrent::toAddTorrentParams() const {
+    libtorrent::add_torrent_params TorrentConfiguration::toAddTorrentParams() const {
 
         // Create add_torrent_params for adding
         libtorrent::add_torrent_params params;
@@ -329,7 +330,7 @@ namespace configuration {
         return params;
     }
 
-    boost::intrusive_ptr<libtorrent::torrent_info> Torrent::torrentFile() const {
+    boost::intrusive_ptr<libtorrent::torrent_info> TorrentConfiguration::torrentFile() const {
         return _torrentFile;
     }
 
@@ -351,46 +352,45 @@ namespace configuration {
     }
     */
 
-    quint64 Torrent::flags() const {
+    boost::uint64_t TorrentConfiguration::flags() const {
         return _flags;
     }
 
-    void Torrent::setFlags(quint64 flags) {
+    void TorrentConfiguration::setFlags(boost::uint64_t flags) {
         _flags = flags;
     }
 
-    std::vector<char> TorrentresumeData() const {
+    std::vector<char> TorrentConfiguration::resumeData() const {
         return _resumeData;
     }
 
-    void Torrent::setResumeData(const std::vector<char> & resumeData) {
+    void TorrentConfiguration::setResumeData(const std::vector<char> & resumeData) {
         _resumeData = resumeData;
     }
 
-    std::string Torrent::savePath() const {
+    std::string TorrentConfiguration::savePath() const {
         return _savePath;
     }
 
-    void Torrent::setSavePath(const std::string & savePath) {
+    void TorrentConfiguration::setSavePath(const std::string & savePath) {
         _savePath = savePath;
     }
 
-    std::string Torrent::name() const {
+    std::string TorrentConfiguration::name() const {
         return _name;
     }
 
-    void Torrent::setName(const std::string & name) {
+    void TorrentConfiguration::setName(const std::string & name) {
         _name = name;
     }
 
-    libtorrent::sha1_hash Torrent::infoHash() const {
+    libtorrent::sha1_hash TorrentConfiguration::infoHash() const {
         return _infoHash;
     }
 
-    void Torrent::setInfoHash(const libtorrent::sha1_hash & infoHash) {
+    void TorrentConfiguration::setInfoHash(const libtorrent::sha1_hash & infoHash) {
         _infoHash = infoHash;
     }
 
-}
 }
 }

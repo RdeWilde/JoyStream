@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 29 2016
  */
 
-#ifndef EXTENSION_PAYEE_STATUS_HPP
-#define EXTENSION_PAYEE_STATUS_HPP
+#ifndef JOYSTREAM_EXTENSION_PAYEE_STATUS_HPP
+#define JOYSTREAM_EXTENSION_PAYEE_STATUS_HPP
 
 #include <paymentchannel/PayeeState.hpp>
 #include <common/typesafeOutPoint.hpp>
@@ -67,5 +67,5 @@ namespace extension {
 }
 }
 
-#endif
+#endif // JOYSTREAM_EXTENSION_PAYEE_STATUS_HPP
 

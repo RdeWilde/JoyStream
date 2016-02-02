@@ -5,35 +5,43 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef START_OBSERVER_TORRENT_PLUGIN_HPP
-#define START_OBSERVER_TORRENT_PLUGIN_HPP
+#ifndef JOYSTREAM_EXTENSION_REQUEST_START_OBSERVER_TORRENT_PLUGIN_HPP
+#define JOYSTREAM_EXTENSION_REQUEST_START_OBSERVER_TORRENT_PLUGIN_HPP
 
-#include "PluginRequest.hpp"
+#include <extension/request/PluginRequest.hpp>
 #include <libtorrent/sha1_hash.hpp>
 
-class StartObserverTorrentPlugin : public PluginRequest
-{
-public:
+namespace joystream {
+namespace extension {
+namespace request {
 
-    // Constructor
-    StartObserverTorrentPlugin();
+    class StartObserverTorrentPlugin : public PluginRequest {
 
-    // Constructor from members
-    StartObserverTorrentPlugin(const libtorrent::sha1_hash & infoHash);
+    public:
 
-    // Returns request type
-    virtual PluginRequestType getPluginRequestType() const;
+        // Constructor
+        StartObserverTorrentPlugin();
 
-    // Getters
-    libtorrent::sha1_hash infoHash() const;
-    void setInfoHash(const libtorrent::sha1_hash & infoHash);
+        // Constructor from members
+        StartObserverTorrentPlugin(const libtorrent::sha1_hash & infoHash);
 
-private:
+        // Returns request type
+        virtual PluginRequestType getPluginRequestType() const;
 
-    // Torrent info_hash
-    libtorrent::sha1_hash _infoHash;
+        // Getters
+        libtorrent::sha1_hash infoHash() const;
+        void setInfoHash(const libtorrent::sha1_hash & infoHash);
 
-    // Observer configuration
-};
+    private:
 
-#endif // START_OBSERVER_TORRENT_PLUGIN_HPP
+        // Torrent info_hash
+        libtorrent::sha1_hash _infoHash;
+
+        // Observer configuration
+    };
+
+}
+}
+}
+
+#endif // JOYSTREAM_EXTENSION_REQUEST_START_OBSERVER_TORRENT_PLUGIN_HPP

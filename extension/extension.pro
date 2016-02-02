@@ -66,7 +66,12 @@ HEADERS += \
     include/extension/alert/StartedSellerTorrentPlugin.hpp \
     include/extension/alert/StartedBuyerTorrentPlugin.hpp \
     include/extension/SellerPeerPluginPeerState.hpp \
-    include/extension/SellerPeerPluginClientState.hpp
+    include/extension/SellerPeerPluginClientState.hpp \
+    include/extension/SellerTorrentPluginStatus.hpp \
+    include/extension/SellerTorrentPluginConfiguration.hpp \
+    include/extension/BuyerTorrentPluginState.hpp \
+    include/extension/BuyerPeerPluginClientState.hpp \
+    include/extension/BuyerPeerPluginPeerState.hpp
 
 SOURCES += \
     src/TorrentPlugin.cpp \
@@ -88,7 +93,6 @@ SOURCES += \
     src/PayorStatus.cpp \
     src/PeerPluginStatus.cpp \
     src/TorrentPluginConfiguration.cpp \
-    src/ExtendedMessagePayload.cpp \
     src/ExtendedMessageIdMapping.cpp \
     src/request/PluginRequest.cpp \
     src/request/TorrentPluginRequest.cpp \
@@ -108,6 +112,10 @@ SOURCES += \
     src/alert/SellerPeerAddedAlert.cpp \
     src/alert/BuyerPeerPluginRemovedAlert.cpp \
     src/alert/SellerPeerPluginRemovedAlert.cpp \
+    src/SellerTorrentPluginStatus.cpp \
+    src/SellerTorrentPluginConfiguration.cpp \
+    src/BuyerTorrentPluginConfiguration.cpp \
+    src/BuyerPeerPluginPeerState.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include
@@ -120,5 +128,15 @@ DEPENDPATH += $$PWD/../protocol/include
 # paymentchannel
 INCLUDEPATH += $$PWD/../paymentchannel/include
 DEPENDPATH += $$PWD/../paymentchannel/include
+
+# wallet : temporary
+QT += sql network # INDICATES BAD DESIGN OF THE WALLET
+
+INCLUDEPATH += $$PWD/../wallet/include
+DEPENDPATH += $$PWD/../wallet/include
+
+INCLUDEPATH += $$PWD/../blockcypher/include
+DEPENDPATH += $$PWD/../blockcypher/include
+
 
 include(../config.pri)

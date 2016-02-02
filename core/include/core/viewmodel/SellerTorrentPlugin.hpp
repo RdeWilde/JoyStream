@@ -8,7 +8,7 @@
 #ifndef SELLER_TORRENT_PLUGIN_VIEW_MODEL_HPP
 #define SELLER_TORRENT_PLUGIN_VIEW_MODEL_HPP
 
-#include <core/extension/SellerTorrentPlugin.hpp>
+#include <core/viewmodel/ /SellerTorrentPlugin.hpp>
 
 #include <libtorrent/socket_io.hpp>
 

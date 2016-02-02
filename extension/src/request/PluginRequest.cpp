@@ -5,4 +5,4 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#include <core/extension/Request/PluginRequest.hpp>
+#include <extension/request/PluginRequest.hpp>

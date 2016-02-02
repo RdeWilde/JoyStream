@@ -5,41 +5,49 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef BUYER_TORRENT_PLUGIN_STATUS_ALERT_HPP
-#define BUYER_TORRENT_PLUGIN_STATUS_ALERT_HPP
+#ifndef EXTENSION_BUYER_TORRENT_PLUGIN_STATUS_ALERT_HPP
+#define EXTENSION_BUYER_TORRENT_PLUGIN_STATUS_ALERT_HPP
 
-#include <core/extension/Alert/TorrentPluginAlert.hpp>
-#include <core/extension/Alert/AlertTypes.hpp>
-#include <core/extension/BuyerTorrentPlugin.hpp>
+#include <extension/alert/TorrentPluginAlert.hpp>
+#include <extension/alert/AlertTypes.hpp>
+#include <extension/BuyerTorrentPluginStatus.hpp>
 
-class BuyerTorrentPluginStatusAlert : public TorrentPluginAlert
-{
-public:
+namespace joystream {
+namespace extension {
+namespace alert {
 
-    // Public member required for alert_cast
-    const static int alert_type = BUYER_TORRENT_PLUGIN_STATUS_ALERT_ID;
+    class BuyerTorrentPluginStatusAlert : public TorrentPluginAlert {
 
-    // Constructor from members
-    BuyerTorrentPluginStatusAlert(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Status & status);
+    public:
 
-    // Copy constructor
-    BuyerTorrentPluginStatusAlert(const BuyerTorrentPluginStatusAlert & alert);
+        // Public member required for alert_cast
+        const static int alert_type = BUYER_TORRENT_PLUGIN_STATUS_ALERT_ID;
 
-    // Virtual routines from libtorrent::alert
-    virtual int type() const;
-    virtual char const* what() const;
-    virtual std::string message() const;
-    virtual int category() const;
-    virtual std::auto_ptr<alert> clone() const;
+        // Constructor from members
+        BuyerTorrentPluginStatusAlert(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPluginStatus & status);
 
-    // Getters and Setters
-    BuyerTorrentPlugin::Status status() const;
-    void setStatus(const BuyerTorrentPlugin::Status & status);
+        // Copy constructor
+        BuyerTorrentPluginStatusAlert(const BuyerTorrentPluginStatusAlert & alert);
 
-private:
+        // Virtual routines from libtorrent::alert
+        virtual int type() const;
+        virtual char const* what() const;
+        virtual std::string message() const;
+        virtual int category() const;
+        virtual std::auto_ptr<alert> clone() const;
 
-    // Plugin status
-    BuyerTorrentPlugin::Status _status;
-};
+        // Getters and Setters
+        BuyerTorrentPluginStatus status() const;
+        void setStatus(const BuyerTorrentPluginStatus & status);
 
-#endif // BUYER_TORRENT_PLUGIN_STATUS_ALERT_HPP
+    private:
+
+        // Plugin status
+        BuyerTorrentPluginStatus _status;
+    };
+
+}
+}
+}
+
+#endif // EXTENSION_BUYER_TORRENT_PLUGIN_STATUS_ALERT_HPP

@@ -9,148 +9,25 @@
 #define JOSTREAM_EXTENSION_BUYER_PEER_PLUGIN_HPP
 
 #include <extension/PeerPlugin.hpp>
-#include <extension/PluginMode.hpp>
-
-#include <common/TransactionId.hpp>
-#include <common/PublicKey.hpp>
-
-// potentially remove later?
-#include <protocol/Sell.hpp>
-#include <protocol/JoiningContract.hpp>
-
-// QSet: uint qHash(const libtorrent::peer_request & request);
-//#include "Utilities.hpp"
+#include <extension/BuyerPeerPluginPeerState.hpp>
+#include <extension/BuyerPeerPluginClientState.hpp>
 
 #include <QSet>
-
-class BuyerTorrentPlugin;
 
 namespace joystream {
 namespace extension {
 
-    /**
-     * @brief Buyer peer plugin
-     */
+    class BuyerTorrentPlugin;
+    enum class PluginMode;
+
     class BuyerPeerPlugin : public PeerPlugin {
 
     public:
 
-        /**
-         * @brief State of peer.
-         */
-        class PeerState {
-
-        public:
-
-            /**
-            // Enumeration of possible states
-            // a peer can have when facing buyer
-            // and last message sent was
-            // 1) welformed
-            // 2) state compatible
-            enum class LastValidAction {
-                no_bitswapr_message_sent, // No message extended message beyond extended handshake has been sent
-                mode_announced,
-                joined_contract,
-                signed_refund,
-                sent_valid_piece
-            };
-            */
-
-            // Bad states
-            enum class FailureMode {
-                not_failed,
-                mode_message_time_out,
-                join_contract_time_out,
-                refund_signature_time_out,
-                refund_incorrectly_signed,
-                sent_invalid_piece, // wrong piece, or integrity not intact
-            };
-
-            // Default constructor
-            PeerState();
-
-            // Constructor from members
-            PeerState(//LastValidAction lastAction,
-                      FailureMode failureMode,
-                      const Sell & lastSellReceived,
-                      const JoiningContract & lastJoiningContractReceived);
-
-            // Getters and setters
-
-            //LastValidAction lastAction() const;
-            //void setLastAction(LastValidAction lastAction);
-
-            FailureMode failureMode() const;
-            void setFailureMode(FailureMode failureMode);
-
-            Sell lastSellReceived() const;
-            void setLastSellReceived(const Sell &lastSellReceived);
-
-            JoiningContract lastJoiningContractReceived() const;
-            void setLastJoiningContractReceived(const JoiningContract &lastJoiningContractReceived);
-
-        private:
-
-            // Last valid action of peer
-            //LastValidAction _lastAction;
-
-            // How peer may have failed
-            FailureMode _failureMode;
-
-            // Last seller message
-            Sell _lastSellReceived;
-
-            // Last joining contract message
-            JoiningContract _lastJoiningContractReceived;
-        };
-
-        /**
-         * @brief Enumeration of possible states the client.
-         */
-        enum class ClientState {
-
-            // We have not sent any message after extended handshake
-            no_bitswapr_message_sent,
-
-            // We have sent buyer mode message
-            buyer_mode_announced,
-
-            // We have sent join_contraact message
-            invited_to_contract,
-
-            // We ignored joining_contract message because the contract was full
-            ignored_join_contract_from_peer,
-
-            // We have sent sign_refund message
-            asked_for_refund_signature,
-
-            // Postponed sendining ready message since not all signatures were ready
-            received_valid_refund_signature_and_waiting_for_others,
-
-            // Sent ready message
-            // NOT REALLY NEEDED, WE NEVER WAIT FOR ANYTHIN AFTER THIS
-            //announced_ready,
-
-            // At least one request message has been sent, for which no piece message
-            // has yet been returned
-            //waiting_for_requests_to_be_serviced,
-
-            // Not been assigned piece
-            needs_to_be_assigned_piece,
-
-            // We have requested a full piece, and we are waiting for it to arrive
-            waiting_for_full_piece,
-
-            // We are waiting for libtorrent to fire on_piece_pass() or on_piece_failed()
-            // on a full piece which was recently received
-            waiting_for_libtorrent_to_validate_piece
-
-        };
-
         // Constructor
         BuyerPeerPlugin(BuyerTorrentPlugin * plugin,
                         libtorrent::bt_peer_connection * connection,
+                        const std::string & bep10ClientIdentifier,
                         bool scheduledForDeletingInNextTorrentPluginTick,
                         QLoggingCategory & category);
 
@@ -191,11 +68,11 @@ namespace extension {
         void close_connection();
 
         // Getters and setters
-        PeerState peerState() const;
-        void setPeerState(const PeerState & peerState);
+        BuyerPeerPluginPeerState peerState() const;
+        void setPeerState(const BuyerPeerPluginPeerState & peerState);
 
-        ClientState clientState() const;
-        void setClientState(ClientState clientState);
+        BuyerPeerPluginClientState clientState() const;
+        void setClientState(BuyerPeerPluginClientState clientState);
 
         quint32 payorSlot() const;
         void setPayorSlot(quint32 payorSlot);
@@ -246,13 +123,14 @@ namespace extension {
         BuyerTorrentPlugin * _plugin;
 
         // State of peer
-        PeerState _peerState;
+        BuyerPeerPluginPeerState _peerState;
 
         // State of client
-        ClientState _clientState;
+        BuyerPeerPluginClientState _clientState;
 
         // Peer plugin position in Payor, only valid if
         // _clientState ">" ignored_join_contract_from_peer
+
         /**
          * WHY IS THIS HERE??
          * I cant see a clear benefit at this writing moment, much
@@ -315,17 +193,17 @@ namespace extension {
         */
 
         // Processess message
-        virtual void processObserve(const Observe * m);
-        virtual void processBuy(const Buy * m);
-        virtual void processSell(const Sell * m);
-        virtual void processJoinContract(const JoinContract * m);
-        virtual void processJoiningContract(const JoiningContract * m);
-        virtual void processSignRefund(const SignRefund * m);
-        virtual void processRefundSigned(const RefundSigned * m);
-        virtual void processReady(const Ready * m);
-        virtual void processRequestFullPiece(const RequestFullPiece * m);
-        virtual void processFullPiece(const FullPiece * m);
-        virtual void processPayment(const Payment * m);
+        virtual void processObserve(const joystream::protocol::Observe * m);
+        virtual void processBuy(const joystream::protocol::Buy * m);
+        virtual void processSell(const joystream::protocol::Sell * m);
+        virtual void processJoinContract(const joystream::protocol::JoinContract * m);
+        virtual void processJoiningContract(const joystream::protocol::JoiningContract * m);
+        virtual void processSignRefund(const joystream::protocol::SignRefund * m);
+        virtual void processRefundSigned(const joystream::protocol::RefundSigned * m);
+        virtual void processReady(const joystream::protocol::Ready * m);
+        virtual void processRequestFullPiece(const joystream::protocol::RequestFullPiece * m);
+        virtual void processFullPiece(const joystream::protocol::FullPiece * m);
+        virtual void processPayment(const joystream::protocol::Payment * m);
 
         // Resets plugin in response to peer sending a mode message
         void peerModeReset();

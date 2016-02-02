@@ -5,58 +5,66 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#include <core/extension/Alert/BuyerPeerAddedAlert.hpp>
+#include <extension/alert/BuyerPeerAddedAlert.hpp>
 
-BuyerPeerAddedAlert::BuyerPeerAddedAlert(const libtorrent::sha1_hash & infoHash,
-                                         const libtorrent::tcp::endpoint & endPoint,
-                                         const BuyerPeerPlugin::Status & status)
-    : TorrentPluginAlert(infoHash)
-    , _endPoint(endPoint)
-    , _status(status) {
-}
+namespace joystream {
+namespace extension {
+namespace alert {
 
-BuyerPeerAddedAlert::BuyerPeerAddedAlert(const BuyerPeerAddedAlert & alert)
-    : TorrentPluginAlert(alert)
-    , _endPoint(alert.endPoint())
-    , _status(alert.status()) {
-}
+    BuyerPeerAddedAlert::BuyerPeerAddedAlert(const libtorrent::sha1_hash & infoHash,
+                                             const libtorrent::tcp::endpoint & endPoint,
+                                             const BuyerPeerPluginStatus & status)
+        : TorrentPluginAlert(infoHash)
+        , _endPoint(endPoint)
+        , _status(status) {
+    }
 
-int BuyerPeerAddedAlert::type() const {
-    return alert_type;
-}
+    BuyerPeerAddedAlert::BuyerPeerAddedAlert(const BuyerPeerAddedAlert & alert)
+        : TorrentPluginAlert(alert)
+        , _endPoint(alert.endPoint())
+        , _status(alert.status()) {
+    }
 
-char const * BuyerPeerAddedAlert::what() const {
-    return "BuyerPeerAddedAlert";
-}
+    int BuyerPeerAddedAlert::type() const {
+        return alert_type;
+    }
 
-std::string BuyerPeerAddedAlert::message() const {
-    return std::string("BuyerPeerAddedAlert::message: IMPLEMENT LATER");
-}
+    char const * BuyerPeerAddedAlert::what() const {
+        return "BuyerPeerAddedAlert";
+    }
 
-int BuyerPeerAddedAlert::category() const {
-    return libtorrent::alert::status_notification;
-}
+    std::string BuyerPeerAddedAlert::message() const {
+        return std::string("BuyerPeerAddedAlert::message: IMPLEMENT LATER");
+    }
 
-std::auto_ptr<libtorrent::alert> BuyerPeerAddedAlert::clone() const {
-    return std::auto_ptr<libtorrent::alert>(new BuyerPeerAddedAlert(*this));
-}
+    int BuyerPeerAddedAlert::category() const {
+        return libtorrent::alert::status_notification;
+    }
 
-libtorrent::tcp::endpoint BuyerPeerAddedAlert::endPoint() const {
-    return _endPoint;
-}
+    std::auto_ptr<libtorrent::alert> BuyerPeerAddedAlert::clone() const {
+        return std::auto_ptr<libtorrent::alert>(new BuyerPeerAddedAlert(*this));
+    }
 
-/**
-void BuyerPeerAddedAlert::setEndPoint(const libtorrent::tcp::endpoint & endPoint) {
-    _endPoint = endPoint;
-}
-*/
+    libtorrent::tcp::endpoint BuyerPeerAddedAlert::endPoint() const {
+        return _endPoint;
+    }
 
-BuyerPeerPlugin::Status BuyerPeerAddedAlert::status() const {
-    return _status;
-}
+    /**
+    void BuyerPeerAddedAlert::setEndPoint(const libtorrent::tcp::endpoint & endPoint) {
+        _endPoint = endPoint;
+    }
+    */
 
-/**
-void BuyerPeerAddedAlert::setStatus(const BuyerPeerPlugin::Status & status) {
-    _status = status;
+    BuyerPeerPluginStatus BuyerPeerAddedAlert::status() const {
+        return _status;
+    }
+
+    /**
+    void BuyerPeerAddedAlert::setStatus(const BuyerPeerPlugin::Status & status) {
+        _status = status;
+    }
+    */
+
 }
-*/
+}
+}

@@ -5,30 +5,38 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef CHANGE_DOWNLOAD_LOCATION_HPP
-#define CHANGE_DOWNLOAD_LOCATION_HPP
+#ifndef JOYSTREAM_EXTENSION_REQUEST_CHANGE_DOWNLOAD_LOCATION_HPP
+#define JOYSTREAM_EXTENSION_REQUEST_CHANGE_DOWNLOAD_LOCATION_HPP
 
-#include "TorrentPluginRequest.hpp"
+#include <extension/request/TorrentPluginRequest.hpp>
 
-class ChangeDownloadLocation : public TorrentPluginRequest
-{
-public:
+namespace joystream {
+namespace extension {
+namespace request {
 
-    // Constructor
-    ChangeDownloadLocation(const libtorrent::sha1_hash & infoHash, int pieceIndex);
+    class ChangeDownloadLocation : public TorrentPluginRequest {
 
-    // Returns request type
-    virtual TorrentPluginRequestType getTorrentPluginRequestType() const;
+    public:
 
-    // Getters and setters
-    int pieceIndex() const;
-    void setPieceIndex(int pieceIndex);
+        // Constructor
+        ChangeDownloadLocation(const libtorrent::sha1_hash & infoHash, int pieceIndex);
 
-private:
+        // Returns request type
+        virtual TorrentPluginRequestType getTorrentPluginRequestType() const;
 
-    // Piece to start downloading from
-    int _pieceIndex;
+        // Getters and setters
+        int pieceIndex() const;
+        void setPieceIndex(int pieceIndex);
 
-};
+    private:
 
-#endif // CHANGE_DOWNLOAD_LOCATION_HPP
+        // Piece to start downloading from
+        int _pieceIndex;
+
+    };
+
+}
+}
+}
+
+#endif // JOYSTREAM_EXTENSION_REQUEST_CHANGE_DOWNLOAD_LOCATION_HPP

@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef EXTENSION_PLUGIN_MODE_HPP
-#define EXTENSION_PLUGIN_MODE_HPP
+#ifndef JOYSTREAM_EXTENSION_PLUGIN_MODE_HPP
+#define JOYSTREAM_EXTENSION_PLUGIN_MODE_HPP
 
 namespace joystream {
 namespace extension {
@@ -21,4 +21,4 @@ namespace extension {
 }
 }
 
-#endif // EXTENSION_PLUGIN_MODE_HPP
+#endif // JOYSTREAM_EXTENSION_PLUGIN_MODE_HPP

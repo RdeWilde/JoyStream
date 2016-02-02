@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef ALERT_TYPES_HPP
-#define ALERT_TYPES_HPP
+#ifndef EXTENSION_ALERT_ALERT_TYPES_HPP
+#define EXTENSION_ALERT_ALERT_TYPES_HPP
 
 #include <libtorrent/alert_types.hpp>
 
@@ -30,4 +30,4 @@
 #define BUYER_PEER_PLUGIN_REMOVED_ALERT_ID      (libtorrent::user_alert_id + 11)
 #define SELLER_PEER_PLUGIN_REMOVED_ALERT_ID     (libtorrent::user_alert_id + 12)
 
-#endif // ALERT_TYPES_HPP
+#endif // EXTENSION_ALERT_ALERT_TYPES_HPP

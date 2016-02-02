@@ -18,13 +18,16 @@
 #include <QMap>
 #include <QSet>
 
-class Plugin;
-class TorrentPluginConfiguration;
-class TorrentPluginAlert;
-enum class PluginMode;
-
 namespace joystream {
 namespace extension {
+
+    class Plugin;
+    class TorrentPluginConfiguration;
+    enum class PluginMode;
+
+    namespace alert {
+        class TorrentPluginAlert;
+    }
 
     class TorrentPlugin : public libtorrent::torrent_plugin {
 
@@ -33,6 +36,7 @@ namespace extension {
         // Constructor from member fields
         TorrentPlugin(Plugin * plugin,
                       const boost::shared_ptr<libtorrent::torrent> & torrent,
+                      const std::string & bep10ClientIdentifier,
                       const TorrentPluginConfiguration & configuration,
                       QLoggingCategory & category);
 
@@ -82,6 +86,9 @@ namespace extension {
         // Should this be weak_ptr really?
         boost::shared_ptr<libtorrent::torrent> _torrent;
 
+        // Client identifier used in bep10 handshake v-key
+        std::string _bep10ClientIdentifier;
+
         // Set of all endpoints known to not have extension. Is populated by previous failed extended handshakes.
         QSet<libtorrent::tcp::endpoint> _peersWithoutExtension;
 
@@ -108,7 +115,7 @@ namespace extension {
         bool isPeerWellBehaved(libtorrent::peer_connection * connection) const;
 
         // Send torrent plugin alert to libtorrent session
-        void sendTorrentPluginAlert(const TorrentPluginAlert & alert);
+        void sendTorrentPluginAlert(const alert::TorrentPluginAlert & alert);
 
     private:
 

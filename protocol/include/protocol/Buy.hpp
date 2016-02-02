@@ -11,51 +11,52 @@
 #include <protocol/ExtendedMessagePayload.hpp>
 
 namespace joystream {
-namespace protocol {
 
-    class Buy : public ExtendedMessagePayload {
+    namespace protocol {
 
-    public:
+        class Buy : public ExtendedMessagePayload {
 
-        // Default constructor
-        Buy();
+        public:
 
-        // Constructor based on members
-        Buy(quint32 maxPrice, quint32 maxLock, quint32 minSellers);
+            // Default constructor
+            Buy();
 
-        // Constructor based on raw payload
-        // NB: Substitute with static factory in future, so that you cannot create stale
-        // payload objects if there is an error in the reading from stream
-        Buy(QDataStream & stream);
+            // Constructor based on members
+            Buy(quint32 maxPrice, quint32 maxLock, quint32 minSellers);
 
-        // Virtual methods that subclassing messages have to implement
-        virtual MessageType messageType() const;
-        virtual quint32 length() const;
-        virtual void write(QDataStream & stream) const;
+            // Constructor based on raw payload
+            // NB: Substitute with static factory in future, so that you cannot create stale
+            // payload objects if there is an error in the reading from stream
+            Buy(QDataStream & stream);
 
-        // Getters and setters
-        quint32 maxPrice() const;
-        void setMaxPrice(quint32 maxPrice);
+            // Virtual methods that subclassing messages have to implement
+            virtual MessageType messageType() const;
+            virtual quint32 length() const;
+            virtual void write(QDataStream & stream) const;
 
-        quint32 maxLock() const;
-        void setMaxLock(quint32 maxLock);
+            // Getters and setters
+            quint32 maxPrice() const;
+            void setMaxPrice(quint32 maxPrice);
 
-        quint32 minSellers() const;
-        void setMinSellers(quint32 minSellers);
+            quint32 maxLock() const;
+            void setMaxLock(quint32 maxLock);
 
-    private:
+            quint32 minSellers() const;
+            void setMinSellers(quint32 minSellers);
 
-        // Buyer max price (satoshies)
-        quint32 _maxPrice;
+        private:
 
-        // When refund becomes spendable at latest
-        quint32 _maxLock;
+            // Buyer max price (satoshies)
+            quint32 _maxPrice;
 
-        // Minimum number of sellers in the contract
-        quint32 _minSellers;
-    };
+            // When refund becomes spendable at latest
+            quint32 _maxLock;
 
-}
+            // Minimum number of sellers in the contract
+            quint32 _minSellers;
+        };
+
+    }
 }
 
 #endif // PROTOCOL_BUY_HPP

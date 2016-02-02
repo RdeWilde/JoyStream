@@ -23,10 +23,12 @@ namespace extension {
 
     TorrentPlugin::TorrentPlugin(Plugin * plugin,
                                  const boost::shared_ptr<libtorrent::torrent> & torrent,
+                                 const std::string & bep10ClientIdentifier,
                                  const TorrentPluginConfiguration & configuration,
                                  QLoggingCategory & category)
         : _plugin(plugin)
         , _torrent(torrent)
+        , _bep10ClientIdentifier(bep10ClientIdentifier)
         , _enableBanningSets(configuration.enableBanningSets())
         , _category(category) {
     }
@@ -84,7 +86,7 @@ namespace extension {
         return true;
     }
 
-    void TorrentPlugin::sendTorrentPluginAlert(const TorrentPluginAlert & alert) {
+    void TorrentPlugin::sendTorrentPluginAlert(const alert::TorrentPluginAlert & alert) {
         _torrent->alerts().post_alert(alert);
         //_torrent->alerts().emplace_alert(alert);
     }

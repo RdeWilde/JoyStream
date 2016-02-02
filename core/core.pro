@@ -12,7 +12,9 @@ CONFIG  += staticlib
 CONFIG  += create_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
 CONFIG  += c++11 # Needed for class enum
 
-QT      += core gui network sql # sql is for wallet
+QT      += core
+QT      += network # sockets, qnam
+QT      += sql  # wallet?
 
 INCLUDEPATH += $$PWD/include
 
@@ -20,40 +22,40 @@ HEADERS += \
     include/core/logger/LoggerManager.hpp \
     include/core/logger/exceptions/DuplicateLog.hpp \
     include/core/logger/exceptions/CannnotOpenLogFile.hpp \
-    include/core/viewmodel/BuyerPeerPluginViewModel.hpp \
-    include/core/viewmodel/BuyerTorrentPluginViewModel.hpp \
-    include/core/viewmodel/ChannelViewModel.hpp \
-    include/core/viewmodel/PayeeViewModel.hpp \
-    include/core/viewmodel/PayorViewModel.hpp \
-    include/core/viewmodel/PeerPluginViewModel.hpp \
-    include/core/viewmodel/SellerPeerPluginViewModel.hpp \
-    include/core/viewmodel/SellerTorrentPluginViewModel.hpp \
-    include/core/viewmodel/TorrentPluginViewModel.hpp \
-    include/core/viewmodel/TorrentViewModel.hpp \
+    include/core/viewmodel/BuyerPeerPlugin.hpp \
+    include/core/viewmodel/BuyerTorrentPlugin.hpp \
+    include/core/viewmodel/Channel.hpp \
+    include/core/viewmodel/Payee.hpp \
+    include/core/viewmodel/Payor.hpp \
+    include/core/viewmodel/PeerPlugin.hpp \
+    include/core/viewmodel/SellerPeerPlugin.hpp \
+    include/core/viewmodel/SellerTorrentPlugin.hpp \
+    include/core/viewmodel/TorrentPlugin.hpp \
+    include/core/viewmodel/Torrent.hpp \
     include/core/Controller.hpp \
     include/core/PluginInstalled.hpp \
     include/core/Stream.hpp \
-    include/core/configuration/Torrent.hpp \
-    include/core/configuration/Controller.hpp
+    include/core/TorrentConfiguration.hpp \
+    include/core/ControllerConfiguration.hpp
 
 SOURCES += \
     src/logger/LoggerManager.cpp \
     src/logger/exceptions/CannnotOpenLogFile.cpp \
     src/logger/exceptions/DuplicateLog.cpp \
-    src/viewmodel/BuyerPeerPluginViewModel.cpp \
-    src/viewmodel/BuyerTorrentPluginViewModel.cpp \
-    src/viewmodel/ChannelViewModel.cpp \
-    src/viewmodel/PayeeViewModel.cpp \
-    src/viewmodel/PayorViewModel.cpp \
-    src/viewmodel/PeerPluginViewModel.cpp \
-    src/viewmodel/SellerPeerPluginViewModel.cpp \
-    src/viewmodel/SellerTorrentPluginViewModel.cpp \
-    src/viewmodel/TorrentPluginViewModel.cpp \
-    src/viewmodel/TorrentViewModel.cpp \
+    src/viewmodel/BuyerPeerPlugin.cpp \
+    src/viewmodel/BuyerTorrentPlugin.cpp \
+    src/viewmodel/Channel.cpp \
+    src/viewmodel/Payee.cpp \
+    src/viewmodel/Payor.cpp \
+    src/viewmodel/PeerPlugin.cpp \
+    src/viewmodel/SellerPeerPlugin.cpp \
+    src/viewmodel/SellerTorrentPlugin.cpp \
+    src/viewmodel/TorrentPlugin.cpp \
+    src/viewmodel/Torrent.cpp \
     src/Controller.cpp \
     src/Stream.cpp \
-    src/configuration/Torrent.cpp \
-    src/configuration/Controller.cpp
+    src/TorrentConfiguration.cpp \
+    src/ControllerConfiguration.cpp
 
 # extension
 INCLUDEPATH += $$PWD/../extension/include
@@ -70,5 +72,9 @@ DEPENDPATH += $$PWD/../wallet/include
 # common
 INCLUDEPATH += $$PWD/../common/include
 DEPENDPATH += $$PWD/../common/include
+
+# paymentchannel
+INCLUDEPATH += $$PWD/../paymentchannel/include
+DEPENDPATH += $$PWD/../paymentchannel/include
 
 include(../config.pri)

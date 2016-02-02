@@ -5,43 +5,51 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef PLUGIN_STATUS_ALERT_HPP
-#define PLUGIN_STATUS_ALERT_HPP
+#ifndef EXTENSION_PLUGIN_STATUS_ALERT_HPP
+#define EXTENSION_PLUGIN_STATUS_ALERT_HPP
 
 #include <libtorrent/alert.hpp>
-#include <core/extension/Alert/AlertTypes.hpp>
-#include <core/extension/Plugin.hpp>
+#include <extension/alert/AlertTypes.hpp>
+#include <extension/PluginStatus.hpp>
 
-class PluginStatusAlert : public libtorrent::alert
-{
-public:
+namespace joystream {
+namespace extension {
+namespace alert {
 
-    // Public member required for alert_cast
-    const static int alert_type = PLUGIN_STATUS_ALERT_ID;
+    class PluginStatusAlert : public libtorrent::alert {
 
-    // Default constructor
-    PluginStatusAlert();
+    public:
 
-    // Constructor from members
-    PluginStatusAlert(const Plugin::Status & status);
+        // Public member required for alert_cast
+        const static int alert_type = PLUGIN_STATUS_ALERT_ID;
 
-    // Copy constructor
-    PluginStatusAlert(const PluginStatusAlert & alert);
+        // Default constructor
+        PluginStatusAlert();
 
-    // Virtual routines from libtorrent::alert
-    virtual int type() const;
-    virtual char const* what() const;
-    virtual std::string message() const;
-    virtual int category() const;
-    virtual std::auto_ptr<libtorrent::alert> clone() const;
+        // Constructor from members
+        PluginStatusAlert(const PluginStatus & status);
 
-    // Getters and setters
-    Plugin::Status status() const;
-    void setStatus(const Plugin::Status &status);
+        // Copy constructor
+        PluginStatusAlert(const PluginStatusAlert & alert);
 
-private:
+        // Virtual routines from libtorrent::alert
+        virtual int type() const;
+        virtual char const* what() const;
+        virtual std::string message() const;
+        virtual int category() const;
+        virtual std::auto_ptr<libtorrent::alert> clone() const;
 
-    Plugin::Status _status;
-};
+        // Getters and setters
+        PluginStatus status() const;
+        void setStatus(const PluginStatus & status);
 
-#endif // PLUGIN_STATUS_ALERT_HPP
+    private:
+
+        PluginStatus _status;
+    };
+
+}
+}
+}
+
+#endif // EXTENSION_PLUGIN_STATUS_ALERT_HPP

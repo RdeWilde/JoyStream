@@ -8,60 +8,54 @@
 #ifndef JOYSTREAM_EXTENSION_STATUS_BUYER_TORRENT_PLUGIN_HPP
 #define JOYSTREAM_EXTENSION_STATUS_BUYER_TORRENT_PLUGIN_HPP
 
-// *** TEMPORARY INCLUDE TO GET INNER CLASSES ***
-#include <extension/BuyerTorrentPlugin.hpp>
-// *** TEMPORARY INCLUDE TO GET INNER CLASSES ***
+#include <extension/BuyerTorrentPluginState.hpp>
+#include <extension/BuyerPeerPluginStatus.hpp>
+#include <extension/PayorStatus.hpp>
 
-#include <extension/status/BuyerPeerPlugin.hpp>
+#include <libtorrent/socket.hpp> // libtorrent::tcp::endpoint
+#include <QMap>
 
 namespace joystream {
 namespace extension {
-namespace status {
 
-    /**
-     * @brief Plugin status, that is a snapshot
-     * of important information.
-     */
-    class BuyerTorrentPlugin {
+    class BuyerTorrentPluginStatus  {
 
     public:
 
-        BuyerTorrentPlugin();
+        BuyerTorrentPluginStatus();
 
-        BuyerTorrentPlugin(BuyerTorrentPlugin::State state,
-               const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin> & peerPluginStatuses,
-               const Payor::Status & payor);
+        BuyerTorrentPluginStatus(BuyerTorrentPluginState state,
+               const QMap<libtorrent::tcp::endpoint, BuyerPeerPluginStatus> & peerPluginStatuses,
+               const PayorStatus & payor);
 
         // Getters and setters
-        BuyerTorrentPlugin::State state() const;
-        void setState(BuyerTorrentPlugin::State state);
+        BuyerTorrentPluginState state() const;
+        void setState(BuyerTorrentPluginState state);
 
-        QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin> peerPluginStatuses() const;
-        void setPeerPluginStatuses(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin> & peerPluginStatuses);
+        QMap<libtorrent::tcp::endpoint, BuyerPeerPluginStatus> peerPluginStatuses() const;
+        void setPeerPluginStatuses(const QMap<libtorrent::tcp::endpoint, BuyerPeerPluginStatus> & peerPluginStatuses);
 
-        Payor::Status payor() const;
-        void setPayor(const Payor::Status & payor);
+        PayorStatus payor() const;
+        void setPayor(const PayorStatus & payor);
 
     private:
 
         // State of plugin
         // to fix
-        BuyerTorrentPlugin::State _state;
+        BuyerTorrentPluginState _state;
 
         // Status of peers
-        QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin> _peerPluginStatuses;
+        QMap<libtorrent::tcp::endpoint, BuyerPeerPluginStatus> _peerPluginStatuses;
 
         // Status of the payor
-        Payor::Status _payor;
+        PayorStatus _payor;
     };
 
-
-    //#include <QMetaType>
-    //Q_DECLARE_METATYPE(BuyerTorrentPlugin::State)
-
-
 }
 }
-}
+
+//#include <QMetaType>
+//Q_DECLARE_METATYPE(BuyerTorrentPlugin::State)
+
 
 #endif // JOYSTREAM_EXTENSION_STATUS_BUYER_TORRENT_PLUGIN_HPP

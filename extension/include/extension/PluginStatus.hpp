@@ -5,24 +5,23 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 28 2016
  */
 
-#ifndef EXTENSION_STATUS_PLUGIN_HPP
-#define EXTENSION_STATUS_PLUGIN_HPP
+#ifndef JOYSTREAM_EXTENSION_STATUS_PLUGIN_HPP
+#define JOYSTREAM_EXTENSION_STATUS_PLUGIN_HPP
 
 #include <QtGlobal> // temproary, ditch qt integer types asap
 
 namespace joystream {
 namespace extension {
-namespace status {
 
-    class Plugin {
+    class PluginStatus {
 
     public:
 
         // Default constructor
-        Plugin();
+        PluginStatus();
 
         // Constructor from members
-        Plugin(quint64 totalReceivedSinceStart, quint64 totalSentSinceStart, quint64 _totalCurrentlyLockedInChannels);
+        PluginStatus(quint64 totalReceivedSinceStart, quint64 totalSentSinceStart, quint64 _totalCurrentlyLockedInChannels);
 
         // Getters and setters
         quint64 totalReceivedSinceStart() const;
@@ -50,6 +49,5 @@ namespace status {
 
 }
 }
-}
 
-#endif // EXTENSION_STATUS_PLUGIN_HPP
+#endif // JOYSTREAM_EXTENSION_STATUS_PLUGIN_HPP

@@ -303,9 +303,7 @@ namespace paymentchannel {
 #include <paymentchannel/Commitment.hpp>
 #include <paymentchannel/Contract.hpp>
 #include <paymentchannel/Refund.hpp>
-
 #include <common/Utilities.hpp> // DEFAULT_SEQUENCE_NUMBER
-
 #include <common/TransactionSignature.hpp>
 #include <common/P2PKHScriptPubKey.hpp>
 #include <common/P2PKHScriptSig.hpp>

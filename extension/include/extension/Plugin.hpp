@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef EXTENSION_PLUGIN_HPP
-#define EXTENSION_PLUGIN_HPP
+#ifndef JOYSTREAM_EXTENSION_PLUGIN_HPP
+#define JOYSTREAM_EXTENSION_PLUGIN_HPP
 
 #include <extension/SellerTorrentPlugin.hpp>
 #include <extension/BuyerTorrentPlugin.hpp>
@@ -22,23 +22,8 @@
 
 #include <boost/weak_ptr.hpp>
 
-//#include <QObject>
 #include <QMutex>
 #include <QQueue>
-
-// Forward declaration
-class Controller;
-class TorrentPlugin;
-class SellerTorrentPlugin;
-class BuyerTorrentPlugin;
-class PluginRequest;
-class TorrentPluginRequest;
-class PeerPluginRequest;
-class TorrentPluginConfiguration;
-//class BuyerTorrentPlugin::Configuration;
-//class SellerTorrentPlugin::Configuration;
-class QNetworkReply;
-class QNetworkAccessManager;
 
 namespace Wallet {
     class Manager;
@@ -53,30 +38,35 @@ namespace Coin {
     class UnspentP2PKHOutput;
 }
 
-/**
-namespace boost {
-    template<class T> class shared_ptr;
-}
-*/
-
 namespace joystream {
 namespace extension {
 
-    class Plugin : public libtorrent::plugin {
-    //class Plugin : public QObject, public libtorrent::plugin {
+    class TorrentPlugin;
+    class TorrentPluginConfiguration;
 
-        //Q_OBJECT
+    class BuyerTorrentPlugin;
+    class BuyerTorrentPluginConfiguration;
+
+    class SellerTorrentPlugin;
+    class SellerTorrentPluginConfiguration;
+
+    namespace request {
+        class PluginRequest;
+        class TorrentPluginRequest;
+        class PeerPluginRequest;
+    }
+
+    class Plugin : public libtorrent::plugin {
 
     public:
 
         // Constructor
-        Plugin(Wallet::Manager * wallet, QLoggingCategory & category);
+        Plugin(Wallet::Manager * wallet,
+               const std::string & bep10ClientIdentifier,
+               QLoggingCategory & category);
 
         // Destructor
         ~Plugin();
-
-        // Returns controller
-        //Controller * getController();
 
         /**
          * All virtual functions below should ONLY
@@ -124,7 +114,6 @@ namespace extension {
         quint64 registerReceivedFunds(quint64 value);
         quint64 registerSentFunds(quint64 value);
         quint64 registerLockedInChannelsFunds(quint64 value);
-
         quint64 registerUnLockedFromChannelFunds(quint64 value);
 
 
@@ -133,11 +122,14 @@ namespace extension {
          *
          * In all of these routines, plugin takes ownership of request object.
          */
-        void submitPluginRequest(PluginRequest * pluginRequest);
-        void submitTorrentPluginRequest(TorrentPluginRequest * torrentPluginRequest);
-        void submitPeerPluginRequest(PeerPluginRequest * peerPluginRequest);
+        void submitPluginRequest(request::PluginRequest * pluginRequest);
+        void submitTorrentPluginRequest(request::TorrentPluginRequest * torrentPluginRequest);
+        void submitPeerPluginRequest(request::PeerPluginRequest * peerPluginRequest);
 
     private:
+
+        // Client identifier used in bep10 handshake v-key
+        std::string _bep10ClientIdentifier;
 
         // Wallet
         Wallet::Manager * _wallet;
@@ -169,21 +161,21 @@ namespace extension {
          */
 
         // Plugin Request
-        QQueue<PluginRequest *> _pluginRequestQueue;
+        QQueue<request::PluginRequest *> _pluginRequestQueue;
         QMutex _pluginRequestQueueMutex; // mutex protecting queue
 
         // Torrent Plugin Request
-        QQueue<TorrentPluginRequest *> _torrentPluginRequestQueue; // queue
+        QQueue<request::TorrentPluginRequest *> _torrentPluginRequestQueue; // queue
         QMutex _torrentPluginRequestQueueMutex; // mutex protecting queue
 
         // Peer Plugin Request
-        QQueue<PeerPluginRequest *> _peerPluginRequestQueue; // queue
+        QQueue<request::PeerPluginRequest *> _peerPluginRequestQueue; // queue
         QMutex _peerPluginRequestQueueMutex; // mutex protecting queue
 
         // Processing routines
         void processesRequests();
-        void processPluginRequest(const PluginRequest * pluginRequest);
-        void processTorrentPluginRequest(const TorrentPluginRequest * torrentPluginRequest);
+        void processPluginRequest(const request::PluginRequest * pluginRequest);
+        void processTorrentPluginRequest(const request::TorrentPluginRequest * torrentPluginRequest);
 
         // Removes torrent plugin
         // 1) Remove plugin from torrentPlugins_ map
@@ -194,8 +186,8 @@ namespace extension {
         // Start plugin
         //bool startTorrentPlugin(const libtorrent::sha1_hash & infoHash, const TorrentPlugin::Configuration * configuration);
 
-        bool startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration, const Coin::UnspentP2PKHOutput & utxo);
-        bool startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration);
+        bool startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPluginConfiguration & configuration, const Coin::UnspentP2PKHOutput & utxo);
+        bool startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const SellerTorrentPluginConfiguration & configuration);
 
         // Send alert to session object
         void sendAlertToSession(const libtorrent::alert & alert);
@@ -203,9 +195,6 @@ namespace extension {
         /**
          * Status
          */
-
-        // void processStatus();
-        // QNetworkReply * _getBalanceReply;
 
         // Amount of funds (satoshies) received since start
         quint64 _totalReceivedSinceStart;
@@ -223,4 +212,4 @@ namespace extension {
 }
 }
 
-#endif
+#endif // JOYSTREAM_EXTENSION_PLUGIN_HPP

@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 30 2016
  */
 
-#ifndef EXTENSION_SELLER_PEER_PLUGIN_PEER_STATE_HPP
-#define EXTENSION_SELLER_PEER_PLUGIN_PEER_STATE_HPP
+#ifndef JOYSTREAM_EXTENSION_SELLER_PEER_PLUGIN_PEER_STATE_HPP
+#define JOYSTREAM_EXTENSION_SELLER_PEER_PLUGIN_PEER_STATE_HPP
 
 #include <protocol/Buy.hpp>
 #include <protocol/SignRefund.hpp>
@@ -118,5 +118,4 @@ namespace extension {
 }
 }
 
-#endif // EXTENSION_SELLER_PEER_PLUGIN_PEER_STATE_HPP
-
+#endif // JOYSTREAM_EXTENSION_SELLER_PEER_PLUGIN_PEER_STATE_HPP

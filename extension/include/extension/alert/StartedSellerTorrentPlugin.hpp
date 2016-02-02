@@ -5,60 +5,68 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef STARTED_SELLER_TORRENT_PLUGIN_HPP
-#define STARTED_SELLER_TORRENT_PLUGIN_HPP
+#ifndef EXTENSION_STARTED_SELLER_TORRENT_PLUGIN_HPP
+#define EXTENSION_STARTED_SELLER_TORRENT_PLUGIN_HPP
 
-#include <core/extension/Alert/AlertTypes.hpp>
-#include <core/extension/SellerTorrentPlugin.hpp>
+#include <extension/alert/AlertTypes.hpp>
+#include <extension/SellerTorrentPluginConfiguration.hpp>
+#include <extension/SellerTorrentPluginStatus.hpp>
 
 #include <libtorrent/alert.hpp>
 #include <libtorrent/sha1_hash.hpp>
 
-class StartedSellerTorrentPlugin : public libtorrent::alert
-{
-public:
+namespace joystream {
+namespace extension {
+namespace alert {
 
-    // Public member required for alert_cast
-    const static int alert_type = STARTED_SELLER_TORRENT_PLUGIN_ID;
+    class StartedSellerTorrentPlugin : public libtorrent::alert {
 
-    // Default constructor
-    StartedSellerTorrentPlugin();
+    public:
 
-    // Constructor from members
-    StartedSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
-                               const SellerTorrentPlugin::Configuration & configuration,
-                               const SellerTorrentPlugin::Status status);
+        // Public member required for alert_cast
+        const static int alert_type = STARTED_SELLER_TORRENT_PLUGIN_ID;
 
-    // Copy constructor
-    StartedSellerTorrentPlugin(const StartedSellerTorrentPlugin & alert);
+        // Default constructor
+        StartedSellerTorrentPlugin();
 
-    // Virtual routines from libtorrent::alert
-    virtual int type() const;
-    virtual char const* what() const;
-    virtual std::string message() const;
-    virtual int category() const;
-    virtual std::auto_ptr<libtorrent::alert> clone() const;
+        // Constructor from members
+        StartedSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
+                                   const SellerTorrentPluginConfiguration & configuration,
+                                   const SellerTorrentPluginStatus status);
 
-    // Getters and setters
-    libtorrent::sha1_hash infoHash() const;
-    void setInfoHash(const libtorrent::sha1_hash & infoHash);
+        // Copy constructor
+        StartedSellerTorrentPlugin(const StartedSellerTorrentPlugin & alert);
 
-    SellerTorrentPlugin::Configuration configuration() const;
-    void setConfiguration(const SellerTorrentPlugin::Configuration & configuration);
+        // Virtual routines from libtorrent::alert
+        virtual int type() const;
+        virtual char const* what() const;
+        virtual std::string message() const;
+        virtual int category() const;
+        virtual std::auto_ptr<libtorrent::alert> clone() const;
 
-    SellerTorrentPlugin::Status status() const;
-    void setStatus(const SellerTorrentPlugin::Status & status);
+        // Getters and setters
+        libtorrent::sha1_hash infoHash() const;
+        void setInfoHash(const libtorrent::sha1_hash & infoHash);
 
-private:
+        SellerTorrentPluginConfiguration configuration() const;
+        void setConfiguration(const SellerTorrentPluginConfiguration & configuration);
 
-    // Info hash of torrent started
-    libtorrent::sha1_hash _infoHash;
+        SellerTorrentPluginStatus status() const;
+        void setStatus(const SellerTorrentPluginStatus & status);
 
-    // Configuration under which plugin was started
-    SellerTorrentPlugin::Configuration _configuration;
+    private:
 
-    // Starting status
-    SellerTorrentPlugin::Status _status;
-};
+        // Info hash of torrent started
+        libtorrent::sha1_hash _infoHash;
 
+        // Configuration under which plugin was started
+        SellerTorrentPluginConfiguration _configuration;
+
+        // Starting status
+        SellerTorrentPluginStatus _status;
+    };
+
+}
+}
+}
 #endif // STARTED_SELLER_TORRENT_PLUGIN_HPP

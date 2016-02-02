@@ -8,45 +8,53 @@
 #ifndef START_BUYER_TORRENT_PLUGIN_HPP
 #define START_BUYER_TORRENT_PLUGIN_HPP
 
-#include <core/extension/Request/PluginRequest.hpp>
-#include <core/extension/BuyerTorrentPlugin.hpp>
+#include <extension/request/PluginRequest.hpp>
+#include <extension/BuyerTorrentPluginConfiguration.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
 
 #include <libtorrent/sha1_hash.hpp>
 
-class StartBuyerTorrentPlugin : public PluginRequest
-{
-public:
+namespace joystream {
+namespace extension {
+namespace request {
 
-    // Constructor
-    StartBuyerTorrentPlugin();
+    class StartBuyerTorrentPlugin : public PluginRequest {
 
-    // Constructor from members
-    StartBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration configuration, const Coin::UnspentP2PKHOutput & utxo);
+    public:
 
-    // Returns request type
-    virtual PluginRequestType getPluginRequestType() const;
+        // Constructor
+        StartBuyerTorrentPlugin();
 
-    // Getters
-    libtorrent::sha1_hash infoHash() const;
-    void setInfoHash(const libtorrent::sha1_hash & infoHash);
+        // Constructor from members
+        StartBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPluginConfiguration configuration, const Coin::UnspentP2PKHOutput & utxo);
 
-    BuyerTorrentPlugin::Configuration configuration() const;
-    void setConfiguration(const BuyerTorrentPlugin::Configuration & configuration);
+        // Returns request type
+        virtual PluginRequestType getPluginRequestType() const;
 
-    Coin::UnspentP2PKHOutput utxo() const;
-    void setUtxo(const Coin::UnspentP2PKHOutput & utxo);
+        // Getters
+        libtorrent::sha1_hash infoHash() const;
+        void setInfoHash(const libtorrent::sha1_hash & infoHash);
 
-private:
+        BuyerTorrentPluginConfiguration configuration() const;
+        void setConfiguration(const BuyerTorrentPluginConfiguration & configuration);
 
-    // Torrent info_hash
-    libtorrent::sha1_hash _infoHash;
+        Coin::UnspentP2PKHOutput utxo() const;
+        void setUtxo(const Coin::UnspentP2PKHOutput & utxo);
 
-    // Buyer torrent plugin configuration
-    BuyerTorrentPlugin::Configuration _configuration;
+    private:
 
-    // Utxo funds buyer torrent plugin
-    Coin::UnspentP2PKHOutput _utxo;
-};
+        // Torrent info_hash
+        libtorrent::sha1_hash _infoHash;
+
+        // Buyer torrent plugin configuration
+        BuyerTorrentPluginConfiguration _configuration;
+
+        // Utxo funds buyer torrent plugin
+        Coin::UnspentP2PKHOutput _utxo;
+    };
+
+}
+}
+}
 
 #endif // START_BUYER_TORRENT_PLUGIN_HPP

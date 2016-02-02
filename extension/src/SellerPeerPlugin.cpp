@@ -20,6 +20,8 @@
 #include <protocol/FullPiece.hpp>
 #include <protocol/Payment.hpp>
 
+#include <paymentchannel/PayeeState.hpp>
+
 #include <CoinCore/CoinNodeData.h>
 
 #include <libtorrent/bt_peer_connection.hpp>
@@ -35,23 +37,25 @@ namespace extension {
 
     SellerPeerPlugin::SellerPeerPlugin(SellerTorrentPlugin * torrentPlugin,
                                        libtorrent::bt_peer_connection * connection,
+                                       const std::string & bep10ClientIdentifier,
                                        bool scheduledForDeletingInNextTorrentPluginTick,
-                                       const Payee::Configuration & payeeConfiguration,
+                                       const joystream::paymentchannel::PayeeConfiguration & payeeConfiguration,
                                        //const libtorrent::torrent_info & torrentFile,
                                        int numberOfPieces,
                                        QLoggingCategory & category)
         : PeerPlugin(torrentPlugin,
                      connection,
+                     bep10ClientIdentifier,
                      scheduledForDeletingInNextTorrentPluginTick,
                      category)
         , _plugin(torrentPlugin)
         , _peerState(//PeerState::LastValidAction::no_bitswapr_message_sent,
-                     PeerState::FailureMode::not_failed,
-                     Buy(),
-                     SignRefund(),
-                     Payment(),
-                     RequestFullPiece())
-        , _clientState(ClientState::no_bitswapr_message_sent)
+                     SellerPeerPluginPeerState::FailureMode::not_failed,
+                     joystream::protocol::Buy(),
+                     joystream::protocol::SignRefund(),
+                     joystream::protocol::Payment(),
+                     joystream::protocol::RequestFullPiece())
+        , _clientState(SellerPeerPluginClientState::no_bitswapr_message_sent)
         , _payee(payeeConfiguration)
         //, _torrentFile(torrentFile) {
         , _numberOfPieces(numberOfPieces) {
@@ -86,7 +90,7 @@ namespace extension {
     bool SellerPeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake) {
     //bool SellerPeerPlugin::on_extension_handshake(const libtorrent::bdecode_node & handshake) {
 
-        if(_clientState != ClientState::no_bitswapr_message_sent) {
+        if(_clientState != SellerPeerPluginClientState::no_bitswapr_message_sent) {
             throw std::runtime_error("Extended handshake initiated at incorrect state.");
         }
 
@@ -99,10 +103,10 @@ namespace extension {
         if(keepPlugin) {
 
             // send mode message
-            sendExtendedMessage(Sell(_payee.price(), _payee.lockTime(), _payee.maximumNumberOfSellers())); // _plugin->minPrice(), _plugin->minLock()
+            sendExtendedMessage(joystream::protocol::Sell(_payee.price(), _payee.lockTime(), _payee.maximumNumberOfSellers())); // _plugin->minPrice(), _plugin->minLock()
 
             // and update new client state correspondingly
-            _clientState = ClientState::seller_mode_announced;
+            _clientState = SellerPeerPluginClientState::seller_mode_announced;
         }
 
         // Return status to libtorrent
@@ -346,23 +350,23 @@ namespace extension {
         return _payee.price() * _payee.numberOfPaymentsMade();
     }
 
-    SellerPeerPlugin::PeerState SellerPeerPlugin::peerState() const {
+    SellerPeerPluginPeerState SellerPeerPlugin::peerState() const {
         return _peerState;
     }
 
-    void SellerPeerPlugin::setPeerState(const PeerState & peerState) {
+    void SellerPeerPlugin::setPeerState(const SellerPeerPluginPeerState & peerState) {
         _peerState = peerState;
     }
 
-    SellerPeerPlugin::ClientState SellerPeerPlugin::clientState() const {
+    SellerPeerPluginClientState SellerPeerPlugin::clientState() const {
         return _clientState;
     }
 
-    void SellerPeerPlugin::setClientState(const ClientState & clientState) {
+    void SellerPeerPlugin::setClientState(const SellerPeerPluginClientState & clientState) {
         _clientState = clientState;
     }
 
-    Payee SellerPeerPlugin::payee() const {
+    joystream::paymentchannel::Payee SellerPeerPlugin::payee() const {
         return _payee;
     }
 
@@ -408,7 +412,7 @@ namespace extension {
     }
     */
 
-    void SellerPeerPlugin::processObserve(const Observe * m) {
+    void SellerPeerPlugin::processObserve(const joystream::protocol::Observe * m) {
 
         // Do processing in response to mode reset
         peerModeReset();
@@ -420,7 +424,7 @@ namespace extension {
         _peerModeAnnounced = PeerModeAnnounced::observer;
     }
 
-    void SellerPeerPlugin::processBuy(const Buy * m) {
+    void SellerPeerPlugin::processBuy(const joystream::protocol::Buy * m) {
 
         // Do processing in response to mode reset
         peerModeReset();
@@ -433,7 +437,7 @@ namespace extension {
         _peerModeAnnounced = PeerModeAnnounced::buyer;
     }
 
-    void SellerPeerPlugin::processSell(const Sell * m) {
+    void SellerPeerPlugin::processSell(const joystream::protocol::Sell * m) {
 
         // Do processing in response to mode reset
         peerModeReset();
@@ -445,55 +449,55 @@ namespace extension {
         _peerModeAnnounced = PeerModeAnnounced::seller;
     }
 
-    void SellerPeerPlugin::processJoinContract(const JoinContract * m) {
+    void SellerPeerPlugin::processJoinContract(const joystream::protocol::JoinContract * m) {
 
         qCDebug(_category) << "processJoinContract";
 
-        if(_clientState != ClientState::seller_mode_announced &&
-                _clientState != ClientState::ignored_contract_invitation)
+        if(_clientState != SellerPeerPluginClientState::seller_mode_announced &&
+                _clientState != SellerPeerPluginClientState::ignored_contract_invitation)
             throw std::runtime_error("JoinContract message should only be sent in response to an announced seller mode.");
 
         // _clientState != seller_mode_announced,ignored_contract_invitation =>
-        Q_ASSERT(_payee.state() == Payee::State::waiting_for_payor_information);
+        Q_ASSERT(_payee.state() == joystream::paymentchannel::PayeeState::waiting_for_payor_information);
 
         // Check that buy terms are compatible
-        const Buy & lastBuyReceived = _peerState.lastBuyReceived();
+        const joystream::protocol::Buy & lastBuyReceived = _peerState.lastBuyReceived();
 
         if(_payee.price() <=  lastBuyReceived.maxPrice() &&
            _payee.lockTime() <= lastBuyReceived.maxLock() &&
            _payee.maximumNumberOfSellers() >= lastBuyReceived.minSellers()) {
 
             // invite to join contract
-            sendExtendedMessage(JoiningContract(_payee.payeeContractKeys().pk(), _payee.payeePaymentKeys().pk()));
+            sendExtendedMessage(joystream::protocol::JoiningContract(_payee.payeeContractKeys().pk(), _payee.payeePaymentKeys().pk()));
 
             // and remember invitation
-            _clientState = ClientState::joined_contract;
+            _clientState = SellerPeerPluginClientState::joined_contract;
 
             qCDebug(_category) << "Joined contract.";
 
         } else {
 
             // Remember that invite was ignored
-            _clientState = ClientState::ignored_contract_invitation;
+            _clientState = SellerPeerPluginClientState::ignored_contract_invitation;
 
             qCDebug(_category) << "Ignored contract invitation.";
         }
     }
 
-    void SellerPeerPlugin::processJoiningContract(const JoiningContract * m) {
+    void SellerPeerPlugin::processJoiningContract(const joystream::protocol::JoiningContract * m) {
         throw std::runtime_error("JoiningContract message should never be sent to seller mode peer.");
     }
 
-    void SellerPeerPlugin::processSignRefund(const SignRefund * m) {
+    void SellerPeerPlugin::processSignRefund(const joystream::protocol::SignRefund * m) {
 
         qCDebug(_category) << "processSignRefund";
 
-        if(_clientState != ClientState::joined_contract)
+        if(_clientState != SellerPeerPluginClientState::joined_contract)
             throw std::runtime_error("SignRefund message should only be sent in response to joining the contract.");
 
         // _clientState == ClientState::joined_contract =>
-        Q_ASSERT(_payee.state() == Payee::State::waiting_for_payor_information || // if this is first signing
-                 _payee.state() == Payee::State::has_all_information_required); // signed before and kept data
+        Q_ASSERT(_payee.state() == joystream::paymentchannel::PayeeState::waiting_for_payor_information || // if this is first signing
+                 _payee.state() == joystream::paymentchannel::PayeeState::has_all_information_required); // signed before and kept data
 
         // Save sign refund message
         _peerState.setLastSignRefundReceived(*m);
@@ -505,44 +509,44 @@ namespace extension {
         Coin::Signature refundSignature = _payee.generateRefundSignature();
 
         // Send signed_refund message
-        sendExtendedMessage(RefundSigned(refundSignature));
+        sendExtendedMessage(joystream::protocol::RefundSigned(refundSignature));
 
         // Update state
-        _clientState = ClientState::signed_refund;
+        _clientState = SellerPeerPluginClientState::signed_refund;
 
         qCDebug(_category) << "Signed refund.";
     }
 
-    void SellerPeerPlugin::processRefundSigned(const RefundSigned * m) {
+    void SellerPeerPlugin::processRefundSigned(const joystream::protocol::RefundSigned * m) {
         throw std::runtime_error("RefundSigned message should never be sent to seller mode peer.");
     }
 
-    void SellerPeerPlugin::processReady(const Ready * m) {
+    void SellerPeerPlugin::processReady(const joystream::protocol::Ready * m) {
 
         qCDebug(_category) << "processReady";
 
-        if(_clientState != ClientState::signed_refund)
+        if(_clientState != SellerPeerPluginClientState::signed_refund)
             throw std::runtime_error("Ready message should only be sent in response to signing a refund.");
 
         // Start timer or something, to start looking for contract
         //quint64 funds = BitSwaprjs::get_tx_outpoint(fundingOutPoint, spent);
 
         // Update client state
-        _clientState = ClientState::awaiting_fullpiece_request_after_ready_announced;
+        _clientState = SellerPeerPluginClientState::awaiting_fullpiece_request_after_ready_announced;
     }
 
-    void SellerPeerPlugin::processRequestFullPiece(const RequestFullPiece * m) {
+    void SellerPeerPlugin::processRequestFullPiece(const joystream::protocol::RequestFullPiece * m) {
 
         qCDebug(_category) << "processRequestFullPiece";
 
-        if(_clientState != ClientState::awaiting_fullpiece_request_after_ready_announced &&
-           _clientState != ClientState::awaiting_piece_request_after_payment)
+        if(_clientState != SellerPeerPluginClientState::awaiting_fullpiece_request_after_ready_announced &&
+           _clientState != SellerPeerPluginClientState::awaiting_piece_request_after_payment)
             throw std::runtime_error("RequestFullPiece message should only be sent in response to signing a refund or a full piece.");
 
         // _clientState values =>
-        Q_ASSERT(_payee.state() == Payee::State::has_all_information_required);
+        Q_ASSERT(_payee.state() == joystream::paymentchannel::PayeeState::has_all_information_required);
         // true => ()
-        Q_ASSERT(_clientState != ClientState::awaiting_piece_request_after_payment ||
+        Q_ASSERT(_clientState != SellerPeerPluginClientState::awaiting_piece_request_after_payment ||
                 !_fullPiecesSent.isEmpty());
         //Q_ASSERT(_completedAsyncReads.size() == 0);
         //Q_ASSERT(_numberOfAsyncReadsCompleted == 0);
@@ -555,7 +559,7 @@ namespace extension {
         _peerState.setLastRequestFullPieceReceived(*m);
 
         // Update client state
-        _clientState = ClientState::reading_piece_from_disk;
+        _clientState = SellerPeerPluginClientState::reading_piece_from_disk;
 
         // Do async read of piece
         _plugin->readPiece(this, m->pieceIndex());
@@ -646,27 +650,27 @@ namespace extension {
 
     void SellerPeerPlugin::pieceRead(int piece, const boost::shared_array<char> & pieceData, int size) {
 
-        Q_ASSERT(_clientState == ClientState::reading_piece_from_disk);
+        Q_ASSERT(_clientState == SellerPeerPluginClientState::reading_piece_from_disk);
         Q_ASSERT(piece == _peerState.lastRequestFullPieceReceived().pieceIndex());
-        Q_ASSERT(_payee.state() == Payee::State::has_all_information_required);
+        Q_ASSERT(_payee.state() == joystream::paymentchannel::PayeeState::has_all_information_required);
 
         // Send piece
-        sendExtendedMessage(FullPiece(pieceData, size));
+        sendExtendedMessage(joystream::protocol::FullPiece(pieceData, size));
 
         // Note that piece was sent
         _fullPiecesSent.append(piece);
 
         // Update client state
-        _clientState = ClientState::awaiting_payment;
+        _clientState = SellerPeerPluginClientState::awaiting_payment;
     }
 
     void SellerPeerPlugin::pieceReadFailed(int piece) {
 
         qCDebug(_category) << "pieceReadFailed" << piece;
 
-        Q_ASSERT(_clientState == ClientState::reading_piece_from_disk);
+        Q_ASSERT(_clientState == SellerPeerPluginClientState::reading_piece_from_disk);
         Q_ASSERT(piece == _peerState.lastRequestFullPieceReceived().pieceIndex());
-        Q_ASSERT(_payee.state() == Payee::State::has_all_information_required);
+        Q_ASSERT(_payee.state() == joystream::paymentchannel::PayeeState::has_all_information_required);
 
         qCDebug(_category) << "reading pieceReadFailed " << piece;
 
@@ -680,15 +684,16 @@ namespace extension {
 
     Coin::Transaction SellerPeerPlugin::lastPaymentTransaction() const {
 
-        Q_ASSERT(_clientState == SellerPeerPlugin::ClientState::awaiting_payment ||
-                 _clientState == SellerPeerPlugin::ClientState::awaiting_piece_request_after_payment ||
-                 _clientState == SellerPeerPlugin::ClientState::reading_piece_from_disk);
+        Q_ASSERT(_clientState == SellerPeerPluginClientState::awaiting_payment ||
+                 _clientState == SellerPeerPluginClientState::awaiting_piece_request_after_payment ||
+                 _clientState == SellerPeerPluginClientState::reading_piece_from_disk);
 
-        Q_ASSERT(_payee.state() == Payee::State::has_all_information_required);
+        Q_ASSERT(_payee.state() == joystream::paymentchannel::PayeeState::has_all_information_required);
 
         return _payee.lastPaymentTransaction();
     }
 
+    /**
     SellerPeerPlugin::Status SellerPeerPlugin::status() const {
 
         return Status(_peerModeAnnounced,
@@ -698,20 +703,21 @@ namespace extension {
                       _clientState,
                       _payee.status());
     }
+    */
 
-    void SellerPeerPlugin::processFullPiece(const FullPiece * m) {
+    void SellerPeerPlugin::processFullPiece(const joystream::protocol::FullPiece * m) {
         throw std::runtime_error("FullPiece message should never be sent to seller mode peer.");
     }
 
-    void SellerPeerPlugin::processPayment(const Payment * m) {
+    void SellerPeerPlugin::processPayment(const joystream::protocol::Payment * m) {
 
         qCDebug(_category) << "processPayment";
 
-        if(_clientState != ClientState::awaiting_payment)
+        if(_clientState != SellerPeerPluginClientState::awaiting_payment)
             throw std::runtime_error("Payment message should only be sent in response to a full piece message.");
 
         // _clientState values =>
-        Q_ASSERT(_payee.state() == Payee::State::has_all_information_required);
+        Q_ASSERT(_payee.state() == joystream::paymentchannel::PayeeState::has_all_information_required);
 
         // Validate payment
         bool valid = _payee.registerPayment(m->sig());
@@ -725,7 +731,7 @@ namespace extension {
         }
 
         // Update state
-        _clientState = ClientState::awaiting_piece_request_after_payment;
+        _clientState = SellerPeerPluginClientState::awaiting_piece_request_after_payment;
 
         // Note payment
         _plugin->addToBalance(_payee.price());

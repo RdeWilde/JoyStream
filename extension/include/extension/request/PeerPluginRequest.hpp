@@ -5,30 +5,38 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef PEER_PLUGIN_REQUEST_HPP
-#define PEER_PLUGIN_REQUEST_HPP
+#ifndef JOYSTREAM_EXTENSION_REQUEST_PEER_PLUGIN_REQUEST_HPP
+#define JOYSTREAM_EXTENSION_REQUEST_PEER_PLUGIN_REQUEST_HPP
 
-#include "PeerPluginRequestType.hpp"
+#include <extension/request/PeerPluginRequestType.hpp>
 
 #include <libtorrent/peer_id.hpp> // sha1_hash
 #include <libtorrent/socket.hpp>
 
-class PeerPluginRequest
-{
-public:
+namespace joystream {
+namespace extension {
+namespace request {
 
-    // Hash of target torrent to which peer corresponds
-    libtorrent::sha1_hash _info_hash;
+    class PeerPluginRequest {
 
-    // Endpoint of peer
-    libtorrent::tcp::endpoint _endpoint;
+    public:
 
-    // Constructor
-    PeerPluginRequest(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endpoint);
+        // Hash of target torrent to which peer corresponds
+        libtorrent::sha1_hash _info_hash;
 
-    // Returns type of peer plugin request
-    virtual PeerPluginRequestType getPeerPluginRequestType() const = 0;
+        // Endpoint of peer
+        libtorrent::tcp::endpoint _endpoint;
 
-};
+        // Constructor
+        PeerPluginRequest(const libtorrent::sha1_hash & info_hash, const libtorrent::tcp::endpoint & endpoint);
 
-#endif // PEER_PLUGIN_REQUEST_HPP
+        // Returns type of peer plugin request
+        virtual PeerPluginRequestType getPeerPluginRequestType() const = 0;
+
+    };
+
+}
+}
+}
+
+#endif // JOYSTREAM_EXTENSION_REQUEST_PEER_PLUGIN_REQUEST_HPP

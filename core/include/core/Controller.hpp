@@ -5,14 +5,14 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef CONTROLLER_HPP
-#define CONTROLLER_HPP
+#ifndef CORE_CONTROLLER_HPP
+#define CORE_CONTROLLER_HPP
 
-#include <core/controller/PluginInstalled.hpp>
-#include <core/controller/TorrentViewModel.hpp>
-#include <core/extension/Plugin.hpp>
+#include <core/PluginInstalled.hpp>
+#include <core/viewmodel/TorrentViewModel.hpp>
+#include <core/Stream.hpp>
+
 #include <common/UnspentP2PKHOutput.hpp>
-#include <core/controller/Stream.hpp>
 
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>
@@ -28,17 +28,6 @@
 #include <QAbstractSocket> // is nested enum QAbstractSocket::SocketError
 
 class QNetworkAccessManager;
-class TorrentStatus;
-class TorrentPluginStartedAlert;
-class PluginStatusAlert;
-class BuyerTorrentPluginStatusAlert;
-class SellerTorrentPluginStatusAlert;
-class StartedSellerTorrentPlugin;
-class StartedBuyerTorrentPlugin;
-class SellerPeerAddedAlert;
-class BuyerPeerAddedAlert;
-class SellerPeerPluginRemovedAlert;
-class BuyerPeerPluginRemovedAlert;
 
 namespace Wallet {
     class Manager;
@@ -49,488 +38,479 @@ namespace libtorrent {
 }
 
 namespace joystream {
-namespace core {
 
-    class Controller : public QObject {
+    namespace extension {
 
-        Q_OBJECT
+        class Plugin;
+        class TorrentStatus;
+        class SellerTorrentPluginConfiguration;
+        class BuyerTorrentPluginConfiguration;
 
-    public:
+        namespace alert {
 
-        /**
-         * @brief
-         */
-        enum class State {
-            //waiting_for_session_to_start,
-            normal,
-            waiting_for_resume_data_while_closing
-        };
+            class TorrentPluginStartedAlert;
+            class PluginStatusAlert;
+            class BuyerTorrentPluginStatusAlert;
+            class SellerTorrentPluginStatusAlert;
+            class StartedSellerTorrentPlugin;
+            class StartedBuyerTorrentPlugin;
+            class SellerPeerAddedAlert;
+            class BuyerPeerAddedAlert;
+            class SellerPeerPluginRemovedAlert;
+            class BuyerPeerPluginRemovedAlert;
+        }
+    }
 
-        /**
-         * @brief Torrent as seen by the controller.
-         */
-        class Torrent {
+    namespace core {
+
+        class ControllerConfiguration;
+        class TorrentConfiguration;
+
+        class Controller : public QObject {
+
+            Q_OBJECT
 
         public:
 
             /**
-             * @brief The State enum
-             *
-             * Status of Torrent
+             * @brief
              */
-            enum class Status {
-
-                // Torrent has been libtorrent::async_add_torrent has been called, without response
-                being_async_added_to_session,
-
-                // Torrent was successfully added to session.
-                // Can be set either from successfull libtorrent::add_torrent_alert,
-                // or synchronous adding which succeeds.
-                torrent_added_but_not_checked,
-
-                // When a torrent is added, some checking is done
-                // - primarily resume data I think, and when that is completed
-                // the libtorrent::torrent_checked_alert alert is issued by libtorrent
-                torrent_checked,
-
-                /**
-                // User has to specify torrent plugin configuration,
-                // is set when user dialog is started
-                //
-                // ** THIS SHOULD POTENTIALLY BE REMOVED, IS TO
-                // TIGHTLY COUPLED WITH VIEW DETAILS,
-                // FIND BETTER SOLUTION**
-                torrent_plugin_configuration_from_user,
-                */
-
-                // <== this should probably be removed
-                nothing,
-
-                // Result of some pending resume_data() call,
-                // can be either
-                // libtorrent::save_resume_data_alert
-                // libtorrent::save_resume_data_failed_alert
-                asked_for_resume_data
+            enum class State {
+                //waiting_for_session_to_start,
+                normal,
+                waiting_for_resume_data_while_closing
             };
+
+            // Constructor starting session with given state
+            Controller(const ControllerConfiguration & configuration, Wallet::Manager * wallet, QNetworkAccessManager * manager, QLoggingCategory & category);
+
+            // Destructor
+            ~Controller();
 
             /**
-             * This class is for the moment not used, we just use libtorrent::torrent_status fully,
-             * but in the future this should change.
+             * Libtorrent entry points
+             * =================
+             * All Q_INVOKABLE routines are not thread safe, and must be invoke through event loop
+             * or on same thread as controller owner, the rest should be thread safe.
+             */
 
-            class Status {
+            // Callback routine called by libtorrent dispatcher routine
+            //
+            // CRITICAL:
+            // Do not under any circumstance have a call to libtorrent in this routine, since the network
+            // thread in libtorrent will be making this call, and a new call will result in a dead lock.
+            //
+            /** THIS ROUTINE MUST NOT BE PUBLICLY VISIBLE IN THE FUTURE **/
+            void libtorrent_alert_dispatcher_callback(const std::auto_ptr<libtorrent::alert> & alertAutoPtr);
+            void libtorrent_entry_point_alert_notification();
 
-            public:
+            /**
+             * Plugin entry points
+             * =================
+             * What are terms for calling this again?
+             */
+             void sellerPeerPluginRemoved(const libtorrent::sha1_hash & infoHash, const libtorrent::tcp::endpoint & endPoint);
 
-            private:
+             /**
+              * Alert processing
+              * ==================
+              */
 
-                libtorrent::torrent_status::state_t _state;
+             // Process all pending alerts in the libtorrent queue
+             //Q_INVOKABLE void processAlertQueue();
 
-                float _progress;
+             // Process a spesific request
+             Q_INVOKABLE void processAlert(const libtorrent::alert * a);
 
-                // Download rate (bytes/s)
-                int _downloadRate;
+            /**
+             * Inspection/Controlling controller
+             * =================
+             * Routines for inspecting and controlling controller, are not thread safe, so calls have
+             * to be on same thread as owner of controller.
+             * Typical caller is view or test code.
+             */
 
-                // Upload rate (bytes/s)
-                int _uploadRate;
+            // Manage torrents
+            bool addTorrent(const TorrentConfiguration & configuration);
+            bool addTorrent(const TorrentConfiguration & configuration, const joystream::extension::SellerTorrentPluginConfiguration & pluginConfiguration);
+            bool addTorrent(const TorrentConfiguration & configuration, const joystream::extension::BuyerTorrentPluginConfiguration & pluginConfiguration, const Coin::UnspentP2PKHOutput & utxo);
+            //bool addTorrent(const Torrent::Configuration & configuration, const ObserverTorrentPlugin::Configuration & pluginConfiguration);
 
-                // Total number of peers connected to torrent
-                int _numberOfPeers;
+            // Start torrent plugin
+            //void startTorrentPlugin(const libtorrent::sha1_hash & info_hash, const TorrentPlugin::Configuration * configuration);
+            void startSellerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const joystream::extension::SellerTorrentPluginConfiguration & pluginConfiguration);
+            void startBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const joystream::extension::BuyerTorrentPluginConfiguration & pluginConfiguration, const Coin::UnspentP2PKHOutput & utxo);
+            //void startObserverTorrentPlugin(const libtorrent::sha1_hash & info_hash, const ObserverTorrentPlugin::Configuration & pluginConfiguration);
 
-                // Total number of peers with extension
-                int _numberOfPeersWithExtension;
+            // Stops libtorrent session, and tries to save_resume data, when all resume data is saved, finalize_close() is called.
+            void begin_close();
 
-                // Plugin currently installed on this torrent
-                PluginInstalled pluginInstalled;
+            // Returns torrent handle for torrent with give info hash, if no such torrent has been registered
+            // then an invalid handle is passed
+            //libtorrent::torrent_handle getTorrentHandle(const libtorrent::sha1_hash & infoHash) const;
 
+            /**
+             * Stram management stuff
+             * THIS ROUTINE MUST BE HIDDEN FROM CONTROLLER USER IN THE FUTURE
+             **/
 
-            };
+            // If there is a torrent for the given info hash, then the given stream is added to the
+            // torrents streams set, and lastly a handle for the torrent is removed. Otherwise,
+            // same rules as getTorrentHandle apply.
+            libtorrent::torrent_handle registerStream(Stream * stream);
+
+            // Removes stream registration
+            void unRegisterStream(Stream * stream);
+            void unRegisterStream(Stream * stream, Stream::Error error);
+
+            // If torrent corresponding to the given info hash has a buyer torrent plugin installed,
+            // then the plugin is requested to alter download location
+            void changeDownloadingLocationFromThisPiece(const libtorrent::sha1_hash & infoHash, int pieceIndex);
+
+            // Returns port server is presently listening on
+            quint16 getServerPort() const;
+
+            // Returns reference to the wallet
+            Wallet::Manager * wallet();
+
+            // Get view model for given torrent
+            const TorrentViewModel * torrentViewModel(const libtorrent::sha1_hash & infoHash) const;
+
+            // Save state of controller
+            ControllerConfiguration configuration() const;
+
+        public slots:
+
+            /**
+             * View entry points
+             * =================
+             * Are not thread safe. Primarily called by view objects on the same thread as controller thread,
+             * buy also good routines to use for testing.
+             */
+
+            void pauseTorrent(const libtorrent::sha1_hash & info_hash);
+            void startTorrent(const libtorrent::sha1_hash & info_hash);
+            void removeTorrent(const libtorrent::sha1_hash & info_hash);
+
+        private slots:
+
+            /**
+             * Intra Controller entry points
+             * =================
+             * Typically parts of controller,
+             * remove this at a later time
+             */
+
+            // Tells session to post updates, is signaled by timer
+            void callPostTorrentUpdates();
+
+            /**
+             * Handlers for TCP streamng server
+             */
+
+            // Checks server for pending connections
+            void handleConnection();
+
+            // Checks server for pending error
+            void handleAcceptError(QAbstractSocket::SocketError socketError);
+
+            /**
+            // Streaming server signals
+            void registerStream(const Stream * handler);
+            void handleFailedStreamCreation(QAbstractSocket::SocketError socketError);
+
+            // Stream signal
+            void registerRequestedPathOnStream(const Stream * handler, const QByteArray & requestedPath) const;
+
+            // Will ask libtorrent to read given piece
+            void readPiece(int piece);
             */
 
+        signals:
 
+            // Sent when libtorrent::add_torrent_alert is received from libtorrent
+            void addedTorrent(const TorrentViewModel * model);
 
-            // Constructor from members
-            Torrent(const libtorrent::sha1_hash & infoHash,
-                    const std::string & name,
-                    const std::string & savePath,
-                    const std::vector<char> & resumeData,
-                    quint64 flags,
-                    //const libtorrent::torrent_handle & handle,
-                    //libtorrent::torrent_info * torrentInfo,
-                    const boost::intrusive_ptr<libtorrent::torrent_info> & torrentFile,
-                    Status status);
+            // Torrent with given info hash was removed
+            void torrentRemoved(const libtorrent::sha1_hash & info_hash);
 
-            // Add plugins
-            void addPlugin(const SellerTorrentPlugin::Status & status);
-            void addPlugin(const BuyerTorrentPlugin::Status & status);
+            // A torrent was not added successfully according to libtorrent session giving
+            // a libtorrent::add_torrent_alert p->error was done.
+            void failedToAddTorrent(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec);
 
-            // Getters and Setters
-            libtorrent::sha1_hash infoHash() const;
+            // A torrent plugin was started
+            // *** DISCONTINUED, THESE ARE INSTALLED AS SIGNALS ON TORRENT VIEW MODELS
+            //void torrentPluginStarted();
+            //void startedSellerTorrentPlugin(SellerTorrentPluginViewModel * model);
+            //void startedBuyerTorrentPlugin(BuyerTorrentPluginViewModel * model);
 
-            std::string name() const;
-            void setName(const std::string & name);
+            // Notify view
+            void torrentCheckedButHasNoPlugin(const libtorrent::torrent_info & torrentInfo, const libtorrent::torrent_status & torrentStatus);
 
-            std::string savePath() const;
-            void setSavePath(const std::string & savePath);
+            // Status update from underlying libtorrent session
+            void pluginStatusUpdate(const Plugin::Status & status);
 
-            std::vector<char> resumeData() const;
-            void setResumeData(const std::vector<char> & resumeData);
-
-            quint64 flags() const;
-            void setFlags(quint64 flags);
-
-            //libtorrent::torrent_info * torrentInfo();
-
-            libtorrent::torrent_handle handle() const;
-            void setHandle(const libtorrent::torrent_handle & handle);
-
-            Status status() const;
-            void setStatus(Status status);
-
-            PluginInstalled pluginInstalled() const;
-
-            TorrentViewModel * model();
-
-            // Stream management
-            void addStream(Stream * stream);
-            void removeStream(Stream * stream);
-
-            // Given piece was read
-            void pieceRead(const boost::shared_array<char> & buffer, int pieceIndex, int size);
-
-            // Given piece was downloaded and checked
-            void pieceFinished(int piece);
+            // Emitted after finalize_close(), that is when controller is 100% done
+            void closed();
 
         private:
 
-            // Info hash of torrent
-            libtorrent::sha1_hash _infoHash;
+            // State of controller
+            State _state;
 
-            // Name of torrent
-            std::string _name; // how should this be used?
+            // Underlying libtorrent session,
+            // has to be pointer since it needs sessings_pack,
+            // which can only be built postfix calls
+            libtorrent::session * _session;
 
-            // Save path
-            std::string _savePath;
+            // Wallet used
+            Wallet::Manager * _wallet;
 
-            // Resume data
-            std::vector<char> _resumeData;
+            // Logging category
+            QLoggingCategory & _category;
 
-            // Flags
-            quint64 _flags;
+            // Network access manager reference
+            // *** REMOVE
+            // *** REMOVE
+            // *** IS THERE ANY REASON FOR
+            QNetworkAccessManager * _manager;
 
-            // Handle to torrent
-            // A valid handle is only set after the torrent has been added
-            // successfully to session
-            libtorrent::torrent_handle _handle;
+            // Plugin: constructor initializatin list expects plugin to appear after category_
 
-            // Torrent file
-            //libtorrent::torrent_info * _torrentInfo;
+            // Should this be boost::shared_ptr<Plugin>, since life time of object is managed by it?
+            // on the other hand, we loose Plugin behaviour through libtorrent::plugin pointer, which we need!
+            joystream::extension::Plugin * _plugin;
+
+            // Port range for which libtorrent should try to listen
+            // Must persist so that it can be saved in controller contiguration
+            // upon closing
+            std::pair<int, int> _portRange;
+
+            // Timer which calls session.post_torrent_updates() at regular intervals
+            QTimer _statusUpdateTimer;
+
+            /**
+             * @brief Torrent as seen by the controller.
+             */
+            class Torrent {
+
+            public:
+
+                /**
+                 * @brief The State enum
+                 *
+                 * Status of Torrent
+                 */
+                enum class Status {
+
+                    // Torrent has been libtorrent::async_add_torrent has been called, without response
+                    being_async_added_to_session,
+
+                    // Torrent was successfully added to session.
+                    // Can be set either from successfull libtorrent::add_torrent_alert,
+                    // or synchronous adding which succeeds.
+                    torrent_added_but_not_checked,
+
+                    // When a torrent is added, some checking is done
+                    // - primarily resume data I think, and when that is completed
+                    // the libtorrent::torrent_checked_alert alert is issued by libtorrent
+                    torrent_checked,
+
+                    /**
+                    // User has to specify torrent plugin configuration,
+                    // is set when user dialog is started
+                    //
+                    // ** THIS SHOULD POTENTIALLY BE REMOVED, IS TO
+                    // TIGHTLY COUPLED WITH VIEW DETAILS,
+                    // FIND BETTER SOLUTION**
+                    torrent_plugin_configuration_from_user,
+                    */
+
+                    // <== this should probably be removed
+                    nothing,
+
+                    // Result of some pending resume_data() call,
+                    // can be either
+                    // libtorrent::save_resume_data_alert
+                    // libtorrent::save_resume_data_failed_alert
+                    asked_for_resume_data
+                };
+
+                // Constructor from members
+                Torrent(const libtorrent::sha1_hash & infoHash,
+                        const std::string & name,
+                        const std::string & savePath,
+                        const std::vector<char> & resumeData,
+                        quint64 flags,
+                        //const libtorrent::torrent_handle & handle,
+                        //libtorrent::torrent_info * torrentInfo,
+                        const boost::intrusive_ptr<libtorrent::torrent_info> & torrentFile,
+                        Status status);
+
+                // Add plugins
+                void addPlugin(const SellerTorrentPlugin::Status & status);
+                void addPlugin(const BuyerTorrentPlugin::Status & status);
+
+                // Getters and Setters
+                libtorrent::sha1_hash infoHash() const;
+
+                std::string name() const;
+                void setName(const std::string & name);
+
+                std::string savePath() const;
+                void setSavePath(const std::string & savePath);
+
+                std::vector<char> resumeData() const;
+                void setResumeData(const std::vector<char> & resumeData);
+
+                quint64 flags() const;
+                void setFlags(quint64 flags);
+
+                //libtorrent::torrent_info * torrentInfo();
+
+                libtorrent::torrent_handle handle() const;
+                void setHandle(const libtorrent::torrent_handle & handle);
+
+                Status status() const;
+                void setStatus(Status status);
+
+                PluginInstalled pluginInstalled() const;
+
+                TorrentViewModel * model();
+
+                // Stream management
+                void addStream(Stream * stream);
+                void removeStream(Stream * stream);
+
+                // Given piece was read
+                void pieceRead(const boost::shared_array<char> & buffer, int pieceIndex, int size);
+
+                // Given piece was downloaded and checked
+                void pieceFinished(int piece);
+
+            private:
+
+                // Info hash of torrent
+                libtorrent::sha1_hash _infoHash;
+
+                // Name of torrent
+                std::string _name; // how should this be used?
+
+                // Save path
+                std::string _savePath;
+
+                // Resume data
+                std::vector<char> _resumeData;
+
+                // Flags
+                quint64 _flags;
+
+                // Handle to torrent
+                // A valid handle is only set after the torrent has been added
+                // successfully to session
+                libtorrent::torrent_handle _handle;
+
+                // Torrent file
+                //libtorrent::torrent_info * _torrentInfo;
+
+                // Status
+                Status _status;
+
+                // Plugin currently installed on this torrent
+                PluginInstalled _pluginInstalled;
+
+                // Add const pointer to const object of type TorrentPlugin in the future?
+                // can be used to look at stuff like plugin mode etc.
+                // worth looking at.
+
+                // View model for torrent
+                TorrentViewModel _model;
+
+                // All streams for this torrent.
+                // Not quite sure if multiple separate streams for one torrent
+                // is necessary, if not, then remove this QSet later.
+                QSet<Stream *> _streams;
+            };
+
+            // Torrents added to session
+            // Has to be pointer since since its Torrent::model (TorrentViewModel) isQObject type.
+            // Object is entirely owned by this.
+            QMap<libtorrent::sha1_hash, Torrent *> _torrents;
+
+            // TCP streaming server
+            QTcpServer _streamingServer;
+
+            /**
+             *
+             * SIMPLIFY LATER: Put TorrentPlugin::Configuration pointer into Torrent.
+             * Do not refer to it as *pending*, this will bethe configurations the
+             * view is given when any editing of configruations is done, and
+             * which will be pased on to plugin as alert.
+             *
+             * In the case of buyer, put utxo in QMap for keeping pending utxo. They
+             * are indeed pending, and are therefore not part of Torrent.
+             *
+             *
+             */
+
+            // Configurations are placed in these maps when corresponding torrent is added to session,
+            // and they are used to start a plugin on the given torrent once a torrent_checked_alert has been
+            // issued by session.
+            //QMap<libtorrent::sha1_hash, const TorrentPlugin::Configuration *> _pendingConfigurations;
+            QMap<libtorrent::sha1_hash, SellerTorrentPlugin::Configuration> _pendingSellerTorrentPluginConfigurations;
+            QMap<libtorrent::sha1_hash, QPair<BuyerTorrentPlugin::Configuration, Coin::UnspentP2PKHOutput> > _pendingBuyerTorrentPluginConfigurationAndUtxos;
+            //QMap<libtorrent::sha1_hash, UnspentP2PKHOutput> _pendingBuyerTorrentPluginUtxos;
+            //QMap<libtorrent::sha1_hash, ObserverTorrentPlugin::Configuration> _pendingObserverTorrentPluginConfigurations;
+
+            // Routine for processig libtorrent alerts
+            void processMetadataReceivedAlert(libtorrent::metadata_received_alert const * p);
+            void processMetadataFailedAlert(libtorrent::metadata_failed_alert const * p);
+            void processListenFailedAlert(libtorrent::listen_failed_alert const * p);
+            void processAddTorrentAlert(libtorrent::add_torrent_alert const * p);
+            void processTorrentFinishedAlert(libtorrent::torrent_finished_alert const * p);
+            void processStatusUpdateAlert(libtorrent::state_update_alert const * p);
+            void processTorrentRemovedAlert(libtorrent::torrent_removed_alert const * p);
+            void processSaveResumeDataAlert(libtorrent::save_resume_data_alert const * p);
+            void processSaveResumeDataFailedAlert(libtorrent::save_resume_data_failed_alert const * p);
+            void processTorrentPausedAlert(libtorrent::torrent_paused_alert const * p);
+            void processTorrentCheckedAlert(libtorrent::torrent_checked_alert const * p);
+            void processReadPieceAlert(const libtorrent::read_piece_alert * p);
+            void processPieceFinishedAlert(const libtorrent::piece_finished_alert * p);
+
+            //void processTorrentPluginStartedAlert(const TorrentPluginStartedAlert * p);
+            void processStartedSellerTorrentPlugin(const StartedSellerTorrentPlugin * p);
+            void processStartedBuyerTorrentPlugin(const StartedBuyerTorrentPlugin * p);
+
+            //void processTorrentPluginStatusAlert(const TorrentPluginStatusAlert * p);
+            void processBuyerTorrentPluginStatusAlert(const BuyerTorrentPluginStatusAlert * p);
+            void processSellerTorrentPluginStatusAlert(const SellerTorrentPluginStatusAlert * p);
+
+            void processPluginStatusAlert(const PluginStatusAlert * p);
+
+            void processSellerPeerAddedAlert(const SellerPeerAddedAlert * p);
+            void processBuyerPeerAddedAlert(const BuyerPeerAddedAlert * p);
+
+            void processSellerPeerPluginRemovedAlert(const SellerPeerPluginRemovedAlert * p);
+            void processBuyerPeerPluginRemovedAlert(const BuyerPeerPluginRemovedAlert * p);
 
             // Status
-            Status _status;
+            void update(const std::vector<libtorrent::torrent_status> & statuses);
+            void update(const libtorrent::torrent_status & status);
 
-            // Plugin currently installed on this torrent
-            PluginInstalled _pluginInstalled;
+            // Start torrent plugin
+            void startTorrentPlugin(const libtorrent::sha1_hash & info_hash);
 
-            // Add const pointer to const object of type TorrentPlugin in the future?
-            // can be used to look at stuff like plugin mode etc.
-            // worth looking at.
+            // Tell libtorrent try save resume data for all torrents needing it
+            int makeResumeDataCallsForAllTorrents();
 
-            // View model for torrent
-            TorrentViewModel _model;
+            // Routine called after all resume data has been saved as part of an initlal begin_close() call
+            void finalize_close();
 
-            // All streams for this torrent.
-            // Not quite sure if multiple separate streams for one torrent
-            // is necessary, if not, then remove this QSet later.
-            QSet<Stream *> _streams;
+            // Save state of controller to file
+            void saveStateToFile(const char * file);
         };
 
-        // Constructor starting session with given state
-        Controller(const Configuration & configuration, Wallet::Manager * wallet, QNetworkAccessManager * manager, QLoggingCategory & category);
-
-        // Destructor
-        ~Controller();
-
-        /**
-         * Libtorrent entry points
-         * =================
-         * All Q_INVOKABLE routines are not thread safe, and must be invoke through event loop
-         * or on same thread as controller owner, the rest should be thread safe.
-         */
-
-        // Callback routine called by libtorrent dispatcher routine
-        //
-        // CRITICAL:
-        // Do not under any circumstance have a call to libtorrent in this routine, since the network
-        // thread in libtorrent will be making this call, and a new call will result in a dead lock.
-        //
-        /** THIS ROUTINE MUST NOT BE PUBLICLY VISIBLE IN THE FUTURE **/
-        void libtorrent_alert_dispatcher_callback(const std::auto_ptr<libtorrent::alert> & alertAutoPtr);
-        void libtorrent_entry_point_alert_notification();
-
-        /**
-         * Plugin entry points
-         * =================
-         * What are terms for calling this again?
-         */
-         void sellerPeerPluginRemoved(const libtorrent::sha1_hash & infoHash, const libtorrent::tcp::endpoint & endPoint);
-
-         /**
-          * Alert processing
-          * ==================
-          */
-
-         // Process all pending alerts in the libtorrent queue
-         //Q_INVOKABLE void processAlertQueue();
-
-         // Process a spesific request
-         Q_INVOKABLE void processAlert(const libtorrent::alert * a);
-
-        /**
-         * Inspection/Controlling controller
-         * =================
-         * Routines for inspecting and controlling controller, are not thread safe, so calls have
-         * to be on same thread as owner of controller.
-         * Typical caller is view or test code.
-         */
-
-        // Manage torrents
-        bool addTorrent(const Torrent::Configuration & configuration);
-        bool addTorrent(const Torrent::Configuration & configuration, const SellerTorrentPlugin::Configuration & pluginConfiguration);
-        bool addTorrent(const Torrent::Configuration & configuration, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const Coin::UnspentP2PKHOutput & utxo);
-        //bool addTorrent(const Torrent::Configuration & configuration, const ObserverTorrentPlugin::Configuration & pluginConfiguration);
-
-        // Start torrent plugin
-        //void startTorrentPlugin(const libtorrent::sha1_hash & info_hash, const TorrentPlugin::Configuration * configuration);
-        void startSellerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const SellerTorrentPlugin::Configuration & pluginConfiguration);
-        void startBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const Coin::UnspentP2PKHOutput & utxo);
-        //void startObserverTorrentPlugin(const libtorrent::sha1_hash & info_hash, const ObserverTorrentPlugin::Configuration & pluginConfiguration);
-
-        // Stops libtorrent session, and tries to save_resume data, when all resume data is saved, finalize_close() is called.
-        void begin_close();
-
-        // Returns torrent handle for torrent with give info hash, if no such torrent has been registered
-        // then an invalid handle is passed
-        //libtorrent::torrent_handle getTorrentHandle(const libtorrent::sha1_hash & infoHash) const;
-
-        /**
-         * Stram management stuff
-         * THIS ROUTINE MUST BE HIDDEN FROM CONTROLLER USER IN THE FUTURE
-         **/
-
-        // If there is a torrent for the given info hash, then the given stream is added to the
-        // torrents streams set, and lastly a handle for the torrent is removed. Otherwise,
-        // same rules as getTorrentHandle apply.
-        libtorrent::torrent_handle registerStream(Stream * stream);
-
-        // Removes stream registration
-        void unRegisterStream(Stream * stream);
-        void unRegisterStream(Stream * stream, Stream::Error error);
-
-        // If torrent corresponding to the given info hash has a buyer torrent plugin installed,
-        // then the plugin is requested to alter download location
-        void changeDownloadingLocationFromThisPiece(const libtorrent::sha1_hash & infoHash, int pieceIndex);
-
-        // Returns port server is presently listening on
-        quint16 getServerPort() const;
-
-        // Returns reference to the wallet
-        Wallet::Manager * wallet();
-
-        // Get view model for given torrent
-        const TorrentViewModel * torrentViewModel(const libtorrent::sha1_hash & infoHash) const;
-
-        // Save state of controller
-        Configuration configuration() const;
-
-    public slots:
-
-        /**
-         * View entry points
-         * =================
-         * Are not thread safe. Primarily called by view objects on the same thread as controller thread,
-         * buy also good routines to use for testing.
-         */
-
-        void pauseTorrent(const libtorrent::sha1_hash & info_hash);
-        void startTorrent(const libtorrent::sha1_hash & info_hash);
-        void removeTorrent(const libtorrent::sha1_hash & info_hash);
-
-    private slots:
-
-        /**
-         * Intra Controller entry points
-         * =================
-         * Typically parts of controller,
-         * remove this at a later time
-         */
-
-        // Tells session to post updates, is signaled by timer
-        void callPostTorrentUpdates();
-
-        /**
-         * Handlers for TCP streamng server
-         */
-
-        // Checks server for pending connections
-        void handleConnection();
-
-        // Checks server for pending error
-        void handleAcceptError(QAbstractSocket::SocketError socketError);
-
-        /**
-        // Streaming server signals
-        void registerStream(const Stream * handler);
-        void handleFailedStreamCreation(QAbstractSocket::SocketError socketError);
-
-        // Stream signal
-        void registerRequestedPathOnStream(const Stream * handler, const QByteArray & requestedPath) const;
-
-        // Will ask libtorrent to read given piece
-        void readPiece(int piece);
-        */
-
-    signals:
-
-        // Sent when libtorrent::add_torrent_alert is received from libtorrent
-        void addedTorrent(const TorrentViewModel * model);
-
-        // Torrent with given info hash was removed
-        void torrentRemoved(const libtorrent::sha1_hash & info_hash);
-
-        // A torrent was not added successfully according to libtorrent session giving
-        // a libtorrent::add_torrent_alert p->error was done.
-        void failedToAddTorrent(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec);
-
-        // A torrent plugin was started
-        // *** DISCONTINUED, THESE ARE INSTALLED AS SIGNALS ON TORRENT VIEW MODELS
-        //void torrentPluginStarted();
-        //void startedSellerTorrentPlugin(SellerTorrentPluginViewModel * model);
-        //void startedBuyerTorrentPlugin(BuyerTorrentPluginViewModel * model);
-
-        // Notify view
-        void torrentCheckedButHasNoPlugin(const libtorrent::torrent_info & torrentInfo, const libtorrent::torrent_status & torrentStatus);
-
-        // Status update from underlying libtorrent session
-        void pluginStatusUpdate(const Plugin::Status & status);
-
-        // Emitted after finalize_close(), that is when controller is 100% done
-        void closed();
-
-    private:
-
-        // State of controller
-        State _state;
-
-        // Underlying libtorrent session,
-        // has to be pointer since it needs sessings_pack,
-        // which can only be built postfix calls
-        libtorrent::session * _session;
-
-        // Wallet used
-        Wallet::Manager * _wallet;
-
-        // Logging category
-        QLoggingCategory & _category;
-
-        // Network access manager reference
-        // *** REMOVE
-        // *** REMOVE
-        // *** IS THERE ANY REASON FOR
-        QNetworkAccessManager * _manager;
-
-        // Plugin: constructor initializatin list expects plugin to appear after category_
-
-        // Should this be boost::shared_ptr<Plugin>, since life time of object is managed by it?
-        // on the other hand, we loose Plugin behaviour through libtorrent::plugin pointer, which we need!
-        Plugin * _plugin;
-
-        // Port range for which libtorrent should try to listen
-        // Must persist so that it can be saved in controller contiguration
-        // upon closing
-        std::pair<int, int> _portRange;
-
-        // Timer which calls session.post_torrent_updates() at regular intervals
-        QTimer _statusUpdateTimer;
-
-        // Torrents added to session
-        // Has to be pointer since since its Torrent::model (TorrentViewModel) isQObject type.
-        // Object is entirely owned by this.
-        QMap<libtorrent::sha1_hash, Torrent *> _torrents;
-
-        // TCP streaming server
-        QTcpServer _streamingServer;
-
-        /**
-         *
-         * SIMPLIFY LATER: Put TorrentPlugin::Configuration pointer into Torrent.
-         * Do not refer to it as *pending*, this will bethe configurations the
-         * view is given when any editing of configruations is done, and
-         * which will be pased on to plugin as alert.
-         *
-         * In the case of buyer, put utxo in QMap for keeping pending utxo. They
-         * are indeed pending, and are therefore not part of Torrent.
-         *
-         *
-         */
-
-        // Configurations are placed in these maps when corresponding torrent is added to session,
-        // and they are used to start a plugin on the given torrent once a torrent_checked_alert has been
-        // issued by session.
-        //QMap<libtorrent::sha1_hash, const TorrentPlugin::Configuration *> _pendingConfigurations;
-        QMap<libtorrent::sha1_hash, SellerTorrentPlugin::Configuration> _pendingSellerTorrentPluginConfigurations;
-        QMap<libtorrent::sha1_hash, QPair<BuyerTorrentPlugin::Configuration, Coin::UnspentP2PKHOutput> > _pendingBuyerTorrentPluginConfigurationAndUtxos;
-        //QMap<libtorrent::sha1_hash, UnspentP2PKHOutput> _pendingBuyerTorrentPluginUtxos;
-        //QMap<libtorrent::sha1_hash, ObserverTorrentPlugin::Configuration> _pendingObserverTorrentPluginConfigurations;
-
-        // Routine for processig libtorrent alerts
-        void processMetadataReceivedAlert(libtorrent::metadata_received_alert const * p);
-        void processMetadataFailedAlert(libtorrent::metadata_failed_alert const * p);
-        void processListenFailedAlert(libtorrent::listen_failed_alert const * p);
-        void processAddTorrentAlert(libtorrent::add_torrent_alert const * p);
-        void processTorrentFinishedAlert(libtorrent::torrent_finished_alert const * p);
-        void processStatusUpdateAlert(libtorrent::state_update_alert const * p);
-        void processTorrentRemovedAlert(libtorrent::torrent_removed_alert const * p);
-        void processSaveResumeDataAlert(libtorrent::save_resume_data_alert const * p);
-        void processSaveResumeDataFailedAlert(libtorrent::save_resume_data_failed_alert const * p);
-        void processTorrentPausedAlert(libtorrent::torrent_paused_alert const * p);
-        void processTorrentCheckedAlert(libtorrent::torrent_checked_alert const * p);
-        void processReadPieceAlert(const libtorrent::read_piece_alert * p);
-        void processPieceFinishedAlert(const libtorrent::piece_finished_alert * p);
-
-        //void processTorrentPluginStartedAlert(const TorrentPluginStartedAlert * p);
-        void processStartedSellerTorrentPlugin(const StartedSellerTorrentPlugin * p);
-        void processStartedBuyerTorrentPlugin(const StartedBuyerTorrentPlugin * p);
-
-        //void processTorrentPluginStatusAlert(const TorrentPluginStatusAlert * p);
-        void processBuyerTorrentPluginStatusAlert(const BuyerTorrentPluginStatusAlert * p);
-        void processSellerTorrentPluginStatusAlert(const SellerTorrentPluginStatusAlert * p);
-
-        void processPluginStatusAlert(const PluginStatusAlert * p);
-
-        void processSellerPeerAddedAlert(const SellerPeerAddedAlert * p);
-        void processBuyerPeerAddedAlert(const BuyerPeerAddedAlert * p);
-
-        void processSellerPeerPluginRemovedAlert(const SellerPeerPluginRemovedAlert * p);
-        void processBuyerPeerPluginRemovedAlert(const BuyerPeerPluginRemovedAlert * p);
-
-        // Status
-        void update(const std::vector<libtorrent::torrent_status> & statuses);
-        void update(const libtorrent::torrent_status & status);
-
-        // Start torrent plugin
-        void startTorrentPlugin(const libtorrent::sha1_hash & info_hash);
-
-        // Tell libtorrent try save resume data for all torrents needing it
-        int makeResumeDataCallsForAllTorrents();
-
-        // Routine called after all resume data has been saved as part of an initlal begin_close() call
-        void finalize_close();
-
-        // Save state of controller to file
-        void saveStateToFile(const char * file);
-    };
-
-}
+    }
 }
 
-#endif // CONTROLLER_HPP
+#endif // CORE_CONTROLLER_HPP

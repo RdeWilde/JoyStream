@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 27 2015
  */
 
-#ifndef EXTENSION_PEER_MODE_ANNOUNCED_HPP
-#define EXTENSION_PEER_MODE_ANNOUNCED_HPP
+#ifndef JOYSTREAM_EXTENSION_PEER_MODE_ANNOUNCED_HPP
+#define JOYSTREAM_EXTENSION_PEER_MODE_ANNOUNCED_HPP
 
 namespace joystream {
 namespace extension {
@@ -22,4 +22,4 @@ namespace extension {
 }
 }
 
-#endif // EXTENSION_PEER_MODE_ANNOUNCED_HPP
+#endif // JOYSTREAM_EXTENSION_PEER_MODE_ANNOUNCED_HPP

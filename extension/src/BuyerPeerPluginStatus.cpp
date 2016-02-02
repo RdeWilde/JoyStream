@@ -5,23 +5,23 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 28 2016
  */
 
-#include <extension/status/BuyerPeerPlugin.hpp>
+#include <extension/BuyerPeerPluginStatus.hpp>
 
 namespace joystream {
 namespace extension {
 
-    BuyerPeerPlugin::BuyerPeerPlugin() {
+    BuyerPeerPluginStatus::BuyerPeerPluginStatus() {
     }
 
-    BuyerPeerPlugin::BuyerPeerPlugin(PeerModeAnnounced peerModeAnnounced,
+    BuyerPeerPluginStatus::BuyerPeerPluginStatus(PeerModeAnnounced peerModeAnnounced,
                                     BEPSupportStatus peerBEP10SupportStatus,
                                     BEPSupportStatus peerBitSwaprBEPSupportStatus,
-                                    const PeerState & peerState,
-                                    ClientState clientState,
+                                    const BuyerPeerPluginPeerState & peerState,
+                                    BuyerPeerPluginClientState clientState,
                                     quint32 payorSlot,
                                     int indexOfAssignedPiece,
                                     const QList<int> & downloadedValidPieces)
-        : PeerPlugin::Status(peerModeAnnounced,
+        : PeerPluginStatus(peerModeAnnounced,
                              peerBEP10SupportStatus,
                              peerBitSwaprBEPSupportStatus)
         , _peerState(peerState)
@@ -31,55 +31,47 @@ namespace extension {
         , _downloadedValidPieces(downloadedValidPieces) {
     }
 
-    PluginMode BuyerPeerPlugin::pluginMode() const {
+    PluginMode BuyerPeerPluginStatus::pluginMode() const {
         return PluginMode::Buyer;
     }
 
-    BuyerPeerPlugin::PeerState BuyerPeerPlugin::peerState() const {
+    BuyerPeerPluginPeerState BuyerPeerPluginStatus::peerState() const {
         return _peerState;
     }
 
-    void BuyerPeerPlugin::setPeerState(const PeerState & peerState) {
+    void BuyerPeerPluginStatus::setPeerState(const BuyerPeerPluginPeerState & peerState) {
         _peerState = peerState;
     }
 
-    BuyerPeerPlugin::ClientState BuyerPeerPlugin::clientState() const {
+    BuyerPeerPluginClientState BuyerPeerPluginStatus::clientState() const {
         return _clientState;
     }
 
-    void BuyerPeerPlugin::setClientState(ClientState clientState) {
+    void BuyerPeerPluginStatus::setClientState(BuyerPeerPluginClientState clientState) {
         _clientState = clientState;
     }
 
-    QList<int> BuyerPeerPlugin::downloadedValidPieces() const {
+    QList<int> BuyerPeerPluginStatus::downloadedValidPieces() const {
         return _downloadedValidPieces;
     }
 
-    void BuyerPeerPlugin::setDownloadedValidPieces(const QList<int> & downloadedValidPieces) {
+    void BuyerPeerPluginStatus::setDownloadedValidPieces(const QList<int> & downloadedValidPieces) {
         _downloadedValidPieces = downloadedValidPieces;
     }
 
-    int BuyerPeerPlugin::indexOfAssignedPiece() const {
+    int BuyerPeerPluginStatus::indexOfAssignedPiece() const {
         return _indexOfAssignedPiece;
     }
 
-    void BuyerPeerPlugin::setIndexOfAssignedPiece(int indexOfAssignedPiece){
+    void BuyerPeerPluginStatus::setIndexOfAssignedPiece(int indexOfAssignedPiece){
         _indexOfAssignedPiece = indexOfAssignedPiece;
     }
 
-    quint32 BuyerPeerPlugin::payorSlot() const {
+    quint32 BuyerPeerPluginStatus::payorSlot() const {
         return _payorSlot;
     }
 
-    void BuyerPeerPlugin::setPayorSlot(quint32 payorSlot) {
-        _payorSlot = payorSlot;
-    }
-
-    quint32 BuyerPeerPlugin::payorSlot() const {
-        return _payorSlot;
-    }
-
-    void BuyerPeerPlugin::setPayorSlot(quint32 payorSlot) {
+    void BuyerPeerPluginStatus::setPayorSlot(quint32 payorSlot) {
         _payorSlot = payorSlot;
     }
 

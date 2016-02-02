@@ -10,7 +10,6 @@
 #include <extension/SellerTorrentPlugin.hpp>
 #include <extension/BuyerTorrentPlugin.hpp>
 #include <extension/PeerPlugin.hpp>
-
 #include <extension/request/PluginRequest.hpp>
 #include <extension/request/TorrentPluginRequest.hpp>
 #include <extension/request/PeerPluginRequest.hpp>
@@ -20,21 +19,23 @@
 #include <extension/alert/PluginStatusAlert.hpp>
 #include <extension/alert/StartedSellerTorrentPlugin.hpp>
 #include <extension/alert/StartedBuyerTorrentPlugin.hpp>
-
 #include <extension/PluginMode.hpp>
-
 #include <wallet/Manager.hpp>
+
+#include <libtorrent/alert_types.hpp> // read_piece_alert
 
 #include <boost/shared_ptr.hpp>
 
 #include <QLoggingCategory>
 
-
 namespace joystream {
 namespace extension {
 
-    Plugin::Plugin(Wallet::Manager * wallet, QLoggingCategory & category)
+    Plugin::Plugin(Wallet::Manager * wallet,
+                   const std::string & bep10ClientIdentifier,
+                   QLoggingCategory & category)
         : _wallet(wallet)
+        , _bep10ClientIdentifier(bep10ClientIdentifier)
         /**
         , _btcClient("127.0.0.1"
                      ,8332
@@ -104,7 +105,8 @@ namespace extension {
         processesRequests();
 
         // Send status
-        sendAlertToSession(PluginStatusAlert(status()));
+        // temporary suspension
+        //sendAlertToSession(alert::PluginStatusAlert(status()));
     }
 
     /**
@@ -195,7 +197,7 @@ namespace extension {
         // emplace_alert<listen_succeeded_alert>(*)
     }
 
-    void Plugin::submitPluginRequest(PluginRequest * pluginRequest) {
+    void Plugin::submitPluginRequest(request::PluginRequest * pluginRequest) {
 
         // Synchronized adding to queue
         _pluginRequestQueueMutex.lock();
@@ -203,7 +205,7 @@ namespace extension {
         _pluginRequestQueueMutex.unlock();
     }
 
-    void Plugin::submitTorrentPluginRequest(TorrentPluginRequest * torrentPluginRequest) {
+    void Plugin::submitTorrentPluginRequest(request::TorrentPluginRequest * torrentPluginRequest) {
 
         // Synchronized adding to queue
         _torrentPluginRequestQueueMutex.lock();
@@ -211,7 +213,7 @@ namespace extension {
         _torrentPluginRequestQueueMutex.unlock();
     }
 
-    void Plugin::submitPeerPluginRequest(PeerPluginRequest * peerPluginRequest) {
+    void Plugin::submitPeerPluginRequest(request::PeerPluginRequest * peerPluginRequest) {
 
         // Synchronized adding to queue
         _peerPluginRequestQueueMutex.lock();
@@ -226,7 +228,7 @@ namespace extension {
         while (!_pluginRequestQueue.empty()) {
 
             // Removes the head request in the queue and returns it
-            PluginRequest * pluginRequest = _pluginRequestQueue.dequeue();
+            request::PluginRequest * pluginRequest = _pluginRequestQueue.dequeue();
 
             // Process plugin request
             processPluginRequest(pluginRequest);
@@ -241,7 +243,7 @@ namespace extension {
         while (!_torrentPluginRequestQueue.empty()) {
 
             // Removes the head request in the queue and returns it
-            TorrentPluginRequest * torrentPluginRequest = _torrentPluginRequestQueue.dequeue();
+            request::TorrentPluginRequest * torrentPluginRequest = _torrentPluginRequestQueue.dequeue();
 
             // Process torrent plugin request
             processTorrentPluginRequest(torrentPluginRequest);
@@ -259,7 +261,7 @@ namespace extension {
             qCDebug(_category) << "Cannot process peer plugin request.";
 
             // Removes the head request in the queue and returns it
-            PeerPluginRequest * peerPluginRequest = _peerPluginRequestQueue.dequeue();
+            request::PeerPluginRequest * peerPluginRequest = _peerPluginRequestQueue.dequeue();
 
             /**
             // find corresponding torrent plugin
@@ -291,7 +293,7 @@ namespace extension {
 
     }
 
-    void Plugin::processPluginRequest(const PluginRequest * pluginRequest) {
+    void Plugin::processPluginRequest(const request::PluginRequest * pluginRequest) {
 
         switch(pluginRequest->getPluginRequestType()) {
 
@@ -311,18 +313,18 @@ namespace extension {
             break;
         */
 
-            case PluginRequestType::StartBuyerTorrentPlugin: {
+            case request::PluginRequestType::StartBuyerTorrentPlugin: {
 
-                    const StartBuyerTorrentPlugin * p = reinterpret_cast<const StartBuyerTorrentPlugin *>(pluginRequest);
+                    const request::StartBuyerTorrentPlugin * p = reinterpret_cast<const request::StartBuyerTorrentPlugin *>(pluginRequest);
 
                     startBuyerTorrentPlugin(p->infoHash(), p->configuration(), p->utxo());
                 }
 
                 break;
 
-            case PluginRequestType::StartSellerTorrentPlugin: {
+            case request::PluginRequestType::StartSellerTorrentPlugin: {
 
-                    const StartSellerTorrentPlugin * p = reinterpret_cast<const StartSellerTorrentPlugin *>(pluginRequest);
+                    const request::StartSellerTorrentPlugin * p = reinterpret_cast<const request::StartSellerTorrentPlugin *>(pluginRequest);
 
                     startSellerTorrentPlugin(p->infoHash(), p->configuration());
                 }
@@ -334,13 +336,13 @@ namespace extension {
         }
     }
 
-    void Plugin::processTorrentPluginRequest(const TorrentPluginRequest * torrentPluginRequest) {
+    void Plugin::processTorrentPluginRequest(const request::TorrentPluginRequest * torrentPluginRequest) {
 
         switch(torrentPluginRequest->getTorrentPluginRequestType()) {
 
             case TorrentPluginRequestType::ChangeDownloadLocation: {
 
-                const ChangeDownloadLocation * p = reinterpret_cast<const ChangeDownloadLocation *>(torrentPluginRequest);
+                const request::ChangeDownloadLocation * p = reinterpret_cast<const request::ChangeDownloadLocation *>(torrentPluginRequest);
 
                 Q_ASSERT(_buyerPlugins.contains(p->info_hash()));
 
@@ -414,7 +416,7 @@ namespace extension {
     }
     */
 
-    bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration, const Coin::UnspentP2PKHOutput & utxo) {
+    bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPluginConfiguration & configuration, const Coin::UnspentP2PKHOutput & utxo) {
 
         // Check that torrent does not already have a plugin installed
         if(_sellerPlugins.contains(infoHash) || _buyerPlugins.contains(infoHash)) {
@@ -430,7 +432,7 @@ namespace extension {
         if(boost::shared_ptr<libtorrent::torrent> sharedTorrentPtr = weakTorrentPtr.lock()) {
 
             // Create buyer torrent plugin
-            BuyerTorrentPlugin * buyerPlugin = new BuyerTorrentPlugin(this, sharedTorrentPtr, _wallet, configuration, utxo, _category);
+            BuyerTorrentPlugin * buyerPlugin = new BuyerTorrentPlugin(this, sharedTorrentPtr, _bep10ClientIdentifier, _wallet, configuration, utxo, _category);
 
             // Create plugin with given configuration
             boost::shared_ptr<BuyerTorrentPlugin> sharedPluginPtr(buyerPlugin);
@@ -442,7 +444,8 @@ namespace extension {
             _buyerPlugins[infoHash] = boost::weak_ptr<BuyerTorrentPlugin>(sharedPluginPtr);
 
             // Notify controller
-            sendAlertToSession(StartedBuyerTorrentPlugin(infoHash, configuration, utxo, buyerPlugin->status()));
+            // temporary suspend
+            //sendAlertToSession(StartedBuyerTorrentPlugin(infoHash, configuration, utxo, buyerPlugin->status()));
 
             // Return success indication
             return true;
@@ -455,7 +458,7 @@ namespace extension {
         }
     }
 
-    bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration) {
+    bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const SellerTorrentPluginConfiguration & configuration) {
 
         // Check that torrent does not already have a plugin installed
         if(_sellerPlugins.contains(infoHash) || _buyerPlugins.contains(infoHash)) {
@@ -472,7 +475,7 @@ namespace extension {
         if(boost::shared_ptr<libtorrent::torrent> sharedTorrentPtr = weakTorrentPtr.lock()) {
 
             // Create torrent plugin
-            SellerTorrentPlugin * sellerPlugin = new SellerTorrentPlugin(this, sharedTorrentPtr, _wallet, configuration, _category);
+            SellerTorrentPlugin * sellerPlugin = new SellerTorrentPlugin(this, sharedTorrentPtr, _bep10ClientIdentifier, _wallet, configuration, _category);
 
             // Create plugin with given configuration
             boost::shared_ptr<SellerTorrentPlugin> sharedPluginPtr(sellerPlugin);
@@ -484,7 +487,8 @@ namespace extension {
             _sellerPlugins[infoHash] = boost::weak_ptr<SellerTorrentPlugin>(sharedPluginPtr);
 
             // Notify controller
-            sendAlertToSession(StartedSellerTorrentPlugin(infoHash, configuration, sellerPlugin->status()));
+            // temporary suspend
+            //sendAlertToSession(StartedSellerTorrentPlugin(infoHash, configuration, sellerPlugin->status()));
 
             // Return success indication
             return true;

@@ -9,9 +9,11 @@
 #define JOYSTREAM_EXTENSION_BUYER_TORRENT_PLUGIN_HPP
 
 #include <extension/TorrentPlugin.hpp>
+#include <extension/BuyerTorrentPluginState.hpp>
 #include <extension/BuyerPeerPlugin.hpp>
 #include <paymentchannel/Payor.hpp>
 
+#include <boost/shared_array.hpp> // HOW DO YOU FORWARD DECLARE A TEMPLATED TYPE?
 #include <queue>          // std::priority_queue
 
 namespace Wallet {
@@ -22,107 +24,21 @@ namespace Coin {
 class UnspentP2PKHOutput;
 }
 
-#include <boost/shared_array.hpp>
-
-/**
-* HOW DO YOU FORWARD DECLARE A TEMPLATED TYPE?
-namespace boost {
-    class shared_array<char>;
-}
-*/
-
 namespace joystream {
 namespace extension {
 
-    /**
-     * @brief Torrent plugin for buyer mode.
-     */
-    class BuyerTorrentPlugin : public TorrentPlugin
-    {
+    class BuyerTorrentPluginConfiguration;
+
+    class BuyerTorrentPlugin : public TorrentPlugin {
+
     public:
-
-        /**
-         * @brief Plugin state
-         */
-        enum class State {
-
-            // _payor has reached, or passed, Payor:State::paying status
-            waiting_for_payor_to_be_ready,
-
-            // Requesting and downloading pieces
-            downloading_pieces,
-
-            // Have full torrent
-            done
-        };
-
-        /**
-         * @brief Represents piece in torrent
-         */
-        class Piece {
-
-        public:
-
-            enum class State {
-
-                // We do not have piece, and it has given assignment status
-                unassigned,
-                assigned,
-
-                // We do have piece
-                fully_downloaded_and_valid,
-            };
-
-            // Default constructor
-            Piece();
-
-            // Constructors based on members
-            //Piece(int index, int length, int numberOfBlocks, State state, BuyerPeerPlugin * peerPlugin);
-
-            // Constructors based on members
-            Piece(int index, State state, BuyerPeerPlugin * peerPlugin);
-
-            // Getters and setters
-            int index() const;
-            void setIndex(int index);
-
-            /**
-            int length() const;
-            void setLength(int length);
-
-            int numberOfBlocks() const;
-            void setNumberOfBlocks(int numberOfBlocks);
-            */
-
-            State state() const;
-            void setState(State state);
-
-            BuyerPeerPlugin * peerPlugin() const;
-            void setPeerPlugin(BuyerPeerPlugin * peerPlugin);
-
-        private:
-
-            // Index of piece
-            int _index;
-
-            // Byte length of piece (should be the same for all but last piece)
-            int _length;
-
-            // Number of blocks in piece
-            //int _numberOfBlocks;
-
-            // Piece state
-            State _state;
-
-            // Peer plugin assigned to this piece
-            BuyerPeerPlugin * _peerPlugin;
-        };
 
         // Constructor from members
         BuyerTorrentPlugin(Plugin * plugin,
                            const boost::shared_ptr<libtorrent::torrent> & torrent,
+                           const std::string & bep10ClientIdentifier,
                            Wallet::Manager * wallet,
-                           const Configuration & configuration,
+                           const BuyerTorrentPluginConfiguration & configuration,
                            const Coin::UnspentP2PKHOutput & utxo,
                            QLoggingCategory & category);
 
@@ -193,15 +109,15 @@ namespace extension {
         void on_peer_plugin_disconnect(BuyerPeerPlugin * peerPlugin, libtorrent::error_code const & ec);
 
         // Generate plugin status
-        Status status() const;
+        //Status status() const;
 
         // Getters and setters
         virtual PluginMode pluginMode() const;
         QList<libtorrent::tcp::endpoint> endPoints() const;
         //const PeerPlugin * peerPlugin(const libtorrent::tcp::endpoint & endPoint) const;
 
-        State state() const;
-        void setState(const State & state);
+        BuyerTorrentPluginState state() const;
+        void setState(const BuyerTorrentPluginState & state);
 
         quint64 maxPrice() const;
         void setMaxPrice(quint64 maxPrice);
@@ -226,7 +142,7 @@ namespace extension {
     private:
 
         // What stage is plugin
-        State _state;
+        BuyerTorrentPluginState _state;
 
         // Maps endpoint to weak peer plugin pointer, is peer_plugin, since this is
         // the type of weak_ptr libtrrrent requires, hence might as well put it
@@ -259,7 +175,7 @@ namespace extension {
 
 
         // Payment channel
-        Payor _payor;
+        joystream::paymentchannel::Payor _payor;
 
         // Maps given position in payor to given end point
         /**
@@ -275,6 +191,65 @@ namespace extension {
         /**
          * Piece management
          */
+
+        class Piece {
+
+        public:
+
+            enum class State {
+
+                // We do not have piece, and it has given assignment status
+                unassigned,
+                assigned,
+
+                // We do have piece
+                fully_downloaded_and_valid,
+            };
+
+            // Default constructor
+            Piece();
+
+            // Constructors based on members
+            //Piece(int index, int length, int numberOfBlocks, State state, BuyerPeerPlugin * peerPlugin);
+
+            // Constructors based on members
+            Piece(int index, State state, BuyerPeerPlugin * peerPlugin);
+
+            // Getters and setters
+            int index() const;
+            void setIndex(int index);
+
+            /**
+            int length() const;
+            void setLength(int length);
+
+            int numberOfBlocks() const;
+            void setNumberOfBlocks(int numberOfBlocks);
+            */
+
+            State state() const;
+            void setState(State state);
+
+            BuyerPeerPlugin * peerPlugin() const;
+            void setPeerPlugin(BuyerPeerPlugin * peerPlugin);
+
+        private:
+
+            // Index of piece
+            int _index;
+
+            // Byte length of piece (should be the same for all but last piece)
+            int _length;
+
+            // Number of blocks in piece
+            //int _numberOfBlocks;
+
+            // Piece state
+            State _state;
+
+            // Peer plugin assigned to this piece
+            BuyerPeerPlugin * _peerPlugin;
+        };
 
         // Pieces in torrent file
         std::vector<Piece> _pieces;

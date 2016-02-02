@@ -5,12 +5,10 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 27 2016
  */
 
-#ifndef JOYSTREAM_CORE_CONFIGURATION_CONTROLLER_HPP
-#define JOYSTREAM_CORE_CONFIGURATION_CONTROLLER_HPP
+#ifndef JOYSTREAM_CORE_TORRENT_CONFIGURATION_HPP
+#define JOYSTREAM_CORE_TORRENT_CONFIGURATION_HPP
 
-#include <core/configurations/Torrent.hpp>
-
-#include <QVector>
+#include <core/TorrentConfiguration.hpp>
 
 namespace libtorrent {
     class sha1_hash;
@@ -18,32 +16,28 @@ namespace libtorrent {
 
 namespace joystream {
 namespace core {
-namespace configuration {
 
-    /**
-     * @brief Persistant state of Controller.
-     */
-    class Controller {
+    class ControllerConfiguration {
 
     public:
 
         // Constructor using default parameter settings
-        Controller();
+        ControllerConfiguration();
 
         // Destructor
-        ~Controller();
+        ~ControllerConfiguration();
 
         // Constructor using members
-        Controller(const libtorrent::entry & libtorrentSessionSettingsEntry,
-                      const std::pair<int, int> & portRange,
-                      const std::vector<std::pair<std::string, int> > & dhtRouters,
-                      const QVector<Torrent> & torrents);
+        ControllerConfiguration(const libtorrent::entry & libtorrentSessionSettingsEntry,
+                                  const std::pair<int, int> & portRange,
+                                  const std::vector<std::pair<std::string, int> > & dhtRouters,
+                                  const std::vector<TorrentConfiguration> & torrents);
 
         // Constructor using dictionary entry
-        Controller(const libtorrent::entry::dictionary_type & dictionaryEntry);
+        ControllerConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry);
 
         // Constructor using file
-        Controller(const char * fileName);
+        ControllerConfiguration(const char * fileName);
 
         /**
          * Saves to dictionary entry
@@ -97,29 +91,8 @@ namespace configuration {
         //TorrentPlugin::Configuration *getTorrentPluginController() const;
         //void setTorrentPluginController(TorrentPlugin::Configuration *value);
 
-        QVector<Torrent> torrents() const;
-        void setTorrents(const QVector<Torrent> & torrents);
-
-        libtorrent::sha1_hash infoHash() const;
-        void setInfoHash(const libtorrent::sha1_hash &infoHash);
-
-        std::string name() const;
-        void setName(const std::string &name);
-
-        std::string savePath() const;
-        void setSavePath(const std::string &savePath);
-
-        std::vector<char> resumeData() const;
-        void setResumeData(const std::vector<char> &resumeData);
-
-        quint64 flags() const;
-        void setFlags(const quint64 &flags);
-
-        libtorrent::torrent_info *torrentInfo() const;
-        void setTorrentInfo(libtorrent::torrent_info *torrentInfo);
-
-        //const TorrentPlugin::Configuration *torrentPluginController() const;
-        //void setTorrentPluginController(const TorrentPlugin::Configuration *torrentPluginConfiguration);
+        std::vector<TorrentConfiguration> torrents() const;
+        void setTorrents(const std::vector<TorrentConfiguration> & torrents);
 
     private:
 
@@ -151,10 +124,9 @@ namespace configuration {
         std::vector<std::pair<std::string, int> > _dhtRouters;
 
         // Torrent configurations
-        QVector<Torrent> _torrents;
+        std::vector<TorrentConfiguration> _torrents;
     };
 
-}
 }
 }
 

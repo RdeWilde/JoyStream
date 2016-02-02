@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 29 2016
  */
 
-#ifndef PAYMENT_CHANNEL_PAYOR_STATUS_HPP
-#define PAYMENT_CHANNEL_PAYOR_STATUS_HPP
+#ifndef JOYSTREAM_EXTENSION_PAYOR_STATUS_HPP
+#define JOYSTREAM_EXTENSION_PAYOR_STATUS_HPP
 
 #include <extension/ChannelStatus.hpp>
 #include <paymentchannel/PayorState.hpp>
@@ -82,5 +82,5 @@ namespace extension {
 }
 }
 
-#endif // PAYMENT_CHANNEL_PAYOR_STATUS_HPP
+#endif // JOYSTREAM_EXTENSION_PAYOR_STATUS_HPP
 

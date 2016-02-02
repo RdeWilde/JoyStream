@@ -42,4 +42,4 @@ namespace extension {
 }
 }
 
-#endif // BUY_MODE_PEER_ACTION_HPP
+#endif // JOYSTREAM_EXTENSION_BUY_MODE_PEER_ACTION_HPP

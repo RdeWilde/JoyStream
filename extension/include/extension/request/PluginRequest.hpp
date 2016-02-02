@@ -5,18 +5,26 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef PLUGIN_REQUEST_HPP
-#define PLUGIN_REQUEST_HPP
+#ifndef JOYSTREAM_EXTENSION_REQUEST_PLUGIN_REQUEST_HPP
+#define JOYSTREAM_EXTENSION_REQUEST_PLUGIN_REQUEST_HPP
 
-#include "PluginRequestType.hpp"
+#include <extension/request/PluginRequestType.hpp>
 
-class PluginRequest
-{
-public:
+namespace joystream {
+namespace extension {
+namespace request {
 
-    // Returns request type
-    virtual PluginRequestType getPluginRequestType() const = 0;
+    class PluginRequest {
 
-};
+    public:
 
-#endif // PLUGIN_REQUEST_HPP
+        // Returns request type
+        virtual PluginRequestType getPluginRequestType() const = 0;
+
+    };
+
+}
+}
+}
+
+#endif // JOYSTREAM_EXTENSION_REQUEST_PLUGIN_REQUEST_HPP

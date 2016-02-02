@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef EXTENSION_SELLER_PEER_PLUGIN_HPP
-#define EXTENSION_SELLER_PEER_PLUGIN_HPP
+#ifndef JOYSTREAM_EXTENSION_SELLER_PEER_PLUGIN_HPP
+#define JOYSTREAM_EXTENSION_SELLER_PEER_PLUGIN_HPP
 
 #include <extension/PeerPlugin.hpp>
 #include <extension/SellerPeerPluginPeerState.hpp>
@@ -41,6 +41,7 @@ namespace extension {
         // Constructor
         SellerPeerPlugin(SellerTorrentPlugin * torrentPlugin,
                          libtorrent::bt_peer_connection * connection,
+                         const std::string & bep10ClientIdentifier,
                          bool scheduledForDeletingInNextTorrentPluginTick,
                          const joystream::paymentchannel::PayeeConfiguration & payeeConfiguration,
                          int numberOfPieces,
@@ -104,7 +105,7 @@ namespace extension {
         SellerPeerPluginClientState clientState() const;
         void setClientState(const SellerPeerPluginClientState &clientState);
 
-        Payee payee() const;
+        joystream::paymentchannel::Payee payee() const;
 
         int lastRequestedFullPiece() const;
         void setLastRequestedFullPiece(int lastRequestedFullPiece);
@@ -198,17 +199,17 @@ namespace extension {
         /**
          *  Processess message
          */
-        virtual void processObserve(const Observe * m);
-        virtual void processBuy(const Buy * m);
-        virtual void processSell(const Sell * m);
-        virtual void processJoinContract(const JoinContract * m);
-        virtual void processJoiningContract(const JoiningContract * m);
-        virtual void processSignRefund(const SignRefund * m);
-        virtual void processRefundSigned(const RefundSigned * m);
-        virtual void processReady(const Ready * m);
-        virtual void processRequestFullPiece(const RequestFullPiece * m);
-        virtual void processFullPiece(const FullPiece * m);
-        virtual void processPayment(const Payment * m);
+        virtual void processObserve(const joystream::protocol::Observe * m);
+        virtual void processBuy(const joystream::protocol::Buy * m);
+        virtual void processSell(const joystream::protocol::Sell * m);
+        virtual void processJoinContract(const joystream::protocol::JoinContract * m);
+        virtual void processJoiningContract(const joystream::protocol::JoiningContract * m);
+        virtual void processSignRefund(const joystream::protocol::SignRefund * m);
+        virtual void processRefundSigned(const joystream::protocol::RefundSigned * m);
+        virtual void processReady(const joystream::protocol::Ready * m);
+        virtual void processRequestFullPiece(const joystream::protocol::RequestFullPiece * m);
+        virtual void processFullPiece(const joystream::protocol::FullPiece * m);
+        virtual void processPayment(const joystream::protocol::Payment * m);
 
         // Resets plugin in response to peer sending a mode message
         void peerModeReset();
@@ -217,4 +218,4 @@ namespace extension {
 }
 }
 
-#endif // EXTENSION_SELLER_PEER_PLUGIN_HPP
+#endif // JOYSTREAM_EXTENSION_SELLER_PEER_PLUGIN_HPP

@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef EXTENSION_PEER_PLUGIN_HPP
-#define EXTENSION_PEER_PLUGIN_HPP
+#ifndef JOYSTREAM_EXTENSION_PEER_PLUGIN_HPP
+#define JOYSTREAM_EXTENSION_PEER_PLUGIN_HPP
 
 #include <extension/BEPSupportStatus.hpp>
 #include <extension/PeerModeAnnounced.hpp>
@@ -205,4 +205,4 @@ namespace extension {
 }
 }
 
-#endif // EXTENSION_PEER_PLUGIN_HPP
+#endif // JOYSTREAM_EXTENSION_PEER_PLUGIN_HPP

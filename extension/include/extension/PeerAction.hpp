@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef EXTENSION_PEER_ACTION_HPP
-#define EXTENSION_PEER_ACTION_HPP
+#ifndef JOYSTREAM_EXTENSION_PEER_ACTION_HPP
+#define JOYSTREAM_EXTENSION_PEER_ACTION_HPP
 
 /*
  * Mutually exclusive set of states for peer plugin
@@ -49,4 +49,4 @@ namespace extension {
 }
 }
 
-#endif // EXTENSION_PEER_ACTION_HPP
+#endif // JOYSTREAM_EXTENSION_PEER_ACTION_HPP

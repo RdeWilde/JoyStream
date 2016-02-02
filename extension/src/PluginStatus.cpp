@@ -5,50 +5,47 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 28 2016
  */
 
-#include <extension/status/Plugin.hpp>
+#include <extension/PluginStatus.hpp>
 
 namespace joystream {
 namespace extension {
-namespace status {
 
-    Plugin::Plugin()
+    PluginStatus::PluginStatus()
         : _totalReceivedSinceStart(0)
         , _totalSentSinceStart(0)
         , _totalCurrentlyLockedInChannels(0) {
     }
 
-    Plugin::Plugin(quint64 totalReceivedSinceStart, quint64 totalSentSinceStart, quint64 totalCurrentlyLockedInChannels)
+    PluginStatus::PluginStatus(quint64 totalReceivedSinceStart, quint64 totalSentSinceStart, quint64 totalCurrentlyLockedInChannels)
         : _totalReceivedSinceStart(totalReceivedSinceStart)
         , _totalSentSinceStart(totalSentSinceStart)
         , _totalCurrentlyLockedInChannels(totalCurrentlyLockedInChannels){
     }
 
-    quint64 Plugin::totalCurrentlyLockedInChannels() const {
+    quint64 PluginStatus::totalCurrentlyLockedInChannels() const {
         return _totalCurrentlyLockedInChannels;
     }
 
-    void Plugin::setTotalCurrentlyLockedInChannels(quint64 totalCurrentlyLockedInChannels) {
+    void PluginStatus::setTotalCurrentlyLockedInChannels(quint64 totalCurrentlyLockedInChannels) {
         _totalCurrentlyLockedInChannels = totalCurrentlyLockedInChannels;
     }
 
-    quint64 Plugin::totalSentSinceStart() const {
+    quint64 PluginStatus::totalSentSinceStart() const {
         return _totalSentSinceStart;
     }
 
-    void Plugin::setTotalSentSinceStart(quint64 totalSentSinceStart) {
+    void PluginStatus::setTotalSentSinceStart(quint64 totalSentSinceStart) {
         _totalSentSinceStart = totalSentSinceStart;
     }
 
-    quint64 Plugin::totalReceivedSinceStart() const
-    {
+    quint64 PluginStatus::totalReceivedSinceStart() const {
         return _totalReceivedSinceStart;
     }
 
-    void Plugin::setTotalReceivedSinceStart(quint64 totalReceivedSinceStart) {
+    void PluginStatus::setTotalReceivedSinceStart(quint64 totalReceivedSinceStart) {
         _totalReceivedSinceStart = totalReceivedSinceStart;
     }
 
 
-}
 }
 }

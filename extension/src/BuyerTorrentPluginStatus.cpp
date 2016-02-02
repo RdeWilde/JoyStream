@@ -5,48 +5,46 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 27 2015
  */
 
-#include <extension/status/BuyerTorrentPlugin.hpp>
+#include <extension/BuyerTorrentPluginStatus.hpp>
 
 namespace joystream {
 namespace extension {
-namespace status {
 
-    BuyerTorrentPlugin::BuyerTorrentPlugin() {
+    BuyerTorrentPluginStatus::BuyerTorrentPluginStatus() {
     }
 
-    BuyerTorrentPlugin::BuyerTorrentPlugin(BuyerTorrentPlugin::State state,
-                                       const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin::Status> & peers,
-                                       const Payor::Status & payor)
+    BuyerTorrentPluginStatus::BuyerTorrentPluginStatus(BuyerTorrentPluginState state,
+                                       const QMap<libtorrent::tcp::endpoint, BuyerPeerPluginStatus> & peers,
+                                       const PayorStatus & payor)
         : _state(state)
         , _peerPluginStatuses(peers)
         , _payor(payor) {
     }
 
-    BuyerTorrentPlugin::State BuyerTorrentPlugin::state() const {
+    BuyerTorrentPluginState BuyerTorrentPluginStatus::state() const {
         return _state;
     }
 
-    void BuyerTorrentPlugin::setState(State state) {
+    void BuyerTorrentPluginStatus::setState(BuyerTorrentPluginState state) {
         _state = state;
     }
 
-    QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin> BuyerTorrentPlugin::peerPluginStatuses() const {
+    QMap<libtorrent::tcp::endpoint, BuyerPeerPluginStatus> BuyerTorrentPluginStatus::peerPluginStatuses() const {
         return _peerPluginStatuses;
     }
 
-    void BuyerTorrentPlugin::setPeerPluginStatuses(const QMap<libtorrent::tcp::endpoint, BuyerPeerPlugin> & peerPluginStatuses) {
+    void BuyerTorrentPluginStatus::setPeerPluginStatuses(const QMap<libtorrent::tcp::endpoint, BuyerPeerPluginStatus> & peerPluginStatuses) {
         _peerPluginStatuses = peerPluginStatuses;
     }
 
-    Payor::Status BuyerTorrentPlugin::payor() const {
+    PayorStatus BuyerTorrentPluginStatus::payor() const {
         return _payor;
     }
 
-    void BuyerTorrentPlugin::setPayor(const Payor::Status & payor) {
+    void BuyerTorrentPluginStatus::setPayor(const PayorStatus & payor) {
         _payor = payor;
     }
 
 
-}
 }
 }

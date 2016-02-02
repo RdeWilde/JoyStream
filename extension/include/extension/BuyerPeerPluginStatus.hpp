@@ -8,31 +8,28 @@
 #ifndef JOYSTREAM_EXTENSION_STATUS_BUYER_PEER_PLUGIN_HPP
 #define JOYSTREAM_EXTENSION_STATUS_BUYER_PEER_PLUGIN_HPP
 
-#include <extension/status/PeerPlugin.hpp>
-
-// *** TEMPORARY INCLUDE TO GET INNER CLASSES ***
-#include <extension/BuyerPeerPlugin.hpp>
-// *** TEMPORARY INCLUDE TO GET INNER CLASSES ***
+#include <extension/PeerPluginStatus.hpp>
+#include <extension/BuyerPeerPluginPeerState.hpp>
+#include <extension/BuyerPeerPluginClientState.hpp>
 
 #include <QList>
 
 namespace joystream {
 namespace extension {
-namespace status {
 
-    class BuyerPeerPlugin : public PeerPlugin {
+    class BuyerPeerPluginStatus : public PeerPluginStatus {
 
     public:
 
         // Default constructor
-        BuyerPeerPlugin();
+        BuyerPeerPluginStatus();
 
         // Constructor from members
-        BuyerPeerPlugin(PeerModeAnnounced peerModeAnnounced,
+        BuyerPeerPluginStatus(PeerModeAnnounced peerModeAnnounced,
                BEPSupportStatus peerBEP10SupportStatus,
                BEPSupportStatus peerJoyStreamBEPSupportStatus,
-               const PeerState & peerState,
-               ClientState clientState,
+               const BuyerPeerPluginPeerState & peerState,
+               BuyerPeerPluginClientState clientState,
                quint32 payorSlot,
                int indexOfAssignedPiece,
                const QList<int> & downloadedValidPieces);
@@ -40,11 +37,11 @@ namespace status {
         // Getters and setters
         virtual PluginMode pluginMode() const;
 
-        PeerState peerState() const;
-        void setPeerState(const PeerState & peerState);
+        BuyerPeerPluginPeerState peerState() const;
+        void setPeerState(const BuyerPeerPluginPeerState & peerState);
 
-        ClientState clientState() const;
-        void setClientState(ClientState clientState);
+        BuyerPeerPluginClientState clientState() const;
+        void setClientState(BuyerPeerPluginClientState clientState);
 
         quint32 payorSlot() const;
         void setPayorSlot(const quint32 payorSlot);
@@ -58,12 +55,10 @@ namespace status {
     private:
 
         // State of peer
-        // to fix...
-        BuyerPeerPlugin::PeerState _peerState;
+        BuyerPeerPluginPeerState _peerState;
 
         // State of client
-        // to fix...
-        BuyerPeerPlugin::ClientState _clientState;
+        BuyerPeerPluginClientState _clientState;
 
         // Peer plugin position in Payor
         quint32 _payorSlot;
@@ -78,7 +73,5 @@ namespace status {
 
 }
 }
-}
-
 
 #endif // JOYSTREAM_EXTENSION_STATUS_BUYER_PEER_PLUGIN_HPP

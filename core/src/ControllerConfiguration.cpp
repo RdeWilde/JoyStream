@@ -5,17 +5,18 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 27 2016
  */
 
-#include <core/configurations/Controller.hpp>
-#include <core/configurations/Torrent.hpp>
+#include <core/ControllerConfiguration.hpp>
 
-#include <core/controller/exceptions/InvalidBitSwaprStateEntryException.hpp>
 #include <libtorrent/session_settings.hpp>
+
+// **************************************************
+#include <libtorrent/session.hpp> // only temporarily until settings packs are introduced
+// **************************************************
 
 namespace joystream {
 namespace core {
-namespace configuration {
 
-    Controller::Controller() {
+    ControllerConfiguration::ControllerConfiguration() {
 
         // Setup session settings
         libtorrent::session_settings sessionSettings;
@@ -256,26 +257,17 @@ namespace configuration {
         _dhtRouters.push_back(std::make_pair(std::string("router.bitcomet.com"), 6881));
     }
 
-    Controller::Controller(const libtorrent::entry & libtorrentSessionSettingsEntry,
+    ControllerConfiguration::ControllerConfiguration(const libtorrent::entry & libtorrentSessionSettingsEntry,
                                              const std::pair<int, int> & portRange,
-                                             const std::vector<std::pair<std::string, int>> & dhtRouters,
-                                             const QVector<Torrent> & torrents)
+                                             const std::vector<std::pair<std::string, int> > & dhtRouters,
+                                             const std::vector<TorrentConfiguration> & torrents)
                                     :_libtorrentSessionSettingsEntry(libtorrentSessionSettingsEntry)
                                     ,_portRange(portRange)
                                     ,_dhtRouters(dhtRouters)
                                     ,_torrents(torrents) {
     }
 
-    Controller::~Controller() {
-    /**
-        // Delete torrent configuration
-        for(std::vector<TorrentConfiguration *>::iterator i = _torrentConfigurations.begin(),
-                end(_torrentConfigurations.end()); i != end;i++)
-                delete *i;
-    */
-    }
-
-    Controller::Controller(const libtorrent::entry::dictionary_type & dictionaryEntry) {
+    ControllerConfiguration::ControllerConfiguration(const libtorrent::entry::dictionary_type & dictionaryEntry) {
 
         /*
         // Check that libtorrentSettings key is present, and then parse
@@ -424,7 +416,7 @@ namespace configuration {
        */
     }
 
-    Controller::Controller(const char * fileName) {
+    ControllerConfiguration::ControllerConfiguration(const char * fileName) {
 
         /*
         // Create dictionary entry
@@ -441,7 +433,7 @@ namespace configuration {
         */
     }
 
-    void Controller::toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) {
+    void ControllerConfiguration::toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) {
 
         /*
         // Add "libtorrentSettings" key
@@ -493,7 +485,7 @@ namespace configuration {
         */
     }
 
-    void Controller::saveToFile(const char * fileName) {
+    void ControllerConfiguration::saveToFile(const char * fileName) {
 
         /*
         // Create dictionary entry
@@ -513,58 +505,29 @@ namespace configuration {
     }
     */
 
-    libtorrent::entry Controller::getLibtorrentSessionSettingsEntry() const {
+    libtorrent::entry ControllerConfiguration::getLibtorrentSessionSettingsEntry() const {
         return _libtorrentSessionSettingsEntry;
     }
 
-    std::pair<int, int> Controller::getPortRange() const {
+    std::pair<int, int> ControllerConfiguration::getPortRange() const {
         return _portRange;
     }
 
-    std::vector<std::pair<std::string, int>> Controller::getDhtRouters() const {
+    std::vector<std::pair<std::string, int>> ControllerConfiguration::getDhtRouters() const {
         return _dhtRouters;
     }
 
-    QVector<Torrent> Controller::torrents() const {
+    std::vector<TorrentConfiguration> ControllerConfiguration::torrents() const {
         return _torrents;
     }
 
-    void Controller::setTorrents(const QVector<Torrent> & torrents) {
+    void ControllerConfiguration::setTorrents(const std::vector<TorrentConfiguration> & torrents) {
         _torrents = torrents;
     }
 
-    /*
-    QMap<libtorrent::sha1_hash, QPair<Torrent, SellerTorrentPlugin::Configuration> > Controller::sellers() const {
-        return _sellers;
-    }
-
-    void Controller::setSellers(const QMap<libtorrent::sha1_hash, QPair<Torrent, SellerTorrentPlugin::Configuration> > &sellers) {
-        _sellers = sellers;
-    }
-
-    QMap<libtorrent::sha1_hash, QPair<Torrent, BuyerTorrentPlugin::Configuration> > Controller::buyers() const {
-        return _buyers;
-    }
-
-    void Controller::setBuyers(const QMap<libtorrent::sha1_hash, QPair<Torrent, BuyerTorrentPlugin::Configuration> > &buyers) {
-        _buyers = buyers;
-    }
-    */
-
-    /*
-    std::vector<TorrentConfiguration *>::const_iterator ControllerController::getBeginTorrentConfigurationsIterator() const {
-        return _torrentConfigurations.begin();
-    }
-
-    std::vector<TorrentConfiguration *>::const_iterator ControllerController::getEndTorrentConfigurationsIterator() const {
-        return _torrentConfigurations.end();
-    }
-    */
-
-    void Controller::setLibtorrentSessionSettingsEntry(const libtorrent::entry & libtorrentSessionSettingsEntry) {
+    void ControllerConfiguration::setLibtorrentSessionSettingsEntry(const libtorrent::entry & libtorrentSessionSettingsEntry) {
         _libtorrentSessionSettingsEntry = libtorrentSessionSettingsEntry;
     }
 
-}
 }
 }

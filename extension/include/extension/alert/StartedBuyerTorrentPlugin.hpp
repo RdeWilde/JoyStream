@@ -5,69 +5,79 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef STARTED_BUYER_TORRENT_PLUGIN_HPP
-#define STARTED_BUYER_TORRENT_PLUGIN_HPP
+#ifndef EXTENSION_STARTED_BUYER_TORRENT_PLUGIN_HPP
+#define EXTENSION_STARTED_BUYER_TORRENT_PLUGIN_HPP
 
-#include <core/extension/Alert/AlertTypes.hpp>
-#include <core/extension/BuyerTorrentPlugin.hpp>
+#include <extension/alert/AlertTypes.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
+#include <extension/BuyerTorrentPluginConfiguration.hpp>
+#include <extension/BuyerTorrentPluginStatus.hpp>
 
 #include <libtorrent/alert.hpp>
 #include <libtorrent/sha1_hash.hpp>
 
-class StartedBuyerTorrentPlugin : public libtorrent::alert
-{
-public:
+namespace joystream {
+namespace extension {
+namespace alert {
 
-    // Public member required for alert_cast
-    const static int alert_type = STARTED_BUYER_TORRENT_PLUGIN_ID;
 
-    // Default constructor
-    StartedBuyerTorrentPlugin();
+    class StartedBuyerTorrentPlugin : public libtorrent::alert {
 
-    // Constructor from members
-    StartedBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
-                              const BuyerTorrentPlugin::Configuration & configuration,
-                              const Coin::UnspentP2PKHOutput & utxo,
-                              const BuyerTorrentPlugin::Status & status);
+    public:
 
-    // Copy constructor
-    StartedBuyerTorrentPlugin(const StartedBuyerTorrentPlugin & alert);
+        // Public member required for alert_cast
+        const static int alert_type = STARTED_BUYER_TORRENT_PLUGIN_ID;
 
-    // Virtual routines from libtorrent::alert
-    virtual int type() const;
-    virtual char const* what() const;
-    virtual std::string message() const;
-    virtual int category() const;
-    virtual std::auto_ptr<libtorrent::alert> clone() const;
+        // Default constructor
+        StartedBuyerTorrentPlugin();
 
-    // Getters and setters
-    libtorrent::sha1_hash infoHash() const;
-    void setInfoHash(const libtorrent::sha1_hash & infoHash);
+        // Constructor from members
+        StartedBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash,
+                                  const BuyerTorrentPluginConfiguration & configuration,
+                                  const Coin::UnspentP2PKHOutput & utxo,
+                                  const BuyerTorrentPluginStatus & status);
 
-    BuyerTorrentPlugin::Configuration configuration() const;
-    void setConfiguration(const BuyerTorrentPlugin::Configuration & configuration);
+        // Copy constructor
+        StartedBuyerTorrentPlugin(const StartedBuyerTorrentPlugin & alert);
 
-    Coin::UnspentP2PKHOutput utxo() const;
-    void setUtxo(const Coin::UnspentP2PKHOutput & utxo);
+        // Virtual routines from libtorrent::alert
+        virtual int type() const;
+        virtual char const* what() const;
+        virtual std::string message() const;
+        virtual int category() const;
+        virtual std::auto_ptr<libtorrent::alert> clone() const;
 
-    BuyerTorrentPlugin::Status status() const;
-    void setStatus(const BuyerTorrentPlugin::Status & status);
+        // Getters and setters
+        libtorrent::sha1_hash infoHash() const;
+        void setInfoHash(const libtorrent::sha1_hash & infoHash);
 
-private:
+        BuyerTorrentPluginConfiguration configuration() const;
+        void setConfiguration(const BuyerTorrentPluginConfiguration & configuration);
 
-    // Info hash of torrent started
-    libtorrent::sha1_hash _infoHash;
+        Coin::UnspentP2PKHOutput utxo() const;
+        void setUtxo(const Coin::UnspentP2PKHOutput & utxo);
 
-    // Configuration under which plugin was started
-    BuyerTorrentPlugin::Configuration _configuration;
+        BuyerTorrentPluginStatus status() const;
+        void setStatus(const BuyerTorrentPluginStatus & status);
 
-    // Funding utxo
-    Coin::UnspentP2PKHOutput _utxo;
+    private:
 
-    // Starting status
-    BuyerTorrentPlugin::Status _status;
+        // Info hash of torrent started
+        libtorrent::sha1_hash _infoHash;
 
-};
+        // Configuration under which plugin was started
+        BuyerTorrentPluginConfiguration _configuration;
 
-#endif // STARTED_BUYER_TORRENT_PLUGIN_HPP
+        // Funding utxo
+        Coin::UnspentP2PKHOutput _utxo;
+
+        // Starting status
+        BuyerTorrentPluginStatus _status;
+
+    };
+
+}
+}
+}
+
+#endif // EXTENSION_STARTED_BUYER_TORRENT_PLUGIN_HPP

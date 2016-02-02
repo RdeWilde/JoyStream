@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef SELLER_MODE_PEER_ACTION_HPP
-#define SELLER_MODE_PEER_ACTION_HPP
+#ifndef JOYSTREAM_SELLER_MODE_PEER_ACTION_HPP
+#define JOYSTREAM_SELLER_MODE_PEER_ACTION_HPP
 
 /**
  * Mutually exclusive set of state a peer can
@@ -35,4 +35,5 @@ enum class SellModePeerAction {
 
 // Error states, make new enum later
 // contract_confirmation_deadline_expired,
-#endif // SELLER_MODE_PEER_ACTION_HPP
+
+#endif // JOYSTREAM_SELLER_MODE_PEER_ACTION_HPP
