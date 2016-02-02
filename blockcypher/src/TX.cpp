@@ -25,7 +25,7 @@ namespace BlockCypher {
             if(!o.value("block_height").isDouble())
                 throw std::runtime_error("block_height is not a double.");
 
-            _block_height = o.value("block_height").toInt();
+            _block_height = o.value("block_height").toDouble();
         }
 
         if(!o.contains("addresses")){
@@ -45,7 +45,7 @@ namespace BlockCypher {
             if(!o.value("total").isDouble())
             throw std::runtime_error("total is not a double.");
 
-            _total = o.value("total").toInt();
+            _total = o.value("total").toDouble();
         }
 
         if(!o.contains("fees") ){
@@ -54,7 +54,7 @@ namespace BlockCypher {
             if(!o.value("fees").isDouble())
             throw std::runtime_error("fees is not a double.");
 
-            _fees = o.value("fees").toInt();
+            _fees = o.value("fees").toDouble();
         }
 
         if(!o.contains("size") ){
@@ -63,7 +63,7 @@ namespace BlockCypher {
             if(!o.value("size").isDouble())
             throw std::runtime_error("size is not a double.");
 
-            _size = o.value("size").toInt();
+            _size = o.value("size").toDouble();
         }
 
         if(!o.contains("received")){
@@ -82,7 +82,7 @@ namespace BlockCypher {
             if(!o.value("ver").isDouble())
             throw std::runtime_error("ver is not a double.");
 
-            _ver = o.value("ver").toInt();
+            _ver = o.value("ver").toDouble();
         }
 
         if(!o.contains("lock_time")){
@@ -91,7 +91,7 @@ namespace BlockCypher {
             if(!o.value("lock_time").isDouble())
             throw std::runtime_error("lock_time is not a double.");
 
-            _lock_time = o.value("lock_time").toInt();
+            _lock_time = o.value("lock_time").toDouble();
         }
 
         if(!o.contains("double_spend")){
@@ -109,7 +109,7 @@ namespace BlockCypher {
             if(!o.value("vin_sz").isDouble())
             throw std::runtime_error("vin_sz is not a double.");
 
-            _vin_sz = o.value("vin_sz").toInt();
+            _vin_sz = o.value("vin_sz").toDouble();
         }
 
         if(!o.contains("vout_sz")){
@@ -118,7 +118,7 @@ namespace BlockCypher {
             if(!o.value("vout_sz").isDouble())
             throw std::runtime_error("vout_sz is not a double.");
 
-            _vout_sz = o.value("vout_sz").toInt();
+            _vout_sz = o.value("vout_sz").toDouble();
         }
 
         if(!o.contains("confirmations")){
@@ -127,7 +127,7 @@ namespace BlockCypher {
             if(!o.value("confirmations").isDouble())
             throw std::runtime_error("confirmations is not a double.");
 
-            _confirmations = o.value("confirmations").toInt();
+            _confirmations = o.value("confirmations").toDouble();
         }
 
         if(!o.contains("inputs")){
@@ -178,9 +178,6 @@ namespace BlockCypher {
             tx.addOutput(output.toOutput());
         }
 
-        Q_ASSERT(_size == tx.getSize());         //passing
-        Q_ASSERT(_vin_sz == tx.inputs.size());   //passing
-        Q_ASSERT(_vout_sz == tx.outputs.size()); //passing
         Q_ASSERT(_hash.toStdString() == tx.hash().getHex());
         return tx;
     }

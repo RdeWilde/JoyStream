@@ -41,7 +41,7 @@ namespace BlockCypher {
             if(!output_index.isDouble())
                 throw std::runtime_error("output_index is not a double.");
             else
-                _output_index = o.value("output_index").toInt();
+                _output_index = o.value("output_index").toDouble();
         }
 
         if(!o.contains("output_value"))
@@ -53,7 +53,7 @@ namespace BlockCypher {
             if(!output_value.isDouble())
                 throw std::runtime_error("output_value is not a double.");
             else
-                _output_value = output_value.toInt();
+                _output_value = output_value.toDouble();
         }
 
         if(!o.contains("script"))
@@ -113,7 +113,7 @@ namespace BlockCypher {
             if(!sequence.isDouble())
                 throw std::runtime_error("sequence is not a double.");
             else{
-                _sequence = sequence.toInt();
+                _sequence = sequence.toDouble();
             }
         }
     }
@@ -131,7 +131,6 @@ namespace BlockCypher {
 
     Coin::TxIn TXInput::toInput() const {
         uchar_vector op(_prev_hash.toStdString());
-        //op.reverse();
         Coin::OutPoint outpoint(op, _output_index);
         return Coin::TxIn(outpoint, _script.toStdString(), _sequence);
     }

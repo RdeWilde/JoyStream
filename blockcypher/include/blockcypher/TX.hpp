@@ -49,6 +49,7 @@ namespace BlockCypher {
             //Todo: Use Coin::TransactionId
             //tested: ok
             //Datatype used in bitcoin source code: char[32]
+            // reversed byte order (as used by block explorer and CoinCore)
             QString _hash;
 
 
@@ -56,7 +57,7 @@ namespace BlockCypher {
             //If this is an unconfirmed transaction, it will equal -1 in blockcypher TX payload.
             //tested insert: ok
             //Datatype used in bitcoin source code: int32_t?
-            qint32 _block_height;
+            uint32_t _block_height;
 
             // ** addresses : Array of bitcoin public addresses involved in the transaction.
             //tested insert: ok
@@ -64,14 +65,14 @@ namespace BlockCypher {
 
             // ** total : The total number of satoshis exchanged in this transaction.
             //tested insert: ok
-            quint64 _total;
+            uint64_t _total;
 
             // ** fees : The total number of fees—in satoshis—collected by miners in this transaction.
             //tested insert: ok
-            quint64 _fees;
+            uint64_t _fees;
 
             // ** size : The size of the transaction in bytes.
-            quint64 _size;
+            uint32_t _size;
 
             // ** preference : The likelihood that this transaction will make it to the next block;
             //reflects the preference level miners have to include this transaction.
@@ -89,7 +90,7 @@ namespace BlockCypher {
 
             // ** ver : Version number, typically 1 for Bitcoin transactions.
             //tested insert: ok
-            quint32 _ver;
+            uint32_t _ver;
 
             // ** lock_time : Time when transaction can be valid. Can be interpreted in
             // two ways: if less than 500 million, refers to block height.
@@ -112,7 +113,7 @@ namespace BlockCypher {
             // ** confirmations : Number of subsequent blocks, including the block the
             // transaction is in. Unconfirmed transactions have 0 confirmations.
             //tested insert: ok
-            int _confirmations;
+            uint32_t _confirmations;
 
             // ** confidence : The percentage chance this transaction will be included in the next block, if unconfirmed.
             // See http://dev.blockcypher.com/#confidence-factor

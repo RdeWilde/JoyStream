@@ -43,15 +43,16 @@ namespace BlockCypher {
 
         // The previous transaction hash where this input was an output. 
         // Not present for coinbase transactions
+        // reversed byte order (as used by block explorer and CoinCore)
         QString _prev_hash;
 
         // The index of the output being spent within the previous transaction. 
         // Not present for coinbase transactions.
-        int _output_index;
+        uint32_t _output_index;
 
         // The value of the output being spent within the previous transaction.
         // ***Not present for coinbase transactions***
-        quint64 _output_value;
+        uint64_t _output_value;
 
         // Raw hexadecimal encoding of the script
         QString _script;

@@ -14,14 +14,19 @@ int main(int argc, char *argv[])
     BlockCypher::WebSocketClient client(Coin::Network::mainnet);
 
     QObject::connect(&client, &BlockCypher::WebSocketClient::txArrived,
-                     [](const BlockCypher::TX & tx){
+                     [&client](const BlockCypher::TX & tx){
 
-        std::cout << "BlockCypher Tx hash: " << tx.hash().toStdString() << std::endl;
-        std::cout << "CoinTx hash        : " << tx.toTransaction().hash().getHex() << std::endl;
+        std::cout << tx.toTransaction().hash().getHex() << std::endl;
+        //client.disconnect();
     });
 
     QObject::connect(&client, &BlockCypher::WebSocketClient::connected, [](){
         std::cout << "CONNECTED\n";
+    });
+
+    QObject::connect(&client, &BlockCypher::WebSocketClient::disconnected, [&a](){
+        std::cout << "DISCONNECTED\n";
+        a.exit();
     });
 
     QObject::connect(&client, &BlockCypher::WebSocketClient::error, [](QAbstractSocket::SocketError e){
