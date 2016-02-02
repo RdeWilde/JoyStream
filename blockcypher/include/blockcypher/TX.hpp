@@ -20,6 +20,8 @@
 #include <QVector>
 #include <QJsonArray>
 
+#include <boost/optional.hpp>
+
 namespace Coin {
     class Transaction;
 }
@@ -52,12 +54,11 @@ namespace BlockCypher {
             // reversed byte order (as used by block explorer and CoinCore)
             QString _hash;
 
-
             // ** block_height : Height of the block that contains this transaction.
             //If this is an unconfirmed transaction, it will equal -1 in blockcypher TX payload.
             //tested insert: ok
             //Datatype used in bitcoin source code: int32_t?
-            uint32_t _block_height;
+            int32_t _block_height;
 
             // ** addresses : Array of bitcoin public addresses involved in the transaction.
             //tested insert: ok
@@ -115,10 +116,6 @@ namespace BlockCypher {
             //tested insert: ok
             uint32_t _confirmations;
 
-            // ** confidence : The percentage chance this transaction will be included in the next block, if unconfirmed.
-            // See http://dev.blockcypher.com/#confidence-factor
-            //float _confidence;
-
             // ** inputs : TXInput Array, blockcypher limited to 20 by default.
             QVector<TXInput> _inputs;
             // ** outputs : TXOutput Array, blockcypher limited to 20 by default.
@@ -135,11 +132,14 @@ namespace BlockCypher {
             // O P T I O N A L  V A L U E S
             // ====================================================
 
+            // ** confidence : The percentage chance this transaction will be included in the next block, if unconfirmed.
+            // See http://dev.blockcypher.com/#confidence-factor
+            boost::optional<double> _confidence;
 
             // ** confirmed : Time at which transaction was included in a block;
             // only present for confirmed transactions.
             // Ex. val:
-            QDateTime _confirmed;
+            boost::optional<QDateTime> _confirmed;
 
             // ** receive_count : Number of peers that have sent this transaction to BlockCypher;
             // only present for unconfirmed transactions.
@@ -155,12 +155,13 @@ namespace BlockCypher {
             // ** block_hash : Hash of the block that contains this transaction;
             // only present for confirmed transactions.
             //Example value: 0000000000000867c1190402b0e484bcbee7375d8e73e46b5292028394093d46
-            Coin::BlockId _block_hash;
-
+            boost::optional<Coin::BlockId> _block_hash;
 
             // ** double_of : If this transaction is a double-spend (i.e. double_spend == true)
             // then this is the hash of the transaction it’s double-spending.
-            //QString double_of;
+            boost::optional<QString> _double_of;
+
+            boost::optional<QString> _double_spend_tx;
 
             // ** data_protocol : Returned if this transaction contains an OP_RETURN associated
             // with a known data protocol. Data protocols currently detected: blockchainid ;
@@ -176,10 +177,11 @@ namespace BlockCypher {
 
             // ** next_inputs : If there are more transaction inptus that couldn’t fit into the
             // TXInput array, this is the BlockCypher URL to query the next set of TXInputs (within a TX object).
+            boost::optional<QString> _next_inputs;
 
             // ** next_outputs : If there are more transaction outputs that couldn’t fit into the TXOutput array,
             // this is the BlockCypher URL to query the next set of TXOutputs(within a TX object).
-
+            boost::optional<QString> _next_outputs;
     };
 }
 

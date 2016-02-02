@@ -162,9 +162,34 @@ namespace BlockCypher {
         if(o.contains("block_hash") && o.value("block_hash").isString()) {
             _block_hash = Coin::BlockId(o.value("block_hash").toString());
         }
+
+        if(o.contains("double_of") && o.value("double_of").isString()) {
+            _double_of = o.value("double_of").toString();
+        }
+
+        if(o.contains("double_spend_tx") && o.value("double_spend_tx").isString()) {
+            _double_spend_tx = o.value("double_spend_tx").toString();
+        }
+
+        if(o.contains("confidence") && o.value("confidence").isDouble()) {
+            _confidence = o.value("confidence").toDouble();
+        }
+
+        if(o.contains("next_inputs") && o.value("next_inputs").isString()) {
+            _next_inputs = o.value("next_inputs").toString();
+        }
+
+        if(o.contains("next_outputs") && o.value("next_outputs").isString()) {
+            _next_outputs = o.value("next_outputs").toString();
+        }
     }
 
     Coin::Transaction TX::toTransaction() const {
+
+        if(_vin_sz > _inputs.size() || _vout_sz > _outputs.size()) {
+            throw std::runtime_error("remaining inputs/outputs for this tx need to be fetched");
+        }
+
         Coin::Transaction tx;
 
         tx.version = _ver;
