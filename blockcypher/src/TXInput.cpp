@@ -13,6 +13,7 @@
 #include <QJsonObject>
 
 #include <CoinCore/CoinNodeData.h>
+#include <stdutils/uchar_vector.h>
 
 namespace BlockCypher {
 
@@ -111,8 +112,9 @@ namespace BlockCypher {
 
             if(!sequence.isDouble())
                 throw std::runtime_error("sequence is not a double.");
-            else
+            else{
                 _sequence = sequence.toInt();
+            }
         }
     }
 
@@ -128,7 +130,9 @@ namespace BlockCypher {
     }
 
     Coin::TxIn TXInput::toInput() const {
-        Coin::OutPoint outpoint(_prev_hash.toStdString(), _output_index);
-        return Coin::TxIn(outpoint, uchar_vector(_script.toStdString()), _sequence);
+        uchar_vector op(_prev_hash.toStdString());
+        //op.reverse();
+        Coin::OutPoint outpoint(op, _output_index);
+        return Coin::TxIn(outpoint, _script.toStdString(), _sequence);
     }
 }

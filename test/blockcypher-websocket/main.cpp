@@ -16,7 +16,8 @@ int main(int argc, char *argv[])
     QObject::connect(&client, &BlockCypher::WebSocketClient::txArrived,
                      [](const BlockCypher::TX & tx){
 
-        std::cout << tx.toTransaction().toString() << std::endl;
+        std::cout << "BlockCypher Tx hash: " << tx.hash().toStdString() << std::endl;
+        std::cout << "CoinTx hash        : " << tx.toTransaction().hash().getHex() << std::endl;
     });
 
     QObject::connect(&client, &BlockCypher::WebSocketClient::connected, [](){

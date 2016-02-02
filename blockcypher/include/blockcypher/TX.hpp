@@ -36,6 +36,7 @@ namespace BlockCypher {
 
             Coin::Transaction toTransaction() const;
 
+            QString hash() const { return _hash; }
         private:
 
             // ====================================================
@@ -70,7 +71,7 @@ namespace BlockCypher {
             quint64 _fees;
 
             // ** size : The size of the transaction in bytes.
-            //int size;
+            quint64 _size;
 
             // ** preference : The likelihood that this transaction will make it to the next block;
             //reflects the preference level miners have to include this transaction.
@@ -94,7 +95,7 @@ namespace BlockCypher {
             // two ways: if less than 500 million, refers to block height.
             // If more, refers to Unix epoch time.
             //tested insert: ok
-            quint32 _lock_time;
+            uint32_t _lock_time;
 
             // ** double_spend : True if this is an attempted double spend; false otherwise.
             //tested insert: ok

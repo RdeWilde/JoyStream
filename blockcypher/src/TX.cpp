@@ -57,6 +57,15 @@ namespace BlockCypher {
             _fees = o.value("fees").toInt();
         }
 
+        if(!o.contains("size") ){
+            throw std::runtime_error("size is not a key.");
+        } else {
+            if(!o.value("size").isDouble())
+            throw std::runtime_error("size is not a double.");
+
+            _size = o.value("size").toInt();
+        }
+
         if(!o.contains("received")){
             throw std::runtime_error("received is not a key.");
         } else {
@@ -169,7 +178,10 @@ namespace BlockCypher {
             tx.addOutput(output.toOutput());
         }
 
-        //Q_ASSERT(_hash.toStdString() == tx.hash().getHex());
+        Q_ASSERT(_size == tx.getSize());         //passing
+        Q_ASSERT(_vin_sz == tx.inputs.size());   //passing
+        Q_ASSERT(_vout_sz == tx.outputs.size()); //passing
+        Q_ASSERT(_hash.toStdString() == tx.hash().getHex());
         return tx;
     }
 }
