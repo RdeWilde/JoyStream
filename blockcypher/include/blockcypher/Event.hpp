@@ -40,9 +40,7 @@ public:
 
         //require hash or address
         tx_confirmation, //address or transaction hash
-        tx_confidence, //requires address
-
-        pong //we only receive pong events, we should not send them
+        tx_confidence //requires address
     };
 
     // Convernt between enum Type and string representation

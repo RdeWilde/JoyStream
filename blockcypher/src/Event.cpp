@@ -20,7 +20,6 @@ namespace BlockCypher {
         else if(s == "tx-confirmation")  return Event::Type::tx_confirmation;
         else if(s == "double-spend-tx")  return Event::Type::double_spend_tx;
         else if(s == "tx-confidence")    return Event::Type::tx_confidence;
-        else if(s == "pong")             return Event::Type::pong;
         else Q_ASSERT(false);
 
     }
@@ -34,7 +33,6 @@ namespace BlockCypher {
             case Event::Type::tx_confirmation: return "tx-confirmation";
             case Event::Type::double_spend_tx: return "double-spend-tx";
             case Event::Type::tx_confidence: return "tx-confidence";
-            case Event::Type::pong: return "pong";
             default: Q_ASSERT(false);
         }
     }
