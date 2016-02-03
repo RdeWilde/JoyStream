@@ -10,7 +10,7 @@ set -x
 TARGET_ARCH="i686-w64-mingw32"
 
 ZLIB_VERSION="zlib-1.2.8"
-OPENSSL_VERSION="openssl-1.0.2e"
+OPENSSL_VERSION="openssl-1.0.2f"
 SQLITE_VERSION="sqlite-autoconf-3090200"
 
 mkdir -p src/
