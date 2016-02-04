@@ -48,8 +48,8 @@ namespace BlockCypher {
     {
         Event ev(Event::Type::tx_confirmation);
 
-        if(confirmations < 1) {
-            ev["confirmations"] = 2;
+        if(confirmations < 0) {
+            ev["confirmations"] = 0;
         } else if (confirmations > 10) {
             ev["confirmations"] = 10;
         } else {
