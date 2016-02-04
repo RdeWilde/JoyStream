@@ -65,13 +65,6 @@ namespace BlockCypher {
         if(e.type() == Event::Type::new_block)
             throw std::runtime_error("Unsupported event type.");
 
-        // Add token to event
-        if(_apiToken != "") {
-            if(e["token"].isUndefined()) {
-                e["token"] = _apiToken;
-            }
-        }
-
         // Add to list of events
         _addedEvents.append(e);
 
@@ -169,8 +162,14 @@ namespace BlockCypher {
         // we are not connected
         Q_ASSERT(isConnected());
 
+        QJsonObject obj_tosend(obj);
+
+        if(!obj_tosend.contains("token") && !_apiToken.isNull()) {
+            obj_tosend["token"] = _apiToken;
+        }
+
         // serialise event to JSON string and send it
-        QByteArray json = QJsonDocument(obj).toJson();
+        QByteArray json = QJsonDocument(obj_tosend).toJson();
         QString txt(json);
         _webSocket.sendTextMessage(txt);
     }
