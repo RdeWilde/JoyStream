@@ -3,52 +3,63 @@
 # Proprietary and confidential
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, January 27 2016
 
-TARGET = wallet
+TARGET = protocol
 TEMPLATE = lib
 
 CONFIG  += staticlib
 CONFIG  += create_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
 CONFIG  += c++11 # Needed for class enum, std::array
 
-QT      += core sql network # network added due to blockcypher integration
+QT      += core # !!!!!!!!!remove later when QDataStream is gone!!!!!!!!!!!!!!!!!
 
 INCLUDEPATH += $$PWD/include # be able to include w.r.t root of this project
 
 HEADERS += \
-    include/protocol/ExtendedMessagePayload.hpp \
-    include/protocol/SignRefund.hpp \
-    include/protocol/Sell.hpp \
-    include/protocol/RequestFullPiece.hpp \
-    include/protocol/RefundSigned.hpp \
-    include/protocol/Ready.hpp \
-    include/protocol/Payment.hpp \
-    include/protocol/Observe.hpp \
-    include/protocol/NoPayloadMessage.hpp \
-    include/protocol/MessageType.hpp \
-    include/protocol/JoiningContract.hpp \
-    include/protocol/JoinContract.hpp \
-    include/protocol/FullPiece.hpp \
-    include/protocol/Buy.hpp \
-    include/protocol/MessageType.hpp
+    include/protocol/wire/ExtendedMessagePayload.hpp \
+    include/protocol/wire/SignRefund.hpp \
+    include/protocol/wire/Sell.hpp \
+    include/protocol/wire/RequestFullPiece.hpp \
+    include/protocol/wire/RefundSigned.hpp \
+    include/protocol/wire/Ready.hpp \
+    include/protocol/wire/Payment.hpp \
+    include/protocol/wire/Observe.hpp \
+    include/protocol/wire/NoPayloadMessage.hpp \
+    include/protocol/wire/MessageType.hpp \
+    include/protocol/wire/JoiningContract.hpp \
+    include/protocol/wire/JoinContract.hpp \
+    include/protocol/wire/FullPiece.hpp \
+    include/protocol/wire/Buy.hpp \
+    include/protocol/wire/MessageType.hpp \
+    include/protocol/Session.hpp \
+    include/protocol/Connection.hpp \
+    include/protocol/Mode.hpp \
+    include/protocol/BuyModeSessionState.hpp \
+    include/protocol/ModeAnnounced.hpp \
+    include/protocol/BuyModeConnectionState.hpp \
+    include/protocol/SellModeConnectionState.hpp
 
 SOURCES += \
-    src/ExtendedMessagePayload.cpp \
-    src/SignRefund.cpp \
-    src/Sell.cpp \
-    src/RequestFullPiece.cpp \
-    src/RefundSigned.cpp \
-    src/Ready.cpp \
-    src/Payment.cpp \
-    src/Observe.cpp \
-    src/NoPayloadMessage.cpp \
-    src/MessageType.cpp \
-    src/JoiningContract.cpp \
-    src/JoinContract.cpp \
-    src/FullPiece.cpp \
-    src/Buy.cpp
+    src/wire/ExtendedMessagePayload.cpp \
+    src/wire/SignRefund.cpp \
+    src/wire/Sell.cpp \
+    src/wire/RequestFullPiece.cpp \
+    src/wire/RefundSigned.cpp \
+    src/wire/Ready.cpp \
+    src/wire/Payment.cpp \
+    src/wire/Observe.cpp \
+    src/wire/NoPayloadMessage.cpp \
+    src/wire/MessageType.cpp \
+    src/wire/JoiningContract.cpp \
+    src/wire/JoinContract.cpp \
+    src/wire/FullPiece.cpp \
+    src/wire/Buy.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include
 DEPENDPATH += $$PWD/../common/include
+
+# paymentchannel
+INCLUDEPATH += $$PWD/../paymentchannel/include
+DEPENDPATH += $$PWD/../paymentchannel/include
 
 include(../config.pri)
