@@ -37,11 +37,22 @@ namespace BlockCypher {
         }
     }
 
-    Event::Event() {}
-
     Event::Event(Event::Type type)
     {
-        (*this)["event"] = typeToString(type);
+        _event = type;
+    }
+
+    Event Event::make(Event::Type type) {
+        if(type == Event::Type::tx_confirmation) {
+            throw std::runtime_error("wrong event factory. use makeTxConfirmation() instead");
+        }
+
+        if(type == Event::Type::tx_confidence) {
+            throw std::runtime_error("wrong event factory. use makeTxConfidence instead");
+        }
+
+        Event ev(type);
+        return ev;
     }
 
     Event Event::makeTxConfirmation(int confirmations)
@@ -49,11 +60,11 @@ namespace BlockCypher {
         Event ev(Event::Type::tx_confirmation);
 
         if(confirmations < 0) {
-            ev["confirmations"] = 0;
+            ev.setConfirmations(0);
         } else if (confirmations > 10) {
-            ev["confirmations"] = 10;
+            ev.setConfirmations(10);
         } else {
-            ev["confirmations"] = confirmations;
+            ev.setConfirmations(confirmations);
         }
 
         return ev;
@@ -77,11 +88,11 @@ namespace BlockCypher {
         Event ev(Event::Type::tx_confidence);
 
         if(confidence > 1) {
-            ev["confidence"] = 0.99;
+            ev.setConfidence(0.99);
         } else if (confidence < 0 ) {
-            ev["confidence"] = 0.01;
+            ev.setConfidence(0.01);
         } else {
-            ev["confidence"] = confidence;
+            ev.setConfidence(confidence);
         }
 
         ev.setAddress(address);
@@ -89,38 +100,57 @@ namespace BlockCypher {
     }
 
     void Event::setAddress(const QString & address) {
-        if(!address.isNull()) {
-            (*this)["address"] = address;
-        } else {
-            this->remove("address");
-        }
+        if(_address) return;
+        _address = address;
     }
 
     void Event::setScriptType(ScriptType script) {
-        (*this)["script"] = fromScriptType(script);
-    }
-
-    void Event::removeScriptType() {
-        this->remove("script");
+        if(_script) return;
+        _script = script;
     }
 
     void Event::setHash(const QString & hash) {
-        if(!hash.isNull()) {
-            (*this)["hash"] = hash;
-        }else {
-            this->remove("hash");
-        }
+        if(_hash) return;
+        _hash = hash;
     }
 
     void Event::setWalletName(const QString & wallet_name) {
-        if(!wallet_name.isNull()) {
-            (*this)["wallet_name"] = wallet_name;
-        } else {
-            this->remove("wallet_name");
-        }
+        if(_wallet_name) return;
+        _wallet_name = wallet_name;
+    }
+
+    void Event::setToken(const QString & token) {
+        if(_token) return;
+        _token = token;
+    }
+
+    void Event::setConfirmations(const int & confirmations) {
+        if(_confirmations) return;
+        _confirmations = confirmations;
+    }
+
+    void Event::setConfidence(const double & confidence) {
+        if(_confidence) return;
+        _confidence = confidence;
     }
 
     Event::Type Event::type() const {
-        return stringToType((*this)["event"].toString());
+        return _event;
     }
+
+    QJsonObject Event::toJson() const {
+        QJsonObject obj;
+
+        obj["event"] = typeToString(_event);
+        if(_confirmations) obj["confirmations"] = *_confirmations;
+        if(_confidence) obj["confidence"] = *_confidence;
+        if(_hash) obj["hash"] = *_hash;
+        if(_address) obj["address"] = *_address;
+        if(_script) obj["script"] = fromScriptType(*_script);
+        if(_wallet_name) obj["wallet_name"] = *_wallet_name;
+        if(_token) obj["token"] = *_token;
+
+        return obj;
+    }
+
 }

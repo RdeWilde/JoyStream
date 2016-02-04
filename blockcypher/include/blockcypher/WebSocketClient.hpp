@@ -101,7 +101,7 @@ namespace BlockCypher {
 
         // Sends event to server.
         // Should only be called when we are connected.
-        void sendEvent(const QJsonObject &obj);
+        void sendEvent(const Event &event);
 
         // WebSocket used for communicating
         QWebSocket _webSocket;

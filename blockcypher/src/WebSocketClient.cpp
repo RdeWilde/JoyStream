@@ -156,13 +156,13 @@ namespace BlockCypher {
 
     }
 
-    void WebSocketClient::sendEvent(const QJsonObject & obj) {
+    void WebSocketClient::sendEvent(const Event &event) {
 
         // This private routine should never be called if
         // we are not connected
         Q_ASSERT(isConnected());
 
-        QJsonObject obj_tosend(obj);
+        QJsonObject obj_tosend(event.toJson());
 
         if(!obj_tosend.contains("token") && !_apiToken.isNull()) {
             obj_tosend["token"] = _apiToken;
