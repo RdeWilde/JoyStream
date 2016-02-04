@@ -39,6 +39,28 @@ namespace BlockCypher {
             Coin::Transaction toTransaction() const;
 
             QString hash() const { return _hash; }
+            int32_t block_height() const { return _block_height; }
+            QStringList addresses() const { return _addresses; }
+            uint64_t total() const { return _total; }
+            uint64_t fees() const { return _fees; }
+            uint32_t size() const { return _size; }
+            QDateTime received() const { return _received; }
+            uint32_t version() const { return _ver; }
+            bool double_spend() const { return _double_spend; }
+            uint32_t inputs_size() const { return _vin_sz; }
+            uint32_t outputs_size() const { return _vout_sz; }
+            uint32_t confirmations() const { return _confirmations; }
+            QVector<TXInput> inputs() const { return _inputs; }
+            QVector<TXOutput> outputs() const { return _outputs; }
+
+            boost::optional<double> confidence() const { return _confidence; }
+            boost::optional<QDateTime> confirmed() const { return _confirmed; }
+            boost::optional<Coin::BlockId> block_id() const { return _block_hash; }
+            boost::optional<QString> double_of() const { return _double_of; }
+            boost::optional<QString> double_spend_tx() const { return _double_spend_tx; }
+            boost::optional<QString> next_inputs_url() const { return _next_inputs; }
+            boost::optional<QString> next_outputs_url() const { return _next_outputs; }
+
         private:
 
             // ====================================================

@@ -30,6 +30,21 @@ namespace BlockCypher {
      */
     struct TXOutput {
 
+    public:
+        TXOutput() {}
+
+        TXOutput(const QJsonObject & o);
+
+        bool operator==(const TXOutput & o);
+
+        Coin::TxOut toOutput() const;
+
+        uint64_t value() const { return _value; }
+        QString script() const { return _script; }
+        QStringList addresses() const { return _addresses; }
+        ScriptType script_type() const { return _script_type; }
+
+    private:
         // Value in this transaction output, in satoshis.
         uint64_t _value;
 
@@ -43,14 +58,6 @@ namespace BlockCypher {
 
         // The type of encumbrance script used for this output.
         ScriptType _script_type;
-
-        TXOutput() {}
-
-        TXOutput(const QJsonObject & o);
-
-        bool operator==(const TXOutput & o);
-
-        Coin::TxOut toOutput() const;
 
     };
 }

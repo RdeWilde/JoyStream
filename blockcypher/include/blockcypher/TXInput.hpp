@@ -31,7 +31,10 @@ namespace BlockCypher {
      * previous UTXOs, with the most prominent exceptions
      * being attempted double-spend and coinbase inputs.
     */
-    struct TXInput {
+    struct TXInput
+    {
+
+    public:
 
         TXInput() {}
 
@@ -41,6 +44,15 @@ namespace BlockCypher {
 
         Coin::TxIn toInput() const;
 
+        QString prev_hash() const { return _prev_hash; }
+        uint32_t index() const { return _output_index; }
+        uint64_t value() const { return _output_value; }
+        QString script() const { return _script; }
+        ScriptType script_type() const { return _script_type; }
+        QStringList addresses() const { return _addresses; }
+        uint32_t  sequence() const { return _sequence; }
+
+    private:
         // The previous transaction hash where this input was an output. 
         // Not present for coinbase transactions
         // reversed byte order (as used by block explorer and CoinCore)
