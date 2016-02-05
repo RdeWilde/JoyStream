@@ -13,6 +13,8 @@
 #include <QString>
 #include <QStringList>
 
+#include <boost/optional.hpp>
+
 class QJsonObject;
 
 namespace Coin {
@@ -43,6 +45,7 @@ namespace BlockCypher {
         QString script() const { return _script; }
         QStringList addresses() const { return _addresses; }
         ScriptType script_type() const { return _script_type; }
+        boost::optional<QString> spent_by() const { return _spent_by; }
 
     private:
         // Value in this transaction output, in satoshis.
@@ -58,6 +61,8 @@ namespace BlockCypher {
 
         // The type of encumbrance script used for this output.
         ScriptType _script_type;
+
+        boost::optional<QString> _spent_by;
 
     };
 }

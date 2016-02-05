@@ -59,7 +59,7 @@ namespace BlockCypher {
         _webSocket.close();
     }
 
-    void WebSocketClient::addEvent(Event & e) {
+    void WebSocketClient::addEvent(const Event & e) {
 
         // Check that we support this event type
         if(e.type() == Event::Type::new_block)

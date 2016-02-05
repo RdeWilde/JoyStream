@@ -49,7 +49,7 @@ namespace BlockCypher {
         static const char * endPoint(Coin::Network network);
 
         // Add event filter
-        void addEvent(Event & e);
+        void addEvent(const Event & e);
 
         // Connect to server
         void connect();

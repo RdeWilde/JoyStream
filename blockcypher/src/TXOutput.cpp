@@ -56,6 +56,11 @@ namespace BlockCypher {
             throw std::runtime_error("script_type is not a string.");
         else
             _script_type = toScriptType(o.value("script_type").toString());
+
+        // optional if output is spent
+        if(o.contains("spent_by") && o.value("spent_by").isString()) {
+            _spent_by = o.value("spent_by").toString();
+        }
     }
 
     bool TXOutput::operator==(const TXOutput & o) {
@@ -63,7 +68,8 @@ namespace BlockCypher {
         return _value == o._value &&
                _script == o._script &&
                _addresses == o._addresses &&
-               _script_type == o._script_type;
+               _script_type == o._script_type &&
+               _spent_by == o._spent_by;
     }
 
     Coin::TxOut TXOutput::toOutput() const {
