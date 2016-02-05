@@ -5,13 +5,15 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 4 2016
  */
 
-#ifndef JOYSTREAM_PROTOCOL_BUY_MODE_SESSION_STATE_HPP
-#define JOYSTREAM_PROTOCOL_BUY_MODE_SESSION_STATE_HPP
+#ifndef JOYSTREAM_PROTOCOL_BUY_SESSION_STATE_HPP
+#define JOYSTREAM_PROTOCOL_BUY_SESSION_STATE_HPP
 
 namespace joystream {
 namespace protocol {
+namespace buy {
 
-    enum class BuyModeSessionState {
+    // State of session in buy mode
+    enum class SessionState {
 
         // Need enough sellers to join
         waiting_for_full_set_of_sellers,
@@ -25,6 +27,7 @@ namespace protocol {
 
 }
 }
+}
 
-#endif // JOYSTREAM_PROTOCOL_BUY_MODE_SESSION_STATE_HPP
+#endif // JOYSTREAM_PROTOCOL_BUY_SESSION_STATE_HPP
 

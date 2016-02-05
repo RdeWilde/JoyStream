@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef PROTOCOL_MESSAGE_TYPE_HPP
-#define PROTOCOL_MESSAGE_TYPE_HPP
+#ifndef JOYSTREAM_PROTOCOL_WIRE_MESSAGE_TYPE_HPP
+#define JOYSTREAM_PROTOCOL_WIRE_MESSAGE_TYPE_HPP
 
 // can't forwar declare?
 // http://stackoverflow.com/questions/307343/forward-declare-an-stl-container
@@ -56,4 +56,4 @@ namespace wire {
 }
 }
 
-#endif // PROTOCOL_MESSAGE_TYPE_HPP
+#endif // JOYSTREAM_PROTOCOL_WIRE_MESSAGE_TYPE_HPP

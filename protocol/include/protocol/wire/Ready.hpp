@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef PROTOCOL_READY_HPP
-#define PROTOCOL_READY_HPP
+#ifndef JOYSTREAM_PROTOCOL_WIRE_READY_HPP
+#define JOYSTREAM_PROTOCOL_WIRE_READY_HPP
 
 #include <protocol/wire/NoPayloadMessage.hpp>
 
@@ -23,4 +23,4 @@ namespace wire {
 }
 }
 }
-#endif // PROTOCOL_READY_HPP
+#endif // JOYSTREAM_PROTOCOL_WIRE_READY_HPP

@@ -12,5 +12,6 @@ SUBDIRS     = \
             #views \
             wallet \
             blockcypher \ 
-	    mixpanel
+            mixpanel \
+            protocol
 

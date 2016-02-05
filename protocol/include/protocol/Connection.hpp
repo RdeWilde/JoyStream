@@ -9,12 +9,16 @@
 #define JOYSTREAM_PROTOCOL_CONNECTION_HPP
 
 #include <protocol/Mode.hpp>
-#include <protocol/ModeAnnounced.hpp>
-#include <protocol/BuyModeConnectionState.hpp>
-#include <protocol/SellModeConnectionState.hpp>
+#include <protocol/PeerModeAnnounced.hpp>
 #include <paymentchannel/Payee.hpp>
 
+#include <protocol/sell/ClientState.hpp>
+#include <protocol/sell/PeerState.hpp>
+#include <protocol/buy/ClientState.hpp>
+#include <protocol/buy/PeerState.hpp>
+
 #include <set>
+#include <functional>
 
 namespace joystream {
 namespace protocol {
@@ -23,7 +27,15 @@ namespace protocol {
 
     public:
 
-        //Connection();
+        typedef std::function<void(const wire::ExtendedMessagePayload *)> SendMessageCallbackHandler;
+        typedef std::function<void(int)> ReadPieceCallbackHandler;
+
+        // Name constructors corresponding to mode
+
+
+
+        // Callbacks
+        void pieceRead(int index);
 
     private:
 
@@ -31,19 +43,26 @@ namespace protocol {
         Mode _clientMode;
 
         // Mode announced by peer, i.e. last mode message received
-        ModeAnnounced _peerMode;
+        PeerModeAnnounced _lastModeAnnouncedByPeer;
 
         // Write message callback
+        //
 
         //////////////////
         /// BUYER MODE ///
         //////////////////
 
-        // State under buy mode
-        BuyModeConnectionState _buyModeState;
+        // All state in this section is only relevant when in buy mode (_clientMode == Mode::buy)
+
+        // State of client (us) on this connection
+        buy::ClientState _buyClientState;
+
+        // State of peer on this connection
+        buy::PeerState _buyPeerState;
 
         // Index of a piece assigned to this peer, only valid if
-        // _clientState == ClientState::waiting_for_full_piece or ClientState::waiting_for_libtorrent_to_validate_piece
+        // _clientState == ClientState::waiting_for_full_piece or
+        // ClientState::waiting_for_libtorrent_to_validate_piece
         //int _indexOfAssignedPiece;
 
         // Indexes of valid piecesm, in the order they were downloaded
@@ -53,8 +72,13 @@ namespace protocol {
         /// SELLER MODE ///
         ///////////////////
 
-        // State under sell mode
-        SellModeConnectionState _sellModeState;
+        // All state in this section is only relevant when in sell mode (_clientMode == Mode::sell)
+
+        // State of client (us) on this connection
+        sell::ClientState _sellClientState;
+
+        // State of peer on this connection
+        sell::PeerState _sellPeerState;
 
         // Payee side of payment channel
         joystream::paymentchannel::Payee _payee;

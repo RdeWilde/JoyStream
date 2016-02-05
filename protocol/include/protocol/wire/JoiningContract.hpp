@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef PROTOCOL_JOINING_CONTRACT_HPP
-#define PROTOCOL_JOINING_CONTRACT_HPP
+#ifndef JOYSTREAM_PROTOCOL_WIRE_JOINING_CONTRACT_HPP
+#define JOYSTREAM_PROTOCOL_WIRE_JOINING_CONTRACT_HPP
 
 #include <protocol/wire/ExtendedMessagePayload.hpp>
 #include <common/PublicKey.hpp>
@@ -52,4 +52,4 @@ namespace wire {
 }
 }
 
-#endif // PROTOCOL_JOINING_CONTRACT_HPP
+#endif // JOYSTREAM_PROTOCOL_WIRE_JOINING_CONTRACT_HPP

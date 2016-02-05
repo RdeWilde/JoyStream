@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef FULLPIECE_HPP
-#define FULLPIECE_HPP
+#ifndef JOYSTREAM_PROTOCOL_WIRE_FULL_PIECE_HPP
+#define JOYSTREAM_PROTOCOL_WIRE_FULL_PIECE_HPP
 
 #include <protocol/wire/ExtendedMessagePayload.hpp>
 
@@ -56,4 +56,4 @@ namespace wire {
 }
 }
 
-#endif // FULLPIECE_HPP
+#endif // JOYSTREAM_PROTOCOL_WIRE_FULL_PIECE_HPP

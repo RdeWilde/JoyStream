@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef PROTOCOL_OBSERVE_HPP
-#define PROTOCOL_OBSERVE_HPP
+#ifndef JOYSTREAM_PROTOCOL_WIRE_OBSERVE_HPP
+#define JOYSTREAM_PROTOCOL_WIRE_OBSERVE_HPP
 
 #include <protocol/wire/NoPayloadMessage.hpp>
 
@@ -24,4 +24,4 @@ namespace wire {
 }
 }
 
-#endif // PROTOCOL_OBSERVE_HPP
+#endif // JOYSTREAM_PROTOCOL_WIRE_OBSERVE_HPP

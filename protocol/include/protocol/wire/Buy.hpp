@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef PROTOCOL_BUY_HPP
-#define PROTOCOL_BUY_HPP
+#ifndef JOYSTREAM_PROTOCOL_WIRE_BUY_HPP
+#define JOYSTREAM_PROTOCOL_WIRE_BUY_HPP
 
 #include <protocol/wire/ExtendedMessagePayload.hpp>
 
@@ -60,4 +60,4 @@ namespace wire {
 }
 }
 
-#endif // PROTOCOL_BUY_HPP
+#endif // JOYSTREAM_PROTOCOL_WIRE_BUY_HPP

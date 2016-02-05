@@ -33,10 +33,16 @@ HEADERS += \
     include/protocol/Session.hpp \
     include/protocol/Connection.hpp \
     include/protocol/Mode.hpp \
-    include/protocol/BuyModeSessionState.hpp \
-    include/protocol/ModeAnnounced.hpp \
-    include/protocol/BuyModeConnectionState.hpp \
-    include/protocol/SellModeConnectionState.hpp
+    include/protocol/SessionConfiguration.hpp \
+    include/protocol/sell/Terms.hpp \
+    include/protocol/sell/ClientState.hpp \
+    include/protocol/sell/PeerState.hpp \
+    include/protocol/buy/SessionState.hpp \
+    include/protocol/buy/Terms.hpp \
+    include/protocol/buy/ClientState.hpp \
+    include/protocol/buy/PeerState.hpp \
+    include/protocol/PeerModeAnnounced.hpp \
+    include/protocol/Piece.hpp
 
 SOURCES += \
     src/wire/ExtendedMessagePayload.cpp \
@@ -52,7 +58,10 @@ SOURCES += \
     src/wire/JoiningContract.cpp \
     src/wire/JoinContract.cpp \
     src/wire/FullPiece.cpp \
-    src/wire/Buy.cpp
+    src/wire/Buy.cpp \
+    src/PeerModeAnnounced.cpp \
+    src/Session.cpp \
+    src/Piece.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include
