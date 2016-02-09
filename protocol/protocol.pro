@@ -33,7 +33,6 @@ HEADERS += \
     include/protocol/Session.hpp \
     include/protocol/Connection.hpp \
     include/protocol/Mode.hpp \
-    include/protocol/SessionConfiguration.hpp \
     include/protocol/sell/Terms.hpp \
     include/protocol/sell/ClientState.hpp \
     include/protocol/sell/PeerState.hpp \
