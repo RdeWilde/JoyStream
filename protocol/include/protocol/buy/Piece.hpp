@@ -5,13 +5,14 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 5 2016
  */
 
-#ifndef JOYSTREAM_PROTOCOL_PIECE_HPP
-#define JOYSTREAM_PROTOCOL_PIECE_HPP
+#ifndef JOYSTREAM_PROTOCOL_BUY_PIECE_HPP
+#define JOYSTREAM_PROTOCOL_BUY_PIECE_HPP
 
 #include <string>
 
 namespace joystream {
 namespace protocol {
+namespace buy {
 
     class Piece {
 
@@ -57,12 +58,11 @@ namespace protocol {
         // Piece state
         State _state;
 
-        // Peer plugin assigned to this piece
+        // Peer plugin assigned to this piece: Do we actually need this
         std::string _nameOfConnectionAssignedThisPiece;
     };
 }
 }
+}
 
-
-#endif // JOYSTREAM_PROTOCOL_PIECE_HPP
-
+#endif // JOYSTREAM_PROTOCOL_BUY_PIECE_HPP

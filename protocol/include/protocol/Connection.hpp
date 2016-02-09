@@ -8,83 +8,46 @@
 #ifndef JOYSTREAM_PROTOCOL_CONNECTION_HPP
 #define JOYSTREAM_PROTOCOL_CONNECTION_HPP
 
-#include <protocol/Mode.hpp>
 #include <protocol/PeerModeAnnounced.hpp>
-#include <paymentchannel/Payee.hpp>
 
-#include <protocol/sell/ClientState.hpp>
-#include <protocol/sell/PeerState.hpp>
-#include <protocol/buy/ClientState.hpp>
-#include <protocol/buy/PeerState.hpp>
 
-#include <set>
 #include <functional>
 
 namespace joystream {
 namespace protocol {
 
+    namespace wire {
+        class ExtendedMessagePayload;
+    }
+
     class Connection {
 
     public:
 
-        typedef std::function<void(const wire::ExtendedMessagePayload *)> SendMessageCallbackHandler;
-        typedef std::function<void(int)> ReadPieceCallbackHandler;
+        Connection();
 
-        // Name constructors corresponding to mode
+        // Callback handler for sending a message to the peer
+        typedef std::function<bool(const wire::ExtendedMessagePayload *)> SendMessageCallbackHandler;
 
+        Connection(const std::string & peerName, PeerModeAnnounced lastModeAnnouncedByPeer, const SendMessageCallbackHandler & sendMessageCallbackHandler);
 
+        // Getters
+        std::string peerName() const;
 
-        // Callbacks
-        void pieceRead(int index);
+        PeerModeAnnounced lastModeAnnouncedByPeer() const;
 
-    private:
+        SendMessageCallbackHandler sendMessageCallbackHandler() const;
 
-        // Mode of client, i.e. last mode message sent
-        Mode _clientMode;
+    protected:
+
+        // Name of peer: may or may not actually be needed
+        std::string _peerName;
 
         // Mode announced by peer, i.e. last mode message received
         PeerModeAnnounced _lastModeAnnouncedByPeer;
 
         // Write message callback
-        //
-
-        //////////////////
-        /// BUYER MODE ///
-        //////////////////
-
-        // All state in this section is only relevant when in buy mode (_clientMode == Mode::buy)
-
-        // State of client (us) on this connection
-        buy::ClientState _buyClientState;
-
-        // State of peer on this connection
-        buy::PeerState _buyPeerState;
-
-        // Index of a piece assigned to this peer, only valid if
-        // _clientState == ClientState::waiting_for_full_piece or
-        // ClientState::waiting_for_libtorrent_to_validate_piece
-        //int _indexOfAssignedPiece;
-
-        // Indexes of valid piecesm, in the order they were downloaded
-        std::list<uint32_t> _downloadedValidPieces;
-
-        ///////////////////
-        /// SELLER MODE ///
-        ///////////////////
-
-        // All state in this section is only relevant when in sell mode (_clientMode == Mode::sell)
-
-        // State of client (us) on this connection
-        sell::ClientState _sellClientState;
-
-        // State of peer on this connection
-        sell::PeerState _sellPeerState;
-
-        // Payee side of payment channel
-        joystream::paymentchannel::Payee _payee;
-
-        // Index of each piece sent, in the order that it was sent
-        std::list<uint32_t> _fullPiecesSent;
+        SendMessageCallbackHandler _sendMessageCallbackHandler;
     };
 }
 }

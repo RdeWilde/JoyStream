@@ -5,10 +5,11 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 5 2016
  */
 
-#include <protocol/Piece.hpp>
+#include <protocol/buy/Piece.hpp>
 
 namespace joystream {
 namespace protocol {
+namespace buy {
 
     Piece::Piece()
         : _index(-1) // safe value
@@ -40,13 +41,14 @@ namespace protocol {
     }
 
     std::string Piece::nameOfConnectionAssignedThisPiece() const {
-        return _peerPlugin;
+        return _nameOfConnectionAssignedThisPiece;
     }
 
-    void Piece::setNameOfConnectionAssignedThisPiece(const std::string & peerPlugin) {
-        _peerPlugin = peerPlugin;
+    void Piece::setNameOfConnectionAssignedThisPiece(const std::string & nameOfConnectionAssignedThisPiece) {
+        _nameOfConnectionAssignedThisPiece = nameOfConnectionAssignedThisPiece;
     }
 
 
+}
 }
 }
