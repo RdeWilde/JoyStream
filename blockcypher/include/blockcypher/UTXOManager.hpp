@@ -14,6 +14,7 @@
 #include <common/P2PKHAddress.hpp>
 
 #include <blockcypher/WebSocketClient.hpp>
+#include <blockcypher/Client.hpp>
 #include <blockcypher/TX.hpp>
 #include <blockcypher/TXRef.hpp>
 #include <blockcypher/UTXORef.hpp>
@@ -29,9 +30,9 @@ class UTXOManager : public QObject
 
 public:
 
-    UTXOManager(WebSocketClient* client, const std::set<Coin::P2PKHAddress> &addresses);
+    UTXOManager(WebSocketClient* client, Client *restClient, const std::set<Coin::P2PKHAddress> &addresses);
 
-    static void InitialiseUtxo(const std::set<QString> & addresses,
+    static void InitialiseUtxo(Client *restClient, const std::set<QString> & addresses,
                                std::set<UTXORef> &confirmedSet, std::set<UTXORef> &unconfirmedSet);
 
     // adds address to set and sends tx_confirmation event on websocket
@@ -42,7 +43,8 @@ signals:
 public slots:
 
 private:
-    WebSocketClient* _wsclient;
+    WebSocketClient* _wsClient;
+    Client* _restClient;
 
     std::set<UTXORef> _unconfirmed_utxo_set;
     std::set<UTXORef> _confirmed_utxo_set;
@@ -54,7 +56,8 @@ private:
     void processTx(const TX &tx);
 
     // routine to handle TXRef from blockcypher
-    void processTxRef(const TXRef &txref);
+    static void processTxRef(const std::vector<TXRef> &txrefs,
+                      std::set<UTXORef> &confirmed, std::set<UTXORef> &unconfirmed);
 
     bool hasAddress(const QString &address);
 

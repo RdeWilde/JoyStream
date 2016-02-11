@@ -6,11 +6,14 @@
  */
 
 #include <blockcypher/UTXOManager.hpp>
+#include <blockcypher/Address.hpp>
 
 namespace BlockCypher {
 
-    UTXOManager::UTXOManager(WebSocketClient * client, const std::set<Coin::P2PKHAddress> &addresses)
-        : _wsclient(client),
+    UTXOManager::UTXOManager(WebSocketClient * wsclient, Client *restclient,
+                             const std::set<Coin::P2PKHAddress> &addresses)
+        : _wsClient(wsclient),
+          _restClient(restclient),
           _balance(0),
           _balance_zero_conf(0)
     {
@@ -19,28 +22,31 @@ namespace BlockCypher {
         }
 
         // initialise utxomap from list of addresses
-        InitialiseUtxo(_addresses, _confirmed_utxo_set, _unconfirmed_utxo_set);
+        InitialiseUtxo(_restClient, _addresses, _confirmed_utxo_set, _unconfirmed_utxo_set);
 
         // connect signals from websocket client to our private slots
-        QObject::connect( _wsclient, &WebSocketClient::txArrived, [this](const TX & tx){
+        QObject::connect(_wsClient, &WebSocketClient::txArrived, [this](const TX & tx){
             processTx(tx);
         });
+
     }
 
-    void UTXOManager::InitialiseUtxo(const std::set<QString> &addresses,
+    void UTXOManager::InitialiseUtxo(Client * restClient, const std::set<QString> &addresses,
                                      std::set<UTXORef> &confirmedSet, std::set<UTXORef> &unconfirmedSet) {
 
-        /*
-        1) build TXRef list from list of addresses (Manager::BLOCKCYPHER_rebuild_utxo).
-           Basically requires a single call to Address Endpoint
-           (http://dev.blockcypher.com/#address-endpoint),
-           sending all addresses using batching (http://dev.blockcypher.com/#batching).
+        //create a batch of addresses (semicolon separated list)
+        QString addressBatch;
+        for(const QString addr : addresses)
+            addressBatch = addressBatch + ";" + addr;
 
-        2) build confirmedSet and unconfirmedSet from TXRef list (see Manager::BLOCKCYPHER_rebuild_utxo)
-        */
+        Address response = restClient->addressEndPoint(addressBatch);
 
-        std::vector<BlockCypher::TXRef> txrefs;
+        processTxRef(response._txrefs, confirmedSet, unconfirmedSet);
+        processTxRef(response._unconfirmed_txrefs, confirmedSet, unconfirmedSet);
+    }
 
+    void UTXOManager::processTxRef(const std::vector<TXRef> &txrefs,
+                                   std::set<UTXORef> &confirmedSet, std::set<UTXORef> &unconfirmedSet) {
         for(const TXRef &t : txrefs) {
             if(t._tx_output_n >= 0 && t._spent == false) {
 
@@ -63,7 +69,7 @@ namespace BlockCypher {
 
         //insert and add tx_confirmation event to websocket filters
         _addresses.insert(addr);
-        _wsclient->addEvent(Event::makeTxConfirmation(2, addr));
+        _wsClient->addEvent(Event::makeTxConfirmation(2, addr));
         return true;
     }
 
