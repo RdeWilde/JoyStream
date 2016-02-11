@@ -21,6 +21,7 @@
 
 #include <CoinCore/CoinNodeData.h> // Coin::TxOut
 
+#include <QtMath>
 #include <QDebug>
 
 namespace joystream {
@@ -617,8 +618,6 @@ namespace paymentchannel {
     bool Payor::allRefundsSigned() const {
         return numberOfChannelsWithState(ChannelState::refund_signed) == _channels.size();
     }
-
-    #include <QtMath>
 
     quint64 Payor::computeContractFee(int numberOfSellers, quint64 feePerKb) {
 
