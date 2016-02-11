@@ -55,7 +55,7 @@ namespace paymentchannel {
 
         // Payee which is initialize to the start of exchange,
         // before payor information is available.
-        static Payee start(quint32 lockTime,
+        static Payee initPayeeWithoutKnownPayor(quint32 lockTime,
                            quint64 price,
                            const Coin::KeyPair & payeeContractKeys,
                            const Coin::KeyPair & payeePaymentKeys);
