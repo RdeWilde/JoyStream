@@ -23,8 +23,6 @@
 
 namespace BlockCypher {
 
-typedef std::map<Coin::TransactionId, TransactionRelevantUtxo> txToUtxoMap_t;
-
 class UTXOManager : public QObject
 {
     Q_OBJECT
@@ -33,7 +31,8 @@ public:
 
     UTXOManager(WebSocketClient* client, const std::set<Coin::P2PKHAddress> &addresses);
 
-    static void InitialiseUtxo(const std::set<QString> & addresses, txToUtxoMap_t & txUtxoMap);
+    static void InitialiseUtxo(const std::set<QString> & addresses,
+                               std::set<UTXORef> &confirmedSet, std::set<UTXORef> &unconfirmedSet);
 
     // adds address to set and sends tx_confirmation event on websocket
     bool addAddress(const Coin::P2PKHAddress & address);
@@ -45,17 +44,17 @@ public slots:
 private:
     WebSocketClient* _wsclient;
 
-    //all transactions which create and destroy UTXOs for addresses we control
-    txToUtxoMap_t _txUtxoMap;
+    std::set<UTXORef> _unconfirmed_utxo_set;
+    std::set<UTXORef> _confirmed_utxo_set;
 
     //maintain a set of addresses we are interested in
     std::set<QString> _addresses;
 
     // routine to handle TX payload from blockcypher
-    void onTransaction(const TX &tx);
+    void processTx(const TX &tx);
 
     // routine to handle TXRef from blockcypher
-    void onTxRef(const TXRef &txref);
+    void processTxRef(const TXRef &txref);
 
     bool hasAddress(const QString &address);
 

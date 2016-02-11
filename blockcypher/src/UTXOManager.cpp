@@ -19,16 +19,16 @@ namespace BlockCypher {
         }
 
         // initialise utxomap from list of addresses
-        InitialiseUtxo(_addresses, _txUtxoMap);
+        InitialiseUtxo(_addresses, _confirmed_utxo_set, _unconfirmed_utxo_set);
 
         // connect signals from websocket client to our private slots
         QObject::connect( _wsclient, &WebSocketClient::txArrived, [this](const TX & tx){
-            onTransaction(tx);
+            processTx(tx);
         });
     }
 
     void UTXOManager::InitialiseUtxo(const std::set<QString> &addresses,
-                                     txToUtxoMap_t & txUtxoMap) {
+                                     std::set<UTXORef> &confirmedSet, std::set<UTXORef> &unconfirmedSet) {
 
         /*
         1) build TXRef list from list of addresses (Manager::BLOCKCYPHER_rebuild_utxo).
@@ -36,8 +36,24 @@ namespace BlockCypher {
            (http://dev.blockcypher.com/#address-endpoint),
            sending all addresses using batching (http://dev.blockcypher.com/#batching).
 
-        2) build twoConf,oneConf,unconfirmed from TXRef list (see Manager::BLOCKCYPHER_rebuild_utxo)
+        2) build confirmedSet and unconfirmedSet from TXRef list (see Manager::BLOCKCYPHER_rebuild_utxo)
         */
+
+        std::vector<BlockCypher::TXRef> txrefs;
+
+        for(const TXRef &t : txrefs) {
+            if(t._tx_output_n >= 0 && t._spent == false) {
+
+                Coin::typesafeOutPoint outpoint(t._tx_hash, t._tx_output_n);
+                UTXORef utxo(QString::fromStdString(t._addressString), outpoint, t._value);
+
+                if(t._confirmations > 0) {
+                    confirmedSet.insert(utxo);
+                } else {
+                    unconfirmedSet.insert(utxo);
+                }
+            }
+        }
     }
 
     bool UTXOManager::addAddress(const Coin::P2PKHAddress & address) {
@@ -51,37 +67,30 @@ namespace BlockCypher {
         return true;
     }
 
-    void UTXOManager::onTransaction(const TX & tx) {
+    void UTXOManager::processTx(const TX & tx) {
 
-        //confirmation status of tx
-        uint32_t confirmations = tx.confirmations();
         Coin::TransactionId txid = Coin::TransactionId::fromRPCByteOrder(tx.hash().toStdString());
 
-        //if we already have the tx, update the confirmations value
-        if(_txUtxoMap.find(txid) != _txUtxoMap.end()) {
-            _txUtxoMap[txid].confirmations(confirmations);
-            return;
-        }
-
-        TransactionRelevantUtxo txEntry;
-
-        txEntry.confirmations(confirmations);
+        if(tx.double_spend()) return;
 
         for(const TXInput & input : tx.inputs()) {
             if(input.script_type() != ScriptType::pay_to_pubkey_hash) continue;
-            //we expect only one address in output.addresses() array
+            // We expect only one address in output.addresses() array
             QString addr = input.addresses()[0];
 
             if(!hasAddress(addr)) continue;
 
             Coin::typesafeOutPoint outpoint(Coin::TransactionId::fromRPCByteOrder(input.prev_hash().toStdString()), input.index());
             UTXORef utxo(addr, outpoint, input.value());
-            txEntry.destroys(utxo);
+
+            _unconfirmed_utxo_set.erase(utxo);
+            _confirmed_utxo_set.erase(utxo);
         }
 
         int32_t index = -1;
         for(const TXOutput & output : tx.outputs()) {
             index++;
+
             if(output.script_type() != ScriptType::pay_to_pubkey_hash) continue;
             //we expect only one address in output.addresses() array
             QString addr = output.addresses()[0];
@@ -89,16 +98,21 @@ namespace BlockCypher {
 
             Coin::typesafeOutPoint outpoint(txid, index);
             UTXORef utxo(addr, outpoint, output.value());
-            txEntry.creates(utxo);
+
+            if(output.spent_by()){
+                _unconfirmed_utxo_set.erase(utxo);
+                _confirmed_utxo_set.erase(utxo);
+                return;
+            }
+
+            if(tx.confirmations() > 0) {
+                _confirmed_utxo_set.insert(utxo);
+            } else {
+                _unconfirmed_utxo_set.insert(utxo);
+            }
         }
 
-        _txUtxoMap[txid] = txEntry;
-
         updateBalances();
-    }
-
-    void UTXOManager::onTxRef(const TXRef &txref) {
-
     }
 
     bool UTXOManager::hasAddress(const QString &address) {
