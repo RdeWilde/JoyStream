@@ -30,7 +30,6 @@ namespace paymentchannel {
                  const Coin::Signature & lastValidPayorPaymentSignature,
                  quint32 lockTime,
                  quint64 price,
-                 quint32 maximumNumberOfSellers,
                  const Coin::KeyPair & payeeContractKeys,
                  const Coin::KeyPair & payeePaymentKeys,
                  const Coin::typesafeOutPoint & contractOutPoint,
@@ -42,7 +41,6 @@ namespace paymentchannel {
         , _lastValidPayorPaymentSignature(lastValidPayorPaymentSignature)
         , _lockTime(lockTime)
         , _price(price)
-        , _maximumNumberOfSellers(maximumNumberOfSellers)
         , _payeeContractKeys(payeeContractKeys)
         , _payeePaymentKeys(payeePaymentKeys)
         , _contractOutPoint(contractOutPoint)
@@ -57,7 +55,6 @@ namespace paymentchannel {
                 c.lastValidPayorPaymentSignature(),
                 c.lockTime(),
                 c.price(),
-                c.maximumNumberOfSellers(),
                 c.payeeContractKeys(),
                 c.payeePaymentKeys(),
                 c.contractOutPoint(),
@@ -222,14 +219,6 @@ namespace paymentchannel {
 
     void Payee::setPrice(quint64 price) {
         _price = price;
-    }
-
-    quint32 Payee::maximumNumberOfSellers() const {
-        return _maximumNumberOfSellers;
-    }
-
-    void Payee::setMaximumNumberOfSellers(quint32 maximumNumberOfSellers) {
-        _maximumNumberOfSellers = maximumNumberOfSellers;
     }
 
     Coin::KeyPair Payee::payeeContractKeys() const {

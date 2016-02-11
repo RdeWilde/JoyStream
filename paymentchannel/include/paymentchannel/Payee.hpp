@@ -37,7 +37,6 @@ namespace paymentchannel {
 
     public:
 
-
         // Default constructor
         Payee();
 
@@ -47,7 +46,6 @@ namespace paymentchannel {
                 const Coin::Signature & lastValidPayorPaymentSignature,
                 quint32 lockTime,
                 quint64 price,
-                quint32 maximumNumberOfSellers,
                 const Coin::KeyPair & payeeContractKeys,
                 const Coin::KeyPair & payeePaymentKeys,
                 const Coin::typesafeOutPoint & contractOutPoint,
@@ -60,7 +58,7 @@ namespace paymentchannel {
 
         /**
         // When payee configurations are chosen
-        void registerPayeeInformation(quint32 lockTime, quint32 price, quint32 maximumNumberOfSellers, const KeyPair & payeeContractKeys, const KeyPair & payeePaymentKeys);
+        void registerPayeeInformation(quint32 lockTime, quint32 price, quint32 maximumNumberOfPayee, const KeyPair & payeeContractKeys, const KeyPair & payeePaymentKeys);
         */
 
         // When contract information is known, as advertised in
@@ -115,9 +113,6 @@ namespace paymentchannel {
         quint64 price() const;
         void setPrice(quint64 price);
 
-        quint32 maximumNumberOfSellers() const;
-        void setMaximumNumberOfSellers(quint32 maximumNumberOfSellers);
-
         Coin::KeyPair payeeContractKeys() const;
         void setPayeeContractKeys(const Coin::KeyPair & payeeContractKeys);
 
@@ -152,9 +147,6 @@ namespace paymentchannel {
 
         // Price increment per payment
         quint64 _price;
-
-        // Maximum numer of sellers in contract
-        quint32 _maximumNumberOfSellers;
 
         // Controls payee portion of contract output
         Coin::KeyPair _payeeContractKeys;
