@@ -53,6 +53,13 @@ namespace paymentchannel {
                 const Coin::PublicKey & payorFinalPk,
                 quint64 funds);
 
+        // Payee which is initialize to the start of exchange,
+        // before payor information is available.
+        static Payee start(quint32 lockTime,
+                           quint64 price,
+                           const Coin::KeyPair & payeeContractKeys,
+                           const Coin::KeyPair & payeePaymentKeys);
+
         // Constructor based on configuration
         Payee(const PayeeConfiguration & configuration);
 

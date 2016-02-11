@@ -63,6 +63,24 @@ namespace paymentchannel {
                 c.funds()) {
     }
 
+    Payee Payee::start(quint32 lockTime,
+                       quint64 price,
+                       const Coin::KeyPair & payeeContractKeys,
+                       const Coin::KeyPair & payeePaymentKeys) {
+
+        return Payee(PayeeState::waiting_for_payor_information,
+                     0,
+                     Coin::Signature(),
+                     lockTime,
+                     price,
+                     payeeContractKeys,
+                     payeePaymentKeys,
+                     Coin::typesafeOutPoint(),
+                     Coin::PublicKey(),
+                     Coin::PublicKey(),
+                     0);
+    }
+
     /**
     void Payee::registerPayeeInformation(quint32 lockTime, quint32 price, quint32 maximumNumberOfSellers, const KeyPair & payeeContractKeys, const KeyPair & payeePaymentKeys) {
 
