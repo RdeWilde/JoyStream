@@ -32,7 +32,7 @@ public:
 
     UTXOManager(WebSocketClient* client, Client *restClient, const std::set<Coin::P2PKHAddress> &addresses);
 
-    static void InitialiseUtxo(Client *restClient, const std::set<QString> & addresses,
+    static void InitialiseUtxo(Client *restClient, const std::set<Coin::P2PKHAddress> &addresses,
                                std::set<UTXORef> &confirmedSet, std::set<UTXORef> &unconfirmedSet);
 
     // adds address to set and sends tx_confirmation event on websocket

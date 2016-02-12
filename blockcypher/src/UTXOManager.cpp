@@ -17,27 +17,28 @@ namespace BlockCypher {
           _balance(0),
           _balance_zero_conf(0)
     {
-        for(const Coin::P2PKHAddress & address : addresses) {
-            _addresses.insert(address.toBase58CheckEncoding());
-        }
 
         // initialise utxomap from list of addresses
-        InitialiseUtxo(_restClient, _addresses, _confirmed_utxo_set, _unconfirmed_utxo_set);
+        InitialiseUtxo(_restClient, addresses, _confirmed_utxo_set, _unconfirmed_utxo_set);
 
         // connect signals from websocket client to our private slots
         QObject::connect(_wsClient, &WebSocketClient::txArrived, [this](const TX & tx){
             processTx(tx);
         });
 
+        for(const Coin::P2PKHAddress & address : addresses) {
+            addAddress(address);
+        }
+
     }
 
-    void UTXOManager::InitialiseUtxo(Client * restClient, const std::set<QString> &addresses,
+    void UTXOManager::InitialiseUtxo(Client * restClient, const std::set<Coin::P2PKHAddress> &addresses,
                                      std::set<UTXORef> &confirmedSet, std::set<UTXORef> &unconfirmedSet) {
 
         //create a batch of addresses (semicolon separated list)
         QString addressBatch;
-        for(const QString addr : addresses)
-            addressBatch = addressBatch + ";" + addr;
+        for(const Coin::P2PKHAddress &addr : addresses)
+            addressBatch = addressBatch + ";" + addr.toBase58CheckEncoding();
 
         Address response = restClient->addressEndPoint(addressBatch);
 
