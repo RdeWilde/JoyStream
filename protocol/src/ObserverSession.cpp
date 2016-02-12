@@ -166,7 +166,7 @@ namespace protocol {
                                  numberOfPiecesInTorrent);
     }
 
-    BuyerSession * ObserverSession::switchToBuyMode(const BuyerTerms & terms) {
+    BuyerSession * ObserverSession::switchToBuyMode(const BuyerTerms & terms, const std::vector<Piece> & pieces) {
 
         // The number of connections
         uint numberOfConnections = _connections.size();
@@ -192,10 +192,6 @@ namespace protocol {
 
         // Create payor
         joystream::paymentchannel::Payor payor = joystream::paymentchannel::Payor::unknownPayees();
-
-        //
-        std::vector<Piece> pieces;
-
 
 
         // Create, and return, (buyer) session

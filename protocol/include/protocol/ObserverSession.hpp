@@ -37,7 +37,7 @@ namespace protocol {
         // Returns session for corresponding new mode, after sending appropriate messages to all active peers,
         // and returned object is owned by callee.
         SellerSession * switchToSellMode(const SellerTerms & terms, uint32_t numberOfPiecesInTorrent);
-        BuyerSession * switchToBuyMode(const BuyerTerms & terms);
+        BuyerSession * switchToBuyMode(const BuyerTerms & terms, const std::vector<Piece> & pieces);
 
     private:
 

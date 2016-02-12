@@ -21,7 +21,7 @@ namespace protocol {
 
             // We do not have piece, and it has given assignment status
             unassigned,
-            assigned,
+            assigned_to_peer_for_download,
 
             // We do have piece
             fully_downloaded_and_valid,
