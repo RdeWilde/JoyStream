@@ -127,5 +127,25 @@ namespace BlockCypher {
 
     void UTXOManager::updateBalances() {
 
+        uint64_t confirmedBalance = 0;
+
+        // Calculate new confirmed balance
+        for(const UTXORef & utxo: _confirmed_utxo_set) {
+            confirmedBalance += utxo.value();
+        }
+
+        // Calculate new unconfirmed balance
+        uint64_t unconfirmedBalance = confirmedBalance;
+        for(const UTXORef & utxo: _unconfirmed_utxo_set) {
+            unconfirmedBalance += utxo.value();
+        }
+
+        //if changed emit signals
+        if(_balance != confirmedBalance || _balance_zero_conf != unconfirmedBalance) {
+            _balance = confirmedBalance;
+            _balance_zero_conf = unconfirmedBalance;
+            emit balanceChanged(confirmedBalance, unconfirmedBalance);
+        }
+
     }
 }

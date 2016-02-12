@@ -38,7 +38,12 @@ public:
     // adds address to set and sends tx_confirmation event on websocket
     bool addAddress(const Coin::P2PKHAddress & address);
 
+    uint64_t balance() const { return _balance; }
+    uint64_t unconfirmedBalance() const { return _balance_zero_conf; }
+
 signals:
+
+    void balanceChanged(uint64_t confirmedBalance, uint64_t unconfirmedBalance);
 
 public slots:
 
