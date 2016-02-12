@@ -35,15 +35,25 @@ namespace BlockCypher {
     void UTXOManager::InitialiseUtxo(Client * restClient, const std::set<Coin::P2PKHAddress> &addresses,
                                      std::set<UTXORef> &confirmedSet, std::set<UTXORef> &unconfirmedSet) {
 
-        //create a batch of addresses (semicolon separated list)
-        QString addressBatch;
-        for(const Coin::P2PKHAddress &addr : addresses)
-            addressBatch = addressBatch + ";" + addr.toBase58CheckEncoding();
+        // Create a vector of batches of addresses (QString of semicolon separated list)
+        // The maximum number of elements that can be batched in a single call is 100.
+        std::vector<QString> batches;
 
-        Address response = restClient->addressEndPoint(addressBatch);
+        uint counter = 0;
+        uint batchNo;
+        for(const Coin::P2PKHAddress &addr : addresses) {
+            batchNo =  counter / 100;
+            if(batches.empty() || batches.size() < batchNo) batches.push_back(QString());
+            batches[batchNo] += addr.toBase58CheckEncoding() + ";";
+            counter++;
+        }
 
-        processTxRef(response._txrefs, confirmedSet, unconfirmedSet);
-        processTxRef(response._unconfirmed_txrefs, confirmedSet, unconfirmedSet);
+        for(const QString & batch : batches) {
+            Address response = restClient->addressEndPoint(batch);
+
+            processTxRef(response._txrefs, confirmedSet, unconfirmedSet);
+            processTxRef(response._unconfirmed_txrefs, confirmedSet, unconfirmedSet);
+        }
     }
 
     void UTXOManager::processTxRef(const std::vector<TXRef> &txrefs,
