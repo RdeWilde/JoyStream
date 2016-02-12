@@ -5,10 +5,10 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 29 2016
  */
 
-#include <paymentchannel/PayeeConfiguration.hpp>
+#include <extension/PayeeConfiguration.hpp>
 
 namespace joystream {
-namespace paymentchannel {
+namespace extension {
 
     PayeeConfiguration::PayeeConfiguration() {
     }

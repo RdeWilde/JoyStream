@@ -168,16 +168,12 @@ namespace protocol {
 
     BuyerSession * ObserverSession::switchToBuyMode(const BuyerTerms & terms, const std::vector<Piece> & pieces) {
 
-        // The number of connections
-        uint numberOfConnections = _connections.size();
-
         // New mapping from name to (seller) connections
         std::map<std::string, BuyerConnection> connections;
 
         // For each (observer) connection, send a buy mode message, and create a corresponding (buyer) connection,
         // and put it in the (buyer) connections mapping.
-        uint buyerConnectionIndex = 0;
-        for(std::map<std::string, Connection>::const_iterator i = _connections.cbegin(); i != _connections.cend();i++,buyerConnectionIndex++) {
+        for(std::map<std::string, Connection>::const_iterator i = _connections.cbegin(); i != _connections.cend();i++) {
 
             // Get connection
             const Connection & c = (*i).second;
@@ -193,6 +189,8 @@ namespace protocol {
         // Create payor
         joystream::paymentchannel::Payor payor = joystream::paymentchannel::Payor::unknownPayees();
 
+        // complete payor ctr above
+        // ... send invitation to join contract to best subset of peer which are in correct mode and lower enough price.
 
         // Create, and return, (buyer) session
         return new BuyerSession(_removedConnectionCallbackHandler,

@@ -10,7 +10,6 @@
 #include <common/MultisigScriptPubKey.hpp>
 #include <CoinCore/CoinNodeData.h> // Coin::TxOut
 
-
 namespace joystream {
 namespace paymentchannel {
 

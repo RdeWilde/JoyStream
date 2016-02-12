@@ -7,17 +7,17 @@
  *
  */
 
-#include <paymentchannel/PayorConfiguration.hpp>
+#include <extension/PayorConfiguration.hpp>
 
 namespace joystream {
-namespace paymentchannel {
+namespace extension {
 
     PayorConfiguration::PayorConfiguration() {
 
     }
 
     PayorConfiguration::PayorConfiguration(Coin::Network network,
-                                        PayorState state,
+                                        joystream::paymentchannel::PayorState state,
                                         const std::vector<ChannelConfiguration> & channels,
                                         const Coin::UnspentP2PKHOutput & utxo,
                                         //const OutPoint & fundingOutPoint,
@@ -42,11 +42,11 @@ namespace paymentchannel {
         , _numberOfSignatures(numberOfSignatures) {
     }
 
-    PayorState PayorConfiguration::state() const {
+    joystream::paymentchannel::PayorState PayorConfiguration::state() const {
         return _state;
     }
 
-    void PayorConfiguration::setState(PayorState state) {
+    void PayorConfiguration::setState(joystream::paymentchannel::PayorState state) {
         _state = state;
     }
 

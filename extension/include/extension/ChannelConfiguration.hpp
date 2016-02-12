@@ -5,15 +5,15 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 29 2016
  */
 
-#ifndef PAYMENT_CHANNEL_CHANNEL_CONFIGURATION_HPP
-#define PAYMENT_CHANNEL_CHANNEL_CONFIGURATION_HPP
+#ifndef JOYSTREAM_EXTENSION_CHANNEL_CONFIGURATION_HPP
+#define JOYSTREAM_EXTENSION_CHANNEL_CONFIGURATION_HPP
 
 #include <paymentchannel/ChannelState.hpp>
 #include <common/KeyPair.hpp>
 #include <common/Signature.hpp>
 
 namespace joystream {
-namespace paymentchannel {
+namespace extension {
 
     class ChannelConfiguration {
 
@@ -24,26 +24,26 @@ namespace paymentchannel {
 
         // Constructor from members.
         ChannelConfiguration(quint32 index,
-                              ChannelState state,
-                              quint64 price,
-                              quint64 numberOfPaymentsMade,
-                              quint64 funds,
-                              const Coin::KeyPair & payorContractKeyPair,
-                              const Coin::KeyPair & payorFinalKeyPair,
-                              const Coin::PublicKey & payeeContractPk,
-                              const Coin::PublicKey & payeeFinalPk,
-                              const Coin::Signature & payorRefundSignature,
-                              const Coin::Signature & payeeRefundSignature,
-                              quint64 refundFee,
-                              quint64 paymentFee,
-                              quint32 refundLockTime);
+                             joystream::paymentchannel::ChannelState state,
+                             quint64 price,
+                             quint64 numberOfPaymentsMade,
+                             quint64 funds,
+                             const Coin::KeyPair & payorContractKeyPair,
+                             const Coin::KeyPair & payorFinalKeyPair,
+                             const Coin::PublicKey & payeeContractPk,
+                             const Coin::PublicKey & payeeFinalPk,
+                             const Coin::Signature & payorRefundSignature,
+                             const Coin::Signature & payeeRefundSignature,
+                             quint64 refundFee,
+                             quint64 paymentFee,
+                             quint32 refundLockTime);
 
         // Getters and setters
         quint32 index() const;
         void setIndex(quint32 index);
 
-        ChannelState state() const;
-        void setState(ChannelState state);
+        joystream::paymentchannel::ChannelState state() const;
+        void setState(joystream::paymentchannel::ChannelState state);
 
         quint64 price() const;
         void setPrice(quint64 price);
@@ -88,7 +88,7 @@ namespace paymentchannel {
         quint32 _index;
 
         // Slot state
-        ChannelState _state;
+        joystream::paymentchannel::ChannelState _state;
 
         // Size of single payment
         quint64 _price;
@@ -130,5 +130,5 @@ namespace paymentchannel {
 }
 }
 
-#endif // PAYMENT_CHANNEL_CONFIGURATION_CHANNEL
+#endif // JOYSTREAM_EXTENSION_CHANNEL_CONFIGURATION_HPP
 

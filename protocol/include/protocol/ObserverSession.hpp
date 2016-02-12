@@ -20,6 +20,7 @@ namespace protocol {
     class SellerTerms;
     class BuyerSession;
     class BuyerTerms;
+    class Piece;
 
     class ObserverSession : public Session {
 

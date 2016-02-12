@@ -5,18 +5,17 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 29 2016
  */
 
-#ifndef PAYMENTCHANNEL_PAYOR_CONFIGURATION_HPP
-#define PAYMENTCHANNEL_PAYOR_CONFIGURATION_HPP
+#ifndef JOYSTREAM_EXTENSION_PAYOR_CONFIGURATION_HPP
+#define JOYSTREAM_EXTENSION_PAYOR_CONFIGURATION_HPP
 
+#include <extension/ChannelConfiguration.hpp>
 #include <paymentchannel/PayorState.hpp>
-#include <paymentchannel/ChannelConfiguration.hpp>
-
 #include <common/Network.hpp>
 #include <common/TransactionId.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
 
 namespace joystream {
-namespace paymentchannel {
+namespace extension {
 
     class PayorConfiguration {
 
@@ -27,7 +26,7 @@ namespace paymentchannel {
 
         // Constructor for a fresh payor.
         PayorConfiguration(Coin::Network network,
-                          PayorState state,
+                          joystream::paymentchannel::PayorState state,
                           const std::vector<ChannelConfiguration> & channels,
                           const Coin::UnspentP2PKHOutput & utxo,
                           const Coin::KeyPair & changeOutputKeyPair,
@@ -37,8 +36,8 @@ namespace paymentchannel {
                           quint32 numberOfSignatures);
 
         // Getters and setters
-        PayorState state() const;
-        void setState(PayorState state);
+        joystream::paymentchannel::PayorState state() const;
+        void setState(joystream::paymentchannel::PayorState state);
 
         std::vector<ChannelConfiguration> channels() const;
         void setChannels(const std::vector<ChannelConfiguration> & channels);
@@ -79,7 +78,7 @@ namespace paymentchannel {
         Coin::Network _network;
 
         // Payor state
-        PayorState _state;
+        joystream::paymentchannel::PayorState _state;
 
         // Contract outputs
         std::vector<ChannelConfiguration> _channels;
@@ -118,4 +117,4 @@ namespace paymentchannel {
 }
 }
 
-#endif // PAYMENTCHANNEL_PAYOR_CONFIGURATION_HPP
+#endif // JOYSTREAM_EXTENSION_PAYOR_CONFIGURATION_HPP

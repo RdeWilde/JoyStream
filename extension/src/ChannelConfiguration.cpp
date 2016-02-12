@@ -5,16 +5,16 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 29 2016
  */
 
-#include <paymentchannel/ChannelConfiguration.hpp>
+#include <extension/ChannelConfiguration.hpp>
 
 namespace joystream {
-namespace paymentchannel {
+namespace extension {
 
     ChannelConfiguration::ChannelConfiguration() {
     }
 
     ChannelConfiguration::ChannelConfiguration(quint32 index,
-                                            ChannelState state,
+                                            joystream::paymentchannel::ChannelState state,
                                             quint64 price,
                                             quint64 numberOfPaymentsMade,
                                             quint64 funds,
@@ -51,7 +51,7 @@ namespace paymentchannel {
         _index = index;
     }
 
-    ChannelState ChannelConfiguration::state() const {
+    joystream::paymentchannel::ChannelState ChannelConfiguration::state() const {
         return _state;
     }
 

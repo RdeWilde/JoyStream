@@ -25,6 +25,17 @@ namespace protocol {
         , _downloadedValidPieces(downloadedValidPieces) {
     }
 
+    BuyerConnection BuyerConnection::buyMessageJustSent(const Connection & connection) {
+
+        return BuyerConnection(connection.peerName(),
+                               connection.lastModeAnnouncedByPeer(),
+                               connection.sendMessageCallbackHandler(),
+                               BuyerClientState::buyer_mode_announced,
+                               BuyerPeerState(),
+                               std::queue<uint32_t>());
+
+    }
+
     BuyerClientState BuyerConnection::clientState() const {
         return _clientState;
     }

@@ -6,354 +6,36 @@
  */
 
 #include <paymentchannel/Payor.hpp>
-#include <paymentchannel/ChannelConfiguration.hpp>
-#include <paymentchannel/Commitment.hpp>
-#include <paymentchannel/Refund.hpp>
-#include <paymentchannel/Settlement.hpp>
-#include <common/RedeemScriptHash.hpp>
-#include <common/MultisigScriptPubKey.hpp>
-#include <common/P2SHScriptPubKey.hpp>
-#include <common/P2PKHScriptPubKey.hpp>
-#include <common/TransactionSignature.hpp>
-#include <common/Utilities.hpp> // DEFAULT_SEQUENCE_NUMBER
-#include <common/Bitcoin.hpp> // TEMPORARY, JUST TO GET HARD CODED SETTLEMENT FEE
-
-
-#include <CoinCore/CoinNodeData.h> // Coin::TxOut
-
-#include <QtMath>
-#include <QDebug>
-
-namespace joystream {
-namespace paymentchannel {
-
-    Payor::Channel::Channel() {
-    }
-
-    Payor::Channel::Channel(const ChannelConfiguration & configuration)
-        : Channel(configuration.index(),
-                  configuration.state(),
-                  configuration.price(),
-                  configuration.numberOfPaymentsMade(),
-                  configuration.funds(),
-                  configuration.payorContractKeyPair(),
-                  configuration.payorFinalKeyPair(),
-                  configuration.payeeContractPk(),
-                  configuration.payeeFinalPk(),
-                  configuration.payorRefundSignature(),
-                  configuration.payeeRefundSignature(),
-                  configuration.refundFee(),
-                  configuration.paymentFee(),
-                  configuration.refundLockTime()){
-    }
-
-    Payor::Channel::Channel(quint32 index,
-                            ChannelState state,
-                            quint64 price,
-                            quint64 numberOfPaymentsMade,
-                            quint64 funds,
-                            const Coin::KeyPair & payorContractKeyPair,
-                            const Coin::KeyPair & payorFinalKeyPair,
-                            const Coin::PublicKey & payeeContractPk,
-                            const Coin::PublicKey & payeeFinalPk,
-                            const Coin::Signature & payorRefundSignature,
-                            const Coin::Signature & payeeRefundSignature,
-                            quint64 refundFee,
-                            quint64 paymentFee,
-                            quint32 refundLockTime)
-        : _index(index)
-        , _state(state)
-        , _price(price)
-        , _numberOfPaymentsMade(numberOfPaymentsMade)
-        , _funds(funds)
-        , _payorContractKeyPair(payorContractKeyPair)
-        , _payorFinalKeyPair(payorFinalKeyPair)
-        , _payeeContractPk(payeeContractPk)
-        , _payeeFinalPk(payeeFinalPk)
-        , _payorRefundSignature(payorRefundSignature)
-        , _payeeRefundSignature(payeeRefundSignature)
-        , _refundFee(refundFee)
-        , _paymentFee(paymentFee)
-        , _refundLockTime(refundLockTime) {
-    }
-
-    Coin::typesafeOutPoint Payor::Channel::contractOutPoint(const Coin::TransactionId & contractTxId) const {
-        return Coin::typesafeOutPoint(contractTxId, _index);
-    }
-
-    Commitment Payor::Channel::commitment() const {
-
-        if(_state == ChannelState::unassigned)
-            throw std::runtime_error("No valid commitment exists for channel.");
-
-        return Commitment(_funds, _payorContractKeyPair.pk(), _payeeContractPk);
-    }
-
-    Refund Payor::Channel::refund(const Coin::TransactionId & contractTxId) const {
-
-        if(_state == ChannelState::unassigned)
-            throw std::runtime_error("No valid commitment exists for channel.");
-
-        // *** no fee !!!
-        return Refund(contractOutPoint(contractTxId),
-                      commitment(),
-                      Coin::Payment(_funds, _payorFinalKeyPair.pk().toPubKeyHash()),
-                      _refundLockTime);
-    }
-
-    Settlement Payor::Channel::settlement(const Coin::TransactionId & contractTxId) const {
-
-        if(_state == ChannelState::unassigned)
-            throw std::runtime_error("No valid commitment exists for channel.");
-
-        // The amount paid so far
-        quint64 paid = _price*_numberOfPaymentsMade;
-
-        Q_ASSERT(paid <= _funds);
-
-        return Settlement::dustLimitAndFeeAwareSettlement(contractOutPoint(contractTxId),
-                                                          commitment(),
-                                                          _payorFinalKeyPair.pk().toPubKeyHash(),
-                                                          _payeeFinalPk.toPubKeyHash(),
-                                                          _funds,
-                                                          paid,
-                                                          PAYCHAN_SETTLEMENT_FEE);
-    }
-
-    /**
-    Coin::Signature Payor::Channel::createPayorRefundSignature(const Coin::TransactionId & contractHash) const {
-
-        // Check that channel has been assigned
-        if(_state != State::assigned)
-            throw std::runtime_error("State incompatile request, must be in assigned state.");
-
-        // Create transaction for spening contract output
-        Coin::Transaction refund = contractSpendingTransaction(contractHash, _funds, _refundLockTime);
-
-        // Return signature
-        return ts.sig();
-    }
-
-
-    Coin::Signature Payor::Channel::createPaymentSignature(const Coin::TransactionId & contractHash) const {
-
-        // Check that channel has been assigned
-        if(_state != State::assigned)
-            throw std::runtime_error("State incompatile request, must be in assigned state.");
-
-        // How much has been paid to payee
-        quint64 paid = _numberOfPaymentsMade*_price;
-
-        // Create transaction for spening contract output
-        Coin::Transaction payment = contractSpendingTransaction(contractHash, _funds - paid);
-
-        // Add payee output
-        payment.addOutput(Coin::TxOut(paid, Coin::P2PKHScriptPubKey(_payeeFinalPk).serialize()));
-
-        // Create payor signature
-        Coin::TransactionSignature ts = _payorContractKeyPair.sk().sign(payment, 0, contractOutputScriptPubKey().serialize(), Coin::SigHashType::all);
-
-        // Return signature
-        return ts.sig();
-    }
-
-    bool Payor::Channel::validateRefundSignature(const Coin::TransactionId & contractHash, const Coin::Signature & payeeSig) const {
-
-        // Check that channel has been assigned
-        if(_state != State::assigned)
-            throw std::runtime_error("State incompatible request, must be in assigned state.");
-
-        // Create transaction for spending contract output
-        Coin::Transaction refund = contractSpendingTransaction(contractHash, _funds);
-
-        // Compute sighash
-        uchar_vector sigHash = Coin::sighash(refund,
-                                             0,
-                                             contractOutputScriptPubKey().serialize(),
-                                             Coin::SigHashType::all);
-
-        // Verify that signature is valid for payee public key on sighash
-        return _payeeContractPk.verify(sigHash, payeeSig);
-    }
-    */
-
-    void Payor::Channel::increaseNumberOfPayments() {
-        _numberOfPaymentsMade++;
-    }
-
-    quint32 Payor::Channel::index() const {
-        return _index;
-    }
-
-    void Payor::Channel::setIndex(quint32 index) {
-        _index = index;
-    }
-
-    ChannelState Payor::Channel::state() const {
-        return _state;
-    }
-
-    void Payor::Channel::setState(ChannelState state) {
-        _state = state;
-    }
-
-    quint64 Payor::Channel::price() const {
-        return _price;
-    }
-
-    void Payor::Channel::setPrice(quint64 price) {
-        _price = price;
-    }
-
-    quint64 Payor::Channel::numberOfPaymentsMade() const {
-        return _numberOfPaymentsMade;
-    }
-
-    void Payor::Channel::setNumberOfPaymentsMade(quint64 numberOfPaymentsMade) {
-        _numberOfPaymentsMade = numberOfPaymentsMade;
-    }
-
-    quint64 Payor::Channel::funds() const {
-        return _funds;
-    }
-
-    void Payor::Channel::setFunds(quint64 funds) {
-        _funds = funds;
-    }
-
-    Coin::KeyPair Payor::Channel::payorContractKeyPair() const {
-        return _payorContractKeyPair;
-    }
-
-    void Payor::Channel::setPayorContractKeyPair(const Coin::KeyPair & payorContractKeyPair) {
-        _payorContractKeyPair = payorContractKeyPair;
-    }
-
-    Coin::KeyPair Payor::Channel::payorFinalKeyPair() const {
-        return _payorFinalKeyPair;
-    }
-
-    void Payor::Channel::setPayorFinalKeyPair(const Coin::KeyPair & payorFinalKeyPair) {
-        _payorFinalKeyPair = payorFinalKeyPair;
-    }
-
-    Coin::PublicKey Payor::Channel::payeeContractPk() const {
-        return _payeeContractPk;
-    }
-
-    void Payor::Channel::setPayeeContractPk(const Coin::PublicKey & payeeContractPk) {
-        _payeeContractPk = payeeContractPk;
-    }
-
-    Coin::PublicKey Payor::Channel::payeeFinalPk() const {
-        return _payeeFinalPk;
-    }
-
-    void Payor::Channel::setPayeeFinalPk(const Coin::PublicKey & payeeFinalPk) {
-        _payeeFinalPk = payeeFinalPk;
-    }
-
-    Coin::Signature Payor::Channel::payorRefundSignature() const {
-        return _payorRefundSignature;
-    }
-
-    void Payor::Channel::setPayorRefundSignature(const Coin::Signature & payorRefundSignature) {
-        _payorRefundSignature = payorRefundSignature;
-    }
-
-    Coin::Signature Payor::Channel::payeeRefundSignature() const {
-        return _payeeRefundSignature;
-    }
-
-    void Payor::Channel::setPayeeRefundSignature(const Coin::Signature & payeeRefundSignature) {
-        _payeeRefundSignature = payeeRefundSignature;
-    }
-
-    quint64 Payor::Channel::refundFee() const {
-        return _refundFee;
-    }
-
-    void Payor::Channel::setRefundFee(quint64 refundFee) {
-        _refundFee = refundFee;
-    }
-
-    quint64 Payor::Channel::paymentFee() const {
-        return _paymentFee;
-    }
-
-    void Payor::Channel::setPaymentFee(quint64 paymentFee) {
-        _paymentFee = paymentFee;
-    }
-
-    quint32 Payor::Channel::refundLockTime() const {
-        return _refundLockTime;
-    }
-
-    void Payor::Channel::setRefundLockTime(quint32 refundLockTime) {
-        _refundLockTime = refundLockTime;
-    }
-
-}
-}
-
-/**
- * Payor
- */
-
-#include <paymentchannel/PayorConfiguration.hpp>
-#include <paymentchannel/Commitment.hpp>
 #include <paymentchannel/Contract.hpp>
 #include <paymentchannel/Refund.hpp>
-#include <common/Utilities.hpp> // DEFAULT_SEQUENCE_NUMBER
+#include <paymentchannel/Settlement.hpp>
 #include <common/TransactionSignature.hpp>
-#include <common/P2PKHScriptPubKey.hpp>
-#include <common/P2PKHScriptSig.hpp>
+#include <CoinCore/CoinNodeData.h> // Coin::TxOut
 
-#include <QVector>
+#include <QtMath> // Temproary, to do qCeil
 
 namespace joystream {
 namespace paymentchannel {
 
-    Payor::Payor() {
-    }
+    Payor::Payor(Coin::Network network,
+                 PayorState state,
+                 const std::vector<Channel> & channels,
+                 const Coin::UnspentP2PKHOutput & utxo,
+                 const Coin::KeyPair & changeOutputKeyPair,
+                 quint64 changeValue,
+                 quint64 contractFee)
+        : _network(network)
+        , _state(state)
+        , _channels(channels)
+        , _utxo(utxo)
+        , _changeOutputKeyPair(changeOutputKeyPair)
+        , _changeValue(changeValue)
+        , _contractFee(contractFee) {
 
-    Payor::Payor(const PayorConfiguration & configuration)
-        : _state(configuration.state())
-        , _utxo(configuration.utxo())
-        //, _fundingOutPoint(configuration.fundingOutPoint())
-        //, _fundingValue(configuration.fundingValue())
-        //, _fundingOutputKeyPair(configuration.fundingOutputKeyPair())
-        , _changeOutputKeyPair(configuration.changeOutputKeyPair())
-        , _changeValue(configuration.changeValue())
-        , _contractFee(configuration.contractFee())
-        //, _contractTxId(configuration.contractHash())
-        , _numberOfSignatures(configuration.numberOfSignatures()) {
-
-        // Populate _channels vector
-        const std::vector<ChannelConfiguration> & channelConfigurations = configuration.channels();
-
-        // Counter for net output value, used to check integrity of fee
-        quint64 netOutputValue = _changeValue;
-
-        for(std::vector<ChannelConfiguration>::const_iterator i = channelConfigurations.cbegin(),
-            end = channelConfigurations.cend(); i != end;i++) {
-
-            // Get configuration
-            const ChannelConfiguration channelConfiguration(*i);
-
-            // Count funds
-            netOutputValue += channelConfiguration.funds();
-
-            // Create channel
-            _channels.push_back(Channel(channelConfiguration));
-        }
-
-        if(_contractFee != _utxo.value() - netOutputValue)
-            throw std::runtime_error("input, outputs, change and fee does not match.");
+        throw std::runtime_error("not done, derived fields are not set");
     }
 
     Payor Payor::unknownPayees() {
-
 
     }
 
@@ -580,17 +262,14 @@ namespace paymentchannel {
         if(index >= _channels.size())
             throw std::runtime_error("Invalid index.");
 
-        // Get channel
-        const Channel & channel = _channels[index];
-
-        Q_ASSERT(channel.state() == ChannelState::refund_signed);
+        Q_ASSERT(_channels[index].state() == ChannelState::refund_signed);
 
         // Get settelemnt
         Coin::TransactionId contractTxId = Coin::TransactionId::fromTx(_contractTx);
-        Settlement settlement = channel.settlement(contractTxId);
+        Settlement settlement = _channels[index].settlement(contractTxId, _settlementFee);
 
         // Generate signature
-        Coin::TransactionSignature settlementSignature = settlement.transactionSignature(channel.payorContractKeyPair().sk());
+        Coin::TransactionSignature settlementSignature = settlement.transactionSignature(_channels[index].payorContractKeyPair().sk());
 
         return settlementSignature.sig();
     }
@@ -634,8 +313,8 @@ namespace paymentchannel {
         return fee;
     }
 
-    quint64 Payor::minimalFunds(quint32 numberOfPiecesInTorrent, quint64 maxPrice, int numberOfSellers, quint64 feePerkB) {
-        return PAYCHAN_SETTLEMENT_FEE*numberOfSellers + (maxPrice*numberOfSellers)*numberOfPiecesInTorrent + computeContractFee(numberOfSellers, feePerkB);
+    quint64 Payor::minimalFunds(quint32 numberOfPiecesInTorrent, quint64 maxPrice, int numberOfSellers, quint64 feePerkB, quint64 paychanSettlementFee) {
+        return paychanSettlementFee*numberOfSellers + (maxPrice*numberOfSellers)*numberOfPiecesInTorrent + computeContractFee(numberOfSellers, feePerkB);
     }
 
     PayorState Payor::state() const {
@@ -644,15 +323,6 @@ namespace paymentchannel {
 
     void Payor::setState(PayorState state) {
         _state = state;
-    }
-
-    std::vector<Payor::Channel> & Payor::channels() {
-        return _channels;
-    }
-
-    const Payor::Channel & Payor::channel(int i) const {
-        Q_ASSERT(i >= 0 && i < _channels.size());
-        return _channels[i];
     }
 
     Coin::Transaction Payor::contractTransaction() const {

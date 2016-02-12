@@ -34,17 +34,6 @@ namespace protocol {
         throw std::runtime_error("not yet implemented, do not forget this state init.");
     }
 
-    BuyerConnection BuyerSession::buyMessageJustSent(const Connection & connection) {
-
-        return BuyerConnection(connection.peerName(),
-                               connection.lastModeAnnouncedByPeer(),
-                               connection.sendMessageCallbackHandler(),
-                               BuyerClientState::buyer_mode_announced,
-                               BuyerPeerState(),
-                               std::queue<uint32_t>());
-
-    }
-
     void BuyerSession::addConnection(const Connection & connection) {
 
     }

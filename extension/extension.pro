@@ -71,7 +71,10 @@ HEADERS += \
     include/extension/SellerTorrentPluginConfiguration.hpp \
     include/extension/BuyerTorrentPluginState.hpp \
     include/extension/BuyerPeerPluginClientState.hpp \
-    include/extension/BuyerPeerPluginPeerState.hpp
+    include/extension/BuyerPeerPluginPeerState.hpp \
+    include/extension/PayeeConfiguration.hpp \
+    include/extension/PayorConfiguration.hpp \
+    include/extension/ChannelConfiguration.hpp \
 
 SOURCES += \
     src/TorrentPlugin.cpp \
@@ -115,7 +118,10 @@ SOURCES += \
     src/SellerTorrentPluginStatus.cpp \
     src/SellerTorrentPluginConfiguration.cpp \
     src/BuyerTorrentPluginConfiguration.cpp \
-    src/BuyerPeerPluginPeerState.cpp
+    src/BuyerPeerPluginPeerState.cpp \
+    src/PayeeConfiguration.cpp \
+    src/PayorConfiguration.cpp \
+    src/ChannelConfiguration.cpp \
 
 # common
 INCLUDEPATH += $$PWD/../common/include

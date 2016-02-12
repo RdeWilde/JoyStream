@@ -6,16 +6,15 @@
  */
 
 #include <paymentchannel/Payee.hpp>
-#include <paymentchannel/PayeeConfiguration.hpp>
 #include <paymentchannel/Commitment.hpp>
 #include <paymentchannel/Refund.hpp>
 #include <paymentchannel/Settlement.hpp>
-
 #include <common/P2SHScriptPubKey.hpp>
 #include <common/TransactionSignature.hpp>
 #include <common/SigHashType.hpp>
-#include <common/Bitcoin.hpp> // TEMPORARY, JUST TO GET HARD CODED SETTLEMENT FEE
 #include <common/Payment.hpp>
+
+#include <common/Bitcoin.hpp> // TEMPORARY, JUST TO GET HARD CODED SETTLEMENT FEE
 
 #include <CoinCore/CoinNodeData.h>
 
@@ -35,7 +34,8 @@ namespace paymentchannel {
                  const Coin::typesafeOutPoint & contractOutPoint,
                  const Coin::PublicKey & payorContractPk,
                  const Coin::PublicKey & payorFinalPk,
-                 quint64 funds)
+                 quint64 funds,
+                 quint64 settlementFee)
         : _state(state)
         , _numberOfPaymentsMade(numberOfPaymentsMade)
         , _lastValidPayorPaymentSignature(lastValidPayorPaymentSignature)
@@ -46,21 +46,8 @@ namespace paymentchannel {
         , _contractOutPoint(contractOutPoint)
         , _payorContractPk(payorContractPk)
         , _payorFinalPk(payorFinalPk)
-        , _funds(funds) {
-    }
-
-    Payee::Payee(const PayeeConfiguration & c)
-        : Payee(c.state(),
-                c.numberOfPaymentsMade(),
-                c.lastValidPayorPaymentSignature(),
-                c.lockTime(),
-                c.price(),
-                c.payeeContractKeys(),
-                c.payeePaymentKeys(),
-                c.contractOutPoint(),
-                c.payorContractPk(),
-                c.payorFinalPk(),
-                c.funds()) {
+        , _funds(funds)
+        , _settlementFee(settlementFee){
     }
 
     Payee Payee::unknownPayor(quint32 lockTime,
@@ -78,6 +65,7 @@ namespace paymentchannel {
                      Coin::typesafeOutPoint(),
                      Coin::PublicKey(),
                      Coin::PublicKey(),
+                     0,
                      0);
     }
 
@@ -152,7 +140,7 @@ namespace paymentchannel {
                                                           _payeePaymentKeys.pk().toPubKeyHash(),
                                                           _funds,
                                                           paid,
-                                                          PAYCHAN_SETTLEMENT_FEE);
+                                                          _settlementFee);
     }
 
     Coin::Signature Payee::generateRefundSignature() const {

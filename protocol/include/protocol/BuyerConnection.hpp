@@ -38,7 +38,7 @@ namespace protocol {
 
         BuyerPeerState peerState() const;
 
-        std::list<uint32_t> downloadedValidPieces() const;
+        std::queue<uint32_t> downloadedValidPieces() const;
 
     private:
 

@@ -5,11 +5,10 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef PAYMENT_CHANNEL_PAYEE_HPP
-#define PAYMENT_CHANNEL_PAYEE_HPP
+#ifndef JOYSTREAM_PAYMENT_CHANNEL_PAYEE_HPP
+#define JOYSTREAM_PAYMENT_CHANNEL_PAYEE_HPP
 
 #include <paymentchannel/PayeeState.hpp>
-
 #include <common/KeyPair.hpp>
 #include <common/typesafeOutPoint.hpp>
 #include <common/Signature.hpp>
@@ -23,7 +22,6 @@ namespace Coin {
 namespace joystream {
 namespace paymentchannel {
 
-    class PayeeConfiguration;
     class Contract;
     class Commitment;
     class Refund;
@@ -37,10 +35,8 @@ namespace paymentchannel {
 
     public:
 
-        // Default constructor
         Payee();
 
-        // Constructor based on members
         Payee(PayeeState state,
               quint64 numberOfPaymentsMade,
               const Coin::Signature & lastValidPayorPaymentSignature,
@@ -51,7 +47,8 @@ namespace paymentchannel {
               const Coin::typesafeOutPoint & contractOutPoint,
               const Coin::PublicKey & payorContractPk,
               const Coin::PublicKey & payorFinalPk,
-              quint64 funds);
+              quint64 funds,
+              quint64 settlementFee);
 
         // Payee which is initialize to the start of exchange,
         // before payor information is available.
@@ -59,9 +56,6 @@ namespace paymentchannel {
                                   quint64 price,
                                   const Coin::KeyPair & payeeContractKeys,
                                   const Coin::KeyPair & payeePaymentKeys);
-
-        // Constructor based on configuration
-        Payee(const PayeeConfiguration & configuration);
 
         /**
         // When payee configurations are chosen
@@ -173,6 +167,9 @@ namespace paymentchannel {
         // Amount (#satoshies) assigned to contract output
         quint64 _funds;
 
+        //
+        quint64 _settlementFee;
+
 
         // Commitment
         // ==================================================
@@ -191,4 +188,4 @@ namespace paymentchannel {
 }
 }
 
-#endif // PAYMENT_CHANNEL_PAYEE_HPP
+#endif // JOYSTREAM_PAYMENT_CHANNEL_PAYEE_HPP
