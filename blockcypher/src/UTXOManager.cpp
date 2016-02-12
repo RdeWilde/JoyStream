@@ -34,37 +34,63 @@ namespace BlockCypher {
 
         // If REST api client is provided we can initialise the utxo state
         if(restClient) {
-            // Create a vector of batches of addresses (QString of semicolon separated list)
-            // The maximum number of elements that can be batched in a single call is 100.
-            std::vector<QString> batches;
-
-            uint counter = 0;
-            uint batchNo;
-            for(const Coin::P2PKHAddress &addr : addresses) {
-                batchNo =  counter / 100;
-                if(batches.empty() || batches.size() < batchNo) {
-                    batches.push_back(addr.toBase58CheckEncoding());
-                } else {
-                    batches[batchNo] += ";" + addr.toBase58CheckEncoding();
-                }
-                counter++;
-            }
-
-            for(const QString & batch : batches) {
-                Address response = restClient->addressEndPoint(batch);
-
-                manager->processTxRef(response._txrefs);
-                manager->processTxRef(response._unconfirmed_txrefs);
-            }
-
-            manager->updateBalances();
+            manager->fetchAndProcessTxRefs(restClient, batchAddresses(addresses));
+            manager->updateBalances(false);
         }
 
+        // add event filter after initialization
         for(const Coin::P2PKHAddress & address : addresses) {
             manager->addAddress(address);
         }
 
         return manager;
+    }
+
+    std::vector<QString> UTXOManager::batchAddresses(const std::set<Coin::P2PKHAddress> & p2pkhAddresses) {
+        std::set<QString> addresses;
+
+        for(const Coin::P2PKHAddress & address : p2pkhAddresses) {
+            addresses.insert(address.toBase58CheckEncoding());
+        }
+
+        return batchAddresses(addresses);
+    }
+
+    std::vector<QString> UTXOManager::batchAddresses(const std::set<QString> &addresses) {
+        // Create a vector of batches of addresses (QString of semicolon separated list)
+        // The maximum number of elements that can be batched in a single call is 100.
+        std::vector<QString> batches;
+        uint counter = 0;
+        uint batchNo;
+        for(const QString &addr : addresses) {
+            batchNo =  counter / 100;
+            if(batches.empty() || batches.size() < batchNo) {
+                batches.push_back(addr);
+            } else {
+                batches[batchNo] += ";" + addr;
+            }
+            counter++;
+        }
+
+        return batches;
+    }
+
+    void UTXOManager::fetchAndProcessTxRefs(Client * restClient, const std::vector<QString> &batches) {
+        for(const QString & batch : batches) {
+            Address response = restClient->addressEndPoint(batch);
+            processTxRef(response._txrefs);
+            processTxRef(response._unconfirmed_txrefs);
+        }
+    }
+
+    void UTXOManager::refreshUtxoState(Client* restClient) {
+        //use a mutex or bool flag to stop updates from wsclient while we reset the state?
+        _unconfirmedUtxoSet.clear();
+        _confirmedUtxoSet.clear();
+
+        //hmm dont clear until we get an update...?
+        fetchAndProcessTxRefs(restClient, batchAddresses(_addresses));
+        updateBalances(true);
     }
 
     void UTXOManager::processTxRef(const std::vector<TXRef> &txrefs) {

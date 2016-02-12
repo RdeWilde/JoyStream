@@ -42,6 +42,8 @@ public:
     uint64_t balance() const { return _balance; }
     uint64_t unconfirmedBalance() const { return _balance_zero_conf; }
 
+    void refreshUtxoState(Client* restClient);
+
 signals:
 
     void balanceChanged(uint64_t confirmedBalance, uint64_t unconfirmedBalance);
@@ -56,6 +58,12 @@ private:
 
     //maintain a set of addresses we are interested in
     std::set<QString> _addresses;
+
+    static std::vector<QString> batchAddresses(const std::set<Coin::P2PKHAddress> & p2pkhAddresses);
+    static std::vector<QString> batchAddresses(const std::set<QString> &addresses);
+
+    void fetchAndProcessTxRefs(Client * restClient, const std::vector<QString> &batches);
+
 
     // routine to handle TX payload from blockcypher
     void processTx(const TX &tx);
