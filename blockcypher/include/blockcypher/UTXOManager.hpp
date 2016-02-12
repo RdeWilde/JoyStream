@@ -44,6 +44,9 @@ public:
 
     void refreshUtxoState(Client* restClient);
 
+    std::set<UTXO> lockUtxo(uint64_t minValue, uint32_t minConfirmations);
+    void releaseUtxo(std::set<UTXO> utxos);
+
 signals:
 
     void balanceChanged(uint64_t confirmedBalance, uint64_t unconfirmedBalance);
@@ -55,6 +58,7 @@ private:
 
     std::set<UTXO> _unconfirmedUtxoSet;
     std::set<UTXO> _confirmedUtxoSet;
+    std::set<UTXO> _lockedUtxoSet;
 
     //maintain a set of addresses we are interested in
     std::set<QString> _addresses;

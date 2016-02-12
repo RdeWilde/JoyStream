@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 11 2016
  */
 
-#ifndef BLOCKCYPHER_TRANSACTION_RELEVANT_UTXO_H
-#define BLOCKCYPHER_TRANSACTION_RELEVANT_UTXO_H
+#ifndef BLOCKCYPHER_TXRESULT_H
+#define BLOCKCYPHER_TXRESULT_H
 
 #include <blockcypher/UTXO.hpp>
 
@@ -35,4 +35,4 @@ private:
 
 }
 
-#endif // BLOCKCYPHER_TRANSACTION_RELEVANT_UTXO_H
+#endif // BLOCKCYPHER_TXRESULT_H

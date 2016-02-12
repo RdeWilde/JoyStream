@@ -117,7 +117,7 @@ namespace BlockCypher {
         for(const TXRef &t : txrefs) {
             if(t._tx_output_n >= 0 && t._spent == false) {
                 Coin::typesafeOutPoint outpoint(t._tx_hash, t._tx_output_n);
-                UTXO utxo(QString::fromStdString(t._addressString), outpoint, t._value);
+                UTXO utxo(QString::fromStdString(t._addressString), outpoint, t._value, t._block_height);
                 TxResult result;
                 result.confirmations(t._confirmations);
                 result.creates(utxo);
@@ -164,7 +164,6 @@ namespace BlockCypher {
         int32_t index = -1;
         for(const TXOutput & output : tx.outputs()) {
             index++;
-            if(output.spent_by()) continue;
 
             if(output.script_type() != ScriptType::pay_to_pubkey_hash) continue;
             //we expect only one address in output.addresses() array
@@ -172,9 +171,13 @@ namespace BlockCypher {
             if(!hasAddress(addr)) continue;
 
             Coin::typesafeOutPoint outpoint(txid, index);
-            UTXO utxo(addr, outpoint, output.value());
+            UTXO utxo(addr, outpoint, output.value(), tx.block_height());
 
-            result.creates(utxo);
+            if(output.spent_by()) {
+                result.destroys(utxo);
+            } else {
+                result.creates(utxo);
+            }
         }
 
         return result;
@@ -185,9 +188,12 @@ namespace BlockCypher {
     }
 
     void UTXOManager::updateUtxoSets(const TxResult & r) {
+
         for(const UTXO &utxo : r.creates()) {
             if(r.confirmations() > 0) {
-                _confirmedUtxoSet.insert(utxo);
+                _confirmedUtxoSet.erase(utxo);
+                _confirmedUtxoSet.insert(utxo);//replace with if exists
+                _unconfirmedUtxoSet.erase(utxo);
             } else {
                 _unconfirmedUtxoSet.insert(utxo);
             }
