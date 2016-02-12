@@ -9,7 +9,7 @@
 #define JOYSTREAM_PROTOCOL_WIRE_SELL_HPP
 
 #include <protocol/wire/ExtendedMessagePayload.hpp>
-#include <protocol/sell/Terms.hpp>
+#include <protocol/SellerTerms.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -23,7 +23,7 @@ namespace wire {
         Sell();
 
         // Constructor based on members
-        Sell(const joystream::protocol::sell::Terms & terms);
+        Sell(const joystream::protocol::SellerTerms & terms);
 
         // Constructor based on raw data
         Sell(QDataStream & stream);
@@ -34,13 +34,13 @@ namespace wire {
         virtual void write(QDataStream & stream) const;
 
         // Getters and setters
-        joystream::protocol::sell::Terms terms() const;
-        void setTerms(const joystream::protocol::sell::Terms & terms);
+        joystream::protocol::SellerTerms terms() const;
+        void setTerms(const joystream::protocol::SellerTerms & terms);
 
     private:
 
         // Sales terms
-        joystream::protocol::sell::Terms _terms;
+        joystream::protocol::SellerTerms _terms;
     };
 }
 }

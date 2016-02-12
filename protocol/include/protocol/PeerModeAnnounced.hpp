@@ -8,8 +8,8 @@
 #ifndef JOYSTREAM_PROTOCOL_PEER_MODE_ANNOUNCED_HPP
 #define JOYSTREAM_PROTOCOL_PEER_MODE_ANNOUNCED_HPP
 
-#include <protocol/buy/Terms.hpp>
-#include <protocol/sell/Terms.hpp>
+#include <protocol/BuyerTerms.hpp>
+#include <protocol/SellerTerms.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -25,16 +25,18 @@ namespace protocol {
             buy
         };
 
-        PeerModeAnnounced(ModeAnnounced announced, const buy::Terms & buyModeTerms, const sell::Terms & sellModeTerms);
+        PeerModeAnnounced();
+
+        PeerModeAnnounced(ModeAnnounced announced, const BuyerTerms & buyModeTerms, const SellerTerms & sellModeTerms);
 
         ModeAnnounced announced() const;
         void setAnnounced(const ModeAnnounced announced);
 
-        buy::Terms buyModeTerms() const;
-        void setBuyModeTerms(const buy::Terms & buyModeTerms);
+        BuyerTerms buyModeTerms() const;
+        void setBuyModeTerms(const BuyerTerms & buyModeTerms);
 
-        sell::Terms sellModeTerms() const;
-        void setSellModeTerms(const sell::Terms & sellModeTerms);
+        SellerTerms sellModeTerms() const;
+        void setSellModeTerms(const SellerTerms & sellModeTerms);
 
     private:
 
@@ -42,10 +44,10 @@ namespace protocol {
         ModeAnnounced _announced;
 
         // Buy mode terms
-        buy::Terms _buyModeTerms;
+        BuyerTerms _buyModeTerms;
 
         // Sell mode terms
-        sell::Terms _sellModeTerms;
+        SellerTerms _sellModeTerms;
     };
 
 }

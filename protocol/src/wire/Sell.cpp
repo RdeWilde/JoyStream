@@ -17,7 +17,7 @@ namespace wire {
     Sell::Sell() {
     }
 
-    Sell::Sell(const joystream::protocol::sell::Terms & terms)
+    Sell::Sell(const joystream::protocol::SellerTerms & terms)
         : _terms(terms) {
     }
 
@@ -37,11 +37,11 @@ namespace wire {
         stream << _terms._minPrice << _terms._minLock << _terms._maxSellers;
     }
 
-    joystream::protocol::sell::Terms Sell::terms() const  {
+    joystream::protocol::SellerTerms Sell::terms() const  {
         return _terms;
     }
 
-    void Sell::setTerms(const joystream::protocol::sell::Terms & terms) {
+    void Sell::setTerms(const joystream::protocol::SellerTerms & terms) {
         _terms = terms;
     }
 }

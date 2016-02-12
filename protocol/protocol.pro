@@ -34,19 +34,20 @@ HEADERS += \
     include/protocol/Connection.hpp \
     include/protocol/Mode.hpp \
     include/protocol/PeerModeAnnounced.hpp \
-    include/protocol/sell/Terms.hpp \
-    include/protocol/sell/ClientState.hpp \
-    include/protocol/sell/PeerState.hpp \
-    include/protocol/sell/Session.hpp \
-    include/protocol/sell/Connection.hpp \
-    include/protocol/buy/SessionState.hpp \
-    include/protocol/buy/Terms.hpp \
-    include/protocol/buy/ClientState.hpp \
-    include/protocol/buy/PeerState.hpp \
-    include/protocol/buy/Piece.hpp \
-    include/protocol/buy/Session.hpp \
-    include/protocol/buy/Connection.hpp \
-    include/protocol/observe/Session.hpp
+    include/protocol/Piece.hpp \
+    include/protocol/ModeAnnounced.hpp \
+    include/protocol/SellerSession.hpp \
+    include/protocol/SellerConnection.hpp \
+    include/protocol/SellerTerms.hpp \
+    include/protocol/SellerPeerState.hpp \
+    include/protocol/SellerClientState.hpp \
+    include/protocol/BuyerSession.hpp \
+    include/protocol/BuyerSessionState.hpp \
+    include/protocol/BuyerConnection.hpp \
+    include/protocol/BuyerPeerState.hpp \
+    include/protocol/BuyerTerms.hpp \
+    include/protocol/BuyerClientState.hpp \
+    include/protocol/ObserverSession.hpp \
 
 SOURCES += \
     src/wire/ExtendedMessagePayload.cpp \
@@ -66,13 +67,14 @@ SOURCES += \
     src/PeerModeAnnounced.cpp \
     src/Session.cpp \
     src/Connection.cpp \
-    src/sell/Connection.cpp \
-    src/buy/Connection.cpp \
-    src/buy/Piece.cpp \
-    src/buy/Session.cpp \
-    src/observe/Session.cpp \
-    src/sell/Session.cpp \
-    src/sell/PeerState.cpp
+    src/SellerSession.cpp \
+    src/SellerPeerState.cpp \
+    src/SellerConnection.cpp \
+    src/BuyerSession.cpp \
+    src/BuyerConnection.cpp \
+    src/BuyerPeerState.cpp \
+    src/ObserverSession.cpp \
+    src/Piece.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

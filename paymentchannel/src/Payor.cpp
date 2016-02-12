@@ -352,6 +352,11 @@ namespace paymentchannel {
             throw std::runtime_error("input, outputs, change and fee does not match.");
     }
 
+    Payor Payor::unknownPayees() {
+
+
+    }
+
     quint32 Payor::assignUnassignedSlot(quint64 price, const Coin::PublicKey & payeeContractPk, const Coin::PublicKey & payeeFinalPk, quint32 refundLockTime) {
 
         // Check payor is trying to find sellers

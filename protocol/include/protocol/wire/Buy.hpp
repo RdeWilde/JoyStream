@@ -9,7 +9,7 @@
 #define JOYSTREAM_PROTOCOL_WIRE_BUY_HPP
 
 #include <protocol/wire/ExtendedMessagePayload.hpp>
-#include <protocol/buy/Terms.hpp>
+#include <protocol/BuyerTerms.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -23,7 +23,7 @@ namespace wire {
         Buy();
 
         // Constructor based on members
-        Buy(const joystream::protocol::buy::Terms & terms);
+        Buy(const joystream::protocol::BuyerTerms & terms);
 
         // Constructor based on raw payload
         // NB: Substitute with static factory in future, so that you cannot create stale
@@ -36,13 +36,13 @@ namespace wire {
         virtual void write(QDataStream & stream) const;
 
         // Getters and setters
-        joystream::protocol::buy::Terms terms() const;
-        void setTerms(const joystream::protocol::buy::Terms & terms);
+        joystream::protocol::BuyerTerms terms() const;
+        void setTerms(const joystream::protocol::BuyerTerms & terms);
 
     private:
 
         // Buyer max price (satoshies)
-        joystream::protocol::buy::Terms _terms;
+        joystream::protocol::BuyerTerms _terms;
     };
 
 }

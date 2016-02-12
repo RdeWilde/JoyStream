@@ -44,7 +44,7 @@ namespace protocol {
         return _lastModeAnnouncedByPeer;
     }
 
-    SendMessageCallbackHandler Connection::sendMessageCallbackHandler() const {
+    Connection::SendMessageCallbackHandler Connection::sendMessageCallbackHandler() const {
         return _sendMessageCallbackHandler;
     }
 

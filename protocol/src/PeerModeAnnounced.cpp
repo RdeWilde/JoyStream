@@ -10,7 +10,11 @@
 namespace joystream {
 namespace protocol {
 
-    PeerModeAnnounced::PeerModeAnnounced(ModeAnnounced announced, const buy::Terms & buyModeTerms, const sell::Terms & sellModeTerms)
+    PeerModeAnnounced::PeerModeAnnounced()
+        : _announced(ModeAnnounced::none) {
+    }
+
+    PeerModeAnnounced::PeerModeAnnounced(ModeAnnounced announced, const BuyerTerms & buyModeTerms, const SellerTerms & sellModeTerms)
         : _announced(announced)
         , _buyModeTerms(buyModeTerms)
         , _sellModeTerms(sellModeTerms) {
@@ -24,19 +28,19 @@ namespace protocol {
         _announced = announced;
     }
 
-    buy::Terms PeerModeAnnounced::buyModeTerms() const {
+    BuyerTerms PeerModeAnnounced::buyModeTerms() const {
         return _buyModeTerms;
     }
 
-    void PeerModeAnnounced::setBuyModeTerms(const buy::Terms & buyModeTerms) {
+    void PeerModeAnnounced::setBuyModeTerms(const BuyerTerms & buyModeTerms) {
         _buyModeTerms = buyModeTerms;
     }
 
-    sell::Terms PeerModeAnnounced::sellModeTerms() const {
+    SellerTerms PeerModeAnnounced::sellModeTerms() const {
         return _sellModeTerms;
     }
 
-    void PeerModeAnnounced::setSellModeTerms(const sell::Terms & sellModeTerms) {
+    void PeerModeAnnounced::setSellModeTerms(const SellerTerms & sellModeTerms) {
         _sellModeTerms = sellModeTerms;
     }    
 }

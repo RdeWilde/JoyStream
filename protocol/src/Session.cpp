@@ -10,9 +10,14 @@
 namespace joystream {
 namespace protocol {
 
-    Session::Session(Mode mode, const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler)
+    Session::Session(Mode mode,
+                     const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
+                     const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+                     const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler)
         : _mode(mode)
-        , _removedConnectionCallbackHandler(removedConnectionCallbackHandler) {
+        , _removedConnectionCallbackHandler(removedConnectionCallbackHandler)
+        , _generateKeyPairsCallbackHandler(generateKeyPairsCallbackHandler)
+        , _generateP2PKHAddressesCallbackHandler(generateP2PKHAddressesCallbackHandler) {
     }
 
     Mode Session::mode() const {

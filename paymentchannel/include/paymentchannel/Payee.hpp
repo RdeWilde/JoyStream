@@ -42,23 +42,23 @@ namespace paymentchannel {
 
         // Constructor based on members
         Payee(PayeeState state,
-                quint64 numberOfPaymentsMade,
-                const Coin::Signature & lastValidPayorPaymentSignature,
-                quint32 lockTime,
-                quint64 price,
-                const Coin::KeyPair & payeeContractKeys,
-                const Coin::KeyPair & payeePaymentKeys,
-                const Coin::typesafeOutPoint & contractOutPoint,
-                const Coin::PublicKey & payorContractPk,
-                const Coin::PublicKey & payorFinalPk,
-                quint64 funds);
+              quint64 numberOfPaymentsMade,
+              const Coin::Signature & lastValidPayorPaymentSignature,
+              quint32 lockTime,
+              quint64 price,
+              const Coin::KeyPair & payeeContractKeys,
+              const Coin::KeyPair & payeePaymentKeys,
+              const Coin::typesafeOutPoint & contractOutPoint,
+              const Coin::PublicKey & payorContractPk,
+              const Coin::PublicKey & payorFinalPk,
+              quint64 funds);
 
         // Payee which is initialize to the start of exchange,
         // before payor information is available.
-        static Payee initPayeeWithoutKnownPayor(quint32 lockTime,
-                           quint64 price,
-                           const Coin::KeyPair & payeeContractKeys,
-                           const Coin::KeyPair & payeePaymentKeys);
+        static Payee unknownPayor(quint32 lockTime,
+                                  quint64 price,
+                                  const Coin::KeyPair & payeeContractKeys,
+                                  const Coin::KeyPair & payeePaymentKeys);
 
         // Constructor based on configuration
         Payee(const PayeeConfiguration & configuration);

@@ -17,7 +17,7 @@ namespace wire {
     Buy::Buy() {
     }
 
-    Buy::Buy(const joystream::protocol::buy::Terms & terms)
+    Buy::Buy(const joystream::protocol::BuyerTerms & terms)
         : _terms(terms) {
     }
 
@@ -37,11 +37,11 @@ namespace wire {
         stream << _terms._maxPrice << _terms._maxLock << _terms._numberOfSellers;
     }
     
-    joystream::protocol::buy::Terms Buy::terms() const {
+    joystream::protocol::BuyerTerms Buy::terms() const {
         return _terms;
     }
     
-    void Buy::setTerms(const joystream::protocol::buy::Terms & terms) {
+    void Buy::setTerms(const joystream::protocol::BuyerTerms & terms) {
         _terms = terms;
     }
 

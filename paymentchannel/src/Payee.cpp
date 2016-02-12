@@ -63,7 +63,7 @@ namespace paymentchannel {
                 c.funds()) {
     }
 
-    Payee Payee::initPayeeWithoutKnownPayor(quint32 lockTime,
+    Payee Payee::unknownPayor(quint32 lockTime,
                        quint64 price,
                        const Coin::KeyPair & payeeContractKeys,
                        const Coin::KeyPair & payeePaymentKeys) {

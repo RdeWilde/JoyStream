@@ -212,6 +212,10 @@ namespace paymentchannel {
         // Constructor based on configuration
         Payor(const PayorConfiguration & configuration);
 
+        // Payor which is initialize to the start of exchange,
+        // before payee information is available.
+        static Payor unknownPayees();
+
         // Finds an unassigned slot
         // ========================
         // If one is found then the
