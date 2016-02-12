@@ -17,7 +17,6 @@ namespace joystream {
 namespace protocol {
 namespace sell {
 
-    //
     class PeerState {
 
     public:
@@ -74,7 +73,6 @@ namespace sell {
         // Constructor from members
         PeerState(//LastValidAction lastAction,
                   FailureMode failureMode,
-                  const joystream::protocol::wire::Buy & lastBuyReceived,
                   const joystream::protocol::wire::SignRefund & lastSignRefundReceived,
                   const joystream::protocol::wire::Payment & lastPaymentReceived,
                   const joystream::protocol::wire::RequestFullPiece & lastRequestFullPieceReceived);
@@ -87,9 +85,6 @@ namespace sell {
 
         FailureMode failureMode() const;
         void setFailureMode(FailureMode failureMode);
-
-        joystream::protocol::wire::Buy lastBuyReceived() const;
-        void setLastBuyReceived(const joystream::protocol::wire::Buy & lastBuyReceived);
 
         joystream::protocol::wire::SignRefund lastSignRefundReceived() const;
         void setLastSignRefundReceived(const joystream::protocol::wire::SignRefund & lastSignRefundReceived);
@@ -109,9 +104,7 @@ namespace sell {
         FailureMode _failureMode;
 
         // Message payloads received
-        // Is updated so long as it is state compatible,
-        // content may be invalid.
-        joystream::protocol::wire::Buy _lastBuyReceived;
+        // Is updated so long as it is state compatible, content may be invalid.
         joystream::protocol::wire::SignRefund _lastSignRefundReceived;
         joystream::protocol::wire::Payment _lastPaymentReceived; // May be invalid, the valid payment is saved in Payee
         joystream::protocol::wire::RequestFullPiece _lastRequestFullPieceReceived;

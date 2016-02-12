@@ -17,7 +17,7 @@ namespace sell {
                            ClientState clientState,
                            PeerState peerState,
                            const joystream::paymentchannel::Payee & payee,
-                           const std::list<uint32_t> & fullPiecesSent)
+                           const std::queue<uint32_t> & fullPiecesSent)
         : joystream::protocol::Connection(peerName, lastModeAnnouncedByPeer, sendMessageCallbackHandler)
         , _clientState(clientState)
         , _peerState(peerState)
@@ -37,7 +37,7 @@ namespace sell {
         return _payee;
     }
 
-    std::list<uint32_t> Connection::fullPiecesSent() const {
+    std::queue<uint32_t> Connection::fullPiecesSent() const {
         return _fullPiecesSent;
     }
 }

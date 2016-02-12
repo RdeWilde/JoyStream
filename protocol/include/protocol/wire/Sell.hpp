@@ -9,8 +9,7 @@
 #define JOYSTREAM_PROTOCOL_WIRE_SELL_HPP
 
 #include <protocol/wire/ExtendedMessagePayload.hpp>
-
-#include <QDateTime>
+#include <protocol/sell/Terms.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -24,7 +23,7 @@ namespace wire {
         Sell();
 
         // Constructor based on members
-        Sell(quint32 minPrice, quint32 minLock, quint32 maxSellers);
+        Sell(const joystream::protocol::sell::Terms & terms);
 
         // Constructor based on raw data
         Sell(QDataStream & stream);
@@ -35,25 +34,13 @@ namespace wire {
         virtual void write(QDataStream & stream) const;
 
         // Getters and setters
-        quint32 minPrice() const;
-        void setMinPrice(quint32 minPrice);
-
-        quint32 minLock() const;
-        void setMinLock(quint32 minLock);
-
-        quint32 maxSellers() const;
-        void setMaxSellers(quint32 maxSellers);
+        joystream::protocol::sell::Terms terms() const;
+        void setTerms(const joystream::protocol::sell::Terms & terms);
 
     private:
 
-        // Piece price (in satoshi units)
-        quint32 _minPrice;
-
-        // When refund is spendable at the earliest
-        quint32 _minLock;
-
-        // Maximum number of sellers accepted in contract
-        quint32 _maxSellers;
+        // Sales terms
+        joystream::protocol::sell::Terms _terms;
     };
 }
 }

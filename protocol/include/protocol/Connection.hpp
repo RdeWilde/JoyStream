@@ -10,7 +10,7 @@
 
 #include <protocol/PeerModeAnnounced.hpp>
 
-
+#include <string>
 #include <functional>
 
 namespace joystream {
@@ -18,18 +18,27 @@ namespace protocol {
 
     namespace wire {
         class ExtendedMessagePayload;
+        class Observe;
+        class Buy;
+        class Sell;
     }
 
     class Connection {
 
     public:
 
-        Connection();
-
         // Callback handler for sending a message to the peer
         typedef std::function<bool(const wire::ExtendedMessagePayload *)> SendMessageCallbackHandler;
 
+        // Constructors
+        Connection();
+
         Connection(const std::string & peerName, PeerModeAnnounced lastModeAnnouncedByPeer, const SendMessageCallbackHandler & sendMessageCallbackHandler);
+
+        // Process given message
+        virtual void process(const wire::Observe & observe);
+        virtual void process(const wire::Buy & buy);
+        virtual void process(const wire::Sell & sell);
 
         // Getters
         std::string peerName() const;

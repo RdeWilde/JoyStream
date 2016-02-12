@@ -6,6 +6,9 @@
  */
 
 #include <protocol/Connection.hpp>
+#include <protocol/wire/Observe.hpp>
+#include <protocol/wire/Buy.hpp>
+#include <protocol/wire/Sell.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -19,6 +22,20 @@ namespace protocol {
         , _sendMessageCallbackHandler(sendMessageCallbackHandler) {
     }
 
+    void Connection::process(const wire::Observe & observe) {
+        _lastModeAnnouncedByPeer.setAnnounced(PeerModeAnnounced::ModeAnnounced::observe);
+    }
+
+    void Connection::process(const wire::Buy & buy) {
+        _lastModeAnnouncedByPeer.setAnnounced(PeerModeAnnounced::ModeAnnounced::buy);
+        _lastModeAnnouncedByPeer.setBuyModeTerms(buy.terms());
+    }
+
+    void Connection::process(const wire::Sell & sell) {
+        _lastModeAnnouncedByPeer.setAnnounced(PeerModeAnnounced::ModeAnnounced::sell);
+        _lastModeAnnouncedByPeer.setSellModeTerms(sell.terms());
+    }
+
     std::string Connection::peerName() const {
         return _peerName;
     }
@@ -30,7 +47,6 @@ namespace protocol {
     SendMessageCallbackHandler Connection::sendMessageCallbackHandler() const {
         return _sendMessageCallbackHandler;
     }
-
 
 }
 }

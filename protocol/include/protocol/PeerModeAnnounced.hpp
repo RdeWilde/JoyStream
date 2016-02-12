@@ -27,6 +27,9 @@ namespace protocol {
 
         PeerModeAnnounced(ModeAnnounced announced, const buy::Terms & buyModeTerms, const sell::Terms & sellModeTerms);
 
+        ModeAnnounced announced() const;
+        void setAnnounced(const ModeAnnounced announced);
+
         buy::Terms buyModeTerms() const;
         void setBuyModeTerms(const buy::Terms & buyModeTerms);
 

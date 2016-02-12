@@ -36,14 +36,14 @@ namespace observe {
 
         // Returns session for corresponding new mode, after sending appropriate messages to all active peers,
         // and returned object is owned by callee.
-        joystream::protocol::sell::Session * switchToSellMode(const joystream::protocol::sell::Terms & terms);
+        joystream::protocol::sell::Session * switchToSellMode(const joystream::protocol::sell::Terms & terms, uint32_t numberOfPiecesInTorrent);
         joystream::protocol::buy::Session * switchToSellMode(const joystream::protocol::buy::Terms & terms);
 
         virtual void addConnection(const Connection & connection);
 
         virtual void removeConnection(const std::string & name);
 
-        virtual void processMessageOnConnection(const std::string & name, const wire::ExtendedMessagePayload * message);
+        virtual void processMessageOnConnection(const std::string & name, const wire::ExtendedMessagePayload & message);
 
     private:
 

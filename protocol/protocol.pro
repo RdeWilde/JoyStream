@@ -70,7 +70,9 @@ SOURCES += \
     src/buy/Connection.cpp \
     src/buy/Piece.cpp \
     src/buy/Session.cpp \
-    src/observe/Session.cpp
+    src/observe/Session.cpp \
+    src/sell/Session.cpp \
+    src/sell/PeerState.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

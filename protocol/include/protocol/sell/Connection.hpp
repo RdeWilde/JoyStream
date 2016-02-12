@@ -13,7 +13,7 @@
 #include <protocol/sell/PeerState.hpp>
 #include <paymentchannel/Payee.hpp>
 
-#include <list>
+#include <queue>
 
 namespace joystream {
 namespace protocol {
@@ -29,7 +29,10 @@ namespace sell {
                    ClientState sellClientState,
                    PeerState sellPeerState,
                    const joystream::paymentchannel::Payee & payee,
-                   const std::list<uint32_t> & fullPiecesSent);
+                   const std::queue<uint32_t> & fullPiecesSent);
+
+        //
+        //static Connection switchTo();
 
         // Getters
         ClientState clientState() const;
@@ -38,7 +41,7 @@ namespace sell {
 
         joystream::paymentchannel::Payee payee() const;
 
-        std::list<uint32_t> fullPiecesSent() const;
+        std::queue<uint32_t> fullPiecesSent() const;
 
     private:
 
@@ -52,7 +55,7 @@ namespace sell {
         joystream::paymentchannel::Payee _payee;
 
         // Index of each piece sent, in the order that it was sent
-        std::list<uint32_t> _fullPiecesSent;
+        std::queue<uint32_t> _fullPiecesSent;
 
     };
 }

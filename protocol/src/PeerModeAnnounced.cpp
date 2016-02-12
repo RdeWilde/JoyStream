@@ -16,6 +16,14 @@ namespace protocol {
         , _sellModeTerms(sellModeTerms) {
     }
 
+    PeerModeAnnounced::ModeAnnounced PeerModeAnnounced::announced() const {
+        return _announced;
+    }
+
+    void PeerModeAnnounced::setAnnounced(const ModeAnnounced announced) {
+        _announced = announced;
+    }
+
     buy::Terms PeerModeAnnounced::buyModeTerms() const {
         return _buyModeTerms;
     }
@@ -30,7 +38,6 @@ namespace protocol {
 
     void PeerModeAnnounced::setSellModeTerms(const sell::Terms & sellModeTerms) {
         _sellModeTerms = sellModeTerms;
-    }
-
+    }    
 }
 }

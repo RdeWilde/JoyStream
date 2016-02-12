@@ -17,14 +17,12 @@ namespace wire {
     Sell::Sell() {
     }
 
-    Sell::Sell(quint32 minPrice, quint32 minLock, quint32 maxSellers)
-        : _minPrice(minPrice)
-        , _minLock(minLock)
-        , _maxSellers(maxSellers) {
+    Sell::Sell(const joystream::protocol::sell::Terms & terms)
+        : _terms(terms) {
     }
 
     Sell::Sell(QDataStream & stream) {
-        stream >> _minPrice >> _minLock >> _maxSellers;
+        stream >> _terms._minPrice >> _terms._minLock >> _terms._maxSellers;
     }
 
     MessageType Sell::messageType() const {
@@ -32,37 +30,20 @@ namespace wire {
     }
 
     quint32 Sell::length() const {
-        return sizeof(_minPrice) + sizeof(_minLock) + sizeof(_maxSellers);
+        return sizeof(_terms._minPrice) + sizeof(_terms._minLock) + sizeof(_terms._maxSellers);
     }
 
     void Sell::write(QDataStream & stream) const {
-        stream << _minPrice << _minLock << _maxSellers;
+        stream << _terms._minPrice << _terms._minLock << _terms._maxSellers;
     }
 
-    quint32 Sell::minPrice() const {
-        return _minPrice;
+    joystream::protocol::sell::Terms Sell::terms() const  {
+        return _terms;
     }
 
-    void Sell::setMinPrice(quint32 minPrice) {
-        _minPrice = minPrice;
+    void Sell::setTerms(const joystream::protocol::sell::Terms & terms) {
+        _terms = terms;
     }
-
-    quint32 Sell::minLock() const {
-        return _minLock;
-    }
-
-    void Sell::setMinLock(quint32 minLock) {
-        _minLock = minLock;
-    }
-
-    quint32 Sell::maxSellers() const {
-        return _maxSellers;
-    }
-
-    void Sell::setMaxSellers(quint32 maxSellers) {
-        _maxSellers = maxSellers;
-    }
-
 }
 }
 }
