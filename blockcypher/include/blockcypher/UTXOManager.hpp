@@ -17,8 +17,8 @@
 #include <blockcypher/Client.hpp>
 #include <blockcypher/TX.hpp>
 #include <blockcypher/TXRef.hpp>
-#include <blockcypher/UTXORef.hpp>
-#include <blockcypher/TransactionRelevantUtxo.hpp>
+#include <blockcypher/UTXO.hpp>
+#include <blockcypher/TxResult.hpp>
 
 #include <QObject>
 
@@ -53,8 +53,8 @@ public slots:
 private:
     WebSocketClient* _wsClient;
 
-    std::set<UTXORef> _unconfirmedUtxoSet;
-    std::set<UTXORef> _confirmedUtxoSet;
+    std::set<UTXO> _unconfirmedUtxoSet;
+    std::set<UTXO> _confirmedUtxoSet;
 
     //maintain a set of addresses we are interested in
     std::set<QString> _addresses;
@@ -62,16 +62,19 @@ private:
     static std::vector<QString> batchAddresses(const std::set<Coin::P2PKHAddress> & p2pkhAddresses);
     static std::vector<QString> batchAddresses(const std::set<QString> &addresses);
 
-    void fetchAndProcessTxRefs(Client * restClient, const std::vector<QString> &batches);
-
+    std::vector<TXRef> fetchTxRefs(Client * restClient, const std::vector<QString> &batches);
+    std::vector<TXRef> fetchTxRefs(Client * restClient, const std::set<Coin::P2PKHAddress> & addresses);
+    std::vector<TXRef> fetchTxRefs(Client * restClient, const std::set<QString> & addresses);
 
     // routine to handle TX payload from blockcypher
-    void processTx(const TX &tx);
+    TxResult processTx(const TX &tx);
 
-    // routine to handle TXRef from blockcypher
-    void processTxRef(const std::vector<TXRef> &txrefs);
+    // routine to handle vector of TXRef from blockcypher
+    std::vector<TxResult> processTxRefs(const std::vector<TXRef> &txrefs);
 
     bool hasAddress(const QString &address);
+
+    void updateUtxoSets(const TxResult & r);
 
     void updateBalances(bool notify = false);
 

@@ -18,7 +18,9 @@ namespace BlockCypher {
 
         // connect signals from websocket client to our private slots
         QObject::connect(_wsClient, &WebSocketClient::txArrived, [this](const TX & tx){
-            processTx(tx);
+            TxResult r = processTx(tx);
+            updateUtxoSets(r);
+            updateBalances(true);
         });
 
     }
@@ -34,7 +36,9 @@ namespace BlockCypher {
 
         // If REST api client is provided we can initialise the utxo state
         if(restClient) {
-            manager->fetchAndProcessTxRefs(restClient, batchAddresses(addresses));
+            std::vector<TXRef> txrefs = manager->fetchTxRefs(restClient, addresses);
+            std::vector<TxResult> results = manager->processTxRefs(txrefs);
+            for(auto & r : results) manager->updateUtxoSets(r);
             manager->updateBalances(false);
         }
 
@@ -75,38 +79,53 @@ namespace BlockCypher {
         return batches;
     }
 
-    void UTXOManager::fetchAndProcessTxRefs(Client * restClient, const std::vector<QString> &batches) {
+    std::vector<TXRef> UTXOManager::fetchTxRefs(Client * restClient, const std::vector<QString> & batches) {
+        std::vector<TXRef> txrefs;
+
         for(const QString & batch : batches) {
             Address response = restClient->addressEndPoint(batch);
-            processTxRef(response._txrefs);
-            processTxRef(response._unconfirmed_txrefs);
+            txrefs.insert(txrefs.end(), response._txrefs.begin(), response._txrefs.end());
+            txrefs.insert(txrefs.end(), response._unconfirmed_txrefs.begin(), response._unconfirmed_txrefs.end());
         }
+
+        return txrefs;
+    }
+
+    std::vector<TXRef> UTXOManager::fetchTxRefs(Client * restClient, const std::set<Coin::P2PKHAddress> & addresses) {
+        return fetchTxRefs(restClient, batchAddresses(addresses));
+    }
+
+    std::vector<TXRef> UTXOManager::fetchTxRefs(Client * restClient, const std::set<QString> & addresses) {
+        return fetchTxRefs(restClient, batchAddresses(addresses));
     }
 
     void UTXOManager::refreshUtxoState(Client* restClient) {
         //use a mutex or bool flag to stop updates from wsclient while we reset the state?
+        std::vector<TXRef> txrefs = fetchTxRefs(restClient, _addresses);
+        std::vector<TxResult> results = processTxRefs(txrefs);
         _unconfirmedUtxoSet.clear();
         _confirmedUtxoSet.clear();
 
-        //hmm dont clear until we get an update...?
-        fetchAndProcessTxRefs(restClient, batchAddresses(_addresses));
+        for(auto & r : results) updateUtxoSets(r);
+
         updateBalances(true);
     }
 
-    void UTXOManager::processTxRef(const std::vector<TXRef> &txrefs) {
+    std::vector<TxResult> UTXOManager::processTxRefs(const std::vector<TXRef> &txrefs) {
+        std::vector<TxResult> results;
+
         for(const TXRef &t : txrefs) {
             if(t._tx_output_n >= 0 && t._spent == false) {
-
                 Coin::typesafeOutPoint outpoint(t._tx_hash, t._tx_output_n);
-                UTXORef utxo(QString::fromStdString(t._addressString), outpoint, t._value);
-
-                if(t._confirmations > 0) {
-                    _confirmedUtxoSet.insert(utxo);
-                } else {
-                    _unconfirmedUtxoSet.insert(utxo);
-                }
+                UTXO utxo(QString::fromStdString(t._addressString), outpoint, t._value);
+                TxResult result;
+                result.confirmations(t._confirmations);
+                result.creates(utxo);
+                results.push_back(result);
             }
         }
+
+        return results;
     }
 
     bool UTXOManager::addAddress(const Coin::P2PKHAddress & address) {
@@ -120,11 +139,14 @@ namespace BlockCypher {
         return true;
     }
 
-    void UTXOManager::processTx(const TX & tx) {
+    TxResult UTXOManager::processTx(const TX & tx) {
+        TxResult result;
 
         Coin::TransactionId txid = Coin::TransactionId::fromRPCByteOrder(tx.hash().toStdString());
 
-        if(tx.double_spend()) return;
+        if(tx.double_spend()) return result;
+
+        result.confirmations(tx.confirmations());
 
         for(const TXInput & input : tx.inputs()) {
             if(input.script_type() != ScriptType::pay_to_pubkey_hash) continue;
@@ -134,15 +156,15 @@ namespace BlockCypher {
             if(!hasAddress(addr)) continue;
 
             Coin::typesafeOutPoint outpoint(Coin::TransactionId::fromRPCByteOrder(input.prev_hash().toStdString()), input.index());
-            UTXORef utxo(addr, outpoint, input.value());
+            UTXO utxo(addr, outpoint, input.value());
 
-            _unconfirmedUtxoSet.erase(utxo);
-            _confirmedUtxoSet.erase(utxo);
+            result.destroys(utxo);
         }
 
         int32_t index = -1;
         for(const TXOutput & output : tx.outputs()) {
             index++;
+            if(output.spent_by()) continue;
 
             if(output.script_type() != ScriptType::pay_to_pubkey_hash) continue;
             //we expect only one address in output.addresses() array
@@ -150,22 +172,31 @@ namespace BlockCypher {
             if(!hasAddress(addr)) continue;
 
             Coin::typesafeOutPoint outpoint(txid, index);
-            UTXORef utxo(addr, outpoint, output.value());
+            UTXO utxo(addr, outpoint, output.value());
 
-            if(output.spent_by()) continue;
+            result.creates(utxo);
+        }
 
-            if(tx.confirmations() > 0) {
+        return result;
+    }
+
+    bool UTXOManager::hasAddress(const QString &address) {
+        return _addresses.find(address) != _addresses.end();
+    }
+
+    void UTXOManager::updateUtxoSets(const TxResult & r) {
+        for(const UTXO &utxo : r.creates()) {
+            if(r.confirmations() > 0) {
                 _confirmedUtxoSet.insert(utxo);
             } else {
                 _unconfirmedUtxoSet.insert(utxo);
             }
         }
 
-        updateBalances(true);
-    }
-
-    bool UTXOManager::hasAddress(const QString &address) {
-        return _addresses.find(address) != _addresses.end();
+        for(const UTXO &utxo: r.destroys()) {
+            _confirmedUtxoSet.erase(utxo);
+            _unconfirmedUtxoSet.erase(utxo);
+        }
     }
 
     void UTXOManager::updateBalances(bool notify) {
@@ -173,13 +204,13 @@ namespace BlockCypher {
         uint64_t confirmedBalance = 0;
 
         // Calculate new confirmed balance
-        for(const UTXORef & utxo: _confirmedUtxoSet) {
+        for(const UTXO & utxo: _confirmedUtxoSet) {
             confirmedBalance += utxo.value();
         }
 
         // Calculate new unconfirmed balance
         uint64_t unconfirmedBalance = confirmedBalance;
-        for(const UTXORef & utxo: _unconfirmedUtxoSet) {
+        for(const UTXO & utxo: _unconfirmedUtxoSet) {
             unconfirmedBalance += utxo.value();
         }
 

@@ -5,18 +5,18 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 11 2016
  */
 
-#ifndef BLOCKCYPHER_UTXOREF_H
-#define BLOCKCYPHER_UTXOREF_H
+#ifndef BLOCKCYPHER_UTXO_H
+#define BLOCKCYPHER_UTXO_H
 
 #include <common/typesafeOutPoint.hpp>
 #include <common/P2PKHAddress.hpp>
 
 namespace BlockCypher {
 
-class UTXORef {
+class UTXO {
 
 public:
-    UTXORef(const QString & addr, const Coin::typesafeOutPoint & outpoint, uint64_t value)
+    UTXO(const QString & addr, const Coin::typesafeOutPoint & outpoint, uint64_t value)
         : _address(addr), _outpoint(outpoint), _value(value)
     {}
 
@@ -25,9 +25,9 @@ public:
     QString address() const { return _address; }
 
     // Comparators
-    bool operator==(const UTXORef & o) const;
-    bool operator!=(const UTXORef & o) const;
-    bool operator<(const UTXORef & o) const;
+    bool operator==(const UTXO & o) const;
+    bool operator!=(const UTXO & o) const;
+    bool operator<(const UTXO & o) const;
 
 private:
     QString _address;
@@ -36,4 +36,4 @@ private:
 };
 
 }
-#endif // BLOCKCYPHER_UTXOREF_H
+#endif // BLOCKCYPHER_UTXO_H
