@@ -27,7 +27,8 @@ namespace protocol {
 
     public:
 
-        BuyerSession(const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
+        BuyerSession(Coin::Network network,
+                     const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                      const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                      const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
                      std::map<std::string, BuyerConnection> connections,

@@ -26,7 +26,8 @@ namespace protocol {
 
     public:
 
-        ObserverSession(const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
+        ObserverSession(Coin::Network network,
+                        const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                         const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                         const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
                         const std::map<std::string, Connection> & connections);

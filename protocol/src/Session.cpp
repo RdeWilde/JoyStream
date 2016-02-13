@@ -11,10 +11,12 @@ namespace joystream {
 namespace protocol {
 
     Session::Session(Mode mode,
+                     Coin::Network network,
                      const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                      const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                      const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler)
         : _mode(mode)
+        , _network(network)
         , _removedConnectionCallbackHandler(removedConnectionCallbackHandler)
         , _generateKeyPairsCallbackHandler(generateKeyPairsCallbackHandler)
         , _generateP2PKHAddressesCallbackHandler(generateP2PKHAddressesCallbackHandler) {
@@ -22,6 +24,10 @@ namespace protocol {
 
     Mode Session::mode() const {
         return _mode;
+    }
+
+    Coin::Network Session::network() const {
+        return _network;
     }
 
 }

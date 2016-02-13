@@ -8,12 +8,15 @@
 #ifndef JOYSTREAM_PROTOCOL_SESSION_HPP
 #define JOYSTREAM_PROTOCOL_SESSION_HPP
 
-#include <common/KeyPair.hpp>
-#include <common/P2PKHAddress.hpp>
-
+#include <common/Network.hpp>
 #include <protocol/Mode.hpp>
 #include <functional>
 #include <vector>
+
+namespace Coin {
+    class KeyPair;
+    class P2PKHAddress;
+}
 
 namespace joystream {
 namespace protocol {
@@ -30,8 +33,8 @@ namespace protocol {
 
         // Callback for handling the removal of a connection from the session
         typedef std::function<void(const std::string &)> RemovedConnectionCallbackHandler;
-        typedef std::function<std::vector<Coin::KeyPair>(uint)> GenerateKeyPairsCallbackHandler;
-        typedef std::function<std::vector<Coin::P2PKHAddress>(uint)> GenerateP2PKHAddressesCallbackHandler;
+        typedef std::function<std::vector<Coin::KeyPair>(int)> GenerateKeyPairsCallbackHandler;
+        typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateP2PKHAddressesCallbackHandler;
 
         // Callback for handling broadcasting a transaction
         //typedef std::function<bool(const Coin::Transaction &)> BroadCastTransactionCallbackHandler;
@@ -54,15 +57,20 @@ namespace protocol {
         // Getters
         Mode mode() const;
 
+        Coin::Network network() const;
+
     protected:
 
         Session(Mode mode,
+                Coin::Network network,
                 const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                 const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                 const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler);
-
         // Mode
         Mode _mode;
+
+        // Network
+        Coin::Network _network;
 
         // Callback for when connection has been removed from session
         RemovedConnectionCallbackHandler _removedConnectionCallbackHandler;

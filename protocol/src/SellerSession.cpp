@@ -12,13 +12,14 @@
 namespace joystream {
 namespace protocol {
 
-    SellerSession::SellerSession(const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
+    SellerSession::SellerSession(Coin::Network network,
+                                 const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                                  const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                                  const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
                                  const std::map<std::string, SellerConnection> & connections,
                                  const SellerTerms & terms,
                                  uint32_t numberOfPiecesInTorrent)
-        : Session(Mode::sell, removedConnectionCallbackHandler, generateKeyPairsCallbackHandler, generateP2PKHAddressesCallbackHandler)
+        : Session(Mode::sell, network, removedConnectionCallbackHandler, generateKeyPairsCallbackHandler, generateP2PKHAddressesCallbackHandler)
         , _connections(connections)
         , _terms(terms)
         , _numberOfPiecesInTorrent(numberOfPiecesInTorrent) {

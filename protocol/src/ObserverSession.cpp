@@ -25,11 +25,12 @@
 namespace joystream {
 namespace protocol {
 
-    ObserverSession::ObserverSession(const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
+    ObserverSession::ObserverSession(Coin::Network network,
+                                     const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                                      const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                                      const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
                                      const std::map<std::string, Connection> & connections)
-        : Session(Mode::observe, removedConnectionCallbackHandler, generateKeyPairsCallbackHandler, generateP2PKHAddressesCallbackHandler)
+        : Session(Mode::observe, network, removedConnectionCallbackHandler, generateKeyPairsCallbackHandler, generateP2PKHAddressesCallbackHandler)
         , _connections(connections) {
     }
 
@@ -158,7 +159,8 @@ namespace protocol {
         }
 
         // Create, and return, (seller) session
-        return new SellerSession(_removedConnectionCallbackHandler,
+        return new SellerSession(_network,
+                                 _removedConnectionCallbackHandler,
                                  _generateKeyPairsCallbackHandler,
                                  _generateP2PKHAddressesCallbackHandler,
                                  connections,
@@ -187,13 +189,15 @@ namespace protocol {
         }
 
         // Create payor
+        // perha this is done inside a named ctor for BuyerSession???? think about it ??
         joystream::paymentchannel::Payor payor = joystream::paymentchannel::Payor::unknownPayees();
 
         // complete payor ctr above
         // ... send invitation to join contract to best subset of peer which are in correct mode and lower enough price.
 
         // Create, and return, (buyer) session
-        return new BuyerSession(_removedConnectionCallbackHandler,
+        return new BuyerSession(_network,
+                                _removedConnectionCallbackHandler,
                                 _generateKeyPairsCallbackHandler,
                                 _generateP2PKHAddressesCallbackHandler,
                                 connections,
