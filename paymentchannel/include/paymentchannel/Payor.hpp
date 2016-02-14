@@ -33,13 +33,11 @@ namespace Coin {
 namespace joystream {
 namespace paymentchannel {
 
-    class PayorConfiguration;
     class Contract;
 
     /**
      * Manages the payor side of a 1-to-N payment channel using design in CBEP.
      * https://github.com/bedeho/CBEP
-     *
      */
     class Payor {
 

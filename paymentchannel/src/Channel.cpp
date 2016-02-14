@@ -98,67 +98,6 @@ namespace paymentchannel {
                                                           paychanSettlementFee);
     }
 
-    /**
-    Coin::Signature Channel::createPayorRefundSignature(const Coin::TransactionId & contractHash) const {
-
-        // Check that channel has been assigned
-        if(_state != State::assigned)
-            throw std::runtime_error("State incompatile request, must be in assigned state.");
-
-        // Create transaction for spening contract output
-        Coin::Transaction refund = contractSpendingTransaction(contractHash, _funds, _refundLockTime);
-
-        // Return signature
-        return ts.sig();
-    }
-
-
-    Coin::Signature Channel::createPaymentSignature(const Coin::TransactionId & contractHash) const {
-
-        // Check that channel has been assigned
-        if(_state != State::assigned)
-            throw std::runtime_error("State incompatile request, must be in assigned state.");
-
-        // How much has been paid to payee
-        quint64 paid = _numberOfPaymentsMade*_price;
-
-        // Create transaction for spening contract output
-        Coin::Transaction payment = contractSpendingTransaction(contractHash, _funds - paid);
-
-        // Add payee output
-        payment.addOutput(Coin::TxOut(paid, Coin::P2PKHScriptPubKey(_payeeFinalPk).serialize()));
-
-        // Create payor signature
-        Coin::TransactionSignature ts = _payorContractKeyPair.sk().sign(payment, 0, contractOutputScriptPubKey().serialize(), Coin::SigHashType::all);
-
-        // Return signature
-        return ts.sig();
-    }
-
-    bool Channel::validateRefundSignature(const Coin::TransactionId & contractHash, const Coin::Signature & payeeSig) const {
-
-        // Check that channel has been assigned
-        if(_state != State::assigned)
-            throw std::runtime_error("State incompatible request, must be in assigned state.");
-
-        // Create transaction for spending contract output
-        Coin::Transaction refund = contractSpendingTransaction(contractHash, _funds);
-
-        // Compute sighash
-        uchar_vector sigHash = Coin::sighash(refund,
-                                             0,
-                                             contractOutputScriptPubKey().serialize(),
-                                             Coin::SigHashType::all);
-
-        // Verify that signature is valid for payee public key on sighash
-        return _payeeContractPk.verify(sigHash, payeeSig);
-    }
-    */
-
-    void Channel::increaseNumberOfPayments() {
-        _numberOfPaymentsMade++;
-    }
-
     quint32 Channel::index() const {
         return _index;
     }
@@ -270,7 +209,5 @@ namespace paymentchannel {
     void Channel::setRefundLockTime(quint32 refundLockTime) {
         _refundLockTime = refundLockTime;
     }
-
-
 }
 }

@@ -20,35 +20,27 @@ namespace paymentchannel {
     class Refund;
     class Settlement;
 
-    class ChannelConfiguration;
-
     // Represents a single channel.
     class Channel {
 
     public:
 
-        // Default constructor
         Channel();
 
-        // Default/Copy constructor and assignemtn operator needed to put in container.
-        // Channel(const Channel& slot);
-        // Channel & operator=(const Channel& rhs);
-
-        // Set all fields, e.g. loading from file
         Channel(quint32 index,
-             ChannelState state,
-             quint64 price,
-             quint64 numberOfPaymentsMade,
-             quint64 funds,
-             const Coin::KeyPair & payorContractKeyPair,
-             const Coin::KeyPair & payorFinalKeyPair,
-             const Coin::PublicKey & payeeContractPk,
-             const Coin::PublicKey & payeeFinalPk,
-             const Coin::Signature & payorRefundSignature,
-             const Coin::Signature & payeeRefundSignature,
-             quint64 refundFee,
-             quint64 paymentFee,
-             quint32 refundLockTime);
+                ChannelState state,
+                quint64 price,
+                quint64 numberOfPaymentsMade,
+                quint64 funds,
+                const Coin::KeyPair & payorContractKeyPair,
+                const Coin::KeyPair & payorFinalKeyPair,
+                const Coin::PublicKey & payeeContractPk,
+                const Coin::PublicKey & payeeFinalPk,
+                const Coin::Signature & payorRefundSignature,
+                const Coin::Signature & payeeRefundSignature,
+                quint64 refundFee,
+                quint64 paymentFee,
+                quint32 refundLockTime);
 
         // Outpoint in contract transaction to which channel comitment corresponds
         Coin::typesafeOutPoint contractOutPoint(const Coin::TransactionId & contractTxId) const;
@@ -67,26 +59,6 @@ namespace paymentchannel {
 
         // Payment for channel
         Settlement settlement(const Coin::TransactionId & contractTxId, quint64 paychanSettlementFee) const;
-
-        /**
-        // (unsigned) Transaction spending contract output
-        Coin::Transaction contractSpendingTransaction(const Coin::TransactionId & contractHash,
-                                                      quint64 returnedToPayor,
-                                                      quint32 refundLockTime = 0) const;
-
-        // Compute payor refund signature
-        Coin::Signature createPayorRefundSignature(const Coin::TransactionId & contractHash) const;
-
-        // Payment signature
-        Coin::Signature createPaymentSignature(const Coin::TransactionId & contractHash) const;
-
-        // Validates payee refund signature
-        bool validateRefundSignature(const Coin::TransactionId & contractHash, const Coin::Signature & payeeSig) const;
-        */
-
-        // Increment payment counter, should only be done in response to valid
-        // payment signature
-        void increaseNumberOfPayments();
 
         // Getters and setters
         quint32 index() const;
@@ -175,7 +147,6 @@ namespace paymentchannel {
         // Lock time of refund, received in
         quint32 _refundLockTime;
     };
-
 
 }
 }
