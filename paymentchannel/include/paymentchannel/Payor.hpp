@@ -8,27 +8,11 @@
 #ifndef PAYMENT_CHANNEL_PAYOR_HPP
 #define PAYMENT_CHANNEL_PAYOR_HPP
 
-#include <paymentchannel/PayorState.hpp>
 #include <paymentchannel/Channel.hpp>
-
-
-#include <common/Network.hpp>
-
-#include <common/PublicKey.hpp>
-#include <common/PrivateKey.hpp>
-
-#include <common/TransactionId.hpp>
+#include <common/KeyPair.hpp>
 #include <common/Signature.hpp>
-
 #include <common/UnspentP2PKHOutput.hpp>
-
 #include <CoinCore/CoinNodeData.h> // Coin::Transaction
-
-namespace Coin {
-    class Transaction;
-    class TxOut;
-    class P2SHScriptPubKey;
-}
 
 namespace joystream {
 namespace paymentchannel {
@@ -37,118 +21,51 @@ namespace paymentchannel {
 
     /**
      * Manages the payor side of a 1-to-N payment channel using design in CBEP.
-     * https://github.com/bedeho/CBEP
+     * https://github.com/JoyStream/CBEP
      */
     class Payor {
 
     public:
 
-        Payor(const Coin::Network network,
-              PayorState state,
-              const std::vector<Channel> & channels,
+        Payor(const std::vector<Channel> & channels,
               const Coin::UnspentP2PKHOutput & utxo,
               const Coin::KeyPair & changeOutputKeyPair,
               quint64 changeValue,
-              quint64 contractFee);
+              quint64 contractFee,
+              const Coin::Transaction & contractTx);
 
-        // Payor which is initialize to the start of exchange,
-        // before payee information is available.
-        static Payor unknownPayees();
+        // Creates and stores the contract transaction.
+        // ===
+        // Preserves fully valid contract, so that txid
+        // can be anchor for all settelement/refund transactions.
+        // Hence making this call will invalidate
+        // any settlement/refund transactions.
+        void setContractTransaction();
 
-        // Finds an unassigned slot
-        // ========================
-        // If one is found then the
-        // given payee slot configurations are saved in slot,
-        // and if this was last unassigned slot, then payor state is switched.
-        quint32 assignUnassignedSlot(quint64 price, const Coin::PublicKey & contractPk, const Coin::PublicKey & finalPk, quint32 refundLockTime);
-
-        // Resets slot state to unassigned
-        // ===============================
-        // If payor has state State::waiting_for_full_set_of_refund_signatures, then it is switched
-        // back to State::waiting_for_full_set_of_sellers, and all all other slot state
-        // set to Slot::State::assigned, even if they had Slot::State::refund_signed, since
-        // new signatures are now required.
-        void unassignSlot(quint32 index);
+        // Creates and stores all payor refund signatures
+        // ===
+        // Not sure if this is actually needed really.
+        void setAllPayorRefundSignatures();
 
         // Generates contract transaction
-        // ===============================
-        // Explain ...
         Contract contract() const;
 
-        // Generates contract transaction
-        // ===============================
-        //Coin::Transaction contractTransaction() const;
-
-        // Returns validity of signature for given slot
-        // ============================================
-        // If payor is collecting signatures
-        // and if signature is valid, then
-        // 1) saves signature
-        // 2) updates slot state refund_assigned
-        // 3) updates payor state to all_signed, if all all are now signed.
-        bool processRefundSignature(quint32 index, const Coin::Signature & signature);
-
-        // Increments the payment counter for the given channel
-        // ============================================
-        quint64 incrementPaymentCounter(quint32 index);
-
-        // Returns the payment signature for the present payment increment of given slot
-        // ============================================
-        Coin::Signature getPresentPaymentSignature(quint32 index) const;
-
-        quint32 numberOfChannels() const;
-
-        quint32 numberOfChannelsWithState(ChannelState state) const;
-
-        bool isFull() const;
-
-        bool allRefundsSigned() const;
-
-        // Some utility routines
-        static quint64 computeContractFee(int numberOfSellers, quint64 feePerKb);
-        static quint64 minimalFunds(quint32 numberOfPiecesInTorrent, quint64 maxPrice, int numberOfSellers, quint64 feePerkB, quint64 paychanSettlementFee);
-
         // Getters and setters
-        PayorState state() const;
-        void setState(PayorState state);
+        Channel & channel(int index);
 
+        std::vector<Channel> getChannels() const;
+        void setChannels(const std::vector<Channel> & channels);
 
-        /**
-        Coin::typesafeOutPoint fundingOutPoint() const;
-        void setFundingOutPoint(const Coin::typesafeOutPoint & fundingOutPoint);
+        // The contract transaction
+        Coin::Transaction getContractTx() const;
 
-        Coin::TransactionId contractHash() const;
-        void setContractHash(const Coin::TransactionId & contractHash);
-        */
-
-        Coin::Transaction contractTransaction() const;
-
-        quint32 numberOfSignatures() const;
-        void setNumberOfSignatures(quint32 numberOfSignatures);
-
-        quint64 contractFee() const;
+        // Transaction id of the contract
+        Coin::TransactionId contractTxId() const;
 
     private:
 
-        // Network
-        Coin::Network _network;
-
-        // Payor state
-        PayorState _state;
-
         // Contract outputs
         std::vector<Channel> _channels;
-
-        /**
-        // Unspent output funding channel
-        //OutPoint _fundingOutPoint;
-
-        // Value of output funding channel (had to add due to bitcore requirements, remove later?)
-        //quint64 _fundingValue;
-
-        // Controls output funding channel
-        //KeyPair _fundingOutputKeyPair;
-        */
 
         // Funding
         Coin::UnspentP2PKHOutput _utxo;
@@ -164,30 +81,12 @@ namespace paymentchannel {
         // Contract fee
         quint64 _contractFee;
 
-        // Settlement fee
-        quint64 _settlementFee;
-
-        /**
-         * Contract:
-         * ==========================
-         * Is recomputed every time a full set of sellers is established,
-         * and is cleared whenever a signature failed.
-         */
-
-        // Add variable here for number of channels assignd as well
-
-        // Contract _contract;
-        //Coin::TransactionId _contractTxId;
-
         // Contract transaction
-        // =============================================================
-        // ** Reason this is saved is because it should not be
-        // resigned when needed multiple times, as this will change
-        // signature, which will change contract TxId, which may
-        // invalidate channel if not used with care, e.g. if broadcasted
+        // Everything except the input signatures can be rederived,
+        // however the input signatures cannot due to non-determinism in
+        // ECDSA signing. Hence to preserve contract txid, they have to be stored,
+        // so we just store full transaction.
         Coin::Transaction _contractTx;
-
-        quint32 _numberOfSignatures;
     };
 
 }

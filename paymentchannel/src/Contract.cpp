@@ -9,6 +9,8 @@
 #include <common/Utilities.hpp>
 #include <CoinCore/CoinNodeData.h> // Coin::Transaction
 
+#include <cmath>
+
 namespace joystream {
 namespace paymentchannel {
 
@@ -18,6 +20,19 @@ namespace paymentchannel {
         : _funding(funding)
         , _commitments(commitments)
         , _change(change) {
+    }
+
+    quint64 Contract::requiredFee(int numberOfPayees, quint64 feePerKb) {
+
+        // One output for change, and one per payee
+        int numberOfOutputs = numberOfPayees + 1;
+
+        // Sizevof transaction
+        quint64 txByteSize =(148*1) + (34*(numberOfPayees + 1) + 10);
+
+        // Seed on fee estimate at http://bitcoinfees.com/
+        return ceil(feePerKb*((float)txByteSize/1000));
+
     }
 
     /**

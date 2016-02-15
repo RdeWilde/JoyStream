@@ -8,10 +8,14 @@
 #ifndef JOYSTREAM_PAYMENT_CHANNEL_CHANNEL_HPP
 #define JOYSTREAM_PAYMENT_CHANNEL_CHANNEL_HPP
 
-#include <paymentchannel/ChannelState.hpp>
+#include <common/TransactionId.hpp>
 #include <common/KeyPair.hpp>
 #include <common/Signature.hpp>
-#include <common/typesafeOutPoint.hpp>
+
+namespace Coin {
+    class TransactionId;
+    class typesafeOutPoint;
+}
 
 namespace joystream {
 namespace paymentchannel {
@@ -20,52 +24,57 @@ namespace paymentchannel {
     class Refund;
     class Settlement;
 
-    // Represents a single channel.
+    // Represents a single channel
     class Channel {
 
     public:
 
         Channel();
 
-        Channel(quint32 index,
-                ChannelState state,
+        Channel(const Coin::TransactionId & contractTxId,
+                quint32 index,
                 quint64 price,
                 quint64 numberOfPaymentsMade,
                 quint64 funds,
+                quint64 refundFee,
+                quint64 settlementFee,
+                quint32 refundLockTime,
                 const Coin::KeyPair & payorContractKeyPair,
                 const Coin::KeyPair & payorFinalKeyPair,
                 const Coin::PublicKey & payeeContractPk,
                 const Coin::PublicKey & payeeFinalPk,
                 const Coin::Signature & payorRefundSignature,
-                const Coin::Signature & payeeRefundSignature,
-                quint64 refundFee,
-                quint64 paymentFee,
-                quint32 refundLockTime);
+                const Coin::Signature & payeeRefundSignature);
 
-        // Outpoint in contract transaction to which channel comitment corresponds
-        Coin::typesafeOutPoint contractOutPoint(const Coin::TransactionId & contractTxId) const;
-
-        /**
-         * Perhaps hide these two routines, and reintroduce wrappers below
-         * such that payor does not need to deal with them directly.
-         * Later...
-         */
+        Coin::typesafeOutPoint contractOutPoint() const;
 
         // Commitment for channel
         Commitment commitment() const;
 
         // Refund for channel
-        Refund refund(const Coin::TransactionId & contractTxId) const;
+        Refund refund() const;
 
         // Payment for channel
-        Settlement settlement(const Coin::TransactionId & contractTxId, quint64 paychanSettlementFee) const;
+        Settlement settlement() const;
+
+        // Generates a refund signature for payor
+        Coin::Signature generatePayorRefundSignature() const;
+
+        // Generates settlement signature for payor
+        Coin::Signature generatePayorSettlementSignature() const;
+
+        // Checks the payee signature
+        bool checkPayeeRefundSignature(const Coin::Signature & sig) const;
+
+        // Amount of funds paid
+        quint64 amountPaid() const;
 
         // Getters and setters
+        Coin::TransactionId contractTxId() const;
+        void setContractTxId(const Coin::TransactionId & contractTxId);
+
         quint32 index() const;
         void setIndex(quint32 index);
-
-        ChannelState state() const;
-        void setState(ChannelState state);
 
         quint64 price() const;
         void setPrice(quint64 price);
@@ -97,19 +106,16 @@ namespace paymentchannel {
         quint64 refundFee() const;
         void setRefundFee(quint64 refundFee);
 
-        quint64 paymentFee() const;
-        void setPaymentFee(quint64 paymentFee);
-
-        quint32 refundLockTime() const;
-        void setRefundLockTime(quint32 refundLockTime);
+        quint64 settlementFee() const;
+        void setSettlementFee(quint64 settlementFee);
 
     private:
 
+        // Transaction id of contract
+        Coin::TransactionId _contractTxId;
+
         // Index in contract
         quint32 _index;
-
-        // Channel state
-        ChannelState _state;
 
         // Size of single payment
         quint64 _price;
@@ -119,6 +125,15 @@ namespace paymentchannel {
 
         // Funds allocated to output
         quint64 _funds;
+
+        // Refund fee
+        quint64 _refundFee;
+
+        // Settlement fee
+        quint64 _settlementFee;
+
+        // Lock time of refund, received in
+        quint32 _refundLockTime;
 
         // Controls payour output of multisig
         Coin::KeyPair _payorContractKeyPair;
@@ -137,15 +152,6 @@ namespace paymentchannel {
 
         // Controls refund for payee
         Coin::Signature _payeeRefundSignature;
-
-        // Fee used in refund transaction, is unlikely to vary across slots,
-        quint64 _refundFee;
-
-        // Fee used in payment transaction
-        quint64 _paymentFee;
-
-        // Lock time of refund, received in
-        quint32 _refundLockTime;
     };
 
 }

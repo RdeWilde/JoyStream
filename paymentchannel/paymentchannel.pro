@@ -22,9 +22,6 @@ HEADERS += \
     include/paymentchannel/Refund.hpp \
     include/paymentchannel/Settlement.hpp \
     include/paymentchannel/Termination.hpp \
-    include/paymentchannel/PayorState.hpp \
-    include/paymentchannel/ChannelState.hpp \
-    include/paymentchannel/PayeeState.hpp \
     include/paymentchannel/Channel.hpp
 
 SOURCES += \

@@ -31,6 +31,9 @@ namespace paymentchannel {
                  const std::vector<Commitment> & commitments,
                  const Coin::Payment & change);
 
+        // Required fee for contract
+        static quint64 requiredFee(int numberOfPayees, quint64 feePerKb);
+
         // Validate a raw contract
         //static bool validateContractTrasaction(const Coin::Transaction & transaction);
 

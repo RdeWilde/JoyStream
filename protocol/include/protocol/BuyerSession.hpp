@@ -54,6 +54,8 @@ namespace protocol {
         virtual void removeConnection(const std::string & name);
         virtual void processMessageOnConnection(const std::string & name, const wire::ExtendedMessagePayload & message);
 
+        //static quint64 minimalFunds(quint32 numberOfPiecesInTorrent, quint64 maxPrice, int numberOfSellers, quint64 feePerkB, quint64 paychanSettlementFee);
+
     private:
 
         // Mapping peer name to corresponding connection with peer

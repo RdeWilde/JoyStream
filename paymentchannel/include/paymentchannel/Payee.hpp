@@ -8,7 +8,6 @@
 #ifndef JOYSTREAM_PAYMENT_CHANNEL_PAYEE_HPP
 #define JOYSTREAM_PAYMENT_CHANNEL_PAYEE_HPP
 
-#include <paymentchannel/PayeeState.hpp>
 #include <common/KeyPair.hpp>
 #include <common/typesafeOutPoint.hpp>
 #include <common/Signature.hpp>
@@ -29,7 +28,7 @@ namespace paymentchannel {
 
     /**
      * Manages the payee side of a 1-to-N payment channel using design in CBEP.
-     * https://github.com/bedeho/CBEP
+     * https://github.com/JoyStream/CBEP
      */
     class Payee {
 
@@ -37,36 +36,20 @@ namespace paymentchannel {
 
         Payee();
 
-        Payee(PayeeState state,
-              quint64 numberOfPaymentsMade,
-              const Coin::Signature & lastValidPayorPaymentSignature,
+        Payee(quint64 numberOfPaymentsMade,
               quint32 lockTime,
               quint64 price,
+              quint64 funds,
+              quint64 settlementFee,
+              quint64 refundFee,
               const Coin::KeyPair & payeeContractKeys,
               const Coin::KeyPair & payeePaymentKeys,
               const Coin::typesafeOutPoint & contractOutPoint,
               const Coin::PublicKey & payorContractPk,
               const Coin::PublicKey & payorFinalPk,
-              quint64 funds,
-              quint64 settlementFee);
-
-        // Payee which is initialize to the start of exchange,
-        // before payor information is available.
-        static Payee unknownPayor(quint32 lockTime,
-                                  quint64 price,
-                                  const Coin::KeyPair & payeeContractKeys,
-                                  const Coin::KeyPair & payeePaymentKeys);
-
-        /**
-        // When payee configurations are chosen
-        void registerPayeeInformation(quint32 lockTime, quint32 price, quint32 maximumNumberOfPayee, const KeyPair & payeeContractKeys, const KeyPair & payeePaymentKeys);
-        */
-
-        // When contract information is known, as advertised in
-        void registerPayorInformation(const Coin::typesafeOutPoint & contractOutPoint, const Coin::PublicKey & payorContractPk, const Coin::PublicKey & payorFinalPk, quint64 funds);
+              const Coin::Signature & lastValidPayorPaymentSignature);
 
         // Creates refund signature
-        // ==================================================
         Coin::Signature generateRefundSignature() const;
 
         // Attempts to register payment if signature is valid
@@ -76,18 +59,10 @@ namespace paymentchannel {
         bool registerPayment(const Coin::Signature & payorPaymentSignature);
 
         // Attempts to validate the contract transaction
-        // ==================================================
         bool validateContractTrasaction(const Coin::Transaction & transaction) const;
 
         // Generates transaction for last payment
-        // ==================================================
         Coin::Transaction lastPaymentTransaction() const;
-
-        /**
-         * Routines below check contract validity in various ways
-        // Returns the rate at which peers have output point
-        // of contract in mempool or chain.
-        float outputPointVisible() const;
 
         // Checks contract validitity
         // ==========================
@@ -95,13 +70,21 @@ namespace paymentchannel {
         // 2) tx has contract output point
         // 3) scriptSig of tx is controlled by given keys and has the correct quanitity of funds
         // 4) channel has to correct number of participants.
-        bool isContractValid() const;
-        */
+        bool isContractValid(const Coin::Transaction & tx) const;
+
+        // Commitment
+        Commitment commitment() const;
+
+        // Refund
+        Refund refund() const;
+
+        // Settlement
+        Settlement settlement(int numberOfPayments) const;
+
+        // Amount of funds paid
+        quint64 amountPaid() const;
 
         // Getters and setters
-        PayeeState state() const;
-        void setState(PayeeState state);
-
         quint64 numberOfPaymentsMade() const;
         void setNumberOfPaymentsMade(quint64 numberOfPaymentsMade);
 
@@ -134,20 +117,23 @@ namespace paymentchannel {
 
     private:
 
-        // Payee state
-        PayeeState _state;
-
         // The number of payments which have been successfully made
         quint64 _numberOfPaymentsMade;
-
-        // The last valid payment signature received, corresponds to _numberOfPaymentsMade
-        Coin::Signature _lastValidPayorPaymentSignature;
 
         // Payment channel lock time
         quint32 _lockTime;
 
-        // Price increment per payment
+        // Price (#satoshies) increment per payment
         quint64 _price;
+
+        // Amount (#satoshies) assigned to contract output
+        quint64 _funds;
+
+        // Amount (#satoshies) used in fee for settlement
+        quint64 _settlementFee;
+
+        // Amount (#satoshies) used in fee for refund
+        quint64 _refundFee;
 
         // Controls payee portion of contract output
         Coin::KeyPair _payeeContractKeys;
@@ -164,24 +150,8 @@ namespace paymentchannel {
         // Payor key in output in refund and payment
         Coin::PublicKey _payorFinalPk;
 
-        // Amount (#satoshies) assigned to contract output
-        quint64 _funds;
-
-        //
-        quint64 _settlementFee;
-
-
-        // Commitment
-        // ==================================================
-        Commitment commitment() const;
-
-        // Refund
-        // ==================================================
-        Refund refund() const;
-
-        // Settlement
-        // ==================================================
-        Settlement settlement(int64_t paymentCount) const;
+        // The last valid payment signature received, corresponds to _numberOfPaymentsMade
+        Coin::Signature _lastValidPayorPaymentSignature;
 
     };
 

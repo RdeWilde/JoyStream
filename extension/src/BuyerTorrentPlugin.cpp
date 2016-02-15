@@ -551,7 +551,7 @@ namespace extension {
         Q_ASSERT(_peerPluginsWithoutPieceAssignment.empty());
 
         // Check that signature is valid
-        bool wasValid = _payor.processRefundSignature(peer->payorSlot(), refundSignature);
+        bool wasValid = _payor.setPayeeRefundSignature(peer->payorSlot(), refundSignature);
 
         // Return that signature was invalid
         if(!wasValid) {

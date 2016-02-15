@@ -46,5 +46,11 @@ namespace protocol {
     void BuyerSession::processMessageOnConnection(const std::string & name, const wire::ExtendedMessagePayload & message) {
 
     }
+
+    /**
+    quint64 Payor::minimalFunds(quint32 numberOfPiecesInTorrent, quint64 maxPrice, int numberOfSellers, quint64 feePerkB, quint64 paychanSettlementFee) {
+        return paychanSettlementFee*numberOfSellers + (maxPrice*numberOfSellers)*numberOfPiecesInTorrent + computeContractFee(numberOfSellers, feePerkB);
+    }
+    */
 }
 }

@@ -14,8 +14,6 @@
 #include <common/SigHashType.hpp>
 #include <common/Payment.hpp>
 
-#include <common/Bitcoin.hpp> // TEMPORARY, JUST TO GET HARD CODED SETTLEMENT FEE
-
 #include <CoinCore/CoinNodeData.h>
 
 namespace joystream {
@@ -24,84 +22,37 @@ namespace paymentchannel {
     Payee::Payee() {
     }
 
-    Payee::Payee(PayeeState state,
-                 quint64 numberOfPaymentsMade,
-                 const Coin::Signature & lastValidPayorPaymentSignature,
+    Payee::Payee(quint64 numberOfPaymentsMade,
                  quint32 lockTime,
                  quint64 price,
+                 quint64 funds,
+                 quint64 settlementFee,
+                 quint64 refundFee,
                  const Coin::KeyPair & payeeContractKeys,
                  const Coin::KeyPair & payeePaymentKeys,
                  const Coin::typesafeOutPoint & contractOutPoint,
                  const Coin::PublicKey & payorContractPk,
                  const Coin::PublicKey & payorFinalPk,
-                 quint64 funds,
-                 quint64 settlementFee)
-        : _state(state)
-        , _numberOfPaymentsMade(numberOfPaymentsMade)
-        , _lastValidPayorPaymentSignature(lastValidPayorPaymentSignature)
+                 const Coin::Signature & lastValidPayorPaymentSignature)
+        : _numberOfPaymentsMade(numberOfPaymentsMade)
         , _lockTime(lockTime)
         , _price(price)
+        , _funds(funds)
+        , _settlementFee(settlementFee)
+        , _refundFee(refundFee)
         , _payeeContractKeys(payeeContractKeys)
         , _payeePaymentKeys(payeePaymentKeys)
         , _contractOutPoint(contractOutPoint)
         , _payorContractPk(payorContractPk)
         , _payorFinalPk(payorFinalPk)
-        , _funds(funds)
-        , _settlementFee(settlementFee){
+        , _lastValidPayorPaymentSignature(lastValidPayorPaymentSignature) {
     }
 
-    Payee Payee::unknownPayor(quint32 lockTime,
-                       quint64 price,
-                       const Coin::KeyPair & payeeContractKeys,
-                       const Coin::KeyPair & payeePaymentKeys) {
-
-        return Payee(PayeeState::waiting_for_payor_information,
-                     0,
-                     Coin::Signature(),
-                     lockTime,
-                     price,
-                     payeeContractKeys,
-                     payeePaymentKeys,
-                     Coin::typesafeOutPoint(),
-                     Coin::PublicKey(),
-                     Coin::PublicKey(),
-                     0,
-                     0);
-    }
-
-    /**
-    void Payee::registerPayeeInformation(quint32 lockTime, quint32 price, quint32 maximumNumberOfSellers, const KeyPair & payeeContractKeys, const KeyPair & payeePaymentKeys) {
-
-        // Check state
-        if(_state != State::waiting_for_payee_information)
-            throw std::runtime_error("State incompatible request, must be in waiting_for_payee_information state.");
-
-        _state = State::waiting_for_payor_information;
-        _lockTime = lockTime;
-        _price = price;
-        _payeeContractKeys = payeeContractKeys;
-        _payeePaymentKeys = payeePaymentKeys;
-    }
-    */
-
-    void Payee::registerPayorInformation(const Coin::typesafeOutPoint & contractOutPoint, const Coin::PublicKey & payorContractPk, const Coin::PublicKey & payorFinalPk, quint64 funds) {
-
-        // Check state
-        if(_state != PayeeState::waiting_for_payor_information &&
-           _state != PayeeState::has_all_information_required)
-            throw std::runtime_error("State incompatible request, must be in waiting_for_payor_information or has_all_information_required state.");
-
-        _state = PayeeState::has_all_information_required;
-        _contractOutPoint = contractOutPoint;
-        _payorContractPk = payorContractPk;
-        _payorFinalPk = payorFinalPk;
-        _funds = funds;
+    bool Payee::isContractValid(const Coin::Transaction & tx) const {
+        throw std::runtime_error("Not yet implemented");
     }
 
     Commitment Payee::commitment() const {
-
-        if(_state != PayeeState::has_all_information_required)
-            throw std::runtime_error("State incompatible request, must be has_all_information_required state.");
 
         return Commitment(_funds,
                           _payorContractPk,
@@ -110,36 +61,22 @@ namespace paymentchannel {
 
     Refund Payee::refund() const {
 
-        if(_state != PayeeState::has_all_information_required)
-            throw std::runtime_error("State incompatible request, must be has_all_information_required state.");
-
-        // *** no fee !!!
         return Refund(contractOutPoint(),
                       commitment(),
-                      Coin::Payment(_funds, _payorFinalPk.toPubKeyHash()),
+                      Coin::Payment(_funds - _refundFee, _payorFinalPk.toPubKeyHash()),
                       _lockTime);
     }
 
-    Settlement Payee::settlement(int64_t paymentCount) const {
+    Settlement Payee::settlement(int numberOfPayments) const {
 
-        // Setup new payment outputs
-        int64_t paid = _price * paymentCount;
-
-        Q_ASSERT(paid <= _funds);
-
-        /*
-        return Settlement(contractOutPoint(),
-                          commitment(),
-                          Coin::Payment(_funds - paid, _payorFinalPk.toPubKeyHash()),
-                          Coin::Payment(paid - (BITCOIN_DUST_LIMIT + PAYCHAN_SETTLEMENT_FEE), _payeePaymentKeys.pk().toPubKeyHash()));
-                          */
+        quint64 amountPaid = numberOfPayments * _price;
 
         return Settlement::dustLimitAndFeeAwareSettlement(contractOutPoint(),
                                                           commitment(),
                                                           _payorFinalPk.toPubKeyHash(),
                                                           _payeePaymentKeys.pk().toPubKeyHash(),
                                                           _funds,
-                                                          paid,
+                                                          amountPaid,
                                                           _settlementFee);
     }
 
@@ -187,12 +124,8 @@ namespace paymentchannel {
         return s.signedTransaction(payorTransactionSignature, payeeTransactionSignature);
     }
 
-    PayeeState Payee::state() const {
-        return _state;
-    }
-
-    void Payee::setState(PayeeState state) {
-        _state = state;
+    quint64 Payee::amountPaid() const {
+        return _price*_numberOfPaymentsMade;
     }
 
     quint64 Payee::numberOfPaymentsMade() const {
