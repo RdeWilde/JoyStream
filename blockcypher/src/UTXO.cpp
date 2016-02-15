@@ -11,6 +11,9 @@ namespace BlockCypher {
 
 bool UTXO::operator==(const UTXO & o) const {
 
+    // block height is not used in equality operator
+    // because its not relevent when inserting and erasing
+    // a utxo from a set
     return _value == o.value() &&
            _outpoint == o.outPoint() &&
            _address == o.address();
@@ -21,14 +24,24 @@ bool UTXO::operator!=(const UTXO & o) const {
 }
 
 bool UTXO::operator<(const UTXO & o) const {
-    if(_value == o.value()) {
-        if(_outpoint == o.outPoint()) {
-            return _address < o.address();
+    if(_height == o.height()) {
+        if(_value == o.value()) {
+            if(_outpoint == o.outPoint()) {
+                return _address < o.address();
+            } else {
+                return _outpoint < o.outPoint();
+            }
         } else {
-            return _outpoint < o.outPoint();
+            // utxo are sorted by ascending value.
+            // consequence is that in coin selection (utxo locking) we are
+            // maximizing the number of inputs to meet a minimum value requirement.
+            // return _value > o.value() if we want to instead minimize number of inputs
+            return _value < o.value();
         }
     } else {
-        return _value < o.value();
+        // sorting on block height ascending order, to bias selection of utxo
+        // with most confirmations
+        return _height < o.height();
     }
 }
 

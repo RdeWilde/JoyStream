@@ -111,6 +111,62 @@ namespace BlockCypher {
         updateBalances(true);
     }
 
+    std::set<UTXO> UTXOManager::getUtxoSet(uint64_t minValue, uint32_t minConfirmations, uint32_t currentBlockHeight) {
+        std::set<UTXO> selectedUtxos;
+        uint32_t totalValue = 0;
+        uint32_t confirmations;
+
+        // Always try to pick confirmed utxos
+        for(const UTXO &utxo : _confirmedUtxoSet) {
+            // is utxo loacked ?
+            if(_lockedUtxoSet.find(utxo) != _lockedUtxoSet.end()) continue;
+
+            confirmations = currentBlockHeight - utxo.height() + 1;
+
+            // Does it meet minimal confirmations requirement
+            if(confirmations < minConfirmations) continue;
+
+            selectedUtxos.insert(utxo);
+            totalValue += utxo.value();
+
+            if(totalValue >= minValue) {
+                break;
+            }
+        }
+
+        // select unconfirmed utxo if minimal confirmations requirement == 0
+        // and we still haven't reached minimum required value
+        if(minConfirmations == 0 && totalValue < minValue) {
+            for(const UTXO &utxo : _unconfirmedUtxoSet) {
+                if(_lockedUtxoSet.find(utxo) != _lockedUtxoSet.end()) continue;
+
+                selectedUtxos.insert(utxo);
+                totalValue += utxo.value();
+
+                if(totalValue >= minValue) {
+                    break;
+                }
+            }
+        }
+
+        if(totalValue < minValue) {
+            // not enough utxo
+            return std::set<UTXO>();
+        }
+
+        // Lock and return the selected utxos
+        lockUtxoSet(selectedUtxos);
+        return selectedUtxos;
+    }
+
+    void UTXOManager::releaseUtxoSet(std::set<UTXO> utxos) {
+        for(auto & utxo : utxos) _lockedUtxoSet.erase(utxo);
+    }
+
+    void UTXOManager::lockUtxoSet(std::set<UTXO> utxos) {
+        for(auto & utxo : utxos) _lockedUtxoSet.insert(utxo);
+    }
+
     std::vector<TxResult> UTXOManager::processTxRefs(const std::vector<TXRef> &txrefs) {
         std::vector<TxResult> results;
 
