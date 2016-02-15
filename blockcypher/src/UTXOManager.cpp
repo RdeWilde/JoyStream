@@ -246,9 +246,12 @@ namespace BlockCypher {
     void UTXOManager::updateUtxoSets(const TxResult & r) {
 
         for(const UTXO &utxo : r.creates()) {
-            if(r.confirmations() > 0) {
+            if(utxo.confirmed()) {
+                // erasing and inserting to update the block height of the utxo
+                // incase of reorg
                 _confirmedUtxoSet.erase(utxo);
-                _confirmedUtxoSet.insert(utxo);//replace with if exists
+                _confirmedUtxoSet.insert(utxo);
+
                 _unconfirmedUtxoSet.erase(utxo);
             } else {
                 _unconfirmedUtxoSet.insert(utxo);

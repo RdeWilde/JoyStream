@@ -40,7 +40,7 @@ private:
     uint64_t _value;
 
     // block height for a confirmed utxo, -1 if unconfirmed
-    int32_t _height; // not used in comparator
+    mutable int32_t _height; // not used in comparator
 };
 
 }
