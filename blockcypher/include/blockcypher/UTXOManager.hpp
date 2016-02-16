@@ -30,19 +30,18 @@ class UTXOManager : public QObject
 
 public:
 
-    UTXOManager(WebSocketClient* client);
-
     UTXOManager* createManager(WebSocketClient * wsclient,
                                const std::set<Coin::P2PKHAddress> &addresses,
                                Client * restClient);
 
     // adds address to set and sends tx_confirmation event on websocket
     bool addAddress(const Coin::P2PKHAddress & address);
+    bool addAddress(const QString & address);
 
     uint64_t balance() const { return _balance; }
     uint64_t unconfirmedBalance() const { return _balance_zero_conf; }
 
-    void refreshUtxoState(Client* restClient);
+    bool refreshUtxoState(Client* restClient);
 
     std::set<UTXO> getUtxoSet(uint64_t minValue, uint32_t minConfirmations, uint32_t currentBlockHeight);
     void releaseUtxoSet(std::set<UTXO> utxos);
@@ -54,23 +53,28 @@ signals:
 public slots:
 
 private:
+
+    UTXOManager(WebSocketClient* client);
+
     WebSocketClient* _wsClient;
 
     std::set<UTXO> _unconfirmedUtxoSet;
     std::set<UTXO> _confirmedUtxoSet;
     std::set<UTXO> _lockedUtxoSet;
 
+    void listenForEvents();
+
     void lockUtxoSet(std::set<UTXO> utxos);
 
     //maintain a set of addresses we are interested in
     std::set<QString> _addresses;
 
-    static std::vector<QString> batchAddresses(const std::set<Coin::P2PKHAddress> & p2pkhAddresses);
     static std::vector<QString> batchAddresses(const std::set<QString> &addresses);
 
     std::vector<TXRef> fetchTxRefs(Client * restClient, const std::vector<QString> &batches);
-    std::vector<TXRef> fetchTxRefs(Client * restClient, const std::set<Coin::P2PKHAddress> & addresses);
     std::vector<TXRef> fetchTxRefs(Client * restClient, const std::set<QString> & addresses);
+
+    bool refreshUtxoState(Client* restClient, const std::set<QString> & addresses);
 
     // routine to handle TX payload from blockcypher
     TxResult processTx(const TX &tx);
