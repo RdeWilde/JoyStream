@@ -11,7 +11,6 @@
 #include <extension/PeerPlugin.hpp>
 #include <extension/SellerPeerPluginPeerState.hpp>
 #include <extension/SellerPeerPluginClientState.hpp>
-#include <paymentchannel/PayeeConfiguration.hpp>
 #include <paymentchannel/Payee.hpp>
 
 #include <QSet>

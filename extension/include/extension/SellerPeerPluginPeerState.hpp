@@ -8,10 +8,10 @@
 #ifndef JOYSTREAM_EXTENSION_SELLER_PEER_PLUGIN_PEER_STATE_HPP
 #define JOYSTREAM_EXTENSION_SELLER_PEER_PLUGIN_PEER_STATE_HPP
 
-#include <protocol/Buy.hpp>
-#include <protocol/SignRefund.hpp>
-#include <protocol/Payment.hpp>
-#include <protocol/RequestFullPiece.hpp>
+#include <protocol/wire/Buy.hpp>
+#include <protocol/wire/SignRefund.hpp>
+#include <protocol/wire/Payment.hpp>
+#include <protocol/wire/RequestFullPiece.hpp>
 
 namespace joystream {
 namespace extension {

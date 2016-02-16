@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 1 2016
  */
 
-#include <protocol/Sell.hpp>
-#include <protocol/JoiningContract.hpp>
+#include <protocol/wire/Sell.hpp>
+#include <protocol/wire/JoiningContract.hpp>
 
 #ifndef JOYSTREAM_EXTENSION_BUYER_PEER_PLUGIN_PEER_STATE_HPP
 #define JOYSTREAM_EXTENSION_BUYER_PEER_PLUGIN_PEER_STATE_HPP
