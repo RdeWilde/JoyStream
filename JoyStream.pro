@@ -33,23 +33,22 @@ protocol.depends = paymentchannel
 # wallet
 wallet.depends = common
 wallet.depends = blockcypher
-# wallet.depends = paymentchannel # not yet
+wallet.depends = paymentchannel # not yet ?
 
 # extension
 extension.depends = common
-extension.depends = blockcypher
-extension.depends = wallet
+extension.depends = paymentchannel
+extension.depends = protocol
 
 # core
 core.depends = common
 core.depends = paymentchannel
 core.depends = wallet
-#core.depends = plugin
+core.depends = extension
 
 # views
 views.depends = common
 views.depends = wallet
-#views.depends = plugin
 views.depends = core
 
 # app
@@ -57,14 +56,12 @@ app.depends = mixpanel
 app.depends = common
 app.depends = core
 app.depends = wallet
-#app.depends = plugin
 app.depends = views
 
 # runner
 runner.depends = common
 runner.depends = core
 runner.depends = wallet
-#runner.depends = plugin
 runner.depends = views
 
 # test
@@ -72,10 +69,9 @@ test.depends = common
 test.depends = paymentchannel
 test.depends = blockcypher
 test.depends = wallet
-#test.depends = plugin
+test.depends = extension
 test.depends = core
 test.depends = views
-#test.depends = app
 test.depends = runner
 
 # demo
@@ -83,8 +79,7 @@ demo.depends = common
 demo.depends = paymentchannel
 demo.depends = blockcypher
 demo.depends = wallet
-#demo.depends = plugin
+demo.depends = extension
 demo.depends = core
 demo.depends = views
-#demo.depends = app
 demo.depends = runner

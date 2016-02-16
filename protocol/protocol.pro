@@ -35,7 +35,6 @@ HEADERS += \
     include/protocol/Mode.hpp \
     include/protocol/PeerModeAnnounced.hpp \
     include/protocol/Piece.hpp \
-    include/protocol/ModeAnnounced.hpp \
     include/protocol/SellerSession.hpp \
     include/protocol/SellerConnection.hpp \
     include/protocol/SellerTerms.hpp \
@@ -74,7 +73,9 @@ SOURCES += \
     src/BuyerConnection.cpp \
     src/BuyerPeerState.cpp \
     src/ObserverSession.cpp \
-    src/Piece.cpp
+    src/Piece.cpp \
+    src/SellerTerms.cpp \
+    src/BuyerTerms.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

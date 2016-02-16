@@ -41,7 +41,6 @@ HEADERS += \
     include/extension/PayorStatus.hpp \
     include/extension/TorrentPluginConfiguration.hpp \
     include/extension/BuyerTorrentPluginConfiguration.hpp \
-    include/extension/ExtendedMessagePayload.hpp \
     include/extension/ExtendedMessageIdMapping.hpp \
     include/extension/request/PluginRequest.hpp \
     include/extension/request/TorrentPluginRequest.hpp \
