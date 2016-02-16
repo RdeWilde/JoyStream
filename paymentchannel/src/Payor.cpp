@@ -27,7 +27,7 @@ namespace paymentchannel {
         , _contractTx(contractTx) {
     }
 
-    void Payor::setContractTransaction() {
+    void Payor::anchor() {
 
         // Generate the contract transaction, and store
         Contract c = contract();
@@ -35,9 +35,11 @@ namespace paymentchannel {
         // Store transaction
         _contractTx = c.transaction();
 
+        Coin::TransactionId txId = Coin::TransactionId::fromTx(_contractTx);
+
         // Set contract transaction id in each channel
-        for(std::vector<Channel>::iterator i = _channels.begin(); i != _channels.end();i++)
-            i->setContractTxId(contractTxId());
+        for(std::vector<Channel>::iterator i = _channels.begin(), end(_channels.end()); i != end;i++)
+            i->setContractTxId(txId);
     }
 
     void Payor::setAllPayorRefundSignatures() {
@@ -82,10 +84,6 @@ namespace paymentchannel {
 
     Coin::Transaction Payor::getContractTx() const {
         return _contractTx;
-    }
-
-    Coin::TransactionId Payor::contractTxId() const {
-        return Coin::TransactionId::fromTx(_contractTx);
     }
 }
 }

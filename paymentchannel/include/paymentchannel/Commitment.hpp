@@ -16,7 +16,6 @@ namespace Coin {
     class TxOut;
 }
 
-
 namespace joystream {
 namespace paymentchannel {
 

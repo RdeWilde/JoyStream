@@ -34,13 +34,14 @@ namespace paymentchannel {
               quint64 contractFee,
               const Coin::Transaction & contractTx);
 
-        // Creates and stores the contract transaction.
+        // Anchors
         // ===
+        // *Call after
         // Preserves fully valid contract, so that txid
         // can be anchor for all settelement/refund transactions.
         // Hence making this call will invalidate
         // any settlement/refund transactions.
-        void setContractTransaction();
+        void anchor();
 
         // Creates and stores all payor refund signatures
         // ===

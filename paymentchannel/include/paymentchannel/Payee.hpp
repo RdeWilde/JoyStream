@@ -42,9 +42,9 @@ namespace paymentchannel {
               quint64 funds,
               quint64 settlementFee,
               quint64 refundFee,
+              const Coin::typesafeOutPoint & contractOutPoint,
               const Coin::KeyPair & payeeContractKeys,
               const Coin::KeyPair & payeePaymentKeys,
-              const Coin::typesafeOutPoint & contractOutPoint,
               const Coin::PublicKey & payorContractPk,
               const Coin::PublicKey & payorFinalPk,
               const Coin::Signature & lastValidPayorPaymentSignature);
@@ -57,9 +57,6 @@ namespace paymentchannel {
         // A valid signature will lead to an increase of _numberOfPaymentsMade,
         // and storing signature in _lastValidPayorPaymentSignature
         bool registerPayment(const Coin::Signature & payorPaymentSignature);
-
-        // Attempts to validate the contract transaction
-        bool validateContractTrasaction(const Coin::Transaction & transaction) const;
 
         // Generates transaction for last payment
         Coin::Transaction lastPaymentTransaction() const;
@@ -88,14 +85,23 @@ namespace paymentchannel {
         quint64 numberOfPaymentsMade() const;
         void setNumberOfPaymentsMade(quint64 numberOfPaymentsMade);
 
-        Coin::Signature lastValidPayorPaymentSignature() const;
-        void setLastValidPayorPaymentSignature(const Coin::Signature & lastValidPayorPaymentSignature);
-
         quint32 lockTime() const;
         void setLockTime(quint32 lockTime);
 
         quint64 price() const;
         void setPrice(quint64 price);
+
+        quint64 funds() const;
+        void setFunds(quint64 funds);
+
+        quint64 settlementFee() const;
+        void setSettlementFee(quint64 settlementFee);
+
+        quint64 refundFee() const;
+        void setRefundFee(quint64 refundFee);
+
+        Coin::typesafeOutPoint contractOutPoint() const;
+        void setContractOutPoint(const Coin::typesafeOutPoint & contractOutPoint);
 
         Coin::KeyPair payeeContractKeys() const;
         void setPayeeContractKeys(const Coin::KeyPair & payeeContractKeys);
@@ -103,17 +109,14 @@ namespace paymentchannel {
         Coin::KeyPair payeePaymentKeys() const;
         void setPayeePaymentKeys(const Coin::KeyPair & payeePaymentKeys);
 
-        Coin::typesafeOutPoint contractOutPoint() const;
-        void setContractOutPoint(const Coin::typesafeOutPoint & contractOutPoint);
-
         Coin::PublicKey payorContractPk() const;
         void setPayorContractPk(const Coin::PublicKey & payorContractPk);
 
         Coin::PublicKey payorFinalPk() const;
         void setPayorFinalPk(const Coin::PublicKey & payorFinalPk);
 
-        quint64 funds() const;
-        void setFunds(quint64 funds);
+        Coin::Signature lastValidPayorPaymentSignature() const;
+        void setLastValidPayorPaymentSignature(const Coin::Signature & lastValidPayorPaymentSignature);
 
     private:
 
@@ -135,14 +138,14 @@ namespace paymentchannel {
         // Amount (#satoshies) used in fee for refund
         quint64 _refundFee;
 
+        // Contract outpoint from which payments originate
+        Coin::typesafeOutPoint _contractOutPoint;
+
         // Controls payee portion of contract output
         Coin::KeyPair _payeeContractKeys;
 
         // Controls payee output in payment _lastValidPaymentSignature
         Coin::KeyPair _payeePaymentKeys;
-
-        // Contract outpoint from which payments originate
-        Coin::typesafeOutPoint _contractOutPoint;
 
         // Payor key in contract output
         Coin::PublicKey _payorContractPk;
