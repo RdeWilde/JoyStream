@@ -13,13 +13,11 @@ namespace protocol {
     BuyerConnection::BuyerConnection() {
     }
 
-    BuyerConnection::BuyerConnection(const std::string & peerName,
-                                       PeerModeAnnounced lastModeAnnouncedByPeer,
-                                       const SendMessageCallbackHandler & sendMessageCallbackHandler,
-                                       BuyerClientState clientState,
-                                       BuyerPeerState peerState,
-                                       const std::queue<uint32_t> & downloadedValidPieces)
-        : Connection(peerName, lastModeAnnouncedByPeer, sendMessageCallbackHandler)
+    BuyerConnection::BuyerConnection(const Connection & connection,
+                                     BuyerClientState clientState,
+                                     BuyerPeerState peerState,
+                                     const std::queue<uint32_t> & downloadedValidPieces)
+        : Connection(connection)
         , _clientState(clientState)
         , _peerState(peerState)
         , _downloadedValidPieces(downloadedValidPieces) {
@@ -27,13 +25,10 @@ namespace protocol {
 
     BuyerConnection BuyerConnection::buyMessageJustSent(const Connection & connection) {
 
-        return BuyerConnection(connection.peerName(),
-                               connection.lastModeAnnouncedByPeer(),
-                               connection.sendMessageCallbackHandler(),
+        return BuyerConnection(connection,
                                BuyerClientState::buyer_mode_announced,
                                BuyerPeerState(),
                                std::queue<uint32_t>());
-
     }
 
     BuyerClientState BuyerConnection::clientState() const {

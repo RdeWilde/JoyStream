@@ -14,33 +14,43 @@ namespace protocol {
 
     }
 
-    SellerConnection::SellerConnection(const std::string & peerName,
-                           PeerModeAnnounced lastModeAnnouncedByPeer,
-                           const SendMessageCallbackHandler & sendMessageCallbackHandler,
-                           SellerClientState clientState,
-                           SellerPeerState peerState,
-                           const joystream::paymentchannel::Payee & payee,
-                           const std::queue<uint32_t> & fullPiecesSent)
-        : Connection(peerName, lastModeAnnouncedByPeer, sendMessageCallbackHandler)
+    SellerConnection::SellerConnection(const Connection & connection,
+                                       SellerClientState clientState,
+                                       SellerPeerState peerState,
+                                       const SellerTerms & terms,
+                                       const joystream::paymentchannel::Payee & payee,
+                                       const std::queue<uint32_t> & fullPiecesSent)
+        : Connection(connection)
         , _clientState(clientState)
         , _peerState(peerState)
+        , _terms(terms)
+        , _payee(payee)
         , _fullPiecesSent(fullPiecesSent) {
-
     }
 
-    SellerConnection SellerConnection::sellMessageJustSent(const joystream::protocol::Connection & c,
-                                                            quint32 lockTime,
-                                                            quint64 price,
-                                                            const Coin::KeyPair & payeeContractKeys,
-                                                            const Coin::KeyPair & payeePaymentKeys) {
+    SellerConnection SellerConnection::sellMessageJustSent(const joystream::protocol::Connection & connection,
+                                                           const SellerTerms & terms,
+                                                           const Coin::KeyPair & payeeContractKeys,
+                                                           const Coin::KeyPair & payeePaymentKeys) {
+        joystream::paymentchannel::Payee payee(0,
+                                               terms.lock(),
+                                               terms.price(),
+                                               0,
+                                               terms.settlementFee(),
+                                               0,
+                                               Coin::typesafeOutPoint(),
+                                               payeeContractKeys,
+                                               payeePaymentKeys,
+                                               Coin::PublicKey(),
+                                               Coin::PublicKey(),
+                                               Coin::Signature());
 
-        return SellerConnection(c.peerName(),
-                              c.lastModeAnnouncedByPeer(),
-                              c.sendMessageCallbackHandler(),
-                              SellerClientState::seller_mode_announced,
-                              SellerPeerState(),
-                              joystream::paymentchannel::Payee::unknownPayor(lockTime, price, payeeContractKeys, payeePaymentKeys),
-                              std::queue<uint32_t>());
+        return SellerConnection(connection,
+                                SellerClientState::seller_mode_announced,
+                                SellerPeerState(),
+                                terms,
+                                payee,
+                                std::queue<uint32_t>());
     }
 
     SellerClientState SellerConnection::clientState() const {
@@ -49,6 +59,10 @@ namespace protocol {
 
     SellerPeerState SellerConnection::peerState() const {
         return _peerState;
+    }
+
+    SellerTerms SellerConnection::terms() const {
+        return _terms;
     }
 
     joystream::paymentchannel::Payee SellerConnection::payee() const {

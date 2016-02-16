@@ -11,6 +11,7 @@
 #include <protocol/Connection.hpp>
 #include <protocol/SellerClientState.hpp>
 #include <protocol/SellerPeerState.hpp>
+#include <protocol/SellerTerms.hpp>
 #include <paymentchannel/Payee.hpp>
 
 #include <queue>
@@ -24,18 +25,16 @@ namespace protocol {
 
         SellerConnection();
 
-        SellerConnection(const std::string & peerName,
-                   PeerModeAnnounced lastModeAnnouncedByPeer,
-                   const SendMessageCallbackHandler & sendMessageCallbackHandler,
-                   SellerClientState sellClientState,
-                   SellerPeerState sellPeerState,
-                   const joystream::paymentchannel::Payee & payee,
-                   const std::queue<uint32_t> & fullPiecesSent);
+        SellerConnection(const Connection & connection,
+                         SellerClientState clientState,
+                         SellerPeerState peerState,
+                         const SellerTerms & terms,
+                         const joystream::paymentchannel::Payee & payee,
+                         const std::queue<uint32_t> & fullPiecesSent);
 
         // Create a (seller) connection which is fresh, i.e. has never had any message transmitted except seller mode message
-        static SellerConnection sellMessageJustSent(const Connection & c,
-                                                    quint32 lockTime,
-                                                    quint64 price,
+        static SellerConnection sellMessageJustSent(const Connection & connection,
+                                                    const SellerTerms & terms,
                                                     const Coin::KeyPair & payeeContractKeys,
                                                     const Coin::KeyPair & payeePaymentKeys);
 
@@ -43,6 +42,8 @@ namespace protocol {
         SellerClientState clientState() const;
 
         SellerPeerState peerState() const;
+
+        SellerTerms terms() const;
 
         joystream::paymentchannel::Payee payee() const;
 
@@ -55,6 +56,9 @@ namespace protocol {
 
         // State of peer on this connection
         SellerPeerState _peerState;
+
+        // Terms used on this connection
+        SellerTerms _terms;
 
         // Payee side of payment channel
         joystream::paymentchannel::Payee _payee;

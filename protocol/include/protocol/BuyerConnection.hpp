@@ -23,12 +23,10 @@ namespace protocol {
 
         BuyerConnection();
 
-        BuyerConnection(const std::string & peerName,
-                       PeerModeAnnounced lastModeAnnouncedByPeer,
-                       const SendMessageCallbackHandler & sendMessageCallbackHandler,
-                       BuyerClientState clientState,
-                       BuyerPeerState peerState,
-                       const std::queue<uint32_t> & downloadedValidPieces);
+        BuyerConnection(const Connection & connection,
+                        BuyerClientState clientState,
+                        BuyerPeerState peerState,
+                        const std::queue<uint32_t> & downloadedValidPieces);
 
         // Create a (buyer) connection which is fresh, i.e. has never had any message transmitted except buyer mode message
         static BuyerConnection buyMessageJustSent(const Connection & connection);
