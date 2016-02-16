@@ -6,6 +6,7 @@
  */
 
 #include <protocol/SellerTerms.hpp>
+#include <cassert>
 
 namespace joystream {
 namespace protocol {
@@ -20,6 +21,22 @@ namespace protocol {
         , _maxSellers(maxSellers)
         , _minContractFeePerKb(minContractFeePerKb)
         , _settlementFee(settlementFee) {
+    }
+
+    bool SellerTerms::compare(OrderingPolicy policy, const SellerTerms & lhs, const SellerTerms & rhs) {
+
+        switch(policy) {
+            case OrderingPolicy::random: throw std::runtime_error("not yet implemented");
+            case OrderingPolicy::min_price: return lhs.price() < rhs.price();
+            default:
+                assert(false);
+        }
+    }
+
+    std::function<bool (const SellerTerms & lhs, const SellerTerms & rhs)> SellerTerms::comparator(OrderingPolicy policy) {
+
+        //std::bind(SellerTerms::compare, )
+        //SellerTerms::comparator()
     }
 
     quint64 SellerTerms::price() const {

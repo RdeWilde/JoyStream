@@ -152,8 +152,7 @@ namespace protocol {
 
             // Create (seller) connection, and store in mapping
             connections[c.peerName()] = SellerConnection::sellMessageJustSent(c,
-                                                                              terms._minLock,
-                                                                              terms._minPrice,
+                                                                              terms,
                                                                               payeeContractKeys[sellerConnectionIndex],
                                                                               payeePaymentKeys[sellerConnectionIndex]);
         }
@@ -189,11 +188,20 @@ namespace protocol {
         }
 
         // Create payor
-        // perha this is done inside a named ctor for BuyerSession???? think about it ??
-        joystream::paymentchannel::Payor payor = joystream::paymentchannel::Payor::unknownPayees();
+        std::vector<joystream::paymentchannel::Channel> channels;
 
-        // complete payor ctr above
-        // ... send invitation to join contract to best subset of peer which are in correct mode and lower enough price.
+        const Coin::UnspentP2PKHOutput & utxo;
+
+        Coin::KeyPair changeOutputKeyPair;
+
+        quint64 changeValue;
+
+        joystream::paymentchannel::Payor payor(channels,
+                                               utxo,
+                                               changeOutputKeyPair,
+                                               changeValue,
+                                               0,
+                                               Coin::Transaction());
 
         // Create, and return, (buyer) session
         return new BuyerSession(_network,

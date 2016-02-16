@@ -47,6 +47,24 @@ namespace protocol {
 
     }
 
+    int BuyerSession::inviteSellers() {
+
+        // depending on seller_selection_policy {greedy : first come first serve, that is everyone above cutoff, as we learn about them. Do best if multiple
+        // available from get go now when we switch. every_n_seconds: invite as many as needed, as long as above cutoff, with best priotitized, every N seconds.}
+        // question: perhpas this logic need not be here at all?????
+        //
+        // ... send invitation to join contract to best subset of peer which are in correct mode and lower enough price.
+
+        // IMPORTANT: what if we want to auto invite upon joining? (no, forget about that, adds layer of complexity)..
+        // tick() : in extension (we need some way to track who was invited for what slot)
+        // - minimal amount of time has passed
+        // - if we are not in correct state (i.e. not all have joined yet), then return
+        // - anyone we invited more than K seconds ago, but who has not joined, clear that invite for given slot in payor
+        // - suppose there are N slots in payor for which there is no pending invite, then invite top N which we have not yet invited, and assign to a slot
+        // -
+
+    }
+
     /**
     quint64 Payor::minimalFunds(quint32 numberOfPiecesInTorrent, quint64 maxPrice, int numberOfSellers, quint64 feePerkB, quint64 paychanSettlementFee) {
         return paychanSettlementFee*numberOfSellers + (maxPrice*numberOfSellers)*numberOfPiecesInTorrent + computeContractFee(numberOfSellers, feePerkB);

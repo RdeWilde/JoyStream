@@ -10,6 +10,7 @@
 
 //#include <stdint.h>
 
+#include <functional>
 #include <QtGlobal>
 
 namespace joystream {
@@ -20,9 +21,21 @@ namespace protocol {
 
     public:
 
+        enum class OrderingPolicy {
+            random,
+            min_price
+            // do something more complex in the future for more complex tradeoffs
+        };
+
         SellerTerms();
 
         SellerTerms(quint64 price, quint32 lock, quint32 maxSellers, quint64 minContractFeePerKb, quint64 settlementFee);
+
+        // Policy contingent comparison of terms
+        static bool compare(OrderingPolicy policy, const SellerTerms & lhs, const SellerTerms & rhs);
+
+        // Comparator bound to given policy, is useful for STL based sorting
+        std::function<bool (const SellerTerms & lhs, const SellerTerms & rhs)> comparator(OrderingPolicy policy);
 
         quint64 price() const;
         void setPrice(quint64 price);

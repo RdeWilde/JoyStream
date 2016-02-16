@@ -27,6 +27,7 @@ namespace protocol {
 
     public:
 
+
         BuyerSession(Coin::Network network,
                      const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                      const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
@@ -54,6 +55,9 @@ namespace protocol {
         virtual void removeConnection(const std::string & name);
         virtual void processMessageOnConnection(const std::string & name, const wire::ExtendedMessagePayload & message);
 
+        // ...
+        int inviteSellers();
+
         //static quint64 minimalFunds(quint32 numberOfPiecesInTorrent, quint64 maxPrice, int numberOfSellers, quint64 feePerkB, quint64 paychanSettlementFee);
 
     private:
@@ -69,6 +73,9 @@ namespace protocol {
 
         // Payor side of payment channel
         joystream::paymentchannel::Payor _payor;
+
+        // Look up name of peer assigned to given channel with given index:
+        std::vector<std::string> _nameOfPeerAssignedToPayorChannelIndex;
 
         // Pieces in torrent file
         std::vector<Piece> _pieces;
