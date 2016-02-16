@@ -14,7 +14,7 @@ namespace protocol {
                                const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                                const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                                const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-                               std::map<std::string, BuyerConnection> connections,
+                               const std::map<std::string, BuyerConnection> & connections,
                                BuyerSessionState state,
                                const BuyerTerms & terms,
                                const joystream::paymentchannel::Payor & payor,
