@@ -15,7 +15,30 @@ namespace joystream {
 namespace protocol {
 
     // Terms in buy mode message
-    struct BuyerTerms {
+    class BuyerTerms {
+
+    public:
+
+        BuyerTerms();
+
+        BuyerTerms(quint64 maxPrice, quint32 maxLock, quint32 minNumberOfSellers, quint64 maxContractFeePerKb, quint64 refundFee);
+
+        quint64 maxPrice() const;
+        void setMaxPrice(quint64 maxPrice);
+
+        quint32 maxLock() const;
+        void setMaxLock(quint32 maxLock);
+
+        quint32 minNumberOfSellers() const;
+        void setMinNumberOfSellers(quint32 minNumberOfSellers);
+
+        quint64 maxContractFeePerKb() const;
+        void setMaxContractFeePerKb(quint64 maxContractFeePerKb);
+
+        quint64 refundFee() const;
+        void setRefundFee(quint64 refundFee);
+
+    private:
 
         // Maximum price accepted (satoshies)
         //int64_t _maxPrice;
@@ -25,13 +48,16 @@ namespace protocol {
         //uint32_t _maxLock;
         quint32 _maxLock;
 
+        // Minimum number of sellers
+        //uint32_t _numberOfSellers;
+        quint32 _minNumberOfSellers;
+
         // Maximum fee per byte in contract transaction (satoshies)
         //int64_t _maxFeePerKb;
-        quint64 _maxFeePerKb;
+        quint64 _maxContractFeePerKb;
 
-        // Number of sellers
-        //uint32_t _numberOfSellers;
-        quint32 _numberOfSellers;
+        // Total fee (satoshies) for refund transaction
+        quint64 _refundFee;
     };
 
 }
