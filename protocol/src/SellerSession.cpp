@@ -37,6 +37,10 @@ namespace protocol {
 
     }
 
+    void SellerSession::tick() {
+
+    }
+
     BuyerSession * SellerSession::switchToBuyMode(const BuyerTerms & terms) {
         return 0;
     }

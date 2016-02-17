@@ -6,6 +6,7 @@
  */
 
 #include <protocol/BuyerSession.hpp>
+#include <cassert>
 
 namespace joystream {
 namespace protocol {
@@ -18,13 +19,17 @@ namespace protocol {
                                BuyerSessionState state,
                                const BuyerTerms & terms,
                                const joystream::paymentchannel::Payor & payor,
+                               const std::vector<Seller> & sellers,
                                const std::vector<Piece> & pieces)
         : Session(Mode::buy, network, removedConnectionCallbackHandler, generateKeyPairsCallbackHandler, generateP2PKHAddressesCallbackHandler)
         , _connections(connections)
         , _state(state)
         , _terms(terms)
         , _payor(payor)
+        , _sellers(sellers)
         , _pieces(pieces) {
+
+
 
         // _numberOfUnassignedPieces
 
@@ -47,22 +52,79 @@ namespace protocol {
 
     }
 
+    void BuyerSession::tick() {
+
+        if(_state == BuyerSessionState::waiting_for_full_set_of_sellers) {
+
+            // for all invited to join contract: if idle, then ignore them??
+
+            // if enough time as passed for us to try to
+            // pick how many, and which sellers to choose, then
+            // try to do that if we have enough who have elected to
+            // join contract
+
+            // if enough time has pased, then invite everyone
+            // with good enough terms to join the contract
+            // by signing refund.
+            /**
+            if(enough time passed since X?) {
+
+                //
+            }
+            */
+
+        } // else if()
+
+
+    }
+
+    std::list<std::string> BuyerSession::getInvitedSellersIdling() const {
+
+
+
+    }
+
     int BuyerSession::inviteSellers() {
 
-        // depending on seller_selection_policy {greedy : first come first serve, that is everyone above cutoff, as we learn about them. Do best if multiple
-        // available from get go now when we switch. every_n_seconds: invite as many as needed, as long as above cutoff, with best priotitized, every N seconds.}
-        // question: perhpas this logic need not be here at all?????
-        //
-        // ... send invitation to join contract to best subset of peer which are in correct mode and lower enough price.
+        // Check that we are in correct state
+        if(_state != BuyerSessionState::waiting_for_full_set_of_sellers)
+            throw std::runtime_error("Invalid state, must be waiting_for_full_set_of_sellers.");
 
-        // IMPORTANT: what if we want to auto invite upon joining? (no, forget about that, adds layer of complexity)..
-        // tick() : in extension (we need some way to track who was invited for what slot)
-        // - minimal amount of time has passed
-        // - if we are not in correct state (i.e. not all have joined yet), then return
-        // - anyone we invited more than K seconds ago, but who has not joined, clear that invite for given slot in payor
-        // - suppose there are N slots in payor for which there is no pending invite, then invite top N which we have not yet invited, and assign to a slot
-        // -
+        // Find channels unassigned to any peer
+        std::list<uint32_t> indexOfSellersToInvite;
 
+        for(uint32_t i = 0;i < _sellers.size();i++) {
+
+            // Get state of seller
+            Seller::State stateOfSeller = _sellers[i].state();
+
+            if(stateOfSeller == Seller::State::unassigned)
+                indexOfSellersToInvite.push_back(i);
+            else if(stateOfSeller == Seller::State::invited &&
+                    _) // idle for long enough, throw out.
+
+        }
+
+
+
+        // X = contains channels (indexes) which needs to have peer assigned
+        // Iterate slots
+            // *if peer assigned, but not yet joined, check if timed out, if so, then mark
+            // peer as not interested in given terms, put put slot in container X
+            // *if not invited, then store that slot nr in some container X
+
+
+        // Iterate peers:
+            // if peer is in correct mode, and terms are better than cutoff, then
+            // put in set Y
+
+        // sort Y in terms terms of peers? (how to do this)
+
+        // pick top size(X) peers from Y, and assign to slots in X.
+
+            // terms are better than cut off terms
+
+        // sort X using the comparison operator
     }
 
     /**

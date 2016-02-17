@@ -37,6 +37,7 @@ namespace protocol {
         virtual void addConnection(const Connection & connection);
         virtual void removeConnection(const std::string & name);
         virtual void processMessageOnConnection(const std::string & name, const wire::ExtendedMessagePayload & message);
+        virtual void tick();
 
         // Returns session for corresponding new mode, after sending appropriate messages to all active peers,
         // and returned object is owned by callee.

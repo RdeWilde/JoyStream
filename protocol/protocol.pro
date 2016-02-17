@@ -47,6 +47,7 @@ HEADERS += \
     include/protocol/BuyerTerms.hpp \
     include/protocol/BuyerClientState.hpp \
     include/protocol/ObserverSession.hpp \
+    include/protocol/Seller.hpp
 
 SOURCES += \
     src/wire/ExtendedMessagePayload.cpp \
@@ -75,7 +76,8 @@ SOURCES += \
     src/ObserverSession.cpp \
     src/Piece.cpp \
     src/SellerTerms.cpp \
-    src/BuyerTerms.cpp
+    src/BuyerTerms.cpp \
+    src/Seller.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

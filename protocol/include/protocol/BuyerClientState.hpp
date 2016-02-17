@@ -26,29 +26,13 @@ namespace protocol {
         // We ignored joining_contract message because the contract was full
         ignored_join_contract_from_peer,
 
-        // We have sent sign_refund message
-        asked_for_refund_signature,
+        // We have invited peer to join payment channel, which may or may not have succeeded
+        invited_to_join_payment_channel,
 
-        // Postponed sendining ready message since not all signatures were ready
-        received_valid_refund_signature_and_waiting_for_others,
+        // We invited to sign refund as a seller, but it took too long
+        was_to_slow_to_sign_refund
 
-        // Sent ready message
-        // NOT REALLY NEEDED, WE NEVER WAIT FOR ANYTHIN AFTER THIS
-        //announced_ready,
-
-        // At least one request message has been sent, for which no piece message
-        // has yet been returned
-        //waiting_for_requests_to_be_serviced,
-
-        // Not been assigned piece
-        needs_to_be_assigned_piece,
-
-        // We have requested a full piece, and we are waiting for it to arrive
-        waiting_for_full_piece,
-
-        // We are waiting for libtorrent to fire on_piece_pass() or on_piece_failed()
-        // on a full piece which was recently received
-        waiting_for_to_validate_and_store_piece
+        // something about not joining due to timeout????
     };
 
 }

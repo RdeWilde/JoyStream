@@ -14,8 +14,6 @@ namespace protocol {
     // State of session in buy mode
     enum class BuyerSessionState {
 
-
-
         // Need enough sellers to join
         waiting_for_full_set_of_sellers,
 

@@ -54,6 +54,9 @@ namespace protocol {
         // Process extended message: does not take ownership of message
         virtual void processMessageOnConnection(const std::string & name, const wire::ExtendedMessagePayload & message) = 0;
 
+        // Perform non-reactive (that is not in response to message or control event) processing
+        virtual void tick() = 0;
+
         // Getters
         Mode mode() const;
 

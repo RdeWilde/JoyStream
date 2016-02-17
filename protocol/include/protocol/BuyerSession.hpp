@@ -13,6 +13,7 @@
 #include <protocol/BuyerSessionState.hpp>
 #include <protocol/BuyerTerms.hpp>
 #include <protocol/Piece.hpp>
+#include <protocol/Seller.hpp>
 #include <paymentchannel/Payor.hpp>
 
 namespace joystream {
@@ -27,7 +28,6 @@ namespace protocol {
 
     public:
 
-
         BuyerSession(Coin::Network network,
                      const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                      const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
@@ -36,6 +36,7 @@ namespace protocol {
                      BuyerSessionState state,
                      const BuyerTerms & terms,
                      const joystream::paymentchannel::Payor & payor,
+                     const std::vector<Seller> & sellers,
                      const std::vector<Piece> & pieces);
 
         /**
@@ -54,13 +55,14 @@ namespace protocol {
         virtual void addConnection(const Connection & connection);
         virtual void removeConnection(const std::string & name);
         virtual void processMessageOnConnection(const std::string & name, const wire::ExtendedMessagePayload & message);
-
-        // ...
-        int inviteSellers();
+        virtual void tick();
 
         //static quint64 minimalFunds(quint32 numberOfPiecesInTorrent, quint64 maxPrice, int numberOfSellers, quint64 feePerkB, quint64 paychanSettlementFee);
 
     private:
+
+        // ...
+        int inviteSellers();
 
         // Mapping peer name to corresponding connection with peer
         std::map<std::string, BuyerConnection> _connections;
@@ -74,8 +76,8 @@ namespace protocol {
         // Payor side of payment channel
         joystream::paymentchannel::Payor _payor;
 
-        // Look up name of peer assigned to given channel with given index:
-        std::vector<std::string> _nameOfPeerAssignedToPayorChannelIndex;
+        // Sellers
+        std::vector<Seller> _sellers;
 
         // Pieces in torrent file
         std::vector<Piece> _pieces;
@@ -86,13 +88,7 @@ namespace protocol {
 
         // The number of pieces which have not been downloaded and not been assigned to a connection
         uint32_t _numberOfUnassignedPieces;
-        //
-        // Set of names for connections which have not been assigned a piece.
-        //
-        // the tick() callback routinely attempts to assign a piece
-        // to a peer plugin in this set.
-        std::queue<std::string> _namesOfConnectionsWithoutPieceAssignment;
-        //
+
         // Keeps track of lower bound for piece indexes which may be assigned.
         // Is updated when full pieces are downloaded contigously, and
         // is used with getNextUnassignedPiece() to find next piece to assign.

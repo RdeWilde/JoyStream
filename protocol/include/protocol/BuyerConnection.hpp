@@ -43,17 +43,16 @@ namespace protocol {
         // State of client (us) on this connection
         BuyerClientState _clientState;
 
+        // Point in time when last invite sent
+        time_t _whenLastInviteSent;
+
         // State of peer on this connection
         BuyerPeerState _peerState;
 
-        // Index of a piece assigned to this peer, only valid if
-        // _clientState == ClientState::waiting_for_full_piece or
-        // ClientState::waiting_for_libtorrent_to_validate_piece
-        //int _indexOfAssignedPiece;
-
         // Indexes of valid piecesm, in the order they were downloaded
+        // NB: The reason this is not in Seller, is because
+        // any peer can potentially provide valid pieces
         std::queue<uint32_t> _downloadedValidPieces;
-
     };
 
 }

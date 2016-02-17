@@ -126,6 +126,10 @@ namespace protocol {
 
     }
 
+    void ObserverSession::tick() {
+
+    }
+
     SellerSession * ObserverSession::switchToSellMode(const SellerTerms & terms, uint32_t numberOfPiecesInTorrent) {
 
         // The number of connections
