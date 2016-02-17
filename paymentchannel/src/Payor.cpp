@@ -74,6 +74,10 @@ namespace paymentchannel {
         return _channels[index];
     }
 
+    int Payor::numberOfChannel() const {
+        return _channels.size();
+    }
+
     std::vector<Channel> Payor::getChannels() const {
         return _channels;
     }

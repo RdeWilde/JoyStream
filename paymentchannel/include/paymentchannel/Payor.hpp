@@ -51,9 +51,13 @@ namespace paymentchannel {
         // Generates contract transaction
         Contract contract() const;
 
-        // Getters and setters
+        // Return reference to channel: Do we need this?
         Channel & channel(int index);
 
+        // Number of channels
+        int numberOfChannel() const;
+
+        // Getters and setters
         std::vector<Channel> getChannels() const;
         void setChannels(const std::vector<Channel> & channels);
 
