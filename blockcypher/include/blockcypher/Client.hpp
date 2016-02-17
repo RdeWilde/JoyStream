@@ -39,9 +39,6 @@ class QNetworkAccessManager;
 
 #define BLOCKCYPHER_MAINNET_ENDPOINT "https://api.blockcypher.com/v1/btc/main/"
 #define BLOCKCYPHER_TESTNET3_ENDPOINT "https://api.blockcypher.com/v1/btc/test3/"
-//#define BLOCKCYPHER_TOKEN "aa10fe97a83259a4628d09b125bebf5a"
-
-// comment out
 
 namespace BlockCypher {
 
