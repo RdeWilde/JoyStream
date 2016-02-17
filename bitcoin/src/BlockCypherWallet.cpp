@@ -34,6 +34,9 @@ void BlockCypherWallet::Open() {
     // initialize utxo manager
     if(!_utxoManager) {
         _utxoManager = BlockCypher::UTXOManager::createManager(_wsClient);
+
+        QObject::connect(_utxoManager, SIGNAL(balanceChanged()),
+                         this, SIGNAL(balanceChanged()));
     }
 
     // make 2 attempts to initialize the utxo manager

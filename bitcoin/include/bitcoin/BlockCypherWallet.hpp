@@ -33,6 +33,8 @@ public:
 
 signals:
 
+    void balanceChanged(uint64_t confirmedBalance, uint64_t unconfirmedBalance);
+
 public slots:
 
 private:
