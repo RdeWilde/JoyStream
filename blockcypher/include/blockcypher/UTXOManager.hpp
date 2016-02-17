@@ -30,7 +30,7 @@ class UTXOManager : public QObject
 
 public:
 
-    UTXOManager* createManager(WebSocketClient * wsclient,
+    static UTXOManager* createManager(WebSocketClient * wsclient,
                                Client * restClient,
                                const std::list<Coin::P2PKHAddress> &addresses);
 

@@ -3,6 +3,7 @@
 # Proprietary and confidential
 
 QT -= gui
+QT += network # required for blockcypher module
 
 TARGET = bitcoin
 TEMPLATE = lib
@@ -13,13 +14,16 @@ INCLUDEPATH += $$PWD/include
 
 INCLUDEPATH += $$PWD/../common/include
 
+INCLUDEPATH += $$PWD/../blockcypher/include
+
 #store
 HEADERS += include/bitcoin/Store.hpp \
-           src/detail/store/Schema.hpp
+           src/detail/store/Schema.hpp \
+           include/bitcoin/BlockCypherWallet.hpp
 
 SOURCES += src/detail/store/Schema-odb.cxx \
            src/detail/store/Schema.cpp \
-           src/Store.cpp
-
+           src/Store.cpp \
+           src/BlockCypherWallet.cpp
 
 include(../config.pri)
