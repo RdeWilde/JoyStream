@@ -14,37 +14,24 @@ namespace BlockCypher {
         : _wsClient(wsclient),
           _balance(0),
           _balance_zero_conf(0)
-    {}
-
-    UTXOManager* UTXOManager::createManager(WebSocketClient * wsClient,
-                                            Client * restClient,
-                                            const std::list<Coin::P2PKHAddress> &p2pkhaddresses)
     {
-
-        if(!restClient) throw std::runtime_error("missing REST client pointer");
-        if(!wsClient) throw std::runtime_error("missing Websocket client pointer");
-
-        UTXOManager* manager = new UTXOManager(wsClient);
-
-        if(!manager) throw std::runtime_error("unable to create a UTXO Manager");
-
-        if(!manager->refreshUtxoState(restClient, p2pkhaddresses)) {
-            delete manager;
-            return nullptr;
-        }
-
-        manager->listenForEvents();
-
-        return manager;
-    }
-
-    void UTXOManager::listenForEvents() {
         // connect signals from websocket client to our private slots
         QObject::connect(_wsClient, &WebSocketClient::txArrived, [this](const TX & tx){
             TxResult r = processTx(tx);
             updateUtxoSets(r);
             updateBalances(true);
         });
+    }
+
+    UTXOManager* UTXOManager::createManager(WebSocketClient * wsClient)
+    {
+        if(!wsClient) throw std::runtime_error("UTXOManager requires a websocket client pointer");
+
+        UTXOManager* manager = new UTXOManager(wsClient);
+
+        if(!manager) throw std::runtime_error("unable to create a UTXO Manager");
+
+        return manager;
     }
 
     std::vector<QString> UTXOManager::batchAddresses(const std::set<QString> &addresses) {

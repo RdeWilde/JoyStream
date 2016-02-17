@@ -22,30 +22,39 @@ bool BlockCypherWallet::Create(Coin::Seed seed) {
     return _store.create(_storePath, _network, seed, std::time(nullptr));
 }
 
-bool BlockCypherWallet::Open() {
+void BlockCypherWallet::Open() {
 
     // Only open the store once
-    if(!_store.connected()){
-        if(!_store.open(_storePath)) return false;
+    if(_store.connected()) {
+        if(!_store.open(_storePath)) {
+            throw std::runtime_error("failed to open wallet");
+        }
     }
 
     // initialize utxo manager
     if(!_utxoManager) {
-        Sync();
+        _utxoManager = BlockCypher::UTXOManager::createManager(_wsClient);
     }
 
-    return _utxoManager != nullptr;
+    // make 2 attempts to initialize the utxo manager
+    if(!Sync(2)) {
+        throw std::runtime_error("unable to do initial sync");
+    }
 }
 
-void BlockCypherWallet::Sync() {
+bool BlockCypherWallet::Sync(uint tries) {
     std::list<Coin::P2PKHAddress> addresses = _store.listReceiveAddresses();
 
-    if(_utxoManager) {
-        _utxoManagerIsInitialized = _utxoManager->refreshUtxoState(_restClient, addresses);
-    } else {
-        _utxoManager = BlockCypher::UTXOManager::createManager(_wsClient, _restClient, addresses);
-        _utxoManagerIsInitialized = _utxoManager != nullptr;
+    if(!_utxoManager) return false;
+
+    for(uint i = 0; i < tries; i++){
+        if(_utxoManager->refreshUtxoState(_restClient, addresses)) {
+            _utxoManagerIsInitialized = true;
+            return true;
+        }
     }
+
+    return false;
 }
 
 }

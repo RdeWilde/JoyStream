@@ -30,9 +30,7 @@ class UTXOManager : public QObject
 
 public:
 
-    static UTXOManager* createManager(WebSocketClient * wsclient,
-                               Client * restClient,
-                               const std::list<Coin::P2PKHAddress> &addresses);
+    static UTXOManager* createManager(WebSocketClient * wsclient);
 
     // adds address to set and sends tx_confirmation event on websocket
     bool addAddress(const Coin::P2PKHAddress & address);
@@ -67,8 +65,6 @@ private:
     std::set<QString> _addresses;
 
     bool addAddress(const QString & address);
-
-    void listenForEvents();
 
     static std::vector<QString> batchAddresses(const std::set<QString> &addresses);
 

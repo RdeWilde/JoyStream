@@ -24,11 +24,12 @@ public:
     // Create a new wallet with provided seed (useful for recovering a wallet from seed)
     bool Create(Coin::Seed seed);
 
-    // Open the wallet. Returns true on success.
-    bool Open();
+    // Open the wallet. Will throw exception on failure.
+    void Open();
 
-    // Re-synchronize the wallet with network
-    void Sync();
+    // Re-synchronize the wallet with network. This should be called
+    // when websocket connectivity is lost.
+    bool Sync(uint tries = 1);
 
 signals:
 
@@ -46,13 +47,12 @@ private:
     BlockCypher::UTXOManager *_utxoManager;
 
     // true if utxo manager is successfully initialized
-    // will be false when Wallet is created
-    // when websocket client disconnects, we set this value to false
-    // because the utxo manager will need to be re-initialized
+    // will be false when Wallet is created, will be set to true once we
+    // successfully sync for the first time
     bool _utxoManagerIsInitialized;
 
     // The wallet is considered in sync when we have both successfully initialized the
-    // utxo manager and the websocket client is connected
+    // utxo manager at some point and the websocket client is connected
     bool InSync() { return _utxoManager != nullptr && _utxoManagerIsInitialized && _wsClient->isConnected(); }
 };
 
