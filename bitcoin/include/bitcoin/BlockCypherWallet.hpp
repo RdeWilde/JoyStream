@@ -31,6 +31,13 @@ public:
     // when websocket connectivity is lost.
     bool Sync(uint tries = 1);
 
+    Coin::P2PKHAddress KeychainToP2PKHAddress(const Coin::HDKeychain & keychain);
+
+    Coin::HDKeychain getKey(bool createReceiveAddress);
+    std::vector<Coin::HDKeychain> getKeys(uint32_t numKeys, bool createReceiveAddress);
+    std::vector<Coin::KeyPair> getKeyPairs(uint32_t num_pairs, bool createReceiveAddress);
+    Coin::P2PKHAddress getReceiveAddress();
+
 signals:
 
     void balanceChanged(uint64_t confirmedBalance, uint64_t unconfirmedBalance);
