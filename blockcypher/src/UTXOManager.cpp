@@ -16,36 +16,23 @@ namespace BlockCypher {
           _balance_zero_conf(0)
     {}
 
-    UTXOManager* UTXOManager::createManager(WebSocketClient * wsclient,
-                                     const std::set<Coin::P2PKHAddress> &p2pkhaddresses,
-                                     Client * restClient)
+    UTXOManager* UTXOManager::createManager(WebSocketClient * wsClient,
+                                            Client * restClient,
+                                            const std::list<Coin::P2PKHAddress> &p2pkhaddresses)
     {
 
-        UTXOManager* manager = new UTXOManager(wsclient);
+        if(!restClient) throw std::runtime_error("missing REST client pointer");
+        if(!wsClient) throw std::runtime_error("missing Websocket client pointer");
+
+        UTXOManager* manager = new UTXOManager(wsClient);
 
         if(!manager) throw std::runtime_error("unable to create a UTXO Manager");
 
-        std::set<QString> addresses;
-        for(const Coin::P2PKHAddress & address : p2pkhaddresses) {
-            addresses.insert(address.toBase58CheckEncoding());
+        if(!manager->refreshUtxoState(restClient, p2pkhaddresses)) {
+            delete manager;
+            return nullptr;
         }
 
-        // If REST api client is provided we can initialise the utxo state
-        if(restClient) {
-            if(!manager->refreshUtxoState(restClient, addresses)) {
-                delete manager;
-                return nullptr;
-            }
-        }
-
-        // add initial addresses after successful initialization so
-        // we don't create multiple events in the websocket for the
-        // same address
-        for(const QString & address : addresses) {
-            manager->addAddress(address);
-        }
-
-        // connect websocket signals only after successful initialization
         manager->listenForEvents();
 
         return manager;
@@ -91,20 +78,17 @@ namespace BlockCypher {
         return txrefs;
     }
 
-    std::vector<TXRef> UTXOManager::fetchTxRefs(Client * restClient, const std::set<QString> & addresses) {
-        return fetchTxRefs(restClient, batchAddresses(addresses));
-    }
+    bool UTXOManager::refreshUtxoState(Client* restClient, const std::list<Coin::P2PKHAddress> &p2pkhaddresses) {
 
-    bool UTXOManager::refreshUtxoState(Client* restClient) {
-        return refreshUtxoState(restClient, _addresses);
-    }
+        std::set<QString> addresses;
 
-    bool UTXOManager::refreshUtxoState(Client* restClient, const std::set<QString> & addresses) {
-        //use a mutex or bool flag to stop updates from wsclient while we reset the state?
+        for(auto & addr : p2pkhaddresses)
+            addresses.insert(addr.toBase58CheckEncoding());
+
         std::vector<TXRef> txrefs;
 
         try {
-            txrefs = fetchTxRefs(restClient, addresses);
+            txrefs = fetchTxRefs(restClient, batchAddresses(addresses));
         } catch(std::exception &e) {
             return false;
         }
@@ -117,6 +101,10 @@ namespace BlockCypher {
         for(auto & r : results) updateUtxoSets(r);
 
         updateBalances(true);
+
+        for(auto addr : addresses) {
+            addAddress(addr);
+        }
 
         return true;
     }
@@ -181,12 +169,16 @@ namespace BlockCypher {
         std::vector<TxResult> results;
 
         for(const TXRef &t : txrefs) {
-            if(t._tx_output_n >= 0 && t._spent == false) {
+            if(t._tx_output_n >= 0 && !t._double_spend) {
                 Coin::typesafeOutPoint outpoint(t._tx_hash, t._tx_output_n);
                 UTXO utxo(QString::fromStdString(t._addressString), outpoint, t._value, t._block_height);
                 TxResult result;
                 result.confirmations(t._confirmations);
-                result.creates(utxo);
+                if(t._spent) {
+                    result.destroys(utxo);
+                }else {
+                    result.creates(utxo);
+                }
                 results.push_back(result);
             }
         }
