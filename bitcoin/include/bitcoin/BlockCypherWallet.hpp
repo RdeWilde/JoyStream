@@ -2,6 +2,7 @@
 #define BITCOIN_BLOCKCYPHERWALLET_HPP
 
 #include <QObject>
+#include <common/UnspentP2PKHOutput.hpp>
 #include <blockcypher/UTXOManager.hpp>
 #include <bitcoin/Store.hpp>
 
@@ -37,6 +38,9 @@ public:
     std::vector<Coin::HDKeychain> getKeys(uint32_t numKeys, bool createReceiveAddress);
     std::vector<Coin::KeyPair> getKeyPairs(uint32_t num_pairs, bool createReceiveAddress);
     Coin::P2PKHAddress getReceiveAddress();
+
+    std::list<Coin::UnspentP2PKHOutput> GetUnspentOutputs(uint64_t minValue, uint32_t minimalConfirmatinos, uint32_t currentBlockHeight);
+    void ReleaseUnspentOutputs(const std::list<Coin::UnspentP2PKHOutput> outputs);
 
 signals:
 

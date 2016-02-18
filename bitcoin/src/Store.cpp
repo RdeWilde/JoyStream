@@ -367,6 +367,19 @@ void Store::addTransaction(const Coin::Transaction & tx) {
     t.commit();
 }
 
+bool Store::loadKey(const std::string & address, Coin::PrivateKey & sk) {
+    bool found = false;
+    typedef odb::query<detail::store::Address> query;
+    odb::transaction t(_db->begin());
+    std::shared_ptr<detail::store::Address> addr(_db->query_one<detail::store::Address>(query::address == address));
+    if(addr) {
+        sk = Coin::PrivateKey(_rootKeychain.getChild(addr->key()->id()).privkey());
+        found = true;
+    }
+    t.commit();
+    return found;
+}
+
 Coin::HDKeychain Store::getKey_tx(bool createReceiveAddress) {
     //persist a new key
     std::shared_ptr<detail::store::Key> key(new detail::store::Key());

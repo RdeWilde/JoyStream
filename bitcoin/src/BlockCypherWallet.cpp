@@ -90,8 +90,8 @@ BlockCypherWallet::getKeys(uint32_t numKeys, bool createReceiveAddress) {
 std::vector<Coin::KeyPair>
 BlockCypherWallet::getKeyPairs(uint32_t num_pairs, bool createReceiveAddress) {
     std::vector<Coin::KeyPair> keyPairs = _store.getKeyPairs(num_pairs, createReceiveAddress);
-    if(createReceiveAddress) {
-        for(auto & keypair : keyPairs) {
+    if (createReceiveAddress) {
+        for (auto & keypair : keyPairs) {
             _utxoManager->addAddress(keypair.pk().toP2PKHAddress(_network));
         }
     }
@@ -99,12 +99,44 @@ BlockCypherWallet::getKeyPairs(uint32_t num_pairs, bool createReceiveAddress) {
 }
 
 Coin::P2PKHAddress
-BlockCypherWallet::getReceiveAddress() {
+BlockCypherWallet::getReceiveAddress()
+{
     Coin::P2PKHAddress addr = _store.getReceiveAddress();
     _utxoManager->addAddress(addr);
     return addr;
 }
 
+std::list<Coin::UnspentP2PKHOutput>
+BlockCypherWallet::GetUnspentOutputs(uint64_t minValue, uint32_t minimalConfirmatinos, uint32_t currentBlockHeight)
+{
+    std::set<BlockCypher::UTXO> utxos = _utxoManager->getUtxoSet(minValue, minimalConfirmatinos, currentBlockHeight);
+
+    std::list<Coin::UnspentP2PKHOutput> unspentOutputs;
+
+    for (const BlockCypher::UTXO &utxo : utxos) {
+        Coin::PrivateKey sk;
+        if(_store.loadKey(utxo.address().toStdString(), sk)) {
+            Coin::KeyPair keypair(sk);
+            Coin::UnspentP2PKHOutput output(keypair, utxo.outPoint(), utxo.value());
+            unspentOutputs.push_back(output);
+        }
+    }
+
+    return unspentOutputs;
+}
+
+void BlockCypherWallet::ReleaseUnspentOutputs(const std::list<Coin::UnspentP2PKHOutput> outputs)
+{
+    std::set<BlockCypher::UTXO> utxos;
+
+    for (auto & output : outputs) {
+        BlockCypher::UTXO utxo(output.keyPair().pk().toP2PKHAddress(_network).toBase58CheckEncoding(),
+                               output.outPoint(), output.value());
+        utxos.insert(utxo);
+    }
+
+    _utxoManager->releaseUtxoSet(utxos);
+}
 
 }
 }

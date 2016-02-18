@@ -69,6 +69,9 @@ public:
     bool transactionExists(const Coin::Transaction & tx);
 
     void addTransaction(const Coin::Transaction & tx);
+
+    bool loadKey(const std::string & address, Coin::PrivateKey & sk);
+
 private:
     // don't allow copying, store should be passed by reference only
     Store(const Store &){}
