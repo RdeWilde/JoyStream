@@ -115,7 +115,7 @@ BlockCypherWallet::GetUnspentOutputs(uint64_t minValue, uint32_t minimalConfirma
 
     for (const BlockCypher::UTXO &utxo : utxos) {
         Coin::PrivateKey sk;
-        if(_store.loadKey(utxo.address().toStdString(), sk)) {
+        if(_store.loadKey(Coin::P2PKHAddress::fromBase58CheckEncoding(utxo.address()), sk)) {
             Coin::KeyPair keypair(sk);
             Coin::UnspentP2PKHOutput output(keypair, utxo.outPoint(), utxo.value());
             unspentOutputs.push_back(output);

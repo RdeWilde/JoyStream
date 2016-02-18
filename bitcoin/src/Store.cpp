@@ -367,11 +367,12 @@ void Store::addTransaction(const Coin::Transaction & tx) {
     t.commit();
 }
 
-bool Store::loadKey(const std::string & address, Coin::PrivateKey & sk) {
+bool Store::loadKey(const Coin::P2PKHAddress & address, Coin::PrivateKey & sk) {
     bool found = false;
     typedef odb::query<detail::store::Address> query;
     odb::transaction t(_db->begin());
-    std::shared_ptr<detail::store::Address> addr(_db->query_one<detail::store::Address>(query::address == address));
+    std::string base58addr = address.toBase58CheckEncoding().toStdString();
+    std::shared_ptr<detail::store::Address> addr(_db->query_one<detail::store::Address>(query::address == base58addr));
     if(addr) {
         sk = Coin::PrivateKey(_rootKeychain.getChild(addr->key()->id()).privkey());
         found = true;

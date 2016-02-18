@@ -70,7 +70,7 @@ public:
 
     void addTransaction(const Coin::Transaction & tx);
 
-    bool loadKey(const std::string & address, Coin::PrivateKey & sk);
+    bool loadKey(const Coin::P2PKHAddress &address, Coin::PrivateKey & sk);
 
 private:
     // don't allow copying, store should be passed by reference only
