@@ -13,4 +13,5 @@ SUBDIRS     = \
             wallet \
             blockcypher \ 
             mixpanel \
-            blockcypher-websocket
+            blockcypher-websocket \
+            blockcypher-wallet
