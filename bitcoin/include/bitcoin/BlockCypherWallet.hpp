@@ -20,10 +20,10 @@ public:
                       BlockCypher::WebSocketClient * wsClient);
 
     // Create a new wallet with auto generated seed
-    bool Create();
+    void Create();
 
     // Create a new wallet with provided seed (useful for recovering a wallet from seed)
-    bool Create(Coin::Seed seed);
+    void Create(Coin::Seed seed);
 
     // Open the wallet. Will throw exception on failure.
     void Open();
@@ -34,17 +34,21 @@ public:
 
     Coin::P2PKHAddress KeychainToP2PKHAddress(const Coin::HDKeychain & keychain);
 
-    Coin::HDKeychain getKey(bool createReceiveAddress);
-    std::vector<Coin::HDKeychain> getKeys(uint32_t numKeys, bool createReceiveAddress);
-    std::vector<Coin::KeyPair> getKeyPairs(uint32_t num_pairs, bool createReceiveAddress);
-    Coin::P2PKHAddress getReceiveAddress();
+    Coin::HDKeychain GetKey(bool createReceiveAddress);
+    std::vector<Coin::HDKeychain> GetKeys(uint32_t numKeys, bool createReceiveAddress);
+    std::vector<Coin::KeyPair> GetKeyPairs(uint32_t num_pairs, bool createReceiveAddress);
+    Coin::P2PKHAddress GetReceiveAddress();
 
     std::list<Coin::UnspentP2PKHOutput> GetUnspentOutputs(uint64_t minValue, uint32_t minimalConfirmatinos, uint32_t currentBlockHeight);
     void ReleaseUnspentOutputs(const std::list<Coin::UnspentP2PKHOutput> outputs);
 
+    // The wallet is considered in sync when we have both successfully initialized the
+    // utxo manager at some point and the websocket client is connected
+    bool InSync() { return _utxoManager != nullptr && _utxoManagerIsInitialized && _wsClient->isConnected(); }
+
 signals:
 
-    void balanceChanged(uint64_t confirmedBalance, uint64_t unconfirmedBalance);
+    void BalanceChanged(uint64_t confirmedBalance, uint64_t unconfirmedBalance);
 
 public slots:
 
@@ -63,10 +67,6 @@ private:
     // will be false when Wallet is created, will be set to true once we
     // successfully sync for the first time
     bool _utxoManagerIsInitialized;
-
-    // The wallet is considered in sync when we have both successfully initialized the
-    // utxo manager at some point and the websocket client is connected
-    bool InSync() { return _utxoManager != nullptr && _utxoManagerIsInitialized && _wsClient->isConnected(); }
 };
 
 }

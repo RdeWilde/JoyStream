@@ -10,54 +10,51 @@ BlockCypherWallet::BlockCypherWallet(QString storePath, Coin::Network network,
     _network(network),
     _restClient(restClient),
     _wsClient(wsClient),
-    _utxoManager(nullptr),
     _utxoManagerIsInitialized(false)
-{}
+{
+    _utxoManager = BlockCypher::UTXOManager::createManager(_wsClient);
 
-bool BlockCypherWallet::Create() {
-    return _store.create(_storePath, _network);
+    QObject::connect(_utxoManager, &BlockCypher::UTXOManager::balanceChanged,
+                     this, &BlockCypherWallet::BalanceChanged);
 }
 
-bool BlockCypherWallet::Create(Coin::Seed seed) {
-    return _store.create(_storePath, _network, seed, std::time(nullptr));
+void BlockCypherWallet::Create() {
+    if(!_store.create(_storePath, _network)){
+        throw std::runtime_error("unable to create store");
+    }
+}
+
+void BlockCypherWallet::Create(Coin::Seed seed) {
+    if(!_store.create(_storePath, _network, seed, std::time(nullptr))){
+        throw std::runtime_error("unable to create store");
+    }
 }
 
 void BlockCypherWallet::Open() {
 
     // Only open the store once
-    if(_store.connected()) {
+    if(!_store.connected()) {
         if(!_store.open(_storePath)) {
             throw std::runtime_error("failed to open wallet");
         }
-    }
-
-    // initialize utxo manager
-    if(!_utxoManager) {
-        _utxoManager = BlockCypher::UTXOManager::createManager(_wsClient);
-
-        QObject::connect(_utxoManager, SIGNAL(balanceChanged()),
-                         this, SIGNAL(balanceChanged()));
-    }
-
-    // make 2 attempts to initialize the utxo manager
-    if(!Sync(2)) {
-        throw std::runtime_error("unable to do initial sync");
     }
 }
 
 bool BlockCypherWallet::Sync(uint tries) {
     std::list<Coin::P2PKHAddress> addresses = _store.listReceiveAddresses();
 
-    if(!_utxoManager) return false;
+    if(addresses.size() == 0) {
+        _utxoManagerIsInitialized = true;
+    }
 
     for(uint i = 0; i < tries; i++){
         if(_utxoManager->refreshUtxoState(_restClient, addresses)) {
             _utxoManagerIsInitialized = true;
-            return true;
+            break;
         }
     }
 
-    return false;
+    return _utxoManagerIsInitialized;
 }
 
 Coin::P2PKHAddress
@@ -67,7 +64,7 @@ BlockCypherWallet::KeychainToP2PKHAddress(const Coin::HDKeychain & keychain) {
 }
 
 Coin::HDKeychain
-BlockCypherWallet::getKey(bool createReceiveAddress) {
+BlockCypherWallet::GetKey(bool createReceiveAddress) {
     Coin::HDKeychain keychain = _store.getKey(createReceiveAddress);
 
     if(createReceiveAddress)
@@ -77,7 +74,7 @@ BlockCypherWallet::getKey(bool createReceiveAddress) {
 }
 
 std::vector<Coin::HDKeychain>
-BlockCypherWallet::getKeys(uint32_t numKeys, bool createReceiveAddress) {
+BlockCypherWallet::GetKeys(uint32_t numKeys, bool createReceiveAddress) {
     std::vector<Coin::HDKeychain> keychains = _store.getKeys(numKeys, createReceiveAddress);
     if(createReceiveAddress) {
         for(auto & keychain : keychains) {
@@ -88,7 +85,7 @@ BlockCypherWallet::getKeys(uint32_t numKeys, bool createReceiveAddress) {
 }
 
 std::vector<Coin::KeyPair>
-BlockCypherWallet::getKeyPairs(uint32_t num_pairs, bool createReceiveAddress) {
+BlockCypherWallet::GetKeyPairs(uint32_t num_pairs, bool createReceiveAddress) {
     std::vector<Coin::KeyPair> keyPairs = _store.getKeyPairs(num_pairs, createReceiveAddress);
     if (createReceiveAddress) {
         for (auto & keypair : keyPairs) {
@@ -99,7 +96,7 @@ BlockCypherWallet::getKeyPairs(uint32_t num_pairs, bool createReceiveAddress) {
 }
 
 Coin::P2PKHAddress
-BlockCypherWallet::getReceiveAddress()
+BlockCypherWallet::GetReceiveAddress()
 {
     Coin::P2PKHAddress addr = _store.getReceiveAddress();
     _utxoManager->addAddress(addr);
