@@ -10,8 +10,10 @@
 
 #include <protocol/Connection.hpp>
 #include <protocol/SellerClientState.hpp>
-#include <protocol/SellerPeerState.hpp>
 #include <protocol/SellerTerms.hpp>
+#include <protocol/wire/SignRefund.hpp>
+#include <protocol/wire/Payment.hpp>
+#include <protocol/wire/RequestFullPiece.hpp>
 #include <paymentchannel/Payee.hpp>
 
 #include <queue>
@@ -27,10 +29,12 @@ namespace protocol {
 
         SellerConnection(const Connection & connection,
                          SellerClientState clientState,
-                         SellerPeerState peerState,
                          const SellerTerms & terms,
                          const joystream::paymentchannel::Payee & payee,
-                         const std::queue<uint32_t> & fullPiecesSent);
+                         const std::queue<uint32_t> & fullPiecesSent,
+                         const wire::SignRefund & lastSignRefundReceived,
+                         const wire::Payment & lastPaymentReceived,
+                         const wire::RequestFullPiece & lastRequestFullPieceReceived);
 
         // Create a (seller) connection which is fresh, i.e. has never had any message transmitted except seller mode message
         static SellerConnection sellMessageJustSent(const Connection & connection,
@@ -41,21 +45,25 @@ namespace protocol {
         // Getters
         SellerClientState clientState() const;
 
-        SellerPeerState peerState() const;
-
         SellerTerms terms() const;
 
         joystream::paymentchannel::Payee payee() const;
 
         std::queue<uint32_t> fullPiecesSent() const;
 
+        wire::SignRefund lastSignRefundReceived() const;
+        void setLastSignRefundReceived(const wire::SignRefund & lastSignRefundReceived);
+
+        wire::Payment lastPaymentReceived() const;
+        void setLastPaymentReceived(const wire::Payment & lastPaymentReceived);
+
+        wire::RequestFullPiece lastRequestFullPieceReceived() const;
+        void setLastRequestFullPieceReceived(const wire::RequestFullPiece & lastRequestFullPieceReceived);
+
     private:
 
         // State of client (us) on this connection
         SellerClientState _clientState;
-
-        // State of peer on this connection
-        SellerPeerState _peerState;
 
         // Terms used on this connection
         SellerTerms _terms;
@@ -65,6 +73,12 @@ namespace protocol {
 
         // Index of each piece sent, in the order that it was sent
         std::queue<uint32_t> _fullPiecesSent;
+
+        // Message payloads received
+        // Is updated so long as it is state compatible, content may be invalid.
+        wire::SignRefund _lastSignRefundReceived;
+        wire::Payment _lastPaymentReceived; // May be invalid, the valid payment is saved in Payee
+        wire::RequestFullPiece _lastRequestFullPieceReceived;
 
     };
 

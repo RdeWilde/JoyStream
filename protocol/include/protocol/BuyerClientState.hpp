@@ -33,6 +33,16 @@ namespace protocol {
         was_to_slow_to_sign_refund
 
         // something about not joining due to timeout????
+
+        // Bad states
+        /**
+            not_failed,
+            mode_message_time_out,
+            join_contract_time_out,
+            refund_signature_time_out,
+            refund_incorrectly_signed,
+            sent_invalid_piece, // wrong piece, or integrity not intact
+        */
     };
 
 }

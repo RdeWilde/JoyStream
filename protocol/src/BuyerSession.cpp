@@ -78,11 +78,13 @@ namespace protocol {
 
     }
 
+    /**
     std::list<std::string> BuyerSession::getInvitedSellersIdling() const {
 
 
 
     }
+
 
     int BuyerSession::inviteSellers() {
 
@@ -126,7 +128,7 @@ namespace protocol {
 
         // sort X using the comparison operator
     }
-
+*/
     /**
     quint64 Payor::minimalFunds(quint32 numberOfPiecesInTorrent, quint64 maxPrice, int numberOfSellers, quint64 feePerkB, quint64 paychanSettlementFee) {
         return paychanSettlementFee*numberOfSellers + (maxPrice*numberOfSellers)*numberOfPiecesInTorrent + computeContractFee(numberOfSellers, feePerkB);

@@ -7,12 +7,13 @@
 
 #include <protocol/Connection.hpp>
 #include <protocol/BuyerClientState.hpp>
-#include <protocol/BuyerPeerState.hpp>
 
 #include <queue>
 
 #ifndef JOYSTREAM_PROTOCOL_BUYER_CONNECTION_HPP
 #define JOYSTREAM_PROTOCOL_BUYER_CONNECTION_HPP
+
+#include <protocol/wire/JoiningContract.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -25,7 +26,7 @@ namespace protocol {
 
         BuyerConnection(const Connection & connection,
                         BuyerClientState clientState,
-                        BuyerPeerState peerState,
+                        const wire::JoiningContract & lastJoiningContractReceived,
                         const std::queue<uint32_t> & downloadedValidPieces);
 
         // Create a (buyer) connection which is fresh, i.e. has never had any message transmitted except buyer mode message
@@ -34,7 +35,7 @@ namespace protocol {
         // Getters
         BuyerClientState clientState() const;
 
-        BuyerPeerState peerState() const;
+        wire::JoiningContract lastJoiningContractReceived() const;
 
         std::queue<uint32_t> downloadedValidPieces() const;
 
@@ -46,8 +47,8 @@ namespace protocol {
         // Point in time when last invite sent
         time_t _whenLastInviteSent;
 
-        // State of peer on this connection
-        BuyerPeerState _peerState;
+        // Last joining contract message
+        wire::JoiningContract _lastJoiningContractReceived;
 
         // Indexes of valid piecesm, in the order they were downloaded
         // NB: The reason this is not in Seller, is because

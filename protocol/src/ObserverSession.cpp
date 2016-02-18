@@ -13,11 +13,9 @@
 #include <protocol/SellerSession.hpp>
 #include <protocol/SellerConnection.hpp>
 #include <protocol/SellerClientState.hpp>
-#include <protocol/SellerPeerState.hpp>
 #include <protocol/BuyerSession.hpp>
 #include <protocol/BuyerConnection.hpp>
 #include <protocol/BuyerClientState.hpp>
-#include <protocol/BuyerPeerState.hpp>
 #include <protocol/Piece.hpp>
 
 #include <cassert>
@@ -194,6 +192,7 @@ namespace protocol {
         // Create payor
         std::vector<joystream::paymentchannel::Channel> channels;
 
+        /**
         const Coin::UnspentP2PKHOutput & utxo;
 
         Coin::KeyPair changeOutputKeyPair;
@@ -217,6 +216,7 @@ namespace protocol {
                                 terms,
                                 payor,
                                 pieces);
+                                */
     }
 
 }

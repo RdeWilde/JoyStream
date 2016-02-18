@@ -16,16 +16,20 @@ namespace protocol {
 
     SellerConnection::SellerConnection(const Connection & connection,
                                        SellerClientState clientState,
-                                       SellerPeerState peerState,
                                        const SellerTerms & terms,
                                        const joystream::paymentchannel::Payee & payee,
-                                       const std::queue<uint32_t> & fullPiecesSent)
+                                       const std::queue<uint32_t> & fullPiecesSent,
+                                       const wire::SignRefund & lastSignRefundReceived,
+                                       const wire::Payment & lastPaymentReceived,
+                                       const wire::RequestFullPiece & lastRequestFullPieceReceived)
         : Connection(connection)
         , _clientState(clientState)
-        , _peerState(peerState)
         , _terms(terms)
         , _payee(payee)
-        , _fullPiecesSent(fullPiecesSent) {
+        , _fullPiecesSent(fullPiecesSent)
+        , _lastSignRefundReceived(lastSignRefundReceived)
+        , _lastPaymentReceived(lastPaymentReceived)
+        , _lastRequestFullPieceReceived(lastRequestFullPieceReceived) {
     }
 
     SellerConnection SellerConnection::sellMessageJustSent(const joystream::protocol::Connection & connection,
@@ -47,19 +51,18 @@ namespace protocol {
 
         return SellerConnection(connection,
                                 SellerClientState::seller_mode_announced,
-                                SellerPeerState(),
                                 terms,
                                 payee,
-                                std::queue<uint32_t>());
+                                std::queue<uint32_t>(),
+                                wire::SignRefund(),
+                                wire::Payment(),
+                                wire::RequestFullPiece());
     }
 
     SellerClientState SellerConnection::clientState() const {
         return _clientState;
     }
 
-    SellerPeerState SellerConnection::peerState() const {
-        return _peerState;
-    }
 
     SellerTerms SellerConnection::terms() const {
         return _terms;
@@ -71,6 +74,26 @@ namespace protocol {
 
     std::queue<uint32_t> SellerConnection::fullPiecesSent() const {
         return _fullPiecesSent;
+    }
+
+    void SellerConnection::setLastSignRefundReceived(const wire::SignRefund & lastSignRefundReceived) {
+        _lastSignRefundReceived = lastSignRefundReceived;
+    }
+
+    wire::Payment SellerConnection::lastPaymentReceived() const {
+        return _lastPaymentReceived;
+    }
+
+    void SellerConnection::setLastPaymentReceived(const wire::Payment & lastPaymentReceived) {
+        _lastPaymentReceived = lastPaymentReceived;
+    }
+
+    wire::RequestFullPiece SellerConnection::lastRequestFullPieceReceived() const {
+        return _lastRequestFullPieceReceived;
+    }
+
+    void SellerConnection::setLastRequestFullPieceReceived(const wire::RequestFullPiece & lastRequestFullPieceReceived) {
+        _lastRequestFullPieceReceived = lastRequestFullPieceReceived;
     }
 
 }

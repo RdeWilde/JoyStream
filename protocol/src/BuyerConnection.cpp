@@ -15,11 +15,11 @@ namespace protocol {
 
     BuyerConnection::BuyerConnection(const Connection & connection,
                                      BuyerClientState clientState,
-                                     BuyerPeerState peerState,
+                                     const wire::JoiningContract & lastJoiningContractReceived,
                                      const std::queue<uint32_t> & downloadedValidPieces)
         : Connection(connection)
         , _clientState(clientState)
-        , _peerState(peerState)
+        , _lastJoiningContractReceived(lastJoiningContractReceived)
         , _downloadedValidPieces(downloadedValidPieces) {
     }
 
@@ -27,7 +27,7 @@ namespace protocol {
 
         return BuyerConnection(connection,
                                BuyerClientState::buyer_mode_announced,
-                               BuyerPeerState(),
+                               wire::JoiningContract(),
                                std::queue<uint32_t>());
     }
 
@@ -35,8 +35,8 @@ namespace protocol {
         return _clientState;
     }
 
-    BuyerPeerState BuyerConnection::peerState() const {
-        return _peerState;
+    wire::JoiningContract BuyerConnection::lastJoiningContractReceived() const {
+        return _lastJoiningContractReceived;
     }
 
     std::queue<uint32_t> BuyerConnection::downloadedValidPieces() const {

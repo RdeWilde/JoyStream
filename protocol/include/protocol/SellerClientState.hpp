@@ -49,6 +49,33 @@ namespace protocol {
 
         //
         last_payment_confirmed
+
+        /**
+         * Bad States
+        not_failed,
+
+        // Time outs
+        mode_message_time_out,
+        contract_invitatio_time_out,
+        refund_signature_request_time_out,
+        announced_ready_time_out,
+
+        payment_incorrectly_signed,
+
+        //// Contract issues
+
+        // Took to long for contract to appear on network
+        contract_appearance_time_out,
+
+        // Is this really a failure mode associated with a peer? is not peer's fault.
+        //contract_confirmation_time_out,
+
+        // Make more granular later:
+        // fee to low
+        // to large
+        // etc
+        contract_invalid
+        */
     };
 
 }
