@@ -130,93 +130,36 @@ namespace protocol {
 
     SellerSession * ObserverSession::switchToSellMode(const SellerTerms & terms, uint32_t numberOfPiecesInTorrent) {
 
-        // The number of connections
-        uint numberOfConnections = _connections.size();
+        // Create (seller) session
+        SellerSession * session = SellerSession::createFreshSession(_network,
+                                                                    _removedConnectionCallbackHandler,
+                                                                    _generateKeyPairsCallbackHandler,
+                                                                    _generateP2PKHAddressesCallbackHandler,
+                                                                    terms,
+                                                                    numberOfPiecesInTorrent);
 
-        // Generate keys and addresses for (seller) connections
-        std::vector<Coin::KeyPair> payeeContractKeys = _generateKeyPairsCallbackHandler(numberOfConnections);
-        std::vector<Coin::KeyPair> payeePaymentKeys = _generateKeyPairsCallbackHandler(numberOfConnections);
+        // Add all (observer) connections to session
+        for(std::map<std::string, Connection>::const_iterator i = _connections.cbegin(); i != _connections.cend();i++)
+            session->addConnection(*i, terms, _generateKeyPairsCallbackHandler(1), _generateKeyPairsCallbackHandler(1));
 
-        // New mapping from name to (seller) connections
-        std::map<std::string, SellerConnection> connections;
-
-        // For each (observer) connection, send a sell mode message, and create a corresponding (seller) connection,
-        // and put it in the (seller) connections mapping.
-        uint sellerConnectionIndex = 0;
-        for(std::map<std::string, Connection>::const_iterator i = _connections.cbegin(); i != _connections.cend();i++,sellerConnectionIndex++) {
-
-            // Get connection
-            const Connection & c = (*i).second;
-
-            // Send sell mode message
-            wire::Sell m(terms);
-            c.sendMessageCallbackHandler()(&m);
-
-            // Create (seller) connection, and store in mapping
-            connections[c.peerName()] = SellerConnection::sellMessageJustSent(c,
-                                                                              terms,
-                                                                              payeeContractKeys[sellerConnectionIndex],
-                                                                              payeePaymentKeys[sellerConnectionIndex]);
-        }
-
-        // Create, and return, (seller) session
-        return new SellerSession(_network,
-                                 _removedConnectionCallbackHandler,
-                                 _generateKeyPairsCallbackHandler,
-                                 _generateP2PKHAddressesCallbackHandler,
-                                 connections,
-                                 terms,
-                                 numberOfPiecesInTorrent);
+        return session;
     }
 
     BuyerSession * ObserverSession::switchToBuyMode(const BuyerTerms & terms, const std::vector<Piece> & pieces) {
 
-        // New mapping from name to (seller) connections
-        std::map<std::string, BuyerConnection> connections;
+        // Create (buyer) session
+        BuyerSession * session = BuyerSession::createFreshSession(_network,
+                                                                  _removedConnectionCallbackHandler,
+                                                                  _generateKeyPairsCallbackHandler,
+                                                                  _generateP2PKHAddressesCallbackHandler,
+                                                                  terms,
+                                                                  pieces);
 
-        // For each (observer) connection, send a buy mode message, and create a corresponding (buyer) connection,
-        // and put it in the (buyer) connections mapping.
-        for(std::map<std::string, Connection>::const_iterator i = _connections.cbegin(); i != _connections.cend();i++) {
+        // Add all (observer) connections to session
+        for(std::map<std::string, Connection>::const_iterator i = _connections.cbegin(); i != _connections.cend();i++)
+            session->addConnection(*i);
 
-            // Get connection
-            const Connection & c = (*i).second;
-
-            // Send sell mode message
-            wire::Buy m(terms);
-            c.sendMessageCallbackHandler()(&m);
-
-            // Create (seller) connection, and store in mapping
-            connections[c.peerName()] = BuyerConnection::buyMessageJustSent(c);
-        }
-
-        // Create payor
-        std::vector<joystream::paymentchannel::Channel> channels;
-
-        /**
-        const Coin::UnspentP2PKHOutput & utxo;
-
-        Coin::KeyPair changeOutputKeyPair;
-
-        quint64 changeValue;
-
-        joystream::paymentchannel::Payor payor(channels,
-                                               utxo,
-                                               changeOutputKeyPair,
-                                               changeValue,
-                                               0,
-                                               Coin::Transaction());
-
-        // Create, and return, (buyer) session
-        return new BuyerSession(_network,
-                                _removedConnectionCallbackHandler,
-                                _generateKeyPairsCallbackHandler,
-                                _generateP2PKHAddressesCallbackHandler,
-                                connections,
-                                BuyerSessionState::waiting_for_full_set_of_sellers,
-                                terms,
-                                payor,
-                                pieces);
-                                */
+        return session;
     }
 
 }

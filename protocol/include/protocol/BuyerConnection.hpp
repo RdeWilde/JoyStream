@@ -5,15 +5,14 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 9 2016
  */
 
-#include <protocol/Connection.hpp>
-#include <protocol/BuyerClientState.hpp>
-
-#include <queue>
-
 #ifndef JOYSTREAM_PROTOCOL_BUYER_CONNECTION_HPP
 #define JOYSTREAM_PROTOCOL_BUYER_CONNECTION_HPP
 
+#include <protocol/Connection.hpp>
+#include <protocol/BuyerClientState.hpp>
 #include <protocol/wire/JoiningContract.hpp>
+
+#include <queue>
 
 namespace joystream {
 namespace protocol {
@@ -29,13 +28,15 @@ namespace protocol {
                         const wire::JoiningContract & lastJoiningContractReceived,
                         const std::queue<uint32_t> & downloadedValidPieces);
 
-        // Create a (buyer) connection which is fresh, i.e. has never had any message transmitted except buyer mode message
-        static BuyerConnection buyMessageJustSent(const Connection & connection);
+        // Construct connection without any prior state, i.e. has never had any message transmitted/received
+        static BuyerConnection createFreshConnection(const Connection & connection);
 
         // Getters
         BuyerClientState clientState() const;
+        void setClientState(const BuyerClientState & clientState);
 
         wire::JoiningContract lastJoiningContractReceived() const;
+        void setLastJoiningContractReceived(const wire::JoiningContract &lastJoiningContractReceived);
 
         std::queue<uint32_t> downloadedValidPieces() const;
 

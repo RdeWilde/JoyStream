@@ -23,10 +23,10 @@ namespace protocol {
         , _downloadedValidPieces(downloadedValidPieces) {
     }
 
-    BuyerConnection BuyerConnection::buyMessageJustSent(const Connection & connection) {
+    BuyerConnection BuyerConnection::createFreshConnection(const Connection & connection) {
 
         return BuyerConnection(connection,
-                               BuyerClientState::buyer_mode_announced,
+                               BuyerClientState::no_joystream_message_sent,
                                wire::JoiningContract(),
                                std::queue<uint32_t>());
     }
@@ -35,13 +35,20 @@ namespace protocol {
         return _clientState;
     }
 
+    void BuyerConnection::setClientState(const BuyerClientState & clientState) {
+        _clientState = clientState;
+    }
+
     wire::JoiningContract BuyerConnection::lastJoiningContractReceived() const {
         return _lastJoiningContractReceived;
+    }
+
+    void BuyerConnection::setLastJoiningContractReceived(const wire::JoiningContract & lastJoiningContractReceived) {
+        _lastJoiningContractReceived = lastJoiningContractReceived;
     }
 
     std::queue<uint32_t> BuyerConnection::downloadedValidPieces() const {
         return _downloadedValidPieces;
     }
-
 }
 }

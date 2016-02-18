@@ -6,12 +6,12 @@
  */
 
 #include <protocol/SellerConnection.hpp>
+#include <protocol/Utilities.hpp>
 
 namespace joystream {
 namespace protocol {
 
     SellerConnection::SellerConnection() {
-
     }
 
     SellerConnection::SellerConnection(const Connection & connection,
@@ -32,27 +32,19 @@ namespace protocol {
         , _lastRequestFullPieceReceived(lastRequestFullPieceReceived) {
     }
 
-    SellerConnection SellerConnection::sellMessageJustSent(const joystream::protocol::Connection & connection,
-                                                           const SellerTerms & terms,
-                                                           const Coin::KeyPair & payeeContractKeys,
-                                                           const Coin::KeyPair & payeePaymentKeys) {
-        joystream::paymentchannel::Payee payee(0,
-                                               terms.lock(),
-                                               terms.price(),
-                                               0,
-                                               terms.settlementFee(),
-                                               0,
-                                               Coin::typesafeOutPoint(),
-                                               payeeContractKeys,
-                                               payeePaymentKeys,
-                                               Coin::PublicKey(),
-                                               Coin::PublicKey(),
-                                               Coin::Signature());
+    SellerConnection SellerConnection::createFreshConnection(const Connection & connection,
+                                                             const SellerTerms & terms,
+                                                             const Coin::KeyPair & payeeContractKeys,
+                                                             const Coin::KeyPair & payeePaymentKeys) {
 
         return SellerConnection(connection,
-                                SellerClientState::seller_mode_announced,
+                                SellerClientState::no_joystream_message_sent,
                                 terms,
-                                payee,
+                                joystream::protocol::utilities::createPayeeForNewSeller(terms.price(),
+                                                                                        terms.lock(),
+                                                                                        terms.settlementFee(),
+                                                                                        payeeContractKeys,
+                                                                                        payeePaymentKeys),
                                 std::queue<uint32_t>(),
                                 wire::SignRefund(),
                                 wire::Payment(),
@@ -63,6 +55,9 @@ namespace protocol {
         return _clientState;
     }
 
+    void SellerConnection::setClientState(const SellerClientState & clientState) {
+        _clientState = clientState;
+    }
 
     SellerTerms SellerConnection::terms() const {
         return _terms;
@@ -95,6 +90,5 @@ namespace protocol {
     void SellerConnection::setLastRequestFullPieceReceived(const wire::RequestFullPiece & lastRequestFullPieceReceived) {
         _lastRequestFullPieceReceived = lastRequestFullPieceReceived;
     }
-
 }
 }

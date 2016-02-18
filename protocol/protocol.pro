@@ -45,7 +45,10 @@ HEADERS += \
     include/protocol/BuyerTerms.hpp \
     include/protocol/BuyerClientState.hpp \
     include/protocol/ObserverSession.hpp \
-    include/protocol/Seller.hpp
+    include/protocol/Seller.hpp \
+    include/protocol/Utilities.hpp \
+    include/protocol/BuyerPayorSettings.hpp \
+    include/protocol/BuyerChannelSettings.hpp
 
 SOURCES += \
     src/wire/ExtendedMessagePayload.cpp \
@@ -73,7 +76,9 @@ SOURCES += \
     src/Piece.cpp \
     src/SellerTerms.cpp \
     src/BuyerTerms.cpp \
-    src/Seller.cpp
+    src/Seller.cpp \
+    src/Utilities.cpp \
+    src/BuyerChannelSettings.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

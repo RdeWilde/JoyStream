@@ -36,14 +36,15 @@ namespace protocol {
                          const wire::Payment & lastPaymentReceived,
                          const wire::RequestFullPiece & lastRequestFullPieceReceived);
 
-        // Create a (seller) connection which is fresh, i.e. has never had any message transmitted except seller mode message
-        static SellerConnection sellMessageJustSent(const Connection & connection,
-                                                    const SellerTerms & terms,
-                                                    const Coin::KeyPair & payeeContractKeys,
-                                                    const Coin::KeyPair & payeePaymentKeys);
+        // Construct connection without any prior state, i.e. has never had any message transmitted/received
+        static SellerConnection createFreshConnection(const Connection & connection,
+                                                      const SellerTerms & terms,
+                                                      const Coin::KeyPair & payeeContractKeys,
+                                                      const Coin::KeyPair & payeePaymentKeys);
 
         // Getters
         SellerClientState clientState() const;
+        void setClientState(const SellerClientState & clientState);
 
         SellerTerms terms() const;
 

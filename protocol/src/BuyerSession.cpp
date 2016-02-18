@@ -6,6 +6,7 @@
  */
 
 #include <protocol/BuyerSession.hpp>
+#include <protocol/Utilities.hpp>
 #include <cassert>
 
 namespace joystream {
@@ -20,28 +21,61 @@ namespace protocol {
                                const BuyerTerms & terms,
                                const joystream::paymentchannel::Payor & payor,
                                const std::vector<Seller> & sellers,
-                               const std::vector<Piece> & pieces)
+                               const std::vector<Piece> & pieces,
+                               uint32_t assignmentLowerBound)
         : Session(Mode::buy, network, removedConnectionCallbackHandler, generateKeyPairsCallbackHandler, generateP2PKHAddressesCallbackHandler)
         , _connections(connections)
         , _state(state)
         , _terms(terms)
         , _payor(payor)
         , _sellers(sellers)
-        , _pieces(pieces) {
+        , _pieces(pieces)
+        , _assignmentLowerBound(assignmentLowerBound) {
+    }
 
+    BuyerSession * BuyerSession::createFreshSession(Coin::Network network,
+                                                  const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
+                                                  const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+                                                  const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
+                                                  const BuyerTerms & terms,
+                                                  const std::vector<Piece> & pieces) {
 
+        const std::vector<Seller> & sellers;
 
-        // _numberOfUnassignedPieces
-
-        // _namesOfConnectionsWithoutPieceAssignment
-
-        // _assignmentLowerBound
-
-        throw std::runtime_error("not yet implemented, do not forget this state init.");
+        return new BuyerSession(network,
+                                removedConnectionCallbackHandler,
+                                generateKeyPairsCallbackHandler,
+                                generateP2PKHAddressesCallbackHandler,
+                                std::map<std::string, BuyerConnection>(),
+                                BuyerSessionState::waiting_for_full_set_of_sellers,
+                                terms,
+                                joystream::protocol::utilities::createPayorForNewBuyer(const Coin::UnspentP2PKHOutput & utxo,
+                                                                                       Coin::KeyPair changeOutputKeyPair,
+                                                                                       quint64 changeValue,
+                                                                                       quint32 numberOfSellers),
+                                sellers,
+                                pieces,
+                                0);
     }
 
     void BuyerSession::addConnection(const Connection & connection) {
 
+        // Make sure connection is not already in session
+        if(_connections.find(connection.peerName()) == _connections.cend())
+            throw std::runtime_error("Connection already exists in session");
+
+        // Create a (buyer) connection which is fresh, i.e. has never had any message transmitted
+        BuyerConnection buyerConnection = BuyerConnection::createFreshConnection(connection);
+
+        // Send sell mode message
+        wire::Buy m(_terms);
+        buyerConnection.sendMessageCallbackHandler()(&m);
+
+        // Update state
+        buyerConnection.setClientState(BuyerClientState::buyer_mode_announced);
+
+        // Store in mapping
+        _connections[buyerConnection.peerName()] = buyerConnection;
     }
 
     void BuyerSession::removeConnection(const std::string & name) {
@@ -76,6 +110,14 @@ namespace protocol {
         } // else if()
 
 
+    }
+
+    uint32_t BuyerSession::assignmentLowerBound() const {
+        return _assignmentLowerBound;
+    }
+
+    void BuyerSession::setAssignmentLowerBound(uint32_t assignmentLowerBound) {
+        _assignmentLowerBound = assignmentLowerBound;
     }
 
     /**
@@ -128,7 +170,7 @@ namespace protocol {
 
         // sort X using the comparison operator
     }
-*/
+    */
     /**
     quint64 Payor::minimalFunds(quint32 numberOfPiecesInTorrent, quint64 maxPrice, int numberOfSellers, quint64 feePerkB, quint64 paychanSettlementFee) {
         return paychanSettlementFee*numberOfSellers + (maxPrice*numberOfSellers)*numberOfPiecesInTorrent + computeContractFee(numberOfSellers, feePerkB);

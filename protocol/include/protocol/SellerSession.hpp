@@ -26,6 +26,7 @@ namespace protocol {
 
     public:
 
+        // Construct fully specified session
         SellerSession(Coin::Network network,
                       const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                       const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
@@ -34,7 +35,15 @@ namespace protocol {
                       const SellerTerms & terms,
                       uint32_t numberOfPiecesInTorrent);
 
-        virtual void addConnection(const Connection & connection);
+        // Construct session without any prior state
+        static SellerSession * createFreshSession(Coin::Network network,
+                                                  const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
+                                                  const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+                                                  const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
+                                                  const SellerTerms & terms,
+                                                  uint32_t numberOfPiecesInTorrent);
+
+        virtual void addConnection(const Connection & connection, const Coin::KeyPair & payeeContractKeys, const Coin::KeyPair & payeePaymentKeys);
         virtual void removeConnection(const std::string & name);
         virtual void processMessageOnConnection(const std::string & name, const wire::ExtendedMessagePayload & message);
         virtual void tick();

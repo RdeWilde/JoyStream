@@ -28,6 +28,7 @@ namespace protocol {
 
     public:
 
+        // Construct fully specified session
         BuyerSession(Coin::Network network,
                      const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                      const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
@@ -37,7 +38,16 @@ namespace protocol {
                      const BuyerTerms & terms,
                      const joystream::paymentchannel::Payor & payor,
                      const std::vector<Seller> & sellers,
-                     const std::vector<Piece> & pieces);
+                     const std::vector<Piece> & pieces,
+                     uint32_t _assignmentLowerBound);
+
+        // Construct session without any prior state
+        static BuyerSession * createFreshSession(Coin::Network network,
+                                                 const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
+                                                 const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+                                                 const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
+                                                 const BuyerTerms & terms,
+                                                 const std::vector<Piece> & pieces);
 
         /**
         // Update terms in the same mode
@@ -58,6 +68,9 @@ namespace protocol {
         virtual void tick();
 
         //static quint64 minimalFunds(quint32 numberOfPiecesInTorrent, quint64 maxPrice, int numberOfSellers, quint64 feePerkB, quint64 paychanSettlementFee);
+
+        uint32_t assignmentLowerBound() const;
+        void setAssignmentLowerBound(uint32_t assignmentLowerBound);
 
     private:
 
@@ -82,20 +95,21 @@ namespace protocol {
         // Pieces in torrent file
         std::vector<Piece> _pieces;
 
+        // Is required to ensure in order downloading from correct position in file
+        uint32_t _assignmentLowerBound;
+
         ///////////////////////////////////////////
         /// State below is dervied from _pieces ///
         ///////////////////////////////////////////
 
         // The number of pieces which have not been downloaded and not been assigned to a connection
-        uint32_t _numberOfUnassignedPieces;
+        //uint32_t _numberOfUnassignedPieces;
 
         // Keeps track of lower bound for piece indexes which may be assigned.
         // Is updated when full pieces are downloaded contigously, and
         // is used with getNextUnassignedPiece() to find next piece to assign.
         //
-        // Is required to ensure in order downloading from correct position in file, e.g.,
-        // if user has seeked to this position recently.
-        uint32_t _assignmentLowerBound;
+
     };
 
 }
