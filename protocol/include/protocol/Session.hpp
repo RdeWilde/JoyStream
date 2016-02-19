@@ -66,6 +66,12 @@ namespace protocol {
 
         std::map<std::string, T> connections() const;
 
+        RemovedConnectionCallbackHandler removedConnectionCallbackHandler() const;
+
+        GenerateKeyPairsCallbackHandler generateKeyPairsCallbackHandler() const;
+
+        GenerateP2PKHAddressesCallbackHandler generateP2PKHAddressesCallbackHandler() const;
+
     protected:
 
         Session(Mode mode,

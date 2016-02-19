@@ -60,5 +60,19 @@ namespace protocol {
         return _connections;
     }
 
+    template <class T>
+    RemovedConnectionCallbackHandler Session<T>::removedConnectionCallbackHandler() const {
+        return _removedConnectionCallbackHandler;
+    }
+
+    template <class T>
+    GenerateKeyPairsCallbackHandler Session<T>::generateKeyPairsCallbackHandler() const {
+        return _generateKeyPairsCallbackHandler;
+    }
+
+    template <class T>
+    GenerateP2PKHAddressesCallbackHandler Session<T>::generateP2PKHAddressesCallbackHandler() const {
+        return _generateP2PKHAddressesCallbackHandler;
+    }
 }
 }
