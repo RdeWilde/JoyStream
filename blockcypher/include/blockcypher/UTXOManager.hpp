@@ -30,7 +30,7 @@ class UTXOManager : public QObject
 
 public:
 
-    static UTXOManager* createManager(WebSocketClient * wsclient);
+    static UTXOManager* createManager(WebSocketClient * wsclient, Coin::Network network);
 
     // adds address to set and sends tx_confirmation event on websocket
     bool addAddress(const Coin::P2PKHAddress & address);
@@ -51,9 +51,10 @@ public slots:
 
 private:
 
-    UTXOManager(WebSocketClient* client);
+    UTXOManager(WebSocketClient* client, Coin::Network network);
 
     WebSocketClient* _wsClient;
+    Coin::Network _network;
 
     std::set<UTXO> _unconfirmedUtxoSet;
     std::set<UTXO> _confirmedUtxoSet;

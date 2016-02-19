@@ -12,7 +12,7 @@ BlockCypherWallet::BlockCypherWallet(QString storePath, Coin::Network network,
     _wsClient(wsClient),
     _utxoManagerIsInitialized(false)
 {
-    _utxoManager = BlockCypher::UTXOManager::createManager(_wsClient);
+    _utxoManager = BlockCypher::UTXOManager::createManager(_wsClient, network);
 
     QObject::connect(_utxoManager, &BlockCypher::UTXOManager::balanceChanged,
                      this, &BlockCypherWallet::BalanceChanged);
@@ -42,6 +42,8 @@ void BlockCypherWallet::Open() {
 
 bool BlockCypherWallet::Sync(uint tries) {
     std::list<Coin::P2PKHAddress> addresses = _store.listReceiveAddresses();
+
+    _utxoManagerIsInitialized = false;
 
     if(addresses.size() == 0) {
         _utxoManagerIsInitialized = true;

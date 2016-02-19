@@ -8,10 +8,13 @@
 #include <blockcypher/UTXOManager.hpp>
 #include <blockcypher/Address.hpp>
 
+#include <common/P2PKHScriptPubKey.hpp>
+
 namespace BlockCypher {
 
-    UTXOManager::UTXOManager(WebSocketClient * wsclient)
+    UTXOManager::UTXOManager(WebSocketClient * wsclient, Coin::Network network)
         : _wsClient(wsclient),
+          _network(network),
           _balance(0),
           _balance_zero_conf(0)
     {
@@ -23,11 +26,11 @@ namespace BlockCypher {
         });
     }
 
-    UTXOManager* UTXOManager::createManager(WebSocketClient * wsClient)
+    UTXOManager* UTXOManager::createManager(WebSocketClient * wsClient, Coin::Network network)
     {
         if(!wsClient) throw std::runtime_error("UTXOManager requires a websocket client pointer");
 
-        UTXOManager* manager = new UTXOManager(wsClient);
+        UTXOManager* manager = new UTXOManager(wsClient, network);
 
         if(!manager) throw std::runtime_error("unable to create a UTXO Manager");
 
@@ -109,7 +112,7 @@ namespace BlockCypher {
             confirmations = currentBlockHeight - utxo.height() + 1;
 
             // Does it meet minimal confirmations requirement
-            if(confirmations < minConfirmations) continue;
+            if(minConfirmations > 0 && confirmations < minConfirmations) continue;
 
             selectedUtxos.insert(utxo);
             totalValue += utxo.value();
@@ -158,15 +161,28 @@ namespace BlockCypher {
         for(const TXRef &t : txrefs) {
             if(t._tx_output_n >= 0 && !t._double_spend) {
                 Coin::typesafeOutPoint outpoint(t._tx_hash, t._tx_output_n);
-                UTXO utxo(QString::fromStdString(t._addressString), outpoint, t._value, t._block_height);
-                TxResult result;
-                result.confirmations(t._confirmations);
-                if(t._spent) {
-                    result.destroys(utxo);
-                }else {
-                    result.creates(utxo);
+
+                try{
+                    // Extract the address from the output script
+                    Coin::P2PKHScriptPubKey script = Coin::P2PKHScriptPubKey::deserialize(t._script);
+                    Coin::P2PKHAddress addr(_network, script.pubKeyHash());
+
+                    UTXO utxo(addr.toBase58CheckEncoding(), outpoint, t._value, t._block_height);
+
+                    TxResult result;
+                    result.confirmations(t._confirmations);
+
+                    if(t._spent) {
+                        result.destroys(utxo);
+                    }else {
+                        result.creates(utxo);
+                    }
+
+                    results.push_back(result);
+
+                } catch(std::exception &e) {
+                    continue;
                 }
-                results.push_back(result);
             }
         }
 
