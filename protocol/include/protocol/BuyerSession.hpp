@@ -24,16 +24,16 @@ namespace protocol {
     class ObserverSession;
     class Connection;
 
-    class BuyerSession : public Session {
+    class BuyerSession : public Session<BuyerConnection> {
 
     public:
 
         // Construct fully specified session
         BuyerSession(Coin::Network network,
+                     const std::map<std::string, BuyerConnection> & connections,
                      const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                      const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                      const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-                     const std::map<std::string, BuyerConnection> & connections,
                      BuyerSessionState state,
                      const BuyerTerms & terms,
                      const joystream::paymentchannel::Payor & payor,
@@ -64,8 +64,8 @@ namespace protocol {
         // Either we paid for it, or it just came in.
         //void markPieceAsDownloadedAndValid(int index);
 
-        virtual void addConnection(const Connection & connection);
-        virtual void removeConnection(const std::string & name);
+        virtual bool addFreshConnection(const Connection & connection);
+        virtual bool removeConnection(const std::string & name);
         virtual void processMessageOnConnection(const std::string & name, const wire::ExtendedMessagePayload & message);
         virtual void tick();
 
@@ -78,9 +78,6 @@ namespace protocol {
 
         // ...
         int inviteSellers();
-
-        // Mapping peer name to corresponding connection with peer
-        std::map<std::string, BuyerConnection> _connections;
 
         // State during buy mode
         BuyerSessionState _state;

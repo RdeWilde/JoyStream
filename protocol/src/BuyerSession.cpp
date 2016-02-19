@@ -6,25 +6,24 @@
  */
 
 #include <protocol/BuyerSession.hpp>
-#include <protocol/Utilities.hpp>
+#include <protocol/wire/Buy.hpp>
 #include <cassert>
 
 namespace joystream {
 namespace protocol {
 
     BuyerSession::BuyerSession(Coin::Network network,
+                               const std::map<std::string, BuyerConnection> & connections,
                                const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                                const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                                const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-                               const std::map<std::string, BuyerConnection> & connections,
                                BuyerSessionState state,
                                const BuyerTerms & terms,
                                const joystream::paymentchannel::Payor & payor,
                                const std::vector<Seller> & sellers,
                                const std::vector<Piece> & pieces,
                                uint32_t assignmentLowerBound)
-        : Session(Mode::buy, network, removedConnectionCallbackHandler, generateKeyPairsCallbackHandler, generateP2PKHAddressesCallbackHandler)
-        , _connections(connections)
+        : Session<BuyerConnection>(Mode::buy, network, connections, removedConnectionCallbackHandler, generateKeyPairsCallbackHandler, generateP2PKHAddressesCallbackHandler)
         , _state(state)
         , _terms(terms)
         , _payor(payor)
@@ -43,23 +42,28 @@ namespace protocol {
                                                     const std::vector<Piece> & pieces) {
 
         return new BuyerSession(network,
+                                std::map<std::string, BuyerConnection>(),
                                 removedConnectionCallbackHandler,
                                 generateKeyPairsCallbackHandler,
                                 generateP2PKHAddressesCallbackHandler,
-                                std::map<std::string, BuyerConnection>(),
                                 BuyerSessionState::waiting_for_full_set_of_sellers,
                                 terms,
-                                joystream::protocol::utilities::createPayorForNewBuyer(utxo, changeAddress),
+                                joystream::paymentchannel::Payor(std::vector<joystream::paymentchannel::Channel>(),
+                                                                 utxo,
+                                                                 changeAddress,
+                                                                 0,
+                                                                 0,
+                                                                 Coin::Transaction()),
                                 std::vector<Seller>(),
                                 pieces,
                                 0);
     }
 
-    void BuyerSession::addConnection(const Connection & connection) {
+    bool BuyerSession::addFreshConnection(const Connection & connection) {
 
         // Make sure connection is not already in session
-        if(_connections.find(connection.peerName()) == _connections.cend())
-            throw std::runtime_error("Connection already exists in session");
+        if(hasConnection(connection.peerName()))
+            return false;
 
         // Create a (buyer) connection which is fresh, i.e. has never had any message transmitted
         BuyerConnection buyerConnection = BuyerConnection::createFreshConnection(connection);
@@ -71,11 +75,14 @@ namespace protocol {
         // Update state
         buyerConnection.setClientState(BuyerClientState::buyer_mode_announced);
 
-        // Store in mapping
+        // Store mapping
         _connections[buyerConnection.peerName()] = buyerConnection;
+
+        return true;
     }
 
-    void BuyerSession::removeConnection(const std::string & name) {
+    bool BuyerSession::removeConnection(const std::string & name) {
+
 
     }
 

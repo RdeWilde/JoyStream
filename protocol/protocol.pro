@@ -30,7 +30,7 @@ HEADERS += \
     include/protocol/wire/FullPiece.hpp \
     include/protocol/wire/Buy.hpp \
     include/protocol/wire/MessageType.hpp \
-    include/protocol/Session.hpp \
+    include/protocol/Session.hpp \    
     include/protocol/Connection.hpp \
     include/protocol/Mode.hpp \
     include/protocol/PeerModeAnnounced.hpp \
@@ -66,7 +66,6 @@ SOURCES += \
     src/wire/FullPiece.cpp \
     src/wire/Buy.cpp \
     src/PeerModeAnnounced.cpp \
-    src/Session.cpp \
     src/Connection.cpp \
     src/SellerSession.cpp \
     src/SellerConnection.cpp \
@@ -78,7 +77,9 @@ SOURCES += \
     src/BuyerTerms.cpp \
     src/Seller.cpp \
     src/Utilities.cpp \
-    src/BuyerChannelSettings.cpp
+    src/BuyerChannelSettings.cpp \
+    src/Session.cpp \
+
 
 # common
 INCLUDEPATH += $$PWD/../common/include

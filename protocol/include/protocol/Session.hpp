@@ -11,6 +11,7 @@
 #include <common/Network.hpp>
 #include <protocol/Mode.hpp>
 #include <functional>
+#include <map>
 #include <vector>
 
 namespace Coin {
@@ -27,6 +28,7 @@ namespace protocol {
 
     class Connection;
 
+    template <class T> // T is type of connection
     class Session {
 
     public:
@@ -45,27 +47,30 @@ namespace protocol {
         // Callback for generating a receive address
         //typedef std::function generate address
 
-        // Add connection with peer where only extended handshake has been sent
-        virtual void addConnection(const Connection & connection) = 0;
+        // Whether there is a connection with given id
+        bool hasConnection(const std::string & name) const;
 
         // Remove connection: does not result in correspondnig callback
-        virtual void removeConnection(const std::string & name) = 0;
+        virtual bool removeConnection(const std::string & name);
 
         // Process extended message: does not take ownership of message
         virtual void processMessageOnConnection(const std::string & name, const wire::ExtendedMessagePayload & message) = 0;
 
         // Perform non-reactive (that is not in response to message or control event) processing
-        virtual void tick() = 0;
+        virtual void tick();
 
         // Getters
         Mode mode() const;
 
         Coin::Network network() const;
 
+        std::map<std::string, T> connections() const;
+
     protected:
 
         Session(Mode mode,
                 Coin::Network network,
+                const std::map<std::string, T> & connections,
                 const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                 const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                 const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler);
@@ -74,6 +79,9 @@ namespace protocol {
 
         // Network
         Coin::Network _network;
+
+        // Connections
+        std::map<std::string, T> _connections;
 
         // Callback for when connection has been removed from session
         RemovedConnectionCallbackHandler _removedConnectionCallbackHandler;
@@ -84,7 +92,10 @@ namespace protocol {
         // Callback for when addresses have to be generated
         GenerateP2PKHAddressesCallbackHandler _generateP2PKHAddressesCallbackHandler;
     };
+
 }
 }
+
+#include <protocol/../../src/Session.cpp>
 
 #endif // JOYSTREAM_PROTOCOL_SESSION_HPPs

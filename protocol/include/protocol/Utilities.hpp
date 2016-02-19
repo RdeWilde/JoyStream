@@ -11,6 +11,8 @@
 #include <QtGlobal> // q primitive types
 
 namespace Coin {
+    class UnspentP2PKHOutput;
+    class P2PKHAddress;
     class KeyPair;
 }
 
@@ -29,7 +31,7 @@ namespace joystream {
          */
 
         // Payor as seen by a fresh buyer session
-        joystream::paymentchannel::Payor createPayorForNewBuyer();
+        joystream::paymentchannel::Payor createPayorForNewBuyer(const Coin::UnspentP2PKHOutput & utxo, const Coin::P2PKHAddress & changeAddress);
 
         // Payee as seen by a fresh seller connection
         joystream::paymentchannel::Payee createPayeeForNewSeller(quint64 price, quint32 lock, quint64 settlementFee, const Coin::KeyPair & payeeContractKeys, const Coin::KeyPair & payeePaymentKeys);

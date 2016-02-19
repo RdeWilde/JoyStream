@@ -12,8 +12,6 @@
 #include <protocol/SellerConnection.hpp>
 #include <protocol/SellerTerms.hpp>
 
-#include <map>
-
 namespace joystream {
 namespace protocol {
 
@@ -22,16 +20,16 @@ namespace protocol {
     class ObserverSession;
     class Connection;
 
-    class SellerSession : public Session {
+    class SellerSession : public Session<SellerConnection> {
 
     public:
 
         // Construct fully specified session
         SellerSession(Coin::Network network,
+                      const std::map<std::string, SellerConnection> & connections,
                       const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                       const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                       const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-                      const std::map<std::string, SellerConnection> & connections,
                       const SellerTerms & terms,
                       uint32_t numberOfPiecesInTorrent);
 
@@ -43,8 +41,13 @@ namespace protocol {
                                                   const SellerTerms & terms,
                                                   uint32_t numberOfPiecesInTorrent);
 
-        virtual void addConnection(const Connection & connection, const Coin::KeyPair & payeeContractKeys, const Coin::KeyPair & payeePaymentKeys);
-        virtual void removeConnection(const std::string & name);
+
+
+
+        // Add fresh connection with peer where only extended handshake has been sent
+        bool addFreshConnection(const Connection & connection, const Coin::KeyPair & payeeContractKeys, const Coin::KeyPair & payeePaymentKeys);
+
+        virtual bool removeConnection(const std::string & name);
         virtual void processMessageOnConnection(const std::string & name, const wire::ExtendedMessagePayload & message);
         virtual void tick();
 
@@ -63,9 +66,6 @@ namespace protocol {
         // pieceRead(data)
 
     private:
-
-        // Mapping peer name to corresponding connection with peer
-        std::map<std::string, SellerConnection> _connections;
 
         // Terms for selling, all new connections will have these terms,
         // all existing ones which are beyond mode state will keep their own

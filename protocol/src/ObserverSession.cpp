@@ -24,43 +24,27 @@ namespace joystream {
 namespace protocol {
 
     ObserverSession::ObserverSession(Coin::Network network,
+                                     const std::map<std::string, Connection> & connections,
                                      const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                                      const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-                                     const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-                                     const std::map<std::string, Connection> & connections)
-        : Session(Mode::observe, network, removedConnectionCallbackHandler, generateKeyPairsCallbackHandler, generateP2PKHAddressesCallbackHandler)
-        , _connections(connections) {
+                                     const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler)
+        : Session(Mode::observe, network, connections, removedConnectionCallbackHandler, generateKeyPairsCallbackHandler, generateP2PKHAddressesCallbackHandler) {
     }
 
-    void ObserverSession::addConnection(const Connection & connection) {
+    bool ObserverSession::addFreshConnection(const Connection & connection) {
 
-        // Get peer on connection
-        std::string name = connection.peerName();
-
-        // Check if we already have a with this peer
-        std::map<std::string, Connection>::iterator i = _connections.find(name);
-
-        if(i != _connections.end())
-            throw std::runtime_error("Connection already exists with for given peer.");
-
-        // Store connection
-        _connections[name] = connection;
+        // Make sure connection is new
+        if(hasConnection(connection.peerName()))
+            return false;
 
         // Send observer mode message
         wire::Observe m;
         connection.sendMessageCallbackHandler()(&m);
-    }
 
-    void ObserverSession::removeConnection(const std::string & name) {
+        // Store mapping
+        _connections[connection.peerName()] = connection;
 
-        // Check if we already have a with this peer
-        std::map<std::string, Connection>::iterator i = _connections.find(name);
-
-        if(i == _connections.end())
-            throw std::runtime_error("No connection with given peer name exist.");
-
-        // Remove connection
-        _connections.erase(i);
+        return true;
     }
 
     void ObserverSession::processMessageOnConnection(const std::string & name, const wire::ExtendedMessagePayload & message) {
@@ -124,10 +108,6 @@ namespace protocol {
 
     }
 
-    void ObserverSession::tick() {
-
-    }
-
     SellerSession * ObserverSession::switchToSellMode(const SellerTerms & terms, uint32_t numberOfPiecesInTorrent) {
 
         // Create (seller) session
@@ -140,7 +120,7 @@ namespace protocol {
 
         // Add all (observer) connections to session
         for(std::map<std::string, Connection>::const_iterator i = _connections.cbegin(); i != _connections.cend();i++)
-            session->addConnection(*i, terms, _generateKeyPairsCallbackHandler(1), _generateKeyPairsCallbackHandler(1));
+            session->addFreshConnection((*i).second, _generateKeyPairsCallbackHandler(1), _generateKeyPairsCallbackHandler(1));
 
         return session;
     }
@@ -159,7 +139,7 @@ namespace protocol {
 
         // Add all (observer) connections to session
         for(std::map<std::string, Connection>::const_iterator i = _connections.cbegin(); i != _connections.cend();i++)
-            session->addConnection(*i);
+            session->addFreshConnection((*i).second);
 
         return session;
     }

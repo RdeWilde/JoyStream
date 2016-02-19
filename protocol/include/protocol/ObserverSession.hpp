@@ -22,20 +22,20 @@ namespace protocol {
     class BuyerTerms;
     class Piece;
 
-    class ObserverSession : public Session {
+    class ObserverSession : public Session<Connection> {
 
     public:
 
         ObserverSession(Coin::Network network,
+                        const std::map<std::string, Connection> & connections,
                         const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                         const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-                        const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-                        const std::map<std::string, Connection> & connections);
+                        const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler);
 
-        virtual void addConnection(const Connection & connection);
-        virtual void removeConnection(const std::string & name);
+        // Add fresh connection with peer where only extended handshake has been sent
+        bool addFreshConnection(const Connection & connection);
+
         virtual void processMessageOnConnection(const std::string & name, const wire::ExtendedMessagePayload & message);
-        virtual void tick();
 
         // Returns session for corresponding new mode, after sending appropriate messages to all active peers,
         // and returned object is owned by callee.
@@ -43,9 +43,6 @@ namespace protocol {
         BuyerSession * switchToBuyMode(const BuyerTerms & terms, const std::vector<Piece> & pieces);
 
     private:
-
-        // Mapping peer name to corresponding connection with peer
-        std::map<std::string, Connection> _connections;
     };
 
 }
