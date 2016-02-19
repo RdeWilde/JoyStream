@@ -62,6 +62,11 @@ TXRef::TXRef(const QJsonObject & o) {
     Q_ASSERT(o["confirmations"].isDouble());
     _confirmations = o["confirmations"].toInt();
 
+    if(o.contains("script")){
+        Q_ASSERT(o["script"].isString());
+        _script = o["script"].toString().toStdString();
+    }
+
     /**
     qDebug() << "o[tx_hash].toString():" << o["tx_hash"].toString();
     qDebug() << "QString tx_hash:" << tx_hash;

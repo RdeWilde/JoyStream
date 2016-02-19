@@ -77,6 +77,9 @@ namespace BlockCypher {
         // including the block the transaction is in.
         // Unconfirmed transactions have 0 confirmations.
         uint32_t _confirmations;
+
+        // Optional Raw, hex-encoded script of this input/output.
+        std::string _script;
     };
 
 }
