@@ -46,7 +46,7 @@ namespace protocol {
                                 removedConnectionCallbackHandler,
                                 generateKeyPairsCallbackHandler,
                                 generateP2PKHAddressesCallbackHandler,
-                                BuyerSessionState::waiting_for_full_set_of_sellers,
+                                BuyerSessionState::waiting_for_full_set_of_sellers_with_signed_refund,
                                 terms,
                                 joystream::paymentchannel::Payor(std::vector<joystream::paymentchannel::Channel>(),
                                                                  utxo,
@@ -88,11 +88,32 @@ namespace protocol {
 
     void BuyerSession::processMessageOnConnection(const std::string & name, const wire::ExtendedMessagePayload & message) {
 
+        if(!hasConnection(name))
+            throw std::runtime_error("No connection with given id exists.");
+
+        // Make sure new mode messages cannot be sent that change terms of contracts underway
+        
+        
+
     }
 
     void BuyerSession::tick() {
 
-        if(_state == BuyerSessionState::waiting_for_full_set_of_sellers) {
+        if(_state == BuyerSessionState::waiting_to_decide_how_many_sellers_to_have) {
+
+            // Get current time
+            time_t now = time(0);
+
+            // if enough time has passed, decide
+            //if(_sessionStarted < )
+                return;
+
+            uint32_t numberOfSellers = determineNumberOfSellers();
+
+            // Set number of sellers
+            setNumberOfSellers(numberOfSellers);
+
+        } else if(_state == BuyerSessionState::waiting_for_full_set_of_sellers_with_signed_refund) {
 
             // for all invited to join contract: if idle, then ignore them??
 
@@ -112,8 +133,6 @@ namespace protocol {
             */
 
         } // else if()
-
-
     }
 
     uint32_t BuyerSession::assignmentLowerBound() const {
@@ -122,6 +141,22 @@ namespace protocol {
 
     void BuyerSession::setAssignmentLowerBound(uint32_t assignmentLowerBound) {
         _assignmentLowerBound = assignmentLowerBound;
+    }
+
+    uint32_t BuyerSession::determineNumberOfSellers() const {
+
+    }
+
+    void BuyerSession::setNumberOfSellers(uint32_t n) {
+
+        for(uint32_t = 0;i < n;i++) {
+
+            Seller s(Seller::State::unassigned)
+
+
+
+        }
+
     }
 
     /**

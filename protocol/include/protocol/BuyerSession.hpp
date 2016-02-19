@@ -80,6 +80,9 @@ namespace protocol {
 
     private:
 
+        uint32_t determineNumberOfSellers() const;
+        void setNumberOfSellers(uint32_t n);
+
         // ...
         int inviteSellers();
 
@@ -100,6 +103,9 @@ namespace protocol {
 
         // Is required to ensure in order downloading from correct position in file
         uint32_t _assignmentLowerBound;
+
+        // When session was started
+        time_t _sessionStarted;
 
         ///////////////////////////////////////////
         /// State below is dervied from _pieces ///
