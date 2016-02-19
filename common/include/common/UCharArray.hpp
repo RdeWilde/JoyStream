@@ -82,6 +82,6 @@ unsigned int qHash(const UCharArray<array_length> & array);
 }
 
 // Needed due to c++ needing implementation for all uses of templated types
-#include <common/../../src/FixedUCharArray.cpp>
+#include <common/../../src/UCharArray.cpp>
 
 #endif // COIN_UCHAR_ARRAY_HPP
