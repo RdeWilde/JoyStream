@@ -9,6 +9,7 @@
 #include <paymentchannel/Contract.hpp>
 #include <paymentchannel/Refund.hpp>
 #include <paymentchannel/Settlement.hpp>
+#include <common/typesafeOutPoint.hpp>
 
 namespace joystream {
 namespace paymentchannel {
@@ -37,18 +38,9 @@ namespace paymentchannel {
 
         Coin::TransactionId txId = Coin::TransactionId::fromTx(_contractTx);
 
-        // Set contract transaction id in each channel
-        for(std::vector<Channel>::iterator i = _channels.begin(), end(_channels.end()); i != end;i++) {
-
-            // Anchor in contract
-            i->setContractTxId(txId);
-
-            // Generate refund signature for payor
-            Coin::Signature sig = i->generatePayorRefundSignature();
-
-            // Save signature in channel
-            i->setPayorRefundSignature(sig);
-        }
+        // Anchor channel
+        for(quint32 i = 0; i < _channels.size(); i++)
+            _channels[i].setAnchor(Coin::typesafeOutPoint(txId, i));
     }
 
     Contract Payor::contract() const {

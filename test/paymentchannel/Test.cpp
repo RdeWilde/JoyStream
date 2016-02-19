@@ -108,14 +108,13 @@ void Test::paychan_one_to_one() {
 
     uint32_t lockTime = 1000;
 
-    channels.push_back(joystream::paymentchannel::Channel(Coin::TransactionId(), // <-- reset in anchoring
-                                                          0,
-                                                          price,
+    channels.push_back(joystream::paymentchannel::Channel(price,
                                                           0,
                                                           funds_in_channel, // total funds
                                                           0,
                                                           0,
                                                           lockTime,
+                                                          Coin::typesafeOutPoint(Coin::TransactionId(), 0), // <-- reset in anchoring
                                                           payorContractKeyPair,
                                                           payorFinalKeyPair,
                                                           payeeContractKeyPair.pk(),
@@ -125,7 +124,7 @@ void Test::paychan_one_to_one() {
 
     joystream::paymentchannel::Payor payor(channels,
                                            Coin::UnspentP2PKHOutput(Coin::KeyPair::generate(), Coin::typesafeOutPoint(), source),
-                                           Coin::KeyPair::generate(),
+                                           Coin::P2PKHAddress(),
                                            change, // change value
                                            contract_fee, // contract fee
                                            Coin::Transaction()); // <-- reset in anchoring
@@ -141,7 +140,7 @@ void Test::paychan_one_to_one() {
                                            funds_in_channel,
                                            1,
                                            1,
-                                           channel.contractOutPoint(), //
+                                           channel.anchor(),
                                            payeeContractKeyPair,
                                            payeeFinalKeyPair,
                                            payorContractKeyPair.pk(),

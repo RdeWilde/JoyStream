@@ -23,39 +23,32 @@ namespace paymentchannel {
     Channel::Channel() {
     }
 
-    Channel::Channel(const Coin::TransactionId & contractTxId,
-                     quint32 index,
-                     quint64 price,
+    Channel::Channel(quint64 price,
                      quint64 numberOfPaymentsMade,
                      quint64 funds,
                      quint64 refundFee,
                      quint64 settlementFee,
                      quint32 refundLockTime,
+                     const Coin::typesafeOutPoint & anchor,
                      const Coin::KeyPair & payorContractKeyPair,
                      const Coin::KeyPair & payorFinalKeyPair,
                      const Coin::PublicKey & payeeContractPk,
                      const Coin::PublicKey & payeeFinalPk,
                      const Coin::Signature & payorRefundSignature,
                      const Coin::Signature & payeeRefundSignature)
-        : _contractTxId(contractTxId)
-        , _index(index)
-        , _price(price)
+        : _price(price)
         , _numberOfPaymentsMade(numberOfPaymentsMade)
         , _funds(funds)
         , _refundFee(refundFee)
         , _settlementFee(settlementFee)
         , _refundLockTime(refundLockTime)
+        , _anchor(anchor)
         , _payorContractKeyPair(payorContractKeyPair)
         , _payorFinalKeyPair(payorFinalKeyPair)
         , _payeeContractPk(payeeContractPk)
         , _payeeFinalPk(payeeFinalPk)
         , _payorRefundSignature(payorRefundSignature)
         , _payeeRefundSignature(payeeRefundSignature) {
-    }
-
-    Coin::typesafeOutPoint Channel::contractOutPoint() const {
-
-        return Coin::typesafeOutPoint(_contractTxId, _index);
     }
 
     Commitment Channel::commitment() const {
@@ -65,7 +58,7 @@ namespace paymentchannel {
 
     Refund Channel::refund() const {
 
-        return Refund(contractOutPoint(),
+        return Refund(_anchor,
                       commitment(),
                       Coin::Payment(_funds - _refundFee, _payorFinalKeyPair.pk().toPubKeyHash()),
                       _refundLockTime);
@@ -73,7 +66,7 @@ namespace paymentchannel {
 
     Settlement Channel::settlement() const {
 
-        return Settlement::dustLimitAndFeeAwareSettlement(contractOutPoint(),
+        return Settlement::dustLimitAndFeeAwareSettlement(_anchor,
                                                           commitment(),
                                                           _payorFinalKeyPair.pk().toPubKeyHash(),
                                                           _payeeFinalPk.toPubKeyHash(),
@@ -113,20 +106,16 @@ namespace paymentchannel {
         return _price*_numberOfPaymentsMade;
     }
 
-    Coin::TransactionId Channel::contractTxId() const {
-      return _contractTxId;
+    Coin::typesafeOutPoint Channel::anchor() const {
+        return _anchor;
     }
 
-    void Channel::setContractTxId(const Coin::TransactionId & contractTxId) {
-      _contractTxId = contractTxId;
-    }
+    void Channel::setAnchor(const Coin::typesafeOutPoint & anchor){
 
-    quint32 Channel::index() const {
-        return _index;
-    }
+        _anchor = anchor;
 
-    void Channel::setIndex(quint32 index) {
-        _index = index;
+        // Generate refund signature for payor
+        _payorRefundSignature = generatePayorRefundSignature();
     }
 
     quint64 Channel::price() const {
@@ -151,6 +140,22 @@ namespace paymentchannel {
 
     void Channel::setFunds(quint64 funds) {
         _funds = funds;
+    }
+
+    quint64 Channel::refundFee() const {
+        return _refundFee;
+    }
+
+    void Channel::setRefundFee(quint64 refundFee) {
+        _refundFee = refundFee;
+    }
+
+    quint64 Channel::settlementFee() const {
+        return _settlementFee;
+    }
+
+    void Channel::setSettlementFee(quint64 settlementFee) {
+        _settlementFee = settlementFee;
     }
 
     Coin::KeyPair Channel::payorContractKeyPair() const {
@@ -200,22 +205,5 @@ namespace paymentchannel {
     void Channel::setPayeeRefundSignature(const Coin::Signature & payeeRefundSignature) {
         _payeeRefundSignature = payeeRefundSignature;
     }
-
-    quint64 Channel::refundFee() const {
-        return _refundFee;
-    }
-
-    void Channel::setRefundFee(quint64 refundFee) {
-        _refundFee = refundFee;
-    }
-
-    quint64 Channel::settlementFee() const {
-        return _settlementFee;
-    }
-
-    void Channel::setSettlementFee(quint64 settlementFee) {
-        _settlementFee = settlementFee;
-    }
-
 }
 }
