@@ -15,13 +15,13 @@ namespace paymentchannel {
 
     Payor::Payor(const std::vector<Channel> & channels,
                  const Coin::UnspentP2PKHOutput & utxo,
-                 const Coin::KeyPair & changeOutputKeyPair,
+                 const Coin::P2PKHAddress & changeAddress,
                  quint64 changeValue,
                  quint64 contractFee,
                  const Coin::Transaction & contractTx)
         : _channels(channels)
         , _utxo(utxo)
-        , _changeOutputKeyPair(changeOutputKeyPair)
+        , _changeAddress(changeAddress)
         , _changeValue(changeValue)
         , _contractFee(contractFee)
         , _contractTx(contractTx) {
@@ -38,13 +38,10 @@ namespace paymentchannel {
         Coin::TransactionId txId = Coin::TransactionId::fromTx(_contractTx);
 
         // Set contract transaction id in each channel
-        for(std::vector<Channel>::iterator i = _channels.begin(), end(_channels.end()); i != end;i++)
-            i->setContractTxId(txId);
-    }
-
-    void Payor::setAllPayorRefundSignatures() {
-
         for(std::vector<Channel>::iterator i = _channels.begin(), end(_channels.end()); i != end;i++) {
+
+            // Anchor in contract
+            i->setContractTxId(txId);
 
             // Generate refund signature for payor
             Coin::Signature sig = i->generatePayorRefundSignature();
@@ -63,7 +60,7 @@ namespace paymentchannel {
             commitments.push_back((*i).commitment());
 
         // Build contract
-        return Contract(_utxo, commitments, Coin::Payment(_changeValue, _changeOutputKeyPair.pk().toPubKeyHash()));
+        return Contract(_utxo, commitments, Coin::Payment(_changeValue, _changeAddress.pubKeyHash()));
     }
 
     Channel & Payor::channel(int index) {

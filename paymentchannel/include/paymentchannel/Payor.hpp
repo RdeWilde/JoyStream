@@ -9,8 +9,7 @@
 #define PAYMENT_CHANNEL_PAYOR_HPP
 
 #include <paymentchannel/Channel.hpp>
-#include <common/KeyPair.hpp>
-#include <common/Signature.hpp>
+#include <common/P2PKHAddress.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
 #include <CoinCore/CoinNodeData.h> // Coin::Transaction
 
@@ -29,24 +28,14 @@ namespace paymentchannel {
 
         Payor(const std::vector<Channel> & channels,
               const Coin::UnspentP2PKHOutput & utxo,
-              const Coin::KeyPair & changeOutputKeyPair,
+              const Coin::P2PKHAddress & changeAddress,
               quint64 changeValue,
               quint64 contractFee,
               const Coin::Transaction & contractTx);
 
-        // Anchors
-        // ===
-        // *Call after
-        // Preserves fully valid contract, so that txid
-        // can be anchor for all settelement/refund transactions.
-        // Hence making this call will invalidate
-        // any settlement/refund transactions.
+        // Preserves fully signed contract tx, and sets
+        // payor refunds for all channels.
         void anchor();
-
-        // Creates and stores all payor refund signatures
-        // ===
-        // Not sure if this is actually needed really.
-        void setAllPayorRefundSignatures();
 
         // Generates contract transaction
         Contract contract() const;
@@ -76,7 +65,7 @@ namespace paymentchannel {
         Coin::UnspentP2PKHOutput _utxo;
 
         // Controls change output in contract
-        Coin::KeyPair _changeOutputKeyPair;
+        Coin::P2PKHAddress _changeAddress;
 
         // Change amount sent back to payor,
         // this value, together with the _funds in all the slots
