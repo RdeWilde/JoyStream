@@ -13,6 +13,10 @@
 
 #include <map>
 
+namespace Coin {
+    class UnspentP2PKHOutput;
+}
+
 namespace joystream {
 namespace protocol {
 
@@ -39,8 +43,8 @@ namespace protocol {
 
         // Returns session for corresponding new mode, after sending appropriate messages to all active peers,
         // and returned object is owned by callee.
-        SellerSession * switchToSellMode(const SellerTerms & terms, uint32_t numberOfPiecesInTorrent);
-        BuyerSession * switchToBuyMode(const BuyerTerms & terms, const std::vector<Piece> & pieces);
+        SellerSession * switchToSellMode(const SellerTerms & terms, uint32_t numberOfPiecesInTorrent) const;
+        BuyerSession * switchToBuyMode(const BuyerTerms & terms, const Coin::UnspentP2PKHOutput & utxo, const std::vector<Piece> & pieces) const;
 
     private:
     };

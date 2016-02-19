@@ -43,7 +43,7 @@ namespace protocol {
 
         // Construct session based on preexisting session
         template <class T>
-        static SellerSession * convertToSession(const Session<T> * session, const SellerTerms & terms, uint32_t numberOfPiecesInTorrent);
+        static SellerSession * convertToSellerSession(const Session<T> * session, const SellerTerms & terms, uint32_t numberOfPiecesInTorrent);
 
         // Add fresh connection with peer where only extended handshake has been sent
         bool addFreshConnection(const Connection & connection, const Coin::KeyPair & payeeContractKeys, const Coin::KeyPair & payeePaymentKeys);
@@ -78,7 +78,7 @@ namespace protocol {
     };
 
     template <class T>
-    SellerSession * SellerSession::convertToSession(const Session<T> * session, const SellerTerms & terms, uint32_t numberOfPiecesInTorrent) {
+    SellerSession * SellerSession::convertToSellerSession(const Session<T> * session, const SellerTerms & terms, uint32_t numberOfPiecesInTorrent) {
 
         // Create (seller) session
         SellerSession * sellerSession = SellerSession::createFreshSession(session->network(),
@@ -87,14 +87,17 @@ namespace protocol {
                                                                           session->generateP2PKHAddressesCallbackHandler(),
                                                                           terms,
                                                                           numberOfPiecesInTorrent);
-/**
+
         // Get connections
         std::map<std::string, T> connections = session->connections();
 
-        // Add all (observer) connections to session
-        for(std::map<std::string, T>::const_iterator i = connections.cbegin(); i != connections.cend();i++)
-            session->addFreshConnection((*i).second, _generateKeyPairsCallbackHandler(1), _generateKeyPairsCallbackHandler(1));
-*/
+        // Get callback for generating key pairs
+        typename Session<T>::GenerateKeyPairsCallbackHandler handler = session->generateKeyPairsCallbackHandler();
+
+        // Add all connections to session
+        for(typename std::map<std::string, T>::const_iterator i = connections.cbegin(); i != connections.cend();i++)
+            sellerSession->addFreshConnection((*i).second, handler(1).front(), handler(1).front());
+
         return sellerSession;
     }
 }

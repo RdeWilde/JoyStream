@@ -4,6 +4,7 @@
 namespace joystream {
 namespace protocol {
 
+    /**
     BuyerChannelSettings::BuyerChannelSettings() {
 
     }
@@ -12,6 +13,7 @@ namespace protocol {
 
 
     }
+    */
 
 }
 }

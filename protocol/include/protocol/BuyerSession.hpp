@@ -51,6 +51,10 @@ namespace protocol {
                                                  const Coin::P2PKHAddress & changeAddress,
                                                  const std::vector<Piece> & pieces);
 
+        // Construct session based on preexisting session
+        template <class T>
+        static BuyerSession * convertToBuyerSession(const Session<T> * session, const BuyerTerms & terms, const Coin::UnspentP2PKHOutput & utxo, const std::vector<Piece> & pieces);
+
         /**
         // Update terms in the same mode
         void updateTerms(const Terms & terms);
@@ -110,6 +114,32 @@ namespace protocol {
         //
 
     };
+
+    template <class T>
+    BuyerSession * BuyerSession::convertToBuyerSession(const Session<T> * session, const BuyerTerms & terms, const Coin::UnspentP2PKHOutput & utxo, const std::vector<Piece> & pieces) {
+
+        // Get callback for generating addresses
+        typename Session<T>::GenerateP2PKHAddressesCallbackHandler handler = session->generateP2PKHAddressesCallbackHandler();
+
+        // Create (buyer) session
+        BuyerSession * buyerSession = BuyerSession::createFreshSession(session->network(),
+                                                                       session->removedConnectionCallbackHandler(),
+                                                                       session->generateKeyPairsCallbackHandler(),
+                                                                       handler,
+                                                                       terms,
+                                                                       utxo,
+                                                                       handler(1).front(),
+                                                                       pieces);
+
+        // Get connections
+        std::map<std::string, T> connections = session->connections();
+
+        // Add all connections to session
+        for(typename std::map<std::string, T>::const_iterator i = connections.cbegin(); i != connections.cend();i++)
+            buyerSession->addFreshConnection((*i).second);
+
+        return buyerSession;
+    }
 
 }
 }
