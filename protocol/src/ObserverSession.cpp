@@ -109,20 +109,7 @@ namespace protocol {
     }
 
     SellerSession * ObserverSession::switchToSellMode(const SellerTerms & terms, uint32_t numberOfPiecesInTorrent) {
-
-        // Create (seller) session
-        SellerSession * session = SellerSession::createFreshSession(_network,
-                                                                    _removedConnectionCallbackHandler,
-                                                                    _generateKeyPairsCallbackHandler,
-                                                                    _generateP2PKHAddressesCallbackHandler,
-                                                                    terms,
-                                                                    numberOfPiecesInTorrent);
-
-        // Add all (observer) connections to session
-        for(std::map<std::string, Connection>::const_iterator i = _connections.cbegin(); i != _connections.cend();i++)
-            session->addFreshConnection((*i).second, _generateKeyPairsCallbackHandler(1), _generateKeyPairsCallbackHandler(1));
-
-        return session;
+        return SellerSession::convertToSession(this, terms, numberOfPiecesInTorrent);
     }
 
     BuyerSession * ObserverSession::switchToBuyMode(const BuyerTerms & terms, const Coin::UnspentP2PKHOutput & utxo, const std::vector<Piece> & pieces) {
