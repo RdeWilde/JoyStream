@@ -217,6 +217,9 @@ AddressEndPoint::Reply * Client::addressEndPointAsync(const QString & walletName
     if(confirmations != -1) // indicates we don care
         basic_request_uri += "&confirmations=" + confirmations;
 
+    // include script
+    basic_request_uri += "&includeScript=true";
+
     // Make GET request
     QNetworkReply * reply = get(basic_request_uri);
 
