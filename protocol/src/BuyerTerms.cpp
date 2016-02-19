@@ -5,6 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 16 2016
  */
 #include <protocol/BuyerTerms.hpp>
+#include <protocol/SellerTerms.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -18,6 +19,10 @@ namespace protocol {
         , _minNumberOfSellers(minNumberOfSellers)
         , _maxContractFeePerKb(maxContractFeePerKb)
         , _refundFee(refundFee) {
+    }
+
+    bool BuyerTerms::satisfiedBy(const SellerTerms & terms) const {
+        return terms.satisfiedBy(*this);
     }
 
     quint64 BuyerTerms::maxPrice() const {

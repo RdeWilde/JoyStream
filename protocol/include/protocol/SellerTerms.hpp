@@ -16,6 +16,8 @@
 namespace joystream {
 namespace protocol {
 
+    class BuyerTerms;
+
     // Terms in sell mode message
     class SellerTerms {
 
@@ -29,7 +31,7 @@ namespace protocol {
 
         SellerTerms();
 
-        SellerTerms(quint64 price, quint32 lock, quint32 maxSellers, quint64 minContractFeePerKb, quint64 settlementFee);
+        SellerTerms(quint64 minPrice, quint32 lock, quint32 maxSellers, quint64 minContractFeePerKb, quint64 settlementFee);
 
         // Policy contingent comparison of terms
         static bool compare(OrderingPolicy policy, const SellerTerms & lhs, const SellerTerms & rhs);
@@ -37,8 +39,10 @@ namespace protocol {
         // Comparator bound to given policy, is useful for STL based sorting
         std::function<bool (const SellerTerms & lhs, const SellerTerms & rhs)> comparator(OrderingPolicy policy);
 
-        quint64 price() const;
-        void setPrice(quint64 price);
+        bool satisfiedBy(const BuyerTerms & terms) const;
+
+        quint64 minPrice() const;
+        void setMinPrice(quint64 minPrice);
 
         quint32 lock() const;
         void setLock(quint32 lock);
@@ -56,11 +60,11 @@ namespace protocol {
 
         // Piece price (satoshies)
         //int64_t _price;
-        quint64 _price;
+        quint64 _minPrice;
 
         // When refund is spendable at the earliest (***UNITS?***)
         //uint32_t _lock;
-        quint32 _lock;
+        quint32 _minLock;
 
         // Maximum number of sellers accepted in contract
         //uint32_t _maxSellers;

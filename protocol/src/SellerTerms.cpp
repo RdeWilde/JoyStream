@@ -6,6 +6,7 @@
  */
 
 #include <protocol/SellerTerms.hpp>
+#include <protocol/BuyerTerms.hpp>
 #include <cassert>
 
 namespace joystream {
@@ -16,8 +17,8 @@ namespace protocol {
     }
 
     SellerTerms::SellerTerms(quint64 price, quint32 lock, quint32 maxSellers, quint64 minContractFeePerKb, quint64 settlementFee)
-        : _price(price)
-        , _lock(lock)
+        : _minPrice(price)
+        , _minLock(lock)
         , _maxSellers(maxSellers)
         , _minContractFeePerKb(minContractFeePerKb)
         , _settlementFee(settlementFee) {
@@ -27,7 +28,7 @@ namespace protocol {
 
         switch(policy) {
             case OrderingPolicy::random: throw std::runtime_error("not yet implemented");
-            case OrderingPolicy::min_price: return lhs.price() < rhs.price();
+            case OrderingPolicy::min_price: return lhs.minPrice() < rhs.minPrice();
             default:
                 assert(false);
         }
@@ -39,20 +40,27 @@ namespace protocol {
         //SellerTerms::comparator()
     }
 
-    quint64 SellerTerms::price() const {
-        return _price;
+    bool SellerTerms::satisfiedBy(const BuyerTerms & terms) const {
+        return _minPrice <= terms.maxPrice() &&
+               _minLock <= terms.maxLock() &&
+               _maxSellers >= terms.minNumberOfSellers() &&
+               _minContractFeePerKb <= terms.maxContractFeePerKb();
     }
 
-    void SellerTerms::setPrice(quint64 price) {
-        _price = price;
+    quint64 SellerTerms::minPrice() const {
+        return _minPrice;
+    }
+
+    void SellerTerms::setMinPrice(quint64 price) {
+        _minPrice = price;
     }
 
     quint32 SellerTerms::lock() const {
-        return _lock;
+        return _minLock;
     }
 
     void SellerTerms::setLock(quint32 lock) {
-        _lock = lock;
+        _minLock = lock;
     }
 
     quint32 SellerTerms::maxSellers() const {

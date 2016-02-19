@@ -40,7 +40,7 @@ namespace protocol {
         return SellerConnection(connection,
                                 SellerClientState::no_joystream_message_sent,
                                 terms,
-                                joystream::protocol::utilities::createPayeeForNewSeller(terms.price(),
+                                joystream::protocol::utilities::createPayeeForNewSeller(terms.minPrice(),
                                                                                         terms.lock(),
                                                                                         terms.settlementFee(),
                                                                                         payeeContractKeys,

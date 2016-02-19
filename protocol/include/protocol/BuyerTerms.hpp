@@ -14,6 +14,8 @@
 namespace joystream {
 namespace protocol {
 
+    class SellerTerms;
+
     // Terms in buy mode message
     class BuyerTerms {
 
@@ -22,6 +24,8 @@ namespace protocol {
         BuyerTerms();
 
         BuyerTerms(quint64 maxPrice, quint32 maxLock, quint32 minNumberOfSellers, quint64 maxContractFeePerKb, quint64 refundFee);
+
+        bool satisfiedBy(const SellerTerms & terms) const;
 
         quint64 maxPrice() const;
         void setMaxPrice(quint64 maxPrice);
