@@ -47,6 +47,8 @@ namespace protocol {
                                                  const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                                                  const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
                                                  const BuyerTerms & terms,
+                                                 const Coin::UnspentP2PKHOutput & utxo,
+                                                 const Coin::P2PKHAddress & changeAddress,
                                                  const std::vector<Piece> & pieces);
 
         /**

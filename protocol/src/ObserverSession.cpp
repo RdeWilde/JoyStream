@@ -145,7 +145,7 @@ namespace protocol {
         return session;
     }
 
-    BuyerSession * ObserverSession::switchToBuyMode(const BuyerTerms & terms, const std::vector<Piece> & pieces) {
+    BuyerSession * ObserverSession::switchToBuyMode(const BuyerTerms & terms, const Coin::UnspentP2PKHOutput & utxo, const std::vector<Piece> & pieces) {
 
         // Create (buyer) session
         BuyerSession * session = BuyerSession::createFreshSession(_network,
@@ -153,6 +153,8 @@ namespace protocol {
                                                                   _generateKeyPairsCallbackHandler,
                                                                   _generateP2PKHAddressesCallbackHandler,
                                                                   terms,
+                                                                  _generateP2PKHAddressesCallbackHandler(1),
+                                                                  utxo,
                                                                   pieces);
 
         // Add all (observer) connections to session

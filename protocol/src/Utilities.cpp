@@ -13,26 +13,12 @@ namespace joystream {
 namespace protocol {
 namespace utilities {
 
-    joystream::paymentchannel::Payor createPayorForNewBuyer(const Coin::UnspentP2PKHOutput & utxo, Coin::KeyPair changeOutputKeyPair, quint64 changeValue, quint32 numberOfSellers) {
+    joystream::paymentchannel::Payor createPayorForNewBuyer(const Coin::UnspentP2PKHOutput & utxo, const Coin::P2PKHAddress & changeAddress) {
 
-        // min_funds per channel = max( dust limit + fee required to refund output, being able to pay fo full thing at my own price point with one channel)
-        // use total utxo balance and changevalue to figure out if we have neough to cover min_funds*#channels
-        // coin::keypair payorcontractkeypair
-        // coin::keypair payor finalkeypair
-
-        const Coin::UnspentP2PKHOutput & utxo;
-
-        Coin::KeyPair changeOutputKeyPair;
-
-        quint64 changeValue;
-
-
-        joystream::paymentchannel::Channel channel();
-
-        return joystream::paymentchannel::Payor(channels,
+        return joystream::paymentchannel::Payor(std::vector<joystream::paymentchannel::Channel>(),
                                                 utxo,
-                                                changeOutputKeyPair,
-                                                changeValue,
+                                                changeAddress,
+                                                0,
                                                 0,
                                                 Coin::Transaction());
     }
@@ -52,9 +38,6 @@ namespace utilities {
                                                 Coin::PublicKey(),
                                                 Coin::Signature());
     }
-
-
-
 
 }
 }

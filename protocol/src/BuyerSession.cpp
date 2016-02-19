@@ -34,13 +34,13 @@ namespace protocol {
     }
 
     BuyerSession * BuyerSession::createFreshSession(Coin::Network network,
-                                                  const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
-                                                  const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-                                                  const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-                                                  const BuyerTerms & terms,
-                                                  const std::vector<Piece> & pieces) {
-
-        const std::vector<Seller> & sellers;
+                                                    const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
+                                                    const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+                                                    const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
+                                                    const BuyerTerms & terms,
+                                                    const Coin::UnspentP2PKHOutput & utxo,
+                                                    const Coin::P2PKHAddress & changeAddress,
+                                                    const std::vector<Piece> & pieces) {
 
         return new BuyerSession(network,
                                 removedConnectionCallbackHandler,
@@ -49,11 +49,8 @@ namespace protocol {
                                 std::map<std::string, BuyerConnection>(),
                                 BuyerSessionState::waiting_for_full_set_of_sellers,
                                 terms,
-                                joystream::protocol::utilities::createPayorForNewBuyer(const Coin::UnspentP2PKHOutput & utxo,
-                                                                                       Coin::KeyPair changeOutputKeyPair,
-                                                                                       quint64 changeValue,
-                                                                                       quint32 numberOfSellers),
-                                sellers,
+                                joystream::protocol::utilities::createPayorForNewBuyer(utxo, changeAddress),
+                                std::vector<Seller>(),
                                 pieces,
                                 0);
     }
@@ -121,12 +118,18 @@ namespace protocol {
     }
 
     /**
+    int BuyerSession::computeNumberOfSellers () {
+
+        // min_funds per channel = max( dust limit + fee required to refund output, being able to pay fo full thing at my own price point with one channel)
+        // use total utxo balance and changevalue to figure out if we have neough to cover min_funds*#channels
+
+    }
+
     std::list<std::string> BuyerSession::getInvitedSellersIdling() const {
 
 
 
     }
-
 
     int BuyerSession::inviteSellers() {
 
