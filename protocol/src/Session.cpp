@@ -61,17 +61,17 @@ namespace protocol {
     }
 
     template <class T>
-    RemovedConnectionCallbackHandler Session<T>::removedConnectionCallbackHandler() const {
+    typename Session<T>::RemovedConnectionCallbackHandler Session<T>::removedConnectionCallbackHandler() const {
         return _removedConnectionCallbackHandler;
     }
 
     template <class T>
-    GenerateKeyPairsCallbackHandler Session<T>::generateKeyPairsCallbackHandler() const {
+    typename Session<T>::GenerateKeyPairsCallbackHandler Session<T>::generateKeyPairsCallbackHandler() const {
         return _generateKeyPairsCallbackHandler;
     }
 
     template <class T>
-    GenerateP2PKHAddressesCallbackHandler Session<T>::generateP2PKHAddressesCallbackHandler() const {
+    typename Session<T>::GenerateP2PKHAddressesCallbackHandler Session<T>::generateP2PKHAddressesCallbackHandler() const {
         return _generateP2PKHAddressesCallbackHandler;
     }
 }
