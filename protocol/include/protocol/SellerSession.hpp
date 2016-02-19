@@ -77,26 +77,25 @@ namespace protocol {
         uint32_t _numberOfPiecesInTorrent;
     };
 
-
     template <class T>
     SellerSession * SellerSession::convertToSession(const Session<T> * session, const SellerTerms & terms, uint32_t numberOfPiecesInTorrent) {
 
         // Create (seller) session
-        SellerSession * session = SellerSession::createFreshSession(session->network(),
-                                                                    //session->re_removedConnectionCallbackHandler,
-                                                                    //_generateKeyPairsCallbackHandler,
-                                                                    //_generateP2PKHAddressesCallbackHandler,
-                                                                    terms,
-                                                                    numberOfPiecesInTorrent);
-
+        SellerSession * sellerSession = SellerSession::createFreshSession(session->network(),
+                                                                          session->removedConnectionCallbackHandler(),
+                                                                          session->generateKeyPairsCallbackHandler(),
+                                                                          session->generateP2PKHAddressesCallbackHandler(),
+                                                                          terms,
+                                                                          numberOfPiecesInTorrent);
+/**
         // Get connections
         std::map<std::string, T> connections = session->connections();
 
         // Add all (observer) connections to session
         for(std::map<std::string, T>::const_iterator i = connections.cbegin(); i != connections.cend();i++)
             session->addFreshConnection((*i).second, _generateKeyPairsCallbackHandler(1), _generateKeyPairsCallbackHandler(1));
-
-        return session;
+*/
+        return sellerSession;
     }
 }
 }
