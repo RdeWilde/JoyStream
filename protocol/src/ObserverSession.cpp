@@ -31,6 +31,18 @@ namespace protocol {
         : Session(Mode::observe, network, connections, removedConnectionCallbackHandler, generateKeyPairsCallbackHandler, generateP2PKHAddressesCallbackHandler) {
     }
 
+    ObserverSession * ObserverSession::createFreshSession(Coin::Network network,
+                                                          const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
+                                                          const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+                                                          const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler) {
+
+        return new ObserverSession(network,
+                                   std::map<std::string, Connection>(),
+                                   removedConnectionCallbackHandler,
+                                   generateKeyPairsCallbackHandler,
+                                   generateP2PKHAddressesCallbackHandler);
+    }
+
     bool ObserverSession::addFreshConnection(const Connection & connection) {
 
         // Make sure connection is new

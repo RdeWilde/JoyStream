@@ -11,8 +11,6 @@
 #include <protocol/Session.hpp>
 #include <protocol/Connection.hpp>
 
-#include <map>
-
 namespace Coin {
     class UnspentP2PKHOutput;
 }
@@ -30,11 +28,22 @@ namespace protocol {
 
     public:
 
+        // Construct fully specified session
         ObserverSession(Coin::Network network,
                         const std::map<std::string, Connection> & connections,
                         const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                         const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                         const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler);
+
+        // Construct session without any prior state
+        static ObserverSession * createFreshSession(Coin::Network network,
+                                                    const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
+                                                    const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+                                                    const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler);
+
+        // Construct session based on preexisting session
+        template <class T>
+        static ObserverSession * convertToObserverSession(const Session<T> * session);
 
         // Add fresh connection with peer where only extended handshake has been sent
         bool addFreshConnection(const Connection & connection);
@@ -48,6 +57,27 @@ namespace protocol {
 
     private:
     };
+
+    // Construct session based on preexisting session
+    template <class T>
+    ObserverSession * ObserverSession::convertToObserverSession(const Session<T> * session) {
+
+        // Create (observer) session
+        ObserverSession * observerSession = ObserverSession::createFreshSession(session->network(),
+                                                                                session->removedConnectionCallbackHandler(),
+                                                                                session->generateKeyPairsCallbackHandler(),
+                                                                                session->generateP2PKHAddressesCallbackHandler());
+
+        // Get connections
+        std::map<std::string, T> connections = session->connections();
+
+        // Add all connections to session
+        for(typename std::map<std::string, T>::const_iterator i = connections.cbegin(); i != connections.cend();i++)
+            observerSession->addFreshConnection((*i).second);
+
+        return observerSession;
+
+    }
 
 }
 }
