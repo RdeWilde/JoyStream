@@ -163,7 +163,10 @@ namespace BlockCypher {
                 Coin::typesafeOutPoint outpoint(t._tx_hash, t._tx_output_n);
 
                 try{
-                    // Extract the address from the output script
+                    // If we were querying blockcypher with a wallet name each TXRef would contain
+                    // an address property. However since we are doing a call to a batch of addresses
+                    // this property it not set and we have to
+                    // extract the address from the output script
                     Coin::P2PKHScriptPubKey script = Coin::P2PKHScriptPubKey::deserialize(t._script);
                     Coin::P2PKHAddress addr(_network, script.pubKeyHash());
 
