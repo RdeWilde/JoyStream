@@ -56,16 +56,15 @@ namespace BlockCypher {
         return batches;
     }
 
-    std::vector<TXRef> UTXOManager::fetchTxRefs(Client * restClient, const std::vector<QString> & batches) {
-        std::vector<TXRef> txrefs;
+    std::vector<Address> UTXOManager::fetchAddresses(Client * restClient, const std::vector<QString> & batches) {
+        std::vector<Address> addresses;
 
         for(const QString & batch : batches) {
-            Address response = restClient->addressEndPoint(batch);
-            txrefs.insert(txrefs.end(), response._txrefs.begin(), response._txrefs.end());
-            txrefs.insert(txrefs.end(), response._unconfirmed_txrefs.begin(), response._unconfirmed_txrefs.end());
+            std::vector<Address> response = restClient->addressEndPoint(batch);
+            addresses.insert(addresses.end(), response.begin(), response.end());
         }
 
-        return txrefs;
+        return addresses;
     }
 
     bool UTXOManager::refreshUtxoState(Client* restClient, const std::list<Coin::P2PKHAddress> &p2pkhaddresses) {
@@ -75,15 +74,15 @@ namespace BlockCypher {
         for(auto & addr : p2pkhaddresses)
             addresses.insert(addr.toBase58CheckEncoding());
 
-        std::vector<TXRef> txrefs;
+        std::vector<Address> fetchedAddresses;
 
         try {
-            txrefs = fetchTxRefs(restClient, batchAddresses(addresses));
+            fetchedAddresses = fetchAddresses(restClient, batchAddresses(addresses));
         } catch(std::exception &e) {
             return false;
         }
 
-        std::vector<TxResult> results = processTxRefs(txrefs);
+        std::vector<TxResult> results = processTxRefs(fetchedAddresses);
 
         _unconfirmedUtxoSet.clear();
         _confirmedUtxoSet.clear();
@@ -155,40 +154,42 @@ namespace BlockCypher {
         for(auto & utxo : utxos) _lockedUtxoSet.insert(utxo);
     }
 
-    std::vector<TxResult> UTXOManager::processTxRefs(const std::vector<TXRef> &txrefs) {
+    std::vector<TxResult> UTXOManager::processTxRefs(const std::vector<Address> &addresses) {
         std::vector<TxResult> results;
 
-        for(const TXRef &t : txrefs) {
-            if(t._tx_output_n >= 0 && !t._double_spend) {
-                Coin::typesafeOutPoint outpoint(t._tx_hash, t._tx_output_n);
+        for(const Address & address : addresses) {
 
-                try{
-                    // If we were querying blockcypher with a wallet name each TXRef would contain
-                    // an address property. However since we are doing a call to a batch of addresses
-                    // this property it not set and we have to
-                    // extract the address from the output script
-                    Coin::P2PKHScriptPubKey script = Coin::P2PKHScriptPubKey::deserialize(t._script);
-                    Coin::P2PKHAddress addr(_network, script.pubKeyHash());
+            std::vector<TXRef> txrefs;
+            txrefs.insert(txrefs.end(), address._txrefs.begin(), address._txrefs.end());
+            txrefs.insert(txrefs.end(), address._unconfirmed_txrefs.begin(), address._unconfirmed_txrefs.end());
 
-                    UTXO utxo(addr.toBase58CheckEncoding(), outpoint, t._value, t._block_height);
+            for(const TXRef &t : txrefs) {
+                if(t._tx_output_n >= 0 && !t._double_spend) {
+                    Coin::typesafeOutPoint outpoint(t._tx_hash, t._tx_output_n);
 
-                    TxResult result;
-                    result.confirmations(t._confirmations);
+                    try{
+                        Coin::P2PKHScriptPubKey script = Coin::P2PKHScriptPubKey::deserialize(t._script);
+                        Coin::P2PKHAddress addr(_network, script.pubKeyHash());
 
-                    if(t._spent) {
-                        result.destroys(utxo);
-                    }else {
-                        result.creates(utxo);
+                        UTXO utxo(addr.toBase58CheckEncoding(), outpoint, t._value, t._block_height);
+
+                        TxResult result;
+                        result.confirmations(t._confirmations);
+
+                        if(t._spent) {
+                            result.destroys(utxo);
+                        }else {
+                            result.creates(utxo);
+                        }
+
+                        results.push_back(result);
+
+                    } catch(std::exception &e) {
+                        continue;
                     }
-
-                    results.push_back(result);
-
-                } catch(std::exception &e) {
-                    continue;
                 }
             }
         }
-
         return results;
     }
 

@@ -69,13 +69,13 @@ private:
 
     static std::vector<QString> batchAddresses(const std::set<QString> &addresses);
 
-    std::vector<TXRef> fetchTxRefs(Client * restClient, const std::vector<QString> &batches);
+    std::vector<Address> fetchAddresses(Client * restClient, const std::vector<QString> &batches);
 
     // routine to handle TX payload from blockcypher
     TxResult processTx(const TX &tx);
 
     // routine to handle vector of TXRef from blockcypher
-    std::vector<TxResult> processTxRefs(const std::vector<TXRef> &txrefs);
+    std::vector<TxResult> processTxRefs(const std::vector<Address> &addresses);
 
     bool hasAddress(const QString &address);
 

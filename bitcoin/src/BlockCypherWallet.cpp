@@ -9,8 +9,7 @@ BlockCypherWallet::BlockCypherWallet(QString storePath, Coin::Network network,
     _storePath(storePath.toStdString()),
     _network(network),
     _restClient(restClient),
-    _wsClient(wsClient),
-    _utxoManagerIsInitialized(false)
+    _wsClient(wsClient)
 {
     _utxoManager = BlockCypher::UTXOManager::createManager(_wsClient, network);
 
@@ -43,20 +42,17 @@ void BlockCypherWallet::Open() {
 bool BlockCypherWallet::Sync(uint tries) {
     std::list<Coin::P2PKHAddress> addresses = _store.listReceiveAddresses();
 
-    _utxoManagerIsInitialized = false;
-
-    if(addresses.size() == 0) {
-        _utxoManagerIsInitialized = true;
+    if(addresses.size() == 0 || tries == 0) {
+        return true;
     }
 
     for(uint i = 0; i < tries; i++){
         if(_utxoManager->refreshUtxoState(_restClient, addresses)) {
-            _utxoManagerIsInitialized = true;
-            break;
+            return true;
         }
     }
 
-    return _utxoManagerIsInitialized;
+    return false;
 }
 
 Coin::P2PKHAddress

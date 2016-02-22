@@ -78,7 +78,7 @@ namespace AddressEndPoint {
 
         BlockCypherResponse response() const;
 
-        Address address() const;
+        std::vector<Address> addresses() const;
 
     public slots:
 
@@ -104,7 +104,7 @@ namespace AddressEndPoint {
         BlockCypherResponse _response;
 
         // Address object for wallet
-        Address _address;
+        std::vector<Address> _addresses;
 
         //QJsonObject _error;
     };

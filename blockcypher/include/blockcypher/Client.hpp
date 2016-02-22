@@ -135,7 +135,7 @@ namespace BlockCypher {
         AddressEndPoint::Reply * addressEndPointAsync(const QString & walletName, bool unspentOnly = true, uint limit = 200, uint confirmations = -1);
 
         // Add new addresses in given wallet to wallet, returns new total wallet
-        Address addressEndPoint(const QString & walletName, bool unspentOnly = true, uint limit = 200, uint confirmations = -1);
+        std::vector<Address> addressEndPoint(const QString & walletName, bool unspentOnly = true, uint limit = 200, uint confirmations = -1);
 
         /**
          * PUSH RAW TRANSACTION

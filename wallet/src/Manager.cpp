@@ -1240,7 +1240,7 @@ BlockCypher::Address Manager::BLOCKCYPHER_rebuild_utxo() {
     _mutex.lock();
 
     // (synchrnously) fetch address object for given wallet
-    BlockCypher::Address address = _BLOCKCYPHER_client->addressEndPoint(_BLOCKCYPHER_walletName);
+    BlockCypher::Address address = *_BLOCKCYPHER_client->addressEndPoint(_BLOCKCYPHER_walletName).begin();
 
     // Clear out utxo
     _BLOCKCYPHER_utxo.clear();
