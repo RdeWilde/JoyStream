@@ -60,6 +60,9 @@ namespace BlockCypher {
         // Whether WebSocket is connected with server
         bool isConnected() const;
 
+        // Network client is configured for
+        Coin::Network network() const { return _network; }
+
     signals:
 
         // Connected to server
@@ -109,6 +112,9 @@ namespace BlockCypher {
         // Endpoint to which we should connect,
         // is set based on the Network set in constructor
         QUrl webSocketEndpoint;
+
+        // Network for which we are communicating with
+        Coin::Network _network;
 
         // Drives ping message sending.
         // It fires all the time, its the sending

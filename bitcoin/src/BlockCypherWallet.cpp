@@ -11,6 +11,11 @@ BlockCypherWallet::BlockCypherWallet(QString storePath, Coin::Network network,
     _restClient(restClient),
     _wsClient(wsClient)
 {
+    // Make sure the clients are talking to the correct network
+    if(network != _wsClient->network() || network != _restClient->network()) {
+        throw std::runtime_error("client network mistmatch");
+    }
+
     _utxoManager = BlockCypher::UTXOManager::createManager(_wsClient, network);
 
     QObject::connect(_utxoManager, &BlockCypher::UTXOManager::balanceChanged,
@@ -35,6 +40,10 @@ void BlockCypherWallet::Open() {
     if(!_store.connected()) {
         if(!_store.open(_storePath)) {
             throw std::runtime_error("failed to open wallet");
+        }
+
+        if(_network != _store.network()){
+            throw std::runtime_error("store network type mistmatch");
         }
     }
 }

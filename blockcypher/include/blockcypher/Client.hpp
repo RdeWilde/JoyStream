@@ -164,6 +164,9 @@ namespace BlockCypher {
         QNetworkReply * get(const QString & url);
         QNetworkReply * deleteResource(const QString & url);
 
+        // Network for which we are communicating with
+        Coin::Network network() const { return _network; }
+
     private:
 
         // Blocks until error() or finished() signal arrives

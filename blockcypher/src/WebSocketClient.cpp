@@ -20,7 +20,7 @@
 namespace BlockCypher {
 
     WebSocketClient::WebSocketClient(Coin::Network network, QString token)
-        : webSocketEndpoint(endPoint(network)), _apiToken(token) {
+        : _network(network), webSocketEndpoint(endPoint(network)), _apiToken(token) {
 
         // Capture signals and use a
         QObject::connect(&_pingTimer, &QTimer::timeout, [this](){ sendPing(); });

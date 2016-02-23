@@ -14,8 +14,7 @@ class BlockCypherWallet : public QObject
     Q_OBJECT
 
 public:
-    BlockCypherWallet(QString storePath,
-                      Coin::Network network,
+    BlockCypherWallet(QString storePath, Coin::Network network,
                       BlockCypher::Client * restClient,
                       BlockCypher::WebSocketClient * wsClient);
 
