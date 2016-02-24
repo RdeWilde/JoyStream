@@ -39,6 +39,7 @@ public:
 
 
     std::list<Coin::UnspentP2PKHOutput> GetUnspentOutputs(uint64_t minValue, uint32_t minimalConfirmatinos, uint32_t currentBlockHeight);
+    Coin::UnspentP2PKHOutput GetOneUnspentOutput(uint64_t minValue);
     void ReleaseUnspentOutputs(const std::list<Coin::UnspentP2PKHOutput> outputs);
 
     uint64_t Balance() const { return _utxoManager->balance(); }

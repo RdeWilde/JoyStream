@@ -125,6 +125,24 @@ BlockCypherWallet::GetUnspentOutputs(uint64_t minValue, uint32_t minimalConfirma
     return unspentOutputs;
 }
 
+Coin::UnspentP2PKHOutput BlockCypherWallet::GetOneUnspentOutput(uint64_t minValue) {
+    std::set<BlockCypher::UTXO> utxos = _utxoManager->getUtxoSet(minValue, 0, -1);
+
+    // If no utxos or more than one return an empty utxo
+    if(utxos.empty() || utxos.size() > 1)
+        return Coin::UnspentP2PKHOutput();
+
+    // first and only utxo with value >= minValue
+    BlockCypher::UTXO utxo = *utxos.begin();
+    Coin::PrivateKey sk;
+    if(_store.loadKey(Coin::P2PKHAddress::fromBase58CheckEncoding(utxo.address()), sk)) {
+        Coin::KeyPair keypair(sk);
+        return Coin::UnspentP2PKHOutput(keypair, utxo.outPoint(), utxo.value());
+    }
+
+    return Coin::UnspentP2PKHOutput();
+}
+
 void BlockCypherWallet::ReleaseUnspentOutputs(const std::list<Coin::UnspentP2PKHOutput> outputs)
 {
     std::set<BlockCypher::UTXO> utxos;
