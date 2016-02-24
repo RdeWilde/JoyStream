@@ -33,15 +33,8 @@ public:
     uint32_t created() const { return _timestamp; }
     Coin::Seed seed() const { return _seed; }
 
-    // returns an HDKeychain which persists in wallet
-    // **NB: createReceiveAddress == false <=> These keys are have no corresponding addresses
-    // which are monitored for inbound/outbound spends.
-    // generates fresh key
-    Coin::HDKeychain getKey(bool createReceiveAddress);
-
-    // returns a vector of HDKeychain - tries to get any unused keys from the database
-    // and supplements them with fresh keys if required
-    std::vector<Coin::HDKeychain> getKeys(uint32_t numKeys, bool createReceiveAddress);
+    Coin::PrivateKey getKey(bool createReceiveAddress);
+    std::vector<Coin::PrivateKey> getKeys(uint32_t numKeys, bool createReceiveAddress);
 
     // returns a vector of key pairs, with ordered ascendingly in terms
     // of index.
@@ -57,6 +50,7 @@ public:
     //total number keys in wallet (including unused)
     uint32_t numberOfKeysInWallet();
 
+    void releaseKey(const Coin::PrivateKey & sk);
     void releaseKey(const Coin::HDKeychain & chain);
     void releaseKeys(const std::vector<Coin::HDKeychain> keychains);
     void releaseAddress(const Coin::P2PKHAddress & p2pkhaddress);
@@ -82,9 +76,23 @@ private:
     uint32_t _timestamp;
     std::unique_ptr<odb::database> _db;
 
+    std::map<Coin::PublicKey, uint32_t> _publicKeyToIndex;
+
+    // returns an HDKeychain which persists in wallet
+    // **NB: createReceiveAddress == false <=> These keys are have no corresponding addresses
+    // which are monitored for inbound/outbound spends.
+    // generates fresh key
+    Coin::HDKeychain getKeyChain(bool createReceiveAddress);
+
+    // returns a vector of HDKeychain - tries to get any unused keys from the database
+    // and supplements them with fresh keys if required
+    std::vector<Coin::HDKeychain> getKeyChains(uint32_t numKeys, bool createReceiveAddress);
+
     //internal method used to persist a new key
     //should be wrapped in an odb::transaction
-    Coin::HDKeychain getKey_tx(bool createReceiveAddress);
+    Coin::HDKeychain getKeyChain_tx(bool createReceiveAddress);
+
+    void releaseKey(uint32_t index);
 };
 
 }//bitcoin

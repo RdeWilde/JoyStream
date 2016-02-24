@@ -64,31 +64,23 @@ bool BlockCypherWallet::Sync(uint tries) {
     return false;
 }
 
-Coin::P2PKHAddress
-BlockCypherWallet::KeychainToP2PKHAddress(const Coin::HDKeychain & keychain) {
-    Coin::PrivateKey sk(keychain.privkey());
-    return sk.toPublicKey().toP2PKHAddress(_network);
-}
-
-Coin::HDKeychain
-BlockCypherWallet::GetKey(bool createReceiveAddress) {
-    Coin::HDKeychain keychain = _store.getKey(createReceiveAddress);
+Coin::PrivateKey BlockCypherWallet::GetKey(bool createReceiveAddress) {
+    Coin::PrivateKey sk = _store.getKey(createReceiveAddress);
 
     if(createReceiveAddress)
-        _utxoManager->addAddress(KeychainToP2PKHAddress(keychain));
+        _utxoManager->addAddress(sk.toPublicKey().toP2PKHAddress(_network));
 
-    return keychain;
+    return sk;
 }
 
-std::vector<Coin::HDKeychain>
-BlockCypherWallet::GetKeys(uint32_t numKeys, bool createReceiveAddress) {
-    std::vector<Coin::HDKeychain> keychains = _store.getKeys(numKeys, createReceiveAddress);
+std::vector<Coin::PrivateKey> BlockCypherWallet::GetKeys(uint32_t numKeys, bool createReceiveAddress) {
+    std::vector<Coin::PrivateKey> keys = _store.getKeys(numKeys, createReceiveAddress);
     if(createReceiveAddress) {
-        for(auto & keychain : keychains) {
-            _utxoManager->addAddress(KeychainToP2PKHAddress(keychain));
+        for(auto & sk : keys) {
+            _utxoManager->addAddress(sk.toPublicKey().toP2PKHAddress(_network));
         }
     }
-    return keychains;
+    return keys;
 }
 
 std::vector<Coin::KeyPair>
@@ -100,6 +92,10 @@ BlockCypherWallet::GetKeyPairs(uint32_t num_pairs, bool createReceiveAddress) {
         }
     }
     return keyPairs;
+}
+
+void BlockCypherWallet::ReleaseKey(const Coin::PrivateKey &sk) {
+    _store.releaseKey(sk);
 }
 
 Coin::P2PKHAddress

@@ -31,10 +31,12 @@ public:
     // when websocket connectivity is lost.
     bool Sync(uint tries = 1);
 
-    Coin::HDKeychain GetKey(bool createReceiveAddress);
-    std::vector<Coin::HDKeychain> GetKeys(uint32_t numKeys, bool createReceiveAddress);
+    Coin::PrivateKey GetKey(bool createReceiveAddress);
+    std::vector<Coin::PrivateKey> GetKeys(uint32_t numKeys, bool createReceiveAddress);
     std::vector<Coin::KeyPair> GetKeyPairs(uint32_t num_pairs, bool createReceiveAddress);
+    void ReleaseKey(const Coin::PrivateKey &sk);
     Coin::P2PKHAddress GetReceiveAddress();
+
 
     std::list<Coin::UnspentP2PKHOutput> GetUnspentOutputs(uint64_t minValue, uint32_t minimalConfirmatinos, uint32_t currentBlockHeight);
     void ReleaseUnspentOutputs(const std::list<Coin::UnspentP2PKHOutput> outputs);
@@ -42,6 +44,7 @@ public:
     uint64_t Balance() const { return _utxoManager->balance(); }
     uint64_t UnconfirmedBalance() const { return _utxoManager->unconfirmedBalance(); }
 
+    Coin::Network network() const { return _network; }
 signals:
 
     void BalanceChanged(uint64_t confirmedBalance, uint64_t unconfirmedBalance);

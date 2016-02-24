@@ -171,23 +171,28 @@ void Store::close() {
     _seed.clear();
 }
 
-Coin::HDKeychain Store::getKey(bool createReceiveAddress) {
+Coin::HDKeychain Store::getKeyChain(bool createReceiveAddress) {
     if(!_db) {
         throw std::runtime_error("database not connected");
     }
 
     odb::transaction t(_db->begin());
-    Coin::HDKeychain hdKeyChain(getKey_tx(createReceiveAddress));
+    Coin::HDKeychain hdKeyChain(getKeyChain_tx(createReceiveAddress));
     t.commit();
 
     return hdKeyChain;
 }
 
-std::vector<Coin::HDKeychain> Store::getKeys(uint32_t numKeys, bool createReceiveAddress) {
+Coin::PrivateKey Store::getKey(bool createReceiveAddress){
+    Coin::HDKeychain keychain(getKeyChain(createReceiveAddress));
+    return Coin::PrivateKey(keychain.privkey());
+}
+
+std::vector<Coin::HDKeychain> Store::getKeyChains(uint32_t numKeys, bool createReceiveAddress) {
     typedef odb::query<detail::store::key_view_t> query;
     typedef odb::result<detail::store::key_view_t> result;
 
-    std::vector<Coin::HDKeychain> keys;
+    std::vector<Coin::HDKeychain> keychains;
     result r;
 
     odb::transaction t(_db->begin());
@@ -201,7 +206,7 @@ std::vector<Coin::HDKeychain> Store::getKeys(uint32_t numKeys, bool createReceiv
 
     uint32_t n = 0;
     for(auto &i : r) {
-        keys.push_back(_rootKeychain.getChild(i.key->id()));
+        keychains.push_back(_rootKeychain.getChild(i.key->id()));
         i.key->used(true);
         _db->update(i.key);
         n++;
@@ -213,17 +218,26 @@ std::vector<Coin::HDKeychain> Store::getKeys(uint32_t numKeys, bool createReceiv
     if(n < numKeys) {
         t.reset(_db->begin());
         for(; n < numKeys; n++) {
-            keys.push_back(getKey_tx(createReceiveAddress));
+            keychains.push_back(getKeyChain_tx(createReceiveAddress));
         }
 
         t.commit();
     }
 
+    return keychains;
+}
+
+std::vector<Coin::PrivateKey> Store::getKeys(uint32_t numKeys, bool createReceiveAddress) {
+    std::vector<Coin::HDKeychain> keychains(getKeyChains(numKeys, createReceiveAddress));
+
+    std::vector<Coin::PrivateKey> keys;
+    for(auto & keychain : keychains) {
+        keys.push_back(Coin::PrivateKey(keychain.privkey()));
+    }
+
     return keys;
 }
 
-// since we are not returning an HDKeychain only way to release keys
-// is to release the p2pkh address, try to avoid using this method
 std::vector<Coin::KeyPair> Store::getKeyPairs(uint32_t num_pairs, bool createReceiveAddress) {
     if(!_db) {
         throw std::runtime_error("database not connected");
@@ -234,7 +248,7 @@ std::vector<Coin::KeyPair> Store::getKeyPairs(uint32_t num_pairs, bool createRec
     odb::transaction t(_db->begin());
     for(uint32_t i = 0; i < num_pairs; i++){
 
-        Coin::PrivateKey sk(getKey_tx(createReceiveAddress).privkey());
+        Coin::PrivateKey sk(getKeyChain_tx(createReceiveAddress).privkey());
         Coin::PublicKey pk = sk.toPublicKey();
         Coin::KeyPair pair(pk, sk);
         key_pairs.push_back(pair);
@@ -244,7 +258,7 @@ std::vector<Coin::KeyPair> Store::getKeyPairs(uint32_t num_pairs, bool createRec
 }
 
 Coin::P2PKHAddress Store::getReceiveAddress() {
-    Coin::PrivateKey sk(getKey(true).privkey());
+    Coin::PrivateKey sk(getKeyChain(true).privkey());
     return sk.toPublicKey().toP2PKHAddress(_network);
 }
 
@@ -268,6 +282,26 @@ void Store::releaseKey(const Coin::HDKeychain & hdKeyChain) {
 
     odb::transaction t(_db->begin());
     detail::store::Key key(hdKeyChain.child_num(), false);
+    _db->update(key);
+    t.commit();
+}
+
+void Store::releaseKey(const Coin::PrivateKey &sk) {
+    Coin::PublicKey pk = sk.toPublicKey();
+
+    if(_publicKeyToIndex.find(pk) != _publicKeyToIndex.end()) {
+        releaseKey(_publicKeyToIndex[pk]);
+        _publicKeyToIndex.erase(pk);
+    }
+}
+
+void Store::releaseKey(uint32_t index) {
+    if(!_db) {
+        throw std::runtime_error("database not connected");
+    }
+
+    odb::transaction t(_db->begin());
+    detail::store::Key key(index, false);
     _db->update(key);
     t.commit();
 }
@@ -381,16 +415,20 @@ bool Store::loadKey(const Coin::P2PKHAddress & address, Coin::PrivateKey & sk) {
     return found;
 }
 
-Coin::HDKeychain Store::getKey_tx(bool createReceiveAddress) {
+Coin::HDKeychain Store::getKeyChain_tx(bool createReceiveAddress) {
     //persist a new key
     std::shared_ptr<detail::store::Key> key(new detail::store::Key());
     uint32_t index = _db->persist(key);
 
     Coin::HDKeychain hdKeyChain = _rootKeychain.getChild(index);
 
+    Coin::PrivateKey sk(hdKeyChain.privkey());
+    Coin::PublicKey pk = sk.toPublicKey();
+
+    _publicKeyToIndex[pk] = index;
+
     if(createReceiveAddress) {
-        Coin::PrivateKey sk(hdKeyChain.privkey());
-        Coin::P2PKHAddress p2pkh_addr = sk.toPublicKey().toP2PKHAddress(_network);
+        Coin::P2PKHAddress p2pkh_addr = pk.toP2PKHAddress(_network);
         detail::store::Address addr(key, p2pkh_addr);
         _db->persist(addr);
     }
