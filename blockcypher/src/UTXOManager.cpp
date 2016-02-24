@@ -224,7 +224,7 @@ namespace BlockCypher {
             if(!hasAddress(addr)) continue;
 
             Coin::typesafeOutPoint outpoint(Coin::TransactionId::fromRPCByteOrder(input.prev_hash().toStdString()), input.index());
-            UTXO utxo(addr, outpoint, input.value());
+            UTXO utxo(addr, outpoint, input.value(), tx.block_height());
 
             result.destroys(utxo);
         }

@@ -26,7 +26,7 @@ public:
     uint64_t value() const { return _value; }
     Coin::typesafeOutPoint outPoint() const { return _outpoint; }
     QString address() const { return _address; }
-    bool confirmed() const { return _height == -1; }
+    bool confirmed() const { return _height != -1; }
     int32_t height() const { return _height; }
 
     // Comparators
