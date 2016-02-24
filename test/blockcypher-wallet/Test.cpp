@@ -27,15 +27,15 @@
 void Test::init() {
 
     _client = new BlockCypher::Client(&_manager,
-                                      TEST_BITCOIN_NETWORK,
+                                      Coin::Network::testnet3,
                                       TEST_BLOCKCYPHER_TOKEN);
 
-    _wsClient = new BlockCypher::WebSocketClient(TEST_BITCOIN_NETWORK, TEST_BLOCKCYPHER_TOKEN);
+    _wsClient = new BlockCypher::WebSocketClient(Coin::Network::testnet3, TEST_BLOCKCYPHER_TOKEN);
 
     // delete existing wallet file
     boost::filesystem::remove(TEST_WALLET_PATH);
 
-    _wallet = new joystream::bitcoin::BlockCypherWallet(TEST_WALLET_PATH, TEST_BITCOIN_NETWORK, _client, _wsClient);
+    _wallet = new joystream::bitcoin::BlockCypherWallet(TEST_WALLET_PATH, Coin::Network::testnet3, _client, _wsClient);
 }
 
 void Test::cleanup() {
@@ -43,6 +43,8 @@ void Test::cleanup() {
 
     _wsClient->disconnect();
     delete _wsClient;
+
+    delete _wallet;
 }
 
 void Test::walletCreation() {
@@ -136,6 +138,25 @@ void Test::getUtxo()
     std::list<Coin::UnspentP2PKHOutput> outputs5(_wallet->GetUnspentOutputs(101,0,0));
     QVERIFY(outputs5.empty());
 
+}
+
+void Test::networkMismatchOnCreatingWallet() {
+    delete _wallet;
+    QVERIFY_EXCEPTION_THROWN(_wallet = new joystream::bitcoin::BlockCypherWallet(TEST_WALLET_PATH,
+                                                                                 Coin::Network::mainnet,
+                                                                                 _client,
+                                                                                 _wsClient), std::exception);
+}
+
+void Test::networkMismatchOnOpeningWallet() {
+    joystream::bitcoin::Store s;
+
+    // create a mainnet wallet
+    s.create(TEST_WALLET_PATH, Coin::Network::mainnet);
+    s.close();
+
+    // open mainnet wallet with clients for testnet3
+    QVERIFY_EXCEPTION_THROWN(_wallet->Open(), std::exception);
 }
 
 QTEST_MAIN(Test)

@@ -58,6 +58,9 @@ private slots:
     void walletCreation();
     void fundWallet();
     void getUtxo();
+
+    void networkMismatchOnCreatingWallet();
+    void networkMismatchOnOpeningWallet();
 };
 
 #endif // TEST_HPP
