@@ -41,6 +41,8 @@ public:
     bool refreshUtxoState(Client* restClient, const std::list<Coin::P2PKHAddress> &addresses);
 
     std::set<UTXO> getUtxoSet(uint64_t minValue, uint32_t minConfirmations = 0);
+    UTXO getOneUtxo(uint64_t minValue, uint32_t minConfirmations = 0);
+
     void releaseUtxoSet(std::set<UTXO> utxos);
 
 signals:

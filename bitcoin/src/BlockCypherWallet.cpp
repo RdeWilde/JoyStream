@@ -126,14 +126,12 @@ BlockCypherWallet::GetUnspentOutputs(uint64_t minValue, uint32_t minimalConfirma
 }
 
 Coin::UnspentP2PKHOutput BlockCypherWallet::GetOneUnspentOutput(uint64_t minValue) {
-    std::set<BlockCypher::UTXO> utxos = _utxoManager->getUtxoSet(minValue);
+    BlockCypher::UTXO utxo = _utxoManager->getOneUtxo(minValue);
 
-    // If no utxos or more than one return an empty utxo
-    if(utxos.empty() || utxos.size() > 1)
+    // If no utxo found with required min value return empty result
+    if(utxo.value() == 0)
         return Coin::UnspentP2PKHOutput();
 
-    // first and only utxo with value >= minValue
-    BlockCypher::UTXO utxo = *utxos.begin();
     Coin::PrivateKey sk;
     if(_store.loadKey(Coin::P2PKHAddress::fromBase58CheckEncoding(utxo.address()), sk)) {
         Coin::KeyPair keypair(sk);

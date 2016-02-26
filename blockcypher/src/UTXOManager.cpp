@@ -41,13 +41,21 @@ namespace BlockCypher {
         // Create a vector of batches of addresses (QString of semicolon separated list)
         // The maximum number of elements that can be batched in a single call is 100.
         std::vector<QString> batches;
-        uint counter = 0;
-        uint batchNo;
+        uint counter = 1;
+        uint batchNo = 0;
+        const uint BATCH_SIZE = 5;
+
         for(const QString &addr : addresses) {
-            batchNo =  counter / 100;
-            if(batches.empty() || batches.size() < batchNo) {
+            if(counter > BATCH_SIZE) {
+                counter = 1;
+                batchNo++;
+            }
+
+            if(batches.size() == batchNo) {
+                // Create new batch and initialise with address
                 batches.push_back(addr);
             } else {
+                // Append address to current batch
                 batches[batchNo] += ";" + addr;
             }
             counter++;
@@ -101,15 +109,13 @@ namespace BlockCypher {
     std::set<UTXO> UTXOManager::getUtxoSet(uint64_t minValue, uint32_t minConfirmations) {
         std::set<UTXO> selectedUtxos;
         uint32_t totalValue = 0;
-        //uint32_t confirmations;
 
         // Always try to pick confirmed utxos
         for(const UTXO &utxo : _confirmedUtxoSet) {
-            // is utxo loacked ?
+            // is utxo locked ?
             if(_lockedUtxoSet.find(utxo) != _lockedUtxoSet.end()) continue;
 
-            //confirmations = currentBlockHeight - utxo.height() + 1;
-
+            //uint32_t confirmations = currentBlockHeight - utxo.height() + 1;
             // Does it meet minimal confirmations requirement
             //if(minConfirmations > 0 && confirmations < minConfirmations) continue;
 
@@ -144,6 +150,31 @@ namespace BlockCypher {
         // Lock and return the selected utxos
         lockUtxoSet(selectedUtxos);
         return selectedUtxos;
+    }
+
+    UTXO UTXOManager::getOneUtxo(uint64_t minValue, uint32_t minConfirmations) {
+
+        // Always try to pick confirmed utxos
+        for(const UTXO &utxo : _confirmedUtxoSet) {
+            if(_lockedUtxoSet.find(utxo) != _lockedUtxoSet.end()) continue;
+            //uint32_t confirmations = currentBlockHeight - utxo.height() + 1;
+            // Does it meet minimal confirmations requirement
+            //if(minConfirmations > 0 && confirmations < minConfirmations) continue;
+            if(utxo.value() >= minValue) {
+                lockUtxoSet({utxo});
+                return utxo;
+            }
+        }
+
+        for(const UTXO &utxo : _unconfirmedUtxoSet) {
+            if(_lockedUtxoSet.find(utxo) != _lockedUtxoSet.end()) continue;
+            if(utxo.value() >= minValue) {
+                lockUtxoSet({utxo});
+                return utxo;
+            }
+        }
+
+        return UTXO();
     }
 
     void UTXOManager::releaseUtxoSet(std::set<UTXO> utxos) {
