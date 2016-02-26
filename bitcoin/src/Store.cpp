@@ -206,9 +206,13 @@ std::vector<Coin::HDKeychain> Store::getKeyChains(uint32_t numKeys, bool createR
 
     uint32_t n = 0;
     for(auto &i : r) {
-        keychains.push_back(_rootKeychain.getChild(i.key->id()));
+        Coin::HDKeychain hdKeyChain(_rootKeychain.getChild(i.key->id()));
+        keychains.push_back(hdKeyChain);
         i.key->used(true);
         _db->update(i.key);
+        Coin::PrivateKey sk(hdKeyChain.privkey());
+        Coin::PublicKey pk = sk.toPublicKey();
+        _publicKeyToIndex[pk] = i.key->id();
         n++;
         if(n == numKeys) break;
     }
@@ -292,6 +296,8 @@ void Store::releaseKey(const Coin::PrivateKey &sk) {
     if(_publicKeyToIndex.find(pk) != _publicKeyToIndex.end()) {
         releaseKey(_publicKeyToIndex[pk]);
         _publicKeyToIndex.erase(pk);
+    }else {
+        throw std::runtime_error("attempting to release a private key not in the pool");
     }
 }
 
