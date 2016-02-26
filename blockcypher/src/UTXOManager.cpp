@@ -15,14 +15,14 @@ namespace BlockCypher {
     UTXOManager::UTXOManager(WebSocketClient * wsclient, Coin::Network network)
         : _wsClient(wsclient),
           _network(network),
-          _balance(0),
-          _balance_zero_conf(0)
+          _confirmedBalance(0),
+          _unconfirmedBalance(0)
     {
         // connect signals from websocket client to our private slots
         QObject::connect(_wsClient, &WebSocketClient::txArrived, [this](const TX & tx){
             TxResult r = processTx(tx);
             updateUtxoSets(r);
-            updateBalances(true);
+            updateBalances();
         });
     }
 
@@ -89,7 +89,7 @@ namespace BlockCypher {
 
         for(auto & r : results) updateUtxoSets(r);
 
-        updateBalances(true);
+        updateBalances();
 
         for(auto addr : addresses) {
             addAddress(addr);
@@ -98,20 +98,20 @@ namespace BlockCypher {
         return true;
     }
 
-    std::set<UTXO> UTXOManager::getUtxoSet(uint64_t minValue, uint32_t minConfirmations, uint32_t currentBlockHeight) {
+    std::set<UTXO> UTXOManager::getUtxoSet(uint64_t minValue, uint32_t minConfirmations) {
         std::set<UTXO> selectedUtxos;
         uint32_t totalValue = 0;
-        uint32_t confirmations;
+        //uint32_t confirmations;
 
         // Always try to pick confirmed utxos
         for(const UTXO &utxo : _confirmedUtxoSet) {
             // is utxo loacked ?
             if(_lockedUtxoSet.find(utxo) != _lockedUtxoSet.end()) continue;
 
-            confirmations = currentBlockHeight - utxo.height() + 1;
+            //confirmations = currentBlockHeight - utxo.height() + 1;
 
             // Does it meet minimal confirmations requirement
-            if(minConfirmations > 0 && confirmations < minConfirmations) continue;
+            //if(minConfirmations > 0 && confirmations < minConfirmations) continue;
 
             selectedUtxos.insert(utxo);
             totalValue += utxo.value();
@@ -168,10 +168,10 @@ namespace BlockCypher {
                     Coin::typesafeOutPoint outpoint(t._tx_hash, t._tx_output_n);
 
                     try{
-                        Coin::P2PKHScriptPubKey script = Coin::P2PKHScriptPubKey::deserialize(t._script);
+                        Coin::P2PKHScriptPubKey script = Coin::P2PKHScriptPubKey::deserialize(t._script.value());
                         Coin::P2PKHAddress addr(_network, script.pubKeyHash());
 
-                        UTXO utxo(addr.toBase58CheckEncoding(), outpoint, t._value, t._block_height);
+                        UTXO utxo(addr.toBase58CheckEncoding(), outpoint, t._value, t._block_height.value_or(-1));
 
                         TxResult result;
                         result.confirmations(t._confirmations);
@@ -224,7 +224,7 @@ namespace BlockCypher {
             if(!hasAddress(addr)) continue;
 
             Coin::typesafeOutPoint outpoint(Coin::TransactionId::fromRPCByteOrder(input.prev_hash().toStdString()), input.index());
-            UTXO utxo(addr, outpoint, input.value(), tx.block_height());
+            UTXO utxo(addr, outpoint, input.value());
 
             result.destroys(utxo);
         }
@@ -239,7 +239,13 @@ namespace BlockCypher {
             if(!hasAddress(addr)) continue;
 
             Coin::typesafeOutPoint outpoint(txid, index);
-            UTXO utxo(addr, outpoint, output.value(), tx.block_height());
+
+            UTXO utxo;
+            if(tx.confirmations() > 0 ) {
+                utxo = UTXO(addr, outpoint, output.value(), tx.block_height());
+            } else {
+                utxo = UTXO(addr, outpoint, output.value());
+            }
 
             if(output.spent_by()) {
                 result.destroys(utxo);
@@ -276,27 +282,23 @@ namespace BlockCypher {
         }
     }
 
-    void UTXOManager::updateBalances(bool notify) {
+    void UTXOManager::updateBalances() {
 
-        uint64_t confirmedBalance = 0;
+        _confirmedBalance = 0;
 
         // Calculate new confirmed balance
         for(const UTXO & utxo: _confirmedUtxoSet) {
-            confirmedBalance += utxo.value();
+            _confirmedBalance += utxo.value();
         }
 
         // Calculate new unconfirmed balance
-        uint64_t unconfirmedBalance = confirmedBalance;
+        _unconfirmedBalance = _confirmedBalance;
         for(const UTXO & utxo: _unconfirmedUtxoSet) {
-            unconfirmedBalance += utxo.value();
+            _unconfirmedBalance += utxo.value();
         }
 
-        //if changed emit signals
-        if(_balance != confirmedBalance || _balance_zero_conf != unconfirmedBalance) {
-            _balance = confirmedBalance;
-            _balance_zero_conf = unconfirmedBalance;
-            if(notify) emit balanceChanged(confirmedBalance, unconfirmedBalance);
-        }
+        // Always emit signal when balance is recalculated
+        emit balanceChanged(_confirmedBalance, _unconfirmedBalance);
 
     }
 }

@@ -107,9 +107,9 @@ BlockCypherWallet::GetReceiveAddress()
 }
 
 std::list<Coin::UnspentP2PKHOutput>
-BlockCypherWallet::GetUnspentOutputs(uint64_t minValue, uint32_t minimalConfirmatinos, uint32_t currentBlockHeight)
+BlockCypherWallet::GetUnspentOutputs(uint64_t minValue, uint32_t minimalConfirmatinos)
 {
-    std::set<BlockCypher::UTXO> utxos = _utxoManager->getUtxoSet(minValue, minimalConfirmatinos, currentBlockHeight);
+    std::set<BlockCypher::UTXO> utxos = _utxoManager->getUtxoSet(minValue, minimalConfirmatinos);
 
     std::list<Coin::UnspentP2PKHOutput> unspentOutputs;
 
@@ -126,7 +126,7 @@ BlockCypherWallet::GetUnspentOutputs(uint64_t minValue, uint32_t minimalConfirma
 }
 
 Coin::UnspentP2PKHOutput BlockCypherWallet::GetOneUnspentOutput(uint64_t minValue) {
-    std::set<BlockCypher::UTXO> utxos = _utxoManager->getUtxoSet(minValue, 0, -1);
+    std::set<BlockCypher::UTXO> utxos = _utxoManager->getUtxoSet(minValue);
 
     // If no utxos or more than one return an empty utxo
     if(utxos.empty() || utxos.size() > 1)
@@ -154,6 +154,10 @@ void BlockCypherWallet::ReleaseUnspentOutputs(const std::list<Coin::UnspentP2PKH
     }
 
     _utxoManager->releaseUtxoSet(utxos);
+}
+
+void BlockCypherWallet::BroadcastTx(const Coin::Transaction & tx) {
+    _restClient->pushRawTransaction(tx);
 }
 
 }

@@ -37,8 +37,7 @@ public:
     void ReleaseKey(const Coin::PrivateKey &sk);
     Coin::P2PKHAddress GetReceiveAddress();
 
-
-    std::list<Coin::UnspentP2PKHOutput> GetUnspentOutputs(uint64_t minValue, uint32_t minimalConfirmatinos, uint32_t currentBlockHeight);
+    std::list<Coin::UnspentP2PKHOutput> GetUnspentOutputs(uint64_t minValue, uint32_t minimalConfirmatinos = 0);
     Coin::UnspentP2PKHOutput GetOneUnspentOutput(uint64_t minValue);
     void ReleaseUnspentOutputs(const std::list<Coin::UnspentP2PKHOutput> outputs);
 
@@ -46,6 +45,9 @@ public:
     uint64_t UnconfirmedBalance() const { return _utxoManager->unconfirmedBalance(); }
 
     Coin::Network network() const { return _network; }
+
+    Q_INVOKABLE void BroadcastTx(const Coin::Transaction & tx);
+
 signals:
 
     void BalanceChanged(uint64_t confirmedBalance, uint64_t unconfirmedBalance);

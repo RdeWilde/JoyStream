@@ -35,12 +35,12 @@ public:
     // adds address to set and sends tx_confirmation event on websocket
     bool addAddress(const Coin::P2PKHAddress & address);
 
-    uint64_t balance() const { return _balance; }
-    uint64_t unconfirmedBalance() const { return _balance_zero_conf; }
+    uint64_t balance() const { return _confirmedBalance; }
+    uint64_t unconfirmedBalance() const { return _unconfirmedBalance; }
 
     bool refreshUtxoState(Client* restClient, const std::list<Coin::P2PKHAddress> &addresses);
 
-    std::set<UTXO> getUtxoSet(uint64_t minValue, uint32_t minConfirmations, uint32_t currentBlockHeight);
+    std::set<UTXO> getUtxoSet(uint64_t minValue, uint32_t minConfirmations = 0);
     void releaseUtxoSet(std::set<UTXO> utxos);
 
 signals:
@@ -81,10 +81,13 @@ private:
 
     void updateUtxoSets(const TxResult & r);
 
-    void updateBalances(bool notify = false);
+    void updateBalances();
 
-    uint64_t _balance; // confirmed balance
-    uint64_t _balance_zero_conf; // 0-conf balance
+    // Sum of confirmed unspent outputs
+    uint64_t _confirmedBalance;
+
+    // Sum of all unspent outputs
+    uint64_t _unconfirmedBalance;
 };
 
 }

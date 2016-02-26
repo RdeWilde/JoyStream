@@ -35,6 +35,7 @@ void Test::init() {
     // delete existing wallet file
     boost::filesystem::remove(TEST_WALLET_PATH);
 
+    // create new testnet wallet
     _wallet = new joystream::bitcoin::BlockCypherWallet(TEST_WALLET_PATH, Coin::Network::testnet3, _client, _wsClient);
 }
 
@@ -103,7 +104,7 @@ void Test::getUtxo()
 
     // requesting 200 satoshi should require only one of the outputs
     // It should return the minimum number of coins
-    std::list<Coin::UnspentP2PKHOutput> outputs(_wallet->GetUnspentOutputs(200,0,0));
+    std::list<Coin::UnspentP2PKHOutput> outputs(_wallet->GetUnspentOutputs(200));
     QVERIFY(outputs.size() == 1);
 
     // utxos sorted by value so we should see utxo with highest value
@@ -111,7 +112,7 @@ void Test::getUtxo()
     QVERIFY(utxo1.value() == 500);
 
     // on second request we should get two utxos
-    std::list<Coin::UnspentP2PKHOutput> outputs2(_wallet->GetUnspentOutputs(300,0,0));
+    std::list<Coin::UnspentP2PKHOutput> outputs2(_wallet->GetUnspentOutputs(300));
     QVERIFY(outputs2.size() == 2);
 
     Coin::UnspentP2PKHOutput utxo2 = *outputs2.begin();
@@ -121,7 +122,7 @@ void Test::getUtxo()
     QVERIFY(utxo3.value() == 100);
 
     // one remaining utxo with value 100
-    std::list<Coin::UnspentP2PKHOutput> outputs3(_wallet->GetUnspentOutputs(100,0,0));
+    std::list<Coin::UnspentP2PKHOutput> outputs3(_wallet->GetUnspentOutputs(100));
     QVERIFY(outputs3.size() == 1);
     QVERIFY((*outputs3.begin()).value() == 100);
 
@@ -129,20 +130,23 @@ void Test::getUtxo()
     _wallet->ReleaseUnspentOutputs(outputs3);
 
     // we should be able to get the release utxo
-    std::list<Coin::UnspentP2PKHOutput> outputs4(_wallet->GetUnspentOutputs(100,0,0));
+    std::list<Coin::UnspentP2PKHOutput> outputs4(_wallet->GetUnspentOutputs(100));
     QVERIFY(outputs4.size() == 1);
     _wallet->ReleaseUnspentOutputs(outputs3);
 
     // the one remaining utxo with value 100 is not enough to meet 101 satoshi min value
     // so returned set should be empty
-    std::list<Coin::UnspentP2PKHOutput> outputs5(_wallet->GetUnspentOutputs(101,0,0));
+    std::list<Coin::UnspentP2PKHOutput> outputs5(_wallet->GetUnspentOutputs(101));
     QVERIFY(outputs5.empty());
 
 }
 
 void Test::networkMismatchOnCreatingWallet() {
-    delete _wallet;
-    QVERIFY_EXCEPTION_THROWN(_wallet = new joystream::bitcoin::BlockCypherWallet(TEST_WALLET_PATH,
+    joystream::bitcoin::BlockCypherWallet *badWallet;
+
+    // wsClient and REST client are configured for testnet
+    // trying to create a mainnet wallet should throw an exception
+    QVERIFY_EXCEPTION_THROWN(badWallet = new joystream::bitcoin::BlockCypherWallet(TEST_WALLET_PATH,
                                                                                  Coin::Network::mainnet,
                                                                                  _client,
                                                                                  _wsClient), std::exception);
@@ -151,11 +155,10 @@ void Test::networkMismatchOnCreatingWallet() {
 void Test::networkMismatchOnOpeningWallet() {
     joystream::bitcoin::Store s;
 
-    // create a mainnet wallet
+    // assuming an existing a mainnet wallet exists
     s.create(TEST_WALLET_PATH, Coin::Network::mainnet);
-    s.close();
 
-    // open mainnet wallet with clients for testnet3
+    // open mainnet wallet with clients for testnet3 should fail
     QVERIFY_EXCEPTION_THROWN(_wallet->Open(), std::exception);
 }
 
