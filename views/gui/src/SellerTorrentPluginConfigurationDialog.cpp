@@ -19,7 +19,7 @@
 #define SLIDER_MAX 200
 #define SLIDER_TICK 1
 
-SellerTorrentPluginConfigurationDialog::SellerTorrentPluginConfigurationDialog(Controller * controller, Wallet::Manager * wallet, const libtorrent::torrent_info & torrentInfo, const BitcoinDisplaySettings * settings)
+SellerTorrentPluginConfigurationDialog::SellerTorrentPluginConfigurationDialog(Controller * controller, joystream::bitcoin::SPVWallet * wallet, const libtorrent::torrent_info & torrentInfo, const BitcoinDisplaySettings * settings)
     :ui(new Ui::SellerTorrentPluginConfigurationDialog)
     , _controller(controller)
     , _wallet(wallet)

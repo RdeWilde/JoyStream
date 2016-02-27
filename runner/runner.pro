@@ -53,20 +53,6 @@ else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PW
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../core/debug/core.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../core/libcore.a
 
-# wallet ###############################################################
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../wallet/release/ -lwallet
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../wallet/debug/ -lwallet
-else:unix: LIBS += -L$$OUT_PWD/../wallet/ -lwallet
-
-INCLUDEPATH += $$PWD/../wallet/include
-DEPENDPATH += $$PWD/../wallet/include
-
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/release/libwallet.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/debug/libwallet.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/release/wallet.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/debug/wallet.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../wallet/libwallet.a
-
 # blockcypher ##########################################################
 INCLUDEPATH += $$PWD/../blockcypher/include/
 
@@ -86,6 +72,21 @@ else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../comm
 else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/release/common.lib
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/debug/common.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.a
+
+# bitcoin ########
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../bitcoin/release/ -lbitcoin
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../bitcoin/debug/ -lbitcoin
+else:unix: LIBS += -L$$OUT_PWD/../bitcoin/ -lbitcoin
+
+INCLUDEPATH += $$PWD/../bitcoin/include
+DEPENDPATH += $$PWD/../bitcoin/include
+
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../bitcoin/release/libbitcoin.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../bitcoin/debug/libbitcoin.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../bitcoin/release/bitcoin.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../bitcoin/debug/bitcoin.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../bitcoin/libbitcoin.a
+
 
 # some of these may be removeable later
 include(../config.pri)

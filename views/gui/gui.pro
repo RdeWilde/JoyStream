@@ -23,7 +23,6 @@ INCLUDEPATH += $$PWD/include
 
 SOURCES += \
     src/MainWindow.cpp \
-    src/WalletDialog.cpp \
     src/SellerTorrentPluginConfigurationDialog.cpp \
     src/BuyerTorrentPluginConfigurationDialog.cpp \
     src/SellerTorrentPluginDialog.cpp \
@@ -44,7 +43,6 @@ HEADERS += \
     include/gui/AddTorrentDialog.hpp \
     include/gui/SellerTorrentPluginConfigurationDialog.hpp \
     include/gui/BuyerTorrentPluginConfigurationDialog.hpp \
-    include/gui/WalletDialog.hpp \
     include/gui/PeerPluginsDialog.hpp \
     include/gui/SellerTorrentPluginDialog.hpp \
     include/gui/BuyerTorrentPluginDialog.hpp \
@@ -65,7 +63,6 @@ FORMS += \
     ui/BuyerTorrentPluginDialog.ui \
     ui/MainWindow.ui \
     ui/AddTorrentDialog.ui \
-    ui/WalletDialog.ui \
     ui/ReceiveFundsDialog.ui \
     ui/MediaPlayerDialog.ui \
     ui/FundingWalletProgressDialog.ui
@@ -131,6 +128,9 @@ else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../c
 else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../common/release/common.lib
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../common/debug/common.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../common/libcommon.a
+
+INCLUDEPATH += $$PWD/../../bitcoin/include
+DEPENDPATH += $$PWD/../../bitcoin/include
 
 include(../../config.pri)
 include(../../app/config.pri)

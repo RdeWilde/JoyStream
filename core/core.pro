@@ -13,6 +13,7 @@ CONFIG  += create_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-
 CONFIG  += c++11 # Needed for class enum
 
 QT      += core gui network sql # sql is for wallet
+QT      += websockets
 
 INCLUDEPATH += $$PWD/include
 
@@ -170,20 +171,6 @@ else:unix: PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/libpaymentchannel.a
 INCLUDEPATH += $$PWD/../blockcypher/include
 DEPENDPATH += $$PWD/../blockcypher/include
 
-# wallet ###############################################################
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../wallet/release/ -lwallet
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../wallet/debug/ -lwallet
-else:unix: LIBS += -L$$OUT_PWD/../wallet/ -lwallet
-
-INCLUDEPATH += $$PWD/../wallet/include
-DEPENDPATH += $$PWD/../wallet/include
-
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/release/libwallet.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/debug/libwallet.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/release/wallet.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../wallet/debug/wallet.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../wallet/libwallet.a
-
 # common ###############################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../common/release/ -lcommon
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../common/debug/ -lcommon
@@ -197,5 +184,8 @@ else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../comm
 else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/release/common.lib
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/debug/common.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.a
+
+INCLUDEPATH += $$PWD/../bitcoin/include
+DEPENDPATH += $$PWD/../bitcoin/include
 
 include(../config.pri)

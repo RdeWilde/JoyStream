@@ -14,6 +14,9 @@
 #include <common/UnspentP2PKHOutput.hpp>
 #include <core/controller/Stream.hpp>
 
+#include <bitcoin/SPVWallet.hpp>
+#include <bitcoin/BlockCypherWallet.hpp>
+
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>
 #include <libtorrent/alert.hpp>
@@ -40,9 +43,6 @@ class BuyerPeerAddedAlert;
 class SellerPeerPluginRemovedAlert;
 class BuyerPeerPluginRemovedAlert;
 
-namespace Wallet {
-    class Manager;
-}
 
 namespace libtorrent {
     class peer_connection;
@@ -192,7 +192,7 @@ public:
              *
              * "torrentInfo" -> not implemented
              *
-             ///* "torrentPluginConfiguration" -> entry::dictionary_type object representing _torrentPluginConfiguration as encoded by TorrentPluginConfiguration::toDictionaryEntry().
+             * "torrentPluginConfiguration" -> entry::dictionary_type object representing _torrentPluginConfiguration as encoded by TorrentPluginConfiguration::toDictionaryEntry().
              */
             void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const;
 
@@ -488,7 +488,11 @@ public:
     };
 
     // Constructor starting session with given state
-    Controller(const Configuration & configuration, Wallet::Manager * wallet, QNetworkAccessManager * manager, QLoggingCategory & category);
+    Controller(const Configuration & configuration, QNetworkAccessManager * manager,
+               Coin::Network network, const QString & bctoken,
+               const QString & storePath, const QString & blocktreePath,
+               QLoggingCategory & category, const Coin::Seed *seed = nullptr);
+
 
     // Destructor
     ~Controller();
@@ -577,13 +581,16 @@ public:
     quint16 getServerPort() const;
 
     // Returns reference to the wallet
-    Wallet::Manager * wallet();
+    joystream::bitcoin::SPVWallet *wallet();
 
     // Get view model for given torrent
     const TorrentViewModel * torrentViewModel(const libtorrent::sha1_hash & infoHash) const;
 
     // Save state of controller
     Configuration configuration() const;
+
+    // Fund the wallet
+    void fundWallet(uint64_t value);
 
 public slots:
 
@@ -632,6 +639,8 @@ private slots:
     void readPiece(int piece);
     */
 
+    void webSocketDisconnected();
+
 signals:
 
     // Sent when libtorrent::add_torrent_alert is received from libtorrent
@@ -670,7 +679,13 @@ private:
     libtorrent::session * _session;
 
     // Wallet used
-    Wallet::Manager * _wallet;
+    joystream::bitcoin::SPVWallet * _wallet;
+
+    // BlockCypher Websocket client
+    BlockCypher::WebSocketClient * _wsClient;
+
+    // BlockCypher REST Client
+    BlockCypher::Client * _restClient;
 
     // Logging category
     QLoggingCategory & _category;

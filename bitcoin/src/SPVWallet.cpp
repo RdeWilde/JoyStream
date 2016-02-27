@@ -286,7 +286,7 @@ SPVWallet::getReceiveAddress()
 }
 
 
-void SPVWallet::broadcastTx(Coin::Transaction & cointx) {
+void SPVWallet::broadcastTx(Coin::Transaction cointx) {
     if(_walletStatus < CONNECTED) {
         throw std::runtime_error("cannot broadcast tx, wallet offline");
     }

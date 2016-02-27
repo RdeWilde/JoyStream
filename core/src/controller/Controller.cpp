@@ -1106,7 +1106,6 @@ void Controller::Configuration::setLibtorrentSessionSettingsEntry(const libtorre
 #include <core/extension/Request/StartBuyerTorrentPlugin.hpp>
 #include <core/extension/Request/StartObserverTorrentPlugin.hpp>
 #include <core/extension/Request/ChangeDownloadLocation.hpp>
-#include <wallet/Manager.hpp>
 
 #include <libtorrent/alert_types.hpp>
 #include <libtorrent/error_code.hpp>
@@ -1140,7 +1139,9 @@ Q_DECLARE_METATYPE(Coin::Transaction) // Probably should not be here
 // Register type for QMetaObject::invokeMethod
 Q_DECLARE_METATYPE(const libtorrent::alert*)
 
-Controller::Controller(const Configuration & configuration, Wallet::Manager * wallet, QNetworkAccessManager * manager, QLoggingCategory & category)
+Controller::Controller(const Configuration & configuration, QNetworkAccessManager * manager,
+                       Coin::Network network, const QString &bctoken,
+                       const QString &storePath, const QString &blocktreePath, QLoggingCategory & category, const Coin::Seed * seed)
     : _state(State::normal)
     , _session(new libtorrent::session(libtorrent::fingerprint(CORE_EXTENSION_FINGERPRINT, CORE_VERSION_MAJOR, CORE_VERSION_MINOR, 0, 0),
                    libtorrent::session::add_default_plugins + libtorrent::session::start_default_features,
@@ -1151,12 +1152,40 @@ Controller::Controller(const Configuration & configuration, Wallet::Manager * wa
                    libtorrent::alert::progress_notification +
                    libtorrent::alert::performance_warning +
                    libtorrent::alert::stats_notification))
-    , _wallet(wallet) // add autosave to configuration later?? does user even need to control that?
     , _category(category)
     , _manager(manager)
-    , _plugin(new Plugin(wallet, _category))
     , _portRange(configuration.getPortRange()) {
     //, _server(9999, this) {
+
+    _wsClient = new BlockCypher::WebSocketClient(network, bctoken);
+    _restClient = new BlockCypher::Client(_manager, network, bctoken);
+    _wallet = new joystream::bitcoin::SPVWallet(storePath.toStdString(), blocktreePath.toStdString(), network);
+
+    if(QFile(storePath).exists()) {
+        _wallet->open();
+    } else {
+        if(seed) {
+            _wallet->create(*seed);
+        } else {
+            _wallet->create();
+        }
+    }
+
+    if(!_wallet->isInitialized()) {
+        throw std::runtime_error("controller failed to open or create wallet");
+    }
+
+    // TODO - make sure we will be able to write a new blockfile (flush) otherwise throw error
+
+    // TODO - Setup connections for wallet signals
+
+    _wallet->sync("testnet-seed.bitcoin.petertodd.org", 18333);
+
+    QObject::connect(_wsClient, &BlockCypher::WebSocketClient::disconnected,
+                     this, &Controller::webSocketDisconnected);
+
+    // Do we still need blockcypher websocket socket client ?
+    // _wsClient->connect();
 
     qCDebug(_category) << "Libtorrent session started on port" << QString::number(_session->listen_port());
 
@@ -1326,6 +1355,8 @@ Controller::Controller(const Configuration & configuration, Wallet::Manager * wa
     _session->set_alert_notify(boost::bind(&Controller::libtorrent_entry_point_alert_notification, this));
     */
 
+    _plugin = new Plugin(_wallet, _category);
+
     // Add plugin extension
     _session->add_extension(boost::shared_ptr<libtorrent::plugin>(_plugin));
 
@@ -1389,6 +1420,36 @@ void Controller::handleConnection() {
 void Controller::handleAcceptError(QAbstractSocket::SocketError socketError) {
 
     qDebug(_category) << "Failed to accept connection.";
+}
+
+/*
+void Controller::tryToSyncWallet() {
+    // if(_stopping) return;
+
+    qDebug() << "trying to sync wallet with blockcypher...";
+
+    if(!_wsClient->isConnected()){
+        qDebug() << "WebSocketClient is not connected, trying to reconnect...";
+        _wsClient->connect();
+        return;
+    }
+
+    if(!_wallet->Sync()){
+        qDebug() << "Wallet Sync failed, will try again in 30s";
+       // try again after 15 seconds...
+        QTimer::singleShot(30000, this, SLOT(tryToSyncWallet()));
+    }
+}
+*/
+
+// Slot to handle websocket disconnection
+void Controller::webSocketDisconnected() {
+    // if(_stopping) return;
+    qDebug() << "Websocket connection lost, will try to reconnect in 10s";
+    QTimer::singleShot(10000, _wsClient, [this](){
+        if(_wsClient->isConnected()) return;
+        _wsClient->connect();
+    });
 }
 
 /**
@@ -2347,7 +2408,7 @@ void Controller::saveStateToFile(const char * file) {
     */
 }
 
-Wallet::Manager * Controller::wallet() {
+joystream::bitcoin::SPVWallet *Controller::wallet() {
     return _wallet;
 }
 
@@ -2472,9 +2533,15 @@ void Controller::finalize_close() {
 
     qCDebug(_category) << "finalize_close() run.";
 
+    _wallet->stopSync();
+
     // Stop timer
     _statusUpdateTimer.stop();
 
     // Tell runner that controller is done
     emit closed();
+}
+
+void Controller::fundWallet(uint64_t value) {
+    _restClient->fundWalletFromFaucet(_wallet->getReceiveAddress().toBase58CheckEncoding(), value);
 }

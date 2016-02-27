@@ -16,7 +16,7 @@
 
 #ifndef Q_MOC_RUN
 #include <boost/shared_array.hpp>
-#endif Q_MOC_RUN
+#endif
 
 class QTcpSocket;
 class Controller;

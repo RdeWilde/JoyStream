@@ -14,8 +14,11 @@
 
 #include <queue>          // std::priority_queue
 
-namespace Wallet {
-    class Manager;
+namespace joystream {
+namespace bitcoin {
+
+    class SPVWallet;
+}
 }
 
 namespace Coin {
@@ -220,7 +223,7 @@ public:
     // Constructor from members
     BuyerTorrentPlugin(Plugin * plugin,
                        const boost::shared_ptr<libtorrent::torrent> & torrent,
-                       Wallet::Manager * wallet,
+                       joystream::bitcoin::SPVWallet * wallet,
                        const Configuration & configuration,
                        const Coin::UnspentP2PKHOutput & utxo,
                        QLoggingCategory & category);
@@ -337,7 +340,7 @@ private:
     QList<boost::weak_ptr<BuyerPeerPlugin> > _peersScheduledForDeletion;
 
     // Wallet
-    Wallet::Manager * _wallet;
+    joystream::bitcoin::SPVWallet * _wallet;
 
 
         /**

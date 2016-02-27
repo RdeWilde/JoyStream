@@ -83,7 +83,7 @@ public:
 
     Coin::Network network() const { return _network; }
 
-    Q_INVOKABLE void broadcastTx(Coin::Transaction & cointx);
+    Q_INVOKABLE void broadcastTx(Coin::Transaction cointx);
 
     int32_t bestHeight() const;
 

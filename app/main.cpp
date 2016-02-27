@@ -14,7 +14,6 @@
 #include <core/logger/LoggerManager.hpp>
 #include <common/Seed.hpp>
 #include <gui/MainWindow.hpp>
-#include <wallet/Manager.hpp>
 #include <AutoUpdater.hpp>
 #include <Analytics.hpp>
 
@@ -22,8 +21,6 @@
 #define ERROR_LOG_MAX_SIZE 200*20
 
 bool send_errorlog(QNetworkAccessManager * manager);
-bool deleteWallet(QString filename);
-void createWallet(QString filename);
 
 // JoyStream entry point
 int main(int argc, char* argv[]) {
@@ -67,8 +64,8 @@ int main(int argc, char* argv[]) {
             showView = true;
 
     // Create logging category
-    bool use_stdout_logg = true;
-    QLoggingCategory * category = global_log_manager.createLogger("main", use_stdout_logg, false);
+    bool use_stdout_log = true;
+    QLoggingCategory * category = global_log_manager.createLogger("main", use_stdout_log, false);
 
     // Network access manager instance used by all code trying to use network
     QNetworkAccessManager manager;
@@ -100,47 +97,32 @@ int main(int argc, char* argv[]) {
                 configuration = Controller::Configuration(fileString.c_str());
         }
 
-        // Load wallet
-        QString walletFile = QDir::homePath() + QDir::separator() + QString("wallet.sqlite3");
+        // Wallet location
+        QString storePath = QDir::homePath() + QDir::separator() + QString("joystream.store");
 
-        Wallet::Manager * wallet;
+        // Block Tree file location
+        QString blocktreePath = QDir::homePath() + QDir::separator() + QString("joystream.blocktree");
 
-        // Create wallet if it does not exist
-        if(!QFile(walletFile).exists()) {
-
-            qCDebug((*category)) << "Creating a fresh wallet " << walletFile;
-            createWallet(walletFile);
-
-            wallet = new Wallet::Manager(walletFile);
-
-        } else {
-
-            // Load existing wallet
-            wallet = new Wallet::Manager(walletFile);
-
-            //check if the metadata version is set in the database
-            //value of 0 means the database
-            //was created in an earlier version of the app before key pooling was
-            //implemented and we should drop it and create a new one
-            if(wallet->version() == 0) {
-                wallet->close();
-                qCDebug((*category)) << "Purging old wallet, creating new fresh wallet " << walletFile;
-                deleteWallet(walletFile);
-                createWallet(walletFile);
-                wallet = new Wallet::Manager(walletFile);
-            }
+        // NetSync log file
+        if(getenv("NETSYNC_LOGGER") != NULL) {
+            QString syncLogPath = QDir::homePath() + QDir::separator() + QString("joystream-sync.log");
+            INIT_LOGGER(syncLogPath.toStdString().c_str());
         }
 
-        // Initiliaze blockcypher interface
-        wallet->BLOCKCYPHER_init(&manager, APPLICATION_BLOCKCYPHER_TOKEN);
-
         // Create controller
-        Controller controller(configuration, wallet, &manager, *category);
+        // Loading the block tree will take some time.. maybe we can show a progress dialogue
+        // Or let the main window open the wallet..?
+        Controller controller(configuration, &manager,
+                              APPLICATION_BITCOIN_NETWORK,
+                              APPLICATION_BLOCKCYPHER_TOKEN,
+                              storePath,
+                              blocktreePath,
+                              *category);
 
         QObject::connect(&controller, &Controller::closed, &app, &QApplication::quit);
 
         // Allocate view and show it
-        MainWindow view(&controller, wallet, "");
+        MainWindow view(&controller, "");
         view.show();
 
         // Create and start analytics tracking
@@ -153,11 +135,11 @@ int main(int argc, char* argv[]) {
         analytics.start(Analytics::_defaultPingMsInterval);
 
         // Start event loop: this is the only Qt event loop in the entire application
-        app.exec();
+        int retValue = app.exec();
 
         qDebug() << "Application event loop exited, application closing.";
 
-        return 0;
+        return retValue;
 
     } catch(const std::exception & e) {
 
@@ -178,19 +160,6 @@ int main(int argc, char* argv[]) {
 
         return 1;
     }
-}
-
-bool deleteWallet(QString filename) {
-    return QFile::remove(filename);
-}
-
-void createWallet(QString filename) {
-
-    // Get new random seed
-    Coin::Seed seed = Coin::Seed::generate();
-
-    // Create wallet
-    Wallet::Manager::createNewWallet(filename, APPLICATION_BITCOIN_NETWORK, seed);
 }
 
 bool send_errorlog(QNetworkAccessManager * manager) {

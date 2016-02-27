@@ -24,7 +24,7 @@
 #define SLIDER_MAX 100
 #define SLIDER_TICK 1
 
-BuyerTorrentPluginConfigurationDialog::BuyerTorrentPluginConfigurationDialog(Controller * controller, Wallet::Manager * wallet, const libtorrent::torrent_info & torrentInfo, const BitcoinDisplaySettings * settings)
+BuyerTorrentPluginConfigurationDialog::BuyerTorrentPluginConfigurationDialog(Controller * controller, joystream::bitcoin::SPVWallet * wallet, const libtorrent::torrent_info & torrentInfo, const BitcoinDisplaySettings * settings)
     : ui(new Ui::BuyerTorrentPluginConfigurationDialog)
     , _controller(controller)
     , _wallet(wallet)
@@ -156,15 +156,12 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
                                            numberOfSellers,
                                            feePerkB); //
 
-    // Get funding output - this has to be grabbed from wallet/chain later
-    Coin::UnspentP2PKHOutput utxo = _wallet->BLOCKCYPHER_lock_one_utxo(minFunds);
-
-    // = _wallet->getUtxo(minFunds, 1);
-    //qDebug() << "Skipping grabbing real utxo, just empty crap for now";
+    // Get funding output
+    std::list<Coin::UnspentP2PKHOutput> utxos = _wallet->lockOutputs(minFunds);
 
     // Check that an utxo was indeed found
-    if(utxo.value() == 0) {
-
+    if(utxos.size() == 0 || utxos.front().value() < minFunds) {
+        _wallet->unlockOutputs(utxos);
         // Show modal dialog on same thread, we block untill it is closed
         QMessageBox msgBox;
         msgBox.setText(QString("You need a confirmed balance of at least ") + QString::number(minFunds) + QString("(satoshies), please top up wallet and wait for pending transactions to be confirmed."));
@@ -173,6 +170,9 @@ void BuyerTorrentPluginConfigurationDialog::on_buttonBox_accepted() {
         return;
     }
 
+    Coin::UnspentP2PKHOutput utxo = utxos.front();
+    utxos.pop_front();
+    _wallet->unlockOutputs(utxos);
 
     // Maximum Lock time
     QTime maxLockTime = ui->maxLockTimeEdit->time();
