@@ -94,6 +94,7 @@ bool Store::open(std::string file) {
         _seed.clear();
         _seed = Coin::Seed(QString::fromStdString(metadata->seed()));
         _rootKeychain = _seed.generateHDKeychain();
+        _timestamp = metadata->created();
 
         return true;
 
@@ -142,6 +143,7 @@ bool Store::create(std::string file, Coin::Network network, Coin::Seed seed, uin
         _seed = seed;
         _rootKeychain = _seed.generateHDKeychain();
         detail::store::Metadata metadata(seed.toHex().toStdString(), network, timestamp);
+        _timestamp = timestamp;
         _db->persist(metadata);
 
         t.commit ();
