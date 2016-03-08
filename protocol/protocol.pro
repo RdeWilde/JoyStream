@@ -48,7 +48,12 @@ HEADERS += \
     include/protocol/Seller.hpp \
     include/protocol/Utilities.hpp \
     include/protocol/BuyerPayorSettings.hpp \
-    include/protocol/BuyerChannelSettings.hpp
+    include/protocol/BuyerChannelSettings.hpp \
+    include/protocol/statemachine/Sell.hpp \
+    include/protocol/statemachine/ServicingPieceRequest.hpp \
+    include/protocol/statemachine/Buy.hpp \
+    include/protocol/statemachine/CBStateMachine.hpp \
+    include/protocol/statemachine/SellerJoined.hpp
 
 SOURCES += \
     src/wire/ExtendedMessagePayload.cpp \
@@ -79,7 +84,10 @@ SOURCES += \
     src/Utilities.cpp \
     src/BuyerChannelSettings.cpp \
     src/Session.cpp \
-
+    src/statemachine/Sell.cpp \
+    src/statemachine/ServicingPieceRequest.cpp \
+    src/statemachine/SellerJoined.cpp \
+    src/statemachine/CBStateMachine.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

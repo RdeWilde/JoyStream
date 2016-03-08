@@ -17,8 +17,9 @@ namespace wire {
     Sell::Sell() {
     }
 
-    Sell::Sell(const joystream::protocol::SellerTerms & terms)
-        : _terms(terms) {
+    Sell::Sell(const joystream::protocol::SellerTerms & terms, uint32_t index)
+        : _terms(terms)
+        , _index(index) {
     }
 
     Sell::Sell(QDataStream & stream) {
@@ -52,6 +53,14 @@ namespace wire {
 
     void Sell::setTerms(const joystream::protocol::SellerTerms & terms) {
         _terms = terms;
+    }
+
+    uint32_t Sell::index() const {
+        return _index;
+    }
+
+    void Sell::setIndex(uint32_t index) {
+        _index = index;
     }
 }
 }

@@ -23,7 +23,7 @@ namespace wire {
         Sell();
 
         // Constructor based on members
-        Sell(const joystream::protocol::SellerTerms & terms);
+        Sell(const joystream::protocol::SellerTerms & terms, uint32_t index);
 
         // Constructor based on raw data
         Sell(QDataStream & stream);
@@ -37,10 +37,16 @@ namespace wire {
         joystream::protocol::SellerTerms terms() const;
         void setTerms(const joystream::protocol::SellerTerms & terms);
 
+        uint32_t index() const;
+        void setIndex(uint32_t index);
+
     private:
 
         // Sales terms
         joystream::protocol::SellerTerms _terms;
+
+        // Terms index
+        uint32_t _index;
     };
 }
 }
