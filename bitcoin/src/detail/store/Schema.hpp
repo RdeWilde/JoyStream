@@ -393,7 +393,7 @@ private:
     std::shared_ptr<Address> changeAddress_;
 };
 
-#ifdef USE_STORE_ALPHA_CODE
+
 #pragma db value
 struct block_header_t {
     uint32_t version_;
@@ -463,6 +463,7 @@ private:
     uint32_t index_;
 };
 
+#ifdef USE_STORE_ALPHA_CODE
 #pragma db object pointer(std::shared_ptr)
 class Payer : public std::enable_shared_from_this<Payer> {
 public:
@@ -567,7 +568,7 @@ private:
     std::string payerFinalPublicKey_;
     std::shared_ptr<Transaction> paymentTransaction_;
 };
-
+#endif //store alpha code
 
 #pragma db view object(Output) \
     object(Address) \
@@ -594,8 +595,6 @@ typedef struct {
 typedef struct {
     std::shared_ptr<BlockHeader> header;
 } block_headers_view_t;
-
-#endif //store alpha code
 
 
 }//store

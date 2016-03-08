@@ -26,13 +26,12 @@ namespace {
     bool transactionLoad(std::unique_ptr<odb::database> &db, std::string txid, Coin::Transaction &coin_tx);
     void transactionDelete(std::unique_ptr<odb::database> &db, std::string txid);
 
-#ifdef USE_STORE_ALPHA_CODE
+
     void blockHeaderRemove(std::unique_ptr<odb::database> & db, std::shared_ptr<detail::store::BlockHeader> block_header);
     void blockHeaderAdd(std::unique_ptr<odb::database> & db, const ChainHeader & header);
     void transactionMinedInBlockAdd(std::unique_ptr<odb::database> & db,
                                     const Coin::PartialMerkleTree & tree, const Coin::BlockId & blockId);
     uint64_t getWalletBalance(std::unique_ptr<odb::database> & db, uint32_t confirmations, uint32_t main_chain_height);
-#endif
 }
 
 // open existing store
@@ -95,7 +94,6 @@ bool Store::open(std::string file) {
         _seed = Coin::Seed(QString::fromStdString(metadata->seed()));
         _rootKeychain = _seed.generateHDKeychain();
         _timestamp = metadata->created();
-
         return true;
 
     } catch (odb::exception &e) {
@@ -142,6 +140,7 @@ bool Store::create(std::string file, Coin::Network network, Coin::Seed seed, uin
         _network = network;
         _seed = seed;
         _rootKeychain = _seed.generateHDKeychain();
+        _timestamp = timestamp;
         detail::store::Metadata metadata(seed.toHex().toStdString(), network, timestamp);
         _timestamp = timestamp;
         _db->persist(metadata);
@@ -442,6 +441,95 @@ Coin::HDKeychain Store::getKeyChain_tx(bool createReceiveAddress) {
     }
 
     return hdKeyChain;
+}
+
+void Store::insertMerkleTx(const ChainMerkleBlock& chainmerkleblock,
+                    const Coin::Transaction& cointx,
+                    unsigned int txindex,
+                    unsigned int txcount,
+                    bool verifysigs,
+                    bool isCoinbase){
+    std::cout << "Merkel Tx at Height: " << chainmerkleblock.height << std::endl;
+
+    if(chainmerkleblock.hash().getHex() == "000000000000de2b879ed80abdd161c5275dc05e478e7dc273555de519cb971b") {
+        std::cout << "### found block 1" << std::endl;
+    }
+
+    if(chainmerkleblock.hash().getHex() == "000000000003fb5ae1ee81f594b76897f42841da4a7156727b5efbd8406292ed") {
+        std::cout << "### found block 2" << std::endl;
+    }
+
+    // filter TX to store (input and outputs should match something in the store)
+
+    if(cointx.hash().getHex() == "4f41e57c02d18b9bf65bd218439ac8a620df119fa4b964a3135f31ec00a3d176") {
+        std::cout << "### found mytx 1" << std::endl;
+        std::cout << "Merkel Block:" << chainmerkleblock.hash().getHex() << std::endl;
+    }
+    if(cointx.hash().getHex() == "ef4fff4cd5bdb692b8e488a048c702d615ea3430bc98c6d58c4c174b8419fb76") {
+        std::cout << "### found mytx 2" << std::endl;
+    }
+    if(cointx.hash().getHex() == "5a3229593aee909f5f1743eadc296fae0161aba260a206c1197ac0b5fc79e2a3") {
+        std::cout << "### found mytx 3" << std::endl;
+    }
+
+}
+
+void Store::confirmMerkleTx(const ChainMerkleBlock& chainmerkleblock,
+                     const bytes_t& txhash,
+                     unsigned int txindex,
+                     unsigned int txcount){
+    //std::cout << "Store: confirming Merkel Tx:" << uchar_vector(txhash).getHex() << std::endl;
+}
+
+void Store::insertMerkleBlock(const ChainMerkleBlock & chainmerkleblock){
+    // blocks that do not contain any tx we care about
+    // PartialMerkleTree tree(merkleblock.nTxs, merkleblock.hashes, merkleblock.flags, merkleblock.merkleRoot());
+    std::cout << "MerkleBlock:" << chainmerkleblock.hash().getHex() << " height:" << chainmerkleblock.height << std::endl;
+}
+
+uint32_t Store::getBestBlockHeaderHeight() {
+    return 0;
+}
+
+bytes_t Store::getBestBlockHeaderHash() {
+    return bytes_t();
+}
+
+Coin::BloomFilter Store::getBloomFilter(double falsePositiveRate, uint32_t nTweak, uint32_t nFlags) const {
+    typedef odb::query<detail::store::key_view_t> query;
+    typedef odb::result<detail::store::key_view_t> result;
+
+    std::vector<uchar_vector> elements;
+
+    odb::transaction t(_db->begin());
+    result r(_db->query<detail::store::key_view_t>(query::address::id.is_not_null() && query::key::used == true));
+    for(auto &record : r) {
+        Coin::PrivateKey sk(_rootKeychain.getChild(record.key->id()).privkey());
+
+        //output script ? (doesn't seem to be effective)
+        //elements.push_back(Coin::P2PKHScriptPubKey(sk.toPublicKey()).serialize());
+
+        //public key - as it would appear in the input script of a spending TX
+        elements.push_back(sk.toPublicKey().toUCharVector());
+
+        //pubkeyhash
+        elements.push_back(sk.toPublicKey().toPubKeyHash().toUCharVector());
+    }
+    t.commit();
+
+    if(elements.size() == 0) return Coin::BloomFilter();
+
+    std::cout << "bloom filter total elements:" << elements.size() << std::endl;
+
+    Coin::BloomFilter filter(elements.size(), falsePositiveRate, nTweak, nFlags);
+
+    for(auto elm : elements) filter.insert(elm);
+
+    return filter;
+}
+
+std::vector<bytes_t> Store::getLocatorHashes() {
+    return std::vector<bytes_t>();
 }
 
 namespace {

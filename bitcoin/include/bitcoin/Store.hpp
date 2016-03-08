@@ -10,6 +10,8 @@
 
 #include <CoinCore/hdkeys.h>
 #include <CoinCore/CoinNodeData.h>
+#include <CoinQ/CoinQ_blocks.h>
+#include <CoinCore/BloomFilter.h>
 
 #include <odb/database.hxx>
 
@@ -62,9 +64,32 @@ public:
     bool transactionExists(const Coin::TransactionId & txid);
     bool transactionExists(const Coin::Transaction & tx);
 
+    bool loadKey(const Coin::P2PKHAddress &address, Coin::PrivateKey & sk);
+
+    // Methods used to update Store with block headers and transactions
     void addTransaction(const Coin::Transaction & tx);
 
     bool loadKey(const Coin::P2PKHAddress &address, Coin::PrivateKey & sk);
+
+    void insertMerkleTx(const ChainMerkleBlock& chainmerkleblock,
+                        const Coin::Transaction& cointx,
+                        unsigned int txindex,
+                        unsigned int txcount,
+                        bool verifysigs = false,
+                        bool isCoinbase = false);
+
+    void confirmMerkleTx(const ChainMerkleBlock& chainmerkleblock,
+                    const bytes_t& txhash,
+                    unsigned int txindex,
+                    unsigned int txcount);
+
+    void insertMerkleBlock(const ChainMerkleBlock & chainmerkleblock);
+
+    uint32_t getBestBlockHeaderHeight();
+    bytes_t getBestBlockHeaderHash();
+    uint32_t getMaxFirstBlockTimestamp();
+    Coin::BloomFilter getBloomFilter(double falsePositiveRate, uint32_t nTweak, uint32_t nFlags) const;
+    std::vector<bytes_t> getLocatorHashes();
 
 private:
     // don't allow copying, store should be passed by reference only

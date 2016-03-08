@@ -50,9 +50,9 @@ CONFIG(release, debug|release) {
 }
 
 # mSIGNA
-#INCLUDEPATH += $$MSIGNA_SYSROOT/include
-QMAKE_CXXFLAGS += -isystem $$MSIGNA_SYSROOT/include
-LIBS += -L$$MSIGNA_SYSROOT/lib -lCoinCore
+INCLUDEPATH += $$MSIGNA_SYSROOT/include
+#QMAKE_CXXFLAGS += -isystem $$MSIGNA_SYSROOT/include
+LIBS += -L$$MSIGNA_SYSROOT/lib -lCoinCore -lCoinQ -llogger
 
 # Boost
 LIBS += \

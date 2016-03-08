@@ -20,10 +20,14 @@ INCLUDEPATH += $$PWD/../blockcypher/include
 HEADERS += include/bitcoin/Store.hpp \
            src/detail/store/Schema.hpp \
            include/bitcoin/BlockCypherWallet.hpp
+           include/bitcoin/SPVClient.hpp \
+           include/bitcoin/SPVWallet.hpp
 
 SOURCES += src/detail/store/Schema-odb.cxx \
            src/detail/store/Schema.cpp \
            src/Store.cpp \
-           src/BlockCypherWallet.cpp
+           src/BlockCypherWallet.cpp \
+           src/SPVClient.cpp \
+           src/SPVWallet.cpp
 
 include(../config.pri)

@@ -196,7 +196,7 @@ namespace store {
         created_(std::time(nullptr))
     {}
 
-#ifdef USE_STORE_ALPHA_CODE
+
 // BlockHeader
 
     BlockHeader::BlockHeader(const ChainHeader &header) {
@@ -224,7 +224,7 @@ namespace store {
         //merkelBranch_ =
         //index_ =
     }
-
+#ifdef USE_STORE_ALPHA_CODE
 // Payer
 
     Payer::Payer(std::shared_ptr<Transaction> tx)
