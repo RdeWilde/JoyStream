@@ -1,0 +1,4 @@
+#ifndef SELLERJOINED_H
+#define SELLERJOINED_H
+
+#endif // SELLERJOINED_H

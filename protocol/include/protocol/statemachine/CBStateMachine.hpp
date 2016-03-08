@@ -1,0 +1,4 @@
+#ifndef CBSTATEMACHINE_H
+#define CBSTATEMACHINE_H
+
+#endif // CBSTATEMACHINE_H
