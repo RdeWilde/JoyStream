@@ -8,7 +8,9 @@
 #ifndef JOYSTREAM_PROTOCOL_STATE_MACHINE_SELL_HPP
 #define JOYSTREAM_PROTOCOL_STATE_MACHINE_SELL_HPP
 
-#include <protocol/statemachine/ServicingPieceRequest.hpp>
+#include <boost/statechart/event.hpp>
+#include <boost/statechart/state_machine.hpp>
+#include <boost/statechart/simple_state.hpp>
 
 #include <functional>
 
@@ -21,6 +23,9 @@ namespace joystream {
 namespace protocol {
 
     namespace wire {
+        class Observe;
+        class Buy;
+        class Sell;
         class JoinContract;
         class Ready;
         class RequestFullPiece;
@@ -58,18 +63,36 @@ namespace protocol {
                 terminated
             };
 
-            // Classifier call types
-            typedef std::function<void()> invitedToOutdatedContract;
-            typedef std::function<void(const Coin::typesafeOutPoint & anchor, int64_t funds, const Coin::PublicKey & contractPk)> invitedToJoinContract;
-            typedef std::function<void(const wire::JoiningContract &)> sendJoiningContract;
-            typedef std::function<void(const Coin::typesafeOutPoint &)> contractIsReady;
-            typedef std::function<void(int)> pieceRequested;
+            //// Classifier call types
 
-            Sell(CBStateMachine * context);
+            //
+            typedef std::function<void()> InvitedToOutdatedContract;
+
+            //
+            typedef std::function<void(const Coin::typesafeOutPoint & anchor, int64_t funds, const Coin::PublicKey & contractPk)> InvitedToJoinContract;
+
+            //
+            typedef std::function<void(const wire::JoiningContract &)> SendJoiningContract;
+
+            //
+            typedef std::function<void(const Coin::typesafeOutPoint &)> ContractIsReady;
+
+            //
+            typedef std::function<void(int)> PieceRequested;
+
+            Sell(CBStateMachine * context,
+                 const InvitedToOutdatedContract & invitedToOutdatedContract,
+                 const InvitedToJoinContract & invitedToJoinContract,
+                 const SendJoiningContract & sendJoiningContract,
+                 const ContractIsReady & contractIsReady,
+                 const PieceRequested & pieceRequested);
 
             //// Events
 
             // Message arrival events
+            void recv(const wire::Observe & m);
+            void recv(const wire::Buy & m);
+            void recv(const wire::Sell & m);
             void recv(const wire::JoinContract & m);
             void recv(const wire::Ready & m);
             void recv(const wire::RequestFullPiece & m);
@@ -91,18 +114,17 @@ namespace protocol {
 
             State _state;
 
+            // paymentchannel::Payee?
+
             // Complex state for servicing piece request
             ServicingPieceRequest _servicingPieceRequest;
 
             // Callbacks for classifier routines
-
-            /**
-            typedef std::function<void()> invitedToOutdatedContract _;
-            typedef std::function<void(const Coin::typesafeOutPoint & anchor, int64_t funds, const Coin::PublicKey & contractPk)> invitedToJoinContract;
-            typedef std::function<void(const wire::JoiningContract &)> sendJoiningContract;
-            typedef std::function<void(const Coin::typesafeOutPoint &)> contractIsReady;
-            typedef std::function<void(int)> pieceRequested;
-            */
+            InvitedToOutdatedContract _invitedToOutdatedContract;
+            InvitedToJoinContract _invitedToJoinContract;
+            SendJoiningContract _sendJoiningContract;
+            ContractIsReady _contractIsReady;
+            PieceRequested _pieceRequested;
         };
 
     }

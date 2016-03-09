@@ -8,9 +8,13 @@
 #ifndef JOYSTREAM_PROTOCOL_STATEMACHINE_CBSTATEMACHINE_HPP
 #define JOYSTREAM_PROTOCOL_STATEMACHINE_CBSTATEMACHINE_HPP
 
-#include <protocol/statemachine/Buy.hpp>
-#include <protocol/statemachine/Sell.hpp>
 #include <protocol/PeerModeAnnounced.hpp>
+
+#include <boost/statechart/event.hpp>
+#include <boost/statechart/state_machine.hpp>
+#include <boost/statechart/simple_state.hpp>
+
+namespace sc = boost::statechart;
 
 namespace joystream {
 namespace protocol {
@@ -21,49 +25,25 @@ namespace protocol {
         class Observe;
     }
 
-namespace statemachine {
+    namespace statemachine {
 
-    class CBStateMachine {
+        class ChooseMode;
 
-    public:
+        class CBStateMachine : public sc::state_machine<CBStateMachine, ChooseMode> {
 
-        enum class State {
+        public:
 
-            // simple state:
-            observe,
+        private:
 
-            // complex state:
-            sell,
-
-            // complex state:
-            buy
+            //// Peer
+            joystream::protocol::PeerModeAnnounced _peerAnnouncedMode;
         };
 
-        CBStateMachine(State state);
+        class ChooseMode : public sc::simple_state<ChooseMode, CBStateMachine> {
 
-        //// Events
+        };
 
-
-        // Getters
-        State state() const;
-
-    private:
-
-        // State which machine is in
-        State _state;
-
-        //// Composite states
-
-        // Composite state buy
-        Buy _buy;
-
-        // Composite state sell
-        Sell _sell;
-
-        //// Peer
-        joystream::protocol::PeerModeAnnounced _peerAnnouncedMode;
-    };
-}
+    }
 }
 }
 
