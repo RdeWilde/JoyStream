@@ -6,63 +6,132 @@
  */
 
 #include <blockcypher/TXInput.hpp>
-#include <CoinCore/CoinNodeData.h> // TxIn 
+#include <blockcypher/ScriptType.hpp>
+
 #include <QJsonValue>
 #include <QJsonArray>
-#include <QJsonDocument>
 #include <QJsonObject>
-#include <QDebug>
 
+#include <CoinCore/CoinNodeData.h>
+#include <stdutils/uchar_vector.h>
 
 namespace BlockCypher {
 
-TXInput::TXInput(const QJsonObject & o) {
+    TXInput::TXInput(const QJsonObject & o) {
 
-        _prev_hash = o.value("prev_hash").toString();
-        _output_index = o.value("output_index").toInt();
-        _output_value = (quint64)o.value("output_value").toDouble();
+        if(!o.contains("prev_hash"))
+            throw std::runtime_error("prev_hash is not a key.");
+        else {
 
-        //Raw hexadecimal encoding of the script
-        std::string t2 = (o.value("script").toString()).toUtf8().constData();
-        _script = uchar_vector(t2);
-        _script_type = toScriptType(o.value("script_type").toString());
+            QJsonValue prev_hash = o.value("prev_hash");
 
-        QJsonArray arr = o.value(("addresses")).toArray();
+            if(!prev_hash.isString())
+                throw std::runtime_error("prev_hash is not a string.");
+            else
+                _prev_hash = prev_hash.toString();
 
-        foreach (const QJsonValue & value, arr) {
-            QString t = value.toString();
-            _addresses.append(t);
         }
 
-        _sequence = (quint32)o.value("sequence").toDouble();
+        if(!o.contains("output_index"))
+            throw std::runtime_error("output_index is not a key.");
+        else {
 
-        //For debugging purposes.
-        qDebug() << "\nTXInput object: " << o;
-        qDebug() << "TXInput, Inserted _prev_hash:" << _prev_hash;
-        qDebug() << "TXInput, Inserted _output_index:" << _output_index;
-        qDebug() << "TXInput, Inserted _output_value:" << _output_value;
-        qDebug() << "TXInput, Inserted _script:" << QString::fromUtf8(_script.getHex().c_str());
-        qDebug() << "TXInput, Inserted _script_type:" << fromScriptType(_script_type);
-        qDebug() << "TXInput, Inserted _addresses:" << _addresses;
-        qDebug() << "TXInput, Inserted _sequence:" << _sequence;
+            QJsonValue output_index = o.value("output_index");
 
-}
+            if(!output_index.isDouble())
+                throw std::runtime_error("output_index is not a double.");
+            else
+                _output_index = o.value("output_index").toDouble();
+        }
 
-bool TXInput::operator==(const TXInput & o) {
-     return _prev_hash == o._prev_hash &&
-            _output_index == o._output_index &&
-            _output_value == o._output_value &&
-            _script == o._script &&
-            _script_type == o._script_type &&
-            _addresses == o._addresses &&
-            _sequence == o._sequence;
-        // no need to check last one
+        if(!o.contains("output_value"))
+            throw std::runtime_error("output_value is not a key.");
+        else {
 
-}
+            QJsonValue output_value = o.value("output_value");
 
-Coin::TxIn TXInput::toInput() const {
-    throw std::runtime_error("not done");
-    return Coin::TxIn();
-}
+            if(!output_value.isDouble())
+                throw std::runtime_error("output_value is not a double.");
+            else
+                _output_value = output_value.toDouble();
+        }
 
+        if(!o.contains("script"))
+            throw std::runtime_error("script is not a key.");
+        else {
+
+            QJsonValue script = o.value("script");
+
+            if(!script.isString())
+                throw std::runtime_error("script is not a string.");
+            else
+                _script = script.toString();
+        }
+
+
+        if(!o.contains("script_type"))
+            throw std::runtime_error("script_type is not a key.");
+        else {
+
+            QJsonValue script_type = o.value("script_type");
+
+            if(!script_type.isString())
+                throw std::runtime_error("script_type is not a string.");
+            else
+                _script_type = toScriptType(script_type.toString());
+        }
+
+        if(!o.contains("addresses"))
+            throw std::runtime_error("addresses key is not defined.");
+        else {
+
+            QJsonValue addresses = o.value("addresses");
+
+            if(!addresses.isArray())
+                throw std::runtime_error("addresses is not an array.");
+            else {
+
+                QJsonArray addressesArray = addresses.toArray();
+
+                foreach (const QJsonValue & value, addressesArray) {
+
+                    if(!value.isString())
+                        throw std::runtime_error("array contained non-string element.");
+                    else
+                        _addresses.append(value.toString());
+                }
+
+            }
+        }
+
+        if(!o.contains("sequence"))
+            throw std::runtime_error("sequence key is not defined.");
+        else {
+
+            QJsonValue sequence = o.value("sequence");
+
+            if(!sequence.isDouble())
+                throw std::runtime_error("sequence is not a double.");
+            else{
+                _sequence = sequence.toDouble();
+            }
+        }
+    }
+
+    bool TXInput::operator==(const TXInput & o) {
+
+        return _prev_hash == o._prev_hash &&
+               _output_index == o._output_index &&
+               _output_value == o._output_value &&
+               _script == o._script &&
+               _script_type == o._script_type &&
+               _addresses == o._addresses &&
+               _sequence == o._sequence;
+    }
+
+    Coin::TxIn TXInput::toInput() const {
+        uchar_vector op(_prev_hash.toStdString());
+        Coin::OutPoint outpoint(op, _output_index);
+        return Coin::TxIn(outpoint, _script.toStdString(), _sequence);
+    }
 }

@@ -10,7 +10,7 @@ SUBDIRS     = \
             common \
             paymentchannel \
             #views \
-            wallet \
             blockcypher \ 
-	    mixpanel
-
+            mixpanel \
+            blockcypher-websocket \
+            blockcypher-wallet

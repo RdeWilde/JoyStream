@@ -34,7 +34,10 @@ HEADERS += \
     include/blockcypher/BlockExplorer.hpp \
     include/blockcypher/FundWalletFromFaucet.hpp \
     include/blockcypher/Event.hpp \
-    include/blockcypher/WsClient.hpp
+    include/blockcypher/WebSocketClient.hpp \
+    include/blockcypher/UTXOManager.hpp \
+    include/blockcypher/UTXO.hpp \
+    include/blockcypher/TxResult.hpp
 
 SOURCES += \
     src/Wallet.cpp \
@@ -54,7 +57,9 @@ SOURCES += \
     src/FundWalletFromFaucet.cpp \
     src/Event.cpp \
     src/TXOutput.cpp \
-    src/WsClient.cpp
+    src/WebSocketClient.cpp \
+    src/UTXOManager.cpp \
+    src/UTXO.cpp
 
 # common #############################################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../common/release/ -lcommon

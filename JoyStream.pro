@@ -17,7 +17,8 @@ SUBDIRS     = \
             app \
             runner \
             test \
-            demo
+            demo \
+            bitcoin
 
 # paymentchannel
 paymentchannel.depends = common
