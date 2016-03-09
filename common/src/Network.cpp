@@ -17,6 +17,7 @@ const char * nameFromNetwork(Network network) {
     switch(network) {
         case Network::mainnet: return "mainnet";
         case Network::testnet3: return "testnet3";
+        case Network::regtest: return "regtest";
         default:
             Q_ASSERT(false);
     }
@@ -29,6 +30,8 @@ Network networkFromName(const char * name) {
         return Network::mainnet;
     else if(strcmp(name, "testnet3") == 0)
         return Network::testnet3;
+    else if(strcmp(name, "regtest") == 0)
+        return Network::regtest;
     else
         Q_ASSERT(false);
 

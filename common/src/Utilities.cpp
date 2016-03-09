@@ -43,6 +43,7 @@ namespace Coin {
         switch(network) {
             case Network::testnet3: return testnet3AddressVersions;
             case Network::mainnet: return mainnetAddressVersions;
+            case Network::regtest: return testnet3AddressVersions;
             default:
                     Q_ASSERT(false);
         }

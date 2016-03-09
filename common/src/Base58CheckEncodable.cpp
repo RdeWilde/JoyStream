@@ -23,7 +23,8 @@ uint32_t toVersionValue(Base58CheckEncodable encodable, Network network) {
 
     //Coin::Transaction id;
 
-    if(network == Network::testnet3) {
+    // testnet3 and regtest address version numbers are identical
+    if(network == Network::testnet3 || network == Network::regtest) {
 
         switch(encodable) {
 
