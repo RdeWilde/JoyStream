@@ -15,7 +15,8 @@ namespace Coin {
  */
 enum class Network {
     testnet3,
-    mainnet
+    mainnet,
+    regtest
 };
 
 /**
