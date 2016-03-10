@@ -117,7 +117,7 @@ namespace protocol {
             // paymentchannel::Payee?
 
             // Complex state for servicing piece request
-            ServicingPieceRequest _servicingPieceRequest;
+            //ServicingPieceRequest _servicingPieceRequest;
 
             // Callbacks for classifier routines
             InvitedToOutdatedContract _invitedToOutdatedContract;

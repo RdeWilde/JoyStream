@@ -11,14 +11,16 @@ namespace joystream {
 namespace protocol {
 namespace statemachine {
 
-    CBStateMachine::CBStateMachine(State state)
-        : _state(state)
-        , _buy(this)
-        , _sell(this) {
+    CBStateMachine::CBStateMachine(const PeerModeAnnounced & peerAnnouncedMode)
+        : _peerAnnouncedMode(peerAnnouncedMode) {
     }
 
-    CBStateMachine::State CBStateMachine::state() const {
-        return _state;
+    joystream::protocol::PeerModeAnnounced CBStateMachine::peerAnnouncedMode() const {
+        return _peerAnnouncedMode;
+    }
+
+    void CBStateMachine::setPeerAnnouncedMode(const joystream::protocol::PeerModeAnnounced & peerAnnouncedMode) {
+        _peerAnnouncedMode = peerAnnouncedMode;
     }
 
 }

@@ -53,7 +53,13 @@ HEADERS += \
     include/protocol/statemachine/ServicingPieceRequest.hpp \
     include/protocol/statemachine/Buy.hpp \
     include/protocol/statemachine/CBStateMachine.hpp \
-    include/protocol/statemachine/SellerJoined.hpp
+    include/protocol/statemachine/SellerJoined.hpp \
+    include/protocol/statemachine/ChooseMode.hpp \
+    include/protocol/statemachine/event/ObserveModeStarted.hpp \
+    include/protocol/statemachine/event/SellModeStarted.hpp \
+    include/protocol/statemachine/Observe.hpp \
+    include/protocol/statemachine/event/BuyModeStarted.hpp \
+    include/protocol/statemachine/event/Recv.hpp
 
 SOURCES += \
     src/wire/ExtendedMessagePayload.cpp \
@@ -87,7 +93,10 @@ SOURCES += \
     src/statemachine/Sell.cpp \
     src/statemachine/ServicingPieceRequest.cpp \
     src/statemachine/SellerJoined.cpp \
-    src/statemachine/CBStateMachine.cpp
+    src/statemachine/CBStateMachine.cpp \
+    src/statemachine/event/SellModeStarted.cpp \
+    src/statemachine/event/BuyModeStarted.cpp \
+    src/statemachine/event/Recv.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

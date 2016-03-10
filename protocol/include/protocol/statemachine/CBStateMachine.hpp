@@ -10,9 +10,7 @@
 
 #include <protocol/PeerModeAnnounced.hpp>
 
-#include <boost/statechart/event.hpp>
 #include <boost/statechart/state_machine.hpp>
-#include <boost/statechart/simple_state.hpp>
 
 namespace sc = boost::statechart;
 
@@ -33,16 +31,32 @@ namespace protocol {
 
         public:
 
+            CBStateMachine(const PeerModeAnnounced & peerAnnouncedMode = PeerModeAnnounced());
+
+            // Client calls
+            //void clientToObserveMode();
+            //void clientToSellMode();
+            //void clientToBuyMode();
+
+
+
+            // Message arrival
+
+            // Getters and setters
+
+            joystream::protocol::PeerModeAnnounced peerAnnouncedMode() const;
+            void setPeerAnnouncedMode(const joystream::protocol::PeerModeAnnounced & peerAnnouncedMode);
+
         private:
 
             //// Peer
             joystream::protocol::PeerModeAnnounced _peerAnnouncedMode;
+
+            //void peerToObserveMode();
+            //void peerToSellMode();
+            //void peerToBuyMode();
+
         };
-
-        class ChooseMode : public sc::simple_state<ChooseMode, CBStateMachine> {
-
-        };
-
     }
 }
 }
