@@ -8,14 +8,18 @@
 #ifndef JOYSTREAM_PROTOCOL_STATEMACHINE_BUY_HPP
 #define JOYSTREAM_PROTOCOL_STATEMACHINE_BUY_HPP
 
-#include <protocol/statemachine/SellerJoined.hpp>
+#include <protocol/statemachine/Active.hpp>
+//#include <protocol/statemachine/SellerJoined.hpp>
 
 namespace joystream {
 namespace protocol {
 namespace statemachine {
 
-    class CBStateMachine;
+    class Buy : public sc::simple_state<Buy, Active> {
 
+    };
+
+    /**
     class Buy {
 
     public:
@@ -43,7 +47,7 @@ namespace statemachine {
         // Composite state
         SellerJoined _sellerJoined;
 
-    };
+    };*/
 
 }
 }

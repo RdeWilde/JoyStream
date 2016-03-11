@@ -5,8 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, March 10 2016
  */
 
-#include <protocol/statemachine/CBStateMachine.hpp>
-#include <boost/statechart/simple_state.hpp>
+#include <protocol/statemachine/Active.hpp>
 
 #ifndef JOYSTREAM_PROTOCOL_STATEMACHINE_OBSERVE_HPP
 #define JOYSTREAM_PROTOCOL_STATEMACHINE_OBSERVE_HPP
@@ -17,7 +16,7 @@ namespace joystream {
 namespace protocol {
 namespace statemachine {
 
-    class Observe : public sc::simple_state<Observe, CBStateMachine> {};
+    class Observe : public sc::simple_state<Observe, Active> {};
 
 }
 }

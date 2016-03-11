@@ -9,9 +9,12 @@
 #define JOYSTREAM_PROTOCOL_STATEMACHINE_CHOOSEMODE_HPP
 
 #include <protocol/statemachine/CBStateMachine.hpp>
-#include <boost/statechart/simple_state.hpp>
+#include <protocol/statemachine/event/ObserveModeStarted.hpp>
 
-#include <iostream>
+#include <boost/statechart/state.hpp>
+#include <boost/statechart/custom_reaction.hpp>
+
+namespace sc = boost::statechart;
 
 namespace joystream {
 namespace protocol {
@@ -21,12 +24,12 @@ namespace statemachine {
 
     public:
 
-        typedef sc::transition<event::Recv, ChooseMode> reactions;
+        typedef sc::custom_reaction<event::ObserveModeStarted> reactions;
 
-        ChooseMode() {
+        ChooseMode();
 
-            std::cout << "Intering choose mode" << std::endl;
-        }
+        // Event handlers
+        sc::result react(const event::ObserveModeStarted & );
 
     };
 

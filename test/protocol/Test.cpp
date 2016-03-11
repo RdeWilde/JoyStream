@@ -9,19 +9,18 @@
 #include <protocol/statemachine/CBStateMachine.hpp>
 #include <protocol/wire/Observe.hpp>
 
-namespace pr = joystream::protocol;
+using namespace joystream::protocol;
 
-void Test::state_machine() {
+void Test::CBStateMachine() {
 
-    pr::statemachine::CBStateMachine stm;
-    pr::wire::Observe m;
+
+    statemachine::CBStateMachine stm;
+    wire::Observe m;
 
     stm.initiate();
-    stm.process_event(pr::statemachine::event::Recv(&m));
-    stm.process_event(pr::statemachine::event::Recv(&m));
-    stm.process_event(pr::statemachine::event::Recv(&m));
-
-
+    stm.process_event(statemachine::event::Recv(&m));
+    stm.process_event(statemachine::event::Recv(&m));
+    stm.process_event(statemachine::event::Recv(&m));
 
 }
 

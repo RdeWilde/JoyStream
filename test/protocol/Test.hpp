@@ -18,7 +18,7 @@ class Test : public QObject {
 
 private slots:
 
-    void state_machine();
+    void CBStateMachine();
 
 
 };

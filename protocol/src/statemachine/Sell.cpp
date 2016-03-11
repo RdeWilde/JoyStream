@@ -6,15 +6,17 @@
  */
 
 #include <protocol/statemachine/Sell.hpp>
-#include <protocol/statemachine/CBStateMachine.hpp>
-#include <protocol/wire/JoinContract.hpp>
-#include <protocol/wire/Ready.hpp>
-#include <protocol/wire/RequestFullPiece.hpp>
+
+//#include <protocol/statemachine/CBStateMachine.hpp>
+//#include <protocol/wire/JoinContract.hpp>
+//#include <protocol/wire/Ready.hpp>
+//#include <protocol/wire/RequestFullPiece.hpp>
 
 namespace joystream {
 namespace protocol {
 namespace statemachine {
 
+/**
     Sell::Sell(CBStateMachine * context,
                const InvitedToOutdatedContract & invitedToOutdatedContract,
                const InvitedToJoinContract & invitedToJoinContract,
@@ -78,6 +80,7 @@ namespace statemachine {
     Sell::State Sell::state() const {
         return _state;
     }
+*/
 
 }
 }

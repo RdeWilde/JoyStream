@@ -8,9 +8,7 @@
 #ifndef JOYSTREAM_PROTOCOL_STATE_MACHINE_SELL_HPP
 #define JOYSTREAM_PROTOCOL_STATE_MACHINE_SELL_HPP
 
-#include <boost/statechart/event.hpp>
-#include <boost/statechart/state_machine.hpp>
-#include <boost/statechart/simple_state.hpp>
+#include <protocol/statemachine/Active.hpp>
 
 #include <functional>
 
@@ -18,6 +16,8 @@ namespace Coin {
     class typesafeOutPoint;
     class PublicKey;
 }
+
+#include <iostream>
 
 namespace joystream {
 namespace protocol {
@@ -34,10 +34,20 @@ namespace protocol {
 
     namespace statemachine {
 
-        class CBStateMachine;
         class SellerTerms;
         class BuyerTerms;
 
+        class Sell : public sc::simple_state< Sell, Active > {
+
+        public:
+
+            Sell() {
+                std::cout << "Intering Sell state" << std::endl;
+            }
+
+        };
+
+        /**
         class Sell {
 
         public:
@@ -126,6 +136,7 @@ namespace protocol {
             ContractIsReady _contractIsReady;
             PieceRequested _pieceRequested;
         };
+        */
 
     }
 }

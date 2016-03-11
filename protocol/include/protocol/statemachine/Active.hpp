@@ -15,7 +15,8 @@ namespace joystream {
 namespace protocol {
 namespace statemachine {
 
-    class Active : public sc::simple_state<Active, CBStateMachine> {
+    class Observe; // for some reason, we *must* have initial state for composite state
+    class Active : public sc::simple_state<Active, CBStateMachine, Observe> {
 
     public:
 
@@ -29,4 +30,3 @@ namespace statemachine {
 }
 
 #endif // JOYSTREAM_PROTOCOL_STATEMACHINE_ACTIVE_HPP
-

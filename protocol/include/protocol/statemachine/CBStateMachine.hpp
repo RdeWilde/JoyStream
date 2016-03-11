@@ -9,11 +9,9 @@
 #define JOYSTREAM_PROTOCOL_STATEMACHINE_CBSTATEMACHINE_HPP
 
 #include <protocol/PeerModeAnnounced.hpp>
-
 #include <protocol/statemachine/event/Recv.hpp>
 
 #include <boost/statechart/state_machine.hpp>
-#include <boost/statechart/transition.hpp>
 
 namespace sc = boost::statechart;
 
@@ -64,7 +62,8 @@ namespace protocol {
 }
 }
 
-// Needs to be included to make CBStateMachine complete
+// Required to make CBStateMachine complete when included throught his header file,
+// as ChooseMode is initial state and thus part of parent state_machine definition
 #include <protocol/statemachine/ChooseMode.hpp>
 
 #endif // JOYSTREAM_PROTOCOL_STATEMACHINE_CBSTATEMACHINE_HPP
