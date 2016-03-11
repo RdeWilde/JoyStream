@@ -15,12 +15,12 @@ void Test::CBStateMachine() {
 
 
     statemachine::CBStateMachine stm;
-    wire::Observe m;
+    wire::Observe m();
 
     stm.initiate();
-    stm.process_event(statemachine::event::Recv(&m));
-    stm.process_event(statemachine::event::Recv(&m));
-    stm.process_event(statemachine::event::Recv(&m));
+    //stm.process_event(statemachine::event::Recv(&m));
+    stm.process_event(statemachine::event::ObserveModeStarted());
+
 
 }
 

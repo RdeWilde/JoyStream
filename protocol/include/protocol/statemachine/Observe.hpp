@@ -16,7 +16,13 @@ namespace joystream {
 namespace protocol {
 namespace statemachine {
 
-    class Observe : public sc::simple_state<Observe, Active> {};
+    class Observe : public sc::simple_state<Observe, Active> {
+
+    public:
+
+        Observe();
+
+    };
 
 }
 }

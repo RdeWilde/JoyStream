@@ -35,13 +35,13 @@ namespace protocol {
             CBStateMachine(const PeerModeAnnounced & peerAnnouncedMode = PeerModeAnnounced());
 
             // Client calls
-            //void clientToObserveMode();
-            //void clientToSellMode();
-            //void clientToBuyMode();
-
-
 
             // Message arrival
+
+            // Context actions: should not be called direclty
+            void clientToObserveMode();
+            //void clientToSellMode();
+            //void clientToBuyMode();
 
             // Getters and setters
 

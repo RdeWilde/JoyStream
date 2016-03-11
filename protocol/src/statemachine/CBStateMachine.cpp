@@ -23,6 +23,10 @@ namespace statemachine {
         _peerAnnouncedMode = peerAnnouncedMode;
     }
 
+    void CBStateMachine::clientToObserveMode() {
+        // send observe mode message
+    }
+
 }
 }
 }

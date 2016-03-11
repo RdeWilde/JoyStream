@@ -6,6 +6,7 @@
  */
 
 #include <protocol/statemachine/ChooseMode.hpp>
+#include <protocol/statemachine/Observe.hpp>
 
 #include <iostream>
 
@@ -14,11 +15,18 @@ namespace protocol {
 namespace statemachine {
 
     ChooseMode::ChooseMode() {
-        std::cout << "Intering choose mode" << std::endl;
+        std::cout << "Entering ChooseMode state." << std::endl;
     }
 
     sc::result ChooseMode::ChooseMode::react(const event::ObserveModeStarted & e) {
-        std::cout << "Trying to enter Observe mode, but not transition yet";
+
+        std::cout << "Reacting to event::ObserveModeStarted" << std::endl;
+
+        // Switch client state
+        context<CBStateMachine>().clientToObserveMode();
+
+        // Transition to Observe state
+        return transit<Observe>();
     }
 }
 }
