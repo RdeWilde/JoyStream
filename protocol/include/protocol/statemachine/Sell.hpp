@@ -11,13 +11,12 @@
 #include <protocol/statemachine/Active.hpp>
 
 #include <functional>
+#include <iostream>
 
 namespace Coin {
     class typesafeOutPoint;
     class PublicKey;
 }
-
-#include <iostream>
 
 namespace joystream {
 namespace protocol {
@@ -37,13 +36,11 @@ namespace protocol {
         class SellerTerms;
         class BuyerTerms;
 
-        class Sell : public sc::simple_state< Sell, Active > {
+        class Sell : public sc::simple_state<Sell,Active> {
 
         public:
 
-            Sell() {
-                std::cout << "Intering Sell state" << std::endl;
-            }
+            Sell();
 
         };
 

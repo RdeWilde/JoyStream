@@ -19,7 +19,9 @@ void Test::CBStateMachine() {
 
     stm.initiate();
     //stm.process_event(statemachine::event::Recv(&m));
-    stm.process_event(statemachine::event::ObserveModeStarted());
+    //stm.process_event(statemachine::event::ObserveModeStarted());
+    SellerTerms terms;
+    stm.process_event(statemachine::event::SellModeStarted(terms));
 
 
 }

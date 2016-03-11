@@ -16,6 +16,10 @@ namespace joystream {
 namespace protocol {
 namespace statemachine {
 
+    Sell::Sell() {
+        std::cout << "Entering Sell state." << std::endl;
+    }
+
 /**
     Sell::Sell(CBStateMachine * context,
                const InvitedToOutdatedContract & invitedToOutdatedContract,

@@ -7,6 +7,7 @@
 
 #include <protocol/statemachine/ChooseMode.hpp>
 #include <protocol/statemachine/Observe.hpp>
+#include <protocol/statemachine/Sell.hpp>
 
 #include <iostream>
 
@@ -20,13 +21,24 @@ namespace statemachine {
 
     sc::result ChooseMode::ChooseMode::react(const event::ObserveModeStarted & e) {
 
-        std::cout << "Reacting to event::ObserveModeStarted" << std::endl;
+        std::cout << "Reacting to event::ObserveModeStarted." << std::endl;
 
         // Switch client state
         context<CBStateMachine>().clientToObserveMode();
 
         // Transition to Observe state
         return transit<Observe>();
+    }
+
+    sc::result ChooseMode::react(const event::SellModeStarted & e) {
+
+        std::cout << "Reacting to event::SellModeStarted." << std::endl;
+
+        // Switch client state
+        context<CBStateMachine>().clientToSellMode(e.terms());
+
+        // Transition to Sell state
+        return transit<Sell>();
     }
 }
 }

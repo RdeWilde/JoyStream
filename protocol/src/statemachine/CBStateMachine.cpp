@@ -6,6 +6,7 @@
  */
 
 #include <protocol/statemachine/CBStateMachine.hpp>
+#include <protocol/SellerTerms.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -25,6 +26,10 @@ namespace statemachine {
 
     void CBStateMachine::clientToObserveMode() {
         // send observe mode message
+    }
+
+    void CBStateMachine::clientToSellMode(const joystream::protocol::SellerTerms & terms) {
+        // send sell mode message
     }
 
 }

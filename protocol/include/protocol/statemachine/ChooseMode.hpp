@@ -10,9 +10,11 @@
 
 #include <protocol/statemachine/CBStateMachine.hpp>
 #include <protocol/statemachine/event/ObserveModeStarted.hpp>
+#include <protocol/statemachine/event/SellModeStarted.hpp>
 
 #include <boost/statechart/state.hpp>
 #include <boost/statechart/custom_reaction.hpp>
+#include <boost/mpl/list.hpp>
 
 namespace sc = boost::statechart;
 
@@ -24,12 +26,16 @@ namespace statemachine {
 
     public:
 
-        typedef sc::custom_reaction<event::ObserveModeStarted> reactions;
+        typedef boost::mpl::list<
+                                sc::custom_reaction<event::ObserveModeStarted>,
+                                sc::custom_reaction<event::SellModeStarted>
+                                > reactions;
 
         ChooseMode();
 
         // Event handlers
-        sc::result react(const event::ObserveModeStarted & );
+        sc::result react(const event::ObserveModeStarted &);
+        sc::result react(const event::SellModeStarted &);
 
     };
 
