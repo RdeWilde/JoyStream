@@ -8,9 +8,21 @@
 #ifndef JOYSTREAM_PROTOCOL_STATEMACHINE_ACTIVE_HPP
 #define JOYSTREAM_PROTOCOL_STATEMACHINE_ACTIVE_HPP
 
+#include <protocol/statemachine/CBStateMachine.hpp>
+#include <boost/statechart/simple_state.hpp>
+
 namespace joystream {
 namespace protocol {
 namespace statemachine {
+
+    class Active : public sc::simple_state<Active, CBStateMachine> {
+
+    public:
+
+    private:
+
+
+    };
 
 }
 }
