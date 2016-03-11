@@ -59,7 +59,8 @@ HEADERS += \
     include/protocol/statemachine/event/SellModeStarted.hpp \
     include/protocol/statemachine/Observe.hpp \
     include/protocol/statemachine/event/BuyModeStarted.hpp \
-    include/protocol/statemachine/event/Recv.hpp
+    include/protocol/statemachine/event/Recv.hpp \
+    include/protocol/statemachine/Active.hpp
 
 SOURCES += \
     src/wire/ExtendedMessagePayload.cpp \

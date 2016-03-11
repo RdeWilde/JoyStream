@@ -149,9 +149,9 @@ namespace protocol {
 
     void BuyerSession::setNumberOfSellers(uint32_t n) {
 
-        for(uint32_t = 0;i < n;i++) {
+        for(uint32_t i = 0;i < n;i++) {
 
-            Seller s(Seller::State::unassigned)
+            //Seller s(Seller::State::unassigned)
 
 
 

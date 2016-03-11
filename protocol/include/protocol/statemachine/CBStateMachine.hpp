@@ -10,7 +10,10 @@
 
 #include <protocol/PeerModeAnnounced.hpp>
 
+#include <protocol/statemachine/event/Recv.hpp>
+
 #include <boost/statechart/state_machine.hpp>
+#include <boost/statechart/transition.hpp>
 
 namespace sc = boost::statechart;
 
@@ -60,5 +63,8 @@ namespace protocol {
     }
 }
 }
+
+// Needs to be included to make CBStateMachine complete
+#include <protocol/statemachine/ChooseMode.hpp>
 
 #endif // JOYSTREAM_PROTOCOL_STATEMACHINE_CBSTATEMACHINE_HPP

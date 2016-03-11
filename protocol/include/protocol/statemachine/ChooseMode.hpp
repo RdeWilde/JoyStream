@@ -9,12 +9,24 @@
 #define JOYSTREAM_PROTOCOL_STATEMACHINE_CHOOSEMODE_HPP
 
 #include <protocol/statemachine/CBStateMachine.hpp>
+#include <boost/statechart/simple_state.hpp>
+
+#include <iostream>
 
 namespace joystream {
 namespace protocol {
 namespace statemachine {
 
     class ChooseMode : public sc::simple_state<ChooseMode, CBStateMachine> {
+
+    public:
+
+        typedef sc::transition<event::Recv, ChooseMode> reactions;
+
+        ChooseMode() {
+
+            std::cout << "Intering choose mode" << std::endl;
+        }
 
     };
 

@@ -51,7 +51,7 @@ namespace protocol {
         SellerConnection sellerConnection = SellerConnection::createFreshConnection(connection, _terms, payeeContractKeys, payeePaymentKeys);
 
         // Send sell mode message
-        wire::Sell m(_terms);
+        wire::Sell m(_terms, 0);
         sellerConnection.sendMessageCallbackHandler()(&m);
 
         // Update state of connection

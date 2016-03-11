@@ -33,7 +33,7 @@ namespace wire {
     void Ready::write(QDataStream & stream) const {
 
         uchar_vector serialized = _anchor.getClassicOutPoint().getSerialized();
-        stream.writeBytes(serialized.data(), serialized.size());
+        stream.writeBytes((char *)(serialized.data()), serialized.size());
     }
 
     Coin::typesafeOutPoint Ready::anchor() const {

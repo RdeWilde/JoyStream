@@ -8,19 +8,17 @@
 #ifndef TEST_HPP
 #define TEST_HPP
 
+
 #include <QtTest/QtTest>
 
-namespace Coin {
-    class Transaction;
-}
-
-#define NETWORK_TYPE Coin::Network::testnet3
 
 class Test : public QObject {
 
     Q_OBJECT
 
 private slots:
+
+    void state_machine();
 
 
 };

@@ -6,6 +6,25 @@
  */
 
 #include <Test.hpp>
+#include <protocol/statemachine/CBStateMachine.hpp>
+#include <protocol/wire/Observe.hpp>
+
+namespace pr = joystream::protocol;
+
+void Test::state_machine() {
+
+    pr::statemachine::CBStateMachine stm;
+    pr::wire::Observe m;
+
+    stm.initiate();
+    stm.process_event(pr::statemachine::event::Recv(&m));
+    stm.process_event(pr::statemachine::event::Recv(&m));
+    stm.process_event(pr::statemachine::event::Recv(&m));
+
+
+
+}
+
 
 /**
 #include <common/Seed.hpp>

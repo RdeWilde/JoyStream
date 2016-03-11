@@ -15,10 +15,32 @@ namespace joystream {
 namespace protocol {
 namespace statemachine {
 
-    Sell::Sell(CBStateMachine * context)
+    Sell::Sell(CBStateMachine * context,
+               const InvitedToOutdatedContract & invitedToOutdatedContract,
+               const InvitedToJoinContract & invitedToJoinContract,
+               const SendJoiningContract & sendJoiningContract,
+               const ContractIsReady & contractIsReady,
+               const PieceRequested & pieceRequested)
         : _context(context)
         , _state(State::invited)
-        , _servicingPieceRequest(this) {
+        //, _servicingPieceRequest(this)
+        , _invitedToOutdatedContract(invitedToOutdatedContract)
+        , _invitedToJoinContract(invitedToJoinContract)
+        , _sendJoiningContract(sendJoiningContract)
+        , _contractIsReady(contractIsReady)
+        , _pieceRequested(pieceRequested) {
+    }
+
+    void Sell::recv(const wire::Observe & m) {
+
+    }
+
+    void Sell::recv(const wire::Buy & m) {
+
+    }
+
+    void Sell::recv(const wire::Sell & m) {
+
     }
 
     void Sell::recv(const wire::JoinContract & m) {
@@ -37,7 +59,7 @@ namespace statemachine {
 
     }
 
-    void Sell::clientToSellMode(const SellerTerms & terms, uint32_t index = 0) {
+    void Sell::clientToSellMode(const SellerTerms & terms, uint32_t index) {
 
     }
 
@@ -58,16 +80,5 @@ namespace statemachine {
     }
 
 }
-
-uint32_t Sell::index() const
-{
-    return _index;
-}
-
-void Sell::setIndex(const uint32_t &index)
-{
-    _index = index;
-}
-
 }
 }
