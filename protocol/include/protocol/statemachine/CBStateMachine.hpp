@@ -40,8 +40,8 @@ namespace protocol {
 
             // Context actions: should not be called direclty
             void clientToObserveMode();
-            void clientToSellMode(const joystream::protocol::SellerTerms & terms);
-            //void clientToBuyMode();
+            void clientToSellMode(const joystream::protocol::SellerTerms &);
+            void clientToBuyMode(const joystream::protocol::BuyerTerms &);
 
             // Getters and setters
             joystream::protocol::PeerModeAnnounced peerAnnouncedMode() const;

@@ -11,6 +11,7 @@
 #include <protocol/statemachine/CBStateMachine.hpp>
 #include <protocol/statemachine/event/ObserveModeStarted.hpp>
 #include <protocol/statemachine/event/SellModeStarted.hpp>
+#include <protocol/statemachine/event/BuyModeStarted.hpp>
 
 #include <boost/statechart/state.hpp>
 #include <boost/statechart/custom_reaction.hpp>
@@ -28,7 +29,8 @@ namespace statemachine {
 
         typedef boost::mpl::list<
                                 sc::custom_reaction<event::ObserveModeStarted>,
-                                sc::custom_reaction<event::SellModeStarted>
+                                sc::custom_reaction<event::SellModeStarted>,
+                                sc::custom_reaction<event::BuyModeStarted>
                                 > reactions;
 
         ChooseMode();
@@ -36,6 +38,7 @@ namespace statemachine {
         // Event handlers
         sc::result react(const event::ObserveModeStarted &);
         sc::result react(const event::SellModeStarted &);
+        sc::result react(const event::BuyModeStarted &);
 
     };
 

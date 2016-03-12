@@ -8,6 +8,8 @@
 #include <protocol/statemachine/CBStateMachine.hpp>
 #include <protocol/SellerTerms.hpp>
 
+#include <iostream>
+
 namespace joystream {
 namespace protocol {
 namespace statemachine {
@@ -26,10 +28,17 @@ namespace statemachine {
 
     void CBStateMachine::clientToObserveMode() {
         // send observe mode message
+        std::cout << "Sending observe message." << std::endl;
     }
 
     void CBStateMachine::clientToSellMode(const joystream::protocol::SellerTerms & terms) {
         // send sell mode message
+        std::cout << "Sending sell message with terms: ." << std::endl;
+    }
+
+    void CBStateMachine::clientToBuyMode(const joystream::protocol::BuyerTerms & terms) {
+        // send buy mode message
+        std::cout << "Sending buy message with terms: ." << std::endl;
     }
 
 }

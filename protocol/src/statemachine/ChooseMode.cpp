@@ -8,6 +8,7 @@
 #include <protocol/statemachine/ChooseMode.hpp>
 #include <protocol/statemachine/Observe.hpp>
 #include <protocol/statemachine/Sell.hpp>
+#include <protocol/statemachine/Buy.hpp>
 
 #include <iostream>
 
@@ -39,6 +40,17 @@ namespace statemachine {
 
         // Transition to Sell state
         return transit<Sell>();
+    }
+
+    sc::result ChooseMode::react(const event::BuyModeStarted & e) {
+
+        std::cout << "Reacting to event::BuyModeStarted." << std::endl;
+
+        // Switch client state
+        context<CBStateMachine>().clientToBuyMode(e.terms());
+
+        // Transition to Buy state
+        return transit<Buy>();
     }
 }
 }

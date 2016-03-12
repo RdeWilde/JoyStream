@@ -8,6 +8,7 @@
 #include <protocol/SellerTerms.hpp>
 #include <protocol/BuyerTerms.hpp>
 #include <cassert>
+#include <stdexcept>
 
 namespace joystream {
 namespace protocol {
