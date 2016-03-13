@@ -97,7 +97,6 @@ SOURCES += \
     src/statemachine/CBStateMachine.cpp \
     src/statemachine/event/SellModeStarted.cpp \
     src/statemachine/event/BuyModeStarted.cpp \
-    src/statemachine/event/Recv.cpp \
     src/statemachine/ChooseMode.cpp \
     src/statemachine/Observe.cpp \
     src/statemachine/event/SellModeStarted.cpp

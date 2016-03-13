@@ -12,15 +12,18 @@ namespace protocol {
 namespace statemachine {
 namespace event {
 
-    Recv::Recv(joystream::protocol::wire::ExtendedMessagePayload * message)
+    template <class T>
+    Recv<T>::Recv(T * message)
         : _message(message) {
     }
 
-    joystream::protocol::wire::ExtendedMessagePayload const * Recv::message() const {
+    template <class T>
+    T const * Recv<T>::message() const {
         return _message;
     }
 
-    void Recv::setMessage(joystream::protocol::wire::ExtendedMessagePayload * message) {
+    template <class T>
+    void Recv<T>::setMessage(T * message) {
         _message = message;
     }
 

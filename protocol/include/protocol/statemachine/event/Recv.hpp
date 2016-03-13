@@ -9,7 +9,6 @@
 #define JOYSTREAM_PROTOCOL_STATEMACHINE_EVENT_RECV_HPP
 
 #include <boost/statechart/event.hpp>
-#include <protocol/wire/ExtendedMessagePayload.hpp>
 
 namespace sc = boost::statechart;
 
@@ -18,20 +17,21 @@ namespace protocol {
 namespace statemachine {
 namespace event {
 
-    class Recv : public sc::event<Recv> {
+    template <class T>
+    class Recv : public sc::event<Recv<T>> {
 
     public:
 
-        Recv(joystream::protocol::wire::ExtendedMessagePayload * message);
+        Recv(T * message);
 
         // Getters and setters
-        joystream::protocol::wire::ExtendedMessagePayload const * message() const;
-        void setMessage(joystream::protocol::wire::ExtendedMessagePayload * message);
+        T const * message() const;
+        void setMessage(T * message);
 
     private:
 
         // pointer for now
-        joystream::protocol::wire::ExtendedMessagePayload const * _message;
+        T const * _message;
 
     };
 
@@ -39,6 +39,9 @@ namespace event {
 }
 }
 }
+
+// Needed due to c++ needing implementation for all uses of templated types
+#include <protocol/../../src/statemachine/event/Recv.cpp>
 
 #endif // JOYSTREAM_PROTOCOL_STATEMACHINE_EVENT_RECV_HPP
 
