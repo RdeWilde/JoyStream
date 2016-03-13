@@ -29,14 +29,20 @@ namespace protocol {
 
         PeerModeAnnounced(ModeAnnounced announced, const BuyerTerms & buyModeTerms, const SellerTerms & sellModeTerms);
 
+        // Mode change routines
+        void toObserve();
+        void toBuyMode(const BuyerTerms &);
+        void toSellMode(const SellerTerms &);
+
+        // Getters and setters
         ModeAnnounced announced() const;
-        void setAnnounced(const ModeAnnounced announced);
+        void setAnnounced(const ModeAnnounced);
 
         BuyerTerms buyModeTerms() const;
-        void setBuyModeTerms(const BuyerTerms & buyModeTerms);
+        void setBuyModeTerms(const BuyerTerms &);
 
         SellerTerms sellModeTerms() const;
-        void setSellModeTerms(const SellerTerms & sellModeTerms);
+        void setSellModeTerms(const SellerTerms &);
 
     private:
 

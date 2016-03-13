@@ -20,6 +20,20 @@ namespace protocol {
         , _sellModeTerms(sellModeTerms) {
     }
 
+    void PeerModeAnnounced::toObserve() {
+        _announced = ModeAnnounced::observe;
+    }
+
+    void PeerModeAnnounced::toBuyMode(const BuyerTerms & t) {
+        _announced = ModeAnnounced::buy;
+        _buyModeTerms = t;
+    }
+
+    void PeerModeAnnounced::toSellMode(const SellerTerms & t) {
+        _announced = ModeAnnounced::sell;
+        _sellModeTerms = t;
+    }
+
     PeerModeAnnounced::ModeAnnounced PeerModeAnnounced::announced() const {
         return _announced;
     }
@@ -32,16 +46,16 @@ namespace protocol {
         return _buyModeTerms;
     }
 
-    void PeerModeAnnounced::setBuyModeTerms(const BuyerTerms & buyModeTerms) {
-        _buyModeTerms = buyModeTerms;
+    void PeerModeAnnounced::setBuyModeTerms(const BuyerTerms & t) {
+        _buyModeTerms = t;
     }
 
     SellerTerms PeerModeAnnounced::sellModeTerms() const {
         return _sellModeTerms;
     }
 
-    void PeerModeAnnounced::setSellModeTerms(const SellerTerms & sellModeTerms) {
-        _sellModeTerms = sellModeTerms;
+    void PeerModeAnnounced::setSellModeTerms(const SellerTerms & t) {
+        _sellModeTerms = t;
     }    
 }
 }
