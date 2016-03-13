@@ -17,47 +17,39 @@ namespace sc = boost::statechart;
 
 namespace joystream {
 namespace protocol {
+namespace statemachine {
 
-    namespace wire {
-        class Sell;
-        class Buy;
-        class Observe;
-    }
+    class ChooseMode;
 
-    namespace statemachine {
+    class CBStateMachine : public sc::state_machine<CBStateMachine, ChooseMode> {
 
-        class ChooseMode;
+    public:
 
-        class CBStateMachine : public sc::state_machine<CBStateMachine, ChooseMode> {
+        CBStateMachine(const PeerModeAnnounced & peerAnnouncedMode = PeerModeAnnounced());
 
-        public:
+        // Client calls
 
-            CBStateMachine(const PeerModeAnnounced & peerAnnouncedMode = PeerModeAnnounced());
+        // Message arrival
 
-            // Client calls
+        // Context actions: should not be called direclty
+        void clientToObserveMode();
+        void clientToSellMode(const joystream::protocol::SellerTerms &);
+        void clientToBuyMode(const joystream::protocol::BuyerTerms &);
 
-            // Message arrival
+        void peerToObserveMode();
+        void peerToSellMode(const joystream::protocol::SellerTerms &);
+        void peerToBuyMode(const joystream::protocol::BuyerTerms &);
 
-            // Context actions: should not be called direclty
-            void clientToObserveMode();
-            void clientToSellMode(const joystream::protocol::SellerTerms &);
-            void clientToBuyMode(const joystream::protocol::BuyerTerms &);
+        // Getters and setters
+        joystream::protocol::PeerModeAnnounced peerAnnouncedMode() const;
+        void setPeerAnnouncedMode(const joystream::protocol::PeerModeAnnounced & peerAnnouncedMode);
 
-            // Getters and setters
-            joystream::protocol::PeerModeAnnounced peerAnnouncedMode() const;
-            void setPeerAnnouncedMode(const joystream::protocol::PeerModeAnnounced & peerAnnouncedMode);
+    private:
 
-        private:
-
-            //// Peer
-            joystream::protocol::PeerModeAnnounced _peerAnnouncedMode;
-
-            //void peerToObserveMode();
-            //void peerToSellMode();
-            //void peerToBuyMode();
-
-        };
-    }
+        //// Peer
+        joystream::protocol::PeerModeAnnounced _peerAnnouncedMode;
+    };
+}
 }
 }
 

@@ -31,14 +31,26 @@ namespace statemachine {
         std::cout << "Sending observe message." << std::endl;
     }
 
-    void CBStateMachine::clientToSellMode(const joystream::protocol::SellerTerms & terms) {
+    void CBStateMachine::clientToSellMode(const joystream::protocol::SellerTerms & t) {
         // send sell mode message
         std::cout << "Sending sell message with terms: ." << std::endl;
     }
 
-    void CBStateMachine::clientToBuyMode(const joystream::protocol::BuyerTerms & terms) {
+    void CBStateMachine::clientToBuyMode(const joystream::protocol::BuyerTerms & t) {
         // send buy mode message
         std::cout << "Sending buy message with terms: ." << std::endl;
+    }
+
+    void CBStateMachine::peerToObserveMode() {
+        _peerAnnouncedMode.toObserve();
+    }
+
+    void CBStateMachine::peerToSellMode(const joystream::protocol::SellerTerms & t) {
+        _peerAnnouncedMode.toSellMode(t);
+    }
+
+    void CBStateMachine::peerToBuyMode(const joystream::protocol::BuyerTerms & t) {
+        _peerAnnouncedMode.toBuyMode(t);
     }
 
 }
