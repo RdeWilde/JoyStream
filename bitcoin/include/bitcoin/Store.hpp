@@ -69,8 +69,6 @@ public:
     // Methods used to update Store with block headers and transactions
     void addTransaction(const Coin::Transaction & tx);
 
-    bool loadKey(const Coin::P2PKHAddress &address, Coin::PrivateKey & sk);
-
     void insertMerkleTx(const ChainMerkleBlock& chainmerkleblock,
                         const Coin::Transaction& cointx,
                         unsigned int txindex,
