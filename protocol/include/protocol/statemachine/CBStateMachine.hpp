@@ -59,6 +59,9 @@ namespace protocol {
                            const PieceRequested & pieceRequested,
                            const PeerModeAnnounced & peerAnnouncedMode = PeerModeAnnounced());
 
+            // Get name of current state: ***Varies from compiler to compiler***
+            const char * getInnerStateName() const;
+
             // Context actions: should not be called direclty
             void clientToObserveMode();
             void clientToSellMode(const joystream::protocol::SellerTerms &);

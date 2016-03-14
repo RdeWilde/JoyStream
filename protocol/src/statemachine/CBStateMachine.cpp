@@ -10,6 +10,8 @@
 #include <protocol/wire/Sell.hpp>
 #include <protocol/wire/Buy.hpp>
 
+#include <cassert>
+
 namespace joystream {
 namespace protocol {
 namespace statemachine {
@@ -26,6 +28,21 @@ namespace statemachine {
         , _sendMessage(sendMessage)
         , _contractIsReady(contractIsReady)
         , _pieceRequested(pieceRequested) {
+    }
+
+    const char * CBStateMachine::getInnerStateName() const {
+
+        // We assume there is only one type which is active in any
+        // in the state machine.
+        int n = 0;
+        for (CBStateMachine::state_iterator i = this->state_begin(); i != this->state_end(); ++i, ++n);
+
+        assert(n == 1);
+
+        // Get type info
+        // The following use of typeid assumes that
+        // BOOST_STATECHART_USE_NATIVE_RTTI is defined
+        return typeid(*(this->state_begin())).name();
     }
 
     void CBStateMachine::clientToObserveMode() {

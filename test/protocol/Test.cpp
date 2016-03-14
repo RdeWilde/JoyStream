@@ -7,7 +7,14 @@
 
 #include <Test.hpp>
 #include <protocol/statemachine/CBStateMachine.hpp>
+
+#include <protocol/statemachine/Selling.hpp>
+#include <protocol/statemachine/Buying.hpp>
+#include <protocol/statemachine/Observing.hpp>
+
 #include <protocol/wire/Observe.hpp>
+
+#include <iostream>
 
 using namespace joystream::protocol;
 
@@ -16,7 +23,7 @@ void Test::CBStateMachine() {
     // Setup callback handlers
     statemachine::CBStateMachine::InvitedToOutdatedContract invitedToOutdatedContract = [](void) {};
     statemachine::CBStateMachine::InvitedToJoinContract invitedToJoinContract = [](const Coin::typesafeOutPoint & anchor, int64_t funds, const Coin::PublicKey & contractPk) {};
-    statemachine::CBStateMachine::Send send = [](const wire::ExtendedMessagePayload *) {};
+    statemachine::CBStateMachine::Send send = [](const wire::ExtendedMessagePayload *) { std::cout << "Sending message" << std::endl; };
     statemachine::CBStateMachine::ContractIsReady contractIsReady = [](const Coin::typesafeOutPoint &) {};
     statemachine::CBStateMachine::PieceRequested pieceRequested = [](int) {};
 
@@ -29,6 +36,9 @@ void Test::CBStateMachine() {
     //stm.process_event(statemachine::event::ObserveModeStarted());
     SellerTerms terms;
     stm.process_event(statemachine::event::SellModeStarted(terms));
+
+    QCOMPARE(stm.getInnerStateName(), typeid(statemachine::Selling).name());
+    //std::cout << "Now in state: " << stm.getStateName() << std::endl;
 
     // test deep history transition at various times?
 
