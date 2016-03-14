@@ -8,6 +8,8 @@
 #include <CoinQ/CoinQ_netsync.h>
 #include <bitcoin/Store.hpp>
 
+class Test;
+
 namespace joystream {
 namespace bitcoin {
 
@@ -17,7 +19,7 @@ class SPVWallet : public QObject
 
 public:
 
-    explicit SPVWallet(QString storePath, Coin::Network network = Coin::Network::testnet3);
+    explicit SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Network network = Coin::Network::testnet3);
 
     // Create a new wallet with auto generated seed
     void Create();
@@ -27,6 +29,9 @@ public:
 
     // Open the wallet. Will throw exception on failure.
     void Open();
+
+    // Load the blocktree file
+    void LoadBlockTree();
 
     // Start Synching the wallet with peer at host:port
     void Sync(std::string host, int port);
@@ -48,7 +53,16 @@ public:
 
     Q_INVOKABLE void BroadcastTx(Coin::Transaction & tx);
 
+    bool blockTreeLoaded() const { return _blockTreeLoaded; }
+    int bestHeight() const { return _networkSync.getBestHeight(); }
+
 signals:
+
+    void BlockTreeError();
+    void SynchingHeaders();
+    void HeadersSynched();
+    void SynchingBlocks();
+    void BlocksSynched();
 
     void BalanceChanged(uint64_t confirmedBalance, uint64_t unconfirmedBalance);
 
@@ -57,6 +71,8 @@ public slots:
 
 
 private:
+    friend class ::Test;
+
     std::string _storePath;
 
     Store _store;
@@ -64,6 +80,19 @@ private:
     Coin::Network _network;
 
     CoinQ::Network::NetworkSync _networkSync;
+
+    std::string _blockTreeFile;
+    bool _blockTreeLoaded;
+
+    // NetSync event handlers
+    void onBlockTreeError(const std::string &error, int code);
+    void onSynchingHeaders();
+    void onHeadersSynched();
+    void onSynchingBlocks();
+    void onBlocksSynched();
+
+    // Prefix methods only required from unit tests with test_
+    void test_method() {}
 
 };
 

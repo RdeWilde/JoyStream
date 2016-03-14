@@ -84,8 +84,11 @@ void Test::init() {
     // delete existing wallet file
     boost::filesystem::remove(TEST_WALLET_PATH);
 
+    // delete existing blocktree file
+    boost::filesystem::remove(TEST_BLOCKTREE_PATH);
+
     // create new testnet wallet
-    _wallet = new joystream::bitcoin::SPVWallet(TEST_WALLET_PATH, Coin::Network::regtest);
+    _wallet = new joystream::bitcoin::SPVWallet(TEST_WALLET_PATH, TEST_BLOCKTREE_PATH, Coin::Network::regtest);
 }
 
 void Test::cleanup() {
@@ -96,6 +99,8 @@ void Test::cleanup() {
 }
 
 void Test::walletCreation() {
+    // Can call private methods on wallet
+    _wallet->test_method();
 
     // Should create a fresh new wallet
     try{
@@ -133,8 +138,33 @@ void Test::networkMismatchOnOpeningWallet() {
     QVERIFY_EXCEPTION_THROWN(_wallet->Open(), std::exception);
 }
 
-void Test::bitcoind() {
+void Test::SynchingHeaders() {
     init_bitcoind();
+
+    // Generate one block
+    bitcoin_rpc("generate 1");
+
+    QSignalSpy spy_blocktree_error(_wallet, SIGNAL(BlockTreeError()));
+    QSignalSpy spy_synching_headers(_wallet, SIGNAL(SynchingHeaders()));
+    QSignalSpy spy_headers_synched(_wallet, SIGNAL(HeadersSynched()));
+
+    _wallet->LoadBlockTree();
+
+    // Headers should have been loaded successfully
+    QVERIFY(_wallet->blockTreeLoaded());
+
+    // And without errors
+    QCOMPARE(spy_blocktree_error.count(), 0);
+
+    // Should connect and synch headers
+    _wallet->Sync("localhost", 18444);
+
+    QTRY_VERIFY_WITH_TIMEOUT(spy_synching_headers.count() == 1, 1000); // 1s timeout
+    QTRY_VERIFY_WITH_TIMEOUT(spy_headers_synched.count() == 1, 1000); // 1s timeout
+
+    // One block mined after the genesis block so best height should be equal to 1
+    QCOMPARE(_wallet->bestHeight(), 1);
+
 }
 
 QTEST_MAIN(Test)

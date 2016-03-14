@@ -25,10 +25,11 @@ const CoinQ::CoinParams getCoinParamsForNetwork(Coin::Network network) {
     throw std::runtime_error("network not supported");
 }
 
-SPVWallet::SPVWallet(QString storePath, Coin::Network network) :
-  _storePath(storePath.toStdString()),
+SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Network network) :
+  _storePath(storePath),
   _network(network),
-  _networkSync(getCoinParamsForNetwork(network))
+  _networkSync(getCoinParamsForNetwork(network)),
+  _blockTreeLoaded(false)
 {
     _networkSync.subscribeStatus([this](const std::string& message)
     {
@@ -45,10 +46,7 @@ SPVWallet::SPVWallet(QString storePath, Coin::Network network) :
 
     });
 
-    _networkSync.subscribeBlockTreeError([this](const std::string& error, int code)
-    {
-
-    });
+    _networkSync.subscribeBlockTreeError([this](const std::string& error, int code) { onBlockTreeError(error, code); });
 
     _networkSync.subscribeOpen([this]()
     {
@@ -75,35 +73,10 @@ SPVWallet::SPVWallet(QString storePath, Coin::Network network) :
 
     });
 
-    _networkSync.subscribeSynchingHeaders([this]()
-    {
-
-    });
-
-    _networkSync.subscribeHeadersSynched([this]()
-    {
-
-    });
-
-    _networkSync.subscribeSynchingBlocks([this]()
-    {
-
-    });
-
-    _networkSync.subscribeBlocksSynched([this]()
-    {
-
-    });
-
-    _networkSync.subscribeAddBestChain([this](const chain_header_t& header)
-    {
-
-    });
-
-    _networkSync.subscribeRemoveBestChain([this](const chain_header_t& header)
-    {
-
-    });
+    _networkSync.subscribeSynchingHeaders([this](){ onSynchingHeaders(); });
+    _networkSync.subscribeHeadersSynched([this](){ onHeadersSynched(); });
+    _networkSync.subscribeSynchingBlocks([this](){ onSynchingBlocks(); });
+    _networkSync.subscribeBlocksSynched([this](){ onBlocksSynched(); });
 
     _networkSync.subscribeNewTx([this](const Coin::Transaction& cointx)
     {
@@ -129,6 +102,11 @@ SPVWallet::SPVWallet(QString storePath, Coin::Network network) :
     {
 
     });
+
+    _blockTreeFile = blockTreeFile;
+
+    // NOTE: Loading the blocktree could have gone here but we would miss the signals
+    // because it is a synchronous call.
 }
 
 void SPVWallet::Create() {
@@ -155,6 +133,19 @@ void SPVWallet::Open() {
             throw std::runtime_error("store network type mistmatch");
         }
     }
+}
+
+void SPVWallet::LoadBlockTree() {
+    // Create block tree file or load if it exists
+    // If there is a problem reading/creating the file netsync will emit the BlockTreeError signal
+    // but netsync can continue to function without a persisted blocktree file,
+    // however all headers from genesis block will be resynched!
+
+    // Only load the blocktree once
+    if(_blockTreeLoaded) return;
+
+    _networkSync.loadHeaders(_blockTreeFile);
+    _blockTreeLoaded = true;
 }
 
 void SPVWallet::Sync(std::string host, int port) {
@@ -208,6 +199,29 @@ SPVWallet::GetReceiveAddress()
 void SPVWallet::BroadcastTx(Coin::Transaction & tx) {
     _store.addTransaction(tx);
     _networkSync.sendTx(tx);
+}
+
+void SPVWallet::onBlockTreeError(const std::string& error, int code) {
+    // Ignore file not found error - not critical
+    if(error == "Blocktree file not found.") return;
+
+    emit BlockTreeError();
+}
+
+void SPVWallet::onSynchingHeaders() {
+    emit SynchingHeaders();
+}
+
+void SPVWallet::onHeadersSynched() {
+    emit HeadersSynched();
+}
+
+void SPVWallet::onSynchingBlocks() {
+    emit SynchingBlocks();
+}
+
+void SPVWallet::onBlocksSynched() {
+    emit BlocksSynched();
 }
 
 }

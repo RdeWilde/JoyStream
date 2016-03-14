@@ -118,7 +118,7 @@ bool Store::create(std::string file, Coin::Network network, Coin::Seed seed, uin
 
     //don't overwrite existing file
     if(boost::filesystem::exists(file)) {
-        std::cerr << "error trying to create database over existing file.\n";
+        std::cerr << "Cannot create database over existing file.\n";
         return false;
     }
 

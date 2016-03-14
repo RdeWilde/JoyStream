@@ -18,6 +18,7 @@ namespace bitcoin {
 #define WALLET_SEED Coin::Seed("27891465891239001238391236589203948574567842549230457167823941893047812940123194312489312840923849010124893128409238490101248931")
 #define TEST_BITCOIN_NETWORK Coin::Network::regtest
 #define TEST_WALLET_PATH "test-wallet.db"
+#define TEST_BLOCKTREE_PATH "test-blocktree.dat"
 
 class Test : public QObject
 {
@@ -41,7 +42,8 @@ private slots:
     // Test cases
     void walletCreation();
     void networkMismatchOnOpeningWallet();
-    void bitcoind();
+
+    void SynchingHeaders();
 };
 
 #endif // TEST_HPP
