@@ -6,11 +6,9 @@
  */
 
 #include <protocol/statemachine/Selling.hpp>
+#include <protocol/statemachine/Buying.hpp>
 
-//#include <protocol/statemachine/CBStateMachine.hpp>
-//#include <protocol/wire/JoinContract.hpp>
-//#include <protocol/wire/Ready.hpp>
-//#include <protocol/wire/RequestFullPiece.hpp>
+#include <iostream>
 
 namespace joystream {
 namespace protocol {
@@ -20,71 +18,27 @@ namespace statemachine {
         std::cout << "Entering Sell state." << std::endl;
     }
 
-/**
-    Sell::Sell(CBStateMachine * context,
-               const InvitedToOutdatedContract & invitedToOutdatedContract,
-               const InvitedToJoinContract & invitedToJoinContract,
-               const SendJoiningContract & sendJoiningContract,
-               const ContractIsReady & contractIsReady,
-               const PieceRequested & pieceRequested)
-        : _context(context)
-        , _state(State::invited)
-        //, _servicingPieceRequest(this)
-        , _invitedToOutdatedContract(invitedToOutdatedContract)
-        , _invitedToJoinContract(invitedToJoinContract)
-        , _sendJoiningContract(sendJoiningContract)
-        , _contractIsReady(contractIsReady)
-        , _pieceRequested(pieceRequested) {
+    sc::result Selling::react(const event::ObserveModeStarted & e) {
+
+        std::cout << "Reacting to event::ObserveModeStarted." << std::endl;
+
+        // Switch client state
+        context<CBStateMachine>().clientToObserveMode();
+
+        // Transition to Observe state
+        return transit<Observe>();
     }
 
-    void Sell::recv(const wire::Observe & m) {
+    sc::result Selling::react(const event::BuyModeStarted & e) {
 
+        std::cout << "Reacting to event::BuyModeStarted." << std::endl;
+
+        // Switch client state
+        context<CBStateMachine>().clientToBuyMode(e.terms());
+
+        // Transition to Buy state
+        return transit<Buying>();
     }
-
-    void Sell::recv(const wire::Buy & m) {
-
-    }
-
-    void Sell::recv(const wire::Sell & m) {
-
-    }
-
-    void Sell::recv(const wire::JoinContract & m) {
-
-    }
-
-    void Sell::recv(const wire::Ready & m) {
-
-    }
-
-    void Sell::recv(const wire::RequestFullPiece & m) {
-
-    }
-
-    void Sell::clientToObserveMode() {
-
-    }
-
-    void Sell::clientToSellMode(const SellerTerms & terms, uint32_t index) {
-
-    }
-
-    void Sell::clientToBuyMode(const BuyerTerms & terms) {
-
-    }
-
-    void Sell::updateSellTerms(const SellerTerms & terms) {
-
-    }
-
-    void Sell::joinContract(const Coin::PublicKey & contractPk, const Coin::PublicKey & finalPk) {
-
-    }
-
-    Sell::State Sell::state() const {
-        return _state;
-    }
-*/
 
 }
 }
