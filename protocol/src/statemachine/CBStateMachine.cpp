@@ -6,9 +6,9 @@
  */
 
 #include <protocol/statemachine/CBStateMachine.hpp>
-#include <protocol/SellerTerms.hpp>
-
-#include <iostream>
+#include <protocol/wire/Observe.hpp>
+#include <protocol/wire/Sell.hpp>
+#include <protocol/wire/Buy.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -29,18 +29,15 @@ namespace statemachine {
     }
 
     void CBStateMachine::clientToObserveMode() {
-        // send observe mode message
-        std::cout << "Sending observe message." << std::endl;
+        _sendMessage(new wire::Observe());
     }
 
     void CBStateMachine::clientToSellMode(const joystream::protocol::SellerTerms & t) {
-        // send sell mode message
-        std::cout << "Sending sell message with terms: ." << std::endl;
+        _sendMessage(new wire::Sell(t, 0));
     }
 
     void CBStateMachine::clientToBuyMode(const joystream::protocol::BuyerTerms & t) {
-        // send buy mode message
-        std::cout << "Sending buy message with terms: ." << std::endl;
+        _sendMessage(new wire::Buy(t));
     }
 
     void CBStateMachine::peerToObserveMode() {
