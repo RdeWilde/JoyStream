@@ -199,31 +199,11 @@ namespace store {
 
 // BlockHeader
 
-    BlockHeader::BlockHeader(const ChainHeader &header) {
+    BlockHeader::BlockHeader(const ChainMerkleBlock &header) {
         id_ =  header.hash().getHex();
-
-        header_.version_ = header.version();
-        header_.prevBlockHash_ = header.prevBlockHash().getHex();
-        header_.merkelRoot_ = header.merkleRoot().getHex();
-        header_.timestamp_ = header.timestamp();
-        header_.bits_ = header.bits();
-        header_.nonce_ = header.nonce();
-
-        isOnMainChain = header.inBestChain;
-        totalProofOfWork = header.chainWork.getHex();
         height_ = header.height;
     }
 
-//TransactionMinedInBlock
-
-    TransactionMinedInBlock::TransactionMinedInBlock(std::shared_ptr<Transaction> tx,
-                                                     std::shared_ptr<BlockHeader> header)
-    {
-        tx_block_.tx_ = tx;
-        tx_block_.block_ = header;
-        //merkelBranch_ =
-        //index_ =
-    }
 #ifdef USE_STORE_ALPHA_CODE
 // Payer
 

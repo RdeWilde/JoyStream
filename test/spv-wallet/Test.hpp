@@ -24,11 +24,14 @@ class Test : public QObject
 {
     Q_OBJECT
 
+public:
+    ~Test();
+
+private:
     joystream::bitcoin::SPVWallet *_wallet;
 
     void init_bitcoind();
     void cleanup_bitcoind();
-
     bool _bitcoind_started;
 
 private slots:
@@ -42,8 +45,8 @@ private slots:
     // Test cases
     void walletCreation();
     void networkMismatchOnOpeningWallet();
-
     void SynchingHeaders();
+    void BasicBalanceCheck();
 };
 
 #endif // TEST_HPP

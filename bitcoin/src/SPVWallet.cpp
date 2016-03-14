@@ -80,22 +80,27 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
 
     _networkSync.subscribeNewTx([this](const Coin::Transaction& cointx)
     {
-
+        std::cout << "NewTx\n";
+        onNewTx(cointx);
     });
 
     _networkSync.subscribeMerkleTx([this](const ChainMerkleBlock& chainmerkleblock, const Coin::Transaction& cointx, unsigned int txindex, unsigned int txcount)
     {
 
+        std::cout << "MerkleTx\n";
+        emit MerkleTx();
     });
 
     _networkSync.subscribeTxConfirmed([this](const ChainMerkleBlock& chainmerkleblock, const bytes_t& txhash, unsigned int txindex, unsigned int txcount)
     {
-
+        std::cout << "TxConfirmed\n";
+        emit TxConfirmed();
     });
 
     _networkSync.subscribeMerkleBlock([this](const ChainMerkleBlock& chainMerkleBlock)
     {
-
+        std::cout << "MerkleBlock\n";
+        emit MerkleBlock();
     });
 
     _networkSync.subscribeBlockTreeChanged([this]()
@@ -107,6 +112,10 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
 
     // NOTE: Loading the blocktree could have gone here but we would miss the signals
     // because it is a synchronous call.
+}
+
+SPVWallet::~SPVWallet() {
+    _networkSync.stop();
 }
 
 void SPVWallet::Create() {
@@ -201,6 +210,15 @@ void SPVWallet::BroadcastTx(Coin::Transaction & tx) {
     _networkSync.sendTx(tx);
 }
 
+uint64_t SPVWallet::Balance() const {
+    return _store.getWalletBalance(1, _networkSync.getBestHeight());
+}
+
+uint64_t SPVWallet::UnconfirmedBalance() const {
+    return _store.getWalletBalance(0, _networkSync.getBestHeight());
+}
+
+
 void SPVWallet::onBlockTreeError(const std::string& error, int code) {
     // Ignore file not found error - not critical
     if(error == "Blocktree file not found.") return;
@@ -214,6 +232,17 @@ void SPVWallet::onSynchingHeaders() {
 
 void SPVWallet::onHeadersSynched() {
     emit HeadersSynched();
+
+    uint32_t startTime = _store.created();
+
+    std::vector<std::string> hashes = _store.getLatestBlockHeaderHashes();
+    std::vector<bytes_t> locatorHashes;
+
+    for(const std::string hex : hashes){
+        locatorHashes.push_back(uchar_vector(hex));
+    }
+
+    _networkSync.syncBlocks(locatorHashes, startTime);
 }
 
 void SPVWallet::onSynchingBlocks() {
@@ -221,7 +250,14 @@ void SPVWallet::onSynchingBlocks() {
 }
 
 void SPVWallet::onBlocksSynched() {
+    std::cout << "getting mempool..\n";
+    _networkSync.getMempool();
     emit BlocksSynched();
+}
+
+void SPVWallet::onNewTx(const Coin::Transaction& cointx) {
+    _store.addTransaction(cointx);
+    emit NewTx();
 }
 
 }

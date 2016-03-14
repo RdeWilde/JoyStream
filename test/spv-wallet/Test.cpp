@@ -53,6 +53,7 @@ int bitcoind_reset_data() {
 }
 
 void Test::init_bitcoind() {
+    if(_bitcoind_started) return;
 
     // Prepare local temporary directory for bitcoind
     QVERIFY(make_temp_directory() == 0);
@@ -67,13 +68,14 @@ void Test::init_bitcoind() {
 }
 
 void Test::cleanup_bitcoind() {
+    if(!_bitcoind_started) return;
     _bitcoind_started = false;
 
     // Stop bitcoind
     QVERIFY(bitcoind_stop() == 0);
 
     // Wait for it to shutdown... (when it stops responding to rpc requests)
-    const int timeout = 500;
+    const int timeout = 5000;
     QTRY_VERIFY_WITH_TIMEOUT(bitcoin_rpc("getinfo") != 0, timeout);
 
     // Reset regtest blockchain
@@ -94,8 +96,10 @@ void Test::init() {
 void Test::cleanup() {
 
     delete _wallet;
+}
 
-    if(_bitcoind_started) cleanup_bitcoind();
+Test::~Test() {
+    cleanup_bitcoind();
 }
 
 void Test::walletCreation() {
@@ -148,6 +152,8 @@ void Test::SynchingHeaders() {
     QSignalSpy spy_synching_headers(_wallet, SIGNAL(SynchingHeaders()));
     QSignalSpy spy_headers_synched(_wallet, SIGNAL(HeadersSynched()));
 
+    _wallet->Create(WALLET_SEED);
+
     _wallet->LoadBlockTree();
 
     // Headers should have been loaded successfully
@@ -164,7 +170,36 @@ void Test::SynchingHeaders() {
 
     // One block mined after the genesis block so best height should be equal to 1
     QCOMPARE(_wallet->bestHeight(), 1);
+}
 
+void Test::BasicBalanceCheck() {
+    init_bitcoind();
+
+    QSignalSpy spy_newtx(_wallet, SIGNAL(NewTx()));
+    QSignalSpy spy_txconfirmed(_wallet, SIGNAL(TxConfirmed()));
+
+    _wallet->LoadBlockTree();
+
+    _wallet->Create(WALLET_SEED);
+
+    Coin::P2PKHAddress addr = _wallet->GetReceiveAddress();
+
+    // Generate 101 block to make the first coinbase tx spendable
+    bitcoin_rpc("generate 101");
+
+    // Send 0.5BTC to our wallet
+    bitcoin_rpc("sendtoaddress " + addr.toBase58CheckEncoding().toStdString() + " 0.005");
+
+    // Should connect and synch headers
+    _wallet->Sync("localhost", 18444);
+
+    QTRY_VERIFY_WITH_TIMEOUT(spy_newtx.count() == 1, 5000);
+    QCOMPARE(_wallet->Balance(), uint64_t(0));
+    QCOMPARE(_wallet->UnconfirmedBalance(), uint64_t(500000));
+
+    //bitcoin_rpc("generate 1");
+    //QTRY_VERIFY_WITH_TIMEOUT(spy_txconfirmed.count() == 1, 5000);
+    //QCOMPARE(_wallet->Balance(), uint64_t(50000));
 }
 
 QTEST_MAIN(Test)

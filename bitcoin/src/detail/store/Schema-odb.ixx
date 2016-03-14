@@ -90,6 +90,35 @@ namespace odb
     ODB_POTENTIALLY_UNUSED (e);
   }
 
+  // BlockHeader
+  //
+
+  inline
+  access::object_traits< ::joystream::bitcoin::detail::store::BlockHeader >::id_type
+  access::object_traits< ::joystream::bitcoin::detail::store::BlockHeader >::
+  id (const object_type& o)
+  {
+    return o.id_;
+  }
+
+  inline
+  void access::object_traits< ::joystream::bitcoin::detail::store::BlockHeader >::
+  callback (database& db, object_type& x, callback_event e)
+  {
+    ODB_POTENTIALLY_UNUSED (db);
+    ODB_POTENTIALLY_UNUSED (x);
+    ODB_POTENTIALLY_UNUSED (e);
+  }
+
+  inline
+  void access::object_traits< ::joystream::bitcoin::detail::store::BlockHeader >::
+  callback (database& db, const object_type& x, callback_event e)
+  {
+    ODB_POTENTIALLY_UNUSED (db);
+    ODB_POTENTIALLY_UNUSED (x);
+    ODB_POTENTIALLY_UNUSED (e);
+  }
+
   // Output
   //
 
@@ -328,6 +357,18 @@ namespace odb
     ODB_POTENTIALLY_UNUSED (x);
     ODB_POTENTIALLY_UNUSED (e);
   }
+
+  // outputs_view_t
+  //
+
+  inline
+  void access::view_traits< ::joystream::bitcoin::detail::store::outputs_view_t >::
+  callback (database& db, view_type& x, callback_event e)
+  {
+    ODB_POTENTIALLY_UNUSED (db);
+    ODB_POTENTIALLY_UNUSED (x);
+    ODB_POTENTIALLY_UNUSED (e);
+  }
 }
 
 namespace odb
@@ -371,6 +412,28 @@ namespace odb
 
   inline
   void access::object_traits_impl< ::joystream::bitcoin::detail::store::Address, id_sqlite >::
+  load_ (statements_type& sts,
+         object_type& obj,
+         bool)
+  {
+    ODB_POTENTIALLY_UNUSED (sts);
+    ODB_POTENTIALLY_UNUSED (obj);
+  }
+
+  // BlockHeader
+  //
+
+  inline
+  void access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::
+  erase (database& db, const object_type& obj)
+  {
+    callback (db, obj, callback_event::pre_erase);
+    erase (db, id (obj));
+    callback (db, obj, callback_event::post_erase);
+  }
+
+  inline
+  void access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::
   load_ (statements_type& sts,
          object_type& obj,
          bool)
@@ -623,5 +686,8 @@ namespace odb
     ODB_POTENTIALLY_UNUSED (sts);
     ODB_POTENTIALLY_UNUSED (obj);
   }
+
+  // outputs_view_t
+  //
 }
 

@@ -31,7 +31,6 @@ namespace {
     void blockHeaderAdd(std::unique_ptr<odb::database> & db, const ChainHeader & header);
     void transactionMinedInBlockAdd(std::unique_ptr<odb::database> & db,
                                     const Coin::PartialMerkleTree & tree, const Coin::BlockId & blockId);
-    uint64_t getWalletBalance(std::unique_ptr<odb::database> & db, uint32_t confirmations, uint32_t main_chain_height);
 }
 
 // open existing store
@@ -422,6 +421,55 @@ bool Store::loadKey(const Coin::P2PKHAddress & address, Coin::PrivateKey & sk) {
     return found;
 }
 
+uint64_t Store::getWalletBalance(int32_t confirmations, int32_t main_chain_height) const {
+    if(confirmations > 0  && main_chain_height == 0) {
+        throw std::runtime_error("getWalletBalance: must provide main_chain_height");
+    }
+
+    if(confirmations > 0 && confirmations > main_chain_height) {
+        return 0;
+    }
+
+    uint64_t balance = 0;
+    uint32_t maxHeight = main_chain_height - confirmations + 1;
+    // a transaction has  main_chain_height - block_height  = confirmations
+    //                    main_chain_heigth - confirmations = block_height
+    //                                          ^ goes up   -->  ^ goes down
+    // for a transaction to have at least N confirmations
+    // the block it is mined in must have a height no larger than:  main_chain_height - N = maxHeight
+    typedef odb::result<detail::store::outputs_view_t> outputs_r;
+    typedef odb::query<detail::store::outputs_view_t> outputs_q;
+    odb::session s;
+    odb::transaction t(_db->begin());
+    outputs_r outputs;
+    if(confirmations > 0) {
+        outputs = _db->query<detail::store::outputs_view_t>(
+                          // we control the address
+                          outputs_q::address::id.is_not_null() &&
+                          // output exists
+                          outputs_q::output_tx::txid.is_not_null() &&
+                          // no tx spends it
+                          outputs_q::spending_tx::txid.is_null() && //not considering mined status
+                          // output transaction is mined
+                          outputs_q::output_block::id.is_not_null() &&
+                           // meets minimum confirmations requirement
+                          outputs_q::output_block::height <= maxHeight
+                          );
+    } else {
+        //Zero Confirmations - by defenition output doesn't have to be mined
+        outputs = _db->query<detail::store::outputs_view_t>(outputs_q::address::id.is_not_null() &&
+                                                            outputs_q::output_tx::txid.is_not_null() &&
+                                                            outputs_q::spending_tx::txid.is_null());
+    }
+
+    for(auto & output : outputs) {
+        std::cout << "wallet utxo: " << output.value() << std::endl;
+        balance += output.value();
+    }
+    t.commit();
+    return balance;
+}
+
 Coin::HDKeychain Store::getKeyChain_tx(bool createReceiveAddress) {
     //persist a new key
     std::shared_ptr<detail::store::Key> key(new detail::store::Key());
@@ -528,8 +576,8 @@ Coin::BloomFilter Store::getBloomFilter(double falsePositiveRate, uint32_t nTwea
     return filter;
 }
 
-std::vector<bytes_t> Store::getLocatorHashes() {
-    return std::vector<bytes_t>();
+std::vector<std::string> Store::getLatestBlockHeaderHashes() {
+    return std::vector<std::string>();
 }
 
 namespace {
@@ -650,56 +698,7 @@ namespace {
         db->erase<Transaction>(txid);
     }
 
-#ifdef USE_STORE_ALPHA_CODE
-    uint64_t getWalletBalance(std::unique_ptr<odb::database> & db, uint32_t confirmations, uint32_t main_chain_height) {
-        if(confirmations > 0  && main_chain_height == 0) {
-            throw std::runtime_error("getWalletBalance: must provide main_chain_height");
-        }
-
-        if(confirmations > 0 && confirmations > main_chain_height) {
-            return 0;
-        }
-
-        uint64_t balance = 0;
-        uint32_t maxHeight = main_chain_height - confirmations + 1;
-        // a transaction has  main_chain_height - block_height  = confirmations
-        //                    main_chain_heigth - confirmations = block_height
-        //                                          ^ goes up   -->  ^ goes down
-        // for a transaction to have at least N confirmations
-        // the block it is mined in must have a height no larger than:  main_chain_height - N = maxHeight
-        typedef odb::result<detail::store::outputs_view_t> outputs_r;
-        typedef odb::query<detail::store::outputs_view_t> outputs_q;
-        odb::session s;
-        odb::transaction t(db->begin());
-        outputs_r outputs;
-        if(confirmations > 0) {
-            outputs = db->query<detail::store::outputs_view_t>(
-                              // output exists
-                              outputs_q::output_tx::txid.is_not_null() &&
-                              // no tx spends it
-                              outputs_q::spending_tx::txid.is_null() && //not considering mined status
-                              // output transaction is mined
-                              outputs_q::output_block::id.is_not_null() &&
-                              // and is on the main chain
-                              outputs_q::output_block::isOnMainChain == true && //assuming only one block = on main chain with tx
-                               // meets minimum confirmations requirement
-                              outputs_q::output_block::height <= maxHeight
-                              );
-        } else {
-            //Zero Confirmations - by defenition output doesn't have to be mined
-            outputs = db->query<detail::store::outputs_view_t>(outputs_q::output_tx::txid.is_not_null() &&
-                                                               outputs_q::spending_tx::txid.is_null());
-            //make sure to remove tx that never get mined after certain period of time
-        }
-
-        for(auto & output : outputs) {
-            std::cout << "wallet utxo: " << output.value() << std::endl;
-            balance += output.value();
-        }
-        t.commit();
-        return balance;
-    }
-
+    /*
     void blockHeaderRemove(std::unique_ptr<odb::database> & db, std::shared_ptr<BlockHeader> block_header) {
         odb::result<TransactionMinedInBlock> mined(
             db->query<TransactionMinedInBlock>(odb::query<TransactionMinedInBlock>::tx_block.block == block_header->id())
@@ -775,7 +774,7 @@ namespace {
         }
 
     }
-#endif //store alpha code
+    */
 } // anonymous namespace (local helper functions)
 
 }//bitcoin

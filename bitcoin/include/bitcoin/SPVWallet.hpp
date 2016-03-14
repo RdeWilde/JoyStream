@@ -21,6 +21,8 @@ public:
 
     explicit SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Network network = Coin::Network::testnet3);
 
+    ~SPVWallet();
+
     // Create a new wallet with auto generated seed
     void Create();
 
@@ -64,6 +66,11 @@ signals:
     void SynchingBlocks();
     void BlocksSynched();
 
+    void NewTx();
+    void MerkleTx();
+    void MerkleBlock();
+    void TxConfirmed();
+
     void BalanceChanged(uint64_t confirmedBalance, uint64_t unconfirmedBalance);
 
 
@@ -90,6 +97,7 @@ private:
     void onHeadersSynched();
     void onSynchingBlocks();
     void onBlocksSynched();
+    void onNewTx(const Coin::Transaction& cointx);
 
     // Prefix methods only required from unit tests with test_
     void test_method() {}
