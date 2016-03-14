@@ -100,7 +100,8 @@ SOURCES += \
     src/statemachine/Observe.cpp \
     src/statemachine/event/SellModeStarted.cpp \
     src/statemachine/Active.cpp \
-    src/statemachine/Selling.cpp
+    src/statemachine/Selling.cpp \
+    src/statemachine/Buying.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include
