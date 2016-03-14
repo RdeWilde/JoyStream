@@ -11,7 +11,7 @@ namespace joystream {
 namespace protocol {
 namespace statemachine {
 
-    SellerJoined::SellerJoined(Buy * context)
+    SellerJoined::SellerJoined(Buying * context)
         : _context(context)
         , _state(State::waiting_for_contract){
 

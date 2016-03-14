@@ -41,7 +41,7 @@ namespace wire {
 
     private:
 
-        // Buyer max price (satoshies)
+        // Buyer terms
         joystream::protocol::BuyerTerms _terms;
     };
 

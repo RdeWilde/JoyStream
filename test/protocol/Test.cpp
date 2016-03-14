@@ -13,8 +13,15 @@ using namespace joystream::protocol;
 
 void Test::CBStateMachine() {
 
+    // Setup callback handlers
+    statemachine::CBStateMachine::InvitedToOutdatedContract invitedToOutdatedContract = [](void) {};
+    statemachine::CBStateMachine::InvitedToJoinContract invitedToJoinContract = [](const Coin::typesafeOutPoint & anchor, int64_t funds, const Coin::PublicKey & contractPk) {};
+    statemachine::CBStateMachine::Send send = [](const wire::ExtendedMessagePayload *) {};
+    statemachine::CBStateMachine::ContractIsReady contractIsReady = [](const Coin::typesafeOutPoint &) {};
+    statemachine::CBStateMachine::PieceRequested pieceRequested = [](int) {};
 
-    statemachine::CBStateMachine stm;
+    // Create state machine
+    statemachine::CBStateMachine stm(invitedToOutdatedContract, invitedToJoinContract, send, contractIsReady, pieceRequested);
     wire::Observe m();
 
     stm.initiate();
@@ -22,6 +29,13 @@ void Test::CBStateMachine() {
     //stm.process_event(statemachine::event::ObserveModeStarted());
     SellerTerms terms;
     stm.process_event(statemachine::event::SellModeStarted(terms));
+
+    // test deep history transition at various times?
+
+    // how to test that callbacks are actually made, and no incorrect
+    // ones are not. ? joining thread which runs them?
+    // e.g. how to do sequences of message
+
 
 
 }

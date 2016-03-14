@@ -15,41 +15,86 @@
 
 namespace sc = boost::statechart;
 
+namespace Coin {
+    class typesafeOutPoint;
+    class PublicKey;
+}
+
 namespace joystream {
 namespace protocol {
-namespace statemachine {
 
-    class ChooseMode;
+    namespace wire {
+        class ExtendedMessagePayload;
+    }
 
-    class CBStateMachine : public sc::state_machine<CBStateMachine, ChooseMode> {
+    namespace statemachine {
 
-    public:
+        class ChooseMode;
 
-        CBStateMachine(const PeerModeAnnounced & peerAnnouncedMode = PeerModeAnnounced());
+        class CBStateMachine : public sc::state_machine<CBStateMachine, ChooseMode> {
 
-        // Client calls
+        public:
 
-        // Message arrival
+            //// Notifications
 
-        // Context actions: should not be called direclty
-        void clientToObserveMode();
-        void clientToSellMode(const joystream::protocol::SellerTerms &);
-        void clientToBuyMode(const joystream::protocol::BuyerTerms &);
+            // Client was invited to expired contract, as indicated by bad index
+            typedef std::function<void()> InvitedToOutdatedContract;
 
-        void peerToObserveMode();
-        void peerToSellMode(const joystream::protocol::SellerTerms &);
-        void peerToBuyMode(const joystream::protocol::BuyerTerms &);
+            // Client was invited to join given contract, should terms be included? they are available in _peerAnnounced
+            typedef std::function<void(const Coin::typesafeOutPoint & anchor, int64_t funds, const Coin::PublicKey & contractPk)> InvitedToJoinContract;
 
-        // Getters and setters
-        joystream::protocol::PeerModeAnnounced peerAnnouncedMode() const;
-        void setPeerAnnouncedMode(const joystream::protocol::PeerModeAnnounced & peerAnnouncedMode);
+            // Client requires a message to be sent
+            typedef std::function<void(const wire::ExtendedMessagePayload *)> Send;
 
-    private:
+            // Peer announced that contract is now ready, should contract be be included? it was available
+            typedef std::function<void(const Coin::typesafeOutPoint &)> ContractIsReady;
 
-        //// Peer
-        joystream::protocol::PeerModeAnnounced _peerAnnouncedMode;
-    };
-}
+            // Peer requested
+            typedef std::function<void(int)> PieceRequested;
+
+            CBStateMachine(const InvitedToOutdatedContract & invitedToOutdatedContract,
+                           const InvitedToJoinContract & invitedToJoinContract,
+                           const Send & sendMessage,
+                           const ContractIsReady & contractIsReady,
+                           const PieceRequested & pieceRequested,
+                           const PeerModeAnnounced & peerAnnouncedMode = PeerModeAnnounced());
+
+            // Context actions: should not be called direclty
+            void clientToObserveMode();
+            void clientToSellMode(const joystream::protocol::SellerTerms &);
+            void clientToBuyMode(const joystream::protocol::BuyerTerms &);
+
+            void peerToObserveMode();
+            void peerToSellMode(const joystream::protocol::SellerTerms &);
+            void peerToBuyMode(const joystream::protocol::BuyerTerms &);
+
+            // Getters and setters
+            InvitedToOutdatedContract invitedToOutdatedContract() const;
+
+            InvitedToJoinContract invitedToJoinContract() const;
+
+            Send sendMessage() const;
+
+            ContractIsReady contractIsReady() const;
+
+            PieceRequested pieceRequested() const;
+
+            joystream::protocol::PeerModeAnnounced peerAnnouncedMode() const;
+
+        private:
+
+            // Callbacks for classifier routines
+            InvitedToOutdatedContract _invitedToOutdatedContract;
+            InvitedToJoinContract _invitedToJoinContract;
+            Send _sendMessage;
+            ContractIsReady _contractIsReady;
+            PieceRequested _pieceRequested;
+
+            // Peer mode status
+            //*** Just factor out modeannounced and index, dont save actual terms? ***
+            joystream::protocol::PeerModeAnnounced _peerAnnouncedMode;
+        };
+    }
 }
 }
 

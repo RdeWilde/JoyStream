@@ -11,7 +11,7 @@ namespace joystream {
 namespace protocol {
 namespace statemachine {
 
-    ServicingPieceRequest::ServicingPieceRequest(Sell * context)
+    ServicingPieceRequest::ServicingPieceRequest(Selling * context)
         : _context(context)
         , _state(State::piece_requested) {
 

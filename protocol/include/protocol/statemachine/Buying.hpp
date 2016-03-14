@@ -15,7 +15,7 @@ namespace joystream {
 namespace protocol {
 namespace statemachine {
 
-    class Buy : public sc::simple_state<Buy, Active> {
+    class Buying : public sc::simple_state<Buying, Active> {
 
     };
 

@@ -36,11 +36,11 @@ namespace protocol {
         class SellerTerms;
         class BuyerTerms;
 
-        class Sell : public sc::simple_state<Sell,Active> {
+        class Selling : public sc::simple_state<Selling,Active> {
 
         public:
 
-            Sell();
+            Selling();
 
         };
 

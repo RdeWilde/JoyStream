@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, March 8 2016
  */
 
-#include <protocol/statemachine/Sell.hpp>
+#include <protocol/statemachine/Selling.hpp>
 
 //#include <protocol/statemachine/CBStateMachine.hpp>
 //#include <protocol/wire/JoinContract.hpp>
@@ -16,7 +16,7 @@ namespace joystream {
 namespace protocol {
 namespace statemachine {
 
-    Sell::Sell() {
+    Selling::Selling() {
         std::cout << "Entering Sell state." << std::endl;
     }
 

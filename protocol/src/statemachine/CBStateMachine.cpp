@@ -14,16 +14,18 @@ namespace joystream {
 namespace protocol {
 namespace statemachine {
 
-    CBStateMachine::CBStateMachine(const PeerModeAnnounced & peerAnnouncedMode)
-        : _peerAnnouncedMode(peerAnnouncedMode) {
-    }
-
-    joystream::protocol::PeerModeAnnounced CBStateMachine::peerAnnouncedMode() const {
-        return _peerAnnouncedMode;
-    }
-
-    void CBStateMachine::setPeerAnnouncedMode(const joystream::protocol::PeerModeAnnounced & peerAnnouncedMode) {
-        _peerAnnouncedMode = peerAnnouncedMode;
+    CBStateMachine::CBStateMachine(const InvitedToOutdatedContract & invitedToOutdatedContract,
+                                   const InvitedToJoinContract & invitedToJoinContract,
+                                   const Send & sendMessage,
+                                   const ContractIsReady & contractIsReady,
+                                   const PieceRequested & pieceRequested,
+                                   const PeerModeAnnounced & peerAnnouncedMode)
+        : _peerAnnouncedMode(peerAnnouncedMode)
+        , _invitedToOutdatedContract(invitedToOutdatedContract)
+        , _invitedToJoinContract(invitedToJoinContract)
+        , _sendMessage(sendMessage)
+        , _contractIsReady(contractIsReady)
+        , _pieceRequested(pieceRequested) {
     }
 
     void CBStateMachine::clientToObserveMode() {
@@ -53,6 +55,29 @@ namespace statemachine {
         _peerAnnouncedMode.toBuyMode(t);
     }
 
+    CBStateMachine::InvitedToOutdatedContract CBStateMachine::invitedToOutdatedContract() const {
+        return _invitedToOutdatedContract;
+    }
+
+    CBStateMachine::InvitedToJoinContract CBStateMachine::invitedToJoinContract() const {
+        return _invitedToJoinContract;
+    }
+
+    CBStateMachine::Send CBStateMachine::sendMessage() const {
+        return _sendMessage;
+    }
+
+    CBStateMachine::ContractIsReady CBStateMachine::contractIsReady() const {
+        return _contractIsReady;
+    }
+
+    CBStateMachine::PieceRequested CBStateMachine::pieceRequested() const {
+        return _pieceRequested;
+    }
+
+    joystream::protocol::PeerModeAnnounced CBStateMachine::peerAnnouncedMode() const {
+        return _peerAnnouncedMode;
+    }
 }
 }
 }

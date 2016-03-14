@@ -49,9 +49,7 @@ HEADERS += \
     include/protocol/Utilities.hpp \
     include/protocol/BuyerPayorSettings.hpp \
     include/protocol/BuyerChannelSettings.hpp \
-    include/protocol/statemachine/Sell.hpp \
     include/protocol/statemachine/ServicingPieceRequest.hpp \
-    include/protocol/statemachine/Buy.hpp \
     include/protocol/statemachine/CBStateMachine.hpp \
     include/protocol/statemachine/SellerJoined.hpp \
     include/protocol/statemachine/ChooseMode.hpp \
@@ -60,7 +58,9 @@ HEADERS += \
     include/protocol/statemachine/Observe.hpp \
     include/protocol/statemachine/event/BuyModeStarted.hpp \
     include/protocol/statemachine/event/Recv.hpp \
-    include/protocol/statemachine/Active.hpp
+    include/protocol/statemachine/Active.hpp \
+    include/protocol/statemachine/Selling.hpp \
+    include/protocol/statemachine/Buying.hpp
 
 SOURCES += \
     src/wire/ExtendedMessagePayload.cpp \
@@ -91,7 +91,6 @@ SOURCES += \
     src/Utilities.cpp \
     src/BuyerChannelSettings.cpp \
     src/Session.cpp \
-    src/statemachine/Sell.cpp \
     src/statemachine/ServicingPieceRequest.cpp \
     src/statemachine/SellerJoined.cpp \
     src/statemachine/CBStateMachine.cpp \
@@ -100,7 +99,8 @@ SOURCES += \
     src/statemachine/ChooseMode.cpp \
     src/statemachine/Observe.cpp \
     src/statemachine/event/SellModeStarted.cpp \
-    src/statemachine/Active.cpp
+    src/statemachine/Active.cpp \
+    src/statemachine/Selling.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

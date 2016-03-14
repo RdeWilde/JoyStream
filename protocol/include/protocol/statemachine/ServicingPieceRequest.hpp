@@ -30,7 +30,7 @@ namespace protocol {
 
     namespace statemachine {
 
-        class Sell;
+        class Selling;
 
         class ServicingPieceRequest {
 
@@ -50,7 +50,7 @@ namespace protocol {
 
             // Classifier calls
 
-            ServicingPieceRequest(Sell * context);
+            ServicingPieceRequest(Selling * context);
 
             // Goes to inital state
             //void reset();
@@ -77,7 +77,7 @@ namespace protocol {
 
         private:
 
-            Sell * _context;
+            Selling * _context;
 
             State _state;
         };

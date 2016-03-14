@@ -7,8 +7,8 @@
 
 #include <protocol/statemachine/ChooseMode.hpp>
 #include <protocol/statemachine/Observe.hpp>
-#include <protocol/statemachine/Sell.hpp>
-#include <protocol/statemachine/Buy.hpp>
+#include <protocol/statemachine/Selling.hpp>
+#include <protocol/statemachine/Buying.hpp>
 
 #include <iostream>
 
@@ -39,7 +39,7 @@ namespace statemachine {
         context<CBStateMachine>().clientToSellMode(e.terms());
 
         // Transition to Sell state
-        return transit<Sell>();
+        return transit<Selling>();
     }
 
     sc::result ChooseMode::react(const event::BuyModeStarted & e) {
@@ -50,7 +50,7 @@ namespace statemachine {
         context<CBStateMachine>().clientToBuyMode(e.terms());
 
         // Transition to Buy state
-        return transit<Buy>();
+        return transit<Buying>();
     }
 }
 }

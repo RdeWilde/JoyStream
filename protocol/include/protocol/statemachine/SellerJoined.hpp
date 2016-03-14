@@ -12,7 +12,7 @@ namespace joystream {
 namespace protocol {
 namespace statemachine {
 
-    class Buy;
+    class Buying;
 
     class SellerJoined {
 
@@ -36,13 +36,13 @@ namespace statemachine {
             terminated
         };
 
-        SellerJoined(Buy * context);
+        SellerJoined(Buying * context);
 
     private:
 
         State _state;
 
-        Buy * _context;
+        Buying * _context;
     };
 }
 }
