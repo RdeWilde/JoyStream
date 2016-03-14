@@ -20,39 +20,25 @@ namespace Coin {
 
 namespace joystream {
 namespace protocol {
+namespace statemachine {
 
-    namespace wire {
-        class Observe;
-        class Buy;
-        class Sell;
-        class JoinContract;
-        class Ready;
-        class RequestFullPiece;
-        class JoiningContract;
-    }
+    class Selling : public sc::simple_state<Selling,Active> {
 
-    namespace statemachine {
+    public:
 
-        class SellerTerms;
-        class BuyerTerms;
+        typedef boost::mpl::list<
+                                sc::custom_reaction<event::ObserveModeStarted>,
+                                sc::custom_reaction<event::BuyModeStarted>
+                                > reactions;
 
-        class Selling : public sc::simple_state<Selling,Active> {
-
-        public:
-
-            typedef boost::mpl::list<
-                                    sc::custom_reaction<event::ObserveModeStarted>,
-                                    sc::custom_reaction<event::BuyModeStarted>
-                                    > reactions;
-
-            Selling();
+        Selling();
 
 
-            // Event handlers
-            sc::result react(const event::ObserveModeStarted &);
-            sc::result react(const event::BuyModeStarted &);
-        };
-    }
+        // Event handlers
+        sc::result react(const event::ObserveModeStarted &);
+        sc::result react(const event::BuyModeStarted &);
+    };
+}
 }
 }
 

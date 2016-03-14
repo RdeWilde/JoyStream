@@ -39,7 +39,6 @@ namespace statemachine {
         sc::result react(const event::ObserveModeStarted &);
         sc::result react(const event::SellModeStarted &);
         sc::result react(const event::BuyModeStarted &);
-
     };
 
 }

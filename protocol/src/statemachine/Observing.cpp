@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, March 10 2016
  */
 
-#include <protocol/statemachine/Observe.hpp>
+#include <protocol/statemachine/Observing.hpp>
 
 #include <iostream>
 
@@ -13,8 +13,8 @@ namespace joystream {
 namespace protocol {
 namespace statemachine {
 
-    Observe::Observe() {
-        std::cout << "Entering Observe state." << std::endl;
+    Observing::Observing() {
+        std::cout << "Entering Observing state." << std::endl;
     }
 }
 }

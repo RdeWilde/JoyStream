@@ -26,7 +26,7 @@ namespace statemachine {
         context<CBStateMachine>().peerToObserveMode();
 
         // Transition to deep history
-        return transit<sc::deep_history<Observe>>();
+        return transit<sc::deep_history<Observing>>();
     }
 
     sc::result Active::react(const event::Recv<wire::Buy> & e) {
@@ -37,7 +37,7 @@ namespace statemachine {
         context<CBStateMachine>().peerToBuyMode(e.message()->terms());
 
         // Transition to deep history
-        return transit<sc::deep_history<Observe>>();
+        return transit<sc::deep_history<Observing>>();
     }
 
     sc::result Active::react(const event::Recv<wire::Sell> & e) {
@@ -48,7 +48,7 @@ namespace statemachine {
         context<CBStateMachine>().peerToSellMode(e.message()->terms());
 
         // Transition to deep history
-        return transit<sc::deep_history<Observe>>();
+        return transit<sc::deep_history<Observing>>();
     }
 }
 }

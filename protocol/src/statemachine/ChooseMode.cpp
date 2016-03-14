@@ -6,7 +6,7 @@
  */
 
 #include <protocol/statemachine/ChooseMode.hpp>
-#include <protocol/statemachine/Observe.hpp>
+#include <protocol/statemachine/Observing.hpp>
 #include <protocol/statemachine/Selling.hpp>
 #include <protocol/statemachine/Buying.hpp>
 
@@ -28,7 +28,7 @@ namespace statemachine {
         context<CBStateMachine>().clientToObserveMode();
 
         // Transition to Observe state
-        return transit<Observe>();
+        return transit<Observing>();
     }
 
     sc::result ChooseMode::react(const event::SellModeStarted & e) {

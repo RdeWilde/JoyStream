@@ -55,12 +55,12 @@ HEADERS += \
     include/protocol/statemachine/ChooseMode.hpp \
     include/protocol/statemachine/event/ObserveModeStarted.hpp \
     include/protocol/statemachine/event/SellModeStarted.hpp \
-    include/protocol/statemachine/Observe.hpp \
     include/protocol/statemachine/event/BuyModeStarted.hpp \
     include/protocol/statemachine/event/Recv.hpp \
     include/protocol/statemachine/Active.hpp \
     include/protocol/statemachine/Selling.hpp \
-    include/protocol/statemachine/Buying.hpp
+    include/protocol/statemachine/Buying.hpp \
+    include/protocol/statemachine/Observing.hpp
 
 SOURCES += \
     src/wire/ExtendedMessagePayload.cpp \
@@ -70,13 +70,13 @@ SOURCES += \
     src/wire/RefundSigned.cpp \
     src/wire/Ready.cpp \
     src/wire/Payment.cpp \
-    src/wire/Observe.cpp \
     src/wire/NoPayloadMessage.cpp \
     src/wire/MessageType.cpp \
     src/wire/JoiningContract.cpp \
     src/wire/JoinContract.cpp \
     src/wire/FullPiece.cpp \
     src/wire/Buy.cpp \
+    src/wire/Observe.cpp \
     src/PeerModeAnnounced.cpp \
     src/Connection.cpp \
     src/SellerSession.cpp \
@@ -97,11 +97,11 @@ SOURCES += \
     src/statemachine/event/SellModeStarted.cpp \
     src/statemachine/event/BuyModeStarted.cpp \
     src/statemachine/ChooseMode.cpp \
-    src/statemachine/Observe.cpp \
     src/statemachine/event/SellModeStarted.cpp \
     src/statemachine/Active.cpp \
     src/statemachine/Selling.cpp \
-    src/statemachine/Buying.cpp
+    src/statemachine/Buying.cpp \
+    src/statemachine/Observing.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

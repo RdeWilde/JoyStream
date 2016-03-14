@@ -22,8 +22,8 @@ namespace joystream {
 namespace protocol {
 namespace statemachine {
 
-    class Observe; // for some reason, we *must* have initial state for composite state
-    class Active : public sc::simple_state<Active, CBStateMachine, Observe, sc::has_deep_history> {
+    class Observing; // for some reason, we *must* have initial state for composite state
+    class Active : public sc::simple_state<Active, CBStateMachine, Observing, sc::has_deep_history> {
 
     public:
 
@@ -51,6 +51,6 @@ namespace statemachine {
 
 // Required to make Active complete when included throught his header file,
 // as Observe is initial state and thus part of parent state_machine definition
-#include <protocol/statemachine/Observe.hpp>
+#include <protocol/statemachine/Observing.hpp>
 
 #endif // JOYSTREAM_PROTOCOL_STATEMACHINE_ACTIVE_HPP

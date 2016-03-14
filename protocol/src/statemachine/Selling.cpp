@@ -26,7 +26,7 @@ namespace statemachine {
         context<CBStateMachine>().clientToObserveMode();
 
         // Transition to Observe state
-        return transit<Observe>();
+        return transit<Observing>();
     }
 
     sc::result Selling::react(const event::BuyModeStarted & e) {
