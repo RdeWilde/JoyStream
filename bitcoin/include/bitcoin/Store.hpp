@@ -73,24 +73,9 @@ public:
 
     // Methods used to update Store with block headers and transactions
     void addTransaction(const Coin::Transaction & tx);
-
-    void insertMerkleTx(const ChainMerkleBlock& chainmerkleblock,
-                        const Coin::Transaction& cointx,
-                        unsigned int txindex,
-                        unsigned int txcount,
-                        bool verifysigs = false,
-                        bool isCoinbase = false);
-
-    void confirmMerkleTx(const ChainMerkleBlock& chainmerkleblock,
-                    const bytes_t& txhash,
-                    unsigned int txindex,
-                    unsigned int txcount);
-
-    void insertMerkleBlock(const ChainMerkleBlock & chainmerkleblock);
-
-    uint32_t getBestBlockHeaderHeight();
-    bytes_t getBestBlockHeaderHash();
-    uint32_t getMaxFirstBlockTimestamp();
+    void addTransaction(const Coin::Transaction & tx, const ChainMerkleBlock & chainmerkleblock);
+    void confirmTransaction(std::string txhash, const ChainMerkleBlock &chainmerkleblock);
+    void addBlockHeader(const ChainMerkleBlock & chainmerkleblock);
 
 private:
     // don't allow copying, store should be passed by reference only

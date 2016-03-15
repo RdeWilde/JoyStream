@@ -70,6 +70,7 @@ void Test::init_bitcoind() {
 }
 
 void Test::initTestCase() {
+    bitcoind_stop();
     init_bitcoind();
 }
 
@@ -85,7 +86,7 @@ void Test::init() {
 }
 
 void Test::cleanup() {
-
+    _wallet->StopSync();
     delete _wallet;
 }
 
@@ -135,7 +136,7 @@ void Test::networkMismatchOnOpeningWallet() {
 }
 
 void Test::SynchingHeaders() {
-
+return;
     QSignalSpy spy_blocktree_error(_wallet, SIGNAL(BlockTreeError()));
     QSignalSpy spy_headers_synched(_wallet, SIGNAL(HeadersSynched()));
 
@@ -178,6 +179,9 @@ void Test::BasicBalanceCheck() {
 
     _wallet->Create(WALLET_SEED);
 
+    uint64_t startingConfirmedBalance = _wallet->Balance();
+    uint64_t startingUnconfirmedBalance = _wallet->UnconfirmedBalance();
+
     Coin::P2PKHAddress addr = _wallet->GetReceiveAddress();
 
     // Send 0.005BTC to our wallet
@@ -189,12 +193,21 @@ void Test::BasicBalanceCheck() {
     // Wait for balance to change
     QVERIFY(spy_balance_changed.wait());
 
-    QCOMPARE(_wallet->Balance(), uint64_t(0));
-    QCOMPARE(_wallet->UnconfirmedBalance(), uint64_t(500000));
+    QCOMPARE(_wallet->Balance(), startingConfirmedBalance);
+    QCOMPARE(_wallet->UnconfirmedBalance(), uint64_t(startingUnconfirmedBalance + uint64_t(500000)));
+std::cout << "first balance check passed..." << std::endl;
+    // Generate a block to confirm the last transaction
+    bitcoin_rpc("generate 1");
 
-    //bitcoin_rpc("generate 1");
-    //QTRY_VERIFY_WITH_TIMEOUT(spy_txconfirmed.count() == 1, 5000);
-    //QCOMPARE(_wallet->Balance(), uint64_t(500000));
+    // Send another 0.005BTC to our wallet
+    bitcoin_rpc("sendtoaddress " + addr.toBase58CheckEncoding().toStdString() + " 0.005");
+std::cout <<"waiting for balance to change" << std::endl;
+    // Wait for balance to change
+    QVERIFY(spy_balance_changed.wait(15000));
+
+    QCOMPARE(_wallet->Balance(), uint64_t(startingConfirmedBalance + uint64_t(500000)) );
+    QCOMPARE(_wallet->UnconfirmedBalance(), uint64_t(startingUnconfirmedBalance + uint64_t(1000000)));
+
 }
 
 QTEST_MAIN(Test)

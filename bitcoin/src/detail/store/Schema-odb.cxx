@@ -8576,7 +8576,7 @@ namespace odb
     r += "\"output_tx\".\"header\"=\"output_block\".\"id\"";
 
     r += " LEFT JOIN \"Input\" ON";
-    // From Schema.hpp:536:5
+    // From Schema.hpp:538:5
     r += query_columns::TxHasOutput::tx_ix.index == query_columns::Input::id.op_index && query_columns::TxHasOutput::tx_ix.tx == query_columns::Input::id.op_txid;
 
     r += " LEFT JOIN \"TxHasInput\" ON";

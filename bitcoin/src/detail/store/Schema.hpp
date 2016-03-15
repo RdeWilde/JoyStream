@@ -252,6 +252,8 @@ public:
     std::string txid() { return txid_; }
     uint32_t version() const { return version_; }
     uint32_t locktime() const { return lockTime_; }
+    void header(std::shared_ptr<BlockHeader> block) { header_ = block; }
+    std::shared_ptr<BlockHeader> header() const { return header_; }
 
 private:
     friend class odb::access;

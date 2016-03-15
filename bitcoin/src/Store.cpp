@@ -20,7 +20,7 @@ namespace bitcoin {
 namespace {
 
     std::shared_ptr<detail::store::Address> addressFind(std::unique_ptr<odb::database> & db, const std::string & script);
-    std::string transactionSave(std::unique_ptr<odb::database> & db, const Coin::Transaction & coin_tx);
+    std::shared_ptr<detail::store::Transaction> transactionSave(std::unique_ptr<odb::database> & db, const Coin::Transaction & coin_tx);
     std::vector<detail::store::TxHasInput> transactionLoadInputs(std::unique_ptr<odb::database> &db, std::string txid);
     std::vector<detail::store::TxHasOutput> transactionLoadOutputs(std::unique_ptr<odb::database> &db, std::string txid);
     bool transactionLoad(std::unique_ptr<odb::database> &db, std::string txid, Coin::Transaction &coin_tx);
@@ -396,8 +396,12 @@ bool Store::addressExists(const Coin::P2PKHAddress & addr) {
 }
 
 bool Store::transactionExists(const Coin::TransactionId & txid) {
-    if(_db->load<detail::store::Transaction>(txid.toHex().toStdString())) return true;
-    return false;
+    try{
+        _db->load<detail::store::Transaction>(txid.toHex().toStdString());
+        return true;
+    } catch(const odb::object_not_persistent &e) {
+        return false;
+    }
 }
 
 bool Store::transactionExists(const Coin::Transaction & tx) {
@@ -412,10 +416,64 @@ bool Store::transactionExists(const Coin::Transaction & tx) {
     return false;
 }
 
-void Store::addTransaction(const Coin::Transaction & tx) {
+void Store::addTransaction(const Coin::Transaction & cointx) {
     odb::transaction t(_db->begin());
-    transactionSave(_db, tx);
+    transactionSave(_db, cointx);
     t.commit();
+}
+
+void Store::addTransaction(const Coin::Transaction & cointx, const ChainMerkleBlock & chainmerkleblock) {
+    odb::transaction t(_db->begin());
+
+    //get header or create new one
+    std::shared_ptr<detail::store::BlockHeader> header;
+    try{
+        header = _db->load<detail::store::BlockHeader>(chainmerkleblock.hash().getHex());
+    } catch( const odb::object_not_persistent &e) {
+        header = std::make_shared<detail::store::BlockHeader>(chainmerkleblock);
+        _db->persist(header);
+    }
+
+    //create new tx or retreive existing one
+    std::shared_ptr<detail::store::Transaction> tx = transactionSave(_db, cointx);
+    tx->header(header);
+    _db->update(tx);
+
+    t.commit();
+}
+
+void Store::addBlockHeader(const ChainMerkleBlock & chainmerkleblock) {
+    odb::transaction t(_db->begin());
+    std::shared_ptr<detail::store::BlockHeader> block(new detail::store::BlockHeader(chainmerkleblock));
+    try {
+        _db->persist(block);
+    } catch (const odb::object_already_persistent &e) {
+        // block header already added!
+    }
+    t.commit();
+}
+
+void Store::confirmTransaction(std::string txhash, const ChainMerkleBlock &chainmerkleblock) {
+
+    odb::transaction t(_db->begin());
+
+    //get header or create new one
+    std::shared_ptr<detail::store::BlockHeader> header;
+    try{
+        header = _db->load<detail::store::BlockHeader>(chainmerkleblock.hash().getHex());
+    } catch( const odb::object_not_persistent &e) {
+        header = std::make_shared<detail::store::BlockHeader>(chainmerkleblock);
+        _db->persist(header);
+    }
+
+    //retreive existing transaction and update it
+    std::shared_ptr<detail::store::Transaction> tx;
+    try {
+        tx = _db->load<detail::store::Transaction>(txhash);
+        tx->header(header);
+        _db->update(tx);
+        t.commit();
+    } catch(const odb::object_not_persistent & e) {}
 }
 
 bool Store::loadKey(const Coin::P2PKHAddress & address, Coin::PrivateKey & sk) {
@@ -474,7 +532,6 @@ uint64_t Store::getWalletBalance(int32_t confirmations, int32_t main_chain_heigh
     }
 
     for(auto & output : outputs) {
-        std::cout << "wallet utxo: " << output.value() << std::endl;
         balance += output.value();
     }
     t.commit();
@@ -502,58 +559,6 @@ Coin::HDKeychain Store::getKeyChain_tx(bool createReceiveAddress) {
     return hdKeyChain;
 }
 
-void Store::insertMerkleTx(const ChainMerkleBlock& chainmerkleblock,
-                    const Coin::Transaction& cointx,
-                    unsigned int txindex,
-                    unsigned int txcount,
-                    bool verifysigs,
-                    bool isCoinbase){
-    std::cout << "Merkel Tx at Height: " << chainmerkleblock.height << std::endl;
-
-    if(chainmerkleblock.hash().getHex() == "000000000000de2b879ed80abdd161c5275dc05e478e7dc273555de519cb971b") {
-        std::cout << "### found block 1" << std::endl;
-    }
-
-    if(chainmerkleblock.hash().getHex() == "000000000003fb5ae1ee81f594b76897f42841da4a7156727b5efbd8406292ed") {
-        std::cout << "### found block 2" << std::endl;
-    }
-
-    // filter TX to store (input and outputs should match something in the store)
-
-    if(cointx.hash().getHex() == "4f41e57c02d18b9bf65bd218439ac8a620df119fa4b964a3135f31ec00a3d176") {
-        std::cout << "### found mytx 1" << std::endl;
-        std::cout << "Merkel Block:" << chainmerkleblock.hash().getHex() << std::endl;
-    }
-    if(cointx.hash().getHex() == "ef4fff4cd5bdb692b8e488a048c702d615ea3430bc98c6d58c4c174b8419fb76") {
-        std::cout << "### found mytx 2" << std::endl;
-    }
-    if(cointx.hash().getHex() == "5a3229593aee909f5f1743eadc296fae0161aba260a206c1197ac0b5fc79e2a3") {
-        std::cout << "### found mytx 3" << std::endl;
-    }
-
-}
-
-void Store::confirmMerkleTx(const ChainMerkleBlock& chainmerkleblock,
-                     const bytes_t& txhash,
-                     unsigned int txindex,
-                     unsigned int txcount){
-    //std::cout << "Store: confirming Merkel Tx:" << uchar_vector(txhash).getHex() << std::endl;
-}
-
-void Store::insertMerkleBlock(const ChainMerkleBlock & chainmerkleblock){
-    // blocks that do not contain any tx we care about
-    // PartialMerkleTree tree(merkleblock.nTxs, merkleblock.hashes, merkleblock.flags, merkleblock.merkleRoot());
-    std::cout << "MerkleBlock:" << chainmerkleblock.hash().getHex() << " height:" << chainmerkleblock.height << std::endl;
-}
-
-uint32_t Store::getBestBlockHeaderHeight() {
-    return 0;
-}
-
-bytes_t Store::getBestBlockHeaderHash() {
-    return bytes_t();
-}
-
 std::vector<std::string> Store::getLatestBlockHeaderHashes() {
     return std::vector<std::string>();
 }
@@ -568,16 +573,18 @@ namespace {
     }
 
     //if any input, output scripts or hashes are null transactionSave will throw an exception
-    std::string transactionSave(std::unique_ptr<odb::database> & db,
+    std::shared_ptr<Transaction> transactionSave(std::unique_ptr<odb::database> & db,
                                 const Coin::Transaction & coin_tx) {
-        //TODO: multiple checks before adding transaction
-        //sanity check (valid transaction) - do not trust network
-        //look for duplicate txid (or duplicate outpoints [as better way to track transaction due to malleability)
-        //ref: https://bitcoin.org/en/developer-guide#transaction-malleability
-        //double spend..
+
 
         std::shared_ptr<Transaction> tx(new Transaction(coin_tx));
-        db->persist(tx);
+
+        // Persist new transaction or return existing transaction
+        try{
+            db->persist(tx);
+        } catch (const odb::object_already_persistent &e) {
+            return db->load<Transaction>(tx->txid());
+        }
 
         //inputs
         uint32_t i = 0;
@@ -587,7 +594,6 @@ namespace {
             try{
                 db->persist(input);
             } catch (const odb::object_already_persistent &e) {
-                std::cout << "object already persistent\n";
                 input = db->load<Input>(input->id());
             }
 
@@ -613,7 +619,7 @@ namespace {
             i++;
         }
 
-        return tx->txid();
+        return tx;
     }
 
     std::vector<TxHasInput>

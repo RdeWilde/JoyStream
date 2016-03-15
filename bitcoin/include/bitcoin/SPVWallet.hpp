@@ -21,8 +21,6 @@ public:
 
     explicit SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Network network = Coin::Network::testnet3);
 
-    ~SPVWallet();
-
     // Create a new wallet with auto generated seed
     void Create();
 
@@ -37,6 +35,7 @@ public:
 
     // Start Synching the wallet with peer at host:port
     void Sync(std::string host, int port);
+    void StopSync();
 
     Coin::PrivateKey GetKey(bool createReceiveAddress);
     std::vector<Coin::PrivateKey> GetKeys(uint32_t numKeys, bool createReceiveAddress);
@@ -101,7 +100,11 @@ private:
     void onHeadersSynched();
     void onSynchingBlocks();
     void onBlocksSynched();
+
     void onNewTx(const Coin::Transaction& cointx);
+    void onTxConfirmed(const ChainMerkleBlock& chainmerkleblock, const bytes_t& txhash, unsigned int txindex, unsigned int txcount);
+    void onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin::Transaction& cointx, unsigned int txindex, unsigned int txcount);
+    void onMerkleBlock(const ChainMerkleBlock& chainmerkleblock);
 
     Coin::BloomFilter makeBloomFilter(double falsePositiveRate, uint32_t nTweak, uint32_t nFlags);
 

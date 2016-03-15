@@ -82,27 +82,22 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
 
     _networkSync.subscribeNewTx([this](const Coin::Transaction& cointx)
     {
-        std::cout << "NewTx\n";
         onNewTx(cointx);
     });
 
     _networkSync.subscribeMerkleTx([this](const ChainMerkleBlock& chainmerkleblock, const Coin::Transaction& cointx, unsigned int txindex, unsigned int txcount)
     {
-
-        std::cout << "MerkleTx\n";
-        emit MerkleTx();
+        onMerkleTx(chainmerkleblock, cointx, txindex, txcount);
     });
 
     _networkSync.subscribeTxConfirmed([this](const ChainMerkleBlock& chainmerkleblock, const bytes_t& txhash, unsigned int txindex, unsigned int txcount)
     {
-        std::cout << "TxConfirmed\n";
-        emit TxConfirmed();
+        onTxConfirmed(chainmerkleblock, txhash, txindex, txcount);
     });
 
-    _networkSync.subscribeMerkleBlock([this](const ChainMerkleBlock& chainMerkleBlock)
+    _networkSync.subscribeMerkleBlock([this](const ChainMerkleBlock& chainmerkleblock)
     {
-        std::cout << "MerkleBlock\n";
-        emit MerkleBlock();
+        onMerkleBlock(chainmerkleblock);
     });
 
     _networkSync.subscribeBlockTreeChanged([this]()
@@ -114,10 +109,6 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
 
     // NOTE: Loading the blocktree could have gone here but we would miss the signals
     // because it is a synchronous call.
-}
-
-SPVWallet::~SPVWallet() {
-    _networkSync.stop();
 }
 
 void SPVWallet::Create() {
@@ -165,6 +156,10 @@ void SPVWallet::LoadBlockTree() {
 
 void SPVWallet::Sync(std::string host, int port) {
     _networkSync.start(host, port);
+}
+
+void SPVWallet::StopSync() {
+    _networkSync.stop();
 }
 
 Coin::PrivateKey SPVWallet::GetKey(bool createReceiveAddress) {
@@ -261,8 +256,27 @@ void SPVWallet::onBlocksSynched() {
 void SPVWallet::onNewTx(const Coin::Transaction& cointx) {
     // TODO: match outputs we control and inputs that spend our outputs
     _store.addTransaction(cointx);
-    emit NewTx();
     recalculateBalance();
+}
+
+void SPVWallet::onTxConfirmed(const ChainMerkleBlock& chainmerkleblock, const bytes_t& txhash, unsigned int txindex, unsigned int txcount){
+    _store.confirmTransaction(uchar_vector(txhash).getHex(), chainmerkleblock);
+    recalculateBalance();
+}
+
+void SPVWallet::onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin::Transaction& cointx, unsigned int txindex, unsigned int txcount){
+    // Mined Block containing transactions we might care about
+
+    // Add Transaction pointing to block header
+    //_store.removeBlocksAboveHeight(chainmerkleblock.height - 1);
+    _store.addTransaction(cointx, chainmerkleblock);
+}
+
+void SPVWallet::onMerkleBlock(const ChainMerkleBlock& chainmerkleblock) {
+    // Block without tx we care about
+
+    //_store.removeBlocksAboveHeight(chainmerkleblock.height - 1);
+    _store.addBlockHeader(chainmerkleblock);
 }
 
 void SPVWallet::updateBloomFilter() {
@@ -300,9 +314,11 @@ Coin::BloomFilter SPVWallet::makeBloomFilter(double falsePositiveRate, uint32_t 
 }
 
 void SPVWallet::recalculateBalance() {
-    std::cout << "Recalculating Balance\n";
+    if(!_store.connected()) return;
+
     uint64_t confirmed = _store.getWalletBalance(1,_networkSync.getBestHeight());
     uint64_t unconfirmed = _store.getWalletBalance(0, _networkSync.getBestHeight());
+
     if(_confirmedBalance != confirmed || _unconfirmedBalance != unconfirmed) {
         _confirmedBalance = confirmed;
         _unconfirmedBalance = unconfirmed;
