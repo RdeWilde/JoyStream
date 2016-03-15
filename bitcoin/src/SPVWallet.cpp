@@ -107,7 +107,7 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
 
     _networkSync.subscribeBlockTreeChanged([this]()
     {
-
+        emit BlockTreeChanged();
     });
 
     _blockTreeFile = blockTreeFile;

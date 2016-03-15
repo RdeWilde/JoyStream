@@ -61,6 +61,7 @@ public:
 signals:
 
     void BlockTreeError();
+    void BlockTreeChanged();
     void SynchingHeaders();
     void HeadersSynched();
     void SynchingBlocks();

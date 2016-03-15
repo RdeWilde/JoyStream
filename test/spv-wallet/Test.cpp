@@ -53,7 +53,8 @@ int bitcoind_reset_data() {
 }
 
 void Test::init_bitcoind() {
-    if(_bitcoind_started) return;
+    // Reset regtest blockchain
+    bitcoind_reset_data();
 
     // Prepare local temporary directory for bitcoind
     QVERIFY(make_temp_directory() == 0);
@@ -61,25 +62,15 @@ void Test::init_bitcoind() {
     // start bitcoin server
     QVERIFY(bitcoind_start() == 0);
 
-    _bitcoind_started = true;
-
     // Wait for it to start
     QVERIFY(bitcoind_wait_for_ready() == 0);
+
+    // Generate enough blocks to make the first coinbase tx spendable
+    QVERIFY(bitcoin_rpc("generate 101") == 0);
 }
 
-void Test::cleanup_bitcoind() {
-    if(!_bitcoind_started) return;
-    _bitcoind_started = false;
-
-    // Stop bitcoind
-    QVERIFY(bitcoind_stop() == 0);
-
-    // Wait for it to shutdown... (when it stops responding to rpc requests)
-    const int timeout = 5000;
-    QTRY_VERIFY_WITH_TIMEOUT(bitcoin_rpc("getinfo") != 0, timeout);
-
-    // Reset regtest blockchain
-    bitcoind_reset_data();
+void Test::initTestCase() {
+    init_bitcoind();
 }
 
 void Test::init() {
@@ -98,8 +89,9 @@ void Test::cleanup() {
     delete _wallet;
 }
 
-Test::~Test() {
-    cleanup_bitcoind();
+void Test::cleanupTestCase() {
+    // Stop bitcoind
+    bitcoind_stop();
 }
 
 void Test::walletCreation() {
@@ -143,13 +135,8 @@ void Test::networkMismatchOnOpeningWallet() {
 }
 
 void Test::SynchingHeaders() {
-    init_bitcoind();
-
-    // Generate one block
-    bitcoin_rpc("generate 1");
 
     QSignalSpy spy_blocktree_error(_wallet, SIGNAL(BlockTreeError()));
-    QSignalSpy spy_synching_headers(_wallet, SIGNAL(SynchingHeaders()));
     QSignalSpy spy_headers_synched(_wallet, SIGNAL(HeadersSynched()));
 
     _wallet->Create(WALLET_SEED);
@@ -165,18 +152,26 @@ void Test::SynchingHeaders() {
     // Should connect and synch headers
     _wallet->Sync("localhost", 18444);
 
-    QTRY_VERIFY_WITH_TIMEOUT(spy_synching_headers.count() == 1, 1000); // 1s timeout
-    QTRY_VERIFY_WITH_TIMEOUT(spy_headers_synched.count() == 1, 1000); // 1s timeout
+    QTRY_VERIFY_WITH_TIMEOUT(spy_headers_synched.count() > 0, 5000);
 
-    // One block mined after the genesis block so best height should be equal to 1
-    QCOMPARE(_wallet->bestHeight(), 1);
+    int32_t startingHeight = _wallet->bestHeight();
+
+    QSignalSpy spy_tree_changed(_wallet, SIGNAL(BlockTreeChanged()));
+
+    int32_t lastCount = spy_tree_changed.count();
+
+    // Generate one more block
+    bitcoin_rpc("generate 1");
+
+    // Wait to receive the new block
+    QTRY_VERIFY_WITH_TIMEOUT(spy_tree_changed.count() > lastCount, 5000);
+
+    // One block was mined height should increase by one
+    QCOMPARE(_wallet->bestHeight(), startingHeight + 1);
 }
 
 void Test::BasicBalanceCheck() {
-    init_bitcoind();
 
-    QSignalSpy spy_newtx(_wallet, SIGNAL(NewTx()));
-    //QSignalSpy spy_txconfirmed(_wallet, SIGNAL(TxConfirmed()));
     QSignalSpy spy_balance_changed(_wallet, SIGNAL(BalanceChanged(uint64_t, uint64_t)));
 
     _wallet->LoadBlockTree();
@@ -185,16 +180,15 @@ void Test::BasicBalanceCheck() {
 
     Coin::P2PKHAddress addr = _wallet->GetReceiveAddress();
 
-    // Generate enough blocks to make the first coinbase tx spendable
-    bitcoin_rpc("generate 101");
-
     // Send 0.005BTC to our wallet
     bitcoin_rpc("sendtoaddress " + addr.toBase58CheckEncoding().toStdString() + " 0.005");
 
     // Should connect and synch headers
     _wallet->Sync("localhost", 18444);
 
-    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() == 1, 5000);
+    // Wait for balance to change
+    QVERIFY(spy_balance_changed.wait());
+
     QCOMPARE(_wallet->Balance(), uint64_t(0));
     QCOMPARE(_wallet->UnconfirmedBalance(), uint64_t(500000));
 

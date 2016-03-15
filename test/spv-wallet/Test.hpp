@@ -24,29 +24,30 @@ class Test : public QObject
 {
     Q_OBJECT
 
-public:
-    ~Test();
-
 private:
     joystream::bitcoin::SPVWallet *_wallet;
 
     void init_bitcoind();
-    void cleanup_bitcoind();
-    bool _bitcoind_started;
 
 private slots:
 
-    // Will be called before each testfunction is executed
+    // Will be called once at the start
+    void initTestCase();
+
+    // Will be called before each unit test is executed
     void init();
 
-    // Will be called after every testfunction.
+    // Will be called after every unit test
     void cleanup();
 
-    // Test cases
+    // Unit Tests
     void walletCreation();
     void networkMismatchOnOpeningWallet();
     void SynchingHeaders();
     void BasicBalanceCheck();
+
+    // Will be called at the end of all tests
+    void cleanupTestCase();
 };
 
 #endif // TEST_HPP
