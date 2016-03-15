@@ -6,222 +6,149 @@
  */
 
 #include <Test.hpp>
-#include <protocol/statemachine/CBStateMachine.hpp>
 
 #include <protocol/statemachine/Selling.hpp>
 #include <protocol/statemachine/Buying.hpp>
 #include <protocol/statemachine/Observing.hpp>
-
 #include <protocol/wire/Observe.hpp>
+#include <protocol/wire/MessageType.hpp>
 
 #include <iostream>
 
-using namespace joystream::protocol;
+void Test::initTestCase() {
 
-void Test::CBStateMachine() {
+    // InvitedToOutdatedContract
+    _invitedToOutdatedContract = [this](void) {
+        _hasBeenInvitedToOutdatedContract = true;
+    };
 
-    // Setup callback handlers
-    statemachine::CBStateMachine::InvitedToOutdatedContract invitedToOutdatedContract = [](void) {};
-    statemachine::CBStateMachine::InvitedToJoinContract invitedToJoinContract = [](const Coin::typesafeOutPoint & anchor, int64_t funds, const Coin::PublicKey & contractPk) {};
-    statemachine::CBStateMachine::Send send = [](const wire::ExtendedMessagePayload *) { std::cout << "Sending message" << std::endl; };
-    statemachine::CBStateMachine::ContractIsReady contractIsReady = [](const Coin::typesafeOutPoint &) {};
-    statemachine::CBStateMachine::PieceRequested pieceRequested = [](int) {};
+    // InvitedToJoinContract
+    _invitedToJoinContract = [this](const Coin::typesafeOutPoint & anchor, int64_t funds, const Coin::PublicKey & contractPk) {
+        _hasBeenInvitedToJoinContract = true;
+        _anchor = anchor;
+        _funds = funds;
+        _contractPk = contractPk;
+    };
 
-    // Create state machine
-    statemachine::CBStateMachine stm(invitedToOutdatedContract, invitedToJoinContract, send, contractIsReady, pieceRequested);
-    wire::Observe m();
+    // Send
+    _send = [this](const wire::ExtendedMessagePayload * m) {
 
-    stm.initiate();
+        std::cout << "Sending message: " <<  wire::MessageTypeToString(m->messageType()) << std::endl;
+
+        _messageSent = true;
+        _sendMessage = m;
+    };
+
+    // ContractIsReady
+    _contractIsReady = [this](const Coin::typesafeOutPoint & o) {
+        _contractHasBeenPrepared = true;
+        _readyContract = o;
+    };
+
+    // PieceRequested
+    _pieceRequested = [this](int i) {
+        _pieceHasBeenRequested = true;
+        _piece = i;
+    };
+}
+
+void Test::init() {
+    resetCallbackState();
+}
+
+void Test::clientModeChange() {
+
+    // Get machine in sell mode
+    SellerTerms terms;
+    statemachine::CBStateMachine * machine = createFreshMachineInSellMode(terms);
+
+    // Check that we are in correct state
+    QCOMPARE(machine->getInnerStateName(), typeid(statemachine::Selling).name());
+
+    // Check that sell message was sent
+    QVERIFY(_messageSent);
+    QCOMPARE(_sendMessage->messageType(), wire::MessageType::sell);
+}
+
+void Test::peerModeChange() {
+
+    //QVERIFY()
+
+    // Recieve mode message from peer
     //stm.process_event(statemachine::event::Recv(&m));
     //stm.process_event(statemachine::event::ObserveModeStarted());
-    SellerTerms terms;
-    stm.process_event(statemachine::event::SellModeStarted(terms));
-
-    QCOMPARE(stm.getInnerStateName(), typeid(statemachine::Selling).name());
-    //std::cout << "Now in state: " << stm.getStateName() << std::endl;
 
     // test deep history transition at various times?
 
-    // how to test that callbacks are actually made, and no incorrect
-    // ones are not. ? joining thread which runs them?
-    // e.g. how to do sequences of message
-
-
-
 }
 
+statemachine::CBStateMachine * Test::createFreshMachineInObserveMode() {
 
-/**
-#include <common/Seed.hpp>
-#include <common/Payment.hpp>
-#include <common/typesafeOutPoint.hpp>
-#include <common/TransactionSignature.hpp>
-#include <CoinCore/hdkeys.h>
+    // Create and initiate state machine
+    statemachine::CBStateMachine * machine = createFreshMachine();
 
-void Test::refund() {
+    // Switch to observe mode
+    machine->process_event(statemachine::event::ObserveModeStarted());
 
-    Coin::KeyPair payorContractPair = Coin::KeyPair::generate();
-    Coin::KeyPair payorFinalPair = Coin::KeyPair::generate();
-    Coin::KeyPair payeeContractPair = Coin::KeyPair::generate();
-    Coin::typesafeOutPoint contractOutPoint;
-    Commitment commitment(190, payorContractPair.pk(), payeeContractPair.pk());
-
-    Coin::Payment toPayor(190, payorFinalPair.pk().toPubKeyHash());
-    uint32_t lockTime = 100;
-
-    Refund r(contractOutPoint,
-             commitment,
-             toPayor,
-             lockTime);
-
-    // Validate payee refund signature
-    Coin::TransactionSignature payeeRefundSig = r.transactionSignature(payeeContractPair.sk());
-
-    bool validPayeeRefundSig = r.validatePayeeSignature(payeeRefundSig.sig());
-
-    QVERIFY(validPayeeRefundSig);
-    QVERIFY(r.fee() == 0);
-
-    // Validate payee refund signature
-    Coin::TransactionSignature payorRefundSig = r.transactionSignature(payorContractPair.sk());
-
-    bool validPayorRefundSig = r.validatePayorSignature(payorRefundSig.sig());
-
-    QVERIFY(validPayorRefundSig);
+    return machine;
 }
 
-void Test::settlement() {
+statemachine::CBStateMachine * Test::createFreshMachineInBuyMode(const BuyerTerms & terms) {
 
-    Coin::KeyPair payorContractPair = Coin::KeyPair::generate();
-    Coin::KeyPair payorFinalPair = Coin::KeyPair::generate();
-    Coin::KeyPair payeeContractPair = Coin::KeyPair::generate();
-    Coin::KeyPair payeeFinalPair = Coin::KeyPair::generate();
+    // Create and initiate state machine
+    statemachine::CBStateMachine * machine = createFreshMachine();
 
-    Coin::typesafeOutPoint contractOutPoint;
-    Commitment commitment(180, payorContractPair.pk(), payeeContractPair.pk());
-    Coin::Payment toPayor(90, payorFinalPair.pk().toPubKeyHash());
-    Coin::Payment toPayee(90, payeeFinalPair.pk().toPubKeyHash());
+    // Switch to buy mode
+    machine->process_event(statemachine::event::BuyModeStarted(terms));
 
-    Settlement s(contractOutPoint,
-             commitment,
-             toPayor,
-             toPayee);
-
-    // Generate payee refund signature, hence using payee private key
-    Coin::TransactionSignature payeePaySig = s.transactionSignature(payeeContractPair.sk());
-    Coin::TransactionSignature payorPaySig = s.transactionSignature(payorContractPair.sk());
-
-    bool validPayeeSettlementSig = s.validatePayeeSignature(payeePaySig.sig());
-    QVERIFY(validPayeeSettlementSig);
-
-    bool validPayorSettlementSig = s.validatePayorSignature(payorPaySig.sig());
-    QVERIFY(validPayorSettlementSig);
-
-    QVERIFY(s.fee() == 0);
-
+    return machine;
 }
 
-void Test::channel() {
+statemachine::CBStateMachine * Test::createFreshMachineInSellMode(const SellerTerms & terms) {
 
+    // Create and initiate state machine
+    statemachine::CBStateMachine * machine = createFreshMachine();
+
+    // Switch to sell mode
+    machine->process_event(statemachine::event::SellModeStarted(terms));
+
+    return machine;
 }
 
-void Test::paychan_one_to_one() {
+statemachine::CBStateMachine * Test::createFreshMachine() {
 
-    // Use test seed to generate hd key chain
-    //Coin::HDKeychain chain = WALLET_SEED.generateHDKeychain();
-    //chain.
+    // Create
+    statemachine::CBStateMachine * machine = new statemachine::CBStateMachine(_invitedToOutdatedContract, _invitedToJoinContract, _send, _contractIsReady, _pieceRequested);
 
-    // Setup keys
-    Coin::KeyPair payorContractKeyPair = Coin::KeyPair::generate();
-    Coin::KeyPair payorFinalKeyPair = Coin::KeyPair::generate();
+    // Initiate machine
+    machine->initiate();
 
-    Coin::KeyPair payeeContractKeyPair = Coin::KeyPair::generate();
-    Coin::KeyPair payeeFinalKeyPair = Coin::KeyPair::generate();
-
-    // Setup channels
-    std::vector<Payor::Channel::Configuration> channels;
-
-    uint64_t source = 3000000,
-            change = 200,
-            contract_fee = 50,
-            funds_in_channel = source - (change + contract_fee);
-
-    uint64_t price = 8;
-
-    uint32_t lockTime = 1000;
-
-    channels.push_back(Payor::Channel::Configuration(0,
-                                                     Payor::Channel::State::unassigned,
-                                                     price,
-                                                     0,
-                                                     funds_in_channel, // total funds
-                                                     payorContractKeyPair,
-                                                     payorFinalKeyPair,
-                                                     payeeContractKeyPair.pk(),
-                                                     payeeFinalKeyPair.pk(),
-                                                     Coin::Signature(),
-                                                     Coin::Signature(),
-                                                     0,
-                                                     0,
-                                                     lockTime));
-    // Setup payor
-    Payor payor(Payor::Configuration(NETWORK_TYPE,
-                                     Payor::State::waiting_for_full_set_of_sellers,
-                                     channels,
-                                     Coin::UnspentP2PKHOutput(Coin::KeyPair::generate(), Coin::typesafeOutPoint(), source),
-                                     Coin::KeyPair::generate(),
-                                     change, // change value
-                                     contract_fee, // contract fee
-                                     Coin::TransactionId(),
-                                     0));
-
-    payor.assignUnassignedSlot(price, payeeContractKeyPair.pk(), payeeFinalKeyPair.pk(), lockTime);
-    Coin::TransactionId contractId = Coin::TransactionId::fromTx(payor.contractTransaction());
-
-    // Setup payee
-    Payee payee(Payee::Configuration(Payee::State::waiting_for_payor_information,
-                                     0,
-                                     Coin::Signature(),
-                                     lockTime,
-                                     price,
-                                     1,
-                                     payeeContractKeyPair,
-                                     payeeFinalKeyPair,
-                                     Coin::typesafeOutPoint(),
-                                     payorContractKeyPair.pk(),
-                                     payorFinalKeyPair.pk(),
-                                     funds_in_channel));
-
-
-    payee.registerPayorInformation(Coin::typesafeOutPoint(contractId, 0),
-                                   payorContractKeyPair.pk(),
-                                   payorFinalKeyPair.pk(),
-                                   funds_in_channel);
-
-    // Payee generates refund
-    Coin::Signature refundSignature = payee.generateRefundSignature();
-
-    // Payor validates refund
-
-    bool wasValid = payor.processRefundSignature(0, refundSignature);
-
-    QVERIFY(wasValid);
-
-    // Make series of payments
-    int number_of_payments = 10;
-
-    for(int i = 0; i < number_of_payments; i++) {
-
-        // Payor makes payment i
-        Q_ASSERT(payor.incrementPaymentCounter(0) == i+1);
-        Coin::Signature paymentSignature = payor.getPresentPaymentSignature(0);
-
-        // Payee validates payment i
-        QVERIFY(payee.registerPayment(paymentSignature));
-    }
-
+    return machine;
 }
-*/
+
+void Test::resetCallbackState() {
+
+    // InvitedToOutdatedContract
+    _hasBeenInvitedToOutdatedContract = false;
+
+    // InvitedToJoinContract
+    _hasBeenInvitedToJoinContract = false;
+    _anchor = Coin::typesafeOutPoint();
+    _funds = 0;
+    _contractPk = Coin::PublicKey();
+
+    // Send
+    _messageSent = false;
+    _sendMessage = NULL;
+
+    // ContractIsReady
+    _contractHasBeenPrepared = false;
+    _readyContract = Coin::typesafeOutPoint();
+
+    // PieceRequested
+    _pieceHasBeenRequested = false;
+    _piece = 0;
+}
 
 QTEST_MAIN(Test)
 #include "moc_Test.cpp"
