@@ -184,10 +184,10 @@ void Test::BasicBalanceCheck() {
 
     Coin::P2PKHAddress addr = _wallet->GetReceiveAddress();
 
-    // Generate 101 block to make the first coinbase tx spendable
+    // Generate enough blocks to make the first coinbase tx spendable
     bitcoin_rpc("generate 101");
 
-    // Send 0.5BTC to our wallet
+    // Send 0.005BTC to our wallet
     bitcoin_rpc("sendtoaddress " + addr.toBase58CheckEncoding().toStdString() + " 0.005");
 
     // Should connect and synch headers
@@ -199,7 +199,7 @@ void Test::BasicBalanceCheck() {
 
     //bitcoin_rpc("generate 1");
     //QTRY_VERIFY_WITH_TIMEOUT(spy_txconfirmed.count() == 1, 5000);
-    //QCOMPARE(_wallet->Balance(), uint64_t(50000));
+    //QCOMPARE(_wallet->Balance(), uint64_t(500000));
 }
 
 QTEST_MAIN(Test)

@@ -58,6 +58,7 @@ public:
     void releaseAddress(const Coin::P2PKHAddress & p2pkhaddress);
 
     std::list<Coin::P2PKHAddress> listReceiveAddresses();
+    std::list<Coin::PrivateKey> listPrivateKeys();
     std::list<Coin::Transaction> listTransactions();
 
     bool addressExists(const Coin::P2PKHAddress & addr);
@@ -90,8 +91,6 @@ public:
     uint32_t getBestBlockHeaderHeight();
     bytes_t getBestBlockHeaderHash();
     uint32_t getMaxFirstBlockTimestamp();
-    Coin::BloomFilter getBloomFilter(double falsePositiveRate, uint32_t nTweak, uint32_t nFlags) const;
-    std::vector<bytes_t> getLocatorHashes();
 
 private:
     // don't allow copying, store should be passed by reference only

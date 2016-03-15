@@ -99,6 +99,10 @@ private:
     void onBlocksSynched();
     void onNewTx(const Coin::Transaction& cointx);
 
+    Coin::BloomFilter makeBloomFilter(double falsePositiveRate, uint32_t nTweak, uint32_t nFlags);
+
+    void updateBloomFilter();
+
     // Prefix methods only required from unit tests with test_
     void test_method() {}
 

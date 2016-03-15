@@ -350,17 +350,28 @@ void Store::releaseAddress(const Coin::P2PKHAddress & p2pkhaddress) {
 
 std::list<Coin::P2PKHAddress> Store::listReceiveAddresses() {
     std::list<Coin::P2PKHAddress> addresses;
+
+    for(auto &sk : listPrivateKeys()) {
+        addresses.insert(addresses.begin(), sk.toPublicKey().toP2PKHAddress(_network));
+    }
+
+    return addresses;
+}
+
+std::list<Coin::PrivateKey> Store::listPrivateKeys() {
     typedef odb::query<detail::store::key_view_t> query;
     typedef odb::result<detail::store::key_view_t> result;
+
+    std::list<Coin::PrivateKey> keys;
 
     odb::transaction t(_db->begin());
     result r(_db->query<detail::store::key_view_t>(query::address::id.is_not_null() && query::key::used == true));
     for(auto &record : r) {
         Coin::PrivateKey sk(_rootKeychain.getChild(record.key->id()).privkey());
-        addresses.insert(addresses.begin(), sk.toPublicKey().toP2PKHAddress(_network));
+        keys.insert(keys.begin(), sk);
     }
     t.commit();
-    return addresses;
+    return keys;
 }
 
 std::list<Coin::Transaction> Store::listTransactions() {
@@ -541,39 +552,6 @@ uint32_t Store::getBestBlockHeaderHeight() {
 
 bytes_t Store::getBestBlockHeaderHash() {
     return bytes_t();
-}
-
-Coin::BloomFilter Store::getBloomFilter(double falsePositiveRate, uint32_t nTweak, uint32_t nFlags) const {
-    typedef odb::query<detail::store::key_view_t> query;
-    typedef odb::result<detail::store::key_view_t> result;
-
-    std::vector<uchar_vector> elements;
-
-    odb::transaction t(_db->begin());
-    result r(_db->query<detail::store::key_view_t>(query::address::id.is_not_null() && query::key::used == true));
-    for(auto &record : r) {
-        Coin::PrivateKey sk(_rootKeychain.getChild(record.key->id()).privkey());
-
-        //output script ? (doesn't seem to be effective)
-        //elements.push_back(Coin::P2PKHScriptPubKey(sk.toPublicKey()).serialize());
-
-        //public key - as it would appear in the input script of a spending TX
-        elements.push_back(sk.toPublicKey().toUCharVector());
-
-        //pubkeyhash
-        elements.push_back(sk.toPublicKey().toPubKeyHash().toUCharVector());
-    }
-    t.commit();
-
-    if(elements.size() == 0) return Coin::BloomFilter();
-
-    std::cout << "bloom filter total elements:" << elements.size() << std::endl;
-
-    Coin::BloomFilter filter(elements.size(), falsePositiveRate, nTweak, nFlags);
-
-    for(auto elm : elements) filter.insert(elm);
-
-    return filter;
 }
 
 std::vector<std::string> Store::getLatestBlockHeaderHashes() {

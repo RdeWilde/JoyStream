@@ -165,7 +165,7 @@ Coin::PrivateKey SPVWallet::GetKey(bool createReceiveAddress) {
     Coin::PrivateKey sk = _store.getKey(createReceiveAddress);
 
     if(createReceiveAddress) {
-        // update bloom filter
+        updateBloomFilter();
     }
 
     return sk;
@@ -174,9 +174,7 @@ Coin::PrivateKey SPVWallet::GetKey(bool createReceiveAddress) {
 std::vector<Coin::PrivateKey> SPVWallet::GetKeys(uint32_t numKeys, bool createReceiveAddress) {
     std::vector<Coin::PrivateKey> keys = _store.getKeys(numKeys, createReceiveAddress);
     if(createReceiveAddress) {
-        for(auto & sk : keys) {
-            // update bloom filter
-        }
+        updateBloomFilter();
     }
     return keys;
 }
@@ -185,9 +183,7 @@ std::vector<Coin::KeyPair>
 SPVWallet::GetKeyPairs(uint32_t num_pairs, bool createReceiveAddress) {
     std::vector<Coin::KeyPair> keyPairs = _store.getKeyPairs(num_pairs, createReceiveAddress);
     if (createReceiveAddress) {
-        for (auto & keypair : keyPairs) {
-            // update bloom filter
-        }
+        updateBloomFilter();
     }
     return keyPairs;
 }
@@ -200,7 +196,7 @@ Coin::P2PKHAddress
 SPVWallet::GetReceiveAddress()
 {
     Coin::P2PKHAddress addr = _store.getReceiveAddress();
-    // update bloom filter
+    updateBloomFilter();
     return addr;
 }
 
@@ -242,6 +238,7 @@ void SPVWallet::onHeadersSynched() {
         locatorHashes.push_back(uchar_vector(hex));
     }
 
+    updateBloomFilter();
     _networkSync.syncBlocks(locatorHashes, startTime);
 }
 
@@ -250,14 +247,48 @@ void SPVWallet::onSynchingBlocks() {
 }
 
 void SPVWallet::onBlocksSynched() {
-    std::cout << "getting mempool..\n";
     _networkSync.getMempool();
     emit BlocksSynched();
 }
 
 void SPVWallet::onNewTx(const Coin::Transaction& cointx) {
+    // TODO: match outputs we control and inputs that spend our outputs
     _store.addTransaction(cointx);
     emit NewTx();
+}
+
+void SPVWallet::updateBloomFilter() {
+    // TODO: Only update the bloom filter if elements have changed from last call
+    _networkSync.setBloomFilter(makeBloomFilter(0.001, 0, 0));
+}
+
+Coin::BloomFilter SPVWallet::makeBloomFilter(double falsePositiveRate, uint32_t nTweak, uint32_t nFlags) {
+    // TODO: Keep track of elements being added - to acheive two purposes
+    // 1. Can be used to filter incoming false positive transactions
+    // 2. Only update the bloom filter if we are adding new elements
+
+    // Side Note: There is a limit on the maximum size of the bloom filter
+    // We can keep out keys of addresses we know have been spent and are certain
+    // would never be used again by a human (keys associated with joystream p2p protocol)
+    std::vector<uchar_vector> elements;
+
+    std::list<Coin::PrivateKey> privateKeys = _store.listPrivateKeys();
+
+    for(auto &sk : privateKeys) {
+        //public key - to capture inputs that spend outputs we control
+        elements.push_back(sk.toPublicKey().toUCharVector());
+
+        //pubkeyhash - to capture outputs we control
+        elements.push_back(sk.toPublicKey().toPubKeyHash().toUCharVector());
+    }
+
+    if(elements.size() == 0) return Coin::BloomFilter();
+
+    Coin::BloomFilter filter(elements.size(), falsePositiveRate, nTweak, nFlags);
+
+    for(auto elm : elements) filter.insert(elm);
+
+    return filter;
 }
 
 }
