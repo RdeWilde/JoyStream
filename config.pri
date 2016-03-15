@@ -29,12 +29,6 @@ macx {
     include(conf-osx.pri)
 }
 
-# pthreads and zlib
-LIBS += -lpthread -lz
-
-# openssl
-LIBS += -lcrypto -lssl
-
 # libtorrent
 CONFIG(release, debug|release) {
 
@@ -74,3 +68,9 @@ LIBS += \
 win32 {
   LIBS += -lws2_32 -lmswsock
 }
+
+# pthreads and zlib
+LIBS += -lpthread -lz
+
+# openssl
+LIBS += -lcrypto -lssl
