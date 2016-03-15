@@ -176,7 +176,8 @@ void Test::BasicBalanceCheck() {
     init_bitcoind();
 
     QSignalSpy spy_newtx(_wallet, SIGNAL(NewTx()));
-    QSignalSpy spy_txconfirmed(_wallet, SIGNAL(TxConfirmed()));
+    //QSignalSpy spy_txconfirmed(_wallet, SIGNAL(TxConfirmed()));
+    QSignalSpy spy_balance_changed(_wallet, SIGNAL(BalanceChanged(uint64_t, uint64_t)));
 
     _wallet->LoadBlockTree();
 
@@ -193,7 +194,7 @@ void Test::BasicBalanceCheck() {
     // Should connect and synch headers
     _wallet->Sync("localhost", 18444);
 
-    QTRY_VERIFY_WITH_TIMEOUT(spy_newtx.count() == 1, 5000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() == 1, 5000);
     QCOMPARE(_wallet->Balance(), uint64_t(0));
     QCOMPARE(_wallet->UnconfirmedBalance(), uint64_t(500000));
 

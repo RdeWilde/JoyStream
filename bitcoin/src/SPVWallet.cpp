@@ -29,7 +29,9 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
   _storePath(storePath),
   _network(network),
   _networkSync(getCoinParamsForNetwork(network)),
-  _blockTreeLoaded(false)
+  _blockTreeLoaded(false),
+  _unconfirmedBalance(0),
+  _confirmedBalance(0)
 {
     _networkSync.subscribeStatus([this](const std::string& message)
     {
@@ -142,6 +144,10 @@ void SPVWallet::Open() {
             throw std::runtime_error("store network type mistmatch");
         }
     }
+
+    //TODO: get best synched height
+
+    recalculateBalance();
 }
 
 void SPVWallet::LoadBlockTree() {
@@ -207,11 +213,11 @@ void SPVWallet::BroadcastTx(Coin::Transaction & tx) {
 }
 
 uint64_t SPVWallet::Balance() const {
-    return _store.getWalletBalance(1, _networkSync.getBestHeight());
+    return _confirmedBalance;
 }
 
 uint64_t SPVWallet::UnconfirmedBalance() const {
-    return _store.getWalletBalance(0, _networkSync.getBestHeight());
+    return _unconfirmedBalance;
 }
 
 
@@ -249,12 +255,14 @@ void SPVWallet::onSynchingBlocks() {
 void SPVWallet::onBlocksSynched() {
     _networkSync.getMempool();
     emit BlocksSynched();
+    recalculateBalance();
 }
 
 void SPVWallet::onNewTx(const Coin::Transaction& cointx) {
     // TODO: match outputs we control and inputs that spend our outputs
     _store.addTransaction(cointx);
     emit NewTx();
+    recalculateBalance();
 }
 
 void SPVWallet::updateBloomFilter() {
@@ -289,6 +297,17 @@ Coin::BloomFilter SPVWallet::makeBloomFilter(double falsePositiveRate, uint32_t 
     for(auto elm : elements) filter.insert(elm);
 
     return filter;
+}
+
+void SPVWallet::recalculateBalance() {
+    std::cout << "Recalculating Balance\n";
+    uint64_t confirmed = _store.getWalletBalance(1,_networkSync.getBestHeight());
+    uint64_t unconfirmed = _store.getWalletBalance(0, _networkSync.getBestHeight());
+    if(_confirmedBalance != confirmed || _unconfirmedBalance != unconfirmed) {
+        _confirmedBalance = confirmed;
+        _unconfirmedBalance = unconfirmed;
+        emit BalanceChanged(confirmed, unconfirmed);
+    }
 }
 
 }

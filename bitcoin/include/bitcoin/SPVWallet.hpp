@@ -91,6 +91,9 @@ private:
     std::string _blockTreeFile;
     bool _blockTreeLoaded;
 
+    uint64_t _confirmedBalance;
+    uint64_t _unconfirmedBalance;
+
     // NetSync event handlers
     void onBlockTreeError(const std::string &error, int code);
     void onSynchingHeaders();
@@ -102,6 +105,8 @@ private:
     Coin::BloomFilter makeBloomFilter(double falsePositiveRate, uint32_t nTweak, uint32_t nFlags);
 
     void updateBloomFilter();
+
+    void recalculateBalance();
 
     // Prefix methods only required from unit tests with test_
     void test_method() {}
