@@ -334,5 +334,9 @@ void SPVWallet::recalculateBalance() {
     }
 }
 
+void SPVWallet::test_syncBlocksStaringAtHeight(int32_t height) {
+    _networkSync.syncBlocks(height);
+}
+
 }
 }

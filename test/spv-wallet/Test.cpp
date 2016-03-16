@@ -100,9 +100,6 @@ void Test::cleanupTestCase() {
 }
 
 void Test::walletCreation() {
-    // Can call private methods on wallet
-    _wallet->test_method();
-
     // Should create a fresh new wallet
     try{
         _wallet->Create(WALLET_SEED); // Return Metadata from store ?
@@ -211,13 +208,24 @@ void Test::BasicBalanceCheck() {
     bitcoin_rpc("sendtoaddress " + addr.toBase58CheckEncoding().toStdString() + " 0.005");
 
     // Wait for balance to change
-    QVERIFY(spy_balance_changed.wait());
+    QVERIFY(spy_balance_changed.wait(10000));
 
     QCOMPARE(_wallet->Balance(), uint64_t(startingConfirmedBalance + uint64_t(500000)) );
     QCOMPARE(_wallet->UnconfirmedBalance(), uint64_t(startingUnconfirmedBalance + uint64_t(1000000)));
 
+    // Simulate effect of a reorg
+    int startAtHeight = _wallet->bestHeight() - 1;
+    bitcoin_rpc("generate 3");
+    QTest::qWait(5000);
+
+    _wallet->test_syncBlocksStaringAtHeight(startAtHeight);
+    QTest::qWait(5000);
+
+    QCOMPARE(_wallet->Balance(), uint64_t(startingConfirmedBalance + uint64_t(1000000)) );
+
     _wallet->StopSync();
 }
+
 
 QTEST_MAIN(Test)
 #include "moc_Test.cpp"

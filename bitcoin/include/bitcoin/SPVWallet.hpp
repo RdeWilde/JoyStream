@@ -113,7 +113,7 @@ private:
     void recalculateBalance();
 
     // Prefix methods only required from unit tests with test_
-    void test_method() {}
+    void test_syncBlocksStaringAtHeight(int32_t height);
 
 };
 
