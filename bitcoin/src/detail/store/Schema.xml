@@ -37,6 +37,9 @@
       <primary-key>
         <column name="id"/>
       </primary-key>
+      <index name="BlockHeader_height_i" type="UNIQUE">
+        <column name="height"/>
+      </index>
     </table>
     <table name="Output" kind="object">
       <column name="id_value" type="INTEGER" null="false"/>

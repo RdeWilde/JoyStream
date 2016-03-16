@@ -127,7 +127,7 @@ public:
     BlockHeader() {}
     BlockHeader(const ChainMerkleBlock &header);
 
-    std::string id() { return id_; }
+    std::string id() const { return id_; }
 
 private:
     friend class odb::access;
@@ -135,7 +135,7 @@ private:
     #pragma db id
     std::string id_; //block hash hex-string
 
-    #pragma db readonly
+    #pragma db index unique readonly
     uint32_t height_;
 };
 

@@ -8710,6 +8710,8 @@ namespace odb
           db.execute ("CREATE TABLE \"BlockHeader\" (\n"
                       "  \"id\" TEXT NOT NULL PRIMARY KEY,\n"
                       "  \"height\" INTEGER NOT NULL)");
+          db.execute ("CREATE UNIQUE INDEX \"BlockHeader_height_i\"\n"
+                      "  ON \"BlockHeader\" (\"height\")");
           db.execute ("CREATE TABLE \"Output\" (\n"
                       "  \"id_value\" INTEGER NOT NULL,\n"
                       "  \"id_scriptPubKey\" TEXT NOT NULL,\n"
