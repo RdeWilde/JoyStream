@@ -53,8 +53,12 @@ int bitcoind_reset_data() {
 }
 
 void Test::init_bitcoind() {
+    // Leaving state of blockchain at discretion of tester..
+    // Unit tests should work irrespective of the state of the chain.
+    // But will fail if there are no UTXO in the bitcoind wallet to spend (make sure to generate
+    // at least the first 101 blocks to make first coinbase tx spendable)
     // Reset regtest blockchain
-    bitcoind_reset_data();
+    // bitcoind_reset_data();
 
     // Prepare local temporary directory for bitcoind
     QVERIFY(make_temp_directory() == 0);
@@ -65,8 +69,8 @@ void Test::init_bitcoind() {
     // Wait for it to start
     QVERIFY(bitcoind_wait_for_ready() == 0);
 
-    // Generate enough blocks to make the first coinbase tx spendable
-    QVERIFY(bitcoin_rpc("generate 101") == 0);
+    // Generate a block start unit tests with an empty mempool
+    QVERIFY(bitcoin_rpc("generate 1") == 0);
 }
 
 void Test::initTestCase() {
@@ -136,7 +140,7 @@ void Test::networkMismatchOnOpeningWallet() {
 }
 
 void Test::SynchingHeaders() {
-return;
+
     QSignalSpy spy_blocktree_error(_wallet, SIGNAL(BlockTreeError()));
     QSignalSpy spy_headers_synched(_wallet, SIGNAL(HeadersSynched()));
 
@@ -153,7 +157,7 @@ return;
     // Should connect and synch headers
     _wallet->Sync("localhost", 18444);
 
-    QTRY_VERIFY_WITH_TIMEOUT(spy_headers_synched.count() > 0, 5000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_headers_synched.count() == 1, 5000);
 
     int32_t startingHeight = _wallet->bestHeight();
 
@@ -174,40 +178,45 @@ return;
 void Test::BasicBalanceCheck() {
 
     QSignalSpy spy_balance_changed(_wallet, SIGNAL(BalanceChanged(uint64_t, uint64_t)));
+    QSignalSpy spy_blocks_synched(_wallet, SIGNAL(BlocksSynched()));
 
     _wallet->LoadBlockTree();
 
     _wallet->Create(WALLET_SEED);
 
-    uint64_t startingConfirmedBalance = _wallet->Balance();
-    uint64_t startingUnconfirmedBalance = _wallet->UnconfirmedBalance();
-
     Coin::P2PKHAddress addr = _wallet->GetReceiveAddress();
-
-    // Send 0.005BTC to our wallet
-    bitcoin_rpc("sendtoaddress " + addr.toBase58CheckEncoding().toStdString() + " 0.005");
 
     // Should connect and synch headers
     _wallet->Sync("localhost", 18444);
+
+    // Wait for Sync to complete
+    QVERIFY(spy_blocks_synched.wait());
+
+    uint64_t startingConfirmedBalance = _wallet->Balance();
+    uint64_t startingUnconfirmedBalance = _wallet->UnconfirmedBalance();
+
+    // Send 0.005BTC to our wallet
+    bitcoin_rpc("sendtoaddress " + addr.toBase58CheckEncoding().toStdString() + " 0.005");
 
     // Wait for balance to change
     QVERIFY(spy_balance_changed.wait());
 
     QCOMPARE(_wallet->Balance(), startingConfirmedBalance);
     QCOMPARE(_wallet->UnconfirmedBalance(), uint64_t(startingUnconfirmedBalance + uint64_t(500000)));
-std::cout << "first balance check passed..." << std::endl;
+
     // Generate a block to confirm the last transaction
     bitcoin_rpc("generate 1");
 
     // Send another 0.005BTC to our wallet
     bitcoin_rpc("sendtoaddress " + addr.toBase58CheckEncoding().toStdString() + " 0.005");
-std::cout <<"waiting for balance to change" << std::endl;
+
     // Wait for balance to change
-    QVERIFY(spy_balance_changed.wait(15000));
+    QVERIFY(spy_balance_changed.wait());
 
     QCOMPARE(_wallet->Balance(), uint64_t(startingConfirmedBalance + uint64_t(500000)) );
     QCOMPARE(_wallet->UnconfirmedBalance(), uint64_t(startingUnconfirmedBalance + uint64_t(1000000)));
 
+    _wallet->StopSync();
 }
 
 QTEST_MAIN(Test)
