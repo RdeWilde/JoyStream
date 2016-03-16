@@ -25,12 +25,7 @@ namespace {
     std::vector<detail::store::TxHasOutput> transactionLoadOutputs(std::unique_ptr<odb::database> &db, std::string txid);
     bool transactionLoad(std::unique_ptr<odb::database> &db, std::string txid, Coin::Transaction &coin_tx);
     void transactionDelete(std::unique_ptr<odb::database> &db, std::string txid);
-
-
-    void blockHeaderRemove(std::unique_ptr<odb::database> & db, std::shared_ptr<detail::store::BlockHeader> block_header);
-    void blockHeaderAdd(std::unique_ptr<odb::database> & db, const ChainHeader & header);
-    void transactionMinedInBlockAdd(std::unique_ptr<odb::database> & db,
-                                    const Coin::PartialMerkleTree & tree, const Coin::BlockId & blockId);
+    std::shared_ptr<detail::store::BlockHeader> insertBlockHeader(std::unique_ptr<odb::database> &db, const ChainMerkleBlock & chainmerkleblock);
 }
 
 // open existing store
@@ -418,21 +413,26 @@ bool Store::transactionExists(const Coin::Transaction & tx) {
 
 void Store::addTransaction(const Coin::Transaction & cointx) {
     odb::transaction t(_db->begin());
-    transactionSave(_db, cointx);
+    auto tx = transactionSave(_db, cointx);
+    // this is getting called from newTx and confirmedTx (but netsync is firing newTx , then confirmedTx and newTx again!! why?
+    // do we have to remove the tx from netsync's mempool ?
+    //tx->header(nullptr);
+    //_db->update(tx);
     t.commit();
 }
 
-void Store::addTransaction(const Coin::Transaction & cointx, const ChainMerkleBlock & chainmerkleblock) {
+void Store::addTransaction(const Coin::Transaction & cointx, const ChainMerkleBlock & chainmerkleblock, bool createHeader) {
     odb::transaction t(_db->begin());
 
     //get header or create new one
     std::shared_ptr<detail::store::BlockHeader> header;
-    try{
+    if(createHeader) {
+        header = insertBlockHeader(_db, chainmerkleblock);
+    } else {
         header = _db->load<detail::store::BlockHeader>(chainmerkleblock.hash().getHex());
-    } catch( const odb::object_not_persistent &e) {
-        header = std::make_shared<detail::store::BlockHeader>(chainmerkleblock);
-        _db->persist(header);
     }
+
+    assert(header);
 
     //create new tx or retreive existing one
     std::shared_ptr<detail::store::Transaction> tx = transactionSave(_db, cointx);
@@ -444,27 +444,25 @@ void Store::addTransaction(const Coin::Transaction & cointx, const ChainMerkleBl
 
 void Store::addBlockHeader(const ChainMerkleBlock & chainmerkleblock) {
     odb::transaction t(_db->begin());
-    std::shared_ptr<detail::store::BlockHeader> block(new detail::store::BlockHeader(chainmerkleblock));
-    try {
-        _db->persist(block);
-    } catch (const odb::object_already_persistent &e) {
-        // block header already added!
-    }
+
+    insertBlockHeader(_db, chainmerkleblock);
+
     t.commit();
 }
 
-void Store::confirmTransaction(std::string txhash, const ChainMerkleBlock &chainmerkleblock) {
+void Store::confirmTransaction(std::string txhash, const ChainMerkleBlock &chainmerkleblock, bool createHeader) {
 
     odb::transaction t(_db->begin());
 
     //get header or create new one
     std::shared_ptr<detail::store::BlockHeader> header;
-    try{
+    if(createHeader) {
+        header = insertBlockHeader(_db, chainmerkleblock);
+    } else {
         header = _db->load<detail::store::BlockHeader>(chainmerkleblock.hash().getHex());
-    } catch( const odb::object_not_persistent &e) {
-        header = std::make_shared<detail::store::BlockHeader>(chainmerkleblock);
-        _db->persist(header);
     }
+
+    assert(header);
 
     //retreive existing transaction and update it
     std::shared_ptr<detail::store::Transaction> tx;
@@ -472,8 +470,11 @@ void Store::confirmTransaction(std::string txhash, const ChainMerkleBlock &chain
         tx = _db->load<detail::store::Transaction>(txhash);
         tx->header(header);
         _db->update(tx);
-        t.commit();
-    } catch(const odb::object_not_persistent & e) {}
+    } catch(const odb::object_not_persistent & e) {
+        std::cerr << "trying to confirm non existent tx\n";
+    }
+
+    t.commit();
 }
 
 bool Store::loadKey(const Coin::P2PKHAddress & address, Coin::PrivateKey & sk) {
@@ -699,6 +700,33 @@ namespace {
         db->erase<Transaction>(txid);
     }
 
+    std::shared_ptr<BlockHeader> insertBlockHeader(std::unique_ptr<odb::database> &db, const ChainMerkleBlock & chainmerkleblock) {
+        typedef odb::query<BlockHeader> header_query;
+        typedef odb::result<BlockHeader> header_result;
+        typedef odb::query<Transaction> transaction_query;
+        typedef odb::result<Transaction> transaction_result;
+
+        // find all transactions mined in blocks with height equal or greater than chainmerkleblock.height
+        transaction_result transactions(db->query<Transaction>(transaction_query::header.is_not_null() &&
+                                                              transaction_query::header->height >= chainmerkleblock.height));
+        for(Transaction &tx : transactions) {
+            tx.header(nullptr);
+            db->update(tx);
+        }
+
+        // delete all blocks with height equal or greater than chainmerkleblock.height
+        header_result headers(db->query<BlockHeader>(header_query::height >= chainmerkleblock.height));
+        for(const BlockHeader &header : headers) {
+            db->erase(header);
+        }
+
+        std::shared_ptr<detail::store::BlockHeader> block(new detail::store::BlockHeader(chainmerkleblock));
+
+        db->persist(block);
+
+        return block;
+
+    }
 } // anonymous namespace (local helper functions)
 
 }//bitcoin

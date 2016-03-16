@@ -67,14 +67,14 @@ public:
 
     bool loadKey(const Coin::P2PKHAddress &address, Coin::PrivateKey & sk);
 
-    uint64_t getWalletBalance(int32_t confirmations, int32_t main_chain_height) const;
+    uint64_t getWalletBalance(int32_t confirmations = 0, int32_t main_chain_height = 0) const;
 
     std::vector<std::string> getLatestBlockHeaderHashes();
 
     // Methods used to update Store with block headers and transactions
     void addTransaction(const Coin::Transaction & tx);
-    void addTransaction(const Coin::Transaction & tx, const ChainMerkleBlock & chainmerkleblock);
-    void confirmTransaction(std::string txhash, const ChainMerkleBlock &chainmerkleblock);
+    void addTransaction(const Coin::Transaction & tx, const ChainMerkleBlock & chainmerkleblock, bool createHeader);
+    void confirmTransaction(std::string txhash, const ChainMerkleBlock &chainmerkleblock, bool createHeader);
     void addBlockHeader(const ChainMerkleBlock & chainmerkleblock);
 
 private:

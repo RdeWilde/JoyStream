@@ -250,6 +250,7 @@ void SPVWallet::onSynchingBlocks() {
 
 void SPVWallet::onBlocksSynched() {
     _networkSync.getMempool();
+    // TODO: add unconfirmed Tx from store to netsync mempool
     recalculateBalance();
     emit BlocksSynched();
 }
@@ -261,23 +262,29 @@ void SPVWallet::onNewTx(const Coin::Transaction& cointx) {
 }
 
 void SPVWallet::onTxConfirmed(const ChainMerkleBlock& chainmerkleblock, const bytes_t& txhash, unsigned int txindex, unsigned int txcount){
-    _store.confirmTransaction(uchar_vector(txhash).getHex(), chainmerkleblock);
-    recalculateBalance();
+    _store.confirmTransaction(uchar_vector(txhash).getHex(), chainmerkleblock, txindex == 0);
+
+    //if(txindex + 1 == txcount) // when last tx in the block is processed
+        recalculateBalance();
 }
 
 void SPVWallet::onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin::Transaction& cointx, unsigned int txindex, unsigned int txcount){
-    // Mined Block containing transactions we might care about
+    //std::cout << "onMerkleTx() - " << cointx.hash().getHex() << std::endl;
 
-    // Add Transaction pointing to block header
-    //_store.removeBlocksAboveHeight(chainmerkleblock.height - 1);
-    _store.addTransaction(cointx, chainmerkleblock);
+    // Mined Block containing transactions we might care about
+    _store.addTransaction(cointx, chainmerkleblock, txindex == 0);
+
+    // TODO: if netsync status is synched && if(txindex + 1 == txcount)
+    recalculateBalance();
 }
 
 void SPVWallet::onMerkleBlock(const ChainMerkleBlock& chainmerkleblock) {
+    //std::cout << "onMerkleBlock() - " << chainmerkleblock.hash().getHex() << std::endl;
     // Block without tx we care about
-
-    //_store.removeBlocksAboveHeight(chainmerkleblock.height - 1);
     _store.addBlockHeader(chainmerkleblock);
+
+    // TODO: if netsync status is synched
+    recalculateBalance();
 }
 
 void SPVWallet::updateBloomFilter() {
@@ -318,7 +325,7 @@ void SPVWallet::recalculateBalance() {
     if(!_store.connected()) return;
 
     uint64_t confirmed = _store.getWalletBalance(1,_networkSync.getBestHeight());
-    uint64_t unconfirmed = _store.getWalletBalance(0, _networkSync.getBestHeight());
+    uint64_t unconfirmed = _store.getWalletBalance();
 
     if(_confirmedBalance != confirmed || _unconfirmedBalance != unconfirmed) {
         _confirmedBalance = confirmed;
