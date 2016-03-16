@@ -560,7 +560,26 @@ Coin::HDKeychain Store::getKeyChain_tx(bool createReceiveAddress) {
 }
 
 std::vector<std::string> Store::getLatestBlockHeaderHashes() {
-    return std::vector<std::string>();
+    std::vector<std::string> hashes;
+
+    typedef odb::query<detail::store::BlockHeader> query;
+    typedef odb::result<detail::store::BlockHeader> result;
+
+    odb::transaction t(_db->begin());
+
+    std::cout << "getting locator hashes\n";
+    try {
+        result headers(_db->query<detail::store::BlockHeader>("ORDER BY"+ query::height + "LIMIT 10"));
+        for(auto &header : headers) {
+            hashes.push_back(header.id());
+            std::cout << "block id: " << header.id() << std::endl;
+        }
+        t.commit();
+    } catch (const odb::exception &e) {
+        std::cerr << e.what() << std::endl;
+    }
+
+    return hashes;
 }
 
 namespace {
@@ -682,83 +701,6 @@ namespace {
         db->erase<Transaction>(txid);
     }
 
-    /*
-    void blockHeaderRemove(std::unique_ptr<odb::database> & db, std::shared_ptr<BlockHeader> block_header) {
-        odb::result<TransactionMinedInBlock> mined(
-            db->query<TransactionMinedInBlock>(odb::query<TransactionMinedInBlock>::tx_block.block == block_header->id())
-        );
-
-        for(auto &i : mined) {
-            db->erase<TransactionMinedInBlock>(i);
-        }
-
-        db->erase(block_header);
-    }
-
-    void blockHeaderAdd(std::unique_ptr<odb::database> & db, const ChainHeader & header) {
-        std::shared_ptr<BlockHeader> block_header(db->load<BlockHeader>(header.hash().getHex()));
-        if(block_header) {
-            //found existing
-            if(!header.inBestChain) {
-                //WILL SPV client get us here ?
-                //block no longer on main chain.. delete it?
-                blockHeaderRemove(db, block_header);
-             }else {
-                block_header->onMainChain(true);
-                db->update(block_header);
-
-                //THIS MAY NOT BE NECESSARY IF SPV client will call blockHeaderAdd() with header.inBestChain == false
-                //get transactions mined in this block
-                odb::result<TransactionMinedInBlock> transactions(db->query<TransactionMinedInBlock>(
-                                                                  odb::query<TransactionMinedInBlock>::tx_block.block == block_header->id()));
-                typedef odb::query<block_headers_view_t> query;
-                typedef odb::result<block_headers_view_t> result;
-
-                for(auto &tx : transactions) {
-                    //find all other blocks this tx is mined in
-                    result blocks(db->query<block_headers_view_t>(query::tx_in_block::tx_block.tx == tx.txid()));
-
-                    //for each block mark it not on main chain
-                    for(auto &block : blocks) {
-                        if(block.header == block_header) continue;//except the block header being updated
-                        block.header->onMainChain(false);
-                        db->update(block.header);
-                    }
-                }
-             }
-        } else {
-            //new header
-            block_header = std::shared_ptr<BlockHeader>(new BlockHeader(header));
-            db->persist(block_header);
-        }
-    }
-
-    void transactionMinedInBlockAdd(std::unique_ptr<odb::database> & db,
-                                    const Coin::PartialMerkleTree & tree, const Coin::BlockId & blockId) {
-
-        //TODO double check if the block id is in same byte order as persisted value
-        std::shared_ptr<BlockHeader> header(db->load<BlockHeader>(blockId.toHex().toStdString()));
-        if(!header) return;
-
-        std::vector<uchar_vector> txhashes = tree.getTxHashesVector();
-
-        for (uchar_vector & txhash: txhashes) {
-
-            std::shared_ptr<Transaction> tx(db->load<Transaction>(txhash.getHex()));
-
-            if(!tx) continue;
-
-            TransactionMinedInBlock entry(tx, header);//TODO pass in merkelbranch and index in block?
-
-            try{
-                db->persist(entry);
-            } catch(odb::object_already_persistent &e) {
-                continue;
-            }
-        }
-
-    }
-    */
 } // anonymous namespace (local helper functions)
 
 }//bitcoin

@@ -159,6 +159,7 @@ void SPVWallet::Sync(std::string host, int port) {
 }
 
 void SPVWallet::StopSync() {
+    _networkSync.stopSynchingBlocks();
     _networkSync.stop();
 }
 
@@ -249,8 +250,8 @@ void SPVWallet::onSynchingBlocks() {
 
 void SPVWallet::onBlocksSynched() {
     _networkSync.getMempool();
-    emit BlocksSynched();
     recalculateBalance();
+    emit BlocksSynched();
 }
 
 void SPVWallet::onNewTx(const Coin::Transaction& cointx) {
