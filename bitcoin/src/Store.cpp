@@ -567,12 +567,10 @@ std::vector<std::string> Store::getLatestBlockHeaderHashes() {
 
     odb::transaction t(_db->begin());
 
-    std::cout << "getting locator hashes\n";
     try {
-        result headers(_db->query<detail::store::BlockHeader>("ORDER BY"+ query::height + "LIMIT 10"));
+        result headers(_db->query<detail::store::BlockHeader>("ORDER BY"+ query::height + "DESC LIMIT 10"));
         for(auto &header : headers) {
             hashes.push_back(header.id());
-            std::cout << "block id: " << header.id() << std::endl;
         }
         t.commit();
     } catch (const odb::exception &e) {
