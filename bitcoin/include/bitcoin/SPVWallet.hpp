@@ -64,7 +64,7 @@ public:
 
     Q_INVOKABLE void BroadcastTx(Coin::Transaction & cointx);
 
-    int bestHeight() const { return _networkSync.getBestHeight(); }
+    int bestHeight() const { return _store.getBestHeaderHeight(); }
 
 signals:
 
@@ -99,8 +99,6 @@ private:
     netsync_status_t _networkSyncStatus;
     void updateStatus(netsync_status_t status) { _networkSyncStatus = status; }
 
-    bool _networkSyncIsConnected;
-
     std::string _blockTreeFile;
     bool _blockTreeLoaded;
     bool _blockTreeError;
@@ -131,6 +129,7 @@ private:
 
     // Prefix methods only required from unit tests with test_
     void test_syncBlocksStaringAtHeight(int32_t height);
+    int32_t test_netsyncBestHeight() const { return _networkSync.getBestHeight(); }
 
 };
 

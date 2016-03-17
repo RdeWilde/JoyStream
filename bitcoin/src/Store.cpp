@@ -486,6 +486,7 @@ bool Store::loadKey(const Coin::P2PKHAddress & address, Coin::PrivateKey & sk) {
     return found;
 }
 
+// conver this to return UTXOs
 uint64_t Store::getWalletBalance(int32_t confirmations, int32_t main_chain_height) const {
     if(confirmations > 0  && main_chain_height == 0) {
         throw std::runtime_error("getWalletBalance: must provide main_chain_height");
@@ -574,6 +575,20 @@ std::vector<std::string> Store::getLatestBlockHeaderHashes() {
     }
 
     return hashes;
+}
+
+uint32_t Store::getBestHeaderHeight() const {
+    typedef odb::query<detail::store::BlockHeader> query;
+    typedef odb::result<detail::store::BlockHeader> result;
+
+    odb::transaction t(_db->begin());
+
+    result headers(_db->query<detail::store::BlockHeader>("ORDER BY"+ query::height + "DESC LIMIT 1"));
+    if(headers.empty()) {
+        return 0;
+    }
+    std::shared_ptr<detail::store::BlockHeader> best(headers.begin().load());
+    return best->height();
 }
 
 namespace {

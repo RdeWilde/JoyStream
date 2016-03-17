@@ -180,6 +180,8 @@ void Test::SynchingHeaders() {
 
     // One block was mined height should increase by one
     QCOMPARE(_wallet->bestHeight(), startingHeight + 2);
+
+    QCOMPARE(_wallet->bestHeight(), _wallet->test_netsyncBestHeight());
 }
 
 void Test::BalanceCheck() {

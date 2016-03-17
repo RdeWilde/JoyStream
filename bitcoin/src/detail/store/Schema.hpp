@@ -128,6 +128,7 @@ public:
     BlockHeader(const ChainMerkleBlock &header);
 
     std::string id() const { return id_; }
+    uint32_t height() const { return height_; }
 
 private:
     friend class odb::access;

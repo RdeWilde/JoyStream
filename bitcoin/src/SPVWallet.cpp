@@ -30,7 +30,6 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
   _network(network),
   _networkSync(getCoinParamsForNetwork(network)),
   _networkSyncStatus(STOPPED),
-  _networkSyncIsConnected(false),
   _blockTreeFile(blockTreeFile),
   _blockTreeLoaded(false),
   _blockTreeError(false),
@@ -53,7 +52,6 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
     _networkSync.subscribeOpen([this]()
     {
         std::cout << "Connection Open" << std::endl;
-        _networkSyncIsConnected = true;
         emit NetSyncConnected();
     });
 
@@ -70,7 +68,6 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
     _networkSync.subscribeClose([this]()
     {
         std::cout << "Connection Closed" << std::endl;
-        _networkSyncIsConnected = false;
         emit NetSyncDisconnected();
     });
 
@@ -408,19 +405,16 @@ Coin::BloomFilter SPVWallet::makeBloomFilter(double falsePositiveRate, uint32_t 
 void SPVWallet::recalculateBalance() {
     if(!_store.connected()) return;
 
-//>>> use best header from store
+    // If connected and synching.. don't recalculate now. Recalculation
+    // Will be done automatically after block synch is complete
+    if(_networkSync.connected() && _networkSyncStatus != SYNCHED) return;
 
-    // Only calculate balance if we are synched
-    if(_networkSyncStatus != SYNCHED) {
-        return;
+    uint64_t confirmed = 0;
+
+    if(_store.getBestHeaderHeight() != 0) {
+        confirmed = _store.getWalletBalance(1, _store.getBestHeaderHeight());
     }
 
-    // Only makes sense to calculate balance if we have a blocktree
-    if(_networkSync.getBestHeight() == 0) {
-        return;
-    }
-
-    uint64_t confirmed = _store.getWalletBalance(1,_networkSync.getBestHeight());
     uint64_t unconfirmed = _store.getWalletBalance();
 
     if(_confirmedBalance != confirmed || _unconfirmedBalance != unconfirmed) {

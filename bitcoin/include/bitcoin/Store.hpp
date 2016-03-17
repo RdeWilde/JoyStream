@@ -76,6 +76,7 @@ public:
     void addTransaction(const Coin::Transaction & tx, const ChainMerkleBlock & chainmerkleblock, bool createHeader);
     void confirmTransaction(std::string txhash, const ChainMerkleBlock &chainmerkleblock, bool createHeader);
     void addBlockHeader(const ChainMerkleBlock & chainmerkleblock);
+    uint32_t getBestHeaderHeight() const;
 
 private:
     // don't allow copying, store should be passed by reference only
