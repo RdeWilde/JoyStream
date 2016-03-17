@@ -33,8 +33,8 @@ namespace protocol {
         void toSell(const SellerTerms &, uint32_t );
 
         // Getters and setters
-        ModeAnnounced announced() const;
-        void setAnnounced(const ModeAnnounced);
+        ModeAnnounced modeAnnounced() const;
+        void setModeAnnounced(const ModeAnnounced);
 
         BuyerTerms buyModeTerms() const;
         void setBuyModeTerms(const BuyerTerms &);
@@ -48,7 +48,7 @@ namespace protocol {
     private:
 
         // Mode that has been announced
-        ModeAnnounced _announced;
+        ModeAnnounced _modeAnnounced;
 
         // Buy mode terms
         BuyerTerms _buyModeTerms;

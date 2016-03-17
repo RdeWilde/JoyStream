@@ -10,9 +10,6 @@
 
 #include <protocol/statemachine/Active.hpp>
 
-#include <functional>
-#include <iostream>
-
 namespace Coin {
     class typesafeOutPoint;
     class PublicKey;
@@ -41,5 +38,9 @@ namespace statemachine {
 }
 }
 }
+
+// Required to make Selling complete when included throught his header file,
+// as ReadyForInvitation is initial state and thus part of parent state_machine definition
+#include <protocol/statemachine/ReadyForInvitation.hpp>
 
 #endif // JOYSTREAM_PROTOCOL_STATE_MACHINE_SELL_HPP

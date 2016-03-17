@@ -11,31 +11,31 @@ namespace joystream {
 namespace protocol {
 
     PeerModeAnnounced::PeerModeAnnounced()
-        : _announced(ModeAnnounced::none)
+        : _modeAnnounced(ModeAnnounced::none)
         , _index(0){
     }
 
     void PeerModeAnnounced::toObserve() {
-        _announced = ModeAnnounced::observe;
+        _modeAnnounced = ModeAnnounced::observe;
     }
 
     void PeerModeAnnounced::toBuy(const BuyerTerms & t) {
-        _announced = ModeAnnounced::buy;
+        _modeAnnounced = ModeAnnounced::buy;
         _buyModeTerms = t;
     }
 
     void PeerModeAnnounced::toSell(const SellerTerms & t, uint32_t i) {
-        _announced = ModeAnnounced::sell;
+        _modeAnnounced = ModeAnnounced::sell;
         _sellModeTerms = t;
         _index = i;
     }
 
-    PeerModeAnnounced::ModeAnnounced PeerModeAnnounced::announced() const {
-        return _announced;
+    PeerModeAnnounced::ModeAnnounced PeerModeAnnounced::modeAnnounced() const {
+        return _modeAnnounced;
     }
 
-    void PeerModeAnnounced::setAnnounced(const ModeAnnounced announced) {
-        _announced = announced;
+    void PeerModeAnnounced::setModeAnnounced(const ModeAnnounced announced) {
+        _modeAnnounced = announced;
     }
 
     BuyerTerms PeerModeAnnounced::buyModeTerms() const {
