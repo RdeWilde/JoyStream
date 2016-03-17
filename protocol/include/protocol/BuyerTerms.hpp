@@ -25,6 +25,8 @@ namespace protocol {
 
         BuyerTerms(quint64 maxPrice, quint32 maxLock, quint32 minNumberOfSellers, quint64 maxContractFeePerKb, quint64 refundFee);
 
+        bool operator==(const BuyerTerms & rhs) const;
+
         bool satisfiedBy(const SellerTerms & terms) const;
 
         quint64 maxPrice() const;

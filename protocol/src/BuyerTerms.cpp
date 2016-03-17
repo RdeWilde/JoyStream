@@ -21,6 +21,14 @@ namespace protocol {
         , _refundFee(refundFee) {
     }
 
+    bool BuyerTerms::operator==(const BuyerTerms & rhs) const {
+        return _maxPrice == rhs.maxPrice() &&
+               _maxLock == rhs.maxLock() &&
+               _minNumberOfSellers == rhs.minNumberOfSellers() &&
+               _maxContractFeePerKb == rhs.maxContractFeePerKb() &&
+               _refundFee == rhs.refundFee();
+    }
+
     bool BuyerTerms::satisfiedBy(const SellerTerms & terms) const {
         return terms.satisfiedBy(*this);
     }

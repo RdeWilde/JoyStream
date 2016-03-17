@@ -31,7 +31,9 @@ namespace protocol {
 
         SellerTerms();
 
-        SellerTerms(quint64 minPrice, quint32 lock, quint32 maxSellers, quint64 minContractFeePerKb, quint64 settlementFee);
+        SellerTerms(quint64 minPrice, quint32 minLock, quint32 maxSellers, quint64 minContractFeePerKb, quint64 settlementFee);
+
+        bool operator==(const SellerTerms & rhs) const;
 
         // Policy contingent comparison of terms
         static bool compare(OrderingPolicy policy, const SellerTerms & lhs, const SellerTerms & rhs);
@@ -44,8 +46,8 @@ namespace protocol {
         quint64 minPrice() const;
         void setMinPrice(quint64 minPrice);
 
-        quint32 lock() const;
-        void setLock(quint32 lock);
+        quint32 minLock() const;
+        void setMinLock(quint32 minLock);
 
         quint32 maxSellers() const;
         void setMaxSellers(quint32 maxSellers);

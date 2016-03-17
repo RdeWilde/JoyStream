@@ -25,6 +25,14 @@ namespace protocol {
         , _settlementFee(settlementFee) {
     }
 
+    bool SellerTerms::operator==(const SellerTerms & rhs) const {
+        return _minPrice == rhs.minPrice() &&
+               _minLock == rhs.minLock() &&
+               _maxSellers == rhs.maxSellers() &&
+               _minContractFeePerKb == rhs.minContractFeePerKb() &&
+               _settlementFee == rhs.settlementFee();
+    }
+
     bool SellerTerms::compare(OrderingPolicy policy, const SellerTerms & lhs, const SellerTerms & rhs) {
 
         switch(policy) {
@@ -56,12 +64,12 @@ namespace protocol {
         _minPrice = price;
     }
 
-    quint32 SellerTerms::lock() const {
+    quint32 SellerTerms::minLock() const {
         return _minLock;
     }
 
-    void SellerTerms::setLock(quint32 lock) {
-        _minLock = lock;
+    void SellerTerms::setMinLock(quint32 minLock) {
+        _minLock = minLock;
     }
 
     quint32 SellerTerms::maxSellers() const {
