@@ -56,9 +56,9 @@ void Test::init() {
     resetCallbackState();
 }
 
-void Test::clientModeChange() {
+void Test::clientToSellMode() {
 
-    // Get machine in sell mode
+    // Get machine into mode
     SellerTerms terms;
     statemachine::CBStateMachine * machine = createFreshMachineInSellMode(terms);
 
@@ -68,6 +68,41 @@ void Test::clientModeChange() {
     // Check that sell message was sent
     QVERIFY(_messageSent);
     QCOMPARE(_sendMessage->messageType(), wire::MessageType::sell);
+
+    // Check that same terms have been sent
+    const wire::Sell * m = static_cast<const wire::Sell *>(_sendMessage);
+    QCOMPARE(m->terms(), terms);
+}
+
+void Test::clientToBuyMode() {
+
+    // Get machine into mode
+    BuyerTerms terms;
+    statemachine::CBStateMachine * machine = createFreshMachineInBuyMode(terms);
+
+    // Check that we are in correct state
+    QCOMPARE(machine->getInnerStateName(), typeid(statemachine::Buying).name());
+
+    // Check that sell message was sent
+    QVERIFY(_messageSent);
+    QCOMPARE(_sendMessage->messageType(), wire::MessageType::buy);
+
+    // Check that same terms have been sent
+    const wire::Buy * m = static_cast<const wire::Buy *>(_sendMessage);
+    QCOMPARE(m->terms(), terms);
+}
+
+void Test::clientToObserveMode() {
+
+    // Get machine into mode
+    statemachine::CBStateMachine * machine = createFreshMachineInObserveMode();
+
+    // Check that we are in correct state
+    QCOMPARE(machine->getInnerStateName(), typeid(statemachine::Observing).name());
+
+    // Check that sell message was sent
+    QVERIFY(_messageSent);
+    QCOMPARE(_sendMessage->messageType(), wire::MessageType::observe);
 }
 
 void Test::peerModeChange() {

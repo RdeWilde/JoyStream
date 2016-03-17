@@ -41,7 +41,9 @@ private slots:
     // ***
 
     // Lots of state transitions
-    void clientModeChange();
+    void clientToSellMode();
+    void clientToBuyMode();
+    void clientToObserveMode();
 
     //
     void peerModeChange();
