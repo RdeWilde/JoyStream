@@ -12,21 +12,24 @@ namespace joystream {
 namespace protocol {
 namespace wire {
 
-    JoinContract::JoinContract() {
+    JoinContract::JoinContract()
+        : _index(0) {
     }
 
-    JoinContract::JoinContract(const ContractInvitation & invitation)
-        : _invitation(invitation) {
+    JoinContract::JoinContract(const ContractInvitation & invitation, uint32_t index)
+        : _invitation(invitation)
+        , _index(index) {
     }
 
     JoinContract::JoinContract(QDataStream & stream) {
 
-        // Read in variables
-        quint64 value;
-        Coin::PublicKey contractPk, finalPk;
+        //// Invitation
 
-        // Read
+        // Read from stream into temporary variables
+        quint64 value;
         stream >> value;
+
+        Coin::PublicKey contractPk, finalPk;
         Coin::operator >> (stream, contractPk);
         Coin::operator >> (stream, finalPk);
 
@@ -34,10 +37,13 @@ namespace wire {
         _invitation.setValue(value);
         _invitation.setContractPk(contractPk);
         _invitation.setFinalPk(finalPk);
+
+        //// Index
+        stream >> _index;
     }
 
     quint32 JoinContract::length() const {
-        return sizeof(quint64) + Coin::PublicKey::length() + Coin::PublicKey::length();
+        return (sizeof(quint64) + Coin::PublicKey::length() + Coin::PublicKey::length()) + sizeof(_index);
     }
 
     void JoinContract::write(QDataStream & stream) const {
@@ -45,6 +51,7 @@ namespace wire {
         stream << _invitation.value();
         Coin::operator << (stream, _invitation.contractPk());
         Coin::operator << (stream, _invitation.finalPk());
+        stream << _index;
     }
 
     MessageType JoinContract::messageType() const {
@@ -57,6 +64,14 @@ namespace wire {
 
     void JoinContract::setInvitation(const ContractInvitation & invitation) {
         _invitation = invitation;
+    }
+
+    uint32_t JoinContract::index() const {
+        return _index;
+    }
+
+    void JoinContract::setIndex(uint32_t index) {
+        _index = index;
     }
 }
 }

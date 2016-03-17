@@ -21,7 +21,7 @@ namespace wire {
 
         JoinContract();
 
-        JoinContract(const ContractInvitation & invitation);
+        JoinContract(const ContractInvitation & invitation, uint32_t index);
 
         // Constructor based on raw payload
         JoinContract(QDataStream & stream);
@@ -35,10 +35,16 @@ namespace wire {
         ContractInvitation invitation() const;
         void setInvitation(const ContractInvitation & invitation);
 
+        uint32_t index() const;
+        void setIndex(uint32_t index);
+
     private:
 
         // Invitation to contract
         ContractInvitation _invitation;
+
+        // Seller terms index
+        uint32_t _index;
     };
 
 }
