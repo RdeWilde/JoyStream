@@ -14,7 +14,7 @@ namespace protocol {
         : _value(0) {
     }
 
-    ContractInvitation::ContractInvitation(int64_t value, const Coin::PublicKey & contractPk, const Coin::PublicKey & finalPk)
+    ContractInvitation::ContractInvitation(quint64 value, const Coin::PublicKey & contractPk, const Coin::PublicKey & finalPk)
         : _value(value)
         , _contractPk(contractPk)
         , _finalPk(finalPk) {
@@ -24,7 +24,7 @@ namespace protocol {
         return _value;
     }
 
-    void ContractInvitation::setValue(int64_t value) {
+    void ContractInvitation::setValue(quint64 value) {
         _value = value;
     }
 

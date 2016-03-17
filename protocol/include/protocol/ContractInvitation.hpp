@@ -19,11 +19,11 @@ namespace protocol {
 
         ContractInvitation();
 
-        ContractInvitation(int64_t value, const Coin::PublicKey & contractPk, const Coin::PublicKey & finalPk);
+        ContractInvitation(quint64 value, const Coin::PublicKey & contractPk, const Coin::PublicKey & finalPk);
 
         // Getters and setters
-        int64_t value() const;
-        void setValue(int64_t value);
+        quint64 value() const;
+        void setValue(quint64 value);
 
         Coin::PublicKey contractPk() const;
         void setContractPk(const Coin::PublicKey &);
@@ -34,7 +34,8 @@ namespace protocol {
     private:
 
         // Contract output value
-        int64_t _value;
+        // cant be int64_t, due to compatibility wiht QDataStream
+        quint64 _value;
 
         // Contract output buyer multisig key
         Coin::PublicKey _contractPk;
