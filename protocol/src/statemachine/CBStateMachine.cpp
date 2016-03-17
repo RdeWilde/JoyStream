@@ -61,12 +61,12 @@ namespace statemachine {
         _peerAnnouncedMode.toObserve();
     }
 
-    void CBStateMachine::peerToSellMode(const joystream::protocol::SellerTerms & t) {
-        _peerAnnouncedMode.toSellMode(t);
+    void CBStateMachine::peerToSellMode(const joystream::protocol::SellerTerms & t, uint32_t index) {
+        _peerAnnouncedMode.toSell(t, index);
     }
 
     void CBStateMachine::peerToBuyMode(const joystream::protocol::BuyerTerms & t) {
-        _peerAnnouncedMode.toBuyMode(t);
+        _peerAnnouncedMode.toBuy(t);
     }
 
     CBStateMachine::InvitedToOutdatedContract CBStateMachine::invitedToOutdatedContract() const {

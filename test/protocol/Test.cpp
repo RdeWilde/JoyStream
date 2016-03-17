@@ -59,7 +59,7 @@ void Test::init() {
 void Test::clientToSellMode() {
 
     // Get machine into mode
-    SellerTerms terms;
+    SellerTerms terms(1,2,3,4,5);
     statemachine::CBStateMachine * machine = createFreshMachineInSellMode(terms);
 
     // Check that we are in correct state
@@ -77,7 +77,7 @@ void Test::clientToSellMode() {
 void Test::clientToBuyMode() {
 
     // Get machine into mode
-    BuyerTerms terms;
+    BuyerTerms terms(1,2,3,4,5);
     statemachine::CBStateMachine * machine = createFreshMachineInBuyMode(terms);
 
     // Check that we are in correct state
@@ -105,16 +105,51 @@ void Test::clientToObserveMode() {
     QCOMPARE(_sendMessage->messageType(), wire::MessageType::observe);
 }
 
-void Test::peerModeChange() {
+void Test::peerToSellMode() {
 
-    //QVERIFY()
+    // Get machine into mode
+    statemachine::CBStateMachine * machine = createFreshMachineInObserveMode();
 
     // Recieve mode message from peer
-    //stm.process_event(statemachine::event::Recv(&m));
-    //stm.process_event(statemachine::event::ObserveModeStarted());
+    SellerTerms terms(1,2,3,4,5);
+    uint32_t index = 17;
+    wire::Sell m(terms, index);
+    machine->process_event(statemachine::event::Recv<wire::Sell>(&m));
+
+    // Check that new peer state recorded is valid
+    PeerModeAnnounced announced = machine->peerAnnouncedMode();
+    QCOMPARE(announced.announced(), PeerModeAnnounced::ModeAnnounced::sell);
+    QCOMPARE(announced.sellModeTerms(), terms);
+    QCOMPARE(announced.index(), index);
+}
+
+void Test::peerToBuyMode() {
+
+    // Get machine into mode
+    statemachine::CBStateMachine * machine = createFreshMachineInObserveMode();
+
+    // Recieve mode message from peer
+    BuyerTerms terms(1,2,3,4,5);
+    wire::Buy m(terms);
+    machine->process_event(statemachine::event::Recv<wire::Buy>(&m));
 
     // test deep history transition at various times?
+    PeerModeAnnounced announced = machine->peerAnnouncedMode();
+    QCOMPARE(announced.announced(), PeerModeAnnounced::ModeAnnounced::buy);
+    QCOMPARE(announced.buyModeTerms(), terms);
+}
 
+void Test::peerToObserveMode() {
+
+    // Get machine into mode
+    statemachine::CBStateMachine * machine = createFreshMachineInObserveMode();
+
+    // Recieve mode message from peer
+    wire::Observe m;
+    machine->process_event(statemachine::event::Recv<wire::Observe>(&m));
+
+    // test deep history transition at various times?
+    QCOMPARE(machine->peerAnnouncedMode().announced(), PeerModeAnnounced::ModeAnnounced::observe);
 }
 
 statemachine::CBStateMachine * Test::createFreshMachineInObserveMode() {

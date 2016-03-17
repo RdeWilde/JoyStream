@@ -46,7 +46,9 @@ private slots:
     void clientToObserveMode();
 
     //
-    void peerModeChange();
+    void peerToSellMode();
+    void peerToBuyMode();
+    void peerToObserveMode();
 
 public:
 
@@ -83,11 +85,9 @@ public:
 private:
 
     // Utility routines
-
     statemachine::CBStateMachine * createFreshMachineInObserveMode();
     statemachine::CBStateMachine * createFreshMachineInBuyMode(const BuyerTerms & terms);
     statemachine::CBStateMachine * createFreshMachineInSellMode(const SellerTerms & terms);
-
     statemachine::CBStateMachine * createFreshMachine();
 
     void resetCallbackState();
