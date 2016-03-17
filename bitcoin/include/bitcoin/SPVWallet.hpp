@@ -45,6 +45,8 @@ public:
     void Sync(std::string host, int port);
     void StopSync();
 
+    bool IsOnline() const { return _store.connected() && _networkSync.connected(); }
+
     Coin::PrivateKey GetKey(bool createReceiveAddress);
     std::vector<Coin::PrivateKey> GetKeys(uint32_t numKeys, bool createReceiveAddress);
     std::vector<Coin::KeyPair> GetKeyPairs(uint32_t num_pairs, bool createReceiveAddress);
@@ -60,7 +62,7 @@ public:
 
     Coin::Network network() const { return _network; }
 
-    Q_INVOKABLE bool BroadcastTx(Coin::Transaction & tx);
+    Q_INVOKABLE void BroadcastTx(Coin::Transaction & tx);
 
     int bestHeight() const { return _networkSync.getBestHeight(); }
 

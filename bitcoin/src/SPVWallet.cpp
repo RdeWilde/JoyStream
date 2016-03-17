@@ -192,6 +192,11 @@ void SPVWallet::LoadBlockTree() {
 }
 
 void SPVWallet::Sync(std::string host, int port) {
+    if(!_store.connected()) {
+        throw std::runtime_error("store not connected");
+    }
+
+    updateStatus(STARTING);
     _networkSync.start(host, port);
 }
 
@@ -260,13 +265,13 @@ SPVWallet::GetReceiveAddress()
 }
 
 
-bool SPVWallet::BroadcastTx(Coin::Transaction & tx) {
-    if(!_store.connected() || _networkSync.connected()) return false;
+void SPVWallet::BroadcastTx(Coin::Transaction & tx) {
+    if(!_store.connected() || _networkSync.connected()) {
+        throw std::runtime_error("cannot broadcast tx, wallet offline");
+    }
 
     _store.addTransaction(tx);
     _networkSync.sendTx(tx);
-
-    return true;
 }
 
 uint64_t SPVWallet::Balance() const {
@@ -399,6 +404,8 @@ Coin::BloomFilter SPVWallet::makeBloomFilter(double falsePositiveRate, uint32_t 
 
 void SPVWallet::recalculateBalance() {
     if(!_store.connected()) return;
+
+//>>> use best header from store
 
     // Only calculate balance if we are synched
     if(_networkSyncStatus != SYNCHED) {
