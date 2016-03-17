@@ -111,6 +111,12 @@ void Test::walletCreation() {
     // Wallet file should now exist
     QVERIFY(boost::filesystem::exists(TEST_WALLET_PATH));
 
+    // After creating the wallet, we cannot call Create() again
+    QVERIFY_EXCEPTION_THROWN(_wallet->Create(), std::exception);
+
+    delete _wallet;
+    _wallet = new joystream::bitcoin::SPVWallet(TEST_WALLET_PATH, TEST_BLOCKTREE_PATH, Coin::Network::regtest);
+
     // Should throw exception if we try to create wallet over existing file
     QVERIFY_EXCEPTION_THROWN(_wallet->Create(), std::exception);
 
@@ -123,6 +129,9 @@ void Test::walletCreation() {
 
     // Check correct metadata values of created wallet
     QCOMPARE(_wallet->network(), Coin::Network::regtest);
+
+    // After opening a wallet, we cannot call Open() again
+    QVERIFY_EXCEPTION_THROWN(_wallet->Open(), std::exception);
 
 }
 
@@ -138,27 +147,17 @@ void Test::networkMismatchOnOpeningWallet() {
 
 void Test::SynchingHeaders() {
 
-    QSignalSpy spy_blocktree_error(_wallet, SIGNAL(BlockTreeError()));
     QSignalSpy spy_headers_synched(_wallet, SIGNAL(HeadersSynched()));
+    QSignalSpy spy_tree_changed(_wallet, SIGNAL(BlockTreeChanged()));
 
     _wallet->Create(WALLET_SEED);
-
-    _wallet->LoadBlockTree();
-
-    // Headers should have been loaded successfully
-    QVERIFY(_wallet->blockTreeLoaded());
-
-    // And without errors
-    QCOMPARE(spy_blocktree_error.count(), 0);
 
     // Should connect and synch headers
     _wallet->Sync("localhost", 18444);
 
-    QTRY_VERIFY_WITH_TIMEOUT(spy_headers_synched.count() == 1, 5000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_headers_synched.count() > 0, 10000);
 
     int32_t startingHeight = _wallet->bestHeight();
-
-    QSignalSpy spy_tree_changed(_wallet, SIGNAL(BlockTreeChanged()));
 
     int32_t lastCount = spy_tree_changed.count();
 
@@ -166,18 +165,27 @@ void Test::SynchingHeaders() {
     bitcoin_rpc("generate 1");
 
     // Wait to receive the new block
-    QTRY_VERIFY_WITH_TIMEOUT(spy_tree_changed.count() > lastCount, 5000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_tree_changed.count() > lastCount, 10000);
 
     // One block was mined height should increase by one
     QCOMPARE(_wallet->bestHeight(), startingHeight + 1);
+
+    lastCount = spy_tree_changed.count();
+
+    // Generate one more block
+    bitcoin_rpc("generate 1");
+
+    // Wait to receive the new block
+    QTRY_VERIFY_WITH_TIMEOUT(spy_tree_changed.count() > lastCount, 10000);
+
+    // One block was mined height should increase by one
+    QCOMPARE(_wallet->bestHeight(), startingHeight + 2);
 }
 
-void Test::BasicBalanceCheck() {
+void Test::BalanceCheck() {
 
     QSignalSpy spy_balance_changed(_wallet, SIGNAL(BalanceChanged(uint64_t, uint64_t)));
     QSignalSpy spy_blocks_synched(_wallet, SIGNAL(BlocksSynched()));
-
-    _wallet->LoadBlockTree();
 
     _wallet->Create(WALLET_SEED);
 
@@ -186,42 +194,52 @@ void Test::BasicBalanceCheck() {
     // Should connect and synch headers
     _wallet->Sync("localhost", 18444);
 
-    // Wait for Sync to complete
-    QVERIFY(spy_blocks_synched.wait());
+    QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > 0, 10000);
 
     uint64_t startingConfirmedBalance = _wallet->Balance();
     uint64_t startingUnconfirmedBalance = _wallet->UnconfirmedBalance();
+
+    int lastBalanceChangeCount = spy_balance_changed.count();
 
     // Send 0.005BTC to our wallet
     bitcoin_rpc("sendtoaddress " + addr.toBase58CheckEncoding().toStdString() + " 0.005");
 
     // Wait for balance to change
-    QVERIFY(spy_balance_changed.wait());
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > lastBalanceChangeCount, 15000);
 
     QCOMPARE(_wallet->Balance(), startingConfirmedBalance);
     QCOMPARE(_wallet->UnconfirmedBalance(), uint64_t(startingUnconfirmedBalance + uint64_t(500000)));
 
+    lastBalanceChangeCount = spy_balance_changed.count();
+
     // Generate a block to confirm the last transaction
     bitcoin_rpc("generate 1");
+
+    // Wait for balance to change
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > lastBalanceChangeCount, 15000);
+
+    lastBalanceChangeCount = spy_balance_changed.count();
 
     // Send another 0.005BTC to our wallet
     bitcoin_rpc("sendtoaddress " + addr.toBase58CheckEncoding().toStdString() + " 0.005");
 
     // Wait for balance to change
-    QVERIFY(spy_balance_changed.wait(10000));
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > lastBalanceChangeCount, 15000);
 
     QCOMPARE(_wallet->Balance(), uint64_t(startingConfirmedBalance + uint64_t(500000)) );
     QCOMPARE(_wallet->UnconfirmedBalance(), uint64_t(startingUnconfirmedBalance + uint64_t(1000000)));
 
     // Simulate effect of a reorg
+
     int startAtHeight = _wallet->bestHeight() - 1;
+    // Send another 0.003BTC to our wallet
+    bitcoin_rpc("sendtoaddress " + addr.toBase58CheckEncoding().toStdString() + " 0.003");
     bitcoin_rpc("generate 3");
-    QTest::qWait(5000);
 
     _wallet->test_syncBlocksStaringAtHeight(startAtHeight);
-    QTest::qWait(5000);
+    QTest::qWait(15000);
 
-    QCOMPARE(_wallet->Balance(), uint64_t(startingConfirmedBalance + uint64_t(1000000)) );
+    QCOMPARE(_wallet->Balance(), uint64_t(startingConfirmedBalance + uint64_t(1300000)) );
 
     _wallet->StopSync();
 }

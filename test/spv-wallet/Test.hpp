@@ -44,7 +44,7 @@ private slots:
     void walletCreation();
     void networkMismatchOnOpeningWallet();
     void SynchingHeaders();
-    void BasicBalanceCheck();
+    void BalanceCheck();
 
     // Will be called at the end of all tests
     void cleanupTestCase();

@@ -29,50 +29,64 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
   _storePath(storePath),
   _network(network),
   _networkSync(getCoinParamsForNetwork(network)),
+  _networkSyncStatus(STOPPED),
+  _networkSyncIsConnected(false),
+  _blockTreeFile(blockTreeFile),
   _blockTreeLoaded(false),
+  _blockTreeError(false),
   _unconfirmedBalance(0),
   _confirmedBalance(0)
 {
+    // == Important == Make sure to catch all exceptions in callbacks
+    // failing to do so might cause undefined behaviour in netsync
+
     _networkSync.subscribeStatus([this](const std::string& message)
     {
-
-    });
-
-    _networkSync.subscribeProtocolError([this](const std::string& error, int code)
-    {
-
-    });
-
-    _networkSync.subscribeConnectionError([this](const std::string& error, int code)
-    {
-
-    });
-
-    _networkSync.subscribeBlockTreeError([this](const std::string& error, int code) { onBlockTreeError(error, code); });
-
-    _networkSync.subscribeOpen([this]()
-    {
-
-    });
-
-    _networkSync.subscribeClose([this]()
-    {
-
+        std::cout << "Status: " << message << std::endl;
     });
 
     _networkSync.subscribeStarted([this]()
     {
-
+        std::cout << "NetSync Started"<< std::endl;
     });
 
-    _networkSync.subscribeStopped([this]()
+    _networkSync.subscribeOpen([this]()
     {
+        std::cout << "Connection Open" << std::endl;
+        _networkSyncIsConnected = true;
+        emit NetSyncConnected();
+    });
 
+    _networkSync.subscribeProtocolError([this](const std::string& error, int code)
+    {
+        std::cerr << "Protocol Error: " << error << std::endl;
+    });
+
+    _networkSync.subscribeConnectionError([this](const std::string& error, int code)
+    {
+        std::cerr << "Connection Error: " << error << std::endl;
+    });
+
+    _networkSync.subscribeClose([this]()
+    {
+        std::cout << "Connection Closed" << std::endl;
+        _networkSyncIsConnected = false;
+        emit NetSyncDisconnected();
     });
 
     _networkSync.subscribeTimeout([this]()
     {
+        std::cerr << "Connection Timeout" << std::endl;
+    });
 
+    _networkSync.subscribeStopped([this]()
+    {
+        std::cout << "NetSync Stopped"<< std::endl;
+        updateStatus(STOPPED);
+    });
+
+    _networkSync.subscribeBlockTreeError([this](const std::string& error, int code) {
+        onBlockTreeError(error, code);
     });
 
     _networkSync.subscribeSynchingHeaders([this](){ onSynchingHeaders(); });
@@ -82,45 +96,62 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
 
     _networkSync.subscribeNewTx([this](const Coin::Transaction& cointx)
     {
+        //std::cout << "== new tx ==" << std::endl;
         onNewTx(cointx);
     });
 
     _networkSync.subscribeMerkleTx([this](const ChainMerkleBlock& chainmerkleblock, const Coin::Transaction& cointx, unsigned int txindex, unsigned int txcount)
     {
+        //std::cout << "== merkle tx ==" << std::endl;
         onMerkleTx(chainmerkleblock, cointx, txindex, txcount);
     });
 
     _networkSync.subscribeTxConfirmed([this](const ChainMerkleBlock& chainmerkleblock, const bytes_t& txhash, unsigned int txindex, unsigned int txcount)
     {
+        //std::cout << "== tx confirmed ==" << std::endl;
         onTxConfirmed(chainmerkleblock, txhash, txindex, txcount);
     });
 
     _networkSync.subscribeMerkleBlock([this](const ChainMerkleBlock& chainmerkleblock)
     {
+        //std::cout << "== merkle block ==" << std::endl;
         onMerkleBlock(chainmerkleblock);
     });
 
     _networkSync.subscribeBlockTreeChanged([this]()
     {
-        emit BlockTreeChanged();
+        onBlockTreeChanged();
     });
 
-    _blockTreeFile = blockTreeFile;
+}
 
-    // NOTE: Loading the blocktree could have gone here but we would miss the signals
-    // because it is a synchronous call.
+SPVWallet::~SPVWallet(){
+    _networkSync.stop();
+    _store.close();
 }
 
 void SPVWallet::Create() {
+    if(_store.connected()) {
+        throw std::runtime_error("wallet already connected");
+    }
+
     if(!_store.create(_storePath, _network)){
         throw std::runtime_error("unable to create store");
     }
+
+    LoadBlockTree();
 }
 
 void SPVWallet::Create(Coin::Seed seed) {
+    if(_store.connected()) {
+        throw std::runtime_error("wallet already connected");
+    }
+
     if(!_store.create(_storePath, _network, seed, std::time(nullptr))){
         throw std::runtime_error("unable to create store");
     }
+
+    LoadBlockTree();
 }
 
 void SPVWallet::Open() {
@@ -134,24 +165,30 @@ void SPVWallet::Open() {
         if(_network != _store.network()){
             throw std::runtime_error("store network type mistmatch");
         }
+
+        LoadBlockTree();
+
+        recalculateBalance();
+    } else {
+        throw std::runtime_error("wallet already connected");
     }
-
-    //TODO: get best synched height
-
-    recalculateBalance();
 }
 
 void SPVWallet::LoadBlockTree() {
-    // Create block tree file or load if it exists
-    // If there is a problem reading/creating the file netsync will emit the BlockTreeError signal
-    // but netsync can continue to function without a persisted blocktree file,
-    // however all headers from genesis block will be resynched!
+    // Creates blocktree file or loads it if found
 
     // Only load the blocktree once
     if(_blockTreeLoaded) return;
 
+    _blockTreeError = false;
+
     _networkSync.loadHeaders(_blockTreeFile);
-    _blockTreeLoaded = true;
+
+    if(!_blockTreeError) {
+        _blockTreeLoaded = true;
+    } else {
+        throw std::runtime_error("failed to load blocktree");
+    }
 }
 
 void SPVWallet::Sync(std::string host, int port) {
@@ -164,6 +201,10 @@ void SPVWallet::StopSync() {
 }
 
 Coin::PrivateKey SPVWallet::GetKey(bool createReceiveAddress) {
+    if(!_store.connected()) {
+        throw std::runtime_error("store not connected");
+    }
+
     Coin::PrivateKey sk = _store.getKey(createReceiveAddress);
 
     if(createReceiveAddress) {
@@ -174,6 +215,10 @@ Coin::PrivateKey SPVWallet::GetKey(bool createReceiveAddress) {
 }
 
 std::vector<Coin::PrivateKey> SPVWallet::GetKeys(uint32_t numKeys, bool createReceiveAddress) {
+    if(!_store.connected()) {
+        throw std::runtime_error("store not connected");
+    }
+
     std::vector<Coin::PrivateKey> keys = _store.getKeys(numKeys, createReceiveAddress);
     if(createReceiveAddress) {
         updateBloomFilter();
@@ -183,6 +228,10 @@ std::vector<Coin::PrivateKey> SPVWallet::GetKeys(uint32_t numKeys, bool createRe
 
 std::vector<Coin::KeyPair>
 SPVWallet::GetKeyPairs(uint32_t num_pairs, bool createReceiveAddress) {
+    if(!_store.connected()) {
+        throw std::runtime_error("store not connected");
+    }
+
     std::vector<Coin::KeyPair> keyPairs = _store.getKeyPairs(num_pairs, createReceiveAddress);
     if (createReceiveAddress) {
         updateBloomFilter();
@@ -191,21 +240,33 @@ SPVWallet::GetKeyPairs(uint32_t num_pairs, bool createReceiveAddress) {
 }
 
 void SPVWallet::ReleaseKey(const Coin::PrivateKey &sk) {
+    if(!_store.connected()) {
+        throw std::runtime_error("store not connected");
+    }
+
     _store.releaseKey(sk);
 }
 
 Coin::P2PKHAddress
 SPVWallet::GetReceiveAddress()
 {
+    if(!_store.connected()) {
+        throw std::runtime_error("store not connected");
+    }
+
     Coin::P2PKHAddress addr = _store.getReceiveAddress();
     updateBloomFilter();
     return addr;
 }
 
 
-void SPVWallet::BroadcastTx(Coin::Transaction & tx) {
+bool SPVWallet::BroadcastTx(Coin::Transaction & tx) {
+    if(!_store.connected() || _networkSync.connected()) return false;
+
     _store.addTransaction(tx);
     _networkSync.sendTx(tx);
+
+    return true;
 }
 
 uint64_t SPVWallet::Balance() const {
@@ -221,15 +282,32 @@ void SPVWallet::onBlockTreeError(const std::string& error, int code) {
     // Ignore file not found error - not critical
     if(error == "Blocktree file not found.") return;
 
+    _blockTreeError = true;
     emit BlockTreeError();
 }
 
+void SPVWallet::onBlockTreeChanged() {
+    emit BlockTreeChanged();
+}
+
 void SPVWallet::onSynchingHeaders() {
+    updateStatus(SYNCHING_HEADERS);
     emit SynchingHeaders();
 }
 
 void SPVWallet::onHeadersSynched() {
+
     emit HeadersSynched();
+
+    if(!_networkSync.connected()) {
+        updateStatus(STOPPED);
+        return;
+    }
+
+    if(!_store.connected()) {
+        updateStatus(SYNCHED);
+        return;
+    }
 
     uint32_t startTime = _store.created();
 
@@ -245,46 +323,44 @@ void SPVWallet::onHeadersSynched() {
 }
 
 void SPVWallet::onSynchingBlocks() {
-    emit SynchingBlocks();
+    if(_store.connected()) {
+        updateStatus(SYNCHING_BLOCKS);
+        emit SynchingBlocks();
+    }
 }
 
 void SPVWallet::onBlocksSynched() {
-    _networkSync.getMempool();
-    // TODO: add unconfirmed Tx from store to netsync mempool
-    recalculateBalance();
-    emit BlocksSynched();
+    if(_networkSync.connected()) {
+        updateStatus(SYNCHED);
+        recalculateBalance();
+
+        _networkSync.getMempool();
+        emit BlocksSynched();
+    }
 }
 
 void SPVWallet::onNewTx(const Coin::Transaction& cointx) {
     // TODO: match outputs we control and inputs that spend our outputs
     _store.addTransaction(cointx);
     recalculateBalance();
+    emit NewTx();
 }
 
 void SPVWallet::onTxConfirmed(const ChainMerkleBlock& chainmerkleblock, const bytes_t& txhash, unsigned int txindex, unsigned int txcount){
     _store.confirmTransaction(uchar_vector(txhash).getHex(), chainmerkleblock, txindex == 0);
-
-    //if(txindex + 1 == txcount) // when last tx in the block is processed
-        recalculateBalance();
+    emit TxConfirmed();
 }
 
 void SPVWallet::onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin::Transaction& cointx, unsigned int txindex, unsigned int txcount){
-    //std::cout << "onMerkleTx() - " << cointx.hash().getHex() << std::endl;
-
     // Mined Block containing transactions we might care about
     _store.addTransaction(cointx, chainmerkleblock, txindex == 0);
-
-    // TODO: if netsync status is synched && if(txindex + 1 == txcount)
-    recalculateBalance();
+    emit MerkleTx();
 }
 
 void SPVWallet::onMerkleBlock(const ChainMerkleBlock& chainmerkleblock) {
-    //std::cout << "onMerkleBlock() - " << chainmerkleblock.hash().getHex() << std::endl;
     // Block without tx we care about
     _store.addBlockHeader(chainmerkleblock);
-
-    // TODO: if netsync status is synched
-    recalculateBalance();
+    emit MerkleBlock();
 }
 
 void SPVWallet::updateBloomFilter() {
@@ -323,6 +399,16 @@ Coin::BloomFilter SPVWallet::makeBloomFilter(double falsePositiveRate, uint32_t 
 
 void SPVWallet::recalculateBalance() {
     if(!_store.connected()) return;
+
+    // Only calculate balance if we are synched
+    if(_networkSyncStatus != SYNCHED) {
+        return;
+    }
+
+    // Only makes sense to calculate balance if we have a blocktree
+    if(_networkSync.getBestHeight() == 0) {
+        return;
+    }
 
     uint64_t confirmed = _store.getWalletBalance(1,_networkSync.getBestHeight());
     uint64_t unconfirmed = _store.getWalletBalance();
