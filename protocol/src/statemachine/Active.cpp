@@ -45,7 +45,8 @@ namespace statemachine {
         std::cout << "Reacting to Recv<wire::Sell> event." << std::endl;
 
         // Switch peer state
-        context<CBStateMachine>().peerToSellMode(e.message()->terms());
+        wire::Sell const * m = e.message();
+        context<CBStateMachine>().peerToSellMode(m->terms(), m->index());
 
         // Transition to deep history
         return transit<sc::deep_history<Observing>>();

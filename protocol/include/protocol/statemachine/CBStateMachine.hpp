@@ -68,7 +68,7 @@ namespace protocol {
             void clientToBuyMode(const joystream::protocol::BuyerTerms &);
 
             void peerToObserveMode();
-            void peerToSellMode(const joystream::protocol::SellerTerms &);
+            void peerToSellMode(const joystream::protocol::SellerTerms &, uint32_t);
             void peerToBuyMode(const joystream::protocol::BuyerTerms &);
 
             // Getters and setters

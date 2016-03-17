@@ -27,12 +27,10 @@ namespace protocol {
 
         PeerModeAnnounced();
 
-        PeerModeAnnounced(ModeAnnounced announced, const BuyerTerms & buyModeTerms, const SellerTerms & sellModeTerms);
-
         // Mode change routines
         void toObserve();
-        void toBuyMode(const BuyerTerms &);
-        void toSellMode(const SellerTerms &);
+        void toBuy(const BuyerTerms &);
+        void toSell(const SellerTerms &, uint32_t );
 
         // Getters and setters
         ModeAnnounced announced() const;
@@ -44,6 +42,9 @@ namespace protocol {
         SellerTerms sellModeTerms() const;
         void setSellModeTerms(const SellerTerms &);
 
+        uint32_t index() const;
+        void setIndex(uint32_t index);
+
     private:
 
         // Mode that has been announced
@@ -54,6 +55,9 @@ namespace protocol {
 
         // Sell mode terms
         SellerTerms _sellModeTerms;
+
+        // Sell mode index
+        uint32_t _index;
     };
 
 }

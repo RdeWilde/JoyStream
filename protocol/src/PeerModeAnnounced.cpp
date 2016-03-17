@@ -11,27 +11,23 @@ namespace joystream {
 namespace protocol {
 
     PeerModeAnnounced::PeerModeAnnounced()
-        : _announced(ModeAnnounced::none) {
-    }
-
-    PeerModeAnnounced::PeerModeAnnounced(ModeAnnounced announced, const BuyerTerms & buyModeTerms, const SellerTerms & sellModeTerms)
-        : _announced(announced)
-        , _buyModeTerms(buyModeTerms)
-        , _sellModeTerms(sellModeTerms) {
+        : _announced(ModeAnnounced::none)
+        , _index(0){
     }
 
     void PeerModeAnnounced::toObserve() {
         _announced = ModeAnnounced::observe;
     }
 
-    void PeerModeAnnounced::toBuyMode(const BuyerTerms & t) {
+    void PeerModeAnnounced::toBuy(const BuyerTerms & t) {
         _announced = ModeAnnounced::buy;
         _buyModeTerms = t;
     }
 
-    void PeerModeAnnounced::toSellMode(const SellerTerms & t) {
+    void PeerModeAnnounced::toSell(const SellerTerms & t, uint32_t i) {
         _announced = ModeAnnounced::sell;
         _sellModeTerms = t;
+        _index = i;
     }
 
     PeerModeAnnounced::ModeAnnounced PeerModeAnnounced::announced() const {
@@ -56,6 +52,14 @@ namespace protocol {
 
     void PeerModeAnnounced::setSellModeTerms(const SellerTerms & t) {
         _sellModeTerms = t;
-    }    
+    }
+
+    uint32_t PeerModeAnnounced::index() const {
+        return _index;
+    }
+
+    void PeerModeAnnounced::setIndex(uint32_t index) {
+        _index = index;
+    }
 }
 }
