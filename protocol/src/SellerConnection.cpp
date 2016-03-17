@@ -41,7 +41,7 @@ namespace protocol {
                                 SellerClientState::no_joystream_message_sent,
                                 terms,
                                 joystream::protocol::utilities::createPayeeForNewSeller(terms.minPrice(),
-                                                                                        terms.lock(),
+                                                                                        terms.minLock(),
                                                                                         terms.settlementFee(),
                                                                                         payeeContractKeys,
                                                                                         payeePaymentKeys),
