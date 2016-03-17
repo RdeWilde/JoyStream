@@ -8,6 +8,7 @@
 #ifndef JOYSTREAM_PROTOCOL_PEER_MODE_ANNOUNCED_HPP
 #define JOYSTREAM_PROTOCOL_PEER_MODE_ANNOUNCED_HPP
 
+#include <protocol/ModeAnnounced.hpp>
 #include <protocol/BuyerTerms.hpp>
 #include <protocol/SellerTerms.hpp>
 
@@ -17,13 +18,6 @@ namespace protocol {
     class PeerModeAnnounced {
 
     public:
-
-        enum class ModeAnnounced {
-            none,
-            observe,
-            sell,
-            buy
-        };
 
         PeerModeAnnounced();
 

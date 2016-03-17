@@ -12,7 +12,7 @@ namespace protocol {
 
     PeerModeAnnounced::PeerModeAnnounced()
         : _modeAnnounced(ModeAnnounced::none)
-        , _index(0){
+        , _index(0) {
     }
 
     void PeerModeAnnounced::toObserve() {
