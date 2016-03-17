@@ -211,7 +211,6 @@ std::vector<Coin::HDKeychain> Store::getKeyChains(uint32_t numKeys, bool createR
         n++;
         if(n == numKeys) break;
     }
-    t.commit();
 
     // if we didn't find enough unused keys in the database, generate the rest
     if(n < numKeys) {
@@ -219,9 +218,9 @@ std::vector<Coin::HDKeychain> Store::getKeyChains(uint32_t numKeys, bool createR
         for(; n < numKeys; n++) {
             keychains.push_back(getKeyChain_tx(createReceiveAddress));
         }
-
-        t.commit();
     }
+
+    t.commit();
 
     return keychains;
 }
@@ -414,10 +413,6 @@ bool Store::transactionExists(const Coin::Transaction & tx) {
 void Store::addTransaction(const Coin::Transaction & cointx) {
     odb::transaction t(_db->begin());
     auto tx = transactionSave(_db, cointx);
-    // this is getting called from newTx and confirmedTx (but netsync is firing newTx , then confirmedTx and newTx again!! why?
-    // do we have to remove the tx from netsync's mempool ?
-    //tx->header(nullptr);
-    //_db->update(tx);
     t.commit();
 }
 
