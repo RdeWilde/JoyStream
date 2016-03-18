@@ -14,7 +14,8 @@ namespace joystream {
 namespace protocol {
 namespace statemachine {
 
-    Selling::Selling() {
+    Selling::Selling()
+        : _index(0) {
         std::cout << "Entering Sell state." << std::endl;
     }
 
@@ -38,6 +39,10 @@ namespace statemachine {
 
         // Transition to Buy state
         return transit<Buying>();
+    }
+
+    uint32_t Selling::index() const {
+        return _index;
     }
 
 }

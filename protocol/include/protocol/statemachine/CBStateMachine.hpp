@@ -27,6 +27,8 @@ namespace protocol {
         class ExtendedMessagePayload;
     }
 
+    class ContractInvitation;
+
     namespace statemachine {
 
         class ChooseMode;
@@ -41,7 +43,7 @@ namespace protocol {
             typedef std::function<void()> InvitedToOutdatedContract;
 
             // Client was invited to join given contract, should terms be included? they are available in _peerAnnounced
-            typedef std::function<void(const Coin::typesafeOutPoint & anchor, int64_t funds, const Coin::PublicKey & contractPk)> InvitedToJoinContract;
+            typedef std::function<void(const ContractInvitation)> InvitedToJoinContract;
 
             // Client requires a message to be sent
             typedef std::function<void(const wire::ExtendedMessagePayload *)> Send;
@@ -56,8 +58,7 @@ namespace protocol {
                            const InvitedToJoinContract & invitedToJoinContract,
                            const Send & sendMessage,
                            const ContractIsReady & contractIsReady,
-                           const PieceRequested & pieceRequested,
-                           const PeerModeAnnounced & peerAnnouncedMode = PeerModeAnnounced());
+                           const PieceRequested & pieceRequested);
 
             // Get name of current state: ***Varies from compiler to compiler***
             const char * getInnerStateName() const;
@@ -93,7 +94,7 @@ namespace protocol {
             ContractIsReady _contractIsReady;
             PieceRequested _pieceRequested;
 
-            // Peer mode status
+            //// Peer state
             //*** Just factor out modeannounced and index, dont save actual terms? ***
             joystream::protocol::PeerModeAnnounced _peerAnnouncedMode;
         };

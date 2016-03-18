@@ -9,6 +9,7 @@
 #define JOYSTREAM_PROTOCOL_STATE_MACHINE_SELL_HPP
 
 #include <protocol/statemachine/Active.hpp>
+#include <protocol/ContractInvitation.hpp>
 
 namespace Coin {
     class typesafeOutPoint;
@@ -19,7 +20,10 @@ namespace joystream {
 namespace protocol {
 namespace statemachine {
 
-    class Selling : public sc::simple_state<Selling,Active> {
+    // Initial state for Selling
+    class ReadyForInvitation;
+
+    class Selling : public sc::simple_state<Selling, Active, ReadyForInvitation> {
 
     public:
 
@@ -30,10 +34,22 @@ namespace statemachine {
 
         Selling();
 
-
         // Event handlers
         sc::result react(const event::ObserveModeStarted &);
         sc::result react(const event::BuyModeStarted &);
+
+        // Getters
+        uint32_t index() const;
+
+    private:
+
+        //// Client state
+
+        // Terms
+        uint32_t _index;
+
+        // Contract invitation received
+        ContractInvitation _invitation;
     };
 }
 }

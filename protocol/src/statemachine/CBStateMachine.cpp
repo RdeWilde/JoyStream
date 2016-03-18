@@ -20,10 +20,8 @@ namespace statemachine {
                                    const InvitedToJoinContract & invitedToJoinContract,
                                    const Send & sendMessage,
                                    const ContractIsReady & contractIsReady,
-                                   const PieceRequested & pieceRequested,
-                                   const PeerModeAnnounced & peerAnnouncedMode)
-        : _peerAnnouncedMode(peerAnnouncedMode)
-        , _invitedToOutdatedContract(invitedToOutdatedContract)
+                                   const PieceRequested & pieceRequested)
+        : _invitedToOutdatedContract(invitedToOutdatedContract)
         , _invitedToJoinContract(invitedToJoinContract)
         , _sendMessage(sendMessage)
         , _contractIsReady(contractIsReady)
