@@ -12,6 +12,7 @@ namespace protocol {
 namespace statemachine {
 
     Invited::Invited() {
+        std::cout << "Entering Invited state." << std::endl;
     }
 }
 }
