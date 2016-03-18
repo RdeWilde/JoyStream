@@ -23,11 +23,9 @@ void Test::initTestCase() {
     };
 
     // InvitedToJoinContract
-    _invitedToJoinContract = [this](const Coin::typesafeOutPoint & anchor, int64_t funds, const Coin::PublicKey & contractPk) {
+    _invitedToJoinContract = [this](const ContractInvitation & invitation) {
         _hasBeenInvitedToJoinContract = true;
-        _anchor = anchor;
-        _funds = funds;
-        _contractPk = contractPk;
+        _invitation = invitation;
     };
 
     // Send
@@ -42,7 +40,7 @@ void Test::initTestCase() {
     // ContractIsReady
     _contractIsReady = [this](const Coin::typesafeOutPoint & o) {
         _contractHasBeenPrepared = true;
-        _readyContract = o;
+        _anchor = o;
     };
 
     // PieceRequested
@@ -118,7 +116,7 @@ void Test::peerToSellMode() {
 
     // Check that new peer state recorded is valid
     PeerModeAnnounced announced = machine->peerAnnouncedMode();
-    QCOMPARE(announced.announced(), PeerModeAnnounced::ModeAnnounced::sell);
+    QCOMPARE(announced.modeAnnounced(), PeerModeAnnounced::ModeAnnounced::sell);
     QCOMPARE(announced.sellModeTerms(), terms);
     QCOMPARE(announced.index(), index);
 }
@@ -135,7 +133,7 @@ void Test::peerToBuyMode() {
 
     // test deep history transition at various times?
     PeerModeAnnounced announced = machine->peerAnnouncedMode();
-    QCOMPARE(announced.announced(), PeerModeAnnounced::ModeAnnounced::buy);
+    QCOMPARE(announced.modeAnnounced(), PeerModeAnnounced::ModeAnnounced::buy);
     QCOMPARE(announced.buyModeTerms(), terms);
 }
 
@@ -149,7 +147,7 @@ void Test::peerToObserveMode() {
     machine->process_event(statemachine::event::Recv<wire::Observe>(&m));
 
     // test deep history transition at various times?
-    QCOMPARE(machine->peerAnnouncedMode().announced(), PeerModeAnnounced::ModeAnnounced::observe);
+    QCOMPARE(machine->peerAnnouncedMode().modeAnnounced(), PeerModeAnnounced::ModeAnnounced::observe);
 }
 
 statemachine::CBStateMachine * Test::createFreshMachineInObserveMode() {
@@ -203,9 +201,7 @@ void Test::resetCallbackState() {
 
     // InvitedToJoinContract
     _hasBeenInvitedToJoinContract = false;
-    _anchor = Coin::typesafeOutPoint();
-    _funds = 0;
-    _contractPk = Coin::PublicKey();
+    _invitation = ContractInvitation();
 
     // Send
     _messageSent = false;
@@ -213,7 +209,7 @@ void Test::resetCallbackState() {
 
     // ContractIsReady
     _contractHasBeenPrepared = false;
-    _readyContract = Coin::typesafeOutPoint();
+    _anchor = Coin::typesafeOutPoint();
 
     // PieceRequested
     _pieceHasBeenRequested = false;

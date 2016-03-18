@@ -63,9 +63,7 @@ public:
     // InvitedToJoinContract
     statemachine::CBStateMachine::InvitedToJoinContract _invitedToJoinContract;
     bool _hasBeenInvitedToJoinContract;
-    Coin::typesafeOutPoint _anchor;
-    int64_t _funds;
-    Coin::PublicKey _contractPk;
+    ContractInvitation _invitation;
 
     // Send
     statemachine::CBStateMachine::Send _send;
@@ -75,7 +73,7 @@ public:
     // ContractIsReady
     statemachine::CBStateMachine::ContractIsReady _contractIsReady;
     bool _contractHasBeenPrepared;
-    Coin::typesafeOutPoint _readyContract;
+    Coin::typesafeOutPoint _anchor;
 
     // PieceRequested
     statemachine::CBStateMachine::PieceRequested _pieceRequested;
