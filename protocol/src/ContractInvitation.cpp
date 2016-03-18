@@ -20,7 +20,14 @@ namespace protocol {
         , _finalPk(finalPk) {
     }
 
-    int64_t ContractInvitation::value() const {
+    bool ContractInvitation::operator==(const ContractInvitation & rhs) const {
+
+        return _value == rhs.value() &&
+               _contractPk == rhs.contractPk() &&
+               _finalPk == rhs.finalPk();
+    }
+
+    quint64 ContractInvitation::value() const {
         return _value;
     }
 

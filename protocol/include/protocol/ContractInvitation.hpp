@@ -21,6 +21,8 @@ namespace protocol {
 
         ContractInvitation(quint64 value, const Coin::PublicKey & contractPk, const Coin::PublicKey & finalPk);
 
+        bool operator==(const ContractInvitation &) const;
+
         // Getters and setters
         quint64 value() const;
         void setValue(quint64 value);
