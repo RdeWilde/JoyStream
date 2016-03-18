@@ -62,7 +62,7 @@ public:
 
     Coin::Network network() const { return _network; }
 
-    Q_INVOKABLE void BroadcastTx(Coin::Transaction & tx);
+    Q_INVOKABLE void BroadcastTx(Coin::Transaction & cointx);
 
     int bestHeight() const { return _networkSync.getBestHeight(); }
 

@@ -265,13 +265,16 @@ SPVWallet::GetReceiveAddress()
 }
 
 
-void SPVWallet::BroadcastTx(Coin::Transaction & tx) {
+void SPVWallet::BroadcastTx(Coin::Transaction & cointx) {
     if(!_store.connected() || _networkSync.connected()) {
         throw std::runtime_error("cannot broadcast tx, wallet offline");
     }
 
-    _store.addTransaction(tx);
-    _networkSync.sendTx(tx);
+    //_store.addTransaction(tx);
+    _networkSync.sendTx(cointx);
+
+    // add to the store when received from the network
+    _networkSync.getTx(cointx.hash());
 }
 
 uint64_t SPVWallet::Balance() const {
