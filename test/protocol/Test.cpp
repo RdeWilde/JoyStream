@@ -8,6 +8,7 @@
 #include <Test.hpp>
 
 #include <protocol/statemachine/Selling.hpp>
+#include <protocol/statemachine/ReadyForInvitation.hpp>
 #include <protocol/statemachine/Buying.hpp>
 #include <protocol/statemachine/Observing.hpp>
 #include <protocol/wire/Observe.hpp>
@@ -61,7 +62,7 @@ void Test::clientToSellMode() {
     statemachine::CBStateMachine * machine = createFreshMachineInSellMode(terms);
 
     // Check that we are in correct state
-    QCOMPARE(machine->getInnerStateName(), typeid(statemachine::Selling).name());
+    QCOMPARE(machine->getInnerStateName(), typeid(statemachine::ReadyForInvitation).name());
 
     // Check that sell message was sent
     QVERIFY(_messageSent);
@@ -116,7 +117,7 @@ void Test::peerToSellMode() {
 
     // Check that new peer state recorded is valid
     PeerModeAnnounced announced = machine->peerAnnouncedMode();
-    QCOMPARE(announced.modeAnnounced(), PeerModeAnnounced::ModeAnnounced::sell);
+    QCOMPARE(announced.modeAnnounced(), ModeAnnounced::sell);
     QCOMPARE(announced.sellModeTerms(), terms);
     QCOMPARE(announced.index(), index);
 }
@@ -133,7 +134,7 @@ void Test::peerToBuyMode() {
 
     // test deep history transition at various times?
     PeerModeAnnounced announced = machine->peerAnnouncedMode();
-    QCOMPARE(announced.modeAnnounced(), PeerModeAnnounced::ModeAnnounced::buy);
+    QCOMPARE(announced.modeAnnounced(), ModeAnnounced::buy);
     QCOMPARE(announced.buyModeTerms(), terms);
 }
 
@@ -147,7 +148,7 @@ void Test::peerToObserveMode() {
     machine->process_event(statemachine::event::Recv<wire::Observe>(&m));
 
     // test deep history transition at various times?
-    QCOMPARE(machine->peerAnnouncedMode().modeAnnounced(), PeerModeAnnounced::ModeAnnounced::observe);
+    QCOMPARE(machine->peerAnnouncedMode().modeAnnounced(), ModeAnnounced::observe);
 }
 
 statemachine::CBStateMachine * Test::createFreshMachineInObserveMode() {

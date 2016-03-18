@@ -11,6 +11,7 @@
 #include <QtTest/QtTest>
 
 #include <protocol/statemachine/CBStateMachine.hpp>
+#include <protocol/ContractInvitation.hpp>
 #include <common/typesafeOutPoint.hpp>
 #include <common/KeyPair.hpp>
 
