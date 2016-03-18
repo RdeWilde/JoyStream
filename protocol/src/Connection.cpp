@@ -23,16 +23,16 @@ namespace protocol {
     }
 
     void Connection::process(const wire::Observe & observe) {
-        _lastModeAnnouncedByPeer.setModeAnnounced(PeerModeAnnounced::ModeAnnounced::observe);
+        _lastModeAnnouncedByPeer.setModeAnnounced(ModeAnnounced::observe);
     }
 
     void Connection::process(const wire::Buy & buy) {
-        _lastModeAnnouncedByPeer.setModeAnnounced(PeerModeAnnounced::ModeAnnounced::buy);
+        _lastModeAnnouncedByPeer.setModeAnnounced(ModeAnnounced::buy);
         _lastModeAnnouncedByPeer.setBuyModeTerms(buy.terms());
     }
 
     void Connection::process(const wire::Sell & sell) {
-        _lastModeAnnouncedByPeer.setModeAnnounced(PeerModeAnnounced::ModeAnnounced::sell);
+        _lastModeAnnouncedByPeer.setModeAnnounced(ModeAnnounced::sell);
         _lastModeAnnouncedByPeer.setSellModeTerms(sell.terms());
     }
 
