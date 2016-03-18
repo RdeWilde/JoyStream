@@ -49,6 +49,7 @@ HEADERS += \
     include/protocol/Utilities.hpp \
     include/protocol/BuyerPayorSettings.hpp \
     include/protocol/BuyerChannelSettings.hpp \
+    include/protocol/ContractInvitation.hpp \
     include/protocol/statemachine/ServicingPieceRequest.hpp \
     include/protocol/statemachine/CBStateMachine.hpp \
     include/protocol/statemachine/SellerJoined.hpp \
@@ -60,7 +61,11 @@ HEADERS += \
     include/protocol/statemachine/Active.hpp \
     include/protocol/statemachine/Selling.hpp \
     include/protocol/statemachine/Buying.hpp \
-    include/protocol/statemachine/Observing.hpp
+    include/protocol/statemachine/Observing.hpp \
+    include/protocol/statemachine/ReadyForInvitation.hpp \
+    include/protocol/statemachine/Invited.hpp \
+    include/protocol/statemachine/exception/InvitedToJoinContractByNonBuyer.hpp \
+    include/protocol/ModeAnnounced.hpp
 
 SOURCES += \
     src/wire/ExtendedMessagePayload.cpp \
@@ -91,6 +96,7 @@ SOURCES += \
     src/Utilities.cpp \
     src/BuyerChannelSettings.cpp \
     src/Session.cpp \
+    src/ContractInvitation.cpp \
     src/statemachine/ServicingPieceRequest.cpp \
     src/statemachine/SellerJoined.cpp \
     src/statemachine/CBStateMachine.cpp \
@@ -101,7 +107,10 @@ SOURCES += \
     src/statemachine/Active.cpp \
     src/statemachine/Selling.cpp \
     src/statemachine/Buying.cpp \
-    src/statemachine/Observing.cpp
+    src/statemachine/Observing.cpp \
+    src/statemachine/ReadyForInvitation.cpp \
+    src/statemachine/Invited.cpp \
+    src/statemachine/exception/InvitedToJoinContractByNonBuyer.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include
