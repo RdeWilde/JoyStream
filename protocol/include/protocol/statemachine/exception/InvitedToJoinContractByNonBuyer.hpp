@@ -32,6 +32,7 @@ namespace protocol {
             static NonBuyModeAnnounced toNonBuyMode(ModeAnnounced mode);
 
             InvitedToJoinContractByNonBuyer(NonBuyModeAnnounced mode);
+            InvitedToJoinContractByNonBuyer(ModeAnnounced mode);
 
             // Getters and setters
             NonBuyModeAnnounced peerMode() const;

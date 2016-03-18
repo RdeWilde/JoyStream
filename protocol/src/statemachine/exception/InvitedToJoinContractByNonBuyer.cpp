@@ -19,13 +19,18 @@ namespace exception {
             case ModeAnnounced::observe: return NonBuyModeAnnounced::Observe; break;
             case ModeAnnounced::sell: return NonBuyModeAnnounced::Sell; break;
 
-            default: // ModeAnnounced::buy
-                throw std::runtime_error("");
+            default: // ModeAnnounced::Buy
+                throw std::runtime_error("ModeAnnounced cannot be Buy.");
         }
     }
 
-    InvitedToJoinContractByNonBuyer::invitedToJoinContractByNonBuyer(NonBuyModeAnnounced mode)
-        : _peerMode(mode) {
+    InvitedToJoinContractByNonBuyer::InvitedToJoinContractByNonBuyer(NonBuyModeAnnounced mode)
+        : std::runtime_error("JoinContract message arrived from peer not in buy mode, spesifically: x")
+        , _peerMode(mode) {
+    }
+
+    InvitedToJoinContractByNonBuyer::InvitedToJoinContractByNonBuyer(ModeAnnounced mode)
+        : InvitedToJoinContractByNonBuyer(toNonBuyMode(mode)) {
     }
 
     InvitedToJoinContractByNonBuyer::NonBuyModeAnnounced InvitedToJoinContractByNonBuyer::peerMode() const {

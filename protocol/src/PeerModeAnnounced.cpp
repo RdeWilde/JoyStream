@@ -30,7 +30,7 @@ namespace protocol {
         _index = i;
     }
 
-    PeerModeAnnounced::ModeAnnounced PeerModeAnnounced::modeAnnounced() const {
+    ModeAnnounced PeerModeAnnounced::modeAnnounced() const {
         return _modeAnnounced;
     }
 
