@@ -17,7 +17,7 @@ namespace statemachine {
         std::cout << "Entering Invited state." << std::endl;
     }
 
-    sc::result Invited::react(const event::JoinContract & e) {
+    sc::result Invited::react(const event::Joined & e) {
 
         std::cout << "Reacting to event::JoinContract." << std::endl;
 

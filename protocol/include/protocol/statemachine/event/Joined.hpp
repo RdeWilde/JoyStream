@@ -18,11 +18,11 @@ namespace protocol {
 namespace statemachine {
 namespace event {
 
-    class JoinContract : public sc::event<JoinContract> {
+    class Joined : public sc::event<Joined> {
 
     public:
 
-        JoinContract(const ContractRSVP &);
+        Joined(const ContractRSVP &);
 
         // Getters and setters
         ContractRSVP rsvp() const;

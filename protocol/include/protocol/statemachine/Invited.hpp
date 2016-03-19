@@ -9,7 +9,7 @@
 #define JOYSTREAM_PROTOCOL_STATE_MACHINE_INVITED_HPP
 
 #include <protocol/statemachine/Selling.hpp>
-#include <protocol/statemachine/event/JoinContract.hpp>
+#include <protocol/statemachine/event/Joined.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -20,13 +20,13 @@ namespace statemachine {
     public:
 
         typedef boost::mpl::list<
-                                sc::custom_reaction<event::JoinContract>
+                                sc::custom_reaction<event::Joined>
                                 > reactions;
 
         Invited();
 
         // Event handlers
-        sc::result react(const event::JoinContract &);
+        sc::result react(const event::Joined &);
     };
 }
 }
