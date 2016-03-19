@@ -16,18 +16,14 @@ class Test : public QObject {
 
 private slots:
 
-    // ***
-    // Actual tests
-    // ***
-
     //// Statemachine tests
 
-    // Lots of state transitions
+    // Client mode change operations
     void clientToSellMode();
     void clientToBuyMode();
     void clientToObserveMode();
 
-    //
+    // Peer announces mode change
     void peerToSellMode();
     void peerToBuyMode();
     void peerToObserveMode();

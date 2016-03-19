@@ -21,7 +21,7 @@ sc::result ReadyForPieceRequest::react(const event::Recv<joystream::protocol::wi
     // Switch peer state
     context<CBStateMachine>().contractIsReady()(e.message()->anchor());
 
-    // Transition to deep history
+    // Transition back to self
     return transit<ReadyForPieceRequest>();
 }
 

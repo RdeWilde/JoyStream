@@ -12,15 +12,16 @@
 #include <protocol/statemachine/Buying.hpp>
 #include <protocol/statemachine/Observing.hpp>
 #include <protocol/statemachine/Invited.hpp>
-
+#include <protocol/statemachine/WaitingToStart.hpp>
+#include <protocol/statemachine/ReadyForPieceRequest.hpp>
+#include <protocol/statemachine/ServicingPieceRequest.hpp>
+#include <protocol/statemachine/exception/InvitedToJoinContractByNonBuyer.hpp>
 #include <protocol/wire/Observe.hpp>
 #include <protocol/wire/MessageType.hpp>
 #include <protocol/wire/JoiningContract.hpp>
 
-#include <protocol/statemachine/exception/InvitedToJoinContractByNonBuyer.hpp>
-
 #include <common/PrivateKey.hpp>
-
+#include <common/typesafeOutPoint.hpp>
 #include <StateMachineCallbackSpy.hpp>
 
 using namespace joystream::protocol;
@@ -196,42 +197,96 @@ void Test::selling() {
     {
         wire::Buy m(buyerTerms);
         machine->process_event(statemachine::event::Recv<wire::Buy>(&m));
-        QCOMPARE(machine->peerAnnouncedMode().modeAnnounced(), ModeAnnounced::buy);
     }
+
+    // and check
+    QCOMPARE(machine->peerAnnouncedMode().modeAnnounced(), ModeAnnounced::buy);
 
     spy.reset();
 
-    // Then try with wrong index, and check that failure callback is called for this
+    // Then try with wrong index
     {
         wire::JoinContract m(invitation, 31);
         machine->process_event(statemachine::event::Recv<wire::JoinContract>(&m));
-        QVERIFY(spy.hasBeenInvitedToOutdatedContract());
     }
+
+    // and check that failure callback is called for this
+    QVERIFY(spy.hasBeenInvitedToOutdatedContract());
 
     spy.reset();
 
-    /*
     // Then we do it with correct index,
-    machine->process_event(statemachine::event::Recv<wire::JoinContract>(new wire::JoinContract(invitation, 0)));
+    {
+        wire::JoinContract m(invitation, 0);
+        machine->process_event(statemachine::event::Recv<wire::JoinContract>(&m));
+    }
 
-    // Reset callback state
-    resetCallbackState();
+    // and check that we are getting right invitation, and
+    // transitioning to the Invited state
+    QVERIFY(spy.hasBeenInvitedToJoinContract());
+    QCOMPARE(spy.invitation(), invitation);
+    QCOMPARE(machine->getInnerStateName(), typeid(statemachine::Invited).name());
 
+    spy.reset();
 
     //// Invited state
 
-
-    ////
-
-    // Transition to Invited
-    ContractRSVP rsvp(Coin::PrivateKey::generate().toPublicKey(), Coin::PrivateKey::generate().toPublicKey());
+    // Transition to WaitingToStart state
+    ContractRSVP rsvp(Coin::PrivateKey::generate().toPublicKey(),
+                      Coin::PrivateKey::generate().toPublicKey());
     machine->process_event(statemachine::event::Joined(rsvp));
 
-    // Check that joining_contract message was sent
-    QVERIFY(_messageSent);
-    QCOMPARE(_sendMessage->messageType(), wire::MessageType::joining_contract);
-    QCOMPARE((static_cast<const wire::JoiningContract *>(_sendMessage))->rsvp(), rsvp);
-    */
+    // and that joining_contract message was sent with correct rsvp,
+    // and we are in WaitingToStart state
+    QVERIFY(spy.messageSent());
+    {
+        const joystream::protocol::wire::ExtendedMessagePayload * m = spy.message();
+        QCOMPARE(m->messageType(), wire::MessageType::joining_contract);
+        QCOMPARE((static_cast<const wire::JoiningContract *>(m))->rsvp(), rsvp);
+    }
+    QCOMPARE(machine->getInnerStateName(), typeid(statemachine::WaitingToStart).name());
+
+    spy.reset();
+
+    //// WaitingToStart state
+
+    // Peer sends Ready message
+    Coin::typesafeOutPoint anchor;
+    {
+        wire::Ready m(anchor);
+        machine->process_event(statemachine::event::Recv<wire::Ready>(&m));
+    }
+
+    // and then check that callback is made with correct anchor,
+    // and we are in ReadyForPieceRequest state
+    QVERIFY(spy.contractHasBeenPrepared());
+    QCOMPARE(spy.anchor(), anchor);
+    QCOMPARE(machine->getInnerStateName(), typeid(statemachine::ReadyForPieceRequest).name());
+
+    spy.reset();
+
+    //// ReadyForPieceRequest state
+
+    // Peer sends FullPieceRequest message
+    int pieceIndex = 9;
+    {
+        wire::RequestFullPiece m(pieceIndex);
+        machine->process_event(statemachine::event::Recv<wire::RequestFullPiece>(&m));
+    }
+
+    // and then check that callback is made with correct piece index,
+    // and we are in ServicingPieceRequest
+    QVERIFY(spy.pieceHasBeenRequested());
+    QCOMPARE(spy.piece(), pieceIndex);
+    QCOMPARE(machine->getInnerStateName(), typeid(statemachine::ServicingPieceRequest).name());
+
+    spy.reset();
+
+    //// ServicingPieceRequest state
+
+
+
+
 
     // Clean up machine
     delete machine;
