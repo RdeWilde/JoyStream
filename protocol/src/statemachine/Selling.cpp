@@ -48,6 +48,9 @@ namespace statemachine {
 
         // Create sell message and send
         context<CBStateMachine>().sendMessage()(new wire::Sell(e.terms(), _index));
+
+        // Transition back to initial selling state
+        return transit<Selling>();
     }
 
     uint32_t Selling::index() const {
