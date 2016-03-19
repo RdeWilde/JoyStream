@@ -36,9 +36,6 @@ namespace statemachine {
 
         Selling();
 
-        // Update seller terms
-        void updateTerms(const SellerTerms &);
-
         // Event handlers
         sc::result react(const event::ObserveModeStarted &);
         sc::result react(const event::BuyModeStarted &);
