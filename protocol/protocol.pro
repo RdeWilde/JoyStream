@@ -68,7 +68,8 @@ HEADERS += \
     include/protocol/ModeAnnounced.hpp \
     include/protocol/ContractRSVP.hpp \
     include/protocol/statemachine/event/UpdateTerms.hpp \
-    include/protocol/statemachine/event/JoinContract.hpp
+    include/protocol/statemachine/event/JoinContract.hpp \
+    include/protocol/statemachine/WaitingToStart.hpp
 
 SOURCES += \
     src/wire/ExtendedMessagePayload.cpp \
