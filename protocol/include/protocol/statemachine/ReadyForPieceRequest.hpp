@@ -5,29 +5,32 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, March 19 2016
  */
 
-#ifndef JOYSTREAM_PROTOCOL_STATE_MACHINE_WAITINGTOSTART_HPP
-#define JOYSTREAM_PROTOCOL_STATE_MACHINE_WAITINGTOSTART_HPP
+#ifndef JOYSTREAM_PROTOCOL_STATEMACHINE_READYFORPIECEREQUEST_HPP
+#define JOYSTREAM_PROTOCOL_STATEMACHINE_READYFORPIECEREQUEST_HPP
 
 #include <protocol/statemachine/Selling.hpp>
 #include <protocol/statemachine/event/Recv.hpp>
 #include <protocol/wire/Ready.hpp>
+#include <protocol/wire/RequestFullPiece.hpp>
 
 namespace joystream {
 namespace protocol {
 namespace statemachine {
 
-    class WaitingToStart : public sc::simple_state<WaitingToStart, Selling> {
+    class ReadyForPieceRequest : public sc::simple_state<ReadyForPieceRequest, Selling> {
 
     public:
 
         typedef boost::mpl::list<
-                                sc::custom_reaction<event::Recv<wire::Ready>>
+                                sc::custom_reaction<event::Recv<wire::Ready>>,
+                                sc::custom_reaction<event::Recv<wire::RequestFullPiece>>
                                 > reactions;
 
-        WaitingToStart();
+        ReadyForPieceRequest();
 
         // Event handlers
         sc::result react(const event::Recv<wire::Ready> &);
+        sc::result react(const event::Recv<wire::RequestFullPiece> &);
 
     };
 
@@ -35,4 +38,4 @@ namespace statemachine {
 }
 }
 
-#endif // JOYSTREAM_PROTOCOL_STATE_MACHINE_WAITINGTOSTART_HPP
+#endif // JOYSTREAM_PROTOCOL_STATEMACHINE_READYFORPIECEREQUEST_HPP
