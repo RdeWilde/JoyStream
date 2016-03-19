@@ -66,7 +66,8 @@ HEADERS += \
     include/protocol/statemachine/Invited.hpp \
     include/protocol/statemachine/exception/InvitedToJoinContractByNonBuyer.hpp \
     include/protocol/ModeAnnounced.hpp \
-    include/protocol/ContractRSVP.hpp
+    include/protocol/ContractRSVP.hpp \
+    include/protocol/statemachine/event/UpdateTerms.hpp
 
 SOURCES += \
     src/wire/ExtendedMessagePayload.cpp \
@@ -112,7 +113,8 @@ SOURCES += \
     src/statemachine/ReadyForInvitation.cpp \
     src/statemachine/Invited.cpp \
     src/statemachine/exception/InvitedToJoinContractByNonBuyer.cpp \
-    src/ContractRSVP.cpp
+    src/ContractRSVP.cpp \
+    src/statemachine/event/UpdateTerms.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

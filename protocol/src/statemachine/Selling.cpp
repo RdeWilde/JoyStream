@@ -19,6 +19,15 @@ namespace statemachine {
         std::cout << "Entering Sell state." << std::endl;
     }
 
+    void Selling::updateTerms(const SellerTerms & t) {
+
+        // Increment term index
+        _index++;
+
+        // Create sell message and send
+        context<CBStateMachine>().sendMessage()(new wire::Sell(t, _index));
+    }
+
     sc::result Selling::react(const event::ObserveModeStarted & e) {
 
         std::cout << "Reacting to event::ObserveModeStarted." << std::endl;
@@ -39,6 +48,10 @@ namespace statemachine {
 
         // Transition to Buy state
         return transit<Buying>();
+    }
+
+    sc::result react(const event::UpdateTerms<SellerTerms> & e) {
+        // handle event
     }
 
     uint32_t Selling::index() const {

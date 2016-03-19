@@ -9,6 +9,7 @@
 #define JOYSTREAM_PROTOCOL_STATE_MACHINE_SELL_HPP
 
 #include <protocol/statemachine/Active.hpp>
+#include <protocol/statemachine/event/UpdateTerms.hpp>
 #include <protocol/ContractInvitation.hpp>
 
 namespace Coin {
@@ -29,14 +30,19 @@ namespace statemachine {
 
         typedef boost::mpl::list<
                                 sc::custom_reaction<event::ObserveModeStarted>,
-                                sc::custom_reaction<event::BuyModeStarted>
+                                sc::custom_reaction<event::BuyModeStarted>,
+                                sc::custom_reaction<event::UpdateTerms<SellerTerms>>
                                 > reactions;
 
         Selling();
 
+        // Update seller terms
+        void updateTerms(const SellerTerms &);
+
         // Event handlers
         sc::result react(const event::ObserveModeStarted &);
         sc::result react(const event::BuyModeStarted &);
+        sc::result react(const event::UpdateTerms<SellerTerms> &);
 
         // Getters
         uint32_t index() const;
