@@ -50,7 +50,6 @@ HEADERS += \
     include/protocol/BuyerPayorSettings.hpp \
     include/protocol/BuyerChannelSettings.hpp \
     include/protocol/ContractInvitation.hpp \
-    include/protocol/statemachine/ServicingPieceRequest.hpp \
     include/protocol/statemachine/CBStateMachine.hpp \
     include/protocol/statemachine/SellerJoined.hpp \
     include/protocol/statemachine/ChooseMode.hpp \
@@ -70,7 +69,8 @@ HEADERS += \
     include/protocol/statemachine/event/UpdateTerms.hpp \
     include/protocol/statemachine/WaitingToStart.hpp \
     include/protocol/statemachine/event/Joined.hpp \
-    include/protocol/statemachine/ReadyForPieceRequest.hpp
+    include/protocol/statemachine/ReadyForPieceRequest.hpp \
+    include/protocol/statemachine/ServicingPieceRequest.hpp
 
 SOURCES += \
     src/wire/ExtendedMessagePayload.cpp \
@@ -119,7 +119,8 @@ SOURCES += \
     src/ContractRSVP.cpp \
     src/statemachine/event/UpdateTerms.cpp \
     src/statemachine/event/Joined.cpp \
-    src/statemachine/WaitingToStart.cpp
+    src/statemachine/WaitingToStart.cpp \
+    src/statemachine/ReadyForPieceRequest.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

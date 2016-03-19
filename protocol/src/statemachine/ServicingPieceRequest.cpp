@@ -7,16 +7,4 @@
 
 #include <protocol/statemachine/ServicingPieceRequest.hpp>
 
-namespace joystream {
-namespace protocol {
-namespace statemachine {
-
-    ServicingPieceRequest::ServicingPieceRequest(Selling * context)
-        : _context(context)
-        , _state(State::piece_requested) {
-
-    }
-
-}
-}
-}
+using namespace joystream::protocol::statemachine;
