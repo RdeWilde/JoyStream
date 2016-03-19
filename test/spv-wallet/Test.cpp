@@ -145,38 +145,37 @@ void Test::networkMismatchOnOpeningWallet() {
     QVERIFY_EXCEPTION_THROWN(_wallet->Open(), std::exception);
 }
 
-void Test::SynchingHeaders() {
+void Test::Synching() {
 
-    QSignalSpy spy_headers_synched(_wallet, SIGNAL(HeadersSynched()));
-    QSignalSpy spy_tree_changed(_wallet, SIGNAL(BlockTreeChanged()));
+    QSignalSpy spy_blocks_synched(_wallet, SIGNAL(BlocksSynched()));
 
     _wallet->Create(WALLET_SEED);
 
     // Should connect and synch headers
     _wallet->Sync("localhost", 18444);
 
-    QTRY_VERIFY_WITH_TIMEOUT(spy_headers_synched.count() > 0, 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > 0, 10000);
 
     int32_t startingHeight = _wallet->bestHeight();
 
-    int32_t lastCount = spy_tree_changed.count();
+    int32_t lastCount = spy_blocks_synched.count();
 
     // Generate one more block
     bitcoin_rpc("generate 1");
 
     // Wait to receive the new block
-    QTRY_VERIFY_WITH_TIMEOUT(spy_tree_changed.count() > lastCount, 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > lastCount, 10000);
 
     // One block was mined height should increase by one
     QCOMPARE(_wallet->bestHeight(), startingHeight + 1);
 
-    lastCount = spy_tree_changed.count();
+    lastCount = spy_blocks_synched.count();
 
     // Generate one more block
     bitcoin_rpc("generate 1");
 
     // Wait to receive the new block
-    QTRY_VERIFY_WITH_TIMEOUT(spy_tree_changed.count() > lastCount, 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > lastCount, 10000);
 
     // One block was mined height should increase by one
     QCOMPARE(_wallet->bestHeight(), startingHeight + 2);

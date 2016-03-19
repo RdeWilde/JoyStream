@@ -43,7 +43,7 @@ private slots:
     // Unit Tests
     void walletCreation();
     void networkMismatchOnOpeningWallet();
-    void SynchingHeaders();
+    void Synching();
     void BalanceCheck();
 
     // Will be called at the end of all tests

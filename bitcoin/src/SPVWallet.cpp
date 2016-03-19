@@ -29,7 +29,7 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
   _storePath(storePath),
   _network(network),
   _networkSync(getCoinParamsForNetwork(network)),
-  _networkSyncStatus(STOPPED),
+  _walletStatus(UNINITIALIZED),
   _blockTreeFile(blockTreeFile),
   _blockTreeLoaded(false),
   _blockTreeError(false),
@@ -52,7 +52,7 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
     _networkSync.subscribeOpen([this]()
     {
         std::cout << "Connection Open" << std::endl;
-        emit NetSyncConnected();
+        updateStatus(CONNECTED);
     });
 
     _networkSync.subscribeProtocolError([this](const std::string& error, int code)
@@ -68,7 +68,7 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
     _networkSync.subscribeClose([this]()
     {
         std::cout << "Connection Closed" << std::endl;
-        emit NetSyncDisconnected();
+        updateStatus(DISCONNECTED);
     });
 
     _networkSync.subscribeTimeout([this]()
@@ -79,7 +79,7 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
     _networkSync.subscribeStopped([this]()
     {
         std::cout << "NetSync Stopped"<< std::endl;
-        updateStatus(STOPPED);
+        updateStatus(OFFLINE);
     });
 
     _networkSync.subscribeBlockTreeError([this](const std::string& error, int code) {
@@ -128,8 +128,9 @@ SPVWallet::~SPVWallet(){
 }
 
 void SPVWallet::Create() {
-    if(_store.connected()) {
-        throw std::runtime_error("wallet already connected");
+
+    if(_walletStatus != UNINITIALIZED) {
+        throw std::runtime_error("wallet already opened");
     }
 
     if(!_store.create(_storePath, _network)){
@@ -137,11 +138,14 @@ void SPVWallet::Create() {
     }
 
     LoadBlockTree();
+
+    updateStatus(OFFLINE);
 }
 
 void SPVWallet::Create(Coin::Seed seed) {
-    if(_store.connected()) {
-        throw std::runtime_error("wallet already connected");
+
+    if(_walletStatus != UNINITIALIZED) {
+        throw std::runtime_error("wallet already opened");
     }
 
     if(!_store.create(_storePath, _network, seed, std::time(nullptr))){
@@ -149,12 +153,14 @@ void SPVWallet::Create(Coin::Seed seed) {
     }
 
     LoadBlockTree();
+
+    updateStatus(OFFLINE);
 }
 
 void SPVWallet::Open() {
 
     // Only open the store once
-    if(!_store.connected()) {
+    if(_walletStatus == UNINITIALIZED) {
         if(!_store.open(_storePath)) {
             throw std::runtime_error("failed to open wallet");
         }
@@ -165,9 +171,11 @@ void SPVWallet::Open() {
 
         LoadBlockTree();
 
+        updateStatus(OFFLINE);
+
         recalculateBalance();
     } else {
-        throw std::runtime_error("wallet already connected");
+        throw std::runtime_error("wallet already opened");
     }
 }
 
@@ -183,28 +191,34 @@ void SPVWallet::LoadBlockTree() {
 
     if(!_blockTreeError) {
         _blockTreeLoaded = true;
+        updateStatus(OFFLINE);
     } else {
         throw std::runtime_error("failed to load blocktree");
     }
 }
 
 void SPVWallet::Sync(std::string host, int port) {
-    if(!_store.connected()) {
-        throw std::runtime_error("store not connected");
+
+    // Wallet must be opened or created before synching
+    if(_walletStatus == UNINITIALIZED) {
+        throw std::runtime_error("wallet not initialized");
     }
 
-    updateStatus(STARTING);
+    // Only start synching from offline state
+    if(_walletStatus != OFFLINE) return;
+
+    updateStatus(CONNECTING);
+
     _networkSync.start(host, port);
 }
 
 void SPVWallet::StopSync() {
-    _networkSync.stopSynchingBlocks();
     _networkSync.stop();
 }
 
 Coin::PrivateKey SPVWallet::GetKey(bool createReceiveAddress) {
-    if(!_store.connected()) {
-        throw std::runtime_error("store not connected");
+    if(_walletStatus == UNINITIALIZED) {
+        throw std::runtime_error("wallet not initialized");
     }
 
     Coin::PrivateKey sk = _store.getKey(createReceiveAddress);
@@ -217,8 +231,8 @@ Coin::PrivateKey SPVWallet::GetKey(bool createReceiveAddress) {
 }
 
 std::vector<Coin::PrivateKey> SPVWallet::GetKeys(uint32_t numKeys, bool createReceiveAddress) {
-    if(!_store.connected()) {
-        throw std::runtime_error("store not connected");
+    if(_walletStatus == UNINITIALIZED) {
+        throw std::runtime_error("wallet not initialized");
     }
 
     std::vector<Coin::PrivateKey> keys = _store.getKeys(numKeys, createReceiveAddress);
@@ -230,8 +244,8 @@ std::vector<Coin::PrivateKey> SPVWallet::GetKeys(uint32_t numKeys, bool createRe
 
 std::vector<Coin::KeyPair>
 SPVWallet::GetKeyPairs(uint32_t num_pairs, bool createReceiveAddress) {
-    if(!_store.connected()) {
-        throw std::runtime_error("store not connected");
+    if(_walletStatus == UNINITIALIZED) {
+        throw std::runtime_error("wallet not initialized");
     }
 
     std::vector<Coin::KeyPair> keyPairs = _store.getKeyPairs(num_pairs, createReceiveAddress);
@@ -242,8 +256,8 @@ SPVWallet::GetKeyPairs(uint32_t num_pairs, bool createReceiveAddress) {
 }
 
 void SPVWallet::ReleaseKey(const Coin::PrivateKey &sk) {
-    if(!_store.connected()) {
-        throw std::runtime_error("store not connected");
+    if(_walletStatus == UNINITIALIZED) {
+        throw std::runtime_error("wallet not initialized");
     }
 
     _store.releaseKey(sk);
@@ -252,8 +266,8 @@ void SPVWallet::ReleaseKey(const Coin::PrivateKey &sk) {
 Coin::P2PKHAddress
 SPVWallet::GetReceiveAddress()
 {
-    if(!_store.connected()) {
-        throw std::runtime_error("store not connected");
+    if(_walletStatus == UNINITIALIZED) {
+        throw std::runtime_error("wallet not initialized");
     }
 
     Coin::P2PKHAddress addr = _store.getReceiveAddress();
@@ -263,7 +277,7 @@ SPVWallet::GetReceiveAddress()
 
 
 void SPVWallet::BroadcastTx(Coin::Transaction & cointx) {
-    if(!_store.connected() || _networkSync.connected()) {
+    if(_walletStatus < CONNECTED) {
         throw std::runtime_error("cannot broadcast tx, wallet offline");
     }
 
@@ -272,6 +286,14 @@ void SPVWallet::BroadcastTx(Coin::Transaction & cointx) {
 
     // add to the store when received from the network
     _networkSync.getTx(cointx.hash());
+}
+
+int32_t SPVWallet::bestHeight() const {
+    if(_walletStatus == UNINITIALIZED) {
+        return 0;
+    }
+
+    return _store.getBestHeaderHeight();
 }
 
 uint64_t SPVWallet::Balance() const {
@@ -304,44 +326,35 @@ void SPVWallet::onHeadersSynched() {
 
     emit HeadersSynched();
 
-    if(!_networkSync.connected()) {
-        updateStatus(STOPPED);
-        return;
-    }
-
-    if(!_store.connected()) {
-        updateStatus(SYNCHED);
-        return;
-    }
-
     uint32_t startTime = _store.created();
 
-    std::vector<std::string> hashes = _store.getLatestBlockHeaderHashes();
     std::vector<bytes_t> locatorHashes;
+
+    std::vector<std::string> hashes = _store.getLatestBlockHeaderHashes();
 
     for(const std::string hex : hashes){
         locatorHashes.push_back(uchar_vector(hex));
     }
 
     updateBloomFilter();
+
     _networkSync.syncBlocks(locatorHashes, startTime);
 }
 
 void SPVWallet::onSynchingBlocks() {
-    if(_store.connected()) {
-        updateStatus(SYNCHING_BLOCKS);
-        emit SynchingBlocks();
-    }
+
+    updateStatus(SYNCHING_BLOCKS);
+    emit SynchingBlocks();
 }
 
 void SPVWallet::onBlocksSynched() {
-    if(_networkSync.connected()) {
-        updateStatus(SYNCHED);
-        recalculateBalance();
 
-        _networkSync.getMempool();
-        emit BlocksSynched();
-    }
+    recalculateBalance();
+
+    updateStatus(SYNCHED);
+
+    _networkSync.getMempool();
+    emit BlocksSynched();
 }
 
 void SPVWallet::onNewTx(const Coin::Transaction& cointx) {
@@ -369,6 +382,8 @@ void SPVWallet::onMerkleBlock(const ChainMerkleBlock& chainmerkleblock) {
 }
 
 void SPVWallet::updateBloomFilter() {
+    if(_walletStatus == UNINITIALIZED) return;
+
     // TODO: Only update the bloom filter if elements have changed from last call
     _networkSync.setBloomFilter(makeBloomFilter(0.001, 0, 0));
 }
@@ -403,11 +418,9 @@ Coin::BloomFilter SPVWallet::makeBloomFilter(double falsePositiveRate, uint32_t 
 }
 
 void SPVWallet::recalculateBalance() {
-    if(!_store.connected()) return;
-
-    // If connected and synching.. don't recalculate now. Recalculation
-    // Will be done automatically after block synch is complete
-    if(_networkSync.connected() && _networkSyncStatus != SYNCHED) return;
+    if(_walletStatus == UNINITIALIZED) {
+        return;
+    }
 
     uint64_t confirmed = 0;
 

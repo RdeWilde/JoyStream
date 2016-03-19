@@ -19,10 +19,13 @@ class SPVWallet : public QObject
 
 public:
 
-    enum netsync_status_t
+    enum wallet_status_t
     {
-        STOPPED,
-        STARTING,
+        UNINITIALIZED,      // wallet database file not yet opened, netsync stopped
+        OFFLINE,            // wallet database ready, netsync stopped
+        CONNECTING,         // netsync connecting
+        DISCONNECTED,       // netsync peer disconnected, stopping i/o thread...
+        CONNECTED,          // netsync connected to peer
         SYNCHING_HEADERS,
         SYNCHING_BLOCKS,
         SYNCHED
@@ -45,7 +48,7 @@ public:
     void Sync(std::string host, int port);
     void StopSync();
 
-    bool IsOnline() const { return _store.connected() && _networkSync.connected(); }
+    bool IsOnline() const { return _walletStatus >= CONNECTED; }
 
     Coin::PrivateKey GetKey(bool createReceiveAddress);
     std::vector<Coin::PrivateKey> GetKeys(uint32_t numKeys, bool createReceiveAddress);
@@ -64,18 +67,19 @@ public:
 
     Q_INVOKABLE void BroadcastTx(Coin::Transaction & cointx);
 
-    int bestHeight() const { return _store.getBestHeaderHeight(); }
+    int32_t bestHeight() const;
 
 signals:
 
-    void NetSyncConnected();
-    void NetSyncDisconnected();
+
     void BlockTreeError();
     void BlockTreeChanged();
     void SynchingHeaders();
     void HeadersSynched();
     void SynchingBlocks();
     void BlocksSynched();
+
+    void StatusChanged(wallet_status_t);
     void BalanceChanged(uint64_t confirmedBalance, uint64_t unconfirmedBalance);
 
     void MerkleBlock();
@@ -96,8 +100,12 @@ private:
     Coin::Network _network;
 
     CoinQ::Network::NetworkSync _networkSync;
-    netsync_status_t _networkSyncStatus;
-    void updateStatus(netsync_status_t status) { _networkSyncStatus = status; }
+    wallet_status_t _walletStatus;
+
+    void updateStatus(wallet_status_t status) {
+        _walletStatus = status;
+        emit StatusChanged(status);
+    }
 
     std::string _blockTreeFile;
     bool _blockTreeLoaded;
