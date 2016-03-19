@@ -16,12 +16,6 @@ class Test : public QObject {
 
 private slots:
 
-    // Before any test
-    void initTestCase();
-
-    // Before each test
-    void init();
-
     // ***
     // Actual tests
     // ***

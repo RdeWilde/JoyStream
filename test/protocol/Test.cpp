@@ -170,6 +170,8 @@ void Test::selling() {
         QCOMPARE((static_cast<const wire::Sell *>(m))->terms(), terms);
     }
 
+    spy.reset();
+
     // Transition to Invited
     ContractInvitation invitation(1123,
                                   Coin::PrivateKey::generate().toPublicKey(),
@@ -181,6 +183,8 @@ void Test::selling() {
         QVERIFY_EXCEPTION_THROWN(machine->process_event(statemachine::event::Recv<wire::JoinContract>(&m)),
                                  statemachine::exception::InvitedToJoinContractByNonBuyer);
     }
+
+    spy.reset();
 
     // Create fresh machine in sell mode,
     // the exception destroys machine state
@@ -195,12 +199,16 @@ void Test::selling() {
         QCOMPARE(machine->peerAnnouncedMode().modeAnnounced(), ModeAnnounced::buy);
     }
 
+    spy.reset();
+
     // Then try with wrong index, and check that failure callback is called for this
     {
         wire::JoinContract m(invitation, 31);
         machine->process_event(statemachine::event::Recv<wire::JoinContract>(&m));
         QVERIFY(spy.hasBeenInvitedToOutdatedContract());
     }
+
+    spy.reset();
 
     /*
     // Then we do it with correct index,

@@ -116,11 +116,19 @@ void StateMachineCallbackSpy::reset() {
 }
 
 bool StateMachineCallbackSpy::hasBeenInvitedToOutdatedContract() const {
-    return _hasBeenInvitedToOutdatedContract;
+    return _hasBeenInvitedToOutdatedContract &&
+           !_hasBeenInvitedToJoinContract &&
+           !_messageSent &&
+           !_contractHasBeenPrepared &&
+           !_pieceHasBeenRequested;
 }
 
 bool StateMachineCallbackSpy::hasBeenInvitedToJoinContract() const {
-    return _hasBeenInvitedToJoinContract;
+    return !_hasBeenInvitedToOutdatedContract &&
+           _hasBeenInvitedToJoinContract &&
+           !_messageSent &&
+           !_contractHasBeenPrepared &&
+           !_pieceHasBeenRequested;
 }
 
 joystream::protocol::ContractInvitation StateMachineCallbackSpy::invitation() const {
@@ -128,7 +136,11 @@ joystream::protocol::ContractInvitation StateMachineCallbackSpy::invitation() co
 }
 
 bool StateMachineCallbackSpy::messageSent() const {
-    return _messageSent;
+    return !_hasBeenInvitedToOutdatedContract &&
+           !_hasBeenInvitedToJoinContract &&
+           _messageSent &&
+           !_contractHasBeenPrepared &&
+           !_pieceHasBeenRequested;
 }
 
 const joystream::protocol::wire::ExtendedMessagePayload *StateMachineCallbackSpy::message() const {
@@ -136,7 +148,11 @@ const joystream::protocol::wire::ExtendedMessagePayload *StateMachineCallbackSpy
 }
 
 bool StateMachineCallbackSpy::contractHasBeenPrepared() const {
-    return _contractHasBeenPrepared;
+    return !_hasBeenInvitedToOutdatedContract &&
+           !_hasBeenInvitedToJoinContract &&
+           !_messageSent &&
+           _contractHasBeenPrepared &&
+           !_pieceHasBeenRequested;
 }
 
 Coin::typesafeOutPoint StateMachineCallbackSpy::anchor() const {
@@ -144,7 +160,11 @@ Coin::typesafeOutPoint StateMachineCallbackSpy::anchor() const {
 }
 
 bool StateMachineCallbackSpy::pieceHasBeenRequested() const {
-    return _pieceHasBeenRequested;
+    return !_hasBeenInvitedToOutdatedContract &&
+           !_hasBeenInvitedToJoinContract &&
+           !_messageSent &&
+           !_contractHasBeenPrepared &&
+           _pieceHasBeenRequested;
 }
 
 int StateMachineCallbackSpy::piece() const {
