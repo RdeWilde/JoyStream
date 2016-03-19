@@ -10,21 +10,6 @@
 
 #include <QtTest/QtTest>
 
-#include <protocol/statemachine/CBStateMachine.hpp>
-#include <protocol/ContractInvitation.hpp>
-#include <common/typesafeOutPoint.hpp>
-#include <common/KeyPair.hpp>
-
-namespace joystream {
-namespace protocol {
-namespace wire {
-    class ExtendedMessagePayload;
-}
-}
-}
-
-using namespace joystream::protocol;
-
 class Test : public QObject {
 
     Q_OBJECT
@@ -41,6 +26,8 @@ private slots:
     // Actual tests
     // ***
 
+    //// Statemachine tests
+
     // Lots of state transitions
     void clientToSellMode();
     void clientToBuyMode();
@@ -51,45 +38,13 @@ private slots:
     void peerToBuyMode();
     void peerToObserveMode();
 
+    // Flow through selling states
+    void selling();
+
 public:
-
-    // ***
-    // Variables for encoding result of most recent callback
-    // ***
-
-    // InvitedToOutdatedContract
-    statemachine::CBStateMachine::InvitedToOutdatedContract _invitedToOutdatedContract;
-    bool _hasBeenInvitedToOutdatedContract;
-
-    // InvitedToJoinContract
-    statemachine::CBStateMachine::InvitedToJoinContract _invitedToJoinContract;
-    bool _hasBeenInvitedToJoinContract;
-    ContractInvitation _invitation;
-
-    // Send
-    statemachine::CBStateMachine::Send _send;
-    bool _messageSent;
-    const wire::ExtendedMessagePayload * _sendMessage;
-
-    // ContractIsReady
-    statemachine::CBStateMachine::ContractIsReady _contractIsReady;
-    bool _contractHasBeenPrepared;
-    Coin::typesafeOutPoint _anchor;
-
-    // PieceRequested
-    statemachine::CBStateMachine::PieceRequested _pieceRequested;
-    bool _pieceHasBeenRequested;
-    int _piece;
 
 private:
 
-    // Utility routines
-    statemachine::CBStateMachine * createFreshMachineInObserveMode();
-    statemachine::CBStateMachine * createFreshMachineInBuyMode(const BuyerTerms & terms);
-    statemachine::CBStateMachine * createFreshMachineInSellMode(const SellerTerms & terms);
-    statemachine::CBStateMachine * createFreshMachine();
-
-    void resetCallbackState();
 };
 
 #endif // TEST_HPP

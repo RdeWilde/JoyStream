@@ -15,10 +15,12 @@ QT      += core
 QT      += testlib
 
 HEADERS += \
-    Test.hpp
+    Test.hpp \
+    StateMachineCallbackSpy.hpp
 
 SOURCES += \
-    Test.cpp
+    Test.cpp \
+    StateMachineCallbackSpy.cpp
 
 # protocol ###################################################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../protocol/release/ -lprotocol

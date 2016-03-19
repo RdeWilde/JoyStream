@@ -11,103 +11,88 @@
 #include <protocol/statemachine/ReadyForInvitation.hpp>
 #include <protocol/statemachine/Buying.hpp>
 #include <protocol/statemachine/Observing.hpp>
+#include <protocol/statemachine/Invited.hpp>
+
 #include <protocol/wire/Observe.hpp>
 #include <protocol/wire/MessageType.hpp>
+#include <protocol/wire/JoiningContract.hpp>
 
-#include <iostream>
+#include <protocol/statemachine/exception/InvitedToJoinContractByNonBuyer.hpp>
 
-void Test::initTestCase() {
+#include <common/PrivateKey.hpp>
 
-    // InvitedToOutdatedContract
-    _invitedToOutdatedContract = [this](void) {
-        _hasBeenInvitedToOutdatedContract = true;
-    };
+#include <StateMachineCallbackSpy.hpp>
 
-    // InvitedToJoinContract
-    _invitedToJoinContract = [this](const ContractInvitation & invitation) {
-        _hasBeenInvitedToJoinContract = true;
-        _invitation = invitation;
-    };
-
-    // Send
-    _send = [this](const wire::ExtendedMessagePayload * m) {
-
-        std::cout << "Sending message: " <<  wire::MessageTypeToString(m->messageType()) << std::endl;
-
-        _messageSent = true;
-        _sendMessage = m;
-    };
-
-    // ContractIsReady
-    _contractIsReady = [this](const Coin::typesafeOutPoint & o) {
-        _contractHasBeenPrepared = true;
-        _anchor = o;
-    };
-
-    // PieceRequested
-    _pieceRequested = [this](int i) {
-        _pieceHasBeenRequested = true;
-        _piece = i;
-    };
-}
-
-void Test::init() {
-    resetCallbackState();
-}
+using namespace joystream::protocol;
 
 void Test::clientToSellMode() {
 
+    StateMachineCallbackSpy spy;
+
     // Get machine into mode
     SellerTerms terms(1,2,3,4,5);
-    statemachine::CBStateMachine * machine = createFreshMachineInSellMode(terms);
+    statemachine::CBStateMachine * machine = spy.createFreshMachineInSellMode(terms);
 
     // Check that we are in correct state
     QCOMPARE(machine->getInnerStateName(), typeid(statemachine::ReadyForInvitation).name());
 
     // Check that sell message was sent
-    QVERIFY(_messageSent);
-    QCOMPARE(_sendMessage->messageType(), wire::MessageType::sell);
+    QVERIFY(spy.messageSent());
+    QCOMPARE(spy.message()->messageType(), wire::MessageType::sell);
 
     // Check that same terms have been sent
-    const wire::Sell * m = static_cast<const wire::Sell *>(_sendMessage);
-    QCOMPARE(m->terms(), terms);
+    QCOMPARE((static_cast<const wire::Sell *>(spy.message()))->terms(), terms);
+
+    // Clean up machine
+    delete machine;
 }
 
 void Test::clientToBuyMode() {
 
+    StateMachineCallbackSpy spy;
+
     // Get machine into mode
     BuyerTerms terms(1,2,3,4,5);
-    statemachine::CBStateMachine * machine = createFreshMachineInBuyMode(terms);
+    statemachine::CBStateMachine * machine = spy.createFreshMachineInBuyMode(terms);
 
     // Check that we are in correct state
     QCOMPARE(machine->getInnerStateName(), typeid(statemachine::Buying).name());
 
     // Check that sell message was sent
-    QVERIFY(_messageSent);
-    QCOMPARE(_sendMessage->messageType(), wire::MessageType::buy);
+    QVERIFY(spy.messageSent());
+    QCOMPARE(spy.message()->messageType(), wire::MessageType::buy);
 
     // Check that same terms have been sent
-    const wire::Buy * m = static_cast<const wire::Buy *>(_sendMessage);
-    QCOMPARE(m->terms(), terms);
+    QCOMPARE((static_cast<const wire::Buy *>(spy.message()))->terms(), terms);
+
+    // Clean up machine
+    delete machine;
 }
 
 void Test::clientToObserveMode() {
 
+    StateMachineCallbackSpy spy;
+
     // Get machine into mode
-    statemachine::CBStateMachine * machine = createFreshMachineInObserveMode();
+    statemachine::CBStateMachine * machine = spy.createFreshMachineInObserveMode();
 
     // Check that we are in correct state
     QCOMPARE(machine->getInnerStateName(), typeid(statemachine::Observing).name());
 
     // Check that sell message was sent
-    QVERIFY(_messageSent);
-    QCOMPARE(_sendMessage->messageType(), wire::MessageType::observe);
+    QVERIFY(spy.messageSent());
+    QCOMPARE(spy.message()->messageType(), wire::MessageType::observe);
+
+    // Clean up machine
+    delete machine;
 }
 
 void Test::peerToSellMode() {
 
+    StateMachineCallbackSpy spy;
+
     // Get machine into mode
-    statemachine::CBStateMachine * machine = createFreshMachineInObserveMode();
+    statemachine::CBStateMachine * machine = spy.createFreshMachineInObserveMode();
 
     // Recieve mode message from peer
     SellerTerms terms(1,2,3,4,5);
@@ -120,12 +105,17 @@ void Test::peerToSellMode() {
     QCOMPARE(announced.modeAnnounced(), ModeAnnounced::sell);
     QCOMPARE(announced.sellModeTerms(), terms);
     QCOMPARE(announced.index(), index);
+
+    // Clean up machine
+    delete machine;
 }
 
 void Test::peerToBuyMode() {
 
+    StateMachineCallbackSpy spy;
+
     // Get machine into mode
-    statemachine::CBStateMachine * machine = createFreshMachineInObserveMode();
+    statemachine::CBStateMachine * machine = spy.createFreshMachineInObserveMode();
 
     // Recieve mode message from peer
     BuyerTerms terms(1,2,3,4,5);
@@ -136,12 +126,17 @@ void Test::peerToBuyMode() {
     PeerModeAnnounced announced = machine->peerAnnouncedMode();
     QCOMPARE(announced.modeAnnounced(), ModeAnnounced::buy);
     QCOMPARE(announced.buyModeTerms(), terms);
+
+    // Clean up machine
+    delete machine;
 }
 
 void Test::peerToObserveMode() {
 
+    StateMachineCallbackSpy spy;
+
     // Get machine into mode
-    statemachine::CBStateMachine * machine = createFreshMachineInObserveMode();
+    statemachine::CBStateMachine * machine = spy.createFreshMachineInObserveMode();
 
     // Recieve mode message from peer
     wire::Observe m;
@@ -149,72 +144,89 @@ void Test::peerToObserveMode() {
 
     // test deep history transition at various times?
     QCOMPARE(machine->peerAnnouncedMode().modeAnnounced(), ModeAnnounced::observe);
+
+    // Clean up machine
+    delete machine;
 }
 
-statemachine::CBStateMachine * Test::createFreshMachineInObserveMode() {
+void Test::selling() {
 
-    // Create and initiate state machine
-    statemachine::CBStateMachine * machine = createFreshMachine();
+    StateMachineCallbackSpy spy;
 
-    // Switch to observe mode
-    machine->process_event(statemachine::event::ObserveModeStarted());
+    // Get machine into mode
+    SellerTerms terms(1,2,3,4,5);
+    statemachine::CBStateMachine * machine = spy.createFreshMachineInSellMode(terms);
 
-    return machine;
-}
+    //// ReadyForInvitation state
 
-statemachine::CBStateMachine * Test::createFreshMachineInBuyMode(const BuyerTerms & terms) {
+    // Check that we are in correct state
+    QCOMPARE(machine->getInnerStateName(), typeid(statemachine::ReadyForInvitation).name());
 
-    // Create and initiate state machine
-    statemachine::CBStateMachine * machine = createFreshMachine();
+    // Check that sell message was sent with correct terms
+    QVERIFY(spy.messageSent());
+    {
+        const joystream::protocol::wire::ExtendedMessagePayload * m = spy.message();
+        QCOMPARE(m->messageType(), wire::MessageType::sell);
+        QCOMPARE((static_cast<const wire::Sell *>(m))->terms(), terms);
+    }
 
-    // Switch to buy mode
-    machine->process_event(statemachine::event::BuyModeStarted(terms));
+    // Transition to Invited
+    ContractInvitation invitation(1123,
+                                  Coin::PrivateKey::generate().toPublicKey(),
+                                  Coin::PrivateKey::generate().toPublicKey());
 
-    return machine;
-}
+    // First try while peer is not buyer, which should cause exception to be thrown
+    {
+        wire::JoinContract m(invitation, 0);
+        QVERIFY_EXCEPTION_THROWN(machine->process_event(statemachine::event::Recv<wire::JoinContract>(&m)),
+                                 statemachine::exception::InvitedToJoinContractByNonBuyer);
+    }
 
-statemachine::CBStateMachine * Test::createFreshMachineInSellMode(const SellerTerms & terms) {
+    // Create fresh machine in sell mode,
+    // the exception destroys machine state
+    delete machine;
+    machine = spy.createFreshMachineInSellMode(terms);
 
-    // Create and initiate state machine
-    statemachine::CBStateMachine * machine = createFreshMachine();
+    // Then have peer send buy message
+    BuyerTerms buyerTerms(1,2,3,4,5);
+    {
+        wire::Buy m(buyerTerms);
+        machine->process_event(statemachine::event::Recv<wire::Buy>(&m));
+        QCOMPARE(machine->peerAnnouncedMode().modeAnnounced(), ModeAnnounced::buy);
+    }
 
-    // Switch to sell mode
-    machine->process_event(statemachine::event::SellModeStarted(terms));
+    // Then try with wrong index, and check that failure callback is called for this
+    {
+        wire::JoinContract m(invitation, 31);
+        machine->process_event(statemachine::event::Recv<wire::JoinContract>(&m));
+        QVERIFY(spy.hasBeenInvitedToOutdatedContract());
+    }
 
-    return machine;
-}
+    /*
+    // Then we do it with correct index,
+    machine->process_event(statemachine::event::Recv<wire::JoinContract>(new wire::JoinContract(invitation, 0)));
 
-statemachine::CBStateMachine * Test::createFreshMachine() {
+    // Reset callback state
+    resetCallbackState();
 
-    // Create
-    statemachine::CBStateMachine * machine = new statemachine::CBStateMachine(_invitedToOutdatedContract, _invitedToJoinContract, _send, _contractIsReady, _pieceRequested);
 
-    // Initiate machine
-    machine->initiate();
+    //// Invited state
 
-    return machine;
-}
 
-void Test::resetCallbackState() {
+    ////
 
-    // InvitedToOutdatedContract
-    _hasBeenInvitedToOutdatedContract = false;
+    // Transition to Invited
+    ContractRSVP rsvp(Coin::PrivateKey::generate().toPublicKey(), Coin::PrivateKey::generate().toPublicKey());
+    machine->process_event(statemachine::event::Joined(rsvp));
 
-    // InvitedToJoinContract
-    _hasBeenInvitedToJoinContract = false;
-    _invitation = ContractInvitation();
+    // Check that joining_contract message was sent
+    QVERIFY(_messageSent);
+    QCOMPARE(_sendMessage->messageType(), wire::MessageType::joining_contract);
+    QCOMPARE((static_cast<const wire::JoiningContract *>(_sendMessage))->rsvp(), rsvp);
+    */
 
-    // Send
-    _messageSent = false;
-    _sendMessage = NULL;
-
-    // ContractIsReady
-    _contractHasBeenPrepared = false;
-    _anchor = Coin::typesafeOutPoint();
-
-    // PieceRequested
-    _pieceHasBeenRequested = false;
-    _piece = 0;
+    // Clean up machine
+    delete machine;
 }
 
 QTEST_MAIN(Test)

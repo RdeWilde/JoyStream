@@ -16,6 +16,10 @@ namespace statemachine {
 
     class WaitingToStart : public sc::simple_state<WaitingToStart, Selling> {
 
+    public:
+
+    private:
+
     };
 
 }
