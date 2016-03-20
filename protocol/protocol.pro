@@ -125,7 +125,8 @@ SOURCES += \
     src/statemachine/WaitingToStart.cpp \
     src/statemachine/ReadyForPieceRequest.cpp \
     src/statemachine/event/PieceLoaded.cpp \
-    src/statemachine/PieceRequested.cpp
+    src/statemachine/PieceRequested.cpp \
+    src/statemachine/WaitingForPayment.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

@@ -9,6 +9,8 @@
 #define JOYSTREAM_PROTOCOL_STATE_MACHINE_WAITINGFORPAYMENT_HPP
 
 #include <protocol/statemachine/ServicingPieceRequest.hpp>
+#include <protocol/statemachine/event/Recv.hpp>
+#include <protocol/wire/Payment.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -18,7 +20,14 @@ namespace statemachine {
 
     public:
 
+        typedef boost::mpl::list<
+                                sc::custom_reaction<event::Recv<wire::Payment>>
+                                > reactions;
 
+        WaitingForPayment();
+
+        // Event handlers
+        sc::result react(const event::Recv<wire::Payment> &);
     };
 }
 }
