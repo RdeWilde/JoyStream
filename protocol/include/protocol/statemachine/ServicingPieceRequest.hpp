@@ -14,7 +14,8 @@ namespace joystream {
 namespace protocol {
 namespace statemachine {
 
-    class ServicingPieceRequest : public sc::simple_state<ServicingPieceRequest, Selling> {
+    class PieceRequested;
+    class ServicingPieceRequest : public sc::simple_state<ServicingPieceRequest, Selling, PieceRequested> {
 
     public:
 
@@ -34,5 +35,9 @@ namespace statemachine {
 }
 }
 }
+
+// Required to make ServicingPieceRequest complete when included throught his header file,
+// as PieceRequested is initial state and thus part of parent state_machine definition
+#include <protocol/statemachine/PieceRequested.hpp>
 
 #endif // JOYSTREAM_PROTOCOL_STATEMACHINE_SERVICINGPIECEREQUEST_HPP
