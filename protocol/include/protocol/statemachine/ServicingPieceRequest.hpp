@@ -16,10 +16,23 @@ namespace statemachine {
 
     class ServicingPieceRequest : public sc::simple_state<ServicingPieceRequest, Selling> {
 
+    public:
+
+        typedef boost::mpl::list<
+                                sc::custom_reaction<event::Recv<wire::Observe>>,
+                                sc::custom_reaction<event::Recv<wire::Buy>>,
+                                sc::custom_reaction<event::Recv<wire::Sell>>
+                                > reactions;
+
+        ServicingPieceRequest();
+
+        // Event handlers
+        sc::result react(const event::Recv<wire::Observe> &);
+        sc::result react(const event::Recv<wire::Buy> &);
+        sc::result react(const event::Recv<wire::Sell> &);
     };
 }
 }
 }
 
 #endif // JOYSTREAM_PROTOCOL_STATEMACHINE_SERVICINGPIECEREQUEST_HPP
-
