@@ -12,6 +12,7 @@
 #include <protocol/wire/MessageType.hpp>
 #include <protocol/ContractInvitation.hpp>
 #include <common/typesafeOutPoint.hpp>
+#include <common/Signature.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -43,7 +44,6 @@ public:
     void reset();
 
     // Getters
-
     bool hasBeenInvitedToOutdatedContract() const;
 
     bool hasBeenInvitedToJoinContract() const;
@@ -57,6 +57,11 @@ public:
 
     bool pieceHasBeenRequested() const;
     int piece() const;
+
+    bool paymentInterrupted() const;
+
+    bool receivedInvalidPayment() const;
+    Coin::Signature incorrectSignature() const;
 
 private:
 
@@ -87,6 +92,15 @@ private:
     CBStateMachine::PieceRequested _pieceRequested;
     bool _pieceHasBeenRequested;
     int _piece;
+
+    // PeerInterruptedPayment
+    CBStateMachine::PeerInterruptedPayment _peerInterruptedPayment;
+    bool _paymentInterrupted;
+
+    // InvalidPayment
+    CBStateMachine::InvalidPayment _invalidPayment;
+    bool _receivedInvalidPayment;
+    Coin::Signature _incorrectSignature;
 
 };
 

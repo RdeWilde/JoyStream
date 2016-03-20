@@ -20,12 +20,16 @@ namespace statemachine {
                                    const InvitedToJoinContract & invitedToJoinContract,
                                    const Send & sendMessage,
                                    const ContractIsReady & contractIsReady,
-                                   const PieceRequested & pieceRequested)
+                                   const PieceRequested & pieceRequested,
+                                   const PeerInterruptedPayment & peerInterruptedPayment,
+                                   const InvalidPayment & invalidPayment)
         : _invitedToOutdatedContract(invitedToOutdatedContract)
         , _invitedToJoinContract(invitedToJoinContract)
         , _sendMessage(sendMessage)
         , _contractIsReady(contractIsReady)
-        , _pieceRequested(pieceRequested) {
+        , _pieceRequested(pieceRequested)
+        , _peerInterruptedPayment(peerInterruptedPayment)
+        , _invalidPayment(invalidPayment) {
     }
 
     const char * CBStateMachine::getInnerStateName() const {
@@ -85,6 +89,14 @@ namespace statemachine {
 
     CBStateMachine::PieceRequested CBStateMachine::pieceRequested() const {
         return _pieceRequested;
+    }
+
+    CBStateMachine::PeerInterruptedPayment CBStateMachine::getPeerInterruptedPayment() const {
+        return _peerInterruptedPayment;
+    }
+
+    CBStateMachine::InvalidPayment CBStateMachine::getInvalidPayment() const {
+        return _invalidPayment;
     }
 
     joystream::protocol::PeerModeAnnounced CBStateMachine::peerAnnouncedMode() const {

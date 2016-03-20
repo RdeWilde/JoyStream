@@ -18,6 +18,7 @@ namespace sc = boost::statechart;
 namespace Coin {
     class typesafeOutPoint;
     class PublicKey;
+    class Signature;
 }
 
 namespace joystream {
@@ -51,14 +52,22 @@ namespace protocol {
             // Peer announced that contract is now ready, should contract be be included? it was available
             typedef std::function<void(const Coin::typesafeOutPoint &)> ContractIsReady;
 
-            // Peer requested
+            // Peer requested piece
             typedef std::function<void(int)> PieceRequested;
+
+            // Peer sent mode message when payment was expected/required
+            typedef std::function<void()> PeerInterruptedPayment;
+
+            // Peer sent an invalid payment signature
+            typedef std::function<void(const Coin::Signature &)> InvalidPayment;
 
             CBStateMachine(const InvitedToOutdatedContract & invitedToOutdatedContract,
                            const InvitedToJoinContract & invitedToJoinContract,
                            const Send & sendMessage,
                            const ContractIsReady & contractIsReady,
-                           const PieceRequested & pieceRequested);
+                           const PieceRequested & pieceRequested,
+                           const PeerInterruptedPayment & peerInterruptedPayment,
+                           const InvalidPayment & invalidPayment);
 
             // Get name of current state: ***Varies from compiler to compiler***
             const char * getInnerStateName() const;
@@ -85,6 +94,10 @@ namespace protocol {
 
             joystream::protocol::PeerModeAnnounced peerAnnouncedMode() const;
 
+            PeerInterruptedPayment getPeerInterruptedPayment() const;
+
+            InvalidPayment getInvalidPayment() const;
+
         private:
 
             // Callbacks for classifier routines
@@ -93,6 +106,8 @@ namespace protocol {
             Send _sendMessage;
             ContractIsReady _contractIsReady;
             PieceRequested _pieceRequested;
+            PeerInterruptedPayment _peerInterruptedPayment;
+            InvalidPayment _invalidPayment;
 
             //// Peer state
             //*** Just factor out modeannounced and index, dont save actual terms? ***
