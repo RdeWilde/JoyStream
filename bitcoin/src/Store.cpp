@@ -45,6 +45,8 @@ bool Store::open(std::string file) {
 
     // attempt to open existing database
     try {
+        std::lock_guard<std::mutex> lock(_storeMutex);
+
         _db = std::unique_ptr<odb::database>(new odb::sqlite::database(file.c_str(), SQLITE_OPEN_READWRITE));
 
         odb::schema_version v(_db->schema_version());
@@ -110,13 +112,15 @@ bool Store::create(std::string file, Coin::Network network, Coin::Seed seed, uin
 
     close();
 
-    //don't overwrite existing file
-    if(boost::filesystem::exists(file)) {
-        std::cerr << "Cannot create database over existing file.\n";
-        return false;
-    }
-
     try {
+        std::lock_guard<std::mutex> lock(_storeMutex);
+
+        //don't overwrite existing file
+        if(boost::filesystem::exists(file)) {
+            std::cerr << "Cannot create database over existing file.\n";
+            return false;
+        }
+
         _db = std::unique_ptr<odb::database>(new odb::sqlite::database(file.c_str(), SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE));
 
         // Create the database schema. Due to bugs in SQLite foreign key
@@ -162,10 +166,13 @@ bool Store::connected() const {
 }
 
 void Store::close() {
+    std::lock_guard<std::mutex> lock(_storeMutex);
+
     if(_db) _db.reset();
     _seed.clear();
 }
 
+// Generates a new key (NOT from key pool) so doesn't require synchronization
 Coin::HDKeychain Store::getKeyChain(bool createReceiveAddress) {
     if(!_db) {
         throw std::runtime_error("database not connected");
@@ -178,14 +185,19 @@ Coin::HDKeychain Store::getKeyChain(bool createReceiveAddress) {
     return hdKeyChain;
 }
 
+// Generates a new key (NOT from key pool) so doesn't require synchronization
 Coin::PrivateKey Store::getKey(bool createReceiveAddress){
     Coin::HDKeychain keychain(getKeyChain(createReceiveAddress));
     return Coin::PrivateKey(keychain.privkey());
 }
 
+
 std::vector<Coin::HDKeychain> Store::getKeyChains(uint32_t numKeys, bool createReceiveAddress) {
     typedef odb::query<detail::store::key_view_t> query;
     typedef odb::result<detail::store::key_view_t> result;
+
+    // This routine retrieves unused keys (from the key pool) so requires synchronization
+    std::lock_guard<std::mutex> lock(_storeMutex);
 
     std::vector<Coin::HDKeychain> keychains;
     result r;
@@ -203,6 +215,7 @@ std::vector<Coin::HDKeychain> Store::getKeyChains(uint32_t numKeys, bool createR
     for(auto &i : r) {
         Coin::HDKeychain hdKeyChain(_rootKeychain.getChild(i.key->id()));
         keychains.push_back(hdKeyChain);
+        // removing key from the pool
         i.key->used(true);
         _db->update(i.key);
         Coin::PrivateKey sk(hdKeyChain.privkey());
@@ -225,6 +238,7 @@ std::vector<Coin::HDKeychain> Store::getKeyChains(uint32_t numKeys, bool createR
 }
 
 std::vector<Coin::PrivateKey> Store::getKeys(uint32_t numKeys, bool createReceiveAddress) {
+    // store access synchronization is done in getKeyChains()
     std::vector<Coin::HDKeychain> keychains(getKeyChains(numKeys, createReceiveAddress));
 
     std::vector<Coin::PrivateKey> keys;
@@ -235,6 +249,8 @@ std::vector<Coin::PrivateKey> Store::getKeys(uint32_t numKeys, bool createReceiv
     return keys;
 }
 
+// Generates new keys (NOT from key pool) so doesn't require synchronization
+// Not this routine could be refactored to use getKeyChains() to retreive keys from the 'key pool'
 std::vector<Coin::KeyPair> Store::getKeyPairs(uint32_t num_pairs, bool createReceiveAddress) {
     if(!_db) {
         throw std::runtime_error("database not connected");
@@ -254,6 +270,7 @@ std::vector<Coin::KeyPair> Store::getKeyPairs(uint32_t num_pairs, bool createRec
     return key_pairs;
 }
 
+// Generates a new key so doesn't require synchronization
 Coin::P2PKHAddress Store::getReceiveAddress() {
     Coin::PrivateKey sk(getKeyChain(true).privkey());
     return sk.toPublicKey().toP2PKHAddress(_network);
@@ -277,6 +294,9 @@ void Store::releaseKey(const Coin::HDKeychain & hdKeyChain) {
         throw std::runtime_error("attemp to release key not dervied from root keychain");
     }
 
+    // Releasing a key requires synchronizing access to the key pool
+    std::lock_guard<std::mutex> lock(_storeMutex);
+
     odb::transaction t(_db->begin());
     detail::store::Key key(hdKeyChain.child_num(), false);
     _db->update(key);
@@ -299,6 +319,9 @@ void Store::releaseKey(uint32_t index) {
         throw std::runtime_error("database not connected");
     }
 
+    // Releasing a key requires synchronizing access to the key pool
+    std::lock_guard<std::mutex> lock(_storeMutex);
+
     odb::transaction t(_db->begin());
     detail::store::Key key(index, false);
     _db->update(key);
@@ -309,6 +332,9 @@ void Store::releaseKeys(const std::vector<Coin::HDKeychain> keychains) {
     if(!_db) {
         throw std::runtime_error("database not connected");
     }
+
+    // Releasing a key requires synchronizing access to the key pool
+    std::lock_guard<std::mutex> lock(_storeMutex);
 
     odb::transaction t(_db->begin());
     for(auto &hdKeyChain : keychains) {
@@ -331,6 +357,9 @@ void Store::releaseAddress(const Coin::P2PKHAddress & p2pkhaddress) {
 
     std::string base58 = p2pkhaddress.toBase58CheckEncoding().toStdString();
     typedef odb::query<detail::store::Address> query;
+
+    // Releasing a key requires synchronizing access to the key pool
+    std::lock_guard<std::mutex> lock(_storeMutex);
 
     odb::transaction t(_db->begin());
     std::shared_ptr<detail::store::Address> addr(_db->query_one<detail::store::Address>(query::address == base58));
@@ -416,6 +445,8 @@ void Store::addTransaction(const Coin::Transaction & cointx) {
 }
 
 void Store::addTransaction(const Coin::Transaction & cointx, const ChainMerkleBlock & chainmerkleblock, bool createHeader) {
+    std::lock_guard<std::mutex> lock(_storeMutex);
+
     odb::transaction t(_db->begin());
 
     //get header or create new one
@@ -437,6 +468,8 @@ void Store::addTransaction(const Coin::Transaction & cointx, const ChainMerkleBl
 }
 
 void Store::addBlockHeader(const ChainMerkleBlock & chainmerkleblock) {
+    std::lock_guard<std::mutex> lock(_storeMutex);
+
     odb::transaction t(_db->begin());
 
     insertBlockHeader(_db, chainmerkleblock);
@@ -445,6 +478,7 @@ void Store::addBlockHeader(const ChainMerkleBlock & chainmerkleblock) {
 }
 
 void Store::confirmTransaction(std::string txhash, const ChainMerkleBlock &chainmerkleblock, bool createHeader) {
+    std::lock_guard<std::mutex> lock(_storeMutex);
 
     odb::transaction t(_db->begin());
 

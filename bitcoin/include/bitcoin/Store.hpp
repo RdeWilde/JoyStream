@@ -15,6 +15,8 @@
 
 #include <odb/database.hxx>
 
+#include <mutex>
+
 namespace joystream {
 namespace bitcoin {
 class Store {
@@ -87,6 +89,7 @@ private:
     Coin::HDKeychain _rootKeychain;
     uint32_t _timestamp;
     std::unique_ptr<odb::database> _db;
+    mutable std::mutex _storeMutex;
 
     std::map<Coin::PublicKey, uint32_t> _publicKeyToIndex;
 
