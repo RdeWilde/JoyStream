@@ -142,13 +142,13 @@ void SPVWallet::Create() {
     updateStatus(OFFLINE);
 }
 
-void SPVWallet::Create(Coin::Seed seed) {
+void SPVWallet::Create(Coin::Seed seed, uint32_t timestamp) {
 
     if(_walletStatus != UNINITIALIZED) {
         throw std::runtime_error("wallet already opened");
     }
 
-    if(!_store.create(_storePath, _network, seed, std::time(nullptr))){
+    if(!_store.create(_storePath, _network, seed, timestamp == 0 ? std::time(nullptr) : timestamp)){
         throw std::runtime_error("unable to create store");
     }
 

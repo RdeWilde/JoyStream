@@ -39,7 +39,7 @@ public:
     void Create();
 
     // Create a new wallet with provided seed (useful for recovering a wallet from seed)
-    void Create(Coin::Seed seed);
+    void Create(Coin::Seed seed, uint32_t timestamp = 0);
 
     // Open the wallet. Will throw exception on failure.
     void Open();
