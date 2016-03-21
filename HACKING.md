@@ -45,7 +45,7 @@ referred to as origin.
 Development workflow
 ------------------------------------------------------------
 
-1. Create new feature branch based off upstream development branch.
+1. Check out the development branch
 
     `git checkout development`
 
