@@ -1,4 +1,3 @@
-------------------------------------------------------------
 Rules
 ------------------------------------------------------------
 
@@ -18,7 +17,6 @@ to compile. If you have to push commits which are partial work
 due to end of day migration to another workstation, then make 
 a temporary WIP commit which you remove/squash when you continue working.
 
-------------------------------------------------------------
 Initial setup
 ------------------------------------------------------------
 
@@ -44,7 +42,6 @@ referred to as origin.
   
     `git checkout -b development --track origin/development`
 
-------------------------------------------------------------
 Development workflow
 ------------------------------------------------------------
 
