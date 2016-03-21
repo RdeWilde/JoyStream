@@ -6,11 +6,8 @@
  */
 
 #include <protocol/statemachine/CBStateMachine.hpp>
-#include <protocol/wire/Observe.hpp>
-#include <protocol/wire/Sell.hpp>
-#include <protocol/wire/Buy.hpp>
+#include <protocol/statemachine/exception/StateIncompatibleEvent.hpp>
 
-#include <cassert>
 
 namespace joystream {
 namespace protocol {
@@ -30,6 +27,10 @@ namespace statemachine {
         , _pieceRequested(pieceRequested)
         , _peerInterruptedPayment(peerInterruptedPayment)
         , _invalidPayment(invalidPayment) {
+    }
+
+    void CBStateMachine::unconsumed_event(const sc::event_base & e) {
+        throw exception::StateIncompatibleEvent();
     }
 
     /**

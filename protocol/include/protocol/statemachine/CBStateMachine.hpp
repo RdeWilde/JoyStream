@@ -70,6 +70,8 @@ namespace protocol {
                            const PeerInterruptedPayment & peerInterruptedPayment,
                            const InvalidPayment & invalidPayment);
 
+            void unconsumed_event(const sc::event_base &);
+
             // Deprecated: internals should not be directly visible for client or tester
             // Get name of current state: ***Varies from compiler to compiler***
             //const char * getInnerStateName() const;

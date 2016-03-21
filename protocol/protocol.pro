@@ -63,7 +63,6 @@ HEADERS += \
     include/protocol/statemachine/Observing.hpp \
     include/protocol/statemachine/ReadyForInvitation.hpp \
     include/protocol/statemachine/Invited.hpp \
-    include/protocol/statemachine/exception/InvitedToJoinContractByNonBuyer.hpp \
     include/protocol/ModeAnnounced.hpp \
     include/protocol/ContractRSVP.hpp \
     include/protocol/statemachine/event/UpdateTerms.hpp \
@@ -76,7 +75,9 @@ HEADERS += \
     include/protocol/statemachine/WaitingForPayment.hpp \
     include/protocol/statemachine/detail/InitializeBuying.hpp \
     include/protocol/statemachine/detail/InitializeSelling.hpp \
-    include/protocol/statemachine/detail/InitializeObserving.hpp
+    include/protocol/statemachine/detail/InitializeObserving.hpp \
+    include/protocol/statemachine/exception/StateIncompatibleEvent.hpp \
+    include/protocol/statemachine/exception/InvitedToJoinContractByNonBuyer.hpp \
 
 SOURCES += \
     src/wire/ExtendedMessagePayload.cpp \
@@ -108,6 +109,7 @@ SOURCES += \
     src/BuyerChannelSettings.cpp \
     src/Session.cpp \
     src/ContractInvitation.cpp \
+    src/ContractRSVP.cpp \
     src/statemachine/ServicingPieceRequest.cpp \
     src/statemachine/SellerJoined.cpp \
     src/statemachine/CBStateMachine.cpp \
@@ -122,7 +124,7 @@ SOURCES += \
     src/statemachine/ReadyForInvitation.cpp \
     src/statemachine/Invited.cpp \
     src/statemachine/exception/InvitedToJoinContractByNonBuyer.cpp \
-    src/ContractRSVP.cpp \
+    src/statemachine/exception/StateIncompatibleEvent.cpp \
     src/statemachine/event/UpdateTerms.cpp \
     src/statemachine/event/Joined.cpp \
     src/statemachine/WaitingToStart.cpp \
@@ -131,7 +133,7 @@ SOURCES += \
     src/statemachine/PieceRequested.cpp \
     src/statemachine/WaitingForPayment.cpp \
     src/statemachine/detail/InitializeBuying.cpp \
-    src/statemachine/detail/InitializeSelling.cpp
+    src/statemachine/detail/InitializeSelling.cpp \
 
 # common
 INCLUDEPATH += $$PWD/../common/include
