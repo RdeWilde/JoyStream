@@ -19,9 +19,9 @@ private slots:
     //// Statemachine tests
 
     // Client mode change operations
+    void clientToObserveMode();
     void clientToSellMode();
     void clientToBuyMode();
-    void clientToObserveMode();
 
     // Peer announces mode change
     void peerToSellMode();

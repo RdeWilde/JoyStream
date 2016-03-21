@@ -21,7 +21,7 @@ sc::result WaitingForPayment::react(const event::Recv<wire::Payment> &) {
 
     // NOT DONE
 
-    //
+    /**
     if(valid) {
         // transition to ReadyForPieceRequest
         // we need to increment payment counter in the selling class
@@ -30,5 +30,5 @@ sc::result WaitingForPayment::react(const event::Recv<wire::Payment> &) {
         // send invlaidPayment to lcient
         //  terminate
     }
-
+    */
 }

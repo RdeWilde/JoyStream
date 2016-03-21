@@ -26,6 +26,24 @@
 
 using namespace joystream::protocol;
 
+void Test::clientToObserveMode() {
+
+    StateMachineCallbackSpy spy;
+
+    // Get machine into mode
+    statemachine::CBStateMachine * machine = spy.createFreshMachineInObserveMode();
+
+    // Check that we are in correct state
+    QCOMPARE(machine->getInnerStateName(), typeid(statemachine::Observing).name());
+
+    // Check that sell message was sent
+    QVERIFY(spy.messageSent());
+    QCOMPARE(spy.message()->messageType(), wire::MessageType::observe);
+
+    // Clean up machine
+    delete machine;
+}
+
 void Test::clientToSellMode() {
 
     StateMachineCallbackSpy spy;
@@ -65,24 +83,6 @@ void Test::clientToBuyMode() {
 
     // Check that same terms have been sent
     QCOMPARE((static_cast<const wire::Buy *>(spy.message()))->terms(), terms);
-
-    // Clean up machine
-    delete machine;
-}
-
-void Test::clientToObserveMode() {
-
-    StateMachineCallbackSpy spy;
-
-    // Get machine into mode
-    statemachine::CBStateMachine * machine = spy.createFreshMachineInObserveMode();
-
-    // Check that we are in correct state
-    QCOMPARE(machine->getInnerStateName(), typeid(statemachine::Observing).name());
-
-    // Check that sell message was sent
-    QVERIFY(spy.messageSent());
-    QCOMPARE(spy.message()->messageType(), wire::MessageType::observe);
 
     // Clean up machine
     delete machine;
@@ -278,7 +278,7 @@ void Test::selling() {
     // and we are in ServicingPieceRequest
     QVERIFY(spy.pieceHasBeenRequested());
     QCOMPARE(spy.piece(), pieceIndex);
-    QCOMPARE(machine->getInnerStateName(), typeid(statemachine::ServicingPieceRequest).name());
+    QCOMPARE(machine->getInnerStateName(), typeid(statemachine::PieceRequested).name());
 
     spy.reset();
 

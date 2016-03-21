@@ -9,6 +9,7 @@
 #define JOYSTREAM_PROTOCOL_STATE_MACHINE_SELL_HPP
 
 #include <protocol/statemachine/Active.hpp>
+#include <protocol/statemachine/detail/InitializeSelling.hpp>
 #include <protocol/statemachine/event/UpdateTerms.hpp>
 #include <protocol/ContractInvitation.hpp>
 
@@ -29,6 +30,7 @@ namespace statemachine {
     public:
 
         typedef boost::mpl::list<
+                                sc::custom_reaction<detail::InitializeSelling>,
                                 sc::custom_reaction<event::ObserveModeStarted>,
                                 sc::custom_reaction<event::BuyModeStarted>,
                                 sc::custom_reaction<event::UpdateTerms<SellerTerms>>
@@ -37,6 +39,7 @@ namespace statemachine {
         Selling();
 
         // Event handlers
+        sc::result react(const detail::InitializeSelling &);
         sc::result react(const event::ObserveModeStarted &);
         sc::result react(const event::BuyModeStarted &);
         sc::result react(const event::UpdateTerms<SellerTerms> &);
@@ -46,9 +49,15 @@ namespace statemachine {
 
     private:
 
+        // Whether state has been initialized with detail::InitializeSelling
+        bool _initialized;
+
         //// Client state
 
-        // Terms
+        // Most recent terms broadcastded
+        SellerTerms _terms;
+
+        // Index for most recent terms broadcasted
         uint32_t _index;
 
         // Contract invitation received

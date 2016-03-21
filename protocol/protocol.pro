@@ -73,7 +73,10 @@ HEADERS += \
     include/protocol/statemachine/ServicingPieceRequest.hpp \
     include/protocol/statemachine/PieceRequested.hpp \
     include/protocol/statemachine/event/PieceLoaded.hpp \
-    include/protocol/statemachine/WaitingForPayment.hpp
+    include/protocol/statemachine/WaitingForPayment.hpp \
+    include/protocol/statemachine/detail/InitializeBuying.hpp \
+    include/protocol/statemachine/detail/InitializeSelling.hpp \
+    include/protocol/statemachine/detail/InitializeObserving.hpp
 
 SOURCES += \
     src/wire/ExtendedMessagePayload.cpp \
@@ -126,7 +129,9 @@ SOURCES += \
     src/statemachine/ReadyForPieceRequest.cpp \
     src/statemachine/event/PieceLoaded.cpp \
     src/statemachine/PieceRequested.cpp \
-    src/statemachine/WaitingForPayment.cpp
+    src/statemachine/WaitingForPayment.cpp \
+    src/statemachine/detail/InitializeBuying.cpp \
+    src/statemachine/detail/InitializeSelling.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

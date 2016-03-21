@@ -24,8 +24,8 @@ namespace statemachine {
 
         std::cout << "Reacting to event::ObserveModeStarted." << std::endl;
 
-        // Switch client state
-        context<CBStateMachine>().clientToObserveMode();
+        // Trigger initialization event for when we are in Observing state
+        post_event(detail::InitializeObserving());
 
         // Transition to Observe state
         return transit<Observing>();
@@ -35,8 +35,8 @@ namespace statemachine {
 
         std::cout << "Reacting to event::SellModeStarted." << std::endl;
 
-        // Switch client state
-        context<CBStateMachine>().clientToSellMode(e.terms());
+        // Trigger initialization event for when we are in Selling state
+        post_event(detail::InitializeSelling(e.terms()));
 
         // Transition to Sell state
         return transit<Selling>();
@@ -46,8 +46,8 @@ namespace statemachine {
 
         std::cout << "Reacting to event::BuyModeStarted." << std::endl;
 
-        // Switch client state
-        context<CBStateMachine>().clientToBuyMode(e.terms());
+        // Trigger initialization event for when we are in Buying state
+        post_event(detail::InitializeBuying(e.terms()));
 
         // Transition to Buy state
         return transit<Buying>();

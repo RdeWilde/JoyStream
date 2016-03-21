@@ -9,22 +9,48 @@
 #include <protocol/statemachine/Buying.hpp>
 
 #include <iostream>
+#include <cassert>
 
 namespace joystream {
 namespace protocol {
 namespace statemachine {
 
     Selling::Selling()
-        : _index(0) {
-        std::cout << "Entering Sell state." << std::endl;
+        : _initialized(false)
+        , _index(0) {
+        std::cout << "Entering Selling state." << std::endl;
+    }
+
+    sc::result Selling::react(const detail::InitializeSelling & e) {
+
+        if(_initialized)
+            throw std::runtime_error("Selling state already initialized.");
+        else
+           _initialized = true;
+
+        std::cout << "Reacting to detail::InitializeSelling." << std::endl;
+
+        assert(_index == 0);
+
+        // Store terms
+        _terms = e.terms();
+
+        // Send message
+        context<CBStateMachine>().sendMessage()(new wire::Sell(_terms, _index));
+
+        // No transition
+        return discard_event();
     }
 
     sc::result Selling::react(const event::ObserveModeStarted & e) {
 
+        if(!_initialized)
+            throw std::runtime_error("Selling state not initialized.");
+
         std::cout << "Reacting to event::ObserveModeStarted." << std::endl;
 
-        // Switch client state
-        context<CBStateMachine>().clientToObserveMode();
+        // Trigger initialization event for when we are in Observing state
+        post_event(detail::InitializeObserving());
 
         // Transition to Observe state
         return transit<Observing>();
@@ -32,10 +58,13 @@ namespace statemachine {
 
     sc::result Selling::react(const event::BuyModeStarted & e) {
 
+        if(!_initialized)
+            throw std::runtime_error("Selling state not initialized.");
+
         std::cout << "Reacting to event::BuyModeStarted." << std::endl;
 
-        // Switch client state
-        context<CBStateMachine>().clientToBuyMode(e.terms());
+        // Trigger initialization event for when we are in Selling state
+        post_event(detail::InitializeBuying(e.terms()));
 
         // Transition to Buy state
         return transit<Buying>();
@@ -43,11 +72,17 @@ namespace statemachine {
 
     sc::result Selling::react(const event::UpdateTerms<SellerTerms> & e) {
 
+        if(!_initialized)
+            throw std::runtime_error("Selling state not initialized.");
+
         // Increment term index
         _index++;
 
+        // Store terms
+        _terms = e.terms();
+
         // Create sell message and send
-        context<CBStateMachine>().sendMessage()(new wire::Sell(e.terms(), _index));
+        context<CBStateMachine>().sendMessage()(new wire::Sell(_terms, _index));
 
         // Transition back to initial selling state
         return transit<Selling>();

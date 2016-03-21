@@ -47,18 +47,6 @@ namespace statemachine {
         return typeid(*(this->state_begin())).name();
     }
 
-    void CBStateMachine::clientToObserveMode() {
-        _sendMessage(new wire::Observe());
-    }
-
-    void CBStateMachine::clientToSellMode(const joystream::protocol::SellerTerms & t) {
-        _sendMessage(new wire::Sell(t, 0));
-    }
-
-    void CBStateMachine::clientToBuyMode(const joystream::protocol::BuyerTerms & t) {
-        _sendMessage(new wire::Buy(t));
-    }
-
     void CBStateMachine::peerToObserveMode() {
         _peerAnnouncedMode.toObserve();
     }

@@ -73,10 +73,6 @@ namespace protocol {
             const char * getInnerStateName() const;
 
             // Context actions: should not be called direclty
-            void clientToObserveMode();
-            void clientToSellMode(const joystream::protocol::SellerTerms &);
-            void clientToBuyMode(const joystream::protocol::BuyerTerms &);
-
             void peerToObserveMode();
             void peerToSellMode(const joystream::protocol::SellerTerms &, uint32_t);
             void peerToBuyMode(const joystream::protocol::BuyerTerms &);

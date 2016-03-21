@@ -13,7 +13,6 @@ InitializeBuying::InitializeBuying(const BuyerTerms & terms)
     : _terms(terms) {
 }
 
-joystream::protocol::BuyerTerms InitializeBuying::terms() const
-{
+joystream::protocol::BuyerTerms InitializeBuying::terms() const {
     return _terms;
 }
