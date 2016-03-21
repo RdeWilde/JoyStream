@@ -21,7 +21,7 @@ sc::result ServicingPieceRequest::react(const event::Recv<wire::Observe> & e) {
     // and update new peer mode
     CBStateMachine & machine = context<CBStateMachine>();
     machine.getPeerInterruptedPayment()();
-    machine.peerToObserveMode();
+    //machine.peerToObserveMode();
 
     // Terminate machine
     return terminate();
@@ -35,7 +35,7 @@ sc::result ServicingPieceRequest::react(const event::Recv<wire::Buy> & e) {
     // and update new peer mode
     CBStateMachine & machine = context<CBStateMachine>();
     machine.getPeerInterruptedPayment()();
-    machine.peerToBuyMode(e.message()->terms());
+    //machine.peerToBuyMode(e.message()->terms());
 
     // Terminate machine
     return terminate();
@@ -49,8 +49,9 @@ sc::result ServicingPieceRequest::react(const event::Recv<wire::Sell> & e) {
     // and update new peer mode
     CBStateMachine & machine = context<CBStateMachine>();
     machine.getPeerInterruptedPayment()();
-    wire::Sell const * m = e.message();
-    machine.peerToSellMode(m->terms(), m->index());
+
+    //wire::Sell const * m = e.message();
+    //machine.peerToSellMode(m->terms(), m->index());
 
     // Terminate machine
     return terminate();

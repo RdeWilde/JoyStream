@@ -1,0 +1,74 @@
+[1mdiff --git a/protocol/include/protocol/statemachine/CBStateMachine.hpp b/protocol/include/protocol/statemachine/CBStateMachine.hpp[m
+[1mindex e78dac1..fd4fd07 100644[m
+[1m--- a/protocol/include/protocol/statemachine/CBStateMachine.hpp[m
+[1m+++ b/protocol/include/protocol/statemachine/CBStateMachine.hpp[m
+[36m@@ -32,7 +32,8 @@[m [mnamespace protocol {[m
+ [m
+     namespace statemachine {[m
+ [m
+[31m-        class ChooseMode;[m
+[32m+[m[32m        class ChooseMode; // Default state[m
+[32m+[m[32m        class Active; // Friend class[m
+ [m
+         class CBStateMachine : public sc::state_machine<CBStateMachine, ChooseMode> {[m
+ [m
+[36m@@ -72,11 +73,6 @@[m [mnamespace protocol {[m
+             // Get name of current state: ***Varies from compiler to compiler***[m
+             const char * getInnerStateName() const;[m
+ [m
+[31m-            // Context actions: should not be called direclty[m
+[31m-            void peerToObserveMode();[m
+[31m-            void peerToSellMode(const joystream::protocol::SellerTerms &, uint32_t);[m
+[31m-            void peerToBuyMode(const joystream::protocol::BuyerTerms &);[m
+[31m-[m
+             // Getters and setters[m
+             InvitedToOutdatedContract invitedToOutdatedContract() const;[m
+ [m
+[36m@@ -96,6 +92,13 @@[m [mnamespace protocol {[m
+ [m
+         private:[m
+ [m
+[32m+[m[32m            friend class Active;[m
+[32m+[m
+[32m+[m[32m            // Context actions[m
+[32m+[m[32m            void peerToObserveMode();[m
+[32m+[m[32m            void peerToSellMode(const joystream::protocol::SellerTerms &, uint32_t);[m
+[32m+[m[32m            void peerToBuyMode(const joystream::protocol::BuyerTerms &);[m
+[32m+[m
+             // Callbacks for classifier routines[m
+             InvitedToOutdatedContract _invitedToOutdatedContract;[m
+             InvitedToJoinContract _invitedToJoinContract;[m
+[1mdiff --git a/protocol/src/statemachine/ServicingPieceRequest.cpp b/protocol/src/statemachine/ServicingPieceRequest.cpp[m
+[1mindex 58a396f..80fc6c6 100644[m
+[1m--- a/protocol/src/statemachine/ServicingPieceRequest.cpp[m
+[1m+++ b/protocol/src/statemachine/ServicingPieceRequest.cpp[m
+[36m@@ -21,7 +21,7 @@[m [msc::result ServicingPieceRequest::react(const event::Recv<wire::Observe> & e) {[m
+     // and update new peer mode[m
+     CBStateMachine & machine = context<CBStateMachine>();[m
+     machine.getPeerInterruptedPayment()();[m
+[31m-    machine.peerToObserveMode();[m
+[32m+[m[32m    //machine.peerToObserveMode();[m
+ [m
+     // Terminate machine[m
+     return terminate();[m
+[36m@@ -35,7 +35,7 @@[m [msc::result ServicingPieceRequest::react(const event::Recv<wire::Buy> & e) {[m
+     // and update new peer mode[m
+     CBStateMachine & machine = context<CBStateMachine>();[m
+     machine.getPeerInterruptedPayment()();[m
+[31m-    machine.peerToBuyMode(e.message()->terms());[m
+[32m+[m[32m    //machine.peerToBuyMode(e.message()->terms());[m
+ [m
+     // Terminate machine[m
+     return terminate();[m
+[36m@@ -49,8 +49,9 @@[m [msc::result ServicingPieceRequest::react(const event::Recv<wire::Sell> & e) {[m
+     // and update new peer mode[m
+     CBStateMachine & machine = context<CBStateMachine>();[m
+     machine.getPeerInterruptedPayment()();[m
+[31m-    wire::Sell const * m = e.message();[m
+[31m-    machine.peerToSellMode(m->terms(), m->index());[m
+[32m+[m
+[32m+[m[32m    //wire::Sell const * m = e.message();[m
+[32m+[m[32m    //machine.peerToSellMode(m->terms(), m->index());[m
+ [m
+     // Terminate machine[m
+     return terminate();[m

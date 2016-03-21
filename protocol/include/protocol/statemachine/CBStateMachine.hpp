@@ -32,7 +32,8 @@ namespace protocol {
 
     namespace statemachine {
 
-        class ChooseMode;
+        class ChooseMode; // Default state
+        class Active; // Friend class
 
         class CBStateMachine : public sc::state_machine<CBStateMachine, ChooseMode> {
 
@@ -72,11 +73,6 @@ namespace protocol {
             // Get name of current state: ***Varies from compiler to compiler***
             const char * getInnerStateName() const;
 
-            // Context actions: should not be called direclty
-            void peerToObserveMode();
-            void peerToSellMode(const joystream::protocol::SellerTerms &, uint32_t);
-            void peerToBuyMode(const joystream::protocol::BuyerTerms &);
-
             // Getters and setters
             InvitedToOutdatedContract invitedToOutdatedContract() const;
 
@@ -95,6 +91,13 @@ namespace protocol {
             InvalidPayment getInvalidPayment() const;
 
         private:
+
+            friend class Active;
+
+            // Context actions
+            void peerToObserveMode();
+            void peerToSellMode(const joystream::protocol::SellerTerms &, uint32_t);
+            void peerToBuyMode(const joystream::protocol::BuyerTerms &);
 
             // Callbacks for classifier routines
             InvitedToOutdatedContract _invitedToOutdatedContract;
