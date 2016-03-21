@@ -214,7 +214,6 @@ std::vector<Coin::HDKeychain> Store::getKeyChains(uint32_t numKeys, bool createR
 
     // if we didn't find enough unused keys in the database, generate the rest
     if(n < numKeys) {
-        t.reset(_db->begin());
         for(; n < numKeys; n++) {
             keychains.push_back(getKeyChain_tx(createReceiveAddress));
         }
