@@ -70,8 +70,9 @@ namespace protocol {
                            const PeerInterruptedPayment & peerInterruptedPayment,
                            const InvalidPayment & invalidPayment);
 
+            // Deprecated: internals should not be directly visible for client or tester
             // Get name of current state: ***Varies from compiler to compiler***
-            const char * getInnerStateName() const;
+            //const char * getInnerStateName() const;
 
             // Getters and setters
             InvitedToOutdatedContract invitedToOutdatedContract() const;

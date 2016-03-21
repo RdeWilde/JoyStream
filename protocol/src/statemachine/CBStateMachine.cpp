@@ -32,6 +32,7 @@ namespace statemachine {
         , _invalidPayment(invalidPayment) {
     }
 
+    /**
     const char * CBStateMachine::getInnerStateName() const {
 
         // We assume there is only one type which is active in any
@@ -46,6 +47,7 @@ namespace statemachine {
         // BOOST_STATECHART_USE_NATIVE_RTTI is defined
         return typeid(*(this->state_begin())).name();
     }
+    */
 
     void CBStateMachine::peerToObserveMode() {
         _peerAnnouncedMode.toObserve();

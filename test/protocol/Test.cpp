@@ -34,7 +34,7 @@ void Test::clientToObserveMode() {
     statemachine::CBStateMachine * machine = spy.createFreshMachineInObserveMode();
 
     // Check that we are in correct state
-    QCOMPARE(machine->getInnerStateName(), typeid(statemachine::Observing).name());
+    //QCOMPARE(machine->getInnerStateName(), typeid(statemachine::Observing).name());
 
     // Check that sell message was sent
     QVERIFY(spy.messageSent());
@@ -53,7 +53,7 @@ void Test::clientToSellMode() {
     statemachine::CBStateMachine * machine = spy.createFreshMachineInSellMode(terms);
 
     // Check that we are in correct state
-    QCOMPARE(machine->getInnerStateName(), typeid(statemachine::ReadyForInvitation).name());
+    //QCOMPARE(machine->getInnerStateName(), typeid(statemachine::ReadyForInvitation).name());
 
     // Check that sell message was sent
     QVERIFY(spy.messageSent());
@@ -75,7 +75,7 @@ void Test::clientToBuyMode() {
     statemachine::CBStateMachine * machine = spy.createFreshMachineInBuyMode(terms);
 
     // Check that we are in correct state
-    QCOMPARE(machine->getInnerStateName(), typeid(statemachine::Buying).name());
+    //QCOMPARE(machine->getInnerStateName(), typeid(statemachine::Buying).name());
 
     // Check that sell message was sent
     QVERIFY(spy.messageSent());
@@ -161,7 +161,7 @@ void Test::selling() {
     //// ReadyForInvitation state
 
     // Check that we are in correct state
-    QCOMPARE(machine->getInnerStateName(), typeid(statemachine::ReadyForInvitation).name());
+    //QCOMPARE(machine->getInnerStateName(), typeid(statemachine::ReadyForInvitation).name());
 
     // Check that sell message was sent with correct terms
     QVERIFY(spy.messageSent());
@@ -225,7 +225,7 @@ void Test::selling() {
     // transitioning to the Invited state
     QVERIFY(spy.hasBeenInvitedToJoinContract());
     QCOMPARE(spy.invitation(), invitation);
-    QCOMPARE(machine->getInnerStateName(), typeid(statemachine::Invited).name());
+    //QCOMPARE(machine->getInnerStateName(), typeid(statemachine::Invited).name());
 
     spy.reset();
 
@@ -244,7 +244,7 @@ void Test::selling() {
         QCOMPARE(m->messageType(), wire::MessageType::joining_contract);
         QCOMPARE((static_cast<const wire::JoiningContract *>(m))->rsvp(), rsvp);
     }
-    QCOMPARE(machine->getInnerStateName(), typeid(statemachine::WaitingToStart).name());
+    //QCOMPARE(machine->getInnerStateName(), typeid(statemachine::WaitingToStart).name());
 
     spy.reset();
 
@@ -261,7 +261,7 @@ void Test::selling() {
     // and we are in ReadyForPieceRequest state
     QVERIFY(spy.contractHasBeenPrepared());
     QCOMPARE(spy.anchor(), anchor);
-    QCOMPARE(machine->getInnerStateName(), typeid(statemachine::ReadyForPieceRequest).name());
+    //QCOMPARE(machine->getInnerStateName(), typeid(statemachine::ReadyForPieceRequest).name());
 
     spy.reset();
 
@@ -278,14 +278,11 @@ void Test::selling() {
     // and we are in ServicingPieceRequest
     QVERIFY(spy.pieceHasBeenRequested());
     QCOMPARE(spy.piece(), pieceIndex);
-    QCOMPARE(machine->getInnerStateName(), typeid(statemachine::PieceRequested).name());
+    //QCOMPARE(machine->getInnerStateName(), typeid(statemachine::PieceRequested).name());
 
     spy.reset();
 
     //// ServicingPieceRequest state
-
-
-
 
 
     // Clean up machine
