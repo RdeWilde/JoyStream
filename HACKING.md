@@ -46,36 +46,31 @@ Development workflow
 ------------------------------------------------------------
 
 1. Create new feature branch based off upstream development branch.
-  
-    Make sure to have latest commits in your local dev branch
-  
+
     `git checkout development`
+
+2. Make sure to have latest commits in your local dev branch
   
     `git pull upstream development`
-  
-    `git checkout -b <NAME OF NEW BRANCH>` -> (creates the new branch)
 
-2. Open up PR on github with name of the form WIP <DESCRIPTION>, and 
-if work will include multiple subgoals, then add a checklist which you manage
-as you complete/add goals.
+3. Create new, appropriately named, branch of the development branch
+  
+    `git checkout -b <NAME OF NEW BRANCH>`
 
-3. When you are ready to push your new feature to your origin repo, do a rebase in case the upstream dev branch
-has changed since you started working on the branch. 
-  
-    `git pull --rebase upstream development` -> (resolve any merge conflicts)
-  
+4. Push new branch to your origin, such that a PR can be opened between it and upstream
+
     `git push origin <NAME OF NEW BRANCH>`
 
-4. Create a pull request targeting the upstream development branch.
-    At this point you can goto github and create a pull request origin:new_feature ---> upstream:development
+5. Open up PR on github, with name of the form WIP <DESCRIPTION>,
+between the origin branch and the upstream development branch.
+If the work will include multiple subgoals, then add a checklist
+which you manage as you complete/add goals.
+
+6. When you are ready to push your new feature to your origin repo,
+do a rebase in case the upstream dev branch has changed since you started working on the branch. 
   
-    You can still update the branch (step 2) and push more commits which will show up in the PR (Pull request).
-  
-    When the PR is merged, you can delete your local new_feature branch, and pull down from latest development (which should now have your new commits)
+    `git pull --rebase upstream development` -> (resolve any merge conflicts)
 
-
-
-
-
-
-
+7. Push new commits on your branch to origin
+ 
+    `git push origin <NAME OF NEW BRANCH>`
