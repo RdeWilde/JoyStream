@@ -19,7 +19,13 @@
 namespace joystream {
 namespace paymentchannel {
 
-    Payee::Payee() {
+    Payee::Payee()
+        : _numberOfPaymentsMade(0)
+        , _lockTime(0)
+        , _price(0)
+        , _funds(0)
+        , _settlementFee(0)
+        , _refundFee(0) {
     }
 
     Payee::Payee(quint64 numberOfPaymentsMade,
