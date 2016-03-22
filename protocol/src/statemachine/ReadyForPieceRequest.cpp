@@ -14,17 +14,6 @@ ReadyForPieceRequest::ReadyForPieceRequest() {
     std::cout << "Entering ReadyForPieceRequest state." << std::endl;
 }
 
-sc::result ReadyForPieceRequest::react(const event::Recv<joystream::protocol::wire::Ready> & e) {
-
-    std::cout << "Reacting to Recv<wire::Ready> event." << std::endl;
-
-    // Switch peer state
-    context<CBStateMachine>().contractIsReady()(e.message()->anchor());
-
-    // Transition back to self
-    return transit<ReadyForPieceRequest>();
-}
-
 sc::result ReadyForPieceRequest::react(const event::Recv<joystream::protocol::wire::RequestFullPiece> & e) {
 
     std::cout << "Reacting to Recv<wire::RequestFullPiece> event." << std::endl;

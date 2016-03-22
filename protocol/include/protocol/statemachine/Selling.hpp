@@ -10,6 +10,8 @@
 
 #include <protocol/statemachine/Active.hpp>
 #include <protocol/statemachine/detail/InitializeSelling.hpp>
+#include <protocol/statemachine/event/ObserveModeStarted.hpp>
+#include <protocol/statemachine/event/BuyModeStarted.hpp>
 #include <protocol/statemachine/event/UpdateTerms.hpp>
 #include <protocol/ContractInvitation.hpp>
 
