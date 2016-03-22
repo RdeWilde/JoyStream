@@ -1,5 +1,7 @@
 #include <common/UnspentP2PKHOutput.hpp>
 #include <common/P2PKHAddress.hpp>
+#include <common/P2PKHScriptPubKey.hpp>
+
 #include <bitcoin/SPVWallet.hpp>
 
 namespace joystream {
@@ -358,7 +360,9 @@ void SPVWallet::onBlocksSynched() {
 }
 
 void SPVWallet::onNewTx(const Coin::Transaction& cointx) {
-    // TODO: match outputs we control and inputs that spend our outputs
+
+    if(!transactionHasBloomFilterElements(cointx)) return;
+
     _store.addTransaction(cointx);
     recalculateBalance();
     emit NewTx();
@@ -370,8 +374,15 @@ void SPVWallet::onTxConfirmed(const ChainMerkleBlock& chainmerkleblock, const by
 }
 
 void SPVWallet::onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin::Transaction& cointx, unsigned int txindex, unsigned int txcount){
-    // Mined Block containing transactions we might care about
-    _store.addTransaction(cointx, chainmerkleblock, txindex == 0);
+
+    if(transactionHasBloomFilterElements(cointx)) {
+        _store.addTransaction(cointx, chainmerkleblock, txindex == 0);
+    } else {
+        if( txindex == 0 ) {
+            _store.addBlockHeader(chainmerkleblock);
+        }
+    }
+
     emit MerkleTx();
 }
 
@@ -385,7 +396,7 @@ void SPVWallet::updateBloomFilter() {
     if(_walletStatus == UNINITIALIZED) return;
 
     // TODO: Only update the bloom filter if elements have changed from last call
-    _networkSync.setBloomFilter(makeBloomFilter(0.001, 0, 0));
+    _networkSync.setBloomFilter(makeBloomFilter(0.0001, 0, 0));
 }
 
 Coin::BloomFilter SPVWallet::makeBloomFilter(double falsePositiveRate, uint32_t nTweak, uint32_t nFlags) {
@@ -396,6 +407,7 @@ Coin::BloomFilter SPVWallet::makeBloomFilter(double falsePositiveRate, uint32_t 
     // Side Note: There is a limit on the maximum size of the bloom filter
     // We can keep out keys of addresses we know have been spent and are certain
     // would never be used again by a human (keys associated with joystream p2p protocol)
+
     std::vector<uchar_vector> elements;
 
     std::list<Coin::PrivateKey> privateKeys = _store.listPrivateKeys();
@@ -412,9 +424,41 @@ Coin::BloomFilter SPVWallet::makeBloomFilter(double falsePositiveRate, uint32_t 
 
     Coin::BloomFilter filter(elements.size(), falsePositiveRate, nTweak, nFlags);
 
-    for(auto elm : elements) filter.insert(elm);
+    for(auto elm : elements) {
+        filter.insert(elm);
+        _bloomFilterElements.insert(_bloomFilterElements.begin(), elm);
+    }
 
     return filter;
+}
+
+bool SPVWallet::transactionHasBloomFilterElements(const Coin::Transaction &cointx) {
+
+    for(const Coin::TxIn & txin : cointx.inputs) {
+        //deserialize txin.scriptSig to a Coin::P2PKHScriptSig
+        // if not a p2pkhscript sig continue;
+
+            // get the public key
+            // if it matches an element in our bloom filter -> set foundMatch = true
+    }
+
+    for(const Coin::TxOut & txout : cointx.outputs) {
+        try{
+            // get the pubkeyhash
+            Coin::P2PKHScriptPubKey script = Coin::P2PKHScriptPubKey::deserialize(txout.scriptPubKey);
+
+            // if it matches bloom filter element we have a matching transaction
+            if(_bloomFilterElements.find(script.pubKeyHash().toUCharVector()) != _bloomFilterElements.end()) {
+                return true;
+            }
+
+        } catch(std::runtime_error &e) {
+            // not a p2pkh output script
+            continue;
+        }
+    }
+
+    return false;
 }
 
 void SPVWallet::recalculateBalance() {

@@ -129,9 +129,13 @@ private:
     // Load the blocktree file
     void LoadBlockTree();
 
+    std::set<uchar_vector> _bloomFilterElements;
+
     Coin::BloomFilter makeBloomFilter(double falsePositiveRate, uint32_t nTweak, uint32_t nFlags);
 
     void updateBloomFilter();
+
+    bool transactionHasBloomFilterElements(const Coin::Transaction &cointx);
 
     void recalculateBalance();
 
