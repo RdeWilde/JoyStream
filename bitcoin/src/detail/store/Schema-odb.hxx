@@ -3380,6 +3380,14 @@ namespace odb
       //
       object_traits_impl< ::joystream::bitcoin::detail::store::Output, id_sqlite >::image_type output_value;
 
+      // address
+      //
+      object_traits_impl< ::joystream::bitcoin::detail::store::Address, id_sqlite >::image_type address_value;
+
+      // outpoint
+      //
+      object_traits_impl< ::joystream::bitcoin::detail::store::TxHasOutput, id_sqlite >::image_type outpoint_value;
+
       std::size_t version;
     };
 
@@ -3408,7 +3416,7 @@ namespace odb
           const image_type&,
           database*);
 
-    static const std::size_t column_count = 3UL;
+    static const std::size_t column_count = 12UL;
 
     static query_base_type
     query_statement (const query_base_type&);

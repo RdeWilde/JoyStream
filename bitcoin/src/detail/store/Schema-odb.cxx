@@ -8453,6 +8453,18 @@ namespace odb
           i.output_value, t + 0UL))
       grew = true;
 
+    // address
+    //
+    if (object_traits_impl< ::joystream::bitcoin::detail::store::Address, id_sqlite >::grow (
+          i.address_value, t + 3UL))
+      grew = true;
+
+    // outpoint
+    //
+    if (object_traits_impl< ::joystream::bitcoin::detail::store::TxHasOutput, id_sqlite >::grow (
+          i.outpoint_value, t + 7UL))
+      grew = true;
+
     return grew;
   }
 
@@ -8472,6 +8484,18 @@ namespace odb
     object_traits_impl< ::joystream::bitcoin::detail::store::Output, id_sqlite >::bind (
       b + n, i.output_value, sk);
     n += 3UL;
+
+    // address
+    //
+    object_traits_impl< ::joystream::bitcoin::detail::store::Address, id_sqlite >::bind (
+      b + n, i.address_value, sk);
+    n += 4UL;
+
+    // outpoint
+    //
+    object_traits_impl< ::joystream::bitcoin::detail::store::TxHasOutput, id_sqlite >::bind (
+      b + n, i.outpoint_value, sk);
+    n += 5UL;
   }
 
   void access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >::
@@ -8482,6 +8506,9 @@ namespace odb
     ODB_POTENTIALLY_UNUSED (o);
     ODB_POTENTIALLY_UNUSED (i);
     ODB_POTENTIALLY_UNUSED (db);
+
+    if (!session::has_current ())
+      throw session_required ();
 
     sqlite::connection& conn (
       sqlite::transaction::current ().connection ());
@@ -8517,6 +8544,66 @@ namespace odb
       }
     }
 
+    // address pre
+    //
+    typedef ::joystream::bitcoin::detail::store::Address address_object_type;
+    typedef object_traits_impl<address_object_type, id_sqlite> address_object_traits;
+    typedef address_object_traits::pointer_type address_pointer_type;
+    typedef address_object_traits::pointer_traits address_pointer_traits;
+    typedef address_object_traits::pointer_cache_traits address_cache_traits;
+
+    address_object_traits::id_type address_id;
+    address_pointer_type address_p;
+    address_pointer_traits::guard address_pg;
+    address_cache_traits::insert_guard address_ig;
+    address_object_type* address_o (0);
+
+    {
+      if (!(i.address_value.id_null))
+      {
+        address_id = address_object_traits::id (i.address_value);
+        address_p = address_cache_traits::find (*db, address_id);
+
+        if (address_pointer_traits::null_ptr (address_p))
+        {
+          address_p = object_factory<address_object_type, address_pointer_type>::create ();
+          address_pg.reset (address_p);
+          address_ig.reset (address_cache_traits::insert (*db, address_id, address_p));
+          address_o = address_pointer_traits::get_ptr (address_p);
+        }
+      }
+    }
+
+    // outpoint pre
+    //
+    typedef ::joystream::bitcoin::detail::store::TxHasOutput outpoint_object_type;
+    typedef object_traits_impl<outpoint_object_type, id_sqlite> outpoint_object_traits;
+    typedef outpoint_object_traits::pointer_type outpoint_pointer_type;
+    typedef outpoint_object_traits::pointer_traits outpoint_pointer_traits;
+    typedef outpoint_object_traits::pointer_cache_traits outpoint_cache_traits;
+
+    outpoint_object_traits::id_type outpoint_id;
+    outpoint_pointer_type outpoint_p;
+    outpoint_pointer_traits::guard outpoint_pg;
+    outpoint_cache_traits::insert_guard outpoint_ig;
+    outpoint_object_type* outpoint_o (0);
+
+    {
+      if (!(i.outpoint_value.id_null))
+      {
+        outpoint_id = outpoint_object_traits::id (i.outpoint_value);
+        outpoint_p = outpoint_cache_traits::find (*db, outpoint_id);
+
+        if (outpoint_pointer_traits::null_ptr (outpoint_p))
+        {
+          outpoint_p = object_factory<outpoint_object_type, outpoint_pointer_type>::create ();
+          outpoint_pg.reset (outpoint_p);
+          outpoint_ig.reset (outpoint_cache_traits::insert (*db, outpoint_id, outpoint_p));
+          outpoint_o = outpoint_pointer_traits::get_ptr (outpoint_p);
+        }
+      }
+    }
+
     // output
     //
     {
@@ -8527,6 +8614,32 @@ namespace odb
         output_object_traits::statements_type& sts (
           conn.statement_cache ().find_object<output_object_type> ());
         output_object_traits::load_ (sts, *output_o, false);
+      }
+    }
+
+    // address
+    //
+    {
+      if (address_o != 0)
+      {
+        address_object_traits::callback (*db, *address_o, callback_event::pre_load);
+        address_object_traits::init (*address_o, i.address_value, db);
+        address_object_traits::statements_type& sts (
+          conn.statement_cache ().find_object<address_object_type> ());
+        address_object_traits::load_ (sts, *address_o, false);
+      }
+    }
+
+    // outpoint
+    //
+    {
+      if (outpoint_o != 0)
+      {
+        outpoint_object_traits::callback (*db, *outpoint_o, callback_event::pre_load);
+        outpoint_object_traits::init (*outpoint_o, i.outpoint_value, db);
+        outpoint_object_traits::statements_type& sts (
+          conn.statement_cache ().find_object<outpoint_object_type> ());
+        outpoint_object_traits::load_ (sts, *outpoint_o, false);
       }
     }
 
@@ -8548,6 +8661,44 @@ namespace odb
       o.output = ::std::shared_ptr< ::joystream::bitcoin::detail::store::Output > (
         std::move (output_p));
     }
+
+    // address post
+    //
+    {
+      if (address_o != 0)
+      {
+        address_object_traits::callback (*db, *address_o, callback_event::post_load);
+        address_cache_traits::load (address_ig.position ());
+        address_ig.release ();
+        address_pg.release ();
+      }
+
+      // If a compiler error points to the line below, then
+      // it most likely means that a pointer used in view
+      // member cannot be initialized from an object pointer.
+      //
+      o.address = ::std::shared_ptr< ::joystream::bitcoin::detail::store::Address > (
+        std::move (address_p));
+    }
+
+    // outpoint post
+    //
+    {
+      if (outpoint_o != 0)
+      {
+        outpoint_object_traits::callback (*db, *outpoint_o, callback_event::post_load);
+        outpoint_cache_traits::load (outpoint_ig.position ());
+        outpoint_ig.release ();
+        outpoint_pg.release ();
+      }
+
+      // If a compiler error points to the line below, then
+      // it most likely means that a pointer used in view
+      // member cannot be initialized from an object pointer.
+      //
+      o.outpoint = ::std::shared_ptr< ::joystream::bitcoin::detail::store::TxHasOutput > (
+        std::move (outpoint_p));
+    }
   }
 
   access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >::query_base_type
@@ -8558,7 +8709,16 @@ namespace odb
       "SELECT "
       "\"Output\".\"id_value\", "
       "\"Output\".\"id_scriptPubKey\", "
-      "\"Output\".\"address\" ");
+      "\"Output\".\"address\", "
+      "\"address\".\"id\", "
+      "\"address\".\"address\", "
+      "\"address\".\"key\", "
+      "\"address\".\"scriptPubKey\", "
+      "\"TxHasOutput\".\"id\", "
+      "\"TxHasOutput\".\"tx_ix_tx\", "
+      "\"TxHasOutput\".\"tx_ix_index\", "
+      "\"TxHasOutput\".\"output_value\", "
+      "\"TxHasOutput\".\"output_scriptPubKey\" ");
 
     r += "FROM \"Output\"";
 

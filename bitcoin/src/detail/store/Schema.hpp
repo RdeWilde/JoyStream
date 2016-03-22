@@ -543,7 +543,13 @@ private:
 typedef struct {
 
     std::shared_ptr<Output> output;
+    std::shared_ptr<Address> address;
+    std::shared_ptr<TxHasOutput> outpoint;
+
+    uint32_t index() { return outpoint->index(); }
+    std::string txid() { return outpoint->txid(); }
     uint64_t value() { return output->value(); }
+    uint32_t keyIndex() { return address->key()->id(); }
 
 } outputs_view_t;
 
