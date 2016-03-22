@@ -408,12 +408,10 @@ void SPVWallet::onNewTx(const Coin::Transaction& cointx) {
 
     _store.addTransaction(cointx);
     recalculateBalance();
-    emit NewTx();
 }
 
 void SPVWallet::onTxConfirmed(const ChainMerkleBlock& chainmerkleblock, const bytes_t& txhash, unsigned int txindex, unsigned int txcount){
     _store.confirmTransaction(uchar_vector(txhash).getHex(), chainmerkleblock, txindex == 0);
-    emit TxConfirmed();
 }
 
 void SPVWallet::onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin::Transaction& cointx, unsigned int txindex, unsigned int txcount){
@@ -424,14 +422,11 @@ void SPVWallet::onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin:
             _store.addBlockHeader(chainmerkleblock);
         }
     }
-
-    emit MerkleTx();
 }
 
 void SPVWallet::onMerkleBlock(const ChainMerkleBlock& chainmerkleblock) {
     // Block without tx we care about
     _store.addBlockHeader(chainmerkleblock);
-    emit MerkleBlock();
 }
 
 void SPVWallet::updateBloomFilter() {

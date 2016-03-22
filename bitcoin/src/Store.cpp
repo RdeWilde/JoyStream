@@ -494,12 +494,11 @@ void Store::confirmTransaction(std::string txhash, const ChainMerkleBlock &chain
 
     //retreive existing transaction and update it
     std::shared_ptr<detail::store::Transaction> tx;
-    try {
-        tx = _db->load<detail::store::Transaction>(txhash);
+    odb::result<detail::store::Transaction> transactions(_db->query<detail::store::Transaction>(odb::query<detail::store::Transaction>::txid == txhash));
+    if(!transactions.empty()) {
+        tx = transactions.begin().load();
         tx->header(header);
         _db->update(tx);
-    } catch(const odb::object_not_persistent & e) {
-        std::cerr << "trying to confirm non existent tx\n";
     }
 
     t.commit();
@@ -664,25 +663,36 @@ namespace {
     std::shared_ptr<Transaction> transactionSave(std::unique_ptr<odb::database> & db,
                                 const Coin::Transaction & coin_tx) {
 
+        typedef odb::query<Transaction> tx_query;
+        odb::result<Transaction> transactions(db->query<Transaction>(tx_query::txid == coin_tx.hash().getHex()));
 
-        std::shared_ptr<Transaction> tx(new Transaction(coin_tx));
-
-        // Persist new transaction or return existing transaction
-        try{
-            db->persist(tx);
-        } catch (const odb::object_already_persistent &e) {
-            return db->load<Transaction>(tx->txid());
+        //return existing transaction
+        if(!transactions.empty()) {
+            return transactions.begin().load();
         }
+
+        // Persist new transaction
+        std::shared_ptr<Transaction> tx(new Transaction(coin_tx));
+        db->persist(tx);
+
+        typedef odb::query<Input> input_query;
 
         //inputs
         uint32_t i = 0;
         for(const Coin::TxIn &txin : coin_tx.inputs) {
 
             std::shared_ptr<Input> input(new Input(txin));
-            try{
+            detail::store::Input_id id = input->id();
+            odb::result<Input> inputs(db->query<Input>(
+                       input_query::id.op_txid == id.op_txid_ &&
+                       input_query::id.op_index == id.op_index_.get() &&
+                       input_query::id.scriptSig == id.scriptSig_ &&
+                       input_query::id.sequence == id.sequence_.get()));
+
+            if(inputs.empty()) {
                 db->persist(input);
-            } catch (const odb::object_already_persistent &e) {
-                input = db->load<Input>(input->id());
+            } else {
+                input = inputs.begin().load();
             }
 
             std::shared_ptr<TxHasInput> tx_has_input(new TxHasInput(tx, i, input));
@@ -690,16 +700,23 @@ namespace {
             i++;
         }
 
+        typedef odb::query<Output> output_query;
+
         //outputs
         i = 0;
         for(const Coin::TxOut &txout : coin_tx.outputs) {
 
             std::shared_ptr<Output> output(new Output(txout));
-            try {
+            Output_id id = output->id();
+            odb::result<Output> outputs(db->query<Output>(
+                                        output_query::id.scriptPubKey == id.scriptPubKey_ &&
+                                        output_query::id.value == id.value_.get()));
+
+            if(outputs.empty()) {
                 output->address(addressFind(db, output->script()));
                 db->persist(output);
-            } catch (const odb::object_already_persistent &e) {
-                output = db->load<Output>(output->id());
+            } else {
+                output = outputs.begin().load();
             }
 
             std::shared_ptr<TxHasOutput> tx_has_output(new TxHasOutput(tx, i, output));
@@ -778,7 +795,8 @@ namespace {
 
         // find all transactions mined in blocks with height equal or greater than chainmerkleblock.height
         transaction_result transactions(db->query<Transaction>(transaction_query::header.is_not_null() &&
-                                                              transaction_query::header->height >= chainmerkleblock.height));
+                                                               transaction_query::header->height >= chainmerkleblock.height));
+
         for(Transaction &tx : transactions) {
             tx.header(nullptr);
             db->update(tx);

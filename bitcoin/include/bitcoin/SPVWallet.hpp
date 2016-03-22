@@ -84,11 +84,6 @@ signals:
     void StatusChanged(wallet_status_t);
     void BalanceChanged(uint64_t confirmedBalance, uint64_t unconfirmedBalance);
 
-    void MerkleBlock();
-    void MerkleTx();
-    void NewTx();
-    void TxConfirmed();
-
 public slots:
 
 
