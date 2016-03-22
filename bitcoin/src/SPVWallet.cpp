@@ -3,6 +3,7 @@
 #include <common/P2PKHScriptPubKey.hpp>
 #include <common/P2PKHScriptSig.hpp>
 #include <common/TransactionSignature.hpp>
+#include <common/Utilities.hpp>
 
 #include <bitcoin/SPVWallet.hpp>
 
@@ -314,11 +315,6 @@ Coin::Transaction SPVWallet::SendToAddress(uint64_t value, const Coin::P2PKHAddr
     // Get UnspentUTXO
     Coin::UnspentP2PKHOutput utxo(GetOneUnspentOutput(value + fee));
 
-    if(utxo.value() < (value + fee)) {
-        std::cout << "Insufficient Funds...\n";
-        throw std::runtime_error("SendToAddress() - insufficient funds");
-    }
-
     // Create Destination output
     Coin::P2PKHScriptPubKey destinationScript(addr.pubKeyHash());
     
@@ -326,28 +322,20 @@ Coin::Transaction SPVWallet::SendToAddress(uint64_t value, const Coin::P2PKHAddr
     Coin::P2PKHAddress changeAddr = GetReceiveAddress();
     Coin::P2PKHScriptPubKey changeScript(changeAddr.pubKeyHash());
 
-    //should we pass in a fee rate (satoshis/KB) instead ?
-    uint64_t change = utxo.value() - (value + fee);
-
     // Create an unsigned Transaction
     Coin::Transaction cointx;
     cointx.addOutput(Coin::TxOut(value, destinationScript.serialize()));
 
-    if(change > 0)
+    uint64_t change = utxo.value() - (value + fee);
+    if(change > 0) {
         cointx.addOutput(Coin::TxOut(change, changeScript.serialize()));
+    }
 
     // Set Input
     cointx.addInput(Coin::TxIn(utxo.outPoint().getClassicOutPoint(), uchar_vector(), 0xFFFFFFFF));
 
-    // Generate signature
-    Coin::PrivateKey sk = utxo.keyPair().sk();
-    Coin::TransactionSignature ts(sk.signForP2PKHSpend(cointx, 0));
-
-    // Generate scriptSig
-    Coin::P2PKHScriptSig scriptSig(sk.toPublicKey(), ts);
-
-    // Set input script
-    cointx.inputs[0].scriptSig = scriptSig.serialized();
+    // Sign the input
+    Coin::setScriptSigToSpendP2PKH(cointx, 0, utxo.keyPair().sk());
 
     BroadcastTx(cointx);
 
@@ -429,7 +417,6 @@ void SPVWallet::onTxConfirmed(const ChainMerkleBlock& chainmerkleblock, const by
 }
 
 void SPVWallet::onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin::Transaction& cointx, unsigned int txindex, unsigned int txcount){
-
     if(transactionHasBloomFilterElements(cointx)) {
         _store.addTransaction(cointx, chainmerkleblock, txindex == 0);
     } else {
