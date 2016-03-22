@@ -299,8 +299,14 @@ int32_t SPVWallet::bestHeight() const {
 
     return _store.getBestHeaderHeight();
 }
+
 Coin::UnspentP2PKHOutput SPVWallet::GetOneUnspentOutput(uint64_t minValue) {
-    return UnspentP2PKHOutput();
+    for(Coin::UnspentP2PKHOutput & utxo : _store.getUnspentTransactionsOutputs()) {
+        if(utxo.value() >= minValue)
+            return utxo;
+    }
+
+    return Coin::UnspentP2PKHOutput();
 }
 
 Coin::Transaction SPVWallet::SendToAddress(uint64_t value, const Coin::P2PKHAddress &addr, uint64_t fee) {
@@ -309,6 +315,7 @@ Coin::Transaction SPVWallet::SendToAddress(uint64_t value, const Coin::P2PKHAddr
     Coin::UnspentP2PKHOutput utxo(GetOneUnspentOutput(value + fee));
 
     if(utxo.value() < (value + fee)) {
+        std::cout << "Insufficient Funds...\n";
         throw std::runtime_error("SendToAddress() - insufficient funds");
     }
 
@@ -328,6 +335,9 @@ Coin::Transaction SPVWallet::SendToAddress(uint64_t value, const Coin::P2PKHAddr
 
     if(change > 0)
         cointx.addOutput(Coin::TxOut(change, changeScript.serialize()));
+
+    // Set Input
+    cointx.addInput(Coin::TxIn(utxo.outPoint().getClassicOutPoint(), uchar_vector(), 0xFFFFFFFF));
 
     // Generate signature
     Coin::PrivateKey sk = utxo.keyPair().sk();

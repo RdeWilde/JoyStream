@@ -7,6 +7,7 @@
 #include <common/PublicKeyCompression.hpp>
 #include <common/KeyPair.hpp>
 #include <common/TransactionId.hpp>
+#include <common/UnspentP2PKHOutput.hpp>
 
 #include <CoinCore/hdkeys.h>
 #include <CoinCore/CoinNodeData.h>
@@ -69,6 +70,7 @@ public:
 
     bool loadKey(const Coin::P2PKHAddress &address, Coin::PrivateKey & sk);
 
+    std::list<Coin::UnspentP2PKHOutput> getUnspentTransactionsOutputs(int32_t confirmations = 0, int32_t main_chain_height = 0) const;
     uint64_t getWalletBalance(int32_t confirmations = 0, int32_t main_chain_height = 0) const;
 
     std::vector<std::string> getLatestBlockHeaderHashes();

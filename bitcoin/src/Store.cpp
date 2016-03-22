@@ -519,17 +519,18 @@ bool Store::loadKey(const Coin::P2PKHAddress & address, Coin::PrivateKey & sk) {
     return found;
 }
 
-// conver this to return UTXOs
-uint64_t Store::getWalletBalance(int32_t confirmations, int32_t main_chain_height) const {
+std::list<Coin::UnspentP2PKHOutput>
+Store::getUnspentTransactionsOutputs(int32_t confirmations, int32_t main_chain_height) const {
     if(confirmations > 0  && main_chain_height == 0) {
-        throw std::runtime_error("getWalletBalance: must provide main_chain_height");
+        throw std::runtime_error("getUnspentTransactionOutputs: must provide main_chain_height");
     }
 
     if(confirmations > 0 && confirmations > main_chain_height) {
-        return 0;
+        return std::list<Coin::UnspentP2PKHOutput>();
     }
 
-    uint64_t balance = 0;
+    std::list<Coin::UnspentP2PKHOutput> utxos;
+
     uint32_t maxHeight = main_chain_height - confirmations + 1;
     // a transaction has  main_chain_height - block_height  = confirmations
     //                    main_chain_heigth - confirmations = block_height
@@ -562,9 +563,35 @@ uint64_t Store::getWalletBalance(int32_t confirmations, int32_t main_chain_heigh
     }
 
     for(auto & output : outputs) {
-        balance += output.value();
+
+        Coin::PrivateKey sk(_rootKeychain.getChild(output.keyIndex()).privkey());
+        Coin::KeyPair keypair(sk);
+        Coin::TransactionId txid(Coin::TransactionId::fromRPCByteOrder(uchar_vector(output.txid())));
+        Coin::typesafeOutPoint outpoint(txid, output.index());
+
+        utxos.insert(utxos.begin(), Coin::UnspentP2PKHOutput(keypair, outpoint, output.value()));
     }
+
     t.commit();
+
+    return utxos;
+}
+
+uint64_t Store::getWalletBalance(int32_t confirmations, int32_t main_chain_height) const {
+    if(confirmations > 0  && main_chain_height == 0) {
+        throw std::runtime_error("getWalletBalance: must provide main_chain_height");
+    }
+
+    if(confirmations > 0 && confirmations > main_chain_height) {
+        return 0;
+    }
+
+    uint64_t balance = 0;
+
+    for(Coin::UnspentP2PKHOutput & utxo : getUnspentTransactionsOutputs(confirmations, main_chain_height)) {
+        balance += utxo.value();
+    }
+
     return balance;
 }
 
