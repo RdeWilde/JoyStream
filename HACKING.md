@@ -1,10 +1,10 @@
 Rules
 ------------------------------------------------------------
 
-1. Any new library requires corresponding QTest class which
+1. Any new library requires corresponding test class (QTest) which
 must pass and have reasonable coverage.
 
-2. A PR should, if possible, be approved by someone other than
+2. A PR should, if possible, be merged by someone other than
 the author.
 
 3. A PR can only be merged into the development branch if
@@ -17,7 +17,7 @@ to compile. If you have to push commits which are partial work
 due to end of day migration to another workstation, then make 
 a temporary WIP commit which you remove/squash when you continue working.
 
-Initial setup
+Setup
 ------------------------------------------------------------
 
 1. Fork main repo on github, herein referred to as upstream,
@@ -42,35 +42,62 @@ referred to as origin.
   
     `git checkout -b development --track origin/development`
 
-Development workflow
+Workflow
 ------------------------------------------------------------
+
+All work on new features is done in branche from the development branch,
+and go into the upstream/development through a pull request (PR) on github.
 
 1. Check out the development branch
 
     `git checkout development`
 
-2. Make sure to have latest commits in your local dev branch
+2. Make sure to have latest commits in upstream/development
   
     `git pull upstream development`
 
-3. Create new, appropriately named, branch of the development branch
+3. Create new, appropriately named (e.g. BRANCH_NAME), branch of the development branch
   
-    `git checkout -b <NAME OF NEW BRANCH>`
+    `git checkout -b BRANCH_NAME`
 
 4. Push new branch to your origin, such that a PR can be opened between it and upstream
 
-    `git push origin <NAME OF NEW BRANCH>`
+    `git push origin BRANCH_NAME`
 
-5. Open up PR on github, with name of the form WIP <DESCRIPTION>,
-between the origin branch and the upstream development branch.
-If the work will include multiple subgoals, then add a checklist
+5. Open up PR on github, with name of the form WIP: *,
+between the origin/BRANCH_NAME and the upstream/development.
+
+If the work has multiple subgoals, then add a checklist
 which you manage as you complete/add goals.
 
-6. When you are ready to push your new feature to your origin repo,
-do a rebase in case the upstream dev branch has changed since you started working on the branch. 
-  
-    `git pull --rebase upstream development` -> (resolve any merge conflicts)
-
-7. Push new commits on your branch to origin
+6. Try to push local commits to origin/BRANCH_NAME as frequently as possible,
+so that others can keep track of your work through the PR on github.
  
-    `git push origin <NAME OF NEW BRANCH>`
+    `git push origin BRANCH_NAME`
+
+7. If you require new work which is merged into upstream/development, then
+rebase your branch on top of the most recent changes upstream.
+
+    `git pull --rebase upstream development`
+
+NOTE: We rebase, rather than merge, to avoid introducing arbitrary
+merge commits in your own branch.
+
+8. Eventually, you will have pushed your last work commit to origin/BRANCH_NAME.
+If there are no merge conflicts between it and upstream/development, you are done.
+
+If there are merge conflicts, you will have to resolve them in
+one of two ways.
+
+a) Pull in and merge upstream/development into BRANCH_NAME locally, resolving
+any possibly conflicts into a merge commit.
+
+    `git pull upstream development`
+
+b) Interactively rebase BRANCH_NAME locally on top of upstream/development.
+  
+    `git pull --rebase upstream development`
+
+9. Push new commits to origin/BRANCH_NAME
+ 
+    `git push origin BRANCH_NAME`
