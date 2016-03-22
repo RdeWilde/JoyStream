@@ -69,6 +69,8 @@ public:
 
     int32_t bestHeight() const;
 
+    Coin::Transaction SendToAddress(uint64_t value, const Coin::P2PKHAddress &addr, uint64_t fee);
+
 signals:
 
 

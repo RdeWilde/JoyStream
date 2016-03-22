@@ -1,6 +1,8 @@
 #include <common/UnspentP2PKHOutput.hpp>
 #include <common/P2PKHAddress.hpp>
 #include <common/P2PKHScriptPubKey.hpp>
+#include <common/P2PKHScriptSig.hpp>
+#include <common/TransactionSignature.hpp>
 
 #include <bitcoin/SPVWallet.hpp>
 
@@ -297,6 +299,50 @@ int32_t SPVWallet::bestHeight() const {
 
     return _store.getBestHeaderHeight();
 }
+Coin::UnspentP2PKHOutput SPVWallet::GetOneUnspentOutput(uint64_t minValue) {
+    return UnspentP2PKHOutput();
+}
+
+Coin::Transaction SPVWallet::SendToAddress(uint64_t value, const Coin::P2PKHAddress &addr, uint64_t fee) {
+
+    // Get UnspentUTXO
+    Coin::UnspentP2PKHOutput utxo(GetOneUnspentOutput(value + fee));
+
+    if(utxo.value() < (value + fee)) {
+        throw std::runtime_error("SendToAddress() - insufficient funds");
+    }
+
+    // Create Destination output
+    Coin::P2PKHScriptPubKey destinationScript(addr.pubKeyHash());
+    
+    // Create Change output
+    Coin::P2PKHAddress changeAddr = GetReceiveAddress();
+    Coin::P2PKHScriptPubKey changeScript(changeAddr.pubKeyHash());
+
+    //should we pass in a fee rate (satoshis/KB) instead ?
+    uint64_t change = utxo.value() - (value + fee);
+
+    // Create an unsigned Transaction
+    Coin::Transaction cointx;
+    cointx.addOutput(Coin::TxOut(value, destinationScript.serialize()));
+
+    if(change > 0)
+        cointx.addOutput(Coin::TxOut(change, changeScript.serialize()));
+
+    // Generate signature
+    Coin::PrivateKey sk = utxo.keyPair().sk();
+    Coin::TransactionSignature ts(sk.signForP2PKHSpend(cointx, 0));
+
+    // Generate scriptSig
+    Coin::P2PKHScriptSig scriptSig(sk.toPublicKey(), ts);
+
+    // Set input script
+    cointx.inputs[0].scriptSig = scriptSig.serialized();
+
+    BroadcastTx(cointx);
+
+    return cointx;
+}
 
 uint64_t SPVWallet::Balance() const {
     return _confirmedBalance;
@@ -305,7 +351,6 @@ uint64_t SPVWallet::Balance() const {
 uint64_t SPVWallet::UnconfirmedBalance() const {
     return _unconfirmedBalance;
 }
-
 
 void SPVWallet::onBlockTreeError(const std::string& error, int code) {
     // Ignore file not found error - not critical
