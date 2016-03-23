@@ -404,18 +404,24 @@ void SPVWallet::onBlocksSynched() {
 
 void SPVWallet::onNewTx(const Coin::Transaction& cointx) {
 
-    if(!transactionHasBloomFilterElements(cointx)) return;
+    if(!transactionIsRelevant(cointx)) return;
 
     _store.addTransaction(cointx);
     recalculateBalance();
 }
 
 void SPVWallet::onTxConfirmed(const ChainMerkleBlock& chainmerkleblock, const bytes_t& txhash, unsigned int txindex, unsigned int txcount){
-    _store.confirmTransaction(uchar_vector(txhash).getHex(), chainmerkleblock, txindex == 0);
+    if(transactionIsRelevant(cointx)) {
+        _store.confirmTransaction(uchar_vector(txhash).getHex(), chainmerkleblock, txindex == 0);
+    } else {
+        if( txindex == 0 ) {
+            _store.addBlockHeader(chainmerkleblock);
+        }
+    }
 }
 
 void SPVWallet::onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin::Transaction& cointx, unsigned int txindex, unsigned int txcount){
-    if(transactionHasBloomFilterElements(cointx)) {
+    if(transactionIsRelevant(cointx)) {
         _store.addTransaction(cointx, chainmerkleblock, txindex == 0);
     } else {
         if( txindex == 0 ) {
@@ -451,7 +457,7 @@ Coin::BloomFilter SPVWallet::makeBloomFilter(double falsePositiveRate, uint32_t 
 
     for(auto &sk : privateKeys) {
         //public key - to capture inputs that spend outputs we control
-        elements.push_back(sk.toPublicKey().toUCharVector());
+        elements.push_back(sk.toPublicKey().toUCharVector()); //compressed public key
 
         //pubkeyhash - to capture outputs we control
         elements.push_back(sk.toPublicKey().toPubKeyHash().toUCharVector());
@@ -469,14 +475,17 @@ Coin::BloomFilter SPVWallet::makeBloomFilter(double falsePositiveRate, uint32_t 
     return filter;
 }
 
-bool SPVWallet::transactionHasBloomFilterElements(const Coin::Transaction &cointx) {
+bool SPVWallet::transactionIsRelevant(const Coin::Transaction &cointx) {
 
     for(const Coin::TxIn & txin : cointx.inputs) {
-        //deserialize txin.scriptSig to a Coin::P2PKHScriptSig
-        // if not a p2pkhscript sig continue;
-
-            // get the public key
-            // if it matches an element in our bloom filter -> set foundMatch = true
+        if(txin.scriptSig.size() < 33) continue;
+        // In a standard P2PKHScriptSig the compressed raw PublicKey is the last 33 bytes
+        int start = txin.scriptSig.size() - 33;
+        int end = txin.scriptSig.size() - 1;
+        uchar_vector pubkey(&txin.scriptSig[start], &txin.scriptSig[end]);
+        if(_bloomFilterElements.find(pubkey) != _bloomFilterElements.end()) {
+            return true;
+        }
     }
 
     for(const Coin::TxOut & txout : cointx.outputs) {

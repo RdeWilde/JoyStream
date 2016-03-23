@@ -132,7 +132,7 @@ private:
 
     void updateBloomFilter();
 
-    bool transactionHasBloomFilterElements(const Coin::Transaction &cointx);
+    bool transactionIsRelevant(const Coin::Transaction &cointx);
 
     void recalculateBalance();
 
