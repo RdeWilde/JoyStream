@@ -90,10 +90,10 @@ void Test::paychan_one_to_one() {
 
     // Setup keys
     Coin::KeyPair payorContractKeyPair = Coin::KeyPair::generate();
-    Coin::KeyPair payorFinalKeyPair = Coin::KeyPair::generate();
+    Coin::PubKeyHash payorFinalKeyHash("5364093874829384794bda860241f4c55ea0b297");
 
     Coin::KeyPair payeeContractKeyPair = Coin::KeyPair::generate();
-    Coin::KeyPair payeeFinalKeyPair = Coin::KeyPair::generate();
+    Coin::PubKeyHash payeeFinalKeyHash("0285b8ceae4c5d7f094bda860241f4c55ea0b297");
 
     // Setup payor
     // *************
@@ -116,9 +116,9 @@ void Test::paychan_one_to_one() {
                                                           lockTime,
                                                           Coin::typesafeOutPoint(Coin::TransactionId(), 0), // <-- reset in anchoring
                                                           payorContractKeyPair,
-                                                          payorFinalKeyPair,
+                                                          payorFinalKeyHash,
                                                           payeeContractKeyPair.pk(),
-                                                          payeeFinalKeyPair.pk(),
+                                                          payeeFinalKeyHash,
                                                           Coin::Signature(),
                                                           Coin::Signature()));
 
@@ -142,9 +142,9 @@ void Test::paychan_one_to_one() {
                                            1,
                                            channel.anchor(),
                                            payeeContractKeyPair,
-                                           payeeFinalKeyPair,
+                                           payeeFinalKeyHash,
                                            payorContractKeyPair.pk(),
-                                           payorFinalKeyPair.pk(),
+                                           payorFinalKeyHash,
                                            Coin::Signature());
 
     // Payee generates refund

@@ -31,9 +31,9 @@ namespace paymentchannel {
                      quint32 refundLockTime,
                      const Coin::typesafeOutPoint & anchor,
                      const Coin::KeyPair & payorContractKeyPair,
-                     const Coin::KeyPair & payorFinalKeyPair,
+                     const Coin::PubKeyHash & payorFinalKeyHash,
                      const Coin::PublicKey & payeeContractPk,
-                     const Coin::PublicKey & payeeFinalPk,
+                     const Coin::PubKeyHash & payeeFinalKeyHash,
                      const Coin::Signature & payorRefundSignature,
                      const Coin::Signature & payeeRefundSignature)
         : _price(price)
@@ -44,9 +44,9 @@ namespace paymentchannel {
         , _refundLockTime(refundLockTime)
         , _anchor(anchor)
         , _payorContractKeyPair(payorContractKeyPair)
-        , _payorFinalKeyPair(payorFinalKeyPair)
+        , _payorFinalKeyHash(payorFinalKeyHash)
         , _payeeContractPk(payeeContractPk)
-        , _payeeFinalPk(payeeFinalPk)
+        , _payeeFinalKeyHash(payeeFinalKeyHash)
         , _payorRefundSignature(payorRefundSignature)
         , _payeeRefundSignature(payeeRefundSignature) {
     }
@@ -60,7 +60,7 @@ namespace paymentchannel {
 
         return Refund(_anchor,
                       commitment(),
-                      Coin::Payment(_funds - _refundFee, _payorFinalKeyPair.pk().toPubKeyHash()),
+                      Coin::Payment(_funds - _refundFee, _payorFinalKeyHash),
                       _refundLockTime);
     }
 
@@ -68,8 +68,8 @@ namespace paymentchannel {
 
         return Settlement::dustLimitAndFeeAwareSettlement(_anchor,
                                                           commitment(),
-                                                          _payorFinalKeyPair.pk().toPubKeyHash(),
-                                                          _payeeFinalPk.toPubKeyHash(),
+                                                          _payorFinalKeyHash,
+                                                          _payeeFinalKeyHash,
                                                           _funds,
                                                           amountPaid(),
                                                           _settlementFee);
@@ -166,12 +166,12 @@ namespace paymentchannel {
         _payorContractKeyPair = payorContractKeyPair;
     }
 
-    Coin::KeyPair Channel::payorFinalKeyPair() const {
-        return _payorFinalKeyPair;
+    Coin::PubKeyHash Channel::payorFinalKeyHash() const {
+        return _payorFinalKeyHash;
     }
 
-    void Channel::setPayorFinalKeyPair(const Coin::KeyPair & payorFinalKeyPair) {
-        _payorFinalKeyPair = payorFinalKeyPair;
+    void Channel::setPayorFinalKeyHash(const Coin::PubKeyHash & payorFinalKeyHash) {
+        _payorFinalKeyHash = payorFinalKeyHash;
     }
 
     Coin::PublicKey Channel::payeeContractPk() const {
@@ -182,12 +182,12 @@ namespace paymentchannel {
         _payeeContractPk = payeeContractPk;
     }
 
-    Coin::PublicKey Channel::payeeFinalPk() const {
-        return _payeeFinalPk;
+    Coin::PubKeyHash Channel::payeeFinalKeyHash() const {
+        return _payeeFinalKeyHash;
     }
 
-    void Channel::setPayeeFinalPk(const Coin::PublicKey & payeeFinalPk) {
-        _payeeFinalPk = payeeFinalPk;
+    void Channel::setPayeeFinalKeyHash(const Coin::PubKeyHash & payeeFinalKeyHash) {
+        _payeeFinalKeyHash = payeeFinalKeyHash;
     }
 
     Coin::Signature Channel::payorRefundSignature() const {

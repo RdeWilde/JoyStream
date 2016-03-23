@@ -31,8 +31,7 @@ namespace paymentchannel {
 
         Channel();
 
-        Channel(
-                quint64 price,
+        Channel(quint64 price,
                 quint64 numberOfPaymentsMade,
                 quint64 funds,
                 quint64 refundFee,
@@ -40,9 +39,9 @@ namespace paymentchannel {
                 quint32 refundLockTime,
                 const Coin::typesafeOutPoint & anchor,
                 const Coin::KeyPair & payorContractKeyPair,
-                const Coin::KeyPair & payorFinalKeyPair,
+                const Coin::PubKeyHash & payorFinalKeyHash,
                 const Coin::PublicKey & payeeContractPk,
-                const Coin::PublicKey & payeeFinalPk,
+                const Coin::PubKeyHash & payeeFinalKeyHash,
                 const Coin::Signature & payorRefundSignature,
                 const Coin::Signature & payeeRefundSignature);
 
@@ -62,7 +61,7 @@ namespace paymentchannel {
         Coin::Signature generatePayorSettlementSignature() const;
 
         // Checks the payee signature
-        bool checkPayeeRefundSignature(const Coin::Signature & sig) const;
+        bool checkPayeeRefundSignature(const Coin::Signature &) const;
 
         // Amount of funds paid
         quint64 amountPaid() const;
@@ -72,37 +71,37 @@ namespace paymentchannel {
         void setPrice(quint64 price);
 
         quint64 numberOfPaymentsMade() const;
-        void setNumberOfPaymentsMade(quint64 numberOfPaymentsMade);
+        void setNumberOfPaymentsMade(quint64);
 
         quint64 funds() const;
         void setFunds(quint64 funds);
 
         quint64 refundFee() const;
-        void setRefundFee(quint64 refundFee);
+        void setRefundFee(quint64);
 
         quint64 settlementFee() const;
-        void setSettlementFee(quint64 settlementFee);
+        void setSettlementFee(quint64);
 
         Coin::typesafeOutPoint anchor() const;
-        void setAnchor(const Coin::typesafeOutPoint & anchor);
+        void setAnchor(const Coin::typesafeOutPoint &);
 
         Coin::KeyPair payorContractKeyPair() const;
-        void setPayorContractKeyPair(const Coin::KeyPair & payorContractKeyPair);
+        void setPayorContractKeyPair(const Coin::KeyPair &);
 
-        Coin::KeyPair payorFinalKeyPair() const;
-        void setPayorFinalKeyPair(const Coin::KeyPair & payorFinalKeyPair);
+        Coin::PubKeyHash payorFinalKeyHash() const;
+        void setPayorFinalKeyHash(const Coin::PubKeyHash &);
 
         Coin::PublicKey payeeContractPk() const;
-        void setPayeeContractPk(const Coin::PublicKey & payeeContractPk);
+        void setPayeeContractPk(const Coin::PublicKey &);
 
-        Coin::PublicKey payeeFinalPk() const;
-        void setPayeeFinalPk(const Coin::PublicKey & payeeFinalPk);
+        Coin::PubKeyHash payeeFinalKeyHash() const;
+        void setPayeeFinalKeyHash(const Coin::PubKeyHash &);
 
         Coin::Signature payorRefundSignature() const;
-        void setPayorRefundSignature(const Coin::Signature & payorRefundSignature);
+        void setPayorRefundSignature(const Coin::Signature &);
 
         Coin::Signature payeeRefundSignature() const;
-        void setPayeeRefundSignature(const Coin::Signature & payeeRefundSignature);
+        void setPayeeRefundSignature(const Coin::Signature &);
 
     private:
 
@@ -131,13 +130,13 @@ namespace paymentchannel {
         Coin::KeyPair _payorContractKeyPair;
 
         // Controls final payment to payor
-        Coin::KeyPair _payorFinalKeyPair;
+        Coin::PubKeyHash _payorFinalKeyHash;
 
         // Controls payee output of multisig, received in joinin_contract.pk
         Coin::PublicKey _payeeContractPk;
 
         // Controls payee payments, received in sign_refund.pk
-        Coin::PublicKey _payeeFinalPk;
+        Coin::PubKeyHash _payeeFinalKeyHash;
 
         // Controls refund for payor
         Coin::Signature _payorRefundSignature;

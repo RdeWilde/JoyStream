@@ -10,6 +10,7 @@
 
 #include <common/KeyPair.hpp>
 #include <common/typesafeOutPoint.hpp>
+#include <common/PubKeyHash.hpp>
 #include <common/Signature.hpp>
 
 namespace Coin {
@@ -44,9 +45,9 @@ namespace paymentchannel {
               quint64 refundFee,
               const Coin::typesafeOutPoint & contractOutPoint,
               const Coin::KeyPair & payeeContractKeys,
-              const Coin::KeyPair & payeePaymentKeys,
+              const Coin::PubKeyHash & payeeFinalKeyHash,
               const Coin::PublicKey & payorContractPk,
-              const Coin::PublicKey & payorFinalPk,
+              const Coin::PubKeyHash & payorFinalKeyHash,
               const Coin::Signature & lastValidPayorPaymentSignature);
 
         // Creates refund signature
@@ -56,7 +57,7 @@ namespace paymentchannel {
         // ==================================================
         // A valid signature will lead to an increase of _numberOfPaymentsMade,
         // and storing signature in _lastValidPayorPaymentSignature
-        bool registerPayment(const Coin::Signature & payorPaymentSignature);
+        bool registerPayment(const Coin::Signature &);
 
         // Generates transaction for last payment
         Coin::Transaction lastPaymentTransaction() const;
@@ -67,7 +68,7 @@ namespace paymentchannel {
         // 2) tx has contract output point
         // 3) scriptSig of tx is controlled by given keys and has the correct quanitity of funds
         // 4) channel has to correct number of participants.
-        bool isContractValid(const Coin::Transaction & tx) const;
+        bool isContractValid(const Coin::Transaction &) const;
 
         // Commitment
         Commitment commitment() const;
@@ -76,47 +77,47 @@ namespace paymentchannel {
         Refund refund() const;
 
         // Settlement
-        Settlement settlement(int numberOfPayments) const;
+        Settlement settlement(int) const;
 
         // Amount of funds paid
         quint64 amountPaid() const;
 
         // Getters and setters
         quint64 numberOfPaymentsMade() const;
-        void setNumberOfPaymentsMade(quint64 numberOfPaymentsMade);
+        void setNumberOfPaymentsMade(quint64);
 
         quint32 lockTime() const;
-        void setLockTime(quint32 lockTime);
+        void setLockTime(quint32);
 
         quint64 price() const;
-        void setPrice(quint64 price);
+        void setPrice(quint64);
 
         quint64 funds() const;
-        void setFunds(quint64 funds);
+        void setFunds(quint64);
 
         quint64 settlementFee() const;
-        void setSettlementFee(quint64 settlementFee);
+        void setSettlementFee(quint64);
 
         quint64 refundFee() const;
         void setRefundFee(quint64 refundFee);
 
         Coin::typesafeOutPoint contractOutPoint() const;
-        void setContractOutPoint(const Coin::typesafeOutPoint & contractOutPoint);
+        void setContractOutPoint(const Coin::typesafeOutPoint &);
 
         Coin::KeyPair payeeContractKeys() const;
-        void setPayeeContractKeys(const Coin::KeyPair & payeeContractKeys);
+        void setPayeeContractKeys(const Coin::KeyPair &);
 
-        Coin::KeyPair payeePaymentKeys() const;
-        void setPayeePaymentKeys(const Coin::KeyPair & payeePaymentKeys);
+        Coin::PubKeyHash payeeFinalKeyHash() const;
+        void setPayeeFinalKeyHash(const Coin::PubKeyHash &);
 
         Coin::PublicKey payorContractPk() const;
-        void setPayorContractPk(const Coin::PublicKey & payorContractPk);
+        void setPayorContractPk(const Coin::PublicKey &);
 
-        Coin::PublicKey payorFinalPk() const;
-        void setPayorFinalPk(const Coin::PublicKey & payorFinalPk);
+        Coin::PubKeyHash payorFinalKeyHash() const;
+        void setPayorFinalKeyHash(const Coin::PubKeyHash &);
 
         Coin::Signature lastValidPayorPaymentSignature() const;
-        void setLastValidPayorPaymentSignature(const Coin::Signature & lastValidPayorPaymentSignature);
+        void setLastValidPayorPaymentSignature(const Coin::Signature &);
 
     private:
 
@@ -145,13 +146,13 @@ namespace paymentchannel {
         Coin::KeyPair _payeeContractKeys;
 
         // Controls payee output in payment _lastValidPaymentSignature
-        Coin::KeyPair _payeePaymentKeys;
+        Coin::PubKeyHash _payeeFinalKeyHash;
 
         // Payor key in contract output
         Coin::PublicKey _payorContractPk;
 
-        // Payor key in output in refund and payment
-        Coin::PublicKey _payorFinalPk;
+        // Payor P2PKH output in refund/payment
+        Coin::PubKeyHash _payorFinalKeyHash;
 
         // The last valid payment signature received, corresponds to _numberOfPaymentsMade
         Coin::Signature _lastValidPayorPaymentSignature;
