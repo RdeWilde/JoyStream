@@ -9,14 +9,15 @@
 
 using namespace joystream::protocol::statemachine::event;
 
-Joined::Joined(const ContractRSVP & rsvp)
-    : _rsvp(rsvp) {
+Joined::Joined(const Coin::KeyPair & contractKeys, const Coin::PublicKey & finalPk)
+    : _contractKeys(contractKeys)
+    , _finalPk(finalPk) {
 }
 
-joystream::protocol::ContractRSVP Joined::rsvp() const {
-    return _rsvp;
+Coin::KeyPair Joined::contractKeys() const {
+    return _contractKeys;
 }
 
-void Joined::setRsvp(const ContractRSVP & rsvp){
-    _rsvp = rsvp;
+Coin::PublicKey Joined::finalPk() const {
+    return _finalPk;
 }

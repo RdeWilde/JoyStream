@@ -9,7 +9,7 @@
 #define JOYSTREAM_PROTOCOL_STATEMACHINE_EVENT_JOINCONTRACT_HPP
 
 #include <boost/statechart/event.hpp>
-#include <protocol/ContractRSVP.hpp>
+#include <common/KeyPair.hpp>
 
 namespace sc = boost::statechart;
 
@@ -22,15 +22,20 @@ namespace event {
 
     public:
 
-        Joined(const ContractRSVP &);
+        Joined(const Coin::KeyPair &, const Coin::PublicKey &);
 
-        // Getters and setters
-        ContractRSVP rsvp() const;
-        void setRsvp(const ContractRSVP &);
+        // Getters
+        Coin::KeyPair contractKeys() const;
+
+        Coin::PublicKey finalPk() const;
 
     private:
 
-        ContractRSVP _rsvp;
+        // Contract output payee keys
+        Coin::KeyPair _contractKeys;
+
+        // Payment payee output
+        Coin::PublicKey _finalPk;
     };
 
 }
