@@ -35,7 +35,7 @@ namespace protocol {
     SellerConnection SellerConnection::createFreshConnection(const Connection & connection,
                                                              const SellerTerms & terms,
                                                              const Coin::KeyPair & payeeContractKeys,
-                                                             const Coin::KeyPair & payeePaymentKeys) {
+                                                             const Coin::PubKeyHash & payeeFinalPubKeyHash) {
 
         return SellerConnection(connection,
                                 SellerClientState::no_joystream_message_sent,
@@ -44,7 +44,7 @@ namespace protocol {
                                                                                         terms.minLock(),
                                                                                         terms.settlementFee(),
                                                                                         payeeContractKeys,
-                                                                                        payeePaymentKeys),
+                                                                                        payeeFinalPubKeyHash),
                                 std::queue<uint32_t>(),
                                 wire::SignRefund(),
                                 wire::Payment(),

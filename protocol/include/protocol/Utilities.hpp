@@ -10,6 +10,8 @@
 
 #include <QtGlobal> // q primitive types
 
+#include <common/PubKeyHash.hpp> // Hard to forward declare typedefined PubKeyHash
+
 namespace Coin {
     class UnspentP2PKHOutput;
     class P2PKHAddress;
@@ -34,7 +36,7 @@ namespace joystream {
         joystream::paymentchannel::Payor createPayorForNewBuyer(const Coin::UnspentP2PKHOutput & utxo, const Coin::P2PKHAddress & changeAddress);
 
         // Payee as seen by a fresh seller connection
-        joystream::paymentchannel::Payee createPayeeForNewSeller(quint64 price, quint32 lock, quint64 settlementFee, const Coin::KeyPair & payeeContractKeys, const Coin::KeyPair & payeePaymentKeys);
+        joystream::paymentchannel::Payee createPayeeForNewSeller(quint64 price, quint32 lock, quint64 settlementFee, const Coin::KeyPair & payeeContractKeys, const Coin::PubKeyHash & payeeFinalPubKeyHash);
 
     }
     }

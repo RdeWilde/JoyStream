@@ -22,12 +22,12 @@ namespace event {
 
     public:
 
-        Joined(const Coin::KeyPair &, const Coin::PublicKey &);
+        Joined(const Coin::KeyPair &, const Coin::PubKeyHash &);
 
         // Getters
         Coin::KeyPair contractKeys() const;
 
-        Coin::PublicKey finalPk() const;
+        Coin::PubKeyHash finalPkHash() const;
 
     private:
 
@@ -35,7 +35,7 @@ namespace event {
         Coin::KeyPair _contractKeys;
 
         // Payment payee output
-        Coin::PublicKey _finalPk;
+        Coin::PubKeyHash _finalPkHash;
     };
 
 }

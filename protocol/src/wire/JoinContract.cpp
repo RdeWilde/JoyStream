@@ -29,14 +29,16 @@ namespace wire {
         quint64 value;
         stream >> value;
 
-        Coin::PublicKey contractPk, finalPk;
+        Coin::PublicKey contractPk;
         Coin::operator >> (stream, contractPk);
-        Coin::operator >> (stream, finalPk);
+
+        Coin::PubKeyHash finalPKHash;
+        Coin::operator >> (stream, finalPKHash);
 
         // Store in invitation
         _invitation.setValue(value);
         _invitation.setContractPk(contractPk);
-        _invitation.setFinalPk(finalPk);
+        _invitation.setFinalPkHash(finalPKHash);
 
         //// Index
         stream >> _index;
@@ -50,7 +52,7 @@ namespace wire {
 
         stream << _invitation.value();
         Coin::operator << (stream, _invitation.contractPk());
-        Coin::operator << (stream, _invitation.finalPk());
+        Coin::operator << (stream, _invitation.finalPkHash());
         stream << _index;
     }
 

@@ -46,7 +46,7 @@ namespace protocol {
         static SellerSession * convertToSellerSession(const Session<T> * session, const SellerTerms & terms, uint32_t numberOfPiecesInTorrent);
 
         // Add fresh connection with peer where only extended handshake has been sent
-        bool addFreshConnection(const Connection & connection, const Coin::KeyPair & payeeContractKeys, const Coin::KeyPair & payeePaymentKeys);
+        bool addFreshConnection(const Connection & connection, const Coin::KeyPair & payeeContractKeys, const Coin::PubKeyHash & payeeFinalPubKeyHash);
 
         virtual bool removeConnection(const std::string & name);
         virtual void processMessageOnConnection(const std::string & name, const wire::ExtendedMessagePayload & message);
@@ -96,7 +96,7 @@ namespace protocol {
 
         // Add all connections to session
         for(typename std::map<std::string, T>::const_iterator i = connections.cbegin(); i != connections.cend();i++)
-            sellerSession->addFreshConnection((*i).second, handler(1).front(), handler(1).front());
+            sellerSession->addFreshConnection((*i).second, handler(1).front(), handler(1).front().pk().toPubKeyHash());
 
         return sellerSession;
     }

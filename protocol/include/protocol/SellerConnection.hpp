@@ -40,7 +40,7 @@ namespace protocol {
         static SellerConnection createFreshConnection(const Connection & connection,
                                                       const SellerTerms & terms,
                                                       const Coin::KeyPair & payeeContractKeys,
-                                                      const Coin::KeyPair & payeePaymentKeys);
+                                                      const Coin::PubKeyHash & payeeFinalPubKeyHash);
 
         // Getters
         SellerClientState clientState() const;

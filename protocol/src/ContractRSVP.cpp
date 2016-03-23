@@ -13,14 +13,14 @@ namespace protocol {
     ContractRSVP::ContractRSVP() {
     }
 
-    ContractRSVP::ContractRSVP(const Coin::PublicKey & contractPk, const Coin::PublicKey & finalPk)
+    ContractRSVP::ContractRSVP(const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash)
         : _contractPk(contractPk)
-        , _finalPk(finalPk) {
+        , _finalPkHash(finalPkHash) {
     }
 
     bool ContractRSVP::operator==(const ContractRSVP & rhs) const {
         return _contractPk == rhs.contractPk() &&
-               _finalPk == rhs.finalPk();
+               _finalPkHash == rhs.finalPkHash();
     }
 
     Coin::PublicKey ContractRSVP::contractPk() const {
@@ -31,12 +31,12 @@ namespace protocol {
         _contractPk = contractPk;
     }
 
-    Coin::PublicKey ContractRSVP::finalPk() const {
-        return _finalPk;
+    Coin::PubKeyHash ContractRSVP::finalPkHash() const {
+        return _finalPkHash;
     }
 
-    void ContractRSVP::setFinalPk(const Coin::PublicKey &finalPk) {
-        _finalPk = finalPk;
+    void ContractRSVP::setFinalPkHash(const Coin::PubKeyHash & finalPkHash) {
+        _finalPkHash = finalPkHash;
     }
 }
 }

@@ -48,9 +48,9 @@ namespace paymentchannel {
         , _refundFee(refundFee)
         , _contractOutPoint(contractOutPoint)
         , _payeeContractKeys(payeeContractKeys)
-        , _payeeFinalKeyHash(payeeFinalKeyHash)
+        , _payeeFinalPkHash(payeeFinalKeyHash)
         , _payorContractPk(payorContractPk)
-        , _payorFinalKeyHash(payorFinalKeyHash)
+        , _payorFinalPkHash(payorFinalKeyHash)
         , _lastValidPayorPaymentSignature(lastValidPayorPaymentSignature) {
     }
 
@@ -105,7 +105,7 @@ namespace paymentchannel {
 
         return Refund(contractOutPoint(),
                       commitment(),
-                      Coin::Payment(_funds - _refundFee, _payorFinalKeyHash),
+                      Coin::Payment(_funds - _refundFee, _payorFinalPkHash),
                       _lockTime);
     }
 
@@ -115,8 +115,8 @@ namespace paymentchannel {
 
         return Settlement::dustLimitAndFeeAwareSettlement(contractOutPoint(),
                                                           commitment(),
-                                                          _payorFinalKeyHash,
-                                                          _payeeFinalKeyHash,
+                                                          _payorFinalPkHash,
+                                                          _payeeFinalPkHash,
                                                           _funds,
                                                           amountPaid,
                                                           _settlementFee);
@@ -194,12 +194,12 @@ namespace paymentchannel {
         _payeeContractKeys = payeeContractKeys;
     }
 
-    Coin::PubKeyHash Payee::payeeFinalKeyHash() const {
-        return _payeeFinalKeyHash;
+    Coin::PubKeyHash Payee::payeeFinalPkHash() const {
+        return _payeeFinalPkHash;
     }
 
-    void Payee::setPayeeFinalKeyHash(const Coin::PubKeyHash & payeeFinalKeyHash) {
-        _payeeFinalKeyHash = payeeFinalKeyHash;
+    void Payee::setPayeeFinalPkHash(const Coin::PubKeyHash & payeeFinalKeyHash) {
+        _payeeFinalPkHash = payeeFinalKeyHash;
     }
 
     Coin::PublicKey Payee::payorContractPk() const {
@@ -210,12 +210,12 @@ namespace paymentchannel {
         _payorContractPk = payorContractPk;
     }
 
-    Coin::PubKeyHash Payee::payorFinalKeyHash() const {
-        return _payorFinalKeyHash;
+    Coin::PubKeyHash Payee::payorFinalPkHash() const {
+        return _payorFinalPkHash;
     }
 
-    void Payee::setPayorFinalKeyHash(const Coin::PubKeyHash & payorFinalKeyHash) {
-        _payorFinalKeyHash = payorFinalKeyHash;
+    void Payee::setPayorFinalPkHash(const Coin::PubKeyHash & payorFinalKeyHash) {
+        _payorFinalPkHash = payorFinalKeyHash;
     }
 
     Coin::Signature Payee::lastValidPayorPaymentSignature() const {

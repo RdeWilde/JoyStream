@@ -19,7 +19,7 @@ namespace protocol {
 
         ContractRSVP();
 
-        ContractRSVP(const Coin::PublicKey & contractPk, const Coin::PublicKey & finalPk);
+        ContractRSVP(const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash);
 
         bool operator==(const ContractRSVP &) const;
 
@@ -27,17 +27,16 @@ namespace protocol {
         Coin::PublicKey contractPk() const;
         void setContractPk(const Coin::PublicKey &);
 
-        Coin::PublicKey finalPk() const;
-        void setFinalPk(const Coin::PublicKey &);
+        Coin::PubKeyHash finalPkHash() const;
+        void setFinalPkHash(const Coin::PubKeyHash &);
 
     private:
-
 
         // Contract output seller multisig key
         Coin::PublicKey _contractPk;
 
         // Payment seller output
-        Coin::PublicKey _finalPk;
+        Coin::PubKeyHash _finalPkHash;
     };
 }
 }

@@ -14,17 +14,17 @@ namespace protocol {
         : _value(0) {
     }
 
-    ContractInvitation::ContractInvitation(quint64 value, const Coin::PublicKey & contractPk, const Coin::PublicKey & finalPk)
+    ContractInvitation::ContractInvitation(quint64 value, const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash)
         : _value(value)
         , _contractPk(contractPk)
-        , _finalPk(finalPk) {
+        , _finalPkHash(finalPkHash) {
     }
 
     bool ContractInvitation::operator==(const ContractInvitation & rhs) const {
 
         return _value == rhs.value() &&
                _contractPk == rhs.contractPk() &&
-               _finalPk == rhs.finalPk();
+               _finalPkHash == rhs.finalPkHash();
     }
 
     quint64 ContractInvitation::value() const {
@@ -43,12 +43,12 @@ namespace protocol {
         _contractPk = contractPk;
     }
 
-    Coin::PublicKey ContractInvitation::finalPk() const {
-        return _finalPk;
+    Coin::PubKeyHash ContractInvitation::finalPkHash() const {
+        return _finalPkHash;
     }
 
-    void ContractInvitation::setFinalPk(const Coin::PublicKey & finalPk) {
-        _finalPk = finalPk;
+    void ContractInvitation::setFinalPkHash(const Coin::PubKeyHash & finalPkHash) {
+        _finalPkHash = finalPkHash;
     }
 }
 }

@@ -24,13 +24,13 @@ namespace wire {
 
     JoiningContract::JoiningContract(QDataStream & stream) {
 
-        Coin::PublicKey contractPk, finalPk;
-
+        Coin::PublicKey contractPk;
         Coin::operator >> (stream, contractPk);
-        Coin::operator >> (stream, finalPk);
-
         _rsvp.setContractPk(contractPk);
-        _rsvp.setFinalPk(finalPk);
+
+        Coin::PubKeyHash finalPkHash;
+        Coin::operator >> (stream, finalPkHash);
+        _rsvp.setFinalPkHash(finalPkHash);
     }
 
     ContractRSVP JoiningContract::rsvp() const {
@@ -53,7 +53,7 @@ namespace wire {
 
         // DOESN'T LINK: stream << _contractPk << _finalPk;
         Coin::operator << (stream, _rsvp.contractPk());
-        Coin::operator << (stream, _rsvp.finalPk());
+        Coin::operator << (stream, _rsvp.finalPkHash());
     }
 
 }

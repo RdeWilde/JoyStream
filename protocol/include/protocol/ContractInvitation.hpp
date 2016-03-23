@@ -19,7 +19,7 @@ namespace protocol {
 
         ContractInvitation();
 
-        ContractInvitation(quint64 value, const Coin::PublicKey & contractPk, const Coin::PublicKey & finalPk);
+        ContractInvitation(quint64 value, const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash);
 
         bool operator==(const ContractInvitation &) const;
 
@@ -30,8 +30,8 @@ namespace protocol {
         Coin::PublicKey contractPk() const;
         void setContractPk(const Coin::PublicKey &);
 
-        Coin::PublicKey finalPk() const;
-        void setFinalPk(const Coin::PublicKey &);
+        Coin::PubKeyHash finalPkHash() const;
+        void setFinalPkHash(const Coin::PubKeyHash &);
 
     private:
 
@@ -43,10 +43,8 @@ namespace protocol {
         Coin::PublicKey _contractPk;
 
         // Payment/Refund buyer output
-        Coin::PublicKey _finalPk;
-
+        Coin::PubKeyHash _finalPkHash;
     };
 }
 }
 #endif // JOYSTREAM_PROTOCOL_CONTRACTINVITATION_HPP
-

@@ -174,9 +174,9 @@ void Test::selling() {
     spy.reset();
 
     // Transition to Invited
-    ContractInvitation invitation(1123,
-                                  Coin::PrivateKey::generate().toPublicKey(),
-                                  Coin::PrivateKey::generate().toPublicKey());
+    Coin::KeyPair payorContractKeyPair = Coin::KeyPair::generate();
+    Coin::PubKeyHash payorFinalPkHash("03a3fac91cac4a5c9ec870b444c4890ec7d68671");
+    ContractInvitation invitation(1123, payorContractKeyPair.pk(), payorFinalPkHash);
 
     // First try while peer is not buyer, which should cause exception to be thrown
     {
@@ -232,14 +232,16 @@ void Test::selling() {
     //// Invited state
 
     // Transition to WaitingToStart state
-    ContractRSVP rsvp(Coin::PrivateKey::generate().toPublicKey(),
-                      Coin::PrivateKey::generate().toPublicKey());
-    machine->process_event(statemachine::event::Joined(rsvp));
+    Coin::KeyPair payeeContractKeyPair = Coin::KeyPair::generate();
+    Coin::PubKeyHash payeeFinalPkHash("7897447899567885436990976468990ec7d68671");
+
+    machine->process_event(statemachine::event::Joined(payeeContractKeyPair, payeeFinalPkHash));
 
     // and that joining_contract message was sent with correct rsvp,
     // and we are in WaitingToStart state
     QVERIFY(spy.messageSent());
     {
+        ContractRSVP rsvp(payeeContractKeyPair.pk(), payeeFinalPkHash);
         const joystream::protocol::wire::ExtendedMessagePayload * m = spy.message();
         QCOMPARE(m->messageType(), wire::MessageType::joining_contract);
         QCOMPARE((static_cast<const wire::JoiningContract *>(m))->rsvp(), rsvp);

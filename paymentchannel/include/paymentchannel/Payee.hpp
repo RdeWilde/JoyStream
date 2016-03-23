@@ -45,9 +45,9 @@ namespace paymentchannel {
               quint64 refundFee,
               const Coin::typesafeOutPoint & contractOutPoint,
               const Coin::KeyPair & payeeContractKeys,
-              const Coin::PubKeyHash & payeeFinalKeyHash,
+              const Coin::PubKeyHash & payeeFinalPkHash,
               const Coin::PublicKey & payorContractPk,
-              const Coin::PubKeyHash & payorFinalKeyHash,
+              const Coin::PubKeyHash & payorFinalPkHash,
               const Coin::Signature & lastValidPayorPaymentSignature);
 
         // Creates refund signature
@@ -107,14 +107,14 @@ namespace paymentchannel {
         Coin::KeyPair payeeContractKeys() const;
         void setPayeeContractKeys(const Coin::KeyPair &);
 
-        Coin::PubKeyHash payeeFinalKeyHash() const;
-        void setPayeeFinalKeyHash(const Coin::PubKeyHash &);
+        Coin::PubKeyHash payeeFinalPkHash() const;
+        void setPayeeFinalPkHash(const Coin::PubKeyHash &);
 
         Coin::PublicKey payorContractPk() const;
         void setPayorContractPk(const Coin::PublicKey &);
 
-        Coin::PubKeyHash payorFinalKeyHash() const;
-        void setPayorFinalKeyHash(const Coin::PubKeyHash &);
+        Coin::PubKeyHash payorFinalPkHash() const;
+        void setPayorFinalPkHash(const Coin::PubKeyHash &);
 
         Coin::Signature lastValidPayorPaymentSignature() const;
         void setLastValidPayorPaymentSignature(const Coin::Signature &);
@@ -146,13 +146,13 @@ namespace paymentchannel {
         Coin::KeyPair _payeeContractKeys;
 
         // Controls payee output in payment _lastValidPaymentSignature
-        Coin::PubKeyHash _payeeFinalKeyHash;
+        Coin::PubKeyHash _payeeFinalPkHash;
 
         // Payor key in contract output
         Coin::PublicKey _payorContractPk;
 
         // Payor P2PKH output in refund/payment
-        Coin::PubKeyHash _payorFinalKeyHash;
+        Coin::PubKeyHash _payorFinalPkHash;
 
         // The last valid payment signature received, corresponds to _numberOfPaymentsMade
         Coin::Signature _lastValidPayorPaymentSignature;

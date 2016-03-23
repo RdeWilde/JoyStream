@@ -23,7 +23,7 @@ namespace utilities {
                                                 Coin::Transaction());
     }
 
-    joystream::paymentchannel::Payee createPayeeForNewSeller(quint64 price, quint32 lock, quint64 settlementFee, const Coin::KeyPair & payeeContractKeys, const Coin::KeyPair & payeePaymentKeys) {
+    joystream::paymentchannel::Payee createPayeeForNewSeller(quint64 price, quint32 lock, quint64 settlementFee, const Coin::KeyPair & payeeContractKeys, const Coin::PubKeyHash & payeeFinalPubKeyHash) {
 
         return joystream::paymentchannel::Payee(0,
                                                 lock,
@@ -33,9 +33,9 @@ namespace utilities {
                                                 0,
                                                 Coin::typesafeOutPoint(),
                                                 payeeContractKeys,
-                                                payeePaymentKeys,
+                                                payeeFinalPubKeyHash,
                                                 Coin::PublicKey(),
-                                                Coin::PublicKey(),
+                                                Coin::PubKeyHash(),
                                                 Coin::Signature());
     }
 

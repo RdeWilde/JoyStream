@@ -41,14 +41,14 @@ namespace protocol {
                                  numberOfPiecesInTorrent);
     }
 
-    bool SellerSession::addFreshConnection(const Connection & connection, const Coin::KeyPair & payeeContractKeys, const Coin::KeyPair & payeePaymentKeys) {
+    bool SellerSession::addFreshConnection(const Connection & connection, const Coin::KeyPair & payeeContractKeys, const Coin::PubKeyHash & payeeFinalPubKeyHash) {
 
         // Make sure connection is not already in session
         if(hasConnection(connection.peerName()))
             return false;
 
         // Create a (seller) connection which is fresh
-        SellerConnection sellerConnection = SellerConnection::createFreshConnection(connection, _terms, payeeContractKeys, payeePaymentKeys);
+        SellerConnection sellerConnection = SellerConnection::createFreshConnection(connection, _terms, payeeContractKeys, payeeFinalPubKeyHash);
 
         // Send sell mode message
         wire::Sell m(_terms, 0);
