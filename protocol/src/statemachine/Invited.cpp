@@ -21,8 +21,14 @@ namespace statemachine {
 
         std::cout << "Reacting to event::JoinContract." << std::endl;
 
+        // Store contract rsvp information in payee
+        Selling & sellingState = context<Selling>();
+        sellingState._payee.setPayeeContractKeys(e.contractKeys());
+        sellingState._payee.setPayeeFinalPkHash(e.finalPkHash());
+
         // Send message for joining contract
-        context<CBStateMachine>().sendMessage()(new wire::JoiningContract(e.rsvp()));
+        ContractRSVP rsvp(e.contractKeys().pk(), e.finalPkHash());
+        context<CBStateMachine>().sendMessage()(new wire::JoiningContract(rsvp));
 
         // Transition to WaitingToStart state
         return transit<WaitingToStart>();

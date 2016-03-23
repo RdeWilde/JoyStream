@@ -19,6 +19,7 @@ namespace statemachine {
                                    const ContractIsReady & contractIsReady,
                                    const PieceRequested & pieceRequested,
                                    const PeerInterruptedPayment & peerInterruptedPayment,
+                                   const ValidPayment & validPayment,
                                    const InvalidPayment & invalidPayment)
         : _invitedToOutdatedContract(invitedToOutdatedContract)
         , _invitedToJoinContract(invitedToJoinContract)
@@ -26,6 +27,7 @@ namespace statemachine {
         , _contractIsReady(contractIsReady)
         , _pieceRequested(pieceRequested)
         , _peerInterruptedPayment(peerInterruptedPayment)
+        , _validPayment(validPayment)
         , _invalidPayment(invalidPayment) {
     }
 
@@ -84,6 +86,10 @@ namespace statemachine {
 
     CBStateMachine::PeerInterruptedPayment CBStateMachine::getPeerInterruptedPayment() const {
         return _peerInterruptedPayment;
+    }
+
+    CBStateMachine::ValidPayment CBStateMachine::getValidPayment() const {
+        return _validPayment;
     }
 
     CBStateMachine::InvalidPayment CBStateMachine::getInvalidPayment() const {

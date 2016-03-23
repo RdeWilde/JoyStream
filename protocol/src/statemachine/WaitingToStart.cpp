@@ -20,8 +20,14 @@ sc::result WaitingToStart::react(const event::Recv<joystream::protocol::wire::Re
 
     std::cout << "Reacting to Recv<wire::Ready> event." << std::endl;
 
+    // Get contract anchor
+    Coin::typesafeOutPoint anchor = e.message()->anchor();
+
+    // Store anchor in payee
+    context<Selling>()._payee.setContractOutPoint(anchor);
+
     // Switch peer state
-    context<CBStateMachine>().contractIsReady()(e.message()->anchor());
+    context<CBStateMachine>().contractIsReady()(anchor);
 
     // Transition to deep history
     return transit<ReadyForPieceRequest>();

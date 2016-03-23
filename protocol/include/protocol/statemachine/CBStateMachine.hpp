@@ -59,16 +59,20 @@ namespace protocol {
             // Peer sent mode message when payment was expected/required
             typedef std::function<void()> PeerInterruptedPayment;
 
+            // Peer sent valid payment signature
+            typedef std::function<void(const Coin::Signature &)> ValidPayment;
+
             // Peer sent an invalid payment signature
             typedef std::function<void(const Coin::Signature &)> InvalidPayment;
 
-            CBStateMachine(const InvitedToOutdatedContract & invitedToOutdatedContract,
-                           const InvitedToJoinContract & invitedToJoinContract,
-                           const Send & sendMessage,
-                           const ContractIsReady & contractIsReady,
-                           const PieceRequested & pieceRequested,
-                           const PeerInterruptedPayment & peerInterruptedPayment,
-                           const InvalidPayment & invalidPayment);
+            CBStateMachine(const InvitedToOutdatedContract &,
+                           const InvitedToJoinContract &,
+                           const Send &,
+                           const ContractIsReady &,
+                           const PieceRequested &,
+                           const PeerInterruptedPayment &,
+                           const ValidPayment &,
+                           const InvalidPayment &);
 
             void unconsumed_event(const sc::event_base &);
 
@@ -91,6 +95,8 @@ namespace protocol {
 
             PeerInterruptedPayment getPeerInterruptedPayment() const;
 
+            ValidPayment getValidPayment() const;
+
             InvalidPayment getInvalidPayment() const;
 
         private:
@@ -109,6 +115,7 @@ namespace protocol {
             ContractIsReady _contractIsReady;
             PieceRequested _pieceRequested;
             PeerInterruptedPayment _peerInterruptedPayment;
+            ValidPayment _validPayment;
             InvalidPayment _invalidPayment;
 
             //// Peer state

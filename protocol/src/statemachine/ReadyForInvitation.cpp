@@ -46,6 +46,12 @@ namespace statemachine {
             return discard_event();
         } else {
 
+            // Store invitation information in payee
+            ContractInvitation invitation = message->invitation();
+            sellingState._payee.setFunds(invitation.value());
+            sellingState._payee.setPayorContractPk(invitation.contractPk());
+            sellingState._payee.setPayorFinalPkHash(invitation.finalPkHash());
+
             // otherwise, notify user
             machine.invitedToJoinContract()(message->invitation());
 

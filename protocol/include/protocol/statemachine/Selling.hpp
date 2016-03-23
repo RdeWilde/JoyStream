@@ -13,7 +13,9 @@
 #include <protocol/statemachine/event/ObserveModeStarted.hpp>
 #include <protocol/statemachine/event/BuyModeStarted.hpp>
 #include <protocol/statemachine/event/UpdateTerms.hpp>
-#include <protocol/ContractInvitation.hpp>
+#include <paymentchannel/Payee.hpp>
+
+//#include <protocol/ContractInvitation.hpp>
 
 namespace Coin {
     class typesafeOutPoint;
@@ -51,19 +53,33 @@ namespace statemachine {
 
     private:
 
+        // Sub states which require access to private variables
+        friend class ReadyForInvitation;
+        friend class Invited;
+        friend class ReadyForPieceRequest;
+        friend class ServicingPieceRequest;
+        friend class WaitingToStart;
+        friend class WaitingForPayment;
+
+        // Updates _payee based on terms
+        void updatePayeeTerms(const SellerTerms &);
+
         // Whether state has been initialized with detail::InitializeSelling
         bool _initialized;
 
         //// Client state
 
         // Most recent terms broadcastded
-        SellerTerms _terms;
+        //SellerTerms _terms;
 
         // Index for most recent terms broadcasted
         uint32_t _index;
 
         // Contract invitation received
-        ContractInvitation _invitation;
+        //ContractInvitation _invitation;
+
+        // Payee side of payment channel interaction
+        joystream::paymentchannel::Payee _payee;
     };
 }
 }

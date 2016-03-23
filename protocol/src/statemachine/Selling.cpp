@@ -32,11 +32,11 @@ namespace statemachine {
 
         assert(_index == 0);
 
-        // Store terms
-        _terms = e.terms();
+        // Update payee based on terms
+        updatePayeeTerms(e.terms());
 
         // Send message
-        context<CBStateMachine>().sendMessage()(new wire::Sell(_terms, _index));
+        context<CBStateMachine>().sendMessage()(new wire::Sell(e.terms(), _index));
 
         // No transition
         return discard_event();
@@ -78,11 +78,11 @@ namespace statemachine {
         // Increment term index
         _index++;
 
-        // Store terms
-        _terms = e.terms();
+        // Update payee based on terms
+        updatePayeeTerms(e.terms());
 
         // Create sell message and send
-        context<CBStateMachine>().sendMessage()(new wire::Sell(_terms, _index));
+        context<CBStateMachine>().sendMessage()(new wire::Sell(e.terms(), _index));
 
         // Transition back to initial selling state
         return transit<Selling>();
@@ -90,6 +90,12 @@ namespace statemachine {
 
     uint32_t Selling::index() const {
         return _index;
+    }
+
+    void Selling::updatePayeeTerms(const SellerTerms & t) {
+        _payee.setLockTime(t.minLock());
+        _payee.setPrice(t.minPrice());
+        _payee.setSettlementFee(t.settlementFee());
     }
 
 }
