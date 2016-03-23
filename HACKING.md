@@ -13,9 +13,11 @@ and runs (i.e. development branch should never be broken).
 
 4. Do your very best to make each commit a unified and coherent
 set of changes which still allows the given library/subapplication
-to compile. If you have to push commits which are partial work
-due to end of day migration to another workstation, then make 
-a temporary WIP commit which you remove/squash when you continue working.
+to compile. If you have to push a commit to github which is partial work,
+e.g. due to end of day migration to another workstation, then make 
+a temporary WIP commit which you remove when you continue working
+the next time (see below). This should generally only be
+done when you are working alone on a branch
 
 Setup
 ------------------------------------------------------------
@@ -70,12 +72,21 @@ between the origin/BRANCH_NAME and the upstream/development.
 If the work has multiple subgoals, then add a checklist
 which you manage as you complete/add goals.
 
-6. Try to push local commits to origin/BRANCH_NAME as frequently as possible,
+6. If you have to push an incomplete commit to github, name it with WIP prefix. To continue
+working from such a commit, first remove it locally while leaving the workspace intact
+
+    `git reset HEAD^1`
+
+and then push this removal to origin/BRANCH_NAME
+
+    `git push origin <BRANCH_NAME> --force`
+
+7. Try to push local commits to origin/BRANCH_NAME as frequently as possible,
 so that others can keep track of your work through the PR on github.
  
     `git push origin BRANCH_NAME`
 
-7. If you require new work which is merged into upstream/development, then
+8. If you require new work which is merged into upstream/development, then
 rebase your branch on top of the most recent changes upstream.
 
     `git pull --rebase upstream development`
@@ -83,7 +94,7 @@ rebase your branch on top of the most recent changes upstream.
 NOTE: We rebase, rather than merge, to avoid introducing arbitrary
 merge commits in your own branch.
 
-8. Eventually, you will have pushed your last work commit to origin/BRANCH_NAME.
+9. Eventually, you will have pushed your last work commit to origin/BRANCH_NAME.
 If there are no merge conflicts between it and upstream/development, you are done.
 
 If there are merge conflicts, you will have to resolve them in
@@ -98,6 +109,6 @@ b) Interactively rebase BRANCH_NAME locally on top of upstream/development.
   
     `git pull --rebase upstream development`
 
-9. Push new commits to origin/BRANCH_NAME
+10. Push new commits to origin/BRANCH_NAME
  
     `git push origin BRANCH_NAME`
