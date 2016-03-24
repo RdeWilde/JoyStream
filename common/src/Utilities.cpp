@@ -75,6 +75,48 @@ namespace Coin {
         return rval;
     }
 
+    uint32_t popData(const uchar_vector & inputData, uchar_vector & poppedData)
+    {
+        if(inputData.empty() || inputData[0] == 0) return 0;
+
+        uint32_t inputSize = inputData.size();
+        uint32_t dataSize = 0;
+        uint32_t dataStartsAt = 0;
+        uint32_t dataEndsAt = 0;
+
+        if (inputData[0] <= 0x4b  && inputSize > 1) {
+            dataSize = inputData[0];
+            dataStartsAt = 1;
+        }
+        else if (inputData[0] == 0x4c  && inputSize > 2) {
+            dataSize = inputData[1];
+            dataStartsAt = 2;
+        }
+        else if (inputData[0] == 0x4d  && inputSize > 3) {
+            dataSize = inputData[1];
+            dataSize += (inputData[2] << 8);
+            dataStartsAt = 3;
+        }
+        else if(inputData[0] == 0x4e  && inputSize > 5){
+            dataSize = inputData[1];
+            dataSize += (inputData[2] << 8);
+            dataSize += (inputData[3] << 16);
+            dataSize += (inputData[4] << 24);
+            dataStartsAt = 5;
+        }
+
+        if(dataSize > 0) {
+            dataEndsAt = dataStartsAt + dataSize;
+
+            if(dataEndsAt <= inputSize) {
+                poppedData = uchar_vector(&inputData[dataStartsAt], &inputData[dataEndsAt]);
+                return dataEndsAt;
+            }
+        }
+
+        return 0;
+    }
+
     /**
     unsigned int extendedPrivateKeyVersionBytes(Network network) {
 
