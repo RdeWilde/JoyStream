@@ -132,7 +132,9 @@ private:
 
     void updateBloomFilter();
 
-    bool transactionIsRelevant(const Coin::Transaction &cointx);
+    bool transactionShouldBeStored(const Coin::Transaction &) const;
+    bool spendsWalletOutput(const Coin::TxIn &) const;
+    bool createsWalletOutput(const Coin::TxOut &) const;
 
     void recalculateBalance();
 

@@ -404,7 +404,7 @@ void SPVWallet::onBlocksSynched() {
 
 void SPVWallet::onNewTx(const Coin::Transaction& cointx) {
 
-    if(!transactionIsRelevant(cointx)) return;
+    if(!transactionShouldBeStored(cointx)) return;
 
     _store.addTransaction(cointx);
     recalculateBalance();
@@ -415,7 +415,7 @@ void SPVWallet::onTxConfirmed(const ChainMerkleBlock& chainmerkleblock, const by
 }
 
 void SPVWallet::onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin::Transaction& cointx, unsigned int txindex, unsigned int txcount){
-    if(transactionIsRelevant(cointx)) {
+    if(transactionShouldBeStored(cointx)) {
         _store.addTransaction(cointx, chainmerkleblock, txindex == 0);
     } else {
         if( txindex == 0 ) {
@@ -469,36 +469,45 @@ Coin::BloomFilter SPVWallet::makeBloomFilter(double falsePositiveRate, uint32_t 
     return filter;
 }
 
-bool SPVWallet::transactionIsRelevant(const Coin::Transaction &cointx) {
-
+bool SPVWallet::transactionShouldBeStored(const Coin::Transaction & cointx) const {
     for(const Coin::TxIn & txin : cointx.inputs) {
-        try{
-            uchar_vector pubkey = Coin::P2PKHScriptSig::deserialize(txin.scriptSig).pk().toUCharVector();
-
-            if(_bloomFilterElements.find(pubkey) != _bloomFilterElements.end()) {
-                return true;
-            }
-
-        } catch(std::runtime_error &e) {
-            // not a p2pkh script sig
-            continue;
-        }
+        if(spendsWalletOutput(txin)) return true;
     }
 
     for(const Coin::TxOut & txout : cointx.outputs) {
-        try{
-            // get the pubkeyhash
-            Coin::P2PKHScriptPubKey script = Coin::P2PKHScriptPubKey::deserialize(txout.scriptPubKey);
+        if(createsWalletOutput(txout)) return true;
+    }
 
-            // if it matches bloom filter element we have a matching transaction
-            if(_bloomFilterElements.find(script.pubKeyHash().toUCharVector()) != _bloomFilterElements.end()) {
-                return true;
-            }
+    return false;
+}
 
-        } catch(std::runtime_error &e) {
-            // not a p2pkh pubkey script
-            continue;
+bool SPVWallet::spendsWalletOutput(const Coin::TxIn & txin) const {
+    try{
+        uchar_vector pubkey = Coin::P2PKHScriptSig::deserialize(txin.scriptSig).pk().toUCharVector();
+
+        if(_bloomFilterElements.find(pubkey) != _bloomFilterElements.end()) {
+            return true;
         }
+
+    } catch(std::runtime_error &e) {
+        // not a p2pkh script sig
+    }
+
+    return false;
+}
+
+bool SPVWallet::createsWalletOutput(const Coin::TxOut & txout) const {
+    try{
+        // get the pubkeyhash
+        Coin::P2PKHScriptPubKey script = Coin::P2PKHScriptPubKey::deserialize(txout.scriptPubKey);
+
+        // if it matches bloom filter element we have a matching transaction
+        if(_bloomFilterElements.find(script.pubKeyHash().toUCharVector()) != _bloomFilterElements.end()) {
+            return true;
+        }
+
+    } catch(std::runtime_error &e) {
+        // not a p2pkh pubkey script
     }
 
     return false;
