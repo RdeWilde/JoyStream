@@ -192,7 +192,7 @@ void SPVWallet::LoadBlockTree() {
 
     _blockTreeError = false;
 
-    _networkSync.loadHeaders(_blockTreeFile);
+    _networkSync.loadHeaders(_blockTreeFile, false);
 
     if(!_blockTreeError) {
         _blockTreeLoaded = true;
@@ -411,13 +411,7 @@ void SPVWallet::onNewTx(const Coin::Transaction& cointx) {
 }
 
 void SPVWallet::onTxConfirmed(const ChainMerkleBlock& chainmerkleblock, const bytes_t& txhash, unsigned int txindex, unsigned int txcount){
-    if(transactionIsRelevant(cointx)) {
-        _store.confirmTransaction(uchar_vector(txhash).getHex(), chainmerkleblock, txindex == 0);
-    } else {
-        if( txindex == 0 ) {
-            _store.addBlockHeader(chainmerkleblock);
-        }
-    }
+    _store.confirmTransaction(uchar_vector(txhash).getHex(), chainmerkleblock, txindex == 0);
 }
 
 void SPVWallet::onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin::Transaction& cointx, unsigned int txindex, unsigned int txcount){
@@ -478,13 +472,16 @@ Coin::BloomFilter SPVWallet::makeBloomFilter(double falsePositiveRate, uint32_t 
 bool SPVWallet::transactionIsRelevant(const Coin::Transaction &cointx) {
 
     for(const Coin::TxIn & txin : cointx.inputs) {
-        if(txin.scriptSig.size() < 33) continue;
-        // In a standard P2PKHScriptSig the compressed raw PublicKey is the last 33 bytes
-        int start = txin.scriptSig.size() - 33;
-        int end = txin.scriptSig.size() - 1;
-        uchar_vector pubkey(&txin.scriptSig[start], &txin.scriptSig[end]);
-        if(_bloomFilterElements.find(pubkey) != _bloomFilterElements.end()) {
-            return true;
+        try{
+            uchar_vector pubkey = Coin::P2PKHScriptSig::deserialize(txin.scriptSig).pk().toUCharVector();
+
+            if(_bloomFilterElements.find(pubkey) != _bloomFilterElements.end()) {
+                return true;
+            }
+
+        } catch(std::runtime_error &e) {
+            // not a p2pkh script sig
+            continue;
         }
     }
 
@@ -499,7 +496,7 @@ bool SPVWallet::transactionIsRelevant(const Coin::Transaction &cointx) {
             }
 
         } catch(std::runtime_error &e) {
-            // not a p2pkh output script
+            // not a p2pkh pubkey script
             continue;
         }
     }
