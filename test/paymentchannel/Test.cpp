@@ -11,13 +11,16 @@
 #include <common/Payment.hpp>
 #include <common/typesafeOutPoint.hpp>
 #include <common/TransactionSignature.hpp>
-#include <CoinCore/hdkeys.h>
-
+#include <common/UnspentP2PKHOutput.hpp>
+#include <common/P2PKHAddress.hpp>
 #include <paymentchannel/Commitment.hpp>
 #include <paymentchannel/Refund.hpp>
 #include <paymentchannel/Settlement.hpp>
-#include <paymentchannel/Payor.hpp>
 #include <paymentchannel/Payee.hpp>
+#include <paymentchannel/Channel.hpp>
+
+#include <CoinCore/CoinNodeData.h> // Transaction
+#include <CoinCore/hdkeys.h>
 
 void Test::refund() {
 
@@ -99,10 +102,10 @@ void Test::paychan_one_to_one() {
     // *************
     std::vector<joystream::paymentchannel::Channel> channels;
 
-    uint64_t source = 3000000,
-            change = 200,
-            contract_fee = 50,
-            funds_in_channel = source - (change + contract_fee);
+    uint64_t source_amount = 3000000,
+            change_amount = 200,
+            contract_fee_amount = 50,
+            amount_in_channel = source_amount - (change_amount + contract_fee_amount);
 
     uint64_t price = 8;
 
@@ -110,7 +113,7 @@ void Test::paychan_one_to_one() {
 
     channels.push_back(joystream::paymentchannel::Channel(price,
                                                           0,
-                                                          funds_in_channel, // total funds
+                                                          amount_in_channel, // total funds
                                                           0,
                                                           0,
                                                           lockTime,
@@ -122,22 +125,20 @@ void Test::paychan_one_to_one() {
                                                           Coin::Signature(),
                                                           Coin::Signature()));
 
-    joystream::paymentchannel::Payor payor(channels,
-                                           Coin::UnspentP2PKHOutput(Coin::KeyPair::generate(), Coin::typesafeOutPoint(), source),
-                                           Coin::P2PKHAddress(),
-                                           change, // change value
-                                           contract_fee, // contract fee
-                                           Coin::Transaction()); // <-- reset in anchoring
-    payor.anchor();
+    // Anchor channels in contract
+    Coin::UnspentP2PKHOutput funding(Coin::KeyPair::generate(), Coin::typesafeOutPoint(), source_amount);
+    Coin::Payment change(change_amount, Coin::PubKeyHash("8956784568342390764574523895634289896781"));
+    Coin::Transaction contractTx = joystream::paymentchannel::anchor(funding, channels, change);
 
-    joystream::paymentchannel::Channel & channel = payor.channel(0);
+    // Get channel
+    joystream::paymentchannel::Channel & channel = channels[0];
 
     // Setup payee
     // *************
     joystream::paymentchannel::Payee payee(0,
                                            lockTime,
                                            price,
-                                           funds_in_channel,
+                                           amount_in_channel,
                                            1,
                                            1,
                                            channel.anchor(),

@@ -16,23 +16,19 @@ INCLUDEPATH += $$PWD/include # be able to include w.r.t root of this project
 
 HEADERS += \
     include/paymentchannel/Commitment.hpp \
-    include/paymentchannel/Contract.hpp \
     include/paymentchannel/Payee.hpp \
-    include/paymentchannel/Payor.hpp \
+    include/paymentchannel/Channel.hpp \
     include/paymentchannel/Refund.hpp \
     include/paymentchannel/Settlement.hpp \
-    include/paymentchannel/Termination.hpp \
-    include/paymentchannel/Channel.hpp
+    include/paymentchannel/Termination.hpp
 
 SOURCES += \
     src/Commitment.cpp \
-    src/Contract.cpp \
     src/Payee.cpp \
-    src/Payor.cpp \
+    src/Channel.cpp \
     src/Refund.cpp \
     src/Settlement.cpp \
-    src/Termination.cpp \
-    src/Channel.cpp
+    src/Termination.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

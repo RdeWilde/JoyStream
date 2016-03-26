@@ -22,7 +22,6 @@ namespace Coin {
 namespace joystream {
 namespace paymentchannel {
 
-    class Contract;
     class Commitment;
     class Refund;
     class Settlement;
