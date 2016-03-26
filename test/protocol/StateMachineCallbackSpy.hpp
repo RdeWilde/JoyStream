@@ -61,7 +61,10 @@ public:
     bool paymentInterrupted() const;
 
     bool receivedInvalidPayment() const;
-    Coin::Signature incorrectSignature() const;
+    Coin::Signature invalidPaymentSignature() const;
+
+    bool receivedValidPayment() const;
+    Coin::Signature validPaymentSignature() const;
 
 private:
 
@@ -100,7 +103,12 @@ private:
     // InvalidPayment
     CBStateMachine::InvalidPayment _invalidPayment;
     bool _receivedInvalidPayment;
-    Coin::Signature _incorrectSignature;
+    Coin::Signature _invalidPaymentSignature;
+
+    // ValidPayment
+    CBStateMachine::ValidPayment _validPayment;
+    bool _receivedValidPayment;
+    Coin::Signature _validPaymentSignature;
 
 };
 
