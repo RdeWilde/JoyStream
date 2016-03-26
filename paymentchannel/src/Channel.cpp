@@ -22,7 +22,13 @@
 namespace joystream {
 namespace paymentchannel {
 
-    Channel::Channel() {
+    Channel::Channel()
+        : _price(0)
+        , _numberOfPaymentsMade(0)
+        , _funds(0)
+        , _refundFee(0)
+        , _settlementFee(0)
+        , _refundLockTime(0) {
     }
 
     Channel::Channel(quint64 price,
