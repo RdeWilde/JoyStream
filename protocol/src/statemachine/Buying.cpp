@@ -16,6 +16,7 @@ namespace statemachine {
 
     Buying::Buying()
         : _initialized(false) {
+        std::cout << "Entering Buying state." << std::endl;
     }
 
     sc::result Buying::react(const detail::InitializeBuying & e) {
@@ -63,6 +64,23 @@ namespace statemachine {
 
         // Transition to Selling state
         return transit<Selling>();
+    }
+
+    sc::result Buying::react(const event::UpdateTerms<BuyerTerms> & e) {
+
+        if(!_initialized)
+            throw std::runtime_error("Selling state not initialized.");
+
+        std::cout << "Reacting to event::UpdateTerms<BuyerTerms>." << std::endl;
+
+        // Store terms
+        _terms = e.terms();
+
+        // Send message
+        context<CBStateMachine>().sendMessage()(new wire::Buy(_terms));
+
+        // Transition back to initial selling state
+        return transit<Buying>();
     }
 
 }
