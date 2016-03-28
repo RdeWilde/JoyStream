@@ -17,6 +17,9 @@ namespace statemachine {
 namespace exception {
 
     class CannotInviteNonSeller : public std::runtime_error {
+
+    public:
+        CannotInviteNonSeller();
     };
 
 }
