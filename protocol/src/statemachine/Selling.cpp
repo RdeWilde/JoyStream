@@ -75,6 +75,8 @@ namespace statemachine {
         if(!_initialized)
             throw std::runtime_error("Selling state not initialized.");
 
+        std::cout << "Reacting to event::UpdateTerms<SellerTerms>." << std::endl;
+
         // Increment term index
         _index++;
 

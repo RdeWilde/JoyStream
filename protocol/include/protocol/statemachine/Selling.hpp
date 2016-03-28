@@ -79,7 +79,7 @@ namespace statemachine {
         //ContractInvitation _invitation;
 
         // Payee side of payment channel interaction
-        joystream::paymentchannel::Payee _payee;
+        paymentchannel::Payee _payee;
     };
 }
 }
