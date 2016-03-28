@@ -452,12 +452,12 @@ void Store::addTransaction(const Coin::Transaction & cointx, const ChainMerkleBl
     //get header or create new one
     std::shared_ptr<detail::store::BlockHeader> header;
     if(createHeader) {
+        // exception will be thrown if header is not inserted
         header = insertBlockHeader(_db, chainmerkleblock);
     } else {
+        // exception will be thrown if header not found in the store
         header = _db->load<detail::store::BlockHeader>(chainmerkleblock.hash().getHex());
     }
-
-    assert(header);
 
     //create new tx or retreive existing one
     std::shared_ptr<detail::store::Transaction> tx = transactionSave(_db, cointx);
@@ -472,6 +472,7 @@ void Store::addBlockHeader(const ChainMerkleBlock & chainmerkleblock) {
 
     odb::transaction t(_db->begin());
 
+    // exception will be thrown if trying to insert a header out of order
     insertBlockHeader(_db, chainmerkleblock);
 
     t.commit();
@@ -485,12 +486,12 @@ void Store::confirmTransaction(std::string txhash, const ChainMerkleBlock &chain
     //get header or create new one
     std::shared_ptr<detail::store::BlockHeader> header;
     if(createHeader) {
+        // exception will be thrown if header not inserted
         header = insertBlockHeader(_db, chainmerkleblock);
     } else {
+        // exception will be thrown if header not found in the store
         header = _db->load<detail::store::BlockHeader>(chainmerkleblock.hash().getHex());
     }
-
-    assert(header);
 
     //retreive existing transaction and update it
     std::shared_ptr<detail::store::Transaction> tx;
@@ -799,6 +800,12 @@ namespace {
             // .. unless its the first block header in the store
             prevHeaders = db->query<BlockHeader>((header_query::height < chainmerkleblock.height) + "LIMIT 1");
             if(!prevHeaders.empty()) {
+                throw std::runtime_error("block header doesn't connect to stored block header chain");
+            }
+        } else {
+            // Height of block being inserted should be one greater than the block it is connecting to
+            std::shared_ptr<BlockHeader> prevBlockHeader(prevHeaders.begin().load());
+            if(prevBlockHeader->height() + 1 != chainmerkleblock.height) {
                 throw std::runtime_error("block header doesn't connect to stored block header chain");
             }
         }
