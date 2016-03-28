@@ -25,7 +25,7 @@ namespace {
     std::vector<detail::store::TxHasOutput> transactionLoadOutputs(std::unique_ptr<odb::database> &db, std::string txid);
     bool transactionLoad(std::unique_ptr<odb::database> &db, std::string txid, Coin::Transaction &coin_tx);
     void transactionDelete(std::unique_ptr<odb::database> &db, std::string txid);
-    std::shared_ptr<detail::store::BlockHeader> insertBlockHeader(std::unique_ptr<odb::database> &db, const ChainMerkleBlock & chainmerkleblock);
+    std::shared_ptr<detail::store::BlockHeader> insertBlockHeader(std::unique_ptr<odb::database> &db, const ChainMerkleBlock & chainmerkleblock, Store::transactionDeconfirmedCallback callback);
 }
 
 // open existing store
@@ -444,7 +444,7 @@ void Store::addTransaction(const Coin::Transaction & cointx) {
     t.commit();
 }
 
-void Store::addTransaction(const Coin::Transaction & cointx, const ChainMerkleBlock & chainmerkleblock, bool createHeader) {
+void Store::addTransaction(const Coin::Transaction & cointx, const ChainMerkleBlock & chainmerkleblock, bool createHeader, transactionDeconfirmedCallback callback) {
     std::lock_guard<std::mutex> lock(_storeMutex);
 
     odb::transaction t(_db->begin());
@@ -453,7 +453,7 @@ void Store::addTransaction(const Coin::Transaction & cointx, const ChainMerkleBl
     std::shared_ptr<detail::store::BlockHeader> header;
     if(createHeader) {
         // exception will be thrown if header is not inserted
-        header = insertBlockHeader(_db, chainmerkleblock);
+        header = insertBlockHeader(_db, chainmerkleblock, callback);
     } else {
         // exception will be thrown if header not found in the store
         header = _db->load<detail::store::BlockHeader>(chainmerkleblock.hash().getHex());
@@ -467,18 +467,18 @@ void Store::addTransaction(const Coin::Transaction & cointx, const ChainMerkleBl
     t.commit();
 }
 
-void Store::addBlockHeader(const ChainMerkleBlock & chainmerkleblock) {
+void Store::addBlockHeader(const ChainMerkleBlock & chainmerkleblock, transactionDeconfirmedCallback callback) {
     std::lock_guard<std::mutex> lock(_storeMutex);
 
     odb::transaction t(_db->begin());
 
     // exception will be thrown if trying to insert a header out of order
-    insertBlockHeader(_db, chainmerkleblock);
+    insertBlockHeader(_db, chainmerkleblock, callback);
 
     t.commit();
 }
 
-void Store::confirmTransaction(std::string txhash, const ChainMerkleBlock &chainmerkleblock, bool createHeader) {
+void Store::confirmTransaction(std::string txhash, const ChainMerkleBlock &chainmerkleblock, bool createHeader, transactionDeconfirmedCallback callback) {
     std::lock_guard<std::mutex> lock(_storeMutex);
 
     odb::transaction t(_db->begin());
@@ -487,7 +487,7 @@ void Store::confirmTransaction(std::string txhash, const ChainMerkleBlock &chain
     std::shared_ptr<detail::store::BlockHeader> header;
     if(createHeader) {
         // exception will be thrown if header not inserted
-        header = insertBlockHeader(_db, chainmerkleblock);
+        header = insertBlockHeader(_db, chainmerkleblock, callback);
     } else {
         // exception will be thrown if header not found in the store
         header = _db->load<detail::store::BlockHeader>(chainmerkleblock.hash().getHex());
@@ -788,7 +788,7 @@ namespace {
         db->erase<Transaction>(txid);
     }
 
-    std::shared_ptr<BlockHeader> insertBlockHeader(std::unique_ptr<odb::database> &db, const ChainMerkleBlock & chainmerkleblock) {
+    std::shared_ptr<BlockHeader> insertBlockHeader(std::unique_ptr<odb::database> &db, const ChainMerkleBlock & chainmerkleblock, Store::transactionDeconfirmedCallback callback) {
         typedef odb::query<BlockHeader> header_query;
         typedef odb::result<BlockHeader> header_result;
         typedef odb::query<Transaction> transaction_query;
@@ -814,9 +814,11 @@ namespace {
         transaction_result transactions(db->query<Transaction>(transaction_query::header.is_not_null() &&
                                                                transaction_query::header->height >= chainmerkleblock.height));
 
-        for(Transaction &tx : transactions) {
+        for(Transaction &tx : transactions) {            
             tx.header(nullptr);
             db->update(tx);
+            // add deconfirmed transaction to mempool
+            callback(tx.txid());
         }
 
         // delete all blocks with height equal or greater than chainmerkleblock.height

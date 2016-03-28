@@ -417,7 +417,9 @@ void SPVWallet::onNewTx(const Coin::Transaction& cointx) {
 
 void SPVWallet::onTxConfirmed(const ChainMerkleBlock& chainmerkleblock, const bytes_t& txhash, unsigned int txindex, unsigned int txcount){
     try {
-        _store.confirmTransaction(uchar_vector(txhash).getHex(), chainmerkleblock, txindex == 0);
+        _store.confirmTransaction(uchar_vector(txhash).getHex(), chainmerkleblock, txindex == 0, [this](std::string txhash){
+            _networkSync.addToMempool(uchar_vector(txhash));
+        });
     } catch(const std::exception & e) {
         emit StoreError(e.what());
     }
@@ -426,10 +428,14 @@ void SPVWallet::onTxConfirmed(const ChainMerkleBlock& chainmerkleblock, const by
 void SPVWallet::onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin::Transaction& cointx, unsigned int txindex, unsigned int txcount){
     try {
         if(transactionShouldBeStored(cointx)) {
-            _store.addTransaction(cointx, chainmerkleblock, txindex == 0);
+            _store.addTransaction(cointx, chainmerkleblock, txindex == 0, [this](std::string txhash){
+                _networkSync.addToMempool(uchar_vector(txhash));
+            });
         } else {
             if( txindex == 0 ) {
-                _store.addBlockHeader(chainmerkleblock);
+                _store.addBlockHeader(chainmerkleblock, [this](std::string txhash){
+                    _networkSync.addToMempool(uchar_vector(txhash));
+                });
             }
         }
     } catch(const std::exception & e) {
@@ -439,7 +445,9 @@ void SPVWallet::onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin:
 
 void SPVWallet::onMerkleBlock(const ChainMerkleBlock& chainmerkleblock) {
     try {
-        _store.addBlockHeader(chainmerkleblock);
+        _store.addBlockHeader(chainmerkleblock, [this](std::string txhash){
+            _networkSync.addToMempool(uchar_vector(txhash));
+        });
     } catch(const std::exception & e) {
         emit StoreError(e.what());
     }

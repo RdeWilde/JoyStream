@@ -24,6 +24,8 @@ class Store {
 
 public:
 
+    typedef std::function<void(std::string)> transactionDeconfirmedCallback;
+
     Store(){}
     Store(std::string file);
     ~Store();
@@ -77,9 +79,9 @@ public:
 
     // Methods used to update Store with block headers and transactions
     void addTransaction(const Coin::Transaction & tx);
-    void addTransaction(const Coin::Transaction & tx, const ChainMerkleBlock & chainmerkleblock, bool createHeader);
-    void confirmTransaction(std::string txhash, const ChainMerkleBlock &chainmerkleblock, bool createHeader);
-    void addBlockHeader(const ChainMerkleBlock & chainmerkleblock);
+    void addTransaction(const Coin::Transaction & tx, const ChainMerkleBlock & chainmerkleblock, bool createHeader, transactionDeconfirmedCallback callback);
+    void confirmTransaction(std::string txhash, const ChainMerkleBlock &chainmerkleblock, bool createHeader, transactionDeconfirmedCallback callback);
+    void addBlockHeader(const ChainMerkleBlock & chainmerkleblock, transactionDeconfirmedCallback callback);
     uint32_t getBestHeaderHeight() const;
 
 private:
