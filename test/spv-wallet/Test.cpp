@@ -148,6 +148,7 @@ void Test::networkMismatchOnOpeningWallet() {
 void Test::Synching() {
 
     QSignalSpy spy_blocks_synched(_wallet, SIGNAL(BlocksSynched()));
+    QSignalSpy spy_store_error(_wallet, SIGNAL(StoreError(std::string)));
 
     _wallet->Create(WALLET_SEED);
 
@@ -181,12 +182,16 @@ void Test::Synching() {
     QCOMPARE(_wallet->bestHeight(), startingHeight + 2);
 
     QCOMPARE(_wallet->bestHeight(), _wallet->test_netsyncBestHeight());
+
+    // Make sure there were no store errors
+    QCOMPARE(spy_store_error.count(), 0);
 }
 
 void Test::BalanceCheck() {
 
     QSignalSpy spy_balance_changed(_wallet, SIGNAL(BalanceChanged(uint64_t, uint64_t)));
     QSignalSpy spy_blocks_synched(_wallet, SIGNAL(BlocksSynched()));
+    QSignalSpy spy_store_error(_wallet, SIGNAL(StoreError(std::string)));
 
     _wallet->Create(WALLET_SEED);
 
@@ -243,6 +248,11 @@ void Test::BalanceCheck() {
     QCOMPARE(_wallet->Balance(), uint64_t(startingConfirmedBalance + uint64_t(1300000)) );
 
     _wallet->StopSync();
+
+    // Make sure there were no store errors
+    QCOMPARE(spy_store_error.count(), 0);
+
+
 }
 
 

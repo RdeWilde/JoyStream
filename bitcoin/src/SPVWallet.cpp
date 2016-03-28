@@ -405,30 +405,44 @@ void SPVWallet::onBlocksSynched() {
 }
 
 void SPVWallet::onNewTx(const Coin::Transaction& cointx) {
+    try {
+        if(!transactionShouldBeStored(cointx)) return;
 
-    if(!transactionShouldBeStored(cointx)) return;
-
-    _store.addTransaction(cointx);
-    recalculateBalance();
+        _store.addTransaction(cointx);
+        recalculateBalance();
+    } catch(const std::exception & e) {
+        emit StoreError(e.what());
+    }
 }
 
 void SPVWallet::onTxConfirmed(const ChainMerkleBlock& chainmerkleblock, const bytes_t& txhash, unsigned int txindex, unsigned int txcount){
-    _store.confirmTransaction(uchar_vector(txhash).getHex(), chainmerkleblock, txindex == 0);
+    try {
+        _store.confirmTransaction(uchar_vector(txhash).getHex(), chainmerkleblock, txindex == 0);
+    } catch(const std::exception & e) {
+        emit StoreError(e.what());
+    }
 }
 
 void SPVWallet::onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin::Transaction& cointx, unsigned int txindex, unsigned int txcount){
-    if(transactionShouldBeStored(cointx)) {
-        _store.addTransaction(cointx, chainmerkleblock, txindex == 0);
-    } else {
-        if( txindex == 0 ) {
-            _store.addBlockHeader(chainmerkleblock);
+    try {
+        if(transactionShouldBeStored(cointx)) {
+            _store.addTransaction(cointx, chainmerkleblock, txindex == 0);
+        } else {
+            if( txindex == 0 ) {
+                _store.addBlockHeader(chainmerkleblock);
+            }
         }
+    } catch(const std::exception & e) {
+        emit StoreError(e.what());
     }
 }
 
 void SPVWallet::onMerkleBlock(const ChainMerkleBlock& chainmerkleblock) {
-    // Block without tx we care about
-    _store.addBlockHeader(chainmerkleblock);
+    try {
+        _store.addBlockHeader(chainmerkleblock);
+    } catch(const std::exception & e) {
+        emit StoreError(e.what());
+    }
 }
 
 void SPVWallet::updateBloomFilter() {

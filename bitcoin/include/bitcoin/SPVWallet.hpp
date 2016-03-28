@@ -85,7 +85,7 @@ signals:
     void NetSyncStatusMessage(std::string);
 
     // Error signals
-    void StoreError();
+    void StoreError(std::string);
     void BlockTreeError(std::string);
     void ProtocolError(std::string);
     void ConnectionError(std::string);
