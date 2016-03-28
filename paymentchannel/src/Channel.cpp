@@ -166,6 +166,14 @@ namespace paymentchannel {
         _settlementFee = settlementFee;
     }
 
+    quint32 Channel::refundLockTime() const {
+        return _refundLockTime;
+    }
+
+    void Channel::setRefundLockTime(quint32 refundLockTime) {
+        _refundLockTime = refundLockTime;
+    }
+
     Coin::KeyPair Channel::payorContractKeyPair() const {
         return _payorContractKeyPair;
     }
@@ -213,12 +221,12 @@ namespace paymentchannel {
     void Channel::setPayeeRefundSignature(const Coin::Signature & payeeRefundSignature) {
         _payeeRefundSignature = payeeRefundSignature;
     }
-
+        
     quint64 requiredFee(int numberOfPayees, quint64 feePerKb) {
-
+        
         // One output for change, and one per payee
         int numberOfOutputs = numberOfPayees + 1;
-
+        
         // Sizevof transaction
         quint64 txByteSize =(148*1) + (34*(numberOfPayees + 1) + 10);
 

@@ -89,6 +89,9 @@ namespace paymentchannel {
         quint64 settlementFee() const;
         void setSettlementFee(quint64);
 
+        quint32 refundLockTime() const;
+        void setRefundLockTime(quint32);
+
         Coin::typesafeOutPoint anchor() const;
         void setAnchor(const Coin::typesafeOutPoint &);
 
