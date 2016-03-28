@@ -98,25 +98,21 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
 
     _networkSync.subscribeNewTx([this](const Coin::Transaction& cointx)
     {
-        //std::cout << "== new tx ==" << std::endl;
         onNewTx(cointx);
     });
 
     _networkSync.subscribeMerkleTx([this](const ChainMerkleBlock& chainmerkleblock, const Coin::Transaction& cointx, unsigned int txindex, unsigned int txcount)
     {
-        //std::cout << "== merkle tx ==" << std::endl;
         onMerkleTx(chainmerkleblock, cointx, txindex, txcount);
     });
 
     _networkSync.subscribeTxConfirmed([this](const ChainMerkleBlock& chainmerkleblock, const bytes_t& txhash, unsigned int txindex, unsigned int txcount)
     {
-        //std::cout << "== tx confirmed ==" << std::endl;
         onTxConfirmed(chainmerkleblock, txhash, txindex, txcount);
     });
 
     _networkSync.subscribeMerkleBlock([this](const ChainMerkleBlock& chainmerkleblock)
     {
-        //std::cout << "== merkle block ==" << std::endl;
         onMerkleBlock(chainmerkleblock);
     });
 
@@ -125,11 +121,6 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
         onBlockTreeChanged();
     });
 
-}
-
-SPVWallet::~SPVWallet(){
-    _networkSync.stop();
-    _store.close();
 }
 
 void SPVWallet::Create() {
@@ -377,8 +368,12 @@ void SPVWallet::onHeadersSynched() {
 
     std::vector<std::string> hashes = _store.getLatestBlockHeaderHashes();
 
-    for(const std::string hex : hashes){
-        locatorHashes.push_back(uchar_vector(hex));
+    if(hashes.size() > 1) {
+        std::vector<std::string>::iterator i = hashes.begin();
+        i++; // skip first so we can resync last block
+        for(;i != hashes.end(); i++){
+            locatorHashes.push_back(uchar_vector(*i));
+        }
     }
 
     updateBloomFilter();

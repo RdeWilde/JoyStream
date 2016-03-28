@@ -33,8 +33,6 @@ public:
 
     explicit SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Network network = Coin::Network::testnet3);
 
-    ~SPVWallet();
-
     // Create a new wallet with auto generated seed
     void Create();
 
