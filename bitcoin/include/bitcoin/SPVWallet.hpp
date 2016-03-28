@@ -145,7 +145,8 @@ private:
     // Load the blocktree file
     void LoadBlockTree();
 
-    std::set<uchar_vector> _bloomFilterElements;
+    std::set<uchar_vector> _bloomFilterPubKeyHashes;
+    std::set<uchar_vector> _bloomFilterCompressedPubKeys;
 
     Coin::BloomFilter makeBloomFilter(double falsePositiveRate, uint32_t nTweak, uint32_t nFlags);
 

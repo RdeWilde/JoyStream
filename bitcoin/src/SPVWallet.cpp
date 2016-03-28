@@ -476,9 +476,11 @@ Coin::BloomFilter SPVWallet::makeBloomFilter(double falsePositiveRate, uint32_t 
     for(auto &sk : privateKeys) {
         //public key - to capture inputs that spend outputs we control
         elements.push_back(sk.toPublicKey().toUCharVector()); //compressed public key
+        _bloomFilterCompressedPubKeys.insert(_bloomFilterCompressedPubKeys.begin(), elements.back());
 
         //pubkeyhash - to capture outputs we control
         elements.push_back(sk.toPublicKey().toPubKeyHash().toUCharVector());
+        _bloomFilterPubKeyHashes.insert(_bloomFilterPubKeyHashes.begin(), elements.back());
     }
 
     if(elements.size() == 0) return Coin::BloomFilter();
@@ -487,7 +489,6 @@ Coin::BloomFilter SPVWallet::makeBloomFilter(double falsePositiveRate, uint32_t 
 
     for(auto elm : elements) {
         filter.insert(elm);
-        _bloomFilterElements.insert(_bloomFilterElements.begin(), elm);
     }
 
     return filter;
@@ -509,7 +510,7 @@ bool SPVWallet::spendsWalletOutput(const Coin::TxIn & txin) const {
     try{
         uchar_vector pubkey = Coin::P2PKHScriptSig::deserialize(txin.scriptSig).pk().toUCharVector();
 
-        if(_bloomFilterElements.find(pubkey) != _bloomFilterElements.end()) {
+        if(_bloomFilterCompressedPubKeys.find(pubkey) != _bloomFilterCompressedPubKeys.end()) {
             return true;
         }
 
@@ -526,7 +527,7 @@ bool SPVWallet::createsWalletOutput(const Coin::TxOut & txout) const {
         Coin::P2PKHScriptPubKey script = Coin::P2PKHScriptPubKey::deserialize(txout.scriptPubKey);
 
         // if it matches bloom filter element we have a matching transaction
-        if(_bloomFilterElements.find(script.pubKeyHash().toUCharVector()) != _bloomFilterElements.end()) {
+        if(_bloomFilterPubKeyHashes.find(script.pubKeyHash().toUCharVector()) != _bloomFilterPubKeyHashes.end()) {
             return true;
         }
 
