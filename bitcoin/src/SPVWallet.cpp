@@ -46,44 +46,41 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
 
     _networkSync.subscribeStatus([this](const std::string& message)
     {
-        std::cout << "Status: " << message << std::endl;
+        emit NetSyncStatusMessage(message);
     });
 
     _networkSync.subscribeStarted([this]()
     {
-        std::cout << "NetSync Started"<< std::endl;
+        emit NetSyncStarted();
     });
 
     _networkSync.subscribeOpen([this]()
     {
-        std::cout << "Connection Open" << std::endl;
         updateStatus(CONNECTED);
     });
 
     _networkSync.subscribeProtocolError([this](const std::string& error, int code)
     {
-        std::cerr << "Protocol Error: " << error << std::endl;
+        emit ProtocolError(error);
     });
 
     _networkSync.subscribeConnectionError([this](const std::string& error, int code)
     {
-        std::cerr << "Connection Error: " << error << std::endl;
+        emit ConnectionError(error);
     });
 
     _networkSync.subscribeClose([this]()
     {
-        std::cout << "Connection Closed" << std::endl;
         updateStatus(DISCONNECTED);
     });
 
     _networkSync.subscribeTimeout([this]()
     {
-        std::cerr << "Connection Timeout" << std::endl;
+        emit ConnectionTimeout();
     });
 
     _networkSync.subscribeStopped([this]()
     {
-        std::cout << "NetSync Stopped"<< std::endl;
         updateStatus(OFFLINE);
     });
 
@@ -341,26 +338,39 @@ uint64_t SPVWallet::UnconfirmedBalance() const {
     return _unconfirmedBalance;
 }
 
+void SPVWallet::updateStatus(wallet_status_t status) {
+    if(_walletStatus != status) {
+        _walletStatus = status;
+
+        emit StatusChanged(status);
+
+        if(status == OFFLINE) emit Offline();
+        if(status == CONNECTING) emit Connecting();
+        if(status == CONNECTED) emit Connected();
+        if(status == DISCONNECTED) emit Disconnected();
+        if(status == SYNCHING_HEADERS) emit SynchingHeaders();
+        if(status == SYNCHING_BLOCKS)  emit SynchingBlocks();
+        if(status == SYNCHED) emit BlocksSynched();
+    }
+}
+
 void SPVWallet::onBlockTreeError(const std::string& error, int code) {
     // Ignore file not found error - not critical
     if(error == "Blocktree file not found.") return;
 
     _blockTreeError = true;
-    emit BlockTreeError();
+    emit BlockTreeError(error);
 }
 
 void SPVWallet::onBlockTreeChanged() {
-    emit BlockTreeChanged();
+
 }
 
 void SPVWallet::onSynchingHeaders() {
     updateStatus(SYNCHING_HEADERS);
-    emit SynchingHeaders();
 }
 
 void SPVWallet::onHeadersSynched() {
-
-    emit HeadersSynched();
 
     uint32_t startTime = _store.created();
 
@@ -382,9 +392,7 @@ void SPVWallet::onHeadersSynched() {
 }
 
 void SPVWallet::onSynchingBlocks() {
-
     updateStatus(SYNCHING_BLOCKS);
-    emit SynchingBlocks();
 }
 
 void SPVWallet::onBlocksSynched() {
@@ -394,7 +402,6 @@ void SPVWallet::onBlocksSynched() {
     updateStatus(SYNCHED);
 
     _networkSync.getMempool();
-    emit BlocksSynched();
 }
 
 void SPVWallet::onNewTx(const Coin::Transaction& cointx) {

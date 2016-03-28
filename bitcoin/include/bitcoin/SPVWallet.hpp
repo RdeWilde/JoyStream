@@ -22,12 +22,21 @@ public:
     enum wallet_status_t
     {
         UNINITIALIZED,      // wallet database file not yet opened, netsync stopped
+                            // this is the starting state of the wallet, it will never go back
+                            // to this state after successful opening/creating of the wallet database
+
         OFFLINE,            // wallet database ready, netsync stopped
-        CONNECTING,         // netsync connecting
-        DISCONNECTED,       // netsync peer disconnected, stopping i/o thread...
+
+        CONNECTING,         // netsync connecting, starting background threads
+
+        DISCONNECTED,       // netsync peer disconnected, stopping background threads
+
         CONNECTED,          // netsync connected to peer
+
         SYNCHING_HEADERS,
+
         SYNCHING_BLOCKS,
+
         SYNCHED
     };
 
@@ -71,15 +80,30 @@ public:
 
 signals:
 
+    void NetSyncStarted();
 
-    void BlockTreeError();
-    void BlockTreeChanged();
+    void NetSyncStatusMessage(std::string);
+
+    // Error signals
+    void StoreError();
+    void BlockTreeError(std::string);
+    void ProtocolError(std::string);
+    void ConnectionError(std::string);
+    void ConnectionTimeout();
+
+    // Wallet Status change
+    void StatusChanged(wallet_status_t);
+
+    // Signal corresponding to state transition
+    void Offline();
+    void Connecting();
+    void Disconnected();
+    void Connected();
     void SynchingHeaders();
-    void HeadersSynched();
     void SynchingBlocks();
     void BlocksSynched();
 
-    void StatusChanged(wallet_status_t);
+    // Signal emitted when wallet balance changes
     void BalanceChanged(uint64_t confirmedBalance, uint64_t unconfirmedBalance);
 
 public slots:
@@ -97,10 +121,7 @@ private:
     CoinQ::Network::NetworkSync _networkSync;
     wallet_status_t _walletStatus;
 
-    void updateStatus(wallet_status_t status) {
-        _walletStatus = status;
-        emit StatusChanged(status);
-    }
+    void updateStatus(wallet_status_t status);
 
     std::string _blockTreeFile;
     bool _blockTreeLoaded;
