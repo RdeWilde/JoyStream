@@ -793,6 +793,16 @@ namespace {
         typedef odb::query<Transaction> transaction_query;
         typedef odb::result<Transaction> transaction_result;
 
+        // Only add block header if it attaches to previous block header in our store ...
+        header_result prevHeaders(db->query<BlockHeader>(header_query::id == chainmerkleblock.prevBlockHash().getHex()));
+        if(prevHeaders.empty()) {
+            // .. unless its the first block header in the store
+            prevHeaders = db->query<BlockHeader>((header_query::height < chainmerkleblock.height) + "LIMIT 1");
+            if(!prevHeaders.empty()) {
+                throw std::runtime_error("block header doesn't connect to stored block header chain");
+            }
+        }
+
         // find all transactions mined in blocks with height equal or greater than chainmerkleblock.height
         transaction_result transactions(db->query<Transaction>(transaction_query::header.is_not_null() &&
                                                                transaction_query::header->height >= chainmerkleblock.height));
