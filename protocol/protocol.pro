@@ -50,6 +50,8 @@ HEADERS += \
     include/protocol/BuyerPayorSettings.hpp \
     include/protocol/BuyerChannelSettings.hpp \
     include/protocol/ContractInvitation.hpp \
+    include/protocol/ModeAnnounced.hpp \
+    include/protocol/ContractRSVP.hpp \
     include/protocol/statemachine/CBStateMachine.hpp \
     include/protocol/statemachine/SellerJoined.hpp \
     include/protocol/statemachine/ChooseMode.hpp \
@@ -57,27 +59,29 @@ HEADERS += \
     include/protocol/statemachine/event/SellModeStarted.hpp \
     include/protocol/statemachine/event/BuyModeStarted.hpp \
     include/protocol/statemachine/event/Recv.hpp \
+    include/protocol/statemachine/event/UpdateTerms.hpp \
+    include/protocol/statemachine/event/InviteSeller.hpp \
+    include/protocol/statemachine/event/PieceLoaded.hpp \
     include/protocol/statemachine/Active.hpp \
     include/protocol/statemachine/Selling.hpp \
     include/protocol/statemachine/Buying.hpp \
     include/protocol/statemachine/Observing.hpp \
     include/protocol/statemachine/ReadyForInvitation.hpp \
     include/protocol/statemachine/Invited.hpp \
-    include/protocol/ModeAnnounced.hpp \
-    include/protocol/ContractRSVP.hpp \
-    include/protocol/statemachine/event/UpdateTerms.hpp \
     include/protocol/statemachine/WaitingToStart.hpp \
     include/protocol/statemachine/event/Joined.hpp \
     include/protocol/statemachine/ReadyForPieceRequest.hpp \
     include/protocol/statemachine/ServicingPieceRequest.hpp \
     include/protocol/statemachine/PieceRequested.hpp \
-    include/protocol/statemachine/event/PieceLoaded.hpp \
     include/protocol/statemachine/WaitingForPayment.hpp \
     include/protocol/statemachine/detail/InitializeBuying.hpp \
     include/protocol/statemachine/detail/InitializeSelling.hpp \
     include/protocol/statemachine/detail/InitializeObserving.hpp \
     include/protocol/statemachine/exception/StateIncompatibleEvent.hpp \
     include/protocol/statemachine/exception/InvitedToJoinContractByNonBuyer.hpp \
+    include/protocol/statemachine/exception/CannotInviteNonSeller.hpp \
+    include/protocol/statemachine/WaitingForSellerToJoin.hpp \
+    include/protocol/statemachine/SellerJoined.hpp
 
 SOURCES += \
     src/wire/ExtendedMessagePayload.cpp \
@@ -134,6 +138,10 @@ SOURCES += \
     src/statemachine/WaitingForPayment.cpp \
     src/statemachine/detail/InitializeBuying.cpp \
     src/statemachine/detail/InitializeSelling.cpp \
+    src/statemachine/event/InviteSeller.cpp \
+    src/statemachine/ReadyToInviteSeller.cpp \
+    src/statemachine/exception/CannotInviteNonSeller.cpp \
+    src/statemachine/WaitingForSellerToJoin.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include
