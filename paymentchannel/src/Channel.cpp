@@ -105,6 +105,15 @@ namespace paymentchannel {
         return settlementSignature.sig();
     }
 
+    Coin::Signature Channel::makePayment() {
+
+        // Increment payment counter
+        _numberOfPaymentsMade++;
+
+        // Generate current payment signature
+        return generatePayorSettlementSignature();
+    }
+
     bool Channel::checkPayeeRefundSignature(const Coin::Signature & sig) const {
 
         return refund().validate(_payeeContractPk, sig);

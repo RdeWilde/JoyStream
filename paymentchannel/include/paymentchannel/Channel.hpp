@@ -67,6 +67,10 @@ namespace paymentchannel {
         // Generates settlement signature for payor
         Coin::Signature generatePayorSettlementSignature() const;
 
+        // Increments payment counter, and generates/returns
+        // settlement signature for payor
+        Coin::Signature makePayment();
+
         // Checks the payee signature
         bool checkPayeeRefundSignature(const Coin::Signature &) const;
 
