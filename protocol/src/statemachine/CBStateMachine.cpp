@@ -20,7 +20,9 @@ namespace statemachine {
                                    const PieceRequested & pieceRequested,
                                    const PeerInterruptedPayment & peerInterruptedPayment,
                                    const ValidPayment & validPayment,
-                                   const InvalidPayment & invalidPayment)
+                                   const InvalidPayment & invalidPayment,
+                                   const SellerJoined & sellerJoined,
+                                   const SellerInterruptedContract & sellerInterruptedContract)
         : _invitedToOutdatedContract(invitedToOutdatedContract)
         , _invitedToJoinContract(invitedToJoinContract)
         , _sendMessage(sendMessage)
@@ -28,7 +30,9 @@ namespace statemachine {
         , _pieceRequested(pieceRequested)
         , _peerInterruptedPayment(peerInterruptedPayment)
         , _validPayment(validPayment)
-        , _invalidPayment(invalidPayment) {
+        , _invalidPayment(invalidPayment)
+        , _sellerJoined(sellerJoined)
+        , _sellerInterruptedContract(sellerInterruptedContract) {
     }
 
     void CBStateMachine::unconsumed_event(const sc::event_base & e) {
@@ -94,6 +98,14 @@ namespace statemachine {
 
     CBStateMachine::InvalidPayment CBStateMachine::getInvalidPayment() const {
         return _invalidPayment;
+    }
+
+    CBStateMachine::SellerJoined CBStateMachine::getSellerJoined() const {
+        return _sellerJoined;
+    }
+
+    CBStateMachine::SellerInterruptedContract CBStateMachine::getSellerInterruptedContract() const{
+        return _sellerInterruptedContract;
     }
 
     joystream::protocol::PeerModeAnnounced CBStateMachine::peerAnnouncedMode() const {

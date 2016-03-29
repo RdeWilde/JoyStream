@@ -29,26 +29,33 @@ namespace protocol {
     }
 
     class ContractInvitation;
+    class ContractRSVP;
 
     namespace statemachine {
 
         class ChooseMode; // Default state
-        class Active; // Friend class
+
+        // Friend classes that need to modify CBStateMachine::_peerAnnouncedMode
+        class Active;
+        class ServicingPieceRequest;
+        class SellerHasJoined;
 
         class CBStateMachine : public sc::state_machine<CBStateMachine, ChooseMode> {
 
         public:
 
-            //// Notifications
+            //// General Notifications
+
+            // Client requires a message to be sent
+            typedef std::function<void(const wire::ExtendedMessagePayload *)> Send;
+
+            //// Selling Notifications
 
             // Client was invited to expired contract, as indicated by bad index
             typedef std::function<void()> InvitedToOutdatedContract;
 
             // Client was invited to join given contract, should terms be included? they are available in _peerAnnounced
             typedef std::function<void(const ContractInvitation)> InvitedToJoinContract;
-
-            // Client requires a message to be sent
-            typedef std::function<void(const wire::ExtendedMessagePayload *)> Send;
 
             // Peer announced that contract is now ready, should contract be be included? it was available
             typedef std::function<void(const Coin::typesafeOutPoint &)> ContractIsReady;
@@ -65,6 +72,15 @@ namespace protocol {
             // Peer sent an invalid payment signature
             typedef std::function<void(const Coin::Signature &)> InvalidPayment;
 
+            //// Buying Notifications
+
+            // Peer, in seller mode, joined the most recent invitation
+            typedef std::function<void()> SellerJoined;
+
+            // Peer, in seller mode, left - by sending new mode message (which may also be sell) - after requesting a piece
+            typedef std::function<void()> SellerInterruptedContract;
+
+
             CBStateMachine(const InvitedToOutdatedContract &,
                            const InvitedToJoinContract &,
                            const Send &,
@@ -72,7 +88,9 @@ namespace protocol {
                            const PieceRequested &,
                            const PeerInterruptedPayment &,
                            const ValidPayment &,
-                           const InvalidPayment &);
+                           const InvalidPayment &,
+                           const SellerJoined &,
+                           const SellerInterruptedContract &);
 
             void unconsumed_event(const sc::event_base &);
 
@@ -91,22 +109,28 @@ namespace protocol {
 
             PieceRequested pieceRequested() const;
 
-            joystream::protocol::PeerModeAnnounced peerAnnouncedMode() const;
-
             PeerInterruptedPayment getPeerInterruptedPayment() const;
 
             ValidPayment getValidPayment() const;
 
             InvalidPayment getInvalidPayment() const;
 
+            SellerJoined getSellerJoined() const;
+
+            PeerModeAnnounced peerAnnouncedMode() const;
+
+            SellerInterruptedContract getSellerInterruptedContract() const;
+
         private:
 
             friend class Active;
+            friend class ServicingPieceRequest;
+            friend class SellerHasJoined;
 
             // Context actions
             void peerToObserveMode();
-            void peerToSellMode(const joystream::protocol::SellerTerms &, uint32_t);
-            void peerToBuyMode(const joystream::protocol::BuyerTerms &);
+            void peerToSellMode(const SellerTerms &, uint32_t);
+            void peerToBuyMode(const BuyerTerms &);
 
             // Callbacks for classifier routines
             InvitedToOutdatedContract _invitedToOutdatedContract;
@@ -117,6 +141,8 @@ namespace protocol {
             PeerInterruptedPayment _peerInterruptedPayment;
             ValidPayment _validPayment;
             InvalidPayment _invalidPayment;
+            SellerJoined _sellerJoined;
+            SellerInterruptedContract _sellerInterruptedContract;
 
             //// Peer state
             //*** Just factor out modeannounced and index, dont save actual terms? ***
