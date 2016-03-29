@@ -14,25 +14,12 @@ namespace joystream {
 namespace protocol {
 namespace wire {
 
-    FullPiece::FullPiece()
-        :  _length(0) { //_piece(0)
-    }
-
-    FullPiece::FullPiece(const boost::shared_array<char> & piece, int length)
-        : _piece(piece)
-        , _length(length) {
+    FullPiece::FullPiece(const PieceData & pieceData)
+        : _pieceData(pieceData) {
     }
 
     FullPiece::FullPiece(QDataStream & stream, int length)
-        : _piece(new char[length])
-        , _length(length) {
-
-        // Try to fill buffer
-        int result = stream.readRawData(_piece.get(), _length);
-
-        // Check that we were able to read full piece
-        if(result != _length)
-            throw std::runtime_error("Was unable to read full piece from stream.");
+        : _pieceData(stream, length) {
     }
 
     MessageType FullPiece::messageType() const {
@@ -40,23 +27,15 @@ namespace wire {
     }
 
     quint32 FullPiece::length() const {
-        return _length;
+        return _pieceData.length();
     }
 
     void FullPiece::write(QDataStream & stream) const {
-        stream.writeRawData(_piece.get(), _length);
+        _pieceData.write(stream);
     }
 
-    boost::shared_array<char> FullPiece::piece() const {
-        return _piece;
-    }
-
-    void FullPiece::setPiece(const boost::shared_array<char> & piece) {
-        _piece = piece;
-    }
-
-    void FullPiece::setLength(int length) {
-        _length = length;
+    PieceData FullPiece::pieceData() const {
+        return _pieceData;
     }
 }
 }

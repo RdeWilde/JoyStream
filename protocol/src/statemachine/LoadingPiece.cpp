@@ -22,7 +22,7 @@ sc::result LoadingPiece::react(const event::PieceLoaded & e) {
     std::cout << "Reacting to event::PieceLoaded event." << std::endl;
 
     // Send piece
-    context<CBStateMachine>().sendMessage()(new wire::FullPiece(e.data(), e.length()));
+    context<CBStateMachine>().sendMessage()(new wire::FullPiece(e.pieceData()));
 
     // Transition to WaitingForPayment state
     return transit<WaitingForPayment>();

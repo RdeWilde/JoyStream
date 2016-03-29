@@ -9,8 +9,7 @@
 #define JOYSTREAM_PROTOCOL_WIRE_FULL_PIECE_HPP
 
 #include <protocol/wire/ExtendedMessagePayload.hpp>
-
-#include <boost/shared_array.hpp>
+#include <protocol/PieceData.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -20,15 +19,10 @@ namespace wire {
 
     public:
 
-        // Default constructor
-        FullPiece();
-
         // Constructor from members
-        FullPiece(const boost::shared_array<char> & piece, int length);
+        FullPiece(const PieceData &);
 
         // Constructor based on raw payload
-        // NB: Substitute with static factory in future, so that you cannot create stale
-        // payload objects if there is an error in the reading from stream
         FullPiece(QDataStream & stream, int length);
 
         // Virtual methods that subclassing messages have to implement
@@ -36,20 +30,13 @@ namespace wire {
         virtual quint32 length() const;
         virtual void write(QDataStream & stream) const;
 
-        // Getters and setters
-        boost::shared_array<char> piece() const;
-        void setPiece(const boost::shared_array<char> & piece);
-
-        void setLength(int length);
+        // Getters
+        PieceData pieceData() const;
 
     private:
 
         // Piece data;
-        boost::shared_array<char> _piece;
-
-        // Byte length of piece
-        int _length;
-
+        PieceData _pieceData;
     };
 
 }

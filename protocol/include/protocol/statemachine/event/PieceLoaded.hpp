@@ -8,8 +8,9 @@
 #ifndef JOYSTREAM_PROTOCOL_STATEMACHINE_EVENT_PIECELOADED_HPP
 #define JOYSTREAM_PROTOCOL_STATEMACHINE_EVENT_PIECELOADED_HPP
 
+#include <protocol/PieceData.hpp>
 #include <boost/statechart/event.hpp>
-#include <boost/shared_array.hpp>
+
 
 namespace sc = boost::statechart;
 
@@ -22,20 +23,14 @@ namespace event {
 
     public:
 
-        PieceLoaded(const boost::shared_array<char> &, int);
+        PieceLoaded(const PieceData &);
 
-        // Getters and setters
-        boost::shared_array<char> data() const;
-
-        int length() const;
+        PieceData pieceData() const;
 
     private:
 
         // Piece data;
-        boost::shared_array<char> _data;
-
-        // Byte length of piece
-        int _length;
+        PieceData _pieceData;
     };
 
 }

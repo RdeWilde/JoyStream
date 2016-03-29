@@ -7,17 +7,20 @@
 
 #include <protocol/statemachine/event/PieceLoaded.hpp>
 
-using namespace joystream::protocol::statemachine::event;
+namespace joystream {
+namespace protocol {
+namespace statemachine {
+namespace event {
 
-PieceLoaded::PieceLoaded(const boost::shared_array<char> & data, int length)
-    : _data(data)
-    , _length(length) {
+    PieceLoaded::PieceLoaded(const PieceData & pieceData)
+        : _pieceData(pieceData) {
+    }
+
+    PieceData PieceLoaded::pieceData() const {
+        return _pieceData;
+    }
+
 }
-
-boost::shared_array<char> PieceLoaded::data() const {
-    return _data;
 }
-
-int PieceLoaded::length() const {
-    return _length;
+}
 }

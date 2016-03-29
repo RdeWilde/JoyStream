@@ -10,6 +10,8 @@
 
 #include <boost/shared_array.hpp>
 
+class QDataStream;
+
 namespace joystream {
 namespace protocol {
 
@@ -17,7 +19,13 @@ namespace protocol {
 
     public:
 
+        PieceData();
+
         PieceData(const boost::shared_array<char> &, int);
+
+        PieceData(QDataStream &, int);
+
+        int write(QDataStream &) const;
 
         boost::shared_array<char> piece() const;
 
