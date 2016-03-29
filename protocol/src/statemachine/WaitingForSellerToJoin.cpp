@@ -6,9 +6,7 @@
  */
 
 #include <protocol/statemachine/WaitingForSellerToJoin.hpp>
-
-#include <protocol/statemachine/SellerJoined.hpp>
-
+#include <protocol/statemachine/SellerHasJoined.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -34,7 +32,7 @@ namespace statemachine {
         context<CBStateMachine>().getSellerJoined()();
 
         // Start waiting for contract to be prepared for joined seller
-        transit<SellerJoined>();
+        return transit<SellerHasJoined>();
     }
 
 }

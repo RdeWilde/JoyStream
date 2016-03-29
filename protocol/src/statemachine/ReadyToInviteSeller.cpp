@@ -51,7 +51,7 @@ namespace statemachine {
         machine.sendMessage()(new wire::JoinContract(ContractInvitation(e.value(), e.buyerContractKeyPair().pk(), e.finalPkHash()), announced.index()));
 
         // Start waiting for the seller to join
-        transit<WaitingForSellerToJoin>();
+        return transit<WaitingForSellerToJoin>();
     }
 
 }
