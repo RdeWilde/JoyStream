@@ -2,19 +2,63 @@
  * Copyright (C) JoyStream - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
- * Written by Bedeho Mender <bedeho.mender@gmail.com>, March 8 2016
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, March 28 2016
  */
 
-#include <protocol/statemachine/SellerJoined.hpp>
+#include <protocol/statemachine/SellerHasJoined.hpp>
 
 namespace joystream {
 namespace protocol {
 namespace statemachine {
 
-    SellerJoined::SellerJoined(Buying * context)
-        : _context(context)
-        , _state(State::waiting_for_contract){
+    SellerHasJoined::SellerHasJoined() {
+        std::cout << "Entering SellerJoined state." << std::endl;
+    }
 
+    sc::result SellerHasJoined::react(const event::Recv<wire::Observe> & e) {
+
+        std::cout << "Reacting to Recv<wire::Observe> event." << std::endl;
+
+        // Send client notification about this interruption,
+        CBStateMachine & machine = context<CBStateMachine>();
+        machine.getSellerInterruptedContract()();
+
+        // and update new peer mode
+        machine.peerToObserveMode();
+
+        // Go to initial buying state
+        return transit<Buying>();
+    }
+
+    sc::result SellerHasJoined::react(const event::Recv<wire::Buy> & e) {
+
+        std::cout << "Reacting to Recv<wire::Buy> event." << std::endl;
+
+        // Send client notification about this interruption,
+        CBStateMachine & machine = context<CBStateMachine>();
+        machine.getPeerInterruptedPayment()();
+
+        // and update new peer mode
+        machine.peerToBuyMode(e.message()->terms());
+
+        // Go to initial buying state
+        return transit<Buying>();
+    }
+
+    sc::result SellerHasJoined::react(const event::Recv<wire::Sell> & e) {
+
+        std::cout << "Reacting to Recv<wire::Sell> event." << std::endl;
+
+        // Send client notification about this interruption,
+        CBStateMachine & machine = context<CBStateMachine>();
+        machine.getPeerInterruptedPayment()();
+
+        // and update new peer mode
+        wire::Sell const * m = e.message();
+        machine.peerToSellMode(m->terms(), m->index());
+
+        // Go to initial buying state
+        return transit<Buying>();
     }
 
 }

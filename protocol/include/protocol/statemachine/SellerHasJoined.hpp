@@ -2,50 +2,38 @@
  * Copyright (C) JoyStream - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
- * Written by Bedeho Mender <bedeho.mender@gmail.com>, March 8 2016
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, March 28 2016
  */
 
-#ifndef JOYSTREAM_PROTOCOL_STATEMACHINE_SELLERJOINED_HPP
-#define JOYSTREAM_PROTOCOL_STATEMACHINE_SELLERJOINED_HPP
+#ifndef JOYSTREAM_PROTOCOL_STATE_MACHINE_SELLERJOINED_HPP
+#define JOYSTREAM_PROTOCOL_STATE_MACHINE_SELLERJOINED_HPP
+
+#include <protocol/statemachine/Buying.hpp>
 
 namespace joystream {
 namespace protocol {
 namespace statemachine {
 
-    class Buying;
-
-    class SellerJoined {
+    class SellerHasJoined : public sc::simple_state<SellerHasJoined, Buying> {
 
     public:
 
-        enum class State {
+        typedef boost::mpl::list<
+                                sc::custom_reaction<event::Recv<wire::Observe>>,
+                                sc::custom_reaction<event::Recv<wire::Buy>>,
+                                sc::custom_reaction<event::Recv<wire::Sell>>
+                                > reactions;
 
-            // simple state (inital state):
-            waiting_for_contract,
+        SellerHasJoined();
 
-            // simple state:
-            ready_to_request_piece,
-
-            // simple state:
-            piece_requested,
-
-            // simple state:
-            validating_piece,
-
-            // pseudo state: termination
-            terminated
-        };
-
-        SellerJoined(Buying * context);
-
-    private:
-
-        State _state;
-
-        Buying * _context;
+        // Event handlers
+        sc::result react(const event::Recv<wire::Observe> &);
+        sc::result react(const event::Recv<wire::Buy> &);
+        sc::result react(const event::Recv<wire::Sell> &);
     };
+
 }
 }
 }
 
-#endif // JOYSTREAM_PROTOCOL_STATEMACHINE_SELLERJOINED_HPP
+#endif // JOYSTREAM_PROTOCOL_STATE_MACHINE_SELLERJOINED_HPP
