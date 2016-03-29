@@ -40,26 +40,24 @@ public:
     uint32_t created() const { return _timestamp; }
     Coin::Seed seed() const { return _seed; }
 
+    // Return a new private key
     Coin::PrivateKey getKey(bool createReceiveAddress);
+
+    // Returns a vector of keys from the keypool supplemented by new keys if required
     std::vector<Coin::PrivateKey> getKeys(uint32_t numKeys, bool createReceiveAddress);
 
-    // returns a vector of key pairs, with ordered ascendingly in terms
-    // of index.
-    // **NB: createReceiveAddress == false <=> These keys are have no corresponding addresses
-    // generates fresh keys
+    // Returns a vector of new key pairs
     std::vector<Coin::KeyPair> getKeyPairs(uint32_t num_pairs, bool createReceiveAddress);
 
-    // Generate p2pkh receive address corresponding to a fresh private key.
+    // Generate p2pkh receive address corresponding to a new private key.
     // These addresses are monitored for incoming and outgoing spends.
-    // generates a fresh key
     Coin::P2PKHAddress getReceiveAddress();
 
-    //total number keys in wallet (including unused)
+    // Total number keys in wallet (including unused)
     uint32_t numberOfKeysInWallet();
 
     void releaseKey(const Coin::PrivateKey & sk);
-    void releaseKey(const Coin::HDKeychain & chain);
-    void releaseKeys(const std::vector<Coin::HDKeychain> keychains);
+    void releaseKeys(const std::vector<Coin::PrivateKey> privateKeys);
     void releaseAddress(const Coin::P2PKHAddress & p2pkhaddress);
 
     std::list<Coin::P2PKHAddress> listReceiveAddresses();
@@ -95,23 +93,9 @@ private:
     std::unique_ptr<odb::database> _db;
     mutable std::mutex _storeMutex;
 
-    std::map<Coin::PublicKey, uint32_t> _publicKeyToIndex;
-
-    // returns an HDKeychain which persists in wallet
-    // **NB: createReceiveAddress == false <=> These keys are have no corresponding addresses
-    // which are monitored for inbound/outbound spends.
-    // generates fresh key
-    Coin::HDKeychain getKeyChain(bool createReceiveAddress);
-
-    // returns a vector of HDKeychain - tries to get any unused keys from the database
-    // and supplements them with fresh keys if required
-    std::vector<Coin::HDKeychain> getKeyChains(uint32_t numKeys, bool createReceiveAddress);
-
     //internal method used to persist a new key
     //should be wrapped in an odb::transaction
-    Coin::HDKeychain getKeyChain_tx(bool createReceiveAddress);
-
-    void releaseKey(uint32_t index);
+    Coin::PrivateKey createNewPrivateKey(bool createReceiveAddress);
 };
 
 }//bitcoin

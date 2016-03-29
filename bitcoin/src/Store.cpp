@@ -173,33 +173,27 @@ void Store::close() {
 }
 
 // Generates a new key (NOT from key pool) so doesn't require synchronization
-Coin::HDKeychain Store::getKeyChain(bool createReceiveAddress) {
+Coin::PrivateKey Store::getKey(bool createReceiveAddress) {
     if(!_db) {
         throw std::runtime_error("database not connected");
     }
 
     odb::transaction t(_db->begin());
-    Coin::HDKeychain hdKeyChain(getKeyChain_tx(createReceiveAddress));
+    Coin::PrivateKey sk(createNewPrivateKey(createReceiveAddress));
     t.commit();
 
-    return hdKeyChain;
-}
-
-// Generates a new key (NOT from key pool) so doesn't require synchronization
-Coin::PrivateKey Store::getKey(bool createReceiveAddress){
-    Coin::HDKeychain keychain(getKeyChain(createReceiveAddress));
-    return Coin::PrivateKey(keychain.privkey());
+    return sk;
 }
 
 
-std::vector<Coin::HDKeychain> Store::getKeyChains(uint32_t numKeys, bool createReceiveAddress) {
+std::vector<Coin::PrivateKey> Store::getKeys(uint32_t numKeys, bool createReceiveAddress) {
     typedef odb::query<detail::store::key_view_t> query;
     typedef odb::result<detail::store::key_view_t> result;
 
     // This routine retrieves unused keys (from the key pool) so requires synchronization
     std::lock_guard<std::mutex> lock(_storeMutex);
 
-    std::vector<Coin::HDKeychain> keychains;
+    std::vector<Coin::PrivateKey> privKeys;
     result r;
 
     odb::transaction t(_db->begin());
@@ -213,14 +207,10 @@ std::vector<Coin::HDKeychain> Store::getKeyChains(uint32_t numKeys, bool createR
 
     uint32_t n = 0;
     for(auto &i : r) {
-        Coin::HDKeychain hdKeyChain(_rootKeychain.getChild(i.key->id()));
-        keychains.push_back(hdKeyChain);
+        privKeys.push_back(i.key->getPrivateKey());
         // removing key from the pool
         i.key->used(true);
         _db->update(i.key);
-        Coin::PrivateKey sk(hdKeyChain.privkey());
-        Coin::PublicKey pk = sk.toPublicKey();
-        _publicKeyToIndex[pk] = i.key->id();
         n++;
         if(n == numKeys) break;
     }
@@ -228,25 +218,13 @@ std::vector<Coin::HDKeychain> Store::getKeyChains(uint32_t numKeys, bool createR
     // if we didn't find enough unused keys in the database, generate the rest
     if(n < numKeys) {
         for(; n < numKeys; n++) {
-            keychains.push_back(getKeyChain_tx(createReceiveAddress));
+            privKeys.push_back(createNewPrivateKey(createReceiveAddress));
         }
     }
 
     t.commit();
 
-    return keychains;
-}
-
-std::vector<Coin::PrivateKey> Store::getKeys(uint32_t numKeys, bool createReceiveAddress) {
-    // store access synchronization is done in getKeyChains()
-    std::vector<Coin::HDKeychain> keychains(getKeyChains(numKeys, createReceiveAddress));
-
-    std::vector<Coin::PrivateKey> keys;
-    for(auto & keychain : keychains) {
-        keys.push_back(Coin::PrivateKey(keychain.privkey()));
-    }
-
-    return keys;
+    return privKeys;
 }
 
 // Generates new keys (NOT from key pool) so doesn't require synchronization
@@ -256,24 +234,21 @@ std::vector<Coin::KeyPair> Store::getKeyPairs(uint32_t num_pairs, bool createRec
         throw std::runtime_error("database not connected");
     }
 
-    std::vector<Coin::KeyPair> key_pairs;
+    std::vector<Coin::KeyPair> keyPairs;
 
     odb::transaction t(_db->begin());
     for(uint32_t i = 0; i < num_pairs; i++){
 
-        Coin::PrivateKey sk(getKeyChain_tx(createReceiveAddress).privkey());
-        Coin::PublicKey pk = sk.toPublicKey();
-        Coin::KeyPair pair(pk, sk);
-        key_pairs.push_back(pair);
+        Coin::PrivateKey sk(createNewPrivateKey(createReceiveAddress));
+        keyPairs.push_back(Coin::KeyPair(sk));
     }
     t.commit();
-    return key_pairs;
+    return keyPairs;
 }
 
 // Generates a new key so doesn't require synchronization
 Coin::P2PKHAddress Store::getReceiveAddress() {
-    Coin::PrivateKey sk(getKeyChain(true).privkey());
-    return sk.toPublicKey().toP2PKHAddress(_network);
+    return getKey(true).toPublicKey().toP2PKHAddress(_network);
 }
 
 uint32_t Store::numberOfKeysInWallet() {
@@ -284,67 +259,47 @@ uint32_t Store::numberOfKeysInWallet() {
     return count;
 }
 
-void Store::releaseKey(const Coin::HDKeychain & hdKeyChain) {
-    if(!_db) {
-        throw std::runtime_error("database not connected");
-    }
-
-    //verify this key is a child of the rootKeychain
-    if(hdKeyChain.parent_fp() != _rootKeychain.fp()) {
-        throw std::runtime_error("attemp to release key not dervied from root keychain");
-    }
-
-    // Releasing a key requires synchronizing access to the key pool
-    std::lock_guard<std::mutex> lock(_storeMutex);
-
-    odb::transaction t(_db->begin());
-    detail::store::Key key(hdKeyChain.child_num(), false);
-    _db->update(key);
-    t.commit();
-}
 
 void Store::releaseKey(const Coin::PrivateKey &sk) {
-    Coin::PublicKey pk = sk.toPublicKey();
-
-    if(_publicKeyToIndex.find(pk) != _publicKeyToIndex.end()) {
-        releaseKey(_publicKeyToIndex[pk]);
-        _publicKeyToIndex.erase(pk);
-    }else {
-        throw std::runtime_error("attempting to release a private key not in the pool");
-    }
-}
-
-void Store::releaseKey(uint32_t index) {
     if(!_db) {
         throw std::runtime_error("database not connected");
     }
+
+    std::string raw = sk.toHex().toStdString();
 
     // Releasing a key requires synchronizing access to the key pool
     std::lock_guard<std::mutex> lock(_storeMutex);
 
     odb::transaction t(_db->begin());
-    detail::store::Key key(index, false);
-    _db->update(key);
-    t.commit();
-}
-
-void Store::releaseKeys(const std::vector<Coin::HDKeychain> keychains) {
-    if(!_db) {
-        throw std::runtime_error("database not connected");
-    }
-
-    // Releasing a key requires synchronizing access to the key pool
-    std::lock_guard<std::mutex> lock(_storeMutex);
-
-    odb::transaction t(_db->begin());
-    for(auto &hdKeyChain : keychains) {
-        //verify this key is a child of the rootKeychain
-        if(hdKeyChain.parent_fp() != _rootKeychain.fp()) {
-            throw std::runtime_error("attemp to release key not dervied from root keychain");
-        }
-        detail::store::Key key(hdKeyChain.child_num(), false);
+    odb::result<detail::store::Key> r(_db->query<detail::store::Key>(odb::query<detail::store::Key>::raw == raw));
+    if(!r.empty()) {
+        std::shared_ptr<detail::store::Key> key(r.begin().load());
+        key->used(false);
         _db->update(key);
+        t.commit();
     }
+}
+
+void Store::releaseKeys(const std::vector<Coin::PrivateKey> privateKeys) {
+    if(!_db) {
+        throw std::runtime_error("database not connected");
+    }
+
+    // Releasing a key requires synchronizing access to the key pool
+    std::lock_guard<std::mutex> lock(_storeMutex);
+
+    odb::transaction t(_db->begin());
+
+    for(auto &sk : privateKeys) {
+        std::string raw = sk.toHex().toStdString();
+        odb::result<detail::store::Key> r(_db->query<detail::store::Key>(odb::query<detail::store::Key>::raw == raw));
+        if(!r.empty()) {
+            std::shared_ptr<detail::store::Key> key(r.begin().load());
+            key->used(false);
+            _db->update(key);
+        }
+    }
+
     t.commit();
 }
 
@@ -595,25 +550,23 @@ uint64_t Store::getWalletBalance(int32_t confirmations, int32_t main_chain_heigh
     return balance;
 }
 
-Coin::HDKeychain Store::getKeyChain_tx(bool createReceiveAddress) {
+Coin::PrivateKey Store::createNewPrivateKey(bool createReceiveAddress) {
     //persist a new key
     std::shared_ptr<detail::store::Key> key(new detail::store::Key());
     uint32_t index = _db->persist(key);
 
     Coin::HDKeychain hdKeyChain = _rootKeychain.getChild(index);
-
     Coin::PrivateKey sk(hdKeyChain.privkey());
-    Coin::PublicKey pk = sk.toPublicKey();
-
-    _publicKeyToIndex[pk] = index;
+    key->setPrivateKey(sk);
+    _db->update(key);
 
     if(createReceiveAddress) {
-        Coin::P2PKHAddress p2pkh_addr = pk.toP2PKHAddress(_network);
+        Coin::P2PKHAddress p2pkh_addr = sk.toPublicKey().toP2PKHAddress(_network);
         detail::store::Address addr(key, p2pkh_addr);
         _db->persist(addr);
     }
 
-    return hdKeyChain;
+    return sk;
 }
 
 std::vector<std::string> Store::getLatestBlockHeaderHashes() {

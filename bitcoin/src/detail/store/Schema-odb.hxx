@@ -796,6 +796,18 @@ namespace odb
     used_type_;
 
     static const used_type_ used;
+
+    // raw
+    //
+    typedef
+    sqlite::query_column<
+      sqlite::value_traits<
+        ::std::string,
+        sqlite::id_text >::query_type,
+      sqlite::id_text >
+    raw_type_;
+
+    static const raw_type_ raw;
   };
 
   template <typename A>
@@ -812,6 +824,11 @@ namespace odb
   const typename query_columns< ::joystream::bitcoin::detail::store::Key, id_sqlite, A >::used_type_
   query_columns< ::joystream::bitcoin::detail::store::Key, id_sqlite, A >::
   used (A::table_name, "\"used\"", 0);
+
+  template <typename A>
+  const typename query_columns< ::joystream::bitcoin::detail::store::Key, id_sqlite, A >::raw_type_
+  query_columns< ::joystream::bitcoin::detail::store::Key, id_sqlite, A >::
+  raw (A::table_name, "\"raw\"", 0);
 
   template <typename A>
   struct pointer_query_columns< ::joystream::bitcoin::detail::store::Key, id_sqlite, A >:
@@ -848,6 +865,12 @@ namespace odb
       //
       long long used_value;
       bool used_null;
+
+      // raw_
+      //
+      details::buffer raw_value;
+      std::size_t raw_size;
+      bool raw_null;
 
       std::size_t version;
     };
@@ -891,7 +914,7 @@ namespace odb
 
     typedef sqlite::query_base query_base_type;
 
-    static const std::size_t column_count = 3UL;
+    static const std::size_t column_count = 4UL;
     static const std::size_t id_column_count = 1UL;
     static const std::size_t inverse_column_count = 0UL;
     static const std::size_t readonly_column_count = 0UL;
@@ -2849,7 +2872,7 @@ namespace odb
           const image_type&,
           database*);
 
-    static const std::size_t column_count = 3UL;
+    static const std::size_t column_count = 4UL;
 
     static query_base_type
     query_statement (const query_base_type&);

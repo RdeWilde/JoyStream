@@ -9,6 +9,7 @@
       <column name="index" type="INTEGER" null="false"/>
       <column name="generated" type="INTEGER" null="false"/>
       <column name="used" type="INTEGER" null="false"/>
+      <column name="raw" type="TEXT" null="false"/>
       <primary-key auto="true">
         <column name="index"/>
       </primary-key>

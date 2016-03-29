@@ -75,6 +75,8 @@ public:
     uint32_t generated() const;
     bool used() const;
     void used(bool);
+    Coin::PrivateKey getPrivateKey() const { return Coin::PrivateKey(uchar_vector(raw_)); }
+    void setPrivateKey(Coin::PrivateKey sk) { raw_ = sk.toHex().toStdString(); }
 
 private:
     friend class odb::access;
@@ -84,6 +86,7 @@ private:
     //utc unix timestamp: QDateTime::fromTime_t(created_) to convert to QDateTime local time
     uint32_t generated_;
     bool used_;
+    std::string raw_; //hex encoded raw private key
 };
 
 /*

@@ -427,6 +427,14 @@ namespace odb
     //
     t[2UL] = false;
 
+    // raw_
+    //
+    if (t[3UL])
+    {
+      i.raw_value.capacity (i.raw_size);
+      grew = true;
+    }
+
     return grew;
   }
 
@@ -463,6 +471,17 @@ namespace odb
     b[n].type = sqlite::bind::integer;
     b[n].buffer = &i.used_value;
     b[n].is_null = &i.used_null;
+    n++;
+
+    // raw_
+    //
+    b[n].type = sqlite::image_traits<
+      ::std::string,
+      sqlite::id_text>::bind_value;
+    b[n].buffer = i.raw_value.data ();
+    b[n].size = &i.raw_size;
+    b[n].capacity = i.raw_value.capacity ();
+    b[n].is_null = &i.raw_null;
     n++;
   }
 
@@ -537,6 +556,25 @@ namespace odb
       i.used_null = is_null;
     }
 
+    // raw_
+    //
+    {
+      ::std::string const& v =
+        o.raw_;
+
+      bool is_null (false);
+      std::size_t cap (i.raw_value.capacity ());
+      sqlite::value_traits<
+          ::std::string,
+          sqlite::id_text >::set_image (
+        i.raw_value,
+        i.raw_size,
+        is_null,
+        v);
+      i.raw_null = is_null;
+      grew = grew || (cap != i.raw_value.capacity ());
+    }
+
     return grew;
   }
 
@@ -590,6 +628,21 @@ namespace odb
         i.used_value,
         i.used_null);
     }
+
+    // raw_
+    //
+    {
+      ::std::string& v =
+        o.raw_;
+
+      sqlite::value_traits<
+          ::std::string,
+          sqlite::id_text >::set_value (
+        v,
+        i.raw_value,
+        i.raw_size,
+        i.raw_null);
+    }
   }
 
   void access::object_traits_impl< ::joystream::bitcoin::detail::store::Key, id_sqlite >::
@@ -611,15 +664,17 @@ namespace odb
   "INSERT INTO \"Key\" "
   "(\"index\", "
   "\"generated\", "
-  "\"used\") "
+  "\"used\", "
+  "\"raw\") "
   "VALUES "
-  "(?, ?, ?)";
+  "(?, ?, ?, ?)";
 
   const char access::object_traits_impl< ::joystream::bitcoin::detail::store::Key, id_sqlite >::find_statement[] =
   "SELECT "
   "\"Key\".\"index\", "
   "\"Key\".\"generated\", "
-  "\"Key\".\"used\" "
+  "\"Key\".\"used\", "
+  "\"Key\".\"raw\" "
   "FROM \"Key\" "
   "WHERE \"Key\".\"index\"=?";
 
@@ -627,7 +682,8 @@ namespace odb
   "UPDATE \"Key\" "
   "SET "
   "\"generated\"=?, "
-  "\"used\"=? "
+  "\"used\"=?, "
+  "\"raw\"=? "
   "WHERE \"index\"=?";
 
   const char access::object_traits_impl< ::joystream::bitcoin::detail::store::Key, id_sqlite >::erase_statement[] =
@@ -638,7 +694,8 @@ namespace odb
   "SELECT "
   "\"Key\".\"index\", "
   "\"Key\".\"generated\", "
-  "\"Key\".\"used\" "
+  "\"Key\".\"used\", "
+  "\"Key\".\"raw\" "
   "FROM \"Key\"";
 
   const char access::object_traits_impl< ::joystream::bitcoin::detail::store::Key, id_sqlite >::erase_query_statement[] =
@@ -943,6 +1000,20 @@ namespace odb
     st.execute ();
     auto_result ar (st);
     select_statement::result r (st.fetch ());
+
+    if (r == select_statement::truncated)
+    {
+      if (grow (im, sts.select_image_truncated ()))
+        im.version++;
+
+      if (im.version != sts.select_image_version ())
+      {
+        bind (imb.bind, im, statement_select);
+        sts.select_image_version (im.version);
+        imb.version++;
+        st.refetch ();
+      }
+    }
 
     return r != select_statement::no_data;
   }
@@ -6570,7 +6641,7 @@ namespace odb
     //
     object_traits_impl< ::joystream::bitcoin::detail::store::Key, id_sqlite >::bind (
       b + n, i.key_value, sk);
-    n += 3UL;
+    n += 4UL;
   }
 
   void access::view_traits_impl< ::joystream::bitcoin::detail::store::key_view_t, id_sqlite >::
@@ -6656,7 +6727,8 @@ namespace odb
       "SELECT "
       "\"key\".\"index\", "
       "\"key\".\"generated\", "
-      "\"key\".\"used\" ");
+      "\"key\".\"used\", "
+      "\"key\".\"raw\" ");
 
     r += "FROM \"Key\" AS \"key\"";
 
@@ -8736,7 +8808,7 @@ namespace odb
     r += "\"output_tx\".\"header\"=\"output_block\".\"id\"";
 
     r += " LEFT JOIN \"Input\" ON";
-    // From Schema.hpp:539:5
+    // From Schema.hpp:542:5
     r += query_columns::TxHasOutput::tx_ix.index == query_columns::Input::id.op_index && query_columns::TxHasOutput::tx_ix.tx == query_columns::Input::id.op_txid;
 
     r += " LEFT JOIN \"TxHasInput\" ON";
@@ -8855,7 +8927,8 @@ namespace odb
           db.execute ("CREATE TABLE \"Key\" (\n"
                       "  \"index\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,\n"
                       "  \"generated\" INTEGER NOT NULL,\n"
-                      "  \"used\" INTEGER NOT NULL)");
+                      "  \"used\" INTEGER NOT NULL,\n"
+                      "  \"raw\" TEXT NOT NULL)");
           db.execute ("CREATE TABLE \"Address\" (\n"
                       "  \"id\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,\n"
                       "  \"address\" TEXT NOT NULL,\n"
