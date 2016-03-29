@@ -24,7 +24,7 @@ class Store {
 
 public:
 
-    typedef std::function<void(std::string)> transactionDeconfirmedCallback;
+    typedef std::function<void(Coin::TransactionId, int confirmations)> transactionUpdatedCallback;
 
     Store(){}
     Store(std::string file);
@@ -76,11 +76,13 @@ public:
     std::vector<std::string> getLatestBlockHeaderHashes();
 
     // Methods used to update Store with block headers and transactions
-    void addTransaction(const Coin::Transaction & tx);
-    void addTransaction(const Coin::Transaction & tx, const ChainMerkleBlock & chainmerkleblock, bool createHeader, transactionDeconfirmedCallback callback);
-    void confirmTransaction(std::string txhash, const ChainMerkleBlock &chainmerkleblock, bool createHeader, transactionDeconfirmedCallback callback);
-    void addBlockHeader(const ChainMerkleBlock & chainmerkleblock, transactionDeconfirmedCallback callback);
+    bool addTransaction(const Coin::Transaction & tx);
+    bool addTransaction(const Coin::Transaction & tx, const ChainMerkleBlock & chainmerkleblock);
+    bool confirmTransaction(Coin::TransactionId txid, const ChainMerkleBlock &chainmerkleblock);
+    void addBlockHeader(const ChainMerkleBlock & chainmerkleblock);
     uint32_t getBestHeaderHeight() const;
+
+    void setTxUpdatedCallback(transactionUpdatedCallback callback) { notifyTxUpdated = callback; }
 
 private:
     // don't allow copying, store should be passed by reference only
@@ -96,6 +98,8 @@ private:
     //internal method used to persist a new key
     //should be wrapped in an odb::transaction
     Coin::PrivateKey createNewPrivateKey(bool createReceiveAddress);
+
+    transactionUpdatedCallback notifyTxUpdated;
 };
 
 }//bitcoin

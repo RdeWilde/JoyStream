@@ -25,7 +25,6 @@ namespace {
     std::vector<detail::store::TxHasOutput> transactionLoadOutputs(std::unique_ptr<odb::database> &db, std::string txid);
     bool transactionLoad(std::unique_ptr<odb::database> &db, std::string txid, Coin::Transaction &coin_tx);
     void transactionDelete(std::unique_ptr<odb::database> &db, std::string txid);
-    std::shared_ptr<detail::store::BlockHeader> insertBlockHeader(std::unique_ptr<odb::database> &db, const ChainMerkleBlock & chainmerkleblock, Store::transactionDeconfirmedCallback callback);
 }
 
 // open existing store
@@ -393,71 +392,139 @@ bool Store::transactionExists(const Coin::Transaction & tx) {
     return false;
 }
 
-void Store::addTransaction(const Coin::Transaction & cointx) {
+bool Store::addTransaction(const Coin::Transaction & cointx) {
+    std::lock_guard<std::mutex> lock(_storeMutex);
+
     odb::transaction t(_db->begin());
     auto tx = transactionSave(_db, cointx);
     t.commit();
-}
 
-void Store::addTransaction(const Coin::Transaction & cointx, const ChainMerkleBlock & chainmerkleblock, bool createHeader, transactionDeconfirmedCallback callback) {
-    std::lock_guard<std::mutex> lock(_storeMutex);
-
-    odb::transaction t(_db->begin());
-
-    //get header or create new one
-    std::shared_ptr<detail::store::BlockHeader> header;
-    if(createHeader) {
-        // exception will be thrown if header is not inserted
-        header = insertBlockHeader(_db, chainmerkleblock, callback);
-    } else {
-        // exception will be thrown if header not found in the store
-        header = _db->load<detail::store::BlockHeader>(chainmerkleblock.hash().getHex());
+    if(tx) {
+        notifyTxUpdated(Coin::TransactionId::fromTx(cointx), 0);
     }
 
-    //create new tx or retreive existing one
-    std::shared_ptr<detail::store::Transaction> tx = transactionSave(_db, cointx);
-    tx->header(header);
-    _db->update(tx);
-
-    t.commit();
+    return tx != nullptr;
 }
 
-void Store::addBlockHeader(const ChainMerkleBlock & chainmerkleblock, transactionDeconfirmedCallback callback) {
+bool Store::addTransaction(const Coin::Transaction & cointx, const ChainMerkleBlock & chainmerkleblock) {
     std::lock_guard<std::mutex> lock(_storeMutex);
 
     odb::transaction t(_db->begin());
 
-    // exception will be thrown if trying to insert a header out of order
-    insertBlockHeader(_db, chainmerkleblock, callback);
+    typedef odb::result<detail::store::BlockHeader> result;
+    typedef odb::query<detail::store::BlockHeader> query;
 
-    t.commit();
-}
+    result headers(_db->query<detail::store::BlockHeader>(query::id == chainmerkleblock.hash().getHex()));
 
-void Store::confirmTransaction(std::string txhash, const ChainMerkleBlock &chainmerkleblock, bool createHeader, transactionDeconfirmedCallback callback) {
-    std::lock_guard<std::mutex> lock(_storeMutex);
+    if(!headers.empty()) {
+        auto header = headers.begin().load();
 
-    odb::transaction t(_db->begin());
-
-    //get header or create new one
-    std::shared_ptr<detail::store::BlockHeader> header;
-    if(createHeader) {
-        // exception will be thrown if header not inserted
-        header = insertBlockHeader(_db, chainmerkleblock, callback);
-    } else {
-        // exception will be thrown if header not found in the store
-        header = _db->load<detail::store::BlockHeader>(chainmerkleblock.hash().getHex());
+        //create new tx or retreive existing one
+        std::shared_ptr<detail::store::Transaction> tx = transactionSave(_db, cointx);
+        if(tx) {
+            tx->header(header);
+            _db->update(tx);
+            t.commit();
+            notifyTxUpdated(Coin::TransactionId::fromTx(cointx), 1);
+            return true;
+        }
     }
 
-    //retreive existing transaction and update it
-    std::shared_ptr<detail::store::Transaction> tx;
-    odb::result<detail::store::Transaction> transactions(_db->query<detail::store::Transaction>(odb::query<detail::store::Transaction>::txid == txhash));
-    if(!transactions.empty()) {
-        tx = transactions.begin().load();
-        tx->header(header);
+    return false;
+}
+
+void Store::addBlockHeader(const ChainMerkleBlock & chainmerkleblock) {
+    std::lock_guard<std::mutex> lock(_storeMutex);
+
+    odb::transaction t(_db->begin());
+    typedef odb::query<detail::store::BlockHeader> header_query;
+    typedef odb::result<detail::store::BlockHeader> header_result;
+    typedef odb::query<detail::store::Transaction> transaction_query;
+    typedef odb::result<detail::store::Transaction> transaction_result;
+
+    // Only add block header if it attaches to previous block header in our store ...
+    header_result prevHeaders(_db->query<detail::store::BlockHeader>(header_query::id == chainmerkleblock.prevBlockHash().getHex()));
+    if(prevHeaders.empty()) {
+        // .. unless its the first block header in the store
+        prevHeaders = _db->query<detail::store::BlockHeader>((header_query::height < chainmerkleblock.height) + "LIMIT 1");
+        if(!prevHeaders.empty()) {
+            throw std::runtime_error("block doesn't attach to chain");
+        }
+    } else {
+        // Height of block being inserted should be one greater than the block it is connecting to
+        std::shared_ptr<detail::store::BlockHeader> prevBlockHeader(prevHeaders.begin().load());
+        if(prevBlockHeader->height() + 1 != chainmerkleblock.height) {
+            throw std::runtime_error("block height mismatch");
+        }
+    }
+
+    // find all transactions mined in blocks with height equal or greater than chainmerkleblock.height
+    transaction_result transactions(_db->query<detail::store::Transaction>(transaction_query::header.is_not_null() &&
+                                                           transaction_query::header->height >= chainmerkleblock.height));
+
+    std::vector<Coin::TransactionId> deconfirmedTransactions;
+
+    for(detail::store::Transaction &tx : transactions) {
+        tx.header(nullptr);
         _db->update(tx);
+        deconfirmedTransactions.push_back(Coin::TransactionId::fromRPCByteOrder(tx.txid()));
     }
 
+    // delete all blocks with height equal or greater than chainmerkleblock.height
+    header_result headers(_db->query<detail::store::BlockHeader>(header_query::height >= chainmerkleblock.height));
+    for(const detail::store::BlockHeader &header : headers) {
+        _db->erase(header);
+    }
+
+    std::shared_ptr<detail::store::BlockHeader> block(new detail::store::BlockHeader(chainmerkleblock));
+
+    _db->persist(block);
+
     t.commit();
+
+    for(Coin::TransactionId txid : deconfirmedTransactions) {
+        notifyTxUpdated(txid, 0);
+    }
+
+    t.reset(_db->begin());
+
+    // get transactions in blockheader at height chainmerkleblock.height - 1
+    transaction_result twoConfirmations(_db->query<detail::store::Transaction>(transaction_query::header.is_not_null() &&
+                                                               transaction_query::header->height == chainmerkleblock.height - 1));
+    for(auto tx : twoConfirmations) {
+        notifyTxUpdated(Coin::TransactionId::fromRPCByteOrder(tx.txid()), 2);
+    }
+
+}
+
+bool Store::confirmTransaction(Coin::TransactionId txid, const ChainMerkleBlock &chainmerkleblock) {
+    std::lock_guard<std::mutex> lock(_storeMutex);
+
+    odb::transaction t(_db->begin());
+
+    typedef odb::result<detail::store::BlockHeader> result;
+    typedef odb::query<detail::store::BlockHeader> query;
+
+    //get header
+    result headers(_db->query<detail::store::BlockHeader>(query::id == chainmerkleblock.hash().getHex()));
+
+    if(!headers.empty()) {
+        auto header = headers.begin().load();
+
+        //retreive existing transaction and update it
+        std::shared_ptr<detail::store::Transaction> tx;
+        odb::result<detail::store::Transaction> transactions(_db->query<detail::store::Transaction>(odb::query<detail::store::Transaction>::txid == txid.toHex().toStdString()));
+        if(!transactions.empty()) {
+            tx = transactions.begin().load();
+            tx->header(header);
+            _db->update(tx);
+            t.commit();
+            notifyTxUpdated(txid, 1);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 bool Store::loadKey(const Coin::P2PKHAddress & address, Coin::PrivateKey & sk) {
@@ -741,52 +808,6 @@ namespace {
         db->erase<Transaction>(txid);
     }
 
-    std::shared_ptr<BlockHeader> insertBlockHeader(std::unique_ptr<odb::database> &db, const ChainMerkleBlock & chainmerkleblock, Store::transactionDeconfirmedCallback callback) {
-        typedef odb::query<BlockHeader> header_query;
-        typedef odb::result<BlockHeader> header_result;
-        typedef odb::query<Transaction> transaction_query;
-        typedef odb::result<Transaction> transaction_result;
-
-        // Only add block header if it attaches to previous block header in our store ...
-        header_result prevHeaders(db->query<BlockHeader>(header_query::id == chainmerkleblock.prevBlockHash().getHex()));
-        if(prevHeaders.empty()) {
-            // .. unless its the first block header in the store
-            prevHeaders = db->query<BlockHeader>((header_query::height < chainmerkleblock.height) + "LIMIT 1");
-            if(!prevHeaders.empty()) {
-                throw std::runtime_error("block header doesn't connect to stored block header chain");
-            }
-        } else {
-            // Height of block being inserted should be one greater than the block it is connecting to
-            std::shared_ptr<BlockHeader> prevBlockHeader(prevHeaders.begin().load());
-            if(prevBlockHeader->height() + 1 != chainmerkleblock.height) {
-                throw std::runtime_error("block header doesn't connect to stored block header chain");
-            }
-        }
-
-        // find all transactions mined in blocks with height equal or greater than chainmerkleblock.height
-        transaction_result transactions(db->query<Transaction>(transaction_query::header.is_not_null() &&
-                                                               transaction_query::header->height >= chainmerkleblock.height));
-
-        for(Transaction &tx : transactions) {            
-            tx.header(nullptr);
-            db->update(tx);
-            // add deconfirmed transaction to mempool
-            callback(tx.txid());
-        }
-
-        // delete all blocks with height equal or greater than chainmerkleblock.height
-        header_result headers(db->query<BlockHeader>(header_query::height >= chainmerkleblock.height));
-        for(const BlockHeader &header : headers) {
-            db->erase(header);
-        }
-
-        std::shared_ptr<detail::store::BlockHeader> block(new detail::store::BlockHeader(chainmerkleblock));
-
-        db->persist(block);
-
-        return block;
-
-    }
 } // anonymous namespace (local helper functions)
 
 }//bitcoin

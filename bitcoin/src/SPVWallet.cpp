@@ -118,6 +118,9 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
         onBlockTreeChanged();
     });
 
+    _store.setTxUpdatedCallback([this](Coin::TransactionId txid, int confirmations) {
+       emit TxUpdated(txid, confirmations);
+    });
 }
 
 void SPVWallet::Create() {
@@ -408,50 +411,58 @@ void SPVWallet::onBlocksSynched() {
     _networkSync.getMempool();
 }
 
+// This occurs when a new unconfirmed transaction arrives from the peer.
+// We may very well already have it in our store from a previous session
 void SPVWallet::onNewTx(const Coin::Transaction& cointx) {
     try {
         if(!transactionShouldBeStored(cointx)) return;
 
         _store.addTransaction(cointx);
+
         recalculateBalance();
     } catch(const std::exception & e) {
         emit StoreError(e.what());
     }
 }
 
+// This will be called when the blocks which mines a transaction in the mempool is received
+// After a reorg if we do not return the transaction hash to netsync mempool, and the transaction
+// is mined into another block this method will not be called (onMerkleTx will be called instead)
 void SPVWallet::onTxConfirmed(const ChainMerkleBlock& chainmerkleblock, const bytes_t& txhash, unsigned int txindex, unsigned int txcount){
     try {
-        _store.confirmTransaction(uchar_vector(txhash).getHex(), chainmerkleblock, txindex == 0, [this](std::string txhash){
-            _networkSync.addToMempool(uchar_vector(txhash));
-        });
+
+        if(txindex == 0) {
+            _store.addBlockHeader(chainmerkleblock);
+        }
+
+        _store.confirmTransaction(Coin::TransactionId::fromRPCByteOrder(txhash), chainmerkleblock);
+
     } catch(const std::exception & e) {
         emit StoreError(e.what());
     }
 }
 
+// This method will get called for each transaction when a merkleblock is received
+// except for transactions which were in the mempool
 void SPVWallet::onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin::Transaction& cointx, unsigned int txindex, unsigned int txcount){
     try {
-        if(transactionShouldBeStored(cointx)) {
-            _store.addTransaction(cointx, chainmerkleblock, txindex == 0, [this](std::string txhash){
-                _networkSync.addToMempool(uchar_vector(txhash));
-            });
-        } else {
-            if( txindex == 0 ) {
-                _store.addBlockHeader(chainmerkleblock, [this](std::string txhash){
-                    _networkSync.addToMempool(uchar_vector(txhash));
-                });
-            }
+        if( txindex == 0 ) {
+            _store.addBlockHeader(chainmerkleblock);
         }
+
+        if(transactionShouldBeStored(cointx)) {
+            _store.addTransaction(cointx, chainmerkleblock);
+        }
+
     } catch(const std::exception & e) {
         emit StoreError(e.what());
     }
 }
 
+// On receiving a merkle block without any transactions that match the bloom filter
 void SPVWallet::onMerkleBlock(const ChainMerkleBlock& chainmerkleblock) {
     try {
-        _store.addBlockHeader(chainmerkleblock, [this](std::string txhash){
-            _networkSync.addToMempool(uchar_vector(txhash));
-        });
+        _store.addBlockHeader(chainmerkleblock);
     } catch(const std::exception & e) {
         emit StoreError(e.what());
     }

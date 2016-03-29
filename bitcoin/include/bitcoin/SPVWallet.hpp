@@ -106,6 +106,8 @@ signals:
     // Signal emitted when wallet balance changes
     void BalanceChanged(uint64_t confirmedBalance, uint64_t unconfirmedBalance);
 
+    void TxUpdated(Coin::TransactionId txid, int confirmations);
+
 public slots:
 
 
