@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, March 20 2016
  */
 
-#include <protocol/statemachine/PieceRequested.hpp>
+#include <protocol/statemachine/LoadingPiece.hpp>
 #include <protocol/statemachine/WaitingForPayment.hpp>
 #include <protocol/wire/FullPiece.hpp>
 
@@ -13,11 +13,11 @@
 
 using namespace joystream::protocol::statemachine;
 
-PieceRequested::PieceRequested() {
+LoadingPiece::LoadingPiece() {
     std::cout << "Entering PieceRequested state." << std::endl;
 }
 
-sc::result PieceRequested::react(const event::PieceLoaded & e) {
+sc::result LoadingPiece::react(const event::PieceLoaded & e) {
 
     std::cout << "Reacting to event::PieceLoaded event." << std::endl;
 
