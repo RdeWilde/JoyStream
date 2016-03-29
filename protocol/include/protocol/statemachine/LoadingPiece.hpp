@@ -15,7 +15,7 @@ namespace joystream {
 namespace protocol {
 namespace statemachine {
 
-    class PieceRequested : public sc::simple_state<PieceRequested, ServicingPieceRequest> {
+    class LoadingPiece : public sc::simple_state<LoadingPiece, ServicingPieceRequest> {
 
     public:
 
@@ -23,7 +23,7 @@ namespace statemachine {
                                 sc::custom_reaction<event::PieceLoaded>
                                 > reactions;
 
-        PieceRequested();
+        LoadingPiece();
 
         // Event handlers
         sc::result react(const event::PieceLoaded &);
