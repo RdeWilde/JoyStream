@@ -14,7 +14,9 @@ namespace joystream {
 namespace protocol {
 namespace statemachine {
 
-    class SellerHasJoined : public sc::simple_state<SellerHasJoined, Buying> {
+    class PreparingContract;
+
+    class SellerHasJoined : public sc::simple_state<SellerHasJoined, Buying, PreparingContract> {
 
     public:
 
@@ -35,5 +37,9 @@ namespace statemachine {
 }
 }
 }
+
+// Required to make SellerHasJoined complete when included throught his header file,
+// as PreparingContract is initial state and thus part of parent state_machine definition
+#include <protocol/statemachine/PreparingContract.hpp>
 
 #endif // JOYSTREAM_PROTOCOL_STATE_MACHINE_SELLERJOINED_HPP
