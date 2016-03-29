@@ -344,13 +344,17 @@ void SPVWallet::updateStatus(wallet_status_t status) {
 
         emit StatusChanged(status);
 
-        if(status == OFFLINE) emit Offline();
-        if(status == CONNECTING) emit Connecting();
-        if(status == CONNECTED) emit Connected();
-        if(status == DISCONNECTED) emit Disconnected();
-        if(status == SYNCHING_HEADERS) emit SynchingHeaders();
-        if(status == SYNCHING_BLOCKS)  emit SynchingBlocks();
-        if(status == SYNCHED) emit BlocksSynched();
+        switch(status) {
+            case OFFLINE: emit Offline(); break;
+            case CONNECTING: emit Connecting(); break;
+            case CONNECTED: emit Connected(); break;
+            case DISCONNECTED: emit Disconnected(); break;
+            case SYNCHING_HEADERS: emit SynchingHeaders(); break;
+            case SYNCHING_BLOCKS: emit SynchingBlocks(); break;
+            case SYNCHED: emit BlocksSynched(); break;
+            default:
+                Q_ASSERT(false);
+        }
     }
 }
 
