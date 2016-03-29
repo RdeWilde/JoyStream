@@ -44,7 +44,9 @@ namespace statemachine {
 
         // Sub states which require access to private variables
         friend class ReadyToInviteSeller;
-
+        friend class WaitingForSellerToJoin;
+        friend class PreparingContract;
+        friend class ProcessingPiece;
 
         // Whether state has been initialized with detail::InitializeBuying
         bool _initialized;

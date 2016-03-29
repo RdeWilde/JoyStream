@@ -30,6 +30,7 @@ namespace protocol {
 
     class ContractInvitation;
     class ContractRSVP;
+    class PieceData;
 
     namespace statemachine {
 
@@ -39,6 +40,7 @@ namespace protocol {
         class Active;
         class ServicingPieceRequest;
         class SellerHasJoined;
+        class WaitingForFullPiece;
 
         class CBStateMachine : public sc::state_machine<CBStateMachine, ChooseMode> {
 
@@ -80,6 +82,8 @@ namespace protocol {
             // Peer, in seller mode, left - by sending new mode message (which may also be sell) - after requesting a piece
             typedef std::function<void()> SellerInterruptedContract;
 
+            // Peer, in seller mode, responded with full piece
+            typedef std::function<void(const PieceData &)> ReceivedFullPiece;
 
             CBStateMachine(const InvitedToOutdatedContract &,
                            const InvitedToJoinContract &,
@@ -90,7 +94,8 @@ namespace protocol {
                            const ValidPayment &,
                            const InvalidPayment &,
                            const SellerJoined &,
-                           const SellerInterruptedContract &);
+                           const SellerInterruptedContract &,
+                           const ReceivedFullPiece &);
 
             void unconsumed_event(const sc::event_base &);
 
@@ -117,15 +122,18 @@ namespace protocol {
 
             SellerJoined getSellerJoined() const;
 
-            PeerModeAnnounced peerAnnouncedMode() const;
-
             SellerInterruptedContract getSellerInterruptedContract() const;
+
+            ReceivedFullPiece getReceivedFullPiece() const;
+
+            PeerModeAnnounced peerAnnouncedMode() const;
 
         private:
 
             friend class Active;
             friend class ServicingPieceRequest;
             friend class SellerHasJoined;
+            friend class WaitingForFullPiece; //
 
             // Context actions
             void peerToObserveMode();
@@ -143,6 +151,7 @@ namespace protocol {
             InvalidPayment _invalidPayment;
             SellerJoined _sellerJoined;
             SellerInterruptedContract _sellerInterruptedContract;
+            ReceivedFullPiece _receivedFullPiece;
 
             //// Peer state
             //*** Just factor out modeannounced and index, dont save actual terms? ***

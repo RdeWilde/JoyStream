@@ -53,7 +53,6 @@ HEADERS += \
     include/protocol/ModeAnnounced.hpp \
     include/protocol/ContractRSVP.hpp \
     include/protocol/statemachine/CBStateMachine.hpp \
-    include/protocol/statemachine/SellerJoined.hpp \
     include/protocol/statemachine/ChooseMode.hpp \
     include/protocol/statemachine/event/ObserveModeStarted.hpp \
     include/protocol/statemachine/event/SellModeStarted.hpp \
@@ -72,7 +71,6 @@ HEADERS += \
     include/protocol/statemachine/event/Joined.hpp \
     include/protocol/statemachine/ReadyForPieceRequest.hpp \
     include/protocol/statemachine/ServicingPieceRequest.hpp \
-    include/protocol/statemachine/PieceRequested.hpp \
     include/protocol/statemachine/WaitingForPayment.hpp \
     include/protocol/statemachine/detail/InitializeBuying.hpp \
     include/protocol/statemachine/detail/InitializeSelling.hpp \
@@ -81,7 +79,16 @@ HEADERS += \
     include/protocol/statemachine/exception/InvitedToJoinContractByNonBuyer.hpp \
     include/protocol/statemachine/exception/CannotInviteNonSeller.hpp \
     include/protocol/statemachine/WaitingForSellerToJoin.hpp \
-    include/protocol/statemachine/SellerJoined.hpp
+    include/protocol/statemachine/SellerHasJoined.hpp \
+    include/protocol/statemachine/event/ContractPrepared.hpp \
+    include/protocol/statemachine/ReadyToRequestPiece.hpp \
+    include/protocol/statemachine/event/RequestPiece.hpp \
+    include/protocol/statemachine/LoadingPiece.hpp \
+    include/protocol/statemachine/WaitingForFullPiece.hpp \
+    include/protocol/statemachine/ProcessingPiece.hpp \
+    include/protocol/PieceData.hpp \
+    include/protocol/statemachine/event/SendPayment.hpp \
+    include/protocol/statemachine/event/InvalidPieceReceived.hpp
 
 SOURCES += \
     src/wire/ExtendedMessagePayload.cpp \
@@ -115,7 +122,6 @@ SOURCES += \
     src/ContractInvitation.cpp \
     src/ContractRSVP.cpp \
     src/statemachine/ServicingPieceRequest.cpp \
-    src/statemachine/SellerJoined.cpp \
     src/statemachine/CBStateMachine.cpp \
     src/statemachine/event/SellModeStarted.cpp \
     src/statemachine/event/BuyModeStarted.cpp \
@@ -134,14 +140,22 @@ SOURCES += \
     src/statemachine/WaitingToStart.cpp \
     src/statemachine/ReadyForPieceRequest.cpp \
     src/statemachine/event/PieceLoaded.cpp \
-    src/statemachine/PieceRequested.cpp \
     src/statemachine/WaitingForPayment.cpp \
     src/statemachine/detail/InitializeBuying.cpp \
     src/statemachine/detail/InitializeSelling.cpp \
     src/statemachine/event/InviteSeller.cpp \
     src/statemachine/ReadyToInviteSeller.cpp \
     src/statemachine/exception/CannotInviteNonSeller.cpp \
-    src/statemachine/WaitingForSellerToJoin.cpp
+    src/statemachine/WaitingForSellerToJoin.cpp \
+    src/statemachine/SellerHasJoined.cpp \
+    src/statemachine/PreparingContract.cpp \
+    src/statemachine/event/ContractPrepared.cpp \
+    src/statemachine/event/RequestPiece.cpp \
+    src/statemachine/ReadyToRequestPiece.cpp \
+    src/statemachine/LoadingPiece.cpp \
+    src/statemachine/WaitingForFullPiece.cpp \
+    src/PieceData.cpp \
+    src/statemachine/ProcessingPiece.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include
