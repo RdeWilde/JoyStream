@@ -365,13 +365,23 @@ std::list<Coin::Transaction> Store::listTransactions() {
 }
 
 bool Store::addressExists(const Coin::P2PKHAddress & addr) {
+    odb::transaction t(_db->begin());
     typedef odb::query<detail::store::Address> query;
     std::string base58 = addr.toBase58CheckEncoding().toStdString();
-    if(_db->query_one<detail::store::Address>(query::address == base58)) return true;
+
+    try {
+        if(_db->query_one<detail::store::Address>(query::address == base58)) {
+            return true;
+        }
+    } catch (std::exception e) {
+
+    }
+
     return false;
 }
 
 bool Store::transactionExists(const Coin::TransactionId & txid) {
+    odb::transaction t(_db->begin());
     try{
         _db->load<detail::store::Transaction>(txid.toHex().toStdString());
         return true;
@@ -381,6 +391,7 @@ bool Store::transactionExists(const Coin::TransactionId & txid) {
 }
 
 bool Store::transactionExists(const Coin::Transaction & tx) {
+    odb::transaction t(_db->begin());
     Coin::Transaction transaction;
     if(transactionLoad(_db, Coin::TransactionId::fromTx(tx).toHex().toStdString(), transaction)) {
 
