@@ -414,15 +414,19 @@ void SPVWallet::onBlocksSynched() {
 // This occurs when a new unconfirmed transaction arrives from the peer.
 // We may very well already have it in our store from a previous session
 void SPVWallet::onNewTx(const Coin::Transaction& cointx) {
+    if(!transactionShouldBeStored(cointx)) return;
+
     try {
-        if(!transactionShouldBeStored(cointx)) return;
 
         _store.addTransaction(cointx);
 
-        recalculateBalance();
     } catch(const std::exception & e) {
+        std::cerr << e.what() << std::endl;
         emit StoreError(e.what());
+        _networkSync.stop();
     }
+
+    recalculateBalance();
 }
 
 // This will be called when the blocks which mines a transaction in the mempool is received
@@ -435,10 +439,16 @@ void SPVWallet::onTxConfirmed(const ChainMerkleBlock& chainmerkleblock, const by
             _store.addBlockHeader(chainmerkleblock);
         }
 
-        _store.confirmTransaction(Coin::TransactionId::fromRPCByteOrder(txhash), chainmerkleblock);
+        Coin::TransactionId txid(Coin::TransactionId::fromRPCByteOrder(txhash));
+
+        if(!_store.transactionExists(txid)) return;
+
+        _store.confirmTransaction(txid, chainmerkleblock);
 
     } catch(const std::exception & e) {
+        std::cerr << e.what() << std::endl;
         emit StoreError(e.what());
+        _networkSync.stop();
     }
 }
 
@@ -446,6 +456,7 @@ void SPVWallet::onTxConfirmed(const ChainMerkleBlock& chainmerkleblock, const by
 // except for transactions which were in the mempool
 void SPVWallet::onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin::Transaction& cointx, unsigned int txindex, unsigned int txcount){
     try {
+
         if( txindex == 0 ) {
             _store.addBlockHeader(chainmerkleblock);
         }
@@ -455,16 +466,22 @@ void SPVWallet::onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin:
         }
 
     } catch(const std::exception & e) {
+        std::cerr << e.what() << std::endl;
         emit StoreError(e.what());
+        _networkSync.stop();
     }
 }
 
 // On receiving a merkle block without any transactions that match the bloom filter
 void SPVWallet::onMerkleBlock(const ChainMerkleBlock& chainmerkleblock) {
     try {
+
         _store.addBlockHeader(chainmerkleblock);
+
     } catch(const std::exception & e) {
+        std::cerr << e.what() << std::endl;
         emit StoreError(e.what());
+        _networkSync.stop();
     }
 }
 

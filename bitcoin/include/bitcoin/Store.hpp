@@ -26,6 +26,22 @@ public:
 
     typedef std::function<void(Coin::TransactionId, int confirmations)> transactionUpdatedCallback;
 
+    // Custom Store Exceptions
+    class BlockHeaderNotFound : public std::runtime_error {
+    public:
+        BlockHeaderNotFound() : std::runtime_error("BlockHeader missing") {}
+    };
+
+    class BlockHeaderDoesNotConnect : public std::runtime_error {
+    public:
+        BlockHeaderDoesNotConnect() : std::runtime_error("BlockHeader doesn't connect to stored chain") {}
+    };
+
+    class TransactionNotFound : public std::runtime_error {
+    public:
+        TransactionNotFound() : std::runtime_error("Transaction not found in store") {}
+    };
+
     Store(){}
     Store(std::string file);
     ~Store();
@@ -76,9 +92,9 @@ public:
     std::vector<std::string> getLatestBlockHeaderHashes();
 
     // Methods used to update Store with block headers and transactions
-    bool addTransaction(const Coin::Transaction & tx);
-    bool addTransaction(const Coin::Transaction & tx, const ChainMerkleBlock & chainmerkleblock);
-    bool confirmTransaction(Coin::TransactionId txid, const ChainMerkleBlock &chainmerkleblock);
+    void addTransaction(const Coin::Transaction & tx);
+    void addTransaction(const Coin::Transaction & tx, const ChainMerkleBlock & chainmerkleblock);
+    void confirmTransaction(Coin::TransactionId txid, const ChainMerkleBlock &chainmerkleblock);
     void addBlockHeader(const ChainMerkleBlock & chainmerkleblock);
     uint32_t getBestHeaderHeight() const;
 
