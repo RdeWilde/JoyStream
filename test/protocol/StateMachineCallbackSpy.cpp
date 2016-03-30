@@ -12,57 +12,6 @@ StateMachineCallbackSpy::StateMachineCallbackSpy() {
 
     // Set all indicators to neutral
     reset();
-
-    //// Setup all callback handlers
-
-    // InvitedToOutdatedContract
-    _invitedToOutdatedContract = [this](void) {
-        _hasBeenInvitedToOutdatedContract = true;
-    };
-
-    // InvitedToJoinContract
-    _invitedToJoinContract = [this](const joystream::protocol::ContractInvitation & invitation) {
-        _hasBeenInvitedToJoinContract = true;
-        _invitation = invitation;
-    };
-
-    // Send
-    _send = [this](const joystream::protocol::wire::ExtendedMessagePayload * m) {
-
-        std::cout << "Sending message: " <<  joystream::protocol::wire::MessageTypeToString(m->messageType()) << std::endl;
-
-        _messageSent = true;
-        _message = m;
-    };
-
-    // ContractIsReady
-    _contractIsReady = [this](const Coin::typesafeOutPoint & o) {
-        _contractHasBeenPrepared = true;
-        _anchor = o;
-    };
-
-    // PieceRequested
-    _pieceRequested = [this](int i) {
-        _pieceHasBeenRequested = true;
-        _piece = i;
-    };
-
-    // PeerInterruptedPayment
-    _peerInterruptedPayment = [this]() {
-        _paymentInterrupted = true;
-    };
-
-    // InvalidPayment
-    _invalidPayment = [this](const Coin::Signature & s) {
-        _receivedInvalidPayment = true;
-        _invalidPaymentSignature = s;
-    };
-
-    // ValidPayment
-    _validPayment = [this](const Coin::Signature & s) {
-        _receivedValidPayment = true;
-        _validPaymentSignature = s;
-    };
 }
 
 CBStateMachine * StateMachineCallbackSpy::createFreshMachineInObserveMode() {
@@ -101,14 +50,48 @@ CBStateMachine * StateMachineCallbackSpy::createFreshMachineInSellMode(const joy
 CBStateMachine * StateMachineCallbackSpy::createFreshMachine() {
 
     // Create
-    CBStateMachine * machine = new CBStateMachine(_invitedToOutdatedContract,
-                                                  _invitedToJoinContract,
-                                                  _send,
-                                                  _contractIsReady,
-                                                  _pieceRequested,
-                                                  _peerInterruptedPayment,
-                                                  _invalidPayment,
-                                                  _validPayment);
+    CBStateMachine * machine = new CBStateMachine(
+    [this](void) {
+        _hasBeenInvitedToOutdatedContract = true;
+    },
+    [this](const joystream::protocol::ContractInvitation & invitation) {
+        _hasBeenInvitedToJoinContract = true;
+        _invitation = invitation;
+    },
+    [this](const joystream::protocol::wire::ExtendedMessagePayload * m) {
+        std::cout << "Sending message: " <<  joystream::protocol::wire::MessageTypeToString(m->messageType()) << std::endl;
+        _messageSent = true;
+        _message = m;
+    },
+    [this](const Coin::typesafeOutPoint & o) {
+        _contractHasBeenPrepared = true;
+        _anchor = o;
+    },
+    [this](int i) {
+        _pieceHasBeenRequested = true;
+        _piece = i;
+    },
+    [this]() {
+        _paymentInterrupted = true;
+    },
+    [this](const Coin::Signature & s) {
+        _receivedInvalidPayment = true;
+        _invalidPaymentSignature = s;
+    },
+    [this](const Coin::Signature & s) {
+        _receivedValidPayment = true;
+        _validPaymentSignature = s;
+    },
+    [this]() {
+        _sellerHasJoined = true;
+    },
+    [this]() {
+        _sellerHasInterruptedContract = true;
+    },
+    [this](const joystream::protocol::PieceData & p) {
+        _hasReceivedFullPiece = true;
+        _pieceData = p;
+    });
 
     // Initiate machine
     machine->initiate();
@@ -147,6 +130,16 @@ void StateMachineCallbackSpy::reset() {
     // ValidPayment
     _receivedValidPayment = false;
     _validPaymentSignature = Coin::Signature();
+
+    // SellerJoined
+    _sellerHasJoined = false;
+
+    // SellerInterruptedContract
+    _sellerHasInterruptedContract = false;
+
+    // ReceivedFullPiece
+    _hasReceivedFullPiece = false;
+    _pieceData = joystream::protocol::PieceData();
 }
 
 bool StateMachineCallbackSpy::hasBeenInvitedToOutdatedContract() const {
@@ -157,7 +150,10 @@ bool StateMachineCallbackSpy::hasBeenInvitedToOutdatedContract() const {
            !_pieceHasBeenRequested &&
            !_paymentInterrupted &&
            !_receivedInvalidPayment &&
-           !_receivedValidPayment;
+           !_receivedValidPayment &&
+           !_sellerHasJoined &&
+           !_sellerHasInterruptedContract &&
+           !_hasReceivedFullPiece;
 }
 
 bool StateMachineCallbackSpy::hasBeenInvitedToJoinContract() const {
@@ -168,7 +164,10 @@ bool StateMachineCallbackSpy::hasBeenInvitedToJoinContract() const {
            !_pieceHasBeenRequested &&
            !_paymentInterrupted &&
            !_receivedInvalidPayment &&
-           !_receivedValidPayment;
+           !_receivedValidPayment &&
+           !_sellerHasJoined &&
+           !_sellerHasInterruptedContract &&
+           !_hasReceivedFullPiece;
 }
 
 joystream::protocol::ContractInvitation StateMachineCallbackSpy::invitation() const {
@@ -183,7 +182,10 @@ bool StateMachineCallbackSpy::messageSent() const {
            !_pieceHasBeenRequested &&
            !_paymentInterrupted &&
            !_receivedInvalidPayment &&
-           !_receivedValidPayment;
+           !_receivedValidPayment &&
+           !_sellerHasJoined &&
+           !_sellerHasInterruptedContract &&
+           !_hasReceivedFullPiece;
 }
 
 const joystream::protocol::wire::ExtendedMessagePayload *StateMachineCallbackSpy::message() const {
@@ -198,7 +200,10 @@ bool StateMachineCallbackSpy::contractHasBeenPrepared() const {
            !_pieceHasBeenRequested &&
            !_paymentInterrupted &&
            !_receivedInvalidPayment &&
-           !_receivedValidPayment;
+           !_receivedValidPayment &&
+           !_sellerHasJoined &&
+           !_sellerHasInterruptedContract &&
+           !_hasReceivedFullPiece;
 }
 
 Coin::typesafeOutPoint StateMachineCallbackSpy::anchor() const {
@@ -213,7 +218,10 @@ bool StateMachineCallbackSpy::pieceHasBeenRequested() const {
            _pieceHasBeenRequested &&
            !_paymentInterrupted &&
            !_receivedInvalidPayment &&
-           !_receivedValidPayment;
+           !_receivedValidPayment &&
+           !_sellerHasJoined &&
+           !_sellerHasInterruptedContract &&
+           !_hasReceivedFullPiece;
 }
 
 int StateMachineCallbackSpy::piece() const {
@@ -228,7 +236,10 @@ bool StateMachineCallbackSpy::paymentInterrupted() const {
            !_pieceHasBeenRequested &&
            _paymentInterrupted &&
            !_receivedInvalidPayment &&
-           !_receivedValidPayment;
+           !_receivedValidPayment &&
+           !_sellerHasJoined &&
+           !_sellerHasInterruptedContract &&
+           !_hasReceivedFullPiece;
 }
 
 bool StateMachineCallbackSpy::receivedInvalidPayment() const {
@@ -239,7 +250,10 @@ bool StateMachineCallbackSpy::receivedInvalidPayment() const {
            !_pieceHasBeenRequested &&
            !_paymentInterrupted &&
            _receivedInvalidPayment &&
-           !_receivedValidPayment;
+           !_receivedValidPayment &&
+           !_sellerHasJoined &&
+           !_sellerHasInterruptedContract &&
+           !_hasReceivedFullPiece;
 }
 
 Coin::Signature StateMachineCallbackSpy::invalidPaymentSignature() const {
@@ -254,9 +268,58 @@ bool StateMachineCallbackSpy::receivedValidPayment() const {
            !_pieceHasBeenRequested &&
            !_paymentInterrupted &&
            !_receivedInvalidPayment &&
-           _receivedValidPayment;
+           _receivedValidPayment &&
+           !_sellerHasJoined &&
+           !_sellerHasInterruptedContract &&
+           !_hasReceivedFullPiece;
 }
 
 Coin::Signature StateMachineCallbackSpy::validPaymentSignature() const {
     return _validPaymentSignature;
+}
+
+bool StateMachineCallbackSpy::sellerHasJoined() const {
+    return !_hasBeenInvitedToOutdatedContract &&
+           !_hasBeenInvitedToJoinContract &&
+           !_messageSent &&
+           !_contractHasBeenPrepared &&
+           !_pieceHasBeenRequested &&
+           !_paymentInterrupted &&
+           !_receivedInvalidPayment &&
+           !_receivedValidPayment &&
+           _sellerHasJoined &&
+           !_sellerHasInterruptedContract &&
+           !_hasReceivedFullPiece;
+}
+
+bool StateMachineCallbackSpy::sellerHasInterruptedContract() const {
+    return !_hasBeenInvitedToOutdatedContract &&
+           !_hasBeenInvitedToJoinContract &&
+           !_messageSent &&
+           !_contractHasBeenPrepared &&
+           !_pieceHasBeenRequested &&
+           !_paymentInterrupted &&
+           !_receivedInvalidPayment &&
+           !_receivedValidPayment &&
+           !_sellerHasJoined &&
+           _sellerHasInterruptedContract &&
+           !_hasReceivedFullPiece;
+}
+
+bool StateMachineCallbackSpy::hasReceivedFullPiece() const {
+    return !_hasBeenInvitedToOutdatedContract &&
+           !_hasBeenInvitedToJoinContract &&
+           !_messageSent &&
+           !_contractHasBeenPrepared &&
+           !_pieceHasBeenRequested &&
+           !_paymentInterrupted &&
+           !_receivedInvalidPayment &&
+           !_receivedValidPayment &&
+           !_sellerHasJoined &&
+           !_sellerHasInterruptedContract &&
+           _hasReceivedFullPiece;
+}
+
+joystream::protocol::PieceData StateMachineCallbackSpy::pieceData() const {
+    return _pieceData;
 }

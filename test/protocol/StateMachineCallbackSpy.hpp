@@ -11,6 +11,7 @@
 #include <protocol/statemachine/CBStateMachine.hpp>
 #include <protocol/wire/MessageType.hpp>
 #include <protocol/ContractInvitation.hpp>
+#include <protocol/PieceData.hpp>
 #include <common/typesafeOutPoint.hpp>
 #include <common/Signature.hpp>
 
@@ -66,6 +67,14 @@ public:
     bool receivedValidPayment() const;
     Coin::Signature validPaymentSignature() const;
 
+    bool sellerHasJoined() const;
+
+    bool sellerHasInterruptedContract() const;
+
+    bool hasReceivedFullPiece() const;
+
+    joystream::protocol::PieceData pieceData() const;
+
 private:
 
     // ***
@@ -73,11 +82,9 @@ private:
     // ***
 
     // InvitedToOutdatedContract
-    CBStateMachine::InvitedToOutdatedContract _invitedToOutdatedContract;
     bool _hasBeenInvitedToOutdatedContract;
 
     // InvitedToJoinContract
-    CBStateMachine::InvitedToJoinContract _invitedToJoinContract;
     bool _hasBeenInvitedToJoinContract;
     joystream::protocol::ContractInvitation _invitation;
 
@@ -87,29 +94,33 @@ private:
     const joystream::protocol::wire::ExtendedMessagePayload * _message;
 
     // ContractIsReady
-    CBStateMachine::ContractIsReady _contractIsReady;
     bool _contractHasBeenPrepared;
     Coin::typesafeOutPoint _anchor;
 
     // PieceRequested
-    CBStateMachine::PieceRequested _pieceRequested;
     bool _pieceHasBeenRequested;
     int _piece;
 
     // PeerInterruptedPayment
-    CBStateMachine::PeerInterruptedPayment _peerInterruptedPayment;
     bool _paymentInterrupted;
 
     // InvalidPayment
-    CBStateMachine::InvalidPayment _invalidPayment;
     bool _receivedInvalidPayment;
     Coin::Signature _invalidPaymentSignature;
 
     // ValidPayment
-    CBStateMachine::ValidPayment _validPayment;
     bool _receivedValidPayment;
     Coin::Signature _validPaymentSignature;
 
+    // SellerJoined
+    bool _sellerHasJoined;
+
+    // SellerInterruptedContract
+    bool _sellerHasInterruptedContract;
+
+    // ReceivedFullPiece
+    bool _hasReceivedFullPiece;
+    joystream::protocol::PieceData _pieceData;
 };
 
 #endif // STATEMACHINECALLBACKSPY
