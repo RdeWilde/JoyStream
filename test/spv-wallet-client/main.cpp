@@ -12,6 +12,7 @@
 #include <signal.h>
 
 bool shuttingDown = false;
+int reconnects = 0;
 
 void handleSignal(int sig)
 {
@@ -78,7 +79,7 @@ int main(int argc, char *argv[])
         shuttingDown = true;
     });
 
-    QObject::connect(&wallet, &SPVWallet::StatusChanged, [&wallet, &a](SPVWallet::wallet_status_t status){
+    QObject::connect(&wallet, &SPVWallet::StatusChanged, [&wallet, &a, &timer](SPVWallet::wallet_status_t status){
        if(status == SPVWallet::wallet_status_t::SYNCHED)  {
            // Display Balance
            std::cout << std::endl << "Wallet Balance: " << wallet.Balance() << std::endl;
@@ -101,11 +102,23 @@ int main(int argc, char *argv[])
            shuttingDown = true;
        }
 
+       if(status == SPVWallet::wallet_status_t::CONNECTING) {
+           std::cout << "Connecting" << std::endl;
+       }
+
        if(status == SPVWallet::wallet_status_t::OFFLINE) {
            // Exit application when netsync stops
             if(shuttingDown) {
-               std::cout << "Application Exiting..\n";
-               a.exit();
+               if(reconnects > 0) {
+                   std::cout << "Application Exiting,,\n";
+                   a.exit();
+               }else {
+                    reconnects++;
+                    shuttingDown = false;
+                    timer->start(2000);
+                    std::cout << "Reconnecting..\n";
+                    wallet.Sync("testnet-seed.bitcoin.petertodd.org", 18333);
+               }
             }
        }
     });
