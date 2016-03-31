@@ -8,6 +8,8 @@
 #include <CoinQ/CoinQ_netsync.h>
 #include <bitcoin/Store.hpp>
 
+#include <mutex>
+
 class Test;
 
 namespace joystream {
@@ -69,9 +71,8 @@ public:
     void ReleaseKey(const Coin::PrivateKey &sk);
     Coin::P2PKHAddress GetReceiveAddress();
 
-    std::list<Coin::UnspentP2PKHOutput> GetUnspentOutputs(uint64_t minValue, uint32_t minimalConfirmatinos = 0);
-    Coin::UnspentP2PKHOutput GetOneUnspentOutput(uint64_t minValue);
-    void ReleaseUnspentOutputs(const std::list<Coin::UnspentP2PKHOutput> outputs);
+    std::list<Coin::UnspentP2PKHOutput> LockOutputs(uint64_t minValue, uint32_t minimalConfirmations = 0);
+    void UnlockOutputs(const std::list<Coin::UnspentP2PKHOutput> outputs);
 
     uint64_t Balance() const;
     uint64_t UnconfirmedBalance() const;
@@ -81,8 +82,6 @@ public:
     Q_INVOKABLE void BroadcastTx(Coin::Transaction & cointx);
 
     int32_t bestHeight() const;
-
-    Coin::Transaction SendToAddress(uint64_t value, const Coin::P2PKHAddress &addr, uint64_t fee);
 
 signals:
 
@@ -166,9 +165,13 @@ private:
 
     void recalculateBalance();
 
+    mutable std::mutex _utxoMutex;
+    std::set<Coin::typesafeOutPoint> _lockedOutpoints;
+    
     // Prefix methods only required from unit tests with test_
     void test_syncBlocksStaringAtHeight(int32_t height);
     int32_t test_netsyncBestHeight() const { return _networkSync.getBestHeight(); }
+    Coin::Transaction test_sendToAddress(uint64_t value, const Coin::P2PKHAddress &addr, uint64_t fee);
 
 };
 

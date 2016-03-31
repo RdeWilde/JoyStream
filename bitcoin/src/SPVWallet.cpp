@@ -203,6 +203,9 @@ void SPVWallet::Sync(std::string host, int port) {
     // Only start synching from offline state
     if(_walletStatus != OFFLINE) return;
 
+    Q_ASSERT(_blockTreeLoaded);
+    Q_ASSERT(_store.connected());
+
     updateStatus(CONNECTING);
 
     _networkSync.start(host, port);
@@ -286,51 +289,56 @@ void SPVWallet::BroadcastTx(Coin::Transaction & cointx) {
 
 int32_t SPVWallet::bestHeight() const {
     if(_walletStatus == UNINITIALIZED) {
-        return 0;
+        throw std::runtime_error("wallet not initialized");
     }
 
     return _store.getBestHeaderHeight();
 }
 
-Coin::UnspentP2PKHOutput SPVWallet::GetOneUnspentOutput(uint64_t minValue) {
-    for(Coin::UnspentP2PKHOutput & utxo : _store.getUnspentTransactionsOutputs()) {
-        if(utxo.value() >= minValue)
-            return utxo;
+std::list<Coin::UnspentP2PKHOutput> SPVWallet::LockOutputs(uint64_t minValue, uint32_t minimalConfirmations) {
+    if(_walletStatus == UNINITIALIZED) {
+        throw std::runtime_error("wallet not initialized");
+    }
+    
+    std::lock_guard<std::mutex> lock(_utxoMutex);
+
+    uint32_t totalValue = 0;
+
+    std::list<Coin::UnspentP2PKHOutput> selectedOutputs;
+
+    // Assume outputs are sorted in descending value
+    std::list<Coin::UnspentP2PKHOutput> unspentOutputs(_store.getUnspentTransactionsOutputs(minimalConfirmations, bestHeight()));
+
+    for(Coin::UnspentP2PKHOutput & utxo : unspentOutputs) {
+        if(_lockedOutpoints.find(utxo.outPoint()) != _lockedOutpoints.end()) continue;
+
+        selectedOutputs.push_back(utxo);
+        totalValue += utxo.value();
+
+        if(totalValue >= minValue) {
+            break;
+        }
     }
 
-    return Coin::UnspentP2PKHOutput();
+    if(totalValue < minValue) {
+        // not enough utxo
+        return std::list<Coin::UnspentP2PKHOutput>();
+    }
+
+    // Lock and return the selected utxos
+    for(auto utxo : selectedOutputs) {
+        _lockedOutpoints.insert(utxo.outPoint());
+    }
+
+    return selectedOutputs;
 }
 
-Coin::Transaction SPVWallet::SendToAddress(uint64_t value, const Coin::P2PKHAddress &addr, uint64_t fee) {
+void SPVWallet::UnlockOutputs(const std::list<Coin::UnspentP2PKHOutput> outputs) {
+    std::lock_guard<std::mutex> lock(_utxoMutex);
 
-    // Get UnspentUTXO
-    Coin::UnspentP2PKHOutput utxo(GetOneUnspentOutput(value + fee));
-
-    // Create Destination output
-    Coin::P2PKHScriptPubKey destinationScript(addr.pubKeyHash());
-    
-    // Create Change output
-    Coin::P2PKHAddress changeAddr = GetReceiveAddress();
-    Coin::P2PKHScriptPubKey changeScript(changeAddr.pubKeyHash());
-
-    // Create an unsigned Transaction
-    Coin::Transaction cointx;
-    cointx.addOutput(Coin::TxOut(value, destinationScript.serialize()));
-
-    uint64_t change = utxo.value() - (value + fee);
-    if(change > 0) {
-        cointx.addOutput(Coin::TxOut(change, changeScript.serialize()));
+    for(auto utxo : outputs) {
+        _lockedOutpoints.erase(utxo.outPoint());
     }
-
-    // Set Input
-    cointx.addInput(Coin::TxIn(utxo.outPoint().getClassicOutPoint(), uchar_vector(), 0xFFFFFFFF));
-
-    // Sign the input
-    Coin::setScriptSigToSpendP2PKH(cointx, 0, utxo.keyPair().sk());
-
-    BroadcastTx(cointx);
-
-    return cointx;
 }
 
 uint64_t SPVWallet::Balance() const {
@@ -588,6 +596,48 @@ void SPVWallet::recalculateBalance() {
 
 void SPVWallet::test_syncBlocksStaringAtHeight(int32_t height) {
     _networkSync.syncBlocks(height);
+}
+
+Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2PKHAddress &addr, uint64_t fee) {
+
+    // Get UnspentUTXO
+    std::list<Coin::UnspentP2PKHOutput> utxos(LockOutputs(value + fee, 0));
+
+    if(utxos.empty()) {
+        throw std::runtime_error("Not enough funds");
+    }
+
+    Coin::UnspentP2PKHOutput utxo = utxos.front();
+
+    if(utxo.value() < value) {
+        throw std::runtime_error("Failed to get one UTXO with required value");
+    }
+
+    // Create Destination output
+    Coin::P2PKHScriptPubKey destinationScript(addr.pubKeyHash());
+
+    // Create Change output
+    Coin::P2PKHAddress changeAddr = GetReceiveAddress();
+    Coin::P2PKHScriptPubKey changeScript(changeAddr.pubKeyHash());
+
+    // Create an unsigned Transaction
+    Coin::Transaction cointx;
+    cointx.addOutput(Coin::TxOut(value, destinationScript.serialize()));
+
+    uint64_t change = utxo.value() - (value + fee);
+    if(change > 0) {
+        cointx.addOutput(Coin::TxOut(change, changeScript.serialize()));
+    }
+
+    // Set Input
+    cointx.addInput(Coin::TxIn(utxo.outPoint().getClassicOutPoint(), uchar_vector(), 0xFFFFFFFF));
+
+    // Sign the input
+    Coin::setScriptSigToSpendP2PKH(cointx, 0, utxo.keyPair().sk());
+
+    BroadcastTx(cointx);
+
+    return cointx;
 }
 
 }
