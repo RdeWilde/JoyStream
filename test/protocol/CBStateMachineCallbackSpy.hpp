@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, March 19 2016
  */
 
-#ifndef STATEMACHINECALLBACKSPY
-#define STATEMACHINECALLBACKSPY
+#ifndef CBSTATEMACHINECALLBACKSPY
+#define CBSTATEMACHINECALLBACKSPY
 
 #include <protocol/statemachine/CBStateMachine.hpp>
 #include <protocol/wire/MessageType.hpp>
@@ -29,17 +29,14 @@ namespace protocol {
 
 using namespace joystream::protocol::statemachine;
 
-class StateMachineCallbackSpy {
+class CBStateMachineCallbackSpy {
 
 public:
 
-    StateMachineCallbackSpy();
+    CBStateMachineCallbackSpy();
 
-    // Utility routines for creating state machines in given mode, and caller owns object
-    CBStateMachine * createFreshMachineInObserveMode();
-    CBStateMachine * createFreshMachineInBuyMode(const joystream::protocol::BuyerTerms & terms);
-    CBStateMachine * createFreshMachineInSellMode(const joystream::protocol::SellerTerms & terms);
-    CBStateMachine * createFreshMachine();
+    // Creates the machine, with given number of pieces, to spy on
+    CBStateMachine * createMonitoredMachine(int = 1);
 
     // Reset all callback indicators
     void reset();
@@ -58,6 +55,8 @@ public:
 
     bool pieceHasBeenRequested() const;
     int piece() const;
+
+    bool invalidPieceHasBeenRequested() const;
 
     bool paymentInterrupted() const;
 
@@ -101,6 +100,9 @@ private:
     bool _pieceHasBeenRequested;
     int _piece;
 
+    // InvalidPieceRequested
+    bool _invalidPieceHasBeenRequested;
+
     // PeerInterruptedPayment
     bool _paymentInterrupted;
 
@@ -123,5 +125,4 @@ private:
     joystream::protocol::PieceData _pieceData;
 };
 
-#endif // STATEMACHINECALLBACKSPY
-
+#endif // CBSTATEMACHINECALLBACKSPY
