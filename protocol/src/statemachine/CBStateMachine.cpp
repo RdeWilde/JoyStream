@@ -18,23 +18,27 @@ namespace statemachine {
                                    const Send & sendMessage,
                                    const ContractIsReady & contractIsReady,
                                    const PieceRequested & pieceRequested,
+                                   const InvalidPieceRequested & invalidPieceRequested,
                                    const PeerInterruptedPayment & peerInterruptedPayment,
                                    const ValidPayment & validPayment,
                                    const InvalidPayment & invalidPayment,
                                    const SellerJoined & sellerJoined,
                                    const SellerInterruptedContract & sellerInterruptedContract,
-                                   const ReceivedFullPiece & receivedFullPiece)
+                                   const ReceivedFullPiece & receivedFullPiece,
+                                   int MAX_PIECE_INDEX)
         : _invitedToOutdatedContract(invitedToOutdatedContract)
         , _invitedToJoinContract(invitedToJoinContract)
         , _sendMessage(sendMessage)
         , _contractIsReady(contractIsReady)
         , _pieceRequested(pieceRequested)
+        , _invalidPieceRequested(invalidPieceRequested)
         , _peerInterruptedPayment(peerInterruptedPayment)
         , _validPayment(validPayment)
         , _invalidPayment(invalidPayment)
         , _sellerJoined(sellerJoined)
         , _sellerInterruptedContract(sellerInterruptedContract)
-        , _receivedFullPiece(receivedFullPiece) {
+        , _receivedFullPiece(receivedFullPiece)
+        , _MAX_PIECE_INDEX(MAX_PIECE_INDEX) {
     }
 
     void CBStateMachine::unconsumed_event(const sc::event_base & e) {
@@ -90,6 +94,10 @@ namespace statemachine {
         return _pieceRequested;
     }
 
+    CBStateMachine::InvalidPieceRequested CBStateMachine::invalidPieceRequested() const {
+        return _invalidPieceRequested;
+    }
+
     CBStateMachine::PeerInterruptedPayment CBStateMachine::peerInterruptedPayment() const {
         return _peerInterruptedPayment;
     }
@@ -112,6 +120,10 @@ namespace statemachine {
 
     CBStateMachine::ReceivedFullPiece CBStateMachine::receivedFullPiece() const {
         return _receivedFullPiece;
+    }
+
+    int CBStateMachine::MAX_PIECE_INDEX() const {
+        return _MAX_PIECE_INDEX;
     }
 
     joystream::protocol::PeerModeAnnounced CBStateMachine::peerAnnouncedMode() const {

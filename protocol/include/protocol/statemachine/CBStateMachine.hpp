@@ -65,6 +65,9 @@ namespace protocol {
             // Peer requested piece
             typedef std::function<void(int)> PieceRequested;
 
+            // Peer invalid piece requested
+            typedef std::function<void()> InvalidPieceRequested;
+
             // Peer sent mode message when payment was expected/required
             typedef std::function<void()> PeerInterruptedPayment;
 
@@ -90,12 +93,14 @@ namespace protocol {
                            const Send &,
                            const ContractIsReady &,
                            const PieceRequested &,
+                           const InvalidPieceRequested &,
                            const PeerInterruptedPayment &,
                            const ValidPayment &,
                            const InvalidPayment &,
                            const SellerJoined &,
                            const SellerInterruptedContract &,
-                           const ReceivedFullPiece &);
+                           const ReceivedFullPiece &,
+                           int);
 
             void unconsumed_event(const sc::event_base &);
 
@@ -114,6 +119,8 @@ namespace protocol {
 
             PieceRequested pieceRequested() const;
 
+            InvalidPieceRequested invalidPieceRequested() const;
+
             PeerInterruptedPayment peerInterruptedPayment() const;
 
             ValidPayment validPayment() const;
@@ -126,6 +133,8 @@ namespace protocol {
 
             ReceivedFullPiece receivedFullPiece() const;
 
+            int MAX_PIECE_INDEX() const;
+
             PeerModeAnnounced peerAnnouncedMode() const;
 
         private:
@@ -133,7 +142,8 @@ namespace protocol {
             friend class Active;
             friend class ServicingPieceRequest;
             friend class SellerHasJoined;
-            friend class WaitingForFullPiece; //
+            friend class WaitingForFullPiece;
+            friend class ReadyForPieceRequest;
 
             // Context actions
             void peerToObserveMode();
@@ -146,12 +156,16 @@ namespace protocol {
             Send _sendMessage;
             ContractIsReady _contractIsReady;
             PieceRequested _pieceRequested;
+            InvalidPieceRequested _invalidPieceRequested;
             PeerInterruptedPayment _peerInterruptedPayment;
             ValidPayment _validPayment;
             InvalidPayment _invalidPayment;
             SellerJoined _sellerJoined;
             SellerInterruptedContract _sellerInterruptedContract;
             ReceivedFullPiece _receivedFullPiece;
+
+            // Greatest valid piece index
+            int _MAX_PIECE_INDEX;
 
             //// Peer state
             //*** Just factor out modeannounced and index, dont save actual terms? ***

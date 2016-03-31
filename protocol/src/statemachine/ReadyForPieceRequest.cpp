@@ -18,9 +18,17 @@ sc::result ReadyForPieceRequest::react(const event::Recv<joystream::protocol::wi
 
     std::cout << "Reacting to Recv<wire::RequestFullPiece> event." << std::endl;
 
-    // Switch peer state
-    context<CBStateMachine>().pieceRequested()(e.message()->pieceIndex());
+    // Get reference to state machine
+    CBStateMachine & machine = context<CBStateMachine>();
 
-    // Transition to deep history
+    // and check that piece requested is valid
+    int pieceIndex = e.message()->pieceIndex();
+
+    if(pieceIndex < 0 || pieceIndex >  machine.MAX_PIECE_INDEX())
+        machine.invalidPieceRequested()();
+    else
+        machine.pieceRequested()(pieceIndex);
+
+    // Get ready to load the piece
     return transit<ServicingPieceRequest>();
 }
