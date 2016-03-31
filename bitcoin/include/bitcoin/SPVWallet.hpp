@@ -32,32 +32,34 @@ public:
         CONNECTING,         // netsync connecting, starting background threads
 
         DISCONNECTED,       // netsync peer disconnected, stopping background threads
+                            // when threads stop, status will transition to OFFLINE
 
         CONNECTED,          // netsync connected to peer
 
-        SYNCHING_HEADERS,
+        SYNCHING_HEADERS,   // netsync is retrieving headers and updating blocktree
 
-        SYNCHING_BLOCKS,
+        SYNCHING_BLOCKS,    // netsync is retreiving filtered blocks and the wallet is
+                            // updating the store block headers and transactions
 
-        SYNCHED
+        SYNCHED             // receiving mempool (unconfirmed transactions) and waiting for next block
     };
 
     explicit SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Network network = Coin::Network::testnet3);
 
     // Create a new wallet with auto generated seed
-    void Create();
+    void create();
 
     // Create a new wallet with provided seed (useful for recovering a wallet from seed)
-    void Create(Coin::Seed seed, uint32_t timestamp = 0);
+    void create(Coin::Seed seed, uint32_t timestamp = 0);
 
     // Open the wallet. Will throw exception on failure.
-    void Open();
+    void open();
 
     // Start Synching the wallet with peer at host:port
-    void Sync(std::string host, int port);
-    void StopSync();
+    void sync(std::string host, int port);
+    void stopSync();
 
-    wallet_status_t Status() const { return _walletStatus; }
+    wallet_status_t status() const { return _walletStatus; }
 
     bool isInitialized() const { return _walletStatus != UNINITIALIZED; }
     bool isConnected() const { return _walletStatus >= CONNECTED; }
@@ -65,53 +67,55 @@ public:
     bool isSynchingBlocks() const { return _walletStatus == SYNCHING_BLOCKS;}
     bool isSynched() const { return _walletStatus == SYNCHED;}
 
-    Coin::PrivateKey GetKey(bool createReceiveAddress);
-    std::vector<Coin::PrivateKey> GetKeys(uint32_t numKeys, bool createReceiveAddress);
-    std::vector<Coin::KeyPair> GetKeyPairs(uint32_t num_pairs, bool createReceiveAddress);
-    void ReleaseKey(const Coin::PrivateKey &sk);
-    Coin::P2PKHAddress GetReceiveAddress();
+    Coin::PrivateKey getKey(bool createReceiveAddress);
+    std::vector<Coin::PrivateKey> getKeys(uint32_t numKeys, bool createReceiveAddress);
+    std::vector<Coin::KeyPair> getKeyPairs(uint32_t num_pairs, bool createReceiveAddress);
+    void releaseKey(const Coin::PrivateKey &sk);
+    Coin::P2PKHAddress getReceiveAddress();
 
-    std::list<Coin::UnspentP2PKHOutput> LockOutputs(uint64_t minValue, uint32_t minimalConfirmations = 0);
-    void UnlockOutputs(const std::list<Coin::UnspentP2PKHOutput> outputs);
+    std::list<Coin::UnspentP2PKHOutput> lockOutputs(uint64_t minValue, uint32_t minimalConfirmations = 0);
+    void unlockOutputs(const std::list<Coin::UnspentP2PKHOutput> outputs);
 
-    uint64_t Balance() const;
-    uint64_t UnconfirmedBalance() const;
+    uint64_t balance() const;
+    uint64_t unconfirmedBalance() const;
 
     Coin::Network network() const { return _network; }
 
-    Q_INVOKABLE void BroadcastTx(Coin::Transaction & cointx);
+    Q_INVOKABLE void broadcastTx(Coin::Transaction & cointx);
 
     int32_t bestHeight() const;
 
 signals:
 
-    void NetSyncStarted();
+    void syncStarted();
 
-    void NetSyncStatusMessage(std::string);
+    // A general status message to display in the UI
+    void statusMessageUpdated(std::string);
 
-    // Error signals
-    void StoreError(std::string);
-    void BlockTreeError(std::string);
-    void ProtocolError(std::string);
-    void ConnectionError(std::string);
-    void ConnectionTimeout();
+    // Error signals    
+    void storeUpdateFailed(std::string);
+    void blockTreeUpdateFailed(std::string);
+
+    void protocolError(std::string);
+    void connectionError(std::string);
+    void connectionTimedOut();
 
     // Wallet Status change
-    void StatusChanged(wallet_status_t);
+    void statusChanged(wallet_status_t);
 
     // Signal corresponding to state transition
-    void Offline();
-    void Connecting();
-    void Disconnected();
-    void Connected();
-    void SynchingHeaders();
-    void SynchingBlocks();
-    void BlocksSynched();
+    void offline();
+    void connecting();
+    void disconnected();
+    void connected();
+    void synchingHeaders();
+    void synchingBlocks();
+    void synched();
 
     // Signal emitted when wallet balance changes
-    void BalanceChanged(uint64_t confirmedBalance, uint64_t unconfirmedBalance);
+    void balanceChanged(uint64_t confirmedBalance, uint64_t unconfirmedBalance);
 
-    void TxUpdated(Coin::TransactionId txid, int confirmations);
+    void txUpdated(Coin::TransactionId txid, int confirmations);
 
 public slots:
 
@@ -150,7 +154,7 @@ private:
     void onMerkleBlock(const ChainMerkleBlock& chainmerkleblock);
 
     // Load the blocktree file
-    void LoadBlockTree();
+    void loadBlockTree();
 
     std::set<uchar_vector> _bloomFilterPubKeyHashes;
     std::set<uchar_vector> _bloomFilterCompressedPubKeys;

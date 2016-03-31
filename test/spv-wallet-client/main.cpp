@@ -41,17 +41,17 @@ int main(int argc, char *argv[])
     std::cout << "openning wallet...\n";
 
     if(!QFile("test-store.db").exists()) {
-        wallet.Create(seed, created.toTime_t());
-        wallet.GetReceiveAddress();
-        wallet.GetReceiveAddress();
-        wallet.GetReceiveAddress();
-        wallet.GetReceiveAddress();
-        wallet.GetReceiveAddress();
-        wallet.GetReceiveAddress();
-        wallet.GetReceiveAddress();
-        wallet.GetReceiveAddress();
+        wallet.create(seed, created.toTime_t());
+        wallet.getReceiveAddress();
+        wallet.getReceiveAddress();
+        wallet.getReceiveAddress();
+        wallet.getReceiveAddress();
+        wallet.getReceiveAddress();
+        wallet.getReceiveAddress();
+        wallet.getReceiveAddress();
+        wallet.getReceiveAddress();
     } else {
-        wallet.Open();
+        wallet.open();
     }
 
 
@@ -61,28 +61,28 @@ int main(int argc, char *argv[])
     QObject::connect(timer, &QTimer::timeout, [&wallet, &timer](){
         if(!shuttingDown) return;
         timer->stop();
-        wallet.StopSync();
+        wallet.stopSync();
     });
 
     timer->start(2000);
     signal(SIGINT, &handleSignal);
     signal(SIGTERM, &handleSignal);
 
-    QObject::connect(&wallet, &SPVWallet::StoreError, [](std::string err){
+    QObject::connect(&wallet, &SPVWallet::storeUpdateFailed, [](std::string err){
         std::cerr << "StoreError: " << err << std::endl;
         shuttingDown = true;
     });
 
-    QObject::connect(&wallet, &SPVWallet::BlockTreeError, [&wallet](std::string err){
+    QObject::connect(&wallet, &SPVWallet::blockTreeUpdateFailed, [&wallet](std::string err){
         // This is something we can't really recover from, and we have to disconnect from the peer
         std::cerr << "BlockTree Error: " << err << std::endl;
         shuttingDown = true;
     });
 
-    QObject::connect(&wallet, &SPVWallet::StatusChanged, [&wallet, &a, &timer](SPVWallet::wallet_status_t status){
+    QObject::connect(&wallet, &SPVWallet::statusChanged, [&wallet, &a, &timer](SPVWallet::wallet_status_t status){
        if(status == SPVWallet::wallet_status_t::SYNCHED)  {
            // Display Balance
-           std::cout << std::endl << "Wallet Balance: " << wallet.Balance() << std::endl;
+           std::cout << std::endl << "Wallet Balance: " << wallet.balance() << std::endl;
 
            // Exit on next timer callback
            shuttingDown = true;
@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
                     shuttingDown = false;
                     timer->start(2000);
                     std::cout << "Reconnecting..\n";
-                    wallet.Sync("testnet-seed.bitcoin.petertodd.org", 18333);
+                    wallet.sync("testnet-seed.bitcoin.petertodd.org", 18333);
                }
             }
        }
@@ -129,10 +129,10 @@ int main(int argc, char *argv[])
     // testnet-seed.bitcoin.petertodd.org
 
     if(argc > 1) {
-        wallet.Sync(argv[1], 18333);
+        wallet.sync(argv[1], 18333);
     } else {
         // if no peer provided use a peer by dns lookup
-        wallet.Sync("testnet-seed.bitcoin.petertodd.org", 18333);
+        wallet.sync("testnet-seed.bitcoin.petertodd.org", 18333);
     }
 
     // return a.exec(); // << results in seg fault and other undefined behaviour?!

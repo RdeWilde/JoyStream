@@ -90,7 +90,7 @@ void Test::init() {
 }
 
 void Test::cleanup() {
-    _wallet->StopSync();
+    _wallet->stopSync();
     delete _wallet;
 }
 
@@ -102,7 +102,7 @@ void Test::cleanupTestCase() {
 void Test::walletCreation() {
     // Should create a fresh new wallet
     try{
-        _wallet->Create(WALLET_SEED); // Return Metadata from store ?
+        _wallet->create(WALLET_SEED); // Return Metadata from store ?
         QVERIFY(true);
     } catch(std::exception & e) {
         QVERIFY(false);
@@ -112,17 +112,17 @@ void Test::walletCreation() {
     QVERIFY(boost::filesystem::exists(TEST_WALLET_PATH));
 
     // After creating the wallet, we cannot call Create() again
-    QVERIFY_EXCEPTION_THROWN(_wallet->Create(), std::exception);
+    QVERIFY_EXCEPTION_THROWN(_wallet->create(), std::exception);
 
     delete _wallet;
     _wallet = new joystream::bitcoin::SPVWallet(TEST_WALLET_PATH, TEST_BLOCKTREE_PATH, Coin::Network::regtest);
 
     // Should throw exception if we try to create wallet over existing file
-    QVERIFY_EXCEPTION_THROWN(_wallet->Create(), std::exception);
+    QVERIFY_EXCEPTION_THROWN(_wallet->create(), std::exception);
 
     // Should open existing wallet
     try {
-        _wallet->Open();
+        _wallet->open();
     } catch(std::exception & e) {
         QVERIFY(false);
     }
@@ -131,7 +131,7 @@ void Test::walletCreation() {
     QCOMPARE(_wallet->network(), Coin::Network::regtest);
 
     // After opening a wallet, we cannot call Open() again
-    QVERIFY_EXCEPTION_THROWN(_wallet->Open(), std::exception);
+    QVERIFY_EXCEPTION_THROWN(_wallet->open(), std::exception);
 
 }
 
@@ -142,18 +142,18 @@ void Test::networkMismatchOnOpeningWallet() {
     s.create(TEST_WALLET_PATH, Coin::Network::mainnet);
 
     // Wallet configured for regtest should fail
-    QVERIFY_EXCEPTION_THROWN(_wallet->Open(), std::exception);
+    QVERIFY_EXCEPTION_THROWN(_wallet->open(), std::exception);
 }
 
 void Test::Synching() {
 
-    QSignalSpy spy_blocks_synched(_wallet, SIGNAL(BlocksSynched()));
-    QSignalSpy spy_store_error(_wallet, SIGNAL(StoreError(std::string)));
+    QSignalSpy spy_blocks_synched(_wallet, SIGNAL(synched()));
+    QSignalSpy spy_store_error(_wallet, SIGNAL(storeUpdateFailed(std::string)));
 
-    _wallet->Create(WALLET_SEED);
+    _wallet->create(WALLET_SEED);
 
     // Should connect and synch headers
-    _wallet->Sync("localhost", 18444);
+    _wallet->sync("localhost", 18444);
 
     QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > 0, 10000);
 
@@ -189,21 +189,21 @@ void Test::Synching() {
 
 void Test::BalanceCheck() {
 
-    QSignalSpy spy_balance_changed(_wallet, SIGNAL(BalanceChanged(uint64_t, uint64_t)));
-    QSignalSpy spy_blocks_synched(_wallet, SIGNAL(BlocksSynched()));
-    QSignalSpy spy_store_error(_wallet, SIGNAL(StoreError(std::string)));
+    QSignalSpy spy_balance_changed(_wallet, SIGNAL(balanceChanged(uint64_t, uint64_t)));
+    QSignalSpy spy_blocks_synched(_wallet, SIGNAL(synched()));
+    QSignalSpy spy_store_error(_wallet, SIGNAL(storeUpdateFailed(std::string)));
 
-    _wallet->Create(WALLET_SEED);
+    _wallet->create(WALLET_SEED);
 
-    Coin::P2PKHAddress addr = _wallet->GetReceiveAddress();
+    Coin::P2PKHAddress addr = _wallet->getReceiveAddress();
 
     // Should connect and synch headers
-    _wallet->Sync("localhost", 18444);
+    _wallet->sync("localhost", 18444);
 
     QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > 0, 10000);
 
-    uint64_t startingConfirmedBalance = _wallet->Balance();
-    uint64_t startingUnconfirmedBalance = _wallet->UnconfirmedBalance();
+    uint64_t startingConfirmedBalance = _wallet->balance();
+    uint64_t startingUnconfirmedBalance = _wallet->unconfirmedBalance();
 
     int lastBalanceChangeCount = spy_balance_changed.count();
 
@@ -213,8 +213,8 @@ void Test::BalanceCheck() {
     // Wait for balance to change
     QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > lastBalanceChangeCount, 15000);
 
-    QCOMPARE(_wallet->Balance(), startingConfirmedBalance);
-    QCOMPARE(_wallet->UnconfirmedBalance(), uint64_t(startingUnconfirmedBalance + uint64_t(500000)));
+    QCOMPARE(_wallet->balance(), startingConfirmedBalance);
+    QCOMPARE(_wallet->unconfirmedBalance(), uint64_t(startingUnconfirmedBalance + uint64_t(500000)));
 
     lastBalanceChangeCount = spy_balance_changed.count();
 
@@ -232,8 +232,8 @@ void Test::BalanceCheck() {
     // Wait for balance to change
     QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > lastBalanceChangeCount, 15000);
 
-    QCOMPARE(_wallet->Balance(), uint64_t(startingConfirmedBalance + uint64_t(500000)) );
-    QCOMPARE(_wallet->UnconfirmedBalance(), uint64_t(startingUnconfirmedBalance + uint64_t(1000000)));
+    QCOMPARE(_wallet->balance(), uint64_t(startingConfirmedBalance + uint64_t(500000)) );
+    QCOMPARE(_wallet->unconfirmedBalance(), uint64_t(startingUnconfirmedBalance + uint64_t(1000000)));
 
     // Simulate effect of a reorg
 
@@ -245,9 +245,9 @@ void Test::BalanceCheck() {
     _wallet->test_syncBlocksStaringAtHeight(startAtHeight);
     QTest::qWait(15000);
 
-    QCOMPARE(_wallet->Balance(), uint64_t(startingConfirmedBalance + uint64_t(1300000)) );
+    QCOMPARE(_wallet->balance(), uint64_t(startingConfirmedBalance + uint64_t(1300000)) );
 
-    _wallet->StopSync();
+    _wallet->stopSync();
 
     // Make sure there were no store errors
     QCOMPARE(spy_store_error.count(), 0);

@@ -46,12 +46,12 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
 
     _networkSync.subscribeStatus([this](const std::string& message)
     {
-        emit NetSyncStatusMessage(message);
+        emit statusMessageUpdated(message);
     });
 
     _networkSync.subscribeStarted([this]()
     {
-        emit NetSyncStarted();
+        updateStatus(CONNECTING);
     });
 
     _networkSync.subscribeOpen([this]()
@@ -61,12 +61,12 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
 
     _networkSync.subscribeProtocolError([this](const std::string& error, int code)
     {
-        emit ProtocolError(error);
+        emit protocolError(error);
     });
 
     _networkSync.subscribeConnectionError([this](const std::string& error, int code)
     {
-        emit ConnectionError(error);
+        emit connectionError(error);
     });
 
     _networkSync.subscribeClose([this]()
@@ -76,7 +76,7 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
 
     _networkSync.subscribeTimeout([this]()
     {
-        emit ConnectionTimeout();
+        emit connectionTimedOut();
     });
 
     _networkSync.subscribeStopped([this]()
@@ -119,11 +119,11 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
     });
 
     _store.setTxUpdatedCallback([this](Coin::TransactionId txid, int confirmations) {
-       emit TxUpdated(txid, confirmations);
+       emit txUpdated(txid, confirmations);
     });
 }
 
-void SPVWallet::Create() {
+void SPVWallet::create() {
 
     if(_walletStatus != UNINITIALIZED) {
         throw std::runtime_error("wallet already opened");
@@ -133,12 +133,12 @@ void SPVWallet::Create() {
         throw std::runtime_error("unable to create store");
     }
 
-    LoadBlockTree();
+    loadBlockTree();
 
     updateStatus(OFFLINE);
 }
 
-void SPVWallet::Create(Coin::Seed seed, uint32_t timestamp) {
+void SPVWallet::create(Coin::Seed seed, uint32_t timestamp) {
 
     if(_walletStatus != UNINITIALIZED) {
         throw std::runtime_error("wallet already opened");
@@ -148,12 +148,12 @@ void SPVWallet::Create(Coin::Seed seed, uint32_t timestamp) {
         throw std::runtime_error("unable to create store");
     }
 
-    LoadBlockTree();
+    loadBlockTree();
 
     updateStatus(OFFLINE);
 }
 
-void SPVWallet::Open() {
+void SPVWallet::open() {
 
     // Only open the store once
     if(_walletStatus == UNINITIALIZED) {
@@ -165,7 +165,7 @@ void SPVWallet::Open() {
             throw std::runtime_error("store network type mistmatch");
         }
 
-        LoadBlockTree();
+        loadBlockTree();
 
         updateStatus(OFFLINE);
 
@@ -175,7 +175,7 @@ void SPVWallet::Open() {
     }
 }
 
-void SPVWallet::LoadBlockTree() {
+void SPVWallet::loadBlockTree() {
     // Creates blocktree file or loads it if found
 
     // Only load the blocktree once
@@ -193,7 +193,7 @@ void SPVWallet::LoadBlockTree() {
     }
 }
 
-void SPVWallet::Sync(std::string host, int port) {
+void SPVWallet::sync(std::string host, int port) {
 
     // Wallet must be opened or created before synching
     if(_walletStatus == UNINITIALIZED) {
@@ -206,16 +206,14 @@ void SPVWallet::Sync(std::string host, int port) {
     Q_ASSERT(_blockTreeLoaded);
     Q_ASSERT(_store.connected());
 
-    updateStatus(CONNECTING);
-
     _networkSync.start(host, port);
 }
 
-void SPVWallet::StopSync() {
+void SPVWallet::stopSync() {
     _networkSync.stop();
 }
 
-Coin::PrivateKey SPVWallet::GetKey(bool createReceiveAddress) {
+Coin::PrivateKey SPVWallet::getKey(bool createReceiveAddress) {
     if(_walletStatus == UNINITIALIZED) {
         throw std::runtime_error("wallet not initialized");
     }
@@ -229,7 +227,7 @@ Coin::PrivateKey SPVWallet::GetKey(bool createReceiveAddress) {
     return sk;
 }
 
-std::vector<Coin::PrivateKey> SPVWallet::GetKeys(uint32_t numKeys, bool createReceiveAddress) {
+std::vector<Coin::PrivateKey> SPVWallet::getKeys(uint32_t numKeys, bool createReceiveAddress) {
     if(_walletStatus == UNINITIALIZED) {
         throw std::runtime_error("wallet not initialized");
     }
@@ -242,7 +240,7 @@ std::vector<Coin::PrivateKey> SPVWallet::GetKeys(uint32_t numKeys, bool createRe
 }
 
 std::vector<Coin::KeyPair>
-SPVWallet::GetKeyPairs(uint32_t num_pairs, bool createReceiveAddress) {
+SPVWallet::getKeyPairs(uint32_t num_pairs, bool createReceiveAddress) {
     if(_walletStatus == UNINITIALIZED) {
         throw std::runtime_error("wallet not initialized");
     }
@@ -254,7 +252,7 @@ SPVWallet::GetKeyPairs(uint32_t num_pairs, bool createReceiveAddress) {
     return keyPairs;
 }
 
-void SPVWallet::ReleaseKey(const Coin::PrivateKey &sk) {
+void SPVWallet::releaseKey(const Coin::PrivateKey &sk) {
     if(_walletStatus == UNINITIALIZED) {
         throw std::runtime_error("wallet not initialized");
     }
@@ -263,7 +261,7 @@ void SPVWallet::ReleaseKey(const Coin::PrivateKey &sk) {
 }
 
 Coin::P2PKHAddress
-SPVWallet::GetReceiveAddress()
+SPVWallet::getReceiveAddress()
 {
     if(_walletStatus == UNINITIALIZED) {
         throw std::runtime_error("wallet not initialized");
@@ -275,7 +273,7 @@ SPVWallet::GetReceiveAddress()
 }
 
 
-void SPVWallet::BroadcastTx(Coin::Transaction & cointx) {
+void SPVWallet::broadcastTx(Coin::Transaction & cointx) {
     if(_walletStatus < CONNECTED) {
         throw std::runtime_error("cannot broadcast tx, wallet offline");
     }
@@ -295,7 +293,7 @@ int32_t SPVWallet::bestHeight() const {
     return _store.getBestHeaderHeight();
 }
 
-std::list<Coin::UnspentP2PKHOutput> SPVWallet::LockOutputs(uint64_t minValue, uint32_t minimalConfirmations) {
+std::list<Coin::UnspentP2PKHOutput> SPVWallet::lockOutputs(uint64_t minValue, uint32_t minimalConfirmations) {
     if(_walletStatus == UNINITIALIZED) {
         throw std::runtime_error("wallet not initialized");
     }
@@ -333,7 +331,7 @@ std::list<Coin::UnspentP2PKHOutput> SPVWallet::LockOutputs(uint64_t minValue, ui
     return selectedOutputs;
 }
 
-void SPVWallet::UnlockOutputs(const std::list<Coin::UnspentP2PKHOutput> outputs) {
+void SPVWallet::unlockOutputs(const std::list<Coin::UnspentP2PKHOutput> outputs) {
     std::lock_guard<std::mutex> lock(_utxoMutex);
 
     for(auto utxo : outputs) {
@@ -341,11 +339,11 @@ void SPVWallet::UnlockOutputs(const std::list<Coin::UnspentP2PKHOutput> outputs)
     }
 }
 
-uint64_t SPVWallet::Balance() const {
+uint64_t SPVWallet::balance() const {
     return _confirmedBalance;
 }
 
-uint64_t SPVWallet::UnconfirmedBalance() const {
+uint64_t SPVWallet::unconfirmedBalance() const {
     return _unconfirmedBalance;
 }
 
@@ -353,16 +351,16 @@ void SPVWallet::updateStatus(wallet_status_t status) {
     if(_walletStatus != status) {
         _walletStatus = status;
 
-        emit StatusChanged(status);
+        emit statusChanged(status);
 
         switch(status) {
-            case OFFLINE: emit Offline(); break;
-            case CONNECTING: emit Connecting(); break;
-            case CONNECTED: emit Connected(); break;
-            case DISCONNECTED: emit Disconnected(); break;
-            case SYNCHING_HEADERS: emit SynchingHeaders(); break;
-            case SYNCHING_BLOCKS: emit SynchingBlocks(); break;
-            case SYNCHED: emit BlocksSynched(); break;
+            case OFFLINE: emit offline(); break;
+            case CONNECTING: emit connecting(); break;
+            case CONNECTED: emit connected(); break;
+            case DISCONNECTED: emit disconnected(); break;
+            case SYNCHING_HEADERS: emit synchingHeaders(); break;
+            case SYNCHING_BLOCKS: emit synchingBlocks(); break;
+            case SYNCHED: emit synched(); break;
             default:
                 Q_ASSERT(false);
         }
@@ -374,7 +372,7 @@ void SPVWallet::onBlockTreeError(const std::string& error, int code) {
     if(error == "Blocktree file not found.") return;
 
     _blockTreeError = true;
-    emit BlockTreeError(error);
+    emit blockTreeUpdateFailed(error);
 }
 
 void SPVWallet::onBlockTreeChanged() {
@@ -429,7 +427,7 @@ void SPVWallet::onNewTx(const Coin::Transaction& cointx) {
         _store.addTransaction(cointx);
 
     } catch(const std::exception & e) {
-        emit StoreError(e.what());
+        emit storeUpdateFailed(e.what());
         _networkSync.stop();
     }
 
@@ -453,7 +451,7 @@ void SPVWallet::onTxConfirmed(const ChainMerkleBlock& chainmerkleblock, const by
         _store.confirmTransaction(txid, chainmerkleblock);
 
     } catch(const std::exception & e) {
-        emit StoreError(e.what());
+        emit storeUpdateFailed(e.what());
         _networkSync.stop();
     }
 }
@@ -472,7 +470,7 @@ void SPVWallet::onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin:
         }
 
     } catch(const std::exception & e) {
-        emit StoreError(e.what());
+        emit storeUpdateFailed(e.what());
         _networkSync.stop();
     }
 }
@@ -484,7 +482,7 @@ void SPVWallet::onMerkleBlock(const ChainMerkleBlock& chainmerkleblock) {
         _store.addBlockHeader(chainmerkleblock);
 
     } catch(const std::exception & e) {
-        emit StoreError(e.what());
+        emit storeUpdateFailed(e.what());
         _networkSync.stop();
     }
 }
@@ -590,7 +588,7 @@ void SPVWallet::recalculateBalance() {
     if(_confirmedBalance != confirmed || _unconfirmedBalance != unconfirmed) {
         _confirmedBalance = confirmed;
         _unconfirmedBalance = unconfirmed;
-        emit BalanceChanged(confirmed, unconfirmed);
+        emit balanceChanged(confirmed, unconfirmed);
     }
 }
 
@@ -601,7 +599,7 @@ void SPVWallet::test_syncBlocksStaringAtHeight(int32_t height) {
 Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2PKHAddress &addr, uint64_t fee) {
 
     // Get UnspentUTXO
-    std::list<Coin::UnspentP2PKHOutput> utxos(LockOutputs(value + fee, 0));
+    std::list<Coin::UnspentP2PKHOutput> utxos(lockOutputs(value + fee, 0));
 
     if(utxos.empty()) {
         throw std::runtime_error("Not enough funds");
@@ -617,7 +615,7 @@ Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2PK
     Coin::P2PKHScriptPubKey destinationScript(addr.pubKeyHash());
 
     // Create Change output
-    Coin::P2PKHAddress changeAddr = GetReceiveAddress();
+    Coin::P2PKHAddress changeAddr = getReceiveAddress();
     Coin::P2PKHScriptPubKey changeScript(changeAddr.pubKeyHash());
 
     // Create an unsigned Transaction
@@ -635,7 +633,7 @@ Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2PK
     // Sign the input
     Coin::setScriptSigToSpendP2PKH(cointx, 0, utxo.keyPair().sk());
 
-    BroadcastTx(cointx);
+    broadcastTx(cointx);
 
     return cointx;
 }
