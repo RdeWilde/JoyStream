@@ -647,7 +647,7 @@ Store::getUnspentTransactionsOutputs(int32_t confirmations, int32_t main_chain_h
         Coin::TransactionId txid(Coin::TransactionId::fromRPCByteOrder(uchar_vector(output.txid())));
         Coin::typesafeOutPoint outpoint(txid, output.index());
 
-        utxos.insert(utxos.begin(), Coin::UnspentP2PKHOutput(keypair, outpoint, output.value()));
+        utxos.insert(utxos.end(), Coin::UnspentP2PKHOutput(keypair, outpoint, output.value()));
     }
 
     return utxos;
