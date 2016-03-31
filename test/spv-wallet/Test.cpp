@@ -79,19 +79,23 @@ void Test::initTestCase() {
 }
 
 void Test::init() {
-    // delete existing wallet file
-    boost::filesystem::remove(TEST_WALLET_PATH);
+    // delete existing wallet files
+    boost::filesystem::remove(TEST_WALLET_PATH_A);
+    boost::filesystem::remove(TEST_WALLET_PATH_B);
 
     // delete existing blocktree file
-    boost::filesystem::remove(TEST_BLOCKTREE_PATH);
+    boost::filesystem::remove(TEST_BLOCKTREE_PATH_A);
+    boost::filesystem::remove(TEST_BLOCKTREE_PATH_B);
 
     // create new testnet wallet
-    _wallet = new joystream::bitcoin::SPVWallet(TEST_WALLET_PATH, TEST_BLOCKTREE_PATH, Coin::Network::regtest);
+    _walletA = new joystream::bitcoin::SPVWallet(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::regtest);
+    _walletB = new joystream::bitcoin::SPVWallet(TEST_WALLET_PATH_B, TEST_BLOCKTREE_PATH_B, Coin::Network::regtest);
 }
 
 void Test::cleanup() {
-    _wallet->stopSync();
-    delete _wallet;
+    _walletA->stopSync();
+    delete _walletA;
+    delete _walletB;
 }
 
 void Test::cleanupTestCase() {
@@ -102,36 +106,36 @@ void Test::cleanupTestCase() {
 void Test::walletCreation() {
     // Should create a fresh new wallet
     try{
-        _wallet->create(WALLET_SEED); // Return Metadata from store ?
+        _walletA->create(WALLET_SEED); // Return Metadata from store ?
         QVERIFY(true);
     } catch(std::exception & e) {
         QVERIFY(false);
     }
 
     // Wallet file should now exist
-    QVERIFY(boost::filesystem::exists(TEST_WALLET_PATH));
+    QVERIFY(boost::filesystem::exists(TEST_WALLET_PATH_A));
 
     // After creating the wallet, we cannot call Create() again
-    QVERIFY_EXCEPTION_THROWN(_wallet->create(), std::exception);
+    QVERIFY_EXCEPTION_THROWN(_walletA->create(), std::exception);
 
-    delete _wallet;
-    _wallet = new joystream::bitcoin::SPVWallet(TEST_WALLET_PATH, TEST_BLOCKTREE_PATH, Coin::Network::regtest);
+    delete _walletA;
+    _walletA = new joystream::bitcoin::SPVWallet(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::regtest);
 
     // Should throw exception if we try to create wallet over existing file
-    QVERIFY_EXCEPTION_THROWN(_wallet->create(), std::exception);
+    QVERIFY_EXCEPTION_THROWN(_walletA->create(), std::exception);
 
     // Should open existing wallet
     try {
-        _wallet->open();
+        _walletA->open();
     } catch(std::exception & e) {
         QVERIFY(false);
     }
 
     // Check correct metadata values of created wallet
-    QCOMPARE(_wallet->network(), Coin::Network::regtest);
+    QCOMPARE(_walletA->network(), Coin::Network::regtest);
 
     // After opening a wallet, we cannot call Open() again
-    QVERIFY_EXCEPTION_THROWN(_wallet->open(), std::exception);
+    QVERIFY_EXCEPTION_THROWN(_walletA->open(), std::exception);
 
 }
 
@@ -139,25 +143,25 @@ void Test::networkMismatchOnOpeningWallet() {
     joystream::bitcoin::Store s;
 
     // assuming a mainnet wallet already exists
-    s.create(TEST_WALLET_PATH, Coin::Network::mainnet);
+    s.create(TEST_WALLET_PATH_A, Coin::Network::mainnet);
 
     // Wallet configured for regtest should fail
-    QVERIFY_EXCEPTION_THROWN(_wallet->open(), std::exception);
+    QVERIFY_EXCEPTION_THROWN(_walletA->open(), std::exception);
 }
 
 void Test::Synching() {
 
-    QSignalSpy spy_blocks_synched(_wallet, SIGNAL(synched()));
-    QSignalSpy spy_store_error(_wallet, SIGNAL(storeUpdateFailed(std::string)));
+    QSignalSpy spy_blocks_synched(_walletA, SIGNAL(synched()));
+    QSignalSpy spy_store_error(_walletA, SIGNAL(storeUpdateFailed(std::string)));
 
-    _wallet->create(WALLET_SEED);
+    _walletA->create(WALLET_SEED);
 
     // Should connect and synch headers
-    _wallet->sync("localhost", 18444);
+    _walletA->sync("localhost", 18444);
 
     QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > 0, 10000);
 
-    int32_t startingHeight = _wallet->bestHeight();
+    int32_t startingHeight = _walletA->bestHeight();
 
     int32_t lastCount = spy_blocks_synched.count();
 
@@ -168,7 +172,7 @@ void Test::Synching() {
     QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > lastCount, 10000);
 
     // One block was mined height should increase by one
-    QCOMPARE(_wallet->bestHeight(), startingHeight + 1);
+    QCOMPARE(_walletA->bestHeight(), startingHeight + 1);
 
     lastCount = spy_blocks_synched.count();
 
@@ -179,9 +183,9 @@ void Test::Synching() {
     QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > lastCount, 10000);
 
     // One block was mined height should increase by one
-    QCOMPARE(_wallet->bestHeight(), startingHeight + 2);
+    QCOMPARE(_walletA->bestHeight(), startingHeight + 2);
 
-    QCOMPARE(_wallet->bestHeight(), _wallet->test_netsyncBestHeight());
+    QCOMPARE(_walletA->bestHeight(), _walletA->test_netsyncBestHeight());
 
     // Make sure there were no store errors
     QCOMPARE(spy_store_error.count(), 0);
@@ -189,21 +193,21 @@ void Test::Synching() {
 
 void Test::BalanceCheck() {
 
-    QSignalSpy spy_balance_changed(_wallet, SIGNAL(balanceChanged(uint64_t, uint64_t)));
-    QSignalSpy spy_blocks_synched(_wallet, SIGNAL(synched()));
-    QSignalSpy spy_store_error(_wallet, SIGNAL(storeUpdateFailed(std::string)));
+    QSignalSpy spy_balance_changed(_walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
+    QSignalSpy spy_blocks_synched(_walletA, SIGNAL(synched()));
+    QSignalSpy spy_store_error(_walletA, SIGNAL(storeUpdateFailed(std::string)));
 
-    _wallet->create(WALLET_SEED);
+    _walletA->create(WALLET_SEED);
 
-    Coin::P2PKHAddress addr = _wallet->getReceiveAddress();
+    Coin::P2PKHAddress addr = _walletA->getReceiveAddress();
 
     // Should connect and synch headers
-    _wallet->sync("localhost", 18444);
+    _walletA->sync("localhost", 18444);
 
     QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > 0, 10000);
 
-    uint64_t startingConfirmedBalance = _wallet->balance();
-    uint64_t startingUnconfirmedBalance = _wallet->unconfirmedBalance();
+    uint64_t startingConfirmedBalance = _walletA->balance();
+    uint64_t startingUnconfirmedBalance = _walletA->unconfirmedBalance();
 
     int lastBalanceChangeCount = spy_balance_changed.count();
 
@@ -213,8 +217,8 @@ void Test::BalanceCheck() {
     // Wait for balance to change
     QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > lastBalanceChangeCount, 15000);
 
-    QCOMPARE(_wallet->balance(), startingConfirmedBalance);
-    QCOMPARE(_wallet->unconfirmedBalance(), uint64_t(startingUnconfirmedBalance + uint64_t(500000)));
+    QCOMPARE(_walletA->balance(), startingConfirmedBalance);
+    QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(startingUnconfirmedBalance + uint64_t(500000)));
 
     lastBalanceChangeCount = spy_balance_changed.count();
 
@@ -232,29 +236,109 @@ void Test::BalanceCheck() {
     // Wait for balance to change
     QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > lastBalanceChangeCount, 15000);
 
-    QCOMPARE(_wallet->balance(), uint64_t(startingConfirmedBalance + uint64_t(500000)) );
-    QCOMPARE(_wallet->unconfirmedBalance(), uint64_t(startingUnconfirmedBalance + uint64_t(1000000)));
+    QCOMPARE(_walletA->balance(), uint64_t(startingConfirmedBalance + uint64_t(500000)) );
+    QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(startingUnconfirmedBalance + uint64_t(1000000)));
 
     // Simulate effect of a reorg
 
-    int startAtHeight = _wallet->bestHeight() - 1;
+    int startAtHeight = _walletA->bestHeight() - 1;
     // Send another 0.003BTC to our wallet
     bitcoin_rpc("sendtoaddress " + addr.toBase58CheckEncoding().toStdString() + " 0.003");
     bitcoin_rpc("generate 3");
 
-    _wallet->test_syncBlocksStaringAtHeight(startAtHeight);
+    _walletA->test_syncBlocksStaringAtHeight(startAtHeight);
     QTest::qWait(15000);
 
-    QCOMPARE(_wallet->balance(), uint64_t(startingConfirmedBalance + uint64_t(1300000)) );
+    QCOMPARE(_walletA->balance(), uint64_t(startingConfirmedBalance + uint64_t(1300000)) );
 
-    _wallet->stopSync();
+    _walletA->stopSync();
 
     // Make sure there were no store errors
     QCOMPARE(spy_store_error.count(), 0);
+}
 
+void Test::Utxo() {
+    _walletA->create();
+
+    std::string addr1 = _walletA->getReceiveAddress().toBase58CheckEncoding().toStdString();
+    std::string addr2 = _walletA->getReceiveAddress().toBase58CheckEncoding().toStdString();
+    std::string addr3 = _walletA->getReceiveAddress().toBase58CheckEncoding().toStdString();
+
+    bitcoin_rpc("sendtoaddress " + addr1 + " 0.00100"); // 100,000 satoshi (2 conf)
+    bitcoin_rpc("generate 1");
+    bitcoin_rpc("sendtoaddress " + addr2 + " 0.00050"); //  50,000 satoshi (1 conf)
+    bitcoin_rpc("generate 1");
+
+
+    QSignalSpy spy_blocks_synched(_walletA, SIGNAL(synched()));
+
+    // Should connect and synch headers
+    _walletA->sync("localhost", 18444);
+
+    QTRY_VERIFY_WITH_TIMEOUT(spy_blocks_synched.count() > 0, 10000);
+
+    QSignalSpy spy_balance_changed(_walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
+
+    bitcoin_rpc("sendtoaddress " + addr3 + " 0.00025"); //  25,000 satoshi (0 conf)
+
+    // Wait for balance to change
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > 0, 5000);
+
+    QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(175000));
+
+    std::list<Coin::UnspentP2PKHOutput> lockedOutputs;
+
+    // Check existence of all UTXOs
+    {
+        std::list<Coin::UnspentP2PKHOutput> utxos(_walletA->lockOutputs(100000, 2));
+        QCOMPARE(int(utxos.size()), 1);
+        QCOMPARE(uint64_t(utxos.front().value()), uint64_t(100000));
+        QCOMPARE(utxos.front().keyPair().pk().toP2PKHAddress(Coin::Network::regtest).toBase58CheckEncoding().toStdString(), addr1);
+        lockedOutputs.push_back(utxos.front());
+    }
+
+    {
+        std::list<Coin::UnspentP2PKHOutput> utxos(_walletA->lockOutputs(50000, 1));
+        QCOMPARE(int(utxos.size()), 1);
+        QCOMPARE(uint64_t(utxos.front().value()), uint64_t(50000));
+        QCOMPARE(utxos.front().keyPair().pk().toP2PKHAddress(Coin::Network::regtest).toBase58CheckEncoding().toStdString(), addr2);
+        lockedOutputs.push_back(utxos.front());
+    }
+
+    // An empty utxo list should be returned when not enough funds available
+    {
+        std::list<Coin::UnspentP2PKHOutput> utxos(_walletA->lockOutputs(100000, 0));
+        QCOMPARE(int(utxos.size()), 0);
+    }
+
+    {
+        std::list<Coin::UnspentP2PKHOutput> utxos(_walletA->lockOutputs(25000, 0));
+        QCOMPARE(int(utxos.size()), 1);
+        QCOMPARE(uint64_t(utxos.front().value()), uint64_t(25000));
+        QCOMPARE(utxos.front().keyPair().pk().toP2PKHAddress(Coin::Network::regtest).toBase58CheckEncoding().toStdString(), addr3);
+        lockedOutputs.push_back(utxos.front());
+    }
+
+    // Outputs can be unlocked
+    _walletA->unlockOutputs(lockedOutputs);
+
+    // Largest Utxos are returned first
+    {
+        std::list<Coin::UnspentP2PKHOutput> utxos(_walletA->lockOutputs(175000, 0));
+        QCOMPARE(int(utxos.size()), 3);
+        auto i = utxos.begin();
+        QCOMPARE(uint64_t((*i).value()), uint64_t(100000));
+        i++;
+        QCOMPARE(uint64_t((*i).value()), uint64_t(50000));
+        i++;
+        QCOMPARE(uint64_t((*i).value()), uint64_t(25000));
+    }
 
 }
 
+void Test::BroadcastingTx() {
+
+}
 
 QTEST_MAIN(Test)
 #include "moc_Test.cpp"
