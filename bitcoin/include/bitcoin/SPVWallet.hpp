@@ -55,7 +55,13 @@ public:
     void Sync(std::string host, int port);
     void StopSync();
 
-    bool IsOnline() const { return _walletStatus >= CONNECTED; }
+    wallet_status_t Status() const { return _walletStatus; }
+
+    bool isInitialized() const { return _walletStatus != UNINITIALIZED; }
+    bool isConnected() const { return _walletStatus >= CONNECTED; }
+    bool isSynchingHeaders() const { return _walletStatus == SYNCHING_HEADERS;}
+    bool isSynchingBlocks() const { return _walletStatus == SYNCHING_BLOCKS;}
+    bool isSynched() const { return _walletStatus == SYNCHED;}
 
     Coin::PrivateKey GetKey(bool createReceiveAddress);
     std::vector<Coin::PrivateKey> GetKeys(uint32_t numKeys, bool createReceiveAddress);
