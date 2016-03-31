@@ -42,6 +42,11 @@ public:
         TransactionNotFound() : std::runtime_error("Transaction not found in store") {}
     };
 
+    class NotConnected : public std::runtime_error {
+    public:
+        NotConnected() : std::runtime_error("Database not connected") {}
+    };
+
     Store(){}
     Store(std::string file);
     ~Store();
@@ -73,7 +78,7 @@ public:
     uint32_t numberOfKeysInWallet();
 
     void releaseKey(const Coin::PrivateKey & sk);
-    void releaseKeys(const std::vector<Coin::PrivateKey> privateKeys);
+    void releaseKeys(const std::vector<Coin::PrivateKey> & privateKeys);
     void releaseAddress(const Coin::P2PKHAddress & p2pkhaddress);
 
     std::list<Coin::P2PKHAddress> listReceiveAddresses();
@@ -82,7 +87,6 @@ public:
 
     bool addressExists(const Coin::P2PKHAddress & addr);
     bool transactionExists(const Coin::TransactionId & txid);
-    bool transactionExists(const Coin::Transaction & tx);
 
     bool loadKey(const Coin::P2PKHAddress &address, Coin::PrivateKey & sk);
 

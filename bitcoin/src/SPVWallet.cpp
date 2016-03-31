@@ -421,7 +421,6 @@ void SPVWallet::onNewTx(const Coin::Transaction& cointx) {
         _store.addTransaction(cointx);
 
     } catch(const std::exception & e) {
-        std::cerr << e.what() << std::endl;
         emit StoreError(e.what());
         _networkSync.stop();
     }
@@ -446,7 +445,6 @@ void SPVWallet::onTxConfirmed(const ChainMerkleBlock& chainmerkleblock, const by
         _store.confirmTransaction(txid, chainmerkleblock);
 
     } catch(const std::exception & e) {
-        std::cerr << e.what() << std::endl;
         emit StoreError(e.what());
         _networkSync.stop();
     }
@@ -466,7 +464,6 @@ void SPVWallet::onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin:
         }
 
     } catch(const std::exception & e) {
-        std::cerr << e.what() << std::endl;
         emit StoreError(e.what());
         _networkSync.stop();
     }
@@ -479,7 +476,6 @@ void SPVWallet::onMerkleBlock(const ChainMerkleBlock& chainmerkleblock) {
         _store.addBlockHeader(chainmerkleblock);
 
     } catch(const std::exception & e) {
-        std::cerr << e.what() << std::endl;
         emit StoreError(e.what());
         _networkSync.stop();
     }

@@ -56,7 +56,7 @@ bool Store::open(std::string file) {
         // user should either use an older version of joystream
         // or regenerate wallet from seed
         if (v < bv) {
-            std::cerr << "Error. Database no longer supported\n";
+            std::cerr << "Store Error: Database no longer supported\n";
             close();
             return false;
         }
@@ -64,14 +64,14 @@ bool Store::open(std::string file) {
         // database schema is newer than application supports
         // updating version of joystream should work
         if (v > cv) {
-            std::cerr << "Error. Database is from newer version of joystream.\n";
+            std::cerr << "Store Error: Database is from newer version of joystream\n";
             close();
             return false;
         }
 
         //migrate the database
         if (v < cv) {
-            std::cout << "Migrating database...\n";
+            std::cout << "Store: Migrating database...\n";
             odb::transaction t(_db->begin());
             odb::schema_catalog::migrate(*_db);
             t.commit();
@@ -96,7 +96,7 @@ bool Store::open(std::string file) {
         std::cerr << e.what() << std::endl;
         close();
     } catch (std::runtime_error &e) {
-        std::cerr << "error reading metadata. " << e.what() << std::endl;
+        std::cerr << "Store Error reading metadata: " << e.what() << std::endl;
         close();
     }
 
@@ -173,8 +173,8 @@ void Store::close() {
 
 // Generates a new key (NOT from key pool) so doesn't require synchronization
 Coin::PrivateKey Store::getKey(bool createReceiveAddress) {
-    if(!_db) {
-        throw std::runtime_error("database not connected");
+    if(!connected()) {
+        throw NotConnected();
     }
 
     odb::transaction t(_db->begin());
@@ -186,6 +186,10 @@ Coin::PrivateKey Store::getKey(bool createReceiveAddress) {
 
 
 std::vector<Coin::PrivateKey> Store::getKeys(uint32_t numKeys, bool createReceiveAddress) {
+    if(!connected()) {
+        throw NotConnected();
+    }
+
     typedef odb::query<detail::store::key_view_t> query;
     typedef odb::result<detail::store::key_view_t> result;
 
@@ -229,8 +233,8 @@ std::vector<Coin::PrivateKey> Store::getKeys(uint32_t numKeys, bool createReceiv
 // Generates new keys (NOT from key pool) so doesn't require synchronization
 // Not this routine could be refactored to use getKeyChains() to retreive keys from the 'key pool'
 std::vector<Coin::KeyPair> Store::getKeyPairs(uint32_t num_pairs, bool createReceiveAddress) {
-    if(!_db) {
-        throw std::runtime_error("database not connected");
+    if(!connected()) {
+        throw NotConnected();
     }
 
     std::vector<Coin::KeyPair> keyPairs;
@@ -251,17 +255,21 @@ Coin::P2PKHAddress Store::getReceiveAddress() {
 }
 
 uint32_t Store::numberOfKeysInWallet() {
+    if(!connected()) {
+        throw NotConnected();
+    }
+
     odb::transaction t(_db->begin());
     detail::store::key_stat_t stat(_db->query_value<detail::store::key_stat_t>());
     uint32_t count = stat.count;
-    t.commit();
+
     return count;
 }
 
 
 void Store::releaseKey(const Coin::PrivateKey &sk) {
-    if(!_db) {
-        throw std::runtime_error("database not connected");
+    if(!connected()) {
+        throw NotConnected();
     }
 
     std::string raw = sk.toHex().toStdString();
@@ -270,7 +278,8 @@ void Store::releaseKey(const Coin::PrivateKey &sk) {
     std::lock_guard<std::mutex> lock(_storeMutex);
 
     odb::transaction t(_db->begin());
-    odb::result<detail::store::Key> r(_db->query<detail::store::Key>(odb::query<detail::store::Key>::raw == raw));
+    odb::result<detail::store::Key> r(_db->query<detail::store::Key>(odb::query<detail::store::Key>::raw == raw &&
+                                                                     odb::query<detail::store::Key>::used == true));
     if(!r.empty()) {
         std::shared_ptr<detail::store::Key> key(r.begin().load());
         key->used(false);
@@ -279,9 +288,9 @@ void Store::releaseKey(const Coin::PrivateKey &sk) {
     }
 }
 
-void Store::releaseKeys(const std::vector<Coin::PrivateKey> privateKeys) {
-    if(!_db) {
-        throw std::runtime_error("database not connected");
+void Store::releaseKeys(const std::vector<Coin::PrivateKey> &privateKeys) {
+    if(!connected()) {
+        throw NotConnected();
     }
 
     // Releasing a key requires synchronizing access to the key pool
@@ -291,7 +300,8 @@ void Store::releaseKeys(const std::vector<Coin::PrivateKey> privateKeys) {
 
     for(auto &sk : privateKeys) {
         std::string raw = sk.toHex().toStdString();
-        odb::result<detail::store::Key> r(_db->query<detail::store::Key>(odb::query<detail::store::Key>::raw == raw));
+        odb::result<detail::store::Key> r(_db->query<detail::store::Key>(odb::query<detail::store::Key>::raw == raw &&
+                                                                         odb::query<detail::store::Key>::used == true));
         if(!r.empty()) {
             std::shared_ptr<detail::store::Key> key(r.begin().load());
             key->used(false);
@@ -305,8 +315,8 @@ void Store::releaseKeys(const std::vector<Coin::PrivateKey> privateKeys) {
 // this method is slow, better to call releaseKey if possible, because it has to lookup
 // the key via the address
 void Store::releaseAddress(const Coin::P2PKHAddress & p2pkhaddress) {
-    if(!_db) {
-        throw std::runtime_error("database not connected");
+    if(!connected()) {
+        throw NotConnected();
     }
 
     std::string base58 = p2pkhaddress.toBase58CheckEncoding().toStdString();
@@ -320,8 +330,8 @@ void Store::releaseAddress(const Coin::P2PKHAddress & p2pkhaddress) {
     if(addr) {
         addr->key()->used(false);
         _db->update(addr->key());
+        t.commit();
     }
-    t.commit();
 }
 
 std::list<Coin::P2PKHAddress> Store::listReceiveAddresses() {
@@ -335,6 +345,10 @@ std::list<Coin::P2PKHAddress> Store::listReceiveAddresses() {
 }
 
 std::list<Coin::PrivateKey> Store::listPrivateKeys() {
+    if(!connected()) {
+        throw NotConnected();
+    }
+
     typedef odb::query<detail::store::key_view_t> query;
     typedef odb::result<detail::store::key_view_t> result;
 
@@ -343,67 +357,67 @@ std::list<Coin::PrivateKey> Store::listPrivateKeys() {
     odb::transaction t(_db->begin());
     result r(_db->query<detail::store::key_view_t>(query::address::id.is_not_null() && query::key::used == true));
     for(auto &record : r) {
-        Coin::PrivateKey sk(_rootKeychain.getChild(record.key->id()).privkey());
-        keys.insert(keys.begin(), sk);
+        keys.insert(keys.begin(), record.key->getPrivateKey());
     }
-    t.commit();
+
     return keys;
 }
 
 std::list<Coin::Transaction> Store::listTransactions() {
+    if(!connected()) {
+        throw NotConnected();
+    }
+
     std::list<Coin::Transaction> transactions;
     odb::transaction t(_db->begin());
     //get all transactions
     odb::result<detail::store::Transaction> r(_db->query<detail::store::Transaction>());
     for(detail::store::Transaction &tx : r) {
         Coin::Transaction coin_tx;
-        transactionLoad(_db, tx.txid(), coin_tx);
-        transactions.insert(transactions.begin(), coin_tx);
+        try{
+            transactionLoad(_db, tx.txid(), coin_tx);
+            transactions.insert(transactions.begin(), coin_tx);
+        } catch (std::exception & e) {
+            // Ignore error loading one transaction
+        }
     }
-    t.commit();
+
     return transactions;
 }
 
 bool Store::addressExists(const Coin::P2PKHAddress & addr) {
+    if(!connected()) {
+        throw NotConnected();
+    }
+
     odb::transaction t(_db->begin());
     typedef odb::query<detail::store::Address> query;
     std::string base58 = addr.toBase58CheckEncoding().toStdString();
 
-    try {
-        if(_db->query_one<detail::store::Address>(query::address == base58)) {
-            return true;
-        }
-    } catch (std::exception e) {
-
+    // schema allows only one unique address to be stored so this should never throw an exception
+    if(_db->query_one<detail::store::Address>(query::address == base58)) {
+        return true;
     }
 
     return false;
 }
 
 bool Store::transactionExists(const Coin::TransactionId & txid) {
-    odb::transaction t(_db->begin());
-    try{
-        _db->load<detail::store::Transaction>(txid.toHex().toStdString());
-        return true;
-    } catch(const odb::object_not_persistent &e) {
-        return false;
+    if(!connected()) {
+        throw NotConnected();
     }
-}
 
-bool Store::transactionExists(const Coin::Transaction & tx) {
     odb::transaction t(_db->begin());
-    Coin::Transaction transaction;
-    if(transactionLoad(_db, Coin::TransactionId::fromTx(tx).toHex().toStdString(), transaction)) {
 
-        return (tx.inputs.size() == transaction.inputs.size()
-                && tx.outputs.size() == transaction.outputs.size()
-                && tx.version == transaction.version
-                && tx.lockTime == transaction.lockTime);
-    }
-    return false;
+    odb::result<detail::store::Transaction> r(_db->query<detail::store::Transaction>(odb::query<detail::store::Transaction>::txid == txid.toHex().toStdString()));
+    return !r.empty();
 }
 
 void Store::addTransaction(const Coin::Transaction & cointx) {
+    if(!connected()) {
+        throw NotConnected();
+    }
+
     std::lock_guard<std::mutex> lock(_storeMutex);
 
     odb::transaction t(_db->begin());
@@ -413,10 +427,13 @@ void Store::addTransaction(const Coin::Transaction & cointx) {
     Q_ASSERT(tx);
 
     notifyTxUpdated(Coin::TransactionId::fromTx(cointx), 0);
-
 }
 
 void Store::addTransaction(const Coin::Transaction & cointx, const ChainMerkleBlock & chainmerkleblock) {
+    if(!connected()) {
+        throw NotConnected();
+    }
+
     std::lock_guard<std::mutex> lock(_storeMutex);
 
     odb::transaction t(_db->begin());
@@ -437,6 +454,7 @@ void Store::addTransaction(const Coin::Transaction & cointx, const ChainMerkleBl
         tx->header(header);
         _db->update(tx);
         t.commit();
+
         notifyTxUpdated(Coin::TransactionId::fromTx(cointx), 1);
 
     } else {
@@ -445,6 +463,10 @@ void Store::addTransaction(const Coin::Transaction & cointx, const ChainMerkleBl
 }
 
 void Store::addBlockHeader(const ChainMerkleBlock & chainmerkleblock) {
+    if(!connected()) {
+        throw NotConnected();
+    }
+
     std::lock_guard<std::mutex> lock(_storeMutex);
 
     odb::transaction t(_db->begin());
@@ -493,24 +515,33 @@ void Store::addBlockHeader(const ChainMerkleBlock & chainmerkleblock) {
 
     _db->persist(block);
 
-    t.commit();
-
-    for(Coin::TransactionId txid : deconfirmedTransactions) {
-        notifyTxUpdated(txid, 0);
-    }
-
-    t.reset(_db->begin());
-
     // get transactions in blockheader at height chainmerkleblock.height - 1
     transaction_result twoConfirmations(_db->query<detail::store::Transaction>(transaction_query::header.is_not_null() &&
                                                                transaction_query::header->height == chainmerkleblock.height - 1));
+
+    std::vector<Coin::TransactionId> twoConfirmationTransactions;
+
     for(auto tx : twoConfirmations) {
-        notifyTxUpdated(Coin::TransactionId::fromRPCByteOrder(tx.txid()), 2);
+        twoConfirmationTransactions.push_back(Coin::TransactionId::fromRPCByteOrder(tx.txid()));
+    }
+
+    t.commit();
+
+    for(auto txid : deconfirmedTransactions) {
+        notifyTxUpdated(txid, 0);
+    }
+
+    for(auto txid : twoConfirmationTransactions) {
+        notifyTxUpdated(txid, 2);
     }
 
 }
 
 void Store::confirmTransaction(Coin::TransactionId txid, const ChainMerkleBlock &chainmerkleblock) {
+    if(!connected()) {
+        throw NotConnected();
+    }
+
     std::lock_guard<std::mutex> lock(_storeMutex);
 
     odb::transaction t(_db->begin());
@@ -532,6 +563,7 @@ void Store::confirmTransaction(Coin::TransactionId txid, const ChainMerkleBlock 
             tx->header(header);
             _db->update(tx);
             t.commit();
+
             notifyTxUpdated(txid, 1);
         }else {
             throw TransactionNotFound();
@@ -542,21 +574,29 @@ void Store::confirmTransaction(Coin::TransactionId txid, const ChainMerkleBlock 
 }
 
 bool Store::loadKey(const Coin::P2PKHAddress & address, Coin::PrivateKey & sk) {
+    if(!connected()) {
+        throw NotConnected();
+    }
+
     bool found = false;
     typedef odb::query<detail::store::Address> query;
     odb::transaction t(_db->begin());
     std::string base58addr = address.toBase58CheckEncoding().toStdString();
     std::shared_ptr<detail::store::Address> addr(_db->query_one<detail::store::Address>(query::address == base58addr));
     if(addr) {
-        sk = Coin::PrivateKey(_rootKeychain.getChild(addr->key()->id()).privkey());
+        sk = addr->key()->getPrivateKey();
         found = true;
     }
-    t.commit();
+
     return found;
 }
 
 std::list<Coin::UnspentP2PKHOutput>
 Store::getUnspentTransactionsOutputs(int32_t confirmations, int32_t main_chain_height) const {
+    if(!connected()) {
+        throw NotConnected();
+    }
+
     if(confirmations > 0  && main_chain_height == 0) {
         throw std::runtime_error("getUnspentTransactionOutputs: must provide main_chain_height");
     }
@@ -608,12 +648,14 @@ Store::getUnspentTransactionsOutputs(int32_t confirmations, int32_t main_chain_h
         utxos.insert(utxos.begin(), Coin::UnspentP2PKHOutput(keypair, outpoint, output.value()));
     }
 
-    t.commit();
-
     return utxos;
 }
 
 uint64_t Store::getWalletBalance(int32_t confirmations, int32_t main_chain_height) const {
+    if(!connected()) {
+        throw NotConnected();
+    }
+
     if(confirmations > 0  && main_chain_height == 0) {
         throw std::runtime_error("getWalletBalance: must provide main_chain_height");
     }
@@ -632,6 +674,10 @@ uint64_t Store::getWalletBalance(int32_t confirmations, int32_t main_chain_heigh
 }
 
 Coin::PrivateKey Store::createNewPrivateKey(bool createReceiveAddress) {
+    if(!connected()) {
+        throw NotConnected();
+    }
+
     //persist a new key
     std::shared_ptr<detail::store::Key> key(new detail::store::Key());
     uint32_t index = _db->persist(key);
@@ -658,14 +704,9 @@ std::vector<std::string> Store::getLatestBlockHeaderHashes() {
 
     odb::transaction t(_db->begin());
 
-    try {
-        result headers(_db->query<detail::store::BlockHeader>("ORDER BY"+ query::height + "DESC LIMIT 10"));
-        for(auto &header : headers) {
-            hashes.push_back(header.id());
-        }
-        t.commit();
-    } catch (const odb::exception &e) {
-        std::cerr << e.what() << std::endl;
+    result headers(_db->query<detail::store::BlockHeader>("ORDER BY"+ query::height + "DESC LIMIT 10"));
+    for(auto &header : headers) {
+        hashes.push_back(header.id());
     }
 
     return hashes;
@@ -810,7 +851,7 @@ namespace {
     }
 
     void transactionDelete(std::unique_ptr<odb::database> &db, std::string txid) {
-
+        /*
         for(auto &input : transactionLoadInputs(db, txid)) {
             db->erase(input);
         }
@@ -818,6 +859,7 @@ namespace {
         for(auto &output : transactionLoadOutputs(db, txid)) {
             db->erase(output);
         }
+        */
 
         db->erase<Transaction>(txid);
     }
