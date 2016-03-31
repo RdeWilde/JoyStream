@@ -629,13 +629,15 @@ Store::getUnspentTransactionsOutputs(int32_t confirmations, int32_t main_chain_h
                           // output transaction is mined
                           outputs_q::output_block::id.is_not_null() &&
                            // meets minimum confirmations requirement
-                          outputs_q::output_block::height <= maxHeight
+                          (outputs_q::output_block::height <= maxHeight) +
+                          "ORDER BY" + outputs_q::Output::id.value + "DESC"
                           );
     } else {
         //Zero Confirmations - by defenition output doesn't have to be mined
         outputs = _db->query<detail::store::outputs_view_t>(outputs_q::address::id.is_not_null() &&
                                                             outputs_q::output_tx::txid.is_not_null() &&
-                                                            outputs_q::spending_tx::txid.is_null());
+                                                            outputs_q::spending_tx::txid.is_null() +
+                                                            "ORDER BY" + outputs_q::Output::id.value + "DESC");
     }
 
     for(auto & output : outputs) {
