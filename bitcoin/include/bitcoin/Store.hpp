@@ -82,7 +82,7 @@ public:
     void releaseAddress(const Coin::P2PKHAddress & p2pkhaddress);
 
     std::list<Coin::P2PKHAddress> listReceiveAddresses();
-    std::list<Coin::PrivateKey> listPrivateKeys();
+    std::vector<Coin::PrivateKey> listPrivateKeys();
     std::list<Coin::Transaction> listTransactions();
 
     bool addressExists(const Coin::P2PKHAddress & addr);

@@ -344,7 +344,7 @@ std::list<Coin::P2PKHAddress> Store::listReceiveAddresses() {
     return addresses;
 }
 
-std::list<Coin::PrivateKey> Store::listPrivateKeys() {
+std::vector<Coin::PrivateKey> Store::listPrivateKeys() {
     if(!connected()) {
         throw NotConnected();
     }
@@ -352,12 +352,12 @@ std::list<Coin::PrivateKey> Store::listPrivateKeys() {
     typedef odb::query<detail::store::key_view_t> query;
     typedef odb::result<detail::store::key_view_t> result;
 
-    std::list<Coin::PrivateKey> keys;
+    std::vector<Coin::PrivateKey> keys;
 
     odb::transaction t(_db->begin());
     result r(_db->query<detail::store::key_view_t>(query::address::id.is_not_null() && query::key::used == true));
     for(auto &record : r) {
-        keys.insert(keys.begin(), record.key->getPrivateKey());
+        keys.push_back(record.key->getPrivateKey());
     }
 
     return keys;

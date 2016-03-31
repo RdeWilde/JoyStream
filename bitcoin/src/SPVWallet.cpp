@@ -170,6 +170,9 @@ void SPVWallet::open() {
         updateStatus(OFFLINE);
 
         recalculateBalance();
+
+        updateBloomFilter(_store.listPrivateKeys());
+
     } else {
         throw std::runtime_error("wallet already opened");
     }
@@ -221,7 +224,7 @@ Coin::PrivateKey SPVWallet::getKey(bool createReceiveAddress) {
     Coin::PrivateKey sk = _store.getKey(createReceiveAddress);
 
     if(createReceiveAddress) {
-        updateBloomFilter();
+        updateBloomFilter({sk});
     }
 
     return sk;
@@ -234,7 +237,7 @@ std::vector<Coin::PrivateKey> SPVWallet::getKeys(uint32_t numKeys, bool createRe
 
     std::vector<Coin::PrivateKey> keys = _store.getKeys(numKeys, createReceiveAddress);
     if(createReceiveAddress) {
-        updateBloomFilter();
+        updateBloomFilter(keys);
     }
     return keys;
 }
@@ -247,7 +250,13 @@ SPVWallet::getKeyPairs(uint32_t num_pairs, bool createReceiveAddress) {
 
     std::vector<Coin::KeyPair> keyPairs = _store.getKeyPairs(num_pairs, createReceiveAddress);
     if (createReceiveAddress) {
-        updateBloomFilter();
+        std::vector<Coin::PrivateKey> keys;
+
+        for(auto &pair : keyPairs) {
+            keys.push_back(pair.sk());
+        }
+
+        updateBloomFilter(keys);
     }
     return keyPairs;
 }
@@ -267,8 +276,8 @@ SPVWallet::getReceiveAddress()
         throw std::runtime_error("wallet not initialized");
     }
 
-    Coin::P2PKHAddress addr = _store.getReceiveAddress();
-    updateBloomFilter();
+    Coin::P2PKHAddress addr = getKey(true).toPublicKey().toP2PKHAddress(_network);
+
     return addr;
 }
 
@@ -399,8 +408,6 @@ void SPVWallet::onHeadersSynched() {
         }
     }
 
-    updateBloomFilter();
-
     _networkSync.syncBlocks(locatorHashes, startTime);
 }
 
@@ -487,45 +494,40 @@ void SPVWallet::onMerkleBlock(const ChainMerkleBlock& chainmerkleblock) {
     }
 }
 
-void SPVWallet::updateBloomFilter() {
+// call this first time we open the store with argument
+// std::list<Coin::PrivateKey> privateKeys = _store.listPrivateKeys();
+
+void SPVWallet::updateBloomFilter(const std::vector<Coin::PrivateKey> & privateKeys) {
     if(_walletStatus == UNINITIALIZED) return;
 
-    // TODO: Only update the bloom filter if elements have changed from last call
-    _networkSync.setBloomFilter(makeBloomFilter(0.0001, 0, 0));
-}
-
-Coin::BloomFilter SPVWallet::makeBloomFilter(double falsePositiveRate, uint32_t nTweak, uint32_t nFlags) {
-    // TODO: Keep track of elements being added - to acheive two purposes
-    // 1. Can be used to filter incoming false positive transactions
-    // 2. Only update the bloom filter if we are adding new elements
-
-    // Side Note: There is a limit on the maximum size of the bloom filter
-    // We can keep out keys of addresses we know have been spent and are certain
-    // would never be used again by a human (keys associated with joystream p2p protocol)
-
-    std::vector<uchar_vector> elements;
-
-    std::list<Coin::PrivateKey> privateKeys = _store.listPrivateKeys();
+    int currentElementsCount = _bloomFilterCompressedPubKeys.size() + _bloomFilterPubKeyHashes.size();
 
     for(auto &sk : privateKeys) {
         //public key - to capture inputs that spend outputs we control
-        elements.push_back(sk.toPublicKey().toUCharVector()); //compressed public key
-        _bloomFilterCompressedPubKeys.insert(_bloomFilterCompressedPubKeys.begin(), elements.back());
+        _bloomFilterCompressedPubKeys.insert(_bloomFilterCompressedPubKeys.begin(),
+                                             sk.toPublicKey().toUCharVector());
 
         //pubkeyhash - to capture outputs we control
-        elements.push_back(sk.toPublicKey().toPubKeyHash().toUCharVector());
-        _bloomFilterPubKeyHashes.insert(_bloomFilterPubKeyHashes.begin(), elements.back());
+        _bloomFilterPubKeyHashes.insert(_bloomFilterPubKeyHashes.begin(),
+                                        sk.toPublicKey().toPubKeyHash().toUCharVector());
     }
 
-    if(elements.size() == 0) return Coin::BloomFilter();
+    int newElementsCount = _bloomFilterCompressedPubKeys.size() + _bloomFilterPubKeyHashes.size();
 
-    Coin::BloomFilter filter(elements.size(), falsePositiveRate, nTweak, nFlags);
+    if(newElementsCount > currentElementsCount) {
+        Coin::BloomFilter filter(newElementsCount, 0.0001, 0,0);
 
-    for(auto elm : elements) {
-        filter.insert(elm);
+        for(auto elm : _bloomFilterCompressedPubKeys) {
+            filter.insert(elm);
+        }
+
+        for(auto elm : _bloomFilterPubKeyHashes) {
+            filter.insert(elm);
+        }
+
+        _networkSync.setBloomFilter(filter);
     }
 
-    return filter;
 }
 
 bool SPVWallet::transactionShouldBeStored(const Coin::Transaction & cointx) const {

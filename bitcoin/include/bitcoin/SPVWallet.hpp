@@ -161,7 +161,7 @@ private:
 
     Coin::BloomFilter makeBloomFilter(double falsePositiveRate, uint32_t nTweak, uint32_t nFlags);
 
-    void updateBloomFilter();
+    void updateBloomFilter(const std::vector<Coin::PrivateKey> &privateKeys);
 
     bool transactionShouldBeStored(const Coin::Transaction &) const;
     bool spendsWalletOutput(const Coin::TxIn &) const;
