@@ -358,11 +358,13 @@ void Test::BroadcastingTx() {
 
     QTRY_VERIFY_WITH_TIMEOUT(synchedB.count() > 0, 10000);
 
-    QSignalSpy spy_balance_changed(_walletB, SIGNAL(balanceChanged(uint64_t, uint64_t)));
+    QSignalSpy spy_balance_changedA(_walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
+    QSignalSpy spy_balance_changedB(_walletB, SIGNAL(balanceChanged(uint64_t, uint64_t)));
 
     _walletA->test_sendToAddress(50000, addrB, 1000);
 
-    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > 0, 5000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedA.count() > 0, 5000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedB.count() > 0, 5000);
 
     QCOMPARE(_walletB->unconfirmedBalance(), uint64_t(50000));
 
