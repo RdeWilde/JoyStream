@@ -337,6 +337,36 @@ void Test::Utxo() {
 }
 
 void Test::BroadcastingTx() {
+    _walletA->create();
+    _walletB->create();
+
+    Coin::P2PKHAddress addrA = _walletA->getReceiveAddress();
+    Coin::P2PKHAddress addrB = _walletB->getReceiveAddress();
+
+    bitcoin_rpc("sendtoaddress " + addrA.toBase58CheckEncoding().toStdString() + " 0.00100");
+    bitcoin_rpc("generate 1");
+
+    QSignalSpy synchedA(_walletA, SIGNAL(synched()));
+
+    _walletA->sync("localhost", 18444);
+
+    QTRY_VERIFY_WITH_TIMEOUT(synchedA.count() > 0, 10000);
+
+    QSignalSpy synchedB(_walletB, SIGNAL(synched()));
+
+    _walletB->sync("localhost", 18444);
+
+    QTRY_VERIFY_WITH_TIMEOUT(synchedB.count() > 0, 10000);
+
+    QSignalSpy spy_balance_changed(_walletB, SIGNAL(balanceChanged(uint64_t, uint64_t)));
+
+    _walletA->test_sendToAddress(50000, addrB, 1000);
+
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > 0, 5000);
+
+    QCOMPARE(_walletB->unconfirmedBalance(), uint64_t(50000));
+
+    QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(49000));
 
 }
 
