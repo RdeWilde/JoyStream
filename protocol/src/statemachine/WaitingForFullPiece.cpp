@@ -21,7 +21,7 @@ namespace statemachine {
         std::cout << "Reacting to event::Recv<wire::FullPiece> event." << std::endl;
 
         // Send piece to client
-        context<CBStateMachine>().getReceivedFullPiece()(e.message()->pieceData());
+        context<CBStateMachine>().receivedFullPiece()(e.message()->pieceData());
 
         // Wait for client side piece validation and storage
         return transit<ProcessingPiece>();

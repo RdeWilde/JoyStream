@@ -21,7 +21,7 @@ namespace statemachine {
 
         // Send client notification about this interruption,
         CBStateMachine & machine = context<CBStateMachine>();
-        machine.getSellerInterruptedContract()();
+        machine.sellerInterruptedContract()();
 
         // and update new peer mode
         machine.peerToObserveMode();
@@ -36,7 +36,7 @@ namespace statemachine {
 
         // Send client notification about this interruption,
         CBStateMachine & machine = context<CBStateMachine>();
-        machine.getPeerInterruptedPayment()();
+        machine.peerInterruptedPayment()();
 
         // and update new peer mode
         machine.peerToBuyMode(e.message()->terms());
@@ -51,7 +51,7 @@ namespace statemachine {
 
         // Send client notification about this interruption,
         CBStateMachine & machine = context<CBStateMachine>();
-        machine.getPeerInterruptedPayment()();
+        machine.peerInterruptedPayment()();
 
         // and update new peer mode
         wire::Sell const * m = e.message();

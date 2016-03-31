@@ -114,17 +114,17 @@ namespace protocol {
 
             PieceRequested pieceRequested() const;
 
-            PeerInterruptedPayment getPeerInterruptedPayment() const;
+            PeerInterruptedPayment peerInterruptedPayment() const;
 
-            ValidPayment getValidPayment() const;
+            ValidPayment validPayment() const;
 
-            InvalidPayment getInvalidPayment() const;
+            InvalidPayment invalidPayment() const;
 
-            SellerJoined getSellerJoined() const;
+            SellerJoined sellerJoined() const;
 
-            SellerInterruptedContract getSellerInterruptedContract() const;
+            SellerInterruptedContract sellerInterruptedContract() const;
 
-            ReceivedFullPiece getReceivedFullPiece() const;
+            ReceivedFullPiece receivedFullPiece() const;
 
             PeerModeAnnounced peerAnnouncedMode() const;
 

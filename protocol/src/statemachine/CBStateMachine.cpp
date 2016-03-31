@@ -90,27 +90,27 @@ namespace statemachine {
         return _pieceRequested;
     }
 
-    CBStateMachine::PeerInterruptedPayment CBStateMachine::getPeerInterruptedPayment() const {
+    CBStateMachine::PeerInterruptedPayment CBStateMachine::peerInterruptedPayment() const {
         return _peerInterruptedPayment;
     }
 
-    CBStateMachine::ValidPayment CBStateMachine::getValidPayment() const {
+    CBStateMachine::ValidPayment CBStateMachine::validPayment() const {
         return _validPayment;
     }
 
-    CBStateMachine::InvalidPayment CBStateMachine::getInvalidPayment() const {
+    CBStateMachine::InvalidPayment CBStateMachine::invalidPayment() const {
         return _invalidPayment;
     }
 
-    CBStateMachine::SellerJoined CBStateMachine::getSellerJoined() const {
+    CBStateMachine::SellerJoined CBStateMachine::sellerJoined() const {
         return _sellerJoined;
     }
 
-    CBStateMachine::SellerInterruptedContract CBStateMachine::getSellerInterruptedContract() const{
+    CBStateMachine::SellerInterruptedContract CBStateMachine::sellerInterruptedContract() const{
         return _sellerInterruptedContract;
     }
 
-    CBStateMachine::ReceivedFullPiece CBStateMachine::getReceivedFullPiece() const {
+    CBStateMachine::ReceivedFullPiece CBStateMachine::receivedFullPiece() const {
         return _receivedFullPiece;
     }
 
