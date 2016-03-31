@@ -43,6 +43,12 @@ int main(int argc, char *argv[])
         wallet.Create(seed, created.toTime_t());
         wallet.GetReceiveAddress();
         wallet.GetReceiveAddress();
+        wallet.GetReceiveAddress();
+        wallet.GetReceiveAddress();
+        wallet.GetReceiveAddress();
+        wallet.GetReceiveAddress();
+        wallet.GetReceiveAddress();
+        wallet.GetReceiveAddress();
     } else {
         wallet.Open();
     }
@@ -61,6 +67,16 @@ int main(int argc, char *argv[])
     signal(SIGINT, &handleSignal);
     signal(SIGTERM, &handleSignal);
 
+    QObject::connect(&wallet, &SPVWallet::StoreError, [](std::string err){
+        std::cerr << "StoreError: " << err << std::endl;
+        shuttingDown = true;
+    });
+
+    QObject::connect(&wallet, &SPVWallet::BlockTreeError, [&wallet](std::string err){
+        // This is something we can't really recover from, and we have to disconnect from the peer
+        std::cerr << "BlockTree Error: " << err << std::endl;
+        shuttingDown = true;
+    });
 
     QObject::connect(&wallet, &SPVWallet::StatusChanged, [&wallet, &a](SPVWallet::wallet_status_t status){
        if(status == SPVWallet::wallet_status_t::SYNCHED)  {
@@ -71,8 +87,18 @@ int main(int argc, char *argv[])
            shuttingDown = true;
        }
 
+       if(status == SPVWallet::wallet_status_t::SYNCHING_HEADERS) {
+           std::cout << "synching headers" << std::endl;
+       }
+
        if(status == SPVWallet::wallet_status_t::SYNCHING_BLOCKS) {
-           std::cout << ".";
+           std::cout << "synching blocks" << std::endl;
+       }
+
+       if(status == SPVWallet::wallet_status_t::DISCONNECTED) {
+           // Either a timeout or normal disconnect occured
+           std::cout << "Disconnected" << std::endl;
+           shuttingDown = true;
        }
 
        if(status == SPVWallet::wallet_status_t::OFFLINE) {
