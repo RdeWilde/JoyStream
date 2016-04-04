@@ -16,11 +16,13 @@ QT      += testlib
 
 HEADERS += \
     Test.hpp \
-    StateMachineCallbackSpy.hpp
+    CBStateMachineCallbackSpy.hpp \
+    SellingNavigator.hpp
 
 SOURCES += \
     Test.cpp \
-    StateMachineCallbackSpy.cpp
+    CBStateMachineCallbackSpy.cpp \
+    SellingNavigator.cpp
 
 # protocol ###################################################################################
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../protocol/release/ -lprotocol
