@@ -10,31 +10,41 @@
 
 #include <QtTest/QtTest>
 
+namespace joystream {
+namespace protocol {
+
+    class SellerTerms;
+    class BuyerTerms;
+
+    namespace statemachine {
+        class CBStateMachine;
+    }
+}
+}
+
+using namespace joystream::protocol;
+
 class Test : public QObject {
 
     Q_OBJECT
 
 private slots:
 
-    //// Statemachine tests
-
-    // Client mode change operations
-    void clientToObserveMode();
-    void clientToSellMode();
-    void clientToBuyMode();
-
-    // Peer announces mode change
-    void peerToSellMode();
-    void peerToBuyMode();
-    void peerToObserveMode();
-
-    // Flow through selling states
+    // Flow through states
+    void observing();
     void selling();
+    void buying();
+
+    // A buyer interacting with a set of sellers
+    void buyerAndSellers();
 
 public:
 
-private:
-
+    static void peerToSellMode(statemachine::CBStateMachine *, const SellerTerms &, uint32_t);
+    static void peerToBuyMode(statemachine::CBStateMachine *, const BuyerTerms &);
+    static void peerToObserveMode(statemachine::CBStateMachine *);
 };
+
+
 
 #endif // TEST_HPP
