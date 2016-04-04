@@ -5,10 +5,10 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, March 18 2016
  */
 
-#include <protocol/ContractRSVP.hpp>
+#include <wire/ContractRSVP.hpp>
 
 namespace joystream {
-namespace protocol {
+namespace wire {
 
     ContractRSVP::ContractRSVP() {
     }

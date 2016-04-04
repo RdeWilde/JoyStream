@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 5 2016
  */
 
-#ifndef JOYSTREAM_PROTOCOL_SELLER_TERMS_HPP
-#define JOYSTREAM_PROTOCOL_SELLER_TERMS_HPP
+#ifndef JOYSTREAM_WIRE_SELLERTERMS_HPP
+#define JOYSTREAM_WIRE_SELLERTERMS_HPP
 
 //#include <stdint.h>
 
@@ -14,7 +14,7 @@
 #include <QtGlobal>
 
 namespace joystream {
-namespace protocol {
+namespace wire {
 
     class BuyerTerms;
 
@@ -83,4 +83,4 @@ namespace protocol {
 }
 }
 
-#endif // JOYSTREAM_PROTOCOL_SELLER_TERMS_HPP
+#endif // JOYSTREAM_WIRE_SELLERTERMS_HPP

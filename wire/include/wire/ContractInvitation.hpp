@@ -5,13 +5,13 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, March 17 2016
  */
 
-#ifndef JOYSTREAM_PROTOCOL_CONTRACTINVITATION_HPP
-#define JOYSTREAM_PROTOCOL_CONTRACTINVITATION_HPP
+#ifndef JOYSTREAM_WIRE_CONTRACTINVITATION_HPP
+#define JOYSTREAM_WIRE_CONTRACTINVITATION_HPP
 
 #include <common/PublicKey.hpp>
 
 namespace joystream {
-namespace protocol {
+namespace wire {
 
     class ContractInvitation {
 
@@ -47,4 +47,4 @@ namespace protocol {
     };
 }
 }
-#endif // JOYSTREAM_PROTOCOL_CONTRACTINVITATION_HPP
+#endif // JOYSTREAM_WIRE_CONTRACTINVITATION_HPP

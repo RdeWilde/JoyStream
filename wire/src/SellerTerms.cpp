@@ -5,13 +5,13 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 16 2016
  */
 
-#include <protocol/SellerTerms.hpp>
-#include <protocol/BuyerTerms.hpp>
+#include <wire/SellerTerms.hpp>
+#include <wire/BuyerTerms.hpp>
 #include <cassert>
 #include <stdexcept>
 
 namespace joystream {
-namespace protocol {
+namespace wire {
 
     SellerTerms::SellerTerms()
         : SellerTerms(0, 0, 0, 0, 0) {

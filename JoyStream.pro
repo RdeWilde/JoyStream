@@ -13,6 +13,7 @@ SUBDIRS     = \
             wallet \
             extension \
             protocol \
+            wire \
             core \
             views \
             app \
@@ -26,8 +27,12 @@ paymentchannel.depends = common
 # blockcypher
 blockcypher.depends = common
 
+# wire
+wire.depends = common
+
 # protocol
 protocol.depends = common
+protocol.depends = wire
 protocol.depends = paymentchannel
 
 # wallet

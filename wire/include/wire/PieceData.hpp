@@ -5,15 +5,15 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, March 29 2016
  */
 
-#ifndef JOYSTREAM_PROTOCOL_PIECEDATA_HPP
-#define JOYSTREAM_PROTOCOL_PIECEDATA_HPP
+#ifndef JOYSTREAM_WIRE_PIECEDATA_HPP
+#define JOYSTREAM_WIRE_PIECEDATA_HPP
 
 #include <boost/shared_array.hpp>
 
 class QDataStream;
 
 namespace joystream {
-namespace protocol {
+namespace wire {
 
     class PieceData {
 
@@ -43,4 +43,4 @@ namespace protocol {
 }
 }
 
-#endif // JOYSTREAM_PROTOCOL_PIECEDATA_HPP
+#endif // JOYSTREAM_WIRE_PIECEDATA_HPP

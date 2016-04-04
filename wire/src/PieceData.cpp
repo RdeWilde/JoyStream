@@ -5,12 +5,12 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, March 29 2016
  */
 
-#include <protocol/PieceData.hpp>
+#include <wire/PieceData.hpp>
 
 #include <QDataStream>
 
 namespace joystream {
-namespace protocol {
+namespace wire {
 
     PieceData::PieceData()
         : _length(0) {

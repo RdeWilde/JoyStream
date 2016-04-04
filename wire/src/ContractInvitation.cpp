@@ -5,10 +5,10 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, March 17 2016
  */
 
-#include <protocol/ContractInvitation.hpp>
+#include <wire/ContractInvitation.hpp>
 
 namespace joystream {
-namespace protocol {
+namespace wire {
 
     ContractInvitation::ContractInvitation()
         : _value(0) {

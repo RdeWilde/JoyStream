@@ -4,11 +4,11 @@
  * Proprietary and confidential
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 16 2016
  */
-#include <protocol/BuyerTerms.hpp>
-#include <protocol/SellerTerms.hpp>
+#include <wire/BuyerTerms.hpp>
+#include <wire/SellerTerms.hpp>
 
 namespace joystream {
-namespace protocol {
+namespace wire {
 
     BuyerTerms::BuyerTerms() {
     }

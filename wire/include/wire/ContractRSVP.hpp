@@ -5,13 +5,13 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, March 18 2016
  */
 
-#ifndef JOYSTREAM_PROTOCOL_CONTRACTRSVP_HPP
-#define JOYSTREAM_PROTOCOL_CONTRACTRSVP_HPP
+#ifndef JOYSTREAM_WIRE_CONTRACTRSVP_HPP
+#define JOYSTREAM_WIRE_CONTRACTRSVP_HPP
 
 #include <common/PublicKey.hpp>
 
 namespace joystream {
-namespace protocol {
+namespace wire {
 
     class ContractRSVP {
 
@@ -41,4 +41,4 @@ namespace protocol {
 }
 }
 
-#endif // JOYSTREAM_PROTOCOL_CONTRACTRSVP_HPP
+#endif // JOYSTREAM_WIRE_CONTRACTRSVP_HPP
