@@ -19,7 +19,7 @@ namespace statemachine {
 
     sc::result PreparingContract::react(const event::ContractPrepared & e) {
 
-        std::cout << "Reacting to event::ContractPrepared event." << std::endl;
+        std::cout << "Reacting to ContractPrepared event." << std::endl;
 
         // Send ready message
         context<CBStateMachine>().sendMessage()(new wire::Ready(e.anchor()));

@@ -47,7 +47,7 @@ namespace statemachine {
         if(!_initialized)
             throw std::runtime_error("Selling state not initialized.");
 
-        std::cout << "Reacting to event::ObserveModeStarted." << std::endl;
+        std::cout << "Reacting to ObserveModeStarted." << std::endl;
 
         // Trigger initialization event for when we are in Observing state
         post_event(detail::InitializeObserving());
@@ -61,7 +61,7 @@ namespace statemachine {
         if(!_initialized)
             throw std::runtime_error("Selling state not initialized.");
 
-        std::cout << "Reacting to event::BuyModeStarted." << std::endl;
+        std::cout << "Reacting to BuyModeStarted." << std::endl;
 
         // Trigger initialization event for when we are in Selling state
         post_event(detail::InitializeBuying(e.terms()));
@@ -75,7 +75,7 @@ namespace statemachine {
         if(!_initialized)
             throw std::runtime_error("Selling state not initialized.");
 
-        std::cout << "Reacting to event::UpdateTerms<SellerTerms>." << std::endl;
+        std::cout << "Reacting to UpdateTerms<SellerTerms>." << std::endl;
 
         // Increment term index
         _index++;

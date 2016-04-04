@@ -19,7 +19,7 @@ namespace statemachine {
 
     sc::result ReadyToRequestPiece::react(const event::RequestPiece & e) {
 
-        std::cout << "Reacting to event::RequestPiece event." << std::endl;
+        std::cout << "Reacting to RequestPiece event." << std::endl;
 
         // Request piece from seller
         context<CBStateMachine>().sendMessage()(new wire::RequestFullPiece(e.pieceIndex()));

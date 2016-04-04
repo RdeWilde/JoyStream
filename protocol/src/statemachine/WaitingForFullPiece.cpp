@@ -18,7 +18,7 @@ namespace statemachine {
 
     sc::result WaitingForFullPiece::react(const event::Recv<wire::FullPiece> & e) {
 
-        std::cout << "Reacting to event::Recv<wire::FullPiece> event." << std::endl;
+        std::cout << "Reacting to Recv<wire::FullPiece> event." << std::endl;
 
         // Send piece to client
         context<CBStateMachine>().receivedFullPiece()(e.message()->pieceData());

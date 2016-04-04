@@ -19,7 +19,7 @@ namespace statemachine {
 
     sc::result ProcessingPiece::react(const event::SendPayment &) {
 
-        std::cout << "Reacting to event::RequestPiece event." << std::endl;
+        std::cout << "Reacting to SendPayment event." << std::endl;
 
         // Make payment signature
         Coin::Signature sig = context<Buying>()._payor.makePayment();
@@ -33,7 +33,7 @@ namespace statemachine {
 
     sc::result ProcessingPiece::react(const event::InvalidPieceReceived &) {
 
-        std::cout << "Reacting to event::InvalidPieceReceived event." << std::endl;
+        std::cout << "Reacting to InvalidPieceReceived event." << std::endl;
 
         // Stop state machine
         return terminate();

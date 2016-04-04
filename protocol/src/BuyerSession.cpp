@@ -19,14 +19,12 @@ namespace protocol {
                                const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
                                BuyerSessionState state,
                                const BuyerTerms & terms,
-                               const joystream::paymentchannel::Payor & payor,
                                const std::vector<Seller> & sellers,
                                const std::vector<Piece> & pieces,
                                uint32_t assignmentLowerBound)
         : Session<BuyerConnection>(Mode::buy, network, connections, removedConnectionCallbackHandler, generateKeyPairsCallbackHandler, generateP2PKHAddressesCallbackHandler)
         , _state(state)
         , _terms(terms)
-        , _payor(payor)
         , _sellers(sellers)
         , _pieces(pieces)
         , _assignmentLowerBound(assignmentLowerBound) {
@@ -48,12 +46,14 @@ namespace protocol {
                                 generateP2PKHAddressesCallbackHandler,
                                 BuyerSessionState::waiting_for_full_set_of_sellers_with_signed_refund,
                                 terms,
+                                /**
                                 joystream::paymentchannel::Payor(std::vector<joystream::paymentchannel::Channel>(),
                                                                  utxo,
                                                                  changeAddress,
                                                                  0,
                                                                  0,
                                                                  Coin::Transaction()),
+                                                                                         */
                                 std::vector<Seller>(),
                                 pieces,
                                 0);

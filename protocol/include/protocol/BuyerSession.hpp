@@ -14,7 +14,7 @@
 #include <protocol/BuyerTerms.hpp>
 #include <protocol/Piece.hpp>
 #include <protocol/Seller.hpp>
-#include <paymentchannel/Payor.hpp>
+#include <common/UnspentP2PKHOutput.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -36,7 +36,6 @@ namespace protocol {
                      const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
                      BuyerSessionState state,
                      const BuyerTerms & terms,
-                     const joystream::paymentchannel::Payor & payor,
                      const std::vector<Seller> & sellers,
                      const std::vector<Piece> & pieces,
                      uint32_t _assignmentLowerBound);
@@ -93,7 +92,7 @@ namespace protocol {
         BuyerTerms _terms;
 
         // Payor side of payment channel
-        joystream::paymentchannel::Payor _payor;
+        //joystream::paymentchannel::Payor _payor;
 
         // Sellers
         std::vector<Seller> _sellers;

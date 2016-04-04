@@ -18,7 +18,7 @@ WaitingForPayment::WaitingForPayment() {
 
 sc::result WaitingForPayment::react(const event::Recv<wire::Payment> & e) {
 
-    std::cout << "Reacting to event::Recv<wire::Paymen>." << std::endl;
+    std::cout << "Reacting to Recv<wire::Paymen>." << std::endl;
 
     // Get selling state
     Selling & selling = context<Selling>();

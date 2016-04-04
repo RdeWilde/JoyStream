@@ -8,8 +8,10 @@
 #ifndef JOYSTREAM_PROTOCOL_SESSION_HPP
 #define JOYSTREAM_PROTOCOL_SESSION_HPP
 
+#include <common/P2PKHAddress.hpp>
 #include <common/Network.hpp>
 #include <protocol/Mode.hpp>
+
 #include <functional>
 #include <map>
 #include <vector>

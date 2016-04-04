@@ -19,7 +19,7 @@ namespace statemachine {
 
     sc::result Invited::react(const event::Joined & e) {
 
-        std::cout << "Reacting to event::JoinContract." << std::endl;
+        std::cout << "Reacting to JoinContract." << std::endl;
 
         // Store contract rsvp information in payee
         Selling & sellingState = context<Selling>();

@@ -6,13 +6,14 @@
  */
 
 #include <protocol/Utilities.hpp>
-#include <paymentchannel/Payor.hpp>
+//#include <paymentchannel/Payor.hpp>
 #include <paymentchannel/Payee.hpp>
 
 namespace joystream {
 namespace protocol {
 namespace utilities {
 
+    /**
     joystream::paymentchannel::Payor createPayorForNewBuyer(const Coin::UnspentP2PKHOutput & utxo, const Coin::P2PKHAddress & changeAddress) {
 
         return joystream::paymentchannel::Payor(std::vector<joystream::paymentchannel::Channel>(),
@@ -22,6 +23,7 @@ namespace utilities {
                                                 0,
                                                 Coin::Transaction());
     }
+    */
 
     joystream::paymentchannel::Payee createPayeeForNewSeller(quint64 price, quint32 lock, quint64 settlementFee, const Coin::KeyPair & payeeContractKeys, const Coin::PubKeyHash & payeeFinalPubKeyHash) {
 

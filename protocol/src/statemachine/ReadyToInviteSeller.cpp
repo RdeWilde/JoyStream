@@ -20,7 +20,7 @@ namespace statemachine {
 
     sc::result ReadyToInviteSeller::react(const event::InviteSeller & e) {
 
-        std::cout << "Reacting to event::InviteSeller." << std::endl;
+        std::cout << "Reacting to InviteSeller." << std::endl;
 
         // Get reference to the outer state machine
         CBStateMachine & machine = context<CBStateMachine>();

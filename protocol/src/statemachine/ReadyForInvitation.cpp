@@ -21,7 +21,7 @@ namespace statemachine {
 
     sc::result ReadyForInvitation::react(const event::Recv<wire::JoinContract> & e) {
 
-        std::cout << "Reacting to event::Recv<wire::JoinContract>." << std::endl;
+        std::cout << "Reacting to Recv<wire::JoinContract>." << std::endl;
 
         // Get message
         wire::JoinContract const * message = e.message();

@@ -19,7 +19,7 @@ LoadingPiece::LoadingPiece() {
 
 sc::result LoadingPiece::react(const event::PieceLoaded & e) {
 
-    std::cout << "Reacting to event::PieceLoaded event." << std::endl;
+    std::cout << "Reacting to PieceLoaded event." << std::endl;
 
     // Send piece
     context<CBStateMachine>().sendMessage()(new wire::FullPiece(e.pieceData()));

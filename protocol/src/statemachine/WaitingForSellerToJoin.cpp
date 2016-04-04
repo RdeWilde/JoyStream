@@ -18,7 +18,7 @@ namespace statemachine {
 
     sc::result WaitingForSellerToJoin::react(const event::Recv<wire::JoiningContract> & e) {
 
-        std::cout << "Reacting to event::Recv<wire::JoiningContract> event." << std::endl;
+        std::cout << "Reacting to Recv<wire::JoiningContract> event." << std::endl;
 
         // Get reference to outer state
         Buying & buying = context<Buying>();
