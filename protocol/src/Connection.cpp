@@ -6,9 +6,9 @@
  */
 
 #include <protocol/Connection.hpp>
-#include <protocol/wire/Observe.hpp>
-#include <protocol/wire/Buy.hpp>
-#include <protocol/wire/Sell.hpp>
+#include <wire/Observe.hpp>
+#include <wire/Buy.hpp>
+#include <wire/Sell.hpp>
 
 namespace joystream {
 namespace protocol {

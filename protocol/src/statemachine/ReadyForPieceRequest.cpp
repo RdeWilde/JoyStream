@@ -14,7 +14,7 @@ ReadyForPieceRequest::ReadyForPieceRequest() {
     std::cout << "Entering ReadyForPieceRequest state." << std::endl;
 }
 
-sc::result ReadyForPieceRequest::react(const event::Recv<joystream::protocol::wire::RequestFullPiece> & e) {
+sc::result ReadyForPieceRequest::react(const event::Recv<joystream::wire::RequestFullPiece> & e) {
 
     std::cout << "Reacting to Recv<wire::RequestFullPiece> event." << std::endl;
 

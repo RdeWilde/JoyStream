@@ -12,11 +12,11 @@ namespace protocol {
 namespace statemachine {
 namespace event {
 
-    PieceLoaded::PieceLoaded(const PieceData & pieceData)
+    PieceLoaded::PieceLoaded(const joystream::wire::PieceData & pieceData)
         : _pieceData(pieceData) {
     }
 
-    PieceData PieceLoaded::pieceData() const {
+    joystream::wire::PieceData PieceLoaded::pieceData() const {
         return _pieceData;
     }
 

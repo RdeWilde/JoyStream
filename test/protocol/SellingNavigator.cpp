@@ -8,11 +8,11 @@
 #include <SellingNavigator.hpp>
 #include <protocol/statemachine/CBStateMachine.hpp>
 #include <protocol/statemachine/event/Joined.hpp>
-#include <protocol/wire/Sell.hpp>
-#include <protocol/wire/Buy.hpp>
-#include <protocol/wire/Observe.hpp>
-#include <protocol/wire/Ready.hpp>
-#include <protocol/wire/JoinContract.hpp>
+#include <wire/Sell.hpp>
+#include <wire/Buy.hpp>
+#include <wire/Observe.hpp>
+#include <wire/Ready.hpp>
+#include <wire/JoinContract.hpp>
 
 using namespace joystream::protocol::statemachine;
 

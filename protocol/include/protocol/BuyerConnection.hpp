@@ -10,7 +10,7 @@
 
 #include <protocol/Connection.hpp>
 #include <protocol/BuyerClientState.hpp>
-#include <protocol/wire/JoiningContract.hpp>
+#include <wire/JoiningContract.hpp>
 
 #include <queue>
 
@@ -25,7 +25,7 @@ namespace protocol {
 
         BuyerConnection(const Connection & connection,
                         BuyerClientState clientState,
-                        const wire::JoiningContract & lastJoiningContractReceived,
+                        const joystream::wire::JoiningContract & lastJoiningContractReceived,
                         const std::queue<uint32_t> & downloadedValidPieces);
 
         // Construct connection without any prior state, i.e. has never had any message transmitted/received
@@ -35,8 +35,8 @@ namespace protocol {
         BuyerClientState clientState() const;
         void setClientState(const BuyerClientState & clientState);
 
-        wire::JoiningContract lastJoiningContractReceived() const;
-        void setLastJoiningContractReceived(const wire::JoiningContract &lastJoiningContractReceived);
+        joystream::wire::JoiningContract lastJoiningContractReceived() const;
+        void setLastJoiningContractReceived(const joystream::wire::JoiningContract &lastJoiningContractReceived);
 
         std::queue<uint32_t> downloadedValidPieces() const;
 
@@ -49,7 +49,7 @@ namespace protocol {
         time_t _whenLastInviteSent;
 
         // Last joining contract message
-        wire::JoiningContract _lastJoiningContractReceived;
+        joystream::wire::JoiningContract _lastJoiningContractReceived;
 
         // Indexes of valid piecesm, in the order they were downloaded
         // NB: The reason this is not in Seller, is because

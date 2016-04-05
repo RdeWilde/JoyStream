@@ -8,7 +8,7 @@
 #ifndef JOYSTREAM_PROTOCOL_STATEMACHINE_EVENT_PIECELOADED_HPP
 #define JOYSTREAM_PROTOCOL_STATEMACHINE_EVENT_PIECELOADED_HPP
 
-#include <protocol/PieceData.hpp>
+#include <wire/PieceData.hpp>
 #include <boost/statechart/event.hpp>
 
 
@@ -23,14 +23,14 @@ namespace event {
 
     public:
 
-        PieceLoaded(const PieceData &);
+        PieceLoaded(const joystream::wire::PieceData &);
 
-        PieceData pieceData() const;
+        joystream::wire::PieceData pieceData() const;
 
     private:
 
         // Piece data;
-        PieceData _pieceData;
+        joystream::wire::PieceData _pieceData;
     };
 
 }

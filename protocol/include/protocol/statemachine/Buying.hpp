@@ -29,7 +29,7 @@ namespace statemachine {
                                 sc::custom_reaction<detail::InitializeBuying>,
                                 sc::custom_reaction<event::ObserveModeStarted>,
                                 sc::custom_reaction<event::SellModeStarted>,
-                                sc::custom_reaction<event::UpdateTerms<BuyerTerms>>
+                                sc::custom_reaction<event::UpdateTerms<joystream::wire::BuyerTerms>>
                                 > reactions;
 
         Buying();
@@ -38,7 +38,7 @@ namespace statemachine {
         sc::result react(const detail::InitializeBuying &);
         sc::result react(const event::ObserveModeStarted &);
         sc::result react(const event::SellModeStarted &);
-        sc::result react(const event::UpdateTerms<BuyerTerms> &);
+        sc::result react(const event::UpdateTerms<joystream::wire::BuyerTerms> &);
 
     private:
 
@@ -54,7 +54,7 @@ namespace statemachine {
         //// Client state
 
         // Most recent terms broadcasted
-        BuyerTerms _terms;
+        joystream::wire::BuyerTerms _terms;
 
         // Payor side of payment channel interaction
         paymentchannel::Channel _payor;

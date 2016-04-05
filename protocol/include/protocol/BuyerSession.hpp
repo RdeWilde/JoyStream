@@ -11,7 +11,7 @@
 #include <protocol/Session.hpp>
 #include <protocol/BuyerConnection.hpp>
 #include <protocol/BuyerSessionState.hpp>
-#include <protocol/BuyerTerms.hpp>
+#include <wire/BuyerTerms.hpp>
 #include <protocol/Piece.hpp>
 #include <protocol/Seller.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
@@ -35,7 +35,7 @@ namespace protocol {
                      const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                      const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
                      BuyerSessionState state,
-                     const BuyerTerms & terms,
+                     const joystream::wire::BuyerTerms & terms,
                      const std::vector<Seller> & sellers,
                      const std::vector<Piece> & pieces,
                      uint32_t _assignmentLowerBound);
@@ -45,14 +45,14 @@ namespace protocol {
                                                  const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                                                  const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                                                  const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-                                                 const BuyerTerms & terms,
+                                                 const joystream::wire::BuyerTerms & terms,
                                                  const Coin::UnspentP2PKHOutput & utxo,
                                                  const Coin::P2PKHAddress & changeAddress,
                                                  const std::vector<Piece> & pieces);
 
         // Construct session based on preexisting session
         template <class T>
-        static BuyerSession * convertToBuyerSession(const Session<T> * session, const BuyerTerms & terms, const Coin::UnspentP2PKHOutput & utxo, const std::vector<Piece> & pieces);
+        static BuyerSession * convertToBuyerSession(const Session<T> * session, const joystream::wire::BuyerTerms & terms, const Coin::UnspentP2PKHOutput & utxo, const std::vector<Piece> & pieces);
 
         /**
         // Update terms in the same mode
@@ -89,7 +89,7 @@ namespace protocol {
         BuyerSessionState _state;
 
         // Terms for buying
-        BuyerTerms _terms;
+        joystream::wire::BuyerTerms _terms;
 
         // Payor side of payment channel
         //joystream::paymentchannel::Payor _payor;
@@ -121,7 +121,7 @@ namespace protocol {
     };
 
     template <class T>
-    BuyerSession * BuyerSession::convertToBuyerSession(const Session<T> * session, const BuyerTerms & terms, const Coin::UnspentP2PKHOutput & utxo, const std::vector<Piece> & pieces) {
+    BuyerSession * BuyerSession::convertToBuyerSession(const Session<T> * session, const joystream::wire::BuyerTerms & terms, const Coin::UnspentP2PKHOutput & utxo, const std::vector<Piece> & pieces) {
 
         // Get callback for generating addresses
         typename Session<T>::GenerateP2PKHAddressesCallbackHandler handler = session->generateP2PKHAddressesCallbackHandler();

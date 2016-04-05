@@ -10,7 +10,7 @@
 
 #include <protocol/statemachine/Selling.hpp>
 #include <protocol/statemachine/event/Recv.hpp>
-#include <protocol/wire/RequestFullPiece.hpp>
+#include <wire/RequestFullPiece.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -21,13 +21,13 @@ namespace statemachine {
     public:
 
         typedef boost::mpl::list<
-                                sc::custom_reaction<event::Recv<wire::RequestFullPiece>>
+                                sc::custom_reaction<event::Recv<joystream::wire::RequestFullPiece>>
                                 > reactions;
 
         ReadyForPieceRequest();
 
         // Event handlers
-        sc::result react(const event::Recv<wire::RequestFullPiece> &);
+        sc::result react(const event::Recv<joystream::wire::RequestFullPiece> &);
 
     };
 

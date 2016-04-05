@@ -22,156 +22,156 @@ namespace Coin {
 }
 
 namespace joystream {
-namespace protocol {
-
-    namespace wire {
-        class ExtendedMessagePayload;
-    }
-
+namespace wire {
+    class ExtendedMessagePayload;
+    class SellerTerms;
+    class BuyerTerms;
     class ContractInvitation;
     class ContractRSVP;
     class PieceData;
+}
 
-    namespace statemachine {
+namespace protocol {
+namespace statemachine {
 
-        class ChooseMode; // Default state
+    class ChooseMode; // Default state
 
-        // Friend classes that need to modify CBStateMachine::_peerAnnouncedMode
-        class Active;
-        class ServicingPieceRequest;
-        class SellerHasJoined;
-        class WaitingForFullPiece;
+    // Friend classes that need to modify CBStateMachine::_peerAnnouncedMode
+    class Active;
+    class ServicingPieceRequest;
+    class SellerHasJoined;
+    class WaitingForFullPiece;
 
-        class CBStateMachine : public sc::state_machine<CBStateMachine, ChooseMode> {
+    class CBStateMachine : public sc::state_machine<CBStateMachine, ChooseMode> {
 
-        public:
+    public:
 
-            //// General Notifications
+        //// General Notifications
 
-            // Client requires a message to be sent
-            typedef std::function<void(const wire::ExtendedMessagePayload *)> Send;
+        // Client requires a message to be sent
+        typedef std::function<void(const wire::ExtendedMessagePayload *)> Send;
 
-            //// Selling Notifications
+        //// Selling Notifications
 
-            // Client was invited to expired contract, as indicated by bad index
-            typedef std::function<void()> InvitedToOutdatedContract;
+        // Client was invited to expired contract, as indicated by bad index
+        typedef std::function<void()> InvitedToOutdatedContract;
 
-            // Client was invited to join given contract, should terms be included? they are available in _peerAnnounced
-            typedef std::function<void(const ContractInvitation)> InvitedToJoinContract;
+        // Client was invited to join given contract, should terms be included? they are available in _peerAnnounced
+        typedef std::function<void(const joystream::wire::ContractInvitation)> InvitedToJoinContract;
 
-            // Peer announced that contract is now ready, should contract be be included? it was available
-            typedef std::function<void(const Coin::typesafeOutPoint &)> ContractIsReady;
+        // Peer announced that contract is now ready, should contract be be included? it was available
+        typedef std::function<void(const Coin::typesafeOutPoint &)> ContractIsReady;
 
-            // Peer requested piece
-            typedef std::function<void(int)> PieceRequested;
+        // Peer requested piece
+        typedef std::function<void(int)> PieceRequested;
 
-            // Peer invalid piece requested
-            typedef std::function<void()> InvalidPieceRequested;
+        // Peer invalid piece requested
+        typedef std::function<void()> InvalidPieceRequested;
 
-            // Peer sent mode message when payment was expected/required
-            typedef std::function<void()> PeerInterruptedPayment;
+        // Peer sent mode message when payment was expected/required
+        typedef std::function<void()> PeerInterruptedPayment;
 
-            // Peer sent valid payment signature
-            typedef std::function<void(const Coin::Signature &)> ValidPayment;
+        // Peer sent valid payment signature
+        typedef std::function<void(const Coin::Signature &)> ValidPayment;
 
-            // Peer sent an invalid payment signature
-            typedef std::function<void(const Coin::Signature &)> InvalidPayment;
+        // Peer sent an invalid payment signature
+        typedef std::function<void(const Coin::Signature &)> InvalidPayment;
 
-            //// Buying Notifications
+        //// Buying Notifications
 
-            // Peer, in seller mode, joined the most recent invitation
-            typedef std::function<void()> SellerJoined;
+        // Peer, in seller mode, joined the most recent invitation
+        typedef std::function<void()> SellerJoined;
 
-            // Peer, in seller mode, left - by sending new mode message (which may also be sell) - after requesting a piece
-            typedef std::function<void()> SellerInterruptedContract;
+        // Peer, in seller mode, left - by sending new mode message (which may also be sell) - after requesting a piece
+        typedef std::function<void()> SellerInterruptedContract;
 
-            // Peer, in seller mode, responded with full piece
-            typedef std::function<void(const PieceData &)> ReceivedFullPiece;
+        // Peer, in seller mode, responded with full piece
+        typedef std::function<void(const joystream::wire::PieceData &)> ReceivedFullPiece;
 
-            CBStateMachine(const InvitedToOutdatedContract &,
-                           const InvitedToJoinContract &,
-                           const Send &,
-                           const ContractIsReady &,
-                           const PieceRequested &,
-                           const InvalidPieceRequested &,
-                           const PeerInterruptedPayment &,
-                           const ValidPayment &,
-                           const InvalidPayment &,
-                           const SellerJoined &,
-                           const SellerInterruptedContract &,
-                           const ReceivedFullPiece &,
-                           int);
+        CBStateMachine(const InvitedToOutdatedContract &,
+                       const InvitedToJoinContract &,
+                       const Send &,
+                       const ContractIsReady &,
+                       const PieceRequested &,
+                       const InvalidPieceRequested &,
+                       const PeerInterruptedPayment &,
+                       const ValidPayment &,
+                       const InvalidPayment &,
+                       const SellerJoined &,
+                       const SellerInterruptedContract &,
+                       const ReceivedFullPiece &,
+                       int);
 
-            void unconsumed_event(const sc::event_base &);
+        void unconsumed_event(const sc::event_base &);
 
-            // Deprecated: internals should not be directly visible for client or tester
-            // Get name of current state: ***Varies from compiler to compiler***
-            //const char * getInnerStateName() const;
+        // Deprecated: internals should not be directly visible for client or tester
+        // Get name of current state: ***Varies from compiler to compiler***
+        //const char * getInnerStateName() const;
 
-            // Getters and setters
-            InvitedToOutdatedContract invitedToOutdatedContract() const;
+        // Getters and setters
+        InvitedToOutdatedContract invitedToOutdatedContract() const;
 
-            InvitedToJoinContract invitedToJoinContract() const;
+        InvitedToJoinContract invitedToJoinContract() const;
 
-            Send sendMessage() const;
+        Send sendMessage() const;
 
-            ContractIsReady contractIsReady() const;
+        ContractIsReady contractIsReady() const;
 
-            PieceRequested pieceRequested() const;
+        PieceRequested pieceRequested() const;
 
-            InvalidPieceRequested invalidPieceRequested() const;
+        InvalidPieceRequested invalidPieceRequested() const;
 
-            PeerInterruptedPayment peerInterruptedPayment() const;
+        PeerInterruptedPayment peerInterruptedPayment() const;
 
-            ValidPayment validPayment() const;
+        ValidPayment validPayment() const;
 
-            InvalidPayment invalidPayment() const;
+        InvalidPayment invalidPayment() const;
 
-            SellerJoined sellerJoined() const;
+        SellerJoined sellerJoined() const;
 
-            SellerInterruptedContract sellerInterruptedContract() const;
+        SellerInterruptedContract sellerInterruptedContract() const;
 
-            ReceivedFullPiece receivedFullPiece() const;
+        ReceivedFullPiece receivedFullPiece() const;
 
-            int MAX_PIECE_INDEX() const;
+        int MAX_PIECE_INDEX() const;
 
-            PeerModeAnnounced peerAnnouncedMode() const;
+        PeerModeAnnounced peerAnnouncedMode() const;
 
-        private:
+    private:
 
-            friend class Active;
-            friend class ServicingPieceRequest;
-            friend class SellerHasJoined;
-            friend class WaitingForFullPiece;
-            friend class ReadyForPieceRequest;
+        friend class Active;
+        friend class ServicingPieceRequest;
+        friend class SellerHasJoined;
+        friend class WaitingForFullPiece;
+        friend class ReadyForPieceRequest;
 
-            // Context actions
-            void peerToObserveMode();
-            void peerToSellMode(const SellerTerms &, uint32_t);
-            void peerToBuyMode(const BuyerTerms &);
+        // Context actions
+        void peerToObserveMode();
+        void peerToSellMode(const joystream::wire::SellerTerms &, uint32_t);
+        void peerToBuyMode(const joystream::wire::BuyerTerms &);
 
-            // Callbacks for classifier routines
-            InvitedToOutdatedContract _invitedToOutdatedContract;
-            InvitedToJoinContract _invitedToJoinContract;
-            Send _sendMessage;
-            ContractIsReady _contractIsReady;
-            PieceRequested _pieceRequested;
-            InvalidPieceRequested _invalidPieceRequested;
-            PeerInterruptedPayment _peerInterruptedPayment;
-            ValidPayment _validPayment;
-            InvalidPayment _invalidPayment;
-            SellerJoined _sellerJoined;
-            SellerInterruptedContract _sellerInterruptedContract;
-            ReceivedFullPiece _receivedFullPiece;
+        // Callbacks for classifier routines
+        InvitedToOutdatedContract _invitedToOutdatedContract;
+        InvitedToJoinContract _invitedToJoinContract;
+        Send _sendMessage;
+        ContractIsReady _contractIsReady;
+        PieceRequested _pieceRequested;
+        InvalidPieceRequested _invalidPieceRequested;
+        PeerInterruptedPayment _peerInterruptedPayment;
+        ValidPayment _validPayment;
+        InvalidPayment _invalidPayment;
+        SellerJoined _sellerJoined;
+        SellerInterruptedContract _sellerInterruptedContract;
+        ReceivedFullPiece _receivedFullPiece;
 
-            // Greatest valid piece index
-            int _MAX_PIECE_INDEX;
+        // Greatest valid piece index
+        int _MAX_PIECE_INDEX;
 
-            //// Peer state
-            //*** Just factor out modeannounced and index, dont save actual terms? ***
-            joystream::protocol::PeerModeAnnounced _peerAnnouncedMode;
-        };
-    }
+        //// Peer state
+        //*** Just factor out modeannounced and index, dont save actual terms? ***
+        joystream::protocol::PeerModeAnnounced _peerAnnouncedMode;
+    };
+}
 }
 }
 

@@ -8,9 +8,9 @@
 #ifndef SELLINGNAVIGATOR
 #define SELLINGNAVIGATOR
 
-#include <protocol/ContractInvitation.hpp>
-#include <protocol/SellerTerms.hpp>
-#include <protocol/BuyerTerms.hpp>
+#include <wire/ContractInvitation.hpp>
+#include <wire/SellerTerms.hpp>
+#include <wire/BuyerTerms.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -30,13 +30,13 @@ public:
     struct Fixture {
 
         // Peer (buyer) terms
-        BuyerTerms peerTerms;
+        joystream::wire::BuyerTerms peerTerms;
 
         // Client (seller) terms
-        SellerTerms clientTerms;
+        joystream::wire::SellerTerms clientTerms;
 
         //
-        ContractInvitation invitation;
+        joystream::wire::ContractInvitation invitation;
 
         //
 

@@ -9,7 +9,7 @@
 #define JOYSTREAM_PROTOCOL_STATEMACHINE_EVENT_BUYMODESTARTED_HPP
 
 #include <boost/statechart/event.hpp>
-#include <protocol/BuyerTerms.hpp>
+#include <wire/BuyerTerms.hpp>
 
 namespace sc = boost::statechart;
 
@@ -22,15 +22,15 @@ namespace event {
 
     public:
 
-        BuyModeStarted(const joystream::protocol::BuyerTerms  & terms);
+        BuyModeStarted(const joystream::wire::BuyerTerms  & terms);
 
         // Getters and setters
-        joystream::protocol::BuyerTerms terms() const;
-        void setTerms(const joystream::protocol::BuyerTerms &terms);
+        joystream::wire::BuyerTerms terms() const;
+        void setTerms(const joystream::wire::BuyerTerms &terms);
 
     private:
 
-        joystream::protocol::BuyerTerms _terms;
+        joystream::wire::BuyerTerms _terms;
 
     };
 

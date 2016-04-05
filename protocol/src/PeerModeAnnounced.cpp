@@ -19,12 +19,12 @@ namespace protocol {
         _modeAnnounced = ModeAnnounced::observe;
     }
 
-    void PeerModeAnnounced::toBuy(const BuyerTerms & t) {
+    void PeerModeAnnounced::toBuy(const wire::BuyerTerms & t) {
         _modeAnnounced = ModeAnnounced::buy;
         _buyModeTerms = t;
     }
 
-    void PeerModeAnnounced::toSell(const SellerTerms & t, uint32_t i) {
+    void PeerModeAnnounced::toSell(const wire::SellerTerms & t, uint32_t i) {
         _modeAnnounced = ModeAnnounced::sell;
         _sellModeTerms = t;
         _index = i;
@@ -38,19 +38,19 @@ namespace protocol {
         _modeAnnounced = announced;
     }
 
-    BuyerTerms PeerModeAnnounced::buyModeTerms() const {
+    wire::BuyerTerms PeerModeAnnounced::buyModeTerms() const {
         return _buyModeTerms;
     }
 
-    void PeerModeAnnounced::setBuyModeTerms(const BuyerTerms & t) {
+    void PeerModeAnnounced::setBuyModeTerms(const wire::BuyerTerms & t) {
         _buyModeTerms = t;
     }
 
-    SellerTerms PeerModeAnnounced::sellModeTerms() const {
+    wire::SellerTerms PeerModeAnnounced::sellModeTerms() const {
         return _sellModeTerms;
     }
 
-    void PeerModeAnnounced::setSellModeTerms(const SellerTerms & t) {
+    void PeerModeAnnounced::setSellModeTerms(const wire::SellerTerms & t) {
         _sellModeTerms = t;
     }
 

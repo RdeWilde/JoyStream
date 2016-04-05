@@ -6,10 +6,10 @@
  */
 
 #include <protocol/ObserverSession.hpp>
-#include <protocol/wire/Observe.hpp>
-#include <protocol/wire/Buy.hpp>
-#include <protocol/wire/Sell.hpp>
-#include <protocol/wire/MessageType.hpp>
+#include <wire/Observe.hpp>
+#include <wire/Buy.hpp>
+#include <wire/Sell.hpp>
+#include <wire/MessageType.hpp>
 #include <protocol/SellerSession.hpp>
 #include <protocol/SellerConnection.hpp>
 #include <protocol/SellerClientState.hpp>
@@ -50,7 +50,7 @@ namespace protocol {
             return false;
 
         // Send observer mode message
-        wire::Observe m;
+        joystream::wire::Observe m;
         connection.sendMessageCallbackHandler()(&m);
 
         // Store mapping
@@ -59,7 +59,7 @@ namespace protocol {
         return true;
     }
 
-    void ObserverSession::processMessageOnConnection(const std::string & name, const wire::ExtendedMessagePayload & message) {
+    void ObserverSession::processMessageOnConnection(const std::string & name, const joystream::wire::ExtendedMessagePayload & message) {
 
         // Check if we actually have a message
         std::map<std::string, Connection>::iterator i = _connections.find(name);
@@ -71,40 +71,40 @@ namespace protocol {
         Connection & connection = (*i).second;
 
         // Get message type, and process accordingly
-        wire::MessageType type = message.messageType();
+        joystream::wire::MessageType type = message.messageType();
 
-        if(type == wire::MessageType::observe) {
+        if(type == joystream::wire::MessageType::observe) {
 
             // Recover observe message
-            const wire::Observe & m = dynamic_cast<const wire::Observe &>(message);
+            const joystream::wire::Observe & m = dynamic_cast<const joystream::wire::Observe &>(message);
 
             // Process
             connection.process(m);
 
-        } else if(type == wire::MessageType::buy) {
+        } else if(type == joystream::wire::MessageType::buy) {
 
             // Recover buy message
-            const wire::Buy & m = dynamic_cast<const wire::Buy &>(message);
+            const joystream::wire::Buy & m = dynamic_cast<const joystream::wire::Buy &>(message);
 
             // Process
             connection.process(m);
 
-        } else if(type == wire::MessageType::sell) {
+        } else if(type == joystream::wire::MessageType::sell) {
 
             // Recover sell message
-            const wire::Sell & m = dynamic_cast<const wire::Sell &>(message);
+            const joystream::wire::Sell & m = dynamic_cast<const joystream::wire::Sell &>(message);
 
             // Process
             connection.process(m);
 
-        } else if(type == wire::MessageType::join_contract ||
-                  type == wire::MessageType::joining_contract ||
-                  type == wire::MessageType::sign_refund ||
-                  type == wire::MessageType::refund_signed ||
-                  type == wire::MessageType::ready ||
-                  type == wire::MessageType::request_full_piece ||
-                  type == wire::MessageType::full_piece ||
-                  type == wire::MessageType::payment) {
+        } else if(type == joystream::wire::MessageType::join_contract ||
+                  type == joystream::wire::MessageType::joining_contract ||
+                  type == joystream::wire::MessageType::sign_refund ||
+                  type == joystream::wire::MessageType::refund_signed ||
+                  type == joystream::wire::MessageType::ready ||
+                  type == joystream::wire::MessageType::request_full_piece ||
+                  type == joystream::wire::MessageType::full_piece ||
+                  type == joystream::wire::MessageType::payment) {
 
             // Ignore all other valid messages.
             // The only way thet can arrive from a non-malicious peer is as a result
@@ -120,11 +120,11 @@ namespace protocol {
 
     }
 
-    SellerSession * ObserverSession::switchToSellMode(const SellerTerms & terms, uint32_t numberOfPiecesInTorrent) const {
+    SellerSession * ObserverSession::switchToSellMode(const joystream::wire::SellerTerms & terms, uint32_t numberOfPiecesInTorrent) const {
         return SellerSession::convertToSellerSession(this, terms, numberOfPiecesInTorrent);
     }
 
-    BuyerSession * ObserverSession::switchToBuyMode(const BuyerTerms & terms, const Coin::UnspentP2PKHOutput & utxo, const std::vector<Piece> & pieces) const {
+    BuyerSession * ObserverSession::switchToBuyMode(const joystream::wire::BuyerTerms & terms, const Coin::UnspentP2PKHOutput & utxo, const std::vector<Piece> & pieces) const {
         return BuyerSession::convertToBuyerSession(this, terms, utxo, pieces);
     }
 

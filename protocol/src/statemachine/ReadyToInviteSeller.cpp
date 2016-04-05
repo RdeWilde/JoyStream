@@ -8,7 +8,7 @@
 #include <protocol/statemachine/ReadyToInviteSeller.hpp>
 #include <protocol/statemachine/exception/CannotInviteNonSeller.hpp>
 #include <protocol/statemachine/WaitingForSellerToJoin.hpp>
-#include <protocol/wire/JoinContract.hpp>
+#include <wire/JoinContract.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -35,7 +35,7 @@ namespace statemachine {
         Buying & buyingState = context<Buying>();
 
         // Get seller terms of peer
-        SellerTerms terms = announced.sellModeTerms();
+        joystream::wire::SellerTerms terms = announced.sellModeTerms();
 
         // and update payor based on seller terms
         buyingState._payor.setPrice(terms.minPrice());
@@ -48,7 +48,7 @@ namespace statemachine {
         buyingState._payor.setPayeeFinalPkHash(e.finalPkHash());
 
         // Send invitation message to seller
-        machine.sendMessage()(new wire::JoinContract(ContractInvitation(e.value(), e.buyerContractKeyPair().pk(), e.finalPkHash()), announced.index()));
+        machine.sendMessage()(new joystream::wire::JoinContract(joystream::wire::ContractInvitation(e.value(), e.buyerContractKeyPair().pk(), e.finalPkHash()), announced.index()));
 
         // Start waiting for the seller to join
         return transit<WaitingForSellerToJoin>();

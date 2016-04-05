@@ -16,7 +16,7 @@ WaitingToStart::WaitingToStart() {
     std::cout << "Entering WaitingToStart state." << std::endl;
 }
 
-sc::result WaitingToStart::react(const event::Recv<joystream::protocol::wire::Ready> & e) {
+sc::result WaitingToStart::react(const event::Recv<joystream::wire::Ready> & e) {
 
     std::cout << "Reacting to Recv<wire::Ready> event." << std::endl;
 

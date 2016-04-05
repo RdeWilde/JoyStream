@@ -37,7 +37,7 @@ namespace statemachine {
                                 sc::custom_reaction<detail::InitializeSelling>,
                                 sc::custom_reaction<event::ObserveModeStarted>,
                                 sc::custom_reaction<event::BuyModeStarted>,
-                                sc::custom_reaction<event::UpdateTerms<SellerTerms>>
+                                sc::custom_reaction<event::UpdateTerms<joystream::wire::SellerTerms>>
                                 > reactions;
 
         Selling();
@@ -46,7 +46,7 @@ namespace statemachine {
         sc::result react(const detail::InitializeSelling &);
         sc::result react(const event::ObserveModeStarted &);
         sc::result react(const event::BuyModeStarted &);
-        sc::result react(const event::UpdateTerms<SellerTerms> &);
+        sc::result react(const event::UpdateTerms<joystream::wire::SellerTerms> &);
 
         // Getters
         uint32_t index() const;
@@ -62,7 +62,7 @@ namespace statemachine {
         friend class WaitingForPayment;
 
         // Updates _payee based on terms
-        void updatePayeeTerms(const SellerTerms &);
+        void updatePayeeTerms(const joystream::wire::SellerTerms &);
 
         // Whether state has been initialized with detail::InitializeSelling
         bool _initialized;

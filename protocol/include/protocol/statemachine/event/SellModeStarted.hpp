@@ -9,7 +9,7 @@
 #define JOYSTREAM_PROTOCOL_STATEMACHINE_EVENT_SELLMODESTARTED_HPP
 
 #include <boost/statechart/event.hpp>
-#include <protocol/SellerTerms.hpp>
+#include <wire/SellerTerms.hpp>
 
 namespace sc = boost::statechart;
 
@@ -22,15 +22,15 @@ namespace event {
 
     public:
 
-        SellModeStarted(const joystream::protocol::SellerTerms & terms);
+        SellModeStarted(const joystream::wire::SellerTerms & terms);
 
         // Getters and setters
-        joystream::protocol::SellerTerms terms() const;
-        void setTerms(const joystream::protocol::SellerTerms &terms);
+        joystream::wire::SellerTerms terms() const;
+        void setTerms(const joystream::wire::SellerTerms &terms);
 
     private:
 
-        joystream::protocol::SellerTerms _terms;
+        joystream::wire::SellerTerms _terms;
     };
 
 }

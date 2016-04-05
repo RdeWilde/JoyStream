@@ -22,11 +22,11 @@ namespace Coin {
 }
 
 namespace joystream {
-namespace protocol {
+namespace wire {
+    class ExtendedMessagePayload;
+}
 
-    namespace wire {
-        class ExtendedMessagePayload;
-    }
+namespace protocol {
 
     class Connection;
 
@@ -56,7 +56,7 @@ namespace protocol {
         virtual bool removeConnection(const std::string & name);
 
         // Process extended message: does not take ownership of message
-        virtual void processMessageOnConnection(const std::string & name, const wire::ExtendedMessagePayload & message) = 0;
+        virtual void processMessageOnConnection(const std::string & name, const joystream::wire::ExtendedMessagePayload & message) = 0;
 
         // Perform non-reactive (that is not in response to message or control event) processing
         virtual void tick();

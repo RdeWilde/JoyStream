@@ -8,7 +8,7 @@
 #ifndef JOYSTREAM_PROTOCOL_STATE_MACHINE_DETAIL_INITIALIZEBUYING_HPP
 #define JOYSTREAM_PROTOCOL_STATE_MACHINE_DETAIL_INITIALIZEBUYING_HPP
 
-#include <protocol/BuyerTerms.hpp>
+#include <wire/BuyerTerms.hpp>
 #include <boost/statechart/event.hpp>
 
 namespace sc = boost::statechart;
@@ -22,14 +22,14 @@ namespace detail {
 
     public:
 
-        InitializeBuying(const BuyerTerms &);
+        InitializeBuying(const joystream::wire::BuyerTerms &);
 
         // Getters and setters
-        BuyerTerms terms() const;
+        joystream::wire::BuyerTerms terms() const;
 
     private:
 
-        BuyerTerms _terms;
+        joystream::wire::BuyerTerms _terms;
     };
 
 }

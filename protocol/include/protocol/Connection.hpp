@@ -14,21 +14,20 @@
 #include <functional>
 
 namespace joystream {
+namespace wire {
+    class ExtendedMessagePayload;
+    class Observe;
+    class Buy;
+    class Sell;
+}
 namespace protocol {
-
-    namespace wire {
-        class ExtendedMessagePayload;
-        class Observe;
-        class Buy;
-        class Sell;
-    }
 
     class Connection {
 
     public:
 
         // Callback handler for sending a message to the peer
-        typedef std::function<bool(const wire::ExtendedMessagePayload *)> SendMessageCallbackHandler;
+        typedef std::function<bool(const joystream::wire::ExtendedMessagePayload *)> SendMessageCallbackHandler;
 
         // Constructors
         Connection();
@@ -36,9 +35,9 @@ namespace protocol {
         Connection(const std::string & peerName, PeerModeAnnounced lastModeAnnouncedByPeer, const SendMessageCallbackHandler & sendMessageCallbackHandler);
 
         // Process given message
-        virtual void process(const wire::Observe & observe);
-        virtual void process(const wire::Buy & buy);
-        virtual void process(const wire::Sell & sell);
+        virtual void process(const joystream::wire::Observe & observe);
+        virtual void process(const joystream::wire::Buy & buy);
+        virtual void process(const joystream::wire::Sell & sell);
 
         // Getters
         std::string peerName() const;

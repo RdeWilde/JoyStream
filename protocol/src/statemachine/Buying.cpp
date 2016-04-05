@@ -66,7 +66,7 @@ namespace statemachine {
         return transit<Selling>();
     }
 
-    sc::result Buying::react(const event::UpdateTerms<BuyerTerms> & e) {
+    sc::result Buying::react(const event::UpdateTerms<joystream::wire::BuyerTerms> & e) {
 
         if(!_initialized)
             throw std::runtime_error("Selling state not initialized.");

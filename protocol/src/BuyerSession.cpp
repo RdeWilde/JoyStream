@@ -6,7 +6,7 @@
  */
 
 #include <protocol/BuyerSession.hpp>
-#include <protocol/wire/Buy.hpp>
+#include <wire/Buy.hpp>
 #include <cassert>
 
 namespace joystream {
@@ -18,7 +18,7 @@ namespace protocol {
                                const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                                const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
                                BuyerSessionState state,
-                               const BuyerTerms & terms,
+                               const joystream::wire::BuyerTerms & terms,
                                const std::vector<Seller> & sellers,
                                const std::vector<Piece> & pieces,
                                uint32_t assignmentLowerBound)
@@ -34,7 +34,7 @@ namespace protocol {
                                                     const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                                                     const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                                                     const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-                                                    const BuyerTerms & terms,
+                                                    const joystream::wire::BuyerTerms & terms,
                                                     const Coin::UnspentP2PKHOutput & utxo,
                                                     const Coin::P2PKHAddress & changeAddress,
                                                     const std::vector<Piece> & pieces) {
@@ -69,7 +69,7 @@ namespace protocol {
         BuyerConnection buyerConnection = BuyerConnection::createFreshConnection(connection);
 
         // Send sell mode message
-        wire::Buy m(_terms);
+        joystream::wire::Buy m(_terms);
         buyerConnection.sendMessageCallbackHandler()(&m);
 
         // Update state

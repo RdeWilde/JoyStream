@@ -70,7 +70,7 @@ namespace statemachine {
         return transit<Buying>();
     }
 
-    sc::result Selling::react(const event::UpdateTerms<SellerTerms> & e) {
+    sc::result Selling::react(const event::UpdateTerms<joystream::wire::SellerTerms> & e) {
 
         if(!_initialized)
             throw std::runtime_error("Selling state not initialized.");
@@ -94,7 +94,7 @@ namespace statemachine {
         return _index;
     }
 
-    void Selling::updatePayeeTerms(const SellerTerms & t) {
+    void Selling::updatePayeeTerms(const joystream::wire::SellerTerms & t) {
         _payee.setLockTime(t.minLock());
         _payee.setPrice(t.minPrice());
         _payee.setSettlementFee(t.settlementFee());

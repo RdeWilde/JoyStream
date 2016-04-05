@@ -16,12 +16,12 @@ namespace protocol {
 
     SellerConnection::SellerConnection(const Connection & connection,
                                        SellerClientState clientState,
-                                       const SellerTerms & terms,
+                                       const joystream::wire::SellerTerms & terms,
                                        const joystream::paymentchannel::Payee & payee,
                                        const std::queue<uint32_t> & fullPiecesSent,
-                                       const wire::SignRefund & lastSignRefundReceived,
-                                       const wire::Payment & lastPaymentReceived,
-                                       const wire::RequestFullPiece & lastRequestFullPieceReceived)
+                                       const joystream::wire::SignRefund & lastSignRefundReceived,
+                                       const joystream::wire::Payment & lastPaymentReceived,
+                                       const joystream::wire::RequestFullPiece & lastRequestFullPieceReceived)
         : Connection(connection)
         , _clientState(clientState)
         , _terms(terms)
@@ -33,7 +33,7 @@ namespace protocol {
     }
 
     SellerConnection SellerConnection::createFreshConnection(const Connection & connection,
-                                                             const SellerTerms & terms,
+                                                             const joystream::wire::SellerTerms & terms,
                                                              const Coin::KeyPair & payeeContractKeys,
                                                              const Coin::PubKeyHash & payeeFinalPubKeyHash) {
 
@@ -59,7 +59,7 @@ namespace protocol {
         _clientState = clientState;
     }
 
-    SellerTerms SellerConnection::terms() const {
+    joystream::wire::SellerTerms SellerConnection::terms() const {
         return _terms;
     }
 

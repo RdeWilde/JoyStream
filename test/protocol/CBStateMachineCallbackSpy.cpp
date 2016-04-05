@@ -6,7 +6,7 @@
  */
 
 #include <CBStateMachineCallbackSpy.hpp>
-#include <protocol/wire/ExtendedMessagePayload.hpp>
+#include <wire/ExtendedMessagePayload.hpp>
 
 CBStateMachineCallbackSpy::CBStateMachineCallbackSpy() {
 
@@ -20,12 +20,12 @@ CBStateMachine * CBStateMachineCallbackSpy::createMonitoredMachine(int MAX_PIECE
     [this](void) {
         _hasBeenInvitedToOutdatedContract = true;
     },
-    [this](const joystream::protocol::ContractInvitation & invitation) {
+    [this](const joystream::wire::ContractInvitation & invitation) {
         _hasBeenInvitedToJoinContract = true;
         _invitation = invitation;
     },
-    [this](const joystream::protocol::wire::ExtendedMessagePayload * m) {
-        std::cout << "Sending message: " <<  joystream::protocol::wire::MessageTypeToString(m->messageType()) << std::endl;
+    [this](const joystream::wire::ExtendedMessagePayload * m) {
+        std::cout << "Sending message: " <<  joystream::wire::MessageTypeToString(m->messageType()) << std::endl;
         _messageSent = true;
         _message = m;
     },
@@ -57,7 +57,7 @@ CBStateMachine * CBStateMachineCallbackSpy::createMonitoredMachine(int MAX_PIECE
     [this]() {
         _sellerHasInterruptedContract = true;
     },
-    [this](const joystream::protocol::PieceData & p) {
+    [this](const joystream::wire::PieceData & p) {
         _hasReceivedFullPiece = true;
         _pieceData = p;
     },
@@ -76,7 +76,7 @@ void CBStateMachineCallbackSpy::reset() {
 
     // InvitedToJoinContract
     _hasBeenInvitedToJoinContract = false;
-    _invitation = joystream::protocol::ContractInvitation();
+    _invitation = joystream::wire::ContractInvitation();
 
     // Send
     _messageSent = false;
@@ -115,7 +115,7 @@ void CBStateMachineCallbackSpy::reset() {
 
     // ReceivedFullPiece
     _hasReceivedFullPiece = false;
-    _pieceData = joystream::protocol::PieceData();
+    _pieceData = joystream::wire::PieceData();
 }
 
 bool CBStateMachineCallbackSpy::hasBeenInvitedToOutdatedContract() const {
@@ -148,7 +148,7 @@ bool CBStateMachineCallbackSpy::hasBeenInvitedToJoinContract() const {
            !_hasReceivedFullPiece;
 }
 
-joystream::protocol::ContractInvitation CBStateMachineCallbackSpy::invitation() const {
+joystream::wire::ContractInvitation CBStateMachineCallbackSpy::invitation() const {
     return _invitation;
 }
 
@@ -167,7 +167,7 @@ bool CBStateMachineCallbackSpy::messageSent() const {
            !_hasReceivedFullPiece;
 }
 
-const joystream::protocol::wire::ExtendedMessagePayload *CBStateMachineCallbackSpy::message() const {
+const joystream::wire::ExtendedMessagePayload *CBStateMachineCallbackSpy::message() const {
     return _message;
 }
 
@@ -322,6 +322,6 @@ bool CBStateMachineCallbackSpy::hasReceivedFullPiece() const {
            _hasReceivedFullPiece;
 }
 
-joystream::protocol::PieceData CBStateMachineCallbackSpy::pieceData() const {
+joystream::wire::PieceData CBStateMachineCallbackSpy::pieceData() const {
     return _pieceData;
 }

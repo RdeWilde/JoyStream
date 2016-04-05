@@ -33,7 +33,6 @@ HEADERS += \
     include/wire/SellerTerms.hpp \
     include/wire/BuyerTerms.hpp \
     include/wire/ContractInvitation.hpp \
-    include/wire/ModeAnnounced.hpp \
     include/wire/ContractRSVP.hpp \
     include/wire/PieceData.hpp \
 

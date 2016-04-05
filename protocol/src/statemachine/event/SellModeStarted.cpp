@@ -12,15 +12,15 @@ namespace protocol {
 namespace statemachine {
 namespace event {
 
-    SellModeStarted::SellModeStarted(const joystream::protocol::SellerTerms & terms)
+    SellModeStarted::SellModeStarted(const joystream::wire::SellerTerms & terms)
         : _terms(terms) {
     }
 
-    joystream::protocol::SellerTerms SellModeStarted::terms() const {
+    joystream::wire::SellerTerms SellModeStarted::terms() const {
         return _terms;
     }
 
-    void SellModeStarted::setTerms(const joystream::protocol::SellerTerms & terms) {
+    void SellModeStarted::setTerms(const joystream::wire::SellerTerms & terms) {
         _terms = terms;
     }
 

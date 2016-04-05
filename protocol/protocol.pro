@@ -15,21 +15,6 @@ QT      += core # !!!!!!!!!remove later when QDataStream is gone!!!!!!!!!!!!!!!!
 INCLUDEPATH += $$PWD/include # be able to include w.r.t root of this project
 
 HEADERS += \
-    include/protocol/wire/ExtendedMessagePayload.hpp \
-    include/protocol/wire/SignRefund.hpp \
-    include/protocol/wire/Sell.hpp \
-    include/protocol/wire/RequestFullPiece.hpp \
-    include/protocol/wire/RefundSigned.hpp \
-    include/protocol/wire/Ready.hpp \
-    include/protocol/wire/Payment.hpp \
-    include/protocol/wire/Observe.hpp \
-    include/protocol/wire/NoPayloadMessage.hpp \
-    include/protocol/wire/MessageType.hpp \
-    include/protocol/wire/JoiningContract.hpp \
-    include/protocol/wire/JoinContract.hpp \
-    include/protocol/wire/FullPiece.hpp \
-    include/protocol/wire/Buy.hpp \
-    include/protocol/wire/MessageType.hpp \
     include/protocol/Session.hpp \    
     include/protocol/Connection.hpp \
     include/protocol/Mode.hpp \
@@ -37,21 +22,17 @@ HEADERS += \
     include/protocol/Piece.hpp \
     include/protocol/SellerSession.hpp \
     include/protocol/SellerConnection.hpp \
-    include/protocol/SellerTerms.hpp \
     include/protocol/SellerClientState.hpp \
     include/protocol/BuyerSession.hpp \
     include/protocol/BuyerSessionState.hpp \
     include/protocol/BuyerConnection.hpp \
-    include/protocol/BuyerTerms.hpp \
     include/protocol/BuyerClientState.hpp \
     include/protocol/ObserverSession.hpp \
     include/protocol/Seller.hpp \
     include/protocol/Utilities.hpp \
     include/protocol/BuyerPayorSettings.hpp \
     include/protocol/BuyerChannelSettings.hpp \
-    include/protocol/ContractInvitation.hpp \
     include/protocol/ModeAnnounced.hpp \
-    include/protocol/ContractRSVP.hpp \
     include/protocol/statemachine/CBStateMachine.hpp \
     include/protocol/statemachine/ChooseMode.hpp \
     include/protocol/statemachine/event/ObserveModeStarted.hpp \
@@ -86,25 +67,10 @@ HEADERS += \
     include/protocol/statemachine/LoadingPiece.hpp \
     include/protocol/statemachine/WaitingForFullPiece.hpp \
     include/protocol/statemachine/ProcessingPiece.hpp \
-    include/protocol/PieceData.hpp \
     include/protocol/statemachine/event/SendPayment.hpp \
     include/protocol/statemachine/event/InvalidPieceReceived.hpp
 
 SOURCES += \
-    src/wire/ExtendedMessagePayload.cpp \
-    src/wire/SignRefund.cpp \
-    src/wire/Sell.cpp \
-    src/wire/RequestFullPiece.cpp \
-    src/wire/RefundSigned.cpp \
-    src/wire/Ready.cpp \
-    src/wire/Payment.cpp \
-    src/wire/NoPayloadMessage.cpp \
-    src/wire/MessageType.cpp \
-    src/wire/JoiningContract.cpp \
-    src/wire/JoinContract.cpp \
-    src/wire/FullPiece.cpp \
-    src/wire/Buy.cpp \
-    src/wire/Observe.cpp \
     src/PeerModeAnnounced.cpp \
     src/Connection.cpp \
     src/SellerSession.cpp \
@@ -113,14 +79,10 @@ SOURCES += \
     src/BuyerConnection.cpp \
     src/ObserverSession.cpp \
     src/Piece.cpp \
-    src/SellerTerms.cpp \
-    src/BuyerTerms.cpp \
     src/Seller.cpp \
     src/Utilities.cpp \
     src/BuyerChannelSettings.cpp \
     src/Session.cpp \
-    src/ContractInvitation.cpp \
-    src/ContractRSVP.cpp \
     src/statemachine/ServicingPieceRequest.cpp \
     src/statemachine/CBStateMachine.cpp \
     src/statemachine/event/SellModeStarted.cpp \
@@ -154,12 +116,15 @@ SOURCES += \
     src/statemachine/ReadyToRequestPiece.cpp \
     src/statemachine/LoadingPiece.cpp \
     src/statemachine/WaitingForFullPiece.cpp \
-    src/PieceData.cpp \
     src/statemachine/ProcessingPiece.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include
 DEPENDPATH += $$PWD/../common/include
+
+# wire
+INCLUDEPATH += $$PWD/../wire/include
+DEPENDPATH += $$PWD/../wire/include
 
 # paymentchannel
 INCLUDEPATH += $$PWD/../paymentchannel/include

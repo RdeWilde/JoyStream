@@ -16,12 +16,14 @@ namespace Coin {
 }
 
 namespace joystream {
+namespace wire {
+    class SellerTerms;
+    class BuyerTerms;
+}
 namespace protocol {
 
     class SellerSession;
-    class SellerTerms;
     class BuyerSession;
-    class BuyerTerms;
     class Piece;
 
     class ObserverSession : public Session<Connection> {
@@ -48,12 +50,12 @@ namespace protocol {
         // Add fresh connection with peer where only extended handshake has been sent
         bool addFreshConnection(const Connection & connection);
 
-        virtual void processMessageOnConnection(const std::string & name, const wire::ExtendedMessagePayload & message);
+        virtual void processMessageOnConnection(const std::string & name, const joystream::wire::ExtendedMessagePayload & message);
 
         // Returns session for corresponding new mode, after sending appropriate messages to all active peers,
         // and returned object is owned by callee.
-        SellerSession * switchToSellMode(const SellerTerms & terms, uint32_t numberOfPiecesInTorrent) const;
-        BuyerSession * switchToBuyMode(const BuyerTerms & terms, const Coin::UnspentP2PKHOutput & utxo, const std::vector<Piece> & pieces) const;
+        SellerSession * switchToSellMode(const joystream::wire::SellerTerms & terms, uint32_t numberOfPiecesInTorrent) const;
+        BuyerSession * switchToBuyMode(const joystream::wire::BuyerTerms & terms, const Coin::UnspentP2PKHOutput & utxo, const std::vector<Piece> & pieces) const;
 
     private:
     };

@@ -10,10 +10,10 @@
 
 #include <protocol/Connection.hpp>
 #include <protocol/SellerClientState.hpp>
-#include <protocol/SellerTerms.hpp>
-#include <protocol/wire/SignRefund.hpp>
-#include <protocol/wire/Payment.hpp>
-#include <protocol/wire/RequestFullPiece.hpp>
+#include <wire/SellerTerms.hpp>
+#include <wire/SignRefund.hpp>
+#include <wire/Payment.hpp>
+#include <wire/RequestFullPiece.hpp>
 #include <paymentchannel/Payee.hpp>
 
 #include <queue>
@@ -29,16 +29,16 @@ namespace protocol {
 
         SellerConnection(const Connection & connection,
                          SellerClientState clientState,
-                         const SellerTerms & terms,
+                         const joystream::wire::SellerTerms & terms,
                          const joystream::paymentchannel::Payee & payee,
                          const std::queue<uint32_t> & fullPiecesSent,
-                         const wire::SignRefund & lastSignRefundReceived,
-                         const wire::Payment & lastPaymentReceived,
-                         const wire::RequestFullPiece & lastRequestFullPieceReceived);
+                         const joystream::wire::SignRefund & lastSignRefundReceived,
+                         const joystream::wire::Payment & lastPaymentReceived,
+                         const joystream::wire::RequestFullPiece & lastRequestFullPieceReceived);
 
         // Construct connection without any prior state, i.e. has never had any message transmitted/received
         static SellerConnection createFreshConnection(const Connection & connection,
-                                                      const SellerTerms & terms,
+                                                      const joystream::wire::SellerTerms & terms,
                                                       const Coin::KeyPair & payeeContractKeys,
                                                       const Coin::PubKeyHash & payeeFinalPubKeyHash);
 
@@ -46,20 +46,20 @@ namespace protocol {
         SellerClientState clientState() const;
         void setClientState(const SellerClientState & clientState);
 
-        SellerTerms terms() const;
+        joystream::wire::SellerTerms terms() const;
 
         joystream::paymentchannel::Payee payee() const;
 
         std::queue<uint32_t> fullPiecesSent() const;
 
-        wire::SignRefund lastSignRefundReceived() const;
-        void setLastSignRefundReceived(const wire::SignRefund & lastSignRefundReceived);
+        joystream::wire::SignRefund lastSignRefundReceived() const;
+        void setLastSignRefundReceived(const joystream::wire::SignRefund & lastSignRefundReceived);
 
-        wire::Payment lastPaymentReceived() const;
-        void setLastPaymentReceived(const wire::Payment & lastPaymentReceived);
+        joystream::wire::Payment lastPaymentReceived() const;
+        void setLastPaymentReceived(const joystream::wire::Payment & lastPaymentReceived);
 
-        wire::RequestFullPiece lastRequestFullPieceReceived() const;
-        void setLastRequestFullPieceReceived(const wire::RequestFullPiece & lastRequestFullPieceReceived);
+        joystream::wire::RequestFullPiece lastRequestFullPieceReceived() const;
+        void setLastRequestFullPieceReceived(const joystream::wire::RequestFullPiece & lastRequestFullPieceReceived);
 
     private:
 
@@ -67,7 +67,7 @@ namespace protocol {
         SellerClientState _clientState;
 
         // Terms used on this connection
-        SellerTerms _terms;
+        joystream::wire::SellerTerms _terms;
 
         // Payee side of payment channel
         joystream::paymentchannel::Payee _payee;
@@ -77,9 +77,9 @@ namespace protocol {
 
         // Message payloads received
         // Is updated so long as it is state compatible, content may be invalid.
-        wire::SignRefund _lastSignRefundReceived;
-        wire::Payment _lastPaymentReceived; // May be invalid, the valid payment is saved in Payee
-        wire::RequestFullPiece _lastRequestFullPieceReceived;
+        joystream::wire::SignRefund _lastSignRefundReceived;
+        joystream::wire::Payment _lastPaymentReceived; // May be invalid, the valid payment is saved in Payee
+        joystream::wire::RequestFullPiece _lastRequestFullPieceReceived;
 
     };
 

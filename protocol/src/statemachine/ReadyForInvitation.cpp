@@ -47,7 +47,7 @@ namespace statemachine {
         } else {
 
             // Store invitation information in payee
-            ContractInvitation invitation = message->invitation();
+            joystream::wire::ContractInvitation invitation = message->invitation();
             sellingState._payee.setFunds(invitation.value());
             sellingState._payee.setPayorContractPk(invitation.contractPk());
             sellingState._payee.setPayorFinalPkHash(invitation.finalPkHash());

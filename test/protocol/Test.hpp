@@ -11,14 +11,14 @@
 #include <QtTest/QtTest>
 
 namespace joystream {
-namespace protocol {
-
+namespace wire {
     class SellerTerms;
     class BuyerTerms;
-
-    namespace statemachine {
-        class CBStateMachine;
-    }
+}
+namespace protocol {
+namespace statemachine {
+    class CBStateMachine;
+}
 }
 }
 
@@ -40,8 +40,8 @@ private slots:
 
 public:
 
-    static void peerToSellMode(statemachine::CBStateMachine *, const SellerTerms &, uint32_t);
-    static void peerToBuyMode(statemachine::CBStateMachine *, const BuyerTerms &);
+    static void peerToSellMode(statemachine::CBStateMachine *, const joystream::wire::SellerTerms &, uint32_t);
+    static void peerToBuyMode(statemachine::CBStateMachine *, const joystream::wire::BuyerTerms &);
     static void peerToObserveMode(statemachine::CBStateMachine *);
 };
 

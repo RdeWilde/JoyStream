@@ -24,7 +24,7 @@ namespace statemachine {
         Buying & buying = context<Buying>();
 
         // Update payor based on rsvp
-        ContractRSVP rsvp = e.message()->rsvp();
+        joystream::wire::ContractRSVP rsvp = e.message()->rsvp();
         buying._payor.setPayeeContractPk(rsvp.contractPk());
         buying._payor.setPayeeFinalPkHash(rsvp.finalPkHash());
 

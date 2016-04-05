@@ -9,9 +9,9 @@
 #define CBSTATEMACHINECALLBACKSPY
 
 #include <protocol/statemachine/CBStateMachine.hpp>
-#include <protocol/wire/MessageType.hpp>
-#include <protocol/ContractInvitation.hpp>
-#include <protocol/PieceData.hpp>
+#include <wire/MessageType.hpp>
+#include <wire/ContractInvitation.hpp>
+#include <wire/PieceData.hpp>
 #include <common/typesafeOutPoint.hpp>
 #include <common/Signature.hpp>
 
@@ -45,10 +45,10 @@ public:
     bool hasBeenInvitedToOutdatedContract() const;
 
     bool hasBeenInvitedToJoinContract() const;
-    joystream::protocol::ContractInvitation invitation() const;
+    joystream::wire::ContractInvitation invitation() const;
 
     bool messageSent() const;
-    const joystream::protocol::wire::ExtendedMessagePayload *message() const;
+    const joystream::wire::ExtendedMessagePayload *message() const;
 
     bool contractHasBeenPrepared() const;
     Coin::typesafeOutPoint anchor() const;
@@ -72,7 +72,7 @@ public:
 
     bool hasReceivedFullPiece() const;
 
-    joystream::protocol::PieceData pieceData() const;
+    joystream::wire::PieceData pieceData() const;
 
 private:
 
@@ -85,12 +85,12 @@ private:
 
     // InvitedToJoinContract
     bool _hasBeenInvitedToJoinContract;
-    joystream::protocol::ContractInvitation _invitation;
+    joystream::wire::ContractInvitation _invitation;
 
     // Send
     CBStateMachine::Send _send;
     bool _messageSent;
-    const joystream::protocol::wire::ExtendedMessagePayload * _message;
+    const joystream::wire::ExtendedMessagePayload * _message;
 
     // ContractIsReady
     bool _contractHasBeenPrepared;
@@ -122,7 +122,7 @@ private:
 
     // ReceivedFullPiece
     bool _hasReceivedFullPiece;
-    joystream::protocol::PieceData _pieceData;
+    joystream::wire::PieceData _pieceData;
 };
 
 #endif // CBSTATEMACHINECALLBACKSPY

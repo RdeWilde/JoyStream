@@ -10,7 +10,7 @@
 
 #include <protocol/statemachine/Selling.hpp>
 #include <protocol/statemachine/event/Recv.hpp>
-#include <protocol/wire/JoinContract.hpp>
+#include <wire/JoinContract.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -21,13 +21,13 @@ namespace statemachine {
     public:
 
         typedef boost::mpl::list<
-                                sc::custom_reaction<event::Recv<wire::JoinContract>>
+                                sc::custom_reaction<event::Recv<joystream::wire::JoinContract>>
                                 > reactions;
 
         ReadyForInvitation();
 
         // Event handlers
-        sc::result react(const event::Recv<wire::JoinContract> &);
+        sc::result react(const event::Recv<joystream::wire::JoinContract> &);
 
     };
 }

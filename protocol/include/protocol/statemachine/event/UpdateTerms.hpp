@@ -9,7 +9,7 @@
 #define JOYSTREAM_PROTOCOL_STATEMACHINE_UPDATETERMS_HPP
 
 #include <boost/statechart/event.hpp>
-#include <protocol/SellerTerms.hpp>
+#include <wire/SellerTerms.hpp>
 
 namespace sc = boost::statechart;
 

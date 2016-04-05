@@ -9,10 +9,10 @@
 
 using namespace joystream::protocol::statemachine::detail;
 
-InitializeBuying::InitializeBuying(const BuyerTerms & terms)
+InitializeBuying::InitializeBuying(const joystream::wire::BuyerTerms & terms)
     : _terms(terms) {
 }
 
-joystream::protocol::BuyerTerms InitializeBuying::terms() const {
+joystream::wire::BuyerTerms InitializeBuying::terms() const {
     return _terms;
 }

@@ -9,8 +9,8 @@
 #define JOYSTREAM_PROTOCOL_PEER_MODE_ANNOUNCED_HPP
 
 #include <protocol/ModeAnnounced.hpp>
-#include <protocol/BuyerTerms.hpp>
-#include <protocol/SellerTerms.hpp>
+#include <wire/BuyerTerms.hpp>
+#include <wire/SellerTerms.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -23,18 +23,18 @@ namespace protocol {
 
         // Mode change routines
         void toObserve();
-        void toBuy(const BuyerTerms &);
-        void toSell(const SellerTerms &, uint32_t );
+        void toBuy(const joystream::wire::BuyerTerms &);
+        void toSell(const joystream::wire::SellerTerms &, uint32_t );
 
         // Getters and setters
         ModeAnnounced modeAnnounced() const;
         void setModeAnnounced(const ModeAnnounced);
 
-        BuyerTerms buyModeTerms() const;
-        void setBuyModeTerms(const BuyerTerms &);
+        joystream::wire::BuyerTerms buyModeTerms() const;
+        void setBuyModeTerms(const joystream::wire::BuyerTerms &);
 
-        SellerTerms sellModeTerms() const;
-        void setSellModeTerms(const SellerTerms &);
+        joystream::wire::SellerTerms sellModeTerms() const;
+        void setSellModeTerms(const joystream::wire::SellerTerms &);
 
         uint32_t index() const;
         void setIndex(uint32_t index);
@@ -45,10 +45,10 @@ namespace protocol {
         ModeAnnounced _modeAnnounced;
 
         // Buy mode terms
-        BuyerTerms _buyModeTerms;
+        joystream::wire::BuyerTerms _buyModeTerms;
 
         // Sell mode terms
-        SellerTerms _sellModeTerms;
+        joystream::wire::SellerTerms _sellModeTerms;
 
         // Sell mode index
         uint32_t _index;

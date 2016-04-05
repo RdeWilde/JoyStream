@@ -10,7 +10,7 @@
 
 #include <protocol/Session.hpp>
 #include <protocol/SellerConnection.hpp>
-#include <protocol/SellerTerms.hpp>
+#include <wire/SellerTerms.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -30,7 +30,7 @@ namespace protocol {
                       const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                       const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                       const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-                      const SellerTerms & terms,
+                      const joystream::wire::SellerTerms & terms,
                       uint32_t numberOfPiecesInTorrent);
 
         // Construct session without any prior state
@@ -38,12 +38,12 @@ namespace protocol {
                                                   const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                                                   const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                                                   const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-                                                  const SellerTerms & terms,
+                                                  const joystream::wire::SellerTerms & terms,
                                                   uint32_t numberOfPiecesInTorrent);
 
         // Construct session based on preexisting session
         template <class T>
-        static SellerSession * convertToSellerSession(const Session<T> * session, const SellerTerms & terms, uint32_t numberOfPiecesInTorrent);
+        static SellerSession * convertToSellerSession(const Session<T> * session, const joystream::wire::SellerTerms & terms, uint32_t numberOfPiecesInTorrent);
 
         // Add fresh connection with peer where only extended handshake has been sent
         bool addFreshConnection(const Connection & connection, const Coin::KeyPair & payeeContractKeys, const Coin::PubKeyHash & payeeFinalPubKeyHash);
@@ -58,7 +58,7 @@ namespace protocol {
         ObserverSession * switchToObserveMode();
 
         // Update terms in the same mode
-        void updateTerms(const SellerTerms & terms);
+        void updateTerms(const joystream::wire::SellerTerms & terms);
 
         // stop selling (hard, or until last piece)
         // start buying
@@ -71,14 +71,14 @@ namespace protocol {
         // Terms for selling, all new connections will have these terms,
         // all existing ones which are beyond mode state will keep their own
         // terms for rest session (until potential reset)
-        SellerTerms _terms;
+        joystream::wire::SellerTerms _terms;
 
         // The number of pieces in the torrent in question
         uint32_t _numberOfPiecesInTorrent;
     };
 
     template <class T>
-    SellerSession * SellerSession::convertToSellerSession(const Session<T> * session, const SellerTerms & terms, uint32_t numberOfPiecesInTorrent) {
+    SellerSession * SellerSession::convertToSellerSession(const Session<T> * session, const joystream::wire::SellerTerms & terms, uint32_t numberOfPiecesInTorrent) {
 
         // Create (seller) session
         SellerSession * sellerSession = SellerSession::createFreshSession(session->network(),

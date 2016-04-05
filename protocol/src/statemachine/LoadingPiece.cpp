@@ -7,7 +7,7 @@
 
 #include <protocol/statemachine/LoadingPiece.hpp>
 #include <protocol/statemachine/WaitingForPayment.hpp>
-#include <protocol/wire/FullPiece.hpp>
+#include <wire/FullPiece.hpp>
 
 #include <iostream>
 
@@ -22,7 +22,7 @@ sc::result LoadingPiece::react(const event::PieceLoaded & e) {
     std::cout << "Reacting to PieceLoaded event." << std::endl;
 
     // Send piece
-    context<CBStateMachine>().sendMessage()(new wire::FullPiece(e.pieceData()));
+    context<CBStateMachine>().sendMessage()(new joystream::wire::FullPiece(e.pieceData()));
 
     // Transition to WaitingForPayment state
     return transit<WaitingForPayment>();

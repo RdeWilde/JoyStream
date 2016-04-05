@@ -8,7 +8,7 @@
 #include <protocol/SellerSession.hpp>
 #include <protocol/BuyerSession.hpp>
 #include <protocol/ObserverSession.hpp>
-#include <protocol/wire/Sell.hpp>
+#include <wire/Sell.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -18,7 +18,7 @@ namespace protocol {
                                  const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                                  const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                                  const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-                                 const SellerTerms & terms,
+                                 const joystream::wire::SellerTerms & terms,
                                  uint32_t numberOfPiecesInTorrent)
         : Session(Mode::sell, network, connections, removedConnectionCallbackHandler, generateKeyPairsCallbackHandler, generateP2PKHAddressesCallbackHandler)
         , _terms(terms)
@@ -29,7 +29,7 @@ namespace protocol {
                                                       const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
                                                       const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                                                       const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-                                                      const SellerTerms & terms,
+                                                      const joystream::wire::SellerTerms & terms,
                                                       uint32_t numberOfPiecesInTorrent) {
 
         return new SellerSession(network,
@@ -51,7 +51,7 @@ namespace protocol {
         SellerConnection sellerConnection = SellerConnection::createFreshConnection(connection, _terms, payeeContractKeys, payeeFinalPubKeyHash);
 
         // Send sell mode message
-        wire::Sell m(_terms, 0);
+        joystream::wire::Sell m(_terms, 0);
         sellerConnection.sendMessageCallbackHandler()(&m);
 
         // Update state of connection
@@ -90,7 +90,7 @@ namespace protocol {
         return 0;
     }
 
-    void SellerSession::updateTerms(const SellerTerms & terms) {
+    void SellerSession::updateTerms(const joystream::wire::SellerTerms & terms) {
 
         // Update terms which will be used for all new connections
         _terms = terms;
