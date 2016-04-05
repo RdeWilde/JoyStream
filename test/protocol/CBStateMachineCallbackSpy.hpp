@@ -48,7 +48,7 @@ public:
     joystream::wire::ContractInvitation invitation() const;
 
     bool messageSent() const;
-    const joystream::wire::ExtendedMessagePayload *message() const;
+    std::shared_ptr<const joystream::wire::ExtendedMessagePayload> message() const;
 
     bool contractHasBeenPrepared() const;
     Coin::typesafeOutPoint anchor() const;
@@ -90,7 +90,7 @@ private:
     // Send
     CBStateMachine::Send _send;
     bool _messageSent;
-    const joystream::wire::ExtendedMessagePayload * _message;
+    std::shared_ptr<const joystream::wire::ExtendedMessagePayload> _message;
 
     // ContractIsReady
     bool _contractHasBeenPrepared;

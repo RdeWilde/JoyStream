@@ -27,7 +27,7 @@ CBStateMachine * CBStateMachineCallbackSpy::createMonitoredMachine(int MAX_PIECE
     [this](const joystream::wire::ExtendedMessagePayload * m) {
         std::cout << "Sending message: " <<  joystream::wire::MessageTypeToString(m->messageType()) << std::endl;
         _messageSent = true;
-        _message = m;
+        _message.reset(m);
     },
     [this](const Coin::typesafeOutPoint & o) {
         _contractHasBeenPrepared = true;
@@ -80,10 +80,7 @@ void CBStateMachineCallbackSpy::reset() {
 
     // Send
     _messageSent = false;
-    if(_message != NULL) {
-        delete _message;
-        _message = NULL;
-    }
+    _message.reset();
 
     // ContractIsReady
     _contractHasBeenPrepared = false;
@@ -167,7 +164,7 @@ bool CBStateMachineCallbackSpy::messageSent() const {
            !_hasReceivedFullPiece;
 }
 
-const joystream::wire::ExtendedMessagePayload *CBStateMachineCallbackSpy::message() const {
+std::shared_ptr<const joystream::wire::ExtendedMessagePayload> CBStateMachineCallbackSpy::message() const {
     return _message;
 }
 
