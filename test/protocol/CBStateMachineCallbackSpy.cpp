@@ -44,12 +44,12 @@ CBStateMachine * CBStateMachineCallbackSpy::createMonitoredMachine(int MAX_PIECE
         _paymentInterrupted = true;
     },
     [this](const Coin::Signature & s) {
-        _receivedInvalidPayment = true;
-        _invalidPaymentSignature = s;
-    },
-    [this](const Coin::Signature & s) {
         _receivedValidPayment = true;
         _validPaymentSignature = s;
+    },
+    [this](const Coin::Signature & s) {
+        _receivedInvalidPayment = true;
+        _invalidPaymentSignature = s;
     },
     [this]() {
         _sellerHasJoined = true;
