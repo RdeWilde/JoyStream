@@ -24,11 +24,17 @@ sc::result ReadyForPieceRequest::react(const event::Recv<joystream::wire::Reques
     // and check that piece requested is valid
     int pieceIndex = e.message()->pieceIndex();
 
-    if(pieceIndex < 0 || pieceIndex >  machine.MAX_PIECE_INDEX())
-        machine.invalidPieceRequested()();
-    else
-        machine.pieceRequested()(pieceIndex);
+    // if not, send notification and terminate
+    if(pieceIndex < 0 || pieceIndex >  machine.MAX_PIECE_INDEX()) {
 
-    // Get ready to load the piece
+        machine.invalidPieceRequested()();
+
+        return terminate();
+    }
+
+    // otherwise send success notification, and
+    machine.pieceRequested()(pieceIndex);
+
+    // get ready to load the piece
     return transit<ServicingPieceRequest>();
 }
