@@ -73,7 +73,7 @@ Signature & Signature::operator=(const Signature & signature) {
     return *this;
 }
 
-bool Signature::operator==(const Signature & rhs) {
+bool Signature::operator==(const Signature & rhs) const {
     return _raw == rhs.raw();
 }
 

@@ -48,7 +48,7 @@ public:
     Signature & operator=(const Signature & signature);
 
     // Equality test
-    bool operator==(const Signature & rhs);
+    bool operator==(const Signature & rhs) const;
 
     // Length of signature
     unsigned int length() const;
