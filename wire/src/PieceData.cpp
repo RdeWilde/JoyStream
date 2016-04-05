@@ -33,6 +33,23 @@ namespace wire {
             throw std::runtime_error("Was unable to read full piece from stream.");
     }
 
+    bool PieceData::operator==(const PieceData & rhs) const {
+
+        // Compare lengths
+        if(_length != rhs.length())
+            return false;
+
+        // Compare raw data
+        const boost::shared_array<char> & rhsPiece = rhs.piece();
+        for(int i = 0;i < _length;i++) {
+
+            if(_piece[i] != rhsPiece[i])
+                return false;
+        }
+
+        return true;
+    }
+
     int PieceData::write(QDataStream & stream) const {
         return stream.writeRawData(_piece.get(), _length);
     }

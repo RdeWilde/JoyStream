@@ -25,6 +25,8 @@ namespace wire {
 
         PieceData(QDataStream &, int);
 
+        bool operator==(const PieceData &) const;
+
         int write(QDataStream &) const;
 
         boost::shared_array<char> piece() const;
