@@ -172,6 +172,48 @@ namespace odb
     callback (database&, const object_type&, callback_event);
   };
 
+  // BlockHeader
+  //
+  template <>
+  struct class_traits< ::joystream::bitcoin::detail::store::BlockHeader >
+  {
+    static const class_kind kind = class_object;
+  };
+
+  template <>
+  class access::object_traits< ::joystream::bitcoin::detail::store::BlockHeader >
+  {
+    public:
+    typedef ::joystream::bitcoin::detail::store::BlockHeader object_type;
+    typedef ::std::shared_ptr< ::joystream::bitcoin::detail::store::BlockHeader > pointer_type;
+    typedef odb::pointer_traits<pointer_type> pointer_traits;
+
+    static const bool polymorphic = false;
+
+    typedef ::std::string id_type;
+
+    static const bool auto_id = false;
+
+    static const bool abstract = false;
+
+    static id_type
+    id (const object_type&);
+
+    typedef
+    no_op_pointer_cache_traits<pointer_type>
+    pointer_cache_traits;
+
+    typedef
+    no_op_reference_cache_traits<object_type>
+    reference_cache_traits;
+
+    static void
+    callback (database&, object_type&, callback_event);
+
+    static void
+    callback (database&, const object_type&, callback_event);
+  };
+
   // Output
   //
   template <>
@@ -534,6 +576,25 @@ namespace odb
     static void
     callback (database&, const object_type&, callback_event);
   };
+
+  // outputs_view_t
+  //
+  template <>
+  struct class_traits< ::joystream::bitcoin::detail::store::outputs_view_t >
+  {
+    static const class_kind kind = class_view;
+  };
+
+  template <>
+  class access::view_traits< ::joystream::bitcoin::detail::store::outputs_view_t >
+  {
+    public:
+    typedef ::joystream::bitcoin::detail::store::outputs_view_t view_type;
+    typedef ::joystream::bitcoin::detail::store::outputs_view_t* pointer_type;
+
+    static void
+    callback (database&, view_type&, callback_event);
+  };
 }
 
 #include <odb/details/buffer.hxx>
@@ -735,6 +796,18 @@ namespace odb
     used_type_;
 
     static const used_type_ used;
+
+    // raw
+    //
+    typedef
+    sqlite::query_column<
+      sqlite::value_traits<
+        ::std::string,
+        sqlite::id_text >::query_type,
+      sqlite::id_text >
+    raw_type_;
+
+    static const raw_type_ raw;
   };
 
   template <typename A>
@@ -751,6 +824,11 @@ namespace odb
   const typename query_columns< ::joystream::bitcoin::detail::store::Key, id_sqlite, A >::used_type_
   query_columns< ::joystream::bitcoin::detail::store::Key, id_sqlite, A >::
   used (A::table_name, "\"used\"", 0);
+
+  template <typename A>
+  const typename query_columns< ::joystream::bitcoin::detail::store::Key, id_sqlite, A >::raw_type_
+  query_columns< ::joystream::bitcoin::detail::store::Key, id_sqlite, A >::
+  raw (A::table_name, "\"raw\"", 0);
 
   template <typename A>
   struct pointer_query_columns< ::joystream::bitcoin::detail::store::Key, id_sqlite, A >:
@@ -787,6 +865,12 @@ namespace odb
       //
       long long used_value;
       bool used_null;
+
+      // raw_
+      //
+      details::buffer raw_value;
+      std::size_t raw_size;
+      bool raw_null;
 
       std::size_t version;
     };
@@ -830,7 +914,7 @@ namespace odb
 
     typedef sqlite::query_base query_base_type;
 
-    static const std::size_t column_count = 3UL;
+    static const std::size_t column_count = 4UL;
     static const std::size_t id_column_count = 1UL;
     static const std::size_t inverse_column_count = 0UL;
     static const std::size_t readonly_column_count = 0UL;
@@ -1110,6 +1194,181 @@ namespace odb
   template <>
   class access::object_traits_impl< ::joystream::bitcoin::detail::store::Address, id_common >:
     public access::object_traits_impl< ::joystream::bitcoin::detail::store::Address, id_sqlite >
+  {
+  };
+
+  // BlockHeader
+  //
+  template <typename A>
+  struct query_columns< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite, A >
+  {
+    // id
+    //
+    typedef
+    sqlite::query_column<
+      sqlite::value_traits<
+        ::std::string,
+        sqlite::id_text >::query_type,
+      sqlite::id_text >
+    id_type_;
+
+    static const id_type_ id;
+
+    // height
+    //
+    typedef
+    sqlite::query_column<
+      sqlite::value_traits<
+        ::uint32_t,
+        sqlite::id_integer >::query_type,
+      sqlite::id_integer >
+    height_type_;
+
+    static const height_type_ height;
+  };
+
+  template <typename A>
+  const typename query_columns< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite, A >::id_type_
+  query_columns< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite, A >::
+  id (A::table_name, "\"id\"", 0);
+
+  template <typename A>
+  const typename query_columns< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite, A >::height_type_
+  query_columns< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite, A >::
+  height (A::table_name, "\"height\"", 0);
+
+  template <typename A>
+  struct pointer_query_columns< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite, A >:
+    query_columns< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite, A >
+  {
+  };
+
+  template <>
+  class access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >:
+    public access::object_traits< ::joystream::bitcoin::detail::store::BlockHeader >
+  {
+    public:
+    struct id_image_type
+    {
+      details::buffer id_value;
+      std::size_t id_size;
+      bool id_null;
+
+      std::size_t version;
+    };
+
+    struct image_type
+    {
+      // id_
+      //
+      details::buffer id_value;
+      std::size_t id_size;
+      bool id_null;
+
+      // height_
+      //
+      long long height_value;
+      bool height_null;
+
+      std::size_t version;
+    };
+
+    struct extra_statement_cache_type;
+
+    using object_traits<object_type>::id;
+
+    static id_type
+    id (const image_type&);
+
+    static bool
+    grow (image_type&,
+          bool*);
+
+    static void
+    bind (sqlite::bind*,
+          image_type&,
+          sqlite::statement_kind);
+
+    static void
+    bind (sqlite::bind*, id_image_type&);
+
+    static bool
+    init (image_type&,
+          const object_type&,
+          sqlite::statement_kind);
+
+    static void
+    init (object_type&,
+          const image_type&,
+          database*);
+
+    static void
+    init (id_image_type&, const id_type&);
+
+    typedef sqlite::object_statements<object_type> statements_type;
+
+    typedef sqlite::query_base query_base_type;
+
+    static const std::size_t column_count = 2UL;
+    static const std::size_t id_column_count = 1UL;
+    static const std::size_t inverse_column_count = 0UL;
+    static const std::size_t readonly_column_count = 1UL;
+    static const std::size_t managed_optimistic_column_count = 0UL;
+
+    static const std::size_t separate_load_column_count = 0UL;
+    static const std::size_t separate_update_column_count = 0UL;
+
+    static const bool versioned = false;
+
+    static const char persist_statement[];
+    static const char find_statement[];
+    static const char erase_statement[];
+    static const char query_statement[];
+    static const char erase_query_statement[];
+
+    static const char table_name[];
+
+    static void
+    persist (database&, const object_type&);
+
+    static pointer_type
+    find (database&, const id_type&);
+
+    static bool
+    find (database&, const id_type&, object_type&);
+
+    static bool
+    reload (database&, object_type&);
+
+    static void
+    update (database&, const object_type&);
+
+    static void
+    erase (database&, const id_type&);
+
+    static void
+    erase (database&, const object_type&);
+
+    static result<object_type>
+    query (database&, const query_base_type&);
+
+    static unsigned long long
+    erase_query (database&, const query_base_type&);
+
+    public:
+    static bool
+    find_ (statements_type&,
+           const id_type*);
+
+    static void
+    load_ (statements_type&,
+           object_type&,
+           bool reload);
+  };
+
+  template <>
+  class access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_common >:
+    public access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >
   {
   };
 
@@ -1644,7 +1903,7 @@ namespace odb
   // Transaction
   //
   template <typename A>
-  struct query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >
+  struct pointer_query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >
   {
     // txid
     //
@@ -1681,28 +1940,39 @@ namespace odb
     lockTime_type_;
 
     static const lockTime_type_ lockTime;
+
+    // header
+    //
+    typedef
+    sqlite::query_column<
+      sqlite::value_traits<
+        ::std::string,
+        sqlite::id_text >::query_type,
+      sqlite::id_text >
+    header_type_;
+
+    static const header_type_ header;
   };
 
   template <typename A>
-  const typename query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >::txid_type_
-  query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >::
+  const typename pointer_query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >::txid_type_
+  pointer_query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >::
   txid (A::table_name, "\"txid\"", 0);
 
   template <typename A>
-  const typename query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >::version_type_
-  query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >::
+  const typename pointer_query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >::version_type_
+  pointer_query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >::
   version (A::table_name, "\"version\"", 0);
 
   template <typename A>
-  const typename query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >::lockTime_type_
-  query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >::
+  const typename pointer_query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >::lockTime_type_
+  pointer_query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >::
   lockTime (A::table_name, "\"lockTime\"", 0);
 
   template <typename A>
-  struct pointer_query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >:
-    query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >
-  {
-  };
+  const typename pointer_query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >::header_type_
+  pointer_query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >::
+  header (A::table_name, "\"header\"", 0);
 
   template <>
   class access::object_traits_impl< ::joystream::bitcoin::detail::store::Transaction, id_sqlite >:
@@ -1736,10 +2006,18 @@ namespace odb
       long long lockTime_value;
       bool lockTime_null;
 
+      // header_
+      //
+      details::buffer header_value;
+      std::size_t header_size;
+      bool header_null;
+
       std::size_t version;
     };
 
     struct extra_statement_cache_type;
+
+    struct header_tag;
 
     using object_traits<object_type>::id;
 
@@ -1775,7 +2053,7 @@ namespace odb
 
     typedef sqlite::query_base query_base_type;
 
-    static const std::size_t column_count = 3UL;
+    static const std::size_t column_count = 4UL;
     static const std::size_t id_column_count = 1UL;
     static const std::size_t inverse_column_count = 0UL;
     static const std::size_t readonly_column_count = 2UL;
@@ -1788,6 +2066,7 @@ namespace odb
 
     static const char persist_statement[];
     static const char find_statement[];
+    static const char update_statement[];
     static const char erase_statement[];
     static const char query_statement[];
     static const char erase_query_statement[];
@@ -2593,7 +2872,7 @@ namespace odb
           const image_type&,
           database*);
 
-    static const std::size_t column_count = 3UL;
+    static const std::size_t column_count = 4UL;
 
     static query_base_type
     query_statement (const query_base_type&);
@@ -3111,6 +3390,70 @@ namespace odb
   {
   };
 
+  // outputs_view_t
+  //
+  template <>
+  class access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >:
+    public access::view_traits< ::joystream::bitcoin::detail::store::outputs_view_t >
+  {
+    public:
+    struct image_type
+    {
+      // output
+      //
+      object_traits_impl< ::joystream::bitcoin::detail::store::Output, id_sqlite >::image_type output_value;
+
+      // address
+      //
+      object_traits_impl< ::joystream::bitcoin::detail::store::Address, id_sqlite >::image_type address_value;
+
+      // outpoint
+      //
+      object_traits_impl< ::joystream::bitcoin::detail::store::TxHasOutput, id_sqlite >::image_type outpoint_value;
+
+      std::size_t version;
+    };
+
+    typedef sqlite::view_statements<view_type> statements_type;
+
+    struct address_tag;
+    struct output_tx_tag;
+    struct output_block_tag;
+    struct spending_tx_tag;
+
+    typedef sqlite::query_base query_base_type;
+    struct query_columns;
+
+    static const bool versioned = false;
+
+    static bool
+    grow (image_type&,
+          bool*);
+
+    static void
+    bind (sqlite::bind*,
+          image_type&);
+
+    static void
+    init (view_type&,
+          const image_type&,
+          database*);
+
+    static const std::size_t column_count = 12UL;
+
+    static query_base_type
+    query_statement (const query_base_type&);
+
+    static result<view_type>
+    query (database&, const query_base_type&);
+  };
+
+  template <>
+  class access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_common >:
+    public access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >
+  {
+  };
+
   // Metadata
   //
   // Key
@@ -3228,6 +3571,8 @@ namespace odb
   query_columns< ::joystream::bitcoin::detail::store::Address, id_sqlite, A >::
   scriptPubKey (A::table_name, "\"scriptPubKey\"", 0);
 
+  // BlockHeader
+  //
   // Output
   //
   template <>
@@ -3343,6 +3688,117 @@ namespace odb
   //
   // Transaction
   //
+  template <>
+  struct alias_traits<
+    ::joystream::bitcoin::detail::store::BlockHeader,
+    id_sqlite,
+    access::object_traits_impl< ::joystream::bitcoin::detail::store::Transaction, id_sqlite >::header_tag>
+  {
+    static const char table_name[];
+  };
+
+  template <>
+  struct query_columns_base< ::joystream::bitcoin::detail::store::Transaction, id_sqlite >
+  {
+    // header
+    //
+    typedef
+    odb::alias_traits<
+      ::joystream::bitcoin::detail::store::BlockHeader,
+      id_sqlite,
+      access::object_traits_impl< ::joystream::bitcoin::detail::store::Transaction, id_sqlite >::header_tag>
+    header_alias_;
+  };
+
+  template <typename A>
+  struct query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >:
+    query_columns_base< ::joystream::bitcoin::detail::store::Transaction, id_sqlite >
+  {
+    // txid
+    //
+    typedef
+    sqlite::query_column<
+      sqlite::value_traits<
+        ::std::string,
+        sqlite::id_text >::query_type,
+      sqlite::id_text >
+    txid_type_;
+
+    static const txid_type_ txid;
+
+    // version
+    //
+    typedef
+    sqlite::query_column<
+      sqlite::value_traits<
+        ::uint32_t,
+        sqlite::id_integer >::query_type,
+      sqlite::id_integer >
+    version_type_;
+
+    static const version_type_ version;
+
+    // lockTime
+    //
+    typedef
+    sqlite::query_column<
+      sqlite::value_traits<
+        ::uint32_t,
+        sqlite::id_integer >::query_type,
+      sqlite::id_integer >
+    lockTime_type_;
+
+    static const lockTime_type_ lockTime;
+
+    // header
+    //
+    typedef
+    sqlite::query_column<
+      sqlite::value_traits<
+        ::std::string,
+        sqlite::id_text >::query_type,
+      sqlite::id_text >
+    header_column_type_;
+
+    typedef
+    odb::query_pointer<
+      odb::pointer_query_columns<
+        ::joystream::bitcoin::detail::store::BlockHeader,
+        id_sqlite,
+        header_alias_ > >
+    header_pointer_type_;
+
+    struct header_type_: header_pointer_type_, header_column_type_
+    {
+      header_type_ (const char* t, const char* c, const char* conv)
+        : header_column_type_ (t, c, conv)
+      {
+      }
+    };
+
+    static const header_type_ header;
+  };
+
+  template <typename A>
+  const typename query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >::txid_type_
+  query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >::
+  txid (A::table_name, "\"txid\"", 0);
+
+  template <typename A>
+  const typename query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >::version_type_
+  query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >::
+  version (A::table_name, "\"version\"", 0);
+
+  template <typename A>
+  const typename query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >::lockTime_type_
+  query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >::
+  lockTime (A::table_name, "\"lockTime\"", 0);
+
+  template <typename A>
+  const typename query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >::header_type_
+  query_columns< ::joystream::bitcoin::detail::store::Transaction, id_sqlite, A >::
+  header (A::table_name, "\"header\"", 0);
+
   // TxHasInput
   //
   template <>
@@ -4114,6 +4570,127 @@ namespace odb
   const typename query_columns< ::joystream::bitcoin::detail::store::OutBoundPayment, id_sqlite, A >::changeAddress_type_
   query_columns< ::joystream::bitcoin::detail::store::OutBoundPayment, id_sqlite, A >::
   changeAddress (A::table_name, "\"changeAddress\"", 0);
+
+  // outputs_view_t
+  //
+  template <>
+  struct alias_traits<
+    ::joystream::bitcoin::detail::store::Address,
+    id_sqlite,
+    access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >::address_tag>
+  {
+    static const char table_name[];
+  };
+
+  template <>
+  struct alias_traits<
+    ::joystream::bitcoin::detail::store::Transaction,
+    id_sqlite,
+    access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >::output_tx_tag>
+  {
+    static const char table_name[];
+  };
+
+  template <>
+  struct alias_traits<
+    ::joystream::bitcoin::detail::store::BlockHeader,
+    id_sqlite,
+    access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >::output_block_tag>
+  {
+    static const char table_name[];
+  };
+
+  template <>
+  struct alias_traits<
+    ::joystream::bitcoin::detail::store::Transaction,
+    id_sqlite,
+    access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >::spending_tx_tag>
+  {
+    static const char table_name[];
+  };
+
+  struct access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >::query_columns
+  {
+    // Output
+    //
+    typedef
+    odb::pointer_query_columns<
+      ::joystream::bitcoin::detail::store::Output,
+      id_sqlite,
+      odb::access::object_traits_impl< ::joystream::bitcoin::detail::store::Output, id_sqlite > >
+    Output;
+
+    // address
+    //
+    typedef
+    odb::pointer_query_columns<
+      ::joystream::bitcoin::detail::store::Address,
+      id_sqlite,
+      odb::alias_traits< ::joystream::bitcoin::detail::store::Address,
+        id_sqlite,
+        access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >::address_tag> >
+    address;
+
+    // TxHasOutput
+    //
+    typedef
+    odb::pointer_query_columns<
+      ::joystream::bitcoin::detail::store::TxHasOutput,
+      id_sqlite,
+      odb::access::object_traits_impl< ::joystream::bitcoin::detail::store::TxHasOutput, id_sqlite > >
+    TxHasOutput;
+
+    // output_tx
+    //
+    typedef
+    odb::pointer_query_columns<
+      ::joystream::bitcoin::detail::store::Transaction,
+      id_sqlite,
+      odb::alias_traits< ::joystream::bitcoin::detail::store::Transaction,
+        id_sqlite,
+        access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >::output_tx_tag> >
+    output_tx;
+
+    // output_block
+    //
+    typedef
+    odb::pointer_query_columns<
+      ::joystream::bitcoin::detail::store::BlockHeader,
+      id_sqlite,
+      odb::alias_traits< ::joystream::bitcoin::detail::store::BlockHeader,
+        id_sqlite,
+        access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >::output_block_tag> >
+    output_block;
+
+    // Input
+    //
+    typedef
+    odb::pointer_query_columns<
+      ::joystream::bitcoin::detail::store::Input,
+      id_sqlite,
+      odb::access::object_traits_impl< ::joystream::bitcoin::detail::store::Input, id_sqlite > >
+    Input;
+
+    // TxHasInput
+    //
+    typedef
+    odb::pointer_query_columns<
+      ::joystream::bitcoin::detail::store::TxHasInput,
+      id_sqlite,
+      odb::access::object_traits_impl< ::joystream::bitcoin::detail::store::TxHasInput, id_sqlite > >
+    TxHasInput;
+
+    // spending_tx
+    //
+    typedef
+    odb::pointer_query_columns<
+      ::joystream::bitcoin::detail::store::Transaction,
+      id_sqlite,
+      odb::alias_traits< ::joystream::bitcoin::detail::store::Transaction,
+        id_sqlite,
+        access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >::spending_tx_tag> >
+    spending_tx;
+  };
 }
 
 #include "Schema-odb.ixx"

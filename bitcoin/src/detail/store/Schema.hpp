@@ -75,6 +75,8 @@ public:
     uint32_t generated() const;
     bool used() const;
     void used(bool);
+    Coin::PrivateKey getPrivateKey() const { return Coin::PrivateKey(uchar_vector(raw_)); }
+    void setPrivateKey(Coin::PrivateKey sk) { raw_ = sk.toHex().toStdString(); }
 
 private:
     friend class odb::access;
@@ -84,6 +86,7 @@ private:
     //utc unix timestamp: QDateTime::fromTime_t(created_) to convert to QDateTime local time
     uint32_t generated_;
     bool used_;
+    std::string raw_; //hex encoded raw private key
 };
 
 /*
@@ -114,6 +117,30 @@ private:
 
     #pragma db not_null
     std::string scriptPubKey_;//to lookup outputs to this address
+};
+
+/*
+ * BlockHeader
+ */
+
+#pragma db object pointer(std::shared_ptr)
+class BlockHeader : public std::enable_shared_from_this<BlockHeader> {
+public:
+    std::shared_ptr<BlockHeader> get_shared_ptr() { return shared_from_this(); }
+    BlockHeader() {}
+    BlockHeader(const ChainMerkleBlock &header);
+
+    std::string id() const { return id_; }
+    uint32_t height() const { return height_; }
+
+private:
+    friend class odb::access;
+
+    #pragma db id
+    std::string id_; //block hash hex-string
+
+    #pragma db index unique readonly
+    uint32_t height_;
 };
 
 /*
@@ -229,17 +256,24 @@ public:
     std::string txid() { return txid_; }
     uint32_t version() const { return version_; }
     uint32_t locktime() const { return lockTime_; }
+    void header(std::shared_ptr<BlockHeader> block) { header_ = block; }
+    std::shared_ptr<BlockHeader> header() const { return header_; }
 
 private:
     friend class odb::access;
 
     #pragma db id
     std::string txid_; //reverse byte order
+
     #pragma db readonly
     uint32_t version_;
+
     #pragma db readonly
     uint32_t lockTime_;
+
     //uint32_t seen_;
+    #pragma db null
+    std::shared_ptr<BlockHeader> header_;
 
 };
 
@@ -394,75 +428,6 @@ private:
 };
 
 #ifdef USE_STORE_ALPHA_CODE
-#pragma db value
-struct block_header_t {
-    uint32_t version_;
-    std::string prevBlockHash_;
-    std::string merkelRoot_;
-    uint32_t timestamp_;
-    uint32_t bits_;
-    uint32_t nonce_;
-};
-
-#pragma db object pointer(std::shared_ptr)
-class BlockHeader : public std::enable_shared_from_this<BlockHeader> {
-public:
-    std::shared_ptr<BlockHeader> get_shared_ptr() { return shared_from_this(); }
-    BlockHeader() {}
-    BlockHeader(const ChainHeader &header);
-
-    void onMainChain(bool on_main_chain) { isOnMainChain = on_main_chain; }
-    std::string id() { return id_; }
-
-private:
-    friend class odb::access;
-
-    #pragma db id
-    std::string id_;
-
-    #pragma db index unique not_null readonly
-    block_header_t header_;
-
-    uint32_t transactionCount;
-    #pragma db readonly
-    std::string totalProofOfWork;//hex convert from BigInt
-    //to compute tx confirmations (provided we get the current chain's most recent block's height)
-    #pragma db readonly
-    uint32_t height_;
-
-    //updated by SPV client on re-org
-    bool isOnMainChain;
-};
-
-#pragma db value
-struct tx_block_t {
-    #pragma db not_null
-    std::shared_ptr<Transaction> tx_;
-    #pragma db not_null
-    std::shared_ptr<BlockHeader> block_;
-};
-
-#pragma db object pointer(std::shared_ptr)
-class TransactionMinedInBlock : public std::enable_shared_from_this<TransactionMinedInBlock> {
-public:
-    std::shared_ptr<TransactionMinedInBlock> get_shared_ptr() { return shared_from_this(); }
-    TransactionMinedInBlock() {}
-    TransactionMinedInBlock(std::shared_ptr<Transaction> tx, std::shared_ptr<BlockHeader> header);
-    std::string txid() const { return tx_block_.tx_->txid(); }
-
-private:
-    friend class odb::access;
-
-    #pragma db id auto
-    uint32_t id_;
-
-    #pragma db index unique
-    tx_block_t tx_block_;
-
-    std::string merkelBranch_;
-    uint32_t index_;
-};
-
 #pragma db object pointer(std::shared_ptr)
 class Payer : public std::enable_shared_from_this<Payer> {
 public:
@@ -567,36 +532,29 @@ private:
     std::string payerFinalPublicKey_;
     std::shared_ptr<Transaction> paymentTransaction_;
 };
-
+#endif //store alpha code
 
 #pragma db view object(Output) \
-    object(Address) \
+    object(Address = address) \
     object(TxHasOutput) \
     object(Transaction = output_tx) \
-    object(TransactionMinedInBlock = output_tx_mined ) \
-    object(BlockHeader = output_block ) \
+    object(BlockHeader = output_block) \
     object(Input : TxHasOutput::tx_ix_.index_ == Input::id_.op_index_ && \
                    TxHasOutput::tx_ix_.tx ==  Input::id_.op_txid_ ) \
     object(TxHasInput: TxHasInput::input_) \
-    object(Transaction = spending_tx : TxHasInput::tx_ix_.tx) \
-    object(TransactionMinedInBlock = spending_tx_mined : spending_tx_mined::tx_block_.tx_ == spending_tx::txid_ ) \
-    object(BlockHeader = spending_block : spending_tx_mined::tx_block_.block_ )
+    object(Transaction = spending_tx : TxHasInput::tx_ix_.tx)
 typedef struct {
 
     std::shared_ptr<Output> output;
+    std::shared_ptr<Address> address;
+    std::shared_ptr<TxHasOutput> outpoint;
+
+    uint32_t index() { return outpoint->index(); }
+    std::string txid() { return outpoint->txid(); }
     uint64_t value() { return output->value(); }
+    uint32_t keyIndex() { return address->key()->id(); }
 
 } outputs_view_t;
-
-//all blocks a transaction is mined in / query by transaction = tx_in_block::tx_block_.tx_
-#pragma db view object(TransactionMinedInBlock = tx_in_block) \
-    object(BlockHeader : tx_in_block::tx_block_.block_)
-typedef struct {
-    std::shared_ptr<BlockHeader> header;
-} block_headers_view_t;
-
-#endif //store alpha code
-
 
 }//store
 }//detail

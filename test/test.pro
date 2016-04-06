@@ -13,4 +13,6 @@ SUBDIRS     = \
             blockcypher \ 
             mixpanel \
             blockcypher-websocket \
-            blockcypher-wallet
+            blockcypher-wallet \
+            spv-wallet \
+            spv-wallet-client

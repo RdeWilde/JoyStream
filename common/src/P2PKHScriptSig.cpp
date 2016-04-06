@@ -32,6 +32,37 @@ uchar_vector P2PKHScriptSig::serialized() const {
 
 }
 
+P2PKHScriptSig P2PKHScriptSig::deserialize(const uchar_vector & rawScript) {
+    uchar_vector rawTxSignatureAndCode;
+    uchar_vector rawPublicKey;
+
+    int nextData = popData(rawScript, rawTxSignatureAndCode);
+
+    if(nextData > 0) {
+        popData(uchar_vector(&rawScript[nextData], &rawScript[rawScript.size()]), rawPublicKey);
+    }
+
+    if(rawTxSignatureAndCode.size() == 0) {
+        throw std::runtime_error("error deserializing p2pkhScriptSig: missing signature.");
+    }
+
+    if(rawPublicKey.size() != COMPRESSED_PUBLIC_KEY_BYTE_LENGTH) {
+        throw std::runtime_error("error deserializing p2pkhScriptSig: no valid public key");
+    }
+
+    Signature signature(uchar_vector(&rawTxSignatureAndCode[0], &rawTxSignatureAndCode[rawTxSignatureAndCode.size()-1]));
+
+    uint32_t hashCode = rawTxSignatureAndCode[rawTxSignatureAndCode.size()-1];
+
+    TransactionSignature txSignature(signature, Coin::SigHashType::fromHashCode(hashCode));
+
+    PublicKey pubKey(rawPublicKey);
+
+    P2PKHScriptSig script(pubKey, txSignature);
+
+    return script;
+}
+
 PublicKey P2PKHScriptSig::pk() const {
     return _pk;
 }

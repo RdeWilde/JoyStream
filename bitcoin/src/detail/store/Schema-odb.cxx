@@ -427,6 +427,14 @@ namespace odb
     //
     t[2UL] = false;
 
+    // raw_
+    //
+    if (t[3UL])
+    {
+      i.raw_value.capacity (i.raw_size);
+      grew = true;
+    }
+
     return grew;
   }
 
@@ -463,6 +471,17 @@ namespace odb
     b[n].type = sqlite::bind::integer;
     b[n].buffer = &i.used_value;
     b[n].is_null = &i.used_null;
+    n++;
+
+    // raw_
+    //
+    b[n].type = sqlite::image_traits<
+      ::std::string,
+      sqlite::id_text>::bind_value;
+    b[n].buffer = i.raw_value.data ();
+    b[n].size = &i.raw_size;
+    b[n].capacity = i.raw_value.capacity ();
+    b[n].is_null = &i.raw_null;
     n++;
   }
 
@@ -537,6 +556,25 @@ namespace odb
       i.used_null = is_null;
     }
 
+    // raw_
+    //
+    {
+      ::std::string const& v =
+        o.raw_;
+
+      bool is_null (false);
+      std::size_t cap (i.raw_value.capacity ());
+      sqlite::value_traits<
+          ::std::string,
+          sqlite::id_text >::set_image (
+        i.raw_value,
+        i.raw_size,
+        is_null,
+        v);
+      i.raw_null = is_null;
+      grew = grew || (cap != i.raw_value.capacity ());
+    }
+
     return grew;
   }
 
@@ -590,6 +628,21 @@ namespace odb
         i.used_value,
         i.used_null);
     }
+
+    // raw_
+    //
+    {
+      ::std::string& v =
+        o.raw_;
+
+      sqlite::value_traits<
+          ::std::string,
+          sqlite::id_text >::set_value (
+        v,
+        i.raw_value,
+        i.raw_size,
+        i.raw_null);
+    }
   }
 
   void access::object_traits_impl< ::joystream::bitcoin::detail::store::Key, id_sqlite >::
@@ -611,15 +664,17 @@ namespace odb
   "INSERT INTO \"Key\" "
   "(\"index\", "
   "\"generated\", "
-  "\"used\") "
+  "\"used\", "
+  "\"raw\") "
   "VALUES "
-  "(?, ?, ?)";
+  "(?, ?, ?, ?)";
 
   const char access::object_traits_impl< ::joystream::bitcoin::detail::store::Key, id_sqlite >::find_statement[] =
   "SELECT "
   "\"Key\".\"index\", "
   "\"Key\".\"generated\", "
-  "\"Key\".\"used\" "
+  "\"Key\".\"used\", "
+  "\"Key\".\"raw\" "
   "FROM \"Key\" "
   "WHERE \"Key\".\"index\"=?";
 
@@ -627,7 +682,8 @@ namespace odb
   "UPDATE \"Key\" "
   "SET "
   "\"generated\"=?, "
-  "\"used\"=? "
+  "\"used\"=?, "
+  "\"raw\"=? "
   "WHERE \"index\"=?";
 
   const char access::object_traits_impl< ::joystream::bitcoin::detail::store::Key, id_sqlite >::erase_statement[] =
@@ -638,7 +694,8 @@ namespace odb
   "SELECT "
   "\"Key\".\"index\", "
   "\"Key\".\"generated\", "
-  "\"Key\".\"used\" "
+  "\"Key\".\"used\", "
+  "\"Key\".\"raw\" "
   "FROM \"Key\"";
 
   const char access::object_traits_impl< ::joystream::bitcoin::detail::store::Key, id_sqlite >::erase_query_statement[] =
@@ -943,6 +1000,20 @@ namespace odb
     st.execute ();
     auto_result ar (st);
     select_statement::result r (st.fetch ());
+
+    if (r == select_statement::truncated)
+    {
+      if (grow (im, sts.select_image_truncated ()))
+        im.version++;
+
+      if (im.version != sts.select_image_version ())
+      {
+        bind (imb.bind, im, statement_select);
+        sts.select_image_version (im.version);
+        imb.version++;
+        st.refetch ();
+      }
+    }
 
     return r != select_statement::no_data;
   }
@@ -1787,6 +1858,586 @@ namespace odb
   }
 
   unsigned long long access::object_traits_impl< ::joystream::bitcoin::detail::store::Address, id_sqlite >::
+  erase_query (database&, const query_base_type& q)
+  {
+    using namespace sqlite;
+
+    sqlite::connection& conn (
+      sqlite::transaction::current ().connection ());
+
+    std::string text (erase_query_statement);
+    if (!q.empty ())
+    {
+      text += ' ';
+      text += q.clause ();
+    }
+
+    q.init_parameters ();
+    delete_statement st (
+      conn,
+      text,
+      q.parameters_binding ());
+
+    return st.execute ();
+  }
+
+  // BlockHeader
+  //
+
+  struct access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::extra_statement_cache_type
+  {
+    extra_statement_cache_type (
+      sqlite::connection&,
+      image_type&,
+      id_image_type&,
+      sqlite::binding&,
+      sqlite::binding&)
+    {
+    }
+  };
+
+  access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::id_type
+  access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::
+  id (const image_type& i)
+  {
+    sqlite::database* db (0);
+    ODB_POTENTIALLY_UNUSED (db);
+
+    id_type id;
+    {
+      sqlite::value_traits<
+          ::std::string,
+          sqlite::id_text >::set_value (
+        id,
+        i.id_value,
+        i.id_size,
+        i.id_null);
+    }
+
+    return id;
+  }
+
+  bool access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::
+  grow (image_type& i,
+        bool* t)
+  {
+    ODB_POTENTIALLY_UNUSED (i);
+    ODB_POTENTIALLY_UNUSED (t);
+
+    bool grew (false);
+
+    // id_
+    //
+    if (t[0UL])
+    {
+      i.id_value.capacity (i.id_size);
+      grew = true;
+    }
+
+    // height_
+    //
+    t[1UL] = false;
+
+    return grew;
+  }
+
+  void access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::
+  bind (sqlite::bind* b,
+        image_type& i,
+        sqlite::statement_kind sk)
+  {
+    ODB_POTENTIALLY_UNUSED (sk);
+
+    using namespace sqlite;
+
+    std::size_t n (0);
+
+    // id_
+    //
+    if (sk != statement_update)
+    {
+      b[n].type = sqlite::image_traits<
+        ::std::string,
+        sqlite::id_text>::bind_value;
+      b[n].buffer = i.id_value.data ();
+      b[n].size = &i.id_size;
+      b[n].capacity = i.id_value.capacity ();
+      b[n].is_null = &i.id_null;
+      n++;
+    }
+
+    // height_
+    //
+    if (sk != statement_update)
+    {
+      b[n].type = sqlite::bind::integer;
+      b[n].buffer = &i.height_value;
+      b[n].is_null = &i.height_null;
+      n++;
+    }
+  }
+
+  void access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::
+  bind (sqlite::bind* b, id_image_type& i)
+  {
+    std::size_t n (0);
+    b[n].type = sqlite::image_traits<
+      ::std::string,
+      sqlite::id_text>::bind_value;
+    b[n].buffer = i.id_value.data ();
+    b[n].size = &i.id_size;
+    b[n].capacity = i.id_value.capacity ();
+    b[n].is_null = &i.id_null;
+  }
+
+  bool access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::
+  init (image_type& i,
+        const object_type& o,
+        sqlite::statement_kind sk)
+  {
+    ODB_POTENTIALLY_UNUSED (i);
+    ODB_POTENTIALLY_UNUSED (o);
+    ODB_POTENTIALLY_UNUSED (sk);
+
+    using namespace sqlite;
+
+    bool grew (false);
+
+    // id_
+    //
+    if (sk == statement_insert)
+    {
+      ::std::string const& v =
+        o.id_;
+
+      bool is_null (false);
+      std::size_t cap (i.id_value.capacity ());
+      sqlite::value_traits<
+          ::std::string,
+          sqlite::id_text >::set_image (
+        i.id_value,
+        i.id_size,
+        is_null,
+        v);
+      i.id_null = is_null;
+      grew = grew || (cap != i.id_value.capacity ());
+    }
+
+    // height_
+    //
+    if (sk == statement_insert)
+    {
+      ::uint32_t const& v =
+        o.height_;
+
+      bool is_null (false);
+      sqlite::value_traits<
+          ::uint32_t,
+          sqlite::id_integer >::set_image (
+        i.height_value,
+        is_null,
+        v);
+      i.height_null = is_null;
+    }
+
+    return grew;
+  }
+
+  void access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::
+  init (object_type& o,
+        const image_type& i,
+        database* db)
+  {
+    ODB_POTENTIALLY_UNUSED (o);
+    ODB_POTENTIALLY_UNUSED (i);
+    ODB_POTENTIALLY_UNUSED (db);
+
+    // id_
+    //
+    {
+      ::std::string& v =
+        o.id_;
+
+      sqlite::value_traits<
+          ::std::string,
+          sqlite::id_text >::set_value (
+        v,
+        i.id_value,
+        i.id_size,
+        i.id_null);
+    }
+
+    // height_
+    //
+    {
+      ::uint32_t& v =
+        o.height_;
+
+      sqlite::value_traits<
+          ::uint32_t,
+          sqlite::id_integer >::set_value (
+        v,
+        i.height_value,
+        i.height_null);
+    }
+  }
+
+  void access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::
+  init (id_image_type& i, const id_type& id)
+  {
+    bool grew (false);
+    {
+      bool is_null (false);
+      std::size_t cap (i.id_value.capacity ());
+      sqlite::value_traits<
+          ::std::string,
+          sqlite::id_text >::set_image (
+        i.id_value,
+        i.id_size,
+        is_null,
+        id);
+      i.id_null = is_null;
+      grew = grew || (cap != i.id_value.capacity ());
+    }
+
+    if (grew)
+      i.version++;
+  }
+
+  const char access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::persist_statement[] =
+  "INSERT INTO \"BlockHeader\" "
+  "(\"id\", "
+  "\"height\") "
+  "VALUES "
+  "(?, ?)";
+
+  const char access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::find_statement[] =
+  "SELECT "
+  "\"BlockHeader\".\"id\", "
+  "\"BlockHeader\".\"height\" "
+  "FROM \"BlockHeader\" "
+  "WHERE \"BlockHeader\".\"id\"=?";
+
+  const char access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::erase_statement[] =
+  "DELETE FROM \"BlockHeader\" "
+  "WHERE \"id\"=?";
+
+  const char access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::query_statement[] =
+  "SELECT "
+  "\"BlockHeader\".\"id\", "
+  "\"BlockHeader\".\"height\" "
+  "FROM \"BlockHeader\"";
+
+  const char access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::erase_query_statement[] =
+  "DELETE FROM \"BlockHeader\"";
+
+  const char access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::table_name[] =
+  "\"BlockHeader\"";
+
+  void access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::
+  persist (database& db, const object_type& obj)
+  {
+    ODB_POTENTIALLY_UNUSED (db);
+
+    using namespace sqlite;
+
+    sqlite::connection& conn (
+      sqlite::transaction::current ().connection ());
+    statements_type& sts (
+      conn.statement_cache ().find_object<object_type> ());
+
+    callback (db,
+              obj,
+              callback_event::pre_persist);
+
+    image_type& im (sts.image ());
+    binding& imb (sts.insert_image_binding ());
+
+    if (init (im, obj, statement_insert))
+      im.version++;
+
+    if (im.version != sts.insert_image_version () ||
+        imb.version == 0)
+    {
+      bind (imb.bind, im, statement_insert);
+      sts.insert_image_version (im.version);
+      imb.version++;
+    }
+
+    insert_statement& st (sts.persist_statement ());
+    if (!st.execute ())
+      throw object_already_persistent ();
+
+    callback (db,
+              obj,
+              callback_event::post_persist);
+  }
+
+  void access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::
+  update (database& db, const object_type& obj)
+  {
+    ODB_POTENTIALLY_UNUSED (db);
+
+    using namespace sqlite;
+    using sqlite::update_statement;
+
+    callback (db, obj, callback_event::pre_update);
+
+    callback (db, obj, callback_event::post_update);
+    pointer_cache_traits::update (db, obj);
+  }
+
+  void access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::
+  erase (database& db, const id_type& id)
+  {
+    using namespace sqlite;
+
+    ODB_POTENTIALLY_UNUSED (db);
+
+    sqlite::connection& conn (
+      sqlite::transaction::current ().connection ());
+    statements_type& sts (
+      conn.statement_cache ().find_object<object_type> ());
+
+    id_image_type& i (sts.id_image ());
+    init (i, id);
+
+    binding& idb (sts.id_image_binding ());
+    if (i.version != sts.id_image_version () || idb.version == 0)
+    {
+      bind (idb.bind, i);
+      sts.id_image_version (i.version);
+      idb.version++;
+    }
+
+    if (sts.erase_statement ().execute () != 1)
+      throw object_not_persistent ();
+
+    pointer_cache_traits::erase (db, id);
+  }
+
+  access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::pointer_type
+  access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::
+  find (database& db, const id_type& id)
+  {
+    using namespace sqlite;
+
+    {
+      pointer_type p (pointer_cache_traits::find (db, id));
+
+      if (!pointer_traits::null_ptr (p))
+        return p;
+    }
+
+    sqlite::connection& conn (
+      sqlite::transaction::current ().connection ());
+    statements_type& sts (
+      conn.statement_cache ().find_object<object_type> ());
+
+    statements_type::auto_lock l (sts);
+
+    if (l.locked ())
+    {
+      if (!find_ (sts, &id))
+        return pointer_type ();
+    }
+
+    pointer_type p (
+      access::object_factory<object_type, pointer_type>::create ());
+    pointer_traits::guard pg (p);
+
+    pointer_cache_traits::insert_guard ig (
+      pointer_cache_traits::insert (db, id, p));
+
+    object_type& obj (pointer_traits::get_ref (p));
+
+    if (l.locked ())
+    {
+      select_statement& st (sts.find_statement ());
+      ODB_POTENTIALLY_UNUSED (st);
+
+      callback (db, obj, callback_event::pre_load);
+      init (obj, sts.image (), &db);
+      load_ (sts, obj, false);
+      sts.load_delayed (0);
+      l.unlock ();
+      callback (db, obj, callback_event::post_load);
+      pointer_cache_traits::load (ig.position ());
+    }
+    else
+      sts.delay_load (id, obj, ig.position ());
+
+    ig.release ();
+    pg.release ();
+    return p;
+  }
+
+  bool access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::
+  find (database& db, const id_type& id, object_type& obj)
+  {
+    using namespace sqlite;
+
+    sqlite::connection& conn (
+      sqlite::transaction::current ().connection ());
+    statements_type& sts (
+      conn.statement_cache ().find_object<object_type> ());
+
+    statements_type::auto_lock l (sts);
+
+    if (!find_ (sts, &id))
+      return false;
+
+    select_statement& st (sts.find_statement ());
+    ODB_POTENTIALLY_UNUSED (st);
+
+    reference_cache_traits::position_type pos (
+      reference_cache_traits::insert (db, id, obj));
+    reference_cache_traits::insert_guard ig (pos);
+
+    callback (db, obj, callback_event::pre_load);
+    init (obj, sts.image (), &db);
+    load_ (sts, obj, false);
+    sts.load_delayed (0);
+    l.unlock ();
+    callback (db, obj, callback_event::post_load);
+    reference_cache_traits::load (pos);
+    ig.release ();
+    return true;
+  }
+
+  bool access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::
+  reload (database& db, object_type& obj)
+  {
+    using namespace sqlite;
+
+    sqlite::connection& conn (
+      sqlite::transaction::current ().connection ());
+    statements_type& sts (
+      conn.statement_cache ().find_object<object_type> ());
+
+    statements_type::auto_lock l (sts);
+
+    const id_type& id  (
+      obj.id_);
+
+    if (!find_ (sts, &id))
+      return false;
+
+    select_statement& st (sts.find_statement ());
+    ODB_POTENTIALLY_UNUSED (st);
+
+    callback (db, obj, callback_event::pre_load);
+    init (obj, sts.image (), &db);
+    load_ (sts, obj, true);
+    sts.load_delayed (0);
+    l.unlock ();
+    callback (db, obj, callback_event::post_load);
+    return true;
+  }
+
+  bool access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::
+  find_ (statements_type& sts,
+         const id_type* id)
+  {
+    using namespace sqlite;
+
+    id_image_type& i (sts.id_image ());
+    init (i, *id);
+
+    binding& idb (sts.id_image_binding ());
+    if (i.version != sts.id_image_version () || idb.version == 0)
+    {
+      bind (idb.bind, i);
+      sts.id_image_version (i.version);
+      idb.version++;
+    }
+
+    image_type& im (sts.image ());
+    binding& imb (sts.select_image_binding ());
+
+    if (im.version != sts.select_image_version () ||
+        imb.version == 0)
+    {
+      bind (imb.bind, im, statement_select);
+      sts.select_image_version (im.version);
+      imb.version++;
+    }
+
+    select_statement& st (sts.find_statement ());
+
+    st.execute ();
+    auto_result ar (st);
+    select_statement::result r (st.fetch ());
+
+    if (r == select_statement::truncated)
+    {
+      if (grow (im, sts.select_image_truncated ()))
+        im.version++;
+
+      if (im.version != sts.select_image_version ())
+      {
+        bind (imb.bind, im, statement_select);
+        sts.select_image_version (im.version);
+        imb.version++;
+        st.refetch ();
+      }
+    }
+
+    return r != select_statement::no_data;
+  }
+
+  result< access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::object_type >
+  access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::
+  query (database&, const query_base_type& q)
+  {
+    using namespace sqlite;
+    using odb::details::shared;
+    using odb::details::shared_ptr;
+
+    sqlite::connection& conn (
+      sqlite::transaction::current ().connection ());
+
+    statements_type& sts (
+      conn.statement_cache ().find_object<object_type> ());
+
+    image_type& im (sts.image ());
+    binding& imb (sts.select_image_binding ());
+
+    if (im.version != sts.select_image_version () ||
+        imb.version == 0)
+    {
+      bind (imb.bind, im, statement_select);
+      sts.select_image_version (im.version);
+      imb.version++;
+    }
+
+    std::string text (query_statement);
+    if (!q.empty ())
+    {
+      text += " ";
+      text += q.clause ();
+    }
+
+    q.init_parameters ();
+    shared_ptr<select_statement> st (
+      new (shared) select_statement (
+        conn,
+        text,
+        false,
+        true,
+        q.parameters_binding (),
+        imb));
+
+    st->execute ();
+
+    shared_ptr< odb::object_result_impl<object_type> > r (
+      new (shared) sqlite::object_result_impl<object_type> (
+        q, st, sts, 0));
+
+    return result<object_type> (r);
+  }
+
+  unsigned long long access::object_traits_impl< ::joystream::bitcoin::detail::store::BlockHeader, id_sqlite >::
   erase_query (database&, const query_base_type& q)
   {
     using namespace sqlite;
@@ -3358,6 +4009,11 @@ namespace odb
   // Transaction
   //
 
+  const char alias_traits<  ::joystream::bitcoin::detail::store::BlockHeader,
+    id_sqlite,
+    access::object_traits_impl< ::joystream::bitcoin::detail::store::Transaction, id_sqlite >::header_tag>::
+  table_name[] = "\"header\"";
+
   struct access::object_traits_impl< ::joystream::bitcoin::detail::store::Transaction, id_sqlite >::extra_statement_cache_type
   {
     extra_statement_cache_type (
@@ -3416,6 +4072,14 @@ namespace odb
     //
     t[2UL] = false;
 
+    // header_
+    //
+    if (t[3UL])
+    {
+      i.header_value.capacity (i.header_size);
+      grew = true;
+    }
+
     return grew;
   }
 
@@ -3463,6 +4127,17 @@ namespace odb
       b[n].is_null = &i.lockTime_null;
       n++;
     }
+
+    // header_
+    //
+    b[n].type = sqlite::image_traits<
+      ::std::string,
+      sqlite::id_text>::bind_value;
+    b[n].buffer = i.header_value.data ();
+    b[n].size = &i.header_size;
+    b[n].capacity = i.header_value.capacity ();
+    b[n].is_null = &i.header_null;
+    n++;
   }
 
   void access::object_traits_impl< ::joystream::bitcoin::detail::store::Transaction, id_sqlite >::
@@ -3545,6 +4220,36 @@ namespace odb
       i.lockTime_null = is_null;
     }
 
+    // header_
+    //
+    {
+      ::std::shared_ptr< ::joystream::bitcoin::detail::store::BlockHeader > const& v =
+        o.header_;
+
+      typedef object_traits< ::joystream::bitcoin::detail::store::BlockHeader > obj_traits;
+      typedef odb::pointer_traits< ::std::shared_ptr< ::joystream::bitcoin::detail::store::BlockHeader > > ptr_traits;
+
+      bool is_null (ptr_traits::null_ptr (v));
+      if (!is_null)
+      {
+        const obj_traits::id_type& id (
+          obj_traits::id (ptr_traits::get_ref (v)));
+
+        std::size_t cap (i.header_value.capacity ());
+        sqlite::value_traits<
+            obj_traits::id_type,
+            sqlite::id_text >::set_image (
+          i.header_value,
+          i.header_size,
+          is_null,
+          id);
+        i.header_null = is_null;
+        grew = grew || (cap != i.header_value.capacity ());
+      }
+      else
+        i.header_null = true;
+    }
+
     return grew;
   }
 
@@ -3599,6 +4304,38 @@ namespace odb
         i.lockTime_value,
         i.lockTime_null);
     }
+
+    // header_
+    //
+    {
+      ::std::shared_ptr< ::joystream::bitcoin::detail::store::BlockHeader >& v =
+        o.header_;
+
+      typedef object_traits< ::joystream::bitcoin::detail::store::BlockHeader > obj_traits;
+      typedef odb::pointer_traits< ::std::shared_ptr< ::joystream::bitcoin::detail::store::BlockHeader > > ptr_traits;
+
+      if (i.header_null)
+        v = ptr_traits::pointer_type ();
+      else
+      {
+        obj_traits::id_type id;
+        sqlite::value_traits<
+            obj_traits::id_type,
+            sqlite::id_text >::set_value (
+          id,
+          i.header_value,
+          i.header_size,
+          i.header_null);
+
+        // If a compiler error points to the line below, then
+        // it most likely means that a pointer used in a member
+        // cannot be initialized from an object pointer.
+        //
+        v = ptr_traits::pointer_type (
+          static_cast<sqlite::database*> (db)->load<
+            obj_traits::object_type > (id));
+      }
+    }
   }
 
   void access::object_traits_impl< ::joystream::bitcoin::detail::store::Transaction, id_sqlite >::
@@ -3627,28 +4364,38 @@ namespace odb
   "INSERT INTO \"Transaction\" "
   "(\"txid\", "
   "\"version\", "
-  "\"lockTime\") "
+  "\"lockTime\", "
+  "\"header\") "
   "VALUES "
-  "(?, ?, ?)";
+  "(?, ?, ?, ?)";
 
   const char access::object_traits_impl< ::joystream::bitcoin::detail::store::Transaction, id_sqlite >::find_statement[] =
   "SELECT "
   "\"Transaction\".\"txid\", "
   "\"Transaction\".\"version\", "
-  "\"Transaction\".\"lockTime\" "
+  "\"Transaction\".\"lockTime\", "
+  "\"Transaction\".\"header\" "
   "FROM \"Transaction\" "
   "WHERE \"Transaction\".\"txid\"=?";
+
+  const char access::object_traits_impl< ::joystream::bitcoin::detail::store::Transaction, id_sqlite >::update_statement[] =
+  "UPDATE \"Transaction\" "
+  "SET "
+  "\"header\"=? "
+  "WHERE \"txid\"=?";
 
   const char access::object_traits_impl< ::joystream::bitcoin::detail::store::Transaction, id_sqlite >::erase_statement[] =
   "DELETE FROM \"Transaction\" "
   "WHERE \"txid\"=?";
 
   const char access::object_traits_impl< ::joystream::bitcoin::detail::store::Transaction, id_sqlite >::query_statement[] =
-  "SELECT "
-  "\"Transaction\".\"txid\", "
-  "\"Transaction\".\"version\", "
-  "\"Transaction\".\"lockTime\" "
-  "FROM \"Transaction\"";
+  "SELECT\n"
+  "\"Transaction\".\"txid\",\n"
+  "\"Transaction\".\"version\",\n"
+  "\"Transaction\".\"lockTime\",\n"
+  "\"Transaction\".\"header\"\n"
+  "FROM \"Transaction\"\n"
+  "LEFT JOIN \"BlockHeader\" AS \"header\" ON \"header\".\"id\"=\"Transaction\".\"header\"";
 
   const char access::object_traits_impl< ::joystream::bitcoin::detail::store::Transaction, id_sqlite >::erase_query_statement[] =
   "DELETE FROM \"Transaction\"";
@@ -3704,6 +4451,53 @@ namespace odb
     using sqlite::update_statement;
 
     callback (db, obj, callback_event::pre_update);
+
+    sqlite::transaction& tr (sqlite::transaction::current ());
+    sqlite::connection& conn (tr.connection ());
+    statements_type& sts (
+      conn.statement_cache ().find_object<object_type> ());
+
+    const id_type& id (
+      obj.txid_);
+    id_image_type& idi (sts.id_image ());
+    init (idi, id);
+
+    image_type& im (sts.image ());
+    if (init (im, obj, statement_update))
+      im.version++;
+
+    bool u (false);
+    binding& imb (sts.update_image_binding ());
+    if (im.version != sts.update_image_version () ||
+        imb.version == 0)
+    {
+      bind (imb.bind, im, statement_update);
+      sts.update_image_version (im.version);
+      imb.version++;
+      u = true;
+    }
+
+    binding& idb (sts.id_image_binding ());
+    if (idi.version != sts.update_id_image_version () ||
+        idb.version == 0)
+    {
+      if (idi.version != sts.id_image_version () ||
+          idb.version == 0)
+      {
+        bind (idb.bind, idi);
+        sts.id_image_version (idi.version);
+        idb.version++;
+      }
+
+      sts.update_id_image_version (idi.version);
+
+      if (!u)
+        imb.version++;
+    }
+
+    update_statement& st (sts.update_statement ());
+    if (st.execute () == 0)
+      throw object_not_persistent ();
 
     callback (db, obj, callback_event::post_update);
     pointer_cache_traits::update (db, obj);
@@ -3936,7 +4730,7 @@ namespace odb
     std::string text (query_statement);
     if (!q.empty ())
     {
-      text += " ";
+      text += "\n";
       text += q.clause ();
     }
 
@@ -3945,7 +4739,7 @@ namespace odb
       new (shared) select_statement (
         conn,
         text,
-        false,
+        true,
         true,
         q.parameters_binding (),
         imb));
@@ -5847,7 +6641,7 @@ namespace odb
     //
     object_traits_impl< ::joystream::bitcoin::detail::store::Key, id_sqlite >::bind (
       b + n, i.key_value, sk);
-    n += 3UL;
+    n += 4UL;
   }
 
   void access::view_traits_impl< ::joystream::bitcoin::detail::store::key_view_t, id_sqlite >::
@@ -5933,7 +6727,8 @@ namespace odb
       "SELECT "
       "\"key\".\"index\", "
       "\"key\".\"generated\", "
-      "\"key\".\"used\" ");
+      "\"key\".\"used\", "
+      "\"key\".\"raw\" ");
 
     r += "FROM \"Key\" AS \"key\"";
 
@@ -7691,6 +8486,392 @@ namespace odb
 
     return st.execute ();
   }
+
+  // outputs_view_t
+  //
+
+  const char alias_traits<  ::joystream::bitcoin::detail::store::Address,
+    id_sqlite,
+    access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >::address_tag>::
+  table_name[] = "\"address\"";
+
+  const char alias_traits<  ::joystream::bitcoin::detail::store::Transaction,
+    id_sqlite,
+    access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >::output_tx_tag>::
+  table_name[] = "\"output_tx\"";
+
+  const char alias_traits<  ::joystream::bitcoin::detail::store::BlockHeader,
+    id_sqlite,
+    access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >::output_block_tag>::
+  table_name[] = "\"output_block\"";
+
+  const char alias_traits<  ::joystream::bitcoin::detail::store::Transaction,
+    id_sqlite,
+    access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >::spending_tx_tag>::
+  table_name[] = "\"spending_tx\"";
+
+  bool access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >::
+  grow (image_type& i,
+        bool* t)
+  {
+    ODB_POTENTIALLY_UNUSED (i);
+    ODB_POTENTIALLY_UNUSED (t);
+
+    bool grew (false);
+
+    // output
+    //
+    if (object_traits_impl< ::joystream::bitcoin::detail::store::Output, id_sqlite >::grow (
+          i.output_value, t + 0UL))
+      grew = true;
+
+    // address
+    //
+    if (object_traits_impl< ::joystream::bitcoin::detail::store::Address, id_sqlite >::grow (
+          i.address_value, t + 3UL))
+      grew = true;
+
+    // outpoint
+    //
+    if (object_traits_impl< ::joystream::bitcoin::detail::store::TxHasOutput, id_sqlite >::grow (
+          i.outpoint_value, t + 7UL))
+      grew = true;
+
+    return grew;
+  }
+
+  void access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >::
+  bind (sqlite::bind* b,
+        image_type& i)
+  {
+    using namespace sqlite;
+
+    sqlite::statement_kind sk (statement_select);
+    ODB_POTENTIALLY_UNUSED (sk);
+
+    std::size_t n (0);
+
+    // output
+    //
+    object_traits_impl< ::joystream::bitcoin::detail::store::Output, id_sqlite >::bind (
+      b + n, i.output_value, sk);
+    n += 3UL;
+
+    // address
+    //
+    object_traits_impl< ::joystream::bitcoin::detail::store::Address, id_sqlite >::bind (
+      b + n, i.address_value, sk);
+    n += 4UL;
+
+    // outpoint
+    //
+    object_traits_impl< ::joystream::bitcoin::detail::store::TxHasOutput, id_sqlite >::bind (
+      b + n, i.outpoint_value, sk);
+    n += 5UL;
+  }
+
+  void access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >::
+  init (view_type& o,
+        const image_type& i,
+        database* db)
+  {
+    ODB_POTENTIALLY_UNUSED (o);
+    ODB_POTENTIALLY_UNUSED (i);
+    ODB_POTENTIALLY_UNUSED (db);
+
+    if (!session::has_current ())
+      throw session_required ();
+
+    sqlite::connection& conn (
+      sqlite::transaction::current ().connection ());
+
+    // output pre
+    //
+    typedef ::joystream::bitcoin::detail::store::Output output_object_type;
+    typedef object_traits_impl<output_object_type, id_sqlite> output_object_traits;
+    typedef output_object_traits::pointer_type output_pointer_type;
+    typedef output_object_traits::pointer_traits output_pointer_traits;
+    typedef output_object_traits::pointer_cache_traits output_cache_traits;
+
+    output_object_traits::id_type output_id;
+    output_pointer_type output_p;
+    output_pointer_traits::guard output_pg;
+    output_cache_traits::insert_guard output_ig;
+    output_object_type* output_o (0);
+
+    {
+      if (!composite_value_traits< output_object_traits::id_type, id_sqlite >::get_null (
+            i.output_value.id_value))
+      {
+        output_id = output_object_traits::id (i.output_value);
+        output_p = output_cache_traits::find (*db, output_id);
+
+        if (output_pointer_traits::null_ptr (output_p))
+        {
+          output_p = object_factory<output_object_type, output_pointer_type>::create ();
+          output_pg.reset (output_p);
+          output_ig.reset (output_cache_traits::insert (*db, output_id, output_p));
+          output_o = output_pointer_traits::get_ptr (output_p);
+        }
+      }
+    }
+
+    // address pre
+    //
+    typedef ::joystream::bitcoin::detail::store::Address address_object_type;
+    typedef object_traits_impl<address_object_type, id_sqlite> address_object_traits;
+    typedef address_object_traits::pointer_type address_pointer_type;
+    typedef address_object_traits::pointer_traits address_pointer_traits;
+    typedef address_object_traits::pointer_cache_traits address_cache_traits;
+
+    address_object_traits::id_type address_id;
+    address_pointer_type address_p;
+    address_pointer_traits::guard address_pg;
+    address_cache_traits::insert_guard address_ig;
+    address_object_type* address_o (0);
+
+    {
+      if (!(i.address_value.id_null))
+      {
+        address_id = address_object_traits::id (i.address_value);
+        address_p = address_cache_traits::find (*db, address_id);
+
+        if (address_pointer_traits::null_ptr (address_p))
+        {
+          address_p = object_factory<address_object_type, address_pointer_type>::create ();
+          address_pg.reset (address_p);
+          address_ig.reset (address_cache_traits::insert (*db, address_id, address_p));
+          address_o = address_pointer_traits::get_ptr (address_p);
+        }
+      }
+    }
+
+    // outpoint pre
+    //
+    typedef ::joystream::bitcoin::detail::store::TxHasOutput outpoint_object_type;
+    typedef object_traits_impl<outpoint_object_type, id_sqlite> outpoint_object_traits;
+    typedef outpoint_object_traits::pointer_type outpoint_pointer_type;
+    typedef outpoint_object_traits::pointer_traits outpoint_pointer_traits;
+    typedef outpoint_object_traits::pointer_cache_traits outpoint_cache_traits;
+
+    outpoint_object_traits::id_type outpoint_id;
+    outpoint_pointer_type outpoint_p;
+    outpoint_pointer_traits::guard outpoint_pg;
+    outpoint_cache_traits::insert_guard outpoint_ig;
+    outpoint_object_type* outpoint_o (0);
+
+    {
+      if (!(i.outpoint_value.id_null))
+      {
+        outpoint_id = outpoint_object_traits::id (i.outpoint_value);
+        outpoint_p = outpoint_cache_traits::find (*db, outpoint_id);
+
+        if (outpoint_pointer_traits::null_ptr (outpoint_p))
+        {
+          outpoint_p = object_factory<outpoint_object_type, outpoint_pointer_type>::create ();
+          outpoint_pg.reset (outpoint_p);
+          outpoint_ig.reset (outpoint_cache_traits::insert (*db, outpoint_id, outpoint_p));
+          outpoint_o = outpoint_pointer_traits::get_ptr (outpoint_p);
+        }
+      }
+    }
+
+    // output
+    //
+    {
+      if (output_o != 0)
+      {
+        output_object_traits::callback (*db, *output_o, callback_event::pre_load);
+        output_object_traits::init (*output_o, i.output_value, db);
+        output_object_traits::statements_type& sts (
+          conn.statement_cache ().find_object<output_object_type> ());
+        output_object_traits::load_ (sts, *output_o, false);
+      }
+    }
+
+    // address
+    //
+    {
+      if (address_o != 0)
+      {
+        address_object_traits::callback (*db, *address_o, callback_event::pre_load);
+        address_object_traits::init (*address_o, i.address_value, db);
+        address_object_traits::statements_type& sts (
+          conn.statement_cache ().find_object<address_object_type> ());
+        address_object_traits::load_ (sts, *address_o, false);
+      }
+    }
+
+    // outpoint
+    //
+    {
+      if (outpoint_o != 0)
+      {
+        outpoint_object_traits::callback (*db, *outpoint_o, callback_event::pre_load);
+        outpoint_object_traits::init (*outpoint_o, i.outpoint_value, db);
+        outpoint_object_traits::statements_type& sts (
+          conn.statement_cache ().find_object<outpoint_object_type> ());
+        outpoint_object_traits::load_ (sts, *outpoint_o, false);
+      }
+    }
+
+    // output post
+    //
+    {
+      if (output_o != 0)
+      {
+        output_object_traits::callback (*db, *output_o, callback_event::post_load);
+        output_cache_traits::load (output_ig.position ());
+        output_ig.release ();
+        output_pg.release ();
+      }
+
+      // If a compiler error points to the line below, then
+      // it most likely means that a pointer used in view
+      // member cannot be initialized from an object pointer.
+      //
+      o.output = ::std::shared_ptr< ::joystream::bitcoin::detail::store::Output > (
+        std::move (output_p));
+    }
+
+    // address post
+    //
+    {
+      if (address_o != 0)
+      {
+        address_object_traits::callback (*db, *address_o, callback_event::post_load);
+        address_cache_traits::load (address_ig.position ());
+        address_ig.release ();
+        address_pg.release ();
+      }
+
+      // If a compiler error points to the line below, then
+      // it most likely means that a pointer used in view
+      // member cannot be initialized from an object pointer.
+      //
+      o.address = ::std::shared_ptr< ::joystream::bitcoin::detail::store::Address > (
+        std::move (address_p));
+    }
+
+    // outpoint post
+    //
+    {
+      if (outpoint_o != 0)
+      {
+        outpoint_object_traits::callback (*db, *outpoint_o, callback_event::post_load);
+        outpoint_cache_traits::load (outpoint_ig.position ());
+        outpoint_ig.release ();
+        outpoint_pg.release ();
+      }
+
+      // If a compiler error points to the line below, then
+      // it most likely means that a pointer used in view
+      // member cannot be initialized from an object pointer.
+      //
+      o.outpoint = ::std::shared_ptr< ::joystream::bitcoin::detail::store::TxHasOutput > (
+        std::move (outpoint_p));
+    }
+  }
+
+  access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >::query_base_type
+  access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >::
+  query_statement (const query_base_type& q)
+  {
+    query_base_type r (
+      "SELECT "
+      "\"Output\".\"id_value\", "
+      "\"Output\".\"id_scriptPubKey\", "
+      "\"Output\".\"address\", "
+      "\"address\".\"id\", "
+      "\"address\".\"address\", "
+      "\"address\".\"key\", "
+      "\"address\".\"scriptPubKey\", "
+      "\"TxHasOutput\".\"id\", "
+      "\"TxHasOutput\".\"tx_ix_tx\", "
+      "\"TxHasOutput\".\"tx_ix_index\", "
+      "\"TxHasOutput\".\"output_value\", "
+      "\"TxHasOutput\".\"output_scriptPubKey\" ");
+
+    r += "FROM \"Output\"";
+
+    r += " LEFT JOIN \"Address\" AS \"address\" ON";
+    r += "\"Output\".\"address\"=\"address\".\"id\"";
+
+    r += " LEFT JOIN \"TxHasOutput\" ON";
+    r += "\"TxHasOutput\".\"output_value\"=\"Output\".\"id_value\"";
+    r += "AND \"TxHasOutput\".\"output_scriptPubKey\"=\"Output\".\"id_scriptPubKey\"";
+
+    r += " LEFT JOIN \"Transaction\" AS \"output_tx\" ON";
+    r += "\"TxHasOutput\".\"tx_ix_tx\"=\"output_tx\".\"txid\"";
+
+    r += " LEFT JOIN \"BlockHeader\" AS \"output_block\" ON";
+    r += "\"output_tx\".\"header\"=\"output_block\".\"id\"";
+
+    r += " LEFT JOIN \"Input\" ON";
+    // From Schema.hpp:542:5
+    r += query_columns::TxHasOutput::tx_ix.index == query_columns::Input::id.op_index && query_columns::TxHasOutput::tx_ix.tx == query_columns::Input::id.op_txid;
+
+    r += " LEFT JOIN \"TxHasInput\" ON";
+    r += "\"TxHasInput\".\"input_op_txid\"=\"Input\".\"id_op_txid\"";
+    r += "AND \"TxHasInput\".\"input_op_index\"=\"Input\".\"id_op_index\"";
+    r += "AND \"TxHasInput\".\"input_scriptSig\"=\"Input\".\"id_scriptSig\"";
+    r += "AND \"TxHasInput\".\"input_sequence\"=\"Input\".\"id_sequence\"";
+
+    r += " LEFT JOIN \"Transaction\" AS \"spending_tx\" ON";
+    r += "\"TxHasInput\".\"tx_ix_tx\"=\"spending_tx\".\"txid\"";
+
+    if (!q.empty ())
+    {
+      r += " ";
+      r += q.clause_prefix ();
+      r += q;
+    }
+
+    return r;
+  }
+
+  result< access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >::view_type >
+  access::view_traits_impl< ::joystream::bitcoin::detail::store::outputs_view_t, id_sqlite >::
+  query (database&, const query_base_type& q)
+  {
+    using namespace sqlite;
+    using odb::details::shared;
+    using odb::details::shared_ptr;
+
+    sqlite::connection& conn (
+      sqlite::transaction::current ().connection ());
+    statements_type& sts (
+      conn.statement_cache ().find_view<view_type> ());
+
+    image_type& im (sts.image ());
+    binding& imb (sts.image_binding ());
+
+    if (im.version != sts.image_version () || imb.version == 0)
+    {
+      bind (imb.bind, im);
+      sts.image_version (im.version);
+      imb.version++;
+    }
+
+    const query_base_type& qs (query_statement (q));
+    qs.init_parameters ();
+    shared_ptr<select_statement> st (
+      new (shared) select_statement (
+        conn,
+        qs.clause (),
+        false,
+        true,
+        qs.parameters_binding (),
+        imb));
+
+    st->execute ();
+
+    shared_ptr< odb::view_result_impl<view_type> > r (
+      new (shared) sqlite::view_result_impl<view_type> (
+        qs, st, sts, 0));
+
+    return result<view_type> (r);
+  }
 }
 
 namespace odb
@@ -7719,6 +8900,7 @@ namespace odb
           db.execute ("DROP TABLE IF EXISTS \"Transaction\"");
           db.execute ("DROP TABLE IF EXISTS \"Input\"");
           db.execute ("DROP TABLE IF EXISTS \"Output\"");
+          db.execute ("DROP TABLE IF EXISTS \"BlockHeader\"");
           db.execute ("DROP TABLE IF EXISTS \"Address\"");
           db.execute ("DROP TABLE IF EXISTS \"Key\"");
           db.execute ("DROP TABLE IF EXISTS \"Metadata\"");
@@ -7745,7 +8927,8 @@ namespace odb
           db.execute ("CREATE TABLE \"Key\" (\n"
                       "  \"index\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,\n"
                       "  \"generated\" INTEGER NOT NULL,\n"
-                      "  \"used\" INTEGER NOT NULL)");
+                      "  \"used\" INTEGER NOT NULL,\n"
+                      "  \"raw\" TEXT NOT NULL)");
           db.execute ("CREATE TABLE \"Address\" (\n"
                       "  \"id\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,\n"
                       "  \"address\" TEXT NOT NULL,\n"
@@ -7757,6 +8940,11 @@ namespace odb
                       "    DEFERRABLE INITIALLY DEFERRED)");
           db.execute ("CREATE UNIQUE INDEX \"Address_key_i\"\n"
                       "  ON \"Address\" (\"key\")");
+          db.execute ("CREATE TABLE \"BlockHeader\" (\n"
+                      "  \"id\" TEXT NOT NULL PRIMARY KEY,\n"
+                      "  \"height\" INTEGER NOT NULL)");
+          db.execute ("CREATE UNIQUE INDEX \"BlockHeader_height_i\"\n"
+                      "  ON \"BlockHeader\" (\"height\")");
           db.execute ("CREATE TABLE \"Output\" (\n"
                       "  \"id_value\" INTEGER NOT NULL,\n"
                       "  \"id_scriptPubKey\" TEXT NOT NULL,\n"
@@ -7779,7 +8967,12 @@ namespace odb
           db.execute ("CREATE TABLE \"Transaction\" (\n"
                       "  \"txid\" TEXT NOT NULL PRIMARY KEY,\n"
                       "  \"version\" INTEGER NOT NULL,\n"
-                      "  \"lockTime\" INTEGER NOT NULL)");
+                      "  \"lockTime\" INTEGER NOT NULL,\n"
+                      "  \"header\" TEXT NULL,\n"
+                      "  CONSTRAINT \"header_fk\"\n"
+                      "    FOREIGN KEY (\"header\")\n"
+                      "    REFERENCES \"BlockHeader\" (\"id\")\n"
+                      "    DEFERRABLE INITIALLY DEFERRED)");
           db.execute ("CREATE TABLE \"TxHasInput\" (\n"
                       "  \"id\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,\n"
                       "  \"tx_ix_tx\" TEXT NOT NULL,\n"

@@ -9,6 +9,7 @@
       <column name="index" type="INTEGER" null="false"/>
       <column name="generated" type="INTEGER" null="false"/>
       <column name="used" type="INTEGER" null="false"/>
+      <column name="raw" type="TEXT" null="false"/>
       <primary-key auto="true">
         <column name="index"/>
       </primary-key>
@@ -29,6 +30,16 @@
       </foreign-key>
       <index name="Address_key_i" type="UNIQUE">
         <column name="key"/>
+      </index>
+    </table>
+    <table name="BlockHeader" kind="object">
+      <column name="id" type="TEXT" null="false"/>
+      <column name="height" type="INTEGER" null="false"/>
+      <primary-key>
+        <column name="id"/>
+      </primary-key>
+      <index name="BlockHeader_height_i" type="UNIQUE">
+        <column name="height"/>
       </index>
     </table>
     <table name="Output" kind="object">
@@ -62,9 +73,16 @@
       <column name="txid" type="TEXT" null="false"/>
       <column name="version" type="INTEGER" null="false"/>
       <column name="lockTime" type="INTEGER" null="false"/>
+      <column name="header" type="TEXT" null="true"/>
       <primary-key>
         <column name="txid"/>
       </primary-key>
+      <foreign-key name="header_fk" deferrable="DEFERRED">
+        <column name="header"/>
+        <references table="BlockHeader">
+          <column name="id"/>
+        </references>
+      </foreign-key>
     </table>
     <table name="TxHasInput" kind="object">
       <column name="id" type="INTEGER" null="false"/>
