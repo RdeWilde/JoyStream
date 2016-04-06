@@ -281,6 +281,8 @@ namespace paymentchannel {
         for(std::vector<Channel>::const_iterator i = channels.cbegin(); i != channels.cend();i++)
             commitments.push_back((*i).commitment());
 
+        assert(channels.size() == commitments.size());
+
         // Create contract transaction
         Coin::Transaction tx = contractTransaction(funding, commitments, change);
 
@@ -288,12 +290,9 @@ namespace paymentchannel {
         Coin::TransactionId txId = Coin::TransactionId::fromTx(tx);
 
         // Iterate outputs and anchor corresponding channel
-        int numberOfOutputs = tx.outputs.size();
-        assert(numberOfOutputs == commitments.size());
+        assert(tx.outputs.size() == commitments.size() + 1); // +1 due to change output
 
-        // +1 due to change output
-
-        for(int i = 0;i < numberOfOutputs;i++) {
+        for(int i = 0;i < commitments.size();i++) {
 
             // Create outpoint
             Coin::typesafeOutPoint o(txId, i);
