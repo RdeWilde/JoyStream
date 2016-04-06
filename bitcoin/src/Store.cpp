@@ -338,7 +338,7 @@ std::list<Coin::P2PKHAddress> Store::listReceiveAddresses() {
     std::list<Coin::P2PKHAddress> addresses;
 
     for(auto &sk : listPrivateKeys()) {
-        addresses.insert(addresses.begin(), sk.toPublicKey().toP2PKHAddress(_network));
+        addresses.insert(addresses.end(), sk.toPublicKey().toP2PKHAddress(_network));
     }
 
     return addresses;
@@ -376,7 +376,7 @@ std::list<Coin::Transaction> Store::listTransactions() {
         Coin::Transaction coin_tx;
         try{
             transactionLoad(_db, tx.txid(), coin_tx);
-            transactions.insert(transactions.begin(), coin_tx);
+            transactions.insert(transactions.end(), coin_tx);
         } catch (std::exception & e) {
             // Ignore error loading one transaction
         }

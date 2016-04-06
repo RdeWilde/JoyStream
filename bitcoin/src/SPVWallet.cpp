@@ -269,6 +269,10 @@ void SPVWallet::releaseKey(const Coin::PrivateKey &sk) {
     _store.releaseKey(sk);
 }
 
+std::list<Coin::P2PKHAddress> SPVWallet::listAddresses() {
+    return _store.listReceiveAddresses();
+}
+
 Coin::P2PKHAddress
 SPVWallet::getReceiveAddress()
 {

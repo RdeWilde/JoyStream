@@ -73,6 +73,8 @@ public:
     void releaseKey(const Coin::PrivateKey &sk);
     Coin::P2PKHAddress getReceiveAddress();
 
+    std::list<Coin::P2PKHAddress> listAddresses();
+
     std::list<Coin::UnspentP2PKHOutput> lockOutputs(uint64_t minValue, uint32_t minimalConfirmations = 0);
     void unlockOutputs(const std::list<Coin::UnspentP2PKHOutput> outputs);
 
