@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 1 2016
  */
 
-#include <protocol/wire/Sell.hpp>
-#include <protocol/wire/JoiningContract.hpp>
+#include <wire/Sell.hpp>
+#include <wire/JoiningContract.hpp>
 
 #ifndef JOYSTREAM_EXTENSION_BUYER_PEER_PLUGIN_PEER_STATE_HPP
 #define JOYSTREAM_EXTENSION_BUYER_PEER_PLUGIN_PEER_STATE_HPP
@@ -75,10 +75,10 @@ namespace extension {
         FailureMode _failureMode;
 
         // Last seller message
-        joystream::protocol::Sell _lastSellReceived;
+        joystream::wire::Sell _lastSellReceived;
 
         // Last joining contract message
-        joystream::protocol::JoiningContract _lastJoiningContractReceived;
+        joystream::wire::JoiningContract _lastJoiningContractReceived;
     };
 
 }

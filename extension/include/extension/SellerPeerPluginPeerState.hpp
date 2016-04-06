@@ -8,10 +8,10 @@
 #ifndef JOYSTREAM_EXTENSION_SELLER_PEER_PLUGIN_PEER_STATE_HPP
 #define JOYSTREAM_EXTENSION_SELLER_PEER_PLUGIN_PEER_STATE_HPP
 
-#include <protocol/wire/Buy.hpp>
-#include <protocol/wire/SignRefund.hpp>
-#include <protocol/wire/Payment.hpp>
-#include <protocol/wire/RequestFullPiece.hpp>
+#include <wire/Buy.hpp>
+#include <wire/SignRefund.hpp>
+#include <wire/Payment.hpp>
+#include <wire/RequestFullPiece.hpp>
 
 namespace joystream {
 namespace extension {
@@ -109,10 +109,10 @@ namespace extension {
         // Message payloads received
         // Is updated so long as it is state compatible,
         // content may be invalid.
-        joystream::protocol::Buy _lastBuyReceived;
-        joystream::protocol::SignRefund _lastSignRefundReceived;
-        joystream::protocol::Payment _lastPaymentReceived; // May be invalid, the valid payment is saved in Payee
-        joystream::protocol::RequestFullPiece _lastRequestFullPieceReceived;
+        joystream::wire::Buy _lastBuyReceived;
+        joystream::wire::SignRefund _lastSignRefundReceived;
+        joystream::wire::Payment _lastPaymentReceived; // May be invalid, the valid payment is saved in Payee
+        joystream::wire::RequestFullPiece _lastRequestFullPieceReceived;
     };
 
 }

@@ -126,6 +126,10 @@ SOURCES += \
 INCLUDEPATH += $$PWD/../common/include
 DEPENDPATH += $$PWD/../common/include
 
+# wire
+INCLUDEPATH += $$PWD/../wire/include
+DEPENDPATH += $$PWD/../wire/include
+
 # protocol
 INCLUDEPATH += $$PWD/../protocol/include
 DEPENDPATH += $$PWD/../protocol/include
