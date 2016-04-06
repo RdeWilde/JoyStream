@@ -13,7 +13,7 @@
 #include <protocol/statemachine/event/ObserveModeStarted.hpp>
 #include <protocol/statemachine/event/SellModeStarted.hpp>
 #include <protocol/statemachine/event/UpdateTerms.hpp>
-#include <paymentchannel/Channel.hpp>
+#include <paymentchannel/Payor.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -57,7 +57,7 @@ namespace statemachine {
         joystream::wire::BuyerTerms _terms;
 
         // Payor side of payment channel interaction
-        paymentchannel::Channel _payor;
+        paymentchannel::Payor _payor;
     };
 }
 }

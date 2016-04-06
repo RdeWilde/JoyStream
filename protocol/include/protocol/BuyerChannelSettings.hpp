@@ -13,7 +13,7 @@
 namespace joystream {
 
     namespace paymentchannel {
-        class Channel;
+        class Payor;
     }
 
     namespace protocol {
@@ -24,7 +24,7 @@ namespace joystream {
 
             BuyerChannelSettings();
 
-            joystream::paymentchannel::Channel toChannel() const;
+            joystream::paymentchannel::Payor toChannel() const;
 
         private:
 

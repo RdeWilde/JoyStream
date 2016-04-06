@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 12 2016
  */
 
-#include <paymentchannel/Channel.hpp>
+#include <paymentchannel/Payor.hpp>
 #include <paymentchannel/Commitment.hpp>
 #include <paymentchannel/Refund.hpp>
 #include <paymentchannel/Settlement.hpp>
@@ -22,7 +22,7 @@
 namespace joystream {
 namespace paymentchannel {
 
-    Channel::Channel()
+    Payor::Payor()
         : _price(0)
         , _numberOfPaymentsMade(0)
         , _funds(0)
@@ -31,7 +31,7 @@ namespace paymentchannel {
         , _refundLockTime(0) {
     }
 
-    Channel::Channel(quint64 price,
+    Payor::Payor(quint64 price,
                      quint64 numberOfPaymentsMade,
                      quint64 funds,
                      quint64 refundFee,
@@ -59,12 +59,12 @@ namespace paymentchannel {
         , _payeeRefundSignature(payeeRefundSignature) {
     }
 
-    Commitment Channel::commitment() const {
+    Commitment Payor::commitment() const {
 
         return Commitment(_funds, _payorContractKeyPair.pk(), _payeeContractPk);
     }
 
-    Refund Channel::refund() const {
+    Refund Payor::refund() const {
 
         return Refund(_anchor,
                       commitment(),
@@ -72,7 +72,7 @@ namespace paymentchannel {
                       _refundLockTime);
     }
 
-    Settlement Channel::settlement() const {
+    Settlement Payor::settlement() const {
 
         return Settlement::dustLimitAndFeeAwareSettlement(_anchor,
                                                           commitment(),
@@ -83,7 +83,7 @@ namespace paymentchannel {
                                                           _settlementFee);
     }
 
-    Coin::Signature Channel::generatePayorRefundSignature() const {
+    Coin::Signature Payor::generatePayorRefundSignature() const {
 
         // Get refund
         Refund r = refund();
@@ -94,7 +94,7 @@ namespace paymentchannel {
         return refundSignature.sig();
     }
 
-    Coin::Signature Channel::generatePayorSettlementSignature() const {
+    Coin::Signature Payor::generatePayorSettlementSignature() const {
 
         // Get settelemnt
         Settlement s = settlement();
@@ -105,7 +105,7 @@ namespace paymentchannel {
         return settlementSignature.sig();
     }
 
-    Coin::Signature Channel::makePayment() {
+    Coin::Signature Payor::makePayment() {
 
         // Increment payment counter
         _numberOfPaymentsMade++;
@@ -114,20 +114,20 @@ namespace paymentchannel {
         return generatePayorSettlementSignature();
     }
 
-    bool Channel::checkPayeeRefundSignature(const Coin::Signature & sig) const {
+    bool Payor::checkPayeeRefundSignature(const Coin::Signature & sig) const {
 
         return refund().validate(_payeeContractPk, sig);
     }
 
-    quint64 Channel::amountPaid() const {
+    quint64 Payor::amountPaid() const {
         return _price*_numberOfPaymentsMade;
     }
 
-    Coin::typesafeOutPoint Channel::anchor() const {
+    Coin::typesafeOutPoint Payor::anchor() const {
         return _anchor;
     }
 
-    void Channel::setAnchor(const Coin::typesafeOutPoint & anchor){
+    void Payor::setAnchor(const Coin::typesafeOutPoint & anchor){
 
         _anchor = anchor;
 
@@ -135,99 +135,99 @@ namespace paymentchannel {
         _payorRefundSignature = generatePayorRefundSignature();
     }
 
-    quint64 Channel::price() const {
+    quint64 Payor::price() const {
         return _price;
     }
 
-    void Channel::setPrice(quint64 price) {
+    void Payor::setPrice(quint64 price) {
         _price = price;
     }
 
-    quint64 Channel::numberOfPaymentsMade() const {
+    quint64 Payor::numberOfPaymentsMade() const {
         return _numberOfPaymentsMade;
     }
 
-    void Channel::setNumberOfPaymentsMade(quint64 numberOfPaymentsMade) {
+    void Payor::setNumberOfPaymentsMade(quint64 numberOfPaymentsMade) {
         _numberOfPaymentsMade = numberOfPaymentsMade;
     }
 
-    quint64 Channel::funds() const {
+    quint64 Payor::funds() const {
         return _funds;
     }
 
-    void Channel::setFunds(quint64 funds) {
+    void Payor::setFunds(quint64 funds) {
         _funds = funds;
     }
 
-    quint64 Channel::refundFee() const {
+    quint64 Payor::refundFee() const {
         return _refundFee;
     }
 
-    void Channel::setRefundFee(quint64 refundFee) {
+    void Payor::setRefundFee(quint64 refundFee) {
         _refundFee = refundFee;
     }
 
-    quint64 Channel::settlementFee() const {
+    quint64 Payor::settlementFee() const {
         return _settlementFee;
     }
 
-    void Channel::setSettlementFee(quint64 settlementFee) {
+    void Payor::setSettlementFee(quint64 settlementFee) {
         _settlementFee = settlementFee;
     }
 
-    quint32 Channel::refundLockTime() const {
+    quint32 Payor::refundLockTime() const {
         return _refundLockTime;
     }
 
-    void Channel::setRefundLockTime(quint32 refundLockTime) {
+    void Payor::setRefundLockTime(quint32 refundLockTime) {
         _refundLockTime = refundLockTime;
     }
 
-    Coin::KeyPair Channel::payorContractKeyPair() const {
+    Coin::KeyPair Payor::payorContractKeyPair() const {
         return _payorContractKeyPair;
     }
 
-    void Channel::setPayorContractKeyPair(const Coin::KeyPair & payorContractKeyPair) {
+    void Payor::setPayorContractKeyPair(const Coin::KeyPair & payorContractKeyPair) {
         _payorContractKeyPair = payorContractKeyPair;
     }
 
-    Coin::PubKeyHash Channel::payorFinalPkHash() const {
+    Coin::PubKeyHash Payor::payorFinalPkHash() const {
         return _payorFinalPkHash;
     }
 
-    void Channel::setPayorFinalPkHash(const Coin::PubKeyHash & payorFinalPkHash) {
+    void Payor::setPayorFinalPkHash(const Coin::PubKeyHash & payorFinalPkHash) {
         _payorFinalPkHash = payorFinalPkHash;
     }
 
-    Coin::PublicKey Channel::payeeContractPk() const {
+    Coin::PublicKey Payor::payeeContractPk() const {
         return _payeeContractPk;
     }
 
-    void Channel::setPayeeContractPk(const Coin::PublicKey & payeeContractPk) {
+    void Payor::setPayeeContractPk(const Coin::PublicKey & payeeContractPk) {
         _payeeContractPk = payeeContractPk;
     }
 
-    Coin::PubKeyHash Channel::payeeFinalPkHash() const {
+    Coin::PubKeyHash Payor::payeeFinalPkHash() const {
         return _payeeFinalPkHash;
     }
 
-    void Channel::setPayeeFinalPkHash(const Coin::PubKeyHash & payeeFinalPkHash) {
+    void Payor::setPayeeFinalPkHash(const Coin::PubKeyHash & payeeFinalPkHash) {
         _payeeFinalPkHash = payeeFinalPkHash;
     }
 
-    Coin::Signature Channel::payorRefundSignature() const {
+    Coin::Signature Payor::payorRefundSignature() const {
         return _payorRefundSignature;
     }
 
-    void Channel::setPayorRefundSignature(const Coin::Signature & payorRefundSignature) {
+    void Payor::setPayorRefundSignature(const Coin::Signature & payorRefundSignature) {
         _payorRefundSignature = payorRefundSignature;
     }
 
-    Coin::Signature Channel::payeeRefundSignature() const {
+    Coin::Signature Payor::payeeRefundSignature() const {
         return _payeeRefundSignature;
     }
 
-    void Channel::setPayeeRefundSignature(const Coin::Signature & payeeRefundSignature) {
+    void Payor::setPayeeRefundSignature(const Coin::Signature & payeeRefundSignature) {
         _payeeRefundSignature = payeeRefundSignature;
     }
         
@@ -272,13 +272,13 @@ namespace paymentchannel {
     }
 
     Coin::Transaction anchor(const Coin::UnspentP2PKHOutput & funding,
-                             std::vector<Channel> & channels,
+                             std::vector<Payor> & channels,
                              const Coin::Payment & change) {
 
         // Extract commitments for channels
         std::vector<Commitment> commitments;
 
-        for(std::vector<Channel>::const_iterator i = channels.cbegin(); i != channels.cend();i++)
+        for(std::vector<Payor>::const_iterator i = channels.cbegin(); i != channels.cend();i++)
             commitments.push_back((*i).commitment());
 
         assert(channels.size() == commitments.size());

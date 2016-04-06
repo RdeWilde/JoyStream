@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 12 2016
  */
 
-#ifndef JOYSTREAM_PAYMENT_CHANNEL_CHANNEL_HPP
-#define JOYSTREAM_PAYMENT_CHANNEL_CHANNEL_HPP
+#ifndef JOYSTREAM_PAYMENTCHANNEL_PAYOR_HPP
+#define JOYSTREAM_PAYMENTCHANNEL_PAYOR_HPP
 
 #include <common/typesafeOutPoint.hpp>
 #include <common/KeyPair.hpp>
@@ -32,13 +32,13 @@ namespace paymentchannel {
      * Manages the payor side of a 1-to-N payment channel using design in CBEP.
      * https://github.com/JoyStream/CBEP
      */
-    class Channel {
+    class Payor {
 
     public:
 
-        Channel();
+        Payor();
 
-        Channel(quint64 price,
+        Payor(quint64 price,
                 quint64 numberOfPaymentsMade,
                 quint64 funds,
                 quint64 refundFee,
@@ -174,11 +174,11 @@ namespace paymentchannel {
 
     // Create and return contract transaction, and set outputs as anchors in corresponding channels
     Coin::Transaction anchor(const Coin::UnspentP2PKHOutput & funding,
-                             std::vector<Channel> & channels,
+                             std::vector<Payor> & channels,
                              const Coin::Payment & change);
 
 }
 }
 
 
-#endif // JOYSTREAM_PAYMENT_CHANNEL_CHANNEL_HPP
+#endif // JOYSTREAM_PAYMENTCHANNEL_PAYOR_HPP
