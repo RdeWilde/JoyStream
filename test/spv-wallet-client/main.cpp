@@ -12,24 +12,30 @@
 #include <signal.h>
 
 bool shuttingDown = false;
-int reconnects = 0;
 
 void handleSignal(int sig)
 {
-    std::cout << "Stopping..." << std::endl;
     shuttingDown = true;
 }
 
 using joystream::bitcoin::SPVWallet;
 
+void sendAllCoinsToBlockCypherFaucet(joystream::bitcoin::SPVWallet & wallet) {
+    // mwmabpJVisvti3WEP5vhFRtn3yqHRD9KNP
+
+}
+
 int main(int argc, char *argv[])
 {
-     INIT_LOGGER("netsync.log");
+    if(getenv("DEBUG") != NULL) {
+        INIT_LOGGER("netsync.log");
+    }
 
     QCoreApplication a(argc, argv);
 
     joystream::bitcoin::SPVWallet wallet("test-store.db", "test-blocktree.dat", Coin::Network::testnet3);
 
+    /*
     // Same seed as blockcypher-wallet test
     Coin::Seed seed("27891465891239001238391236589203948574567842549230457167823941893047812940123194312489312840923849010124893128409238490101248931");
 
@@ -38,22 +44,38 @@ int main(int argc, char *argv[])
     // * When backing up a wallet we should make sure to preserve the created date as well as the seed
     QDateTime created = QDateTime::fromString("2016-02-19T07:52:31Z", Qt::ISODate);
 
-    std::cout << "openning wallet...\n";
-
     if(!QFile("test-store.db").exists()) {
+        std::cout << "creating wallet...\n";
         wallet.create(seed, created.toTime_t());
         wallet.getReceiveAddress();
         wallet.getReceiveAddress();
         wallet.getReceiveAddress();
-        wallet.getReceiveAddress();
-        wallet.getReceiveAddress();
-        wallet.getReceiveAddress();
-        wallet.getReceiveAddress();
-        wallet.getReceiveAddress();
     } else {
+        std::cout << "openning wallet...\n";
+        wallet.open();
+    }
+    */
+
+    if(!QFile("test-store.db").exists()) {
+        std::cout << "creating wallet...\n";
+        wallet.create();
+    } else {
+        std::cout << "openning wallet...\n";
         wallet.open();
     }
 
+    if(!wallet.isInitialized()) {
+        std::cerr << "Failed to open the wallet.\n";
+        return -1;
+    }
+
+    std::cout << "Wallet contains the following receive addresses:\n";
+
+    for(auto addr : wallet.listAddresses()) {
+        std::cout << addr.toBase58CheckEncoding().toStdString() << std::endl;
+    }
+
+    std::cout << std::endl << "Balance: " << wallet.unconfirmedBalance() << std::endl;
 
     // Timer used for checking if a signal was caught..
     QTimer *timer = new QTimer();
@@ -61,6 +83,7 @@ int main(int argc, char *argv[])
     QObject::connect(timer, &QTimer::timeout, [&wallet, &timer](){
         if(!shuttingDown) return;
         timer->stop();
+        std::cout << "Stopping..." << std::endl;
         wallet.stopSync();
     });
 
@@ -79,13 +102,18 @@ int main(int argc, char *argv[])
         shuttingDown = true;
     });
 
+    QObject::connect(&wallet, &SPVWallet::statusMessageUpdated, [](std::string message){
+        std::cout << message << std::endl;
+    });
+
+    QObject::connect(&wallet, &SPVWallet::balanceChanged, [](uint64_t confirmed, uint64_t unconfirmed){
+        std::cout << "confirmed balance: " << confirmed << std::endl;
+        std::cout << "0-conf    balance: " << unconfirmed << std::endl;
+    });
+
     QObject::connect(&wallet, &SPVWallet::statusChanged, [&wallet, &a, &timer](SPVWallet::wallet_status_t status){
        if(status == SPVWallet::wallet_status_t::SYNCHED)  {
-           // Display Balance
-           std::cout << std::endl << "Wallet Balance: " << wallet.balance() << std::endl;
-
-           // Exit on next timer callback
-           shuttingDown = true;
+           std::cout << std::endl << "Wallet Synched" << std::endl;
        }
 
        if(status == SPVWallet::wallet_status_t::SYNCHING_HEADERS) {
@@ -103,22 +131,17 @@ int main(int argc, char *argv[])
        }
 
        if(status == SPVWallet::wallet_status_t::CONNECTING) {
-           std::cout << "Connecting" << std::endl;
+           std::cout << "Connecting.." << std::endl;
        }
 
        if(status == SPVWallet::wallet_status_t::OFFLINE) {
            // Exit application when netsync stops
+           /* when computer wakes from sleep for some reason status
+           doesn't goto OFFLINE after going to DISCONNECTED */
+
             if(shuttingDown) {
-               if(reconnects > 0) {
-                   std::cout << "Application Exiting,,\n";
-                   a.exit();
-               }else {
-                    reconnects++;
-                    shuttingDown = false;
-                    timer->start(2000);
-                    std::cout << "Reconnecting..\n";
-                    wallet.sync("testnet-seed.bitcoin.petertodd.org", 18333);
-               }
+                std::cout << "Application Exiting..\n";
+                a.exit();
             }
        }
     });
