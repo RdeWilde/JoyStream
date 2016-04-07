@@ -23,26 +23,18 @@ namespace statemachine {
         std::cout << "Reacting to InviteSeller." << std::endl;
 
         // Make sure the peer is actually a buyer, otherwise throw exception
-        PeerModeAnnounced announced = context<CBStateMachine>().peerAnnouncedMode();
+        joystream::protocol::PeerModeAnnounced peerMode = context<CBStateMachine>().peerAnnouncedMode();
 
-        if(announced.modeAnnounced() != ModeAnnounced::sell);
+        if(peerMode.modeAnnounced() != ModeAnnounced::sell)
             throw exception::CannotInviteNonSeller();
 
-        // Get seller terms of peer
-        joystream::wire::SellerTerms terms = announced.sellModeTerms();
-
-        // and update payor based on seller terms
-        context<CBStateMachine>()._payor.setPrice(terms.minPrice());
-        context<CBStateMachine>()._payor.setRefundLockTime(terms.minLock());
-        context<CBStateMachine>()._payor.setSettlementFee(terms.settlementFee());
-
-        // and client invitation
+        // Update payor state based on invitation
         context<CBStateMachine>()._payor.setFunds(e.value());
         context<CBStateMachine>()._payor.setPayorContractKeyPair(e.buyerContractKeyPair());
         context<CBStateMachine>()._payor.setPayeeFinalPkHash(e.finalPkHash());
 
         // Send invitation message to seller
-        context<CBStateMachine>().sendMessage()(new joystream::wire::JoinContract(joystream::wire::ContractInvitation(e.value(), e.buyerContractKeyPair().pk(), e.finalPkHash()), announced.index()));
+        context<CBStateMachine>()._sendMessage(new joystream::wire::JoinContract(joystream::wire::ContractInvitation(e.value(), e.buyerContractKeyPair().pk(), e.finalPkHash()), peerMode.index()));
 
         // Start waiting for the seller to join
         return transit<WaitingForSellerToJoin>();
