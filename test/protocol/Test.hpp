@@ -22,7 +22,7 @@ namespace statemachine {
 }
 }
 
-using namespace joystream::protocol;
+using namespace joystream::protocol::statemachine;
 
 class Test : public QObject {
 
@@ -40,9 +40,9 @@ private slots:
 
 public:
 
-    static void peerToSellMode(statemachine::CBStateMachine *, const joystream::wire::SellerTerms &, uint32_t);
-    static void peerToBuyMode(statemachine::CBStateMachine *, const joystream::wire::BuyerTerms &);
-    static void peerToObserveMode(statemachine::CBStateMachine *);
+    static void peerToSellMode(CBStateMachine *, const joystream::wire::SellerTerms &, uint32_t);
+    static void peerToBuyMode(CBStateMachine *, const joystream::wire::BuyerTerms &);
+    static void peerToObserveMode(CBStateMachine *);
 };
 
 

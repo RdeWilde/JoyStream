@@ -9,6 +9,7 @@
 
 #include <CBStateMachineCallbackSpy.hpp>
 #include <SellingNavigator.hpp>
+#include <BuyingNavigator.hpp>
 #include <wire/Sell.hpp>
 #include <wire/Buy.hpp>
 #include <wire/Observe.hpp>
@@ -30,7 +31,7 @@ void Test::observing() {
     CBStateMachineCallbackSpy spy;
 
     //// Create machine in ChooseMode state
-    statemachine::CBStateMachine * machine = spy.createMonitoredMachine();
+    CBStateMachine * machine = spy.createMonitoredMachine();
 
     // Issue client event to change mode
     machine->process_event(event::ObserveModeStarted());
@@ -73,7 +74,7 @@ void Test::selling() {
 
     //// Create machine in ChooseMode state
     CBStateMachineCallbackSpy spy;
-    statemachine::CBStateMachine * machine = spy.createMonitoredMachine();
+    CBStateMachine * machine = spy.createMonitoredMachine();
 
     // Issue client event to change to sell mode
     machine->process_event(event::SellModeStarted(f.clientTerms));
@@ -90,8 +91,8 @@ void Test::selling() {
 
     // Peer invites us (seller) before announcing being in any mode
     // Check that this causes exception
-    QVERIFY_EXCEPTION_THROWN(machine->process_event(statemachine::event::Recv<joystream::wire::JoinContract>(new joystream::wire::JoinContract(f.invitation, 0))),
-                             statemachine::exception::InvitedToJoinContractByNonBuyer);
+    QVERIFY_EXCEPTION_THROWN(machine->process_event(event::Recv<joystream::wire::JoinContract>(new joystream::wire::JoinContract(f.invitation, 0))),
+                             exception::InvitedToJoinContractByNonBuyer);
 
     spy.reset();
 
@@ -107,7 +108,7 @@ void Test::selling() {
     spy.reset();
 
     // Then buyer peer invites us (seller) with incorrect index
-    machine->process_event(statemachine::event::Recv<joystream::wire::JoinContract>(new joystream::wire::JoinContract(f.invitation, 31)));
+    machine->process_event(event::Recv<joystream::wire::JoinContract>(new joystream::wire::JoinContract(f.invitation, 31)));
 
     // Check that failure callback is made
     QVERIFY(spy.hasBeenInvitedToOutdatedContract());
@@ -115,19 +116,19 @@ void Test::selling() {
     spy.reset();
 
     // Then buyer peer invites us (seller) with correct index
-    machine->process_event(statemachine::event::Recv<joystream::wire::JoinContract>(new joystream::wire::JoinContract(f.invitation, 0)));
+    machine->process_event(event::Recv<joystream::wire::JoinContract>(new joystream::wire::JoinContract(f.invitation, 0)));
 
     // Check that we are getting right invitation
     QVERIFY(spy.hasBeenInvitedToJoinContract());
     QCOMPARE(spy.invitation(), f.invitation);
-    //QCOMPARE(machine->getInnerStateName(), typeid(statemachine::Invited).name());
+    //QCOMPARE(machine->getInnerStateName(), typeid(Invited).name());
 
     spy.reset();
 
     std::cout << "--- In Invited state ---" << std::endl;
 
     // We (seller) respond by joining the contract
-    machine->process_event(statemachine::event::Joined(f.payeeContractKeyPair, f.payeeFinalPkHash));
+    machine->process_event(event::Joined(f.payeeContractKeyPair, f.payeeFinalPkHash));
 
     // Check that joining_contract message was sent with correct rsvp
     QVERIFY(spy.messageSent());
@@ -140,19 +141,19 @@ void Test::selling() {
 
     // Peer (buyer) announces being ready
     Coin::typesafeOutPoint anchor;
-    machine->process_event(statemachine::event::Recv<joystream::wire::Ready>(new joystream::wire::Ready(anchor)));
+    machine->process_event(event::Recv<joystream::wire::Ready>(new joystream::wire::Ready(anchor)));
 
     // Check that callback is made with correct anchor,
     QVERIFY(spy.contractHasBeenPrepared());
     QCOMPARE(spy.anchor(), anchor);
-    //QCOMPARE(machine->getInnerStateName(), typeid(statemachine::ReadyForPieceRequest).name());
+    //QCOMPARE(machine->getInnerStateName(), typeid(ReadyForPieceRequest).name());
 
     spy.reset();
 
     std::cout << "--- In ReadyForPieceRequest state ---" << std::endl;
 
     // Peer requests piece which is invalid
-    machine->process_event(statemachine::event::Recv<joystream::wire::RequestFullPiece>(new joystream::wire::RequestFullPiece(f.invalidPieceIndex)));
+    machine->process_event(event::Recv<joystream::wire::RequestFullPiece>(new joystream::wire::RequestFullPiece(f.invalidPieceIndex)));
 
     // Check that invalid piece callback was made
     QVERIFY(spy.invalidPieceHasBeenRequested());
@@ -169,7 +170,7 @@ void Test::selling() {
     spy.reset();
 
     // Peer request valid piece
-    machine->process_event(statemachine::event::Recv<joystream::wire::RequestFullPiece>(new joystream::wire::RequestFullPiece(f.validPieceIndex)));
+    machine->process_event(event::Recv<joystream::wire::RequestFullPiece>(new joystream::wire::RequestFullPiece(f.validPieceIndex)));
 
     // Check that callback is made with correct piece index,
     // and we are in ServicingPieceRequest
@@ -230,7 +231,7 @@ void Test::selling() {
 
     // Have peer send invalid payment!
     Coin::Signature badPaymentSignture("8185781409579048901234890234");
-    machine->process_event(statemachine::event::Recv<joystream::wire::Payment>(new joystream::wire::Payment(badPaymentSignture)));
+    machine->process_event(event::Recv<joystream::wire::Payment>(new joystream::wire::Payment(badPaymentSignture)));
 
     // Check that invalid piece callback was made
     QVERIFY(spy.receivedInvalidPayment());
@@ -248,7 +249,7 @@ void Test::selling() {
 
     // Generate payor payment signature for first payment
     Coin::Signature goodPaymentSignture = navigator.payorSignature(payorContractSk, 1);
-    machine->process_event(statemachine::event::Recv<joystream::wire::Payment>(new joystream::wire::Payment(goodPaymentSignture)));
+    machine->process_event(event::Recv<joystream::wire::Payment>(new joystream::wire::Payment(goodPaymentSignture)));
 
     // Check that invalid piece callback was made
     QVERIFY(spy.receivedValidPayment());
@@ -260,7 +261,7 @@ void Test::selling() {
 
     // Peer requests piece which is invalid
     joystream::wire::SellerTerms newSellTerms(33, 123, 4, 1000, 1);
-    machine->process_event(statemachine::event::UpdateTerms<joystream::wire::SellerTerms>(newSellTerms));
+    machine->process_event(event::UpdateTerms<joystream::wire::SellerTerms>(newSellTerms));
 
     // Check that mode message was sent
     QVERIFY(spy.messageSent());
@@ -270,7 +271,7 @@ void Test::selling() {
 
     // Client transition to Buy mode
     joystream::wire::BuyerTerms newBuyerTerms(7, 7, 7, 7, 7);
-    machine->process_event(statemachine::event::BuyModeStarted(newBuyerTerms));
+    machine->process_event(event::BuyModeStarted(newBuyerTerms));
 
     // Check that mode message was sent
     QVERIFY(spy.messageSent());
@@ -286,10 +287,35 @@ void Test::buyerAndSellers() {
 
 void Test::buying() {
 
+    BuyingNavigator::Fixture f;
+    f.peerTerms = joystream::wire::SellerTerms(0,1,0,1,0);
+    f.clientTerms = joystream::wire::BuyerTerms(4,4,4,4,5);
+
+
+    BuyingNavigator navigator(f);
+
+    //// Create machine in ChooseMode state
+    CBStateMachineCallbackSpy spy;
+    CBStateMachine * machine = spy.createMonitoredMachine();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
     CBStateMachineCallbackSpy spy;
 
     // Create machine in ChooseMode state
-    statemachine::CBStateMachine * machine = spy.createMonitoredMachine();
+    CBStateMachine * machine = spy.createMonitoredMachine();
 
     joystream::wire::BuyerTerms terms(1,2,3,4,5);
     machine->process_event(event::BuyModeStarted(terms));
@@ -299,13 +325,14 @@ void Test::buying() {
     QCOMPARE((static_cast<const joystream::wire::Buy *>(spy.message().get()))->terms(), terms);
 
     //// In Observing state
+    */
 
     // Clean up machine
     delete machine;
 }
 
 
-void Test::peerToSellMode(statemachine::CBStateMachine * machine, const joystream::wire::SellerTerms & terms, uint32_t index) {
+void Test::peerToSellMode(CBStateMachine * machine, const joystream::wire::SellerTerms & terms, uint32_t index) {
 
     // Recieve mode message from peer
     machine->process_event(event::Recv<joystream::wire::Sell>(new joystream::wire::Sell(terms, index)));
@@ -317,7 +344,7 @@ void Test::peerToSellMode(statemachine::CBStateMachine * machine, const joystrea
     QCOMPARE(announced.index(), index);
 }
 
-void Test::peerToBuyMode(statemachine::CBStateMachine * machine, const joystream::wire::BuyerTerms & terms) {
+void Test::peerToBuyMode(CBStateMachine * machine, const joystream::wire::BuyerTerms & terms) {
 
     // Recieve mode message from peer
     machine->process_event(event::Recv<joystream::wire::Buy>(new joystream::wire::Buy(terms)));
@@ -328,7 +355,7 @@ void Test::peerToBuyMode(statemachine::CBStateMachine * machine, const joystream
     QCOMPARE(announced.buyModeTerms(), terms);
 }
 
-void Test::peerToObserveMode(statemachine::CBStateMachine * machine) {
+void Test::peerToObserveMode(CBStateMachine * machine) {
 
     // Recieve mode message from peer
     machine->process_event(event::Recv<joystream::wire::Observe>(new joystream::wire::Observe()));
