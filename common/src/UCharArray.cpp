@@ -32,10 +32,11 @@ UCharArray<array_length>::UCharArray(const uchar_vector & vector) {
         // Create error message
         std::stringstream s;
 
-        s << "vector argument is of incorrect length, should be"
+        s << "vector argument is of incorrect length, should be "
           << array_length
           << ", but was "
-          << vectorLength;
+          << vectorLength
+          << ".";
 
         throw std::runtime_error(s.str());
 
@@ -53,10 +54,11 @@ UCharArray<array_length>::UCharArray(const QString & hexEncoded) {
         // Create error message
         std::stringstream s;
 
-        s << "String argument is of incorrect length, should be"
+        s << "String argument is of incorrect length, should be "
           << 2*array_length
           << ", but was "
-          << hexEncoded.length();
+          << hexEncoded.length()
+          << ".";
 
         throw std::runtime_error(s.str());
 
@@ -89,10 +91,11 @@ UCharArray<array_length>::UCharArray(const QByteArray & raw) {
         // Create error message
         std::stringstream s;
 
-        s << "vector argument is of incorrect length, should be"
+        s << "vector argument is of incorrect length, should be "
           << array_length
           << ", but was "
-          << byteArrayLength;
+          << byteArrayLength
+          << ".";
 
         throw std::runtime_error(s.str());
 
