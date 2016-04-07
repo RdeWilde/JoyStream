@@ -24,7 +24,7 @@ sc::result WaitingToStart::react(const event::Recv<joystream::wire::Ready> & e) 
     Coin::typesafeOutPoint anchor = e.message()->anchor();
 
     // Store anchor in payee
-    context<Selling>()._payee.setContractOutPoint(anchor);
+    context<CBStateMachine>()._payee.setContractOutPoint(anchor);
 
     // Switch peer state
     context<CBStateMachine>().contractIsReady()(anchor);

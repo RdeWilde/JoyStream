@@ -22,33 +22,27 @@ namespace statemachine {
 
         std::cout << "Reacting to InviteSeller." << std::endl;
 
-        // Get reference to the outer state machine
-        CBStateMachine & machine = context<CBStateMachine>();
-
         // Make sure the peer is actually a buyer, otherwise throw exception
-        PeerModeAnnounced announced = machine.peerAnnouncedMode();
+        PeerModeAnnounced announced = context<CBStateMachine>().peerAnnouncedMode();
 
         if(announced.modeAnnounced() != ModeAnnounced::sell);
             throw exception::CannotInviteNonSeller();
-
-        // Update payor in Buying state
-        Buying & buyingState = context<Buying>();
 
         // Get seller terms of peer
         joystream::wire::SellerTerms terms = announced.sellModeTerms();
 
         // and update payor based on seller terms
-        buyingState._payor.setPrice(terms.minPrice());
-        buyingState._payor.setRefundLockTime(terms.minLock());
-        buyingState._payor.setSettlementFee(terms.settlementFee());
+        context<CBStateMachine>()._payor.setPrice(terms.minPrice());
+        context<CBStateMachine>()._payor.setRefundLockTime(terms.minLock());
+        context<CBStateMachine>()._payor.setSettlementFee(terms.settlementFee());
 
         // and client invitation
-        buyingState._payor.setFunds(e.value());
-        buyingState._payor.setPayorContractKeyPair(e.buyerContractKeyPair());
-        buyingState._payor.setPayeeFinalPkHash(e.finalPkHash());
+        context<CBStateMachine>()._payor.setFunds(e.value());
+        context<CBStateMachine>()._payor.setPayorContractKeyPair(e.buyerContractKeyPair());
+        context<CBStateMachine>()._payor.setPayeeFinalPkHash(e.finalPkHash());
 
         // Send invitation message to seller
-        machine.sendMessage()(new joystream::wire::JoinContract(joystream::wire::ContractInvitation(e.value(), e.buyerContractKeyPair().pk(), e.finalPkHash()), announced.index()));
+        context<CBStateMachine>().sendMessage()(new joystream::wire::JoinContract(joystream::wire::ContractInvitation(e.value(), e.buyerContractKeyPair().pk(), e.finalPkHash()), announced.index()));
 
         // Start waiting for the seller to join
         return transit<WaitingForSellerToJoin>();

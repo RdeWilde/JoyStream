@@ -18,22 +18,19 @@ sc::result ReadyForPieceRequest::react(const event::Recv<joystream::wire::Reques
 
     std::cout << "Reacting to Recv<wire::RequestFullPiece> event." << std::endl;
 
-    // Get reference to state machine
-    CBStateMachine & machine = context<CBStateMachine>();
-
     // and check that piece requested is valid
     int pieceIndex = e.message()->pieceIndex();
 
     // if not, send notification and terminate
-    if(pieceIndex < 0 || pieceIndex >  machine.MAX_PIECE_INDEX()) {
+    if(pieceIndex < 0 || pieceIndex > context<CBStateMachine>().MAX_PIECE_INDEX()) {
 
-        machine.invalidPieceRequested()();
+        context<CBStateMachine>().invalidPieceRequested()();
 
         return terminate();
     }
 
     // otherwise send success notification, and
-    machine.pieceRequested()(pieceIndex);
+    context<CBStateMachine>().pieceRequested()(pieceIndex);
 
     // get ready to load the piece
     return transit<ServicingPieceRequest>();

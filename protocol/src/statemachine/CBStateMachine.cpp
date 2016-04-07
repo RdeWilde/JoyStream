@@ -6,8 +6,10 @@
  */
 
 #include <protocol/statemachine/CBStateMachine.hpp>
+#include <protocol/statemachine/Observing.hpp>
+#include <protocol/statemachine/Buying.hpp>
+#include <protocol/statemachine/Selling.hpp>
 #include <protocol/statemachine/exception/StateIncompatibleEvent.hpp>
-
 
 namespace joystream {
 namespace protocol {
@@ -67,11 +69,55 @@ namespace statemachine {
     }
 
     void CBStateMachine::peerToSellMode(const joystream::wire::SellerTerms & t, uint32_t index) {
+
         _peerAnnouncedMode.toSell(t, index);
+
+        // Update payor: even though machine need not be in Buying state!
+        _payor.setPrice(t.minPrice());
+        _payor.setRefundLockTime(t.minLock());
+        _payor.setSettlementFee(t.settlementFee());
     }
 
     void CBStateMachine::peerToBuyMode(const joystream::wire::BuyerTerms & t) {
+
         _peerAnnouncedMode.toBuy(t);
+
+        // Update payee: even though machine need not be in Selling state!
+        _payee.setRefundFee(t.refundFee());
+    }
+
+    void CBStateMachine::updateAndAnnounceClientMode() {
+        _sendMessage(new wire::Observe());
+    }
+
+    void CBStateMachine::updateAndAnnounceClientMode(const joystream::wire::SellerTerms & t, uint32_t index) {
+
+        _index = index;
+
+        // Update payee based on client terms
+        updatePayeeTerms(t);
+
+        // Send mode message
+        _sendMessage(new wire::Sell(t, _index));
+    }
+
+    void CBStateMachine::updateAndAnnounceClientMode(const joystream::wire::BuyerTerms & t) {
+
+        // Update payor based on client terms
+        updatePayorTerms(t);
+
+        // Send mode message
+        _sendMessage(new wire::Buy(t));
+    }
+
+    void CBStateMachine::updatePayeeTerms(const joystream::wire::SellerTerms & t) {
+        _payee.setLockTime(t.minLock());
+        _payee.setPrice(t.minPrice());
+        _payee.setSettlementFee(t.settlementFee());
+    }
+
+    void CBStateMachine::updatePayorTerms(const joystream::wire::BuyerTerms & t) {
+        _payor.setRefundFee(t.refundFee());
     }
 
     CBStateMachine::InvitedToOutdatedContract CBStateMachine::invitedToOutdatedContract() const {

@@ -10,6 +10,8 @@
 
 #include <protocol/PeerModeAnnounced.hpp>
 #include <protocol/statemachine/event/Recv.hpp>
+#include <paymentchannel/Payor.hpp>
+#include <paymentchannel/Payee.hpp>
 
 #include <boost/statechart/state_machine.hpp>
 
@@ -35,12 +37,6 @@ namespace protocol {
 namespace statemachine {
 
     class ChooseMode; // Default state
-
-    // Friend classes that need to modify CBStateMachine::_peerAnnouncedMode
-    class Active;
-    class ServicingPieceRequest;
-    class SellerHasJoined;
-    class WaitingForFullPiece;
 
     class CBStateMachine : public sc::state_machine<CBStateMachine, ChooseMode> {
 
@@ -139,16 +135,46 @@ namespace statemachine {
 
     private:
 
-        friend class Active;
-        friend class ServicingPieceRequest;
-        friend class SellerHasJoined;
-        friend class WaitingForFullPiece;
-        friend class ReadyForPieceRequest;
+        //// States require access to private machine state
 
-        // Context actions
+        friend class ChooseMode;
+        friend class Active;
+
+        // Selling states
+        friend class Selling;
+        friend class ReadyForInvitation;
+        friend class Invited;
+        friend class WaitingToStart;
+        friend class ServicingPieceRequest;
+        friend class WaitingForPayment;
+
+        // Buying states
+        friend class Buying;
+        friend class ReadyToInviteSeller;
+        friend class WaitingForSellerToJoin;
+        friend class PreparingContract;
+        friend class ProcessingPiece;
+        friend class SellerHasJoined;
+        friend class PreparingContract;
+        friend class ProcessingPiece;
+
+        //// State modifiers
+
+        // Update peer mode state
         void peerToObserveMode();
         void peerToSellMode(const joystream::wire::SellerTerms &, uint32_t);
         void peerToBuyMode(const joystream::wire::BuyerTerms &);
+
+        // Update mode state and send mode message and return corresponding transition
+        void updateAndAnnounceClientMode();
+        void updateAndAnnounceClientMode(const joystream::wire::SellerTerms &, uint32_t = 0);
+        void updateAndAnnounceClientMode(const joystream::wire::BuyerTerms &);
+
+        // Update payment channel based on terms
+        void updatePayeeTerms(const joystream::wire::SellerTerms &);
+        void updatePayorTerms(const joystream::wire::BuyerTerms &);
+
+        //// Callbacks
 
         // Callbacks for classifier routines
         InvitedToOutdatedContract _invitedToOutdatedContract;
@@ -168,8 +194,22 @@ namespace statemachine {
         int _MAX_PIECE_INDEX;
 
         //// Peer state
-        //*** Just factor out modeannounced and index, dont save actual terms? ***
+
         joystream::protocol::PeerModeAnnounced _peerAnnouncedMode;
+
+        //// Buyer Client state
+
+        // Payor side of payment channel interaction
+        paymentchannel::Payor _payor;
+
+        //// Seller Client state
+
+        // Index for most recent terms broadcasted
+        uint32_t _index;
+
+        // Payee side of payment channel interaction
+        paymentchannel::Payee _payee;
+
     };
 }
 }

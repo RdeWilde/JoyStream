@@ -33,11 +33,10 @@ sc::result ServicingPieceRequest::react(const event::Recv<wire::Buy> & e) {
     std::cout << "Reacting to Recv<wire::Buy> event." << std::endl;
 
     // Send client notification about this interruption,
-    CBStateMachine & machine = context<CBStateMachine>();
-    machine.peerInterruptedPayment()();
+    context<CBStateMachine>().peerInterruptedPayment()();
 
     // and update new peer mode
-    machine.peerToBuyMode(e.message()->terms());
+    context<CBStateMachine>().peerToBuyMode(e.message()->terms());
 
     // Terminate machine
     return terminate();
@@ -48,12 +47,11 @@ sc::result ServicingPieceRequest::react(const event::Recv<wire::Sell> & e) {
     std::cout << "Reacting to Recv<wire::Sell> event." << std::endl;
 
     // Send client notification about this interruption,
-    CBStateMachine & machine = context<CBStateMachine>();
-    machine.peerInterruptedPayment()();
+    context<CBStateMachine>().peerInterruptedPayment()();
 
     // and update new peer mode
     wire::Sell const * m = e.message();
-    machine.peerToSellMode(m->terms(), m->index());
+    context<CBStateMachine>().peerToSellMode(m->terms(), m->index());
 
     // Terminate machine
     return terminate();

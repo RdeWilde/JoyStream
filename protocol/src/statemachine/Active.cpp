@@ -51,6 +51,7 @@ namespace statemachine {
         // Transition to deep history
         return transit<sc::deep_history<Observing>>();
     }
+
 }
 }
 }

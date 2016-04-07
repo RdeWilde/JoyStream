@@ -9,11 +9,9 @@
 #define JOYSTREAM_PROTOCOL_STATEMACHINE_BUY_HPP
 
 #include <protocol/statemachine/Active.hpp>
-#include <protocol/statemachine/detail/InitializeBuying.hpp>
 #include <protocol/statemachine/event/ObserveModeStarted.hpp>
 #include <protocol/statemachine/event/SellModeStarted.hpp>
 #include <protocol/statemachine/event/UpdateTerms.hpp>
-#include <paymentchannel/Payor.hpp>
 
 namespace joystream {
 namespace protocol {
@@ -26,7 +24,6 @@ namespace statemachine {
     public:
 
         typedef boost::mpl::list<
-                                sc::custom_reaction<detail::InitializeBuying>,
                                 sc::custom_reaction<event::ObserveModeStarted>,
                                 sc::custom_reaction<event::SellModeStarted>,
                                 sc::custom_reaction<event::UpdateTerms<joystream::wire::BuyerTerms>>
@@ -35,29 +32,11 @@ namespace statemachine {
         Buying();
 
         // Event handlers
-        sc::result react(const detail::InitializeBuying &);
         sc::result react(const event::ObserveModeStarted &);
         sc::result react(const event::SellModeStarted &);
         sc::result react(const event::UpdateTerms<joystream::wire::BuyerTerms> &);
 
     private:
-
-        // Sub states which require access to private variables
-        friend class ReadyToInviteSeller;
-        friend class WaitingForSellerToJoin;
-        friend class PreparingContract;
-        friend class ProcessingPiece;
-
-        // Whether state has been initialized with detail::InitializeBuying
-        bool _initialized;
-
-        //// Client state
-
-        // Most recent terms broadcasted
-        joystream::wire::BuyerTerms _terms;
-
-        // Payor side of payment channel interaction
-        paymentchannel::Payor _payor;
     };
 }
 }

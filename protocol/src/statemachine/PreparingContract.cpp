@@ -25,7 +25,7 @@ namespace statemachine {
         context<CBStateMachine>().sendMessage()(new joystream::wire::Ready(e.anchor()));
 
         // Set anchor in payor
-        context<Buying>()._payor.setAnchor(e.anchor());
+        context<CBStateMachine>()._payor.setAnchor(e.anchor());
 
         // Now ready to request first piece
         return transit<ReadyToRequestPiece>();

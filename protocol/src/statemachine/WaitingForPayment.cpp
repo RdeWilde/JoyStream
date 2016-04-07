@@ -18,16 +18,13 @@ WaitingForPayment::WaitingForPayment() {
 
 sc::result WaitingForPayment::react(const event::Recv<wire::Payment> & e) {
 
-    std::cout << "Reacting to Recv<wire::Paymen>." << std::endl;
-
-    // Get selling state
-    Selling & selling = context<Selling>();
+    std::cout << "Reacting to Recv<wire::Payment>." << std::endl;
 
     // Get payment signature
     Coin::Signature payment = e.message()->sig();
 
     // Check validity of payment signature, and register if valid
-    bool valid = selling._payee.registerPayment(payment);
+    bool valid = context<CBStateMachine>()._payee.registerPayment(payment);
 
     if(valid) {
 

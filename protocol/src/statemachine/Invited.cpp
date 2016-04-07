@@ -22,9 +22,8 @@ namespace statemachine {
         std::cout << "Reacting to JoinContract." << std::endl;
 
         // Store contract rsvp information in payee
-        Selling & sellingState = context<Selling>();
-        sellingState._payee.setPayeeContractKeys(e.contractKeys());
-        sellingState._payee.setPayeeFinalPkHash(e.finalPkHash());
+        context<CBStateMachine>()._payee.setPayeeContractKeys(e.contractKeys());
+        context<CBStateMachine>()._payee.setPayeeFinalPkHash(e.finalPkHash());
 
         // Send message for joining contract
         joystream::wire::ContractRSVP rsvp(e.contractKeys().pk(), e.finalPkHash());

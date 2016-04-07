@@ -22,7 +22,7 @@ namespace statemachine {
         std::cout << "Reacting to SendPayment event." << std::endl;
 
         // Make payment signature
-        Coin::Signature sig = context<Buying>()._payor.makePayment();
+        Coin::Signature sig = context<CBStateMachine>()._payor.makePayment();
 
         // Send payment
         context<CBStateMachine>().sendMessage()(new joystream::wire::Payment(sig));

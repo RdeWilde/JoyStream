@@ -25,22 +25,18 @@ namespace statemachine {
 
         // Get message
         wire::JoinContract const * message = e.message();
-        CBStateMachine & machine = context<CBStateMachine>();
 
         // Make sure the peer is actually a buyer, otherwise throw exception
-        ModeAnnounced mode = machine.peerAnnouncedMode().modeAnnounced();
+        ModeAnnounced mode = context<CBStateMachine>().peerAnnouncedMode().modeAnnounced();
 
         if(mode != ModeAnnounced::buy)
             throw exception::InvitedToJoinContractByNonBuyer(mode);
 
-        // Get reference to Selling state
-        Selling & sellingState = context<Selling>();
-
         // If invitation doesn't match most recent terms sent,
-        if(message->index() != sellingState.index()) {
+        if(message->index() != context<CBStateMachine>()._index) {
 
             // then notify user
-            machine.invitedToOutdatedContract()();
+            context<CBStateMachine>().invitedToOutdatedContract()();
 
             // and drop event
             return discard_event();
@@ -48,12 +44,12 @@ namespace statemachine {
 
             // Store invitation information in payee
             joystream::wire::ContractInvitation invitation = message->invitation();
-            sellingState._payee.setFunds(invitation.value());
-            sellingState._payee.setPayorContractPk(invitation.contractPk());
-            sellingState._payee.setPayorFinalPkHash(invitation.finalPkHash());
+            context<CBStateMachine>()._payee.setFunds(invitation.value());
+            context<CBStateMachine>()._payee.setPayorContractPk(invitation.contractPk());
+            context<CBStateMachine>()._payee.setPayorFinalPkHash(invitation.finalPkHash());
 
             // otherwise, notify user
-            machine.invitedToJoinContract()(message->invitation());
+            context<CBStateMachine>().invitedToJoinContract()(message->invitation());
 
             // and make transition
             return transit<Invited>();

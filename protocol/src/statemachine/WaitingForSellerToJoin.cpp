@@ -20,13 +20,10 @@ namespace statemachine {
 
         std::cout << "Reacting to Recv<wire::JoiningContract> event." << std::endl;
 
-        // Get reference to outer state
-        Buying & buying = context<Buying>();
-
         // Update payor based on rsvp
         joystream::wire::ContractRSVP rsvp = e.message()->rsvp();
-        buying._payor.setPayeeContractPk(rsvp.contractPk());
-        buying._payor.setPayeeFinalPkHash(rsvp.finalPkHash());
+        context<CBStateMachine>()._payor.setPayeeContractPk(rsvp.contractPk());
+        context<CBStateMachine>()._payor.setPayeeFinalPkHash(rsvp.finalPkHash());
 
         // Send client notification about seller joining
         context<CBStateMachine>().sellerJoined()();

@@ -20,11 +20,10 @@ namespace statemachine {
         std::cout << "Reacting to Recv<wire::Observe> event." << std::endl;
 
         // Send client notification about this interruption,
-        CBStateMachine & machine = context<CBStateMachine>();
-        machine.sellerInterruptedContract()();
+        context<CBStateMachine>().sellerInterruptedContract()();
 
         // and update new peer mode
-        machine.peerToObserveMode();
+        context<CBStateMachine>().peerToObserveMode();
 
         // Go to initial buying state
         return transit<Buying>();
@@ -35,11 +34,10 @@ namespace statemachine {
         std::cout << "Reacting to Recv<wire::Buy> event." << std::endl;
 
         // Send client notification about this interruption,
-        CBStateMachine & machine = context<CBStateMachine>();
-        machine.peerInterruptedPayment()();
+        context<CBStateMachine>().peerInterruptedPayment()();
 
         // and update new peer mode
-        machine.peerToBuyMode(e.message()->terms());
+        context<CBStateMachine>().peerToBuyMode(e.message()->terms());
 
         // Go to initial buying state
         return transit<Buying>();
@@ -50,12 +48,11 @@ namespace statemachine {
         std::cout << "Reacting to Recv<wire::Sell> event." << std::endl;
 
         // Send client notification about this interruption,
-        CBStateMachine & machine = context<CBStateMachine>();
-        machine.peerInterruptedPayment()();
+        context<CBStateMachine>().peerInterruptedPayment()();
 
         // and update new peer mode
         wire::Sell const * m = e.message();
-        machine.peerToSellMode(m->terms(), m->index());
+        context<CBStateMachine>().peerToSellMode(m->terms(), m->index());
 
         // Go to initial buying state
         return transit<Buying>();
