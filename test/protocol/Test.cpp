@@ -9,7 +9,6 @@
 
 #include <CBStateMachineCallbackSpy.hpp>
 #include <SellingNavigator.hpp>
-
 #include <wire/Sell.hpp>
 #include <wire/Buy.hpp>
 #include <wire/Observe.hpp>
@@ -19,9 +18,12 @@
 #include <wire/RequestFullPiece.hpp>
 #include <wire/SellerTerms.hpp>
 #include <wire/BuyerTerms.hpp>
-
+#include <wire/FullPiece.hpp>
+#include <wire/Payment.hpp>
 #include <protocol/statemachine/exception/InvitedToJoinContractByNonBuyer.hpp>
 #include <protocol/statemachine/event/Joined.hpp>
+#include <protocol/statemachine/event/PieceLoaded.hpp>
+#include <protocol/statemachine/event/UpdateTerms.hpp>
 
 void Test::observing() {
 
@@ -55,9 +57,18 @@ void Test::selling() {
     SellingNavigator::Fixture f;
     f.peerTerms = joystream::wire::BuyerTerms(1,2,3,4,5);
     f.clientTerms = joystream::wire::SellerTerms(1,2,3,4,5);
-    f.invitation = joystream::wire::ContractInvitation(1123,
-                                      payorContractSk.toPublicKey(),
-                                      Coin::PubKeyHash("03a3fac91cac4a5c9ec870b444c4890ec7d68671"));
+    f.invitation = joystream::wire::ContractInvitation(1123, payorContractSk.toPublicKey(), Coin::PubKeyHash("03a3fac91cac4a5c9ec870b444c4890ec7d68671"));
+    f.payeeContractKeyPair = Coin::KeyPair(Coin::PrivateKey("b8aa30d8f1d398883f0eeb5079777c42"));
+    f.payeeFinalPkHash = Coin::PubKeyHash("31149292f8ba11da4aeb833f6cd8ae0650a82340");
+    f.anchor = Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")), 55);
+    f.invalidPieceIndex = 9999;
+    f.validPieceIndex = 1;
+    const char * rawData = "datadataajfkdløajdklføasjdklføadsjkfløasdjkfløadata";
+    int rawDataLength = strlen(rawData);
+    f.data = joystream::wire::PieceData(boost::shared_array<char>{new char [rawDataLength]}, rawDataLength);
+
+    // TODO: copy rawData into boost::shared_array!!!
+
     SellingNavigator navigator(f);
 
     //// Create machine in ChooseMode state
@@ -69,13 +80,13 @@ void Test::selling() {
 
     // Check that sell message was sent with correct terms
     QVERIFY(spy.messageSent());
-    QCOMPARE((static_cast<const joystream::wire::Sell *>(spy.message()))->terms(), f.clientTerms);
+    QCOMPARE((static_cast<const joystream::wire::Sell *>(spy.message().get()))->terms(), f.clientTerms);
 
     spy.reset();
 
     //// All states below are substates of Selling state
 
-    //// In ReadyForInvitation state
+    std::cout << "--- In ReadyForInvitation state ---" << std::endl;
 
     // Peer invites us (seller) before announcing being in any mode
     // Check that this causes exception
@@ -113,22 +124,19 @@ void Test::selling() {
 
     spy.reset();
 
-    //// In Invited state
+    std::cout << "--- In Invited state ---" << std::endl;
 
     // We (seller) respond by joining the contract
-    Coin::KeyPair payeeContractKeyPair = Coin::KeyPair::generate();
-    Coin::PubKeyHash payeeFinalPkHash("7897447899567885436990976468990ec7d68671");
-
-    machine->process_event(statemachine::event::Joined(payeeContractKeyPair, payeeFinalPkHash));
+    machine->process_event(statemachine::event::Joined(f.payeeContractKeyPair, f.payeeFinalPkHash));
 
     // Check that joining_contract message was sent with correct rsvp
     QVERIFY(spy.messageSent());
-    QCOMPARE((static_cast<const joystream::wire::JoiningContract *>(spy.message()))->rsvp(),
-             joystream::wire::ContractRSVP(payeeContractKeyPair.pk(), payeeFinalPkHash));
+    QCOMPARE((static_cast<const joystream::wire::JoiningContract *>(spy.message().get()))->rsvp(),
+             joystream::wire::ContractRSVP(f.payeeContractKeyPair.pk(), f.payeeFinalPkHash));
 
     spy.reset();
 
-    //// In WaitingToStart state
+    std::cout << "--- In WaitingToStart state ---" << std::endl;
 
     // Peer (buyer) announces being ready
     Coin::typesafeOutPoint anchor;
@@ -141,10 +149,10 @@ void Test::selling() {
 
     spy.reset();
 
-    //// In ReadyForPieceRequest state
+    std::cout << "--- In ReadyForPieceRequest state ---" << std::endl;
 
     // Peer requests piece which is invalid
-    machine->process_event(statemachine::event::Recv<joystream::wire::RequestFullPiece>(new joystream::wire::RequestFullPiece(9999)));
+    machine->process_event(statemachine::event::Recv<joystream::wire::RequestFullPiece>(new joystream::wire::RequestFullPiece(f.invalidPieceIndex)));
 
     // Check that invalid piece callback was made
     QVERIFY(spy.invalidPieceHasBeenRequested());
@@ -157,21 +165,116 @@ void Test::selling() {
     machine = spy.createMonitoredMachine();
     machine->process_event(event::SellModeStarted(f.clientTerms));
     peerToBuyMode(machine, f.peerTerms);
-    navigator.fastForwardToReadyForPieceRequest(machine);
+    navigator.toReadyForPieceRequest(machine);
     spy.reset();
 
     // Peer request valid piece
-    int validPieceIndexRequested = 1;
-    machine->process_event(statemachine::event::Recv<joystream::wire::RequestFullPiece>(new joystream::wire::RequestFullPiece(validPieceIndexRequested)));
+    machine->process_event(statemachine::event::Recv<joystream::wire::RequestFullPiece>(new joystream::wire::RequestFullPiece(f.validPieceIndex)));
 
     // Check that callback is made with correct piece index,
     // and we are in ServicingPieceRequest
     QVERIFY(spy.pieceHasBeenRequested());
-    QCOMPARE(spy.piece(), validPieceIndexRequested);
+    QCOMPARE(spy.piece(), f.validPieceIndex);
 
     spy.reset();
 
-    //// Transition to ServicingPieceRequest state
+    std::cout << "--- In ServicingPieceRequest state ---" << std::endl;
+
+    // Check that peer announcing mode terminates machine
+    peerToBuyMode(machine, f.peerTerms);
+    QVERIFY(spy.paymentInterrupted());
+
+    // Check that peer announcing mode terminates machine
+    // Last transition terminates machine, so
+    // recreate fresh machine in ServicingPieceRequest state, and peer in buy mode
+    delete machine;
+    machine = spy.createMonitoredMachine();
+    machine->process_event(event::SellModeStarted(f.clientTerms));
+    peerToBuyMode(machine, f.peerTerms);
+    navigator.toLoadingPiece(machine);
+    spy.reset();
+
+    peerToSellMode(machine, f.clientTerms, 0);
+    QVERIFY(spy.paymentInterrupted());
+
+    // Check that peer announcing mode terminates machine
+    // Last transition terminates machine, so
+    // recreate fresh machine in ServicingPieceRequest state, and peer in buy mode
+    delete machine;
+    machine = spy.createMonitoredMachine();
+    machine->process_event(event::SellModeStarted(f.clientTerms));
+    peerToBuyMode(machine, f.peerTerms);
+    navigator.toLoadingPiece(machine);
+    spy.reset();
+
+    peerToObserveMode(machine);
+    QVERIFY(spy.paymentInterrupted());
+
+    // Last transition terminates machine, so
+    // recreate fresh machine in ServicingPieceRequest state, and peer in buy mode
+    delete machine;
+    machine = spy.createMonitoredMachine();
+    machine->process_event(event::SellModeStarted(f.clientTerms));
+    peerToBuyMode(machine, f.peerTerms);
+    navigator.toLoadingPiece(machine);
+    spy.reset();
+
+    machine->process_event(event::PieceLoaded(f.data));
+
+    QVERIFY(spy.messageSent());
+    QCOMPARE((static_cast<const joystream::wire::FullPiece *>(spy.message().get()))->pieceData(), f.data);
+
+    spy.reset();
+
+    std::cout << "--- In WaitingForPayment state ---" << std::endl;
+
+    // Have peer send invalid payment!
+    Coin::Signature badPaymentSignture("8185781409579048901234890234");
+    machine->process_event(statemachine::event::Recv<joystream::wire::Payment>(new joystream::wire::Payment(badPaymentSignture)));
+
+    // Check that invalid piece callback was made
+    QVERIFY(spy.receivedInvalidPayment());
+    QCOMPARE(spy.invalidPaymentSignature(), badPaymentSignture);
+
+    // Have peer send valid payment
+    // Last transition terminates machine, so
+    // recreate fresh machine in ServicingPieceRequest state, and peer in buy mode
+    delete machine;
+    machine = spy.createMonitoredMachine();
+    machine->process_event(event::SellModeStarted(f.clientTerms));
+    peerToBuyMode(machine, f.peerTerms);
+    navigator.toWaitingForPayment(machine);
+    spy.reset();
+
+    // Generate payor payment signature for first payment
+    Coin::Signature goodPaymentSignture = navigator.payorSignature(payorContractSk, 1);
+    machine->process_event(statemachine::event::Recv<joystream::wire::Payment>(new joystream::wire::Payment(goodPaymentSignture)));
+
+    // Check that invalid piece callback was made
+    QVERIFY(spy.receivedValidPayment());
+    QCOMPARE(spy.validPaymentSignature(), goodPaymentSignture);
+
+    spy.reset();
+
+    std::cout << "--- In ReadyForPieceRequest state ---" << std::endl;
+
+    // Peer requests piece which is invalid
+    joystream::wire::SellerTerms newSellTerms(33, 123, 4, 1000, 1);
+    machine->process_event(statemachine::event::UpdateTerms<joystream::wire::SellerTerms>(newSellTerms));
+
+    // Check that mode message was sent
+    QVERIFY(spy.messageSent());
+    QCOMPARE((static_cast<const joystream::wire::Sell *>(spy.message().get()))->terms(), newSellTerms);
+
+    std::cout << "--- In ReadyForInvitation state ---" << std::endl;
+
+    // Client transition to Buy mode
+    joystream::wire::BuyerTerms newBuyerTerms(7, 7, 7, 7, 7);
+    machine->process_event(statemachine::event::BuyModeStarted(newBuyerTerms));
+
+    // Check that mode message was sent
+    QVERIFY(spy.messageSent());
+    QCOMPARE((static_cast<const joystream::wire::Buy *>(spy.message().get()))->terms(), newBuyerTerms);
 
     // Clean up machine
     delete machine;
@@ -193,7 +296,7 @@ void Test::buying() {
 
     // Check that sell message was sent with correct terms
     QVERIFY(spy.messageSent());
-    QCOMPARE((static_cast<const joystream::wire::Buy *>(spy.message()))->terms(), terms);
+    QCOMPARE((static_cast<const joystream::wire::Buy *>(spy.message().get()))->terms(), terms);
 
     //// In Observing state
 
