@@ -33,7 +33,7 @@ const CoinQ::CoinParams getCoinParamsForNetwork(Coin::Network network) {
 SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Network network) :
   _storePath(storePath),
   _network(network),
-  _networkSync(getCoinParamsForNetwork(network)),
+  _networkSync(getCoinParamsForNetwork(network), true),
   _walletStatus(UNINITIALIZED),
   _blockTreeFile(blockTreeFile),
   _unconfirmedBalance(0),
