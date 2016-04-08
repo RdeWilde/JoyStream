@@ -73,7 +73,7 @@ namespace protocol {
         // Either we paid for it, or it just came in.
         //void markPieceAsDownloadedAndValid(int index);
 
-        void processMessageOnConnection(const ConnectionIdType &, const wire::ExtendedMessagePayload &);
+        void processMessageOnConnection(const ConnectionIdType &, const wire::ExtendedMessagePayload *);
 
         ////
 
@@ -92,7 +92,7 @@ namespace protocol {
         SessionMode _mode;
 
         // Connections
-        std::map<ConnectionIdType, Connection<ConnectionIdType>> _connections;
+        std::map<ConnectionIdType, Connection<ConnectionIdType> *> _connections;
 
         // Callback for when connection has been removed from session
         RemovedConnectionCallbackHandler _removedConnectionCallbackHandler;
