@@ -36,8 +36,6 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
   _networkSync(getCoinParamsForNetwork(network)),
   _walletStatus(UNINITIALIZED),
   _blockTreeFile(blockTreeFile),
-  _blockTreeLoaded(false),
-  _blockTreeError(false),
   _unconfirmedBalance(0),
   _confirmedBalance(0)
 {
@@ -179,20 +177,10 @@ void SPVWallet::open() {
 }
 
 void SPVWallet::loadBlockTree() {
-    // Creates blocktree file or loads it if found
+    _networkSync.loadHeaders(_blockTreeFile, true);
 
-    // Only load the blocktree once
-    if(_blockTreeLoaded) return;
-
-    _blockTreeError = false;
-
-    _networkSync.loadHeaders(_blockTreeFile, false);
-
-    if(!_blockTreeError) {
-        _blockTreeLoaded = true;
-        updateStatus(OFFLINE);
-    } else {
-        throw std::runtime_error("failed to load blocktree");
+    if (boost::filesystem::exists(_blockTreeFile+".swp")) {
+        boost::filesystem::remove(_blockTreeFile+".swp") ;
     }
 }
 
@@ -206,7 +194,6 @@ void SPVWallet::sync(std::string host, int port) {
     // Only start synching from offline state
     if(_walletStatus != OFFLINE) return;
 
-    Q_ASSERT(_blockTreeLoaded);
     Q_ASSERT(_store.connected());
 
     _networkSync.start(host, port);
@@ -381,10 +368,7 @@ void SPVWallet::updateStatus(wallet_status_t status) {
 }
 
 void SPVWallet::onBlockTreeError(const std::string& error, int code) {
-    // Ignore file not found error - not critical
-    if(error == "Blocktree file not found.") return;
 
-    _blockTreeError = true;
     emit blockTreeUpdateFailed(error);
 }
 

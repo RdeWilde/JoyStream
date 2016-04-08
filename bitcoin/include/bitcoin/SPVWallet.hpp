@@ -137,8 +137,7 @@ private:
     void updateStatus(wallet_status_t status);
 
     std::string _blockTreeFile;
-    bool _blockTreeLoaded;
-    bool _blockTreeError;
+    void loadBlockTree();
 
     uint64_t _confirmedBalance;
     uint64_t _unconfirmedBalance;
@@ -154,9 +153,6 @@ private:
     void onTxConfirmed(const ChainMerkleBlock& chainmerkleblock, const bytes_t& txhash, unsigned int txindex, unsigned int txcount);
     void onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin::Transaction& cointx, unsigned int txindex, unsigned int txcount);
     void onMerkleBlock(const ChainMerkleBlock& chainmerkleblock);
-
-    // Load the blocktree file
-    void loadBlockTree();
 
     std::set<uchar_vector> _bloomFilterPubKeyHashes;
     std::set<uchar_vector> _bloomFilterCompressedPubKeys;
