@@ -369,8 +369,21 @@ void SPVWallet::updateStatus(wallet_status_t status) {
 }
 
 void SPVWallet::onBlockTreeError(const std::string& error, int code) {
+    if(_walletStatus > UNINITIALIZED) {
 
-    emit blockTreeUpdateFailed(error);
+        if(code == CoinQ::ErrorCodes::BLOCKTREE_FILE_WRITE_FAILURE) {
+            emit blockTreeWriteFailed(error);
+        } else {
+            // Block Tree error while connected to a peer and updating our block tree
+            // also as a result of failure to flush blocktree
+            emit blockTreeUpdateFailed(error);
+        }
+    } else {
+
+        // NetSync was not able to load the blocktree, and will just use a new one
+        // If the blocktree was corrupt (most likely due to excessive flushing)
+        // we are also able to recover and build a new one
+    }
 }
 
 void SPVWallet::onBlockTreeChanged() {

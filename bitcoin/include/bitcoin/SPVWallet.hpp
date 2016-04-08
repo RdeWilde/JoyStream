@@ -96,7 +96,9 @@ signals:
 
     // Error signals    
     void storeUpdateFailed(std::string);
+
     void blockTreeUpdateFailed(std::string);
+    void blockTreeWriteFailed(std::string);
 
     void protocolError(std::string);
     void connectionError(std::string);
