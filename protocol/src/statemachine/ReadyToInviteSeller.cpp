@@ -31,7 +31,7 @@ namespace statemachine {
         // Update payor state based on invitation
         context<CBStateMachine>()._payor.setFunds(e.value());
         context<CBStateMachine>()._payor.setPayorContractKeyPair(e.buyerContractKeyPair());
-        context<CBStateMachine>()._payor.setPayeeFinalPkHash(e.finalPkHash());
+        context<CBStateMachine>()._payor.setPayorFinalPkHash(e.finalPkHash());
 
         // Send invitation message to seller
         context<CBStateMachine>()._sendMessage(new joystream::wire::JoinContract(joystream::wire::ContractInvitation(e.value(), e.buyerContractKeyPair().pk(), e.finalPkHash()), peerMode.index()));
