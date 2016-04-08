@@ -284,6 +284,8 @@ MainWindow::MainWindow(Controller * controller, const QString & appendToTitle)
      */
 
     // Update balance when it changes
+    qRegisterMetaType<uint64_t>("uint64_t");
+
 /*
      QObject::connect(_controller->wallet(),
                      SIGNAL(balanceChanged(uint64_t, uint64_t)),

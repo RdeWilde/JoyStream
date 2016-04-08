@@ -208,6 +208,4 @@ private slots:
     void on_bugsPushButton_clicked();
 };
 
-Q_DECLARE_METATYPE(uint64_t)
-
 #endif // MAIN_WINDOW_HPP
