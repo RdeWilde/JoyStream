@@ -13,6 +13,9 @@
 #include <queue>
 
 namespace joystream {
+namespace wire {
+    class ExtendedMessagePayload;
+}
 namespace protocol {
 
     template <class ConnectionIdType>
@@ -41,6 +44,9 @@ namespace protocol {
                     const statemachine::ReceivedFullPiece &,
                     int*/
                    );
+
+        // Processes given message
+        void process(const wire::ExtendedMessagePayload *);
 
     private:
 

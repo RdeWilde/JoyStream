@@ -7,6 +7,18 @@
 
 #include <protocol/Connection.hpp>
 
+#include <wire/MessageType.hpp>
+#include <wire/Observe.hpp>
+#include <wire/Buy.hpp>
+#include <wire/Sell.hpp>
+#include <wire/JoinContract.hpp>
+#include <wire/JoiningContract.hpp>
+#include <wire/Ready.hpp>
+#include <wire/RequestFullPiece.hpp>
+#include <wire/FullPiece.hpp>
+#include <wire/Payment.hpp>
+#include <protocol/statemachine/event/Recv.hpp>
+
 namespace joystream {
 namespace protocol {
 
@@ -17,6 +29,48 @@ namespace protocol {
     template <class ConnectionIdType>
     Connection<ConnectionIdType>::Connection(const ConnectionIdType & connectionId)
         : _connectionId(connectionId){
+    }
+
+    template <class ConnectionIdType>
+    void Connection<ConnectionIdType>::process(const wire::ExtendedMessagePayload * message) {
+
+        // Get message type
+        joystream::wire::MessageType messageType = message->messageType();
+
+        // Call relevant message handler
+        switch(messageType) {
+
+            case joystream::wire::MessageType::observe:
+                _machine.process_event(statemachine::event::Recv<joystream::wire::Observe>(reinterpret_cast<joystream::wire::Observe *>(message)));
+                break;
+            case joystream::wire::MessageType::buy:
+                _machine.process_event(statemachine::event::Recv<joystream::wire::Observe>(reinterpret_cast<joystream::wire::Buy *>(message)));
+                break;
+            case joystream::wire::MessageType::sell:
+                _machine.process_event(statemachine::event::Recv<joystream::wire::Observe>(reinterpret_cast<joystream::wire::Sell *>(message)));
+                break;
+            case joystream::wire::MessageType::join_contract:
+                _machine.process_event(statemachine::event::Recv<joystream::wire::Observe>(reinterpret_cast<joystream::wire::JoinContract *>(message)));
+                break;
+            case joystream::wire::MessageType::joining_contract:
+                _machine.process_event(statemachine::event::Recv<joystream::wire::Observe>(reinterpret_cast<joystream::wire::JoiningContract *>(message)));
+                break;
+            case joystream::wire::MessageType::ready:
+                _machine.process_event(statemachine::event::Recv<joystream::wire::Observe>(reinterpret_cast<joystream::wire::Ready *>(message)));
+                break;
+            case joystream::wire::MessageType::request_full_piece:
+                _machine.process_event(statemachine::event::Recv<joystream::wire::Observe>(reinterpret_cast<joystream::wire::RequestFullPiece *>(message)));
+                break;
+            case joystream::wire::MessageType::full_piece:
+                _machine.process_event(statemachine::event::Recv<joystream::wire::Observe>(reinterpret_cast<joystream::wire::FullPiece *>(message)));
+                break;
+            case joystream::wire::MessageType::payment:
+                _machine.process_event(statemachine::event::Recv<joystream::wire::Observe>(reinterpret_cast<joystream::wire::Payment *>(message)));
+                break;
+
+            default:
+                assert(false);
+        }
     }
 }
 }
