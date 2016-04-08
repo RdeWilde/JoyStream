@@ -352,19 +352,20 @@ void SPVWallet::updateStatus(wallet_status_t status) {
         _walletStatus = status;
 
         emit statusChanged(status);
-
-        switch(status) {
-            case OFFLINE: emit offline(); break;
-            case CONNECTING: emit connecting(); break;
-            case CONNECTED: emit connected(); break;
-            case DISCONNECTED: emit disconnected(); break;
-            case SYNCHING_HEADERS: emit synchingHeaders(); break;
-            case SYNCHING_BLOCKS: emit synchingBlocks(); break;
-            case SYNCHED: emit synched(); break;
-            default:
-                Q_ASSERT(false);
-        }
     }
+
+    switch(status) {
+        case OFFLINE: emit offline(); break;
+        case CONNECTING: emit connecting(); break;
+        case CONNECTED: emit connected(); break;
+        case DISCONNECTED: emit disconnected(); break;
+        case SYNCHING_HEADERS: emit synchingHeaders(); break;
+        case SYNCHING_BLOCKS: emit synchingBlocks(); break;
+        case SYNCHED: emit synched(); break;
+        default:
+            Q_ASSERT(false);
+    }
+
 }
 
 void SPVWallet::onBlockTreeError(const std::string& error, int code) {
