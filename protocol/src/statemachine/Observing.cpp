@@ -28,7 +28,7 @@ namespace statemachine {
         std::cout << "Reacting to detail::InitializeObserving." << std::endl;
 
         // Send mode message.
-        context<CBStateMachine>().sendMessage()(new wire::Observe());
+        context<CBStateMachine>()._sendMessage(new wire::Observe());
 
         // No transition
         return discard_event();

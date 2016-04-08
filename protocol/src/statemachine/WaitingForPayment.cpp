@@ -29,13 +29,13 @@ sc::result WaitingForPayment::react(const event::Recv<wire::Payment> & e) {
     if(valid) {
 
         // Notify client about valid payment
-        context<CBStateMachine>().validPayment()(payment);
+        context<CBStateMachine>()._validPayment(payment);
 
         return transit<ReadyForPieceRequest>();
     } else {
 
         // Notify client about bad payment
-        context<CBStateMachine>().invalidPayment()(payment);
+        context<CBStateMachine>()._invalidPayment(payment);
 
         // Terminate machine
         return terminate();

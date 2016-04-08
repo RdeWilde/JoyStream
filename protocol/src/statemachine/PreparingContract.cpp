@@ -22,7 +22,7 @@ namespace statemachine {
         std::cout << "Reacting to ContractPrepared event." << std::endl;
 
         // Send ready message
-        context<CBStateMachine>().sendMessage()(new joystream::wire::Ready(e.anchor()));
+        context<CBStateMachine>()._sendMessage(new joystream::wire::Ready(e.anchor()));
 
         // Set anchor in payor
         context<CBStateMachine>()._payor.setAnchor(e.anchor());

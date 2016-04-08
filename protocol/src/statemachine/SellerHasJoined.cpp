@@ -20,7 +20,7 @@ namespace statemachine {
         std::cout << "Reacting to Recv<wire::Observe> event." << std::endl;
 
         // Send client notification about this interruption,
-        context<CBStateMachine>().sellerInterruptedContract()();
+        context<CBStateMachine>()._sellerInterruptedContract();
 
         // and update new peer mode
         context<CBStateMachine>().peerToObserveMode();
@@ -34,7 +34,7 @@ namespace statemachine {
         std::cout << "Reacting to Recv<wire::Buy> event." << std::endl;
 
         // Send client notification about this interruption,
-        context<CBStateMachine>().sellerInterruptedContract()();
+        context<CBStateMachine>()._sellerInterruptedContract();
 
         // and update new peer mode
         context<CBStateMachine>().peerToBuyMode(e.message()->terms());
@@ -48,7 +48,7 @@ namespace statemachine {
         std::cout << "Reacting to Recv<wire::Sell> event." << std::endl;
 
         // Send client notification about this interruption,
-        context<CBStateMachine>().sellerInterruptedContract()();
+        context<CBStateMachine>()._sellerInterruptedContract();
 
         // and update new peer mode
         wire::Sell const * m = e.message();

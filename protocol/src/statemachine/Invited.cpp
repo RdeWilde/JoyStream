@@ -27,7 +27,7 @@ namespace statemachine {
 
         // Send message for joining contract
         joystream::wire::ContractRSVP rsvp(e.contractKeys().pk(), e.finalPkHash());
-        context<CBStateMachine>().sendMessage()(new joystream::wire::JoiningContract(rsvp));
+        context<CBStateMachine>()._sendMessage(new joystream::wire::JoiningContract(rsvp));
 
         // Transition to WaitingToStart state
         return transit<WaitingToStart>();

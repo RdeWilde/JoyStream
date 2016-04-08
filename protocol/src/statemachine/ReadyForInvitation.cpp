@@ -36,7 +36,7 @@ namespace statemachine {
         if(message->index() != context<CBStateMachine>()._index) {
 
             // then notify user
-            context<CBStateMachine>().invitedToOutdatedContract()();
+            context<CBStateMachine>()._invitedToOutdatedContract();
 
             // and drop event
             return discard_event();
@@ -49,7 +49,7 @@ namespace statemachine {
             context<CBStateMachine>()._payee.setPayorFinalPkHash(invitation.finalPkHash());
 
             // otherwise, notify user
-            context<CBStateMachine>().invitedToJoinContract()(message->invitation());
+            context<CBStateMachine>()._invitedToJoinContract(message->invitation());
 
             // and make transition
             return transit<Invited>();

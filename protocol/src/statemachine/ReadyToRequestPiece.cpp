@@ -22,7 +22,7 @@ namespace statemachine {
         std::cout << "Reacting to RequestPiece event." << std::endl;
 
         // Request piece from seller
-        context<CBStateMachine>().sendMessage()(new joystream::wire::RequestFullPiece(e.pieceIndex()));
+        context<CBStateMachine>()._sendMessage(new joystream::wire::RequestFullPiece(e.pieceIndex()));
 
         // Wait for
         return transit<WaitingForFullPiece>();

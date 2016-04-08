@@ -104,33 +104,7 @@ namespace statemachine {
         // Get name of current state: ***Varies from compiler to compiler***
         //const char * getInnerStateName() const;
 
-        // Getters and setters
-        InvitedToOutdatedContract invitedToOutdatedContract() const;
-
-        InvitedToJoinContract invitedToJoinContract() const;
-
-        Send sendMessage() const;
-
-        ContractIsReady contractIsReady() const;
-
-        PieceRequested pieceRequested() const;
-
-        InvalidPieceRequested invalidPieceRequested() const;
-
-        PeerInterruptedPayment peerInterruptedPayment() const;
-
-        ValidPayment validPayment() const;
-
-        InvalidPayment invalidPayment() const;
-
-        SellerJoined sellerJoined() const;
-
-        SellerInterruptedContract sellerInterruptedContract() const;
-
-        ReceivedFullPiece receivedFullPiece() const;
-
-        int MAX_PIECE_INDEX() const;
-
+        // Getters
         PeerModeAnnounced peerAnnouncedMode() const;
 
     private:
@@ -140,6 +114,9 @@ namespace statemachine {
         friend class ChooseMode;
         friend class Active;
 
+        // Observing states
+        friend class Observing;
+
         // Selling states
         friend class Selling;
         friend class ReadyForInvitation;
@@ -147,6 +124,8 @@ namespace statemachine {
         friend class WaitingToStart;
         friend class ServicingPieceRequest;
         friend class WaitingForPayment;
+        friend class ReadyForPieceRequest;
+        friend class LoadingPiece;
 
         // Buying states
         friend class Buying;
@@ -157,6 +136,8 @@ namespace statemachine {
         friend class SellerHasJoined;
         friend class PreparingContract;
         friend class ProcessingPiece;
+        friend class ReadyToRequestPiece;
+        friend class WaitingForFullPiece;
 
         //// State modifiers
 

@@ -26,7 +26,7 @@ namespace statemachine {
         context<CBStateMachine>()._payor.setPayeeFinalPkHash(rsvp.finalPkHash());
 
         // Send client notification about seller joining
-        context<CBStateMachine>().sellerJoined()();
+        context<CBStateMachine>()._sellerJoined();
 
         // Start waiting for contract to be prepared for joined seller
         return transit<SellerHasJoined>();

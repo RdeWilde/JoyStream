@@ -22,15 +22,15 @@ sc::result ReadyForPieceRequest::react(const event::Recv<joystream::wire::Reques
     int pieceIndex = e.message()->pieceIndex();
 
     // if not, send notification and terminate
-    if(pieceIndex < 0 || pieceIndex > context<CBStateMachine>().MAX_PIECE_INDEX()) {
+    if(pieceIndex < 0 || pieceIndex > context<CBStateMachine>()._MAX_PIECE_INDEX) {
 
-        context<CBStateMachine>().invalidPieceRequested()();
+        context<CBStateMachine>()._invalidPieceRequested();
 
         return terminate();
     }
 
     // otherwise send success notification, and
-    context<CBStateMachine>().pieceRequested()(pieceIndex);
+    context<CBStateMachine>()._pieceRequested(pieceIndex);
 
     // get ready to load the piece
     return transit<ServicingPieceRequest>();

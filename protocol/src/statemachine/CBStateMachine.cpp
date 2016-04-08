@@ -120,58 +120,6 @@ namespace statemachine {
         _payor.setRefundFee(t.refundFee());
     }
 
-    CBStateMachine::InvitedToOutdatedContract CBStateMachine::invitedToOutdatedContract() const {
-        return _invitedToOutdatedContract;
-    }
-
-    CBStateMachine::InvitedToJoinContract CBStateMachine::invitedToJoinContract() const {
-        return _invitedToJoinContract;
-    }
-
-    CBStateMachine::Send CBStateMachine::sendMessage() const {
-        return _sendMessage;
-    }
-
-    CBStateMachine::ContractIsReady CBStateMachine::contractIsReady() const {
-        return _contractIsReady;
-    }
-
-    CBStateMachine::PieceRequested CBStateMachine::pieceRequested() const {
-        return _pieceRequested;
-    }
-
-    CBStateMachine::InvalidPieceRequested CBStateMachine::invalidPieceRequested() const {
-        return _invalidPieceRequested;
-    }
-
-    CBStateMachine::PeerInterruptedPayment CBStateMachine::peerInterruptedPayment() const {
-        return _peerInterruptedPayment;
-    }
-
-    CBStateMachine::ValidPayment CBStateMachine::validPayment() const {
-        return _validPayment;
-    }
-
-    CBStateMachine::InvalidPayment CBStateMachine::invalidPayment() const {
-        return _invalidPayment;
-    }
-
-    CBStateMachine::SellerJoined CBStateMachine::sellerJoined() const {
-        return _sellerJoined;
-    }
-
-    CBStateMachine::SellerInterruptedContract CBStateMachine::sellerInterruptedContract() const{
-        return _sellerInterruptedContract;
-    }
-
-    CBStateMachine::ReceivedFullPiece CBStateMachine::receivedFullPiece() const {
-        return _receivedFullPiece;
-    }
-
-    int CBStateMachine::MAX_PIECE_INDEX() const {
-        return _MAX_PIECE_INDEX;
-    }
-
     joystream::protocol::PeerModeAnnounced CBStateMachine::peerAnnouncedMode() const {
         return _peerAnnouncedMode;
     }

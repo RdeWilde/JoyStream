@@ -27,7 +27,7 @@ sc::result WaitingToStart::react(const event::Recv<joystream::wire::Ready> & e) 
     context<CBStateMachine>()._payee.setContractOutPoint(anchor);
 
     // Switch peer state
-    context<CBStateMachine>().contractIsReady()(anchor);
+    context<CBStateMachine>()._contractIsReady(anchor);
 
     // Transition to deep history
     return transit<ReadyForPieceRequest>();
