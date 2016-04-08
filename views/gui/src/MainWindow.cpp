@@ -300,6 +300,9 @@ MainWindow::MainWindow(Controller * controller, const QString & appendToTitle)
                      SIGNAL(synched()),
                      this,
                      SLOT(on_walletSynched()));
+
+    // Show stating wallet balance
+    updateWalletBalances(_wallet->balance(), _wallet->unconfirmedBalance());
 }
 
 MainWindow::~MainWindow() {
