@@ -6,7 +6,7 @@
  */
 
 #include <protocol/Connection.hpp>
-
+#include <protocol/Session.hpp>
 #include <wire/MessageType.hpp>
 #include <wire/Observe.hpp>
 #include <wire/Buy.hpp>
@@ -23,12 +23,51 @@ namespace joystream {
 namespace protocol {
 
     template <class ConnectionIdType>
-    Connection<ConnectionIdType>::Connection() {
-    }
-
-    template <class ConnectionIdType>
-    Connection<ConnectionIdType>::Connection(const ConnectionIdType & connectionId)
-        : _connectionId(connectionId){
+    Connection<ConnectionIdType>::Connection(Session<ConnectionIdType> * session,
+                                             const ConnectionIdType & connectionId,
+                                             const SendMessageOnConnection & sendMessageOnConnection,
+                                             int MAX_PIECE_INDEX)
+        : _session(session)
+        , _connectionId(connectionId)
+        , _sendMessageOnConnection(sendMessageOnConnection)
+        , _machine(
+                  [this](void) {
+                      _session->invitedToOutdatedContract();
+                  },
+                  [this](const joystream::wire::ContractInvitation & invitation) {
+                      _session->invitedToJoinContract(invitation);
+                  },
+                  [this](const joystream::wire::ExtendedMessagePayload * m) {
+                      _sendMessageOnConnection(m);
+                  },
+                  [this](const Coin::typesafeOutPoint & o) {
+                      _session->contractPrepared(o);
+                  },
+                  [this](int i) {
+                      _session->pieceRequested(i);
+                  },
+                  [this]() {
+                      _session->invalidPieceRequested();
+                  },
+                  [this]() {
+                      _session->paymentInterrupted();
+                  },
+                  [this](const Coin::Signature & s) {
+                      _session->receivedValidPayment(s);
+                  },
+                  [this](const Coin::Signature & s) {
+                      _session->receivedInvalidPayment(s);
+                  },
+                  [this]() {
+                      _session->sellerHasJoined();
+                  },
+                  [this]() {
+                      _session->sellerHasInterruptedContract();
+                  },
+                  [this](const joystream::wire::PieceData & p) {
+                      _session->receivedFullPiece(p);
+                  },
+                  MAX_PIECE_INDEX) {
     }
 
     template <class ConnectionIdType>

@@ -37,18 +37,73 @@ namespace protocol {
     }
 
     template<class ConnectionIdType>
-    bool Session<ConnectionIdType>::hasConnection(const std::string & name) const {
-        return _connections.find(name) != _connections.cend();
+    bool Session<ConnectionIdType>::hasConnection(const ConnectionIdType & id) const {
+        return _connections.find(id) != _connections.cend();
     }
 
     template<class ConnectionIdType>
-    bool Session<ConnectionIdType>::removeConnection(const std::string & name) {
+    bool Session<ConnectionIdType>::removeConnection(const ConnectionIdType & id) {
 
         // Number of connections prior to erase
-        typename std::map<std::string, T>::size_type size = _connections.size();
+        typename std::map<std::string, Connection<ConnectionIdType>>::size_type size = _connections.size();
 
         // Removal was successfull iff size decreased
-        return size < _connections.erase(name);
+        return size < _connections.erase(id);
+    }
+
+    template<class ConnectionIdType>
+    void Session<ConnectionIdType>::invitedToOutdatedContract(const Connection<ConnectionIdType> & id) {
+
+    }
+
+    template<class ConnectionIdType>
+    void Session<ConnectionIdType>::invitedToJoinContract(const Connection<ConnectionIdType> & id, const joystream::wire::ContractInvitation &) {
+
+    }
+
+    template<class ConnectionIdType>
+    void Session<ConnectionIdType>::contractPrepared(const Connection<ConnectionIdType> & id, const Coin::typesafeOutPoint & anchor) {
+
+    }
+
+    template<class ConnectionIdType>
+    void Session<ConnectionIdType>::pieceRequested(const Connection<ConnectionIdType> & id, int i) {
+
+    }
+
+    template<class ConnectionIdType>
+    void Session<ConnectionIdType>::invalidPieceRequested(const Connection<ConnectionIdType> & id) {
+
+    }
+
+    template<class ConnectionIdType>
+    void Session<ConnectionIdType>::paymentInterrupted(const Connection<ConnectionIdType> & id) {
+
+    }
+
+    template<class ConnectionIdType>
+    void Session<ConnectionIdType>::receivedValidPayment(const Connection<ConnectionIdType> & id, const Coin::Signature & payment) {
+
+    }
+
+    template<class ConnectionIdType>
+    void Session<ConnectionIdType>::receivedInvalidPayment(const Connection<ConnectionIdType> & id, const Coin::Signature & invalidPayment) {
+
+    }
+
+    template<class ConnectionIdType>
+    void Session<ConnectionIdType>::sellerHasJoined(const Connection<ConnectionIdType> & id) {
+
+    }
+
+    template<class ConnectionIdType>
+    void Session<ConnectionIdType>::sellerHasInterruptedContract(const Connection<ConnectionIdType> & id) {
+
+    }
+
+    template<class ConnectionIdType>
+    void Session<ConnectionIdType>::receivedFullPiece(const Connection<ConnectionIdType> & id, const joystream::wire::PieceData & p) {
+
     }
 
     /*
