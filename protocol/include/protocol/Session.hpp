@@ -2,41 +2,37 @@
  * Copyright (C) JoyStream - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
- * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 4 2016
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 9 2016
  */
 
 #ifndef JOYSTREAM_PROTOCOL_SESSION_HPP
 #define JOYSTREAM_PROTOCOL_SESSION_HPP
 
-#include <common/P2PKHAddress.hpp>
-#include <common/Network.hpp>
-#include <protocol/Mode.hpp>
-
-#include <functional>
-#include <map>
-#include <vector>
-
-namespace Coin {
-    class KeyPair;
-    class P2PKHAddress;
-}
+#include <protocol/SessionMode.hpp>
+#include <protocol/Connection.hpp>
+#include <protocol/BuyerSessionState.hpp>
+#include <protocol/Piece.hpp>
+#include <protocol/Seller.hpp>
+#include <wire/BuyerTerms.hpp>
 
 namespace joystream {
 namespace wire {
     class ExtendedMessagePayload;
 }
-
 namespace protocol {
 
-    class Connection;
-
-    template <class T> // T is type of connection
+    template <class ConnectionIdType>
+    // ConnectionIdType: type for identifying connections, must
+    // be possible to use as key in std::map, and also have
+    // std::string ConnectionIdType::toString() const
     class Session {
 
     public:
 
+        //// Callback types
+
         // Callback for handling the removal of a connection from the session
-        typedef std::function<void(const std::string &)> RemovedConnectionCallbackHandler;
+        typedef std::function<void(const ConnectionIdType &)> RemovedConnectionCallbackHandler;
         typedef std::function<std::vector<Coin::KeyPair>(int)> GenerateKeyPairsCallbackHandler;
         typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateP2PKHAddressesCallbackHandler;
 
@@ -49,47 +45,54 @@ namespace protocol {
         // Callback for generating a receive address
         //typedef std::function generate address
 
+        ////
+
+        // Construct session
+        Session(const RemovedConnectionCallbackHandler &,
+                const GenerateKeyPairsCallbackHandler &,
+                const GenerateP2PKHAddressesCallbackHandler &);
+
+        //// Manage mode
+
+        void toObserve();
+        void toSellMode();
+        void toBuyMode();
+
+        //// Manage connections
+
+        // Adds connection, and return the current number of connections
+        uint addConnection(const Connection<ConnectionIdType> &);
+
         // Whether there is a connection with given id
-        bool hasConnection(const std::string & name) const;
+        bool hasConnection(const ConnectionIdType &) const;
 
-        // Remove connection: does not result in correspondnig callback
-        virtual bool removeConnection(const std::string & name);
+        // Remove connection if one exists with given id, otherwise returns false.
+        // NB:does not result in correspondnig callback ??!?!
+        bool removeConnection(const ConnectionIdType &);
 
-        // Process extended message: does not take ownership of message
-        virtual void processMessageOnConnection(const std::string & name, const joystream::wire::ExtendedMessagePayload & message) = 0;
+        // Either we paid for it, or it just came in.
+        //void markPieceAsDownloadedAndValid(int index);
 
-        // Perform non-reactive (that is not in response to message or control event) processing
-        virtual void tick();
+        void processMessageOnConnection(const ConnectionIdType &, const wire::ExtendedMessagePayload &);
 
-        // Getters
-        Mode mode() const;
+        ////
 
-        Coin::Network network() const;
+        //static quint64 minimalFunds(quint32 numberOfPiecesInTorrent, quint64 maxPrice, int numberOfSellers, quint64 feePerkB, quint64 paychanSettlementFee);
 
-        std::map<std::string, T> connections() const;
 
-        RemovedConnectionCallbackHandler removedConnectionCallbackHandler() const;
+    private:
 
-        GenerateKeyPairsCallbackHandler generateKeyPairsCallbackHandler() const;
+        uint32_t determineNumberOfSellers() const;
+        void setNumberOfSellers(uint32_t n);
 
-        GenerateP2PKHAddressesCallbackHandler generateP2PKHAddressesCallbackHandler() const;
+        // ...
+        int inviteSellers();
 
-    protected:
-
-        Session(Mode mode,
-                Coin::Network network,
-                const std::map<std::string, T> & connections,
-                const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
-                const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-                const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler);
-        // Mode
-        Mode _mode;
-
-        // Network
-        Coin::Network _network;
+        // Mode of session
+        SessionMode _mode;
 
         // Connections
-        std::map<std::string, T> _connections;
+        std::map<ConnectionIdType, Connection<ConnectionIdType>> _connections;
 
         // Callback for when connection has been removed from session
         RemovedConnectionCallbackHandler _removedConnectionCallbackHandler;
@@ -99,11 +102,50 @@ namespace protocol {
 
         // Callback for when addresses have to be generated
         GenerateP2PKHAddressesCallbackHandler _generateP2PKHAddressesCallbackHandler;
+
+        // When session was started
+        time_t _sessionStarted;
+
+        //// Observer
+
+        //// Seller
+
+        //// Buyer
+
+        // State during buy mode
+        BuyerSessionState _state;
+
+        // Terms for buying
+        joystream::wire::BuyerTerms _terms;
+
+        // Sellers: Should be really be array?
+        std::vector<Seller> _sellers;
+
+        // Pieces in torrent file: Should really be array?
+        std::vector<Piece> _pieces;
+
+        // Is required to ensure in order downloading from correct position in file
+        uint32_t _assignmentLowerBound;
+
+        ///////////////////////////////////////////
+        /// State below is dervied from _pieces ///
+        ///////////////////////////////////////////
+
+        // The number of pieces which have not been downloaded and not been assigned to a connection
+        //uint32_t _numberOfUnassignedPieces;
+
+        // Keeps track of lower bound for piece indexes which may be assigned.
+        // Is updated when full pieces are downloaded contigously, and
+        // is used with getNextUnassignedPiece() to find next piece to assign.
+        //
+
     };
 
 }
 }
 
+// Needed due to c++ needing implementation for all uses of templated types
 #include <protocol/../../src/Session.cpp>
 
-#endif // JOYSTREAM_PROTOCOL_SESSION_HPPs
+#endif // JOYSTREAM_PROTOCOL_SESSION_HPP
+

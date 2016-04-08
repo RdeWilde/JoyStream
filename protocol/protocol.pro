@@ -15,23 +15,12 @@ QT      += core # !!!!!!!!!remove later when QDataStream is gone!!!!!!!!!!!!!!!!
 INCLUDEPATH += $$PWD/include # be able to include w.r.t root of this project
 
 HEADERS += \
-    include/protocol/Session.hpp \    
-    include/protocol/Connection.hpp \
     include/protocol/Mode.hpp \
     include/protocol/PeerModeAnnounced.hpp \
     include/protocol/Piece.hpp \
-    include/protocol/SellerSession.hpp \
-    include/protocol/SellerConnection.hpp \
-    include/protocol/SellerClientState.hpp \
-    include/protocol/BuyerSession.hpp \
     include/protocol/BuyerSessionState.hpp \
-    include/protocol/BuyerConnection.hpp \
-    include/protocol/BuyerClientState.hpp \
-    include/protocol/ObserverSession.hpp \
     include/protocol/Seller.hpp \
     include/protocol/Utilities.hpp \
-    include/protocol/BuyerPayorSettings.hpp \
-    include/protocol/BuyerChannelSettings.hpp \
     include/protocol/ModeAnnounced.hpp \
     include/protocol/statemachine/CBStateMachine.hpp \
     include/protocol/statemachine/ChooseMode.hpp \
@@ -68,21 +57,18 @@ HEADERS += \
     include/protocol/statemachine/WaitingForFullPiece.hpp \
     include/protocol/statemachine/ProcessingPiece.hpp \
     include/protocol/statemachine/event/SendPayment.hpp \
-    include/protocol/statemachine/event/InvalidPieceReceived.hpp
+    include/protocol/statemachine/event/InvalidPieceReceived.hpp \
+    include/protocol/Session.hpp \
+    include/protocol/Connection.hpp \
+    include/protocol/SessionMode.hpp
 
 SOURCES += \
     src/PeerModeAnnounced.cpp \
-    src/Connection.cpp \
-    src/SellerSession.cpp \
-    src/SellerConnection.cpp \
-    src/BuyerSession.cpp \
-    src/BuyerConnection.cpp \
-    src/ObserverSession.cpp \
     src/Piece.cpp \
     src/Seller.cpp \
     src/Utilities.cpp \
-    src/BuyerChannelSettings.cpp \
     src/Session.cpp \
+    src/Connection.cpp \
     src/statemachine/ServicingPieceRequest.cpp \
     src/statemachine/CBStateMachine.cpp \
     src/statemachine/event/SellModeStarted.cpp \

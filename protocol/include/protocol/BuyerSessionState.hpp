@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 4 2016
  */
 
-#ifndef JOYSTREAM_PROTOCOL_BUYER_SESSION_STATE_HPP
-#define JOYSTREAM_PROTOCOL_BUYER_SESSION_STATE_HPP
+#ifndef JOYSTREAM_PROTOCOL_BUYERSESSIONSTATE_HPP
+#define JOYSTREAM_PROTOCOL_BUYERSESSIONSTATE_HPP
 
 namespace joystream {
 namespace protocol {
@@ -30,4 +30,4 @@ namespace protocol {
 }
 }
 
-#endif // JOYSTREAM_PROTOCOL_BUYER_SESSION_STATE_HPP
+#endif // JOYSTREAM_PROTOCOL_BUYERSESSIONSTATE_HPP

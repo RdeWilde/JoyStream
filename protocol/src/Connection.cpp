@@ -6,47 +6,17 @@
  */
 
 #include <protocol/Connection.hpp>
-#include <wire/Observe.hpp>
-#include <wire/Buy.hpp>
-#include <wire/Sell.hpp>
 
 namespace joystream {
 namespace protocol {
 
-    Connection::Connection() {
+    template <class ConnectionIdType>
+    Connection<ConnectionIdType>::Connection() {
     }
 
-    Connection::Connection(const std::string & peerName, PeerModeAnnounced lastModeAnnouncedByPeer, const SendMessageCallbackHandler & sendMessageCallbackHandler)
-        : _peerName(peerName)
-        , _lastModeAnnouncedByPeer(lastModeAnnouncedByPeer)
-        , _sendMessageCallbackHandler(sendMessageCallbackHandler) {
+    template <class ConnectionIdType>
+    Connection<ConnectionIdType>::Connection(const ConnectionIdType & connectionId)
+        : _connectionId(connectionId){
     }
-
-    void Connection::process(const wire::Observe & observe) {
-        _lastModeAnnouncedByPeer.setModeAnnounced(ModeAnnounced::observe);
-    }
-
-    void Connection::process(const wire::Buy & buy) {
-        _lastModeAnnouncedByPeer.setModeAnnounced(ModeAnnounced::buy);
-        _lastModeAnnouncedByPeer.setBuyModeTerms(buy.terms());
-    }
-
-    void Connection::process(const wire::Sell & sell) {
-        _lastModeAnnouncedByPeer.setModeAnnounced(ModeAnnounced::sell);
-        _lastModeAnnouncedByPeer.setSellModeTerms(sell.terms());
-    }
-
-    std::string Connection::peerName() const {
-        return _peerName;
-    }
-
-    PeerModeAnnounced Connection::lastModeAnnouncedByPeer() const {
-        return _lastModeAnnouncedByPeer;
-    }
-
-    Connection::SendMessageCallbackHandler Connection::sendMessageCallbackHandler() const {
-        return _sendMessageCallbackHandler;
-    }
-
 }
 }

@@ -2,61 +2,65 @@
  * Copyright (C) JoyStream - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
- * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 4 2016
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 9 2016
  */
 
 #ifndef JOYSTREAM_PROTOCOL_CONNECTION_HPP
 #define JOYSTREAM_PROTOCOL_CONNECTION_HPP
 
-#include <protocol/PeerModeAnnounced.hpp>
+#include <protocol/statemachine/CBStateMachine.hpp>
 
-#include <string>
-#include <functional>
+#include <queue>
 
 namespace joystream {
-namespace wire {
-    class ExtendedMessagePayload;
-    class Observe;
-    class Buy;
-    class Sell;
-}
 namespace protocol {
 
+    template <class ConnectionIdType>
+    // ConnectionIdType: type for identifying connections, must
+    // be possible to use as key in std::map, and also have
+    // std::string ConnectionIdType::toString() const
     class Connection {
 
     public:
 
-        // Callback handler for sending a message to the peer
-        typedef std::function<bool(const joystream::wire::ExtendedMessagePayload *)> SendMessageCallbackHandler;
-
-        // Constructors
         Connection();
 
-        Connection(const std::string & peerName, PeerModeAnnounced lastModeAnnouncedByPeer, const SendMessageCallbackHandler & sendMessageCallbackHandler);
+        Connection(const ConnectionIdType &
+                   /**
+                    const statemachine::InvitedToOutdatedContract &,
+                    const statemachine::InvitedToJoinContract &,
+                    const statemachine::Send &,
+                    const statemachine::ContractIsReady &,
+                    const statemachine::PieceRequested &,
+                    const statemachine::InvalidPieceRequested &,
+                    const statemachine::PeerInterruptedPayment &,
+                    const statemachine::ValidPayment &,
+                    const statemachine::InvalidPayment &,
+                    const statemachine::SellerJoined &,
+                    const statemachine::SellerInterruptedContract &,
+                    const statemachine::ReceivedFullPiece &,
+                    int*/
+                   );
 
-        // Process given message
-        virtual void process(const joystream::wire::Observe & observe);
-        virtual void process(const joystream::wire::Buy & buy);
-        virtual void process(const joystream::wire::Sell & sell);
+    private:
 
-        // Getters
-        std::string peerName() const;
+        // Connection id
+        ConnectionIdType _connectionId;
 
-        PeerModeAnnounced lastModeAnnouncedByPeer() const;
+        // State machine for this connection
+        statemachine::CBStateMachine _machine;
 
-        SendMessageCallbackHandler sendMessageCallbackHandler() const;
+        //// Buyer
 
-    protected:
+        // Point in time when last invite sent
+        time_t _whenLastInviteSent;
 
-        // Name of peer: may or may not actually be needed
-        std::string _peerName;
-
-        // Mode announced by peer, i.e. last mode message received
-        PeerModeAnnounced _lastModeAnnouncedByPeer;
-
-        // Write message callback
-        SendMessageCallbackHandler _sendMessageCallbackHandler;
+        // Indexes of valid piecesm, in the order they were downloaded
+        // NB: The reason this is not in Seller, is because
+        // any peer can potentially provide valid pieces
+        std::queue<uint32_t> _downloadedValidPieces;
     };
+
 }
 }
 
