@@ -60,7 +60,9 @@ HEADERS += \
     include/protocol/statemachine/event/InvalidPieceReceived.hpp \
     include/protocol/Session.hpp \
     include/protocol/Connection.hpp \
-    include/protocol/SessionMode.hpp
+    include/protocol/SessionMode.hpp \
+    include/protocol/Buying.hpp \
+    include/protocol/Selling.hpp
 
 SOURCES += \
     src/PeerModeAnnounced.cpp \
@@ -102,7 +104,9 @@ SOURCES += \
     src/statemachine/ReadyToRequestPiece.cpp \
     src/statemachine/LoadingPiece.cpp \
     src/statemachine/WaitingForFullPiece.cpp \
-    src/statemachine/ProcessingPiece.cpp
+    src/statemachine/ProcessingPiece.cpp \
+    src/Buying.cpp \
+    src/Selling.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include
