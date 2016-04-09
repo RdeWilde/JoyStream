@@ -80,23 +80,25 @@ namespace protocol {
         //static quint64 minimalFunds(quint32 numberOfPiecesInTorrent, quint64 maxPrice, int numberOfSellers, quint64 feePerkB, quint64 paychanSettlementFee);
 
 
+        SessionMode mode() const;
+
     private:
 
         // Connections can access private routines for handling state machine callbacks
         friend class Connection<ConnectionIdType>;
 
         //// Handling callbacks from connections
-        void invitedToOutdatedContract(const Connection<ConnectionIdType> &);
-        void invitedToJoinContract(const Connection<ConnectionIdType> &, const joystream::wire::ContractInvitation &);
-        void contractPrepared(const Connection<ConnectionIdType> &, const Coin::typesafeOutPoint &);
-        void pieceRequested(const Connection<ConnectionIdType> &, int i);
-        void invalidPieceRequested(const Connection<ConnectionIdType> &);
-        void paymentInterrupted(const Connection<ConnectionIdType> &);
-        void receivedValidPayment(const Connection<ConnectionIdType> &, const Coin::Signature &);
-        void receivedInvalidPayment(const Connection<ConnectionIdType> &, const Coin::Signature &);
-        void sellerHasJoined(const Connection<ConnectionIdType> &);
-        void sellerHasInterruptedContract(const Connection<ConnectionIdType> &);
-        void receivedFullPiece(const Connection<ConnectionIdType> &, const joystream::wire::PieceData &);
+        void invitedToOutdatedContract(const ConnectionIdType &);
+        void invitedToJoinContract(const ConnectionIdType &, const joystream::wire::ContractInvitation &);
+        void contractPrepared(const ConnectionIdType &, const Coin::typesafeOutPoint &);
+        void pieceRequested(const ConnectionIdType & id, int i);
+        void invalidPieceRequested(const ConnectionIdType & id);
+        void paymentInterrupted(const ConnectionIdType & id);
+        void receivedValidPayment(const ConnectionIdType & id, const Coin::Signature &);
+        void receivedInvalidPayment(const ConnectionIdType & id, const Coin::Signature &);
+        void sellerHasJoined(const ConnectionIdType & id);
+        void sellerHasInterruptedContract(const ConnectionIdType & id);
+        void receivedFullPiece(const ConnectionIdType & id, const joystream::wire::PieceData &);
 
         uint32_t determineNumberOfSellers() const;
         void setNumberOfSellers(uint32_t n);
