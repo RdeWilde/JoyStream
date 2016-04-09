@@ -107,6 +107,9 @@ namespace statemachine {
         // Getters
         PeerModeAnnounced peerAnnouncedMode() const;
 
+        int MAX_PIECE_INDEX() const;
+        void setMAX_PIECE_INDEX(int);
+
     private:
 
         //// States require access to private machine state

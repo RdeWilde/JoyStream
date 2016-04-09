@@ -123,6 +123,14 @@ namespace statemachine {
     joystream::protocol::PeerModeAnnounced CBStateMachine::peerAnnouncedMode() const {
         return _peerAnnouncedMode;
     }
+
+    int CBStateMachine::MAX_PIECE_INDEX() const {
+        return _MAX_PIECE_INDEX;
+    }
+
+    void CBStateMachine::setMAX_PIECE_INDEX(int MAX_PIECE_INDEX) {
+        _MAX_PIECE_INDEX = MAX_PIECE_INDEX;
+    }
 }
 }
 }

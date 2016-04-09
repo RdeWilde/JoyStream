@@ -24,6 +24,10 @@ namespace protocol {
     template <class ConnectionIdType>
     void Session<ConnectionIdType>::toObserve() {
 
+        if(_mode == SessionMode::Observe)
+            throw std::runtime_error("Already in observe mode.");
+        else if(_mode == SessionMode::NotSet);
+
     }
 
     template <class ConnectionIdType>
@@ -52,58 +56,63 @@ namespace protocol {
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::invitedToOutdatedContract(const Connection<ConnectionIdType> & id) {
+    void Session<ConnectionIdType>::invitedToOutdatedContract(const ConnectionIdType & id) {
 
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::invitedToJoinContract(const Connection<ConnectionIdType> & id, const joystream::wire::ContractInvitation &) {
+    void Session<ConnectionIdType>::invitedToJoinContract(const ConnectionIdType & id, const joystream::wire::ContractInvitation &) {
 
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::contractPrepared(const Connection<ConnectionIdType> & id, const Coin::typesafeOutPoint & anchor) {
+    void Session<ConnectionIdType>::contractPrepared(const ConnectionIdType & id, const Coin::typesafeOutPoint & anchor) {
 
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::pieceRequested(const Connection<ConnectionIdType> & id, int i) {
+    void Session<ConnectionIdType>::pieceRequested(const ConnectionIdType & id, int i) {
 
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::invalidPieceRequested(const Connection<ConnectionIdType> & id) {
+    void Session<ConnectionIdType>::invalidPieceRequested(const ConnectionIdType & id) {
 
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::paymentInterrupted(const Connection<ConnectionIdType> & id) {
+    void Session<ConnectionIdType>::paymentInterrupted(const ConnectionIdType & id) {
 
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::receivedValidPayment(const Connection<ConnectionIdType> & id, const Coin::Signature & payment) {
+    void Session<ConnectionIdType>::receivedValidPayment(const ConnectionIdType & id, const Coin::Signature & payment) {
 
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::receivedInvalidPayment(const Connection<ConnectionIdType> & id, const Coin::Signature & invalidPayment) {
+    void Session<ConnectionIdType>::receivedInvalidPayment(const ConnectionIdType & id, const Coin::Signature & invalidPayment) {
 
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::sellerHasJoined(const Connection<ConnectionIdType> & id) {
+    void Session<ConnectionIdType>::sellerHasJoined(const ConnectionIdType & id) {
 
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::sellerHasInterruptedContract(const Connection<ConnectionIdType> & id) {
+    void Session<ConnectionIdType>::sellerHasInterruptedContract(const ConnectionIdType & id) {
 
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::receivedFullPiece(const Connection<ConnectionIdType> & id, const joystream::wire::PieceData & p) {
+    void Session<ConnectionIdType>::receivedFullPiece(const ConnectionIdType & id, const joystream::wire::PieceData & p) {
 
+    }
+
+    template<class ConnectionIdType>
+    SessionMode Session<ConnectionIdType>::mode() const {
+        return _mode;
     }
 
     /*

@@ -34,8 +34,7 @@ namespace protocol {
 
         Connection(Session<ConnectionIdType> *,
                    const ConnectionIdType &,
-                   const SendMessageOnConnection &,
-                   int MAX_PIECE_INDEX);
+                   const SendMessageOnConnection &);
 
         // Processes given message
         void process(const wire::ExtendedMessagePayload *);

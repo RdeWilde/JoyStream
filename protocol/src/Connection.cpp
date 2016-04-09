@@ -25,8 +25,7 @@ namespace protocol {
     template <class ConnectionIdType>
     Connection<ConnectionIdType>::Connection(Session<ConnectionIdType> * session,
                                              const ConnectionIdType & connectionId,
-                                             const SendMessageOnConnection & sendMessageOnConnection,
-                                             int MAX_PIECE_INDEX)
+                                             const SendMessageOnConnection & sendMessageOnConnection)
         : _session(session)
         , _connectionId(connectionId)
         , _sendMessageOnConnection(sendMessageOnConnection)
@@ -67,7 +66,7 @@ namespace protocol {
                   [this](const joystream::wire::PieceData & p) {
                       _session->receivedFullPiece(p);
                   },
-                  MAX_PIECE_INDEX) {
+                  0) {
     }
 
     template <class ConnectionIdType>
