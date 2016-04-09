@@ -79,31 +79,31 @@ namespace protocol {
         switch(messageType) {
 
             case joystream::wire::MessageType::observe:
-                _machine.process_event(statemachine::event::Recv<joystream::wire::Observe>(reinterpret_cast<joystream::wire::Observe *>(message)));
+                _machine.process_event(statemachine::event::Recv<joystream::wire::Observe>(dynamic_cast<const joystream::wire::Observe *>(message)));
                 break;
             case joystream::wire::MessageType::buy:
-                _machine.process_event(statemachine::event::Recv<joystream::wire::Observe>(reinterpret_cast<joystream::wire::Buy *>(message)));
+                _machine.process_event(statemachine::event::Recv<joystream::wire::Buy>(dynamic_cast<const joystream::wire::Buy *>(message)));
                 break;
             case joystream::wire::MessageType::sell:
-                _machine.process_event(statemachine::event::Recv<joystream::wire::Observe>(reinterpret_cast<joystream::wire::Sell *>(message)));
+                _machine.process_event(statemachine::event::Recv<joystream::wire::Sell>(dynamic_cast<const joystream::wire::Sell *>(message)));
                 break;
             case joystream::wire::MessageType::join_contract:
-                _machine.process_event(statemachine::event::Recv<joystream::wire::Observe>(reinterpret_cast<joystream::wire::JoinContract *>(message)));
+                _machine.process_event(statemachine::event::Recv<joystream::wire::JoinContract>(dynamic_cast<const joystream::wire::JoinContract *>(message)));
                 break;
             case joystream::wire::MessageType::joining_contract:
-                _machine.process_event(statemachine::event::Recv<joystream::wire::Observe>(reinterpret_cast<joystream::wire::JoiningContract *>(message)));
+                _machine.process_event(statemachine::event::Recv<joystream::wire::JoiningContract>(dynamic_cast<const joystream::wire::JoiningContract *>(message)));
                 break;
             case joystream::wire::MessageType::ready:
-                _machine.process_event(statemachine::event::Recv<joystream::wire::Observe>(reinterpret_cast<joystream::wire::Ready *>(message)));
+                _machine.process_event(statemachine::event::Recv<joystream::wire::Ready>(dynamic_cast<const joystream::wire::Ready *>(message)));
                 break;
             case joystream::wire::MessageType::request_full_piece:
-                _machine.process_event(statemachine::event::Recv<joystream::wire::Observe>(reinterpret_cast<joystream::wire::RequestFullPiece *>(message)));
+                _machine.process_event(statemachine::event::Recv<joystream::wire::RequestFullPiece>(dynamic_cast<const joystream::wire::RequestFullPiece *>(message)));
                 break;
             case joystream::wire::MessageType::full_piece:
-                _machine.process_event(statemachine::event::Recv<joystream::wire::Observe>(reinterpret_cast<joystream::wire::FullPiece *>(message)));
+                _machine.process_event(statemachine::event::Recv<joystream::wire::FullPiece>(dynamic_cast<const joystream::wire::FullPiece *>(message)));
                 break;
             case joystream::wire::MessageType::payment:
-                _machine.process_event(statemachine::event::Recv<joystream::wire::Observe>(reinterpret_cast<joystream::wire::Payment *>(message)));
+                _machine.process_event(statemachine::event::Recv<joystream::wire::Payment>(dynamic_cast<const joystream::wire::Payment *>(message)));
                 break;
 
             default:
