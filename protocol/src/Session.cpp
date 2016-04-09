@@ -11,22 +11,22 @@ namespace joystream {
 namespace protocol {
 
     template <class ConnectionIdType>
-    Session<ConnectionIdType>::Session(const RemovedConnectionCallbackHandler & removedConnectionCallbackHandler,
+    Session<ConnectionIdType>::Session(const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnectionCallbackHandler,
                                        const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                                        const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler)
-        : _mode(SessionMode::NotSet)
-        , _sessionStarted()
-        , _removedConnectionCallbackHandler(removedConnectionCallbackHandler)
-        , _generateKeyPairsCallbackHandler(generateKeyPairsCallbackHandler)
-        , _generateP2PKHAddressesCallbackHandler(generateP2PKHAddressesCallbackHandler) {
+        : _core(removedConnectionCallbackHandler,
+                generateKeyPairsCallbackHandler,
+                generateP2PKHAddressesCallbackHandler) {
     }
 
     template <class ConnectionIdType>
     void Session<ConnectionIdType>::toObserve() {
 
-        if(_mode == SessionMode::Observe)
+        /**
+         * if(_mode == SessionMode::Observe)
             throw std::runtime_error("Already in observe mode.");
         else if(_mode == SessionMode::NotSet);
+        */
 
     }
 
@@ -42,17 +42,21 @@ namespace protocol {
 
     template<class ConnectionIdType>
     bool Session<ConnectionIdType>::hasConnection(const ConnectionIdType & id) const {
-        return _connections.find(id) != _connections.cend();
+        return _core.hasConnection(id);
     }
 
     template<class ConnectionIdType>
     bool Session<ConnectionIdType>::removeConnection(const ConnectionIdType & id) {
 
+        /**
         // Number of connections prior to erase
         typename std::map<std::string, Connection<ConnectionIdType>>::size_type size = _connections.size();
 
         // Removal was successfull iff size decreased
         return size < _connections.erase(id);
+        */
+
+        return true;
     }
 
     template<class ConnectionIdType>
@@ -112,7 +116,7 @@ namespace protocol {
 
     template<class ConnectionIdType>
     SessionMode Session<ConnectionIdType>::mode() const {
-        return _mode;
+        return _core._mode;
     }
 
     /*

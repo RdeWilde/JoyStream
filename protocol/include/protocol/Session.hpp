@@ -21,34 +21,80 @@ namespace wire {
 }
 namespace protocol {
 
-    template <class ConnectionIdType>
+    // NOTE:
     // ConnectionIdType: type for identifying connections, must
     // be possible to use as key in std::map, and also have
     // std::string ConnectionIdType::toString() const
+
+    //// Callback types
+
+    // Callback for handling the removal of a connection from the session: c++11 alias declaration
+    template <class ConnectionIdType>
+    using RemovedConnectionCallbackHandler = std::function<void(const ConnectionIdType &)>;
+
+    typedef std::function<std::vector<Coin::KeyPair>(int)> GenerateKeyPairsCallbackHandler;
+    typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateP2PKHAddressesCallbackHandler;
+
+    // Callback for handling broadcasting a transaction
+    //typedef std::function<bool(const Coin::Transaction &)> BroadCastTransactionCallbackHandler;
+
+    // Callback for generating a key pair
+    //typedef std::function< generate coin::keypair?
+
+    // Callback for generating a receive address
+    //typedef std::function generate address
+
+    //// Session core implementation
+
+    namespace detail {
+
+        template <class ConnectionIdType>
+        struct SessionCoreImpl {
+
+            SessionCoreImpl(RemovedConnectionCallbackHandler<ConnectionIdType> removedConnectionCallbackHandler,
+                            GenerateKeyPairsCallbackHandler generateKeyPairsCallbackHandler,
+                            GenerateP2PKHAddressesCallbackHandler generateP2PKHAddressesCallbackHandler)
+                : _mode(SessionMode::NotSet)
+                , _removedConnectionCallbackHandler(removedConnectionCallbackHandler)
+                , _generateKeyPairsCallbackHandler(generateKeyPairsCallbackHandler)
+                , _generateP2PKHAddressesCallbackHandler(generateP2PKHAddressesCallbackHandler) {
+
+                // Note starting time
+                time(&_started);
+            }
+
+            bool hasConnection(const ConnectionIdType & id) const {
+                return _connections.find(id) != _connections.cend();
+            }
+
+            // Mode of session
+            SessionMode _mode;
+
+            // Connections
+            std::map<ConnectionIdType, Connection<ConnectionIdType> *> _connections;
+
+            // Callback for when connection has been removed from session
+            RemovedConnectionCallbackHandler<ConnectionIdType> _removedConnectionCallbackHandler;
+
+            // Callback for when key pairs have to be generated
+            GenerateKeyPairsCallbackHandler _generateKeyPairsCallbackHandler;
+
+            // Callback for when addresses have to be generated
+            GenerateP2PKHAddressesCallbackHandler _generateP2PKHAddressesCallbackHandler;
+
+            // When session was started
+            time_t _started;
+        };
+
+    }
+
+    template <class ConnectionIdType>
     class Session {
 
     public:
 
-        //// Callback types
-
-        // Callback for handling the removal of a connection from the session
-        typedef std::function<void(const ConnectionIdType &)> RemovedConnectionCallbackHandler;
-        typedef std::function<std::vector<Coin::KeyPair>(int)> GenerateKeyPairsCallbackHandler;
-        typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateP2PKHAddressesCallbackHandler;
-
-        // Callback for handling broadcasting a transaction
-        //typedef std::function<bool(const Coin::Transaction &)> BroadCastTransactionCallbackHandler;
-
-        // Callback for generating a key pair
-        //typedef std::function< generate coin::keypair?
-
-        // Callback for generating a receive address
-        //typedef std::function generate address
-
-        ////
-
         // Construct session
-        Session(const RemovedConnectionCallbackHandler &,
+        Session(const RemovedConnectionCallbackHandler<ConnectionIdType> &,
                 const GenerateKeyPairsCallbackHandler &,
                 const GenerateP2PKHAddressesCallbackHandler &);
 
@@ -106,23 +152,8 @@ namespace protocol {
         // ...
         int inviteSellers();
 
-        // Mode of session
-        SessionMode _mode;
-
-        // Connections
-        std::map<ConnectionIdType, Connection<ConnectionIdType> *> _connections;
-
-        // Callback for when connection has been removed from session
-        RemovedConnectionCallbackHandler _removedConnectionCallbackHandler;
-
-        // Callback for when key pairs have to be generated
-        GenerateKeyPairsCallbackHandler _generateKeyPairsCallbackHandler;
-
-        // Callback for when addresses have to be generated
-        GenerateP2PKHAddressesCallbackHandler _generateP2PKHAddressesCallbackHandler;
-
-        // When session was started
-        time_t _sessionStarted;
+        // Session core
+        detail::SessionCoreImpl<ConnectionIdType> _core;
 
         //// Observer
 
