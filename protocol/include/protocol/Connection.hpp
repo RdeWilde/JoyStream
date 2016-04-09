@@ -19,9 +19,6 @@ namespace wire {
 namespace protocol {
 
     template <class ConnectionIdType>
-    class Session;
-
-    template <class ConnectionIdType>
     // ConnectionIdType: type for identifying connections, must
     // be possible to use as key in std::map, and also have
     // std::string ConnectionIdType::toString() const
@@ -32,23 +29,27 @@ namespace protocol {
         // Client requires a message to be sent
         typedef std::function<void(const wire::ExtendedMessagePayload *)> SendMessageOnConnection;
 
-        Connection(Session<ConnectionIdType> *,
-                   const ConnectionIdType &,
-                   const SendMessageOnConnection &);
+        Connection(const ConnectionIdType &,
+                   const statemachine::CBStateMachine::InvitedToOutdatedContract &,
+                   const statemachine::CBStateMachine::InvitedToJoinContract &,
+                   const statemachine::CBStateMachine::Send &,
+                   const statemachine::CBStateMachine::ContractIsReady &,
+                   const statemachine::CBStateMachine::PieceRequested &,
+                   const statemachine::CBStateMachine::InvalidPieceRequested &,
+                   const statemachine::CBStateMachine::PeerInterruptedPayment &,
+                   const statemachine::CBStateMachine::ValidPayment &,
+                   const statemachine::CBStateMachine::InvalidPayment &,
+                   const statemachine::CBStateMachine::SellerJoined &,
+                   const statemachine::CBStateMachine::SellerInterruptedContract &,
+                   const statemachine::CBStateMachine::ReceivedFullPiece &);
 
         // Processes given message
         void process(const wire::ExtendedMessagePayload *);
 
     private:
 
-        // Session to which this connection corresponds
-        Session<ConnectionIdType> * _session;
-
         // Connection id
         ConnectionIdType _connectionId;
-
-        // Hook for sending message on connection
-        SendMessageOnConnection _sendMessageOnConnection;
 
         // State machine for this connection
         statemachine::CBStateMachine _machine;

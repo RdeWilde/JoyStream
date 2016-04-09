@@ -6,7 +6,6 @@
  */
 
 #include <protocol/Connection.hpp>
-#include <protocol/Session.hpp>
 #include <wire/MessageType.hpp>
 #include <wire/Observe.hpp>
 #include <wire/Buy.hpp>
@@ -23,50 +22,33 @@ namespace joystream {
 namespace protocol {
 
     template <class ConnectionIdType>
-    Connection<ConnectionIdType>::Connection(Session<ConnectionIdType> * session,
-                                             const ConnectionIdType & connectionId,
-                                             const SendMessageOnConnection & sendMessageOnConnection)
-        : _session(session)
-        , _connectionId(connectionId)
-        , _sendMessageOnConnection(sendMessageOnConnection)
-        , _machine(
-                  [this](void) {
-                      _session->invitedToOutdatedContract(_connectionId);
-                  },
-                  [this](const joystream::wire::ContractInvitation & invitation) {
-                      _session->invitedToJoinContract(_connectionId,invitation);
-                  },
-                  [this](const joystream::wire::ExtendedMessagePayload * m) {
-                      _sendMessageOnConnection(_connectionId, m);
-                  },
-                  [this](const Coin::typesafeOutPoint & o) {
-                      _session->contractPrepared(_connectionId, o);
-                  },
-                  [this](int i) {
-                      _session->pieceRequested(_connectionId, i);
-                  },
-                  [this]() {
-                      _session->invalidPieceRequested(_connectionId);
-                  },
-                  [this]() {
-                      _session->paymentInterrupted(_connectionId);
-                  },
-                  [this](const Coin::Signature & s) {
-                      _session->receivedValidPayment(_connectionId, s);
-                  },
-                  [this](const Coin::Signature & s) {
-                      _session->receivedInvalidPayment(_connectionId, s);
-                  },
-                  [this]() {
-                      _session->sellerHasJoined(_connectionId);
-                  },
-                  [this]() {
-                      _session->sellerHasInterruptedContract(_connectionId);
-                  },
-                  [this](const joystream::wire::PieceData & p) {
-                      _session->receivedFullPiece(_connectionId, p);
-                  },
-                  0) {
+    Connection<ConnectionIdType>::Connection(const ConnectionIdType & connectionId,
+                                             const statemachine::CBStateMachine::InvitedToOutdatedContract & invitedToOutdatedContract,
+                                             const statemachine::CBStateMachine::InvitedToJoinContract & invitedToJoinContract,
+                                             const statemachine::CBStateMachine::Send & send,
+                                             const statemachine::CBStateMachine::ContractIsReady & contractIsReady,
+                                             const statemachine::CBStateMachine::PieceRequested & pieceRequested,
+                                             const statemachine::CBStateMachine::InvalidPieceRequested & invalidPieceRequested,
+                                             const statemachine::CBStateMachine::PeerInterruptedPayment & peerInterruptedPayment,
+                                             const statemachine::CBStateMachine::ValidPayment & validPayment,
+                                             const statemachine::CBStateMachine::InvalidPayment & invalidPayment,
+                                             const statemachine::CBStateMachine::SellerJoined & sellerJoined,
+                                             const statemachine::CBStateMachine::SellerInterruptedContract & sellerInterruptedContract,
+                                             const statemachine::CBStateMachine::ReceivedFullPiece & receivedFullPiece)
+        : _connectionId(connectionId)
+        , _machine(invitedToOutdatedContract,
+                   invitedToJoinContract,
+                   send,
+                   contractIsReady,
+                   pieceRequested,
+                   invalidPieceRequested,
+                   peerInterruptedPayment,
+                   validPayment,
+                   invalidPayment,
+                   sellerJoined,
+                   sellerInterruptedContract,
+                   receivedFullPiece,
+                   0) {
     }
 
     template <class ConnectionIdType>

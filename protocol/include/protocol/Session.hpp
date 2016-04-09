@@ -10,10 +10,8 @@
 
 #include <protocol/SessionMode.hpp>
 #include <protocol/Connection.hpp>
-#include <protocol/BuyerSessionState.hpp>
-#include <protocol/Piece.hpp>
-#include <protocol/Seller.hpp>
-#include <wire/BuyerTerms.hpp>
+#include <protocol/Buying.hpp>
+#include <protocol/Selling.hpp>
 
 namespace joystream {
 namespace wire {
@@ -107,7 +105,7 @@ namespace protocol {
         //// Manage connections
 
         // Adds connection, and return the current number of connections
-        uint addConnection(const Connection<ConnectionIdType> &);
+        uint addConnection(const ConnectionIdType &);
 
         // Whether there is a connection with given id
         bool hasConnection(const ConnectionIdType &) const;
@@ -125,69 +123,20 @@ namespace protocol {
 
         //static quint64 minimalFunds(quint32 numberOfPiecesInTorrent, quint64 maxPrice, int numberOfSellers, quint64 feePerkB, quint64 paychanSettlementFee);
 
-
         SessionMode mode() const;
 
     private:
 
-        // Connections can access private routines for handling state machine callbacks
-        friend class Connection<ConnectionIdType>;
-
-        //// Handling callbacks from connections
-        void invitedToOutdatedContract(const ConnectionIdType &);
-        void invitedToJoinContract(const ConnectionIdType &, const joystream::wire::ContractInvitation &);
-        void contractPrepared(const ConnectionIdType &, const Coin::typesafeOutPoint &);
-        void pieceRequested(const ConnectionIdType & id, int i);
-        void invalidPieceRequested(const ConnectionIdType & id);
-        void paymentInterrupted(const ConnectionIdType & id);
-        void receivedValidPayment(const ConnectionIdType & id, const Coin::Signature &);
-        void receivedInvalidPayment(const ConnectionIdType & id, const Coin::Signature &);
-        void sellerHasJoined(const ConnectionIdType & id);
-        void sellerHasInterruptedContract(const ConnectionIdType & id);
-        void receivedFullPiece(const ConnectionIdType & id, const joystream::wire::PieceData &);
-
-        uint32_t determineNumberOfSellers() const;
-        void setNumberOfSellers(uint32_t n);
-
-        // ...
-        int inviteSellers();
-
         // Session core
         detail::SessionCoreImpl<ConnectionIdType> _core;
 
-        //// Observer
+        // Observer
 
-        //// Seller
+        // Seller
+        Selling<ConnectionIdType> _selling;
 
-        //// Buyer
-
-        // State during buy mode
-        BuyerSessionState _state;
-
-        // Terms for buying
-        joystream::wire::BuyerTerms _terms;
-
-        // Sellers: Should be really be array?
-        std::vector<Seller> _sellers;
-
-        // Pieces in torrent file: Should really be array?
-        std::vector<Piece> _pieces;
-
-        // Is required to ensure in order downloading from correct position in file
-        uint32_t _assignmentLowerBound;
-
-        ///////////////////////////////////////////
-        /// State below is dervied from _pieces ///
-        ///////////////////////////////////////////
-
-        // The number of pieces which have not been downloaded and not been assigned to a connection
-        //uint32_t _numberOfUnassignedPieces;
-
-        // Keeps track of lower bound for piece indexes which may be assigned.
-        // Is updated when full pieces are downloaded contigously, and
-        // is used with getNextUnassignedPiece() to find next piece to assign.
-        //
-
+        // Buyer
+        Buying<ConnectionIdType> _buying;
     };
 
 }
