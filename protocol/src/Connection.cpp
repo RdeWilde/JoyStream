@@ -31,40 +31,40 @@ namespace protocol {
         , _sendMessageOnConnection(sendMessageOnConnection)
         , _machine(
                   [this](void) {
-                      _session->invitedToOutdatedContract();
+                      _session->invitedToOutdatedContract(_connectionId);
                   },
                   [this](const joystream::wire::ContractInvitation & invitation) {
-                      _session->invitedToJoinContract(invitation);
+                      _session->invitedToJoinContract(_connectionId,invitation);
                   },
                   [this](const joystream::wire::ExtendedMessagePayload * m) {
-                      _sendMessageOnConnection(m);
+                      _sendMessageOnConnection(_connectionId, m);
                   },
                   [this](const Coin::typesafeOutPoint & o) {
-                      _session->contractPrepared(o);
+                      _session->contractPrepared(_connectionId, o);
                   },
                   [this](int i) {
-                      _session->pieceRequested(i);
+                      _session->pieceRequested(_connectionId, i);
                   },
                   [this]() {
-                      _session->invalidPieceRequested();
+                      _session->invalidPieceRequested(_connectionId);
                   },
                   [this]() {
-                      _session->paymentInterrupted();
+                      _session->paymentInterrupted(_connectionId);
                   },
                   [this](const Coin::Signature & s) {
-                      _session->receivedValidPayment(s);
+                      _session->receivedValidPayment(_connectionId, s);
                   },
                   [this](const Coin::Signature & s) {
-                      _session->receivedInvalidPayment(s);
+                      _session->receivedInvalidPayment(_connectionId, s);
                   },
                   [this]() {
-                      _session->sellerHasJoined();
+                      _session->sellerHasJoined(_connectionId);
                   },
                   [this]() {
-                      _session->sellerHasInterruptedContract();
+                      _session->sellerHasInterruptedContract(_connectionId);
                   },
                   [this](const joystream::wire::PieceData & p) {
-                      _session->receivedFullPiece(p);
+                      _session->receivedFullPiece(_connectionId, p);
                   },
                   0) {
     }
