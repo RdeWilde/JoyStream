@@ -13,17 +13,17 @@ namespace statemachine {
 namespace event {
 
     template <class T>
-    Recv<T>::Recv(T * message)
+    Recv<T>::Recv(const T * message)
         : _message(message) {
     }
 
     template <class T>
-    T const * Recv<T>::message() const {
+    const T * Recv<T>::message() const {
         return _message;
     }
 
     template <class T>
-    void Recv<T>::setMessage(T * message) {
+    void Recv<T>::setMessage(const T * message) {
         _message = message;
     }
 
