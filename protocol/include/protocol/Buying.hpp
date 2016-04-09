@@ -18,11 +18,12 @@ namespace wire {
     class PieceData;
 }
 namespace protocol {
-namespace detail {
 
-    template <class ConnectionIdType>
-    struct SessionCoreImpl;
-}
+    namespace detail {
+
+        template <class ConnectionIdType>
+        struct SessionCoreImpl;
+    }
 
     template <class ConnectionIdType>
     class Buying {
@@ -31,12 +32,21 @@ namespace detail {
 
         Buying(detail::SessionCoreImpl<ConnectionIdType> *);
 
+        //// Handling callbacks from connections
+
         void sellerHasJoined(const ConnectionIdType &);
         void sellerHasInterruptedContract(const ConnectionIdType &);
         void receivedFullPiece(const ConnectionIdType &, const joystream::wire::PieceData &);
 
     private:
 
+        uint32_t determineNumberOfSellers() const;
+        void setNumberOfSellers(uint32_t n);
+
+        // ...
+        int inviteSellers();
+
+        // Reference to core of session
         detail::SessionCoreImpl<ConnectionIdType> * _sessionCore;
 
         // State during buy mode
