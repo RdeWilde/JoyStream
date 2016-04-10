@@ -70,40 +70,40 @@ namespace protocol {
 
         // Create a new connection
         Connection<ConnectionIdType> connection = new Connection<ConnectionIdType>(id,
-        [this](void) {
+        [this, &id](void) {
             _selling.invitedToOutdatedContract(id);
         },
-        [this](const joystream::wire::ContractInvitation & invitation) {
+        [this, &id](const joystream::wire::ContractInvitation & invitation) {
             _selling.invitedToJoinContract(id, invitation);
         },
-        [this](const joystream::wire::ExtendedMessagePayload * m) {
+        [this, &callback](const joystream::wire::ExtendedMessagePayload * m) {
             callback(m);
         },
-        [this](const Coin::typesafeOutPoint & o) {
+        [this, &id](const Coin::typesafeOutPoint & o) {
             _selling.contractPrepared(id, o);
         },
-        [this](int i) {
+        [this, &id](int i) {
             _selling.pieceRequested(id, i);
         },
-        [this]() {
+        [this, &id]() {
             _selling.invalidPieceRequested(id);
         },
-        [this]() {
+        [this, &id]() {
             _selling.paymentInterrupted(id);
         },
-        [this](const Coin::Signature & s) {
+        [this, &id](const Coin::Signature & s) {
             _selling.receivedValidPayment(id, s);
         },
-        [this](const Coin::Signature & s) {
+        [this, &id](const Coin::Signature & s) {
             _selling.receivedInvalidPayment(id, s);
         },
-        [this]() {
+        [this, &id]() {
             _buying.sellerHasJoined(id);
         },
-        [this]() {
+        [this, &id]() {
             _buying.sellerHasInterruptedContract(id);
         },
-        [this](const joystream::wire::PieceData & p) {
+        [this, &id](const joystream::wire::PieceData & p) {
             _buying.receivedFullPiece(id, p);
         },
         0);
