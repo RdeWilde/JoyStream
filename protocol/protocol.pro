@@ -63,7 +63,8 @@ HEADERS += \
     include/protocol/SessionMode.hpp \
     include/protocol/Buying.hpp \
     include/protocol/Selling.hpp \
-    include/protocol/exception/ConnectionAlreadyAddedException.hpp
+    include/protocol/exception/ConnectionAlreadyAddedException.hpp \
+    include/protocol/exception/SessionNotSetException.hpp
 
 SOURCES += \
     src/PeerModeAnnounced.cpp \

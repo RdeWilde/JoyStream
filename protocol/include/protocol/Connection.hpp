@@ -26,9 +26,6 @@ namespace protocol {
 
     public:
 
-        // Client requires a message to be sent
-        typedef std::function<void(const wire::ExtendedMessagePayload *)> SendMessageOnConnection;
-
         Connection(const ConnectionIdType &,
                    const statemachine::CBStateMachine::InvitedToOutdatedContract &,
                    const statemachine::CBStateMachine::InvitedToJoinContract &,

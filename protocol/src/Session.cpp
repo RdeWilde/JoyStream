@@ -7,6 +7,9 @@
 
 #include <protocol/Session.hpp>
 
+#include <protocol/exception/ConnectionAlreadyAddedException.hpp>
+#include <protocol/exception/SessionNotSetException.hpp>
+
 namespace joystream {
 namespace protocol {
 
@@ -41,47 +44,69 @@ namespace protocol {
     }
 
     template <class ConnectionIdType>
-    void Session<ConnectionIdType>::addConnection(const ConnectionIdType & id) {
+    uint Session<ConnectionIdType>::addConnection(const ConnectionIdType & id, const SendMessageOnConnection & callback) {
 
-        /**
+        // Check that session is set, throw exception if not
+        if(_core._mode == SessionMode::NotSet)
+            throw exception::SessionNotSetException();
+
+        // Check that connection is new, throw exception if not
+        if(_core.hasConnection(id))
+            throw exception::ConnectionAlreadyAddedException<ConnectionIdType>(id);
+
+        // Create a new connection
+        Connection<ConnectionIdType> connection = new Connection<ConnectionIdType>(id,
         [this](void) {
-            _session->invitedToOutdatedContract(_connectionId);
+            _selling.invitedToOutdatedContract(id);
         },
         [this](const joystream::wire::ContractInvitation & invitation) {
-            _session->invitedToJoinContract(_connectionId,invitation);
+            _selling.invitedToJoinContract(id, invitation);
         },
         [this](const joystream::wire::ExtendedMessagePayload * m) {
-            _sendMessageOnConnection(_connectionId, m);
+            callback(m);
         },
         [this](const Coin::typesafeOutPoint & o) {
-            _session->contractPrepared(_connectionId, o);
+            _selling.contractPrepared(id, o);
         },
         [this](int i) {
-            _session->pieceRequested(_connectionId, i);
+            _selling.pieceRequested(id, i);
         },
         [this]() {
-            _session->invalidPieceRequested(_connectionId);
+            _selling.invalidPieceRequested(id);
         },
         [this]() {
-            _session->paymentInterrupted(_connectionId);
+            _selling.paymentInterrupted(id);
         },
         [this](const Coin::Signature & s) {
-            _session->receivedValidPayment(_connectionId, s);
+            _selling.receivedValidPayment(id, s);
         },
         [this](const Coin::Signature & s) {
-            _session->receivedInvalidPayment(_connectionId, s);
+            _selling.receivedInvalidPayment(id, s);
         },
         [this]() {
-            _session->sellerHasJoined(_connectionId);
+            _buying.sellerHasJoined(id);
         },
         [this]() {
-            _session->sellerHasInterruptedContract(_connectionId);
+            _buying.sellerHasInterruptedContract(id);
         },
         [this](const joystream::wire::PieceData & p) {
-            _session->receivedFullPiece(_connectionId, p);
+            _buying.receivedFullPiece(id, p);
         },
-        0
-        */
+        0);
+
+        // Add to map of connections, get number of connections in session after this
+        uint size = _core.addConnection(connection);
+
+        // Notify relevant module
+        switch(_core._mode) {
+            case SessionMode::Observe: break;
+            case SessionMode::Buy: _buying.connectionAdded(id); break;
+            case SessionMode::Sell: _selling.connectionAdded(id); break;
+
+            default: // SessionMode::NotSet
+        }
+
+        return size;
     }
 
     template<class ConnectionIdType>

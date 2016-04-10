@@ -33,6 +33,9 @@ namespace protocol {
     typedef std::function<std::vector<Coin::KeyPair>(int)> GenerateKeyPairsCallbackHandler;
     typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateP2PKHAddressesCallbackHandler;
 
+    // Client requires a message to be sent
+    typedef std::function<void(const wire::ExtendedMessagePayload *)> SendMessageOnConnection;
+
     // Callback for handling broadcasting a transaction
     //typedef std::function<bool(const Coin::Transaction &)> BroadCastTransactionCallbackHandler;
 
@@ -59,6 +62,14 @@ namespace protocol {
 
                 // Note starting time
                 time(&_started);
+            }
+
+            uint addConnection(const Connection<ConnectionIdType> * c) {
+
+                // Insert in connectin map and return number of connections
+                _connections[c->_connectionId] = c;
+
+                return _connections.size();
             }
 
             bool hasConnection(const ConnectionIdType & id) const {
@@ -105,7 +116,7 @@ namespace protocol {
         //// Manage connections
 
         // Adds connection, and return the current number of connections
-        uint addConnection(const ConnectionIdType &);
+        uint addConnection(const ConnectionIdType &, const SendMessageOnConnection &);
 
         // Whether there is a connection with given id
         bool hasConnection(const ConnectionIdType &) const;
