@@ -13,6 +13,8 @@
 #include <protocol/Seller.hpp>
 #include <wire/BuyerTerms.hpp>
 
+#include <vector>
+
 namespace joystream {
 namespace wire {
     class PieceData;
@@ -56,7 +58,7 @@ namespace protocol {
         joystream::wire::BuyerTerms _terms;
 
         // Sellers: Should be really be array?
-        std::vector<Seller> _sellers;
+        std::vector<Seller<ConnectionIdType>> _sellers;
 
         // Pieces in torrent file: Should really be array?
         std::vector<Piece> _pieces;

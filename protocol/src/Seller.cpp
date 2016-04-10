@@ -10,39 +10,47 @@
 namespace joystream {
 namespace protocol {
 
-    Seller::Seller()
-        : _state(State::unassigned)
-        , _channelIndex(0) {
+    template <class ConnectionIdType>
+    Seller<ConnectionIdType>::Seller()
+        : _state(State::waiting_to_be_assigned_piece)
+        , _indexOfAssignedPiece(0) {
     }
 
-    Seller::Seller(State state, const std::string & peerName, uint32_t channelIndex)
+    template <class ConnectionIdType>
+    Seller<ConnectionIdType>::Seller(State state, const ConnectionIdType & connectionId, uint32_t indexOfAssignedPiece)
         : _state(state)
-        , _peerName(peerName)
-        , _channelIndex(channelIndex) {
+        , _connectionId(connectionId)
+        , _indexOfAssignedPiece(indexOfAssignedPiece) {
     }
 
-    Seller::State Seller::state() const {
+    template <class ConnectionIdType>
+    typename Seller<ConnectionIdType>::State Seller<ConnectionIdType>::state() const {
         return _state;
     }
 
-    void Seller::setState(State state) {
+    template <class ConnectionIdType>
+    void Seller<ConnectionIdType>::setState(State state) {
         _state = state;
     }
 
-    std::string Seller::peerName() const {
-        return _peerName;
+    template <class ConnectionIdType>
+    ConnectionIdType Seller<ConnectionIdType>::connectionId() const {
+        return _connectionId;
     }
 
-    void Seller::setPeerName(const std::string & peerName) {
-        _peerName = peerName;
+    template <class ConnectionIdType>
+    void Seller<ConnectionIdType>::setConnectionId(const ConnectionIdType & connectionId) {
+        _connectionId = connectionId;
     }
 
-    uint32_t Seller::channelIndex() const {
-        return _channelIndex;
+    template <class ConnectionIdType>
+    uint32_t Seller<ConnectionIdType>::indexOfAssignedPiece() const {
+        return _indexOfAssignedPiece;
     }
 
-    void Seller::setChannelIndex(uint32_t channelIndex) {
-        _channelIndex = channelIndex;
+    template <class ConnectionIdType>
+    void Seller<ConnectionIdType>::setIndexOfAssignedPiece(const uint32_t & indexOfAssignedPiece) {
+        _indexOfAssignedPiece = indexOfAssignedPiece;
     }
 }
 }
