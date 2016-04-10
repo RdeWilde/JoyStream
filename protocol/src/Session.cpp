@@ -111,11 +111,20 @@ namespace protocol {
 
     template<class ConnectionIdType>
     bool Session<ConnectionIdType>::hasConnection(const ConnectionIdType & id) const {
+
+        // Check that session is set, throw exception if not
+        if(_core._mode == SessionMode::NotSet)
+            throw exception::SessionNotSetException();
+
         return _core.hasConnection(id);
     }
 
     template<class ConnectionIdType>
     bool Session<ConnectionIdType>::removeConnection(const ConnectionIdType & id) {
+
+        // Check that session is set, throw exception if not
+        if(_core._mode == SessionMode::NotSet)
+            throw exception::SessionNotSetException();
 
         /**
         // Number of connections prior to erase
