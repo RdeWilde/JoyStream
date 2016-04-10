@@ -6,6 +6,8 @@
  */
 
 #include <protocol/Buying.hpp>
+#include <protocol/Session.hpp> // detail::SessionCoreImpl<ConnectionIdType>
+#include <protocol/statemachine/event/BuyModeStarted.hpp>
 #include <wire/PieceData.hpp>
 
 namespace joystream {
@@ -22,6 +24,15 @@ namespace protocol {
     template <class ConnectionIdType>
     void Buying<ConnectionIdType>::connectionAdded(const ConnectionIdType & id) {
 
+        // Get connection
+        auto itr =_sessionCore->_connections.find(id);
+
+        assert(itr != _sessionCore->_connections.end());
+
+        Connection<ConnectionIdType> * connection = itr->second;
+
+        // Choose the mode of the connection
+        connection->_machine.process_event(statemachine::event::BuyModeStarted(_terms));
     }
 
     template <class ConnectionIdType>
