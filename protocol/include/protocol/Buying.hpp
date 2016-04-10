@@ -34,6 +34,10 @@ namespace protocol {
 
         Buying(detail::SessionCoreImpl<ConnectionIdType> *);
 
+        // Time out processing hook
+        // NB: Later give some indication of how to set timescale for this call
+        void tick();
+
         //// Connection events (ex-post)
 
         void connectionAdded(const ConnectionIdType &);

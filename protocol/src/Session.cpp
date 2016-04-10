@@ -23,6 +23,20 @@ namespace protocol {
     }
 
     template <class ConnectionIdType>
+    void Session<ConnectionIdType>::tick() {
+
+        switch(_core._mode) {
+
+            case SessionMode::NotSet: throw exception::SessionNotSetException(); break;
+            case SessionMode::Observe: break;
+            case SessionMode::Buy: _buying.tick(); break;
+            case SessionMode::Sell: _selling.tick(); break;
+            default:
+                assert(false);
+        }
+    }
+
+    template <class ConnectionIdType>
     void Session<ConnectionIdType>::toObserve() {
 
         /**
@@ -104,6 +118,7 @@ namespace protocol {
             case SessionMode::Sell: _selling.connectionAdded(id); break;
 
             default: // SessionMode::NotSet
+            assert(false);
         }
 
         return size;

@@ -18,6 +18,11 @@ namespace protocol {
         time(&_lastStart);
     }
 
+    template <class ConnectionIdType>
+    void Selling<ConnectionIdType>::tick() {
+
+    }
+
     template<class ConnectionIdType>
     void Selling<ConnectionIdType>::connectionAdded(const ConnectionIdType & id) {
 

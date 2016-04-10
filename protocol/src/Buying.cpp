@@ -22,79 +22,10 @@ namespace protocol {
     }
 
     template <class ConnectionIdType>
-    void Buying<ConnectionIdType>::connectionAdded(const ConnectionIdType & id) {
+    void Buying<ConnectionIdType>::tick() {
 
-        // Get connection
-        auto itr =_sessionCore->_connections.find(id);
-
-        assert(itr != _sessionCore->_connections.end());
-
-        Connection<ConnectionIdType> * connection = itr->second;
-
-        // Choose the mode of the connection
-        connection->_machine.process_event(statemachine::event::BuyModeStarted(_terms));
-    }
-
-    template <class ConnectionIdType>
-    void Buying<ConnectionIdType>::connectionRemoved(const ConnectionIdType & id) {
-
-    }
-
-    template <class ConnectionIdType>
-    void Buying<ConnectionIdType>::sellerHasJoined(const ConnectionIdType & id) {
-
-    }
-
-    template <class ConnectionIdType>
-    void Buying<ConnectionIdType>::sellerHasInterruptedContract(const ConnectionIdType & id) {
-
-    }
-
-    template <class ConnectionIdType>
-    void Buying<ConnectionIdType>::receivedFullPiece(const ConnectionIdType & id, const joystream::wire::PieceData & p) {
-
-    }
-
-    /*
-    bool Buyer::addFreshConnection(const Connection & connection) {
-
-        // Make sure connection is not already in session
-        if(hasConnection(connection.peerName()))
-            return false;
-
-        // Create a (buyer) connection which is fresh, i.e. has never had any message transmitted
-        BuyerConnection buyerConnection = BuyerConnection::createFreshConnection(connection);
-
-        // Send sell mode message
-        joystream::wire::Buy m(_terms);
-        buyerConnection.sendMessageCallbackHandler()(&m);
-
-        // Update state
-        buyerConnection.setClientState(BuyerClientState::buyer_mode_announced);
-
-        // Store mapping
-        _connections[buyerConnection.peerName()] = buyerConnection;
-
-        return true;
-    }
-
-    bool Buyer::removeConnection(const std::string & name) {
-
-
-    }
-
-    void Buyer::processMessageOnConnection(const std::string & name, const wire::ExtendedMessagePayload & message) {
-
-        if(!hasConnection(name))
-            throw std::runtime_error("No connection with given id exists.");
-
-        // Make sure new mode messages cannot be sent that change terms of contracts underway
-
-
-
-    }
-
-    void Buyer::tick() {
+        /**
+        if(_state ==)
 
         if(_state == BuyerSessionState::waiting_to_decide_how_many_sellers_to_have) {
 
@@ -130,44 +61,47 @@ namespace protocol {
 
 
         } // else if()
+        */
     }
 
-    uint32_t Buyer::assignmentLowerBound() const {
-        return _assignmentLowerBound;
+    template <class ConnectionIdType>
+    void Buying<ConnectionIdType>::connectionAdded(const ConnectionIdType & id) {
+
+        // Get connection
+        auto itr =_sessionCore->_connections.find(id);
+
+        assert(itr != _sessionCore->_connections.end());
+
+        Connection<ConnectionIdType> * connection = itr->second;
+
+        // Choose the mode of the connection
+        connection->_machine.process_event(statemachine::event::BuyModeStarted(_terms));
     }
 
-    void Buyer::setAssignmentLowerBound(uint32_t assignmentLowerBound) {
-        _assignmentLowerBound = assignmentLowerBound;
-    }
-
-    uint32_t Buyer::determineNumberOfSellers() const {
-
-    }
-
-    void Buyer::setNumberOfSellers(uint32_t n) {
-
-        for(uint32_t i = 0;i < n;i++) {
-
-            //Seller s(Seller::State::unassigned)
-
-
-
-        }
+    template <class ConnectionIdType>
+    void Buying<ConnectionIdType>::connectionRemoved(const ConnectionIdType & id) {
 
     }
 
-    int BuyerSession::computeNumberOfSellers () {
-
-        // min_funds per channel = max( dust limit + fee required to refund output, being able to pay fo full thing at my own price point with one channel)
-        // use total utxo balance and changevalue to figure out if we have neough to cover min_funds*#channels
+    template <class ConnectionIdType>
+    void Buying<ConnectionIdType>::sellerHasJoined(const ConnectionIdType & id) {
 
     }
 
-    std::list<std::string> BuyerSession::getInvitedSellersIdling() const {
-
-
+    template <class ConnectionIdType>
+    void Buying<ConnectionIdType>::sellerHasInterruptedContract(const ConnectionIdType & id) {
 
     }
+
+    template <class ConnectionIdType>
+    void Buying<ConnectionIdType>::receivedFullPiece(const ConnectionIdType & id, const joystream::wire::PieceData & p) {
+
+    }
+
+    /*
+
+
+
 
     int BuyerSession::inviteSellers() {
 

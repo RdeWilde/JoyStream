@@ -107,6 +107,10 @@ namespace protocol {
                 const GenerateKeyPairsCallbackHandler &,
                 const GenerateP2PKHAddressesCallbackHandler &);
 
+        // Time out processing hook
+        // NB: Later give some indication of how to set timescale for this call
+        void tick();
+
         //// Manage mode
 
         void toObserve();
