@@ -12,19 +12,34 @@ namespace joystream {
 namespace protocol {
 
     // State of session in buy mode
-    enum class BuyerSessionState {
+    struct BuyerSessionState {
 
-        // The number of sellers not yet set
-        waiting_to_decide_how_many_sellers_to_have,
+        enum class State {
 
-        // Need enough sellers to join by si
-        waiting_for_full_set_of_sellers_with_signed_refund,
+            active,
 
-        // Requesting and downloading pieces
-        downloading_pieces,
+            stopped,
 
-        // Have full torrent
-        done
+            paused
+        };
+
+        enum class Active {
+
+            // Inviting sellers
+            sending_invitations,
+
+            // Requesting and downloading pieces
+            downloading
+        };
+
+        BuyerSessionState()
+            : _state(State::active)
+            , _active(Active::sending_invitations ){
+        }
+
+        State _state;
+
+        Active _active;
     };
 
 }
