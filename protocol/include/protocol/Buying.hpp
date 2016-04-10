@@ -34,6 +34,11 @@ namespace protocol {
 
         Buying(detail::SessionCoreImpl<ConnectionIdType> *);
 
+        //// Connection events (ex-post)
+
+        void connectionAdded(const ConnectionIdType &);
+        void connectionRemoved(const ConnectionIdType &);
+
         //// Handling callbacks from connections
 
         void sellerHasJoined(const ConnectionIdType &);

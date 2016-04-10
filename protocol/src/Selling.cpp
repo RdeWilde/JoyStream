@@ -19,6 +19,16 @@ namespace protocol {
     }
 
     template<class ConnectionIdType>
+    void Selling<ConnectionIdType>::connectionAdded(const ConnectionIdType & id) {
+
+    }
+
+    template<class ConnectionIdType>
+    void Selling<ConnectionIdType>::connectionRemoved(const ConnectionIdType & id) {
+
+    }
+
+    template<class ConnectionIdType>
     void Selling<ConnectionIdType>::invitedToOutdatedContract(const ConnectionIdType & id) {
 
     }

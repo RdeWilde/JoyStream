@@ -20,6 +20,16 @@ namespace protocol {
     }
 
     template <class ConnectionIdType>
+    void Buying<ConnectionIdType>::connectionAdded(const ConnectionIdType & id) {
+
+    }
+
+    template <class ConnectionIdType>
+    void Buying<ConnectionIdType>::connectionRemoved(const ConnectionIdType & id) {
+
+    }
+
+    template <class ConnectionIdType>
     void Buying<ConnectionIdType>::sellerHasJoined(const ConnectionIdType & id) {
 
     }
