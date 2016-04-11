@@ -14,7 +14,6 @@
 #include <core/extension/PluginMode.hpp>
 #include <core/extension/BuyerTorrentPlugin.hpp> // BuyerTorrentPlugin::Configuration, BuyerTorrentPlugin::contractFee
 #include <core/controller/Controller.hpp>
-#include <wallet/Manager.hpp>
 
 #include <QtMath>
 #include <QMessageBox>
