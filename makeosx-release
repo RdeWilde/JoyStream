@@ -1,6 +1,17 @@
 #!/bin/bash
+spec=`qmake -query QMAKE_XSPEC`
 
-#build dependencies
+if [ "$spec" != "macx-clang" ]
+then
+  echo "osx build environment not correctly setup"
+  exit -1
+fi
+
+pushd bitcoin/src/detail/store
+make clean
+make
+popd
+
 pushd deps/osx/
 ./build-all.sh
 popd
