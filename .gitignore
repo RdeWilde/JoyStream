@@ -67,3 +67,9 @@ deps/linux/dist/
 deps/linux/src/
 deps/win32/dist/
 deps/win32/src/
+
+
+#odb compiled source
+bitcoin/src/detail/store/Schema-odb.cxx
+bitcoin/src/detail/store/Schema-odb.hxx
+bitcoin/src/detail/store/Schema-odb.ixx
