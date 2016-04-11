@@ -5,10 +5,10 @@ spec=`qmake -query QMAKE_XSPEC`
 if [ "$spec" != "linux-g++" ]
 then
   echo "linux build environment not setup correctly"
+  exit 1
 fi
 
 pushd bitcoin/src/detail/store
-make clean
 make
 popd
 
@@ -18,8 +18,6 @@ popd
 
 mkdir -p build/linux-x64
 cd build/linux-x64
-make clean
-qmake ../../JoyStream.pro -r -spec linux-g++  DEFINES+=QT_FORCE_ASSERTS
-make
+qmake ../../JoyStream.pro -r -spec linux-g++  DEFINES+=QT_FORCE_ASSERTS && make
 
 #sudo cp app/app /media/sf_vm-shared/core.bin

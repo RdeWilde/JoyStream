@@ -19,7 +19,7 @@ case "$spec" in
     ;;
     *)
         echo "I don't know how to build for " $spec
-        exit -1
+        exit 1
     ;;
 esac
 

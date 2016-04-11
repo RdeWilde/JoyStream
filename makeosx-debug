@@ -4,11 +4,10 @@ spec=`qmake -query QMAKE_XSPEC`
 if [ "$spec" != "macx-clang" ]
 then
   echo "osx build environment not correctly setup"
-  exit -1
+  exit 1
 fi
 
 pushd bitcoin/src/detail/store
-make clean
 make
 popd
 
@@ -19,7 +18,6 @@ popd
 mkdir -p build/osx
 cd build/osx
 rm -fr app/app.app
-make clean
 qmake ../../JoyStream.pro -r -spec macx-clang CONFIG+=x86_64 CONFIG+=debug && \
   make && \
   macdeployqt app/app.app
