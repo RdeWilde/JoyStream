@@ -68,5 +68,11 @@ LIBS += -lodb-sqlite -lodb
 LIBS += -lpthread -lz
 
 # openssl
-LIBS += -lcrypto -lssl
+LIBS += -lcrypto -lssl 
 
+#libgdi must come after libcrypto
+win32 {
+  LIBS += -lgdi32
+}
+
+LIBS += -lsqlite3
