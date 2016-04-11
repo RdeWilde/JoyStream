@@ -17,7 +17,7 @@ else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../bitcoin/debug
 else:unix: LIBS += -L$$OUT_PWD/../../bitcoin/ -lbitcoin
 
 INCLUDEPATH += $$PWD/../../bitcoin/include
-DEPENDPATH += $$PWD/../../bitcoin/include
+DEPENDPATH += $$PWD/../../bitcoin
 
 win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../bitcoin/release/libbitcoin.a
 else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../bitcoin/debug/libbitcoin.a
@@ -30,7 +30,7 @@ else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../common/debug/
 else:unix: LIBS += -L$$OUT_PWD/../../common/ -lcommon
 
 INCLUDEPATH += $$PWD/../../common/include
-DEPENDPATH += $$PWD/../../common/include
+DEPENDPATH += $$PWD/../../common
 
 win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../common/release/libcommon.a
 else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../common/debug/libcommon.a

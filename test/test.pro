@@ -6,10 +6,8 @@
 TEMPLATE    = subdirs
 
 SUBDIRS     = \
-            core \
             common \
             paymentchannel \
-            #views \
             blockcypher \ 
             mixpanel \
             blockcypher-websocket \

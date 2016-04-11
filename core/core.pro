@@ -153,39 +153,16 @@ HEADERS += \
     include/core/controller/Stream.hpp \
     #include/core/controller/ControllerBarrier.hpp
 
-# paymentchannel ###############################################################
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../paymentchannel/release/ -lpaymentchannel
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../paymentchannel/debug/ -lpaymentchannel
-else:unix: LIBS += -L$$OUT_PWD/../paymentchannel/ -lpaymentchannel
-
 INCLUDEPATH += $$PWD/../paymentchannel/include
 DEPENDPATH += $$PWD/../paymentchannel/include
 
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/release/libpaymentchannel.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/debug/libpaymentchannel.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/release/paymentchannel.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/debug/paymentchannel.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../paymentchannel/libpaymentchannel.a
-
-# blockcypher  ###############################################################
 INCLUDEPATH += $$PWD/../blockcypher/include
 DEPENDPATH += $$PWD/../blockcypher/include
 
-# common ###############################################################
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../common/release/ -lcommon
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../common/debug/ -lcommon
-else:unix: LIBS += -L$$OUT_PWD/../common/ -lcommon
+INCLUDEPATH += $$PWD/../bitcoin/include
+DEPENDPATH += $$PWD/../bitcoin/include
 
 INCLUDEPATH += $$PWD/../common/include
 DEPENDPATH += $$PWD/../common/include
-
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/release/libcommon.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/debug/libcommon.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/release/common.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/debug/common.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.a
-
-INCLUDEPATH += $$PWD/../bitcoin/include
-DEPENDPATH += $$PWD/../bitcoin/include
 
 include(../config.pri)
