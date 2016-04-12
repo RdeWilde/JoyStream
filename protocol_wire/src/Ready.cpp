@@ -20,15 +20,7 @@ namespace protocol_wire {
     }
 
     Ready::Ready(QDataStream & stream) {
-
-        //stream >>
-        stream >> _anchor;
-
-        // contractPk
-        stream >> _contractPk;
-
-        // finalPkHash
-        stream >> _finalPkHash;
+        stream >> _anchor >> _contractPk >> _finalPkHash;
     }
 
     MessageType Ready::messageType() const {
@@ -40,15 +32,7 @@ namespace protocol_wire {
     }
 
     void Ready::write(QDataStream & stream) const {
-
-        // _anchor
-        stream << _anchor;
-
-        // _contractPk
-        stream << _contractPk;
-
-        // _finalPkHash
-        stream << _finalPkHash;
+        stream << _anchor << _contractPk << _finalPkHash;
     }
 
     Coin::typesafeOutPoint Ready::anchor() const {

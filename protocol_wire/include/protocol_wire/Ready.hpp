@@ -28,7 +28,7 @@ namespace protocol_wire {
         virtual quint32 length() const;
         virtual void write(QDataStream &) const;
 
-        // Getters and setters
+        // Getters
         Coin::typesafeOutPoint anchor() const;
 
         Coin::PublicKey contractPk() const;
