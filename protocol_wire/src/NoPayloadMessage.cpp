@@ -14,7 +14,7 @@ namespace protocol_wire {
         return 0;
     }
 
-    void NoPayloadMessage::write(QDataStream & stream) const {
+    void NoPayloadMessage::write(QDataStream &) const {
         // Nothing to write
     }
 
