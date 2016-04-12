@@ -63,7 +63,7 @@ public:
     uchar_vector toUCharVector() const;
 
     // Stream processing
-    int readFromStream(QDataStream & stream, int length);
+    int readFromStream(QDataStream & stream, unsigned int length);
     int writeToStream(QDataStream & stream) const;
 
     // Getters and setters
