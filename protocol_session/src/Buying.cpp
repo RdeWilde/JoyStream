@@ -86,6 +86,11 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
+    void Buying<ConnectionIdType>::peerAnnouncedModeAndTerms(const ConnectionIdType &, const protocol_statemachine::AnnouncedModeAndTerms &) {
+
+    }
+
+    template <class ConnectionIdType>
     void Buying<ConnectionIdType>::sellerHasJoined(const ConnectionIdType & id) {
 
     }

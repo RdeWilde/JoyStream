@@ -145,6 +145,9 @@ namespace protocol_session {
         // Session core
         detail::SessionCoreImpl<ConnectionIdType> _core;
 
+        // Hook for peer mode announcement event on connection with given id
+        void peerAnnouncedModeAndTerms(const ConnectionIdType &, const protocol_statemachine::AnnouncedModeAndTerms &);
+
         // Observer
 
         // Seller

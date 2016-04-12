@@ -19,6 +19,9 @@ namespace joystream {
 namespace protocol_wire {
     class PieceData;
 }
+namespace  protocol_statemachine {
+    class AnnouncedModeAndTerms;
+}
 namespace protocol_session {
 
     namespace detail {
@@ -58,6 +61,7 @@ namespace protocol_session {
 
         //// Handling callbacks from connections
 
+        void peerAnnouncedModeAndTerms(const ConnectionIdType &, const protocol_statemachine::AnnouncedModeAndTerms &);
         void sellerHasJoined(const ConnectionIdType &);
         void sellerHasInterruptedContract(const ConnectionIdType &);
         void receivedFullPiece(const ConnectionIdType &, const protocol_wire::PieceData &);

@@ -68,7 +68,11 @@ namespace protocol_session {
             throw exception::ConnectionAlreadyAddedException<ConnectionIdType>(id);
 
         // Create a new connection
-        Connection<ConnectionIdType> connection = new Connection<ConnectionIdType>(id,
+        Connection<ConnectionIdType> connection = new Connection<ConnectionIdType>(
+        id,
+        [this, &id](const protocol_statemachine::AnnouncedModeAndTerms & a) {
+            this->peerAnnouncedModeAndTerms(id, a);
+        },
         [this, &id](void) {
             _selling.invitedToOutdatedContract(id);
         },
@@ -154,6 +158,22 @@ namespace protocol_session {
     template<class ConnectionIdType>
     SessionMode Session<ConnectionIdType>::mode() const {
         return _core._mode;
+    }
+
+    template<class ConnectionIdType>
+    void Session<ConnectionIdType>::peerAnnouncedModeAndTerms(const ConnectionIdType & id, const protocol_statemachine::AnnouncedModeAndTerms & a) {
+
+        assert(_core.hasConnection(id));
+
+        switch(_core._mode) {
+            case SessionMode::Buy: _buying.peerAnnouncedModeAndTerms(id, a); break;
+            case SessionMode::Sell: break;
+            case SessionMode::Observe: break;
+            case SessionMode::NotSet: throw exception::SessionNotSetException();
+        default:
+            assert(false);
+        }
+
     }
 
 }
