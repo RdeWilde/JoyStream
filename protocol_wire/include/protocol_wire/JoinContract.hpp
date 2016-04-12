@@ -9,7 +9,6 @@
 #define JOYSTREAM_PROTOCOL_WIRE_JOINCONTRACT_HPP
 
 #include <protocol_wire/ExtendedMessagePayload.hpp>
-#include <protocol_wire/ContractInvitation.hpp>
 
 namespace joystream {
 namespace protocol_wire {
@@ -19,10 +18,7 @@ namespace protocol_wire {
     public:
 
         JoinContract();
-
-        JoinContract(const ContractInvitation & invitation, uint32_t index);
-
-        // Constructor based on raw payload
+        JoinContract(uint32_t index);
         JoinContract(QDataStream & stream);
 
         // Virtual methods that subclassing messages have to implement
@@ -30,20 +26,14 @@ namespace protocol_wire {
         quint32 length() const;
         void write(QDataStream & stream) const;
 
-        // Getters and setters
-        ContractInvitation invitation() const;
-        void setInvitation(const ContractInvitation & invitation);
-
+        // Getters
         uint32_t index() const;
-        void setIndex(uint32_t index);
 
     private:
 
-        // Invitation to contract
-        ContractInvitation _invitation;
-
         // Seller terms index
-        uint32_t _index;
+        // cant be uint32_t, due to qdatastream not supporting it
+        quint32 _index;
     };
 
 }

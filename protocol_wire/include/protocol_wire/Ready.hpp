@@ -10,6 +10,7 @@
 
 #include <protocol_wire/ExtendedMessagePayload.hpp>
 #include <common/typesafeOutPoint.hpp>
+#include <common/PublicKey.hpp>
 
 namespace joystream {
 namespace protocol_wire {
@@ -19,22 +20,31 @@ namespace protocol_wire {
     public:
 
         Ready();
-
-        Ready(const Coin::typesafeOutPoint & anchor);
+        Ready(const Coin::typesafeOutPoint &);
+        Ready(QDataStream &);
 
         // Virtual methods that subclassing messages have to implement
         virtual MessageType messageType() const;
         virtual quint32 length() const;
-        virtual void write(QDataStream & stream) const;
+        virtual void write(QDataStream &) const;
 
         // Getters and setters
         Coin::typesafeOutPoint anchor() const;
-        void setAnchor(const Coin::typesafeOutPoint & anchor);
+
+        Coin::PublicKey contractPk() const;
+
+        Coin::PubKeyHash finalPkHash() const;
 
     private:
 
         // Anchor for contract
         Coin::typesafeOutPoint _anchor;
+
+        // Contract output buyer multisig key
+        Coin::PublicKey _contractPk;
+
+        // Payment/Refund buyer output
+        Coin::PubKeyHash _finalPkHash;
     };
 
 }

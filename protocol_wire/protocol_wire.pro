@@ -32,7 +32,6 @@ HEADERS += \
     include/protocol_wire/MessageType.hpp \
     include/protocol_wire/SellerTerms.hpp \
     include/protocol_wire/BuyerTerms.hpp \
-    include/protocol_wire/ContractInvitation.hpp \
     include/protocol_wire/ContractRSVP.hpp \
     include/protocol_wire/PieceData.hpp \
 
@@ -53,7 +52,6 @@ SOURCES += \
     src/Observe.cpp \
     src/SellerTerms.cpp \
     src/BuyerTerms.cpp \
-    src/ContractInvitation.cpp \
     src/ContractRSVP.cpp \
     src/PieceData.cpp \
 

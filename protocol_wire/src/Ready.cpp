@@ -19,28 +19,48 @@ namespace protocol_wire {
         : _anchor(anchor) {
     }
 
+    Ready::Ready(QDataStream & stream) {
+
+        //stream >>
+        stream >> _anchor;
+
+        // contractPk
+        stream >> _contractPk;
+
+        // finalPkHash
+        stream >> _finalPkHash;
+    }
+
     MessageType Ready::messageType() const {
         return MessageType::ready;
     }
 
     quint32 Ready::length() const {
-
-        uchar_vector serialized = _anchor.getClassicOutPoint().getSerialized();
-        return serialized.size();
+        return Coin::typesafeOutPoint::length() + Coin::PublicKey::length() + Coin::PubKeyHash::length();
     }
 
     void Ready::write(QDataStream & stream) const {
 
-        uchar_vector serialized = _anchor.getClassicOutPoint().getSerialized();
-        stream.writeBytes((char *)(serialized.data()), serialized.size());
+        // _anchor
+        stream << _anchor;
+
+        // _contractPk
+        stream << _contractPk;
+
+        // _finalPkHash
+        stream << _finalPkHash;
     }
 
     Coin::typesafeOutPoint Ready::anchor() const {
         return _anchor;
     }
 
-    void Ready::setAnchor(const Coin::typesafeOutPoint & anchor){
-        _anchor = anchor;
+    Coin::PublicKey Ready::contractPk() const {
+        return _contractPk;
+    }
+
+    Coin::PubKeyHash Ready::finalPkHash() const {
+        return _finalPkHash;
     }
 }
 }
