@@ -31,6 +31,10 @@ typesafeOutPoint::typesafeOutPoint(const OutPoint & outPoint)
     , _index(outPoint.index) {
 }
 
+uint typesafeOutPoint::length() {
+    return TransactionId::length() + sizeof(uint32_t);
+}
+
 typesafeOutPoint & typesafeOutPoint::operator=(const typesafeOutPoint& o) {
 
     _txId = o.transactionId();

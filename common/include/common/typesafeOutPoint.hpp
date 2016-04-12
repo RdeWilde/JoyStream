@@ -29,6 +29,9 @@ public:
 
     typesafeOutPoint(const OutPoint & outPoint);
 
+    // Serialized length
+    static uint length();
+
     // Assignment operator
     typesafeOutPoint & operator=(const typesafeOutPoint& outputPoint);
 
