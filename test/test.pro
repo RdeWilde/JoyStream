@@ -13,5 +13,5 @@ SUBDIRS     = \
             wallet \
             blockcypher \ 
             mixpanel \
-            protocol
+            protocol_statemachine
 

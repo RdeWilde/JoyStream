@@ -12,8 +12,9 @@ SUBDIRS     = \
             blockcypher \
             wallet \
             extension \
-            protocol \
-            wire \
+            protocol_wire \
+            protocol_statemachine \
+            protocol_session \
             core \
             views \
             app \
@@ -21,47 +22,18 @@ SUBDIRS     = \
             test \
             demo
 
-# paymentchannel
-paymentchannel.depends = common
-
-# blockcypher
-blockcypher.depends = common
-
-# wire
-wire.depends = common
-
-# protocol
-protocol.depends = common
-protocol.depends = wire
-protocol.depends = paymentchannel
-
-# wallet
-wallet.depends = common
-wallet.depends = blockcypher
-wallet.depends = paymentchannel # not yet ?
-
-# extension
-extension.depends = common
-extension.depends = paymentchannel
-extension.depends = protocol
-
-# core
-core.depends = common
-core.depends = paymentchannel
-core.depends = wallet
-core.depends = extension
-
-# views
-views.depends = common
-views.depends = wallet
-views.depends = core
-
 # app
 app.depends = mixpanel
 app.depends = common
 app.depends = core
 app.depends = wallet
 app.depends = views
+app.depends = extension
+app.depends = protocol_session
+app.depends = protocol_statemachine
+app.depends = protocol_wire
+app.depends = blockcypher
+app.depends = paymentchannel
 
 # runner
 runner.depends = common
@@ -70,21 +42,28 @@ runner.depends = wallet
 runner.depends = views
 
 # test
+test.depends = mixpanel
 test.depends = common
-test.depends = paymentchannel
-test.depends = blockcypher
-test.depends = wallet
-test.depends = extension
 test.depends = core
+test.depends = wallet
 test.depends = views
-test.depends = runner
+test.depends = extension
+test.depends = protocol_session
+test.depends = protocol_statemachine
+test.depends = protocol_wire
+test.depends = blockcypher
+test.depends = paymentchannel
+
 
 # demo
+demo.depends = mixpanel
 demo.depends = common
-demo.depends = paymentchannel
-demo.depends = blockcypher
-demo.depends = wallet
-demo.depends = extension
 demo.depends = core
+demo.depends = wallet
 demo.depends = views
-demo.depends = runner
+demo.depends = extension
+demo.depends = protocol_session
+demo.depends = protocol_statemachine
+demo.depends = protocol_wire
+demo.depends = blockcypher
+demo.depends = paymentchannel
