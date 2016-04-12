@@ -15,6 +15,10 @@ namespace Coin {
 TransactionId::TransactionId() {
 }
 
+uint TransactionId::length() {
+    return TXID_BYTE_LENGTH;
+}
+
 TransactionId TransactionId::fromTx(const Coin::Transaction & tx) {
 
     uchar_vector v(tx.getHashLittleEndian());
