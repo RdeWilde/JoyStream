@@ -39,7 +39,7 @@ namespace protocol_wire {
         static bool compare(OrderingPolicy policy, const SellerTerms & lhs, const SellerTerms & rhs);
 
         // Comparator bound to given policy, is useful for STL based sorting
-        std::function<bool (const SellerTerms & lhs, const SellerTerms & rhs)> comparator(OrderingPolicy policy);
+        //std::function<bool (const SellerTerms & lhs, const SellerTerms & rhs)> comparator(OrderingPolicy policy);
 
         bool satisfiedBy(const BuyerTerms & terms) const;
 

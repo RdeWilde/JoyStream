@@ -43,11 +43,13 @@ namespace protocol_wire {
         }
     }
 
+    /**
     std::function<bool (const SellerTerms & lhs, const SellerTerms & rhs)> SellerTerms::comparator(OrderingPolicy policy) {
 
         //std::bind(SellerTerms::compare, )
         //SellerTerms::comparator()
     }
+    */
 
     bool SellerTerms::satisfiedBy(const BuyerTerms & terms) const {
         return _minPrice <= terms.maxPrice() &&
