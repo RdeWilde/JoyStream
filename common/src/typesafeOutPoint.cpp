@@ -55,6 +55,18 @@ bool operator<(const typesafeOutPoint & lhs, const typesafeOutPoint & rhs) {
     return (lhs.transactionId() < rhs.transactionId()) || ((lhs.transactionId() == rhs.transactionId()) && (lhs.index() < rhs.index()));
 }
 
+QDataStream & operator<<(QDataStream & stream, const typesafeOutPoint & o) {
+    stream << o._txId << o._index;
+
+    return stream;
+}
+
+QDataStream & operator>>(QDataStream & stream, typesafeOutPoint & o) {
+    stream >> o._txId >> o._index;
+
+    return stream;
+}
+
 QString typesafeOutPoint::toLittleEndianTxIdString() const {
     return QString::fromStdString(_txId.toRPCByteOrder()) + "-" + QString::number(_index);
 }
