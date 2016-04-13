@@ -17,11 +17,13 @@ namespace joystream {
 namespace protocol_statemachine {
 namespace event {
 
+    // T must have default constructor
     template <class T>
     class UpdateTerms : public sc::event<UpdateTerms<T>> {
 
     public:
 
+        UpdateTerms();
         UpdateTerms(const T & );
 
         // Getters and setters

@@ -23,7 +23,6 @@ namespace event {
     public:
 
         Recv();
-
         Recv(const T &);
 
         T message() const;

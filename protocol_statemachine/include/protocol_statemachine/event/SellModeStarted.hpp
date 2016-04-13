@@ -21,6 +21,8 @@ namespace event {
 
     public:
 
+        SellModeStarted();
+
         SellModeStarted(const joystream::protocol_wire::SellerTerms & terms);
 
         // Getters and setters

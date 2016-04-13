@@ -11,6 +11,9 @@ namespace joystream {
 namespace protocol_statemachine {
 namespace event {
 
+    BuyModeStarted::BuyModeStarted() {
+    }
+
     BuyModeStarted::BuyModeStarted(const joystream::protocol_wire::BuyerTerms & terms)
         : _terms(terms) {
     }

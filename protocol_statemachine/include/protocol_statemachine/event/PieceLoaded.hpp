@@ -21,6 +21,7 @@ namespace event {
 
     public:
 
+        PieceLoaded();
         PieceLoaded(const joystream::protocol_wire::PieceData &);
 
         joystream::protocol_wire::PieceData pieceData() const;

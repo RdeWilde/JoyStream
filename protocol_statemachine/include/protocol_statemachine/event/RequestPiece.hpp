@@ -20,6 +20,7 @@ namespace event {
 
     public:
 
+        RequestPiece();
         RequestPiece(int);
 
         int pieceIndex() const;

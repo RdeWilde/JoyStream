@@ -21,6 +21,7 @@ namespace event {
 
     public:
 
+        BuyModeStarted();
         BuyModeStarted(const joystream::protocol_wire::BuyerTerms  & terms);
 
         // Getters and setters

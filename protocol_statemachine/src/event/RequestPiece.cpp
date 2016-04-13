@@ -11,6 +11,9 @@ namespace joystream {
 namespace protocol_statemachine {
 namespace event {
 
+    RequestPiece::RequestPiece() {
+    }
+
     RequestPiece::RequestPiece(int pieceIndex)
         : _pieceIndex(pieceIndex) {
     }

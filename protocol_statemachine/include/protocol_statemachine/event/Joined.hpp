@@ -21,6 +21,7 @@ namespace event {
 
     public:
 
+        Joined();
         Joined(const Coin::KeyPair &, const Coin::PubKeyHash &);
 
         // Getters

@@ -22,6 +22,7 @@ namespace event {
 
     public:
 
+        ContractPrepared();
         ContractPrepared(const Coin::typesafeOutPoint &, const Coin::KeyPair &, const Coin::PubKeyHash &, quint64);
 
         // Getters

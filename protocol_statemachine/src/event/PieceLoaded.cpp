@@ -11,6 +11,9 @@ namespace joystream {
 namespace protocol_statemachine {
 namespace event {
 
+    PieceLoaded::PieceLoaded() {
+    }
+
     PieceLoaded::PieceLoaded(const joystream::protocol_wire::PieceData & pieceData)
         : _pieceData(pieceData) {
     }

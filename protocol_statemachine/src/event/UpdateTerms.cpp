@@ -11,6 +11,11 @@ namespace joystream {
 namespace protocol_statemachine {
 namespace event {
 
+
+    template <class T>
+    UpdateTerms<T>::UpdateTerms() {
+    }
+
     template <class T>
     UpdateTerms<T>::UpdateTerms(const T & terms)
         : _terms(terms) {
