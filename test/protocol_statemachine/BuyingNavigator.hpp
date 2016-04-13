@@ -8,52 +8,43 @@
 #ifndef BUYINGNAVIGATOR
 #define BUYINGNAVIGATOR
 
-#include <protocol_statemachine/event/Recv.hpp>
-#include <protocol_wire/protocol_wire.hpp>
-#include <common/KeyPair.hpp>
-#include <common/typesafeOutPoint.hpp>
-
-namespace joystream {
-namespace protocol_statemachine {
-    class CBStateMachine;
-}
-}
+#include <protocol_statemachine/protocol_statemachine.hpp>
 
 using namespace joystream;
 using namespace joystream::protocol_statemachine;
 
+// Simulates both incoming peer messages
+// and client events, when state machine is in Buying state
 class BuyingNavigator {
 
 public:
 
+    // Set of events arriving when in Buying state
     struct Fixture {
 
         // Peer (seller) terms
-        event::Recv<protocol_wire::SellerTerms> _peerToSellMode;
-
-        protocol_wire::SellerTerms peerTerms;
-        uint32_t index;
+        event::Recv<protocol_wire::Sell> peerToSellMode;
 
         // Client (buyer) terms
-        protocol_wire::BuyerTerms clientTerms;
+        event::BuyModeStarted buyModeStarted;
 
-        // Inviting seller
-        quint64 value;
-        Coin::KeyPair buyerContractKeyPair;
-        Coin::PubKeyHash finalPkHash;
+        // Client (buyer) invitation
+        event::InviteSeller inviteSeller;
 
-        // Seller joinining
-        event::Recv<protocol_wire::JoiningContract> rsvp;
+        // Peer (seller) joins
+        event::Recv<protocol_wire::JoiningContract> joiningContract;
 
-        // Contract ready
-        Coin::typesafeOutPoint anchor;
+        // Client (buyer) announces contract
+        event::ContractPrepared contractPrepared;
 
-        // Index of piece client (buyer) requests
-        int pieceIndex;
+        // Client (buyer) requests piece
+        event::RequestPiece requestPiece;
 
-        // Piece data sent back by peer (seller)
-        protocol_wire::PieceData pieceData;
+        // Peer (seller)
+        event::Recv<protocol_wire::FullPiece> fullPiece;
 
+        // Validate client (buyer) payment based on this fixture
+        bool validatePayment(const Coin::Signature &, int) const;
     };
 
     BuyingNavigator(const Fixture &);
@@ -62,9 +53,6 @@ public:
     void toBuyMode(CBStateMachine *);
     void toSellerHasJoined(CBStateMachine *);
     void toProcessingPiece(CBStateMachine *);
-
-    // Validation from the payee side
-    bool validatePayment(const Coin::Signature &, int) const;
 
 private:
 
