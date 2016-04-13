@@ -32,8 +32,8 @@ HEADERS += \
     include/protocol_wire/MessageType.hpp \
     include/protocol_wire/SellerTerms.hpp \
     include/protocol_wire/BuyerTerms.hpp \
-    include/protocol_wire/ContractRSVP.hpp \
     include/protocol_wire/PieceData.hpp \
+    include/protocol_wire/protocol_wire.hpp
 
 SOURCES += \
     src/ExtendedMessagePayload.cpp \
@@ -52,8 +52,7 @@ SOURCES += \
     src/Observe.cpp \
     src/SellerTerms.cpp \
     src/BuyerTerms.cpp \
-    src/ContractRSVP.cpp \
-    src/PieceData.cpp \
+    src/PieceData.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include
