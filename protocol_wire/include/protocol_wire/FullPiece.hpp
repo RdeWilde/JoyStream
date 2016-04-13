@@ -18,7 +18,7 @@ namespace protocol_wire {
 
     public:
 
-        // Constructor from members
+        FullPiece();
         FullPiece(const PieceData &);
 
         // Constructor based on raw payload

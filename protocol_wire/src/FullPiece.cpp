@@ -13,6 +13,9 @@
 namespace joystream {
 namespace protocol_wire {
 
+    FullPiece::FullPiece() {
+    }
+
     FullPiece::FullPiece(const PieceData & pieceData)
         : _pieceData(pieceData) {
     }
