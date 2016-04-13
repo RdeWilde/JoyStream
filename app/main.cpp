@@ -125,6 +125,10 @@ int main(int argc, char* argv[]) {
         MainWindow view(&controller, "");
         view.show();
 
+        view.startUp([&app](std::string progress){
+            app.processEvents();
+        });
+
         // Create and start analytics tracking
         Analytics analytics(&manager, APPLICATION_MIXPANEL_TOKEN, applicationVersion); //, Analytics::_defaultAnalyticsHost);
 

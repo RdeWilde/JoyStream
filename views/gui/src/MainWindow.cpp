@@ -16,6 +16,7 @@
 #include <gui/SellerTorrentPluginDialog.hpp>
 #include <gui/BuyerTorrentPluginDialog.hpp>
 #include <gui/FundingWalletProgressDialog.hpp>
+#include <gui/GeneralLoadingProgressDialog.hpp>
 #include <core/controller/Controller.hpp>
 #include <core/controller/SellerTorrentPluginViewModel.hpp>
 #include <core/controller/BuyerTorrentPluginViewModel.hpp>
@@ -286,13 +287,7 @@ MainWindow::MainWindow(Controller * controller, const QString & appendToTitle)
     // Update balance when it changes
     qRegisterMetaType<uint64_t>("uint64_t");
 
-/*
-     QObject::connect(_controller->wallet(),
-                     SIGNAL(balanceChanged(uint64_t, uint64_t)),
-                     this,
-                     SLOT(on_updatedWalletBalance(uint64_t, uint64_t)));
-*/
-    QObject::connect(_controller->wallet(),
+    QObject::connect(_wallet,
                     &joystream::bitcoin::SPVWallet::balanceChanged,
                     this,
                     &MainWindow::on_updatedWalletBalance);
@@ -303,7 +298,7 @@ MainWindow::MainWindow(Controller * controller, const QString & appendToTitle)
                      this,
                      SLOT(on_walletSynched()));
 
-    // Show stating wallet balance
+    // Show starting wallet balance
     updateWalletBalances(_wallet->balance(), _wallet->unconfirmedBalance());
 }
 
@@ -320,6 +315,23 @@ MainWindow::~MainWindow() {
 
     // Delete Ui::MainWindow
     delete ui;
+}
+
+void MainWindow::startUp(std::function<void(std::string)> feedback) {
+
+    qDebug() << "Starting up...";
+
+    GeneralLoadingProgressDialog dialog("Starting Up");
+    dialog.show();
+
+    _wallet->loadBlockTree([&dialog, &feedback](std::string message){
+        dialog.updateMessage(QString::fromStdString(message));
+        feedback(message);
+    });
+
+    dialog.hide();
+
+    _controller->syncWallet();
 }
 
 void MainWindow::showContextMenu(const QPoint & pos) {

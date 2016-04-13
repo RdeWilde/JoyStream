@@ -36,7 +36,8 @@ SOURCES += \
     #src/UtxoEventViewModel.cpp \
     src/ReceiveFundsDialog.cpp \
     src/MediaPlayerDialog.cpp \
-    src/FundingWalletProgressDialog.cpp
+    src/FundingWalletProgressDialog.cpp \
+    src/GeneralLoadingProgressDialog.cpp
 
 HEADERS += \
     include/gui/MainWindow.hpp \
@@ -53,7 +54,8 @@ HEADERS += \
     #include/gui/UtxoEventViewModel.hpp \
     include/gui/ReceiveFundsDialog.hpp \
     include/gui/MediaPlayerDialog.hpp \
-    include/gui/FundingWalletProgressDialog.hpp
+    include/gui/FundingWalletProgressDialog.hpp \
+    include/gui/GeneralLoadingProgressDialog.hpp
 
 FORMS += \
     ui/SellerTorrentPluginConfigurationDialog.ui \
@@ -65,7 +67,8 @@ FORMS += \
     ui/AddTorrentDialog.ui \
     ui/ReceiveFundsDialog.ui \
     ui/MediaPlayerDialog.ui \
-    ui/FundingWalletProgressDialog.ui
+    ui/FundingWalletProgressDialog.ui \
+    ui/GeneralLoadingProgressDialog.ui
 
 RESOURCES += \
     base.qrc

@@ -64,6 +64,8 @@ public:
     // Destructor
     ~MainWindow();
 
+    void startUp(std::function<void(std::string)> feedback);
+
 public slots:
 
     // Manage torrents
