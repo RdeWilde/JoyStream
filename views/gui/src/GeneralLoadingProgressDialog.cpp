@@ -6,6 +6,7 @@
  */
 
 #include <gui/GeneralLoadingProgressDialog.hpp>
+#include <QCloseEvent>
 
 #include "ui_GeneralLoadingProgressDialog.h"
 
@@ -28,4 +29,10 @@ GeneralLoadingProgressDialog::~GeneralLoadingProgressDialog()
 
 void GeneralLoadingProgressDialog::updateMessage(const QString message) {
     ui->messageLabel->setText(message);
+}
+
+void GeneralLoadingProgressDialog::closeEvent(QCloseEvent * event) {
+
+    // Do not close
+    event->ignore();
 }

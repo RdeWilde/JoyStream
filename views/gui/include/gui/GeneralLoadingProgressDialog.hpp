@@ -26,6 +26,9 @@ public:
 
 private:
     Ui::GeneralLoadingProgressDialog *ui;
+
+protected:
+    void closeEvent(QCloseEvent *event);
 };
 
 #endif // GENERAL_LOADING_PROGRESS_DIALOG_HPP
