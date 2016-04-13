@@ -22,16 +22,16 @@ namespace event {
 
     public:
 
-        Recv(const T message);
+        Recv();
 
-        // Getters and setters
-        const T message() const;
-        void setMessage(const T message);
+        Recv(const T &);
+
+        T message() const;
+        void setMessage(const T &);
 
     private:
 
-        // pointer for now
-        const T _message;
+        T _message;
     };
 
 }
