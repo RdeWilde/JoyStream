@@ -59,6 +59,8 @@ public:
     void sync(std::string host, int port);
     void stopSync();
 
+    void loadBlockTree(std::function<void(std::string)> feedback = nullptr);
+
     wallet_status_t status() const { return _walletStatus; }
 
     bool isInitialized() const { return _walletStatus != UNINITIALIZED; }
@@ -138,8 +140,8 @@ private:
 
     void updateStatus(wallet_status_t status);
 
+    bool _blockTreeLoaded;
     std::string _blockTreeFile;
-    void loadBlockTree();
 
     uint64_t _confirmedBalance;
     uint64_t _unconfirmedBalance;

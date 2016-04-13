@@ -35,6 +35,7 @@ SPVWallet::SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Net
   _network(network),
   _networkSync(getCoinParamsForNetwork(network), true),
   _walletStatus(UNINITIALIZED),
+  _blockTreeLoaded(false),
   _blockTreeFile(blockTreeFile),
   _unconfirmedBalance(0),
   _confirmedBalance(0)
@@ -131,8 +132,6 @@ void SPVWallet::create() {
         throw std::runtime_error("unable to create store");
     }
 
-    loadBlockTree();
-
     updateStatus(OFFLINE);
 }
 
@@ -145,8 +144,6 @@ void SPVWallet::create(Coin::Seed seed, uint32_t timestamp) {
     if(!_store.create(_storePath, _network, seed, timestamp == 0 ? std::time(nullptr) : timestamp)){
         throw std::runtime_error("unable to create store");
     }
-
-    loadBlockTree();
 
     updateStatus(OFFLINE);
 }
@@ -163,8 +160,6 @@ void SPVWallet::open() {
             throw std::runtime_error("store network type mistmatch");
         }
 
-        loadBlockTree();
-
         updateStatus(OFFLINE);
 
         recalculateBalance();
@@ -176,12 +171,23 @@ void SPVWallet::open() {
     }
 }
 
-void SPVWallet::loadBlockTree() {
-    _networkSync.loadHeaders(_blockTreeFile, true);
+void SPVWallet::loadBlockTree(std::function<void(std::string)> feedback) {
+    if(_blockTreeLoaded) return;
 
     if (boost::filesystem::exists(_blockTreeFile+".swp")) {
         boost::filesystem::remove(_blockTreeFile+".swp") ;
     }
+
+    _networkSync.loadHeaders(_blockTreeFile, true, [this, &feedback](const CoinQBlockTreeMem& blockTree) {
+        if(feedback) {
+            std::stringstream progress;
+            progress << "Loading Headers: " << blockTree.getBestHeight();
+            feedback(progress.str());
+        }
+        return true;
+    });
+
+    _blockTreeLoaded = true;
 }
 
 void SPVWallet::sync(std::string host, int port) {
@@ -195,6 +201,10 @@ void SPVWallet::sync(std::string host, int port) {
     if(_walletStatus != OFFLINE) return;
 
     Q_ASSERT(_store.connected());
+
+    if(!_blockTreeLoaded) {
+        loadBlockTree();
+    }
 
     _networkSync.start(host, port);
 }
