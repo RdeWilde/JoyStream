@@ -1143,6 +1143,7 @@ Controller::Controller(const Configuration & configuration, QNetworkAccessManage
                        Coin::Network network, const QString &bctoken,
                        const QString &storePath, const QString &blocktreePath, QLoggingCategory & category, const Coin::Seed * seed)
     : _state(State::normal)
+    , _closing(false)
     , _session(new libtorrent::session(libtorrent::fingerprint(CORE_EXTENSION_FINGERPRINT, CORE_VERSION_MAJOR, CORE_VERSION_MINOR, 0, 0),
                    libtorrent::session::add_default_plugins + libtorrent::session::start_default_features,
                    libtorrent::alert::error_notification +
@@ -1175,9 +1176,7 @@ Controller::Controller(const Configuration & configuration, QNetworkAccessManage
         throw std::runtime_error("controller failed to open or create wallet");
     }
 
-    // TODO - make sure we will be able to write a new blockfile (flush) otherwise throw error
-
-    // TODO - Setup connections for wallet signals
+    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::offline, this, &Controller::syncWallet);
 
     QObject::connect(_wsClient, &BlockCypher::WebSocketClient::disconnected,
                      this, &Controller::webSocketDisconnected);
@@ -1396,9 +1395,16 @@ Controller::~Controller() {
 
     // Delete session
     delete _session;
+
+    _closing = true;
+    _wallet->stopSync();
 }
 
 void Controller::syncWallet() {
+    if(_closing) return;
+
+    qDebug() << "trying to sync wallet";
+
     _wallet->sync("testnet-seed.bitcoin.petertodd.org", 18333);
 }
 
@@ -2424,6 +2430,9 @@ const TorrentViewModel * Controller::torrentViewModel(const libtorrent::sha1_has
 
 void Controller::begin_close() {
 
+    if(_closing) return;
+    _closing = true;
+
     // Note that controller is being stopped,
     // this prevents any processing of Qt events
     // from libtorrent or view pending in event queue.
@@ -2534,8 +2543,6 @@ quint16 Controller::getServerPort() const {
 void Controller::finalize_close() {
 
     qCDebug(_category) << "finalize_close() run.";
-
-    _wallet->stopSync();
 
     // Stop timer
     _statusUpdateTimer.stop();

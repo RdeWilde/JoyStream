@@ -675,6 +675,9 @@ private:
     // State of controller
     State _state;
 	
+    // Indicates if we are shutting down
+    bool _closing;
+
     // Underlying libtorrent session,
     // has to be pointer since it needs sessings_pack,
     // which can only be built postfix calls
