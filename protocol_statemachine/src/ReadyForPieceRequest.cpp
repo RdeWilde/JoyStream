@@ -19,12 +19,12 @@ namespace protocol_statemachine {
 
         std::cout << "Reacting to Recv<wire::RequestFullPiece> event." << std::endl;
 
-        // and check that piece requested is valid
-        int pieceIndex = e.message()->pieceIndex();
+        // Check that piece requested is valid,
+        int pieceIndex = e.message().pieceIndex();
 
-        // if not, send notification and terminate
         if(pieceIndex < 0 || pieceIndex > context<CBStateMachine>()._MAX_PIECE_INDEX) {
 
+            // if not, send notification and terminate
             context<CBStateMachine>()._invalidPieceRequested();
 
             return terminate();

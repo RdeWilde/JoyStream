@@ -11,15 +11,28 @@ namespace joystream {
 namespace protocol_statemachine {
 namespace event {
 
-    ContractPrepared::ContractPrepared(const Coin::typesafeOutPoint & anchor)
-        : _anchor(anchor) {
-
+    ContractPrepared::ContractPrepared(const Coin::typesafeOutPoint & anchor, const Coin::KeyPair & buyerContractKeyPair, const Coin::PubKeyHash & finalPkHash, quint64 value)
+        : _anchor(anchor)
+        , _buyerContractKeyPair(buyerContractKeyPair)
+        , _finalPkHash(finalPkHash)
+        , _value(value) {
     }
 
     Coin::typesafeOutPoint ContractPrepared::anchor() const {
         return _anchor;
     }
 
+    Coin::KeyPair ContractPrepared::buyerContractKeyPair() const {
+        return _buyerContractKeyPair;
+    }
+
+    Coin::PubKeyHash ContractPrepared::finalPkHash() const {
+        return _finalPkHash;
+    }
+
+    quint64 ContractPrepared::value() const {
+        return _value;
+    }
 }
 }
 }

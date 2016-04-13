@@ -7,7 +7,7 @@
 
 #include <protocol_statemachine/LoadingPiece.hpp>
 #include <protocol_statemachine/WaitingForPayment.hpp>
-#include <protocol_wire/FullPiece.hpp>
+#include <protocol_wire/protocol_wire.hpp>
 
 #include <iostream>
 
@@ -23,7 +23,7 @@ namespace protocol_statemachine {
         std::cout << "Reacting to PieceLoaded event." << std::endl;
 
         // Send piece
-        context<CBStateMachine>()._sendMessage(new joystream::protocol_wire::FullPiece(e.pieceData()));
+        context<CBStateMachine>()._sendMessage(joystream::protocol_wire::FullPiece(e.pieceData()));
 
         // Transition to WaitingForPayment state
         return transit<WaitingForPayment>();

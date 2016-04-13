@@ -22,9 +22,6 @@ namespace protocol_statemachine {
 
         std::cout << "Reacting to Recv<wire::JoinContract>." << std::endl;
 
-        // Get message
-        protocol_wire::JoinContract const * message = e.message();
-
         // Make sure the peer is actually a buyer, otherwise throw exception
         ModeAnnounced mode = context<CBStateMachine>().announcedModeAndTermsFromPeer().modeAnnounced();
 
@@ -32,7 +29,7 @@ namespace protocol_statemachine {
             throw exception::InvitedToJoinContractByNonBuyer(mode);
 
         // If invitation doesn't match most recent terms sent,
-        if(message->index() != context<CBStateMachine>()._index) {
+        if(e.message().index() != context<CBStateMachine>()._index) {
 
             // then notify user
             context<CBStateMachine>()._invitedToOutdatedContract();
@@ -41,14 +38,8 @@ namespace protocol_statemachine {
             return discard_event();
         } else {
 
-            // Store invitation information in payee
-            protocol_wire::ContractInvitation invitation = message->invitation();
-            context<CBStateMachine>()._payee.setFunds(invitation.value());
-            context<CBStateMachine>()._payee.setPayorContractPk(invitation.contractPk());
-            context<CBStateMachine>()._payee.setPayorFinalPkHash(invitation.finalPkHash());
-
-            // otherwise, notify user
-            context<CBStateMachine>()._invitedToJoinContract(message->invitation());
+            // Notify client
+            context<CBStateMachine>()._invitedToJoinContract();
 
             // and make transition
             return transit<Invited>();

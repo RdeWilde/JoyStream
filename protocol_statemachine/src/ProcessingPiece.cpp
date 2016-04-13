@@ -7,7 +7,7 @@
 
 #include <protocol_statemachine/ProcessingPiece.hpp>
 #include <protocol_statemachine/ReadyToRequestPiece.hpp>
-#include <protocol_wire/Payment.hpp>
+#include <protocol_wire/protocol_wire.hpp>
 
 namespace joystream {
 namespace protocol_statemachine {
@@ -24,7 +24,7 @@ namespace protocol_statemachine {
         Coin::Signature sig = context<CBStateMachine>()._payor.makePayment();
 
         // Send payment
-        context<CBStateMachine>()._sendMessage(new protocol_wire::Payment(sig));
+        context<CBStateMachine>()._sendMessage(protocol_wire::Payment(sig));
 
         // Now able to request another piece
         return transit<ReadyToRequestPiece>();

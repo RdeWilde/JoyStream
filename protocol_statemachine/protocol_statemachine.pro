@@ -53,6 +53,9 @@ HEADERS += \
     include/protocol_statemachine/ProcessingPiece.hpp \
     include/protocol_statemachine/event/SendPayment.hpp \
     include/protocol_statemachine/event/InvalidPieceReceived.hpp \
+    include/protocol_statemachine/protocol_statemachine.hpp \
+    include/protocol_statemachine/event/event.hpp \
+    include/protocol_statemachine/exception/exception.hpp
 
 
 SOURCES += \

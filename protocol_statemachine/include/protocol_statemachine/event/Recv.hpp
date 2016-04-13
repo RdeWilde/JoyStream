@@ -16,22 +16,22 @@ namespace joystream {
 namespace protocol_statemachine {
 namespace event {
 
+    // T must have copy constructor
     template <class T>
     class Recv : public sc::event<Recv<T>> {
 
     public:
 
-        Recv(const T * message);
+        Recv(const T message);
 
         // Getters and setters
-        const T * message() const;
-        void setMessage(const T * message);
+        const T message() const;
+        void setMessage(const T message);
 
     private:
 
         // pointer for now
-        const T * _message;
-
+        const T _message;
     };
 
 }

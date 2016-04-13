@@ -17,27 +17,13 @@ namespace protocol_wire {
     JoiningContract::JoiningContract() {
     }
 
-    JoiningContract::JoiningContract(const ContractRSVP & rsvp)
-        : _rsvp(rsvp) {
+    JoiningContract::JoiningContract(const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash)
+        : _contractPk(contractPk)
+        , _finalPkHash(finalPkHash) {
     }
 
     JoiningContract::JoiningContract(QDataStream & stream) {
-
-        Coin::PublicKey contractPk;
-        Coin::operator >> (stream, contractPk);
-        _rsvp.setContractPk(contractPk);
-
-        Coin::PubKeyHash finalPkHash;
-        Coin::operator >> (stream, finalPkHash);
-        _rsvp.setFinalPkHash(finalPkHash);
-    }
-
-    ContractRSVP JoiningContract::rsvp() const {
-        return _rsvp;
-    }
-
-    void JoiningContract::setRsvp(const ContractRSVP & rsvp) {
-        _rsvp = rsvp;
+        stream >> _contractPk >> _finalPkHash;
     }
 
     MessageType JoiningContract::messageType() const {
@@ -45,14 +31,19 @@ namespace protocol_wire {
     }
 
     quint32 JoiningContract::length() const {
-        return Coin::PublicKey::length() + Coin::PublicKey::length();
+        return Coin::PublicKey::length() + Coin::PubKeyHash::length();
     }
 
     void JoiningContract::write(QDataStream & stream) const {
+        stream << _contractPk << _finalPkHash;
+    }
 
-        // DOESN'T LINK: stream << _contractPk << _finalPk;
-        Coin::operator << (stream, _rsvp.contractPk());
-        Coin::operator << (stream, _rsvp.finalPkHash());
+    Coin::PublicKey JoiningContract::contractPk() const {
+        return _contractPk;
+    }
+
+    Coin::PubKeyHash JoiningContract::finalPkHash() const {
+        return _finalPkHash;
     }
 
 }

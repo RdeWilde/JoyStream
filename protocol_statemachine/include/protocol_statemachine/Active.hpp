@@ -10,10 +10,7 @@
 
 #include <protocol_statemachine/CBStateMachine.hpp>
 #include <protocol_statemachine/event/Recv.hpp>
-#include <protocol_wire/Observe.hpp>
-#include <protocol_wire/Buy.hpp>
-#include <protocol_wire/Sell.hpp>
-
+#include <protocol_wire/protocol_wire.hpp>
 #include <boost/statechart/simple_state.hpp>
 #include <boost/statechart/custom_reaction.hpp>
 #include <boost/mpl/list.hpp>

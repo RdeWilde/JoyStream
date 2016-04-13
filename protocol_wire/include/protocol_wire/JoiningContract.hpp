@@ -9,7 +9,7 @@
 #define JOYSTREAM_WIRE_JOINING_CONTRACT_HPP
 
 #include <protocol_wire/ExtendedMessagePayload.hpp>
-#include <protocol_wire/ContractRSVP.hpp>
+#include <common/PublicKey.hpp>
 
 namespace joystream {
 namespace protocol_wire {
@@ -18,30 +18,27 @@ namespace protocol_wire {
 
     public:
 
-        // Default constructor
         JoiningContract();
-
-        // Construct from members
-        JoiningContract(const ContractRSVP &);
-
-        // Constructor based on raw payload
-        // NB: Substitute with static factory in future, so that you cannot create stale
-        // payload objects if there is an error in the reading from stream
+        JoiningContract(const Coin::PublicKey &, const Coin::PubKeyHash &);
         JoiningContract(QDataStream & stream);
-
-        // Getter
-        ContractRSVP rsvp() const;
-        void setRsvp(const ContractRSVP &rsvp);
 
         // Virtual methods that subclassing messages have to implement
         virtual MessageType messageType() const;
         virtual quint32 length() const;
         virtual void write(QDataStream & stream) const;
 
+        // Getters
+        Coin::PublicKey contractPk() const;
+
+        Coin::PubKeyHash finalPkHash() const;
+
     private:
 
-        // RSVP response to join contract
-        ContractRSVP _rsvp;
+        // Contract output seller multisig key
+        Coin::PublicKey _contractPk;
+
+        // Payment seller output
+        Coin::PubKeyHash _finalPkHash;
     };
 
 }

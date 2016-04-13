@@ -8,7 +8,6 @@
 #ifndef JOYSTREAM_PROTOCOLSTATEMACHINE_EVENT_INVITESELLER_HPP
 #define JOYSTREAM_PROTOCOLSTATEMACHINE_EVENT_INVITESELLER_HPP
 
-#include <common/KeyPair.hpp>
 #include <boost/statechart/event.hpp>
 
 namespace sc = boost::statechart;
@@ -18,31 +17,6 @@ namespace protocol_statemachine {
 namespace event {
 
     class InviteSeller : public sc::event<InviteSeller> {
-
-    public:
-
-        InviteSeller(quint64, const Coin::KeyPair &, const Coin::PubKeyHash &);
-
-        // Getters
-        quint64 value() const;
-
-        Coin::KeyPair buyerContractKeyPair() const;
-
-        Coin::PubKeyHash finalPkHash() const;
-
-    private:
-
-        // Here we could also do ContractInvitation + private key for contract
-
-        // Contract output value
-        // cant be int64_t, due to compatibility wiht QDataStream
-        quint64 _value;
-
-        // Controls buyer portiono of contract output
-        Coin::KeyPair _buyerContractKeyPair;
-
-        // Payment/Refund buyer output
-        Coin::PubKeyHash _finalPkHash;
     };
 
 }

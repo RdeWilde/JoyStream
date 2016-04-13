@@ -21,14 +21,13 @@ namespace protocol_statemachine {
 
         std::cout << "Reacting to Recv<wire::Ready> event." << std::endl;
 
-        // Get contract anchor
-        Coin::typesafeOutPoint anchor = e.message()->anchor();
+        // Update payee
+        context<CBStateMachine>()._payee.setPayorContractPk(e.message().contractPk());
+        context<CBStateMachine>()._payee.setPayorFinalPkHash(e.message().finalPkHash());
+        context<CBStateMachine>()._payee.setContractOutPoint(e.message().anchor());
 
-        // Store anchor in payee
-        context<CBStateMachine>()._payee.setContractOutPoint(anchor);
-
-        // Switch peer state
-        context<CBStateMachine>()._contractIsReady(anchor);
+        // Notify client
+        context<CBStateMachine>()._contractIsReady(e.message().anchor());
 
         // Transition to deep history
         return transit<ReadyForPieceRequest>();

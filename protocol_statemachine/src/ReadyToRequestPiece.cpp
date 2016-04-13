@@ -7,7 +7,7 @@
 
 #include <protocol_statemachine/ReadyToRequestPiece.hpp>
 #include <protocol_statemachine/WaitingForFullPiece.hpp>
-#include <protocol_wire/RequestFullPiece.hpp>
+#include <protocol_wire/protocol_wire.hpp>
 
 namespace joystream {
 namespace protocol_statemachine {
@@ -21,7 +21,7 @@ namespace protocol_statemachine {
         std::cout << "Reacting to RequestPiece event." << std::endl;
 
         // Request piece from seller
-        context<CBStateMachine>()._sendMessage(new protocol_wire::RequestFullPiece(e.pieceIndex()));
+        context<CBStateMachine>()._sendMessage(protocol_wire::RequestFullPiece(e.pieceIndex()));
 
         // Wait for
         return transit<WaitingForFullPiece>();

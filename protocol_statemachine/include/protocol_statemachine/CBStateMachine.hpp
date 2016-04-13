@@ -28,8 +28,10 @@ namespace protocol_wire {
     class ExtendedMessagePayload;
     class SellerTerms;
     class BuyerTerms;
-    class ContractInvitation;
+    class Ready;
+
     class ContractRSVP;
+
     class PieceData;
 }
 
@@ -46,7 +48,7 @@ namespace protocol_statemachine {
         typedef std::function<void(const protocol_statemachine::AnnouncedModeAndTerms &)> PeerAnnouncedMode;
 
         // Client requires a message to be sent
-        typedef std::function<void(const protocol_wire::ExtendedMessagePayload *)> Send;
+        typedef std::function<void(const protocol_wire::ExtendedMessagePayload &)> Send;
 
         //// Selling Notifications
 
@@ -54,7 +56,7 @@ namespace protocol_statemachine {
         typedef std::function<void()> InvitedToOutdatedContract;
 
         // Client was invited to join given contract, should terms be included? they are available in _peerAnnounced
-        typedef std::function<void(const protocol_wire::ContractInvitation)> InvitedToJoinContract;
+        typedef std::function<void()> InvitedToJoinContract;
 
         // Peer announced that contract is now ready, should contract be be included? it was available
         typedef std::function<void(const Coin::typesafeOutPoint &)> ContractIsReady;
@@ -146,19 +148,15 @@ namespace protocol_statemachine {
 
         //// State modifiers
 
-        // Update peer mode state
+        // Update peer mode state and payor/payee
         void peerToObserveMode();
         void peerToSellMode(const protocol_wire::SellerTerms &, uint32_t);
         void peerToBuyMode(const protocol_wire::BuyerTerms &);
 
-        // Update mode state and send mode message and return corresponding transition
-        void updateAndAnnounceClientMode();
-        void updateAndAnnounceClientMode(const protocol_wire::SellerTerms &, uint32_t = 0);
-        void updateAndAnnounceClientMode(const protocol_wire::BuyerTerms &);
-
-        // Update payment channel based on terms
-        void updatePayeeTerms(const protocol_wire::SellerTerms &);
-        void updatePayorTerms(const protocol_wire::BuyerTerms &);
+        // Update payor/payee and send mode message
+        void clientToObserveMode();
+        void clientToSellMode(const protocol_wire::SellerTerms &, uint32_t = 0);
+        void clientToBuyMode(const protocol_wire::BuyerTerms &);
 
         //// Callbacks
 

@@ -20,9 +20,8 @@ namespace protocol_statemachine {
         std::cout << "Reacting to Recv<protocol_wire::JoiningContract> event." << std::endl;
 
         // Update payor based on rsvp
-        protocol_wire::ContractRSVP rsvp = e.message()->rsvp();
-        context<CBStateMachine>()._payor.setPayeeContractPk(rsvp.contractPk());
-        context<CBStateMachine>()._payor.setPayeeFinalPkHash(rsvp.finalPkHash());
+        context<CBStateMachine>()._payor.setPayeeContractPk(e.message().contractPk());
+        context<CBStateMachine>()._payor.setPayeeFinalPkHash(e.message().finalPkHash());
 
         // Send client notification about seller joining
         context<CBStateMachine>()._sellerJoined();

@@ -10,7 +10,7 @@
 
 #include <protocol_statemachine/Buying.hpp>
 #include <protocol_statemachine/event/Recv.hpp>
-#include <protocol_wire/JoiningContract.hpp>
+#include <protocol_wire/protocol_wire.hpp>
 
 namespace joystream {
 namespace protocol_statemachine {

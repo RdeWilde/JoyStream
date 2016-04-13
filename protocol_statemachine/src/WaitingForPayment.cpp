@@ -22,7 +22,7 @@ namespace protocol_statemachine {
         std::cout << "Reacting to Recv<wire::Payment>." << std::endl;
 
         // Get payment signature
-        Coin::Signature payment = e.message()->sig();
+        Coin::Signature payment = e.message().sig();
 
         // Check validity of payment signature, and register if valid
         bool valid = context<CBStateMachine>()._payee.registerPayment(payment);

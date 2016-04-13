@@ -8,10 +8,8 @@
 #ifndef BUYINGNAVIGATOR
 #define BUYINGNAVIGATOR
 
-#include <protocol_wire/SellerTerms.hpp>
-#include <protocol_wire/BuyerTerms.hpp>
-#include <protocol_wire/ContractRSVP.hpp>
-#include <protocol_wire/PieceData.hpp>
+#include <protocol_statemachine/event/Recv.hpp>
+#include <protocol_wire/protocol_wire.hpp>
 #include <common/KeyPair.hpp>
 #include <common/typesafeOutPoint.hpp>
 
@@ -22,6 +20,7 @@ namespace protocol_statemachine {
 }
 
 using namespace joystream;
+using namespace joystream::protocol_statemachine;
 
 class BuyingNavigator {
 
@@ -30,6 +29,8 @@ public:
     struct Fixture {
 
         // Peer (seller) terms
+        event::Recv<protocol_wire::SellerTerms> _peerToSellMode;
+
         protocol_wire::SellerTerms peerTerms;
         uint32_t index;
 
@@ -42,7 +43,7 @@ public:
         Coin::PubKeyHash finalPkHash;
 
         // Seller joinining
-        protocol_wire::ContractRSVP rsvp;
+        event::Recv<protocol_wire::JoiningContract> rsvp;
 
         // Contract ready
         Coin::typesafeOutPoint anchor;
@@ -58,9 +59,9 @@ public:
     BuyingNavigator(const Fixture &);
 
     // Fast forward routines
-    void toBuyMode(protocol_statemachine::CBStateMachine *);
-    void toSellerHasJoined(protocol_statemachine::CBStateMachine *);
-    void toProcessingPiece(protocol_statemachine::CBStateMachine *);
+    void toBuyMode(CBStateMachine *);
+    void toSellerHasJoined(CBStateMachine *);
+    void toProcessingPiece(CBStateMachine *);
 
     // Validation from the payee side
     bool validatePayment(const Coin::Signature &, int) const;

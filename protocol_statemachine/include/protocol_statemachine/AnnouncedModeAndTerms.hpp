@@ -9,8 +9,7 @@
 #define JOYSTREAM_PROTOCOL_ANNOUNCEDMODEANDTERMS_HPP
 
 #include <protocol_statemachine/ModeAnnounced.hpp>
-#include <protocol_wire/BuyerTerms.hpp>
-#include <protocol_wire/SellerTerms.hpp>
+#include <protocol_wire/protocol_wire.hpp>
 
 namespace joystream {
 namespace protocol_statemachine {

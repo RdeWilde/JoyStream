@@ -22,7 +22,7 @@ namespace protocol_statemachine {
         std::cout << "Reacting to ObserveModeStarted." << std::endl;
 
         // Client to observe mode
-        context<CBStateMachine>().updateAndAnnounceClientMode();
+        context<CBStateMachine>().clientToObserveMode();
 
         // Transiti
         return transit<Observing>();
@@ -33,7 +33,7 @@ namespace protocol_statemachine {
         std::cout << "Reacting to SellModeStarted." << std::endl;
 
         // Client to Selling mode
-        context<CBStateMachine>().updateAndAnnounceClientMode(e.terms(), 0);
+        context<CBStateMachine>().clientToSellMode(e.terms(), 0);
 
         // Transition to Selling state
         return transit<Selling>();
@@ -44,7 +44,7 @@ namespace protocol_statemachine {
         std::cout << "Reacting to UpdateTerms<BuyerTerms>." << std::endl;
 
         // Client to Buying mode
-        context<CBStateMachine>().updateAndAnnounceClientMode(e.terms());
+        context<CBStateMachine>().clientToBuyMode(e.terms());
 
         // Transition back to initial Buying state
         return transit<Buying>();

@@ -8,7 +8,7 @@
 #include <protocol_statemachine/ReadyToInviteSeller.hpp>
 #include <protocol_statemachine/exception/CannotInviteNonSeller.hpp>
 #include <protocol_statemachine/WaitingForSellerToJoin.hpp>
-#include <protocol_wire/JoinContract.hpp>
+#include <protocol_wire/protocol_wire.hpp>
 
 namespace joystream {
 namespace protocol_statemachine {
@@ -27,13 +27,8 @@ namespace protocol_statemachine {
         if(peerMode.modeAnnounced() != ModeAnnounced::sell)
             throw exception::CannotInviteNonSeller();
 
-        // Update payor state based on invitation
-        context<CBStateMachine>()._payor.setFunds(e.value());
-        context<CBStateMachine>()._payor.setPayorContractKeyPair(e.buyerContractKeyPair());
-        context<CBStateMachine>()._payor.setPayorFinalPkHash(e.finalPkHash());
-
         // Send invitation message to seller
-        context<CBStateMachine>()._sendMessage(new protocol_wire::JoinContract(protocol_wire::ContractInvitation(e.value(), e.buyerContractKeyPair().pk(), e.finalPkHash()), peerMode.index()));
+        context<CBStateMachine>()._sendMessage(protocol_wire::JoinContract(peerMode.index()));
 
         // Start waiting for the seller to join
         return transit<WaitingForSellerToJoin>();

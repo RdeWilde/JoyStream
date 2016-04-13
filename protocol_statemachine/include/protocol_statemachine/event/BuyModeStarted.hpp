@@ -9,7 +9,7 @@
 #define JOYSTREAM_PROTOCOLSTATEMACHINE_EVENT_BUYMODESTARTED_HPP
 
 #include <boost/statechart/event.hpp>
-#include <protocol_wire/BuyerTerms.hpp>
+#include <protocol_wire/protocol_wire.hpp>
 
 namespace sc = boost::statechart;
 

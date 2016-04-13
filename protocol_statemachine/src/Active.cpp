@@ -36,7 +36,7 @@ namespace protocol_statemachine {
         std::cout << "Reacting to Recv<protocol_wire::Buy> event." << std::endl;
 
         // Switch peer state
-        context<CBStateMachine>().peerToBuyMode(e.message()->terms());
+        context<CBStateMachine>().peerToBuyMode(e.message().terms());
 
         // Notify client about announcement
         context<CBStateMachine>().peerAnnouncedMode();
@@ -50,8 +50,8 @@ namespace protocol_statemachine {
         std::cout << "Reacting to Recv<protocol_wire::Sell> event." << std::endl;
 
         // Switch peer state
-        protocol_wire::Sell const * m = e.message();
-        context<CBStateMachine>().peerToSellMode(m->terms(), m->index());
+        protocol_wire::Sell m = e.message();
+        context<CBStateMachine>().peerToSellMode(m.terms(), m.index());
 
         // Notify client about announcement
         context<CBStateMachine>().peerAnnouncedMode();

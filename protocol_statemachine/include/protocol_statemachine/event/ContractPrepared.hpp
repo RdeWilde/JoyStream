@@ -10,6 +10,7 @@
 
 #include <boost/statechart/event.hpp>
 #include <common/typesafeOutPoint.hpp>
+#include <common/KeyPair.hpp>
 
 namespace sc = boost::statechart;
 
@@ -21,13 +22,30 @@ namespace event {
 
     public:
 
-        ContractPrepared(const Coin::typesafeOutPoint &);
+        ContractPrepared(const Coin::typesafeOutPoint &, const Coin::KeyPair &, const Coin::PubKeyHash &, quint64);
 
+        // Getters
         Coin::typesafeOutPoint anchor() const;
+
+        Coin::KeyPair buyerContractKeyPair() const;
+
+        Coin::PubKeyHash finalPkHash() const;
+
+        quint64 value() const;
 
     private:
 
+        // Anchor for contract
         Coin::typesafeOutPoint _anchor;
+
+        // Contract output buyer multisig key
+        Coin::KeyPair _buyerContractKeyPair;
+
+        // Payment/Refund buyer output
+        Coin::PubKeyHash _finalPkHash;
+
+        // NB: may be temporary
+        quint64 _value;
     };
 
 }
@@ -35,4 +53,3 @@ namespace event {
 }
 
 #endif // JOYSTREAM_PROTOCOLSTATEMACHINE_EVENT_CONTRACTPREPARED_HPP
-

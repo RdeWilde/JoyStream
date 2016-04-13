@@ -37,7 +37,7 @@ namespace protocol_statemachine {
         context<CBStateMachine>()._peerInterruptedPayment();
 
         // and update new peer mode
-        context<CBStateMachine>().peerToBuyMode(e.message()->terms());
+        context<CBStateMachine>().peerToBuyMode(e.message().terms());
 
         // Terminate machine
         return terminate();
@@ -51,8 +51,8 @@ namespace protocol_statemachine {
         context<CBStateMachine>()._peerInterruptedPayment();
 
         // and update new peer mode
-        protocol_wire::Sell const * m = e.message();
-        context<CBStateMachine>().peerToSellMode(m->terms(), m->index());
+        protocol_wire::Sell m = e.message();
+        context<CBStateMachine>().peerToSellMode(m.terms(), m.index());
 
         // Terminate machine
         return terminate();

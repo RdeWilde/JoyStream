@@ -7,7 +7,7 @@
 
 #include <protocol_statemachine/Invited.hpp>
 #include <protocol_statemachine/WaitingToStart.hpp>
-#include <protocol_wire/JoiningContract.hpp>
+#include <protocol_wire/protocol_wire.hpp>
 
 namespace joystream {
 namespace protocol_statemachine {
@@ -25,8 +25,7 @@ namespace protocol_statemachine {
         context<CBStateMachine>()._payee.setPayeeFinalPkHash(e.finalPkHash());
 
         // Send message for joining contract
-        protocol_wire::ContractRSVP rsvp(e.contractKeys().pk(), e.finalPkHash());
-        context<CBStateMachine>()._sendMessage(new protocol_wire::JoiningContract(rsvp));
+        context<CBStateMachine>()._sendMessage(protocol_wire::JoiningContract(e.contractKeys().pk(), e.finalPkHash()));
 
         // Transition to WaitingToStart state
         return transit<WaitingToStart>();

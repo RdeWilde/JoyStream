@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 4 2016
  */
 
-#include <protocol_statemachine//AnnouncedModeAndTerms.hpp>
+#include <protocol_statemachine/AnnouncedModeAndTerms.hpp>
 
 namespace joystream {
 namespace protocol_statemachine {

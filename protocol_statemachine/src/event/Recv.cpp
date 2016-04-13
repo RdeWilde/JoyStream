@@ -12,17 +12,17 @@ namespace protocol_statemachine {
 namespace event {
 
     template <class T>
-    Recv<T>::Recv(const T * message)
+    Recv<T>::Recv(const T message)
         : _message(message) {
     }
 
     template <class T>
-    const T * Recv<T>::message() const {
+    const T Recv<T>::message() const {
         return _message;
     }
 
     template <class T>
-    void Recv<T>::setMessage(const T * message) {
+    void Recv<T>::setMessage(const T message) {
         _message = message;
     }
 

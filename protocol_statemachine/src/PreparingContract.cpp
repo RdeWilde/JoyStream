@@ -7,7 +7,7 @@
 
 #include <protocol_statemachine/PreparingContract.hpp>
 #include <protocol_statemachine/ReadyToRequestPiece.hpp>
-#include <protocol_wire/Ready.hpp>
+#include <protocol_wire/protocol_wire.hpp>
 
 namespace joystream {
 namespace protocol_statemachine {
@@ -20,11 +20,14 @@ namespace protocol_statemachine {
 
         std::cout << "Reacting to ContractPrepared event." << std::endl;
 
-        // Send ready message
-        context<CBStateMachine>()._sendMessage(new joystream::protocol_wire::Ready(e.anchor()));
-
-        // Set anchor in payor
+        // Update payor state
+        context<CBStateMachine>()._payor.setFunds(e.value());
+        context<CBStateMachine>()._payor.setPayorContractKeyPair(e.buyerContractKeyPair());
+        context<CBStateMachine>()._payor.setPayorFinalPkHash(e.finalPkHash());
         context<CBStateMachine>()._payor.setAnchor(e.anchor());
+
+        // Send ready message
+        context<CBStateMachine>()._sendMessage(joystream::protocol_wire::Ready(e.anchor()));
 
         // Now ready to request first piece
         return transit<ReadyToRequestPiece>();

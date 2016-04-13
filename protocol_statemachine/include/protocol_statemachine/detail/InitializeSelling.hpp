@@ -8,7 +8,7 @@
 #ifndef JOYSTREAM_PROTOCOLSTATEMACHINE_DETAIL_INITIALIZESELLING_HPP
 #define JOYSTREAM_PROTOCOLSTATEMACHINE_DETAIL_INITIALIZESELLING_HPP
 
-#include <protocol_wire/SellerTerms.hpp>
+#include <protocol_wire/protocol_wire.hpp>
 #include <boost/statechart/event.hpp>
 
 namespace sc = boost::statechart;

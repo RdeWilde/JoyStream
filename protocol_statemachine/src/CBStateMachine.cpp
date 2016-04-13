@@ -87,38 +87,30 @@ namespace protocol_statemachine {
         _payee.setRefundFee(t.refundFee());
     }
 
-    void CBStateMachine::updateAndAnnounceClientMode() {
-        _sendMessage(new protocol_wire::Observe());
+    void CBStateMachine::clientToObserveMode() {
+        _sendMessage(protocol_wire::Observe());
     }
 
-    void CBStateMachine::updateAndAnnounceClientMode(const protocol_wire::SellerTerms & t, uint32_t index) {
+    void CBStateMachine::clientToSellMode(const protocol_wire::SellerTerms & t, uint32_t index) {
 
         _index = index;
 
         // Update payee based on client terms
-        updatePayeeTerms(t);
-
-        // Send mode message
-        _sendMessage(new protocol_wire::Sell(t, _index));
-    }
-
-    void CBStateMachine::updateAndAnnounceClientMode(const protocol_wire::BuyerTerms & t) {
-
-        // Update payor based on client terms
-        updatePayorTerms(t);
-
-        // Send mode message
-        _sendMessage(new protocol_wire::Buy(t));
-    }
-
-    void CBStateMachine::updatePayeeTerms(const protocol_wire::SellerTerms & t) {
         _payee.setLockTime(t.minLock());
         _payee.setPrice(t.minPrice());
         _payee.setSettlementFee(t.settlementFee());
+
+        // Send mode message
+        _sendMessage(protocol_wire::Sell(t, _index));
     }
 
-    void CBStateMachine::updatePayorTerms(const protocol_wire::BuyerTerms & t) {
+    void CBStateMachine::clientToBuyMode(const protocol_wire::BuyerTerms & t) {
+
+        // Update payor based on client terms
         _payor.setRefundFee(t.refundFee());
+
+        // Send mode message
+        _sendMessage(protocol_wire::Buy(t));
     }
 
     void CBStateMachine::peerAnnouncedMode() {

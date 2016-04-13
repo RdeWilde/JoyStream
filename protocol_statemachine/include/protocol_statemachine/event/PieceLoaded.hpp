@@ -8,7 +8,7 @@
 #ifndef JOYSTREAM_PROTOCOLSTATEMACHINE_EVENT_PIECELOADED_HPP
 #define JOYSTREAM_PROTOCOLSTATEMACHINE_EVENT_PIECELOADED_HPP
 
-#include <protocol_wire/PieceData.hpp>
+#include <protocol_wire/protocol_wire.hpp>
 #include <boost/statechart/event.hpp>
 
 namespace sc = boost::statechart;
