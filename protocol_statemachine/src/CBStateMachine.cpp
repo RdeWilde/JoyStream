@@ -44,7 +44,7 @@ namespace protocol_statemachine {
         , _MAX_PIECE_INDEX(MAX_PIECE_INDEX) {
     }
 
-    void CBStateMachine::unconsumed_event(const sc::event_base & e) {
+    void CBStateMachine::unconsumed_event(const sc::event_base &) {
         throw exception::StateIncompatibleEvent();
     }
 

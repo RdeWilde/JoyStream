@@ -14,7 +14,7 @@ namespace protocol_statemachine {
         std::cout << "Entering ServicingPieceRequest state." << std::endl;
     }
 
-    sc::result ServicingPieceRequest::react(const event::Recv<protocol_wire::Observe> & e) {
+    sc::result ServicingPieceRequest::react(const event::Recv<protocol_wire::Observe> &) {
 
         std::cout << "Reacting to Recv<wire::Observe> event." << std::endl;
 

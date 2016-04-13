@@ -17,7 +17,7 @@ namespace protocol_statemachine {
         std::cout << "Entering Buying state." << std::endl;
     }
 
-    sc::result Buying::react(const event::ObserveModeStarted & e) {
+    sc::result Buying::react(const event::ObserveModeStarted &) {
 
         std::cout << "Reacting to ObserveModeStarted." << std::endl;
 

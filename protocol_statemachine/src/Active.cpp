@@ -17,7 +17,7 @@ namespace protocol_statemachine {
         std::cout << "Entering Active state." << std::endl;
     }
 
-    sc::result Active::react(const event::Recv<protocol_wire::Observe> & e) {
+    sc::result Active::react(const event::Recv<protocol_wire::Observe> &) {
 
         std::cout << "Reacting to Recv<protocol_wire::Observe> event." << std::endl;
 

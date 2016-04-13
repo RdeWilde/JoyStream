@@ -65,7 +65,6 @@ SOURCES += \
     src/event/SellModeStarted.cpp \
     src/event/BuyModeStarted.cpp \
     src/ChooseMode.cpp \
-    src/event/SellModeStarted.cpp \
     src/Active.cpp \
     src/Selling.cpp \
     src/Buying.cpp \

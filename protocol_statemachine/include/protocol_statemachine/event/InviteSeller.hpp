@@ -17,6 +17,8 @@ namespace protocol_statemachine {
 namespace event {
 
     class InviteSeller : public sc::event<InviteSeller> {
+
+        InviteSeller();
     };
 
 }

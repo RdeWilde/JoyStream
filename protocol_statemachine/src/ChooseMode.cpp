@@ -19,7 +19,7 @@ namespace protocol_statemachine {
         std::cout << "Entering ChooseMode state." << std::endl;
     }
 
-    sc::result ChooseMode::react(const event::ObserveModeStarted & e) {
+    sc::result ChooseMode::react(const event::ObserveModeStarted &) {
 
         std::cout << "Reacting to ObserveModeStarted." << std::endl;
 

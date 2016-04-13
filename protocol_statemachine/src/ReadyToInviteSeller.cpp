@@ -17,7 +17,7 @@ namespace protocol_statemachine {
         std::cout << "Entering ReadyToInviteSeller state." << std::endl;
     }
 
-    sc::result ReadyToInviteSeller::react(const event::InviteSeller & e) {
+    sc::result ReadyToInviteSeller::react(const event::InviteSeller &) {
 
         std::cout << "Reacting to InviteSeller." << std::endl;
 

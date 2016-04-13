@@ -11,6 +11,9 @@ namespace joystream {
 namespace protocol_statemachine {
 namespace event {
 
+    InviteSeller::InviteSeller() {
+    }
+
 }
 }
 }
