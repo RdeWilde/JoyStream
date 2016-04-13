@@ -24,18 +24,38 @@ protocol_statemachine::CBStateMachine * CBStateMachineCallbackSpy::createMonitor
     [this](void) {
         _hasBeenInvitedToOutdatedContract = true;
     },
-    [this](const protocol_wire::ContractInvitation & invitation) {
+    [this]() {
         _hasBeenInvitedToJoinContract = true;
-        _invitation = invitation;
     },
-    [this](const protocol_wire::ExtendedMessagePayload * m) {
-        std::cout << "Sending message: " <<  protocol_wire::MessageTypeToString(m->messageType()) << std::endl;
+    [this](const protocol_wire::ExtendedMessagePayload & m) {
+
+        std::cout << "Sending message: " <<  protocol_wire::MessageTypeToString(m.messageType()) << std::endl;
         _messageSent = true;
-        _message.reset(m);
+
+        switch(m.messageType()) {
+
+            case protocol_wire::MessageType::buy: _buyMessage = static_cast<const protocol_wire::Buy &>(m); break;
+            case protocol_wire::MessageType::full_piece: _fullPieceMessage = static_cast<const protocol_wire::FullPiece &>(m); break;
+            case protocol_wire::MessageType::join_contract: _joinContractMessage = static_cast<const protocol_wire::JoinContract &>(m); break;
+            case protocol_wire::MessageType::joining_contract: _joiningContractMessage = static_cast<const protocol_wire::JoiningContract &>(m); break;
+            case protocol_wire::MessageType::observe: _observeMessage = static_cast<const protocol_wire::Observe &>(m); break;
+            case protocol_wire::MessageType::payment: _paymentMessage = static_cast<const protocol_wire::Payment &>(m); break;
+            case protocol_wire::MessageType::ready: _readyMessage = static_cast<const protocol_wire::Ready &>(m); break;
+            case protocol_wire::MessageType::refund_signed: _refundSignedMessage = static_cast<const protocol_wire::RefundSigned &>(m); break;
+            case protocol_wire::MessageType::request_full_piece: _requestFullPieceMessage = static_cast<const protocol_wire::RequestFullPiece &>(m); break;
+            case protocol_wire::MessageType::sell: _sellMessage = static_cast<const protocol_wire::Sell &>(m); break;
+            case protocol_wire::MessageType::sign_refund: _signRefundMessage = static_cast<const protocol_wire::SignRefund &>(m); break;
+            default:
+            assert(false);
+        }
+
     },
-    [this](const Coin::typesafeOutPoint & o) {
+    [this](quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash) {
         _contractHasBeenPrepared = true;
-        _anchor = o;
+        _anchor = anchor;
+        _value = value;
+        _contractPk = contractPk;
+        _finalPkHash = finalPkHash;
     },
     [this](int i) {
         _pieceHasBeenRequested = true;
@@ -84,15 +104,17 @@ void CBStateMachineCallbackSpy::reset() {
 
     // InvitedToJoinContract
     _hasBeenInvitedToJoinContract = false;
-    _invitation = protocol_wire::ContractInvitation();
 
     // Send
     _messageSent = false;
-    _message.reset();
+    // Not bothering to clear all the messages
 
     // ContractIsReady
     _contractHasBeenPrepared = false;
     _anchor = Coin::typesafeOutPoint();
+    _value = 0;
+    _contractPk = Coin::PublicKey();
+    _finalPkHash = Coin::PubKeyHash();
 
     // PieceRequested
     _pieceHasBeenRequested = false;
@@ -175,10 +197,6 @@ bool CBStateMachineCallbackSpy::hasBeenInvitedToJoinContract() const {
            !_hasReceivedFullPiece;
 }
 
-protocol_wire::ContractInvitation CBStateMachineCallbackSpy::invitation() const {
-    return _invitation;
-}
-
 bool CBStateMachineCallbackSpy::messageSent() const {
     return !_peerHasAnnouncedMode &&
            !_hasBeenInvitedToOutdatedContract &&
@@ -193,10 +211,6 @@ bool CBStateMachineCallbackSpy::messageSent() const {
            !_sellerHasJoined &&
            !_sellerHasInterruptedContract &&
            !_hasReceivedFullPiece;
-}
-
-std::shared_ptr<const protocol_wire::ExtendedMessagePayload> CBStateMachineCallbackSpy::message() const {
-    return _message;
 }
 
 bool CBStateMachineCallbackSpy::contractHasBeenPrepared() const {
@@ -217,6 +231,18 @@ bool CBStateMachineCallbackSpy::contractHasBeenPrepared() const {
 
 Coin::typesafeOutPoint CBStateMachineCallbackSpy::anchor() const {
     return _anchor;
+}
+
+quint64 CBStateMachineCallbackSpy::value() const {
+    return _value;
+}
+
+Coin::PublicKey CBStateMachineCallbackSpy::contractPk() const {
+    return _contractPk;
+}
+
+Coin::PubKeyHash CBStateMachineCallbackSpy::finalPkHash() const {
+    return _finalPkHash;
 }
 
 bool CBStateMachineCallbackSpy::pieceHasBeenRequested() const {
@@ -361,4 +387,52 @@ bool CBStateMachineCallbackSpy::hasReceivedFullPiece() const {
 
 protocol_wire::PieceData CBStateMachineCallbackSpy::pieceData() const {
     return _pieceData;
+}
+
+protocol_wire::MessageType CBStateMachineCallbackSpy::messageType() const {
+    return _messageType;
+}
+
+protocol_wire::Buy CBStateMachineCallbackSpy::buyMessage() const {
+    return _buyMessage;
+}
+
+protocol_wire::FullPiece CBStateMachineCallbackSpy::fullPieceMessage() const {
+    return _fullPieceMessage;
+}
+
+protocol_wire::JoinContract CBStateMachineCallbackSpy::joinContractMessage() const {
+    return _joinContractMessage;
+}
+
+protocol_wire::JoiningContract CBStateMachineCallbackSpy::joiningContractMessage() const {
+    return _joiningContractMessage;
+}
+
+protocol_wire::Observe CBStateMachineCallbackSpy::observeMessage() const {
+    return _observeMessage;
+}
+
+protocol_wire::Payment CBStateMachineCallbackSpy::paymentMessage() const {
+    return _paymentMessage;
+}
+
+protocol_wire::Ready CBStateMachineCallbackSpy::readyMessage() const {
+    return _readyMessage;
+}
+
+protocol_wire::RefundSigned CBStateMachineCallbackSpy::refundSignedMessage() const {
+    return _refundSignedMessage;
+}
+
+protocol_wire::RequestFullPiece CBStateMachineCallbackSpy::requestFullPieceMessage() const {
+    return _requestFullPieceMessage;
+}
+
+protocol_wire::Sell CBStateMachineCallbackSpy::sellMessage() const {
+    return _sellMessage;
+}
+
+protocol_wire::SignRefund CBStateMachineCallbackSpy::signRefundMessage() const {
+    return _signRefundMessage;
 }
