@@ -605,6 +605,8 @@ public slots:
     void startTorrent(const libtorrent::sha1_hash & info_hash);
     void removeTorrent(const libtorrent::sha1_hash & info_hash);
 
+    void syncWallet();
+
 private slots:
 
     /**

@@ -1179,8 +1179,6 @@ Controller::Controller(const Configuration & configuration, QNetworkAccessManage
 
     // TODO - Setup connections for wallet signals
 
-    _wallet->sync("testnet-seed.bitcoin.petertodd.org", 18333);
-
     QObject::connect(_wsClient, &BlockCypher::WebSocketClient::disconnected,
                      this, &Controller::webSocketDisconnected);
 
@@ -1398,6 +1396,10 @@ Controller::~Controller() {
 
     // Delete session
     delete _session;
+}
+
+void Controller::syncWallet() {
+    _wallet->sync("testnet-seed.bitcoin.petertodd.org", 18333);
 }
 
 void Controller::callPostTorrentUpdates() {
