@@ -20,7 +20,8 @@ HEADERS += \
     include/paymentchannel/Refund.hpp \
     include/paymentchannel/Settlement.hpp \
     include/paymentchannel/Termination.hpp \
-    include/paymentchannel/Payor.hpp
+    include/paymentchannel/Payor.hpp \
+    include/paymentchannel/paymentchannel.hpp
 
 SOURCES += \
     src/Commitment.cpp \
