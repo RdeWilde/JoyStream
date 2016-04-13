@@ -10,7 +10,7 @@
 
 #include <protocol_statemachine/event/BuyModeStarted.hpp>
 #include <protocol_statemachine/event/ContractPrepared.hpp>
-#include <protocol_statemachine/event/InvalidPieceReceived.hpp>BuyModeStarted.hpp>
+#include <protocol_statemachine/event/InvalidPieceReceived.hpp>
 #include <protocol_statemachine/event/InviteSeller.hpp>
 #include <protocol_statemachine/event/Joined.hpp>
 #include <protocol_statemachine/event/ObserveModeStarted.hpp>
