@@ -1176,12 +1176,33 @@ Controller::Controller(const Configuration & configuration, QNetworkAccessManage
         throw std::runtime_error("controller failed to open or create wallet");
     }
 
-    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::offline, this, &Controller::syncWallet);
+    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::offline, [this](){
+        qDebug() << "spvwallet gone offline";
+        emit connectionLost();
+    });
+
+    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::connectionTimedOut, [this](){
+        qDebug() << "connection timed out";
+        _wallet->stopSync();
+    });
+
+    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::connectionError, [this](std::string err){
+        qDebug() << "connection error" << QString::fromStdString(err);
+        _wallet->stopSync();
+    });
+
+    /*
+    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::disconnected, [this](){
+        qDebug() << "peer disconnected";
+    });
+    */
+
+    QObject::connect(this, SIGNAL(connectionLost()), this, SLOT(handleConnectionLost()));
 
     QObject::connect(_wsClient, &BlockCypher::WebSocketClient::disconnected,
                      this, &Controller::webSocketDisconnected);
 
-    // Do we still need blockcypher websocket socket client ?
+    // Do we still need blockcypher websocket client ?
     // _wsClient->connect();
 
     qCDebug(_category) << "Libtorrent session started on port" << QString::number(_session->listen_port());
@@ -1403,7 +1424,7 @@ Controller::~Controller() {
 void Controller::syncWallet() {
     if(_closing) return;
 
-    qDebug() << "trying to sync wallet";
+    qDebug() << "connecting to bitcoin network...";
 
     _wallet->sync("testnet-seed.bitcoin.petertodd.org", 18333);
 }
@@ -1458,6 +1479,13 @@ void Controller::webSocketDisconnected() {
         if(_wsClient->isConnected()) return;
         _wsClient->connect();
     });
+}
+
+void Controller::handleConnectionLost() {
+    if(_closing) return;
+
+    // Retry connection
+    QTimer::singleShot(10000, this, SLOT(syncWallet()));
 }
 
 /**
