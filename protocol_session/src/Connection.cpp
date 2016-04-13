@@ -54,40 +54,40 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
-    void Connection<ConnectionIdType>::process(const protocol_wire::ExtendedMessagePayload * message) {
+    void Connection<ConnectionIdType>::process(const protocol_wire::ExtendedMessagePayload & message) {
 
         // Get message type
-        protocol_wire::MessageType messageType = message->messageType();
+        protocol_wire::MessageType messageType = message.messageType();
 
         // Call relevant message handler
         switch(messageType) {
 
             case protocol_wire::MessageType::observe:
-                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::Observe>(dynamic_cast<const protocol_wire::Observe *>(message)));
+                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::Observe>(static_cast<const protocol_wire::Observe &>(message)));
                 break;
             case protocol_wire::MessageType::buy:
-                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::Buy>(dynamic_cast<const protocol_wire::Buy *>(message)));
+                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::Buy>(static_cast<const protocol_wire::Buy &>(message)));
                 break;
             case protocol_wire::MessageType::sell:
-                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::Sell>(dynamic_cast<const protocol_wire::Sell *>(message)));
+                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::Sell>(static_cast<const protocol_wire::Sell &>(message)));
                 break;
             case protocol_wire::MessageType::join_contract:
-                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::JoinContract>(dynamic_cast<const protocol_wire::JoinContract *>(message)));
+                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::JoinContract>(static_cast<const protocol_wire::JoinContract &>(message)));
                 break;
             case protocol_wire::MessageType::joining_contract:
-                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::JoiningContract>(dynamic_cast<const protocol_wire::JoiningContract *>(message)));
+                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::JoiningContract>(static_cast<const protocol_wire::JoiningContract &>(message)));
                 break;
             case protocol_wire::MessageType::ready:
-                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::Ready>(dynamic_cast<const protocol_wire::Ready *>(message)));
+                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::Ready>(static_cast<const protocol_wire::Ready &>(message)));
                 break;
             case protocol_wire::MessageType::request_full_piece:
-                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::RequestFullPiece>(dynamic_cast<const protocol_wire::RequestFullPiece *>(message)));
+                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::RequestFullPiece>(static_cast<const protocol_wire::RequestFullPiece &>(message)));
                 break;
             case protocol_wire::MessageType::full_piece:
-                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::FullPiece>(dynamic_cast<const protocol_wire::FullPiece *>(message)));
+                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::FullPiece>(static_cast<const protocol_wire::FullPiece &>(message)));
                 break;
             case protocol_wire::MessageType::payment:
-                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::Payment>(dynamic_cast<const protocol_wire::Payment *>(message)));
+                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::Payment>(static_cast<const protocol_wire::Payment &>(message)));
                 break;
 
             default:

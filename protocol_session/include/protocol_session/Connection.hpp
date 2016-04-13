@@ -42,7 +42,7 @@ namespace protocol_session {
                    const protocol_statemachine::CBStateMachine::ReceivedFullPiece &);
 
         // Processes given message
-        void process(const protocol_wire::ExtendedMessagePayload *);
+        void process(const protocol_wire::ExtendedMessagePayload &);
 
     private:
 
