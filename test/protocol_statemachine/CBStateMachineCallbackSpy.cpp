@@ -34,17 +34,60 @@ protocol_statemachine::CBStateMachine * CBStateMachineCallbackSpy::createMonitor
 
         switch(m.messageType()) {
 
-            case protocol_wire::MessageType::buy: _buyMessage = static_cast<const protocol_wire::Buy &>(m); break;
-            case protocol_wire::MessageType::full_piece: _fullPieceMessage = static_cast<const protocol_wire::FullPiece &>(m); break;
-            case protocol_wire::MessageType::join_contract: _joinContractMessage = static_cast<const protocol_wire::JoinContract &>(m); break;
-            case protocol_wire::MessageType::joining_contract: _joiningContractMessage = static_cast<const protocol_wire::JoiningContract &>(m); break;
-            case protocol_wire::MessageType::observe: _observeMessage = static_cast<const protocol_wire::Observe &>(m); break;
-            case protocol_wire::MessageType::payment: _paymentMessage = static_cast<const protocol_wire::Payment &>(m); break;
-            case protocol_wire::MessageType::ready: _readyMessage = static_cast<const protocol_wire::Ready &>(m); break;
-            case protocol_wire::MessageType::refund_signed: _refundSignedMessage = static_cast<const protocol_wire::RefundSigned &>(m); break;
-            case protocol_wire::MessageType::request_full_piece: _requestFullPieceMessage = static_cast<const protocol_wire::RequestFullPiece &>(m); break;
-            case protocol_wire::MessageType::sell: _sellMessage = static_cast<const protocol_wire::Sell &>(m); break;
-            case protocol_wire::MessageType::sign_refund: _signRefundMessage = static_cast<const protocol_wire::SignRefund &>(m); break;
+            case protocol_wire::MessageType::buy:
+                _buyMessage = static_cast<const protocol_wire::Buy &>(m);
+                _messageType = protocol_wire::MessageType::buy;
+                break;
+
+            case protocol_wire::MessageType::full_piece:
+                _fullPieceMessage = static_cast<const protocol_wire::FullPiece &>(m);
+                _messageType = protocol_wire::MessageType::full_piece;
+                break;
+
+            case protocol_wire::MessageType::join_contract:
+                _joinContractMessage = static_cast<const protocol_wire::JoinContract &>(m);
+                _messageType = protocol_wire::MessageType::join_contract;
+                break;
+
+            case protocol_wire::MessageType::joining_contract:
+                _joiningContractMessage = static_cast<const protocol_wire::JoiningContract &>(m);
+                _messageType = protocol_wire::MessageType::joining_contract;
+                break;
+
+            case protocol_wire::MessageType::observe:
+                _observeMessage = static_cast<const protocol_wire::Observe &>(m);
+                _messageType = protocol_wire::MessageType::observe;
+                break;
+
+            case protocol_wire::MessageType::payment:
+                _paymentMessage = static_cast<const protocol_wire::Payment &>(m);
+                _messageType = protocol_wire::MessageType::payment;
+                break;
+
+            case protocol_wire::MessageType::ready:
+                _readyMessage = static_cast<const protocol_wire::Ready &>(m);
+                _messageType = protocol_wire::MessageType::ready;
+                break;
+
+            case protocol_wire::MessageType::refund_signed:
+                _refundSignedMessage = static_cast<const protocol_wire::RefundSigned &>(m);
+                _messageType = protocol_wire::MessageType::refund_signed;
+                break;
+
+            case protocol_wire::MessageType::request_full_piece:
+                _requestFullPieceMessage = static_cast<const protocol_wire::RequestFullPiece &>(m);
+                _messageType = protocol_wire::MessageType::request_full_piece;
+                break;
+
+            case protocol_wire::MessageType::sell:
+                _sellMessage = static_cast<const protocol_wire::Sell &>(m);
+                _messageType = protocol_wire::MessageType::sell;
+                break;
+
+            case protocol_wire::MessageType::sign_refund:
+                _signRefundMessage = static_cast<const protocol_wire::SignRefund &>(m);
+                _messageType = protocol_wire::MessageType::sign_refund;
+                break;
             default:
             assert(false);
         }
