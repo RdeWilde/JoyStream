@@ -17,13 +17,8 @@ namespace protocol_wire {
         : _index(0) {
     }
 
-
     JoinContract::JoinContract(uint32_t index)
         : _index(index) {
-    }
-
-    bool JoinContract::operator==(const JoinContract & rhs) const {
-        return _index == rhs.index();
     }
 
     JoinContract::JoinContract(QDataStream & stream) {

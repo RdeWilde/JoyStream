@@ -21,8 +21,6 @@ namespace protocol_wire {
         JoinContract(uint32_t index);
         JoinContract(QDataStream & stream);
 
-        bool operator==(const JoinContract &) const;
-
         // Virtual methods that subclassing messages have to implement
         MessageType messageType() const;
         quint32 length() const;
