@@ -22,12 +22,12 @@ namespace protocol_statemachine {
 
         // Update payor state
         context<CBStateMachine>()._payor.setFunds(e.value());
-        context<CBStateMachine>()._payor.setPayorContractKeyPair(e.buyerContractKeyPair());
+        context<CBStateMachine>()._payor.setPayorContractKeyPair(e.contractKeyPair());
         context<CBStateMachine>()._payor.setPayorFinalPkHash(e.finalPkHash());
         context<CBStateMachine>()._payor.setAnchor(e.anchor());
 
         // Send ready message
-        context<CBStateMachine>()._sendMessage(joystream::protocol_wire::Ready(e.anchor()));
+        context<CBStateMachine>()._sendMessage(joystream::protocol_wire::Ready(e.value(), e.anchor(), e.contractKeyPair().pk(), e.finalPkHash()));
 
         // Now ready to request first piece
         return transit<ReadyToRequestPiece>();
