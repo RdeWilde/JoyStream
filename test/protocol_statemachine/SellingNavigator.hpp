@@ -8,66 +8,59 @@
 #ifndef SELLINGNAVIGATOR
 #define SELLINGNAVIGATOR
 
-#include <protocol_wire/ContractInvitation.hpp>
-#include <protocol_wire/SellerTerms.hpp>
-#include <protocol_wire/BuyerTerms.hpp>
-#include <protocol_wire/PieceData.hpp>
-#include <protocol_wire/ContractRSVP.hpp>
-#include <common/typesafeOutPoint.hpp>
-#include <common/KeyPair.hpp>
+#include <protocol_statemachine/protocol_statemachine.hpp>
 
 namespace Coin {
     class PrivateKey;
     class Signature;
 }
 
-namespace joystream {
-namespace protocol_statemachine {
-    class CBStateMachine;
-}
-}
-
 using namespace joystream;
+using namespace joystream::protocol_statemachine;
 
+// Simulates both incoming peer messages
+// and client events, when state machine is in Selling state
 class SellingNavigator {
 
 public:
 
+    // Set of events arriving when in Selling state
     struct Fixture {
 
         // Peer (buyer) terms
-        protocol_wire::BuyerTerms peerTerms;
+        event::Recv<protocol_wire::Buy> peerToBuyMode;
 
         // Client (seller) terms
-        protocol_wire::SellerTerms clientTerms;
+        event::SellModeStarted sellModeStarted;
 
-        // Invitation from peer (buyer)
-        protocol_wire::ContractInvitation invitation;
+        // Peer (buyer) invitation with invalid and valid index
+        event::Recv<protocol_wire::JoinContract> invalidJoinContract, validJoinContract;
 
-        // Client (seller) contract keys, also used for rsvp
-        Coin::KeyPair payeeContractKeyPair;
-        Coin::PubKeyHash payeeFinalPkHash;
+        // Client (seller) accepts invitation
+        event::Joined joinedContract;
 
+        // Peer (buyer) announced
+        event::Recv<protocol_wire::Ready> contractReady;
 
-        // Peer (buyer) contract anchor
-        Coin::typesafeOutPoint anchor;
-
-        // Peer (buyer) request for valid piece
-        int invalidPieceIndex;
-        int validPieceIndex;
+        // Peer (buyer) request for valid piece and invalid piece indexes
+        event::Recv<protocol_wire::RequestFullPiece> invalidPieceRequest, validPieceRequest;
 
         // Client (seller) data sent back to peer
-        protocol_wire::PieceData data;
+        event::PieceLoaded fullPiece;
+
+        // Peer (buyer) sends bad payment
+        event::Recv<protocol_wire::Payment> badPayment;
+
+        // Peer (buyer) sends a valid payment
+        event::Recv<protocol_wire::Payment> goodPayment(const Coin::PrivateKey &, int = 1) const;
     };
 
     SellingNavigator(Fixture fixture);
 
-    void toSellMode(protocol_statemachine::CBStateMachine *);
-    void toReadyForPieceRequest(protocol_statemachine::CBStateMachine *);
-    void toLoadingPiece(protocol_statemachine::CBStateMachine *);
-    void toWaitingForPayment(protocol_statemachine::CBStateMachine *);
-
-    Coin::Signature payorSignature(const Coin::PrivateKey &, int numberOfPayments = 1) const;
+    void toSellMode(CBStateMachine *);
+    void toReadyForPieceRequest(CBStateMachine *);
+    void toLoadingPiece(CBStateMachine *);
+    void toWaitingForPayment(CBStateMachine *);
 
 private:
 
