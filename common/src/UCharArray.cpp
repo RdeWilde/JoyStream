@@ -116,7 +116,7 @@ unsigned int UCharArray<array_length>::length() {
 template<unsigned int array_length>
 void UCharArray<array_length>::clear() {
 
-    for(int i = 0;i < array_length;i++)
+    for(unsigned int i = 0;i < array_length;i++)
         this->at(i) = 0;
 }
 
@@ -167,7 +167,7 @@ template<unsigned int array_length>
 void UCharArray<array_length>::fill(const unsigned char * start) {
 
     // Copy content into array
-    for(int i = 0;i < array_length;i++)
+    for(unsigned int i = 0;i < array_length;i++)
         this->at(i) = start[i];
 }
 
