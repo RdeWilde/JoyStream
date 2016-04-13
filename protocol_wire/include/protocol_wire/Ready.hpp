@@ -20,7 +20,7 @@ namespace protocol_wire {
     public:
 
         Ready();
-        Ready(const Coin::typesafeOutPoint &);
+        Ready(quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &);
         Ready(QDataStream &);
 
         // Virtual methods that subclassing messages have to implement
@@ -29,6 +29,8 @@ namespace protocol_wire {
         virtual void write(QDataStream &) const;
 
         // Getters
+        quint64 value() const;
+
         Coin::typesafeOutPoint anchor() const;
 
         Coin::PublicKey contractPk() const;
