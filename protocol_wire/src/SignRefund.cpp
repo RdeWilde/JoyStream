@@ -25,13 +25,7 @@ namespace protocol_wire {
     }
 
     SignRefund::SignRefund(QDataStream & stream) {
-
-        // DOESN'T LINK: stream >> _contractTxId >> _index >> _value >> _contractPk >> _finalPk;
-        Coin::operator >> (stream, _contractTxId);
-        stream >> _index;
-        stream >> _value;
-        Coin::operator >> (stream, _contractPk);
-        Coin::operator >> (stream, _finalPk);
+        stream >> _contractTxId >> _index >> _value >> _contractPk >> _finalPk;
     }
 
     MessageType SignRefund::messageType() const {
@@ -43,13 +37,7 @@ namespace protocol_wire {
     }
 
     void SignRefund::write(QDataStream & stream) const {
-
-        // DOESN'T LINK: stream << _contractTxId << _index << _value << _contractPk << _finalPk
-        Coin::operator << (stream, _contractTxId);
-        stream << _index;
-        stream << _value;
-        Coin::operator << (stream, _contractPk);
-        Coin::operator << (stream, _finalPk);
+        stream << _contractTxId << _index << _value << _contractPk << _finalPk;
     }
 
     Coin::TransactionId SignRefund::contractTxId() const {
