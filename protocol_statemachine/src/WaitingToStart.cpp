@@ -21,13 +21,16 @@ namespace protocol_statemachine {
 
         std::cout << "Reacting to Recv<wire::Ready> event." << std::endl;
 
+        protocol_wire::Ready m = e.message();
+
         // Update payee
-        context<CBStateMachine>()._payee.setPayorContractPk(e.message().contractPk());
-        context<CBStateMachine>()._payee.setPayorFinalPkHash(e.message().finalPkHash());
-        context<CBStateMachine>()._payee.setContractOutPoint(e.message().anchor());
+        context<CBStateMachine>()._payee.setFunds(m.value());
+        context<CBStateMachine>()._payee.setPayorContractPk(m.contractPk());
+        context<CBStateMachine>()._payee.setPayorFinalPkHash(m.finalPkHash());
+        context<CBStateMachine>()._payee.setContractOutPoint(m.anchor());
 
         // Notify client
-        context<CBStateMachine>()._contractIsReady(e.message().anchor());
+        context<CBStateMachine>()._contractIsReady(m.value(), m.anchor(), m.contractPk(), m.finalPkHash());
 
         // Transition to deep history
         return transit<ReadyForPieceRequest>();

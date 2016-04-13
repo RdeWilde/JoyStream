@@ -10,8 +10,7 @@
 
 #include <protocol_statemachine/AnnouncedModeAndTerms.hpp>
 #include <protocol_statemachine/event/Recv.hpp>
-#include <paymentchannel/Payor.hpp>
-#include <paymentchannel/Payee.hpp>
+#include <paymentchannel/paymentchannel.hpp>
 
 #include <boost/statechart/state_machine.hpp>
 
@@ -59,7 +58,7 @@ namespace protocol_statemachine {
         typedef std::function<void()> InvitedToJoinContract;
 
         // Peer announced that contract is now ready, should contract be be included? it was available
-        typedef std::function<void(const Coin::typesafeOutPoint &)> ContractIsReady;
+        typedef std::function<void(quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &)> ContractIsReady;
 
         // Peer requested piece
         typedef std::function<void(int)> PieceRequested;
