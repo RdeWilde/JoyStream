@@ -27,7 +27,7 @@ namespace event {
         // Getters
         Coin::typesafeOutPoint anchor() const;
 
-        Coin::KeyPair buyerContractKeyPair() const;
+        Coin::KeyPair contractKeyPair() const;
 
         Coin::PubKeyHash finalPkHash() const;
 

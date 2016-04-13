@@ -22,7 +22,7 @@ namespace event {
         return _anchor;
     }
 
-    Coin::KeyPair ContractPrepared::buyerContractKeyPair() const {
+    Coin::KeyPair ContractPrepared::contractKeyPair() const {
         return _buyerContractKeyPair;
     }
 
