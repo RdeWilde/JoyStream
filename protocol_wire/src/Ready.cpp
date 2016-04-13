@@ -15,12 +15,15 @@ namespace protocol_wire {
     Ready::Ready() {
     }
 
-    Ready::Ready(const Coin::typesafeOutPoint & anchor)
-        : _anchor(anchor) {
+    Ready::ReadyReady(quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash)
+        : _value(value)
+        , _anchor(anchor)
+        , _contractPk(contractPk)
+        , _finalPkHash(finalPkHash) {
     }
 
     Ready::Ready(QDataStream & stream) {
-        stream >> _anchor >> _contractPk >> _finalPkHash;
+        stream >> _value >> _anchor >> _contractPk >> _finalPkHash;
     }
 
     MessageType Ready::messageType() const {
@@ -28,11 +31,15 @@ namespace protocol_wire {
     }
 
     quint32 Ready::length() const {
-        return Coin::typesafeOutPoint::length() + Coin::PublicKey::length() + Coin::PubKeyHash::length();
+        return sizeof(quint64) + Coin::typesafeOutPoint::length() + Coin::PublicKey::length() + Coin::PubKeyHash::length();
     }
 
     void Ready::write(QDataStream & stream) const {
-        stream << _anchor << _contractPk << _finalPkHash;
+        stream << _value << _anchor << _contractPk << _finalPkHash;
+    }
+
+    quint64 Ready::value() const {
+        return _value;
     }
 
     Coin::typesafeOutPoint Ready::anchor() const {
@@ -46,5 +53,6 @@ namespace protocol_wire {
     Coin::PubKeyHash Ready::finalPkHash() const {
         return _finalPkHash;
     }
+
 }
 }

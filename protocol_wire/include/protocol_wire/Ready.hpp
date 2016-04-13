@@ -37,6 +37,10 @@ namespace protocol_wire {
 
     private:
 
+        // Value locked up
+        // NB: May be dropped later
+        quint64 _value;
+
         // Anchor for contract
         Coin::typesafeOutPoint _anchor;
 
