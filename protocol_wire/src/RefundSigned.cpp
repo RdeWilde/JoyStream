@@ -30,6 +30,10 @@ namespace protocol_wire {
         _sig.readFromStream(stream, lengthOfSignature);
     }
 
+    bool RefundSigned::operator==(const RefundSigned & rhs) const {
+        return _sig == rhs.sig();
+    }
+
     MessageType RefundSigned::messageType() const {
         return MessageType::refund_signed;
     }
