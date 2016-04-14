@@ -28,6 +28,8 @@ namespace protocol_wire {
         // payload objects if there is an error in the reading from stream
         RequestFullPiece(QDataStream & stream);
 
+        bool operator==(const RequestFullPiece &) const;
+
         // Virtual methods that subclassing messages have to implement
         virtual MessageType messageType() const;
         virtual quint32 length() const;

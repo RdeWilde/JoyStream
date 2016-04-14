@@ -24,6 +24,10 @@ namespace protocol_wire {
         stream >> _pieceIndex;
     }
 
+    bool RequestFullPiece::operator==(const RequestFullPiece & rhs) const {
+        return _pieceIndex == rhs.pieceIndex();
+    }
+
     MessageType RequestFullPiece::messageType() const {
         return MessageType::request_full_piece;
     }
