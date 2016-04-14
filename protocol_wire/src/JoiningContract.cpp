@@ -22,6 +22,11 @@ namespace protocol_wire {
         , _finalPkHash(finalPkHash) {
     }
 
+    bool JoiningContract::operator==(const JoiningContract & rhs) const {
+        return rhs.contractPk() == rhs.contractPk() &&
+               rhs.finalPkHash() == rhs.finalPkHash();
+    }
+
     JoiningContract::JoiningContract(QDataStream & stream) {
         stream >> _contractPk >> _finalPkHash;
     }

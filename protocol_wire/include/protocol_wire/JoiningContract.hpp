@@ -22,6 +22,8 @@ namespace protocol_wire {
         JoiningContract(const Coin::PublicKey &, const Coin::PubKeyHash &);
         JoiningContract(QDataStream & stream);
 
+        bool operator==(const JoiningContract &) const;
+
         // Virtual methods that subclassing messages have to implement
         virtual MessageType messageType() const;
         virtual quint32 length() const;
