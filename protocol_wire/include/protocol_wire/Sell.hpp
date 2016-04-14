@@ -27,6 +27,8 @@ namespace protocol_wire {
         // Constructor based on raw data
         Sell(QDataStream & stream);
 
+        bool operator==(const Sell &) const;
+
         // Virtual methods that subclassing messages have to implement
         virtual MessageType messageType() const;
         virtual quint32 length() const;

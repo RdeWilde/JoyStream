@@ -39,6 +39,11 @@ namespace protocol_wire {
         return MessageType::sell;
     }
 
+    bool Sell::operator==(const Sell & rhs) const {
+        return _terms == rhs.terms() &&
+               _index == rhs.index();
+    }
+
     quint32 Sell::length() const {
         return sizeof(_terms.minPrice()) + sizeof(_terms.minLock()) + sizeof(_terms.maxSellers()) + sizeof(_terms.minContractFeePerKb()) + sizeof(_terms.settlementFee());
     }
