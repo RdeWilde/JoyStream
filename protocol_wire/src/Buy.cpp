@@ -25,16 +25,7 @@ namespace protocol_wire {
     }
 
     Buy::Buy(QDataStream & stream) {
-
-        quint64 maxPrice, maxLock, minNumberOfSellers, maxContractFeePerKb, refundFee;
-
-        stream >> maxPrice >> maxLock >> minNumberOfSellers >> maxContractFeePerKb >> refundFee;
-
-        _terms.setMaxPrice(maxPrice);
-        _terms.setMaxLock(maxLock);
-        _terms.setMinNumberOfSellers(minNumberOfSellers);
-        _terms.setMaxContractFeePerKb(maxContractFeePerKb);
-        _terms.setRefundFee(refundFee);
+        stream >> _terms;
     }
 
     MessageType Buy::messageType() const {
@@ -42,11 +33,11 @@ namespace protocol_wire {
     }
 
     quint32 Buy::length() const {
-        return sizeof(_terms.maxPrice()) + sizeof(_terms.maxLock()) + sizeof(_terms.minNumberOfSellers()) + sizeof(_terms.minNumberOfSellers()) + sizeof(_terms.maxContractFeePerKb()) + sizeof(_terms.refundFee());
+        return _terms.length();
     }
 
     void Buy::write(QDataStream & stream) const {
-        stream << _terms.maxPrice() << _terms.maxLock() << _terms.minNumberOfSellers() << _terms.maxContractFeePerKb() << _terms.refundFee();
+        stream << _terms;
     }
     
     BuyerTerms Buy::terms() const {
