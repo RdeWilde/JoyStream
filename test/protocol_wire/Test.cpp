@@ -10,28 +10,29 @@
 
 using namespace joystream::protocol_wire;
 
+// MESSAGE: ExtendedMessagePayLoad object, MESSAGE_TYPE: Name of MESSAGE type
+#define TEST_READ_AND_WRITE_FROM_STREAM(MESSAGE, MESSAGE_TYPE) \
+{ \
+    QByteArray raw(MESSAGE.length(), 0); \
+    QDataStream writeStream(&raw, QIODevice::WriteOnly); \
+    \
+    MESSAGE.write(writeStream); \
+    \
+    QDataStream readStream(raw); \
+    MESSAGE_TYPE m2(readStream); \
+    \
+    QCOMPARE(m, m2); \
+} \
+
 void Test::buy() {
 
     // Buy(const BuyerTerms & terms): construct message
     BuyerTerms terms(2,4,5,6,7);
     Buy m(terms);
 
-    // Getters
     QCOMPARE(m.terms(), terms);
     QCOMPARE(m.messageType(), MessageType::buy);
-
-    // write(QDataStream & stream)
-    QByteArray raw(m.length(), 0);
-    QDataStream writeStream(&raw, QIODevice::WriteOnly);
-
-    m.write(writeStream);
-
-    // Buy(QDataStream & stream): load new message from stream
-    QDataStream readStream(raw);
-    Buy m2(readStream);
-
-    // and compare the two and make sure they are identical
-    QCOMPARE(m, m2);
+    TEST_READ_AND_WRITE_FROM_STREAM(m, Buy)
 }
 
 void Test::sell() {
@@ -41,12 +42,12 @@ void Test::sell() {
     uint32_t index = 44;
     Sell m(terms, index);
 
-    // Getters
     QCOMPARE(m.terms(), terms);
     QCOMPARE(m.index(), index);
     QCOMPARE(m.messageType(), MessageType::sell);
+    TEST_READ_AND_WRITE_FROM_STREAM(m, Sell)
+}
 
-    // write(QDataStream & stream)
     QByteArray raw(m.length(), 0);
     QDataStream writeStream(&raw, QIODevice::WriteOnly);
 
