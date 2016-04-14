@@ -48,19 +48,39 @@ void Test::sell() {
     TEST_READ_AND_WRITE_FROM_STREAM(m, Sell)
 }
 
+void Test::fullPiece() {
+
+    int rawDataLength = 54;
+    PieceData data(boost::shared_array<char>{new char [rawDataLength]}, rawDataLength);
+    FullPiece m(data);
+
+    QCOMPARE(m.pieceData(), data);
+    QCOMPARE(m.messageType(), MessageType::full_piece);
+
+    // Can't use macro
+    //TEST_READ_AND_WRITE_FROM_STREAM(m, FullPiece)
+
     QByteArray raw(m.length(), 0);
     QDataStream writeStream(&raw, QIODevice::WriteOnly);
 
     m.write(writeStream);
 
-    // Buy(QDataStream & stream): load new message from stream
     QDataStream readStream(raw);
-    Sell m2(readStream);
+    FullPiece m2(readStream, m.length());
 
-    // and compare the two and make sure they are identical
     QCOMPARE(m, m2);
 }
 
+void Test::joinContract() {
+
+    uint32_t index = 32;
+    JoinContract m(index);
+
+    QCOMPARE(m.index(), index);
+    QCOMPARE(m.messageType(), MessageType::join_contract);
+    TEST_READ_AND_WRITE_FROM_STREAM(m, JoinContract)
+
+}
 
 
 QTEST_MAIN(Test)

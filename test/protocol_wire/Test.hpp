@@ -17,8 +17,12 @@ class Test : public QObject {
 private slots:
 
     void buy();
-
     void sell();
+    void fullPiece();
+    void joinContract();
+
+
+
 
 
 };
