@@ -93,6 +93,28 @@ void Test::joiningContract() {
     TEST_READ_AND_WRITE_FROM_STREAM(m, JoiningContract)
 }
 
+void Test::payment() {
+
+    Coin::Signature sig("8185781409579048901234890234");
+    Payment m(sig);
+
+    QCOMPARE(m.sig(), sig);
+    QCOMPARE(m.messageType(), MessageType::payment);
+
+    // Can't use macro
+    //TEST_READ_AND_WRITE_FROM_STREAM(m, Payment)
+
+    QByteArray raw(m.length(), 0);
+    QDataStream writeStream(&raw, QIODevice::WriteOnly);
+
+    m.write(writeStream);
+
+    QDataStream readStream(raw);
+    Payment m2(readStream, m.length());
+
+    QCOMPARE(m, m2);
+}
+
 
 QTEST_MAIN(Test)
 #include "moc_Test.cpp"

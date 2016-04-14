@@ -21,6 +21,7 @@ private slots:
     void fullPiece();
     void joinContract();
     void joiningContract();
+    void payment();
 
 };
 
