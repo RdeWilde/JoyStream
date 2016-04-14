@@ -606,7 +606,6 @@ public slots:
     void removeTorrent(const libtorrent::sha1_hash & info_hash);
 
     void syncWallet();
-    void handleSpvConnectionLost();
 
 private slots:
 
@@ -643,6 +642,8 @@ private slots:
     */
 
     void webSocketDisconnected();
+
+    void handleSpvConnectionLost();
 
 signals:
 
