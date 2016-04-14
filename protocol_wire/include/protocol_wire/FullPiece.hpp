@@ -21,6 +21,8 @@ namespace protocol_wire {
         FullPiece();
         FullPiece(const PieceData &);
 
+        bool operator==(const FullPiece &) const;
+
         // Constructor based on raw payload
         FullPiece(QDataStream & stream, int length);
 
