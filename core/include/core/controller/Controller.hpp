@@ -606,6 +606,7 @@ public slots:
     void removeTorrent(const libtorrent::sha1_hash & info_hash);
 
     void syncWallet();
+    void handleSpvConnectionLost();
 
 private slots:
 
@@ -643,8 +644,6 @@ private slots:
 
     void webSocketDisconnected();
 
-    void handleConnectionLost();
-
 signals:
 
     // Sent when libtorrent::add_torrent_alert is received from libtorrent
@@ -671,9 +670,6 @@ signals:
 
     // Emitted after finalize_close(), that is when controller is 100% done
     void closed();
-
-    // Emitted when netsync disconnects controller should try to reconnect
-    void connectionLost();
 
 private:
 
