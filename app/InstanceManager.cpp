@@ -5,16 +5,15 @@
 
 #include <InstanceManager.hpp>
 
-InstanceManager::InstanceManager(const QString & name, QObject *parent) : QObject(parent), _isMain(false), _name(name), _sharedMemory(name)
+InstanceManager::InstanceManager(const QString & name, QObject *parent) :
+    QObject(parent), _isMain(false), _name(name), _semaphore(name, 1, QSystemSemaphore::Open)
 {
     QObject::connect(&_server, SIGNAL(newConnection()), this, SLOT(incomingConnection()));
 
-    _sharedMemory.create(1);
-
     // Blocking to synchronize across multiple instances
-    if(!_sharedMemory.lock()) {
+    if(!_semaphore.acquire()) {
         // This should only happen as a result of a system error
-        throw std::runtime_error("instance manager unable to acquire lock on shared memory");
+        throw std::runtime_error("instance manager unable to acquire semaphore");
     }
 
     _client.connectToServer(_name);
@@ -39,7 +38,7 @@ InstanceManager::InstanceManager(const QString & name, QObject *parent) : QObjec
         }
     }
 
-    _sharedMemory.unlock();
+    _semaphore.release();
 }
 
 void InstanceManager::incomingConnection() {

@@ -2,7 +2,7 @@
 #define INSTANCE_MANAGER_HPP
 
 #include <QObject>
-#include <QSharedMemory>
+#include <QSystemSemaphore>
 #include <QLocalServer>
 #include <QLocalSocket>
 
@@ -27,7 +27,7 @@ private slots:
 private:
     bool _isMain;
     QString _name;
-    QSharedMemory _sharedMemory;
+    QSystemSemaphore _semaphore;
     QLocalSocket _client;
     QLocalServer _server;
 };
