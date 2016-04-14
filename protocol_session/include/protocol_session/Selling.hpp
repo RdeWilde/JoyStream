@@ -8,7 +8,7 @@
 #ifndef JOYSTREAM_PROTOCOL_SELLING_HPP
 #define JOYSTREAM_PROTOCOL_SELLING_HPP
 
-#include <protocol_wire/SellerTerms.hpp>
+#include <protocol_wire/protocol_wire.hpp>
 
 namespace Coin {
     class typesafeOutPoint;

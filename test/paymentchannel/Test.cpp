@@ -13,11 +13,7 @@
 #include <common/TransactionSignature.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
 #include <common/P2PKHAddress.hpp>
-#include <paymentchannel/Commitment.hpp>
-#include <paymentchannel/Refund.hpp>
-#include <paymentchannel/Settlement.hpp>
-#include <paymentchannel/Payee.hpp>
-#include <paymentchannel/Payor.hpp>
+#include <paymentchannel/paymentchannel.hpp>
 
 #include <CoinCore/CoinNodeData.h> // Transaction
 #include <CoinCore/hdkeys.h>

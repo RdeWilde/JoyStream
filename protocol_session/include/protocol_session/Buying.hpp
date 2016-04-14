@@ -11,7 +11,7 @@
 #include <protocol_session/BuyerSessionState.hpp>
 #include <protocol_session/Piece.hpp>
 #include <protocol_session/Seller.hpp>
-#include <protocol_wire/BuyerTerms.hpp>
+#include <protocol_wire/protocol_wire.hpp>
 
 #include <vector>
 

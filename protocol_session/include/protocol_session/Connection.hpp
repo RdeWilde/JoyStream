@@ -8,7 +8,7 @@
 #ifndef JOYSTREAM_PROTOCOLSESSION_CONNECTION_HPP
 #define JOYSTREAM_PROTOCOLSESSION_CONNECTION_HPP
 
-#include <protocol_statemachine/CBStateMachine.hpp>
+#include <protocol_statemachine/protocol_statemachine.hpp>
 
 #include <queue>
 
