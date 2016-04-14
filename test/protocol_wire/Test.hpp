@@ -20,10 +20,7 @@ private slots:
     void sell();
     void fullPiece();
     void joinContract();
-
-
-
-
+    void joiningContract();
 
 };
 

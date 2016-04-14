@@ -79,7 +79,18 @@ void Test::joinContract() {
     QCOMPARE(m.index(), index);
     QCOMPARE(m.messageType(), MessageType::join_contract);
     TEST_READ_AND_WRITE_FROM_STREAM(m, JoinContract)
+}
 
+void Test::joiningContract() {
+
+    Coin::PublicKey contractPk(uchar_vector("03ffe71c26651de3056af555d92cee57a42c36976ac1259f0b5cae6b9e94ca38d8"));
+    Coin::PubKeyHash finalPkHash("31149292f8ba11da4aeb833f6cd8ae0650a82340");
+    JoiningContract m(contractPk, finalPkHash);
+
+    QCOMPARE(m.contractPk(), contractPk);
+    QCOMPARE(m.finalPkHash(), finalPkHash);
+    QCOMPARE(m.messageType(), MessageType::joining_contract);
+    TEST_READ_AND_WRITE_FROM_STREAM(m, JoiningContract)
 }
 
 
