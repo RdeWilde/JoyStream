@@ -7,6 +7,8 @@
 #include <protocol_wire/BuyerTerms.hpp>
 #include <protocol_wire/SellerTerms.hpp>
 
+#include <QDataStream>
+
 namespace joystream {
 namespace protocol_wire {
 
@@ -29,8 +31,19 @@ namespace protocol_wire {
                _refundFee == rhs.refundFee();
     }
 
+    QDataStream & operator >>(QDataStream & stream, BuyerTerms & rhs) {
+
+        stream >> rhs._maxPrice >> rhs._maxLock >> rhs._minNumberOfSellers >> rhs._maxContractFeePerKb >> rhs._refundFee;
+
+        return stream;
+    }
+
     bool BuyerTerms::satisfiedBy(const SellerTerms & terms) const {
         return terms.satisfiedBy(*this);
+    }
+
+    quint32 BuyerTerms::length() {
+        return sizeof(_maxPrice) + sizeof(_maxLock) + sizeof(_minNumberOfSellers) + sizeof(_maxContractFeePerKb) + sizeof(_refundFee);
     }
 
     quint64 BuyerTerms::maxPrice() const {
@@ -71,6 +84,12 @@ namespace protocol_wire {
 
     void BuyerTerms::setRefundFee(quint64 refundFee) {
         _refundFee = refundFee;
+    }
+
+    QDataStream & operator <<(QDataStream & stream, const BuyerTerms & rhs) {
+
+        stream << rhs.maxPrice() << rhs.maxLock() << rhs.minNumberOfSellers() << rhs.maxContractFeePerKb() << rhs.refundFee();
+        return stream;
     }
 }
 }

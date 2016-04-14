@@ -27,7 +27,13 @@ namespace protocol_wire {
 
         bool operator==(const BuyerTerms & rhs) const;
 
+        // Read from stream: is friend to write directly to private BuyerTerm members, simpler than using setters
+        friend QDataStream & operator >>(QDataStream &, BuyerTerms &);
+
         bool satisfiedBy(const SellerTerms & terms) const;
+
+        // Lenght of wire encoding
+        static quint32 length();
 
         quint64 maxPrice() const;
         void setMaxPrice(quint64 maxPrice);
@@ -65,6 +71,9 @@ namespace protocol_wire {
         // Total fee (satoshies) for refund transaction
         quint64 _refundFee;
     };
+
+    // Write terms to stream
+    QDataStream & operator <<(QDataStream &, const BuyerTerms &);
 
 }
 }
