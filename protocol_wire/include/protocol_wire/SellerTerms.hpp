@@ -35,6 +35,9 @@ namespace protocol_wire {
 
         bool operator==(const SellerTerms & rhs) const;
 
+        // Read from stream: is friend to write directly to private SellerTerms members, simpler than using setters
+        friend QDataStream & operator >>(QDataStream &, SellerTerms &);
+
         // Policy contingent comparison of terms
         static bool compare(OrderingPolicy policy, const SellerTerms & lhs, const SellerTerms & rhs);
 
@@ -42,6 +45,9 @@ namespace protocol_wire {
         //std::function<bool (const SellerTerms & lhs, const SellerTerms & rhs)> comparator(OrderingPolicy policy);
 
         bool satisfiedBy(const BuyerTerms & terms) const;
+
+        // Lenght of wire encoding
+        static quint32 length();
 
         quint64 minPrice() const;
         void setMinPrice(quint64 minPrice);
@@ -80,6 +86,8 @@ namespace protocol_wire {
         quint64 _settlementFee;
     };
 
+    // Write terms to stream
+    QDataStream & operator <<(QDataStream &, const SellerTerms &);
 }
 }
 

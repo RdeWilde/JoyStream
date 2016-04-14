@@ -10,6 +10,8 @@
 #include <cassert>
 #include <stdexcept>
 
+#include <QDataStream>
+
 namespace joystream {
 namespace protocol_wire {
 
@@ -31,6 +33,13 @@ namespace protocol_wire {
                _maxSellers == rhs.maxSellers() &&
                _minContractFeePerKb == rhs.minContractFeePerKb() &&
                _settlementFee == rhs.settlementFee();
+    }
+
+    QDataStream & operator >>(QDataStream & stream, SellerTerms & rhs) {
+
+        stream >> rhs._minPrice >> rhs._minLock >> rhs._maxSellers >> rhs._minContractFeePerKb >> rhs._settlementFee;
+
+        return stream;
     }
 
     bool SellerTerms::compare(OrderingPolicy policy, const SellerTerms & lhs, const SellerTerms & rhs) {
@@ -56,6 +65,11 @@ namespace protocol_wire {
                _minLock <= terms.maxLock() &&
                _maxSellers >= terms.minNumberOfSellers() &&
                _minContractFeePerKb <= terms.maxContractFeePerKb();
+    }
+
+    // Lenght of wire encoding
+    quint32 SellerTerms::length() {
+        return sizeof(_minPrice) + sizeof(_minLock) + sizeof(_maxSellers) + sizeof(_minContractFeePerKb) + sizeof(_settlementFee);
     }
 
     quint64 SellerTerms::minPrice() const {
@@ -96,6 +110,12 @@ namespace protocol_wire {
 
     void SellerTerms::setSettlementFee(quint64 settlementFee) {
         _settlementFee = settlementFee;
+    }
+
+    QDataStream & operator <<(QDataStream & stream, const SellerTerms & rhs) {
+
+        stream << rhs.minPrice() << rhs.minLock() << rhs.maxSellers() << rhs.minContractFeePerKb() << rhs.settlementFee();
+        return stream;
     }
 
 }
