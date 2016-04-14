@@ -1176,6 +1176,10 @@ Controller::Controller(const Configuration & configuration, QNetworkAccessManage
         throw std::runtime_error("controller failed to open or create wallet");
     }
 
+    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::connected, [this](){
+        qDebug() << "spvwallet connected";
+    });
+
     QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::offline, [this](){
         qDebug() << "spvwallet gone offline";
         emit connectionLost();
@@ -1183,19 +1187,17 @@ Controller::Controller(const Configuration & configuration, QNetworkAccessManage
 
     QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::connectionTimedOut, [this](){
         qDebug() << "connection timed out";
-        _wallet->stopSync();
+        emit connectionLost();
     });
 
     QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::connectionError, [this](std::string err){
         qDebug() << "connection error" << QString::fromStdString(err);
-        _wallet->stopSync();
+        emit connectionLost();
     });
 
-    /*
     QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::disconnected, [this](){
         qDebug() << "peer disconnected";
     });
-    */
 
     QObject::connect(this, SIGNAL(connectionLost()), this, SLOT(handleConnectionLost()));
 
@@ -1418,11 +1420,14 @@ Controller::~Controller() {
     delete _session;
 
     _closing = true;
+
     _wallet->stopSync();
 }
 
 void Controller::syncWallet() {
     if(_closing) return;
+
+    _wallet->stopSync();
 
     qDebug() << "connecting to bitcoin network...";
 
