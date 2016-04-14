@@ -19,7 +19,6 @@ HEADERS += \
     include/protocol_session/Piece.hpp \
     include/protocol_session/BuyerSessionState.hpp \
     include/protocol_session/Seller.hpp \
-    include/protocol_session/ModeAnnounced.hpp \
     include/protocol_session/Session.hpp \
     include/protocol_session/Connection.hpp \
     include/protocol_session/SessionMode.hpp \
