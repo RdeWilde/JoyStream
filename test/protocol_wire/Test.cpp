@@ -165,5 +165,24 @@ void Test::requestFullPiece() {
     TEST_READ_AND_WRITE_FROM_STREAM(m, RequestFullPiece)
 }
 
+void Test::signRefund() {
+
+    Coin::TransactionId contractTxId(Coin::TransactionId::fromRPCByteOrder(std::string("eee2b334dd735dac60ae57893c2528087fd3d386b57cac42f4e6ace6403f16b3")));
+    quint32 index = 3;
+    quint64 value = 1231232;
+    Coin::PublicKey contractPk(uchar_vector("03ffe71c26651de3056af555d92cee57a42c36976ac1259f0b5cae6b9e94ca38d8"));
+    Coin::PublicKey finalPk(uchar_vector("147320947192347901273497201347892137412734078912384790217340743983"));
+
+    SignRefund m(contractTxId, index, value, contractPk, finalPk);
+
+    QCOMPARE(m.contractTxId(), contractTxId);
+    QCOMPARE(m.index(), index);
+    QCOMPARE(m.value(), value);
+    QCOMPARE(m.contractPk(), contractPk);
+    QCOMPARE(m.finalPk(), finalPk);
+    QCOMPARE(m.messageType(), MessageType::sign_refund);
+    TEST_READ_AND_WRITE_FROM_STREAM(m, SignRefund)
+}
+
 QTEST_MAIN(Test)
 #include "moc_Test.cpp"

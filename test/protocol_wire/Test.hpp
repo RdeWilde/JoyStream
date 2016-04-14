@@ -25,6 +25,7 @@ private slots:
     void ready();
     void refundSigned();
     void requestFullPiece();
+    void signRefund();
 
 };
 
