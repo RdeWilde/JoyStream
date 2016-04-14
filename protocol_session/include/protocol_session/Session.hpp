@@ -76,6 +76,22 @@ namespace protocol_session {
                 return _connections.find(id) != _connections.cend();
             }
 
+            std::vector<Connection<ConnectionIdType> *> getAllWithPeerInMode(protocol_statemachine::ModeAnnounced modeAnnounced) {
+
+                std::vector<Connection<ConnectionIdType> *> matches;
+
+                for(auto itr = _connections.begin();itr != _connections.end();itr++) {
+
+                    // Add peers in given mode
+                    Connection<ConnectionIdType> * c = itr->second;
+
+                    if(c->_machine.announcedModeAndTermsFromPeer().modeAnnounced() == modeAnnounced)
+                        matches.push_back(c);
+                }
+
+                return matches;
+            }
+
             // Mode of session
             SessionMode _mode;
 
