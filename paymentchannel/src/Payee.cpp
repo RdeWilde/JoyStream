@@ -122,7 +122,7 @@ namespace paymentchannel {
                                                           _settlementFee);
     }
 
-    bool Payee::isContractValid(const Coin::Transaction & tx) const {
+    bool Payee::isContractValid(const Coin::Transaction &) const {
         throw std::runtime_error("Not yet implemented");
     }
 

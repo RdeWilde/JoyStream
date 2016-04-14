@@ -18,6 +18,8 @@ namespace event {
 
     class InviteSeller : public sc::event<InviteSeller> {
 
+    public:
+
         InviteSeller();
     };
 

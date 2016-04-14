@@ -237,7 +237,7 @@ namespace paymentchannel {
         int numberOfOutputs = numberOfPayees + 1;
         
         // Sizevof transaction
-        quint64 txByteSize =(148*1) + (34*(numberOfPayees + 1) + 10);
+        quint64 txByteSize =(148*1) + (34*numberOfOutputs + 10);
 
         // Seed on fee estimate at http://bitcoinfees.com/
         return ceil(feePerKb*((float)txByteSize/1000));
@@ -292,7 +292,7 @@ namespace paymentchannel {
         // Iterate outputs and anchor corresponding channel
         assert(tx.outputs.size() == commitments.size() + 1); // +1 due to change output
 
-        for(int i = 0;i < commitments.size();i++) {
+        for(unsigned int i = 0;i < commitments.size();i++) {
 
             // Create outpoint
             Coin::typesafeOutPoint o(txId, i);
