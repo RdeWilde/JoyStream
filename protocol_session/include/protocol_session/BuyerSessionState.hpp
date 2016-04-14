@@ -16,10 +16,15 @@ namespace protocol_session {
 
         enum class State {
 
+            // Only sends mode messages and monitors connections,
+            // and resets all connections
+            inactive,
+
+            // Going through the motions
             active,
 
-            stopped,
-
+            // Same as inactive, but we will honor last payment,
+            // and does not reset connections, hence we can go back to active later
             paused
         };
 
