@@ -30,6 +30,10 @@ namespace protocol_wire {
         _sig.readFromStream(stream, lengthOfSignature);
     }
 
+    bool Payment::operator==(const Payment & rhs) const {
+        return _sig == rhs.sig();
+    }
+
     MessageType Payment::messageType() const {
         return MessageType::payment;
     }
