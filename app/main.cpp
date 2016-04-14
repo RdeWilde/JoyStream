@@ -16,6 +16,7 @@
 #include <gui/MainWindow.hpp>
 #include <AutoUpdater.hpp>
 #include <Analytics.hpp>
+#include <InstanceManager.hpp>
 
 #define ERROR_LOG_ENDPOINT "error.joystream.co/error"
 #define ERROR_LOG_MAX_SIZE 200*20
@@ -28,6 +29,13 @@ int main(int argc, char* argv[]) {
     // Create Qt application: all objects created after this point are owned by this thread
     QApplication app(argc, argv);
     QApplication::setApplicationName(APPLICATION_NAME);
+
+    InstanceManager instanceManager(APPLICATION_NAME);
+
+    if(!instanceManager.isMain()) {
+        qDebug() << "Another instance of JoyStream is already running.";
+        return 0;
+    }
 
     QString applicationVersion = QString::number(APPLICATION_VERSION_MAJOR) + "." + QString::number(APPLICATION_VERSION_MINOR) + "." + QString::number(APPLICATION_VERSION_PATCH);
     QApplication::setApplicationVersion(applicationVersion);
@@ -123,6 +131,13 @@ int main(int argc, char* argv[]) {
 
         // Allocate view and show it
         MainWindow view(&controller, "");
+
+        QObject::connect(&instanceManager, &InstanceManager::activate, [&view](){
+            qDebug() << "Got Activate Signal from Instance Manager";
+            view.maximize();
+            QApplication::setActiveWindow(&view);
+        });
+
         view.show();
 
         view.startUp([&app](std::string progress){

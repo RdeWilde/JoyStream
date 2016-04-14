@@ -22,7 +22,8 @@ CONFIG  += c++11 # Needed for class enum
 
 SOURCES += main.cpp \
     AutoUpdater.cpp \
-    Analytics.cpp
+    Analytics.cpp \
+    InstanceManager.cpp
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets # QMainWindow, QDialog
 
@@ -134,7 +135,8 @@ include(../config.pri)
 
 HEADERS += \
     AutoUpdater.hpp \
-    Analytics.hpp
+    Analytics.hpp \
+    InstanceManager.hpp
 
 RESOURCES += \
     icon.qrc
