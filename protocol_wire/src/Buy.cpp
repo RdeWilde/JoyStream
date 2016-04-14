@@ -20,6 +20,10 @@ namespace protocol_wire {
         : _terms(terms) {
     }
 
+    bool Buy::operator==(const Buy & o) const {
+        return _terms == o.terms();
+    }
+
     Buy::Buy(QDataStream & stream) {
 
         quint64 maxPrice, maxLock, minNumberOfSellers, maxContractFeePerKb, refundFee;

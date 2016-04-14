@@ -24,6 +24,8 @@ namespace protocol_wire {
         // Constructor based on members
         Buy(const BuyerTerms & terms);
 
+        bool operator==(const Buy &) const;
+
         // Constructor based on raw payload
         // NB: Substitute with static factory in future, so that you cannot create stale
         // payload objects if there is an error in the reading from stream
