@@ -13,6 +13,7 @@
 namespace joystream {
 namespace protocol_session {
 
+    template <class ConnectionIdType>
     class Piece {
 
     public:
@@ -27,41 +28,40 @@ namespace protocol_session {
             fully_downloaded_and_valid,
         };
 
-        // Default constructor
         Piece();
-
-        // Constructors based on members
-        //Piece(int index, int length, int numberOfBlocks, State state, BuyerPeerPlugin * peerPlugin);
-
-        // Constructors based on members
-        Piece(int index, State state, const std::string & nameOfConnectionAssignedThisPiece);
+        Piece(int index, State, const ConnectionIdType &, int length);
 
         // Getters and setters
         int index() const;
-        void setIndex(int index);
+        void setIndex(int);
 
         State state() const;
-        void setState(State state);
+        void setState(State);
 
-        std::string nameOfConnectionAssignedThisPiece() const;
-        void setNameOfConnectionAssignedThisPiece(const std::string & nameOfConnectionAssignedThisPiece);
+        ConnectionIdType id() const;
+        void setId(const ConnectionIdType &);
+
+        int length() const;
+        void setLength(int);
 
     private:
 
         // Index of piece
         int _index;
 
-        // Byte length of piece (should be the same for all but last piece)
-        int _length;
-
         // Piece state
         State _state;
 
-        // Peer plugin assigned to this piece: Do we actually need this
-        std::string _nameOfConnectionAssignedThisPiece;
-    };
+        // Id of connectionto which piece is assigned, when _state == State::assigned_to_peer_for_download
+        ConnectionIdType _id;
 
+        // Byte length of piece (should be the same for all but last piece)
+        int _length;
+    };
 }
 }
+
+// Needed due to c++ needing implementation for all uses of templated types
+#include <protocol_session/../../src/Piece.cpp>
 
 #endif // JOYSTREAM_PROTOCOLSESSION_PIECE_HPP

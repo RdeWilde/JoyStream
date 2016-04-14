@@ -28,7 +28,6 @@ HEADERS += \
     include/protocol_session/exception/SessionNotSetException.hpp
 
 SOURCES += \
-    src/Piece.cpp \
     src/Seller.cpp \
     src/Session.cpp \
     src/Connection.cpp \

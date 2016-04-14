@@ -10,43 +10,61 @@
 namespace joystream {
 namespace protocol_session {
 
-    Piece::Piece()
-        : _index(-1) // safe value
-        , _state(State::unassigned) {
+    template <class ConnectionIdType>
+    Piece<ConnectionIdType>::Piece()
+        : _index(0)
+        , _state(State::unassigned)
+        , _id(id)
+        , _length(0) {
     }
 
-    Piece::Piece(int index, State state, const std::string & nameOfConnectionAssignedThisPiece)
+    template <class ConnectionIdType>
+    Piece<ConnectionIdType>::Piece(int index, State state, const ConnectionIdType & id, int length)
         : _index(index)
-        //, _length(length)
-        //, _numberOfBlocks(numberOfBlocks)
         , _state(state)
-        , _nameOfConnectionAssignedThisPiece(nameOfConnectionAssignedThisPiece) {
+        , _id(id)
+        , _length(length){
     }
 
-    int Piece::index() const {
+    template <class ConnectionIdType>
+    int Piece<ConnectionIdType>::index() const {
         return _index;
     }
 
-    void Piece::setIndex(int index) {
+    template <class ConnectionIdType>
+    void Piece<ConnectionIdType>::setIndex(int index) {
         _index = index;
     }
 
-    Piece::State Piece::state() const {
+    template <class ConnectionIdType>
+    typename Piece<ConnectionIdType>::State Piece<ConnectionIdType>::state() const {
         return _state;
     }
 
-    void Piece::setState(State state) {
+    template <class ConnectionIdType>
+    void Piece<ConnectionIdType>::setState(State state) {
         _state = state;
     }
 
-    std::string Piece::nameOfConnectionAssignedThisPiece() const {
-        return _nameOfConnectionAssignedThisPiece;
+    template <class ConnectionIdType>
+    ConnectionIdType Piece<ConnectionIdType>::id() const {
+        return _id;
     }
 
-    void Piece::setNameOfConnectionAssignedThisPiece(const std::string & nameOfConnectionAssignedThisPiece) {
-        _nameOfConnectionAssignedThisPiece = nameOfConnectionAssignedThisPiece;
+    template <class ConnectionIdType>
+    void Piece<ConnectionIdType>::setId(const ConnectionIdType & id) {
+        _id = id;
     }
 
+    template <class ConnectionIdType>
+    int Piece<ConnectionIdType>::length() const {
+        return _length;
+    }
+
+    template <class ConnectionIdType>
+    void Piece<ConnectionIdType>::setLength(int length) {
+        _length = length;
+    }
 
 }
 }

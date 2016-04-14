@@ -87,7 +87,7 @@ namespace protocol_session {
         std::vector<Seller<ConnectionIdType>> _sellers;
 
         // Pieces in torrent file: Should really be array?
-        std::vector<Piece> _pieces;
+        std::vector<Piece<ConnectionIdType>> _pieces;
 
         // Is required to ensure in order downloading from correct position in file
         uint32_t _assignmentLowerBound;
