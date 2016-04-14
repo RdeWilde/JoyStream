@@ -8,6 +8,7 @@
 #include <protocol_session//Buying.hpp>
 #include <protocol_session/Session.hpp> // detail::SessionCoreImpl<ConnectionIdType>
 #include <protocol_statemachine/event/BuyModeStarted.hpp>
+#include <protocol_statemachine/event/InviteSeller.hpp>
 #include <protocol_wire/PieceData.hpp>
 
 namespace joystream {
@@ -86,7 +87,6 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
-    void Buying<ConnectionIdType>::peerAnnouncedModeAndTerms(const ConnectionIdType &, const protocol_statemachine::AnnouncedModeAndTerms &) {
 
     }
 
