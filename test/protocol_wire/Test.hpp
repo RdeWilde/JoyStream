@@ -22,6 +22,7 @@ private slots:
     void joinContract();
     void joiningContract();
     void payment();
+    void ready();
 
 };
 

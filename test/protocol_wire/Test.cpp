@@ -115,6 +115,23 @@ void Test::payment() {
     QCOMPARE(m, m2);
 }
 
+void Test::ready() {
+
+    quint64 value = 1123;
+    Coin::typesafeOutPoint anchor(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")),
+                                  55);
+    Coin::PublicKey contractPk(uchar_vector("03ffe71c26651de3056af555d92cee57a42c36976ac1259f0b5cae6b9e94ca38d8"));
+    Coin::PubKeyHash finalPkHash("03a3fac91cac4a5c9ec870b444c4890ec7d68671");
+    Ready m(value, anchor, contractPk, finalPkHash);
+
+    QCOMPARE(m.value(), value);
+    QCOMPARE(m.anchor(), anchor);
+    QCOMPARE(m.contractPk(), contractPk);
+    QCOMPARE(m.finalPkHash(), finalPkHash);
+
+    QCOMPARE(m.messageType(), MessageType::ready);
+    TEST_READ_AND_WRITE_FROM_STREAM(m, Ready)
+}
 
 QTEST_MAIN(Test)
 #include "moc_Test.cpp"
