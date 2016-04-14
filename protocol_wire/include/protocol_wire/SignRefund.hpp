@@ -33,6 +33,8 @@ namespace protocol_wire {
         // payload objects if there is an error in the reading from stream
         SignRefund(QDataStream & stream);
 
+        bool operator==(const SignRefund &) const;
+
         // Virtual methods that subclassing messages have to implement
         MessageType messageType() const;
         quint32 length() const;

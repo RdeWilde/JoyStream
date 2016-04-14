@@ -28,6 +28,14 @@ namespace protocol_wire {
         stream >> _contractTxId >> _index >> _value >> _contractPk >> _finalPk;
     }
 
+    bool SignRefund::operator==(const SignRefund & rhs) const {
+        return _contractTxId == rhs.contractTxId() &&
+               _index == rhs.index() &&
+               _value == rhs.value() &&
+               _contractPk == rhs.contractPk() &&
+               _finalPk == rhs.finalPk();
+    }
+
     MessageType SignRefund::messageType() const {
         return MessageType::sign_refund;
     }
