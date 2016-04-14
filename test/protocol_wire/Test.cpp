@@ -155,5 +155,15 @@ void Test::refundSigned() {
     QCOMPARE(m, m2);
 }
 
+void Test::requestFullPiece() {
+
+    int pieceIndex = 89;
+    RequestFullPiece m(pieceIndex);
+
+    QCOMPARE(m.pieceIndex(), pieceIndex);
+    QCOMPARE(m.messageType(), MessageType::request_full_piece);
+    TEST_READ_AND_WRITE_FROM_STREAM(m, RequestFullPiece)
+}
+
 QTEST_MAIN(Test)
 #include "moc_Test.cpp"
