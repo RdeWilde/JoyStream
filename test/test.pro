@@ -14,5 +14,6 @@ SUBDIRS     = \
             blockcypher \ 
             mixpanel \
             protocol_statemachine \
-            protocol_session
+            protocol_session \
+            protocol_wire
 
