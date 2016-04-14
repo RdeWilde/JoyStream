@@ -25,6 +25,10 @@ namespace protocol_wire {
         stream >> _index;
     }
 
+    bool JoinContract::operator==(const JoinContract & rhs) const {
+        return _index == rhs.index();
+    }
+
     quint32 JoinContract::length() const {
         return sizeof(_index);
     }
