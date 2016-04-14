@@ -18,6 +18,8 @@ private slots:
 
     void buy();
 
+    void sell();
+
 
 };
 
