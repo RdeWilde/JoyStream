@@ -23,16 +23,7 @@ namespace protocol_wire {
     }
 
     Sell::Sell(QDataStream & stream) {
-
-        quint64 price, lock, maxSellers, minContractFeePerKb, settlementFee;
-
-        stream >> price >> lock >> maxSellers >> minContractFeePerKb >> settlementFee;
-
-        _terms.setMinPrice(price);
-        _terms.setMinLock(lock);
-        _terms.setMaxSellers(maxSellers);
-        _terms.setMinContractFeePerKb(minContractFeePerKb);
-        _terms.setSettlementFee(settlementFee);
+        stream >> _terms >> _index;
     }
 
     MessageType Sell::messageType() const {
@@ -45,11 +36,11 @@ namespace protocol_wire {
     }
 
     quint32 Sell::length() const {
-        return sizeof(_terms.minPrice()) + sizeof(_terms.minLock()) + sizeof(_terms.maxSellers()) + sizeof(_terms.minContractFeePerKb()) + sizeof(_terms.settlementFee());
+        return _terms.length() + sizeof(_index);
     }
 
     void Sell::write(QDataStream & stream) const {
-        stream << _terms.minPrice() << _terms.minLock() << _terms.maxSellers() << _terms.minContractFeePerKb() << _terms.settlementFee();
+        stream << _terms << _index;
     }
 
     SellerTerms Sell::terms() const  {
