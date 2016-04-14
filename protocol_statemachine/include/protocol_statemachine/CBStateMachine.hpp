@@ -140,8 +140,6 @@ namespace protocol_statemachine {
         friend class PreparingContract;
         friend class ProcessingPiece;
         friend class SellerHasJoined;
-        friend class PreparingContract;
-        friend class ProcessingPiece;
         friend class ReadyToRequestPiece;
         friend class WaitingForFullPiece;
 
