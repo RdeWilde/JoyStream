@@ -26,6 +26,13 @@ namespace protocol_wire {
         stream >> _value >> _anchor >> _contractPk >> _finalPkHash;
     }
 
+    bool Ready::operator==(const Ready & rhs) const {
+        return _value == rhs.value() &&
+               _anchor == rhs.anchor() &&
+               _contractPk == rhs.contractPk() &&
+               _finalPkHash == rhs.finalPkHash();
+    }
+
     MessageType Ready::messageType() const {
         return MessageType::ready;
     }
