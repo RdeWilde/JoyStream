@@ -93,26 +93,32 @@ namespace protocol_session {
     template <class ConnectionIdType>
     void Buying<ConnectionIdType>::peerAnnouncedModeAndTerms(const ConnectionIdType & id, const protocol_statemachine::AnnouncedModeAndTerms & a) {
 
-        // Make sure we are active and currently sening out invitations
-        if(_state._state != BuyerSessionState::State::active ||
-           _state._active != BuyerSessionState::Active::sending_invitations)
-            return;
+        // If we are currently active and sending out invitations, then we may invite
+        // sellers with sufficiently good terms
+        if(_state._state == BuyerSessionState::State::active &&
+           _state._active == BuyerSessionState::Active::sending_invitations) {
 
-        // Check that this peer is seller, and has good enough terms to warrant an invitation
-        protocol_statemachine::ModeAnnounced m = a.modeAnnounced();
-        assert(m != protocol_statemachine::ModeAnnounced::none);
+            // Check that this peer is seller,
+            protocol_statemachine::ModeAnnounced m = a.modeAnnounced();
+            assert(m != protocol_statemachine::ModeAnnounced::none);
 
-        if(m == protocol_statemachine::ModeAnnounced::sell && _terms.satisfiedBy(a.sellModeTerms())) {
+            // and has good enough terms to warrant an invitation
+            if(m == protocol_statemachine::ModeAnnounced::sell && _terms.satisfiedBy(a.sellModeTerms())) {
 
-            // Get connection
-            assert(_sessionCore->hasConnection(id));
+                assert(_sessionCore->hasConnection(id));
 
-            Connection<ConnectionIdType> * c = _sessionCore->_connections.find(id)->second;
+                // Send invitation
+                Connection<ConnectionIdType> * c = _sessionCore->_connections.find(id)->second;
 
-            // Send invitation
-            c->_machine.process_event(protocol_statemachine::event::InviteSeller());
+                c->_machine.process_event(protocol_statemachine::event::InviteSeller());
+
+                std::cout << "Invited: " << toString(id);
+            }
+
         }
     }
+
+    template <class ConnectionIdType>
     void Buying<ConnectionIdType>::sellerHasJoined(const ConnectionIdType & id) {
 
     }
