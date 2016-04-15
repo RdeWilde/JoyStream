@@ -1179,6 +1179,7 @@ Controller::Controller(const Configuration & configuration, QNetworkAccessManage
     }
 
     QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::disconnected, [this](){
+        qCDebug(_category) << "peer disconnected";
         scheduleReconnect();
     });
 
