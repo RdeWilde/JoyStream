@@ -1145,6 +1145,7 @@ Controller::Controller(const Configuration & configuration, QNetworkAccessManage
     : _state(State::normal)
     , _closing(false)
     , _reconnecting(false)
+    , _protocolErrorsCount(0)
     , _session(new libtorrent::session(libtorrent::fingerprint(CORE_EXTENSION_FINGERPRINT, CORE_VERSION_MAJOR, CORE_VERSION_MINOR, 0, 0),
                    libtorrent::session::add_default_plugins + libtorrent::session::start_default_features,
                    libtorrent::alert::error_notification +
@@ -1183,9 +1184,12 @@ Controller::Controller(const Configuration & configuration, QNetworkAccessManage
 
     QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::protocolError, [this](std::string err){
         qCDebug(_category) << QString::fromStdString(err);
-        // how many protocol errors before we reconnect
         // some errors are result of client sending something invalid
         // others if the peer sends us something invalid
+        _protocolErrorsCount++;
+        if(_protocolErrorsCount > CORE_CONTROLLER_PROTOCOL_ERRORS_BEFORE_RECONNECT) {
+            scheduleReconnect();
+        }
     });
 
     QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::connectionError, [this](std::string err){
@@ -1428,6 +1432,8 @@ void Controller::syncWallet() {
     if(_closing) return;
 
     _wallet->stopSync();
+
+    _protocolErrorsCount = 0;
 
     qDebug() << "connecting to bitcoin network...";
 

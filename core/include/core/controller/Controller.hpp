@@ -682,6 +682,8 @@ private:
 
     bool _reconnecting;
 
+    int _protocolErrorsCount;
+
     // Underlying libtorrent session,
     // has to be pointer since it needs sessings_pack,
     // which can only be built postfix calls
