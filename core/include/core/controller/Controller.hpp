@@ -643,7 +643,7 @@ private slots:
 
     void webSocketDisconnected();
 
-    void handleSpvConnectionLost();
+    void scheduleReconnect();
 
 signals:
 
@@ -679,6 +679,8 @@ private:
 	
     // Indicates if we are shutting down
     bool _closing;
+
+    bool _reconnecting;
 
     // Underlying libtorrent session,
     // has to be pointer since it needs sessings_pack,

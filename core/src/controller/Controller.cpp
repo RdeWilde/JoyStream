@@ -1144,6 +1144,7 @@ Controller::Controller(const Configuration & configuration, QNetworkAccessManage
                        const QString &storePath, const QString &blocktreePath, QLoggingCategory & category, const Coin::Seed * seed)
     : _state(State::normal)
     , _closing(false)
+    , _reconnecting(false)
     , _session(new libtorrent::session(libtorrent::fingerprint(CORE_EXTENSION_FINGERPRINT, CORE_VERSION_MAJOR, CORE_VERSION_MINOR, 0, 0),
                    libtorrent::session::add_default_plugins + libtorrent::session::start_default_features,
                    libtorrent::alert::error_notification +
@@ -1177,7 +1178,27 @@ Controller::Controller(const Configuration & configuration, QNetworkAccessManage
     }
 
     QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::disconnected, [this](){
-        handleSpvConnectionLost();
+        scheduleReconnect();
+    });
+
+    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::protocolError, [this](std::string err){
+        qCDebug(_category) << QString::fromStdString(err);
+        // how many protocol errors before we reconnect
+        // some errors are result of client sending something invalid
+        // others if the peer sends us something invalid
+    });
+
+    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::connectionError, [this](std::string err){
+        qCDebug(_category) << QString::fromStdString(err);
+        scheduleReconnect();
+    });
+
+    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::blockTreeUpdateFailed, [this](std::string err){
+        qCDebug(_category) << QString::fromStdString(err);
+    });
+
+    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::blockTreeWriteFailed, [this](std::string err){
+        qCDebug(_category) << QString::fromStdString(err);
     });
 
     QObject::connect(_wsClient, &BlockCypher::WebSocketClient::disconnected,
@@ -1411,6 +1432,8 @@ void Controller::syncWallet() {
     qDebug() << "connecting to bitcoin network...";
 
     _wallet->sync("testnet-seed.bitcoin.petertodd.org", 18333);
+
+    _reconnecting = false;
 }
 
 void Controller::callPostTorrentUpdates() {
@@ -1465,9 +1488,10 @@ void Controller::webSocketDisconnected() {
     });
 }
 
-void Controller::handleSpvConnectionLost() {
+void Controller::scheduleReconnect() {
     if(_closing) return;
-
+    if(_reconnecting) return;
+    _reconnecting = true;
     // Retry connection
     QTimer::singleShot(10000, this, SLOT(syncWallet()));
 }
