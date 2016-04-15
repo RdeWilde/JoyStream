@@ -1488,7 +1488,7 @@ void Controller::tryToSyncWallet() {
 void Controller::webSocketDisconnected() {
     // if(_stopping) return;
     qDebug() << "Websocket connection lost, will try to reconnect in 10s";
-    QTimer::singleShot(10000, _wsClient, [this](){
+    QTimer::singleShot(CORE_CONTROLLER_RECONNECT_DELAY, _wsClient, [this](){
         if(_wsClient->isConnected()) return;
         _wsClient->connect();
     });
@@ -1499,7 +1499,7 @@ void Controller::scheduleReconnect() {
     if(_reconnecting) return;
     _reconnecting = true;
     // Retry connection
-    QTimer::singleShot(10000, this, SLOT(syncWallet()));
+    QTimer::singleShot(CORE_CONTROLLER_RECONNECT_DELAY, this, SLOT(syncWallet()));
 }
 
 /**
