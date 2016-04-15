@@ -293,10 +293,15 @@ MainWindow::MainWindow(Controller * controller, const QString & appendToTitle)
                     &MainWindow::on_updatedWalletBalance);
 
     // Wallet Synchronised
-    QObject::connect(_controller->wallet(),
+    QObject::connect(_wallet,
                      SIGNAL(synched()),
                      this,
                      SLOT(on_walletSynched()));
+
+    QObject::connect(_wallet,
+                     SIGNAL(statusMessageUpdated(std::string)),
+                     this,
+                     SLOT(updateStatusMessage(std::string)));
 
     // Show starting wallet balance
     updateWalletBalances(_wallet->balance(), _wallet->unconfirmedBalance());
@@ -899,4 +904,8 @@ void MainWindow::dropEvent(QDropEvent *e) {
 
 void MainWindow::on_bugsPushButton_clicked() {
     QDesktopServices::openUrl(QUrl("https://www.reddit.com/r/JoyStream/comments/3sazif/post_bugs_here/"));
+}
+
+void MainWindow::updateStatusMessage(std::string message) {
+    ui->statusMessageLabel->setText(QString::fromStdString(message));
 }
