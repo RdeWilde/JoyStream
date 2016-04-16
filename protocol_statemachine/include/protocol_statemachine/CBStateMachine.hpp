@@ -14,6 +14,22 @@
 
 #include <boost/statechart/state_machine.hpp>
 
+// Whether a statechart::state_machine is in a given inner state
+// e.g. IS_IN_INNER_STATE(machine, LoadingPiece)
+// **The following use of typeid assumes that
+// **BOOST_STATECHART_USE_NATIVE_RTTI is defined
+#define IS_IN_INNER_STATE(MACHINE, STATE) typeid(*((MACHINE).state_begin())) == typeid(STATE)
+
+// Whether a statechart::state_machine is in a given state, at any level
+// e.g. IS_IN_STATE(machine, Observing)
+#define IS_IN_STATE(MACHINE, STATE) (MACHINE).state_cast<const STATE *>() != NULL
+
+// Whether a CBStateMachine is in a given outer state
+#define IS_CHOOSING(MACHINE) IS_IN_STATE(MACHINE, ChooseMode)
+#define IS_OBSERVING(MACHINE) IS_IN_STATE(MACHINE, Observing)
+#define IS_SELLING(MACHINE) IS_IN_STATE(MACHINE, Selling)
+#define IS_BUYING(MACHINE) IS_IN_STATE(MACHINE, Buying)
+
 namespace sc = boost::statechart;
 
 namespace Coin {
