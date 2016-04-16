@@ -117,6 +117,21 @@ namespace protocol_statemachine {
         _peerAnnouncedMode(_announcedModeAndTermsFromPeer);
     }
 
+    paymentchannel::Commitment CBStateMachine::commitment() const {
+
+        ModeAnnounced mode = clientMode();
+
+        if(mode == ModeAnnounced::buy)
+            return paymentchannel::Commitment(_payor.funds(),
+                                              _payor.payorContractKeyPair().pk(),
+                                              _payor.payeeContractPk());
+        else if(mode == ModeAnnounced::sell)
+            return paymentchannel::Commitment(_payee.funds(),
+                                              _payee.payorContractPk(),
+                                              _payee.payeeContractKeys().pk());
+        else
+            throw exception::StateIncompatibleEvent();
+    }
 
     ModeAnnounced CBStateMachine::clientMode() const {
 

@@ -123,6 +123,9 @@ namespace protocol_statemachine {
         // Get name of current state: ***Varies from compiler to compiler***
         //const char * getInnerStateName() const;
 
+        // Commitment in this interaction
+        paymentchannel::Commitment commitment() const;
+
         // Mode of client
         ModeAnnounced clientMode() const;
 
