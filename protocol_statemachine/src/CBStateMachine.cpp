@@ -117,6 +117,19 @@ namespace protocol_statemachine {
         _peerAnnouncedMode(_announcedModeAndTermsFromPeer);
     }
 
+
+    ModeAnnounced CBStateMachine::clientMode() const {
+
+        if(IS_BUYING(*this))
+            return ModeAnnounced::buy;
+        else if(IS_SELLING(*this))
+            return ModeAnnounced::sell;
+        else if(IS_OBSERVING(*this))
+            return ModeAnnounced::observe;
+        else
+            throw ModeAnnounced::none;
+    }
+
     protocol_statemachine::AnnouncedModeAndTerms CBStateMachine::announcedModeAndTermsFromPeer() const {
         return _announcedModeAndTermsFromPeer;
     }
