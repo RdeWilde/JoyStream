@@ -94,5 +94,10 @@ namespace protocol_session {
                 assert(false);
         }
     }
+
+    template <class ConnectionIdType>
+    paymentchannel::Commitment Connection<ConnectionIdType>::commitment() const {
+        return _machine.commitment();
+    }
 }
 }
