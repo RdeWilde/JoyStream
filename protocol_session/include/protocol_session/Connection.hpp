@@ -44,6 +44,9 @@ namespace protocol_session {
         // Processes given message
         void process(const protocol_wire::ExtendedMessagePayload &);
 
+        // Id of given connection
+        ConnectionIdType connectionId() const;
+
         // Commitment in this interaction
         paymentchannel::Commitment commitment() const;
 
