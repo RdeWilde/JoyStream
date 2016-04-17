@@ -99,5 +99,10 @@ namespace protocol_session {
     paymentchannel::Commitment Connection<ConnectionIdType>::commitment() const {
         return _machine.commitment();
     }
+
+    template <class ConnectionIdType>
+    const protocol_statemachine::CBStateMachine & Connection<ConnectionIdType>::machine() const {
+        return _machine;
+    }
 }
 }

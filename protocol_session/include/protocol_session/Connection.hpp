@@ -47,6 +47,9 @@ namespace protocol_session {
         // Commitment in this interaction
         paymentchannel::Commitment commitment() const;
 
+        // Connection state machine reference
+        const protocol_statemachine::CBStateMachine & machine() const;
+
     private:
 
         // Connection id
