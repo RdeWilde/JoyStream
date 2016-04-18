@@ -54,7 +54,7 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
-    void Connection<ConnectionIdType>::process(const protocol_wire::ExtendedMessagePayload & message) {
+    void Connection<ConnectionIdType>::processMessage(const protocol_wire::ExtendedMessagePayload & message) {
 
         // Get message type
         protocol_wire::MessageType messageType = message.messageType();
@@ -63,31 +63,31 @@ namespace protocol_session {
         switch(messageType) {
 
             case protocol_wire::MessageType::observe:
-                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::Observe>(static_cast<const protocol_wire::Observe &>(message)));
+                processEvent(protocol_statemachine::event::Recv<protocol_wire::Observe>(static_cast<const protocol_wire::Observe &>(message)));
                 break;
             case protocol_wire::MessageType::buy:
-                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::Buy>(static_cast<const protocol_wire::Buy &>(message)));
+                processEvent(protocol_statemachine::event::Recv<protocol_wire::Buy>(static_cast<const protocol_wire::Buy &>(message)));
                 break;
             case protocol_wire::MessageType::sell:
-                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::Sell>(static_cast<const protocol_wire::Sell &>(message)));
+                processEvent(protocol_statemachine::event::Recv<protocol_wire::Sell>(static_cast<const protocol_wire::Sell &>(message)));
                 break;
             case protocol_wire::MessageType::join_contract:
-                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::JoinContract>(static_cast<const protocol_wire::JoinContract &>(message)));
+                processEvent(protocol_statemachine::event::Recv<protocol_wire::JoinContract>(static_cast<const protocol_wire::JoinContract &>(message)));
                 break;
             case protocol_wire::MessageType::joining_contract:
-                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::JoiningContract>(static_cast<const protocol_wire::JoiningContract &>(message)));
+                processEvent(protocol_statemachine::event::Recv<protocol_wire::JoiningContract>(static_cast<const protocol_wire::JoiningContract &>(message)));
                 break;
             case protocol_wire::MessageType::ready:
-                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::Ready>(static_cast<const protocol_wire::Ready &>(message)));
+                processEvent(protocol_statemachine::event::Recv<protocol_wire::Ready>(static_cast<const protocol_wire::Ready &>(message)));
                 break;
             case protocol_wire::MessageType::request_full_piece:
-                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::RequestFullPiece>(static_cast<const protocol_wire::RequestFullPiece &>(message)));
+                processEvent(protocol_statemachine::event::Recv<protocol_wire::RequestFullPiece>(static_cast<const protocol_wire::RequestFullPiece &>(message)));
                 break;
             case protocol_wire::MessageType::full_piece:
-                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::FullPiece>(static_cast<const protocol_wire::FullPiece &>(message)));
+                processEvent(protocol_statemachine::event::Recv<protocol_wire::FullPiece>(static_cast<const protocol_wire::FullPiece &>(message)));
                 break;
             case protocol_wire::MessageType::payment:
-                _machine.process_event(protocol_statemachine::event::Recv<protocol_wire::Payment>(static_cast<const protocol_wire::Payment &>(message)));
+                processEvent(protocol_statemachine::event::Recv<protocol_wire::Payment>(static_cast<const protocol_wire::Payment &>(message)));
                 break;
 
             default:
