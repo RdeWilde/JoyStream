@@ -2,7 +2,7 @@
  * Copyright (C) JoyStream - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
- * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 5 2016
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, April 18 2016
  */
 
 #ifndef TEST_HPP
@@ -17,6 +17,10 @@ class Test : public QObject {
     Q_OBJECT
 
 private slots:
+
+    void sessionImpl();
+
+    void buying();
 
 
 public:
