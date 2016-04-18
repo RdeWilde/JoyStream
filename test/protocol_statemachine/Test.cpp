@@ -49,7 +49,7 @@ void Test::observing() {
     //// Create machine in ChooseMode state
     CBStateMachine * machine = spy.createMonitoredMachine();
 
-    QVERIFY(IS_CHOOSING(*machine));
+    QVERIFY(machine->inState<ChooseMode>());
 
     // Issue client event to change mode
     machine->process_event(event::ObserveModeStarted());
@@ -60,7 +60,7 @@ void Test::observing() {
 
     //// In Observing state
 
-    QVERIFY(IS_OBSERVING(*machine));
+    QVERIFY(machine->inState<Observing>());
 
     // Have peer mode switch modes
     peerToSellMode(machine, event::Recv<protocol_wire::Sell>(protocol_wire::Sell(protocol_wire::SellerTerms(1,2,3,4,5), 0)));
@@ -104,7 +104,7 @@ void Test::selling() {
     CBStateMachineCallbackSpy spy;
     CBStateMachine * machine = spy.createMonitoredMachine();
 
-    QVERIFY(IS_CHOOSING(*machine));
+    QVERIFY(machine->inState<ChooseMode>());
 
     // Issue client event to change to sell mode
     machine->process_event(f.sellModeStarted);
@@ -159,8 +159,7 @@ void Test::selling() {
 
     // Check that we are getting right invitation
     QVERIFY(spy.hasBeenInvitedToJoinContract());
-    QVERIFY(IS_IN_INNER_STATE(*machine, Invited));
-    //QCOMPARE(machine->getInnerStateName(), typeid(Invited).name());
+    QVERIFY(machine->inState<Invited>());
 
     spy.reset();
 
@@ -338,7 +337,7 @@ void Test::buying() {
     CBStateMachineCallbackSpy spy;
     CBStateMachine * machine = spy.createMonitoredMachine();
 
-    QVERIFY(IS_CHOOSING(*machine));
+    QVERIFY(machine->inState<ChooseMode>());
 
     // Client changes to buy mode
     navigator.toBuyMode(machine);
