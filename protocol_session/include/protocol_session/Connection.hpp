@@ -44,6 +44,9 @@ namespace protocol_session {
         // Processes given message
         void process(const protocol_wire::ExtendedMessagePayload &);
 
+        // Process given event
+        void processEvent(const boost::statechart::event_base &);
+
         // Id of given connection
         ConnectionIdType connectionId() const;
 

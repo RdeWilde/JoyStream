@@ -96,6 +96,9 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
+    void Connection<ConnectionIdType>::processEvent(const boost::statechart::event_base & e) {
+        _machine.process_event(e);
+    }
 
     template <class ConnectionIdType>
     ConnectionIdType Connection<ConnectionIdType>::connectionId() const {
