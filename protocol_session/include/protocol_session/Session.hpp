@@ -82,13 +82,9 @@ namespace protocol_session {
 
                 for(auto itr = _connections.begin();itr != _connections.end();itr++) {
 
-                    // Add peers in given mode
-                    Connection<ConnectionIdType> * c = itr->second;
             template <typename T>
             std::vector<ConnectionIdType> connectionsInState() const {
 
-                    if(c->_machine.announcedModeAndTermsFromPeer().modeAnnounced() == modeAnnounced)
-                        matches.push_back(c);
                 std::vector<ConnectionIdType> matches;
 
                 // Add ids of all connections
