@@ -96,6 +96,13 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
+
+    template <class ConnectionIdType>
+    ConnectionIdType Connection<ConnectionIdType>::connectionId() const {
+        return _connectionId;
+    }
+
+    template <class ConnectionIdType>
     paymentchannel::Commitment Connection<ConnectionIdType>::commitment() const {
         return _machine.commitment();
     }
@@ -104,5 +111,6 @@ namespace protocol_session {
     const protocol_statemachine::CBStateMachine & Connection<ConnectionIdType>::machine() const {
         return _machine;
     }
+
 }
 }
