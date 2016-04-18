@@ -25,7 +25,8 @@ HEADERS += \
     include/protocol_session/Buying.hpp \
     include/protocol_session/Selling.hpp \
     include/protocol_session/exception/ConnectionAlreadyAddedException.hpp \
-    include/protocol_session/exception/SessionNotSetException.hpp
+    include/protocol_session/exception/SessionNotSetException.hpp \
+    include/protocol_session/protocol_session.hpp
 
 SOURCES += \
     src/Seller.cpp \
