@@ -135,11 +135,11 @@ namespace protocol_statemachine {
 
     ModeAnnounced CBStateMachine::clientMode() const {
 
-        if(IS_BUYING(*this))
+        if(this->inState<Buying>())
             return ModeAnnounced::buy;
-        else if(IS_SELLING(*this))
+        else if(this->inState<Selling>())
             return ModeAnnounced::sell;
-        else if(IS_OBSERVING(*this))
+        else if(this->inState<Observing>())
             return ModeAnnounced::observe;
         else
             throw ModeAnnounced::none;
