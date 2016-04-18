@@ -75,4 +75,7 @@ namespace protocol_session {
 }
 }
 
+// Needed due to c++ needing implementation for all uses of templated types
+#include <protocol_session/../../src/Connection.cpp>
+
 #endif // JOYSTREAM_PROTOCOLSESSION_CONNECTION_HPP
