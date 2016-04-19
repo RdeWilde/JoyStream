@@ -64,6 +64,10 @@ namespace protocol_session {
         // State machine for this connection
         protocol_statemachine::CBStateMachine _machine;
 
+        // How many calls to ::processEvent() which have still not exited.
+        // I is used to make event processing reentrant-like, not fully though
+        uint8_t _reentrantCounter;
+
         //// Buyer
 
         // Point in time when last invite sent

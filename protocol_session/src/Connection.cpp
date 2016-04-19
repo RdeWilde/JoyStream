@@ -50,7 +50,8 @@ namespace protocol_session {
                    sellerJoined,
                    sellerInterruptedContract,
                    receivedFullPiece,
-                   0) {
+                   0)
+        , _reentrantCounter(0) {
     }
 
     template <class ConnectionIdType>
@@ -97,7 +98,17 @@ namespace protocol_session {
 
     template <class ConnectionIdType>
     void Connection<ConnectionIdType>::processEvent(const boost::statechart::event_base & e) {
-        _machine.process_event(e);
+
+        // Only process new event if there are no pending ones
+        if(_reentrantCounter == 0) {
+            _reentrantCounter++;
+            _machine.process_event(e);
+        } else {
+            _reentrantCounter++;
+            _machine.post_event(e);
+        }
+
+        _reentrantCounter--;
     }
 
     template <class ConnectionIdType>
