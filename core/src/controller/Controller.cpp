@@ -1178,12 +1178,16 @@ Controller::Controller(const Configuration & configuration, QNetworkAccessManage
         throw std::runtime_error("controller failed to open or create wallet");
     }
 
-    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::disconnected, [this](){
+    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::offline, this, [this](){
+        qCDebug(_category) << "wallet offline";
+    });
+
+    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::disconnected, this, [this](){
         qCDebug(_category) << "peer disconnected";
         scheduleReconnect();
     });
 
-    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::protocolError, [this](std::string err){
+    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::protocolError, this, [this](std::string err){
         qCDebug(_category) << QString::fromStdString(err);
         // some errors are result of client sending something invalid
         // others if the peer sends us something invalid
@@ -1193,16 +1197,16 @@ Controller::Controller(const Configuration & configuration, QNetworkAccessManage
         }
     });
 
-    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::connectionError, [this](std::string err){
+    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::connectionError, this, [this](std::string err){
         qCDebug(_category) << QString::fromStdString(err);
         scheduleReconnect();
     });
 
-    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::blockTreeUpdateFailed, [this](std::string err){
+    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::blockTreeUpdateFailed, this, [this](std::string err){
         qCDebug(_category) << QString::fromStdString(err);
     });
 
-    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::blockTreeWriteFailed, [this](std::string err){
+    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::blockTreeWriteFailed, this, [this](std::string err){
         qCDebug(_category) << QString::fromStdString(err);
     });
 
