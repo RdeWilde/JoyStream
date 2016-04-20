@@ -174,6 +174,7 @@ PluginMode SellerTorrentPlugin::Configuration::pluginMode() const {
 #include <core/extension/Alert/SellerTorrentPluginStatusAlert.hpp>
 #include <core/extension/Alert/SellerPeerAddedAlert.hpp>
 #include <core/extension/Alert/SellerPeerPluginRemovedAlert.hpp>
+#include <core/extension/Alert/BroadcastTransactionAlert.hpp>
 
 #include <bitcoin/SPVWallet.hpp>
 #include <CoinCore/CoinNodeData.h>
@@ -541,9 +542,7 @@ void SellerTorrentPlugin::on_peer_plugin_disconnect(SellerPeerPlugin * peerPlugi
              * Detect double spends, etc.
              */
 
-            QMetaObject::invokeMethod(_wallet, "broadcastTx", Q_ARG(Coin::Transaction, tx));
-
-            //_wallet->broadcast(tx);
+            sendTorrentPluginAlert(BroadcastTransactionAlert(_torrent->info_hash(), tx));
 
             // Alter state
             peerPlugin->setClientState(SellerPeerPlugin::ClientState::trying_to_claim_last_payment);

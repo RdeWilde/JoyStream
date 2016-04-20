@@ -197,6 +197,7 @@ void BuyerTorrentPlugin::Configuration::setNumberOfSellers(quint32 numberOfSelle
 #include <core/extension/Alert/BuyerTorrentPluginStatusAlert.hpp>
 #include <core/extension/Alert/BuyerPeerAddedAlert.hpp>
 #include <core/extension/Alert/BuyerPeerPluginRemovedAlert.hpp>
+#include <core/extension/Alert/BroadcastTransactionAlert.hpp>
 #include <core/extension/Plugin.hpp>
 #include <core/extension/PeerPlugin.hpp> // PeerModeAnnounced
 #include <paymentchannel/Contract.hpp>
@@ -666,9 +667,7 @@ bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, c
         // Broadcast
         Coin::Transaction tx = _payor.contractTransaction();
 
-        QMetaObject::invokeMethod(_wallet, "broadcastTx", Q_ARG(Coin::Transaction, tx));
-
-        //_wallet->broadcast(tx);
+        sendTorrentPluginAlert(BroadcastTransactionAlert(_torrent->info_hash(), tx));
 
         // Register tx fee we are spending
         _plugin->registerSentFunds(_payor.contractFee());

@@ -42,7 +42,7 @@ class SellerPeerAddedAlert;
 class BuyerPeerAddedAlert;
 class SellerPeerPluginRemovedAlert;
 class BuyerPeerPluginRemovedAlert;
-
+class BroadcastTransactionAlert;
 
 namespace libtorrent {
     class peer_connection;
@@ -645,6 +645,9 @@ private slots:
 
     void scheduleReconnect();
 
+    void onTransactionUpdated(Coin::TransactionId txid, int confirmations);
+    void sendTransactions();
+
 signals:
 
     // Sent when libtorrent::add_torrent_alert is received from libtorrent
@@ -683,6 +686,10 @@ private:
     bool _reconnecting;
 
     int _protocolErrorsCount;
+
+    std::vector<Coin::Transaction> _transactionSendQueue;
+
+    QTimer _transactionSendQueueTimer;
 
     // Underlying libtorrent session,
     // has to be pointer since it needs sessings_pack,
@@ -781,6 +788,8 @@ private:
 
     void processSellerPeerPluginRemovedAlert(const SellerPeerPluginRemovedAlert * p);
     void processBuyerPeerPluginRemovedAlert(const BuyerPeerPluginRemovedAlert * p);
+
+    void processBroadcastTransactionAlert(const BroadcastTransactionAlert *p);
 
     // Status
     void update(const std::vector<libtorrent::torrent_status> & statuses);

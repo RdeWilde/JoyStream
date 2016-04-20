@@ -1102,6 +1102,7 @@ void Controller::Configuration::setLibtorrentSessionSettingsEntry(const libtorre
 #include <core/extension/Alert/BuyerPeerAddedAlert.hpp>
 #include <core/extension/Alert/SellerPeerPluginRemovedAlert.hpp>
 #include <core/extension/Alert/BuyerPeerPluginRemovedAlert.hpp>
+#include <core/extension/Alert/BroadcastTransactionAlert.hpp>
 #include <core/extension/Request/StartSellerTorrentPlugin.hpp>
 #include <core/extension/Request/StartBuyerTorrentPlugin.hpp>
 #include <core/extension/Request/StartObserverTorrentPlugin.hpp>
@@ -1414,6 +1415,19 @@ Controller::Controller(const Configuration & configuration, QNetworkAccessManage
         }
         */
     }
+
+    _transactionSendQueueTimer.setInterval(30000);
+
+    QObject::connect(&_transactionSendQueueTimer,
+                     SIGNAL(timeout()),
+                     this,
+                     SLOT(sendTransactions()));
+
+    _transactionSendQueueTimer.start();
+
+    qRegisterMetaType<Coin::TransactionId>("Coin::TransactionId");
+    QObject::connect(_wallet, SIGNAL(txUpdated(Coin::TransactionId, int)), this, SLOT(onTransactionUpdated(Coin::TransactionId ,int)));
+
 }
 
 Controller::~Controller() {
@@ -1704,6 +1718,8 @@ void Controller::processAlert(const libtorrent::alert * a) {
         processSellerPeerPluginRemovedAlert(p);
     else if(const BuyerPeerPluginRemovedAlert * p = libtorrent::alert_cast<BuyerPeerPluginRemovedAlert>(a))
         processBuyerPeerPluginRemovedAlert(p);
+    else if(const BroadcastTransactionAlert * p = libtorrent::alert_cast<BroadcastTransactionAlert>(a))
+        processBroadcastTransactionAlert(p);
     //else if(const TorrentPluginStartedAlert * p = libtorrent::alert_cast<TorrentPluginStartedAlert>(a))
     //    processTorrentPluginStartedAlert(p);
 
@@ -2187,6 +2203,54 @@ void Controller::processBuyerPeerPluginRemovedAlert(const BuyerPeerPluginRemoved
 
     // Notify view model
     torrent->model()->removePeer(p->endPoint());
+}
+
+void Controller::processBroadcastTransactionAlert(const BroadcastTransactionAlert *p) {
+
+    Coin::Transaction tx = p->transaction();
+
+    // Enqueue transaction
+    _transactionSendQueue.push_back(tx);
+
+    if(!_wallet->isSynched()) return;
+
+    // try to send immediately
+    try {
+        _wallet->broadcastTx(tx);
+    } catch(std::exception & e) {
+
+    }
+}
+
+// called on timer signal, to periodically try to resend transactions to the network
+void Controller::sendTransactions() {
+
+    if(!_wallet->isSynched()) return;
+
+    for(auto tx : _transactionSendQueue) {
+        try {
+            _wallet->broadcastTx(tx);
+        } catch(std::exception & e) {
+            // wallet is offline
+            return;
+        }
+    }
+}
+
+// when wallet sees a transaction, either 0, 1 or 2 confirmations
+void Controller::onTransactionUpdated(Coin::TransactionId txid, int confirmations) {
+
+    //remove matching transaction from the send queue
+    std::vector<Coin::Transaction>::iterator it;
+
+    it = std::find_if(_transactionSendQueue.begin(), _transactionSendQueue.end(), [&txid](Coin::Transaction &tx){
+       return txid == Coin::TransactionId::fromTx(tx);
+    });
+
+    if(it!= _transactionSendQueue.end()){
+        std::cout << "removing tx from send queue";
+        _transactionSendQueue.erase(it);
+    }
 }
 
 void Controller::update(const std::vector<libtorrent::torrent_status> & statuses) {

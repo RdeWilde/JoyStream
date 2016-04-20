@@ -62,6 +62,7 @@ SOURCES += \
     src/extension/Alert/SellerPeerAddedAlert.cpp \
     src/extension/Alert/BuyerPeerPluginRemovedAlert.cpp \
     src/extension/Alert/SellerPeerPluginRemovedAlert.cpp \
+    src/extension/Alert/BroadcastTransactionAlert.cpp \
     src/extension/BuyerTorrentPlugin.cpp \
     src/extension/SellerTorrentPlugin.cpp \
     src/extension/SellerPeerPlugin.cpp \
@@ -139,6 +140,7 @@ HEADERS += \
     include/core/extension/Alert/SellerTorrentPluginStatusAlert.hpp \
     include/core/extension/Alert/StartedSellerTorrentPlugin.hpp \
     include/core/extension/Alert/StartedBuyerTorrentPlugin.hpp \
+    include/core/extension/Alert/BroadcastTransactionAlert.hpp \
     include/core/controller/PluginInstalled.hpp \
     include/core/controller/BuyerPeerPluginViewModel.hpp \
     include/core/controller/BuyerTorrentPluginViewModel.hpp \
