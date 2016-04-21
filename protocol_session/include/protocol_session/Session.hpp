@@ -8,10 +8,9 @@
 #ifndef JOYSTREAM_PROTOCOLSESSION_SESSION_HPP
 #define JOYSTREAM_PROTOCOLSESSION_SESSION_HPP
 
-#include <protocol_session/SessionMode.hpp>
-#include <protocol_session/Connection.hpp>
-#include <protocol_session/Buying.hpp>
-#include <protocol_session/Selling.hpp>
+#include <protocol_session/detail/SessionCoreImpl.hpp>
+#include <protocol_session/detail/Buying.hpp>
+#include <protocol_session/detail/Selling.hpp>
 
 namespace joystream {
 namespace protocol_wire {
@@ -79,10 +78,10 @@ namespace protocol_session {
         // Observer
 
         // Seller
-        Selling<ConnectionIdType> _selling;
+        detail::Selling<ConnectionIdType> _selling;
 
         // Buyer
-        Buying<ConnectionIdType> _buying;
+        detail::Buying<ConnectionIdType> _buying;
     };
 
 }
