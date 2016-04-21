@@ -24,7 +24,7 @@ void Test::sessionImpl() {
 
     ConnectionId id = "my-new-connection";
 
-    Connection<ConnectionId> c(id,
+    detail::Connection<ConnectionId> c(id,
                                joystream::protocol_statemachine::CBStateMachine::PeerAnnouncedMode(),
                                joystream::protocol_statemachine::CBStateMachine::InvitedToOutdatedContract(),
                                joystream::protocol_statemachine::CBStateMachine::InvitedToJoinContract(),
@@ -44,7 +44,7 @@ void Test::sessionImpl() {
 
     QCOMPARE(newSize, 1);
 
-    std::vector<ConnectionId> ids = impl.connectionsInState<joystream::protocol_statemachine::ChooseMode>();
+    std::vector<detail::Connection<ConnectionId> *> ids = impl.connectionsInState<joystream::protocol_statemachine::ChooseMode>();
 
     QCOMPARE(ids.size(), (unsigned long)1);
 
