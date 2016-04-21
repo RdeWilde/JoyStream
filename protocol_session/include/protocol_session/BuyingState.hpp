@@ -12,7 +12,7 @@ namespace joystream {
 namespace protocol_session {
 
     // State of session in buy mode
-    struct BuyerSessionState {
+    struct BuyingState {
 
         enum class State {
 
@@ -37,7 +37,7 @@ namespace protocol_session {
             downloading
         };
 
-        BuyerSessionState()
+        BuyingState()
             : _state(State::active)
             , _active(Active::sending_invitations ){
         }
