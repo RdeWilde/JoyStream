@@ -18,6 +18,10 @@ P2PKHScriptPubKey::P2PKHScriptPubKey(const PublicKey & pk)
     : P2PKHScriptPubKey(pk.toPubKeyHash()) {
 }
 
+uint32_t P2PKHScriptPubKey::length() {
+    return P2PKHScriptPubKey(PubKeyHash()).serialize().size();
+}
+
 uchar_vector P2PKHScriptPubKey::serialize() const {
 
     // Copied from bytes_t Script::txoutscript() const

@@ -23,6 +23,8 @@ public:
 
     P2PKHScriptPubKey(const PublicKey & pk);
 
+    static uint32_t length();
+
     // Raw script: scriptSig: <sig> <pubKey>
     uchar_vector serialize() const;
 
