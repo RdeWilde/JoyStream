@@ -1179,6 +1179,11 @@ Controller::Controller(const Configuration & configuration, QNetworkAccessManage
         throw std::runtime_error("controller failed to open or create wallet");
     }
 
+
+    QObject::connect(_wallet, SIGNAL(synched()), this, SLOT(onWalletSynched()));
+
+    QObject::connect(_wallet, SIGNAL(connected()), this, SLOT(onWalletConnected()));
+
     QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::offline, this, [this](){
         qCDebug(_category) << "wallet offline";
     });
@@ -1415,15 +1420,6 @@ Controller::Controller(const Configuration & configuration, QNetworkAccessManage
         }
         */
     }
-
-    _transactionSendQueueTimer.setInterval(30000);
-
-    QObject::connect(&_transactionSendQueueTimer,
-                     SIGNAL(timeout()),
-                     this,
-                     SLOT(sendTransactions()));
-
-    _transactionSendQueueTimer.start();
 
     qRegisterMetaType<Coin::TransactionId>("Coin::TransactionId");
     QObject::connect(_wallet, SIGNAL(txUpdated(Coin::TransactionId, int)), this, SLOT(onTransactionUpdated(Coin::TransactionId ,int)));
@@ -2212,20 +2208,16 @@ void Controller::processBroadcastTransactionAlert(const BroadcastTransactionAler
     // Enqueue transaction
     _transactionSendQueue.push_back(tx);
 
-    if(!_wallet->isSynched()) return;
-
     // try to send immediately
     try {
         _wallet->broadcastTx(tx);
     } catch(std::exception & e) {
-
+        // wallet is offline
     }
 }
 
 // called on timer signal, to periodically try to resend transactions to the network
 void Controller::sendTransactions() {
-
-    if(!_wallet->isSynched()) return;
 
     for(auto tx : _transactionSendQueue) {
         try {
@@ -2248,9 +2240,16 @@ void Controller::onTransactionUpdated(Coin::TransactionId txid, int confirmation
     });
 
     if(it!= _transactionSendQueue.end()){
-        std::cout << "removing tx from send queue";
         _transactionSendQueue.erase(it);
     }
+}
+
+void Controller::onWalletSynched() {
+    qDebug() << "Wallet Synched";
+}
+
+void Controller::onWalletConnected() {
+    sendTransactions();
 }
 
 void Controller::update(const std::vector<libtorrent::torrent_status> & statuses) {

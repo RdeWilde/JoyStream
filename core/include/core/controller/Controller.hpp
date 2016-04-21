@@ -646,7 +646,8 @@ private slots:
     void scheduleReconnect();
 
     void onTransactionUpdated(Coin::TransactionId txid, int confirmations);
-    void sendTransactions();
+    void onWalletSynched();
+    void onWalletConnected();
 
 signals:
 
@@ -688,8 +689,6 @@ private:
     int _protocolErrorsCount;
 
     std::vector<Coin::Transaction> _transactionSendQueue;
-
-    QTimer _transactionSendQueueTimer;
 
     // Underlying libtorrent session,
     // has to be pointer since it needs sessings_pack,
@@ -806,6 +805,8 @@ private:
 
     // Save state of controller to file
     void saveStateToFile(const char * file);
+
+    void sendTransactions();
 };
 
 #endif // CONTROLLER_HPP
