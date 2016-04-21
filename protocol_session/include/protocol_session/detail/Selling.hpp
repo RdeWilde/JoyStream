@@ -20,12 +20,10 @@ namespace protocol_wire {
     class ContractInvitation;
 }
 namespace protocol_session {
+namespace detail {
 
-    namespace detail {
-
-        template <class ConnectionIdType>
-        struct SessionCoreImpl;
-    }
+    template <class ConnectionIdType>
+    struct SessionCoreImpl;
 
     template <class ConnectionIdType>
     class Selling {
@@ -69,6 +67,7 @@ namespace protocol_session {
         time_t _lastStart;
 
     };
+}
 }
 }
 

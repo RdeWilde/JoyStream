@@ -5,10 +5,11 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, April 9 2016
  */
 
-#include <protocol_session/Selling.hpp>
+#include <protocol_session/detail/Selling.hpp>
 
 namespace joystream {
 namespace protocol_session {
+namespace detail {
 
     template <class ConnectionIdType>
     Selling<ConnectionIdType>::Selling(detail::SessionCoreImpl<ConnectionIdType> * sessionCore)
@@ -73,5 +74,6 @@ namespace protocol_session {
 
     }
 
+}
 }
 }
