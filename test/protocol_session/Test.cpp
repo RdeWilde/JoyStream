@@ -10,21 +10,19 @@
 
 using namespace joystream::protocol_session;
 
-typedef std::string ConnectionId;
-
 void Test::sessionImpl() {
 
-    RemovedConnectionCallbackHandler<ConnectionId> removedConnectionCallbackHandler;
+    RemovedConnectionCallbackHandler<std::string> removedConnectionCallbackHandler;
     GenerateKeyPairsCallbackHandler generateKeyPairsCallbackHandler;
     GenerateP2PKHAddressesCallbackHandler generateP2PKHAddressesCallbackHandler;
 
-    detail::SessionCoreImpl<ConnectionId> impl(removedConnectionCallbackHandler,
+    detail::SessionCoreImpl<std::string> impl(removedConnectionCallbackHandler,
                                                generateKeyPairsCallbackHandler,
                                                generateP2PKHAddressesCallbackHandler);
 
-    ConnectionId id = "my-new-connection";
+    std::string id = "my-new-connection";
 
-    detail::Connection<ConnectionId> c(id,
+    detail::Connection<std::string> c(id,
                                joystream::protocol_statemachine::CBStateMachine::PeerAnnouncedMode(),
                                joystream::protocol_statemachine::CBStateMachine::InvitedToOutdatedContract(),
                                joystream::protocol_statemachine::CBStateMachine::InvitedToJoinContract(),
@@ -44,7 +42,7 @@ void Test::sessionImpl() {
 
     QCOMPARE(newSize, 1);
 
-    std::vector<detail::Connection<ConnectionId> *> ids = impl.connectionsInState<joystream::protocol_statemachine::ChooseMode>();
+    std::vector<detail::Connection<std::string> *> ids = impl.connectionsInState<joystream::protocol_statemachine::ChooseMode>();
 
     QCOMPARE(ids.size(), (unsigned long)1);
 
@@ -53,6 +51,18 @@ void Test::sessionImpl() {
 }
 
 void Test::buying() {
+
+}
+
+void Test::session() {
+
+    RemovedConnectionCallbackHandler<std::string> removedConnectionCallbackHandler;
+    GenerateKeyPairsCallbackHandler generateKeyPairsCallbackHandler;
+    GenerateP2PKHAddressesCallbackHandler generateP2PKHAddressesCallbackHandler;
+
+    Session<std::string> s(removedConnectionCallbackHandler,
+              generateKeyPairsCallbackHandler,
+              generateP2PKHAddressesCallbackHandler);
 
 }
 

@@ -22,6 +22,8 @@ private slots:
 
     void buying();
 
+    void session();
+
 
 public:
 
