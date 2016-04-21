@@ -159,26 +159,7 @@ namespace paymentchannel {
         Coin::Signature _payeeRefundSignature;
     };
 
-    /**
-     * Manages the payor side of a 1-to-N payment channel using design in CBEP.
-     * https://github.com/JoyStream/CBEP
-     */
-
-    // Suggestive contract transaction fee
-    quint64 requiredFee(int numberOfPayees, quint64 feePerKb);
-
-    // Create and return contract transaction
-    Coin::Transaction contractTransaction(const Coin::UnspentP2PKHOutput & funding,
-                                          const std::vector<Commitment> & commitments,
-                                          const Coin::Payment & change);
-
-    // Create and return contract transaction, and set outputs as anchors in corresponding channels
-    Coin::Transaction anchor(const Coin::UnspentP2PKHOutput & funding,
-                             std::vector<Payor> & channels,
-                             const Coin::Payment & change);
-
 }
 }
-
 
 #endif // JOYSTREAM_PAYMENTCHANNEL_PAYOR_HPP
