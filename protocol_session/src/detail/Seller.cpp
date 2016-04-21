@@ -5,10 +5,11 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 17 2016
  */
 
-#include <protocol_session/Seller.hpp>
+#include <protocol_session/detail/Seller.hpp>
 
 namespace joystream {
 namespace protocol_session {
+namespace detail {
 
     template <class ConnectionIdType>
     Seller<ConnectionIdType>::Seller()
@@ -49,8 +50,9 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
-    void Seller<ConnectionIdType>::setIndexOfAssignedPiece(const uint32_t & indexOfAssignedPiece) {
+    void Seller<ConnectionIdType>::setIndexOfAssignedPiece(uint32_t indexOfAssignedPiece) {
         _indexOfAssignedPiece = indexOfAssignedPiece;
     }
+}
 }
 }

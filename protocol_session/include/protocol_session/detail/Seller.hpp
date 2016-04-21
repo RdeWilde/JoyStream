@@ -13,6 +13,7 @@
 
 namespace joystream {
 namespace protocol_session {
+namespace detail {
 
     template <class ConnectionIdType>
     class Seller {
@@ -47,7 +48,7 @@ namespace protocol_session {
         void setConnectionId(const ConnectionIdType &);
 
         uint32_t indexOfAssignedPiece() const;
-        void setIndexOfAssignedPiece(const uint32_t &);
+        void setIndexOfAssignedPiece(uint32_t);
 
     private:
 
@@ -60,8 +61,13 @@ namespace protocol_session {
         // When _state == State::waiting_for_full_piece,
         // waiting_for_piece_validation_and_storage
         uint32_t _indexOfAssignedPiece;
+
+        // When last piece was assigned to this seller.
+        // Is used to identify slow seller.
+        time_t _whenLastPieceAssigned;
     };
 
+}
 }
 }
 
