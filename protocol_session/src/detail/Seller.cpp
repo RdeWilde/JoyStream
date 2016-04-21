@@ -6,6 +6,7 @@
  */
 
 #include <protocol_session/detail/Seller.hpp>
+#include <protocol_session/detail/Connection.hpp>
 
 namespace joystream {
 namespace protocol_session {
@@ -18,9 +19,9 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    Seller<ConnectionIdType>::Seller(State state, const ConnectionIdType & connectionId, uint32_t indexOfAssignedPiece)
+    Seller<ConnectionIdType>::Seller(State state, Connection<ConnectionIdType> * connection, uint32_t indexOfAssignedPiece)
         : _state(state)
-        , _connectionId(connectionId)
+        , _connection(connection)
         , _indexOfAssignedPiece(indexOfAssignedPiece) {
     }
 
@@ -35,13 +36,8 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    ConnectionIdType Seller<ConnectionIdType>::connectionId() const {
-        return _connectionId;
-    }
-
-    template <class ConnectionIdType>
-    void Seller<ConnectionIdType>::setConnectionId(const ConnectionIdType & connectionId) {
-        _connectionId = connectionId;
+    Connection<ConnectionIdType> * Seller<ConnectionIdType>::connection() const {
+        return _connection;
     }
 
     template <class ConnectionIdType>

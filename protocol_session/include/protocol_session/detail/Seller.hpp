@@ -16,6 +16,9 @@ namespace protocol_session {
 namespace detail {
 
     template <class ConnectionIdType>
+    class Connection;
+
+    template <class ConnectionIdType>
     class Seller {
 
         enum class State {
@@ -38,14 +41,13 @@ namespace detail {
 
         Seller();
 
-        Seller(State , const ConnectionIdType &, uint32_t);
+        Seller(State , Connection<ConnectionIdType> * , uint32_t);
 
         // Getters and setters
         State state() const;
         void setState(State);
 
-        ConnectionIdType connectionId() const;
-        void setConnectionId(const ConnectionIdType &);
+        Connection<ConnectionIdType> * connection() const;
 
         uint32_t indexOfAssignedPiece() const;
         void setIndexOfAssignedPiece(uint32_t);
@@ -56,7 +58,7 @@ namespace detail {
         State _state;
 
         // Connection identifier for seller
-        ConnectionIdType _connectionId;
+        Connection<ConnectionIdType> * _connection;
 
         // When _state == State::waiting_for_full_piece,
         // waiting_for_piece_validation_and_storage
