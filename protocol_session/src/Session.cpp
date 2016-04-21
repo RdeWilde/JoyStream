@@ -68,7 +68,7 @@ namespace protocol_session {
             throw exception::ConnectionAlreadyAddedException<ConnectionIdType>(id);
 
         // Create a new connection
-        Connection<ConnectionIdType> connection = new Connection<ConnectionIdType>(
+        detail::Connection<ConnectionIdType> connection = new detail::Connection<ConnectionIdType>(
         id,
         [this, &id](const protocol_statemachine::AnnouncedModeAndTerms & a) {
             this->peerAnnouncedModeAndTerms(id, a);
