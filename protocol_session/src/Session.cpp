@@ -18,7 +18,9 @@ namespace protocol_session {
                                        const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler)
         : _core(removedConnectionCallbackHandler,
                 generateKeyPairsCallbackHandler,
-                generateP2PKHAddressesCallbackHandler) {
+                generateP2PKHAddressesCallbackHandler)
+        , _selling(&_core)
+        , _buying(&_core) {
     }
 
     template <class ConnectionIdType>
