@@ -8,14 +8,9 @@
 #ifndef JOYSTREAM_PROTOCOL_SESSION_HPP
 #define JOYSTREAM_PROTOCOL_SESSION_HPP
 
-#include <protocol_session/BuyerSessionState.hpp>
-#include <protocol_session/Buying.hpp>
-#include <protocol_session/Connection.hpp>
-#include <protocol_session/Mode.hpp>
-#include <protocol_session/Piece.hpp>
-#include <protocol_session/Seller.hpp>
-#include <protocol_session/Selling.hpp>
 #include <protocol_session/Session.hpp>
 #include <protocol_session/SessionMode.hpp>
+#include <protocol_session/Status.hpp>
+#include <protocol_session/BuyingState.hpp>
 
 #endif // JOYSTREAM_PROTOCOL_SESSION_HPP
