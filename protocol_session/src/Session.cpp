@@ -79,7 +79,7 @@ namespace protocol_session {
         [this, &id](const protocol_wire::ContractInvitation & invitation) {
             _selling.invitedToJoinContract(id, invitation);
         },
-        [this, &callback](const protocol_wire::ExtendedMessagePayload * m) {
+        [this, &callback](const protocol_wire::ExtendedMessagePayload & m) {
             callback(m);
         },
         [this, &id](const Coin::typesafeOutPoint & o) {
