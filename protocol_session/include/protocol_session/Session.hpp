@@ -61,10 +61,7 @@ namespace protocol_session {
 
         void processMessageOnConnection(const ConnectionIdType &, const protocol_wire::ExtendedMessagePayload *);
 
-        ////
-
-        //static quint64 minimalFunds(quint32 numberOfPiecesInTorrent, quint64 maxPrice, int numberOfSellers, quint64 feePerkB, quint64 paychanSettlementFee);
-
+        //
         SessionMode mode() const;
 
     private:
