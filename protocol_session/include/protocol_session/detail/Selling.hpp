@@ -71,4 +71,7 @@ namespace detail {
 }
 }
 
+// Needed due to c++ needing implementation for all uses of templated types
+#include <protocol_session/../../src/detail/Selling.cpp>
+
 #endif // JOYSTREAM_PROTOCOL_SELLING_HPP

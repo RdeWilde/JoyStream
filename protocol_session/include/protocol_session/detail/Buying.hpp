@@ -21,7 +21,7 @@ namespace joystream {
 namespace protocol_wire {
     class PieceData;
 }
-namespace  protocol_statemachine {
+namespace protocol_statemachine {
     class AnnouncedModeAndTerms;
 }
 namespace protocol_session {
@@ -188,5 +188,8 @@ namespace detail {
 }
 }
 }
+
+// Needed due to c++ needing implementation for all uses of templated types
+#include <protocol_session/../../src/detail/Buying.cpp>
 
 #endif // JOYSTREAM_PROTOCOLSESSION_DETAIL_BUYING_HPP
