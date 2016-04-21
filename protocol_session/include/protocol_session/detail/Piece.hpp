@@ -5,13 +5,14 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 5 2016
  */
 
-#ifndef JOYSTREAM_PROTOCOLSESSION_PIECE_HPP
-#define JOYSTREAM_PROTOCOLSESSION_PIECE_HPP
+#ifndef JOYSTREAM_PROTOCOLSESSION_DETAIL_PIECE_HPP
+#define JOYSTREAM_PROTOCOLSESSION_DETAIL_PIECE_HPP
 
 #include <string>
 
 namespace joystream {
 namespace protocol_session {
+namespace detail {
 
     template <class ConnectionIdType>
     class Piece {
@@ -25,7 +26,7 @@ namespace protocol_session {
             assigned_to_peer_for_download,
 
             // We do have piece
-            fully_downloaded_and_valid,
+            fully_downloaded_and_valid
         };
 
         Piece();
@@ -58,10 +59,12 @@ namespace protocol_session {
         // Byte length of piece (should be the same for all but last piece)
         int _length;
     };
+
+}
 }
 }
 
 // Needed due to c++ needing implementation for all uses of templated types
-#include <protocol_session/../../src/Piece.cpp>
+#include <protocol_session/../../src/detail/Piece.cpp>
 
-#endif // JOYSTREAM_PROTOCOLSESSION_PIECE_HPP
+#endif // JOYSTREAM_PROTOCOLSESSION_DETAIL_PIECE_HPP

@@ -5,10 +5,11 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 5 2016
  */
 
-#include <protocol_session/Piece.hpp>
+#include <protocol_session/detail/Piece.hpp>
 
 namespace joystream {
 namespace protocol_session {
+namespace detail {
 
     template <class ConnectionIdType>
     Piece<ConnectionIdType>::Piece()
@@ -66,5 +67,6 @@ namespace protocol_session {
         _length = length;
     }
 
+}
 }
 }
