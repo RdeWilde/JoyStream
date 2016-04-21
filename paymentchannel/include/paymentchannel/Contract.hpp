@@ -48,13 +48,13 @@ public:
     // The transaction corresponding to the contract
     Coin::Transaction transaction() const;
 
-    // The size of a contract transaction with given terms
-    static uint32_t transactionSize(uint32_t, bool);
-
     // Transaction fee for contract with given terms
-    static quint64 fee(uint32_t numberOfCommitments, bool hasChange, quint64 feePerKb);
+    static uint64_t fee(uint32_t numberOfCommitments, bool hasChange, quint64 feePerKb);
 
 private:
+
+    // The size of a contract transaction with given terms
+    static uint32_t transactionSize(uint32_t, bool);
 
     // Funding contract
     Coin::UnspentP2PKHOutput _funding;

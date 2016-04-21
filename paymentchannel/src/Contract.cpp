@@ -85,7 +85,7 @@ uint32_t Contract::transactionSize(uint32_t numberOfCommitments, bool hasChange)
            (hasChange ? Coin::P2PKHScriptPubKey::length() : 0); // potential change
 }
 
-quint64 Contract::fee(uint32_t numberOfCommitments, bool hasChange, quint64 feePerKb) {
+uint64_t Contract::fee(uint32_t numberOfCommitments, bool hasChange, quint64 feePerKb) {
 
     // Sizeof transaction
     quint64 txByteSize = transactionSize(numberOfCommitments, hasChange);
