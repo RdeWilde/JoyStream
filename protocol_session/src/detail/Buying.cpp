@@ -18,12 +18,12 @@ namespace protocol_session {
 namespace detail {
 
     template <class ConnectionIdType>
-    Buying<ConnectionIdType>::Buying(detail::SessionCoreImpl<ConnectionIdType> * sessionCore, const Coin::UnspentP2PKHOutput & funding, const Policy & policy)
+    Buying<ConnectionIdType>::Buying(detail::SessionCoreImpl<ConnectionIdType> * sessionCore)
         : _sessionCore(sessionCore)
-        , _funding(funding)
-        , _policy(policy)
-        , _lastStartOfSendingInvitations(0)
-        , _assignmentLowerBound(0) {
+        , _lastAssignedPiece(0)
+        , _assignmentLowerBound(0)
+        , _lastStart(0)
+        , _lastStartOfSendingInvitations(0) {
 
         // Note starting time
         time(&_lastStart);
@@ -375,6 +375,27 @@ namespace detail {
         cassert(s.state() == Seller<ConnectionIdType>::State::waiting_to_be_assigned_piece);
 
         return 0;
+    }
+
+    template <class ConnectionIdType>
+    typename Buying<ConnectionIdType>::Policy Buying<ConnectionIdType>::getPolicy() const
+    {
+        return _policy;
+    }
+
+    template <class ConnectionIdType>
+    void Buying<ConnectionIdType>::setPolicy(const Policy &policy) {
+        _policy = policy;
+    }
+
+    template <class ConnectionIdType>
+    Coin::UnspentP2PKHOutput Buying<ConnectionIdType>::getFunding() const {
+        return _funding;
+    }
+
+    template <class ConnectionIdType>
+    void Buying<ConnectionIdType>::setFunding(const Coin::UnspentP2PKHOutput &funding) {
+        _funding = funding;
     }
 }
 }

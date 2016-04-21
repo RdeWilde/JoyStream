@@ -39,6 +39,10 @@ namespace detail {
 
         public:
 
+            Policy()
+                : _minTimeBeforeBuildingContract(0) {
+            }
+
             Policy(double minTimeBeforeBuildingContract)
                 : _minTimeBeforeBuildingContract(minTimeBeforeBuildingContract) {
             }
@@ -76,7 +80,7 @@ namespace detail {
 
         };
 
-        Buying(detail::SessionCoreImpl<ConnectionIdType> *, const Coin::UnspentP2PKHOutput &, const Policy &);
+        Buying(detail::SessionCoreImpl<ConnectionIdType> *);
 
         // Time out processing hook
         // NB: Later give some indication of how to set timescale for this call
@@ -103,16 +107,17 @@ namespace detail {
         void sellerHasInterruptedContract(const ConnectionIdType &);
         void receivedFullPiece(const ConnectionIdType &, const protocol_wire::PieceData &);
 
+        // Getters and setters
+        Coin::UnspentP2PKHOutput getFunding() const;
+        void setFunding(const Coin::UnspentP2PKHOutput &funding);
+
+        Policy getPolicy() const;
+        void setPolicy(const Policy &policy);
+
     private:
 
         // Tries start downloading if possible
         bool tryToStartDownloading();
-
-
-
-
-
-
 
 
         //int64_t contractFee(selectedSellers) const;
