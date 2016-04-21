@@ -5,21 +5,13 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 9 2016
  */
 
-#include <protocol_session/Connection.hpp>
-#include <protocol_wire/MessageType.hpp>
-#include <protocol_wire/Observe.hpp>
-#include <protocol_wire/Buy.hpp>
-#include <protocol_wire/Sell.hpp>
-#include <protocol_wire/JoinContract.hpp>
-#include <protocol_wire/JoiningContract.hpp>
-#include <protocol_wire/Ready.hpp>
-#include <protocol_wire/RequestFullPiece.hpp>
-#include <protocol_wire/FullPiece.hpp>
-#include <protocol_wire/Payment.hpp>
-#include <protocol_statemachine/event/Recv.hpp>
+#include <protocol_session/detail/Connection.hpp>
+#include <protocol_wire/protocol_wire.hpp>
+//#include <protocol_statemachine/event/Recv.hpp>
 
 namespace joystream {
 namespace protocol_session {
+namespace detail {
 
     template <class ConnectionIdType>
     Connection<ConnectionIdType>::Connection(const ConnectionIdType & connectionId,
@@ -117,14 +109,10 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
-    paymentchannel::Commitment Connection<ConnectionIdType>::commitment() const {
-        return _machine.commitment();
-    }
-
-    template <class ConnectionIdType>
     const protocol_statemachine::CBStateMachine & Connection<ConnectionIdType>::machine() const {
         return _machine;
     }
 
+}
 }
 }

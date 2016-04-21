@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 9 2016
  */
 
-#ifndef JOYSTREAM_PROTOCOLSESSION_CONNECTION_HPP
-#define JOYSTREAM_PROTOCOLSESSION_CONNECTION_HPP
+#ifndef JOYSTREAM_PROTOCOLSESSION_DETAIL_CONNECTION_HPP
+#define JOYSTREAM_PROTOCOLSESSION_DETAIL_CONNECTION_HPP
 
 #include <protocol_statemachine/protocol_statemachine.hpp>
 
@@ -17,6 +17,7 @@ namespace protocol_wire {
     class ExtendedMessagePayload;
 }
 namespace protocol_session {
+namespace detail {
 
     template <class ConnectionIdType>
     // ConnectionIdType: type for identifying connections, must
@@ -50,9 +51,6 @@ namespace protocol_session {
         // Id of given connection
         ConnectionIdType connectionId() const;
 
-        // Commitment in this interaction
-        paymentchannel::Commitment commitment() const;
-
         // Connection state machine reference
         const protocol_statemachine::CBStateMachine & machine() const;
 
@@ -81,8 +79,9 @@ namespace protocol_session {
 
 }
 }
+}
 
 // Needed due to c++ needing implementation for all uses of templated types
-#include <protocol_session/../../src/Connection.cpp>
+#include <protocol_session/../../src/detail/Connection.cpp>
 
-#endif // JOYSTREAM_PROTOCOLSESSION_CONNECTION_HPP
+#endif // JOYSTREAM_PROTOCOLSESSION_DETAIL_CONNECTION_HPP
