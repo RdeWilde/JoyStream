@@ -111,9 +111,6 @@ namespace protocol_statemachine {
         // Get name of current state: ***Varies from compiler to compiler***
         //const char * getInnerStateName() const;
 
-        // Commitment in this interaction
-        paymentchannel::Commitment commitment() const;
-
         // Mode of client
         ModeAnnounced clientMode() const;
 
@@ -122,6 +119,10 @@ namespace protocol_statemachine {
 
         int MAX_PIECE_INDEX() const;
         void setMAX_PIECE_INDEX(int);
+
+        paymentchannel::Payor payor() const;
+
+        paymentchannel::Payee payee() const;
 
     private:
 
