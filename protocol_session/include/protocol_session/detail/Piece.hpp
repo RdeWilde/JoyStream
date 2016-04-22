@@ -23,27 +23,33 @@ namespace detail {
 
             // We do not have piece, and it has given assignment status
             unassigned,
+
             assigned_to_peer_for_download,
 
             // We do have piece
-            fully_downloaded_and_valid
+            downloaded
         };
 
         Piece();
         Piece(int index, State, const ConnectionIdType &, int length);
 
-        // Getters and setters
+        // Piece is assigned to connection with given id
+        void assigned(const ConnectionIdType &);
+
+        // Piece has been downloaded
+        void downloaded();
+
+        // Piece is no longer assigned to a connection
+        void deAssign();
+
+        // Getters
         int index() const;
-        void setIndex(int);
 
         State state() const;
-        void setState(State);
 
-        ConnectionIdType id() const;
-        void setId(const ConnectionIdType &);
+        ConnectionIdType connectionId() const;
 
         int length() const;
-        void setLength(int);
 
     private:
 
@@ -54,7 +60,7 @@ namespace detail {
         State _state;
 
         // Id of connectionto which piece is assigned, when _state == State::assigned_to_peer_for_download
-        ConnectionIdType _id;
+        ConnectionIdType _connectionId;
 
         // Byte length of piece (should be the same for all but last piece)
         int _length;

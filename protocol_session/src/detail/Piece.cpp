@@ -15,7 +15,7 @@ namespace detail {
     Piece<ConnectionIdType>::Piece()
         : _index(0)
         , _state(State::unassigned)
-        , _id(id)
+        , _connectionId(connectionId)
         , _length(0) {
     }
 
@@ -23,8 +23,28 @@ namespace detail {
     Piece<ConnectionIdType>::Piece(int index, State state, const ConnectionIdType & id, int length)
         : _index(index)
         , _state(state)
-        , _id(id)
+        , _connectionId(id)
         , _length(length){
+    }
+
+    template <class ConnectionIdType>
+    void Piece<ConnectionIdType>::assigned(const ConnectionIdType & id) {
+
+        assert(_state == State::unassigned);
+
+        _state = State::assigned_to_peer_for_download;
+        _connectionId = id;
+    }
+
+    template <class ConnectionIdType>
+    void Piece<ConnectionIdType>::deAssign() {
+        assert(_state == State::assigned_to_peer_for_download);
+        _state = State::unassigned;
+    }
+
+    template <class ConnectionIdType>
+    void Piece<ConnectionIdType>::downloaded() {
+        _state = State::downloaded;
     }
 
     template <class ConnectionIdType>
@@ -33,40 +53,19 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    void Piece<ConnectionIdType>::setIndex(int index) {
-        _index = index;
-    }
-
-    template <class ConnectionIdType>
     typename Piece<ConnectionIdType>::State Piece<ConnectionIdType>::state() const {
         return _state;
     }
 
     template <class ConnectionIdType>
-    void Piece<ConnectionIdType>::setState(State state) {
-        _state = state;
-    }
-
-    template <class ConnectionIdType>
-    ConnectionIdType Piece<ConnectionIdType>::id() const {
-        return _id;
-    }
-
-    template <class ConnectionIdType>
-    void Piece<ConnectionIdType>::setId(const ConnectionIdType & id) {
-        _id = id;
+    ConnectionIdType Piece<ConnectionIdType>::connectionId() const {
+        return _connectionId;
     }
 
     template <class ConnectionIdType>
     int Piece<ConnectionIdType>::length() const {
         return _length;
     }
-
-    template <class ConnectionIdType>
-    void Piece<ConnectionIdType>::setLength(int length) {
-        _length = length;
-    }
-
 }
 }
 }
