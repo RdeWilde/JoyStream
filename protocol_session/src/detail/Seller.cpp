@@ -26,13 +26,20 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    typename Seller<ConnectionIdType>::State Seller<ConnectionIdType>::state() const {
-        return _state;
+    void Seller<ConnectionIdType>::requestPiece(int i) {
+
+        assert(_state == State::waiting_to_be_assigned_piece);
+
+        _state = State::waiting_for_full_piece;
+        _indexOfAssignedPiece = i;
+
+        // Send request
+        _connection->machine().process_event(protocol_statemachine::event::RequestPiece(i));
     }
 
     template <class ConnectionIdType>
-    void Seller<ConnectionIdType>::setState(State state) {
-        _state = state;
+    typename Seller<ConnectionIdType>::State Seller<ConnectionIdType>::state() const {
+        return _state;
     }
 
     template <class ConnectionIdType>
@@ -41,14 +48,10 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    uint32_t Seller<ConnectionIdType>::indexOfAssignedPiece() const {
+    int Seller<ConnectionIdType>::indexOfAssignedPiece() const {
         return _indexOfAssignedPiece;
     }
 
-    template <class ConnectionIdType>
-    void Seller<ConnectionIdType>::setIndexOfAssignedPiece(uint32_t indexOfAssignedPiece) {
-        _indexOfAssignedPiece = indexOfAssignedPiece;
-    }
 }
 }
 }
