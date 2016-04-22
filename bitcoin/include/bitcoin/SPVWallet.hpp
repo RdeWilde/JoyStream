@@ -51,7 +51,7 @@ public:
     void open();
 
     // Start Synching the wallet with peer at host:port
-    void sync(std::string host, int port);
+    void sync(std::string host, int port, unsigned int timeout = 0);
     void stopSync();
 
     void loadBlockTree(std::function<void(std::string)> feedback = nullptr);

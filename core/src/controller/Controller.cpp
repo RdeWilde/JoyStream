@@ -1181,6 +1181,8 @@ Controller::Controller(const Configuration & configuration, QNetworkAccessManage
 
 
     QObject::connect(_wallet, SIGNAL(synched()), this, SLOT(onWalletSynched()));
+    QObject::connect(_wallet, SIGNAL(synchingHeaders()), this, SLOT(onWalletSynchingHeaders()));
+    QObject::connect(_wallet, SIGNAL(synchingBlocks()), this, SLOT(onWalletSynchingBlocks()));
 
     QObject::connect(_wallet, SIGNAL(connected()), this, SLOT(onWalletConnected()));
 
@@ -1198,7 +1200,7 @@ Controller::Controller(const Configuration & configuration, QNetworkAccessManage
         // some errors are result of client sending something invalid
         // others if the peer sends us something invalid
         _protocolErrorsCount++;
-        if(_protocolErrorsCount > CORE_CONTROLLER_PROTOCOL_ERRORS_BEFORE_RECONNECT) {
+        if(_protocolErrorsCount > CORE_CONTROLLER_SPV_PROTOCOL_ERRORS_BEFORE_RECONNECT) {
             scheduleReconnect();
         }
     });
@@ -1451,8 +1453,8 @@ void Controller::syncWallet() {
     _protocolErrorsCount = 0;
 
     qDebug() << "connecting to bitcoin network...";
-
-    _wallet->sync("testnet-seed.bitcoin.petertodd.org", 18333);
+    qDebug() << "peer timeout value used:" << CORE_CONTROLLER_SPV_KEEPALIVE_TIMEOUT;
+    _wallet->sync("testnet-seed.bitcoin.petertodd.org", 18333, CORE_CONTROLLER_SPV_KEEPALIVE_TIMEOUT);
 
     _reconnecting = false;
 }
@@ -2248,7 +2250,16 @@ void Controller::onWalletSynched() {
     qDebug() << "Wallet Synched";
 }
 
+void Controller::onWalletSynchingHeaders() {
+    qDebug() << "Wallet Synching Headers";
+}
+
+void Controller::onWalletSynchingBlocks() {
+    qDebug() << "Wallet Synching Blocks";
+}
+
 void Controller::onWalletConnected() {
+    qDebug() << "Wallet Connected";
     sendTransactions();
 }
 

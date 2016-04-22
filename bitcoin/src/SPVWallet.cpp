@@ -190,7 +190,7 @@ void SPVWallet::loadBlockTree(std::function<void(std::string)> feedback) {
     _blockTreeLoaded = true;
 }
 
-void SPVWallet::sync(std::string host, int port) {
+void SPVWallet::sync(std::string host, int port, unsigned int timeout) {
 
     // Wallet must be opened or created before synching
     if(!isInitialized()) {
@@ -208,7 +208,7 @@ void SPVWallet::sync(std::string host, int port) {
         loadBlockTree();
     }
 
-    _networkSync.start(host, port);
+    _networkSync.start(host, port, timeout);
 }
 
 void SPVWallet::stopSync() {

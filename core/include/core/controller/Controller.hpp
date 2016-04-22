@@ -647,6 +647,8 @@ private slots:
 
     void onTransactionUpdated(Coin::TransactionId txid, int confirmations);
     void onWalletSynched();
+    void onWalletSynchingHeaders();
+    void onWalletSynchingBlocks();
     void onWalletConnected();
 
 signals:
