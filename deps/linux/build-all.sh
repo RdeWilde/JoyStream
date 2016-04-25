@@ -35,18 +35,19 @@ then
 
   cd boost/
   ./bootstrap.sh
-  cd ../../
-  ./build-boost.sh
 fi
 popd
+./build-boost.sh
 
 pushd src
-if [ ! -e "${LIBTORRENT_TARBALL}" ]
+if [ ! -e "libtorrent" ]
 then
-  # download libtorrent
-  rm -fr libtorrent/
-  echo "Downloding ${LIBTORRENT_TARBALL}"
-  wget -O ${LIBTORRENT_TARBALL} "https://github.com/arvidn/libtorrent/archive/${LIBTORRENT_TARBALL}"
+  if [ ! -e "${LIBTORRENT_TARBALL}" ]
+  then
+    # download libtorrent
+    echo "Downloding ${LIBTORRENT_TARBALL}"
+    wget -O ${LIBTORRENT_TARBALL} "https://github.com/arvidn/libtorrent/archive/${LIBTORRENT_TARBALL}"
+  fi
 
   tar -xzvf ${LIBTORRENT_TARBALL}
   mv libtorrent-${LIBTORRENT_VERSION}/ libtorrent

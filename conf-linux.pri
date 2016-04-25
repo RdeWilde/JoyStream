@@ -17,3 +17,7 @@ LIBTORRENT_LOCATION= $$PWD/deps/linux/dist
 
 # mSIGNA
 MSIGNA_SYSROOT = $$PWD/deps/linux/src/mSIGNA/sysroot
+
+# Boost
+# boost was build with --layout=tagged option so libraries are suffixed
+BOOST_LIB_SUFFIX = -mt
