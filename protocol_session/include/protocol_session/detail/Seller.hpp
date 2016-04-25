@@ -50,8 +50,9 @@ namespace detail {
         // Whether
         bool servicingPieceHasTimedOut(double) const;
 
-        //
-        void fullPieceArrived();
+        // Update state to reflect that a recently arrived full piece from this
+        // seller is being processed (verified and
+        void processingArrivedFullPiece();
 
         // Getters
         State state() const;
