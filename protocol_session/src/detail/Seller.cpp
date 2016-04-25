@@ -33,8 +33,30 @@ namespace detail {
         _state = State::waiting_for_full_piece;
         _indexOfAssignedPiece = i;
 
+        // Note piece assignment time, so we later can detect time outs
+        time(&_whenLastPieceAssigned);
+
         // Send request
         _connection->machine().process_event(protocol_statemachine::event::RequestPiece(i));
+    }
+
+    template <class ConnectionIdType>
+    bool Seller<ConnectionIdType>::servicingPieceHasTimedOut(double timeOutLimit) const{
+
+        if(_state != State::waiting_for_full_piece)
+            return false;
+
+        //assert(_state == State::);
+
+        //diff()
+        //timeOutLimit
+    }
+
+    template <class ConnectionIdType>
+    void Seller<ConnectionIdType>::fullPieceArrived() {
+
+        assert(_state == State::waiting_for_full_piece);
+        _state = State::waiting_for_piece_validation_and_storage;
     }
 
     template <class ConnectionIdType>

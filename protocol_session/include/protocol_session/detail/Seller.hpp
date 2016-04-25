@@ -47,6 +47,12 @@ namespace detail {
         // can be used to assing piece to seller and send request to peer
         void requestPiece(int i);
 
+        // Whether
+        bool servicingPieceHasTimedOut(double) const;
+
+        //
+        void fullPieceArrived();
+
         // Getters
         State state() const;
 
