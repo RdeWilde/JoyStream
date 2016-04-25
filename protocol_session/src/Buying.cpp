@@ -71,14 +71,14 @@ namespace protocol_session {
         // Set message sending callback
         connection->machine().setSendMessage(callback);
 
-        // Add to map
-        _sessionCore._connections[id] = connection;
-
         // Setup hooks into *this
         setHooks(connection);
 
         // Choose the mode of the connection
         connection->_machine.process_event(protocol_statemachine::event::BuyModeStarted(_terms));
+
+        // Add to map
+        _sessionCore._connections[id] = connection;
 
         return _sessionCore._connections.size();
     }
