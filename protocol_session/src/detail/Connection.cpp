@@ -14,6 +14,12 @@ namespace protocol_session {
 namespace detail {
 
     template <class ConnectionIdType>
+    Connection<ConnectionIdType>::Connection(const ConnectionIdType & connectionId)
+        : _connectionId(connectionId)
+        , _reentrantCounter(0) {
+    }
+
+    template <class ConnectionIdType>
     Connection<ConnectionIdType>::Connection(const ConnectionIdType & connectionId,
                                              const protocol_statemachine::CBStateMachine::PeerAnnouncedMode & peerAnnouncedMode,
                                              const protocol_statemachine::CBStateMachine::InvitedToOutdatedContract & invitedToOutdatedContract,

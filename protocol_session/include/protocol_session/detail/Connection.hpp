@@ -27,6 +27,8 @@ namespace detail {
 
     public:
 
+        Connection(const ConnectionIdType &);
+
         Connection(const ConnectionIdType &,
                    const protocol_statemachine::CBStateMachine::PeerAnnouncedMode &,
                    const protocol_statemachine::CBStateMachine::InvitedToOutdatedContract &,
