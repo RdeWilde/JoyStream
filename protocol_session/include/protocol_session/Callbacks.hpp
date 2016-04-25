@@ -15,9 +15,15 @@
 namespace joystream {
 namespace protocol_session {
 
+// NB: In the future one can separete into two different callbacks,
+// one for each mode, with its own set of DisconnectCauses.
+enum class DisconnectCause {
+    seller_has_interrupted_contract
+};
+
 // Removal of a connection from the session: c++11 alias declaration
 template <class ConnectionIdType>
-using RemovedConnectionCallbackHandler = std::function<void(const ConnectionIdType &)>;
+using RemovedConnectionCallbackHandler = std::function<void(const ConnectionIdType &, DisconnectCause)>;
 
 // Generate set of key pairs
 typedef std::function<std::vector<Coin::KeyPair>(int)> GenerateKeyPairsCallbackHandler;
