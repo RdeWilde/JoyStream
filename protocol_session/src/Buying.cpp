@@ -20,6 +20,7 @@ namespace protocol_session {
     Buying<ConnectionIdType>::Buying(const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnectionCallbackHandler,
                                      const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                                      const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
+                                     const BroadcastTransaction & broadcastTransaction,
                                      const FullPieceArrived<ConnectionIdType> & fullPieceArrived,
                                      const Coin::UnspentP2PKHOutput & funding,
                                      const Policy & policy,
@@ -459,7 +460,7 @@ namespace protocol_session {
         _contractTx = c.transaction();
 
         // Notify client that transaction should be broadcasted
-        _sessionCore->broadcastContract(_contractTx);
+        _broadcastTransaction(_contractTx);
 
         // Make sure we are sending the right amount
         assert(_contractTx.getTotalSent() == totalComitted + changeAmount);

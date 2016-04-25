@@ -128,6 +128,7 @@ public:
     Buying(const RemovedConnectionCallbackHandler<ConnectionIdType> &,
            const GenerateKeyPairsCallbackHandler &,
            const GenerateP2PKHAddressesCallbackHandler &,
+           const BroadcastTransaction &,
            const FullPieceArrived<ConnectionIdType> &,
            const Coin::UnspentP2PKHOutput &,
            const Policy &,
@@ -202,6 +203,7 @@ private:
 
     // Buying mode spesific callbacks
 
+    BroadcastTransaction _broadcastTransaction;
     FullPieceArrived<ConnectionIdType> _fullPieceArrived;
 
 

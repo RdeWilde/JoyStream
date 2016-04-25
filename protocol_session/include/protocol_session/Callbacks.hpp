@@ -29,7 +29,7 @@ typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateP2PKHAddress
 typedef std::function<void(const protocol_wire::ExtendedMessagePayload &)> SendMessageOnConnection;
 
 // Broadcasting a transaction
-typedef std::function<bool(const Coin::Transaction &)> BroadCastTransactionCallbackHandler;
+typedef std::function<bool(const Coin::Transaction &)> BroadcastTransaction;
 
 // Process arrival of a full piece, with given index over peer connection with given id
 template <class ConnectionIdType>
