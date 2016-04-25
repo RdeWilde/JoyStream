@@ -308,6 +308,18 @@ namespace protocol_session {
     template <class ConnectionIdType>
     void Buying<ConnectionIdType>::sellerHasInterruptedContract(const ConnectionIdType & id) {
 
+        // Get referemce to seller corresponding connection
+        auto itr = _sellers.find(id);
+        assert(itr != _sellers.cend());
+
+        // Remove
+        itr->second.removed();
+
+        // Remove connection
+        _sessionCore.remove(id);
+
+        // Tell client to remove his pad peer
+        _sessionCore._removedConnectionCallbackHandler(id, DisconnectCause::seller_has_interrupted_contract);
     }
 
     template <class ConnectionIdType>
