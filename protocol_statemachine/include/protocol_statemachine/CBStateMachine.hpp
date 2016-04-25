@@ -28,9 +28,6 @@ namespace protocol_wire {
     class SellerTerms;
     class BuyerTerms;
     class Ready;
-
-    class ContractRSVP;
-
     class PieceData;
 }
 
@@ -86,6 +83,8 @@ namespace protocol_statemachine {
         // Peer, in seller mode, responded with full piece
         typedef std::function<void(const protocol_wire::PieceData &)> ReceivedFullPiece;
 
+        CBStateMachine();
+
         CBStateMachine(const PeerAnnouncedMode &,
                        const InvitedToOutdatedContract &,
                        const InvitedToJoinContract &,
@@ -123,6 +122,34 @@ namespace protocol_statemachine {
         paymentchannel::Payor payor() const;
 
         paymentchannel::Payee payee() const;
+
+        // Setters for callbacks
+
+        void setPeerAnnouncedMode(const PeerAnnouncedMode &peerAnnouncedMode);
+
+        void setInvitedToOutdatedContract(const InvitedToOutdatedContract &invitedToOutdatedContract);
+
+        void setInvitedToJoinContract(const InvitedToJoinContract &invitedToJoinContract);
+
+        void setSendMessage(const Send &sendMessage);
+
+        void setContractIsReady(const ContractIsReady &contractIsReady);
+
+        void setPieceRequested(const PieceRequested &pieceRequested);
+
+        void setInvalidPieceRequested(const InvalidPieceRequested &invalidPieceRequested);
+
+        void setPeerInterruptedPayment(const PeerInterruptedPayment &peerInterruptedPayment);
+
+        void setValidPayment(const ValidPayment &validPayment);
+
+        void setInvalidPayment(const InvalidPayment &invalidPayment);
+
+        void setSellerJoined(const SellerJoined &sellerJoined);
+
+        void setSellerInterruptedContract(const SellerInterruptedContract &sellerInterruptedContract);
+
+        void setReceivedFullPiece(const ReceivedFullPiece &receivedFullPiece);
 
     private:
 

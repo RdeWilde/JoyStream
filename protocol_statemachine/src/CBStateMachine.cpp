@@ -14,6 +14,10 @@
 namespace joystream {
 namespace protocol_statemachine {
 
+    CBStateMachine::CBStateMachine()
+        : _MAX_PIECE_INDEX(0){
+    }
+
     CBStateMachine::CBStateMachine(const PeerAnnouncedMode & peerAnnouncedMode,
                                    const InvitedToOutdatedContract & invitedToOutdatedContract,
                                    const InvitedToJoinContract & invitedToJoinContract,
@@ -111,6 +115,58 @@ namespace protocol_statemachine {
 
         // Send mode message
         _sendMessage(protocol_wire::Buy(t));
+    }
+
+    void CBStateMachine::setReceivedFullPiece(const ReceivedFullPiece &receivedFullPiece) {
+        _receivedFullPiece = receivedFullPiece;
+    }
+
+    void CBStateMachine::setSellerInterruptedContract(const SellerInterruptedContract &sellerInterruptedContract) {
+        _sellerInterruptedContract = sellerInterruptedContract;
+    }
+
+    void CBStateMachine::setSellerJoined(const SellerJoined &sellerJoined) {
+        _sellerJoined = sellerJoined;
+    }
+
+    void CBStateMachine::setInvalidPayment(const InvalidPayment &invalidPayment) {
+        _invalidPayment = invalidPayment;
+    }
+
+    void CBStateMachine::setValidPayment(const ValidPayment &validPayment) {
+        _validPayment = validPayment;
+    }
+
+    void CBStateMachine::setPeerInterruptedPayment(const PeerInterruptedPayment &peerInterruptedPayment) {
+        _peerInterruptedPayment = peerInterruptedPayment;
+    }
+
+    void CBStateMachine::setInvalidPieceRequested(const InvalidPieceRequested &invalidPieceRequested) {
+        _invalidPieceRequested = invalidPieceRequested;
+    }
+
+    void CBStateMachine::setPieceRequested(const PieceRequested &pieceRequested) {
+        _pieceRequested = pieceRequested;
+    }
+
+    void CBStateMachine::setContractIsReady(const ContractIsReady &contractIsReady) {
+        _contractIsReady = contractIsReady;
+    }
+
+    void CBStateMachine::setSendMessage(const Send &sendMessage) {
+        _sendMessage = sendMessage;
+    }
+
+    void CBStateMachine::setInvitedToJoinContract(const InvitedToJoinContract &invitedToJoinContract) {
+        _invitedToJoinContract = invitedToJoinContract;
+    }
+
+    void CBStateMachine::setInvitedToOutdatedContract(const InvitedToOutdatedContract &invitedToOutdatedContract) {
+        _invitedToOutdatedContract = invitedToOutdatedContract;
+    }
+
+    void CBStateMachine::setPeerAnnouncedMode(const PeerAnnouncedMode &peerAnnouncedMode) {
+        _peerAnnouncedMode = peerAnnouncedMode;
     }
 
     void CBStateMachine::peerAnnouncedMode() {
