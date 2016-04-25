@@ -13,5 +13,6 @@
 #include <protocol_session/Session.hpp>
 #include <protocol_session/Status.hpp>
 #include <protocol_session/Exceptions.hpp>
+#include <protocol_session/Callbacks.hpp>
 
 #endif // JOYSTREAM_PROTOCOL_SESSION_HPP

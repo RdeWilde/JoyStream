@@ -25,7 +25,8 @@ HEADERS += \
     include/protocol_session/Status.hpp \
     include/protocol_session/TorrentPieceInformation.hpp \
     include/protocol_session/PieceInformation.hpp \
-    include/protocol_session/Exceptions.hpp
+    include/protocol_session/Exceptions.hpp \
+    include/protocol_session/Callbacks.hpp
 
 
 SOURCES += \

@@ -9,34 +9,13 @@
 #define JOYSTREAM_PROTOCOLSESSION_DETAIL_SESSIONCOREIMPL_HPP
 
 #include <protocol_session/detail/Connection.hpp>
+#include <protocol_session/Callbacks.hpp>
 
 #include <functional>
 #include <vector>
 
 namespace joystream {
 namespace protocol_session {
-
-//// Callback types
-
-// Callback for handling the removal of a connection from the session: c++11 alias declaration
-template <class ConnectionIdType>
-using RemovedConnectionCallbackHandler = std::function<void(const ConnectionIdType &)>;
-
-typedef std::function<std::vector<Coin::KeyPair>(int)> GenerateKeyPairsCallbackHandler;
-typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateP2PKHAddressesCallbackHandler;
-
-// Client requires a message to be sent
-typedef std::function<void(const protocol_wire::ExtendedMessagePayload &)> SendMessageOnConnection;
-
-// Callback for handling broadcasting a transaction
-//typedef std::function<bool(const Coin::Transaction &)> BroadCastTransactionCallbackHandler;
-
-// Callback for generating a key pair
-//typedef std::function< generate coin::keypair?
-
-// Callback for generating a receive address
-//typedef std::function generate address
-
 namespace detail {
 
 template <class ConnectionIdType>
