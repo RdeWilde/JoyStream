@@ -53,7 +53,7 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    void Seller<ConnectionIdType>::fullPieceArrived() {
+    void Seller<ConnectionIdType>::processingArrivedFullPiece() {
 
         assert(_state == State::waiting_for_full_piece);
         _state = State::waiting_for_piece_validation_and_storage;
