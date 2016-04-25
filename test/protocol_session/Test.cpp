@@ -7,7 +7,9 @@
 
 #include <Test.hpp>
 #include <protocol_session/protocol_session.hpp>
+#include <protocol_wire/protocol_wire.hpp>
 
+using namespace joystream;
 using namespace joystream::protocol_session;
 
 void Test::sessionImpl() {
@@ -38,23 +40,40 @@ void Test::sessionImpl() {
                                joystream::protocol_statemachine::CBStateMachine::ReceivedFullPiece());
 
 
-    int newSize = impl.addConnection(&c);
+    impl._connections[id] = &c;
+    int newSize = impl._connections.size();
 
     QCOMPARE(newSize, 1);
 
     std::vector<detail::Connection<std::string> *> ids = impl.connectionsInState<joystream::protocol_statemachine::ChooseMode>();
 
     QCOMPARE(ids.size(), (unsigned long)1);
-
-
-
 }
 
 void Test::buying() {
 
+    RemovedConnectionCallbackHandler<std::string> removedConnectionCallbackHandler;
+    GenerateKeyPairsCallbackHandler generateKeyPairsCallbackHandler;
+    GenerateP2PKHAddressesCallbackHandler generateP2PKHAddressesCallbackHandler;
+    Coin::UnspentP2PKHOutput funding;
+    Buying<std::string>::Policy policy;
+    protocol_wire::BuyerTerms terms;
+    TorrentPieceInformation information;
+
+    Buying<std::string> buying(removedConnectionCallbackHandler,
+                               generateKeyPairsCallbackHandler,
+                               generateP2PKHAddressesCallbackHandler,
+                               funding,
+                               policy,
+                               terms,
+                               information);
+
+
 }
 
 void Test::session() {
+
+/**
 
     RemovedConnectionCallbackHandler<std::string> removedConnectionCallbackHandler;
     GenerateKeyPairsCallbackHandler generateKeyPairsCallbackHandler;
@@ -63,6 +82,7 @@ void Test::session() {
     Session<std::string> s(removedConnectionCallbackHandler,
               generateKeyPairsCallbackHandler,
               generateP2PKHAddressesCallbackHandler);
+*/
 
 }
 

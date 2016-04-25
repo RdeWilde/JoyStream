@@ -8,6 +8,8 @@
 #ifndef JOYSTREAM_PROTOCOLSESSION_SESSION_HPP
 #define JOYSTREAM_PROTOCOLSESSION_SESSION_HPP
 
+/**
+
 #include <protocol_session/detail/SessionCoreImpl.hpp>
 #include <protocol_session/detail/Buying.hpp>
 #include <protocol_session/detail/Selling.hpp>
@@ -40,9 +42,32 @@ namespace protocol_session {
 
         //// Manage mode
 
-        void toObserve();
+        // what happens in these depending on what state we are in? (paused, stopped,etc)
+
+        void toObserveMode();
+
         void toSellMode();
+
         void toBuyMode();
+
+        //// Manage state
+
+        // Starts a stopped session by becoming fully operational
+        void start();
+
+        // Immediately closes all existing connections
+        void stop();
+
+        // Accepts new connections, but only advertises mode.
+        // All existing connections are gracefully paused so that all
+        // incoming messages can be ignored. In particular
+        // * Selling mode: stops joining new contracts, and ignores new piece requests.
+        // * Buying mode: stops creating new contracts, or for started contracts it
+        // only honors last pending payment, but issues no new piece requests.
+        void pause();
+
+        //
+        void unPause();
 
         //// Manage connections
 
@@ -56,13 +81,25 @@ namespace protocol_session {
         // NB:does not result in correspondnig callback ??!?!
         bool removeConnection(const ConnectionIdType &);
 
-        // Either we paid for it, or it just came in.
-        //void markPieceAsDownloadedAndValid(int index);
-
+        // Process given message on given connection with given ID
         void processMessageOnConnection(const ConnectionIdType &, const protocol_wire::ExtendedMessagePayload *);
 
-        //
+        // A valid piece was sent too us on given connection
+        void validPieceReceivedOnConnection(const ConnectionIdType &, int index);
+
+        // An invalid piece was sent too us on given connection
+        // NB: Perhaps we should supply connection?
+        void invalidPieceReceivedOnConnection(const ConnectionIdType &, int index);
+
+        // Piece with given index has been downloaded, but not through
+        // a regitered connection. Could be non-joystream peers, or something out of bounds.
+        void pieceDownloaded(int);
+
+        //// Getters
+
         SessionMode mode() const;
+
+        //status::Session<ConnectionIdType> status() const;
 
     private:
 
@@ -86,6 +123,8 @@ namespace protocol_session {
 
 // Needed due to c++ needing implementation for all uses of templated types
 #include <protocol_session/../../src/Session.cpp>
+
+*/
 
 #endif // JOYSTREAM_PROTOCOLSESSION_SESSION_HPP
 

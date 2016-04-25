@@ -5,6 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, February 5 2016
  */
 
+/**
 #include <protocol_session/Session.hpp>
 #include <protocol_session/exception/ConnectionAlreadyAddedException.hpp>
 #include <protocol_session/exception/SessionNotSetException.hpp>
@@ -38,13 +39,13 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
-    void Session<ConnectionIdType>::toObserve() {
+    void Session<ConnectionIdType>::toObserveMode() {
 
-        /**
-         * if(_mode == SessionMode::Observe)
-            throw std::runtime_error("Already in observe mode.");
-        else if(_mode == SessionMode::NotSet);
-        */
+
+        //if(_mode == SessionMode::Observe)
+        //    throw std::runtime_error("Already in observe mode.");
+        //else if(_mode == SessionMode::NotSet);
+
 
     }
 
@@ -146,13 +147,13 @@ namespace protocol_session {
         if(_core._mode == SessionMode::NotSet)
             throw exception::SessionNotSetException();
 
-        /**
+
         // Number of connections prior to erase
-        typename std::map<std::string, Connection<ConnectionIdType>>::size_type size = _connections.size();
+        //typename std::map<std::string, Connection<ConnectionIdType>>::size_type size = _connections.size();
 
         // Removal was successfull iff size decreased
-        return size < _connections.erase(id);
-        */
+        //return size < _connections.erase(id);
+
 
         return true;
     }
@@ -180,3 +181,4 @@ namespace protocol_session {
 
 }
 }
+*/

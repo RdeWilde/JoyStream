@@ -5,18 +5,21 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, April 9 2016
  */
 
-#include <protocol_session/detail/Selling.hpp>
+#include <protocol_session/Selling.hpp>
 
 namespace joystream {
 namespace protocol_session {
-namespace detail {
 
     template <class ConnectionIdType>
-    Selling<ConnectionIdType>::Selling(detail::SessionCoreImpl<ConnectionIdType> * sessionCore)
-        : _sessionCore(sessionCore){
+    Selling<ConnectionIdType>::Selling(const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnectionCallbackHandler,
+                                       const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+                                       const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler)
+        : _sessionCore(removedConnectionCallbackHandler,
+                       generateKeyPairsCallbackHandler,
+                       generateP2PKHAddressesCallbackHandler){
 
         // Note starting time
-        time(&_lastStart);
+        //time(&_lastStart);
     }
 
     template <class ConnectionIdType>
@@ -25,12 +28,12 @@ namespace detail {
     }
 
     template<class ConnectionIdType>
-    void Selling<ConnectionIdType>::connectionAdded(const ConnectionIdType & id) {
+    uint Selling<ConnectionIdType>::addConnection(const ConnectionIdType & id, const SendMessageOnConnection &) {
 
     }
 
     template<class ConnectionIdType>
-    void Selling<ConnectionIdType>::connectionRemoved(const ConnectionIdType & id) {
+    uint Selling<ConnectionIdType>::removeConnection(const ConnectionIdType & id) {
 
     }
 
@@ -40,7 +43,7 @@ namespace detail {
     }
 
     template<class ConnectionIdType>
-    void Selling<ConnectionIdType>::invitedToJoinContract(const ConnectionIdType & id, const protocol_wire::ContractInvitation &) {
+    void Selling<ConnectionIdType>::invitedToJoinContract(const ConnectionIdType & id) {
 
     }
 
@@ -74,6 +77,5 @@ namespace detail {
 
     }
 
-}
 }
 }

@@ -8,7 +8,6 @@
 #ifndef JOYSTREAM_PROTOCOLSESSION_DETAIL_SESSIONCOREIMPL_HPP
 #define JOYSTREAM_PROTOCOLSESSION_DETAIL_SESSIONCOREIMPL_HPP
 
-#include <protocol_session/SessionMode.hpp>
 #include <protocol_session/detail/Connection.hpp>
 
 #include <functional>
@@ -47,19 +46,18 @@ struct SessionCoreImpl {
                     GenerateKeyPairsCallbackHandler generateKeyPairsCallbackHandler,
                     GenerateP2PKHAddressesCallbackHandler generateP2PKHAddressesCallbackHandler);
 
-    uint addConnection(Connection<ConnectionIdType> * c);
-
-    bool hasConnection(const ConnectionIdType & id) const;
-
-
     // not sure, should we return connection pointer, or just id?
     std::vector<Connection<ConnectionIdType> *> connectionsWithPeerInMode(protocol_statemachine::ModeAnnounced m);
 
     template <typename T>
     std::vector<Connection<ConnectionIdType> *> connectionsInState() const;
 
-    // Mode of session
-    SessionMode _mode;
+    // Whether connection with given ID exists
+    bool hasConnection(const ConnectionIdType &) const;
+
+    // Returns connection if present, otherwise throws exception
+    // ConnectionDoesNotExist<ConnectionIdType>
+    Connection<ConnectionIdType> * get(const ConnectionIdType &) const;
 
     // Connections
     std::map<ConnectionIdType, Connection<ConnectionIdType> *> _connections;

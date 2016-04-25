@@ -15,28 +15,25 @@ QT      += core # !!!!!!!!!remove later when QDataStream is gone!!!!!!!!!!!!!!!!
 INCLUDEPATH += $$PWD/include # be able to include w.r.t root of this project
 
 HEADERS += \
-    include/protocol_session/Session.hpp \
     include/protocol_session/detail/Piece.hpp \
     include/protocol_session/detail/Seller.hpp \
     include/protocol_session/detail/Connection.hpp \
-    include/protocol_session/detail/Buying.hpp \
-    include/protocol_session/detail/Selling.hpp \
     include/protocol_session/detail/SessionCoreImpl.hpp \
-    include/protocol_session/exception/ConnectionAlreadyAddedException.hpp \
-    include/protocol_session/exception/SessionNotSetException.hpp \
     include/protocol_session/protocol_session.hpp \
+    include/protocol_session/Selling.hpp \
+    include/protocol_session/Buying.hpp \
     include/protocol_session/Status.hpp \
-    include/protocol_session/BuyingState.hpp \
-    include/protocol_session/SessionMode.hpp
+    include/protocol_session/TorrentPieceInformation.hpp \
+    include/protocol_session/PieceInformation.hpp \
+    include/protocol_session/Exceptions.hpp
+
 
 SOURCES += \
-    src/Session.cpp \
     src/detail/Seller.cpp \
     src/detail/Connection.cpp \
-    src/detail/Buying.cpp \
-    src/detail/Selling.cpp \
-    src/detail/Piece.cpp \
-    src/detail/SessionCoreImpl.cpp
+    src/detail/SessionCoreImpl.cpp \
+    src/TorrentPieceInformation.cpp \
+    src/PieceInformation.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

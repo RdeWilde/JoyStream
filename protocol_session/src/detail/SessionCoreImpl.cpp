@@ -6,6 +6,7 @@
  */
 
 #include <protocol_session/detail/SessionCoreImpl.hpp>
+#include <protocol_session/Exceptions.hpp>
 
 namespace joystream {
 namespace protocol_session {
@@ -15,27 +16,12 @@ template <class ConnectionIdType>
 SessionCoreImpl<ConnectionIdType>::SessionCoreImpl(RemovedConnectionCallbackHandler<ConnectionIdType> removedConnectionCallbackHandler,
                 GenerateKeyPairsCallbackHandler generateKeyPairsCallbackHandler,
                 GenerateP2PKHAddressesCallbackHandler generateP2PKHAddressesCallbackHandler)
-    : _mode(SessionMode::NotSet)
-    , _removedConnectionCallbackHandler(removedConnectionCallbackHandler)
+    : _removedConnectionCallbackHandler(removedConnectionCallbackHandler)
     , _generateKeyPairsCallbackHandler(generateKeyPairsCallbackHandler)
     , _generateP2PKHAddressesCallbackHandler(generateP2PKHAddressesCallbackHandler) {
 
     // Note starting time
     time(&_started);
-}
-
-template <class ConnectionIdType>
-uint SessionCoreImpl<ConnectionIdType>::addConnection(Connection<ConnectionIdType> * c) {
-
-    // Insert in connectin map and return number of connections
-    _connections[c->connectionId()] = c;
-
-    return _connections.size();
-}
-
-template <class ConnectionIdType>
-bool SessionCoreImpl<ConnectionIdType>::hasConnection(const ConnectionIdType & id) const {
-    return _connections.find(id) != _connections.cend();
 }
 
 template <class ConnectionIdType>
@@ -71,6 +57,22 @@ std::vector<Connection<ConnectionIdType> *> SessionCoreImpl<ConnectionIdType>::c
     }
 
     return matches;
+}
+
+template <class ConnectionIdType>
+bool SessionCoreImpl<ConnectionIdType>::hasConnection(const ConnectionIdType & id) const {
+    return _connections.find(id) != _connections.cend();
+}
+
+template <class ConnectionIdType>
+Connection<ConnectionIdType> * SessionCoreImpl<ConnectionIdType>::get(const ConnectionIdType & id) const {
+
+    auto itr = _connections.find(id);
+
+    if(itr == _connections.cend())
+        throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
+    else
+        return *itr;
 }
 
 }
