@@ -31,6 +31,11 @@ typedef std::function<void(const protocol_wire::ExtendedMessagePayload &)> SendM
 // Broadcasting a transaction
 typedef std::function<bool(const Coin::Transaction &)> BroadCastTransactionCallbackHandler;
 
+// Process arrival of a full piece, with given index over peer connection with given id
+template <class ConnectionIdType>
+using FullPieceArrived = std::function<void(const ConnectionIdType &, const protocol_wire::PieceData &, int)>;
+
+
 }
 }
 

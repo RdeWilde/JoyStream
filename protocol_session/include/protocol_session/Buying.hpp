@@ -128,6 +128,7 @@ public:
     Buying(const RemovedConnectionCallbackHandler<ConnectionIdType> &,
            const GenerateKeyPairsCallbackHandler &,
            const GenerateP2PKHAddressesCallbackHandler &,
+           const FullPieceArrived<ConnectionIdType> &,
            const Coin::UnspentP2PKHOutput &,
            const Policy &,
            const protocol_wire::BuyerTerms &,
@@ -198,6 +199,11 @@ public:
     void setPolicy(const Policy &policy);
 
 private:
+
+    // Buying mode spesific callbacks
+
+    FullPieceArrived<ConnectionIdType> _fullPieceArrived;
+
 
     void setHooks(detail::Connection<ConnectionIdType> &);
 

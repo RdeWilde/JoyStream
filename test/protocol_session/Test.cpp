@@ -55,6 +55,7 @@ void Test::buying() {
     RemovedConnectionCallbackHandler<std::string> removedConnectionCallbackHandler;
     GenerateKeyPairsCallbackHandler generateKeyPairsCallbackHandler;
     GenerateP2PKHAddressesCallbackHandler generateP2PKHAddressesCallbackHandler;
+    FullPieceArrived<std::string> fullPieceArrived;
     Coin::UnspentP2PKHOutput funding;
     Buying<std::string>::Policy policy;
     protocol_wire::BuyerTerms terms;
@@ -63,6 +64,7 @@ void Test::buying() {
     Buying<std::string> buying(removedConnectionCallbackHandler,
                                generateKeyPairsCallbackHandler,
                                generateP2PKHAddressesCallbackHandler,
+                               fullPieceArrived,
                                funding,
                                policy,
                                terms,
