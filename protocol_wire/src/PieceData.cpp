@@ -16,12 +16,12 @@ namespace protocol_wire {
         : _length(0) {
     }
 
-    PieceData::PieceData(const boost::shared_array<char> & piece, int length)
+    PieceData::PieceData(const boost::shared_array<char> & piece, unsigned int length)
         : _piece(piece)
         , _length(length) {
     }
 
-    PieceData::PieceData(QDataStream & stream, int length)
+    PieceData::PieceData(QDataStream & stream, unsigned int length)
         : _piece(new char[length])
         , _length(length) {
 
@@ -29,7 +29,7 @@ namespace protocol_wire {
         int result = stream.readRawData(_piece.get(), _length);
 
         // Check that we were able to read full piece
-        if(result != _length)
+        if(result != (int)_length)
             throw std::runtime_error("Was unable to read full piece from stream.");
     }
 
@@ -41,7 +41,7 @@ namespace protocol_wire {
 
         // Compare raw data
         const boost::shared_array<char> & rhsPiece = rhs.piece();
-        for(int i = 0;i < _length;i++) {
+        for(unsigned int i = 0;i < _length;i++) {
 
             if(_piece[i] != rhsPiece[i])
                 return false;
@@ -58,7 +58,7 @@ namespace protocol_wire {
         return _piece;
     }
 
-    int PieceData::length() const {
+    unsigned int PieceData::length() const {
         return _length;
     }
 }

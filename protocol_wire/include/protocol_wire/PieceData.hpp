@@ -21,9 +21,9 @@ namespace protocol_wire {
 
         PieceData();
 
-        PieceData(const boost::shared_array<char> &, int);
+        PieceData(const boost::shared_array<char> &, unsigned int);
 
-        PieceData(QDataStream &, int);
+        PieceData(QDataStream &, unsigned int);
 
         bool operator==(const PieceData &) const;
 
@@ -31,7 +31,7 @@ namespace protocol_wire {
 
         boost::shared_array<char> piece() const;
 
-        int length() const;
+        unsigned int length() const;
 
     private:
 
@@ -39,7 +39,7 @@ namespace protocol_wire {
         boost::shared_array<char> _piece;
 
         // Byte length of piece
-        int _length;
+        unsigned int _length;
     };
 
 }
