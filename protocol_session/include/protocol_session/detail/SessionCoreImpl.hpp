@@ -38,6 +38,9 @@ struct SessionCoreImpl {
     // ConnectionDoesNotExist<ConnectionIdType>
     Connection<ConnectionIdType> * get(const ConnectionIdType &) const;
 
+    // Remove a connection which is known to be present
+    void remove(const ConnectionIdType &);
+
     // Connections
     std::map<ConnectionIdType, Connection<ConnectionIdType> *> _connections;
 

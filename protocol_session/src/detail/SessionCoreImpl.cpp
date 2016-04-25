@@ -75,6 +75,17 @@ Connection<ConnectionIdType> * SessionCoreImpl<ConnectionIdType>::get(const Conn
         return *itr;
 }
 
+template <class ConnectionIdType>
+void SessionCoreImpl<ConnectionIdType>::remove(const ConnectionIdType & id) {
+
+    auto itr = _connections.find(id);
+
+    if(itr == _connections.cend())
+        throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
+    else
+        _connections.erase(itr);
+}
+
 }
 }
 }
