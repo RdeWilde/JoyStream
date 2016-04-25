@@ -60,6 +60,11 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
+    void Seller<ConnectionIdType>::removed() {
+        _state = State::gone;
+    }
+
+    template <class ConnectionIdType>
     typename Seller<ConnectionIdType>::State Seller<ConnectionIdType>::state() const {
         return _state;
     }

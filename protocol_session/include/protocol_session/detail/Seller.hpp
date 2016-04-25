@@ -54,6 +54,9 @@ namespace detail {
         // seller is being processed (verified and
         void processingArrivedFullPiece();
 
+        // Seller has been removed
+        void removed();
+
         // Getters
         State state() const;
 
