@@ -339,54 +339,26 @@ namespace protocol_session {
 
         assert(s.state() == detail::Seller<ConnectionIdType>::State::waiting_for_full_piece);
 
-        // Update seller state
-        s.fullPieceArrived();
+        // Get piece
+        int index = s.indexOfAssignedPiece();
 
-        //
-        detail::Piece<ConnectionIdType> & piece = _pieces[s.indexOfAssignedPiece()];
+        // NB: let client deal with this for now
+        /**
+        detail::Piece<ConnectionIdType> & piece = _pieces[index];
 
+        // Check that this is correct length
+        if(p.length() != piece.size()) {
 
-
-        /***
-        // update sellers state
-
-        // ask client to validate
-
-        // where do we mark that we are waiting for this callback?
-
-        // if this was last downloaded piece, do we switch to inactive mode? or
-        // how do we indicate that we in the future do not require trying
-        // to search for unassigned pieces?
-
-
-        // This routine should only be called if following holds
-        Q_ASSERT(_state == BuyerTorrentPluginState::downloading_pieces);
-
-        // Get what piece has been assigned to this peer
-        int pieceIndex = peer->indexOfAssignedPiece();
-
-        // Check that piece has correct length
-        if(length != _torrent->torrent_file().piece_size(pieceIndex))
-            throw std::runtime_error("Full piece message had invalid length.");
-
-        // Tell libtorrent to validate piece
-        // last argument is a flag which presently seems to only test
-        // flags & torrent::overwrite_existing, which seems to be whether
-        // the piece should be overwritten if it is already present
-        //
-        // libtorrent::torrent_plugin::on_piece_pass()
-        // libtorrent::torrent_plugin::on_piece_failed()
-        // processes result of checking
-        _torrent->add_piece(pieceIndex, piece.get(), 0);
-
-        // Update client state
-        peer->setClientState(BuyerPeerPluginClientState::waiting_for_libtorrent_to_validate_piece);
+            // 1) tell client
+            // 2) remove connection
+        }
         */
 
+        // Update seller state
+        s.processingArrivedFullPiece();
 
-        // if we cant assign pieces, we need to say we are done
-        // send signal?
-
+        // Notify client
+        _fullPieceArrived(id, p, index);
     }
 
     template <class ConnectionIdType>
