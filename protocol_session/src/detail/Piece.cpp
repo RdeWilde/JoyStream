@@ -6,6 +6,7 @@
  */
 
 #include <protocol_session/detail/Piece.hpp>
+#include <protocol_session/PieceInformation.hpp>
 
 namespace joystream {
 namespace protocol_session {
@@ -16,15 +17,22 @@ namespace detail {
         : _index(0)
         , _state(State::unassigned)
         , _connectionId(connectionId)
-        , _length(0) {
+        , _size(0) {
     }
 
     template <class ConnectionIdType>
-    Piece<ConnectionIdType>::Piece(int index, State state, const ConnectionIdType & id, int length)
+    Piece<ConnectionIdType>::Piece(int index, State state, const ConnectionIdType & id, unsigned int size)
         : _index(index)
         , _state(state)
         , _connectionId(id)
-        , _length(length){
+        , _size(size){
+    }
+
+    template <class ConnectionIdType>
+    Piece<ConnectionIdType>::Piece(const PieceInformation & p)
+        : _index(p.index())
+        , _state(p.downloaded() ? detail::Piece<ConnectionIdType>::State::downloaded : detail::Piece<ConnectionIdType>::State::unassigned)
+        , _size(p.size()) {
     }
 
     template <class ConnectionIdType>
@@ -32,19 +40,20 @@ namespace detail {
 
         assert(_state == State::unassigned);
 
-        _state = State::assigned_to_peer_for_download;
+        _state = State::being_downloaded;
         _connectionId = id;
     }
 
     template <class ConnectionIdType>
-    void Piece<ConnectionIdType>::deAssign() {
-        assert(_state == State::assigned_to_peer_for_download);
+    void Piece<ConnectionIdType>::unAssign() {
+        assert(_state == State::being_downloaded);
         _state = State::unassigned;
     }
 
     template <class ConnectionIdType>
     void Piece<ConnectionIdType>::downloaded() {
         _state = State::downloaded;
+        _connectionId = ConnectionIdType();
     }
 
     template <class ConnectionIdType>
@@ -63,8 +72,8 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    int Piece<ConnectionIdType>::length() const {
-        return _length;
+    unsigned int Piece<ConnectionIdType>::size() const {
+        return _size;
     }
 }
 }

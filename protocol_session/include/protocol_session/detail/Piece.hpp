@@ -12,6 +12,9 @@
 
 namespace joystream {
 namespace protocol_session {
+
+class PieceInformation;
+
 namespace detail {
 
     template <class ConnectionIdType>
@@ -24,14 +27,16 @@ namespace detail {
             // We do not have piece, and it has given assignment status
             unassigned,
 
-            assigned_to_peer_for_download,
+            // Currently assigned to seller for being downloaded
+            being_downloaded,
 
             // We do have piece
             downloaded
         };
 
         Piece();
-        Piece(int index, State, const ConnectionIdType &, int length);
+        Piece(int, State, const ConnectionIdType &, unsigned int);
+        Piece(const PieceInformation &);
 
         // Piece is assigned to connection with given id
         void assigned(const ConnectionIdType &);
@@ -40,7 +45,7 @@ namespace detail {
         void downloaded();
 
         // Piece is no longer assigned to a connection
-        void deAssign();
+        void unAssign();
 
         // Getters
         int index() const;
@@ -49,7 +54,7 @@ namespace detail {
 
         ConnectionIdType connectionId() const;
 
-        int length() const;
+        unsigned int size() const;
 
     private:
 
@@ -63,7 +68,7 @@ namespace detail {
         ConnectionIdType _connectionId;
 
         // Byte length of piece (should be the same for all but last piece)
-        int _length;
+        unsigned int _size;
     };
 
 }
