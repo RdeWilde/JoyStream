@@ -375,33 +375,33 @@ if [ $? -ne 0 ]; then
 fi
 make install
 cd ../stdutils
-SYSROOT=../../sysroot make install
+OS=osx SYSROOT=../../sysroot make install
 if [ $? -ne 0 ]; then
     echo "Failed to build mSIGNA stdutils"
     exit 1
 fi
 cd ../logger
-make
+OS=osx make
 if [ $? -ne 0 ]; then
     echo "Failed to build mSIGNA logger"
     exit 1
 fi
 SYSROOT=../../sysroot make install
 cd ../Signals
-SYSROOT=../../sysroot make install
+OS=osx SYSROOT=../../sysroot make install
 if [ $? -ne 0 ]; then
     echo "Failed to build mSIGNA Signals"
     exit 1
 fi
 cd ../CoinCore
-make
+OS=osx make
 if [ $? -ne 0 ]; then
     echo "Failed to build mSIGNA CoinCore"
     exit 1
 fi
 SYSROOT=../../sysroot make install
 cd ../CoinQ
-make
+OS=osx make
 if [ $? -ne 0 ]; then
     echo "Failed to build mSIGNA CoinQ"
     exit 1
