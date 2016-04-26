@@ -46,7 +46,8 @@ then
     then
         mv ${OPENSSL_VERSION}/ openssl
         pushd openssl/
-        ./Configure shared darwin64-x86_64-cc --openssldir=/usr/local/
+        # https://www.openssl.org/news/secadv/20160301.txt
+        ./Configure shared darwin64-x86_64-cc enable-ssl2 --openssldir=/usr/local/
         if [ $? -ne 0 ]; then
             echo "Failed to configure openssl"
             popd
@@ -60,6 +61,7 @@ then
             rm -fr openssl/
             exit 1
         fi
+        make depend
         make
         if [ $? -ne 0 ]; then
             echo "Building OpenSSL failed";
