@@ -53,6 +53,10 @@ then
     #https://codereview.qt-project.org/#/c/115707/2/src/imports/qtcanvas3d/context3d_p.h
     patch ./qt-everywhere-opensource-src-5.5.0/qtcanvas3d/src/imports/qtcanvas3d/context3d_p.h ../qt-winbool-bug-patch.diff
 
+    # Patch IPC support check in build configure script to enable systemsemaphore and sharedmemory support
+    sed -i -e 's/ QT_NO_SYSTEMSEMAPHORE QT_NO_SHAREDMEMORY//g' \
+        ./qt-everywhere-opensource-src-5.5.0/qtbase/configure
+
     mkdir qt5-win32-build-release/
 
     export INSTALLPREFIX=/usr/i686-w64-mingw32
