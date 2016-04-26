@@ -11,6 +11,21 @@ TARGET_ARCH="i686-w64-mingw32"
 
 mkdir -p src/
 
+./build-zlib.sh
+if [ $? -ne 0 ]; then
+  exit 1
+fi
+
+./build-openssl.sh
+if [ $? -ne 0 ]; then
+  exit 1
+fi
+
+./build-sqlite3.sh
+if [ $? -ne 0 ]; then
+  exit 1
+fi
+
 #
 #  QT
 #
@@ -18,9 +33,15 @@ pushd src
 if [ ! -e "qt5-win32-build-release" ]
 then
     if [ ! -e "qt-everywhere-opensource-src-5.5.0.tar.gz" ]
-    then
-       wget http://download.qt-project.org/official_releases/qt/5.5/5.5.0/single/qt-everywhere-opensource-src-5.5.0.tar.gz
-       tar -xzvf qt-everywhere-opensource-src-5.5.0.tar.gz
+      then
+        wget http://download.qt-project.org/official_releases/qt/5.5/5.5.0/single/qt-everywhere-opensource-src-5.5.0.tar.gz
+        tar -xzvf qt-everywhere-opensource-src-5.5.0.tar.gz
+        if [ $? -ne 0 ]; then
+          echo "Failed to get Qt source"
+          rm qt-everywhere-opensource-src-5.5.0.tar.gz
+          rm -fr qt-everywhere-opensource-src-5.5.0/
+          exit 1
+        fi
     fi
 
     #Fix Qt5.5.0 issues with preprocessor definitions when building with MinGW.

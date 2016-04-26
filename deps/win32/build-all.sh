@@ -33,174 +33,18 @@ SQLITE_TARBALL="${SQLITE_VERSION}.tar.gz"
 mkdir -p src/
 mkdir -p dist/
 
-#
-# zlib
-#
-pushd src
-if [ ! -e "${ZLIB_TARBALL}"]
-then
-  rm -fr zlib/
-
-  if wget "http://zlib.net/${ZLIB_TARBALL}"
-  then
-    echo "Downloaded zlib"
-  else
-    rm ${ZLIB_TARBALL}
-    echo "Failed to download zlib"
-    exit 1
-  fi
-fi
-
-if [ ! -e "zlib" ]
-then
-    if tar -xzvf "${ZLIB_TARBALL}"
-    then
-      mv ${ZLIB_VERSION} zlib/
-      pushd zlib/
-      CC=${TARGET_ARCH}-gcc AR=${TARGET_ARCH}-ar RANLIB=${TARGET_ARCH}-ranlib ./configure --prefix=/usr/${TARGET_ARCH} --static
-      if [ $? -ne 0 ]; then
-        echo "Failed to configure zlib"
-        popd
-        rm -fr zlib/
-        exit 1
-      fi
-      make
-      if [ $? -ne 0 ]; then
-        echo "Failed to build zlib"
-        popd
-        rm -fr zlib/
-        exit 1
-      fi
-      sudo make install
-      if [ $? -ne 0 ]; then
-        echo "Failed to install zlib"
-        popd
-        rm -fr zlib/
-        exit 1
-      fi
-    else
-      rm -fr ${ZLIB_VERSION}
-      rm ${ZLIB_TARBALL}
-      echo "Failed to extract ${ZLIB_TARBALL}"
-      exit 1
-    fi
-fi
-popd
-
-#
-# OpenSSL
-#
-pushd src
-if [ ! -e "${OPENSSL_TARBALL}" ]
-then
-  # if we are downloading new version remove old build
-  rm -fr openssl/
-
-  # download openssl
-  echo "Downloding ${OPENSSL_TARBALL}"
-  if wget -O ${OPENSSL_TARBALL} "https://www.openssl.org/source/${OPENSSL_TARBALL}"
-    then
-        echo "Download Successful"
-    else
-        rm ${OPENSSL_TARBALL};
-        exit 1
-  fi
-fi
-
-if [ ! -r "openssl" ]
-then
-    if tar -xzvf "${OPENSSL_TARBALL}"
-    then
-        mv ${OPENSSL_VERSION}/ openssl
-        pushd openssl/
-        CROSS_COMPILE="${TARGET_ARCH}-" ./Configure mingw64 no-asm no-shared --prefix=/usr/${TARGET_ARCH}
-        if [ $? -ne 0 ]; then
-            echo "Failed to configure openssl"
-            popd
-            rm -fr openssl/
-            exit 1
-        fi
-        make
-        if [ $? -ne 0 ]; then
-            echo "Building OpenSSL failed";
-            popd
-            rm -fr openssl/
-            exit 1
-        fi
-        sudo make install_sw
-        if [ $? -ne 0 ]; then
-            echo "Installing OpenSSL failed";
-            popd
-            rm -fr openssl/
-            exit 1
-        fi
-        popd
-    else
-        echo "Failed Extracting ${OPENSSL_TARBALL}";
-        rm ${OPENSSL_TARBALL}
-        rm -fr ${OPENSSL_VERSION}/
-        exit 1
-    fi
-fi
-popd
-
-#
-# sqlite
-#
-pushd src
-if [ ! -e "${SQLITE_TARBALL}" ]
-  then
-  rm -fr sqlite/
-
-  if wget "https://www.sqlite.org/2015/${SQLITE_TARBALL}"
-    then
-      echo "Download Successful"
-    else
-      rm ${SQLITE_TARBALL}
-      echo "Failed to download ${SQLITE_TARBALL}"
-      exit 1
-    fi
-fi
-
-if [ ! -e "sqlite" ]
-then
-    if tar -xzvf "${SQLITE_TARBALL}"
-    then
-      mv "${SQLITE_VERSION}/" sqlite/
-      pushd sqlite
-      ./configure --host=${TARGET_ARCH} --target=windows --prefix=/usr/${TARGET_ARCH} CFLAGS=-DSQLITE_ENABLE_UNLOCK_NOTIFY
-      if [ $? -ne 0 ]; then
-        echo "Failed to configure sqlite"
-        popd
-        rm -fr sqlite/
-        exit 1
-      fi
-      make
-      if [ $? -ne 0 ]; then
-        echo "Failed to build sqlite"
-        popd
-        rm -fr sqlite/
-        exit 1
-      fi
-      sudo make install
-      if [ $? -ne 0 ]; then
-        echo "Failed to install sqlite"
-        popd
-        rm -fr sqlite/
-        exit 1
-      fi
-    else
-      echo "Failed to extract sqlite"
-      rm -fr ${SQLITE_VERSION}
-      rm ${SQLITE_TARBALL}
-      exit 1
-    fi
-fi
-popd
-
-./build-qt-release-i686-w64-mingw32.sh
+./build-zlib.sh
 if [ $? -ne 0 ]; then
-  echo "Failed to build Qt"
+  exit 1
+fi
+
+./build-openssl.sh
+if [ $? -ne 0 ]; then
+  exit 1
+fi
+
+./build-sqlite3.sh
+if [ $? -ne 0 ]; then
   exit 1
 fi
 
@@ -211,7 +55,7 @@ pushd src
 if [ ! -e "${LIB_BOOST_TARBALL}" ]
 then
   # remove old build
-  rm -fr boost/
+  sudo rm -fr boost/
 
   # download boost
   echo "Downloding ${LIB_BOOST_TARBALL}"
@@ -236,12 +80,12 @@ then
     if [ $? -ne 0 ]; then
         echo "Failed to bootstrap Boost"
         cd ../
-        rm -fr ${LIB_BOOST_VER}/
+        sudo rm -fr ${LIB_BOOST_VER}/
         exit 1
     fi
   else
     rm ${LIB_BOOST_TARBALL}
-    rm -fr ${LIB_BOOST_VER}/
+    sudo rm -fr ${LIB_BOOST_VER}/
     exit 1
   fi
 fi
