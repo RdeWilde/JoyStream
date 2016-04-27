@@ -52,7 +52,7 @@ namespace detail {
 
         // Update state to reflect that a recently arrived full piece from this
         // seller is being processed (verified and
-        void processingArrivedFullPiece();
+        void fullPieceArrived();
 
         // Seller has been removed
         void removed();
