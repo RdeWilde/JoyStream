@@ -60,6 +60,9 @@ namespace detail {
         // Result of validating piece received from this seller
         void pieceWasValid();
 
+        // Result of validating piece received from this seller
+        void pieceWasInvalid();
+
         // Getters
         State state() const;
 

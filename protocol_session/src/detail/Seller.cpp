@@ -75,6 +75,17 @@ namespace detail {
             _connection->machine().process_event(protocol_statemachine::event::SendPayment());
     }
 
+    template <class ConnectionIdType>
+    void Seller<ConnectionIdType>::pieceWasInvalid() {
+
+        assert(_state == State::waiting_for_piece_validation_and_storage);
+
+        // We dont update state here, caller decides: for now we dont need new state
+        // for this, as connection is immediately removed.
+
+        // Trigger callback to session and terminate state machine
+        if(_connection != nullptr)
+            _connection->machine().process_event(protocol_statemachine::event::InvalidPieceReceived());
     }
 
     template <class ConnectionIdType>
