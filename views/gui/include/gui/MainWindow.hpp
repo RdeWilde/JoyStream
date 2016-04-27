@@ -206,6 +206,7 @@ protected:
 private slots:
 
     void on_walletSynched();
+    void on_walletConnected();
     void on_updatedWalletBalance(uint64_t confirmedBalance, uint64_t unconfirmedBalance);
     void on_bugsPushButton_clicked();
     void updateStatusMessage(std::string);

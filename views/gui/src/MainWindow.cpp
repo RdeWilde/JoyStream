@@ -299,6 +299,11 @@ MainWindow::MainWindow(Controller * controller, const QString & appendToTitle)
                      SLOT(on_walletSynched()));
 
     QObject::connect(_wallet,
+                     SIGNAL(connected()),
+                     this,
+                     SLOT(on_walletConnected()));
+
+    QObject::connect(_wallet,
                      SIGNAL(statusMessageUpdated(std::string)),
                      this,
                      SLOT(updateStatusMessage(std::string)));
@@ -840,7 +845,9 @@ void MainWindow::fundWalletFromFaucet() {
 void MainWindow::on_walletSynched() {
 
     updateWalletBalances(_wallet->balance(), _wallet->unconfirmedBalance());
+}
 
+void MainWindow::on_walletConnected() {
     if(_wallet->unconfirmedBalance() < RELOAD_WALLET_LOWER_BOUND )
         fundWalletFromFaucet();
 }
