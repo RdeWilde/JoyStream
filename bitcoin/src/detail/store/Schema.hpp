@@ -149,8 +149,7 @@ private:
 
 #pragma db value
 struct Output_id {
-    #pragma db not_null
-    odb::nullable<uint64_t> value_;
+    uint64_t value_;
     #pragma db not_null
     std::string scriptPubKey_;
     friend bool operator< (const Output_id & lhs, const Output_id & rhs);
@@ -172,7 +171,7 @@ public:
     Coin::TxOut toCoinCore() const;
 
     Output_id id() const { return id_; }
-    uint64_t value() const { return id_.value_.get(); }
+    uint64_t value() const { return id_.value_; }
 
     const std::string& script() const { return id_.scriptPubKey_; }
 

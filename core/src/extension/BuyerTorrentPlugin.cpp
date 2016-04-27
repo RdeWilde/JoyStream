@@ -197,11 +197,12 @@ void BuyerTorrentPlugin::Configuration::setNumberOfSellers(quint32 numberOfSelle
 #include <core/extension/Alert/BuyerTorrentPluginStatusAlert.hpp>
 #include <core/extension/Alert/BuyerPeerAddedAlert.hpp>
 #include <core/extension/Alert/BuyerPeerPluginRemovedAlert.hpp>
+#include <core/extension/Alert/BroadcastTransactionAlert.hpp>
 #include <core/extension/Plugin.hpp>
 #include <core/extension/PeerPlugin.hpp> // PeerModeAnnounced
 #include <paymentchannel/Contract.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
-#include <wallet/Manager.hpp>
+#include <bitcoin/SPVWallet.hpp>
 
 #include <libtorrent/bt_peer_connection.hpp>
 #include <libtorrent/socket_io.hpp> // print_endpoint
@@ -216,7 +217,7 @@ void BuyerTorrentPlugin::Configuration::setNumberOfSellers(quint32 numberOfSelle
 
 BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
                                        const boost::shared_ptr<libtorrent::torrent> & torrent,
-                                       Wallet::Manager * wallet,
+                                       joystream::bitcoin::SPVWallet *wallet,
                                        const BuyerTorrentPlugin::Configuration & configuration,
                                        const Coin::UnspentP2PKHOutput & utxo,
                                        QLoggingCategory & category)
@@ -256,13 +257,13 @@ BuyerTorrentPlugin::BuyerTorrentPlugin(Plugin * plugin,
     quint64 changeValue = utxo.value() - contractFee - configuration.numberOfSellers()*fundingPerSeller;
 
     // Generate keys in wallet
-    QList<Coin::KeyPair> buyerInContractKeys = _wallet->issueKeyPairs(configuration.numberOfSellers(), false); //, Wallet::Purpose::BuyerInContractOutput).values();
-    QList<Coin::KeyPair> buyerFinalKeys = _wallet->issueKeyPairs(configuration.numberOfSellers(), true); //, Wallet::Purpose::ContractFinal).values();
-    QList<Coin::KeyPair> changeKey = _wallet->issueKeyPairs(1, true); //, Wallet::Purpose::ContractChange).values();
+    std::vector<Coin::KeyPair> buyerInContractKeys = _wallet->getKeyPairs(configuration.numberOfSellers(), false); //, Wallet::Purpose::BuyerInContractOutput).values();
+    std::vector<Coin::KeyPair> buyerFinalKeys = _wallet->getKeyPairs(configuration.numberOfSellers(), true); //, Wallet::Purpose::ContractFinal).values();
+    std::vector<Coin::KeyPair> changeKey = _wallet->getKeyPairs(1, true); //, Wallet::Purpose::ContractChange).values();
 
-    Q_ASSERT(buyerInContractKeys.count() == configuration.numberOfSellers());
-    Q_ASSERT(buyerFinalKeys.count() == configuration.numberOfSellers());
-    Q_ASSERT(changeKey.count() == 1);
+    Q_ASSERT(buyerInContractKeys.size() == configuration.numberOfSellers());
+    Q_ASSERT(buyerFinalKeys.size() == configuration.numberOfSellers());
+    Q_ASSERT(changeKey.size() == 1);
 
     // Create channel configurations
     std::vector<Payor::Channel::Configuration> channelConfigurations;
@@ -666,9 +667,7 @@ bool BuyerTorrentPlugin::sellerProvidedRefundSignature(BuyerPeerPlugin * peer, c
         // Broadcast
         Coin::Transaction tx = _payor.contractTransaction();
 
-        QMetaObject::invokeMethod(_wallet, "BLOCKCYPHER_broadcast", Q_ARG(const Coin::Transaction, tx));
-
-        //_wallet->broadcast(tx);
+        sendTorrentPluginAlert(BroadcastTransactionAlert(_torrent->info_hash(), tx));
 
         // Register tx fee we are spending
         _plugin->registerSentFunds(_payor.contractFee());

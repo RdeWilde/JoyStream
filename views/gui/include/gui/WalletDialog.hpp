@@ -18,8 +18,10 @@ namespace Ui {
 class WalletDialog;
 }
 
-namespace Wallet {
-    class Manager;
+namespace joystream {
+namespace bitcoin {
+    class SPVWallet;
+}
 }
 
 class QMenu;
@@ -33,7 +35,7 @@ public:
 
     //explicit WalletDialog(QWidget *parent = 0)
 
-    WalletDialog(Wallet::Manager * wallet, const BitcoinDisplaySettings * settings);
+    WalletDialog(joystream::bitcoin::SPVWallet * wallet, const BitcoinDisplaySettings * settings);
     ~WalletDialog();
 
     // Updates view
@@ -60,7 +62,7 @@ private slots:
 private:
     Ui::WalletDialog *ui;
 
-    Wallet::Manager * _wallet;
+    joystream::bitcoin::SPVWallet * _wallet;
 
     const BitcoinDisplaySettings * _settings;
 

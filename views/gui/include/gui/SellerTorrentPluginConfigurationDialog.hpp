@@ -19,8 +19,10 @@ namespace Ui {
 class SellerTorrentPluginConfigurationDialog;
 }
 
-namespace Wallet {
-    class Manager;
+namespace joystream {
+namespace bitcoin {
+    class SPVWallet;
+}
 }
 
 class SellerTorrentPluginConfigurationDialog : public QDialog
@@ -30,7 +32,7 @@ class SellerTorrentPluginConfigurationDialog : public QDialog
 public:
     //explicit SellerTorrentPluginConfigurationDialog(QWidget *parent = 0);
 
-    SellerTorrentPluginConfigurationDialog(Controller * controller, Wallet::Manager * wallet, const libtorrent::torrent_info & torrentInfo, const BitcoinDisplaySettings * settings);
+    SellerTorrentPluginConfigurationDialog(Controller * controller, joystream::bitcoin::SPVWallet * wallet, const libtorrent::torrent_info & torrentInfo, const BitcoinDisplaySettings * settings);
 
     ~SellerTorrentPluginConfigurationDialog();
 
@@ -64,7 +66,7 @@ private:
 
     Controller * _controller;
 
-    Wallet::Manager * _wallet;
+    joystream::bitcoin::SPVWallet * _wallet;
 
     const BitcoinDisplaySettings * _settings;
 

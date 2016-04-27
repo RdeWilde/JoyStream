@@ -111,6 +111,11 @@ int main(int argc, char *argv[])
         std::cout << "0-conf    balance: " << unconfirmed << std::endl;
     });
 
+    QObject::connect(&wallet, &SPVWallet::disconnected, [](){
+        std::cout << "Disconnected" << std::endl;
+        shuttingDown = true;
+    });
+
     QObject::connect(&wallet, &SPVWallet::statusChanged, [&wallet, &a, &timer](SPVWallet::wallet_status_t status){
        if(status == SPVWallet::wallet_status_t::SYNCHED)  {
            std::cout << std::endl << "Wallet Synched" << std::endl;
@@ -122,12 +127,6 @@ int main(int argc, char *argv[])
 
        if(status == SPVWallet::wallet_status_t::SYNCHING_BLOCKS) {
            std::cout << "synching blocks" << std::endl;
-       }
-
-       if(status == SPVWallet::wallet_status_t::DISCONNECTED) {
-           // Either a timeout or normal disconnect occured
-           std::cout << "Disconnected" << std::endl;
-           shuttingDown = true;
        }
 
        if(status == SPVWallet::wallet_status_t::CONNECTING) {

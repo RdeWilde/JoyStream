@@ -1,10 +1,11 @@
 #include <gui/ReceiveFundsDialog.hpp>
 #include "ui_ReceiveFundsDialog.h"
-#include <wallet/Manager.hpp>
+#include <QUrl>
+#include <bitcoin/SPVWallet.hpp>
 
 #include <QDesktopServices>
 
-ReceiveFundsDialog::ReceiveFundsDialog(Wallet::Manager * wallet)
+ReceiveFundsDialog::ReceiveFundsDialog(joystream::bitcoin::SPVWallet *wallet)
     : ui(new Ui::ReceiveFundsDialog)
     , _wallet(wallet)
     , _receiveAddres(_wallet->getReceiveAddress())

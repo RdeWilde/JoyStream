@@ -788,7 +788,7 @@ namespace {
             Output_id id = output->id();
             odb::result<Output> outputs(db->query<Output>(
                                         output_query::id.scriptPubKey == id.scriptPubKey_ &&
-                                        output_query::id.value == id.value_.get()));
+                                        output_query::id.value == id.value_));
 
             if(outputs.empty()) {
                 output->address(addressFind(db, output->script()));

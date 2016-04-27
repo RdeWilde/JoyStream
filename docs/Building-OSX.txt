@@ -17,21 +17,30 @@ Build OSX app minimum OSX 10.7
 
     QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
 
-3) Install Xcode from AppStore
+3) Install Xcode from AppStore.
+   After installation run it once to accept the license agreement.
 
 4) Install Xcode command line tools:
 
     $ xcode-select --install
 
-5) Clone the JoyStream repo
+5) Install home brew: http://brew.sh/
+
+6) Verify installation and install packages
+
+    $ brew doctor
+    $ brew update
+    $ brew install git wget
+
+7) Clone the JoyStream repo
 
    $ git clone https://github.com/JoyStreamApp/JoyStream JoyStream
 
-6) Build JoyStream
+8) Build JoyStream
 
    $ cd JoyStream/
    $ ./makeosx-release
 
-7) Run JoyStream
+9) Run JoyStream
 
    open ./build/osx/app/app.app

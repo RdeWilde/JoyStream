@@ -130,7 +130,7 @@ namespace store {
 
     bool operator< (const Output_id &lhs, const Output_id &rhs) {
         if(lhs.scriptPubKey_ == rhs.scriptPubKey_){
-            return lhs.value_.get() < rhs.value_.get();
+            return lhs.value_ < rhs.value_;
         }
         return lhs.scriptPubKey_ < rhs.scriptPubKey_;
     }

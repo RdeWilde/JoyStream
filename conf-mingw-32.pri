@@ -30,10 +30,7 @@ MSIGNA_SYSROOT = $$PWD/deps/win32/src/mSIGNA/sysroot
 
 # Boost
 # boost was build with --layout=tagged option so libraries are suffixed (mt=multithreaded, s=static, d=debug)
-CONFIG(release, debug|release) {
-   BOOST_LIB_SUFFIX = -mt-s
-} else {
-   BOOST_LIB_SUFFIX = -mt-sd
-}
+
+BOOST_LIB_SUFFIX = -mt-s
 
 BOOST_THREAD_LIB_SUFFIX = _win32

@@ -11,8 +11,10 @@
 #include "TorrentPlugin.hpp"
 #include "SellerPeerPlugin.hpp"
 
-namespace Wallet {
-class Manager;
+namespace joystream {
+namespace bitcoin {
+    class SPVWallet;
+}
 }
 
 namespace libtorrent {
@@ -159,7 +161,7 @@ public:
     // Constructor
     SellerTorrentPlugin(Plugin * plugin,
                         const boost::shared_ptr<libtorrent::torrent> & torrent,
-                        Wallet::Manager * wallet,
+                        joystream::bitcoin::SPVWallet * wallet,
                         const SellerTorrentPlugin::Configuration & configuration,
                         QLoggingCategory & category);
 
@@ -259,7 +261,7 @@ private:
     QMap<int, QSet<SellerPeerPlugin *> > _outstandingPieceRequests;
 
     // Wallet
-    Wallet::Manager * _wallet;
+    joystream::bitcoin::SPVWallet * _wallet;
 
     // Maximum price accepted (satoshies)
     quint64 _minPrice;

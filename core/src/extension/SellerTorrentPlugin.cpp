@@ -9,7 +9,7 @@
 #include <core/extension/Plugin.hpp>
 #include <core/extension/PluginMode.hpp>
 #include <core/extension/SellerPeerPlugin.hpp>
-#include <wallet/Manager.hpp>
+#include <bitcoin/SPVWallet.hpp>
 
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/peer_connection.hpp>
@@ -174,13 +174,14 @@ PluginMode SellerTorrentPlugin::Configuration::pluginMode() const {
 #include <core/extension/Alert/SellerTorrentPluginStatusAlert.hpp>
 #include <core/extension/Alert/SellerPeerAddedAlert.hpp>
 #include <core/extension/Alert/SellerPeerPluginRemovedAlert.hpp>
+#include <core/extension/Alert/BroadcastTransactionAlert.hpp>
 
-#include <wallet/Manager.hpp>
+#include <bitcoin/SPVWallet.hpp>
 #include <CoinCore/CoinNodeData.h>
 
 SellerTorrentPlugin::SellerTorrentPlugin(Plugin * plugin,
                                          const boost::shared_ptr<libtorrent::torrent> & torrent,
-                                         Wallet::Manager * wallet,
+                                         joystream::bitcoin::SPVWallet *wallet,
                                          const SellerTorrentPlugin::Configuration & configuration,
                                          QLoggingCategory & category)
     : TorrentPlugin(plugin, torrent, configuration, category)
@@ -242,14 +243,14 @@ boost::shared_ptr<libtorrent::peer_plugin> SellerTorrentPlugin::new_connection(l
         qCDebug(_category) << "Installed seller plugin #" << _peers.size() << endPointString.c_str();
 
         // Create a new peer plugin
-        QSet<Coin::PrivateKey> payeeContractKeySet = _wallet->getKeys(1, false);
-        QSet<Coin::PrivateKey> paymentKeySet = _wallet->getKeys(1, true);
+        std::vector<Coin::PrivateKey> payeeContractKeySet = _wallet->getKeys(1, false);
+        std::vector<Coin::PrivateKey> paymentKeySet = _wallet->getKeys(1, true);
 
         Q_ASSERT(payeeContractKeySet.size() == 1);
         Q_ASSERT(paymentKeySet.size() == 1);
 
-        peerPlugin = createRegularSellerPeerPlugin(payeeContractKeySet.values().first(),
-                                                   paymentKeySet.values().first(),
+        peerPlugin = createRegularSellerPeerPlugin(payeeContractKeySet[0],
+                                                   paymentKeySet[0],
                                                    bittorrentPeerConnection);
 
         // Alert that peer was added
@@ -516,9 +517,8 @@ void SellerTorrentPlugin::on_peer_plugin_disconnect(SellerPeerPlugin * peerPlugi
 
             Payee payee = peerPlugin->payee();
 
-            _wallet->releaseKey(payee.payeeContractKeys().sk(), false);
-
-            _wallet->releaseKey(payee.payeePaymentKeys().sk(), true);
+            _wallet->releaseKey(payee.payeeContractKeys().sk());
+            _wallet->releaseKey(payee.payeePaymentKeys().sk());
 
         } else if(clientState == SellerPeerPlugin::ClientState::awaiting_payment ||
            clientState == SellerPeerPlugin::ClientState::awaiting_piece_request_after_payment ||
@@ -542,9 +542,7 @@ void SellerTorrentPlugin::on_peer_plugin_disconnect(SellerPeerPlugin * peerPlugi
              * Detect double spends, etc.
              */
 
-            QMetaObject::invokeMethod(_wallet, "BLOCKCYPHER_broadcast", Q_ARG(const Coin::Transaction, tx));
-
-            //_wallet->broadcast(tx);
+            sendTorrentPluginAlert(BroadcastTransactionAlert(_torrent->info_hash(), tx));
 
             // Alter state
             peerPlugin->setClientState(SellerPeerPlugin::ClientState::trying_to_claim_last_payment);
