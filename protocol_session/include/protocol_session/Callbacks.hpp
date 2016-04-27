@@ -18,7 +18,14 @@ namespace protocol_session {
 // NB: In the future one can separete into two different callbacks,
 // one for each mode, with its own set of DisconnectCauses.
 enum class DisconnectCause {
-    seller_has_interrupted_contract
+
+    seller_has_interrupted_contract,
+
+    servicing_piece_has_timed_out,
+
+    sent_invalid_piece,
+
+    stopping_session
 };
 
 // Removal of a connection from the session: c++11 alias declaration
