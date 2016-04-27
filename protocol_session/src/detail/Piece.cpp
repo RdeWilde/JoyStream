@@ -46,8 +46,8 @@ namespace detail {
 
     template <class ConnectionIdType>
     void Piece<ConnectionIdType>::unAssign() {
-        assert(_state == State::being_downloaded);
         _state = State::unassigned;
+        _connectionId = ConnectionIdType();
     }
 
     template <class ConnectionIdType>
@@ -59,6 +59,11 @@ namespace detail {
     template <class ConnectionIdType>
     int Piece<ConnectionIdType>::index() const {
         return _index;
+    }
+
+    template <class ConnectionIdType>
+    void Piece<ConnectionIdType>::arrived() {
+        _state = State::being_validated_and_stored;
     }
 
     template <class ConnectionIdType>

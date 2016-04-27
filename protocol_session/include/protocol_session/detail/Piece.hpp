@@ -30,7 +30,10 @@ namespace detail {
             // Currently assigned to seller for being downloaded
             being_downloaded,
 
-            // We do have piece
+            // Currently assigned to seller, and is being validated and stored by client
+            being_validated_and_stored,
+
+            // Valid copy is stored
             downloaded
         };
 
@@ -46,6 +49,9 @@ namespace detail {
 
         // Piece is no longer assigned to a connection
         void unAssign();
+
+        // Piece has arrived, and is being stored and validated
+        void arrived();
 
         // Getters
         int index() const;
