@@ -57,6 +57,9 @@ namespace detail {
         // Seller has been removed
         void removed();
 
+        // Result of validating piece received from this seller
+        void pieceWasValid();
+
         // Getters
         State state() const;
 

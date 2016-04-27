@@ -62,6 +62,19 @@ namespace detail {
     template <class ConnectionIdType>
     void Seller<ConnectionIdType>::removed() {
         _state = State::gone;
+    template <class ConnectionIdType>
+    void Seller<ConnectionIdType>::pieceWasValid() {
+
+        assert(_state == State::waiting_for_piece_validation_and_storage);
+
+        // Update state
+        _state = State::waiting_to_be_assigned_piece;
+
+        // Make payment if connection exists
+        if(_connection != nullptr)
+            _connection->machine().process_event(protocol_statemachine::event::SendPayment());
+    }
+
     }
 
     template <class ConnectionIdType>
