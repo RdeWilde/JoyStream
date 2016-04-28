@@ -13,7 +13,13 @@ make
 popd
 
 pushd deps/linux
-BUILD_TYPE="DEBUG" ./build-all.sh
+if BUILD_TYPE="DEBUG" ./build-all.sh
+then
+   echo "Done Building Dependencies"
+else
+   echo "Building Dependencies failed"
+   exit 1
+fi
 popd
 
 mkdir -p build/linux-x64
