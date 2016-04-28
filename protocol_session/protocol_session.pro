@@ -26,7 +26,8 @@ HEADERS += \
     include/protocol_session/TorrentPieceInformation.hpp \
     include/protocol_session/PieceInformation.hpp \
     include/protocol_session/Exceptions.hpp \
-    include/protocol_session/Callbacks.hpp
+    include/protocol_session/Callbacks.hpp \
+    include/protocol_session/Session.hpp
 
 
 SOURCES += \
@@ -34,7 +35,8 @@ SOURCES += \
     src/detail/Connection.cpp \
     src/detail/SessionCoreImpl.cpp \
     src/TorrentPieceInformation.cpp \
-    src/PieceInformation.cpp
+    src/PieceInformation.cpp \
+    src/Session.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include
