@@ -1,3 +1,8 @@
+0.4.0
+    * Replaced BlockCypher Wallet with new SPV Walelt
+    * Updated embedded openssl to version 1.0.2g
+    * Allow only one instance of JoyStream to run
+     
 0.3.3
     * Added analytics module
     * Minimize to system tray optional
