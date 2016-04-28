@@ -15,7 +15,8 @@ namespace detail {
     template <class ConnectionIdType>
     Seller<ConnectionIdType>::Seller()
         : _state(State::waiting_to_be_assigned_piece)
-        , _indexOfAssignedPiece(0) {
+        , _connection(nullptr)
+        , _indexOfAssignedPiece(0){
     }
 
     template <class ConnectionIdType>
@@ -37,6 +38,7 @@ namespace detail {
         time(&_whenLastPieceAssigned);
 
         // Send request
+        assert(_connection != nullptr);
         _connection->machine().process_event(protocol_statemachine::event::RequestPiece(i));
     }
 
@@ -46,10 +48,11 @@ namespace detail {
         if(_state != State::waiting_for_full_piece)
             return false;
 
-        //assert(_state == State::);
+        // Get current time
+        time_t now = time(0);
 
-        //diff()
-        //timeOutLimit
+        // Whether time limit was exceeded
+        return difftime(now, _whenLastPieceAssigned) > timeOutLimit;
     }
 
     template <class ConnectionIdType>
@@ -62,6 +65,9 @@ namespace detail {
     template <class ConnectionIdType>
     void Seller<ConnectionIdType>::removed() {
         _state = State::gone;
+        _connection = nullptr;
+    }
+
     template <class ConnectionIdType>
     void Seller<ConnectionIdType>::pieceWasValid() {
 
