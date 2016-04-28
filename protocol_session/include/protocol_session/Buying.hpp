@@ -186,7 +186,6 @@ public:
     //// Getters and setters
 
     Coin::UnspentP2PKHOutput getFunding() const;
-    void setFunding(const Coin::UnspentP2PKHOutput &funding);
 
     Policy getPolicy() const;
     void setPolicy(const Policy &policy);

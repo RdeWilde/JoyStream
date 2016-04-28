@@ -865,10 +865,5 @@ namespace protocol_session {
     Coin::UnspentP2PKHOutput Buying<ConnectionIdType>::getFunding() const {
         return _funding;
     }
-
-    template <class ConnectionIdType>
-    void Buying<ConnectionIdType>::setFunding(const Coin::UnspentP2PKHOutput &funding) {
-        _funding = funding;
-    }
 }
 }
