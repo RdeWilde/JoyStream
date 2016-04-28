@@ -17,14 +17,27 @@ TorrentPieceInformation::TorrentPieceInformation() {
 void TorrentPieceInformation::addPiece(const PieceInformation & p) {
 
     // Make sure piece index is valid
-    if(p.index() > 0 && (unsigned)p.index() == _pieces.size())
+    if(p.index() > 0 && (unsigned)p.index() == _pieces.size()) {
+
+        // If piece hasn't been downloaded,
+        // count towards missing pieces
+        if(!p.downloaded())
+            _numberOfMissingPieces++;
+
+        // Add to list
         _pieces.push_back(p);
-    else
+
+    } else
         throw exception::InvalidPieceIndexException(_pieces.size(), p.index());
 }
 
 std::vector<PieceInformation> TorrentPieceInformation::pieces() const {
     return _pieces;
+}
+
+uint32_t TorrentPieceInformation::numberOfMissingPieces() const
+{
+    return _numberOfMissingPieces;
 }
 
 }

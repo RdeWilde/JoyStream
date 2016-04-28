@@ -9,6 +9,7 @@
 #define JOYSTREAM_PROTOCOLSESSION_TORRENTPIECEINFORMATION_HPP
 
 #include <vector>
+#include <stdint.h>
 #include <protocol_session/PieceInformation.hpp>
 
 namespace joystream {
@@ -24,9 +25,14 @@ public:
 
     std::vector<PieceInformation> pieces() const;
 
+    uint32_t numberOfMissingPieces() const;
+
 private:
 
     std::vector<PieceInformation> _pieces;
+
+    // The number of pieces not yet downloaded
+    uint32_t _numberOfMissingPieces;
 };
 
 }
