@@ -77,21 +77,13 @@ public:
     public:
 
         Policy()
-            : _minTimeBeforeBuildingContract(0) {
+            : _minTimeBeforeBuildingContract(0)
+            , _servicingPieceTimeOutLimit(0) {
         }
 
-        Policy(double minTimeBeforeBuildingContract)
-            : _minTimeBeforeBuildingContract(minTimeBeforeBuildingContract) {
-        }
-
-        // Take out of policy, should not be publicly visible
-        bool okToBuildContract(const time_t started) const {
-
-            // Get current time
-            time_t now = time(0);
-
-            // Return whether sufficient time has passed since start
-            return difftime(now, started) >= _minTimeBeforeBuildingContract;
+        Policy(double minTimeBeforeBuildingContract, double servicingPieceTimeOutLimit)
+            : _minTimeBeforeBuildingContract(minTimeBeforeBuildingContract)
+            , _servicingPieceTimeOutLimit(servicingPieceTimeOutLimit) {
         }
 
     private:
@@ -125,10 +117,10 @@ public:
 
     };
 
-    Buying(const RemovedConnectionCallbackHandler<ConnectionIdType> &,
+    Buying(const BroadcastTransaction &,
+           const RemovedConnectionCallbackHandler<ConnectionIdType> &,
            const GenerateKeyPairsCallbackHandler &,
            const GenerateP2PKHAddressesCallbackHandler &,
-           const BroadcastTransaction &,
            const FullPieceArrived<ConnectionIdType> &,
            const Coin::UnspentP2PKHOutput &,
            const Policy &,
@@ -150,7 +142,7 @@ public:
     void validPieceReceivedOnConnection(const ConnectionIdType &, int index);
 
     // An invalid piece was sent too us on given connection
-    // NB: Perhaps we should supply connection?
+    // Should not be called when session is stopped.
     void invalidPieceReceivedOnConnection(const ConnectionIdType &, int index);
 
     //// Manage mode
@@ -158,9 +150,11 @@ public:
     // Update terms
     void updateTerms(const protocol_wire::BuyerTerms &);
 
-    void toObserveMode();
+    // Turn into session in observe mode-
+    // Caller owns returne object.
+    //Observing<ConnectionIdType> * toObserveMode();
 
-    //
+    // Turn into session in sell mode
     // Caller owns returned object.
     Selling<ConnectionIdType> * toSellMode();
 
@@ -172,13 +166,11 @@ public:
     // Immediately closes all existing connections
     void stop();
 
+    // Pause session
     // Accepts new connections, but only advertises mode.
     // All existing connections are gracefully paused so that all
-    // incoming messages can be ignored. In particular
-
-    // * Buying mode: stops creating new contracts, or for started contracts it
-    // only honors last pending payment, but issues no new piece requests.
-
+    // incoming messages can be ignored. In particular it
+    // honors last pending payment, but issues no new piece requests.
     void pause();
 
     //// Miscellenous
@@ -205,7 +197,6 @@ private:
 
     BroadcastTransaction _broadcastTransaction;
     FullPieceArrived<ConnectionIdType> _fullPieceArrived;
-
 
     void setHooks(detail::Connection<ConnectionIdType> &);
 
@@ -240,16 +231,14 @@ private:
 
     //// Assigning pieces
 
-    //
-    bool tryToAssignAndRequestPiece(detail::Seller<ConnectionIdType> & s);
+    // Tries to assign an unassigned piece to given seller
+    bool tryToAssignAndRequestPiece(detail::Seller<ConnectionIdType> &);
 
-    // ?
+    // Tries to find next unassigned piece
     int getNextUnassignedPiece() const;
 
-    ////
-
-    // Unassigns any seller which is too slow
-    uint unAssignPiecesFromSlowSellers();
+    // Removes given seller
+    void removeSeller(detail::Seller<ConnectionIdType> &);
 
     //// Members
 
@@ -277,13 +266,18 @@ private:
     // When segwit is enforced, this will no longer be neccessary.
     Coin::Transaction _contractTx;
 
-    // Pieces in torrent file: Should really be array?
-    std::vector<detail::Piece<ConnectionIdType>> _pieces;
+    // Pieces in torrent file
+    std::list<detail::Piece<ConnectionIdType>> _pieces;
 
-    // Indexes of pieces which were assigned this session, but were
-    // then unassigned for some reason. They are prioritized when assiging
-    // new pieces
-    std::queue<uint32_t> _deAssignedPieces;
+    // The number of pieces not yet downloaded.
+    // Is used to detect when we are done.
+    uint32_t _numberOfMissingPieces;
+
+    // Indexes of pieces which were assigned, but then later
+    // unassigned for some reason (e.g. seller left, timed out, etc).
+    // They are prioritized when assiging new pieces.
+    // NB: using std::deque over std::queue, since latter
+    std::deque<uint32_t> _deAssignedPieces;
 
     // Index before which we should never assign a piece unless all pieces
     // with a greater index have been assigned. Following this constraint
@@ -292,11 +286,9 @@ private:
     // some midway point
     uint32_t _assignmentLowerBound;
 
-    /**
-    // When session was started
-    time_t _lastStart;
-    */
-
+    // When we started sending out invitations
+    // (i.e. entered state StartedState::sending_invitations).
+    // Is used to figure out when to start trying to build the contract
     time_t _lastStartOfSendingInvitations;
 };
 

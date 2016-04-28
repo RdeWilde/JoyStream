@@ -62,10 +62,10 @@ void Test::buying() {
     protocol_wire::BuyerTerms terms;
     TorrentPieceInformation information;
 
-    Buying<std::string> buying(removedConnectionCallbackHandler,
+    Buying<std::string> buying(broadcastTransaction,
+                               removedConnectionCallbackHandler,
                                generateKeyPairsCallbackHandler,
                                generateP2PKHAddressesCallbackHandler,
-                               broadcastTransaction,
                                fullPieceArrived,
                                funding,
                                policy,
