@@ -31,6 +31,9 @@ struct SessionCoreImpl {
     template <typename T>
     std::vector<Connection<ConnectionIdType> *> connectionsInState() const;
 
+    // Get all ids
+    std::vector<ConnectionIdType> ids() const;
+
     // Whether connection with given ID exists
     bool hasConnection(const ConnectionIdType &) const;
 

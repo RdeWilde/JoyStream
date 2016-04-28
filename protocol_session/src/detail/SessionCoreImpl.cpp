@@ -60,6 +60,18 @@ std::vector<Connection<ConnectionIdType> *> SessionCoreImpl<ConnectionIdType>::c
 }
 
 template <class ConnectionIdType>
+std::vector<ConnectionIdType> SessionCoreImpl<ConnectionIdType>::ids() const {
+
+    std::vector<ConnectionIdType> ids;
+
+    // Add ids of all connections
+    for(auto mapping: _connections)
+        ids.push_back(mapping.first);
+
+    return ids;
+}
+
+template <class ConnectionIdType>
 bool SessionCoreImpl<ConnectionIdType>::hasConnection(const ConnectionIdType & id) const {
     return _connections.find(id) != _connections.cend();
 }
