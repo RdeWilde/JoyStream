@@ -224,6 +224,20 @@ then
     fi
 fi
 
+if [ ! -e "libodb-sqlite-2.4.0.tar.bz2" ]
+then
+    rm -fr libodb-sqlite-2.4.0/
+
+    if wget http://www.codesynthesis.com/download/odb/2.4/libodb-sqlite-2.4.0.tar.bz2
+    then
+        echo "Downloaded ODB sqlite runtime library"
+    else
+        echo "Failed to download ODB sqlite runtime library"
+        rm libodb-sqlite-2.4.0.tar.bz2
+        exit 1
+    fi
+fi
+
 if [ ! -e "libodb-sqlite-2.4.0" ]
 then
     if tar -xjvf libodb-sqlite-2.4.0.tar.bz2
