@@ -9,6 +9,10 @@
 #define JOYSTREAM_PROTOCOLSESSION_EXCEPTIONS_HPP
 
 #include <stdexcept>
+#include <string>
+
+template <class ConnectionIdType>
+std::string toString(const ConnectionIdType &);
 
 namespace joystream {
 namespace protocol_session {
@@ -21,7 +25,7 @@ public:
 
     ConnectionAlreadyAddedException(const ConnectionIdType & id)
         : std::runtime_error(std::string("Connection with id ") + toString(id) + std::string(" already added."))
-         , _id(id) {
+        , _id(id) {
     }
 
     ConnectionIdType id() const {
