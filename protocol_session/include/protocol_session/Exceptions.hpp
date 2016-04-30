@@ -84,13 +84,6 @@ private:
 };
 
 class StateIncompatibleOperation : public std::runtime_error {
-
-public:
-
-    StateIncompatibleOperation()
-        : std::runtime_error("") {
-    }
-
 };
 
 class SessionModeNotSetException : public std::runtime_error {
