@@ -134,10 +134,10 @@ namespace detail {
         detail::Connection<ConnectionIdType> * createConnection(const ConnectionIdType & id, const SendMessageOnConnection &);
 
         // not sure, should we return connection pointer, or just id?
-        std::vector<Connection<ConnectionIdType> *> connectionsWithPeerInMode(protocol_statemachine::ModeAnnounced m);
+        std::vector<detail::Connection<ConnectionIdType> *> connectionsWithPeerInMode(protocol_statemachine::ModeAnnounced m);
 
         template <typename T>
-        std::vector<Connection<ConnectionIdType> *> connectionsInState() const;
+        std::vector<detail::Connection<ConnectionIdType> *> connectionsInState() const;
 
         // Get all ids
         std::vector<ConnectionIdType> ids() const;
@@ -147,7 +147,7 @@ namespace detail {
 
         // Returns connection if present, otherwise throws exception
         // ConnectionDoesNotExist<ConnectionIdType>
-        Connection<ConnectionIdType> * get(const ConnectionIdType &) const;
+        detail::Connection<ConnectionIdType> * get(const ConnectionIdType &) const;
 
         // Remove a connection which is known to be present
         void removeAndDelete(const ConnectionIdType &);
@@ -158,7 +158,7 @@ namespace detail {
         SessionState _state;
 
         // Connections
-        std::map<ConnectionIdType, Connection<ConnectionIdType> *> _connections;
+        std::map<ConnectionIdType, detail::Connection<ConnectionIdType> *> _connections;
 
         // When session was started
         time_t _started;
