@@ -8,68 +8,68 @@
 #ifndef JOYSTREAM_PROTOCOLSESSION_SESSION_HPP
 #define JOYSTREAM_PROTOCOLSESSION_SESSION_HPP
 
-/**
+#include <protocol_session/detail/Connection.hpp>
+#include <protocol_session/Callbacks.hpp>
+#include <protocol_session/SessionMode.hpp>
+#include <protocol_session/SessionState.hpp>
 
-#include <protocol_session/detail/SessionCoreImpl.hpp>
-#include <protocol_session/detail/Buying.hpp>
-#include <protocol_session/detail/Selling.hpp>
+// ConnectionIdType: Type for identifying connections.
+// 1) must be possible to use as key in std::map
+// 2) must have std::string toString(const & ConnectionIdType);
 
 namespace joystream {
 namespace protocol_wire {
     class ExtendedMessagePayload;
 }
 namespace protocol_session {
+namespace detail {
 
-    // ConnectionIdType:
-    // Type for identifying connections, must
-    // be possible to use as key in std::map, and also have
-    // std::string ConnectionIdType::toString() const
+    template <class ConnectionIdType>
+    class Selling<ConnectionIdType>;
+
+    template <class ConnectionIdType>
+    class Buying<ConnectionIdType>;
+
+    template <class ConnectionIdType>
+    class Observing<ConnectionIdType>;
+}
 
     template <class ConnectionIdType>
     class Session {
 
     public:
 
-
-        // Construct session
-        Session(const RemovedConnectionCallbackHandler<ConnectionIdType> &,
-                const GenerateKeyPairsCallbackHandler &,
-                const GenerateP2PKHAddressesCallbackHandler &);
-
-        // Time out processing hook
-        // NB: Later give some indication of how to set timescale for this call
-        void tick();
+        Session();
 
         //// Manage mode
 
-        // what happens in these depending on what state we are in? (paused, stopped,etc)
+        // Can only be called when mode is not set, or is in
+        // a set mode different to the mode of the call.
 
+        // Change session to observe mode
         void toObserveMode();
 
+        // Change session to sell mode
         void toSellMode();
 
+        // Change session to buy mode
         void toBuyMode();
 
         //// Manage state
 
-        // Starts a stopped session by becoming fully operational
+        // Can only be called when state has been set.
+
         void start();
 
-        // Immediately closes all existing connections
         void stop();
 
-        // Accepts new connections, but only advertises mode.
-        // All existing connections are gracefully paused so that all
-        // incoming messages can be ignored. In particular
-        // * Selling mode: stops joining new contracts, and ignores new piece requests.
-        // * Buying mode: stops creating new contracts, or for started contracts it
-        // only honors last pending payment, but issues no new piece requests.
         void pause();
 
-        //
-        void unPause();
+        //// Common
 
-        //// Manage connections
+        // Time out processing hook
+        // NB: Later give some indication of how to set timescale for this call
+        void tick();
 
         // Adds connection, and return the current number of connections
         uint addConnection(const ConnectionIdType &, const SendMessageOnConnection &);
@@ -78,44 +78,106 @@ namespace protocol_session {
         bool hasConnection(const ConnectionIdType &) const;
 
         // Remove connection if one exists with given id, otherwise returns false.
-        // NB:does not result in correspondnig callback ??!?!
+        // NB: does not result in correspondnig callback ??!?!
         bool removeConnection(const ConnectionIdType &);
 
         // Process given message on given connection with given ID
         void processMessageOnConnection(const ConnectionIdType &, const protocol_wire::ExtendedMessagePayload *);
 
+        //// Buying
+
         // A valid piece was sent too us on given connection
         void validPieceReceivedOnConnection(const ConnectionIdType &, int index);
 
         // An invalid piece was sent too us on given connection
-        // NB: Perhaps we should supply connection?
         void invalidPieceReceivedOnConnection(const ConnectionIdType &, int index);
 
         // Piece with given index has been downloaded, but not through
         // a regitered connection. Could be non-joystream peers, or something out of bounds.
         void pieceDownloaded(int);
 
+        //// Selling
+
+        // Data for given piece has been loaded
+        void pieceLoaded(const protocol_wire::PieceData &, int);
+
         //// Getters
+
+        SessionState state() const;
 
         SessionMode mode() const;
 
-        //status::Session<ConnectionIdType> status() const;
-
     private:
 
-        // Session core
-        detail::SessionCoreImpl<ConnectionIdType> _core;
+        //friend class detail::Observing<ConnectionIdType>;
+        friend class detail::Selling<ConnectionIdType>;
+        friend class detail::Buying<ConnectionIdType>;
 
-        // Hook for peer mode announcement event on connection with given id
+        //// Handle callbacks from connections
+
         void peerAnnouncedModeAndTerms(const ConnectionIdType &, const protocol_statemachine::AnnouncedModeAndTerms &);
+        void invitedToOutdatedContract(const ConnectionIdType &);
+        void invitedToJoinContract(const ConnectionIdType &);
+        void contractPrepared(const ConnectionIdType &, const Coin::typesafeOutPoint &);
+        void pieceRequested(const ConnectionIdType & id, int i);
+        void invalidPieceRequested(const ConnectionIdType & id);
+        void paymentInterrupted(const ConnectionIdType & id);
+        void receivedValidPayment(const ConnectionIdType & id, const Coin::Signature &);
+        void receivedInvalidPayment(const ConnectionIdType & id, const Coin::Signature &);
+        void sellerHasJoined(const ConnectionIdType &);
+        void sellerHasInterruptedContract(const ConnectionIdType &);
+        void receivedFullPiece(const ConnectionIdType &, const protocol_wire::PieceData &);
+
+        //// Utility routines
+
+        // Creates a connection
+        detail::Connection<ConnectionIdType> * createConnection(const ConnectionIdType & id, const SendMessageOnConnection &);
+
+        // not sure, should we return connection pointer, or just id?
+        std::vector<Connection<ConnectionIdType> *> connectionsWithPeerInMode(protocol_statemachine::ModeAnnounced m);
+
+        template <typename T>
+        std::vector<Connection<ConnectionIdType> *> connectionsInState() const;
+
+        // Get all ids
+        std::vector<ConnectionIdType> ids() const;
+
+        // Whether connection with given ID exists
+        bool hasConnection(const ConnectionIdType &) const;
+
+        // Returns connection if present, otherwise throws exception
+        // ConnectionDoesNotExist<ConnectionIdType>
+        Connection<ConnectionIdType> * get(const ConnectionIdType &) const;
+
+        // Remove a connection which is known to be present
+        void removeAndDelete(const ConnectionIdType &);
+
+        //// Members
+
+        // Current state of session
+        SessionState _state;
+
+        // Connections
+        std::map<ConnectionIdType, Connection<ConnectionIdType> *> _connections;
+
+        // When session was started
+        time_t _started;
+
+        // Session mode
+        SessionMode _mode;
+
+        //// Substates
+
+        // Each pointer is != nullptr only when _mode corresponds
 
         // Observer
+        detail::Observing<ConnectionIdType> * _observing;
 
         // Seller
-        detail::Selling<ConnectionIdType> _selling;
+        detail::Selling<ConnectionIdType> * _selling;
 
         // Buyer
-        detail::Buying<ConnectionIdType> _buying;
+        detail::Buying<ConnectionIdType> * _buying;
     };
 
 }
@@ -123,8 +185,6 @@ namespace protocol_session {
 
 // Needed due to c++ needing implementation for all uses of templated types
 #include <protocol_session/../../src/Session.cpp>
-
-*/
 
 #endif // JOYSTREAM_PROTOCOLSESSION_SESSION_HPP
 
