@@ -18,25 +18,29 @@ HEADERS += \
     include/protocol_session/detail/Piece.hpp \
     include/protocol_session/detail/Seller.hpp \
     include/protocol_session/detail/Connection.hpp \
-    include/protocol_session/detail/SessionCoreImpl.hpp \
+    include/protocol_session/detail/Selling.hpp \
+    include/protocol_session/detail/Buying.hpp \
     include/protocol_session/protocol_session.hpp \
-    include/protocol_session/Selling.hpp \
-    include/protocol_session/Buying.hpp \
     include/protocol_session/Status.hpp \
     include/protocol_session/TorrentPieceInformation.hpp \
     include/protocol_session/PieceInformation.hpp \
     include/protocol_session/Exceptions.hpp \
     include/protocol_session/Callbacks.hpp \
-    include/protocol_session/Session.hpp
+    include/protocol_session/Session.hpp \
+    include/protocol_session/SessionMode.hpp \
+    include/protocol_session/SessionState.hpp \
+    include/protocol_session/SellingPolicy.hpp \
+    include/protocol_session/BuyingPolicy.hpp \
+    include/protocol_session/detail/Observing.hpp
 
 
 SOURCES += \
     src/detail/Seller.cpp \
     src/detail/Connection.cpp \
-    src/detail/SessionCoreImpl.cpp \
     src/TorrentPieceInformation.cpp \
     src/PieceInformation.cpp \
-    src/Session.cpp
+    src/Session.cpp \
+    src/detail/Observing.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include
