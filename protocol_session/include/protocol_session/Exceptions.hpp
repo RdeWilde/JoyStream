@@ -89,6 +89,12 @@ public:
 
 };
 
+class SessionModeNotSetException : public std::runtime_error {
+};
+
+class SessionAlreadyInThisMode : public std::runtime_error {
+};
+
 }
 }
 }
