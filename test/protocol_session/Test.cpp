@@ -12,6 +12,7 @@
 using namespace joystream;
 using namespace joystream::protocol_session;
 
+/**
 void Test::sessionImpl() {
 
     RemovedConnectionCallbackHandler<std::string> removedConnectionCallbackHandler;
@@ -49,6 +50,7 @@ void Test::sessionImpl() {
 
     QCOMPARE(ids.size(), (unsigned long)1);
 }
+*/
 
 void Test::buying() {
 
@@ -58,11 +60,11 @@ void Test::buying() {
     BroadcastTransaction broadcastTransaction;
     FullPieceArrived<std::string> fullPieceArrived;
     Coin::UnspentP2PKHOutput funding;
-    Buying<std::string>::Policy policy;
+    detail::Buying<std::string>::Policy policy;
     protocol_wire::BuyerTerms terms;
     TorrentPieceInformation information;
 
-    Buying<std::string> buying(broadcastTransaction,
+    detail::Buying<std::string> buying(broadcastTransaction,
                                removedConnectionCallbackHandler,
                                generateKeyPairsCallbackHandler,
                                generateP2PKHAddressesCallbackHandler,

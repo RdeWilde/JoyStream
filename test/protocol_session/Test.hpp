@@ -18,7 +18,7 @@ class Test : public QObject {
 
 private slots:
 
-    void sessionImpl();
+    //void sessionImpl();
 
     void buying();
 
