@@ -8,11 +8,12 @@
 #ifndef JOYSTREAM_PROTOCOL_SESSION_HPP
 #define JOYSTREAM_PROTOCOL_SESSION_HPP
 
-#include <protocol_session/Buying.hpp>
-#include <protocol_session/Selling.hpp>
 #include <protocol_session/Session.hpp>
 #include <protocol_session/Status.hpp>
 #include <protocol_session/Exceptions.hpp>
 #include <protocol_session/Callbacks.hpp>
+#include <protocol_session/SellingPolicy.hpp>
+#include <protocol_session/BuyingPolicy.hpp>
+
 
 #endif // JOYSTREAM_PROTOCOL_SESSION_HPP
