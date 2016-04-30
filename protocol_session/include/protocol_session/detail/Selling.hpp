@@ -8,7 +8,8 @@
 #ifndef JOYSTREAM_PROTOCOL_SELLING_HPP
 #define JOYSTREAM_PROTOCOL_SELLING_HPP
 
-#include <protocol_session/detail/SessionCoreImpl.hpp>
+#include <protocol_session/Session.hpp>
+#include <protocol_session/SellingPolicy.hpp>
 #include <protocol_wire/protocol_wire.hpp>
 
 namespace Coin {
@@ -18,70 +19,27 @@ namespace Coin {
 
 namespace joystream {
 namespace protocol_session {
+namespace detail {
 
 template <class ConnectionIdType>
 class Buying;
+
+template <class ConnectionIdType>
+class Observing;
 
 template <class ConnectionIdType>
 class Selling {
 
 public:
 
-    struct State {
-
-        enum class ClientState {
-
-            // Closes all connections, and rejects all new connections.
-            stopped,
-
-            // Going through the motions.
-            started,
-
-            // REWWRITE:***
-            // Stops building contract, or requesting new pieces
-            // if contract has been announced. In the latter scenario
-            // the last payment is honored. New connections are
-            // accepted, but only mode is announced.
-            paused
-        };
-
-        enum class StartedState {
-
-
-
-            // Inviting sellers
-            sending_invitations,
-
-            // Requesting and downloading pieces
-            downloading,
-
-            // Have all pieces
-            download_completed
-        };
-
-
-        State()
-            : _clientState(ClientState::stopped)
-            , _startedState(StartedState::sending_invitations){
-        }
-
-        ClientState _clientState;
-
-        StartedState _startedState;
-    };
-
-    class Policy {
-
-    };
-
-    Selling(const RemovedConnectionCallbackHandler<ConnectionIdType> &,
+    Selling(Session<ConnectionIdType> *,
+            const RemovedConnectionCallbackHandler<ConnectionIdType> &,
             const GenerateKeyPairsCallbackHandler &,
-            const GenerateP2PKHAddressesCallbackHandler &);
+            const GenerateP2PKHAddressesCallbackHandler &,
+            const SellingPolicy &,
+            const protocol_wire::SellerTerms &);
 
     //// Manage connections
-
-    // Connection with givne id has been added (ex-post)
-    uint addConnection(const ConnectionIdType &, const SendMessageOnConnection &);
 
     // Connection with given id has been removed (ex-post)
     uint removeConnection(const ConnectionIdType &);
@@ -89,15 +47,15 @@ public:
     // Process given message on given connection with given ID
     void processMessageOnConnection(const ConnectionIdType &, const protocol_wire::ExtendedMessagePayload &);
 
-    //
-    void pieceLoaded();
+    // Data for given piece has been loaded
+    void pieceLoaded(const protocol_wire::PieceData &, int);
 
     //// Manage mode
 
     // Update terms
     void updateTerms(const protocol_wire::SellerTerms &);
 
-    void toObserveMode();
+    Observing<ConnectionIdType> * toObserveMode();
 
     Buying<ConnectionIdType> * toBuyMode();
 
@@ -110,12 +68,6 @@ public:
     void stop();
 
     // Accepts new connections, but only advertises mode.
-    // All existing connections are gracefully paused so that all
-    // incoming messages can be ignored. In particular
-
-    // * Buying mode: stops creating new contracts, or for started contracts it
-    // only honors last pending payment, but issues no new piece requests.
-
     void pause();
 
     //// Miscellenous
@@ -124,10 +76,12 @@ public:
     // NB: Later give some indication of how to set timescale for this call
     void tick();
 
-    //// Getters and setters
-
+    protocol_wire::SellerTerms terms() const;
 
 private:
+
+    // State of context session
+    SessionState sessionState() const;
 
     //// Handling callbacks from connections
 
@@ -144,23 +98,29 @@ private:
     void sellerHasInterruptedContract(const ConnectionIdType &);
     void receivedFullPiece(const ConnectionIdType &, const protocol_wire::PieceData &);
 
+    //// Members
+
     // Reference to core of session
-    detail::SessionCoreImpl<ConnectionIdType> _sessionCore;
+    Session<ConnectionIdType> * _session;
+
+    // Callback handlers
+    RemovedConnectionCallbackHandler<ConnectionIdType> _removedConnection;
+    GenerateKeyPairsCallbackHandler _generateKeyPairs;
+    GenerateP2PKHAddressesCallbackHandler _generateP2PKHAddresses;
 
     // Controls behaviour of session
-    Policy _policy;
-
-    // State
-    State _state;
+    SellingPolicy _policy;
 
     // Terms for selling
     protocol_wire::SellerTerms _terms;
 
 };
+
+}
 }
 }
 
 // Needed due to c++ needing implementation for all uses of templated types
-#include <protocol_session/../../src/Selling.cpp>
+#include <protocol_session/../../src/detail/Selling.cpp>
 
 #endif // JOYSTREAM_PROTOCOL_SELLING_HPP
