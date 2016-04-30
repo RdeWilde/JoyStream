@@ -5,9 +5,12 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, April 9 2016
  */
 
-#include <protocol_session/Buying.hpp>
+#include <protocol_session/Session.hpp>
+#include <protocol_session/detail/Buying.hpp>
 #include <protocol_session/TorrentPieceInformation.hpp>
 #include <protocol_session/Exceptions.hpp>
+#include <protocol_session/detail/Selling.hpp>
+#include <protocol_session/detail/Observing.hpp>
 #include <common/Bitcoin.hpp> // BITCOIN_DUST_LIMIT
 #include <common/P2PKHAddress.hpp>
 
@@ -15,21 +18,24 @@
 
 namespace joystream {
 namespace protocol_session {
+namespace detail {
 
     template <class ConnectionIdType>
-    Buying<ConnectionIdType>::Buying(const BroadcastTransaction & broadcastTransaction,
-                                     const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnectionCallbackHandler,
-                                     const GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-                                     const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
+    Buying<ConnectionIdType>::Buying(Session<ConnectionIdType> * session,
+                                     const RemovedConnectionCallback<ConnectionIdType> & removedConnection,
+                                     const GenerateKeyPairsCallback & generateKeyPairs,
+                                     const GenerateP2PKHAddressesCallback & generateP2PKHAddresses,
+                                     const BroadcastTransaction & broadcastTransaction,
                                      const FullPieceArrived<ConnectionIdType> & fullPieceArrived,
                                      const Coin::UnspentP2PKHOutput & funding,
-                                     const Policy & policy,
+                                     const BuyingPolicy & policy,
                                      const protocol_wire::BuyerTerms & terms,
                                      const TorrentPieceInformation & information)
-        : _broadcastTransaction(broadcastTransaction)
-        , _sessionCore(removedConnectionCallbackHandler,
-                       generateKeyPairsCallbackHandler,
-                       generateP2PKHAddressesCallbackHandler)
+        : _session(session)
+        , _broadcastTransaction(broadcastTransaction)
+        , _removedConnection(removedConnection)
+        , _generateKeyPairs(generateKeyPairs)
+        , _generateP2PKHAddresses(generateP2PKHAddresses)
         , _fullPieceArrived(fullPieceArrived)
         , _funding(funding)
         , _policy(policy)
@@ -47,11 +53,11 @@ namespace protocol_session {
     void Buying<ConnectionIdType>::tick() {
 
         // Only process if we are active
-        if(_state._clientState == State::ClientState::started) {
+        if(_session->_state == SessionState::started) {
 
-            if(_state._startedState == State::StartedState::sending_invitations)
+            if(sessionState() == StartedState::sending_invitations)
                 tryToStartDownloading();
-            else if(_state._startedState == State::StartedState::downloading) {
+            else if(sessionState() == StartedState::downloading) {
 
                 for(detail::Seller<ConnectionIdType> & s: _sellers) {
 
@@ -79,7 +85,7 @@ namespace protocol_session {
                             removeConnection(id);
 
                             // Notify client
-                            _sessionCore._removedConnectionCallbackHandler(id, DisconnectCause::servicing_piece_has_timed_out);
+                            _removedConnection(id, DisconnectCause::servicing_piece_has_timed_out);
                         }
 
                     }
@@ -89,52 +95,15 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
-    uint Buying<ConnectionIdType>::addConnection(const ConnectionIdType & id, const SendMessageOnConnection & callback) {
-
-        // Do not accept new connection
-        if(_state._clientState == State::ClientState::stopped)
-            throw exception::StateIncompatibleOperation();
-
-        // Check that connection is new, throw exception if not
-        if(_sessionCore.hasConnection(id))
-            throw exception::ConnectionAlreadyAddedException<ConnectionIdType>(id);
-
-        // Create a new connection
-        detail::Connection<ConnectionIdType> * connection = new detail::Connection<ConnectionIdType>(id);
-
-        // Set message sending callback
-        connection->machine().setSendMessage(callback);
-
-        // Setup hooks into *this
-        setHooks(connection);
-
-        // Choose the mode of the connection
-        connection->_machine.process_event(protocol_statemachine::event::BuyModeStarted(_terms));
-
-        // Add to map
-        _sessionCore._connections[id] = connection;
-
-        return _sessionCore._connections.size();
-    }
-
-    template <class ConnectionIdType>
     void Buying<ConnectionIdType>::removeConnection(const ConnectionIdType & id) {
 
-        // move out into Session***
-        // Check that connection exists, throw exception if not
-        if(!_sessionCore.hasConnection(id))
-            throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
-
-        // We cannot have connection and be stopped
-        assert(_state._clientState != State::ClientState::stopped);
+        assert(_session->hasConnection(id));
+        assert(_session->state() != SessionState::stopped); // We cannot have connection and be stopped
 
         //// From here on in, we are either: started or paused
 
-        // Remove connection from map
-        _sessionCore.remove(id);
-
         // If we are just sending invitations, we are done
-        if(_state._clientState == State::StartedState::sending_invitations)
+        if(_state == State::sending_invitations)
             return;
 
         //// From here on in we are downloading, or done downloading
@@ -158,13 +127,11 @@ namespace protocol_session {
     template <class ConnectionIdType>
     void Buying<ConnectionIdType>::processMessageOnConnection(const ConnectionIdType & id, const protocol_wire::ExtendedMessagePayload & m) {
 
-        // No messages should ever arrive when we have stopped,
-        // given that connections should have been closed
-        if(_state._clientState == State::ClientState::stopped)
-            throw exception::StateIncompatibleOperation();
+        assert(_session->hasConnection(id));
+        assert(_session->state() != SessionState::stopped); // We cannot have connection and be stopped
 
         // Get connection
-        detail::Connection<ConnectionIdType> * c = _sessionCore.get(id);
+        detail::Connection<ConnectionIdType> * c = _session->get(id);
 
         // and, have it process the message
         c->processMessage(m);
@@ -198,7 +165,7 @@ namespace protocol_session {
         if(_numberOfMissingPieces > 0)
             tryToAssignAndRequestPiece(s); // then we try to assign a piece to this seller
         else if(_numberOfMissingPieces == 0) // otherwise we are done!
-            _state._startedState = State::StartedState::download_completed;
+            sessionState() = StartedState::download_completed;
     }
 
     template <class ConnectionIdType>
@@ -229,11 +196,11 @@ namespace protocol_session {
         // If connection still exists, remove it,
         // however it may no longer exist,
         // e.g. because it left, or we got stopped.
-        if(_sessionCore.hasConnection(id))
+        if(_session->hasConnection(id))
             removeConnection(id);
 
         // Notify client
-        _sessionCore._removedConnectionCallbackHandler(id, DisconnectCause::sent_invalid_piece);
+        _session->_removedConnection(id, DisconnectCause::sent_invalid_piece);
     }
 
     template <class ConnectionIdType>
@@ -255,7 +222,7 @@ namespace protocol_session {
 
             // This may be the last piece
             if(_numberOfMissingPieces == 0)
-                _state._startedState = State::StartedState::download_completed;
+                sessionState() = StartedState::download_completed;
         }
 
         piece.downloaded();
@@ -268,14 +235,14 @@ namespace protocol_session {
     void Buying<ConnectionIdType>::updateTerms(const protocol_wire::BuyerTerms & terms) {
 
         // We cant change terms when we are actually downloading
-        if(_state._startedState == State::StartedState::downloading)
+        if(_state == State::downloading)
             throw exception::StateIncompatibleOperation();
 
         // Set new terms
         _terms = terms;
 
         // Notify existing peers
-        for(auto itr : _sessionCore._connections)
+        for(auto itr : _session->_connections)
             itr.second->processEvent(protocol_statemachine::event::UpdateTerms<protocol_wire::BuyerTerms>(terms));
     }
 
@@ -295,11 +262,11 @@ namespace protocol_session {
     void Buying<ConnectionIdType>::start() {
 
         // We cant start if we have already started
-        if(_state._clientState == State::ClientState::started)
+        if(_state._clientState == SessionState::started)
             throw exception::StateIncompatibleOperation();
 
         // Set client mode to started
-        _state._clientState = State::ClientState::started;
+        _state._clientState = SessionState::started;
 
         // Note starting time
         time(&_lastStartOfSendingInvitations);
@@ -309,15 +276,15 @@ namespace protocol_session {
     void Buying<ConnectionIdType>::stop() {
 
         // We cant stop if we have already stopped
-        if(_state._clientState == State::ClientState::stopped)
+        if(_state._clientState == SessionState::stopped)
             throw exception::StateIncompatibleOperation();
 
         // If we have started, and are downloading, then
         // we have to be polite and pay for any full pieces
         // we have requested, as it may be in transit, or have received,
         // but yet to verify.
-        if(_state._clientState == State::ClientState::started &&
-           _state._startedState == State::StartedState::downloading) {
+        if(_state._clientState == SessionState::started &&
+           sessionState() == StartedState::downloading) {
 
             assert(!_sellers.empty());
 
@@ -331,7 +298,7 @@ namespace protocol_session {
         }
 
         // Disconnect everyone
-        std::vector<ConnectionIdType> ids = _sessionCore.ids();
+        std::vector<ConnectionIdType> ids = _session->ids();
 
         for(const ConnectionIdType & id : ids) {
 
@@ -339,26 +306,31 @@ namespace protocol_session {
             removeConnection(id);
 
             // Notify client
-            _sessionCore._removedConnectionCallbackHandler(id, DisconnectCause::stopping_session);
+            _session->_removedConnection(id, DisconnectCause::stopping_session);
         }
 
         // Clear sellers
         _sellers.clear();
 
         // Update state
-        _state._clientState = State::ClientState::stopped;
+        _state._clientState = SessionState::stopped;
     }
 
     template <class ConnectionIdType>
     void Buying<ConnectionIdType>::pause() {
 
         // We can only pause if presently started
-        if(_state._clientState == State::ClientState::paused ||
-           _state._clientState == State::ClientState::stopped)
+        if(_state._clientState == SessionState::paused ||
+           _state._clientState == SessionState::stopped)
             throw exception::StateIncompatibleOperation();
 
         // Update state
-        _state._clientState = State::ClientState::paused;
+        _state._clientState = SessionState::paused;
+    }
+
+    template<class ConnectionIdType>
+    SessionState Buying<ConnectionIdType>::sessionState() const {
+        return _session->_state;
     }
 
     template <class ConnectionIdType>
@@ -419,12 +391,12 @@ namespace protocol_session {
     template <class ConnectionIdType>
     void Buying<ConnectionIdType>::peerAnnouncedModeAndTerms(const ConnectionIdType & id, const protocol_statemachine::AnnouncedModeAndTerms & a) {
 
-        assert(_state._clientState != State::ClientState::stopped);
+        assert(_state._clientState != SessionState::stopped);
 
         // If we are currently started and sending out invitations, then we may (re)invite
         // sellers with sufficiently good terms
-        if(_state._clientState == State::ClientState::started &&
-           _state._startedState == State::StartedState::sending_invitations) {
+        if(_state._clientState == SessionState::started &&
+           sessionState() == StartedState::sending_invitations) {
 
             // Check that this peer is seller,
             protocol_statemachine::ModeAnnounced m = a.modeAnnounced();
@@ -433,10 +405,10 @@ namespace protocol_session {
             // and has good enough terms to warrant an invitation
             if(m == protocol_statemachine::ModeAnnounced::sell && _terms.satisfiedBy(a.sellModeTerms())) {
 
-                assert(_sessionCore->hasConnection(id));
+                assert(_session->hasConnection(id));
 
                 // Send invitation
-                detail::Connection<ConnectionIdType> * c = _sessionCore.get(id);
+                detail::Connection<ConnectionIdType> * c = _session->get(id);
 
                 c->_machine.process_event(protocol_statemachine::event::InviteSeller());
 
@@ -506,10 +478,10 @@ namespace protocol_session {
     void Buying<ConnectionIdType>::sellerHasJoined(const ConnectionIdType & id) {
 
         // Cannot happen when stopped, as there are no connections
-        assert(_state._clientState != State::ClientState::stopped);
+        assert(_state._clientState != SessionState::stopped);
 
-        if(_state._clientState == State::ClientState::started &&
-           _state._startedState == State::StartedState::sending_invitations)
+        if(_state._clientState == SessionState::started &&
+           sessionState() == StartedState::sending_invitations)
             tryToStartDownloading();
     }
 
@@ -517,7 +489,7 @@ namespace protocol_session {
     void Buying<ConnectionIdType>::sellerHasInterruptedContract(const ConnectionIdType & id) {
 
         // Cannot happen when stopped, as there are no connections
-        assert(_state._clientState != State::ClientState::stopped);
+        assert(_state._clientState != SessionState::stopped);
 
         // Get reference to seller corresponding connection
         auto itr = _sellers.find(id);
@@ -529,14 +501,14 @@ namespace protocol_session {
         removeConnection(sellers.connection()->connectionId());
 
         // Tell client to remove his pad peer
-        _sessionCore._removedConnectionCallbackHandler(id, DisconnectCause::seller_has_interrupted_contract);
+        _session->_removedConnection(id, DisconnectCause::seller_has_interrupted_contract);
     }
 
     template <class ConnectionIdType>
     void Buying<ConnectionIdType>::receivedFullPiece(const ConnectionIdType & id, const protocol_wire::PieceData & p) {
 
-        assert(_state._clientState == State::ClientState::started);
-        assert(_state._startedState == State::StartedState::sending_invitations);
+        assert(_state._clientState == SessionState::started);
+        assert(sessionState() == StartedState::sending_invitations);
 
         // Get seller corresponding to given id
         auto itr = _sellers.find(id);
@@ -575,8 +547,8 @@ namespace protocol_session {
 
         std::cout << "Trying to start downloading." << std::endl;
 
-        assert(_state._clientState == State::ClientState::started);
-        assert(_state._startedState == State::StartedState::sending_invitations);
+        assert(_state._clientState == SessionState::started);
+        assert(sessionState() == StartedState::sending_invitations);
         assert(_sellers.empty());
         assert(!_pieces.empty());
 
@@ -634,8 +606,8 @@ namespace protocol_session {
         paymentchannel::Contract c;
 
         // Generate keys and addresses required
-        std::vector<Coin::KeyPair> contractKeyPairs = _sessionCore->_generateKeyPairsCallbackHandler(numberOfSellers);
-        std::vector<Coin::PubKeyHash> finalPkHashes = _sessionCore->_generateP2PKHAddressesCallbackHandler(numberOfSellers);
+        std::vector<Coin::KeyPair> contractKeyPairs = _generateKeyPairs(numberOfSellers);
+        std::vector<Coin::PubKeyHash> finalPkHashes = _generateP2PKHAddresses(numberOfSellers);
 
         // Create and add commitment to contract
         for(int i = 0;i < numberOfSellers;i++)
@@ -647,7 +619,7 @@ namespace protocol_session {
         if(changeAmount != 0) {
 
             // New change address
-            Coin::P2PKHAddress address = _sessionCore->_generateP2PKHAddressesCallbackHandler(1);
+            Coin::P2PKHAddress address = _generateP2PKHAddresses(1);
 
             // Create and set change payment
             c.setChange(Coin::Payment(changeAmount, address.pubKeyHash()));
@@ -677,7 +649,7 @@ namespace protocol_session {
 
         // Update state of sessions,
         // has to be done before starting to assign pieces to sellers
-        _state._startedState = State::StartedState::downloading;
+        sessionState() = StartedState::downloading;
 
         /////////////////////////
 
@@ -707,7 +679,7 @@ namespace protocol_session {
 
         // Find peers that have joined our last invitation.
         // This implicitly guarantees that it is in sell mode, and satisfies our terms
-        std::vector<detail::Connection<ConnectionIdType> *> joinedSellers = _sessionCore-> template connectionsInState<protocol_statemachine::WaitingToStart>();
+        std::vector<detail::Connection<ConnectionIdType> *> joinedSellers = _session-> template connectionsInState<protocol_statemachine::WaitingToStart>();
 
         // Pick how many sellers we actualy want.
         // NB**: in future, we base it on policy,
@@ -766,8 +738,8 @@ namespace protocol_session {
     template <class ConnectionIdType>
     bool Buying<ConnectionIdType>::tryToAssignAndRequestPiece(detail::Seller<ConnectionIdType> & s) {
 
-        assert(_state._clientState == State::ClientState::started);
-        assert(_state._startedState == State::StartedState::downloading);
+        assert(_state._clientState == SessionState::started);
+        assert(sessionState() == StartedState::downloading);
         assert(s.state() == detail::Seller<ConnectionIdType>::State::waiting_to_be_assigned_piece);
 
         // Try to find index of next unassigned piece
@@ -823,7 +795,7 @@ namespace protocol_session {
            s.state() == detail::Seller<ConnectionIdType>::State::waiting_for_piece_validation_and_storage) {
 
             // we must be downloading then
-            assert(_state._startedState == State::StartedState::downloading);
+            assert(sessionState() == StartedState::downloading);
 
             // Get piece
             detail::Piece<ConnectionIdType> & piece = _pieces[s.indexOfAssignedPiece()];
@@ -865,5 +837,12 @@ namespace protocol_session {
     Coin::UnspentP2PKHOutput Buying<ConnectionIdType>::getFunding() const {
         return _funding;
     }
+
+    template <class ConnectionIdType>
+    protocol_wire::BuyerTerms Buying<ConnectionIdType>::terms() const {
+        return _terms;
+    }
+
+}
 }
 }

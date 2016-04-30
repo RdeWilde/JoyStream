@@ -8,7 +8,8 @@
 #ifndef JOYSTREAM_PROTOCOLSESSION_BUYING_HPP
 #define JOYSTREAM_PROTOCOLSESSION_BUYING_HPP
 
-#include <protocol_session/detail/SessionCoreImpl.hpp>
+#include <protocol_session/Session.hpp>
+#include <protocol_session/BuyingPolicy.hpp>
 #include <protocol_session/detail/Piece.hpp>
 #include <protocol_session/detail/Seller.hpp>
 #include <protocol_wire/protocol_wire.hpp>
@@ -23,114 +24,46 @@ namespace protocol_statemachine {
 }
 namespace protocol_session {
 
+class TorrentPieceInformation;
+
+namespace detail {
+
 template <class ConnectionIdType>
 class Selling;
 
-class TorrentPieceInformation;
+template <class ConnectionIdType>
+class Observing;
 
 template <class ConnectionIdType>
 class Buying {
 
 public:
 
-    struct State {
+    enum class State {
 
-        enum class ClientState {
+        // Inviting sellers
+        sending_invitations,
 
-            // Closes all connections, and rejects all new connections.
-            stopped,
+        // Requesting and downloading pieces
+        downloading,
 
-            // Going through the motions.
-            started,
-
-            // Stops building contract, or requesting new pieces
-            // if contract has been announced. In the latter scenario
-            // the last payment is honored. New connections are
-            // accepted, but only mode is announced.
-            paused
-        };
-
-        enum class StartedState {
-
-            // Inviting sellers
-            sending_invitations,
-
-            // Requesting and downloading pieces
-            downloading,
-
-            // Have all pieces
-            download_completed
-        };
-
-        State()
-            : _clientState(ClientState::stopped)
-            , _startedState(StartedState::sending_invitations){
-        }
-
-        ClientState _clientState;
-
-        StartedState _startedState;
+        // Have all pieces
+        download_completed
     };
 
-    class Policy {
 
-    public:
-
-        Policy()
-            : _minTimeBeforeBuildingContract(0)
-            , _servicingPieceTimeOutLimit(0) {
-        }
-
-        Policy(double minTimeBeforeBuildingContract, double servicingPieceTimeOutLimit)
-            : _minTimeBeforeBuildingContract(minTimeBeforeBuildingContract)
-            , _servicingPieceTimeOutLimit(servicingPieceTimeOutLimit) {
-        }
-
-    private:
-
-        // 1
-        // The minimum amount of time (s) required before
-        // trying to buil a contract
-        double _minTimeBeforeBuildingContract;
-
-        // 2
-        // time to wait, at very least,
-
-        // 3
-        // How long to wait before trying to ask someone else for the same piece
-        // if a peer is not responding, or responding too slowly
-
-        // 4
-        // Ranking peers for invite:
-        // if there are more peers than your desired max,
-        // do you pick random subset, or minimize on price.
-
-        // 5
-        // Ranking peers for downloading
-
-        // 6
-        // Ranking piece for download order
-
-        // 7
-        //
-        double _servicingPieceTimeOutLimit;
-
-    };
-
-    Buying(const BroadcastTransaction &,
+    Buying(Session<ConnectionIdType> *,
            const RemovedConnectionCallbackHandler<ConnectionIdType> &,
            const GenerateKeyPairsCallbackHandler &,
            const GenerateP2PKHAddressesCallbackHandler &,
+           const BroadcastTransaction &,
            const FullPieceArrived<ConnectionIdType> &,
            const Coin::UnspentP2PKHOutput &,
-           const Policy &,
+           const BuyingPolicy &,
            const protocol_wire::BuyerTerms &,
            const TorrentPieceInformation &);
 
     //// Manage connections
-
-    // Connection with givne id has been added (ex-post)
-    uint addConnection(const ConnectionIdType &, const SendMessageOnConnection &);
 
     // Connection with given id has been removed (ex-post)
     void removeConnection(const ConnectionIdType &);
@@ -152,7 +85,7 @@ public:
 
     // Turn into session in observe mode-
     // Caller owns returne object.
-    //Observing<ConnectionIdType> * toObserveMode();
+    Observing<ConnectionIdType> * toObserveMode();
 
     // Turn into session in sell mode
     // Caller owns returned object.
@@ -187,15 +120,15 @@ public:
 
     Coin::UnspentP2PKHOutput getFunding() const;
 
-    Policy getPolicy() const;
-    void setPolicy(const Policy &policy);
+    BuyingPolicy getPolicy() const;
+    void setPolicy(const BuyingPolicy & policy);
+
+    protocol_wire::BuyerTerms terms() const;
 
 private:
 
-    // Buying mode spesific callbacks
-
-    BroadcastTransaction _broadcastTransaction;
-    FullPieceArrived<ConnectionIdType> _fullPieceArrived;
+    // State of context session
+    SessionState sessionState() const;
 
     void setHooks(detail::Connection<ConnectionIdType> &);
 
@@ -242,13 +175,20 @@ private:
     //// Members
 
     // Reference to core of session
-    detail::SessionCoreImpl<ConnectionIdType> _sessionCore;
+    Session<ConnectionIdType> * _session;
+
+    // Callback handlers
+    RemovedConnectionCallbackHandler<ConnectionIdType> _removedConnection;
+    GenerateKeyPairsCallbackHandler _generateKeyPairs;
+    GenerateP2PKHAddressesCallbackHandler _generateP2PKHAddresses;
+    BroadcastTransaction _broadcastTransaction;
+    FullPieceArrived<ConnectionIdType> _fullPieceArrived;
 
     // Funding for buyer
     Coin::UnspentP2PKHOutput _funding;
 
     // Controls behaviour of session
-    Policy _policy;
+    BuyingPolicy _policy;
 
     // State
     State _state;
@@ -262,7 +202,7 @@ private:
     // Contract transaction id
     // NB** Must be stored, as signatures are non-deterministic
     // contributions to the TxId, and hence discarding them
-    // When segwit is enforced, this will no longer be neccessary.
+    // ***When segwit is enforced, this will no longer be neccessary.***
     Coin::Transaction _contractTx;
 
     // Pieces in torrent file
@@ -293,8 +233,9 @@ private:
 
 }
 }
+}
 
 // Needed due to c++ needing implementation for all uses of templated types
-#include <protocol_session/../../src/Buying.cpp>
+#include <protocol_session/../../src/detail/Buying.cpp>
 
 #endif // JOYSTREAM_PROTOCOLSESSION_BUYING_HPP
