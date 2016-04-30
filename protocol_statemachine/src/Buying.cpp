@@ -50,4 +50,10 @@ namespace protocol_statemachine {
         return transit<Buying>();
     }
 }
+
+protocol_wire::BuyerTerms Buying::getTerms() const
+{
+    return _terms;
+}
+
 }
