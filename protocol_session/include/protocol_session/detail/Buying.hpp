@@ -118,9 +118,9 @@ public:
 
     //// Getters and setters
 
-    Coin::UnspentP2PKHOutput getFunding() const;
+    Coin::UnspentP2PKHOutput funding() const;
 
-    BuyingPolicy getPolicy() const;
+    BuyingPolicy policy() const;
     void setPolicy(const BuyingPolicy & policy);
 
     protocol_wire::BuyerTerms terms() const;
@@ -206,7 +206,7 @@ private:
     Coin::Transaction _contractTx;
 
     // Pieces in torrent file
-    std::list<detail::Piece<ConnectionIdType>> _pieces;
+    std::vector<detail::Piece<ConnectionIdType>> _pieces;
 
     // The number of pieces not yet downloaded.
     // Is used to detect when we are done.

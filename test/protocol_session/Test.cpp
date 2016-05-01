@@ -54,6 +54,7 @@ void Test::sessionImpl() {
 
 void Test::buying() {
 
+    /**
     RemovedConnectionCallbackHandler<std::string> removedConnectionCallbackHandler;
     GenerateKeyPairsCallbackHandler generateKeyPairsCallbackHandler;
     GenerateP2PKHAddressesCallbackHandler generateP2PKHAddressesCallbackHandler;
@@ -73,22 +74,18 @@ void Test::buying() {
                                policy,
                                terms,
                                information);
+    */
 
 
 }
 
 void Test::session() {
 
-/**
+    joystream::protocol_session::Session<std::string> s;
 
-    RemovedConnectionCallbackHandler<std::string> removedConnectionCallbackHandler;
-    GenerateKeyPairsCallbackHandler generateKeyPairsCallbackHandler;
-    GenerateP2PKHAddressesCallbackHandler generateP2PKHAddressesCallbackHandler;
+    s.toBuyMode();
+    s.start();
 
-    Session<std::string> s(removedConnectionCallbackHandler,
-              generateKeyPairsCallbackHandler,
-              generateP2PKHAddressesCallbackHandler);
-*/
 
 }
 

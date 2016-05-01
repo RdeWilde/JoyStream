@@ -25,13 +25,13 @@ namespace protocol_session {
 namespace detail {
 
     template <class ConnectionIdType>
-    class Selling<ConnectionIdType>;
+    class Selling;
 
     template <class ConnectionIdType>
-    class Buying<ConnectionIdType>;
+    class Buying;
 
     template <class ConnectionIdType>
-    class Observing<ConnectionIdType>;
+    class Observing;
 }
 
     template <class ConnectionIdType>
@@ -141,9 +141,6 @@ namespace detail {
 
         // Get all ids
         std::vector<ConnectionIdType> ids() const;
-
-        // Whether connection with given ID exists
-        bool hasConnection(const ConnectionIdType &) const;
 
         // Returns connection if present, otherwise throws exception
         // ConnectionDoesNotExist<ConnectionIdType>

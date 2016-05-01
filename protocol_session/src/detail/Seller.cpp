@@ -78,7 +78,7 @@ namespace detail {
 
         // Make payment if connection exists
         if(_connection != nullptr)
-            _connection->machine().process_event(protocol_statemachine::event::SendPayment());
+            _connection->processEvent(protocol_statemachine::event::SendPayment());
     }
 
     template <class ConnectionIdType>

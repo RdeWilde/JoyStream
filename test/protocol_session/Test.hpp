@@ -30,6 +30,4 @@ public:
 
 };
 
-
-
 #endif // TEST_HPP

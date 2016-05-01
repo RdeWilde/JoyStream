@@ -15,7 +15,8 @@ namespace joystream {
 namespace protocol_statemachine {
 
     CBStateMachine::CBStateMachine()
-        : _MAX_PIECE_INDEX(0){
+        : _reentrantCounter(0)
+        , _MAX_PIECE_INDEX(0) {
     }
 
     CBStateMachine::CBStateMachine(const PeerAnnouncedMode & peerAnnouncedMode,
@@ -45,7 +46,22 @@ namespace protocol_statemachine {
         , _sellerJoined(sellerJoined)
         , _sellerInterruptedContract(sellerInterruptedContract)
         , _receivedFullPiece(receivedFullPiece)
+        , _reentrantCounter(0)
         , _MAX_PIECE_INDEX(MAX_PIECE_INDEX) {
+    }
+
+    void CBStateMachine::processEvent(const sc::event_base & e) {
+
+        // Only process new event if there are no pending ones
+        if(_reentrantCounter == 0) {
+            _reentrantCounter++;
+            process_event(e);
+        } else {
+            _reentrantCounter++;
+            post_event(e);
+        }
+
+        _reentrantCounter--;
     }
 
     void CBStateMachine::unconsumed_event(const sc::event_base &) {

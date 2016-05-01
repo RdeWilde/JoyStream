@@ -100,6 +100,8 @@ namespace protocol_statemachine {
                        const ReceivedFullPiece &,
                        int);
 
+        void processEvent(const sc::event_base &);
+
         void unconsumed_event(const sc::event_base &);
 
         // Whether state machine is in given (T) inner state
@@ -183,6 +185,10 @@ namespace protocol_statemachine {
         ReceivedFullPiece _receivedFullPiece;
 
         void peerAnnouncedMode();
+
+        // How many calls to ::processEvent() which have still not exited.
+        // I is used to make event processing reentrant-like, not fully though
+        uint8_t _reentrantCounter;
 
         // Greatest valid piece index
         int _MAX_PIECE_INDEX;

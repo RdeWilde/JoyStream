@@ -9,6 +9,8 @@
 
 #include <protocol_session/Session.hpp>
 #include <protocol_session/detail/Observing.hpp>
+#include <protocol_session/detail/Buying.hpp>
+#include <protocol_session/detail/Selling.hpp>
 
 namespace joystream {
 namespace protocol_session {
@@ -25,7 +27,7 @@ namespace detail {
     }
 
     template<class ConnectionIdType>
-    uint Observing<ConnectionIdType>::removeConnection(const ConnectionIdType & id) {
+    void Observing<ConnectionIdType>::removeConnection(const ConnectionIdType & id) {
 
         assert(_session->hasConnection(id))
         assert(_session->state() != SessionState::stopped); // We cannot have connection and be stopped
@@ -34,7 +36,7 @@ namespace detail {
     }
 
     template<class ConnectionIdType>
-    void Observing<ConnectionIdType>::processMessageOnConnection(const ConnectionIdType &, const protocol_wire::ExtendedMessagePayload & m) {
+    void Observing<ConnectionIdType>::processMessageOnConnection(const ConnectionIdType & id, const protocol_wire::ExtendedMessagePayload & m) {
 
         assert(_session->hasConnection(id));
         assert(_session->state() != SessionState::stopped); // We cannot have connection and be stopped
@@ -47,17 +49,12 @@ namespace detail {
     }
 
     template<class ConnectionIdType>
-    void Observing<ConnectionIdType>::pieceLoaded(const protocol_wire::PieceData &, int) {
+    Selling<ConnectionIdType> * Observing<ConnectionIdType>::toSellMode() {
 
     }
 
     template<class ConnectionIdType>
-    void Observing<ConnectionIdType>::updateTerms(const protocol_wire::SellerTerms & terms) {
-
-    }
-
-    template<class ConnectionIdType>
-    Selling<ConnectionIdType> * Observing<ConnectionIdType>::toBuyMode() {
+    Buying<ConnectionIdType> * Observing<ConnectionIdType>::toBuyMode() {
 
     }
 

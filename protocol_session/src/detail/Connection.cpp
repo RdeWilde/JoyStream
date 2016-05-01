@@ -7,17 +7,10 @@
 
 #include <protocol_session/detail/Connection.hpp>
 #include <protocol_wire/protocol_wire.hpp>
-//#include <protocol_statemachine/event/Recv.hpp>
 
 namespace joystream {
 namespace protocol_session {
 namespace detail {
-
-    template <class ConnectionIdType>
-    Connection<ConnectionIdType>::Connection(const ConnectionIdType & connectionId)
-        : _connectionId(connectionId)
-        , _reentrantCounter(0) {
-    }
 
     template <class ConnectionIdType>
     Connection<ConnectionIdType>::Connection(const ConnectionIdType & connectionId,
@@ -48,8 +41,7 @@ namespace detail {
                    sellerJoined,
                    sellerInterruptedContract,
                    receivedFullPiece,
-                   0)
-        , _reentrantCounter(0) {
+                   0) {
     }
 
     template <class ConnectionIdType>
@@ -96,17 +88,7 @@ namespace detail {
 
     template <class ConnectionIdType>
     void Connection<ConnectionIdType>::processEvent(const boost::statechart::event_base & e) {
-
-        // Only process new event if there are no pending ones
-        if(_reentrantCounter == 0) {
-            _reentrantCounter++;
-            _machine.process_event(e);
-        } else {
-            _reentrantCounter++;
-            _machine.post_event(e);
-        }
-
-        _reentrantCounter--;
+        _machine.processEvent(e);
     }
 
     template <class ConnectionIdType>

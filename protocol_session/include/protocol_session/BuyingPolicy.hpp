@@ -25,6 +25,10 @@ public:
         , _servicingPieceTimeOutLimit(servicingPieceTimeOutLimit) {
     }
 
+    double minTimeBeforeBuildingContract() const;
+
+    double servicingPieceTimeOutLimit() const;
+
 private:
 
     // 1
@@ -55,6 +59,16 @@ private:
     double _servicingPieceTimeOutLimit;
 
 };
+
+double BuyingPolicy::minTimeBeforeBuildingContract() const
+{
+return _minTimeBeforeBuildingContract;
+}
+
+double BuyingPolicy::servicingPieceTimeOutLimit() const
+{
+return _servicingPieceTimeOutLimit;
+}
 
 }
 }

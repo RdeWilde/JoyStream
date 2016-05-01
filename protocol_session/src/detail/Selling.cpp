@@ -44,7 +44,7 @@ namespace detail {
     }
 
     template<class ConnectionIdType>
-    void Selling<ConnectionIdType>::processMessageOnConnection(const ConnectionIdType &, const protocol_wire::ExtendedMessagePayload & m) {
+    void Selling<ConnectionIdType>::processMessageOnConnection(const ConnectionIdType & id, const protocol_wire::ExtendedMessagePayload & m) {
 
         assert(_session->hasConnection(id));
         assert(_session->state() != SessionState::stopped); // We cannot have connection and be stopped
@@ -72,7 +72,7 @@ namespace detail {
     }
 
     template<class ConnectionIdType>
-    Selling<ConnectionIdType> * Selling<ConnectionIdType>::toBuyMode() {
+    Buying<ConnectionIdType> * Selling<ConnectionIdType>::toBuyMode() {
 
     }
 

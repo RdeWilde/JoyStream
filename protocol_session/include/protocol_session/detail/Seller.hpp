@@ -21,6 +21,8 @@ namespace detail {
     template <class ConnectionIdType>
     class Seller {
 
+    public:
+
         enum class State {
 
             // Not been assigned piece
@@ -36,8 +38,6 @@ namespace detail {
             // Peer is no longer connected
             gone
         };
-
-    public:
 
         Seller();
 

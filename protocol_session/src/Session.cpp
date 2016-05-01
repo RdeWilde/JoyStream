@@ -59,7 +59,7 @@ namespace protocol_session {
                 assert(false);
         }
 
-        switch(_core._state) {
+        switch(_state) {
 
             case SessionState::paused: _observing->pause(); break;
             case SessionState::started: _observing->start(); break;
@@ -104,7 +104,7 @@ namespace protocol_session {
                 assert(false);
         }
 
-        switch(_core._state) {
+        switch(_state) {
 
             case SessionState::paused: _selling->pause(); break;
             case SessionState::started: _selling->start(); break;
@@ -140,7 +140,7 @@ namespace protocol_session {
             case SessionMode::selling:
 
                 assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
-                _buying = _selling->toSellMode();
+                _buying = _selling->toBuyMode();
                 delete _selling;
                 _selling = nullptr;
                 break;
@@ -149,7 +149,7 @@ namespace protocol_session {
                 assert(false);
         }
 
-        switch(_core._state) {
+        switch(_state) {
 
             case SessionState::paused: _buying->pause(); break;
             case SessionState::started: _buying->start(); break;
@@ -162,7 +162,7 @@ namespace protocol_session {
     template <class ConnectionIdType>
     void Session<ConnectionIdType>::start() {
 
-        if
+
 
     }
 
@@ -213,18 +213,18 @@ namespace protocol_session {
     uint Session<ConnectionIdType>::addConnection(const ConnectionIdType & id, const SendMessageOnConnection & callback) {
 
         // Do not accept new connection
-        if(_core._state == SessionState::stopped)
+        if(_state == SessionState::stopped)
             throw exception::StateIncompatibleOperation();
 
         // Check that connection is new, throw exception if not
-        if(_core.hasConnection(id))
+        if(hasConnection(id))
             throw exception::ConnectionAlreadyAddedException<ConnectionIdType>(id);
 
         // Create a new connection
         detail::Connection<ConnectionIdType> * connection = createConnection(id, callback);
 
         // Add to map
-        _core._connections.insert(id, connection);
+        _connections.insert(id, connection);
 
         // Call substate handler
         switch(_mode) {
@@ -246,7 +246,7 @@ namespace protocol_session {
             assert(false);
         }
 
-        return _core._connections.size();
+        return _connections.size();
     }
 
     template<class ConnectionIdType>
@@ -256,7 +256,7 @@ namespace protocol_session {
         if(_mode == SessionMode::not_set)
             throw exception::SessionModeNotSetException();
 
-        return _core.hasConnection(id);
+        return _connections.find(id) != _connections.cend();
     }
 
     template<class ConnectionIdType>
@@ -267,7 +267,7 @@ namespace protocol_session {
             throw exception::SessionModeNotSetException();
 
         // Check that connection is new, throw exception if not
-        if(!_core.hasConnection(id))
+        if(!hasConnection(id))
             throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
 
         // Call substate handler
@@ -293,10 +293,10 @@ namespace protocol_session {
         }
 
         // Remove connection from map
-        _core.removeAndDelete(id);
+        removeAndDelete(id);
 
         // Delete connection
-        detail::Connection<ConnectionIdType> * connection = _core.get(id);
+        detail::Connection<ConnectionIdType> * connection = get(id);
         delete connection;
 
         return true;
@@ -310,7 +310,7 @@ namespace protocol_session {
             throw exception::SessionModeNotSetException();
 
         // Check that connection is new, throw exception if not
-        if(!_core.hasConnection(id))
+        if(!hasConnection(id))
             throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
 
         switch(_mode) {
@@ -367,7 +367,7 @@ namespace protocol_session {
 
     template<class ConnectionIdType>
     SessionState Session<ConnectionIdType>::state() const {
-        return _core._state;
+        return _state;
     }
 
     template<class ConnectionIdType>
@@ -379,10 +379,10 @@ namespace protocol_session {
     template<class ConnectionIdType>
     void Session<ConnectionIdType>::peerAnnouncedModeAndTerms(const ConnectionIdType & id, const protocol_statemachine::AnnouncedModeAndTerms & a) {
 
-        assert(_core.hasConnection(id));
+        assert(hasConnection(id));
 
-        switch(_core._mode) {
-            case SessionMode::buying: _buying.peerAnnouncedModeAndTerms(id, a); break;
+        switch(_mode) {
+            case SessionMode::buying: _buying->peerAnnouncedModeAndTerms(id, a); break;
             case SessionMode::selling: break;
             case SessionMode::observing: break;
             case SessionMode::not_set: throw exception::SessionModeNotSetException();
@@ -558,11 +558,6 @@ namespace protocol_session {
             ids.push_back(mapping.first);
 
         return ids;
-    }
-
-    template <class ConnectionIdType>
-    bool Session<ConnectionIdType>::hasConnection(const ConnectionIdType & id) const {
-        return _connections.find(id) != _connections.cend();
     }
 
     template <class ConnectionIdType>

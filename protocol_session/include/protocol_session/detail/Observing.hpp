@@ -27,6 +27,8 @@ public:
 
     Observing(Session<ConnectionIdType> *);
 
+    void tick();
+
     //// Manage connections
 
     // Connection with given id has been removed (ex-post)
@@ -34,6 +36,14 @@ public:
 
     // Process given message on given connection with given ID
     void processMessageOnConnection(const ConnectionIdType &, const protocol_wire::ExtendedMessagePayload &);
+
+    ////
+
+    void start();
+
+    void stop();
+
+    void pause();
 
     //// Change mode
 
