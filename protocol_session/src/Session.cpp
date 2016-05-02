@@ -198,6 +198,37 @@ namespace protocol_session {
     template <class ConnectionIdType>
     void Session<ConnectionIdType>::stop() {
 
+        if(_state == SessionState::stopped)
+            throw exception::StateIncompatibleOperation();
+
+        switch(_mode) {
+
+            case SessionMode::not_set:
+
+                assert(_observing == nullptr && _buying == nullptr && _selling == nullptr);
+                throw exception::SessionModeNotSetException();
+
+            case SessionMode::observing:
+
+                assert(_observing != nullptr && _buying == nullptr && _selling == nullptr);
+                _observing->stop();
+                break;
+
+            case SessionMode::buying:
+
+                assert(_observing == nullptr && _buying != nullptr && _selling == nullptr);
+                _buying->stop();
+                break;
+
+            case SessionMode::selling:
+
+                assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
+                _selling->stop();
+                break;
+
+            default:
+                assert(false);
+        }
     }
 
     template <class ConnectionIdType>
