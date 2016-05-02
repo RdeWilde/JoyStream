@@ -146,9 +146,6 @@ namespace detail {
         // ConnectionDoesNotExist<ConnectionIdType>
         detail::Connection<ConnectionIdType> * get(const ConnectionIdType &) const;
 
-        // Remove a connection which is known to be present
-        void removeAndDelete(const ConnectionIdType &);
-
         //// Members
 
         // Session mode

@@ -670,17 +670,6 @@ namespace protocol_session {
         else
             return *itr;
     }
-
-    template <class ConnectionIdType>
-    void Session<ConnectionIdType>::removeAndDelete(const ConnectionIdType & id) {
-
-        auto itr = _connections.find(id);
-
-        if(itr == _connections.cend())
-            throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
-        else
-            _connections.erase(itr);
-    }
 }
 }
 
