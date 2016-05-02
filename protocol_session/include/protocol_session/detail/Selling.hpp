@@ -39,27 +39,33 @@ public:
             const SellingPolicy &,
             const protocol_wire::SellerTerms &);
 
-    //// Manage connections
+    //// Connection level client events
 
     // Connection with given id has been removed (ex-post)
-    uint removeConnection(const ConnectionIdType &);
-
-    // Process given message on given connection with given ID
-    void processMessageOnConnection(const ConnectionIdType &, const protocol_wire::ExtendedMessagePayload &);
+    void removeConnection(const ConnectionIdType &);
 
     // Data for given piece has been loaded
     void pieceLoaded(const protocol_wire::PieceData &, int);
 
-    //// Manage mode
+    //// Connection level state machine events
 
-    // Update terms
-    void updateTerms(const protocol_wire::SellerTerms &);
+    void peerAnnouncedModeAndTerms(const ConnectionIdType &, const protocol_statemachine::AnnouncedModeAndTerms &);
+    void invitedToOutdatedContract(const ConnectionIdType &);
+    void invitedToJoinContract(const ConnectionIdType &);
+    void contractPrepared(const ConnectionIdType &, const Coin::typesafeOutPoint &);
+    void pieceRequested(const ConnectionIdType & id, int i);
+    void invalidPieceRequested(const ConnectionIdType & id);
+    void paymentInterrupted(const ConnectionIdType & id);
+    void receivedValidPayment(const ConnectionIdType & id, const Coin::Signature &);
+    void receivedInvalidPayment(const ConnectionIdType & id, const Coin::Signature &);
+
+    //// Change mode
 
     Observing<ConnectionIdType> * toObserveMode();
 
     Buying<ConnectionIdType> * toBuyMode();
 
-    //// Manage state
+    //// Change state
 
     // Starts a stopped session by becoming fully operational
     void start();
@@ -76,27 +82,14 @@ public:
     // NB: Later give some indication of how to set timescale for this call
     void tick();
 
+    // Update terms
+    void updateTerms(const protocol_wire::SellerTerms &);
+
+    //// Getters and setters
+
     protocol_wire::SellerTerms terms() const;
 
 private:
-
-    // State of context session
-    SessionState sessionState() const;
-
-    //// Handling callbacks from connections
-
-    void peerAnnouncedModeAndTerms(const ConnectionIdType &, const protocol_statemachine::AnnouncedModeAndTerms &);
-    void invitedToOutdatedContract(const ConnectionIdType &);
-    void invitedToJoinContract(const ConnectionIdType &);
-    void contractPrepared(const ConnectionIdType &, const Coin::typesafeOutPoint &);
-    void pieceRequested(const ConnectionIdType & id, int i);
-    void invalidPieceRequested(const ConnectionIdType & id);
-    void paymentInterrupted(const ConnectionIdType & id);
-    void receivedValidPayment(const ConnectionIdType & id, const Coin::Signature &);
-    void receivedInvalidPayment(const ConnectionIdType & id, const Coin::Signature &);
-    void sellerHasJoined(const ConnectionIdType &);
-    void sellerHasInterruptedContract(const ConnectionIdType &);
-    void receivedFullPiece(const ConnectionIdType &, const protocol_wire::PieceData &);
 
     //// Members
 
