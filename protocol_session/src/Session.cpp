@@ -234,6 +234,39 @@ namespace protocol_session {
     template <class ConnectionIdType>
     void Session<ConnectionIdType>::pause() {
 
+
+        if(_state == SessionState::paused)
+            throw exception::StateIncompatibleOperation();
+
+        switch(_mode) {
+
+            case SessionMode::not_set:
+
+                assert(_observing == nullptr && _buying == nullptr && _selling == nullptr);
+                throw exception::SessionModeNotSetException();
+
+            case SessionMode::observing:
+
+                assert(_observing != nullptr && _buying == nullptr && _selling == nullptr);
+                _observing->pause();
+                break;
+
+            case SessionMode::buying:
+
+                assert(_observing == nullptr && _buying != nullptr && _selling == nullptr);
+                _buying->pause();
+                break;
+
+            case SessionMode::selling:
+
+                assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
+                _selling->pause();
+                break;
+
+            default:
+                assert(false);
+        }
+
     }
 
     template <class ConnectionIdType>
