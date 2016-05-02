@@ -112,7 +112,7 @@ namespace detail {
 
     private:
 
-        //friend class detail::Observing<ConnectionIdType>;
+        friend class detail::Observing<ConnectionIdType>;
         friend class detail::Selling<ConnectionIdType>;
         friend class detail::Buying<ConnectionIdType>;
 
