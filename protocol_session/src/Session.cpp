@@ -487,17 +487,34 @@ namespace protocol_session {
         return _mode;
     }
 
-
     template<class ConnectionIdType>
     void Session<ConnectionIdType>::peerAnnouncedModeAndTerms(const ConnectionIdType & id, const protocol_statemachine::AnnouncedModeAndTerms & a) {
 
         assert(hasConnection(id));
 
         switch(_mode) {
-            case SessionMode::buying: _buying->peerAnnouncedModeAndTerms(id, a); break;
-            case SessionMode::selling: break;
-            case SessionMode::observing: break;
-            case SessionMode::not_set: throw exception::SessionModeNotSetException();
+
+            case SessionMode::not_set:
+                throw exception::SessionModeNotSetException();
+
+            case SessionMode::observing:
+
+                assert(_observing != nullptr && _buying == nullptr && _selling == nullptr);
+                // Nothing to do
+                break;
+
+            case SessionMode::buying:
+
+                assert(_observing == nullptr && _buying != nullptr && _selling == nullptr);
+                _buying->peerAnnouncedModeAndTerms(id, a);
+                break;
+
+            case SessionMode::selling:
+
+                assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
+                _selling->peerAnnouncedModeAndTerms(id, a);
+                break;
+
         default:
             assert(false);
         }
@@ -505,58 +522,114 @@ namespace protocol_session {
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::invitedToOutdatedContract(const ConnectionIdType &) {
+    void Session<ConnectionIdType>::invitedToOutdatedContract(const ConnectionIdType & id) {
 
+        assert(hasConnection(id));
+        assert(_mode == SessionMode::selling);
+        assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
+
+        _selling->invitedToOutdatedContract(id);
+    }
+
+    template <class ConnectionIdType>
+    void Session<ConnectionIdType>::invitedToJoinContract(const ConnectionIdType & id) {
+
+        assert(hasConnection(id));
+        assert(_mode == SessionMode::selling);
+        assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
+
+        _selling->invitedToJoinContract(id);
+    }
+
+    template <class ConnectionIdType>
+    void Session<ConnectionIdType>::contractPrepared(const ConnectionIdType & id, const Coin::typesafeOutPoint & a) {
+
+        assert(hasConnection(id));
+        assert(_mode == SessionMode::selling);
+        assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
+
+        _selling->contractPrepared(id, a);
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::invitedToJoinContract(const ConnectionIdType &) {
+    void Session<ConnectionIdType>::pieceRequested(const ConnectionIdType & id, int index) {
 
-    }
+        assert(hasConnection(id));
+        assert(_mode == SessionMode::selling);
+        assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
 
-    template<class ConnectionIdType>
-    void Session<ConnectionIdType>::contractPrepared(const ConnectionIdType &, const Coin::typesafeOutPoint &) {
-
-    }
-
-    template<class ConnectionIdType>
-    void Session<ConnectionIdType>::pieceRequested(const ConnectionIdType & id, int i) {
-
+        _selling->pieceRequested(id, index);
     }
 
     template<class ConnectionIdType>
     void Session<ConnectionIdType>::invalidPieceRequested(const ConnectionIdType & id) {
 
+        assert(hasConnection(id));
+        assert(_mode == SessionMode::selling);
+        assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
+
+        _selling->invalidPieceRequested(id);
     }
 
     template<class ConnectionIdType>
     void Session<ConnectionIdType>::paymentInterrupted(const ConnectionIdType & id) {
 
+        assert(hasConnection(id));
+        assert(_mode == SessionMode::selling);
+        assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
+
+        _selling->paymentInterrupted(id);
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::receivedValidPayment(const ConnectionIdType & id, const Coin::Signature &) {
+    void Session<ConnectionIdType>::receivedValidPayment(const ConnectionIdType & id, const Coin::Signature & sig) {
 
+        assert(hasConnection(id));
+        assert(_mode == SessionMode::selling);
+        assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
+
+        _selling->receivedValidPayment(id, sig);
     }
 
     template<class ConnectionIdType>
     void Session<ConnectionIdType>::receivedInvalidPayment(const ConnectionIdType & id, const Coin::Signature &) {
 
+        assert(hasConnection(id));
+
+        assert(_mode == SessionMode::selling);
+        assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
+
+        _selling->pieceRequested(id, index);
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::sellerHasJoined(const ConnectionIdType &) {
+    void Session<ConnectionIdType>::sellerHasJoined(const ConnectionIdType & id) {
 
+        assert(hasConnection(id));
+        assert(_mode == SessionMode::buying);
+        assert(_observing == nullptr && _buying != nullptr && _selling == nullptr);
+
+        _buying->sellerHasJoined(id);
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::sellerHasInterruptedContract(const ConnectionIdType &) {
+    void Session<ConnectionIdType>::sellerHasInterruptedContract(const ConnectionIdType & id) {
 
+        assert(hasConnection(id));
+        assert(_mode == SessionMode::buying);
+        assert(_observing == nullptr && _buying != nullptr && _selling == nullptr);
+
+        _buying->sellerHasInterruptedContract(id);
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::receivedFullPiece(const ConnectionIdType &, const protocol_wire::PieceData &) {
+    void Session<ConnectionIdType>::receivedFullPiece(const ConnectionIdType & id, const protocol_wire::PieceData & data) {
 
+        assert(hasConnection(id));
+        assert(_mode == SessionMode::buying);
+        assert(_observing == nullptr && _buying != nullptr && _selling == nullptr);
+
+        _buying->receivedFullPiece(id, data);
     }
 
     template<class ConnectionIdType>
