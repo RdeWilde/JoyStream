@@ -111,6 +111,15 @@ public:
     }
 };
 
+class ModeIncompatibleOperation : public std::runtime_error {
+
+public:
+
+    ModeIncompatibleOperation()
+        : std::runtime_error("Operation is incompatible with current session mode.") {
+    }
+};
+
 }
 }
 }
