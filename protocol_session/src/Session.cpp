@@ -608,23 +608,6 @@ namespace protocol_session {
         return connection;
     }
 
-    /**
-    template<class ConnectionIdType>
-    void Session<ConnectionIdType>::updateSubstateSessionState(SessionState state) {
-
-        switch(state) {
-
-            case SessionState::paused: break;
-            case SessionState::started: break;
-            case SessionState::stopped: break;
-            default:
-            assert(false);
-        }
-
-    }
-    */
-
-
     template <class ConnectionIdType>
     std::vector<detail::Connection<ConnectionIdType> *> Session<ConnectionIdType>::connectionsWithPeerInMode(protocol_statemachine::ModeAnnounced m) {
 
