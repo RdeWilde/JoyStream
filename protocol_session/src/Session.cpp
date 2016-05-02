@@ -306,7 +306,10 @@ namespace protocol_session {
     template <class ConnectionIdType>
     uint Session<ConnectionIdType>::addConnection(const ConnectionIdType & id, const SendMessageOnConnection & callback) {
 
-        // Do not accept new connection
+        if(_mode == SessionMode::not_set)
+            throw exception::SessionModeNotSetException();
+
+        // Do not accept new connection if session is not set
         if(_state == SessionState::stopped)
             throw exception::StateIncompatibleOperation();
 
@@ -323,14 +326,18 @@ namespace protocol_session {
         // Call substate handler
         switch(_mode) {
 
-            case SessionMode::not_set: throw exception::SessionModeNotSetException();
+            case SessionMode::not_set:
+
+                assert(false);
 
             case SessionMode::buying:
+
                 assert(_buying != nullptr);
                 connection->_machine.process_event(protocol_statemachine::event::BuyModeStarted(_buying->terms()));
-            break;
+                break;
 
             case SessionMode::selling:
+
                 assert(_selling != nullptr);
                 connection->_machine.process_event(protocol_statemachine::event::BuyModeStarted(_selling->terms()));
 
@@ -346,7 +353,6 @@ namespace protocol_session {
     template<class ConnectionIdType>
     bool Session<ConnectionIdType>::hasConnection(const ConnectionIdType & id) const {
 
-        // Verify that session mode is set
         if(_mode == SessionMode::not_set)
             throw exception::SessionModeNotSetException();
 
@@ -368,22 +374,25 @@ namespace protocol_session {
         switch(_mode) {
 
             case SessionMode::not_set:
+
                 assert(false);
 
             case SessionMode::buying:
+
                 assert(_buying != nullptr);
                 _buying->removeConnection(id);
-            break;
+                break;
 
             case SessionMode::selling:
+
                 assert(_selling != nullptr);
                 _selling->removeConnection(id);
-            break;
+                break;
 
             case SessionMode::observing: break;
 
             default:
-            assert(false);
+                assert(false);
         }
 
         // Remove connection from map
@@ -399,7 +408,6 @@ namespace protocol_session {
     template<class ConnectionIdType>
     void Session<ConnectionIdType>::processMessageOnConnection(const ConnectionIdType & id, const protocol_wire::ExtendedMessagePayload * m) {
 
-        // Check that session is set, throw exception if not
         if(_mode == SessionMode::not_set)
             throw exception::SessionModeNotSetException();
 
@@ -434,8 +442,6 @@ namespace protocol_session {
         default:
             assert(false);
         }
-
-
 
     }
 
