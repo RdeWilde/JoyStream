@@ -151,6 +151,9 @@ namespace detail {
 
         //// Members
 
+        // Session mode
+        SessionMode _mode;
+
         // Current state of session
         SessionState _state;
 
@@ -159,9 +162,6 @@ namespace detail {
 
         // When session was started
         time_t _started;
-
-        // Session mode
-        SessionMode _mode;
 
         //// Substates
 

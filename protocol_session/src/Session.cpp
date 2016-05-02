@@ -18,6 +18,7 @@ namespace protocol_session {
     template <class ConnectionIdType>
     Session<ConnectionIdType>::Session()
         : _mode(SessionMode::not_set)
+        , _state(SessionState::stopped)
         , _selling(nullptr)
         , _buying(nullptr) {
 
