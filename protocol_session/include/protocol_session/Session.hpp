@@ -81,6 +81,9 @@ namespace detail {
         // NB: does not result in correspondnig callback ??!?!
         bool removeConnection(const ConnectionIdType &);
 
+        // Get vector of all connection ids
+        std::vector<ConnectionIdType> connectionIds() const;
+
         // Process given message on given connection with given ID
         void processMessageOnConnection(const ConnectionIdType &, const protocol_wire::ExtendedMessagePayload *);
 
@@ -138,9 +141,6 @@ namespace detail {
 
         template <typename T>
         std::vector<detail::Connection<ConnectionIdType> *> connectionsInState() const;
-
-        // Get all ids
-        std::vector<ConnectionIdType> ids() const;
 
         // Returns connection if present, otherwise throws exception
         // ConnectionDoesNotExist<ConnectionIdType>

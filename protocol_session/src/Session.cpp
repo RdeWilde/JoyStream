@@ -406,6 +406,18 @@ namespace protocol_session {
     }
 
     template<class ConnectionIdType>
+    std::vector<ConnectionIdType> Session<ConnectionIdType>::connectionIds() const {
+
+        std::vector<ConnectionIdType> ids;
+
+        // Add ids of all connections
+        for(auto mapping: _connections)
+            ids.push_back(mapping.first);
+
+        return ids;
+    }
+
+    template<class ConnectionIdType>
     void Session<ConnectionIdType>::processMessageOnConnection(const ConnectionIdType & id, const protocol_wire::ExtendedMessagePayload * m) {
 
         if(_mode == SessionMode::not_set)
@@ -646,18 +658,6 @@ namespace protocol_session {
         }
 
         return matches;
-    }
-
-    template <class ConnectionIdType>
-    std::vector<ConnectionIdType> Session<ConnectionIdType>::ids() const {
-
-        std::vector<ConnectionIdType> ids;
-
-        // Add ids of all connections
-        for(auto mapping: _connections)
-            ids.push_back(mapping.first);
-
-        return ids;
     }
 
     template <class ConnectionIdType>
