@@ -176,9 +176,9 @@ double BitcoinRepresentation::unitsWithPrefix(MetricPrefix prefix, double fiatTo
 QString BitcoinRepresentation::toString(BitCoinPrefix prefix, int precision) const {
 
     if(_satoshies == 0)
-        return QString("0Ƀ");
+        return QString("0B");
     else
-        return (_isNegative ? QString("-") : QString("")) + QString::number(unitsWithPrefix(prefix), 'f', precision) + " " + prefixToString(prefix) + QString("Ƀ");
+        return (_isNegative ? QString("-") : QString("")) + QString::number(unitsWithPrefix(prefix), 'f', precision) + " " + prefixToString(prefix) + QString("B");
 }
 
 QString BitcoinRepresentation::toString(int precision) const {
