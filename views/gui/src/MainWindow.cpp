@@ -303,11 +303,6 @@ MainWindow::MainWindow(Controller * controller, const QString & appendToTitle)
                      this,
                      SLOT(on_walletConnected()));
 
-    QObject::connect(_wallet,
-                     SIGNAL(statusMessageUpdated(std::string)),
-                     this,
-                     SLOT(updateStatusMessage(std::string)));
-
     // Show starting wallet balance
     updateWalletBalances(_wallet->balance(), _wallet->unconfirmedBalance());
 }
