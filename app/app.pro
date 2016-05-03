@@ -16,7 +16,10 @@ include(config.pri)
 TARGET = app
 TEMPLATE = app
 
-CONFIG  += console
+# Console only for linux and OSX
+unix: CONFIG += console
+else:win32: CONFIG -= console
+
 CONFIG  += link_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
 CONFIG  += c++11 # Needed for class enum
 
