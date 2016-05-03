@@ -242,7 +242,7 @@ void TorrentView::updateStartedBuyerTorrentPlugin(const BuyerTorrentPluginViewMo
     _torrentTableContextMenu.addAction(&_viewExtensionAction);
 
     // add streaming action to menu
-    _torrentTableContextMenu.addAction(&_streamAction);
+    //_torrentTableContextMenu.addAction(&_streamAction);
 
     // Set initial values
     updateNumberOfBuyers(model->numberOfBuyerPeers());
