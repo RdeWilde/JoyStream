@@ -475,15 +475,22 @@ void Store::addBlockHeader(const ChainMerkleBlock & chainmerkleblock) {
     typedef odb::query<detail::store::Transaction> transaction_query;
     typedef odb::result<detail::store::Transaction> transaction_result;
 
-    // Only add block header if it attaches to previous block header in our store ...
+    transaction_result transactions;
+    header_result headers;
+    std::vector<Coin::TransactionId> deconfirmedTransactions;
+
     header_result prevHeaders(_db->query<detail::store::BlockHeader>(header_query::id == chainmerkleblock.prevBlockHash().getHex()));
     if(prevHeaders.empty()) {
-        // .. unless its the first block header in the store
-        prevHeaders = _db->query<detail::store::BlockHeader>((header_query::height < chainmerkleblock.height) + "LIMIT 1");
-        if(!prevHeaders.empty()) {
-            // block doesn't attach to chain
-            throw BlockHeaderDoesNotConnect();
-        }
+
+        // If the block header does not attach to a prev header in the store
+        // we will assume we are building a new chain. So purge all existing headers
+
+        // select all confirmed transactions
+        transactions = _db->query<detail::store::Transaction>(transaction_query::header.is_not_null());
+
+        // select all headers
+        headers = _db->query<detail::store::BlockHeader>();
+
     } else {
         // Height of block being inserted should be one greater than the block it is connecting to
         std::shared_ptr<detail::store::BlockHeader> prevBlockHeader(prevHeaders.begin().load());
@@ -491,28 +498,29 @@ void Store::addBlockHeader(const ChainMerkleBlock & chainmerkleblock) {
             // block height mismatch
             throw BlockHeaderDoesNotConnect();
         }
+
+        // select all transactions mined in blocks with height equal or greater than chainmerkleblock.height
+        transactions = _db->query<detail::store::Transaction>(transaction_query::header.is_not_null() &&
+                                                              transaction_query::header->height >= chainmerkleblock.height);
+
+        // select all blocks with height equal or greater than chainmerkleblock.height
+        headers = _db->query<detail::store::BlockHeader>(header_query::height >= chainmerkleblock.height);
     }
 
-    // find all transactions mined in blocks with height equal or greater than chainmerkleblock.height
-    transaction_result transactions(_db->query<detail::store::Transaction>(transaction_query::header.is_not_null() &&
-                                                           transaction_query::header->height >= chainmerkleblock.height));
-
-    std::vector<Coin::TransactionId> deconfirmedTransactions;
-
+    // Deconfirm selected transactions
     for(detail::store::Transaction &tx : transactions) {
         tx.header(nullptr);
         _db->update(tx);
         deconfirmedTransactions.push_back(Coin::TransactionId::fromRPCByteOrder(tx.txid()));
     }
 
-    // delete all blocks with height equal or greater than chainmerkleblock.height
-    header_result headers(_db->query<detail::store::BlockHeader>(header_query::height >= chainmerkleblock.height));
+    // Delete selected headers
     for(const detail::store::BlockHeader &header : headers) {
         _db->erase(header);
     }
 
+    // Insert new header
     std::shared_ptr<detail::store::BlockHeader> block(new detail::store::BlockHeader(chainmerkleblock));
-
     _db->persist(block);
 
     // get transactions in blockheader at height chainmerkleblock.height - 1
@@ -706,7 +714,7 @@ std::vector<std::string> Store::getLatestBlockHeaderHashes() {
 
     odb::transaction t(_db->begin());
 
-    result headers(_db->query<detail::store::BlockHeader>("ORDER BY"+ query::height + "DESC LIMIT 10"));
+    result headers(_db->query<detail::store::BlockHeader>("ORDER BY"+ query::height + "DESC LIMIT 50"));
     for(auto &header : headers) {
         hashes.push_back(header.id());
     }
