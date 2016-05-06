@@ -9,6 +9,7 @@
 #include <QCommandLineParser>
 #include <QDir>
 #include <QNetworkAccessManager>
+#include <QTimer>
 
 #include <core/controller/Controller.hpp>
 #include <core/logger/LoggerManager.hpp>
@@ -17,6 +18,7 @@
 #include <AutoUpdater.hpp>
 #include <Analytics.hpp>
 #include <InstanceManager.hpp>
+#include <gui/GeneralLoadingProgressDialog.hpp>
 
 #define ERROR_LOG_ENDPOINT "error.joystream.co/error"
 #define ERROR_LOG_MAX_SIZE 200*20
@@ -29,6 +31,11 @@ int main(int argc, char* argv[]) {
     // Create Qt application: all objects created after this point are owned by this thread
     QApplication app(argc, argv);
     QApplication::setApplicationName(APPLICATION_NAME);
+
+    GeneralLoadingProgressDialog progressDialog(APPLICATION_NAME);
+    progressDialog.updateMessage("Initializing");
+    progressDialog.show();
+    app.processEvents();
 
     InstanceManager instanceManager(APPLICATION_NAME);
 
@@ -60,11 +67,23 @@ int main(int argc, char* argv[]) {
 
     AutoUpdater au(app);
 
+
     // Call update manager, if allowed
-    if(!parser.isSet(showNoUpdateOption) && au.newVersionAvailable()) {
-         au.updateMiniUI();
-         return 0;
+    if(!parser.isSet(showNoUpdateOption)){
+        progressDialog.updateMessage("Checking for updates...");
+        if(au.newVersionAvailable()) {
+            progressDialog.updateMessage("A new version is available, Starting Updater...");
+            au.updateMiniUI();
+            // Updater will again check for new version, without a UI so
+            // Hang around a few seconds until the downloading dialog shows up
+            QTimer::singleShot(3000, &app, SLOT(quit()));
+            app.exec();
+            return 0;
+        }
+        progressDialog.updateMessage("You are running latest version.");
+        app.processEvents();
     }
+
 
     // Check console flag
     bool showView = false;
@@ -117,6 +136,8 @@ int main(int argc, char* argv[]) {
             INIT_LOGGER(syncLogPath.toStdString().c_str());
         }
 
+        progressDialog.updateMessage("Starting Controller");
+
         // Create controller
         // Loading the block tree will take some time.. maybe we can show a progress dialogue
         // Or let the main window open the wallet..?
@@ -137,6 +158,8 @@ int main(int argc, char* argv[]) {
             view.maximize();
             QApplication::setActiveWindow(&view);
         });
+
+        progressDialog.hide();
 
         view.show();
 
