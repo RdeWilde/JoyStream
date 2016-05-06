@@ -23,10 +23,26 @@
 #define ERROR_LOG_ENDPOINT "error.joystream.co/error"
 #define ERROR_LOG_MAX_SIZE 200*20
 
-bool send_errorlog(QNetworkAccessManager * manager);
+#define APPLICATION_WALLET_FILENAME "joystream.store"
+#define APPLICATION_BLOCKTREE_FILENAME "joystream.blocktree"
+
+bool send_errorlog(QFile * errorFile, QNetworkAccessManager * manager);
+QString get_data_path(const QString & filename = QString());
 
 // JoyStream entry point
 int main(int argc, char* argv[]) {
+
+    // Create directory used for saving user's application specific data
+    QDir::home().mkdir(".joystream");
+
+    // Move old wallet and blocktree to new directory
+    QFile::rename(QDir::homePath() + QDir::separator() + APPLICATION_WALLET_FILENAME, get_data_path(APPLICATION_WALLET_FILENAME));
+    QFile::rename(QDir::homePath() + QDir::separator() + APPLICATION_BLOCKTREE_FILENAME, get_data_path(APPLICATION_BLOCKTREE_FILENAME));
+
+    // Cleanup old files
+    QFile::remove(QDir::homePath() + QDir::separator() + "main.txt");
+    QFile::remove(QDir::homePath() + QDir::separator() + "joystream-sync.log");
+    QFile::remove(QDir::homePath() + QDir::separator() + "wallet.sqlite3");
 
     // Create Qt application: all objects created after this point are owned by this thread
     QApplication app(argc, argv);
@@ -96,7 +112,7 @@ int main(int argc, char* argv[]) {
 
     // Create logging category
     bool use_stdout_log = true;
-    QLoggingCategory * category = global_log_manager.createLogger("main", use_stdout_log, false);
+    QLoggingCategory * category = global_log_manager.createLogger("main", get_data_path(), use_stdout_log, false);
 
     // Network access manager instance used by all code trying to use network
     QNetworkAccessManager manager;
@@ -112,11 +128,11 @@ int main(int argc, char* argv[]) {
         if(false) {
 
             // Get name of file name
-            QString file = QDir::homePath() + QDir::separator() + APPLICATION_PARAMETER_FILE_NAME;
-            std::string fileString = file.toStdString();
+            QString parameterFilePath = get_data_path(APPLICATION_PARAMETER_FILE_NAME);
+            std::string fileString = parameterFilePath.toStdString();
 
             // Check that file exists, and that it actually is a file
-            if(!QFile::exists(file)) {
+            if(!QFile::exists(parameterFilePath)) {
 
                 qDebug() << "WARNING: parameter file"
                          << fileString.c_str()
@@ -129,14 +145,14 @@ int main(int argc, char* argv[]) {
         }
 
         // Wallet location
-        QString storePath = QDir::homePath() + QDir::separator() + QString("joystream.store");
+        QString storePath = get_data_path(APPLICATION_WALLET_FILENAME);
 
         // Block Tree file location
-        QString blocktreePath = QDir::homePath() + QDir::separator() + QString("joystream.blocktree");
+        QString blocktreePath = get_data_path(APPLICATION_BLOCKTREE_FILENAME);
 
         // NetSync log file
         if(getenv("NETSYNC_LOGGER") != NULL) {
-            QString syncLogPath = QDir::homePath() + QDir::separator() + QString("joystream-sync.log");
+            QString syncLogPath = get_data_path("sync.log");
             INIT_LOGGER(syncLogPath.toStdString().c_str());
         }
 
@@ -201,25 +217,26 @@ int main(int argc, char* argv[]) {
 
         qCDebug((*category)) << "Catastrophic error due to unhandled exception" << e.what();
         qCDebug((*category)) << "Sending error log to " << ERROR_LOG_ENDPOINT;
-        send_errorlog(&manager);
+        send_errorlog(global_log_manager.loggers["main"].file, &manager);
         qCDebug((*category)) << "Shutting down, try to restart software, delete wallet file if problem persists.";
 
         return 1;
     }
 }
 
-bool send_errorlog(QNetworkAccessManager * manager) {
+QString get_data_path(const QString & filename) {
+    return QDir::homePath() + QDir::separator() + ".joystream" + QDir::separator() + filename;
+}
 
-    // Read in error file
-    QFile errorFile(QDir::homePath() + QDir::separator() + QString("main.txt"));
+bool send_errorlog(QFile * errorFile, QNetworkAccessManager * manager) {
 
-    if(!errorFile.exists())
+    if(!errorFile->exists())
             return false;
 
-    if(!errorFile.open(QIODevice::ReadOnly))
+    if(!errorFile->open(QIODevice::ReadOnly))
             return false;
 
-    QByteArray data = errorFile.readAll();
+    QByteArray data = errorFile->readAll();
 
     // cut off excessive part
     data = data.right(ERROR_LOG_MAX_SIZE);
