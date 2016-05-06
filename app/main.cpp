@@ -32,18 +32,6 @@ int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
     QApplication::setApplicationName(APPLICATION_NAME);
 
-    GeneralLoadingProgressDialog progressDialog(APPLICATION_NAME);
-    progressDialog.updateMessage("Initializing");
-    progressDialog.show();
-    app.processEvents();
-
-    InstanceManager instanceManager(APPLICATION_NAME);
-
-    if(!instanceManager.isMain()) {
-        qDebug() << "Another instance of JoyStream is already running.";
-        return 0;
-    }
-
     QString applicationVersion = QString::number(APPLICATION_VERSION_MAJOR) + "." + QString::number(APPLICATION_VERSION_MINOR) + "." + QString::number(APPLICATION_VERSION_PATCH);
     QApplication::setApplicationVersion(applicationVersion);
 
@@ -57,16 +45,38 @@ int main(int argc, char* argv[]) {
 
     QCommandLineOption showNoUpdateOption("n", "Do not run update manager.");
     parser.addOption(showNoUpdateOption);
-    QCommandLineOption showConsoleModeOption("c", "Run in console mode.");
-    parser.addOption(showConsoleModeOption);
     QCommandLineOption showFreshOption("f", "Create and use a fresh parameter file.");
     parser.addOption(showFreshOption);
+    QCommandLineOption detachFromLauncherOption("d", "Detach from launcher");
+    parser.addOption(detachFromLauncherOption);
 
     // Process the actual command line arguments given by the user
     parser.process(app);
 
-    AutoUpdater au(app);
+    // This is mainly intended to be used on windows and linux when running joystream after an auto-update
+    // to allow the updater to exit after starting joystream.
+    if(parser.isSet(detachFromLauncherOption)) {
+        QString program = QCoreApplication::applicationFilePath();
+        std::cout << "Launching " << program.toStdString() << std::endl;
+        QStringList arguments;
+        arguments << "-n";
+        QProcess::startDetached(program, arguments);
+        return 0;
+    }
 
+    GeneralLoadingProgressDialog progressDialog(APPLICATION_NAME);
+    progressDialog.updateMessage("Initializing");
+    progressDialog.show();
+    app.processEvents();
+
+    InstanceManager instanceManager(APPLICATION_NAME);
+
+    if(!instanceManager.isMain()) {
+        qDebug() << "Another instance of JoyStream is already running.";
+        return 0;
+    }
+
+    AutoUpdater au(app);
 
     // Call update manager, if allowed
     if(!parser.isSet(showNoUpdateOption)){
@@ -83,12 +93,6 @@ int main(int argc, char* argv[]) {
         progressDialog.updateMessage("You are running latest version.");
         app.processEvents();
     }
-
-
-    // Check console flag
-    bool showView = false;
-    if(!parser.isSet(showConsoleModeOption))
-            showView = true;
 
     // Create logging category
     bool use_stdout_log = true;

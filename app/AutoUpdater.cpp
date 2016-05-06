@@ -31,16 +31,16 @@ bool AutoUpdater::newVersionAvailable() {
 
     std::cout << "checking for updates..." << std::endl;
 
-    QProcess *process = new QProcess();
+    QProcess process;
 
-    QObject::connect(process, SIGNAL(finished(int)), this, SLOT(updateCheckDone(int)));
+    QObject::connect(&process, SIGNAL(finished(int)), this, SLOT(updateCheckDone(int)));
 
-    process->start(program, arguments);
+    process.start(program, arguments);
 
     _app.exec();
 
     //exit code 0 means an update is available to download
-    return process->exitCode() == 0;
+    return process.exitCode() == 0;
 }
 
 void AutoUpdater::updateCheckDone(int exitCode) {
@@ -57,8 +57,7 @@ void AutoUpdater::updateMiniUI(){
     arguments << "--unattendedmodebehavior" << "download";
     arguments << "--unattendedmodeui" << "minimalWithDialogs";
 
-    QProcess *process = new QProcess();
-    process->start(program, arguments);
+    QProcess::startDetached(program, arguments);
 }
 
 /* runs fully interactive auto-updater gui*/
