@@ -57,7 +57,7 @@ namespace Runner {
                                QNetworkAccessManager * manager,
                                const QString & BlockcypherToken) {
         // Create logging category
-        QLoggingCategory * category = global_log_manager.createLogger(name, use_stdout_logg, false);
+        QLoggingCategory * category = global_log_manager.createLogger(name, "./", use_stdout_logg, false);
 
         // Create client folder if it does not alreadye exist
         QDir dir(home);
