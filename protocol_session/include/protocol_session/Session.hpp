@@ -34,6 +34,10 @@ namespace detail {
     class Observing;
 }
 
+    class SellingPolicy;
+    class BuyingPolicy;
+    class TorrentPieceInformation;
+
     template <class ConnectionIdType>
     class Session {
 
@@ -50,10 +54,25 @@ namespace detail {
         void toObserveMode();
 
         // Change session to sell mode
-        void toSellMode();
+        void toSellMode(const RemovedConnectionCallbackHandler<ConnectionIdType> &,
+                        const GenerateKeyPairsCallbackHandler &,
+                        const GenerateP2PKHAddressesCallbackHandler &,
+                        const LoadPieceForBuyer<ConnectionIdType> &,
+                        const ClaimLastPayment<ConnectionIdType> &,
+                        const AnchorAnnounced<ConnectionIdType> &,
+                        const SellingPolicy &,
+                        const protocol_wire::SellerTerms &);
 
         // Change session to buy mode
-        void toBuyMode();
+        void toBuyMode(const RemovedConnectionCallbackHandler<ConnectionIdType> &,
+                       const GenerateKeyPairsCallbackHandler &,
+                       const GenerateP2PKHAddressesCallbackHandler &,
+                       const BroadcastTransaction &,
+                       const FullPieceArrived<ConnectionIdType> &,
+                       const Coin::UnspentP2PKHOutput &,
+                       const BuyingPolicy &,
+                       const protocol_wire::BuyerTerms &,
+                       const TorrentPieceInformation &);
 
         //// Manage state
 
@@ -78,7 +97,6 @@ namespace detail {
         bool hasConnection(const ConnectionIdType &) const;
 
         // Remove connection if one exists with given id, otherwise returns false.
-        // NB: does not result in correspondnig callback ??!?!
         bool removeConnection(const ConnectionIdType &);
 
         // Get vector of all connection ids
@@ -99,10 +117,16 @@ namespace detail {
         // a regitered connection. Could be non-joystream peers, or something out of bounds.
         void pieceDownloaded(int);
 
+        // Update terms
+        void updateTerms(const protocol_wire::BuyerTerms &);
+
         //// Selling
 
         // Data for given piece has been loaded
-        void pieceLoaded(const protocol_wire::PieceData &, int);
+        void pieceLoaded(const ConnectionIdType &, const protocol_wire::PieceData &, int);
+
+        // Update terms when selling
+        void updateTerms(const protocol_wire::SellerTerms &);
 
         //// Getters
 
@@ -145,6 +169,13 @@ namespace detail {
         // Returns connection if present, otherwise throws exception
         // ConnectionDoesNotExist<ConnectionIdType>
         detail::Connection<ConnectionIdType> * get(const ConnectionIdType &) const;
+
+        // Removes connection with given id from the connections map
+        // and deletes it.
+        void removeFromMapAndDelete(const ConnectionIdType &);
+
+        // If possible, creates connection and adds to map
+        detail::Connection<ConnectionIdType> * createAndAddConnection(const ConnectionIdType &, const SendMessageOnConnection &);
 
         //// Members
 

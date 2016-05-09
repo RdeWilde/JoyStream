@@ -28,12 +28,13 @@ namespace protocol_session {
     template <class ConnectionIdType>
     void Session<ConnectionIdType>::toObserveMode() {
 
+        // Prepare for exiting current state
         switch(_mode) {
 
             case SessionMode::not_set:
 
                 assert(_observing == nullptr && _buying == nullptr && _selling == nullptr);
-                throw exception::SessionModeNotSetException();
+                break;
 
             case SessionMode::observing:
 
@@ -43,7 +44,7 @@ namespace protocol_session {
             case SessionMode::buying:
 
                 assert(_observing == nullptr && _buying != nullptr && _selling == nullptr);
-                _observing = _buying->toObserveMode();
+                _buying->leavingState();
                 delete _buying;
                 _buying = nullptr;
                 break;
@@ -51,7 +52,7 @@ namespace protocol_session {
             case SessionMode::selling:
 
                 assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
-                _observing = _selling->toObserveMode();
+                _selling->leavingState();
                 delete _selling;
                 _selling = nullptr;
                 break;
@@ -60,19 +61,24 @@ namespace protocol_session {
                 assert(false);
         }
 
-        switch(_state) {
+        // Change mode
+        _mode = SessionMode::observing;
 
-            case SessionState::paused: _observing->pause(); break;
-            case SessionState::started: _observing->start(); break;
-            case SessionState::stopped: _observing->stop(); break;
-            default:
-            assert(false);
-        }
+        // Create
+        _observing = new detail::Observing<ConnectionIdType>(this);
     }
 
     template <class ConnectionIdType>
-    void Session<ConnectionIdType>::toSellMode() {
+    void Session<ConnectionIdType>::toSellMode(const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
+                                               const GenerateKeyPairsCallbackHandler & generateKeyPairs,
+                                               const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddresses,
+                                               const LoadPieceForBuyer<ConnectionIdType> & loadPieceForBuyer,
+                                               const ClaimLastPayment<ConnectionIdType> & claimLastPayment,
+                                               const AnchorAnnounced<ConnectionIdType> & anchorAnnounced,
+                                               const SellingPolicy & policy,
+                                               const protocol_wire::SellerTerms & terms) {
 
+        // Prepare for exiting current state
         switch(_mode) {
 
             case SessionMode::not_set:
@@ -83,7 +89,6 @@ namespace protocol_session {
             case SessionMode::observing:
 
                 assert(_observing != nullptr && _buying == nullptr && _selling == nullptr);
-                _selling = _observing->toSellMode();
                 delete _observing;
                 _observing = nullptr;
                 break;
@@ -91,7 +96,7 @@ namespace protocol_session {
             case SessionMode::buying:
 
                 assert(_observing == nullptr && _buying != nullptr && _selling == nullptr);
-                _selling = _buying->toSellMode();
+                _buying->leavingState();
                 delete _buying;
                 _buying = nullptr;
                 break;
@@ -105,30 +110,43 @@ namespace protocol_session {
                 assert(false);
         }
 
-        switch(_state) {
+        // Change mode
+        _mode = SessionMode::selling;
 
-            case SessionState::paused: _selling->pause(); break;
-            case SessionState::started: _selling->start(); break;
-            case SessionState::stopped: _selling->stop(); break;
-            default:
-            assert(false);
-        }
+        // Create and set selling state
+        _selling = new detail::Selling<ConnectionIdType>(this,
+                                                         removedConnection,
+                                                         generateKeyPairs,
+                                                         generateP2PKHAddresses,
+                                                         loadPieceForBuyer,
+                                                         claimLastPayment,
+                                                         anchorAnnounced,
+                                                         policy,
+                                                         terms);
     }
 
     template <class ConnectionIdType>
-    void Session<ConnectionIdType>::toBuyMode() {
+    void Session<ConnectionIdType>::toBuyMode(const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
+                                              const GenerateKeyPairsCallbackHandler & generateKeyPairs,
+                                              const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddresses,
+                                              const BroadcastTransaction & hasOutstandingPayment,
+                                              const FullPieceArrived<ConnectionIdType> & fullPieceArrived,
+                                              const Coin::UnspentP2PKHOutput & funding,
+                                              const BuyingPolicy & policy,
+                                              const protocol_wire::BuyerTerms & terms,
+                                              const TorrentPieceInformation & information) {
 
+        // Prepare for exiting current state
         switch(_mode) {
 
             case SessionMode::not_set:
 
                 assert(_observing == nullptr && _buying == nullptr && _selling == nullptr);
-                throw exception::SessionModeNotSetException();
+                break;
 
             case SessionMode::observing:
 
                 assert(_observing != nullptr && _buying == nullptr && _selling == nullptr);
-                _buying = _observing->toBuyMode();
                 delete _observing;
                 _observing = nullptr;
                 break;
@@ -141,7 +159,7 @@ namespace protocol_session {
             case SessionMode::selling:
 
                 assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
-                _buying = _selling->toBuyMode();
+                _selling->leavingState();
                 delete _selling;
                 _selling = nullptr;
                 break;
@@ -150,14 +168,20 @@ namespace protocol_session {
                 assert(false);
         }
 
-        switch(_state) {
+        // Change mode
+        _mode = SessionMode::buying;
 
-            case SessionState::paused: _buying->pause(); break;
-            case SessionState::started: _buying->start(); break;
-            case SessionState::stopped: _buying->stop(); break;
-            default:
-            assert(false);
-        }
+        // Create and set selling state
+        _buying = new detail::Buying<ConnectionIdType>(this,
+                                                       removedConnection,
+                                                       generateKeyPairs,
+                                                       generateP2PKHAddresses,
+                                                       hasOutstandingPayment,
+                                                       fullPieceArrived,
+                                                       funding,
+                                                       policy,
+                                                       terms,
+                                                       information);
     }
 
     template <class ConnectionIdType>
@@ -230,11 +254,11 @@ namespace protocol_session {
             default:
                 assert(false);
         }
+
     }
 
     template <class ConnectionIdType>
     void Session<ConnectionIdType>::pause() {
-
 
         if(_state == SessionState::paused)
             throw exception::StateIncompatibleOperation();
@@ -267,7 +291,6 @@ namespace protocol_session {
             default:
                 assert(false);
         }
-
     }
 
     template <class ConnectionIdType>
@@ -277,28 +300,29 @@ namespace protocol_session {
 
             case SessionMode::not_set:
 
+                assert(_observing == nullptr && _buying == nullptr && _selling == nullptr);
                 throw exception::SessionModeNotSetException();
-                break;
 
             case SessionMode::observing:
 
-                assert(_observing != nullptr);
-                _observing->tick();
+                assert(_observing != nullptr && _buying == nullptr && _selling == nullptr);
+                // Nothing to do for observing mode
                 break;
 
             case SessionMode::buying:
 
-                assert(_buying != nullptr);
+                assert(_observing == nullptr && _buying != nullptr && _selling == nullptr);
                 _buying->tick();
                 break;
 
             case SessionMode::selling:
 
-                assert(_selling != nullptr);
+                assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
                 _selling->tick();
                 break;
 
             default:
+
                 assert(false);
         }
     }
@@ -306,48 +330,32 @@ namespace protocol_session {
     template <class ConnectionIdType>
     uint Session<ConnectionIdType>::addConnection(const ConnectionIdType & id, const SendMessageOnConnection & callback) {
 
-        if(_mode == SessionMode::not_set)
-            throw exception::SessionModeNotSetException();
-
-        // Do not accept new connection if session is not set
-        if(_state == SessionState::stopped)
-            throw exception::StateIncompatibleOperation();
-
-        // Check that connection is new, throw exception if not
-        if(hasConnection(id))
-            throw exception::ConnectionAlreadyAddedException<ConnectionIdType>(id);
-
-        // Create a new connection
-        detail::Connection<ConnectionIdType> * connection = createConnection(id, callback);
-
-        // Add to map
-        _connections.insert(id, connection);
-
-        // Call substate handler
         switch(_mode) {
 
             case SessionMode::not_set:
 
-                assert(false);
+                assert(_observing == nullptr && _buying == nullptr && _selling == nullptr);
+                throw exception::SessionModeNotSetException();
+
+            case SessionMode::observing:
+
+                assert(_observing != nullptr && _buying == nullptr && _selling == nullptr);
+                return _observing->addConnection(id, callback);
 
             case SessionMode::buying:
 
-                assert(_buying != nullptr);
-                connection->_machine.process_event(protocol_statemachine::event::BuyModeStarted(_buying->terms()));
-                break;
+                assert(_observing == nullptr && _buying != nullptr && _selling == nullptr);
+                return _buying->addConnection(id, callback);
 
             case SessionMode::selling:
 
-                assert(_selling != nullptr);
-                connection->_machine.process_event(protocol_statemachine::event::BuyModeStarted(_selling->terms()));
-
-            case SessionMode::observing: break;
+                assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
+                return _selling->addConnection(id, callback);
 
             default:
-            assert(false);
-        }
 
-        return _connections.size();
+                assert(false);
+        }
     }
 
     template<class ConnectionIdType>
@@ -362,45 +370,35 @@ namespace protocol_session {
     template<class ConnectionIdType>
     bool Session<ConnectionIdType>::removeConnection(const ConnectionIdType & id) {
 
-        // Verify that session mode is set
-        if(_mode == SessionMode::not_set)
-            throw exception::SessionModeNotSetException();
-
-        // Check that connection is new, throw exception if not
-        if(!hasConnection(id))
-            throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
-
-        // Call substate handler
         switch(_mode) {
 
             case SessionMode::not_set:
 
-                assert(false);
+                assert(_observing == nullptr && _buying == nullptr && _selling == nullptr);
+                throw exception::SessionModeNotSetException();
+                break;
+
+            case SessionMode::observing:
+
+                assert(_observing != nullptr && _buying == nullptr && _selling == nullptr);
+                _observing->removeConnection(id);
+                break;
 
             case SessionMode::buying:
 
-                assert(_buying != nullptr);
+                assert(_observing == nullptr && _buying != nullptr && _selling == nullptr);
                 _buying->removeConnection(id);
                 break;
 
             case SessionMode::selling:
 
-                assert(_selling != nullptr);
+                assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
                 _selling->removeConnection(id);
                 break;
-
-            case SessionMode::observing: break;
 
             default:
                 assert(false);
         }
-
-        // Remove connection from map
-        removeAndDelete(id);
-
-        // Delete connection
-        detail::Connection<ConnectionIdType> * connection = get(id);
-        delete connection;
 
         return true;
     }
@@ -423,58 +421,208 @@ namespace protocol_session {
         if(_mode == SessionMode::not_set)
             throw exception::SessionModeNotSetException();
 
-        // Check that connection is new, throw exception if not
-        if(!hasConnection(id))
-            throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
+        // Get connection
+        detail::Connection<ConnectionIdType> * c = get(id);
+
+        // and, have it process the message
+        c->processMessage(m);
+    }
+
+    template<class ConnectionIdType>
+    void Session<ConnectionIdType>::validPieceReceivedOnConnection(const ConnectionIdType & id, int index) {
 
         switch(_mode) {
 
             case SessionMode::not_set:
 
-                assert(false);
+                assert(_observing == nullptr && _buying == nullptr && _selling == nullptr);
+                throw exception::SessionModeNotSetException();
+
+            case SessionMode::observing:
+
+                assert(_observing != nullptr && _buying == nullptr && _selling == nullptr);
+                throw exception::ModeIncompatibleOperation();
+                break;
 
             case SessionMode::buying:
 
-                assert(_buying != nullptr);
-                _buying->processMessageOnConnection(id, m);
+                assert(_observing == nullptr && _buying != nullptr && _selling == nullptr);
+                _buying->validPieceReceivedOnConnection(id, index);
                 break;
 
             case SessionMode::selling:
 
-                assert(_selling != nullptr);
-                _selling->processMessageOnConnection(id, m);
+                assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
+                throw exception::ModeIncompatibleOperation();
                 break;
 
-            case SessionMode::observing:
-
-                assert(_observing != nullptr);
-                _observing->processMessageOnConnection(id, m);
-                break;
-
-        default:
-            assert(false);
+            default:
+                assert(false);
         }
 
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::validPieceReceivedOnConnection(const ConnectionIdType &, int index) {
+    void Session<ConnectionIdType>::invalidPieceReceivedOnConnection(const ConnectionIdType & id, int index) {
+
+        switch(_mode) {
+
+            case SessionMode::not_set:
+
+                throw exception::SessionModeNotSetException();
+
+            case SessionMode::observing:
+
+                assert(_observing != nullptr && _buying == nullptr && _selling == nullptr);
+                throw exception::ModeIncompatibleOperation();
+                break;
+
+            case SessionMode::buying:
+
+                assert(_observing == nullptr && _buying != nullptr && _selling == nullptr);
+                _buying->invalidPieceReceivedOnConnection(id, index);
+                break;
+
+            case SessionMode::selling:
+
+                assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
+                throw exception::ModeIncompatibleOperation();
+                break;
+
+            default:
+                assert(false);
+        }
 
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::invalidPieceReceivedOnConnection(const ConnectionIdType &, int index) {
+    void Session<ConnectionIdType>::pieceDownloaded(int index) {
+
+        switch(_mode) {
+
+            case SessionMode::not_set:
+
+                throw exception::SessionModeNotSetException();
+
+            case SessionMode::observing:
+
+                assert(_observing != nullptr && _buying == nullptr && _selling == nullptr);
+                throw exception::ModeIncompatibleOperation();
+                break;
+
+            case SessionMode::buying:
+
+                assert(_observing == nullptr && _buying != nullptr && _selling == nullptr);
+                _buying->pieceDownloaded(index);
+                break;
+
+            case SessionMode::selling:
+
+                assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
+                throw exception::ModeIncompatibleOperation();
+                break;
+
+            default:
+                assert(false);
+        }
 
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::pieceDownloaded(int) {
+    void Session<ConnectionIdType>::updateTerms(const protocol_wire::BuyerTerms & terms) {
+
+        switch(_mode) {
+
+            case SessionMode::not_set:
+
+                throw exception::SessionModeNotSetException();
+
+            case SessionMode::observing:
+
+                assert(_observing != nullptr && _buying == nullptr && _selling == nullptr);
+                throw exception::ModeIncompatibleOperation();
+                break;
+
+            case SessionMode::buying:
+
+                assert(_observing == nullptr && _buying != nullptr && _selling == nullptr);
+                _buying->updateTerms(terms);
+                break;
+
+            case SessionMode::selling:
+
+                assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
+                throw exception::ModeIncompatibleOperation();
+                break;
+
+            default:
+                assert(false);
+        }
 
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::pieceLoaded(const protocol_wire::PieceData &, int) {
+    void Session<ConnectionIdType>::pieceLoaded(const ConnectionIdType & id, const protocol_wire::PieceData & data, int index) {
 
+        switch(_mode) {
+
+            case SessionMode::not_set:
+
+                throw exception::SessionModeNotSetException();
+
+            case SessionMode::observing:
+
+                assert(_observing != nullptr && _buying == nullptr && _selling == nullptr);
+                throw exception::ModeIncompatibleOperation();
+                break;
+
+            case SessionMode::buying:
+
+                assert(_observing == nullptr && _buying != nullptr && _selling == nullptr);
+                throw exception::ModeIncompatibleOperation();
+                break;
+
+            case SessionMode::selling:
+
+                assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
+                _selling->pieceLoaded(id, data, index);
+                break;
+
+            default:
+                assert(false);
+        }
+    }
+
+    template<class ConnectionIdType>
+    void Session<ConnectionIdType>::updateTerms(const protocol_wire::SellerTerms & terms) {
+
+        switch(_mode) {
+
+            case SessionMode::not_set:
+
+                throw exception::SessionModeNotSetException();
+
+            case SessionMode::observing:
+
+                assert(_observing != nullptr && _buying == nullptr && _selling == nullptr);
+                throw exception::ModeIncompatibleOperation();
+                break;
+
+            case SessionMode::buying:
+
+                assert(_observing == nullptr && _buying != nullptr && _selling == nullptr);
+                throw exception::ModeIncompatibleOperation();
+                break;
+
+            case SessionMode::selling:
+
+                assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
+                _selling->updateTerms(terms);
+                break;
+
+            default:
+                assert(false);
+        }
     }
 
     template<class ConnectionIdType>
@@ -595,7 +743,6 @@ namespace protocol_session {
     void Session<ConnectionIdType>::receivedInvalidPayment(const ConnectionIdType & id, const Coin::Signature &) {
 
         assert(hasConnection(id));
-
         assert(_mode == SessionMode::selling);
         assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
 
@@ -724,7 +871,40 @@ namespace protocol_session {
         if(itr == _connections.cend())
             throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
         else
-            return *itr;
+            return itr->second;
+    }
+
+    template <class ConnectionIdType>
+    void Session<ConnectionIdType>::removeFromMapAndDelete(const ConnectionIdType & id) {
+
+        // Get iterator pointing at connection in map
+        auto itr = _connections.find(id);
+
+        assert(itr != _connections.end());
+
+        // Delete connection
+        delete (itr->second);
+
+        // Delete from map
+        _connections.erase(itr);
+    }
+
+    template <class ConnectionIdType>
+    detail::Connection<ConnectionIdType> * Session<ConnectionIdType>::createAndAddConnection(const ConnectionIdType & id, const SendMessageOnConnection & callback) {
+
+        // Do not accept new connection if session is stopped
+        if(_state == SessionState::stopped)
+            throw exception::StateIncompatibleOperation();
+
+        // Check that connection is new, throw exception if not
+        if(hasConnection(id))
+            throw exception::ConnectionAlreadyAddedException<ConnectionIdType>(id);
+
+        // Create a new connection
+        detail::Connection<ConnectionIdType> * connection = createConnection(id, callback);
+
+        // Add to map
+        _connections.insert(id, connection);
     }
 }
 }
