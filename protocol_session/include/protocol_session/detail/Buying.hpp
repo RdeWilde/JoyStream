@@ -51,7 +51,6 @@ public:
         download_completed
     };
 
-
     Buying(Session<ConnectionIdType> *,
            const RemovedConnectionCallbackHandler<ConnectionIdType> &,
            const GenerateKeyPairsCallbackHandler &,
@@ -65,7 +64,10 @@ public:
 
     //// Connection level client events
 
-    // Connection with given id has been removed (ex-post)
+    // Adds connection, and return the current number of connections
+    uint addConnection(const ConnectionIdType &, const SendMessageOnConnection &);
+
+    // Remove connection
     void removeConnection(const ConnectionIdType &);
 
     // A valid piece was sent too us on given connection
@@ -84,13 +86,7 @@ public:
 
     //// Change mode
 
-    // Turn into session in observe mode-
-    // Caller owns returne object.
-    Observing<ConnectionIdType> * toObserveMode();
-
-    // Turn into session in sell mode
-    // Caller owns returned object.
-    Selling<ConnectionIdType> * toSellMode();
+    void leavingState();
 
     //// Change state
 
@@ -155,6 +151,13 @@ private:
 
     // Removes given seller
     void removeSeller(detail::Seller<ConnectionIdType> &);
+
+    //// Utility routines
+
+    void politeSellerCompensation();
+
+    // Unguarded
+    void _start();
 
     //// Members
 

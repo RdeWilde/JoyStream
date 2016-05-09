@@ -6,15 +6,15 @@
  */
 
 #include <protocol_session/Session.hpp>
-#include <protocol_session/detail/Buying.hpp>
 #include <protocol_session/TorrentPieceInformation.hpp>
 #include <protocol_session/Exceptions.hpp>
+#include <protocol_session/detail/Buying.hpp>
 #include <protocol_session/detail/Selling.hpp>
 #include <protocol_session/detail/Observing.hpp>
 #include <common/Bitcoin.hpp> // BITCOIN_DUST_LIMIT
 #include <common/P2PKHAddress.hpp>
 
-#include <algorithm>
+#include <numeric>
 
 namespace joystream {
 namespace protocol_session {
@@ -32,10 +32,10 @@ namespace detail {
                                      const protocol_wire::BuyerTerms & terms,
                                      const TorrentPieceInformation & information)
         : _session(session)
-        , _broadcastTransaction(broadcastTransaction)
         , _removedConnection(removedConnection)
         , _generateKeyPairs(generateKeyPairs)
         , _generateP2PKHAddresses(generateP2PKHAddresses)
+        , _broadcastTransaction(broadcastTransaction)
         , _fullPieceArrived(fullPieceArrived)
         , _funding(funding)
         , _policy(policy)
@@ -47,13 +47,36 @@ namespace detail {
         // Setup pieces
         for(const PieceInformation & p : information.pieces())
             _pieces.push_back(detail::Piece<ConnectionIdType>(p));
+
+        // Notify any existing peers
+        for(auto i : _session->_connections)
+            (i.second)->processEvent(protocol_statemachine::event::BuyModeStarted(_terms));
+
+        // If session is started, then set start time of this new mode
+        if(_session->_state == SessionState::started)
+            time(&_lastStartOfSendingInvitations);
+    }
+
+    template <class ConnectionIdType>
+    uint Buying<ConnectionIdType>::addConnection(const ConnectionIdType & id, const SendMessageOnConnection & callback) {
+
+        // Create connection
+        detail::Connection<ConnectionIdType> * connection = _session->createAndAddConnection(id, callback);
+
+        // Choose mode on connection
+        connection->processEvent(protocol_statemachine::event::BuyModeStarted(_terms));
+
+        return _session->_connections.size();
     }
 
     template <class ConnectionIdType>
     void Buying<ConnectionIdType>::removeConnection(const ConnectionIdType & id) {
 
-        assert(_session->hasConnection(id));
-        assert(_session->state() != SessionState::stopped); // We cannot have connection and be stopped
+        if(_session->_state == SessionState::stopped)
+            throw exception::StateIncompatibleOperation();
+
+        if(!_session->hasConnection(id))
+            throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
 
         //// From here on in, we are either: started or paused
 
@@ -77,10 +100,16 @@ namespace detail {
             // Remove
             removeSeller(s);
         }
+
+        // Remove and delete connection
+        _session->removeFromMapAndDelete(id);
     }
 
     template <class ConnectionIdType>
     void Buying<ConnectionIdType>::validPieceReceivedOnConnection(const ConnectionIdType & id, int index) {
+
+        // No state guard required, piece validation can occur
+        // after connection is gone, or even session has been stopped.
 
         // Update status of seller
         auto itr = _sellers.find(id);
@@ -96,29 +125,40 @@ namespace detail {
         // Update piece status
         detail::Piece<ConnectionIdType> & piece = _pieces[index];
         assert(piece.connectionId() == id);
+        assert(piece.state() != detail::Piece<ConnectionIdType>::State::unassigned);
 
-        // NB: piece may also have been made available out of bounds
-        piece.downloaded();
+        // if its not already downloaded from out of bounds
+        if(piece.state() != detail::Piece<ConnectionIdType>::State::downloaded) {
 
-        // Count downloaded piece
-        _numberOfMissingPieces--;
-
-        // Do we still have pieces which are not yet downloaded
-        if(_numberOfMissingPieces > 0) {
-
+            assert(piece.state() == detail::Piece<ConnectionIdType>::State::being_validated_and_stored);
             assert(_state == State::downloading);
 
-            // If so, and are stills started,
-            // then we try to assign a piece to this seller
-            if(_session->_state == SessionState::started)
-                tryToAssignAndRequestPiece(s);
+            // Mark as downloaded
+            piece.downloaded();
 
-        } else if(_numberOfMissingPieces == 0) // otherwise we are done!
-            _state = State::download_completed;
+            // Count downloaded piece
+            _numberOfMissingPieces--;
+
+            // Do we still have pieces which are not yet downloaded
+            if(_numberOfMissingPieces > 0) {
+
+                // If so, and are stills started,
+                // then we try to assign a piece to this seller
+                if(_session->_state == SessionState::started)
+                    tryToAssignAndRequestPiece(s);
+
+            } else if(_numberOfMissingPieces == 0) // otherwise we are done!
+                _state = State::download_completed;
+
+        }
+
     }
 
     template <class ConnectionIdType>
     void Buying<ConnectionIdType>::invalidPieceReceivedOnConnection(const ConnectionIdType & id, int index) {
+
+        // No state guard required, piece validation can occur
+        // after connection is gone, or even session has been stopped.
 
         // Update piece status
         detail::Piece<ConnectionIdType> & piece = _pieces[index];
@@ -130,7 +170,9 @@ namespace detail {
             assert(piece.state() == detail::Piece<ConnectionIdType>::State::being_validated_and_stored);
             assert(piece.connectionId() == id);
 
-            piece.unAssign();
+            piece.deAssign();
+
+            _deAssignedPieces.push_back(index);
         }
 
         // Update status of seller
@@ -146,10 +188,10 @@ namespace detail {
         // however it may no longer exist,
         // e.g. because it left, or we got stopped.
         if(_session->hasConnection(id))
-            removeConnection(id);
+            removeConnection(id, Session<ConnectionIdType>::RemoveConnectionInitiator::peer);
 
         // Notify client
-        _session->_removedConnection(id, DisconnectCause::sent_invalid_piece);
+        _removedConnection(id, DisconnectCause::seller_sent_invalid_piece);
     }
 
     template <class ConnectionIdType>
@@ -183,7 +225,7 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    void Buying<ConnectionIdType>::sellerHasJoined(const ConnectionIdType & id) {
+    void Buying<ConnectionIdType>::sellerHasJoined(const ConnectionIdType &) {
 
         // Cannot happen when stopped, as there are no connections
         assert(_session->_state != SessionState::stopped);
@@ -197,7 +239,7 @@ namespace detail {
     void Buying<ConnectionIdType>::sellerHasInterruptedContract(const ConnectionIdType & id) {
 
         // Cannot happen when stopped, as there are no connections
-        assert(_state._clientState != SessionState::stopped);
+        assert(_session->_state != SessionState::stopped);
 
         // Get reference to seller corresponding connection
         auto itr = _sellers.find(id);
@@ -206,16 +248,17 @@ namespace detail {
         detail::Seller<ConnectionIdType> & sellers = *itr;
 
         // Remove connection
-        removeConnection(sellers.connection()->connectionId());
+        removeConnection(id, Session<ConnectionIdType>::RemoveConnectionInitiator::client);
 
         // Tell client to remove his pad peer
-        _session->_removedConnection(id, DisconnectCause::seller_has_interrupted_contract);
+        _removedConnection(id, DisconnectCause::seller_has_interrupted_contract);
     }
 
     template <class ConnectionIdType>
     void Buying<ConnectionIdType>::receivedFullPiece(const ConnectionIdType & id, const protocol_wire::PieceData & p) {
 
-        assert(_session->_state == SessionState::started);
+        // Cannot happen when stopped, as there are no connections
+        assert(_session->_state != SessionState::stopped);
         assert(_state == State::sending_invitations);
 
         // Get seller corresponding to given id
@@ -251,58 +294,34 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    Observing<ConnectionIdType> * Buying<ConnectionIdType>::toObserveMode() {
+    void Buying<ConnectionIdType>::leavingState() {
 
-    }
-
-    template <class ConnectionIdType>
-    Selling<ConnectionIdType> * Buying<ConnectionIdType>::toSellMode() {
-
+        // Prepare sellers before we interrupt with new mode
+        politeSellerCompensation();
     }
 
     template <class ConnectionIdType>
     void Buying<ConnectionIdType>::start() {
 
-        // We cant start if we have already started
-        if(_session->_state == SessionState::started)
-            throw exception::StateIncompatibleOperation();
-
-        // Set client mode to started
-        _session->_state = SessionState::started;
+        assert(_session->_state != SessionState::started);
 
         // Note starting time
         time(&_lastStartOfSendingInvitations);
+
+        // Set client mode to started
+        _session->_state = SessionState::started;
     }
 
     template <class ConnectionIdType>
     void Buying<ConnectionIdType>::stop() {
 
-        // We cant stop if we have already stopped
-        if(_session->_state == SessionState::stopped)
-            throw exception::StateIncompatibleOperation();
+        assert(_session->_state != SessionState::stopped);
 
-        // If we have started, and are downloading, then
-        // we have to be polite and pay for any full pieces
-        // we have requested, as it may be in transit, or have received,
-        // but yet to verify.
-        if(_session->_state == SessionState::started &&
-           _state == State::downloading) {
+        // Prepare sellers for closing connections
+        politeSellerCompensation();
 
-            assert(!_sellers.empty());
-
-            // NB: paying for only requested piece can lead to our payment
-            // being dropped by peer state machine if it has not yet sent
-            // the piece, but its worth trying.
-            for(auto itr : _sellers) {
-
-                detail::Seller<ConnectionIdType> & s = itr.second;
-
-                if(s.state() == detail::Seller<ConnectionIdType>::State::waiting_for_piece_validation_and_storage ||
-                   s.state() == detail::Seller<ConnectionIdType>::State::waiting_for_full_piece)
-                    s.pieceWasValid();
-            }
-
-        }
+        // Clear sellers
+        _sellers.clear();
 
         // Disconnect everyone
         std::vector<ConnectionIdType> ids = _session->connectionIds();
@@ -310,14 +329,11 @@ namespace detail {
         for(const ConnectionIdType & id : ids) {
 
             // Remove connection
-            removeConnection(id);
+            removeConnection(id, Session<ConnectionIdType>::RemoveConnectionInitiator::client);
 
             // Notify client
-            _removedConnection(id, DisconnectCause::stopping_session);
+            _removedConnection(id, DisconnectCause::client);
         }
-
-        // Clear sellers
-        _sellers.clear();
 
         // Update state
         _session->_state = SessionState::stopped;
@@ -334,7 +350,6 @@ namespace detail {
         // Update state
         _session->_state = SessionState::paused;
     }
-
 
     template <class ConnectionIdType>
     void Buying<ConnectionIdType>::tick() {
@@ -369,10 +384,10 @@ namespace detail {
                         if(s.servicingPieceHasTimedOut(_policy.servicingPieceTimeOutLimit())) {
 
                             // Remove connection
-                            removeConnection(id);
+                            removeConnection(id, Session<ConnectionIdType>::RemoveConnectionInitiator::client);
 
                             // Notify client
-                            _removedConnection(id, DisconnectCause::servicing_piece_has_timed_out);
+                            _removedConnection(id, DisconnectCause::seller_servicing_piece_has_timed_out);
                         }
 
                     }
@@ -416,12 +431,12 @@ namespace detail {
         if(_state == State::downloading)
             throw exception::StateIncompatibleOperation();
 
-        // Set new terms
-        _terms = terms;
-
         // Notify existing peers
         for(auto itr : _session->_connections)
             itr.second->processEvent(protocol_statemachine::event::UpdateTerms<protocol_wire::BuyerTerms>(terms));
+
+        // Set new terms
+        _terms = terms;
     }
 
     template <class ConnectionIdType>
@@ -478,7 +493,7 @@ namespace detail {
         }
 
         // Determine the change amount if any (!=0)
-        uint64_t changeAmount = determineChangeAmount(totalComitted, contractFeePerKb);
+        uint64_t changeAmount = determineChangeAmount(numberOfSellers, totalComitted, contractFeePerKb);
 
         /////////////////////////
 
@@ -694,7 +709,7 @@ namespace detail {
                         piece.state() == detail::Piece<ConnectionIdType>::State::being_validated_and_stored);
 
                 // Mark as not assigned
-                piece.unAssign();
+                piece.deAssign();
 
                 // Add to queue of unassigned pieces
                 _deAssignedPieces.push_back(piece.index());
@@ -703,6 +718,23 @@ namespace detail {
 
         // Mark as seller as gone
         s.removed();
+    }
+
+    template <class ConnectionIdType>
+    void Buying<ConnectionIdType>::politeSellerCompensation() {
+
+        // Pay any seller we have requested a piece from which
+        // has not been shown to be invalid, or even arrived.
+        // NB: paying for only requested piece can lead to our payment
+        // being dropped by peer state machine if it has not yet sent
+        // the piece, but its worth trying.
+        for(auto itr : _sellers) {
+
+            detail::Seller<ConnectionIdType> & s = itr.second;
+
+            if(s.isPossiblyOwedPayment())
+                s.pieceWasValid();
+        }
     }
 
     template <class ConnectionIdType>
