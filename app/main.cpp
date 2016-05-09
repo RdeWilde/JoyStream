@@ -196,6 +196,8 @@ int main(int argc, char* argv[]) {
         // Send start signal and regular pings
         analytics.start(Analytics::_defaultPingMsInterval);
 
+        if(controller.closing()) return 0;
+
         // Start event loop: this is the only Qt event loop in the entire application
         int retValue = app.exec();
 

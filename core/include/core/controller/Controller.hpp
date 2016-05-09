@@ -592,6 +592,8 @@ public:
     // Fund the wallet
     void fundWallet(uint64_t value);
 
+    bool closing() const { return _closing; }
+
 public slots:
 
     /**

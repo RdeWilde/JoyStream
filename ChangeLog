@@ -1,3 +1,10 @@
+0.4.1
+    * Removed console display on windows
+    * Disabled Streaming menu item
+    * Fixed Bitcoin symbol on OSX
+    * Fix in SPV Wallet to better handle deep reorgs on testnet3
+    * Show UI during autoupdate
+    * Moved user data files to $HOME/.joystream
 0.4.0
     * Replaced BlockCypher Wallet with new SPV Walelt
     * Updated embedded openssl to version 1.0.2g
