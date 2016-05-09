@@ -16,7 +16,8 @@ namespace protocol_statemachine {
 
     CBStateMachine::CBStateMachine()
         : _reentrantCounter(0)
-        , _MAX_PIECE_INDEX(0) {
+        , _MAX_PIECE_INDEX(0)
+        , _lastRequestedPiece(0) {
     }
 
     CBStateMachine::CBStateMachine(const PeerAnnouncedMode & peerAnnouncedMode,
@@ -47,7 +48,8 @@ namespace protocol_statemachine {
         , _sellerInterruptedContract(sellerInterruptedContract)
         , _receivedFullPiece(receivedFullPiece)
         , _reentrantCounter(0)
-        , _MAX_PIECE_INDEX(MAX_PIECE_INDEX) {
+        , _MAX_PIECE_INDEX(MAX_PIECE_INDEX)
+        , _lastRequestedPiece(0) {
     }
 
     void CBStateMachine::processEvent(const sc::event_base & e) {
@@ -135,6 +137,10 @@ namespace protocol_statemachine {
 
     void CBStateMachine::peerAnnouncedMode() {
         _peerAnnouncedMode(_announcedModeAndTermsFromPeer);
+    }
+
+    int CBStateMachine::lastRequestedPiece() const {
+        return _lastRequestedPiece;
     }
 
     paymentchannel::Payee CBStateMachine::payee() const {

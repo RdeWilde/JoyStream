@@ -32,6 +32,7 @@ namespace protocol_statemachine {
 
         // otherwise send success notification, and
         context<CBStateMachine>()._pieceRequested(pieceIndex);
+        context<CBStateMachine>()._lastRequestedPiece = pieceIndex;
 
         // get ready to load the piece
         return transit<ServicingPieceRequest>();
