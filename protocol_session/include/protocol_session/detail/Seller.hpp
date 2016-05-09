@@ -63,6 +63,9 @@ namespace detail {
         // Result of validating piece received from this seller
         void pieceWasInvalid();
 
+        // Whether a piece was recently received
+        bool isPossiblyOwedPayment() const;
+
         // Getters
         State state() const;
 

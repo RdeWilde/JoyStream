@@ -95,6 +95,12 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
+    bool Seller<ConnectionIdType>::isPossiblyOwedPayment() const {
+        return _state == State::waiting_for_piece_validation_and_storage ||
+               _state == State::waiting_for_full_piece;
+    }
+
+    template <class ConnectionIdType>
     typename Seller<ConnectionIdType>::State Seller<ConnectionIdType>::state() const {
         return _state;
     }
