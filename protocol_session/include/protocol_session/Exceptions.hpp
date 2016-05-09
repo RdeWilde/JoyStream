@@ -24,7 +24,7 @@ class ConnectionAlreadyAddedException : public std::runtime_error {
 public:
 
     ConnectionAlreadyAddedException(const ConnectionIdType & id)
-        : std::runtime_error(std::string("Connection with id ") + IdToString(id) + std::string(" already added."))
+        : std::runtime_error(std::string("Connection with id ") + IdToString<ConnectionIdType>(id) + std::string(" already added."))
         , _id(id) {
     }
 
@@ -69,7 +69,7 @@ class ConnectionDoesNotExist : public std::runtime_error {
 public:
 
     ConnectionDoesNotExist(const ConnectionIdType & id)
-        : std::runtime_error(std::string("Connection with id ") + IdToString(id) + std::string(" does not exist."))
+        : std::runtime_error(std::string("Connection with id ") + IdToString<ConnectionIdType>(id) + std::string(" does not exist."))
          , _id(id) {
     }
 
