@@ -125,6 +125,8 @@ namespace protocol_statemachine {
 
         paymentchannel::Payee payee() const;
 
+        int lastRequestedPiece() const;
+
     private:
 
         //// States require access to private machine state
@@ -210,6 +212,8 @@ namespace protocol_statemachine {
         // Payee side of payment channel interaction
         paymentchannel::Payee _payee;
 
+        // Index of last piece requested
+        int _lastRequestedPiece;
     };
 
     template<typename T>
