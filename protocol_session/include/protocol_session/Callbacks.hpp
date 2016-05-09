@@ -12,7 +12,14 @@
 #include <functional>
 #include <vector>
 
+namespace Coin {
+    class typesafeOutPoint;
+}
+
 namespace joystream {
+namespace paymentchannel {
+    class Payee;
+}
 namespace protocol_session {
 
 // NB: In the future one can separete into two different callbacks,
@@ -54,6 +61,8 @@ typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateP2PKHAddress
 // Send a message to be sent
 typedef std::function<void(const protocol_wire::ExtendedMessagePayload &)> SendMessageOnConnection;
 
+//// Buying
+
 // Broadcasting a transaction
 typedef std::function<bool(const Coin::Transaction &)> BroadcastTransaction;
 
@@ -61,6 +70,27 @@ typedef std::function<bool(const Coin::Transaction &)> BroadcastTransaction;
 template <class ConnectionIdType>
 using FullPieceArrived = std::function<void(const ConnectionIdType &, const protocol_wire::PieceData &, int)>;
 
+//// Selling
+
+// Notification that buyer with given connection ids has one outstanding payment
+//template <class ConnectionIdType>
+//using HasOutstandingPayment = std::function<void(const ConnectionIdType &)>;
+
+// Buyer with given connection id requires piece with given index
+template <class ConnectionIdType>
+using LoadPieceForBuyer = std::function<void(const ConnectionIdType &, unsigned int)>;
+
+// Buyer with given connection id caused invitedToOutdatedContract event
+//template <class ConnectionIdType>
+//using StaleContractInvitation = std::function<void(const ConnectionIdType &)>;
+
+// Buyer with given connection id requires piece with given index
+template <class ConnectionIdType>
+using ClaimLastPayment = std::function<void(const ConnectionIdType &, const joystream::paymentchannel::Payee &)>;
+
+// Buyer with given connection id announced anchor
+template <class ConnectionIdType>
+using AnchorAnnounced = std::function<void(const ConnectionIdType &, const Coin::typesafeOutPoint &)>;
 
 }
 }
