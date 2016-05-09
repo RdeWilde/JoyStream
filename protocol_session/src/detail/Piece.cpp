@@ -45,7 +45,7 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    void Piece<ConnectionIdType>::unAssign() {
+    void Piece<ConnectionIdType>::deAssign() {
         _state = State::unassigned;
         _connectionId = ConnectionIdType();
     }

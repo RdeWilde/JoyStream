@@ -48,7 +48,7 @@ namespace detail {
         void downloaded();
 
         // Piece is no longer assigned to a connection
-        void unAssign();
+        void deAssign();
 
         // Piece has arrived, and is being stored and validated
         void arrived();
