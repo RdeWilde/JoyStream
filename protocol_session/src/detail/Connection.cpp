@@ -41,7 +41,8 @@ namespace detail {
                    sellerJoined,
                    sellerInterruptedContract,
                    receivedFullPiece,
-                   0) {
+                   0)
+        , _loadedPiecePending(false) {
     }
 
     template <class ConnectionIdType>
@@ -92,13 +93,44 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
+    template<typename T>
+    bool Connection<ConnectionIdType>::inState() const {
+        return _machine. template inState<T>();
+    }
+
+    template <class ConnectionIdType>
     ConnectionIdType Connection<ConnectionIdType>::connectionId() const {
         return _connectionId;
     }
 
     template <class ConnectionIdType>
+    protocol_statemachine::AnnouncedModeAndTerms Connection<ConnectionIdType>::announcedModeAndTermsFromPeer() const {
+        return _machine.announcedModeAndTermsFromPeer();
+    }
+
+    template <class ConnectionIdType>
     const protocol_statemachine::CBStateMachine & Connection<ConnectionIdType>::machine() const {
         return _machine;
+    }
+
+    template <class ConnectionIdType>
+    bool Connection<ConnectionIdType>::loadedPiecePending() const {
+        return _loadedPiecePending;
+    }
+
+    template <class ConnectionIdType>
+    void Connection<ConnectionIdType>::setLoadedPiecePending(bool loadedPiecePending) {
+        _loadedPiecePending = loadedPiecePending;
+    }
+
+    template <class ConnectionIdType>
+    protocol_wire::PieceData Connection<ConnectionIdType>::loadedPieceData() const {
+        return _loadedPieceData;
+    }
+
+    template <class ConnectionIdType>
+    void Connection<ConnectionIdType>::setLoadedPieceData(const protocol_wire::PieceData & loadedPieceData) {
+        _loadedPieceData = loadedPieceData;
     }
 
 }

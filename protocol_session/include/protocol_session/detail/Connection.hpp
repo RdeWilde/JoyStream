@@ -47,11 +47,24 @@ namespace detail {
         // Process given event
         void processEvent(const boost::statechart::event_base &);
 
+        // Whether state machine is in given (T) inner state
+        template<typename T>
+        bool inState() const;
+
         // Id of given connection
         ConnectionIdType connectionId() const;
 
+        // Peer terms announced
+        protocol_statemachine::AnnouncedModeAndTerms announcedModeAndTermsFromPeer() const;
+
         // Connection state machine reference
         const protocol_statemachine::CBStateMachine & machine() const;
+
+        bool loadedPiecePending() const;
+        void setLoadedPiecePending(bool);
+
+        protocol_wire::PieceData loadedPieceData() const;
+        void setLoadedPieceData(const protocol_wire::PieceData &);
 
     private:
 
@@ -70,6 +83,13 @@ namespace detail {
         // NB: The reason this is not in Seller, is because
         // any peer can potentially provide valid pieces
         std::queue<uint32_t> _downloadedValidPieces;
+
+        //// Selling
+
+        //
+        bool _loadedPiecePending;
+        protocol_wire::PieceData _loadedPieceData;
+
     };
 
 }
