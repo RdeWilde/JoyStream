@@ -27,15 +27,24 @@ public:
 
     Observing(Session<ConnectionIdType> *);
 
-    //// Change mode
+    //// Connection level client events
 
-    // Turn into session in sell mode
-    // Caller owns returned object.
-    Selling<ConnectionIdType> * toSellMode();
+    // Adds connection, and return the current number of connections
+    uint addConnection(const ConnectionIdType &, const SendMessageOnConnection &);
 
-    // Turn into session in observe mode
-    // Caller owns returne object.
-    Buying<ConnectionIdType> * toBuyMode();
+    // Remove connection
+    void removeConnection(const ConnectionIdType &);
+
+    //// Change state
+
+    // Starts a stopped session by becoming fully operational
+    void start();
+
+    // Immediately closes all existing connections
+    void stop();
+
+    // Pause session
+    void pause();
 
 private:
 
