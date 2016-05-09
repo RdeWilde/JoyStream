@@ -19,13 +19,26 @@ namespace protocol_session {
 // one for each mode, with its own set of DisconnectCauses.
 enum class DisconnectCause {
 
+    // session stops, removing connection
+    client,
+
+    //// buying
+
     seller_has_interrupted_contract,
 
-    servicing_piece_has_timed_out,
+    seller_servicing_piece_has_timed_out,
 
-    sent_invalid_piece,
+    seller_sent_invalid_piece,
 
-    stopping_session
+    //// selling
+
+    buyer_invited_with_bad_terms,
+
+    buyer_requested_invalid_piece,
+
+    buyer_interrupted_payment,
+
+    buyer_sent_invalid_payment
 };
 
 // Removal of a connection from the session: c++11 alias declaration
