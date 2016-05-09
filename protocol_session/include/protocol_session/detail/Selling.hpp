@@ -36,16 +36,22 @@ public:
             const RemovedConnectionCallbackHandler<ConnectionIdType> &,
             const GenerateKeyPairsCallbackHandler &,
             const GenerateP2PKHAddressesCallbackHandler &,
+            const LoadPieceForBuyer<ConnectionIdType> &,
+            const ClaimLastPayment<ConnectionIdType> &,
+            const AnchorAnnounced<ConnectionIdType> &,
             const SellingPolicy &,
             const protocol_wire::SellerTerms &);
 
     //// Connection level client events
 
-    // Connection with given id has been removed (ex-post)
+    // Adds connection, and return the current number of connections
+    uint addConnection(const ConnectionIdType &, const SendMessageOnConnection &);
+
+    // Connection with given id has been removed
     void removeConnection(const ConnectionIdType &);
 
     // Data for given piece has been loaded
-    void pieceLoaded(const protocol_wire::PieceData &, int);
+    void pieceLoaded(const ConnectionIdType & id, const protocol_wire::PieceData &, int);
 
     //// Connection level state machine events
 
@@ -53,17 +59,15 @@ public:
     void invitedToOutdatedContract(const ConnectionIdType &);
     void invitedToJoinContract(const ConnectionIdType &);
     void contractPrepared(const ConnectionIdType &, const Coin::typesafeOutPoint &);
-    void pieceRequested(const ConnectionIdType & id, int i);
-    void invalidPieceRequested(const ConnectionIdType & id);
-    void paymentInterrupted(const ConnectionIdType & id);
-    void receivedValidPayment(const ConnectionIdType & id, const Coin::Signature &);
-    void receivedInvalidPayment(const ConnectionIdType & id, const Coin::Signature &);
+    void pieceRequested(const ConnectionIdType &, int);
+    void invalidPieceRequested(const ConnectionIdType &);
+    void paymentInterrupted(const ConnectionIdType &);
+    void receivedValidPayment(const ConnectionIdType &, const Coin::Signature &);
+    void receivedInvalidPayment(const ConnectionIdType &, const Coin::Signature &);
 
     //// Change mode
 
-    Observing<ConnectionIdType> * toObserveMode();
-
-    Buying<ConnectionIdType> * toBuyMode();
+    void leavingState();
 
     //// Change state
 
@@ -91,6 +95,17 @@ public:
 
 private:
 
+    // Client removes connection with givne id with given cause
+    void removeConnection(const ConnectionIdType &, DisconnectCause);
+
+    // Join if terms are good enough, buyer on given connection
+    // NB: Assumes in state protocol_statemachine::Invited
+    void tryToJoin(detail::Connection<ConnectionIdType> *);
+
+    // Loads. .....
+    // NB: Assumes in state protocol_statemachine::LoadingPiece
+    void tryToLoadPiece(detail::Connection<ConnectionIdType> *);
+
     //// Members
 
     // Reference to core of session
@@ -100,13 +115,15 @@ private:
     RemovedConnectionCallbackHandler<ConnectionIdType> _removedConnection;
     GenerateKeyPairsCallbackHandler _generateKeyPairs;
     GenerateP2PKHAddressesCallbackHandler _generateP2PKHAddresses;
+    LoadPieceForBuyer<ConnectionIdType> _loadPieceForBuyer;
+    ClaimLastPayment<ConnectionIdType> _claimLastPayment;
+    AnchorAnnounced<ConnectionIdType> _anchorAnnounced;
 
     // Controls behaviour of session
     SellingPolicy _policy;
 
     // Terms for selling
     protocol_wire::SellerTerms _terms;
-
 };
 
 }
