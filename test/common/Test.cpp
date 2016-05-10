@@ -258,6 +258,13 @@ void Test::P2PKHScriptSig() {
     uchar_vector serializedP2PKHScriptSig("483045022100d5e61ab5bfd0d1450997894cb1a53e917f89d82eb43f06fa96f32c96e061aec102202fc1188e8b0dc553a2588be2b5b68dbbd7f092894aa3397786e9c769c5348dc60121030589ee559348bd6a7325994f9c8eff12bd5d73cc683142bd0dd1a17abc99b0dc");
 
     QVERIFY(sig.serialized() == serializedP2PKHScriptSig);
+
+    Coin::P2PKHScriptSig deserializedScript(Coin::P2PKHScriptSig::deserialize(serializedP2PKHScriptSig));
+
+    QVERIFY(deserializedScript.pk() == pk);
+    QVERIFY(deserializedScript.ts() == ts);
+
+    QVERIFY(deserializedScript.serialized() == serializedP2PKHScriptSig);
 }
 
 void Test::MultisigScriptPubKey() {

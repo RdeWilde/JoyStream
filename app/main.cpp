@@ -9,24 +9,40 @@
 #include <QCommandLineParser>
 #include <QDir>
 #include <QNetworkAccessManager>
+#include <QTimer>
 
 #include <core/controller/Controller.hpp>
 #include <core/logger/LoggerManager.hpp>
 #include <common/Seed.hpp>
 #include <gui/MainWindow.hpp>
-#include <wallet/Manager.hpp>
 #include <AutoUpdater.hpp>
 #include <Analytics.hpp>
+#include <InstanceManager.hpp>
+#include <gui/GeneralLoadingProgressDialog.hpp>
 
 #define ERROR_LOG_ENDPOINT "error.joystream.co/error"
 #define ERROR_LOG_MAX_SIZE 200*20
 
-bool send_errorlog(QNetworkAccessManager * manager);
-bool deleteWallet(QString filename);
-void createWallet(QString filename);
+#define APPLICATION_WALLET_FILENAME "joystream.store"
+#define APPLICATION_BLOCKTREE_FILENAME "joystream.blocktree"
+
+bool send_errorlog(QFile * errorFile, QNetworkAccessManager * manager);
+QString get_data_path(const QString & filename = QString());
 
 // JoyStream entry point
 int main(int argc, char* argv[]) {
+
+    // Create directory used for saving user's application specific data
+    QDir::home().mkdir(".joystream");
+
+    // Move old wallet and blocktree to new directory
+    QFile::rename(QDir::homePath() + QDir::separator() + APPLICATION_WALLET_FILENAME, get_data_path(APPLICATION_WALLET_FILENAME));
+    QFile::rename(QDir::homePath() + QDir::separator() + APPLICATION_BLOCKTREE_FILENAME, get_data_path(APPLICATION_BLOCKTREE_FILENAME));
+
+    // Cleanup old files
+    QFile::remove(QDir::homePath() + QDir::separator() + "main.txt");
+    QFile::remove(QDir::homePath() + QDir::separator() + "joystream-sync.log");
+    QFile::remove(QDir::homePath() + QDir::separator() + "wallet.sqlite3");
 
     // Create Qt application: all objects created after this point are owned by this thread
     QApplication app(argc, argv);
@@ -45,30 +61,58 @@ int main(int argc, char* argv[]) {
 
     QCommandLineOption showNoUpdateOption("n", "Do not run update manager.");
     parser.addOption(showNoUpdateOption);
-    QCommandLineOption showConsoleModeOption("c", "Run in console mode.");
-    parser.addOption(showConsoleModeOption);
     QCommandLineOption showFreshOption("f", "Create and use a fresh parameter file.");
     parser.addOption(showFreshOption);
+    QCommandLineOption detachFromLauncherOption("d", "Detach from launcher");
+    parser.addOption(detachFromLauncherOption);
 
     // Process the actual command line arguments given by the user
     parser.process(app);
 
+    // This is mainly intended to be used on windows and linux when running joystream after an auto-update
+    // to allow the updater to exit after starting joystream.
+    if(parser.isSet(detachFromLauncherOption)) {
+        QString program = QCoreApplication::applicationFilePath();
+        std::cout << "Launching " << program.toStdString() << std::endl;
+        QStringList arguments;
+        arguments << "-n";
+        QProcess::startDetached(program, arguments);
+        return 0;
+    }
+
+    GeneralLoadingProgressDialog progressDialog(APPLICATION_NAME);
+    progressDialog.updateMessage("Initializing");
+    progressDialog.show();
+    app.processEvents();
+
+    InstanceManager instanceManager(APPLICATION_NAME);
+
+    if(!instanceManager.isMain()) {
+        qDebug() << "Another instance of JoyStream is already running.";
+        return 0;
+    }
+
     AutoUpdater au(app);
 
     // Call update manager, if allowed
-    if(!parser.isSet(showNoUpdateOption) && au.newVersionAvailable()) {
-         au.updateMiniUI();
-         return 0;
+    if(!parser.isSet(showNoUpdateOption)){
+        progressDialog.updateMessage("Checking for updates...");
+        if(au.newVersionAvailable()) {
+            progressDialog.updateMessage("A new version is available, Starting Updater...");
+            au.updateMiniUI();
+            // Updater will again check for new version, without a UI so
+            // Hang around a few seconds until the downloading dialog shows up
+            QTimer::singleShot(3000, &app, SLOT(quit()));
+            app.exec();
+            return 0;
+        }
+        progressDialog.updateMessage("You are running latest version.");
+        app.processEvents();
     }
 
-    // Check console flag
-    bool showView = false;
-    if(!parser.isSet(showConsoleModeOption))
-            showView = true;
-
     // Create logging category
-    bool use_stdout_logg = true;
-    QLoggingCategory * category = global_log_manager.createLogger("main", use_stdout_logg, false);
+    bool use_stdout_log = true;
+    QLoggingCategory * category = global_log_manager.createLogger("main", get_data_path(), use_stdout_log, false);
 
     // Network access manager instance used by all code trying to use network
     QNetworkAccessManager manager;
@@ -84,11 +128,11 @@ int main(int argc, char* argv[]) {
         if(false) {
 
             // Get name of file name
-            QString file = QDir::homePath() + QDir::separator() + APPLICATION_PARAMETER_FILE_NAME;
-            std::string fileString = file.toStdString();
+            QString parameterFilePath = get_data_path(APPLICATION_PARAMETER_FILE_NAME);
+            std::string fileString = parameterFilePath.toStdString();
 
             // Check that file exists, and that it actually is a file
-            if(!QFile::exists(file)) {
+            if(!QFile::exists(parameterFilePath)) {
 
                 qDebug() << "WARNING: parameter file"
                          << fileString.c_str()
@@ -100,48 +144,48 @@ int main(int argc, char* argv[]) {
                 configuration = Controller::Configuration(fileString.c_str());
         }
 
-        // Load wallet
-        QString walletFile = QDir::homePath() + QDir::separator() + QString("wallet.sqlite3");
+        // Wallet location
+        QString storePath = get_data_path(APPLICATION_WALLET_FILENAME);
 
-        Wallet::Manager * wallet;
+        // Block Tree file location
+        QString blocktreePath = get_data_path(APPLICATION_BLOCKTREE_FILENAME);
 
-        // Create wallet if it does not exist
-        if(!QFile(walletFile).exists()) {
-
-            qCDebug((*category)) << "Creating a fresh wallet " << walletFile;
-            createWallet(walletFile);
-
-            wallet = new Wallet::Manager(walletFile);
-
-        } else {
-
-            // Load existing wallet
-            wallet = new Wallet::Manager(walletFile);
-
-            //check if the metadata version is set in the database
-            //value of 0 means the database
-            //was created in an earlier version of the app before key pooling was
-            //implemented and we should drop it and create a new one
-            if(wallet->version() == 0) {
-                wallet->close();
-                qCDebug((*category)) << "Purging old wallet, creating new fresh wallet " << walletFile;
-                deleteWallet(walletFile);
-                createWallet(walletFile);
-                wallet = new Wallet::Manager(walletFile);
-            }
+        // NetSync log file
+        if(getenv("NETSYNC_LOGGER") != NULL) {
+            QString syncLogPath = get_data_path("sync.log");
+            INIT_LOGGER(syncLogPath.toStdString().c_str());
         }
 
-        // Initiliaze blockcypher interface
-        wallet->BLOCKCYPHER_init(&manager, APPLICATION_BLOCKCYPHER_TOKEN);
+        progressDialog.updateMessage("Starting Controller");
 
         // Create controller
-        Controller controller(configuration, wallet, &manager, *category);
+        // Loading the block tree will take some time.. maybe we can show a progress dialogue
+        // Or let the main window open the wallet..?
+        Controller controller(configuration, &manager,
+                              APPLICATION_BITCOIN_NETWORK,
+                              APPLICATION_BLOCKCYPHER_TOKEN,
+                              storePath,
+                              blocktreePath,
+                              *category);
 
         QObject::connect(&controller, &Controller::closed, &app, &QApplication::quit);
 
         // Allocate view and show it
-        MainWindow view(&controller, wallet, "");
+        MainWindow view(&controller, "");
+
+        QObject::connect(&instanceManager, &InstanceManager::activate, [&view](){
+            qDebug() << "Got Activate Signal from Instance Manager";
+            view.maximize();
+            QApplication::setActiveWindow(&view);
+        });
+
+        progressDialog.hide();
+
         view.show();
+
+        view.startUp([&app](std::string progress){
+            app.processEvents();
+        });
 
         // Create and start analytics tracking
         Analytics analytics(&manager, APPLICATION_MIXPANEL_TOKEN, applicationVersion); //, Analytics::_defaultAnalyticsHost);
@@ -152,12 +196,14 @@ int main(int argc, char* argv[]) {
         // Send start signal and regular pings
         analytics.start(Analytics::_defaultPingMsInterval);
 
+        if(controller.closing()) return 0;
+
         // Start event loop: this is the only Qt event loop in the entire application
-        app.exec();
+        int retValue = app.exec();
 
         qDebug() << "Application event loop exited, application closing.";
 
-        return 0;
+        return retValue;
 
     } catch(const std::exception & e) {
 
@@ -173,38 +219,26 @@ int main(int argc, char* argv[]) {
 
         qCDebug((*category)) << "Catastrophic error due to unhandled exception" << e.what();
         qCDebug((*category)) << "Sending error log to " << ERROR_LOG_ENDPOINT;
-        send_errorlog(&manager);
+        send_errorlog(global_log_manager.loggers["main"].file, &manager);
         qCDebug((*category)) << "Shutting down, try to restart software, delete wallet file if problem persists.";
 
         return 1;
     }
 }
 
-bool deleteWallet(QString filename) {
-    return QFile::remove(filename);
+QString get_data_path(const QString & filename) {
+    return QDir::homePath() + QDir::separator() + ".joystream" + QDir::separator() + filename;
 }
 
-void createWallet(QString filename) {
+bool send_errorlog(QFile * errorFile, QNetworkAccessManager * manager) {
 
-    // Get new random seed
-    Coin::Seed seed = Coin::Seed::generate();
-
-    // Create wallet
-    Wallet::Manager::createNewWallet(filename, APPLICATION_BITCOIN_NETWORK, seed);
-}
-
-bool send_errorlog(QNetworkAccessManager * manager) {
-
-    // Read in error file
-    QFile errorFile(QDir::homePath() + QDir::separator() + QString("main.txt"));
-
-    if(!errorFile.exists())
+    if(!errorFile->exists())
             return false;
 
-    if(!errorFile.open(QIODevice::ReadOnly))
+    if(!errorFile->open(QIODevice::ReadOnly))
             return false;
 
-    QByteArray data = errorFile.readAll();
+    QByteArray data = errorFile->readAll();
 
     // cut off excessive part
     data = data.right(ERROR_LOG_MAX_SIZE);

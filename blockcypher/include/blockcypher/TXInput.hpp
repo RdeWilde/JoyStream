@@ -9,7 +9,10 @@
 #define BLOCKCYPHER_TXINPUT_HPP
 
 #include <blockcypher/ScriptType.hpp>
-#include <stdutils/uchar_vector.h>
+
+#include <QString>
+#include <QStringList>
+#include <QJsonValue>
 
 class QJsonObject;
 
@@ -28,17 +31,12 @@ namespace BlockCypher {
      * previous UTXOs, with the most prominent exceptions
      * being attempted double-spend and coinbase inputs.
     */
-    struct TXInput {
+    struct TXInput
+    {
 
-        // The value of the output being spent within the previous transaction.
-        // **Not present for coinbase transactions**
-        uint64_t _output_value;
+    public:
 
-        // from API: Raw hexadecimal encoding of the encumbrance script for this output.
-        uchar_vector _script;
-
-        // The type of script that encumbers the output corresponding to this input.
-        ScriptType _script_type;
+        TXInput() {}
 
         TXInput(const QJsonObject & o);
 
@@ -46,9 +44,42 @@ namespace BlockCypher {
 
         Coin::TxIn toInput() const;
 
-    };
+        QString prev_hash() const { return _prev_hash; }
+        uint32_t index() const { return _output_index; }
+        uint64_t value() const { return _output_value; }
+        QString script() const { return _script; }
+        ScriptType script_type() const { return _script_type; }
+        QStringList addresses() const { return _addresses; }
+        uint32_t  sequence() const { return _sequence; }
 
+    private:
+        // The previous transaction hash where this input was an output. 
+        // Not present for coinbase transactions
+        // reversed byte order (as used by block explorer and CoinCore)
+        QString _prev_hash;
+
+        // The index of the output being spent within the previous transaction. 
+        // Not present for coinbase transactions.
+        uint32_t _output_index;
+
+        // The value of the output being spent within the previous transaction.
+        // ***Not present for coinbase transactions***
+        uint64_t _output_value;
+
+        // Raw hexadecimal encoding of the script
+        QString _script;
+
+        // The type of script that encumbers the output corresponding to this input.
+        ScriptType _script_type;
+
+        // An array of public addresses associated with the output of the previous transaction.
+        QStringList _addresses;
+
+        // Legacy 4-byte sequence number, not usually relevant unless dealing with locktime encumbrances
+        uint32_t  _sequence;
+    };
 }
+
 
 #endif // BLOCKCYPHER_TXINPUT_HPP
 

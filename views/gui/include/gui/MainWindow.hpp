@@ -43,8 +43,10 @@ class TorrentViewModel;
 class SellerTorrentPluginViewModel;
 class BuyerTorrentPluginViewModel;
 
-namespace Wallet {
-    class Manager;
+namespace joystream {
+namespace bitcoin {
+    class SPVWallet;
+}
 }
 
 #define RELOAD_WALLET_LOWER_BOUND 250000
@@ -57,10 +59,12 @@ class MainWindow : public QMainWindow
 public:
 
     // Constructor
-    MainWindow(Controller * controller, Wallet::Manager * wallet, const QString & appendToTitle);
+    MainWindow(Controller * controller, const QString & appendToTitle);
 
     // Destructor
     ~MainWindow();
+
+    void startUp(std::function<void(std::string)> feedback);
 
 public slots:
 
@@ -125,9 +129,6 @@ public slots:
     // Start VLC video player
     void startVLC(const libtorrent::sha1_hash & infoHash);
 
-    // Stupid hook to update wallet balance, kill later.
-    void updateWalletBalanceHook();
-
     /**
      * Alter view
      */
@@ -144,7 +145,7 @@ private:
     Controller * _controller;
 
     // Wallet
-    Wallet::Manager * _wallet;
+    joystream::bitcoin::SPVWallet * _wallet;
 
     // Status bar at bottom of the page
     QStatusBar _statusBar;
@@ -200,9 +201,15 @@ protected:
     // Handler for dropping torrent file on client
     void dropEvent(QDropEvent *e);
 
+    void fundWalletFromFaucet();
+
 private slots:
 
+    void on_walletSynched();
+    void on_walletConnected();
+    void on_updatedWalletBalance(uint64_t confirmedBalance, uint64_t unconfirmedBalance);
     void on_bugsPushButton_clicked();
+    void updateStatusMessage(std::string);
 };
 
 #endif // MAIN_WINDOW_HPP

@@ -14,6 +14,9 @@
 #include <common/UnspentP2PKHOutput.hpp>
 #include <core/controller/Stream.hpp>
 
+#include <bitcoin/SPVWallet.hpp>
+#include <bitcoin/BlockCypherWallet.hpp>
+
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>
 #include <libtorrent/alert.hpp>
@@ -39,10 +42,7 @@ class SellerPeerAddedAlert;
 class BuyerPeerAddedAlert;
 class SellerPeerPluginRemovedAlert;
 class BuyerPeerPluginRemovedAlert;
-
-namespace Wallet {
-    class Manager;
-}
+class BroadcastTransactionAlert;
 
 namespace libtorrent {
     class peer_connection;
@@ -192,7 +192,7 @@ public:
              *
              * "torrentInfo" -> not implemented
              *
-             ///* "torrentPluginConfiguration" -> entry::dictionary_type object representing _torrentPluginConfiguration as encoded by TorrentPluginConfiguration::toDictionaryEntry().
+             * "torrentPluginConfiguration" -> entry::dictionary_type object representing _torrentPluginConfiguration as encoded by TorrentPluginConfiguration::toDictionaryEntry().
              */
             void toDictionaryEntry(libtorrent::entry::dictionary_type & dictionaryEntry) const;
 
@@ -488,7 +488,11 @@ public:
     };
 
     // Constructor starting session with given state
-    Controller(const Configuration & configuration, Wallet::Manager * wallet, QNetworkAccessManager * manager, QLoggingCategory & category);
+    Controller(const Configuration & configuration, QNetworkAccessManager * manager,
+               Coin::Network network, const QString & bctoken,
+               const QString & storePath, const QString & blocktreePath,
+               QLoggingCategory & category, const Coin::Seed *seed = nullptr);
+
 
     // Destructor
     ~Controller();
@@ -577,13 +581,18 @@ public:
     quint16 getServerPort() const;
 
     // Returns reference to the wallet
-    Wallet::Manager * wallet();
+    joystream::bitcoin::SPVWallet *wallet();
 
     // Get view model for given torrent
     const TorrentViewModel * torrentViewModel(const libtorrent::sha1_hash & infoHash) const;
 
     // Save state of controller
     Configuration configuration() const;
+
+    // Fund the wallet
+    void fundWallet(uint64_t value);
+
+    bool closing() const { return _closing; }
 
 public slots:
 
@@ -597,6 +606,8 @@ public slots:
     void pauseTorrent(const libtorrent::sha1_hash & info_hash);
     void startTorrent(const libtorrent::sha1_hash & info_hash);
     void removeTorrent(const libtorrent::sha1_hash & info_hash);
+
+    void syncWallet();
 
 private slots:
 
@@ -632,6 +643,16 @@ private slots:
     void readPiece(int piece);
     */
 
+    void webSocketDisconnected();
+
+    void scheduleReconnect();
+
+    void onTransactionUpdated(Coin::TransactionId txid, int confirmations);
+    void onWalletSynched();
+    void onWalletSynchingHeaders();
+    void onWalletSynchingBlocks();
+    void onWalletConnected();
+
 signals:
 
     // Sent when libtorrent::add_torrent_alert is received from libtorrent
@@ -664,13 +685,28 @@ private:
     // State of controller
     State _state;
 	
+    // Indicates if we are shutting down
+    bool _closing;
+
+    bool _reconnecting;
+
+    int _protocolErrorsCount;
+
+    std::vector<Coin::Transaction> _transactionSendQueue;
+
     // Underlying libtorrent session,
     // has to be pointer since it needs sessings_pack,
     // which can only be built postfix calls
     libtorrent::session * _session;
 
     // Wallet used
-    Wallet::Manager * _wallet;
+    joystream::bitcoin::SPVWallet * _wallet;
+
+    // BlockCypher Websocket client
+    BlockCypher::WebSocketClient * _wsClient;
+
+    // BlockCypher REST Client
+    BlockCypher::Client * _restClient;
 
     // Logging category
     QLoggingCategory & _category;
@@ -756,6 +792,8 @@ private:
     void processSellerPeerPluginRemovedAlert(const SellerPeerPluginRemovedAlert * p);
     void processBuyerPeerPluginRemovedAlert(const BuyerPeerPluginRemovedAlert * p);
 
+    void processBroadcastTransactionAlert(const BroadcastTransactionAlert *p);
+
     // Status
     void update(const std::vector<libtorrent::torrent_status> & statuses);
     void update(const libtorrent::torrent_status & status);
@@ -771,6 +809,8 @@ private:
 
     // Save state of controller to file
     void saveStateToFile(const char * file);
+
+    void sendTransactions();
 };
 
 #endif // CONTROLLER_HPP

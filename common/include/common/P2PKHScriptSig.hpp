@@ -21,6 +21,8 @@ public:
 
     uchar_vector serialized() const;
 
+    static P2PKHScriptSig deserialize(const uchar_vector & rawScript);
+
     // Getters and setters
     PublicKey pk() const;
     void setPk(const PublicKey & pk);

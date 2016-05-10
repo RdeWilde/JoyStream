@@ -11,7 +11,7 @@
 #include <common/Network.hpp>
 #include <common/Seed.hpp>
 #include <gui/MainWindow.hpp>
-#include <wallet/Manager.hpp>
+#include <bitcoin/SPVWallet.hpp>
 
 #include <QNetworkAccessManager>
 
@@ -57,7 +57,7 @@ namespace Runner {
                                QNetworkAccessManager * manager,
                                const QString & BlockcypherToken) {
         // Create logging category
-        QLoggingCategory * category = global_log_manager.createLogger(name, use_stdout_logg, false);
+        QLoggingCategory * category = global_log_manager.createLogger(name, "./", use_stdout_logg, false);
 
         // Create client folder if it does not alreadye exist
         QDir dir(home);
@@ -79,27 +79,13 @@ namespace Runner {
 
         // Create/load wallet
         QString walletFile = dir.path() + QDir::separator() + QString("wallet.sqlite3");
-
-        // Create new wallet if it does not exist
-        if(!QFile(walletFile).exists()) {
-
-            qDebug((*category)) << "Creating a fresh wallet " << walletFile;
-
-            // Create wallet
-            Wallet::Manager::createNewWallet(walletFile, network, seed);
-        }
-
-        // Load wallet
-        Wallet::Manager * wallet = new Wallet::Manager(walletFile);
-
-        // Initiliaze
-        wallet->BLOCKCYPHER_init(manager, BlockcypherToken);
+        QString blocktreeFile = dir.path() + QDir::separator() + QString("blocktree.dat");
 
         // Create controller: Dangling, but we don't care
-        Controller * controller = new Controller(configuration, wallet, manager, *category);
+        Controller * controller = new Controller(configuration, manager,network,BlockcypherToken, walletFile, blocktreeFile, *category, &seed);
 
         if(show_gui) {
-            MainWindow * view = new MainWindow(controller, wallet, "-[" + name + "]");
+            MainWindow * view = new MainWindow(controller, "-[" + name + "]");
             view->show();
         }
 
@@ -225,7 +211,7 @@ namespace Runner {
 
     Coin::UnspentP2PKHOutput find_utxo(int num_pieces,
                                        const BuyerTorrentPlugin::Configuration & pluginConfiguration,
-                                       Wallet::Manager * wallet) {
+                                       joystream::bitcoin::SPVWallet *wallet) {
 
         // Amount needed to fund contract (satoshies)
         quint64 minFunds = Payor::minimalFunds(num_pieces,
@@ -235,14 +221,18 @@ namespace Runner {
 
         // Get funding output - this has to be grabbed from wallet/chain later
         //Coin::UnspentP2PKHOutput utxo; // = controller->wallet().getUtxo(minFunds, 1);
-        Coin::UnspentP2PKHOutput utxo = wallet->BLOCKCYPHER_lock_one_utxo(minFunds);
+        std::list<Coin::UnspentP2PKHOutput> utxos = wallet->lockOutputs(minFunds);
 
         // Check that an utxo was indeed found
-        if(utxo.value() == 0) {
+        if(utxos.size() == 0 || utxos.front().value() < minFunds) {
+            wallet->unlockOutputs(utxos);
             qDebug() << "No *single* utxo found enough value to cover:" << minFunds;
             throw std::runtime_error("No utxo found with sufficient funds.");
         }
 
+        Coin::UnspentP2PKHOutput utxo = utxos.front();
+        utxos.pop_front();
+        wallet->unlockOutputs(utxos);
         return utxo;
     }
 

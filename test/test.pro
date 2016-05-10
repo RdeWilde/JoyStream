@@ -6,11 +6,11 @@
 TEMPLATE    = subdirs
 
 SUBDIRS     = \
-            core \
             common \
             paymentchannel \
-            #views \
-            wallet \
             blockcypher \ 
-	    mixpanel
-
+            mixpanel \
+            blockcypher-websocket \
+            blockcypher-wallet \
+            spv-wallet \
+            spv-wallet-client

@@ -20,7 +20,6 @@
 #include <core/extension/Alert/StartedSellerTorrentPlugin.hpp>
 #include <core/extension/Alert/StartedBuyerTorrentPlugin.hpp>
 #include <core/extension/PluginMode.hpp>
-#include <wallet/Manager.hpp>
 
 #include <boost/shared_ptr.hpp>
 
@@ -72,7 +71,7 @@ void Plugin::Status::setTotalReceivedSinceStart(quint64 totalReceivedSinceStart)
  * Plugin
  */
 
-Plugin::Plugin(Wallet::Manager * wallet, QLoggingCategory & category)
+Plugin::Plugin(joystream::bitcoin::SPVWallet *wallet, QLoggingCategory & category)
     : _wallet(wallet)
     /**
     , _btcClient("127.0.0.1"

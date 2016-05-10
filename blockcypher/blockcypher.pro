@@ -32,7 +32,12 @@ HEADERS += \
     include/blockcypher/PushRawTransaction.hpp \
     include/blockcypher/DeleteWallet.hpp \
     include/blockcypher/BlockExplorer.hpp \
-    include/blockcypher/FundWalletFromFaucet.hpp
+    include/blockcypher/FundWalletFromFaucet.hpp \
+    include/blockcypher/Event.hpp \
+    include/blockcypher/WebSocketClient.hpp \
+    include/blockcypher/UTXOManager.hpp \
+    include/blockcypher/UTXO.hpp \
+    include/blockcypher/TxResult.hpp
 
 SOURCES += \
     src/Wallet.cpp \
@@ -49,20 +54,14 @@ SOURCES += \
     src/PushRawTransaction.cpp \
     src/DeleteWallet.cpp \
     src/BlockExplorer.cpp \
-    src/FundWalletFromFaucet.cpp
-
-# common #############################################################################
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../common/release/ -lcommon
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../common/debug/ -lcommon
-else:unix: LIBS += -L$$OUT_PWD/../common/ -lcommon
+    src/FundWalletFromFaucet.cpp \
+    src/Event.cpp \
+    src/TXOutput.cpp \
+    src/WebSocketClient.cpp \
+    src/UTXOManager.cpp \
+    src/UTXO.cpp
 
 INCLUDEPATH += $$PWD/../common/include
 DEPENDPATH += $$PWD/../common/include
-
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/release/libcommon.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/debug/libcommon.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/release/common.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/debug/common.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.a
 
 include(../config.pri)

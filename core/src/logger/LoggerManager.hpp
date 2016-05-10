@@ -54,7 +54,7 @@ public:
     ~LoggerManager();
 
     // Creates a new category
-    QLoggingCategory * createLogger(const QString & name, bool useStandardOutput, bool chainStandardHandler);
+    QLoggingCategory * createLogger(const QString & name, const QString & logDirectory, bool useStandardOutput, bool chainStandardHandler);
 
 };
 

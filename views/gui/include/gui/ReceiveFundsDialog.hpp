@@ -4,8 +4,10 @@
 #include <QDialog>
 #include <common/P2PKHAddress.hpp>
 
-namespace Wallet {
-    class Manager;
+namespace joystream {
+namespace bitcoin {
+    class SPVWallet;
+}
 }
 
 namespace Ui {
@@ -17,7 +19,7 @@ class ReceiveFundsDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit ReceiveFundsDialog(Wallet::Manager * wallet);
+    explicit ReceiveFundsDialog(joystream::bitcoin::SPVWallet * wallet);
 
     ~ReceiveFundsDialog();
 
@@ -31,7 +33,7 @@ private:
 
     Ui::ReceiveFundsDialog *ui;
 
-    Wallet::Manager * _wallet;
+    joystream::bitcoin::SPVWallet * _wallet;
 
     Coin::P2PKHAddress _receiveAddres;
 

@@ -39,9 +39,6 @@ class QNetworkAccessManager;
 
 #define BLOCKCYPHER_MAINNET_ENDPOINT "https://api.blockcypher.com/v1/btc/main/"
 #define BLOCKCYPHER_TESTNET3_ENDPOINT "https://api.blockcypher.com/v1/btc/test3/"
-//#define BLOCKCYPHER_TOKEN "aa10fe97a83259a4628d09b125bebf5a"
-
-// comment out
 
 namespace BlockCypher {
 
@@ -138,7 +135,7 @@ namespace BlockCypher {
         AddressEndPoint::Reply * addressEndPointAsync(const QString & walletName, bool unspentOnly = true, uint limit = 200, uint confirmations = -1);
 
         // Add new addresses in given wallet to wallet, returns new total wallet
-        Address addressEndPoint(const QString & walletName, bool unspentOnly = true, uint limit = 200, uint confirmations = -1);
+        std::vector<Address> addressEndPoint(const QString & walletName, bool unspentOnly = true, uint limit = 200, uint confirmations = -1);
 
         /**
          * PUSH RAW TRANSACTION
@@ -166,6 +163,9 @@ namespace BlockCypher {
         QNetworkReply * post(const QString & url, const QJsonObject & data);
         QNetworkReply * get(const QString & url);
         QNetworkReply * deleteResource(const QString & url);
+
+        // Network for which we are communicating with
+        Coin::Network network() const { return _network; }
 
     private:
 

@@ -30,4 +30,6 @@
 #define BUYER_PEER_PLUGIN_REMOVED_ALERT_ID      (libtorrent::user_alert_id + 11)
 #define SELLER_PEER_PLUGIN_REMOVED_ALERT_ID     (libtorrent::user_alert_id + 12)
 
+#define BROADCAST_TRANSACTION_ALERT_ID          (libtorrent::user_alert_id + 13)
+
 #endif // ALERT_TYPES_HPP

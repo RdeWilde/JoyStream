@@ -64,7 +64,7 @@ namespace Runner {
 
     Coin::UnspentP2PKHOutput find_utxo(int num_pieces,
                                        const BuyerTorrentPlugin::Configuration & pluginConfiguration,
-                                       Wallet::Manager * wallet);
+                                       joystream::bitcoin::SPVWallet * wallet);
 
 
 }

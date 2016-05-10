@@ -29,12 +29,6 @@ macx {
     include(conf-osx.pri)
 }
 
-# pthreads and zlib
-LIBS += -lpthread -lz
-
-# openssl
-LIBS += -lcrypto -lssl
-
 # libtorrent
 #INCLUDEPATH += $$LIBTORRENT_LOCATION/release/include
 CONFIG(release, debug|release) {
@@ -50,9 +44,9 @@ CONFIG(release, debug|release) {
 }
 
 # mSIGNA
-#INCLUDEPATH += $$MSIGNA_SYSROOT/include
-QMAKE_CXXFLAGS += -isystem $$MSIGNA_SYSROOT/include
-LIBS += -L$$MSIGNA_SYSROOT/lib -lCoinCore
+INCLUDEPATH += $$MSIGNA_SYSROOT/include
+#QMAKE_CXXFLAGS += -isystem $$MSIGNA_SYSROOT/include
+LIBS += -L$$MSIGNA_SYSROOT/lib -lCoinQ -llogger -lCoinCore
 
 # Boost
 LIBS += \
@@ -66,3 +60,19 @@ LIBS += \
 win32 {
   LIBS += -lws2_32 -lmswsock
 }
+
+#odb runtime
+LIBS += -lodb-sqlite -lodb
+
+# pthreads and zlib
+LIBS += -lpthread -lz
+
+# openssl
+LIBS += -lcrypto -lssl 
+
+#libgdi must come after libcrypto
+win32 {
+  LIBS += -lgdi32
+}
+
+LIBS += -lsqlite3

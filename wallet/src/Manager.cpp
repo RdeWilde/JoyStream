@@ -1240,7 +1240,7 @@ BlockCypher::Address Manager::BLOCKCYPHER_rebuild_utxo() {
     _mutex.lock();
 
     // (synchrnously) fetch address object for given wallet
-    BlockCypher::Address address = _BLOCKCYPHER_client->addressEndPoint(_BLOCKCYPHER_walletName);
+    BlockCypher::Address address = *_BLOCKCYPHER_client->addressEndPoint(_BLOCKCYPHER_walletName).begin();
 
     // Clear out utxo
     _BLOCKCYPHER_utxo.clear();
@@ -1280,7 +1280,7 @@ BlockCypher::Address Manager::BLOCKCYPHER_rebuild_utxo() {
             Coin::typesafeOutPoint o(txId, t._tx_output_n);
 
             // Get address in this output
-            Coin::P2PKHAddress addressInOutput = Coin::P2PKHAddress::fromBase58CheckEncoding(QString::fromStdString(t._addressString));
+            Coin::P2PKHAddress addressInOutput = Coin::P2PKHAddress::fromBase58CheckEncoding(QString::fromStdString(t._addressString.value()));
 
             // Get record for this address to find corresponding key index
             Address::Record a_r;

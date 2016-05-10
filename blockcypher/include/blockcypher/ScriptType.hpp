@@ -16,7 +16,9 @@ namespace BlockCypher {
     enum class ScriptType {
         pay_to_script_hash,
         pay_to_pubkey_hash,
-        none // the case where no
+        pay_to_multi_pubkey_hash,
+        pay_to_pubkey,
+        null_data
     };
 
     ScriptType toScriptType(const QString & s);
@@ -25,4 +27,3 @@ namespace BlockCypher {
 }
 
 #endif // BLOCKCYPHER_SCRIPT_TYPE_HPP
-

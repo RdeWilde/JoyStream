@@ -222,13 +222,13 @@
      <string>update</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="statusMessageLabel">
     <property name="geometry">
      <rect>
-      <x>60</x>
-      <y>320</y>
+      <x>30</x>
+      <y>330</y>
       <width>791</width>
-      <height>51</height>
+      <height>21</height>
      </rect>
     </property>
     <property name="font">
@@ -237,7 +237,7 @@
      </font>
     </property>
     <property name="text">
-     <string>This version only uses Bitcoin testnet. Keep running at all times for testing purposes, restart for automatic updates.</string>
+     <string/>
     </property>
    </widget>
    <widget class="QLabel" name="unconfirmedBalanceLabel">
@@ -332,6 +332,19 @@
     </property>
     <property name="text">
      <string>add funds</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>350</y>
+      <width>741</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>This version only uses Bitcoin testnet. Keep running at all times for testing purposes, restart for automatic updates.</string>
     </property>
    </widget>
   </widget>

@@ -1102,11 +1102,11 @@ void Controller::Configuration::setLibtorrentSessionSettingsEntry(const libtorre
 #include <core/extension/Alert/BuyerPeerAddedAlert.hpp>
 #include <core/extension/Alert/SellerPeerPluginRemovedAlert.hpp>
 #include <core/extension/Alert/BuyerPeerPluginRemovedAlert.hpp>
+#include <core/extension/Alert/BroadcastTransactionAlert.hpp>
 #include <core/extension/Request/StartSellerTorrentPlugin.hpp>
 #include <core/extension/Request/StartBuyerTorrentPlugin.hpp>
 #include <core/extension/Request/StartObserverTorrentPlugin.hpp>
 #include <core/extension/Request/ChangeDownloadLocation.hpp>
-#include <wallet/Manager.hpp>
 
 #include <libtorrent/alert_types.hpp>
 #include <libtorrent/error_code.hpp>
@@ -1140,8 +1140,13 @@ Q_DECLARE_METATYPE(Coin::Transaction) // Probably should not be here
 // Register type for QMetaObject::invokeMethod
 Q_DECLARE_METATYPE(const libtorrent::alert*)
 
-Controller::Controller(const Configuration & configuration, Wallet::Manager * wallet, QNetworkAccessManager * manager, QLoggingCategory & category)
+Controller::Controller(const Configuration & configuration, QNetworkAccessManager * manager,
+                       Coin::Network network, const QString &bctoken,
+                       const QString &storePath, const QString &blocktreePath, QLoggingCategory & category, const Coin::Seed * seed)
     : _state(State::normal)
+    , _closing(false)
+    , _reconnecting(false)
+    , _protocolErrorsCount(0)
     , _session(new libtorrent::session(libtorrent::fingerprint(CORE_EXTENSION_FINGERPRINT, CORE_VERSION_MAJOR, CORE_VERSION_MINOR, 0, 0),
                    libtorrent::session::add_default_plugins + libtorrent::session::start_default_features,
                    libtorrent::alert::error_notification +
@@ -1151,12 +1156,73 @@ Controller::Controller(const Configuration & configuration, Wallet::Manager * wa
                    libtorrent::alert::progress_notification +
                    libtorrent::alert::performance_warning +
                    libtorrent::alert::stats_notification))
-    , _wallet(wallet) // add autosave to configuration later?? does user even need to control that?
     , _category(category)
     , _manager(manager)
-    , _plugin(new Plugin(wallet, _category))
     , _portRange(configuration.getPortRange()) {
     //, _server(9999, this) {
+
+    _wsClient = new BlockCypher::WebSocketClient(network, bctoken);
+    _restClient = new BlockCypher::Client(_manager, network, bctoken);
+    _wallet = new joystream::bitcoin::SPVWallet(storePath.toStdString(), blocktreePath.toStdString(), network);
+
+    if(QFile(storePath).exists()) {
+        _wallet->open();
+    } else {
+        if(seed) {
+            _wallet->create(*seed);
+        } else {
+            _wallet->create();
+        }
+    }
+
+    if(!_wallet->isInitialized()) {
+        throw std::runtime_error("controller failed to open or create wallet");
+    }
+
+
+    QObject::connect(_wallet, SIGNAL(synched()), this, SLOT(onWalletSynched()));
+    QObject::connect(_wallet, SIGNAL(synchingHeaders()), this, SLOT(onWalletSynchingHeaders()));
+    QObject::connect(_wallet, SIGNAL(synchingBlocks()), this, SLOT(onWalletSynchingBlocks()));
+
+    QObject::connect(_wallet, SIGNAL(connected()), this, SLOT(onWalletConnected()));
+
+    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::offline, this, [this](){
+        qCDebug(_category) << "wallet offline";
+    });
+
+    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::disconnected, this, [this](){
+        qCDebug(_category) << "peer disconnected";
+        scheduleReconnect();
+    });
+
+    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::protocolError, this, [this](std::string err){
+        qCDebug(_category) << QString::fromStdString(err);
+        // some errors are result of client sending something invalid
+        // others if the peer sends us something invalid
+        _protocolErrorsCount++;
+        if(_protocolErrorsCount > CORE_CONTROLLER_SPV_PROTOCOL_ERRORS_BEFORE_RECONNECT) {
+            scheduleReconnect();
+        }
+    });
+
+    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::connectionError, this, [this](std::string err){
+        qCDebug(_category) << QString::fromStdString(err);
+        scheduleReconnect();
+    });
+
+    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::blockTreeUpdateFailed, this, [this](std::string err){
+        qCDebug(_category) << QString::fromStdString(err);
+    });
+
+    QObject::connect(_wallet, &joystream::bitcoin::SPVWallet::blockTreeWriteFailed, this, [this](std::string err){
+        qCDebug(_category) << QString::fromStdString(err);
+    });
+
+    QObject::connect(_wsClient, &BlockCypher::WebSocketClient::disconnected,
+                     this, &Controller::webSocketDisconnected);
+
+    // Do we still need blockcypher websocket client ?
+    // _wsClient->connect();
 
     qCDebug(_category) << "Libtorrent session started on port" << QString::number(_session->listen_port());
 
@@ -1326,6 +1392,8 @@ Controller::Controller(const Configuration & configuration, Wallet::Manager * wa
     _session->set_alert_notify(boost::bind(&Controller::libtorrent_entry_point_alert_notification, this));
     */
 
+    _plugin = new Plugin(_wallet, _category);
+
     // Add plugin extension
     _session->add_extension(boost::shared_ptr<libtorrent::plugin>(_plugin));
 
@@ -1354,6 +1422,10 @@ Controller::Controller(const Configuration & configuration, Wallet::Manager * wa
         }
         */
     }
+
+    qRegisterMetaType<Coin::TransactionId>("Coin::TransactionId");
+    QObject::connect(_wallet, SIGNAL(txUpdated(Coin::TransactionId, int)), this, SLOT(onTransactionUpdated(Coin::TransactionId ,int)));
+
 }
 
 Controller::~Controller() {
@@ -1367,6 +1439,24 @@ Controller::~Controller() {
 
     // Delete session
     delete _session;
+
+    _closing = true;
+
+    _wallet->stopSync();
+}
+
+void Controller::syncWallet() {
+    if(_closing) return;
+
+    _wallet->stopSync();
+
+    _protocolErrorsCount = 0;
+
+    qDebug() << "connecting to bitcoin network...";
+    qDebug() << "peer timeout value used:" << CORE_CONTROLLER_SPV_KEEPALIVE_TIMEOUT;
+    _wallet->sync("testnet-seed.bitcoin.petertodd.org", 18333, CORE_CONTROLLER_SPV_KEEPALIVE_TIMEOUT);
+
+    _reconnecting = false;
 }
 
 void Controller::callPostTorrentUpdates() {
@@ -1389,6 +1479,44 @@ void Controller::handleConnection() {
 void Controller::handleAcceptError(QAbstractSocket::SocketError socketError) {
 
     qDebug(_category) << "Failed to accept connection.";
+}
+
+/*
+void Controller::tryToSyncWallet() {
+    // if(_stopping) return;
+
+    qDebug() << "trying to sync wallet with blockcypher...";
+
+    if(!_wsClient->isConnected()){
+        qDebug() << "WebSocketClient is not connected, trying to reconnect...";
+        _wsClient->connect();
+        return;
+    }
+
+    if(!_wallet->Sync()){
+        qDebug() << "Wallet Sync failed, will try again in 30s";
+       // try again after 15 seconds...
+        QTimer::singleShot(30000, this, SLOT(tryToSyncWallet()));
+    }
+}
+*/
+
+// Slot to handle websocket disconnection
+void Controller::webSocketDisconnected() {
+    // if(_stopping) return;
+    qDebug() << "Websocket connection lost, will try to reconnect in 10s";
+    QTimer::singleShot(CORE_CONTROLLER_RECONNECT_DELAY, _wsClient, [this](){
+        if(_wsClient->isConnected()) return;
+        _wsClient->connect();
+    });
+}
+
+void Controller::scheduleReconnect() {
+    if(_closing) return;
+    if(_reconnecting) return;
+    _reconnecting = true;
+    // Retry connection
+    QTimer::singleShot(CORE_CONTROLLER_RECONNECT_DELAY, this, SLOT(syncWallet()));
 }
 
 /**
@@ -1588,6 +1716,8 @@ void Controller::processAlert(const libtorrent::alert * a) {
         processSellerPeerPluginRemovedAlert(p);
     else if(const BuyerPeerPluginRemovedAlert * p = libtorrent::alert_cast<BuyerPeerPluginRemovedAlert>(a))
         processBuyerPeerPluginRemovedAlert(p);
+    else if(const BroadcastTransactionAlert * p = libtorrent::alert_cast<BroadcastTransactionAlert>(a))
+        processBroadcastTransactionAlert(p);
     //else if(const TorrentPluginStartedAlert * p = libtorrent::alert_cast<TorrentPluginStartedAlert>(a))
     //    processTorrentPluginStartedAlert(p);
 
@@ -2073,6 +2203,66 @@ void Controller::processBuyerPeerPluginRemovedAlert(const BuyerPeerPluginRemoved
     torrent->model()->removePeer(p->endPoint());
 }
 
+void Controller::processBroadcastTransactionAlert(const BroadcastTransactionAlert *p) {
+
+    Coin::Transaction tx = p->transaction();
+
+    // Enqueue transaction
+    _transactionSendQueue.push_back(tx);
+
+    // try to send immediately
+    try {
+        _wallet->broadcastTx(tx);
+    } catch(std::exception & e) {
+        // wallet is offline
+    }
+}
+
+// called on timer signal, to periodically try to resend transactions to the network
+void Controller::sendTransactions() {
+
+    for(auto tx : _transactionSendQueue) {
+        try {
+            _wallet->broadcastTx(tx);
+        } catch(std::exception & e) {
+            // wallet is offline
+            return;
+        }
+    }
+}
+
+// when wallet sees a transaction, either 0, 1 or 2 confirmations
+void Controller::onTransactionUpdated(Coin::TransactionId txid, int confirmations) {
+
+    //remove matching transaction from the send queue
+    std::vector<Coin::Transaction>::iterator it;
+
+    it = std::find_if(_transactionSendQueue.begin(), _transactionSendQueue.end(), [&txid](Coin::Transaction &tx){
+       return txid == Coin::TransactionId::fromTx(tx);
+    });
+
+    if(it!= _transactionSendQueue.end()){
+        _transactionSendQueue.erase(it);
+    }
+}
+
+void Controller::onWalletSynched() {
+    qDebug() << "Wallet Synched";
+}
+
+void Controller::onWalletSynchingHeaders() {
+    qDebug() << "Wallet Synching Headers";
+}
+
+void Controller::onWalletSynchingBlocks() {
+    qDebug() << "Wallet Synching Blocks";
+}
+
+void Controller::onWalletConnected() {
+    qDebug() << "Wallet Connected";
+    sendTransactions();
+}
+
 void Controller::update(const std::vector<libtorrent::torrent_status> & statuses) {
 
     for(std::vector<libtorrent::torrent_status>::const_iterator
@@ -2347,7 +2537,7 @@ void Controller::saveStateToFile(const char * file) {
     */
 }
 
-Wallet::Manager * Controller::wallet() {
+joystream::bitcoin::SPVWallet *Controller::wallet() {
     return _wallet;
 }
 
@@ -2360,6 +2550,9 @@ const TorrentViewModel * Controller::torrentViewModel(const libtorrent::sha1_has
 }
 
 void Controller::begin_close() {
+
+    if(_closing) return;
+    _closing = true;
 
     // Note that controller is being stopped,
     // this prevents any processing of Qt events
@@ -2477,4 +2670,8 @@ void Controller::finalize_close() {
 
     // Tell runner that controller is done
     emit closed();
+}
+
+void Controller::fundWallet(uint64_t value) {
+    _restClient->fundWalletFromFaucet(_wallet->getReceiveAddress().toBase58CheckEncoding(), value);
 }

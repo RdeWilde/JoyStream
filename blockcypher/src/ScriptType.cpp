@@ -13,10 +13,16 @@ namespace BlockCypher {
 
     ScriptType toScriptType(const QString & s) {
 
-        if(s == QString("pay-to-script-hash"))
+        if(s == "pay-to-script-hash")
             return ScriptType::pay_to_script_hash;
-        else if(s == QString("pay_to_pubkey_hash"))
+        else if(s == "pay-to-pubkey-hash")
             return ScriptType::pay_to_pubkey_hash;
+        else if(s == "pay-to-multi-pubkey-hash")
+            return ScriptType::pay_to_multi_pubkey_hash;
+        else if(s == "pay-to-pubkey")
+            return ScriptType::pay_to_pubkey;
+        else if(s == "null-data")
+            return ScriptType::null_data;
         else
             Q_ASSERT(false);
     }
@@ -26,6 +32,9 @@ namespace BlockCypher {
         switch(type) {
             case ScriptType::pay_to_script_hash: return "pay-to-script-hash";
             case ScriptType::pay_to_pubkey_hash: return "pay-to-pubkey-hash";
+            case ScriptType::pay_to_multi_pubkey_hash: return "pay-to-multi-pubkey-hash";
+            case ScriptType::null_data: return "null-data";
+            case ScriptType::pay_to_pubkey: return "pay-to-pubkey";
             default:
                 Q_ASSERT(false);
         }

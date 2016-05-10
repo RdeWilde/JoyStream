@@ -26,6 +26,9 @@ public:
 signals:
 
 public slots:
+
+private slots:
+    void updateCheckDone(int exitCode);
 };
 
 #endif // AUTOUPDATER_H

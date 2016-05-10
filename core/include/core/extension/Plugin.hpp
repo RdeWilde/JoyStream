@@ -8,7 +8,6 @@
 #ifndef PLUGIN_HPP
 #define PLUGIN_HPP
 
-//#include "BitCoin/Client.hpp"
 #include "SellerTorrentPlugin.hpp"
 #include "BuyerTorrentPlugin.hpp"
 
@@ -41,10 +40,6 @@ class TorrentPluginConfiguration;
 //class SellerTorrentPlugin::Configuration;
 class QNetworkReply;
 class QNetworkAccessManager;
-
-namespace Wallet {
-    class Manager;
-}
 
 namespace libtorrent {
     class alert;
@@ -102,7 +97,7 @@ public:
     };
 
     // Constructor
-    Plugin(Wallet::Manager * wallet, QLoggingCategory & category);
+    Plugin(joystream::bitcoin::SPVWallet * wallet, QLoggingCategory & category);
 
     // Destructor
     ~Plugin();
@@ -175,7 +170,7 @@ public:
 private:
 
     // Wallet
-    Wallet::Manager * _wallet;
+    joystream::bitcoin::SPVWallet * _wallet;
 
     // Libtorrent session.
     // Is set by added() libtorrent hook, not constructor

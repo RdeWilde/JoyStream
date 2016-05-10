@@ -183,6 +183,7 @@ QByteArray Metadata::encodeNetwork(Coin::Network network) {
     switch(network) {
         case Coin::Network::testnet3: return QByteArray::number(0);
         case Coin::Network::mainnet: return QByteArray::number(1);
+        case Coin::Network::regtest: return QByteArray::number(2);
         default:
                 Q_ASSERT(false);
     }
@@ -199,6 +200,7 @@ Coin::Network Metadata::decodeNetwork(const QByteArray & blob) {
 
         case 0: return Coin::Network::testnet3;
         case 1: return Coin::Network::mainnet;
+        case 2: return Coin::Network::regtest;
         default:
             Q_ASSERT(false);
     }
