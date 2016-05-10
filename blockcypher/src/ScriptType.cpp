@@ -9,7 +9,7 @@
 
 #include <QString>
 
-namespace BlockCypher {
+namespace blockcypher {
 
     ScriptType toScriptType(const QString & s) {
 

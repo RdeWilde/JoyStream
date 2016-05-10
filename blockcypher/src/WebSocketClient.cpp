@@ -17,7 +17,7 @@
 #include <QJsonDocument>
 #include <QJsonValue>
 
-namespace BlockCypher {
+namespace blockcypher {
 
     WebSocketClient::WebSocketClient(Coin::Network network, QString token)
         : _network(network), webSocketEndpoint(endPoint(network)), _apiToken(token) {

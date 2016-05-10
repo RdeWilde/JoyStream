@@ -7,7 +7,7 @@
 
 #include <blockcypher/UTXO.hpp>
 
-namespace BlockCypher {
+namespace blockcypher {
 
 bool UTXO::operator==(const UTXO & o) const {
 

@@ -15,8 +15,8 @@ class BlockCypherWallet : public QObject
 
 public:
     BlockCypherWallet(QString storePath, Coin::Network network,
-                      BlockCypher::Client * restClient,
-                      BlockCypher::WebSocketClient * wsClient);
+                      blockcypher::Client * restClient,
+                      blockcypher::WebSocketClient * wsClient);
 
     // Create a new wallet with auto generated seed
     void Create();
@@ -60,10 +60,10 @@ private:
 
     Coin::Network _network;
 
-    BlockCypher::Client *_restClient;
-    BlockCypher::WebSocketClient *_wsClient;
+    blockcypher::Client *_restClient;
+    blockcypher::WebSocketClient *_wsClient;
 
-    BlockCypher::UTXOManager *_utxoManager;
+    blockcypher::UTXOManager *_utxoManager;
 
     Coin::P2PKHAddress KeychainToP2PKHAddress(const Coin::HDKeychain & keychain);
 };

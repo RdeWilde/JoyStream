@@ -24,10 +24,10 @@ HEADERS += \
     include/blockcypher/BlockCypher.hpp \
     include/blockcypher/GetWallet.hpp \
     include/blockcypher/AddAddressToWallet.hpp \
-    #include/blockcypher/TX.hpp \
-    #include/blockcypher/TXInput.hpp \
-    #include/blockcypher/ScriptType.hpp \
-    #include/blockcypher/TXOutput.hpp \
+    include/blockcypher/TX.hpp \
+    include/blockcypher/TXInput.hpp \
+    include/blockcypher/ScriptType.hpp \
+    include/blockcypher/TXOutput.hpp \
     include/blockcypher/AddressEndPoint.hpp \
     include/blockcypher/PushRawTransaction.hpp \
     include/blockcypher/DeleteWallet.hpp \
@@ -46,9 +46,9 @@ SOURCES += \
     src/BlockCypher.cpp \
     src/GetWallet.cpp \
     src/TXRef.cpp \
-    #src/TX.cpp \
-    #src/TXInput.cpp \
-    #src/ScriptType.cpp \
+    src/TX.cpp \
+    src/TXInput.cpp \
+    src/ScriptType.cpp \
     src/Address.cpp \
     src/AddressEndPoint.cpp \
     src/PushRawTransaction.cpp \

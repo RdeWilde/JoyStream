@@ -13,7 +13,7 @@
 #include <CoinCore/CoinNodeData.h>
 #include <common/BlockId.hpp>
 
-namespace BlockCypher {
+namespace blockcypher {
 
     TX::TX(const QJsonObject & o) {
 
