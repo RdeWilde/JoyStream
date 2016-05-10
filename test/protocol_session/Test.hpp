@@ -18,10 +18,6 @@ class Test : public QObject {
 
 private slots:
 
-    //void sessionImpl();
-
-    void buying();
-
     void session();
 
 
