@@ -10,6 +10,7 @@
 #include <QJsonObject>
 #include <QNetworkReply>
 #include <QJsonDocument>
+#include <QJsonArray>
 
 namespace blockcypher {
 
@@ -94,13 +95,37 @@ QJsonObject replyToQJsonObject(QNetworkReply * reply) {
 }
 */
 
+// Use this method when only a single object is excpected as a response
 QJsonObject rawToQJsonObject(const QByteArray & data) {
 
     // Parse into json
     QJsonDocument jsonResponse = QJsonDocument::fromJson(data);
 
-    // Turn into json and return
+    if(!jsonResponse.isObject()) {
+        throw std::runtime_error("response is not an object");
+    }
+
     return jsonResponse.object();
+}
+
+// Use this method when expecting an array of objects as a response
+std::vector<QJsonObject> rawToQJsonObjects(const QByteArray & data) {
+
+    // Parse into json
+    QJsonDocument jsonResponse = QJsonDocument::fromJson(data);
+
+    // Response maybe a single object or an array of objects
+    std::vector<QJsonObject> objects;
+
+    if(jsonResponse.isArray()){
+        for(const QJsonValue & value : jsonResponse.array()){
+            objects.push_back(value.toObject());
+        }
+    } else {
+        objects.push_back(jsonResponse.object());
+    }
+
+    return objects;
 }
 
 }

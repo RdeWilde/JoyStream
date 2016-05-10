@@ -1,12 +1,30 @@
 #!/bin/bash
-pushd deps/osx
-BUILD_TYPE="DEBUG" ./build-all.sh
+spec=`qmake -query QMAKE_XSPEC`
+
+if [ "$spec" != "macx-clang" ]
+then
+  echo "osx build environment not correctly setup"
+  exit 1
+fi
+
+pushd bitcoin/src/detail/store
+make
+popd
+
+echo "Building All Joystream dependencies..."
+pushd deps/osx/
+if BUILD_TYPE="DEBUG" ./build-all.sh
+then
+   echo "Done Building Dependencies"
+else
+   echo "Building Dependencies failed"
+   exit 1
+fi
 popd
 
 mkdir -p build/osx
 cd build/osx
 rm -fr app/app.app
-make clean
 qmake ../../JoyStream.pro -r -spec macx-clang CONFIG+=x86_64 CONFIG+=debug && \
   make && \
   macdeployqt app/app.app

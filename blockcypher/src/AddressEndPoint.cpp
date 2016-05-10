@@ -33,11 +33,14 @@ void Reply::processReply() {
         if(_error == QNetworkReply::NoError) {
 
             _response = BlockCypherResponse::Fetched;
-            _address = Address(blockcypher::rawToQJsonObject(_rawResponse));
+
+            for(QJsonObject & obj : BlockCypher::rawToQJsonObjects(_rawResponse)) {
+                _addresses.push_back(Address(obj));
+            }
 
         } else if(_reply->error() == QNetworkReply::NetworkError::ContentNotFoundError) {
             _response = BlockCypherResponse::WalletDoesNotExist;
-            qDebug() << "Wallet does not exist error.";
+            qDebug() << "Wallet/Address does not exist error.";
         } else  {
 
             _response = BlockCypherResponse::catch_all;
@@ -85,8 +88,8 @@ BlockCypherResponse Reply::response() const {
     return _response;
 }
 
-Address Reply::address() const {
-    return _address;
+std::vector<Address> Reply::addresses() const {
+    return _addresses;
 }
 
 }

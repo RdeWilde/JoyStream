@@ -1,83 +1,18 @@
-#include "event.hpp"
+/**
+ * Copyright (C) JoyStream - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, January 26 2016
+ */
+
+#include <blockcypher/Event.hpp>
+#include <common/TransactionId.hpp>
+
 #include <QDebug>
 
 namespace BlockCypher {
 
-    // ===== C O N S T R U C T O R S
-
-    Event::Event() {}
-
-    //Note, token is optional.
-    Event::Event(const QString & event, const QString &token) : _event(toType(event)), _token(token) { }
-
-    //tx-confidence event. Note, token is optional.
-    Event::Event(const QString & event,const float &c, const QString &adr, const QString &token ) :
-        _event(toType(event)),_address(adr),_confidence(c),_token(token) { }
-
-    //tx-confirmation event. Note, token is optional.
-    Event::Event(const QString & event,const QString &adr,const unsigned short int &conf, const QString &token) :
-        _event(toType(event)),_address(adr),_confirmations(conf),_token(token) { }
-
-
-    // ===== S E T  M E T H O D S
-
-    void Event::setEvent(QString t) {
-        _event = toType(t);
-    }
-
-    void Event::setAddress(const QString &adr) {
-        //TODO: Check if address is valid based on blockchain used?
-        _address = adr;
-    }
-
-    const bool Event::setConfirmations(const unsigned short int &conf) {
-        if (conf > MAX_CONFIRMATIONS_ALLOWED) {
-            return false;
-        }
-        _confirmations = conf;
-        return true;
-    }
-
-    const bool Event::setConfidence(const float &c) {
-        if (c < MIN_CONFIDENCE || c >MAX_CONFIDENCE) {
-            return false;
-        }
-
-        _confidence = c;
-        return true;
-    }
-
-    void Event::setToken(const QString & token) {
-        _token = token;
-    }
-
-
-    // ===== G E T  M E T H O D S
-
-    Event::Type Event::getEvent() const{
-        return _event;
-    }
-
-    QString Event::getAddress() const {
-        return _address;
-    }
-
-    unsigned short int Event::getConfirmations() const{
-        return _confirmations;
-    }
-
-    float Event::getConfidence() const{
-        return _confidence;
-    }
-
-    QString Event::getToken() const {
-        return _token;
-    }
-
-
-    // ===== E N U M  M E T H O D S
-
-    Event::Type Event::toType(const QString &s) const {
+    Event::Type Event::stringToType(const QString &s) {
 
         if(s == "unconfirmed-tx")        return Event::Type::unconfirmed_tx;
         else if(s == "new-block")        return Event::Type::new_block;
@@ -89,7 +24,7 @@ namespace BlockCypher {
 
     }
 
-    QString   Event::fromType(Event::Type type) const {
+    const char *Event::typeToString(Event::Type type) {
 
         switch(type) {
             case Event::Type::unconfirmed_tx: return "unconfirmed-tx";
@@ -102,46 +37,120 @@ namespace BlockCypher {
         }
     }
 
-
-    // ===== J S O N  M E T H O D S
-
-
-    //Converts Event object to JSON.
-    QJsonObject Event::toJson() const{
-
-        QJsonObject json_data;
-
-        json_data["event"] = Event::fromType(_event);
-
-
-        if(!_token.isEmpty())
-            json_data["token"] = _token;
-
-        //We only need event member
-        if(_event == Event::Type::unconfirmed_tx ||
-                _event == Event::Type::new_block ||
-                _event == Event::Type::confirmed_tx ||
-                _event == Event::Type::double_spend_tx) {
-            return json_data;
-        }
-
-        //Remaining possible events tx-confirmation and tx-confidence.
-
-        if(_event == Event::Type::tx_confirmation) {
-            json_data["confirmations"] = _confirmations;
-        }
-
-        if(_event == Event::Type::tx_confidence) {
-            json_data["confidence"] = _confidence;
-        }
-
-        json_data["address"] = _address;
-
-        return json_data;
+    Event::Event(Event::Type type)
+    {
+        _event = type;
     }
 
-} // end namespace BlockCypher
+    Event Event::make(Event::Type type) {
+        if(type == Event::Type::tx_confirmation) {
+            throw std::runtime_error("wrong event factory. use makeTxConfirmation() instead");
+        }
 
+        if(type == Event::Type::tx_confidence) {
+            throw std::runtime_error("wrong event factory. use makeTxConfidence instead");
+        }
 
+        Event ev(type);
+        return ev;
+    }
 
+    Event Event::makeTxConfirmation(int confirmations)
+    {
+        Event ev(Event::Type::tx_confirmation);
 
+        if(confirmations < 0) {
+            ev.setConfirmations(0);
+        } else if (confirmations > 10) {
+            ev.setConfirmations(10);
+        } else {
+            ev.setConfirmations(confirmations);
+        }
+
+        return ev;
+    }
+
+    Event Event::makeTxConfirmation(int confirmations, Coin::TransactionId txid)
+    {
+        Event e = makeTxConfirmation(confirmations);
+        e.setHash(txid.toHex());
+        return e;
+    }
+
+    Event Event::makeTxConfirmation(int confirmations, QString address)
+    {
+        Event e = makeTxConfirmation(confirmations);
+        e.setAddress(address);
+        return e;
+    }
+
+    Event Event::makeTxConfidence(double confidence, QString address) {
+        Event ev(Event::Type::tx_confidence);
+
+        if(confidence > 1) {
+            ev.setConfidence(0.99);
+        } else if (confidence < 0 ) {
+            ev.setConfidence(0.01);
+        } else {
+            ev.setConfidence(confidence);
+        }
+
+        ev.setAddress(address);
+        return ev;
+    }
+
+    void Event::setAddress(const QString & address) {
+        if(_address) return;
+        _address = address;
+    }
+
+    void Event::setScriptType(ScriptType script) {
+        if(_script) return;
+        _script = script;
+    }
+
+    void Event::setHash(const QString & hash) {
+        if(_hash) return;
+        _hash = hash;
+    }
+
+    void Event::setWalletName(const QString & wallet_name) {
+        if(_wallet_name) return;
+        _wallet_name = wallet_name;
+    }
+
+    void Event::setToken(const QString & token) {
+        if(_token) return;
+        _token = token;
+    }
+
+    void Event::setConfirmations(const int & confirmations) {
+        if(_confirmations) return;
+        _confirmations = confirmations;
+    }
+
+    void Event::setConfidence(const double & confidence) {
+        if(_confidence) return;
+        _confidence = confidence;
+    }
+
+    Event::Type Event::type() const {
+        return _event;
+    }
+
+    QJsonObject Event::toJson() const {
+        QJsonObject obj;
+
+        obj["event"] = typeToString(_event);
+        if(_confirmations) obj["confirmations"] = *_confirmations;
+        if(_confidence) obj["confidence"] = *_confidence;
+        if(_hash) obj["hash"] = *_hash;
+        if(_address) obj["address"] = *_address;
+        if(_script) obj["script"] = fromScriptType(*_script);
+        if(_wallet_name) obj["wallet_name"] = *_wallet_name;
+        if(_token) obj["token"] = *_token;
+
+        return obj;
+    }
+
+}

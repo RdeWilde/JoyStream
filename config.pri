@@ -34,7 +34,7 @@ CONFIG(release, debug|release) {
 
     # Added for the benefit of QtCreator only, next lone does the same thing
     INCLUDEPATH += $$LIBTORRENT_LOCATION/release/include
-    QMAKE_CXXFLAGS += -isystem $$LIBTORRENT_LOCATION/release/include
+    #QMAKE_CXXFLAGS += -isystem $$LIBTORRENT_LOCATION/release/include
 
     LIBS += -L$$LIBTORRENT_LOCATION/release/lib -ltorrent
     DEFINES += NDEBUG
@@ -42,7 +42,7 @@ CONFIG(release, debug|release) {
 
     # Added for the benefit of QtCreator only, next lone does the same thing
     INCLUDEPATH += $$LIBTORRENT_LOCATION/debug/include
-    QMAKE_CXXFLAGS += -isystem $$LIBTORRENT_LOCATION/debug/include
+    #QMAKE_CXXFLAGS += -isystem $$LIBTORRENT_LOCATION/debug/include
 
     LIBS += -L$$LIBTORRENT_LOCATION/debug/lib -ltorrent
     DEFINES += TORRENT_DEBUG
@@ -51,10 +51,10 @@ CONFIG(release, debug|release) {
 }
 
 # mSIGNA
-# Added for the benefit of QtCreator only, next lone does the same thing
+# Added for the benefit of QtCreator only, next line does the same thing
 INCLUDEPATH += $$MSIGNA_SYSROOT/include
-QMAKE_CXXFLAGS += -isystem $$MSIGNA_SYSROOT/include
-LIBS += -L$$MSIGNA_SYSROOT/lib -lCoinCore
+#QMAKE_CXXFLAGS += -isystem $$MSIGNA_SYSROOT/include
+LIBS += -L$$MSIGNA_SYSROOT/lib -lCoinCore -llogger -lCoinCore
 
 # Boost
 LIBS += \
@@ -69,8 +69,18 @@ win32 {
   LIBS += -lws2_32 -lmswsock
 }
 
+#odb runtime
+LIBS += -lodb-sqlite -lodb
+
 # pthreads and zlib
 LIBS += -lpthread -lz
 
 # openssl
-LIBS += -lcrypto -lssl
+LIBS += -lcrypto -lssl 
+
+#libgdi must come after libcrypto
+win32 {
+  LIBS += -lgdi32
+}
+
+LIBS += -lsqlite3

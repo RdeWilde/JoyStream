@@ -10,10 +10,10 @@ cd src/boost
 #sudo ./b2 toolset=gcc address-model=64 target-os=linux threading=multi  \
 #        --without-mpi --without-python -sNO_BZIP2=1 --layout=tagged --disable-icu variant=release install
 
-sudo ./b2 toolset=gcc address-model=64 target-os=linux \
+sudo ./b2 toolset=gcc address-model=64 target-os=linux --layout=tagged \
   threading=multi link=static \
   --without-mpi --without-python -sNO_BZIP2=1 variant=release \
-  cxxflags="-fvisibility=hidden -std=gnu++11" \
+  cxxflags="-std=gnu++11" \
   --prefix=/usr/local/ install
 
 #--layout=tagged    will add the -mt suffix if multithreading

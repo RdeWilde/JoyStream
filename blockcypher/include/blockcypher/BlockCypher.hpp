@@ -68,8 +68,9 @@ namespace blockcypher {
     QJsonObject replyToQJsonObject(QNetworkReply * reply);
     */
 
-    // Parse raw buffer into json
+    // Parse raw buffer into json objects
     QJsonObject rawToQJsonObject(const QByteArray & data);
+    std::vector<QJsonObject> rawToQJsonObjects(const QByteArray & data);
 
 }
 

@@ -34,7 +34,7 @@ else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../runner/debug/
 else:unix: LIBS += -L$$OUT_PWD/../../runner/ -lrunner
 
 INCLUDEPATH += $$PWD/../../runner/include
-DEPENDPATH += $$PWD/../../runner/include
+DEPENDPATH += $$PWD/../../runner
 
 win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../runner/release/librunner.a
 else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../runner/debug/librunner.a
@@ -51,7 +51,7 @@ else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../views/gui/deb
 else:unix: LIBS += -L$$OUT_PWD/../../views/gui/ -lgui
 
 INCLUDEPATH += $$PWD/../../views/gui/include
-DEPENDPATH += $$PWD/../../views/gui/include
+DEPENDPATH += $$PWD/../../views/gui
 
 win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../views/gui/release/libgui.a
 else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../views/gui/debug/libgui.a
@@ -65,27 +65,13 @@ else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../core/debug/ -
 else:unix: LIBS += -L$$OUT_PWD/../../core/ -lcore
 
 INCLUDEPATH += $$PWD/../../core/include
-DEPENDPATH += $$PWD/../../core/include
+DEPENDPATH += $$PWD/../../core
 
 win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../core/release/libcore.a
 else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../core/debug/libcore.a
 else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../core/release/core.lib
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../core/debug/core.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.a
-
-# wallet ###########################################################################
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../wallet/release/ -lwallet
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../wallet/debug/ -lwallet
-else:unix: LIBS += -L$$OUT_PWD/../../wallet/ -lwallet
-
-INCLUDEPATH += $$PWD/../../wallet/include
-DEPENDPATH += $$PWD/../../wallet/include
-
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../wallet/release/libwallet.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../wallet/debug/libwallet.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../wallet/release/wallet.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../wallet/debug/wallet.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../wallet/libwallet.a
 
 # paymentchannel ###############################################################
 INCLUDEPATH += $$PWD/../../paymentchannel/include
@@ -99,7 +85,7 @@ else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../common/debug/
 else:unix: LIBS += -L$$OUT_PWD/../../common/ -lcommon
 
 INCLUDEPATH += $$PWD/../../common/include
-DEPENDPATH += $$PWD/../../common/include
+DEPENDPATH += $$PWD/../../common
 
 win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../common/release/libcommon.a
 else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../common/debug/libcommon.a

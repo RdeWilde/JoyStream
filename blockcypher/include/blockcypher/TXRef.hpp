@@ -6,6 +6,7 @@
  */
 
 #include <common/TransactionId.hpp>
+#include <boost/optional.hpp>
 
 #ifndef BLOCKCYPHER_TXREF_HPP
 #define BLOCKCYPHER_TXREF_HPP
@@ -36,11 +37,11 @@ namespace blockcypher {
         // **We are not storing as p2pkh address,
         // **since the returned address can be of any type,
         // **at least in principle.
-        std::string _addressString;
+        boost::optional<std::string> _addressString;
 
         // Height of the block that contains this transaction.
         // If this is an unconfirmed transaction, it will equal -1.
-        int _block_height;
+        boost::optional<int> _block_height;
 
         // The hash of the transaction containing this input or output.
         // While reasonably unique, using hashes as identifiers may be unsafe.
@@ -77,6 +78,9 @@ namespace blockcypher {
         // including the block the transaction is in.
         // Unconfirmed transactions have 0 confirmations.
         uint32_t _confirmations;
+
+        // Optional Raw, hex-encoded script of this input/output.
+        boost::optional<std::string> _script;
     };
 
 }

@@ -26,7 +26,7 @@ else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../mixpanel/debu
 else:unix: LIBS += -L$$OUT_PWD/../../mixpanel/ -lmixpanel
 
 INCLUDEPATH += $$PWD/../../mixpanel/include
-DEPENDPATH += $$PWD/../../mixpanel/include
+DEPENDPATH += $$PWD/../../mixpanel
 
 win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../mixpanel/release/libmixpanel.a
 else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../mixpanel/debug/libmixpanel.a

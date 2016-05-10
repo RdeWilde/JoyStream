@@ -217,6 +217,9 @@ AddressEndPoint::Reply * Client::addressEndPointAsync(const QString & walletName
     if(confirmations != -1) // indicates we don care
         basic_request_uri += "&confirmations=" + confirmations;
 
+    // include script
+    basic_request_uri += "&includeScript=true";
+
     // Make GET request
     QNetworkReply * reply = get(basic_request_uri);
 
@@ -224,7 +227,7 @@ AddressEndPoint::Reply * Client::addressEndPointAsync(const QString & walletName
     return new AddressEndPoint::Reply(reply, walletName, unspentOnly, limit, confirmations);
 }
 
-Address Client::addressEndPoint(const QString & walletName, bool unspentOnly, uint limit, uint confirmations) {
+std::vector<Address> Client::addressEndPoint(const QString & walletName, bool unspentOnly, uint limit, uint confirmations) {
 
     AddressEndPoint::Reply * reply = addressEndPointAsync(walletName, unspentOnly, limit, confirmations);
 
@@ -242,9 +245,8 @@ Address Client::addressEndPoint(const QString & walletName, bool unspentOnly, ui
 
         Q_ASSERT(reply->error() == QNetworkReply::NoError);
 
-        Address fetched = reply->address();
+        return reply->addresses();
 
-        return fetched;
     }  else {
 
         // Create full error mesasge

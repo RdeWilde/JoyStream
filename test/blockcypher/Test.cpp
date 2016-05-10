@@ -105,7 +105,7 @@ void Test::addAddresses() {
 
 void Test::addressEndpoint() {
 
-    blockcypher::Address addr = _client->addressEndPoint("my-test");
+    blockcypher::Address addr = *_client->addressEndPoint("my-test").begin();
 
     QVERIFY(addr._balance > 0);
 }

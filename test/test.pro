@@ -6,14 +6,14 @@
 TEMPLATE    = subdirs
 
 SUBDIRS     = \
-            core \
             common \
             paymentchannel \
-            #views \
-            wallet \
             blockcypher \ 
             mixpanel \
             protocol_statemachine \
             protocol_session \
-            protocol_wire
-
+            protocol_wire \
+            blockcypher-websocket \
+            blockcypher-wallet \
+            spv-wallet \
+            spv-wallet-client

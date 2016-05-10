@@ -123,6 +123,15 @@ TorrentView::TorrentView(QObject * parent,
                      SIGNAL(torrentStatusChanged(const libtorrent::torrent_status &)),
                      this,
                      SLOT(updateStatus(const libtorrent::torrent_status &)));
+
+    _nameItem->setEditable(false);
+    _sizeItem->setEditable(false);
+    _stateItem->setEditable(false);
+    _speedItem->setEditable(false);
+    _buyersItem->setEditable(false);
+    _sellersItem->setEditable(false);
+    _pluginInstalledItem->setEditable(false);
+    _balanceItem->setEditable(false);
 }
 
 QString TorrentView::sizeToString(qint64 size) {
@@ -242,7 +251,7 @@ void TorrentView::updateStartedBuyerTorrentPlugin(const BuyerTorrentPluginViewMo
     _torrentTableContextMenu.addAction(&_viewExtensionAction);
 
     // add streaming action to menu
-    _torrentTableContextMenu.addAction(&_streamAction);
+    //_torrentTableContextMenu.addAction(&_streamAction);
 
     // Set initial values
     updateNumberOfBuyers(model->numberOfBuyerPeers());

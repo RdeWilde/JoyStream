@@ -19,7 +19,7 @@
 
 #include <QDebug> // <== temporary
 
-WalletDialog::WalletDialog(Wallet::Manager * wallet,
+WalletDialog::WalletDialog(joystream::bitcoin::SPVWallet * wallet,
                            const BitcoinDisplaySettings * settings)
     : ui(new Ui::WalletDialog)
     , _wallet(wallet)

@@ -15,48 +15,53 @@
 namespace joystream {
 namespace app {
 
-    AutoUpdater::AutoUpdater(QApplication& app)
-        : _app(app) {
+AutoUpdater::AutoUpdater(QApplication& app)
+    : _app(app) {
+}
+
+/* does an unattended check - returns true if a new version is available */
+bool AutoUpdater::newVersionAvailable() {
+
+    QString program = updaterPath();
+    QStringList arguments;
+    arguments << "--mode" << "unattended";
+
+    //avoid case on windows if updater is not found or fails to run to return true
+    if( !QFile::exists(program)){
+        return false;
     }
 
-    /* does an unattended check (blocking) - returns true if a new version is available */
-    bool AutoUpdater::newVersionAvailable() {
-        QObject *parent = 0;
-        QString program = updaterPath();
-        QStringList arguments;
-        arguments << "--mode" << "unattended";
+    std::cout << "checking for updates..." << std::endl;
 
-        //avoid case on windows if updater is not found or fails to run to return true
-        if( !QFile::exists(program)){
-            return false;
-        }
+    QProcess process;
 
-        std::cout << "checking for updates..." << std::endl;
+    QObject::connect(&process, SIGNAL(finished(int)), this, SLOT(updateCheckDone(int)));
 
-        QProcess *process = new QProcess(parent);
-        process->start(program, arguments);
-        //blocking main thread..
-        //Todo: let the updater finish running and emit a signal with exit code instead
-        process->waitForFinished(-1);
+    process.start(program, arguments);
 
-        //exit code 0 means an update is available to download
-        return process->exitCode() == 0;
-    }
+    _app.exec();
 
-    /* runs auto updater in minimal gui - it will only show up if a new version is available to download
-     * use on application start up or after newVersionAvailable() returns true ?
-     */
-    void AutoUpdater::updateMiniUI(){
-        QObject *parent = 0;
-        QString program = updaterPath();
-        QStringList arguments;
-        arguments << "--mode" << "unattended";
-        arguments << "--unattendedmodebehavior" << "download";
-        arguments << "--unattendedmodeui" << "minimalWithDialogs";
+    //exit code 0 means an update is available to download
+    return process.exitCode() == 0;
+}
 
-        QProcess *process = new QProcess(parent);
-        process->start(program, arguments);
-    }
+void AutoUpdater::updateCheckDone(int exitCode) {
+    _app.exit();
+}
+
+/* runs auto updater in minimal gui - it will only show up if a new version is available to download
+ * use on application start up or after newVersionAvailable() returns true ?
+ */
+void AutoUpdater::updateMiniUI(){
+    QString program = updaterPath();
+    QStringList arguments;
+    arguments << "--mode" << "unattended";
+    arguments << "--unattendedmodebehavior" << "download";
+    arguments << "--unattendedmodeui" << "minimalWithDialogs";
+
+    QProcess::startDetached(program, arguments);
+}
+
 
     /* runs fully interactive auto-updater gui*/
     /*
@@ -76,7 +81,7 @@ namespace app {
     }
     */
 
-    QString AutoUpdater::updaterPath(){
+QString AutoUpdater::updaterPath(){
     #ifdef _WIN32
         return _app.applicationDirPath() + "/autoupdate-windows.exe";
     #elif __APPLE__

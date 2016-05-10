@@ -25,29 +25,23 @@ SOURCES += \
     src/Runner.cpp \
     src/ControllerBarrier.cpp
 
-# gui
-INCLUDEPATH += $$PWD/../views/gui/include
-DEPENDPATH += $$PWD/../views/gui/include
-
-# core
 INCLUDEPATH += $$PWD/../core/include
 DEPENDPATH += $$PWD/../core/include
 
-# wallet
-INCLUDEPATH += $$PWD/../wallet/include
-DEPENDPATH += $$PWD/../wallet/include
+INCLUDEPATH += $$PWD/../views/gui/include
+DEPENDPATH += $$PWD/../views/gui/include
 
-# blockcypher
 INCLUDEPATH += $$PWD/../blockcypher/include/
-DEPENDPATH += $$PWD/../blockcypher/include
+DEPENDPATH += $$PWD/../blockcypher/include/
 
-# paymentchannel
 INCLUDEPATH += $$PWD/../paymentchannel/include/
-DEPENDPATH += $$PWD/../paymentchannel/include
+DEPENDPATH += $$PWD/../paymentchannel/include/
 
-# common
 INCLUDEPATH += $$PWD/../common/include
 DEPENDPATH += $$PWD/../common/include
+
+INCLUDEPATH += $$PWD/../bitcoin/include
+DEPENDPATH += $$PWD/../bitcoin/include
 
 # some of these may be removeable later
 include(../config.pri)

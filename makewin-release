@@ -1,13 +1,32 @@
 #!/bin/bash
 
-pushd deps/win32/
-./build-all.sh
+export PATH=/usr/i686-w64-mingw32/host/bin:$PATH
+
+spec=`qmake -query QMAKE_XSPEC`
+
+if [ "$spec" != "win32-g++" ]
+then
+  echo "win32 build environment not correctly setup"
+  exit 1
+fi
+
+pushd bitcoin/src/detail/store
+make
 popd
 
-export PATH=/usr/i686-w64-mingw32/host/bin:$PATH
+echo "Building All Joystream dependencies..."
+pushd deps/win32
+if ./build-all.sh
+then
+   echo "Done Building Dependencies"
+else
+   echo "Building Dependencies failed"
+   exit 1
+fi
+popd
+
 mkdir -p build/win32
 cd build/win32
 qmake ../../JoyStream.pro -r -spec win32-g++ DEFINES+=QT_FORCE_ASSERTS CONFIG+=release && make release
 
-#sudo cp app/release/app.exe /media/sf_vm-shared/joystream.exe
-
+#application in app/release/app.exe

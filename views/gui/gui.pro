@@ -23,7 +23,6 @@ INCLUDEPATH += $$PWD/include
 
 SOURCES += \
     src/MainWindow.cpp \
-    src/WalletDialog.cpp \
     src/SellerTorrentPluginConfigurationDialog.cpp \
     src/BuyerTorrentPluginConfigurationDialog.cpp \
     src/SellerTorrentPluginDialog.cpp \
@@ -34,17 +33,17 @@ SOURCES += \
     src/BuyerPeerPluginView.cpp \
     src/SellerPeerPluginView.cpp \
     src/PeerPluginsDialog.cpp \
-    src/UtxoEventViewModel.cpp \
+    #src/UtxoEventViewModel.cpp \
     src/ReceiveFundsDialog.cpp \
     src/MediaPlayerDialog.cpp \
-    src/FundingWalletProgressDialog.cpp
+    src/FundingWalletProgressDialog.cpp \
+    src/GeneralLoadingProgressDialog.cpp
 
 HEADERS += \
     include/gui/MainWindow.hpp \
     include/gui/AddTorrentDialog.hpp \
     include/gui/SellerTorrentPluginConfigurationDialog.hpp \
     include/gui/BuyerTorrentPluginConfigurationDialog.hpp \
-    include/gui/WalletDialog.hpp \
     include/gui/PeerPluginsDialog.hpp \
     include/gui/SellerTorrentPluginDialog.hpp \
     include/gui/BuyerTorrentPluginDialog.hpp \
@@ -52,10 +51,11 @@ HEADERS += \
     include/gui/ChannelView.hpp \
     include/gui/BuyerPeerPluginView.hpp \
     include/gui/SellerPeerPluginView.hpp \
-    include/gui/UtxoEventViewModel.hpp \
+    #include/gui/UtxoEventViewModel.hpp \
     include/gui/ReceiveFundsDialog.hpp \
     include/gui/MediaPlayerDialog.hpp \
-    include/gui/FundingWalletProgressDialog.hpp
+    include/gui/FundingWalletProgressDialog.hpp \
+    include/gui/GeneralLoadingProgressDialog.hpp
 
 FORMS += \
     ui/SellerTorrentPluginConfigurationDialog.ui \
@@ -65,33 +65,28 @@ FORMS += \
     ui/BuyerTorrentPluginDialog.ui \
     ui/MainWindow.ui \
     ui/AddTorrentDialog.ui \
-    ui/WalletDialog.ui \
     ui/ReceiveFundsDialog.ui \
     ui/MediaPlayerDialog.ui \
-    ui/FundingWalletProgressDialog.ui
+    ui/FundingWalletProgressDialog.ui \
+    ui/GeneralLoadingProgressDialog.ui
 
 RESOURCES += \
     base.qrc
 
-# paymentchannel
 INCLUDEPATH += $$PWD/../../paymentchannel/include
 DEPENDPATH += $$PWD/../../paymentchannel/include
 
-# blockcypher
 INCLUDEPATH += $$PWD/../../blockcypher/include
-DEPENDPATH += $$PWD/../../blockcypher/include
+DEPENDPATH += $$PWD/../../blockcypher
 
-# wallet
-INCLUDEPATH += $$PWD/../../wallet/include
-DEPENDPATH += $$PWD/../../wallet/include
-
-# core
 INCLUDEPATH += $$PWD/../../core/include
-DEPENDPATH += $$PWD/../../core/include
+DEPENDPATH += $$PWD/../../core
 
-# common
 INCLUDEPATH += $$PWD/../../common/include
-DEPENDPATH += $$PWD/../../common/include
+DEPENDPATH += $$PWD/../../common
+
+INCLUDEPATH += $$PWD/../../bitcoin/include
+DEPENDPATH += $$PWD/../../bitcoin
 
 include(../../config.pri)
 include(../../app/config.pri)

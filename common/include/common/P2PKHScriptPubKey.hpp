@@ -23,10 +23,17 @@ public:
 
     P2PKHScriptPubKey(const PublicKey & pk);
 
+
     static uint32_t length();
+
+    // From raw script
+    static P2PKHScriptPubKey deserialize(const uchar_vector & script);
+    static P2PKHScriptPubKey deserialize(const std::string & hex);
 
     // Raw script: scriptSig: <sig> <pubKey>
     uchar_vector serialize() const;
+
+    PubKeyHash pubKeyHash() const { return _hash; }
 
 private:
 

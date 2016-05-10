@@ -16,6 +16,7 @@
 #include <gui/SellerTorrentPluginDialog.hpp>
 #include <gui/BuyerTorrentPluginDialog.hpp>
 #include <gui/FundingWalletProgressDialog.hpp>
+#include <gui/GeneralLoadingProgressDialog.hpp>
 #include <core/controller/Controller.hpp>
 #include <core/controller/SellerTorrentPluginViewModel.hpp>
 #include <core/controller/BuyerTorrentPluginViewModel.hpp>
@@ -27,7 +28,7 @@
 #include <core/extension/SellerTorrentPlugin.hpp>
 #include <common/BitcoinRepresentation.hpp>
 #include <common/BitcoinDisplaySettings.hpp>
-#include <wallet/Manager.hpp>
+#include <bitcoin/SPVWallet.hpp>
 
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>
@@ -44,12 +45,11 @@
 #include <QLabel>
 #include <QDesktopServices>
 
-MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const QString & appendToTitle)
+MainWindow::MainWindow(Controller * controller, const QString & appendToTitle)
     : ui(new Ui::MainWindow)
     , _controller(controller)
-    , _wallet(wallet)
+    , _wallet(controller->wallet())
     , _torrentTableViewModel(0, 6)
-    , _walletBalanceUpdateTimer()
     , _bitcoinDisplaySettings() //(Fiat::USD, 225) {
     , _openJoyStream("Open JoyStream", this)
     , _minimizeToTray("Minimize to tray", this)
@@ -282,29 +282,29 @@ MainWindow::MainWindow(Controller * controller, Wallet::Manager * wallet, const 
 
     /**
      * Wallet signals
-
+     */
 
     // Update balance when it changes
+    qRegisterMetaType<uint64_t>("uint64_t");
+
     QObject::connect(_wallet,
-                     SIGNAL(zeroConfBalanceChanged(quint64)),
+                    &joystream::bitcoin::SPVWallet::balanceChanged,
+                    this,
+                    &MainWindow::on_updatedWalletBalance);
+
+    // Wallet Synchronised
+    QObject::connect(_wallet,
+                     SIGNAL(synched()),
                      this,
-                     SLOT(updateWalletBalances(quint64)));
-    */
+                     SLOT(on_walletSynched()));
 
-    // Capure wallet balance update timer,
-    connect(&_walletBalanceUpdateTimer,
-            SIGNAL(timeout()),
-            this,
-            SLOT(updateWalletBalanceHook()));
+    QObject::connect(_wallet,
+                     SIGNAL(connected()),
+                     this,
+                     SLOT(on_walletConnected()));
 
-    // Do first round to setup initial value
-    blockcypher::Address a =_wallet->BLOCKCYPHER_lastAdress();
-    updateWalletBalances(a._balance, a._unconfirmed_balance);
-    
-    updateWalletBalanceHook();
-
-    // and have i fire every 30s
-    _walletBalanceUpdateTimer.start(30000);
+    // Show starting wallet balance
+    updateWalletBalances(_wallet->balance(), _wallet->unconfirmedBalance());
 }
 
 MainWindow::~MainWindow() {
@@ -320,6 +320,23 @@ MainWindow::~MainWindow() {
 
     // Delete Ui::MainWindow
     delete ui;
+}
+
+void MainWindow::startUp(std::function<void(std::string)> feedback) {
+
+    qDebug() << "Starting up...";
+
+    GeneralLoadingProgressDialog dialog("Starting Up");
+    dialog.show();
+
+    _wallet->loadBlockTree([&dialog, &feedback](std::string message){
+        dialog.updateMessage(QString::fromStdString(message));
+        feedback(message);
+    });
+
+    dialog.hide();
+
+    _controller->syncWallet();
 }
 
 void MainWindow::showContextMenu(const QPoint & pos) {
@@ -731,10 +748,10 @@ void MainWindow::updateWalletBalances(quint64 confirmedBalance, quint64 unconfir
 void MainWindow::on_walletPushButton_clicked() {
 
     // Create dialog
-    WalletDialog dialog(_wallet, &_bitcoinDisplaySettings);
+    // WalletDialog dialog(_wallet, &_bitcoinDisplaySettings);
 
     // Start processing new event loop
-    dialog.exec();
+    // dialog.exec();
 }
 
 void MainWindow::on_topUpWalletPushButton_clicked() {
@@ -802,41 +819,54 @@ void MainWindow::startVLC(const libtorrent::sha1_hash & infoHash) {
     */
 }
 
-void MainWindow::updateWalletBalanceHook() {
+void MainWindow::fundWalletFromFaucet() {
 
-    // Sync blockcypher wallet
-    // MUST BE DONE ALL THE TIME TO CAPTURE
-    // PAYCHAN OUTPUTS/CHANGE/PAYMENTS
-    try {
+    //TODO - limit funding to once every hour? - check api limits
 
+<<<<<<< HEAD
         blockcypher::Address oldAddr =_wallet->BLOCKCYPHER_lastAdress();
         updateWalletBalances(oldAddr._balance, oldAddr._unconfirmed_balance);
+=======
+    qDebug() << "Topping up wallet from testnet faucet";
+>>>>>>> development
 
-        //automatically top up wallet from testnet faucet if it goes below a threshold
-        if (oldAddr._balance + oldAddr._unconfirmed_balance < RELOAD_WALLET_LOWER_BOUND) {
+    FundingWalletProgressDialog dialog(RELOAD_WALLET_AMOUNT, &_bitcoinDisplaySettings);
+    dialog.show();
 
-            qDebug() << "Topping up wallet from testnet faucet";
+    try {
+        _controller->fundWallet(RELOAD_WALLET_AMOUNT);
+    } catch(const std::exception & e) {
+        qDebug() << "Unable to fund wallet from faucet";
+    }
 
-            FundingWalletProgressDialog dialog(RELOAD_WALLET_AMOUNT, &_bitcoinDisplaySettings);
+    dialog.hide();
+}
 
-            dialog.show();
+void MainWindow::on_walletSynched() {
 
-            _wallet->BLOCKCYPHER_fundWalletFromFaucet(RELOAD_WALLET_AMOUNT);
+    updateWalletBalances(_wallet->balance(), _wallet->unconfirmedBalance());
+}
 
-            dialog.hide();
-        }
+void MainWindow::on_walletConnected() {
+    if(_wallet->unconfirmedBalance() < RELOAD_WALLET_LOWER_BOUND )
+        fundWalletFromFaucet();
+}
 
+<<<<<<< HEAD
         _wallet->BLOCKCYPHER_update_remote_wallet();
         
         // recalculate utxo (in case there has been any in/out to existing addresses);
         blockcypher::Address addr = _wallet->BLOCKCYPHER_rebuild_utxo();
+=======
+void MainWindow::on_updatedWalletBalance(uint64_t confirmedBalance, uint64_t unconfirmedBalance) {
+>>>>>>> development
 
-        // update balance
-        updateWalletBalances(addr._balance, addr._unconfirmed_balance);
+    updateWalletBalances(confirmedBalance, unconfirmedBalance);
 
-    } catch(const std::exception & e) {
-        qDebug() << "Catastrophic failure, could not resync wallet status, most likely due to network i/o failure";
-        return;
+    //automatically top up wallet from testnet faucet if it goes below a threshold
+    if (unconfirmedBalance < RELOAD_WALLET_LOWER_BOUND) {
+        // TODO - check single largest utxo is less than the lower bound (not the total balance of the wallet)
+        fundWalletFromFaucet();
     }
 }
 
@@ -888,4 +918,8 @@ void MainWindow::dropEvent(QDropEvent *e) {
 
 void MainWindow::on_bugsPushButton_clicked() {
     QDesktopServices::openUrl(QUrl("https://www.reddit.com/r/JoyStream/comments/3sazif/post_bugs_here/"));
+}
+
+void MainWindow::updateStatusMessage(std::string message) {
+    ui->statusMessageLabel->setText(QString::fromStdString(message));
 }

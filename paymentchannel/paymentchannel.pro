@@ -33,8 +33,8 @@ SOURCES += \
     src/Payor.cpp \
     src/Contract.cpp
 
-# common
 INCLUDEPATH += $$PWD/../common/include
 DEPENDPATH += $$PWD/../common/include
+
 
 include(../config.pri)

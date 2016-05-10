@@ -33,7 +33,7 @@ SigHashType SigHashType::fromHashCode(uint32_t hashCode) {
 
     if(flag(MutuallyExclusiveType::all) == masked)
         type = MutuallyExclusiveType::all;
-    if(flag(MutuallyExclusiveType::none) == masked)
+    else if(flag(MutuallyExclusiveType::none) == masked)
         type = MutuallyExclusiveType::none;
     else if(flag(MutuallyExclusiveType::single) == masked)
         type = MutuallyExclusiveType::single;

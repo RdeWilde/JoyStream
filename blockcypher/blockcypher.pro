@@ -33,8 +33,11 @@ HEADERS += \
     include/blockcypher/DeleteWallet.hpp \
     include/blockcypher/BlockExplorer.hpp \
     include/blockcypher/FundWalletFromFaucet.hpp \
-    #include/blockcypher/Event.hpp \
-    #include/blockcypher/WsClient.hpp
+    include/blockcypher/Event.hpp \
+    include/blockcypher/WebSocketClient.hpp \
+    include/blockcypher/UTXOManager.hpp \
+    include/blockcypher/UTXO.hpp \
+    include/blockcypher/TxResult.hpp
 
 SOURCES += \
     src/Wallet.cpp \
@@ -52,9 +55,11 @@ SOURCES += \
     src/DeleteWallet.cpp \
     src/BlockExplorer.cpp \
     src/FundWalletFromFaucet.cpp \
-    #src/Event.cpp \
-    #src/TXOutput.cpp \
-    #src/WsClient.cpp
+    src/Event.cpp \
+    src/TXOutput.cpp \
+    src/WebSocketClient.cpp \
+    src/UTXOManager.cpp \
+    src/UTXO.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include

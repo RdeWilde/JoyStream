@@ -13,3 +13,7 @@ LIBTORRENT_LOCATION= $$PWD/deps/osx/dist
 
 # mSIGNA
 MSIGNA_SYSROOT = $$PWD/deps/osx/src/mSIGNA/sysroot
+
+# Boost
+# boost was build with --layout=tagged option so libraries are suffixed
+BOOST_LIB_SUFFIX = -mt

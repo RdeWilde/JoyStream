@@ -1,0 +1,183 @@
+<changelog xmlns="http://www.codesynthesis.com/xmlns/odb/changelog" database="sqlite" version="1">
+  <model version="1">
+    <table name="Metadata" kind="object">
+      <column name="seed" type="TEXT" null="false"/>
+      <column name="network" type="INTEGER" null="false"/>
+      <column name="created" type="INTEGER" null="false"/>
+    </table>
+    <table name="Key" kind="object">
+      <column name="index" type="INTEGER" null="false"/>
+      <column name="generated" type="INTEGER" null="false"/>
+      <column name="used" type="INTEGER" null="false"/>
+      <column name="raw" type="TEXT" null="false"/>
+      <primary-key auto="true">
+        <column name="index"/>
+      </primary-key>
+    </table>
+    <table name="Address" kind="object">
+      <column name="id" type="INTEGER" null="false"/>
+      <column name="address" type="TEXT" null="false"/>
+      <column name="key" type="INTEGER" null="false"/>
+      <column name="scriptPubKey" type="TEXT" null="false"/>
+      <primary-key auto="true">
+        <column name="id"/>
+      </primary-key>
+      <foreign-key name="key_fk" deferrable="DEFERRED">
+        <column name="key"/>
+        <references table="Key">
+          <column name="index"/>
+        </references>
+      </foreign-key>
+      <index name="Address_key_i" type="UNIQUE">
+        <column name="key"/>
+      </index>
+    </table>
+    <table name="BlockHeader" kind="object">
+      <column name="id" type="TEXT" null="false"/>
+      <column name="height" type="INTEGER" null="false"/>
+      <primary-key>
+        <column name="id"/>
+      </primary-key>
+      <index name="BlockHeader_height_i" type="UNIQUE">
+        <column name="height"/>
+      </index>
+    </table>
+    <table name="Output" kind="object">
+      <column name="id_value" type="INTEGER" null="false"/>
+      <column name="id_scriptPubKey" type="TEXT" null="false"/>
+      <column name="address" type="INTEGER" null="true"/>
+      <primary-key>
+        <column name="id_value"/>
+        <column name="id_scriptPubKey"/>
+      </primary-key>
+      <foreign-key name="address_fk" deferrable="DEFERRED">
+        <column name="address"/>
+        <references table="Address">
+          <column name="id"/>
+        </references>
+      </foreign-key>
+    </table>
+    <table name="Input" kind="object">
+      <column name="id_op_txid" type="TEXT" null="false"/>
+      <column name="id_op_index" type="INTEGER" null="false"/>
+      <column name="id_scriptSig" type="TEXT" null="false"/>
+      <column name="id_sequence" type="INTEGER" null="false"/>
+      <primary-key>
+        <column name="id_op_txid"/>
+        <column name="id_op_index"/>
+        <column name="id_scriptSig"/>
+        <column name="id_sequence"/>
+      </primary-key>
+    </table>
+    <table name="Transaction" kind="object">
+      <column name="txid" type="TEXT" null="false"/>
+      <column name="version" type="INTEGER" null="false"/>
+      <column name="lockTime" type="INTEGER" null="false"/>
+      <column name="header" type="TEXT" null="true"/>
+      <primary-key>
+        <column name="txid"/>
+      </primary-key>
+      <foreign-key name="header_fk" deferrable="DEFERRED">
+        <column name="header"/>
+        <references table="BlockHeader">
+          <column name="id"/>
+        </references>
+      </foreign-key>
+    </table>
+    <table name="TxHasInput" kind="object">
+      <column name="id" type="INTEGER" null="false"/>
+      <column name="tx_ix_tx" type="TEXT" null="false"/>
+      <column name="tx_ix_index" type="INTEGER" null="false"/>
+      <column name="input_op_txid" type="TEXT" null="false"/>
+      <column name="input_op_index" type="INTEGER" null="false"/>
+      <column name="input_scriptSig" type="TEXT" null="false"/>
+      <column name="input_sequence" type="INTEGER" null="false"/>
+      <primary-key auto="true">
+        <column name="id"/>
+      </primary-key>
+      <foreign-key name="tx_ix_tx_fk" deferrable="DEFERRED">
+        <column name="tx_ix_tx"/>
+        <references table="Transaction">
+          <column name="txid"/>
+        </references>
+      </foreign-key>
+      <foreign-key name="input_fk" deferrable="DEFERRED">
+        <column name="input_op_txid"/>
+        <column name="input_op_index"/>
+        <column name="input_scriptSig"/>
+        <column name="input_sequence"/>
+        <references table="Input">
+          <column name="id_op_txid"/>
+          <column name="id_op_index"/>
+          <column name="id_scriptSig"/>
+          <column name="id_sequence"/>
+        </references>
+      </foreign-key>
+      <index name="TxHasInput_tx_ix_i" type="UNIQUE">
+        <column name="tx_ix_tx"/>
+        <column name="tx_ix_index"/>
+      </index>
+    </table>
+    <table name="TxHasOutput" kind="object">
+      <column name="id" type="INTEGER" null="false"/>
+      <column name="tx_ix_tx" type="TEXT" null="false"/>
+      <column name="tx_ix_index" type="INTEGER" null="false"/>
+      <column name="output_value" type="INTEGER" null="false"/>
+      <column name="output_scriptPubKey" type="TEXT" null="false"/>
+      <primary-key auto="true">
+        <column name="id"/>
+      </primary-key>
+      <foreign-key name="tx_ix_tx_fk" deferrable="DEFERRED">
+        <column name="tx_ix_tx"/>
+        <references table="Transaction">
+          <column name="txid"/>
+        </references>
+      </foreign-key>
+      <foreign-key name="output_fk" deferrable="DEFERRED">
+        <column name="output_value"/>
+        <column name="output_scriptPubKey"/>
+        <references table="Output">
+          <column name="id_value"/>
+          <column name="id_scriptPubKey"/>
+        </references>
+      </foreign-key>
+      <index name="TxHasOutput_tx_ix_i" type="UNIQUE">
+        <column name="tx_ix_tx"/>
+        <column name="tx_ix_index"/>
+      </index>
+    </table>
+    <table name="InBoundPayment" kind="object">
+      <column name="id" type="INTEGER" null="false"/>
+      <column name="created" type="INTEGER" null="false"/>
+      <column name="note" type="TEXT" null="false"/>
+      <column name="receiveAddress" type="INTEGER" null="true"/>
+      <primary-key auto="true">
+        <column name="id"/>
+      </primary-key>
+      <foreign-key name="receiveAddress_fk" deferrable="DEFERRED">
+        <column name="receiveAddress"/>
+        <references table="Address">
+          <column name="id"/>
+        </references>
+      </foreign-key>
+    </table>
+    <table name="OutBoundPayment" kind="object">
+      <column name="id" type="INTEGER" null="false"/>
+      <column name="fee" type="INTEGER" null="false"/>
+      <column name="amount" type="INTEGER" null="false"/>
+      <column name="note" type="TEXT" null="false"/>
+      <column name="created" type="INTEGER" null="false"/>
+      <column name="toAddress" type="TEXT" null="false"/>
+      <column name="changeAddress" type="INTEGER" null="true"/>
+      <primary-key auto="true">
+        <column name="id"/>
+      </primary-key>
+      <foreign-key name="changeAddress_fk" deferrable="DEFERRED">
+        <column name="changeAddress"/>
+        <references table="Address">
+          <column name="id"/>
+        </references>
+      </foreign-key>
+    </table>
+  </model>
+</changelog>

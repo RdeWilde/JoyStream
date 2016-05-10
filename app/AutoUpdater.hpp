@@ -26,11 +26,9 @@ namespace app {
         //void updateFullUI();
         QString updaterPath();
 
-    signals:
-
-    public slots:
-
-    };
+    private slots:
+        void updateCheckDone(int exitCode);
+};
 
 }
 }

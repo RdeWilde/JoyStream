@@ -13,5 +13,5 @@ cd src/libtorrent
 $BOOST_ROOT/b2 install \
   toolset=gcc address-model=64 target-os=linux threading=multi link=static  \
   --without-python boost=system boost-link=static geoip=off deprecated-functions=off logging=verbose variant=debug \
-  cxxflags="-fvisibility=hidden -std=gnu++11" \
+  cxxflags="-std=gnu++11" \
   --prefix=$PREFIX_PATH

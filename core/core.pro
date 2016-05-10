@@ -14,7 +14,7 @@ CONFIG  += c++11 # Needed for class enum
 
 QT      += core
 QT      += network # sockets, qnam
-QT      += sql  # wallet?
+QT      += websockets
 
 INCLUDEPATH += $$PWD/include
 
