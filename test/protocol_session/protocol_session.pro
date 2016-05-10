@@ -16,9 +16,13 @@ QT      += testlib
 
 HEADERS += \
     Test.hpp \
+    SessionContext.hpp \
+    SessionSpy.hpp
 
 SOURCES += \
     Test.cpp \
+    SessionContext.cpp \
+    SessionSpy.cpp
 
 # protocol_session ################################################################################
 
