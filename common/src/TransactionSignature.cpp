@@ -21,7 +21,6 @@ bool TransactionSignature::operator==(const TransactionSignature & rhs) {
 
 uchar_vector TransactionSignature::combinedSignatureAndSighashCode() const {
 
-
     uchar_vector combined;
 
     combined += _sig.toUCharVector();
@@ -45,6 +44,10 @@ uchar_vector TransactionSignature::opPushForScriptSigSerialized() const {
     serialize += comb;
 
     return serialize;
+}
+
+uint32_t TransactionSignature::maxLength() {
+    return TransactionSignature(Signature(Signature::maxLength), SigHashType()).opPushForScriptSigSerialized().size();
 }
 
 Signature TransactionSignature::sig() const {

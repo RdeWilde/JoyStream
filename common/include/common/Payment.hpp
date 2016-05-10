@@ -5,44 +5,45 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, September 5 2015
  */
 
-#ifndef PAYMENTCHANNEL_PAYMENT_HPP
-#define PAYMENTCHANNEL_PAYMENT_HPP
+#ifndef COIN_PAYMENT_HPP
+#define COIN_PAYMENT_HPP
 
 #include <common/PubKeyHash.hpp>
 
 namespace Coin {
+
     class TxOut;
 
-class Payment {
+    class Payment {
 
-public:
+    public:
 
 
-    Payment();
+        Payment();
 
-    Payment(int64_t value, const Coin::PubKeyHash & destination);
+        Payment(int64_t value, const Coin::PubKeyHash & destination);
 
-    // Corresponding P2PKH transaction output
-    Coin::TxOut txOut() const;
+        // Corresponding P2PKH transaction output
+        Coin::TxOut txOut() const;
 
-    // Getters and setters
-    int64_t value() const;
-    void setValue(int64_t value);
+        // Getters and setters
+        int64_t value() const;
+        void setValue(int64_t value);
 
-    Coin::PubKeyHash destination() const;
-    void setDestination(const Coin::PubKeyHash & destination);
+        Coin::PubKeyHash destination() const;
+        void setDestination(const Coin::PubKeyHash & destination);
 
-private:
+    private:
 
-    // Size of payment (#satoshi)
-    int64_t _value;
+        // Size of payment (#satoshi)
+        int64_t _value;
 
-    // Recipient
-    Coin::PubKeyHash _destination;
+        // Recipient
+        Coin::PubKeyHash _destination;
 
-};
+    };
 
 }
 
-#endif // PAYMENTCHANNEL_PAYMENT_HPP
+#endif // COMMON_PAYMENT_HPP
 

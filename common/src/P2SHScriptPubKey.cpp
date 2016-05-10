@@ -48,5 +48,9 @@ uchar_vector P2SHScriptPubKey::serialize() const {
     return script;
 }
 
+uint32_t P2SHScriptPubKey::length() {
+    return P2SHScriptPubKey(RedeemScriptHash()).serialize().size();
+}
+
 }
 

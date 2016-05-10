@@ -31,6 +31,10 @@ typesafeOutPoint::typesafeOutPoint(const OutPoint & outPoint)
     , _index(outPoint.index) {
 }
 
+uint typesafeOutPoint::length() {
+    return TransactionId::length() + sizeof(uint32_t);
+}
+
 typesafeOutPoint & typesafeOutPoint::operator=(const typesafeOutPoint& o) {
 
     _txId = o.transactionId();
@@ -49,6 +53,18 @@ bool operator!=(const typesafeOutPoint & lhs, const typesafeOutPoint & rhs) {
 
 bool operator<(const typesafeOutPoint & lhs, const typesafeOutPoint & rhs) {
     return (lhs.transactionId() < rhs.transactionId()) || ((lhs.transactionId() == rhs.transactionId()) && (lhs.index() < rhs.index()));
+}
+
+QDataStream & operator<<(QDataStream & stream, const typesafeOutPoint & o) {
+    stream << o._txId << o._index;
+
+    return stream;
+}
+
+QDataStream & operator>>(QDataStream & stream, typesafeOutPoint & o) {
+    stream >> o._txId >> o._index;
+
+    return stream;
 }
 
 QString typesafeOutPoint::toLittleEndianTxIdString() const {

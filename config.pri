@@ -30,13 +30,20 @@ macx {
 }
 
 # libtorrent
-#INCLUDEPATH += $$LIBTORRENT_LOCATION/release/include
 CONFIG(release, debug|release) {
-    QMAKE_CXXFLAGS += -isystem $$LIBTORRENT_LOCATION/release/include
+
+    # Added for the benefit of QtCreator only, next lone does the same thing
+    INCLUDEPATH += $$LIBTORRENT_LOCATION/release/include
+    #QMAKE_CXXFLAGS += -isystem $$LIBTORRENT_LOCATION/release/include
+
     LIBS += -L$$LIBTORRENT_LOCATION/release/lib -ltorrent
     DEFINES += NDEBUG
 } else {
-    QMAKE_CXXFLAGS += -isystem $$LIBTORRENT_LOCATION/debug/include
+
+    # Added for the benefit of QtCreator only, next lone does the same thing
+    INCLUDEPATH += $$LIBTORRENT_LOCATION/debug/include
+    #QMAKE_CXXFLAGS += -isystem $$LIBTORRENT_LOCATION/debug/include
+
     LIBS += -L$$LIBTORRENT_LOCATION/debug/lib -ltorrent
     DEFINES += TORRENT_DEBUG
     DEFINES += TORRENT_LOGGING
@@ -44,9 +51,10 @@ CONFIG(release, debug|release) {
 }
 
 # mSIGNA
+# Added for the benefit of QtCreator only, next line does the same thing
 INCLUDEPATH += $$MSIGNA_SYSROOT/include
 #QMAKE_CXXFLAGS += -isystem $$MSIGNA_SYSROOT/include
-LIBS += -L$$MSIGNA_SYSROOT/lib -lCoinQ -llogger -lCoinCore
+LIBS += -L$$MSIGNA_SYSROOT/lib -lCoinCore -llogger -lCoinCore
 
 # Boost
 LIBS += \

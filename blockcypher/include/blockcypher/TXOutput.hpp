@@ -21,7 +21,7 @@ namespace Coin {
     class TxOut;
 }
 
-namespace BlockCypher {
+namespace blockcypher {
 
 
     /**

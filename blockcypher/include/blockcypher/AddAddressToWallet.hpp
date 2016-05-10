@@ -10,7 +10,7 @@
 
 #include <blockcypher/CreateWallet.hpp>
 
-namespace BlockCypher {
+namespace blockcypher {
 
 namespace AddAddressToWallet {
 

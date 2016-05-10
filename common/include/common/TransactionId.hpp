@@ -34,6 +34,9 @@ namespace Coin {
 
         TransactionId();
 
+        // Serialized length
+        static uint length();
+
         // This is safe way to create id, as user does not need to consider endianness
         //explicit TransactionId(const Coin::Transaction & tx);
         static TransactionId fromTx(const Coin::Transaction & tx);

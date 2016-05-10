@@ -19,6 +19,9 @@ public:
 
     P2PKHScriptSig(const PublicKey & pk, const TransactionSignature & ts);
 
+    // Maximum possible byte length when serializeds
+    static uint32_t maxLength();
+
     uchar_vector serialized() const;
 
     static P2PKHScriptSig deserialize(const uchar_vector & rawScript);

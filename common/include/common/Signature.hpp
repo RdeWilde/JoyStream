@@ -48,7 +48,7 @@ public:
     Signature & operator=(const Signature & signature);
 
     // Equality test
-    bool operator==(const Signature & rhs);
+    bool operator==(const Signature & rhs) const;
 
     // Length of signature
     unsigned int length() const;
@@ -63,7 +63,7 @@ public:
     uchar_vector toUCharVector() const;
 
     // Stream processing
-    int readFromStream(QDataStream & stream, int length);
+    int readFromStream(QDataStream & stream, unsigned int length);
     int writeToStream(QDataStream & stream) const;
 
     // Getters and setters

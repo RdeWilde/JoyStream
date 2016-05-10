@@ -18,6 +18,10 @@ P2PKHScriptPubKey::P2PKHScriptPubKey(const PublicKey & pk)
     : P2PKHScriptPubKey(pk.toPubKeyHash()) {
 }
 
+uint32_t P2PKHScriptPubKey::length() {
+    return P2PKHScriptPubKey(PubKeyHash()).serialize().size();
+}
+
 P2PKHScriptPubKey P2PKHScriptPubKey::deserialize(const uchar_vector & script) {
     // Check the script is a standard p2pkh script
     if(script.size() != 25 || script[0] != 0x76 ||
@@ -36,6 +40,7 @@ P2PKHScriptPubKey P2PKHScriptPubKey::deserialize(const uchar_vector & script) {
 
 P2PKHScriptPubKey P2PKHScriptPubKey::deserialize(const std::string & hex) {
     return deserialize(uchar_vector(hex));
+
 }
 
 uchar_vector P2PKHScriptPubKey::serialize() const {

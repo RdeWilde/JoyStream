@@ -74,6 +74,7 @@ RESOURCES += \
     base.qrc
 
 INCLUDEPATH += $$PWD/../../paymentchannel/include
+DEPENDPATH += $$PWD/../../paymentchannel/include
 
 INCLUDEPATH += $$PWD/../../blockcypher/include
 DEPENDPATH += $$PWD/../../blockcypher

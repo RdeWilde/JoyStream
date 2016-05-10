@@ -12,7 +12,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 
-namespace BlockCypher {
+namespace blockcypher {
 
 Reply::Reply(QNetworkReply * reply)
     : _reply(reply) {

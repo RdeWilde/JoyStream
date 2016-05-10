@@ -9,11 +9,11 @@
 
 #include <QJsonObject>
 
-namespace BlockCypher {
+namespace blockcypher {
 namespace AddressEndPoint {
 
 Reply::Reply(QNetworkReply * reply, const QString & walletName, bool unspentOnly, uint limit, uint confirmations)
-    : BlockCypher::Reply(reply)
+    : blockcypher::Reply(reply)
     , _walletName(walletName)
     , _unspentOnly(unspentOnly)
     , _limit(limit)

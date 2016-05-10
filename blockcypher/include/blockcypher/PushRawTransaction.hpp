@@ -34,7 +34,7 @@
  *
  */
 
-namespace BlockCypher {
+namespace blockcypher {
 namespace PushRawTransaction {
 
     enum class BlockCypherResponse {
@@ -46,7 +46,7 @@ namespace PushRawTransaction {
     };
 
     // QNetworkReply signal handler corresponding to a spesific call
-    class Reply : public BlockCypher::Reply {
+    class Reply : public blockcypher::Reply {
 
         Q_OBJECT
 
@@ -58,7 +58,7 @@ namespace PushRawTransaction {
 
         Coin::Transaction toBeBroadcasted() const;
         BlockCypherResponse response() const;
-        TX returned() const;
+        //TX returned() const;
 
     public slots:
 
@@ -78,7 +78,7 @@ namespace PushRawTransaction {
         BlockCypherResponse _response;
 
         // Created wallet
-        TX _returned;
+        ///////TX _returned;
         //Wallet _created;
         //QJsonObject _error;
     };

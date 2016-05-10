@@ -10,7 +10,7 @@
 #include <QJsonObject>
 #include <QDebug>
 
-namespace BlockCypher {
+namespace blockcypher {
 
 TXRef::TXRef(const QJsonObject & o) {
 

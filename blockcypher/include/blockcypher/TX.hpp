@@ -26,7 +26,7 @@ namespace Coin {
     class Transaction;
 }
 
-namespace BlockCypher {
+namespace blockcypher {
 
     class TX {
 

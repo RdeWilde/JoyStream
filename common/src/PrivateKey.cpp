@@ -110,7 +110,7 @@ QString PrivateKey::toWIF(Network network, PublicKeyCompression compression) con
     // Create payload
     std::vector<unsigned char> payload;
 
-    for(int i = 0;i < size();i++)
+    for(unsigned int i = 0;i < size();i++)
         payload.push_back(at(i));
 
     // Add 1 byte indicator if key corresponds to compressed pubkey

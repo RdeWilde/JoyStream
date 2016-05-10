@@ -1,0 +1,71 @@
+/**
+ * Copyright (C) JoyStream - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
+ */
+
+#ifndef JOYSTREAM_EXTENSION_EXTENDED_MESSAGE_ID_MAPPING_HPP
+#define JOYSTREAM_EXTENSION_EXTENDED_MESSAGE_ID_MAPPING_HPP
+
+#include <wire/MessageType.hpp>
+
+#include <libtorrent/entry.hpp>
+
+#include <QtGlobal> // quint8
+
+namespace joystream {
+
+namespace protocol {
+    enum class MessageType;
+}
+
+namespace extension {
+
+    class ExtendedMessageIdMapping {
+
+    public:
+
+        // Default constructor
+        ExtendedMessageIdMapping();
+
+        // Constructor from extended hanshake dictionary m, used when parsing hanshake from peer
+        ExtendedMessageIdMapping(const std::map<std::string, libtorrent::entry> & m);
+
+        // Assignment operator
+        ExtendedMessageIdMapping & operator=(const ExtendedMessageIdMapping & rhs);
+
+        // Outputs mapping into and m dicitonary, which can be used in extended handshake
+        void writeToDictionary(std::map<std::string, libtorrent::entry> & m);
+
+        // Get extended message id of given message
+        quint8 id(joystream::protocol::MessageType messageType) const;
+
+        // Set extended message id of given message
+        void id(joystream::protocol::MessageType messageType, quint8 id);
+
+        // Get message corresponding to id
+        joystream::protocol::MessageType messageType(quint8 id) const;
+
+        // Check that mapping is valid
+        bool isValid() const;
+
+        // Sets all message ids starting at the given parameter
+        void setAllStartingAt(quint8 _id);
+
+        // Get underlying std::map
+        std::map<joystream::protocol::MessageType, quint8> mapping() const;
+
+        // Set underlying std::map
+        void setMapping(const std::map<joystream::protocol::MessageType, quint8> & mapping);
+
+    private:
+
+        // Message to id mapping
+        std::map<joystream::protocol::MessageType, quint8> _mapping;
+    };
+
+}
+}
+
+#endif // JOYSTREAM_EXTENSION_EXTENDED_MESSAGE_ID_MAPPING_HPP

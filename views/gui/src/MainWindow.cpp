@@ -823,7 +823,12 @@ void MainWindow::fundWalletFromFaucet() {
 
     //TODO - limit funding to once every hour? - check api limits
 
+<<<<<<< HEAD
+        blockcypher::Address oldAddr =_wallet->BLOCKCYPHER_lastAdress();
+        updateWalletBalances(oldAddr._balance, oldAddr._unconfirmed_balance);
+=======
     qDebug() << "Topping up wallet from testnet faucet";
+>>>>>>> development
 
     FundingWalletProgressDialog dialog(RELOAD_WALLET_AMOUNT, &_bitcoinDisplaySettings);
     dialog.show();
@@ -847,7 +852,14 @@ void MainWindow::on_walletConnected() {
         fundWalletFromFaucet();
 }
 
+<<<<<<< HEAD
+        _wallet->BLOCKCYPHER_update_remote_wallet();
+        
+        // recalculate utxo (in case there has been any in/out to existing addresses);
+        blockcypher::Address addr = _wallet->BLOCKCYPHER_rebuild_utxo();
+=======
 void MainWindow::on_updatedWalletBalance(uint64_t confirmedBalance, uint64_t unconfirmedBalance) {
+>>>>>>> development
 
     updateWalletBalances(confirmedBalance, unconfirmedBalance);
 

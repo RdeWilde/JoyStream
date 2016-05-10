@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 15 2015
  */
 
-#ifndef PAYMENTCHANNEL_COMMITMENT_HPP
-#define PAYMENTCHANNEL_COMMITMENT_HPP
+#ifndef PAYMENT_CHANNEL_COMMITMENT_HPP
+#define PAYMENT_CHANNEL_COMMITMENT_HPP
 
 #include <common/PublicKey.hpp>
 
@@ -16,51 +16,57 @@ namespace Coin {
     class TxOut;
 }
 
-class Commitment
-{
-public:
+namespace joystream {
+namespace paymentchannel {
 
-    // Default constructor
-    Commitment();
+    class Commitment {
 
-    // Constructor based on members
-    Commitment(int64_t value, const Coin::PublicKey & firstPk, const Coin::PublicKey & secondPk);
+    public:
 
-    // Copy constructor
-    Commitment(const Commitment& o);
+        // Default constructor
+        Commitment();
 
-    // Assignement operator
-    Commitment & operator=(const Commitment & o);
+        // Constructor based on members
+        Commitment(int64_t value, const Coin::PublicKey & firstPk, const Coin::PublicKey & secondPk);
 
-    // p2sh 2of2 multisig scriptPubKey controlling contract output
-    Coin::P2SHScriptPubKey contractOutputScriptPubKey() const;
+        // Copy constructor
+        Commitment(const Commitment& o);
 
-    // Generates contract output
-    Coin::TxOut contractOutput() const;
+        // Assignement operator
+        Commitment & operator=(const Commitment & o);
 
-    // 2o2 multisig scriptpubkey
-    Coin::MultisigScriptPubKey redeemScript() const;
+        // p2sh 2of2 multisig scriptPubKey controlling contract output
+        Coin::P2SHScriptPubKey contractOutputScriptPubKey() const;
 
-    // Getters and setters
-    int64_t value() const;
-    void setValue(int64_t value);
+        // Generates contract output
+        Coin::TxOut contractOutput() const;
 
-    Coin::PublicKey firstPk() const;
-    void setFirstPk(const Coin::PublicKey & firstPk);
+        // 2o2 multisig scriptpubkey
+        Coin::MultisigScriptPubKey redeemScript() const;
 
-    Coin::PublicKey secondPk() const;
-    void setSecondPk(const Coin::PublicKey & secondPk);
+        // Getters and setters
+        int64_t value() const;
+        void setValue(int64_t value);
 
-private:
+        Coin::PublicKey firstPk() const;
+        void setFirstPk(const Coin::PublicKey & firstPk);
 
-    // Funds allocated to output
-    int64_t _value;
+        Coin::PublicKey secondPk() const;
+        void setSecondPk(const Coin::PublicKey & secondPk);
 
-    // First public key controlling multisig output
-    Coin::PublicKey _firstPk;
+    private:
 
-    // Second public key controlling multisig output
-    Coin::PublicKey _secondPk;
-};
+        // Funds allocated to output
+        int64_t _value;
 
-#endif // PAYMENTCHANNEL_COMMITMENT_HPP
+        // First public key controlling multisig output
+        Coin::PublicKey _firstPk;
+
+        // Second public key controlling multisig output
+        Coin::PublicKey _secondPk;
+    };
+
+}
+}
+
+#endif // PAYMENT_CHANNEL_COMMITMENT_HPP

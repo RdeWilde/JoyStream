@@ -17,6 +17,17 @@ class QDataStream;
 
 namespace Coin {
 
+// Forward declaration for stream operators
+template<unsigned int array_length>
+class UCharArray;
+
+// Stream operator
+template<unsigned int array_length>
+QDataStream & operator<<(QDataStream & stream, const UCharArray<array_length> & o);
+
+template<unsigned int array_length>
+QDataStream & operator>>(QDataStream & stream, UCharArray<array_length> & o);
+
 // (type safe length) fixed length array of unsigned chars
 template<unsigned int array_length>
 class UCharArray : public std::array<unsigned char, array_length> {
@@ -60,8 +71,8 @@ public:
     QByteArray toByteArray() const;
 
     // Stream operator
-    friend QDataStream & operator<<(QDataStream & stream, const UCharArray & o);
-    friend QDataStream & operator>>(QDataStream & stream, UCharArray & o);
+    friend QDataStream & operator<< <array_length> (QDataStream & stream, const UCharArray<array_length> & o);
+    friend QDataStream & operator>> <array_length> (QDataStream & stream, UCharArray<array_length> & o);
 
     /**
     // Comparison for use with QMap
@@ -82,6 +93,6 @@ unsigned int qHash(const UCharArray<array_length> & array);
 }
 
 // Needed due to c++ needing implementation for all uses of templated types
-#include <common/../../src/FixedUCharArray.cpp>
+#include <common/../../src/UCharArray.cpp>
 
 #endif // COIN_UCHAR_ARRAY_HPP

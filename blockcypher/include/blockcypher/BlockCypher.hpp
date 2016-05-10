@@ -14,7 +14,7 @@
 class QJsonObject;
 class QNetworkReply;
 
-namespace BlockCypher {
+namespace blockcypher {
 
     // Base class for managing signals from networkreply objects for api requests
     class Reply : public QObject {

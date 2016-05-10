@@ -1,0 +1,53 @@
+/**
+ * Copyright (C) JoyStream - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, March 31 2016
+ */
+
+#include <SellingNavigator.hpp>
+
+event::Recv<protocol_wire::Payment> SellingNavigator::Fixture::goodPayment(const Coin::PrivateKey & payorContractSk, int numberOfPayments) const {
+
+    joystream::paymentchannel::Payor payor(sellModeStarted.terms().minPrice(),
+                                           numberOfPayments,
+                                           contractReady.message().value(),
+                                           peerToBuyMode.message().terms().refundFee(),
+                                           sellModeStarted.terms().settlementFee(),
+                                           sellModeStarted.terms().minLock(),
+                                           contractReady.message().anchor(),
+                                           Coin::KeyPair(payorContractSk),
+                                           contractReady.message().finalPkHash(),
+                                           joinedContract.contractKeys().pk(),
+                                           joinedContract.finalPkHash(),
+                                           Coin::Signature(),
+                                           Coin::Signature());
+
+    Coin::Signature payment = payor.generatePayorSettlementSignature();
+
+    return event::Recv<protocol_wire::Payment>(payment);
+}
+
+SellingNavigator::SellingNavigator(Fixture fixture)
+    : _fixture(fixture) {
+}
+
+void SellingNavigator::toSellMode(CBStateMachine * machine) {
+    machine->process_event(_fixture.sellModeStarted);
+}
+
+void SellingNavigator::toReadyForPieceRequest(CBStateMachine * machine) {
+    machine->process_event(_fixture.validJoinContract);
+    machine->process_event(_fixture.joinedContract);
+    machine->process_event(_fixture.contractReady);
+}
+
+void SellingNavigator::toLoadingPiece(CBStateMachine * machine) {
+    toReadyForPieceRequest(machine);
+    machine->process_event(_fixture.validPieceRequest);
+}
+
+void SellingNavigator::toWaitingForPayment(CBStateMachine * machine) {
+    toLoadingPiece(machine);
+    machine->process_event(_fixture.fullPiece);
+}

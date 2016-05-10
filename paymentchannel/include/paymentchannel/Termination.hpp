@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, September 5 2015
  */
 
-#ifndef PAYMENTCHANNEL_TREMINATION_HPP
-#define PAYMENTCHANNEL_TREMINATION_HPP
+#ifndef PAYMENT_CHANNEL_TREMINATION_HPP
+#define PAYMENT_CHANNEL_TREMINATION_HPP
 
 #include <paymentchannel/Commitment.hpp>
 #include <common/typesafeOutPoint.hpp>
@@ -19,54 +19,60 @@ namespace Coin {
     class SigHashType;
 }
 
-/**
- * Terminates commitment,
- * Perhaps rename to "contract",
- * and rename the present contract to something else,
- * like commitment containter?
- */
+namespace joystream {
+namespace paymentchannel {
 
-class Termination {
+    /**
+     * Terminates commitment,
+     * Perhaps rename to "contract",
+     * and rename the present contract to something else,
+     * like commitment containter?
+     */
 
-public:
+    class Termination {
 
-    Termination(const Coin::typesafeOutPoint & contractOutPoint,
-                const Commitment & commitment,
-                const Coin::Payment & toPayor);
+    public:
 
-    // Unsigned transaction
-    virtual Coin::Transaction unSignedTransaction() const;
+        Termination(const Coin::typesafeOutPoint & contractOutPoint,
+                    const Commitment & commitment,
+                    const Coin::Payment & toPayor);
 
-    //
-    uchar_vector sighash(Coin::SigHashType type) const;
+        // Unsigned transaction
+        virtual Coin::Transaction unSignedTransaction() const;
 
-    // Transaction signature
-    Coin::TransactionSignature transactionSignature(const Coin::PrivateKey & sk) const;
+        //
+        uchar_vector sighash(Coin::SigHashType type) const;
 
-    // Signed transaction with given signatures
-    Coin::Transaction signedTransaction(const Coin::TransactionSignature & payorTransactionSignature,
-                                        const Coin::TransactionSignature & payeeTransactionSignature) const;
+        // Transaction signature
+        Coin::TransactionSignature transactionSignature(const Coin::PrivateKey & sk) const;
 
-    // Validate signature for unsigned transaction against public key
-    bool validate(const Coin::PublicKey & pk, const Coin::Signature & sig) const;
+        // Signed transaction with given signatures
+        Coin::Transaction signedTransaction(const Coin::TransactionSignature & payorTransactionSignature,
+                                            const Coin::TransactionSignature & payeeTransactionSignature) const;
 
-    // Validate signature for unsigned transaction against payor public key
-    bool validatePayorSignature(const Coin::Signature & sig) const;
+        // Validate signature for unsigned transaction against public key
+        bool validate(const Coin::PublicKey & pk, const Coin::Signature & sig) const;
 
-    // Validate signature for unsigned transaction against payee public key
-    bool validatePayeeSignature(const Coin::Signature & sig) const;
+        // Validate signature for unsigned transaction against payor public key
+        bool validatePayorSignature(const Coin::Signature & sig) const;
 
-protected:
+        // Validate signature for unsigned transaction against payee public key
+        bool validatePayeeSignature(const Coin::Signature & sig) const;
 
-    // Contract to which commitment corresponds
-    Coin::typesafeOutPoint _contractOutPoint;
+    protected:
 
-    // Commitment being terminated
-    Commitment _commitment;
+        // Contract to which commitment corresponds
+        Coin::typesafeOutPoint _contractOutPoint;
 
-    // Payment back to payor
-    Coin::Payment _toPayor;
-};
+        // Commitment being terminated
+        Commitment _commitment;
+
+        // Payment back to payor
+        Coin::Payment _toPayor;
+    };
+
+}
+}
 
 #endif // PAYMENTCHANNEL_TREMINATION_HPP
 

@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    AutoUpdater au(app);
+    joystream::app::AutoUpdater au(app);
 
     // Call update manager, if allowed
     if(!parser.isSet(showNoUpdateOption)){
@@ -188,13 +188,13 @@ int main(int argc, char* argv[]) {
         });
 
         // Create and start analytics tracking
-        Analytics analytics(&manager, APPLICATION_MIXPANEL_TOKEN, applicationVersion); //, Analytics::_defaultAnalyticsHost);
+        joystream::app::Analytics analytics(&manager, APPLICATION_MIXPANEL_TOKEN, applicationVersion); //, Analytics::_defaultAnalyticsHost);
 
         // Monitor controller
         analytics.monitor(&controller);
 
         // Send start signal and regular pings
-        analytics.start(Analytics::_defaultPingMsInterval);
+        analytics.start(joystream::app::Analytics::_defaultPingMsInterval);
 
         if(controller.closing()) return 0;
 

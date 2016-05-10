@@ -28,6 +28,9 @@ public:
     // Serialized as scriptSig ready: <OP PUSH next two field><max 73b DER signature><1 byte sighash code>
     uchar_vector opPushForScriptSigSerialized() const;
 
+    // Greatest possible length of a serialized transaction signature
+    static uint32_t maxLength();
+
     // Getters and setters
     Signature sig() const;
     void setSig(const Signature & sig);

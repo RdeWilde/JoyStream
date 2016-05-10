@@ -10,7 +10,7 @@
 #include <QJsonArray>
 #include <QJsonObject>
 
-namespace BlockCypher {
+namespace blockcypher {
 
 Wallet::Wallet() {
 

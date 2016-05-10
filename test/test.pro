@@ -10,6 +10,9 @@ SUBDIRS     = \
             paymentchannel \
             blockcypher \ 
             mixpanel \
+            protocol_statemachine \
+            protocol_session \
+            protocol_wire \
             blockcypher-websocket \
             blockcypher-wallet \
             spv-wallet \

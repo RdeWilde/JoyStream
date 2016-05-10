@@ -1155,7 +1155,7 @@ void Manager::BLOCKCYPHER_init(QNetworkAccessManager * manager, const QString & 
     // Allocate client
     // We dont really care who manages life tiem of thsi, although it is certainly this,
     // Only one instance is created per controller instance for process life time
-    _BLOCKCYPHER_client = new BlockCypher::Client(manager, _network, _BLOCKCYPHER_TOKEN);
+    _BLOCKCYPHER_client = new blockcypher::Client(manager, _network, _BLOCKCYPHER_TOKEN);
 
     // Set wallet name has first 25 characters of HEX(SHA256^2(x))
     uchar_vector hashed = sha256_2(_seed.toUCharVector());
@@ -1197,7 +1197,7 @@ void Manager::BLOCKCYPHER_fundWalletFromFaucet(quint64 amount){
     _BLOCKCYPHER_client->fundWalletFromFaucet(address, amount);
 }
 
-BlockCypher::Wallet Manager::BLOCKCYPHER_create_remote_wallet() {
+blockcypher::Wallet Manager::BLOCKCYPHER_create_remote_wallet() {
 
     // Get receivea adddresses we control
     QList<Coin::P2PKHAddress> localAddresses = listReceiveAddresses();
@@ -1205,7 +1205,7 @@ BlockCypher::Wallet Manager::BLOCKCYPHER_create_remote_wallet() {
     qDebug() << "BLOCKCYPHER: Creating a remote wallet with " << localAddresses.size() << " addresses.";
 
     // Wallet to update remotely to
-    BlockCypher::Wallet newWallet(_BLOCKCYPHER_TOKEN, _BLOCKCYPHER_walletName, localAddresses);
+    blockcypher::Wallet newWallet(_BLOCKCYPHER_TOKEN, _BLOCKCYPHER_walletName, localAddresses);
 
     // If there are no addresses, make one token address,
     // as blockcypher api requires it.
@@ -1213,14 +1213,14 @@ BlockCypher::Wallet Manager::BLOCKCYPHER_create_remote_wallet() {
         newWallet._addresses.append(getReceiveAddress());
     }
 
-    BlockCypher::Wallet created = _BLOCKCYPHER_client->createWallet(newWallet);
+    blockcypher::Wallet created = _BLOCKCYPHER_client->createWallet(newWallet);
     //Q_ASSERT(created == newWallet);
 
     return created;
 }
 
 
-BlockCypher::Wallet Manager::BLOCKCYPHER_update_remote_wallet() {
+blockcypher::Wallet Manager::BLOCKCYPHER_update_remote_wallet() {
 
     // Get receivea adddresses we control
     QList<Coin::P2PKHAddress> localAddresses = listReceiveAddresses();
@@ -1228,14 +1228,14 @@ BlockCypher::Wallet Manager::BLOCKCYPHER_update_remote_wallet() {
     qDebug() << "BLOCKCYPHER: Updating the remote wallet to have " << localAddresses.size() << " addresses.";
 
     // Wallet to update remotely to
-    BlockCypher::Wallet updatedWallet(_BLOCKCYPHER_TOKEN, _BLOCKCYPHER_walletName, localAddresses);
-    BlockCypher::Wallet newWallet = _BLOCKCYPHER_client->addAddressToWallet(updatedWallet);
+    blockcypher::Wallet updatedWallet(_BLOCKCYPHER_TOKEN, _BLOCKCYPHER_walletName, localAddresses);
+    blockcypher::Wallet newWallet = _BLOCKCYPHER_client->addAddressToWallet(updatedWallet);
     //Q_ASSERT(newWallet == updatedWallet);
 
     return newWallet;
 }
 
-BlockCypher::Address Manager::BLOCKCYPHER_rebuild_utxo() {
+blockcypher::Address Manager::BLOCKCYPHER_rebuild_utxo() {
 
     _mutex.lock();
 
@@ -1248,15 +1248,15 @@ BlockCypher::Address Manager::BLOCKCYPHER_rebuild_utxo() {
     //qDebug() << "BLOCKCYPHER_rebuild_utxo";
 
     // WE DO BOTH CONFIRMED AND UNCONFIRMED OUTPUTS
-    std::vector<BlockCypher::TXRef> txrefs = address._txrefs;
+    std::vector<blockcypher::TXRef> txrefs = address._txrefs;
     txrefs.insert( txrefs.end(), address._unconfirmed_txrefs.begin(), address._unconfirmed_txrefs.end());
 
     // Iterate input/outputs and fetch utxos
-    for(std::vector<BlockCypher::TXRef>::const_iterator i = txrefs.cbegin(),
+    for(std::vector<blockcypher::TXRef>::const_iterator i = txrefs.cbegin(),
         end = txrefs.cend();i != end;i++) {
 
         // Get TXRef
-        BlockCypher::TXRef t = *i;
+        blockcypher::TXRef t = *i;
 
         // Add to utxo if its unspent output
         // is output <=> t._tx_output_n >= 0
@@ -1378,7 +1378,7 @@ Coin::UnspentP2PKHOutput Manager::BLOCKCYPHER_lock_one_utxo(quint64 minimalAmoun
     return Coin::UnspentP2PKHOutput();
 }
 
-BlockCypher::Address Manager::BLOCKCYPHER_lastAdress() {
+blockcypher::Address Manager::BLOCKCYPHER_lastAdress() {
     return _BLOCKCYPHER_lastAdress;
 }
 

@@ -19,26 +19,32 @@ namespace Coin {
     class Payment;
 }
 
-class Refund : public Termination {
+namespace joystream {
+namespace paymentchannel {
 
-public:
+    class Refund : public Termination {
 
-    Refund(const Coin::typesafeOutPoint & contractOutPoint,
-           const Commitment & commitment,
-           const Coin::Payment & toPayor,
-           uint32_t lockTime);
+    public:
 
-    // Unsigned refund transaction
-    virtual Coin::Transaction unSignedTransaction() const;
+        Refund(const Coin::typesafeOutPoint & contractOutPoint,
+               const Commitment & commitment,
+               const Coin::Payment & toPayor,
+               uint32_t lockTime);
 
-    // Implicit fee by comparing commitment and refund payment
-    int64_t fee() const;
+        // Unsigned refund transaction
+        virtual Coin::Transaction unSignedTransaction() const;
 
-private:
+        // Implicit fee by comparing commitment and refund payment
+        int64_t fee() const;
 
-    // Lock time on refund, encoded as
-    uint32_t _lockTime;
-};
+    private:
+
+        // Lock time on refund, encoded as
+        uint32_t _lockTime;
+    };
+
+}
+}
 
 #endif // PAYMENTCHANNEL_REFUND_HPP
 

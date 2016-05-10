@@ -29,6 +29,9 @@ public:
     // Raw p2sh multisig output script: OP_HASH160 [20-byte-hash-value] OP_EQUAL
     uchar_vector serialize() const;
 
+    // Byte length of serialized form
+    static uint32_t length();
+
 private:
 
     // hash of redeem script

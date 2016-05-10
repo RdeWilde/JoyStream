@@ -12,14 +12,16 @@
 #include <iostream>
 #include <QFile>
 
-AutoUpdater::AutoUpdater(QApplication& app)
-    : _app(app)
-{
+namespace joystream {
+namespace app {
 
+AutoUpdater::AutoUpdater(QApplication& app)
+    : _app(app) {
 }
 
 /* does an unattended check - returns true if a new version is available */
 bool AutoUpdater::newVersionAvailable() {
+
     QString program = updaterPath();
     QStringList arguments;
     arguments << "--mode" << "unattended";
@@ -60,30 +62,34 @@ void AutoUpdater::updateMiniUI(){
     QProcess::startDetached(program, arguments);
 }
 
-/* runs fully interactive auto-updater gui*/
-/*
-void AutoUpdater::updateFullUI(QApplication* app) {
-    QObject *parent = 0;
-    QString program = "open";
-    QStringList arguments;
-    arguments << _app.applicationDirPath() + "/../../../autoupdate-osx.app";
 
-    QProcess *updaterProcess = new QProcess(parent);
-    updaterProcess->start(program, arguments);
-}
+    /* runs fully interactive auto-updater gui*/
+    /*
+    void AutoUpdater::updateFullUI(QApplication* app) {
+        QObject *parent = 0;
+        QString program = "open";
+        QStringList arguments;
+        arguments << _app.applicationDirPath() + "/../../../autoupdate-osx.app";
 
-void AutoUpdater::updateFullUI(){
-  //use _app.applicationDirPath() + "/../../../autoupdate-osx.app"; for OS X
-  QDesktopServices::openUrl(QUrl("file:///" + updaterPath(), QUrl::TolerantMode));
-}
-*/
+        QProcess *updaterProcess = new QProcess(parent);
+        updaterProcess->start(program, arguments);
+    }
+
+    void AutoUpdater::updateFullUI(){
+      //use _app.applicationDirPath() + "/../../../autoupdate-osx.app"; for OS X
+      QDesktopServices::openUrl(QUrl("file:///" + updaterPath(), QUrl::TolerantMode));
+    }
+    */
 
 QString AutoUpdater::updaterPath(){
-#ifdef _WIN32
-    return _app.applicationDirPath() + "/autoupdate-windows.exe";
-#elif __APPLE__
-    return _app.applicationDirPath() + "/../../../autoupdate-osx.app/Contents/MacOs/installbuilder.sh";
-#elif __linux
-    return _app.applicationDirPath() + "/../autoupdate-linux.run";
-#endif
+    #ifdef _WIN32
+        return _app.applicationDirPath() + "/autoupdate-windows.exe";
+    #elif __APPLE__
+        return _app.applicationDirPath() + "/../../../autoupdate-osx.app/Contents/MacOs/installbuilder.sh";
+    #elif __linux
+        return _app.applicationDirPath() + "/../autoupdate-linux.run";
+    #endif
+    }
+
+}
 }

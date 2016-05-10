@@ -9,11 +9,11 @@
 
 #include <QJsonObject>
 
-namespace BlockCypher {
+namespace blockcypher {
 namespace CreateWallet {
 
 Reply::Reply(QNetworkReply * reply, const Wallet & requested)
-    : BlockCypher::Reply(reply)
+    : blockcypher::Reply(reply)
     , _requested(requested)
     , _response(BlockCypherResponse::Pending) {
 }
@@ -45,7 +45,7 @@ void Reply::processReply() {
         if(_error == QNetworkReply::NoError) {
 
             _response = BlockCypherResponse::Created;
-            _created = Wallet(BlockCypher::rawToQJsonObject(_rawResponse));
+            _created = Wallet(blockcypher::rawToQJsonObject(_rawResponse));
             //qDebug() << "Wallet created";, not always create, get uses same I think
 
         } else if(_error == QNetworkReply::ContentConflictError) {

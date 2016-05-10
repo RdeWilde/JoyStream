@@ -29,6 +29,9 @@ public:
 
     typesafeOutPoint(const OutPoint & outPoint);
 
+    // Serialized length
+    static uint length();
+
     // Assignment operator
     typesafeOutPoint & operator=(const typesafeOutPoint& outputPoint);
 
@@ -36,6 +39,10 @@ public:
     friend bool operator==(const typesafeOutPoint & lhs, const typesafeOutPoint & rhs);
     friend bool operator!=(const typesafeOutPoint & lhs, const typesafeOutPoint & rhs);
     friend bool operator<(const typesafeOutPoint & lhs, const typesafeOutPoint & rhs);
+
+    // Stream i/o operators
+    friend QDataStream & operator<<(QDataStream & stream, const typesafeOutPoint &);
+    friend QDataStream & operator>>(QDataStream & stream, typesafeOutPoint &);
 
     // Flat representation, so outpoint can be used as json key
     typesafeOutPoint(const QString & string);

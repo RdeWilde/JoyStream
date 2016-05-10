@@ -10,11 +10,11 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-namespace BlockCypher {
+namespace blockcypher {
 namespace PushRawTransaction {
 
 Reply::Reply(QNetworkReply * reply, const Coin::Transaction & toBeBroadcasted)
-    : BlockCypher::Reply(reply)
+    : blockcypher::Reply(reply)
     , _toBeBroadcasted(toBeBroadcasted)
     , _response(BlockCypherResponse::Pending) {
 }
@@ -44,9 +44,11 @@ BlockCypherResponse Reply::response() const {
     return _response;
 }
 
+/**
 TX Reply::returned() const {
     return _returned;
 }
+*/
 
 void Reply::processReply() {
 

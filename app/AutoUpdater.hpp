@@ -4,31 +4,33 @@
  * Written by Mokhtar Naamani <mokhtar.naamani@gmail.com>, September 2015
  */
 
-#ifndef AUTOUPDATER_H
-#define AUTOUPDATER_H
+#ifndef AUTO_UPDATER_HPP
+#define AUTO_UPDATER_HPP
 
 #include <QObject>
 #include <QApplication>
 
-class AutoUpdater : QObject
-{
-    Q_OBJECT
+namespace joystream {
+namespace app {
 
-    QApplication& _app;
+    class AutoUpdater : QObject {
 
-public:
-    AutoUpdater(QApplication&);
-    bool newVersionAvailable();
-    void updateMiniUI();
-    //void updateFullUI();
-    QString updaterPath();
+        Q_OBJECT
 
-signals:
+        QApplication& _app;
 
-public slots:
+    public:
+        AutoUpdater(QApplication&);
+        bool newVersionAvailable();
+        void updateMiniUI();
+        //void updateFullUI();
+        QString updaterPath();
 
-private slots:
-    void updateCheckDone(int exitCode);
+    private slots:
+        void updateCheckDone(int exitCode);
 };
 
-#endif // AUTOUPDATER_H
+}
+}
+
+#endif // AUTO_UPDATER_HPP

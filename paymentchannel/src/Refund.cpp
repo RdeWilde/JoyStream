@@ -11,25 +11,31 @@
 #include <common/PrivateKey.hpp>
 #include <common/P2SHScriptSig.hpp>
 
-Refund::Refund(const Coin::typesafeOutPoint & contractOutPoint,
-               const Commitment & commitment,
-               const Coin::Payment & toPayor,
-               uint32_t lockTime)
-    : Termination(contractOutPoint, commitment, toPayor)
-    , _lockTime(lockTime) {
+namespace joystream {
+namespace paymentchannel {
+
+    Refund::Refund(const Coin::typesafeOutPoint & contractOutPoint,
+                   const Commitment & commitment,
+                   const Coin::Payment & toPayor,
+                   uint32_t lockTime)
+        : Termination(contractOutPoint, commitment, toPayor)
+        , _lockTime(lockTime) {
+    }
+
+    Coin::Transaction Refund::unSignedTransaction() const {
+
+        // Build refund transaction
+        Coin::Transaction tx = Termination::unSignedTransaction();
+
+        // Set lock time
+        tx.lockTime = _lockTime;
+
+        return tx;
+    }
+
+    int64_t Refund::fee() const {
+        return _commitment.value() - _toPayor.value();
+    }
+
 }
-
-Coin::Transaction Refund::unSignedTransaction() const {
-
-    // Build refund transaction
-    Coin::Transaction tx = Termination::unSignedTransaction();
-
-    // Set lock time
-    tx.lockTime = _lockTime;
-
-    return tx;
-}
-
-int64_t Refund::fee() const {
-    return _commitment.value() - _toPayor.value();
 }

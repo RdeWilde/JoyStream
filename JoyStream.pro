@@ -6,11 +6,15 @@
 TEMPLATE    = subdirs
 
 SUBDIRS     = \
-            mixpanel \
-            common \
+            common \            
             paymentchannel \
+            protocol_wire \
+            protocol_statemachine \
+            protocol_session \
+            extension \
             blockcypher \
             bitcoin \
+            mixpanel \
             core \
             views \
             app \

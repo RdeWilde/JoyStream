@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, September 5 2015
  */
 
-#ifndef PAYMENTCHANNEL_SETTLEMENT_HPP
-#define PAYMENTCHANNEL_SETTLEMENT_HPP
+#ifndef PAYMENT_CHANNEL_SETTLEMENT_HPP
+#define PAYMENT_CHANNEL_SETTLEMENT_HPP
 
 #include <paymentchannel/Termination.hpp>
 #include <common/Payment.hpp>
@@ -19,48 +19,53 @@ namespace Coin {
     class PrivateKey;
 }
 
-class Settlement : public Termination {
+namespace joystream {
+namespace paymentchannel {
 
-public:
+    class Settlement : public Termination {
 
-    Settlement(const Coin::typesafeOutPoint & contractOutPoint,
-               const Commitment & commitment,
-               const Coin::Payment & toPayor,
-               const Coin::Payment & toPayee);
+    public:
 
-    Settlement(const Coin::typesafeOutPoint & contractOutPoint,
-               const Commitment & commitment,
-               const Coin::Payment & toPayor);
+        Settlement(const Coin::typesafeOutPoint & contractOutPoint,
+                   const Commitment & commitment,
+                   const Coin::Payment & toPayor,
+                   const Coin::Payment & toPayee);
 
-    // Creates to appropriate settlement given the dust
-    // limit and transaction fee
-    static Settlement dustLimitAndFeeAwareSettlement(const Coin::typesafeOutPoint & contractOutPoint,
-                                                     const Commitment & commitment,
-                                                     const Coin::PubKeyHash & payorKeyHash,
-                                                     const Coin::PubKeyHash & payeeKeyHash,
-                                                     quint64 funds,
-                                                     quint64 paid,
-                                                     quint64 fee);
+        Settlement(const Coin::typesafeOutPoint & contractOutPoint,
+                   const Commitment & commitment,
+                   const Coin::Payment & toPayor);
 
-    // Unsigned settelment transaction
-    virtual Coin::Transaction unSignedTransaction() const;
+        // Creates to appropriate settlement given the dust
+        // limit and transaction fee
+        static Settlement dustLimitAndFeeAwareSettlement(const Coin::typesafeOutPoint & contractOutPoint,
+                                                         const Commitment & commitment,
+                                                         const Coin::PubKeyHash & payorKeyHash,
+                                                         const Coin::PubKeyHash & payeeKeyHash,
+                                                         quint64 funds,
+                                                         quint64 paid,
+                                                         quint64 fee);
 
-    // Implicit fee by comparing commitment and (payor + payee) payment
-    int64_t fee() const;
+        // Unsigned settelment transaction
+        virtual Coin::Transaction unSignedTransaction() const;
 
-private:
+        // Implicit fee by comparing commitment and (payor + payee) payment
+        int64_t fee() const;
 
-    // Whether to pay payor
-    // When paid quantity to payee is lower than
-    // sum of tx fee and dust limit, then everything
-    // is spent to fees, and there is no need to pay payee in that case.
-    // *** not sure if this is the best way to model this, but ok for now ***
-    bool _includePayee;
+    private:
 
-    // Payment to payee
-    Coin::Payment _toPayee;
-};
+        // Whether to pay payor
+        // When paid quantity to payee is lower than
+        // sum of tx fee and dust limit, then everything
+        // is spent to fees, and there is no need to pay payee in that case.
+        // *** not sure if this is the best way to model this, but ok for now ***
+        bool _includePayee;
 
+        // Payment to payee
+        Coin::Payment _toPayee;
+    };
 
-#endif // PAYMENTCHANNEL_SETTLEMENT_HPP
+}
+}
+
+#endif // PAYMENT_CHANNEL_SETTLEMENT_HPP
 

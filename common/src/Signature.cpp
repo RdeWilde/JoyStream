@@ -42,7 +42,7 @@ Signature::Signature(const QString & string) {
 
     // Check that string has correct length
 
-    int stringLength = string.length();
+    unsigned int stringLength = string.length();
 
     if(stringLength > 2*maxLength)
         throw std::runtime_error("String argument is of incorrect length, should be 2*MAX_SIGNATURE_LENGTH.");
@@ -51,7 +51,7 @@ Signature::Signature(const QString & string) {
         // Decode from hex format
         QByteArray b = QByteArray::fromHex(string.toLatin1());
 
-        Q_ASSERT(b.length()*2 == stringLength);
+        Q_ASSERT((unsigned int)(b.length()*2) == stringLength);
 
         // Read into vector buffer
         unsigned const char * begin = (unsigned const char *)b.constBegin();
@@ -73,7 +73,7 @@ Signature & Signature::operator=(const Signature & signature) {
     return *this;
 }
 
-bool Signature::operator==(const Signature & rhs) {
+bool Signature::operator==(const Signature & rhs) const {
     return _raw == rhs.raw();
 }
 
@@ -112,7 +112,7 @@ uchar_vector Signature::toUCharVector() const {
     return uchar_vector(data, _raw.size());
 }
 
-int Signature::readFromStream(QDataStream & stream, int length) {
+int Signature::readFromStream(QDataStream & stream, unsigned int length) {
 
     // Check that signature is not to large
     if(length > maxLength)
@@ -123,7 +123,7 @@ int Signature::readFromStream(QDataStream & stream, int length) {
 
     // Read from stream
     char * data = (char *)_raw.data();
-    int bytesRead = stream.readRawData(data, length);
+    unsigned int bytesRead = stream.readRawData(data, length);
 
     if(bytesRead != length)
         throw new std::runtime_error("Could not read length bytes.");
@@ -138,7 +138,7 @@ int Signature::writeToStream(QDataStream & stream) const {
 
     // Write to stream
     const char * data = (const char *)_raw.data();
-    int bytesWritten = stream.writeRawData(data, _raw.size());
+    unsigned int bytesWritten = stream.writeRawData(data, _raw.size());
 
     if(bytesWritten != _raw.size())
         throw new std::runtime_error("Could not write length bytes.");
