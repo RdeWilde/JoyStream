@@ -6,8 +6,7 @@
  */
 
 #include <Test.hpp>
-#include <protocol_session/protocol_session.hpp>
-#include <protocol_wire/protocol_wire.hpp>
+#include <SessionSpy.hpp>
 
 using namespace joystream;
 using namespace joystream::protocol_session;
@@ -19,30 +18,26 @@ std::string IdToString<std::string>(const std::string & s) {
 
 void Test::session() {
 
-    RemovedConnectionCallbackHandler<std::string> removedConnection;
-    GenerateKeyPairsCallbackHandler generateKeyPairs;
-    GenerateP2PKHAddressesCallbackHandler generateP2PKHAddresses;
-    BroadcastTransaction hasOutstandingPayment;
-    FullPieceArrived<std::string> fullPieceArrived;
-    Coin::UnspentP2PKHOutput funding;
-    BuyingPolicy policy;
-    protocol_wire::BuyerTerms terms;
-    TorrentPieceInformation information;
+    typedef uint ID;
 
-    Session<std::string> s;
+    SessionSpy<ID> spy;
+    Session<ID> session;
 
-    s.toBuyMode(removedConnection,
-                generateKeyPairs,
-                generateP2PKHAddresses,
-                hasOutstandingPayment,
-                fullPieceArrived,
-                funding,
-                policy,
-                terms,
-                information);
-    s.start();
+    // Add connection which is monitored
+    ID c0 = 0;
+    ConnectionSpy<ID> connectionSpy(c0);
+    session.addConnection(c0, connectionSpy.sendMessageOnConnectionCallbackSlot.hook());
 
+    // Start as observer
+    session.toObserveMode();
+    session.start();
 
+    // Verify that mode message sent to peer
+    QVERIFY(connectionSpy.sendMessageOnConnectionCallbackSlot.called);
+    connectionSpy.reset();
+
+    // but nothing has otherwised happned in the session
+    QVERIFY(spy.blank());
 }
 
 QTEST_MAIN(Test)

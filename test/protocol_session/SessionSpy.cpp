@@ -11,64 +11,80 @@
 
 template <class ConnectionIdType>
 ConnectionSpy<ConnectionIdType>::ConnectionSpy(const ConnectionIdType & id)
-    : _id(id) {
-}
-
-template <class ConnectionIdType>
-protocol_wire::ExtendedMessagePayload * ConnectionSpy<ConnectionIdType>::message() const {
-    return _message;
-}
-
-template <class ConnectionIdType>
-bool ConnectionSpy<ConnectionIdType>::messageSent() const {
-    return _messageSent;
-}
-
-template <class ConnectionIdType>
-void ConnectionSpy<ConnectionIdType>::reset() {
-    _messageSent = false;
-}
-
-template <class ConnectionIdType>
-SendMessageOnConnection ConnectionSpy<ConnectionIdType>::sendHook() {
-    return;
+    : id(id) {
 }
 
 //// SessionSpy
 
 template <class ConnectionIdType>
-SessionSpy<ConnectionIdType>::SessionSpy()
-    : _session(nullptr) {
+SessionSpy<ConnectionIdType>::SessionSpy() {
 }
 
 template <class ConnectionIdType>
-Session<ConnectionIdType> * SessionSpy<ConnectionIdType>::createMonitoredSession() {
+void SessionSpy<ConnectionIdType>::toMonitoredSellMode(Session<ConnectionIdType> * s,
+                                                       const SellingPolicy & policy,
+                                                       const protocol_wire::SellerTerms & terms) {
 
-    if(_session != nullptr)
-        throw std::runtime_error();
+    s->toSellMode(removedConnectionCallbackSlot.hook(),
+                  generateKeyPairsCallbackSlot.hook(),
+                  generateP2PKHAddressesCallbackSlot.hook(),
+                  loadPieceForBuyerCallbackSlot.hook(),
+                  claimLastPaymentCallbackSlot.hook(),
+                  anchorAnnouncedCallbackSlot.hook(),
+                  policy,
+                  terms);
 
-    _session = new Session<ConnectionIdType>();
-    return _session;
 }
 
 template <class ConnectionIdType>
-ConnectionSpy<ConnectionIdType> * SessionSpy<ConnectionIdType>::addMonitoredConnection(const ConnectionIdType & id) {
-
-    ConnectionSpy<ConnectionIdType> * spy = new ConnectionSpy<ConnectionIdType>(id);
-
-    _connectionSpies.insert(id, spy);
-
-    return spy;
+void SessionSpy<ConnectionIdType>::toMonitoredBuyMode(Session<ConnectionIdType> * s,
+                                                      const Coin::UnspentP2PKHOutput & funding,
+                                                      const BuyingPolicy & poliy,
+                                                      const protocol_wire::Buyerberms & terms,
+                                                      const TorrentPieceInformation & information) {
+    s->toBuyMode(removedConnectionCallbackSlot.hook(),
+                 generateKeyPairsCallbackSlot.hook(),
+                 generateP2PKHAddressesCallbackSlot.hook(),
+                 broadcastTransactionCallbackSlot.hook(),
+                 fullPieceArrivedCallbackSlot.hook(),
+                 funding,
+                 policy,
+                 terms,
+                 information);
 }
 
 template <class ConnectionIdType>
 void SessionSpy<ConnectionIdType>::reset() {
 
-    _connectionRemoved = false;
-    _keyPairsGenerated = false;
-    _numberOfGenerateP2PKHAddresses = false;
+    //// General
+    removedConnectionCallbackSlot.reset();
+    generateKeyPairsCallbackSlot.reset();
+    generateP2PKHAddressesCallbackSlot.reset();
 
-    // reset connections
-    for(auto itr : _connectionSpies)
-        itr.second.reset();
+    //// Buying
+    broadcastTransactionCallbackSlot.reset();
+    fullPieceArrivedCallbackSlot.reset();
+
+    //// Selling
+    loadPieceForBuyerCallbackSlot.reset();
+    claimLastPaymentCallbackSlot.reset();
+    anchorAnnouncedCallbackSlot.reset();
 }
+
+template <class ConnectionIdType>
+bool SessionSpy<ConnectionIdType>::blank() {
+
+           //// General
+    return !removedConnectionCallbackSlot.called &&
+           !generateKeyPairsCallbackSlot.called &&
+           !generateP2PKHAddressesCallbackSlot.called &&
+           //// Buying
+           !broadcastTransactionCallbackSlot.called &&
+           !fullPieceArrivedCallbackSlot.called &&
+            //// Selling
+           !loadPieceForBuyerCallbackSlot.called &&
+           !claimLastPaymentCallbackSlot.called &&
+           !anchorAnnouncedCallbackSlot.called;
+}
+
+
