@@ -145,12 +145,12 @@ namespace detail {
         void peerAnnouncedModeAndTerms(const ConnectionIdType &, const protocol_statemachine::AnnouncedModeAndTerms &);
         void invitedToOutdatedContract(const ConnectionIdType &);
         void invitedToJoinContract(const ConnectionIdType &);
-        void contractPrepared(const ConnectionIdType &, const Coin::typesafeOutPoint &);
-        void pieceRequested(const ConnectionIdType & id, int i);
-        void invalidPieceRequested(const ConnectionIdType & id);
-        void paymentInterrupted(const ConnectionIdType & id);
-        void receivedValidPayment(const ConnectionIdType & id, const Coin::Signature &);
-        void receivedInvalidPayment(const ConnectionIdType & id, const Coin::Signature &);
+        void contractPrepared(const ConnectionIdType &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &);
+        void pieceRequested(const ConnectionIdType &, int i);
+        void invalidPieceRequested(const ConnectionIdType &);
+        void paymentInterrupted(const ConnectionIdType &);
+        void receivedValidPayment(const ConnectionIdType &, const Coin::Signature &);
+        void receivedInvalidPayment(const ConnectionIdType &, const Coin::Signature &);
         void sellerHasJoined(const ConnectionIdType &);
         void sellerHasInterruptedContract(const ConnectionIdType &);
         void receivedFullPiece(const ConnectionIdType &, const protocol_wire::PieceData &);

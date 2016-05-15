@@ -125,13 +125,16 @@ namespace detail {
         // Do not initiate joining if we are paused
         if(_session->state() == SessionState::started) {
 
+
+            detail::Connection<ConnectionIdType> * c = _session->get(id);
+
             // NB** In the future we do something more sophisticated rather than just joining right away?
-            tryToJoin(id);
+            tryToJoin(c);
         }
     }
 
     template<class ConnectionIdType>
-    void Selling<ConnectionIdType>::contractPrepared(const ConnectionIdType & id, const Coin::typesafeOutPoint & anchor) {
+    void Selling<ConnectionIdType>::contractPrepared(const ConnectionIdType & id, quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::PubKeyHash & payorFinalPkHash) {
 
         // We cannot have connection and be stopped
         assert(_session->state() != SessionState::stopped);
@@ -141,7 +144,7 @@ namespace detail {
 
         // Notify client
         // NB** We do this, even if we are paused!
-        _anchorAnnounced(id, anchor);
+        _anchorAnnounced(id, value, anchor, payorContractPk, payorFinalPkHash);
     }
 
     template<class ConnectionIdType>
@@ -155,7 +158,7 @@ namespace detail {
 
         // Notify client about piece request
         // NB** We do this, even if we are paused!
-        _loadPieceForBuyer(index);
+        _loadPieceForBuyer(id, index);
     }
 
     template<class ConnectionIdType>

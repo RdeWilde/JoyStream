@@ -110,7 +110,7 @@ struct SendMessageOnConnectionCallbackSlot {
         payment = protocol_wire::Payment();
     }
 
-    SendMessageOnConnectionCallbackSlot hook() {
+    SendMessageOnConnection hook() {
 
         return [this](const protocol_wire::ExtendedMessagePayload & message) {
 
@@ -149,7 +149,8 @@ struct SendMessageOnConnectionCallbackSlot {
 
 struct BroadcastTransactionCallbackSlot {
 
-    BroadcastTransactionCallbackSlot() { reset(); }
+    BroadcastTransactionCallbackSlot(const BroadcastTransaction & handler)
+        : _handler(handler) { reset(); }
 
     void reset() {
         called = false;
@@ -160,11 +161,16 @@ struct BroadcastTransactionCallbackSlot {
         return [this](const Coin::Transaction & tx) {
             this->called = true;
             this->tx = tx;
+            return _handler(tx);
         };
     }
 
     bool called;
     Coin::Transaction tx;
+
+private:
+
+    BroadcastTransaction _handler;
 };
 
 template <class ConnectionIdType>

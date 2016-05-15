@@ -24,8 +24,6 @@ namespace detail {
 
     public:
 
-        Connection(const ConnectionIdType &);
-
         Connection(const ConnectionIdType &,
                    const protocol_statemachine::CBStateMachine::PeerAnnouncedMode &,
                    const protocol_statemachine::CBStateMachine::InvitedToOutdatedContract &,
@@ -58,7 +56,7 @@ namespace detail {
         protocol_statemachine::AnnouncedModeAndTerms announcedModeAndTermsFromPeer() const;
 
         // Connection state machine reference
-        const protocol_statemachine::CBStateMachine & machine() const;
+        protocol_statemachine::CBStateMachine & machine();
 
         bool loadedPiecePending() const;
         void setLoadedPiecePending(bool);

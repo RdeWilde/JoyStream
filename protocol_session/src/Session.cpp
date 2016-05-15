@@ -12,6 +12,8 @@
 #include <protocol_session/detail/Selling.hpp>
 #include <protocol_session/detail/Observing.hpp>
 
+#include <utility> // std::pair
+
 namespace joystream {
 namespace protocol_session {
 
@@ -690,13 +692,13 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
-    void Session<ConnectionIdType>::contractPrepared(const ConnectionIdType & id, const Coin::typesafeOutPoint & a) {
+    void Session<ConnectionIdType>::contractPrepared(const ConnectionIdType & id, quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::PubKeyHash & payorFinalPkHash) {
 
         assert(hasConnection(id));
         assert(_mode == SessionMode::selling);
         assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
 
-        _selling->contractPrepared(id, a);
+        _selling->contractPrepared(id, value, anchor, payorContractPk, payorFinalPkHash);
     }
 
     template<class ConnectionIdType>
@@ -746,7 +748,7 @@ namespace protocol_session {
         assert(_mode == SessionMode::selling);
         assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
 
-        _selling->pieceRequested(id, index);
+        _selling->invalidPieceRequested(id);
     }
 
     template<class ConnectionIdType>
@@ -782,50 +784,21 @@ namespace protocol_session {
     template<class ConnectionIdType>
     detail::Connection<ConnectionIdType> * Session<ConnectionIdType>::createConnection(const ConnectionIdType & id, const SendMessageOnConnection & callback) {
 
-        detail::Connection<ConnectionIdType> connection = new detail::Connection<ConnectionIdType>(
+        return new detail::Connection<ConnectionIdType>(
         id,
-        [this, &id](const protocol_statemachine::AnnouncedModeAndTerms & a) {
-            this->peerAnnouncedModeAndTerms(id, a);
-        },
-        [this, &id](void) {
-            this->invitedToOutdatedContract(id);
-        },
-        [this, &id]() {
-            this->invitedToJoinContract(id);
-        },
-        [this, &callback](const protocol_wire::ExtendedMessagePayload & m) {
-            callback(m);
-        },
-        [this, &id](const Coin::typesafeOutPoint & o) {
-            this->contractPrepared(id, o);
-        },
-        [this, &id](int i) {
-            this->pieceRequested(id, i);
-        },
-        [this, &id]() {
-            this->invalidPieceRequested(id);
-        },
-        [this, &id]() {
-            this->paymentInterrupted(id);
-        },
-        [this, &id](const Coin::Signature & s) {
-            this->receivedValidPayment(id, s);
-        },
-        [this, &id](const Coin::Signature & s) {
-            this->receivedInvalidPayment(id, s);
-        },
-        [this, &id]() {
-            this->sellerHasJoined(id);
-        },
-        [this, &id]() {
-            this->sellerHasInterruptedContract(id);
-        },
-        [this, &id](const protocol_wire::PieceData & p) {
-            this->receivedFullPiece(id, p);
-        },
-        0);
-
-        return connection;
+        [this, &id](const protocol_statemachine::AnnouncedModeAndTerms & a) { this->peerAnnouncedModeAndTerms(id, a); },
+        [this, &id](void) { this->invitedToOutdatedContract(id); },
+        [this, &id]() { this->invitedToJoinContract(id); },
+        [this, &callback](const protocol_wire::ExtendedMessagePayload & m) { callback(m); },
+        [this, &id](quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::PubKeyHash & payorFinalPkHash) { this->contractPrepared(id, value, anchor, payorContractPk, payorFinalPkHash); },
+        [this, &id](int i) { this->pieceRequested(id, i); },
+        [this, &id]() { this->invalidPieceRequested(id); },
+        [this, &id]() { this->paymentInterrupted(id); },
+        [this, &id](const Coin::Signature & s) { this->receivedValidPayment(id, s); },
+        [this, &id](const Coin::Signature & s) { this->receivedInvalidPayment(id, s); },
+        [this, &id]() { this->sellerHasJoined(id); },
+        [this, &id]() { this->sellerHasInterruptedContract(id); },
+        [this, &id](const protocol_wire::PieceData & p) { this->receivedFullPiece(id, p); });
     }
 
     template <class ConnectionIdType>
@@ -904,7 +877,9 @@ namespace protocol_session {
         detail::Connection<ConnectionIdType> * connection = createConnection(id, callback);
 
         // Add to map
-        _connections.insert(id, connection);
+        _connections.insert(std::make_pair(id, connection));
+
+        return connection;
     }
 }
 }

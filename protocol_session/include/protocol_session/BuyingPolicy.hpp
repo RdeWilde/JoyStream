@@ -8,6 +8,8 @@
 #ifndef JOYSTREAM_PROTOCOLSESSION_BUYINGPOLICY_HPP
 #define JOYSTREAM_PROTOCOLSESSION_BUYINGPOLICY_HPP
 
+#include <protocol_wire/protocol_wire.hpp>
+
 namespace joystream {
 namespace protocol_session {
 
@@ -17,12 +19,15 @@ public:
 
     BuyingPolicy()
         : _minTimeBeforeBuildingContract(0)
-        , _servicingPieceTimeOutLimit(0) {
+        , _servicingPieceTimeOutLimit(0)
+        , _sellerTermsOrderingPolicy(protocol_wire::SellerTerms::OrderingPolicy::min_price) // fixed, but arbitary, default value
+        {
     }
 
-    BuyingPolicy(double minTimeBeforeBuildingContract, double servicingPieceTimeOutLimit)
+    BuyingPolicy(double minTimeBeforeBuildingContract, double servicingPieceTimeOutLimit, protocol_wire::SellerTerms::OrderingPolicy policy)
         : _minTimeBeforeBuildingContract(minTimeBeforeBuildingContract)
-        , _servicingPieceTimeOutLimit(servicingPieceTimeOutLimit) {
+        , _servicingPieceTimeOutLimit(servicingPieceTimeOutLimit)
+        , _sellerTermsOrderingPolicy(policy) {
     }
 
     double minTimeBeforeBuildingContract() const {
@@ -31,6 +36,10 @@ public:
 
     double servicingPieceTimeOutLimit() const {
         return _servicingPieceTimeOutLimit;
+    }
+
+    protocol_wire::SellerTerms::OrderingPolicy sellerTermsOrderingPolicy() const {
+        return _sellerTermsOrderingPolicy;
     }
 
 private:
@@ -62,9 +71,12 @@ private:
     //
     double _servicingPieceTimeOutLimit;
 
+
+    // 8
+    // How sellers should be ranked in terms of their terms
+    protocol_wire::SellerTerms::OrderingPolicy _sellerTermsOrderingPolicy;
+
 };
-
-
 
 }
 }

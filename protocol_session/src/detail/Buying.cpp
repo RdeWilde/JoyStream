@@ -216,7 +216,7 @@ namespace detail {
                 // Send invitation
                 detail::Connection<ConnectionIdType> * c = _session->get(id);
 
-                c->_machine.process_event(protocol_statemachine::event::InviteSeller());
+                c->machine().process_event(protocol_statemachine::event::InviteSeller());
 
                 std::cout << "Invited: " << IdToString(id);
             }
@@ -245,10 +245,10 @@ namespace detail {
         auto itr = _sellers.find(id);
         assert(itr != _sellers.cend());
 
-        detail::Seller<ConnectionIdType> & sellers = *itr;
+        //detail::Seller<ConnectionIdType> & sellers = *itr;
 
         // Remove connection
-        removeConnection(id, Session<ConnectionIdType>::RemoveConnectionInitiator::client);
+        removeConnection(id);
 
         // Tell client to remove his pad peer
         _removedConnection(id, DisconnectCause::seller_has_interrupted_contract);
@@ -263,9 +263,9 @@ namespace detail {
 
         // Get seller corresponding to given id
         auto itr = _sellers.find(id);
-        assert(itr != _sellers.cend());
+        assert(itr != _sellers.end());
 
-        detail::Seller<ConnectionIdType> & s = *itr;
+        detail::Seller<ConnectionIdType> & s = itr->second;
 
         assert(s.state() == detail::Seller<ConnectionIdType>::State::waiting_for_full_piece);
 
@@ -468,8 +468,8 @@ namespace detail {
 
         // Determine fund distribution among sellers
         std::vector<protocol_wire::SellerTerms> terms;
-        for(const detail::Connection<ConnectionIdType> * c: selected)
-            terms.push_back(c->seller->machine().announcedModeAndTermsFromPeer().sellModeTerms());
+        for(auto i : _sellers)
+            terms.push_back(i.second.connection()->announcedModeAndTermsFromPeer().sellModeTerms());
 
         std::vector<uint64_t> funds = distributeFunds(terms);
 
@@ -485,7 +485,7 @@ namespace detail {
 
         for(const detail::Connection<ConnectionIdType> * c : selected) {
 
-            uint64_t minContractFeePerKb = c->machine().announcedModeAndTermsFromPeer().sellModeTerms().minContractFeePerKb();
+            uint64_t minContractFeePerKb = c->announcedModeAndTermsFromPeer().sellModeTerms().minContractFeePerKb();
 
             // If this sellers has a greater minimal fee, then we must respect that
             if(minContractFeePerKb > contractFeePerKb)
@@ -504,7 +504,11 @@ namespace detail {
 
         // Generate keys and addresses required
         std::vector<Coin::KeyPair> contractKeyPairs = _generateKeyPairs(numberOfSellers);
-        std::vector<Coin::PubKeyHash> finalPkHashes = _generateP2PKHAddresses(numberOfSellers);
+        std::vector<Coin::PubKeyHash> finalPkHashes;
+
+        std::vector<Coin::P2PKHAddress> finalAddresses = _generateP2PKHAddresses(numberOfSellers);
+        for(Coin::P2PKHAddress a : finalAddresses)
+            finalPkHashes.push_back(a.pubKeyHash());
 
         // Create and add commitment to contract
         for(int i = 0;i < numberOfSellers;i++)
@@ -516,7 +520,7 @@ namespace detail {
         if(changeAmount != 0) {
 
             // New change address
-            Coin::P2PKHAddress address = _generateP2PKHAddresses(1);
+            Coin::P2PKHAddress address = _generateP2PKHAddresses(1).front();
 
             // Create and set change payment
             c.setChange(Coin::Payment(changeAmount, address.pubKeyHash()));
@@ -551,7 +555,7 @@ namespace detail {
         /////////////////////////
 
         // Create sellers and add to seller mapping, and assign first piece
-        for(const detail::Connection<ConnectionIdType> * c : selected) {
+        for(detail::Connection<ConnectionIdType> * c : selected) {
 
             // Create and store seller
             _sellers[c->connectionId()] = detail::Seller<ConnectionIdType>(detail::Seller<ConnectionIdType>::State::waiting_to_be_assigned_piece, c, 0);
@@ -586,14 +590,16 @@ namespace detail {
 
         // Stop if there are fewer than the absolute minimum
         if(joinedSellers.size() < N)
-            return false;
+            return std::vector<detail::Connection<ConnectionIdType> *>();
         else if((joinedSellers.size() > N)) {
 
             // If we have more than desired number, we rank them accoring to terms
             // NB**: in future, base it on policy
             std::sort(joinedSellers.begin(), joinedSellers.end(),
-                      [](const detail::Connection<ConnectionIdType> * a, const detail::Connection<ConnectionIdType> * b) -> bool {
-                        return a->machine().announcedModeAndTermsFromPeer().sellModeTerms() > b->machine().announcedModeAndTermsFromPeer().sellModeTerms();
+                      [this](detail::Connection<ConnectionIdType> * a, detail::Connection<ConnectionIdType> * b) -> bool {
+                      return protocol_wire::SellerTerms::compare(this->_policy.sellerTermsOrderingPolicy(),
+                                                                 a->announcedModeAndTermsFromPeer().sellModeTerms(),
+                                                                 b->announcedModeAndTermsFromPeer().sellModeTerms());
             });
 
             // Only keep top N
@@ -643,9 +649,10 @@ namespace detail {
         int pieceIndex;
 
         // Prioritize deassigned piece
-        if(!_deAssignedPieces.empty())
-            pieceIndex = _deAssignedPieces.pop_front();
-        else {
+        if(!_deAssignedPieces.empty()) {
+            pieceIndex = _deAssignedPieces.front();
+            _deAssignedPieces.pop_front();
+        } else {
 
             try {
                 pieceIndex = getNextUnassignedPiece();

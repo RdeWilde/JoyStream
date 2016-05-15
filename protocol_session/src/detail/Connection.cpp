@@ -109,7 +109,7 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    const protocol_statemachine::CBStateMachine & Connection<ConnectionIdType>::machine() const {
+    protocol_statemachine::CBStateMachine & Connection<ConnectionIdType>::machine() {
         return _machine;
     }
 

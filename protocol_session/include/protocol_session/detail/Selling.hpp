@@ -58,7 +58,7 @@ public:
     void peerAnnouncedModeAndTerms(const ConnectionIdType &, const protocol_statemachine::AnnouncedModeAndTerms &);
     void invitedToOutdatedContract(const ConnectionIdType &);
     void invitedToJoinContract(const ConnectionIdType &);
-    void contractPrepared(const ConnectionIdType &, const Coin::typesafeOutPoint &);
+    void contractPrepared(const ConnectionIdType &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &);
     void pieceRequested(const ConnectionIdType &, int);
     void invalidPieceRequested(const ConnectionIdType &);
     void paymentInterrupted(const ConnectionIdType &);

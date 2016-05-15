@@ -39,8 +39,8 @@ void SessionSpy<ConnectionIdType>::toMonitoredSellMode(Session<ConnectionIdType>
 template <class ConnectionIdType>
 void SessionSpy<ConnectionIdType>::toMonitoredBuyMode(Session<ConnectionIdType> * s,
                                                       const Coin::UnspentP2PKHOutput & funding,
-                                                      const BuyingPolicy & poliy,
-                                                      const protocol_wire::Buyerberms & terms,
+                                                      const BuyingPolicy & policy,
+                                                      const protocol_wire::BuyerTerms & terms,
                                                       const TorrentPieceInformation & information) {
     s->toBuyMode(removedConnectionCallbackSlot.hook(),
                  generateKeyPairsCallbackSlot.hook(),
