@@ -25,7 +25,7 @@ namespace protocol_statemachine {
         context<CBStateMachine>()._payee.setPayeeFinalPkHash(e.finalPkHash());
 
         // Send message for joining contract
-        context<CBStateMachine>()._sendMessage(protocol_wire::JoiningContract(e.contractKeys().pk(), e.finalPkHash()));
+        context<CBStateMachine>()._sendMessage.enqueue(new protocol_wire::JoiningContract(e.contractKeys().pk(), e.finalPkHash()));
 
         // Transition to WaitingToStart state
         return transit<WaitingToStart>();

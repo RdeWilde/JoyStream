@@ -32,18 +32,18 @@ BuyingNavigator::BuyingNavigator(const Fixture & fixture)
 }
 
 void BuyingNavigator::toBuyMode(protocol_statemachine::CBStateMachine * machine) {
-    machine->process_event(_fixture.buyModeStarted);
+    machine->processEvent(_fixture.buyModeStarted);
 }
 
 void BuyingNavigator::toSellerHasJoined(protocol_statemachine::CBStateMachine * machine) {
-    machine->process_event(_fixture.peerToSellMode);
-    machine->process_event(_fixture.inviteSeller);
-    machine->process_event(_fixture.joiningContract);
+    machine->processEvent(_fixture.peerToSellMode);
+    machine->processEvent(_fixture.inviteSeller);
+    machine->processEvent(_fixture.joiningContract);
 }
 
 void BuyingNavigator::toProcessingPiece(protocol_statemachine::CBStateMachine * machine) {
     toSellerHasJoined(machine);
-    machine->process_event(_fixture.contractPrepared);
-    machine->process_event(_fixture.requestPiece);
-    machine->process_event(_fixture.fullPiece);
+    machine->processEvent(_fixture.contractPrepared);
+    machine->processEvent(_fixture.requestPiece);
+    machine->processEvent(_fixture.fullPiece);
 }

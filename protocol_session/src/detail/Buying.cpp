@@ -216,7 +216,7 @@ namespace detail {
                 // Send invitation
                 detail::Connection<ConnectionIdType> * c = _session->get(id);
 
-                c->machine().process_event(protocol_statemachine::event::InviteSeller());
+                c->processEvent(protocol_statemachine::event::InviteSeller());
 
                 std::cout << "Invited: " << IdToString(id);
             }

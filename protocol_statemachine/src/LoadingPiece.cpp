@@ -23,7 +23,7 @@ namespace protocol_statemachine {
         std::cout << "Reacting to PieceLoaded event." << std::endl;
 
         // Send piece
-        context<CBStateMachine>()._sendMessage(joystream::protocol_wire::FullPiece(e.pieceData()));
+        context<CBStateMachine>()._sendMessage.enqueue(new joystream::protocol_wire::FullPiece(e.pieceData()));
 
         // Transition to WaitingForPayment state
         return transit<WaitingForPayment>();

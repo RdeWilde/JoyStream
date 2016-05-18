@@ -24,7 +24,7 @@ namespace protocol_statemachine {
         context<CBStateMachine>()._payor.setPayeeFinalPkHash(e.message().finalPkHash());
 
         // Send client notification about seller joining
-        context<CBStateMachine>()._sellerJoined();
+        context<CBStateMachine>()._sellerJoined.enqueue();
 
         // Start waiting for contract to be prepared for joined seller
         return transit<SellerHasJoined>();

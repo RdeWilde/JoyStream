@@ -13,7 +13,7 @@
 void peerToSellMode(CBStateMachine * machine, const event::Recv<protocol_wire::Sell> & e) {
 
     // Recieve mode message from peer
-    machine->process_event(e);
+    machine->processEvent(e);
 
     // Check that new peer state recorded is valid
     AnnouncedModeAndTerms announced = machine->announcedModeAndTermsFromPeer();
@@ -25,7 +25,7 @@ void peerToSellMode(CBStateMachine * machine, const event::Recv<protocol_wire::S
 void peerToBuyMode(CBStateMachine * machine, const event::Recv<protocol_wire::Buy> & e) {
 
     // Recieve mode message from peer
-    machine->process_event(e);
+    machine->processEvent(e);
 
     // test deep history transition at various times?
     AnnouncedModeAndTerms announced = machine->announcedModeAndTermsFromPeer();
@@ -36,7 +36,7 @@ void peerToBuyMode(CBStateMachine * machine, const event::Recv<protocol_wire::Bu
 void peerToObserveMode(CBStateMachine * machine) {
 
     // Recieve mode message from peer
-    machine->process_event(event::Recv<protocol_wire::Observe>(protocol_wire::Observe()));
+    machine->processEvent(event::Recv<protocol_wire::Observe>(protocol_wire::Observe()));
 
     // test deep history transition at various times?
     QCOMPARE(machine->announcedModeAndTermsFromPeer().modeAnnounced(), ModeAnnounced::observe);
@@ -52,7 +52,7 @@ void Test::observing() {
     QVERIFY(machine->inState<ChooseMode>());
 
     // Issue client event to change mode
-    machine->process_event(event::ObserveModeStarted());
+    machine->processEvent(event::ObserveModeStarted());
 
     // Check that observe mode message was sent
     QVERIFY(spy.messageSent());
@@ -107,7 +107,7 @@ void Test::selling() {
     QVERIFY(machine->inState<ChooseMode>());
 
     // Issue client event to change to sell mode
-    machine->process_event(f.sellModeStarted);
+    machine->processEvent(f.sellModeStarted);
 
     // Check that sell message was sent with correct terms
     QVERIFY(spy.messageSent());
@@ -122,7 +122,7 @@ void Test::selling() {
 
     // Client updates terms
     protocol_wire::SellerTerms newSellTerms(33, 123, 4, 1000, 1);
-    machine->process_event(event::UpdateTerms<protocol_wire::SellerTerms>(newSellTerms));
+    machine->processEvent(event::UpdateTerms<protocol_wire::SellerTerms>(newSellTerms));
 
     // Check that mode message was sent
     QVERIFY(spy.messageSent());
@@ -131,7 +131,7 @@ void Test::selling() {
 
     // Peer invites us (seller), with valid index, but before announcing being in any mode
     // Check that this causes exception
-    QVERIFY_EXCEPTION_THROWN(machine->process_event(f.validJoinContract), exception::InvitedToJoinContractByNonBuyer);
+    QVERIFY_EXCEPTION_THROWN(machine->processEvent(f.validJoinContract), exception::InvitedToJoinContractByNonBuyer);
 
     spy.reset();
 
@@ -139,7 +139,7 @@ void Test::selling() {
     // the prior exception destroys machine state
     delete machine;
     machine = spy.createMonitoredMachine();
-    machine->process_event(f.sellModeStarted);
+    machine->processEvent(f.sellModeStarted);
 
     // Then have peer announce being a buyer
     peerToBuyMode(machine, f.peerToBuyMode);
@@ -147,7 +147,7 @@ void Test::selling() {
     spy.reset();
 
     // Then buyer peer invites us (seller) with incorrect index
-    machine->process_event(f.invalidJoinContract);
+    machine->processEvent(f.invalidJoinContract);
 
     // Check that failure callback is made
     QVERIFY(spy.hasBeenInvitedToOutdatedContract());
@@ -155,7 +155,7 @@ void Test::selling() {
     spy.reset();
 
     // Then buyer peer invites us (seller) with correct index
-    machine->process_event(f.validJoinContract);
+    machine->processEvent(f.validJoinContract);
 
     // Check that we are getting right invitation
     QVERIFY(spy.hasBeenInvitedToJoinContract());
@@ -166,7 +166,7 @@ void Test::selling() {
     std::cout << "--- In Invited state ---" << std::endl;
 
     // We (seller) respond by joining the contract
-    machine->process_event(f.joinedContract);
+    machine->processEvent(f.joinedContract);
 
     // Check that joining_contract message was sent with correct rsvp
     QVERIFY(spy.messageSent());
@@ -179,7 +179,7 @@ void Test::selling() {
     std::cout << "--- In WaitingToStart state ---" << std::endl;
 
     // Peer (buyer) announces being ready
-    machine->process_event(f.contractReady);
+    machine->processEvent(f.contractReady);
 
     // Check that callback is made with correct anchor,
     QVERIFY(spy.contractHasBeenPrepared());
@@ -194,7 +194,7 @@ void Test::selling() {
     std::cout << "--- In ReadyForPieceRequest state ---" << std::endl;
 
     // Peer requests piece which is invalid
-    machine->process_event(f.invalidPieceRequest);
+    machine->processEvent(f.invalidPieceRequest);
 
     // Check that invalid piece callback was made
     QVERIFY(spy.invalidPieceHasBeenRequested());
@@ -205,13 +205,13 @@ void Test::selling() {
     // recreate fresh machine in ReadyForPieceRequest state, and peer in buy mode
     delete machine;
     machine = spy.createMonitoredMachine();
-    machine->process_event(f.sellModeStarted);
+    machine->processEvent(f.sellModeStarted);
     peerToBuyMode(machine, f.peerToBuyMode);
     navigator.toReadyForPieceRequest(machine);
     spy.reset();
 
     // Peer request valid piece
-    machine->process_event(f.validPieceRequest);
+    machine->processEvent(f.validPieceRequest);
 
     // Check that callback is made with correct piece index,
     // and we are in ServicingPieceRequest
@@ -231,7 +231,7 @@ void Test::selling() {
     // recreate fresh machine in ServicingPieceRequest state, and peer in buy mode
     delete machine;
     machine = spy.createMonitoredMachine();
-    machine->process_event(f.sellModeStarted);
+    machine->processEvent(f.sellModeStarted);
     peerToBuyMode(machine, f.peerToBuyMode);
     navigator.toLoadingPiece(machine);
     spy.reset();
@@ -244,7 +244,7 @@ void Test::selling() {
     // recreate fresh machine in ServicingPieceRequest state, and peer in buy mode
     delete machine;
     machine = spy.createMonitoredMachine();
-    machine->process_event(f.sellModeStarted);
+    machine->processEvent(f.sellModeStarted);
     peerToBuyMode(machine, f.peerToBuyMode);
     navigator.toLoadingPiece(machine);
     spy.reset();
@@ -256,12 +256,12 @@ void Test::selling() {
     // recreate fresh machine in ServicingPieceRequest state, and peer in buy mode
     delete machine;
     machine = spy.createMonitoredMachine();
-    machine->process_event(f.sellModeStarted);
+    machine->processEvent(f.sellModeStarted);
     peerToBuyMode(machine, f.peerToBuyMode);
     navigator.toLoadingPiece(machine);
     spy.reset();
 
-    machine->process_event(f.fullPiece);
+    machine->processEvent(f.fullPiece);
 
     QVERIFY(spy.messageSent());
     QCOMPARE(spy.messageType(), protocol_wire::MessageType::full_piece);
@@ -272,7 +272,7 @@ void Test::selling() {
     std::cout << "--- In WaitingForPayment state ---" << std::endl;
 
     // Have peer send invalid payment!
-    machine->process_event(f.badPayment);
+    machine->processEvent(f.badPayment);
 
     // Check that invalid piece callback was made
     QVERIFY(spy.receivedInvalidPayment());
@@ -283,14 +283,14 @@ void Test::selling() {
     // recreate fresh machine in ServicingPieceRequest state, and peer in buy mode
     delete machine;
     machine = spy.createMonitoredMachine();
-    machine->process_event(f.sellModeStarted);
+    machine->processEvent(f.sellModeStarted);
     peerToBuyMode(machine, f.peerToBuyMode);
     navigator.toWaitingForPayment(machine);
     spy.reset();
 
     // Generate payor payment signature for first payment
     event::Recv<protocol_wire::Payment> e = f.goodPayment(payorContractSk, 1);
-    machine->process_event(e);
+    machine->processEvent(e);
 
     // Check that invalid piece callback was made
     QVERIFY(spy.receivedValidPayment());
@@ -302,7 +302,7 @@ void Test::selling() {
 
     // Client transition to Buy mode
     protocol_wire::BuyerTerms newBuyerTerms(7, 7, 7, 7, 7);
-    machine->process_event(event::BuyModeStarted(newBuyerTerms));
+    machine->processEvent(event::BuyModeStarted(newBuyerTerms));
 
     // Check that mode message was sent
     QVERIFY(spy.messageSent());
@@ -356,7 +356,7 @@ void Test::buying() {
     // Client, incorrectly, tries to invite peer
     // which is in buy mode, which should result in exception
     peerToBuyMode(machine, event::Recv<protocol_wire::Buy>(protocol_wire::BuyerTerms(0,0,0,0,0)));
-    QVERIFY_EXCEPTION_THROWN(machine->process_event(f.inviteSeller), exception::CannotInviteNonSeller);
+    QVERIFY_EXCEPTION_THROWN(machine->processEvent(f.inviteSeller), exception::CannotInviteNonSeller);
 
     // Recreate fresh machine in sell mode,
     // the prior exception destroys machine state
@@ -368,7 +368,7 @@ void Test::buying() {
     spy.reset();
 
     // Invite seller peer
-    machine->process_event(f.inviteSeller);
+    machine->processEvent(f.inviteSeller);
 
     QVERIFY(spy.messageSent());
     QCOMPARE(spy.messageType(), protocol_wire::MessageType::join_contract);
@@ -379,7 +379,7 @@ void Test::buying() {
     std::cout << "--- In WaitingForSellerToJoin state ---" << std::endl;
 
     // Peer joins contract
-    machine->process_event(f.joiningContract);
+    machine->processEvent(f.joiningContract);
 
     QVERIFY(spy.sellerHasJoined());
 
@@ -418,7 +418,7 @@ void Test::buying() {
     navigator.toSellerHasJoined(machine);
     spy.reset();
 
-    machine->process_event(f.contractPrepared);
+    machine->processEvent(f.contractPrepared);
 
     QVERIFY(spy.messageSent());
     QCOMPARE(spy.messageType(), protocol_wire::MessageType::ready);
@@ -432,7 +432,7 @@ void Test::buying() {
     std::cout << "--- In ReadyToRequestPiece state ---" << std::endl;
 
     // Client requests a piece
-    machine->process_event(f.requestPiece);
+    machine->processEvent(f.requestPiece);
 
     QVERIFY(spy.messageSent());
     QCOMPARE(spy.messageType(), protocol_wire::MessageType::request_full_piece);
@@ -443,7 +443,7 @@ void Test::buying() {
     std::cout << "--- In WaitingForFullPiece state ---" << std::endl;
 
     // Peer sends piece back to client
-    machine->process_event(f.fullPiece);
+    machine->processEvent(f.fullPiece);
 
     QVERIFY(spy.hasReceivedFullPiece());
     QCOMPARE(spy.pieceData(), f.fullPiece.message().pieceData());
@@ -453,7 +453,7 @@ void Test::buying() {
     std::cout << "--- In ProcessingPiece state ---" << std::endl;
 
     // Client says piece was valid, and payment is sent
-    machine->process_event(event::SendPayment());
+    machine->processEvent(event::SendPayment());
 
     QVERIFY(spy.messageSent());
     QCOMPARE(spy.messageType(), protocol_wire::MessageType::payment);
@@ -463,7 +463,7 @@ void Test::buying() {
 
     // Update terms
     protocol_wire::BuyerTerms testTerms(4123,65436,1432,652,77777);
-    machine->process_event(event::UpdateTerms<protocol_wire::BuyerTerms>(testTerms));
+    machine->processEvent(event::UpdateTerms<protocol_wire::BuyerTerms>(testTerms));
 
     QVERIFY(spy.messageSent());
     QCOMPARE(spy.messageType(), protocol_wire::MessageType::buy);

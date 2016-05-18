@@ -39,7 +39,7 @@ namespace detail {
 
         // Send request
         assert(_connection != nullptr);
-        _connection->machine().process_event(protocol_statemachine::event::RequestPiece(i));
+        _connection->processEvent(protocol_statemachine::event::RequestPiece(i));
     }
 
     template <class ConnectionIdType>
@@ -91,7 +91,7 @@ namespace detail {
 
         // Trigger callback to session and terminate state machine
         if(_connection != nullptr)
-            _connection->machine().process_event(protocol_statemachine::event::InvalidPieceReceived());
+            _connection->processEvent(protocol_statemachine::event::InvalidPieceReceived());
     }
 
     template <class ConnectionIdType>

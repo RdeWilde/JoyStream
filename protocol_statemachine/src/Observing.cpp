@@ -27,7 +27,7 @@ namespace protocol_statemachine {
         std::cout << "Reacting to detail::InitializeObserving." << std::endl;
 
         // Send mode message.
-        context<CBStateMachine>()._sendMessage(protocol_wire::Observe());
+        context<CBStateMachine>()._sendMessage.enqueue(new protocol_wire::Observe());
 
         // No transition
         return discard_event();

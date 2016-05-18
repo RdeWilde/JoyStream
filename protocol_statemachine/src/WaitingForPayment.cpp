@@ -30,13 +30,13 @@ namespace protocol_statemachine {
         if(valid) {
 
             // Notify client about valid payment
-            context<CBStateMachine>()._validPayment(payment);
+            context<CBStateMachine>()._validPayment.enqueue(payment);
 
             return transit<ReadyForPieceRequest>();
         } else {
 
             // Notify client about bad payment
-            context<CBStateMachine>()._invalidPayment(payment);
+            context<CBStateMachine>()._invalidPayment.enqueue(payment);
 
             // Terminate machine
             return terminate();

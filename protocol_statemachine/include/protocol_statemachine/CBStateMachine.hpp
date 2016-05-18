@@ -14,6 +14,8 @@
 
 #include <boost/statechart/state_machine.hpp>
 
+#include <deque>
+
 namespace sc = boost::statechart;
 
 namespace Coin {
@@ -37,22 +39,34 @@ namespace protocol_statemachine {
 
     class CBStateMachine : public sc::state_machine<CBStateMachine, ChooseMode> {
 
+        // A notification without a payload
+        typedef std::function<void()> NoPayloadNotification;
+
     public:
+
+        // Exception that a callback should throw if it deletes the state machine
+        class StateMachineDeletedException : public std::runtime_error {
+
+        public:
+
+            StateMachineDeletedException() : std::runtime_error("State machine deleted in callback.") {}
+        };
 
         //// General Notifications
 
+        // Peer updated mode without
         typedef std::function<void(const protocol_statemachine::AnnouncedModeAndTerms &)> PeerAnnouncedMode;
 
         // Client requires a message to be sent
-        typedef std::function<void(const protocol_wire::ExtendedMessagePayload &)> Send;
+        typedef std::function<void(const protocol_wire::ExtendedMessagePayload *)> Send;
 
         //// Selling Notifications
 
         // Client was invited to expired contract, as indicated by bad index
-        typedef std::function<void()> InvitedToOutdatedContract;
+        typedef NoPayloadNotification InvitedToOutdatedContract;
 
         // Client was invited to join given contract, should terms be included? they are available in _peerAnnounced
-        typedef std::function<void()> InvitedToJoinContract;
+        typedef NoPayloadNotification InvitedToJoinContract;
 
         // Peer announced that contract is now ready, should contract be be included? it was available
         typedef std::function<void(quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &)> ContractIsReady;
@@ -61,10 +75,10 @@ namespace protocol_statemachine {
         typedef std::function<void(int)> PieceRequested;
 
         // Peer invalid piece requested
-        typedef std::function<void()> InvalidPieceRequested;
+        typedef NoPayloadNotification InvalidPieceRequested;
 
         // Peer sent mode message when payment was expected/required
-        typedef std::function<void()> PeerInterruptedPayment;
+        typedef NoPayloadNotification PeerInterruptedPayment;
 
         // Peer sent valid payment signature
         typedef std::function<void(const Coin::Signature &)> ValidPayment;
@@ -75,15 +89,15 @@ namespace protocol_statemachine {
         //// Buying Notifications
 
         // Peer, in seller mode, joined the most recent invitation
-        typedef std::function<void()> SellerJoined;
+        typedef NoPayloadNotification SellerJoined;
 
         // Peer, in seller mode, left - by sending new mode message (which may also be sell) - after requesting a piece
-        typedef std::function<void()> SellerInterruptedContract;
+        typedef NoPayloadNotification SellerInterruptedContract;
 
         // Peer, in seller mode, responded with full piece
         typedef std::function<void(const protocol_wire::PieceData &)> ReceivedFullPiece;
 
-        CBStateMachine();
+        //CBStateMachine();
 
         CBStateMachine(const PeerAnnouncedMode &,
                        const InvitedToOutdatedContract &,
@@ -101,8 +115,6 @@ namespace protocol_statemachine {
                        int);
 
         void processEvent(const sc::event_base &);
-
-        void unconsumed_event(const sc::event_base &);
 
         // Whether state machine is in given (T) inner state
         template<typename T>
@@ -127,7 +139,13 @@ namespace protocol_statemachine {
 
         int lastRequestedPiece() const;
 
+        void unconsumed_event(const sc::event_base &);
+
     private:
+
+        // Hiding routine from public usage
+
+        void process_event(const sc::event_base &);
 
         //// States require access to private machine state
 
@@ -171,20 +189,73 @@ namespace protocol_statemachine {
 
         //// Callbacks
 
-        // Callbacks for classifier routines
-        PeerAnnouncedMode _peerAnnouncedMode;
-        InvitedToOutdatedContract _invitedToOutdatedContract;
-        InvitedToJoinContract _invitedToJoinContract;
-        Send _sendMessage;
-        ContractIsReady _contractIsReady;
-        PieceRequested _pieceRequested;
-        InvalidPieceRequested _invalidPieceRequested;
-        PeerInterruptedPayment _peerInterruptedPayment;
-        ValidPayment _validPayment;
-        InvalidPayment _invalidPayment;
-        SellerJoined _sellerJoined;
-        SellerInterruptedContract _sellerInterruptedContract;
-        ReceivedFullPiece _receivedFullPiece;
+        // All callbacks are initiated when state machine has finished all processing.
+        // For sake of generality, we assume multiple callbacks may have been called multiple times
+        // with the processing of a *single* event. In practice, we are doing at most one now.
+        // This general scenario is handled by having a callback queue associated with each callback.
+
+        // Whether a callbacks are currently being processed, is used
+        // as re-entrancy guard to prevent re-invoking callback processing.
+        bool _currentlyProcessingCallbacks;
+
+        // Queue for notifications which do have payload
+        template<typename... Args>
+        class NotificationQueue {
+
+        public:
+
+            typedef std::function<void(Args...)> callback;
+
+            NotificationQueue(const callback & hook) : _callback(hook) {}
+
+            void enqueue(Args... args) {
+                _calls.push_back(std::bind(_callback, args...));
+            }
+
+        private:
+
+            friend class CBStateMachine;
+
+            // Processing routine is made private so that
+            // substates cannot invoke it.
+            void process() {
+
+                // ::empty() must be used, rather than iterator,as
+                // queue may mutate while iterating, due to
+                // events posted in the callbacks initiated here.
+                while(!_calls.empty()) {
+
+                    // Get call
+                    NoPayloadNotification f = _calls.front();
+
+                    // Remove
+                    _calls.pop_front();
+
+                    // Initiate
+                    f();
+                }
+
+            }
+
+            callback _callback;
+
+            std::deque<NoPayloadNotification> _calls;
+        };
+
+        // Callback queues
+        NotificationQueue<const protocol_statemachine::AnnouncedModeAndTerms &> _peerAnnouncedMode;
+        NotificationQueue<> _invitedToOutdatedContract;
+        NotificationQueue<> _invitedToJoinContract;
+        NotificationQueue<const protocol_wire::ExtendedMessagePayload *> _sendMessage;
+        NotificationQueue<quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &> _contractIsReady;
+        NotificationQueue<int> _pieceRequested;
+        NotificationQueue<> _invalidPieceRequested;
+        NotificationQueue<> _peerInterruptedPayment;
+        NotificationQueue<const Coin::Signature &> _validPayment;
+        NotificationQueue<const Coin::Signature &> _invalidPayment;
+        NotificationQueue<> _sellerJoined;
+        NotificationQueue<> _sellerInterruptedContract;
+        NotificationQueue<const protocol_wire::PieceData &> _receivedFullPiece;
 
         void peerAnnouncedMode();
 

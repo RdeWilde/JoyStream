@@ -20,7 +20,7 @@ namespace protocol_statemachine {
 
         // Send client notification about this interruption,
         CBStateMachine & machine = context<CBStateMachine>();
-        machine._peerInterruptedPayment();
+        machine._peerInterruptedPayment.enqueue();
 
         // and update new peer mode
         machine.peerToObserveMode();
@@ -34,7 +34,7 @@ namespace protocol_statemachine {
         std::cout << "Reacting to Recv<wire::Buy> event." << std::endl;
 
         // Send client notification about this interruption,
-        context<CBStateMachine>()._peerInterruptedPayment();
+        context<CBStateMachine>()._peerInterruptedPayment.enqueue();
 
         // and update new peer mode
         context<CBStateMachine>().peerToBuyMode(e.message().terms());
@@ -48,7 +48,7 @@ namespace protocol_statemachine {
         std::cout << "Reacting to Recv<wire::Sell> event." << std::endl;
 
         // Send client notification about this interruption,
-        context<CBStateMachine>()._peerInterruptedPayment();
+        context<CBStateMachine>()._peerInterruptedPayment.enqueue();
 
         // and update new peer mode
         protocol_wire::Sell m = e.message();

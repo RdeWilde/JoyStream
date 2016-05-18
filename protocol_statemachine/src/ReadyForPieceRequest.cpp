@@ -25,13 +25,13 @@ namespace protocol_statemachine {
         if(pieceIndex < 0 || pieceIndex > context<CBStateMachine>()._MAX_PIECE_INDEX) {
 
             // if not, send notification and terminate
-            context<CBStateMachine>()._invalidPieceRequested();
+            context<CBStateMachine>()._invalidPieceRequested.enqueue();
 
             return terminate();
         }
 
         // otherwise send success notification, and
-        context<CBStateMachine>()._pieceRequested(pieceIndex);
+        context<CBStateMachine>()._pieceRequested.enqueue(pieceIndex);
         context<CBStateMachine>()._lastRequestedPiece = pieceIndex;
 
         // get ready to load the piece
