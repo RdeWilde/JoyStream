@@ -24,6 +24,8 @@ namespace protocol_wire {
         // Constructor based on members
         Buy(const BuyerTerms & terms);
 
+        virtual ~Buy() {}
+
         bool operator==(const Buy &) const;
 
         // Constructor based on raw payload
