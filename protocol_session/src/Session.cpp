@@ -844,10 +844,10 @@ namespace protocol_session {
         // Add ids of all connections
         for(auto mapping: _connections) {
 
-            const protocol_statemachine::CBStateMachine & machine = mapping.second->machine();
+           detail::Connection<ConnectionIdType> * c = mapping.second;
 
-            if(machine. template inState<T>())
-                matches.push_back(mapping.second);
+            if(c-> template inState<T>())
+                matches.push_back(c);
         }
 
         return matches;
