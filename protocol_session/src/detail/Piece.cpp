@@ -21,7 +21,7 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    Piece<ConnectionIdType>::Piece(int index, State state, const ConnectionIdType & id, unsigned int size)
+    Piece<ConnectionIdType>::Piece(int index, PieceState state, const ConnectionIdType & id, unsigned int size)
         : _index(index)
         , _state(state)
         , _connectionId(id)
@@ -63,7 +63,7 @@ namespace detail {
 
     template <class ConnectionIdType>
     void Piece<ConnectionIdType>::arrived() {
-        _state = State::being_validated_and_stored;
+        _state = PieceState::being_validated_and_stored;
     }
 
     template <class ConnectionIdType>

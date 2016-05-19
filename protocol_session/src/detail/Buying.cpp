@@ -81,7 +81,7 @@ namespace detail {
         //// From here on in, we are either: started or paused
 
         // If we are just sending invitations, we are done
-        if(_state == State::sending_invitations)
+        if(_state == BuyingState::sending_invitations)
             return;
 
         //// From here on in we are downloading, or done downloading
@@ -131,7 +131,7 @@ namespace detail {
         if(piece.state() != detail::Piece<ConnectionIdType>::State::downloaded) {
 
             assert(piece.state() == detail::Piece<ConnectionIdType>::State::being_validated_and_stored);
-            assert(_state == State::downloading);
+            assert(_state == BuyingState::downloading);
 
             // Mark as downloaded
             piece.downloaded();
@@ -148,7 +148,7 @@ namespace detail {
                     tryToAssignAndRequestPiece(s);
 
             } else if(_numberOfMissingPieces == 0) // otherwise we are done!
-                _state = State::download_completed;
+                _state = BuyingStatedownload_completed;
 
         }
 
@@ -202,7 +202,7 @@ namespace detail {
         // If we are currently started and sending out invitations, then we may (re)invite
         // sellers with sufficiently good terms
         if(_session->_state == SessionState::started &&
-           _state == State::sending_invitations) {
+           _state == BuyingState::sending_invitations) {
 
             // Check that this peer is seller,
             protocol_statemachine::ModeAnnounced m = a.modeAnnounced();
@@ -231,8 +231,8 @@ namespace detail {
         assert(_session->_state != SessionState::stopped);
 
         if(_session->_state == SessionState::started &&
-           _state == State::sending_invitations)
-            tryToStartDownloading();
+           _state == BuyingState::sending_invitations)
+            tryToStartDownloading();|
     }
 
     template <class ConnectionIdType>
@@ -259,7 +259,7 @@ namespace detail {
 
         // Cannot happen when stopped, as there are no connections
         assert(_session->_state != SessionState::stopped);
-        assert(_state == State::sending_invitations);
+        assert(_state == BuyingState::sending_invitations);
 
         // Get seller corresponding to given id
         auto itr = _sellers.find(id);
@@ -357,9 +357,9 @@ namespace detail {
         // Only process if we are active
         if(_session->_state == SessionState::started) {
 
-            if(_state == State::sending_invitations)
+            if(_state == BuyingState::sending_invitations)
                 tryToStartDownloading();
-            else if(_state == State::downloading) {
+            else if(_state == BuyingState::downloading) {
 
                 for(detail::Seller<ConnectionIdType> & s: _sellers) {
 
@@ -415,7 +415,7 @@ namespace detail {
 
             // This may be the last piece
             if(_numberOfMissingPieces == 0)
-                _state = State::download_completed;
+                _state = BuyingStatedownload_completed;
         }
 
         piece.downloaded();
@@ -428,7 +428,7 @@ namespace detail {
     void Buying<ConnectionIdType>::updateTerms(const protocol_wire::BuyerTerms & terms) {
 
         // We cant change terms when we are actually downloading
-        if(_state == State::downloading)
+        if(_state == BuyingState::downloading)
             throw exception::StateIncompatibleOperation();
 
         // Notify existing peers
@@ -445,7 +445,7 @@ namespace detail {
         std::cout << "Trying to start downloading." << std::endl;
 
         assert(_session->_state == SessionState::started);
-        assert(_state == State::sending_invitations);
+        assert(_state == BuyingState::sending_invitations);
         assert(_sellers.empty());
         assert(!_pieces.empty());
 
@@ -511,7 +511,7 @@ namespace detail {
             finalPkHashes.push_back(a.pubKeyHash());
 
         // Create and add commitment to contract
-        for(int i = 0;i < numberOfSellers;i++)
+        for(uint32_t i = 0;i < numberOfSellers;i++)
             c.addCommitment(paymentchannel::Commitment(funds[i],
                                                        contractKeyPairs[i].pk(),
                                                        selected[i]->machine().payor().payeeContractPk()));
@@ -543,14 +543,14 @@ namespace detail {
         // Notify seller peers about contract being ready and broadcasted
         Coin::TransactionId txId(Coin::TransactionId::fromTx(_contractTx));
 
-        for(int i = 0;i < numberOfSellers;i++)
+        for(uint32_t i = 0;i < numberOfSellers;i++)
             selected[i]->processEvent(protocol_statemachine::event::ContractPrepared(Coin::typesafeOutPoint(txId, i), contractKeyPairs[i], finalPkHashes[i], funds[i]));
 
         /////////////////////////
 
         // Update state of sessions,
         // has to be done before starting to assign pieces to sellers
-        _state = State::downloading;
+        _state = BuyingStatedownloading;
 
         /////////////////////////
 
@@ -642,7 +642,7 @@ namespace detail {
     bool Buying<ConnectionIdType>::tryToAssignAndRequestPiece(detail::Seller<ConnectionIdType> & s) {
 
         assert(_session->_state == SessionState::started);
-        assert(_state == State::downloading);
+        assert(_state == BuyingState::downloading);
         assert(s.state() == detail::Seller<ConnectionIdType>::State::waiting_to_be_assigned_piece);
 
         // Try to find index of next unassigned piece
@@ -678,12 +678,12 @@ namespace detail {
     int Buying<ConnectionIdType>::getNextUnassignedPiece() const {
 
          // Look in interval [_assignmentLowerBound, end]
-         for(int i = _assignmentLowerBound;i < _pieces.size();i++)
+         for(uint32_t i = _assignmentLowerBound;i < _pieces.size();i++)
              if(_pieces[i].state() == detail::Piece<ConnectionIdType>::State::unassigned)
                  return i;
 
          // Then try interval [0, _assignmentLowerBound)
-         for(int i = 0;i < _assignmentLowerBound;i++)
+         for(uint32_t i = 0;i < _assignmentLowerBound;i++)
              if(_pieces[i].state() == detail::Piece<ConnectionIdType>::State::unassigned)
                  return i;
 
@@ -699,7 +699,7 @@ namespace detail {
            s.state() == detail::Seller<ConnectionIdType>::State::waiting_for_piece_validation_and_storage) {
 
             // we must be downloading then
-            assert(_state == State::downloading);
+            assert(_state == BuyingState::downloading);
 
             // Get piece
             detail::Piece<ConnectionIdType> & piece = _pieces[s.indexOfAssignedPiece()];
