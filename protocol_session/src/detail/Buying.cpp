@@ -95,7 +95,7 @@ namespace detail {
             detail::Seller<ConnectionIdType> & s = itr->second;
 
             // Seller can't be gone
-            assert(s.state() != detail::Seller<ConnectionIdType>::State::gone);
+            assert(s.state() != SellerState::gone);
 
             // Remove
             removeSeller(s);
@@ -148,7 +148,7 @@ namespace detail {
                     tryToAssignAndRequestPiece(s);
 
             } else if(_numberOfMissingPieces == 0) // otherwise we are done!
-                _state = BuyingStatedownload_completed;
+                _state = BuyingState::download_completed;
 
         }
 
@@ -232,7 +232,7 @@ namespace detail {
 
         if(_session->_state == SessionState::started &&
            _state == BuyingState::sending_invitations)
-            tryToStartDownloading();|
+            tryToStartDownloading();
     }
 
     template <class ConnectionIdType>
@@ -267,7 +267,7 @@ namespace detail {
 
         detail::Seller<ConnectionIdType> & s = itr->second;
 
-        assert(s.state() == detail::Seller<ConnectionIdType>::State::waiting_for_full_piece);
+        assert(s.state() == SellerState::waiting_for_full_piece);
 
         // Update state
         s.fullPieceArrived();
@@ -367,7 +367,7 @@ namespace detail {
                     ConnectionIdType id = s.connection()->connectionId();
 
                     // A seller may be waiting to be assigned a new piece
-                    if(s.state() == detail::Seller<ConnectionIdType>::State::waiting_to_be_assigned_piece) {
+                    if(s.state() == SellerState::waiting_to_be_assigned_piece) {
 
                         // This can happen when a seller has previously uploaded a valid piece,
                         // but there were no unassigned pieces at that time,
@@ -378,7 +378,7 @@ namespace detail {
 
                         tryToAssignAndRequestPiece(s);
 
-                    } else if(s.state() == detail::Seller<ConnectionIdType>::State::waiting_for_full_piece) {
+                    } else if(s.state() == SellerState::waiting_for_full_piece) {
 
                         // Check if seller has timed out in servicing the current request
                         if(s.servicingPieceHasTimedOut(_policy.servicingPieceTimeOutLimit())) {
@@ -415,7 +415,7 @@ namespace detail {
 
             // This may be the last piece
             if(_numberOfMissingPieces == 0)
-                _state = BuyingStatedownload_completed;
+                _state = BuyingState::download_completed;
         }
 
         piece.downloaded();
@@ -550,7 +550,7 @@ namespace detail {
 
         // Update state of sessions,
         // has to be done before starting to assign pieces to sellers
-        _state = BuyingStatedownloading;
+        _state = BuyingState::downloading;
 
         /////////////////////////
 
@@ -558,7 +558,7 @@ namespace detail {
         for(detail::Connection<ConnectionIdType> * c : selected) {
 
             // Create and store seller
-            _sellers[c->connectionId()] = detail::Seller<ConnectionIdType>(detail::Seller<ConnectionIdType>::State::waiting_to_be_assigned_piece, c, 0);
+            _sellers[c->connectionId()] = detail::Seller<ConnectionIdType>(SellerState::waiting_to_be_assigned_piece, c, 0);
 
             // Assign the first piece to this peer
             bool assigned = tryToAssignAndRequestPiece(_sellers[c->connectionId()]);
@@ -643,7 +643,7 @@ namespace detail {
 
         assert(_session->_state == SessionState::started);
         assert(_state == BuyingState::downloading);
-        assert(s.state() == detail::Seller<ConnectionIdType>::State::waiting_to_be_assigned_piece);
+        assert(s.state() == SellerState::waiting_to_be_assigned_piece);
 
         // Try to find index of next unassigned piece
         int pieceIndex;
@@ -679,12 +679,12 @@ namespace detail {
 
          // Look in interval [_assignmentLowerBound, end]
          for(uint32_t i = _assignmentLowerBound;i < _pieces.size();i++)
-             if(_pieces[i].state() == detail::Piece<ConnectionIdType>::State::unassigned)
+             if(_pieces[i].state() == PieceState::unassigned)
                  return i;
 
          // Then try interval [0, _assignmentLowerBound)
          for(uint32_t i = 0;i < _assignmentLowerBound;i++)
-             if(_pieces[i].state() == detail::Piece<ConnectionIdType>::State::unassigned)
+             if(_pieces[i].state() == PieceState::unassigned)
                  return i;
 
          // We did not find anything
@@ -695,8 +695,8 @@ namespace detail {
     void Buying<ConnectionIdType>::removeSeller(detail::Seller<ConnectionIdType> & s) {
 
         // If this seller is assigned a piece, then we must unassign it
-        if(s.state() == detail::Seller<ConnectionIdType>::State::waiting_for_full_piece ||
-           s.state() == detail::Seller<ConnectionIdType>::State::waiting_for_piece_validation_and_storage) {
+        if(s.state() == SellerState::waiting_for_full_piece ||
+           s.state() == SellerState::waiting_for_piece_validation_and_storage) {
 
             // we must be downloading then
             assert(_state == BuyingState::downloading);
@@ -705,15 +705,15 @@ namespace detail {
             detail::Piece<ConnectionIdType> & piece = _pieces[s.indexOfAssignedPiece()];
 
             // Check that it hasnt already been downloaded out of bounds
-            if(piece.state() != detail::Piece<ConnectionIdType>::State::downloaded) {
+            if(piece.state() != PieceState::downloaded) {
 
                 // waiting_for_full_piece -> being_downloaded
-                assert(s.state() != detail::Seller<ConnectionIdType>::State::waiting_for_full_piece ||
-                       piece.state() == detail::Piece<ConnectionIdType>::State::being_downloaded);
+                assert(s.state() != SellerState::waiting_for_full_piece ||
+                       piece.state() == PieceState::being_downloaded);
 
                 // waiting_for_piece_validation_and_storage -> being_validated_and_stored
-                assert(s.state() != detail::Seller<ConnectionIdType>::State::waiting_for_piece_validation_and_storage ||
-                        piece.state() == detail::Piece<ConnectionIdType>::State::being_validated_and_stored);
+                assert(s.state() != SellerState::waiting_for_piece_validation_and_storage ||
+                        piece.state() == PieceState::being_validated_and_stored);
 
                 // Mark as not assigned
                 piece.deAssign();

@@ -101,7 +101,7 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    typename Seller<ConnectionIdType>::State Seller<ConnectionIdType>::state() const {
+    SellerState Seller<ConnectionIdType>::state() const {
         return _state;
     }
 

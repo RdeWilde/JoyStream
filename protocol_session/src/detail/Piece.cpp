@@ -15,7 +15,7 @@ namespace detail {
     template <class ConnectionIdType>
     Piece<ConnectionIdType>::Piece()
         : _index(0)
-        , _state(State::unassigned)
+        , _state(PieceState::unassigned)
         , _connectionId(connectionId)
         , _size(0) {
     }
@@ -31,28 +31,28 @@ namespace detail {
     template <class ConnectionIdType>
     Piece<ConnectionIdType>::Piece(const PieceInformation & p)
         : _index(p.index())
-        , _state(p.downloaded() ? detail::Piece<ConnectionIdType>::State::downloaded : detail::Piece<ConnectionIdType>::State::unassigned)
+        , _state(p.downloaded() ? PieceState::downloaded : PieceState::unassigned)
         , _size(p.size()) {
     }
 
     template <class ConnectionIdType>
     void Piece<ConnectionIdType>::assigned(const ConnectionIdType & id) {
 
-        assert(_state == State::unassigned);
+        assert(_state == PieceState::unassigned);
 
-        _state = State::being_downloaded;
+        _state = PieceState::being_downloaded;
         _connectionId = id;
     }
 
     template <class ConnectionIdType>
     void Piece<ConnectionIdType>::deAssign() {
-        _state = State::unassigned;
+        _state = PieceState::unassigned;
         _connectionId = ConnectionIdType();
     }
 
     template <class ConnectionIdType>
     void Piece<ConnectionIdType>::downloaded() {
-        _state = State::downloaded;
+        _state = PieceState::downloaded;
         _connectionId = ConnectionIdType();
     }
 
@@ -67,7 +67,7 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    typename Piece<ConnectionIdType>::State Piece<ConnectionIdType>::state() const {
+    PieceState Piece<ConnectionIdType>::state() const {
         return _state;
     }
 

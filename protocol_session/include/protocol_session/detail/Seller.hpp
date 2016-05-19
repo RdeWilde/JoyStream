@@ -8,6 +8,8 @@
 #ifndef JOYSTREAM_PROTOCOLSESSION_SELLER_HPP
 #define JOYSTREAM_PROTOCOLSESSION_SELLER_HPP
 
+#include <protocol_session/SellerState.hpp>
+
 #include <string>
 #include <cstdlib>
 
@@ -23,25 +25,9 @@ namespace detail {
 
     public:
 
-        enum class State {
-
-            // Not been assigned piece
-            waiting_to_be_assigned_piece,
-
-            // We have requested a full piece, and we are waiting for it to arrive
-            waiting_for_full_piece,
-
-            // We are waiting for libtorrent to fire on_piece_pass() or on_piece_failed()
-            // on a full piece which was recently received
-            waiting_for_piece_validation_and_storage,
-
-            // Peer is no longer connected
-            gone
-        };
-
         Seller();
 
-        Seller(State , Connection<ConnectionIdType> * , uint32_t);
+        Seller(SellerState , Connection<ConnectionIdType> * , uint32_t);
 
         // When seller is not assigned a piece, this routine
         // can be used to assing piece to seller and send request to peer
@@ -67,7 +53,7 @@ namespace detail {
         bool isPossiblyOwedPayment() const;
 
         // Getters
-        State state() const;
+        SellerState state() const;
 
         Connection<ConnectionIdType> * connection() const;
 
@@ -76,7 +62,7 @@ namespace detail {
     private:
 
         // State of this seller
-        State _state;
+        SellerState _state;
 
         // Connection identifier for seller
         Connection<ConnectionIdType> * _connection;
