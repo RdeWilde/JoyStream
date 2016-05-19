@@ -134,6 +134,9 @@ namespace detail {
 
         SessionMode mode() const;
 
+        // Status of session
+        status::Session<ConnectionIdType> status() const;
+
     private:
 
         friend class detail::Observing<ConnectionIdType>;

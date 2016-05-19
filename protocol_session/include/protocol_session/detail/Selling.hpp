@@ -89,6 +89,9 @@ public:
     // Update terms
     void updateTerms(const protocol_wire::SellerTerms &);
 
+    // Status of state
+    status::Selling status() const;
+
     //// Getters and setters
 
     protocol_wire::SellerTerms terms() const;

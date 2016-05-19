@@ -6,6 +6,7 @@
  */
 
 #include <protocol_session/detail/Connection.hpp>
+#include <protocol_session/Status.hpp>
 #include <protocol_wire/protocol_wire.hpp>
 
 namespace joystream {
@@ -111,6 +112,15 @@ namespace detail {
     template <class ConnectionIdType>
     protocol_statemachine::CBStateMachine & Connection<ConnectionIdType>::machine() {
         return _machine;
+    }
+
+    template <class ConnectionIdType>
+    typename status::Connection<ConnectionIdType> Connection<ConnectionIdType>::status() const {
+        return status::Connection<ConnectionIdType>(_connectionId,
+                                                    status::CBStateMachine(_machine.announcedModeAndTermsFromPeer(),
+                                                                           _machine.payor(),
+                                                                           _machine.payee()),
+                                                    _downloadedValidPieces);
     }
 
     template <class ConnectionIdType>

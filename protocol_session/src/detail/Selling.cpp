@@ -308,6 +308,11 @@ namespace detail {
     }
 
     template<class ConnectionIdType>
+    status::Selling Selling<ConnectionIdType>::status() const {
+        return status::Selling(_policy, _terms);
+    }
+
+    template<class ConnectionIdType>
     protocol_wire::SellerTerms Selling<ConnectionIdType>::terms() const {
         return _terms;
     }

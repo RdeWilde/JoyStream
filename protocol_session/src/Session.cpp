@@ -638,6 +638,23 @@ namespace protocol_session {
     }
 
     template<class ConnectionIdType>
+    typename status::Session<ConnectionIdType> Session<ConnectionIdType>::status() const {
+
+        // Collect connection statuses
+        std::map<ConnectionIdType, status::Connection<ConnectionIdType>> connectionStatuses;
+
+        for(auto mapping : _connections)
+            connectionStatuses.insert(mapping.first, mapping.second->status());
+
+        // Generate Session status
+        return status::Session<ConnectionIdType>(_mode,
+                                                 _state,
+                                                 connectionStatuses,
+                                                 (_mode == SessionMode::selling ? _selling->status() : status::Selling()),
+                                                 (_mode == SessionMode::buying ? _buying->status() : status::Buying<ConnectionIdType>()));
+    }
+
+    template<class ConnectionIdType>
     void Session<ConnectionIdType>::peerAnnouncedModeAndTerms(const ConnectionIdType & id, const protocol_statemachine::AnnouncedModeAndTerms & a) {
 
         assert(hasConnection(id));

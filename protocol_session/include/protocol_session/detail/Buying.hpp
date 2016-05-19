@@ -105,6 +105,9 @@ public:
     // Update terms
     void updateTerms(const protocol_wire::BuyerTerms &);
 
+    // Status of Buying
+    status::Buying<ConnectionIdType> status() const;
+
     //// Getters and setters
 
     Coin::UnspentP2PKHOutput funding() const;

@@ -15,6 +15,10 @@
 
 namespace joystream {
 namespace protocol_session {
+namespace status {
+    template <class ConnectionIdType>
+    class Seller;
+}
 namespace detail {
 
     template <class ConnectionIdType>
@@ -51,6 +55,9 @@ namespace detail {
 
         // Whether a piece was recently received
         bool isPossiblyOwedPayment() const;
+
+        // Status of seller
+        status::Seller<ConnectionIdType> status() const;
 
         // Getters
         SellerState state() const;

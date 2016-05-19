@@ -440,6 +440,30 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
+    typename status::Buying<ConnectionIdType> Buying<ConnectionIdType>::status() const {
+
+        // Generate statuses of all pieces
+        std::vector<status::Piece<ConnectionIdType>> pieceStatuses;
+
+        //for(auto piece : _pieces)
+        //    pieceStatuses.push_back(piece.status());
+
+        // Generate statuses of all sellers
+        std::map<ConnectionIdType, Seller<ConnectionIdType>> sellerStatuses;
+
+        for(auto seller : _sellers)
+            sellerStatuses.insert(seller.first, seller.second.status());
+
+        return status::Buying<ConnectionIdType>(_funding,
+                                                _policy,
+                                                _state,
+                                                _terms,
+                                                sellerStatuses,
+                                                _contractTx,
+                                                pieceStatuses);
+    }
+
+    template <class ConnectionIdType>
     bool Buying<ConnectionIdType>::tryToStartDownloading() {
 
         std::cout << "Trying to start downloading." << std::endl;

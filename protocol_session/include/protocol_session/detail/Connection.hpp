@@ -17,6 +17,10 @@ namespace protocol_wire {
     class ExtendedMessagePayload;
 }
 namespace protocol_session {
+namespace status {
+    template <class ConnectionIdType>
+    class Connection;
+}
 namespace detail {
 
     template <class ConnectionIdType>
@@ -57,6 +61,9 @@ namespace detail {
 
         // Connection state machine reference
         protocol_statemachine::CBStateMachine & machine();
+
+        // Statu of connection
+        status::Connection<ConnectionIdType> status() const;
 
         bool loadedPiecePending() const;
         void setLoadedPiecePending(bool);
