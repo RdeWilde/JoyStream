@@ -789,7 +789,7 @@ namespace protocol_session {
         [this, &id](const protocol_statemachine::AnnouncedModeAndTerms & a) { this->peerAnnouncedModeAndTerms(id, a); },
         [this, &id](void) { this->invitedToOutdatedContract(id); },
         [this, &id]() { this->invitedToJoinContract(id); },
-        [this, &callback](const protocol_wire::ExtendedMessagePayload & m) { callback(m); },
+        [this, &callback](const protocol_wire::ExtendedMessagePayload * m) { callback(m); },
         [this, &id](quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::PubKeyHash & payorFinalPkHash) { this->contractPrepared(id, value, anchor, payorContractPk, payorFinalPkHash); },
         [this, &id](int i) { this->pieceRequested(id, i); },
         [this, &id]() { this->invalidPieceRequested(id); },

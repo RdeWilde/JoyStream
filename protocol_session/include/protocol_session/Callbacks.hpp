@@ -64,7 +64,7 @@ typedef std::function<std::vector<Coin::KeyPair>(int)> GenerateKeyPairsCallbackH
 typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateP2PKHAddressesCallbackHandler;
 
 // Send a message to be sent
-typedef std::function<void(const protocol_wire::ExtendedMessagePayload &)> SendMessageOnConnection;
+typedef std::function<void(const protocol_wire::ExtendedMessagePayload *)> SendMessageOnConnection;
 
 //// Buying
 

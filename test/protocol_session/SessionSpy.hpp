@@ -93,58 +93,23 @@ private:
 
 struct SendMessageOnConnectionCallbackSlot {
 
-    SendMessageOnConnectionCallbackSlot() { reset(); }
+    SendMessageOnConnectionCallbackSlot() : called(false) { reset(); }
 
     void reset() {
         called = false;
-        observe = protocol_wire::Observe();
-        buy = protocol_wire::Buy();
-        sell = protocol_wire::Sell();
-        join_contract = protocol_wire::JoinContract();
-        joining_contract = protocol_wire::JoiningContract();
-        //protocol_wire::sign_refund sign_refund;
-        //protocol_wire::refund_signed refund_signed;
-        ready = protocol_wire::Ready();
-        request_full_piece = protocol_wire::RequestFullPiece();
-        full_piece = protocol_wire::FullPiece();
-        payment = protocol_wire::Payment();
+        message = std::unique_ptr<const protocol_wire::ExtendedMessagePayload>();
     }
 
     SendMessageOnConnection hook() {
 
-        return [this](const protocol_wire::ExtendedMessagePayload & message) {
-
+        return [this](const protocol_wire::ExtendedMessagePayload * message) {
             this->called = true;
-
-            switch(message.messageType()) {
-                case protocol_wire::MessageType::observe: observe = *(dynamic_cast<const protocol_wire::Observe *>(&message)); break;
-                case protocol_wire::MessageType::buy: buy = *(dynamic_cast<const protocol_wire::Buy *>(&message)); break;
-                case protocol_wire::MessageType::sell: sell = *(dynamic_cast<const protocol_wire::Sell *>(&message)); break;
-                case protocol_wire::MessageType::join_contract: join_contract = *(dynamic_cast<const protocol_wire::JoinContract *>(&message)); break;
-                case protocol_wire::MessageType::joining_contract: joining_contract = *(dynamic_cast<const protocol_wire::JoiningContract *>(&message)); break;
-                case protocol_wire::MessageType::ready: ready = *(dynamic_cast<const protocol_wire::Ready *>(&message)); break;
-                case protocol_wire::MessageType::request_full_piece: request_full_piece = *(dynamic_cast<const protocol_wire::RequestFullPiece *>(&message)); break;
-                case protocol_wire::MessageType::full_piece: full_piece = *(dynamic_cast<const protocol_wire::FullPiece *>(&message)); break;
-                case protocol_wire::MessageType::payment: payment = *(dynamic_cast<const protocol_wire::Payment *>(&message)); break;
-                default:
-                    assert(false);
-            }
+            this->message = std::unique_ptr<const protocol_wire::ExtendedMessagePayload>(message);
         };
     }
 
     bool called;
-    protocol_wire::Observe observe;
-    protocol_wire::Buy buy;
-    protocol_wire::Sell sell;
-    protocol_wire::JoinContract join_contract;
-    protocol_wire::JoiningContract joining_contract;
-    //protocol_wire::sign_refund sign_refund;
-    //protocol_wire::refund_signed refund_signed;
-    protocol_wire::Ready ready;
-    protocol_wire::RequestFullPiece request_full_piece;
-    protocol_wire::FullPiece full_piece;
-    protocol_wire::Payment payment;
-
+    std::unique_ptr<const protocol_wire::ExtendedMessagePayload> message;
 };
 
 struct BroadcastTransactionCallbackSlot {
