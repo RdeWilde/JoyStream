@@ -17,7 +17,12 @@ ConnectionSpy<ConnectionIdType>::ConnectionSpy(const ConnectionIdType & id)
 //// SessionSpy
 
 template <class ConnectionIdType>
-SessionSpy<ConnectionIdType>::SessionSpy() {
+SessionSpy<ConnectionIdType>::SessionSpy(const GenerateKeyPairsCallbackHandler & kpHandler,
+                                         const GenerateP2PKHAddressesCallbackHandler & p2pkhHandler,
+                                         const BroadcastTransaction & broadcast)
+    : generateKeyPairsCallbackSlot(kpHandler)
+    , generateP2PKHAddressesCallbackSlot(p2pkhHandler)
+    , broadcastTransactionCallbackSlot(broadcast){
 }
 
 template <class ConnectionIdType>

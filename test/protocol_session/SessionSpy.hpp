@@ -40,7 +40,7 @@ struct RemovedConnectionCallbackSlot {
 template <class ConnectionIdType>
 struct GenerateKeyPairsCallbackSlot {
 
-    GenerateKeyPairsCallbackSlot(GenerateKeyPairsCallbackHandler & handler)
+    GenerateKeyPairsCallbackSlot(const GenerateKeyPairsCallbackHandler & handler)
         : _handler(handler){ reset(); }
 
     void reset() {
@@ -67,7 +67,7 @@ private:
 template <class ConnectionIdType>
 struct GenerateP2PKHAddressesCallbackSlot {
 
-    GenerateP2PKHAddressesCallbackSlot(GenerateP2PKHAddressesCallbackHandler & handler)
+    GenerateP2PKHAddressesCallbackSlot(const GenerateP2PKHAddressesCallbackHandler & handler)
         : _handler(handler){ reset(); }
 
     void reset() {
@@ -255,7 +255,11 @@ class SessionSpy {
 
 public:
 
-    SessionSpy();
+    // Handlers for all calls with return types is required, as slots
+    // use them to return respons
+    SessionSpy(const GenerateKeyPairsCallbackHandler &,
+               const GenerateP2PKHAddressesCallbackHandler &,
+               const BroadcastTransaction &);
 
     void toMonitoredSellMode(Session<ConnectionIdType> *,
                              const SellingPolicy &,
@@ -293,4 +297,6 @@ private:
 
 };
 
+// Needed due to c++ needing implementation for all uses of templated types
+#include "SessionSpy.cpp"
 #endif // SESSIONSPY_HPP
