@@ -9,7 +9,7 @@
 #include <protocol_statemachine/Observing.hpp>
 #include <protocol_statemachine/Buying.hpp>
 #include <protocol_statemachine/Selling.hpp>
-#include <protocol_statemachine/exception/StateIncompatibleEvent.hpp>
+#include <protocol_statemachine/exception/exception.hpp>
 
 namespace joystream {
 namespace protocol_statemachine {
@@ -90,7 +90,7 @@ namespace protocol_statemachine {
             // exception is thrown, as *(this) is dead.
             _currentlyProcessingCallbacks = false;
 
-        } catch (const StateMachineDeletedException &) {
+        } catch (const exception::StateMachineDeletedException &) {
             // If we come here, then we just exit, as
             // this statemachine has been deleted in callback,
             // Hence no part of state machine object should be used.
