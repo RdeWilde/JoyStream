@@ -45,6 +45,10 @@ namespace detail {
 
         Session();
 
+        // Delete to prevent copying of session
+        Session(const Session&) = delete;
+        void operator=(const Session&) = delete;
+
         //// Manage mode
 
         // Can only be called when mode is not set, or is in
