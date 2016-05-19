@@ -44,14 +44,6 @@ namespace protocol_statemachine {
 
     public:
 
-        // Exception that a callback should throw if it deletes the state machine
-        class StateMachineDeletedException : public std::runtime_error {
-
-        public:
-
-            StateMachineDeletedException() : std::runtime_error("State machine deleted in callback.") {}
-        };
-
         //// General Notifications
 
         // Peer updated mode without

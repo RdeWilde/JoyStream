@@ -78,6 +78,12 @@ namespace detail {
                        const protocol_wire::BuyerTerms &,
                        const TorrentPieceInformation &);
 
+        /**
+         * Warning: Do not call any of these operations
+         * from the callbacks registered for each mode, or
+         * when adding a connection.
+         */
+
         //// Manage state
 
         // Can only be called when state has been set.
@@ -107,6 +113,7 @@ namespace detail {
         std::vector<ConnectionIdType> connectionIds() const;
 
         // Process given message on given connection with given ID
+        // Routine does not take ownership of message object
         void processMessageOnConnection(const ConnectionIdType &, const protocol_wire::ExtendedMessagePayload *);
 
         //// Buying
@@ -178,8 +185,8 @@ namespace detail {
         detail::Connection<ConnectionIdType> * get(const ConnectionIdType &) const;
 
         // Removes connection with given id from the connections map
-        // and deletes it.
-        void removeFromMapAndDelete(const ConnectionIdType &);
+        // and deletes it and throws
+        void destroyConnection(const ConnectionIdType &);
 
         // If possible, creates connection and adds to map
         detail::Connection<ConnectionIdType> * createAndAddConnection(const ConnectionIdType &, const SendMessageOnConnection &);

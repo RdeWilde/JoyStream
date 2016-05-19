@@ -44,8 +44,7 @@ namespace detail {
         if(!_session->hasConnection(id))
             throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
 
-        // Remove and delete connection
-        _session->removeFromMapAndDelete(id);
+        _session->destroyConnection(id);
     }
 
     template <class ConnectionIdType>

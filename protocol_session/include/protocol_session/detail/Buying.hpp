@@ -141,11 +141,15 @@ private:
     // Tries to find next unassigned piece
     int getNextUnassignedPiece() const;
 
+    //// Utility routines
+
+    // Prepare given connection for deletion due to given cause
+    void removeConnection(const ConnectionIdType &, DisconnectCause);
+
     // Removes given seller
     void removeSeller(detail::Seller<ConnectionIdType> &);
 
-    //// Utility routines
-
+    //
     void politeSellerCompensation();
 
     // Unguarded

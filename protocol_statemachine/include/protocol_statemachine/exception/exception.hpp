@@ -12,4 +12,20 @@
 #include <protocol_statemachine/exception/InvitedToJoinContractByNonBuyer.hpp>
 #include <protocol_statemachine/exception/StateIncompatibleEvent.hpp>
 
+namespace joystream {
+namespace protocol_statemachine {
+namespace exception {
+
+// Exception that a callback should throw if it deletes the state machine
+class StateMachineDeletedException : public std::runtime_error {
+
+public:
+
+    StateMachineDeletedException() : std::runtime_error("State machine deleted in callback.") {}
+};
+
+}
+}
+}
+
 #endif // JOYSTREAM_PROTOCOLSTATEMACHINE_EXCEPTION_HPP

@@ -47,7 +47,7 @@ public:
     // Adds connection, and return the current number of connections
     uint addConnection(const ConnectionIdType &, const SendMessageOnConnection &);
 
-    // Connection with given id has been removed
+    // Connection with given id is to be removed
     void removeConnection(const ConnectionIdType &);
 
     // Data for given piece has been loaded
@@ -98,12 +98,24 @@ public:
 
 private:
 
-    // Client removes connection with givne id with given cause
+    // Prepare given connection for deletion due to given cause
     void removeConnection(const ConnectionIdType &, DisconnectCause);
 
     // Join if terms are good enough, buyer on given connection
     // NB: Assumes in state protocol_statemachine::Invited
+    // Throws InvitedWithBadTerms.
     void tryToJoin(detail::Connection<ConnectionIdType> *);
+
+    // Buyer invited us with up to date terms which
+    // are not good enough.
+    class InvitedWithBadTerms : public std::runtime_error {
+    public:
+
+        InvitedWithBadTerms()
+            : std::runtime_error(""){
+        }
+
+    };
 
     // Loads. .....
     // NB: Assumes in state protocol_statemachine::LoadingPiece

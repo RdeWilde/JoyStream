@@ -78,31 +78,7 @@ namespace detail {
         if(!_session->hasConnection(id))
             throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
 
-        //// From here on in, we are either: started or paused
-
-        // If we are just sending invitations, we are done
-        if(_state == BuyingState::sending_invitations)
-            return;
-
-        //// From here on in we are downloading, or done downloading
-
-        // If this is the connection of a seller,
-        // we have to deal with that.
-        auto itr = _sellers.find(id);
-
-        if(itr != _sellers.cend()) {
-
-            detail::Seller<ConnectionIdType> & s = itr->second;
-
-            // Seller can't be gone
-            assert(s.state() != SellerState::gone);
-
-            // Remove
-            removeSeller(s);
-        }
-
-        // Remove and delete connection
-        _session->removeFromMapAndDelete(id);
+        removeConnection(id, DisconnectCause::client);
     }
 
     template <class ConnectionIdType>
@@ -125,12 +101,12 @@ namespace detail {
         // Update piece status
         detail::Piece<ConnectionIdType> & piece = _pieces[index];
         assert(piece.connectionId() == id);
-        assert(piece.state() != detail::Piece<ConnectionIdType>::State::unassigned);
+        assert(piece.state() != PieceState::unassigned);
 
         // if its not already downloaded from out of bounds
-        if(piece.state() != detail::Piece<ConnectionIdType>::State::downloaded) {
+        if(piece.state() != PieceState::downloaded) {
 
-            assert(piece.state() == detail::Piece<ConnectionIdType>::State::being_validated_and_stored);
+            assert(piece.state() == PieceState::being_validated_and_stored);
             assert(_state == BuyingState::downloading);
 
             // Mark as downloaded
@@ -160,21 +136,6 @@ namespace detail {
         // No state guard required, piece validation can occur
         // after connection is gone, or even session has been stopped.
 
-        // Update piece status
-        detail::Piece<ConnectionIdType> & piece = _pieces[index];
-
-        // If piece hasn't arrived out of bounds, then unassign it
-        if(piece.state() != detail::Piece<ConnectionIdType>::State::downloaded) {
-
-            // we must have been waiting for this validation result
-            assert(piece.state() == detail::Piece<ConnectionIdType>::State::being_validated_and_stored);
-            assert(piece.connectionId() == id);
-
-            piece.deAssign();
-
-            _deAssignedPieces.push_back(index);
-        }
-
         // Update status of seller
         auto itr = _sellers.find(id);
         assert(itr != _sellers.cend());
@@ -188,16 +149,14 @@ namespace detail {
         // however it may no longer exist,
         // e.g. because it left, or we got stopped.
         if(_session->hasConnection(id))
-            removeConnection(id, Session<ConnectionIdType>::RemoveConnectionInitiator::peer);
-
-        // Notify client
-        _removedConnection(id, DisconnectCause::seller_sent_invalid_piece);
+            removeConnection(id, DisconnectCause::seller_sent_invalid_piece);
     }
 
     template <class ConnectionIdType>
     void Buying<ConnectionIdType>::peerAnnouncedModeAndTerms(const ConnectionIdType & id, const protocol_statemachine::AnnouncedModeAndTerms & a) {
 
         assert(_session->_state != SessionState::stopped);
+        assert(_session->hasConnection(id));
 
         // If we are currently started and sending out invitations, then we may (re)invite
         // sellers with sufficiently good terms
@@ -225,10 +184,11 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    void Buying<ConnectionIdType>::sellerHasJoined(const ConnectionIdType &) {
+    void Buying<ConnectionIdType>::sellerHasJoined(const ConnectionIdType & id) {
 
         // Cannot happen when stopped, as there are no connections
         assert(_session->_state != SessionState::stopped);
+        assert(_session->hasConnection(id));
 
         if(_session->_state == SessionState::started &&
            _state == BuyingState::sending_invitations)
@@ -240,18 +200,17 @@ namespace detail {
 
         // Cannot happen when stopped, as there are no connections
         assert(_session->_state != SessionState::stopped);
+        assert(_session->hasConnection(id));
 
         // Get reference to seller corresponding connection
         auto itr = _sellers.find(id);
         assert(itr != _sellers.cend());
 
-        //detail::Seller<ConnectionIdType> & sellers = *itr;
-
         // Remove connection
-        removeConnection(id);
+        removeConnection(id, DisconnectCause::seller_has_interrupted_contract);
 
-        // Tell client to remove his pad peer
-        _removedConnection(id, DisconnectCause::seller_has_interrupted_contract);
+        // Notify state machine about deletion
+        throw protocol_statemachine::exception::StateMachineDeletedException();
     }
 
     template <class ConnectionIdType>
@@ -326,14 +285,8 @@ namespace detail {
         // Disconnect everyone
         std::vector<ConnectionIdType> ids = _session->connectionIds();
 
-        for(const ConnectionIdType & id : ids) {
-
-            // Remove connection
-            removeConnection(id, Session<ConnectionIdType>::RemoveConnectionInitiator::client);
-
-            // Notify client
-            _removedConnection(id, DisconnectCause::client);
-        }
+        for(const ConnectionIdType & id : ids)
+            removeConnection(id, DisconnectCause::client);
 
         // Update state
         _session->_state = SessionState::stopped;
@@ -380,16 +333,10 @@ namespace detail {
 
                     } else if(s.state() == SellerState::waiting_for_full_piece) {
 
-                        // Check if seller has timed out in servicing the current request
-                        if(s.servicingPieceHasTimedOut(_policy.servicingPieceTimeOutLimit())) {
-
-                            // Remove connection
-                            removeConnection(id, Session<ConnectionIdType>::RemoveConnectionInitiator::client);
-
-                            // Notify client
-                            _removedConnection(id, DisconnectCause::seller_servicing_piece_has_timed_out);
-                        }
-
+                        // Check if seller has timed out in servicing the current request,
+                        // if so remove connection
+                        if(s.servicingPieceHasTimedOut(_policy.servicingPieceTimeOutLimit()))
+                            removeConnection(id, DisconnectCause::seller_servicing_piece_has_timed_out);
                     }
                 }
             }
@@ -409,7 +356,7 @@ namespace detail {
         // NB: There may be a seller currently sending us this piece,
         // or it may be in validation/storage, or even downloaded before.
 
-        if(piece.state() != detail::Piece<ConnectionIdType>::State::downloaded) {
+        if(piece.state() != PieceState::downloaded) {
 
             _numberOfMissingPieces--;
 
@@ -713,6 +660,34 @@ namespace detail {
 
          // We did not find anything
          throw std::runtime_error("Unable to find any unassigned pieces.");
+    }
+
+    template<class ConnectionIdType>
+    void Buying<ConnectionIdType>::removeConnection(const ConnectionIdType & id, DisconnectCause cause) {
+
+        assert(_session->state() != SessionState::stopped);
+        assert(_session->hasConnection(id));
+
+        // If this is the connection of a seller,
+        // we have to deal with that.
+        auto itr = _sellers.find(id);
+
+        if(itr != _sellers.cend()) {
+
+            detail::Seller<ConnectionIdType> & s = itr->second;
+
+            // Seller can't be gone
+            assert(s.state() != SellerState::gone);
+
+            // Remove
+            removeSeller(s);
+        }
+
+        // Notify client to remove connection
+        _removedConnection(id, cause);
+
+        // Destroy connection
+        _session->destroyConnection(id);
     }
 
     template <class ConnectionIdType>

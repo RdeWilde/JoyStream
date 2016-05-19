@@ -61,7 +61,6 @@ namespace detail {
         if(!_session->hasConnection(id))
             throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
 
-        // Remove connection
         removeConnection(id, DisconnectCause::client);
     }
 
@@ -125,11 +124,18 @@ namespace detail {
         // Do not initiate joining if we are paused
         if(_session->state() == SessionState::started) {
 
-
             detail::Connection<ConnectionIdType> * c = _session->get(id);
 
             // NB** In the future we do something more sophisticated rather than just joining right away?
-            tryToJoin(c);
+            try {
+                tryToJoin(c);
+            } catch(InvitedWithBadTerms &) {
+
+                removeConnection(id, DisconnectCause::buyer_invited_with_bad_terms);
+
+                // Notify state machine about deletion
+                throw protocol_statemachine::exception::StateMachineDeletedException();
+            }
         }
     }
 
@@ -170,8 +176,10 @@ namespace detail {
         // Connection must be live
         assert(_session->hasConnection(id));
 
-        // Remove connection
         removeConnection(id, DisconnectCause::buyer_requested_invalid_piece);
+
+        // Notify state machine about deletion
+        throw protocol_statemachine::exception::StateMachineDeletedException();
     }
 
     template<class ConnectionIdType>
@@ -183,8 +191,10 @@ namespace detail {
         // Connection must be live
         assert(_session->hasConnection(id));
 
-        // Remove connection
         removeConnection(id, DisconnectCause::buyer_interrupted_payment);
+
+        // Notify state machine about deletion
+        throw protocol_statemachine::exception::StateMachineDeletedException();
     }
 
     template<class ConnectionIdType>
@@ -201,8 +211,10 @@ namespace detail {
         // Connection must be live
         assert(_session->hasConnection(id));
 
-        // Remove connection
         removeConnection(id, DisconnectCause::buyer_sent_invalid_payment);
+
+        // Notify state machine about deletion
+        throw protocol_statemachine::exception::StateMachineDeletedException();
     }
 
     template<class ConnectionIdType>
@@ -241,9 +253,16 @@ namespace detail {
 
             if(c-> template inState<protocol_statemachine::ReadyForInvitation>())
                 ; // Waiting to be invited, nothing to do!
-            else if(c-> template inState<protocol_statemachine::Invited>())
-                tryToJoin(c); // We have been invited, so lets try to join
-            else if(c-> template inState<protocol_statemachine::WaitingToStart>()) {
+            else if(c-> template inState<protocol_statemachine::Invited>()) {
+
+                // We have been invited, so lets try to join
+                try {
+                    tryToJoin(c);
+                } catch(InvitedWithBadTerms &) {
+                    removeConnection(itr.first, DisconnectCause::buyer_invited_with_bad_terms);
+                }
+
+            } else if(c-> template inState<protocol_statemachine::WaitingToStart>()) {
                 ; // Waiting to get contract announcement, nothing to do!
             } else if(c-> template inState<protocol_statemachine::ReadyForPieceRequest>()) {
                 ; // Waiting for piece to be requested, nothing to do!
@@ -333,8 +352,8 @@ namespace detail {
         // Notify client to remove connection
         _removedConnection(id, cause);
 
-        // Remove and delete connection
-        _session->removeFromMapAndDelete(id);
+        // Destroy connection
+        _session->destroyConnection(id);
     }
 
     template<class ConnectionIdType>
@@ -359,7 +378,7 @@ namespace detail {
 
             // If we were invited based on non-expired terms, yet buyer
             // terms were not good enough, then we ditch conection.
-            removeConnection(c->connectionId(), DisconnectCause::buyer_invited_with_bad_terms);
+            throw InvitedWithBadTerms();
         }
     }
 
@@ -369,9 +388,7 @@ namespace detail {
         assert(_session->state() == SessionState::started);
         assert(c-> template inState<joystream::protocol_statemachine::LoadingPiece>());
 
-
         if(c->loadedPiecePending()) {
-
             c->processEvent(joystream::protocol_statemachine::event::PieceLoaded(c->loadedPieceData()));
             c->setLoadedPiecePending(false);
         }

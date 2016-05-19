@@ -428,6 +428,10 @@ namespace protocol_session {
 
         // and, have it process the message
         c->processMessage(m);
+
+        // ** DO NOT USE c **
+        // MAY HAVE BEEN DELETED BY THE TIME
+        // STACK TRACE RETRACTS, HENCE WE CANNOT USE IT.
     }
 
     template<class ConnectionIdType>
@@ -865,18 +869,18 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
-    void Session<ConnectionIdType>::removeFromMapAndDelete(const ConnectionIdType & id) {
+    void Session<ConnectionIdType>::destroyConnection(const ConnectionIdType & id) {
 
         // Get iterator pointing at connection in map
         auto itr = _connections.find(id);
 
         assert(itr != _connections.end());
 
-        // Delete connection
-        delete (itr->second);
-
         // Delete from map
         _connections.erase(itr);
+
+        // Delete connection
+        delete (itr->second);
     }
 
     template <class ConnectionIdType>
