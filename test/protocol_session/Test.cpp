@@ -48,15 +48,16 @@ void Test::session() {
 
     Session<ID> session;
 
-    // Start as observer
+    // Go to observe mode
     session.toObserveMode();
+
+    // Start session
+    session.start();
 
     // Add connection which is monitored
     ID c0 = 0;
     ConnectionSpy<ID> connectionSpy(c0);
     session.addConnection(c0, connectionSpy.sendMessageOnConnectionCallbackSlot.hook());
-
-    session.start();
 
     // Verify that mode message sent to peer
     QVERIFY(connectionSpy.sendMessageOnConnectionCallbackSlot.called);
