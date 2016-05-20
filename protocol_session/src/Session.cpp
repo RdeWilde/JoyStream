@@ -21,6 +21,7 @@ namespace protocol_session {
     Session<ConnectionIdType>::Session()
         : _mode(SessionMode::not_set)
         , _state(SessionState::stopped)
+        , _observing(nullptr)
         , _selling(nullptr)
         , _buying(nullptr) {
 
