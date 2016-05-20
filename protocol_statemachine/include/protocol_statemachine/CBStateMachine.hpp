@@ -112,9 +112,8 @@ namespace protocol_statemachine {
         template<typename T>
         bool inState() const;
 
-        // Deprecated: internals should not be directly visible for client or tester
         // Get name of current state: ***Varies from compiler to compiler***
-        //const char * getInnerStateName() const;
+        const char * getInnerStateName() const;
 
         // Mode of client
         ModeAnnounced clientMode() const;

@@ -100,14 +100,13 @@ namespace protocol_statemachine {
     }
 
     void CBStateMachine::unconsumed_event(const sc::event_base &) {
-        //throw exception::StateIncompatibleEvent();
+        throw exception::StateIncompatibleEvent(getInnerStateName());
     }
 
     void CBStateMachine::process_event(const sc::event_base &) {
         assert(false);
     }
 
-    /**
     const char * CBStateMachine::getInnerStateName() const {
 
         // We assume there is only one type which is active in any
@@ -122,7 +121,6 @@ namespace protocol_statemachine {
         // BOOST_STATECHART_USE_NATIVE_RTTI is defined
         return typeid(*(this->state_begin())).name();
     }
-    */
 
     void CBStateMachine::peerToObserveMode() {
         _announcedModeAndTermsFromPeer.toObserve();
