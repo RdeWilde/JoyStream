@@ -22,6 +22,8 @@ void Test::session() {
 
     Coin::Network network = Coin::Network::testnet3;
 
+    Session<ID> session;
+
     SessionSpy<ID> spy(
     [this](int n) -> std::vector<Coin::KeyPair> {
 
@@ -44,27 +46,25 @@ void Test::session() {
     },
     [this](const Coin::Transaction &) {
         return true;
-    });
+    },
+    &session);
 
-    Session<ID> session;
-
-    // Go to observe mode
-    session.toObserveMode();
+    spy.toMonitoredObserveMode();
 
     // Start session
     session.start();
 
     // Add connection which is monitored
     ID c0 = 0;
-    ConnectionSpy<ID> connectionSpy(c0);
-    session.addConnection(c0, connectionSpy.sendMessageOnConnectionCallbackSlot.hook());
+    ConnectionSpy<ID> * connectionSpy = spy.addConnection(c0);
 
     // Verify that mode message sent to peer
-    QVERIFY(connectionSpy.sendMessageOnConnectionCallbackSlot.called);
-    connectionSpy.reset();
+    QVERIFY(connectionSpy->sendMessageOnConnectionCallbackSlot.called);
+    QVERIFY(spy.noSessionEvents()); // but nothing has otherwised happned in the session
+    QVERIFY(spy.noConnectionEventsExcept(c0)); // or on any other connections
 
-    // but nothing has otherwised happned in the session
-    QVERIFY(spy.blank());
+    connectionSpy->reset();
+
 }
 
 QTEST_MAIN(Test)

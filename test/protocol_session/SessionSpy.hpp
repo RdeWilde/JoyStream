@@ -240,9 +240,11 @@ struct AnchorAnnouncedCallbackSlot {
 template <class ConnectionIdType>
 struct ConnectionSpy {
 
-    ConnectionSpy(const ConnectionIdType &);
+    ConnectionSpy(const ConnectionIdType & x) :id(x) { reset(); }
 
     void reset() { sendMessageOnConnectionCallbackSlot.reset(); }
+
+    bool blank() { return !sendMessageOnConnectionCallbackSlot.called; }
 
     ConnectionIdType id;
 
@@ -259,21 +261,30 @@ public:
     // use them to return respons
     SessionSpy(const GenerateKeyPairsCallbackHandler &,
                const GenerateP2PKHAddressesCallbackHandler &,
-               const BroadcastTransaction &);
+               const BroadcastTransaction &,
+               Session<ConnectionIdType> *);
 
-    void toMonitoredSellMode(Session<ConnectionIdType> *,
-                             const SellingPolicy &,
+    ~SessionSpy();
+
+    void toMonitoredObserveMode();
+
+    void toMonitoredSellMode(const SellingPolicy &,
                              const protocol_wire::SellerTerms &);
 
-    void toMonitoredBuyMode(Session<ConnectionIdType> *,
-                            const Coin::UnspentP2PKHOutput &,
+    void toMonitoredBuyMode(const Coin::UnspentP2PKHOutput &,
                             const BuyingPolicy &,
                             const protocol_wire::BuyerTerms &,
                             const TorrentPieceInformation &);
 
-    void reset();
+    // Returns spy for connection.
+    // Connection spy owned by session spy.
+    ConnectionSpy<ConnectionIdType> * addConnection(const ConnectionIdType & id);
 
-    bool blank();
+    bool noSessionEvents() const;
+
+    bool noConnectionEventsExcept(const ConnectionIdType & id) const;
+
+    void reset();
 
     //// General
     RemovedConnectionCallbackSlot<ConnectionIdType> removedConnectionCallbackSlot;
@@ -289,12 +300,11 @@ public:
     ClaimLastPaymentCallbackSlot<ConnectionIdType> claimLastPaymentCallbackSlot;
     AnchorAnnouncedCallbackSlot<ConnectionIdType> anchorAnnouncedCallbackSlot;
 
+    std::map<ConnectionIdType, ConnectionSpy<ConnectionIdType> *> connectionSpies;
+
 private:
 
     Session<ConnectionIdType> * _session;
-
-    std::map<ConnectionIdType, ConnectionSpy<ConnectionIdType>> _connectionSpies;
-
 };
 
 // Needed due to c++ needing implementation for all uses of templated types
