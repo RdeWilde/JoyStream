@@ -177,6 +177,7 @@ namespace status {
                const std::vector<Piece<ConnectionIdType>> & pieces)
             : _funding(funding)
             , _policy(policy)
+            , _state(state)
             , _terms(terms)
             , _sellers(sellers)
             , _contractTx(contractTx)
