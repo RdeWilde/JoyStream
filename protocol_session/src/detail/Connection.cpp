@@ -44,6 +44,9 @@ namespace detail {
                    receivedFullPiece,
                    0)
         , _loadedPiecePending(false) {
+
+        // Initiating state machine
+        _machine.initiate();
     }
 
     template <class ConnectionIdType>
