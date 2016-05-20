@@ -21,7 +21,7 @@ namespace exception {
 
     public:
 
-        StateIncompatibleEvent();
+        StateIncompatibleEvent(const std::string & state);
 
     /**
     public:
