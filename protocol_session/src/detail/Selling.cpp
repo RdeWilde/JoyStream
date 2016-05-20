@@ -56,7 +56,7 @@ namespace detail {
     void Selling<ConnectionIdType>::removeConnection(const ConnectionIdType & id) {
 
         if(_session->state() == SessionState::stopped)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot remove connection while session is stopped, all connections are removed.");
 
         if(!_session->hasConnection(id))
             throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
@@ -76,8 +76,9 @@ namespace detail {
         // Get connection state
         detail::Connection<ConnectionIdType> * c = _session->get(id);
 
+        // Make sure connection is still in appropriate state
         if(!c-> template inState<joystream::protocol_statemachine::LoadingPiece>())
-            throw exception::StateIncompatibleOperation();
+            return;
 
         // Store loaded piece in connection, we dont sent if paused
         assert(!c->loadedPiecePending());
@@ -237,7 +238,7 @@ namespace detail {
 
         // We cant start if we have already started
         if(_session->state() == SessionState::started)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot start while already started.");
 
         // Set client mode to started
         // NB: Mark as started, as routines we call below
@@ -280,7 +281,7 @@ namespace detail {
 
         // We cant stop if we have already stopped
         if(_session->state() == SessionState::stopped)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot stop while already stopped.");
 
         // Disconnect everyone
         std::vector<ConnectionIdType> ids = _session->connectionIds();
@@ -298,7 +299,7 @@ namespace detail {
         // We can only pause if presently started
         if(_session->state() == SessionState::paused ||
            _session->state() == SessionState::stopped)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot pause while already paused/stopped.");
 
         // Update state
         _session->_state = SessionState::paused;

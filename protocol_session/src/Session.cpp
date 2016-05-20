@@ -190,7 +190,7 @@ namespace protocol_session {
     void Session<ConnectionIdType>::start() {
 
         if(_state == SessionState::started)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot start an already started session.");
 
         switch(_mode) {
 
@@ -226,7 +226,7 @@ namespace protocol_session {
     void Session<ConnectionIdType>::stop() {
 
         if(_state == SessionState::stopped)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot stop an already stopped session.");
 
         switch(_mode) {
 
@@ -263,7 +263,7 @@ namespace protocol_session {
     void Session<ConnectionIdType>::pause() {
 
         if(_state == SessionState::paused)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot pause and already paused session.");
 
         switch(_mode) {
 
@@ -888,7 +888,7 @@ namespace protocol_session {
 
         // Do not accept new connection if session is stopped
         if(_state == SessionState::stopped)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot create connection while session is stopped.");
 
         // Check that connection is new, throw exception if not
         if(hasConnection(id))

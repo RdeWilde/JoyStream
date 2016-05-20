@@ -72,8 +72,10 @@ namespace detail {
     template <class ConnectionIdType>
     void Buying<ConnectionIdType>::removeConnection(const ConnectionIdType & id) {
 
+        // We explicitly check for stopped session, although checking for spesific connection existance
+        // implicitly covers this case. It improves feedback to client.
         if(_session->_state == SessionState::stopped)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot remove connection while stopped, all connections are removed");
 
         if(!_session->hasConnection(id))
             throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
@@ -298,7 +300,7 @@ namespace detail {
         // We can only pause if presently started
         if(_session->_state == SessionState::paused ||
            _session->_state == SessionState::stopped)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot pause while already paused/stopped.");
 
         // Update state
         _session->_state = SessionState::paused;
@@ -376,7 +378,7 @@ namespace detail {
 
         // We cant change terms when we are actually downloading
         if(_state == BuyingState::downloading)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot update terms while downloading.");
 
         // Notify existing peers
         for(auto itr : _session->_connections)

@@ -87,8 +87,8 @@ class StateIncompatibleOperation : public std::runtime_error {
 
 public:
 
-    StateIncompatibleOperation()
-        : std::runtime_error("Operation not compatible with current state.") {
+    StateIncompatibleOperation(const std::string & problemDescription)
+        : std::runtime_error(std::string("Operation not compatible with current session state: ") + problemDescription) {
     }
 };
 

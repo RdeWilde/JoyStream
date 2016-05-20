@@ -39,7 +39,7 @@ namespace detail {
     void Observing<ConnectionIdType>::removeConnection(const ConnectionIdType & id) {
 
         if(_session->_state == SessionState::stopped)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot remove connection while session is stopped, all connections are removed.");
 
         if(!_session->hasConnection(id))
             throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
