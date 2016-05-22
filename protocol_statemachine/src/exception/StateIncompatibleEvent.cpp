@@ -7,6 +7,8 @@
 
 #include <protocol_statemachine/exception/StateIncompatibleEvent.hpp>
 
+#include <string>
+
 using namespace joystream::protocol_statemachine::exception;
 
 StateIncompatibleEvent::StateIncompatibleEvent(const std::string & state)
