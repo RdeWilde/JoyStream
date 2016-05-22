@@ -20,7 +20,7 @@ namespace protocol_statemachine {
         std::cout << "Reacting to Recv<wire::FullPiece> event." << std::endl;
 
         // Send piece to client
-        context<CBStateMachine>()._receivedFullPiece.enqueue(e.message().pieceData());
+        context<CBStateMachine>()._receivedFullPiece(e.message().pieceData());
 
         // Wait for client side piece validation and storage
         return transit<ProcessingPiece>();

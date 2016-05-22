@@ -30,7 +30,7 @@ namespace protocol_statemachine {
         context<CBStateMachine>()._payee.setContractOutPoint(m.anchor());
 
         // Notify client
-        context<CBStateMachine>()._contractIsReady.enqueue(m.value(), m.anchor(), m.contractPk(), m.finalPkHash());
+        context<CBStateMachine>()._contractIsReady(m.value(), m.anchor(), m.contractPk(), m.finalPkHash());
 
         // Transition to deep history
         return transit<ReadyForPieceRequest>();

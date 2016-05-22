@@ -21,7 +21,7 @@ namespace protocol_statemachine {
         std::cout << "Reacting to RequestPiece event." << std::endl;
 
         // Request piece from seller
-        context<CBStateMachine>()._sendMessage.enqueue(new protocol_wire::RequestFullPiece(e.pieceIndex()));
+        context<CBStateMachine>()._sendMessage(new protocol_wire::RequestFullPiece(e.pieceIndex()));
 
         // Wait for
         return transit<WaitingForFullPiece>();

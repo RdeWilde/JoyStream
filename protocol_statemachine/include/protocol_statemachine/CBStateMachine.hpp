@@ -89,8 +89,6 @@ namespace protocol_statemachine {
         // Peer, in seller mode, responded with full piece
         typedef std::function<void(const protocol_wire::PieceData &)> ReceivedFullPiece;
 
-        //CBStateMachine();
-
         CBStateMachine(const PeerAnnouncedMode &,
                        const InvitedToOutdatedContract &,
                        const InvitedToJoinContract &,
@@ -183,76 +181,56 @@ namespace protocol_statemachine {
         // All callbacks are initiated when state machine has finished all processing.
         // For sake of generality, we assume multiple callbacks may have been called multiple times
         // with the processing of a *single* event. In practice, we are doing at most one now.
-        // This general scenario is handled by having a callback queue associated with each callback.
+        // This general scenario is handled by having a callback queue.
 
         // Whether a callbacks are currently being processed, is used
         // as re-entrancy guard to prevent re-invoking callback processing.
         bool _currentlyProcessingCallbacks;
 
-        // Queue for notifications which do have payload
         template<typename... Args>
-        class NotificationQueue {
+        class CallbackQueuer {
 
         public:
 
             typedef std::function<void(Args...)> callback;
 
-            NotificationQueue(const callback & hook) : _callback(hook) {}
+            CallbackQueuer(std::deque<NoPayloadNotification> & queue, const callback & hook)
+                : _queue(queue)
+                , _callback(hook) {
+            }
 
-            void enqueue(Args... args) {
-                _calls.push_back(std::bind(_callback, args...));
+            void operator()(Args... args) {
+                _queue.push_back(std::bind(_callback, args...));
             }
 
         private:
 
-            friend class CBStateMachine;
+            // Underlying queue
+            std::deque<NoPayloadNotification> & _queue;
 
-            // Processing routine is made private so that
-            // substates cannot invoke it.
-            void process() {
-
-                // ::empty() must be used, rather than iterator,as
-                // queue may mutate while iterating, due to
-                // events posted in the callbacks initiated here.
-                while(!_calls.empty()) {
-
-                    // Get call
-                    NoPayloadNotification f = _calls.front();
-
-                    // Remove
-                    _calls.pop_front();
-
-                    // Initiate
-                    f();
-                }
-
-            }
-
+            // Core callback
             callback _callback;
-
-            std::deque<NoPayloadNotification> _calls;
         };
 
+        // Queue for ready callback
+        std::deque<NoPayloadNotification> _queuedCallbacks;
+
         // Callback queues
-        NotificationQueue<const protocol_statemachine::AnnouncedModeAndTerms &> _peerAnnouncedMode;
-        NotificationQueue<> _invitedToOutdatedContract;
-        NotificationQueue<> _invitedToJoinContract;
-        NotificationQueue<const protocol_wire::ExtendedMessagePayload *> _sendMessage;
-        NotificationQueue<quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &> _contractIsReady;
-        NotificationQueue<int> _pieceRequested;
-        NotificationQueue<> _invalidPieceRequested;
-        NotificationQueue<> _peerInterruptedPayment;
-        NotificationQueue<const Coin::Signature &> _validPayment;
-        NotificationQueue<const Coin::Signature &> _invalidPayment;
-        NotificationQueue<> _sellerJoined;
-        NotificationQueue<> _sellerInterruptedContract;
-        NotificationQueue<const protocol_wire::PieceData &> _receivedFullPiece;
+        CallbackQueuer<const protocol_statemachine::AnnouncedModeAndTerms &> _peerAnnouncedMode;
+        CallbackQueuer<> _invitedToOutdatedContract;
+        CallbackQueuer<> _invitedToJoinContract;
+        CallbackQueuer<const protocol_wire::ExtendedMessagePayload *> _sendMessage;
+        CallbackQueuer<quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &> _contractIsReady;
+        CallbackQueuer<int> _pieceRequested;
+        CallbackQueuer<> _invalidPieceRequested;
+        CallbackQueuer<> _peerInterruptedPayment;
+        CallbackQueuer<const Coin::Signature &> _validPayment;
+        CallbackQueuer<const Coin::Signature &> _invalidPayment;
+        CallbackQueuer<> _sellerJoined;
+        CallbackQueuer<> _sellerInterruptedContract;
+        CallbackQueuer<const protocol_wire::PieceData &> _receivedFullPiece;
 
         void peerAnnouncedMode();
-
-        // How many calls to ::processEvent() which have still not exited.
-        // I is used to make event processing reentrant-like, not fully though
-        uint8_t _reentrantCounter;
 
         // Greatest valid piece index
         int _MAX_PIECE_INDEX;

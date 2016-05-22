@@ -24,7 +24,7 @@ namespace protocol_statemachine {
         Coin::Signature sig = context<CBStateMachine>()._payor.makePayment();
 
         // Send payment
-        context<CBStateMachine>()._sendMessage.enqueue(new protocol_wire::Payment(sig));
+        context<CBStateMachine>()._sendMessage(new protocol_wire::Payment(sig));
 
         // Now able to request another piece
         return transit<ReadyToRequestPiece>();

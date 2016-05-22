@@ -14,18 +14,10 @@
 namespace joystream {
 namespace protocol_statemachine {
 
-    /**
-    CBStateMachine::CBStateMachine()
-        : _reentrantCounter(0)
-        , _MAX_PIECE_INDEX(0)
-        , _lastRequestedPiece(0) {
-    }
-    */
-
     CBStateMachine::CBStateMachine(const PeerAnnouncedMode & peerAnnouncedMode,
                                    const InvitedToOutdatedContract & invitedToOutdatedContract,
                                    const InvitedToJoinContract & invitedToJoinContract,
-                                   const Send & sendMessage,
+                                   const Send & send,
                                    const ContractIsReady & contractIsReady,
                                    const PieceRequested & pieceRequested,
                                    const InvalidPieceRequested & invalidPieceRequested,
@@ -37,20 +29,19 @@ namespace protocol_statemachine {
                                    const ReceivedFullPiece & receivedFullPiece,
                                    int MAX_PIECE_INDEX)
         : _currentlyProcessingCallbacks(false)
-        , _peerAnnouncedMode(peerAnnouncedMode)
-        , _invitedToOutdatedContract(invitedToOutdatedContract)
-        , _invitedToJoinContract(invitedToJoinContract)
-        , _sendMessage(sendMessage)
-        , _contractIsReady(contractIsReady)
-        , _pieceRequested(pieceRequested)
-        , _invalidPieceRequested(invalidPieceRequested)
-        , _peerInterruptedPayment(peerInterruptedPayment)
-        , _validPayment(validPayment)
-        , _invalidPayment(invalidPayment)
-        , _sellerJoined(sellerJoined)
-        , _sellerInterruptedContract(sellerInterruptedContract)
-        , _receivedFullPiece(receivedFullPiece)
-        , _reentrantCounter(0)
+        , _peerAnnouncedMode(_queuedCallbacks, peerAnnouncedMode)
+        , _invitedToOutdatedContract(_queuedCallbacks, invitedToOutdatedContract)
+        , _invitedToJoinContract(_queuedCallbacks, invitedToJoinContract)
+        , _sendMessage(_queuedCallbacks, send)
+        , _contractIsReady(_queuedCallbacks, contractIsReady)
+        , _pieceRequested(_queuedCallbacks, pieceRequested)
+        , _invalidPieceRequested(_queuedCallbacks, invalidPieceRequested)
+        , _peerInterruptedPayment(_queuedCallbacks, peerInterruptedPayment)
+        , _validPayment(_queuedCallbacks, validPayment)
+        , _invalidPayment(_queuedCallbacks, invalidPayment)
+        , _sellerJoined(_queuedCallbacks, sellerJoined)
+        , _sellerInterruptedContract(_queuedCallbacks, sellerInterruptedContract)
+        , _receivedFullPiece(_queuedCallbacks, receivedFullPiece)
         , _MAX_PIECE_INDEX(MAX_PIECE_INDEX)
         , _lastRequestedPiece(0) {
     }
@@ -70,37 +61,36 @@ namespace protocol_statemachine {
         // Mark us as processing callbacks
         _currentlyProcessingCallbacks = true;
 
-        try {
+        // ::empty() must be used, rather than iterator,as
+        // queue may mutate while iterating, due to
+        // events posted in the callbacks initiated here.
+        while(!_queuedCallbacks.empty()) {
 
-            _peerAnnouncedMode.process();
-            _invitedToOutdatedContract.process();
-            _invitedToJoinContract.process();
-            _sendMessage.process();
-            _contractIsReady.process();
-            _pieceRequested.process();
-            _invalidPieceRequested.process();
-            _peerInterruptedPayment.process();
-            _validPayment.process();
-            _invalidPayment.process();
-            _sellerJoined.process();
-            _sellerInterruptedContract.process();
-            _receivedFullPiece.process();
+            // Get call
+            NoPayloadNotification f = _queuedCallbacks.front();
 
-            // Mark as done processing callacks: we don't do this if
-            // exception is thrown, as *(this) is dead.
-            _currentlyProcessingCallbacks = false;
+            // Remove
+            _queuedCallbacks.pop_front();
 
-        } catch (const exception::StateMachineDeletedException &) {
-            // If we come here, then we just exit, as
-            // this statemachine has been deleted in callback,
-            // Hence no part of state machine object should be used.
-            // Note on deleting this: https://isocpp.org/wiki/faq/freestore-mgmt#delete-this
-            return;
+            // Initiate
+            try {
+                f();
+            } catch (const exception::StateMachineDeletedException &) {
+                // If we come here, then we just exit, as
+                // this statemachine has been deleted in callback,
+                // Hence no part of state machine object should be used.
+                // Note on deleting this: https://isocpp.org/wiki/faq/freestore-mgmt#delete-this
+                return;
+            }
         }
+
+        // Mark as done processing callacks: we don't do this if
+        // exception is thrown, as *(this) is dead.
+        _currentlyProcessingCallbacks = false;
     }
 
     void CBStateMachine::unconsumed_event(const sc::event_base &) {
-        throw exception::StateIncompatibleEvent(getInnerStateName());
+        //throw exception::StateIncompatibleEvent("");
     }
 
     void CBStateMachine::process_event(const sc::event_base &) {
@@ -145,7 +135,7 @@ namespace protocol_statemachine {
     }
 
     void CBStateMachine::clientToObserveMode() {
-        _sendMessage.enqueue(new protocol_wire::Observe());
+        _sendMessage(new protocol_wire::Observe());
     }
 
     void CBStateMachine::clientToSellMode(const protocol_wire::SellerTerms & t, uint32_t index) {
@@ -158,7 +148,7 @@ namespace protocol_statemachine {
         _payee.setSettlementFee(t.settlementFee());
 
         // Send mode message
-        _sendMessage.enqueue(new protocol_wire::Sell(t, _index));
+        _sendMessage(new protocol_wire::Sell(t, _index));
     }
 
     void CBStateMachine::clientToBuyMode(const protocol_wire::BuyerTerms & t) {
@@ -167,11 +157,11 @@ namespace protocol_statemachine {
         _payor.setRefundFee(t.refundFee());
 
         // Send mode message
-        _sendMessage.enqueue(new protocol_wire::Buy(t));
+        _sendMessage(new protocol_wire::Buy(t));
     }
 
     void CBStateMachine::peerAnnouncedMode() {
-        _peerAnnouncedMode.enqueue(_announcedModeAndTermsFromPeer);
+        _peerAnnouncedMode(_announcedModeAndTermsFromPeer);
     }
 
     int CBStateMachine::lastRequestedPiece() const {

@@ -32,14 +32,14 @@ namespace protocol_statemachine {
         if(e.message().index() != context<CBStateMachine>()._index) {
 
             // then notify user
-            context<CBStateMachine>()._invitedToOutdatedContract.enqueue();
+            context<CBStateMachine>()._invitedToOutdatedContract();
 
             // and drop event
             return discard_event();
         } else {
 
             // Notify client
-            context<CBStateMachine>()._invitedToJoinContract.enqueue();
+            context<CBStateMachine>()._invitedToJoinContract();
 
             // and make transition
             return transit<Invited>();
