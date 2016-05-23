@@ -101,7 +101,7 @@ public:
     Address() {}
     Address(const std::shared_ptr<Key> & key_, const Coin::P2PKHAddress & p2pkh_addr);
     const std::shared_ptr<Key> key() const { return key_; }
-    //Coin::P2PKHAddress toP2PKHAddress() const;
+
     std::string scriptPubKey() const { return scriptPubKey_; }
 
 private:
@@ -109,8 +109,6 @@ private:
 
     #pragma db id auto
     unsigned long id_;
-
-    std::string address_; //Base58CheckEncoded string
 
     #pragma db not_null unique //unique - it doesn't make sense to have two address objects for the same key
     std::shared_ptr<Key> key_; //to establish a relation with the Wallet::Key

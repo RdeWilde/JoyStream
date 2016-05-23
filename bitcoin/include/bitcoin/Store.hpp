@@ -85,10 +85,10 @@ public:
     std::vector<Coin::PrivateKey> listPrivateKeys();
     std::list<Coin::Transaction> listTransactions();
 
-    bool addressExists(const Coin::P2PKHAddress & addr);
+    bool addressExists(const Coin::P2PKHAddress & p2pkhaddress);
     bool transactionExists(const Coin::TransactionId & txid);
 
-    bool loadKey(const Coin::P2PKHAddress &address, Coin::PrivateKey & sk);
+    bool loadKey(const Coin::P2PKHAddress &p2pkhaddress, Coin::PrivateKey & sk);
 
     std::list<Coin::UnspentP2PKHOutput> getUnspentTransactionsOutputs(int32_t confirmations = 0, int32_t main_chain_height = 0) const;
     uint64_t getWalletBalance(int32_t confirmations = 0, int32_t main_chain_height = 0) const;

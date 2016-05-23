@@ -319,14 +319,15 @@ void Store::releaseAddress(const Coin::P2PKHAddress & p2pkhaddress) {
         throw NotConnected();
     }
 
-    std::string base58 = p2pkhaddress.toBase58CheckEncoding().toStdString();
+    std::string scriptPubKey = Coin::P2PKHScriptPubKey(p2pkhaddress.pubKeyHash()).serialize().getHex();
+
     typedef odb::query<detail::store::Address> query;
 
     // Releasing a key requires synchronizing access to the key pool
     std::lock_guard<std::mutex> lock(_storeMutex);
 
     odb::transaction t(_db->begin());
-    std::shared_ptr<detail::store::Address> addr(_db->query_one<detail::store::Address>(query::address == base58));
+    std::shared_ptr<detail::store::Address> addr(_db->query_one<detail::store::Address>(query::scriptPubKey == scriptPubKey));
     if(addr) {
         addr->key()->used(false);
         _db->update(addr->key());
@@ -385,17 +386,17 @@ std::list<Coin::Transaction> Store::listTransactions() {
     return transactions;
 }
 
-bool Store::addressExists(const Coin::P2PKHAddress & addr) {
+bool Store::addressExists(const Coin::P2PKHAddress & p2pkhaddress) {
     if(!connected()) {
         throw NotConnected();
     }
 
     odb::transaction t(_db->begin());
     typedef odb::query<detail::store::Address> query;
-    std::string base58 = addr.toBase58CheckEncoding().toStdString();
+    std::string scriptPubKey = Coin::P2PKHScriptPubKey(p2pkhaddress.pubKeyHash()).serialize().getHex();
 
     // schema allows only one unique address to be stored so this should never throw an exception
-    if(_db->query_one<detail::store::Address>(query::address == base58)) {
+    if(_db->query_one<detail::store::Address>(query::scriptPubKey == scriptPubKey)) {
         return true;
     }
 
@@ -581,7 +582,7 @@ void Store::confirmTransaction(Coin::TransactionId txid, const ChainMerkleBlock 
     }
 }
 
-bool Store::loadKey(const Coin::P2PKHAddress & address, Coin::PrivateKey & sk) {
+bool Store::loadKey(const Coin::P2PKHAddress & p2pkhaddress, Coin::PrivateKey & sk) {
     if(!connected()) {
         throw NotConnected();
     }
@@ -589,8 +590,8 @@ bool Store::loadKey(const Coin::P2PKHAddress & address, Coin::PrivateKey & sk) {
     bool found = false;
     typedef odb::query<detail::store::Address> query;
     odb::transaction t(_db->begin());
-    std::string base58addr = address.toBase58CheckEncoding().toStdString();
-    std::shared_ptr<detail::store::Address> addr(_db->query_one<detail::store::Address>(query::address == base58addr));
+    std::string scriptPubKey = Coin::P2PKHScriptPubKey(p2pkhaddress.pubKeyHash()).serialize().getHex();
+    std::shared_ptr<detail::store::Address> addr(_db->query_one<detail::store::Address>(query::scriptPubKey == scriptPubKey));
     if(addr) {
         sk = addr->key()->getPrivateKey();
         found = true;
@@ -698,8 +699,8 @@ Coin::PrivateKey Store::createNewPrivateKey(bool createReceiveAddress) {
     _db->update(key);
 
     if(createReceiveAddress) {
-        Coin::P2PKHAddress p2pkh_addr = sk.toPublicKey().toP2PKHAddress(_network);
-        detail::store::Address addr(key, p2pkh_addr);
+        Coin::P2PKHAddress p2pkhaddr = sk.toPublicKey().toP2PKHAddress(_network);
+        detail::store::Address addr(key, p2pkhaddr);
         _db->persist(addr);
     }
 

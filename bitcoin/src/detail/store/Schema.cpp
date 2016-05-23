@@ -65,7 +65,6 @@ namespace store {
 
     Address::Address(const std::shared_ptr<Key> & key, const Coin::P2PKHAddress & p2pkh_addr) {
         key_ = key;
-        address_ = p2pkh_addr.toBase58CheckEncoding().toStdString();
         Coin::PubKeyHash pubKeyHash = p2pkh_addr.pubKeyHash();
         scriptPubKey_ = Coin::P2PKHScriptPubKey(pubKeyHash).serialize().getHex();
     }
