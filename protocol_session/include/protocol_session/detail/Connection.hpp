@@ -59,8 +59,14 @@ namespace detail {
         // Peer terms announced
         protocol_statemachine::AnnouncedModeAndTerms announcedModeAndTermsFromPeer() const;
 
+        // Payor in state machine: only used when selling
+        paymentchannel::Payee payee() const;
+
+        // Payee in state machine: only used when buying
+        paymentchannel::Payor payor() const;
+
         // Connection state machine reference
-        protocol_statemachine::CBStateMachine & machine();
+        //protocol_statemachine::CBStateMachine & machine();
 
         // Statu of connection
         status::Connection<ConnectionIdType> status() const;

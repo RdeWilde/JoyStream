@@ -113,9 +113,21 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
+    paymentchannel::Payee Connection<ConnectionIdType>::payee() const {
+        return _machine.payee();
+    }
+
+    template <class ConnectionIdType>
+    paymentchannel::Payor Connection<ConnectionIdType>::payor() const {
+        return _machine.payor();
+    }
+
+    /**
+    template <class ConnectionIdType>
     protocol_statemachine::CBStateMachine & Connection<ConnectionIdType>::machine() {
         return _machine;
     }
+    */
 
     template <class ConnectionIdType>
     typename status::Connection<ConnectionIdType> Connection<ConnectionIdType>::status() const {

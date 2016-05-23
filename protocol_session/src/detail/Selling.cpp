@@ -229,7 +229,7 @@ namespace detail {
             detail::Connection<ConnectionIdType> * c = itr.second;
 
             if(c-> template inState<joystream::protocol_statemachine::WaitingForPayment>())
-                _claimLastPayment(itr.first, c->machine().payee());
+                _claimLastPayment(itr.first, c->payee());
         }
     }
 
@@ -346,7 +346,7 @@ namespace detail {
 
         // If we are owed money, then notify client to claim last payment made
         if(c-> template inState<joystream::protocol_statemachine::WaitingForPayment>())
-            _claimLastPayment(id, c->machine().payee());
+            _claimLastPayment(id, c->payee());
 
         // Notify client to remove connection
         _removedConnection(id, cause);

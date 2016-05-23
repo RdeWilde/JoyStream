@@ -485,7 +485,7 @@ namespace detail {
         for(uint32_t i = 0;i < numberOfSellers;i++)
             c.addCommitment(paymentchannel::Commitment(funds[i],
                                                        contractKeyPairs[i].pk(),
-                                                       selected[i]->machine().payor().payeeContractPk()));
+                                                       selected[i]->payor().payeeContractPk()));
 
         // Add change if worth doing
         if(changeAmount != 0) {
