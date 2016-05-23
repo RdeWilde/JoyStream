@@ -35,59 +35,61 @@ namespace protocol_wire {
 
 namespace protocol_statemachine {
 
+    // A notification without a payload
+    typedef std::function<void()> NoPayloadNotification;
+
+    //// General Notifications
+
+    // Peer updated mode without
+    typedef std::function<void(const protocol_statemachine::AnnouncedModeAndTerms &)> PeerAnnouncedMode;
+
+    // Client requires a message to be sent
+    typedef std::function<void(const protocol_wire::ExtendedMessagePayload *)> Send;
+
+    //// Selling Notifications
+
+    // Client was invited to expired contract, as indicated by bad index
+    typedef NoPayloadNotification InvitedToOutdatedContract;
+
+    // Client was invited to join given contract, should terms be included? they are available in _peerAnnounced
+    typedef NoPayloadNotification InvitedToJoinContract;
+
+    // Peer announced that contract is now ready, should contract be be included? it was available
+    typedef std::function<void(quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &)> ContractIsReady;
+
+    // Peer requested piece
+    typedef std::function<void(int)> PieceRequested;
+
+    // Peer invalid piece requested
+    typedef NoPayloadNotification InvalidPieceRequested;
+
+    // Peer sent mode message when payment was expected/required
+    typedef NoPayloadNotification PeerInterruptedPayment;
+
+    // Peer sent valid payment signature
+    typedef std::function<void(const Coin::Signature &)> ValidPayment;
+
+    // Peer sent an invalid payment signature
+    typedef std::function<void(const Coin::Signature &)> InvalidPayment;
+
+    //// Buying Notifications
+
+    // Peer, in seller mode, joined the most recent invitation
+    typedef NoPayloadNotification SellerJoined;
+
+    // Peer, in seller mode, left - by sending new mode message (which may also be sell) - after requesting a piece
+    typedef NoPayloadNotification SellerInterruptedContract;
+
+    // Peer, in seller mode, responded with full piece
+    typedef std::function<void(const protocol_wire::PieceData &)> ReceivedFullPiece;
+
+    //// State machine
+
     class ChooseMode; // Default state
 
     class CBStateMachine : public sc::state_machine<CBStateMachine, ChooseMode> {
 
-        // A notification without a payload
-        typedef std::function<void()> NoPayloadNotification;
-
     public:
-
-        //// General Notifications
-
-        // Peer updated mode without
-        typedef std::function<void(const protocol_statemachine::AnnouncedModeAndTerms &)> PeerAnnouncedMode;
-
-        // Client requires a message to be sent
-        typedef std::function<void(const protocol_wire::ExtendedMessagePayload *)> Send;
-
-        //// Selling Notifications
-
-        // Client was invited to expired contract, as indicated by bad index
-        typedef NoPayloadNotification InvitedToOutdatedContract;
-
-        // Client was invited to join given contract, should terms be included? they are available in _peerAnnounced
-        typedef NoPayloadNotification InvitedToJoinContract;
-
-        // Peer announced that contract is now ready, should contract be be included? it was available
-        typedef std::function<void(quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &)> ContractIsReady;
-
-        // Peer requested piece
-        typedef std::function<void(int)> PieceRequested;
-
-        // Peer invalid piece requested
-        typedef NoPayloadNotification InvalidPieceRequested;
-
-        // Peer sent mode message when payment was expected/required
-        typedef NoPayloadNotification PeerInterruptedPayment;
-
-        // Peer sent valid payment signature
-        typedef std::function<void(const Coin::Signature &)> ValidPayment;
-
-        // Peer sent an invalid payment signature
-        typedef std::function<void(const Coin::Signature &)> InvalidPayment;
-
-        //// Buying Notifications
-
-        // Peer, in seller mode, joined the most recent invitation
-        typedef NoPayloadNotification SellerJoined;
-
-        // Peer, in seller mode, left - by sending new mode message (which may also be sell) - after requesting a piece
-        typedef NoPayloadNotification SellerInterruptedContract;
-
-        // Peer, in seller mode, responded with full piece
-        typedef std::function<void(const protocol_wire::PieceData &)> ReceivedFullPiece;
 
         CBStateMachine(const PeerAnnouncedMode &,
                        const InvitedToOutdatedContract &,
