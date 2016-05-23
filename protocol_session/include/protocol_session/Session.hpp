@@ -55,7 +55,7 @@ namespace detail {
         // a set mode different to the mode of the call.
 
         // Change session to observe mode
-        void toObserveMode();
+        void toObserveMode(const RemovedConnectionCallbackHandler<ConnectionIdType> &);
 
         // Change session to sell mode
         void toSellMode(const RemovedConnectionCallbackHandler<ConnectionIdType> &,

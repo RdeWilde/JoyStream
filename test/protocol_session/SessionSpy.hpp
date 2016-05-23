@@ -24,7 +24,7 @@ struct RemovedConnectionCallbackSlot {
         cause = DisconnectCause::buyer_interrupted_payment; // arbitary, but fixed, default value
     }
 
-    RemovedConnectionCallbackHandler<ConnectionIdType> hook() const {
+    RemovedConnectionCallbackHandler<ConnectionIdType> hook() {
         return [this](const ConnectionIdType & id, DisconnectCause cause) {
             this->called = true;
             this->id = id;

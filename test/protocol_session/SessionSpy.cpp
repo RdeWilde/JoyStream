@@ -27,7 +27,7 @@ SessionSpy<ConnectionIdType>::~SessionSpy() {
 
 template <class ConnectionIdType>
 void SessionSpy<ConnectionIdType>::toMonitoredObserveMode() {
-    _session->toObserveMode();
+    _session->toObserveMode(removedConnectionCallbackSlot.hook());
 }
 
 template <class ConnectionIdType>

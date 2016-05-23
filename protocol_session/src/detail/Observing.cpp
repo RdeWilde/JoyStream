@@ -15,8 +15,10 @@ namespace protocol_session {
 namespace detail {
 
     template <class ConnectionIdType>
-    Observing<ConnectionIdType>::Observing(Session<ConnectionIdType> * session)
-        : _session(session) {
+    Observing<ConnectionIdType>::Observing(Session<ConnectionIdType> * session,
+                                           const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection)
+        : _session(session)
+        , _removedConnection(removedConnection) {
 
         // Update terms for all connections
         for(auto itr : _session->_connections)
@@ -45,6 +47,9 @@ namespace detail {
             throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
 
         _session->destroyConnection(id);
+
+        // Notify client to remove connection
+        _removedConnection(id, DisconnectCause::client);
     }
 
     template <class ConnectionIdType>

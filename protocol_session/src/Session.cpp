@@ -29,7 +29,7 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
-    void Session<ConnectionIdType>::toObserveMode() {
+    void Session<ConnectionIdType>::toObserveMode(const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection) {
 
         // Prepare for exiting current state
         switch(_mode) {
@@ -68,7 +68,8 @@ namespace protocol_session {
         _mode = SessionMode::observing;
 
         // Create
-        _observing = new detail::Observing<ConnectionIdType>(this);
+        _observing = new detail::Observing<ConnectionIdType>(this,
+                                                             removedConnection);
     }
 
     template <class ConnectionIdType>
