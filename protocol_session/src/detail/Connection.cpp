@@ -15,19 +15,19 @@ namespace detail {
 
     template <class ConnectionIdType>
     Connection<ConnectionIdType>::Connection(const ConnectionIdType & connectionId,
-                                             const protocol_statemachine::CBStateMachine::PeerAnnouncedMode & peerAnnouncedMode,
-                                             const protocol_statemachine::CBStateMachine::InvitedToOutdatedContract & invitedToOutdatedContract,
-                                             const protocol_statemachine::CBStateMachine::InvitedToJoinContract & invitedToJoinContract,
-                                             const protocol_statemachine::CBStateMachine::Send & send,
-                                             const protocol_statemachine::CBStateMachine::ContractIsReady & contractIsReady,
-                                             const protocol_statemachine::CBStateMachine::PieceRequested & pieceRequested,
-                                             const protocol_statemachine::CBStateMachine::InvalidPieceRequested & invalidPieceRequested,
-                                             const protocol_statemachine::CBStateMachine::PeerInterruptedPayment & peerInterruptedPayment,
-                                             const protocol_statemachine::CBStateMachine::ValidPayment & validPayment,
-                                             const protocol_statemachine::CBStateMachine::InvalidPayment & invalidPayment,
-                                             const protocol_statemachine::CBStateMachine::SellerJoined & sellerJoined,
-                                             const protocol_statemachine::CBStateMachine::SellerInterruptedContract & sellerInterruptedContract,
-                                             const protocol_statemachine::CBStateMachine::ReceivedFullPiece & receivedFullPiece)
+                                             const protocol_statemachine::PeerAnnouncedMode & peerAnnouncedMode,
+                                             const protocol_statemachine::InvitedToOutdatedContract & invitedToOutdatedContract,
+                                             const protocol_statemachine::InvitedToJoinContract & invitedToJoinContract,
+                                             const protocol_statemachine::Send & send,
+                                             const protocol_statemachine::ContractIsReady & contractIsReady,
+                                             const protocol_statemachine::PieceRequested & pieceRequested,
+                                             const protocol_statemachine::InvalidPieceRequested & invalidPieceRequested,
+                                             const protocol_statemachine::PeerInterruptedPayment & peerInterruptedPayment,
+                                             const protocol_statemachine::ValidPayment & validPayment,
+                                             const protocol_statemachine::InvalidPayment & invalidPayment,
+                                             const protocol_statemachine::SellerJoined & sellerJoined,
+                                             const protocol_statemachine::SellerInterruptedContract & sellerInterruptedContract,
+                                             const protocol_statemachine::ReceivedFullPiece & receivedFullPiece)
         : _connectionId(connectionId)
         , _machine(peerAnnouncedMode,
                    invitedToOutdatedContract,
