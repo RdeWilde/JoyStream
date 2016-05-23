@@ -113,8 +113,7 @@ namespace detail {
         std::vector<ConnectionIdType> connectionIds() const;
 
         // Process given message on given connection with given ID
-        // Routine does not take ownership of message object
-        void processMessageOnConnection(const ConnectionIdType &, const protocol_wire::ExtendedMessagePayload *);
+        void processMessageOnConnection(const ConnectionIdType &, const protocol_wire::ExtendedMessagePayload &);
 
         //// Buying
 
