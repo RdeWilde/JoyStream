@@ -284,10 +284,8 @@ namespace detail {
             throw exception::StateIncompatibleOperation("cannot stop while already stopped.");
 
         // Disconnect everyone
-        std::vector<ConnectionIdType> ids = _session->connectionIds();
-
-        for(const ConnectionIdType & id : ids)
-            removeConnection(id, DisconnectCause::client);
+        for(auto mapping : _session->_connections)
+            removeConnection(mapping.first, DisconnectCause::client);
 
         // Update state
         _session->_state = SessionState::stopped;
