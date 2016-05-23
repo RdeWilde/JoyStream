@@ -392,14 +392,15 @@ namespace detail {
         // Generate statuses of all pieces
         std::vector<status::Piece<ConnectionIdType>> pieceStatuses;
 
+        // SKIPPING DUE TO SPEED
         //for(auto piece : _pieces)
         //    pieceStatuses.push_back(piece.status());
 
         // Generate statuses of all sellers
-        std::map<ConnectionIdType, Seller<ConnectionIdType>> sellerStatuses;
+        std::map<ConnectionIdType, status::Seller<ConnectionIdType>> sellerStatuses;
 
-        for(auto seller : _sellers)
-            sellerStatuses.insert(seller.first, seller.second.status());
+        for(auto mapping : _sellers)
+            sellerStatuses.insert(std::make_pair(mapping.first, mapping.second.status()));
 
         return status::Buying<ConnectionIdType>(_funding,
                                                 _policy,

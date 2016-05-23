@@ -141,6 +141,8 @@ namespace status {
     template <class ConnectionIdType>
     class Seller {
 
+    public:
+
         Seller() {}
 
         Seller(SellerState state, ConnectionIdType connection)
@@ -247,6 +249,8 @@ namespace status {
     template <class ConnectionIdType>
     class Session {
 
+    public:
+
         Session() {}
 
         Session(SessionMode mode, SessionState state, const std::map<ConnectionIdType, Connection<ConnectionIdType>> & connections, const Selling & selling, const Buying<ConnectionIdType>  & buying)
@@ -261,13 +265,23 @@ namespace status {
 
         SessionState state() const { return _state; }
 
+        Connection<ConnectionIdType> connection(const ConnectionIdType & id) const {
+
+            auto itr = _connections.find(id);
+
+            if(itr == _connections.cend())
+                throw std::runtime_error("There is no status for connection with given id.");
+            else
+                return itr->second;
+        }
+
         std::map<ConnectionIdType, Connection<ConnectionIdType> > connections() const { return _connections; }
 
         Selling selling() const { return _selling; }
 
         Buying<ConnectionIdType> buying() const { return _buying; }
 
-    public:
+    private:
 
         // Session mode
         SessionMode _mode;

@@ -650,7 +650,7 @@ namespace protocol_session {
         std::map<ConnectionIdType, status::Connection<ConnectionIdType>> connectionStatuses;
 
         for(auto mapping : _connections)
-            connectionStatuses.insert(mapping.first, mapping.second->status());
+            connectionStatuses.insert(std::make_pair(mapping.first, (mapping.second)->status()));
 
         // Generate Session status
         return status::Session<ConnectionIdType>(_mode,
