@@ -62,6 +62,20 @@ namespace detail {
     template <class ConnectionIdType>
     void Observing<ConnectionIdType>::stop() {
 
+        // We cant stop if we have already stopped
+        if(_session->state() == SessionState::stopped)
+            throw exception::StateIncompatibleOperation("cannot stop while already stopped.");
+
+        // Disconnect everyone
+        for(auto mapping : _session->_connections) {
+
+            // Notify client to remove connection
+            _removedConnection(mapping.first, DisconnectCause::client);
+
+            // Destroy connection
+            _session->destroyConnection(mapping.first);
+        }
+
         // Update state
         _session->_state = SessionState::stopped;
     }
