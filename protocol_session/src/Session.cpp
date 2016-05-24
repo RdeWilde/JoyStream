@@ -809,19 +809,19 @@ namespace protocol_session {
 
         return new detail::Connection<ConnectionIdType>(
         id,
-        [this, &id](const protocol_statemachine::AnnouncedModeAndTerms & a) { this->peerAnnouncedModeAndTerms(id, a); },
-        [this, &id](void) { this->invitedToOutdatedContract(id); },
-        [this, &id]() { this->invitedToJoinContract(id); },
-        [this, &callback](const protocol_wire::ExtendedMessagePayload * m) { callback(m); },
-        [this, &id](quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::PubKeyHash & payorFinalPkHash) { this->contractPrepared(id, value, anchor, payorContractPk, payorFinalPkHash); },
-        [this, &id](int i) { this->pieceRequested(id, i); },
-        [this, &id]() { this->invalidPieceRequested(id); },
-        [this, &id]() { this->paymentInterrupted(id); },
-        [this, &id](const Coin::Signature & s) { this->receivedValidPayment(id, s); },
-        [this, &id](const Coin::Signature & s) { this->receivedInvalidPayment(id, s); },
-        [this, &id]() { this->sellerHasJoined(id); },
-        [this, &id]() { this->sellerHasInterruptedContract(id); },
-        [this, &id](const protocol_wire::PieceData & p) { this->receivedFullPiece(id, p); });
+        [this, id](const protocol_statemachine::AnnouncedModeAndTerms & a) { this->peerAnnouncedModeAndTerms(id, a); },
+        [this, id](void) { this->invitedToOutdatedContract(id); },
+        [this, id]() { this->invitedToJoinContract(id); },
+        [this, callback](const protocol_wire::ExtendedMessagePayload * m) { callback(m); },
+        [this, id](quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::PubKeyHash & payorFinalPkHash) { this->contractPrepared(id, value, anchor, payorContractPk, payorFinalPkHash); },
+        [this, id](int i) { this->pieceRequested(id, i); },
+        [this, id]() { this->invalidPieceRequested(id); },
+        [this, id]() { this->paymentInterrupted(id); },
+        [this, id](const Coin::Signature & s) { this->receivedValidPayment(id, s); },
+        [this, id](const Coin::Signature & s) { this->receivedInvalidPayment(id, s); },
+        [this, id]() { this->sellerHasJoined(id); },
+        [this, id]() { this->sellerHasInterruptedContract(id); },
+        [this, id](const protocol_wire::PieceData & p) { this->receivedFullPiece(id, p); });
     }
 
     template <class ConnectionIdType>
