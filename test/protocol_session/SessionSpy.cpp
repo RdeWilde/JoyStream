@@ -64,15 +64,18 @@ void SessionSpy<ConnectionIdType>::toMonitoredBuyMode(const Coin::UnspentP2PKHOu
 template <class ConnectionIdType>
 ConnectionSpy<ConnectionIdType> * SessionSpy<ConnectionIdType>::addConnection(const ConnectionIdType & id) {
 
+    /**
     if(connectionSpies.find(id) != connectionSpies.end())
         throw std::runtime_error("There is alreay a spy for this connection.");
 
     assert(!_session->hasConnection(id));
+    */
 
     // Create spy for connection
     ConnectionSpy<ConnectionIdType> * spy = new ConnectionSpy<ConnectionIdType>(id);
 
     // Create connection, spied on by spy, and add to underlying session
+    // NB*: may cause exception if connecton id already has been added, in which case spy leaks
     _session->addConnection(id, spy->sendMessageOnConnectionCallbackSlot.hook());
 
     // Insert spy into mapping
@@ -85,16 +88,16 @@ template <class ConnectionIdType>
 bool SessionSpy<ConnectionIdType>::noSessionEvents() const {
 
             //// General
-    return !removedConnectionCallbackSlot.called &&
-            !generateKeyPairsCallbackSlot.called &&
-            !generateP2PKHAddressesCallbackSlot.called &&
+    return  removedConnectionCallbackSlot.empty() &&
+            generateKeyPairsCallbackSlot.empty() &&
+            generateP2PKHAddressesCallbackSlot.empty() &&
             //// Buying
-            !broadcastTransactionCallbackSlot.called &&
-            !fullPieceArrivedCallbackSlot.called &&
-             //// Selling
-            !loadPieceForBuyerCallbackSlot.called &&
-            !claimLastPaymentCallbackSlot.called &&
-            !anchorAnnouncedCallbackSlot.called;
+            broadcastTransactionCallbackSlot.empty() &&
+            fullPieceArrivedCallbackSlot.empty() &&
+            //// Selling
+            loadPieceForBuyerCallbackSlot.empty() &&
+            claimLastPaymentCallbackSlot.empty() &&
+            anchorAnnouncedCallbackSlot.empty();
 }
 
 template <class ConnectionIdType>
@@ -114,18 +117,18 @@ template <class ConnectionIdType>
 void SessionSpy<ConnectionIdType>::reset() {
 
     //// General
-    removedConnectionCallbackSlot.reset();
-    generateKeyPairsCallbackSlot.reset();
-    generateP2PKHAddressesCallbackSlot.reset();
+    removedConnectionCallbackSlot.clear();
+    generateKeyPairsCallbackSlot.clear();
+    generateP2PKHAddressesCallbackSlot.clear();
 
     //// Buying
-    broadcastTransactionCallbackSlot.reset();
-    fullPieceArrivedCallbackSlot.reset();
+    broadcastTransactionCallbackSlot.clear();
+    fullPieceArrivedCallbackSlot.clear();
 
     //// Selling
-    loadPieceForBuyerCallbackSlot.reset();
-    claimLastPaymentCallbackSlot.reset();
-    anchorAnnouncedCallbackSlot.reset();
+    loadPieceForBuyerCallbackSlot.clear();
+    claimLastPaymentCallbackSlot.clear();
+    anchorAnnouncedCallbackSlot.clear();
 
     // Connection spies
     for(auto mapping : connectionSpies)

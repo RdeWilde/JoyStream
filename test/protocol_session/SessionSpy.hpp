@@ -14,237 +14,101 @@
 using namespace joystream;
 using namespace joystream::protocol_session;
 
-template <class ConnectionIdType>
-struct RemovedConnectionCallbackSlot {
+template <typename... Args>
+using Frame = std::tuple<Args...>;
 
-    RemovedConnectionCallbackSlot() { reset(); }
+template <typename... Args>
+struct FrameQueue : public std::deque<Frame<Args...>> {
 
-    void reset() {
-        called = false;
-        cause = DisconnectCause::buyer_interrupted_payment; // arbitary, but fixed, default value
+    template <uint N>
+    typename std::tuple_element<N, Frame<Args...>>::type frontFrame() const {
+
+        if(std::deque<Frame<Args...>>::empty())
+            throw std::runtime_error("Frame queue is empty.");
+        else {
+
+            Frame<Args...> f = this->front();//std::deque<Frame<Args...>>::front();
+
+            return std::get<N>(f);
+        }
     }
-
-    RemovedConnectionCallbackHandler<ConnectionIdType> hook() {
-        return [this](const ConnectionIdType & id, DisconnectCause cause) {
-            this->called = true;
-            this->id = id;
-            this->cause = cause;
-        };
-    }
-
-    bool called;
-    ConnectionIdType id;
-    DisconnectCause cause;
 };
 
-template <class ConnectionIdType>
-struct GenerateKeyPairsCallbackSlot {
+// Callback slot where the underlying callback has no return value, i.e. is a 'subroutine'
+template <typename... Args>
+class SubroutineCallbackSlot : public FrameQueue<Args...> {
 
-    GenerateKeyPairsCallbackSlot(const GenerateKeyPairsCallbackHandler & handler)
-        : _handler(handler){ reset(); }
+public:
 
-    void reset() {
-        called = false;
-        n = 0;
-    }
+    typedef std::function<void(Args...)> Callback;
 
-    GenerateP2PKHAddressesCallbackHandler hook() const {
-        return [this](int n) {
-            this->called = true;
-            this->n = n;
-            return _handler(n);
+    Callback hook() {
+        return [this](Args... args) -> void {
+            this->push_back(Frame<Args...>(args...));
         };
     }
 
-    bool called;
-    int n;
+};
+
+// Callback slot where the underlying callback has return value, i.e. is a 'function'
+template <class R, typename... Args>
+class FunctionCallbackSlot  : public FrameQueue<Args...>{
+
+public:
+
+    typedef std::function<R(Args...)> Callback;
+
+    FunctionCallbackSlot(const Callback & callback) : _callback(callback) {}
+
+    Callback hook() {
+        return [this](Args... args) {
+            this->push_back(Frame<Args...>(args...));
+            return _callback(args...);
+        };
+    }
 
 private:
 
-    GenerateKeyPairsCallbackHandler _handler;
+    Callback _callback;
 };
 
 template <class ConnectionIdType>
-struct GenerateP2PKHAddressesCallbackSlot {
-
-    GenerateP2PKHAddressesCallbackSlot(const GenerateP2PKHAddressesCallbackHandler & handler)
-        : _handler(handler){ reset(); }
-
-    void reset() {
-        called = false;
-        n = 0;
-    }
-
-    GenerateP2PKHAddressesCallbackHandler hook() const {
-        return [this](int n) {
-            this->called = true;
-            this->n = n;
-            return _handler(n);
-        };
-    }
-
-    bool called;
-    int n;
-
-private:
-
-    GenerateP2PKHAddressesCallbackHandler _handler;
-};
-
-struct SendMessageOnConnectionCallbackSlot {
-
-    SendMessageOnConnectionCallbackSlot() : called(false) { reset(); }
-
-    void reset() {
-        called = false;
-        message = std::unique_ptr<const protocol_wire::ExtendedMessagePayload>();
-    }
-
-    SendMessageOnConnection hook() {
-
-        return [this](const protocol_wire::ExtendedMessagePayload * message) {
-            this->called = true;
-            this->message = std::unique_ptr<const protocol_wire::ExtendedMessagePayload>(message);
-        };
-    }
-
-    bool called;
-    std::unique_ptr<const protocol_wire::ExtendedMessagePayload> message;
-};
-
-struct BroadcastTransactionCallbackSlot {
-
-    BroadcastTransactionCallbackSlot(const BroadcastTransaction & handler)
-        : _handler(handler) { reset(); }
-
-    void reset() {
-        called = false;
-        tx = Coin::Transaction();
-    }
-
-    BroadcastTransaction hook() {
-        return [this](const Coin::Transaction & tx) {
-            this->called = true;
-            this->tx = tx;
-            return _handler(tx);
-        };
-    }
-
-    bool called;
-    Coin::Transaction tx;
-
-private:
-
-    BroadcastTransaction _handler;
-};
+using RemovedConnectionCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, DisconnectCause>;
 
 template <class ConnectionIdType>
-struct FullPieceArrivedCallbackSlot {
-
-    FullPieceArrivedCallbackSlot() { reset(); }
-
-    void reset() {
-        called = false;
-        id = ConnectionIdType();
-        pieceData = protocol_wire::PieceData();
-        index = 0;
-    }
-
-    FullPieceArrived<ConnectionIdType> hook() const {
-        return [this](const ConnectionIdType & id, const protocol_wire::PieceData & pieceData, int index) {
-            this->called = true;
-            this->id = id;
-            this->pieceData = pieceData;
-            this->index = index;
-        };
-    }
-
-    bool called;
-    ConnectionIdType id;
-    protocol_wire::PieceData pieceData;
-    int index;
-};
+using GenerateKeyPairsCallbackSlot = FunctionCallbackSlot<std::vector<Coin::KeyPair>,int>;
 
 template <class ConnectionIdType>
-struct LoadPieceForBuyerCallbackSlot {
+using GenerateP2PKHAddressesCallbackSlot = FunctionCallbackSlot<std::vector<Coin::P2PKHAddress>,int>;
 
-    LoadPieceForBuyerCallbackSlot() { reset(); }
+//// ***** CHANGE FROM UNIQUE_PTR TO SHARED_PTR ***** ////
 
-    void reset() {
-        called = false;
-        id = ConnectionIdType();
-        index = 0;
-    }
+/// NB***: This will leak when cleared, as no one is managing queue.
+/// A fix would be to have state machine send out smart pointer rather than raw pointer
+typedef SubroutineCallbackSlot<const protocol_wire::ExtendedMessagePayload *> SendMessageOnConnectionCallbackSlot;
 
-    LoadPieceForBuyer<ConnectionIdType> hook() const {
-        return [this](const ConnectionIdType & id, unsigned int index) {
-            this->called = true;
-            this->id = id;
-            this->index = index;
-        };
-    }
-
-    bool called;
-    ConnectionIdType id;
-    unsigned int index;
-};
+typedef FunctionCallbackSlot<bool, Coin::Transaction> BroadcastTransactionCallbackSlot;
 
 template <class ConnectionIdType>
-struct ClaimLastPaymentCallbackSlot {
-
-    ClaimLastPaymentCallbackSlot() { reset(); }
-
-    void reset() {
-        called = false;
-        id = ConnectionIdType();
-        payee = joystream::paymentchannel::Payee();
-    }
-
-    ClaimLastPayment<ConnectionIdType> hook() {
-        return [this](const ConnectionIdType & id, const joystream::paymentchannel::Payee & payee) {
-            this->called = true;
-            this->id = id;
-            this->payee = payee;
-        };
-    }
-
-    bool called;
-    ConnectionIdType id;
-    joystream::paymentchannel::Payee payee;
-};
+using FullPieceArrivedCallbackSlot = SubroutineCallbackSlot<const ConnectionIdType &, const protocol_wire::PieceData &, int>;
 
 template <class ConnectionIdType>
-struct AnchorAnnouncedCallbackSlot {
+using LoadPieceForBuyerCallbackSlot = SubroutineCallbackSlot<const ConnectionIdType &, unsigned int>;
 
-    AnchorAnnouncedCallbackSlot() { reset(); }
+template <class ConnectionIdType>
+using ClaimLastPaymentCallbackSlot = SubroutineCallbackSlot<const ConnectionIdType &, const joystream::paymentchannel::Payee &>;
 
-    void reset() {
-        called = false;
-        id = ConnectionIdType();
-        anchor = Coin::typesafeOutPoint();
-    }
-
-    AnchorAnnounced<ConnectionIdType> hook() {
-        return [this](const ConnectionIdType & id, const Coin::typesafeOutPoint & anchor) {
-            this->called = true;
-            this->id = id;
-            this->anchor = anchor;
-        };
-    }
-
-    bool called;
-    ConnectionIdType id;
-    Coin::typesafeOutPoint anchor;
-};
+template <class ConnectionIdType>
+using AnchorAnnouncedCallbackSlot = SubroutineCallbackSlot<const ConnectionIdType &, const Coin::typesafeOutPoint &>;
 
 template <class ConnectionIdType>
 struct ConnectionSpy {
 
     ConnectionSpy(const ConnectionIdType & x) :id(x) { reset(); }
 
-    void reset() { sendMessageOnConnectionCallbackSlot.reset(); }
+    void reset() { sendMessageOnConnectionCallbackSlot.clear(); }
 
-    bool blank() { return !sendMessageOnConnectionCallbackSlot.called; }
+    bool blank() const { return sendMessageOnConnectionCallbackSlot.empty(); }
 
     ConnectionIdType id;
 
@@ -300,6 +164,7 @@ public:
     ClaimLastPaymentCallbackSlot<ConnectionIdType> claimLastPaymentCallbackSlot;
     AnchorAnnouncedCallbackSlot<ConnectionIdType> anchorAnnouncedCallbackSlot;
 
+    // Connection spies
     std::map<ConnectionIdType, ConnectionSpy<ConnectionIdType> *> connectionSpies;
 
 private:
