@@ -5,6 +5,8 @@
 #include <odb/transaction.hxx>
 #include <odb/sqlite/database.hxx>
 
+#include <CoinCore/hash.h> // ripemd160(sha256(pubkey))
+
 namespace joystream {
 namespace bitcoin {
 namespace detail {
@@ -34,14 +36,12 @@ namespace store {
 
 /// Key
 
-    Key::Key(uint32_t index, bool used) :
+    Key::Key(uint32_t index) :
         index_(index),
-        used_(used),
         generated_(std::time(nullptr))
     {}
 
-    Key::Key(bool used) :
-        used_(used),
+    Key::Key() :
         generated_(std::time(nullptr))
     {}
 
@@ -53,20 +53,12 @@ namespace store {
         return generated_;
     }
 
-    bool Key::used() const {
-        return used_;
-    }
-
-    void Key::used(bool isUsed) {
-        used_ = isUsed;
-    }
-
 /// Address
 
-    Address::Address(const std::shared_ptr<Key> & key, const Coin::P2PKHAddress & p2pkh_addr) {
+    Address::Address(const std::shared_ptr<Key> & key, const uchar_vector & redeemScript) {
         key_ = key;
-        Coin::PubKeyHash pubKeyHash = p2pkh_addr.pubKeyHash();
-        scriptPubKey_ = Coin::P2PKHScriptPubKey(pubKeyHash).serialize().getHex();
+        redeemScript_ = redeemScript.getHex();
+        scriptPubKey_ = Coin::P2SHScriptPubKey::fromSerializedRedeemScript(redeemScript).serialize().getHex();
     }
 
 /// Transaction
@@ -172,7 +164,14 @@ namespace store {
         return lhs.tx->txid() < rhs.tx->txid();
     }
 
+    // BlockHeader
 
+    BlockHeader::BlockHeader(const ChainMerkleBlock &header) {
+        id_ =  header.hash().getHex();
+        height_ = header.height;
+    }
+
+#ifdef USE_STORE_ALPHA_CODE
 /// InBoundPayment
 
     InBoundPayment::InBoundPayment(const std::shared_ptr<Address> &address,
@@ -195,15 +194,6 @@ namespace store {
         created_(std::time(nullptr))
     {}
 
-
-// BlockHeader
-
-    BlockHeader::BlockHeader(const ChainMerkleBlock &header) {
-        id_ =  header.hash().getHex();
-        height_ = header.height;
-    }
-
-#ifdef USE_STORE_ALPHA_CODE
 // Payer
 
     Payer::Payer(std::shared_ptr<Transaction> tx)

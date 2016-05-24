@@ -11,8 +11,8 @@
 #include <common/PrivateKey.hpp>
 #include <common/PublicKey.hpp>
 #include <common/PubKeyHash.hpp>
-#include <common/P2PKHAddress.hpp>
-#include <common/P2PKHScriptPubKey.hpp>
+#include <common/P2SHAddress.hpp>
+#include <common/P2SHScriptPubKey.hpp>
 
 #include <common/TransactionId.hpp>
 #include <common/BlockId.hpp>
@@ -68,13 +68,12 @@ class Key : public std::enable_shared_from_this<Key> {
 public:
     std::shared_ptr<Key> get_shared_ptr() { return shared_from_this(); }
 
-    Key(uint32_t index, bool used = true);
-    Key(bool used = true);
+    Key(uint32_t index);
+    Key();
 
     uint32_t id() const;
     uint32_t generated() const;
-    bool used() const;
-    void used(bool);
+
     Coin::PrivateKey getPrivateKey() const { return Coin::PrivateKey(uchar_vector(raw_)); }
     void setPrivateKey(Coin::PrivateKey sk) { raw_ = sk.toHex().toStdString(); }
 
@@ -85,7 +84,7 @@ private:
     uint32_t index_;
     //utc unix timestamp: QDateTime::fromTime_t(created_) to convert to QDateTime local time
     uint32_t generated_;
-    bool used_;
+
     std::string raw_; //hex encoded raw private key
 };
 
@@ -99,10 +98,11 @@ public:
     std::shared_ptr<Address> get_shared_ptr() { return shared_from_this(); }
 
     Address() {}
-    Address(const std::shared_ptr<Key> & key_, const Coin::P2PKHAddress & p2pkh_addr);
+    Address(const std::shared_ptr<Key> & key_, const uchar_vector & redeemScript);
     const std::shared_ptr<Key> key() const { return key_; }
 
     std::string scriptPubKey() const { return scriptPubKey_; }
+    std::string redeemScript() const { return redeemScript_; }
 
 private:
     friend class odb::access;
@@ -110,11 +110,14 @@ private:
     #pragma db id auto
     unsigned long id_;
 
-    #pragma db not_null unique //unique - it doesn't make sense to have two address objects for the same key
-    std::shared_ptr<Key> key_; //to establish a relation with the Wallet::Key
+    #pragma db not_null unique // unique - it doesn't make sense to have two address objects for the same key
+    std::shared_ptr<Key> key_; // to establish a relation with the Wallet::Key
 
     #pragma db not_null
-    std::string scriptPubKey_;//to lookup outputs to this address
+    std::string scriptPubKey_; // to lookup outputs to this address
+
+    #pragma db not_null
+    std::string redeemScript_; // hex encoded redeem script
 };
 
 /*
@@ -369,9 +372,10 @@ typedef struct {
 #pragma db view object(Key = key) object(Address = address)
 typedef struct {
     std::shared_ptr<Key> key;
+    std::shared_ptr<Address> address;
 } key_view_t;
 
-
+#ifdef USE_STORE_ALPHA_CODE
 /*
  * InBoundPayment
  */
@@ -424,7 +428,7 @@ private:
     std::shared_ptr<Address> changeAddress_;
 };
 
-#ifdef USE_STORE_ALPHA_CODE
+
 #pragma db object pointer(std::shared_ptr)
 class Payer : public std::enable_shared_from_this<Payer> {
 public:

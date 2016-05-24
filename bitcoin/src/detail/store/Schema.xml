@@ -8,7 +8,6 @@
     <table name="Key" kind="object">
       <column name="index" type="INTEGER" null="false"/>
       <column name="generated" type="INTEGER" null="false"/>
-      <column name="used" type="INTEGER" null="false"/>
       <column name="raw" type="TEXT" null="false"/>
       <primary-key auto="true">
         <column name="index"/>
@@ -18,6 +17,7 @@
       <column name="id" type="INTEGER" null="false"/>
       <column name="key" type="INTEGER" null="false"/>
       <column name="scriptPubKey" type="TEXT" null="false"/>
+      <column name="redeemScript" type="TEXT" null="false"/>
       <primary-key auto="true">
         <column name="id"/>
       </primary-key>
@@ -144,39 +144,6 @@
         <column name="tx_ix_tx"/>
         <column name="tx_ix_index"/>
       </index>
-    </table>
-    <table name="InBoundPayment" kind="object">
-      <column name="id" type="INTEGER" null="false"/>
-      <column name="created" type="INTEGER" null="false"/>
-      <column name="note" type="TEXT" null="false"/>
-      <column name="receiveAddress" type="INTEGER" null="true"/>
-      <primary-key auto="true">
-        <column name="id"/>
-      </primary-key>
-      <foreign-key name="receiveAddress_fk" deferrable="DEFERRED">
-        <column name="receiveAddress"/>
-        <references table="Address">
-          <column name="id"/>
-        </references>
-      </foreign-key>
-    </table>
-    <table name="OutBoundPayment" kind="object">
-      <column name="id" type="INTEGER" null="false"/>
-      <column name="fee" type="INTEGER" null="false"/>
-      <column name="amount" type="INTEGER" null="false"/>
-      <column name="note" type="TEXT" null="false"/>
-      <column name="created" type="INTEGER" null="false"/>
-      <column name="toAddress" type="TEXT" null="false"/>
-      <column name="changeAddress" type="INTEGER" null="true"/>
-      <primary-key auto="true">
-        <column name="id"/>
-      </primary-key>
-      <foreign-key name="changeAddress_fk" deferrable="DEFERRED">
-        <column name="changeAddress"/>
-        <references table="Address">
-          <column name="id"/>
-        </references>
-      </foreign-key>
     </table>
   </model>
 </changelog>

@@ -172,20 +172,19 @@ void Store::close() {
 }
 
 // Generates a new key (NOT from key pool) so doesn't require synchronization
-Coin::PrivateKey Store::getKey(bool createReceiveAddress) {
+Coin::PrivateKey Store::getKey(const RedeemScriptGenerator & scriptGenerator) {
     if(!connected()) {
         throw NotConnected();
     }
 
     odb::transaction t(_db->begin());
-    Coin::PrivateKey sk(createNewPrivateKey(createReceiveAddress));
+    Coin::PrivateKey sk(createNewPrivateKey(scriptGenerator));
     t.commit();
 
     return sk;
 }
 
-
-std::vector<Coin::PrivateKey> Store::getKeys(uint32_t numKeys, bool createReceiveAddress) {
+std::vector<Coin::PrivateKey> Store::getKeys(const std::vector<RedeemScriptGenerator> & scriptGenerators) {
     if(!connected()) {
         throw NotConnected();
     }
@@ -197,23 +196,19 @@ std::vector<Coin::PrivateKey> Store::getKeys(uint32_t numKeys, bool createReceiv
     std::lock_guard<std::mutex> lock(_storeMutex);
 
     std::vector<Coin::PrivateKey> privKeys;
-    result r;
+    result pool;
 
     odb::transaction t(_db->begin());
-    if(createReceiveAddress) {
-        r = _db->query<detail::store::key_view_t>((query::address::id.is_not_null()
-                                    && query::key::used == false) + "LIMIT" + query::_val(numKeys));
-    } else {
-        r = _db->query<detail::store::key_view_t>((query::address::id.is_null()
-                                   && query::key::used == false) + "LIMIT" + query::_val(numKeys));
-    }
+    uint32_t numKeys = scriptGenerators.size();
+    pool = _db->query<detail::store::key_view_t>(query::address::id.is_null() + "LIMIT" + query::_val(numKeys));
 
     uint32_t n = 0;
-    for(auto &i : r) {
-        privKeys.push_back(i.key->getPrivateKey());
-        // removing key from the pool
-        i.key->used(true);
-        _db->update(i.key);
+
+    for(auto &entry : pool) {
+        Coin::PrivateKey sk(entry.key->getPrivateKey());
+        privKeys.push_back(sk);
+        std::shared_ptr<detail::store::Address> address(new detail::store::Address(entry.key, scriptGenerators[n](sk.toPublicKey())));
+        _db->persist(address);
         n++;
         if(n == numKeys) break;
     }
@@ -221,7 +216,7 @@ std::vector<Coin::PrivateKey> Store::getKeys(uint32_t numKeys, bool createReceiv
     // if we didn't find enough unused keys in the database, generate the rest
     if(n < numKeys) {
         for(; n < numKeys; n++) {
-            privKeys.push_back(createNewPrivateKey(createReceiveAddress));
+            privKeys.push_back(createNewPrivateKey(scriptGenerators[n]));
         }
     }
 
@@ -230,28 +225,49 @@ std::vector<Coin::PrivateKey> Store::getKeys(uint32_t numKeys, bool createReceiv
     return privKeys;
 }
 
-// Generates new keys (NOT from key pool) so doesn't require synchronization
-// Not this routine could be refactored to use getKeyChains() to retreive keys from the 'key pool'
-std::vector<Coin::KeyPair> Store::getKeyPairs(uint32_t num_pairs, bool createReceiveAddress) {
-    if(!connected()) {
-        throw NotConnected();
-    }
+std::vector<Coin::KeyPair> Store::getKeyPairs(const std::vector<RedeemScriptGenerator> & scriptGenerators) {
 
     std::vector<Coin::KeyPair> keyPairs;
 
-    odb::transaction t(_db->begin());
-    for(uint32_t i = 0; i < num_pairs; i++){
-
-        Coin::PrivateKey sk(createNewPrivateKey(createReceiveAddress));
+    for(auto sk : getKeys(scriptGenerators)) {
         keyPairs.push_back(Coin::KeyPair(sk));
     }
-    t.commit();
+
     return keyPairs;
 }
 
 // Generates a new key so doesn't require synchronization
-Coin::P2PKHAddress Store::getReceiveAddress() {
-    return getKey(true).toPublicKey().toP2PKHAddress(_network);
+Coin::P2SHAddress Store::getReceiveAddress() {
+
+    uchar_vector redeemScript;
+
+    getKey([&redeemScript](Coin::PublicKey pubKey) {
+       // Construct the redeem script from pubkey
+       //Coin::P2PKScriptPubKey script(pubKey);
+       //redeemdScript = script.serialize();   // [pubKey, checkSig]
+       return redeemScript;
+    });
+
+    Coin::RedeemScriptHash scriptHash(ripemd160(sha256(redeemScript)));
+    return Coin::P2SHAddress(_network, scriptHash);
+}
+
+void Store::releaseAddress(const Coin::P2SHAddress & p2shaddress) {
+    if(!connected()) {
+        throw NotConnected();
+    }
+
+    std::string scriptPubKey = Coin::P2SHScriptPubKey(p2shaddress.redeemScriptHash()).serialize().getHex();
+
+    typedef odb::query<detail::store::Address> query;
+
+    // Releasing a key requires synchronizing access to the key pool
+    std::lock_guard<std::mutex> lock(_storeMutex);
+
+    odb::transaction t(_db->begin());
+    std::shared_ptr<detail::store::Address> addr(_db->query_one<detail::store::Address>(query::scriptPubKey == scriptPubKey));
+    _db->erase(addr);
+    t.commit();
 }
 
 uint32_t Store::numberOfKeysInWallet() {
@@ -267,82 +283,35 @@ uint32_t Store::numberOfKeysInWallet() {
 }
 
 
-void Store::releaseKey(const Coin::PrivateKey &sk) {
-    if(!connected()) {
-        throw NotConnected();
-    }
-
-    std::string raw = sk.toHex().toStdString();
-
-    // Releasing a key requires synchronizing access to the key pool
-    std::lock_guard<std::mutex> lock(_storeMutex);
-
-    odb::transaction t(_db->begin());
-    odb::result<detail::store::Key> r(_db->query<detail::store::Key>(odb::query<detail::store::Key>::raw == raw &&
-                                                                     odb::query<detail::store::Key>::used == true));
-    if(!r.empty()) {
-        std::shared_ptr<detail::store::Key> key(r.begin().load());
-        key->used(false);
-        _db->update(key);
-        t.commit();
-    }
+void Store::releaseKey(const Coin::PrivateKey &sk)
+{
+    releaseKeys({sk});
 }
 
-void Store::releaseKeys(const std::vector<Coin::PrivateKey> &privateKeys) {
+void Store::releaseKeys(const std::vector<Coin::PrivateKey> &privateKeys)
+{
     if(!connected()) {
         throw NotConnected();
     }
 
     // Releasing a key requires synchronizing access to the key pool
     std::lock_guard<std::mutex> lock(_storeMutex);
+
+    typedef odb::query<detail::store::key_view_t> query;
+    typedef odb::result<detail::store::key_view_t> result;
 
     odb::transaction t(_db->begin());
 
     for(auto &sk : privateKeys) {
         std::string raw = sk.toHex().toStdString();
-        odb::result<detail::store::Key> r(_db->query<detail::store::Key>(odb::query<detail::store::Key>::raw == raw &&
-                                                                         odb::query<detail::store::Key>::used == true));
+        result r(_db->query<detail::store::key_view_t>(query::address::id.is_not_null() && query::key::raw == raw));
+
         if(!r.empty()) {
-            std::shared_ptr<detail::store::Key> key(r.begin().load());
-            key->used(false);
-            _db->update(key);
+            _db->erase(r.begin().load()->address);
         }
     }
 
     t.commit();
-}
-
-// this method is slow, better to call releaseKey if possible, because it has to lookup
-// the key via the address
-void Store::releaseAddress(const Coin::P2PKHAddress & p2pkhaddress) {
-    if(!connected()) {
-        throw NotConnected();
-    }
-
-    std::string scriptPubKey = Coin::P2PKHScriptPubKey(p2pkhaddress.pubKeyHash()).serialize().getHex();
-
-    typedef odb::query<detail::store::Address> query;
-
-    // Releasing a key requires synchronizing access to the key pool
-    std::lock_guard<std::mutex> lock(_storeMutex);
-
-    odb::transaction t(_db->begin());
-    std::shared_ptr<detail::store::Address> addr(_db->query_one<detail::store::Address>(query::scriptPubKey == scriptPubKey));
-    if(addr) {
-        addr->key()->used(false);
-        _db->update(addr->key());
-        t.commit();
-    }
-}
-
-std::list<Coin::P2PKHAddress> Store::listReceiveAddresses() {
-    std::list<Coin::P2PKHAddress> addresses;
-
-    for(auto &sk : listPrivateKeys()) {
-        addresses.insert(addresses.end(), sk.toPublicKey().toP2PKHAddress(_network));
-    }
-
-    return addresses;
 }
 
 std::vector<Coin::PrivateKey> Store::listPrivateKeys() {
@@ -356,9 +325,9 @@ std::vector<Coin::PrivateKey> Store::listPrivateKeys() {
     std::vector<Coin::PrivateKey> keys;
 
     odb::transaction t(_db->begin());
-    result r(_db->query<detail::store::key_view_t>(query::address::id.is_not_null() && query::key::used == true));
-    for(auto &record : r) {
-        keys.push_back(record.key->getPrivateKey());
+    result r(_db->query<detail::store::key_view_t>(query::address::id.is_not_null()));
+    for(auto &entry : r) {
+        keys.push_back(entry.key->getPrivateKey());
     }
 
     return keys;
@@ -386,14 +355,14 @@ std::list<Coin::Transaction> Store::listTransactions() {
     return transactions;
 }
 
-bool Store::addressExists(const Coin::P2PKHAddress & p2pkhaddress) {
+bool Store::addressExists(const Coin::P2SHAddress & p2shaddress) {
     if(!connected()) {
         throw NotConnected();
     }
 
     odb::transaction t(_db->begin());
     typedef odb::query<detail::store::Address> query;
-    std::string scriptPubKey = Coin::P2PKHScriptPubKey(p2pkhaddress.pubKeyHash()).serialize().getHex();
+    std::string scriptPubKey = Coin::P2SHScriptPubKey(p2shaddress.redeemScriptHash()).serialize().getHex();
 
     // schema allows only one unique address to be stored so this should never throw an exception
     if(_db->query_one<detail::store::Address>(query::scriptPubKey == scriptPubKey)) {
@@ -582,7 +551,7 @@ void Store::confirmTransaction(Coin::TransactionId txid, const ChainMerkleBlock 
     }
 }
 
-bool Store::loadKey(const Coin::P2PKHAddress & p2pkhaddress, Coin::PrivateKey & sk) {
+bool Store::loadKey(const Coin::P2SHAddress & p2shaddress, Coin::PrivateKey & sk) {
     if(!connected()) {
         throw NotConnected();
     }
@@ -590,7 +559,7 @@ bool Store::loadKey(const Coin::P2PKHAddress & p2pkhaddress, Coin::PrivateKey & 
     bool found = false;
     typedef odb::query<detail::store::Address> query;
     odb::transaction t(_db->begin());
-    std::string scriptPubKey = Coin::P2PKHScriptPubKey(p2pkhaddress.pubKeyHash()).serialize().getHex();
+    std::string scriptPubKey = Coin::P2SHScriptPubKey(p2shaddress.redeemScriptHash()).serialize().getHex();
     std::shared_ptr<detail::store::Address> addr(_db->query_one<detail::store::Address>(query::scriptPubKey == scriptPubKey));
     if(addr) {
         sk = addr->key()->getPrivateKey();
@@ -684,12 +653,16 @@ uint64_t Store::getWalletBalance(int32_t confirmations, int32_t main_chain_heigh
     return balance;
 }
 
-Coin::PrivateKey Store::createNewPrivateKey(bool createReceiveAddress) {
+Coin::PrivateKey Store::createNewPrivateKey(RedeemScriptGenerator scriptGenerator) {
     if(!connected()) {
         throw NotConnected();
     }
 
-    //persist a new key
+    if(!scriptGenerator) {
+        throw std::runtime_error("redeem script generator function not provided");
+    }
+
+    // persist a new key
     std::shared_ptr<detail::store::Key> key(new detail::store::Key());
     uint32_t index = _db->persist(key);
 
@@ -698,12 +671,9 @@ Coin::PrivateKey Store::createNewPrivateKey(bool createReceiveAddress) {
     key->setPrivateKey(sk);
     _db->update(key);
 
-    if(createReceiveAddress) {
-        Coin::P2PKHAddress p2pkhaddr = sk.toPublicKey().toP2PKHAddress(_network);
-        detail::store::Address addr(key, p2pkhaddr);
-        _db->persist(addr);
-    }
-
+    // persist new address
+    std::shared_ptr<detail::store::Address> address(new detail::store::Address(key, scriptGenerator(sk.toPublicKey())));
+    _db->persist(address);
     return sk;
 }
 

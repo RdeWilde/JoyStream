@@ -8,6 +8,7 @@
 #include <common/KeyPair.hpp>
 #include <common/TransactionId.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
+#include <common/P2SHAddress.hpp>
 
 #include <CoinCore/hdkeys.h>
 #include <CoinCore/CoinNodeData.h>
@@ -25,6 +26,7 @@ class Store {
 public:
 
     typedef std::function<void(Coin::TransactionId, int confirmations)> transactionUpdatedCallback;
+    typedef std::function<uchar_vector(Coin::PublicKey)> RedeemScriptGenerator;
 
     // Custom Store Exceptions
     class BlockHeaderNotFound : public std::runtime_error {
@@ -62,33 +64,33 @@ public:
     Coin::Seed seed() const { return _seed; }
 
     // Return a new private key
-    Coin::PrivateKey getKey(bool createReceiveAddress);
+    Coin::PrivateKey getKey(const RedeemScriptGenerator & scriptGenerator);
 
     // Returns a vector of keys from the keypool supplemented by new keys if required
-    std::vector<Coin::PrivateKey> getKeys(uint32_t numKeys, bool createReceiveAddress);
+    std::vector<Coin::PrivateKey> getKeys(const std::vector<RedeemScriptGenerator> & scriptGenerators);
 
     // Returns a vector of new key pairs
-    std::vector<Coin::KeyPair> getKeyPairs(uint32_t num_pairs, bool createReceiveAddress);
+    std::vector<Coin::KeyPair> getKeyPairs(const std::vector<RedeemScriptGenerator> & scriptGenerators);
 
     // Generate p2pkh receive address corresponding to a new private key.
     // These addresses are monitored for incoming and outgoing spends.
-    Coin::P2PKHAddress getReceiveAddress();
+    Coin::P2SHAddress getReceiveAddress();
 
     // Total number keys in wallet (including unused)
     uint32_t numberOfKeysInWallet();
 
     void releaseKey(const Coin::PrivateKey & sk);
     void releaseKeys(const std::vector<Coin::PrivateKey> & privateKeys);
-    void releaseAddress(const Coin::P2PKHAddress & p2pkhaddress);
+    void releaseAddress(const Coin::P2SHAddress & p2shaddress);
 
     std::list<Coin::P2PKHAddress> listReceiveAddresses();
     std::vector<Coin::PrivateKey> listPrivateKeys();
     std::list<Coin::Transaction> listTransactions();
 
-    bool addressExists(const Coin::P2PKHAddress & p2pkhaddress);
+    bool addressExists(const Coin::P2SHAddress & p2shaddress);
     bool transactionExists(const Coin::TransactionId & txid);
 
-    bool loadKey(const Coin::P2PKHAddress &p2pkhaddress, Coin::PrivateKey & sk);
+    bool loadKey(const Coin::P2SHAddress &p2shaddress, Coin::PrivateKey & sk);
 
     std::list<Coin::UnspentP2PKHOutput> getUnspentTransactionsOutputs(int32_t confirmations = 0, int32_t main_chain_height = 0) const;
     uint64_t getWalletBalance(int32_t confirmations = 0, int32_t main_chain_height = 0) const;
@@ -117,7 +119,7 @@ private:
 
     //internal method used to persist a new key
     //should be wrapped in an odb::transaction
-    Coin::PrivateKey createNewPrivateKey(bool createReceiveAddress);
+    Coin::PrivateKey createNewPrivateKey(RedeemScriptGenerator scriptGenerator);
 
     transactionUpdatedCallback notifyTxUpdated;
 };
