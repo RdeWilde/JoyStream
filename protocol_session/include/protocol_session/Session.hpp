@@ -110,7 +110,7 @@ namespace detail {
         bool removeConnection(const ConnectionIdType &);
 
         // Get vector of all connection ids
-        std::vector<ConnectionIdType> connectionIds() const;
+        std::set<ConnectionIdType> connectionIds() const;
 
         // Process given message on given connection with given ID
         void processMessageOnConnection(const ConnectionIdType &, const protocol_wire::ExtendedMessagePayload &);

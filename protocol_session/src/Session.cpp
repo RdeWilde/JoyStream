@@ -408,13 +408,13 @@ namespace protocol_session {
     }
 
     template<class ConnectionIdType>
-    std::vector<ConnectionIdType> Session<ConnectionIdType>::connectionIds() const {
+    std::set<ConnectionIdType> Session<ConnectionIdType>::connectionIds() const {
 
-        std::vector<ConnectionIdType> ids;
+        std::set<ConnectionIdType> ids;
 
         // Add ids of all connections
         for(auto mapping: _connections)
-            ids.push_back(mapping.first);
+            ids.insert(mapping.first);
 
         return ids;
     }
