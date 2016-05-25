@@ -65,24 +65,20 @@ public:
     Coin::Seed seed() const { return _seed; }
 
     // Return a new private key
-    Coin::PrivateKey getKey(const RedeemScriptGenerator & scriptGenerator);
+    Coin::PrivateKey generateKey(const RedeemScriptGenerator & scriptGenerator);
 
     // Returns a vector of keys from the keypool supplemented by new keys if required
-    std::vector<Coin::PrivateKey> getKeys(uint32_t numKeys, const MultiRedeemScriptGenerator & multiScriptGenerator);
+    std::vector<Coin::PrivateKey> generateKeys(uint32_t numKeys, const MultiRedeemScriptGenerator & multiScriptGenerator);
 
     // Returns a vector of new key pairs
-    std::vector<Coin::KeyPair> getKeyPairs(uint32_t numKeys, const MultiRedeemScriptGenerator & multiScriptGenerator);
+    std::vector<Coin::KeyPair> generateKeyPairs(uint32_t numKeys, const MultiRedeemScriptGenerator & multiScriptGenerator);
 
     // Generate p2pkh receive address corresponding to a new private key.
     // These addresses are monitored for incoming and outgoing spends.
-    Coin::P2SHAddress getReceiveAddress();
+    Coin::P2SHAddress generateReceiveAddress();
 
     // Total number keys in wallet (including unused)
     uint32_t numberOfKeysInWallet();
-
-    void releaseKey(const Coin::PrivateKey & sk);
-    void releaseKeys(const std::vector<Coin::PrivateKey> & privateKeys);
-    void releaseAddress(const Coin::P2SHAddress & p2shaddress);
 
     std::list<Coin::P2PKHAddress> listReceiveAddresses();
     std::vector<Coin::PrivateKey> listPrivateKeys();

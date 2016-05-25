@@ -65,11 +65,10 @@ public:
     bool isSynchingBlocks() const { return _walletStatus == wallet_status_t::SYNCHING_BLOCKS;}
     bool isSynched() const { return _walletStatus == wallet_status_t::SYNCHED;}
 
-    Coin::PrivateKey getKey(const RedeemScriptGenerator & scriptGenerator);
-    std::vector<Coin::PrivateKey> getKeys(const std::vector<RedeemScriptGenerator> & scriptGenerators);
-    std::vector<Coin::KeyPair> getKeyPairs(const std::vector<RedeemScriptGenerator> & scriptGenerators);
-    void releaseKey(const Coin::PrivateKey &sk);
-    Coin::P2SHAddress getReceiveAddress();
+    Coin::PrivateKey generateKey(const RedeemScriptGenerator & scriptGenerator);
+    std::vector<Coin::PrivateKey> generateKeys(const std::vector<RedeemScriptGenerator> & scriptGenerators);
+    std::vector<Coin::KeyPair> generateKeyPairs(const std::vector<RedeemScriptGenerator> & scriptGenerators);
+    Coin::P2SHAddress generateReceiveAddress();
 
     std::list<Coin::P2PKHAddress> listAddresses();
 

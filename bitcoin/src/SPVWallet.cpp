@@ -216,14 +216,14 @@ void SPVWallet::stopSync() {
     _networkSync.stop();
 }
 
-Coin::PrivateKey SPVWallet::getKey(const RedeemScriptGenerator & scriptGenerator) {
+Coin::PrivateKey SPVWallet::generateKey(const RedeemScriptGenerator & scriptGenerator) {
     if(!isInitialized()) {
         throw std::runtime_error("wallet not initialized");
     }
 
     uchar_vector script;
 
-    Coin::PrivateKey sk = _store.getKey([&scriptGenerator, &script](Coin::PublicKey pubKey){
+    Coin::PrivateKey sk = _store.generateKey([&scriptGenerator, &script](Coin::PublicKey pubKey){
         script = scriptGenerator(pubKey);
         return script;
     });
@@ -233,7 +233,7 @@ Coin::PrivateKey SPVWallet::getKey(const RedeemScriptGenerator & scriptGenerator
     return sk;
 }
 
-std::vector<Coin::PrivateKey> SPVWallet::getKeys(const std::vector<RedeemScriptGenerator> & scriptGenerators) {
+std::vector<Coin::PrivateKey> SPVWallet::generateKeys(const std::vector<RedeemScriptGenerator> & scriptGenerators) {
     if(!isInitialized()) {
         throw std::runtime_error("wallet not initialized");
     }
@@ -241,7 +241,7 @@ std::vector<Coin::PrivateKey> SPVWallet::getKeys(const std::vector<RedeemScriptG
     std::vector<uchar_vector> scripts;
     uint32_t numKeys = scriptGenerators.size();
 
-    std::vector<Coin::PrivateKey> keys = _store.getKeys(numKeys, [&scriptGenerators, &scripts](Coin::PublicKey pubKey, uint32_t n){
+    std::vector<Coin::PrivateKey> keys = _store.generateKeys(numKeys, [&scriptGenerators, &scripts](Coin::PublicKey pubKey, uint32_t n){
         uchar_vector script = scriptGenerators[n](pubKey);
         scripts.push_back(script);
         return script;
@@ -253,7 +253,7 @@ std::vector<Coin::PrivateKey> SPVWallet::getKeys(const std::vector<RedeemScriptG
 }
 
 std::vector<Coin::KeyPair>
-SPVWallet::getKeyPairs(const std::vector<RedeemScriptGenerator> &scriptGenerators) {
+SPVWallet::generateKeyPairs(const std::vector<RedeemScriptGenerator> &scriptGenerators) {
     if(!isInitialized()) {
         throw std::runtime_error("wallet not initialized");
     }
@@ -262,7 +262,7 @@ SPVWallet::getKeyPairs(const std::vector<RedeemScriptGenerator> &scriptGenerator
     std::vector<Coin::KeyPair> keyPairs;
     uint32_t numKeys = scriptGenerators.size();
 
-    std::vector<Coin::PrivateKey> keys = _store.getKeys(numKeys, [&scriptGenerators, &scripts](Coin::PublicKey pubKey, uint32_t n){
+    std::vector<Coin::PrivateKey> keys = _store.generateKeys(numKeys, [&scriptGenerators, &scripts](Coin::PublicKey pubKey, uint32_t n){
         uchar_vector script = scriptGenerators[n](pubKey);
         scripts.push_back(script);
         return script;
@@ -277,26 +277,18 @@ SPVWallet::getKeyPairs(const std::vector<RedeemScriptGenerator> &scriptGenerator
     return keyPairs;
 }
 
-void SPVWallet::releaseKey(const Coin::PrivateKey &sk) {
-    if(!isInitialized()) {
-        throw std::runtime_error("wallet not initialized");
-    }
-
-    _store.releaseKey(sk);
-}
-
 std::list<Coin::P2PKHAddress> SPVWallet::listAddresses() {
     return _store.listReceiveAddresses();
 }
 
 Coin::P2SHAddress
-SPVWallet::getReceiveAddress()
+SPVWallet::generateReceiveAddress()
 {
     if(!isInitialized()) {
         throw std::runtime_error("wallet not initialized");
     }
 
-    return _store.getReceiveAddress();
+    return _store.generateReceiveAddress();
 }
 
 
@@ -521,7 +513,6 @@ void SPVWallet::onMerkleBlock(const ChainMerkleBlock& chainmerkleblock) {
     }
 }
 
-
 void SPVWallet::updateBloomFilter(const std::vector<uchar_vector> scripts) {
 
     int currentElementsCount = _bloomFilterScripts.size() + _bloomFilterScriptPubKeys.size();
@@ -566,8 +557,6 @@ bool SPVWallet::transactionShouldBeStored(const Coin::Transaction & cointx) cons
 }
 
 bool SPVWallet::spendsWalletOutput(const Coin::TxIn & txin) const {
-
-    // Option 1 - Lookup Store and find outpoint we control which this txin spends (too much disk io? prone to tx malleability?)
 
     // copy and reverse txin.scriptSig
     uchar_vector scriptSig = txin.scriptSig;
