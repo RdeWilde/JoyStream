@@ -513,35 +513,31 @@ void SPVWallet::onMerkleBlock(const ChainMerkleBlock& chainmerkleblock) {
     }
 }
 
-void SPVWallet::updateBloomFilter(const std::vector<uchar_vector> scripts) {
+void SPVWallet::updateBloomFilter(const std::vector<uchar_vector> redeemScripts) {
 
-    int currentElementsCount = _bloomFilterScripts.size() + _bloomFilterScriptPubKeys.size();
-
-    for(auto &script : scripts) {
-
-        // For capturing inputs: Redeem script will be last item pushed to stack in input scriptSig
+    for(auto &script : redeemScripts) {
         _bloomFilterScripts.insert(script);
-
-        // For capturing outputs: scriptPubKey
-        _bloomFilterScriptPubKeys.insert(Coin::P2SHScriptPubKey(ripemd160(sha256(script))).serialize());
     }
 
-    int newElementsCount = _bloomFilterScripts.size() + _bloomFilterScriptPubKeys.size();
+    const uint filterSize = _bloomFilterScripts.size() * 2;
 
-    if(newElementsCount > currentElementsCount) {
-        Coin::BloomFilter filter(newElementsCount, 0.0001, 0,0);
+    if(filterSize == 0) return;
 
-        for(auto elm : _bloomFilterScripts) {
-            filter.insert(elm);
-        }
+    Coin::BloomFilter filter(filterSize, 0.0001, 0,0);
 
-        for(auto elm : _bloomFilterScriptPubKeys) {
-            filter.insert(elm);
-        }
+    for(const uchar_vector & script : _bloomFilterScripts) {
+        // For capturing inputs: Redeem script will be last data item pushed to stack in input scriptSig
+        filter.insert(script);
 
-        _networkSync.setBloomFilter(filter);
+        // For capturing outputs: script hash
+        uchar_vector hash = ripemd160(sha256(script));
+        filter.insert(hash);
+
+        // Generate output scripts for direct comparison in createsWalletOutput() routine
+        _scriptPubKeys.insert(Coin::P2SHScriptPubKey(hash).serialize());
     }
 
+    _networkSync.setBloomFilter(filter);
 }
 
 bool SPVWallet::transactionShouldBeStored(const Coin::Transaction & cointx) const {
@@ -558,28 +554,21 @@ bool SPVWallet::transactionShouldBeStored(const Coin::Transaction & cointx) cons
 
 bool SPVWallet::spendsWalletOutput(const Coin::TxIn & txin) const {
 
-    // copy and reverse txin.scriptSig
-    uchar_vector scriptSig = txin.scriptSig;
-    scriptSig.reverse();
+    for(auto &redeemScript : _bloomFilterScripts) {
+       // if redeem script length is greater than scriptSig length, then it cannot be part of it
+       if(redeemScript.size() > txin.scriptSig.size()) continue;
 
-    for(auto &script : _bloomFilterScripts) {
-       // if redeem script length is greater than scriptSig length then it cannot be part of it
-       if(script.size() > scriptSig.size()) continue;
-
-       // copy and reverse redeem script
-       uchar_vector reversedRedeemScript = script;
-       reversedRedeemScript.reverse();
-
-       // compare the scripts
-       return std::equal(reversedRedeemScript.begin(), reversedRedeemScript.end(), scriptSig.begin());
+       // Compare the redeemScript to the end of the scriptSig which would contain the redeem script
+       // in a p2sh spending input
+       return std::equal(redeemScript.rbegin(), redeemScript.rend(), txin.scriptSig.rbegin());
     }
 
     return false;
 }
 
 bool SPVWallet::createsWalletOutput(const Coin::TxOut & txout) const {
-    // If scriptPubKey matches bloom filter element we have a matching transaction
-    return _bloomFilterScriptPubKeys.find(txout.scriptPubKey) != _bloomFilterScriptPubKeys.end();
+    // If output script matches one of our wallet scriptPubKey
+    return _scriptPubKeys.find(txout.scriptPubKey) != _scriptPubKeys.end();
 }
 
 void SPVWallet::recalculateBalance() {

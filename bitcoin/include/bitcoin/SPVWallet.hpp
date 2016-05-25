@@ -4,6 +4,7 @@
 #include <QObject>
 #include <common/Network.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
+#include <common/P2SHScriptPubKey.hpp>
 
 #include <CoinQ/CoinQ_netsync.h>
 #include <bitcoin/Store.hpp>
@@ -154,11 +155,9 @@ private:
     void onMerkleBlock(const ChainMerkleBlock& chainmerkleblock);
 
     std::set<uchar_vector> _bloomFilterScripts;
-    std::set<uchar_vector> _bloomFilterScriptPubKeys;
+    std::set<uchar_vector> _scriptPubKeys;
 
-    Coin::BloomFilter makeBloomFilter(double falsePositiveRate, uint32_t nTweak, uint32_t nFlags);
-
-    void updateBloomFilter(const std::vector<uchar_vector> scripts);
+    void updateBloomFilter(const std::vector<uchar_vector> redeemScripts);
 
     bool transactionShouldBeStored(const Coin::Transaction &) const;
     bool spendsWalletOutput(const Coin::TxIn &) const;
