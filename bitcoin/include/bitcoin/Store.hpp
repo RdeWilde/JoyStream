@@ -9,6 +9,7 @@
 #include <common/TransactionId.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
 #include <common/P2SHAddress.hpp>
+#include <common/P2PKScriptPubKey.hpp>
 
 #include <CoinCore/hdkeys.h>
 #include <CoinCore/CoinNodeData.h>
