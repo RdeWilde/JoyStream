@@ -15,6 +15,8 @@
 #include <CoinQ/CoinQ_blocks.h>
 #include <CoinCore/BloomFilter.h>
 
+#include <bitcoin/Common.hpp>
+
 #include <odb/database.hxx>
 
 #include <mutex>
@@ -26,7 +28,6 @@ class Store {
 public:
 
     typedef std::function<void(Coin::TransactionId, int confirmations)> transactionUpdatedCallback;
-    typedef std::function<uchar_vector(Coin::PublicKey)> RedeemScriptGenerator;
 
     // Custom Store Exceptions
     class BlockHeaderNotFound : public std::runtime_error {
@@ -67,10 +68,10 @@ public:
     Coin::PrivateKey getKey(const RedeemScriptGenerator & scriptGenerator);
 
     // Returns a vector of keys from the keypool supplemented by new keys if required
-    std::vector<Coin::PrivateKey> getKeys(const std::vector<RedeemScriptGenerator> & scriptGenerators);
+    std::vector<Coin::PrivateKey> getKeys(uint32_t numKeys, const MultiRedeemScriptGenerator & multiScriptGenerator);
 
     // Returns a vector of new key pairs
-    std::vector<Coin::KeyPair> getKeyPairs(const std::vector<RedeemScriptGenerator> & scriptGenerators);
+    std::vector<Coin::KeyPair> getKeyPairs(uint32_t numKeys, const MultiRedeemScriptGenerator & multiScriptGenerator);
 
     // Generate p2pkh receive address corresponding to a new private key.
     // These addresses are monitored for incoming and outgoing spends.
@@ -85,6 +86,7 @@ public:
 
     std::list<Coin::P2PKHAddress> listReceiveAddresses();
     std::vector<Coin::PrivateKey> listPrivateKeys();
+    std::vector<uchar_vector> listRedeemScripts();
     std::list<Coin::Transaction> listTransactions();
 
     bool addressExists(const Coin::P2SHAddress & p2shaddress);

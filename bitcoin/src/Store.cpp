@@ -184,7 +184,7 @@ Coin::PrivateKey Store::getKey(const RedeemScriptGenerator & scriptGenerator) {
     return sk;
 }
 
-std::vector<Coin::PrivateKey> Store::getKeys(const std::vector<RedeemScriptGenerator> & scriptGenerators) {
+std::vector<Coin::PrivateKey> Store::getKeys(uint32_t numKeys, const MultiRedeemScriptGenerator & multiScriptGenerator) {
     if(!connected()) {
         throw NotConnected();
     }
@@ -199,7 +199,7 @@ std::vector<Coin::PrivateKey> Store::getKeys(const std::vector<RedeemScriptGener
     result pool;
 
     odb::transaction t(_db->begin());
-    uint32_t numKeys = scriptGenerators.size();
+
     pool = _db->query<detail::store::key_view_t>(query::address::id.is_null() + "LIMIT" + query::_val(numKeys));
 
     uint32_t n = 0;
@@ -207,7 +207,7 @@ std::vector<Coin::PrivateKey> Store::getKeys(const std::vector<RedeemScriptGener
     for(auto &entry : pool) {
         Coin::PrivateKey sk(entry.key->getPrivateKey());
         privKeys.push_back(sk);
-        std::shared_ptr<detail::store::Address> address(new detail::store::Address(entry.key, scriptGenerators[n](sk.toPublicKey())));
+        std::shared_ptr<detail::store::Address> address(new detail::store::Address(entry.key, multiScriptGenerator(sk.toPublicKey(), n)));
         _db->persist(address);
         n++;
         if(n == numKeys) break;
@@ -216,7 +216,9 @@ std::vector<Coin::PrivateKey> Store::getKeys(const std::vector<RedeemScriptGener
     // if we didn't find enough unused keys in the database, generate the rest
     if(n < numKeys) {
         for(; n < numKeys; n++) {
-            privKeys.push_back(createNewPrivateKey(scriptGenerators[n]));
+            privKeys.push_back(createNewPrivateKey([&n, &multiScriptGenerator](Coin::PublicKey pubKey){
+                return multiScriptGenerator(pubKey, n);
+            }));
         }
     }
 
@@ -225,11 +227,11 @@ std::vector<Coin::PrivateKey> Store::getKeys(const std::vector<RedeemScriptGener
     return privKeys;
 }
 
-std::vector<Coin::KeyPair> Store::getKeyPairs(const std::vector<RedeemScriptGenerator> & scriptGenerators) {
+std::vector<Coin::KeyPair> Store::getKeyPairs(uint32_t numKeys, const MultiRedeemScriptGenerator & multiScriptGenerator) {
 
     std::vector<Coin::KeyPair> keyPairs;
 
-    for(auto sk : getKeys(scriptGenerators)) {
+    for(auto sk : getKeys(numKeys, multiScriptGenerator)) {
         keyPairs.push_back(Coin::KeyPair(sk));
     }
 
@@ -242,7 +244,7 @@ Coin::P2SHAddress Store::getReceiveAddress() {
     uchar_vector redeemScript;
 
     getKey([&redeemScript](Coin::PublicKey pubKey) {
-       // Construct the redeem script from pubkey
+       // TODO: Construct the redeem script from pubkey
        //Coin::P2PKScriptPubKey script(pubKey);
        //redeemdScript = script.serialize();   // [pubKey, checkSig]
        return redeemScript;
@@ -331,6 +333,25 @@ std::vector<Coin::PrivateKey> Store::listPrivateKeys() {
     }
 
     return keys;
+}
+
+std::vector<uchar_vector> Store::listRedeemScripts() {
+    if(!connected()) {
+        throw NotConnected();
+    }
+
+    typedef odb::query<detail::store::key_view_t> query;
+    typedef odb::result<detail::store::key_view_t> result;
+
+    std::vector<uchar_vector> scripts;
+
+    odb::transaction t(_db->begin());
+    result r(_db->query<detail::store::key_view_t>(query::address::id.is_not_null()));
+    for(auto &entry : r) {
+        scripts.push_back(uchar_vector(entry.address->redeemScript()));
+    }
+
+    return scripts;
 }
 
 std::list<Coin::Transaction> Store::listTransactions() {

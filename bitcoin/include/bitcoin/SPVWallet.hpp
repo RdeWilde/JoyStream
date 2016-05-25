@@ -65,11 +65,11 @@ public:
     bool isSynchingBlocks() const { return _walletStatus == wallet_status_t::SYNCHING_BLOCKS;}
     bool isSynched() const { return _walletStatus == wallet_status_t::SYNCHED;}
 
-    Coin::PrivateKey getKey(bool createReceiveAddress);
-    std::vector<Coin::PrivateKey> getKeys(uint32_t numKeys, bool createReceiveAddress);
-    std::vector<Coin::KeyPair> getKeyPairs(uint32_t num_pairs, bool createReceiveAddress);
+    Coin::PrivateKey getKey(const RedeemScriptGenerator & scriptGenerator);
+    std::vector<Coin::PrivateKey> getKeys(const std::vector<RedeemScriptGenerator> & scriptGenerators);
+    std::vector<Coin::KeyPair> getKeyPairs(const std::vector<RedeemScriptGenerator> & scriptGenerators);
     void releaseKey(const Coin::PrivateKey &sk);
-    Coin::P2PKHAddress getReceiveAddress();
+    Coin::P2SHAddress getReceiveAddress();
 
     std::list<Coin::P2PKHAddress> listAddresses();
 
@@ -154,12 +154,12 @@ private:
     void onMerkleTx(const ChainMerkleBlock& chainmerkleblock, const Coin::Transaction& cointx, unsigned int txindex, unsigned int txcount);
     void onMerkleBlock(const ChainMerkleBlock& chainmerkleblock);
 
-    std::set<uchar_vector> _bloomFilterPubKeyHashes;
-    std::set<uchar_vector> _bloomFilterCompressedPubKeys;
+    std::set<uchar_vector> _bloomFilterScripts;
+    std::set<uchar_vector> _bloomFilterScriptPubKeys;
 
     Coin::BloomFilter makeBloomFilter(double falsePositiveRate, uint32_t nTweak, uint32_t nFlags);
 
-    void updateBloomFilter(const std::vector<Coin::PrivateKey> &privateKeys);
+    void updateBloomFilter(const std::vector<uchar_vector> scripts);
 
     bool transactionShouldBeStored(const Coin::Transaction &) const;
     bool spendsWalletOutput(const Coin::TxIn &) const;
@@ -173,7 +173,7 @@ private:
     // Prefix methods only required from unit tests with test_
     void test_syncBlocksStaringAtHeight(int32_t height);
     int32_t test_netsyncBestHeight() const { return _networkSync.getBestHeight(); }
-    Coin::Transaction test_sendToAddress(uint64_t value, const Coin::P2PKHAddress &addr, uint64_t fee);
+    //Coin::Transaction test_sendToAddress(uint64_t value, const Coin::P2PKHAddress &addr, uint64_t fee);
 
 };
 
