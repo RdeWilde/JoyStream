@@ -20,9 +20,7 @@ SessionSpy<ConnectionIdType>::SessionSpy(const GenerateKeyPairsCallbackHandler &
 
 template <class ConnectionIdType>
 SessionSpy<ConnectionIdType>::~SessionSpy() {
-
-    for(auto mapping : connectionSpies)
-        delete mapping.second;
+    removeConnectionSpies();
 }
 
 template <class ConnectionIdType>
@@ -75,6 +73,15 @@ ConnectionSpy<ConnectionIdType> * SessionSpy<ConnectionIdType>::addConnection(co
     connectionSpies.insert(std::make_pair(id, spy));
 
     return spy;
+}
+
+template <class ConnectionIdType>
+void SessionSpy<ConnectionIdType>::removeConnectionSpies() {
+
+    for(auto mapping : connectionSpies)
+        delete mapping.second;
+
+    connectionSpies.clear();
 }
 
 template <class ConnectionIdType>

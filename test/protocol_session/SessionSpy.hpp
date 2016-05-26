@@ -150,6 +150,8 @@ public:
     // Connection spy owned by session spy.
     ConnectionSpy<ConnectionIdType> * addConnection(const ConnectionIdType & id);
 
+    void removeConnectionSpies();
+
     bool blank() const;
 
     bool blankSession() const;
