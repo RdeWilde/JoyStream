@@ -10,8 +10,8 @@ namespace Coin {
 namespace joystream {
 namespace bitcoin {
 
-    typedef std::function<uchar_vector(Coin::PublicKey)> RedeemScriptGenerator;
-    typedef std::function<uchar_vector(Coin::PublicKey, uint32_t n)> MultiRedeemScriptGenerator;
+    typedef std::function<uchar_vector(const Coin::PublicKey &)> RedeemScriptGenerator;
+    typedef std::function<uchar_vector(const Coin::PublicKey &, uint32_t n)> MultiRedeemScriptGenerator;
 
 }}
 

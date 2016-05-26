@@ -223,7 +223,7 @@ Coin::PrivateKey SPVWallet::generateKey(const RedeemScriptGenerator & scriptGene
 
     uchar_vector script;
 
-    Coin::PrivateKey sk = _store.generateKey([&scriptGenerator, &script](Coin::PublicKey pubKey){
+    Coin::PrivateKey sk = _store.generateKey([&scriptGenerator, &script](const Coin::PublicKey & pubKey){
         script = scriptGenerator(pubKey);
         return script;
     });
@@ -241,7 +241,7 @@ std::vector<Coin::PrivateKey> SPVWallet::generateKeys(const std::vector<RedeemSc
     std::vector<uchar_vector> scripts;
     uint32_t numKeys = scriptGenerators.size();
 
-    std::vector<Coin::PrivateKey> keys = _store.generateKeys(numKeys, [&scriptGenerators, &scripts](Coin::PublicKey pubKey, uint32_t n){
+    std::vector<Coin::PrivateKey> keys = _store.generateKeys(numKeys, [&scriptGenerators, &scripts](const Coin::PublicKey & pubKey, uint32_t n){
         uchar_vector script = scriptGenerators[n](pubKey);
         scripts.push_back(script);
         return script;
@@ -262,7 +262,7 @@ SPVWallet::generateKeyPairs(const std::vector<RedeemScriptGenerator> &scriptGene
     std::vector<Coin::KeyPair> keyPairs;
     uint32_t numKeys = scriptGenerators.size();
 
-    std::vector<Coin::PrivateKey> keys = _store.generateKeys(numKeys, [&scriptGenerators, &scripts](Coin::PublicKey pubKey, uint32_t n){
+    std::vector<Coin::PrivateKey> keys = _store.generateKeys(numKeys, [&scriptGenerators, &scripts](const Coin::PublicKey & pubKey, uint32_t n){
         uchar_vector script = scriptGenerators[n](pubKey);
         scripts.push_back(script);
         return script;
@@ -277,7 +277,7 @@ SPVWallet::generateKeyPairs(const std::vector<RedeemScriptGenerator> &scriptGene
     return keyPairs;
 }
 
-std::list<Coin::P2PKHAddress> SPVWallet::listAddresses() {
+std::list<Coin::P2SHAddress> SPVWallet::listAddresses() {
     return _store.listReceiveAddresses();
 }
 

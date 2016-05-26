@@ -71,7 +71,7 @@ public:
     std::vector<Coin::KeyPair> generateKeyPairs(const std::vector<RedeemScriptGenerator> & scriptGenerators);
     Coin::P2SHAddress generateReceiveAddress();
 
-    std::list<Coin::P2PKHAddress> listAddresses();
+    std::list<Coin::P2SHAddress> listAddresses();
 
     std::list<Coin::UnspentP2PKHOutput> lockOutputs(uint64_t minValue, uint32_t minimalConfirmations = 0);
     void unlockOutputs(const std::list<Coin::UnspentP2PKHOutput> outputs);
