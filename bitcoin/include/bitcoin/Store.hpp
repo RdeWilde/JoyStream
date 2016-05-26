@@ -74,14 +74,12 @@ public:
     // Returns a vector of new key pairs
     std::vector<Coin::KeyPair> generateKeyPairs(uint32_t numKeys, const MultiRedeemScriptGenerator & multiScriptGenerator);
 
-    // Generate p2pkh receive address corresponding to a new private key.
-    // These addresses are monitored for incoming and outgoing spends.
+    // Generate p2sh receive address corresponding to a new private key
     Coin::P2SHAddress generateReceiveAddress();
 
     // Total number keys in wallet (including unused)
     uint32_t numberOfKeysInWallet();
 
-    std::list<Coin::P2PKHAddress> listReceiveAddresses();
     std::vector<Coin::PrivateKey> listPrivateKeys();
     std::vector<uchar_vector> listRedeemScripts();
     std::list<Coin::Transaction> listTransactions();

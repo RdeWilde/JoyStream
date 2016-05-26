@@ -222,7 +222,8 @@ Coin::P2SHAddress Store::generateReceiveAddress() {
 
     generateKey([&redeemScript](Coin::PublicKey pubKey) {
        Coin::P2PKScriptPubKey script(pubKey);
-       return script.serialize();
+       redeemScript = script.serialize();
+       return redeemScript;
     });
 
     Coin::RedeemScriptHash scriptHash(ripemd160(sha256(redeemScript)));
