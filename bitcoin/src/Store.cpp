@@ -194,7 +194,7 @@ std::vector<Coin::PrivateKey> Store::generateKeys(uint32_t numKeys, const MultiR
     odb::transaction t(_db->begin());
 
     for(uint32_t n = 0; n < numKeys; n++) {
-        privKeys.push_back(createNewPrivateKey([&n, &multiScriptGenerator](Coin::PublicKey pubKey){
+        privKeys.push_back(createNewPrivateKey([&n, &multiScriptGenerator](const Coin::PublicKey & pubKey){
             return multiScriptGenerator(pubKey, n);
         }));
     }
@@ -220,14 +220,13 @@ Coin::P2SHAddress Store::generateReceiveAddress() {
 
     uchar_vector redeemScript;
 
-    generateKey([&redeemScript](Coin::PublicKey pubKey) {
+    generateKey([&redeemScript](const Coin::PublicKey & pubKey) {
        Coin::P2PKScriptPubKey script(pubKey);
        redeemScript = script.serialize();
        return redeemScript;
     });
 
-    Coin::RedeemScriptHash scriptHash(ripemd160(sha256(redeemScript)));
-    return Coin::P2SHAddress(_network, scriptHash);
+    return Coin::P2SHAddress::fromSerializedRedeemScript(_network, redeemScript);
 }
 
 uint32_t Store::numberOfKeysInWallet() {
@@ -302,6 +301,17 @@ std::list<Coin::Transaction> Store::listTransactions() {
     return transactions;
 }
 
+std::list<Coin::P2SHAddress> Store::listReceiveAddresses() {
+
+    std::list<Coin::P2SHAddress> p2shAddresses;
+
+    for(uchar_vector script : listRedeemScripts()) {
+        p2shAddresses.insert(p2shAddresses.end(), Coin::P2SHAddress::fromSerializedRedeemScript(_network, script));
+    }
+
+    return p2shAddresses;
+}
+
 bool Store::addressExists(const Coin::P2SHAddress & p2shaddress) {
     if(!connected()) {
         throw NotConnected();
@@ -309,7 +319,7 @@ bool Store::addressExists(const Coin::P2SHAddress & p2shaddress) {
 
     odb::transaction t(_db->begin());
     typedef odb::query<detail::store::Address> query;
-    std::string scriptPubKey = Coin::P2SHScriptPubKey(p2shaddress.redeemScriptHash()).serialize().getHex();
+    std::string scriptPubKey = Coin::P2SHScriptPubKey(p2shaddress).serialize().getHex();
 
     // schema allows only one unique address to be stored so this should never throw an exception
     if(_db->query_one<detail::store::Address>(query::scriptPubKey == scriptPubKey)) {
@@ -506,7 +516,7 @@ bool Store::loadKey(const Coin::P2SHAddress & p2shaddress, Coin::PrivateKey & sk
     bool found = false;
     typedef odb::query<detail::store::Address> query;
     odb::transaction t(_db->begin());
-    std::string scriptPubKey = Coin::P2SHScriptPubKey(p2shaddress.redeemScriptHash()).serialize().getHex();
+    std::string scriptPubKey = Coin::P2SHScriptPubKey(p2shaddress).serialize().getHex();
     std::shared_ptr<detail::store::Address> addr(_db->query_one<detail::store::Address>(query::scriptPubKey == scriptPubKey));
     if(addr) {
         sk = addr->key()->getPrivateKey();

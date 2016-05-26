@@ -83,6 +83,7 @@ public:
     std::vector<Coin::PrivateKey> listPrivateKeys();
     std::vector<uchar_vector> listRedeemScripts();
     std::list<Coin::Transaction> listTransactions();
+    std::list<Coin::P2SHAddress> listReceiveAddresses();
 
     bool addressExists(const Coin::P2SHAddress & p2shaddress);
     bool transactionExists(const Coin::TransactionId & txid);
