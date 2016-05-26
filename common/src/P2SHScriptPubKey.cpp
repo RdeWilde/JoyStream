@@ -12,10 +12,6 @@
 
 namespace Coin {
 
-P2SHScriptPubKey::P2SHScriptPubKey(const P2SHAddress & address)
-    : P2SHScriptPubKey(address.redeemScriptHash()) {
-}
-
 P2SHScriptPubKey::P2SHScriptPubKey(const RedeemScriptHash & hash)
     : _hash(hash) {
 }

@@ -6,6 +6,7 @@
  */
 
 #include <common/P2SHAddress.hpp>
+#include <common/P2SHScriptPubKey.hpp>
 #include <common/Base58CheckEncodable.hpp>
 #include <CoinCore/Base58Check.h>
 
@@ -47,6 +48,10 @@ QString P2SHAddress::toBase58CheckEncoding() const {
     std::string encoded = toBase58Check(_redeemScriptHash.toUCharVector(), versionBytes);
 
     return QString::fromStdString(encoded);
+}
+
+P2SHScriptPubKey P2SHAddress::toP2SHScriptPubKey() const {
+    return P2SHScriptPubKey(_redeemScriptHash);
 }
 
 Network P2SHAddress::network() const {

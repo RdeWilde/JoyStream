@@ -319,7 +319,7 @@ bool Store::addressExists(const Coin::P2SHAddress & p2shaddress) {
 
     odb::transaction t(_db->begin());
     typedef odb::query<detail::store::Address> query;
-    std::string scriptPubKey = Coin::P2SHScriptPubKey(p2shaddress).serialize().getHex();
+    std::string scriptPubKey = p2shaddress.toP2SHScriptPubKey().serialize().getHex();
 
     // schema allows only one unique address to be stored so this should never throw an exception
     if(_db->query_one<detail::store::Address>(query::scriptPubKey == scriptPubKey)) {
@@ -516,7 +516,7 @@ bool Store::loadKey(const Coin::P2SHAddress & p2shaddress, Coin::PrivateKey & sk
     bool found = false;
     typedef odb::query<detail::store::Address> query;
     odb::transaction t(_db->begin());
-    std::string scriptPubKey = Coin::P2SHScriptPubKey(p2shaddress).serialize().getHex();
+    std::string scriptPubKey = p2shaddress.toP2SHScriptPubKey().serialize().getHex();
     std::shared_ptr<detail::store::Address> addr(_db->query_one<detail::store::Address>(query::scriptPubKey == scriptPubKey));
     if(addr) {
         sk = addr->key()->getPrivateKey();
