@@ -13,12 +13,13 @@
 namespace Coin {
 
 class PublicKey;
+class P2SHAddress;
 
 class P2SHScriptPubKey {
 
 public:
 
-    //P2SHScriptPubKey(const uchar_vector & redeemScript);
+    explicit P2SHScriptPubKey(const P2SHAddress & address);
 
     explicit P2SHScriptPubKey(const RedeemScriptHash & hash);
 

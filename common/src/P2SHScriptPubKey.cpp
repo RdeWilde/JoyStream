@@ -6,16 +6,15 @@
  */
 
 #include <common/P2SHScriptPubKey.hpp>
+#include <common/P2SHAddress.hpp>
 #include <common/MultisigScriptPubKey.hpp>
 #include <CoinCore/hash.h>
 
 namespace Coin {
 
-/**
-P2SHScriptPubKey::P2SHScriptPubKey(const uchar_vector & redeemScript)
-    : P2SHScriptPubKey(RedeemScriptHash(ripemd160(sha256(redeemScript)))) {
+P2SHScriptPubKey::P2SHScriptPubKey(const P2SHAddress & address)
+    : P2SHScriptPubKey(address.redeemScriptHash()) {
 }
-*/
 
 P2SHScriptPubKey::P2SHScriptPubKey(const RedeemScriptHash & hash)
     : _hash(hash) {
