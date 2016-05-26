@@ -8,6 +8,7 @@
 #ifndef P2PK_SCRIPT_PUBKEY_HPP
 #define P2PK_SCRIPT_PUBKEY_HPP
 
+#include <common/PublicKey.hpp>
 #include <stdutils/uchar_vector.h>
 
 namespace Coin {
