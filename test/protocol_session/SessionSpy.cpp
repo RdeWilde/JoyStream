@@ -35,13 +35,13 @@ void SessionSpy<ConnectionIdType>::toMonitoredSellMode(const SellingPolicy & pol
                                                        const protocol_wire::SellerTerms & terms) {
 
     _session->toSellMode(removedConnectionCallbackSlot.hook(),
-                          generateKeyPairsCallbackSlot.hook(),
-                          generateP2PKHAddressesCallbackSlot.hook(),
-                          loadPieceForBuyerCallbackSlot.hook(),
-                          claimLastPaymentCallbackSlot.hook(),
-                          anchorAnnouncedCallbackSlot.hook(),
-                          policy,
-                          terms);
+                         generateKeyPairsCallbackSlot.hook(),
+                         generateP2PKHAddressesCallbackSlot.hook(),
+                         loadPieceForBuyerCallbackSlot.hook(),
+                         claimLastPaymentCallbackSlot.hook(),
+                         anchorAnnouncedCallbackSlot.hook(),
+                         policy,
+                         terms);
 
 }
 
@@ -64,13 +64,6 @@ void SessionSpy<ConnectionIdType>::toMonitoredBuyMode(const Coin::UnspentP2PKHOu
 template <class ConnectionIdType>
 ConnectionSpy<ConnectionIdType> * SessionSpy<ConnectionIdType>::addConnection(const ConnectionIdType & id) {
 
-    /**
-    if(connectionSpies.find(id) != connectionSpies.end())
-        throw std::runtime_error("There is alreay a spy for this connection.");
-
-    assert(!_session->hasConnection(id));
-    */
-
     // Create spy for connection
     ConnectionSpy<ConnectionIdType> * spy = new ConnectionSpy<ConnectionIdType>(id);
 
@@ -85,7 +78,18 @@ ConnectionSpy<ConnectionIdType> * SessionSpy<ConnectionIdType>::addConnection(co
 }
 
 template <class ConnectionIdType>
-bool SessionSpy<ConnectionIdType>::noSessionEvents() const {
+bool SessionSpy<ConnectionIdType>::blank() const {
+
+    for(auto mapping : connectionSpies) {
+        if(!mapping.second->blank())
+            return false;
+    }
+
+    return blankSession();
+}
+
+template <class ConnectionIdType>
+bool SessionSpy<ConnectionIdType>::blankSession() const {
 
             //// General
     return  removedConnectionCallbackSlot.empty() &&
@@ -100,8 +104,9 @@ bool SessionSpy<ConnectionIdType>::noSessionEvents() const {
             anchorAnnouncedCallbackSlot.empty();
 }
 
+
 template <class ConnectionIdType>
-bool SessionSpy<ConnectionIdType>::noConnectionEventsExcept(const ConnectionIdType & id) const {
+bool SessionSpy<ConnectionIdType>::blankConnectionExcept(const ConnectionIdType & id) const {
 
     for(auto mapping : connectionSpies) {
 

@@ -18,21 +18,7 @@ template <typename... Args>
 using Frame = std::tuple<Args...>;
 
 template <typename... Args>
-struct FrameQueue : public std::deque<Frame<Args...>> {
-
-    template <uint N>
-    typename std::tuple_element<N, Frame<Args...>>::type frontFrame() const {
-
-        if(std::deque<Frame<Args...>>::empty())
-            throw std::runtime_error("Frame queue is empty.");
-        else {
-
-            Frame<Args...> f = this->front();//std::deque<Frame<Args...>>::front();
-
-            return std::get<N>(f);
-        }
-    }
-};
+using FrameQueue = std::deque<Frame<Args...>>;
 
 // Callback slot where the underlying callback has no return value, i.e. is a 'subroutine'
 template <typename... Args>
@@ -81,10 +67,6 @@ using GenerateKeyPairsCallbackSlot = FunctionCallbackSlot<std::vector<Coin::KeyP
 template <class ConnectionIdType>
 using GenerateP2PKHAddressesCallbackSlot = FunctionCallbackSlot<std::vector<Coin::P2PKHAddress>,int>;
 
-//// ***** CHANGE FROM UNIQUE_PTR TO SHARED_PTR ***** ////
-
-/// NB***: This will leak when cleared, as no one is managing queue.
-/// A fix would be to have state machine send out smart pointer rather than raw pointer
 typedef SubroutineCallbackSlot<const protocol_wire::ExtendedMessagePayload *> SendMessageOnConnectionCallbackSlot;
 
 typedef FunctionCallbackSlot<bool, Coin::Transaction> BroadcastTransactionCallbackSlot;
@@ -99,20 +81,44 @@ template <class ConnectionIdType>
 using ClaimLastPaymentCallbackSlot = SubroutineCallbackSlot<const ConnectionIdType &, const joystream::paymentchannel::Payee &>;
 
 template <class ConnectionIdType>
-using AnchorAnnouncedCallbackSlot = SubroutineCallbackSlot<const ConnectionIdType &, const Coin::typesafeOutPoint &>;
+using AnchorAnnouncedCallbackSlot = SubroutineCallbackSlot<const ConnectionIdType &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &>;
 
 template <class ConnectionIdType>
 struct ConnectionSpy {
 
-    ConnectionSpy(const ConnectionIdType & x) :id(x) { reset(); }
+    ConnectionSpy(const ConnectionIdType & x) :id(x) { }
 
-    void reset() { sendMessageOnConnectionCallbackSlot.clear(); }
+    ~ConnectionSpy() {
+        deleteMessagesInSendMessageOnConnectionCallbackSlot();
+    }
+
+    void reset() {
+
+        // Clear memory for each message
+        deleteMessagesInSendMessageOnConnectionCallbackSlot();
+
+        // Clear queue
+        sendMessageOnConnectionCallbackSlot.clear();
+    }
 
     bool blank() const { return sendMessageOnConnectionCallbackSlot.empty(); }
 
     ConnectionIdType id;
 
     SendMessageOnConnectionCallbackSlot sendMessageOnConnectionCallbackSlot;
+
+private:
+
+    void deleteMessagesInSendMessageOnConnectionCallbackSlot() {
+
+        for(auto f : sendMessageOnConnectionCallbackSlot) {
+
+            const protocol_wire::ExtendedMessagePayload * c = std::get<0>(f);
+
+            delete c;
+        }
+
+    }
 
 };
 
@@ -144,9 +150,11 @@ public:
     // Connection spy owned by session spy.
     ConnectionSpy<ConnectionIdType> * addConnection(const ConnectionIdType & id);
 
-    bool noSessionEvents() const;
+    bool blank() const;
 
-    bool noConnectionEventsExcept(const ConnectionIdType & id) const;
+    bool blankSession() const;
+
+    bool blankConnectionExcept(const ConnectionIdType & id) const;
 
     void reset();
 
