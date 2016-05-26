@@ -32,6 +32,9 @@ namespace detail {
 
     template <class ConnectionIdType>
     class Observing;
+
+    template <class ConnectionIdType>
+    using ConnectionMap = std::map<ConnectionIdType, detail::Connection<ConnectionIdType> *>;
 }
 
     class SellingPolicy;
@@ -151,6 +154,31 @@ namespace detail {
 
     private:
 
+        // Session mode
+        SessionMode _mode;
+
+        // Current state of session
+        SessionState _state;
+
+        // Connections
+        detail::ConnectionMap<ConnectionIdType> _connections;
+
+        // When session was started
+        time_t _started;
+
+        //// Substates
+
+        // Each pointer is != nullptr only when _mode corresponds
+
+        // Observer
+        detail::Observing<ConnectionIdType> * _observing;
+
+        // Seller
+        detail::Selling<ConnectionIdType> * _selling;
+
+        // Buyer
+        detail::Buying<ConnectionIdType> * _buying;
+
         friend class detail::Observing<ConnectionIdType>;
         friend class detail::Selling<ConnectionIdType>;
         friend class detail::Buying<ConnectionIdType>;
@@ -185,39 +213,12 @@ namespace detail {
         // ConnectionDoesNotExist<ConnectionIdType>
         detail::Connection<ConnectionIdType> * get(const ConnectionIdType &) const;
 
-        // Removes connection with given id from the connections map
-        // and deletes it and throws
-        void destroyConnection(const ConnectionIdType &);
+        // Removes connection with given id from the connections map and deletes it and throws,
+        // Returns iterator at next valid element
+        typename detail::ConnectionMap<ConnectionIdType>::const_iterator destroyConnection(const ConnectionIdType &);
 
         // If possible, creates connection and adds to map
         detail::Connection<ConnectionIdType> * createAndAddConnection(const ConnectionIdType &, const SendMessageOnConnection &);
-
-        //// Members
-
-        // Session mode
-        SessionMode _mode;
-
-        // Current state of session
-        SessionState _state;
-
-        // Connections
-        std::map<ConnectionIdType, detail::Connection<ConnectionIdType> *> _connections;
-
-        // When session was started
-        time_t _started;
-
-        //// Substates
-
-        // Each pointer is != nullptr only when _mode corresponds
-
-        // Observer
-        detail::Observing<ConnectionIdType> * _observing;
-
-        // Seller
-        detail::Selling<ConnectionIdType> * _selling;
-
-        // Buyer
-        detail::Buying<ConnectionIdType> * _buying;
     };
 
 }

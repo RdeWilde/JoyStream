@@ -284,9 +284,9 @@ namespace detail {
         // Clear sellers
         _sellers.clear();
 
-        // Disconnect everyone
-        for(auto mapping : _session->_connections)
-            removeConnection(mapping.first, DisconnectCause::client);
+        // Disconnect everyone:
+        for(auto itr = _session->_connections.cbegin();itr != _session->_connections.cend();)
+            itr = removeConnection(itr->first, DisconnectCause::client);
 
         // Update state
         _session->_state = SessionState::stopped;
@@ -664,7 +664,7 @@ namespace detail {
     }
 
     template<class ConnectionIdType>
-    void Buying<ConnectionIdType>::removeConnection(const ConnectionIdType & id, DisconnectCause cause) {
+    typename detail::ConnectionMap<ConnectionIdType>::const_iterator Buying<ConnectionIdType>::removeConnection(const ConnectionIdType & id, DisconnectCause cause) {
 
         assert(_session->state() != SessionState::stopped);
         assert(_session->hasConnection(id));
@@ -688,7 +688,7 @@ namespace detail {
         _removedConnection(id, cause);
 
         // Destroy connection
-        _session->destroyConnection(id);
+        return _session->destroyConnection(id);
     }
 
     template <class ConnectionIdType>

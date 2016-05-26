@@ -144,7 +144,8 @@ private:
     //// Utility routines
 
     // Prepare given connection for deletion due to given cause
-    void removeConnection(const ConnectionIdType &, DisconnectCause);
+    // Returns iterator to next valid element
+    typename detail::ConnectionMap<ConnectionIdType>::const_iterator removeConnection(const ConnectionIdType &, DisconnectCause);
 
     // Removes given seller
     void removeSeller(detail::Seller<ConnectionIdType> &);

@@ -881,18 +881,18 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
-    void Session<ConnectionIdType>::destroyConnection(const ConnectionIdType & id) {
+    typename std::map<ConnectionIdType, detail::Connection<ConnectionIdType> *>::const_iterator Session<ConnectionIdType>::destroyConnection(const ConnectionIdType & id) {
 
         // Get iterator pointing at connection in map
         auto itr = _connections.find(id);
 
-        assert(itr != _connections.end());
-
-        // Delete from map
-        _connections.erase(itr);
+        assert(itr != _connections.cend());
 
         // Delete connection
         delete (itr->second);
+
+        // Delete from map and return iterator at next valid position (e.g. end)
+        return _connections.erase(itr);
     }
 
     template <class ConnectionIdType>

@@ -98,8 +98,25 @@ public:
 
 private:
 
-    // Prepare given connection for deletion due to given cause
-    void removeConnection(const ConnectionIdType &, DisconnectCause);
+    // Reference to core of session
+    Session<ConnectionIdType> * _session;
+
+    // Callback handlers
+    RemovedConnectionCallbackHandler<ConnectionIdType> _removedConnection;
+    GenerateKeyPairsCallbackHandler _generateKeyPairs;
+    GenerateP2PKHAddressesCallbackHandler _generateP2PKHAddresses;
+    LoadPieceForBuyer<ConnectionIdType> _loadPieceForBuyer;
+    ClaimLastPayment<ConnectionIdType> _claimLastPayment;
+    AnchorAnnounced<ConnectionIdType> _anchorAnnounced;
+
+    // Controls behaviour of session
+    SellingPolicy _policy;
+
+    // Terms for selling
+    protocol_wire::SellerTerms _terms;
+
+    // Prepare given connection for deletion due to given cause, returns next valid iterator (e.g. end)
+    typename detail::ConnectionMap<ConnectionIdType>::const_iterator removeConnection(const ConnectionIdType &, DisconnectCause);
 
     // Join if terms are good enough, buyer on given connection
     // NB: Assumes in state protocol_statemachine::Invited
@@ -120,25 +137,6 @@ private:
     // Loads. .....
     // NB: Assumes in state protocol_statemachine::LoadingPiece
     void tryToLoadPiece(detail::Connection<ConnectionIdType> *);
-
-    //// Members
-
-    // Reference to core of session
-    Session<ConnectionIdType> * _session;
-
-    // Callback handlers
-    RemovedConnectionCallbackHandler<ConnectionIdType> _removedConnection;
-    GenerateKeyPairsCallbackHandler _generateKeyPairs;
-    GenerateP2PKHAddressesCallbackHandler _generateP2PKHAddresses;
-    LoadPieceForBuyer<ConnectionIdType> _loadPieceForBuyer;
-    ClaimLastPayment<ConnectionIdType> _claimLastPayment;
-    AnchorAnnounced<ConnectionIdType> _anchorAnnounced;
-
-    // Controls behaviour of session
-    SellingPolicy _policy;
-
-    // Terms for selling
-    protocol_wire::SellerTerms _terms;
 };
 
 }

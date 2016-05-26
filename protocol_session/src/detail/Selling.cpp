@@ -245,12 +245,12 @@ namespace detail {
         // require that we are started.
         _session->_state = SessionState::started;
 
-        // For each connection
-        for(auto itr : _session->_connections) {
+        // For each connection: iteration safe deletion
+        for(auto it = _session->_connections.cbegin(); it != _session->_connections.cend();) {
 
             //// if we hare here, we are paused
 
-            detail::Connection<ConnectionIdType> * c = itr.second;
+            detail::Connection<ConnectionIdType> * c = it->second;
 
             if(c-> template inState<protocol_statemachine::ReadyForInvitation>())
                 ; // Waiting to be invited, nothing to do!
@@ -259,18 +259,21 @@ namespace detail {
                 // We have been invited, so lets try to join
                 try {
                     tryToJoin(c);
+
+                    it++;
                 } catch(InvitedWithBadTerms &) {
-                    removeConnection(itr.first, DisconnectCause::buyer_invited_with_bad_terms);
+                    it = removeConnection(it->first, DisconnectCause::buyer_invited_with_bad_terms);
                 }
 
             } else if(c-> template inState<protocol_statemachine::WaitingToStart>()) {
-                ; // Waiting to get contract announcement, nothing to do!
+                it++; // Waiting to get contract announcement, nothing to do!
             } else if(c-> template inState<protocol_statemachine::ReadyForPieceRequest>()) {
-                ; // Waiting for piece to be requested, nothing to do!
-            } else if(c-> template inState<protocol_statemachine::LoadingPiece>())
+                it++; // Waiting for piece to be requested, nothing to do!
+            } else if(c-> template inState<protocol_statemachine::LoadingPiece>()) {
                 tryToLoadPiece(c); // Waiting for piece to be loaded, which may have been aborted due to pause
-            else if(c-> template inState<protocol_statemachine::WaitingForPayment>()) {
-                ; // Waiting for payment, nothing to do!
+                it++;
+            } else if(c-> template inState<protocol_statemachine::WaitingForPayment>()) {
+                it++; // Waiting for payment, nothing to do!
             } else // terminated, should not happen
                 assert(false);
         }
@@ -283,9 +286,9 @@ namespace detail {
         if(_session->state() == SessionState::stopped)
             throw exception::StateIncompatibleOperation("cannot stop while already stopped.");
 
-        // Disconnect everyone
-        for(auto mapping : _session->_connections)
-            removeConnection(mapping.first, DisconnectCause::client);
+        // Disconnect everyone: iteration safe deletion
+        for(auto it = _session->_connections.cbegin(); it != _session->_connections.cend();)
+            it = removeConnection(it->first, DisconnectCause::client);
 
         // Update state
         _session->_state = SessionState::stopped;
@@ -336,7 +339,7 @@ namespace detail {
     }
 
     template<class ConnectionIdType>
-    void Selling<ConnectionIdType>::removeConnection(const ConnectionIdType & id, DisconnectCause cause) {
+    typename detail::ConnectionMap<ConnectionIdType>::const_iterator Selling<ConnectionIdType>::removeConnection(const ConnectionIdType & id, DisconnectCause cause) {
 
         assert(_session->state() != SessionState::stopped);
         assert(_session->hasConnection(id));
@@ -352,7 +355,7 @@ namespace detail {
         _removedConnection(id, cause);
 
         // Destroy connection
-        _session->destroyConnection(id);
+        return _session->destroyConnection(id);
     }
 
     template<class ConnectionIdType>

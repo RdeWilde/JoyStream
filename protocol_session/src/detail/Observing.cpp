@@ -66,14 +66,14 @@ namespace detail {
         if(_session->state() == SessionState::stopped)
             throw exception::StateIncompatibleOperation("cannot stop while already stopped.");
 
-        // Disconnect everyone
-        for(auto mapping : _session->_connections) {
+        // Disconnect everyone: iteration safe deletion
+        for(auto itr = _session->_connections.cbegin(); itr != _session->_connections.cend();) {
 
             // Notify client to remove connection
-            _removedConnection(mapping.first, DisconnectCause::client);
+            _removedConnection(itr->first, DisconnectCause::client);
 
-            // Destroy connection
-            _session->destroyConnection(mapping.first);
+            // Destroy connection: iterator made invalid here
+            itr = _session->destroyConnection(itr->first);
         }
 
         // Update state
