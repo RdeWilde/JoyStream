@@ -29,6 +29,16 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
+    Session<ConnectionIdType>::~Session() {
+
+        if(_mode == SessionMode::not_set)
+            return;
+
+        if(_state != SessionState::stopped)
+            stop();
+    }
+
+    template <class ConnectionIdType>
     void Session<ConnectionIdType>::toObserveMode(const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection) {
 
         // Prepare for exiting current state

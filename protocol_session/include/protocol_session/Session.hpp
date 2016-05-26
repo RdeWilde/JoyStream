@@ -45,6 +45,8 @@ namespace detail {
 
         Session();
 
+        ~Session();
+
         // Delete to prevent copying of session
         Session(const Session&) = delete;
         void operator=(const Session&) = delete;
