@@ -560,7 +560,7 @@ bool SPVWallet::spendsWalletOutput(const Coin::TxIn & txin) const {
 
        // Compare the redeemScript to the end of the scriptSig which would contain the redeem script
        // in a p2sh spending input
-       return std::equal(redeemScript.rbegin(), redeemScript.rend(), txin.scriptSig.rbegin());
+       if(std::equal(redeemScript.rbegin(), redeemScript.rend(), txin.scriptSig.rbegin())) return true;
     }
 
     return false;
