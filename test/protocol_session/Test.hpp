@@ -95,6 +95,9 @@ private:
 
     // Utilities
     void verifyTermsSentToPeer(const SendMessageOnConnectionCallbackSlot &);
+
+    // Generates private key which is 32 byte unsigned integer encoded i
+    static Coin::PrivateKey privateKeyFromUInt(uint i);
 };
 
 #endif // TEST_HPP

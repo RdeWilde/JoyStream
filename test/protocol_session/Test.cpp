@@ -29,7 +29,7 @@ void Test::init() {
         std::vector<Coin::KeyPair> keys;
 
         for(int i = 0;i < n;i++)
-            keys.push_back(Coin::KeyPair::generate());
+            keys.push_back(Coin::KeyPair(privateKeyFromUInt(i)));
 
         return keys;
     },
@@ -38,7 +38,7 @@ void Test::init() {
         std::vector<Coin::P2PKHAddress> addresses;
 
         for(int i = 0;i < n;i++)
-            addresses.push_back(Coin::PrivateKey::generate().toPublicKey().toP2PKHAddress(this->network));
+            addresses.push_back((privateKeyFromUInt(i)).toPublicKey().toP2PKHAddress(this->network));
 
         return addresses;
 
@@ -360,6 +360,14 @@ void Test::verifyTermsSentToPeer(const SendMessageOnConnectionCallbackSlot & slo
         default:
             assert(false);
     }
+}
+
+Coin::PrivateKey Test::privateKeyFromUInt(uint i) {
+
+    std::stringstream s;
+    s << std::hex << i;
+    std::string hexInteger = s.str();
+    return Coin::PrivateKey(hexInteger);
 }
 
 QTEST_MAIN(Test)
