@@ -98,7 +98,7 @@ namespace protocol_session {
             case SessionMode::not_set:
 
                 assert(_observing == nullptr && _buying == nullptr && _selling == nullptr);
-                throw exception::SessionModeNotSetException();
+                break;
 
             case SessionMode::observing:
 
