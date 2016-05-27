@@ -74,9 +74,7 @@ void Test::observing() {
     // Do basic tests
     basic();
 
-    // << ---- here we have stopped session ---->
-
-    start();
+    //// Do transitions to other modes: buy, back to observe, sell
 
     // Have some new peers join, without announcing mode,
     // and transition to buy mode
@@ -207,6 +205,10 @@ void Test::basic() {
     //// (7) stop
 
     stop();
+
+    //// (8) start
+
+    start();
 }
 
 void Test::addConnection(ID id) {
