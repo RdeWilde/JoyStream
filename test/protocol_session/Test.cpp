@@ -18,7 +18,7 @@ Test::Test()
     , spy(nullptr) {
 }
 
-void Test::initTestCase() {
+void Test::init() {
 
     session = new Session<ID>();
 

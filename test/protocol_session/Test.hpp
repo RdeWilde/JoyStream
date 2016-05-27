@@ -28,9 +28,8 @@ public:
 
 private slots:
 
-    // Runs before each unit, sets up session and spy
-
-    void initTestCase();
+    // Runs before & after each unit, creates/deletes up session and spy
+    void init();
     void cleanup();
 
     //// Cases
