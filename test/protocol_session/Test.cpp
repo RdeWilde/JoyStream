@@ -343,12 +343,36 @@ void Test::verifyTermsSentToPeer(const SendMessageOnConnectionCallbackSlot & slo
     }
 }
 
-Coin::PrivateKey Test::privateKeyFromUInt(uint i) {
+Coin::PrivateKey Test::privateKeyFromUInt(uint) {
+
+    /**
+     * For whatever reason, the private keys generated
+     * by this routine seem to be invalid? the EC routines fail to convert
+     * them properly to public keys.
 
     std::stringstream s;
     s << std::hex << i;
-    std::string hexInteger = s.str();
-    return Coin::PrivateKey(hexInteger);
+    std::string hexInteger = s.str(); // MSB is at index 0
+
+    // Make even length representation by potentially adding leading 0
+    if(hexInteger.length() % 2 != 0)
+        hexInteger = "0" + hexInteger;
+
+    std::string finalHexRepresentation;
+
+    if(hexInteger.length() > 2*Coin::PrivateKey::length())
+        throw std::runtime_error("privateKeyFromUInt: argument to big"); // not even going to truncate
+    else if(hexInteger.length() < 2*Coin::PrivateKey::length())
+        finalHexRepresentation = std::string(2*Coin::PrivateKey::length() - hexInteger.length(), '0') + hexInteger; // add suitable number of leading 0s
+
+    assert(finalHexRepresentation.length() == 2*Coin::PrivateKey::length());
+
+    std::cout << "Generate ---- " << finalHexRepresentation.length() << std::endl;
+
+    return Coin::PrivateKey(finalHexRepresentation);
+    */
+
+    return Coin::PrivateKey::generate();
 }
 
 QTEST_MAIN(Test)
