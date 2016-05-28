@@ -160,6 +160,15 @@ public:
 
     void reset();
 
+    bool onlyCalledRemovedConnection() const;
+    bool onlyCalledGenerateKeyPairs() const;
+    bool onlyCalledGenerateP2PKHAddresses() const;
+    bool onlyCalledBroadcastTransaction() const;
+    bool onlyCalledFullPieceArrived() const;
+    bool onlyCalledLoadPieceForBuyer() const;
+    bool onlyCalledClaimLastPayment() const;
+    bool onlyCalledAnchorAnnounced() const;
+
     //// General
     RemovedConnectionCallbackSlot<ConnectionIdType> removedConnectionCallbackSlot;
     GenerateKeyPairsCallbackSlot<ConnectionIdType> generateKeyPairsCallbackSlot;
