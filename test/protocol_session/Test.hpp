@@ -37,7 +37,8 @@ private slots:
     //
     void observing();
 
-    //
+    // Test sell mode transitions
+    void selling_basic();
     void selling();
 
     //

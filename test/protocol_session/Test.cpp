@@ -96,6 +96,45 @@ void Test::observing() {
 
 }
 
+void Test::selling_basic() {
+
+    // to observe mode
+    toSellMode(SellingPolicy(), protocol_wire::SellerTerms(22, 134, 1, 88, 32));
+
+    // incorrectly try to go to same mode again
+    QVERIFY_EXCEPTION_THROWN(toSellMode(SellingPolicy(), protocol_wire::SellerTerms()),
+                             exception::SessionAlreadyInThisMode);
+
+    // Start session
+    start();
+
+    // incorrectly try to start again
+    QVERIFY_EXCEPTION_THROWN(start(), exception::StateIncompatibleOperation);
+
+    // Do basic tests
+    basic();
+
+    //// Do transitions to other modes: buy, back to sell, observe
+
+    // Have some new peers join, without announcing mode,
+    // and transition to buy mode
+    addConnection(0);
+    addConnection(1);
+
+    // Go to buy mode
+    toBuyMode(Coin::UnspentP2PKHOutput(),
+              BuyingPolicy(),
+              protocol_wire::BuyerTerms(),
+              TorrentPieceInformation());
+
+    // back to sell mode
+    toSellMode(SellingPolicy(), protocol_wire::SellerTerms(22, 134, 1, 88, 32));
+
+    // Go to observe mode
+    toObserveMode();
+
+}
+
 void Test::selling() {
 
     // same as general stuff as above
