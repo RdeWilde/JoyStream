@@ -14,7 +14,8 @@
 
 namespace Coin {
 
-Signature::Signature() {
+Signature::Signature()
+    : _raw(maxLength, 0) {
 }
 
 Signature::Signature(const uchar_vector & raw) {
