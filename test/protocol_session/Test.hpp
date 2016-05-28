@@ -93,7 +93,7 @@ private:
     void pause();
 
     //
-    void takeSellerToReadyForPieceRequest(ID, const protocol_wire::BuyerTerms &, const protocol_wire::Ready &);
+    void addBuyerAndGoToReadyForPieceRequest(ID, const protocol_wire::BuyerTerms &, const protocol_wire::Ready &);
 
     // Alter session mode
     void toObserveMode();
