@@ -264,16 +264,6 @@ void Test::stop() {
     SessionMode mode = session->mode();
     assert(mode != SessionMode::not_set);
 
-    // If session is in buying, identify connections
-    // which are in X state, and hence should be given courtsey payment
-    if(mode == SessionMode::buying) {
-
-        // iterate connection c:
-            // if c.inthis state
-                // c.id()
-
-    }
-
     // Get all connections present before stop
     std::set<ID> presentBeforeStop = session->connectionIds();
 
@@ -287,15 +277,6 @@ void Test::stop() {
         removed.insert(std::get<0>(f));
 
     QCOMPARE(removed, presentBeforeStop);
-
-    // If session is buying, last best effort message was correctly sent
-    if(mode == SessionMode::buying) {
-
-        // if we were in some spesific state (how to check that now),
-        // then check if the connection received a valid last payment
-    }
-
-    // no case for: mode == SessionMode::selling, SessionMode::observing
 
     spy->reset();
     spy->removeConnectionSpies();
