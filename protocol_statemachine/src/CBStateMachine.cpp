@@ -90,6 +90,7 @@ namespace protocol_statemachine {
     }
 
     void CBStateMachine::unconsumed_event(const sc::event_base &) {
+        std::cout << "unconsumed_event" << std::endl;
         //throw exception::StateIncompatibleEvent("");
     }
 
