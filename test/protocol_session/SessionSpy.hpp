@@ -165,9 +165,9 @@ public:
     bool onlyCalledGenerateP2PKHAddresses() const;
     bool onlyCalledBroadcastTransaction() const;
     bool onlyCalledFullPieceArrived() const;
+    bool onlyCalledAnchorAnnounced() const;
     bool onlyCalledLoadPieceForBuyer() const;
     bool onlyCalledClaimLastPayment() const;
-    bool onlyCalledAnchorAnnounced() const;
 
     //// General
     RemovedConnectionCallbackSlot<ConnectionIdType> removedConnectionCallbackSlot;
@@ -179,9 +179,9 @@ public:
     FullPieceArrivedCallbackSlot<ConnectionIdType> fullPieceArrivedCallbackSlot;
 
     //// Selling
+    AnchorAnnouncedCallbackSlot<ConnectionIdType> anchorAnnouncedCallbackSlot;
     LoadPieceForBuyerCallbackSlot<ConnectionIdType> loadPieceForBuyerCallbackSlot;
     ClaimLastPaymentCallbackSlot<ConnectionIdType> claimLastPaymentCallbackSlot;
-    AnchorAnnouncedCallbackSlot<ConnectionIdType> anchorAnnouncedCallbackSlot;
 
     // Connection spies
     std::map<ConnectionIdType, ConnectionSpy<ConnectionIdType> *> connectionSpies;
