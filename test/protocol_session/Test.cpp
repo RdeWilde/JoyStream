@@ -230,6 +230,32 @@ void Test::selling_buyer_invited_with_bad_terms() {
 
 void Test::selling_buyer_requested_invalid_piece() {
 
+    int invalidPieceIndex = 1337;
+    ID peer = 0;
+
+    // back to sell mode
+    toSellMode(SellingPolicy(), protocol_wire::SellerTerms());
+
+    // Start session
+    start();
+
+    // Add a buyer peer and take connection to state ReadyForPieceRequest
+    addBuyerAndGoToReadyForPieceRequest(peer, protocol_wire::BuyerTerms(), protocol_wire::Ready());
+
+    // peer requests invalid piece
+    session->processMessageOnConnection(peer, protocol_wire::RequestFullPiece(invalidPieceIndex));
+
+    QVERIFY(spy->onlyCalledRemovedConnection());
+
+    QCOMPARE((int)spy->removedConnectionCallbackSlot.size(), 1);
+
+    ID id;
+    DisconnectCause cause;
+    std::tie(id, cause) = spy->removedConnectionCallbackSlot.front();
+    QCOMPARE(id, peer);
+    QCOMPARE(cause, DisconnectCause::buyer_requested_invalid_piece);
+
+    spy->reset();
 }
 
 void Test::selling_buyer_interrupted_payment() {
