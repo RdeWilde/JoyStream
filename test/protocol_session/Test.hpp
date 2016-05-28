@@ -34,15 +34,23 @@ private slots:
 
     //// Cases
 
-    //
+    // Test observe mode transitions
     void observing();
 
     // Test sell mode transitions
     void selling_basic();
     void selling();
+    void selling_buyer_invited_with_bad_terms();
+    void selling_buyer_requested_invalid_piece();
+    void selling_buyer_interrupted_payment();
+    void selling_buyer_sent_invalid_payment();
 
-    //
+    // Test buy mode transitions
+    void buying_basic();
     void buying();
+    void buying_seller_has_interrupted_contract();
+    void buying_seller_servicing_piece_has_timed_out();
+    void buying_seller_sent_invalid_piece();
 
 private:
 
@@ -66,6 +74,7 @@ private:
     // (5) new peer joins
     // (6) old peer updates terms
     // (7) stop
+    // (8) start
     void basic();
 
     // Adds peer
@@ -82,6 +91,9 @@ private:
 
     //
     void pause();
+
+    //
+    void takeSellerToReadyForPieceRequest(ID, const protocol_wire::BuyerTerms &, const protocol_wire::Ready &);
 
     // Alter session mode
     void toObserveMode();

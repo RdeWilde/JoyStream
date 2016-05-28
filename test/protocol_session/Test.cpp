@@ -137,12 +137,51 @@ void Test::selling_basic() {
 
 void Test::selling() {
 
-    // same as general stuff as above
+    protocol_wire::SellerTerms sellerTerms(22, 134, 10, 88, 32);
+    protocol_wire::BuyerTerms buyerTerms(24, 200, 2, 400, 5);
+    Coin::PrivateKey payorContractSk("E9873D79C6D87DC0FB6A5778633389F4");
+    protocol_wire::Ready ready(1123,
+                               Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")), 55),
+                               payorContractSk.toPublicKey(),
+                               Coin::PubKeyHash("03a3fac91cac4a5c9ec870b444c4890ec7d68671"));
 
-    //
+    ID peer = 0;
 
-    //void toSellMode(Session<ID> * session, SessionSpy<ID> * spy);
+    assert(sellerTerms.satisfiedBy(buyerTerms));
 
+    // back to sell mode
+    toSellMode(SellingPolicy(), sellerTerms);
+
+    // Start session
+    start();
+
+    // Add a buyer peer and take connection to state ReadyForPieceRequest
+    addBuyerAndGoToReadyForPieceRequest(peer, buyerTerms, ready);
+
+
+    // Repeat N times: i)
+        // peer (buyer) requests a piece
+        // assert ---> seller session asks // loadPieceForBuyerCallbackSlot.hook(),
+
+        // Request invalid piece!! disconnect
+
+        // session-*pieceLoaded(const ConnectionIdType &, const protocol_wire::PieceData &, int);
+        // assert ---> sessino sends the correct message on the given wire
+
+    // N+1)
+    // peer (buyer dis appears)
+    // assert that seller session calls: claimLastPaymentCallbackSlot.hook(),
+    // and that it has correct state (#payments, sigs, etc).
+
+    //-----
+
+    // Update terms when selling
+    // void updateTerms(const protocol_wire::SellerTerms &);
+
+    // pause/stop different places here
+    // stop different places here
+    // peer updates its terms
+    // peer drops out
 
     // pausing a seller?
     // if there is a pending request, then make an additional call
@@ -150,23 +189,59 @@ void Test::selling() {
     // NB: ****this makes no sense, as connection will be gone.***
     // no case for: mode == SessionMode::observing
     // *** make sure that you deal with this later
+}
 
+void Test::selling_buyer_invited_with_bad_terms() {
 
-    // update terms
+    protocol_wire::SellerTerms sellerTerms(22, 134, 10, 88, 32);
+    protocol_wire::BuyerTerms badBuyerTerms;
+    ID peer = 0;
 
-    /**
-    LoadPieceForBuyerCallbackSlot<ConnectionIdType> loadPieceForBuyerCallbackSlot;
-    ClaimLastPaymentCallbackSlot<ConnectionIdType> claimLastPaymentCallbackSlot;
-    AnchorAnnouncedCallbackSlot<ConnectionIdType> anchorAnnouncedCallbackSlot;
+    assert(!sellerTerms.satisfiedBy(badBuyerTerms));
 
-    //// Selling
+    // back to sell mode
+    toSellMode(SellingPolicy(), sellerTerms);
 
-    // Data for given piece has been loaded
-    void pieceLoaded(const ConnectionIdType &, const protocol_wire::PieceData &, int);
+    // Start session
+    start();
 
-    // Update terms when selling
-    void updateTerms(const protocol_wire::SellerTerms &);
-    */
+    // Have some new peers join, without announcing mode,
+    addConnection(peer);
+
+    // peer announces buyer mode
+    session->processMessageOnConnection(peer, protocol_wire::Buy(badBuyerTerms));
+
+    QVERIFY(spy->blank());
+
+    // peer (buyer) sends invitation to terms which are not good enough
+    session->processMessageOnConnection(peer, protocol_wire::JoinContract(0));
+
+    QVERIFY(spy->onlyCalledRemovedConnection());
+    QCOMPARE((int)spy->removedConnectionCallbackSlot.size(), 1);
+
+    ID id;
+    DisconnectCause cause;
+    std::tie(id, cause) = spy->removedConnectionCallbackSlot.front();
+    QCOMPARE(id, peer);
+    QCOMPARE(cause, DisconnectCause::buyer_invited_with_bad_terms);
+
+    spy->reset();
+}
+
+void Test::selling_buyer_requested_invalid_piece() {
+
+}
+
+void Test::selling_buyer_interrupted_payment() {
+
+}
+
+void Test::selling_buyer_sent_invalid_payment() {
+
+}
+
+void Test::buying_basic() {
+
 }
 
 void Test::buying() {
@@ -181,12 +256,8 @@ void Test::buying() {
 
     /**
 
-      check
     BroadcastTransactionCallbackSlot broadcastTransactionCallbackSlot;
     FullPieceArrivedCallbackSlot<ConnectionIdType> fullPieceArrivedCallbackSlot;
-
-
-    //// Buying
 
     // A valid piece was sent too us on given connection
     void validPieceReceivedOnConnection(const ConnectionIdType &, int index);
@@ -203,6 +274,18 @@ void Test::buying() {
 
     */
 
+}
+
+void Test::buying_seller_has_interrupted_contract() {
+//DisconnectCause
+}
+
+void Test::buying_seller_servicing_piece_has_timed_out() {
+//DisconnectCause
+}
+
+void Test::buying_seller_sent_invalid_piece() {
+//DisconnectCause
 }
 
 void Test::basic() {
@@ -276,11 +359,15 @@ void Test::removeConnection(ID id) {
     auto ids = session->connectionIds();
     auto itr = std::find(ids.cbegin(), ids.cend(), id);
     QVERIFY(itr == ids.cend());
-    QCOMPARE((int)spy->removedConnectionCallbackSlot.size(), 1);
 
-    auto f = spy->removedConnectionCallbackSlot.front();
-    QCOMPARE(std::get<0>(f), id);
-    QCOMPARE(std::get<1>(f), DisconnectCause::client);
+    QVERIFY(spy->onlyCalledRemovedConnection());
+
+    ID removedPeer;
+    DisconnectCause cause;
+    std::tie(removedPeer, cause) = spy->removedConnectionCallbackSlot.front();
+    QCOMPARE((int)spy->removedConnectionCallbackSlot.size(), 1);
+    QCOMPARE(removedPeer, id);
+    QCOMPARE(cause, DisconnectCause::client);
 
     spy->reset();
 }
@@ -290,6 +377,7 @@ void Test::start() {
     session->start();
 
     QCOMPARE(session->state(), SessionState::started);
+    QVERIFY(spy->blankSession());
 
     // iterate peers and check that correct mode message had been sent to whatever
     for(auto mapping : spy->connectionSpies)
@@ -326,6 +414,54 @@ void Test::pause() {
     session->pause();
     QCOMPARE(session->state(), SessionState::paused);
     QVERIFY(spy->blank());
+}
+
+void Test::addBuyerAndGoToReadyForPieceRequest(ID id, const protocol_wire::BuyerTerms & terms, const protocol_wire::Ready & ready) {
+
+    // peer joins
+    addConnection(id);
+
+    // peer announces buyer mode
+    session->processMessageOnConnection(id, protocol_wire::Buy(terms));
+
+    QVERIFY(spy->blank());
+
+    // peer (buyer) sends invitation to terms which are good enough
+    // NB: we assume the seller has only sent one terms message, which has 0 index
+    session->processMessageOnConnection(id, protocol_wire::JoinContract(0));
+
+    // key pair was generated
+    QCOMPARE((int)spy->generateKeyPairsCallbackSlot.size(), 1);
+    QCOMPARE((int)std::get<0>(spy->generateKeyPairsCallbackSlot.front()), 1);
+
+    // address was generated
+    QCOMPARE((int)spy->generateP2PKHAddressesCallbackSlot.size(), 1);
+    QCOMPARE((int)std::get<0>(spy->generateP2PKHAddressesCallbackSlot.front()), 1);
+
+    spy->reset();
+
+    // peer (buyer) announces ready
+    session->processMessageOnConnection(id, ready);
+
+    // check that announcement callback was made
+    QVERIFY(spy->onlyCalledAnchorAnnounced());
+    QCOMPARE((int)spy->anchorAnnouncedCallbackSlot.size(), 1);
+
+    ID announcedId;
+    quint64 value;
+    Coin::typesafeOutPoint anchor;
+    Coin::PublicKey contractPk;
+    Coin::PubKeyHash finalPkHash;
+
+    std::tie(announcedId, value, anchor, contractPk, finalPkHash) = spy->anchorAnnouncedCallbackSlot.front();
+
+    QCOMPARE(announcedId, id);
+    QCOMPARE(value, ready.value());
+    QCOMPARE(anchor, ready.anchor());
+    QCOMPARE(contractPk, ready.contractPk());
+    QCOMPARE(finalPkHash, ready.finalPkHash());
+
+    spy->reset();
 }
 
 void Test::toObserveMode() {
