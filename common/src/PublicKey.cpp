@@ -19,13 +19,22 @@ PublicKey::PublicKey() {
 
 PublicKey::PublicKey(const uchar_vector & rawCompressedKey)
     : UCharArray<COMPRESSED_PUBLIC_KEY_BYTE_LENGTH>(rawCompressedKey) {
+
+    // Verify key validity
+    if(!valid(*this))
+        throw InvalidPublicKeyException(*this);
 }
 
 PubKeyHash PublicKey::toPubKeyHash() const {
-    return PubKeyHash(ripemd160(sha256(this->toUCharVector())));
+    return PubKeyHash(ripemd160(sha256(toUCharVector())));
 }
 
 bool PublicKey::verify(const uchar_vector & message, const Signature & sig) const {
+
+    // Verify key validity: is required due to default constructor,
+    // or direct access to UCharArray<>
+    if(!valid(*this))
+        throw InvalidPublicKeyException(*this);
 
     // Create signature checking key for thisp public key
     CoinCrypto::secp256k1_key signatureCheckingKey;
@@ -45,6 +54,19 @@ bool PublicKey::verify(const uchar_vector & message, const Signature & sig) cons
     }
 
     return verified;
+}
+
+bool PublicKey::valid(const PublicKey & pk) {
+
+    try {
+
+        CoinCrypto::secp256k1_key checkingKey;
+        checkingKey.setPubKey(pk.toUCharVector());
+
+        return true;
+    } catch (const std::runtime_error &) {
+        return false;
+    }
 }
 
 P2PKHAddress PublicKey::toP2PKHAddress(Network network) const{
