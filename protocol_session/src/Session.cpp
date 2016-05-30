@@ -777,13 +777,13 @@ namespace protocol_session {
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::receivedInvalidPayment(const ConnectionIdType & id, const Coin::Signature &) {
+    void Session<ConnectionIdType>::receivedInvalidPayment(const ConnectionIdType & id, const Coin::Signature & sig) {
 
         assert(hasConnection(id));
         assert(_mode == SessionMode::selling);
         assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
 
-        _selling->invalidPieceRequested(id);
+        _selling->receivedInvalidPayment(id, sig);
     }
 
     template<class ConnectionIdType>
