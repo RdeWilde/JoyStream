@@ -13,14 +13,6 @@
 
 #define PRIVATE_KEY_BYTE_LENGTH 32
 
-/**
-namespace CoinQ {
-namespace Script {
-enum SigHashType;
-}
-}
-*/
-
 namespace Coin {
 
 class PublicKey;
@@ -29,15 +21,7 @@ class TransactionSignature;
 class Transaction;
 enum class PublicKeyCompression;
 class SigHashType;
-//class P2PKHAddress;
-//enum class Network;
 
-// Later make the allocation/copying anti-page secure
-// WARNING: NEEDS SECURE ALLOCATOR & DESTRUCTOR
-// WARNING: NEEDS SECURE ALLOCATOR & DESTRUCTOR
-// WARNING: NEEDS SECURE ALLOCATOR & DESTRUCTOR
-// WARNING: NEEDS SECURE ALLOCATOR & DESTRUCTOR
-// WARNING: NEEDS SECURE ALLOCATOR & DESTRUCTOR
 class PrivateKey : public UCharArray<PRIVATE_KEY_BYTE_LENGTH> {
 
 public:
@@ -58,6 +42,9 @@ public:
     // Factory from WIF encoded private key (for compressed pubkey)
     static PrivateKey fromWIF(const QString & encoded);
 
+    // Validity of key
+    static bool valid(const PrivateKey &);
+
     // WIF Encode private key
     QString toWIF(Network network, PublicKeyCompression compression) const;
 
@@ -75,6 +62,25 @@ public:
     // Generates the correponding (compressed) public key
     PublicKey toPublicKey() const;
 };
+
+class InvalidPrivateKeyException : std::runtime_error {
+
+public:
+
+    InvalidPrivateKeyException(const PrivateKey & sk)
+        : std::runtime_error("Invalid private key.")
+        , _sk(sk) {
+    }
+
+    PrivateKey sk() const {
+        return _sk;
+    }
+
+private:
+
+    PrivateKey _sk;
+};
+
 
 }
 
