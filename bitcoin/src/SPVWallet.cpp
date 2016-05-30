@@ -278,7 +278,7 @@ SPVWallet::generateKeyPairs(const std::vector<RedeemScriptGenerator> &scriptGene
 }
 
 std::list<Coin::P2SHAddress> SPVWallet::listAddresses() {
-    return _store.listReceiveAddresses();
+    return _store.listAddresses();
 }
 
 Coin::P2SHAddress
@@ -288,7 +288,17 @@ SPVWallet::generateReceiveAddress()
         throw std::runtime_error("wallet not initialized");
     }
 
-    return _store.generateReceiveAddress();
+    uchar_vector redeemScript;
+
+    _store.generateKey([&redeemScript](const Coin::PublicKey & pubKey) {
+       Coin::P2PKScriptPubKey script(pubKey);
+       redeemScript = script.serialize();
+       return redeemScript;
+    });
+
+    updateBloomFilter({redeemScript});
+
+    return Coin::P2SHAddress::fromSerializedRedeemScript(_network, redeemScript);
 }
 
 
@@ -530,11 +540,11 @@ void SPVWallet::updateBloomFilter(const std::vector<uchar_vector> redeemScripts)
         filter.insert(script);
 
         // For capturing outputs: script hash
-        uchar_vector hash = ripemd160(sha256(script));
-        filter.insert(hash);
+        Coin::P2SHAddress address = Coin::P2SHAddress::fromSerializedRedeemScript(_network, script);
+        filter.insert(address.redeemScriptHash().toUCharVector());
 
         // Generate output scripts for direct comparison in createsWalletOutput() routine
-        _scriptPubKeys.insert(Coin::P2SHScriptPubKey(hash).serialize());
+        _scriptPubKeys.insert(address.toP2SHScriptPubKey().serialize());
     }
 
     _networkSync.setBloomFilter(filter);

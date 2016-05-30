@@ -68,22 +68,19 @@ public:
     // Return a new private key
     Coin::PrivateKey generateKey(const RedeemScriptGenerator & scriptGenerator);
 
-    // Returns a vector of keys from the keypool supplemented by new keys if required
+    // Returns a vector of new keys
     std::vector<Coin::PrivateKey> generateKeys(uint32_t numKeys, const MultiRedeemScriptGenerator & multiScriptGenerator);
 
     // Returns a vector of new key pairs
     std::vector<Coin::KeyPair> generateKeyPairs(uint32_t numKeys, const MultiRedeemScriptGenerator & multiScriptGenerator);
 
-    // Generate p2sh receive address corresponding to a new private key
-    Coin::P2SHAddress generateReceiveAddress();
-
-    // Total number keys in wallet (including unused)
+    // Total number keys in wallet
     uint32_t numberOfKeysInWallet();
 
     std::vector<Coin::PrivateKey> listPrivateKeys();
     std::vector<uchar_vector> listRedeemScripts();
     std::list<Coin::Transaction> listTransactions();
-    std::list<Coin::P2SHAddress> listReceiveAddresses();
+    std::list<Coin::P2SHAddress> listAddresses();
 
     bool addressExists(const Coin::P2SHAddress & p2shaddress);
     bool transactionExists(const Coin::TransactionId & txid);

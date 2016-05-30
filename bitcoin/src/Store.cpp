@@ -215,20 +215,6 @@ std::vector<Coin::KeyPair> Store::generateKeyPairs(uint32_t numKeys, const Multi
     return keyPairs;
 }
 
-// Generates a new key so doesn't require synchronization
-Coin::P2SHAddress Store::generateReceiveAddress() {
-
-    uchar_vector redeemScript;
-
-    generateKey([&redeemScript](const Coin::PublicKey & pubKey) {
-       Coin::P2PKScriptPubKey script(pubKey);
-       redeemScript = script.serialize();
-       return redeemScript;
-    });
-
-    return Coin::P2SHAddress::fromSerializedRedeemScript(_network, redeemScript);
-}
-
 uint32_t Store::numberOfKeysInWallet() {
     if(!connected()) {
         throw NotConnected();
@@ -301,7 +287,7 @@ std::list<Coin::Transaction> Store::listTransactions() {
     return transactions;
 }
 
-std::list<Coin::P2SHAddress> Store::listReceiveAddresses() {
+std::list<Coin::P2SHAddress> Store::listAddresses() {
 
     std::list<Coin::P2SHAddress> p2shAddresses;
 
