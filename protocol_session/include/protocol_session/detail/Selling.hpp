@@ -141,6 +141,9 @@ private:
     // Loads. .....
     // NB: Assumes in state protocol_statemachine::LoadingPiece
     void tryToLoadPiece(detail::Connection<ConnectionIdType> *);
+
+    // If at least one payment is made, then send claims notification
+    void tryToClaimLastPayment(detail::Connection<ConnectionIdType> *);
 };
 
 }

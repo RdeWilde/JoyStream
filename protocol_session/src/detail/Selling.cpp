@@ -238,13 +238,8 @@ namespace detail {
         //// Mode change is allowed in all session states
 
         // For each connection: Notify client to claim last payment made
-        for(auto itr : _session->_connections) {
-
-            detail::Connection<ConnectionIdType> * c = itr.second;
-
-            if(c-> template inState<joystream::protocol_statemachine::WaitingForPayment>())
-                _claimLastPayment(itr.first, c->payee());
-        }
+        for(auto itr : _session->_connections)
+            tryToClaimLastPayment(itr.second);
     }
 
     template<class ConnectionIdType>
@@ -361,9 +356,8 @@ namespace detail {
         // Notify client to claim last payment
         detail::Connection<ConnectionIdType> * c = _session->get(id);
 
-        // If we are owed money, then notify client to claim last payment made
-        if(c-> template inState<joystream::protocol_statemachine::WaitingForPayment>())
-            _claimLastPayment(id, c->payee());
+        // Claim payment
+        tryToClaimLastPayment(c);
 
         // Notify client to remove connection
         _removedConnection(id, cause);
@@ -409,6 +403,16 @@ namespace detail {
             c->setLoadedPiecePending(false);
         }
 
+    }
+
+    template<class ConnectionIdType>
+    void Selling<ConnectionIdType>::tryToClaimLastPayment(detail::Connection<ConnectionIdType> * c) {
+
+        // If at least one payment is made, then send claims notification
+        paymentchannel::Payee payee = c->payee();
+
+        if(payee.numberOfPaymentsMade() > 0)
+            _claimLastPayment(c->connectionId(), payee);
     }
 }
 }
