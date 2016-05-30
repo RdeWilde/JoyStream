@@ -15,7 +15,7 @@ namespace joystream {
 namespace protocol_statemachine {
 
     LoadingPiece::LoadingPiece() {
-        std::cout << "Entering PieceRequested state." << std::endl;
+        std::cout << "Entering LoadingPiece state." << std::endl;
     }
 
     sc::result LoadingPiece::react(const event::PieceLoaded & e) {
