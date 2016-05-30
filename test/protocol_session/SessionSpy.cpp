@@ -30,7 +30,8 @@ void SessionSpy<ConnectionIdType>::toMonitoredObserveMode() {
 
 template <class ConnectionIdType>
 void SessionSpy<ConnectionIdType>::toMonitoredSellMode(const SellingPolicy & policy,
-                                                       const protocol_wire::SellerTerms & terms) {
+                                                       const protocol_wire::SellerTerms & terms,
+                                                       int maxPiecePrice) {
 
     _session->toSellMode(removedConnectionCallbackSlot.hook(),
                          generateKeyPairsCallbackSlot.hook(),
@@ -39,7 +40,8 @@ void SessionSpy<ConnectionIdType>::toMonitoredSellMode(const SellingPolicy & pol
                          claimLastPaymentCallbackSlot.hook(),
                          anchorAnnouncedCallbackSlot.hook(),
                          policy,
-                         terms);
+                         terms,
+                         maxPiecePrice);
 
 }
 

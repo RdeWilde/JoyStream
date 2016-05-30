@@ -68,6 +68,10 @@ namespace detail {
         // Connection state machine reference
         //protocol_statemachine::CBStateMachine & machine();
 
+        // MAX_PIECE_INDEX
+        int maxPieceIndex() const;
+        void setMaxPieceIndex(int);
+
         // Statu of connection
         status::Connection<ConnectionIdType> status() const;
 

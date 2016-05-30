@@ -139,7 +139,8 @@ public:
     void toMonitoredObserveMode();
 
     void toMonitoredSellMode(const SellingPolicy &,
-                             const protocol_wire::SellerTerms &);
+                             const protocol_wire::SellerTerms &,
+                             int);
 
     void toMonitoredBuyMode(const Coin::UnspentP2PKHOutput &,
                             const BuyingPolicy &,

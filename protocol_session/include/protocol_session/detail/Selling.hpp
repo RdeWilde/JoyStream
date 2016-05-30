@@ -40,7 +40,8 @@ public:
             const ClaimLastPayment<ConnectionIdType> &,
             const AnchorAnnounced<ConnectionIdType> &,
             const SellingPolicy &,
-            const protocol_wire::SellerTerms &);
+            const protocol_wire::SellerTerms &,
+            int);
 
     //// Connection level client events
 
@@ -114,6 +115,9 @@ private:
 
     // Terms for selling
     protocol_wire::SellerTerms _terms;
+
+    // Maximum piece
+    int _MAX_PIECE_INDEX;
 
     // Prepare given connection for deletion due to given cause, returns next valid iterator (e.g. end)
     typename detail::ConnectionMap<ConnectionIdType>::const_iterator removeConnection(const ConnectionIdType &, DisconnectCause);

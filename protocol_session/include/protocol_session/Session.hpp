@@ -70,7 +70,8 @@ namespace detail {
                         const ClaimLastPayment<ConnectionIdType> &,
                         const AnchorAnnounced<ConnectionIdType> &,
                         const SellingPolicy &,
-                        const protocol_wire::SellerTerms &);
+                        const protocol_wire::SellerTerms &,
+                        int);
 
         // Change session to buy mode
         void toBuyMode(const RemovedConnectionCallbackHandler<ConnectionIdType> &,

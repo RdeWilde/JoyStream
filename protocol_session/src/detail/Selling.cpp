@@ -24,7 +24,8 @@ namespace detail {
                                        const ClaimLastPayment<ConnectionIdType> & claimLastPayment,
                                        const AnchorAnnounced<ConnectionIdType> & anchorAnnounced,
                                        const SellingPolicy & policy,
-                                       const protocol_wire::SellerTerms & terms)
+                                       const protocol_wire::SellerTerms & terms,
+                                       int MAX_PIECE_INDEX)
         : _session(session)
         , _removedConnection(removedConnection)
         , _generateKeyPairs(generateKeyPairs)
@@ -33,11 +34,21 @@ namespace detail {
         , _claimLastPayment(claimLastPayment)
         , _anchorAnnounced(anchorAnnounced)
         , _policy(policy)
-        , _terms(terms) {
+        , _terms(terms)
+        , _MAX_PIECE_INDEX(MAX_PIECE_INDEX) {
 
         // Notify any existing peers
-        for(auto itr : _session->_connections)
-            (itr.second)->processEvent(joystream::protocol_statemachine::event::SellModeStarted(_terms));
+        for(auto itr : _session->_connections) {
+
+            detail::Connection<ConnectionIdType> * c = itr.second;
+
+            // Set max piece index
+            c->setMaxPieceIndex(_MAX_PIECE_INDEX);
+
+            // Change mode
+            c->processEvent(joystream::protocol_statemachine::event::SellModeStarted(_terms));
+        }
+
     }
 
     template<class ConnectionIdType>
@@ -45,6 +56,9 @@ namespace detail {
 
         // Create connection
         detail::Connection<ConnectionIdType> * connection = _session->createAndAddConnection(id, callback);
+
+        // Set max piece index
+        connection->setMaxPieceIndex(_MAX_PIECE_INDEX);
 
         // Choose mode on connection
         connection->processEvent(protocol_statemachine::event::SellModeStarted(_terms));

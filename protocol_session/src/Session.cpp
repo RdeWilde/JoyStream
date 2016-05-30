@@ -90,7 +90,8 @@ namespace protocol_session {
                                                const ClaimLastPayment<ConnectionIdType> & claimLastPayment,
                                                const AnchorAnnounced<ConnectionIdType> & anchorAnnounced,
                                                const SellingPolicy & policy,
-                                               const protocol_wire::SellerTerms & terms) {
+                                               const protocol_wire::SellerTerms & terms,
+                                               int MAX_PIECE_INDEX) {
 
         // Prepare for exiting current state
         switch(_mode) {
@@ -136,7 +137,8 @@ namespace protocol_session {
                                                          claimLastPayment,
                                                          anchorAnnounced,
                                                          policy,
-                                                         terms);
+                                                         terms,
+                                                         MAX_PIECE_INDEX);
     }
 
     template <class ConnectionIdType>

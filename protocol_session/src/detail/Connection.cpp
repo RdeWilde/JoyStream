@@ -122,6 +122,16 @@ namespace detail {
         return _machine.payor();
     }
 
+    template <class ConnectionIdType>
+    int Connection<ConnectionIdType>::maxPieceIndex() const {
+        return _machine.MAX_PIECE_INDEX();
+    }
+
+    template <class ConnectionIdType>
+    void Connection<ConnectionIdType>::setMaxPieceIndex(int maxPieceIndex) {
+        return _machine.setMAX_PIECE_INDEX(maxPieceIndex);
+    }
+
     /**
     template <class ConnectionIdType>
     protocol_statemachine::CBStateMachine & Connection<ConnectionIdType>::machine() {
