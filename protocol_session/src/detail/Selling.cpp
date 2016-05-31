@@ -323,18 +323,12 @@ namespace detail {
     template<class ConnectionIdType>
     void Selling<ConnectionIdType>::updateTerms(const protocol_wire::SellerTerms & terms) {
 
-        // Notify existing peers where we have not yet joined the contract
-        for(auto itr : _session->_connections) {
-
-            detail::Connection<ConnectionIdType> * c = itr.second;
-
-            if(c-> template inState<joystream::protocol_statemachine::ReadyForInvitation>() ||
-               c-> template inState<joystream::protocol_statemachine::Invited>())
-                c->processEvent(protocol_statemachine::event::UpdateTerms<protocol_wire::SellerTerms>(terms));
-        }
-
         // Set new terms
         _terms = terms;
+
+        // Notify existing peers where we have not yet joined the contract
+        for(auto itr : _session->_connections)
+            itr.second->processEvent(protocol_statemachine::event::UpdateTerms<protocol_wire::SellerTerms>(_terms));
     }
 
     template<class ConnectionIdType>
