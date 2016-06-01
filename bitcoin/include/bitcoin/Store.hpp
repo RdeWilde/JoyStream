@@ -7,7 +7,7 @@
 #include <common/PublicKeyCompression.hpp>
 #include <common/KeyPair.hpp>
 #include <common/TransactionId.hpp>
-#include <common/P2PKOutput.hpp>
+#include <common/P2PKScriptHashOutput.hpp>
 #include <common/P2SHAddress.hpp>
 #include <common/P2PKScriptPubKey.hpp>
 

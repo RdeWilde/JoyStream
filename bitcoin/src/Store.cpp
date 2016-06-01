@@ -569,7 +569,7 @@ Store::getUnspentTransactionsOutputs(int32_t confirmations, int32_t main_chain_h
         std::shared_ptr<Coin::UnspentOutput> utxo;
 
         try {
-            utxo.reset(new Coin::P2PKOutput(keypair, outpoint, output.value(), uchar_vector(output.address->scriptPubKey()), uchar_vector(output.address->redeemScript())));
+            utxo.reset(new Coin::P2PKScriptHashOutput(keypair, outpoint, output.value(), uchar_vector(output.address->scriptPubKey()), uchar_vector(output.address->redeemScript())));
         } catch(std::exception & e) {
 
         }

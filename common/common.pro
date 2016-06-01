@@ -54,7 +54,7 @@ HEADERS += \
     include/common/MajorMinorSoftwareVersion.hpp \
     include/common/P2PKScriptPubKey.hpp \
     include/common/Payment.hpp \
-    include/common/P2PKOutput.hpp
+    include/common/P2PKScriptHashOutput.hpp
 
 SOURCES += \
     src/DataSizeRepresentation.cpp \
@@ -85,6 +85,6 @@ SOURCES += \
     src/P2PKScriptPubKey.cpp \
     src/Payment.cpp \
     src/TransactionId.cpp \
-    src/P2PKOutput.cpp
+    src/P2PKScriptHashOutput.cpp
 
 include(../config.pri)
