@@ -563,8 +563,7 @@ Store::getUnspentTransactionsOutputs(int32_t confirmations, int32_t main_chain_h
 
     for(auto & output : outputs) {
 
-        Coin::PrivateKey sk(_rootKeychain.getChild(output.keyIndex()).privkey());
-        Coin::KeyPair keypair(sk);
+        Coin::KeyPair keypair(output.address->key()->getPrivateKey());
         Coin::TransactionId txid(Coin::TransactionId::fromRPCByteOrder(uchar_vector(output.txid())));
         Coin::typesafeOutPoint outpoint(txid, output.index());
 

@@ -553,7 +553,6 @@ typedef struct {
     uint32_t index() { return outpoint->index(); }
     std::string txid() { return outpoint->txid(); }
     uint64_t value() { return output->value(); }
-    uint32_t keyIndex() { return address->key()->id(); }
 
 } outputs_view_t;
 
