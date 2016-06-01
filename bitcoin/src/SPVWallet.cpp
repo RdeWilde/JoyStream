@@ -321,7 +321,8 @@ int32_t SPVWallet::bestHeight() const {
     return _store.getBestHeaderHeight();
 }
 
-std::list<Coin::UnspentOutput> SPVWallet::lockOutputs(uint64_t minValue, uint32_t minimalConfirmations) {
+std::list<std::shared_ptr<Coin::UnspentOutput>>
+SPVWallet::lockOutputs(uint64_t minValue, uint32_t minimalConfirmations) {
     if(!isInitialized()) {
         throw std::runtime_error("wallet not initialized");
     }
@@ -330,16 +331,16 @@ std::list<Coin::UnspentOutput> SPVWallet::lockOutputs(uint64_t minValue, uint32_
 
     uint32_t totalValue = 0;
 
-    std::list<Coin::UnspentOutput> selectedOutputs;
+    std::list<std::shared_ptr<Coin::UnspentOutput>> selectedOutputs;
 
     // Assume outputs are sorted in descending value
-    std::list<Coin::UnspentOutput> unspentOutputs(_store.getUnspentTransactionsOutputs(minimalConfirmations, bestHeight()));
+    std::list<std::shared_ptr<Coin::UnspentOutput>> unspentOutputs(_store.getUnspentTransactionsOutputs(minimalConfirmations, bestHeight()));
 
-    for(Coin::UnspentOutput & utxo : unspentOutputs) {
-        if(_lockedOutpoints.find(utxo.outPoint()) != _lockedOutpoints.end()) continue;
+    for(std::shared_ptr<Coin::UnspentOutput> & utxo : unspentOutputs) {
+        if(_lockedOutpoints.find(utxo->outPoint()) != _lockedOutpoints.end()) continue;
 
         selectedOutputs.push_back(utxo);
-        totalValue += utxo.value();
+        totalValue += utxo->value();
 
         if(totalValue >= minValue) {
             break;
@@ -348,22 +349,22 @@ std::list<Coin::UnspentOutput> SPVWallet::lockOutputs(uint64_t minValue, uint32_
 
     if(totalValue < minValue) {
         // not enough utxo
-        return std::list<Coin::UnspentOutput>();
+        return std::list<std::shared_ptr<Coin::UnspentOutput>>();
     }
 
     // Lock and return the selected utxos
     for(auto utxo : selectedOutputs) {
-        _lockedOutpoints.insert(utxo.outPoint());
+        _lockedOutpoints.insert(utxo->outPoint());
     }
 
     return selectedOutputs;
 }
 
-void SPVWallet::unlockOutputs(const std::list<Coin::UnspentOutput> outputs) {
+void SPVWallet::unlockOutputs(const std::list<std::shared_ptr<Coin::UnspentOutput>> outputs) {
     std::lock_guard<std::mutex> lock(_utxoMutex);
 
     for(auto utxo : outputs) {
-        _lockedOutpoints.erase(utxo.outPoint());
+        _lockedOutpoints.erase(utxo->outPoint());
     }
 }
 

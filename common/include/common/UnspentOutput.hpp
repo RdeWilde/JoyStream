@@ -44,8 +44,8 @@ namespace Coin {
         uchar_vector redeemScript() const;
         void setRedeemScript(uchar_vector);
 
-        virtual bool spendable() const;
-        virtual uchar_vector getScriptSig(const TransactionSignature &sig) const;
+        virtual bool spendable() const = 0;
+        virtual uchar_vector getScriptSig(const TransactionSignature &sig) const = 0;
 
     private:
 
@@ -67,8 +67,5 @@ namespace Coin {
     };
 
 }
-
-#include <QMetaType>
-Q_DECLARE_METATYPE(Coin::UnspentOutput)
 
 #endif // COIN_UNSPENT_OUTPUT_HPP

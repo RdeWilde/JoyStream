@@ -11,7 +11,7 @@ public:
     P2PKOutput();
 
     // Instance from base output type
-    P2PKOutput(const UnspentOutput & output);
+    P2PKOutput(const KeyPair & keypair, const typesafeOutPoint & outpoint, quint64 setvalue, uchar_vector scriptpubkey, uchar_vector redeemscript);
 
     // P2PK redeem scripts are immediately spendable
     bool spendable() const { return true; }

@@ -261,13 +261,13 @@ void Test::BalanceCheck() {
 void Test::Utxo() {
     _walletA->create();
 
-    std::string addr1 = _walletA->generateReceiveAddress().toBase58CheckEncoding().toStdString();
-    std::string addr2 = _walletA->generateReceiveAddress().toBase58CheckEncoding().toStdString();
-    std::string addr3 = _walletA->generateReceiveAddress().toBase58CheckEncoding().toStdString();
+    Coin::P2SHAddress addr1 = _walletA->generateReceiveAddress();
+    Coin::P2SHAddress addr2 = _walletA->generateReceiveAddress();
+    Coin::P2SHAddress addr3 = _walletA->generateReceiveAddress();
 
-    bitcoin_rpc("sendtoaddress " + addr1 + " 0.00100"); // 100,000 satoshi (2 conf)
+    bitcoin_rpc("sendtoaddress " + addr1.toBase58CheckEncoding().toStdString() + " 0.00100"); // 100,000 satoshi (2 conf)
     bitcoin_rpc("generate 1");
-    bitcoin_rpc("sendtoaddress " + addr2 + " 0.00050"); //  50,000 satoshi (1 conf)
+    bitcoin_rpc("sendtoaddress " + addr2.toBase58CheckEncoding().toStdString() + " 0.00050"); //  50,000 satoshi (1 conf)
     bitcoin_rpc("generate 1");
 
 
@@ -280,43 +280,43 @@ void Test::Utxo() {
 
     QSignalSpy spy_balance_changed(_walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
 
-    bitcoin_rpc("sendtoaddress " + addr3 + " 0.00025"); //  25,000 satoshi (0 conf)
+    bitcoin_rpc("sendtoaddress " + addr3.toBase58CheckEncoding().toStdString() + " 0.00025"); //  25,000 satoshi (0 conf)
 
     // Wait for balance to change
     QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changed.count() > 0, 10000);
 
     QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(175000));
 
-    std::list<Coin::UnspentOutput> lockedOutputs;
+    std::list<std::shared_ptr<Coin::UnspentOutput>> lockedOutputs;
 
     // Check existence of all UTXOs
     {
-        std::list<Coin::UnspentOutput> utxos(_walletA->lockOutputs(100000, 2));
+        auto utxos(_walletA->lockOutputs(100000, 2));
         QCOMPARE(int(utxos.size()), 1);
-        QCOMPARE(uint64_t(utxos.front().value()), uint64_t(100000));
-        //QCOMPARE(utxos.front().keyPair().pk().toP2PKHAddress(Coin::Network::regtest).toBase58CheckEncoding().toStdString(), addr1);
+        QCOMPARE(uint64_t(utxos.front()->value()), uint64_t(100000));
+        QCOMPARE(utxos.front()->scriptPubKey().getHex(), addr1.toP2SHScriptPubKey().serialize().getHex());
         lockedOutputs.push_back(utxos.front());
     }
 
     {
-        std::list<Coin::UnspentOutput> utxos(_walletA->lockOutputs(50000, 1));
+        auto utxos(_walletA->lockOutputs(50000, 1));
         QCOMPARE(int(utxos.size()), 1);
-        QCOMPARE(uint64_t(utxos.front().value()), uint64_t(50000));
-        //QCOMPARE(utxos.front().keyPair().pk().toP2PKHAddress(Coin::Network::regtest).toBase58CheckEncoding().toStdString(), addr2);
+        QCOMPARE(uint64_t(utxos.front()->value()), uint64_t(50000));
+        QCOMPARE(utxos.front()->scriptPubKey().getHex(), addr2.toP2SHScriptPubKey().serialize().getHex());
         lockedOutputs.push_back(utxos.front());
     }
 
     // An empty utxo list should be returned when not enough funds available
     {
-        std::list<Coin::UnspentOutput> utxos(_walletA->lockOutputs(100000, 0));
+        auto utxos(_walletA->lockOutputs(100000, 0));
         QCOMPARE(int(utxos.size()), 0);
     }
 
     {
-        std::list<Coin::UnspentOutput> utxos(_walletA->lockOutputs(25000, 0));
+        auto utxos(_walletA->lockOutputs(25000, 0));
         QCOMPARE(int(utxos.size()), 1);
-        QCOMPARE(uint64_t(utxos.front().value()), uint64_t(25000));
-        //QCOMPARE(utxos.front().keyPair().pk().toP2PKHAddress(Coin::Network::regtest).toBase58CheckEncoding().toStdString(), addr3);
+        QCOMPARE(uint64_t(utxos.front()->value()), uint64_t(25000));
+        QCOMPARE(utxos.front()->scriptPubKey().getHex(), addr3.toP2SHScriptPubKey().serialize().getHex());
         lockedOutputs.push_back(utxos.front());
     }
 
@@ -325,14 +325,14 @@ void Test::Utxo() {
 
     // Largest Utxos are returned first
     {
-        std::list<Coin::UnspentOutput> utxos(_walletA->lockOutputs(175000, 0));
+        auto utxos(_walletA->lockOutputs(175000, 0));
         QCOMPARE(int(utxos.size()), 3);
         auto i = utxos.begin();
-        QCOMPARE(uint64_t((*i).value()), uint64_t(100000));
+        QCOMPARE(uint64_t((*i)->value()), uint64_t(100000));
         i++;
-        QCOMPARE(uint64_t((*i).value()), uint64_t(50000));
+        QCOMPARE(uint64_t((*i)->value()), uint64_t(50000));
         i++;
-        QCOMPARE(uint64_t((*i).value()), uint64_t(25000));
+        QCOMPARE(uint64_t((*i)->value()), uint64_t(25000));
     }
 
 }

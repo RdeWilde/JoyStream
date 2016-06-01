@@ -74,12 +74,4 @@ void UnspentOutput::setRedeemScript(uchar_vector script) {
     _redeemScript = script;
 }
 
-// base class must not be used try to spend the output
-bool UnspentOutput::spendable() const {
-    return false;
-}
-
-uchar_vector UnspentOutput::getScriptSig(const TransactionSignature &sig) const {
-    throw std::runtime_error("base UnspentOutput class must not be used to generate script sig");
-}
 }

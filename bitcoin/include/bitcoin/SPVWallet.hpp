@@ -76,8 +76,8 @@ public:
 
     std::list<Coin::P2SHAddress> listAddresses();
 
-    std::list<Coin::UnspentOutput> lockOutputs(uint64_t minValue, uint32_t minimalConfirmations = 0);
-    void unlockOutputs(const std::list<Coin::UnspentOutput> outputs);
+    std::list<std::shared_ptr<Coin::UnspentOutput>> lockOutputs(uint64_t minValue, uint32_t minimalConfirmations = 0);
+    void unlockOutputs(const std::list<std::shared_ptr<Coin::UnspentOutput>> outputs);
 
     uint64_t balance() const;
     uint64_t unconfirmedBalance() const;
