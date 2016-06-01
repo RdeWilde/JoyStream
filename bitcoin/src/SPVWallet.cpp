@@ -605,49 +605,49 @@ void SPVWallet::test_syncBlocksStaringAtHeight(int32_t height) {
     _networkSync.syncBlocks(height);
 }
 
-/*
-Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2PKHAddress &addr, uint64_t fee) {
+
+Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2SHAddress &addr, uint64_t fee) {
 
     // Get UnspentUTXO
-    std::list<Coin::UnspentOutput> utxos(lockOutputs(value + fee, 0));
+    auto utxos(lockOutputs(value + fee, 0));
 
     if(utxos.empty()) {
         throw std::runtime_error("Not enough funds");
     }
 
-    Coin::UnspentOutput utxo = utxos.front();
+    auto utxo = utxos.front();
 
-    if(utxo.value() < value) {
+    if(utxo->value() < (value+fee)) {
         throw std::runtime_error("Failed to get one UTXO with required value");
     }
 
     // Create Destination output
-    Coin::P2PKHScriptPubKey destinationScript(addr.pubKeyHash());
-
-    // Create Change output
-    Coin::P2PKHAddress changeAddr = getReceiveAddress();
-    Coin::P2PKHScriptPubKey changeScript(changeAddr.pubKeyHash());
+    Coin::P2SHScriptPubKey destinationScript(addr.toP2SHScriptPubKey());
 
     // Create an unsigned Transaction
     Coin::Transaction cointx;
     cointx.addOutput(Coin::TxOut(value, destinationScript.serialize()));
 
-    uint64_t change = utxo.value() - (value + fee);
+    uint64_t change = utxo->value() - (value + fee);
+
     if(change > 0) {
+        // Create Change output
+        Coin::P2SHAddress changeAddr = generateReceiveAddress();
+        Coin::P2SHScriptPubKey changeScript(changeAddr.toP2SHScriptPubKey());
         cointx.addOutput(Coin::TxOut(change, changeScript.serialize()));
     }
 
     // Set Input
-    cointx.addInput(Coin::TxIn(utxo.outPoint().getClassicOutPoint(), uchar_vector(), 0xFFFFFFFF));
+    cointx.addInput(Coin::TxIn(utxo->outPoint().getClassicOutPoint(), uchar_vector(), 0xFFFFFFFF));
 
     // Sign the input
-    Coin::setScriptSigToSpendP2PKH(cointx, 0, utxo.keyPair().sk());
+    cointx.inputs[0].scriptSig = utxo->getScriptSig(utxo->signTransaction(cointx));
 
     broadcastTx(cointx);
 
     return cointx;
 }
-*/
+
 
 }
 }

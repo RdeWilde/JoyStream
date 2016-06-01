@@ -174,7 +174,7 @@ private:
     // Prefix methods only required from unit tests with test_
     void test_syncBlocksStaringAtHeight(int32_t height);
     int32_t test_netsyncBestHeight() const { return _networkSync.getBestHeight(); }
-    //Coin::Transaction test_sendToAddress(uint64_t value, const Coin::P2PKHAddress &addr, uint64_t fee);
+    Coin::Transaction test_sendToAddress(uint64_t value, const Coin::P2SHAddress &addr, uint64_t fee);
 
 };
 

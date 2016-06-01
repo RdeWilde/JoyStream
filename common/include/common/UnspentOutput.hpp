@@ -10,7 +10,12 @@
 
 #include <common/KeyPair.hpp>
 #include <common/typesafeOutPoint.hpp>
-//#include <CoinCore/CoinNodeData.h> // Coin::OutPoint
+#include <common/SigHashType.hpp>
+#include <common/TransactionSignature.hpp>
+
+#include <CoinCore/typedefs.h>
+#include <CoinCore/CoinNodeData.h> // Coin::OutPoint
+
 
 namespace Coin {
 
@@ -44,7 +49,11 @@ namespace Coin {
         uchar_vector redeemScript() const;
         void setRedeemScript(uchar_vector);
 
+        // Create Transaction signature
+        TransactionSignature signTransaction(const Transaction & tx, uint input = 0, const SigHashType & type = SigHashType(SigHashType::MutuallyExclusiveType::all, true)) const;
+
         virtual bool spendable() const = 0;
+
         virtual uchar_vector getScriptSig(const TransactionSignature &sig) const = 0;
 
     private:
@@ -63,6 +72,8 @@ namespace Coin {
 
         // The redeem script to determine how to spend the output and appending to the input script
         uchar_vector _redeemScript;
+
+        bytes_t sign(const bytes_t & data) const;
 
     };
 

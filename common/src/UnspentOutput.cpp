@@ -6,6 +6,8 @@
  */
 
 #include <common/UnspentOutput.hpp>
+#include <CoinCore/CoinNodeData.h>
+#include <CoinCore/secp256k1_openssl.h>
 
 namespace Coin {
 
@@ -72,6 +74,55 @@ uchar_vector UnspentOutput::redeemScript() const {
 
 void UnspentOutput::setRedeemScript(uchar_vector script) {
     _redeemScript = script;
+}
+
+TransactionSignature UnspentOutput::signTransaction(const Transaction &tx, uint input, const SigHashType & sigHashType) const {
+
+    // Sign all outputs
+    if(sigHashType.type() != SigHashType::MutuallyExclusiveType::all) {
+        throw std::runtime_error("Only SIGHASH_ALL supported");
+    }
+
+    // Make a copy of the transaction
+    Coin::Transaction txCopy = tx;
+
+    // Sign only the input which spends this output
+    // https://en.bitcoin.it/wiki/OP_CHECKSIG#Procedure_for_Hashtype_SIGHASH_ANYONECANPAY
+    if(sigHashType.anyOneCanPay()) {
+        // Remove all inputs
+        txCopy.inputs.clear();
+
+        // Set one input to be signed
+        txCopy.inputs[0] = Coin::TxIn(outPoint().getClassicOutPoint(), scriptPubKey(), 0xFFFFFFFF);
+
+
+    } else {
+        // Sign all inputs
+        if(tx.inputs.size() <= input)
+            throw std::runtime_error("Transaction does not have a corresponding input");
+
+        // Clear input signatures
+        for(auto &txinput : txCopy.inputs) {
+            txinput.scriptSig.clear();
+        }
+
+        // Set script sig for input to be signed
+        txCopy.inputs[input].scriptSig = scriptPubKey();
+    }
+
+    // Compute sighash
+    uchar_vector sigHash = txCopy.getHashWithAppendedCode(sigHashType.hashCode());
+
+    // Create signature
+    return TransactionSignature(uchar_vector(sign(sigHash)), sigHashType);
+}
+
+bytes_t UnspentOutput::sign(const bytes_t &data) const {
+    CoinCrypto::secp256k1_key signingKey;
+    signingKey.setPrivKey(keyPair().pk().toUCharVector());
+
+    // Comute signature and return
+    return CoinCrypto::secp256k1_sign(signingKey, data);
 }
 
 }
