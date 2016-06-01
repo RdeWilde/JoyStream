@@ -12,7 +12,7 @@
 #include <common/Seed.hpp>
 #include <common/PrivateKey.hpp>
 #include <common/PublicKey.hpp>
-#include <common/P2PKHAddress.hpp>
+#include <common/UnspentOutput.hpp>
 
 #include <CoinCore/hdkeys.h>
 #include <CoinCore/CoinNodeData.h> // Coin::Transaction
@@ -287,11 +287,11 @@ void Test::Utxo() {
 
     QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(175000));
 
-    std::list<Coin::UnspentP2PKHOutput> lockedOutputs;
+    std::list<Coin::UnspentOutput> lockedOutputs;
 
     // Check existence of all UTXOs
     {
-        std::list<Coin::UnspentP2PKHOutput> utxos(_walletA->lockOutputs(100000, 2));
+        std::list<Coin::UnspentOutput> utxos(_walletA->lockOutputs(100000, 2));
         QCOMPARE(int(utxos.size()), 1);
         QCOMPARE(uint64_t(utxos.front().value()), uint64_t(100000));
         //QCOMPARE(utxos.front().keyPair().pk().toP2PKHAddress(Coin::Network::regtest).toBase58CheckEncoding().toStdString(), addr1);
@@ -299,7 +299,7 @@ void Test::Utxo() {
     }
 
     {
-        std::list<Coin::UnspentP2PKHOutput> utxos(_walletA->lockOutputs(50000, 1));
+        std::list<Coin::UnspentOutput> utxos(_walletA->lockOutputs(50000, 1));
         QCOMPARE(int(utxos.size()), 1);
         QCOMPARE(uint64_t(utxos.front().value()), uint64_t(50000));
         //QCOMPARE(utxos.front().keyPair().pk().toP2PKHAddress(Coin::Network::regtest).toBase58CheckEncoding().toStdString(), addr2);
@@ -308,12 +308,12 @@ void Test::Utxo() {
 
     // An empty utxo list should be returned when not enough funds available
     {
-        std::list<Coin::UnspentP2PKHOutput> utxos(_walletA->lockOutputs(100000, 0));
+        std::list<Coin::UnspentOutput> utxos(_walletA->lockOutputs(100000, 0));
         QCOMPARE(int(utxos.size()), 0);
     }
 
     {
-        std::list<Coin::UnspentP2PKHOutput> utxos(_walletA->lockOutputs(25000, 0));
+        std::list<Coin::UnspentOutput> utxos(_walletA->lockOutputs(25000, 0));
         QCOMPARE(int(utxos.size()), 1);
         QCOMPARE(uint64_t(utxos.front().value()), uint64_t(25000));
         //QCOMPARE(utxos.front().keyPair().pk().toP2PKHAddress(Coin::Network::regtest).toBase58CheckEncoding().toStdString(), addr3);
@@ -325,7 +325,7 @@ void Test::Utxo() {
 
     // Largest Utxos are returned first
     {
-        std::list<Coin::UnspentP2PKHOutput> utxos(_walletA->lockOutputs(175000, 0));
+        std::list<Coin::UnspentOutput> utxos(_walletA->lockOutputs(175000, 0));
         QCOMPARE(int(utxos.size()), 3);
         auto i = utxos.begin();
         QCOMPARE(uint64_t((*i).value()), uint64_t(100000));

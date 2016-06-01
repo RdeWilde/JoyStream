@@ -1,4 +1,3 @@
-#include <common/UnspentP2PKHOutput.hpp>
 #include <common/P2PKHAddress.hpp>
 #include <common/P2PKHScriptPubKey.hpp>
 #include <common/P2PKHScriptSig.hpp>
@@ -322,7 +321,7 @@ int32_t SPVWallet::bestHeight() const {
     return _store.getBestHeaderHeight();
 }
 
-std::list<Coin::UnspentP2PKHOutput> SPVWallet::lockOutputs(uint64_t minValue, uint32_t minimalConfirmations) {
+std::list<Coin::UnspentOutput> SPVWallet::lockOutputs(uint64_t minValue, uint32_t minimalConfirmations) {
     if(!isInitialized()) {
         throw std::runtime_error("wallet not initialized");
     }
@@ -331,12 +330,12 @@ std::list<Coin::UnspentP2PKHOutput> SPVWallet::lockOutputs(uint64_t minValue, ui
 
     uint32_t totalValue = 0;
 
-    std::list<Coin::UnspentP2PKHOutput> selectedOutputs;
+    std::list<Coin::UnspentOutput> selectedOutputs;
 
     // Assume outputs are sorted in descending value
-    std::list<Coin::UnspentP2PKHOutput> unspentOutputs(_store.getUnspentTransactionsOutputs(minimalConfirmations, bestHeight()));
+    std::list<Coin::UnspentOutput> unspentOutputs(_store.getUnspentTransactionsOutputs(minimalConfirmations, bestHeight()));
 
-    for(Coin::UnspentP2PKHOutput & utxo : unspentOutputs) {
+    for(Coin::UnspentOutput & utxo : unspentOutputs) {
         if(_lockedOutpoints.find(utxo.outPoint()) != _lockedOutpoints.end()) continue;
 
         selectedOutputs.push_back(utxo);
@@ -349,7 +348,7 @@ std::list<Coin::UnspentP2PKHOutput> SPVWallet::lockOutputs(uint64_t minValue, ui
 
     if(totalValue < minValue) {
         // not enough utxo
-        return std::list<Coin::UnspentP2PKHOutput>();
+        return std::list<Coin::UnspentOutput>();
     }
 
     // Lock and return the selected utxos
@@ -360,7 +359,7 @@ std::list<Coin::UnspentP2PKHOutput> SPVWallet::lockOutputs(uint64_t minValue, ui
     return selectedOutputs;
 }
 
-void SPVWallet::unlockOutputs(const std::list<Coin::UnspentP2PKHOutput> outputs) {
+void SPVWallet::unlockOutputs(const std::list<Coin::UnspentOutput> outputs) {
     std::lock_guard<std::mutex> lock(_utxoMutex);
 
     for(auto utxo : outputs) {
@@ -609,13 +608,13 @@ void SPVWallet::test_syncBlocksStaringAtHeight(int32_t height) {
 Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2PKHAddress &addr, uint64_t fee) {
 
     // Get UnspentUTXO
-    std::list<Coin::UnspentP2PKHOutput> utxos(lockOutputs(value + fee, 0));
+    std::list<Coin::UnspentOutput> utxos(lockOutputs(value + fee, 0));
 
     if(utxos.empty()) {
         throw std::runtime_error("Not enough funds");
     }
 
-    Coin::UnspentP2PKHOutput utxo = utxos.front();
+    Coin::UnspentOutput utxo = utxos.front();
 
     if(utxo.value() < value) {
         throw std::runtime_error("Failed to get one UTXO with required value");

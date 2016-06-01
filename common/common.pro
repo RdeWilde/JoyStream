@@ -30,7 +30,7 @@ HEADERS += \
     include/common/PublicKeyCompression.hpp \
     include/common/KeyPair.hpp \
     include/common/P2PKHAddress.hpp \
-    include/common/UnspentP2PKHOutput.hpp \
+    include/common/UnspentOutput.hpp \
     include/common/Utilities.hpp \
     include/common/TimeTools.hpp \
     include/common/Bitcoin.hpp \
@@ -54,6 +54,7 @@ HEADERS += \
     include/common/MajorMinorSoftwareVersion.hpp \
     include/common/P2PKScriptPubKey.hpp \
     include/common/Payment.hpp \
+    include/common/P2PKOutput.hpp
 
 SOURCES += \
     src/DataSizeRepresentation.cpp \
@@ -63,7 +64,7 @@ SOURCES += \
     src/Signature.cpp \
     src/KeyPair.cpp \
     src/P2PKHAddress.cpp \
-    src/UnspentP2PKHOutput.cpp \
+    src/UnspentOutput.cpp \
     src/Utilities.cpp \
     src/TimeTools.cpp \
     src/BitcoinDisplaySettings.cpp \
@@ -83,6 +84,7 @@ SOURCES += \
     src/P2PKHScriptSig.cpp \
     src/P2PKScriptPubKey.cpp \
     src/Payment.cpp \
-    src/TransactionId.cpp
+    src/TransactionId.cpp \
+    src/P2PKOutput.cpp
 
 include(../config.pri)

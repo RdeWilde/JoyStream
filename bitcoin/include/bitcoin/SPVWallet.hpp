@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <common/Network.hpp>
-#include <common/UnspentP2PKHOutput.hpp>
+#include <common/UnspentOutput.hpp>
 #include <common/P2SHScriptPubKey.hpp>
 
 #include <CoinQ/CoinQ_netsync.h>
@@ -76,8 +76,8 @@ public:
 
     std::list<Coin::P2SHAddress> listAddresses();
 
-    std::list<Coin::UnspentP2PKHOutput> lockOutputs(uint64_t minValue, uint32_t minimalConfirmations = 0);
-    void unlockOutputs(const std::list<Coin::UnspentP2PKHOutput> outputs);
+    std::list<Coin::UnspentOutput> lockOutputs(uint64_t minValue, uint32_t minimalConfirmations = 0);
+    void unlockOutputs(const std::list<Coin::UnspentOutput> outputs);
 
     uint64_t balance() const;
     uint64_t unconfirmedBalance() const;
