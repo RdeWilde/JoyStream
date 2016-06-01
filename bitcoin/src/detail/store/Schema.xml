@@ -30,6 +30,9 @@
       <index name="Address_key_i" type="UNIQUE">
         <column name="key"/>
       </index>
+      <index name="Address_redeemScript_i" type="UNIQUE">
+        <column name="redeemScript"/>
+      </index>
     </table>
     <table name="BlockHeader" kind="object">
       <column name="id" type="TEXT" null="false"/>

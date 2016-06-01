@@ -116,7 +116,7 @@ private:
     #pragma db not_null
     std::string scriptPubKey_; // to lookup outputs to this address
 
-    #pragma db not_null
+    #pragma db not_null unique
     std::string redeemScript_; // hex encoded redeem script
 };
 
