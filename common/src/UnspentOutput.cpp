@@ -131,7 +131,7 @@ TransactionSignature UnspentOutput::signTransaction(const Transaction &tx, bool 
 
 bytes_t UnspentOutput::sign(const bytes_t &data) const {
     CoinCrypto::secp256k1_key signingKey;
-    signingKey.setPrivKey(keyPair().pk().toUCharVector());
+    signingKey.setPrivKey(keyPair().sk().toUCharVector());
 
     // Comute signature and return
     return CoinCrypto::secp256k1_sign(signingKey, data);
