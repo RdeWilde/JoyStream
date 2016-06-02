@@ -126,15 +126,7 @@ TransactionSignature UnspentOutput::signTransaction(const Transaction &tx, bool 
     uchar_vector sigHash = txCopy.getHashWithAppendedCode(sigHashType.hashCode());
 
     // Create signature
-    return TransactionSignature(uchar_vector(sign(sigHash)), sigHashType);
-}
-
-bytes_t UnspentOutput::sign(const bytes_t &data) const {
-    CoinCrypto::secp256k1_key signingKey;
-    signingKey.setPrivKey(keyPair().sk().toUCharVector());
-
-    // Comute signature and return
-    return CoinCrypto::secp256k1_sign(signingKey, data);
+    return TransactionSignature(keyPair().sk().sign(sigHash), sigHashType);
 }
 
 }

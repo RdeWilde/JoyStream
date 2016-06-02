@@ -73,8 +73,6 @@ namespace Coin {
         // The redeem script to determine how to spend the output and appending to the input script
         uchar_vector _redeemScript;
 
-        bytes_t sign(const bytes_t & data) const;
-
     };
 
 }
