@@ -58,6 +58,10 @@ private:
     Callback _callback;
 };
 
+/** NB: Callback slot should never accept byref parameter, as that
+ * prevents deep copying into Frame, but rather just keeping refernces which go stale.
+ * */
+
 template <class ConnectionIdType>
 using RemovedConnectionCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, DisconnectCause>;
 
@@ -72,16 +76,16 @@ typedef SubroutineCallbackSlot<const protocol_wire::ExtendedMessagePayload *> Se
 typedef FunctionCallbackSlot<bool, Coin::Transaction> BroadcastTransactionCallbackSlot;
 
 template <class ConnectionIdType>
-using FullPieceArrivedCallbackSlot = SubroutineCallbackSlot<const ConnectionIdType &, const protocol_wire::PieceData &, int>;
+using FullPieceArrivedCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, protocol_wire::PieceData, int>;
 
 template <class ConnectionIdType>
-using LoadPieceForBuyerCallbackSlot = SubroutineCallbackSlot<const ConnectionIdType &, unsigned int>;
+using LoadPieceForBuyerCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, unsigned int>;
 
 template <class ConnectionIdType>
-using ClaimLastPaymentCallbackSlot = SubroutineCallbackSlot<const ConnectionIdType &, const joystream::paymentchannel::Payee &>;
+using ClaimLastPaymentCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, joystream::paymentchannel::Payee>;
 
 template <class ConnectionIdType>
-using AnchorAnnouncedCallbackSlot = SubroutineCallbackSlot<const ConnectionIdType &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &>;
+using AnchorAnnouncedCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, quint64, Coin::typesafeOutPoint, Coin::PublicKey, Coin::PubKeyHash>;
 
 template <class ConnectionIdType>
 struct ConnectionSpy {
