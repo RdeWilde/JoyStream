@@ -50,7 +50,7 @@ namespace Coin {
         void setRedeemScript(uchar_vector);
 
         // Create Transaction signature
-        TransactionSignature signTransaction(const Transaction & tx, uint input = 0, const SigHashType & type = SigHashType(SigHashType::MutuallyExclusiveType::all, true)) const;
+        TransactionSignature signTransaction(const Transaction & tx, bool anyoneCanPay = false) const;
 
         virtual bool spendable() const = 0;
 

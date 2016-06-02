@@ -77,6 +77,9 @@ void Test::init_bitcoind() {
 void Test::initTestCase() {
     bitcoind_stop();
     init_bitcoind();
+    if(getenv("NETSYNC_LOGGER") != NULL) {
+        INIT_LOGGER("sync.log");
+    }
 }
 
 void Test::init() {

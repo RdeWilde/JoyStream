@@ -76,38 +76,50 @@ void UnspentOutput::setRedeemScript(uchar_vector script) {
     _redeemScript = script;
 }
 
-TransactionSignature UnspentOutput::signTransaction(const Transaction &tx, uint input, const SigHashType & sigHashType) const {
+TransactionSignature UnspentOutput::signTransaction(const Transaction &tx, bool anyoneCanPay) const {
 
-    // Sign all outputs
-    if(sigHashType.type() != SigHashType::MutuallyExclusiveType::all) {
-        throw std::runtime_error("Only SIGHASH_ALL supported");
-    }
+    SigHashType sigHashType(SigHashType::MutuallyExclusiveType::all, anyoneCanPay);
 
     // Make a copy of the transaction
     Coin::Transaction txCopy = tx;
 
     // Sign only the input which spends this output
     // https://en.bitcoin.it/wiki/OP_CHECKSIG#Procedure_for_Hashtype_SIGHASH_ANYONECANPAY
-    if(sigHashType.anyOneCanPay()) {
+    if(anyoneCanPay) {
         // Remove all inputs
         txCopy.inputs.clear();
 
-        // Set one input to be signed
-        txCopy.inputs[0] = Coin::TxIn(outPoint().getClassicOutPoint(), scriptPubKey(), 0xFFFFFFFF);
+        for(auto & txinput : tx.inputs) {
+            if(typesafeOutPoint(txinput.previousOut) == outPoint()) {
+                // This is the input to sign
+                txCopy.inputs.push_back(txinput);
+                txCopy.inputs[0].scriptSig = scriptPubKey();
+                break;
+            }
+        }
 
+        if(txCopy.inputs.size() != 1) {
+            throw std::runtime_error("Transaction does not have a corresponding input");
+        }
 
     } else {
         // Sign all inputs
-        if(tx.inputs.size() <= input)
-            throw std::runtime_error("Transaction does not have a corresponding input");
+
+        bool foundInput = false;
 
         // Clear input signatures
-        for(auto &txinput : txCopy.inputs) {
-            txinput.scriptSig.clear();
+        for(auto & txinput : txCopy.inputs) {
+            if(typesafeOutPoint(txinput.previousOut) == outPoint()) {
+                txinput.scriptSig = scriptPubKey();
+                foundInput = true;
+            } else {
+                txinput.scriptSig.clear();
+            }
         }
 
-        // Set script sig for input to be signed
-        txCopy.inputs[input].scriptSig = scriptPubKey();
+        if(!foundInput) {
+            throw std::runtime_error("Transaction does not have a corresponding input");
+        }
     }
 
     // Compute sighash
