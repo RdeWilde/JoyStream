@@ -66,10 +66,10 @@ void Test::observing() {
     QVERIFY_EXCEPTION_THROWN(toObserveMode(), exception::SessionAlreadyInThisMode);
 
     // Start session
-    start();
+    firstStart();
 
     // incorrectly try to start again
-    QVERIFY_EXCEPTION_THROWN(start(), exception::StateIncompatibleOperation);
+    QVERIFY_EXCEPTION_THROWN(firstStart(), exception::StateIncompatibleOperation);
 
     // Do basic tests
     basic();
@@ -92,24 +92,25 @@ void Test::observing() {
 
     // Go to sell mode
     toSellMode(SellingPolicy(),
-               protocol_wire::SellerTerms());
+               protocol_wire::SellerTerms(),
+               0);
 
 }
 
 void Test::selling_basic() {
 
     // to observe mode
-    toSellMode(SellingPolicy(), protocol_wire::SellerTerms(22, 134, 1, 88, 32));
+    toSellMode(SellingPolicy(), protocol_wire::SellerTerms(22, 134, 1, 88, 32), 0);
 
     // incorrectly try to go to same mode again
-    QVERIFY_EXCEPTION_THROWN(toSellMode(SellingPolicy(), protocol_wire::SellerTerms()),
+    QVERIFY_EXCEPTION_THROWN(toSellMode(SellingPolicy(), protocol_wire::SellerTerms(), 0),
                              exception::SessionAlreadyInThisMode);
 
     // Start session
-    start();
+    firstStart();
 
     // incorrectly try to start again
-    QVERIFY_EXCEPTION_THROWN(start(), exception::StateIncompatibleOperation);
+    QVERIFY_EXCEPTION_THROWN(firstStart(), exception::StateIncompatibleOperation);
 
     // Do basic tests
     basic();
@@ -128,7 +129,7 @@ void Test::selling_basic() {
               TorrentPieceInformation());
 
     // back to sell mode
-    toSellMode(SellingPolicy(), protocol_wire::SellerTerms(22, 134, 1, 88, 32));
+    toSellMode(SellingPolicy(), protocol_wire::SellerTerms(22, 134, 1, 88, 32), 0);
 
     // Go to observe mode
     toObserveMode();
@@ -146,49 +147,55 @@ void Test::selling() {
                                Coin::PubKeyHash("03a3fac91cac4a5c9ec870b444c4890ec7d68671"));
 
     ID peer = 0;
+    uint numberOfExchangesWhileStarted = 5;
 
     assert(sellerTerms.satisfiedBy(buyerTerms));
 
     // back to sell mode
-    toSellMode(SellingPolicy(), sellerTerms);
+    toSellMode(SellingPolicy(), sellerTerms, numberOfExchangesWhileStarted + 1);
 
     // Start session
-    start();
+    firstStart();
 
     // Add a buyer peer and take connection to state ReadyForPieceRequest
-    addBuyerAndGoToReadyForPieceRequest(peer, buyerTerms, ready);
+    Coin::PublicKey payeeContractPk;
+    Coin::PubKeyHash payeeFinalPkHash;
+    addBuyerAndGoToReadyForPieceRequest(peer, buyerTerms, ready, payeeContractPk, payeeFinalPkHash);
 
+    // Do sequence of data for payments exchanges
+    paymentchannel::Payor payor = getPayor(sellerTerms, buyerTerms, ready, payorContractSk, payeeContractPk, payeeFinalPkHash);
 
-    // Repeat N times: i)
-        // peer (buyer) requests a piece
-        // assert ---> seller session asks // loadPieceForBuyerCallbackSlot.hook(),
+    exchangeDataForPayment(peer, numberOfExchangesWhileStarted, payor);
 
-        // Request invalid piece!! disconnect
+    // Receive a single request
+    receiveValidFullPieceRequest(peer, numberOfExchangesWhileStarted);
 
-        // session-*pieceLoaded(const ConnectionIdType &, const protocol_wire::PieceData &, int);
-        // assert ---> sessino sends the correct message on the given wire
+    // Pause
+    pause();
 
-    // N+1)
-    // peer (buyer dis appears)
-    // assert that seller session calls: claimLastPaymentCallbackSlot.hook(),
-    // and that it has correct state (#payments, sigs, etc).
+    // Load piece, without it being sent
+    protocol_wire::PieceData data;
+    session->pieceLoaded(peer, data, numberOfExchangesWhileStarted);
 
-    //-----
+    QVERIFY(spy->blankSession());
+    ConnectionSpy<ID> * c = spy->connectionSpies.at(peer);
+    QCOMPARE((int)c->sendMessageOnConnectionCallbackSlot.size(), 0);
 
-    // Update terms when selling
-    // void updateTerms(const protocol_wire::SellerTerms &);
+    // Start up again
+    session->start();
 
-    // pause/stop different places here
-    // stop different places here
-    // peer updates its terms
-    // peer drops out
+    // Make sure this results in piece being sent
+    assertFullPieceSent(peer, data);
+    spy->reset();
 
-    // pausing a seller?
-    // if there is a pending request, then make an additional call
-    // on session to load piece. This should result in a final full piece being sent???
-    // NB: ****this makes no sense, as connection will be gone.***
-    // no case for: mode == SessionMode::observing
-    // *** make sure that you deal with this later
+    // Update terms
+    protocol_wire::SellerTerms newTerms;
+    session->updateTerms(newTerms);
+
+    // Check that peers were sent
+    assertTermsSentToAllPeers();
+
+    spy->reset();
 }
 
 void Test::selling_buyer_invited_with_bad_terms() {
@@ -200,10 +207,10 @@ void Test::selling_buyer_invited_with_bad_terms() {
     assert(!sellerTerms.satisfiedBy(badBuyerTerms));
 
     // back to sell mode
-    toSellMode(SellingPolicy(), sellerTerms);
+    toSellMode(SellingPolicy(), sellerTerms, 0);
 
     // Start session
-    start();
+    firstStart();
 
     // Have some new peers join, without announcing mode,
     addConnection(peer);
@@ -234,13 +241,15 @@ void Test::selling_buyer_requested_invalid_piece() {
     ID peer = 0;
 
     // back to sell mode
-    toSellMode(SellingPolicy(), protocol_wire::SellerTerms());
+    toSellMode(SellingPolicy(), protocol_wire::SellerTerms(), 5);
 
     // Start session
-    start();
+    firstStart();
 
     // Add a buyer peer and take connection to state ReadyForPieceRequest
-    addBuyerAndGoToReadyForPieceRequest(peer, protocol_wire::BuyerTerms(), protocol_wire::Ready());
+    Coin::PublicKey payeeContractPk;
+    Coin::PubKeyHash payeeFinalPkHash;
+    addBuyerAndGoToReadyForPieceRequest(peer, protocol_wire::BuyerTerms(), protocol_wire::Ready(), payeeContractPk, payeeFinalPkHash);
 
     // peer requests invalid piece
     session->processMessageOnConnection(peer, protocol_wire::RequestFullPiece(invalidPieceIndex));
@@ -260,10 +269,116 @@ void Test::selling_buyer_requested_invalid_piece() {
 
 void Test::selling_buyer_interrupted_payment() {
 
+    int pieceIndex = 0;
+    ID peer = 0;
+
+    // back to sell mode
+    toSellMode(SellingPolicy(), protocol_wire::SellerTerms(), 5);
+
+    // Start session
+    firstStart();
+
+    // Add a buyer peer and take connection to state ReadyForPieceRequest
+    Coin::PublicKey payeeContractPk;
+    Coin::PubKeyHash payeeFinalPkHash;
+    addBuyerAndGoToReadyForPieceRequest(peer, protocol_wire::BuyerTerms(), protocol_wire::Ready(), payeeContractPk, payeeFinalPkHash);
+
+    // peer requests valid piece
+    receiveValidFullPieceRequest(peer, pieceIndex);
+
+    // peer resends terms, which should cause payment interrupt
+    session->processMessageOnConnection(peer, protocol_wire::Buy());
+
+    // check that peer was removed due to this
+    assertConnectionRemoved(peer, DisconnectCause::buyer_interrupted_payment);
+    spy->reset();
 }
 
 void Test::selling_buyer_sent_invalid_payment() {
 
+    int pieceIndex = 0;
+    protocol_wire::PieceData data;
+    ID peer = 0;
+
+    // Must have valid public in ready message
+    Coin::PrivateKey payorContractSk("E9873D79C6D87DC0FB6A5778633389F4");
+    protocol_wire::Ready ready = protocol_wire::Ready(1123,
+                                                      Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")), 55),
+                                                      payorContractSk.toPublicKey(),
+                                                      Coin::PubKeyHash("03a3fac91cac4a5c9ec870b444c4890ec7d68671"));
+    // back to sell mode
+    toSellMode(SellingPolicy(), protocol_wire::SellerTerms(), 5);
+
+    // Start session
+    firstStart();
+
+    // Add a buyer peer and take connection to state ReadyForPieceRequest
+    Coin::PublicKey payeeContractPk;
+    Coin::PubKeyHash payeeFinalPkHash;
+    addBuyerAndGoToReadyForPieceRequest(peer, protocol_wire::BuyerTerms(), ready, payeeContractPk, payeeFinalPkHash);
+
+    // peer requests valid piece
+    receiveValidFullPieceRequest(peer, pieceIndex);
+
+    // send message to peer
+    sendFullPiece(peer, data, pieceIndex);
+
+    // peer sends invalid payment (blank signature)
+    session->processMessageOnConnection(peer, protocol_wire::Payment());
+
+    // check that peer was removed due to this
+    assertConnectionRemoved(peer, DisconnectCause::buyer_sent_invalid_payment);
+    spy->reset();
+}
+
+void Test::selling_buyer_disappears() {
+
+    ID peer = 0;
+    uint numberOfExchangesBeforeDisappearance = 5;
+
+    protocol_wire::SellerTerms sellerTerms(22, 134, 10, 88, 32);
+    protocol_wire::BuyerTerms buyerTerms(24, 200, 2, 400, 5);
+    Coin::PrivateKey payorContractSk("E9873D79C6D87DC0FB6A5778633389F4");
+    protocol_wire::Ready ready(1123,
+                               Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")), 55),
+                               payorContractSk.toPublicKey(),
+                               Coin::PubKeyHash("03a3fac91cac4a5c9ec870b444c4890ec7d68671"));
+
+    assert(sellerTerms.satisfiedBy(buyerTerms));
+
+    // back to sell mode
+    toSellMode(SellingPolicy(), sellerTerms, 5);
+
+    // Start session
+    firstStart();
+
+    // Add a buyer peer and take connection to state ReadyForPieceRequest
+    Coin::PublicKey payeeContractPk;
+    Coin::PubKeyHash payeeFinalPkHash;
+    addBuyerAndGoToReadyForPieceRequest(peer, buyerTerms, ready, payeeContractPk, payeeFinalPkHash);
+
+    // Do sequence of data for payments exchanges
+    paymentchannel::Payor payor = getPayor(sellerTerms, buyerTerms, ready, payorContractSk, payeeContractPk, payeeFinalPkHash);
+
+    exchangeDataForPayment(peer, numberOfExchangesBeforeDisappearance, payor);
+
+    // connection is dropped: we can't use Test::removeConnection: does spy->reset, and asserts no other callback
+    session->removeConnection(peer);
+
+    // make sure we are notified about claiming last payment
+    {
+        ID removedPeer;
+        joystream::paymentchannel::Payee payee;
+        QVERIFY(spy->claimLastPaymentCallbackSlot.size() == 1);
+
+        std::tie(removedPeer, payee) = spy->claimLastPaymentCallbackSlot.front();
+
+        QCOMPARE(removedPeer, peer);
+        QCOMPARE((uint)payee.numberOfPaymentsMade(), numberOfExchangesBeforeDisappearance);
+    }
+
+    // and that connecion is dropped from session
+    assertConnectionRemoved(peer, DisconnectCause::client);
 }
 
 void Test::buying_basic() {
@@ -314,6 +429,81 @@ void Test::buying_seller_sent_invalid_piece() {
 //DisconnectCause
 }
 
+Coin::PrivateKey Test::privateKeyFromUInt(uint) {
+
+    /**
+     * For whatever reason, the private keys generated
+     * by this routine seem to be invalid? the EC routines fail to convert
+     * them properly to public keys.
+
+    std::stringstream s;
+    s << std::hex << i;
+    std::string hexInteger = s.str(); // MSB is at index 0
+
+    // Make even length representation by potentially adding leading 0
+    if(hexInteger.length() % 2 != 0)
+        hexInteger = "0" + hexInteger;
+
+    std::string finalHexRepresentation;
+
+    if(hexInteger.length() > 2*Coin::PrivateKey::length())
+        throw std::runtime_error("privateKeyFromUInt: argument to big"); // not even going to truncate
+    else if(hexInteger.length() < 2*Coin::PrivateKey::length())
+        finalHexRepresentation = std::string(2*Coin::PrivateKey::length() - hexInteger.length(), '0') + hexInteger; // add suitable number of leading 0s
+
+    assert(finalHexRepresentation.length() == 2*Coin::PrivateKey::length());
+
+    std::cout << "Generate ---- " << finalHexRepresentation.length() << std::endl;
+
+    return Coin::PrivateKey(finalHexRepresentation);
+    */
+
+    return Coin::PrivateKey::generate();
+}
+
+paymentchannel::Payor Test::getPayor(const protocol_wire::SellerTerms & sellerTerms,
+                                     const protocol_wire::BuyerTerms & buyerTerms,
+                                     const protocol_wire::Ready & ready,
+                                     const Coin::PrivateKey & payorContractSk,
+                                     const Coin::PublicKey & payeeContractPk,
+                                     const Coin::PubKeyHash & payeeFinalPkHash) {
+
+   return paymentchannel::Payor(sellerTerms.minPrice(),
+                                0,
+                                ready.value(),
+                                buyerTerms.refundFee(),
+                                sellerTerms.settlementFee(),
+                                buyerTerms.refundFee(),
+                                ready.anchor(),
+                                Coin::KeyPair(payorContractSk),
+                                ready.finalPkHash(),
+                                payeeContractPk,
+                                payeeFinalPkHash,
+                                Coin::Signature(),
+                                Coin::Signature());
+
+
+
+}
+
+paymentchannel::Payee Test::getPayee(const protocol_wire::SellerTerms & sellerTerms,
+                                     const protocol_wire::BuyerTerms & buyerTerms,
+                                     const protocol_wire::Ready & ready) {
+    return paymentchannel::Payee();
+    /**
+    return paymentchannel::Payee(0,
+                                 sellerTerms.minLock(),
+                                 sellerTerms.minPrice(),
+                                 ready.value(),
+                                 sellerTerms.settlementFee(),
+                                 buyerTerms.refundFee(),
+                                 ready.anchor(),...
+                                 )
+                                 */
+}
+
+////
+
 void Test::basic() {
 
     //// (1) four peers join without announcing their mode
@@ -356,14 +546,14 @@ void Test::basic() {
 
     //// (8) start
 
-    start();
+    firstStart();
 }
 
 void Test::addConnection(ID id) {
 
     ConnectionSpy<ID> * c = spy->addConnection(id);
 
-    verifyTermsSentToPeer(c->sendMessageOnConnectionCallbackSlot);
+    assertTermsSentToPeer(c->sendMessageOnConnectionCallbackSlot);
 
     // Check the state of session
     QVERIFY(session->hasConnection(id));
@@ -379,26 +569,19 @@ void Test::addConnection(ID id) {
 
 void Test::removeConnection(ID id) {
 
+    // remove peer
     session->removeConnection(id);
 
-    QVERIFY(!session->hasConnection(id));
-    auto ids = session->connectionIds();
-    auto itr = std::find(ids.cbegin(), ids.cend(), id);
-    QVERIFY(itr == ids.cend());
+    // assert removal
+    assertConnectionRemoved(id, DisconnectCause::client);
 
+    // extra check that no other callback was made
     QVERIFY(spy->onlyCalledRemovedConnection());
-
-    ID removedPeer;
-    DisconnectCause cause;
-    std::tie(removedPeer, cause) = spy->removedConnectionCallbackSlot.front();
-    QCOMPARE((int)spy->removedConnectionCallbackSlot.size(), 1);
-    QCOMPARE(removedPeer, id);
-    QCOMPARE(cause, DisconnectCause::client);
 
     spy->reset();
 }
 
-void Test::start() {
+void Test::firstStart() {
 
     session->start();
 
@@ -407,7 +590,7 @@ void Test::start() {
 
     // iterate peers and check that correct mode message had been sent to whatever
     for(auto mapping : spy->connectionSpies)
-        verifyTermsSentToPeer(mapping.second->sendMessageOnConnectionCallbackSlot);
+        assertTermsSentToPeer(mapping.second->sendMessageOnConnectionCallbackSlot);
 
     spy->reset();
 }
@@ -442,7 +625,128 @@ void Test::pause() {
     QVERIFY(spy->blank());
 }
 
-void Test::addBuyerAndGoToReadyForPieceRequest(ID id, const protocol_wire::BuyerTerms & terms, const protocol_wire::Ready & ready) {
+void Test::toObserveMode() {
+
+    spy->toMonitoredObserveMode();
+
+    QCOMPARE(session->mode(), SessionMode::observing);
+}
+
+void Test::toSellMode(const SellingPolicy & policy,
+                      const protocol_wire::SellerTerms & terms,
+                      int maxPieceIndex) {
+
+    spy->toMonitoredSellMode(policy, terms, maxPieceIndex);
+
+    QCOMPARE(session->mode(), SessionMode::selling);
+}
+
+void Test::toBuyMode(const Coin::UnspentP2PKHOutput & funding,
+                     const BuyingPolicy & policy,
+                     const protocol_wire::BuyerTerms & terms,
+                     const TorrentPieceInformation & information) {
+
+    spy->toMonitoredBuyMode(funding,
+                           policy,
+                           terms,
+                           information);
+
+    QCOMPARE(session->mode(), SessionMode::buying);
+}
+
+void Test::assertConnectionRemoved(ID expectedId, DisconnectCause expectedCause) const {
+
+    // peer is gone
+    QVERIFY(!session->hasConnection(expectedId));
+    auto ids = session->connectionIds();
+    auto itr = std::find(ids.cbegin(), ids.cend(), expectedId);
+    QVERIFY(itr == ids.cend());
+
+    // Iterate removal callbacks, in case multiple peers are removed at ones (e.g. stopping):
+    // exactly one removal callback was made for given peer,
+    // and with given cause
+    bool callbackHasBeenMade = false;
+    for(auto f : spy->removedConnectionCallbackSlot) {
+
+        ID removedPeer;
+        DisconnectCause cause;
+        std::tie(removedPeer, cause) = f;
+
+        // is this the given peer
+        if(removedPeer == expectedId) {
+
+            // is this correct cause
+            if(cause == expectedCause) {
+
+                if(callbackHasBeenMade)
+                    QFAIL("correct removedConnection callback made multiple times.");
+                else
+                    callbackHasBeenMade = true;
+
+            } else
+               QFAIL("removedConnection callback made for peer with incorrect cause.");
+        }
+
+
+    }
+
+    if(!callbackHasBeenMade)
+        QFAIL("No removedConnection callback made for peer.");
+
+    // notice that we dont clear spy
+}
+
+void Test::assertTermsSentToPeer(const SendMessageOnConnectionCallbackSlot & slot) const {
+
+    QCOMPARE((int)slot.size(), 1);
+    auto f = slot.front();
+    const protocol_wire::ExtendedMessagePayload * m = std::get<0>(f);
+
+    // having a hard time comparing terms, as they cannot be recovered
+    // from session easily
+
+    switch(session->mode()) {
+        case SessionMode::not_set: assert(false);
+        case SessionMode::buying:
+        QCOMPARE(m->messageType(), protocol_wire::MessageType::buy);
+        //QCOMPARE(session->)
+
+        break;
+        case SessionMode::selling:
+        QCOMPARE(m->messageType(), protocol_wire::MessageType::sell);
+
+        break;
+        case SessionMode::observing:
+        QCOMPARE(m->messageType(), protocol_wire::MessageType::observe);
+        break;
+        default:
+            assert(false);
+    }
+}
+
+void Test::assertTermsSentToAllPeers() const {
+
+    for(auto mapping : spy->connectionSpies)
+        assertTermsSentToPeer(mapping.second->sendMessageOnConnectionCallbackSlot);
+}
+
+void Test::assertFullPieceSent(ID peer, const protocol_wire::PieceData & data) const {
+
+    ConnectionSpy<ID> * c = spy->connectionSpies.at(peer);
+
+    QCOMPARE((int)c->sendMessageOnConnectionCallbackSlot.size(), 1);
+    const protocol_wire::ExtendedMessagePayload * m;
+    std::tie(m) = c->sendMessageOnConnectionCallbackSlot.front();
+
+    QCOMPARE(m->messageType(), protocol_wire::MessageType::full_piece);
+    const protocol_wire::FullPiece * m2 = dynamic_cast<const protocol_wire::FullPiece *>(m);
+
+    QCOMPARE(m2->pieceData(), data);
+}
+
+////
+
+void Test::addBuyerAndGoToReadyForPieceRequest(ID id, const protocol_wire::BuyerTerms & terms, const protocol_wire::Ready & ready, Coin::PublicKey & payeeContractPk, Coin::PubKeyHash & payeeFinalPkHash) {
 
     // peer joins
     addConnection(id);
@@ -463,6 +767,20 @@ void Test::addBuyerAndGoToReadyForPieceRequest(ID id, const protocol_wire::Buyer
     // address was generated
     QCOMPARE((int)spy->generateP2PKHAddressesCallbackSlot.size(), 1);
     QCOMPARE((int)std::get<0>(spy->generateP2PKHAddressesCallbackSlot.front()), 1);
+
+    // client joined contract
+    ConnectionSpy<ID> * cSpy = spy->connectionSpies.at(id);
+
+    QCOMPARE((int)cSpy->sendMessageOnConnectionCallbackSlot.size(), 1);
+    const protocol_wire::ExtendedMessagePayload * m;
+    std::tie(m) = cSpy->sendMessageOnConnectionCallbackSlot.front();
+
+    QCOMPARE(m->messageType(), protocol_wire::MessageType::joining_contract);
+    const protocol_wire::JoiningContract * m2 = dynamic_cast<const protocol_wire::JoiningContract *>(m);
+
+    // copy out return values which payee sent
+    payeeContractPk = m2->contractPk();
+    payeeFinalPkHash = m2->finalPkHash();
 
     spy->reset();
 
@@ -490,91 +808,66 @@ void Test::addBuyerAndGoToReadyForPieceRequest(ID id, const protocol_wire::Buyer
     spy->reset();
 }
 
-void Test::toObserveMode() {
+void Test::receiveValidFullPieceRequest(ID peer, int pieceIndexToRequest) {
 
-    spy->toMonitoredObserveMode();
+    session->processMessageOnConnection(peer, protocol_wire::RequestFullPiece(pieceIndexToRequest));
 
-    QCOMPARE(session->mode(), SessionMode::observing);
+    QVERIFY(spy->onlyCalledLoadPieceForBuyer());
+    QCOMPARE((int)spy->loadPieceForBuyerCallbackSlot.size(), 1);
+
+    ID id;
+    int pieceIndexToLoad;
+
+    std::tie(id, pieceIndexToLoad) = spy->loadPieceForBuyerCallbackSlot.front();
+    QCOMPARE(id, peer);
+    QCOMPARE(pieceIndexToRequest, pieceIndexToLoad);
+
+    spy->reset();
 }
 
-void Test::toSellMode(const SellingPolicy & policy,
-                      const protocol_wire::SellerTerms & terms) {
+void Test::sendFullPiece(ID id, const protocol_wire::PieceData & data, int pieceIndex) {
 
-    spy->toMonitoredSellMode(policy, terms);
+    session->pieceLoaded(id, data, pieceIndex);
 
-    QCOMPARE(session->mode(), SessionMode::selling);
+    QVERIFY(spy->blankSession());
+
+    ConnectionSpy<ID> * c = spy->connectionSpies.at(id);
+
+    QCOMPARE((int)c->sendMessageOnConnectionCallbackSlot.size(), 1);
+    const protocol_wire::ExtendedMessagePayload * m;
+    std::tie(m) = c->sendMessageOnConnectionCallbackSlot.front();
+
+    QCOMPARE(m->messageType(), protocol_wire::MessageType::full_piece);
+    const protocol_wire::FullPiece * m2 = dynamic_cast<const protocol_wire::FullPiece *>(m);
+
+    QCOMPARE(m2->pieceData(), data);
+
+    spy->reset();
 }
 
-void Test::toBuyMode(const Coin::UnspentP2PKHOutput & funding,
-                     const BuyingPolicy & policy,
-                     const protocol_wire::BuyerTerms & terms,
-                     const TorrentPieceInformation & information) {
+void Test::exchangeDataForPayment(ID peer, uint N, paymentchannel::Payor & payor) {
 
-    spy->toMonitoredBuyMode(funding,
-                           policy,
-                           terms,
-                           information);
+    for(uint i = 0;i < N;i++) {
 
-    QCOMPARE(session->mode(), SessionMode::buying);
+        // peer requests valid piece
+        receiveValidFullPieceRequest(peer, i);
 
+        // send message to peer
+        protocol_wire::PieceData data;
+        sendFullPiece(peer, data, i);
 
-}
+        // generate new payment
+        Coin::Signature sig = payor.makePayment();
 
-void Test::verifyTermsSentToPeer(const SendMessageOnConnectionCallbackSlot & slot) {
+        // peer sends valid payment
+        session->processMessageOnConnection(peer, protocol_wire::Payment(sig));
 
-    QCOMPARE((int)slot.size(), 1);
-    auto f = slot.front();
-    const protocol_wire::ExtendedMessagePayload * m = std::get<0>(f);
-
-    switch(session->mode()) {
-        case SessionMode::not_set: assert(false);
-        case SessionMode::buying:
-        QCOMPARE(m->messageType(), protocol_wire::MessageType::buy);
-        //QCOMPARE(session->)
-        break;
-        case SessionMode::selling:
-        QCOMPARE(m->messageType(), protocol_wire::MessageType::sell);
-
-        break;
-        case SessionMode::observing:
-        QCOMPARE(m->messageType(), protocol_wire::MessageType::observe);
-        break;
-        default:
-            assert(false);
+        QVERIFY(spy->blank());
     }
+
 }
 
-Coin::PrivateKey Test::privateKeyFromUInt(uint) {
-
-    /**
-     * For whatever reason, the private keys generated
-     * by this routine seem to be invalid? the EC routines fail to convert
-     * them properly to public keys.
-
-    std::stringstream s;
-    s << std::hex << i;
-    std::string hexInteger = s.str(); // MSB is at index 0
-
-    // Make even length representation by potentially adding leading 0
-    if(hexInteger.length() % 2 != 0)
-        hexInteger = "0" + hexInteger;
-
-    std::string finalHexRepresentation;
-
-    if(hexInteger.length() > 2*Coin::PrivateKey::length())
-        throw std::runtime_error("privateKeyFromUInt: argument to big"); // not even going to truncate
-    else if(hexInteger.length() < 2*Coin::PrivateKey::length())
-        finalHexRepresentation = std::string(2*Coin::PrivateKey::length() - hexInteger.length(), '0') + hexInteger; // add suitable number of leading 0s
-
-    assert(finalHexRepresentation.length() == 2*Coin::PrivateKey::length());
-
-    std::cout << "Generate ---- " << finalHexRepresentation.length() << std::endl;
-
-    return Coin::PrivateKey(finalHexRepresentation);
-    */
-
-    return Coin::PrivateKey::generate();
-}
+////
 
 QTEST_MAIN(Test)
 #include "moc_Test.cpp"

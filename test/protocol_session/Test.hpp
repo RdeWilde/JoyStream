@@ -44,6 +44,7 @@ private slots:
     void selling_buyer_requested_invalid_piece();
     void selling_buyer_interrupted_payment();
     void selling_buyer_sent_invalid_payment();
+    void selling_buyer_disappears();
 
     // Test buy mode transitions
     void buying_basic();
@@ -54,17 +55,29 @@ private slots:
 
 private:
 
-    // Variable shared across all units tests
+    //// NB: None of these routines can return values, as they use QTest macroes which dont return this value.
 
+    // Variable shared across all units tests
     Coin::Network network;
     Session<ID> * session;
     SessionSpy<ID> * spy;
 
-    // Generators for predictable keys & addresse &...
+    // Generates private key which is 32 byte unsigned integer encoded i
+    static Coin::PrivateKey privateKeyFromUInt(uint i);
+
+    static paymentchannel::Payor getPayor(const protocol_wire::SellerTerms &,
+                                          const protocol_wire::BuyerTerms &,
+                                          const protocol_wire::Ready &,
+                                          const Coin::PrivateKey &,
+                                          const Coin::PublicKey &,
+                                          const Coin::PubKeyHash &);
+
+    static paymentchannel::Payee getPayee(const protocol_wire::SellerTerms &,
+                                          const protocol_wire::BuyerTerms &,
+                                          const protocol_wire::Ready &);
 
     //// Routines for doing spesific set of tests which can be used across number of cases
-    //// NB: None of these routines can return values, as they use QTest macroes which dont return this value.
-    //// NB: Spy is always reset, if affected, by each call
+    //// Spy is always reset, if affected, by each call
 
     // Takes started session and spy for session:
     // (1) four peers join without announcing their mode
@@ -83,34 +96,67 @@ private:
     // Peer disconnects
     void removeConnection(ID);
 
-    // Alter session state
-    void start();
+    // Start session for first time, so terms are sent
+    void firstStart();
 
-    //
+    // Stop session
     void stop();
 
-    //
+    // Pause session
     void pause();
 
-    //
-    void addBuyerAndGoToReadyForPieceRequest(ID, const protocol_wire::BuyerTerms &, const protocol_wire::Ready &);
-
-    // Alter session mode
+    // Session to observe mode
     void toObserveMode();
 
+    // Session to sell mode
     void toSellMode(const SellingPolicy &,
-                    const protocol_wire::SellerTerms &);
+                    const protocol_wire::SellerTerms &,
+                    int);
 
+    // Session to buy mode
     void toBuyMode(const Coin::UnspentP2PKHOutput &,
                    const BuyingPolicy &,
                    const protocol_wire::BuyerTerms &,
                    const TorrentPieceInformation &);
 
-    // Utilities
-    void verifyTermsSentToPeer(const SendMessageOnConnectionCallbackSlot &);
+    //// Pure assert subroutines: do not clear spy
 
-    // Generates private key which is 32 byte unsigned integer encoded i
-    static Coin::PrivateKey privateKeyFromUInt(uint i);
+    // Asserts for removal of given peer for given reason
+    void assertConnectionRemoved(ID expectedId, DisconnectCause expectedCause) const;
+
+    // Asserts that mode and terms in session match most recent send message callback
+    void assertTermsSentToPeer(const SendMessageOnConnectionCallbackSlot &) const;
+
+    // Assert that mode nd terms in sesson were sent to all peers
+    void assertTermsSentToAllPeers() const;
+
+    //
+    void assertFullPieceSent(ID, const protocol_wire::PieceData &) const;
+
+    //// Selling
+
+    // Adds a buyer peer with given id and terms, and navigate to 'ready for piece request' state
+    // Write payee contractPk/finalpkhash into last two args
+    // (1) peer joins with given id
+    // (2) peer announces given buyer terms
+    // (3) peer (buyer) sends contract invitation
+    // (4) peer (buyer) announces contract
+    void addBuyerAndGoToReadyForPieceRequest(ID, const protocol_wire::BuyerTerms &, const protocol_wire::Ready &, Coin::PublicKey &, Coin::PubKeyHash &);
+
+    //
+    void receiveValidFullPieceRequest(ID, int);
+
+    //
+    void sendFullPiece(ID, const protocol_wire::PieceData &, int);
+
+    //
+    void exchangeDataForPayment(ID, uint, paymentchannel::Payor &);
+
+    //// Buying
+
+
+
+
 };
 
 #endif // TEST_HPP
