@@ -179,7 +179,7 @@ namespace detail {
 
                 c->processEvent(protocol_statemachine::event::InviteSeller());
 
-                std::cout << "Invited: " << IdToString(id);
+                std::cout << "Invited: " << IdToString(id) << std::endl;
             }
 
         }
