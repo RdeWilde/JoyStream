@@ -25,7 +25,7 @@ namespace detail {
 
         Piece();
         Piece(int, PieceState, const ConnectionIdType &, unsigned int);
-        Piece(const PieceInformation &);
+        Piece(int, const PieceInformation &);
 
         // Piece is assigned to connection with given id
         void assigned(const ConnectionIdType &);

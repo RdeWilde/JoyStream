@@ -15,24 +15,7 @@
 namespace joystream {
 namespace protocol_session {
 
-class TorrentPieceInformation {
-
-public:
-
-    TorrentPieceInformation();
-
-    void addPiece(const PieceInformation &);
-
-    std::vector<PieceInformation> pieces() const;
-
-    uint32_t numberOfMissingPieces() const;
-
-private:
-
-    std::vector<PieceInformation> _pieces;
-
-    // The number of pieces not yet downloaded
-    uint32_t _numberOfMissingPieces;
+class TorrentPieceInformation : public std::vector<PieceInformation> {
 };
 
 }

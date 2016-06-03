@@ -14,10 +14,7 @@ namespace detail {
 
     template <class ConnectionIdType>
     Piece<ConnectionIdType>::Piece()
-        : _index(0)
-        , _state(PieceState::unassigned)
-        , _connectionId(connectionId)
-        , _size(0) {
+        : Piece(0, PieceState::unassigned, ConnectionIdType(), 0) {
     }
 
     template <class ConnectionIdType>
@@ -25,12 +22,12 @@ namespace detail {
         : _index(index)
         , _state(state)
         , _connectionId(id)
-        , _size(size){
+        , _size(size) {
     }
 
     template <class ConnectionIdType>
-    Piece<ConnectionIdType>::Piece(const PieceInformation & p)
-        : _index(p.index())
+    Piece<ConnectionIdType>::Piece(int index, const PieceInformation & p)
+        : _index(index)
         , _state(p.downloaded() ? PieceState::downloaded : PieceState::unassigned)
         , _size(p.size()) {
     }

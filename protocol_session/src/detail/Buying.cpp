@@ -40,13 +40,20 @@ namespace detail {
         , _funding(funding)
         , _policy(policy)
         , _terms(terms)
-        , _numberOfMissingPieces(information.numberOfMissingPieces())
+        , _numberOfMissingPieces(0)
         , _assignmentLowerBound(0)
         , _lastStartOfSendingInvitations(0) {
 
         // Setup pieces
-        for(const PieceInformation & p : information.pieces())
-            _pieces.push_back(detail::Piece<ConnectionIdType>(p));
+        for(uint i = 0;i < information.size();i++) {
+
+            PieceInformation p = information[i];
+
+            _pieces.push_back(detail::Piece<ConnectionIdType>(i, p));
+
+            if(!p.downloaded())
+                _numberOfMissingPieces++;
+        }
 
         // Notify any existing peers
         for(auto i : _session->_connections)
@@ -422,7 +429,6 @@ namespace detail {
         assert(_session->_state == SessionState::started);
         assert(_state == BuyingState::sending_invitations);
         assert(_sellers.empty());
-        assert(!_pieces.empty());
 
         /////////////////////////
 

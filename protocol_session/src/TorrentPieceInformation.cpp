@@ -10,7 +10,7 @@
 
 namespace joystream {
 namespace protocol_session {
-
+/**
 TorrentPieceInformation::TorrentPieceInformation() {
 }
 
@@ -35,10 +35,10 @@ std::vector<PieceInformation> TorrentPieceInformation::pieces() const {
     return _pieces;
 }
 
-uint32_t TorrentPieceInformation::numberOfMissingPieces() const
-{
-    return _numberOfMissingPieces;
-}
+uint32_t TorrentPieceInformation::numberOfMissingPieces() const {
+    uint32_t numberOfMissingPieces = 0;
 
+}
+*/
 }
 }
