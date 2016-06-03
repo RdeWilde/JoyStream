@@ -171,7 +171,7 @@ void Test::signRefund() {
     quint32 index = 3;
     quint64 value = 1231232;
     Coin::PublicKey contractPk(uchar_vector("03ffe71c26651de3056af555d92cee57a42c36976ac1259f0b5cae6b9e94ca38d8"));
-    Coin::PublicKey finalPk(uchar_vector("147320947192347901273497201347892137412734078912384790217340743983"));
+    Coin::PublicKey finalPk(uchar_vector("03ab327d4297619c8d40af4db1b768923f3b3cc5b554dc560cb2959764d33a71d7"));
 
     SignRefund m(contractTxId, index, value, contractPk, finalPk);
 
