@@ -13,10 +13,12 @@ namespace protocol_session {
 
     enum class BuyingState {
 
-        // Inviting sellers
+        // Inviting sellers:
+        // Peers with good enough terms are invited, even when paused,
         sending_invitations,
 
-        // Requesting and downloading pieces
+        // Requesting and downloading pieces:
+        // Contract has been announced and exchanges are ongoing.
         downloading,
 
         // Have all pieces
