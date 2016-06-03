@@ -93,7 +93,7 @@ TransactionSignature UnspentOutput::signTransaction(const Transaction &tx, bool 
             if(typesafeOutPoint(txinput.previousOut) == outPoint()) {
                 // This is the input to sign
                 txCopy.inputs.push_back(txinput);
-                txCopy.inputs[0].scriptSig = scriptPubKey();
+                txCopy.inputs[0].scriptSig = redeemScript();
                 break;
             }
         }
@@ -110,7 +110,7 @@ TransactionSignature UnspentOutput::signTransaction(const Transaction &tx, bool 
         // Clear input signatures
         for(auto & txinput : txCopy.inputs) {
             if(typesafeOutPoint(txinput.previousOut) == outPoint()) {
-                txinput.scriptSig = scriptPubKey();
+                txinput.scriptSig = redeemScript();
                 foundInput = true;
             } else {
                 txinput.scriptSig.clear();
