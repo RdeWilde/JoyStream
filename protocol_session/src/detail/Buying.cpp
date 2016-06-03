@@ -41,8 +41,8 @@ namespace detail {
         , _policy(policy)
         , _terms(terms)
         , _numberOfMissingPieces(0)
-        , _assignmentLowerBound(0)
-        , _lastStartOfSendingInvitations(0) {
+        , _assignmentLowerBound(0) {
+        //, _lastStartOfSendingInvitations(0) {
 
         // Setup pieces
         for(uint i = 0;i < information.size();i++) {
@@ -61,7 +61,7 @@ namespace detail {
 
         // If session is started, then set start time of this new mode
         if(_session->_state == SessionState::started)
-            time(&_lastStartOfSendingInvitations);
+            _lastStartOfSendingInvitations = std::chrono::high_resolution_clock::now();
     }
 
     template <class ConnectionIdType>
@@ -274,7 +274,7 @@ namespace detail {
         assert(_session->_state != SessionState::started);
 
         // Note starting time
-        time(&_lastStartOfSendingInvitations);
+        _lastStartOfSendingInvitations = std::chrono::high_resolution_clock::now();
 
         // Set client mode to started
         _session->_state = SessionState::started;
@@ -433,9 +433,9 @@ namespace detail {
         /////////////////////////
 
         // Determine if we can start to build contract at present
-        time_t now = time(0);
+        auto t0 = std::chrono::high_resolution_clock::now();
 
-        double timeSinceSendingInvitations = difftime(now, _lastStartOfSendingInvitations);
+        auto timeSinceSendingInvitations = t0 - _lastStartOfSendingInvitations;
 
         if(timeSinceSendingInvitations < _policy.minTimeBeforeBuildingContract())
             return false;

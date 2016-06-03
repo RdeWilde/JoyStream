@@ -38,7 +38,7 @@ namespace detail {
         void requestPiece(int i);
 
         // Whether
-        bool servicingPieceHasTimedOut(double) const;
+        bool servicingPieceHasTimedOut(const std::chrono::duration<double> &) const;
 
         // Update state to reflect that a recently arrived full piece from this
         // seller is being processed (verified and
@@ -80,7 +80,7 @@ namespace detail {
 
         // When last piece was assigned to this seller.
         // Is used to identify slow seller.
-        time_t _whenLastPieceAssigned;
+        std::chrono::high_resolution_clock::time_point _whenLastPieceAssigned;
     };
 
 }

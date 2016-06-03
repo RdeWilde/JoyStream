@@ -212,7 +212,7 @@ private:
     // When we started sending out invitations
     // (i.e. entered state StartedState::sending_invitations).
     // Is used to figure out when to start trying to build the contract
-    time_t _lastStartOfSendingInvitations;
+    std::chrono::high_resolution_clock::time_point _lastStartOfSendingInvitations;
 };
 
 }

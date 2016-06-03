@@ -35,7 +35,7 @@ namespace detail {
         _indexOfAssignedPiece = i;
 
         // Note piece assignment time, so we later can detect time outs
-        time(&_whenLastPieceAssigned);
+        _whenLastPieceAssigned = std::chrono::high_resolution_clock::now();
 
         // Send request
         assert(_connection != nullptr);
@@ -43,16 +43,16 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    bool Seller<ConnectionIdType>::servicingPieceHasTimedOut(double timeOutLimit) const{
+    bool Seller<ConnectionIdType>::servicingPieceHasTimedOut(const std::chrono::duration<double> & timeOutLimit) const{
 
         if(_state != SellerState::waiting_for_full_piece)
             return false;
 
         // Get current time
-        time_t now = time(0);
+        auto now = std::chrono::high_resolution_clock::now(); //time(0);
 
         // Whether time limit was exceeded
-        return difftime(now, _whenLastPieceAssigned) > timeOutLimit;
+        return (now - _whenLastPieceAssigned) > timeOutLimit;
     }
 
     template <class ConnectionIdType>

@@ -9,6 +9,7 @@
 #define JOYSTREAM_PROTOCOLSESSION_BUYINGPOLICY_HPP
 
 #include <protocol_wire/protocol_wire.hpp>
+#include <chrono>
 
 namespace joystream {
 namespace protocol_session {
@@ -30,11 +31,11 @@ public:
         , _sellerTermsOrderingPolicy(policy) {
     }
 
-    double minTimeBeforeBuildingContract() const {
+    std::chrono::duration<double> minTimeBeforeBuildingContract() const {
         return _minTimeBeforeBuildingContract;
     }
 
-    double servicingPieceTimeOutLimit() const {
+    std::chrono::duration<double> servicingPieceTimeOutLimit() const {
         return _servicingPieceTimeOutLimit;
     }
 
@@ -47,7 +48,7 @@ private:
     // 1
     // The minimum amount of time (s) required before
     // trying to buil a contract
-    double _minTimeBeforeBuildingContract;
+    std::chrono::duration<double> _minTimeBeforeBuildingContract;
 
     // 2
     // time to wait, at very least,
@@ -69,7 +70,7 @@ private:
 
     // 7
     //
-    double _servicingPieceTimeOutLimit;
+    std::chrono::duration<double> _servicingPieceTimeOutLimit;
 
 
     // 8
