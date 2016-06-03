@@ -314,7 +314,10 @@ namespace detail {
                 tryToStartDownloading();
             else if(_state == BuyingState::downloading) {
 
-                for(detail::Seller<ConnectionIdType> & s: _sellers) {
+                for(auto mapping : _sellers) {
+
+                    // Reference to seller
+                    detail::Seller<ConnectionIdType> & s = mapping.second;
 
                     // Get id of connection for this seller
                     ConnectionIdType id = s.connection()->connectionId();
