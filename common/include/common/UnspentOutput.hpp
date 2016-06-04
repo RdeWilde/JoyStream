@@ -8,10 +8,8 @@
 #ifndef COIN_UNSPENT_OUTPUT_HPP
 #define COIN_UNSPENT_OUTPUT_HPP
 
-#include <common/KeyPair.hpp>
 #include <common/typesafeOutPoint.hpp>
 #include <common/SigHashType.hpp>
-#include <common/TransactionSignature.hpp>
 
 #include <CoinCore/typedefs.h>
 #include <CoinCore/CoinNodeData.h> // Coin::OutPoint
@@ -19,61 +17,37 @@
 
 namespace Coin {
 
-    class UnspentOutput
-    {
-    public:
+class UnspentOutput {
+public:
 
-        // Default constructor
-        UnspentOutput();
+    // Default constructor
+    UnspentOutput();
 
-        // Constructor from members
-        UnspentOutput(const KeyPair & keyPair, const typesafeOutPoint & outPoint, quint64 setValue, uchar_vector scriptPubKey, uchar_vector redeemScript);
+    // Constructor from members
+    UnspentOutput(const typesafeOutPoint & outPoint, uint64_t setValue);
 
-        // Comparator
-        bool operator==(const UnspentOutput & o) const;
-        bool operator!=(const UnspentOutput & o) const;
+    // Comparator
+    bool operator==(const UnspentOutput & o) const;
+    bool operator!=(const UnspentOutput & o) const;
 
-        // Getters and setters
-        KeyPair keyPair() const;
-        void setKeyPair(const KeyPair & keyPair);
+    // Getters and setters
+    typesafeOutPoint outPoint() const;
+    void setOutPoint(const typesafeOutPoint & outPoint);
 
-        typesafeOutPoint outPoint() const;
-        void setOutPoint(const typesafeOutPoint & outPoint);
+    uint64_t value() const;
+    void setValue(quint64 value);
 
-        quint64 value() const;
-        void setValue(quint64 value);
+    virtual uchar_vector scriptPubKey() const = 0;
+    virtual uchar_vector scriptSig(const Transaction & tx, const SigHashType & sigHashType) const = 0;
 
-        uchar_vector scriptPubKey() const;
-        void setScriptPubKey(uchar_vector);
+private:
 
-        uchar_vector redeemScript() const;
-        void setRedeemScript(uchar_vector);
+    // OutPoint locating utxo
+    typesafeOutPoint _outPoint;
 
-        // Create Transaction signature
-        TransactionSignature signTransaction(const Transaction & tx, bool anyoneCanPay = false) const;
-
-        virtual bool spendable() const = 0;
-
-        virtual uchar_vector getScriptSig(const TransactionSignature &sig) const = 0;
-
-    private:
-
-        // Controls utxo
-        KeyPair _keyPair;
-
-        // OutPoint locating utxo
-        typesafeOutPoint _outPoint;
-
-        // Value of output
-        quint64 _value;
-
-        // Output script so we can create a signature
-        uchar_vector _scriptPubKey;
-
-        // The redeem script to determine how to spend the output and appending to the input script
-        uchar_vector _redeemScript;
-
-    };
+    // Value of output
+    uint64_t _value;
+};
 
 }
 
