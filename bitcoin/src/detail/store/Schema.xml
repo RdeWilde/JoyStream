@@ -18,6 +18,7 @@
       <column name="key" type="INTEGER" null="false"/>
       <column name="scriptPubKey" type="TEXT" null="false"/>
       <column name="redeemScript" type="TEXT" null="false"/>
+      <column name="optionalData" type="TEXT" null="true"/>
       <primary-key auto="true">
         <column name="id"/>
       </primary-key>

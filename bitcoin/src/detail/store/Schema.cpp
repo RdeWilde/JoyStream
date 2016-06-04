@@ -7,6 +7,8 @@
 
 #include <CoinCore/hash.h> // ripemd160(sha256(pubkey))
 
+#include <bitcoin/Common.hpp>
+
 namespace joystream {
 namespace bitcoin {
 namespace detail {
@@ -55,10 +57,11 @@ namespace store {
 
 /// Address
 
-    Address::Address(const std::shared_ptr<Key> & key, const uchar_vector & redeemScript) {
+    Address::Address(const std::shared_ptr<Key> & key, const RedeemScriptInfo &scriptInfo) {
         key_ = key;
-        redeemScript_ = redeemScript.getHex();
-        scriptPubKey_ = Coin::P2SHScriptPubKey::fromSerializedRedeemScript(redeemScript).serialize().getHex();
+        redeemScript_ = scriptInfo.redeemScript.getHex();
+        optionalData_ = scriptInfo.optionalData.getHex();
+        scriptPubKey_ = Coin::P2SHScriptPubKey::fromSerializedRedeemScript(scriptInfo.redeemScript).serialize().getHex();
     }
 
 /// Transaction

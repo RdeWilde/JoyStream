@@ -25,6 +25,9 @@
 
 namespace joystream {
 namespace bitcoin {
+
+class RedeemScriptInfo;
+
 namespace detail {
 namespace store {
 
@@ -98,11 +101,12 @@ public:
     std::shared_ptr<Address> get_shared_ptr() { return shared_from_this(); }
 
     Address() {}
-    Address(const std::shared_ptr<Key> & key_, const uchar_vector & redeemScript);
+    Address(const std::shared_ptr<Key> & key_, const RedeemScriptInfo & scriptInfo);
     const std::shared_ptr<Key> key() const { return key_; }
 
     std::string scriptPubKey() const { return scriptPubKey_; }
     std::string redeemScript() const { return redeemScript_; }
+    std::string optionalData() const { return optionalData_; }
 
 private:
     friend class odb::access;
@@ -118,6 +122,9 @@ private:
 
     #pragma db not_null unique
     std::string redeemScript_; // hex encoded redeem script
+
+    #pragma db null
+    std::string optionalData_; // optional hex encoded script chunk
 };
 
 /*

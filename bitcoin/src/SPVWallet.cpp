@@ -224,8 +224,9 @@ Coin::PrivateKey SPVWallet::generateKey(const RedeemScriptGenerator & scriptGene
     uchar_vector script;
 
     Coin::PrivateKey sk = _store.generateKey([&scriptGenerator, &script](const Coin::PublicKey & pubKey){
-        script = scriptGenerator(pubKey);
-        return script;
+        RedeemScriptInfo info = scriptGenerator(pubKey);
+        script = info.redeemScript;
+        return info;
     });
 
     updateBloomFilter({script});
@@ -242,9 +243,9 @@ std::vector<Coin::PrivateKey> SPVWallet::generateKeys(const std::vector<RedeemSc
     uint32_t numKeys = scriptGenerators.size();
 
     std::vector<Coin::PrivateKey> keys = _store.generateKeys(numKeys, [&scriptGenerators, &scripts](const Coin::PublicKey & pubKey, uint32_t n){
-        uchar_vector script = scriptGenerators[n](pubKey);
-        scripts.push_back(script);
-        return script;
+        RedeemScriptInfo info = scriptGenerators[n](pubKey);
+        scripts.push_back(info.redeemScript);
+        return info;
     });
 
     updateBloomFilter(scripts);
@@ -263,9 +264,9 @@ SPVWallet::generateKeyPairs(const std::vector<RedeemScriptGenerator> &scriptGene
     uint32_t numKeys = scriptGenerators.size();
 
     std::vector<Coin::PrivateKey> keys = _store.generateKeys(numKeys, [&scriptGenerators, &scripts](const Coin::PublicKey & pubKey, uint32_t n){
-        uchar_vector script = scriptGenerators[n](pubKey);
-        scripts.push_back(script);
-        return script;
+        RedeemScriptInfo info = scriptGenerators[n](pubKey);
+        scripts.push_back(info.redeemScript);
+        return info;
     });
 
     updateBloomFilter(scripts);

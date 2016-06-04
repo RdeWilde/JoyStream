@@ -74,6 +74,10 @@ uchar_vector UnspentP2SHOutput::scriptSig(const Transaction & tx, const SigHashT
 
     uchar_vector scriptSig;
     scriptSig += sig.opPushForScriptSigSerialized();
+
+    if(optionalData().size() > 0)
+        scriptSig += optionalData();
+
     scriptSig += opPushData(redeemScript().size());
     scriptSig += redeemScript();
 
