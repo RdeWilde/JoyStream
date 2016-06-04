@@ -4,6 +4,7 @@
 #include <common/P2SHScriptPubKey.hpp>
 #include <common/TransactionSignature.hpp>
 #include <common/Utilities.hpp>
+#include <common/SigHashType.hpp>
 
 #include <bitcoin/SPVWallet.hpp>
 
@@ -641,7 +642,8 @@ Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2SH
     cointx.addInput(Coin::TxIn(utxo->outPoint().getClassicOutPoint(), uchar_vector(), 0xFFFFFFFF));
 
     // Sign the input
-    cointx.inputs[0].scriptSig = utxo->getScriptSig(utxo->signTransaction(cointx));
+    Coin::SigHashType sigHashType(Coin::SigHashType::MutuallyExclusiveType::all, false);
+    cointx.inputs[0].scriptSig = utxo->scriptSig(cointx, sigHashType);
 
     broadcastTx(cointx);
 
