@@ -50,6 +50,7 @@ private slots:
     void BalanceCheck();
     void Utxo();
     void BroadcastingTx();
+    void UsingOptionalDataInP2SHSpend();
 
     // Will be called at the end of all tests
     void cleanupTestCase();

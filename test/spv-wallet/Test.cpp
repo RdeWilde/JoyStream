@@ -8,11 +8,13 @@
 #include <Test.hpp>
 
 #include <bitcoin/SPVWallet.hpp>
+#include <bitcoin/Common.hpp>
 
 #include <common/Seed.hpp>
 #include <common/PrivateKey.hpp>
 #include <common/PublicKey.hpp>
 #include <common/UnspentOutput.hpp>
+#include <common/Utilities.hpp>
 
 #include <CoinCore/hdkeys.h>
 #include <CoinCore/CoinNodeData.h> // Coin::Transaction
@@ -367,13 +369,53 @@ void Test::BroadcastingTx() {
 
     _walletA->test_sendToAddress(50000, addrB, 1000);
 
-    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedA.count() > 0, 5000);
-    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedB.count() > 0, 5000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedA.count() > 0, 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedB.count() > 0, 10000);
 
     QCOMPARE(_walletB->unconfirmedBalance(), uint64_t(50000));
 
     QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(49000));
 
+}
+
+void Test::UsingOptionalDataInP2SHSpend() {
+    _walletA->create();
+
+    // script = OP_ADD 2 OP_EQUALVERIFY
+    uchar_vector script;
+    script.push_back(0x93); script.push_back(0x52); script.push_back(0x88);
+
+    Coin::PrivateKey key(_walletA->generateKey([&script](const Coin::PublicKey &pubkey){
+        // data:  OP_1 OP_1
+        uchar_vector data;
+        data.push_back(0x51); data.push_back(0x51);
+
+        // Push Public Key to script
+        script += Coin::opPushData(0x21);
+        script += pubkey.toUCharVector();
+
+        script.push_back(0xac); // OP_CHECKSIG
+
+        return joystream::bitcoin::RedeemScriptInfo(script, data);
+    }));
+
+    Coin::P2SHAddress addrA = Coin::P2SHAddress::fromSerializedRedeemScript(Coin::Network::regtest, script);
+
+    bitcoin_rpc("sendtoaddress " + addrA.toBase58CheckEncoding().toStdString() + " 0.00100");
+    bitcoin_rpc("generate 1");
+
+    QSignalSpy synchedA(_walletA, SIGNAL(synched()));
+
+    _walletA->sync("localhost", 18444);
+
+    QTRY_VERIFY_WITH_TIMEOUT(synchedA.count() > 0, 10000);
+
+    QSignalSpy spy_balance_changedA(_walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
+
+    _walletA->test_sendToAddress(10000, addrA, 5000);
+
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedA.count() > 0, 5000);
+    QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(95000));
 }
 
 QTEST_MAIN(Test)
