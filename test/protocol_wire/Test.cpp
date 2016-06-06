@@ -50,8 +50,7 @@ void Test::sell() {
 
 void Test::fullPiece() {
 
-    int rawDataLength = 54;
-    PieceData data(boost::shared_array<char>{new char [rawDataLength]}, rawDataLength);
+    PieceData data = PieceData::fromHex("91789132479abcdfabcdfabd123789");
     FullPiece m(data);
 
     QCOMPARE(m.pieceData(), data);
