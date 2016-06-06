@@ -21,6 +21,11 @@ Contract::Contract()
     : _changeSet(false) {
 }
 
+Contract::Contract(const Coin::UnspentP2PKHOutput & funding)
+    : _funding(funding)
+    , _changeSet(false) {
+}
+
 Contract::Contract(const Coin::UnspentP2PKHOutput & funding,
                    const std::vector<Commitment> & commitments)
     : _funding(funding)
