@@ -561,7 +561,7 @@ namespace detail {
 
         // Find peers that have joined our last invitation.
         // This implicitly guarantees that it is in sell mode, and satisfies our terms
-        std::vector<detail::Connection<ConnectionIdType> *> joinedSellers = _session-> template connectionsInState<protocol_statemachine::WaitingToStart>();
+        std::vector<detail::Connection<ConnectionIdType> *> joinedSellers = _session-> template connectionsInState<protocol_statemachine::PreparingContract>();
 
         // Pick how many sellers we actualy want.
         // NB**: in future, we base it on policy,
