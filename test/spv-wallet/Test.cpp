@@ -14,6 +14,7 @@
 #include <common/PrivateKey.hpp>
 #include <common/PublicKey.hpp>
 #include <common/UnspentOutput.hpp>
+#include <common/UnspentOutputSet.hpp>
 #include <common/Utilities.hpp>
 
 #include <CoinCore/hdkeys.h>
@@ -263,6 +264,10 @@ void Test::BalanceCheck() {
     QCOMPARE(spy_store_error.count(), 0);
 }
 
+/*
+ * MOVE THIS TEST INTO A STORE UNIT TEST - THEY REQUIRE AN ORDERED CONTAINER OF OUTPUTS
+ * After reverting UnspentOutputSet to derive from std::set
+*/
 void Test::Utxo() {
     _walletA->create();
 
@@ -326,7 +331,7 @@ void Test::Utxo() {
     }
 
     // Outputs can be unlocked
-    _walletA->unlockOutputs(lockedOutputs);
+    QCOMPARE(_walletA->unlockOutputs(lockedOutputs), uint(3));
 
     // Largest Utxos are returned first
     {
@@ -349,7 +354,8 @@ void Test::BroadcastingTx() {
     Coin::P2SHAddress addrA = _walletA->generateReceiveAddress();
     Coin::P2SHAddress addrB = _walletB->generateReceiveAddress();
 
-    bitcoin_rpc("sendtoaddress " + addrA.toBase58CheckEncoding().toStdString() + " 0.00100");
+    bitcoin_rpc("sendtoaddress " + addrA.toBase58CheckEncoding().toStdString() + " 0.00050");
+    bitcoin_rpc("sendtoaddress " + addrA.toBase58CheckEncoding().toStdString() + " 0.00050");
     bitcoin_rpc("generate 1");
 
     QSignalSpy synchedA(_walletA, SIGNAL(synched()));
@@ -367,14 +373,14 @@ void Test::BroadcastingTx() {
     QSignalSpy spy_balance_changedA(_walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
     QSignalSpy spy_balance_changedB(_walletB, SIGNAL(balanceChanged(uint64_t, uint64_t)));
 
-    _walletA->test_sendToAddress(50000, addrB, 1000);
+    _walletA->test_sendToAddress(70000, addrB, 5000);
 
     QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedA.count() > 0, 10000);
     QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedB.count() > 0, 10000);
 
-    QCOMPARE(_walletB->unconfirmedBalance(), uint64_t(50000));
+    QCOMPARE(_walletB->unconfirmedBalance(), uint64_t(70000));
 
-    QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(49000));
+    QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(25000));
 
 }
 

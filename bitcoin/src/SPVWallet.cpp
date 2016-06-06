@@ -5,6 +5,8 @@
 #include <common/TransactionSignature.hpp>
 #include <common/Utilities.hpp>
 #include <common/SigHashType.hpp>
+#include <common/UnspentOutputSet.hpp>
+#include <common/UnspentOutputSet.hpp>
 
 #include <bitcoin/SPVWallet.hpp>
 
@@ -323,35 +325,33 @@ int32_t SPVWallet::bestHeight() const {
     return _store.getBestHeaderHeight();
 }
 
-std::list<std::shared_ptr<Coin::UnspentOutput>>
-SPVWallet::lockOutputs(uint64_t minValue, uint32_t minimalConfirmations) {
+Coin::UnspentOutputSet
+SPVWallet::lockOutputs(uint64_t minValue, uint32_t minimalConfirmations, const Store::ScriptSelector &scriptSelector) {
     if(!isInitialized()) {
         throw std::runtime_error("wallet not initialized");
     }
     
     std::lock_guard<std::mutex> lock(_utxoMutex);
 
-    uint32_t totalValue = 0;
-
-    std::list<std::shared_ptr<Coin::UnspentOutput>> selectedOutputs;
+    Coin::UnspentOutputSet selectedOutputs;
 
     // Assume outputs are sorted in descending value
-    std::list<std::shared_ptr<Coin::UnspentOutput>> unspentOutputs(_store.getUnspentTransactionsOutputs(minimalConfirmations, bestHeight()));
+    std::list<std::shared_ptr<Coin::UnspentOutput>> unspentOutputs(_store.getUnspentTransactionsOutputs(minimalConfirmations, bestHeight(), scriptSelector));
 
     for(std::shared_ptr<Coin::UnspentOutput> & utxo : unspentOutputs) {
         if(_lockedOutpoints.find(utxo->outPoint()) != _lockedOutpoints.end()) continue;
 
         selectedOutputs.push_back(utxo);
-        totalValue += utxo->value();
+        //selectedOutputs.insert(utxo); //set
 
-        if(totalValue >= minValue) {
+        if(selectedOutputs.value() >= minValue) {
             break;
         }
     }
 
-    if(totalValue < minValue) {
+    if(selectedOutputs.value() < minValue) {
         // not enough utxo
-        return std::list<std::shared_ptr<Coin::UnspentOutput>>();
+        return Coin::UnspentOutputSet();
     }
 
     // Lock and return the selected utxos
@@ -362,12 +362,16 @@ SPVWallet::lockOutputs(uint64_t minValue, uint32_t minimalConfirmations) {
     return selectedOutputs;
 }
 
-void SPVWallet::unlockOutputs(const std::list<std::shared_ptr<Coin::UnspentOutput>> outputs) {
+uint SPVWallet::unlockOutputs(const std::list<std::shared_ptr<Coin::UnspentOutput>> outputs) {
     std::lock_guard<std::mutex> lock(_utxoMutex);
 
+    uint unlockedCount = 0;
+
     for(auto utxo : outputs) {
-        _lockedOutpoints.erase(utxo->outPoint());
+        unlockedCount += _lockedOutpoints.erase(utxo->outPoint());
     }
+
+    return unlockedCount;
 }
 
 uint64_t SPVWallet::balance() const {
@@ -608,29 +612,22 @@ void SPVWallet::test_syncBlocksStaringAtHeight(int32_t height) {
 }
 
 
-Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2SHAddress &addr, uint64_t fee) {
+Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2SHAddress &destinationAddr, uint64_t fee) {
 
     // Get UnspentUTXO
     auto utxos(lockOutputs(value + fee, 0));
 
-    if(utxos.empty()) {
-        throw std::runtime_error("Not enough funds");
+    if(utxos.value() < (value+fee)) {
+        throw std::runtime_error("Not Enough Funds");
     }
-
-    auto utxo = utxos.front();
-
-    if(utxo->value() < (value+fee)) {
-        throw std::runtime_error("Failed to get one UTXO with required value");
-    }
-
-    // Create Destination output
-    Coin::P2SHScriptPubKey destinationScript(addr.toP2SHScriptPubKey());
 
     // Create an unsigned Transaction
     Coin::Transaction cointx;
-    cointx.addOutput(Coin::TxOut(value, destinationScript.serialize()));
 
-    uint64_t change = utxo->value() - (value + fee);
+    // Add output sending value to the destination address
+    cointx.addOutput(Coin::TxOut(value, destinationAddr.toP2SHScriptPubKey().serialize()));
+
+    uint64_t change = utxos.value() - (value + fee);
 
     if(change > 0) {
         // Create Change output
@@ -639,12 +636,8 @@ Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2SH
         cointx.addOutput(Coin::TxOut(change, changeScript.serialize()));
     }
 
-    // Set Input
-    cointx.addInput(Coin::TxIn(utxo->outPoint().getClassicOutPoint(), uchar_vector(), 0xFFFFFFFF));
-
-    // Sign the input
-    Coin::SigHashType sigHashType(Coin::SigHashType::MutuallyExclusiveType::all, false);
-    cointx.inputs[0].scriptSig = utxo->scriptSig(cointx, sigHashType);
+    // Finance the transaction
+    utxos.finance(cointx, Coin::SigHashType(Coin::SigHashType::MutuallyExclusiveType::all, false));
 
     broadcastTx(cointx);
 

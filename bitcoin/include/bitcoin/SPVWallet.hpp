@@ -13,6 +13,10 @@
 
 class Test;
 
+namespace Coin {
+    class UnspentOutputSet;
+}
+
 namespace joystream {
 namespace bitcoin {
 
@@ -76,8 +80,8 @@ public:
 
     std::list<Coin::P2SHAddress> listAddresses();
 
-    std::list<std::shared_ptr<Coin::UnspentOutput>> lockOutputs(uint64_t minValue, uint32_t minimalConfirmations = 0);
-    void unlockOutputs(const std::list<std::shared_ptr<Coin::UnspentOutput>> outputs);
+    Coin::UnspentOutputSet lockOutputs(uint64_t minValue, uint32_t minimalConfirmations = 0, const Store::ScriptSelector &scriptSelector = nullptr);
+    uint unlockOutputs(const std::list<std::shared_ptr<Coin::UnspentOutput>> outputs);
 
     uint64_t balance() const;
     uint64_t unconfirmedBalance() const;
@@ -174,7 +178,7 @@ private:
     // Prefix methods only required from unit tests with test_
     void test_syncBlocksStaringAtHeight(int32_t height);
     int32_t test_netsyncBestHeight() const { return _networkSync.getBestHeight(); }
-    Coin::Transaction test_sendToAddress(uint64_t value, const Coin::P2SHAddress &addr, uint64_t fee);
+    Coin::Transaction test_sendToAddress(uint64_t value, const Coin::P2SHAddress &destinationAddr, uint64_t fee);
 
 };
 

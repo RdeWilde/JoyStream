@@ -513,7 +513,7 @@ bool Store::loadKey(const Coin::P2SHAddress & p2shaddress, Coin::PrivateKey & sk
 }
 
 std::list<std::shared_ptr<Coin::UnspentOutput>>
-Store::getUnspentTransactionsOutputs(int32_t confirmations, int32_t main_chain_height) const {
+Store::getUnspentTransactionsOutputs(int32_t confirmations, int32_t main_chain_height, const ScriptSelector & scriptSelector) const {
     if(!connected()) {
         throw NotConnected();
     }
@@ -562,6 +562,11 @@ Store::getUnspentTransactionsOutputs(int32_t confirmations, int32_t main_chain_h
     std::list<std::shared_ptr<Coin::UnspentOutput>> utxos;
 
     for(auto & output : outputs) {
+
+        if(scriptSelector && !scriptSelector(uchar_vector(output.address->redeemScript()))){
+            continue;
+        }
+
         Coin::KeyPair keypair(output.address->key()->getPrivateKey());
         Coin::TransactionId txid(Coin::TransactionId::fromRPCByteOrder(uchar_vector(output.txid())));
         Coin::typesafeOutPoint outpoint(txid, output.index());
