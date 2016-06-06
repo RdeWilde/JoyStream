@@ -19,8 +19,6 @@ namespace bitcoin {
     };
 
     typedef std::function<RedeemScriptInfo(const Coin::PublicKey &)> RedeemScriptGenerator;
-    typedef std::function<RedeemScriptInfo(const Coin::PublicKey &, uint32_t n)> MultiRedeemScriptGenerator;
-
 }}
 
 #endif // BITCOIN_COMMON_HPP

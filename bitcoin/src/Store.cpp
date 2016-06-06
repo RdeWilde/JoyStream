@@ -184,7 +184,7 @@ Coin::PrivateKey Store::generateKey(const RedeemScriptGenerator & scriptGenerato
     return sk;
 }
 
-std::vector<Coin::PrivateKey> Store::generateKeys(uint32_t numKeys, const MultiRedeemScriptGenerator & multiScriptGenerator) {
+std::vector<Coin::PrivateKey> Store::generateKeys(uint32_t numKeys, const Store::MultiRedeemScriptGenerator & multiScriptGenerator) {
     if(!connected()) {
         throw NotConnected();
     }
@@ -204,7 +204,7 @@ std::vector<Coin::PrivateKey> Store::generateKeys(uint32_t numKeys, const MultiR
     return privKeys;
 }
 
-std::vector<Coin::KeyPair> Store::generateKeyPairs(uint32_t numKeys, const MultiRedeemScriptGenerator & multiScriptGenerator) {
+std::vector<Coin::KeyPair> Store::generateKeyPairs(uint32_t numKeys, const Store::MultiRedeemScriptGenerator & multiScriptGenerator) {
 
     std::vector<Coin::KeyPair> keyPairs;
 

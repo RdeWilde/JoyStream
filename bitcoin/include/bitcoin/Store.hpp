@@ -29,6 +29,7 @@ class Store {
 public:
 
     typedef std::function<void(Coin::TransactionId, int confirmations)> transactionUpdatedCallback;
+    typedef std::function<RedeemScriptInfo(const Coin::PublicKey &, uint32_t n)> MultiRedeemScriptGenerator;
 
     // Custom Store Exceptions
     class BlockHeaderNotFound : public std::runtime_error {
