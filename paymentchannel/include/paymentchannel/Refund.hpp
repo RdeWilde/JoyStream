@@ -10,8 +10,6 @@
 
 #include <paymentchannel/Termination.hpp>
 
-class Commitment;
-
 namespace Coin {
     class Transaction;
     class TransactionSignature;
@@ -21,6 +19,8 @@ namespace Coin {
 
 namespace joystream {
 namespace paymentchannel {
+
+    class Commitment;
 
     class Refund : public Termination {
 
