@@ -6,8 +6,6 @@
  */
 
 #include <common/UnspentOutput.hpp>
-#include <CoinCore/CoinNodeData.h>
-#include <CoinCore/secp256k1_openssl.h>
 
 namespace Coin {
 

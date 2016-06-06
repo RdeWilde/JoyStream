@@ -32,6 +32,7 @@ HEADERS += \
     include/common/P2PKHAddress.hpp \
     include/common/UnspentOutput.hpp \
     include/common/UnspentP2SHOutput.hpp \
+    include/common/UnspentP2PKHOutput.hpp \
     include/common/Utilities.hpp \
     include/common/TimeTools.hpp \
     include/common/Bitcoin.hpp \
@@ -66,6 +67,7 @@ SOURCES += \
     src/P2PKHAddress.cpp \
     src/UnspentOutput.cpp \
     src/UnspentP2SHOutput.cpp \
+    src/UnspentP2PKHOutput.cpp \
     src/Utilities.cpp \
     src/TimeTools.cpp \
     src/BitcoinDisplaySettings.cpp \

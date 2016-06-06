@@ -13,9 +13,6 @@
 #include <common/KeyPair.hpp>
 #include <common/TransactionSignature.hpp>
 
-#include <CoinCore/typedefs.h>
-#include <CoinCore/CoinNodeData.h> // Coin::OutPoint
-
 namespace Coin {
 
 class UnspentP2SHOutput : public UnspentOutput
@@ -55,8 +52,6 @@ private:
 
     // Script chunk which can load optional data
     uchar_vector _optionalDataLoadingScriptChunk;
-
-    TransactionSignature signTransaction(const Transaction & tx, bool anyoneCanPay = false) const;
 };
 
 }

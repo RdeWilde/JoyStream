@@ -12,8 +12,6 @@
 #include <common/SigHashType.hpp>
 
 #include <CoinCore/typedefs.h>
-#include <CoinCore/CoinNodeData.h> // Coin::OutPoint
-
 
 namespace Coin {
 

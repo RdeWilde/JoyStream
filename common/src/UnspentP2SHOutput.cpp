@@ -8,7 +8,6 @@
 
 #include <common/UnspentP2SHOutput.hpp>
 #include <CoinCore/CoinNodeData.h>
-#include <CoinCore/secp256k1_openssl.h>
 #include <common/Utilities.hpp>
 
 namespace Coin {
