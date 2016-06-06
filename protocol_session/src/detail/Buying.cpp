@@ -227,7 +227,7 @@ namespace detail {
 
         // Cannot happen when stopped, as there are no connections
         assert(_session->_state != SessionState::stopped);
-        assert(_state == BuyingState::sending_invitations);
+        assert(_state == BuyingState::downloading);
 
         // Get seller corresponding to given id
         auto itr = _sellers.find(id);
@@ -422,6 +422,21 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
+    bool Buying<ConnectionIdType>::canToStartDownloading() {
+
+        assert(_session->_state == SessionState::started);
+        assert(_state == BuyingState::sending_invitations);
+        assert(_sellers.empty());
+
+        auto t0 = std::chrono::high_resolution_clock::now();
+
+        auto timeSinceSendingInvitations = t0 - _lastStartOfSendingInvitations;
+
+        return timeSinceSendingInvitations >= _policy.minTimeBeforeBuildingContract();
+    }
+
+
+    template <class ConnectionIdType>
     bool Buying<ConnectionIdType>::tryToStartDownloading() {
 
         std::cout << "Trying to start downloading." << std::endl;
@@ -430,27 +445,35 @@ namespace detail {
         assert(_state == BuyingState::sending_invitations);
         assert(_sellers.empty());
 
-        /////////////////////////
-
         // Determine if we can start to build contract at present
-        auto t0 = std::chrono::high_resolution_clock::now();
+        if(!canToStartDownloading()) {
 
-        auto timeSinceSendingInvitations = t0 - _lastStartOfSendingInvitations;
-
-        if(timeSinceSendingInvitations < _policy.minTimeBeforeBuildingContract())
+            std::cout << "Aborted, cannot start at current time." << std::endl;
             return false;
+        }
 
-        // Select appropriate sellers
+        // Select connections of peers to sell to
         std::vector<detail::Connection<ConnectionIdType> *> selected = selectSellers();
 
         uint32_t numberOfSellers = selected.size();
+
+        // Make sure there are enough peers
+        if(numberOfSellers < _terms.minNumberOfSellers()) {
+
+            std::cout << "Aborted, to few viable seller peers, needed " << _terms.minNumberOfSellers() << ", found " << numberOfSellers << std::endl;
+            return false;
+        }
+
+        // Create sellers
+        for(auto c : selected)
+            _sellers[c->connectionId()] = detail::Seller<ConnectionIdType>(SellerState::waiting_to_be_assigned_piece, c, 0);
 
         /////////////////////////
 
         // Determine fund distribution among sellers
         std::vector<protocol_wire::SellerTerms> terms;
-        for(auto i : _sellers)
-            terms.push_back(i.second.connection()->announcedModeAndTermsFromPeer().sellModeTerms());
+        for(auto mapping : _sellers)
+            terms.push_back(mapping.second.connection()->announcedModeAndTermsFromPeer().sellModeTerms());
 
         std::vector<uint64_t> funds = distributeFunds(terms);
 
@@ -464,7 +487,7 @@ namespace detail {
         // Determine the contract fee
         uint64_t contractFeePerKb = 0;
 
-        for(const detail::Connection<ConnectionIdType> * c : selected) {
+        for(auto c : selected) {
 
             uint64_t minContractFeePerKb = c->announcedModeAndTermsFromPeer().sellModeTerms().minContractFeePerKb();
 
@@ -517,7 +540,9 @@ namespace detail {
         assert(_contractTx.getTotalSent() == totalComitted + changeAmount);
 
         // Make sure we are covering the intended fee rate
-        assert(((float)(_funding.value() - _contractTx.getTotalSent()))/_contractTx.getSize() >= contractFeePerKb);
+        uint64_t fee = _funding.value() - _contractTx.getTotalSent();
+        float contractSizeKb = (float)_contractTx.getSize()/1000;
+        assert(((float)fee)/contractSizeKb >= contractFeePerKb);
 
         /////////////////////////
 
@@ -525,7 +550,10 @@ namespace detail {
         Coin::TransactionId txId(Coin::TransactionId::fromTx(_contractTx));
 
         for(uint32_t i = 0;i < numberOfSellers;i++)
-            selected[i]->processEvent(protocol_statemachine::event::ContractPrepared(Coin::typesafeOutPoint(txId, i), contractKeyPairs[i], finalPkHashes[i], funds[i]));
+            selected[i]->processEvent(protocol_statemachine::event::ContractPrepared(Coin::typesafeOutPoint(txId, i),
+                                                                                     contractKeyPairs[i],
+                                                                                     finalPkHashes[i],
+                                                                                     funds[i]));
 
         /////////////////////////
 
@@ -535,14 +563,11 @@ namespace detail {
 
         /////////////////////////
 
-        // Create sellers and add to seller mapping, and assign first piece
-        for(detail::Connection<ConnectionIdType> * c : selected) {
-
-            // Create and store seller
-            _sellers[c->connectionId()] = detail::Seller<ConnectionIdType>(SellerState::waiting_to_be_assigned_piece, c, 0);
+        // Assing first piece to each seller
+        for(auto & mapping : _sellers) {
 
             // Assign the first piece to this peer
-            bool assigned = tryToAssignAndRequestPiece(_sellers[c->connectionId()]);
+            bool assigned = tryToAssignAndRequestPiece(_sellers[mapping.first]);
 
             // Unless there are more peers than unassigned pieces
             // this should always work

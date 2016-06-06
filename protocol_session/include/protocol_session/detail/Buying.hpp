@@ -121,6 +121,9 @@ private:
 
     //// Routines for initiation contract
 
+    // Whether downloading can begin
+    bool canToStartDownloading();
+
     // Tries start downloading if possible
     bool tryToStartDownloading();
 
