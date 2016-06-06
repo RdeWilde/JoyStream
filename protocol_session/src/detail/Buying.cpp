@@ -481,7 +481,7 @@ namespace detail {
         // Create contract
         // Note: must be done before sending ready message on wire,
         // as it requires the contract txid, which is based on outputs
-        paymentchannel::Contract c;
+        paymentchannel::Contract c(_funding);
 
         // Generate keys and addresses required
         std::vector<Coin::KeyPair> contractKeyPairs = _generateKeyPairs(numberOfSellers);
