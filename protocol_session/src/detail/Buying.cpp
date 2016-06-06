@@ -229,6 +229,13 @@ namespace detail {
         assert(_session->_state != SessionState::stopped);
         assert(_state == BuyingState::downloading);
 
+        /**
+         * Invariant _state == BuyingState::downloading
+         * Is upheld by the fact that whenever a piece is assigned
+         * a new piece, any peer which may have previosuyl have had it
+         * assigned will ahve been removed, e.g. due to time out.
+         */
+
         // Get seller corresponding to given id
         auto itr = _sellers.find(id);
         assert(itr != _sellers.end());
