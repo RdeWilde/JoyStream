@@ -13,6 +13,7 @@
 #include <common/TransactionSignature.hpp>
 #include <common/PrivateKey.hpp>
 #include <common/P2PKHScriptSig.hpp>
+#include <common/typesafeOutPoint.hpp>
 
 #include <QByteArray>
 #include <QDebug>
@@ -141,69 +142,59 @@ namespace Coin {
     }
     */
 
-    // bytes_t sighash(const Coin::Transaction & tx, uint input, const CoinQ::Script::Script & inputScriptBuilder) {
     uchar_vector sighash(const Coin::Transaction & tx,
-                    uint input,
-                    const uchar_vector & scriptPubKey,
-                    const SigHashType & type) {
+                    const typesafeOutPoint &outPoint,
+                    const uchar_vector & subscript,
+                    const SigHashType & sigHashType) {
 
         // We only support this for now
-        if(!type.isStandard())
+        if(sigHashType.type() != SigHashType::MutuallyExclusiveType::all)
             throw std::runtime_error("unsupported sighash type, only sighash_all is supported");
 
-        if(tx.inputs.size() <= input)
-            throw std::runtime_error("Transaction does not have a corresponding input");
-
-        // Make copy of original tx, since it will be modified
+        // Make a copy of the transaction
         Coin::Transaction txCopy = tx;
 
-        // Clear all input scripts
-        for(std::vector<TxIn>::iterator i = txCopy.inputs.begin(),
-            end = txCopy.inputs.end(); i != end;i++)
-            (*i).scriptSig.clear();
+        // Sign only the input which spends outPoint
+        if(sigHashType.anyOneCanPay()) {
+            // https://en.bitcoin.it/wiki/OP_CHECKSIG#Procedure_for_Hashtype_SIGHASH_ANYONECANPAY
+            // Remove all inputs
+            txCopy.inputs.clear();
 
-        /**
-         * // Clear all op_codeseperators from scriptPubKey
-         * uchar_vector cleanScriptPubKey = clearCodeSeperators(scriptPubKey);
-         */
+            for(auto & txinput : tx.inputs) {
+                if(typesafeOutPoint(txinput.previousOut) == outPoint) {
+                    // This is the input to sign
+                    txCopy.inputs.push_back(txinput);
+                    txCopy.inputs[0].scriptSig = subscript;
+                    break;
+                }
+            }
 
-        // Set script sig for input to be signed
-        txCopy.inputs[input].scriptSig = scriptPubKey;
+            if(txCopy.inputs.size() != 1) {
+                throw std::runtime_error("Transaction does not have a corresponding input");
+            }
 
-        // Compute sighash and return
-        return txCopy.getHashWithAppendedCode(type.hashCode());
+        } else {  // Sign all inputs
+
+            bool foundInput = false;
+
+            // Clear input signatures
+            for(auto & txinput : txCopy.inputs) {
+                if(typesafeOutPoint(txinput.previousOut) == outPoint) {
+                    txinput.scriptSig = subscript;
+                    foundInput = true;
+                } else {
+                    txinput.scriptSig.clear();
+                }
+            }
+
+            if(!foundInput) {
+                throw std::runtime_error("Transaction does not have a corresponding input");
+            }
+        }
+
+        // Compute sighash
+        return txCopy.getHashWithAppendedCode(sigHashType.hashCode());
     }
-
-    /**
-     secure_bytes_t createSignature(const Coin::Transaction & tx,
-                                    uint inputToSign,
-                                    const CoinQ::Script::Script & inputScriptBuilder,
-                                    const uchar_vector & privateKey) {
-
-        // Generate sighash
-        bytes_t signingHash = sighash(tx, inputToSign, inputScriptBuilder);
-
-        // Create signing key
-        CoinCrypto::secp256k1_key signingKey;
-        signingKey.setPrivKey(privateKey);
-
-        // Comute signature and return
-        return CoinCrypto::secp256k1_sign(signingKey, signingHash);
-     }
-
-
-     bool verifySignature(const Coin::Transaction & tx,
-                          uint inputToCheck,
-                          const CoinQ::Script::Script & inputScriptBuilder,
-                          const secure_bytes_t & signature,
-                          const bytes_t & publicKey) {
-
-
-         // Generate sighash
-         bytes_t signingHash = sighash(tx, inputToCheck, inputScriptBuilder);
-
-     }
-     */
 
     uchar_vector serializeForOP_CHECKSIGMULTISIG(const std::vector<TransactionSignature> & sigs) {
 
@@ -225,30 +216,6 @@ namespace Coin {
             Q_ASSERT(false);
 
         return serialized;
-
-    }
-
-    void setScriptSigToSpendP2PKH(Coin::Transaction & tx,
-                           uint input,
-                           const Coin::PrivateKey & sk) {
-
-        // Generate signature
-        Coin::TransactionSignature ts = sk.signForP2PKHSpend(tx, input);
-
-        //qDebug() << "signature: " << ts.sig().toString();
-
-        // Generate scriptSig
-        Coin::P2PKHScriptSig scriptSig(sk.toPublicKey(), ts);
-
-        Q_ASSERT(input < tx.inputs.size());
-
-        uchar_vector ser_scriptSig = scriptSig.serialized();
-
-        //qDebug() << "scriptSig:" << QString::fromStdString(ser_scriptSig.getHex());
-
-        // Set input script
-        tx.inputs[input].scriptSig = ser_scriptSig;
-
 
     }
 }
