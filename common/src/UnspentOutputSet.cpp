@@ -17,6 +17,8 @@ uint64_t UnspentOutputSet::value() const {
     for(auto & utxo : *this) {
         total += utxo->value();
     }
+
+    return total;
 }
 
 // Warning - user should have already added a change output
