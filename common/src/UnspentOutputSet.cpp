@@ -21,32 +21,46 @@ uint64_t UnspentOutputSet::value() const {
     return total;
 }
 
-// Warning - user should have already added a change output
-bool UnspentOutputSet::finance(Transaction & cointx, const SigHashType & sigHashType) const {
+Transaction & UnspentOutputSet::finance(Transaction & cointx, const SigHashType & sigHashType) const {
 
-    // Esure we have enough coins to finance the transaction
-    uint64_t totalOutputValue = 0;
+    // To allow for ability to finance a transaction from multiple sets (by chaining multiple finance calls
+    // using a sig hash type with ANYONE_CAN_PAY) we will not clear the inputs of the transaction.
+    // And for transactions which will be signed without ANYONE_CAN_PAY
+    // the transaction is expected to have no inputs
 
-    for(const Coin::TxOut & output : cointx.outputs) {
-        totalOutputValue += output.value;
+    if(!sigHashType.anyOneCanPay()){
+        // To avoid misuse when chaining multiple finance calls..
+        if(cointx.inputs.size() > 0 ) {
+            throw std::runtime_error("Expected transaction with no inputs");
+        }
+    } else {
+        // Ensure this set has enough value to finance the transaction
+        uint64_t totalOutputValue = 0;
+
+        for(const Coin::TxOut & output : cointx.outputs) {
+            totalOutputValue += output.value;
+        }
+
+        if(value() < totalOutputValue) {
+            throw std::runtime_error("UnspentOutpustSet value insufficient to finance transaction");
+        }
     }
 
-    if(value() < totalOutputValue)
-        return false; // Not Enough Funds to Finance
-
-    // Clear inputs
-    cointx.inputs.clear();
-
-    // Setup all inputs to transaction
+    // Add new inputs to transaction
     for(auto & utxo : *this) {
         cointx.inputs.push_back(Coin::TxIn(utxo->outPoint().getClassicOutPoint(), uchar_vector(), 0xFFFFFFFF));
     }
 
     // Sign the inputs
     for(auto & input : cointx.inputs) {
+        // Find associated utxo
         auto utxo = outputFromOutPoint(input.previousOut);
-        input.scriptSig = utxo->scriptSig(cointx, sigHashType);
+        if(utxo) {
+            input.scriptSig = utxo->scriptSig(cointx, sigHashType);
+        }
     }
+
+    return cointx; // for chaining
 }
 
 std::shared_ptr<UnspentOutput> UnspentOutputSet::outputFromOutPoint(const Coin::OutPoint & outpoint) const {
