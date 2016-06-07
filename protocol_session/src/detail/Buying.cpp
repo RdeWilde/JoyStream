@@ -171,6 +171,10 @@ namespace detail {
         assert(_session->_state != SessionState::stopped);
         assert(_session->hasConnection(id));
 
+        detail::Connection<ConnectionIdType> * c = _session->get(id);
+
+        //assert(c->announcedModeAndTermsFromPeer() == a);
+
         // If we are currently started and sending out invitations, then we may (re)invite
         // sellers with sufficiently good terms
         if(_session->_state == SessionState::started &&
@@ -180,19 +184,12 @@ namespace detail {
             protocol_statemachine::ModeAnnounced m = a.modeAnnounced();
             assert(m != protocol_statemachine::ModeAnnounced::none);
 
-            // and has good enough terms to warrant an invitation
+            // and has good enough terms to warrant an invitation,
+            // then send invitation
             if(m == protocol_statemachine::ModeAnnounced::sell && _terms.satisfiedBy(a.sellModeTerms())) {
-
-                assert(_session->hasConnection(id));
-
-                // Send invitation
-                detail::Connection<ConnectionIdType> * c = _session->get(id);
-
                 c->processEvent(protocol_statemachine::event::InviteSeller());
-
                 std::cout << "Invited: " << IdToString(id) << std::endl;
             }
-
         }
     }
 
@@ -406,6 +403,33 @@ namespace detail {
 
         // Set new terms
         _terms = terms;
+
+        // If the download was not yet completed
+        if(_state != BuyingState::download_completed) {
+
+            // start over sending invitations
+            _state = BuyingState::sending_invitations;
+
+            // ditch any existing sellers
+            _sellers.clear();
+
+            for(auto mapping : _session->_connections) {
+
+                detail::Connection<ConnectionIdType> * c = mapping.second;
+
+                // Check that this peer is seller,
+                protocol_statemachine::AnnouncedModeAndTerms a = c->announcedModeAndTermsFromPeer();
+
+                // and has good enough terms to warrant an invitation,
+                // then send invitation
+                if(a.modeAnnounced() == protocol_statemachine::ModeAnnounced::sell && _terms.satisfiedBy(a.sellModeTerms())) {
+
+                    c->processEvent(protocol_statemachine::event::InviteSeller());
+
+                    std::cout << "Invited: " << IdToString(mapping.first) << std::endl;
+                }
+            }
+        }
     }
 
     template <class ConnectionIdType>
