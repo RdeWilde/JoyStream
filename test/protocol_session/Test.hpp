@@ -72,10 +72,6 @@ private:
                                           const Coin::PublicKey &,
                                           const Coin::PubKeyHash &);
 
-    static paymentchannel::Payee getPayee(const protocol_wire::SellerTerms &,
-                                          const protocol_wire::BuyerTerms &,
-                                          const protocol_wire::Ready &);
-
     //// Routines for doing spesific set of tests which can be used across number of cases
     //// Spy is always reset, if affected, by each call
 
@@ -135,6 +131,11 @@ private:
 
     //// Selling
 
+
+    class BuyerPeer {
+        // implement later
+    };
+
     // Adds a buyer peer with given id and terms, and navigate to 'ready for piece request' state
     // Write payee contractPk/finalpkhash into last two args
     // (1) peer joins with given id
@@ -154,8 +155,115 @@ private:
 
     //// Buying
 
+    // perhaps this should subclass, or include, a connection spy?
+    struct SellerPeer {
 
+        ID id;
+        protocol_wire::SellerTerms terms;
+        uint32_t index;
 
+        ConnectionSpy<ID> * spy;
+
+        // Join message
+        Coin::KeyPair contractKeys, finalKeys;
+        protocol_wire::JoiningContract joiningContract;
+
+        // Announced ready message
+        protocol_wire::Ready ready;
+
+        paymentchannel::Payee payee;
+
+        SellerPeer(ID id, protocol_wire::SellerTerms terms, uint32_t index)
+            : id(id)
+            , terms(terms)
+            , index(index)
+            , spy(nullptr) {
+        }
+
+        protocol_wire::JoiningContract setJoiningContract() {
+
+            contractKeys = Coin::KeyPair::generate();
+            finalKeys = Coin::KeyPair::generate();
+            joiningContract = protocol_wire::JoiningContract(contractKeys.pk(), finalKeys.pk().toPubKeyHash());
+
+            return joiningContract;
+        }
+
+        void contractAnnounced() {
+
+            SendMessageOnConnectionCallbackSlot & slot = spy->sendMessageOnConnectionCallbackSlot;
+
+            QVERIFY((int)slot.size() > 0);
+            const protocol_wire::ExtendedMessagePayload * m = std::get<0>(slot.front());
+
+            QCOMPARE(m->messageType(), protocol_wire::MessageType::ready);
+
+            if(m->messageType() == protocol_wire::MessageType::ready) {
+
+                const protocol_wire::Ready * m2 = dynamic_cast<const protocol_wire::Ready *>(m);
+
+                ready = *m2;
+                payee = getPayee();
+
+                // Remove message at front
+                slot.pop_front();
+                delete m2;
+            }
+        }
+
+        void assertNoContractAnnounced() {
+            QCOMPARE((int)spy->sendMessageOnConnectionCallbackSlot.size(), 0);
+        }
+
+        void assertContractValidity(const Coin::Transaction & tx) {
+            QVERIFY(payee.isContractValid(tx));
+        }
+
+        void validatePayment(const Coin::Signature & sig) {
+            QVERIFY(payee.registerPayment(sig));
+        }
+
+        bool hasPendingFullPieceRequest() {
+
+            if(spy->sendMessageOnConnectionCallbackSlot.size() != 1)
+                return false;
+
+            const protocol_wire::ExtendedMessagePayload * m = std::get<0>(spy->sendMessageOnConnectionCallbackSlot.front());
+
+            return m->messageType() == protocol_wire::MessageType::request_full_piece;
+        }
+
+        paymentchannel::Payee getPayee() {
+
+            return paymentchannel::Payee(0,
+                                         terms.minLock(),
+                                         terms.minPrice(),
+                                         ready.value(),
+                                         terms.settlementFee(),
+                                         0,
+                                         ready.anchor(),
+                                         contractKeys,
+                                         joiningContract.finalPkHash(),
+                                         ready.contractPk(),
+                                         ready.finalPkHash(),
+                                         Coin::Signature());
+        }
+
+    };
+
+    void add(SellerPeer &);
+
+    //void join(const SellerPeer &);
+
+    void completeExchange(SellerPeer &);
+
+    bool hasPendingFullPieceRequest(const std::vector<SellerPeer> &);
+
+    void takeSingleSellerToExchange(SellerPeer &);
+
+    ////
+
+    void assertSellerInvited(const SellerPeer &);
 
 };
 

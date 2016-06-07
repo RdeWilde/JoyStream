@@ -6,6 +6,7 @@
  */
 
 #include <Test.hpp>
+#include <thread>
 
 template<>
 std::string IdToString<ID>(const ID & s) {
@@ -383,50 +384,320 @@ void Test::selling_buyer_disappears() {
 
 void Test::buying_basic() {
 
+    // To buy mode
+    BuyingPolicy policy(1000, 1000, protocol_wire::SellerTerms::OrderingPolicy::min_price);
+    toBuyMode(Coin::UnspentP2PKHOutput(), policy, protocol_wire::BuyerTerms(), TorrentPieceInformation());
+
+    // Incorrectly try to go to same mode again
+    QVERIFY_EXCEPTION_THROWN(toBuyMode(Coin::UnspentP2PKHOutput(), BuyingPolicy(), protocol_wire::BuyerTerms(), TorrentPieceInformation()),
+                             exception::SessionAlreadyInThisMode);
+
+    // Start session
+    firstStart();
+
+    // incorrectly try to start again
+    QVERIFY_EXCEPTION_THROWN(firstStart(), exception::StateIncompatibleOperation);
+
+    // Do basic tests
+    basic();
+
+    //// Do transitions to other modes: observe, back to buy, sell
+
+    // Have some new peers join, without announcing mode,
+    // and transition to buy mode
+    addConnection(0);
+    addConnection(1);
+
+    // Go to observe mode
+    toObserveMode();
+
+    // Back to buy mode
+    toBuyMode(Coin::UnspentP2PKHOutput(), policy, protocol_wire::BuyerTerms(), TorrentPieceInformation());
 }
 
 void Test::buying() {
 
-    //void toBuyMode(Session<ID> * session, SessionSpy<ID> * spy);
+    // min #sellers = 3
+    protocol_wire::BuyerTerms buyerTerms(24, 200, 3, 400, 5);
 
-    // tick(): right away, and see that invites are sent
+    SellerPeer first(0, protocol_wire::SellerTerms(22, 134, 10, 88, 32), 32),
+               second(1, protocol_wire::SellerTerms(4, 13, 11, 88, 32), 13),
+               third(2, protocol_wire::SellerTerms(1, 2, 3, 88, 32), 3),
+               bad(3, protocol_wire::SellerTerms(), 8);
 
-    // have some peers send
-    // tick(): check that invites are not sent to peers
+    assert(buyerTerms.satisfiedBy(first.terms));
+    assert(buyerTerms.satisfiedBy(second.terms));
+    assert(buyerTerms.satisfiedBy(third.terms));
+    assert(!buyerTerms.satisfiedBy(bad.terms));
 
+    // To buy mode
+    Coin::UnspentP2PKHOutput funding(Coin::KeyPair::generate(),
+                                     Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")),
+                                                            55),
+                                     34561);
 
-    /**
+    // minTimeBeforeBuildingContract = 1
+    // servicingPieceTimeOutLimit = 2
+    BuyingPolicy policy(1, 2, protocol_wire::SellerTerms::OrderingPolicy::min_price);
 
-    BroadcastTransactionCallbackSlot broadcastTransactionCallbackSlot;
-    FullPieceArrivedCallbackSlot<ConnectionIdType> fullPieceArrivedCallbackSlot;
+    uint totalNumberOfPieces = 30;
+    TorrentPieceInformation information;
+    for(uint i = 0;i < totalNumberOfPieces;i++)
+        information.push_back(PieceInformation(0, (i % 2) == 0)); // every even index piece is missing
 
-    // A valid piece was sent too us on given connection
-    void validPieceReceivedOnConnection(const ConnectionIdType &, int index);
+    toBuyMode(funding, policy, buyerTerms, information);
 
-    // An invalid piece was sent too us on given connection
-    void invalidPieceReceivedOnConnection(const ConnectionIdType &, int index);
+    // Start session
+    firstStart();
 
-    // Piece with given index has been downloaded, but not through
-    // a regitered connection. Could be non-joystream peers, or something out of bounds.
-    void pieceDownloaded(int);
+    // Add connection and announce seller terms, which are good enough, and hence an invitation should arrive
+    add(first);
+    assertSellerInvited(first);
 
-    // Update terms
-    void updateTerms(const protocol_wire::BuyerTerms &);
+    // Add another seller with good terms
+    add(second);
+    assertSellerInvited(second);
 
-    */
+    // Add another seller with bad terms
+    add(bad);
+    QVERIFY(spy->blank()); // nothing should happen
 
+    // tick()
+    session->tick();
+    QVERIFY(spy->blank()); // no seller has joined, and there are to few (min 3)
+
+    // Make the two good and one bad join
+    session->processMessageOnConnection(first.id, first.setJoiningContract());
+    session->processMessageOnConnection(second.id, second.setJoiningContract());
+    session->processMessageOnConnection(bad.id, bad.setJoiningContract()); // not legal, should be ignored
+
+    // tick()
+    session->tick();
+    QVERIFY(spy->blank()); // Nothing should happen, as min 3 good sellers are required
+
+    // Make last good one join
+    add(third);
+    assertSellerInvited(third);
+    spy->reset();
+
+    session->processMessageOnConnection(third.id, third.setJoiningContract());
+
+    // Nothing should happen, due to policy.minTimeBeforeBuildingContract() not having passed
+    QVERIFY(spy->blank());
+
+    // wait sufficient amount of time
+    std::cout << "Sleeping during testing to trigger buying policy." << std::endl;
+    std::this_thread::sleep_for(policy.minTimeBeforeBuildingContract());
+
+    // tick()
+    session->tick();
+
+    // make sure contract was announced to only relevant peers
+    first.contractAnnounced();
+    second.contractAnnounced();
+    third.contractAnnounced();
+    bad.assertNoContractAnnounced();
+
+    // Verify contract
+    QCOMPARE((int)spy->broadcastTransactionCallbackSlot.size(), 1);
+
+    {
+        //bool result;
+        Coin::Transaction tx;
+
+        std::tie(tx) = spy->broadcastTransactionCallbackSlot.front();
+
+        first.assertContractValidity(tx);
+        second.assertContractValidity(tx);
+        third.assertContractValidity(tx);
+    }
+
+    // asserts for this? requires us to understand
+    // _generateKeyPairs(numberOfSellers);
+    // _generateP2PKHAddresses(numberOfSellers);
+
+    // Service all piece requests from buyer until done
+    do {
+
+        // Attempts to complete a round of exchange for each peer
+        completeExchange(first);
+        completeExchange(second);
+        completeExchange(third);
+
+    } while(hasPendingFullPieceRequest({first, second, third}));
+
+    // assert that state is done, all is good
+    // can't access buying sub state!
 }
 
 void Test::buying_seller_has_interrupted_contract() {
-//DisconnectCause
+
+    // min #sellers = 1
+    protocol_wire::BuyerTerms buyerTerms(24, 200, 1, 400, 5);
+
+    SellerPeer first(0, protocol_wire::SellerTerms(22, 134, 10, 88, 32), 32);
+
+    assert(buyerTerms.satisfiedBy(first.terms));
+
+    // To buy mode
+    Coin::UnspentP2PKHOutput funding(Coin::KeyPair::generate(),
+                                     Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")),
+                                                            55),
+                                     34561);
+
+    // minTimeBeforeBuildingContract = 0
+    // servicingPieceTimeOutLimit = 2
+    BuyingPolicy policy(0, 2, protocol_wire::SellerTerms::OrderingPolicy::min_price);
+
+    uint totalNumberOfPieces = 30;
+    TorrentPieceInformation information;
+    for(uint i = 0;i < totalNumberOfPieces;i++)
+        information.push_back(PieceInformation(0, (i % 2) == 0)); // every even index piece is missing
+
+    ////
+
+    toBuyMode(funding, policy, buyerTerms, information);
+
+    // Start session
+    firstStart();
+
+    // Take seller to exchange
+    takeSingleSellerToExchange(first);
+
+    // Service all piece requests from buyer until done
+    completeExchange(first);
+
+    QVERIFY(hasPendingFullPieceRequest({first}));
+
+    spy->reset();
+
+    // Peer interrupts contract by resending terms
+    session->processMessageOnConnection(first.id, protocol_wire::Buy());
+
+    // assert removal
+    assertConnectionRemoved(first.id, DisconnectCause::seller_has_interrupted_contract);
+
+    // extra check that no other callback was made
+    QVERIFY(spy->onlyCalledRemovedConnection());
+
+    spy->reset();
 }
 
 void Test::buying_seller_servicing_piece_has_timed_out() {
-//DisconnectCause
+
+    // min #sellers = 1
+    protocol_wire::BuyerTerms buyerTerms(24, 200, 1, 400, 5);
+
+    SellerPeer first(0, protocol_wire::SellerTerms(22, 134, 10, 88, 32), 32);
+
+    assert(buyerTerms.satisfiedBy(first.terms));
+
+    // To buy mode
+    Coin::UnspentP2PKHOutput funding(Coin::KeyPair::generate(),
+                                     Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")),
+                                                            55),
+                                     34561);
+
+    // minTimeBeforeBuildingContract = 0
+    // servicingPieceTimeOutLimit = 2
+    BuyingPolicy policy(0, 2, protocol_wire::SellerTerms::OrderingPolicy::min_price);
+
+    uint totalNumberOfPieces = 30;
+    TorrentPieceInformation information;
+    for(uint i = 0;i < totalNumberOfPieces;i++)
+        information.push_back(PieceInformation(0, (i % 2) == 0)); // every even index piece is missing
+
+    ////
+
+    toBuyMode(funding, policy, buyerTerms, information);
+
+    // Start session
+    firstStart();
+
+    // Take seller to exchange
+    takeSingleSellerToExchange(first);
+
+    spy->reset();
+
+    // wait sufficient amount of time
+    std::cout << "Sleeping to have piece request to time out." << std::endl;
+    std::this_thread::sleep_for(policy.servicingPieceTimeOutLimit());
+
+    // Processes expiry
+    session->tick();
+
+    // assert removal
+    assertConnectionRemoved(first.id, DisconnectCause::seller_servicing_piece_has_timed_out);
+
+    // extra check that no other callback was made
+    QVERIFY(spy->onlyCalledRemovedConnection());
+
+    spy->reset();
 }
 
 void Test::buying_seller_sent_invalid_piece() {
-//DisconnectCause
+
+    // min #sellers = 1
+    protocol_wire::BuyerTerms buyerTerms(24, 200, 1, 400, 5);
+
+    SellerPeer first(0, protocol_wire::SellerTerms(22, 134, 10, 88, 32), 32);
+
+    assert(buyerTerms.satisfiedBy(first.terms));
+
+    // To buy mode
+    Coin::UnspentP2PKHOutput funding(Coin::KeyPair::generate(),
+                                     Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")),
+                                                            55),
+                                     34561);
+
+    // minTimeBeforeBuildingContract = 0
+    // servicingPieceTimeOutLimit = 2
+    BuyingPolicy policy(0, 2, protocol_wire::SellerTerms::OrderingPolicy::min_price);
+
+    uint totalNumberOfPieces = 30;
+    TorrentPieceInformation information;
+    for(uint i = 0;i < totalNumberOfPieces;i++)
+        information.push_back(PieceInformation(0, (i % 2) == 0)); // every even index piece is missing
+
+    ////
+
+    toBuyMode(funding, policy, buyerTerms, information);
+
+    // Start session
+    firstStart();
+
+    // Take seller to exchange
+    takeSingleSellerToExchange(first);
+
+    // Recover index of requested piece
+    int requestedPiece;
+    {
+        ConnectionSpy<ID> * c = first.spy;
+        QCOMPARE((int)c->sendMessageOnConnectionCallbackSlot.size(), 1);
+        const protocol_wire::ExtendedMessagePayload * m;
+        std::tie(m) = c->sendMessageOnConnectionCallbackSlot.front();
+
+        QCOMPARE(m->messageType(), protocol_wire::MessageType::request_full_piece);
+        const protocol_wire::RequestFullPiece * m2 = dynamic_cast<const protocol_wire::RequestFullPiece *>(m);
+
+        requestedPiece = m2->pieceIndex();
+    }
+
+    // Send piece
+    session->processMessageOnConnection(first.id, protocol_wire::FullPiece());
+
+    spy->reset();
+
+    //
+    session->invalidPieceReceivedOnConnection(first.id, requestedPiece);
+
+    // assert removal
+    assertConnectionRemoved(first.id, DisconnectCause::seller_sent_invalid_piece);
+
+    // extra check that no other callback was made
+    QVERIFY(spy->onlyCalledRemovedConnection());
+
+    spy->reset();
 }
 
 Coin::PrivateKey Test::privateKeyFromUInt(uint) {
@@ -486,22 +757,6 @@ paymentchannel::Payor Test::getPayor(const protocol_wire::SellerTerms & sellerTe
 
 }
 
-paymentchannel::Payee Test::getPayee(const protocol_wire::SellerTerms & sellerTerms,
-                                     const protocol_wire::BuyerTerms & buyerTerms,
-                                     const protocol_wire::Ready & ready) {
-    return paymentchannel::Payee();
-    /**
-    return paymentchannel::Payee(0,
-                                 sellerTerms.minLock(),
-                                 sellerTerms.minPrice(),
-                                 ready.value(),
-                                 sellerTerms.settlementFee(),
-                                 buyerTerms.refundFee(),
-                                 ready.anchor(),...
-                                 )
-                                 */
-}
-
 ////
 
 void Test::basic() {
@@ -525,6 +780,9 @@ void Test::basic() {
     session->processMessageOnConnection(0, protocol_wire::Observe());
     session->processMessageOnConnection(1, protocol_wire::Sell(protocol_wire::SellerTerms(1,2,3,4,5), 1337));
     session->processMessageOnConnection(2, protocol_wire::Buy(protocol_wire::BuyerTerms(10,20,30,40,50)));
+
+    // Reset in case it is a buying session, where above terms warrant invite
+    spy->reset();
 
     //// (4) pause
 
@@ -867,7 +1125,138 @@ void Test::exchangeDataForPayment(ID peer, uint N, paymentchannel::Payor & payor
 
 }
 
-////
+void Test::add(SellerPeer & peer) {
+
+    addConnection(peer.id);
+    peer.spy = spy->connectionSpies.at(peer.id);
+    session->processMessageOnConnection(peer.id, protocol_wire::Sell(peer.terms, peer.index));
+}
+
+void Test::completeExchange(SellerPeer & peer) {
+
+    ConnectionSpy<ID> * c = peer.spy;
+
+    // is there a bending full piece request?
+    if(c->sendMessageOnConnectionCallbackSlot.size() == 0)
+        return;
+
+    int requestedPiece = 0;
+
+    {
+        QCOMPARE((int)c->sendMessageOnConnectionCallbackSlot.size(), 1);
+        const protocol_wire::ExtendedMessagePayload * m;
+        std::tie(m) = c->sendMessageOnConnectionCallbackSlot.front();
+
+        QCOMPARE(m->messageType(), protocol_wire::MessageType::request_full_piece);
+        const protocol_wire::RequestFullPiece * m2 = dynamic_cast<const protocol_wire::RequestFullPiece *>(m);
+
+        requestedPiece = m2->pieceIndex();
+
+        // Remove message from slot
+        c->sendMessageOnConnectionCallbackSlot.clear();
+    }
+
+    // if so respond with some data
+    protocol_wire::PieceData dataSent = protocol_wire::PieceData::fromHex("179017230471923470");
+    session->processMessageOnConnection(peer.id, protocol_wire::FullPiece(dataSent));
+
+    // check that session made client notification about arrival of piece
+    QCOMPARE((int)spy->fullPieceArrivedCallbackSlot.size(), 1);
+
+    {
+        ID id;
+        protocol_wire::PieceData receivedData;
+        int index;
+        std::tie(id, receivedData, index) = spy->fullPieceArrivedCallbackSlot.front();
+
+        QCOMPARE(id, peer.id);
+        QCOMPARE(receivedData, dataSent);
+        QCOMPARE(index, requestedPiece);
+
+        // tell session that it was valid
+        session->validPieceReceivedOnConnection(peer.id, index);
+
+        // clear call
+        spy->fullPieceArrivedCallbackSlot.clear();
+    }
+
+    // check that a payment was sent to the peer
+    // message should be: payment, full_piece_request
+    {
+        QVERIFY((int)c->sendMessageOnConnectionCallbackSlot.size() > 0);
+        const protocol_wire::ExtendedMessagePayload * m;
+        std::tie(m) = c->sendMessageOnConnectionCallbackSlot.front();
+
+        QCOMPARE(m->messageType(), protocol_wire::MessageType::payment);
+        const protocol_wire::Payment * m2 = dynamic_cast<const protocol_wire::Payment *>(m);
+
+        // validate payment
+        peer.validatePayment(m2->sig());
+
+        // Ditch payment message
+        delete m2;
+        c->sendMessageOnConnectionCallbackSlot.pop_front();
+    }
+}
+
+bool Test::hasPendingFullPieceRequest(const std::vector<SellerPeer> & peers) {
+
+    bool has = false;
+
+    for(auto p : peers)
+        has = has || p.hasPendingFullPieceRequest();
+
+    return has;
+}
+
+void Test::takeSingleSellerToExchange(SellerPeer & peer) {
+
+    // Add connection and announce seller terms
+    add(peer);
+    assertSellerInvited(peer);
+    spy->reset();
+
+    // Have peer join
+    session->processMessageOnConnection(peer.id, peer.setJoiningContract());
+
+    // no need to wait due to policy
+
+    // tick()
+    session->tick();
+
+    // make sure contract was announced to only relevant peers
+    peer.contractAnnounced();
+
+    // Verify contract
+    QCOMPARE((int)spy->broadcastTransactionCallbackSlot.size(), 1);
+    Coin::Transaction tx = std::get<0>(spy->broadcastTransactionCallbackSlot.front());
+
+    peer.assertContractValidity(tx);
+
+    // asserts for this? requires us to understand
+    // _generateKeyPairs(numberOfSellers);
+    // _generateP2PKHAddresses(numberOfSellers);
+}
+
+/**
+void Test::join(const SellerPeer & peer) {
+    session->processMessageOnConnection(peer.id, peer.joinMessage());
+}
+*/
+
+void Test::assertSellerInvited(const SellerPeer & peer) {
+
+    // client joined contract
+    QCOMPARE((int)peer.spy->sendMessageOnConnectionCallbackSlot.size(), 1);
+    const protocol_wire::ExtendedMessagePayload * m;
+    std::tie(m) = peer.spy->sendMessageOnConnectionCallbackSlot.front();
+
+    QCOMPARE(m->messageType(), protocol_wire::MessageType::join_contract);
+    const protocol_wire::JoinContract * m2 = dynamic_cast<const protocol_wire::JoinContract *>(m);
+
+    QCOMPARE(m2->index(), peer.index);
+
+}
 
 QTEST_MAIN(Test)
 #include "moc_Test.cpp"
