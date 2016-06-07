@@ -466,6 +466,41 @@ void Test::FinanceTxFromMultipleSets() {
     QCOMPARE(_walletB->unconfirmedBalance(), uint64_t(70000));
 
     QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(25000));
+}
+
+void Test::RedeemScriptFiltering() {
+    _walletA->create();
+
+    // script = OP_ADD 2 OP_EQUALVERIFY
+    uchar_vector script;
+    script.push_back(0x93); script.push_back(0x52); script.push_back(0x88);
+
+    Coin::PrivateKey key(_walletA->generateKey([&script](const Coin::PublicKey &pubkey){
+        return script;
+    }));
+
+    Coin::P2SHAddress addrA = Coin::P2SHAddress::fromSerializedRedeemScript(Coin::Network::regtest, script);
+
+    bitcoin_rpc("sendtoaddress " + addrA.toBase58CheckEncoding().toStdString() + " 0.00100");
+    bitcoin_rpc("generate 1");
+
+    QSignalSpy synchedA(_walletA, SIGNAL(synched()));
+
+    _walletA->sync("localhost", 18444);
+
+    QTRY_VERIFY_WITH_TIMEOUT(synchedA.count() > 0, 10000);
+
+    auto outputs1 = _walletA->lockOutputs(10000,0,[&script](const uchar_vector & redeemScript){
+        return false;
+    });
+
+    QCOMPARE(uint(outputs1.size()), uint(0));
+
+    auto outputs2 = _walletA->lockOutputs(10000,0,[&script](const uchar_vector & redeemScript){
+        return script == redeemScript;
+    });
+
+    QCOMPARE(uint(outputs2.size()), uint(1));
 
 }
 

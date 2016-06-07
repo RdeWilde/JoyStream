@@ -52,6 +52,7 @@ private slots:
     void BroadcastingTx();
     void UsingOptionalDataInP2SHSpend();
     void FinanceTxFromMultipleSets();
+    void RedeemScriptFiltering();
 
     // Will be called at the end of all tests
     void cleanupTestCase();
