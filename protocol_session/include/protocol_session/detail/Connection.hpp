@@ -92,7 +92,9 @@ namespace detail {
         //// Buyer
 
         // Point in time when last invite sent
-        time_t _whenLastInviteSent;
+        // NB: switch to std::chrono, and set in ctr
+        //time_t _whenLastInviteSent;
+        // std::chrono::high_resolution_clock::time_point
 
         // Indexes of valid piecesm, in the order they were downloaded
         // NB: The reason this is not in Seller, is because
