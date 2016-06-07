@@ -12,6 +12,9 @@
 #include <common/P2PKHScriptSig.hpp>
 #include <common/P2PKHScriptPubKey.hpp>
 #include <common/P2SHScriptPubKey.hpp>
+#include <common/UnspentP2PKHOutput.hpp>
+#include <common/UnspentOutputSet.hpp>
+
 #include <CoinCore/CoinNodeData.h> // Coin::Transaction
 
 #include <cmath>
@@ -76,11 +79,9 @@ Coin::Transaction Contract::transaction() const {
     if(_changeSet)
         transaction.addOutput(_change.txOut());
 
-    // Add (unsigned) input spending funding utxo
-    transaction.addInput(Coin::TxIn(_funding.outPoint().getClassicOutPoint(), uchar_vector(), DEFAULT_SEQUENCE_NUMBER));
-
-    // Creates spending input script
-    setScriptSigToSpendP2PKH(transaction, 0, _funding.keyPair().sk());
+    Coin::UnspentOutputSet utxoSet;
+    utxoSet.insert(std::shared_ptr<Coin::UnspentOutput>(new Coin::UnspentP2PKHOutput(_funding)));
+    utxoSet.finance(transaction, Coin::SigHashType::standard());
 
     return transaction;
 }

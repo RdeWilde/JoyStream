@@ -42,7 +42,7 @@ namespace paymentchannel {
     uchar_vector Termination::sighash(Coin::SigHashType type) const {
 
         return Coin::sighash(unSignedTransaction(),
-                       0,
+                       _contractOutPoint,
                        _commitment.redeemScript().serialized(),
                        type);
     }
