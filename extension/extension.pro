@@ -126,26 +126,20 @@ SOURCES += \
 INCLUDEPATH += $$PWD/../common/include
 DEPENDPATH += $$PWD/../common/include
 
-# wire
-INCLUDEPATH += $$PWD/../wire/include
-DEPENDPATH += $$PWD/../wire/include
+# protocol_statemachine
+INCLUDEPATH += $$PWD/../protocol_statemachine/include
+DEPENDPATH += $$PWD/../protocol_statemachine/include
 
-# protocol
-INCLUDEPATH += $$PWD/../protocol/include
-DEPENDPATH += $$PWD/../protocol/include
+# protocol_wire
+INCLUDEPATH += $$PWD/../protocol_wire/include
+DEPENDPATH += $$PWD/../protocol_wire/include
 
 # paymentchannel
 INCLUDEPATH += $$PWD/../paymentchannel/include
 DEPENDPATH += $$PWD/../paymentchannel/include
 
-# wallet : temporary
-QT += sql network # INDICATES BAD DESIGN OF THE WALLET
-
-INCLUDEPATH += $$PWD/../wallet/include
-DEPENDPATH += $$PWD/../wallet/include
-
-INCLUDEPATH += $$PWD/../blockcypher/include
-DEPENDPATH += $$PWD/../blockcypher/include
-
+# protocol_session
+INCLUDEPATH += $$PWD/../protocol_session/include
+DEPENDPATH += $$PWD/../protocol_session/include
 
 include(../config.pri)
