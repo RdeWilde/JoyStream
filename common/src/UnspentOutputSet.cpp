@@ -32,7 +32,7 @@ void UnspentOutputSet::finance(Transaction & cointx, const SigHashType & sigHash
         if(cointx.inputs.size() > 0 ) {
             throw std::runtime_error("Only ANYONE_CAN_PAY sighash types can have non zero inputs size");
         }
-    } else {
+
         // Ensure this set has enough value to finance the transaction
         uint64_t totalOutputValue = 0;
 
