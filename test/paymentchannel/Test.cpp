@@ -105,11 +105,12 @@ void Test::paychan_one_to_one() {
             amount_in_channel = source_amount - (change_amount + contract_fee_amount);
 
     // Construct contract
-    Coin::UnspentP2PKHOutput funding(Coin::KeyPair::generate(), Coin::typesafeOutPoint(), source_amount);
-    Coin::Payment change(change_amount, Coin::PubKeyHash("8956784568342390764574523895634289896781"));
+    auto funding = std::make_shared<Coin::UnspentP2PKHOutput>(Coin::KeyPair::generate(), Coin::typesafeOutPoint(), source_amount);
+    Contract c(Coin::UnspentOutputSet({funding}));
 
-    Contract c(funding);
     c.addCommitment(Commitment(amount_in_channel, payorContractKeyPair.pk(), payeeContractKeyPair.pk()));
+
+    Coin::Payment change(change_amount, Coin::PubKeyHash("8956784568342390764574523895634289896781"));
     c.setChange(change);
 
     // Derive anchor

@@ -11,6 +11,8 @@ class UnspentOutputSet : public std::set<std::shared_ptr<Coin::UnspentOutput>>
 public:
     UnspentOutputSet();
 
+    UnspentOutputSet(const std::set<std::shared_ptr<Coin::UnspentOutput>> &);
+
     void finance(Transaction & tx, const SigHashType & sigHashType) const;
 
     // Sum of all outputs

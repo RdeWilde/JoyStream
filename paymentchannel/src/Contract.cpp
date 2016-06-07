@@ -26,19 +26,19 @@ Contract::Contract()
     : _changeSet(false) {
 }
 
-Contract::Contract(const Coin::UnspentP2PKHOutput & funding)
+Contract::Contract(const Coin::UnspentOutputSet & funding)
     : _funding(funding)
     , _changeSet(false) {
 }
 
-Contract::Contract(const Coin::UnspentP2PKHOutput & funding,
+Contract::Contract(const Coin::UnspentOutputSet &funding,
                    const std::vector<Commitment> & commitments)
     : _funding(funding)
     , _commitments(commitments)
     , _changeSet(false) {
 }
 
-Contract::Contract(const Coin::UnspentP2PKHOutput & funding,
+Contract::Contract(const Coin::UnspentOutputSet & funding,
                    const std::vector<Commitment> & commitments,
                    const Coin::Payment & change)
     : _funding(funding)
@@ -79,9 +79,7 @@ Coin::Transaction Contract::transaction() const {
     if(_changeSet)
         transaction.addOutput(_change.txOut());
 
-    Coin::UnspentOutputSet utxoSet;
-    utxoSet.insert(std::shared_ptr<Coin::UnspentOutput>(new Coin::UnspentP2PKHOutput(_funding)));
-    utxoSet.finance(transaction, Coin::SigHashType::standard());
+    _funding.finance(transaction, Coin::SigHashType::standard());
 
     return transaction;
 }
@@ -91,8 +89,8 @@ uint32_t Contract::transactionSize(uint32_t numberOfCommitments, bool hasChange)
     // Create blank contract with correct structure
 
     // NB: We must have valid private key, as there will be actual signing with key
-    Coin::UnspentP2PKHOutput funding(Coin::PrivateKey("153213303DA61F20BD67FC233AA33262"), Coin::typesafeOutPoint(), 0);
-    Contract c(funding);
+    auto funding = std::make_shared<Coin::UnspentP2PKHOutput>(Coin::PrivateKey("153213303DA61F20BD67FC233AA33262"), Coin::typesafeOutPoint(), 0);
+    Contract c(Coin::UnspentOutputSet({funding}));
 
     for(uint32_t i = 0;i < numberOfCommitments; i++)
         c.addCommitment(Commitment());

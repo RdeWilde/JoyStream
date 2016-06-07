@@ -9,6 +9,11 @@ UnspentOutputSet::UnspentOutputSet()
 
 }
 
+UnspentOutputSet::UnspentOutputSet(const std::set<std::shared_ptr<UnspentOutput> > & utxos) {
+    for(const auto &output : utxos)
+        insert(output);
+}
+
 uint64_t UnspentOutputSet::value() const {
     using namespace std;
 
