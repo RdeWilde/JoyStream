@@ -5,8 +5,8 @@
 #include <set>
 
 namespace Coin {
-                            //revert to std::set base class
-class UnspentOutputSet : public std::list<std::shared_ptr<Coin::UnspentOutput>>
+
+class UnspentOutputSet : public std::set<std::shared_ptr<Coin::UnspentOutput>>
 {
 public:
     UnspentOutputSet();

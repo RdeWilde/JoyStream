@@ -341,8 +341,7 @@ SPVWallet::lockOutputs(uint64_t minValue, uint32_t minimalConfirmations, const S
     for(std::shared_ptr<Coin::UnspentOutput> & utxo : unspentOutputs) {
         if(_lockedOutpoints.find(utxo->outPoint()) != _lockedOutpoints.end()) continue;
 
-        selectedOutputs.push_back(utxo);
-        //selectedOutputs.insert(utxo); //set
+        selectedOutputs.insert(utxo);
 
         if(selectedOutputs.value() >= minValue) {
             break;
