@@ -39,14 +39,22 @@ namespace detail {
         , _fullPieceArrived(fullPieceArrived)
         , _funding(funding)
         , _policy(policy)
+        , _state(BuyingState::sending_invitations)
         , _terms(terms)
-        , _numberOfMissingPieces(information.numberOfMissingPieces())
-        , _assignmentLowerBound(0)
-        , _lastStartOfSendingInvitations(0) {
+        , _numberOfMissingPieces(0)
+        , _assignmentLowerBound(0) {
+        //, _lastStartOfSendingInvitations(0) {
 
         // Setup pieces
-        for(const PieceInformation & p : information.pieces())
-            _pieces.push_back(detail::Piece<ConnectionIdType>(p));
+        for(uint i = 0;i < information.size();i++) {
+
+            PieceInformation p = information[i];
+
+            _pieces.push_back(detail::Piece<ConnectionIdType>(i, p));
+
+            if(!p.downloaded())
+                _numberOfMissingPieces++;
+        }
 
         // Notify any existing peers
         for(auto i : _session->_connections)
@@ -54,7 +62,7 @@ namespace detail {
 
         // If session is started, then set start time of this new mode
         if(_session->_state == SessionState::started)
-            time(&_lastStartOfSendingInvitations);
+            _lastStartOfSendingInvitations = std::chrono::high_resolution_clock::now();
     }
 
     template <class ConnectionIdType>
@@ -72,37 +80,15 @@ namespace detail {
     template <class ConnectionIdType>
     void Buying<ConnectionIdType>::removeConnection(const ConnectionIdType & id) {
 
+        // We explicitly check for stopped session, although checking for spesific connection existance
+        // implicitly covers this case. It improves feedback to client.
         if(_session->_state == SessionState::stopped)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot remove connection while stopped, all connections are removed");
 
         if(!_session->hasConnection(id))
             throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
 
-        //// From here on in, we are either: started or paused
-
-        // If we are just sending invitations, we are done
-        if(_state == State::sending_invitations)
-            return;
-
-        //// From here on in we are downloading, or done downloading
-
-        // If this is the connection of a seller,
-        // we have to deal with that.
-        auto itr = _sellers.find(id);
-
-        if(itr != _sellers.cend()) {
-
-            detail::Seller<ConnectionIdType> & s = itr->second;
-
-            // Seller can't be gone
-            assert(s.state() != detail::Seller<ConnectionIdType>::State::gone);
-
-            // Remove
-            removeSeller(s);
-        }
-
-        // Remove and delete connection
-        _session->removeFromMapAndDelete(id);
+        removeConnection(id, DisconnectCause::client);
     }
 
     template <class ConnectionIdType>
@@ -116,7 +102,9 @@ namespace detail {
         assert(itr != _sellers.cend());
 
         detail::Seller<ConnectionIdType> & s = itr->second;
-        assert(s.indexOfAssignedPiece() == index);
+
+        if(s.indexOfAssignedPiece() != index)
+            throw exception::IncorrectPieceIndex(index, s.indexOfAssignedPiece());
 
         // This results in payment being sent,
         // if connection is still live, and state updated
@@ -125,13 +113,13 @@ namespace detail {
         // Update piece status
         detail::Piece<ConnectionIdType> & piece = _pieces[index];
         assert(piece.connectionId() == id);
-        assert(piece.state() != detail::Piece<ConnectionIdType>::State::unassigned);
+        assert(piece.state() != PieceState::unassigned);
 
         // if its not already downloaded from out of bounds
-        if(piece.state() != detail::Piece<ConnectionIdType>::State::downloaded) {
+        if(piece.state() != PieceState::downloaded) {
 
-            assert(piece.state() == detail::Piece<ConnectionIdType>::State::being_validated_and_stored);
-            assert(_state == State::downloading);
+            assert(piece.state() == PieceState::being_validated_and_stored);
+            assert(_state == BuyingState::downloading);
 
             // Mark as downloaded
             piece.downloaded();
@@ -148,7 +136,7 @@ namespace detail {
                     tryToAssignAndRequestPiece(s);
 
             } else if(_numberOfMissingPieces == 0) // otherwise we are done!
-                _state = State::download_completed;
+                _state = BuyingState::download_completed;
 
         }
 
@@ -160,27 +148,13 @@ namespace detail {
         // No state guard required, piece validation can occur
         // after connection is gone, or even session has been stopped.
 
-        // Update piece status
-        detail::Piece<ConnectionIdType> & piece = _pieces[index];
-
-        // If piece hasn't arrived out of bounds, then unassign it
-        if(piece.state() != detail::Piece<ConnectionIdType>::State::downloaded) {
-
-            // we must have been waiting for this validation result
-            assert(piece.state() == detail::Piece<ConnectionIdType>::State::being_validated_and_stored);
-            assert(piece.connectionId() == id);
-
-            piece.deAssign();
-
-            _deAssignedPieces.push_back(index);
-        }
-
         // Update status of seller
         auto itr = _sellers.find(id);
         assert(itr != _sellers.cend());
 
         detail::Seller<ConnectionIdType> & s = itr->second;
-        assert(s.indexOfAssignedPiece() == index);
+        if(s.indexOfAssignedPiece() != index)
+            throw exception::IncorrectPieceIndex(index, s.indexOfAssignedPiece());
 
         s.pieceWasInvalid();
 
@@ -188,50 +162,46 @@ namespace detail {
         // however it may no longer exist,
         // e.g. because it left, or we got stopped.
         if(_session->hasConnection(id))
-            removeConnection(id, Session<ConnectionIdType>::RemoveConnectionInitiator::peer);
-
-        // Notify client
-        _removedConnection(id, DisconnectCause::seller_sent_invalid_piece);
+            removeConnection(id, DisconnectCause::seller_sent_invalid_piece);
     }
 
     template <class ConnectionIdType>
     void Buying<ConnectionIdType>::peerAnnouncedModeAndTerms(const ConnectionIdType & id, const protocol_statemachine::AnnouncedModeAndTerms & a) {
 
         assert(_session->_state != SessionState::stopped);
+        assert(_session->hasConnection(id));
+
+        detail::Connection<ConnectionIdType> * c = _session->get(id);
+
+        //assert(c->announcedModeAndTermsFromPeer() == a);
 
         // If we are currently started and sending out invitations, then we may (re)invite
         // sellers with sufficiently good terms
         if(_session->_state == SessionState::started &&
-           _state == State::sending_invitations) {
+           _state == BuyingState::sending_invitations) {
 
             // Check that this peer is seller,
             protocol_statemachine::ModeAnnounced m = a.modeAnnounced();
             assert(m != protocol_statemachine::ModeAnnounced::none);
 
-            // and has good enough terms to warrant an invitation
+            // and has good enough terms to warrant an invitation,
+            // then send invitation
             if(m == protocol_statemachine::ModeAnnounced::sell && _terms.satisfiedBy(a.sellModeTerms())) {
-
-                assert(_session->hasConnection(id));
-
-                // Send invitation
-                detail::Connection<ConnectionIdType> * c = _session->get(id);
-
-                c->_machine.process_event(protocol_statemachine::event::InviteSeller());
-
-                std::cout << "Invited: " << IdToString(id);
+                c->processEvent(protocol_statemachine::event::InviteSeller());
+                std::cout << "Invited: " << IdToString(id) << std::endl;
             }
-
         }
     }
 
     template <class ConnectionIdType>
-    void Buying<ConnectionIdType>::sellerHasJoined(const ConnectionIdType &) {
+    void Buying<ConnectionIdType>::sellerHasJoined(const ConnectionIdType & id) {
 
         // Cannot happen when stopped, as there are no connections
         assert(_session->_state != SessionState::stopped);
+        assert(_session->hasConnection(id));
 
         if(_session->_state == SessionState::started &&
-           _state == State::sending_invitations)
+           _state == BuyingState::sending_invitations)
             tryToStartDownloading();
     }
 
@@ -240,18 +210,17 @@ namespace detail {
 
         // Cannot happen when stopped, as there are no connections
         assert(_session->_state != SessionState::stopped);
+        assert(_session->hasConnection(id));
 
         // Get reference to seller corresponding connection
         auto itr = _sellers.find(id);
         assert(itr != _sellers.cend());
 
-        detail::Seller<ConnectionIdType> & sellers = *itr;
-
         // Remove connection
-        removeConnection(id, Session<ConnectionIdType>::RemoveConnectionInitiator::client);
+        removeConnection(id, DisconnectCause::seller_has_interrupted_contract);
 
-        // Tell client to remove his pad peer
-        _removedConnection(id, DisconnectCause::seller_has_interrupted_contract);
+        // Notify state machine about deletion
+        throw protocol_statemachine::exception::StateMachineDeletedException();
     }
 
     template <class ConnectionIdType>
@@ -259,15 +228,22 @@ namespace detail {
 
         // Cannot happen when stopped, as there are no connections
         assert(_session->_state != SessionState::stopped);
-        assert(_state == State::sending_invitations);
+        assert(_state == BuyingState::downloading);
+
+        /**
+         * Invariant _state == BuyingState::downloading
+         * Is upheld by the fact that whenever a piece is assigned
+         * a new piece, any peer which may have previosuyl have had it
+         * assigned will ahve been removed, e.g. due to time out.
+         */
 
         // Get seller corresponding to given id
         auto itr = _sellers.find(id);
-        assert(itr != _sellers.cend());
+        assert(itr != _sellers.end());
 
-        detail::Seller<ConnectionIdType> & s = *itr;
+        detail::Seller<ConnectionIdType> & s = itr->second;
 
-        assert(s.state() == detail::Seller<ConnectionIdType>::State::waiting_for_full_piece);
+        assert(s.state() == SellerState::waiting_for_full_piece);
 
         // Update state
         s.fullPieceArrived();
@@ -306,7 +282,7 @@ namespace detail {
         assert(_session->_state != SessionState::started);
 
         // Note starting time
-        time(&_lastStartOfSendingInvitations);
+        _lastStartOfSendingInvitations = std::chrono::high_resolution_clock::now();
 
         // Set client mode to started
         _session->_state = SessionState::started;
@@ -323,17 +299,9 @@ namespace detail {
         // Clear sellers
         _sellers.clear();
 
-        // Disconnect everyone
-        std::vector<ConnectionIdType> ids = _session->connectionIds();
-
-        for(const ConnectionIdType & id : ids) {
-
-            // Remove connection
-            removeConnection(id, Session<ConnectionIdType>::RemoveConnectionInitiator::client);
-
-            // Notify client
-            _removedConnection(id, DisconnectCause::client);
-        }
+        // Disconnect everyone:
+        for(auto itr = _session->_connections.cbegin();itr != _session->_connections.cend();)
+            itr = removeConnection(itr->first, DisconnectCause::client);
 
         // Update state
         _session->_state = SessionState::stopped;
@@ -345,7 +313,7 @@ namespace detail {
         // We can only pause if presently started
         if(_session->_state == SessionState::paused ||
            _session->_state == SessionState::stopped)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot pause while already paused/stopped.");
 
         // Update state
         _session->_state = SessionState::paused;
@@ -357,17 +325,20 @@ namespace detail {
         // Only process if we are active
         if(_session->_state == SessionState::started) {
 
-            if(_state == State::sending_invitations)
+            if(_state == BuyingState::sending_invitations)
                 tryToStartDownloading();
-            else if(_state == State::downloading) {
+            else if(_state == BuyingState::downloading) {
 
-                for(detail::Seller<ConnectionIdType> & s: _sellers) {
+                for(auto mapping : _sellers) {
+
+                    // Reference to seller
+                    detail::Seller<ConnectionIdType> & s = mapping.second;
 
                     // Get id of connection for this seller
                     ConnectionIdType id = s.connection()->connectionId();
 
                     // A seller may be waiting to be assigned a new piece
-                    if(s.state() == detail::Seller<ConnectionIdType>::State::waiting_to_be_assigned_piece) {
+                    if(s.state() == SellerState::waiting_to_be_assigned_piece) {
 
                         // This can happen when a seller has previously uploaded a valid piece,
                         // but there were no unassigned pieces at that time,
@@ -378,18 +349,12 @@ namespace detail {
 
                         tryToAssignAndRequestPiece(s);
 
-                    } else if(s.state() == detail::Seller<ConnectionIdType>::State::waiting_for_full_piece) {
+                    } else if(s.state() == SellerState::waiting_for_full_piece) {
 
-                        // Check if seller has timed out in servicing the current request
-                        if(s.servicingPieceHasTimedOut(_policy.servicingPieceTimeOutLimit())) {
-
-                            // Remove connection
-                            removeConnection(id, Session<ConnectionIdType>::RemoveConnectionInitiator::client);
-
-                            // Notify client
-                            _removedConnection(id, DisconnectCause::seller_servicing_piece_has_timed_out);
-                        }
-
+                        // Check if seller has timed out in servicing the current request,
+                        // if so remove connection
+                        if(s.servicingPieceHasTimedOut(_policy.servicingPieceTimeOutLimit()))
+                            removeConnection(id, DisconnectCause::seller_servicing_piece_has_timed_out);
                     }
                 }
             }
@@ -409,13 +374,13 @@ namespace detail {
         // NB: There may be a seller currently sending us this piece,
         // or it may be in validation/storage, or even downloaded before.
 
-        if(piece.state() != detail::Piece<ConnectionIdType>::State::downloaded) {
+        if(piece.state() != PieceState::downloaded) {
 
             _numberOfMissingPieces--;
 
             // This may be the last piece
             if(_numberOfMissingPieces == 0)
-                _state = State::download_completed;
+                _state = BuyingState::download_completed;
         }
 
         piece.downloaded();
@@ -427,9 +392,10 @@ namespace detail {
     template <class ConnectionIdType>
     void Buying<ConnectionIdType>::updateTerms(const protocol_wire::BuyerTerms & terms) {
 
-        // We cant change terms when we are actually downloading
-        if(_state == State::downloading)
-            throw exception::StateIncompatibleOperation();
+        // If we change terms when we are actually downloading,
+        // then politely compensate sellers
+        if(_state == BuyingState::downloading)
+            politeSellerCompensation();
 
         // Notify existing peers
         for(auto itr : _session->_connections)
@@ -437,7 +403,74 @@ namespace detail {
 
         // Set new terms
         _terms = terms;
+
+        // If the download was not yet completed
+        if(_state != BuyingState::download_completed) {
+
+            // start over sending invitations
+            _state = BuyingState::sending_invitations;
+
+            // ditch any existing sellers
+            _sellers.clear();
+
+            for(auto mapping : _session->_connections) {
+
+                detail::Connection<ConnectionIdType> * c = mapping.second;
+
+                // Check that this peer is seller,
+                protocol_statemachine::AnnouncedModeAndTerms a = c->announcedModeAndTermsFromPeer();
+
+                // and has good enough terms to warrant an invitation,
+                // then send invitation
+                if(a.modeAnnounced() == protocol_statemachine::ModeAnnounced::sell && _terms.satisfiedBy(a.sellModeTerms())) {
+
+                    c->processEvent(protocol_statemachine::event::InviteSeller());
+
+                    std::cout << "Invited: " << IdToString(mapping.first) << std::endl;
+                }
+            }
+        }
     }
+
+    template <class ConnectionIdType>
+    typename status::Buying<ConnectionIdType> Buying<ConnectionIdType>::status() const {
+
+        // Generate statuses of all pieces
+        std::vector<status::Piece<ConnectionIdType>> pieceStatuses;
+
+        // SKIPPING DUE TO SPEED
+        //for(auto piece : _pieces)
+        //    pieceStatuses.push_back(piece.status());
+
+        // Generate statuses of all sellers
+        std::map<ConnectionIdType, status::Seller<ConnectionIdType>> sellerStatuses;
+
+        for(auto mapping : _sellers)
+            sellerStatuses.insert(std::make_pair(mapping.first, mapping.second.status()));
+
+        return status::Buying<ConnectionIdType>(_funding,
+                                                _policy,
+                                                _state,
+                                                _terms,
+                                                sellerStatuses,
+                                                _contractTx,
+                                                pieceStatuses);
+    }
+
+    template <class ConnectionIdType>
+    bool Buying<ConnectionIdType>::canToStartDownloading() {
+
+        assert(_session->_state == SessionState::started);
+        assert(_state == BuyingState::sending_invitations);
+        assert(_sellers.empty());
+
+        auto t0 = std::chrono::high_resolution_clock::now();
+
+        auto timeSinceSendingInvitations = t0 - _lastStartOfSendingInvitations;
+
+        return timeSinceSendingInvitations >= _policy.minTimeBeforeBuildingContract();
+    }
+
 
     template <class ConnectionIdType>
     bool Buying<ConnectionIdType>::tryToStartDownloading() {
@@ -445,31 +478,38 @@ namespace detail {
         std::cout << "Trying to start downloading." << std::endl;
 
         assert(_session->_state == SessionState::started);
-        assert(_state == State::sending_invitations);
+        assert(_state == BuyingState::sending_invitations);
         assert(_sellers.empty());
-        assert(!_pieces.empty());
-
-        /////////////////////////
 
         // Determine if we can start to build contract at present
-        time_t now = time(0);
+        if(!canToStartDownloading()) {
 
-        double timeSinceSendingInvitations = difftime(now, _lastStartOfSendingInvitations);
-
-        if(timeSinceSendingInvitations < _policy.minTimeBeforeBuildingContract())
+            std::cout << "Aborted, cannot start at current time." << std::endl;
             return false;
+        }
 
-        // Select appropriate sellers
+        // Select connections of peers to sell to
         std::vector<detail::Connection<ConnectionIdType> *> selected = selectSellers();
 
         uint32_t numberOfSellers = selected.size();
+
+        // Make sure there are enough peers
+        if(numberOfSellers < _terms.minNumberOfSellers()) {
+
+            std::cout << "Aborted, to few viable seller peers, needed " << _terms.minNumberOfSellers() << ", found " << numberOfSellers << std::endl;
+            return false;
+        }
+
+        // Create sellers
+        for(auto c : selected)
+            _sellers[c->connectionId()] = detail::Seller<ConnectionIdType>(SellerState::waiting_to_be_assigned_piece, c, 0);
 
         /////////////////////////
 
         // Determine fund distribution among sellers
         std::vector<protocol_wire::SellerTerms> terms;
-        for(const detail::Connection<ConnectionIdType> * c: selected)
-            terms.push_back(c->seller->machine().announcedModeAndTermsFromPeer().sellModeTerms());
+        for(auto mapping : _sellers)
+            terms.push_back(mapping.second.connection()->announcedModeAndTermsFromPeer().sellModeTerms());
 
         std::vector<uint64_t> funds = distributeFunds(terms);
 
@@ -483,9 +523,9 @@ namespace detail {
         // Determine the contract fee
         uint64_t contractFeePerKb = 0;
 
-        for(const detail::Connection<ConnectionIdType> * c : selected) {
+        for(auto c : selected) {
 
-            uint64_t minContractFeePerKb = c->machine().announcedModeAndTermsFromPeer().sellModeTerms().minContractFeePerKb();
+            uint64_t minContractFeePerKb = c->announcedModeAndTermsFromPeer().sellModeTerms().minContractFeePerKb();
 
             // If this sellers has a greater minimal fee, then we must respect that
             if(minContractFeePerKb > contractFeePerKb)
@@ -500,23 +540,27 @@ namespace detail {
         // Create contract
         // Note: must be done before sending ready message on wire,
         // as it requires the contract txid, which is based on outputs
-        paymentchannel::Contract c;
+        paymentchannel::Contract c(_funding);
 
         // Generate keys and addresses required
         std::vector<Coin::KeyPair> contractKeyPairs = _generateKeyPairs(numberOfSellers);
-        std::vector<Coin::PubKeyHash> finalPkHashes = _generateP2PKHAddresses(numberOfSellers);
+        std::vector<Coin::PubKeyHash> finalPkHashes;
+
+        std::vector<Coin::P2PKHAddress> finalAddresses = _generateP2PKHAddresses(numberOfSellers);
+        for(Coin::P2PKHAddress a : finalAddresses)
+            finalPkHashes.push_back(a.pubKeyHash());
 
         // Create and add commitment to contract
-        for(int i = 0;i < numberOfSellers;i++)
+        for(uint32_t i = 0;i < numberOfSellers;i++)
             c.addCommitment(paymentchannel::Commitment(funds[i],
                                                        contractKeyPairs[i].pk(),
-                                                       selected[i]->machine().payor().payeeContractPk()));
+                                                       selected[i]->payor().payeeContractPk()));
 
         // Add change if worth doing
         if(changeAmount != 0) {
 
             // New change address
-            Coin::P2PKHAddress address = _generateP2PKHAddresses(1);
+            Coin::P2PKHAddress address = _generateP2PKHAddresses(1).front();
 
             // Create and set change payment
             c.setChange(Coin::Payment(changeAmount, address.pubKeyHash()));
@@ -532,32 +576,34 @@ namespace detail {
         assert(_contractTx.getTotalSent() == totalComitted + changeAmount);
 
         // Make sure we are covering the intended fee rate
-        assert(((float)(_funding.value() - _contractTx.getTotalSent()))/_contractTx.getSize() >= contractFeePerKb);
+        uint64_t fee = _funding.value() - _contractTx.getTotalSent();
+        float contractSizeKb = (float)_contractTx.getSize()/1000;
+        assert(((float)fee)/contractSizeKb >= contractFeePerKb);
 
         /////////////////////////
 
         // Notify seller peers about contract being ready and broadcasted
         Coin::TransactionId txId(Coin::TransactionId::fromTx(_contractTx));
 
-        for(int i = 0;i < numberOfSellers;i++)
-            selected[i]->processEvent(protocol_statemachine::event::ContractPrepared(Coin::typesafeOutPoint(txId, i), contractKeyPairs[i], finalPkHashes[i], funds[i]));
+        for(uint32_t i = 0;i < numberOfSellers;i++)
+            selected[i]->processEvent(protocol_statemachine::event::ContractPrepared(Coin::typesafeOutPoint(txId, i),
+                                                                                     contractKeyPairs[i],
+                                                                                     finalPkHashes[i],
+                                                                                     funds[i]));
 
         /////////////////////////
 
         // Update state of sessions,
         // has to be done before starting to assign pieces to sellers
-        _state = State::downloading;
+        _state = BuyingState::downloading;
 
         /////////////////////////
 
-        // Create sellers and add to seller mapping, and assign first piece
-        for(const detail::Connection<ConnectionIdType> * c : selected) {
-
-            // Create and store seller
-            _sellers[c->connectionId()] = detail::Seller<ConnectionIdType>(detail::Seller<ConnectionIdType>::State::waiting_to_be_assigned_piece, c, 0);
+        // Assing first piece to each seller
+        for(auto & mapping : _sellers) {
 
             // Assign the first piece to this peer
-            bool assigned = tryToAssignAndRequestPiece(_sellers[c->connectionId()]);
+            bool assigned = tryToAssignAndRequestPiece(_sellers[mapping.first]);
 
             // Unless there are more peers than unassigned pieces
             // this should always work
@@ -576,7 +622,7 @@ namespace detail {
 
         // Find peers that have joined our last invitation.
         // This implicitly guarantees that it is in sell mode, and satisfies our terms
-        std::vector<detail::Connection<ConnectionIdType> *> joinedSellers = _session-> template connectionsInState<protocol_statemachine::WaitingToStart>();
+        std::vector<detail::Connection<ConnectionIdType> *> joinedSellers = _session-> template connectionsInState<protocol_statemachine::PreparingContract>();
 
         // Pick how many sellers we actualy want.
         // NB**: in future, we base it on policy,
@@ -586,14 +632,16 @@ namespace detail {
 
         // Stop if there are fewer than the absolute minimum
         if(joinedSellers.size() < N)
-            return false;
+            return std::vector<detail::Connection<ConnectionIdType> *>();
         else if((joinedSellers.size() > N)) {
 
             // If we have more than desired number, we rank them accoring to terms
             // NB**: in future, base it on policy
             std::sort(joinedSellers.begin(), joinedSellers.end(),
-                      [](const detail::Connection<ConnectionIdType> * a, const detail::Connection<ConnectionIdType> * b) -> bool {
-                        return a->machine().announcedModeAndTermsFromPeer().sellModeTerms() > b->machine().announcedModeAndTermsFromPeer().sellModeTerms();
+                      [this](detail::Connection<ConnectionIdType> * a, detail::Connection<ConnectionIdType> * b) -> bool {
+                      return protocol_wire::SellerTerms::compare(this->_policy.sellerTermsOrderingPolicy(),
+                                                                 a->announcedModeAndTermsFromPeer().sellModeTerms(),
+                                                                 b->announcedModeAndTermsFromPeer().sellModeTerms());
             });
 
             // Only keep top N
@@ -636,16 +684,17 @@ namespace detail {
     bool Buying<ConnectionIdType>::tryToAssignAndRequestPiece(detail::Seller<ConnectionIdType> & s) {
 
         assert(_session->_state == SessionState::started);
-        assert(_state == State::downloading);
-        assert(s.state() == detail::Seller<ConnectionIdType>::State::waiting_to_be_assigned_piece);
+        assert(_state == BuyingState::downloading);
+        assert(s.state() == SellerState::waiting_to_be_assigned_piece);
 
         // Try to find index of next unassigned piece
         int pieceIndex;
 
         // Prioritize deassigned piece
-        if(!_deAssignedPieces.empty())
-            pieceIndex = _deAssignedPieces.pop_front();
-        else {
+        if(!_deAssignedPieces.empty()) {
+            pieceIndex = _deAssignedPieces.front();
+            _deAssignedPieces.pop_front();
+        } else {
 
             try {
                 pieceIndex = getNextUnassignedPiece();
@@ -671,42 +720,70 @@ namespace detail {
     int Buying<ConnectionIdType>::getNextUnassignedPiece() const {
 
          // Look in interval [_assignmentLowerBound, end]
-         for(int i = _assignmentLowerBound;i < _pieces.size();i++)
-             if(_pieces[i].state() == detail::Piece<ConnectionIdType>::State::unassigned)
+         for(uint32_t i = _assignmentLowerBound;i < _pieces.size();i++)
+             if(_pieces[i].state() == PieceState::unassigned)
                  return i;
 
          // Then try interval [0, _assignmentLowerBound)
-         for(int i = 0;i < _assignmentLowerBound;i++)
-             if(_pieces[i].state() == detail::Piece<ConnectionIdType>::State::unassigned)
+         for(uint32_t i = 0;i < _assignmentLowerBound;i++)
+             if(_pieces[i].state() == PieceState::unassigned)
                  return i;
 
          // We did not find anything
          throw std::runtime_error("Unable to find any unassigned pieces.");
     }
 
+    template<class ConnectionIdType>
+    typename detail::ConnectionMap<ConnectionIdType>::const_iterator Buying<ConnectionIdType>::removeConnection(const ConnectionIdType & id, DisconnectCause cause) {
+
+        assert(_session->state() != SessionState::stopped);
+        assert(_session->hasConnection(id));
+
+        // If this is the connection of a seller,
+        // we have to deal with that.
+        auto itr = _sellers.find(id);
+
+        if(itr != _sellers.cend()) {
+
+            detail::Seller<ConnectionIdType> & s = itr->second;
+
+            // Seller can't be gone
+            assert(s.state() != SellerState::gone);
+
+            // Remove
+            removeSeller(s);
+        }
+
+        // Notify client to remove connection
+        _removedConnection(id, cause);
+
+        // Destroy connection
+        return _session->destroyConnection(id);
+    }
+
     template <class ConnectionIdType>
     void Buying<ConnectionIdType>::removeSeller(detail::Seller<ConnectionIdType> & s) {
 
         // If this seller is assigned a piece, then we must unassign it
-        if(s.state() == detail::Seller<ConnectionIdType>::State::waiting_for_full_piece ||
-           s.state() == detail::Seller<ConnectionIdType>::State::waiting_for_piece_validation_and_storage) {
+        if(s.state() == SellerState::waiting_for_full_piece ||
+           s.state() == SellerState::waiting_for_piece_validation_and_storage) {
 
             // we must be downloading then
-            assert(_state == State::downloading);
+            assert(_state == BuyingState::downloading);
 
             // Get piece
             detail::Piece<ConnectionIdType> & piece = _pieces[s.indexOfAssignedPiece()];
 
             // Check that it hasnt already been downloaded out of bounds
-            if(piece.state() != detail::Piece<ConnectionIdType>::State::downloaded) {
+            if(piece.state() != PieceState::downloaded) {
 
                 // waiting_for_full_piece -> being_downloaded
-                assert(s.state() != detail::Seller<ConnectionIdType>::State::waiting_for_full_piece ||
-                       piece.state() == detail::Piece<ConnectionIdType>::State::being_downloaded);
+                assert(s.state() != SellerState::waiting_for_full_piece ||
+                       piece.state() == PieceState::being_downloaded);
 
                 // waiting_for_piece_validation_and_storage -> being_validated_and_stored
-                assert(s.state() != detail::Seller<ConnectionIdType>::State::waiting_for_piece_validation_and_storage ||
-                        piece.state() == detail::Piece<ConnectionIdType>::State::being_validated_and_stored);
+                assert(s.state() != SellerState::waiting_for_piece_validation_and_storage ||
+                        piece.state() == PieceState::being_validated_and_stored);
 
                 // Mark as not assigned
                 piece.deAssign();

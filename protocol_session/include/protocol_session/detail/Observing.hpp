@@ -25,7 +25,8 @@ class Observing {
 
 public:
 
-    Observing(Session<ConnectionIdType> *);
+    Observing(Session<ConnectionIdType> *,
+              const RemovedConnectionCallbackHandler<ConnectionIdType> &);
 
     //// Connection level client events
 
@@ -52,6 +53,9 @@ private:
 
     // Reference to core of session
     Session<ConnectionIdType> * _session;
+
+    // Callback handlers
+    RemovedConnectionCallbackHandler<ConnectionIdType> _removedConnection;
 
 };
 

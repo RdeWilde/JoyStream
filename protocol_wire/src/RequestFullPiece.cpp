@@ -13,7 +13,8 @@
 namespace joystream {
 namespace protocol_wire {
 
-    RequestFullPiece::RequestFullPiece() {
+    RequestFullPiece::RequestFullPiece()
+        : RequestFullPiece(0) {
     }
 
     RequestFullPiece::RequestFullPiece(int pieceIndex)

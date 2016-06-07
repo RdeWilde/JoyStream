@@ -16,6 +16,7 @@ namespace protocol_wire {
     class Observe : public NoPayloadMessage {
 
     public:
+        virtual ~Observe() {}
         virtual MessageType messageType() const;
     };
 

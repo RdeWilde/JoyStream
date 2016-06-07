@@ -7,68 +7,264 @@
 
 #include "SessionSpy.hpp"
 
-//// ConnectionSpy
-
 template <class ConnectionIdType>
-ConnectionSpy<ConnectionIdType>::ConnectionSpy(const ConnectionIdType & id)
-    : _id(id) {
+SessionSpy<ConnectionIdType>::SessionSpy(const GenerateKeyPairsCallbackHandler & kpHandler,
+                                         const GenerateP2PKHAddressesCallbackHandler & p2pkhHandler,
+                                         const BroadcastTransaction & broadcast,
+                                         Session<ConnectionIdType> * session)
+    : generateKeyPairsCallbackSlot(kpHandler)
+    , generateP2PKHAddressesCallbackSlot(p2pkhHandler)
+    , broadcastTransactionCallbackSlot(broadcast)
+    , _session(session) {
 }
 
 template <class ConnectionIdType>
-protocol_wire::ExtendedMessagePayload * ConnectionSpy<ConnectionIdType>::message() const {
-    return _message;
+SessionSpy<ConnectionIdType>::~SessionSpy() {
+    removeConnectionSpies();
 }
 
 template <class ConnectionIdType>
-bool ConnectionSpy<ConnectionIdType>::messageSent() const {
-    return _messageSent;
+void SessionSpy<ConnectionIdType>::toMonitoredObserveMode() {
+    _session->toObserveMode(removedConnectionCallbackSlot.hook());
 }
 
 template <class ConnectionIdType>
-void ConnectionSpy<ConnectionIdType>::reset() {
-    _messageSent = false;
+void SessionSpy<ConnectionIdType>::toMonitoredSellMode(const SellingPolicy & policy,
+                                                       const protocol_wire::SellerTerms & terms,
+                                                       int maxPieceIndex) {
+
+    _session->toSellMode(removedConnectionCallbackSlot.hook(),
+                         generateKeyPairsCallbackSlot.hook(),
+                         generateP2PKHAddressesCallbackSlot.hook(),
+                         loadPieceForBuyerCallbackSlot.hook(),
+                         claimLastPaymentCallbackSlot.hook(),
+                         anchorAnnouncedCallbackSlot.hook(),
+                         policy,
+                         terms,
+                         maxPieceIndex);
+
 }
 
 template <class ConnectionIdType>
-SendMessageOnConnection ConnectionSpy<ConnectionIdType>::sendHook() {
-    return;
-}
-
-//// SessionSpy
-
-template <class ConnectionIdType>
-SessionSpy<ConnectionIdType>::SessionSpy()
-    : _session(nullptr) {
-}
-
-template <class ConnectionIdType>
-Session<ConnectionIdType> * SessionSpy<ConnectionIdType>::createMonitoredSession() {
-
-    if(_session != nullptr)
-        throw std::runtime_error();
-
-    _session = new Session<ConnectionIdType>();
-    return _session;
+void SessionSpy<ConnectionIdType>::toMonitoredBuyMode(const Coin::UnspentP2PKHOutput & funding,
+                                                      const BuyingPolicy & policy,
+                                                      const protocol_wire::BuyerTerms & terms,
+                                                      const TorrentPieceInformation & information) {
+    _session->toBuyMode(removedConnectionCallbackSlot.hook(),
+                         generateKeyPairsCallbackSlot.hook(),
+                         generateP2PKHAddressesCallbackSlot.hook(),
+                         broadcastTransactionCallbackSlot.hook(),
+                         fullPieceArrivedCallbackSlot.hook(),
+                         funding,
+                         policy,
+                         terms,
+                         information);
 }
 
 template <class ConnectionIdType>
-ConnectionSpy<ConnectionIdType> * SessionSpy<ConnectionIdType>::addMonitoredConnection(const ConnectionIdType & id) {
+ConnectionSpy<ConnectionIdType> * SessionSpy<ConnectionIdType>::addConnection(const ConnectionIdType & id) {
 
+    // Create spy for connection
     ConnectionSpy<ConnectionIdType> * spy = new ConnectionSpy<ConnectionIdType>(id);
 
-    _connectionSpies.insert(id, spy);
+    // Create connection, spied on by spy, and add to underlying session
+    // NB*: may cause exception if connecton id already has been added, in which case spy leaks
+    _session->addConnection(id, spy->sendMessageOnConnectionCallbackSlot.hook());
+
+    // Insert spy into mapping
+    connectionSpies.insert(std::make_pair(id, spy));
 
     return spy;
 }
 
 template <class ConnectionIdType>
+void SessionSpy<ConnectionIdType>::removeConnectionSpies() {
+
+    for(auto mapping : connectionSpies)
+        delete mapping.second;
+
+    connectionSpies.clear();
+}
+
+template <class ConnectionIdType>
+bool SessionSpy<ConnectionIdType>::blank() const {
+
+    for(auto mapping : connectionSpies) {
+        if(!mapping.second->blank())
+            return false;
+    }
+
+    return blankSession();
+}
+
+template <class ConnectionIdType>
+bool SessionSpy<ConnectionIdType>::blankSession() const {
+
+            //// General
+    return  removedConnectionCallbackSlot.empty() &&
+            generateKeyPairsCallbackSlot.empty() &&
+            generateP2PKHAddressesCallbackSlot.empty() &&
+            //// Buying
+            broadcastTransactionCallbackSlot.empty() &&
+            fullPieceArrivedCallbackSlot.empty() &&
+            //// Selling
+            loadPieceForBuyerCallbackSlot.empty() &&
+            claimLastPaymentCallbackSlot.empty() &&
+            anchorAnnouncedCallbackSlot.empty();
+}
+
+
+template <class ConnectionIdType>
+bool SessionSpy<ConnectionIdType>::blankConnectionExcept(const ConnectionIdType & id) const {
+
+    for(auto mapping : connectionSpies) {
+
+        // any connection, different from id, which is not blank, leads to false result
+        if(mapping.first != id && !mapping.second->blank())
+            return false;
+    }
+
+    return true;
+}
+
+template <class ConnectionIdType>
 void SessionSpy<ConnectionIdType>::reset() {
 
-    _connectionRemoved = false;
-    _keyPairsGenerated = false;
-    _numberOfGenerateP2PKHAddresses = false;
+    //// General
+    removedConnectionCallbackSlot.clear();
+    generateKeyPairsCallbackSlot.clear();
+    generateP2PKHAddressesCallbackSlot.clear();
 
-    // reset connections
-    for(auto itr : _connectionSpies)
-        itr.second.reset();
+    //// Buying
+    broadcastTransactionCallbackSlot.clear();
+    fullPieceArrivedCallbackSlot.clear();
+
+    //// Selling
+    loadPieceForBuyerCallbackSlot.clear();
+    claimLastPaymentCallbackSlot.clear();
+    anchorAnnouncedCallbackSlot.clear();
+
+    // Connection spies
+    for(auto mapping : connectionSpies)
+        mapping.second->reset();
+}
+
+template <class ConnectionIdType>
+bool SessionSpy<ConnectionIdType>::onlyCalledRemovedConnection() const {
+    return  //// General
+            !removedConnectionCallbackSlot.empty() &&
+            generateKeyPairsCallbackSlot.empty() &&
+            generateP2PKHAddressesCallbackSlot.empty() &&
+            //// Buying
+            broadcastTransactionCallbackSlot.empty() &&
+            fullPieceArrivedCallbackSlot.empty() &&
+            //// Selling
+            loadPieceForBuyerCallbackSlot.empty() &&
+            claimLastPaymentCallbackSlot.empty() &&
+            anchorAnnouncedCallbackSlot.empty();
+}
+
+template <class ConnectionIdType>
+bool SessionSpy<ConnectionIdType>::onlyCalledGenerateKeyPairs() const {
+    return  //// General
+            removedConnectionCallbackSlot.empty() &&
+            !generateKeyPairsCallbackSlot.empty() &&
+            generateP2PKHAddressesCallbackSlot.empty() &&
+            //// Buying
+            broadcastTransactionCallbackSlot.empty() &&
+            fullPieceArrivedCallbackSlot.empty() &&
+            //// Selling
+            loadPieceForBuyerCallbackSlot.empty() &&
+            claimLastPaymentCallbackSlot.empty() &&
+            anchorAnnouncedCallbackSlot.empty();
+}
+
+template <class ConnectionIdType>
+bool SessionSpy<ConnectionIdType>::onlyCalledGenerateP2PKHAddresses() const {
+    return  //// General
+            removedConnectionCallbackSlot.empty() &&
+            generateKeyPairsCallbackSlot.empty() &&
+            !generateP2PKHAddressesCallbackSlot.empty() &&
+            //// Buying
+            broadcastTransactionCallbackSlot.empty() &&
+            fullPieceArrivedCallbackSlot.empty() &&
+            //// Selling
+            loadPieceForBuyerCallbackSlot.empty() &&
+            claimLastPaymentCallbackSlot.empty() &&
+            anchorAnnouncedCallbackSlot.empty();
+}
+
+template <class ConnectionIdType>
+bool SessionSpy<ConnectionIdType>::onlyCalledBroadcastTransaction() const {
+    return  //// General
+            removedConnectionCallbackSlot.empty() &&
+            generateKeyPairsCallbackSlot.empty() &&
+            generateP2PKHAddressesCallbackSlot.empty() &&
+            //// Buying
+            !broadcastTransactionCallbackSlot.empty() &&
+            fullPieceArrivedCallbackSlot.empty() &&
+            //// Selling
+            loadPieceForBuyerCallbackSlot.empty() &&
+            claimLastPaymentCallbackSlot.empty() &&
+            anchorAnnouncedCallbackSlot.empty();
+}
+
+template <class ConnectionIdType>
+bool SessionSpy<ConnectionIdType>::onlyCalledFullPieceArrived() const {
+    return  //// General
+            removedConnectionCallbackSlot.empty() &&
+            generateKeyPairsCallbackSlot.empty() &&
+            generateP2PKHAddressesCallbackSlot.empty() &&
+            //// Buying
+            broadcastTransactionCallbackSlot.empty() &&
+            !fullPieceArrivedCallbackSlot.empty() &&
+            //// Selling
+            loadPieceForBuyerCallbackSlot.empty() &&
+            claimLastPaymentCallbackSlot.empty() &&
+            anchorAnnouncedCallbackSlot.empty();
+}
+
+template <class ConnectionIdType>
+bool SessionSpy<ConnectionIdType>::onlyCalledLoadPieceForBuyer() const {
+    return  //// General
+            removedConnectionCallbackSlot.empty() &&
+            generateKeyPairsCallbackSlot.empty() &&
+            generateP2PKHAddressesCallbackSlot.empty() &&
+            //// Buying
+            broadcastTransactionCallbackSlot.empty() &&
+            fullPieceArrivedCallbackSlot.empty() &&
+            //// Selling
+            !loadPieceForBuyerCallbackSlot.empty() &&
+            claimLastPaymentCallbackSlot.empty() &&
+            anchorAnnouncedCallbackSlot.empty();
+}
+
+template <class ConnectionIdType>
+bool SessionSpy<ConnectionIdType>::onlyCalledClaimLastPayment() const {
+    return  //// General
+            removedConnectionCallbackSlot.empty() &&
+            generateKeyPairsCallbackSlot.empty() &&
+            generateP2PKHAddressesCallbackSlot.empty() &&
+            //// Buying
+            broadcastTransactionCallbackSlot.empty() &&
+            fullPieceArrivedCallbackSlot.empty() &&
+            //// Selling
+            loadPieceForBuyerCallbackSlot.empty() &&
+            !claimLastPaymentCallbackSlot.empty() &&
+            anchorAnnouncedCallbackSlot.empty();
+}
+
+template <class ConnectionIdType>
+bool SessionSpy<ConnectionIdType>::onlyCalledAnchorAnnounced() const {
+    return  //// General
+            removedConnectionCallbackSlot.empty() &&
+            generateKeyPairsCallbackSlot.empty() &&
+            generateP2PKHAddressesCallbackSlot.empty() &&
+            //// Buying
+            broadcastTransactionCallbackSlot.empty() &&
+            fullPieceArrivedCallbackSlot.empty() &&
+            //// Selling
+            loadPieceForBuyerCallbackSlot.empty() &&
+            claimLastPaymentCallbackSlot.empty() &&
+            !anchorAnnouncedCallbackSlot.empty();
 }

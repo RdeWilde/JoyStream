@@ -14,7 +14,7 @@ namespace joystream {
 namespace protocol_wire {
 
     JoinContract::JoinContract()
-        : _index(0) {
+        : JoinContract(0) {
     }
 
     JoinContract::JoinContract(uint32_t index)

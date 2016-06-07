@@ -16,7 +16,7 @@ namespace joystream {
 namespace protocol_wire {
 
     SellerTerms::SellerTerms()
-        : SellerTerms(0, 0, 0, 0, 0) {
+        : SellerTerms(0,0,0,0,0) {
     }
 
     SellerTerms::SellerTerms(quint64 price, quint32 lock, quint32 maxSellers, quint64 minContractFeePerKb, quint64 settlementFee)

@@ -28,10 +28,18 @@ PrivateKey::PrivateKey()
 
 PrivateKey::PrivateKey(const uchar_vector & vector)
     : UCharArray<PRIVATE_KEY_BYTE_LENGTH>(vector) {
+
+    // Verify key validity
+    if(!valid(*this))
+        throw InvalidPrivateKeyException(*this);
 }
 
 PrivateKey::PrivateKey(const QByteArray & array)
     : UCharArray<PRIVATE_KEY_BYTE_LENGTH>(array) {
+
+    // Verify key validity
+    if(!valid(*this))
+        throw InvalidPrivateKeyException(*this);
 }
 
 PrivateKey::~PrivateKey() {
@@ -102,6 +110,19 @@ PrivateKey PrivateKey::fromWIF(const QString & encoded) {
         Q_ASSERT(false);
 }
 
+bool PrivateKey::valid(const PrivateKey & sk) {
+
+    try {
+
+        CoinCrypto::secp256k1_key checkingKey;
+        checkingKey.setPrivKey(sk.toUCharVector());
+
+        return true;
+    } catch (const std::runtime_error &) {
+        return false;
+    }
+}
+
 QString PrivateKey::toWIF(Network network, PublicKeyCompression compression) const {
 
     // Create version bytes
@@ -125,6 +146,10 @@ QString PrivateKey::toWIF(Network network, PublicKeyCompression compression) con
 }
 
 Signature PrivateKey::sign(const uchar_vector & data) const {
+
+    // Verify key validity
+    if(!valid(*this))
+        throw InvalidPrivateKeyException(*this);
 
     // Create signing key
     CoinCrypto::secp256k1_key signingKey;
@@ -151,9 +176,13 @@ TransactionSignature PrivateKey::signForP2PKHSpend(const Coin::Transaction & tx,
 
 PublicKey PrivateKey::toPublicKey() const {
 
+    // Verify key validity
+    if(!valid(*this))
+        throw InvalidPrivateKeyException(*this);
+
     // Wrap in key class
     CoinCrypto::secp256k1_key sk;
-    sk.setPrivKey(this->toUCharVector());
+    sk.setPrivKey(toUCharVector());
 
     // Convert to compressed public key
     bytes_t publicKey = sk.getPubKey(true);

@@ -8,7 +8,7 @@
 #ifndef CBSTATEMACHINECALLBACKSPY
 #define CBSTATEMACHINECALLBACKSPY
 
-#include <protocol_statemachine/CBStateMachine.hpp>
+#include <protocol_statemachine/protocol_statemachine.hpp>
 #include <protocol_wire/protocol_wire.hpp>
 #include <common/typesafeOutPoint.hpp>
 #include <common/Signature.hpp>
@@ -116,6 +116,8 @@ private:
 
     // Send
     bool _messageSent;
+    const protocol_wire::ExtendedMessagePayload * _message;
+    /**
     protocol_wire::MessageType _messageType;
     protocol_wire::Buy _buyMessage;
     protocol_wire::FullPiece _fullPieceMessage;
@@ -128,6 +130,7 @@ private:
     protocol_wire::RequestFullPiece _requestFullPieceMessage;
     protocol_wire::Sell _sellMessage;
     protocol_wire::SignRefund _signRefundMessage;
+    */
 
     // ContractIsReady
     bool _contractHasBeenPrepared;

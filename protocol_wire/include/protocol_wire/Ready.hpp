@@ -23,6 +23,8 @@ namespace protocol_wire {
         Ready(quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &);
         Ready(QDataStream &);
 
+        virtual ~Ready() {}
+
         bool operator==(const Ready &) const;
 
         // Virtual methods that subclassing messages have to implement

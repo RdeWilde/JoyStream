@@ -15,12 +15,9 @@ class PieceInformation {
 
 public:
 
-    PieceInformation(int index, unsigned int size, bool downloaded);
+    PieceInformation(unsigned int size, bool downloaded);
 
     // Getter & setters
-    int index() const;
-    void setIndex(int index);
-
     unsigned int size() const;
     void setSize(unsigned int size);
 
@@ -28,9 +25,6 @@ public:
     void setDownloaded(bool downloaded);
 
 private:
-
-    // Index of piece
-    unsigned int _index;
 
     // Byte length of given piece
     unsigned int _size;

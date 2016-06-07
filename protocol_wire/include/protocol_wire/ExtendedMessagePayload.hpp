@@ -28,6 +28,9 @@ namespace protocol_wire {
          * Virtual methods that subclassing messages have to implement
          */
 
+        // Required for safe deletion through pointer of this base type
+        virtual ~ExtendedMessagePayload() {};
+
         // Get type of message
         virtual MessageType messageType() const = 0;
 

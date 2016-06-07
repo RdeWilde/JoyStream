@@ -21,6 +21,8 @@ namespace protocol_wire {
         FullPiece();
         FullPiece(const PieceData &);
 
+        virtual ~FullPiece() {}
+
         bool operator==(const FullPiece &) const;
 
         // Constructor based on raw payload

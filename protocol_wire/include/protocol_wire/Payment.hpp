@@ -29,6 +29,8 @@ namespace protocol_wire {
         // payload objects if there is an error in the reading from stream
         Payment(QDataStream & stream, quint8 lengthOfSignature);
 
+        virtual ~Payment() {}
+
         bool operator==(const Payment &) const;
 
         // Virtual methods that subclassing messages have to implement

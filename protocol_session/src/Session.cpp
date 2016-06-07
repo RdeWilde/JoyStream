@@ -12,6 +12,8 @@
 #include <protocol_session/detail/Selling.hpp>
 #include <protocol_session/detail/Observing.hpp>
 
+#include <utility> // std::pair
+
 namespace joystream {
 namespace protocol_session {
 
@@ -19,6 +21,7 @@ namespace protocol_session {
     Session<ConnectionIdType>::Session()
         : _mode(SessionMode::not_set)
         , _state(SessionState::stopped)
+        , _observing(nullptr)
         , _selling(nullptr)
         , _buying(nullptr) {
 
@@ -26,7 +29,17 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
-    void Session<ConnectionIdType>::toObserveMode() {
+    Session<ConnectionIdType>::~Session() {
+
+        if(_mode == SessionMode::not_set)
+            return;
+
+        if(_state != SessionState::stopped)
+            stop();
+    }
+
+    template <class ConnectionIdType>
+    void Session<ConnectionIdType>::toObserveMode(const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection) {
 
         // Prepare for exiting current state
         switch(_mode) {
@@ -65,7 +78,8 @@ namespace protocol_session {
         _mode = SessionMode::observing;
 
         // Create
-        _observing = new detail::Observing<ConnectionIdType>(this);
+        _observing = new detail::Observing<ConnectionIdType>(this,
+                                                             removedConnection);
     }
 
     template <class ConnectionIdType>
@@ -76,7 +90,8 @@ namespace protocol_session {
                                                const ClaimLastPayment<ConnectionIdType> & claimLastPayment,
                                                const AnchorAnnounced<ConnectionIdType> & anchorAnnounced,
                                                const SellingPolicy & policy,
-                                               const protocol_wire::SellerTerms & terms) {
+                                               const protocol_wire::SellerTerms & terms,
+                                               int MAX_PIECE_INDEX) {
 
         // Prepare for exiting current state
         switch(_mode) {
@@ -84,7 +99,7 @@ namespace protocol_session {
             case SessionMode::not_set:
 
                 assert(_observing == nullptr && _buying == nullptr && _selling == nullptr);
-                throw exception::SessionModeNotSetException();
+                break;
 
             case SessionMode::observing:
 
@@ -122,7 +137,8 @@ namespace protocol_session {
                                                          claimLastPayment,
                                                          anchorAnnounced,
                                                          policy,
-                                                         terms);
+                                                         terms,
+                                                         MAX_PIECE_INDEX);
     }
 
     template <class ConnectionIdType>
@@ -188,7 +204,7 @@ namespace protocol_session {
     void Session<ConnectionIdType>::start() {
 
         if(_state == SessionState::started)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot start an already started session.");
 
         switch(_mode) {
 
@@ -224,7 +240,7 @@ namespace protocol_session {
     void Session<ConnectionIdType>::stop() {
 
         if(_state == SessionState::stopped)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot stop an already stopped session.");
 
         switch(_mode) {
 
@@ -261,7 +277,7 @@ namespace protocol_session {
     void Session<ConnectionIdType>::pause() {
 
         if(_state == SessionState::paused)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot pause and already paused session.");
 
         switch(_mode) {
 
@@ -404,19 +420,19 @@ namespace protocol_session {
     }
 
     template<class ConnectionIdType>
-    std::vector<ConnectionIdType> Session<ConnectionIdType>::connectionIds() const {
+    std::set<ConnectionIdType> Session<ConnectionIdType>::connectionIds() const {
 
-        std::vector<ConnectionIdType> ids;
+        std::set<ConnectionIdType> ids;
 
         // Add ids of all connections
         for(auto mapping: _connections)
-            ids.push_back(mapping.first);
+            ids.insert(mapping.first);
 
         return ids;
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::processMessageOnConnection(const ConnectionIdType & id, const protocol_wire::ExtendedMessagePayload * m) {
+    void Session<ConnectionIdType>::processMessageOnConnection(const ConnectionIdType & id, const protocol_wire::ExtendedMessagePayload & m) {
 
         if(_mode == SessionMode::not_set)
             throw exception::SessionModeNotSetException();
@@ -426,6 +442,10 @@ namespace protocol_session {
 
         // and, have it process the message
         c->processMessage(m);
+
+        // ** DO NOT USE c **
+        // MAY HAVE BEEN DELETED BY THE TIME
+        // STACK TRACE RETRACTS, HENCE WE CANNOT USE IT.
     }
 
     template<class ConnectionIdType>
@@ -636,6 +656,23 @@ namespace protocol_session {
     }
 
     template<class ConnectionIdType>
+    typename status::Session<ConnectionIdType> Session<ConnectionIdType>::status() const {
+
+        // Collect connection statuses
+        std::map<ConnectionIdType, status::Connection<ConnectionIdType>> connectionStatuses;
+
+        for(auto mapping : _connections)
+            connectionStatuses.insert(std::make_pair(mapping.first, (mapping.second)->status()));
+
+        // Generate Session status
+        return status::Session<ConnectionIdType>(_mode,
+                                                 _state,
+                                                 connectionStatuses,
+                                                 (_mode == SessionMode::selling ? _selling->status() : status::Selling()),
+                                                 (_mode == SessionMode::buying ? _buying->status() : status::Buying<ConnectionIdType>()));
+    }
+
+    template<class ConnectionIdType>
     void Session<ConnectionIdType>::peerAnnouncedModeAndTerms(const ConnectionIdType & id, const protocol_statemachine::AnnouncedModeAndTerms & a) {
 
         assert(hasConnection(id));
@@ -690,13 +727,13 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
-    void Session<ConnectionIdType>::contractPrepared(const ConnectionIdType & id, const Coin::typesafeOutPoint & a) {
+    void Session<ConnectionIdType>::contractPrepared(const ConnectionIdType & id, quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::PubKeyHash & payorFinalPkHash) {
 
         assert(hasConnection(id));
         assert(_mode == SessionMode::selling);
         assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
 
-        _selling->contractPrepared(id, a);
+        _selling->contractPrepared(id, value, anchor, payorContractPk, payorFinalPkHash);
     }
 
     template<class ConnectionIdType>
@@ -740,13 +777,13 @@ namespace protocol_session {
     }
 
     template<class ConnectionIdType>
-    void Session<ConnectionIdType>::receivedInvalidPayment(const ConnectionIdType & id, const Coin::Signature &) {
+    void Session<ConnectionIdType>::receivedInvalidPayment(const ConnectionIdType & id, const Coin::Signature & sig) {
 
         assert(hasConnection(id));
         assert(_mode == SessionMode::selling);
         assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
 
-        _selling->pieceRequested(id, index);
+        _selling->receivedInvalidPayment(id, sig);
     }
 
     template<class ConnectionIdType>
@@ -782,50 +819,21 @@ namespace protocol_session {
     template<class ConnectionIdType>
     detail::Connection<ConnectionIdType> * Session<ConnectionIdType>::createConnection(const ConnectionIdType & id, const SendMessageOnConnection & callback) {
 
-        detail::Connection<ConnectionIdType> connection = new detail::Connection<ConnectionIdType>(
+        return new detail::Connection<ConnectionIdType>(
         id,
-        [this, &id](const protocol_statemachine::AnnouncedModeAndTerms & a) {
-            this->peerAnnouncedModeAndTerms(id, a);
-        },
-        [this, &id](void) {
-            this->invitedToOutdatedContract(id);
-        },
-        [this, &id]() {
-            this->invitedToJoinContract(id);
-        },
-        [this, &callback](const protocol_wire::ExtendedMessagePayload & m) {
-            callback(m);
-        },
-        [this, &id](const Coin::typesafeOutPoint & o) {
-            this->contractPrepared(id, o);
-        },
-        [this, &id](int i) {
-            this->pieceRequested(id, i);
-        },
-        [this, &id]() {
-            this->invalidPieceRequested(id);
-        },
-        [this, &id]() {
-            this->paymentInterrupted(id);
-        },
-        [this, &id](const Coin::Signature & s) {
-            this->receivedValidPayment(id, s);
-        },
-        [this, &id](const Coin::Signature & s) {
-            this->receivedInvalidPayment(id, s);
-        },
-        [this, &id]() {
-            this->sellerHasJoined(id);
-        },
-        [this, &id]() {
-            this->sellerHasInterruptedContract(id);
-        },
-        [this, &id](const protocol_wire::PieceData & p) {
-            this->receivedFullPiece(id, p);
-        },
-        0);
-
-        return connection;
+        [this, id](const protocol_statemachine::AnnouncedModeAndTerms & a) { this->peerAnnouncedModeAndTerms(id, a); },
+        [this, id](void) { this->invitedToOutdatedContract(id); },
+        [this, id]() { this->invitedToJoinContract(id); },
+        [this, callback](const protocol_wire::ExtendedMessagePayload * m) { callback(m); },
+        [this, id](quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::PubKeyHash & payorFinalPkHash) { this->contractPrepared(id, value, anchor, payorContractPk, payorFinalPkHash); },
+        [this, id](int i) { this->pieceRequested(id, i); },
+        [this, id]() { this->invalidPieceRequested(id); },
+        [this, id]() { this->paymentInterrupted(id); },
+        [this, id](const Coin::Signature & s) { this->receivedValidPayment(id, s); },
+        [this, id](const Coin::Signature & s) { this->receivedInvalidPayment(id, s); },
+        [this, id]() { this->sellerHasJoined(id); },
+        [this, id]() { this->sellerHasInterruptedContract(id); },
+        [this, id](const protocol_wire::PieceData & p) { this->receivedFullPiece(id, p); });
     }
 
     template <class ConnectionIdType>
@@ -854,10 +862,10 @@ namespace protocol_session {
         // Add ids of all connections
         for(auto mapping: _connections) {
 
-            const protocol_statemachine::CBStateMachine & machine = mapping.second->machine();
+           detail::Connection<ConnectionIdType> * c = mapping.second;
 
-            if(machine. template inState<T>())
-                matches.push_back(mapping.second);
+            if(c-> template inState<T>())
+                matches.push_back(c);
         }
 
         return matches;
@@ -875,18 +883,18 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
-    void Session<ConnectionIdType>::removeFromMapAndDelete(const ConnectionIdType & id) {
+    typename std::map<ConnectionIdType, detail::Connection<ConnectionIdType> *>::const_iterator Session<ConnectionIdType>::destroyConnection(const ConnectionIdType & id) {
 
         // Get iterator pointing at connection in map
         auto itr = _connections.find(id);
 
-        assert(itr != _connections.end());
+        assert(itr != _connections.cend());
 
         // Delete connection
         delete (itr->second);
 
-        // Delete from map
-        _connections.erase(itr);
+        // Delete from map and return iterator at next valid position (e.g. end)
+        return _connections.erase(itr);
     }
 
     template <class ConnectionIdType>
@@ -894,7 +902,7 @@ namespace protocol_session {
 
         // Do not accept new connection if session is stopped
         if(_state == SessionState::stopped)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot create connection while session is stopped.");
 
         // Check that connection is new, throw exception if not
         if(hasConnection(id))
@@ -904,7 +912,9 @@ namespace protocol_session {
         detail::Connection<ConnectionIdType> * connection = createConnection(id, callback);
 
         // Add to map
-        _connections.insert(id, connection);
+        _connections.insert(std::make_pair(id, connection));
+
+        return connection;
     }
 }
 }

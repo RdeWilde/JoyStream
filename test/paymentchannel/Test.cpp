@@ -18,6 +18,8 @@
 #include <CoinCore/CoinNodeData.h> // Transaction
 #include <CoinCore/hdkeys.h>
 
+using namespace joystream::paymentchannel;
+
 void Test::refund() {
 
     Coin::KeyPair payorContractPair = Coin::KeyPair::generate();
@@ -87,6 +89,8 @@ void Test::channel() {
 
 void Test::paychan_one_to_one() {
 
+    // replace all "generate" with fixed private keys from bitcore playground
+
     // Setup keys
     Coin::KeyPair payorContractKeyPair = Coin::KeyPair::generate();
     Coin::PubKeyHash payorFinalKeyHash("5364093874829384794bda860241f4c55ea0b297");
@@ -94,50 +98,51 @@ void Test::paychan_one_to_one() {
     Coin::KeyPair payeeContractKeyPair = Coin::KeyPair::generate();
     Coin::PubKeyHash payeeFinalKeyHash("0285b8ceae4c5d7f094bda860241f4c55ea0b297");
 
-    // Setup payor
-    // *************
-    std::vector<joystream::paymentchannel::Payor> channels;
-
+    // Funding & allocation
     uint64_t source_amount = 3000000,
             change_amount = 200,
             contract_fee_amount = 50,
             amount_in_channel = source_amount - (change_amount + contract_fee_amount);
 
-    uint64_t price = 8;
-
-    uint32_t lockTime = 1000;
-
-    channels.push_back(joystream::paymentchannel::Payor(price,
-                                                          0,
-                                                          amount_in_channel, // total funds
-                                                          0,
-                                                          0,
-                                                          lockTime,
-                                                          Coin::typesafeOutPoint(Coin::TransactionId(), 0), // <-- reset in anchoring
-                                                          payorContractKeyPair,
-                                                          payorFinalKeyHash,
-                                                          payeeContractKeyPair.pk(),
-                                                          payeeFinalKeyHash,
-                                                          Coin::Signature(),
-                                                          Coin::Signature()));
-
-    // Anchor channels in contract
+    // Construct contract
     Coin::UnspentP2PKHOutput funding(Coin::KeyPair::generate(), Coin::typesafeOutPoint(), source_amount);
     Coin::Payment change(change_amount, Coin::PubKeyHash("8956784568342390764574523895634289896781"));
-    Coin::Transaction contractTx = joystream::paymentchannel::anchor(funding, channels, change);
 
-    // Get channel
-    joystream::paymentchannel::Payor & channel = channels[0];
+    Contract c(funding);
+    c.addCommitment(Commitment(amount_in_channel, payorContractKeyPair.pk(), payeeContractKeyPair.pk()));
+    c.setChange(change);
+
+    // Derive anchor
+    Coin::Transaction contractTx = c.transaction();
+    Coin::typesafeOutPoint anchor(Coin::TransactionId::fromTx(contractTx), 0);
+
+    // Terms
+    uint32_t lockTime = 1000;
+    uint64_t price = 8;
+
+    // Setup payor
+    joystream::paymentchannel::Payor payor(price,
+                                          0,
+                                          amount_in_channel,
+                                          0,
+                                          0,
+                                          lockTime,
+                                          anchor,
+                                          payorContractKeyPair,
+                                          payorFinalKeyHash,
+                                          payeeContractKeyPair.pk(),
+                                          payeeFinalKeyHash,
+                                          Coin::Signature(),
+                                          Coin::Signature());
 
     // Setup payee
-    // *************
     joystream::paymentchannel::Payee payee(0,
                                            lockTime,
                                            price,
                                            amount_in_channel,
                                            1,
                                            1,
-                                           channel.anchor(),
+                                           anchor,
                                            payeeContractKeyPair,
                                            payeeFinalKeyHash,
                                            payorContractKeyPair.pk(),
@@ -148,9 +153,9 @@ void Test::paychan_one_to_one() {
     Coin::Signature refundSignature = payee.generateRefundSignature();
 
     // Payor validates refund
-    bool wasValid = channel.checkPayeeRefundSignature(refundSignature);
+    bool wasValid = payor.checkPayeeRefundSignature(refundSignature);
 
-    //QVERIFY(wasValid);
+    //QVERIFY(wasValid); // <-- not passing I think, but ok, we are dumping old refunds
 
     // Make series of payments
     int number_of_payments = 10;
@@ -158,8 +163,7 @@ void Test::paychan_one_to_one() {
     for(int i = 0; i < number_of_payments; i++) {
 
         // Payor makes payment i
-        channel.setNumberOfPaymentsMade(channel.numberOfPaymentsMade() + 1);
-        Coin::Signature paymentSignature = channel.generatePayorSettlementSignature();
+        Coin::Signature paymentSignature = payor.makePayment();
 
         // Payee validates payment i
         QVERIFY(payee.registerPayment(paymentSignature));

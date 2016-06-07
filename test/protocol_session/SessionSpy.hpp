@@ -9,48 +9,120 @@
 #define SESSIONSPY_HPP
 
 #include <protocol_session/protocol_session.hpp>
-
-#include <map>
-#include <cstdint>
-
-namespace joystream {
-namespace protocol_session {
-
-    enum class DisconnectCause;
-
-    template <class ConnectionIdType>
-    class Session;
-}
-namespace protocol_wire {
-    class ExtendedMessagePayload;
-}
-}
+#include <protocol_wire/protocol_wire.hpp>
 
 using namespace joystream;
 using namespace joystream::protocol_session;
 
-template <class ConnectionIdType>
-class ConnectionSpy {
+template <typename... Args>
+using Frame = std::tuple<Args...>;
+
+template <typename... Args>
+using FrameQueue = std::deque<Frame<Args...>>;
+
+// Callback slot where the underlying callback has no return value, i.e. is a 'subroutine'
+template <typename... Args>
+class SubroutineCallbackSlot : public FrameQueue<Args...> {
 
 public:
 
-    ConnectionSpy(const ConnectionIdType &);
+    typedef std::function<void(Args...)> Callback;
 
-    void reset();
+    Callback hook() {
+        return [this](Args... args) -> void {
+            this->push_back(Frame<Args...>(args...));
+        };
+    }
 
-    SendMessageOnConnection sendHook();
+};
 
-    bool messageSent() const;
-    protocol_wire::ExtendedMessagePayload * message() const;
+// Callback slot where the underlying callback has return value, i.e. is a 'function'
+template <class R, typename... Args>
+class FunctionCallbackSlot  : public FrameQueue<Args...>{
+
+public:
+
+    typedef std::function<R(Args...)> Callback;
+
+    FunctionCallbackSlot(const Callback & callback) : _callback(callback) {}
+
+    Callback hook() {
+        return [this](Args... args) {
+            this->push_back(Frame<Args...>(args...));
+            return _callback(args...);
+        };
+    }
 
 private:
 
-    void hook(const protocol_wire::ExtendedMessagePayload &);
+    Callback _callback;
+};
 
-    ConnectionIdType _id;
+/** NB: Callback slot should never accept byref parameter, as that
+ * prevents deep copying into Frame, but rather just keeping refernces which go stale.
+ * */
 
-    bool _messageSent;
-    protocol_wire::ExtendedMessagePayload * _message;
+template <class ConnectionIdType>
+using RemovedConnectionCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, DisconnectCause>;
+
+template <class ConnectionIdType>
+using GenerateKeyPairsCallbackSlot = FunctionCallbackSlot<std::vector<Coin::KeyPair>,int>;
+
+template <class ConnectionIdType>
+using GenerateP2PKHAddressesCallbackSlot = FunctionCallbackSlot<std::vector<Coin::P2PKHAddress>,int>;
+
+typedef SubroutineCallbackSlot<const protocol_wire::ExtendedMessagePayload *> SendMessageOnConnectionCallbackSlot;
+
+typedef FunctionCallbackSlot<bool, Coin::Transaction> BroadcastTransactionCallbackSlot;
+
+template <class ConnectionIdType>
+using FullPieceArrivedCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, protocol_wire::PieceData, int>;
+
+template <class ConnectionIdType>
+using LoadPieceForBuyerCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, unsigned int>;
+
+template <class ConnectionIdType>
+using ClaimLastPaymentCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, joystream::paymentchannel::Payee>;
+
+template <class ConnectionIdType>
+using AnchorAnnouncedCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, quint64, Coin::typesafeOutPoint, Coin::PublicKey, Coin::PubKeyHash>;
+
+template <class ConnectionIdType>
+struct ConnectionSpy {
+
+    ConnectionSpy(const ConnectionIdType & x) :id(x) { }
+
+    ~ConnectionSpy() {
+        deleteMessagesInSendMessageOnConnectionCallbackSlot();
+    }
+
+    void reset() {
+
+        // Clear memory for each message
+        deleteMessagesInSendMessageOnConnectionCallbackSlot();
+
+        // Clear queue
+        sendMessageOnConnectionCallbackSlot.clear();
+    }
+
+    bool blank() const { return sendMessageOnConnectionCallbackSlot.empty(); }
+
+    ConnectionIdType id;
+
+    SendMessageOnConnectionCallbackSlot sendMessageOnConnectionCallbackSlot;
+
+private:
+
+    void deleteMessagesInSendMessageOnConnectionCallbackSlot() {
+
+        for(auto f : sendMessageOnConnectionCallbackSlot) {
+
+            const protocol_wire::ExtendedMessagePayload * c = std::get<0>(f);
+
+            delete c;
+        }
+
+    }
 
 };
 
@@ -59,57 +131,71 @@ class SessionSpy {
 
 public:
 
-    SessionSpy();
+    // Handlers for all calls with return types is required, as slots
+    // use them to return respons
+    SessionSpy(const GenerateKeyPairsCallbackHandler &,
+               const GenerateP2PKHAddressesCallbackHandler &,
+               const BroadcastTransaction &,
+               Session<ConnectionIdType> *);
 
-    Session<ConnectionIdType> * createMonitoredSession();
+    ~SessionSpy();
 
-    ConnectionSpy<ConnectionIdType> * addMonitoredConnection(const ConnectionIdType &);
+    void toMonitoredObserveMode();
+
+    void toMonitoredSellMode(const SellingPolicy &,
+                             const protocol_wire::SellerTerms &,
+                             int);
+
+    void toMonitoredBuyMode(const Coin::UnspentP2PKHOutput &,
+                            const BuyingPolicy &,
+                            const protocol_wire::BuyerTerms &,
+                            const TorrentPieceInformation &);
+
+    // Returns spy for connection.
+    // Connection spy owned by session spy.
+    ConnectionSpy<ConnectionIdType> * addConnection(const ConnectionIdType & id);
+
+    void removeConnectionSpies();
+
+    bool blank() const;
+
+    bool blankSession() const;
+
+    bool blankConnectionExcept(const ConnectionIdType & id) const;
 
     void reset();
+
+    bool onlyCalledRemovedConnection() const;
+    bool onlyCalledGenerateKeyPairs() const;
+    bool onlyCalledGenerateP2PKHAddresses() const;
+    bool onlyCalledBroadcastTransaction() const;
+    bool onlyCalledFullPieceArrived() const;
+    bool onlyCalledAnchorAnnounced() const;
+    bool onlyCalledLoadPieceForBuyer() const;
+    bool onlyCalledClaimLastPayment() const;
+
+    //// General
+    RemovedConnectionCallbackSlot<ConnectionIdType> removedConnectionCallbackSlot;
+    GenerateKeyPairsCallbackSlot<ConnectionIdType> generateKeyPairsCallbackSlot;
+    GenerateP2PKHAddressesCallbackSlot<ConnectionIdType> generateP2PKHAddressesCallbackSlot;
+
+    //// Buying
+    BroadcastTransactionCallbackSlot broadcastTransactionCallbackSlot;
+    FullPieceArrivedCallbackSlot<ConnectionIdType> fullPieceArrivedCallbackSlot;
+
+    //// Selling
+    AnchorAnnouncedCallbackSlot<ConnectionIdType> anchorAnnouncedCallbackSlot;
+    LoadPieceForBuyerCallbackSlot<ConnectionIdType> loadPieceForBuyerCallbackSlot;
+    ClaimLastPaymentCallbackSlot<ConnectionIdType> claimLastPaymentCallbackSlot;
+
+    // Connection spies
+    std::map<ConnectionIdType, ConnectionSpy<ConnectionIdType> *> connectionSpies;
 
 private:
 
     Session<ConnectionIdType> * _session;
-
-    std::map<ConnectionIdType, ConnectionSpy<ConnectionIdType>> _connectionSpies;
-
-    //// General
-
-    // RemovedConnectionCallbackHandler
-    bool _connectionRemoved;
-    DisconnectCause _casue;
-
-    // GenerateKeyPairsCallbackHandler
-    bool _keyPairsGenerated;
-    int _numberOfKeyPairsGenerated;
-
-    // GenerateP2PKHAddressesCallbackHandler
-    bool _p2pkhAddressGenerated;
-    int _numberOfGenerateP2PKHAddresses;
-
-    // SendMessageOnConnection
-    // Inside ConnectionSpy object
-
-    //// Buying
-
-    // BroadcastTransaction
-    bool _broadcastTransaction;
-    Coin::Transaction _transaction;
-
-    // FullPieceArrived
-    bool _fullPieceArrived;
-    uint fullPieceArrivedId;
-    const protocol_wire::PieceData data;
-    int index;
-
-    //// Selling
-
-    // LoadPieceForBuyer
-
-    // ClaimLastPayment
-
-    // AnchorAnnounced
-
 };
 
+// Needed due to c++ needing implementation for all uses of templated types
+#include "SessionSpy.cpp"
 #endif // SESSIONSPY_HPP

@@ -87,8 +87,8 @@ class StateIncompatibleOperation : public std::runtime_error {
 
 public:
 
-    StateIncompatibleOperation()
-        : std::runtime_error("Operation not compatible with current state.") {
+    StateIncompatibleOperation(const std::string & problemDescription)
+        : std::runtime_error(std::string("Operation not compatible with current session state: ") + problemDescription) {
     }
 };
 
@@ -118,6 +118,27 @@ public:
     ModeIncompatibleOperation()
         : std::runtime_error("Operation is incompatible with current session mode.") {
     }
+};
+
+class IncorrectPieceIndex : public std::runtime_error {
+
+public:
+
+    IncorrectPieceIndex(int actual, int expected)
+        : std::runtime_error(std::string("Provided piece index ") +
+                             std::to_string(_actual) +
+                             std::string(", expected ") +
+                             std::to_string(_expected))
+        , _actual(actual)
+        , _expected(expected) {
+    }
+
+    int actual() const { return _actual; }
+    int expected() const { return _expected; }
+
+private:
+
+    int _actual, _expected;
 };
 
 }

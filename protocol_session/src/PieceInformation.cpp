@@ -10,18 +10,9 @@
 namespace joystream {
 namespace protocol_session {
 
-PieceInformation::PieceInformation(int index, unsigned int size, bool downloaded)
-    : _index(index)
-    , _size(size)
+PieceInformation::PieceInformation(unsigned int size, bool downloaded)
+    :  _size(size)
     , _downloaded(downloaded) {
-}
-
-int PieceInformation::index() const {
-    return _index;
-}
-
-void PieceInformation::setIndex(int index) {
-    _index = index;
 }
 
 unsigned int PieceInformation::size() const {

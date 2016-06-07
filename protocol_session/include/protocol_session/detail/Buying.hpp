@@ -10,6 +10,7 @@
 
 #include <protocol_session/Session.hpp>
 #include <protocol_session/BuyingPolicy.hpp>
+#include <protocol_session/BuyingState.hpp>
 #include <protocol_session/detail/Piece.hpp>
 #include <protocol_session/detail/Seller.hpp>
 #include <protocol_wire/protocol_wire.hpp>
@@ -38,18 +39,6 @@ template <class ConnectionIdType>
 class Buying {
 
 public:
-
-    enum class State {
-
-        // Inviting sellers
-        sending_invitations,
-
-        // Requesting and downloading pieces
-        downloading,
-
-        // Have all pieces
-        download_completed
-    };
 
     Buying(Session<ConnectionIdType> *,
            const RemovedConnectionCallbackHandler<ConnectionIdType> &,
@@ -116,6 +105,9 @@ public:
     // Update terms
     void updateTerms(const protocol_wire::BuyerTerms &);
 
+    // Status of Buying
+    status::Buying<ConnectionIdType> status() const;
+
     //// Getters and setters
 
     Coin::UnspentP2PKHOutput funding() const;
@@ -128,6 +120,9 @@ public:
 private:
 
     //// Routines for initiation contract
+
+    // Whether downloading can begin
+    bool canToStartDownloading();
 
     // Tries start downloading if possible
     bool tryToStartDownloading();
@@ -149,11 +144,16 @@ private:
     // Tries to find next unassigned piece
     int getNextUnassignedPiece() const;
 
+    //// Utility routines
+
+    // Prepare given connection for deletion due to given cause
+    // Returns iterator to next valid element
+    typename detail::ConnectionMap<ConnectionIdType>::const_iterator removeConnection(const ConnectionIdType &, DisconnectCause);
+
     // Removes given seller
     void removeSeller(detail::Seller<ConnectionIdType> &);
 
-    //// Utility routines
-
+    //
     void politeSellerCompensation();
 
     // Unguarded
@@ -178,7 +178,7 @@ private:
     BuyingPolicy _policy;
 
     // State
-    State _state;
+    BuyingState _state;
 
     // Terms for buying
     protocol_wire::BuyerTerms _terms;
@@ -215,7 +215,7 @@ private:
     // When we started sending out invitations
     // (i.e. entered state StartedState::sending_invitations).
     // Is used to figure out when to start trying to build the contract
-    time_t _lastStartOfSendingInvitations;
+    std::chrono::high_resolution_clock::time_point _lastStartOfSendingInvitations;
 };
 
 }

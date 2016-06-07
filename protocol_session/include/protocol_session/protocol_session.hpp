@@ -15,6 +15,6 @@
 #include <protocol_session/SellingPolicy.hpp>
 #include <protocol_session/BuyingPolicy.hpp>
 #include <protocol_session/TorrentPieceInformation.hpp>
-
+#include <protocol_session/PieceInformation.hpp>
 
 #endif // JOYSTREAM_PROTOCOL_SESSION_HPP

@@ -8,11 +8,17 @@
 #ifndef JOYSTREAM_PROTOCOLSESSION_SELLER_HPP
 #define JOYSTREAM_PROTOCOLSESSION_SELLER_HPP
 
+#include <protocol_session/SellerState.hpp>
+
 #include <string>
 #include <cstdlib>
 
 namespace joystream {
 namespace protocol_session {
+namespace status {
+    template <class ConnectionIdType>
+    class Seller;
+}
 namespace detail {
 
     template <class ConnectionIdType>
@@ -23,32 +29,16 @@ namespace detail {
 
     public:
 
-        enum class State {
-
-            // Not been assigned piece
-            waiting_to_be_assigned_piece,
-
-            // We have requested a full piece, and we are waiting for it to arrive
-            waiting_for_full_piece,
-
-            // We are waiting for libtorrent to fire on_piece_pass() or on_piece_failed()
-            // on a full piece which was recently received
-            waiting_for_piece_validation_and_storage,
-
-            // Peer is no longer connected
-            gone
-        };
-
         Seller();
 
-        Seller(State , Connection<ConnectionIdType> * , uint32_t);
+        Seller(SellerState , Connection<ConnectionIdType> * , uint32_t);
 
         // When seller is not assigned a piece, this routine
         // can be used to assing piece to seller and send request to peer
         void requestPiece(int i);
 
         // Whether
-        bool servicingPieceHasTimedOut(double) const;
+        bool servicingPieceHasTimedOut(const std::chrono::duration<double> &) const;
 
         // Update state to reflect that a recently arrived full piece from this
         // seller is being processed (verified and
@@ -66,8 +56,11 @@ namespace detail {
         // Whether a piece was recently received
         bool isPossiblyOwedPayment() const;
 
+        // Status of seller
+        status::Seller<ConnectionIdType> status() const;
+
         // Getters
-        State state() const;
+        SellerState state() const;
 
         Connection<ConnectionIdType> * connection() const;
 
@@ -76,7 +69,7 @@ namespace detail {
     private:
 
         // State of this seller
-        State _state;
+        SellerState _state;
 
         // Connection identifier for seller
         Connection<ConnectionIdType> * _connection;
@@ -87,7 +80,7 @@ namespace detail {
 
         // When last piece was assigned to this seller.
         // Is used to identify slow seller.
-        time_t _whenLastPieceAssigned;
+        std::chrono::high_resolution_clock::time_point _whenLastPieceAssigned;
     };
 
 }

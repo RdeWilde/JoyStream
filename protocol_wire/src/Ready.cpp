@@ -12,7 +12,8 @@
 namespace joystream {
 namespace protocol_wire {
 
-    Ready::Ready() {
+    Ready::Ready()
+        : Ready(0, Coin::typesafeOutPoint(), Coin::PublicKey(), Coin::PubKeyHash()) {
     }
 
     Ready::Ready(quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash)

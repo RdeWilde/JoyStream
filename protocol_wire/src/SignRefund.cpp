@@ -13,7 +13,8 @@
 namespace joystream {
 namespace protocol_wire {
 
-    SignRefund::SignRefund() {
+    SignRefund::SignRefund()
+        : SignRefund(Coin::TransactionId(), 0, 0, Coin::PublicKey(), Coin::PublicKey()) {
     }
 
     SignRefund::SignRefund(const Coin::TransactionId & contractTxId, quint32 index, quint64 value, const Coin::PublicKey & contractPk, const Coin::PublicKey & finalPk)

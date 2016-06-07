@@ -12,7 +12,8 @@
 namespace joystream {
 namespace protocol_wire {
 
-    BuyerTerms::BuyerTerms() {
+    BuyerTerms::BuyerTerms()
+        : BuyerTerms(0,0,0,0,0) {
     }
 
     BuyerTerms::BuyerTerms(quint64 maxPrice, quint32 maxLock, quint32 minNumberOfSellers, quint64 maxContractFeePerKb, quint64 refundFee)

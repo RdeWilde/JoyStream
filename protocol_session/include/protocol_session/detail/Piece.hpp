@@ -8,6 +8,7 @@
 #ifndef JOYSTREAM_PROTOCOLSESSION_DETAIL_PIECE_HPP
 #define JOYSTREAM_PROTOCOLSESSION_DETAIL_PIECE_HPP
 
+#include <protocol_session/PieceState.hpp>
 #include <string>
 
 namespace joystream {
@@ -22,24 +23,9 @@ namespace detail {
 
     public:
 
-        enum class State {
-
-            // We do not have piece, and it has given assignment status
-            unassigned,
-
-            // Currently assigned to seller for being downloaded
-            being_downloaded,
-
-            // Currently assigned to seller, and is being validated and stored by client
-            being_validated_and_stored,
-
-            // Valid copy is stored
-            downloaded
-        };
-
         Piece();
-        Piece(int, State, const ConnectionIdType &, unsigned int);
-        Piece(const PieceInformation &);
+        Piece(int, PieceState, const ConnectionIdType &, unsigned int);
+        Piece(int, const PieceInformation &);
 
         // Piece is assigned to connection with given id
         void assigned(const ConnectionIdType &);
@@ -56,7 +42,7 @@ namespace detail {
         // Getters
         int index() const;
 
-        State state() const;
+        PieceState state() const;
 
         ConnectionIdType connectionId() const;
 
@@ -68,7 +54,7 @@ namespace detail {
         int _index;
 
         // Piece state
-        State _state;
+        PieceState _state;
 
         // Id of connectionto which piece is assigned, when _state == State::assigned_to_peer_for_download
         ConnectionIdType _connectionId;

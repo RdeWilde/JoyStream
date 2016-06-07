@@ -23,6 +23,8 @@ namespace protocol_wire {
 
         PieceData(const boost::shared_array<char> &, unsigned int);
 
+        static PieceData fromHex(const char *);
+
         PieceData(QDataStream &, unsigned int);
 
         bool operator==(const PieceData &) const;

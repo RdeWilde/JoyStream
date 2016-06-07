@@ -6,6 +6,8 @@
  */
 
 #include <paymentchannel/Contract.hpp>
+#include <paymentchannel/Commitment.hpp>
+#include <common/Payment.hpp>
 #include <common/Utilities.hpp>
 #include <common/P2PKHScriptSig.hpp>
 #include <common/P2PKHScriptPubKey.hpp>
@@ -19,6 +21,11 @@ namespace paymentchannel {
 
 Contract::Contract()
     : _changeSet(false) {
+}
+
+Contract::Contract(const Coin::UnspentP2PKHOutput & funding)
+    : _funding(funding)
+    , _changeSet(false) {
 }
 
 Contract::Contract(const Coin::UnspentP2PKHOutput & funding,
@@ -80,9 +87,23 @@ Coin::Transaction Contract::transaction() const {
 
 uint32_t Contract::transactionSize(uint32_t numberOfCommitments, bool hasChange) {
 
-    return Coin::P2PKHScriptSig::maxLength() + // input
-           Coin::P2SHScriptPubKey::length() * numberOfCommitments + // outputs
-           (hasChange ? Coin::P2PKHScriptPubKey::length() : 0); // potential change
+    // Create blank contract with correct structure
+
+    // NB: We must have valid private key, as there will be actual signing with key
+    Coin::UnspentP2PKHOutput funding(Coin::PrivateKey("153213303DA61F20BD67FC233AA33262"), Coin::typesafeOutPoint(), 0);
+    Contract c(funding);
+
+    for(uint32_t i = 0;i < numberOfCommitments; i++)
+        c.addCommitment(Commitment());
+
+    if(hasChange)
+        c.setChange(Coin::Payment());
+
+    // Generate transaction
+    Coin::Transaction tx = c.transaction();
+
+    // return total size
+    return tx.getSize();
 }
 
 uint64_t Contract::fee(uint32_t numberOfCommitments, bool hasChange, quint64 feePerKb) {

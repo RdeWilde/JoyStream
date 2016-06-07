@@ -40,14 +40,15 @@ public:
             const ClaimLastPayment<ConnectionIdType> &,
             const AnchorAnnounced<ConnectionIdType> &,
             const SellingPolicy &,
-            const protocol_wire::SellerTerms &);
+            const protocol_wire::SellerTerms &,
+            int);
 
     //// Connection level client events
 
     // Adds connection, and return the current number of connections
     uint addConnection(const ConnectionIdType &, const SendMessageOnConnection &);
 
-    // Connection with given id has been removed
+    // Connection with given id is to be removed
     void removeConnection(const ConnectionIdType &);
 
     // Data for given piece has been loaded
@@ -58,7 +59,7 @@ public:
     void peerAnnouncedModeAndTerms(const ConnectionIdType &, const protocol_statemachine::AnnouncedModeAndTerms &);
     void invitedToOutdatedContract(const ConnectionIdType &);
     void invitedToJoinContract(const ConnectionIdType &);
-    void contractPrepared(const ConnectionIdType &, const Coin::typesafeOutPoint &);
+    void contractPrepared(const ConnectionIdType &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &);
     void pieceRequested(const ConnectionIdType &, int);
     void invalidPieceRequested(const ConnectionIdType &);
     void paymentInterrupted(const ConnectionIdType &);
@@ -89,24 +90,14 @@ public:
     // Update terms
     void updateTerms(const protocol_wire::SellerTerms &);
 
+    // Status of state
+    status::Selling status() const;
+
     //// Getters and setters
 
     protocol_wire::SellerTerms terms() const;
 
 private:
-
-    // Client removes connection with givne id with given cause
-    void removeConnection(const ConnectionIdType &, DisconnectCause);
-
-    // Join if terms are good enough, buyer on given connection
-    // NB: Assumes in state protocol_statemachine::Invited
-    void tryToJoin(detail::Connection<ConnectionIdType> *);
-
-    // Loads. .....
-    // NB: Assumes in state protocol_statemachine::LoadingPiece
-    void tryToLoadPiece(detail::Connection<ConnectionIdType> *);
-
-    //// Members
 
     // Reference to core of session
     Session<ConnectionIdType> * _session;
@@ -124,6 +115,35 @@ private:
 
     // Terms for selling
     protocol_wire::SellerTerms _terms;
+
+    // Maximum piece
+    int _MAX_PIECE_INDEX;
+
+    // Prepare given connection for deletion due to given cause, returns next valid iterator (e.g. end)
+    typename detail::ConnectionMap<ConnectionIdType>::const_iterator removeConnection(const ConnectionIdType &, DisconnectCause);
+
+    // Join if terms are good enough, buyer on given connection
+    // NB: Assumes in state protocol_statemachine::Invited
+    // Throws InvitedWithBadTerms.
+    void tryToJoin(detail::Connection<ConnectionIdType> *);
+
+    // Buyer invited us with up to date terms which
+    // are not good enough.
+    class InvitedWithBadTerms : public std::runtime_error {
+    public:
+
+        InvitedWithBadTerms()
+            : std::runtime_error(""){
+        }
+
+    };
+
+    // Loads. .....
+    // NB: Assumes in state protocol_statemachine::LoadingPiece
+    void tryToLoadPiece(detail::Connection<ConnectionIdType> *);
+
+    // If at least one payment is made, then send claims notification
+    void tryToClaimLastPayment(detail::Connection<ConnectionIdType> *);
 };
 
 }

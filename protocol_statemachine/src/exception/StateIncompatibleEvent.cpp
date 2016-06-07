@@ -7,10 +7,12 @@
 
 #include <protocol_statemachine/exception/StateIncompatibleEvent.hpp>
 
+#include <string>
+
 using namespace joystream::protocol_statemachine::exception;
 
-StateIncompatibleEvent::StateIncompatibleEvent()
-    : std::runtime_error("Event was not compatible with currently active states.") {
+StateIncompatibleEvent::StateIncompatibleEvent(const std::string & state)
+    : std::runtime_error(std::string("Event was not compatible with currently active state: ") + state) {
 }
 
 /**

@@ -15,7 +15,7 @@ namespace joystream {
 namespace protocol_statemachine {
 
     LoadingPiece::LoadingPiece() {
-        std::cout << "Entering PieceRequested state." << std::endl;
+        std::cout << "Entering LoadingPiece state." << std::endl;
     }
 
     sc::result LoadingPiece::react(const event::PieceLoaded & e) {
@@ -23,7 +23,7 @@ namespace protocol_statemachine {
         std::cout << "Reacting to PieceLoaded event." << std::endl;
 
         // Send piece
-        context<CBStateMachine>()._sendMessage(joystream::protocol_wire::FullPiece(e.pieceData()));
+        context<CBStateMachine>()._sendMessage(new joystream::protocol_wire::FullPiece(e.pieceData()));
 
         // Transition to WaitingForPayment state
         return transit<WaitingForPayment>();

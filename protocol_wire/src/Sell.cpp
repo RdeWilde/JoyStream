@@ -14,7 +14,7 @@ namespace joystream {
 namespace protocol_wire {
 
     Sell::Sell()
-        : _index(0) {
+        :Sell(SellerTerms(), 0) {
     }
 
     Sell::Sell(const SellerTerms & terms, uint32_t index)

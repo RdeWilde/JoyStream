@@ -15,8 +15,10 @@ namespace protocol_session {
 namespace detail {
 
     template <class ConnectionIdType>
-    Observing<ConnectionIdType>::Observing(Session<ConnectionIdType> * session)
-        : _session(session) {
+    Observing<ConnectionIdType>::Observing(Session<ConnectionIdType> * session,
+                                           const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection)
+        : _session(session)
+        , _removedConnection(removedConnection) {
 
         // Update terms for all connections
         for(auto itr : _session->_connections)
@@ -39,13 +41,15 @@ namespace detail {
     void Observing<ConnectionIdType>::removeConnection(const ConnectionIdType & id) {
 
         if(_session->_state == SessionState::stopped)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot remove connection while session is stopped, all connections are removed.");
 
         if(!_session->hasConnection(id))
             throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
 
-        // Remove and delete connection
-        _session->removeFromMapAndDelete(id);
+        _session->destroyConnection(id);
+
+        // Notify client to remove connection
+        _removedConnection(id, DisconnectCause::client);
     }
 
     template <class ConnectionIdType>
@@ -57,6 +61,20 @@ namespace detail {
 
     template <class ConnectionIdType>
     void Observing<ConnectionIdType>::stop() {
+
+        // We cant stop if we have already stopped
+        if(_session->state() == SessionState::stopped)
+            throw exception::StateIncompatibleOperation("cannot stop while already stopped.");
+
+        // Disconnect everyone: iteration safe deletion
+        for(auto itr = _session->_connections.cbegin(); itr != _session->_connections.cend();) {
+
+            // Notify client to remove connection
+            _removedConnection(itr->first, DisconnectCause::client);
+
+            // Destroy connection: iterator made invalid here
+            itr = _session->destroyConnection(itr->first);
+        }
 
         // Update state
         _session->_state = SessionState::stopped;

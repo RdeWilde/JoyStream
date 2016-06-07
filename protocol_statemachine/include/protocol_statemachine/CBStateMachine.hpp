@@ -14,6 +14,8 @@
 
 #include <boost/statechart/state_machine.hpp>
 
+#include <deque>
+
 namespace sc = boost::statechart;
 
 namespace Coin {
@@ -33,57 +35,61 @@ namespace protocol_wire {
 
 namespace protocol_statemachine {
 
+    // A notification without a payload
+    typedef std::function<void()> NoPayloadNotification;
+
+    //// General Notifications
+
+    // Peer updated mode without
+    typedef std::function<void(const protocol_statemachine::AnnouncedModeAndTerms &)> PeerAnnouncedMode;
+
+    // Client requires a message to be sent
+    typedef std::function<void(const protocol_wire::ExtendedMessagePayload *)> Send;
+
+    //// Selling Notifications
+
+    // Client was invited to expired contract, as indicated by bad index
+    typedef NoPayloadNotification InvitedToOutdatedContract;
+
+    // Client was invited to join given contract, should terms be included? they are available in _peerAnnounced
+    typedef NoPayloadNotification InvitedToJoinContract;
+
+    // Peer announced that contract is now ready, should contract be be included? it was available
+    typedef std::function<void(quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &)> ContractIsReady;
+
+    // Peer requested piece
+    typedef std::function<void(int)> PieceRequested;
+
+    // Peer invalid piece requested
+    typedef NoPayloadNotification InvalidPieceRequested;
+
+    // Peer sent mode message when payment was expected/required
+    typedef NoPayloadNotification PeerInterruptedPayment;
+
+    // Peer sent valid payment signature
+    typedef std::function<void(const Coin::Signature &)> ValidPayment;
+
+    // Peer sent an invalid payment signature
+    typedef std::function<void(const Coin::Signature &)> InvalidPayment;
+
+    //// Buying Notifications
+
+    // Peer, in seller mode, joined the most recent invitation
+    typedef NoPayloadNotification SellerJoined;
+
+    // Peer, in seller mode, left - by sending new mode message (which may also be sell) - after requesting a piece
+    typedef NoPayloadNotification SellerInterruptedContract;
+
+    // Peer, in seller mode, responded with full piece
+    typedef std::function<void(const protocol_wire::PieceData &)> ReceivedFullPiece;
+
+    //// State machine
+
     class ChooseMode; // Default state
 
     class CBStateMachine : public sc::state_machine<CBStateMachine, ChooseMode> {
 
     public:
-
-        //// General Notifications
-
-        typedef std::function<void(const protocol_statemachine::AnnouncedModeAndTerms &)> PeerAnnouncedMode;
-
-        // Client requires a message to be sent
-        typedef std::function<void(const protocol_wire::ExtendedMessagePayload &)> Send;
-
-        //// Selling Notifications
-
-        // Client was invited to expired contract, as indicated by bad index
-        typedef std::function<void()> InvitedToOutdatedContract;
-
-        // Client was invited to join given contract, should terms be included? they are available in _peerAnnounced
-        typedef std::function<void()> InvitedToJoinContract;
-
-        // Peer announced that contract is now ready, should contract be be included? it was available
-        typedef std::function<void(quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &)> ContractIsReady;
-
-        // Peer requested piece
-        typedef std::function<void(int)> PieceRequested;
-
-        // Peer invalid piece requested
-        typedef std::function<void()> InvalidPieceRequested;
-
-        // Peer sent mode message when payment was expected/required
-        typedef std::function<void()> PeerInterruptedPayment;
-
-        // Peer sent valid payment signature
-        typedef std::function<void(const Coin::Signature &)> ValidPayment;
-
-        // Peer sent an invalid payment signature
-        typedef std::function<void(const Coin::Signature &)> InvalidPayment;
-
-        //// Buying Notifications
-
-        // Peer, in seller mode, joined the most recent invitation
-        typedef std::function<void()> SellerJoined;
-
-        // Peer, in seller mode, left - by sending new mode message (which may also be sell) - after requesting a piece
-        typedef std::function<void()> SellerInterruptedContract;
-
-        // Peer, in seller mode, responded with full piece
-        typedef std::function<void(const protocol_wire::PieceData &)> ReceivedFullPiece;
-
-        CBStateMachine();
 
         CBStateMachine(const PeerAnnouncedMode &,
                        const InvitedToOutdatedContract &,
@@ -102,15 +108,12 @@ namespace protocol_statemachine {
 
         void processEvent(const sc::event_base &);
 
-        void unconsumed_event(const sc::event_base &);
-
         // Whether state machine is in given (T) inner state
         template<typename T>
         bool inState() const;
 
-        // Deprecated: internals should not be directly visible for client or tester
         // Get name of current state: ***Varies from compiler to compiler***
-        //const char * getInnerStateName() const;
+        const char * getInnerStateName() const;
 
         // Mode of client
         ModeAnnounced clientMode() const;
@@ -127,7 +130,13 @@ namespace protocol_statemachine {
 
         int lastRequestedPiece() const;
 
+        void unconsumed_event(const sc::event_base &);
+
     private:
+
+        // Hiding routine from public usage
+
+        void process_event(const sc::event_base &);
 
         //// States require access to private machine state
 
@@ -171,26 +180,59 @@ namespace protocol_statemachine {
 
         //// Callbacks
 
-        // Callbacks for classifier routines
-        PeerAnnouncedMode _peerAnnouncedMode;
-        InvitedToOutdatedContract _invitedToOutdatedContract;
-        InvitedToJoinContract _invitedToJoinContract;
-        Send _sendMessage;
-        ContractIsReady _contractIsReady;
-        PieceRequested _pieceRequested;
-        InvalidPieceRequested _invalidPieceRequested;
-        PeerInterruptedPayment _peerInterruptedPayment;
-        ValidPayment _validPayment;
-        InvalidPayment _invalidPayment;
-        SellerJoined _sellerJoined;
-        SellerInterruptedContract _sellerInterruptedContract;
-        ReceivedFullPiece _receivedFullPiece;
+        // All callbacks are initiated when state machine has finished all processing.
+        // For sake of generality, we assume multiple callbacks may have been called multiple times
+        // with the processing of a *single* event. In practice, we are doing at most one now.
+        // This general scenario is handled by having a callback queue.
+
+        // Whether a callbacks are currently being processed, is used
+        // as re-entrancy guard to prevent re-invoking callback processing.
+        bool _currentlyProcessingCallbacks;
+
+        template<typename... Args>
+        class CallbackQueuer {
+
+        public:
+
+            typedef std::function<void(Args...)> callback;
+
+            CallbackQueuer(std::deque<NoPayloadNotification> & queue, const callback & hook)
+                : _queue(queue)
+                , _callback(hook) {
+            }
+
+            void operator()(Args... args) {
+                _queue.push_back(std::bind(_callback, args...));
+            }
+
+        private:
+
+            // Underlying queue
+            std::deque<NoPayloadNotification> & _queue;
+
+            // Core callback
+            callback _callback;
+        };
+
+        // Queue for ready callback
+        std::deque<NoPayloadNotification> _queuedCallbacks;
+
+        // Callback queues
+        CallbackQueuer<const protocol_statemachine::AnnouncedModeAndTerms &> _peerAnnouncedMode;
+        CallbackQueuer<> _invitedToOutdatedContract;
+        CallbackQueuer<> _invitedToJoinContract;
+        CallbackQueuer<const protocol_wire::ExtendedMessagePayload *> _sendMessage;
+        CallbackQueuer<quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &> _contractIsReady;
+        CallbackQueuer<int> _pieceRequested;
+        CallbackQueuer<> _invalidPieceRequested;
+        CallbackQueuer<> _peerInterruptedPayment;
+        CallbackQueuer<const Coin::Signature &> _validPayment;
+        CallbackQueuer<const Coin::Signature &> _invalidPayment;
+        CallbackQueuer<> _sellerJoined;
+        CallbackQueuer<> _sellerInterruptedContract;
+        CallbackQueuer<const protocol_wire::PieceData &> _receivedFullPiece;
 
         void peerAnnouncedMode();
-
-        // How many calls to ::processEvent() which have still not exited.
-        // I is used to make event processing reentrant-like, not fully though
-        uint8_t _reentrantCounter;
 
         // Greatest valid piece index
         int _MAX_PIECE_INDEX;

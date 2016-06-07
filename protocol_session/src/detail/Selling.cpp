@@ -24,7 +24,8 @@ namespace detail {
                                        const ClaimLastPayment<ConnectionIdType> & claimLastPayment,
                                        const AnchorAnnounced<ConnectionIdType> & anchorAnnounced,
                                        const SellingPolicy & policy,
-                                       const protocol_wire::SellerTerms & terms)
+                                       const protocol_wire::SellerTerms & terms,
+                                       int MAX_PIECE_INDEX)
         : _session(session)
         , _removedConnection(removedConnection)
         , _generateKeyPairs(generateKeyPairs)
@@ -33,11 +34,21 @@ namespace detail {
         , _claimLastPayment(claimLastPayment)
         , _anchorAnnounced(anchorAnnounced)
         , _policy(policy)
-        , _terms(terms) {
+        , _terms(terms)
+        , _MAX_PIECE_INDEX(MAX_PIECE_INDEX) {
 
         // Notify any existing peers
-        for(auto itr : _session->_connections)
-            (itr.second)->processEvent(joystream::protocol_statemachine::event::SellModeStarted(_terms));
+        for(auto itr : _session->_connections) {
+
+            detail::Connection<ConnectionIdType> * c = itr.second;
+
+            // Set max piece index
+            c->setMaxPieceIndex(_MAX_PIECE_INDEX);
+
+            // Change mode
+            c->processEvent(joystream::protocol_statemachine::event::SellModeStarted(_terms));
+        }
+
     }
 
     template<class ConnectionIdType>
@@ -45,6 +56,9 @@ namespace detail {
 
         // Create connection
         detail::Connection<ConnectionIdType> * connection = _session->createAndAddConnection(id, callback);
+
+        // Set max piece index
+        connection->setMaxPieceIndex(_MAX_PIECE_INDEX);
 
         // Choose mode on connection
         connection->processEvent(protocol_statemachine::event::SellModeStarted(_terms));
@@ -56,12 +70,11 @@ namespace detail {
     void Selling<ConnectionIdType>::removeConnection(const ConnectionIdType & id) {
 
         if(_session->state() == SessionState::stopped)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot remove connection while session is stopped, all connections are removed.");
 
         if(!_session->hasConnection(id))
             throw exception::ConnectionDoesNotExist<ConnectionIdType>(id);
 
-        // Remove connection
         removeConnection(id, DisconnectCause::client);
     }
 
@@ -77,8 +90,9 @@ namespace detail {
         // Get connection state
         detail::Connection<ConnectionIdType> * c = _session->get(id);
 
+        // Make sure connection is still in appropriate state
         if(!c-> template inState<joystream::protocol_statemachine::LoadingPiece>())
-            throw exception::StateIncompatibleOperation();
+            return;
 
         // Store loaded piece in connection, we dont sent if paused
         assert(!c->loadedPiecePending());
@@ -125,13 +139,23 @@ namespace detail {
         // Do not initiate joining if we are paused
         if(_session->state() == SessionState::started) {
 
+            detail::Connection<ConnectionIdType> * c = _session->get(id);
+
             // NB** In the future we do something more sophisticated rather than just joining right away?
-            tryToJoin(id);
+            try {
+                tryToJoin(c);
+            } catch(InvitedWithBadTerms &) {
+
+                removeConnection(id, DisconnectCause::buyer_invited_with_bad_terms);
+
+                // Notify state machine about deletion
+                throw protocol_statemachine::exception::StateMachineDeletedException();
+            }
         }
     }
 
     template<class ConnectionIdType>
-    void Selling<ConnectionIdType>::contractPrepared(const ConnectionIdType & id, const Coin::typesafeOutPoint & anchor) {
+    void Selling<ConnectionIdType>::contractPrepared(const ConnectionIdType & id, quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::PubKeyHash & payorFinalPkHash) {
 
         // We cannot have connection and be stopped
         assert(_session->state() != SessionState::stopped);
@@ -141,7 +165,7 @@ namespace detail {
 
         // Notify client
         // NB** We do this, even if we are paused!
-        _anchorAnnounced(id, anchor);
+        _anchorAnnounced(id, value, anchor, payorContractPk, payorFinalPkHash);
     }
 
     template<class ConnectionIdType>
@@ -155,7 +179,7 @@ namespace detail {
 
         // Notify client about piece request
         // NB** We do this, even if we are paused!
-        _loadPieceForBuyer(index);
+        _loadPieceForBuyer(id, index);
     }
 
     template<class ConnectionIdType>
@@ -167,8 +191,10 @@ namespace detail {
         // Connection must be live
         assert(_session->hasConnection(id));
 
-        // Remove connection
         removeConnection(id, DisconnectCause::buyer_requested_invalid_piece);
+
+        // Notify state machine about deletion
+        throw protocol_statemachine::exception::StateMachineDeletedException();
     }
 
     template<class ConnectionIdType>
@@ -180,8 +206,10 @@ namespace detail {
         // Connection must be live
         assert(_session->hasConnection(id));
 
-        // Remove connection
         removeConnection(id, DisconnectCause::buyer_interrupted_payment);
+
+        // Notify state machine about deletion
+        throw protocol_statemachine::exception::StateMachineDeletedException();
     }
 
     template<class ConnectionIdType>
@@ -198,8 +226,10 @@ namespace detail {
         // Connection must be live
         assert(_session->hasConnection(id));
 
-        // Remove connection
         removeConnection(id, DisconnectCause::buyer_sent_invalid_payment);
+
+        // Notify state machine about deletion
+        throw protocol_statemachine::exception::StateMachineDeletedException();
     }
 
     template<class ConnectionIdType>
@@ -208,13 +238,8 @@ namespace detail {
         //// Mode change is allowed in all session states
 
         // For each connection: Notify client to claim last payment made
-        for(auto itr : _session->_connections) {
-
-            detail::Connection<ConnectionIdType> * c = itr.second;
-
-            if(c-> template inState<joystream::protocol_statemachine::WaitingForPayment>())
-                _claimLastPayment(itr.first, c->machine().payee());
-        }
+        for(auto itr : _session->_connections)
+            tryToClaimLastPayment(itr.second);
     }
 
     template<class ConnectionIdType>
@@ -222,32 +247,42 @@ namespace detail {
 
         // We cant start if we have already started
         if(_session->state() == SessionState::started)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot start while already started.");
 
         // Set client mode to started
         // NB: Mark as started, as routines we call below
         // require that we are started.
         _session->_state = SessionState::started;
 
-        // For each connection
-        for(auto itr : _session->_connections) {
+        // For each connection: iteration safe deletion
+        for(auto it = _session->_connections.cbegin(); it != _session->_connections.cend();) {
 
             //// if we hare here, we are paused
 
-            detail::Connection<ConnectionIdType> * c = itr.second;
+            detail::Connection<ConnectionIdType> * c = it->second;
 
             if(c-> template inState<protocol_statemachine::ReadyForInvitation>())
                 ; // Waiting to be invited, nothing to do!
-            else if(c-> template inState<protocol_statemachine::Invited>())
-                tryToJoin(c); // We have been invited, so lets try to join
-            else if(c-> template inState<protocol_statemachine::WaitingToStart>()) {
-                ; // Waiting to get contract announcement, nothing to do!
+            else if(c-> template inState<protocol_statemachine::Invited>()) {
+
+                // We have been invited, so lets try to join
+                try {
+                    tryToJoin(c);
+
+                    it++;
+                } catch(InvitedWithBadTerms &) {
+                    it = removeConnection(it->first, DisconnectCause::buyer_invited_with_bad_terms);
+                }
+
+            } else if(c-> template inState<protocol_statemachine::WaitingToStart>()) {
+                it++; // Waiting to get contract announcement, nothing to do!
             } else if(c-> template inState<protocol_statemachine::ReadyForPieceRequest>()) {
-                ; // Waiting for piece to be requested, nothing to do!
-            } else if(c-> template inState<protocol_statemachine::LoadingPiece>())
+                it++; // Waiting for piece to be requested, nothing to do!
+            } else if(c-> template inState<protocol_statemachine::LoadingPiece>()) {
                 tryToLoadPiece(c); // Waiting for piece to be loaded, which may have been aborted due to pause
-            else if(c-> template inState<protocol_statemachine::WaitingForPayment>()) {
-                ; // Waiting for payment, nothing to do!
+                it++;
+            } else if(c-> template inState<protocol_statemachine::WaitingForPayment>()) {
+                it++; // Waiting for payment, nothing to do!
             } else // terminated, should not happen
                 assert(false);
         }
@@ -258,13 +293,11 @@ namespace detail {
 
         // We cant stop if we have already stopped
         if(_session->state() == SessionState::stopped)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot stop while already stopped.");
 
-        // Disconnect everyone
-        std::vector<ConnectionIdType> ids = _session->connectionIds();
-
-        for(const ConnectionIdType & id : ids)
-            removeConnection(id, DisconnectCause::client);
+        // Disconnect everyone: iteration safe deletion
+        for(auto it = _session->_connections.cbegin(); it != _session->_connections.cend();)
+            it = removeConnection(it->first, DisconnectCause::client);
 
         // Update state
         _session->_state = SessionState::stopped;
@@ -276,7 +309,7 @@ namespace detail {
         // We can only pause if presently started
         if(_session->state() == SessionState::paused ||
            _session->state() == SessionState::stopped)
-            throw exception::StateIncompatibleOperation();
+            throw exception::StateIncompatibleOperation("cannot pause while already paused/stopped.");
 
         // Update state
         _session->_state = SessionState::paused;
@@ -290,18 +323,17 @@ namespace detail {
     template<class ConnectionIdType>
     void Selling<ConnectionIdType>::updateTerms(const protocol_wire::SellerTerms & terms) {
 
-        // Notify existing peers where we have not yet joined the contract
-        for(auto itr : _session->_connections) {
-
-            detail::Connection<ConnectionIdType> * c = itr.second;
-
-            if(c-> template inState<joystream::protocol_statemachine::ReadyForInvitation>() ||
-               c-> template inState<joystream::protocol_statemachine::Invited>())
-                c->processEvent(protocol_statemachine::event::UpdateTerms<protocol_wire::SellerTerms>(terms));
-        }
-
         // Set new terms
         _terms = terms;
+
+        // Notify existing peers where we have not yet joined the contract
+        for(auto itr : _session->_connections)
+            itr.second->processEvent(protocol_statemachine::event::UpdateTerms<protocol_wire::SellerTerms>(_terms));
+    }
+
+    template<class ConnectionIdType>
+    status::Selling Selling<ConnectionIdType>::status() const {
+        return status::Selling(_policy, _terms);
     }
 
     template<class ConnectionIdType>
@@ -310,7 +342,7 @@ namespace detail {
     }
 
     template<class ConnectionIdType>
-    void Selling<ConnectionIdType>::removeConnection(const ConnectionIdType & id, DisconnectCause cause) {
+    typename detail::ConnectionMap<ConnectionIdType>::const_iterator Selling<ConnectionIdType>::removeConnection(const ConnectionIdType & id, DisconnectCause cause) {
 
         assert(_session->state() != SessionState::stopped);
         assert(_session->hasConnection(id));
@@ -318,15 +350,14 @@ namespace detail {
         // Notify client to claim last payment
         detail::Connection<ConnectionIdType> * c = _session->get(id);
 
-        // If we are owed money, then notify client to claim last payment made
-        if(c-> template inState<joystream::protocol_statemachine::WaitingForPayment>())
-            _claimLastPayment(id, c->machine().payee());
+        // Claim payment
+        tryToClaimLastPayment(c);
 
         // Notify client to remove connection
         _removedConnection(id, cause);
 
-        // Remove and delete connection
-        _session->removeFromMapAndDelete(id);
+        // Destroy connection
+        return _session->destroyConnection(id);
     }
 
     template<class ConnectionIdType>
@@ -351,7 +382,7 @@ namespace detail {
 
             // If we were invited based on non-expired terms, yet buyer
             // terms were not good enough, then we ditch conection.
-            removeConnection(c->connectionId(), DisconnectCause::buyer_invited_with_bad_terms);
+            throw InvitedWithBadTerms();
         }
     }
 
@@ -361,13 +392,21 @@ namespace detail {
         assert(_session->state() == SessionState::started);
         assert(c-> template inState<joystream::protocol_statemachine::LoadingPiece>());
 
-
         if(c->loadedPiecePending()) {
-
             c->processEvent(joystream::protocol_statemachine::event::PieceLoaded(c->loadedPieceData()));
             c->setLoadedPiecePending(false);
         }
 
+    }
+
+    template<class ConnectionIdType>
+    void Selling<ConnectionIdType>::tryToClaimLastPayment(detail::Connection<ConnectionIdType> * c) {
+
+        // If at least one payment is made, then send claims notification
+        paymentchannel::Payee payee = c->payee();
+
+        if(payee.numberOfPaymentsMade() > 0)
+            _claimLastPayment(c->connectionId(), payee);
     }
 }
 }

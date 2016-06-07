@@ -27,6 +27,8 @@ public:
 
     Contract();
 
+    Contract(const Coin::UnspentP2PKHOutput &);
+
     // Setup contract without change
     Contract(const Coin::UnspentP2PKHOutput &,
              const std::vector<Commitment> &);

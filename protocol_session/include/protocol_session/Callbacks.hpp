@@ -9,11 +9,16 @@
 #ifndef JOYSTREAM_PROTOCOLSESSION_CALLBACKS_HPP
 #define JOYSTREAM_PROTOCOLSESSION_CALLBACKS_HPP
 
+#include <common/PubKeyHash.hpp>
+
 #include <functional>
 #include <vector>
 
+#include <QtGlobal> // quint64
+
 namespace Coin {
     class typesafeOutPoint;
+    class PublicKey;
 }
 
 namespace joystream {
@@ -59,7 +64,7 @@ typedef std::function<std::vector<Coin::KeyPair>(int)> GenerateKeyPairsCallbackH
 typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateP2PKHAddressesCallbackHandler;
 
 // Send a message to be sent
-typedef std::function<void(const protocol_wire::ExtendedMessagePayload &)> SendMessageOnConnection;
+typedef std::function<void(const protocol_wire::ExtendedMessagePayload *)> SendMessageOnConnection;
 
 //// Buying
 
@@ -90,7 +95,7 @@ using ClaimLastPayment = std::function<void(const ConnectionIdType &, const joys
 
 // Buyer with given connection id announced anchor
 template <class ConnectionIdType>
-using AnchorAnnounced = std::function<void(const ConnectionIdType &, const Coin::typesafeOutPoint &)>;
+using AnchorAnnounced = std::function<void(const ConnectionIdType &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &)>;
 
 }
 }

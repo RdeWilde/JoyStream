@@ -32,6 +32,9 @@ namespace detail {
 
     template <class ConnectionIdType>
     class Observing;
+
+    template <class ConnectionIdType>
+    using ConnectionMap = std::map<ConnectionIdType, detail::Connection<ConnectionIdType> *>;
 }
 
     class SellingPolicy;
@@ -45,13 +48,19 @@ namespace detail {
 
         Session();
 
+        ~Session();
+
+        // Delete to prevent copying of session
+        Session(const Session&) = delete;
+        void operator=(const Session&) = delete;
+
         //// Manage mode
 
         // Can only be called when mode is not set, or is in
         // a set mode different to the mode of the call.
 
         // Change session to observe mode
-        void toObserveMode();
+        void toObserveMode(const RemovedConnectionCallbackHandler<ConnectionIdType> &);
 
         // Change session to sell mode
         void toSellMode(const RemovedConnectionCallbackHandler<ConnectionIdType> &,
@@ -61,7 +70,8 @@ namespace detail {
                         const ClaimLastPayment<ConnectionIdType> &,
                         const AnchorAnnounced<ConnectionIdType> &,
                         const SellingPolicy &,
-                        const protocol_wire::SellerTerms &);
+                        const protocol_wire::SellerTerms &,
+                        int);
 
         // Change session to buy mode
         void toBuyMode(const RemovedConnectionCallbackHandler<ConnectionIdType> &,
@@ -73,6 +83,12 @@ namespace detail {
                        const BuyingPolicy &,
                        const protocol_wire::BuyerTerms &,
                        const TorrentPieceInformation &);
+
+        /**
+         * Warning: Do not call any of these operations
+         * from the callbacks registered for each mode, or
+         * when adding a connection.
+         */
 
         //// Manage state
 
@@ -100,10 +116,10 @@ namespace detail {
         bool removeConnection(const ConnectionIdType &);
 
         // Get vector of all connection ids
-        std::vector<ConnectionIdType> connectionIds() const;
+        std::set<ConnectionIdType> connectionIds() const;
 
         // Process given message on given connection with given ID
-        void processMessageOnConnection(const ConnectionIdType &, const protocol_wire::ExtendedMessagePayload *);
+        void processMessageOnConnection(const ConnectionIdType &, const protocol_wire::ExtendedMessagePayload &);
 
         //// Buying
 
@@ -134,7 +150,35 @@ namespace detail {
 
         SessionMode mode() const;
 
+        // Status of session
+        status::Session<ConnectionIdType> status() const;
+
     private:
+
+        // Session mode
+        SessionMode _mode;
+
+        // Current state of session
+        SessionState _state;
+
+        // Connections
+        detail::ConnectionMap<ConnectionIdType> _connections;
+
+        // When session was started
+        time_t _started;
+
+        //// Substates
+
+        // Each pointer is != nullptr only when _mode corresponds
+
+        // Observer
+        detail::Observing<ConnectionIdType> * _observing;
+
+        // Seller
+        detail::Selling<ConnectionIdType> * _selling;
+
+        // Buyer
+        detail::Buying<ConnectionIdType> * _buying;
 
         friend class detail::Observing<ConnectionIdType>;
         friend class detail::Selling<ConnectionIdType>;
@@ -145,12 +189,12 @@ namespace detail {
         void peerAnnouncedModeAndTerms(const ConnectionIdType &, const protocol_statemachine::AnnouncedModeAndTerms &);
         void invitedToOutdatedContract(const ConnectionIdType &);
         void invitedToJoinContract(const ConnectionIdType &);
-        void contractPrepared(const ConnectionIdType &, const Coin::typesafeOutPoint &);
-        void pieceRequested(const ConnectionIdType & id, int i);
-        void invalidPieceRequested(const ConnectionIdType & id);
-        void paymentInterrupted(const ConnectionIdType & id);
-        void receivedValidPayment(const ConnectionIdType & id, const Coin::Signature &);
-        void receivedInvalidPayment(const ConnectionIdType & id, const Coin::Signature &);
+        void contractPrepared(const ConnectionIdType &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &);
+        void pieceRequested(const ConnectionIdType &, int i);
+        void invalidPieceRequested(const ConnectionIdType &);
+        void paymentInterrupted(const ConnectionIdType &);
+        void receivedValidPayment(const ConnectionIdType &, const Coin::Signature &);
+        void receivedInvalidPayment(const ConnectionIdType &, const Coin::Signature &);
         void sellerHasJoined(const ConnectionIdType &);
         void sellerHasInterruptedContract(const ConnectionIdType &);
         void receivedFullPiece(const ConnectionIdType &, const protocol_wire::PieceData &);
@@ -170,39 +214,12 @@ namespace detail {
         // ConnectionDoesNotExist<ConnectionIdType>
         detail::Connection<ConnectionIdType> * get(const ConnectionIdType &) const;
 
-        // Removes connection with given id from the connections map
-        // and deletes it.
-        void removeFromMapAndDelete(const ConnectionIdType &);
+        // Removes connection with given id from the connections map and deletes it and throws,
+        // Returns iterator at next valid element
+        typename detail::ConnectionMap<ConnectionIdType>::const_iterator destroyConnection(const ConnectionIdType &);
 
         // If possible, creates connection and adds to map
         detail::Connection<ConnectionIdType> * createAndAddConnection(const ConnectionIdType &, const SendMessageOnConnection &);
-
-        //// Members
-
-        // Session mode
-        SessionMode _mode;
-
-        // Current state of session
-        SessionState _state;
-
-        // Connections
-        std::map<ConnectionIdType, detail::Connection<ConnectionIdType> *> _connections;
-
-        // When session was started
-        time_t _started;
-
-        //// Substates
-
-        // Each pointer is != nullptr only when _mode corresponds
-
-        // Observer
-        detail::Observing<ConnectionIdType> * _observing;
-
-        // Seller
-        detail::Selling<ConnectionIdType> * _selling;
-
-        // Buyer
-        detail::Buying<ConnectionIdType> * _buying;
     };
 
 }

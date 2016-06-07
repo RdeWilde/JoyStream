@@ -6,31 +6,38 @@
  */
 
 #include <protocol_statemachine/Observing.hpp>
+#include <protocol_statemachine/Buying.hpp>
+#include <protocol_statemachine/Selling.hpp>
 
 #include <iostream>
 
 namespace joystream {
 namespace protocol_statemachine {
 
-    Observing::Observing()
-        : _initialized(false) {
+    Observing::Observing() {
         std::cout << "Entering Observing state." << std::endl;
     }
 
-    sc::result Observing::react(const detail::InitializeObserving &) {
+    sc::result Observing::react(const event::BuyModeStarted & e) {
 
-        if(_initialized)
-            throw std::runtime_error("Observing state already initialized.");
-        else
-           _initialized = true;
+        std::cout << "Reacting to BuyModeStarted." << std::endl;
 
-        std::cout << "Reacting to detail::InitializeObserving." << std::endl;
+        // Client to buy mode
+        context<CBStateMachine>().clientToBuyMode(e.terms());
 
-        // Send mode message.
-        context<CBStateMachine>()._sendMessage(protocol_wire::Observe());
+        // Transition to Buy state
+        return transit<Buying>();
+    }
 
-        // No transition
-        return discard_event();
+    sc::result Observing::react(const event::SellModeStarted & e) {
+
+        std::cout << "Reacting to SellModeStarted." << std::endl;
+
+        // Client to Selling mode
+        context<CBStateMachine>().clientToSellMode(e.terms(), 0);
+
+        // Transition to Selling state
+        return transit<Selling>();
     }
 
 }
