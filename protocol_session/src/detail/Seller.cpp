@@ -71,7 +71,14 @@ namespace detail {
     template <class ConnectionIdType>
     void Seller<ConnectionIdType>::pieceWasValid() {
 
-        assert(_state == SellerState::waiting_for_piece_validation_and_storage);
+        assert(
+               // when a polite seller removal happens, even though piece processing
+               // in client is not done.
+               _state == SellerState::waiting_for_piece_validation_and_storage
+               ||
+               // when waiting for this piece to arrive.
+               _state == SellerState::waiting_for_full_piece
+               );
 
         // Update state
         _state = SellerState::waiting_to_be_assigned_piece;
