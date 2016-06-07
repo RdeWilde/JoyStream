@@ -571,8 +571,7 @@ Store::getUnspentTransactionsOutputs(int32_t confirmations, int32_t main_chain_h
         Coin::TransactionId txid(Coin::TransactionId::fromRPCByteOrder(uchar_vector(output.txid())));
         Coin::typesafeOutPoint outpoint(txid, output.index());
 
-        std::shared_ptr<Coin::UnspentOutput> utxo;
-        utxo.reset(new Coin::UnspentP2SHOutput(keypair, uchar_vector(output.address->redeemScript()), uchar_vector(output.address->optionalData()), outpoint, output.value()));
+        std::shared_ptr<Coin::UnspentOutput> utxo(new Coin::UnspentP2SHOutput(keypair, uchar_vector(output.address->redeemScript()), uchar_vector(output.address->optionalData()), outpoint, output.value()));
         utxos.insert(utxos.end(), utxo);
     }
 
