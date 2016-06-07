@@ -120,6 +120,27 @@ public:
     }
 };
 
+class IncorrectPieceIndex : public std::runtime_error {
+
+public:
+
+    IncorrectPieceIndex(int actual, int expected)
+        : std::runtime_error(std::string("Provided piece index ") +
+                             std::to_string(_actual) +
+                             std::string(", expected ") +
+                             std::to_string(_expected))
+        , _actual(actual)
+        , _expected(expected) {
+    }
+
+    int actual() const { return _actual; }
+    int expected() const { return _expected; }
+
+private:
+
+    int _actual, _expected;
+};
+
 }
 }
 }

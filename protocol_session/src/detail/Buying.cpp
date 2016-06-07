@@ -101,7 +101,9 @@ namespace detail {
         assert(itr != _sellers.cend());
 
         detail::Seller<ConnectionIdType> & s = itr->second;
-        assert(s.indexOfAssignedPiece() == index);
+
+        if(s.indexOfAssignedPiece() != index)
+            throw exception::IncorrectPieceIndex(index, s.indexOfAssignedPiece());
 
         // This results in payment being sent,
         // if connection is still live, and state updated
@@ -150,7 +152,8 @@ namespace detail {
         assert(itr != _sellers.cend());
 
         detail::Seller<ConnectionIdType> & s = itr->second;
-        assert(s.indexOfAssignedPiece() == index);
+        if(s.indexOfAssignedPiece() != index)
+            throw exception::IncorrectPieceIndex(index, s.indexOfAssignedPiece());
 
         s.pieceWasInvalid();
 
