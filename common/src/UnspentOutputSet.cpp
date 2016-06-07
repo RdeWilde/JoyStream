@@ -21,17 +21,16 @@ uint64_t UnspentOutputSet::value() const {
     return total;
 }
 
-Transaction & UnspentOutputSet::finance(Transaction & cointx, const SigHashType & sigHashType) const {
+void UnspentOutputSet::finance(Transaction & cointx, const SigHashType & sigHashType) const {
 
-    // To allow for ability to finance a transaction from multiple sets (by chaining multiple finance calls
-    // using a sig hash type with ANYONE_CAN_PAY) we will not clear the inputs of the transaction.
-    // And for transactions which will be signed without ANYONE_CAN_PAY
+    // To allow for ability to finance a transaction from multiple sets, we will not clear the inputs of the transaction.
+    // For transactions which will be signed without ANYONE_CAN_PAY
     // the transaction is expected to have no inputs
 
     if(!sigHashType.anyOneCanPay()){
         // To avoid misuse when chaining multiple finance calls..
         if(cointx.inputs.size() > 0 ) {
-            throw std::runtime_error("Expected transaction with no inputs");
+            throw std::runtime_error("Only ANYONE_CAN_PAY sighash types can have non zero inputs size");
         }
     } else {
         // Ensure this set has enough value to finance the transaction
@@ -60,7 +59,6 @@ Transaction & UnspentOutputSet::finance(Transaction & cointx, const SigHashType 
         }
     }
 
-    return cointx; // for chaining
 }
 
 std::shared_ptr<UnspentOutput> UnspentOutputSet::outputFromOutPoint(const Coin::OutPoint & outpoint) const {
