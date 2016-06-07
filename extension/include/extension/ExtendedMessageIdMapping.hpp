@@ -8,7 +8,7 @@
 #ifndef JOYSTREAM_EXTENSION_EXTENDED_MESSAGE_ID_MAPPING_HPP
 #define JOYSTREAM_EXTENSION_EXTENDED_MESSAGE_ID_MAPPING_HPP
 
-#include <wire/MessageType.hpp>
+#include <protocol_wire/protocol_wire.hpp>
 
 #include <libtorrent/entry.hpp>
 

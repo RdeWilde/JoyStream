@@ -9,8 +9,8 @@
 #define JOYSTREAM_EXTENSION_PEER_PLUGIN_HPP
 
 #include <extension/BEPSupportStatus.hpp>
-#include <extension/PeerModeAnnounced.hpp>
 #include <extension/ExtendedMessageIdMapping.hpp>
+
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/entry.hpp>
 #include <libtorrent/error_code.hpp>
@@ -22,33 +22,12 @@
 #include <libtorrent/buffer.hpp>
 #include <libtorrent/peer_id.hpp> // sha1_hash
 
-#include <QDateTime>
-#include <QQueue>
-
 #include <string> // can't forward declare std::string
 
 namespace joystream {
-
-namespace protocol {
-
-    class ExtendedMessagePayload;
-    class Observe;
-    class Buy;
-    class Sell;
-    class JoinContract;
-    class JoiningContract;
-    class SignRefund;
-    class RefundSigned;
-    class Ready;
-    class RequestFullPiece;
-    class FullPiece;
-    class Payment;
-}
-
 namespace extension {
 
     class TorrentPlugin;
-    enum class PluginMode;
 
     /**
      * @brief Abstract parent type for peer plugins, in seller, buyer and observer mode.
@@ -60,9 +39,7 @@ namespace extension {
         // Constructor
         PeerPlugin(TorrentPlugin * plugin,
                    libtorrent::bt_peer_connection * connection,
-                   const std::string & bep10ClientIdentifier,
-                   bool scheduledForDeletingInNextTorrentPluginTick,
-                   QLoggingCategory & category);
+                   const std::string & bep10ClientIdentifier);
 
         /**
          * All virtual functions below should ONLY be called by libtorrent network thread,
@@ -143,8 +120,6 @@ namespace extension {
         // Torrent plugin for torrent
         TorrentPlugin * _plugin;
 
-    protected:
-
         // Connection to peer for this plugin
         libtorrent::bt_peer_connection * _connection;
 
@@ -153,9 +128,6 @@ namespace extension {
 
         // Endpoint: can be deduced from connection, but is worth keeping if connection pointer becomes invalid
         libtorrent::tcp::endpoint _endPoint;
-
-        // Announced peer mode
-        PeerModeAnnounced _peerModeAnnounced;
 
         // Time since last message was sent to peer, is used to judge if peer has timed out
         QTime _timeSinceLastMessageSent;
@@ -168,8 +140,8 @@ namespace extension {
         bool _lastMessageWasStateIncompatible;
 
         // Set when peer plugin should be disconnected and deleted by corresponding torrent plugin
-        bool _scheduledForDeletingInNextTorrentPluginTick;
-        libtorrent::error_code _deletionErrorCode;
+        //bool _scheduledForDeletingInNextTorrentPluginTick;
+        //libtorrent::error_code _deletionErrorCode;
 
         // Mapping from messages to BEP10 ID of client
         ExtendedMessageIdMapping _clientMapping;
@@ -182,24 +154,6 @@ namespace extension {
 
         // Indicates whether peer supports BEP43 .. BitSwapr
         BEPSupportStatus _peerBitSwaprBEPSupportStatus;
-
-        // Logging category
-        QLoggingCategory & _category;
-
-        // Processess message in subclass,
-        // are only called if extended handshake has been completed successfully.
-        virtual void processObserve(const joystream::protocol::Observe * m) = 0;
-        virtual void processBuy(const joystream::protocol::Buy * m) = 0;
-        virtual void processSell(const joystream::protocol::Sell * m) = 0;
-        virtual void processJoinContract(const joystream::protocol::JoinContract * m) = 0;
-        virtual void processJoiningContract(const joystream::protocol::JoiningContract * m) = 0;
-        virtual void processSignRefund(const joystream::protocol::SignRefund * m) = 0;
-        virtual void processRefundSigned(const joystream::protocol::RefundSigned * m) = 0;
-        virtual void processReady(const joystream::protocol::Ready * m) = 0;
-        virtual void processRequestFullPiece(const joystream::protocol::RequestFullPiece * m) = 0;
-        virtual void processFullPiece(const joystream::protocol::FullPiece * m) = 0;
-        virtual void processPayment(const joystream::protocol::Payment * m) = 0;
-
     };
 
 }

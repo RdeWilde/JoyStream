@@ -5,26 +5,24 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#include <core/extension/Plugin.hpp>
-#include <core/extension/TorrentPlugin.hpp>
-#include <core/extension/SellerTorrentPlugin.hpp>
-#include <core/extension/BuyerTorrentPlugin.hpp>
-#include <core/extension/PeerPlugin.hpp>
-#include <core/extension/Request/PluginRequest.hpp>
-#include <core/extension/Request/TorrentPluginRequest.hpp>
-#include <core/extension/Request/PeerPluginRequest.hpp>
-#include <core/extension/Request/StartBuyerTorrentPlugin.hpp>
-#include <core/extension/Request/StartSellerTorrentPlugin.hpp>
-#include <core/extension/Request/ChangeDownloadLocation.hpp>
-#include <core/extension/Alert/PluginStatusAlert.hpp>
-#include <core/extension/Alert/StartedSellerTorrentPlugin.hpp>
-#include <core/extension/Alert/StartedBuyerTorrentPlugin.hpp>
-#include <core/extension/PluginMode.hpp>
+#include <extension/Plugin.hpp>
+#include <extension/TorrentPlugin.hpp>
+#include <extension/PeerPlugin.hpp>
+#include <extension/Request/PluginRequest.hpp>
+#include <extension/Request/TorrentPluginRequest.hpp>
+#include <extension/Request/PeerPluginRequest.hpp>
+#include <extension/Request/StartBuyerTorrentPlugin.hpp>
+#include <extension/Request/StartSellerTorrentPlugin.hpp>
+#include <extension/Request/ChangeDownloadLocation.hpp>
+#include <extension/Alert/PluginStatusAlert.hpp>
+#include <extension/Alert/StartedSellerTorrentPlugin.hpp>
+#include <extension/Alert/StartedBuyerTorrentPlugin.hpp>
+#include <extension/PluginMode.hpp>
 
 #include <boost/shared_ptr.hpp>
 
-#include <QNetworkReply>
-#include <QLoggingCategory>
+namespace joystream {
+namespace extension {
 
 /**
  * Plugin::Status
@@ -71,19 +69,8 @@ void Plugin::Status::setTotalReceivedSinceStart(quint64 totalReceivedSinceStart)
  * Plugin
  */
 
-Plugin::Plugin(joystream::bitcoin::SPVWallet *wallet, QLoggingCategory & category)
-    : _wallet(wallet)
-    /**
-    , _btcClient("127.0.0.1"
-                 ,8332
-                 ,"bitcoinrpc"
-                 ,"DDKVyZDNros2cKvkk5KpGmJWGazzYMezoWTeKaXcqxEj"
-                 ,bitcoindAccount
-                 ,manager)
-    */
-    , _category(category)
-    //, _getBalanceReply(NULL)
-    , _addedToSession(false)
+Plugin::Plugin()
+    : _addedToSession(false)
     , _totalReceivedSinceStart(0)
     , _totalSentSinceStart(0)
     , _totalCurrentlyLockedInChannels(0) {
@@ -165,46 +152,6 @@ Plugin::Status Plugin::status() const {
                           _totalSentSinceStart,
                           _totalCurrentlyLockedInChannels);
 }
-
-/**
-quint64 Plugin::totalReceivedSinceStart() const {
-
-    quint64 total = 0;
-    for(QMap<libtorrent::sha1_hash, boost::shared_ptr<SellerTorrentPlugin> >::const_iterator
-        i = _sellerPlugins.constBegin(),
-        end = _sellerPlugins.constEnd();
-        i != end;i++)
-        total += i.value()->totalReceivedSinceStart();
-
-    return total;
-}
-
-
-quint64 Plugin::totalSentSinceStart() const {
-
-    quint64 total = 0;
-    for(QMap<libtorrent::sha1_hash, boost::shared_ptr<BuyerTorrentPlugin> >::const_iterator
-        i = _buyerPlugins.constBegin(),
-        end = _buyerPlugins.constEnd();
-        i != end;i++)
-        total += i.value()->totalSentSinceStart();
-
-    return total;
-}
-
-quint64 Plugin::totalCurrentlyLockedInChannels() const {
-
-    quint64 total = 0;
-    for(QMap<libtorrent::sha1_hash, boost::shared_ptr<BuyerTorrentPlugin> >::const_iterator
-        i = _buyerPlugins.constBegin(),
-        end = _buyerPlugins.constEnd();
-        i != end;i++)
-        total += i.value()->totalCurrentlyLockedInChannels();
-
-    return total;
-}
-*/
-
 
 quint64 Plugin::registerReceivedFunds(quint64 value) {
 
@@ -541,24 +488,5 @@ bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, co
     }
 }
 
-/**
-void Plugin::processStatus() {
-
-
-    if(_getBalanceReply == NULL)
-        _getBalanceReply = _btcClient.getBalance();
-    else if(_getBalanceReply->isFinished()) {
-
-        // If the reply is valid, we get balance
-        double balance = BitCoindRPC::Client::getBalance(_getBalanceReply);
-
-        // Delete reply and reset reply
-        //delete _getBalanceReply;
-        _getBalanceReply = NULL;
-
-        // Create and send plugin status alert
-        sendAlertToSession(PluginStatusAlert(balance));
-    }
-
 }
-*/
+}

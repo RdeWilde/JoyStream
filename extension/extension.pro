@@ -20,27 +20,8 @@ HEADERS += \
     include/extension/TorrentPlugin.hpp \
     include/extension/Plugin.hpp \
     include/extension/PeerPlugin.hpp \
-    include/extension/PeerAction.hpp \
-    include/extension/SellModePeerAction.hpp \
-    include/extension/BuyModePeerAction.hpp \
-    include/extension/BuyerTorrentPlugin.hpp \
-    include/extension/SellerTorrentPlugin.hpp \
-    include/extension/BuyerPeerPlugin.hpp \
-    include/extension/SellerPeerPlugin.hpp \
-    include/extension/PeerPluginId.hpp \
     include/extension/BEPSupportStatus.hpp \
-    include/extension/PluginMode.hpp \
-    include/extension/PeerModeAnnounced.hpp \
-    include/extension/PeerPluginStatus.hpp \
-    include/extension/BuyerPeerPluginStatus.hpp \
-    include/extension/BuyerTorrentPluginStatus.hpp \
     include/extension/PluginStatus.hpp \
-    include/extension/SellerPeerPluginStatus.hpp \
-    include/extension/PayeeStatus.hpp \
-    include/extension/ChannelStatus.hpp \
-    include/extension/PayorStatus.hpp \
-    include/extension/TorrentPluginConfiguration.hpp \
-    include/extension/BuyerTorrentPluginConfiguration.hpp \
     include/extension/ExtendedMessageIdMapping.hpp \
     include/extension/request/PluginRequest.hpp \
     include/extension/request/TorrentPluginRequest.hpp \
@@ -64,37 +45,12 @@ HEADERS += \
     include/extension/alert/SellerTorrentPluginStatusAlert.hpp \
     include/extension/alert/StartedSellerTorrentPlugin.hpp \
     include/extension/alert/StartedBuyerTorrentPlugin.hpp \
-    include/extension/SellerPeerPluginPeerState.hpp \
-    include/extension/SellerPeerPluginClientState.hpp \
-    include/extension/SellerTorrentPluginStatus.hpp \
-    include/extension/SellerTorrentPluginConfiguration.hpp \
-    include/extension/BuyerTorrentPluginState.hpp \
-    include/extension/BuyerPeerPluginClientState.hpp \
-    include/extension/BuyerPeerPluginPeerState.hpp \
-    include/extension/PayeeConfiguration.hpp \
-    include/extension/PayorConfiguration.hpp \
-    include/extension/ChannelConfiguration.hpp \
 
 SOURCES += \
     src/TorrentPlugin.cpp \
     src/Plugin.cpp \
     src/PeerPlugin.cpp \
-    src/PeerPluginId.cpp \
-    src/BuyerTorrentPlugin.cpp \
-    src/SellerTorrentPlugin.cpp \
-    src/SellerPeerPlugin.cpp \
-    src/BuyerPeerPlugin.cpp \
-    src/BuyerTorrentPlugin.cpp \
-    src/BuyerTorrentPluginStatus.cpp \
-    src/BuyerPeerPluginStatus.cpp \
     src/PluginStatus.cpp \
-    src/SellerPeerPluginStatus.cpp \
-    src/SellerPeerPluginPeerState.cpp \
-    src/PayeeStatus.cpp \
-    src/ChannelStatus.cpp \
-    src/PayorStatus.cpp \
-    src/PeerPluginStatus.cpp \
-    src/TorrentPluginConfiguration.cpp \
     src/ExtendedMessageIdMapping.cpp \
     src/request/PluginRequest.cpp \
     src/request/TorrentPluginRequest.cpp \
@@ -114,13 +70,6 @@ SOURCES += \
     src/alert/SellerPeerAddedAlert.cpp \
     src/alert/BuyerPeerPluginRemovedAlert.cpp \
     src/alert/SellerPeerPluginRemovedAlert.cpp \
-    src/SellerTorrentPluginStatus.cpp \
-    src/SellerTorrentPluginConfiguration.cpp \
-    src/BuyerTorrentPluginConfiguration.cpp \
-    src/BuyerPeerPluginPeerState.cpp \
-    src/PayeeConfiguration.cpp \
-    src/PayorConfiguration.cpp \
-    src/ChannelConfiguration.cpp \
 
 # common
 INCLUDEPATH += $$PWD/../common/include

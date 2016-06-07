@@ -321,7 +321,30 @@ namespace extension {
         // Tell libtorrent that our extension should be kept in the loop for this peer
         //return false;
 
-        return true;
+        //bool BuyerPeerPlugin::on_extension_handshake(const libtorrent::bdecode_node & handshake) {
+
+        if(_clientState != BuyerPeerPluginClientState::no_bitswapr_message_sent) {
+            throw std::runtime_error("Extended handshake initiated at incorrect state.");
+        }
+
+        qCDebug(_category) << "Extended handshake arrived.";
+
+        // Use base class extension handhsake processor
+        bool keepPlugin = PeerPlugin::on_extension_handshake(handshake);
+
+        // If handshake was successful
+        if(keepPlugin) {
+
+            // send mode message
+            sendExtendedMessage(joystream::protocol::Buy(_plugin->maxPrice(), _plugin->maxLock(), _plugin->numberOfSellers()));
+            // _plugin->maxFeePerByte()
+
+            // and update new client state correspondingly
+            _clientState = BuyerPeerPluginClientState::buyer_mode_announced;
+        }
+
+        // Return status to libtorrent
+        return keepPlugin;
     }
 
     // Called when an extended message is received. If returning true,

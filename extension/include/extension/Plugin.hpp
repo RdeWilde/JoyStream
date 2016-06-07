@@ -8,13 +8,9 @@
 #ifndef PLUGIN_HPP
 #define PLUGIN_HPP
 
-#include "SellerTorrentPlugin.hpp"
-#include "BuyerTorrentPlugin.hpp"
-
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
 #include <libtorrent/alert.hpp>
-//#include <libtorrent/policy.hpp>
 #include <libtorrent/peer.hpp>
 #include <libtorrent/entry.hpp>
 #include <libtorrent/lazy_entry.hpp>
@@ -22,10 +18,6 @@
 #include <libtorrent/aux_/session_impl.hpp>
 
 #include <boost/weak_ptr.hpp>
-
-#include <QObject>
-#include <QMutex>
-#include <QQueue>
 
 // Forward declaration
 class Controller;
@@ -36,29 +28,16 @@ class PluginRequest;
 class TorrentPluginRequest;
 class PeerPluginRequest;
 class TorrentPluginConfiguration;
-//class BuyerTorrentPlugin::Configuration;
-//class SellerTorrentPlugin::Configuration;
-class QNetworkReply;
-class QNetworkAccessManager;
 
 namespace libtorrent {
     class alert;
     class session_impl;
 }
 
-namespace Coin {
-    class UnspentP2PKHOutput;
-}
+namespace joystream {
+namespace extension {
 
-/**
-namespace boost {
-    template<class T> class shared_ptr;
-}
-*/
-
-class Plugin : public QObject, public libtorrent::plugin {
-
-    Q_OBJECT
+class Plugin : public libtorrent::plugin {
 
 public:
 
@@ -97,13 +76,10 @@ public:
     };
 
     // Constructor
-    Plugin(joystream::bitcoin::SPVWallet * wallet, QLoggingCategory & category);
+    Plugin();
 
     // Destructor
     ~Plugin();
-
-    // Returns controller
-    //Controller * getController();
 
     /**
      * All virtual functions below should ONLY
@@ -121,34 +97,6 @@ public:
 
     // Return status of plugin
     Status status() const;
-
-    /**
-     * LOL ALL OFF THESE ARE FLAWED, OF COURSE
-     * IT THE VALUES HAVE TO ACCUMULATE FROM START,
-     * NO USE JUST COUNTING TORRENTS ALIVE NOW.
-     * MORONIC.
-     *
-
-    // Amount of funds (satoshies) received since start
-    // across all seller plugins
-    quint64 totalReceivedSinceStart() const;
-
-    // Amount of funds (satoshies) sent since start
-    quint64 totalSentSinceStart() const;
-
-    // Amount of funds (satoshies) presently locked
-    // in channels started during this session.
-    // Obviosuly does not include change in channels!
-    quint64 totalCurrentlyLockedInChannels() const;
-    */
-
-    /**
-     * Routines called by libtorrent network thread via tick() entry point on
-     * torrent plugins.
-     *
-     * THESE SHOULD NOT BE PUBLIC, RATHER MAKE THEM PRIVATE AND ADD FRIENDING WITH
-     * TORRENT/PEER PLUGIN TYPES
-    */
 
     // Setter routines which update status information
     quint64 registerReceivedFunds(quint64 value);
@@ -169,26 +117,12 @@ public:
 
 private:
 
-    // Wallet
-    joystream::bitcoin::SPVWallet * _wallet;
-
     // Libtorrent session.
     // Is set by added() libtorrent hook, not constructor
     libtorrent::aux::session_impl * _session;
 
-    // Maps info hash to pointer to torrent plugin,
-    //QMap<libtorrent::sha1_hash, boost::shared_ptr<libtorrent::torrent_plugin> > _plugins;
-    //QMap<libtorrent::sha1_hash, boost::shared_ptr<TorrentPlugin> > _plugins;
-
     QMap<libtorrent::sha1_hash, boost::weak_ptr<BuyerTorrentPlugin> > _buyerPlugins;
     QMap<libtorrent::sha1_hash, boost::weak_ptr<SellerTorrentPlugin> > _sellerPlugins;
-
-
-    // BitCoind wrapper
-    //BitCoindRPC::Client _btcClient;
-
-    // Logging category
-    QLoggingCategory & _category;
 
     // Has this plugin been added to session.
     // Do not use the _session pointer before this.
@@ -229,25 +163,9 @@ private:
 
     // Send alert to session object
     void sendAlertToSession(const libtorrent::alert & alert);
-
-    /**
-     * Status
-     */
-
-    // void processStatus();
-    // QNetworkReply * _getBalanceReply;
-
-    // Amount of funds (satoshies) received since start
-    quint64 _totalReceivedSinceStart;
-
-    // Amount of funds (satoshies) sent since start
-    quint64 _totalSentSinceStart;
-
-    // Amount of funds (satoshies) presently locked
-    // in channels started during this session.
-    // Obviosuly does not include change in channels!
-    quint64 _totalCurrentlyLockedInChannels;
-
 };
+
+}
+}
 
 #endif
