@@ -65,10 +65,6 @@ DEPENDPATH += $$PWD/../extension/include
 INCLUDEPATH += $$PWD/../blockcypher/include
 DEPENDPATH += $$PWD/../blockcypher/include
 
-# wallet
-INCLUDEPATH += $$PWD/../wallet/include
-DEPENDPATH += $$PWD/../wallet/include
-
 # common
 INCLUDEPATH += $$PWD/../common/include
 DEPENDPATH += $$PWD/../common/include

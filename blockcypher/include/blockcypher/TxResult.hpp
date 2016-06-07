@@ -12,7 +12,7 @@
 
 #include <set>
 
-namespace BlockCypher {
+namespace blockcypher {
 
 class TxResult {
 

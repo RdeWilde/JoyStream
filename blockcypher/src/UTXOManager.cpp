@@ -10,7 +10,7 @@
 
 #include <common/P2PKHScriptPubKey.hpp>
 
-namespace BlockCypher {
+namespace blockcypher {
 
     UTXOManager::UTXOManager(WebSocketClient * wsclient, Coin::Network network)
         : _wsClient(wsclient),

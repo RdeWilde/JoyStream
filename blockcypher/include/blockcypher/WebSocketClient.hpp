@@ -33,7 +33,7 @@ namespace Coin {
 #define BLOCKCYPHER_TESTNET3_SOCKET_ENDPOINT "wss://socket.blockcypher.com/v1/btc/test3"
 #define PING_MS_INTERVAL 12000 // 12s
 
-namespace BlockCypher {
+namespace blockcypher {
 
     class TX;
 

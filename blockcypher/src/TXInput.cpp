@@ -15,7 +15,7 @@
 #include <CoinCore/CoinNodeData.h>
 #include <stdutils/uchar_vector.h>
 
-namespace BlockCypher {
+namespace blockcypher {
 
     TXInput::TXInput(const QJsonObject & o) {
 

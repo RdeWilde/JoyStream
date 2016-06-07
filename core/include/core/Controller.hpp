@@ -15,7 +15,6 @@
 #include <core/controller/Stream.hpp>
 
 #include <bitcoin/SPVWallet.hpp>
-#include <bitcoin/BlockCypherWallet.hpp>
 
 #include <libtorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>

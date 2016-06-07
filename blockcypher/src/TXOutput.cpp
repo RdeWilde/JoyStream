@@ -15,7 +15,7 @@
 
 #include <CoinCore/CoinNodeData.h>
 
-namespace BlockCypher {
+namespace blockcypher {
 
     TXOutput::TXOutput(const QJsonObject & o) {
 

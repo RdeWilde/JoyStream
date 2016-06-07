@@ -11,7 +11,7 @@
 #include <common/typesafeOutPoint.hpp>
 #include <common/P2PKHAddress.hpp>
 
-namespace BlockCypher {
+namespace blockcypher {
 
 class UTXO {
 

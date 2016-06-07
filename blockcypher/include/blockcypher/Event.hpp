@@ -20,7 +20,7 @@ namespace Coin {
     class TransactionId;
 }
 
-namespace BlockCypher {
+namespace blockcypher {
 
 class Event {
 

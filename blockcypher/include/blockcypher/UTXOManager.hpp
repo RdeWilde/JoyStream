@@ -22,7 +22,7 @@
 
 #include <QObject>
 
-namespace BlockCypher {
+namespace blockcypher {
 
 class UTXOManager : public QObject
 {

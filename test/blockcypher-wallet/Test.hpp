@@ -15,7 +15,7 @@ namespace Coin {
     class Transaction;
 }
 
-namespace BlockCypher {
+namespace blockcypher {
     class Client;
     class WebSocketClient;
 }
@@ -37,9 +37,9 @@ class Test : public QObject
 
     QNetworkAccessManager _manager;
 
-    BlockCypher::Client * _client;
+    blockcypher::Client * _client;
 
-    BlockCypher::WebSocketClient *_wsClient;
+    blockcypher::WebSocketClient *_wsClient;
 
     joystream::bitcoin::BlockCypherWallet *_wallet;
 

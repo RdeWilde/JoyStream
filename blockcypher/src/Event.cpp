@@ -10,7 +10,7 @@
 
 #include <QDebug>
 
-namespace BlockCypher {
+namespace blockcypher {
 
     Event::Type Event::stringToType(const QString &s) {
 

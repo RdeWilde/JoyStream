@@ -4,8 +4,8 @@ namespace joystream {
 namespace bitcoin {
 
 BlockCypherWallet::BlockCypherWallet(QString storePath, Coin::Network network,
-                                     BlockCypher::Client * restClient,
-                                     BlockCypher::WebSocketClient * wsClient) :
+                                     blockcypher::Client * restClient,
+                                     blockcypher::WebSocketClient * wsClient) :
     _storePath(storePath.toStdString()),
     _network(network),
     _restClient(restClient),
@@ -16,9 +16,9 @@ BlockCypherWallet::BlockCypherWallet(QString storePath, Coin::Network network,
         throw std::runtime_error("client network mistmatch");
     }
 
-    _utxoManager = BlockCypher::UTXOManager::createManager(_wsClient, network);
+    _utxoManager = blockcypher::UTXOManager::createManager(_wsClient, network);
 
-    QObject::connect(_utxoManager, &BlockCypher::UTXOManager::balanceChanged,
+    QObject::connect(_utxoManager, &blockcypher::UTXOManager::balanceChanged,
                      this, &BlockCypherWallet::BalanceChanged);
 }
 
@@ -109,11 +109,11 @@ BlockCypherWallet::GetReceiveAddress()
 std::list<Coin::UnspentP2PKHOutput>
 BlockCypherWallet::GetUnspentOutputs(uint64_t minValue, uint32_t minimalConfirmatinos)
 {
-    std::set<BlockCypher::UTXO> utxos = _utxoManager->getUtxoSet(minValue, minimalConfirmatinos);
+    std::set<blockcypher::UTXO> utxos = _utxoManager->getUtxoSet(minValue, minimalConfirmatinos);
 
     std::list<Coin::UnspentP2PKHOutput> unspentOutputs;
 
-    for (const BlockCypher::UTXO &utxo : utxos) {
+    for (const blockcypher::UTXO &utxo : utxos) {
         Coin::PrivateKey sk;
         if(_store.loadKey(Coin::P2PKHAddress::fromBase58CheckEncoding(utxo.address()), sk)) {
             Coin::KeyPair keypair(sk);
@@ -126,7 +126,7 @@ BlockCypherWallet::GetUnspentOutputs(uint64_t minValue, uint32_t minimalConfirma
 }
 
 Coin::UnspentP2PKHOutput BlockCypherWallet::GetOneUnspentOutput(uint64_t minValue) {
-    BlockCypher::UTXO utxo = _utxoManager->getOneUtxo(minValue);
+    blockcypher::UTXO utxo = _utxoManager->getOneUtxo(minValue);
 
     // If no utxo found with required min value return empty result
     if(utxo.value() == 0)
@@ -143,10 +143,10 @@ Coin::UnspentP2PKHOutput BlockCypherWallet::GetOneUnspentOutput(uint64_t minValu
 
 void BlockCypherWallet::ReleaseUnspentOutputs(const std::list<Coin::UnspentP2PKHOutput> outputs)
 {
-    std::set<BlockCypher::UTXO> utxos;
+    std::set<blockcypher::UTXO> utxos;
 
     for (auto & output : outputs) {
-        BlockCypher::UTXO utxo(output.keyPair().pk().toP2PKHAddress(_network).toBase58CheckEncoding(),
+        blockcypher::UTXO utxo(output.keyPair().pk().toP2PKHAddress(_network).toBase58CheckEncoding(),
                                output.outPoint(), output.value());
         utxos.insert(utxo);
     }

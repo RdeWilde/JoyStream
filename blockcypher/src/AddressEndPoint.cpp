@@ -34,7 +34,7 @@ void Reply::processReply() {
 
             _response = BlockCypherResponse::Fetched;
 
-            for(QJsonObject & obj : BlockCypher::rawToQJsonObjects(_rawResponse)) {
+            for(QJsonObject & obj : blockcypher::rawToQJsonObjects(_rawResponse)) {
                 _addresses.push_back(Address(obj));
             }
 
