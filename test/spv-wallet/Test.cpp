@@ -421,5 +421,53 @@ void Test::UsingOptionalDataInP2SHSpend() {
     QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(95000));
 }
 
+void Test::FinanceTxFromMultipleSets() {
+    _walletA->create();
+    _walletB->create();
+
+    Coin::P2SHAddress addrA = _walletA->generateReceiveAddress();
+    Coin::P2SHAddress addrB = _walletB->generateReceiveAddress();
+
+    bitcoin_rpc("sendtoaddress " + addrA.toBase58CheckEncoding().toStdString() + " 0.00050");
+    bitcoin_rpc("sendtoaddress " + addrA.toBase58CheckEncoding().toStdString() + " 0.00050");
+    bitcoin_rpc("generate 1");
+
+    QSignalSpy synchedA(_walletA, SIGNAL(synched()));
+
+    _walletA->sync("localhost", 18444);
+
+    QTRY_VERIFY_WITH_TIMEOUT(synchedA.count() > 0, 10000);
+
+    QSignalSpy synchedB(_walletB, SIGNAL(synched()));
+
+    _walletB->sync("localhost", 18444);
+
+    QTRY_VERIFY_WITH_TIMEOUT(synchedB.count() > 0, 10000);
+
+    QSignalSpy spy_balance_changedA(_walletA, SIGNAL(balanceChanged(uint64_t, uint64_t)));
+    QSignalSpy spy_balance_changedB(_walletB, SIGNAL(balanceChanged(uint64_t, uint64_t)));
+
+    auto utxoSet1(_walletA->lockOutputs(50000));
+    auto utxoSet2(_walletA->lockOutputs(50000));
+
+    Coin::Transaction tx;
+
+    tx.addOutput(Coin::TxOut(70000, addrB.toP2SHScriptPubKey().serialize())); // to walletB
+    tx.addOutput(Coin::TxOut(25000, addrA.toP2SHScriptPubKey().serialize())); // change
+
+    utxoSet1.finance(tx, Coin::SigHashType(Coin::SigHashType::MutuallyExclusiveType::all, true));
+    utxoSet2.finance(tx, Coin::SigHashType(Coin::SigHashType::MutuallyExclusiveType::all, true));
+
+    _walletA->broadcastTx(tx);
+
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedA.count() > 0, 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(spy_balance_changedB.count() > 0, 10000);
+
+    QCOMPARE(_walletB->unconfirmedBalance(), uint64_t(70000));
+
+    QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(25000));
+
+}
+
 QTEST_MAIN(Test)
 #include "moc_Test.cpp"

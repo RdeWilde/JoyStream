@@ -51,6 +51,7 @@ private slots:
     void Utxo();
     void BroadcastingTx();
     void UsingOptionalDataInP2SHSpend();
+    void FinanceTxFromMultipleSets();
 
     // Will be called at the end of all tests
     void cleanupTestCase();
