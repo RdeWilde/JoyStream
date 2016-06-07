@@ -297,7 +297,7 @@ void Test::Utxo() {
 
     QCOMPARE(_walletA->unconfirmedBalance(), uint64_t(175000));
 
-    std::list<std::shared_ptr<Coin::UnspentOutput>> lockedOutputs;
+    Coin::UnspentOutputSet lockedOutputs;
 
     // Check existence of all UTXOs
     {

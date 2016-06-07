@@ -362,7 +362,7 @@ SPVWallet::lockOutputs(uint64_t minValue, uint32_t minimalConfirmations, const S
     return selectedOutputs;
 }
 
-uint SPVWallet::unlockOutputs(const std::list<std::shared_ptr<Coin::UnspentOutput>> outputs) {
+uint SPVWallet::unlockOutputs(const Coin::UnspentOutputSet &outputs) {
     std::lock_guard<std::mutex> lock(_utxoMutex);
 
     uint unlockedCount = 0;
