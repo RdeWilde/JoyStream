@@ -23,6 +23,15 @@ uint64_t UnspentOutputSet::value() const {
 
 void UnspentOutputSet::finance(Transaction & cointx, const SigHashType & sigHashType) const {
 
+    // If any Utxo has already been spent in the transaction throw an error
+    for(auto & input : cointx.inputs) {
+        // Find associated utxo
+        auto utxo = outputFromOutPoint(input.previousOut);
+        if(utxo) {
+            throw std::runtime_error("The transaction is already financed by a utxo in the set");
+        }
+    }
+
     // To allow for ability to finance a transaction from multiple sets, we will not clear the inputs of the transaction.
     // For transactions which will be signed without ANYONE_CAN_PAY
     // the transaction is expected to have no inputs
@@ -58,7 +67,6 @@ void UnspentOutputSet::finance(Transaction & cointx, const SigHashType & sigHash
             input.scriptSig = utxo->scriptSig(cointx, sigHashType);
         }
     }
-
 }
 
 std::shared_ptr<UnspentOutput> UnspentOutputSet::outputFromOutPoint(const Coin::OutPoint & outpoint) const {
