@@ -1,0 +1,5 @@
+#ifndef EXTENSION_HPP
+#define EXTENSION_HPP
+
+#endif // EXTENSION_HPP
+
