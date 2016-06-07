@@ -395,9 +395,10 @@ namespace detail {
     template <class ConnectionIdType>
     void Buying<ConnectionIdType>::updateTerms(const protocol_wire::BuyerTerms & terms) {
 
-        // We cant change terms when we are actually downloading
+        // If we change terms when we are actually downloading,
+        // then politely compensate sellers
         if(_state == BuyingState::downloading)
-            throw exception::StateIncompatibleOperation("cannot update terms while downloading.");
+            politeSellerCompensation();
 
         // Notify existing peers
         for(auto itr : _session->_connections)
