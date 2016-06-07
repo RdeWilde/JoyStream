@@ -326,7 +326,7 @@ int32_t SPVWallet::bestHeight() const {
 }
 
 Coin::UnspentOutputSet
-SPVWallet::lockOutputs(uint64_t minValue, uint32_t minimalConfirmations, const Store::ScriptSelector &scriptSelector) {
+SPVWallet::lockOutputs(uint64_t minValue, uint32_t minimalConfirmations, const Store::RedeemScriptFilter &scriptFilter) {
     if(!isInitialized()) {
         throw std::runtime_error("wallet not initialized");
     }
@@ -336,7 +336,7 @@ SPVWallet::lockOutputs(uint64_t minValue, uint32_t minimalConfirmations, const S
     Coin::UnspentOutputSet selectedOutputs;
 
     // Assume outputs are sorted in descending value
-    std::list<std::shared_ptr<Coin::UnspentOutput>> unspentOutputs(_store.getUnspentTransactionsOutputs(minimalConfirmations, bestHeight(), scriptSelector));
+    std::list<std::shared_ptr<Coin::UnspentOutput>> unspentOutputs(_store.getUnspentTransactionsOutputs(minimalConfirmations, bestHeight(), scriptFilter));
 
     for(std::shared_ptr<Coin::UnspentOutput> & utxo : unspentOutputs) {
         if(_lockedOutpoints.find(utxo->outPoint()) != _lockedOutpoints.end()) continue;

@@ -80,7 +80,7 @@ public:
 
     std::list<Coin::P2SHAddress> listAddresses();
 
-    Coin::UnspentOutputSet lockOutputs(uint64_t minValue, uint32_t minimalConfirmations = 0, const Store::ScriptSelector &scriptSelector = nullptr);
+    Coin::UnspentOutputSet lockOutputs(uint64_t minValue, uint32_t minimalConfirmations = 0, const Store::RedeemScriptFilter &scriptFilter = nullptr);
     uint unlockOutputs(const std::list<std::shared_ptr<Coin::UnspentOutput>> outputs);
 
     uint64_t balance() const;
