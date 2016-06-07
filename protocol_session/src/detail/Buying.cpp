@@ -39,6 +39,7 @@ namespace detail {
         , _fullPieceArrived(fullPieceArrived)
         , _funding(funding)
         , _policy(policy)
+        , _state(BuyingState::sending_invitations)
         , _terms(terms)
         , _numberOfMissingPieces(0)
         , _assignmentLowerBound(0) {
