@@ -1,5 +1,21 @@
-#ifndef EXTENSION_HPP
-#define EXTENSION_HPP
+/**
+ * Copyright (C) JoyStream - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 7 2016
+ */
 
-#endif // EXTENSION_HPP
+#ifndef JOYSTREAM_EXTENSION_HPP
+#define JOYSTREAM_EXTENSION_HPP
 
+#include <extension/BEPSupportStatus.hpp>
+#include <extension/ExtendedMessageIdMapping.hpp>
+#include <extension/ExtendedMessageTools.hpp>
+#include <extension/PeerPlugin.hpp>
+#include <extension/Plugin.hpp>
+#include <extension/PluginStatus.hpp>
+#include <extension/TorrentPlugin.hpp>
+#include <extension/request/request.hpp>
+#include <extension/alert/alert.hpp>
+
+#endif // JOYSTREAM_EXTENSION_HPP
