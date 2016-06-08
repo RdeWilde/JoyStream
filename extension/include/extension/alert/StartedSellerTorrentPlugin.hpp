@@ -9,8 +9,6 @@
 #define EXTENSION_STARTED_SELLER_TORRENT_PLUGIN_HPP
 
 #include <extension/alert/AlertTypes.hpp>
-#include <extension/SellerTorrentPluginConfiguration.hpp>
-#include <extension/SellerTorrentPluginStatus.hpp>
 
 #include <libtorrent/alert.hpp>
 #include <libtorrent/sha1_hash.hpp>

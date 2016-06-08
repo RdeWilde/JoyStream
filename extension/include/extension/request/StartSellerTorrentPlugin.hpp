@@ -9,7 +9,6 @@
 #define JOYSTREAM_EXTENSION_REQUEST_START_SELLER_TORRENT_PLUGIN_HPP
 
 #include <extension/request/PluginRequest.hpp>
-#include <extension/SellerTorrentPluginConfiguration.hpp>
 #include <libtorrent/sha1_hash.hpp>
 
 namespace joystream {
