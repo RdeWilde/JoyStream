@@ -8,7 +8,7 @@
 #ifndef COIN_PAYMENT_HPP
 #define COIN_PAYMENT_HPP
 
-#include <common/PubKeyHash.hpp>
+#include <common/RedeemScriptHash.hpp>
 
 namespace Coin {
 
@@ -21,17 +21,17 @@ namespace Coin {
 
         Payment();
 
-        Payment(int64_t value, const Coin::PubKeyHash & destination);
+        Payment(int64_t value, const Coin::RedeemScriptHash & destination);
 
-        // Corresponding P2PKH transaction output
+        // Corresponding P2SH transaction output
         Coin::TxOut txOut() const;
 
         // Getters and setters
         int64_t value() const;
         void setValue(int64_t value);
 
-        Coin::PubKeyHash destination() const;
-        void setDestination(const Coin::PubKeyHash & destination);
+        Coin::RedeemScriptHash destination() const;
+        void setDestination(const Coin::RedeemScriptHash & destination);
 
     private:
 
@@ -39,7 +39,7 @@ namespace Coin {
         int64_t _value;
 
         // Recipient
-        Coin::PubKeyHash _destination;
+        Coin::RedeemScriptHash _destination;
 
     };
 

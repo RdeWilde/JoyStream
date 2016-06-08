@@ -6,7 +6,7 @@
  */
 
 #include <common/Payment.hpp>
-#include <common/P2PKHScriptPubKey.hpp>
+#include <common/P2SHScriptPubKey.hpp>
 #include <CoinCore/CoinNodeData.h> // Coin::TxOut
 
 namespace Coin {
@@ -15,14 +15,14 @@ Payment::Payment()
     : _value(0) {
 }
 
-Payment::Payment(int64_t value, const Coin::PubKeyHash & destination)
+Payment::Payment(int64_t value, const RedeemScriptHash &destination)
     : _value(value)
     , _destination(destination){
 
 }
 
 Coin::TxOut Payment::txOut() const {
-    return Coin::TxOut(_value, Coin::P2PKHScriptPubKey(_destination).serialize());
+    return Coin::TxOut(_value, Coin::P2SHScriptPubKey(_destination).serialize());
 }
 
 int64_t Payment::value() const {
@@ -33,11 +33,11 @@ void Payment::setValue(int64_t value) {
     _value = value;
 }
 
-Coin::PubKeyHash Payment::destination() const {
+Coin::RedeemScriptHash Payment::destination() const {
     return _destination;
 }
 
-void Payment::setDestination(const Coin::PubKeyHash & destination) {
+void Payment::setDestination(const RedeemScriptHash &destination) {
     _destination = destination;
 }
 
