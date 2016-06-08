@@ -218,4 +218,55 @@ namespace Coin {
         return serialized;
 
     }
+
+    // Borrowed from bitcoin core Script.h CScript::serialize
+    uchar_vector serializeScriptNum(const int64_t& value) {
+       if(value == 0)
+           return uchar_vector();
+
+       uchar_vector result;
+       const bool neg = value < 0;
+       uint64_t absvalue = neg ? -value : value;
+
+       while(absvalue)
+       {
+           result.push_back(absvalue & 0xff);
+           absvalue >>= 8;
+       }
+
+//    - If the most significant byte is >= 0x80 and the value is positive, push a
+//    new zero-byte to make the significant byte < 0x80 again.
+
+//    - If the most significant byte is >= 0x80 and the value is negative, push a
+//    new 0x80 byte that will be popped off when converting to an integral.
+
+//    - If the most significant byte is < 0x80 and the value is negative, add
+//    0x80 to it, since it will be subtracted and interpreted as a negative when
+//    converting to an integral.
+
+       if (result.back() & 0x80)
+           result.push_back(neg ? 0x80 : 0);
+       else if (neg)
+           result.back() |= 0x80;
+
+       return result;
+    }
+
+    // Borrowed from bitcoin core Script.h CScript::set_vch
+    int64_t deserializeScriptNum(const uchar_vector & vch)
+    {
+        if (vch.empty())
+         return 0;
+
+        int64_t result = 0;
+        for (size_t i = 0; i != vch.size(); ++i)
+         result |= static_cast<int64_t>(vch[i]) << 8*i;
+
+        // If the input vector's most significant byte is 0x80, remove it from
+        // the result's msb and return a negative.
+        if (vch.back() & 0x80)
+         return -((int64_t)(result & ~(0x80ULL << (8 * (vch.size() - 1)))));
+
+        return result;
+    }
 }

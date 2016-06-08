@@ -117,5 +117,6 @@ namespace Coin {
 
     class PrivateKey;
 
+    uchar_vector serializeScriptNum(const int64_t& value);
 }
 #endif // COIN_UTILITIES_HPP
