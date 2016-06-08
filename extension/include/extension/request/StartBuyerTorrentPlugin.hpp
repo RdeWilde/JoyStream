@@ -9,8 +9,7 @@
 #define START_BUYER_TORRENT_PLUGIN_HPP
 
 #include <extension/request/PluginRequest.hpp>
-#include <extension/BuyerTorrentPluginConfiguration.hpp>
-#include <common/UnspentP2PKHOutput.hpp>
+//#include <common/UnspentP2PKHOutput.hpp>
 
 #include <libtorrent/sha1_hash.hpp>
 

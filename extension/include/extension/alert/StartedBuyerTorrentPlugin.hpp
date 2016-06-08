@@ -10,8 +10,6 @@
 
 #include <extension/alert/AlertTypes.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
-#include <extension/BuyerTorrentPluginConfiguration.hpp>
-#include <extension/BuyerTorrentPluginStatus.hpp>
 
 #include <libtorrent/alert.hpp>
 #include <libtorrent/sha1_hash.hpp>
