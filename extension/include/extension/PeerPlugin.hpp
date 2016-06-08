@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef JOYSTREAM_EXTENSION_PEER_PLUGIN_HPP
-#define JOYSTREAM_EXTENSION_PEER_PLUGIN_HPP
+#ifndef JOYSTREAM_EXTENSION_PEERPLUGIN_HPP
+#define JOYSTREAM_EXTENSION_PEERPLUGIN_HPP
 
 #include <extension/BEPSupportStatus.hpp>
 #include <extension/ExtendedMessageIdMapping.hpp>
@@ -22,98 +22,91 @@
 #include <libtorrent/buffer.hpp>
 #include <libtorrent/peer_id.hpp> // sha1_hash
 
-#include <string> // can't forward declare std::string
+#include <string>
+#include <chrono>
 
 namespace joystream {
+namespace protocol_wire {
+    class ExtendedMessagePayload;
+}
 namespace extension {
+namespace status {
+    struct PeerPlugin;
+}
 
     class TorrentPlugin;
 
-    /**
-     * @brief Abstract parent type for peer plugins, in seller, buyer and observer mode.
-     */
     class PeerPlugin : public libtorrent::peer_plugin {
 
     public:
 
-        // Constructor
         PeerPlugin(TorrentPlugin * plugin,
                    libtorrent::bt_peer_connection * connection,
                    const std::string & bep10ClientIdentifier);
+
+        virtual ~PeerPlugin();
 
         /**
          * All virtual functions below should ONLY be called by libtorrent network thread,
          * never by other threads, as this causes synchronization failures.
          */
-        // Destructor
-        virtual ~PeerPlugin() = 0;
 
         // Libtorrent callback
-        virtual char const* type() const = 0;
+        virtual char const* type() const;
         virtual void add_handshake(libtorrent::entry & handshake);
-        virtual void on_disconnect(libtorrent::error_code const & ec) = 0;
-        virtual void on_connected() = 0;
+        virtual void on_disconnect(libtorrent::error_code const & ec);
+        virtual void on_connected();
         virtual bool on_handshake(char const* reserved_bits);
         virtual bool on_extension_handshake(libtorrent::lazy_entry const & handshake);
         //virtual bool on_extension_handshake(libtorrent::bdecode_node const&);
-        virtual bool on_have(int index) = 0;
-        virtual bool on_bitfield(libtorrent::bitfield const & bitfield) = 0;
-        virtual bool on_have_all() = 0;
-        virtual bool on_reject(libtorrent::peer_request const & peerRequest) = 0;
-        virtual bool on_request(libtorrent::peer_request const & peerRequest) = 0;
-        virtual bool on_unchoke() = 0;
-        virtual bool on_interested() = 0;
-        virtual bool on_allowed_fast(int index) = 0;
-        virtual bool on_have_none() = 0;
-        virtual bool on_choke() = 0;
-        virtual bool on_not_interested() = 0;
-        virtual bool on_piece(libtorrent::peer_request const & piece, libtorrent::disk_buffer_holder & data) = 0;
-        virtual bool on_suggest(int index) = 0;
-        virtual bool on_cancel(libtorrent::peer_request const & peerRequest) = 0;
-        virtual bool on_dont_have(int index) = 0;
-        virtual void sent_unchoke() = 0;
-        virtual bool can_disconnect(libtorrent::error_code const & ec) = 0;
+        virtual bool on_have(int index);
+        virtual bool on_bitfield(libtorrent::bitfield const & bitfield);
+        virtual bool on_have_all();
+        virtual bool on_reject(libtorrent::peer_request const & peerRequest);
+        virtual bool on_request(libtorrent::peer_request const & peerRequest);
+        virtual bool on_unchoke();
+        virtual bool on_interested();
+        virtual bool on_allowed_fast(int index);
+        virtual bool on_have_none();
+        virtual bool on_choke();
+        virtual bool on_not_interested();
+        virtual bool on_piece(libtorrent::peer_request const & piece, libtorrent::disk_buffer_holder & data);
+        virtual bool on_suggest(int index);
+        virtual bool on_cancel(libtorrent::peer_request const & peerRequest);
+        virtual bool on_dont_have(int index);
+        virtual void sent_unchoke();
+        virtual bool can_disconnect(libtorrent::error_code const & ec);
         virtual bool on_extended(int length, int msg, libtorrent::buffer::const_interval body);
-        virtual bool on_unknown_message(int length, int msg, libtorrent::buffer::const_interval body) = 0;
-        virtual void on_piece_pass(int index) = 0;
-        virtual void on_piece_failed(int index) = 0;
-        virtual void tick() = 0;
-        virtual bool write_request(libtorrent::peer_request const & peerRequest) = 0;
+        virtual bool on_unknown_message(int length, int msg, libtorrent::buffer::const_interval body);
+        virtual void on_piece_pass(int index);
+        virtual void on_piece_failed(int index);
+        virtual void tick();
+        virtual bool write_request(libtorrent::peer_request const & peerRequest);
 
         /**
          * Subroutines for libtorrent thread.
          */
 
-        // Processig routine for peer plugin requests, request pointer is owned by plugin dispatcher
-        //void processPeerPluginRequest(const PeerPluginRequest * peerPluginRequest);
-
         // Sends extended message to peer, does not take ownership of pointer
-        void sendExtendedMessage(const joystream::protocol::ExtendedMessagePayload & extendedMessage);
+        void send(const joystream::protocol_wire::ExtendedMessagePayload & extendedMessage);
 
-        // Determines the message type, calls correct handler, then frees message
-        void processExtendedMessage(joystream::protocol::ExtendedMessagePayload * extendedMessage);
+        status::PeerPlugin status() const;
 
         // Getters
         libtorrent::bt_peer_connection * connection();
 
         bool peerTimedOut(int maxDelay) const;
+
         BEPSupportStatus peerBEP10SupportStatus() const;
+
         BEPSupportStatus peerBitSwaprBEPSupportStatus() const;
+
         libtorrent::tcp::endpoint endPoint() const;
 
-        bool connectionAlive() const;
-        bool lastReceivedMessageWasMalformed() const;
-        virtual PluginMode mode() const = 0;
-        virtual quint64 balance() const = 0;
-
-        PeerModeAnnounced peerModeAnnounced() const;
-        void setPeerModeAnnounced(PeerModeAnnounced peerModeAnnounced);
-
-        bool scheduledForDeletingInNextTorrentPluginTick() const;
-        void setScheduledForDeletingInNextTorrentPluginTick(bool scheduledForDeletingInNextTorrentPluginTick);
-
+        /**
         libtorrent::error_code deletionErrorCode() const;
         void setDeletionErrorCode(const libtorrent::error_code &deletionErrorCode);
+        */
 
     private:
 
@@ -130,14 +123,11 @@ namespace extension {
         libtorrent::tcp::endpoint _endPoint;
 
         // Time since last message was sent to peer, is used to judge if peer has timed out
-        QTime _timeSinceLastMessageSent;
+        //std::chrono::time_point<std::chrono::system_clock> _whenLastMessageSent;
 
-        // Last message arriving in on_extended() which was malformed accoridng
+        // Last message arriving in on_extended() which was malformed according
         // to ExtendedMessagePayload::fromRaw().
-        bool _lastReceivedMessageWasMalformed;
-
-        // Last message was not compatible with state of plugin
-        bool _lastMessageWasStateIncompatible;
+        //bool _lastReceivedMessageWasMalformed;
 
         // Set when peer plugin should be disconnected and deleted by corresponding torrent plugin
         //bool _scheduledForDeletingInNextTorrentPluginTick;
@@ -159,4 +149,4 @@ namespace extension {
 }
 }
 
-#endif // JOYSTREAM_EXTENSION_PEER_PLUGIN_HPP
+#endif // JOYSTREAM_EXTENSION_PEERPLUGIN_HPP
