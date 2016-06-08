@@ -227,22 +227,6 @@ void TorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) {
     _outstandingPieceRequests.remove(alert->piece);
 }
 
-void TorrentPlugin::addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint) {
-    _TorrentPlugin::peersWithoutExtension.insert(endPoint);
-}
-
-void TorrentPlugin::addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint) {
-    _irregularPeer.insert(endPoint);
-}
-
-boost::shared_ptr<libtorrent::torrent> TorrentPlugin::torrent() const {
-    return _torrent;
-}
-
-void TorrentPlugin::setTorrent(const boost::shared_ptr<libtorrent::torrent> &torrent) {
-    _torrent = torrent;
-}
-
 bool TorrentPlugin::isPeerWellBehaved(libtorrent::peer_connection * connection) const {
 
     // Get endpoint of connection
@@ -279,15 +263,58 @@ void TorrentPlugin::sendTorrentPluginAlert(const alert::TorrentPluginAlert & ale
     //_torrent->alerts().emplace_alert(alert);
 }
 
-bool TorrentPlugin::enableBanningSets() const
-{
-    return _enableBanningSets;
+void TorrentPlugin::remove(const libtorrent::tcp::endpoint &, protocol_session::DisconnectCause) {
+
+    // if not peer not in peers map, then just return: may be due to
+    // on_disconnect triggered by our own call at some earlier point
+
+    // if cause needs to be recorded, record
+
+    // call on corresponding peer to disconnect
+
+    // remove from map
+
 }
 
-void TorrentPlugin::setEnableBanningSets(bool enableBanningSets)
-{
-    _enableBanningSets = enableBanningSets;
+//
+std::vector<Coin::KeyPair> TorrentPlugin::generateKeyPairsCallbackHandler(int) {
+
 }
+
+//
+std::vector<Coin::P2PKHAddress> TorrentPlugin::generateP2PKHAddressesCallbackHandler(int) {
+
+}
+
+//// Buying hooks
+
+//
+bool TorrentPlugin::broadcastTransaction(const Coin::Transaction &) {
+
+}
+
+//
+void TorrentPlugin::fullPieceArrived(const libtorrent::tcp::endpoint &, const protocol_wire::PieceData &, int) {
+
+}
+
+//// Selling hooks
+
+//
+void TorrentPlugin::loadPieceForBuyer(const libtorrent::tcp::endpoint &, unsigned int) {
+
+}
+
+//
+void TorrentPlugin::claimLastPayment(const libtorrent::tcp::endpoint &, const joystream::paymentchannel::Payee &) {
+
+}
+
+// Buyer with given connection id announced anchor
+void TorrentPlugin::anchorAnnounced(const libtorrent::tcp::endpoint &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &) {
+
+}
+
 
 }
 }
