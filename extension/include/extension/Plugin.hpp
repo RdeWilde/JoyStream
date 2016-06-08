@@ -5,8 +5,10 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef PLUGIN_HPP
-#define PLUGIN_HPP
+#ifndef JOYSTREAM_EXTENSION_PLUGIN_HPP
+#define JOYSTREAM_EXTENSION_PLUGIN_HPP
+
+#include <extension/TorrentPlugin.hpp>
 
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
@@ -19,15 +21,11 @@
 
 #include <boost/weak_ptr.hpp>
 
-// Forward declaration
 class Controller;
 class TorrentPlugin;
-class SellerTorrentPlugin;
-class BuyerTorrentPlugin;
 class PluginRequest;
 class TorrentPluginRequest;
 class PeerPluginRequest;
-class TorrentPluginConfiguration;
 
 namespace libtorrent {
     class alert;
@@ -41,51 +39,14 @@ class Plugin : public libtorrent::plugin {
 
 public:
 
-    class Status {
-
-    public:
-
-        // Default constructor
-        Status();
-
-        // Constructor from members
-        Status(quint64 totalReceivedSinceStart, quint64 totalSentSinceStart, quint64 _totalCurrentlyLockedInChannels);
-
-        // Getters and setters
-        quint64 totalReceivedSinceStart() const;
-        void setTotalReceivedSinceStart(quint64 totalReceivedSinceStart);
-
-        quint64 totalSentSinceStart() const;
-        void setTotalSentSinceStart(quint64 totalSentSinceStart);
-
-        quint64 totalCurrentlyLockedInChannels() const;
-        void setTotalCurrentlyLockedInChannels(quint64 totalCurrentlyLockedInChannels);
-
-    private:
-
-        // Amount of funds (satoshies) received since start
-        quint64 _totalReceivedSinceStart;
-
-        // Amount of funds (satoshies) sent since start
-        quint64 _totalSentSinceStart;
-
-        // Amount of funds (satoshies) presently locked
-        // in channels started during this session.
-        // Obviosuly does not include change in channels!
-        quint64 _totalCurrentlyLockedInChannels;
-    };
-
-    // Constructor
     Plugin();
 
-    // Destructor
     ~Plugin();
 
     /**
-     * All virtual functions below should ONLY
-     * be called by libtorrent network thread,
-     * never by other threads, as this causes synchronization
-     * failures.
+     * All virtual functions below should only
+     * be called by libtorrent network thread, never by other threads,
+     * as this causes synchronization failures.
      */
     virtual void added(libtorrent::aux::session_impl * session);
     virtual void on_alert(libtorrent::alert const * a);
@@ -97,14 +58,6 @@ public:
 
     // Return status of plugin
     Status status() const;
-
-    // Setter routines which update status information
-    quint64 registerReceivedFunds(quint64 value);
-    quint64 registerSentFunds(quint64 value);
-    quint64 registerLockedInChannelsFunds(quint64 value);
-
-    quint64 registerUnLockedFromChannelFunds(quint64 value);
-
 
     /**
      * Synchronized routines called from controller by Qt thread.
@@ -118,15 +71,15 @@ public:
 private:
 
     // Libtorrent session.
-    // Is set by added() libtorrent hook, not constructor
+    // NB: Is set by added() libtorrent callback, not constructor
     libtorrent::aux::session_impl * _session;
-
-    QMap<libtorrent::sha1_hash, boost::weak_ptr<BuyerTorrentPlugin> > _buyerPlugins;
-    QMap<libtorrent::sha1_hash, boost::weak_ptr<SellerTorrentPlugin> > _sellerPlugins;
 
     // Has this plugin been added to session.
     // Do not use the _session pointer before this.
     bool _addedToSession;
+
+    // Maps torrent hash to corresponding plugin
+    std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > _plugins;
 
     /**
      * Request processing
@@ -168,4 +121,4 @@ private:
 }
 }
 
-#endif
+#endif // JOYSTREAM_EXTENSION_PLUGIN_HPP

@@ -8,66 +8,20 @@
 #include <extension/Plugin.hpp>
 #include <extension/TorrentPlugin.hpp>
 #include <extension/PeerPlugin.hpp>
-#include <extension/Request/PluginRequest.hpp>
-#include <extension/Request/TorrentPluginRequest.hpp>
-#include <extension/Request/PeerPluginRequest.hpp>
-#include <extension/Request/StartBuyerTorrentPlugin.hpp>
-#include <extension/Request/StartSellerTorrentPlugin.hpp>
-#include <extension/Request/ChangeDownloadLocation.hpp>
-#include <extension/Alert/PluginStatusAlert.hpp>
-#include <extension/Alert/StartedSellerTorrentPlugin.hpp>
-#include <extension/Alert/StartedBuyerTorrentPlugin.hpp>
-#include <extension/PluginMode.hpp>
+#include <extension/request/PluginRequest.hpp>
+#include <extension/request/TorrentPluginRequest.hpp>
+#include <extension/request/PeerPluginRequest.hpp>
+#include <extension/request/StartBuyerTorrentPlugin.hpp>
+#include <extension/request/StartSellerTorrentPlugin.hpp>
+#include <extension/request/ChangeDownloadLocation.hpp>
+#include <extension/alert/PluginStatusAlert.hpp>
+#include <extension/alert/StartedSellerTorrentPlugin.hpp>
+#include <extension/alert/StartedBuyerTorrentPlugin.hpp>
 
 #include <boost/shared_ptr.hpp>
 
 namespace joystream {
 namespace extension {
-
-/**
- * Plugin::Status
- */
-
-Plugin::Status::Status()
-    : _totalReceivedSinceStart(0)
-    , _totalSentSinceStart(0)
-    , _totalCurrentlyLockedInChannels(0) {
-}
-
-Plugin::Status::Status(quint64 totalReceivedSinceStart, quint64 totalSentSinceStart, quint64 totalCurrentlyLockedInChannels)
-    : _totalReceivedSinceStart(totalReceivedSinceStart)
-    , _totalSentSinceStart(totalSentSinceStart)
-    , _totalCurrentlyLockedInChannels(totalCurrentlyLockedInChannels){
-}
-
-quint64 Plugin::Status::totalCurrentlyLockedInChannels() const {
-    return _totalCurrentlyLockedInChannels;
-}
-
-void Plugin::Status::setTotalCurrentlyLockedInChannels(quint64 totalCurrentlyLockedInChannels) {
-    _totalCurrentlyLockedInChannels = totalCurrentlyLockedInChannels;
-}
-
-quint64 Plugin::Status::totalSentSinceStart() const {
-    return _totalSentSinceStart;
-}
-
-void Plugin::Status::setTotalSentSinceStart(quint64 totalSentSinceStart) {
-    _totalSentSinceStart = totalSentSinceStart;
-}
-
-quint64 Plugin::Status::totalReceivedSinceStart() const
-{
-    return _totalReceivedSinceStart;
-}
-
-void Plugin::Status::setTotalReceivedSinceStart(quint64 totalReceivedSinceStart) {
-    _totalReceivedSinceStart = totalReceivedSinceStart;
-}
-
-/**
- * Plugin
- */
 
 Plugin::Plugin()
     : _addedToSession(false)
@@ -90,7 +44,7 @@ Plugin::~Plugin() {
 
 void Plugin::added(libtorrent::aux::session_impl * session) {
 
-    qCDebug(_category) << "Plugin added to session.";
+    std::log << "Plugin added to session.";
 
     _session = session;
     _addedToSession = true;
@@ -151,30 +105,6 @@ Plugin::Status Plugin::status() const {
     return Plugin::Status(_totalReceivedSinceStart,
                           _totalSentSinceStart,
                           _totalCurrentlyLockedInChannels);
-}
-
-quint64 Plugin::registerReceivedFunds(quint64 value) {
-
-    _totalReceivedSinceStart += value;
-    return _totalReceivedSinceStart;
-}
-
-quint64 Plugin::registerSentFunds(quint64 value) {
-
-    _totalSentSinceStart += value;
-    return _totalSentSinceStart;
-}
-
-quint64 Plugin::registerLockedInChannelsFunds(quint64 value) {
-
-    _totalCurrentlyLockedInChannels += value;
-    return _totalCurrentlyLockedInChannels;
-}
-
-quint64 Plugin::registerUnLockedFromChannelFunds(quint64 value) {
-
-    _totalCurrentlyLockedInChannels -= value;
-    return _totalCurrentlyLockedInChannels;
 }
 
 void Plugin::removeTorrentPlugin(const libtorrent::sha1_hash & info_hash) {
@@ -333,9 +263,9 @@ void Plugin::processTorrentPluginRequest(const TorrentPluginRequest * torrentPlu
 
             const ChangeDownloadLocation * p = reinterpret_cast<const ChangeDownloadLocation *>(torrentPluginRequest);
 
-            Q_ASSERT(_buyerPlugins.contains(p->info_hash()));
+            Q_ASSERT(_plugins.contains(p->info_hash()));
 
-            if(boost::shared_ptr<BuyerTorrentPlugin> sharedPtr = _buyerPlugins[p->info_hash()].lock()) {
+            if(boost::shared_ptr<BuyerTorrentPlugin> sharedPtr = _plugins[p->info_hash()].lock()) {
 
                 // Should we check status of this plugin?
                 // if its not downloading, then this will have no effect anyway
@@ -408,7 +338,7 @@ bool Plugin::startTorrentPlugin(const libtorrent::sha1_hash & infoHash, const To
 bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration, const Coin::UnspentP2PKHOutput & utxo) {
 
     // Check that torrent does not already have a plugin installed
-    if(_sellerPlugins.contains(infoHash) || _buyerPlugins.contains(infoHash)) {
+    if(_sellerPlugins.contains(infoHash) || _plugins.contains(infoHash)) {
         qCDebug(_category) << "Torrent already has plugin installed, remove first.";
         Q_ASSERT(false);
         return false;
@@ -430,7 +360,7 @@ bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, con
         sharedTorrentPtr->add_extension(sharedPluginPtr);
 
         // Remember plugin
-        _buyerPlugins[infoHash] = boost::weak_ptr<BuyerTorrentPlugin>(sharedPluginPtr);
+        _plugins[infoHash] = boost::weak_ptr<BuyerTorrentPlugin>(sharedPluginPtr);
 
         // Notify controller
         sendAlertToSession(StartedBuyerTorrentPlugin(infoHash, configuration, utxo, buyerPlugin->status()));
@@ -449,7 +379,7 @@ bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, con
 bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration) {
 
     // Check that torrent does not already have a plugin installed
-    if(_sellerPlugins.contains(infoHash) || _buyerPlugins.contains(infoHash)) {
+    if(_sellerPlugins.contains(infoHash) || _plugins.contains(infoHash)) {
 
         qCDebug(_category) << "Torrent already has plugin installed, remove first.";
         Q_ASSERT(false);
