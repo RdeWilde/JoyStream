@@ -7,7 +7,7 @@
 
 #include <paymentchannel/Commitment.hpp>
 #include <common/P2SHScriptPubKey.hpp>
-#include <common/MultisigScriptPubKey.hpp>
+#include <paymentchannel/RedeemScript.hpp>
 #include <CoinCore/CoinNodeData.h> // Coin::TxOut
 
 namespace joystream {
@@ -17,14 +17,15 @@ namespace paymentchannel {
         : _value(0) {
     }
 
-    Commitment::Commitment(int64_t value, const Coin::PublicKey & firstPk, const Coin::PublicKey & secondPk)
+    Commitment::Commitment(int64_t value, const Coin::PublicKey & firstPk, const Coin::PublicKey & secondPk, uint32_t lockTime)
         : _value(value)
         , _firstPk(firstPk)
-        , _secondPk(secondPk) {
+        , _secondPk(secondPk)
+        , _lockTime(lockTime){
     }
 
     Commitment::Commitment(const Commitment & o)
-        : Commitment::Commitment(o.value(), o.firstPk(), o.secondPk()) {
+        : Commitment::Commitment(o.value(), o.firstPk(), o.secondPk(), o.lockTime()) {
     }
 
     Commitment & Commitment::operator=(const Commitment & o) {
@@ -32,20 +33,21 @@ namespace paymentchannel {
         _value = o.value();
         _firstPk = o.firstPk();
         _secondPk =  o.secondPk();
+        _lockTime = o.lockTime();
 
         return *this;
     }
 
     Coin::P2SHScriptPubKey Commitment::contractOutputScriptPubKey() const {
-        return Coin::P2SHScriptPubKey::fromMultisig(std::vector<Coin::PublicKey>({_firstPk, _secondPk}), 2);
+        return Coin::P2SHScriptPubKey::fromSerializedRedeemScript(redeemScript().serialized());
     }
 
     Coin::TxOut Commitment::contractOutput() const {
         return Coin::TxOut(_value, contractOutputScriptPubKey().serialize());
     }
 
-    Coin::MultisigScriptPubKey Commitment::redeemScript() const {
-        return Coin::MultisigScriptPubKey(std::vector<Coin::PublicKey>({_firstPk, _secondPk}), 2);
+    RedeemScript Commitment::redeemScript() const {
+        return RedeemScript(_firstPk, _secondPk, _lockTime);
     }
 
     int64_t Commitment::value() const {
@@ -72,5 +74,12 @@ namespace paymentchannel {
         _secondPk = secondPk;
     }
 
+    void Commitment::setLockTime(uint32_t lockTime) {
+        _lockTime = lockTime;
+    }
+
+    uint64_t Commitment::lockTime() const {
+        return _lockTime;
+    }
 }
 }

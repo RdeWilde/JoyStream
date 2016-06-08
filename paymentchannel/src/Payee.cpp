@@ -98,7 +98,8 @@ namespace paymentchannel {
 
         return Commitment(_funds,
                           _payorContractPk,
-                          _payeeContractKeys.pk());
+                          _payeeContractKeys.pk(),
+                          _lockTime);
     }
 
     Refund Payee::refund() const {
