@@ -21,14 +21,11 @@ HEADERS += \
     include/extension/Plugin.hpp \
     include/extension/PeerPlugin.hpp \
     include/extension/BEPSupportStatus.hpp \
-    include/extension/PluginStatus.hpp \
     include/extension/ExtendedMessageIdMapping.hpp \
     include/extension/request/PluginRequest.hpp \
     include/extension/request/TorrentPluginRequest.hpp \
-    include/extension/request/PeerPluginRequest.hpp \
     include/extension/request/TorrentPluginRequestType.hpp \
     include/extension/request/PluginRequestType.hpp \
-    include/extension/request/PeerPluginRequestType.hpp \
     include/extension/request/StartBuyerTorrentPlugin.hpp \
     include/extension/request/StartSellerTorrentPlugin.hpp \
     include/extension/request/StartObserverTorrentPlugin.hpp \
@@ -45,12 +42,15 @@ HEADERS += \
     include/extension/alert/SellerTorrentPluginStatusAlert.hpp \
     include/extension/alert/StartedSellerTorrentPlugin.hpp \
     include/extension/alert/StartedBuyerTorrentPlugin.hpp \
+    include/extension/extension.hpp \
+    include/extension/alert/alert.hpp \
+    include/extension/request/request.hpp \
+    include/extension/Status.hpp
 
 SOURCES += \
     src/TorrentPlugin.cpp \
     src/Plugin.cpp \
     src/PeerPlugin.cpp \
-    src/PluginStatus.cpp \
     src/ExtendedMessageIdMapping.cpp \
     src/request/PluginRequest.cpp \
     src/request/TorrentPluginRequest.cpp \
