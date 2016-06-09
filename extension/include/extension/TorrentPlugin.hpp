@@ -54,6 +54,9 @@ namespace extension {
         virtual void on_files_checked();
         virtual void on_state(int s);
         virtual void on_add_peer(const libtorrent::tcp::endpoint & endPoint, int src, int flags);
+        
+        // Determines the message type, calls correct handler, then frees message
+        void processExtendedMessage(joystream::protocol_wire::ExtendedMessagePayload * extendedMessage);
 
         // Schedules asynchronous read of piece to this peer
         void readPiece(PeerPlugin * peer, int piece);
@@ -66,6 +69,21 @@ namespace extension {
         void addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint);
 
     private:
+
+        /**
+         * PeerPlugin notifications
+         */
+
+        // Adds peer correspoinding to given endpoint to session,
+        // is called when peer has sucessfully completed extended handshake.
+        // Not when connection is established, as in TorrentPlugin::new_connection
+        void addPeerToSession(const libtorrent::tcp::endpoint &);
+
+        // Disocnnects peer, removes corresponding plugin from map
+        void disconnectPeer(const libtorrent::tcp::endpoint &);
+
+
+        //
 
         /**
          * Protocol session hooks
@@ -125,9 +143,12 @@ namespace extension {
         // Maps endpoint to weak peer plugin pointer, is peer_plugin, since this is
         // the type of weak_ptr libtrrrent requires, hence might as well put it
         // in this type, rather than corresponding subclass of TorrentPlugin.
+        // NB: All peers are added, while not all are added to _session, see below.
         std::map<libtorrent::tcp::endpoint, boost::weak_ptr<PeerPlugin> > _peers;
 
-        //
+        // Protocol session
+        // NB: Only peers which support this extension will be added to session,
+        // while all peers are added to _peers
         protocol_session::Session<libtorrent::tcp::endpoint> _session;
 
         // List of peer plugins scheduled for deletion

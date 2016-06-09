@@ -223,6 +223,14 @@ void TorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) {
     _outstandingPieceRequests.remove(alert->piece);
 }
 
+void TorrentPlugin::addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint) {
+    _peersWithoutExtension.insert(endPoint);
+}
+
+void TorrentPlugin::addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint) {
+    _irregularPeer.insert(endPoint);
+}
+
 bool TorrentPlugin::isPeerWellBehaved(libtorrent::peer_connection * connection) const {
 
     // Get endpoint of connection
@@ -259,17 +267,65 @@ void TorrentPlugin::sendTorrentPluginAlert(const alert::TorrentPluginAlert & ale
     //_torrent->alerts().emplace_alert(alert);
 }
 
-void TorrentPlugin::removeConnection(const libtorrent::tcp::endpoint &, protocol_session::DisconnectCause) {
+void TorrentPlugin::addPeerToSession(const libtorrent::tcp::endpoint & endPoint) {
+
+    // we must know peer
+    auto it = _peers.find(endPoint);
+    assert(it != _peers.cend());
+
+    // but it must not already be added in session
+    assert(!_session.hasConnection(endPoint));
+
+    // Create callback which asserts presence of plugin
+    boost::weak_ptr<PeerPlugin> wPeerPlugin = it->second;
+
+    protocol_session::SendMessageOnConnection send = [wPeerPlugin] (const protocol_wire::ExtendedMessagePayload * m) -> void {
+
+        boost::shared_ptr<PeerPlugin> plugin;
+        assert(plugin = wPeerPlugin.lock());
+        plugin->send(m);
+        delete m;
+    };
+
+    // add peer to sesion
+    _session.addConnection(endPoint, send);
+}
+
+void TorrentPlugin::disconnectPeer(const libtorrent::tcp::endpoint & endPoint) {
+
+    auto it = _peers.find(endPoint);
+
+    // peer must be present
+    assert(it != _peers.cend());
+
+    // Get plugin reference
+    boost::shared_ptr<PeerPlugin> peerPlugin = it->second.lock();
+    assert(peerPlugin);
+
+    // Disconnect connection
+    libtorrent::error_code ec;
+    peerPlugin->disconnect(ec);
+
+    // Remove from session, if present
+    if(_session.hasConnection(endPoint))
+        _session.removeConnection(endPoint); // <-- will cause callback to TorrentPlugin::removeConnection
+
+    // Remove from map
+    _peers.erase(it);
+}
+
+void TorrentPlugin::removeConnection(const libtorrent::tcp::endpoint & endPoint, protocol_session::DisconnectCause) {
 
     // if not peer not in peers map, then just return: may be due to
-    // on_disconnect triggered by our own call at some earlier point
+    // disconnectPeer() call at some earlier point
+    auto it = _peers.find(endPoint);
+    if(it == _peers.cend())
+        return;
 
     // if cause needs to be recorded, record
 
-    // call on corresponding peer to disconnect
-
-    // remove from map
-
+    // Disconnect peer
+    disconnectPeer(endPoint);
 }
 
 //
