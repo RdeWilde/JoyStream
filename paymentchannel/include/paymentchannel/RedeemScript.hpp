@@ -18,6 +18,9 @@ public:
 
     uchar_vector serialized() const;
 
+    static RedeemScript deserialize(const uchar_vector & script);
+    static uchar_vector templateScript();
+
 private:
     Coin::PublicKey _payorPk;
     Coin::PublicKey _payeePk;
