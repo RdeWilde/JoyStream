@@ -48,9 +48,7 @@ namespace paymentchannel {
                 const Coin::KeyPair & payorContractKeyPair,
                 const Coin::RedeemScriptHash & payorFinalScriptHash,
                 const Coin::PublicKey & payeeContractPk,
-                const Coin::RedeemScriptHash & payeeFinalScriptHash,
-                const Coin::Signature & payorRefundSignature,
-                const Coin::Signature & payeeRefundSignature);
+                const Coin::RedeemScriptHash & payeeFinalScriptHash);
 
         // Commitment for channel
         Commitment commitment() const;
@@ -61,18 +59,12 @@ namespace paymentchannel {
         // Payment for channel
         Settlement settlement() const;
 
-        // Generates a refund signature for payor
-        Coin::Signature generatePayorRefundSignature() const;
-
         // Generates settlement signature for payor
         Coin::Signature generatePayorSettlementSignature() const;
 
         // Increments payment counter, and generates/returns
         // settlement signature for payor
         Coin::Signature makePayment();
-
-        // Checks the payee signature
-        bool checkPayeeRefundSignature(const Coin::Signature &) const;
 
         // Amount of funds paid
         quint64 amountPaid() const;

@@ -12,9 +12,7 @@
 #include <common/RedeemScriptHash.hpp>
 #include <common/MultisigScriptPubKey.hpp>
 #include <common/P2SHScriptPubKey.hpp>
-#include <common/P2PKHScriptPubKey.hpp>
 #include <common/TransactionSignature.hpp>
-#include <common/UnspentP2PKHOutput.hpp>
 #include <common/Utilities.hpp> // DEFAULT_SEQUENCE_NUMBER
 #include <cassert>
 #include <cmath> // ceil
@@ -39,9 +37,7 @@ namespace paymentchannel {
                      const Coin::KeyPair & payorContractKeyPair,
                      const Coin::RedeemScriptHash &payorFinalScriptHash,
                      const Coin::PublicKey & payeeContractPk,
-                     const Coin::RedeemScriptHash &payeeFinalScriptHash,
-                     const Coin::Signature & payorRefundSignature,
-                     const Coin::Signature & payeeRefundSignature)
+                     const Coin::RedeemScriptHash &payeeFinalScriptHash)
         : _price(price)
         , _numberOfPaymentsMade(numberOfPaymentsMade)
         , _funds(funds)
@@ -61,7 +57,7 @@ namespace paymentchannel {
 
     Refund Payor::refund() const {
 
-        //return Refund...
+        return Refund(_anchor, commitment(), _payorContractKeyPair);
     }
 
     Settlement Payor::settlement() const {

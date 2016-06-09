@@ -7,7 +7,6 @@
 
 #include <paymentchannel/Payee.hpp>
 #include <paymentchannel/Commitment.hpp>
-#include <paymentchannel/Refund.hpp>
 #include <paymentchannel/Settlement.hpp>
 #include <common/P2SHScriptPubKey.hpp>
 #include <common/TransactionSignature.hpp>
