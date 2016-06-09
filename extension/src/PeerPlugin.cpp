@@ -23,11 +23,10 @@ namespace extension {
         , _bep10ClientIdentifier(bep10ClientIdentifier)
         , _endPoint(connection->remote())
         , _peerBEP10SupportStatus(BEPSupportStatus::unknown)
-        , _peerBitSwaprBEPSupportStatus(BEPSupportStatus::supported) {
+        , _peerPaymentBEPSupportStatus(BEPSupportStatus::supported) {
     }
 
     PeerPlugin::~PeerPlugin() {
-
         // Lets log, so we understand when libtorrent disposes of shared pointer
         //std::clog << "~PeerPlugin() called.";
     }
@@ -69,7 +68,7 @@ namespace extension {
 
         std::clog << "on_disconnect ["<< (_connection->is_outgoing() ? "outgoing" : "incoming") << "]:" << ec.message().c_str();
 
-        _plugin->remove(_endPoint, protocol_session::DisconnectCause::client);
+        _plugin->removeConnection(_endPoint, protocol_session::DisconnectCause::client);
 
         // NB: this will be deleted when we return here,
         // hence exit without referencing any members or methods.
@@ -144,6 +143,7 @@ namespace extension {
     bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake) {
     //bool PeerPlugin::on_extension_handshake(libtorrent::bdecode_node const & handshake) {
 
+        /**
         // Check that peer plugin is still valid
         if(_scheduledForDeletingInNextTorrentPluginTick) {
 
@@ -154,6 +154,7 @@ namespace extension {
             std::clog << "Extended handshake ignored since peer_plugin i scheduled for deletion.";
             return false;
         }
+        */
 
         // Write what client is trying to handshake us, should now be possible given initial hand shake
         libtorrent::peer_info peerInfo;
@@ -168,7 +169,7 @@ namespace extension {
             _plugin->addToPeersWithoutExtensionSet(peerInfo.ip);
 
             // Mark peer as not supporting BEP43
-            _peerBitSwaprBEPSupportStatus  = BEPSupportStatus::not_supported;
+            _peerPaymentBEPSupportStatus  = BEPSupportStatus::not_supported;
 
             std::clog << "Peer didn't support BEP10, but it sent extended handshake.";
 
@@ -192,7 +193,7 @@ namespace extension {
             _plugin->addToIrregularPeersSet(peerInfo.ip);
 
             // Mark peer as not supporting BEP43
-            _peerBitSwaprBEPSupportStatus  = BEPSupportStatus::not_supported;
+            _peerPaymentBEPSupportStatus  = BEPSupportStatus::not_supported;
 
             std::clog << "Malformed handshake received: not dictionary.";
 
@@ -213,7 +214,7 @@ namespace extension {
             _plugin->addToPeersWithoutExtensionSet(peerInfo.ip);
 
             // Mark peer as not supporting BEP43
-            _peerBitSwaprBEPSupportStatus  = BEPSupportStatus::not_supported;
+            _peerPaymentBEPSupportStatus  = BEPSupportStatus::not_supported;
 
             std::clog << "Extension not supported.";
 
@@ -236,7 +237,7 @@ namespace extension {
             _plugin->addToIrregularPeersSet(peerInfo.ip);
 
             // Mark peer as not supporting BEP43
-            _peerBitSwaprBEPSupportStatus = BEPSupportStatus::not_supported;
+            _peerPaymentBEPSupportStatus = BEPSupportStatus::not_supported;
 
             std::clog << "Malformed handshake received: m key not present.";
 
@@ -261,7 +262,7 @@ namespace extension {
             _plugin->addToIrregularPeersSet(peerInfo.ip);
 
             // Mark peer as not supporting BEP43
-            _peerBitSwaprBEPSupportStatus  = BEPSupportStatus::not_supported;
+            _peerPaymentBEPSupportStatus  = BEPSupportStatus::not_supported;
 
             std::clog << "Malformed handshake received: m key not mapping to dictionary.";
 
@@ -300,7 +301,7 @@ namespace extension {
             _plugin->addToIrregularPeersSet(peerInfo.ip);
 
             // Mark peer as not supporting BEP43
-            _peerBitSwaprBEPSupportStatus = BEPSupportStatus::not_supported;
+            _peerPaymentBEPSupportStatus = BEPSupportStatus::not_supported;
 
             std::clog << "m key does not contain mapping for all messages.";
 
@@ -318,7 +319,7 @@ namespace extension {
         std::clog << "Found extension handshake for peer " << endPointString.c_str();
 
         // All messages were present, hence the protocol is supported
-        _peerBitSwaprBEPSupportStatus = BEPSupportStatus::supported;
+        _peerPaymentBEPSupportStatus = BEPSupportStatus::supported;
 
         // Tell libtorrent that our extension should be kept in the loop for this peer
         //return false;
@@ -349,7 +350,6 @@ namespace extension {
         return keepPlugin;
     }
 
-    //bool on_extension_handshake(libtorrent::bdecode_node const&);
     bool PeerPlugin::on_have(int index) {
 
     }
@@ -430,7 +430,7 @@ namespace extension {
         }
 
         // Does the peer even support extension?
-        if(_peerBitSwaprBEPSupportStatus != BEPSupportStatus::supported) {
+        if(_peerPaymentBEPSupportStatus != BEPSupportStatus::supported) {
 
             std::clog << "Ignoring extended message from peer without extension.";
             return false;
@@ -451,7 +451,7 @@ namespace extension {
             std::clog << "on_extended(id =" << msg << ", length =" << length << ")";
 
         // Ignore message if peer has not successfully completed BEP43 handshake (yet, or perhaps never will)
-        if(_peerBitSwaprBEPSupportStatus != BEPSupportStatus::supported) {
+        if(_peerPaymentBEPSupportStatus != BEPSupportStatus::supported) {
 
             std::clog << "Received extended message despite BEP43 not supported, not for this plugin then, letting another plugin handle it.";
 
@@ -604,7 +604,7 @@ namespace extension {
 
         // If message was written properly buffer, then send buffer to peer
         if(stream.status() != QDataStream::Status::Ok)
-            qCCritical(_category) << "Output stream in bad state after message write, message not sent.";
+            std::clog << "Output stream in bad state after message write, message not sent.";
         else {
 
             // Get raw buffer
@@ -626,7 +626,7 @@ namespace extension {
     status::PeerPlugin PeerPlugin::status() const {
         return status::PeerPlugin(_endPoint,
                                   _peerBEP10SupportStatus,
-                                  _peerBitSwaprBEPSupportStatus);
+                                  _peerPaymentBEPSupportStatus);
     }
 
     libtorrent::bt_peer_connection * PeerPlugin::connection() {
@@ -642,7 +642,7 @@ namespace extension {
     }
 
     BEPSupportStatus PeerPlugin::peerBitSwaprBEPSupportStatus() const {
-        return _peerBitSwaprBEPSupportStatus;
+        return _peerPaymentBEPSupportStatus;
     }
 
     libtorrent::tcp::endpoint PeerPlugin::endPoint() const {

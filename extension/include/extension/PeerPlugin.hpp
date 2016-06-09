@@ -142,8 +142,8 @@ namespace status {
         // Indicates whether peer supports BEP10
         BEPSupportStatus _peerBEP10SupportStatus;
 
-        // Indicates whether peer supports BEP43 .. BitSwapr
-        BEPSupportStatus _peerBitSwaprBEPSupportStatus;
+        // Indicates whether peer supports Payments BEP
+        BEPSupportStatus _peerPaymentBEPSupportStatus;
     };
 
 }
