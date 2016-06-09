@@ -307,14 +307,7 @@ void TorrentPlugin::addPeerToSession(const libtorrent::tcp::endpoint & endPoint)
 
 void TorrentPlugin::disconnectPeer(const libtorrent::tcp::endpoint & endPoint) {
 
-    auto it = _peers.find(endPoint);
-
-    // peer must be present
-    assert(it != _peers.cend());
-
-    // Get plugin reference
-    boost::shared_ptr<PeerPlugin> peerPlugin = it->second.lock();
-    assert(peerPlugin);
+    PeerPlugin * peerPlugin = getRawPlugin(endPoint);
 
     // Disconnect connection
     libtorrent::error_code ec;
