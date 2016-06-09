@@ -458,9 +458,8 @@ namespace extension {
 
             std::clog << "Malformed extended message received, removing .";
 
-            // Note that message was malformed
-            _lastReceivedMessageWasMalformed = true;
-            /*** delete peer ***/
+            // Remove this peer
+            _plugin->disconnectPeer(_endPoint);
 
         } else {
 
