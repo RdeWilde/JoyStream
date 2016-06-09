@@ -136,7 +136,7 @@ namespace extension {
             _peerPaymentBEPSupportStatus  = BEPSupportStatus::not_supported;
 
             // note that peer does not have extension
-            _plugin->addToPeersWithoutExtensionSet(peerInfo.ip);
+            _plugin->addToPeersWithoutExtensionSet(_endPoint);
 
             return _policy.installPluginOnPeersWithoutExtension;
         }
