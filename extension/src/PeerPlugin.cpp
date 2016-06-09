@@ -349,7 +349,7 @@ namespace extension {
 
     bool PeerPlugin::can_disconnect(libtorrent::error_code const & ec) {
 
-        std::log << "can_disconnect: " << ec.message() << std::endl;
+        std::clog << "can_disconnect: " << ec.message() << std::endl;
 
         // rejecting request
         return false;
