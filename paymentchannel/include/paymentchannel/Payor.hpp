@@ -10,12 +10,13 @@
 
 #include <common/typesafeOutPoint.hpp>
 #include <common/KeyPair.hpp>
+#include <common/RedeemScriptHash.hpp>
 #include <common/Signature.hpp>
 
 namespace Coin {
     class TransactionId;
     class typesafeOutPoint;
-    class UnspentP2PKHOutput;
+    class UnspentP2SHOutput;
     class Payment;
 }
 
@@ -41,14 +42,13 @@ namespace paymentchannel {
         Payor(quint64 price,
                 quint64 numberOfPaymentsMade,
                 quint64 funds,
-                quint64 refundFee,
                 quint64 settlementFee,
                 quint32 refundLockTime,
                 const Coin::typesafeOutPoint & anchor,
                 const Coin::KeyPair & payorContractKeyPair,
-                const Coin::PubKeyHash & payorFinalPkHash,
+                const Coin::RedeemScriptHash & payorFinalScriptHash,
                 const Coin::PublicKey & payeeContractPk,
-                const Coin::PubKeyHash & payeeFinalPkHash,
+                const Coin::RedeemScriptHash & payeeFinalScriptHash,
                 const Coin::Signature & payorRefundSignature,
                 const Coin::Signature & payeeRefundSignature);
 
@@ -87,9 +87,6 @@ namespace paymentchannel {
         quint64 funds() const;
         void setFunds(quint64 funds);
 
-        quint64 refundFee() const;
-        void setRefundFee(quint64);
-
         quint64 settlementFee() const;
         void setSettlementFee(quint64);
 
@@ -102,20 +99,14 @@ namespace paymentchannel {
         Coin::KeyPair payorContractKeyPair() const;
         void setPayorContractKeyPair(const Coin::KeyPair &);
 
-        Coin::PubKeyHash payorFinalPkHash() const;
-        void setPayorFinalPkHash(const Coin::PubKeyHash &);
+        Coin::RedeemScriptHash payorFinalScriptHash() const;
+        void setPayorFinalScriptHash(const Coin::RedeemScriptHash &);
 
         Coin::PublicKey payeeContractPk() const;
         void setPayeeContractPk(const Coin::PublicKey &);
 
-        Coin::PubKeyHash payeeFinalPkHash() const;
-        void setPayeeFinalPkHash(const Coin::PubKeyHash &);
-
-        Coin::Signature payorRefundSignature() const;
-        void setPayorRefundSignature(const Coin::Signature &);
-
-        Coin::Signature payeeRefundSignature() const;
-        void setPayeeRefundSignature(const Coin::Signature &);
+        Coin::RedeemScriptHash payeeFinalScriptHash() const;
+        void setPayeeFinalScriptHash(const Coin::RedeemScriptHash &);
 
     private:
 
@@ -127,9 +118,6 @@ namespace paymentchannel {
 
         // Funds allocated to output
         quint64 _funds;
-
-        // Refund fee
-        quint64 _refundFee;
 
         // Settlement fee
         quint64 _settlementFee;
@@ -144,19 +132,13 @@ namespace paymentchannel {
         Coin::KeyPair _payorContractKeyPair;
 
         // Controls final payment to payor
-        Coin::PubKeyHash _payorFinalPkHash;
+        Coin::RedeemScriptHash _payorFinalScriptHash;
 
         // Controls payee output of multisig, received in joinin_contract.pk
         Coin::PublicKey _payeeContractPk;
 
         // Controls payee payments, received in sign_refund.pk
-        Coin::PubKeyHash _payeeFinalPkHash;
-
-        // Controls refund for payor
-        Coin::Signature _payorRefundSignature;
-
-        // Controls refund for payee
-        Coin::Signature _payeeRefundSignature;
+        Coin::RedeemScriptHash _payeeFinalScriptHash;
     };
 
 }
