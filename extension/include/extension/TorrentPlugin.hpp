@@ -167,6 +167,8 @@ namespace extension {
 
         // Use banning of peers
         //bool _enableBanningSets;
+
+        PeerPlugin * getRawPlugin(const libtorrent::tcp::endpoint &);
     };
 
 }

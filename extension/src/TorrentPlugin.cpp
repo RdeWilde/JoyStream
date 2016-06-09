@@ -267,6 +267,20 @@ void TorrentPlugin::sendTorrentPluginAlert(const alert::TorrentPluginAlert & ale
     //_torrent->alerts().emplace_alert(alert);
 }
 
+PeerPlugin * TorrentPlugin::getRawPlugin(const libtorrent::tcp::endpoint &) {
+
+    auto it = _peers.find(endPoint);
+
+    // peer must be present
+    assert(it != _peers.cend());
+
+    // Get plugin reference
+    boost::shared_ptr<PeerPlugin> peerPlugin = it->second.lock();
+    assert(peerPlugin);
+
+    return peerPlugin.get();
+}
+
 void TorrentPlugin::addPeerToSession(const libtorrent::tcp::endpoint & endPoint) {
 
     // we must know peer
