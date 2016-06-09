@@ -17,9 +17,11 @@ namespace extension {
 
     PeerPlugin::PeerPlugin(TorrentPlugin * plugin,
                            libtorrent::bt_peer_connection * connection,
+                           const Policy & policy,
                            const std::string & bep10ClientIdentifier)
         : _plugin(plugin)
         , _connection(connection)
+        , _policy(policy)
         , _bep10ClientIdentifier(bep10ClientIdentifier)
         , _endPoint(connection->remote())
         , _peerBEP10SupportStatus(BEPSupportStatus::unknown)
