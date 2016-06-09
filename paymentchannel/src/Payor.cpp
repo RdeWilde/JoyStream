@@ -66,7 +66,6 @@ namespace paymentchannel {
                                                           commitment(),
                                                           _payorFinalScriptHash,
                                                           _payeeFinalScriptHash,
-                                                          _funds,
                                                           amountPaid(),
                                                           _settlementFee);
     }

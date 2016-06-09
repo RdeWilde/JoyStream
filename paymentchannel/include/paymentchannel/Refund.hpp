@@ -38,7 +38,7 @@ namespace paymentchannel {
         // Wether refund is still locked
         // If the locktime is a block height it will be compared to the currentBlockHeight argument
         // otherwise it will be compared to current time
-        bool isLocked(uint32_t currentBlockHeight = 0) const;
+        bool isLocked(uint32_t currentBlockHeight) const;
 
         // when refund is unlocked
         uint32_t lockedUntil() const;

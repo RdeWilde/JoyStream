@@ -10,7 +10,6 @@
 
 #include <paymentchannel/Termination.hpp>
 #include <common/Payment.hpp>
-#include <common/PubKeyHash.hpp> // cannot forward declare typedef
 
 namespace Coin {
     class Transaction;
@@ -22,7 +21,7 @@ namespace Coin {
 namespace joystream {
 namespace paymentchannel {
 
-    class Settlement : public Termination {
+    class Settlement {
 
     public:
 
@@ -39,17 +38,35 @@ namespace paymentchannel {
         // limit and transaction fee
         static Settlement dustLimitAndFeeAwareSettlement(const Coin::typesafeOutPoint & contractOutPoint,
                                                          const Commitment & commitment,
-                                                         const Coin::PubKeyHash & payorKeyHash,
-                                                         const Coin::PubKeyHash & payeeKeyHash,
-                                                         quint64 funds,
-                                                         quint64 paid,
-                                                         quint64 fee);
+                                                         const Coin::RedeemScriptHash & payorScriptHash,
+                                                         const Coin::RedeemScriptHash & payeeScriptHash,
+                                                         uint64_t paid,
+                                                         uint64_t fee);
 
         // Unsigned settelment transaction
-        virtual Coin::Transaction unSignedTransaction() const;
+        Coin::Transaction unSignedTransaction() const;
 
         // Implicit fee by comparing commitment and (payor + payee) payment
         int64_t fee() const;
+
+        //
+        uchar_vector sighash(Coin::SigHashType type) const;
+
+        // Transaction signature
+        Coin::TransactionSignature transactionSignature(const Coin::PrivateKey & sk) const;
+
+        // Signed transaction with given signatures
+        Coin::Transaction signedTransaction(const Coin::TransactionSignature & payorTransactionSignature,
+                                            const Coin::TransactionSignature & payeeTransactionSignature) const;
+
+        // Validate signature for unsigned transaction against public key
+        bool validate(const Coin::PublicKey & pk, const Coin::Signature & sig) const;
+
+        // Validate signature for unsigned transaction against payor public key
+        bool validatePayorSignature(const Coin::Signature & sig) const;
+
+        // Validate signature for unsigned transaction against payee public key
+        bool validatePayeeSignature(const Coin::Signature & sig) const;
 
     private:
 
@@ -62,6 +79,15 @@ namespace paymentchannel {
 
         // Payment to payee
         Coin::Payment _toPayee;
+
+        // Contract to which commitment corresponds
+        Coin::typesafeOutPoint _contractOutPoint;
+
+        // Commitment being terminated
+        Commitment _commitment;
+
+        // Payment back to payor
+        Coin::Payment _toPayor;
     };
 
 }
