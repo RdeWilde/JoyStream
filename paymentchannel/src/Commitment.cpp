@@ -17,22 +17,22 @@ namespace paymentchannel {
         : _value(0) {
     }
 
-    Commitment::Commitment(int64_t value, const Coin::PublicKey & firstPk, const Coin::PublicKey & secondPk, uint32_t lockTime)
+    Commitment::Commitment(int64_t value, const Coin::PublicKey & payorPk, const Coin::PublicKey & payeePk, uint32_t lockTime)
         : _value(value)
-        , _firstPk(firstPk)
-        , _secondPk(secondPk)
+        , _payorPk(payorPk)
+        , _payeePk(payeePk)
         , _lockTime(lockTime){
     }
 
     Commitment::Commitment(const Commitment & o)
-        : Commitment::Commitment(o.value(), o.firstPk(), o.secondPk(), o.lockTime()) {
+        : Commitment::Commitment(o.value(), o.payorPk(), o.payeePk(), o.lockTime()) {
     }
 
     Commitment & Commitment::operator=(const Commitment & o) {
 
         _value = o.value();
-        _firstPk = o.firstPk();
-        _secondPk =  o.secondPk();
+        _payorPk = o.payorPk();
+        _payeePk =  o.payeePk();
         _lockTime = o.lockTime();
 
         return *this;
@@ -47,7 +47,7 @@ namespace paymentchannel {
     }
 
     RedeemScript Commitment::redeemScript() const {
-        return RedeemScript(_firstPk, _secondPk, _lockTime);
+        return RedeemScript(_payorPk, _payeePk, _lockTime);
     }
 
     int64_t Commitment::value() const {
@@ -58,20 +58,20 @@ namespace paymentchannel {
         _value = value;
     }
 
-    Coin::PublicKey Commitment::firstPk() const {
-        return _firstPk;
+    Coin::PublicKey Commitment::payorPk() const {
+        return _payorPk;
     }
 
-    void Commitment::setFirstPk(const Coin::PublicKey & firstPk) {
-        _firstPk = firstPk;
+    void Commitment::setPayorPk(const Coin::PublicKey & payorPk) {
+        _payorPk = payorPk;
     }
 
-    Coin::PublicKey Commitment::secondPk() const {
-        return _secondPk;
+    Coin::PublicKey Commitment::payeePk() const {
+        return _payeePk;
     }
 
-    void Commitment::setSecondPk(const Coin::PublicKey & secondPk) {
-        _secondPk = secondPk;
+    void Commitment::setPayeePk(const Coin::PublicKey & payeePk) {
+        _payeePk = payeePk;
     }
 
     void Commitment::setLockTime(uint32_t lockTime) {

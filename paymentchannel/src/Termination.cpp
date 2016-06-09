@@ -90,11 +90,11 @@ namespace paymentchannel {
     }
 
     bool Termination::validatePayorSignature(const Coin::Signature & sig) const {
-        return validate(_commitment.firstPk(), sig);
+        return validate(_commitment.payorPk(), sig);
     }
 
     bool Termination::validatePayeeSignature(const Coin::Signature & sig) const {
-        return validate(_commitment.secondPk(), sig);
+        return validate(_commitment.payeePk(), sig);
     }
 
 }
