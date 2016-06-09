@@ -464,7 +464,7 @@ namespace extension {
         } else {
 
             // Process message
-            _plugin->processExtendedMessage(*m);
+            _plugin->processExtendedMessage(_endPoint, *m);
 
             // Delete message
             delete m;
