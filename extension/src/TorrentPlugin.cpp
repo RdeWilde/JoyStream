@@ -328,6 +328,16 @@ void TorrentPlugin::disconnectPeer(const libtorrent::tcp::endpoint & endPoint) {
     _peers.erase(it);
 }
 
+void TorrentPlugin::processExtendedMessage(const libtorrent::tcp::endpoint & endPoint, const joystream::protocol_wire::ExtendedMessagePayload & extendedMessage) {
+
+    PeerPlugin * peerPlugin = getRawPlugin(endPoint);
+
+    assert(_session.hasConnection(endPoint));
+
+    // Have session process message
+    _session.processMessageOnConnection(endPoint, extendedMessage);
+}
+
 void TorrentPlugin::removeConnection(const libtorrent::tcp::endpoint & endPoint, protocol_session::DisconnectCause) {
 
     // if not peer not in peers map, then just return: may be due to

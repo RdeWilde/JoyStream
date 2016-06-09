@@ -55,9 +55,6 @@ namespace extension {
         virtual void on_state(int s);
         virtual void on_add_peer(const libtorrent::tcp::endpoint & endPoint, int src, int flags);
         
-        // Determines the message type, calls correct handler, then frees message
-        void processExtendedMessage(joystream::protocol_wire::ExtendedMessagePayload * extendedMessage);
-
         // Schedules asynchronous read of piece to this peer
         void readPiece(PeerPlugin * peer, int piece);
 
@@ -81,6 +78,10 @@ namespace extension {
 
         // Disocnnects peer, removes corresponding plugin from map
         void disconnectPeer(const libtorrent::tcp::endpoint &);
+
+        // Determines the message type, calls correct handler, then frees message
+        void processExtendedMessage(const libtorrent::tcp::endpoint &, const joystream::protocol_wire::ExtendedMessagePayload & extendedMessage);
+
 
 
         //
