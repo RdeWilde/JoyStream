@@ -40,25 +40,72 @@ namespace status {
 
     public:
 
+        struct Policy {
+
+            Policy()
+                : installPluginOnPeersWithoutExtension(false)
+                , installPluginOnPeersMisbehavingDuringExtendedHandshake(false) {
+            }
+
+            Policy(bool installPluginOnPeersWithoutExtension, bool installPluginOnPeersMisbehavingDuringExtendedHandshake)
+                : installPluginOnPeersWithoutExtension(installPluginOnPeersWithoutExtension)
+                , installPluginOnPeersMisbehavingDuringExtendedHandshake(installPluginOnPeersMisbehavingDuringExtendedHandshake) {
+            }
+
+            bool installPluginOnPeersWithoutExtension;
+
+            bool installPluginOnPeersMisbehavingDuringExtendedHandshake;
+
+        };
+
         PeerPlugin(TorrentPlugin * plugin,
                    libtorrent::bt_peer_connection * connection,
+                   const Policy & policy,
                    const std::string & bep10ClientIdentifier);
 
         virtual ~PeerPlugin();
 
-        /**
-         * All virtual functions below should ONLY be called by libtorrent network thread,
-         * never by other threads, as this causes synchronization failures.
-         */
+        //// Libtorrent hooks
 
-        // Libtorrent callback
+        // This function is expected to return the name of
+        // the plugin.
         virtual char const* type() const;
+
+        // can add entries to the extension handshake
+        // this is not called for web seeds
         virtual void add_handshake(libtorrent::entry & handshake);
+
+        // called when the peer is being disconnected.
         virtual void on_disconnect(libtorrent::error_code const & ec);
+
+        // called when the peer is successfully connected. Note that
+        // incoming connections will have been connected by the time
+        // the peer plugin is attached to it, and won't have this hook
+        // called.
         virtual void on_connected();
+
+        // throwing an exception from any of the handlers (except add_handshake)
+        // closes the connection
+
+        // this is called when the initial BT handshake is received. Returning false
+        // means that the other end doesn't support this extension and will remove
+        // it from the list of plugins.
+        // this is not called for web seeds
         virtual bool on_handshake(char const* reserved_bits);
+
+        // called when the extension handshake from the other end is received
+        // if this returns false, it means that this extension isn't
+        // supported by this peer. It will result in this peer_plugin
+        // being removed from the peer_connection and destructed.
+        // this is not called for web seeds
         virtual bool on_extension_handshake(libtorrent::lazy_entry const & handshake);
         //virtual bool on_extension_handshake(libtorrent::bdecode_node const&);
+
+        // returning true from any of the message handlers
+        // indicates that the plugin has handled the message.
+        // it will break the plugin chain traversing and not let
+        // anyone else handle the message, including the default
+        // handler.
         virtual bool on_have(int index);
         virtual bool on_bitfield(libtorrent::bitfield const & bitfield);
         virtual bool on_have_all();
@@ -74,27 +121,51 @@ namespace status {
         virtual bool on_suggest(int index);
         virtual bool on_cancel(libtorrent::peer_request const & peerRequest);
         virtual bool on_dont_have(int index);
-        virtual void sent_unchoke();
-        virtual bool can_disconnect(libtorrent::error_code const & ec);
+
+        // called when an extended message is received. If returning true,
+        // the message is not processed by any other plugin and if false
+        // is returned the next plugin in the chain will receive it to
+        // be able to handle it. This is not called for web seeds.
+        // thus function may be called more than once per incoming message, but
+        // only the last of the calls will the ``body`` size equal the ``length``.
+        // i.e. Every time another fragment of the message is received, this
+        // function will be called, until finally the whole message has been
+        // received. The purpose of this is to allow early disconnects for invalid
+        // messages and for reporting progress of receiving large messages.
         virtual bool on_extended(int length, int msg, libtorrent::buffer::const_interval body);
+
+        // this is not called for web seeds
         virtual bool on_unknown_message(int length, int msg, libtorrent::buffer::const_interval body);
+
+        // called when a piece that this peer participated in either
+        // fails or passes the hash_check
         virtual void on_piece_pass(int index);
         virtual void on_piece_failed(int index);
+
+        // called after a choke message has been sent to the peer
+        virtual void sent_unchoke();
+
+        // called when libtorrent think this peer should be disconnected.
+        // if the plugin returns false, the peer will not be disconnected.
+        virtual bool can_disconnect(libtorrent::error_code const & ec);
+
+        // called approximately once every second
         virtual void tick();
+
+        // called each time a request message is to be sent. If true
+        // is returned, the original request message won't be sent and
+        // no other plugin will have this function called.
         virtual bool write_request(libtorrent::peer_request const & peerRequest);
 
-        /**
-         * Subroutines for libtorrent thread.
-         */
-
         // Sends extended message to peer, does not take ownership of pointer
-        void send(const joystream::protocol_wire::ExtendedMessagePayload & extendedMessage);
+        void send(const joystream::protocol_wire::ExtendedMessagePayload * extendedMessage);
 
+        // Status of plugin
         status::PeerPlugin status() const;
 
         // Getters
-        libtorrent::bt_peer_connection * connection();
-
+        void disconnect(libtorrent::error_code &);
+/**
         bool peerTimedOut(int maxDelay) const;
 
         BEPSupportStatus peerBEP10SupportStatus() const;
@@ -103,9 +174,7 @@ namespace status {
 
         libtorrent::tcp::endpoint endPoint() const;
 
-        /**
         libtorrent::error_code deletionErrorCode() const;
-        void setDeletionErrorCode(const libtorrent::error_code &deletionErrorCode);
         */
 
     private:
@@ -115,6 +184,9 @@ namespace status {
 
         // Connection to peer for this plugin
         libtorrent::bt_peer_connection * _connection;
+
+        // Policy governing runtime behaviour of plugin
+        Policy _policy;
 
         // Client identifier used in bep10 handshake v-key
         std::string _bep10ClientIdentifier;
