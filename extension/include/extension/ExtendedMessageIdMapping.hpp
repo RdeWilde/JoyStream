@@ -16,7 +16,7 @@
 
 namespace joystream {
 
-namespace protocol {
+namespace protocol_wire {
     enum class MessageType;
 }
 
@@ -39,13 +39,13 @@ namespace extension {
         void writeToDictionary(std::map<std::string, libtorrent::entry> & m);
 
         // Get extended message id of given message
-        quint8 id(joystream::protocol::MessageType messageType) const;
+        quint8 id(joystream::protocol_wire::MessageType messageType) const;
 
         // Set extended message id of given message
-        void id(joystream::protocol::MessageType messageType, quint8 id);
+        void id(joystream::protocol_wire::MessageType messageType, quint8 id);
 
         // Get message corresponding to id
-        joystream::protocol::MessageType messageType(quint8 id) const;
+        joystream::protocol_wire::MessageType messageType(quint8 id) const;
 
         // Check that mapping is valid
         bool isValid() const;
@@ -54,15 +54,15 @@ namespace extension {
         void setAllStartingAt(quint8 _id);
 
         // Get underlying std::map
-        std::map<joystream::protocol::MessageType, quint8> mapping() const;
+        std::map<joystream::protocol_wire::MessageType, quint8> mapping() const;
 
         // Set underlying std::map
-        void setMapping(const std::map<joystream::protocol::MessageType, quint8> & mapping);
+        void setMapping(const std::map<joystream::protocol_wire::MessageType, quint8> & mapping);
 
     private:
 
         // Message to id mapping
-        std::map<joystream::protocol::MessageType, quint8> _mapping;
+        std::map<joystream::protocol_wire::MessageType, quint8> _mapping;
     };
 
 }

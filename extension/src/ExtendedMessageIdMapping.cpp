@@ -56,7 +56,7 @@ namespace extension {
             try {
 
                 // Try to convert string to message type
-                joystream::protocol::MessageType message = joystream::protocol::messageType(i->first);
+                joystream::protocol_wire::MessageType message = joystream::protocol_wire::messageType(i->first);
 
                 // It worked, so store id in mapping
                 _mapping[message] = (i->second).integer();
@@ -84,15 +84,15 @@ namespace extension {
     void ExtendedMessageIdMapping::writeToDictionary(std::map<std::string, libtorrent::entry> & m) {
 
         // Iterate mappings and dump to dictionary
-        for(std::map<joystream::protocol::MessageType, quint8>::const_iterator i = _mapping.begin(),
+        for(std::map<joystream::protocol_wire::MessageType, quint8>::const_iterator i = _mapping.begin(),
             end(_mapping.end()); i != end;i++)
-            m[joystream::protocol::messageName(i->first)] = i->second;
+            m[joystream::protocol_wire::messageName(i->first)] = i->second;
     }
 
-    quint8 ExtendedMessageIdMapping::id(joystream::protocol::MessageType messageType) const {
+    quint8 ExtendedMessageIdMapping::id(joystream::protocol_wire::MessageType messageType) const {
 
         // Search for message
-        std::map<joystream::protocol::MessageType, quint8>::const_iterator i = _mapping.find(messageType);
+        std::map<joystream::protocol_wire::MessageType, quint8>::const_iterator i = _mapping.find(messageType);
 
         // Throw exception if no match, otherwise return id
         if(i == _mapping.end())
@@ -101,19 +101,19 @@ namespace extension {
             return i->second;
     }
 
-    void ExtendedMessageIdMapping::id(joystream::protocol::MessageType messageType, quint8 id) {
+    void ExtendedMessageIdMapping::id(joystream::protocol_wire::MessageType messageType, quint8 id) {
 
         // Add mapping if not there, substitute if it is
         _mapping[messageType] = id;
     }
 
     // Get message corresponding to id
-    joystream::protocol::MessageType ExtendedMessageIdMapping::messageType(quint8 id) const {
+    joystream::protocol_wire::MessageType ExtendedMessageIdMapping::messageType(quint8 id) const {
 
         // Find all message types mappings to given id, should be exactly one
-        std::vector<joystream::protocol::MessageType> found;
+        std::vector<joystream::protocol_wire::MessageType> found;
 
-        for(std::map<joystream::protocol::MessageType, quint8>::const_iterator i = _mapping.begin(),
+        for(std::map<joystream::protocol_wire::MessageType, quint8>::const_iterator i = _mapping.begin(),
             end(_mapping.end()); i != end;i++) {
 
             // Rememeber if id matches
@@ -134,7 +134,7 @@ namespace extension {
     bool ExtendedMessageIdMapping::isValid() const {
 
         // Get the number of messages
-        int numberOfMessages = joystream::protocol::numberOfMessageTypes();
+        int numberOfMessages = joystream::protocol_wire::numberOfMessageTypes();
 
         // Has the right number of mappings
         if(_mapping.size() != numberOfMessages)
@@ -143,7 +143,7 @@ namespace extension {
         // Check if all ids are unique
         std::set<quint8> uniqueIds;
 
-        for(std::map<joystream::protocol::MessageType, quint8>::const_iterator i = _mapping.begin(),
+        for(std::map<joystream::protocol_wire::MessageType, quint8>::const_iterator i = _mapping.begin(),
             end(_mapping.end()); i != end;i++)
                 uniqueIds.insert(i->second);
 
@@ -158,19 +158,19 @@ namespace extension {
     void ExtendedMessageIdMapping::setAllStartingAt(quint8 _id) {
 
         // Get the set of all messages
-        const std::set<joystream::protocol::MessageType> allMessageTypes = joystream::protocol::allMessageTypes();
+        const std::set<joystream::protocol_wire::MessageType> allMessageTypes = joystream::protocol_wire::allMessageTypes();
 
         // Create mapping for all messages, starting at _id
-        for(std::set<joystream::protocol::MessageType>::const_iterator i = allMessageTypes.begin(),
+        for(std::set<joystream::protocol_wire::MessageType>::const_iterator i = allMessageTypes.begin(),
             end(allMessageTypes.end()); i != end;i++)
                 id(*i, _id++);
     }
 
-    std::map<joystream::protocol::MessageType, quint8> ExtendedMessageIdMapping::mapping() const {
+    std::map<joystream::protocol_wire::MessageType, quint8> ExtendedMessageIdMapping::mapping() const {
         return _mapping;
     }
 
-    void ExtendedMessageIdMapping::setMapping(const std::map<joystream::protocol::MessageType, quint8> & mapping) {
+    void ExtendedMessageIdMapping::setMapping(const std::map<joystream::protocol_wire::MessageType, quint8> & mapping) {
         _mapping = mapping;
     }
 }
