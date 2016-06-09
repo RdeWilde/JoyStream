@@ -72,7 +72,7 @@ namespace extension {
          */
 
         // Removes peer plugin corresponding to given endpoint for given reason
-        void remove(const libtorrent::tcp::endpoint &, protocol_session::DisconnectCause);
+        void removeConnection(const libtorrent::tcp::endpoint &, protocol_session::DisconnectCause);
 
         //
         std::vector<Coin::KeyPair> generateKeyPairsCallbackHandler(int);
@@ -145,7 +145,7 @@ namespace extension {
         void sendTorrentPluginAlert(const alert::TorrentPluginAlert & alert);
 
         // Use banning of peers
-        bool _enableBanningSets;
+        //bool _enableBanningSets;
     };
 
 }

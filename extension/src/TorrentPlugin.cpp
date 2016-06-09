@@ -19,20 +19,16 @@ namespace extension {
 
 TorrentPlugin::TorrentPlugin(Plugin * plugin,
                              const boost::shared_ptr<libtorrent::torrent> & torrent,
-                             const std::string & bep10ClientIdentifier,
-                             const TorrentPluginConfiguration & configuration,
-                             QLoggingCategory & category)
+                             const std::string & bep10ClientIdentifier)
     : _plugin(plugin)
     , _torrent(torrent)
-    , _bep10ClientIdentifier(bep10ClientIdentifier)
-    , _enableBanningSets(configuration.enableBanningSets())
-    , _category(category) {
+    , _bep10ClientIdentifier(bep10ClientIdentifier) {
 }
 
 TorrentPlugin::~TorrentPlugin() {
 
     // Lets log, so we understand when libtorrent disposes of shared pointer
-    qCDebug(_category) << "~TorrentPlugin() called.";
+    std::clog << "~TorrentPlugin() called.";
 }
 
 boost::shared_ptr<libtorrent::peer_plugin> new_connection(libtorrent::peer_connection * connection) {
@@ -58,7 +54,7 @@ boost::shared_ptr<libtorrent::peer_plugin> new_connection(libtorrent::peer_conne
     // Print notification
     std::string endPointString = libtorrent::print_endpoint(endPoint);
 
-    qCDebug(_category) << "New" << (peerConnection->is_outgoing() ? "outgoing" : "incoming") << "connection with" << endPointString.c_str(); // << "on " << _torrent->name().c_str();
+    std::clog << "New" << (peerConnection->is_outgoing() ? "outgoing" : "incoming") << "connection with" << endPointString.c_str(); // << "on " << _torrent->name().c_str();
 
     // Create bittorrent peer connection
     Q_ASSERT(peerConnection->type() == libtorrent::peer_connection::bittorrent_connection);
@@ -71,17 +67,17 @@ boost::shared_ptr<libtorrent::peer_plugin> new_connection(libtorrent::peer_conne
     // a null is returned, hence plugin is not installed
     if(!TorrentPlugin::isPeerWellBehaved(peerConnection)) {
 
-        qCDebug(_category) << "Peer is on ban list, scheduling peer for disconnection and plugin for deletion.";
+        std::clog << "Peer is on ban list, scheduling peer for disconnection and plugin for deletion.";
         peerPlugin = createSellerPeerPluginScheduledForDeletion(bittorrentPeerConnection);
 
     } else if(_peers.contains(endPoint)) {
 
-        qCDebug(_category) << "Already added peer, scheduling peer for disconnection and plugin for deletion.";
+        std::clog << "Already added peer, scheduling peer for disconnection and plugin for deletion.";
         peerPlugin = createSellerPeerPluginScheduledForDeletion(bittorrentPeerConnection);
 
     } else {
 
-        qCDebug(_category) << "Installed seller plugin #" << _peers.size() << endPointString.c_str();
+        std::clog << "Installed seller plugin #" << _peers.size() << endPointString.c_str();
 
         // Create a new peer plugin
         std::vector<Coin::PrivateKey> payeeContractKeySet = _wallet->getKeys(1, false);
@@ -147,19 +143,19 @@ void TorrentPlugin::on_add_peer(const libtorrent::tcp::endpoint & endPoint, int 
 
     std::string endPointString = libtorrent::print_endpoint(endPoint);
 
-    qCDebug(_category) << "Peer list extended with peer" << endPointString.c_str() << ": " << endPoint.port();
+    std::clog << "Peer list extended with peer" << endPointString.c_str() << ": " << endPoint.port();
 
     // Check if we know from before that peer does not have
     if(_peersWithoutExtension.find(endPoint) != _peersWithoutExtension.end()) {
 
-        qCDebug(_category) << "Not connecting to peer" << endPointString.c_str() << "which is known to not have extension.";
+        std::clog << "Not connecting to peer" << endPointString.c_str() << "which is known to not have extension.";
         return;
     }
 
     // Check if peer is banned due to irregular behaviour
     if(_irregularPeer.find(endPoint) != _irregularPeer.end()) {
 
-        qCDebug(_category) << "Not connecting to peer" << endPointString.c_str() << "which has been banned due to irregular behaviour.";
+        std::clog << "Not connecting to peer" << endPointString.c_str() << "which has been banned due to irregular behaviour.";
         return;
     }
 
@@ -181,10 +177,10 @@ void TorrentPlugin::readPiece(SellerPeerPlugin * peer, int piece) {
     // Register read piece request if it has not already been requested
     if(_outstandingPieceRequests[piece].empty()) {
 
-        qCDebug(_category) << "[" << _outstandingPieceRequests[piece].size() <<"]Requested piece" << piece << "by" << libtorrent::print_address(peer->endPoint().address()).c_str();
+        std::clog << "[" << _outstandingPieceRequests[piece].size() <<"]Requested piece" << piece << "by" << libtorrent::print_address(peer->endPoint().address()).c_str();
         _torrent->read_piece(piece);
     } else
-        qCDebug(_category) << "[" << _outstandingPieceRequests[piece].size() <<"]Skipping requested piece" << piece << "by" << libtorrent::print_address(peer->endPoint().address()).c_str();
+        std::clog << "[" << _outstandingPieceRequests[piece].size() <<"]Skipping requested piece" << piece << "by" << libtorrent::print_address(peer->endPoint().address()).c_str();
 
     // Register this peer as a subscriber to a piece read request of this piece
     _outstandingPieceRequests[piece].insert(peer);
@@ -196,7 +192,7 @@ void TorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) {
     //Q_ASSERT(!_outstandingPieceRequests[alert->piece].empty());
     if(_outstandingPieceRequests[alert->piece].empty()) {
 
-        qCDebug(_category) << "Ignoring piece read, must be for streaming server.";
+        std::clog << "Ignoring piece read, must be for streaming server.";
         return;
     }
 
@@ -213,12 +209,12 @@ void TorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) {
         // Notify peer plugin of result
         if(alert->ec) {
 
-            qCDebug(_category) << "Failed reading piece" << alert->piece << "for" << libtorrent::print_address(peerPlugin->endPoint().address()).c_str();
+            std::clog << "Failed reading piece" << alert->piece << "for" << libtorrent::print_address(peerPlugin->endPoint().address()).c_str();
 
             (*i)->pieceReadFailed(alert->piece);
         } else {
 
-            qCDebug(_category) << "Read piece" << alert->piece << "for" << libtorrent::print_address(peerPlugin->endPoint().address()).c_str();
+            std::clog << "Read piece" << alert->piece << "for" << libtorrent::print_address(peerPlugin->endPoint().address()).c_str();
             (*i)->pieceRead(alert->piece, alert->buffer, alert->size);
         }
     }
@@ -237,20 +233,20 @@ bool TorrentPlugin::isPeerWellBehaved(libtorrent::peer_connection * connection) 
 
         // Check if we know from before that peer does not have
         if(_peersWithoutExtension.contains(endPoint)) {
-            qCDebug(_category) << "Peer is known to not have extension.";
+            std::clog << "Peer is known to not have extension.";
             return false;
         }
 
         // Check if peer is banned due to irregular behaviour
         if(_irregularPeer.contains(endPoint)) {
-            qCDebug(_category) << "Peer has been banned due to irregular behaviour.";
+            std::clog << "Peer has been banned due to irregular behaviour.";
             return false;
         }
     }
 
     // Check that this is indeed a bittorrent client, and not a HTTP or URL seed, if not, then dont isntall
     if(connection->type() != libtorrent::peer_connection::bittorrent_connection) {
-        qCDebug(_category) << "Peer was not BitTorrent client.";
+        std::clog << "Peer was not BitTorrent client.";
         return false;
     }
 
@@ -263,7 +259,7 @@ void TorrentPlugin::sendTorrentPluginAlert(const alert::TorrentPluginAlert & ale
     //_torrent->alerts().emplace_alert(alert);
 }
 
-void TorrentPlugin::remove(const libtorrent::tcp::endpoint &, protocol_session::DisconnectCause) {
+void TorrentPlugin::removeConnection(const libtorrent::tcp::endpoint &, protocol_session::DisconnectCause) {
 
     // if not peer not in peers map, then just return: may be due to
     // on_disconnect triggered by our own call at some earlier point
@@ -290,7 +286,7 @@ std::vector<Coin::P2PKHAddress> TorrentPlugin::generateP2PKHAddressesCallbackHan
 
 //
 bool TorrentPlugin::broadcastTransaction(const Coin::Transaction &) {
-
+    // sendTorrentPluginAlert(broadcast transaction)
 }
 
 //
@@ -307,12 +303,12 @@ void TorrentPlugin::loadPieceForBuyer(const libtorrent::tcp::endpoint &, unsigne
 
 //
 void TorrentPlugin::claimLastPayment(const libtorrent::tcp::endpoint &, const joystream::paymentchannel::Payee &) {
-
+    // sendTorrentPluginAlert(settlement transaction: use same as broadcast transaction)
 }
 
 // Buyer with given connection id announced anchor
 void TorrentPlugin::anchorAnnounced(const libtorrent::tcp::endpoint &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &) {
-
+    // sendTorrentPluginAlert(start double spend detection, send an alert)
 }
 
 
