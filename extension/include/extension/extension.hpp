@@ -13,7 +13,7 @@
 #include <extension/ExtendedMessageTools.hpp>
 #include <extension/PeerPlugin.hpp>
 #include <extension/Plugin.hpp>
-#include <extension/PluginStatus.hpp>
+#include <extension/Status.hpp>
 #include <extension/TorrentPlugin.hpp>
 #include <extension/request/request.hpp>
 #include <extension/alert/alert.hpp>
