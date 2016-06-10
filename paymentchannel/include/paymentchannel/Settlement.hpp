@@ -43,14 +43,8 @@ namespace paymentchannel {
                                                          uint64_t paid,
                                                          uint64_t fee);
 
-        // Unsigned settelment transaction
-        Coin::Transaction unSignedTransaction() const;
-
         // Implicit fee by comparing commitment and (payor + payee) payment
         int64_t fee() const;
-
-        //
-        uchar_vector sighash(Coin::SigHashType type) const;
 
         // Transaction signature
         Coin::TransactionSignature transactionSignature(const Coin::PrivateKey & sk) const;
@@ -59,9 +53,6 @@ namespace paymentchannel {
         Coin::Transaction signedTransaction(const Coin::TransactionSignature & payorTransactionSignature,
                                             const Coin::TransactionSignature & payeeTransactionSignature) const;
 
-        // Validate signature for unsigned transaction against public key
-        bool validate(const Coin::PublicKey & pk, const Coin::Signature & sig) const;
-
         // Validate signature for unsigned transaction against payor public key
         bool validatePayorSignature(const Coin::Signature & sig) const;
 
@@ -69,6 +60,15 @@ namespace paymentchannel {
         bool validatePayeeSignature(const Coin::Signature & sig) const;
 
     private:
+
+        // Unsigned settelment transaction
+        Coin::Transaction unSignedTransaction() const;
+
+        //
+        uchar_vector sighash(Coin::SigHashType type) const;
+
+        // Validate signature for unsigned transaction against public key
+        bool validate(const Coin::PublicKey & pk, const Coin::Signature & sig) const;
 
         // Whether to pay payor
         // When paid quantity to payee is lower than
