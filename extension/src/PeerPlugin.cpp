@@ -553,11 +553,13 @@ namespace extension {
 
             // Do some sort of catching of error if sending did not work??
 
+            /**
             // Start/Restart timer
             if(_timeSinceLastMessageSent.isNull())
                 _timeSinceLastMessageSent.start();
             else
                 _timeSinceLastMessageSent.restart();
+            */
         }
     }
 
