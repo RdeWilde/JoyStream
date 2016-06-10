@@ -10,9 +10,9 @@
 
 #include <common/Base58CheckEncodable.hpp> // version macroes
 #include <common/AddressType.hpp>
+#include <stdutils/uchar_vector.h>
 
 class QByteArray;
-class uchar_vector;
 
 #define DEFAULT_SEQUENCE_NUMBER 0xFFFFFFFF
 
@@ -57,7 +57,7 @@ namespace Coin {
     // Copied from mSIGNA
     uchar_vector opPushData(uint32_t nBytes);
 
-    uint32_t popData(const uchar_vector & rawData, uchar_vector &data);
+    uchar_vector popData(uchar_vector & script, uchar_vector::iterator &next);
 
     // Deduce address network
     //Network getNetwork(std::string & base58CheckEncodedAddress);
@@ -118,5 +118,6 @@ namespace Coin {
     class PrivateKey;
 
     uchar_vector serializeScriptNum(const int64_t& value);
+    int64_t deserializeScriptNum(const uchar_vector & vch);
 }
 #endif // COIN_UTILITIES_HPP

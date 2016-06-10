@@ -76,46 +76,56 @@ namespace Coin {
         return rval;
     }
 
-    uint32_t popData(const uchar_vector & inputData, uchar_vector & poppedData)
+    /*
+     * This method extracts and returns the next data item from the script
+     * and next is set to point to the next byte after the data
+     *
+     * If the first byte (operation) is not a push data operation or
+     * script is too short to contain the expected data the return value will be an empty uchar_vector
+     * and next will point to the end() of the script
+     */
+    uchar_vector popData(uchar_vector & script, uchar_vector::iterator & next)
     {
-        if(inputData.empty() || inputData[0] == 0) return 0;
+        next = script.end();
 
-        uint32_t inputSize = inputData.size();
+        if(script.empty()) return uchar_vector();
+
         uint32_t dataSize = 0;
-        uint32_t dataStartsAt = 0;
-        uint32_t dataEndsAt = 0;
+        uint32_t offset = 0;
 
-        if (inputData[0] <= 0x4b  && inputSize > 1) {
-            dataSize = inputData[0];
-            dataStartsAt = 1;
+        if (script[0] <= 0x4b) {
+            dataSize = script[0];
+            offset = 1;
         }
-        else if (inputData[0] == 0x4c  && inputSize > 2) {
-            dataSize = inputData[1];
-            dataStartsAt = 2;
+        else if (script[0] == 0x4c) {
+            dataSize = script[1];
+            offset = 1;
         }
-        else if (inputData[0] == 0x4d  && inputSize > 3) {
-            dataSize = inputData[1];
-            dataSize += (inputData[2] << 8);
-            dataStartsAt = 3;
+        else if (script[0] == 0x4d) {
+            dataSize = script[1];
+            dataSize += (script[2] << 8);
+            offset = 3;
         }
-        else if(inputData[0] == 0x4e  && inputSize > 5){
-            dataSize = inputData[1];
-            dataSize += (inputData[2] << 8);
-            dataSize += (inputData[3] << 16);
-            dataSize += (inputData[4] << 24);
-            dataStartsAt = 5;
+        else if(script[0] == 0x4e){
+            dataSize = script[1];
+            dataSize += ((uint32_t)script[2]) << 8;
+            dataSize += ((uint32_t)script[3]) << 16;
+            dataSize += ((uint32_t)script[4]) << 24;
+            offset = 5;
+        } else {
+            // operation is not a push data op
         }
 
-        if(dataSize > 0) {
-            dataEndsAt = dataStartsAt + dataSize;
+        if(script.size() > (offset + dataSize)){
 
-            if(dataEndsAt <= inputSize) {
-                poppedData = uchar_vector(&inputData[dataStartsAt], &inputData[dataEndsAt]);
-                return dataEndsAt;
+            next = script.begin() + offset + dataSize + 1;
+
+            if(dataSize > 0) {
+                return uchar_vector(script.begin() + offset, script.begin() + offset + dataSize);
             }
         }
 
-        return 0;
+        return uchar_vector();
     }
 
     /**
