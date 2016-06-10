@@ -24,8 +24,6 @@ class Test : public QObject
 
 private slots:
 
-    void refund();
-
     void settlement();
 
     void channel();
