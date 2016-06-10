@@ -137,7 +137,7 @@ namespace extension {
             _peerPaymentBEPSupportStatus  = BEPSupportStatus::not_supported;
 
             // note that peer does not have extension
-            _plugin->addToPeersWithoutExtensionSet(_endPoint);
+            _plugin->_extensionless.insert(_endPoint);
 
             return _policy.installPluginOnPeersWithoutExtension;
         }
@@ -183,7 +183,7 @@ namespace extension {
         if(handshake.type() != libtorrent::lazy_entry::dict_t) {
 
             // Remember that this peer does not have extension
-            _plugin->addToIrregularPeersSet(peerInfo.ip);
+            _plugin->_sentMalformedExtendedMessage.insert(peerInfo.ip);
 
             // Mark peer as not supporting BEP43
             _peerPaymentBEPSupportStatus  = BEPSupportStatus::not_supported;
@@ -200,7 +200,7 @@ namespace extension {
         if(version == -1) {
 
             // Remember that this peer does not have extension
-            _plugin->addToPeersWithoutExtensionSet(peerInfo.ip);
+            _plugin->_extensionless.insert(peerInfo.ip);
 
             // Mark peer as not supporting BEP43
             _peerPaymentBEPSupportStatus  = BEPSupportStatus::not_supported;
@@ -219,7 +219,7 @@ namespace extension {
         if(!m) {
 
             // Remember that this peer does not have extension
-            _plugin->addToIrregularPeersSet(peerInfo.ip);
+            _plugin->_sentMalformedExtendedMessage.insert(peerInfo.ip);
 
             // Mark peer as not supporting BEP43
             _peerPaymentBEPSupportStatus = BEPSupportStatus::not_supported;
@@ -240,7 +240,7 @@ namespace extension {
         if(mEntry.type() != libtorrent::entry::dictionary_t) {
 
             // Remember that this peer does not have extension
-            _plugin->addToIrregularPeersSet(peerInfo.ip);
+            _plugin->_sentMalformedExtendedMessage.insert(peerInfo.ip);
 
             // Mark peer as not supporting BEP43
             _peerPaymentBEPSupportStatus  = BEPSupportStatus::not_supported;
@@ -262,7 +262,7 @@ namespace extension {
         if(!_peerMapping.isValid()) {
 
             // Remember that this peer does not have extension
-            _plugin->addToIrregularPeersSet(peerInfo.ip);
+            _plugin->_sentMalformedExtendedMessage.insert(peerInfo.ip);
 
             // Mark peer as not supporting BEP43
             _peerPaymentBEPSupportStatus = BEPSupportStatus::not_supported;
