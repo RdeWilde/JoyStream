@@ -7,6 +7,7 @@
 
 #include <extension/PeerPlugin.hpp>
 #include <extension/TorrentPlugin.hpp>
+#include <extension/Status.hpp>
 #include <protocol_wire/protocol_wire.hpp>
 #include <libtorrent/bt_peer_connection.hpp> // bt_peer_connection, bt_peer_connection::msg_extended
 #include <libtorrent/socket_io.hpp>
