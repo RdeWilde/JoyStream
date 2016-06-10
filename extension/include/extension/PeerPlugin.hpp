@@ -42,20 +42,23 @@ namespace status {
 
         struct Policy {
 
-            Policy()
-                : installPluginOnPeersWithoutExtension(false)
-                , installPluginOnPeersMisbehavingDuringExtendedHandshake(false) {
-            }
-
             Policy(bool installPluginOnPeersWithoutExtension, bool installPluginOnPeersMisbehavingDuringExtendedHandshake)
                 : installPluginOnPeersWithoutExtension(installPluginOnPeersWithoutExtension)
                 , installPluginOnPeersMisbehavingDuringExtendedHandshake(installPluginOnPeersMisbehavingDuringExtendedHandshake) {
             }
 
+            Policy() : Policy(false, false) { }
+
+            /**
+             * I suspect these will be dropped when libtorrent behaviour is
+             * better understood.
+             */
+
+            //
             bool installPluginOnPeersWithoutExtension;
 
+            //
             bool installPluginOnPeersMisbehavingDuringExtendedHandshake;
-
         };
 
         PeerPlugin(TorrentPlugin * plugin,
