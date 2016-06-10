@@ -287,11 +287,11 @@ namespace extension {
         return true;
     }
 
-    bool PeerPlugin::on_have(int index) {
+    bool PeerPlugin::on_have(int) {
         return true; // overrid default handler
     }
 
-    bool PeerPlugin::on_bitfield(libtorrent::bitfield const & bitfield) {
+    bool PeerPlugin::on_bitfield(libtorrent::bitfield const &) {
         return true; // overrid default handler
     }
 
@@ -299,11 +299,11 @@ namespace extension {
         return true; // overrid default handler
     }
 
-    bool PeerPlugin::on_reject(libtorrent::peer_request const & peerRequest) {
+    bool PeerPlugin::on_reject(libtorrent::peer_request const &) {
         return true; // overrid default handler
     }
 
-    bool PeerPlugin::on_request(libtorrent::peer_request const & peerRequest) {
+    bool PeerPlugin::on_request(libtorrent::peer_request const &) {
         return true; // overrid default handler
     }
 
@@ -315,7 +315,7 @@ namespace extension {
         return true; // overrid default handler
     }
 
-    bool PeerPlugin::on_allowed_fast(int index) {
+    bool PeerPlugin::on_allowed_fast(int) {
         return true; // overrid default handler
     }
 
@@ -331,19 +331,19 @@ namespace extension {
         return true; // overrid default handler
     }
 
-    bool PeerPlugin::on_piece(libtorrent::peer_request const & piece, libtorrent::disk_buffer_holder & data) {
+    bool PeerPlugin::on_piece(libtorrent::peer_request const &, libtorrent::disk_buffer_holder &) {
         return false; // let default handler process a piece
     }
 
-    bool PeerPlugin::on_suggest(int index) {
+    bool PeerPlugin::on_suggest(int) {
         return true; // overrid default handler
     }
 
-    bool PeerPlugin::on_cancel(libtorrent::peer_request const & peerRequest) {
+    bool PeerPlugin::on_cancel(libtorrent::peer_request const &) {
         return true; // overrid default handler
     }
 
-    bool PeerPlugin::on_dont_have(int index) {
+    bool PeerPlugin::on_dont_have(int) {
         return true; // overrid default handler
     }
 
@@ -474,15 +474,15 @@ namespace extension {
         return true;
     }
 
-    bool PeerPlugin::on_unknown_message(int length, int msg, libtorrent::buffer::const_interval body) {
+    bool PeerPlugin::on_unknown_message(int, int, libtorrent::buffer::const_interval) {
         return true; // allow other handlers to process
     }
 
-    void PeerPlugin::on_piece_pass(int index) {
+    void PeerPlugin::on_piece_pass(int) {
 
     }
 
-    void PeerPlugin::on_piece_failed(int index) {
+    void PeerPlugin::on_piece_failed(int) {
 
     }
 
@@ -490,7 +490,7 @@ namespace extension {
 
     }
 
-    bool PeerPlugin::write_request(libtorrent::peer_request const & peerRequest) {
+    bool PeerPlugin::write_request(libtorrent::peer_request const &) {
         // no one gets to send to this peer but us!
         return false;
     }
