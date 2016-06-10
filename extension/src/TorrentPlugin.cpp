@@ -33,17 +33,10 @@ TorrentPlugin::~TorrentPlugin() {
     std::clog << "~TorrentPlugin() called.";
 }
 
-boost::shared_ptr<libtorrent::peer_plugin> new_connection(libtorrent::peer_connection * connection) {
+boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorrent::peer_connection * connection) {
 
     /**
-     * Libtorrent docs (http://libtorrent.org/reference-Plugins.html#peer_plugin):
-     * The peer_connection will be valid as long as the shared_ptr is being held by the
-     * torrent object. So, it is generally a good idea to not keep a shared_ptr to
-     * your own peer_plugin. If you want to keep references to it, use weak_ptr.
-     */
-
-    /**
-     * DISCONNECTING PEERS:
+     * NB:
      * You cannot disconnect this peer here, e.g. by using peer_connection::disconnect().
      * This is because, at this point (new_connection), the connection has not been
      * added to a torrent level peer list, and the disconnection asserts that the peer has
@@ -51,78 +44,89 @@ boost::shared_ptr<libtorrent::peer_plugin> new_connection(libtorrent::peer_conne
      */
 
     // Get end point
-    const libtorrent::tcp::endpoint & endPoint = peerConnection->remote();
+    libtorrent::tcp::endpoint endPoint = connection->remote();
 
-    // Print notification
-    std::string endPointString = libtorrent::print_endpoint(endPoint);
+    std::clog << "New"
+              << (connection->is_outgoing() ? "outgoing" : "incoming")
+              << "connection with"
+              << libtorrent::print_endpoint(endPoint).c_str()
+              << std::endl; // << "on " << _torrent->name().c_str();
 
-    std::clog << "New" << (peerConnection->is_outgoing() ? "outgoing" : "incoming") << "connection with" << endPointString.c_str(); // << "on " << _torrent->name().c_str();
+    bool accept = false;
 
-    // Create bittorrent peer connection
-    Q_ASSERT(peerConnection->type() == libtorrent::peer_connection::bittorrent_connection);
-    libtorrent::bt_peer_connection * bittorrentPeerConnection = static_cast<libtorrent::bt_peer_connection*>(peerConnection);
+    if(connection->type() != libtorrent::peer_connection::bittorrent_connection)
+        std::clog << "Peer was not BitTorrent client, likely web seed." << std::endl;
+    else if(_peers.count(endPoint))
+        std::clog << "Peer already added." << std::endl;
+    else if(_extensionless.count(endPoint) && _policy.banPeersWithoutExtension)
+        std::clog << "Peer is known to not have extension, which is incompatible with policy." << std::endl;
+    else if(_sentMalformedExtendedMessage.count(endPoint) && _policy.banPeersWithPastMalformedExtendedMessage)
+        std::clog << "Peer has previously sent malformed extended message." << std::endl;
+    else
+        accept = true;
 
-    // Create shared pointer to new seller peer plugin
-    SellerPeerPlugin * peerPlugin = NULL;
+    // If connection should not be accepted,
+    if(false) {
 
-    // Check if this peer should be accepted, if not
-    // a null is returned, hence plugin is not installed
-    if(!TorrentPlugin::isPeerWellBehaved(peerConnection)) {
+        std::clog << "Instant disconnect, without installing peer plugin." << std::endl;
 
-        std::clog << "Peer is on ban list, scheduling peer for disconnection and plugin for deletion.";
-        peerPlugin = createSellerPeerPluginScheduledForDeletion(bittorrentPeerConnection);
+        // then disconnect
+        libtorrent::error_code ec; // <-- set this to something?
+        connection->disconnect(ec);
 
-    } else if(_peers.contains(endPoint)) {
-
-        std::clog << "Already added peer, scheduling peer for disconnection and plugin for deletion.";
-        peerPlugin = createSellerPeerPluginScheduledForDeletion(bittorrentPeerConnection);
-
-    } else {
-
-        std::clog << "Installed seller plugin #" << _peers.size() << endPointString.c_str();
-
-        // Create a new peer plugin
-        std::vector<Coin::PrivateKey> payeeContractKeySet = _wallet->getKeys(1, false);
-        std::vector<Coin::PrivateKey> paymentKeySet = _wallet->getKeys(1, true);
-
-        Q_ASSERT(payeeContractKeySet.size() == 1);
-        Q_ASSERT(paymentKeySet.size() == 1);
-
-        peerPlugin = createRegularSellerPeerPlugin(payeeContractKeySet[0],
-                                                   paymentKeySet[0],
-                                                   bittorrentPeerConnection);
-
-        // Alert that peer was added
-        sendTorrentPluginAlert(SellerPeerAddedAlert(_torrent->info_hash(),
-                                                   endPoint,
-                                                   peerPlugin->status()));
+        // and don't install plugin
+        return boost::shared_ptr<PeerPlugin>(nullptr);
     }
 
-    Q_ASSERT(peerPlugin != NULL);
+    std::clog << "Installed seller plugin #" << _peers.size() << std::endl;
+
+    // Create a new peer plugin
+    PeerPlugin * peerPlugin = new PeerPlugin(this,
+                                             static_cast<libtorrent::bt_peer_connection*>(connection),
+                                             _policy.peerPolicy,
+                                             _bep10ClientIdentifier);
+
+    /**
+    // Alert that peer was added
+    sendTorrentPluginAlert(SellerPeerAddedAlert(_torrent->info_hash(),
+                                               endPoint,
+                                               peerPlugin->status()));
+    */
 
     // Create shared pointer
-    boost::shared_ptr<SellerPeerPlugin> sharedPeerPluginPtr(peerPlugin);
+    boost::shared_ptr<PeerPlugin> shared(peerPlugin);
 
+    // Add to collection
+    _peers[endPoint] = boost::weak_ptr<PeerPlugin>(shared);
+
+    /**
     // Add to collection
     if(peerPlugin->scheduledForDeletingInNextTorrentPluginTick())
         _peersScheduledForDeletion.append(sharedPeerPluginPtr);
     else
         _peers[endPoint] = boost::weak_ptr<SellerPeerPlugin>(sharedPeerPluginPtr);
+    */
 
     // Return pointer to plugin as required
-    return sharedPeerPluginPtr;
+    return shared;
 }
 
-void TorrentPlugin::on_piece_pass(int index) {
+void TorrentPlugin::on_piece_pass(int) {
 
+    if(_session.mode() == protocol_session::SessionMode::buying) {
+        // tell session about this? but how to figure out
+        //_session.validPieceReceivedOnConnection(index??);
+    }
 }
 
-void TorrentPlugin::on_piece_failed(int index) {
+void TorrentPlugin::on_piece_failed(int) {
 
 }
 
 void TorrentPlugin::tick() {
 
+    // Send status update to controller
+    //sendTorrentPluginAlert(this->status());
 }
 
 bool TorrentPlugin::on_resume() {
@@ -147,8 +151,9 @@ void TorrentPlugin::on_add_peer(const libtorrent::tcp::endpoint & endPoint, int 
 
     std::clog << "Peer list extended with peer" << endPointString.c_str() << ": " << endPoint.port();
 
+    /**
     // Check if we know from before that peer does not have
-    if(_peersWithoutExtension.find(endPoint) != _peersWithoutExtension.end()) {
+    if(_withoutExtension.find(endPoint) != _withoutExtension.end()) {
 
         std::clog << "Not connecting to peer" << endPointString.c_str() << "which is known to not have extension.";
         return;
@@ -164,17 +169,18 @@ void TorrentPlugin::on_add_peer(const libtorrent::tcp::endpoint & endPoint, int 
     // Try to connect to peer
     // Who owns this? I am allocatig on heap because I think connect_to_peer() requires persistent object?
     // ask on mailinglist.
-    /*
-    libtorrent::policy::peer peerPolicy = new libtorrent::policy::peer();
 
-    torrent_->connect_to_peer(peerPolicy,true);
+    //libtorrent::policy::peer peerPolicy = new libtorrent::policy::peer();
+
+    //torrent_->connect_to_peer(peerPolicy,true);
     */
 }
 
-void TorrentPlugin::readPiece(SellerPeerPlugin * peer, int piece) {
+void TorrentPlugin::readPiece(PeerPlugin * peer, int piece) {
 
+    /**
     // There should never be queued multiple reads by same peer of same piece
-    Q_ASSERT(!_outstandingPieceRequests[piece].contains(peer));
+    assert(!_outstandingPieceRequests[piece].contains(peer));
 
     // Register read piece request if it has not already been requested
     if(_outstandingPieceRequests[piece].empty()) {
@@ -186,10 +192,12 @@ void TorrentPlugin::readPiece(SellerPeerPlugin * peer, int piece) {
 
     // Register this peer as a subscriber to a piece read request of this piece
     _outstandingPieceRequests[piece].insert(peer);
+    */
 }
 
 void TorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) {
 
+    /**
     // There should be at least one peer registered for this piece
     //Q_ASSERT(!_outstandingPieceRequests[alert->piece].empty());
     if(_outstandingPieceRequests[alert->piece].empty()) {
@@ -199,7 +207,7 @@ void TorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) {
     }
 
     // Make a callback for each peer registered
-    const QSet<SellerPeerPlugin *> & peers = _outstandingPieceRequests[alert->piece];
+    const std::set<libtorrent::tcp::endpoint> & peers = _outstandingPieceRequests[alert->piece];
 
     // Iterate peers
     for(QSet<SellerPeerPlugin *>::const_iterator i = peers.constBegin(),
@@ -223,53 +231,20 @@ void TorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) {
 
     // Remove all peers registered for this piece
     _outstandingPieceRequests.remove(alert->piece);
-}
-
-void TorrentPlugin::addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint) {
-    _peersWithoutExtension.insert(endPoint);
-}
-
-void TorrentPlugin::addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint) {
-    _irregularPeer.insert(endPoint);
-}
-
-bool TorrentPlugin::isPeerWellBehaved(libtorrent::peer_connection * connection) const {
-
-    // Get endpoint of connection
-    const libtorrent::tcp::endpoint & endPoint = connection->remote();
-
-    // If we are using banning sets, then check this peer
-    if(_enableBanningSets) {
-
-        // Check if we know from before that peer does not have
-        if(_peersWithoutExtension.contains(endPoint)) {
-            std::clog << "Peer is known to not have extension.";
-            return false;
-        }
-
-        // Check if peer is banned due to irregular behaviour
-        if(_irregularPeer.contains(endPoint)) {
-            std::clog << "Peer has been banned due to irregular behaviour.";
-            return false;
-        }
-    }
-
-    // Check that this is indeed a bittorrent client, and not a HTTP or URL seed, if not, then dont isntall
-    if(connection->type() != libtorrent::peer_connection::bittorrent_connection) {
-        std::clog << "Peer was not BitTorrent client.";
-        return false;
-    }
-
-    // Is well behaved
-    return true;
+    */
 }
 
 void TorrentPlugin::sendTorrentPluginAlert(const alert::TorrentPluginAlert & alert) {
-    _torrent->alerts().post_alert(alert);
-    //_torrent->alerts().emplace_alert(alert);
+
+    boost::shared_ptr<libtorrent::torrent> torrent = _torrent.lock();
+
+    assert(torrent);
+
+    torrent->alerts().post_alert(alert);
+    //_torrent.alerts().emplace_alert(alert);
 }
 
-PeerPlugin * TorrentPlugin::getRawPlugin(const libtorrent::tcp::endpoint &) {
+PeerPlugin * TorrentPlugin::getRawPlugin(const libtorrent::tcp::endpoint & endPoint) {
 
     auto it = _peers.find(endPoint);
 
@@ -320,6 +295,7 @@ void TorrentPlugin::disconnectPeer(const libtorrent::tcp::endpoint & endPoint) {
         _session.removeConnection(endPoint); // <-- will cause callback to TorrentPlugin::removeConnection
 
     // Remove from map
+    auto it = _peers.find(endPoint);
     _peers.erase(it);
 }
 

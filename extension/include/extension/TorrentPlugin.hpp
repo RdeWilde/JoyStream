@@ -86,10 +86,6 @@ namespace extension {
         // Call back after piece read
         void pieceRead(const libtorrent::read_piece_alert * alert);
 
-        // Adds peer to respective set, and returns whether it was actually added or existed in the set from before.
-        void addToPeersWithoutExtensionSet(const libtorrent::tcp::endpoint & endPoint);
-        void addToIrregularPeersSet(const libtorrent::tcp::endpoint & endPoint);
-
     private:
 
         /**
@@ -108,8 +104,6 @@ namespace extension {
 
         // Determines the message type, calls correct handler, then frees message
         void processExtendedMessage(const libtorrent::tcp::endpoint &, const joystream::protocol_wire::ExtendedMessagePayload & extendedMessage);
-
-
 
         //
 
@@ -153,24 +147,30 @@ namespace extension {
         Plugin * _plugin;
 
         // Torrent for this torrent_plugin
-        // Should this be weak_ptr really?
-        boost::shared_ptr<libtorrent::torrent> _torrent;
+        boost::weak_ptr<libtorrent::torrent> _torrent;
 
         // Client identifier used in bep10 handshake v-key
         std::string _bep10ClientIdentifier;
 
-        // Set of all endpoints known to not have extension. Is populated by previous failed extended handshakes.
-        std::set<libtorrent::tcp::endpoint> _peersWithoutExtension;
+        // Parametrised runtime behaviour
+        Policy _policy;
 
-        // Set of endpoints banned for irregular conduct during extended protocol
-        std::set<libtorrent::tcp::endpoint> _irregularPeer;
+        // Endpoints corresponding to peers known to not have extension.
+        // Is populated by previous failed extended handshakes.
+        std::set<libtorrent::tcp::endpoint> _extensionless;
+
+        // Endpoints corresponding to peers which have sent malformed extended message
+        // including handshake.
+        std::set<libtorrent::tcp::endpoint> _sentMalformedExtendedMessage;
 
         // Torrent info hash
         libtorrent::sha1_hash _infoHash;
 
         // Maps endpoint to weak peer plugin pointer, is peer_plugin, since this is
-        // the type of weak_ptr libtrrrent requires, hence might as well put it
-        // in this type, rather than corresponding subclass of TorrentPlugin.
+        // Libtorrent docs (http://libtorrent.org/reference-Plugins.html#peer_plugin):
+        // The peer_connection will be valid as long as the shared_ptr is being held by the
+        // torrent object. So, it is generally a good idea to not keep a shared_ptr to
+        // your own peer_plugin. If you want to keep references to it, use weak_ptr.
         // NB: All peers are added, while not all are added to _session, see below.
         std::map<libtorrent::tcp::endpoint, boost::weak_ptr<PeerPlugin> > _peers;
 
@@ -179,23 +179,27 @@ namespace extension {
         // while all peers are added to _peers
         protocol_session::Session<libtorrent::tcp::endpoint> _session;
 
+        /**
+         * Hopefully we can ditch all of this, if we can delete connections in new_connection callback
+         *
         // List of peer plugins scheduled for deletion
-        // ** NEEDS TO BE ABSTRACTED TO PARENT CLASS **
         //std::list<boost::weak_ptr<PeerPlugin> > _peersScheduledForDeletion;
+
+        // Peers which should be deleted next tick().
+        // A peer may end up here for one of the following reasons
+        // (1) we determine in ::new_connection() that we don't want this connection.
+        // Due to assertion constraint in libtorrent the connection cannot be disconneected here.
+        //std::set<libtorrent::tcp::endpoint> _disconnectNextTick;
+        */
 
         // Maintains mapping between piece index and peers that are waiting for this.
         // Will typically just be one, but may be multiple - hence QSet is used
-        std::map<int, std::set<PeerPlugin *> > _outstandingPieceRequests;
-
-        // Checks that peer is not banned and that it is a bittorrent connection
-        bool isPeerWellBehaved(libtorrent::peer_connection * connection) const;
+        std::map<int, std::set<libtorrent::tcp::endpoint> > _outstandingPieceRequests;
 
         // Send torrent plugin alert to libtorrent session
         void sendTorrentPluginAlert(const alert::TorrentPluginAlert & alert);
 
-        // Use banning of peers
-        //bool _enableBanningSets;
-
+        //
         PeerPlugin * getRawPlugin(const libtorrent::tcp::endpoint &);
     };
 
