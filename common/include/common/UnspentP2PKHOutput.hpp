@@ -34,6 +34,8 @@ public:
     void setKeyPair(const KeyPair & keyPair);
 
     virtual uchar_vector scriptPubKey() const;
+    virtual uchar_vector sighash(const Transaction & tx, const SigHashType &sigHashType) const;
+    virtual TransactionSignature transactionSignature(const Transaction & tx, const SigHashType & sigHashType) const;
     virtual uchar_vector scriptSig(const Transaction &, const SigHashType &) const;
 
 private:

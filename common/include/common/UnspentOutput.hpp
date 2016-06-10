@@ -15,6 +15,8 @@
 
 namespace Coin {
 
+class TransactionSignature;
+
 class UnspentOutput {
 public:
 
@@ -36,7 +38,10 @@ public:
     void setValue(quint64 value);
 
     virtual uchar_vector scriptPubKey() const = 0;
+    virtual uchar_vector sighash(const Transaction & tx, const SigHashType &sigHashType) const = 0;
+    virtual TransactionSignature transactionSignature(const Transaction & tx, const SigHashType & sigHashType) const = 0;
     virtual uchar_vector scriptSig(const Transaction & tx, const SigHashType & sigHashType) const = 0;
+
 
 private:
 

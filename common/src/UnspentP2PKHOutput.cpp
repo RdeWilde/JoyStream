@@ -44,17 +44,20 @@ uchar_vector UnspentP2PKHOutput::scriptPubKey() const {
     return P2PKHScriptPubKey(keyPair().pk()).serialize();
 }
 
+uchar_vector UnspentP2PKHOutput::sighash(const Transaction & tx, const SigHashType &sigHashType) const {
+    return ::Coin::sighash(tx, outPoint(), scriptPubKey(), sigHashType);
+}
+
+TransactionSignature UnspentP2PKHOutput::transactionSignature(const Transaction & tx, const SigHashType &sigHashType) const {
+    uchar_vector sigHash = sighash(tx, sigHashType);
+    return TransactionSignature(keyPair().sk().sign(sigHash), sigHashType);
+}
+
 uchar_vector UnspentP2PKHOutput::scriptSig(const Transaction & tx, const SigHashType &sigHashType) const {
-
-    // Transaction hash to be signed (sighash)
-    uchar_vector sigHash = sighash(tx, outPoint(), scriptPubKey(), sigHashType);
-
-    // Sign the sighash with the private key
-    TransactionSignature sig(keyPair().sk().sign(sigHash), sigHashType);
 
     uchar_vector scriptSig;
 
-    scriptSig += sig.opPushForScriptSigSerialized();
+    scriptSig += transactionSignature(tx, sigHashType).opPushForScriptSigSerialized();
 
     scriptSig += opPushData(0x21);
     scriptSig += keyPair().pk().toUCharVector();
