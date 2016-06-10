@@ -38,9 +38,34 @@ namespace extension {
 
     public:
 
+        struct Policy {
+
+            Policy(bool banPeersWithoutExtension,
+                   bool banPeersWithPastMalformedExtendedMessage,
+                   const PeerPlugin::Policy & peerPolicy)
+                : banPeersWithoutExtension(banPeersWithoutExtension)
+                , banPeersWithPastMalformedExtendedMessage(banPeersWithPastMalformedExtendedMessage)
+                , peerPolicy(peerPolicy) {
+            }
+
+            Policy() : Policy(false, false, PeerPlugin::Policy()) { }
+
+            // Should TorrenPlugin::new_connection accept a peer which
+            // is known to not have extension from before.
+            bool banPeersWithoutExtension;
+
+            // Should TorrenPlugin::new_connection accept a peer which
+            // is known to have sent a malformed extended message before.
+            bool banPeersWithPastMalformedExtendedMessage;
+
+            // Policy for peer plugins
+            PeerPlugin::Policy peerPolicy;
+        };
+
         TorrentPlugin(Plugin * plugin,
                       const boost::shared_ptr<libtorrent::torrent> & torrent,
-                      const std::string & bep10ClientIdentifier);
+                      const std::string & bep10ClientIdentifier,
+                      const Policy & policy);
 
         virtual ~TorrentPlugin();
 

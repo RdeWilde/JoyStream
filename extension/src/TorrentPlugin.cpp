@@ -19,10 +19,12 @@ namespace extension {
 
 TorrentPlugin::TorrentPlugin(Plugin * plugin,
                              const boost::shared_ptr<libtorrent::torrent> & torrent,
-                             const std::string & bep10ClientIdentifier)
+                             const std::string & bep10ClientIdentifier,
+                             const Policy & policy)
     : _plugin(plugin)
     , _torrent(torrent)
-    , _bep10ClientIdentifier(bep10ClientIdentifier) {
+    , _bep10ClientIdentifier(bep10ClientIdentifier)
+    , _policy(policy) {
 }
 
 TorrentPlugin::~TorrentPlugin() {
