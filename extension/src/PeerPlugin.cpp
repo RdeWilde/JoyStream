@@ -397,7 +397,7 @@ namespace extension {
         }
 
         // Is it a BitSwapr BEP message?
-        joystream::protocol::MessageType messageType;
+        joystream::protocol_wire::MessageType messageType;
 
         try {
             messageType = _peerMapping.messageType(msg);
@@ -498,7 +498,7 @@ namespace extension {
     void PeerPlugin::send(const joystream::protocol_wire::ExtendedMessagePayload * extendedMessagePayload) {
 
         // Get length of
-        quint32 extendedMessagePayloadLength = extendedMessagePayload.length();
+        quint32 extendedMessagePayloadLength = extendedMessagePayload->length();
 
         // Length of message full message
         quint32 fullMessageLength = 4 + 1 + 1 + extendedMessagePayloadLength;
@@ -527,18 +527,18 @@ namespace extension {
         stream << static_cast<quint8>(libtorrent::bt_peer_connection::msg_extended); // should always be 20 according to BEP10 spec
 
         // Extended message id
-        stream << _peerMapping.id(extendedMessagePayload.messageType());
+        stream << _peerMapping.id(extendedMessagePayload->messageType());
 
         // Write message into buffer through stream
         qint64 preWritePosition = stream.device()->pos();
-        extendedMessagePayload.write(stream);
+        extendedMessagePayload->write(stream);
         qint64 postWritePosition = stream.device()->pos();
 
         qint64 written = postWritePosition - preWritePosition;
 
         Q_ASSERT(written == extendedMessagePayloadLength);
 
-        std::clog << "SENT:" << joystream::protocol::messageName(extendedMessagePayload.messageType()) << " = " << written << "bytes";
+        std::clog << "SENT:" << joystream::protocol_wire::messageName(extendedMessagePayload->messageType()) << " = " << written << "bytes";
 
         // If message was written properly buffer, then send buffer to peer
         if(stream.status() != QDataStream::Status::Ok)
