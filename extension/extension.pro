@@ -22,39 +22,16 @@ HEADERS += \
     include/extension/PeerPlugin.hpp \
     include/extension/BEPSupportStatus.hpp \
     include/extension/ExtendedMessageIdMapping.hpp \
-    include/extension/alert/BuyerPeerAddedAlert.hpp \
-    include/extension/alert/SellerPeerAddedAlert.hpp \
-    include/extension/alert/BuyerPeerPluginRemovedAlert.hpp \
-    include/extension/alert/SellerPeerPluginRemovedAlert.hpp \
-    include/extension/alert/TorrentPluginAlert.hpp \
-    include/extension/alert/AlertTypes.hpp \
-    include/extension/alert/PluginStatusAlert.hpp \
-    include/extension/alert/BuyerTorrentPluginStatusAlert.hpp \
-    include/extension/alert/TorrentPluginStartedAlert.hpp \
-    include/extension/alert/SellerTorrentPluginStatusAlert.hpp \
-    include/extension/alert/StartedSellerTorrentPlugin.hpp \
-    include/extension/alert/StartedBuyerTorrentPlugin.hpp \
     include/extension/extension.hpp \
-    include/extension/alert/alert.hpp \
     include/extension/Request.hpp \
-    include/extension/Status.hpp
+    include/extension/Status.hpp \
+    include/extension/Alert.hpp
 
 SOURCES += \
     src/TorrentPlugin.cpp \
     src/Plugin.cpp \
     src/PeerPlugin.cpp \
     src/ExtendedMessageIdMapping.cpp \
-    src/alert/TorrentPluginAlert.cpp \
-    src/alert/PluginStatusAlert.cpp \
-    src/alert/BuyerTorrentPluginStatusAlert.cpp \
-    src/alert/TorrentPluginStartedAlert.cpp \
-    src/alert/SellerTorrentPluginStatusAlert.cpp \
-    src/alert/StartedSellerTorrentPlugin.cpp \
-    src/alert/StartedBuyerTorrentPlugin.cpp \
-    src/alert/BuyerPeerAddedAlert.cpp \
-    src/alert/SellerPeerAddedAlert.cpp \
-    src/alert/BuyerPeerPluginRemovedAlert.cpp \
-    src/alert/SellerPeerPluginRemovedAlert.cpp \
 
 # common
 INCLUDEPATH += $$PWD/../common/include
