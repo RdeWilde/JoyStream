@@ -19,15 +19,27 @@ namespace joystream {
 namespace extension {
 namespace status {
 
-    struct Plugin {
+    struct PeerPlugin {
 
-        Plugin() {}
+        PeerPlugin() {}
 
-        Plugin(const std::map<libtorrent::sha1_hash, TorrentPlugin> & plugins)
-            : plugins(plugins) {
+        PeerPlugin(const libtorrent::tcp::endpoint & endPoint,
+                   const BEPSupportStatus & peerBEP10SupportStatus,
+                   const BEPSupportStatus & peerBitSwaprBEPSupportStatus)
+            : endPoint(endPoint)
+            , peerBEP10SupportStatus(peerBEP10SupportStatus)
+            , peerBitSwaprBEPSupportStatus(peerBitSwaprBEPSupportStatus) {
         }
 
-        std::map<libtorrent::sha1_hash, TorrentPlugin> plugins;
+        // Endpoint: can be deduced from connection, but is worth keeping if connection pointer becomes invalid
+        libtorrent::tcp::endpoint endPoint;
+
+        // Indicates whether peer supports BEP10
+        BEPSupportStatus peerBEP10SupportStatus;
+
+        // Indicates whether peer supports BEP43 .. BitSwapr
+        BEPSupportStatus peerBitSwaprBEPSupportStatus;
+
     };
 
     struct TorrentPlugin {
@@ -52,27 +64,15 @@ namespace status {
         protocol_session::status::Session<libtorrent::tcp::endpoint> session;
     };
 
-    struct PeerPlugin {
+    struct Plugin {
 
-        PeerPlugin() {}
+        Plugin() {}
 
-        PeerPlugin(const libtorrent::tcp::endpoint & endPoint,
-                   const BEPSupportStatus & peerBEP10SupportStatus,
-                   const BEPSupportStatus & peerBitSwaprBEPSupportStatus)
-            : endPoint(endPoint)
-            , peerBEP10SupportStatus(peerBEP10SupportStatus)
-            , peerBitSwaprBEPSupportStatus(peerBitSwaprBEPSupportStatus) {
+        Plugin(const std::map<libtorrent::sha1_hash, TorrentPlugin> & plugins)
+            : plugins(plugins) {
         }
 
-        // Endpoint: can be deduced from connection, but is worth keeping if connection pointer becomes invalid
-        libtorrent::tcp::endpoint endPoint;
-
-        // Indicates whether peer supports BEP10
-        BEPSupportStatus peerBEP10SupportStatus;
-
-        // Indicates whether peer supports BEP43 .. BitSwapr
-        BEPSupportStatus peerBitSwaprBEPSupportStatus;
-
+        std::map<libtorrent::sha1_hash, TorrentPlugin> plugins;
     };
 }
 }
