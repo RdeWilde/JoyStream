@@ -30,8 +30,9 @@ namespace extension {
     }
 
     PeerPlugin::~PeerPlugin() {
+
         // Lets log, so we understand when libtorrent disposes of shared pointer
-        //std::clog << "~PeerPlugin() called.";
+        std::clog << "~PeerPlugin() called.";
     }
 
     char const* PeerPlugin::type() const {
