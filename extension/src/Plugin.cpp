@@ -333,7 +333,7 @@ bool Plugin::startTorrentPlugin(const libtorrent::sha1_hash & infoHash, const To
         return false;
     }
 }
-*/
+
 
 bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration, const Coin::UnspentP2PKHOutput & utxo) {
 
@@ -417,6 +417,8 @@ bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, co
         return false;
     }
 }
+
+*/
 
 }
 }

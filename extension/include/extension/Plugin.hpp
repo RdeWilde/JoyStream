@@ -8,6 +8,7 @@
 #ifndef JOYSTREAM_EXTENSION_PLUGIN_HPP
 #define JOYSTREAM_EXTENSION_PLUGIN_HPP
 
+#include <extension/Status.hpp>
 #include <extension/TorrentPlugin.hpp>
 
 #include <libtorrent/extensions.hpp>
@@ -20,6 +21,8 @@
 #include <libtorrent/aux_/session_impl.hpp>
 
 #include <boost/weak_ptr.hpp>
+
+#include <mutex>
 
 class Controller;
 class TorrentPlugin;
@@ -57,7 +60,7 @@ public:
     virtual void load_state(libtorrent::lazy_entry const & stateEntry);
 
     // Return status of plugin
-    Status status() const;
+    status::Plugin status() const;
 
     /**
      * Synchronized routines called from controller by Qt thread.
@@ -86,16 +89,16 @@ private:
      */
 
     // Plugin Request
-    QQueue<PluginRequest *> _pluginRequestQueue;
-    QMutex _pluginRequestQueueMutex; // mutex protecting queue
+    std::deque<PluginRequest *> _pluginRequestQueue;
+    std::mutex _pluginRequestQueueMutex; // mutex protecting queue
 
     // Torrent Plugin Request
-    QQueue<TorrentPluginRequest *> _torrentPluginRequestQueue; // queue
-    QMutex _torrentPluginRequestQueueMutex; // mutex protecting queue
+    std::deque<TorrentPluginRequest *> _torrentPluginRequestQueue; // queue
+    std::mutex _torrentPluginRequestQueueMutex; // mutex protecting queue
 
     // Peer Plugin Request
-    QQueue<PeerPluginRequest *> _peerPluginRequestQueue; // queue
-    QMutex _peerPluginRequestQueueMutex; // mutex protecting queue
+    std::deque<PeerPluginRequest *> _peerPluginRequestQueue; // queue
+    std::mutex _peerPluginRequestQueueMutex; // mutex protecting queue
 
     // Processing routines
     void processesRequests();
@@ -108,11 +111,12 @@ private:
     // 3) Notifies controller
     void removeTorrentPlugin(const libtorrent::sha1_hash & info_hash);
 
+    /**
     // Start plugin
     //bool startTorrentPlugin(const libtorrent::sha1_hash & infoHash, const TorrentPlugin::Configuration * configuration);
-
     bool startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration, const Coin::UnspentP2PKHOutput & utxo);
     bool startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration);
+    */
 
     // Send alert to session object
     void sendAlertToSession(const libtorrent::alert & alert);
