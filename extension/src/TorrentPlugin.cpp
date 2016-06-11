@@ -8,6 +8,7 @@
 #include <extension/TorrentPlugin.hpp>
 #include <extension/Plugin.hpp>
 #include <extension/Alert.hpp>
+#include <extension/Request.hpp>
 
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/peer_connection.hpp>
@@ -36,7 +37,6 @@ TorrentPlugin::~TorrentPlugin() {
 boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorrent::peer_connection * connection) {
 
     /**
-     * NB:
      * You cannot disconnect this peer here, e.g. by using peer_connection::disconnect().
      * This is because, at this point (new_connection), the connection has not been
      * added to a torrent level peer list, and the disconnection asserts that the peer has
@@ -86,13 +86,6 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorr
                                              _policy.peerPolicy,
                                              _bep10ClientIdentifier);
 
-    /**
-    // Alert that peer was added
-    sendTorrentPluginAlert(SellerPeerAddedAlert(_torrent->info_hash(),
-                                               endPoint,
-                                               peerPlugin->status()));
-    */
-
     // Create shared pointer
     boost::shared_ptr<PeerPlugin> shared(peerPlugin);
 
@@ -122,25 +115,31 @@ void TorrentPlugin::on_piece_pass(int) {
 
 void TorrentPlugin::on_piece_failed(int) {
 
+    if(_session.mode() == protocol_session::SessionMode::buying) {
+
+        // tell session about this? but how to figure out
+        //_session.invalidPieceReceivedOnConnection(index??);
+    }
 }
 
 void TorrentPlugin::tick() {
+    _session.tick();
 }
 
 bool TorrentPlugin::on_resume() {
-
+    // deal with this later
 }
 
 bool TorrentPlugin::on_pause() {
-
+    // deal with this later
 }
 
 void TorrentPlugin::on_files_checked() {
-
+    // nothing to do
 }
 
 void TorrentPlugin::on_state(int s) {
-
+    // nothing to do
 }
 
 void TorrentPlugin::on_add_peer(const libtorrent::tcp::endpoint & endPoint, int src, int flags) {
@@ -174,19 +173,84 @@ void TorrentPlugin::on_add_peer(const libtorrent::tcp::endpoint & endPoint, int 
     */
 }
 
+void TorrentPlugin::handle(const request::TorrentPluginRequest * r) {
+
+    assert(r->infoHash == _infoHash);
+
+    // should we TRY CATCH this whoel thing
+    // to capture state icnompatible operations?
+    // then send alert which includes shared_ptr to copied
+    // version of exception in an alert that the controller has to deal with???
+    // in principle this seems like the correct sort of approach,
+    // as a client can never be sure that state of plugin is suitable, given lack
+    // of atomicity across libtorrent and client thread.
+    // ???? what does client do in that case????
+
+    if(dynamic_cast<const request::Start *>(r))
+        _session.start();
+    else if (dynamic_cast<const request::Stop *>(r))
+        _session.stop();
+    else if (dynamic_cast<const request::Pause *>(r))
+        _session.pause();
+    else if (const request::UpdateBuyerTerms * updateBuyerTerms = dynamic_cast<const request::UpdateBuyerTerms *>(r))
+        _session.updateTerms(updateBuyerTerms->terms);
+    else if (const request::UpdateSellerTerms * updateSellerTerms = dynamic_cast<const request::UpdateSellerTerms *>(r))
+        _session.updateTerms(updateSellerTerms->terms);
+    else if (dynamic_cast<const request::ToObserveMode *>(r))
+        _session.toObserveMode(removeConnection());
+    else if (const request::ToSellMode * toSellMode = dynamic_cast<const request::ToSellMode *>(r)) {
+
+        assert(_outstandingReadPieceRequests.empty());
+
+        // Get maximum number of pieces
+        int maxPieceIndex = getTorrent()->picker().num_pieces() - 1;
+
+        // Go to mode
+        _session.toSellMode(removeConnection(),
+                            toSellMode->generateKeyPairsCallbackHandler,
+                            toSellMode->generateP2PKHAddressesCallbackHandler,
+                            loadPieceForBuyer(),
+                            claimLastPayment(),
+                            anchorAnnounced(),
+                            toSellMode->sellingPolicy,
+                            toSellMode->terms,
+                            maxPieceIndex);
+    } else if (const request::ToBuyMode * toBuyMode = dynamic_cast<const request::ToBuyMode *>(r)) {
+
+        // Make sure to clear
+        if(_session.mode() == protocol_session::SessionMode::selling)
+            _outstandingReadPieceRequests.clear();
+
+        _session.toBuyMode(removeConnection(),
+                           toBuyMode->generateKeyPairsCallbackHandler,
+                           toBuyMode->generateP2PKHAddressesCallbackHandler,
+                           broadcastTransaction(),
+                           fullPieceArrived(),
+                           toBuyMode->funding,
+                           toBuyMode->policy,
+                           toBuyMode->terms,
+                           torrentPieceInformation());
+    } else if (const request::ChangeDownloadLocation * changeDownloadLocation = dynamic_cast<const request::ChangeDownloadLocation *>(r))
+        assert(false);
+    else
+        assert(false);
+
+    delete r;
+}
+
 void TorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) {
 
-    /**
+
     // There should be at least one peer registered for this piece
     //Q_ASSERT(!_outstandingPieceRequests[alert->piece].empty());
-    if(_outstandingPieceRequests[alert->piece].empty()) {
+    if(_outstandingReadPieceRequests[alert->piece].empty()) {
 
         std::clog << "Ignoring piece read, must be for streaming server.";
         return;
     }
 
     // Make a callback for each peer registered
-    const std::set<libtorrent::tcp::endpoint> & peers = _outstandingPieceRequests[alert->piece];
+    const std::set<libtorrent::tcp::endpoint> & peers = _outstandingReadPieceRequests[alert->piece];
 
     // Iterate peers
     for(QSet<SellerPeerPlugin *>::const_iterator i = peers.constBegin(),
@@ -209,8 +273,7 @@ void TorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) {
     }
 
     // Remove all peers registered for this piece
-    _outstandingPieceRequests.remove(alert->piece);
-    */
+    _outstandingReadPieceRequests.remove(alert->piece);
 }
 
 void TorrentPlugin::sendTorrentPluginAlert(const libtorrent::alert & alert) {
@@ -235,6 +298,30 @@ PeerPlugin * TorrentPlugin::getRawPlugin(const libtorrent::tcp::endpoint & endPo
     assert(peerPlugin);
 
     return peerPlugin.get();
+}
+
+libtorrent::torrent * TorrentPlugin::getTorrent()  {
+
+    boost::shared_ptr<libtorrent::torrent> torrent = _torrent.lock();
+    assert(torrent);
+
+    return torrent.get();
+}
+
+protocol_session::TorrentPieceInformation TorrentPlugin::torrentPieceInformation() const {
+
+    libtorrent::piece_picker & picker = getTorrent()->picker();
+
+    // Build
+    protocol_session::TorrentPieceInformation information;
+
+    // Proper size, but drop later
+    //size = getTorrent()->block_size() * picker.blocks_in_piece() or picker.blocks_in_last_piece();
+
+    for(int i = 0; i < picker.num_pieces();i++)
+        information.push_back(protocol_session::PieceInformation(0, picker.is_piece_finished(i));
+
+    return information;
 }
 
 void TorrentPlugin::addPeerToSession(const libtorrent::tcp::endpoint & endPoint) {
@@ -288,6 +375,75 @@ void TorrentPlugin::processExtendedMessage(const libtorrent::tcp::endpoint & end
     _session.processMessageOnConnection(endPoint, extendedMessage);
 }
 
+protocol_session::RemovedConnectionCallbackHandler TorrentPlugin::removeConnection() const {
+
+    return [this](const libtorrent::tcp::endpoint & endPoint, protocol_session::DisconnectCause) {
+
+        // if not peer not in peers map, then just return: may be due to
+        // disconnectPeer() call at some earlier point
+        auto it = this->_peers.find(endPoint);
+        if(it == this->_peers.cend())
+            return;
+
+        // if cause needs to be recorded, record
+
+        // Disconnect peer
+        this->disconnectPeer(endPoint);
+    };
+}
+
+protocol_session::BroadcastTransaction TorrentPlugin::broadcastTransaction() const {
+
+    return [this](const Coin::Transaction & tx) -> bool {
+        this->sendTorrentPluginAlert(alert::BroadcastTransaction(tx));
+    };
+}
+
+protocol_session::FullPieceArrived TorrentPlugin::fullPieceArrived() const {
+
+    return [this](const libtorrent::tcp::endpoint & endPoint, const protocol_wire::PieceData & pieceData, int index) -> void {
+
+    };
+}
+
+protocol_session::LoadPieceForBuyer TorrentPlugin::loadPieceForBuyer() const {
+
+    return [this](const libtorrent::tcp::endpoint & endPoint, unsigned int index) -> void {
+
+        /**
+        // There should never be queued multiple reads by same peer of same piece
+        assert(!_outstandingPieceRequests[piece].contains(peer));
+
+        // Register read piece request if it has not already been requested
+        if(_outstandingPieceRequests[piece].empty()) {
+
+            std::clog << "[" << _outstandingPieceRequests[piece].size() <<"]Requested piece" << piece << "by" << libtorrent::print_address(peer->endPoint().address()).c_str();
+            _torrent->read_piece(piece);
+        } else
+            std::clog << "[" << _outstandingPieceRequests[piece].size() <<"]Skipping requested piece" << piece << "by" << libtorrent::print_address(peer->endPoint().address()).c_str();
+
+        // Register this peer as a subscriber to a piece read request of this piece
+        _outstandingPieceRequests[piece].insert(peer);
+        */
+
+    };
+}
+
+protocol_session::ClaimLastPayment TorrentPlugin::claimLastPayment() const {
+
+    return [this](const libtorrent::tcp::endpoint & endPoint, const joystream::paymentchannel::Payee &) {
+        // sendTorrentPluginAlert(settlement transaction: use same as broadcast transaction)
+    };
+}
+
+protocol_session::AnchorAnnounced TorrentPlugin::anchorAnnounced() const {
+    // sendTorrentPluginAlert(start double spend detection, send an alert)
+    // start checking for double spends??
+    return [this](const libtorrent::tcp::endpoint & endPoint, quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash) {
+        // sendTorrentPluginAlert(settlement transaction: use same as broadcast transaction)
+    };
+}
+
 void TorrentPlugin::removeConnection(const libtorrent::tcp::endpoint & endPoint, protocol_session::DisconnectCause) {
 
     // if not peer not in peers map, then just return: may be due to
@@ -301,61 +457,6 @@ void TorrentPlugin::removeConnection(const libtorrent::tcp::endpoint & endPoint,
     // Disconnect peer
     disconnectPeer(endPoint);
 }
-
-//
-std::vector<Coin::KeyPair> TorrentPlugin::generateKeyPairsCallbackHandler(int) {
-
-}
-
-//
-std::vector<Coin::P2PKHAddress> TorrentPlugin::generateP2PKHAddressesCallbackHandler(int) {
-
-}
-
-//// Buying hooks
-
-//
-bool TorrentPlugin::broadcastTransaction(const Coin::Transaction &) {
-    // sendTorrentPluginAlert(broadcast transaction)
-}
-
-//
-void TorrentPlugin::fullPieceArrived(const libtorrent::tcp::endpoint &, const protocol_wire::PieceData &, int) {
-
-}
-
-//// Selling hooks
-
-//
-void TorrentPlugin::loadPieceForBuyer(const libtorrent::tcp::endpoint &, unsigned int) {
-
-    /**
-    // There should never be queued multiple reads by same peer of same piece
-    assert(!_outstandingPieceRequests[piece].contains(peer));
-
-    // Register read piece request if it has not already been requested
-    if(_outstandingPieceRequests[piece].empty()) {
-
-        std::clog << "[" << _outstandingPieceRequests[piece].size() <<"]Requested piece" << piece << "by" << libtorrent::print_address(peer->endPoint().address()).c_str();
-        _torrent->read_piece(piece);
-    } else
-        std::clog << "[" << _outstandingPieceRequests[piece].size() <<"]Skipping requested piece" << piece << "by" << libtorrent::print_address(peer->endPoint().address()).c_str();
-
-    // Register this peer as a subscriber to a piece read request of this piece
-    _outstandingPieceRequests[piece].insert(peer);
-    */
-}
-
-//
-void TorrentPlugin::claimLastPayment(const libtorrent::tcp::endpoint &, const joystream::paymentchannel::Payee &) {
-    // sendTorrentPluginAlert(settlement transaction: use same as broadcast transaction)
-}
-
-// Buyer with given connection id announced anchor
-void TorrentPlugin::anchorAnnounced(const libtorrent::tcp::endpoint &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &) {
-    // sendTorrentPluginAlert(start double spend detection, send an alert)
-}
-
 
 }
 }

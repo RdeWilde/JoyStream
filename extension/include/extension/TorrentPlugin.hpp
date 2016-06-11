@@ -25,6 +25,9 @@ namespace libtorrent {
 
 namespace joystream {
 namespace extension {
+namespace request {
+    class TorrentPluginRequest;
+}
 
     class Plugin;
 
@@ -82,7 +85,6 @@ namespace extension {
         // This hook is called approximately once per second. It is a way of making it easy for plugins to do timed events, for sending messages or whatever.
         virtual void tick();
 
-
         // These hooks are called when the torrent is paused and unpaused respectively. The return value indicates if the event was handled.
         // A return value of true indicates that it was handled, and no other plugin after this one will have this hook function called,
         // and the standard handler will also not be invoked. So, returning true effectively overrides the standard behavior of pause or unpause.
@@ -103,16 +105,19 @@ namespace extension {
         // about this peer from. It's a bitmask, because many sources may have told us about the same peer.
         // For peer source flags, see peer_info::peer_source_flags.
         virtual void on_add_peer(const libtorrent::tcp::endpoint & endPoint, int src, int flags);
-        
+
+        //// Plugin calls
+
+        // Handle request from libtorrent client. Takes ownership of request object.
+        void handle(const request::TorrentPluginRequest * r);
+
         // Alert from plugin about a piece being read.
         // Is required when session is selling.
         void pieceRead(const libtorrent::read_piece_alert * alert);
 
     private:
 
-        /**
-         * PeerPlugin notifications
-         */
+        //// PeerPlugin notifications
 
         friend class PeerPlugin;
 
@@ -127,37 +132,14 @@ namespace extension {
         // Determines the message type, calls correct handler, then frees message
         void processExtendedMessage(const libtorrent::tcp::endpoint &, const joystream::protocol_wire::ExtendedMessagePayload & extendedMessage);
 
-        /**
-         * Protocol session hooks
-         */
+        //// Protocol session hooks
 
-        // Removes peer plugin corresponding to given endpoint for given reason
-        void removeConnection(const libtorrent::tcp::endpoint &, protocol_session::DisconnectCause);
-
-        //
-        std::vector<Coin::KeyPair> generateKeyPairsCallbackHandler(int);
-
-        //
-        std::vector<Coin::P2PKHAddress> generateP2PKHAddressesCallbackHandler(int);
-
-        //// Buying hooks
-
-        //
-        bool broadcastTransaction(const Coin::Transaction &);
-
-        //
-        void fullPieceArrived(const libtorrent::tcp::endpoint &, const protocol_wire::PieceData &, int);
-
-        //// Selling hooks
-
-        //
-        void loadPieceForBuyer(const libtorrent::tcp::endpoint &, unsigned int);
-
-        //
-        void claimLastPayment(const libtorrent::tcp::endpoint &, const joystream::paymentchannel::Payee &);
-
-        // Buyer with given connection id announced anchor
-        void anchorAnnounced(const libtorrent::tcp::endpoint &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &);
+        protocol_session::RemovedConnectionCallbackHandler removeConnection() const;
+        protocol_session::BroadcastTransaction broadcastTransaction() const;
+        protocol_session::FullPieceArrived fullPieceArrived() const;
+        protocol_session::LoadPieceForBuyer loadPieceForBuyer() const;
+        protocol_session::ClaimLastPayment claimLastPayment() const;
+        protocol_session::AnchorAnnounced anchorAnnounced() const;
 
         //// Members
 
@@ -212,15 +194,24 @@ namespace extension {
         //std::set<libtorrent::tcp::endpoint> _disconnectNextTick;
         */
 
-        // Maintains mapping between piece index and peers that are waiting for this.
-        // Will typically just be one, but may be multiple - hence QSet is used
-        std::map<int, std::set<libtorrent::tcp::endpoint> > _outstandingPieceRequests;
+        // While selling, this maintains mapping between piece index and peers that are
+        // waiting for this piece to be read from disk.
+        // Will typically just be one, but may be multiple - hence set is used
+        std::map<int, std::set<libtorrent::tcp::endpoint> > _outstandingReadPieceRequests;
+
+        //// Utilities
 
         // Send torrent plugin alert to libtorrent session
         void sendTorrentPluginAlert(const libtorrent::alert & alert);
 
-        //
+        // Returns raw plugin pointer after asserted locking
         PeerPlugin * getRawPlugin(const libtorrent::tcp::endpoint &);
+
+        // Returns raw torrent pointer after asserted locking
+        libtorrent::torrent * getTorrent();
+
+        // Returns torrent piece information based on current state of torrent
+        protocol_session::TorrentPieceInformation torrentPieceInformation() const;
     };
 
 }

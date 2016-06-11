@@ -40,7 +40,6 @@ namespace request {
         protocol_wire::BuyerTerms terms;
     };
 
-
     struct UpdateSellerTerms : public TorrentPluginRequest {
 
         UpdateSellerTerms(const libtorrent::sha1_hash & infoHash, const protocol_wire::SellerTerms & terms)
