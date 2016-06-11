@@ -7,7 +7,7 @@
 
 #include <extension/TorrentPlugin.hpp>
 #include <extension/Plugin.hpp>
-#include <extension/alert/TorrentPluginAlert.hpp>
+#include <extension/Alert.hpp>
 
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/peer_connection.hpp>
@@ -114,6 +114,7 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorr
 void TorrentPlugin::on_piece_pass(int) {
 
     if(_session.mode() == protocol_session::SessionMode::buying) {
+
         // tell session about this? but how to figure out
         //_session.validPieceReceivedOnConnection(index??);
     }
@@ -124,9 +125,6 @@ void TorrentPlugin::on_piece_failed(int) {
 }
 
 void TorrentPlugin::tick() {
-
-    // Send status update to controller
-    //sendTorrentPluginAlert(this->status());
 }
 
 bool TorrentPlugin::on_resume() {
@@ -176,25 +174,6 @@ void TorrentPlugin::on_add_peer(const libtorrent::tcp::endpoint & endPoint, int 
     */
 }
 
-void TorrentPlugin::readPiece(PeerPlugin * peer, int piece) {
-
-    /**
-    // There should never be queued multiple reads by same peer of same piece
-    assert(!_outstandingPieceRequests[piece].contains(peer));
-
-    // Register read piece request if it has not already been requested
-    if(_outstandingPieceRequests[piece].empty()) {
-
-        std::clog << "[" << _outstandingPieceRequests[piece].size() <<"]Requested piece" << piece << "by" << libtorrent::print_address(peer->endPoint().address()).c_str();
-        _torrent->read_piece(piece);
-    } else
-        std::clog << "[" << _outstandingPieceRequests[piece].size() <<"]Skipping requested piece" << piece << "by" << libtorrent::print_address(peer->endPoint().address()).c_str();
-
-    // Register this peer as a subscriber to a piece read request of this piece
-    _outstandingPieceRequests[piece].insert(peer);
-    */
-}
-
 void TorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) {
 
     /**
@@ -234,7 +213,7 @@ void TorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) {
     */
 }
 
-void TorrentPlugin::sendTorrentPluginAlert(const alert::TorrentPluginAlert & alert) {
+void TorrentPlugin::sendTorrentPluginAlert(const libtorrent::alert & alert) {
 
     boost::shared_ptr<libtorrent::torrent> torrent = _torrent.lock();
 
@@ -350,6 +329,21 @@ void TorrentPlugin::fullPieceArrived(const libtorrent::tcp::endpoint &, const pr
 //
 void TorrentPlugin::loadPieceForBuyer(const libtorrent::tcp::endpoint &, unsigned int) {
 
+    /**
+    // There should never be queued multiple reads by same peer of same piece
+    assert(!_outstandingPieceRequests[piece].contains(peer));
+
+    // Register read piece request if it has not already been requested
+    if(_outstandingPieceRequests[piece].empty()) {
+
+        std::clog << "[" << _outstandingPieceRequests[piece].size() <<"]Requested piece" << piece << "by" << libtorrent::print_address(peer->endPoint().address()).c_str();
+        _torrent->read_piece(piece);
+    } else
+        std::clog << "[" << _outstandingPieceRequests[piece].size() <<"]Skipping requested piece" << piece << "by" << libtorrent::print_address(peer->endPoint().address()).c_str();
+
+    // Register this peer as a subscriber to a piece read request of this piece
+    _outstandingPieceRequests[piece].insert(peer);
+    */
 }
 
 //
