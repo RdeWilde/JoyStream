@@ -61,15 +61,15 @@ namespace alert {
         BroadcastTransaction(const Coin::Transaction  & tx)
             : _tx(tx) { }
 
-        BroadcastTransaction(const PluginStatusAlert & alert)
-            : PluginStatusAlert(alert.tx()) { }
+        BroadcastTransaction(const BroadcastTransaction & alert)
+            : BroadcastTransaction(alert.tx()) { }
 
         // Virtual routines from libtorrent::alert
         virtual int type() const { return alert_type; }
         virtual char const* what() const { return "BroadcastTransaction"; }
         virtual std::string message() const { return std::string("BroadcastTransaction::message: IMPLEMENT LATER"); }
         virtual int category() const { return libtorrent::alert::stats_notification; }
-        virtual std::auto_ptr<libtorrent::alert> clone() const { return std::auto_ptr<alert>(new PluginStatusAlert(*this)); }
+        virtual std::auto_ptr<libtorrent::alert> clone() const { return std::auto_ptr<alert>(new BroadcastTransaction(*this)); }
 
         Coin::Transaction tx() const { return _tx; }
 
