@@ -22,6 +22,23 @@
 
 using namespace joystream::paymentchannel;
 
+void Test::redeemScript() {
+
+    Coin::KeyPair payorPair = Coin::KeyPair::generate();
+
+    Coin::KeyPair payeePair = Coin::KeyPair::generate();
+
+    uint32_t lockTime = std::time(nullptr);
+
+    RedeemScript rs(payorPair.pk(), payeePair.pk(), lockTime);
+
+    uchar_vector serialized = rs.serialized();
+
+    RedeemScript rs_des = RedeemScript::deserialize(serialized);
+
+    QCOMPARE(serialized, rs_des.serialized());
+}
+
 void Test::refund() {
 
     Coin::KeyPair payorContractPair = Coin::KeyPair::generate();
