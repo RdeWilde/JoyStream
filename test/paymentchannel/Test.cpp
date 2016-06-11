@@ -22,6 +22,41 @@
 
 using namespace joystream::paymentchannel;
 
+void Test::refund() {
+
+    Coin::KeyPair payorContractPair = Coin::KeyPair::generate();
+    Coin::KeyPair payorFinalPair = Coin::KeyPair::generate();
+    Coin::KeyPair payeeContractPair = Coin::KeyPair::generate();
+    Coin::KeyPair payeeFinalPair = Coin::KeyPair::generate();
+
+    Coin::typesafeOutPoint contractOutPoint;
+
+    // settlement final destinations
+    Coin::P2PKScriptPubKey payorScriptPubKey(payorFinalPair.pk());
+    Coin::RedeemScriptHash payorScriptHash(Coin::P2SHAddress::fromSerializedRedeemScript(NETWORK_TYPE, payorScriptPubKey.serialize()).redeemScriptHash());
+
+    Coin::P2PKScriptPubKey payeeScriptPubKey(payeeFinalPair.pk());
+    Coin::RedeemScriptHash payeeScriptHash(Coin::P2SHAddress::fromSerializedRedeemScript(NETWORK_TYPE, payeeScriptPubKey.serialize()).redeemScriptHash());
+
+    uint32_t lockTime = 100;
+    uint64_t channelValue = 180;
+
+    joystream::paymentchannel::Payor p(1, 0, channelValue, 1000, lockTime,contractOutPoint, payorContractPair, payorScriptHash, payeeContractPair.pk(), payeeScriptHash);
+
+    joystream::paymentchannel::Refund R(p.refund());
+
+    QCOMPARE(R.lockedUntil(), lockTime);
+
+    // The output is locked until the block height is greater than the locktime
+    QCOMPARE(R.isLocked(99), true); // locked
+    QCOMPARE(R.isLocked(100), true); // locked
+    QCOMPARE(R.isLocked(101), false); // unlocked
+
+    QCOMPARE(R.getUnspentOutput().value(), channelValue);
+
+    QVERIFY(R.getUnspentOutput().outPoint() == contractOutPoint);
+}
+
 void Test::settlement() {
 
     Coin::KeyPair payorContractPair = Coin::KeyPair::generate();
