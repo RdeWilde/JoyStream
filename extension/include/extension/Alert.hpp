@@ -24,7 +24,6 @@ namespace alert {
 
     public:
 
-        // Public member required for alert_cast
         const static int alert_type = PLUGIN_STATUS_ALERT_ID;
 
         PluginStatusAlert();
@@ -55,7 +54,6 @@ namespace alert {
 
     public:
 
-        // Public member required for alert_cast
         const static int alert_type = BROADCAST_TRANSACTION_ALERT_ID;
 
         BroadcastTransaction();
