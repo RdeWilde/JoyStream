@@ -57,7 +57,7 @@ namespace Coin {
     // Copied from mSIGNA
     uchar_vector opPushData(uint32_t nBytes);
 
-    uchar_vector popData(uchar_vector & script, uchar_vector::iterator &next);
+    uchar_vector popData(const uchar_vector & script, uchar_vector & poppedData);
 
     // Deduce address network
     //Network getNetwork(std::string & base58CheckEncodedAddress);

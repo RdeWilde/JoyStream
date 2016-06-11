@@ -210,13 +210,13 @@ void Test::popData() {
         uchar_vector script;
         script.push_back(0x00); // OP_FALSE
 
-        uchar_vector::iterator next;
+        uchar_vector data;
 
-        uchar_vector data_ = Coin::popData(script, next);
+        uchar_vector subscript = Coin::popData(script, data);
 
-        QCOMPARE(uint(data_.size()), uint(0));
+        QCOMPARE(uint(data.size()), uint(0));
 
-        QVERIFY(next == script.end());
+        QVERIFY(subscript.empty());
     }
 
     {
@@ -224,25 +224,19 @@ void Test::popData() {
         script.push_back(0x00); // OP_FALSE
         script.push_back(0x00); // OP_FALSE
 
-        uchar_vector::iterator next;
-
         QCOMPARE(uint(script.size()), uint(2));
 
-        uchar_vector data_ = Coin::popData(script, next);
+        uchar_vector data;
 
-        QCOMPARE(uint(data_.size()), uint(0));
+        uchar_vector subscript = Coin::popData(script, data);
 
-        QVERIFY(next != script.end());
-
-        uchar_vector subscript(next, script.end());
+        QCOMPARE(uint(data.size()), uint(0));
 
         QCOMPARE(uint(subscript.size()), uint(1));
 
-        data_ = Coin::popData(subscript, next);
+        Coin::popData(subscript, data);
 
-        QCOMPARE(uint(data_.size()), uint(0));
-
-        QVERIFY(next == subscript.end());
+        QCOMPARE(uint(data.size()), uint(0));
     }
 
     {
@@ -251,18 +245,18 @@ void Test::popData() {
         uchar_vector script;
         script += Coin::opPushData(data.size());
         script += data;
-        uchar_vector::iterator next;
 
         QCOMPARE(uint(script.size()), uint(21));
         QCOMPARE(uint(script[0]), len);
 
-        uchar_vector data_ = Coin::popData(script, next);
+        uchar_vector data_;
+        uchar_vector subscript = Coin::popData(script, data_);
 
         QCOMPARE(uint(data_.size()), uint(len));
 
         QCOMPARE(data_, data);
 
-        QVERIFY(next == script.end());
+        QVERIFY(subscript.empty());
     }
 
     {
@@ -273,24 +267,21 @@ void Test::popData() {
         script += data;
         script += Coin::opPushData(data.size());
         script += data;
-        uchar_vector::iterator next;
+
+        uchar_vector subscript;
 
         QCOMPARE(uint(script.size()), uint(42));
 
-        uchar_vector data_ = Coin::popData(script, next);
+        uchar_vector data_;
+
+        subscript = Coin::popData(script, data_);
 
         QCOMPARE(uint(data_.size()), uint(len));
         QCOMPARE(data_, data);
 
-        QVERIFY(next != script.end());
-
-        QCOMPARE(*next, uchar(0x14));
-
-        uchar_vector subscript(next, script.end());
-
         QCOMPARE(uint(subscript.size()), uint(21));
 
-        data_ = Coin::popData(subscript, next);
+        Coin::popData(subscript, data_);
 
         QCOMPARE(uint(data_.size()), uint(len));
         QCOMPARE(data_, data);

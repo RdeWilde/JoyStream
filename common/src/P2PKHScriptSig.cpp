@@ -40,16 +40,10 @@ P2PKHScriptSig P2PKHScriptSig::deserialize(const uchar_vector & script) {
     uchar_vector rawTxSignatureAndCode;
     uchar_vector rawPublicKey;
 
-    uchar_vector::iterator next;
+    uchar_vector subscript = popData(script, rawTxSignatureAndCode);
 
-    //copy the script
-    uchar_vector rawScript = script;
-
-    rawTxSignatureAndCode = popData(rawScript, next);
-
-    if(next != rawScript.end()) {
-        uchar_vector subscript = uchar_vector(next, rawScript.end());
-        rawPublicKey = popData(subscript, next);
+    if(!subscript.empty()) {
+        popData(subscript, rawPublicKey);
     }
 
     if(rawTxSignatureAndCode.empty()) {

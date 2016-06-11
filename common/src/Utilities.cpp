@@ -77,39 +77,43 @@ namespace Coin {
     }
 
     /*
-     * This method extracts and returns the next data item from the script
-     * and next is set to point to the next byte after the data
+     * This method extracts the next data item from the script and assigns it to poppedData
+     * and returns a subscript following the end of the data.
      *
      * If the first byte (operation) is not a push data operation or
-     * script is too short to contain the expected data the return value will be an empty uchar_vector
-     * and next will point to the end() of the script
+     * script is too short to contain the expected data the popped data and returned subscript
+     * will be an empty uchar_vector
      */
-    uchar_vector popData(uchar_vector & script, uchar_vector::iterator & next)
+    uchar_vector popData(const uchar_vector & script, uchar_vector & poppedData)
     {
-        next = script.end();
+        uchar_vector subscript;
+        poppedData = uchar_vector();
 
         if(script.empty()) return uchar_vector();
 
         uint32_t dataSize = 0;
         uint32_t offset = 0;
 
-        if (script[0] <= 0x4b) {
+        if (script[0] == 0x00) {
+            offset = 1;
+        }
+        else if (script[0] <= 0x4b && script.size() > 1) {
             dataSize = script[0];
             offset = 1;
         }
         // OP_PUSHDATA1
-        else if (script[0] == 0x4c) {
+        else if (script[0] == 0x4c && script.size() > 1) {
             dataSize = script[1];
             offset = 1;
         }
         // OP_PUSHDATA2
-        else if (script[0] == 0x4d) {
+        else if (script[0] == 0x4d && script.size() > 2) {
             dataSize = script[1];
             dataSize += (script[2] << 8);
             offset = 3;
         }
         // OP_PUSHDATA4
-        else if(script[0] == 0x4e){
+        else if(script[0] == 0x4e && script.size() > 3){
             dataSize = script[1];
             dataSize += ((uint32_t)script[2]) << 8;
             dataSize += ((uint32_t)script[3]) << 16;
@@ -122,15 +126,15 @@ namespace Coin {
         if(script.size() >= (offset + dataSize)){
 
             if(script.size() > (offset + dataSize)){
-                next = script.begin() + offset + dataSize;
+                subscript = uchar_vector(script.begin() + offset + dataSize, script.end());
             }
 
             if(dataSize > 0) {
-                return uchar_vector(script.begin() + offset, script.begin() + offset + dataSize);
+                poppedData = uchar_vector(script.begin() + offset, script.begin() + offset + dataSize);
             }
         }
 
-        return uchar_vector();
+        return subscript;
     }
 
     /**
