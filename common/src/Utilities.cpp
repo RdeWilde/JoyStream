@@ -116,9 +116,11 @@ namespace Coin {
             // operation is not a push data op
         }
 
-        if(script.size() > (offset + dataSize)){
+        if(script.size() >= (offset + dataSize)){
 
-            next = script.begin() + offset + dataSize + 1;
+            if(script.size() > (offset + dataSize)){
+                next = script.begin() + offset + dataSize;
+            }
 
             if(dataSize > 0) {
                 return uchar_vector(script.begin() + offset, script.begin() + offset + dataSize);
