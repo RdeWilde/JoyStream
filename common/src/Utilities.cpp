@@ -97,15 +97,18 @@ namespace Coin {
             dataSize = script[0];
             offset = 1;
         }
+        // OP_PUSHDATA1
         else if (script[0] == 0x4c) {
             dataSize = script[1];
             offset = 1;
         }
+        // OP_PUSHDATA2
         else if (script[0] == 0x4d) {
             dataSize = script[1];
             dataSize += (script[2] << 8);
             offset = 3;
         }
+        // OP_PUSHDATA4
         else if(script[0] == 0x4e){
             dataSize = script[1];
             dataSize += ((uint32_t)script[2]) << 8;

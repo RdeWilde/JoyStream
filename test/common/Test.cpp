@@ -203,6 +203,101 @@ void Test::addresses() {
     // p2sh
 }
 
+
+void Test::popData() {
+
+    {
+        uchar_vector script;
+        script.push_back(0x00); // OP_FALSE
+
+        uchar_vector::iterator next;
+
+        uchar_vector data_ = Coin::popData(script, next);
+
+        QCOMPARE(uint(data_.size()), uint(0));
+
+        QVERIFY(next == script.end());
+    }
+
+    {
+        uchar_vector script;
+        script.push_back(0x00); // OP_FALSE
+        script.push_back(0x00); // OP_FALSE
+
+        uchar_vector::iterator next;
+
+        QCOMPARE(uint(script.size()), uint(2));
+
+        uchar_vector data_ = Coin::popData(script, next);
+
+        QCOMPARE(uint(data_.size()), uint(0));
+
+        QVERIFY(next != script.end());
+
+        uchar_vector subscript(next, script.end());
+
+        QCOMPARE(uint(subscript.size()), uint(1));
+
+        data_ = Coin::popData(subscript, next);
+
+        QCOMPARE(uint(data_.size()), uint(0));
+
+        QVERIFY(next == subscript.end());
+    }
+
+    {
+        const uint len = 20;
+        uchar_vector data(len, 0xff);
+        uchar_vector script;
+        script += Coin::opPushData(data.size());
+        script += data;
+        uchar_vector::iterator next;
+
+        QCOMPARE(uint(script.size()), uint(21));
+        QCOMPARE(uint(script[0]), len);
+
+        uchar_vector data_ = Coin::popData(script, next);
+
+        QCOMPARE(uint(data_.size()), uint(len));
+
+        QCOMPARE(data_, data);
+
+        QVERIFY(next == script.end());
+    }
+
+    {
+        const uint len = 20;
+        uchar_vector data(len, 0xff);
+        uchar_vector script;
+        script += Coin::opPushData(data.size());
+        script += data;
+        script += Coin::opPushData(data.size());
+        script += data;
+        uchar_vector::iterator next;
+
+        QCOMPARE(uint(script.size()), uint(42));
+
+        uchar_vector data_ = Coin::popData(script, next);
+
+        QCOMPARE(uint(data_.size()), uint(len));
+        QCOMPARE(data_, data);
+
+        QVERIFY(next != script.end());
+
+        QCOMPARE(*next, uchar(0x14));
+
+        uchar_vector subscript(next, script.end());
+
+        QCOMPARE(uint(subscript.size()), uint(21));
+
+        data_ = Coin::popData(subscript, next);
+
+        QCOMPARE(uint(data_.size()), uint(len));
+        QCOMPARE(data_, data);
+    }
+
+}
+
 void Test::P2PKHScriptPubKey() {
 
     /**
@@ -402,6 +497,7 @@ void Test::P2SHMultisigScriptSig() {
     QVERIFY(script == sig.serialized());
 
 }
+
 
 QTEST_MAIN(Test)
 #include "moc_Test.cpp"

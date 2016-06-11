@@ -33,6 +33,12 @@ private slots:
     void addresses();
 
     /**
+      * Utilities
+      */
+
+    void popData();
+
+    /**
      * Input and output scripts
      */
 
