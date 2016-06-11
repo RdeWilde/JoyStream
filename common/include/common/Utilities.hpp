@@ -88,6 +88,13 @@ namespace Coin {
     // Signature hash of type <sighahType> for transaction <tx> corresponding to input
     // index <input> spending outpoint
     uchar_vector sighash(const Coin::Transaction & tx,
+                    uint inputIndex,
+                    const uchar_vector & subscript,
+                    const SigHashType & sigHashType);
+
+    // Signature hash of type <sighahType> for transaction <tx> corresponding to outpoint
+    // <outPoint>
+    uchar_vector sighash(const Coin::Transaction & tx,
                     const Coin::typesafeOutPoint & outPoint,
                     const uchar_vector & subscript,
                     const SigHashType & sigHashType);
