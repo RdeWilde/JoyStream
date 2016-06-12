@@ -196,9 +196,15 @@ void TorrentPlugin::handle(const request::TorrentPluginRequest * r) {
         _session.updateTerms(updateBuyerTerms->terms);
     else if (const request::UpdateSellerTerms * updateSellerTerms = dynamic_cast<const request::UpdateSellerTerms *>(r))
         _session.updateTerms(updateSellerTerms->terms);
-    else if (dynamic_cast<const request::ToObserveMode *>(r))
+    else if (dynamic_cast<const request::ToObserveMode *>(r)) {
+
+        // Make sure to clear
+        if(_session.mode() == protocol_session::SessionMode::selling)
+            _outstandingReadPieceRequests.clear();
+
         _session.toObserveMode(removeConnection());
-    else if (const request::ToSellMode * toSellMode = dynamic_cast<const request::ToSellMode *>(r)) {
+
+    } else if (const request::ToSellMode * toSellMode = dynamic_cast<const request::ToSellMode *>(r)) {
 
         assert(_outstandingReadPieceRequests.empty());
 
