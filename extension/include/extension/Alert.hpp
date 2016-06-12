@@ -10,6 +10,7 @@
 
 #define PLUGIN_STATUS_ALERT_ID                  (libtorrent::user_alert_id + 1)
 #define BROADCAST_TRANSACTION_ALERT_ID          (libtorrent::user_alert_id + 2)
+#define SESSION_EXCEPTION_ALERT_ID              (libtorrent::user_alert_id + 3)
 
 #include <libtorrent/alert.hpp>
 #include <libtorrent/alert_types.hpp>
@@ -19,6 +20,10 @@
 namespace joystream {
 namespace extension {
 namespace alert {
+
+    // Rule: Alerts are used for operations which have no return value,
+    // and where thread running libtorrent alert loop is client, and hence
+    // we get synchornization for free.
 
     class PluginStatusAlert : public libtorrent::alert {
 
@@ -49,7 +54,6 @@ namespace alert {
         status::Plugin _status;
     };
 
-
     class BroadcastTransaction : public libtorrent::alert {
 
     public:
@@ -76,6 +80,35 @@ namespace alert {
     private:
 
         Coin::Transaction _tx;
+    };
+
+    template <class T>
+    class SessionException : public libtorrent::alert {
+
+    public:
+
+        const static int alert_type = SESSION_EXCEPTION_ALERT_ID;
+
+        SessionException();
+
+        SessionException(const T & exception)
+            : _exception(exception) { }
+
+        SessionException(const SessionException & alert)
+            : SessionException(alert.exception()) { }
+
+        // Virtual routines from libtorrent::alert
+        virtual int type() const { return alert_type; }
+        virtual char const* what() const { return "SessionException"; }
+        virtual std::string message() const { return std::string("SessionException::message: IMPLEMENT LATER"); }
+        virtual int category() const { return libtorrent::alert::error_notification; }
+        virtual std::auto_ptr<libtorrent::alert> clone() const { return std::auto_ptr<alert>(new SessionException(*this)); }
+
+        T exception() const { return _exception; }
+
+    private:
+
+        T _exception;
     };
 
 }
