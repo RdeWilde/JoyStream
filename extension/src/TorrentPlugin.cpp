@@ -177,69 +177,80 @@ void TorrentPlugin::handle(const request::TorrentPluginRequest * r) {
 
     assert(r->infoHash == _infoHash);
 
-    // should we TRY CATCH this whoel thing
-    // to capture state icnompatible operations?
-    // then send alert which includes shared_ptr to copied
-    // version of exception in an alert that the controller has to deal with???
-    // in principle this seems like the correct sort of approach,
-    // as a client can never be sure that state of plugin is suitable, given lack
-    // of atomicity across libtorrent and client thread.
-    // ???? what does client do in that case????
+    try {
 
-    if(dynamic_cast<const request::Start *>(r))
-        _session.start();
-    else if (dynamic_cast<const request::Stop *>(r))
-        _session.stop();
-    else if (dynamic_cast<const request::Pause *>(r))
-        _session.pause();
-    else if (const request::UpdateBuyerTerms * updateBuyerTerms = dynamic_cast<const request::UpdateBuyerTerms *>(r))
-        _session.updateTerms(updateBuyerTerms->terms);
-    else if (const request::UpdateSellerTerms * updateSellerTerms = dynamic_cast<const request::UpdateSellerTerms *>(r))
-        _session.updateTerms(updateSellerTerms->terms);
-    else if (dynamic_cast<const request::ToObserveMode *>(r)) {
+        if(dynamic_cast<const request::Start *>(r))
+            _session.start();
+        else if (dynamic_cast<const request::Stop *>(r))
+            _session.stop();
+        else if (dynamic_cast<const request::Pause *>(r))
+            _session.pause();
+        else if (const request::UpdateBuyerTerms * updateBuyerTerms = dynamic_cast<const request::UpdateBuyerTerms *>(r))
+            _session.updateTerms(updateBuyerTerms->terms);
+        else if (const request::UpdateSellerTerms * updateSellerTerms = dynamic_cast<const request::UpdateSellerTerms *>(r))
+            _session.updateTerms(updateSellerTerms->terms);
+        else if (dynamic_cast<const request::ToObserveMode *>(r)) {
 
-        // Make sure to clear
-        if(_session.mode() == protocol_session::SessionMode::selling)
-            _outstandingReadPieceRequests.clear();
+            // Make sure to clear
+            if(_session.mode() == protocol_session::SessionMode::selling)
+                _outstandingReadPieceRequests.clear();
 
-        _session.toObserveMode(removeConnection());
+            _session.toObserveMode(removeConnection());
 
-    } else if (const request::ToSellMode * toSellMode = dynamic_cast<const request::ToSellMode *>(r)) {
+        } else if (const request::ToSellMode * toSellMode = dynamic_cast<const request::ToSellMode *>(r)) {
 
-        assert(_outstandingReadPieceRequests.empty());
+            assert(_outstandingReadPieceRequests.empty());
 
-        // Get maximum number of pieces
-        int maxPieceIndex = getTorrent()->picker().num_pieces() - 1;
+            // Get maximum number of pieces
+            int maxPieceIndex = getTorrent()->picker().num_pieces() - 1;
 
-        // Go to mode
-        _session.toSellMode(removeConnection(),
-                            toSellMode->generateKeyPairsCallbackHandler,
-                            toSellMode->generateP2PKHAddressesCallbackHandler,
-                            loadPieceForBuyer(),
-                            claimLastPayment(),
-                            anchorAnnounced(),
-                            toSellMode->sellingPolicy,
-                            toSellMode->terms,
-                            maxPieceIndex);
-    } else if (const request::ToBuyMode * toBuyMode = dynamic_cast<const request::ToBuyMode *>(r)) {
+            // Go to mode
+            _session.toSellMode(removeConnection(),
+                                toSellMode->generateKeyPairsCallbackHandler,
+                                toSellMode->generateP2PKHAddressesCallbackHandler,
+                                loadPieceForBuyer(),
+                                claimLastPayment(),
+                                anchorAnnounced(),
+                                toSellMode->sellingPolicy,
+                                toSellMode->terms,
+                                maxPieceIndex);
 
-        // Make sure to clear
-        if(_session.mode() == protocol_session::SessionMode::selling)
-            _outstandingReadPieceRequests.clear();
+        } else if (const request::ToBuyMode * toBuyMode = dynamic_cast<const request::ToBuyMode *>(r)) {
 
-        _session.toBuyMode(removeConnection(),
-                           toBuyMode->generateKeyPairsCallbackHandler,
-                           toBuyMode->generateP2PKHAddressesCallbackHandler,
-                           broadcastTransaction(),
-                           fullPieceArrived(),
-                           toBuyMode->funding,
-                           toBuyMode->policy,
-                           toBuyMode->terms,
-                           torrentPieceInformation());
-    } else if (const request::ChangeDownloadLocation * changeDownloadLocation = dynamic_cast<const request::ChangeDownloadLocation *>(r))
-        assert(false);
-    else
-        assert(false);
+            // Make sure to clear
+            if(_session.mode() == protocol_session::SessionMode::selling)
+                _outstandingReadPieceRequests.clear();
+
+            _session.toBuyMode(removeConnection(),
+                               toBuyMode->generateKeyPairsCallbackHandler,
+                               toBuyMode->generateP2PKHAddressesCallbackHandler,
+                               broadcastTransaction(),
+                               fullPieceArrived(),
+                               toBuyMode->funding,
+                               toBuyMode->policy,
+                               toBuyMode->terms,
+                               torrentPieceInformation());
+
+        } else if (const request::ChangeDownloadLocation * changeDownloadLocation = dynamic_cast<const request::ChangeDownloadLocation *>(r))
+            assert(false);
+        else
+            assert(false);
+
+    } catch (const protocol_session::exception::StateIncompatibleOperation & e) {
+        sendTorrentPluginAlert(alert::SessionException<protocol_session::exception::StateIncompatibleOperation>(e));
+    } catch (const protocol_session::exception::SessionModeNotSetException & e) {
+        sendTorrentPluginAlert(alert::SessionException<protocol_session::exception::SessionModeNotSetException>(e));
+    } catch (const protocol_session::exception::ConnectionAlreadyAddedException & e) {
+        sendTorrentPluginAlert(alert::SessionException<protocol_session::exception::ConnectionAlreadyAddedException>(e));
+    } catch (const protocol_session::exception::InvalidPieceIndexException & e) {
+        sendTorrentPluginAlert(alert::SessionException<protocol_session::exception::InvalidPieceIndexException>(e));
+    } catch (const protocol_session::exception::SessionAlreadyInThisMode & e) {
+        sendTorrentPluginAlert(alert::SessionException<protocol_session::exception::SessionAlreadyInThisMode>(e));
+    } catch (const protocol_session::exception::ModeIncompatibleOperation & e) {
+        sendTorrentPluginAlert(alert::SessionException<protocol_session::exception::ModeIncompatibleOperation>(e));
+    } catch (const protocol_session::exception::IncorrectPieceIndex & e) {
+        sendTorrentPluginAlert(alert::SessionException<protocol_session::exception::IncorrectPieceIndex>(e));
+    }
 
     delete r;
 }
