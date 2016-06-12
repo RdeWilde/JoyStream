@@ -194,10 +194,15 @@ namespace request {
         //std::set<libtorrent::tcp::endpoint> _disconnectNextTick;
         */
 
+        ///// Sell mode spesific state
+
         // While selling, this maintains mapping between piece index and peers that are
         // waiting for this piece to be read from disk.
         // Will typically just be one, but may be multiple - hence set is used
         std::map<int, std::set<libtorrent::tcp::endpoint> > _outstandingReadPieceRequests;
+
+        ///// Buy mode spesific state
+
 
         //// Utilities
 
