@@ -15,8 +15,6 @@ namespace Coin {
 class Script
 {
 public:
-    Script();
-
 
     virtual uchar_vector serialize() const = 0;
 

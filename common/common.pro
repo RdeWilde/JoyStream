@@ -91,7 +91,6 @@ SOURCES += \
     src/Payment.cpp \
     src/TransactionId.cpp \
     src/UnspentOutputSet.cpp \
-    src/RedeemScriptHash.cpp \
-    src/Script.cpp
+    src/RedeemScriptHash.cpp
 
 include(../config.pri)
