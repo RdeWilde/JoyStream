@@ -293,6 +293,27 @@ void TorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) {
     _outstandingReadPieceRequests.remove(alert->piece);
 }
 
+status::TorrentPlugin TorrentPlugin::status() const {
+
+    status::TorrentPlugin status;
+
+    status.infoHash = _infoHash;
+    status.session = _session.status();
+
+    // Get state of peer plugins
+    for(auto mapping : _peers) {
+
+        // Get shared_ptr reference to peer pluging
+        boost::shared_ptr<PeerPlugin> plugin = mapping.second.lock();
+
+        assert(plugin);
+
+        status.peers.insert(mapping.first, plugin->status());
+    }
+
+    return status;
+}
+
 void TorrentPlugin::sendTorrentPluginAlert(const libtorrent::alert & alert) {
 
     boost::shared_ptr<libtorrent::torrent> torrent = _torrent.lock();

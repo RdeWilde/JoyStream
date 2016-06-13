@@ -28,6 +28,9 @@ namespace extension {
 namespace request {
     class TorrentPluginRequest;
 }
+namespace status {
+    class TorrentPlugin;
+}
 
     class Plugin;
 
@@ -114,6 +117,9 @@ namespace request {
         // Alert from plugin about a piece being read.
         // Is required when session is selling.
         void pieceRead(const libtorrent::read_piece_alert * alert);
+
+        // Status
+        status::TorrentPlugin status() const;
 
     private:
 
