@@ -10,6 +10,7 @@
 
 #include <protocol_wire/ExtendedMessagePayload.hpp>
 #include <common/PublicKey.hpp>
+#include <common/RedeemScriptHash.hpp>
 
 namespace joystream {
 namespace protocol_wire {
@@ -19,7 +20,7 @@ namespace protocol_wire {
     public:
 
         JoiningContract();
-        JoiningContract(const Coin::PublicKey &, const Coin::PubKeyHash &);
+        JoiningContract(const Coin::PublicKey &, const Coin::RedeemScriptHash &);
         JoiningContract(QDataStream & stream);
 
         virtual ~JoiningContract() {}
@@ -34,7 +35,7 @@ namespace protocol_wire {
         // Getters
         Coin::PublicKey contractPk() const;
 
-        Coin::PubKeyHash finalPkHash() const;
+        Coin::RedeemScriptHash finalScriptHash() const;
 
     private:
 
@@ -42,7 +43,7 @@ namespace protocol_wire {
         Coin::PublicKey _contractPk;
 
         // Payment seller output
-        Coin::PubKeyHash _finalPkHash;
+        Coin::RedeemScriptHash _finalScriptHash;
     };
 
 }

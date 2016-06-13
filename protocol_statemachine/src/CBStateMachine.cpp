@@ -130,11 +130,7 @@ namespace protocol_statemachine {
     }
 
     void CBStateMachine::peerToBuyMode(const joystream::protocol_wire::BuyerTerms & t) {
-
         _announcedModeAndTermsFromPeer.toBuy(t);
-
-        // Update payee: even though machine need not be in Selling state!
-        _payee.setRefundFee(t.refundFee());
     }
 
     void CBStateMachine::clientToObserveMode() {
@@ -155,9 +151,6 @@ namespace protocol_statemachine {
     }
 
     void CBStateMachine::clientToBuyMode(const protocol_wire::BuyerTerms & t) {
-
-        // Update payor based on client terms
-        _payor.setRefundFee(t.refundFee());
 
         // Send mode message
         _sendMessage(new protocol_wire::Buy(t));

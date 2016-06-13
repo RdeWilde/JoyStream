@@ -22,10 +22,10 @@ namespace protocol_statemachine {
 
         // Store contract rsvp information in payee
         context<CBStateMachine>()._payee.setPayeeContractKeys(e.contractKeys());
-        context<CBStateMachine>()._payee.setPayeeFinalPkHash(e.finalPkHash());
+        context<CBStateMachine>()._payee.setPayeeFinalScriptHash(e.finalScriptHash());
 
         // Send message for joining contract
-        context<CBStateMachine>()._sendMessage(new protocol_wire::JoiningContract(e.contractKeys().pk(), e.finalPkHash()));
+        context<CBStateMachine>()._sendMessage(new protocol_wire::JoiningContract(e.contractKeys().pk(), e.finalScriptHash()));
 
         // Transition to WaitingToStart state
         return transit<WaitingToStart>();

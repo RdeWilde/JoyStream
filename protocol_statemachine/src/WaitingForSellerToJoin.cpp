@@ -21,7 +21,7 @@ namespace protocol_statemachine {
 
         // Update payor based on rsvp
         context<CBStateMachine>()._payor.setPayeeContractPk(e.message().contractPk());
-        context<CBStateMachine>()._payor.setPayeeFinalPkHash(e.message().finalPkHash());
+        context<CBStateMachine>()._payor.setPayeeFinalScriptHash(e.message().finalScriptHash());
 
         // Send client notification about seller joining
         context<CBStateMachine>()._sellerJoined();

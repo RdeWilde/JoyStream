@@ -11,6 +11,7 @@
 #include <protocol_wire/ExtendedMessagePayload.hpp>
 #include <common/typesafeOutPoint.hpp>
 #include <common/PublicKey.hpp>
+#include <common/RedeemScriptHash.hpp>
 
 namespace joystream {
 namespace protocol_wire {
@@ -20,7 +21,7 @@ namespace protocol_wire {
     public:
 
         Ready();
-        Ready(quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &);
+        Ready(quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::RedeemScriptHash &);
         Ready(QDataStream &);
 
         virtual ~Ready() {}
@@ -39,7 +40,7 @@ namespace protocol_wire {
 
         Coin::PublicKey contractPk() const;
 
-        Coin::PubKeyHash finalPkHash() const;
+        Coin::RedeemScriptHash finalScriptHash() const;
 
     private:
 
@@ -54,7 +55,7 @@ namespace protocol_wire {
         Coin::PublicKey _contractPk;
 
         // Payment/Refund buyer output
-        Coin::PubKeyHash _finalPkHash;
+        Coin::RedeemScriptHash _finalScriptHash;
     };
 
 }
