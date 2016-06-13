@@ -301,7 +301,7 @@ SPVWallet::generateReceiveAddress()
 
     updateBloomFilter({redeemScript});
 
-    return Coin::P2SHAddress(_network, redeemScript);
+    return Coin::P2SHAddress(_network, Coin::RedeemScriptHash::fromRawScript(redeemScript));
 }
 
 
@@ -545,7 +545,7 @@ void SPVWallet::updateBloomFilter(const std::vector<uchar_vector> redeemScripts)
         filter.insert(script);
 
         // For capturing outputs: script hash
-        Coin::P2SHAddress address = Coin::P2SHAddress(_network, script);
+        Coin::P2SHAddress address = Coin::P2SHAddress(_network, Coin::RedeemScriptHash::fromRawScript(script));
         filter.insert(address.redeemScriptHash().toUCharVector());
 
         // Generate output scripts for direct comparison in createsWalletOutput() routine

@@ -32,7 +32,7 @@ P2SHAddress P2SHAddress::fromBase58CheckEncoding(const QString & encoded) {
         throw std::runtime_error("Argument was not a P2SH address.");
 
     // Create address and return
-    return P2SHAddress(network, RedeemScriptHash(redeemScriptHash));
+    return P2SHAddress(network, RedeemScriptHash::fromRawHash(redeemScriptHash));
 }
 
 QString P2SHAddress::toBase58CheckEncoding() const {

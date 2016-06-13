@@ -292,7 +292,7 @@ std::list<Coin::P2SHAddress> Store::listAddresses() {
     std::list<Coin::P2SHAddress> p2shAddresses;
 
     for(uchar_vector script : listRedeemScripts()) {
-        p2shAddresses.insert(p2shAddresses.end(), Coin::P2SHAddress(_network, script));
+        p2shAddresses.insert(p2shAddresses.end(), Coin::P2SHAddress(_network, Coin::RedeemScriptHash::fromRawScript(script)));
     }
 
     return p2shAddresses;

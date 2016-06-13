@@ -402,7 +402,7 @@ void Test::UsingOptionalDataInP2SHSpend() {
         return joystream::bitcoin::RedeemScriptInfo(script, data);
     }));
 
-    Coin::P2SHAddress addrA = Coin::P2SHAddress(Coin::Network::regtest, script);
+    Coin::P2SHAddress addrA = Coin::P2SHAddress(Coin::Network::regtest, Coin::RedeemScriptHash::fromRawScript(script));
 
     bitcoin_rpc("sendtoaddress " + addrA.toBase58CheckEncoding().toStdString() + " 0.00100");
     bitcoin_rpc("generate 1");
@@ -479,7 +479,7 @@ void Test::RedeemScriptFiltering() {
         return script;
     }));
 
-    Coin::P2SHAddress addrA = Coin::P2SHAddress(Coin::Network::regtest, script);
+    Coin::P2SHAddress addrA = Coin::P2SHAddress(Coin::Network::regtest, Coin::RedeemScriptHash::fromRawScript(script));
 
     bitcoin_rpc("sendtoaddress " + addrA.toBase58CheckEncoding().toStdString() + " 0.00100");
     bitcoin_rpc("generate 1");

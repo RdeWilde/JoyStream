@@ -20,7 +20,7 @@ P2SHScriptPubKey P2SHScriptPubKey::fromMultisig(const std::vector<PublicKey> & k
 
     Coin::MultisigScriptPubKey script(keys, mininumNumberOfSignatures);
 
-    return P2SHScriptPubKey(script.serialized());
+    return P2SHScriptPubKey(RedeemScriptHash::fromRawScript(script.serialized()));
 }
 
 uchar_vector P2SHScriptPubKey::serialize() const {
