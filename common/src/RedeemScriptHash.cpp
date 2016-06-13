@@ -23,5 +23,15 @@ RedeemScriptHash::RedeemScriptHash(const uchar_vector &script)
     : UCharArray(ripemd160(sha256(script))) {
 }
 
+RedeemScriptHash RedeemScriptHash::fromRawHash(const uchar_vector &hash) {
+    RedeemScriptHash rsh;
+    rsh.setHash(hash);
+    return rsh;
+}
+
+void RedeemScriptHash::setHash(const uchar_vector &hash) {
+    *this = hash;
+}
+
 }
 

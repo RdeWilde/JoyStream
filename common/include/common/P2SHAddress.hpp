@@ -26,8 +26,6 @@ class P2SHAddress {
 public:
     P2SHAddress(Network network, const RedeemScriptHash & redeemScriptHash);
 
-    static P2SHAddress fromSerializedRedeemScript(Network network, const uchar_vector & redeemScript);
-
     // Factory from Base58CheckEncoding
     static P2SHAddress fromBase58CheckEncoding(const QString & encoded);
 

@@ -16,17 +16,11 @@ P2SHScriptPubKey::P2SHScriptPubKey(const RedeemScriptHash & hash)
     : _hash(hash) {
 }
 
-P2SHScriptPubKey P2SHScriptPubKey::fromSerializedRedeemScript(const uchar_vector & redeemScript) {
-
-    RedeemScriptHash scriptHash(redeemScript);
-    return P2SHScriptPubKey(scriptHash);
-}
-
 P2SHScriptPubKey P2SHScriptPubKey::fromMultisig(const std::vector<PublicKey> & keys, uint mininumNumberOfSignatures) {
 
     Coin::MultisigScriptPubKey script(keys, mininumNumberOfSignatures);
 
-    return P2SHScriptPubKey::fromSerializedRedeemScript(script.serialized());
+    return P2SHScriptPubKey(script.serialized());
 }
 
 uchar_vector P2SHScriptPubKey::serialize() const {

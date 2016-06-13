@@ -18,10 +18,6 @@ P2SHAddress::P2SHAddress(Network network, const RedeemScriptHash & redeemScriptH
 {
 }
 
-P2SHAddress P2SHAddress::fromSerializedRedeemScript(Network network, const uchar_vector & redeemScript) {
-    return P2SHAddress(network, RedeemScriptHash(ripemd160(sha256(redeemScript))));
-}
-
 P2SHAddress P2SHAddress::fromBase58CheckEncoding(const QString & encoded) {
 
     // Decode

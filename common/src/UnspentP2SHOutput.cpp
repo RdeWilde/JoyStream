@@ -60,7 +60,7 @@ void UnspentP2SHOutput::setOptionalData(const uchar_vector & optionalData) {
 }
 
 uchar_vector UnspentP2SHOutput::scriptPubKey() const {
-    return P2SHScriptPubKey::fromSerializedRedeemScript(redeemScript()).serialize();
+    return P2SHScriptPubKey(redeemScript()).serialize();
 }
 
 uchar_vector UnspentP2SHOutput::sighash(const Transaction & tx, const SigHashType &sigHashType) const {

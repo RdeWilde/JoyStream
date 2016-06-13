@@ -39,7 +39,7 @@ namespace paymentchannel {
     }
 
     Coin::P2SHScriptPubKey Commitment::contractOutputScriptPubKey() const {
-        return Coin::P2SHScriptPubKey::fromSerializedRedeemScript(redeemScript().serialized());
+        return Coin::P2SHScriptPubKey(redeemScript().serialized());
     }
 
     Coin::TxOut Commitment::contractOutput() const {

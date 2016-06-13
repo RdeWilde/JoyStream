@@ -22,6 +22,10 @@ public:
     RedeemScriptHash(const Script &script);
 
     RedeemScriptHash(const uchar_vector &script);
+
+    static RedeemScriptHash fromRawHash(const uchar_vector &hash);
+private:
+    void setHash(const uchar_vector &hash);
 };
 
 }
