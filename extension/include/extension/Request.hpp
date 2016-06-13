@@ -17,26 +17,74 @@ namespace joystream {
 namespace extension {
 namespace request {
 
-    struct TorrentPluginRequest {
+    enum class RequestTarget {
+        Plugin,
+        TorrentPlugin,
+        PeerPlugin
+    };
+
+    enum class TorrentPluginRequestType {
+        TorrentPluginRequest,
+        Start,
+        Stop,
+        Pause,
+        UpdateBuyerTerms,
+        UpdateSellerTerms,
+        ToObserveMode,
+        ToSellMode,
+        ToBuyMode,
+        ChangeDownloadLocation
+    };
+
+    struct Request {
+        virtual RequestTarget target() const = 0;
+    };
+
+    struct TorrentPluginRequest : Request {
 
         TorrentPluginRequest(const libtorrent::sha1_hash & infoHash)
             : infoHash(infoHash) {}
+
+        RequestTarget target() const {
+            return RequestTarget::TorrentPlugin;
+        }
+
+        virtual TorrentPluginRequestType type() const = 0;
 
         // info hash of torrent plugin target of request
         libtorrent::sha1_hash infoHash;
     };
 
-    struct Start : public TorrentPluginRequest { };
+    struct Start : public TorrentPluginRequest {
 
-    struct Stop : public TorrentPluginRequest { };
+        virtual TorrentPluginRequestType type() const{
+            return TorrentPluginRequestType::Start;
+        }
+    };
 
-    struct Pause : public TorrentPluginRequest { };
+    struct Stop : public TorrentPluginRequest {
+
+        virtual TorrentPluginRequestType type() const{
+            return TorrentPluginRequestType::Stop;
+        }
+    };
+
+    struct Pause : public TorrentPluginRequest {
+
+        virtual TorrentPluginRequestType type() const{
+            return TorrentPluginRequestType::Pause;
+        }
+    };
 
     struct UpdateBuyerTerms : public TorrentPluginRequest {
 
         UpdateBuyerTerms(const libtorrent::sha1_hash & infoHash, const protocol_wire::BuyerTerms & terms)
             : TorrentPluginRequest(infoHash)
             , terms(terms) {}
+
+        virtual TorrentPluginRequestType type() const{
+            return TorrentPluginRequestType::UpdateBuyerTerms;
+        }
 
         protocol_wire::BuyerTerms terms;
     };
@@ -47,10 +95,19 @@ namespace request {
             : TorrentPluginRequest(infoHash)
             , terms(terms) {}
 
+        virtual TorrentPluginRequestType type() const{
+            return TorrentPluginRequestType::UpdateSellerTerms;
+        }
+
         protocol_wire::SellerTerms terms;
     };
 
-    struct ToObserveMode : public TorrentPluginRequest { };
+    struct ToObserveMode : public TorrentPluginRequest {
+
+        virtual TorrentPluginRequestType type() const{
+            return TorrentPluginRequestType::ToObserveMode;
+        }
+    };
 
     struct ToSellMode : public TorrentPluginRequest {
 
@@ -65,6 +122,10 @@ namespace request {
             , sellingPolicy(sellingPolicy)
             , terms(terms){
 
+        }
+
+        virtual TorrentPluginRequestType type() const {
+            return TorrentPluginRequestType::ToSellMode;
         }
 
         protocol_session::GenerateKeyPairsCallbackHandler generateKeyPairsCallbackHandler;
@@ -90,6 +151,10 @@ namespace request {
 
        }
 
+       virtual TorrentPluginRequestType type() const{
+           return TorrentPluginRequestType::ToBuyMode;
+       }
+
        protocol_session::GenerateKeyPairsCallbackHandler generateKeyPairsCallbackHandler;
        protocol_session::GenerateP2PKHAddressesCallbackHandler generateP2PKHAddressesCallbackHandler;
        Coin::UnspentP2PKHOutput funding;
@@ -101,7 +166,11 @@ namespace request {
 
         ChangeDownloadLocation(const libtorrent::sha1_hash & infoHash, int pieceIndex)
             : TorrentPluginRequest(infoHash)
-            , pieceIndex(pieceIndex){
+            , pieceIndex(pieceIndex) {
+        }
+
+        virtual TorrentPluginRequestType type() const{
+            return TorrentPluginRequestType::ChangeDownloadLocation;
         }
 
         // Piece to start downloading from
