@@ -10,7 +10,7 @@
 
 #define PLUGIN_STATUS_ALERT_ID                  (libtorrent::user_alert_id + 1)
 #define BROADCAST_TRANSACTION_ALERT_ID          (libtorrent::user_alert_id + 2)
-#define SESSION_EXCEPTION_ALERT_ID              (libtorrent::user_alert_id + 3)
+#define REQUEST_RESULT_ALERT_ID              (libtorrent::user_alert_id + 3)
 
 #include <libtorrent/alert.hpp>
 #include <libtorrent/alert_types.hpp>
@@ -82,33 +82,38 @@ namespace alert {
         Coin::Transaction _tx;
     };
 
-    template <class T>
-    class SessionException : public libtorrent::alert {
+    template <class T, class R>
+    class RequestResult : public libtorrent::alert {
 
     public:
 
-        const static int alert_type = SESSION_EXCEPTION_ALERT_ID;
+        const static int alert_type = REQUEST_RESULT_ALERT_ID;
 
-        SessionException();
+        RequestResult();
 
-        SessionException(const T & exception)
-            : _exception(exception) { }
+        RequestResult(const T & identifier, const R & result)
+            : _identifier(identifier)
+            , _result(result) {}
 
-        SessionException(const SessionException & alert)
-            : SessionException(alert.exception()) { }
+        RequestResult(const RequestResult & alert)
+            : RequestResult(alert.exception()) { }
 
         // Virtual routines from libtorrent::alert
         virtual int type() const { return alert_type; }
         virtual char const* what() const { return "SessionException"; }
         virtual std::string message() const { return std::string("SessionException::message: IMPLEMENT LATER"); }
         virtual int category() const { return libtorrent::alert::error_notification; }
-        virtual std::auto_ptr<libtorrent::alert> clone() const { return std::auto_ptr<alert>(new SessionException(*this)); }
+        virtual std::auto_ptr<libtorrent::alert> clone() const { return std::auto_ptr<alert>(new RequestResult(*this)); }
 
-        T exception() const { return _exception; }
+        T exception() const { return _identifier; }
 
     private:
 
-        T _exception;
+        // Request identifier
+        T _identifier;
+
+        // Request result
+        R _result;
     };
 
 }
