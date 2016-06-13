@@ -61,7 +61,7 @@ namespace store {
         key_ = key;
         redeemScript_ = scriptInfo.redeemScript.getHex();
         optionalData_ = scriptInfo.optionalData.getHex();
-        scriptPubKey_ = Coin::P2SHScriptPubKey::fromSerializedRedeemScript(scriptInfo.redeemScript).serialize().getHex();
+        scriptPubKey_ = Coin::P2SHScriptPubKey(scriptInfo.redeemScript).serialize().getHex();
     }
 
 /// Transaction
