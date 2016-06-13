@@ -134,12 +134,12 @@ namespace request {
 
         //// Protocol session hooks
 
-        protocol_session::RemovedConnectionCallbackHandler removeConnection() const;
+        protocol_session::RemovedConnectionCallbackHandler<libtorrent::tcp::endpoint> removeConnection() const;
         protocol_session::BroadcastTransaction broadcastTransaction() const;
-        protocol_session::FullPieceArrived fullPieceArrived() const;
-        protocol_session::LoadPieceForBuyer loadPieceForBuyer() const;
-        protocol_session::ClaimLastPayment claimLastPayment() const;
-        protocol_session::AnchorAnnounced anchorAnnounced() const;
+        protocol_session::FullPieceArrived<libtorrent::tcp::endpoint> fullPieceArrived() const;
+        protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> loadPieceForBuyer() const;
+        protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> claimLastPayment() const;
+        protocol_session::AnchorAnnounced<libtorrent::tcp::endpoint> anchorAnnounced() const;
 
         //// Members
 

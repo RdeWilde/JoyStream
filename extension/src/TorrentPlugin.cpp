@@ -240,8 +240,8 @@ void TorrentPlugin::handle(const request::TorrentPluginRequest * r) {
         sendTorrentPluginAlert(alert::SessionException<protocol_session::exception::StateIncompatibleOperation>(e));
     } catch (const protocol_session::exception::SessionModeNotSetException & e) {
         sendTorrentPluginAlert(alert::SessionException<protocol_session::exception::SessionModeNotSetException>(e));
-    } catch (const protocol_session::exception::ConnectionAlreadyAddedException & e) {
-        sendTorrentPluginAlert(alert::SessionException<protocol_session::exception::ConnectionAlreadyAddedException>(e));
+    } catch (const protocol_session::exception::ConnectionAlreadyAddedException<libtorrent::tcp::endpoint> & e) {
+        sendTorrentPluginAlert(alert::SessionException<protocol_session::exception::ConnectionAlreadyAddedException<libtorrent::tcp::endpoint>>(e));
     } catch (const protocol_session::exception::InvalidPieceIndexException & e) {
         sendTorrentPluginAlert(alert::SessionException<protocol_session::exception::InvalidPieceIndexException>(e));
     } catch (const protocol_session::exception::SessionAlreadyInThisMode & e) {
@@ -392,7 +392,7 @@ void TorrentPlugin::processExtendedMessage(const libtorrent::tcp::endpoint & end
     _session.processMessageOnConnection(endPoint, extendedMessage);
 }
 
-protocol_session::RemovedConnectionCallbackHandler TorrentPlugin::removeConnection() const {
+protocol_session::RemovedConnectionCallbackHandler<libtorrent::tcp::endpoint> TorrentPlugin::removeConnection() const {
 
     return [this](const libtorrent::tcp::endpoint & endPoint, protocol_session::DisconnectCause) {
 
@@ -416,14 +416,14 @@ protocol_session::BroadcastTransaction TorrentPlugin::broadcastTransaction() con
     };
 }
 
-protocol_session::FullPieceArrived TorrentPlugin::fullPieceArrived() const {
+protocol_session::FullPieceArrived<libtorrent::tcp::endpoint> TorrentPlugin::fullPieceArrived() const {
 
     return [this](const libtorrent::tcp::endpoint & endPoint, const protocol_wire::PieceData & pieceData, int index) -> void {
 
     };
 }
 
-protocol_session::LoadPieceForBuyer TorrentPlugin::loadPieceForBuyer() const {
+protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> TorrentPlugin::loadPieceForBuyer() const {
 
     return [this](const libtorrent::tcp::endpoint & endPoint, unsigned int index) -> void {
 
@@ -446,33 +446,19 @@ protocol_session::LoadPieceForBuyer TorrentPlugin::loadPieceForBuyer() const {
     };
 }
 
-protocol_session::ClaimLastPayment TorrentPlugin::claimLastPayment() const {
+protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> TorrentPlugin::claimLastPayment() const {
 
     return [this](const libtorrent::tcp::endpoint & endPoint, const joystream::paymentchannel::Payee &) {
         // sendTorrentPluginAlert(settlement transaction: use same as broadcast transaction)
     };
 }
 
-protocol_session::AnchorAnnounced TorrentPlugin::anchorAnnounced() const {
+protocol_session::AnchorAnnounced<libtorrent::tcp::endpoint> TorrentPlugin::anchorAnnounced() const {
     // sendTorrentPluginAlert(start double spend detection, send an alert)
     // start checking for double spends??
     return [this](const libtorrent::tcp::endpoint & endPoint, quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash) {
         // sendTorrentPluginAlert(settlement transaction: use same as broadcast transaction)
     };
-}
-
-void TorrentPlugin::removeConnection(const libtorrent::tcp::endpoint & endPoint, protocol_session::DisconnectCause) {
-
-    // if not peer not in peers map, then just return: may be due to
-    // disconnectPeer() call at some earlier point
-    auto it = _peers.find(endPoint);
-    if(it == _peers.cend())
-        return;
-
-    // if cause needs to be recorded, record
-
-    // Disconnect peer
-    disconnectPeer(endPoint);
 }
 
 }
