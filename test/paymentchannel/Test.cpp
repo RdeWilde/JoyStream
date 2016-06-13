@@ -123,10 +123,10 @@ void Test::paychan_one_to_one() {
 
     // Setup keys
     Coin::KeyPair payorContractKeyPair = Coin::KeyPair::generate();
-    Coin::PubKeyHash payorFinalKeyHash("5364093874829384794bda860241f4c55ea0b297");
+    Coin::RedeemScriptHash payorFinalKeyHash;
 
     Coin::KeyPair payeeContractKeyPair = Coin::KeyPair::generate();
-    Coin::PubKeyHash payeeFinalKeyHash("0285b8ceae4c5d7f094bda860241f4c55ea0b297");
+    Coin::RedeemScriptHash payeeFinalKeyHash;
 
     // Funding & allocation
     uint64_t source_amount = 3000000,
@@ -144,7 +144,7 @@ void Test::paychan_one_to_one() {
 
     c.addCommitment(Commitment(amount_in_channel, payorContractKeyPair.pk(), payeeContractKeyPair.pk(), lockTime));
 
-    Coin::Payment change(change_amount, Coin::PubKeyHash("8956784568342390764574523895634289896781"));
+    Coin::Payment change(change_amount, Coin::RedeemScriptHash());
     c.setChange(change);
 
     // Derive anchor

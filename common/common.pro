@@ -89,6 +89,7 @@ SOURCES += \
     src/P2PKScriptPubKey.cpp \
     src/Payment.cpp \
     src/TransactionId.cpp \
-    src/UnspentOutputSet.cpp
+    src/UnspentOutputSet.cpp \
+    src/RedeemScriptHash.cpp
 
 include(../config.pri)

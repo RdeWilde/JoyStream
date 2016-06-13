@@ -14,7 +14,12 @@
 
 namespace Coin {
 
-typedef class UCharArray<REDEEM_SCRIPT_HASH_BYTE_LENGTH> RedeemScriptHash;
+class RedeemScriptHash : public UCharArray<REDEEM_SCRIPT_HASH_BYTE_LENGTH> {
+public:
+    RedeemScriptHash();
+
+    RedeemScriptHash(const uchar_vector &script);
+};
 
 }
 

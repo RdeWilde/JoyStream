@@ -18,7 +18,7 @@ P2SHScriptPubKey::P2SHScriptPubKey(const RedeemScriptHash & hash)
 
 P2SHScriptPubKey P2SHScriptPubKey::fromSerializedRedeemScript(const uchar_vector & redeemScript) {
 
-    RedeemScriptHash scriptHash(ripemd160(sha256(redeemScript)));
+    RedeemScriptHash scriptHash(redeemScript);
     return P2SHScriptPubKey(scriptHash);
 }
 
