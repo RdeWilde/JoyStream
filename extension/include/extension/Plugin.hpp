@@ -24,12 +24,6 @@
 
 #include <mutex>
 
-class Controller;
-class TorrentPlugin;
-class PluginRequest;
-class TorrentPluginRequest;
-class PeerPluginRequest;
-
 namespace libtorrent {
     class alert;
     class session_impl;
@@ -37,6 +31,14 @@ namespace libtorrent {
 
 namespace joystream {
 namespace extension {
+namespace request {
+    class Request;
+    class PluginRequest;
+    class TorrentPluginRequest;
+    class PeerPluginRequest;
+}
+
+class TorrentPlugin;
 
 class Plugin : public libtorrent::plugin {
 
@@ -63,13 +65,12 @@ public:
     status::Plugin status() const;
 
     /**
+     * Synchornized submittal of request to corresponding request queue,
+     * where each one is guaranteed to be serviced in FIFO.
      * Synchronized routines called from controller by Qt thread.
-     *
-     * In all of these routines, plugin takes ownership of request object.
+     * Takes ownership of request object.
      */
-    void submitPluginRequest(PluginRequest * pluginRequest);
-    void submitTorrentPluginRequest(TorrentPluginRequest * torrentPluginRequest);
-    void submitPeerPluginRequest(PeerPluginRequest * peerPluginRequest);
+    void submit(const request::Request *);
 
 private:
 
@@ -84,34 +85,28 @@ private:
     // Maps torrent hash to corresponding plugin
     std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > _plugins;
 
-    /**
-     * Request processing
-     */
+    //// Requests
 
-    // Plugin Request
-    std::deque<PluginRequest *> _pluginRequestQueue;
-    std::mutex _pluginRequestQueueMutex; // mutex protecting queue
+    // Request queue and synchronization lock
+    std::deque<request::Request *> _requestQueue;
+    std::mutex _requestQueueMutex;
 
-    // Torrent Plugin Request
-    std::deque<TorrentPluginRequest *> _torrentPluginRequestQueue; // queue
-    std::mutex _torrentPluginRequestQueueMutex; // mutex protecting queue
-
-    // Peer Plugin Request
-    std::deque<PeerPluginRequest *> _peerPluginRequestQueue; // queue
-    std::mutex _peerPluginRequestQueueMutex; // mutex protecting queue
-
-    // Processing routines
+    // Process request queue in thread safe wya
     void processesRequests();
-    void processPluginRequest(const PluginRequest * pluginRequest);
-    void processTorrentPluginRequest(const TorrentPluginRequest * torrentPluginRequest);
 
+    // Process corresponding request type
+    void process(const request::Request *);
+    void processPluginRequest(const request::PluginRequest *);
+    void processTorrentPluginRequest(const request::TorrentPluginRequest *);
+    void processPeerPluginRequest(const request::PeerPluginRequest *);
+
+    /**
     // Removes torrent plugin
     // 1) Remove plugin from torrentPlugins_ map
     // 2) Deletes peer_plugin object
     // 3) Notifies controller
     void removeTorrentPlugin(const libtorrent::sha1_hash & info_hash);
 
-    /**
     // Start plugin
     //bool startTorrentPlugin(const libtorrent::sha1_hash & infoHash, const TorrentPlugin::Configuration * configuration);
     bool startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration, const Coin::UnspentP2PKHOutput & utxo);
