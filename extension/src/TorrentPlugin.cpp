@@ -237,19 +237,19 @@ void TorrentPlugin::handle(const request::TorrentPluginRequest * r) {
             assert(false);
 
     } catch (const protocol_session::exception::StateIncompatibleOperation & e) {
-        sendTorrentPluginAlert(alert::SessionException<protocol_session::exception::StateIncompatibleOperation>(e));
+        sendTorrentPluginAlert(alert::RequestResult<protocol_session::exception::StateIncompatibleOperation>(e));
     } catch (const protocol_session::exception::SessionModeNotSetException & e) {
-        sendTorrentPluginAlert(alert::SessionException<protocol_session::exception::SessionModeNotSetException>(e));
+        sendTorrentPluginAlert(alert::RequestResult<protocol_session::exception::SessionModeNotSetException>(e));
     } catch (const protocol_session::exception::ConnectionAlreadyAddedException<libtorrent::tcp::endpoint> & e) {
-        sendTorrentPluginAlert(alert::SessionException<protocol_session::exception::ConnectionAlreadyAddedException<libtorrent::tcp::endpoint>>(e));
+        sendTorrentPluginAlert(alert::RequestResult<protocol_session::exception::ConnectionAlreadyAddedException<libtorrent::tcp::endpoint>>(e));
     } catch (const protocol_session::exception::InvalidPieceIndexException & e) {
-        sendTorrentPluginAlert(alert::SessionException<protocol_session::exception::InvalidPieceIndexException>(e));
+        sendTorrentPluginAlert(alert::RequestResult<protocol_session::exception::InvalidPieceIndexException>(e));
     } catch (const protocol_session::exception::SessionAlreadyInThisMode & e) {
-        sendTorrentPluginAlert(alert::SessionException<protocol_session::exception::SessionAlreadyInThisMode>(e));
+        sendTorrentPluginAlert(alert::RequestResult<protocol_session::exception::SessionAlreadyInThisMode>(e));
     } catch (const protocol_session::exception::ModeIncompatibleOperation & e) {
-        sendTorrentPluginAlert(alert::SessionException<protocol_session::exception::ModeIncompatibleOperation>(e));
+        sendTorrentPluginAlert(alert::RequestResult<protocol_session::exception::ModeIncompatibleOperation>(e));
     } catch (const protocol_session::exception::IncorrectPieceIndex & e) {
-        sendTorrentPluginAlert(alert::SessionException<protocol_session::exception::IncorrectPieceIndex>(e));
+        sendTorrentPluginAlert(alert::RequestResult<protocol_session::exception::IncorrectPieceIndex>(e));
     }
 
     delete r;
