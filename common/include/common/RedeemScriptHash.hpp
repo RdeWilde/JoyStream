@@ -9,6 +9,7 @@
 #define COMMON_REDEEMSCRIPTHASH_HPP
 
 #include <common/UCharArray.hpp>
+#include <common/Script.hpp>
 
 #define REDEEM_SCRIPT_HASH_BYTE_LENGTH 20
 
@@ -17,6 +18,8 @@ namespace Coin {
 class RedeemScriptHash : public UCharArray<REDEEM_SCRIPT_HASH_BYTE_LENGTH> {
 public:
     RedeemScriptHash();
+
+    RedeemScriptHash(const Script &script);
 
     RedeemScriptHash(const uchar_vector &script);
 };

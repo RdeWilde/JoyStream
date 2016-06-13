@@ -56,7 +56,8 @@ HEADERS += \
     include/common/MajorMinorSoftwareVersion.hpp \
     include/common/P2PKScriptPubKey.hpp \
     include/common/Payment.hpp \
-    include/common/UnspentOutputSet.hpp
+    include/common/UnspentOutputSet.hpp \
+    include/common/Script.hpp
 
 SOURCES += \
     src/DataSizeRepresentation.cpp \
@@ -90,6 +91,7 @@ SOURCES += \
     src/Payment.cpp \
     src/TransactionId.cpp \
     src/UnspentOutputSet.cpp \
-    src/RedeemScriptHash.cpp
+    src/RedeemScriptHash.cpp \
+    src/Script.cpp
 
 include(../config.pri)

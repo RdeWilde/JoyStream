@@ -9,13 +9,14 @@
 #define P2PK_SCRIPT_PUBKEY_HPP
 
 #include <common/PublicKey.hpp>
+#include <common/Script.hpp>
 #include <stdutils/uchar_vector.h>
 
 namespace Coin {
 
 class PublicKey;
 
-class P2PKScriptPubKey {
+class P2PKScriptPubKey : public Script {
 
 public:
 

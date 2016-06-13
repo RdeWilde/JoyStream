@@ -50,10 +50,10 @@ void Test::refund() {
 
     // settlement final destinations
     Coin::P2PKScriptPubKey payorScriptPubKey(payorFinalPair.pk());
-    Coin::RedeemScriptHash payorScriptHash(Coin::P2SHAddress::fromSerializedRedeemScript(NETWORK_TYPE, payorScriptPubKey.serialize()).redeemScriptHash());
+    Coin::RedeemScriptHash payorScriptHash(payorScriptPubKey);
 
     Coin::P2PKScriptPubKey payeeScriptPubKey(payeeFinalPair.pk());
-    Coin::RedeemScriptHash payeeScriptHash(Coin::P2SHAddress::fromSerializedRedeemScript(NETWORK_TYPE, payeeScriptPubKey.serialize()).redeemScriptHash());
+    Coin::RedeemScriptHash payeeScriptHash(payeeScriptPubKey);
 
     uint32_t lockTime = 100;
     uint64_t channelValue = 180;
@@ -86,10 +86,10 @@ void Test::settlement() {
     joystream::paymentchannel::Commitment commitment(180, payorContractPair.pk(), payeeContractPair.pk(), lockTime);
 
     Coin::P2PKScriptPubKey payorScriptPubKey(payorFinalPair.pk());
-    Coin::RedeemScriptHash payorScriptHash(Coin::P2SHAddress::fromSerializedRedeemScript(NETWORK_TYPE, payorScriptPubKey.serialize()).redeemScriptHash());
+    Coin::RedeemScriptHash payorScriptHash(payorScriptPubKey);
 
     Coin::P2PKScriptPubKey payeeScriptPubKey(payeeFinalPair.pk());
-    Coin::RedeemScriptHash payeeScriptHash(Coin::P2SHAddress::fromSerializedRedeemScript(NETWORK_TYPE, payeeScriptPubKey.serialize()).redeemScriptHash());
+    Coin::RedeemScriptHash payeeScriptHash(payeeScriptPubKey);
 
     Coin::Payment toPayor(90, payorScriptHash);
     Coin::Payment toPayee(90, payeeScriptHash);

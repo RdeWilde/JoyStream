@@ -14,6 +14,11 @@ RedeemScriptHash::RedeemScriptHash()
     : UCharArray() {
 }
 
+RedeemScriptHash::RedeemScriptHash(const Script &script)
+    : RedeemScriptHash(script.serialize()) {
+
+}
+
 RedeemScriptHash::RedeemScriptHash(const uchar_vector &script)
     : UCharArray(ripemd160(sha256(script))) {
 }
