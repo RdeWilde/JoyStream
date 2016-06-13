@@ -40,6 +40,7 @@ namespace request {
 
 class TorrentPlugin;
 
+template<class T>
 class Plugin : public libtorrent::plugin {
 
 public:
@@ -88,17 +89,17 @@ private:
     //// Requests
 
     // Request queue and synchronization lock
-    std::deque<request::Request *> _requestQueue;
+    std::deque<request::Request<T> *> _requestQueue;
     std::mutex _requestQueueMutex;
 
     // Process request queue in thread safe wya
     void processesRequests();
 
     // Process corresponding request type
-    void process(const request::Request *);
-    void processPluginRequest(const request::PluginRequest *);
-    void processTorrentPluginRequest(const request::TorrentPluginRequest *);
-    void processPeerPluginRequest(const request::PeerPluginRequest *);
+    void process(const request::Request<T> *);
+    void processPluginRequest(const request::PluginRequest<T> *);
+    void processTorrentPluginRequest(const request::TorrentPluginRequest<T> *);
+    void processPeerPluginRequest(const request::PeerPluginRequest<T> *);
 
     /**
     // Removes torrent plugin
