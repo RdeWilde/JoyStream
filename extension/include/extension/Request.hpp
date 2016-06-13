@@ -10,6 +10,7 @@
 
 #include <protocol_wire/protocol_wire.hpp>
 #include <protocol_session/protocol_session.hpp>
+#include <libtorrent/sha1_hash.hpp>
 #include <libtorrent/socket.hpp>
 
 namespace joystream {
@@ -53,11 +54,13 @@ namespace request {
 
     struct ToSellMode : public TorrentPluginRequest {
 
-        ToSellMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+        ToSellMode(const libtorrent::sha1_hash & infoHash,
+                   const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                    const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
                    const protocol_session::SellingPolicy & sellingPolicy,
                    const protocol_wire::SellerTerms & terms)
-            : generateKeyPairsCallbackHandler(generateKeyPairsCallbackHandler)
+            : TorrentPluginRequest(infoHash)
+            , generateKeyPairsCallbackHandler(generateKeyPairsCallbackHandler)
             , generateP2PKHAddressesCallbackHandler(generateP2PKHAddressesCallbackHandler)
             , sellingPolicy(sellingPolicy)
             , terms(terms){
@@ -72,12 +75,14 @@ namespace request {
 
     struct ToBuyMode : public TorrentPluginRequest {
 
-       ToBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+       ToBuyMode(const libtorrent::sha1_hash & infoHash,
+                 const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                  const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
                  const Coin::UnspentP2PKHOutput & funding,
                  const protocol_session::BuyingPolicy & policy,
                  const protocol_wire::BuyerTerms & terms)
-            : generateKeyPairsCallbackHandler(generateKeyPairsCallbackHandler)
+            : TorrentPluginRequest(infoHash)
+            , generateKeyPairsCallbackHandler(generateKeyPairsCallbackHandler)
             , generateP2PKHAddressesCallbackHandler(generateP2PKHAddressesCallbackHandler)
             , funding(funding)
             , policy(policy)
@@ -97,7 +102,6 @@ namespace request {
         ChangeDownloadLocation(const libtorrent::sha1_hash & infoHash, int pieceIndex)
             : TorrentPluginRequest(infoHash)
             , pieceIndex(pieceIndex){
-
         }
 
         // Piece to start downloading from
