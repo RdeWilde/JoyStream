@@ -104,21 +104,50 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorr
     return shared;
 }
 
-void TorrentPlugin::on_piece_pass(int) {
+void TorrentPlugin::on_piece_pass(int index) {
 
+    // Make sure we are in correct mode, as mode changed may have occured
     if(_session.mode() == protocol_session::SessionMode::buying) {
 
-        // tell session about this? but how to figure out
-        //_session.validPieceReceivedOnConnection(index??);
+        auto it = _outstandingFullPieceArrivedCalls.find(index);
+
+        // If this validation is not due to us
+        if(it == _outstandingFullPieceArrivedCalls.cend()) {
+
+            // then just tell session about it
+            _session.pieceDownloaded(index);
+
+        } else {
+
+            // if its due to us, then tell session about endpoint and piece
+            _session.validPieceReceivedOnConnection(it->second, index);
+
+            // and remove call
+            _outstandingFullPieceArrivedCalls.erase(it);
+        }
     }
 }
 
-void TorrentPlugin::on_piece_failed(int) {
+void TorrentPlugin::on_piece_failed(int index) {
 
+    // Make sure we are in correct mode, as mode changed may have occured
     if(_session.mode() == protocol_session::SessionMode::buying) {
 
-        // tell session about this? but how to figure out
-        //_session.invalidPieceReceivedOnConnection(index??);
+        auto it = _outstandingFullPieceArrivedCalls.find(index);
+
+        // If this validation is not due to us
+        if(it == _outstandingFullPieceArrivedCalls.cend()) {
+
+            // then there is nothing to do
+
+        } else {
+
+            // if its due to us, then tell session about endpoint and piece
+            _session.invalidPieceReceivedOnConnection(it->second, index);
+
+            // and remove call
+            _outstandingFullPieceArrivedCalls.erase(it);
+        }
     }
 }
 
