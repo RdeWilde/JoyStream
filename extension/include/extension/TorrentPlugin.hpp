@@ -184,7 +184,7 @@ namespace status {
         protocol_session::RemovedConnectionCallbackHandler<libtorrent::tcp::endpoint> removeConnection();
         protocol_session::BroadcastTransaction broadcastTransaction();
         protocol_session::FullPieceArrived<libtorrent::tcp::endpoint> fullPieceArrived() const;
-        protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> loadPieceForBuyer() const;
+        protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> loadPieceForBuyer();
         protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> claimLastPayment();
         protocol_session::AnchorAnnounced<libtorrent::tcp::endpoint> anchorAnnounced() const;
 
@@ -246,7 +246,7 @@ namespace status {
         // While selling, this maintains mapping between piece index and peers that are
         // waiting for this piece to be read from disk.
         // Will typically just be one, but may be multiple - hence set is used
-        std::map<int, std::set<libtorrent::tcp::endpoint> > _outstandingReadPieceRequests;
+        std::map<int, std::set<libtorrent::tcp::endpoint> > _outstandingLoadPieceForBuyerCalls;
 
         ///// Buy mode spesific state
 
