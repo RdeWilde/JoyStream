@@ -183,7 +183,7 @@ namespace status {
 
         protocol_session::RemovedConnectionCallbackHandler<libtorrent::tcp::endpoint> removeConnection();
         protocol_session::BroadcastTransaction broadcastTransaction();
-        protocol_session::FullPieceArrived<libtorrent::tcp::endpoint> fullPieceArrived() const;
+        protocol_session::FullPieceArrived<libtorrent::tcp::endpoint> fullPieceArrived();
         protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> loadPieceForBuyer();
         protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> claimLastPayment();
         protocol_session::AnchorAnnounced<libtorrent::tcp::endpoint> anchorAnnounced() const;

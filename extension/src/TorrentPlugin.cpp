@@ -573,10 +573,25 @@ protocol_session::BroadcastTransaction TorrentPlugin::broadcastTransaction() {
     };
 }
 
-protocol_session::FullPieceArrived<libtorrent::tcp::endpoint> TorrentPlugin::fullPieceArrived() const {
+protocol_session::FullPieceArrived<libtorrent::tcp::endpoint> TorrentPlugin::fullPieceArrived() {
 
     return [this](const libtorrent::tcp::endpoint & endPoint, const protocol_wire::PieceData & pieceData, int index) -> void {
 
+        // Make sure outstanding calls exist for this index
+        assert(!_outstandingFullPieceArrivedCalls.count(index));
+
+        _outstandingFullPieceArrivedCalls[index] = endPoint;
+
+        // Tell libtorrent to validate piece
+        // last argument is a flag which presently seems to only test
+        // flags & torrent::overwrite_existing, which seems to be whether
+        // the piece should be overwritten if it is already present
+        //
+        // libtorrent::torrent_plugin::on_piece_pass()
+        // libtorrent::torrent_plugin::on_piece_failed()
+        // processes result of checking
+
+        getTorrent()->add_piece(index, pieceData.piece().get(), 0);
     };
 }
 
