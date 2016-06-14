@@ -675,10 +675,14 @@ protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> TorrentPlugin::cla
 }
 
 protocol_session::AnchorAnnounced<libtorrent::tcp::endpoint> TorrentPlugin::anchorAnnounced() const {
-    // sendTorrentPluginAlert(start double spend detection, send an alert)
-    // start checking for double spends??
+
     return [this](const libtorrent::tcp::endpoint & endPoint, quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash) {
-        // sendTorrentPluginAlert(settlement transaction: use same as broadcast transaction)
+
+        sendTorrentPluginAlert(alert::AnchorAnnounced(endPoint,
+                                                      value,
+                                                      anchor,
+                                                      contractPk,
+                                                      finalPkHash));
     };
 }
 
