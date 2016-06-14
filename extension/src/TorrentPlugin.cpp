@@ -221,7 +221,11 @@ void TorrentPlugin::handle(const request::TorrentPluginRequest * r) {
 
     } else if (const request::ToBuyMode * toBuyModeRequest = dynamic_cast<const request::ToBuyMode *>(r)) {
 
-        // Make sure to clear
+        // Should have been cleared before
+        assert(_outstandingFullPieceArrivedCalls.empty());
+
+        // Clear relevant mappings
+        // NB: We are doing clearing regardless of whether operation is successful!
         if(_session.mode() == protocol_session::SessionMode::selling)
             _outstandingLoadPieceForBuyerCalls.clear();
 
