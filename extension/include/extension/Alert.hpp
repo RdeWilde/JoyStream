@@ -95,7 +95,7 @@ namespace alert {
             : _result(result) {}
 
         RequestResult(const RequestResult & alert)
-            : RequestResult(alert.exception()) { }
+            : RequestResult(alert.result()) { }
 
         // Virtual routines from libtorrent::alert
         virtual int type() const { return alert_type; }
