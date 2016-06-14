@@ -82,7 +82,7 @@ namespace alert {
         Coin::Transaction _tx;
     };
 
-    template <class T, class R>
+    template <class R>
     class RequestResult : public libtorrent::alert {
 
     public:
@@ -91,26 +91,22 @@ namespace alert {
 
         RequestResult();
 
-        RequestResult(const T & identifier, const R & result)
-            : _identifier(identifier)
-            , _result(result) {}
+        RequestResult(const R & result)
+            : _result(result) {}
 
         RequestResult(const RequestResult & alert)
             : RequestResult(alert.exception()) { }
 
         // Virtual routines from libtorrent::alert
         virtual int type() const { return alert_type; }
-        virtual char const* what() const { return "SessionException"; }
-        virtual std::string message() const { return std::string("SessionException::message: IMPLEMENT LATER"); }
+        virtual char const* what() const { return "RequestResult"; }
+        virtual std::string message() const { return std::string("RequestResult::message: IMPLEMENT LATER"); }
         virtual int category() const { return libtorrent::alert::error_notification; }
         virtual std::auto_ptr<libtorrent::alert> clone() const { return std::auto_ptr<alert>(new RequestResult(*this)); }
 
-        T exception() const { return _identifier; }
+        R result() const { return _result; }
 
     private:
-
-        // Request identifier
-        T _identifier;
 
         // Request result
         R _result;
