@@ -9,6 +9,7 @@
 #define JOYSTREAM_EXTENSION_TORRENTPLUGIN_HPP
 
 #include <extension/PeerPlugin.hpp>
+#include <extension/Request.hpp>
 #include <protocol_session/protocol_session.hpp>
 
 // For QSet: uint qHash(const libtorrent::tcp::endpoint & endpoint)
@@ -25,9 +26,22 @@ namespace libtorrent {
 
 namespace joystream {
 namespace extension {
+
+/** We need inner types which cannot be foward declared
 namespace request {
     class TorrentPluginRequest;
+    class Start;
+    class Stop;
+    class Pause;
+    class UpdateBuyerTerms;
+    class UpdateSellerTerms;
+    class ToObserveMode;
+    class ToSellMode;
+    class ToBuyMode;
+    class ChangeDownloadLocation;
 }
+*/
+
 namespace status {
     class TorrentPlugin;
 }
@@ -123,6 +137,33 @@ namespace status {
 
     private:
 
+        //// Torrent plugin request processing
+
+        request::Start::Outcome start();
+
+        request::Stop::Outcome stop();
+
+        request::Pause::Outcome pause();
+
+        request::UpdateBuyerTerms::Outcome updateBuyerTerms(const protocol_wire::BuyerTerms &);
+
+        request::UpdateSellerTerms::Outcome updateSellerTerms(const protocol_wire::SellerTerms &);
+
+        request::ToObserveMode::Outcome toObserveMode();
+
+        request::ToSellMode::Outcome toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler &,
+                                                const protocol_session::GenerateP2PKHAddressesCallbackHandler &,
+                                                const protocol_session::SellingPolicy &,
+                                                const protocol_wire::SellerTerms &);
+
+        request::ToBuyMode::Outcome toBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler &,
+                                              const protocol_session::GenerateP2PKHAddressesCallbackHandler &,
+                                              const Coin::UnspentP2PKHOutput & funding,
+                                              const protocol_session::BuyingPolicy &,
+                                              const protocol_wire::BuyerTerms &);
+
+        //request::ChangeDownloadLocation::Outcome changeDownloadLocation();
+
         //// PeerPlugin notifications
 
         friend class PeerPlugin;
@@ -132,16 +173,16 @@ namespace status {
         // Not when connection is established, as in TorrentPlugin::new_connection
         void addPeerToSession(const libtorrent::tcp::endpoint &);
 
-        // Disocnnects peer, removes corresponding plugin from map
-        void disconnectPeer(const libtorrent::tcp::endpoint &);
+        // Disconnects peer, removes corresponding plugin from map
+        void disconnectPeer(const libtorrent::tcp::endpoint &, const libtorrent::error_code &);
 
         // Determines the message type, calls correct handler, then frees message
         void processExtendedMessage(const libtorrent::tcp::endpoint &, const joystream::protocol_wire::ExtendedMessagePayload & extendedMessage);
 
         //// Protocol session hooks
 
-        protocol_session::RemovedConnectionCallbackHandler<libtorrent::tcp::endpoint> removeConnection() const;
-        protocol_session::BroadcastTransaction broadcastTransaction() const;
+        protocol_session::RemovedConnectionCallbackHandler<libtorrent::tcp::endpoint> removeConnection();
+        protocol_session::BroadcastTransaction broadcastTransaction();
         protocol_session::FullPieceArrived<libtorrent::tcp::endpoint> fullPieceArrived() const;
         protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> loadPieceForBuyer() const;
         protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> claimLastPayment() const;
@@ -214,6 +255,7 @@ namespace status {
 
         // Send torrent plugin alert to libtorrent session
         void sendTorrentPluginAlert(const libtorrent::alert & alert);
+        void sendTorrentPluginAlertPtr(libtorrent::alert * alert); // client takes ownership of alert
 
         // Returns raw plugin pointer after asserted locking
         PeerPlugin * getRawPlugin(const libtorrent::tcp::endpoint &);
@@ -222,7 +264,7 @@ namespace status {
         libtorrent::torrent * getTorrent();
 
         // Returns torrent piece information based on current state of torrent
-        protocol_session::TorrentPieceInformation torrentPieceInformation() const;
+        protocol_session::TorrentPieceInformation torrentPieceInformation(const libtorrent::piece_picker &) const;
     };
 
 }
