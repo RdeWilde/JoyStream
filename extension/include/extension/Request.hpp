@@ -181,7 +181,7 @@ namespace request {
             Outcome outcome;
         };
 
-        UpdateBuyerTerms(const libtorrent::sha1_hash & infoHash)
+        UpdateBuyerTerms(const libtorrent::sha1_hash & infoHash, const protocol_wire::BuyerTerms & terms)
             : TorrentPluginRequest(infoHash)
             , terms(terms) {}
 
@@ -212,7 +212,7 @@ namespace request {
             Outcome outcome;
         };
 
-        UpdateSellerTerms(const libtorrent::sha1_hash & infoHash)
+        UpdateSellerTerms(const libtorrent::sha1_hash & infoHash, const protocol_wire::SellerTerms & terms)
             : TorrentPluginRequest(infoHash)
             , terms(terms) {}
 
