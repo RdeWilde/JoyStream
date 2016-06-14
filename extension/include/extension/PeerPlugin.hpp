@@ -167,7 +167,7 @@ namespace status {
         status::PeerPlugin status() const;
 
         // Getters
-        void disconnect(libtorrent::error_code &);
+        void disconnect(const libtorrent::error_code &);
 /**
         bool peerTimedOut(int maxDelay) const;
 
