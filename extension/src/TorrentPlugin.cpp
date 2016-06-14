@@ -674,7 +674,7 @@ protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> TorrentPlugin::cla
     };
 }
 
-protocol_session::AnchorAnnounced<libtorrent::tcp::endpoint> TorrentPlugin::anchorAnnounced() const {
+protocol_session::AnchorAnnounced<libtorrent::tcp::endpoint> TorrentPlugin::anchorAnnounced() {
 
     return [this](const libtorrent::tcp::endpoint & endPoint, quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash) {
 
