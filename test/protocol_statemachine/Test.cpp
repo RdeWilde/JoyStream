@@ -81,11 +81,11 @@ void Test::selling() {
     f.sellModeStarted = event::SellModeStarted(protocol_wire::SellerTerms(1,2,3,4,5));
     f.invalidJoinContract = event::Recv<protocol_wire::JoinContract>(protocol_wire::JoinContract(31));
     f.validJoinContract = event::Recv<protocol_wire::JoinContract>(protocol_wire::JoinContract(0));
-    f.joinedContract = event::Joined(Coin::KeyPair(Coin::PrivateKey("b8aa30d8f1d398883f0eeb5079777c42")), Coin::PubKeyHash("31149292f8ba11da4aeb833f6cd8ae0650a82340"));
+    f.joinedContract = event::Joined(Coin::KeyPair(Coin::PrivateKey("b8aa30d8f1d398883f0eeb5079777c42")), Coin::RedeemScriptHash::fromRawHash(uchar_vector("31149292f8ba11da4aeb833f6cd8ae0650a82340")));
     f.contractReady = event::Recv<protocol_wire::Ready>(protocol_wire::Ready(1123,
                                                                              Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("97a27e013e66bec6cb6704cfcaa5b62d4fc6894658f570ed7d15353835cf3547")), 55),
                                                                              payorContractSk.toPublicKey(),
-                                                                             Coin::PubKeyHash("03a3fac91cac4a5c9ec870b444c4890ec7d68671")));
+                                                                             Coin::RedeemScriptHash::fromRawHash(uchar_vector("03a3fac91cac4a5c9ec870b444c4890ec7d68671"))));
     f.invalidPieceRequest = event::Recv<protocol_wire::RequestFullPiece>(protocol_wire::RequestFullPiece(9999));
     f.validPieceRequest = event::Recv<protocol_wire::RequestFullPiece>(protocol_wire::RequestFullPiece(1));
     f.badPayment = event::Recv<protocol_wire::Payment>(protocol_wire::Payment(Coin::Signature("8185781409579048901234890234")));
@@ -172,7 +172,7 @@ void Test::selling() {
     QVERIFY(spy.messageSent());
     QCOMPARE(spy.messageType(), protocol_wire::MessageType::joining_contract);
     QCOMPARE(spy.joiningContractMessage().contractPk(), f.joinedContract.contractKeys().pk());
-    QCOMPARE(spy.joiningContractMessage().finalPkHash(), f.joinedContract.finalPkHash());
+    QCOMPARE(spy.joiningContractMessage().finalScriptHash(), f.joinedContract.finalScriptHash());
 
     spy.reset();
 
@@ -186,7 +186,7 @@ void Test::selling() {
     QCOMPARE(spy.anchor(), f.contractReady.message().anchor());
     QCOMPARE(spy.value(), f.contractReady.message().value());
     QCOMPARE(spy.contractPk(), f.contractReady.message().contractPk());
-    QCOMPARE(spy.finalPkHash(), f.contractReady.message().finalPkHash());
+    QCOMPARE(spy.finalScriptHash(), f.contractReady.message().finalScriptHash());
     //QCOMPARE(machine->getInnerStateName(), typeid(ReadyForPieceRequest).name());
 
     spy.reset();
@@ -320,10 +320,10 @@ void Test::buying() {
     f.buyModeStarted = event::BuyModeStarted(protocol_wire::BuyerTerms(88,77,66,99,111));
     f.inviteSeller = event::InviteSeller();
     f.joiningContract = event::Recv<protocol_wire::JoiningContract>(protocol_wire::JoiningContract(Coin::PublicKey(uchar_vector("03ffe71c26651de3056af555d92cee57a42c36976ac1259f0b5cae6b9e94ca38d8")),
-                                                                                                   Coin::PubKeyHash("892131b6cbf303692785db2c607fb915ae622203")));
+                                                                                                   Coin::RedeemScriptHash::fromRawHash(uchar_vector("892131b6cbf303692785db2c607fb915ae622203"))));
     f.contractPrepared = event::ContractPrepared(Coin::typesafeOutPoint(Coin::TransactionId::fromRPCByteOrder(std::string("eee2b334dd735dac60ae57893c2528087fd3d386b57cac42f4e6ace6403f16b3")), 78),
                                                  Coin::KeyPair(Coin::PrivateKey("153213303DA61F20BD67FC233AA33262")),
-                                                 Coin::PubKeyHash("3457b36d53494fb1ce39a4500d76373da994585e"),
+                                                 Coin::RedeemScriptHash::fromRawHash(uchar_vector("3457b36d53494fb1ce39a4500d76373da994585e")),
                                                  2222);
     f.requestPiece = event::RequestPiece(1);
 
@@ -425,7 +425,7 @@ void Test::buying() {
     QCOMPARE(spy.readyMessage().anchor(), f.contractPrepared.anchor());
     QCOMPARE(spy.readyMessage().value(), f.contractPrepared.value());
     QCOMPARE(spy.readyMessage().contractPk(), f.contractPrepared.contractKeyPair().pk());
-    QCOMPARE(spy.readyMessage().finalPkHash(), f.contractPrepared.finalPkHash());
+    QCOMPARE(spy.readyMessage().finalScriptHash(), f.contractPrepared.finalScriptHash());
 
     spy.reset();
 

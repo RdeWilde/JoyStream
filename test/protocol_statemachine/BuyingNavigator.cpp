@@ -14,14 +14,13 @@ bool BuyingNavigator::Fixture::validatePayment(const Coin::Signature & payment, 
                                            peerToSellMode.message().terms().minPrice(),
                                            contractPrepared.value(),
                                            peerToSellMode.message().terms().settlementFee(),
-                                           buyModeStarted.terms().refundFee(),
                                            contractPrepared.anchor(),
 
                                            // Private key is not relevant, as we wil only be validating payment signatures, not generating
                                            Coin::KeyPair(joiningContract.message().contractPk(), Coin::PrivateKey()),
-                                           joiningContract.message().finalPkHash(),
+                                           joiningContract.message().finalScriptHash(),
                                            contractPrepared.contractKeyPair().pk(),
-                                           contractPrepared.finalPkHash(),
+                                           contractPrepared.finalScriptHash(),
                                            Coin::Signature());
 
     return payee.registerPayment(payment);

@@ -56,8 +56,8 @@ namespace protocol_statemachine {
     // Client was invited to join given contract, should terms be included? they are available in _peerAnnounced
     typedef NoPayloadNotification InvitedToJoinContract;
 
-    // Peer announced that contract is now ready, should contract be be included? it was available
-    typedef std::function<void(quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &)> ContractIsReady;
+    // Peer announced that contract is now ready, should contract be included? it was available
+    typedef std::function<void(quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::RedeemScriptHash &)> ContractIsReady;
 
     // Peer requested piece
     typedef std::function<void(int)> PieceRequested;
@@ -227,7 +227,7 @@ namespace protocol_statemachine {
         CallbackQueuer<> _invitedToOutdatedContract;
         CallbackQueuer<> _invitedToJoinContract;
         CallbackQueuer<const protocol_wire::ExtendedMessagePayload *> _sendMessage;
-        CallbackQueuer<quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &> _contractIsReady;
+        CallbackQueuer<quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::RedeemScriptHash &> _contractIsReady;
         CallbackQueuer<int> _pieceRequested;
         CallbackQueuer<> _invalidPieceRequested;
         CallbackQueuer<> _peerInterruptedPayment;

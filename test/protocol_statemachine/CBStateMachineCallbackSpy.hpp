@@ -78,7 +78,7 @@ public:
     Coin::typesafeOutPoint anchor() const;
     quint64 value() const;
     Coin::PublicKey contractPk() const;
-    Coin::PubKeyHash finalPkHash() const;
+    Coin::RedeemScriptHash finalScriptHash() const;
 
     bool pieceHasBeenRequested() const;
     int piece() const;
@@ -137,7 +137,7 @@ private:
     Coin::typesafeOutPoint _anchor;
     quint64 _value;
     Coin::PublicKey _contractPk;
-    Coin::PubKeyHash _finalPkHash;
+    Coin::RedeemScriptHash _finalScriptHash;
 
     // PieceRequested
     bool _pieceHasBeenRequested;

@@ -39,12 +39,12 @@ protocol_statemachine::CBStateMachine * CBStateMachineCallbackSpy::createMonitor
 
         _message = m;
     },
-    [this](quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash) {
+    [this](quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::RedeemScriptHash & finalScriptHash) {
         _contractHasBeenPrepared = true;
         _anchor = anchor;
         _value = value;
         _contractPk = contractPk;
-        _finalPkHash = finalPkHash;
+        _finalScriptHash = finalScriptHash;
     },
     [this](int i) {
         _pieceHasBeenRequested = true;
@@ -107,7 +107,7 @@ void CBStateMachineCallbackSpy::reset() {
     _anchor = Coin::typesafeOutPoint();
     _value = 0;
     _contractPk = Coin::PublicKey();
-    _finalPkHash = Coin::PubKeyHash();
+    _finalScriptHash = Coin::RedeemScriptHash();
 
     // PieceRequested
     _pieceHasBeenRequested = false;
@@ -234,8 +234,8 @@ Coin::PublicKey CBStateMachineCallbackSpy::contractPk() const {
     return _contractPk;
 }
 
-Coin::PubKeyHash CBStateMachineCallbackSpy::finalPkHash() const {
-    return _finalPkHash;
+Coin::RedeemScriptHash CBStateMachineCallbackSpy::finalScriptHash() const {
+    return _finalScriptHash;
 }
 
 bool CBStateMachineCallbackSpy::pieceHasBeenRequested() const {
