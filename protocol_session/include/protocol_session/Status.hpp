@@ -134,7 +134,7 @@ namespace status {
 
         Buying() {}
 
-        Buying(const Coin::UnspentP2PKHOutput & funding,
+        Buying(const Coin::UnspentOutputSet & funding,
                const BuyingPolicy & policy,
                const BuyingState state,
                const protocol_wire::BuyerTerms & terms,
@@ -150,8 +150,10 @@ namespace status {
             , pieces(pieces) {
         }
 
+    private:
+
         // Funding for buyer
-        Coin::UnspentP2PKHOutput funding;
+        Coin::UnspentOutputSet funding;
 
         // Controls behaviour of session
         BuyingPolicy policy;

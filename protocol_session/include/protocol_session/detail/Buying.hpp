@@ -14,7 +14,7 @@
 #include <protocol_session/detail/Piece.hpp>
 #include <protocol_session/detail/Seller.hpp>
 #include <protocol_wire/protocol_wire.hpp>
-#include <common/UnspentP2PKHOutput.hpp>
+#include <common/UnspentOutputSet.hpp>
 #include <CoinCore/CoinNodeData.h>
 
 #include <vector>
@@ -43,10 +43,10 @@ public:
     Buying(Session<ConnectionIdType> *,
            const RemovedConnectionCallbackHandler<ConnectionIdType> &,
            const GenerateKeyPairsCallbackHandler &,
-           const GenerateP2PKHAddressesCallbackHandler &,
+           const GenerateP2SHAddressesCallbackHandler &,
            const BroadcastTransaction &,
            const FullPieceArrived<ConnectionIdType> &,
-           const Coin::UnspentP2PKHOutput &,
+           const Coin::UnspentOutputSet &,
            const BuyingPolicy &,
            const protocol_wire::BuyerTerms &,
            const TorrentPieceInformation &);
@@ -110,7 +110,7 @@ public:
 
     //// Getters and setters
 
-    Coin::UnspentP2PKHOutput funding() const;
+    Coin::UnspentOutputSet funding() const;
 
     BuyingPolicy policy() const;
     void setPolicy(const BuyingPolicy & policy);
@@ -167,12 +167,12 @@ private:
     // Callback handlers
     RemovedConnectionCallbackHandler<ConnectionIdType> _removedConnection;
     GenerateKeyPairsCallbackHandler _generateKeyPairs;
-    GenerateP2PKHAddressesCallbackHandler _generateP2PKHAddresses;
+    GenerateP2SHAddressesCallbackHandler _generateP2SHAddresses;
     BroadcastTransaction _broadcastTransaction;
     FullPieceArrived<ConnectionIdType> _fullPieceArrived;
 
     // Funding for buyer
-    Coin::UnspentP2PKHOutput _funding;
+    Coin::UnspentOutputSet _funding;
 
     // Controls behaviour of session
     BuyingPolicy _policy;

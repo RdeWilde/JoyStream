@@ -19,7 +19,7 @@ namespace detail {
     Selling<ConnectionIdType>::Selling(Session<ConnectionIdType> * session,
                                        const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
                                        const GenerateKeyPairsCallbackHandler & generateKeyPairs,
-                                       const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddresses,
+                                       const GenerateP2SHAddressesCallbackHandler & generateP2SHAddresses,
                                        const LoadPieceForBuyer<ConnectionIdType> & loadPieceForBuyer,
                                        const ClaimLastPayment<ConnectionIdType> & claimLastPayment,
                                        const AnchorAnnounced<ConnectionIdType> & anchorAnnounced,
@@ -29,7 +29,7 @@ namespace detail {
         : _session(session)
         , _removedConnection(removedConnection)
         , _generateKeyPairs(generateKeyPairs)
-        , _generateP2PKHAddresses(generateP2PKHAddresses)
+        , _generateP2SHAddresses(generateP2SHAddresses)
         , _loadPieceForBuyer(loadPieceForBuyer)
         , _claimLastPayment(claimLastPayment)
         , _anchorAnnounced(anchorAnnounced)
@@ -375,7 +375,7 @@ namespace detail {
 
             // Join if they are
             Coin::KeyPair contractKeyPair = _generateKeyPairs(1).front();
-            Coin::PubKeyHash finalPkHash = _generateP2PKHAddresses(1).front().pubKeyHash();
+            Coin::PubKeyHash finalPkHash = _generateP2SHAddresses(1).front().pubKeyHash();
             c->processEvent(joystream::protocol_statemachine::event::Joined(contractKeyPair, finalPkHash));
 
         } else {

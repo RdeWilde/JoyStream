@@ -12,7 +12,7 @@
 #include <protocol_session/detail/Selling.hpp>
 #include <protocol_session/detail/Observing.hpp>
 #include <common/Bitcoin.hpp> // BITCOIN_DUST_LIMIT
-#include <common/P2PKHAddress.hpp>
+#include <common/P2SHAddress.hpp>
 
 #include <numeric>
 
@@ -24,17 +24,17 @@ namespace detail {
     Buying<ConnectionIdType>::Buying(Session<ConnectionIdType> * session,
                                      const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
                                      const GenerateKeyPairsCallbackHandler & generateKeyPairs,
-                                     const GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddresses,
+                                     const GenerateP2SHAddressesCallbackHandler & generateP2SHAddresses,
                                      const BroadcastTransaction & broadcastTransaction,
                                      const FullPieceArrived<ConnectionIdType> & fullPieceArrived,
-                                     const Coin::UnspentP2PKHOutput & funding,
+                                     const Coin::UnspentOutputSet & funding,
                                      const BuyingPolicy & policy,
                                      const protocol_wire::BuyerTerms & terms,
                                      const TorrentPieceInformation & information)
         : _session(session)
         , _removedConnection(removedConnection)
         , _generateKeyPairs(generateKeyPairs)
-        , _generateP2PKHAddresses(generateP2PKHAddresses)
+        , _generateP2SHAddresses(generateP2SHAddresses)
         , _broadcastTransaction(broadcastTransaction)
         , _fullPieceArrived(fullPieceArrived)
         , _funding(funding)
@@ -546,8 +546,8 @@ namespace detail {
         std::vector<Coin::KeyPair> contractKeyPairs = _generateKeyPairs(numberOfSellers);
         std::vector<Coin::PubKeyHash> finalPkHashes;
 
-        std::vector<Coin::P2PKHAddress> finalAddresses = _generateP2PKHAddresses(numberOfSellers);
-        for(Coin::P2PKHAddress a : finalAddresses)
+        std::vector<Coin::P2SHAddress> finalAddresses = _generateP2SHAddresses(numberOfSellers);
+        for(Coin::P2SHAddress a : finalAddresses)
             finalPkHashes.push_back(a.pubKeyHash());
 
         // Create and add commitment to contract
@@ -560,7 +560,7 @@ namespace detail {
         if(changeAmount != 0) {
 
             // New change address
-            Coin::P2PKHAddress address = _generateP2PKHAddresses(1).front();
+            Coin::P2SHAddress address = _generateP2SHAddresses(1).front();
 
             // Create and set change payment
             c.setChange(Coin::Payment(changeAmount, address.pubKeyHash()));
@@ -825,7 +825,7 @@ namespace detail {
     }
 
     template <class ConnectionIdType>
-    Coin::UnspentP2PKHOutput Buying<ConnectionIdType>::funding() const {
+    Coin::UnspentOutputSet Buying<ConnectionIdType>::funding() const {
         return _funding;
     }
 

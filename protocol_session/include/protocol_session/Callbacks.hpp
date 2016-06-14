@@ -60,8 +60,8 @@ using RemovedConnectionCallbackHandler = std::function<void(const ConnectionIdTy
 // Generate set of key pairs
 typedef std::function<std::vector<Coin::KeyPair>(int)> GenerateKeyPairsCallbackHandler;
 
-// Generate set of p2pkh addresses
-typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateP2PKHAddressesCallbackHandler;
+// Generate set of p2sh addresses
+typedef std::function<std::vector<Coin::P2SHAddress>(int)> GenerateP2SHAddressesCallbackHandler;
 
 // Send a message to be sent
 typedef std::function<void(const protocol_wire::ExtendedMessagePayload *)> SendMessageOnConnection;

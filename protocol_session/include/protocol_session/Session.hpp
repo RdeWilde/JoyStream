@@ -73,7 +73,7 @@ namespace detail {
         // Change session to sell mode
         void toSellMode(const RemovedConnectionCallbackHandler<ConnectionIdType> &,
                         const GenerateKeyPairsCallbackHandler &,
-                        const GenerateP2PKHAddressesCallbackHandler &,
+                        const GenerateP2SHAddressesCallbackHandler &,
                         const LoadPieceForBuyer<ConnectionIdType> &,
                         const ClaimLastPayment<ConnectionIdType> &,
                         const AnchorAnnounced<ConnectionIdType> &,
@@ -84,10 +84,10 @@ namespace detail {
         // Change session to buy mode
         void toBuyMode(const RemovedConnectionCallbackHandler<ConnectionIdType> &,
                        const GenerateKeyPairsCallbackHandler &,
-                       const GenerateP2PKHAddressesCallbackHandler &,
+                       const GenerateP2SHAddressesCallbackHandler &,
                        const BroadcastTransaction &,
                        const FullPieceArrived<ConnectionIdType> &,
-                       const Coin::UnspentP2PKHOutput &,
+                       const Coin::UnspentOutputSet &,
                        const BuyingPolicy &,
                        const protocol_wire::BuyerTerms &,
                        const TorrentPieceInformation &);
