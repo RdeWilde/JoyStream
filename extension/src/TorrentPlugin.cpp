@@ -195,15 +195,24 @@ void TorrentPlugin::handle(const request::TorrentPluginRequest * r) {
         alert = new alert::RequestResult<request::UpdateSellerTerms::Response>(request::UpdateSellerTerms::Response(updateSellerTermsRequest, updateSellerTerms(updateSellerTermsRequest->terms)));
     else if (auto toObserveModeRequest = dynamic_cast<const request::ToObserveMode *>(r)) {
 
-        // Make sure to clear
+        // Clear relevant mappings
+        // NB: We are doing clearing regardless of whether operation is successful!
         if(_session.mode() == protocol_session::SessionMode::selling)
             _outstandingLoadPieceForBuyerCalls.clear();
+        else if(_session.mode() == protocol_session::SessionMode::buying)
+            _outstandingFullPieceArrivedCalls.clear();
 
         alert = new alert::RequestResult<request::ToObserveMode::Response>(request::ToObserveMode::Response(toObserveModeRequest, toObserveMode()));
 
     } else if (const request::ToSellMode * toSellModeRequest = dynamic_cast<const request::ToSellMode *>(r)) {
 
+        // Should have been cleared before
         assert(_outstandingLoadPieceForBuyerCalls.empty());
+
+        // Clear relevant mappings
+        // NB: We are doing clearing regardless of whether operation is successful!
+        if(_session.mode() == protocol_session::SessionMode::buying)
+            _outstandingFullPieceArrivedCalls.clear();
 
         alert = new alert::RequestResult<request::ToSellMode::Response>(request::ToSellMode::Response(toSellModeRequest, toSellMode(toSellModeRequest->generateKeyPairsCallbackHandler,
                                                                                                                                     toSellModeRequest->generateP2PKHAddressesCallbackHandler,

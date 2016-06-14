@@ -250,6 +250,10 @@ namespace status {
 
         ///// Buy mode spesific state
 
+        // While buying, this maintains mapping between piece index and the single
+        // peer waiting for it to be validated and stored.
+        std::map<int, libtorrent::tcp::endpoint> _outstandingFullPieceArrivedCalls;
+
 
         //// Utilities
 
