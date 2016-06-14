@@ -185,7 +185,7 @@ namespace status {
         protocol_session::BroadcastTransaction broadcastTransaction();
         protocol_session::FullPieceArrived<libtorrent::tcp::endpoint> fullPieceArrived() const;
         protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> loadPieceForBuyer() const;
-        protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> claimLastPayment() const;
+        protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> claimLastPayment();
         protocol_session::AnchorAnnounced<libtorrent::tcp::endpoint> anchorAnnounced() const;
 
         //// Members

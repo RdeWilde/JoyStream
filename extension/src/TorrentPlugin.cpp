@@ -140,11 +140,11 @@ void TorrentPlugin::on_files_checked() {
     // nothing to do
 }
 
-void TorrentPlugin::on_state(int s) {
+void TorrentPlugin::on_state(int) {
     // nothing to do
 }
 
-void TorrentPlugin::on_add_peer(const libtorrent::tcp::endpoint & endPoint, int src, int flags) {
+void TorrentPlugin::on_add_peer(const libtorrent::tcp::endpoint & endPoint, int /*src*/, int /*flags*/) {
 
     std::string endPointString = libtorrent::print_endpoint(endPoint);
 
@@ -224,7 +224,7 @@ void TorrentPlugin::handle(const request::TorrentPluginRequest * r) {
 
 
 
-    } else if (const request::ChangeDownloadLocation * changeDownloadLocationRequest = dynamic_cast<const request::ChangeDownloadLocation *>(r))
+    } else if (dynamic_cast<const request::ChangeDownloadLocation *>(r)) // const request::ChangeDownloadLocation * changeDownloadLocationRequest =
         assert(false);
     else
         assert(false);
@@ -523,7 +523,7 @@ void TorrentPlugin::disconnectPeer(const libtorrent::tcp::endpoint & endPoint, c
 
 void TorrentPlugin::processExtendedMessage(const libtorrent::tcp::endpoint & endPoint, const joystream::protocol_wire::ExtendedMessagePayload & extendedMessage) {
 
-    PeerPlugin * peerPlugin = getRawPlugin(endPoint);
+    //PeerPlugin * peerPlugin = getRawPlugin(endPoint);
 
     assert(_session.hasConnection(endPoint));
 
@@ -591,13 +591,13 @@ protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> TorrentPlugin::lo
     };
 }
 
-protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> TorrentPlugin::claimLastPayment() const {
+protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> TorrentPlugin::claimLastPayment() {
 
     return [this](const libtorrent::tcp::endpoint &, const joystream::paymentchannel::Payee & payee) {
 
         Coin::Transaction tx = payee.lastPaymentTransaction();
+
         this->sendTorrentPluginAlert(alert::BroadcastTransaction(tx));
-        // sendTorrentPluginAlert(settlement transaction: use same as broadcast transaction)
     };
 }
 
