@@ -17,18 +17,15 @@
 namespace joystream {
 namespace extension {
 
-template<class T>
-Plugin<T>::Plugin()
+Plugin::Plugin()
     : _addedToSession(false) {
 }
 
-template<class T>
-Plugin<T>::~Plugin() {
+Plugin::~Plugin() {
     std::log << "~Plugin.";
 }
 
-template<class T>
-void Plugin<T>::added(libtorrent::aux::session_impl * session) {
+void Plugin::added(libtorrent::aux::session_impl * session) {
 
     std::log << "Plugin added to session.";
 
@@ -36,8 +33,7 @@ void Plugin<T>::added(libtorrent::aux::session_impl * session) {
     _addedToSession = true;
 }
 
-template<class T>
-void Plugin<T>::on_alert(libtorrent::alert const * a) {
+void Plugin::on_alert(libtorrent::alert const * a) {
 
     if(libtorrent::read_piece_alert const * p = libtorrent::alert_cast<libtorrent::read_piece_alert>(a)) {
 
@@ -60,8 +56,7 @@ void Plugin<T>::on_alert(libtorrent::alert const * a) {
 
 }
 
-template<class T>
-void Plugin<T>::on_tick() {
+void Plugin::on_tick() {
 
     // Only do processing if plugin has been added to session
     if(!_addedToSession)
@@ -80,18 +75,15 @@ bool Plugin::on_optimistic_unchoke(std::vector<libtorrent::policy::peer*> & peer
 }
 */
 
-template<class T>
-void Plugin<T>::save_state(libtorrent::entry & stateEntry) const {
+void Plugin::save_state(libtorrent::entry & stateEntry) const {
 
 }
 
-template<class T>
 void Plugin::load_state(libtorrent::lazy_entry const & stateEntry) {
 //void Plugin::load_state(const libtorrent::bdecode_node & state) {
 }
 
-template<class T>
-status::Plugin Plugin<T>::status() const {
+status::Plugin Plugin::status() const {
 
     status::Plugin status;
 
@@ -108,8 +100,7 @@ status::Plugin Plugin<T>::status() const {
     return status;
 }
 
-template<class T>
-void Plugin<T>::submit(const request::Request<T> * r) {
+void Plugin::submit(const request::Request * r) {
 
     // Synchronized adding to back of queue
     _requestQueueMutex.lock();
@@ -117,15 +108,14 @@ void Plugin<T>::submit(const request::Request<T> * r) {
     _requestQueueMutex.unlock();
 }
 
-template<class T>
-void Plugin<T>::processesRequests() {
+void Plugin::processesRequests() {
     
     // Synchronized dispatching of requests
     _requestQueueMutex.lock();
     
     while(!_requestQueue.empty()) {
 
-        request::Request<T> * r = _requestQueue.front();
+        request::Request * r = _requestQueue.front();
         _requestQueue.pop_front();
 
         // Unlock queue mutex for actual processing of request
@@ -142,18 +132,17 @@ void Plugin<T>::processesRequests() {
     }
 }
 
-template<class T>
-void Plugin<T>::processes(const request::Request<T> * r) {
+void Plugin::processes(const request::Request * r) {
 
     switch(r->target()) {
         case request::RequestTarget::Plugin:
-            processPluginRequest(static_cast<const request::PluginRequest<T> *>(r));
+            processPluginRequest(static_cast<const request::PluginRequest *>(r));
             break;
         case request::RequestTarget::TorrentPlugin:
-            processTorrentPluginRequest(static_cast<const request::TorrentPluginRequest<T> *>(r));
+            processTorrentPluginRequest(static_cast<const request::TorrentPluginRequest *>(r));
             break;
         case request::RequestTarget::PeerPlugin:
-            processPeerPluginRequest(static_cast<const request::PeerPluginRequest<T> *>(r));
+            processPeerPluginRequest(static_cast<const request::PeerPluginRequest *>(r));
             break;
         default:
             assert(false);
@@ -161,16 +150,14 @@ void Plugin<T>::processes(const request::Request<T> * r) {
 
 }
 
-template<class T>
-void Plugin<T>::processPluginRequest(const request::PluginRequest<T> * r) {
+void Plugin::processPluginRequest(const request::PluginRequest * r) {
 
     assert(r->target() == request::RequestTarget::Plugin);
 
     throw std::runtime_error("Plugin::processPluginRequest: not implemented");
 }
 
-template<class T>
-void Plugin<T>::processTorrentPluginRequest(const request::TorrentPluginRequest<T> * r) {
+void Plugin::processTorrentPluginRequest(const request::TorrentPluginRequest * r) {
 
     assert(r->target() == request::RequestTarget::TorrentPlugin);
 
@@ -179,12 +166,12 @@ void Plugin<T>::processTorrentPluginRequest(const request::TorrentPluginRequest<
 
     // If there is no torrent plugin, then tell client
     if(it == _plugins.cend()) {
-        sendAlertToSession(alert::RequestResult<T, request::TorrentPluginRequest<T>::MissingTorrentPlugin>(r->identifier, r->type()));
+        sendAlertToSession(alert::RequestResult<request::TorrentPluginRequest::MissingTorrentPlugin>(r->type()));
         return;
     }
 
     // Make sure the plugin is still valid
-    //boost::shared_ptr<TorrentPlugin> plugin = it->second.lock();
+    boost::shared_ptr<TorrentPlugin> plugin = it->second.lock();
 
     assert(plugin);
 
@@ -192,16 +179,14 @@ void Plugin<T>::processTorrentPluginRequest(const request::TorrentPluginRequest<
     plugin->handle(r);
 }
 
-template<class T>
-void Plugin<T>::processPeerPluginRequest(const request::PeerPluginRequest<T> * r) {
+void Plugin::processPeerPluginRequest(const request::PeerPluginRequest * r) {
 
     assert(r->target() == request::RequestTarget::PeerPlugin);
 
     throw std::runtime_error("Plugin::processPeerPluginRequest: not implemented");
 }
 
-template<class T>
-void Plugin<T>::sendAlertToSession(const libtorrent::alert & alert) {
+void Plugin::sendAlertToSession(const libtorrent::alert & alert) {
     _session->m_alerts.post_alert(alert); // emplace_alert<listen_succeeded_alert>(*)
 }
 
@@ -341,7 +326,6 @@ bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, co
         return false;
     }
 }
-
 */
 
 }
