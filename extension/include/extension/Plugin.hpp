@@ -88,7 +88,7 @@ private:
     //// Requests
 
     // Request queue and synchronization lock
-    std::deque<request::Request *> _requestQueue;
+    std::deque<const request::Request *> _requestQueue;
     std::mutex _requestQueueMutex;
 
     // Process request queue in thread safe wya

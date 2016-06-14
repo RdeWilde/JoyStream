@@ -22,12 +22,12 @@ Plugin::Plugin()
 }
 
 Plugin::~Plugin() {
-    std::log << "~Plugin.";
+    std::clog << "~Plugin.";
 }
 
 void Plugin::added(libtorrent::aux::session_impl * session) {
 
-    std::log << "Plugin added to session.";
+    std::clog << "Plugin added to session.";
 
     _session = session;
     _addedToSession = true;
@@ -35,6 +35,7 @@ void Plugin::added(libtorrent::aux::session_impl * session) {
 
 void Plugin::on_alert(libtorrent::alert const * a) {
 
+    /**
     if(libtorrent::read_piece_alert const * p = libtorrent::alert_cast<libtorrent::read_piece_alert>(a)) {
 
         // Get info hash for torrent from which this read piece comes from
@@ -53,7 +54,7 @@ void Plugin::on_alert(libtorrent::alert const * a) {
             assert(false);
         }
     }
-
+    */
 }
 
 void Plugin::on_tick() {
@@ -66,7 +67,7 @@ void Plugin::on_tick() {
     processesRequests();
 
     // Send status
-    sendAlertToSession(PluginStatusAlert(status()));
+    sendAlertToSession(alert::PluginStatusAlert(status()));
 }
 
 /**
@@ -94,7 +95,7 @@ status::Plugin Plugin::status() const {
 
         assert(plugin);
 
-        status.plugins.insert(make_pair(mapping.first, plugin->status()));
+        status.plugins.insert(std::make_pair(mapping.first, plugin->status()));
     }
 
     return status;
@@ -115,14 +116,14 @@ void Plugin::processesRequests() {
     
     while(!_requestQueue.empty()) {
 
-        request::Request * r = _requestQueue.front();
+        const request::Request * r = _requestQueue.front();
         _requestQueue.pop_front();
 
         // Unlock queue mutex for actual processing of request
         _requestQueueMutex.unlock();
 
         // Process
-        processes(r);
+        process(r);
 
         // Delete request
         delete r;
@@ -132,7 +133,7 @@ void Plugin::processesRequests() {
     }
 }
 
-void Plugin::processes(const request::Request * r) {
+void Plugin::process(const request::Request * r) {
 
     switch(r->target()) {
         case request::RequestTarget::Plugin:
@@ -166,7 +167,8 @@ void Plugin::processTorrentPluginRequest(const request::TorrentPluginRequest * r
 
     // If there is no torrent plugin, then tell client
     if(it == _plugins.cend()) {
-        sendAlertToSession(alert::RequestResult<request::TorrentPluginRequest::MissingTorrentPlugin>(r->type()));
+
+        sendAlertToSession(alert::RequestResult<request::TorrentPluginRequest::MissingTorrentPlugin>(r));
         return;
     }
 
