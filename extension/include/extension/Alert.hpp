@@ -10,7 +10,8 @@
 
 #define PLUGIN_STATUS_ALERT_ID                  (libtorrent::user_alert_id + 1)
 #define BROADCAST_TRANSACTION_ALERT_ID          (libtorrent::user_alert_id + 2)
-#define REQUEST_RESULT_ALERT_ID              (libtorrent::user_alert_id + 3)
+#define REQUEST_RESULT_ALERT_ID                 (libtorrent::user_alert_id + 3)
+#define ANCHOR_ANNOUNCED_ALERT_ID               (libtorrent::user_alert_id + 4)
 
 #include <libtorrent/alert.hpp>
 #include <libtorrent/alert_types.hpp>
@@ -110,6 +111,55 @@ namespace alert {
 
         // Request result
         R _result;
+    };
+
+    class AnchorAnnounced : public libtorrent::alert {
+
+    public:
+
+        const static int alert_type = ANCHOR_ANNOUNCED_ALERT_ID;
+
+        AnchorAnnounced();
+
+        AnchorAnnounced(const libtorrent::tcp::endpoint & endPoint,
+                        quint64 value,
+                        const Coin::typesafeOutPoint & anchor,
+                        const Coin::PublicKey & contractPk,
+                        const Coin::PubKeyHash & finalPkHash)
+            : _endPoint(endPoint)
+            , _value(value)
+            , _anchor(anchor)
+            , _contractPk(contractPk)
+            , _finalPkHash(finalPkHash) {}
+
+        AnchorAnnounced(const AnchorAnnounced & alert)
+            : AnchorAnnounced(alert.endPoint(),
+                              alert.value(),
+                              alert.anchor(),
+                              alert.contractPk(),
+                              alert.finalPkHash()) {}
+
+        // Virtual routines from libtorrent::alert
+        virtual int type() const { return alert_type; }
+        virtual char const* what() const { return "AnchorAnnounced"; }
+        virtual std::string message() const { return std::string("AnchorAnnounced::message: IMPLEMENT LATER"); }
+        virtual int category() const { return libtorrent::alert::error_notification; }
+        virtual std::auto_ptr<libtorrent::alert> clone() const { return std::auto_ptr<alert>(new AnchorAnnounced(*this)); }
+
+        libtorrent::tcp::endpoint endPoint() const { return _endPoint; }
+        quint64 value() const { return _value; }
+        Coin::typesafeOutPoint anchor() const { return _anchor; }
+        Coin::PublicKey contractPk() const { return _contractPk; }
+        Coin::PubKeyHash finalPkHash() const { return _finalPkHash; }
+
+    private:
+
+        libtorrent::tcp::endpoint _endPoint;
+        quint64 _value;
+        Coin::typesafeOutPoint _anchor;
+        Coin::PublicKey _contractPk;
+        Coin::PubKeyHash _finalPkHash;
+
     };
 
 }
