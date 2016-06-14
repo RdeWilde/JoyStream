@@ -235,41 +235,40 @@ void TorrentPlugin::handle(const request::TorrentPluginRequest * r) {
 
 void TorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) {
 
-    /**
     // There should be at least one peer registered for this piece
-    //Q_ASSERT(!_outstandingPieceRequests[alert->piece].empty());
-    if(_outstandingReadPieceRequests[alert->piece].empty()) {
+    auto it = _outstandingReadPieceRequests.find(alert->piece);
 
-        std::clog << "Ignoring piece read, must be for streaming server.";
+    if(it == _outstandingReadPieceRequests.cend()) {
+
+        std::clog << "Ignoring piece read, must be for some other purpose." << std::endl;
         return;
     }
 
     // Make a callback for each peer registered
-    const std::set<libtorrent::tcp::endpoint> & peers = _outstandingReadPieceRequests[alert->piece];
+    const std::set<libtorrent::tcp::endpoint> & peers = it->second;
 
     // Iterate peers
-    for(QSet<SellerPeerPlugin *>::const_iterator i = peers.constBegin(),
-        end(peers.constEnd()); i != end;i++) {
+    for(auto endPoint : peers) {
 
-        // Get peer pointer
-        SellerPeerPlugin * peerPlugin = *i;
+        assert(_peers.count(endPoint));
 
-        // Notify peer plugin of result
+        // Make sure reading worked
         if(alert->ec) {
 
-            std::clog << "Failed reading piece" << alert->piece << "for" << libtorrent::print_address(peerPlugin->endPoint().address()).c_str();
+            std::clog << "Failed reading piece" << alert->piece << "for" << libtorrent::print_address(endPoint.address()).c_str();
+            assert(false);
 
-            (*i)->pieceReadFailed(alert->piece);
         } else {
 
-            std::clog << "Read piece" << alert->piece << "for" << libtorrent::print_address(peerPlugin->endPoint().address()).c_str();
-            (*i)->pieceRead(alert->piece, alert->buffer, alert->size);
+            std::clog << "Read piece" << alert->piece << "for" << libtorrent::print_address(endPoint.address()).c_str();
+
+            // tell session
+            _session.pieceLoaded(endPoint, protocol_wire::PieceData(alert->buffer, alert->size), alert->piece);
         }
     }
 
     // Remove all peers registered for this piece
-    _outstandingReadPieceRequests.remove(alert->piece);
-    */
+    _outstandingReadPieceRequests.erase(it);
 }
 
 status::TorrentPlugin TorrentPlugin::status() const {
