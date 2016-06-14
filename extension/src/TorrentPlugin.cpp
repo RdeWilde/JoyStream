@@ -593,7 +593,10 @@ protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> TorrentPlugin::lo
 
 protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> TorrentPlugin::claimLastPayment() const {
 
-    return [this](const libtorrent::tcp::endpoint & endPoint, const joystream::paymentchannel::Payee &) {
+    return [this](const libtorrent::tcp::endpoint &, const joystream::paymentchannel::Payee & payee) {
+
+        Coin::Transaction tx = payee.lastPaymentTransaction();
+        this->sendTorrentPluginAlert(alert::BroadcastTransaction(tx));
         // sendTorrentPluginAlert(settlement transaction: use same as broadcast transaction)
     };
 }
