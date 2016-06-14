@@ -748,13 +748,13 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
-    void Session<ConnectionIdType>::contractPrepared(const ConnectionIdType & id, quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::PubKeyHash & payorFinalPkHash) {
+    void Session<ConnectionIdType>::contractPrepared(const ConnectionIdType & id, quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::RedeemScriptHash & payorFinalScriptHash) {
 
         assert(hasConnection(id));
         assert(_mode == SessionMode::selling);
         assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
 
-        _selling->contractPrepared(id, value, anchor, payorContractPk, payorFinalPkHash);
+        _selling->contractPrepared(id, value, anchor, payorContractPk, payorFinalScriptHash);
     }
 
     template<class ConnectionIdType>
@@ -846,7 +846,7 @@ namespace protocol_session {
         [this, id](void) { this->invitedToOutdatedContract(id); },
         [this, id]() { this->invitedToJoinContract(id); },
         [this, callback](const protocol_wire::ExtendedMessagePayload * m) { callback(m); },
-        [this, id](quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::PubKeyHash & payorFinalPkHash) { this->contractPrepared(id, value, anchor, payorContractPk, payorFinalPkHash); },
+        [this, id](quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::RedeemScriptHash & payorFinalScriptHash) { this->contractPrepared(id, value, anchor, payorContractPk, payorFinalScriptHash); },
         [this, id](int i) { this->pieceRequested(id, i); },
         [this, id]() { this->invalidPieceRequested(id); },
         [this, id]() { this->paymentInterrupted(id); },

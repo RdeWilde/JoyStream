@@ -155,7 +155,7 @@ namespace detail {
     }
 
     template<class ConnectionIdType>
-    void Selling<ConnectionIdType>::contractPrepared(const ConnectionIdType & id, quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::PubKeyHash & payorFinalPkHash) {
+    void Selling<ConnectionIdType>::contractPrepared(const ConnectionIdType & id, quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::RedeemScriptHash & payorFinalScriptHash) {
 
         // We cannot have connection and be stopped
         assert(_session->state() != SessionState::stopped);
@@ -165,7 +165,7 @@ namespace detail {
 
         // Notify client
         // NB** We do this, even if we are paused!
-        _anchorAnnounced(id, value, anchor, payorContractPk, payorFinalPkHash);
+        _anchorAnnounced(id, value, anchor, payorContractPk, payorFinalScriptHash);
     }
 
     template<class ConnectionIdType>
@@ -375,8 +375,8 @@ namespace detail {
 
             // Join if they are
             Coin::KeyPair contractKeyPair = _generateKeyPairs(1).front();
-            Coin::PubKeyHash finalPkHash = _generateP2SHAddresses(1).front().pubKeyHash();
-            c->processEvent(joystream::protocol_statemachine::event::Joined(contractKeyPair, finalPkHash));
+            Coin::RedeemScriptHash finalScriptHash = _generateP2SHAddresses(1).front().redeemScriptHash();
+            c->processEvent(joystream::protocol_statemachine::event::Joined(contractKeyPair, finalScriptHash));
 
         } else {
 

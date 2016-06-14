@@ -9,7 +9,7 @@
 #ifndef JOYSTREAM_PROTOCOLSESSION_CALLBACKS_HPP
 #define JOYSTREAM_PROTOCOLSESSION_CALLBACKS_HPP
 
-#include <common/PubKeyHash.hpp>
+#include <common/P2SHAddress.hpp>
 
 #include <functional>
 #include <vector>
@@ -95,7 +95,7 @@ using ClaimLastPayment = std::function<void(const ConnectionIdType &, const joys
 
 // Buyer with given connection id announced anchor
 template <class ConnectionIdType>
-using AnchorAnnounced = std::function<void(const ConnectionIdType &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &)>;
+using AnchorAnnounced = std::function<void(const ConnectionIdType &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::RedeemScriptHash &)>;
 
 }
 }

@@ -69,7 +69,7 @@ template <class ConnectionIdType>
 using GenerateKeyPairsCallbackSlot = FunctionCallbackSlot<std::vector<Coin::KeyPair>,int>;
 
 template <class ConnectionIdType>
-using GenerateP2PKHAddressesCallbackSlot = FunctionCallbackSlot<std::vector<Coin::P2PKHAddress>,int>;
+using GenerateP2SHAddressesCallbackSlot = FunctionCallbackSlot<std::vector<Coin::P2SHAddress>,int>;
 
 typedef SubroutineCallbackSlot<const protocol_wire::ExtendedMessagePayload *> SendMessageOnConnectionCallbackSlot;
 
@@ -85,7 +85,7 @@ template <class ConnectionIdType>
 using ClaimLastPaymentCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, joystream::paymentchannel::Payee>;
 
 template <class ConnectionIdType>
-using AnchorAnnouncedCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, quint64, Coin::typesafeOutPoint, Coin::PublicKey, Coin::PubKeyHash>;
+using AnchorAnnouncedCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, quint64, Coin::typesafeOutPoint, Coin::PublicKey, Coin::RedeemScriptHash>;
 
 template <class ConnectionIdType>
 struct ConnectionSpy {
@@ -134,7 +134,7 @@ public:
     // Handlers for all calls with return types is required, as slots
     // use them to return respons
     SessionSpy(const GenerateKeyPairsCallbackHandler &,
-               const GenerateP2PKHAddressesCallbackHandler &,
+               const GenerateP2SHAddressesCallbackHandler &p2shHandler,
                const BroadcastTransaction &,
                Session<ConnectionIdType> *);
 
@@ -146,7 +146,7 @@ public:
                              const protocol_wire::SellerTerms &,
                              int);
 
-    void toMonitoredBuyMode(const Coin::UnspentP2PKHOutput &,
+    void toMonitoredBuyMode(const Coin::UnspentOutputSet &,
                             const BuyingPolicy &,
                             const protocol_wire::BuyerTerms &,
                             const TorrentPieceInformation &);
@@ -167,7 +167,7 @@ public:
 
     bool onlyCalledRemovedConnection() const;
     bool onlyCalledGenerateKeyPairs() const;
-    bool onlyCalledGenerateP2PKHAddresses() const;
+    bool onlyCalledGenerateP2SHAddresses() const;
     bool onlyCalledBroadcastTransaction() const;
     bool onlyCalledFullPieceArrived() const;
     bool onlyCalledAnchorAnnounced() const;
@@ -177,7 +177,7 @@ public:
     //// General
     RemovedConnectionCallbackSlot<ConnectionIdType> removedConnectionCallbackSlot;
     GenerateKeyPairsCallbackSlot<ConnectionIdType> generateKeyPairsCallbackSlot;
-    GenerateP2PKHAddressesCallbackSlot<ConnectionIdType> generateP2PKHAddressesCallbackSlot;
+    GenerateP2SHAddressesCallbackSlot<ConnectionIdType> generateP2SHAddressesCallbackSlot;
 
     //// Buying
     BroadcastTransactionCallbackSlot broadcastTransactionCallbackSlot;

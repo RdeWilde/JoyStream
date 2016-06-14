@@ -544,17 +544,18 @@ namespace detail {
 
         // Generate keys and addresses required
         std::vector<Coin::KeyPair> contractKeyPairs = _generateKeyPairs(numberOfSellers);
-        std::vector<Coin::PubKeyHash> finalPkHashes;
+        std::vector<Coin::RedeemScriptHash> finalScriptHashes;
 
         std::vector<Coin::P2SHAddress> finalAddresses = _generateP2SHAddresses(numberOfSellers);
         for(Coin::P2SHAddress a : finalAddresses)
-            finalPkHashes.push_back(a.pubKeyHash());
+            finalScriptHashes.push_back(a.redeemScriptHash());
 
         // Create and add commitment to contract
         for(uint32_t i = 0;i < numberOfSellers;i++)
             c.addCommitment(paymentchannel::Commitment(funds[i],
                                                        contractKeyPairs[i].pk(),
-                                                       selected[i]->payor().payeeContractPk()));
+                                                       selected[i]->payor().payeeContractPk(),
+                                                       terms[i].minLock()));
 
         // Add change if worth doing
         if(changeAmount != 0) {
@@ -563,7 +564,7 @@ namespace detail {
             Coin::P2SHAddress address = _generateP2SHAddresses(1).front();
 
             // Create and set change payment
-            c.setChange(Coin::Payment(changeAmount, address.pubKeyHash()));
+            c.setChange(Coin::Payment(changeAmount, address.redeemScriptHash()));
         }
 
         // Create and store contract transaction
@@ -588,7 +589,7 @@ namespace detail {
         for(uint32_t i = 0;i < numberOfSellers;i++)
             selected[i]->processEvent(protocol_statemachine::event::ContractPrepared(Coin::typesafeOutPoint(txId, i),
                                                                                      contractKeyPairs[i],
-                                                                                     finalPkHashes[i],
+                                                                                     finalScriptHashes[i],
                                                                                      funds[i]));
 
         /////////////////////////
