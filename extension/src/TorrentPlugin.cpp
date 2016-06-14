@@ -127,11 +127,13 @@ void TorrentPlugin::tick() {
 }
 
 bool TorrentPlugin::on_resume() {
-    // deal with this later
+    // false: let the standard handler handle this
+    return false;
 }
 
 bool TorrentPlugin::on_pause() {
-    // deal with this later
+    // false: let the standard handler handle this
+    return false;
 }
 
 void TorrentPlugin::on_files_checked() {
