@@ -126,9 +126,9 @@ public:
 
     IncorrectPieceIndex(int actual, int expected)
         : std::runtime_error(std::string("Provided piece index ") +
-                             std::to_string(_actual) +
+                             std::to_string(actual) +
                              std::string(", expected ") +
-                             std::to_string(_expected))
+                             std::to_string(expected))
         , _actual(actual)
         , _expected(expected) {
     }
