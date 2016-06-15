@@ -19,9 +19,6 @@ QT      += websockets
 INCLUDEPATH += $$PWD/include
 
 HEADERS += \
-    include/core/logger/LoggerManager.hpp \
-    include/core/logger/exceptions/DuplicateLog.hpp \
-    include/core/logger/exceptions/CannnotOpenLogFile.hpp \
     include/core/viewmodel/BuyerPeerPlugin.hpp \
     include/core/viewmodel/BuyerTorrentPlugin.hpp \
     include/core/viewmodel/Channel.hpp \
@@ -39,9 +36,6 @@ HEADERS += \
     include/core/ControllerConfiguration.hpp
 
 SOURCES += \
-    src/logger/LoggerManager.cpp \
-    src/logger/exceptions/CannnotOpenLogFile.cpp \
-    src/logger/exceptions/DuplicateLog.cpp \
     src/viewmodel/BuyerPeerPlugin.cpp \
     src/viewmodel/BuyerTorrentPlugin.cpp \
     src/viewmodel/Channel.cpp \
