@@ -9,11 +9,12 @@
 #define JOYSTREAM_CORE_CONFIGURATION_HPP
 
 #include <libtorrent/sha1_hash.hpp>
-#include <libtorrent/entry.hpp> // libtorrent::entry::dictionary_type
+#include <libtorrent/add_torrent_params.hpp>
 #include <libtorrent/torrent_info.hpp>
-#include <boost/intrusive_ptr.hpp>
 
 class QJsonObject;
+class QString;
+class QJsonValue;
 
 namespace libtorrent {
     struct TORRENT_EXPORT add_torrent_params;
@@ -23,118 +24,111 @@ namespace joystream {
 namespace core {
 namespace configuration {
 
-    // Persistant representation of a torrent
-    struct Torrent {
+template <class T>
+QJsonValue safeRead<T>(const QJsonObject & json, const QString & key);
 
-    public:
+// Persistant representation of a torrent
+class Torrent {
 
-        Torrent();
+    Torrent();
 
-        Torrent(const libtorrent::torrent_info &,
-                const std::string & name,
-                const std::string & savePath,
-                const std::vector<char> & resumeData,
-                boost::uint64_t flags);
+    Torrent(const libtorrent::add_torrent_params &);
 
-        // Load torrent information based on magnet URI
-        static libtorrent::torrent_info fromMagnetUri(const std::string &);
+    /**
+    // Load torrent information based on magnet URI
+    static libtorrent::torrent_info fromMagnetUri(const std::string &);
 
-        // Load torrent information from torrent file
-        static libtorrent::torrent_info fromTorrentFile(const std::string &);
+    // Load torrent information from torrent file
+    static libtorrent::torrent_info fromTorrentFile(const std::string &);
+    */
 
-        /**
-         * Schema for JSON encoding of configuration
-        {
-            "torrentInfo": {
-                            "description": "classic info_hash of torrent",
-                            "type" : "string",
-                            "encoding" : "hex"
-            },
-            "name" : {},
-            "savePath" : {},
-            "resumeData" : {},
-            "flags" : {}
-        }
-         */
+    /**
+    * Schema for JSON encoding of configuration
+    {
+        "params": <string: encoding libtorrent::add_torrent_params>
+    }
+    */
 
-        // Decode from JSON using schema above
-        static Torrent fromJSON(const QJsonObject &);
+    // Encode/Decode configuration from JSON using schema above
+    QJsonObject toJSON() const;
+    static Torrent fromJSON(const QJsonObject &);
 
-        // Encode to JSON using schema above
-        QJsonObject toJSON() const;
+private:
 
-        // Turn into add_torrent_params
-        libtorrent::add_torrent_params toParams() const;
+    // Basic information for adding torrent to libtorrent session
+    libtorrent::add_torrent_params _params;
 
-        //// Member variables
+    // Other stuff about plugin...
 
-        // Information about torrent
-        libtorrent::torrent_info _torrentInfo;
+    /**
+    * Schema for JSON (partial) encoding of libtorrent::add_torrent_params
+    {
+        "ti":  <string:Bencoded torrent file, null>
+        "name":         <string: Human readable torrent name>
+        "save_path":     <string: Local path where data is stored to/loaded from",
+        "resume_data":   <string: libtorrent fast-resume data>,
+        "flags":        <int: libtorrent::add_torrent_params flags>
+    }
+    */
 
-        // Name of torrent
-        std::string _name;
+    // Encode/Decode add_torrent_params in JSON schema above
+    static QJsonObject toJSON(const libtorrent::add_torrent_params &);
+    static libtorrent::add_torrent_params fromJSON(const QJsonObject &);
 
-        // Save path
-        std::string _savePath;
+    // Decode/Encode torrent_info to/from bencoding
+    static QString toBencoding(const libtorrent::torrent_info &);
+    static libtorrent::torrent_info fromBencoding(const QString &);
+};
 
-        // Resume data
-        std::vector<char> _resumeData;
+// Persistant representation of a controller
+class Controller {
 
-        // Flags
-        boost::uint64_t _flags;
-    };
+public:
 
-    // Persistant representation of a controller
-    struct Controller {
+    Controller();
 
-        Controller();
+    Controller(const libtorrent::entry & libtorrentSessionSettingsEntry,
+              const std::pair<int, int> & portRange,
+              const std::vector<std::pair<std::string, int> > & dhtRouters,
+              const std::vector<Torrent> & torrents);
 
-        Controller(const libtorrent::entry & libtorrentSessionSettingsEntry,
-                  const std::pair<int, int> & portRange,
-                  const std::vector<std::pair<std::string, int> > & dhtRouters,
-                  const std::vector<Torrent> & torrents);
+    /**
+    * Schema for JSON encoding of configuration
+    {
+          "libtorrentSettings" : <..>
 
-        /**
-         * Schema for JSON encoding of configuration
-         {
-              "libtorrentSettings" : entry::dictionary_type object from session.save_state().
+          "dhtRouters" : entry::list_type object with entry::list_type objects with two elements, each encoding a dht router by the host (first)
+          and port (second).
 
-              "portRange" : entry::list_type object with two positive integers used as start (first) and end (second)
-              of port range for running client.
+          "torrents" : [...,<JSON encoding of configuration::Torrent>]
+    }
+    */
 
-              "dhtRouters" : entry::list_type object with entry::list_type objects with two elements, each encoding a dht router by the host (first)
-              and port (second).
+    // Decode from JSON using schema above
+    static Controller fromJSON(const QJsonObject &);
 
-              "torrentConfigurations" : entry::list_type object, with list item objects being of type entry::dictionary_type and
-              representing state of corresponding torrent as dictated by encoding used in TorrentConfiguration::toDictionaryEntry().
-         }
-         */
+    // Encode to JSON using schema above
+    QJsonObject toJSON();
 
-        // Decode from JSON using schema above
-        static Controller fromJSON(const QJsonObject &);
+    // Loads configuration from file, encoded in JSON using schema above
+    static Controller fromFile(const std::string &);
 
-        // Encode to JSON using schema above
-        QJsonObject toJSON();
+    // Saves to file
+    void toFile(const std::string &);
 
-        // Loads configuration from file, encoded in JSON using schema above
-        static Controller fromFile(const std::string &);
+private:
 
-        // Saves to file
-        void toFile(const std::string &);
+    // Session settings
+    libtorrent::settings_pack settings;
 
-        //// Member variables
+    // libtorrent::dht_settings dht;
 
-        // Session settings
-        libtorrent::settings_pack settings;
+    // Dht routers
+    //std::vector<std::pair<std::string, int> > _dhtRouters;
 
-        // libtorrent::dht_settings dht;
-
-        // Dht routers
-        std::vector<std::pair<std::string, int> > _dhtRouters;
-
-        // Torrent configurations
-        std::vector<Torrent> _torrents;
-    };
+    // Torrent configurations
+    std::vector<Torrent> _torrents;
+};
 
 
 }
