@@ -10,5 +10,6 @@
 
 #include <core/Controller.hpp>
 #include <core/Configuration.hpp>
+#include <core/ViewModel.hpp>
 
 #endif // JOYSTREAM_CORE_CONTROLLER_HPP
