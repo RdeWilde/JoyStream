@@ -30,10 +30,11 @@ HEADERS += \
     include/core/viewmodel/TorrentPlugin.hpp \
     include/core/viewmodel/Torrent.hpp \
     include/core/Controller.hpp \
-    include/core/PluginInstalled.hpp \
     include/core/Stream.hpp \
     include/core/core.hpp \
-    include/core/Configuration.hpp
+    include/core/Configuration.hpp \
+    include/core/detail/Torrent.hpp \
+    include/core/ViewModel.hpp
 
 SOURCES += \
     src/viewmodel/BuyerPeerPlugin.cpp \
@@ -48,15 +49,13 @@ SOURCES += \
     src/viewmodel/Torrent.cpp \
     src/Controller.cpp \
     src/Stream.cpp \
-    src/Configuration.cpp
+    src/Configuration.cpp \
+    src/detail/Torrent.cpp \
+    src/ViewModel.cpp
 
 # extension
 INCLUDEPATH += $$PWD/../extension/include
 DEPENDPATH += $$PWD/../extension/include
-
-# blockcypher
-INCLUDEPATH += $$PWD/../blockcypher/include
-DEPENDPATH += $$PWD/../blockcypher/include
 
 # common
 INCLUDEPATH += $$PWD/../common/include
@@ -65,5 +64,9 @@ DEPENDPATH += $$PWD/../common/include
 # paymentchannel
 INCLUDEPATH += $$PWD/../paymentchannel/include
 DEPENDPATH += $$PWD/../paymentchannel/include
+
+# bitcoin
+INCLUDEPATH += $PWD/.../bitcoin/include
+DEPENDPATH += $PWD/.../bitcoin/include
 
 include(../config.pri)
