@@ -34,7 +34,8 @@ HEADERS += \
     include/core/core.hpp \
     include/core/Configuration.hpp \
     include/core/detail/Torrent.hpp \
-    include/core/ViewModel.hpp
+    include/core/ViewModel.hpp \
+    include/core/Exception.hpp
 
 SOURCES += \
     src/viewmodel/BuyerPeerPlugin.cpp \
