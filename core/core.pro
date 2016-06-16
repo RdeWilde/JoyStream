@@ -32,8 +32,8 @@ HEADERS += \
     include/core/Controller.hpp \
     include/core/PluginInstalled.hpp \
     include/core/Stream.hpp \
-    include/core/TorrentConfiguration.hpp \
-    include/core/ControllerConfiguration.hpp
+    include/core/core.hpp \
+    include/core/Configuration.hpp
 
 SOURCES += \
     src/viewmodel/BuyerPeerPlugin.cpp \
@@ -48,8 +48,7 @@ SOURCES += \
     src/viewmodel/Torrent.cpp \
     src/Controller.cpp \
     src/Stream.cpp \
-    src/TorrentConfiguration.cpp \
-    src/ControllerConfiguration.cpp
+    src/Configuration.cpp
 
 # extension
 INCLUDEPATH += $$PWD/../extension/include
