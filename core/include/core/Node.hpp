@@ -95,8 +95,10 @@ public:
 
     ~Node();
 
-    typedef std::function<void()> NodeStarted;
-    typedef std::function<void()> NodeStartFailed;
+    /// --- start
+
+    typedef std::function<void(const libtorrent::tcp::endpoint &)> NodeStarted;
+    typedef std::function<void(const libtorrent::tcp::endpoint &, libtorrent::error_code)> NodeStartFailed;
 
     /**
      purpose: Starts node.
@@ -112,11 +114,14 @@ public:
      */
     void start(const configuration::Node & configuration, const NodeStarted & started, const NodeStartFailed & failed);
 
+    /// --- stop
+
     typedef std::function<void()> NodeStopped;
 
     /**
      purpose: Stop node.
-     description: asynchrnous. ...
+     condition: Must be started.
+     description: asynchrnous. .... All torrents are removed
      arguments:
      - callback about being actually stopped
      - callback about how stopping timedout out due to libtorrent foolishness
@@ -127,11 +132,14 @@ public:
     */
     void stop(const NodeStopped &);
 
+    /// --- addTorrent
+
     typedef std::function<void()> AddedTorrent;
-    // typedef std::function<void()> ... soemthing else
+    // typedef std::function<void()> ... something else
 
     /**
      purpose: Add torrent.
+     condition:
      description: Add torrent.
      arguments:
      -
@@ -141,7 +149,7 @@ public:
      signals:
      -
      */
-    void addTorrent(const configuration::Torrent &);
+    void addTorrent(const configuration::Torrent &, const AddedTorrent &, );
     //void addTorrent(const configuration::Torrent &, const SellerTorrentPlugin::Configuration & pluginConfiguration);
     //void addTorrent(const configuration::Torrent &, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const Coin::UnspentP2PKHOutput & utxo);
     //bool addTorrent(const configuration::Torrent &, const ObserverTorrentPlugin::Configuration & pluginConfiguration);
@@ -283,7 +291,11 @@ private:
     std::vector<Coin::Transaction> _transactionSendQueue;
 
     // Underlying libtorrent session
-    libtorrent::session _session;
+    // Note: The only way to halt libtorrent::session
+    // is to destruct the object, hence the only way for Node
+    // to halt is to clear corresponding libtorrent::session,
+    // this is why we keep pointer, rather than byvalue
+    libtorrent::session * _session;
 
     // Wallet used
     joystream::bitcoin::SPVWallet * _wallet;
@@ -299,21 +311,30 @@ private:
     // Torrents added to session
     std::set<libtorrent::sha1_hash, detail::Torrent> _torrents;
 
+    /// User supplied callbacks to be used as response in asynchronous method calls
+
+    // Node::start
+    NodeStarted _started;
+    NodeStartFailed _failed;
+
+    // Node::stop
+
+
     // TCP streaming server
     //QTcpServer _streamingServer;
 
     /**
-     *
-     * SIMPLIFY LATER: Put TorrentPlugin::Configuration pointer into Torrent.
-     * Do not refer to it as *pending*, this will bethe configurations the
-     * view is given when any editing of configruations is done, and
-     * which will be pased on to plugin as alert.
-     *
-     * In the case of buyer, put utxo in QMap for keeping pending utxo. They
+    *
+    * SIMPLIFY LATER: Put TorrentPlugin::Configuration pointer into Torrent.
+    * Do not refer to it as *pending*, this will bethe configurations the
+    * view is given when any editing of configruations is done, and
+    * which will be pased on to plugin as alert.
+    *
+    * In the case of buyer, put utxo in QMap for keeping pending utxo. They
      * are indeed pending, and are therefore not part of Torrent.
-     *
-     *
-     */
+    *
+    *
+    */
 
     /**
     * Libtorrent entry points for libtorrent::alert processing
@@ -349,6 +370,7 @@ private:
     // NB**: rename all to process(X), use overloading, is cleaner
     void processMetadataReceivedAlert(libtorrent::metadata_received_alert const * p);
     void processMetadataFailedAlert(libtorrent::metadata_failed_alert const * p);
+    void process(libtorrent::listen_succeeded_alert const *p);
     void processListenFailedAlert(libtorrent::listen_failed_alert const * p);
     void processAddTorrentAlert(libtorrent::add_torrent_alert const * p);
     void processTorrentFinishedAlert(libtorrent::torrent_finished_alert const * p);

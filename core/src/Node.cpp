@@ -46,19 +46,11 @@ namespace joystream {
 namespace core {
 
 Node::Node(joystream::bitcoin::SPVWallet * wallet)
-    : _state(State::normal)
+    : _state(State::stopped)
     , _closing(false)
     , _reconnecting(false)
     , _protocolErrorsCount(0)
-    , _session(libtorrent::fingerprint(CORE_EXTENSION_FINGERPRINT, CORE_VERSION_MAJOR, CORE_VERSION_MINOR, 0, 0),
-               libtorrent::session::add_default_plugins + libtorrent::session::start_default_features,
-               libtorrent::alert::error_notification +
-               libtorrent::alert::tracker_notification +
-               libtorrent::alert::debug_notification +
-               libtorrent::alert::status_notification +
-               libtorrent::alert::progress_notification +
-               libtorrent::alert::performance_warning +
-               libtorrent::alert::stats_notification)
+    , _session(nullptr)
     , _wallet(wallet) {
 
     /**
@@ -76,8 +68,7 @@ Node::Node(joystream::bitcoin::SPVWallet * wallet)
     qRegisterMetaType<const libtorrent::alert*>();
     */
 
-    // Set libtorrent to call processAlert when alert is created
-    _session.set_alert_dispatch(boost::bind(&Node::libtorrent_alert_dispatcher_callback, this, _1));
+
 
     /**
     // Connect streaming server signals
@@ -112,22 +103,7 @@ Node::Node(joystream::bitcoin::SPVWallet * wallet)
         std::clog << "Could not start streaming server on port:" << _streamingServer.serverPort();
     */
 
-    // Create and install plugin
-    boost::shared_ptr<libtorrent::plugin> plugin(new extension::Plugin(_wallet));
 
-    // Keep weak reference
-    _plugin = plugin;
-
-    // Add plugin extension
-    _session->add_extension(plugin);
-
-    // Start timer which calls session.post_torrent_updates at regular intervals
-    _statusUpdateTimer.setInterval(CORE_CONTROLLER_POST_TORRENT_UPDATES_DELAY);
-
-    QObject::connect(&_statusUpdateTimer,
-                     SIGNAL(timeout()),
-                     this,
-                     SLOT(callPostTorrentUpdates()));
 
     // Commenting out for now
     //qRegisterMetaType<Coin::TransactionId>("Coin::TransactionId");
@@ -148,32 +124,36 @@ Node::~Node() {
     _wallet->stopSync();
 }
 
-void Node::start(const configuration::Node & configuration) {
+void Node::start(const configuration::Node & configuration, const NodeStarted & started, const NodeStartFailed & failed) {
 
     if(_state != State::stopped)
         throw exception::CanOnlyStartStoppedNode(_state);
 
-    std::clog << "Initiating libtorrent session on port"
-              << std::to_string(_session.listen_port())
-              << std::endl;
+    assert(_session == nullptr);
 
-    // _statusUpdateTimer.start();
+    // Derive libtorrent settings from configuration
+    //libtorrent::settings_pack settingsPack = toSettingsPack(configuration);
+    // dht_settings
 
-    /**
-    // Add all torrents, but this ust be AFTER session.listen_on(),
-    // because otherwise adding to session won't work.
-    QVector<Torrent::Configuration> torrents = configuration.torrents();
+    // Create new libtorrent session
+    _session = new libtorrent::session(libtorrent::fingerprint(CORE_EXTENSION_FINGERPRINT, CORE_VERSION_MAJOR, CORE_VERSION_MINOR, 0, 0),
+                   libtorrent::session::add_default_plugins + libtorrent::session::start_default_features,
+                   libtorrent::alert::error_notification +
+                   libtorrent::alert::tracker_notification +
+                   libtorrent::alert::debug_notification +
+                   libtorrent::alert::status_notification +
+                   libtorrent::alert::progress_notification +
+                   libtorrent::alert::performance_warning +
+                   libtorrent::alert::stats_notification);
 
-    for(QVector<Torrent::Configuration>::const_iterator i = torrents.begin(),
-            end(torrents.end());i != end; ++i) {
+    // Try to start listening
+    unsigned short port = _session->listen_port();
 
-        // Try to add torrent, without prompting user
-        //if(!addTorrent(*i, false)) {
-        //    qCCritical(_category) << "Unable to add torrent configuration to session";
-        //    return;
-        //}
-    }
-    */
+    std::clog << "Trying to listen on port" << std::to_string(port) << std::endl;
+
+    // Store callbacks
+    _started = started;
+    _failed = failed;
 }
 
 void Node::stop() {
@@ -181,6 +161,8 @@ void Node::stop() {
     std::clog << "Libtorrent stopping initiated..." << std::endl;
 
     //_statusUpdateTimer.stop() <-- perhaps this shouldbe called AFTER libtorrent has been stopped?
+
+    //when done _session = nullptr
 }
 
 void Node::syncWallet() {
@@ -374,6 +356,8 @@ void Controller::processAlertQueue() {
 
 void Node::processAlert(const libtorrent::alert * a) {
 
+    assert(_state != State::stopped);
+
     // Check that alert has been stuck in event queue and corresponds to recenty
     // removed torrent.
 
@@ -388,6 +372,8 @@ void Node::processAlert(const libtorrent::alert * a) {
         processMetadataReceivedAlert(p);
     else if(libtorrent::metadata_failed_alert const * p = libtorrent::alert_cast<libtorrent::metadata_failed_alert>(a))
         processMetadataFailedAlert(p);
+    else if(libtorrent::listen_succeeded_alert const * p = libtorrent::alert_cast<libtorrent::listen_succeeded_alert>(a))
+        process(p);
     else if(libtorrent::listen_failed_alert const * p = libtorrent::alert_cast<libtorrent::listen_failed_alert>(a))
         processListenFailedAlert(p);
     else if(libtorrent::add_torrent_alert const * p = libtorrent::alert_cast<libtorrent::add_torrent_alert>(a))
@@ -559,8 +545,56 @@ void Node::processMetadataFailedAlert(libtorrent::metadata_failed_alert const * 
     throw std::runtime_error("Invalid metadata");
 }
 
+void Node::process(libtorrent::listen_succeeded_alert const * p) {
+
+    assert(_state == State::waiting_to_listen);
+
+    _state = State::normal; // <-- is this correct?
+
+    std::clog << "Listening on endpoint" << libtorrent::to_string(p->endpoint);
+
+    // Set libtorrent to call processAlert when alert is created
+    _session->set_alert_dispatch(boost::bind(&Node::libtorrent_alert_dispatcher_callback, this, _1));
+
+    // Create and install plugin
+    assert(_wallet != nullptr);
+
+    boost::shared_ptr<libtorrent::plugin> plugin(new extension::Plugin(_wallet));
+
+    // Keep weak reference
+    _plugin = plugin;
+
+    // Add plugin extension
+    _session->add_extension(plugin);
+
+    // Start timer which calls session.post_torrent_updates at regular intervals
+    _statusUpdateTimer.start();
+    _statusUpdateTimer.setInterval(CORE_CONTROLLER_POST_TORRENT_UPDATES_DELAY);
+
+    QObject::connect(&_statusUpdateTimer,
+                     SIGNAL(timeout()),
+                     this,
+                     SLOT(callPostTorrentUpdates()));
+
+    // Make callback to user
+    _started(p->endpoint);
+}
+
 void Node::processListenFailedAlert(libtorrent::listen_failed_alert const * p) {
-    throw std::runtime_error("Failed to start listening"); // p->listen_interface()
+
+    assert(_state == State::waiting_to_listen);
+
+    _state = State::stopped;
+
+    std::clog << "Failed to start listening on endpoint"
+              << libtorrent::to_string(p->endpoint)
+              << "due to error"
+              << p->error.message();
+
+    // Make callback to user
+    _failed(p->endpoint, p->error);
+
+
 }
 
 void Node::processAddTorrentAlert(libtorrent::add_torrent_alert const * p) {
@@ -1379,6 +1413,10 @@ quint16 Controller::getServerPort() const {
    return _streamingServer.serverPort();
 }
 */
+
+std::weak_ptr<Torrent> Node::torrent(const libtorrent::sha1_hash & infoHash) const {
+
+}
 
 void Node::finalize_close() {
 
