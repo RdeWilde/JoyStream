@@ -107,8 +107,23 @@ namespace exception {
     private:
 
         std::string message;
+    };
 
+    class CannotStopStoppedNode : public std::runtime_error {
 
+    public:
+
+        CannotStopStoppedNode() {
+            message += "Node cannot be stopped when already stopped.";
+        }
+
+        virtual const char* what() const {
+            return message.c_str();
+        }
+
+    private:
+
+        std::string message;
     };
 }
 }
