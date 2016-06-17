@@ -18,6 +18,7 @@
 #include <CoinCore/CoinNodeData.h> // Coin::Transaction
 
 #include <boost/filesystem.hpp>
+#include <boost/asio/impl/src.hpp>
 
 /*
  *  path to bitcoind and bitcoin-cli need to be

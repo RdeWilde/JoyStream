@@ -14,6 +14,8 @@
 #include <runner/ControllerBarrier.hpp>
 #include <common/Seed.hpp>
 
+#include <boost/asio/impl/src.hpp>
+
 /**
  * Demo meant to run two clients, one seller and one buyer,
  * on tracker - most likely local, since most public

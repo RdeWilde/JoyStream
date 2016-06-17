@@ -11,6 +11,8 @@
 
 #include <signal.h>
 
+#include <boost/asio/impl/src.hpp>
+
 bool shuttingDown = false;
 
 void handleSignal(int sig)
