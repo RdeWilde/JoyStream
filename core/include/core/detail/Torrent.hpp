@@ -22,27 +22,17 @@ public:
     enum class Status {
 
         // Torrent has been libtorrent::async_add_torrent has been called, without response
-        being_async_added_to_session,
+        waiting_for_async_added,
 
         // Torrent was successfully added to session.
         // Can be set either from successfull libtorrent::add_torrent_alert,
         // or synchronous adding which succeeds.
-        torrent_added_but_not_checked,
+        waiting_for_torrent_to_be_checked,
 
         // When a torrent is added, some checking is done
         // - primarily resume data I think, and when that is completed
         // the libtorrent::torrent_checked_alert alert is issued by libtorrent
-        torrent_checked,
-
-        /**
-        // User has to specify torrent plugin configuration,
-        // is set when user dialog is started
-        //
-        // ** THIS SHOULD POTENTIALLY BE REMOVED, IS TO
-        // TIGHTLY COUPLED WITH VIEW DETAILS,
-        // FIND BETTER SOLUTION**
-        torrent_plugin_configuration_from_user,
-        */
+        // torrent_checked,
 
         // <== this should probably be removed
         nothing,
@@ -51,51 +41,16 @@ public:
         // can be either
         // libtorrent::save_resume_data_alert
         // libtorrent::save_resume_data_failed_alert
-        asked_for_resume_data
+        waiting_for_resume_data
     };
 
-    /**
-     * This class is for the moment not used, we just use libtorrent::torrent_status fully,
-     * but in the future this should change.
+    Torrent();
 
-    class Status {
-
-    public:
-
-    private:
-
-        libtorrent::torrent_status::state_t _state;
-
-        float _progress;
-
-        // Download rate (bytes/s)
-        int _downloadRate;
-
-        // Upload rate (bytes/s)
-        int _uploadRate;
-
-        // Total number of peers connected to torrent
-        int _numberOfPeers;
-
-        // Total number of peers with extension
-        int _numberOfPeersWithExtension;
-
-        // Plugin currently installed on this torrent
-        PluginInstalled pluginInstalled;
-
-
-    };
-    */
-
-    // Constructor from members
     Torrent(const libtorrent::sha1_hash & infoHash,
             const std::string & name,
             const std::string & savePath,
             const std::vector<char> & resumeData,
             quint64 flags,
-            //const libtorrent::torrent_handle & handle,
-            //libtorrent::torrent_info * torrentInfo,
-            const boost::intrusive_ptr<libtorrent::torrent_info> & torrentFile,
             Status status);
 
     // Add plugins
@@ -117,18 +72,16 @@ public:
     quint64 flags() const;
     void setFlags(quint64 flags);
 
-    //libtorrent::torrent_info * torrentInfo();
+    //configuration::Torrent configuration() const;
 
     libtorrent::torrent_handle handle() const;
-    void setHandle(const libtorrent::torrent_handle & handle);
 
     Status status() const;
     void setStatus(Status status);
 
-    PluginInstalled pluginInstalled() const;
+    std::weak_ptr<viewmodel::Torrent> model();
 
-    TorrentViewModel * model();
-
+    /**
     // Stream management
     void addStream(Stream * stream);
     void removeStream(Stream * stream);
@@ -138,14 +91,15 @@ public:
 
     // Given piece was downloaded and checked
     void pieceFinished(int piece);
+    */
 
 private:
 
     // Info hash of torrent
     libtorrent::sha1_hash _infoHash;
 
-    // Name of torrent
-    std::string _name; // how should this be used?
+    // Display name
+    std::string _name;
 
     // Save path
     std::string _savePath;
@@ -160,7 +114,6 @@ private:
     // A valid handle is only set after the torrent has been added
     // successfully to session
     libtorrent::torrent_handle _handle;
-
 
     // Status
     Status _status;

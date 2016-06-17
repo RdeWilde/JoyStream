@@ -5,9 +5,10 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#include <core/Controller.hpp>
+#include <core/Node.hpp>
 #include <core/Configuration.hpp>
-#include <core/detail/Torrent.hpp>
+#include <core/Exception.hpp>
+
 //#include <core/controller/exceptions/ListenOnException.hpp>
 #include <extension/extension.hpp>
 #include <bitctoin/SPVWallet.hpp>
@@ -44,8 +45,7 @@ Q_DECLARE_METATYPE(const libtorrent::alert*) // Register type for QMetaObject::i
 namespace joystream {
 namespace core {
 
-Controller::Controller(const configuration::Controller & configuration,
-                       joystream::bitcoin::SPVWallet * wallet)
+Node::Node(joystream::bitcoin::SPVWallet * wallet)
     : _state(State::normal)
     , _closing(false)
     , _reconnecting(false)
@@ -61,7 +61,8 @@ Controller::Controller(const configuration::Controller & configuration,
                libtorrent::alert::stats_notification)
     , _wallet(wallet) {
 
-    std::clog << "Libtorrent session started on port" << std::to_string(_session.listen_port());
+    /**
+    // Comment out for now, not sure we need this
 
     // Register types for signal and slots
     qRegisterMetaType<libtorrent::sha1_hash>();
@@ -73,9 +74,10 @@ Controller::Controller(const configuration::Controller & configuration,
 
     // Register type for QMetaObject::invokeMethod
     qRegisterMetaType<const libtorrent::alert*>();
+    */
 
     // Set libtorrent to call processAlert when alert is created
-    _session.set_alert_dispatch(boost::bind(&Controller::libtorrent_alert_dispatcher_callback, this, _1));
+    _session.set_alert_dispatch(boost::bind(&Node::libtorrent_alert_dispatcher_callback, this, _1));
 
     /**
     // Connect streaming server signals
@@ -110,126 +112,8 @@ Controller::Controller(const configuration::Controller & configuration,
         std::clog << "Could not start streaming server on port:" << _streamingServer.serverPort();
     */
 
-    ////////////////////////////////////////////////////
-    // Create settings for sesion
-    // this has all been hard coded last moment due to new
-    // libtorrent changes.
-    ////////////////////////////////////////////////////
-
-    /**libtorrent::settings_pack settings;
-
-
-    settings.set_int(libtorrent::settings_pack::active_loaded_limit, 20);
-    settings.set_int(libtorrent::settings_pack::choking_algorithm, libtorrent::settings_pack::rate_based_choker);
-    //settings.set_int(libtorrent::settings_pack::half_open_limit, atoi(arg))
-    settings.set_bool(libtorrent::settings_pack::allow_multiple_connections_per_ip, true);
-    //settings.set_bool(libtorrent::settings_pack::use_disk_read_ahead, false);
-    //settings.set_int(libtorrent::settings_pack::suggest_mode, libtorrent::settings_pack::suggest_read_cache);
-    //settings.set_int(libtorrent::settings_pack::peer_timeout, atoi(arg));
-    //settings.set_bool(libtorrent::settings_pack::announce_to_all_tiers, true);
-    //settings.set_int(libtorrent::settings_pack::hashing_threads, atoi(arg));
-    //settings.set_int(libtorrent::settings_pack::download_rate_limit, atoi(arg) * 1000);
-    //settings.set_int(libtorrent::settings_pack::upload_rate_limit, atoi(arg) * 1000);
-    //settings.set_int(libtorrent::settings_pack::unchoke_slots_limit, atoi(arg));
-    //settings.set_int(libtorrent::settings_pack::urlseed_wait_retry, atoi(arg));
-    settings.set_bool(libtorrent::settings_pack::enable_dht, true);
-    //settings.set_int(libtorrent::settings_pack::listen_queue_size, atoi(arg));
-    //settings.set_int(libtorrent::settings_pack::out_enc_policy, libtorrent::settings_pack::pe_forced);
-    //settings.set_int(libtorrent::settings_pack::in_enc_policy, libtorrent::settings_pack::pe_forced);
-    //settings.set_int(libtorrent::settings_pack::allowed_enc_level, libtorrent::settings_pack::pe_rc4);
-    //settings.set_bool(libtorrent::settings_pack::prefer_rc4, true);
-    //settings.set_int(libtorrent::settings_pack::max_peerlist_size, atoi(arg));
-    //settings.set_int(libtorrent::settings_pack::max_paused_peerlist_size, atoi(arg) / 2);
-    //settings.set_int(libtorrent::settings_pack::connections_limit, atoi(arg));
-    //settings.set_str(libtorrent::settings_pack::i2p_hostname, arg);
-    //settings.set_int(libtorrent::settings_pack::i2p_port, 7656);
-    //settings.set_int(libtorrent::settings_pack::proxy_type, libtorrent::settings_pack::i2p_proxy);
-    //settings.set_int(libtorrent::settings_pack::cache_size, atoi(arg));
-    //settings.set_bool(libtorrent::settings_pack::use_read_cache, atoi(arg) > 0);
-    //settings.set_int(libtorrent::settings_pack::cache_buffer_chunk_size, atoi(arg) / 100);
-    //settings.set_int(libtorrent::settings_pack::allowed_fast_set_size, atoi(arg));
-    //settings.set_int(libtorrent::settings_pack::read_cache_line_size, atoi(arg));
-    //settings.set_int(libtorrent::settings_pack::mixed_mode_algorithm, libtorrent::settings_pack::prefer_tcp);
-    //settings.set_bool(libtorrent::settings_pack::enable_outgoing_tcp, true);
-    //settings.set_bool(libtorrent::settings_pack::enable_incoming_tcp, true);
-    //settings.set_str(libtorrent::settings_pack::proxy_hostname, arg);
-    //settings.set_int(libtorrent::settings_pack::proxy_port, atoi(port));
-
-    //if (settings.get_int(libtorrent::settings_pack::proxy_type) == libtorrent::settings_pack::none)
-    //        settings.set_int(libtorrent::settings_pack::proxy_type, libtorrent::settings_pack::socks5);
-
-    //settings.set_str(libtorrent::settings_pack::proxy_username, arg);
-    //settings.set_str(libtorrent::settings_pack::proxy_password, pw);
-    //settings.set_int(libtorrent::settings_pack::proxy_type, settings_pack::socks5_pw);
-    //settings.set_str(libtorrent::settings_pack::outgoing_interfaces, arg);
-    settings.set_bool(libtorrent::settings_pack::enable_upnp, true);
-    settings.set_bool(libtorrent::settings_pack::enable_natpmp, true);
-    settings.set_bool(libtorrent::settings_pack::enable_lsd, true);
-    //settings.set_str(libtorrent::settings_pack::mmap_cache, arg);
-    //settings.set_bool(libtorrent::settings_pack::contiguous_recv_buffer, false);
-    //settings.set_int(libtorrent::settings_pack::active_downloads, atoi(arg));
-    //settings.set_int(libtorrent::settings_pack::active_limit, atoi(arg) * 2);
-    //settings.set_int(libtorrent::settings_pack::active_seeds, atoi(arg));
-    //settings.set_int(libtorrent::settings_pack::active_limit, atoi(arg) * 2);
-
-
-    // setup default values
-    libtorrent::high_performance_seed(settings);
-
-    // Listening settings
-    //settings.set_str(libtorrent::settings_pack::listen_interfaces, "0.0.0.0:6881");
-
-    //settings.set_str(libtorrent::settings_pack::user_agent, CLIENT_FINGERPRINT); //  + JOYSTREAM_VERSION_MAJOR + JOYSTREAM_VERSION_MINOR
-    //settings.set_str(libtorrent::settings_pack::user_agent, "client_test/" LIBTORRENT_VERSION);
-
-    settings.set_int(libtorrent::settings_pack::alert_mask,
-                     //libtorrent::alert::all_categories
-                     libtorrent::alert::error_notification +
-                     libtorrent::alert::tracker_notification +
-                     libtorrent::alert::debug_notification +
-                     libtorrent::alert::status_notification +
-                     libtorrent::alert::progress_notification +
-                     libtorrent::alert::performance_warning +
-                     libtorrent::alert::stats_notification
-                     );
-    */
-
-    std::clog << "Libtorrent session started";
-
-	// Set session settings - these acrobatics with going back and forth seem to indicate that I may have done it incorrectly
-    std::vector<char> buffer;
-    libtorrent::bencode(std::back_inserter(buffer), configuration.getLibtorrentSessionSettingsEntry());
-    libtorrent::lazy_entry settingsLazyEntry;
-    libtorrent::error_code lazyBdecodeEc;
-    libtorrent::lazy_bdecode(&buffer[0], &buffer[0] + buffer.size(), settingsLazyEntry, lazyBdecodeEc);
-    _session->load_state(settingsLazyEntry);
-
-    // Add DHT routing nodes
-    // ======================================
-    const std::vector<std::pair<std::string, int>> & dhtRouters = configuration.getDhtRouters();
-    for(std::vector<std::pair<std::string, int>>::const_iterator i = dhtRouters.begin(),
-            end(dhtRouters.end());i != end; ++i)
-        _session->add_dht_router(*i); // Add router to session
-
-    /**
-    // Start dht node?
-    libtorrent::dht_settings dht;
-    //dht.privacy_lookups = true;
-    _session->set_dht_settings(dht);
-
-    settings.set_bool(libtorrent::settings_pack::use_dht_as_fallback, false); // use as main?
-
-    _session->add_dht_router(std::make_pair(std::string("router.bittorrent.com"), 6881));
-    _session->add_dht_router(std::make_pair(std::string("router.utorrent.com"), 6881));
-    _session->add_dht_router(std::make_pair(std::string("router.bitcomet.com"), 6881));
-
-    // Setup alert processing callback
-    _session->set_alert_notify(boost::bind(&Controller::libtorrent_entry_point_alert_notification, this));
-    */
-
-    //boost::share_ptr<e new Plugin(_wallet, _category);
-
-    boost::shared_ptr<libtorrent::plugin> plugin(new Plugin(_wallet));
+    // Create and install plugin
+    boost::shared_ptr<libtorrent::plugin> plugin(new extension::Plugin(_wallet));
 
     // Keep weak reference
     _plugin = plugin;
@@ -245,8 +129,37 @@ Controller::Controller(const configuration::Controller & configuration,
                      this,
                      SLOT(callPostTorrentUpdates()));
 
-    _statusUpdateTimer.start();
+    // Commenting out for now
+    //qRegisterMetaType<Coin::TransactionId>("Coin::TransactionId");
+    //QObject::connect(_wallet, SIGNAL(txUpdated(Coin::TransactionId, int)), this, SLOT(onTransactionUpdated(Coin::TransactionId ,int)));
+}
 
+Node::~Node() {
+
+    // NB
+    // we must handle case wehre ::stop is not caused, but
+    // we simply go out of scope. In that case we must
+    // do blocking exit, waiting on closed signal
+    //
+    // if we are already stopped, then we can easily close down
+
+    _closing = true;
+
+    _wallet->stopSync();
+}
+
+void Node::start(const configuration::Node & configuration) {
+
+    if(_state != State::stopped)
+        throw exception::CanOnlyStartStoppedNode(_state);
+
+    std::clog << "Initiating libtorrent session on port"
+              << std::to_string(_session.listen_port())
+              << std::endl;
+
+    // _statusUpdateTimer.start();
+
+    /**
     // Add all torrents, but this ust be AFTER session.listen_on(),
     // because otherwise adding to session won't work.
     QVector<Torrent::Configuration> torrents = configuration.torrents();
@@ -254,43 +167,23 @@ Controller::Controller(const configuration::Controller & configuration,
     for(QVector<Torrent::Configuration>::const_iterator i = torrents.begin(),
             end(torrents.end());i != end; ++i) {
 
-        /**
         // Try to add torrent, without prompting user
-        if(!addTorrent(*i, false)) {
-            qCCritical(_category) << "Unable to add torrent configuration to session";
-            return;
-        }
-        */
+        //if(!addTorrent(*i, false)) {
+        //    qCCritical(_category) << "Unable to add torrent configuration to session";
+        //    return;
+        //}
     }
-
-    qRegisterMetaType<Coin::TransactionId>("Coin::TransactionId");
-    QObject::connect(_wallet, SIGNAL(txUpdated(Coin::TransactionId, int)), this, SLOT(onTransactionUpdated(Coin::TransactionId ,int)));
-
+    */
 }
 
-Controller::~Controller() {
+void Node::stop() {
 
-    // Delete all torrents
-    for(QMap<libtorrent::sha1_hash, detail::Torrent *>::const_iterator
-        i = _torrents.constBegin(),
-        end = _torrents.constEnd();
-        i != end;i++)
-        delete i.value();
+    std::clog << "Libtorrent stopping initiated..." << std::endl;
 
-    _closing = true;
-
-    _wallet->stopSync();
+    //_statusUpdateTimer.stop() <-- perhaps this shouldbe called AFTER libtorrent has been stopped?
 }
 
-void Controller::start() {
-
-}
-
-void Controller::stop() {
-
-}
-
-void Controller::syncWallet() {
+void Node::syncWallet() {
 
     if(_closing) return;
 
@@ -306,7 +199,7 @@ void Controller::syncWallet() {
     _reconnecting = false;
 }
 
-void Controller::callPostTorrentUpdates() {
+void Node::callPostTorrentUpdates() {
     _session->post_torrent_updates();
 }
 
@@ -329,7 +222,7 @@ void Controller::handleAcceptError(QAbstractSocket::SocketError socketError) {
 }
 */
 
-void Controller::scheduleReconnect() {
+void Node::scheduleReconnect() {
 
     if(_closing) return;
 
@@ -428,7 +321,7 @@ void Controller::removePeerPlugin(libtorrent::sha1_hash info_hash, libtorrent::t
 }
 */
 
-void Controller::libtorrent_alert_dispatcher_callback(const std::auto_ptr<libtorrent::alert> & alertAutoPtr) {
+void Node::libtorrent_alert_dispatcher_callback(const std::auto_ptr<libtorrent::alert> & alertAutoPtr) {
 
     // Grab alert pointer and release the auto pointer, this way the alert is not automatically
     // deleted when alertAutoPtr goes out of scope.
@@ -445,7 +338,7 @@ void Controller::libtorrent_alert_dispatcher_callback(const std::auto_ptr<libtor
     QMetaObject::invokeMethod(this, "processAlert", Q_ARG(const libtorrent::alert*, freedPointer));
 }
 
-void Controller::libtorrent_entry_point_alert_notification() {
+void Node::libtorrent_entry_point_alert_notification() {
     QMetaObject::invokeMethod(this, "processAlertQueue");
 }
 
@@ -479,7 +372,7 @@ void Controller::processAlertQueue() {
 }
 */
 
-void Controller::processAlert(const libtorrent::alert * a) {
+void Node::processAlert(const libtorrent::alert * a) {
 
     // Check that alert has been stuck in event queue and corresponds to recenty
     // removed torrent.
@@ -553,7 +446,7 @@ void Controller::processAlert(const libtorrent::alert * a) {
 // assumes they equal NONE,0 respectively.
 */
 
-int Controller::makeResumeDataCallsForAllTorrents() {
+int Node::makeResumeDataCallsForAllTorrents() {
 
     // Get all handles (should be same torrents as int addTorrentParameters, but we dont check this here
     std::vector<libtorrent::torrent_handle> handles = _session->get_torrents();
@@ -596,7 +489,7 @@ int Controller::makeResumeDataCallsForAllTorrents() {
     return resumeCallsMade;
 }
 
-void Controller::processTorrentPausedAlert(libtorrent::torrent_paused_alert const * p) {
+void Node::processTorrentPausedAlert(libtorrent::torrent_paused_alert const * p) {
 
     // Get handle
     libtorrent::torrent_handle torrentHandle = p->handle;
@@ -621,7 +514,7 @@ void Controller::processTorrentPausedAlert(libtorrent::torrent_paused_alert cons
     _torrents[info_hash]->setStatus(Torrent::Status::asked_for_resume_data);
 }
 
-void Controller::processTorrentRemovedAlert(libtorrent::torrent_removed_alert const * p) {
+void Node::processTorrentRemovedAlert(libtorrent::torrent_removed_alert const * p) {
 
     /*
      * NOTICE: Docs say p->handle may be invalid at this time,
@@ -632,12 +525,12 @@ void Controller::processTorrentRemovedAlert(libtorrent::torrent_removed_alert co
     libtorrent::sha1_hash info_hash = p->info_hash;
 
     // Remove from view
-    torrentRemoved(info_hash);
+    removedTorrent(info_hash);
 
     std::clog << "Found match and removed it.";
 }
 
-void Controller::processMetadataReceivedAlert(libtorrent::metadata_received_alert const * p) {
+void Node::processMetadataReceivedAlert(libtorrent::metadata_received_alert const * p) {
 
     // Get handle for torrent
     libtorrent::torrent_handle h = p->handle;
@@ -660,17 +553,17 @@ void Controller::processMetadataReceivedAlert(libtorrent::metadata_received_aler
         std::clog << "Invalid handle for received metadata.";
 }
 
-void Controller::processMetadataFailedAlert(libtorrent::metadata_failed_alert const * p) {
+void Node::processMetadataFailedAlert(libtorrent::metadata_failed_alert const * p) {
     // WHAT DO WE DO HERE?
     std::clog << "Invalid metadata received.";
     throw std::runtime_error("Invalid metadata");
 }
 
-void Controller::processListenFailedAlert(libtorrent::listen_failed_alert const * p) {
+void Node::processListenFailedAlert(libtorrent::listen_failed_alert const * p) {
     throw std::runtime_error("Failed to start listening"); // p->listen_interface()
 }
 
-void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p) {
+void Node::processAddTorrentAlert(libtorrent::add_torrent_alert const * p) {
 
     Q_ASSERT(_state == State::normal);
     Q_ASSERT(_torrents.contains(p->params.info_hash));
@@ -715,7 +608,7 @@ void Controller::processAddTorrentAlert(libtorrent::add_torrent_alert const * p)
 	}
 }
 
-void Controller::processTorrentFinishedAlert(libtorrent::torrent_finished_alert const * p) {
+void Node::processTorrentFinishedAlert(libtorrent::torrent_finished_alert const * p) {
 
     /*
     p->handle.set_max_connections(max_connections_per_torrent / 2);
@@ -729,11 +622,11 @@ void Controller::processTorrentFinishedAlert(libtorrent::torrent_finished_alert 
     */
 }
 
-void Controller::processStatusUpdateAlert(libtorrent::state_update_alert const * p) {
+void Node::processStatusUpdateAlert(libtorrent::state_update_alert const * p) {
     update(p->status);
 }
 
-void Controller::processSaveResumeDataAlert(libtorrent::save_resume_data_alert const * p) {
+void Node::processSaveResumeDataAlert(libtorrent::save_resume_data_alert const * p) {
 
     // Get info hash for torrent
     libtorrent::sha1_hash info_hash = p->handle.info_hash();
@@ -775,12 +668,12 @@ void Controller::processSaveResumeDataAlert(libtorrent::save_resume_data_alert c
     }
 }
 
-void Controller::processSaveResumeDataFailedAlert(libtorrent::save_resume_data_failed_alert const * p) {
+void Node::processSaveResumeDataFailedAlert(libtorrent::save_resume_data_failed_alert const * p) {
 
     qCCritical(_category) << "Failed to generate resume data for some reason.";
 }
 
-void Controller::processTorrentCheckedAlert(libtorrent::torrent_checked_alert const * p) {
+void Node::processTorrentCheckedAlert(libtorrent::torrent_checked_alert const * p) {
 
     // Get handle for torrent
     libtorrent::torrent_handle h = p->handle;
@@ -877,7 +770,7 @@ void Controller::processTorrentCheckedAlert(libtorrent::torrent_checked_alert co
     }
 }
 
-void Controller::processReadPieceAlert(const libtorrent::read_piece_alert * p) {
+void Node::processReadPieceAlert(const libtorrent::read_piece_alert * p) {
 
     // Get info hash for torrent from which this read piece comes from
     const libtorrent::sha1_hash infoHash = p->handle.info_hash();
@@ -901,7 +794,7 @@ void Controller::processReadPieceAlert(const libtorrent::read_piece_alert * p) {
     }
 }
 
-void Controller::processPieceFinishedAlert(const libtorrent::piece_finished_alert * p) {
+void Node::processPieceFinishedAlert(const libtorrent::piece_finished_alert * p) {
 
     // Get info hash for torrent from which this read piece comes from
     const libtorrent::sha1_hash infoHash = p->handle.info_hash();
@@ -912,7 +805,7 @@ void Controller::processPieceFinishedAlert(const libtorrent::piece_finished_aler
     _torrents[infoHash]->pieceFinished(p->piece_index);
 }
 
-void Controller::processStartedSellerTorrentPlugin(const StartedSellerTorrentPlugin * p) {
+void Node::processStartedSellerTorrentPlugin(const StartedSellerTorrentPlugin * p) {
 
     Q_ASSERT(_torrents.contains(p->infoHash()));
 
@@ -929,7 +822,7 @@ void Controller::processStartedSellerTorrentPlugin(const StartedSellerTorrentPlu
     //emit startedSellerTorrentPlugin(torrent->model()->sellerTorrentPluginViewModel());
 }
 
-void Controller::processStartedBuyerTorrentPlugin(const StartedBuyerTorrentPlugin * p) {
+void Node::processStartedBuyerTorrentPlugin(const StartedBuyerTorrentPlugin * p) {
 
     Q_ASSERT(_torrents.contains(p->infoHash()));
 
@@ -945,7 +838,7 @@ void Controller::processStartedBuyerTorrentPlugin(const StartedBuyerTorrentPlugi
     //emit startedBuyerTorrentPlugin(torrent->model()->buyerTorrentPluginViewModel());
 }
 
-void Controller::processBuyerTorrentPluginStatusAlert(const BuyerTorrentPluginStatusAlert * p) {
+void Node::processBuyerTorrentPluginStatusAlert(const BuyerTorrentPluginStatusAlert * p) {
 
     Q_ASSERT(_torrents.contains(p->infoHash()));
 
@@ -958,7 +851,7 @@ void Controller::processBuyerTorrentPluginStatusAlert(const BuyerTorrentPluginSt
     model->update(p->status());
 }
 
-void Controller::processSellerTorrentPluginStatusAlert(const SellerTorrentPluginStatusAlert * p) {
+void Node::processSellerTorrentPluginStatusAlert(const SellerTorrentPluginStatusAlert * p) {
 
     Q_ASSERT(_torrents.contains(p->infoHash()));
 
@@ -971,13 +864,13 @@ void Controller::processSellerTorrentPluginStatusAlert(const SellerTorrentPlugin
     model->update(p->status());
 }
 
-void Controller::processPluginStatusAlert(const PluginStatusAlert * p) {
+void Node::processPluginStatusAlert(const PluginStatusAlert * p) {
 
     //
     emit pluginStatusUpdate(p->status());
 }
 
-void Controller::processSellerPeerAddedAlert(const SellerPeerAddedAlert * p) {
+void Node::processSellerPeerAddedAlert(const SellerPeerAddedAlert * p) {
 
     Q_ASSERT(_torrents.contains(p->infoHash()));
 
@@ -986,7 +879,7 @@ void Controller::processSellerPeerAddedAlert(const SellerPeerAddedAlert * p) {
     torrent->model()->addPeer(p->endPoint(), p->status());
 }
 
-void Controller::processBuyerPeerAddedAlert(const BuyerPeerAddedAlert * p) {
+void Node::processBuyerPeerAddedAlert(const BuyerPeerAddedAlert * p) {
 
     Q_ASSERT(_torrents.contains(p->infoHash()));
 
@@ -995,7 +888,7 @@ void Controller::processBuyerPeerAddedAlert(const BuyerPeerAddedAlert * p) {
     torrent->model()->addPeer(p->endPoint(), p->status());
 }
 
-void Controller::processSellerPeerPluginRemovedAlert(const SellerPeerPluginRemovedAlert * p) {
+void Node::processSellerPeerPluginRemovedAlert(const SellerPeerPluginRemovedAlert * p) {
 
     Q_ASSERT(_torrents.contains(p->infoHash()));
 
@@ -1008,7 +901,7 @@ void Controller::processSellerPeerPluginRemovedAlert(const SellerPeerPluginRemov
     torrent->model()->removePeer(p->endPoint());
 }
 
-void Controller::processBuyerPeerPluginRemovedAlert(const BuyerPeerPluginRemovedAlert * p) {
+void Node::processBuyerPeerPluginRemovedAlert(const BuyerPeerPluginRemovedAlert * p) {
 
     Q_ASSERT(_torrents.contains(p->infoHash()));
 
@@ -1021,7 +914,7 @@ void Controller::processBuyerPeerPluginRemovedAlert(const BuyerPeerPluginRemoved
     torrent->model()->removePeer(p->endPoint());
 }
 
-void Controller::processBroadcastTransactionAlert(const BroadcastTransactionAlert *p) {
+void Node::processBroadcastTransactionAlert(const BroadcastTransactionAlert *p) {
 
     Coin::Transaction tx = p->transaction();
 
@@ -1037,7 +930,7 @@ void Controller::processBroadcastTransactionAlert(const BroadcastTransactionAler
 }
 
 // called on timer signal, to periodically try to resend transactions to the network
-void Controller::sendTransactions() {
+void Node::sendTransactions() {
 
     for(auto tx : _transactionSendQueue) {
         try {
@@ -1050,7 +943,7 @@ void Controller::sendTransactions() {
 }
 
 // when wallet sees a transaction, either 0, 1 or 2 confirmations
-void Controller::onTransactionUpdated(Coin::TransactionId txid, int confirmations) {
+void Node::onTransactionUpdated(Coin::TransactionId txid, int confirmations) {
 
     //remove matching transaction from the send queue
     std::vector<Coin::Transaction>::iterator it;
@@ -1064,24 +957,24 @@ void Controller::onTransactionUpdated(Coin::TransactionId txid, int confirmation
     }
 }
 
-void Controller::onWalletSynched() {
+void Node::onWalletSynched() {
     std::clog << "Wallet Synched";
 }
 
-void Controller::onWalletSynchingHeaders() {
+void Node::onWalletSynchingHeaders() {
     std::clog << "Wallet Synching Headers";
 }
 
-void Controller::onWalletSynchingBlocks() {
+void Node::onWalletSynchingBlocks() {
     std::clog << "Wallet Synching Blocks";
 }
 
-void Controller::onWalletConnected() {
+void Node::onWalletConnected() {
     std::clog << "Wallet Connected";
     sendTransactions();
 }
 
-void Controller::update(const std::vector<libtorrent::torrent_status> & statuses) {
+void Node::update(const std::vector<libtorrent::torrent_status> & statuses) {
 
     for(std::vector<libtorrent::torrent_status>::const_iterator
         i = statuses.begin(),
@@ -1089,7 +982,7 @@ void Controller::update(const std::vector<libtorrent::torrent_status> & statuses
         update(*i);
 }
 
-void Controller::update(const libtorrent::torrent_status & status) {
+void Node::update(const libtorrent::torrent_status & status) {
 
     Q_ASSERT(_torrents.contains(status.info_hash));
 
@@ -1100,7 +993,7 @@ void Controller::update(const libtorrent::torrent_status & status) {
     model->update(status);
 }
 
-void Controller::removeTorrent(const libtorrent::sha1_hash & info_hash) {
+void Node::removeTorrent(const libtorrent::sha1_hash & info_hash) {
 
     // Find corresponding torrent
     libtorrent::torrent_handle torrentHandle = _session->find_torrent(info_hash);
@@ -1115,7 +1008,7 @@ void Controller::removeTorrent(const libtorrent::sha1_hash & info_hash) {
     _session->remove_torrent(torrentHandle);
 }
 
-void Controller::pauseTorrent(const libtorrent::sha1_hash & info_hash) {
+void Node::pauseTorrent(const libtorrent::sha1_hash & info_hash) {
 
     // Find corresponding torrent
     libtorrent::torrent_handle torrentHandle = _session->find_torrent(info_hash);
@@ -1132,7 +1025,7 @@ void Controller::pauseTorrent(const libtorrent::sha1_hash & info_hash) {
     torrentHandle.pause(libtorrent::torrent_handle::graceful_pause);
 }
 
-void Controller::startTorrent(const libtorrent::sha1_hash & info_hash) {
+void Node::startTorrent(const libtorrent::sha1_hash & info_hash) {
 
     // Find corresponding torrent
     libtorrent::torrent_handle torrentHandle = _session->find_torrent(info_hash);
@@ -1148,7 +1041,7 @@ void Controller::startTorrent(const libtorrent::sha1_hash & info_hash) {
     torrentHandle.resume();
 }
 
-bool Controller::addTorrent(const Torrent::Configuration & configuration) {
+bool Node::addTorrent(const Torrent::Configuration & configuration) {
                             //, bool promptUserForTorrentPluginConfiguration) {
 
     // Convert to add torrent parameters
@@ -1223,7 +1116,7 @@ bool Controller::addTorrent(const Torrent::Configuration & configuration) {
     return true;
 }
 
-bool Controller::addTorrent(const Torrent::Configuration & configuration, const SellerTorrentPlugin::Configuration & pluginConfiguration) {
+bool Node::addTorrent(const Torrent::Configuration & configuration, const SellerTorrentPlugin::Configuration & pluginConfiguration) {
 
     // Try to add torrent
     if(!addTorrent(configuration))
@@ -1235,7 +1128,7 @@ bool Controller::addTorrent(const Torrent::Configuration & configuration, const 
     return true;
 }
 
-bool Controller::addTorrent(const Torrent::Configuration & configuration, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const Coin::UnspentP2PKHOutput & utxo) {
+bool Node::addTorrent(const Torrent::Configuration & configuration, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const Coin::UnspentP2PKHOutput & utxo) {
 
     // Try to add torrent
     if(!addTorrent(configuration))
@@ -1270,7 +1163,7 @@ void Controller::startTorrentPlugin(const libtorrent::sha1_hash & info_hash, con
 }
 */
 
-void Controller::startSellerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const SellerTorrentPlugin::Configuration & pluginConfiguration) {
+void Node::startSellerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const SellerTorrentPlugin::Configuration & pluginConfiguration) {
 
     Q_ASSERT(_torrents.contains(info_hash));
 
@@ -1287,7 +1180,7 @@ void Controller::startSellerTorrentPlugin(const libtorrent::sha1_hash & info_has
     _plugin->submitPluginRequest(new StartSellerTorrentPlugin(info_hash, pluginConfiguration));
 }
 
-void Controller::startBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const Coin::UnspentP2PKHOutput & utxo) {
+void Node::startBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const Coin::UnspentP2PKHOutput & utxo) {
 
     Q_ASSERT(_torrents.contains(info_hash));
 
@@ -1305,7 +1198,7 @@ void Controller::startBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash
 }
 
 
-void Controller::saveStateToFile(const char * file) {
+void Node::saveStateToFile(const char * file) {
 
     // NOT DONE!
 
@@ -1355,11 +1248,11 @@ void Controller::saveStateToFile(const char * file) {
     */
 }
 
-joystream::bitcoin::SPVWallet *Controller::wallet() {
+joystream::bitcoin::SPVWallet *Node::wallet() {
     return _wallet;
 }
 
-const TorrentViewModel * Controller::torrentViewModel(const libtorrent::sha1_hash & infoHash) const {
+std::weak_ptr<viewmodel::Torrent>  Node::torrents(const libtorrent::sha1_hash & infoHash) const {
 
     if(!_torrents.contains(infoHash))
         return NULL;
@@ -1367,7 +1260,7 @@ const TorrentViewModel * Controller::torrentViewModel(const libtorrent::sha1_has
         return _torrents[infoHash]->model();
 }
 
-void Controller::begin_close() {
+void Node::stop() {
 
     if(_closing) return;
     _closing = true;
@@ -1457,7 +1350,7 @@ void Controller::unRegisterStream(Stream * stream, Stream::Error error) {
 }
 */
 
-void Controller::changeDownloadingLocationFromThisPiece(const libtorrent::sha1_hash & infoHash, int pieceIndex) {
+void Node::changeDownloadingLocationFromThisPiece(const libtorrent::sha1_hash & infoHash, int pieceIndex) {
 
     // Check that torrent exists
     if(!_torrents.contains(infoHash)) {
@@ -1477,7 +1370,7 @@ void Controller::changeDownloadingLocationFromThisPiece(const libtorrent::sha1_h
     _plugin->submitTorrentPluginRequest(new ChangeDownloadLocation(infoHash, pieceIndex));
 }
 
-Controller::State Controller::state() const {
+Node::State Node::state() const {
     return _state;
 }
 
@@ -1487,7 +1380,7 @@ quint16 Controller::getServerPort() const {
 }
 */
 
-void Controller::finalize_close() {
+void Node::finalize_close() {
 
     std::clog << "finalize_close() run.";
 
@@ -1495,7 +1388,7 @@ void Controller::finalize_close() {
     _statusUpdateTimer.stop();
 
     // Tell runner that controller is done
-    emit closed();
+    emit stopped();
 }
 
 /**

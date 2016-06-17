@@ -8,8 +8,9 @@
 #ifndef JOYSTREAM_CORE_CONTROLLER_HPP
 #define JOYSTREAM_CORE_CONTROLLER_HPP
 
-#include <core/Controller.hpp>
+#include <core/Node.hpp>
 #include <core/Configuration.hpp>
 #include <core/ViewModel.hpp>
+#include <core/Exception.hpp>
 
 #endif // JOYSTREAM_CORE_CONTROLLER_HPP

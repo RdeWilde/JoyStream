@@ -123,6 +123,10 @@ Torrent Torrent::fromJSON(const QJsonObject & json) {
     return Torrent(params);
 }
 
+libtorrent::add_torrent_params Torrent::params() const {
+    return _params;
+}
+
 QJsonObject Torrent::toJSON(const libtorrent::add_torrent_params & params) {
 
     QJsonObject object;
@@ -200,13 +204,7 @@ libtorrent::torrent_info Torrent::deBencode(const QString & bencoding) {
 
 //// Controller
 
-Controller::Controller() {
-
-    ////////////////////////////////////////////////////
-    // Create settings for sesion
-    // this has all been hard coded last moment due to new
-    // libtorrent changes.
-    ////////////////////////////////////////////////////
+Node::Node() {
 
     /**libtorrent::settings_pack settings;
 
@@ -559,16 +557,17 @@ Controller::Controller() {
     _dhtRouters.push_back(std::make_pair(std::string("router.bitcomet.com"), 6881));
 }
 
-Controller::Controller(const libtorrent::entry & libtorrentSessionSettingsEntry,
+Node::Node(const libtorrent::settings_pack & settingPack,
+                       const libtorrent::dht_settings & dhtSettings,
                        const std::pair<int, int> & portRange,
                        const std::vector<std::pair<std::string, int> > & dhtRouters,
-                       const std::vector<TorrentConfiguration> & torrents)
-                                :_libtorrentSessionSettingsEntry(libtorrentSessionSettingsEntry)
-                                ,_portRange(portRange)
-                                ,_dhtRouters(dhtRouters)
-                                ,_torrents(torrents) {}
+                       const std::vector<Torrent> & torrents)
+    : _settingsPack(settingPack)
+    , _dhtSettings(dhtSettings)
+    //, _dhtRouters(dhtRouters)
+    , _torrents(torrents) {}
 
-Controller Controller::fromJSON(const QJsonObject & json) {
+Node Node::fromJSON(const QJsonObject & json) {
 
     /*
     // Check that libtorrentSettings key is present, and then parse
@@ -717,7 +716,7 @@ Controller Controller::fromJSON(const QJsonObject & json) {
    */
 }
 
-QJsonObject Controller::toJSON() {
+QJsonObject Node::toJSON() {
 
     /*
     // Add "libtorrentSettings" key
@@ -769,7 +768,7 @@ QJsonObject Controller::toJSON() {
     */
 }
 
-Controller Controller::fromFile(const std::string & file) {
+Node Node::fromFile(const std::string & file) {
 
     /*
     // Create dictionary entry
@@ -785,10 +784,10 @@ Controller Controller::fromFile(const std::string & file) {
     ControllerController::Controller(ControllerDictionaryEntry);
     */
 
-    return Controller();
+    return Node();
 }
 
-void Controller::toFile(const std::string & file) {
+void Node::toFile(const std::string & file) {
 
     /*
     // Create dictionary entry
@@ -802,7 +801,21 @@ void Controller::toFile(const std::string & file) {
     */
 }
 
+QJsonObject Node::toJSON(const libtorrent::settings_pack & settings) {
 
+}
+
+libtorrent::settings_pack Node::fromJSON(const QJsonObject &) {
+
+}
+
+QJsonObject Node::toJSON(const libtorrent::dht_settings & settings) {
+
+}
+
+libtorrent::dht_settings Node::fromJSON(const QJsonObject &) {
+
+}
 
 }
 }
