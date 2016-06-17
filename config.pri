@@ -63,6 +63,8 @@ LIBS += \
  -lboost_regex$$BOOST_LIB_SUFFIX \
  -lboost_thread$$BOOST_THREAD_LIB_SUFFIX$$BOOST_LIB_SUFFIX \
  -lboost_serialization$$BOOST_LIB_SUFFIX \
+ -lboost_chrono$$BOOST_LIB_SUFFIX \
+ -lboost_random$$BOOST_LIB_SUFFIX
 
 #winsock libs must come after libtorrent
 win32 {
