@@ -13,6 +13,9 @@
 
 namespace joystream {
 namespace core {
+
+class Torrent;
+
 namespace detail {
 
 class Torrent {
@@ -122,13 +125,13 @@ private:
     // can be used to look at stuff like plugin mode etc.
     // worth looking at.
 
-    // View model for torrent
+    // Public interface of torrent
     // We opt for shared pointer, rather than by value,
     // so that client can be given corresponding weak_ptr.
     // Giving a raw pointer can allow client to access object
     // after it is deleted. The controller::removedTorrent signal helps avoid
     // that, but it is not perfect, as client cannot be guaranteed to see signal in time.
-    std::shared_ptr<viewmodel::Torrent> _model;
+    std::shared_ptr<core::Torrent> _model;
 
     // All streams for this torrent.
     // Not quite sure if multiple separate streams for one torrent
