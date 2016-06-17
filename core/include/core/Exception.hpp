@@ -8,6 +8,8 @@
 #ifndef JOYSTREAM_CORE_EXCEPTION_HPP
 #define JOYSTREAM_CORE_EXCEPTION_HPP
 
+#include <core/Node.hpp>
+
 #include <exception>
 #include <QJsonValue>
 
@@ -85,6 +87,29 @@ namespace exception {
 
     };
 
+    class CanOnlyStartStoppedNode : public std::runtime_error {
+
+    public:
+
+        CanOnlyStartStoppedNode(Node::State badState)
+            : badState(badState) {
+            message += "Node can only be started when stopped.";
+        }
+
+
+        // The state in the node
+        Node::State badState;
+
+        virtual const char* what() const {
+            return message.c_str();
+        }
+
+    private:
+
+        std::string message;
+
+
+    };
 }
 }
 }
