@@ -38,24 +38,20 @@ public:
     // *stopping stream
 
     /**
-     * Move onto Torrent
 
-    //void startTorrentPlugin(const libtorrent::sha1_hash & info_hash, const TorrentPlugin::Configuration * configuration);
-    void startSellerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const SellerTorrentPlugin::Configuration & pluginConfiguration);
-    void startBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const Coin::UnspentP2PKHOutput & utxo);
-    //void startObserverTorrentPlugin(const libtorrent::sha1_hash & info_hash, const ObserverTorrentPlugin::Configuration & pluginConfiguration);
+    /// Plugin operations
 
+    void toSell(const SellerTorrentPlugin::Configuration & pluginConfiguration);
+    void toBuy(const BuyerTorrentPlugin::Configuration & pluginConfiguration, const Coin::UnspentP2PKHOutput & utxo);
+    void toObserve(const ObserverTorrentPlugin::Configuration & pluginConfiguration);
 
-    void pauseTorrent(const libtorrent::sha1_hash & info_hash);
-    void startTorrent(const libtorrent::sha1_hash & info_hash);
+    void start();
+    void pause();
+    void stop();
 
     */
 
-    // A torrent plugin was started
-    // *** DISCONTINUED, THESE ARE INSTALLED AS SIGNALS ON TORRENT VIEW MODELS
-    //void torrentPluginStarted();
-    //void startedSellerTorrentPlugin(SellerTorrentPluginViewModel * model);
-    //void startedBuyerTorrentPlugin(BuyerTorrentPluginViewModel * model);
+signals:
 
 private:
 
