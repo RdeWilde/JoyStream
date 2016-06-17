@@ -11,7 +11,20 @@ PREFIX_PATH=$PWD/dist/release/
 cd src/libtorrent
 
 $BOOST_ROOT/b2 install \
-  toolset=gcc address-model=64 target-os=linux threading=multi link=static  \
-  --without-python boost-link=static deprecated-functions=off logging=off asserts=off variant=release \
+  toolset=gcc \
+  address-model=64 \
+  target-os=linux \
+  threading=multi \
+  link=static \
+  --without-mpi \
+  --without-python \
+  -sNO_BZIP2=1 \
+  boost-link=static \
+  deprecated-functions=off \
+  logging=off \
+  asserts=off \
+  --layout=tagged \
+  variant=release \
   cxxflags="-std=gnu++11" \
   --prefix=$PREFIX_PATH
+

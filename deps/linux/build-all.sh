@@ -329,4 +329,4 @@ SYSROOT=../../sysroot make install
 
 #optionally build full mSIGNA app
 #cd ../../
-#./build-all.sh linux
+#qmake CONFIG+=release BOOST_LIB_SUFFIX=-mt && make OS=linux
