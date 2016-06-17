@@ -68,8 +68,6 @@ Node::Node(joystream::bitcoin::SPVWallet * wallet)
     qRegisterMetaType<const libtorrent::alert*>();
     */
 
-
-
     /**
     // Connect streaming server signals
     QObject::connect(&_server,
@@ -103,8 +101,6 @@ Node::Node(joystream::bitcoin::SPVWallet * wallet)
         std::clog << "Could not start streaming server on port:" << _streamingServer.serverPort();
     */
 
-
-
     // Commenting out for now
     //qRegisterMetaType<Coin::TransactionId>("Coin::TransactionId");
     //QObject::connect(_wallet, SIGNAL(txUpdated(Coin::TransactionId, int)), this, SLOT(onTransactionUpdated(Coin::TransactionId ,int)));
@@ -113,7 +109,7 @@ Node::Node(joystream::bitcoin::SPVWallet * wallet)
 Node::~Node() {
 
     // NB
-    // we must handle case wehre ::stop is not caused, but
+    // we must handle case where ::stop is not caused, but
     // we simply go out of scope. In that case we must
     // do blocking exit, waiting on closed signal
     //
@@ -128,6 +124,8 @@ void Node::start(const configuration::Node & configuration, const NodeStarted & 
 
     if(_state != State::stopped)
         throw exception::CanOnlyStartStoppedNode(_state);
+
+    _state = State::waiting_to_listen;
 
     assert(_session == nullptr);
 
@@ -152,8 +150,8 @@ void Node::start(const configuration::Node & configuration, const NodeStarted & 
     std::clog << "Trying to listen on port" << std::to_string(port) << std::endl;
 
     // Store callbacks
-    _started = started;
-    _failed = failed;
+    _nodeStarted = started;
+    _nodeStartFailed = failed;
 }
 
 void Node::stop() {
@@ -179,10 +177,6 @@ void Node::syncWallet() {
     _wallet->sync("testnet-seed.bitcoin.petertodd.org", 18333, CORE_CONTROLLER_SPV_KEEPALIVE_TIMEOUT);
 
     _reconnecting = false;
-}
-
-void Node::callPostTorrentUpdates() {
-    _session->post_torrent_updates();
 }
 
 /**
@@ -568,16 +562,17 @@ void Node::process(libtorrent::listen_succeeded_alert const * p) {
     _session->add_extension(plugin);
 
     // Start timer which calls session.post_torrent_updates at regular intervals
-    _statusUpdateTimer.start();
-    _statusUpdateTimer.setInterval(CORE_CONTROLLER_POST_TORRENT_UPDATES_DELAY);
+    _torrentUpdateTimer.start();
+    _torrentUpdateTimer.setInterval(CORE_CONTROLLER_POST_TORRENT_UPDATES_DELAY);
 
-    QObject::connect(&_statusUpdateTimer,
+    QObject::connect(&_torrentUpdateTimer,
                      SIGNAL(timeout()),
-                     this,
-                     SLOT(callPostTorrentUpdates()));
+                     [this]() { _session->post_torrent_updates(); });
 
     // Make callback to user
-    _started(p->endpoint);
+    _nodeStarted(p->endpoint);
+
+    emit nodeStarted(p->endpoint);
 }
 
 void Node::processListenFailedAlert(libtorrent::listen_failed_alert const * p) {
@@ -592,9 +587,9 @@ void Node::processListenFailedAlert(libtorrent::listen_failed_alert const * p) {
               << p->error.message();
 
     // Make callback to user
-    _failed(p->endpoint, p->error);
+    _nodeStartFailed(p->endpoint, p->error);
 
-
+    emit nodeStartFailed(p->endpoint, p->error);
 }
 
 void Node::processAddTorrentAlert(libtorrent::add_torrent_alert const * p) {
@@ -1423,7 +1418,7 @@ void Node::finalize_close() {
     std::clog << "finalize_close() run.";
 
     // Stop timer
-    _statusUpdateTimer.stop();
+    _torrentUpdateTimer.stop();
 
     // Tell runner that controller is done
     emit stopped();

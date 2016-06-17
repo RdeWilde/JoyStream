@@ -112,7 +112,7 @@ public:
      signals:
      - started: if a successful start is made
      */
-    void start(const configuration::Node & configuration, const NodeStarted & started, const NodeStartFailed & failed);
+    void start(const configuration::Node & configuration, const NodeStarted & nodeStarted, const NodeStartFailed & failed);
 
     /// --- stop
 
@@ -233,12 +233,18 @@ signals:
 
     // When we are listening to some port?
     // add as argument
-    void started();
+    void nodeStarted();
 
     // Emitted after finalize_close(), that is when controller is 100% done
     void stopped();
 
 private slots:
+
+    //
+    void nodeStarted(const libtorrent::tcp::endpoint &);
+
+    //
+    void nodeStartFailed(const libtorrent::tcp::endpoint &, libtorrent::error_code);
 
     /**
      * Intra Controller entry points
@@ -314,8 +320,8 @@ private:
     /// User supplied callbacks to be used as response in asynchronous method calls
 
     // Node::start
-    NodeStarted _started;
-    NodeStartFailed _failed;
+    NodeStarted _nodeStarted;
+    NodeStartFailed _nodeStartFailed;
 
     // Node::stop
 
