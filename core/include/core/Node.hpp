@@ -8,6 +8,7 @@
 #ifndef CONTROLLER_HPP
 #define CONTROLLER_HPP
 
+#include <core/detail/Torrent.hpp>
 //#include <core/controller/Stream.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
 
@@ -51,15 +52,13 @@ namespace detail {
     class Torrent;
 }
 namespace configuration {
-    class Controller;
-    class Torrent;
-}
-namespace viewmodel {
-    // class Controller? <--- do we need this
+    class Node;
     class Torrent;
 }
 
-class Controller : public QObject {
+class Torrent;
+
+class Node : public QObject {
 
     Q_OBJECT
 
@@ -70,7 +69,11 @@ public:
         // not yet started: ::start() not called
         stopped,
 
-        //// all states below correpond to being started **/
+        //// all states below correpond to being started
+
+        // after ::start(), but before libtorrent::listen_failed_alert or
+        //
+        waiting_to_listen,
 
         //
         //starting_libtorrent_session,
@@ -82,37 +85,84 @@ public:
         waiting_for_resume_data_while_closing
     };
 
-    Controller(const configuration::Controller &,
-               joystream::bitcoin::SPVWallet *);
+    // NB: Going to abstract away wallet
+    Node(joystream::bitcoin::SPVWallet *);
 
-    //// No public routines are thread safe, so calls have to be on same thread as owner of controller.
+    /**
+     No public routines are thread safe, so calls have to be on same thread as owner of controller.
+     NB: Not strictly true, some may be, but there are no guarantees as of yet.
+     */
 
-    ~Controller();
+    ~Node();
 
-    // Start session
-    void start(const configuration::Controller &);
+    typedef std::function<void()> NodeStarted;
+    typedef std::function<void()> NodeStartFailed;
 
-    // Stop session
-    void stop(); // substitute close, add callback,
+    /**
+     purpose: Starts node.
+     description: This requires ...
+     arguments:
+     - configuration:
+     - started: called if startup succeeds
+     - failed: called if startup fails
+     throws:
+     - CanOnlyStartStoppedNode: if node is not in stopped state
+     signals:
+     - started: if a successful start is made
+     */
+    void start(const configuration::Node & configuration, const NodeStarted & started, const NodeStartFailed & failed);
 
-    // Add torrent
-    bool addTorrent(const configuration::Torrent &);
-    bool addTorrent(const configuration::Torrent &, const SellerTorrentPlugin::Configuration & pluginConfiguration);
-    bool addTorrent(const configuration::Torrent &, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const Coin::UnspentP2PKHOutput & utxo);
+    typedef std::function<void()> NodeStopped;
+
+    /**
+     purpose: Stop node.
+     description: asynchrnous. ...
+     arguments:
+     - callback about being actually stopped
+     - callback about how stopping timedout out due to libtorrent foolishness
+     throws:
+     - already stopped? or in the process of being stopped?
+     signals:
+     - ....
+    */
+    void stop(const NodeStopped &);
+
+    typedef std::function<void()> AddedTorrent;
+    // typedef std::function<void()> ... soemthing else
+
+    /**
+     purpose: Add torrent.
+     description: Add torrent.
+     arguments:
+     -
+     -
+     throws:
+     -
+     signals:
+     -
+     */
+    void addTorrent(const configuration::Torrent &);
+    //void addTorrent(const configuration::Torrent &, const SellerTorrentPlugin::Configuration & pluginConfiguration);
+    //void addTorrent(const configuration::Torrent &, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const Coin::UnspentP2PKHOutput & utxo);
     //bool addTorrent(const configuration::Torrent &, const ObserverTorrentPlugin::Configuration & pluginConfiguration);
 
-    // Start torrent plugin
-    //void startTorrentPlugin(const libtorrent::sha1_hash & info_hash, const TorrentPlugin::Configuration * configuration);
-    void startSellerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const SellerTorrentPlugin::Configuration & pluginConfiguration);
-    void startBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const Coin::UnspentP2PKHOutput & utxo);
-    //void startObserverTorrentPlugin(const libtorrent::sha1_hash & info_hash, const ObserverTorrentPlugin::Configuration & pluginConfiguration);
+    /**
+     purpose: Remove torrent.
+     description: Add torrent.
+     arguments:
+     -
+     -
+     throws:
+     - no such torrent exists
+     - is in the process of being removed?
+     signals:
+     - removed: if
+     -
+     */
+    void removeTorrent(const libtorrent::sha1_hash & info_hash);
 
-    // Stops libtorrent session, and tries to save_resume data, when all resume data is saved, finalize_close() is called.
-    void begin_close();
-
-    // Returns torrent handle for torrent with give info hash, if no such torrent has been registered
-    // then an invalid handle is passed
-    //libtorrent::torrent_handle getTorrentHandle(const libtorrent::sha1_hash & infoHash) const;
+    /**NB: Move out of controller and onto wallet interface **/
+    void syncWallet();
 
     /**
      * Stram management stuff
@@ -132,8 +182,6 @@ public:
     void changeDownloadingLocationFromThisPiece(const libtorrent::sha1_hash & infoHash, int pieceIndex);
     */
 
-    //// Getters
-
     // State of controller
     State state() const;
 
@@ -142,36 +190,45 @@ public:
     quint16 getServerPort() const;
     */
 
-    // Mapping of info_hashes to torrents
-    //std::set<libtorrent::sha1_hash, detail::Torrent *> torrents() const;
-
     // Get torrents
-    const viewmodel::Torrent * torrent(const libtorrent::sha1_hash & infoHash) const;
+    std::weak_ptr<Torrent> torrent(const libtorrent::sha1_hash & infoHash) const;
 
     // Configuration for current controller
-    configuration::Controller configuration() const;
+    configuration::Node configuration() const;
 
-    /**
-    // Fund the wallet
-    void fundWallet(uint64_t value);
-    */
+signals:
 
-    bool closing() const { return _closing; }
+    /// Signals are emitted for any change in state of the node.
+    /// While the callbacks associated with the spesific calls above
+    /// also report on potential failures with the corresponding calls only to the caller,
+    /// these signals only notify about successful state changes, and
+    /// anyone can subscribe. In other words, the former is for an actor,
+    /// while the latter is for an observer. E.g. a HTTP daemon wrapping joystream::core library
+    /// would use callbacks to service RPC calls, and signals to populate websocket streams.
 
-public slots:
+    // Sent when libtorrent::add_torrent_alert is received from libtorrent
+    void addedTorrent(const Torrent *);
 
-    /**
-     * View entry points
-     * =================
-     * Are not thread safe. Primarily called by view objects on the same thread as controller thread,
-     * buy also good routines to use for testing.
-     */
+    // Torrent with given info hash was removed
+    void removedTorrent(const libtorrent::sha1_hash & info_hash);
 
-    void pauseTorrent(const libtorrent::sha1_hash & info_hash);
-    void startTorrent(const libtorrent::sha1_hash & info_hash);
-    void removeTorrent(const libtorrent::sha1_hash & info_hash);
+    // A torrent was not added successfully according to libtorrent session giving
+    // a libtorrent::add_torrent_alert p->error was done.
+    void failedToAddTorrent(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec);
 
-    void syncWallet();
+    // Notify view
+    // DROP!
+    void torrentCheckedButHasNoPlugin(const libtorrent::torrent_info & torrentInfo, const libtorrent::torrent_status & torrentStatus);
+
+    // Status update from underlying libtorrent session
+    void pluginStatusUpdate(const Plugin::Status & status);
+
+    // When we are listening to some port?
+    // add as argument
+    void started();
+
+    // Emitted after finalize_close(), that is when controller is 100% done
+    void stopped();
 
 private slots:
 
@@ -194,7 +251,6 @@ private slots:
     // Checks server for pending error
     void handleAcceptError(QAbstractSocket::SocketError socketError);
 
-
     // Streaming server signals
     void registerStream(const Stream * handler);
     void handleFailedStreamCreation(QAbstractSocket::SocketError socketError);
@@ -206,6 +262,7 @@ private slots:
     void readPiece(int piece);
     */
 
+    // Move all of these out of controller later
     void webSocketDisconnected();
     void scheduleReconnect();
     void onTransactionUpdated(Coin::TransactionId txid, int confirmations);
@@ -213,33 +270,6 @@ private slots:
     void onWalletSynchingHeaders();
     void onWalletSynchingBlocks();
     void onWalletConnected();
-
-signals:
-
-    // Sent when libtorrent::add_torrent_alert is received from libtorrent
-    void addedTorrent(const viewmodel::Torrent *);
-
-    // Torrent with given info hash was removed
-    void torrentRemoved(const libtorrent::sha1_hash & info_hash);
-
-    // A torrent was not added successfully according to libtorrent session giving
-    // a libtorrent::add_torrent_alert p->error was done.
-    void failedToAddTorrent(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec);
-
-    // A torrent plugin was started
-    // *** DISCONTINUED, THESE ARE INSTALLED AS SIGNALS ON TORRENT VIEW MODELS
-    //void torrentPluginStarted();
-    //void startedSellerTorrentPlugin(SellerTorrentPluginViewModel * model);
-    //void startedBuyerTorrentPlugin(BuyerTorrentPluginViewModel * model);
-
-    // Notify view
-    void torrentCheckedButHasNoPlugin(const libtorrent::torrent_info & torrentInfo, const libtorrent::torrent_status & torrentStatus);
-
-    // Status update from underlying libtorrent session
-    void pluginStatusUpdate(const Plugin::Status & status);
-
-    // Emitted after finalize_close(), that is when controller is 100% done
-    void closed();
 
 private:
 
@@ -267,9 +297,7 @@ private:
     QTimer _statusUpdateTimer;
 
     // Torrents added to session
-    // Has to be pointer since since its Torrent::model (TorrentViewModel) isQObject type.
-    // Object is entirely owned by this.
-    std::set<libtorrent::sha1_hash, detail::Torrent *> _torrents;
+    std::set<libtorrent::sha1_hash, detail::Torrent> _torrents;
 
     // TCP streaming server
     //QTcpServer _streamingServer;

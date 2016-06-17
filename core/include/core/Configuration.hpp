@@ -8,6 +8,8 @@
 #ifndef JOYSTREAM_CORE_CONFIGURATION_HPP
 #define JOYSTREAM_CORE_CONFIGURATION_HPP
 
+#include <extension/extension.hpp>
+
 #include <libtorrent/sha1_hash.hpp>
 #include <libtorrent/add_torrent_params.hpp>
 #include <libtorrent/torrent_info.hpp>
@@ -27,12 +29,77 @@ namespace configuration {
 template <class T>
 QJsonValue safeRead<T>(const QJsonObject & json, const QString & key);
 
+struct BuyingPlugin {
+
+    BuyingPlugin():{}
+
+    BuyingPlugin() {}
+
+    protocol_session::BuyingPolicy policy;
+    protocol_wire::BuyerTerms terms;
+};
+
+struct SellingPlugin {
+
+    SellingPlugin():{}
+
+    SellingPlugin()
+        : {}
+
+    protocol_session::SellingPolicy policy;
+    protocol_wire::SellerTerms terms;
+};
+
+class TorrentPlugin {
+
+public:
+
+    TorrentPlugin();
+
+    TorrentPlugin inBuyMode(const protocol_session::BuyingPolicy & policy,
+                            const protocol_wire::BuyerTerms & terms);
+
+    TorrentPlugin inSellMode(const protocol_session::SellingPolicy & policy,
+                             const protocol_wire::SellerTerms & terms);
+
+    /**
+    * Schema for JSON encoding of configuration
+    {
+        "mode" : <string: one among "buying", "selling", "not-set", "observing">
+        "buying": <object: >,
+        "selling":<object: >
+        "constraint": "mode" == "buying" <==> "buying" is the only other key,
+                      "mode" == "selling" <==> "selling" is the only other key
+    }
+    */
+
+    // Encode/Decode configuration from JSON using schema above
+    QJsonObject toJSON() const;
+    static Torrent fromJSON(const QJsonObject &);
+
+private:
+
+    protocol_session::SessionMode _mode;
+
+    // _mode == SessionMode::observing, not_set
+    // no
+
+    // _mode == SessionMode::buying
+    BuyingPlugin buying;
+
+    // _mode == SessionMode::selling
+    SellingPlugin selling;
+};
+
 // Persistant representation of a torrent
 class Torrent {
 
+public:
+
     Torrent();
 
-    Torrent(const libtorrent::add_torrent_params &);
+    Torrent(const libtorrent::add_torrent_params &,
+            const TorrentPlugin &);
 
     /**
     // Load torrent information based on magnet URI
@@ -53,20 +120,24 @@ class Torrent {
     QJsonObject toJSON() const;
     static Torrent fromJSON(const QJsonObject &);
 
+    // Adding parameters
+    libtorrent::add_torrent_params params() const;
+
 private:
 
     // Basic information for adding torrent to libtorrent session
     libtorrent::add_torrent_params _params;
 
     // Other stuff about plugin...
+    TorrentPlugin _plugin;
 
     /**
     * Schema for JSON (partial) encoding of libtorrent::add_torrent_params
     {
-        "ti":  <string:Bencoded torrent file, null>
+        "ti":           <string:Bencoded torrent file, null>
         "name":         <string: Human readable torrent name>
-        "save_path":     <string: Local path where data is stored to/loaded from",
-        "resume_data":   <string: libtorrent fast-resume data>,
+        "save_path":    <string: Local path where data is stored to/loaded from",
+        "resume_data":  <string: libtorrent fast-resume data>,
         "flags":        <int: libtorrent::add_torrent_params flags>
     }
     */
@@ -76,42 +147,39 @@ private:
     static libtorrent::add_torrent_params fromJSON(const QJsonObject &);
 
     // Decode/Encode torrent_info to/from bencoding
-    static QString toBencoding(const libtorrent::torrent_info &);
-    static libtorrent::torrent_info fromBencoding(const QString &);
+    static QString bencode(const libtorrent::torrent_info &);
+    static libtorrent::torrent_info deBencode(const QString &);
 };
 
-// Persistant representation of a controller
-class Controller {
+// Persistant representation of a node
+class Node {
 
 public:
 
-    Controller();
+    Node();
 
-    Controller(const libtorrent::entry & libtorrentSessionSettingsEntry,
-              const std::pair<int, int> & portRange,
-              const std::vector<std::pair<std::string, int> > & dhtRouters,
-              const std::vector<Torrent> & torrents);
+    Node(const libtorrent::settings_pack & settingPack,
+               const libtorrent::dht_settings & dhtSettings,
+               const std::pair<int, int> & portRange,
+               const std::vector<std::pair<std::string, int> > & dhtRouters);
 
     /**
     * Schema for JSON encoding of configuration
     {
-          "libtorrentSettings" : <..>
-
-          "dhtRouters" : entry::list_type object with entry::list_type objects with two elements, each encoding a dht router by the host (first)
-          and port (second).
-
-          "torrents" : [...,<JSON encoding of configuration::Torrent>]
+          "settings_pack": <string: bencoding as dictate by libtorrent::save_settings_to_dict>,
+          "dht_settings": <...>, <--- dropped?
+          "torrents": [..., <JSON encoding of configuration::Torrent>, ...]
     }
     */
 
     // Decode from JSON using schema above
-    static Controller fromJSON(const QJsonObject &);
+    static Node fromJSON(const QJsonObject &);
 
     // Encode to JSON using schema above
     QJsonObject toJSON();
 
     // Loads configuration from file, encoded in JSON using schema above
-    static Controller fromFile(const std::string &);
+    static Node fromFile(const std::string &);
 
     // Saves to file
     void toFile(const std::string &);
@@ -119,17 +187,23 @@ public:
 private:
 
     // Session settings
-    libtorrent::settings_pack settings;
+    libtorrent::settings_pack _settingsPack;
 
-    // libtorrent::dht_settings dht;
+    // DHT settings
+    libtorrent::dht_settings _dhtSettings;
 
     // Dht routers
     //std::vector<std::pair<std::string, int> > _dhtRouters;
 
-    // Torrent configurations
-    std::vector<Torrent> _torrents;
-};
 
+    // Decode/Encode libtorrent::settings_pack to/from bencoding
+    static QString toJSON(const libtorrent::settings_pack & settings);
+    libtorrent::settings_pack fromJSON(const QString &);
+
+    // Decode/Encode libtorrent::dht_settings to/from bencoding
+    static QString toJSON(const libtorrent::dht_settings & settings);
+    libtorrent::dht_settings fromJSON(const QString &);
+};
 
 }
 }

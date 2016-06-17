@@ -11,9 +11,10 @@
 #include <QNetworkAccessManager>
 #include <QTimer>
 
-#include <core/controller/Controller.hpp>
-#include <core/logger/LoggerManager.hpp>
+#include <core/Node.hpp>
+#include <bitcoin/SPVWallet.hpp>
 #include <common/Seed.hpp>
+
 #include <gui/MainWindow.hpp>
 #include <AutoUpdater.hpp>
 #include <Analytics.hpp>
@@ -110,10 +111,6 @@ int main(int argc, char* argv[]) {
         app.processEvents();
     }
 
-    // Create logging category
-    bool use_stdout_log = true;
-    QLoggingCategory * category = global_log_manager.createLogger("main", get_data_path(), use_stdout_log, false);
-
     // Network access manager instance used by all code trying to use network
     QNetworkAccessManager manager;
 
@@ -158,15 +155,61 @@ int main(int argc, char* argv[]) {
 
         progressDialog.updateMessage("Starting Controller");
 
+
+        // APPLICATION_BLOCKCYPHER_TOKEN
+        joystream::bitcoin::SPVWallet wallet(storePath.toStdString(),
+                                             blocktreePath.toStdString(),
+                                             APPLICATION_BITCOIN_NETWORK);
+
+        if(QFile(storePath).exists()) {
+            wallet.open();
+        } else {
+            if(seed) {
+                wallet.create(*seed);
+            } else {
+                wallet.create();
+            }
+        }
+
+        if(!wallet.isInitialized()) {
+            throw std::runtime_error("controller failed to open or create wallet");
+        }
+
         // Create controller
         // Loading the block tree will take some time.. maybe we can show a progress dialogue
         // Or let the main window open the wallet..?
-        Controller controller(configuration, &manager,
-                              APPLICATION_BITCOIN_NETWORK,
-                              APPLICATION_BLOCKCYPHER_TOKEN,
-                              storePath,
-                              blocktreePath,
-                              *category);
+        Controller controller(configuration, );
+
+        QObject::connect(&wallet, SIGNAL(synched()), &controller, SLOT(onWalletSynched()));
+        QObject::connect(&wallet, SIGNAL(synchingHeaders()), &controller, SLOT(onWalletSynchingHeaders()));
+        QObject::connect(&wallet, SIGNAL(synchingBlocks()), &controller, SLOT(onWalletSynchingBlocks()));
+        QObject::connect(&wallet, SIGNAL(connected()), &controller, SLOT(onWalletConnected()));
+        QObject::connect(&wallet, &joystream::bitcoin::SPVWallet::offline, &controller, [this](){
+            std::clog << "wallet offline";
+        });
+        QObject::connect(&wallet, &joystream::bitcoin::SPVWallet::disconnected, &controller, [this](){
+            std::clog << "peer disconnected";
+            scheduleReconnect();
+        });
+        QObject::connect(&wallet, &joystream::bitcoin::SPVWallet::protocolError, &controller, [this](std::string err){
+            std::clog << QString::fromStdString(err);
+            // some errors are result of client sending something invalid
+            // others if the peer sends us something invalid
+            _protocolErrorsCount++;
+            if(_protocolErrorsCount > CORE_CONTROLLER_SPV_PROTOCOL_ERRORS_BEFORE_RECONNECT) {
+                scheduleReconnect();
+            }
+        });
+        QObject::connect(&wallet, &joystream::bitcoin::SPVWallet::connectionError, this, [this](std::string err){
+            std::clog << QString::fromStdString(err);
+            scheduleReconnect();
+        });
+        QObject::connect(&wallet, &joystream::bitcoin::SPVWallet::blockTreeUpdateFailed, this, [this](std::string err){
+            std::clog << QString::fromStdString(err);
+        });
+        QObject::connect(&wallet, &joystream::bitcoin::SPVWallet::blockTreeWriteFailed, this, [this](std::string err){
+            std::clog << QString::fromStdString(err);
+        });
 
         QObject::connect(&controller, &Controller::closed, &app, &QApplication::quit);
 
@@ -217,10 +260,12 @@ int main(int argc, char* argv[]) {
         // This is temporary error handling fix for sending off logs to error logging endpoint error.joystream.co
         // Find more appropriate fix later
 
-        qCDebug((*category)) << "Catastrophic error due to unhandled exception" << e.what();
-        qCDebug((*category)) << "Sending error log to " << ERROR_LOG_ENDPOINT;
-        send_errorlog(global_log_manager.loggers["main"].file, &manager);
-        qCDebug((*category)) << "Shutting down, try to restart software, delete wallet file if problem persists.";
+        std::clog << "Catastrophic error due to unhandled exception" << e.what() << std::endl;
+        std::clog << "Sending error log to " << ERROR_LOG_ENDPOINT << std::endl;
+
+        //send_errorlog(global_log_manager.loggers["main"].file, &manager);
+
+        std::clog << "Shutting down, try to restart software, delete wallet file if problem persists." << std::endl;
 
         return 1;
     }

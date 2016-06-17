@@ -29,13 +29,13 @@ HEADERS += \
     include/core/viewmodel/SellerTorrentPlugin.hpp \
     include/core/viewmodel/TorrentPlugin.hpp \
     include/core/viewmodel/Torrent.hpp \
-    include/core/Controller.hpp \
     include/core/Stream.hpp \
     include/core/core.hpp \
     include/core/Configuration.hpp \
     include/core/detail/Torrent.hpp \
-    include/core/ViewModel.hpp \
-    include/core/Exception.hpp
+    include/core/Exception.hpp \
+    include/core/Torrent.hpp \
+    include/core/Node.hpp
 
 SOURCES += \
     src/viewmodel/BuyerPeerPlugin.cpp \
@@ -48,11 +48,11 @@ SOURCES += \
     src/viewmodel/SellerTorrentPlugin.cpp \
     src/viewmodel/TorrentPlugin.cpp \
     src/viewmodel/Torrent.cpp \
-    src/Controller.cpp \
     src/Stream.cpp \
-    src/Configuration.cpp \
     src/detail/Torrent.cpp \
-    src/ViewModel.cpp
+    src/Torrent.cpp \
+    src/Configuration.cpp \
+    src/Node.cpp
 
 # extension
 INCLUDEPATH += $$PWD/../extension/include

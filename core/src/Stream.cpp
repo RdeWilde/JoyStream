@@ -66,7 +66,7 @@ namespace core {
  */
 
 
-#include <core/Controller.hpp>
+#include <core/Node.hpp>
 #include <QDebug>
 #include <QHostAddress>
 #include <QTcpSocket>

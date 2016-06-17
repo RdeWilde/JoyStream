@@ -11,12 +11,13 @@ namespace joystream {
 namespace core {
 namespace detail {
 
+Torrent::Torrent() {}
+
 Torrent::Torrent(const libtorrent::sha1_hash & infoHash,
                              const std::string & name,
                              const std::string & savePath,
                              const std::vector<char> & resumeData,
                              quint64 flags,
-                             //libtorrent::torrent_info * torrentInfo,
                              const boost::intrusive_ptr<libtorrent::torrent_info> & torrentFile,
                              Status event)
     : _infoHash(infoHash)
@@ -24,10 +25,7 @@ Torrent::Torrent(const libtorrent::sha1_hash & infoHash,
     , _savePath(savePath)
     , _resumeData(resumeData)
     , _flags(flags)
-    //, _handle(handle)
-    //, _torrentInfo(torrentInfo)
     , _status(event)
-    , _pluginInstalled(PluginInstalled::None)
     , _model(infoHash,
              name,
              savePath,
@@ -114,6 +112,7 @@ TorrentViewModel * Torrent::model() {
     return &_model;
 }
 
+/**
 void Torrent::addStream(Stream * stream) {
     _streams.insert(stream);
 }
@@ -141,7 +140,7 @@ void Torrent::pieceFinished(int piece) {
         i != end;i++)
         (*i)->pieceDownloaded(piece);
 }
-
+*/
 
 }
 }
