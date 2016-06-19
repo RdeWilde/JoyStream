@@ -17,7 +17,7 @@ Torrent::Torrent(const libtorrent::sha1_hash & infoHash,
                              const std::string & name,
                              const std::string & savePath,
                              const std::vector<char> & resumeData,
-                             quint64 flags,
+                             std::uint64_t flags,
                              const boost::intrusive_ptr<libtorrent::torrent_info> & torrentFile,
                              Status event)
     : _infoHash(infoHash)
@@ -74,11 +74,11 @@ void Torrent::setResumeData(const std::vector<char> & resumeData) {
     _resumeData = resumeData;
 }
 
-quint64 Torrent::flags() const {
+std::uint64_t Torrent::flags() const {
     return _flags;
 }
 
-void Torrent::setFlags(quint64 flags) {
+void Torrent::setFlags(std::uint64_t flags) {
     _flags = flags;
 }
 

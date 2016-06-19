@@ -11,6 +11,8 @@
 #include <libtorrent/sha1_hash.hpp>
 #include <libtorrent/torrent_handle.hpp>
 
+#include <cstdint>
+
 namespace joystream {
 namespace core {
 
@@ -53,7 +55,7 @@ public:
             const std::string & name,
             const std::string & savePath,
             const std::vector<char> & resumeData,
-            quint64 flags,
+            std::uint64_t flags,
             Status status);
 
     // Add plugins
@@ -111,7 +113,7 @@ private:
     std::vector<char> _resumeData;
 
     // Flags
-    quint64 _flags;
+    std::uint64_t _flags;
 
     // Handle to torrent
     // A valid handle is only set after the torrent has been added
