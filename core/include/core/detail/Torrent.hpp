@@ -115,10 +115,12 @@ private:
     // Flags
     std::uint64_t _flags;
 
+    /**
     // Handle to torrent
     // A valid handle is only set after the torrent has been added
     // successfully to session
     libtorrent::torrent_handle _handle;
+    */
 
     // Status
     Status _status;

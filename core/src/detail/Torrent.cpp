@@ -86,7 +86,7 @@ void Torrent::setFlags(std::uint64_t flags) {
 libtorrent::torrent_info * Torrent::torrentInfo() {
     return _torrentInfo;
 }
-*/
+
 
 libtorrent::torrent_handle Torrent::handle() const {
     return _handle;
@@ -95,6 +95,7 @@ libtorrent::torrent_handle Torrent::handle() const {
 void Torrent::setHandle(const libtorrent::torrent_handle & handle) {
     _handle = handle;
 }
+*/
 
 Torrent::Status Torrent::status() const {
     return _status;
