@@ -32,6 +32,7 @@ Torrent::Torrent(const libtorrent::sha1_hash & infoHash,
              torrentFile) {
 }
 
+/**
 void Torrent::addPlugin(const SellerTorrentPlugin::Status & status) {
 
     Q_ASSERT(_pluginInstalled == PluginInstalled::None);
@@ -45,6 +46,7 @@ void Torrent::addPlugin(const BuyerTorrentPlugin::Status & status) {
     _pluginInstalled = PluginInstalled::Buyer;
     _model.addPlugin(status);
 }
+*/
 
 libtorrent::sha1_hash Torrent::infoHash() const {
     return _infoHash;
@@ -103,10 +105,6 @@ Torrent::Status Torrent::status() const {
 
 void Torrent::setStatus(Status event) {
     _status = event;
-}
-
-PluginInstalled Torrent::pluginInstalled() const {
-    return _pluginInstalled;
 }
 
 std::weak_ptr<core::Torrent> Torrent::model() {

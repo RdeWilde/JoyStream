@@ -58,9 +58,11 @@ public:
             std::uint64_t flags,
             Status status);
 
+    /**
     // Add plugins
     void addPlugin(const SellerTorrentPlugin::Status & status);
     void addPlugin(const BuyerTorrentPlugin::Status & status);
+    */
 
     // Getters and Setters
     libtorrent::sha1_hash infoHash() const;
