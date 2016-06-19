@@ -84,7 +84,7 @@ public:
     Status status() const;
     void setStatus(Status status);
 
-    std::weak_ptr<viewmodel::Torrent> model();
+    std::weak_ptr<core::Torrent> model();
 
     /**
     // Stream management

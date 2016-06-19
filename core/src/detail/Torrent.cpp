@@ -109,8 +109,8 @@ PluginInstalled Torrent::pluginInstalled() const {
     return _pluginInstalled;
 }
 
-TorrentViewModel * Torrent::model() {
-    return &_model;
+std::weak_ptr<core::Torrent> Torrent::model() {
+    return _model;
 }
 
 /**
