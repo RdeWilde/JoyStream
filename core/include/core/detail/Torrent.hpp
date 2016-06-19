@@ -74,8 +74,8 @@ public:
     std::vector<char> resumeData() const;
     void setResumeData(const std::vector<char> & resumeData);
 
-    quint64 flags() const;
-    void setFlags(quint64 flags);
+    std::uint64_t flags() const;
+    void setFlags(std::uint64_t flags);
 
     //configuration::Torrent configuration() const;
 
