@@ -310,9 +310,17 @@ then
         ./configure --host=${TARGET_ARCH} --target=windows --prefix=/usr/${TARGET_ARCH} \
             CPPFLAGS=-I/usr/${TARGET_ARCH}/include LDFLAGS=-L/usr/${TARGET_ARCH}/lib --enable-static --disable-shared
         make
+        if [ $? -ne 0 ]; then
+          echo "Failed to build libpng"
+          cd ../
+          rm -fr ${LIBPNG_VERSION}
+          exit 1
+        fi
         sudo make install
     else
-        echo "Failed to build libpng"
+        echo "Failed to extract libpng"
+        rm ${LIBPNG_TARBALL}
+        rm -fr ${LIBPNG_VERSION}
         exit 1
     fi
 fi
