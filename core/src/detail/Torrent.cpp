@@ -6,21 +6,22 @@
  */
 
 #include <core/detail/Torrent.hpp>
+#include <core/Node.hpp>
+#include <extension/extension.hpp>
 
 namespace joystream {
 namespace core {
 namespace detail {
 
-Torrent::Torrent() {}
-
-Torrent::Torrent(const libtorrent::sha1_hash & infoHash,
-                             const std::string & name,
-                             const std::string & savePath,
-                             const std::vector<char> & resumeData,
-                             std::uint64_t flags,
-                             const boost::intrusive_ptr<libtorrent::torrent_info> & torrentFile,
-                             State event)
-    : _infoHash(infoHash)
+Torrent::Torrent(core::Node * node,
+                 const libtorrent::sha1_hash & infoHash,
+                 const std::string & name,
+                 const std::string & savePath,
+                 const std::vector<char> & resumeData,
+                 std::uint64_t flags,
+                 State event)
+    : _node(node)
+    , _infoHash(infoHash)
     , _name(name)
     , _savePath(savePath)
     , _resumeData(resumeData)
@@ -32,8 +33,58 @@ Torrent::Torrent(const libtorrent::sha1_hash & infoHash,
              torrentFile) {
 }
 
+void Torrent::start() {
+    _node->plugin()->submit(new extension::request::Start(_infoHash));
+}
+
+void Torrent::stop() {
+    _node->plugin()->submit(new extension::request::Stop(_infoHash));
+}
+
+void Torrent::pause() {
+   _node->plugin()->submit(new extension::request::Pause(_infoHash));
+}
+
+void Torrent::updateTerms(const protocol_wire::BuyerTerms & terms) {
+    _node->plugin()->submit(new extension::request::UpdateBuyerTerms(_infoHash, terms));
+}
+
+void Torrent::updateTerms(const protocol_wire::SellerTerms & terms) {
+    _node->plugin()->submit(new extension::request::UpdateSellerTerms(_infoHash, terms));
+}
+
+void Torrent::toObserveMode() {
+    _node->plugin()->submit(new extension::request::ToObserveMode(_infoHash));
+}
+
+void Torrent::toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+                const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
+                const protocol_session::SellingPolicy & sellingPolicy,
+                const protocol_wire::SellerTerms & terms) {
+
+    _node->plugin()->submit(new extension::request::ToSellMode(_infoHash,
+                                                               generateKeyPairsCallbackHandler,
+                                                               generateP2PKHAddressesCallbackHandler,
+                                                               sellingPolicy,
+                                                               terms));
+}
+
+void Torrent::toBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+               const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
+               const Coin::UnspentP2PKHOutput & funding,
+               const protocol_session::BuyingPolicy & policy,
+               const protocol_wire::BuyerTerms & terms) {
+
+    _node->plugin()->submit(new extension::request::ToBuyMode(_infoHash,
+                                                              generateKeyPairsCallbackHandler,
+                                                              generateP2PKHAddressesCallbackHandler,
+                                                              funding,
+                                                              policy,
+                                                              terms));
+}
+
+
 /**
->>>>>>> 4ef7f8401ad7b8e5ab4238fb2df82adcb2a5d06f
 void Torrent::addPlugin(const SellerTorrentPlugin::Status & status) {
 
     Q_ASSERT(_pluginInstalled == PluginInstalled::None);
@@ -47,7 +98,6 @@ void Torrent::addPlugin(const BuyerTorrentPlugin::Status & status) {
     _pluginInstalled = PluginInstalled::Buyer;
     _model.addPlugin(status);
 }
-
 */
 
 libtorrent::sha1_hash Torrent::infoHash() const {

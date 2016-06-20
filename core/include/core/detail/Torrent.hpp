@@ -16,6 +16,7 @@
 namespace joystream {
 namespace core {
 
+class Node;
 class Torrent;
 
 namespace detail {
@@ -49,14 +50,38 @@ public:
         waiting_for_resume_data
     };
 
-    Torrent();
-
-    Torrent(const libtorrent::sha1_hash & infoHash,
+    Torrent(core::Node * node,
+            const libtorrent::sha1_hash &infoHash,
             const std::string & name,
             const std::string & savePath,
             const std::vector<char> & resumeData,
             std::uint64_t flags,
-            Status status);
+            State state);
+
+    /// Plugin actions
+
+    void start();
+
+    void stop();
+
+    void pause();
+
+    void updateTerms(const protocol_wire::BuyerTerms & terms);
+
+    void updateTerms(const protocol_wire::SellerTerms & terms);
+
+    void toObserveMode();
+
+    void toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+                    const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
+                    const protocol_session::SellingPolicy & sellingPolicy,
+                    const protocol_wire::SellerTerms & terms);
+
+    void toBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+                   const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
+                   const Coin::UnspentP2PKHOutput & funding,
+                   const protocol_session::BuyingPolicy & policy,
+                   const protocol_wire::BuyerTerms & terms);
 
     /**
     // Add plugins
@@ -101,6 +126,9 @@ public:
     */
 
 private:
+
+    // Node
+    core::Node * _node;
 
     // Info hash of torrent
     libtorrent::sha1_hash _infoHash;

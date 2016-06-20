@@ -380,6 +380,11 @@ private:
     void saveStateToFile(const char * file);
 
     void sendTransactions();
+
+    ///
+
+    // Gives raw pointer to plugin
+    extension::Plugin *  plugin();
 };
 
 }

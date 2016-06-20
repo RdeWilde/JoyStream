@@ -1003,6 +1003,15 @@ void Node::sendTransactions() {
     }
 }
 
+extension::Plugin * Node::plugin() {
+
+    std::shared_ptr<extension::Plugin> plugin = _plugin.lock();
+
+    assert(plugin);
+
+    return plugin.get();
+}
+
 // when wallet sees a transaction, either 0, 1 or 2 confirmations
 void Node::onTransactionUpdated(Coin::TransactionId txid, int confirmations) {
 
