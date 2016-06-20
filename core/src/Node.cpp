@@ -562,10 +562,10 @@ void Node::process(libtorrent::listen_succeeded_alert const * p) {
     _session->add_extension(plugin);
 
     // Start timer which calls session.post_torrent_updates at regular intervals
-    _torrentUpdateTimer.start();
-    _torrentUpdateTimer.setInterval(CORE_CONTROLLER_POST_TORRENT_UPDATES_DELAY);
+    _statusUpdateTimer.start();
+    _statusUpdateTimer.setInterval(CORE_CONTROLLER_POST_TORRENT_UPDATES_DELAY);
 
-    QObject::connect(&_torrentUpdateTimer,
+    QObject::connect(&_statusUpdateTimer,
                      SIGNAL(timeout()),
                      [this]() { _session->post_torrent_updates(); });
 
@@ -1418,7 +1418,7 @@ void Node::finalize_close() {
     std::clog << "finalize_close() run.";
 
     // Stop timer
-    _torrentUpdateTimer.stop();
+    _statusUpdateTimer.stop();
 
     // Tell runner that controller is done
     emit stopped();
