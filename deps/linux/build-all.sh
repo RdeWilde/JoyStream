@@ -11,10 +11,10 @@ LIB_BOOST_VER="boost_1_59_0"
 LIB_BOOST_TARBALL="${LIB_BOOST_VER}.tar.gz"
 LIB_BOOST_VERSION="1.59.0"
 
-LIBTORRENT_VERSION="libtorrent-1_0_7"
+LIBTORRENT_VERSION="libtorrent-1_1"
 LIBTORRENT_TARBALL="${LIBTORRENT_VERSION}.tar.gz"
 
-LIBPNG_VERSION="libpng-1.6.21"
+LIBPNG_VERSION="libpng-1.6.23"
 LIBPNG_TARBALL="${LIBPNG_VERSION}.tar.gz"
 
 mkdir -p src/
@@ -329,4 +329,4 @@ SYSROOT=../../sysroot make install
 
 #optionally build full mSIGNA app
 #cd ../../
-#./build-all.sh linux
+#qmake CONFIG+=release BOOST_LIB_SUFFIX=-mt && make OS=linux

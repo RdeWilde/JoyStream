@@ -30,7 +30,7 @@ Build OSX app minimum OSX 10.7
 
     $ brew doctor
     $ brew update
-    $ brew install git wget
+    $ brew install git wget pkg-config
 
 7) Clone the JoyStream repo
 

@@ -5,15 +5,28 @@
 # Proprietary and confidential
 # Written by Mokhtar Naamani <mokhtar.naamani@gmail.com>, December 1 2015
 
+PREFIX_PATH=$PWD/dist/release
+
 cd src/boost
-#build without icu (unicode support needed for regex)
-#sudo ./b2 toolset=gcc address-model=64 target-os=linux threading=multi  \
-#        --without-mpi --without-python -sNO_BZIP2=1 --layout=tagged --disable-icu variant=release install
 
-sudo ./b2 toolset=gcc address-model=64 target-os=linux --layout=tagged \
-  threading=multi link=static \
-  --without-mpi --without-python -sNO_BZIP2=1 variant=release \
+./b2 install \
+  toolset=gcc \
+  address-model=64 \
+  target-os=linux \
+  threading=multi \
+  link=static \
+  --without-mpi \
+  --without-python \
+  -sNO_BZIP2=1 \
+  --layout=tagged \
+  variant=release \
   cxxflags="-std=gnu++11" \
-  --prefix=/usr/local/ install
+  --prefix=$PREFIX_PATH
 
-#--layout=tagged    will add the -mt suffix if multithreading
+# Install to system /usr/local
+sudo cp $PREFIX_PATH/lib/libboost_* /usr/local/lib/
+sudo cp -R $PREFIX_PATH/include/boost /usr/local/include/
+
+#--layout=tagged  will add the -mt suffix if multithreading
+# note mSIGNA build on linux doesn't look for tagged libs
+# so its deps will build, but not mSIGNA app, unless another boost installation exists

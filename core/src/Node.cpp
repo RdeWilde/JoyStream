@@ -8,8 +8,7 @@
 #include <core/Node.hpp>
 #include <core/Configuration.hpp>
 #include <core/Exception.hpp>
-
-//#include <core/controller/exceptions/ListenOnException.hpp>
+#include <core/detail/Torrent.hpp>
 #include <extension/extension.hpp>
 #include <bitctoin/SPVWallet.hpp>
 
@@ -154,13 +153,39 @@ void Node::start(const configuration::Node & configuration, const NodeStarted & 
     _nodeStartFailed = failed;
 }
 
-void Node::stop() {
+void Node::stop(const NodeStopped & nodeStopped) {
 
-    std::clog << "Libtorrent stopping initiated..." << std::endl;
+    if(_state == State::stopped)
+        throw exception::CannotStopStoppedNode();
 
-    //_statusUpdateTimer.stop() <-- perhaps this shouldbe called AFTER libtorrent has been stopped?
+    // Pause all torrents
+    _session->pause();
 
-    //when done _session = nullptr
+    // set state to something which blocks adding more torrents or doing other opreations
+
+    // Stop all torrent plugins
+    for(auto t: _torrents) {
+
+        //assert(t.state() == detail::Torrent::State::waiting_for_torrent_to_be_checked)
+        //t.stop(); <--- do we need to add callback which has barrier?
+    }
+
+    // barrier here?
+
+    // Update state
+    _state = State::waiting_for_resume_data_while_closing;
+
+    // Store user callback
+    _nodeStopped = nodeStopped;
+
+    // Save resume data for all
+    int numberOutStanding = requestResumeData();
+
+    // If there are no outstanding, then just close right away
+    if(numberOutStanding == 0)
+        finalize_stop();
+    else
+        std::clog << "Attempting to generate resume data for " << numberOutStanding << " torrents." << std::endl;
 }
 
 void Node::syncWallet() {
@@ -381,7 +406,7 @@ void Node::processAlert(const libtorrent::alert * a) {
     else if(libtorrent::torrent_removed_alert const * p = libtorrent::alert_cast<libtorrent::torrent_removed_alert>(a))
         processTorrentRemovedAlert(p);
     else if(libtorrent::save_resume_data_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_alert>(a))
-        processSaveResumeDataAlert(p);
+        process(p);
     else if(libtorrent::save_resume_data_failed_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_failed_alert>(a))
         processSaveResumeDataFailedAlert(p);
     else if(libtorrent::torrent_checked_alert const * p = libtorrent::alert_cast<libtorrent::torrent_checked_alert>(a))
@@ -426,7 +451,7 @@ void Node::processAlert(const libtorrent::alert * a) {
 // assumes they equal NONE,0 respectively.
 */
 
-int Node::makeResumeDataCallsForAllTorrents() {
+int Node::requestResumeData() {
 
     // Get all handles (should be same torrents as int addTorrentParameters, but we dont check this here
     std::vector<libtorrent::torrent_handle> handles = _session->get_torrents();
@@ -447,10 +472,10 @@ int Node::makeResumeDataCallsForAllTorrents() {
         Q_ASSERT(_torrents.contains(infoHash));
 
         // Grab torrent;
-        Torrent * torrent = _torrents[infoHash];
+        detail::Torrent * torrent = _torrents[infoHash];
 
         // Dont save data if
-        if (torrent->status() != Torrent::Status::nothing // are in wrong state
+        if (torrent->state() != Torrent::Status::nothing // are in wrong state
             || !h.is_valid() // dont have valid handle
             || !h.need_save_resume_data() // dont need to
             || !h.status().has_metadata) // or dont have metadata
@@ -534,6 +559,7 @@ void Node::processMetadataReceivedAlert(libtorrent::metadata_received_alert cons
 }
 
 void Node::processMetadataFailedAlert(libtorrent::metadata_failed_alert const * p) {
+
     // WHAT DO WE DO HERE?
     std::clog << "Invalid metadata received.";
     throw std::runtime_error("Invalid metadata");
@@ -562,10 +588,10 @@ void Node::process(libtorrent::listen_succeeded_alert const * p) {
     _session->add_extension(plugin);
 
     // Start timer which calls session.post_torrent_updates at regular intervals
-    _torrentUpdateTimer.start();
-    _torrentUpdateTimer.setInterval(CORE_CONTROLLER_POST_TORRENT_UPDATES_DELAY);
+    _statusUpdateTimer.start();
+    _statusUpdateTimer.setInterval(CORE_CONTROLLER_POST_TORRENT_UPDATES_DELAY);
 
-    QObject::connect(&_torrentUpdateTimer,
+    QObject::connect(&_statusUpdateTimer,
                      SIGNAL(timeout()),
                      [this]() { _session->post_torrent_updates(); });
 
@@ -655,7 +681,7 @@ void Node::processStatusUpdateAlert(libtorrent::state_update_alert const * p) {
     update(p->status);
 }
 
-void Node::processSaveResumeDataAlert(libtorrent::save_resume_data_alert const * p) {
+void Node::process(libtorrent::save_resume_data_alert const * p) {
 
     // Get info hash for torrent
     libtorrent::sha1_hash info_hash = p->handle.info_hash();
@@ -693,13 +719,19 @@ void Node::processSaveResumeDataAlert(libtorrent::save_resume_data_alert const *
         }
 
         // Close client
-        finalize_close();
+        finalize_stop();
     }
 }
 
 void Node::processSaveResumeDataFailedAlert(libtorrent::save_resume_data_failed_alert const * p) {
 
     qCCritical(_category) << "Failed to generate resume data for some reason.";
+
+
+    // <--
+
+
+
 }
 
 void Node::processTorrentCheckedAlert(libtorrent::torrent_checked_alert const * p) {
@@ -1070,8 +1102,10 @@ void Node::startTorrent(const libtorrent::sha1_hash & info_hash) {
     torrentHandle.resume();
 }
 
-bool Node::addTorrent(const Torrent::Configuration & configuration) {
+void Node::addTorrent(const Torrent::Configuration & configuration) {
                             //, bool promptUserForTorrentPluginConfiguration) {
+
+    // make sure to check _state guard
 
     // Convert to add torrent parameters
     libtorrent::add_torrent_params params = configuration.toAddTorrentParams();
@@ -1106,28 +1140,6 @@ bool Node::addTorrent(const Torrent::Configuration & configuration) {
     Q_ASSERT(!_pendingBuyerTorrentPluginConfigurationAndUtxos.contains(info_hash));
     //Q_ASSERT(!_pendingObserverTorrentPluginConfigurations.contains(info_hash));
 
-    /**
-     * Setup signals and slots
-     */
-
-    // Connect view model signals to controller slots
-    const TorrentViewModel * viewModel = torrent->model();
-
-    QObject::connect(viewModel,
-                     SIGNAL(pause(libtorrent::sha1_hash)),
-                     this,
-                     SLOT(pauseTorrent(libtorrent::sha1_hash)));
-
-    QObject::connect(viewModel,
-                     SIGNAL(start(libtorrent::sha1_hash)),
-                     this,
-                     SLOT(startTorrent(libtorrent::sha1_hash)));
-
-    QObject::connect(viewModel,
-                     SIGNAL(remove(libtorrent::sha1_hash)),
-                     this,
-                     SLOT(removeTorrent(libtorrent::sha1_hash)));
-
     // NOTE:
     // The remaining signals model
     // * pluginInstalledChanged(PluginInstalled pluginInstalled)
@@ -1140,9 +1152,6 @@ bool Node::addTorrent(const Torrent::Configuration & configuration) {
 
     // Add torrent to session
     _session->async_add_torrent(params);
-
-    // Indicate that we added to session
-    return true;
 }
 
 bool Node::addTorrent(const Torrent::Configuration & configuration, const SellerTorrentPlugin::Configuration & pluginConfiguration) {
@@ -1289,42 +1298,6 @@ std::weak_ptr<viewmodel::Torrent>  Node::torrents(const libtorrent::sha1_hash & 
         return _torrents[infoHash]->model();
 }
 
-void Node::stop() {
-
-    if(_closing) return;
-    _closing = true;
-
-    // Note that controller is being stopped,
-    // this prevents any processing of Qt events
-    // from libtorrent or view pending in event queue.
-    //stoppingController = true;
-
-    // Pause all torrents
-    _session->pause();
-
-    /**
-     * DO NOT SAVE STATE TO DISK,
-     * RATHER EMIT CONFIGURATION WITH CLOSING EVENT OR SOMETHING
-     */
-    // Save state of controller (includes full libtorrent state) to parameter file
-    //QString file = QDir::current().absolutePath () + QDir::separator() + PARAMETER_FILE_NAME;
-    //saveStateToFile(file.toStdString().c_str());
-
-    // Save resume data for all
-    int numberOutStanding = makeResumeDataCallsForAllTorrents();
-
-    // If there are no outstanding, then just close right away
-    if(numberOutStanding == 0)
-        finalize_close();
-    else {
-
-        // Update controller state
-        _state = State::waiting_for_resume_data_while_closing;
-
-        std::clog << "Attempting to generate resume data for " << numberOutStanding << " torrents.";
-    }
-}
-
 /**
 libtorrent::torrent_handle Controller::getTorrentHandle(const libtorrent::sha1_hash & infoHash) const {
 
@@ -1413,15 +1386,29 @@ std::weak_ptr<Torrent> Node::torrent(const libtorrent::sha1_hash & infoHash) con
 
 }
 
-void Node::finalize_close() {
+void Node::finalize_stop() {
 
-    std::clog << "finalize_close() run.";
-
-    // Stop timer
+    // Stop torrent status updates
     _torrentUpdateTimer.stop();
 
+    std::clog << "Stopping libtorrent." << std::endl;
+
+    // Close session and delete instance
+    // This call will block, and may take a while to complete,
+    // as it involves on communicating with trackers - which may time out.
+    // Asynchronous shut-down is possible using libtorrent::session::abort(),
+    // however we opted for avoiding, since not other calls to
+    delete _session;
+    _session = nullptr;
+
+    // Update state
+    _state = State::stopped;
+
+    // Make user callback
+    _nodeStopped();
+
     // Tell runner that controller is done
-    emit stopped();
+    emit nodeStopped();
 }
 
 /**

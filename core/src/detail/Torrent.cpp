@@ -17,9 +17,9 @@ Torrent::Torrent(const libtorrent::sha1_hash & infoHash,
                              const std::string & name,
                              const std::string & savePath,
                              const std::vector<char> & resumeData,
-                             quint64 flags,
+                             std::uint64_t flags,
                              const boost::intrusive_ptr<libtorrent::torrent_info> & torrentFile,
-                             Status event)
+                             State event)
     : _infoHash(infoHash)
     , _name(name)
     , _savePath(savePath)
@@ -32,6 +32,8 @@ Torrent::Torrent(const libtorrent::sha1_hash & infoHash,
              torrentFile) {
 }
 
+/**
+>>>>>>> 4ef7f8401ad7b8e5ab4238fb2df82adcb2a5d06f
 void Torrent::addPlugin(const SellerTorrentPlugin::Status & status) {
 
     Q_ASSERT(_pluginInstalled == PluginInstalled::None);
@@ -45,6 +47,8 @@ void Torrent::addPlugin(const BuyerTorrentPlugin::Status & status) {
     _pluginInstalled = PluginInstalled::Buyer;
     _model.addPlugin(status);
 }
+
+*/
 
 libtorrent::sha1_hash Torrent::infoHash() const {
     return _infoHash;
@@ -74,11 +78,12 @@ void Torrent::setResumeData(const std::vector<char> & resumeData) {
     _resumeData = resumeData;
 }
 
-quint64 Torrent::flags() const {
+
+std::uint64_t Torrent::flags() const {
     return _flags;
 }
 
-void Torrent::setFlags(quint64 flags) {
+void Torrent::setFlags(std::uint64_t flags) {
     _flags = flags;
 }
 
@@ -88,6 +93,7 @@ libtorrent::torrent_info * Torrent::torrentInfo() {
 }
 */
 
+/**
 libtorrent::torrent_handle Torrent::handle() const {
     return _handle;
 }
@@ -95,22 +101,18 @@ libtorrent::torrent_handle Torrent::handle() const {
 void Torrent::setHandle(const libtorrent::torrent_handle & handle) {
     _handle = handle;
 }
+*/
 
-Torrent::Status Torrent::status() const {
+Torrent::State Torrent::state() const {
     return _status;
 }
 
-void Torrent::setStatus(Status event) {
+void Torrent::setState(State event) {
     _status = event;
 }
 
-PluginInstalled Torrent::pluginInstalled() const {
-    return _pluginInstalled;
-}
-
-TorrentViewModel * Torrent::model() {
-    return &_model;
-}
+std::weak_ptr<core::Torrent> Torrent::model() {
+    return _model;
 
 /**
 void Torrent::addStream(Stream * stream) {

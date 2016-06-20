@@ -11,6 +11,8 @@
 #include <libtorrent/sha1_hash.hpp>
 #include <libtorrent/torrent_handle.hpp>
 
+#include <cstdint>
+
 namespace joystream {
 namespace core {
 
@@ -22,7 +24,7 @@ class Torrent {
 
 public:
 
-    enum class Status {
+    enum class State {
 
         // Torrent has been libtorrent::async_add_torrent has been called, without response
         waiting_for_async_added,
@@ -53,12 +55,14 @@ public:
             const std::string & name,
             const std::string & savePath,
             const std::vector<char> & resumeData,
-            quint64 flags,
+            std::uint64_t flags,
             Status status);
 
+    /**
     // Add plugins
     void addPlugin(const SellerTorrentPlugin::Status & status);
     void addPlugin(const BuyerTorrentPlugin::Status & status);
+    */
 
     // Getters and Setters
     libtorrent::sha1_hash infoHash() const;
@@ -72,17 +76,17 @@ public:
     std::vector<char> resumeData() const;
     void setResumeData(const std::vector<char> & resumeData);
 
-    quint64 flags() const;
-    void setFlags(quint64 flags);
+    std::uint64_t flags() const;
+    void setFlags(std::uint64_t flags);
 
     //configuration::Torrent configuration() const;
 
     libtorrent::torrent_handle handle() const;
 
-    Status status() const;
-    void setStatus(Status status);
+    State state() const;
+    void setState(State state);
 
-    std::weak_ptr<viewmodel::Torrent> model();
+    std::weak_ptr<core::Torrent> model();
 
     /**
     // Stream management
@@ -111,15 +115,18 @@ private:
     std::vector<char> _resumeData;
 
     // Flags
-    quint64 _flags;
 
+    std::uint64_t _flags;
+
+    /**
     // Handle to torrent
     // A valid handle is only set after the torrent has been added
     // successfully to session
     libtorrent::torrent_handle _handle;
+    */
 
     // Status
-    Status _status;
+    State _status;
 
     // Add const pointer to const object of type TorrentPlugin in the future?
     // can be used to look at stuff like plugin mode etc.

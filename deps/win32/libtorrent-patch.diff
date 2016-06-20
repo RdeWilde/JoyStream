@@ -1,13 +1,18 @@
---- libtorrent-libtorrent-1_0_7/src/bt_peer_connection.cpp	2015-11-14 09:10:59.000000000 +0200
-+++ libtorrent_original/src/bt_peer_connection.cpp	2015-11-14 11:12:06.000000000 +0200
-@@ -3278,8 +3278,8 @@
- 			{
- 				m_statistics.received_bytes(0, bytes_transferred);
- 				// packet too large
--				disconnect(errors::packet_too_large, 2);
+--- bt_peer_connection_original.cpp	2016-06-17 09:01:12.000000000 +0300
++++ bt_peer_connection.cpp	2016-06-17 09:03:16.000000000 +0300
+@@ -3510,15 +3510,6 @@
+ 			const char* ptr = recv_buffer.begin;
+ 			int packet_size = detail::read_int32(ptr);
+ 
+-			// don't accept packets larger than 1 MB
+-			if (packet_size > 1024*1024 || packet_size < 0)
+-			{
+-				// packet too large
+-				received_bytes(0, bytes_transferred);
+-				disconnect(errors::packet_too_large, op_bittorrent, 2);
 -				return;
-+				//disconnect(errors::packet_too_large, 2);
-+				//return;
- 			}
- 					
+-			}
+-
  			if (packet_size == 0)
+ 			{
+ 				TORRENT_ASSERT(bytes_transferred <= 1);

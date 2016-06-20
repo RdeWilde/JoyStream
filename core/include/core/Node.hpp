@@ -20,6 +20,8 @@
 #include <QTimer>
 #include <QAbstractSocket> // is nested enum QAbstractSocket::SocketError
 
+#include <functional>
+
 /**
 class QNetworkAccessManager;
 class TorrentStatus;
@@ -85,7 +87,12 @@ public:
         waiting_for_resume_data_while_closing
     };
 
-    // NB: Going to abstract away wallet
+    typedef std::function<void(const libtorrent::tcp::endpoint &)> NodeStarted;
+    typedef std::function<void(const libtorrent::tcp::endpoint &, libtorrent::error_code)> NodeStartFailed;
+    typedef std::function<void()> NodeStopped;
+    typedef std::function<void()> AddedTorrent;
+    // typedef std::function<void()> ... something else
+
     Node(joystream::bitcoin::SPVWallet *);
 
     /**
@@ -95,12 +102,9 @@ public:
 
     ~Node();
 
-    /// --- start
-
-    typedef std::function<void(const libtorrent::tcp::endpoint &)> NodeStarted;
-    typedef std::function<void(const libtorrent::tcp::endpoint &, libtorrent::error_code)> NodeStartFailed;
-
     /**
+     start
+     -------------
      purpose: Starts node.
      description: This requires ...
      arguments:
@@ -114,11 +118,9 @@ public:
      */
     void start(const configuration::Node & configuration, const NodeStarted & nodeStarted, const NodeStartFailed & failed);
 
-    /// --- stop
-
-    typedef std::function<void()> NodeStopped;
-
     /**
+     stop
+     -------------
      purpose: Stop node.
      condition: Must be started.
      description: asynchrnous. .... All torrents are removed
@@ -132,12 +134,9 @@ public:
     */
     void stop(const NodeStopped &);
 
-    /// --- addTorrent
-
-    typedef std::function<void()> AddedTorrent;
-    // typedef std::function<void()> ... something else
-
     /**
+     addTorrent
+     -------------
      purpose: Add torrent.
      condition:
      description: Add torrent.
@@ -149,12 +148,11 @@ public:
      signals:
      -
      */
-    void addTorrent(const configuration::Torrent &, const AddedTorrent &, );
-    //void addTorrent(const configuration::Torrent &, const SellerTorrentPlugin::Configuration & pluginConfiguration);
-    //void addTorrent(const configuration::Torrent &, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const Coin::UnspentP2PKHOutput & utxo);
-    //bool addTorrent(const configuration::Torrent &, const ObserverTorrentPlugin::Configuration & pluginConfiguration);
+    void addTorrent(const configuration::Torrent &, const AddedTorrent &);
 
     /**
+     removeTorrent
+     -------------
      purpose: Remove torrent.
      description: Add torrent.
      arguments:
@@ -206,23 +204,34 @@ public:
 
 signals:
 
-    /// Signals are emitted for any change in state of the node.
-    /// While the callbacks associated with the spesific calls above
-    /// also report on potential failures with the corresponding calls only to the caller,
-    /// these signals only notify about successful state changes, and
-    /// anyone can subscribe. In other words, the former is for an actor,
-    /// while the latter is for an observer. E.g. a HTTP daemon wrapping joystream::core library
-    /// would use callbacks to service RPC calls, and signals to populate websocket streams.
+    /**
+     Signals are emitted for any change in state of the node.
+     While the callbacks associated with the spesific calls above
+     also report on potential failures with the corresponding calls only to the caller,
+     these signals only notify about successful state changes, and
+     anyone can subscribe. In other words, the former is for an actor,
+     while the latter is for an observer. E.g. a HTTP daemon wrapping joystream::core library
+     would use callbacks to service RPC calls, and signals to populate websocket streams.
+     */
+
+    // Starting was successful, and node is listening on given endpoint
+    void nodeStarted(const libtorrent::tcp::endpoint &);
+
+    // Starting was unsuccessful, and node could not listen to given endpoint for reason with given error
+    void nodeStartFailed(const libtorrent::tcp::endpoint &, libtorrent::error_code);
+
+    // Stopped node
+    void nodeStopped();
 
     // Sent when libtorrent::add_torrent_alert is received from libtorrent
     void addedTorrent(const Torrent *);
 
-    // Torrent with given info hash was removed
-    void removedTorrent(const libtorrent::sha1_hash & info_hash);
-
     // A torrent was not added successfully according to libtorrent session giving
     // a libtorrent::add_torrent_alert p->error was done.
     void failedToAddTorrent(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec);
+
+    // Torrent with given info hash was removed
+    void removedTorrent(const libtorrent::sha1_hash & info_hash);
 
     // Notify view
     // DROP!
@@ -231,30 +240,7 @@ signals:
     // Status update from underlying libtorrent session
     void pluginStatusUpdate(const Plugin::Status & status);
 
-    // When we are listening to some port?
-    // add as argument
-    void nodeStarted();
-
-    // Emitted after finalize_close(), that is when controller is 100% done
-    void stopped();
-
 private slots:
-
-    //
-    void nodeStarted(const libtorrent::tcp::endpoint &);
-
-    //
-    void nodeStartFailed(const libtorrent::tcp::endpoint &, libtorrent::error_code);
-
-    /**
-     * Intra Controller entry points
-     * =================
-     * Typically parts of controller,
-     * remove this at a later time
-     */
-
-    // Tells session to post updates, is signaled by timer
-    void callPostTorrentUpdates();
 
     /**
      * Handlers for TCP streamng server
@@ -307,12 +293,12 @@ private:
     joystream::bitcoin::SPVWallet * _wallet;
 
     // Plugin
-    // We keep weak pointer
+    // We keep weak pointer ...
     std::weak_ptr<extension::Plugin> _plugin;
 
     // Timer which calls session.post_torrent_updates() at regular intervals
     // NB:**** use std:: alternative ***
-    QTimer _statusUpdateTimer;
+    QTimer _torrentUpdateTimer;
 
     // Torrents added to session
     std::set<libtorrent::sha1_hash, detail::Torrent> _torrents;
@@ -324,55 +310,28 @@ private:
     NodeStartFailed _nodeStartFailed;
 
     // Node::stop
-
+    NodeStopped _nodeStopped;
 
     // TCP streaming server
     //QTcpServer _streamingServer;
 
-    /**
-    *
-    * SIMPLIFY LATER: Put TorrentPlugin::Configuration pointer into Torrent.
-    * Do not refer to it as *pending*, this will bethe configurations the
-    * view is given when any editing of configruations is done, and
-    * which will be pased on to plugin as alert.
-    *
-    * In the case of buyer, put utxo in QMap for keeping pending utxo. They
-     * are indeed pending, and are therefore not part of Torrent.
-    *
-    *
-    */
+    // Callback routine called by libtorrent dispatcher routine
+    // NB: Do not under any circumstance have a call to libtorrent in this routine, since the network
+    // thread in libtorrent will be making this call, and a new call will result in a dead lock.
+    void libtorrent_alert_dispatcher_callback(const std::auto_ptr<libtorrent::alert> & alertAutoPtr);
+    void libtorrent_entry_point_alert_notification();
 
-    /**
-    * Libtorrent entry points for libtorrent::alert processing
-    * =================
-    * All Q_INVOKABLE routines are not thread safe, and must be invoke through event loop
-    * or on same thread as controller owner, the rest should be thread safe.
-    */
+    /// Libtorrent entry points for libtorrent::alert processing
+
     // Process all pending alerts in the libtorrent queue
     //Q_INVOKABLE void processAlertQueue();
 
     // Process a spesific request
     Q_INVOKABLE void processAlert(const libtorrent::alert * a);
 
-    // Callback routine called by libtorrent dispatcher routine
-    //
-    // CRITICAL:
-    // Do not under any circumstance have a call to libtorrent in this routine, since the network
-    // thread in libtorrent will be making this call, and a new call will result in a dead lock.
-    //
-    void libtorrent_alert_dispatcher_callback(const std::auto_ptr<libtorrent::alert> & alertAutoPtr);
-    void libtorrent_entry_point_alert_notification();
+    /// Alert processing routines
 
-    // Configurations are placed in these maps when corresponding torrent is added to session,
-    // and they are used to start a plugin on the given torrent once a torrent_checked_alert has been
-    // issued by session.
-    //QMap<libtorrent::sha1_hash, const TorrentPlugin::Configuration *> _pendingConfigurations;
-    QMap<libtorrent::sha1_hash, SellerTorrentPlugin::Configuration> _pendingSellerTorrentPluginConfigurations;
-    QMap<libtorrent::sha1_hash, QPair<BuyerTorrentPlugin::Configuration, Coin::UnspentP2PKHOutput> > _pendingBuyerTorrentPluginConfigurationAndUtxos;
-    //QMap<libtorrent::sha1_hash, UnspentP2PKHOutput> _pendingBuyerTorrentPluginUtxos;
-    //QMap<libtorrent::sha1_hash, ObserverTorrentPlugin::Configuration> _pendingObserverTorrentPluginConfigurations;
-
-    // Routine for processig libtorrent alerts
+    // Processing (standard) libtorrent alerts
     // NB**: rename all to process(X), use overloading, is cleaner
     void processMetadataReceivedAlert(libtorrent::metadata_received_alert const * p);
     void processMetadataFailedAlert(libtorrent::metadata_failed_alert const * p);
@@ -382,12 +341,14 @@ private:
     void processTorrentFinishedAlert(libtorrent::torrent_finished_alert const * p);
     void processStatusUpdateAlert(libtorrent::state_update_alert const * p);
     void processTorrentRemovedAlert(libtorrent::torrent_removed_alert const * p);
-    void processSaveResumeDataAlert(libtorrent::save_resume_data_alert const * p);
+    void process(libtorrent::save_resume_data_alert const * p);
     void processSaveResumeDataFailedAlert(libtorrent::save_resume_data_failed_alert const * p);
     void processTorrentPausedAlert(libtorrent::torrent_paused_alert const * p);
     void processTorrentCheckedAlert(libtorrent::torrent_checked_alert const * p);
     void processReadPieceAlert(const libtorrent::read_piece_alert * p);
     void processPieceFinishedAlert(const libtorrent::piece_finished_alert * p);
+
+    // Processing (custome) plugin alerts
     void processStartedSellerTorrentPlugin(const StartedSellerTorrentPlugin * p);
     void processStartedBuyerTorrentPlugin(const StartedBuyerTorrentPlugin * p);
     void processBuyerTorrentPluginStatusAlert(const BuyerTorrentPluginStatusAlert * p);
@@ -399,6 +360,8 @@ private:
     void processBuyerPeerPluginRemovedAlert(const BuyerPeerPluginRemovedAlert * p);
     void processBroadcastTransactionAlert(const BroadcastTransactionAlert *p);
 
+    ///
+
     // Status
     void update(const std::vector<libtorrent::torrent_status> & statuses);
     void update(const libtorrent::torrent_status & status);
@@ -407,10 +370,11 @@ private:
     void startTorrentPlugin(const libtorrent::sha1_hash & info_hash);
 
     // Tell libtorrent try save resume data for all torrents needing it
-    int makeResumeDataCallsForAllTorrents();
+    // Assumes 
+    int requestResumeData();
 
     // Routine called after all resume data has been saved as part of an initlal begin_close() call
-    void finalize_close();
+    void finalize_stop();
 
     // Save state of controller to file
     void saveStateToFile(const char * file);

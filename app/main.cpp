@@ -21,6 +21,8 @@
 #include <InstanceManager.hpp>
 #include <gui/GeneralLoadingProgressDialog.hpp>
 
+#include <boost/asio/impl/src.hpp>
+
 #define ERROR_LOG_ENDPOINT "error.joystream.co/error"
 #define ERROR_LOG_MAX_SIZE 200*20
 

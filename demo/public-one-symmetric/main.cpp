@@ -14,6 +14,8 @@
 #include <runner/ControllerBarrier.hpp>
 #include <common/Seed.hpp>
 
+#include <boost/asio/impl/src.hpp>
+
 /**
  * Demo meant to be run against itself on public tracker,
  * can run in to roles (first and second).
