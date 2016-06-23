@@ -13,367 +13,289 @@
 #include <libtorrent/sha1_hash.hpp>
 #include <libtorrent/socket.hpp>
 
+#include <exception>
+
 namespace joystream {
 namespace extension {
 namespace request {
 
-    enum class RequestTarget {
-        Plugin,
-        TorrentPlugin,
-        PeerPlugin
-    };
+class MissingTorrent : public std::runtime_error {
 
-    // Base class for all requests
-    struct Request {
-        virtual ~Request() {}
-        virtual RequestTarget target() const = 0;
-    };
+public:
 
-    //// PluginRequest
+    MissingTorrent()
+        : std::runtime_error("Torrent missing") {
+    }
 
-    struct PluginRequest : public Request {
+};
 
-        virtual RequestTarget target() const {
-            return RequestTarget::Plugin;
-        }
+// T = request in this namespace
+template <class T>
+class SubroutineResult {
 
-    };
+public:
 
-    //// TorrentPluginRequest
+    SubroutineResult() {
+    }
 
-    // NB: **Not sure this enum is really required?**
-    enum class TorrentPluginRequestType {
-        Start,
-        Stop,
-        Pause,
-        UpdateBuyerTerms,
-        UpdateSellerTerms,
-        ToObserveMode,
-        ToSellMode,
-        ToBuyMode,
-        ChangeDownloadLocation
-    };
+    SubroutineResult(const T * request)
+        : _request(request) {
+    }
 
-    struct TorrentPluginRequest : public Request {
+    SubroutineResult(const T * request,
+                     const std::exception_ptr & exception)
+        : _request(request)
+        , exception(exception) {
+    }
 
-        struct MissingTorrentPlugin {
+    void result() const {
 
-            MissingTorrentPlugin(const TorrentPluginRequest * request)
-                : request(request) {}
+        if(exception)
+            std::rethrow_exception(exception);
+    }
 
-            const TorrentPluginRequest * request;
-        };
+    const T * request() const {
+        return _request;
+    }
 
-        TorrentPluginRequest(const libtorrent::sha1_hash & infoHash)
-            : infoHash(infoHash) {}
+private:
 
-        virtual ~TorrentPluginRequest() {}
+    friend class Plugin;
 
-        RequestTarget target() const {
-            return RequestTarget::TorrentPlugin;
-        }
+    // Initial request
+    const T * _request;
 
-        virtual TorrentPluginRequestType type() const = 0;
+    // Exception result
+    std::exception_ptr exception;
+};
 
-        // info hash of torrent plugin target of request
-        libtorrent::sha1_hash infoHash;
-    };
+// T = request in this namespace
+// T2 = result from request, must be (copy+default)constructible
+template <class T, class T2>
+class MethodResult : public SubroutineResult<T> {
 
-    struct Start : public TorrentPluginRequest {
+public:
 
-        enum Outcome {
-            StateIncompatibleOperation,
-            SessionModeNotSet,
-            Success
-        };
+    MethodResult() {
+    }
 
-        struct Response {
+    MethodResult(const T * request,
+                 const std::exception_ptr exception,
+                 const T2 & result)
+        : SubroutineResult<T>(request, exception)
+        , _result(result) {
+    }
 
-            Response(const Start * request, Outcome outcome)
-                : request(request)
-                , outcome(outcome) {}
+    T2 result() const {
 
-            const Start * request;
-            Outcome outcome;
-        };
+        SubroutineResult<T>::result();
 
-        Start(const libtorrent::sha1_hash & infoHash)
-            : TorrentPluginRequest(infoHash) {}
+        return _result;
+    }
 
-        virtual ~Start() {}
+private:
 
-        virtual TorrentPluginRequestType type() const{
-            return TorrentPluginRequestType::Start;
-        }
-    };
+    // Method result
+    T2 _result;
+};
 
-    struct Stop : public TorrentPluginRequest {
+/**
+enum class RequestTarget {
+    Plugin,
+    TorrentPlugin,
+    PeerPlugin
+};
 
-        enum Outcome {
-            StateIncompatibleOperation,
-            SessionModeNotSet,
-            Success
-        };
+// Base class for all requests
+struct Request {
+    virtual ~Request() {}
+    virtual RequestTarget target() const = 0;
+};
 
-        struct Response {
+//// PluginRequest
 
-            Response(const Stop * request, Outcome outcome)
-                : request(request)
-                , outcome(outcome) {}
+struct PluginRequest : public Request {
 
-            const Stop * request;
-            Outcome outcome;
-        };
+    virtual RequestTarget target() const {
+        return RequestTarget::Plugin;
+    }
 
-        Stop(const libtorrent::sha1_hash & infoHash)
-            : TorrentPluginRequest(infoHash) {}
+};
 
-        virtual ~Stop() {}
+//// TorrentPluginRequest
 
-        virtual TorrentPluginRequestType type() const{
-            return TorrentPluginRequestType::Stop;
-        }
-    };
+// NB: **Not sure this enum is really required?**
+enum class TorrentPluginRequestType {
+    Start,
+    Stop,
+    Pause,
+    UpdateBuyerTerms,
+    UpdateSellerTerms,
+    ToObserveMode,
+    ToSellMode,
+    ToBuyMode,
+    ChangeDownloadLocation
+};
 
-    struct Pause : public TorrentPluginRequest {
+struct TorrentPluginRequest : public Request {
 
-        enum class Outcome {
-            StateIncompatibleOperation,
-            SessionModeNotSet,
-            Success
-        };
+    TorrentPluginRequest(const libtorrent::sha1_hash & infoHash)
+        : infoHash(infoHash) {}
 
-        struct Response {
+    virtual ~TorrentPluginRequest() {}
 
-            Response(const Pause * request, Outcome outcome)
-                : request(request)
-                , outcome(outcome) {}
+    RequestTarget target() const {
+        return RequestTarget::TorrentPlugin;
+    }
 
-            const Pause * request;
-            Outcome outcome;
-        };
+    virtual TorrentPluginRequestType type() const = 0;
 
-        Pause(const libtorrent::sha1_hash & infoHash)
-            : TorrentPluginRequest(infoHash) {}
+    // info hash of torrent plugin target of request
+    libtorrent::sha1_hash infoHash;
+};
+*/
 
-        virtual ~Pause() {}
+struct TorrentPluginRequest {
 
-        virtual TorrentPluginRequestType type() const {
-            return TorrentPluginRequestType::Pause;
-        }
-    };
+    TorrentPluginRequest(const libtorrent::sha1_hash & infoHash)
+        : infoHash(infoHash) {
+    }
 
-    struct UpdateBuyerTerms : public TorrentPluginRequest {
+    virtual ~TorrentPluginRequest() {
+    }
 
-        enum class Outcome {
-            SessionModeNotSet,
-            ModeIncompatibleOperation,
-            Success
-        };
+    libtorrent::sha1_hash infoHash;
+};
 
-        struct Response {
+struct Start : public TorrentPluginRequest {
 
-            Response(const UpdateBuyerTerms * request, Outcome outcome)
-                : request(request)
-                , outcome(outcome) {}
+    typedef SubroutineResult<Start> Result;
 
-            const UpdateBuyerTerms * request;
-            Outcome outcome;
-        };
+    Start(const libtorrent::sha1_hash & infoHash)
+        : TorrentPluginRequest(infoHash) {
+    }
+};
 
-        UpdateBuyerTerms(const libtorrent::sha1_hash & infoHash, const protocol_wire::BuyerTerms & terms)
-            : TorrentPluginRequest(infoHash)
-            , terms(terms) {}
+struct Stop : public TorrentPluginRequest {
 
-        virtual ~UpdateBuyerTerms() {}
+    typedef SubroutineResult<Stop> Result;
 
-        virtual TorrentPluginRequestType type() const{
-            return TorrentPluginRequestType::UpdateBuyerTerms;
-        }
+    Stop(const libtorrent::sha1_hash & infoHash)
+        : TorrentPluginRequest(infoHash) {
+    }
+};
 
-        protocol_wire::BuyerTerms terms;
-    };
+struct Pause : public TorrentPluginRequest {
 
-    struct UpdateSellerTerms : public TorrentPluginRequest {
+    typedef SubroutineResult<Pause> Result;
 
-        enum class Outcome {
-            SessionModeNotSet,
-            ModeIncompatibleOperation,
-            Success
-        };
+    Pause(const libtorrent::sha1_hash & infoHash)
+        : TorrentPluginRequest(infoHash) {
+    }
+};
 
-        struct Response {
+struct UpdateBuyerTerms : public TorrentPluginRequest {
 
-            Response(const UpdateSellerTerms * request, Outcome outcome)
-                : request(request)
-                , outcome(outcome) {}
+    typedef SubroutineResult<UpdateBuyerTerms> Result;
 
-            const UpdateSellerTerms * request;
-            Outcome outcome;
-        };
+    UpdateBuyerTerms(const libtorrent::sha1_hash & infoHash, const protocol_wire::BuyerTerms & terms)
+        : TorrentPluginRequest(infoHash)
+        , terms(terms) {
+    }
 
-        UpdateSellerTerms(const libtorrent::sha1_hash & infoHash, const protocol_wire::SellerTerms & terms)
-            : TorrentPluginRequest(infoHash)
-            , terms(terms) {}
+    protocol_wire::BuyerTerms terms;
+};
 
-        virtual ~UpdateSellerTerms() {}
+struct UpdateSellerTerms : public TorrentPluginRequest {
 
-        virtual TorrentPluginRequestType type() const{
-            return TorrentPluginRequestType::UpdateSellerTerms;
-        }
+    typedef SubroutineResult<UpdateSellerTerms> Result;
 
-        protocol_wire::SellerTerms terms;
-    };
+    UpdateSellerTerms(const libtorrent::sha1_hash & infoHash, const protocol_wire::SellerTerms & terms)
+        : TorrentPluginRequest(infoHash)
+        , terms(terms) {
+    }
 
-    struct ToObserveMode : public TorrentPluginRequest {
+    protocol_wire::SellerTerms terms;
+};
 
-        enum Outcome {
-            SessionAlreadyInThisMode,
-            Success
-        };
+struct ToObserveMode : public TorrentPluginRequest {
 
-        struct Response {
+    typedef SubroutineResult<ToObserveMode> Result;
 
-            Response(const ToObserveMode * request, Outcome outcome)
-                : request(request)
-                , outcome(outcome) {}
+    ToObserveMode(const libtorrent::sha1_hash & infoHash)
+        : TorrentPluginRequest(infoHash) {
+    }
+};
 
-            const ToObserveMode * request;
-            Outcome outcome;
-        };
+struct ToSellMode : public TorrentPluginRequest {
 
-        ToObserveMode(const libtorrent::sha1_hash & infoHash)
-            : TorrentPluginRequest(infoHash) {}
+    typedef SubroutineResult<ToSellMode> Result;
 
-        virtual ~ToObserveMode() {}
+    ToSellMode(const libtorrent::sha1_hash & infoHash,
+               const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+               const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
+               const protocol_session::SellingPolicy & sellingPolicy,
+               const protocol_wire::SellerTerms & terms)
+        : TorrentPluginRequest(infoHash)
+        , generateKeyPairsCallbackHandler(generateKeyPairsCallbackHandler)
+        , generateP2PKHAddressesCallbackHandler(generateP2PKHAddressesCallbackHandler)
+        , sellingPolicy(sellingPolicy)
+        , terms(terms) {
+    }
 
-        virtual TorrentPluginRequestType type() const{
-            return TorrentPluginRequestType::ToObserveMode;
-        }
-    };
+    protocol_session::GenerateKeyPairsCallbackHandler generateKeyPairsCallbackHandler;
+    protocol_session::GenerateP2PKHAddressesCallbackHandler generateP2PKHAddressesCallbackHandler;
+    protocol_session::SellingPolicy sellingPolicy;
+    protocol_wire::SellerTerms terms;
+};
 
-    struct ToSellMode : public TorrentPluginRequest {
+struct ToBuyMode : public TorrentPluginRequest {
 
-        enum class Outcome {
-            SessionAlreadyInThisMode,
-            Success
-        };
+    typedef SubroutineResult<ToBuyMode> Result;
 
-        struct Response {
+    ToBuyMode(const libtorrent::sha1_hash & infoHash,
+             const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+             const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
+             const Coin::UnspentP2PKHOutput & funding,
+             const protocol_session::BuyingPolicy & policy,
+             const protocol_wire::BuyerTerms & terms)
+        : TorrentPluginRequest(infoHash)
+        , generateKeyPairsCallbackHandler(generateKeyPairsCallbackHandler)
+        , generateP2PKHAddressesCallbackHandler(generateP2PKHAddressesCallbackHandler)
+        , funding(funding)
+        , policy(policy)
+        , terms(terms) {}
 
-            Response(const ToSellMode * request, Outcome outcome)
-                : request(request)
-                , outcome(outcome) {}
+    protocol_session::GenerateKeyPairsCallbackHandler generateKeyPairsCallbackHandler;
+    protocol_session::GenerateP2PKHAddressesCallbackHandler generateP2PKHAddressesCallbackHandler;
+    Coin::UnspentP2PKHOutput funding;
+    protocol_session::BuyingPolicy policy;
+    protocol_wire::BuyerTerms terms;
+};
 
-            const ToSellMode * request;
-            Outcome outcome;
-        };
+/**
+struct ChangeDownloadLocation : public TorrentPluginRequest {
 
-        ToSellMode(const libtorrent::sha1_hash & infoHash,
-                   const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-                   const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-                   const protocol_session::SellingPolicy & sellingPolicy,
-                   const protocol_wire::SellerTerms & terms)
-            : TorrentPluginRequest(infoHash)
-            , generateKeyPairsCallbackHandler(generateKeyPairsCallbackHandler)
-            , generateP2PKHAddressesCallbackHandler(generateP2PKHAddressesCallbackHandler)
-            , sellingPolicy(sellingPolicy)
-            , terms(terms) {}
+    typedef SubroutineResult<ChangeDownloadLocation> Result;
 
-        virtual ~ToSellMode() {}
+    ChangeDownloadLocation(const libtorrent::sha1_hash & infoHash, int pieceIndex)
+        : TorrentPluginRequest(infoHash)
+        , pieceIndex(pieceIndex) {
+    }
 
-        virtual TorrentPluginRequestType type() const {
-            return TorrentPluginRequestType::ToSellMode;
-        }
+    // Piece to start downloading from
+    int pieceIndex;
+};
 
-        protocol_session::GenerateKeyPairsCallbackHandler generateKeyPairsCallbackHandler;
-        protocol_session::GenerateP2PKHAddressesCallbackHandler generateP2PKHAddressesCallbackHandler;
-        protocol_session::SellingPolicy sellingPolicy;
-        protocol_wire::SellerTerms terms;
-    };
+//// PeerPluginRequest
 
-    struct ToBuyMode : public TorrentPluginRequest {
+struct PeerPluginRequest : public Request {
+    virtual RequestTarget target() const {
+        return RequestTarget::PeerPlugin;
+    }
+};
+*/
 
-        enum Outcome {
-            SessionAlreadyInThisMode,
-            Success
-        };
-
-        struct Response {
-
-            Response(const ToBuyMode * request, Outcome outcome)
-                : request(request)
-                , outcome(outcome) {}
-
-            const ToBuyMode * request;
-            Outcome outcome;
-        };
-
-        ToBuyMode(const libtorrent::sha1_hash & infoHash,
-                 const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-                 const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-                 const Coin::UnspentP2PKHOutput & funding,
-                 const protocol_session::BuyingPolicy & policy,
-                 const protocol_wire::BuyerTerms & terms)
-            : TorrentPluginRequest(infoHash)
-            , generateKeyPairsCallbackHandler(generateKeyPairsCallbackHandler)
-            , generateP2PKHAddressesCallbackHandler(generateP2PKHAddressesCallbackHandler)
-            , funding(funding)
-            , policy(policy)
-            , terms(terms) {}
-
-        virtual ~ToBuyMode() {}
-
-        virtual TorrentPluginRequestType type() const {
-           return TorrentPluginRequestType::ToBuyMode;
-        }
-
-        protocol_session::GenerateKeyPairsCallbackHandler generateKeyPairsCallbackHandler;
-        protocol_session::GenerateP2PKHAddressesCallbackHandler generateP2PKHAddressesCallbackHandler;
-        Coin::UnspentP2PKHOutput funding;
-        protocol_session::BuyingPolicy policy;
-        protocol_wire::BuyerTerms terms;
-    };
-
-    struct ChangeDownloadLocation : public TorrentPluginRequest {
-
-        enum Outcome {
-            Success
-            // missing more stuff
-        };
-
-        struct Response {
-
-            Response(const ChangeDownloadLocation * request, Outcome outcome)
-                : request(request)
-                , outcome(outcome) {}
-
-            const ChangeDownloadLocation * request;
-            Outcome outcome;
-        };
-
-        ChangeDownloadLocation(const libtorrent::sha1_hash & infoHash, int pieceIndex)
-            : TorrentPluginRequest(infoHash)
-            , pieceIndex(pieceIndex) {
-        }
-
-        virtual ~ChangeDownloadLocation() {}
-
-        virtual TorrentPluginRequestType type() const{
-            return TorrentPluginRequestType::ChangeDownloadLocation;
-        }
-
-        // Piece to start downloading from
-        int pieceIndex;
-    };
-
-    //// PeerPluginRequest
-
-    struct PeerPluginRequest : public Request {
-        virtual RequestTarget target() const {
-            return RequestTarget::PeerPlugin;
-        }
-    };
 }
 }
 }

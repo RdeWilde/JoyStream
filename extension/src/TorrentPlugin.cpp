@@ -7,9 +7,7 @@
 
 #include <extension/TorrentPlugin.hpp>
 #include <extension/Plugin.hpp>
-#include <extension/Alert.hpp>
 #include <extension/Request.hpp>
-
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/peer_connection.hpp>
 #include <libtorrent/bt_peer_connection.hpp>
@@ -72,7 +70,7 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorr
 
         // then disconnect
         libtorrent::error_code ec; // <-- set this to something?
-        connection->disconnect(ec);
+        connection->disconnect(ec, libtorrent::operation_t::op_bittorrent);
 
         // and don't install plugin
         return boost::shared_ptr<PeerPlugin>(nullptr);
@@ -204,25 +202,45 @@ void TorrentPlugin::on_add_peer(const libtorrent::tcp::endpoint & endPoint, int 
     */
 }
 
+/**
 void TorrentPlugin::handle(const request::TorrentPluginRequest * r) {
 
     assert(r->infoHash == _infoHash);
 
+    // Get handle to torrent
+    libtorrent::torrent_handle h = getTorrent()->get_handle();
+
+    // Get alert manager
+    libtorrent::alert_manager & manager = alert_manager();
+
     // Process request and wrap response in an alert
+    if(auto startRequest = dynamic_cast<const request::Start *>(r)){
 
-    libtorrent::alert * alert;
 
-    if(auto startRequest = dynamic_cast<const request::Start *>(r))
-        alert = new alert::RequestResult<request::Start::Response>(request::Start::Response(startRequest, start()));
-    else if (auto stopRequest = dynamic_cast<const request::Stop *>(r))
-        alert = new alert::RequestResult<request::Stop::Response>(request::Stop::Response(stopRequest, stop()));
-    else if (auto pauseRequest = dynamic_cast<const request::Pause *>(r))
-        alert = new alert::RequestResult<request::Pause::Response>(request::Pause::Response(pauseRequest, pause()));
-    else if (auto updateBuyerTermsRequest = dynamic_cast<const request::UpdateBuyerTerms *>(r))
-        alert = new alert::RequestResult<request::UpdateBuyerTerms::Response>(request::UpdateBuyerTerms::Response(updateBuyerTermsRequest, updateBuyerTerms(updateBuyerTermsRequest->terms)));
-    else if (auto updateSellerTermsRequest = dynamic_cast<const request::UpdateSellerTerms *>(r))
-        alert = new alert::RequestResult<request::UpdateSellerTerms::Response>(request::UpdateSellerTerms::Response(updateSellerTermsRequest, updateSellerTerms(updateSellerTermsRequest->terms)));
-    else if (auto toObserveModeRequest = dynamic_cast<const request::ToObserveMode *>(r)) {
+        manager.emplace_alert<alert::SubroutineResult<request::Start::Response>>(h, request::Start::Response(startRequest, start()));
+
+        //manager.emplace_alert<alert::RequestResult<request::Start::Response>>(h, request::Start::Response(startRequest, start()));
+    } else if (auto stopRequest = dynamic_cast<const request::Stop *>(r)) {
+
+        manager.emplace_alert<alert::SubroutineResult<request::Stop::Response>>(h, request::Stop::Response(stopRequest, stop()));
+
+        //manager.emplace_alert<alert::RequestResult<request::Stop::Response>>(h, stopRequest, stop());
+    } else if (auto pauseRequest = dynamic_cast<const request::Pause *>(r)) {
+
+        manager.emplace_alert<alert::SubroutineResult<request::Pause::Response>>(h, request::Pause::Response(pauseRequest, pause()));
+
+        //manager.emplace_alert<alert::RequestResult<request::Pause::Response>>(h, pauseRequest, pause());
+    } else if (auto updateBuyerTermsRequest = dynamic_cast<const request::UpdateBuyerTerms *>(r)) {
+
+        manager.emplace_alert<alert::SubroutineResult<request::UpdateBuyerTerms::Response>>(h, request::UpdateBuyerTerms::Response(updateBuyerTermsRequest, updateBuyerTerms(updateBuyerTermsRequest->terms)));
+
+        //manager.emplace_alert<alert::RequestResult<request::UpdateBuyerTerms::Response>>(h, updateBuyerTermsRequest, updateBuyerTerms(updateBuyerTermsRequest->terms));
+    } else if (auto updateSellerTermsRequest = dynamic_cast<const request::UpdateSellerTerms *>(r)) {
+
+        manager.emplace_alert<alert::SubroutineResult<request::UpdateSellerTerms::Response>>(h, request::UpdateSellerTerms::Response(updateSellerTermsRequest, updateSellerTerms(updateSellerTermsRequest->terms)));
+
+        //manager.emplace_alert<alert::RequestResult<request::UpdateSellerTerms::Response>>(h, updateSellerTermsRequest, updateSellerTerms(updateSellerTermsRequest->terms));
+    } else if (auto toObserveModeRequest = dynamic_cast<const request::ToObserveMode *>(r)) {
 
         // Clear relevant mappings
         // NB: We are doing clearing regardless of whether operation is successful!
@@ -231,7 +249,9 @@ void TorrentPlugin::handle(const request::TorrentPluginRequest * r) {
         else if(_session.mode() == protocol_session::SessionMode::buying)
             _outstandingFullPieceArrivedCalls.clear();
 
-        alert = new alert::RequestResult<request::ToObserveMode::Response>(request::ToObserveMode::Response(toObserveModeRequest, toObserveMode()));
+        manager.emplace_alert<alert::SubroutineResult<request::ToObserveMode::Response>>(h, request::ToObserveMode::Response(toObserveModeRequest, toObserveMode()));
+
+        //manager.emplace_alert<alert::RequestResult<request::ToObserveMode::Response>>(h, toObserveModeRequest, toObserveMode());
 
     } else if (const request::ToSellMode * toSellModeRequest = dynamic_cast<const request::ToSellMode *>(r)) {
 
@@ -243,10 +263,11 @@ void TorrentPlugin::handle(const request::TorrentPluginRequest * r) {
         if(_session.mode() == protocol_session::SessionMode::buying)
             _outstandingFullPieceArrivedCalls.clear();
 
-        alert = new alert::RequestResult<request::ToSellMode::Response>(request::ToSellMode::Response(toSellModeRequest, toSellMode(toSellModeRequest->generateKeyPairsCallbackHandler,
-                                                                                                                                    toSellModeRequest->generateP2PKHAddressesCallbackHandler,
-                                                                                                                                    toSellModeRequest->sellingPolicy,
-                                                                                                                                    toSellModeRequest->terms)));
+
+        manager.emplace_alert<alert::SubroutineResult<request::ToSellMode::Response>>(h, request::ToSellMode::Response(toSellModeRequest, toSellMode(toSellModeRequest->generateKeyPairsCallbackHandler,
+                                                                                                                 toSellModeRequest->generateP2PKHAddressesCallbackHandler,
+                                                                                                                 toSellModeRequest->sellingPolicy,
+                                                                                                                 toSellModeRequest->terms)));
 
     } else if (const request::ToBuyMode * toBuyModeRequest = dynamic_cast<const request::ToBuyMode *>(r)) {
 
@@ -258,11 +279,13 @@ void TorrentPlugin::handle(const request::TorrentPluginRequest * r) {
         if(_session.mode() == protocol_session::SessionMode::selling)
             _outstandingLoadPieceForBuyerCalls.clear();
 
-        alert = new alert::RequestResult<request::ToBuyMode::Response>(request::ToBuyMode::Response(toBuyModeRequest, toBuyMode(toBuyModeRequest->generateKeyPairsCallbackHandler,
-                                                                                                                                toBuyModeRequest->generateP2PKHAddressesCallbackHandler,
-                                                                                                                                toBuyModeRequest->funding,
-                                                                                                                                toBuyModeRequest->policy,
-                                                                                                                                toBuyModeRequest->terms)));
+
+        manager.emplace_alert<alert::SubroutineResult<request::ToBuyMode::Response>>(h, request::ToBuyMode::Response(toBuyModeRequest, toBuyMode(toBuyModeRequest->generateKeyPairsCallbackHandler,
+                                                                                                               toBuyModeRequest->generateP2PKHAddressesCallbackHandler,
+                                                                                                               toBuyModeRequest->funding,
+                                                                                                               toBuyModeRequest->policy,
+                                                                                                               toBuyModeRequest->terms)));
+
 
 
 
@@ -270,10 +293,8 @@ void TorrentPlugin::handle(const request::TorrentPluginRequest * r) {
         assert(false);
     else
         assert(false);
-
-    // Send alert
-    sendTorrentPluginAlertPtr(alert);
 }
+*/
 
 void TorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) {
 
@@ -334,14 +355,15 @@ status::TorrentPlugin TorrentPlugin::status() const {
     return status;
 }
 
+/**
 void TorrentPlugin::sendTorrentPluginAlert(const libtorrent::alert & alert) {
 
     boost::shared_ptr<libtorrent::torrent> torrent = _torrent.lock();
 
     assert(torrent);
 
-    torrent->alerts().post_alert(alert);
-    //_torrent.alerts().emplace_alert(alert);
+    //torrent->alerts().post_alert(alert);
+    getTorrent()->alerts().emplace_alert(alert);
 }
 
 void TorrentPlugin::sendTorrentPluginAlertPtr(libtorrent::alert * alert) {
@@ -350,8 +372,13 @@ void TorrentPlugin::sendTorrentPluginAlertPtr(libtorrent::alert * alert) {
 
     assert(torrent);
 
-    torrent->alerts().post_alert_ptr(alert);
-    //_torrent.alerts().emplace_alert(alert);
+    //torrent->alerts().post_alert_ptr(alert);
+    getTorrent()->alerts().emplace_alert(alert);
+}
+*/
+
+libtorrent::alert_manager & TorrentPlugin::alert_manager() const {
+    return getTorrent()->alerts();
 }
 
 PeerPlugin * TorrentPlugin::getRawPlugin(const libtorrent::tcp::endpoint & endPoint) {
@@ -366,6 +393,14 @@ PeerPlugin * TorrentPlugin::getRawPlugin(const libtorrent::tcp::endpoint & endPo
     assert(peerPlugin);
 
     return peerPlugin.get();
+}
+
+libtorrent::torrent * TorrentPlugin::getTorrent() const {
+
+    boost::shared_ptr<libtorrent::torrent> torrent = _torrent.lock();
+    assert(torrent);
+
+    return torrent.get();
 }
 
 libtorrent::torrent * TorrentPlugin::getTorrent()  {
@@ -390,136 +425,87 @@ protocol_session::TorrentPieceInformation TorrentPlugin::torrentPieceInformation
     return information;
 }
 
-request::Start::Outcome TorrentPlugin::start() {
+template<>
+request::Start::Result TorrentPlugin::process<request::Start>(const request::Start * r) {
 
-    try {
-        _session.start();
-    } catch (const protocol_session::exception::StateIncompatibleOperation &) {
-        return request::Start::Outcome::StateIncompatibleOperation;
-    } catch (const protocol_session::exception::SessionModeNotSetException &) {
-        return request::Start::Outcome::SessionModeNotSet;
-    }
+    _session.start();
 
-    return request::Start::Outcome::Success;
+    return request::Start::Result(r);
 }
 
-request::Stop::Outcome TorrentPlugin::stop() {
+template<>
+request::Stop::Result TorrentPlugin::process<request::Stop>(const request::Stop * r) {
 
-    try {
-        _session.stop();
-    } catch (const protocol_session::exception::StateIncompatibleOperation &) {
-        return request::Stop::Outcome::StateIncompatibleOperation;
-    } catch (const protocol_session::exception::SessionModeNotSetException &) {
-        return request::Stop::Outcome::SessionModeNotSet;
-    }
+    _session.stop();
 
-    return request::Stop::Outcome::Success;
+    return request::Stop::Result(r);
 }
 
-request::Pause::Outcome TorrentPlugin::pause() {
+template<>
+request::Pause::Result TorrentPlugin::process<request::Pause>(const request::Pause * r) {
 
-    try {
-        _session.pause();
-    } catch (const protocol_session::exception::StateIncompatibleOperation &) {
-        return request::Pause::Outcome::StateIncompatibleOperation;
-    } catch (const protocol_session::exception::SessionModeNotSetException &) {
-        return request::Pause::Outcome::SessionModeNotSet;
-    }
+    _session.pause();
 
-    return request::Pause::Outcome::Success;
+    return request::Pause::Result(r);
 }
 
-request::UpdateBuyerTerms::Outcome TorrentPlugin::updateBuyerTerms(const protocol_wire::BuyerTerms & terms) {
+template<>
+request::UpdateBuyerTerms::Result TorrentPlugin::process<request::UpdateBuyerTerms>(const request::UpdateBuyerTerms * r) {
 
-    try {
-        _session.updateTerms(terms);
-    } catch(const protocol_session::exception::SessionModeNotSetException &) {
-        return request::UpdateBuyerTerms::Outcome::SessionModeNotSet;
-    } catch(const protocol_session::exception::ModeIncompatibleOperation &) {
-        return request::UpdateBuyerTerms::Outcome::ModeIncompatibleOperation;
-    }
+    _session.updateTerms(r->terms);
 
-    return request::UpdateBuyerTerms::Outcome::Success;
+    return request::UpdateBuyerTerms::Result(r);
 }
 
-request::UpdateSellerTerms::Outcome TorrentPlugin::updateSellerTerms(const protocol_wire::SellerTerms & terms) {
+template<>
+request::UpdateSellerTerms::Result TorrentPlugin::process<request::UpdateSellerTerms>(const request::UpdateSellerTerms * r) {
 
-    try {
-        _session.updateTerms(terms);
-    } catch(const protocol_session::exception::SessionModeNotSetException &) {
-        return request::UpdateSellerTerms::Outcome::SessionModeNotSet;
-    } catch(const protocol_session::exception::ModeIncompatibleOperation &) {
-        return request::UpdateSellerTerms::Outcome::ModeIncompatibleOperation;
-    }
+    _session.updateTerms(r->terms);
 
-    return request::UpdateSellerTerms::Outcome::Success;
+    return request::UpdateSellerTerms::Result(r);
 }
 
-request::ToObserveMode::Outcome TorrentPlugin::toObserveMode() {
+template<>
+request::ToObserveMode::Result TorrentPlugin::process<request::ToObserveMode>(const request::ToObserveMode * r) {
 
-    try {
-        _session.toObserveMode(removeConnection());
-    } catch(const protocol_session::exception::SessionAlreadyInThisMode &) {
-        return request::ToObserveMode::Outcome::SessionAlreadyInThisMode;
-    }
+    _session.toObserveMode(removeConnection());
 
-    return request::ToObserveMode::Outcome::Success;
+    return request::ToObserveMode::Result(r);
 }
 
-request::ToSellMode::Outcome TorrentPlugin::toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-                                                       const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-                                                       const protocol_session::SellingPolicy & sellingPolicy,
-                                                       const protocol_wire::SellerTerms & terms) {
+template<>
+request::ToSellMode::Result TorrentPlugin::process<request::ToSellMode>(const request::ToSellMode * r) {
 
     // Get maximum number of pieces
     int maxPieceIndex = getTorrent()->picker().num_pieces() - 1;
 
-    try {
+    _session.toSellMode(removeConnection(),
+                        r->generateKeyPairsCallbackHandler,
+                        r->generateP2PKHAddressesCallbackHandler,
+                        loadPieceForBuyer(),
+                        claimLastPayment(),
+                        anchorAnnounced(),
+                        r->sellingPolicy,
+                        r->terms,
+                        maxPieceIndex);
 
-        _session.toSellMode(removeConnection(),
-                            generateKeyPairsCallbackHandler,
-                            generateP2PKHAddressesCallbackHandler,
-                            loadPieceForBuyer(),
-                            claimLastPayment(),
-                            anchorAnnounced(),
-                            sellingPolicy,
-                            terms,
-                            maxPieceIndex);
-
-    } catch (const protocol_session::exception::SessionAlreadyInThisMode &) {
-        return request::ToSellMode::Outcome::SessionAlreadyInThisMode;
-    }
-
-    return request::ToSellMode::Outcome::Success;
-
+    return request::ToSellMode::Result(r);
 }
 
-request::ToBuyMode::Outcome TorrentPlugin::toBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-                                                     const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-                                                     const Coin::UnspentP2PKHOutput & funding,
-                                                     const protocol_session::BuyingPolicy & policy,
-                                                     const protocol_wire::BuyerTerms & terms) {
+template<>
+request::ToBuyMode::Result TorrentPlugin::process<request::ToBuyMode>(const request::ToBuyMode * r) {
 
-    //
+    _session.toBuyMode(removeConnection(),
+                       r->generateKeyPairsCallbackHandler,
+                       r->generateP2PKHAddressesCallbackHandler,
+                       broadcastTransaction(),
+                       fullPieceArrived(),
+                       r->funding,
+                       r->policy,
+                       r->terms,
+                       torrentPieceInformation(getTorrent()->picker()));
 
-    try {
-
-        _session.toBuyMode(removeConnection(),
-                           generateKeyPairsCallbackHandler,
-                           generateP2PKHAddressesCallbackHandler,
-                           broadcastTransaction(),
-                           fullPieceArrived(),
-                           funding,
-                           policy,
-                           terms,
-                           torrentPieceInformation(getTorrent()->picker()));
-
-    } catch (const protocol_session::exception::SessionAlreadyInThisMode &) {
-        return request::ToBuyMode::Outcome::SessionAlreadyInThisMode;
-    }
-
-    return request::ToBuyMode::Outcome::Success;
-
+    return request::ToBuyMode::Result(r);
 }
 
 void TorrentPlugin::addPeerToSession(const libtorrent::tcp::endpoint & endPoint) {
@@ -594,9 +580,16 @@ protocol_session::RemovedConnectionCallbackHandler<libtorrent::tcp::endpoint> To
 
 protocol_session::BroadcastTransaction TorrentPlugin::broadcastTransaction() {
 
-    return [this](const Coin::Transaction & tx) -> bool {
+    // Get alert manager and handle for torrent
+    libtorrent::torrent * t = getTorrent();
+    libtorrent::alert_manager & manager = t->alerts();
+    libtorrent::torrent_handle h = t->get_handle();
 
-        this->sendTorrentPluginAlert(alert::BroadcastTransaction(tx));
+    return [&manager, h](const Coin::Transaction & tx) -> bool {
+
+        manager.emplace_alert<alert::BroadcastTransaction>(h, tx);
+
+        //this->sendTorrentPluginAlert(alert::BroadcastTransaction(tx));
 
         return true; // remove later, there is a github issue
     };
@@ -666,23 +659,34 @@ protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> TorrentPlugin::lo
 
 protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> TorrentPlugin::claimLastPayment() {
 
-    return [this](const libtorrent::tcp::endpoint &, const joystream::paymentchannel::Payee & payee) {
+    // Get alert manager and handle for torrent
+    libtorrent::torrent * t = getTorrent();
+    libtorrent::alert_manager & manager = t->alerts();
+    libtorrent::torrent_handle h = t->get_handle();
+
+    return [&manager, h](const libtorrent::tcp::endpoint &, const joystream::paymentchannel::Payee & payee) {
 
         Coin::Transaction tx = payee.lastPaymentTransaction();
 
-        this->sendTorrentPluginAlert(alert::BroadcastTransaction(tx));
+        //this->sendTorrentPluginAlert(alert::BroadcastTransaction(tx));
+
+        manager.emplace_alert<alert::BroadcastTransaction>(h, tx);
     };
 }
 
 protocol_session::AnchorAnnounced<libtorrent::tcp::endpoint> TorrentPlugin::anchorAnnounced() {
 
-    return [this](const libtorrent::tcp::endpoint & endPoint, quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash) {
+    // Get alert manager and handle for torrent
+    libtorrent::torrent * t = getTorrent();
+    libtorrent::alert_manager & manager = t->alerts();
+    libtorrent::torrent_handle h = t->get_handle();
 
-        sendTorrentPluginAlert(alert::AnchorAnnounced(endPoint,
-                                                      value,
-                                                      anchor,
-                                                      contractPk,
-                                                      finalPkHash));
+    return [&manager, h](const libtorrent::tcp::endpoint & endPoint, quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash & finalPkHash) {
+
+        /**
+        sendTorrentPluginAlert(alert::AnchorAnnounced(endPoint, value, anchor, contractPk, finalPkHash)); */
+
+        manager.emplace_alert<alert::AnchorAnnounced>(h, endPoint, value, anchor, contractPk, finalPkHash);
     };
 }
 

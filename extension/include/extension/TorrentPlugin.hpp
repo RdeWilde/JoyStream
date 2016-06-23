@@ -26,250 +26,224 @@ namespace libtorrent {
 
 namespace joystream {
 namespace extension {
-
-/** We need inner types which cannot be foward declared
-namespace request {
-    class TorrentPluginRequest;
-    class Start;
-    class Stop;
-    class Pause;
-    class UpdateBuyerTerms;
-    class UpdateSellerTerms;
-    class ToObserveMode;
-    class ToSellMode;
-    class ToBuyMode;
-    class ChangeDownloadLocation;
-}
-*/
-
 namespace status {
     class TorrentPlugin;
 }
 
-    class Plugin;
+class Plugin;
 
-    class TorrentPlugin : public libtorrent::torrent_plugin {
+class TorrentPlugin : public libtorrent::torrent_plugin {
 
-    public:
+public:
 
-        struct Policy {
+    struct Policy {
 
-            Policy(bool banPeersWithoutExtension,
-                   bool banPeersWithPastMalformedExtendedMessage,
-                   const PeerPlugin::Policy & peerPolicy)
-                : banPeersWithoutExtension(banPeersWithoutExtension)
-                , banPeersWithPastMalformedExtendedMessage(banPeersWithPastMalformedExtendedMessage)
-                , peerPolicy(peerPolicy) {
-            }
+        Policy(bool banPeersWithoutExtension,
+               bool banPeersWithPastMalformedExtendedMessage,
+               const PeerPlugin::Policy & peerPolicy)
+            : banPeersWithoutExtension(banPeersWithoutExtension)
+            , banPeersWithPastMalformedExtendedMessage(banPeersWithPastMalformedExtendedMessage)
+            , peerPolicy(peerPolicy) {
+        }
 
-            Policy() : Policy(false, false, PeerPlugin::Policy()) { }
+        Policy() : Policy(false, false, PeerPlugin::Policy()) { }
 
-            // Should TorrenPlugin::new_connection accept a peer which
-            // is known to not have extension from before.
-            bool banPeersWithoutExtension;
+        // Should TorrenPlugin::new_connection accept a peer which
+        // is known to not have extension from before.
+        bool banPeersWithoutExtension;
 
-            // Should TorrenPlugin::new_connection accept a peer which
-            // is known to have sent a malformed extended message before.
-            bool banPeersWithPastMalformedExtendedMessage;
+        // Should TorrenPlugin::new_connection accept a peer which
+        // is known to have sent a malformed extended message before.
+        bool banPeersWithPastMalformedExtendedMessage;
 
-            // Policy for peer plugins
-            PeerPlugin::Policy peerPolicy;
-        };
-
-        TorrentPlugin(Plugin * plugin,
-                      const boost::shared_ptr<libtorrent::torrent> & torrent,
-                      const std::string & bep10ClientIdentifier,
-                      const Policy & policy);
-
-        virtual ~TorrentPlugin();
-
-        //// Libtorrent hooks
-
-        // This function is called each time a new peer is connected to the torrent.
-        // You may choose to ignore this by just returning a default constructed shared_ptr (in which case you don't need to override this member function).
-        // If you need an extension to the peer connection (which most plugins do) you are supposed to return an instance of your peer_plugin class.
-        // Which in turn will have its hook functions called on event specific to that peer.
-        // The peer_connection_handle will be valid as long as the shared_ptr is being held by the torrent object. So, it is generally a good idea to not
-        // keep a shared_ptr to your own peer_plugin. If you want to keep references to it, use weak_ptr.
-        // If this function throws an exception, the connection will be closed.
-        virtual boost::shared_ptr<libtorrent::peer_plugin> new_connection(libtorrent::peer_connection * connection);
-
-        // These hooks are called when a piece passes the hash check or fails the hash check, respectively. The index is the piece index that was downloaded.
-        // It is possible to access the list of peers that participated in sending the piece through the torrent and the piece_picker.
-        virtual void on_piece_pass(int index);
-        virtual void on_piece_failed(int index);
-
-        // This hook is called approximately once per second. It is a way of making it easy for plugins to do timed events, for sending messages or whatever.
-        virtual void tick();
-
-        // These hooks are called when the torrent is paused and unpaused respectively. The return value indicates if the event was handled.
-        // A return value of true indicates that it was handled, and no other plugin after this one will have this hook function called,
-        // and the standard handler will also not be invoked. So, returning true effectively overrides the standard behavior of pause or unpause.
-        // Note that if you call pause() or resume() on the torrent from your handler it will recurse back into your handler,
-        // so in order to invoke the standard handler, you have to keep your own state on whether you want standard behavior or overridden behavior.
-        virtual bool on_resume();
-        virtual bool on_pause();
-
-        // This function is called when the initial files of the torrent have been checked. If there are no files to check, this function is called immediately.
-        // i.e. This function is always called when the torrent is in a state where it can start downloading.
-        virtual void on_files_checked();
-
-        // called when the torrent changes state the state is one of torrent_status::state_t enum members
-        virtual void on_state(int s);
-
-        // called every time a new peer is added to the peer list. This is before the peer is connected to.
-        // For flags, see torrent_plugin::flags_t. The source argument refers to the source where we learned
-        // about this peer from. It's a bitmask, because many sources may have told us about the same peer.
-        // For peer source flags, see peer_info::peer_source_flags.
-        virtual void on_add_peer(const libtorrent::tcp::endpoint & endPoint, int src, int flags);
-
-        //// Plugin calls
-
-        // Handle request from libtorrent client. Takes ownership of request object.
-        void handle(const request::TorrentPluginRequest * r);
-
-        // Alert from plugin about a piece being read.
-        // Is required when session is selling.
-        void pieceRead(const libtorrent::read_piece_alert * alert);
-
-        // Status
-        status::TorrentPlugin status() const;
-
-    private:
-
-        //// Torrent plugin request processing
-
-        request::Start::Outcome start();
-
-        request::Stop::Outcome stop();
-
-        request::Pause::Outcome pause();
-
-        request::UpdateBuyerTerms::Outcome updateBuyerTerms(const protocol_wire::BuyerTerms &);
-
-        request::UpdateSellerTerms::Outcome updateSellerTerms(const protocol_wire::SellerTerms &);
-
-        request::ToObserveMode::Outcome toObserveMode();
-
-        request::ToSellMode::Outcome toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler &,
-                                                const protocol_session::GenerateP2PKHAddressesCallbackHandler &,
-                                                const protocol_session::SellingPolicy &,
-                                                const protocol_wire::SellerTerms &);
-
-        request::ToBuyMode::Outcome toBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler &,
-                                              const protocol_session::GenerateP2PKHAddressesCallbackHandler &,
-                                              const Coin::UnspentP2PKHOutput & funding,
-                                              const protocol_session::BuyingPolicy &,
-                                              const protocol_wire::BuyerTerms &);
-
-        //request::ChangeDownloadLocation::Outcome changeDownloadLocation();
-
-        //// PeerPlugin notifications
-
-        friend class PeerPlugin;
-
-        // Adds peer correspoinding to given endpoint to session,
-        // is called when peer has sucessfully completed extended handshake.
-        // Not when connection is established, as in TorrentPlugin::new_connection
-        void addPeerToSession(const libtorrent::tcp::endpoint &);
-
-        // Disconnects peer, removes corresponding plugin from map
-        void disconnectPeer(const libtorrent::tcp::endpoint &, const libtorrent::error_code &);
-
-        // Determines the message type, calls correct handler, then frees message
-        void processExtendedMessage(const libtorrent::tcp::endpoint &, const joystream::protocol_wire::ExtendedMessagePayload & extendedMessage);
-
-        //// Protocol session hooks
-
-        protocol_session::RemovedConnectionCallbackHandler<libtorrent::tcp::endpoint> removeConnection();
-        protocol_session::BroadcastTransaction broadcastTransaction();
-        protocol_session::FullPieceArrived<libtorrent::tcp::endpoint> fullPieceArrived();
-        protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> loadPieceForBuyer();
-        protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> claimLastPayment();
-        protocol_session::AnchorAnnounced<libtorrent::tcp::endpoint> anchorAnnounced();
-
-        //// Members
-
-        // Parent plugin
-        // Should this be boost::shared_ptr, since life time of object is managed by it?
-        // on the other hand, we loose Plugin behaviour through libtorrent::plugin pointer, which we need!
-        Plugin * _plugin;
-
-        // Torrent for this torrent_plugin
-        boost::weak_ptr<libtorrent::torrent> _torrent;
-
-        // Client identifier used in bep10 handshake v-key
-        std::string _bep10ClientIdentifier;
-
-        // Parametrised runtime behaviour
-        Policy _policy;
-
-        // Endpoints corresponding to peers known to not have extension.
-        // Is populated by previous failed extended handshakes.
-        std::set<libtorrent::tcp::endpoint> _extensionless;
-
-        // Endpoints corresponding to peers which have sent malformed extended message
-        // including handshake.
-        std::set<libtorrent::tcp::endpoint> _sentMalformedExtendedMessage;
-
-        // Torrent info hash
-        libtorrent::sha1_hash _infoHash;
-
-        // Maps endpoint to weak peer plugin pointer, is peer_plugin, since this is
-        // Libtorrent docs (http://libtorrent.org/reference-Plugins.html#peer_plugin):
-        // The peer_connection will be valid as long as the shared_ptr is being held by the
-        // torrent object. So, it is generally a good idea to not keep a shared_ptr to
-        // your own peer_plugin. If you want to keep references to it, use weak_ptr.
-        // NB: All peers are added, while not all are added to _session, see below.
-        std::map<libtorrent::tcp::endpoint, boost::weak_ptr<PeerPlugin> > _peers;
-
-        // Protocol session
-        // NB: Only peers which support this extension will be added to session,
-        // while all peers are added to _peers
-        protocol_session::Session<libtorrent::tcp::endpoint> _session;
-
-        /**
-         * Hopefully we can ditch all of this, if we can delete connections in new_connection callback
-         *
-        // List of peer plugins scheduled for deletion
-        //std::list<boost::weak_ptr<PeerPlugin> > _peersScheduledForDeletion;
-
-        // Peers which should be deleted next tick().
-        // A peer may end up here for one of the following reasons
-        // (1) we determine in ::new_connection() that we don't want this connection.
-        // Due to assertion constraint in libtorrent the connection cannot be disconneected here.
-        //std::set<libtorrent::tcp::endpoint> _disconnectNextTick;
-        */
-
-        ///// Sell mode spesific state
-
-        // While selling, this maintains mapping between piece index and peers that are
-        // waiting for this piece to be read from disk.
-        // Will typically just be one, but may be multiple - hence set is used
-        std::map<int, std::set<libtorrent::tcp::endpoint> > _outstandingLoadPieceForBuyerCalls;
-
-        ///// Buy mode spesific state
-
-        // While buying, this maintains mapping between piece index and the single
-        // peer waiting for it to be validated and stored.
-        std::map<int, libtorrent::tcp::endpoint> _outstandingFullPieceArrivedCalls;
-
-
-        //// Utilities
-
-        // Send torrent plugin alert to libtorrent session
-        void sendTorrentPluginAlert(const libtorrent::alert & alert);
-        void sendTorrentPluginAlertPtr(libtorrent::alert * alert); // client takes ownership of alert
-
-        // Returns raw plugin pointer after asserted locking
-        PeerPlugin * getRawPlugin(const libtorrent::tcp::endpoint &);
-
-        // Returns raw torrent pointer after asserted locking
-        libtorrent::torrent * getTorrent();
-
-        // Returns torrent piece information based on current state of torrent
-        protocol_session::TorrentPieceInformation torrentPieceInformation(const libtorrent::piece_picker &) const;
+        // Policy for peer plugins
+        PeerPlugin::Policy peerPolicy;
     };
+
+    TorrentPlugin(Plugin * plugin,
+                  const boost::shared_ptr<libtorrent::torrent> & torrent,
+                  const std::string & bep10ClientIdentifier,
+                  const Policy & policy);
+
+    virtual ~TorrentPlugin();
+
+    /// Libtorrent hooks
+
+    // This function is called each time a new peer is connected to the torrent.
+    // You may choose to ignore this by just returning a default constructed shared_ptr (in which case you don't need to override this member function).
+    // If you need an extension to the peer connection (which most plugins do) you are supposed to return an instance of your peer_plugin class.
+    // Which in turn will have its hook functions called on event specific to that peer.
+    // The peer_connection_handle will be valid as long as the shared_ptr is being held by the torrent object. So, it is generally a good idea to not
+    // keep a shared_ptr to your own peer_plugin. If you want to keep references to it, use weak_ptr.
+    // If this function throws an exception, the connection will be closed.
+    virtual boost::shared_ptr<libtorrent::peer_plugin> new_connection(libtorrent::peer_connection * connection);
+
+    // These hooks are called when a piece passes the hash check or fails the hash check, respectively. The index is the piece index that was downloaded.
+    // It is possible to access the list of peers that participated in sending the piece through the torrent and the piece_picker.
+    virtual void on_piece_pass(int index);
+    virtual void on_piece_failed(int index);
+
+    // This hook is called approximately once per second. It is a way of making it easy for plugins to do timed events, for sending messages or whatever.
+    virtual void tick();
+
+    // These hooks are called when the torrent is paused and unpaused respectively. The return value indicates if the event was handled.
+    // A return value of true indicates that it was handled, and no other plugin after this one will have this hook function called,
+    // and the standard handler will also not be invoked. So, returning true effectively overrides the standard behavior of pause or unpause.
+    // Note that if you call pause() or resume() on the torrent from your handler it will recurse back into your handler,
+    // so in order to invoke the standard handler, you have to keep your own state on whether you want standard behavior or overridden behavior.
+    virtual bool on_resume();
+    virtual bool on_pause();
+
+    // This function is called when the initial files of the torrent have been checked. If there are no files to check, this function is called immediately.
+    // i.e. This function is always called when the torrent is in a state where it can start downloading.
+    virtual void on_files_checked();
+
+    // called when the torrent changes state the state is one of torrent_status::state_t enum members
+    virtual void on_state(int s);
+
+    // called every time a new peer is added to the peer list. This is before the peer is connected to.
+    // For flags, see torrent_plugin::flags_t. The source argument refers to the source where we learned
+    // about this peer from. It's a bitmask, because many sources may have told us about the same peer.
+    // For peer source flags, see peer_info::peer_source_flags.
+    virtual void on_add_peer(const libtorrent::tcp::endpoint & endPoint, int src, int flags);
+
+    //// Plugin calls
+
+    // Handle request from libtorrent client. Takes ownership of request object.
+    void handle(const request::TorrentPluginRequest * r);
+
+    // Alert from plugin about a piece being read.
+    // Is required when session is selling.
+    void pieceRead(const libtorrent::read_piece_alert * alert);
+
+    // Status
+    status::TorrentPlugin status() const;
+
+private:
+
+    /// Torrent plugin request processing
+
+    friend class Plugin;
+    template<class T> typename T::Result process(const T *);
+
+    /// PeerPlugin notifications
+
+    friend class PeerPlugin;
+
+    // Adds peer correspoinding to given endpoint to session,
+    // is called when peer has sucessfully completed extended handshake.
+    // Not when connection is established, as in TorrentPlugin::new_connection
+    void addPeerToSession(const libtorrent::tcp::endpoint &);
+
+    // Disconnects peer, removes corresponding plugin from map
+    void disconnectPeer(const libtorrent::tcp::endpoint &, const libtorrent::error_code &);
+
+    // Determines the message type, calls correct handler, then frees message
+    void processExtendedMessage(const libtorrent::tcp::endpoint &, const joystream::protocol_wire::ExtendedMessagePayload & extendedMessage);
+
+    /// Protocol session hooks
+
+    protocol_session::RemovedConnectionCallbackHandler<libtorrent::tcp::endpoint> removeConnection();
+    protocol_session::BroadcastTransaction broadcastTransaction();
+    protocol_session::FullPieceArrived<libtorrent::tcp::endpoint> fullPieceArrived();
+    protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> loadPieceForBuyer();
+    protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> claimLastPayment();
+    protocol_session::AnchorAnnounced<libtorrent::tcp::endpoint> anchorAnnounced();
+
+    /// Members
+
+    // Parent plugin
+    // Should this be boost::shared_ptr, since life time of object is managed by it?
+    // on the other hand, we loose Plugin behaviour through libtorrent::plugin pointer, which we need!
+    Plugin * _plugin;
+
+    // Torrent for this torrent_plugin
+    boost::weak_ptr<libtorrent::torrent> _torrent;
+
+    // Client identifier used in bep10 handshake v-key
+    std::string _bep10ClientIdentifier;
+
+    // Parametrised runtime behaviour
+    Policy _policy;
+
+    // Endpoints corresponding to peers known to not have extension.
+    // Is populated by previous failed extended handshakes.
+    std::set<libtorrent::tcp::endpoint> _extensionless;
+
+    // Endpoints corresponding to peers which have sent malformed extended message
+    // including handshake.
+    std::set<libtorrent::tcp::endpoint> _sentMalformedExtendedMessage;
+
+    // Torrent info hash
+    libtorrent::sha1_hash _infoHash;
+
+    // Maps endpoint to weak peer plugin pointer, is peer_plugin, since this is
+    // Libtorrent docs (http://libtorrent.org/reference-Plugins.html#peer_plugin):
+    // The peer_connection will be valid as long as the shared_ptr is being held by the
+    // torrent object. So, it is generally a good idea to not keep a shared_ptr to
+    // your own peer_plugin. If you want to keep references to it, use weak_ptr.
+    // NB: All peers are added, while not all are added to _session, see below.
+    std::map<libtorrent::tcp::endpoint, boost::weak_ptr<PeerPlugin> > _peers;
+
+    // Protocol session
+    // NB: Only peers which support this extension will be added to session,
+    // while all peers are added to _peers
+    protocol_session::Session<libtorrent::tcp::endpoint> _session;
+
+    /**
+     * Hopefully we can ditch all of this, if we can delete connections in new_connection callback
+     *
+    // List of peer plugins scheduled for deletion
+    //std::list<boost::weak_ptr<PeerPlugin> > _peersScheduledForDeletion;
+
+    // Peers which should be deleted next tick().
+    // A peer may end up here for one of the following reasons
+    // (1) we determine in ::new_connection() that we don't want this connection.
+    // Due to assertion constraint in libtorrent the connection cannot be disconneected here.
+    //std::set<libtorrent::tcp::endpoint> _disconnectNextTick;
+    */
+
+    /// Sell mode spesific state
+
+    // While selling, this maintains mapping between piece index and peers that are
+    // waiting for this piece to be read from disk.
+    // Will typically just be one, but may be multiple - hence set is used
+    std::map<int, std::set<libtorrent::tcp::endpoint> > _outstandingLoadPieceForBuyerCalls;
+
+    /// Buy mode spesific state
+
+    // While buying, this maintains mapping between piece index and the single
+    // peer waiting for it to be validated and stored.
+    std::map<int, libtorrent::tcp::endpoint> _outstandingFullPieceArrivedCalls;
+
+    /// Utilities
+
+    // Returns alert manager for torrent, is used to post messages to libtorrent user
+    libtorrent::alert_manager & alert_manager() const;
+
+    // Returns raw plugin pointer after asserted locking
+    PeerPlugin * getRawPlugin(const libtorrent::tcp::endpoint &);
+
+    // Returns raw torrent pointer after asserted locking
+    libtorrent::torrent * getTorrent() const;
+    libtorrent::torrent * getTorrent();
+
+    // Returns torrent piece information based on current state of torrent
+    protocol_session::TorrentPieceInformation torrentPieceInformation(const libtorrent::piece_picker &) const;
+};
+
+// These should really be private members, but it is not allowed
+// to have specialized member functions (C++03, §14.7.3/2).
+
+template <> request::Start::Result TorrentPlugin::process<request::Start>(const request::Start *);
+template <> request::Stop::Result TorrentPlugin::process<request::Stop>(const request::Stop *);
+template <> request::Pause::Result TorrentPlugin::process<request::Pause>(const request::Pause *);
+template <> request::UpdateBuyerTerms::Result TorrentPlugin::process<request::UpdateBuyerTerms>(const request::UpdateBuyerTerms *);
+template <> request::UpdateSellerTerms::Result TorrentPlugin::process<request::UpdateSellerTerms>(const request::UpdateSellerTerms *);
+template <> request::ToObserveMode::Result TorrentPlugin::process<request::ToObserveMode>(const request::ToObserveMode *);
+template <> request::ToSellMode::Result TorrentPlugin::process<request::ToSellMode>(const request::ToSellMode *);
+template <> request::ToBuyMode::Result TorrentPlugin::process<request::ToBuyMode>(const request::ToBuyMode *);
+//template<> request::ChangeDownloadLocation::Outcome changeDownloadLocation();
 
 }
 }

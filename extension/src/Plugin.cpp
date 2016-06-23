@@ -35,26 +35,22 @@ void Plugin::added(libtorrent::aux::session_impl * session) {
 
 void Plugin::on_alert(libtorrent::alert const * a) {
 
-    /**
     if(libtorrent::read_piece_alert const * p = libtorrent::alert_cast<libtorrent::read_piece_alert>(a)) {
 
         // Get info hash for torrent from which this read piece comes from
         const libtorrent::sha1_hash infoHash = p->handle.info_hash();
 
         // Piece is not relevant unless we have a seller for given torrent
-        if(!_sellerPlugins.contains(infoHash))
+        auto it = _plugins.find(infoHash);
+
+        if(it == _plugins.cend())
             return;
 
-        // Send alert to plugin
-        if(boost::shared_ptr<SellerTorrentPlugin> sharedPtr = _sellerPlugins[infoHash].lock())
-            sharedPtr->pieceRead(p);
-        else {
+        boost::shared_ptr<TorrentPlugin> plugin = it->second.lock();
+        assert(plugin);
 
-            std::clog << "Could not process read piece alert, since seller torrent plugin has expired.";
-            assert(false);
-        }
+        plugin->pieceRead(p);
     }
-    */
 }
 
 void Plugin::on_tick() {
@@ -64,10 +60,10 @@ void Plugin::on_tick() {
         return;
 
     // Process requests from controller
-    processesRequests();
+    processesRequestQueue();
 
     // Send status
-    sendAlertToSession(alert::PluginStatusAlert(status()));
+    _session->alerts().emplace_alert<alert::PluginStatus>(status());
 }
 
 /**
@@ -76,11 +72,11 @@ bool Plugin::on_optimistic_unchoke(std::vector<libtorrent::policy::peer*> & peer
 }
 */
 
-void Plugin::save_state(libtorrent::entry & stateEntry) const {
+void Plugin::save_state(libtorrent::entry &) const {
 
 }
 
-void Plugin::load_state(libtorrent::lazy_entry const & stateEntry) {
+void Plugin::load_state(libtorrent::lazy_entry const &) {
 //void Plugin::load_state(const libtorrent::bdecode_node & state) {
 }
 
@@ -101,6 +97,9 @@ status::Plugin Plugin::status() const {
     return status;
 }
 
+
+
+/**
 void Plugin::submit(const request::Request * r) {
 
     // Synchronized adding to back of queue
@@ -109,58 +108,61 @@ void Plugin::submit(const request::Request * r) {
     _requestQueueMutex.unlock();
 }
 
-void Plugin::processesRequests() {
+template<class T>
+void Plugin::submit(const RequestVariant & v) {
+
+    // Synchronized adding to back of queue
+    _requestQueueMutex.lock();
+    _requestQueue.push_back(v);
+    _requestQueueMutex.unlock();
+}
+*/
+
+void Plugin::processesRequestQueue() {
     
     // Synchronized dispatching of requests
     _requestQueueMutex.lock();
     
     while(!_requestQueue.empty()) {
 
-        const request::Request * r = _requestQueue.front();
+        detail::RequestVariant v = _requestQueue.front();
         _requestQueue.pop_front();
 
         // Unlock queue mutex for actual processing of request
         _requestQueueMutex.unlock();
 
-        // Process
-        process(r);
-
-        // Delete request
-        delete r;
+        // Process by applying visitor
+        boost::apply_visitor(detail::RequestVariantVisitor(this), v);
 
         // Relock for checking loop condition
         _requestQueueMutex.lock();
     }
 }
 
-void Plugin::process(const request::Request * r) {
+/**
+void Plugin::processRequest(const RequestVariant & v) {
 
-    switch(r->target()) {
-        case request::RequestTarget::Plugin:
-            processPluginRequest(static_cast<const request::PluginRequest *>(r));
-            break;
-        case request::RequestTarget::TorrentPlugin:
-            processTorrentPluginRequest(static_cast<const request::TorrentPluginRequest *>(r));
-            break;
-        case request::RequestTarget::PeerPlugin:
-            processPeerPluginRequest(static_cast<const request::PeerPluginRequest *>(r));
-            break;
-        default:
-            assert(false);
-    }
-
+    if(typeid(const request::Start *) == v.type())
+        processTorrentPluginRequest<request::Start>(boost::get<const request::Start *>(v));
+    else if(typeid(const request::Stop *) == v.type())
+        processTorrentPluginRequest<request::Stop>(boost::get<const request::Stop *>(v));
+    else if (typeid(const request::Pause *) == v.type())
+        processTorrentPluginRequest<request::Pause>(boost::get<const request::Pause *>(v));
+    else if (typeid(const request::UpdateBuyerTerms *) == v.type())
+        processTorrentPluginRequest<request::UpdateBuyerTerms>(boost::get<const request::UpdateBuyerTerms *>(v));
+    else if (typeid(const request::UpdateSellerTerms *) == v.type())
+        processTorrentPluginRequest<request::UpdateSellerTerms>(boost::get<const request::UpdateSellerTerms *>(v));
+    else if (typeid(const request::ToObserveMode *) == v.type())
+        processTorrentPluginRequest<request::ToObserveMode>(boost::get<const request::ToObserveMode *>(v));
+    else if (typeid(const request::ToSellMode *) == v.type())
+        processTorrentPluginRequest<request::ToSellMode>(boost::get<const request::ToSellMode *>(v));
+    else if (typeid(const request::ToBuyMode *) == v.type())
+        processTorrentPluginRequest<request::ToBuyMode>(boost::get<const request::ToBuyMode *>(v));
 }
 
-void Plugin::processPluginRequest(const request::PluginRequest * r) {
 
-    assert(r->target() == request::RequestTarget::Plugin);
-
-    throw std::runtime_error("Plugin::processPluginRequest: not implemented");
-}
-
-void Plugin::processTorrentPluginRequest(const request::TorrentPluginRequest * r) {
-
-    assert(r->target() == request::RequestTarget::TorrentPlugin);
+template<class T>
+boost::shared_ptr<TorrentPlugin> Plugin::processMissingTorrent(const request::T * r) {
 
     // Make sure there is a torrent plugin for this torrent
     auto it = _plugins.find(r->infoHash);
@@ -168,165 +170,145 @@ void Plugin::processTorrentPluginRequest(const request::TorrentPluginRequest * r
     // If there is no torrent plugin, then tell client
     if(it == _plugins.cend()) {
 
-        sendAlertToSession(alert::RequestResult<request::TorrentPluginRequest::MissingTorrentPlugin>(r));
-        return;
-    }
-
-    // Make sure the plugin is still valid
-    boost::shared_ptr<TorrentPlugin> plugin = it->second.lock();
-
-    assert(plugin);
-
-    // Have plugin handle request
-    plugin->handle(r);
-}
-
-void Plugin::processPeerPluginRequest(const request::PeerPluginRequest * r) {
-
-    assert(r->target() == request::RequestTarget::PeerPlugin);
-
-    throw std::runtime_error("Plugin::processPeerPluginRequest: not implemented");
-}
-
-void Plugin::sendAlertToSession(const libtorrent::alert & alert) {
-    _session->m_alerts.post_alert(alert); // emplace_alert<listen_succeeded_alert>(*)
-}
-
-/**
-void Plugin::removeTorrentPlugin(const libtorrent::sha1_hash & info_hash) {
-    std::clog << "Plugin::removeTorrentPlugin: NOT IMPLEMENTED!!";
-}
-
-bool Plugin::startTorrentPlugin(const libtorrent::sha1_hash & infoHash, const TorrentPlugin::Configuration & configuration) {
-
-    // Torrent should never have a plugin installed
-    assert(!_plugins.contains(infoHash));
-
-    // Find torrent
-    boost::weak_ptr<libtorrent::torrent> weakTorrentPtr = sharedSessionPtr->find_torrent(infoHash);
-
-    // Get shared torrent pointer
-    if(boost::shared_ptr<libtorrent::torrent> sharedTorrentPtr = weakTorrentPtr.lock()) {
-
-        // Shared pointer used to point to plugin
-        boost::shared_ptr<libtorrent::torrent_plugin> sharedPluginPtr;
-
-        // Create corresponding torrent plugin
-        switch(configuration->pluginMode()) {
-
-            case PluginMode::Buyer:
-
-                sharedPluginPtr.reset(new BuyerTorrentPlugin(this, sharedTorrentPtr, _wallet, configuration, utxo, _category));
-                break;
-
-            case PluginMode::Seller:
-
-                sharedPluginPtr.reset(new SellerTorrentPlugin(this, sharedTorrentPtr, configuration, _category));
-                break;
-
-            case PluginMode::Observer:
-
-                std::clog << "Observer not implemented yet.";
-        }
-
-        // Install plugin on torrent
-        sharedTorrentPtr->add_extension(sharedPluginPtr);
-
-        // Remember plugin
-        _plugins[infoHash] = boost::dynamic_pointer_cast<TorrentPlugin>(sharedPluginPtr);
-
-        // Return success indication
-        return true;
+        _session->alerts().emplace_alert<alert::SubroutineResult<request::T::Result>>(request::T::Result(r, request::MissingTorrent()));
+        return boost::shared_ptr<TorrentPlugin>();
 
     } else {
 
-        std::clog << "Torrent deleted, cannot install seller torrent pluin.";
-        return false;
+        // Make sure the plugin is still valid
+        boost::shared_ptr<TorrentPlugin> plugin = it->second.lock();
+
+        assert(plugin);
+
+        return plugin;
     }
 }
 
+void Plugin::process(const request::Start * r) {
 
-bool Plugin::startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration, const Coin::UnspentP2PKHOutput & utxo) {
+    boost::shared_ptr<TorrentPlugin> plugin = processMissingTorrent<Start>(r);
 
-    // Check that torrent does not already have a plugin installed
-    if(_sellerPlugins.contains(infoHash) || _plugins.contains(infoHash)) {
-        std::clog << "Torrent already has plugin installed, remove first.";
-        assert(false);
-        return false;
-    }
+    // Notify libtorrent client
+    if(plugin) {
 
-    // Find torrent
-    boost::weak_ptr<libtorrent::torrent> weakTorrentPtr = _session->find_torrent(infoHash);
+        // Stop torrent plugin
+        request::Start::Result result = plugin->start(r);
 
-    // Get shared torrent pointer
-    if(boost::shared_ptr<libtorrent::torrent> sharedTorrentPtr = weakTorrentPtr.lock()) {
-
-        // Create buyer torrent plugin
-        BuyerTorrentPlugin * buyerPlugin = new BuyerTorrentPlugin(this, sharedTorrentPtr, _wallet, configuration, utxo, _category);
-
-        // Create plugin with given configuration
-        boost::shared_ptr<BuyerTorrentPlugin> sharedPluginPtr(buyerPlugin);
-
-        // Install plugin on torrent
-        sharedTorrentPtr->add_extension(sharedPluginPtr);
-
-        // Remember plugin
-        _plugins[infoHash] = boost::weak_ptr<BuyerTorrentPlugin>(sharedPluginPtr);
-
-        // Notify controller
-        sendAlertToSession(StartedBuyerTorrentPlugin(infoHash, configuration, utxo, buyerPlugin->status()));
-
-        // Return success indication
-        return true;
-
-    } else {
-
-        std::clog << "Torrent deleted, cannot install buyer torrent pluin.";
-        assert(false);
-        return false;
+        // Return result to libtorrent client
+        sendSubRoutineResult<Start>(result);
     }
 }
 
-bool Plugin::startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration) {
+void Plugin::process(const request::Stop * r) {
 
-    // Check that torrent does not already have a plugin installed
-    if(_sellerPlugins.contains(infoHash) || _plugins.contains(infoHash)) {
+    boost::shared_ptr<TorrentPlugin> plugin = processMissingTorrent<Stop>(r);
 
-        std::clog << "Torrent already has plugin installed, remove first.";
-        assert(false);
-        return false;
+    if(plugin) {
+
+        // Stop torrent plugin
+        request::Stop::Result result = plugin->stop(r);
+
+        // Return result to libtorrent client
+        sendSubRoutineResult<Stop>(result);
     }
+}
 
-    // Find torrent
-    boost::weak_ptr<libtorrent::torrent> weakTorrentPtr = _session->find_torrent(infoHash);
+void Plugin::process(const request::Pause * r) {
 
-    // Get shared torrent pointer
-    if(boost::shared_ptr<libtorrent::torrent> sharedTorrentPtr = weakTorrentPtr.lock()) {
+    boost::shared_ptr<TorrentPlugin> plugin = processMissingTorrent<Pause>(r);
 
-        // Create torrent plugin
-        SellerTorrentPlugin * sellerPlugin = new SellerTorrentPlugin(this, sharedTorrentPtr, _wallet, configuration, _category);
+    if(plugin) {
 
-        // Create plugin with given configuration
-        boost::shared_ptr<SellerTorrentPlugin> sharedPluginPtr(sellerPlugin);
+        // Pause torrent plugin
+        request::Stop::Result result = plugin->pause(r);
 
-        // Install plugin on torrent
-        sharedTorrentPtr->add_extension(sharedPluginPtr);
-
-        // Remember plugin
-        _sellerPlugins[infoHash] = boost::weak_ptr<SellerTorrentPlugin>(sharedPluginPtr);
-
-        // Notify controller
-        sendAlertToSession(StartedSellerTorrentPlugin(infoHash, configuration, sellerPlugin->status()));
-
-        // Return success indication
-        return true;
-
-    } else {
-
-        std::clog << "Torrent deleted, cannot install seller torrent pluin.";
-        assert(false);
-        return false;
+        // Return result to libtorrent client
+        sendSubRoutineResult<Pause>(result);
     }
+}
+
+void Plugin::process(const request::UpdateBuyerTerms * r) {
+
+    boost::shared_ptr<TorrentPlugin> plugin = processMissingTorrentPlugin<UpdateBuyerTerms>(r);
+
+    if(plugin) {
+
+        // Update buyer terms
+        request::UpdateBuyerTerms::Result = plugin->updateBuyerTerms(r);
+
+        // Return result to libtorrent lient
+        sendSubRoutineResult<UpdateBuyerTerms>(result);
+    }
+}
+
+void Plugin::process(const request::UpdateSellerTerms *) {
+
+    boost::shared_ptr<TorrentPlugin> plugin = processMissingTorrentPlugin<UpdateSellerTerms>(r);
+
+    if(plugin) {
+
+        // Update buyer terms
+        request::UpdateBuyerTerms::Result = plugin->updateSellerTerms(r);
+
+        // Return result to libtorrent lient
+        sendSubRoutineResult<UpdateSellerTerms>(result);
+    }
+}
+
+void Plugin::process(const request::ToObserveMode *) {
+
+    // Clear relevant mappings
+    // NB: We are doing clearing regardless of whether operation is successful!
+    if(_session.mode() == protocol_session::SessionMode::selling)
+        _outstandingLoadPieceForBuyerCalls.clear();
+    else if(_session.mode() == protocol_session::SessionMode::buying)
+        _outstandingFullPieceArrivedCalls.clear();
+
+    manager.emplace_alert<alert::SubroutineResult<request::ToObserveMode::Response>>(h, request::ToObserveMode::Response(toObserveModeRequest, toObserveMode()));
+
+    //manager.emplace_alert<alert::RequestResult<request::ToObserveMode::Response>>(h, toObserveModeRequest, toObserveMode());
+
+}
+
+void Plugin::process(const request::ToSellMode *) {
+
+    // Should have been cleared before
+    assert(_outstandingLoadPieceForBuyerCalls.empty());
+
+    // Clear relevant mappings
+    // NB: We are doing clearing regardless of whether operation is successful!
+    if(_session.mode() == protocol_session::SessionMode::buying)
+        _outstandingFullPieceArrivedCalls.clear();
+
+
+    manager.emplace_alert<alert::SubroutineResult<request::ToSellMode::Response>>(h, request::ToSellMode::Response(toSellModeRequest, toSellMode(toSellModeRequest->generateKeyPairsCallbackHandler,
+                                                                                                             toSellModeRequest->generateP2PKHAddressesCallbackHandler,
+                                                                                                             toSellModeRequest->sellingPolicy,
+                                                                                                             toSellModeRequest->terms)));
+
+}
+
+void Plugin::process(const request::ToBuyMode *) {
+
+    // Should have been cleared before
+    assert(_outstandingFullPieceArrivedCalls.empty());
+
+    // Clear relevant mappings
+    // NB: We are doing clearing regardless of whether operation is successful!
+    if(_session.mode() == protocol_session::SessionMode::selling)
+        _outstandingLoadPieceForBuyerCalls.clear();
+
+
+    manager.emplace_alert<alert::SubroutineResult<request::ToBuyMode::Response>>(h, request::ToBuyMode::Response(toBuyModeRequest, toBuyMode(toBuyModeRequest->generateKeyPairsCallbackHandler,
+                                                                                                           toBuyModeRequest->generateP2PKHAddressesCallbackHandler,
+                                                                                                           toBuyModeRequest->funding,
+                                                                                                           toBuyModeRequest->policy,
+                                                                                                           toBuyModeRequest->terms)));
+}
+
+template<class T>
+void Plugin::sendSubRoutineResult(const request::T::Result & result) {
+    _session->alerts().emplace_alert<alert::SubroutineResult<request::T::Result>>(result);
 }
 */
 
