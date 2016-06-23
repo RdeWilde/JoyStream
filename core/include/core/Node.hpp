@@ -196,6 +196,9 @@ public:
     quint16 getServerPort() const;
     */
 
+    // Get all info hashes
+    std::set<libtorrent::sha1_hash> torrents() const;
+
     // Get torrents
     std::weak_ptr<Torrent> torrent(const libtorrent::sha1_hash & infoHash) const;
 
@@ -301,7 +304,7 @@ private:
     QTimer _torrentUpdateTimer;
 
     // Torrents added to session
-    std::set<libtorrent::sha1_hash, detail::Torrent> _torrents;
+    std::map<libtorrent::sha1_hash, detail::Torrent> _torrents;
 
     /// User supplied callbacks to be used as response in asynchronous method calls
 

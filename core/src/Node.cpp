@@ -1391,6 +1391,16 @@ quint16 Controller::getServerPort() const {
 }
 */
 
+std::set<libtorrent::sha1_hash> Node::torrents() const {
+
+    std::set<libtorrent::sha1_hash> infoHashes;
+
+    for(auto mapping : _torrents)
+        infoHashes.insert(mapping.first);
+
+    return infoHashes;
+}
+
 std::weak_ptr<Torrent> Node::torrent(const libtorrent::sha1_hash & infoHash) const {
 
 }
