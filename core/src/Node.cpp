@@ -1403,6 +1403,12 @@ std::set<libtorrent::sha1_hash> Node::torrents() const {
 
 std::weak_ptr<Torrent> Node::torrent(const libtorrent::sha1_hash & infoHash) const {
 
+    auto it = _torrents.find(infoHash);
+
+    if(it == _torrents.cend())
+        throw exception::NoSuchTorrentAdded(infoHash);
+    else
+        return it->second.model();
 }
 
 void Node::finalize_stop() {

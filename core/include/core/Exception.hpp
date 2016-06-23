@@ -125,6 +125,33 @@ namespace exception {
 
         std::string message;
     };
+
+    class NoSuchTorrentAdded : public std::runtime_error {
+
+    public:
+
+        NoSuchTorrentAdded(const libtorrent::sha1_hash & infoHash)
+            : _infoHash(infoHash) {
+
+            message += "No torrent added with info_hash: "
+                    + libtorrent::to_string(_infoHash);
+        }
+
+        libtorrent::sha1_hash infoHash() const {
+            return _infoHash;
+        }
+
+        virtual const char* what() const {
+            return message.c_str();
+        }
+
+    private:
+
+        std::string message;
+
+        libtorrent::sha1_hash _infoHash;
+    }
+
 }
 }
 }
