@@ -6,7 +6,7 @@
  */
 
 #include <extension/ExtendedMessageIdMapping.hpp>
-
+#include <libtorrent/bdecode.hpp>
 #include <vector>
 #include <set>
 #include <map>
@@ -40,11 +40,13 @@ namespace extension {
         setAllStartingAt(60);
     }
 
-    ExtendedMessageIdMapping::ExtendedMessageIdMapping(const std::map<std::string, libtorrent::entry> & m) {
+    ExtendedMessageIdMapping::ExtendedMessageIdMapping(const libtorrent::bdecode_node & m) {
 
         // Iterate dictionary and copy mappings
-        for(std::map<std::string, libtorrent::entry>::const_iterator i = m.begin(),
-                end(m.end()); i != end;i++) {
+        for(int i = 0;i < m.dict_size();i++) {
+
+            // Recover i´th mapping
+            std::pair<std::string, libtorrent::bdecode_node> mapping = m.dict_at(i);
 
             /**
              * The reason we do not break if we get a mismatch is
@@ -56,10 +58,16 @@ namespace extension {
             try {
 
                 // Try to convert string to message type
-                joystream::protocol_wire::MessageType message = joystream::protocol_wire::messageType(i->first);
+                joystream::protocol_wire::MessageType message = joystream::protocol_wire::messageType(mapping.first);
+
+                // Try to get value, skip if its not an integer
+                if(mapping.second.type() != libtorrent::bdecode_node::int_t)
+                    return;
+
+                boost::int64_t value = mapping.second.int_value();
 
                 // It worked, so store id in mapping
-                _mapping[message] = (i->second).integer();
+                _mapping[message] = value;
 
             } catch(std::exception e) {
                 // This was not a message for this extension
@@ -67,10 +75,6 @@ namespace extension {
 
         }
     }
-
-
-
-
 
     ExtendedMessageIdMapping & ExtendedMessageIdMapping::operator=(const ExtendedMessageIdMapping & rhs) {
 
@@ -134,7 +138,7 @@ namespace extension {
     bool ExtendedMessageIdMapping::isValid() const {
 
         // Get the number of messages
-        int numberOfMessages = joystream::protocol_wire::numberOfMessageTypes();
+        uint numberOfMessages = joystream::protocol_wire::numberOfMessageTypes();
 
         // Has the right number of mappings
         if(_mapping.size() != numberOfMessages)

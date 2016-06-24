@@ -30,7 +30,7 @@ namespace extension {
         ExtendedMessageIdMapping();
 
         // Constructor from extended hanshake dictionary m, used when parsing hanshake from peer
-        ExtendedMessageIdMapping(const std::map<std::string, libtorrent::entry> & m);
+        ExtendedMessageIdMapping(const libtorrent::bdecode_node & m);
 
         // Assignment operator
         ExtendedMessageIdMapping & operator=(const ExtendedMessageIdMapping & rhs);
