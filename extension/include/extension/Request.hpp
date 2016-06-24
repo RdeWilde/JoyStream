@@ -171,7 +171,7 @@ struct TorrentPluginRequest {
 struct Start : public TorrentPluginRequest {
 
     typedef SubroutineResult<Start> Result;
-    typedef std::function<void(Result &)> ResultHandler;
+    typedef std::function<void(const Result &)> ResultHandler;
 
     Start() {}
     Start(const libtorrent::sha1_hash & infoHash,
@@ -186,11 +186,13 @@ struct Start : public TorrentPluginRequest {
 struct Stop : public TorrentPluginRequest {
 
     typedef SubroutineResult<Stop> Result;
-    typedef std::function<void(Result &)> ResultHandler;
+    typedef std::function<void(const Result &)> ResultHandler;
 
     Stop() {}
-    Stop(const libtorrent::sha1_hash & infoHash)
-        : TorrentPluginRequest(infoHash) {
+    Stop(const libtorrent::sha1_hash & infoHash,
+         const ResultHandler & handler = ResultHandler())
+        : TorrentPluginRequest(infoHash)
+        , handler(handler){
     }
 
     ResultHandler handler;
@@ -199,7 +201,7 @@ struct Stop : public TorrentPluginRequest {
 struct Pause : public TorrentPluginRequest {
 
     typedef SubroutineResult<Pause> Result;
-    typedef std::function<void(Result &)> ResultHandler;
+    typedef std::function<void(const Result &)> ResultHandler;
 
     Pause() {}
     Pause(const libtorrent::sha1_hash & infoHash,
@@ -214,7 +216,7 @@ struct Pause : public TorrentPluginRequest {
 struct UpdateBuyerTerms : public TorrentPluginRequest {
 
     typedef SubroutineResult<UpdateBuyerTerms> Result;
-    typedef std::function<void(Result &)> ResultHandler;
+    typedef std::function<void(const Result &)> ResultHandler;
 
     UpdateBuyerTerms() {}
     UpdateBuyerTerms(const libtorrent::sha1_hash & infoHash,
@@ -232,7 +234,7 @@ struct UpdateBuyerTerms : public TorrentPluginRequest {
 struct UpdateSellerTerms : public TorrentPluginRequest {
 
     typedef SubroutineResult<UpdateSellerTerms> Result;
-    typedef std::function<void(Result &)> ResultHandler;
+    typedef std::function<void(const Result &)> ResultHandler;
 
     UpdateSellerTerms() {}
     UpdateSellerTerms(const libtorrent::sha1_hash & infoHash,
@@ -251,7 +253,7 @@ struct UpdateSellerTerms : public TorrentPluginRequest {
 struct ToObserveMode : public TorrentPluginRequest {
 
     typedef SubroutineResult<ToObserveMode> Result;
-    typedef std::function<void(Result &)> ResultHandler;
+    typedef std::function<void(const Result &)> ResultHandler;
 
     ToObserveMode() {}
     ToObserveMode(const libtorrent::sha1_hash & infoHash,
@@ -266,7 +268,7 @@ struct ToObserveMode : public TorrentPluginRequest {
 struct ToSellMode : public TorrentPluginRequest {
 
     typedef SubroutineResult<ToSellMode> Result;
-    typedef std::function<void(Result &)> ResultHandler;
+    typedef std::function<void(const Result &)> ResultHandler;
 
     ToSellMode() {}
     ToSellMode(const libtorrent::sha1_hash & infoHash,
@@ -294,7 +296,7 @@ struct ToSellMode : public TorrentPluginRequest {
 struct ToBuyMode : public TorrentPluginRequest {
 
     typedef SubroutineResult<ToBuyMode> Result;
-    typedef std::function<void(Result &)> ResultHandler;
+    typedef std::function<void(const Result &)> ResultHandler;
 
     ToBuyMode() {}
     ToBuyMode(const libtorrent::sha1_hash & infoHash,
