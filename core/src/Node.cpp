@@ -134,14 +134,14 @@ void Node::start(const configuration::Node & configuration, const NodeStarted & 
 
     // Create new libtorrent session
     _session = new libtorrent::session(libtorrent::fingerprint(CORE_EXTENSION_FINGERPRINT, CORE_VERSION_MAJOR, CORE_VERSION_MINOR, 0, 0),
-                   libtorrent::session::add_default_plugins + libtorrent::session::start_default_features,
-                   libtorrent::alert::error_notification +
-                   libtorrent::alert::tracker_notification +
-                   libtorrent::alert::debug_notification +
-                   libtorrent::alert::status_notification +
-                   libtorrent::alert::progress_notification +
-                   libtorrent::alert::performance_warning +
-                   libtorrent::alert::stats_notification);
+                                       libtorrent::session::add_default_plugins + libtorrent::session::start_default_features,
+                                       libtorrent::alert::error_notification +
+                                       libtorrent::alert::tracker_notification +
+                                       libtorrent::alert::debug_notification +
+                                       libtorrent::alert::status_notification +
+                                       libtorrent::alert::progress_notification +
+                                       libtorrent::alert::performance_warning +
+                                       libtorrent::alert::stats_notification);
 
     // Try to start listening
     unsigned short port = _session->listen_port();
@@ -155,28 +155,33 @@ void Node::start(const configuration::Node & configuration, const NodeStarted & 
 
 void Node::stop(const NodeStopped & nodeStopped) {
 
-    if(_state == State::stopped)
+    if(_state == State::stopped || isStopping(_state))
         throw exception::CannotStopStoppedNode();
 
     // Pause all torrents
     _session->pause();
 
-    // set state to something which blocks adding more torrents or doing other opreations
-
     // Stop all torrent plugins
+    detail::CallbackCounter counter;
+
     for(auto t: _torrents) {
 
+        // if you are eligible for stopping, add to count,
+        // initiate stop with reference to count,
+        // on callback, decrement count, if zero -> continue to do what happens
+
+        // detail::Torrent
         //assert(t.state() == detail::Torrent::State::waiting_for_torrent_to_be_checked)
         //t.stop(); <--- do we need to add callback which has barrier?
     }
 
-    // barrier here?
-
     // Update state
-    _state = State::waiting_for_resume_data_while_closing;
+    _state = State::waiting_for_plugins_to_stop;
 
     // Store user callback
     _nodeStopped = nodeStopped;
+
+    // <--- done here?
 
     // Save resume data for all
     int numberOutStanding = requestResumeData();
@@ -184,8 +189,13 @@ void Node::stop(const NodeStopped & nodeStopped) {
     // If there are no outstanding, then just close right away
     if(numberOutStanding == 0)
         finalize_stop();
-    else
+    else {
+
         std::clog << "Attempting to generate resume data for " << numberOutStanding << " torrents." << std::endl;
+
+        // Update state
+        _state = State::waiting_for_resume_data;
+    }
 }
 
 void Node::syncWallet() {
@@ -706,7 +716,7 @@ void Node::process(libtorrent::save_resume_data_alert const * p) {
     torrent->setResumeData(resumeData);
 
     // If this is part of closing client, then
-    if(_state == State::waiting_for_resume_data_while_closing) {
+    if(_state == State::waiting_for_resume_data) {
 
         // Check if all there are any pending resume data requests
         for(QMap<libtorrent::sha1_hash, Torrent *>::const_iterator
@@ -1042,6 +1052,11 @@ void Node::onWalletSynchingBlocks() {
 void Node::onWalletConnected() {
     std::clog << "Wallet Connected";
     sendTransactions();
+}
+
+bool Node::isStopping(State s) {
+    return s == State::waiting_for_plugins_to_stop ||
+           s == State::waiting_for_resume_data;
 }
 
 void Node::update(const std::vector<libtorrent::torrent_status> & statuses) {

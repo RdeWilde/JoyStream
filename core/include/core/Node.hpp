@@ -10,6 +10,7 @@
 
 #include <core/detail/Torrent.hpp>
 //#include <core/controller/Stream.hpp>
+#include <extension/extension.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
 
 #include <libtorrent/session.hpp>
@@ -21,22 +22,6 @@
 #include <QAbstractSocket> // is nested enum QAbstractSocket::SocketError
 
 #include <functional>
-
-/**
-class QNetworkAccessManager;
-class TorrentStatus;
-class TorrentPluginStartedAlert;
-class PluginStatusAlert;
-class BuyerTorrentPluginStatusAlert;
-class SellerTorrentPluginStatusAlert;
-class StartedSellerTorrentPlugin;
-class StartedBuyerTorrentPlugin;
-class SellerPeerAddedAlert;
-class BuyerPeerAddedAlert;
-class SellerPeerPluginRemovedAlert;
-class BuyerPeerPluginRemovedAlert;
-class BroadcastTransactionAlert;
-*/
 
 namespace libtorrent {
     class peer_connection;
@@ -83,20 +68,29 @@ public:
         //
         normal,
 
+        /// States for when node is 'closing', as distinct from when it is actually
+        /// closed, when it will be in State::stopped state.
+        /// NB: Factor out into substate later
+
         //
-        waiting_for_resume_data_while_closing
+        waiting_for_plugins_to_stop,
+
+        //
+        waiting_for_resume_data
     };
 
     typedef std::function<void(const libtorrent::tcp::endpoint &)> NodeStarted;
     typedef std::function<void(const libtorrent::tcp::endpoint &, libtorrent::error_code)> NodeStartFailed;
+
     typedef std::function<void()> NodeStopped;
     typedef std::function<void()> AddedTorrent;
+
     // typedef std::function<void()> ... something else
 
     Node(joystream::bitcoin::SPVWallet *);
 
     /**
-     No public routines are thread safe, so calls have to be on same thread as owner of controller.
+     No public routines are *NOT* thread safe, so calls have to be on same thread as owner of controller.
      NB: Not strictly true, some may be, but there are no guarantees as of yet.
      */
 
@@ -105,47 +99,60 @@ public:
     /**
      start
      -------------
-     purpose: Starts node.
-     description: This requires ...
-     arguments:
-     - configuration:
-     - started: called if startup succeeds
-     - failed: called if startup fails
-     throws:
-     - CanOnlyStartStoppedNode: if node is not in stopped state
-     signals:
-     - started: if a successful start is made
+
+     DESCRIPTION
+     Tries to start node, which results in
+     both BitTorrent and DHT ports opening up, as well initializing the Bitcoin wallet.
+
+     ARGUMENTS
+     - configuration: Setup configurations for the node
+     - nodeStarted: called if startup succeeds
+     - nodeStartFailed: called if startup fails
+
+     THROWS
+     - exception::CanOnlyStartStoppedNode: if node is not in
+     states Node::State::{stopped, waiting_for_plugins_to_stop,  waiting_for_resume_data}.
+
+     SIGNALS
+     - nodeStarted: if a successful start is made
+     - nodeStartFailed: if starting was not successful
      */
-    void start(const configuration::Node & configuration, const NodeStarted & nodeStarted, const NodeStartFailed & failed);
+    void start(const configuration::Node & configuration, const NodeStarted & nodeStarted, const NodeStartFailed & nodeStartFailed);
 
     /**
      stop
      -------------
-     purpose: Stop node.
-     condition: Must be started.
-     description: asynchrnous. .... All torrents are removed
-     arguments:
+
+     DESCRIPTION
+     asynchrnous. .... All torrents are removed
+
+     ARGUMENTS
      - callback about being actually stopped
      - callback about how stopping timedout out due to libtorrent foolishness
-     throws:
-     - already stopped? or in the process of being stopped?
-     signals:
-     - ....
+
+     THROWS
+     - exception::CannotStopStoppedNode: if node is already being stopped
+
+     SIGNALS
+     - nodeStopped:
     */
     void stop(const NodeStopped &);
 
     /**
      addTorrent
      -------------
-     purpose: Add torrent.
-     condition:
-     description: Add torrent.
-     arguments:
+
+     DESCRIPTION
+     Add torrent
+
+     ARGUMENTS
      -
      -
-     throws:
+
+     THROWS
      -
-     signals:
+
+     SIGNALS
      -
      */
     void addTorrent(const configuration::Torrent &, const AddedTorrent &);
@@ -153,15 +160,19 @@ public:
     /**
      removeTorrent
      -------------
-     purpose: Remove torrent.
-     description: Add torrent.
-     arguments:
+
+     DESCRIPTION
+     Remove torrent
+
+     ARGUMENTS
      -
      -
-     throws:
+
+     THROWS
      - no such torrent exists
      - is in the process of being removed?
-     signals:
+
+     SIGNALS
      - removed: if
      -
      */
@@ -278,6 +289,8 @@ private:
 
     // State of controller
     State _state;
+
+    static bool isStopping(State s);
 	
     // Indicates if we are shutting down
     bool _closing;
