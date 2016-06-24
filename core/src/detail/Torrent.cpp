@@ -32,7 +32,7 @@ Torrent::Torrent(core::Node * node,
              savePath,
              torrentFile) {
 }
-
+/**
 void Torrent::start() {
     _node->plugin()->submit(new extension::request::Start(_infoHash));
 }
@@ -82,7 +82,7 @@ void Torrent::toBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler 
                                                               policy,
                                                               terms));
 }
-
+*/
 
 /**
 void Torrent::addPlugin(const SellerTorrentPlugin::Status & status) {

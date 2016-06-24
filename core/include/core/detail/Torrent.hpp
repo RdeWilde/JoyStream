@@ -58,6 +58,7 @@ public:
             std::uint64_t flags,
             State state);
 
+    /**
     /// Plugin actions
 
     void start();
@@ -82,6 +83,7 @@ public:
                    const Coin::UnspentP2PKHOutput & funding,
                    const protocol_session::BuyingPolicy & policy,
                    const protocol_wire::BuyerTerms & terms);
+    */
 
     /**
     // Add plugins
