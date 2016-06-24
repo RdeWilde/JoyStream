@@ -426,7 +426,7 @@ protocol_session::TorrentPieceInformation TorrentPlugin::torrentPieceInformation
 }
 
 template<>
-request::Start::Result TorrentPlugin::process<request::Start>(const request::Start * r) {
+request::Start::Result TorrentPlugin::process<request::Start>(const request::Start & r) {
 
     _session.start();
 
@@ -434,7 +434,7 @@ request::Start::Result TorrentPlugin::process<request::Start>(const request::Sta
 }
 
 template<>
-request::Stop::Result TorrentPlugin::process<request::Stop>(const request::Stop * r) {
+request::Stop::Result TorrentPlugin::process<request::Stop>(const request::Stop & r) {
 
     _session.stop();
 
@@ -442,7 +442,7 @@ request::Stop::Result TorrentPlugin::process<request::Stop>(const request::Stop 
 }
 
 template<>
-request::Pause::Result TorrentPlugin::process<request::Pause>(const request::Pause * r) {
+request::Pause::Result TorrentPlugin::process<request::Pause>(const request::Pause & r) {
 
     _session.pause();
 
@@ -450,23 +450,23 @@ request::Pause::Result TorrentPlugin::process<request::Pause>(const request::Pau
 }
 
 template<>
-request::UpdateBuyerTerms::Result TorrentPlugin::process<request::UpdateBuyerTerms>(const request::UpdateBuyerTerms * r) {
+request::UpdateBuyerTerms::Result TorrentPlugin::process<request::UpdateBuyerTerms>(const request::UpdateBuyerTerms & r) {
 
-    _session.updateTerms(r->terms);
+    _session.updateTerms(r.terms);
 
     return request::UpdateBuyerTerms::Result(r);
 }
 
 template<>
-request::UpdateSellerTerms::Result TorrentPlugin::process<request::UpdateSellerTerms>(const request::UpdateSellerTerms * r) {
+request::UpdateSellerTerms::Result TorrentPlugin::process<request::UpdateSellerTerms>(const request::UpdateSellerTerms & r) {
 
-    _session.updateTerms(r->terms);
+    _session.updateTerms(r.terms);
 
     return request::UpdateSellerTerms::Result(r);
 }
 
 template<>
-request::ToObserveMode::Result TorrentPlugin::process<request::ToObserveMode>(const request::ToObserveMode * r) {
+request::ToObserveMode::Result TorrentPlugin::process<request::ToObserveMode>(const request::ToObserveMode & r) {
 
     _session.toObserveMode(removeConnection());
 
@@ -474,35 +474,35 @@ request::ToObserveMode::Result TorrentPlugin::process<request::ToObserveMode>(co
 }
 
 template<>
-request::ToSellMode::Result TorrentPlugin::process<request::ToSellMode>(const request::ToSellMode * r) {
+request::ToSellMode::Result TorrentPlugin::process<request::ToSellMode>(const request::ToSellMode & r) {
 
     // Get maximum number of pieces
     int maxPieceIndex = getTorrent()->picker().num_pieces() - 1;
 
     _session.toSellMode(removeConnection(),
-                        r->generateKeyPairsCallbackHandler,
-                        r->generateP2PKHAddressesCallbackHandler,
+                        r.generateKeyPairsCallbackHandler,
+                        r.generateP2PKHAddressesCallbackHandler,
                         loadPieceForBuyer(),
                         claimLastPayment(),
                         anchorAnnounced(),
-                        r->sellingPolicy,
-                        r->terms,
+                        r.sellingPolicy,
+                        r.terms,
                         maxPieceIndex);
 
     return request::ToSellMode::Result(r);
 }
 
 template<>
-request::ToBuyMode::Result TorrentPlugin::process<request::ToBuyMode>(const request::ToBuyMode * r) {
+request::ToBuyMode::Result TorrentPlugin::process<request::ToBuyMode>(const request::ToBuyMode & r) {
 
     _session.toBuyMode(removeConnection(),
-                       r->generateKeyPairsCallbackHandler,
-                       r->generateP2PKHAddressesCallbackHandler,
+                       r.generateKeyPairsCallbackHandler,
+                       r.generateP2PKHAddressesCallbackHandler,
                        broadcastTransaction(),
                        fullPieceArrived(),
-                       r->funding,
-                       r->policy,
-                       r->terms,
+                       r.funding,
+                       r.policy,
+                       r.terms,
                        torrentPieceInformation(getTorrent()->picker()));
 
     return request::ToBuyMode::Result(r);

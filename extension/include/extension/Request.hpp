@@ -14,6 +14,7 @@
 #include <libtorrent/socket.hpp>
 
 #include <exception>
+#include <functional>
 
 namespace joystream {
 namespace extension {
@@ -38,11 +39,11 @@ public:
     SubroutineResult() {
     }
 
-    SubroutineResult(const T * request)
+    SubroutineResult(const T & request)
         : _request(request) {
     }
 
-    SubroutineResult(const T * request,
+    SubroutineResult(const T & request,
                      const std::exception_ptr & exception)
         : _request(request)
         , exception(exception) {
@@ -54,7 +55,7 @@ public:
             std::rethrow_exception(exception);
     }
 
-    const T * request() const {
+    T request() const {
         return _request;
     }
 
@@ -63,7 +64,7 @@ private:
     friend class Plugin;
 
     // Initial request
-    const T * _request;
+    T _request;
 
     // Exception result
     std::exception_ptr exception;
@@ -79,7 +80,7 @@ public:
     MethodResult() {
     }
 
-    MethodResult(const T * request,
+    MethodResult(const T & request,
                  const std::exception_ptr exception,
                  const T2 & result)
         : SubroutineResult<T>(request, exception)
@@ -157,12 +158,12 @@ struct TorrentPluginRequest : public Request {
 
 struct TorrentPluginRequest {
 
+    TorrentPluginRequest() {}
     TorrentPluginRequest(const libtorrent::sha1_hash & infoHash)
         : infoHash(infoHash) {
     }
 
-    virtual ~TorrentPluginRequest() {
-    }
+    virtual ~TorrentPluginRequest() { }
 
     libtorrent::sha1_hash infoHash;
 };
@@ -170,107 +171,155 @@ struct TorrentPluginRequest {
 struct Start : public TorrentPluginRequest {
 
     typedef SubroutineResult<Start> Result;
+    typedef std::function<void(Result &)> ResultHandler;
 
-    Start(const libtorrent::sha1_hash & infoHash)
-        : TorrentPluginRequest(infoHash) {
+    Start() {}
+    Start(const libtorrent::sha1_hash & infoHash,
+          const ResultHandler & handler = ResultHandler())
+        : TorrentPluginRequest(infoHash)
+        , handler(handler) {
     }
+
+    ResultHandler handler;
 };
 
 struct Stop : public TorrentPluginRequest {
 
     typedef SubroutineResult<Stop> Result;
+    typedef std::function<void(Result &)> ResultHandler;
 
+    Stop() {}
     Stop(const libtorrent::sha1_hash & infoHash)
         : TorrentPluginRequest(infoHash) {
     }
+
+    ResultHandler handler;
 };
 
 struct Pause : public TorrentPluginRequest {
 
     typedef SubroutineResult<Pause> Result;
+    typedef std::function<void(Result &)> ResultHandler;
 
-    Pause(const libtorrent::sha1_hash & infoHash)
-        : TorrentPluginRequest(infoHash) {
+    Pause() {}
+    Pause(const libtorrent::sha1_hash & infoHash,
+          const ResultHandler & handler = ResultHandler())
+        : TorrentPluginRequest(infoHash)
+        , handler(handler) {
     }
+
+    ResultHandler handler;
 };
 
 struct UpdateBuyerTerms : public TorrentPluginRequest {
 
     typedef SubroutineResult<UpdateBuyerTerms> Result;
+    typedef std::function<void(Result &)> ResultHandler;
 
-    UpdateBuyerTerms(const libtorrent::sha1_hash & infoHash, const protocol_wire::BuyerTerms & terms)
+    UpdateBuyerTerms() {}
+    UpdateBuyerTerms(const libtorrent::sha1_hash & infoHash,
+                     const protocol_wire::BuyerTerms & terms,
+                     const ResultHandler & handler = ResultHandler())
         : TorrentPluginRequest(infoHash)
-        , terms(terms) {
+        , terms(terms)
+        , handler(handler) {
     }
 
     protocol_wire::BuyerTerms terms;
+    ResultHandler handler;
 };
 
 struct UpdateSellerTerms : public TorrentPluginRequest {
 
     typedef SubroutineResult<UpdateSellerTerms> Result;
+    typedef std::function<void(Result &)> ResultHandler;
 
-    UpdateSellerTerms(const libtorrent::sha1_hash & infoHash, const protocol_wire::SellerTerms & terms)
+    UpdateSellerTerms() {}
+    UpdateSellerTerms(const libtorrent::sha1_hash & infoHash,
+                      const protocol_wire::SellerTerms & terms,
+                      const ResultHandler & handler = ResultHandler())
         : TorrentPluginRequest(infoHash)
-        , terms(terms) {
+        , terms(terms)
+        , handler(handler) {
     }
 
     protocol_wire::SellerTerms terms;
+
+    ResultHandler handler;
 };
 
 struct ToObserveMode : public TorrentPluginRequest {
 
     typedef SubroutineResult<ToObserveMode> Result;
+    typedef std::function<void(Result &)> ResultHandler;
 
-    ToObserveMode(const libtorrent::sha1_hash & infoHash)
-        : TorrentPluginRequest(infoHash) {
+    ToObserveMode() {}
+    ToObserveMode(const libtorrent::sha1_hash & infoHash,
+                  const ResultHandler & handler = ResultHandler())
+        : TorrentPluginRequest(infoHash)
+        , handler(handler) {
     }
+
+    ResultHandler handler;
 };
 
 struct ToSellMode : public TorrentPluginRequest {
 
     typedef SubroutineResult<ToSellMode> Result;
+    typedef std::function<void(Result &)> ResultHandler;
 
+    ToSellMode() {}
     ToSellMode(const libtorrent::sha1_hash & infoHash,
                const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
                const protocol_session::SellingPolicy & sellingPolicy,
-               const protocol_wire::SellerTerms & terms)
+               const protocol_wire::SellerTerms & terms,
+               const ResultHandler & handler = ResultHandler())
         : TorrentPluginRequest(infoHash)
         , generateKeyPairsCallbackHandler(generateKeyPairsCallbackHandler)
         , generateP2PKHAddressesCallbackHandler(generateP2PKHAddressesCallbackHandler)
         , sellingPolicy(sellingPolicy)
-        , terms(terms) {
+        , terms(terms)
+        , handler(handler) {
     }
 
     protocol_session::GenerateKeyPairsCallbackHandler generateKeyPairsCallbackHandler;
     protocol_session::GenerateP2PKHAddressesCallbackHandler generateP2PKHAddressesCallbackHandler;
     protocol_session::SellingPolicy sellingPolicy;
     protocol_wire::SellerTerms terms;
+
+    ResultHandler handler;
 };
 
 struct ToBuyMode : public TorrentPluginRequest {
 
     typedef SubroutineResult<ToBuyMode> Result;
+    typedef std::function<void(Result &)> ResultHandler;
 
+    ToBuyMode() {}
     ToBuyMode(const libtorrent::sha1_hash & infoHash,
              const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
              const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
              const Coin::UnspentP2PKHOutput & funding,
              const protocol_session::BuyingPolicy & policy,
-             const protocol_wire::BuyerTerms & terms)
+             const protocol_wire::BuyerTerms & terms,
+             const ResultHandler & handler = ResultHandler())
         : TorrentPluginRequest(infoHash)
         , generateKeyPairsCallbackHandler(generateKeyPairsCallbackHandler)
         , generateP2PKHAddressesCallbackHandler(generateP2PKHAddressesCallbackHandler)
         , funding(funding)
         , policy(policy)
-        , terms(terms) {}
+        , terms(terms)
+        , handler(handler) {
+    }
 
     protocol_session::GenerateKeyPairsCallbackHandler generateKeyPairsCallbackHandler;
     protocol_session::GenerateP2PKHAddressesCallbackHandler generateP2PKHAddressesCallbackHandler;
     Coin::UnspentP2PKHOutput funding;
     protocol_session::BuyingPolicy policy;
     protocol_wire::BuyerTerms terms;
+
+    ResultHandler handler;
 };
 
 /**

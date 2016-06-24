@@ -36,14 +36,14 @@ class Plugin;
 namespace detail {
 
 // Variant used to allow a single request queue
-typedef boost::variant<const request::Start *,
-                       const request::Stop *,
-                       const request::Pause *,
-                       const request::UpdateBuyerTerms *,
-                       const request::UpdateSellerTerms *,
-                       const request::ToObserveMode *,
-                       const request::ToSellMode *,
-                       const request::ToBuyMode *> RequestVariant;
+typedef boost::variant<request::Start,
+                       request::Stop,
+                       request::Pause,
+                       request::UpdateBuyerTerms,
+                       request::UpdateSellerTerms,
+                       request::ToObserveMode,
+                       request::ToSellMode,
+                       request::ToBuyMode> RequestVariant;
 
 // Variant visitor
 class RequestVariantVisitor : public boost::static_visitor<>
@@ -55,7 +55,7 @@ public:
     }
 
     template<class T>
-    void operator()(const T * & r) const;
+    void operator()(const T & r) const;
 
 private:
 
@@ -99,7 +99,7 @@ public:
      */
 
     template<class T>
-    void submit(const T *);
+    void submit(const T &);
 
 private:
 
@@ -134,13 +134,13 @@ private:
 
     // Process a particular request
     template<class T>
-    void processTorrentPluginRequest(const T *);
+    void processTorrentPluginRequest(const T &);
 };
 
 /// These routines are templated, and therefore inlined
 
 template<class T>
-void Plugin::submit(const T * r) {
+void Plugin::submit(const T & r) {
 
     // Put request in container variant
     detail::RequestVariant v;
@@ -161,10 +161,10 @@ namespace joystream {
 namespace extension {
 
 template<class T>
-void Plugin::processTorrentPluginRequest(const T * r) {
+void Plugin::processTorrentPluginRequest(const T & r) {
 
     // Make sure there is a torrent plugin for this torrent
-    auto it = _plugins.find(r->infoHash);
+    auto it = _plugins.find(r.infoHash);
 
     // Result to be returned to libtorrent client
     typename T::Result result;
@@ -192,7 +192,7 @@ void Plugin::processTorrentPluginRequest(const T * r) {
 namespace detail {
 
 template<class T>
-void RequestVariantVisitor::operator()(const T * & r) const {
+void RequestVariantVisitor::operator()(const T & r) const {
     _plugin->processTorrentPluginRequest<T>(r);
 }
 
