@@ -433,6 +433,28 @@ void Node::processAlert(const libtorrent::alert * a) {
     /**
      * Alerts from plugin
      */
+    else if(const extension::alert::RequestResult<extension::request::Start> * p = libtorrent::alert_cast<extension::request::Start>(a))
+        process<extension::request::Start>(p);
+    else if(const extension::alert::RequestResult<extension::request::Stop> * p = libtorrent::alert_cast<extension::request::Stop>(a))
+        process<extension::request::Stop>(p);
+    else if(const extension::alert::RequestResult<extension::request::Pause> * p = libtorrent::alert_cast<extension::request::Pause>(a))
+        process<extension::request::Pause>(p);
+    else if(const extension::alert::RequestResult<extension::request::UpdateBuyerTerms> * p = libtorrent::alert_cast<extension::request::UpdateBuyerTerms>(a))
+        process<extension::request::UpdateBuyerTerms>(p);
+    else if(const extension::alert::RequestResult<extension::request::UpdateSellerTerms> * p = libtorrent::alert_cast<extension::request::UpdateSellerTerms>(a))
+        process<extension::request::UpdateSellerTerms>(p);
+    else if(const extension::alert::RequestResult<extension::request::ToObserveMode> * p = libtorrent::alert_cast<extension::request::ToObserveMode>(a))
+        process<extension::request::ToObserveMode>(p);
+    else if(const extension::alert::RequestResult<extension::request::ToSellMode> * p = libtorrent::alert_cast<extension::request::ToSellMode>(a))
+        process<extension::request::ToSellMode>(p);
+    else if(const extension::alert::RequestResult<extension::request::ToBuyMode> * p = libtorrent::alert_cast<extension::request::ToBuyMode>(a))
+        process<extension::request::ToBuyMode>(p);
+    else if(const extension::alert::BroadcastTransaction * p = libtorrent::alert_cast<extension::alert::BroadcastTransaction>(a))
+        process(p);
+    else
+        assert(false);
+
+    /**
     else if(const StartedSellerTorrentPlugin * p = libtorrent::alert_cast<StartedSellerTorrentPlugin>(a))
         processStartedSellerTorrentPlugin(p);
     else if(const StartedBuyerTorrentPlugin * p = libtorrent::alert_cast<StartedBuyerTorrentPlugin>(a))
@@ -453,6 +475,7 @@ void Node::processAlert(const libtorrent::alert * a) {
         processBroadcastTransactionAlert(p);
     //else if(const TorrentPluginStartedAlert * p = libtorrent::alert_cast<TorrentPluginStartedAlert>(a))
     //    processTorrentPluginStartedAlert(p);
+    */
 
     // Delete alert ** DELETE WHEN GOING TO NEW RELEASE ***
     // ===============================================
@@ -879,6 +902,32 @@ void Node::processPieceFinishedAlert(const libtorrent::piece_finished_alert * p)
     _torrents[infoHash]->pieceFinished(p->piece_index);
 }
 
+template<class T>
+void Node::process(const extension::alert::RequestResult<T> * p) {
+
+    // Get initial request
+    T request = p->result._request;
+
+    // Call handler
+    request.handler(request);
+}
+
+void Node::process(const extension::alert::BroadcastTransaction * p) {
+
+    Coin::Transaction tx = p->transaction();
+
+    // Enqueue transaction
+    _transactionSendQueue.push_back(tx);
+
+    // try to send immediately
+    try {
+        _wallet->broadcastTx(tx);
+    } catch(std::exception & e) {
+        // wallet is offline
+    }
+}
+
+/**
 void Node::processStartedSellerTorrentPlugin(const StartedSellerTorrentPlugin * p) {
 
     Q_ASSERT(_torrents.contains(p->infoHash()));
@@ -987,21 +1036,7 @@ void Node::processBuyerPeerPluginRemovedAlert(const BuyerPeerPluginRemovedAlert 
     // Notify view model
     torrent->model()->removePeer(p->endPoint());
 }
-
-void Node::processBroadcastTransactionAlert(const BroadcastTransactionAlert *p) {
-
-    Coin::Transaction tx = p->transaction();
-
-    // Enqueue transaction
-    _transactionSendQueue.push_back(tx);
-
-    // try to send immediately
-    try {
-        _wallet->broadcastTx(tx);
-    } catch(std::exception & e) {
-        // wallet is offline
-    }
-}
+*/
 
 // called on timer signal, to periodically try to resend transactions to the network
 void Node::sendTransactions() {

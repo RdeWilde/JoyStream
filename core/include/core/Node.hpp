@@ -365,6 +365,11 @@ private:
     void processPieceFinishedAlert(const libtorrent::piece_finished_alert * p);
 
     // Processing (custome) plugin alerts
+    template<class T>
+    void process(const extension::alert::RequestResult<T> * p);
+    void process(const extension::alert::BroadcastTransaction * p);
+
+    /**
     void processStartedSellerTorrentPlugin(const StartedSellerTorrentPlugin * p);
     void processStartedBuyerTorrentPlugin(const StartedBuyerTorrentPlugin * p);
     void processBuyerTorrentPluginStatusAlert(const BuyerTorrentPluginStatusAlert * p);
@@ -374,7 +379,7 @@ private:
     void processBuyerPeerAddedAlert(const BuyerPeerAddedAlert * p);
     void processSellerPeerPluginRemovedAlert(const SellerPeerPluginRemovedAlert * p);
     void processBuyerPeerPluginRemovedAlert(const BuyerPeerPluginRemovedAlert * p);
-    void processBroadcastTransactionAlert(const BroadcastTransactionAlert *p);
+    */
 
     ///
 
