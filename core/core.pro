@@ -58,6 +58,18 @@ SOURCES += \
 INCLUDEPATH += $$PWD/../extension/include
 DEPENDPATH += $$PWD/../extension/include
 
+# protocol_session
+INCLUDEPATH += $$PWD/../protocol_session/include
+DEPENDPATH += $$PWD/../protocol_session/include
+
+# protocol_statemachine
+INCLUDEPATH += $$PWD/../protocol_statemachine/include
+DEPENDPATH += $$PWD/../protocol_statemachine/include
+
+# protocol_wire
+INCLUDEPATH += $$PWD/../protocol_wire/include
+DEPENDPATH += $$PWD/../protocol_wire/include
+
 # common
 INCLUDEPATH += $$PWD/../common/include
 DEPENDPATH += $$PWD/../common/include
