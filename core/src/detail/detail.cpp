@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 16 2016
  */
 
-#include <core/detail/Torrent.hpp>
+#include <core/detail/detail.hpp>
 #include <core/Node.hpp>
 #include <extension/extension.hpp>
 
@@ -13,48 +13,51 @@ namespace joystream {
 namespace core {
 namespace detail {
 
-Torrent::Torrent(core::Node * node,
+Torrent::Torrent(extension::Plugin * plugin,
                  const libtorrent::sha1_hash & infoHash,
                  const std::string & name,
                  const std::string & savePath,
                  const std::vector<char> & resumeData,
                  std::uint64_t flags,
                  State event)
-    : _node(node)
+    : _plugin(plugin)
     , _infoHash(infoHash)
     , _name(name)
     , _savePath(savePath)
     , _resumeData(resumeData)
     , _flags(flags)
     , _status(event)
+    /**
     , _model(infoHash,
              name,
              savePath,
              torrentFile) {
+                 */
+{
 }
 
 void Torrent::start(const extension::request::Start::ResultHandler & handler) {
-    _node->plugin()->submit(extension::request::Start(_infoHash, handler));
+    _plugin->submit(extension::request::Start(_infoHash, handler));
 }
 
 void Torrent::stop(const extension::request::Stop::ResultHandler & handler) {
-    _node->plugin()->submit(extension::request::Stop(_infoHash, handler));
+    _plugin->submit(extension::request::Stop(_infoHash, handler));
 }
 
 void Torrent::pause(const extension::request::Pause::ResultHandler & handler) {
-   _node->plugin()->submit(extension::request::Pause(_infoHash, handler));
+   _plugin->submit(extension::request::Pause(_infoHash, handler));
 }
 
 void Torrent::updateTerms(const protocol_wire::BuyerTerms & terms, const extension::request::UpdateBuyerTerms::ResultHandler & handler) {
-    _node->plugin()->submit(extension::request::UpdateBuyerTerms(_infoHash, terms, handler));
+    _plugin->submit(extension::request::UpdateBuyerTerms(_infoHash, terms, handler));
 }
 
 void Torrent::updateTerms(const protocol_wire::SellerTerms & terms, const extension::request::UpdateSellerTerms::ResultHandler & handler) {
-    _node->plugin()->submit(extension::request::UpdateSellerTerms(_infoHash, terms, handler));
+    _plugin->submit(extension::request::UpdateSellerTerms(_infoHash, terms, handler));
 }
 
 void Torrent::toObserveMode(const extension::request::ToObserveMode::ResultHandler & handler) {
-    _node->plugin()->submit(new extension::request::ToObserveMode(_infoHash, handler));
+    _plugin->submit(extension::request::ToObserveMode(_infoHash, handler));
 }
 
 void Torrent::toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
@@ -63,12 +66,12 @@ void Torrent::toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler
                          const protocol_wire::SellerTerms & terms,
                          const extension::request::ToSellMode::ResultHandler & handler) {
 
-    _node->plugin()->submit(extension::request::ToSellMode(_infoHash,
-                                                           generateKeyPairsCallbackHandler,
-                                                           generateP2PKHAddressesCallbackHandler,
-                                                           sellingPolicy,
-                                                           terms,
-                                                           handler));
+    _plugin->submit(extension::request::ToSellMode(_infoHash,
+                                                   generateKeyPairsCallbackHandler,
+                                                   generateP2PKHAddressesCallbackHandler,
+                                                   sellingPolicy,
+                                                   terms,
+                                                   handler));
 }
 
 void Torrent::toBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
@@ -78,13 +81,13 @@ void Torrent::toBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler 
                         const protocol_wire::BuyerTerms & terms,
                         const extension::request::ToBuyMode::ResultHandler & handler) {
 
-    _node->plugin()->submit(extension::request::ToBuyMode(_infoHash,
-                                                          generateKeyPairsCallbackHandler,
-                                                          generateP2PKHAddressesCallbackHandler,
-                                                          funding,
-                                                          policy,
-                                                          terms,
-                                                          handler));
+    _plugin->submit(extension::request::ToBuyMode(_infoHash,
+                                                  generateKeyPairsCallbackHandler,
+                                                  generateP2PKHAddressesCallbackHandler,
+                                                  funding,
+                                                  policy,
+                                                  terms,
+                                                  handler));
 }
 
 /**
@@ -164,8 +167,9 @@ void Torrent::setState(State event) {
     _status = event;
 }
 
-std::weak_ptr<core::Torrent> Torrent::model() {
+std::shared_ptr<core::Torrent> Torrent::model() const {
     return _model;
+}
 
 /**
 void Torrent::addStream(Stream * stream) {

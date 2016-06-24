@@ -22,19 +22,17 @@ namespace exception {
     public:
 
         MissingJSONKey(const std::string & key)
-            : key(key) {
-            message += "Missing key " + key;
+            : std::runtime_error(toMessage(key))
+            , key(key){
         }
 
         std::string key;
 
-        virtual const char* what() const {
-            return message.c_str();
-        }
-
     private:
 
-        std::string message;
+        static std::string toMessage(const std::string & key) {
+            return std::string("Missing key ") + key;
+        }
     };
 
     class InvalidJSONValueType : public std::runtime_error {
@@ -42,20 +40,10 @@ namespace exception {
     public:
 
         InvalidJSONValueType(const std::string & key, QJsonValue::Type expected, QJsonValue::Type found)
-            : key(key)
+            : std::runtime_error(toMessage(key, expected, found))
+            , key(key)
             , expected(expected)
             , found(found) {
-
-            message += "Found value type "
-                    + toString(found)
-                    + ", but expected type "
-                    + toString(expected)
-                    + " for key"
-                    + key;
-        }
-
-        virtual const char* what() const {
-            return message.c_str();
         }
 
         std::string key;
@@ -83,7 +71,15 @@ namespace exception {
             }
         }
 
-        std::string message;
+        static std::string toMessage(const std::string & key, QJsonValue::Type expected, QJsonValue::Type found) {
+
+            return std::string("Found value type ")
+                   + toString(found)
+                   + ", but expected type "
+                   + toString(expected)
+                   + " for key"
+                   + key;
+        }
 
     };
 
@@ -92,65 +88,40 @@ namespace exception {
     public:
 
         CanOnlyStartStoppedNode(Node::State badState)
-            : badState(badState) {
-            message += "Node can only be started when stopped.";
+            : std::runtime_error("Node can only be started when stopped.")
+            , badState(badState) {
         }
-
 
         // The state in the node
         Node::State badState;
-
-        virtual const char* what() const {
-            return message.c_str();
-        }
-
-    private:
-
-        std::string message;
     };
 
     class CannotStopStoppedNode : public std::runtime_error {
 
     public:
 
-        CannotStopStoppedNode() {
-            message += "Node cannot be stopped when already stopped.";
+        CannotStopStoppedNode()
+            : std::runtime_error("Node cannot be stopped when already stopped") {
         }
-
-        virtual const char* what() const {
-            return message.c_str();
-        }
-
-    private:
-
-        std::string message;
     };
 
-    class NoSuchTorrentAdded : public std::runtime_error {
+    class NoSuchTorrentExists : public std::runtime_error {
 
     public:
 
-        NoSuchTorrentAdded(const libtorrent::sha1_hash & infoHash)
-            : _infoHash(infoHash) {
-
-            message += "No torrent added with info_hash: "
-                    + libtorrent::to_string(_infoHash);
+        NoSuchTorrentExists(const libtorrent::sha1_hash & infoHash)
+            : std::runtime_error(toMessage(infoHash))
+            , infoHash(infoHash) {
         }
 
-        libtorrent::sha1_hash infoHash() const {
-            return _infoHash;
-        }
-
-        virtual const char* what() const {
-            return message.c_str();
-        }
+        libtorrent::sha1_hash infoHash;
 
     private:
 
-        std::string message;
-
-        libtorrent::sha1_hash _infoHash;
-    }
+        static std::string toMessage(const libtorrent::sha1_hash & infoHash) {
+            return std::string("No torrent added with info_hash: ") + infoHash.to_string();
+        }
+    };
 
 }
 }

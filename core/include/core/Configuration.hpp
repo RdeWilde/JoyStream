@@ -27,11 +27,9 @@ namespace core {
 namespace configuration {
 
 template <class T>
-QJsonValue safeRead<T>(const QJsonObject & json, const QString & key);
+QJsonValue safeRead(const QJsonObject & json, const QString & key);
 
 struct BuyingPlugin {
-
-    BuyingPlugin():{}
 
     BuyingPlugin() {}
 
@@ -41,10 +39,7 @@ struct BuyingPlugin {
 
 struct SellingPlugin {
 
-    SellingPlugin():{}
-
-    SellingPlugin()
-        : {}
+    SellingPlugin() {}
 
     protocol_session::SellingPolicy policy;
     protocol_wire::SellerTerms terms;
@@ -75,7 +70,7 @@ public:
 
     // Encode/Decode configuration from JSON using schema above
     QJsonObject toJSON() const;
-    static Torrent fromJSON(const QJsonObject &);
+    static TorrentPlugin fromJSON(const QJsonObject &);
 
 private:
 
@@ -142,6 +137,7 @@ private:
     }
     */
 
+    /**
     // Encode/Decode add_torrent_params in JSON schema above
     static QJsonObject toJSON(const libtorrent::add_torrent_params &);
     static libtorrent::add_torrent_params fromJSON(const QJsonObject &);
@@ -149,6 +145,7 @@ private:
     // Decode/Encode torrent_info to/from bencoding
     static QString bencode(const libtorrent::torrent_info &);
     static libtorrent::torrent_info deBencode(const QString &);
+    */
 };
 
 // Persistant representation of a node
@@ -160,8 +157,8 @@ public:
 
     Node(const libtorrent::settings_pack & settingPack,
                const libtorrent::dht_settings & dhtSettings,
-               const std::pair<int, int> & portRange,
-               const std::vector<std::pair<std::string, int> > & dhtRouters);
+               const std::pair<int, int> & portRange);
+               //const std::vector<std::pair<std::string, int> > & dhtRouters);
 
     /**
     * Schema for JSON encoding of configuration
@@ -196,6 +193,7 @@ private:
     //std::vector<std::pair<std::string, int> > _dhtRouters;
 
 
+    /**
     // Decode/Encode libtorrent::settings_pack to/from bencoding
     static QString toJSON(const libtorrent::settings_pack & settings);
     libtorrent::settings_pack fromJSON(const QString &);
@@ -203,6 +201,7 @@ private:
     // Decode/Encode libtorrent::dht_settings to/from bencoding
     static QString toJSON(const libtorrent::dht_settings & settings);
     libtorrent::dht_settings fromJSON(const QString &);
+    */
 };
 
 }

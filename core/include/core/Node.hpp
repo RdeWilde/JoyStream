@@ -8,10 +8,11 @@
 #ifndef CONTROLLER_HPP
 #define CONTROLLER_HPP
 
-#include <core/detail/Torrent.hpp>
+#include <core/detail/detail.hpp>
 //#include <core/controller/Stream.hpp>
 #include <extension/extension.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
+//#include <bitcoin/SPVWallet.hpp>
 
 #include <libtorrent/session.hpp>
 #include <libtorrent/alert.hpp>
@@ -252,7 +253,7 @@ signals:
     void torrentCheckedButHasNoPlugin(const libtorrent::torrent_info & torrentInfo, const libtorrent::torrent_status & torrentStatus);
 
     // Status update from underlying libtorrent session
-    void pluginStatusUpdate(const Plugin::Status & status);
+    void pluginStatusUpdate(const extension::status::Plugin & status);
 
 private slots:
 
@@ -343,7 +344,7 @@ private:
     //Q_INVOKABLE void processAlertQueue();
 
     // Process a spesific request
-    Q_INVOKABLE void processAlert(const libtorrent::alert * a);
+    Q_INVOKABLE void processAlert(const std::auto_ptr<libtorrent::alert> &);
 
     /// Alert processing routines
 
@@ -368,6 +369,7 @@ private:
     template<class T>
     void process(const extension::alert::RequestResult<T> * p);
     void process(const extension::alert::BroadcastTransaction * p);
+    void process(const extension::alert::PluginStatus * p);
 
     /**
     void processStartedSellerTorrentPlugin(const StartedSellerTorrentPlugin * p);
@@ -407,56 +409,6 @@ private:
     // Gives raw pointer to plugin
     extension::Plugin *  plugin();
 };
-
-namespace detail {
-
-// An unsynchronized counter shared across multiple callbacks.
-class CallbackCounter {
-
-public:
-
-    CallbackCounter()
-        : CallbackCounter(0) {
-    }
-
-    CallbackCounter(uint initialValue)
-        : _count(new int) {
-
-        *(_count.get()) = initialValue;
-    }
-
-    uint increment() {
-
-        uint * ptr = _count.get();
-
-        (*ptr)++;
-
-        return (*ptr);
-    }
-
-    bool decrement() {
-
-        uint * ptr = _count.get();
-
-        if((*ptr) == 0)
-            throw std::runtime_error("Counter already depleeted.");
-        else
-            (*ptr)--;
-
-        return done();
-    }
-
-    bool done() {
-        return *(_count.get()) == 0;
-    }
-
-private:
-
-    // Shared underlying count
-    std::shared_ptr<uint> _count;
-};
-
-}
 
 }
 }

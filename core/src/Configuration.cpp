@@ -17,15 +17,15 @@ namespace core {
 namespace configuration {
 
 template <class T>
-QJsonValue read<T>(const QJsonObject & json, const QString & key) {
+QJsonValue read(const QJsonObject & json, const QString & key) {
 
     if(!json.contains(key))
         throw exception::MissingJSONKey(key.toStdString());
 
     QJsonValue v = json[key];
 
-    if(!v.type() != T)
-        throw exception::InvalidJSONValueType(key, T, v.type());
+//    if(v.type() != T)
+//        throw exception::InvalidJSONValueType(key, T, v.type());
 
     return v;
 }
@@ -34,8 +34,10 @@ QJsonValue read<T>(const QJsonObject & json, const QString & key) {
 
 Torrent::Torrent() {}
 
-Torrent::Torrent(const libtorrent::add_torrent_params & params)
-    : _params(params) {}
+Torrent::Torrent(const libtorrent::add_torrent_params & params,
+                 const TorrentPlugin & plugin)
+    : _params(params)
+    , _plugin(plugin) {}
 
 /**
 libtorrent::torrent_info Torrent::fromMagnetUri(const std::string & uri) {
@@ -110,23 +112,27 @@ QJsonObject Torrent::toJSON() const {
 
     QJsonObject object;
 
-    object["params"] = Torrent::toJSON(_params);
+    //object["params"] = Torrent::toJSON(_params);
 
     return object;
 }
 
 Torrent Torrent::fromJSON(const QJsonObject & json) {
 
+    /**
     QJsonObject paramsObject = read<QJsonValue::Type::Object>(json, "params");
     libtorrent::add_torrent_params params = Torrent::fromJSON(paramsObject);
 
     return Torrent(params);
+    */
+
 }
 
 libtorrent::add_torrent_params Torrent::params() const {
     return _params;
 }
 
+/**
 QJsonObject Torrent::toJSON(const libtorrent::add_torrent_params & params) {
 
     QJsonObject object;
@@ -201,6 +207,7 @@ libtorrent::torrent_info Torrent::deBencode(const QString & bencoding) {
 
     return libtorrent::torrent_info(data.data(), data.length());
 }
+*/
 
 //// Controller
 
@@ -284,6 +291,7 @@ Node::Node() {
                      );
     */
 
+    /**
     std::clog << "Libtorrent session started";
 
     // Set session settings - these acrobatics with going back and forth seem to indicate that I may have done it incorrectly
@@ -300,6 +308,7 @@ Node::Node() {
     for(std::vector<std::pair<std::string, int>>::const_iterator i = dhtRouters.begin(),
             end(dhtRouters.end());i != end; ++i)
         _session->add_dht_router(*i); // Add router to session
+    */
 
     /**
     // Start dht node?
@@ -317,255 +326,255 @@ Node::Node() {
     _session->set_alert_notify(boost::bind(&Controller::libtorrent_entry_point_alert_notification, this));
     */
 
+//    // Setup session settings
+//    libtorrent::session_settings sessionSettings;
 
-    // Setup session settings
-    libtorrent::session_settings sessionSettings;
+//    /* session_settings:
+//    *	This holds most of the session-wide settings in libtorrent.
+//    *	Pass this to session::set_settings() to change the settings,
+//    *	initialize it from session::get_settings() to get the current settings.
+//    *	http://libtorrent.org/reference-Settings.html#session_settings
+//    */
 
-    /* session_settings:
-    *	This holds most of the session-wide settings in libtorrent.
-    *	Pass this to session::set_settings() to change the settings,
-    *	initialize it from session::get_settings() to get the current settings.
-    *	http://libtorrent.org/reference-Settings.html#session_settings
-    */
+//    // Set session settings
 
-    // Set session settings
+//    /* connections_limit:
+//     * sets a global limit on the number of connections opened.
+//     * The number of connections is set to a hard minimum of at least two per torrent,
+//     * so if you set a too low connections limit,
+//     * and open too many torrents, the limit will not be met.
+//     */
+//    //sessionSettings.connections_limit =
 
-    /* connections_limit:
-     * sets a global limit on the number of connections opened.
-     * The number of connections is set to a hard minimum of at least two per torrent,
-     * so if you set a too low connections limit,
-     * and open too many torrents, the limit will not be met.
-     */
-    //sessionSettings.connections_limit =
+//    /* user_agent:
+//    *	the client identification to the tracker. The recommended format of
+//    *	this string is: "ClientName/ClientVersion libtorrent/libtorrentVersion".
+//    *	This name will not only be used when making HTTP requests, but also when
+//    *	sending extended headers to peers that support that extension.
+//    */
+//    sessionSettings.user_agent = CORE_EXTENSION_FINGERPRINT + std::string("/") + std::to_string(CORE_VERSION_MAJOR) + std::string(".") + std::to_string(CORE_VERSION_MINOR);
 
-    /* user_agent:
-    *	the client identification to the tracker. The recommended format of
-    *	this string is: "ClientName/ClientVersion libtorrent/libtorrentVersion".
-    *	This name will not only be used when making HTTP requests, but also when
-    *	sending extended headers to peers that support that extension.
-    */
-    sessionSettings.user_agent = CORE_EXTENSION_FINGERPRINT + std::string("/") + std::to_string(CORE_VERSION_MAJOR) + std::string(".") + std::to_string(CORE_VERSION_MINOR);
+//    /* choking_algorithm:
+//    *	Specifies which algorithm to use to determine which peers to unchoke.
+//    *	This setting replaces the deprecated settings auto_up_slots and
+//    *	auto_upload_slots_rate_based.
+//    */
+//    sessionSettings.choking_algorithm = libtorrent::session_settings::auto_expand_choker;
 
-    /* choking_algorithm:
-    *	Specifies which algorithm to use to determine which peers to unchoke.
-    *	This setting replaces the deprecated settings auto_up_slots and
-    *	auto_upload_slots_rate_based.
-    */
-    sessionSettings.choking_algorithm = libtorrent::session_settings::auto_expand_choker;
+//    /* disk_cache_algorithm
+//    *	tells the disk I/O thread which cache flush algorithm to use.
+//    *	This is specified by the disk_cache_algo_t enum.
+//    */
+//    sessionSettings.disk_cache_algorithm = libtorrent::session_settings::avoid_readback;
 
-    /* disk_cache_algorithm
-    *	tells the disk I/O thread which cache flush algorithm to use.
-    *	This is specified by the disk_cache_algo_t enum.
-    */
-    sessionSettings.disk_cache_algorithm = libtorrent::session_settings::avoid_readback;
+//    /* volatile_read_cache
+//    *	if this is set to true, read cache blocks that are hit by peer read requests
+//    *	are removed from the disk cache to free up more space. This is useful if you
+//    *	don't expect the disk cache to create any cache hits from other peers than
+//    *	the one who triggered the cache line to be read into the cache in the first place.
+//    */
+//    sessionSettings.volatile_read_cache = true; // <-- worth taking a closer look at
 
-    /* volatile_read_cache
-    *	if this is set to true, read cache blocks that are hit by peer read requests
-    *	are removed from the disk cache to free up more space. This is useful if you
-    *	don't expect the disk cache to create any cache hits from other peers than
-    *	the one who triggered the cache line to be read into the cache in the first place.
-    */
-    sessionSettings.volatile_read_cache = true; // <-- worth taking a closer look at
+//    /* half_open_limit
+//    *	sets the maximum number of half-open connections libtorrent
+//    *	will have when connecting to peers. A half-open connection is
+//    *	one where connect() has been called, but the connection still
+//    *	hasn't been established (nor failed). Windows XP Service Pack 2
+//    *	sets a default, system wide, limit of the number of half-open
+//    *	connections to 10. So, this limit can be used to work nicer
+//    *	together with other network applications on that system.
+//    *	The default is to have no limit, and passing -1 as the limit,
+//    *	means to have no limit. When limiting the number of simultaneous
+//    *	connection attempts, peers will be put in a queue waiting for their
+//    *	turn to get connected.
+//    */
+//    // s_s.half_open_limit = -1;
 
-    /* half_open_limit
-    *	sets the maximum number of half-open connections libtorrent
-    *	will have when connecting to peers. A half-open connection is
-    *	one where connect() has been called, but the connection still
-    *	hasn't been established (nor failed). Windows XP Service Pack 2
-    *	sets a default, system wide, limit of the number of half-open
-    *	connections to 10. So, this limit can be used to work nicer
-    *	together with other network applications on that system.
-    *	The default is to have no limit, and passing -1 as the limit,
-    *	means to have no limit. When limiting the number of simultaneous
-    *	connection attempts, peers will be put in a queue waiting for their
-    *	turn to get connected.
-    */
-    // s_s.half_open_limit = -1;
+//    /* allow_multiple_connections_per_ip
+//    *	determines if connections from the same IP address as existing
+//    *	connections should be rejected or not. Multiple connections from
+//    *	the same IP address is not allowed by default, to prevent abusive
+//    *	behavior by peers. It may be useful to allow such connections in
+//    *	cases where simulations are run on the same machie, and all peers
+//    *	in a swarm has the same IP address.
+//    **/
 
-    /* allow_multiple_connections_per_ip
-    *	determines if connections from the same IP address as existing
-    *	connections should be rejected or not. Multiple connections from
-    *	the same IP address is not allowed by default, to prevent abusive
-    *	behavior by peers. It may be useful to allow such connections in
-    *	cases where simulations are run on the same machie, and all peers
-    *	in a swarm has the same IP address.
-    **/
-
-    // THIS SHOULD REALLY ONLY BE TRUE WHEN WE ARE DOING TEST ON THE SAME MACHINE
-    // NOT IN GENERAL
-    sessionSettings.allow_multiple_connections_per_ip = true;
+//    // THIS SHOULD REALLY ONLY BE TRUE WHEN WE ARE DOING TEST ON THE SAME MACHINE
+//    // NOT IN GENERAL
+//    sessionSettings.allow_multiple_connections_per_ip = true;
 
 
-    // the maximum times we try to connect to a peer before stop connecting
-    // again. If a peer succeeds, its failcounter is reset. If a peer is
-    // retrieved from a peer source (other than DHT) the failcount is
-    // decremented by one, allowing another try.
-    // DEFAULT = 3
-    sessionSettings.max_failcount = 3;
+//    // the maximum times we try to connect to a peer before stop connecting
+//    // again. If a peer succeeds, its failcounter is reset. If a peer is
+//    // retrieved from a peer source (other than DHT) the failcount is
+//    // decremented by one, allowing another try.
+//    // DEFAULT = 3
+//    sessionSettings.max_failcount = 3;
 
-    // the number of seconds to wait to reconnect to a peer. this time is
-    // multiplied with the failcount.
-    // DEFAULT = 60
-    sessionSettings.min_reconnect_time = 3;
+//    // the number of seconds to wait to reconnect to a peer. this time is
+//    // multiplied with the failcount.
+//    // DEFAULT = 60
+//    sessionSettings.min_reconnect_time = 3;
 
-    /* use_disk_read_ahead
-    *	defaults to true and will attempt to optimize disk reads by giving
-    *	the operating system heads up of disk read requests as they are
-    *	queued in the disk job queue. This gives a significant performance
-    *	boost for seeding.
-    */
-    sessionSettings.use_disk_read_ahead = true;
+//    /* use_disk_read_ahead
+//    *	defaults to true and will attempt to optimize disk reads by giving
+//    *	the operating system heads up of disk read requests as they are
+//    *	queued in the disk job queue. This gives a significant performance
+//    *	boost for seeding.
+//    */
+//    sessionSettings.use_disk_read_ahead = true;
 
-    /* disable_hash_checks
-    *	controls if downloaded pieces are verified against the piece hashes
-    *	in the torrent file or not. The default is false, i.e. to verify all
-    *	downloaded data. It may be useful to turn this off for performance
-    *	profiling and simulation scenarios. Do not disable the hash check
-    *	for regular bittorrent clients.
-    */
-    sessionSettings.disable_hash_checks = false;
+//    /* disable_hash_checks
+//    *	controls if downloaded pieces are verified against the piece hashes
+//    *	in the torrent file or not. The default is false, i.e. to verify all
+//    *	downloaded data. It may be useful to turn this off for performance
+//    *	profiling and simulation scenarios. Do not disable the hash check
+//    *	for regular bittorrent clients.
+//    */
+//    sessionSettings.disable_hash_checks = false;
 
-    /* peer_timeout
-    *	the number of seconds to wait for any activity on the peer wire before
-    *	closing the connectiong due to time out. This defaults to 120 seconds,
-    *	since that's what's specified in the protocol specification. After half
-    *	the time out, a keep alive message is sent.
-    */
-    //sessionSettings.peer_timeout = 120;
+//    /* peer_timeout
+//    *	the number of seconds to wait for any activity on the peer wire before
+//    *	closing the connectiong due to time out. This defaults to 120 seconds,
+//    *	since that's what's specified in the protocol specification. After half
+//    *	the time out, a keep alive message is sent.
+//    */
+//    //sessionSettings.peer_timeout = 120;
 
-    /* announce_to_all_tiers
-    *	controls how multi tracker torrents are treated. When this is set to true,
-    *	one tracker from each tier is announced to. This is the uTorrent behavior.
-    *	This is false by default in order to comply with the multi-tracker specification.
-    */
-    //sessionSettings.announce_to_all_tiers = false;
+//    /* announce_to_all_tiers
+//    *	controls how multi tracker torrents are treated. When this is set to true,
+//    *	one tracker from each tier is announced to. This is the uTorrent behavior.
+//    *	This is false by default in order to comply with the multi-tracker specification.
+//    */
+//    //sessionSettings.announce_to_all_tiers = false;
 
-    /* download_rate_limit
-    *	sets the session-global limits of upload and download rate limits, in bytes
-    *	per second. The local rates refer to peers on the local network. By default
-    *	peers on the local network are not rate limited. These rate limits are only
-    *	used for local peers (peers within the same subnet as the client itself) and
-    *	it is only used when session_settings::ignore_limits_on_local_network is set
-    *	to true (which it is by default). These rate limits default to unthrottled,
-    *	but can be useful in case you want to treat local peers preferentially, but
-    *	not quite unthrottled. A value of 0 means unlimited.
-    */
-    sessionSettings.download_rate_limit = 0;// kbyte/s * 1000 = bytes/s;
-    sessionSettings.upload_rate_limit = 0;// kbyte/s * 1000 = byte/s;
-    sessionSettings.ignore_limits_on_local_network = false;
+//    /* download_rate_limit
+//    *	sets the session-global limits of upload and download rate limits, in bytes
+//    *	per second. The local rates refer to peers on the local network. By default
+//    *	peers on the local network are not rate limited. These rate limits are only
+//    *	used for local peers (peers within the same subnet as the client itself) and
+//    *	it is only used when session_settings::ignore_limits_on_local_network is set
+//    *	to true (which it is by default). These rate limits default to unthrottled,
+//    *	but can be useful in case you want to treat local peers preferentially, but
+//    *	not quite unthrottled. A value of 0 means unlimited.
+//    */
+//    sessionSettings.download_rate_limit = 0;// kbyte/s * 1000 = bytes/s;
+//    sessionSettings.upload_rate_limit = 0;// kbyte/s * 1000 = byte/s;
+//    sessionSettings.ignore_limits_on_local_network = false;
 
-    /* unchoke_slots_limit
-    *	the max number of unchoked peers in the session. The number of unchoke slots
-    *	may be ignored depending on what choking_algorithm is set to.
-    *	A value of -1 means infinite.
-    */
-    sessionSettings.unchoke_slots_limit = 4; // <-- value suggested by spec, but may be disregarded if choking_algorithm != fixed_slots_choker
+//    /* unchoke_slots_limit
+//    *	the max number of unchoked peers in the session. The number of unchoke slots
+//    *	may be ignored depending on what choking_algorithm is set to.
+//    *	A value of -1 means infinite.
+//    */
+//    sessionSettings.unchoke_slots_limit = 4; // <-- value suggested by spec, but may be disregarded if choking_algorithm != fixed_slots_choker
 
-    /* max_peerlist_size
-    *	the maximum number of peers in the list of known peers. These peers are not
-    *	necessarily connected, so this number should be much greater than the maximum
-    *	number of connected peers. Peers are evicted from the cache when the list grows
-    *	passed 90% of this limit, and once the size hits the limit, peers are no longer
-    *	added to the list. If this limit is set to 0, there is no limit on how many peers
-    *	we'll keep in the peer list.
-    */
-    sessionSettings.max_peerlist_size = 0;
+//    /* max_peerlist_size
+//    *	the maximum number of peers in the list of known peers. These peers are not
+//    *	necessarily connected, so this number should be much greater than the maximum
+//    *	number of connected peers. Peers are evicted from the cache when the list grows
+//    *	passed 90% of this limit, and once the size hits the limit, peers are no longer
+//    *	added to the list. If this limit is set to 0, there is no limit on how many peers
+//    *	we'll keep in the peer list.
+//    */
+//    sessionSettings.max_peerlist_size = 0;
 
-    /* cache_size
-    *	the disk write and read cache. It is specified in units of 16 KiB blocks.
-    *	Buffers that are part of a peer's send or receive buffer also count against
-    *	this limit. Send and receive buffers will never be denied to be allocated,
-    *	but they will cause the actual cached blocks to be flushed or evicted.
-    *	If this is set to -1, the cache size is automatically set to the amount
-    *	of physical RAM available in the machine divided by 8. If the amount of
-    *	physical RAM cannot be determined, it's set to 1024 (= 16 MiB).
-    *
-    *	Disk buffers are allocated using a pool allocator, the number of blocks that
-    *	are allocated at a time when the pool needs to grow can be specified in
-    *	cache_buffer_chunk_size. This defaults to 16 blocks.
-    *	Lower numbers saves memory at the expense of more heap allocations.
-    *	It must be at least 1.
-    */
-    sessionSettings.cache_size = -1; // check these values later.
-    sessionSettings.use_read_cache = sessionSettings.cache_size > 0;
-    sessionSettings.cache_buffer_chunk_size = sessionSettings.cache_size / 100;
-    //sessionSettings.read_cache_line_size =
+//    /* cache_size
+//    *	the disk write and read cache. It is specified in units of 16 KiB blocks.
+//    *	Buffers that are part of a peer's send or receive buffer also count against
+//    *	this limit. Send and receive buffers will never be denied to be allocated,
+//    *	but they will cause the actual cached blocks to be flushed or evicted.
+//    *	If this is set to -1, the cache size is automatically set to the amount
+//    *	of physical RAM available in the machine divided by 8. If the amount of
+//    *	physical RAM cannot be determined, it's set to 1024 (= 16 MiB).
+//    *
+//    *	Disk buffers are allocated using a pool allocator, the number of blocks that
+//    *	are allocated at a time when the pool needs to grow can be specified in
+//    *	cache_buffer_chunk_size. This defaults to 16 blocks.
+//    *	Lower numbers saves memory at the expense of more heap allocations.
+//    *	It must be at least 1.
+//    */
+//    sessionSettings.cache_size = -1; // check these values later.
+//    sessionSettings.use_read_cache = sessionSettings.cache_size > 0;
+//    sessionSettings.cache_buffer_chunk_size = sessionSettings.cache_size / 100;
+//    //sessionSettings.read_cache_line_size =
 
-    /* allow_reordered_disk_operations
-    *	if this is true, disk read operations may be re-ordered based on their
-    *	physical disk read offset. This greatly improves throughput when uploading
-    *	to many peers. This assumes a traditional hard drive with a read head and
-    *	spinning platters. If your storage medium is a solid state drive,
-    *	this optimization doesn't give you an benefits
-    */
-    sessionSettings.allow_reordered_disk_operations = true;
+//    /* allow_reordered_disk_operations
+//    *	if this is true, disk read operations may be re-ordered based on their
+//    *	physical disk read offset. This greatly improves throughput when uploading
+//    *	to many peers. This assumes a traditional hard drive with a read head and
+//    *	spinning platters. If your storage medium is a solid state drive,
+//    *	this optimization doesn't give you an benefits
+//    */
+//    sessionSettings.allow_reordered_disk_operations = true;
 
-    /* mixed_mode_algorithm
-    *	determines how to treat TCP connections when there are uTP connections.
-    *	Since uTP is designed to yield to TCP, there's an inherent problem when
-    *	using swarms that have both TCP and uTP connections. If nothing is done,
-    *	uTP connections would often be starved out for bandwidth by the TCP connections.
-    *	This mode is prefer_tcp. The peer_proportional mode simply looks at the current
-    *	throughput and rate limits all TCP connections to their proportional share based
-    *	on how many of the connections are TCP. This works best if uTP connections are
-    *	not rate limited by the global rate limiter, see rate_limit_utp.
-    *	see bandwidth_mixed_algo_t for options.
-    */
-    sessionSettings.mixed_mode_algorithm = libtorrent::session_settings::prefer_tcp;
+//    /* mixed_mode_algorithm
+//    *	determines how to treat TCP connections when there are uTP connections.
+//    *	Since uTP is designed to yield to TCP, there's an inherent problem when
+//    *	using swarms that have both TCP and uTP connections. If nothing is done,
+//    *	uTP connections would often be starved out for bandwidth by the TCP connections.
+//    *	This mode is prefer_tcp. The peer_proportional mode simply looks at the current
+//    *	throughput and rate limits all TCP connections to their proportional share based
+//    *	on how many of the connections are TCP. This works best if uTP connections are
+//    *	not rate limited by the global rate limiter, see rate_limit_utp.
+//    *	see bandwidth_mixed_algo_t for options.
+//    */
+//    sessionSettings.mixed_mode_algorithm = libtorrent::session_settings::prefer_tcp;
 
-    /* active management fields
-    *	determines how the DHT is used. If this is true, the DHT will only be used for
-    *	torrents where all trackers in its tracker list has failed. Either by an explicit
-    *	error message or a time out. This is false by default, which means the DHT is used
-    *	by default regardless of if the trackers fail or not.
-    */
-    //sessionSettings.active_downloads = atoi(arg);
-    //sessionSettings.active_seeds = atoi(arg);
+//    /* active management fields
+//    *	determines how the DHT is used. If this is true, the DHT will only be used for
+//    *	torrents where all trackers in its tracker list has failed. Either by an explicit
+//    *	error message or a time out. This is false by default, which means the DHT is used
+//    *	by default regardless of if the trackers fail or not.
+//    */
+//    //sessionSettings.active_downloads = atoi(arg);
+//    //sessionSettings.active_seeds = atoi(arg);
 
-    /* use_dht_as_fallback
-    *	determines how the DHT is used. If this is true, the DHT will only be used for torrents
-    *	where all trackers in its tracker list has failed. Either by an explicit error message
-    *	or a time out. This is false by default, which means the DHT is used by default regardless
-    *	of if the trackers fail or not.
-    */
-    //sessionSettings.use_dht_as_fallback = false;
+//    /* use_dht_as_fallback
+//    *	determines how the DHT is used. If this is true, the DHT will only be used for torrents
+//    *	where all trackers in its tracker list has failed. Either by an explicit error message
+//    *	or a time out. This is false by default, which means the DHT is used by default regardless
+//    *	of if the trackers fail or not.
+//    */
+//    //sessionSettings.use_dht_as_fallback = false;
 
-    // Set dht settings
-    libtorrent::dht_settings dhtSettings;
+//    // Set dht settings
+//    libtorrent::dht_settings dhtSettings;
 
-    // Set encryption settings
-    //libtorrent::pe_settings peerEncryptionSettings;
+//    // Set encryption settings
+//    //libtorrent::pe_settings peerEncryptionSettings;
 
-    // Set proxy settings
-    //libtorrent::proxy_settings proxySettings;
+//    // Set proxy settings
+//    //libtorrent::proxy_settings proxySettings;
 
-    // Create dummy session so that settings can be set
-    // and a full session settings entry can be extracted
-    libtorrent::session dummySession;
-    dummySession.set_settings(sessionSettings);
-    dummySession.set_dht_settings(dhtSettings);
-    //dummySession.set_pe_settings(peerEncryptionSettings);
-    //dummySession.set_proxy(proxySettings);
-    dummySession.save_state(_libtorrentSessionSettingsEntry);
+//    // Create dummy session so that settings can be set
+//    // and a full session settings entry can be extracted
+//    libtorrent::session dummySession;
+//    dummySession.set_settings(sessionSettings);
+//    dummySession.set_dht_settings(dhtSettings);
+//    //dummySession.set_pe_settings(peerEncryptionSettings);
+//    //dummySession.set_proxy(proxySettings);
+//    dummySession.save_state(_libtorrentSessionSettingsEntry);
 
-    // Set port range
-    _portRange = std::make_pair(6881, 6889);
+//    // Set port range
+//    _portRange = std::make_pair(6881, 6889);
 
-    // Set dht routers
-    _dhtRouters.push_back(std::make_pair(std::string("router.bittorrent.com"), 6881));
-    _dhtRouters.push_back(std::make_pair(std::string("router.utorrent.com"), 6881));
-    _dhtRouters.push_back(std::make_pair(std::string("router.bitcomet.com"), 6881));
+//    // Set dht routers
+//    _dhtRouters.push_back(std::make_pair(std::string("router.bittorrent.com"), 6881));
+//    _dhtRouters.push_back(std::make_pair(std::string("router.utorrent.com"), 6881));
+//    _dhtRouters.push_back(std::make_pair(std::string("router.bitcomet.com"), 6881));
 }
 
 Node::Node(const libtorrent::settings_pack & settingPack,
                        const libtorrent::dht_settings & dhtSettings,
-                       const std::pair<int, int> & portRange,
-                       const std::vector<std::pair<std::string, int> > & dhtRouters,
-                       const std::vector<Torrent> & torrents)
+                       const std::pair<int, int> & portRange)
+                       //const std::vector<std::pair<std::string, int> > & dhtRouters)
+                      // const std::vector<Torrent> & torrents)
     : _settingsPack(settingPack)
     , _dhtSettings(dhtSettings)
     //, _dhtRouters(dhtRouters)
-    , _torrents(torrents) {}
+    //, _torrents(torrents)
+{}
 
 Node Node::fromJSON(const QJsonObject & json) {
 
@@ -801,6 +810,7 @@ void Node::toFile(const std::string & file) {
     */
 }
 
+/**
 QJsonObject Node::toJSON(const libtorrent::settings_pack & settings) {
 
 }
@@ -816,6 +826,7 @@ QJsonObject Node::toJSON(const libtorrent::dht_settings & settings) {
 libtorrent::dht_settings Node::fromJSON(const QJsonObject &) {
 
 }
+*/
 
 }
 }

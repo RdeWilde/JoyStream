@@ -51,7 +51,7 @@ public:
         waiting_for_resume_data
     };
 
-    Torrent(core::Node * node,
+    Torrent(extension::Plugin * plugin,
             const libtorrent::sha1_hash &infoHash,
             const std::string & name,
             const std::string & savePath,
@@ -114,7 +114,7 @@ public:
     State state() const;
     void setState(State state);
 
-    std::weak_ptr<core::Torrent> model();
+    std::shared_ptr<core::Torrent> model() const;
 
     /**
     // Stream management
@@ -130,8 +130,8 @@ public:
 
 private:
 
-    // Node
-    core::Node * _node;
+    // Plugin
+    extension::Plugin * _plugin;
 
     // Info hash of torrent
     libtorrent::sha1_hash _infoHash;
@@ -177,6 +177,51 @@ private:
     //QSet<Stream *> _streams;
 };
 
+// An unsynchronized counter shared across multiple callbacks.
+class SharedCounter {
+
+public:
+
+    SharedCounter()
+        : SharedCounter(0) {
+    }
+
+    SharedCounter(uint initialValue)
+        : _count(new uint) {
+
+        *(_count.get()) = initialValue;
+    }
+
+    uint increment() const {
+
+        uint * ptr = _count.get();
+
+        (*ptr)++;
+
+        return (*ptr);
+    }
+
+    bool decrement() const {
+
+        uint * ptr = _count.get();
+
+        if((*ptr) == 0)
+            throw std::runtime_error("Counter already depleted.");
+        else
+            (*ptr)--;
+
+        return done();
+    }
+
+    bool done() const {
+        return *(_count.get()) == 0;
+    }
+
+private:
+
+    // Shared underlying count
+    std::shared_ptr<uint> _count;
+};
 }
 }
 }
