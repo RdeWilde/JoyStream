@@ -19,16 +19,16 @@ QT      += websockets
 INCLUDEPATH += $$PWD/include
 
 HEADERS += \
-    include/core/viewmodel/BuyerPeerPlugin.hpp \
-    include/core/viewmodel/BuyerTorrentPlugin.hpp \
-    include/core/viewmodel/Channel.hpp \
-    include/core/viewmodel/Payee.hpp \
-    include/core/viewmodel/Payor.hpp \
-    include/core/viewmodel/PeerPlugin.hpp \
-    include/core/viewmodel/SellerPeerPlugin.hpp \
-    include/core/viewmodel/SellerTorrentPlugin.hpp \
-    include/core/viewmodel/TorrentPlugin.hpp \
-    include/core/viewmodel/Torrent.hpp \
+    #include/core/viewmodel/BuyerPeerPlugin.hpp \
+    #include/core/viewmodel/BuyerTorrentPlugin.hpp \
+    #include/core/viewmodel/Channel.hpp \
+    #include/core/viewmodel/Payee.hpp \
+    #include/core/viewmodel/Payor.hpp \
+    #include/core/viewmodel/PeerPlugin.hpp \
+    #include/core/viewmodel/SellerPeerPlugin.hpp \
+    #include/core/viewmodel/SellerTorrentPlugin.hpp \
+    #include/core/viewmodel/TorrentPlugin.hpp \
+    #include/core/viewmodel/Torrent.hpp \
     include/core/Stream.hpp \
     include/core/core.hpp \
     include/core/Configuration.hpp \
@@ -38,16 +38,16 @@ HEADERS += \
     include/core/Node.hpp
 
 SOURCES += \
-    src/viewmodel/BuyerPeerPlugin.cpp \
-    src/viewmodel/BuyerTorrentPlugin.cpp \
-    src/viewmodel/Channel.cpp \
-    src/viewmodel/Payee.cpp \
-    src/viewmodel/Payor.cpp \
-    src/viewmodel/PeerPlugin.cpp \
-    src/viewmodel/SellerPeerPlugin.cpp \
-    src/viewmodel/SellerTorrentPlugin.cpp \
-    src/viewmodel/TorrentPlugin.cpp \
-    src/viewmodel/Torrent.cpp \
+    #src/viewmodel/BuyerPeerPlugin.cpp \
+    #src/viewmodel/BuyerTorrentPlugin.cpp \
+    #src/viewmodel/Channel.cpp \
+    #src/viewmodel/Payee.cpp \
+    #src/viewmodel/Payor.cpp \
+    #src/viewmodel/PeerPlugin.cpp \
+    #src/viewmodel/SellerPeerPlugin.cpp \
+    #src/viewmodel/SellerTorrentPlugin.cpp \
+    #src/viewmodel/TorrentPlugin.cpp \
+    #src/viewmodel/Torrent.cpp \
     src/Stream.cpp \
     src/detail/Torrent.cpp \
     src/Torrent.cpp \
