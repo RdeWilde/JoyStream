@@ -166,36 +166,39 @@ void Node::stop(const NodeStopped & nodeStopped) {
 
     for(auto t: _torrents) {
 
-        // if you are eligible for stopping, add to count,
-        // initiate stop with reference to count,
-        // on callback, decrement count, if zero -> continue to do what happens
+        // Add to stop counter
+        counter.increment();
 
-        // detail::Torrent
-        //assert(t.state() == detail::Torrent::State::waiting_for_torrent_to_be_checked)
-        //t.stop(); <--- do we need to add callback which has barrier?
+        // Send stop request to plugin on torrent
+        t.second.stop([this, counter](const extension::request::Stop::Result & res) {
+
+            std::clog << "Stopped plugin on " << libtorrent::to_string(res.request().infoHash) << std::endl;
+
+            // Are we done?
+            if(counter.decrement()) {
+
+                // Save resume data for all
+                int numberOutStanding = this->requestResumeData();
+
+                // If there are no outstanding, then just close right away
+                if(numberOutStanding == 0)
+                    this->finalize_stop();
+                else {
+
+                    std::clog << "Attempting to generate resume data for " << numberOutStanding << " torrents." << std::endl;
+
+                    // Update state
+                    _state = State::waiting_for_resume_data;
+                }
+            }
+        });
     }
+
+    // Store user callback to be called when resume data is generated
+    _nodeStopped = nodeStopped;
 
     // Update state
     _state = State::waiting_for_plugins_to_stop;
-
-    // Store user callback
-    _nodeStopped = nodeStopped;
-
-    // <--- done here?
-
-    // Save resume data for all
-    int numberOutStanding = requestResumeData();
-
-    // If there are no outstanding, then just close right away
-    if(numberOutStanding == 0)
-        finalize_stop();
-    else {
-
-        std::clog << "Attempting to generate resume data for " << numberOutStanding << " torrents." << std::endl;
-
-        // Update state
-        _state = State::waiting_for_resume_data;
-    }
 }
 
 void Node::syncWallet() {
