@@ -403,6 +403,56 @@ private:
     extension::Plugin *  plugin();
 };
 
+namespace detail {
+
+// An unsynchronized counter shared across multiple callbacks.
+class CallbackCounter {
+
+public:
+
+    CallbackCounter()
+        : CallbackCounter(0) {
+    }
+
+    CallbackCounter(uint initialValue)
+        : _count(new int) {
+
+        *(_count.get()) = initialValue;
+    }
+
+    uint increment() {
+
+        uint * ptr = _count.get();
+
+        (*ptr)++;
+
+        return (*ptr);
+    }
+
+    bool decrement() {
+
+        uint * ptr = _count.get();
+
+        if((*ptr) == 0)
+            throw std::runtime_error("Counter already depleeted.");
+        else
+            (*ptr)--;
+
+        return done();
+    }
+
+    bool done() {
+        return *(_count.get()) == 0;
+    }
+
+private:
+
+    // Shared underlying count
+    std::shared_ptr<uint> _count;
+};
+
+}
+
 }
 }
 
