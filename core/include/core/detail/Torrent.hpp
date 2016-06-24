@@ -8,6 +8,7 @@
 #ifndef JOYSTREAM_CORE_DETAIL_TORRENT_HPP
 #define JOYSTREAM_CORE_DETAIL_TORRENT_HPP
 
+#include <extension/extension.hpp>
 #include <libtorrent/sha1_hash.hpp>
 #include <libtorrent/torrent_handle.hpp>
 
@@ -58,32 +59,32 @@ public:
             std::uint64_t flags,
             State state);
 
-    /**
     /// Plugin actions
 
-    void start();
+    void start(const extension::request::Start::ResultHandler &);
 
-    void stop();
+    void stop(const extension::request::Stop::ResultHandler &);
 
-    void pause();
+    void pause(const extension::request::Pause::ResultHandler &);
 
-    void updateTerms(const protocol_wire::BuyerTerms & terms);
+    void updateTerms(const protocol_wire::BuyerTerms & terms, const extension::request::UpdateBuyerTerms::ResultHandler &);
 
-    void updateTerms(const protocol_wire::SellerTerms & terms);
+    void updateTerms(const protocol_wire::SellerTerms & terms, const extension::request::UpdateSellerTerms::ResultHandler &);
 
-    void toObserveMode();
+    void toObserveMode(const extension::request::ToObserveMode::ResultHandler &);
 
     void toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                     const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
                     const protocol_session::SellingPolicy & sellingPolicy,
-                    const protocol_wire::SellerTerms & terms);
+                    const protocol_wire::SellerTerms & terms,
+                    const extension::request::ToSellMode::ResultHandler &);
 
     void toBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                    const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
                    const Coin::UnspentP2PKHOutput & funding,
                    const protocol_session::BuyingPolicy & policy,
-                   const protocol_wire::BuyerTerms & terms);
-    */
+                   const protocol_wire::BuyerTerms & terms,
+                   const extension::request::ToBuyMode::ResultHandler &);
 
     /**
     // Add plugins

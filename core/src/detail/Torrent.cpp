@@ -32,57 +32,60 @@ Torrent::Torrent(core::Node * node,
              savePath,
              torrentFile) {
 }
-/**
-void Torrent::start() {
-    _node->plugin()->submit(new extension::request::Start(_infoHash));
+
+void Torrent::start(const extension::request::Start::ResultHandler & handler) {
+    _node->plugin()->submit(extension::request::Start(_infoHash, handler));
 }
 
-void Torrent::stop() {
-    _node->plugin()->submit(new extension::request::Stop(_infoHash));
+void Torrent::stop(const extension::request::Stop::ResultHandler & handler) {
+    _node->plugin()->submit(extension::request::Stop(_infoHash, handler));
 }
 
-void Torrent::pause() {
-   _node->plugin()->submit(new extension::request::Pause(_infoHash));
+void Torrent::pause(const extension::request::Pause::ResultHandler & handler) {
+   _node->plugin()->submit(extension::request::Pause(_infoHash, handler));
 }
 
-void Torrent::updateTerms(const protocol_wire::BuyerTerms & terms) {
-    _node->plugin()->submit(new extension::request::UpdateBuyerTerms(_infoHash, terms));
+void Torrent::updateTerms(const protocol_wire::BuyerTerms & terms, const extension::request::UpdateBuyerTerms::ResultHandler & handler) {
+    _node->plugin()->submit(extension::request::UpdateBuyerTerms(_infoHash, terms, handler));
 }
 
-void Torrent::updateTerms(const protocol_wire::SellerTerms & terms) {
-    _node->plugin()->submit(new extension::request::UpdateSellerTerms(_infoHash, terms));
+void Torrent::updateTerms(const protocol_wire::SellerTerms & terms, const extension::request::UpdateSellerTerms::ResultHandler & handler) {
+    _node->plugin()->submit(extension::request::UpdateSellerTerms(_infoHash, terms, handler));
 }
 
-void Torrent::toObserveMode() {
-    _node->plugin()->submit(new extension::request::ToObserveMode(_infoHash));
+void Torrent::toObserveMode(const extension::request::ToObserveMode::ResultHandler & handler) {
+    _node->plugin()->submit(new extension::request::ToObserveMode(_infoHash, handler));
 }
 
 void Torrent::toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-                const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-                const protocol_session::SellingPolicy & sellingPolicy,
-                const protocol_wire::SellerTerms & terms) {
+                         const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
+                         const protocol_session::SellingPolicy & sellingPolicy,
+                         const protocol_wire::SellerTerms & terms,
+                         const extension::request::ToSellMode::ResultHandler & handler) {
 
-    _node->plugin()->submit(new extension::request::ToSellMode(_infoHash,
-                                                               generateKeyPairsCallbackHandler,
-                                                               generateP2PKHAddressesCallbackHandler,
-                                                               sellingPolicy,
-                                                               terms));
+    _node->plugin()->submit(extension::request::ToSellMode(_infoHash,
+                                                           generateKeyPairsCallbackHandler,
+                                                           generateP2PKHAddressesCallbackHandler,
+                                                           sellingPolicy,
+                                                           terms,
+                                                           handler));
 }
 
 void Torrent::toBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-               const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-               const Coin::UnspentP2PKHOutput & funding,
-               const protocol_session::BuyingPolicy & policy,
-               const protocol_wire::BuyerTerms & terms) {
+                        const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
+                        const Coin::UnspentP2PKHOutput & funding,
+                        const protocol_session::BuyingPolicy & policy,
+                        const protocol_wire::BuyerTerms & terms,
+                        const extension::request::ToBuyMode::ResultHandler & handler) {
 
-    _node->plugin()->submit(new extension::request::ToBuyMode(_infoHash,
-                                                              generateKeyPairsCallbackHandler,
-                                                              generateP2PKHAddressesCallbackHandler,
-                                                              funding,
-                                                              policy,
-                                                              terms));
+    _node->plugin()->submit(extension::request::ToBuyMode(_infoHash,
+                                                          generateKeyPairsCallbackHandler,
+                                                          generateP2PKHAddressesCallbackHandler,
+                                                          funding,
+                                                          policy,
+                                                          terms,
+                                                          handler));
 }
-*/
 
 /**
 void Torrent::addPlugin(const SellerTorrentPlugin::Status & status) {
