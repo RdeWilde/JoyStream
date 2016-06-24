@@ -154,8 +154,7 @@ namespace extension {
         }
     }
 
-    bool PeerPlugin::on_extension_handshake(libtorrent::lazy_entry const & handshake) {
-    //bool PeerPlugin::on_extension_handshake(libtorrent::bdecode_node const & handshake) {
+    bool PeerPlugin::on_extension_handshake(libtorrent::bdecode_node const & handshake) {
 
         /**
         // Check that peer plugin is still valid
@@ -194,7 +193,7 @@ namespace extension {
         //////////////////////////////////////////////////
 
         // If its not a dictionary, we are done
-        if(handshake.type() != libtorrent::lazy_entry::dict_t) {
+        if(handshake.type() != libtorrent::bdecode_node::dict_t) {
 
             // Mark peer as not supporting BEP43
             _peerPaymentBEPSupportStatus  = BEPSupportStatus::not_supported;
@@ -231,7 +230,7 @@ namespace extension {
             std::clog << "Extension version" << version << "supported.";
 
         // Try to extract m key, if its not present, then we are done
-        const libtorrent::lazy_entry * m = handshake.dict_find_dict("m");
+        libtorrent::bdecode_node m = handshake.dict_find_dict("m");
 
         if(!m) {
 
@@ -252,12 +251,8 @@ namespace extension {
 
         // Get peer mapping
 
-        // Convert from lazy entry to entry
-        libtorrent::entry mEntry;
-        mEntry = *m;
-
         // Check if it is a dictionary entry
-        if(mEntry.type() != libtorrent::entry::dictionary_t) {
+        if(m.type() != libtorrent::bdecode_node::dict_t) {
 
             // Mark peer as not supporting BEP43
             _peerPaymentBEPSupportStatus  = BEPSupportStatus::not_supported;
@@ -274,12 +269,8 @@ namespace extension {
             return _policy.installPluginOnPeersMisbehavingDuringExtendedHandshake;
         }
 
-        // Make conversion to dictionary entry
-        libtorrent::entry::dictionary_type mDictionaryEntry;
-        mDictionaryEntry = mEntry.dict();
-
         // Create peer mapping
-        _peerMapping = ExtendedMessageIdMapping(mDictionaryEntry);
+        _peerMapping = ExtendedMessageIdMapping(m);
 
         // Check that peer mapping is valid: all messages are present, and duplicate ids
         if(!_peerMapping.isValid()) {
@@ -605,7 +596,7 @@ namespace extension {
     }
 
     void PeerPlugin::disconnect(const libtorrent::error_code & ec) {
-        _connection->disconnect(ec);
+        _connection->disconnect(ec, libtorrent::operation_t::op_bittorrent);
     }
 
 /**

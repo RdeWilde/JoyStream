@@ -101,8 +101,7 @@ namespace status {
         // supported by this peer. It will result in this peer_plugin
         // being removed from the peer_connection and destructed.
         // this is not called for web seeds
-        virtual bool on_extension_handshake(libtorrent::lazy_entry const & handshake);
-        //virtual bool on_extension_handshake(libtorrent::bdecode_node const&);
+        virtual bool on_extension_handshake(libtorrent::bdecode_node const&);
 
         // returning true from any of the message handlers
         // indicates that the plugin has handled the message.
