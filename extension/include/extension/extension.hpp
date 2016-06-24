@@ -10,7 +10,6 @@
 
 #include <extension/BEPSupportStatus.hpp>
 #include <extension/ExtendedMessageIdMapping.hpp>
-#include <extension/ExtendedMessageTools.hpp>
 #include <extension/PeerPlugin.hpp>
 #include <extension/Plugin.hpp>
 #include <extension/Status.hpp>
