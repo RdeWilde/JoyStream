@@ -30,6 +30,14 @@ public:
 
 };
 
+/**
+ * All request classes must have at least two types
+ * defined in class scope
+ * ::Result: Represents result of a request, must have default and cpy-constructor.
+ * ::ResultHandler: Represents a callback which handles a ::Result instance, must be of type support
+ * operator(const ::Result &) const, e.g. std::function<void(const Result &)>
+ */
+
 // T = request in this namespace
 template <class T>
 class SubroutineResult {
