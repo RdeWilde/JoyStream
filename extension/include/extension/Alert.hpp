@@ -47,8 +47,11 @@ namespace alert {
         const static int alert_type = REQUEST_RESULT_ALERT_ID;
         static const int priority = 0; // 0 = regular, 1 = high
 
-        RequestResult(libtorrent::aux::stack_allocator &, const typename T::Result & result)
-            : result(result) {}
+        RequestResult(libtorrent::aux::stack_allocator &,
+                      const typename T::Result & result,
+                      const typename T::ResultHandler & resultHandler)
+            : result(result)
+            , resultHandler(resultHandler) {}
 
         virtual int type() const { return alert_type; }
         virtual char const* what() const { return "RequestResult"; }
@@ -56,6 +59,7 @@ namespace alert {
         virtual int category() const { return libtorrent::alert::error_notification; }
 
         typename T::Result result;
+        typename T::ResultHandler resultHandler;
     };
 
     struct AnchorAnnounced : public libtorrent::torrent_alert {

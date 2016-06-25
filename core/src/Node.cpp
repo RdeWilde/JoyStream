@@ -170,15 +170,17 @@ void Node::stop(const NodeStopped & nodeStopped) {
 
     for(auto t: _torrents) {
 
+        libtorrent::sha1_hash infoHash = t.first;
+
         // Add to stop counter
         counter.increment();
 
         // Send stop request to plugin on torrent
-        t.second.stop([this, counter](const extension::request::Stop::Result & res) {
+        t.second.stop([this, counter, infoHash](const extension::request::Stop::Result & res) {
 
             /// we dont really care what result was?
 
-            std::clog << "Stopped plugin on " << res.request().infoHash.to_string() << std::endl;
+            std::clog << "Stopped plugin on " << infoHash.to_string() << std::endl;
 
             // Are we done?
             if(counter.decrement()) {
@@ -914,11 +916,8 @@ void Node::processPieceFinishedAlert(const libtorrent::piece_finished_alert * p)
 template<class T>
 void Node::process(const extension::alert::RequestResult<T> * p) {
 
-    // Get initial request
-    T request = p->result.request();
-
-    // Call handler
-    request.handler(request);
+    // Call handler with result
+    p->resultHandler(p->result);
 }
 
 void Node::process(const extension::alert::BroadcastTransaction * p) {

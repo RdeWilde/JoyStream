@@ -123,8 +123,9 @@ private:
 
     /// Torrent plugin request processing
 
+    // Processes subroutine call
     friend class Plugin;
-    template<class T> typename T::Result process(const T &);
+    template<class T> void process(const T &);
 
     /// PeerPlugin notifications
 
@@ -235,15 +236,15 @@ private:
 // These should really be private members, but it is not allowed
 // to have specialized member functions (C++03, §14.7.3/2).
 
-template <> request::Start::Result TorrentPlugin::process<request::Start>(const request::Start &);
-template <> request::Stop::Result TorrentPlugin::process<request::Stop>(const request::Stop &);
-template <> request::Pause::Result TorrentPlugin::process<request::Pause>(const request::Pause &);
-template <> request::UpdateBuyerTerms::Result TorrentPlugin::process<request::UpdateBuyerTerms>(const request::UpdateBuyerTerms &);
-template <> request::UpdateSellerTerms::Result TorrentPlugin::process<request::UpdateSellerTerms>(const request::UpdateSellerTerms &);
-template <> request::ToObserveMode::Result TorrentPlugin::process<request::ToObserveMode>(const request::ToObserveMode &);
-template <> request::ToSellMode::Result TorrentPlugin::process<request::ToSellMode>(const request::ToSellMode &);
-template <> request::ToBuyMode::Result TorrentPlugin::process<request::ToBuyMode>(const request::ToBuyMode &);
-//template<> request::ChangeDownloadLocation::Outcome changeDownloadLocation();
+template <> void TorrentPlugin::process<request::Start>(const request::Start &);
+template <> void TorrentPlugin::process<request::Stop>(const request::Stop &);
+template <> void TorrentPlugin::process<request::Pause>(const request::Pause &);
+template <> void TorrentPlugin::process<request::UpdateBuyerTerms>(const request::UpdateBuyerTerms &);
+template <> void TorrentPlugin::process<request::UpdateSellerTerms>(const request::UpdateSellerTerms &);
+template <> void TorrentPlugin::process<request::ToObserveMode>(const request::ToObserveMode &);
+template <> void TorrentPlugin::process<request::ToSellMode>(const request::ToSellMode &);
+template <> void TorrentPlugin::process<request::ToBuyMode>(const request::ToBuyMode &);
+//template<> void changeDownloadLocation();
 
 }
 }

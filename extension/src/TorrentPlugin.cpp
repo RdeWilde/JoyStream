@@ -426,55 +426,37 @@ protocol_session::TorrentPieceInformation TorrentPlugin::torrentPieceInformation
 }
 
 template<>
-request::Start::Result TorrentPlugin::process<request::Start>(const request::Start & r) {
-
+void TorrentPlugin::process<request::Start>(const request::Start & r) {
     _session.start();
-
-    return request::Start::Result(r);
 }
 
 template<>
-request::Stop::Result TorrentPlugin::process<request::Stop>(const request::Stop & r) {
-
+void TorrentPlugin::process<request::Stop>(const request::Stop & r) {
     _session.stop();
-
-    return request::Stop::Result(r);
 }
 
 template<>
-request::Pause::Result TorrentPlugin::process<request::Pause>(const request::Pause & r) {
-
+void TorrentPlugin::process<request::Pause>(const request::Pause & r) {
     _session.pause();
-
-    return request::Pause::Result(r);
 }
 
 template<>
-request::UpdateBuyerTerms::Result TorrentPlugin::process<request::UpdateBuyerTerms>(const request::UpdateBuyerTerms & r) {
-
+void TorrentPlugin::process<request::UpdateBuyerTerms>(const request::UpdateBuyerTerms & r) {
     _session.updateTerms(r.terms);
-
-    return request::UpdateBuyerTerms::Result(r);
 }
 
 template<>
-request::UpdateSellerTerms::Result TorrentPlugin::process<request::UpdateSellerTerms>(const request::UpdateSellerTerms & r) {
-
+void TorrentPlugin::process<request::UpdateSellerTerms>(const request::UpdateSellerTerms & r) {
     _session.updateTerms(r.terms);
-
-    return request::UpdateSellerTerms::Result(r);
 }
 
 template<>
-request::ToObserveMode::Result TorrentPlugin::process<request::ToObserveMode>(const request::ToObserveMode & r) {
-
+void TorrentPlugin::process<request::ToObserveMode>(const request::ToObserveMode & r) {
     _session.toObserveMode(removeConnection());
-
-    return request::ToObserveMode::Result(r);
 }
 
 template<>
-request::ToSellMode::Result TorrentPlugin::process<request::ToSellMode>(const request::ToSellMode & r) {
+void TorrentPlugin::process<request::ToSellMode>(const request::ToSellMode & r) {
 
     // Get maximum number of pieces
     int maxPieceIndex = getTorrent()->picker().num_pieces() - 1;
@@ -488,12 +470,10 @@ request::ToSellMode::Result TorrentPlugin::process<request::ToSellMode>(const re
                         r.sellingPolicy,
                         r.terms,
                         maxPieceIndex);
-
-    return request::ToSellMode::Result(r);
 }
 
 template<>
-request::ToBuyMode::Result TorrentPlugin::process<request::ToBuyMode>(const request::ToBuyMode & r) {
+void TorrentPlugin::process<request::ToBuyMode>(const request::ToBuyMode & r) {
 
     _session.toBuyMode(removeConnection(),
                        r.generateKeyPairsCallbackHandler,
@@ -504,8 +484,6 @@ request::ToBuyMode::Result TorrentPlugin::process<request::ToBuyMode>(const requ
                        r.policy,
                        r.terms,
                        torrentPieceInformation(getTorrent()->picker()));
-
-    return request::ToBuyMode::Result(r);
 }
 
 void TorrentPlugin::addPeerToSession(const libtorrent::tcp::endpoint & endPoint) {

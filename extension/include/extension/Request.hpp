@@ -39,32 +39,17 @@ public:
     SubroutineResult() {
     }
 
-    SubroutineResult(const T & request)
-        : _request(request) {
+    SubroutineResult(const std::exception_ptr & exception)
+        : exception(exception) {
     }
 
-    SubroutineResult(const T & request,
-                     const std::exception_ptr & exception)
-        : _request(request)
-        , exception(exception) {
-    }
-
-    void result() const {
+    void throwSetException() const {
 
         if(exception)
             std::rethrow_exception(exception);
     }
 
-    T request() const {
-        return _request;
-    }
-
 private:
-
-    friend class Plugin;
-
-    // Initial request
-    T _request;
 
     // Exception result
     std::exception_ptr exception;
@@ -87,10 +72,12 @@ public:
         , _result(result) {
     }
 
+    void throwSetException() const {
+
+        SubroutineResult<T>::throwSetException();
+    }
+
     T2 result() const {
-
-        SubroutineResult<T>::result();
-
         return _result;
     }
 
@@ -99,62 +86,6 @@ private:
     // Method result
     T2 _result;
 };
-
-/**
-enum class RequestTarget {
-    Plugin,
-    TorrentPlugin,
-    PeerPlugin
-};
-
-// Base class for all requests
-struct Request {
-    virtual ~Request() {}
-    virtual RequestTarget target() const = 0;
-};
-
-//// PluginRequest
-
-struct PluginRequest : public Request {
-
-    virtual RequestTarget target() const {
-        return RequestTarget::Plugin;
-    }
-
-};
-
-//// TorrentPluginRequest
-
-// NB: **Not sure this enum is really required?**
-enum class TorrentPluginRequestType {
-    Start,
-    Stop,
-    Pause,
-    UpdateBuyerTerms,
-    UpdateSellerTerms,
-    ToObserveMode,
-    ToSellMode,
-    ToBuyMode,
-    ChangeDownloadLocation
-};
-
-struct TorrentPluginRequest : public Request {
-
-    TorrentPluginRequest(const libtorrent::sha1_hash & infoHash)
-        : infoHash(infoHash) {}
-
-    virtual ~TorrentPluginRequest() {}
-
-    RequestTarget target() const {
-        return RequestTarget::TorrentPlugin;
-    }
-
-    virtual TorrentPluginRequestType type() const = 0;
-
-    // info hash of torrent plugin target of request
-    libtorrent::sha1_hash infoHash;
-};
-*/
 
 struct TorrentPluginRequest {
 

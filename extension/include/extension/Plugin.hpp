@@ -171,7 +171,7 @@ void Plugin::processTorrentPluginRequest(const T & r) {
 
     // Check that there is indeed a torrent corresponding to request
     if(it == _plugins.cend())
-        result = typename T::Result(r, std::make_exception_ptr(request::MissingTorrent()));
+        result = typename T::Result(std::make_exception_ptr(request::MissingTorrent()));
     else {
 
         // Since there is, get a full reference to it
@@ -179,14 +179,14 @@ void Plugin::processTorrentPluginRequest(const T & r) {
         assert(plugin);
 
         try {
-            result = plugin->process<T>(r);
+            plugin->process<T>(r);
         } catch (...) {
-            result = typename T::Result(r, std::current_exception());
+            result = typename T::Result(std::current_exception());
         }
     }
 
     // Send result to libtorrent client
-    _session->alerts().emplace_alert<alert::RequestResult<T>>(result);
+    _session->alerts().emplace_alert<alert::RequestResult<T>>(result, r.handler);
 }
 
 namespace detail {
