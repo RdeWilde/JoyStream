@@ -80,13 +80,13 @@ public:
      * be called by libtorrent network thread, never by other threads,
      * as this causes synchronization failures.
      */
-    virtual void added(libtorrent::aux::session_impl * session);
+    virtual void added(libtorrent::session_handle);
     virtual void on_alert(libtorrent::alert const * a);
     virtual void on_tick();
     //virtual bool on_optimistic_unchoke(std::vector<peer_connection_handle> & /* peers */);
     virtual void save_state(libtorrent::entry & stateEntry) const;
     //virtual void load_state(const libtorrent::bdecode_node & state);
-    virtual void load_state(libtorrent::lazy_entry const & stateEntry);
+    virtual void load_state(const libtorrent::bdecode_node &);
 
     // Return status of plugin
     status::Plugin status() const;

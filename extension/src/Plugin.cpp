@@ -25,11 +25,11 @@ Plugin::~Plugin() {
     std::clog << "~Plugin.";
 }
 
-void Plugin::added(libtorrent::aux::session_impl * session) {
+void Plugin::added(libtorrent::session_handle h) {
 
     std::clog << "Plugin added to session.";
 
-    _session = session;
+    _session = h.native_handle();
     _addedToSession = true;
 }
 
@@ -73,8 +73,7 @@ void Plugin::save_state(libtorrent::entry &) const {
 
 }
 
-void Plugin::load_state(libtorrent::lazy_entry const &) {
-//void Plugin::load_state(const libtorrent::bdecode_node & state) {
+void Plugin::load_state(const libtorrent::bdecode_node &) {
 }
 
 status::Plugin Plugin::status() const {
