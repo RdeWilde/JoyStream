@@ -16,5 +16,6 @@
 #include <extension/TorrentPlugin.hpp>
 #include <extension/Request.hpp>
 #include <extension/Alert.hpp>
+#include <extension/Exception.hpp>
 
 #endif // JOYSTREAM_EXTENSION_HPP
