@@ -200,7 +200,8 @@ void Node::stop(const NodeStopped & nodeStopped) {
         // Send stop request to plugin on torrent
         t.second.stop([this, counter, infoHash](const extension::request::Stop::Result & res) {
 
-            /// we dont really care what result was?
+            // There should have been no exception in any scenario
+            res.throwSetException();
 
             std::clog << "Stopped plugin on " << infoHash.to_string() << std::endl;
 
