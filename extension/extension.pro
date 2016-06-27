@@ -25,7 +25,8 @@ HEADERS += \
     include/extension/extension.hpp \
     include/extension/Request.hpp \
     include/extension/Status.hpp \
-    include/extension/Alert.hpp
+    include/extension/Alert.hpp \
+    include/extension/Exception.hpp
 
 SOURCES += \
     src/TorrentPlugin.cpp \
