@@ -430,17 +430,17 @@ protocol_session::TorrentPieceInformation TorrentPlugin::torrentPieceInformation
 }
 
 template<>
-void TorrentPlugin::process<request::Start>(const request::Start & r) {
+void TorrentPlugin::process<request::Start>(const request::Start &) {
     _session.start();
 }
 
 template<>
-void TorrentPlugin::process<request::Stop>(const request::Stop & r) {
+void TorrentPlugin::process<request::Stop>(const request::Stop &) {
     _session.stop();
 }
 
 template<>
-void TorrentPlugin::process<request::Pause>(const request::Pause & r) {
+void TorrentPlugin::process<request::Pause>(const request::Pause &) {
     _session.pause();
 }
 
@@ -455,7 +455,7 @@ void TorrentPlugin::process<request::UpdateSellerTerms>(const request::UpdateSel
 }
 
 template<>
-void TorrentPlugin::process<request::ToObserveMode>(const request::ToObserveMode & r) {
+void TorrentPlugin::process<request::ToObserveMode>(const request::ToObserveMode &) {
     _session.toObserveMode(removeConnection());
 }
 
