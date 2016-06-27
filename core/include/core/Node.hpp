@@ -332,23 +332,21 @@ private:
     // TCP streaming server
     //QTcpServer _streamingServer;
 
-    // Callback routine called by libtorrent dispatcher routine
+    /// Libtorrent entry points for libtorrent::alert processing
+    // Entry point for callback from libtorrent, warning about 0->1 alert in queue.
     // NB: Do not under any circumstance have a call to libtorrent in this routine, since the network
     // thread in libtorrent will be making this call, and a new call will result in a dead lock.
-    void libtorrent_alert_dispatcher_callback(const std::auto_ptr<libtorrent::alert> & alertAutoPtr);
-    void libtorrent_entry_point_alert_notification();
-
-    /// Libtorrent entry points for libtorrent::alert processing
-
-    // Process all pending alerts in the libtorrent queue
-    //Q_INVOKABLE void processAlertQueue();
-
-    // Process a spesific request
-    Q_INVOKABLE void processAlert(const std::auto_ptr<libtorrent::alert> &);
+    void libtorrent_alert_notification_entry_point();
 
     /// Alert processing routines
 
-    // Processing (standard) libtorrent alerts
+    // Process all pending alerts in the libtorrent queue
+    Q_INVOKABLE void processAlertQueue();
+
+    // Processes a spesific alert
+    void processAlert(const libtorrent::alert * a);
+
+    // Processing (standard) libtorrent alerts of given type
     // NB**: rename all to process(X), use overloading, is cleaner
     void processMetadataReceivedAlert(libtorrent::metadata_received_alert const * p);
     void processMetadataFailedAlert(libtorrent::metadata_failed_alert const * p);

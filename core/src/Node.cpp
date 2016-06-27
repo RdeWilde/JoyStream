@@ -147,6 +147,28 @@ void Node::start(const configuration::Node & configuration, const NodeStarted & 
                                        libtorrent::alert::stats_notification);
     */
 
+    // From libtorrent docs:
+    // the ``set_alert_notify`` function lets the client set a function object
+    // to be invoked every time the alert queue goes from having 0 alerts to
+    // 1 alert. This function is called from within libtorrent, it may be the
+    // main thread, or it may be from within a user call. The intention of
+    // of the function is that the client wakes up its main thread, to poll
+    // for more alerts using ``pop_alerts()``. If the notify function fails
+    // to do so, it won't be called again, until ``pop_alerts`` is called for
+    // some other reason.
+    _session->set_alert_notify([this]() -> void {
+                                   this->libtorrent_alert_notification_entry_point();
+                               });
+
+    // Create and install plugin
+    boost::shared_ptr<libtorrent::plugin> plugin(new extension::Plugin());
+
+    // Keep weak reference to plugin
+    _plugin = boost::static_pointer_cast<extension::Plugin>(plugin);
+
+    // Add plugin extension
+    _session->add_extension(plugin);
+
     // Try to start listening
     unsigned short port = _session->listen_port();
 
@@ -343,33 +365,13 @@ void Controller::removePeerPlugin(libtorrent::sha1_hash info_hash, libtorrent::t
 }
 */
 
-void Node::libtorrent_alert_dispatcher_callback(const std::auto_ptr<libtorrent::alert> & alertAutoPtr) {
+void Node::libtorrent_alert_notification_entry_point() {
 
-    /**
-    // Grab alert pointer and release the auto pointer, this way the alert is not automatically
-    // deleted when alertAutoPtr goes out of scope.
-    // **Registering auto_ptr with MOC is not worth trying**
-    //const libtorrent::alert * a = alertAutoPtr.release();
-
-    const libtorrent::alert * a = alertAutoPtr.get();
-
-    std::auto_ptr<libtorrent::alert> stdAutoPtr = a->clone();
-
-    libtorrent::alert * freedPointer = stdAutoPtr.release();
-
-    // Tell bitswapr thread to run processAlert later with given alert as argument
-    QMetaObject::invokeMethod(this, "processAlert", Q_ARG(const libtorrent::alert*, freedPointer));
-    */
-
-    QMetaObject::invokeMethod(this, "processAlert", Q_ARG(const std::auto_ptr<libtorrent::alert> &, alertAutoPtr));
-}
-
-void Node::libtorrent_entry_point_alert_notification() {
+    // Process alert queue on main qt thread, not on libtorrent thread
     QMetaObject::invokeMethod(this, "processAlertQueue");
 }
 
-/**
-void Controller::processAlertQueue() {
+void Node::processAlertQueue() {
 
     // Populate vector with alerts
     std::vector<libtorrent::alert *> alerts;
@@ -381,35 +383,15 @@ void Controller::processAlertQueue() {
     // call to pop_alerts(). Internal members of alerts also become invalid once
     // pop_alerts() is called again.
 
-    for(std::vector<libtorrent::alert *>::const_iterator i = alerts.begin(),
-        end = alerts.end();
-        i != end;
-        i++) {
-
-        // Get alert
-        libtorrent::alert * alert = *i;
-
-        std::clog << "Processing alert" << QString::fromStdString(alert->message());
-
-        // Process
+    // Process alerts in queue
+    for(libtorrent::alert * alert : alerts)
         processAlert(alert);
-    }
 
 }
-*/
 
-void Node::processAlert(const std::auto_ptr<libtorrent::alert> & alert) {
+void Node::processAlert(const libtorrent::alert * a) {
 
-    assert(_state != State::stopped);
-
-    // Check that alert has been stuck in event queue and corresponds to recenty
-    // removed torrent.
-
-    // if(something)
-    //    something;
-
-    // Get raw pointer
-    libtorrent::alert * a = alert.get();
+    std::clog << "Processing alert" << a->message() << std::endl;
 
     // Select alert type
     if(libtorrent::metadata_received_alert const * p = libtorrent::alert_cast<libtorrent::metadata_received_alert>(a))
@@ -433,7 +415,7 @@ void Node::processAlert(const std::auto_ptr<libtorrent::alert> & alert) {
     else if(libtorrent::save_resume_data_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_alert>(a))
         process(p);
     else if(libtorrent::save_resume_data_failed_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_failed_alert>(a))
-        processSaveResumeDataFailedAlert(p);
+        process(p);
     else if(libtorrent::torrent_checked_alert const * p = libtorrent::alert_cast<libtorrent::torrent_checked_alert>(a))
         processTorrentCheckedAlert(p);
     else if(libtorrent::read_piece_alert const * p = libtorrent::alert_cast<libtorrent::read_piece_alert>(a))
@@ -488,10 +470,6 @@ void Node::processAlert(const std::auto_ptr<libtorrent::alert> & alert) {
     //else if(const TorrentPluginStartedAlert * p = libtorrent::alert_cast<TorrentPluginStartedAlert>(a))
     //    processTorrentPluginStartedAlert(p);
     */
-
-    // Delete alert ** DELETE WHEN GOING TO NEW RELEASE ***
-    // ===============================================
-    delete a;
 }
 
 /**
