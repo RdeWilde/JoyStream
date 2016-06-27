@@ -12,7 +12,6 @@
 //#include <core/controller/Stream.hpp>
 #include <extension/extension.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
-//#include <bitcoin/SPVWallet.hpp>
 
 #include <libtorrent/session.hpp>
 #include <libtorrent/alert.hpp>
@@ -37,7 +36,7 @@ namespace extension {
 }
 namespace core {
 namespace detail {
-    class Torrent;
+    struct Torrent;
 }
 namespace configuration {
     class Node;
@@ -67,7 +66,7 @@ public:
         //starting_libtorrent_session,
 
         //
-        normal,
+        started,
 
         /// States for when node is 'closing', as distinct from when it is actually
         /// closed, when it will be in State::stopped state.
@@ -82,11 +81,8 @@ public:
 
     typedef std::function<void(const libtorrent::tcp::endpoint &)> NodeStarted;
     typedef std::function<void(const libtorrent::tcp::endpoint &, libtorrent::error_code)> NodeStartFailed;
-
     typedef std::function<void()> NodeStopped;
     typedef std::function<void()> AddedTorrent;
-
-    // typedef std::function<void()> ... something else
 
     Node(joystream::bitcoin::SPVWallet *);
 
@@ -183,8 +179,7 @@ public:
     void syncWallet();
 
     /**
-     * Stram management stuff
-     * THIS ROUTINE MUST BE HIDDEN FROM CONTROLLER USER IN THE FUTURE
+     * Stream management
 
     // If there is a torrent for the given info hash, then the given stream is added to the
     // torrents streams set, and lastly a handle for the torrent is removed. Otherwise,
@@ -219,15 +214,13 @@ public:
 
 signals:
 
-    /**
-     Signals are emitted for any change in state of the node.
-     While the callbacks associated with the spesific calls above
-     also report on potential failures with the corresponding calls only to the caller,
-     these signals only notify about successful state changes, and
-     anyone can subscribe. In other words, the former is for an actor,
-     while the latter is for an observer. E.g. a HTTP daemon wrapping joystream::core library
-     would use callbacks to service RPC calls, and signals to populate websocket streams.
-     */
+    // Signals are emitted for any change in state of the node.
+    // While the callbacks associated with the spesific calls above
+    // also report on potential failures with the corresponding calls only to the caller,
+    // these signals only notify about successful state changes, and
+    // anyone can subscribe. In other words, the former is for an actor,
+    // while the latter is for an observer. E.g. a HTTP daemon wrapping joystream::core library
+    // would use callbacks to service RPC calls, and signals to populate websocket streams.
 
     // Starting was successful, and node is listening on given endpoint
     void nodeStarted(const libtorrent::tcp::endpoint &);
@@ -311,11 +304,7 @@ private:
 
     // Plugin
     // We keep weak pointer ...
-    std::weak_ptr<extension::Plugin> _plugin;
-
-    // Timer which calls session.post_torrent_updates() at regular intervals
-    // NB:**** use std:: alternative ***
-    QTimer _torrentUpdateTimer;
+    boost::weak_ptr<extension::Plugin> _plugin;
 
     // Torrents added to session
     std::map<libtorrent::sha1_hash, detail::Torrent> _torrents;
