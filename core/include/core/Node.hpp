@@ -121,26 +121,28 @@ public:
      -------------
 
      DESCRIPTION
-     asynchrnous. .... All torrents are removed
+     Tries to stop node, which involves stopping BitTorrent and DHT server, as
+     well as the Bitcoin wallet.
 
      ARGUMENTS
-     - callback about being actually stopped
-     - callback about how stopping timedout out due to libtorrent foolishness
+     - nodeStopped: callback about being actually stopped
 
      THROWS
-     - exception::CannotStopStoppedNode: if node is already being stopped
+     - exception::CannotStopStoppedNode: if node is already stopped, or is being stopped, that is in
+     states Node::State::{stopped, waiting_for_plugins_to_stop,  waiting_for_resume_data}.
+     - all exceptions thrown by protocol_session::Stop
 
      SIGNALS
      - nodeStopped:
     */
-    void stop(const NodeStopped &);
+    void stop(const NodeStopped & nodeStopped);
 
     /**
      addTorrent
      -------------
 
      DESCRIPTION
-     Add torrent
+     Tries to add torrent to node. <what is done with state of torrent?><automanage, download, upload, settings?>
 
      ARGUMENTS
      -

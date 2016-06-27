@@ -129,6 +129,7 @@ void Node::start(const configuration::Node & configuration, const NodeStarted & 
     _state = State::waiting_to_listen;
 
     assert(_session == nullptr);
+    assert(_wallet != nullptr);
 
     // Derive libtorrent settings from configuration
     //libtorrent::settings_pack settingsPack = toSettingsPack(configuration);
@@ -1002,7 +1003,7 @@ void Node::sendTransactions() {
 
 extension::Plugin * Node::plugin() {
 
-    std::shared_ptr<extension::Plugin> plugin = _plugin.lock();
+    boost::shared_ptr<extension::Plugin> plugin = _plugin.lock();
 
     assert(plugin);
 
@@ -1424,7 +1425,7 @@ std::weak_ptr<Torrent> Node::torrent(const libtorrent::sha1_hash & infoHash) con
     if(it == _torrents.cend())
         throw exception::NoSuchTorrentExists(infoHash);
     else
-        return it->second.model();
+        return it->second.model;
 }
 
 void Node::finalize_stop() {
