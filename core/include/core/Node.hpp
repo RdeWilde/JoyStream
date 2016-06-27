@@ -340,21 +340,20 @@ private:
     void processAlert(const libtorrent::alert * a);
 
     // Processing (standard) libtorrent alerts of given type
-    // NB**: rename all to process(X), use overloading, is cleaner
-    void processMetadataReceivedAlert(libtorrent::metadata_received_alert const * p);
-    void processMetadataFailedAlert(libtorrent::metadata_failed_alert const * p);
-    void process(libtorrent::listen_succeeded_alert const *p);
-    void processListenFailedAlert(libtorrent::listen_failed_alert const * p);
-    void processAddTorrentAlert(libtorrent::add_torrent_alert const * p);
-    void processTorrentFinishedAlert(libtorrent::torrent_finished_alert const * p);
-    void processStatusUpdateAlert(libtorrent::state_update_alert const * p);
-    void processTorrentRemovedAlert(libtorrent::torrent_removed_alert const * p);
-    void process(libtorrent::save_resume_data_alert const * p);
-    void processSaveResumeDataFailedAlert(libtorrent::save_resume_data_failed_alert const * p);
-    void processTorrentPausedAlert(libtorrent::torrent_paused_alert const * p);
-    void processTorrentCheckedAlert(libtorrent::torrent_checked_alert const * p);
-    void processReadPieceAlert(const libtorrent::read_piece_alert * p);
-    void processPieceFinishedAlert(const libtorrent::piece_finished_alert * p);
+    void process(const libtorrent::listen_succeeded_alert *);
+    void process(const libtorrent::listen_failed_alert *);
+    void processMetadataReceivedAlert(const libtorrent::metadata_received_alert *);
+    void processMetadataFailedAlert(const libtorrent::metadata_failed_alert *);
+    void processAddTorrentAlert(const libtorrent::add_torrent_alert *);
+    void processTorrentFinishedAlert(const libtorrent::torrent_finished_alert *);
+    void processStatusUpdateAlert(const libtorrent::state_update_alert *);
+    void processTorrentRemovedAlert(const libtorrent::torrent_removed_alert *);
+    void process(const libtorrent::save_resume_data_alert *);
+    void process(const libtorrent::save_resume_data_failed_alert * p);
+    void processTorrentPausedAlert(const libtorrent::torrent_paused_alert *);
+    void processTorrentCheckedAlert(const libtorrent::torrent_checked_alert *);
+    void processReadPieceAlert(const libtorrent::read_piece_alert *);
+    void processPieceFinishedAlert(const libtorrent::piece_finished_alert *);
 
     // Processing (custome) plugin alerts
     template<class T>

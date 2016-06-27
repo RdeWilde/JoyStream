@@ -401,7 +401,7 @@ void Node::processAlert(const libtorrent::alert * a) {
     else if(libtorrent::listen_succeeded_alert const * p = libtorrent::alert_cast<libtorrent::listen_succeeded_alert>(a))
         process(p);
     else if(libtorrent::listen_failed_alert const * p = libtorrent::alert_cast<libtorrent::listen_failed_alert>(a))
-        processListenFailedAlert(p);
+        process(p);
     else if(libtorrent::add_torrent_alert const * p = libtorrent::alert_cast<libtorrent::add_torrent_alert>(a))
         processAddTorrentAlert(p);
     else if (libtorrent::torrent_finished_alert const * p = libtorrent::alert_cast<libtorrent::torrent_finished_alert>(a))
@@ -472,39 +472,59 @@ void Node::processAlert(const libtorrent::alert * a) {
     */
 }
 
-/**
-// NB!: Alreayd assumes session is paused and does not check sourceForLastResumeDataCall and numberOfOutstandingResumeDataCalls before starting,
-// assumes they equal NONE,0 respectively.
-*/
+
+void Node::process(const libtorrent::listen_succeeded_alert * p) {
+
+    assert(_state == State::waiting_to_listen);
+
+    _state = State::started;
+
+    std::clog << "Listening on endpoint" << p->endpoint.address().to_string() << std::endl;
+
+    // Make callback to user
+    _nodeStarted(p->endpoint);
+
+    emit nodeStarted(p->endpoint);
+}
+
+void Node::process(const libtorrent::listen_failed_alert * p) {
+
+    assert(_state == State::waiting_to_listen);
+
+    _state = State::stopped;
+
+    std::clog << "Failed to start listening on endpoint"
+              << p->endpoint.address().to_string()
+              << "due to error"
+              << p->error.message();
+
+    // Make callback to user
+    _nodeStartFailed(p->endpoint, p->error);
+
+    emit nodeStartFailed(p->endpoint, p->error);
+}
 
 int Node::requestResumeData() {
 
-    // Get all handles (should be same torrents as int addTorrentParameters, but we dont check this here
-    std::vector<libtorrent::torrent_handle> handles = _session->get_torrents();
-
     // Keeps track of how many calls were made
     int resumeCallsMade = 0;
-/**
-    // Iterate all torrents, and try to save
-    for (std::vector<libtorrent::torrent_handle>::iterator i = handles.begin(),
-         end(handles.end());i != end; ++i) {
 
-        // Get handle
-        libtorrent::torrent_handle & h = *i;
-
-        // Get torrent info hash
-        libtorrent::sha1_hash infoHash = h.info_hash();
-
-        Q_ASSERT(_torrents.contains(infoHash));
+    for(auto mapping : _torrents) {
 
         // Grab torrent;
-        detail::Torrent * torrent = _torrents[infoHash];
+        detail::Torrent & t = mapping.second;
+
+        // are in wrong state
+        if (t.state != detail::Torrent::State::normal)
+            continue;
+
+        // Get handle
+        libtorrent::torrent_handle h = _session->find_torrent(mapping.first);
 
         // Dont save data if
-        if (torrent->state() != Torrent::Status::nothing // are in wrong state
-            || !h.is_valid() // dont have valid handle
-            || !h.need_save_resume_data() // dont need to
-            || !h.status().has_metadata) // or dont have metadata
+        if (!h.is_valid() || // dont have valid handle
+            !h.need_save_resume_data() || // dont need to
+            !h.status().has_metadata) // or dont have metadata
             continue;
 
         // Save resume data
@@ -514,9 +534,9 @@ int Node::requestResumeData() {
         resumeCallsMade++;
 
         // Change expected event of torrent
-        _torrents[infoHash]->setStatus(Torrent::Status::asked_for_resume_data);
+        t.state = detail::Torrent::State::waiting_for_resume_data;
     }
-*/
+
     return resumeCallsMade;
 }
 
@@ -592,63 +612,6 @@ void Node::processMetadataFailedAlert(libtorrent::metadata_failed_alert const * 
     // WHAT DO WE DO HERE?
     std::clog << "Invalid metadata received.";
     throw std::runtime_error("Invalid metadata");
-}
-
-void Node::process(libtorrent::listen_succeeded_alert const * p) {
-
-    /**
-    assert(_state == State::waiting_to_listen);
-
-    _state = State::normal; // <-- is this correct?
-
-    std::clog << "Listening on endpoint" << libtorrent::to_string(p->endpoint);
-
-    // Set libtorrent to call processAlert when alert is created
-    _session->set_alert_dispatch(boost::bind(&Node::libtorrent_alert_dispatcher_callback, this, _1));
-
-    // Create and install plugin
-    assert(_wallet != nullptr);
-
-    boost::shared_ptr<libtorrent::plugin> plugin(new extension::Plugin(_wallet));
-
-    // Keep weak reference
-    _plugin = plugin;
-
-    // Add plugin extension
-    _session->add_extension(plugin);
-
-    // Start timer which calls session.post_torrent_updates at regular intervals
-    _statusUpdateTimer.start();
-    _statusUpdateTimer.setInterval(CORE_CONTROLLER_POST_TORRENT_UPDATES_DELAY);
-
-    QObject::connect(&_statusUpdateTimer,
-                     SIGNAL(timeout()),
-                     [this]() { _session->post_torrent_updates(); });
-
-    // Make callback to user
-    _nodeStarted(p->endpoint);
-
-    emit nodeStarted(p->endpoint);
-    */
-}
-
-void Node::processListenFailedAlert(libtorrent::listen_failed_alert const * p) {
-
-    /**
-    assert(_state == State::waiting_to_listen);
-
-    _state = State::stopped;
-
-    std::clog << "Failed to start listening on endpoint"
-              << libtorrent::to_string(p->endpoint)
-              << "due to error"
-              << p->error.message();
-
-    // Make callback to user
-    _nodeStartFailed(p->endpoint, p->error);
-
-    emit nodeStartFailed(p->endpoint, p->error);
-    */
 }
 
 void Node::processAddTorrentAlert(libtorrent::add_torrent_alert const * p) {
