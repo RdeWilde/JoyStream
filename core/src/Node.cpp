@@ -674,48 +674,49 @@ void Node::processStatusUpdateAlert(libtorrent::state_update_alert const * p) {
     update(p->status);
 }
 
-void Node::process(libtorrent::save_resume_data_alert const * p) {
+void Node::process(const libtorrent::save_resume_data_alert * p) {
 
-    /**
-    // Get info hash for torrent
-    libtorrent::sha1_hash info_hash = p->handle.info_hash();
+    std::clog << "libtorrent::save_resume_data_alert" << std::endl;
 
-    // Grab torrent
-    Q_ASSERT(_torrents.contains(info_hash));
-    Torrent * torrent = _torrents[info_hash];
+    // Get reference to corresponding torrent
+    libtorrent::torrent_handle h = p->handle;
+
+    auto it = _torrents.find(h.info_hash());
+
+    if(it == _torrents.cend()) {
+        std::clog << "Dropped alert, no correspondign torrent found.";
+        return;
+    }
+
+    detail::Torrent & torrent = it->second;
 
     // Check that alert was expected
-    Q_ASSERT(torrent->status() == Torrent::Status::asked_for_resume_data);
+    assert(torrent.state == detail::Torrent::State::waiting_for_resume_data);
 
     // Reset expected event
-    torrent->setStatus(Torrent::Status::nothing);
+    torrent.state = detail::Torrent::State::normal;
 
     // Create resume data buffer
     std::vector<char> resumeData;
 
     // Write new content to it
-    bencode(std::back_inserter(resumeData), *(p->resume_data));
+    libtorrent::bencode(std::back_inserter(resumeData), *(p->resume_data));
 
     // Save resume data in torrent
-    torrent->setResumeData(resumeData);
+    torrent.resumeData = resumeData;
 
-    // If this is part of closing client, then
+    // If this is part of closing client, then close client
+    // if there are no torrents still waiting for resume data.
     if(_state == State::waiting_for_resume_data) {
 
-        // Check if all there are any pending resume data requests
-        for(QMap<libtorrent::sha1_hash, Torrent *>::const_iterator
-            i = _torrents.begin(),
-            end = _torrents.end(); i != end;i++) {
-
-            // End processing if alert is expected
-            if((i.value())->status() == Torrent::Status::asked_for_resume_data)
+        for(auto mapping : _torrents) {
+            if(mapping.second.state == detail::Torrent::State::waiting_for_resume_data)
                 return;
         }
 
         // Close client
         finalize_stop();
     }
-    */
 }
 
 void Node::processSaveResumeDataFailedAlert(libtorrent::save_resume_data_failed_alert const * p) {
@@ -1427,10 +1428,7 @@ std::weak_ptr<Torrent> Node::torrent(const libtorrent::sha1_hash & infoHash) con
 
 void Node::finalize_stop() {
 
-    // Stop torrent status updates
-    _torrentUpdateTimer.stop();
-
-    std::clog << "Stopping libtorrent." << std::endl;
+    std::clog << "Dropping libtorrent session." << std::endl;
 
     // Close session and delete instance
     // This call will block, and may take a while to complete,
