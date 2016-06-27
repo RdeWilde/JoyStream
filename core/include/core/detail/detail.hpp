@@ -22,9 +22,7 @@ class Torrent;
 
 namespace detail {
 
-class Torrent {
-
-public:
+struct Torrent {
 
     enum class State {
 
@@ -42,7 +40,7 @@ public:
         // torrent_checked,
 
         // <== this should probably be removed
-        nothing,
+        normal,
 
         // Result of some pending resume_data() call,
         // can be either
@@ -52,7 +50,7 @@ public:
     };
 
     Torrent(extension::Plugin * plugin,
-            const libtorrent::sha1_hash &infoHash,
+            const libtorrent::sha1_hash & infoHash,
             const std::string & name,
             const std::string & savePath,
             const std::vector<char> & resumeData,
@@ -87,36 +85,6 @@ public:
                    const extension::request::ToBuyMode::ResultHandler &);
 
     /**
-    // Add plugins
-    void addPlugin(const SellerTorrentPlugin::Status & status);
-    void addPlugin(const BuyerTorrentPlugin::Status & status);
-    */
-
-    // Getters and Setters
-    libtorrent::sha1_hash infoHash() const;
-
-    std::string name() const;
-    void setName(const std::string & name);
-
-    std::string savePath() const;
-    void setSavePath(const std::string & savePath);
-
-    std::vector<char> resumeData() const;
-    void setResumeData(const std::vector<char> & resumeData);
-
-    std::uint64_t flags() const;
-    void setFlags(std::uint64_t flags);
-
-    //configuration::Torrent configuration() const;
-
-    libtorrent::torrent_handle handle() const;
-
-    State state() const;
-    void setState(State state);
-
-    std::shared_ptr<core::Torrent> model() const;
-
-    /**
     // Stream management
     void addStream(Stream * stream);
     void removeStream(Stream * stream);
@@ -128,26 +96,25 @@ public:
     void pieceFinished(int piece);
     */
 
-private:
+    /// Members
 
     // Plugin
-    extension::Plugin * _plugin;
+    extension::Plugin * plugin;
 
     // Info hash of torrent
-    libtorrent::sha1_hash _infoHash;
+    libtorrent::sha1_hash infoHash;
 
     // Display name
-    std::string _name;
+    std::string name;
 
     // Save path
-    std::string _savePath;
+    std::string savePath;
 
     // Resume data
-    std::vector<char> _resumeData;
+    std::vector<char> resumeData;
 
     // Flags
-
-    std::uint64_t _flags;
+    std::uint64_t flags;
 
     /**
     // Handle to torrent
@@ -157,7 +124,7 @@ private:
     */
 
     // Status
-    State _status;
+    State state;
 
     // Add const pointer to const object of type TorrentPlugin in the future?
     // can be used to look at stuff like plugin mode etc.
@@ -169,7 +136,7 @@ private:
     // Giving a raw pointer can allow client to access object
     // after it is deleted. The controller::removedTorrent signal helps avoid
     // that, but it is not perfect, as client cannot be guaranteed to see signal in time.
-    std::shared_ptr<core::Torrent> _model;
+    std::shared_ptr<core::Torrent> model;
 
     // All streams for this torrent.
     // Not quite sure if multiple separate streams for one torrent

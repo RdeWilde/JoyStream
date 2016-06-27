@@ -20,13 +20,13 @@ Torrent::Torrent(extension::Plugin * plugin,
                  const std::vector<char> & resumeData,
                  std::uint64_t flags,
                  State event)
-    : _plugin(plugin)
-    , _infoHash(infoHash)
-    , _name(name)
-    , _savePath(savePath)
-    , _resumeData(resumeData)
-    , _flags(flags)
-    , _status(event)
+    : plugin(plugin)
+    , infoHash(infoHash)
+    , name(name)
+    , savePath(savePath)
+    , resumeData(resumeData)
+    , flags(flags)
+    , state(event)
     /**
     , _model(infoHash,
              name,
@@ -37,27 +37,27 @@ Torrent::Torrent(extension::Plugin * plugin,
 }
 
 void Torrent::start(const extension::request::Start::ResultHandler & handler) {
-    _plugin->submit(extension::request::Start(_infoHash, handler));
+    plugin->submit(extension::request::Start(infoHash, handler));
 }
 
 void Torrent::stop(const extension::request::Stop::ResultHandler & handler) {
-    _plugin->submit(extension::request::Stop(_infoHash, handler));
+    plugin->submit(extension::request::Stop(infoHash, handler));
 }
 
 void Torrent::pause(const extension::request::Pause::ResultHandler & handler) {
-   _plugin->submit(extension::request::Pause(_infoHash, handler));
+   plugin->submit(extension::request::Pause(infoHash, handler));
 }
 
 void Torrent::updateTerms(const protocol_wire::BuyerTerms & terms, const extension::request::UpdateBuyerTerms::ResultHandler & handler) {
-    _plugin->submit(extension::request::UpdateBuyerTerms(_infoHash, terms, handler));
+    plugin->submit(extension::request::UpdateBuyerTerms(infoHash, terms, handler));
 }
 
 void Torrent::updateTerms(const protocol_wire::SellerTerms & terms, const extension::request::UpdateSellerTerms::ResultHandler & handler) {
-    _plugin->submit(extension::request::UpdateSellerTerms(_infoHash, terms, handler));
+    plugin->submit(extension::request::UpdateSellerTerms(infoHash, terms, handler));
 }
 
 void Torrent::toObserveMode(const extension::request::ToObserveMode::ResultHandler & handler) {
-    _plugin->submit(extension::request::ToObserveMode(_infoHash, handler));
+    plugin->submit(extension::request::ToObserveMode(infoHash, handler));
 }
 
 void Torrent::toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
@@ -66,7 +66,7 @@ void Torrent::toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler
                          const protocol_wire::SellerTerms & terms,
                          const extension::request::ToSellMode::ResultHandler & handler) {
 
-    _plugin->submit(extension::request::ToSellMode(_infoHash,
+    plugin->submit(extension::request::ToSellMode(infoHash,
                                                    generateKeyPairsCallbackHandler,
                                                    generateP2PKHAddressesCallbackHandler,
                                                    sellingPolicy,
@@ -81,7 +81,7 @@ void Torrent::toBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler 
                         const protocol_wire::BuyerTerms & terms,
                         const extension::request::ToBuyMode::ResultHandler & handler) {
 
-    _plugin->submit(extension::request::ToBuyMode(_infoHash,
+    plugin->submit(extension::request::ToBuyMode(infoHash,
                                                   generateKeyPairsCallbackHandler,
                                                   generateP2PKHAddressesCallbackHandler,
                                                   funding,
@@ -106,50 +106,48 @@ void Torrent::addPlugin(const BuyerTorrentPlugin::Status & status) {
 }
 */
 
+/**
 libtorrent::sha1_hash Torrent::infoHash() const {
-    return _infoHash;
+    return infoHash;
 }
 
 std::string Torrent::name() const {
-    return _name;
+    return name;
 }
 
 void Torrent::setName(const std::string & name) {
-    _name = name;
+    name = name;
 }
 
 std::string Torrent::savePath() const {
-    return _savePath;
+    return savePath;
 }
 
 void Torrent::setSavePath(const std::string & savePath) {
-    _savePath = savePath;
+    savePath = savePath;
 }
 
 std::vector<char> Torrent::resumeData() const {
-    return _resumeData;
+    return resumeData;
 }
 
 void Torrent::setResumeData(const std::vector<char> & resumeData) {
-    _resumeData = resumeData;
+    resumeData = resumeData;
 }
 
 
 std::uint64_t Torrent::flags() const {
-    return _flags;
+    return flags;
 }
 
 void Torrent::setFlags(std::uint64_t flags) {
-    _flags = flags;
+    flags = flags;
 }
 
-/**
 libtorrent::torrent_info * Torrent::torrentInfo() {
     return _torrentInfo;
 }
-*/
 
-/**
 libtorrent::torrent_handle Torrent::handle() const {
     return _handle;
 }
@@ -157,21 +155,19 @@ libtorrent::torrent_handle Torrent::handle() const {
 void Torrent::setHandle(const libtorrent::torrent_handle & handle) {
     _handle = handle;
 }
-*/
 
 Torrent::State Torrent::state() const {
-    return _status;
+    return state;
 }
 
 void Torrent::setState(State event) {
-    _status = event;
+    state = event;
 }
 
 std::shared_ptr<core::Torrent> Torrent::model() const {
-    return _model;
+    return model;
 }
 
-/**
 void Torrent::addStream(Stream * stream) {
     _streams.insert(stream);
 }
