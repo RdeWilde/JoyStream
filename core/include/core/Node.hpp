@@ -195,6 +195,10 @@ public:
     void changeDownloadingLocationFromThisPiece(const libtorrent::sha1_hash & infoHash, int pieceIndex);
     */
 
+    // Triggers an update of the status of all torrents,
+    // and any changes in state will be emitted as signals.
+    void updateStatus();
+
     // State of controller
     State state() const;
 

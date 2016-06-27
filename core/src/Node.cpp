@@ -1420,6 +1420,18 @@ void Node::changeDownloadingLocationFromThisPiece(const libtorrent::sha1_hash & 
 }
 */
 
+void Node::updateStatus() {
+
+    //guard state?
+
+
+    // Regular torrent level state update
+    _session->post_torrent_updates();
+
+    // Plugin level updates
+    plugin()->submit(extension::request::UpdateStatus());
+}
+
 Node::State Node::state() const {
     return _state;
 }
