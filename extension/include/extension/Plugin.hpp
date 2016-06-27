@@ -176,7 +176,7 @@ void Plugin::processTorrentPluginRequest(const T & r) {
 
     // Check that there is indeed a torrent corresponding to request
     if(it == _plugins.cend())
-        result = typename T::Result(std::make_exception_ptr(request::MissingTorrent()));
+        result = typename T::Result(std::make_exception_ptr(exception::MissingTorrent()));
     else {
 
         // Since there is, get a full reference to it
