@@ -123,6 +123,23 @@ namespace exception {
         }
     };
 
+    class StateIncompatibleOperation : public std::runtime_error {
+
+    public:
+
+        StateIncompatibleOperation(Node::State state)
+            : std::runtime_error("Operation was not compatible with current state of node.")
+            , _state(state) {
+        }
+
+        Node::State state() const {
+            return _state;
+        }
+
+    private:
+
+        Node::State _state;
+    };
 }
 }
 }
