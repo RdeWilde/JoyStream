@@ -43,7 +43,8 @@ typedef boost::variant<request::Start,
                        request::UpdateSellerTerms,
                        request::ToObserveMode,
                        request::ToSellMode,
-                       request::ToBuyMode> RequestVariant;
+                       request::ToBuyMode,
+                       request::UpdateStatus> RequestVariant;
 
 // Variant visitor
 class RequestVariantVisitor : public boost::static_visitor<>
@@ -135,6 +136,9 @@ private:
     // Process a particular request
     template<class T>
     void processTorrentPluginRequest(const T &);
+
+    // Send plugin status alert
+    void sendStatusAlert();
 };
 
 /// These routines are templated, and therefore inlined
@@ -156,6 +160,7 @@ void Plugin::submit(const T & r) {
 }
 
 #include <extension/Alert.hpp>
+#include <extension/Exception.hpp>
 
 namespace joystream {
 namespace extension {
@@ -194,6 +199,12 @@ namespace detail {
 template<class T>
 void RequestVariantVisitor::operator()(const T & r) const {
     _plugin->processTorrentPluginRequest<T>(r);
+}
+
+//
+template<>
+void RequestVariantVisitor::operator()(const request::UpdateStatus &) const {
+    _plugin->sendStatusAlert();
 }
 
 }

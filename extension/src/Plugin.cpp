@@ -61,9 +61,6 @@ void Plugin::on_tick() {
 
     // Process requests from controller
     processesRequestQueue();
-
-    // Send status
-    _session->alerts().emplace_alert<alert::PluginStatus>(status());
 }
 
 /**
@@ -137,6 +134,10 @@ void Plugin::processesRequestQueue() {
         // Relock for checking loop condition
         _requestQueueMutex.lock();
     }
+}
+
+void Plugin::sendStatusAlert() {
+    _session->alerts().emplace_alert<alert::PluginStatus>(status());
 }
 
 /**

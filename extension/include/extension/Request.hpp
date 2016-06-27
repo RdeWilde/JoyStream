@@ -13,22 +13,17 @@
 #include <libtorrent/sha1_hash.hpp>
 #include <libtorrent/socket.hpp>
 
-#include <exception>
 #include <functional>
 
 namespace joystream {
 namespace extension {
 namespace request {
 
-class MissingTorrent : public std::runtime_error {
+/// Requests without a direct response
 
-public:
+//
+struct UpdateStatus {};
 
-    MissingTorrent()
-        : std::runtime_error("Torrent missing") {
-    }
-
-};
 
 /**
  * All request classes must have at least two types
