@@ -9,7 +9,7 @@
 #include <extension/Plugin.hpp>
 #include <extension/Request.hpp>
 #include <libtorrent/error_code.hpp>
-#include <libtorrent/peer_connection.hpp>
+#include <libtorrent/peer_connection_handle.hpp>
 #include <libtorrent/bt_peer_connection.hpp>
 #include <libtorrent/socket_io.hpp> // print_endpoint
 
@@ -32,7 +32,7 @@ TorrentPlugin::~TorrentPlugin() {
     std::clog << "~TorrentPlugin() called.";
 }
 
-boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorrent::peer_connection * connection) {
+boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(const libtorrent::peer_connection_handle & peerConnectionHandle) {
 
     /**
      * You cannot disconnect this peer here, e.g. by using peer_connection::disconnect().
@@ -40,6 +40,10 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(libtorr
      * added to a torrent level peer list, and the disconnection asserts that the peer has
      * to be in this list. Disconnects must be done later.
      */
+
+    libtorrent::peer_connection * connection = peerConnectionHandle.native_handle().get();
+
+    assert(connection);
 
     // Get end point
     libtorrent::tcp::endpoint endPoint = connection->remote();

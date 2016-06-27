@@ -11,23 +11,15 @@
 #include <extension/PeerPlugin.hpp>
 #include <extension/Request.hpp>
 #include <protocol_session/protocol_session.hpp>
-
-// For QSet: uint qHash(const libtorrent::tcp::endpoint & endpoint)
-#include <common/LibtorrentUtilities.hpp>
-
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
-
+#include <libtorrent/alert_types.hpp>
 #include <map>
-
-namespace libtorrent {
-    class read_piece_alert;
-}
 
 namespace joystream {
 namespace extension {
 namespace status {
-    class TorrentPlugin;
+    struct TorrentPlugin;
 }
 
 class Plugin;
@@ -76,7 +68,7 @@ public:
     // The peer_connection_handle will be valid as long as the shared_ptr is being held by the torrent object. So, it is generally a good idea to not
     // keep a shared_ptr to your own peer_plugin. If you want to keep references to it, use weak_ptr.
     // If this function throws an exception, the connection will be closed.
-    virtual boost::shared_ptr<libtorrent::peer_plugin> new_connection(libtorrent::peer_connection * connection);
+    virtual boost::shared_ptr<libtorrent::peer_plugin> new_connection(const libtorrent::peer_connection_handle &);
 
     // These hooks are called when a piece passes the hash check or fails the hash check, respectively. The index is the piece index that was downloaded.
     // It is possible to access the list of peers that participated in sending the piece through the torrent and the piece_picker.
