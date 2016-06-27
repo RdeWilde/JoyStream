@@ -721,8 +721,43 @@ void Node::process(const libtorrent::save_resume_data_alert * p) {
     }
 }
 
-void Node::processSaveResumeDataFailedAlert(libtorrent::save_resume_data_failed_alert const * p) {
-    std::clog << "Failed to generate resume data for some reason.";
+void Node::process(const libtorrent::save_resume_data_failed_alert * p) {
+
+    /// Not sure why this would ever happen?
+
+    std::clog << "libtorrent::save_resume_data_failed_alert: "
+              << p->message() << std::endl;
+
+    // Get reference to corresponding torrent
+    libtorrent::torrent_handle h = p->handle;
+
+    auto it = _torrents.find(h.info_hash());
+
+    if(it == _torrents.cend()) {
+        std::clog << "Dropped alert, no correspondign torrent found.";
+        return;
+    }
+
+    detail::Torrent & torrent = it->second;
+
+    // Check that alert was expected
+    assert(torrent.state == detail::Torrent::State::waiting_for_resume_data);
+
+    // Reset expected event
+    torrent.state = detail::Torrent::State::normal;
+
+    // If this is part of closing client, then close client
+    // if there are no torrents still waiting for resume data.
+    if(_state == State::waiting_for_resume_data) {
+
+        for(auto mapping : _torrents) {
+            if(mapping.second.state == detail::Torrent::State::waiting_for_resume_data)
+                return;
+        }
+
+        // Close client
+        finalize_stop();
+    }
 }
 
 void Node::processTorrentCheckedAlert(libtorrent::torrent_checked_alert const * p) {
