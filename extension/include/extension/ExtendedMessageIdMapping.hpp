@@ -36,7 +36,7 @@ namespace extension {
         ExtendedMessageIdMapping & operator=(const ExtendedMessageIdMapping & rhs);
 
         // Outputs mapping into and m dicitonary, which can be used in extended handshake
-        void writeToDictionary(std::map<std::string, libtorrent::entry> & m);
+        void writeToMDictionary(std::map<std::string, libtorrent::entry> & m);
 
         // Get extended message id of given message
         quint8 id(joystream::protocol_wire::MessageType messageType) const;
