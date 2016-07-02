@@ -405,7 +405,7 @@ void Node::processAlert(const libtorrent::alert * a) {
     else if(libtorrent::listen_failed_alert const * p = libtorrent::alert_cast<libtorrent::listen_failed_alert>(a))
         process(p);
     else if(libtorrent::add_torrent_alert const * p = libtorrent::alert_cast<libtorrent::add_torrent_alert>(a))
-        processAddTorrentAlert(p);
+        process(p);
     else if (libtorrent::torrent_finished_alert const * p = libtorrent::alert_cast<libtorrent::torrent_finished_alert>(a))
         processTorrentFinishedAlert(p);
     else if (libtorrent::torrent_paused_alert const * p = libtorrent::alert_cast<libtorrent::torrent_paused_alert>(a))
@@ -616,8 +616,8 @@ void Node::processMetadataFailedAlert(libtorrent::metadata_failed_alert const * 
     throw std::runtime_error("Invalid metadata");
 }
 
-void Node::processAddTorrentAlert(libtorrent::add_torrent_alert const * p) {
-/**
+void Node::process(libtorrent::add_torrent_alert const * p) {
+
     Q_ASSERT(_state == State::normal);
     Q_ASSERT(_torrents.contains(p->params.info_hash));
 
@@ -655,7 +655,7 @@ void Node::processAddTorrentAlert(libtorrent::add_torrent_alert const * p) {
         // Send notification signal
         emit addedTorrent(torrent->model());
 	}
-*/
+
 }
 
 void Node::processTorrentFinishedAlert(libtorrent::torrent_finished_alert const * p) {

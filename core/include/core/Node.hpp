@@ -142,19 +142,24 @@ public:
      -------------
 
      DESCRIPTION
-     Tries to add torrent to node. <what is done with state of torrent?><automanage, download, upload, settings?>
+     Tries to add torrent to node.
+     <what is done with state of torrent?>
+     <automanage, download, upload, settings?>
 
      ARGUMENTS
-     -
-     -
+     - configuration:
+     - addedTorrent:
+     - failedToAddTorrent:
 
      THROWS
+     - exception::TorrentAlreadyAdded:
      -
 
      SIGNALS
-     -
+     - addedTorrent():
+     - failedToAddTorrent():
      */
-    void addTorrent(const configuration::Torrent &, const AddedTorrent &);
+    void addTorrent(const configuration::Torrent & configuration, const AddedTorrent & addedTorrent);
 
     /**
      removeTorrent
@@ -346,7 +351,7 @@ private:
     void process(const libtorrent::listen_failed_alert *);
     void processMetadataReceivedAlert(const libtorrent::metadata_received_alert *);
     void processMetadataFailedAlert(const libtorrent::metadata_failed_alert *);
-    void processAddTorrentAlert(const libtorrent::add_torrent_alert *);
+    void process(const libtorrent::add_torrent_alert *);
     void processTorrentFinishedAlert(const libtorrent::torrent_finished_alert *);
     void processStatusUpdateAlert(const libtorrent::state_update_alert *);
     void processTorrentRemovedAlert(const libtorrent::torrent_removed_alert *);
