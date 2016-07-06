@@ -431,22 +431,23 @@ protocol_session::TorrentPieceInformation TorrentPlugin::torrentPieceInformation
     return information;
 }
 
-template<>
-void TorrentPlugin::process<request::Start>(const request::Start &) {
+void TorrentPlugin::initiateExtendedHandshake() {
 
-    auto initialState = sessionState();
+    for(auto mapping : _peers) {
 
-    // Start session
-    _session.start();
+         boost::shared_ptr<PeerPlugin> plugin = mapping.second.lock();
 
-    // If session was initially stopped, then initiate extended handshake
-    if(initialState == protocol_session::SessionState::stopped) {
+         assert(plugin);
 
-        for(auto mapping : _peers) {
+         // Get connection reference
+         boost::shared_ptr<libtorrent::peer_connection> nativeConnection = plugin->connection().native_handle();
 
-             boost::shared_ptr<PeerPlugin> plugin = mapping.second.lock();
+         // If connection is a BitTorrent connection, then initiate handshake
+         if(nativeConnection->type() == libtorrent::peer_connection::bittorrent_connection)
+             static_cast<libtorrent::bt_peer_connection *>(nativeConnection.get())->write_extensions();
+    }
 
-             assert(plugin);
+}
 
              // Get connection reference
              boost::shared_ptr<libtorrent::peer_connection> nativeConnection = plugin->connection().native_handle();

@@ -120,6 +120,9 @@ private:
     friend class Plugin;
     template<class T> void process(const T &);
 
+    // Initiate extended handshake with all BitTorrent peers
+    void initiateExtendedHandshake();
+
     /// PeerPlugin notifications
 
     friend class PeerPlugin;
