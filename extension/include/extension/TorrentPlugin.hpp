@@ -30,31 +30,32 @@ public:
 
     struct Policy {
 
-        Policy(bool banPeersWithoutExtension,
-               bool banPeersWithPastMalformedExtendedMessage,
+        Policy(bool banPeersWithPastMalformedExtendedMessage,
+               bool banPeersWithPastMisbehavior,
                const PeerPlugin::Policy & peerPolicy)
-            : banPeersWithoutExtension(banPeersWithoutExtension)
-            , banPeersWithPastMalformedExtendedMessage(banPeersWithPastMalformedExtendedMessage)
+            : banPeersWithPastMalformedExtendedMessage(banPeersWithPastMalformedExtendedMessage)
+            , banPeersWithPastMisbehavior(banPeersWithPastMisbehavior)
             , peerPolicy(peerPolicy) {
         }
 
-        Policy() : Policy(false, false, PeerPlugin::Policy()) { }
-
-        // Should TorrenPlugin::new_connection accept a peer which
-        // is known to not have extension from before.
-        bool banPeersWithoutExtension;
+        Policy() : Policy(true, true, PeerPlugin::Policy()) { }
 
         // Should TorrenPlugin::new_connection accept a peer which
         // is known to have sent a malformed extended message before.
         bool banPeersWithPastMalformedExtendedMessage;
+
+        // Should TorrenPlugin::new_connection accept a peer which
+        // is known to have misbehaved prior.
+        bool banPeersWithPastMisbehavior;
 
         // Policy for peer plugins
         PeerPlugin::Policy peerPolicy;
     };
 
     TorrentPlugin(Plugin * plugin,
-                  const boost::shared_ptr<libtorrent::torrent> & torrent,
+                  const libtorrent::torrent_handle & torrent,
                   const std::string & bep10ClientIdentifier,
+                  uint minimumMessageId,
                   const Policy & policy);
 
     virtual ~TorrentPlugin();
@@ -123,13 +124,19 @@ private:
 
     friend class PeerPlugin;
 
+    // State of session
+    protocol_session::SessionState sessionState() const;
+
     // Adds peer correspoinding to given endpoint to session,
     // is called when peer has sucessfully completed extended handshake.
     // Not when connection is established, as in TorrentPlugin::new_connection
-    void addPeerToSession(const libtorrent::tcp::endpoint &);
+    void addToSession(const libtorrent::tcp::endpoint &);
+
+    // Removes peer from session, if present
+    void removeFromSession(const libtorrent::tcp::endpoint &);
 
     // Disconnects peer, removes corresponding plugin from map
-    void disconnectPeer(const libtorrent::tcp::endpoint &, const libtorrent::error_code &);
+    void drop(const libtorrent::tcp::endpoint &, const libtorrent::error_code &);
 
     // Determines the message type, calls correct handler, then frees message
     void processExtendedMessage(const libtorrent::tcp::endpoint &, const joystream::protocol_wire::ExtendedMessagePayload & extendedMessage);
@@ -151,27 +158,42 @@ private:
     Plugin * _plugin;
 
     // Torrent for this torrent_plugin
-    boost::weak_ptr<libtorrent::torrent> _torrent;
+    libtorrent::torrent_handle _torrent;
 
     // Client identifier used in bep10 handshake v-key
-    std::string _bep10ClientIdentifier;
+    const std::string _bep10ClientIdentifier;
+
+    // Lowest all message id where libtorrent client can guarantee we will not
+    // conflict with another libtorrent plugin (e.g. metadata, pex, etc.)
+    const uint _minimumMessageId;
 
     // Parametrised runtime behaviour
     Policy _policy;
 
-    // Endpoints corresponding to peers known to not have extension.
-    // Is populated by previous failed extended handshakes.
-    std::set<libtorrent::tcp::endpoint> _extensionless;
-
-    // Endpoints corresponding to peers which have sent malformed extended message
-    // including handshake.
+    // Endpoints corresponding to peers which have sent malformed extended message, including handshake.
+    // Can be used to ban peers from connecting.
     std::set<libtorrent::tcp::endpoint> _sentMalformedExtendedMessage;
 
-    // Torrent info hash
-    libtorrent::sha1_hash _infoHash;
+    // Endpoints corresponding to peers which have misbehaved
+    // in one of following scenarios
+    // a) PeerPlugin::on_extension_handshake: sent extended message, despite claiming not to support BEP10
+    std::set<libtorrent::tcp::endpoint> _misbehavedPeers;
 
-    // Maps endpoint to weak peer plugin pointer, is peer_plugin, since this is
-    // Libtorrent docs (http://libtorrent.org/reference-Plugins.html#peer_plugin):
+    // Peers which should have been deleted in ::new_connection event, but cannot, due to some invariant which
+    // is asserted in on_disconnect about peer having to be on the peer_list.
+    // NB: peers in this list have no plugin installed
+    // NB: connection, rather than endpoint, is used as key, as connection is not recoverable later from libtorrent!!
+    std::map<libtorrent::peer_connection *, libtorrent::error_code> _peerScheduledForDeletionForGivenError;
+
+    // Torrent info hash
+    const libtorrent::sha1_hash _infoHash;
+
+    // Maps endpoint to corresponding peer_plugin, which is installed on all peers,
+    // also those that don't even support BEP10, let alone this extension.
+    // Is required to disrupt default libtorrent behaviour.
+    //
+    // Q: Why weak_ptr?
+    // A: Libtorrent docs (http://libtorrent.org/reference-Plugins.html#peer_plugin):
     // The peer_connection will be valid as long as the shared_ptr is being held by the
     // torrent object. So, it is generally a good idea to not keep a shared_ptr to
     // your own peer_plugin. If you want to keep references to it, use weak_ptr.
@@ -179,8 +201,12 @@ private:
     std::map<libtorrent::tcp::endpoint, boost::weak_ptr<PeerPlugin> > _peers;
 
     // Protocol session
-    // NB: Only peers which support this extension will be added to session,
-    // while all peers are added to _peers
+    // Q: What peers are in session, and what are not.
+    // A: All peers with plugins installed will be in this map, however, not all peers
+    // will have plugins installed. Plugins are only installed if connection
+    // was established when both peer and client side have extension enabled, and
+    // even in that case it can be uninstalled later by either side. When starting
+    // the session again, the client side will reinvite peer to do extended handshake
     protocol_session::Session<libtorrent::tcp::endpoint> _session;
 
     /**
@@ -215,11 +241,11 @@ private:
     libtorrent::alert_manager & alert_manager() const;
 
     // Returns raw plugin pointer after asserted locking
-    PeerPlugin * getRawPlugin(const libtorrent::tcp::endpoint &);
+    PeerPlugin * peer(const libtorrent::tcp::endpoint &);
 
     // Returns raw torrent pointer after asserted locking
-    libtorrent::torrent * getTorrent() const;
-    libtorrent::torrent * getTorrent();
+    libtorrent::torrent * torrent() const;
+    //libtorrent::torrent * torrent();
 
     // Returns torrent piece information based on current state of torrent
     protocol_session::TorrentPieceInformation torrentPieceInformation(const libtorrent::piece_picker &) const;
