@@ -465,12 +465,23 @@ void TorrentPlugin::process<request::Start>(const request::Start &) {
 template<>
 void TorrentPlugin::process<request::Stop>(const request::Stop &) {
 
-    // set _sendUninstallMappingOnNextExtendedHandshake on all peers
-    // ask to .write on all peers
+    // Setup peers to send uninstall handshakes on next call from libtorrent (add_handshake)
+    for(auto mapping : _peers) {
 
-    // This will not cause disconnect of underlying peers,
+         boost::shared_ptr<PeerPlugin> plugin = mapping.second.lock();
+
+         assert(plugin);
+
+         plugin->setSendUninstallMappingOnNextExtendedHandshake(true);
+    }
+
+    // Stop session
+    // NB: This will not cause disconnect of underlying peers,
     // as we don't initate it in callback from session.
     _session.stop();
+
+    // Start handshake
+    initiateExtendedHandshake();
 }
 
 template<>
