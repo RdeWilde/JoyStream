@@ -17,12 +17,38 @@
 namespace joystream {
 namespace extension {
 
-Plugin::Plugin()
-    : _addedToSession(false) {
+Plugin::Plugin(const std::string & bep10ClientIdentifier,
+               uint minimumMessageId)
+    : _session(nullptr)
+    , _bep10ClientIdentifier(bep10ClientIdentifier)
+    , _minimumMessageId(minimumMessageId)
+    , _addedToSession(false) {
 }
 
 Plugin::~Plugin() {
     std::clog << "~Plugin.";
+}
+
+boost::uint32_t Plugin::implemented_features() {
+    return tick_feature;
+}
+
+boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::torrent_handle const & h, void*) {
+
+    assert(_plugins.count(h.info_hash()) == 0);
+
+    // Create a torrent plugin
+    boost::shared_ptr<libtorrent::torrent_plugin> plugin(new TorrentPlugin(this,
+                                                                           h,
+                                                                           _bep10ClientIdentifier,
+                                                                           _minimumMessageId,
+                                                                           TorrentPlugin::Policy()));
+
+
+    // Storing weak reference to plugin
+    _plugins[h.info_hash()] = boost::static_pointer_cast<TorrentPlugin>(plugin);
+
+    return plugin;
 }
 
 void Plugin::added(libtorrent::session_handle h) {

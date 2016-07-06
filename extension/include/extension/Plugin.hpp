@@ -71,7 +71,8 @@ class Plugin : public libtorrent::plugin {
 
 public:
 
-    Plugin();
+    Plugin(const std::string & bep10ClientIdentifier,
+           uint minimumMessageId);
 
     ~Plugin();
 
@@ -80,6 +81,8 @@ public:
      * be called by libtorrent network thread, never by other threads,
      * as this causes synchronization failures.
      */
+    virtual boost::uint32_t implemented_features();
+    virtual boost::shared_ptr<libtorrent::torrent_plugin> new_torrent(libtorrent::torrent_handle const&, void*);
     virtual void added(libtorrent::session_handle);
     virtual void on_alert(libtorrent::alert const * a);
     virtual void on_tick();
@@ -109,6 +112,13 @@ private:
     // Libtorrent session.
     // NB: Is set by added() libtorrent callback, not constructor
     libtorrent::aux::session_impl * _session;
+
+    // Client identifier used in bep10 handshake v-key
+    const std::string _bep10ClientIdentifier;
+
+    // Lowest all message id where libtorrent client can guarantee we will not
+    // conflict with another libtorrent plugin (e.g. metadata, pex, etc.)
+    uint _minimumMessageId;
 
     // Has this plugin been added to session.
     // Do not use the _session pointer before this.
