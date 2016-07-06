@@ -156,6 +156,8 @@ namespace status {
 
         libtorrent::peer_connection_handle connection() const;
 
+        void setSendUninstallMappingOnNextExtendedHandshake(bool);
+
         /**
         bool peerTimedOut(int maxDelay) const;
 

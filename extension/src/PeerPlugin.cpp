@@ -640,6 +640,10 @@ namespace extension {
         return _connection;
     }
 
+    void PeerPlugin::setSendUninstallMappingOnNextExtendedHandshake(bool s) {
+        _sendUninstallMappingOnNextExtendedHandshake = s;
+    }
+
     void PeerPlugin::drop(const libtorrent::error_code & ec) {
         _plugin->drop(_endPoint, ec);
     }
