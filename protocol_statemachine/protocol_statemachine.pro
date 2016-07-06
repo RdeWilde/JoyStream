@@ -3,6 +3,8 @@
 # Proprietary and confidential
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, January 27 2016
 
+include(config.pri)
+
 TARGET = protocol_statemachine
 TEMPLATE = lib
 
@@ -56,7 +58,6 @@ HEADERS += \
     include/protocol_statemachine/protocol_statemachine.hpp \
     include/protocol_statemachine/event/event.hpp \
     include/protocol_statemachine/exception/exception.hpp
-
 
 SOURCES += \
     src/AnnouncedModeAndTerms.cpp \
