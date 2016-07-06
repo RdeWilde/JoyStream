@@ -449,15 +449,17 @@ void TorrentPlugin::initiateExtendedHandshake() {
 
 }
 
-             // Get connection reference
-             boost::shared_ptr<libtorrent::peer_connection> nativeConnection = plugin->connection().native_handle();
+template<>
+void TorrentPlugin::process<request::Start>(const request::Start &) {
 
-             // If connection is a BitTorrent connection, then initiate handshake
-             if(nativeConnection->type() == libtorrent::peer_connection::bittorrent_connection)
-                 static_cast<libtorrent::bt_peer_connection *>(nativeConnection.get())->write_extensions();
-        }
-    }
+    auto initialState = sessionState();
 
+    // Start session
+    _session.start();
+
+    // If session was initially stopped (not paused), then initiate extended handshake
+    if(initialState == protocol_session::SessionState::stopped)
+        initiateExtendedHandshake();
 }
 
 template<>
