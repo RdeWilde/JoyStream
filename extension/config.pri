@@ -3,5 +3,4 @@
 # Proprietary and confidential
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, September 23 2015
 
-DEFINES += PLUGIN_NAME=\\\"cc\\\" # extension name "Crypto Currency (Extension)"
-DEFINES += PLUGIN_VERSION=1
+DEFINES += BEP10_EXTENSION_NAME=\\\"cc\\\" # extension name "Crypto Currency (Extension)"
