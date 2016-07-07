@@ -52,11 +52,34 @@ public:
         PeerPlugin::Policy peerPolicy;
     };
 
+    // How this plugin shuold interact with libtorrent events
+    enum class LibtorrentInteraction {
+
+        // No events interrupted, except on_extended events for this plugin
+        None,
+
+        // Preventing uploading to peers by
+        // * sending (once) CHOCKED message in order to discourage inbound requests.
+        // * cancel on_request() to make libtorrent blind to peer requests.
+        BlockUploading,
+
+        // Prevent downloading from peers by
+        // * sending (once) NOT-INTERESTED and CHOCKED message in order to discourage unchocking.
+        // * cancel write_request() to prevent libtorrent from requesting data.
+        // * cancel on_piece() to make libtorrent blind to inbound pieces.
+        BlockDownloading,
+
+        // Prevent both: BlockUploading and BlockDownloading
+        BlockUploadingAndDownloading,
+    };
+
+
     TorrentPlugin(Plugin * plugin,
                   const libtorrent::torrent_handle & torrent,
                   const std::string & bep10ClientIdentifier,
                   uint minimumMessageId,
-                  const Policy & policy);
+                  const Policy & policy,
+                  LibtorrentInteraction libtorrentInteraction);
 
     virtual ~TorrentPlugin();
 
@@ -112,6 +135,8 @@ public:
     // Status
     status::TorrentPlugin status() const;
 
+    LibtorrentInteraction libtorrentInteraction() const;
+
 private:
 
     /// Torrent plugin request processing
@@ -120,8 +145,8 @@ private:
     friend class Plugin;
     template<class T> void process(const T &);
 
-    // Initiate extended handshake with all BitTorrent peers
-    void initiateExtendedHandshake();
+    // Changes libtorrent interaction setting
+    void updateLibtorrentInteraction(LibtorrentInteraction);
 
     /// PeerPlugin notifications
 
@@ -172,6 +197,9 @@ private:
 
     // Parametrised runtime behaviour
     Policy _policy;
+
+    // Current libtorrent interaction setting
+    LibtorrentInteraction _libtorrentInteraction;
 
     // Endpoints corresponding to peers which have sent malformed extended message, including handshake.
     // Can be used to ban peers from connecting.
@@ -252,6 +280,9 @@ private:
 
     // Returns torrent piece information based on current state of torrent
     protocol_session::TorrentPieceInformation torrentPieceInformation(const libtorrent::piece_picker &) const;
+
+    // Processes each Bittorrent type connection
+    void forEachBitTorrentConnection(const std::function<void(libtorrent::bt_peer_connection *)> &);
 };
 
 // These should really be private members, but it is not allowed

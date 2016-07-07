@@ -20,12 +20,14 @@ TorrentPlugin::TorrentPlugin(Plugin * plugin,
                              const libtorrent::torrent_handle & torrent,
                              const std::string & bep10ClientIdentifier,
                              uint minimumMessageId,
-                             const Policy & policy)
+                             const Policy & policy,
+                             LibtorrentInteraction libtorrentInteraction)
     : _plugin(plugin)
     , _torrent(torrent)
     , _bep10ClientIdentifier(bep10ClientIdentifier)
     , _minimumMessageId(minimumMessageId)
-    , _policy(policy) {
+    , _policy(policy)
+    , _libtorrentInteraction(libtorrentInteraction) {
 }
 
 TorrentPlugin::~TorrentPlugin() {
@@ -369,6 +371,10 @@ status::TorrentPlugin TorrentPlugin::status() const {
     return status;
 }
 
+TorrentPlugin::LibtorrentInteraction TorrentPlugin::libtorrentInteraction() const {
+    return _libtorrentInteraction;
+}
+
 /**
 void TorrentPlugin::sendTorrentPluginAlert(const libtorrent::alert & alert) {
 
@@ -431,7 +437,7 @@ protocol_session::TorrentPieceInformation TorrentPlugin::torrentPieceInformation
     return information;
 }
 
-void TorrentPlugin::initiateExtendedHandshake() {
+void TorrentPlugin::forEachBitTorrentConnection(const std::function<void(libtorrent::bt_peer_connection *)> & h) {
 
     for(auto mapping : _peers) {
 
@@ -442,11 +448,32 @@ void TorrentPlugin::initiateExtendedHandshake() {
          // Get connection reference
          boost::shared_ptr<libtorrent::peer_connection> nativeConnection = plugin->connection().native_handle();
 
-         // If connection is a BitTorrent connection, then initiate handshake
+         // If connection is a BitTorrent connection, then apply handler
          if(nativeConnection->type() == libtorrent::peer_connection::bittorrent_connection)
-             static_cast<libtorrent::bt_peer_connection *>(nativeConnection.get())->write_extensions();
+             h(static_cast<libtorrent::bt_peer_connection *>(nativeConnection.get()));
     }
 
+}
+
+void TorrentPlugin::updateLibtorrentInteraction(LibtorrentInteraction e) {
+
+    // Send messages for starting to prevent uploading
+    if(e == LibtorrentInteraction::BlockUploading ||
+       e == LibtorrentInteraction::BlockUploadingAndDownloading) {
+
+        // For each peer: sending (once) CHOCKED message in order to discourage inbound requests.
+        forEachBitTorrentConnection([](libtorrent::bt_peer_connection *c) -> void { c->write_choke(); });
+    }
+
+    // Send messages for starting to prevent uploading
+    if(e == LibtorrentInteraction::BlockDownloading ||
+       e == LibtorrentInteraction::BlockUploadingAndDownloading) {
+
+        // For each peer: sending (once) NOT-INTERESTED and CHOCKED message in order to discourage unchocking.
+        forEachBitTorrentConnection([](libtorrent::bt_peer_connection *c) -> void { c->write_not_interested(); c->write_choke(); });
+    }
+
+    _libtorrentInteraction = e;
 }
 
 template<>
@@ -459,7 +486,7 @@ void TorrentPlugin::process<request::Start>(const request::Start &) {
 
     // If session was initially stopped (not paused), then initiate extended handshake
     if(initialState == protocol_session::SessionState::stopped)
-        initiateExtendedHandshake();
+        forEachBitTorrentConnection([](libtorrent::bt_peer_connection *c) -> void { c->write_extensions(); });
 }
 
 template<>
@@ -481,7 +508,7 @@ void TorrentPlugin::process<request::Stop>(const request::Stop &) {
     _session.stop();
 
     // Start handshake
-    initiateExtendedHandshake();
+    forEachBitTorrentConnection([](libtorrent::bt_peer_connection *c) -> void { c->write_extensions(); });
 }
 
 template<>

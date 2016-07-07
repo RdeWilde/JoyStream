@@ -341,8 +341,16 @@ namespace extension {
     }
 
     bool PeerPlugin::on_request(libtorrent::peer_request const &) {
+
         assert(!_undead);
-        return true; // overrid default handler
+
+        TorrentPlugin::LibtorrentInteraction e = _plugin->libtorrentInteraction();
+
+        if(e == TorrentPlugin::LibtorrentInteraction::BlockUploading ||
+           e == TorrentPlugin::LibtorrentInteraction::BlockUploadingAndDownloading)
+            return true; // don't let anyone else handle the message, including the default
+        else
+            return false; // allow next handler
     }
 
     bool PeerPlugin::on_unchoke() {
@@ -376,8 +384,16 @@ namespace extension {
     }
 
     bool PeerPlugin::on_piece(libtorrent::peer_request const &, libtorrent::disk_buffer_holder &) {
+
         assert(!_undead);
-        return false; // let default handler process a piece
+
+        TorrentPlugin::LibtorrentInteraction e = _plugin->libtorrentInteraction();
+
+        if(e == TorrentPlugin::LibtorrentInteraction::BlockDownloading ||
+           e == TorrentPlugin::LibtorrentInteraction::BlockUploadingAndDownloading)
+            return true; // don't let anyone else handle the message, including the default
+        else
+            return false; // allow next handler
     }
 
     bool PeerPlugin::on_suggest(int) {
@@ -550,8 +566,14 @@ namespace extension {
     bool PeerPlugin::write_request(libtorrent::peer_request const &) {
 
         assert(!_undead);
-        // no one gets to send to this peer but us!
-        return false;
+
+        TorrentPlugin::LibtorrentInteraction e = _plugin->libtorrentInteraction();
+
+        if(e == TorrentPlugin::LibtorrentInteraction::BlockDownloading ||
+           e == TorrentPlugin::LibtorrentInteraction::BlockUploadingAndDownloading)
+            return true; // block sending request
+        else
+            return false; // allow sending request
     }
 
     void PeerPlugin::send(const joystream::protocol_wire::ExtendedMessagePayload * extendedMessagePayload) {

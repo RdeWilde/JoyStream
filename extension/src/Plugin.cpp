@@ -42,7 +42,8 @@ boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::to
                                                                            h,
                                                                            _bep10ClientIdentifier,
                                                                            _minimumMessageId,
-                                                                           TorrentPlugin::Policy()));
+                                                                           TorrentPlugin::Policy(),
+                                                                           TorrentPlugin::LibtorrentInteraction::None));
 
 
     // Storing weak reference to plugin
