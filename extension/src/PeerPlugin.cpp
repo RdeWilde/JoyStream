@@ -27,6 +27,7 @@ namespace extension {
         , _policy(policy)
         , _minimumMessageId(minimumMessageId)
         , _endPoint(connection.remote())
+        , _clientMapping(ExtendedMessageIdMapping::consecutiveIdsStartingAt(_minimumMessageId))
         , _sendUninstallMappingOnNextExtendedHandshake(false)
         , _peerBEP10SupportStatus(BEPSupportStatus::unknown)
         , _peerPaymentBEPSupportStatus(BEPSupportStatus::supported) {
@@ -61,9 +62,6 @@ namespace extension {
         // If sessino is stopped, then we only send uninstall mapping, at most
         if(_plugin->sessionState() == protocol_session::SessionState::stopped) {
 
-            // Is initially not set, and is cleared on session stops due to peer removal.
-            assert(!_clientMapping);
-
             // If this is first handshake after stopping the session, then
             // and uninstall mapping is sent
             if(_sendUninstallMappingOnNextExtendedHandshake) {
@@ -80,20 +78,12 @@ namespace extension {
         } else {
 
             assert(!_sendUninstallMappingOnNextExtendedHandshake);
-
-            // If this is the first handshake, we need to setup the client side mapping
-            if(!_clientMapping) {
-
-                ExtendedMessageIdMapping mapping = ExtendedMessageIdMapping::consecutiveIdsStartingAt(_minimumMessageId);
-
-                // Set new mapping
-                _clientMapping = std::unique_ptr<ExtendedMessageIdMapping>(new ExtendedMessageIdMapping(mapping));
-            }
+            assert(!_clientMapping.empty());
 
             // Write proper mapping to dictionary
             // May throw exception::MessageAlreadyPresentException if
             // plugin is being used incorrectly by developer
-            _clientMapping->writeToMDictionary(m);
+            _clientMapping.writeToMDictionary(m);
         }
     }
 
@@ -251,10 +241,8 @@ namespace extension {
         // Get peer mapping
         try {
 
-            ExtendedMessageIdMapping mapping = ExtendedMessageIdMapping::fromMDictionary(m);
-
             // Store fully valid (non-uninstall) mapping of peer
-            _peerMapping = std::unique_ptr<ExtendedMessageIdMapping>(new ExtendedMessageIdMapping(mapping));
+            _peerMapping = ExtendedMessageIdMapping::fromMDictionary(m);
 
         } catch(const exception::InvalidMessageMappingDictionary & e) {
 
@@ -264,7 +252,7 @@ namespace extension {
 
                 // If peer hasn't previously sent a valid mapping,
                 // then it is misbehaving
-                if(!_peerMapping) {
+                if(_peerMapping.empty()) {
 
                     // Remove peer
                     libtorrent::error_code ec; // "Peer misbehaved: sent uninstall mapping, despite not recently annoncing valid mapping to uninstall."
@@ -275,7 +263,7 @@ namespace extension {
                 }
 
                 // Discard old mapping
-                _peerMapping.release();
+                _peerMapping.clear();
 
                 // Mark peer as not supporting this extension
                 _peerPaymentBEPSupportStatus  = BEPSupportStatus::not_supported;
@@ -465,7 +453,7 @@ namespace extension {
         joystream::protocol_wire::MessageType messageType;
 
         try {
-            messageType = _peerMapping->messageType(msg);
+            messageType = _peerMapping.messageType(msg);
         } catch(std::exception & e) {
 
             std::clog << "Received extended message, but not with registered extended id, not for this plugin then, letting another plugin handle it.";
@@ -603,7 +591,7 @@ namespace extension {
         stream << static_cast<quint8>(libtorrent::bt_peer_connection::msg_extended);
 
         // Extended message id
-        stream << static_cast<quint8>(_peerMapping->id(extendedMessagePayload->messageType()));
+        stream << static_cast<quint8>(_peerMapping.id(extendedMessagePayload->messageType()));
 
         // Write message into buffer through stream
         qint64 preWritePosition = stream.device()->pos();

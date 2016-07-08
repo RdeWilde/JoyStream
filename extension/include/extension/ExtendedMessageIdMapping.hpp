@@ -16,16 +16,17 @@
 #include <map>
 #include <exception>
 
-#define CLIENT_PREFIX_STRING "js_"
-
 namespace joystream {
 namespace extension {
 
     // A BEP10 handshake message id mapping for the crypto currency extension.
-    // Mapping is always bijective (one-to-one + onto)
+    // Mapping is either empty or bijective (one-to-one + onto)
     class ExtendedMessageIdMapping {
 
     public:
+
+        // Creates empty mapping
+        ExtendedMessageIdMapping();
 
         ExtendedMessageIdMapping(const ExtendedMessageIdMapping &);
 
@@ -45,17 +46,26 @@ namespace extension {
 
         // Writes this mapping into (BEP10) m dictionary
         // Throws:
+        // * InvalidOperationOnEmptyMappingException: if mapping is empty
         // * MessageAlreadyPresentException: if dictionary already has key corresponding to this extension
         void writeToMDictionary(libtorrent::entry::dictionary_type & m);
+
+        // Wheter this maping is empty
+        bool empty() const;
+
+        // Make mapping empty
+        void clear();
 
         /// Getters
 
         // Returns id of given message
+        // * InvalidOperationOnEmptyMappingException: if mapping is empty
         uint8_t id(protocol_wire::MessageType) const;
 
         // Returns the message with the givne id
         // Throws:
-        // NoSuchIdException: if there is no message with given id
+        // * InvalidOperationOnEmptyMappingException: if mapping is empty
+        // * NoSuchIdException: if there is no message with given id
         protocol_wire::MessageType messageType(uint8_t) const;
 
     private:

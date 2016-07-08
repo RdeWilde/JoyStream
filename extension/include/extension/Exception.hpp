@@ -165,6 +165,13 @@ namespace exception {
             : std::runtime_error("The minimum message id must be non-zero positive integer.") {}
     };
 
+    struct InvalidOperationOnEmptyMappingException : std::runtime_error {
+
+        InvalidOperationOnEmptyMappingException()
+            : std::runtime_error("Invalid operation on an empty mapping.") {}
+
+    };
+
 }
 }
 }

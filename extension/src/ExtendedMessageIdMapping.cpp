@@ -26,6 +26,9 @@ namespace extension {
         protocol_wire::MessageType::payment
     };
 
+    ExtendedMessageIdMapping::ExtendedMessageIdMapping() {
+    }
+
     ExtendedMessageIdMapping::ExtendedMessageIdMapping(const ExtendedMessageIdMapping & arg) {
         *this = arg;
     }
@@ -153,12 +156,26 @@ namespace extension {
 
     void ExtendedMessageIdMapping::writeToMDictionary(libtorrent::entry::dictionary_type & m) {
 
+        if(empty())
+            throw exception::InvalidOperationOnEmptyMappingException();
+
         assert(_mapping.size() == messages.size());
 
         writeMappingToMDictionary(_mapping, m);
     }
 
+    bool ExtendedMessageIdMapping::empty() const {
+        return _mapping.empty();
+    }
+
+    void ExtendedMessageIdMapping::clear() {
+        _mapping.clear();
+    }
+
     uint8_t ExtendedMessageIdMapping::id(joystream::protocol_wire::MessageType messageType) const {
+
+        if(empty())
+            throw exception::InvalidOperationOnEmptyMappingException();
 
         assert(_mapping.size() == messages.size());
 
@@ -166,6 +183,9 @@ namespace extension {
     }
 
     joystream::protocol_wire::MessageType ExtendedMessageIdMapping::messageType(uint8_t id) const {
+
+        if(empty())
+            throw exception::InvalidOperationOnEmptyMappingException();
 
         assert(_mapping.size() == messages.size());
 

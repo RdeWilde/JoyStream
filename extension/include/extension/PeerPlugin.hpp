@@ -213,15 +213,13 @@ namespace status {
         //bool _scheduledForDeletingInNextTorrentPluginTick;
         //libtorrent::error_code _deletionErrorCode;
 
-        // BEP10 extended id mappings
-        // NB: pointers are used since ExtendedMessageIdMapping only holds
-        // valid mappings, which are not always availalbe.
-
         // Mapping from messages to BEP10 ID of client
-        std::unique_ptr<ExtendedMessageIdMapping> _clientMapping;
+        // Is initialzed ones in constructor
+        ExtendedMessageIdMapping _clientMapping;
 
         // Mapping from messages to BEP10 ID of peer
-        std::unique_ptr<ExtendedMessageIdMapping> _peerMapping;
+        // Is empty until first handshake, and is cleared upon uninstalls
+        ExtendedMessageIdMapping _peerMapping;
 
         // Whether next add_handshake(libtorrent::entry &) should have uninstall mapping
         // Invariant: _sendUninstallMappingOnNextExtendedHandshake => Session is stopped
