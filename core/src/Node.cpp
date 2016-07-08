@@ -162,7 +162,8 @@ void Node::start(const configuration::Node & configuration, const NodeStarted & 
                                });
 
     // Create and install plugin
-    boost::shared_ptr<libtorrent::plugin> plugin(new extension::Plugin());
+    boost::shared_ptr<libtorrent::plugin> plugin(new extension::Plugin(CORE_BEP10_FINGERPRINT,
+                                                                       CORE_MINIMUM_EXTENDED_MESSAGE_ID));
 
     // Keep weak reference to plugin
     _plugin = boost::static_pointer_cast<extension::Plugin>(plugin);
@@ -199,10 +200,10 @@ void Node::stop(const NodeStopped & nodeStopped) {
         counter.increment();
 
         // Send stop request to plugin on torrent
-        t.second.stop([this, counter, infoHash](const extension::request::Stop::Result & res) {
+        t.second.stop([this, counter, infoHash](const std::exception_ptr & e) {
 
             // There should have been no exception in any scenario
-            res.throwSetException();
+            //handler.throwSetException();
 
             std::clog << "Stopped plugin on " << infoHash.to_string() << std::endl;
 
@@ -424,28 +425,11 @@ void Node::processAlert(const libtorrent::alert * a) {
         processReadPieceAlert(p);
     else if(libtorrent::piece_finished_alert const * p = libtorrent::alert_cast<libtorrent::piece_finished_alert>(a))
         processPieceFinishedAlert(p);
-    else if(extension::alert::PluginStatus const * p = libtorrent::alert_cast<extension::alert::PluginStatus>(a))
+    else if(const extension::alert::RequestResult * p = libtorrent::alert_cast<extension::alert::RequestResult>(a))
         process(p);
-    /**
-     * Alerts from plugin
-     */
-    else if(const extension::alert::RequestResult<extension::request::Start> * p = libtorrent::alert_cast<extension::alert::RequestResult<extension::request::Start>>(a))
-        process<extension::request::Start>(p);
-    else if(const extension::alert::RequestResult<extension::request::Stop> * p = libtorrent::alert_cast<extension::alert::RequestResult<extension::request::Stop>>(a))
-        process<extension::request::Stop>(p);
-    else if(const extension::alert::RequestResult<extension::request::Pause> * p = libtorrent::alert_cast<extension::alert::RequestResult<extension::request::Pause>>(a))
-        process<extension::request::Pause>(p);
-    else if(const extension::alert::RequestResult<extension::request::UpdateBuyerTerms> * p = libtorrent::alert_cast<extension::alert::RequestResult<extension::request::UpdateBuyerTerms>>(a))
-        process<extension::request::UpdateBuyerTerms>(p);
-    else if(const extension::alert::RequestResult<extension::request::UpdateSellerTerms> * p = libtorrent::alert_cast<extension::alert::RequestResult<extension::request::UpdateSellerTerms>>(a))
-        process<extension::request::UpdateSellerTerms>(p);
-    else if(const extension::alert::RequestResult<extension::request::ToObserveMode> * p = libtorrent::alert_cast<extension::alert::RequestResult<extension::request::ToObserveMode>>(a))
-        process<extension::request::ToObserveMode>(p);
-    else if(const extension::alert::RequestResult<extension::request::ToSellMode> * p = libtorrent::alert_cast<extension::alert::RequestResult<extension::request::ToSellMode>>(a))
-        process<extension::request::ToSellMode>(p);
-    else if(const extension::alert::RequestResult<extension::request::ToBuyMode> * p = libtorrent::alert_cast<extension::alert::RequestResult<extension::request::ToBuyMode>>(a))
-        process<extension::request::ToBuyMode>(p);
     else if(const extension::alert::BroadcastTransaction * p = libtorrent::alert_cast<extension::alert::BroadcastTransaction>(a))
+        process(p);
+    else if(extension::alert::PluginStatus const * p = libtorrent::alert_cast<extension::alert::PluginStatus>(a))
         process(p);
     else
         assert(false);
@@ -618,6 +602,7 @@ void Node::processMetadataFailedAlert(libtorrent::metadata_failed_alert const * 
 
 void Node::process(libtorrent::add_torrent_alert const * p) {
 
+    /**
     Q_ASSERT(_state == State::normal);
     Q_ASSERT(_torrents.contains(p->params.info_hash));
 
@@ -655,7 +640,7 @@ void Node::process(libtorrent::add_torrent_alert const * p) {
         // Send notification signal
         emit addedTorrent(torrent->model());
 	}
-
+*/
 }
 
 void Node::processTorrentFinishedAlert(libtorrent::torrent_finished_alert const * p) {
@@ -892,11 +877,11 @@ void Node::processPieceFinishedAlert(const libtorrent::piece_finished_alert * p)
 //    _torrents[infoHash]->pieceFinished(p->piece_index);
 }
 
-template<class T>
-void Node::process(const extension::alert::RequestResult<T> * p) {
+void Node::process(const extension::alert::RequestResult * p) {
 
     // Call handler with result
-    p->resultHandler(p->result);
+    //p->resultHandler(p->result);
+
 }
 
 void Node::process(const extension::alert::BroadcastTransaction * p) {

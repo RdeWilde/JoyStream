@@ -36,27 +36,29 @@ Torrent::Torrent(extension::Plugin * plugin,
 {
 }
 
-void Torrent::start(const extension::request::Start::ResultHandler & handler) {
+void Torrent::start(const extension::request::SubroutineHandler & handler) {
     plugin->submit(extension::request::Start(infoHash, handler));
 }
 
-void Torrent::stop(const extension::request::Stop::ResultHandler & handler) {
+void Torrent::stop(const extension::request::SubroutineHandler & handler) {
     plugin->submit(extension::request::Stop(infoHash, handler));
 }
 
-void Torrent::pause(const extension::request::Pause::ResultHandler & handler) {
+void Torrent::pause(const extension::request::SubroutineHandler & handler) {
    plugin->submit(extension::request::Pause(infoHash, handler));
 }
 
-void Torrent::updateTerms(const protocol_wire::BuyerTerms & terms, const extension::request::UpdateBuyerTerms::ResultHandler & handler) {
+void Torrent::updateTerms(const protocol_wire::BuyerTerms & terms,
+                          const extension::request::SubroutineHandler & handler) {
     plugin->submit(extension::request::UpdateBuyerTerms(infoHash, terms, handler));
 }
 
-void Torrent::updateTerms(const protocol_wire::SellerTerms & terms, const extension::request::UpdateSellerTerms::ResultHandler & handler) {
+void Torrent::updateTerms(const protocol_wire::SellerTerms & terms,
+                          const extension::request::SubroutineHandler & handler) {
     plugin->submit(extension::request::UpdateSellerTerms(infoHash, terms, handler));
 }
 
-void Torrent::toObserveMode(const extension::request::ToObserveMode::ResultHandler & handler) {
+void Torrent::toObserveMode(const extension::request::SubroutineHandler & handler) {
     plugin->submit(extension::request::ToObserveMode(infoHash, handler));
 }
 
@@ -64,7 +66,7 @@ void Torrent::toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler
                          const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
                          const protocol_session::SellingPolicy & sellingPolicy,
                          const protocol_wire::SellerTerms & terms,
-                         const extension::request::ToSellMode::ResultHandler & handler) {
+                         const extension::request::SubroutineHandler & handler) {
 
     plugin->submit(extension::request::ToSellMode(infoHash,
                                                    generateKeyPairsCallbackHandler,
@@ -79,7 +81,7 @@ void Torrent::toBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler 
                         const Coin::UnspentP2PKHOutput & funding,
                         const protocol_session::BuyingPolicy & policy,
                         const protocol_wire::BuyerTerms & terms,
-                        const extension::request::ToBuyMode::ResultHandler & handler) {
+                        const extension::request::SubroutineHandler & handler) {
 
     plugin->submit(extension::request::ToBuyMode(infoHash,
                                                   generateKeyPairsCallbackHandler,
