@@ -1475,5 +1475,51 @@ void Controller::fundWallet(uint64_t value) {
 }
 */
 
+
+libtorrent::settings_pack Node::session_settings() noexcept {
+
+    // Initialize with default values
+    libtorrent::settings_pack pack;
+
+    // This is the client identification to the tracker.
+    // The recommended format of this string is: "ClientName/ClientVersion libtorrent/libtorrentVersion".
+    // This name will not only be used when making HTTP requests, but also when sending BEP10 extended handshake
+    // if handshake_client_version is left blank.
+    // default: "libtorrent/" LIBTORRENT_VERSION
+    pack.set_str(libtorrent::settings_pack::user_agent, std::string(CORE_USER_AGENT_NAME) +
+                                                        std::string("/") +
+                                                        std::to_string(CORE_VERSION_MAJOR) +
+                                                        std::string(".") +
+                                                        std::to_string(CORE_VERSION_MINOR));
+
+    // Client name and version identifier sent to peers in the BEP10 handshake message.
+    // If this is an empty string, the user_agent is used instead.
+    // default: <user_agent>
+    //pack.set_str(libtorrent::settings_pack::handshake_client_version, std::string(CORE_USER_AGENT_NAME) + CORE_VERSION_MAJOR + "." + CORE_VERSION_MINOR);
+
+    // Fingerprint for the client.
+    // It will be used as the prefix to the peer_id.
+    // If this is 20 bytes (or longer) it will be used as the peer-id
+    // There are two encoding styles, we use Azureus style, which is most popular:
+    // '-', two characters for client id, four ascii digits for version number, '-', followed by random numbers.
+    // For example: '-AZ2060-'...
+    // default: "-LT1100-"
+    std::string peerIdString = libtorrent::fingerprint(CORE_PEER_ID, CORE_VERSION_MAJOR, CORE_VERSION_MINOR, 0, 0).to_string();
+    assert(peerIdString.length() == 20);
+
+    pack.set_str(libtorrent::settings_pack::peer_fingerprint, peerIdString);
+
+    // Determines if connections from the same IP address as existing
+    // connections should be rejected or not. Multiple connections from
+    // the same IP address is not allowed by default, to prevent abusive behavior by peers.
+    // It may be useful to allow such connections in cases where simulations
+    // are run on the same machie, and all peers in a swarm has the same IP address.
+    pack.set_bool(libtorrent::settings_pack::allow_multiple_connections_per_ip, true);
+
+
+    return pack;
+}
+
+
 }
 }

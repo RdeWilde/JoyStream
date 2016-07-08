@@ -404,6 +404,12 @@ private:
 
     // Gives raw pointer to plugin
     extension::Plugin *  plugin();
+
+    ///
+
+    // Generate session settings pack used with libtorrent
+    static libtorrent::settings_pack session_settings() noexcept;
+
 };
 
 }
