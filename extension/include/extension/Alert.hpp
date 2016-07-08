@@ -15,15 +15,14 @@
 
 #include <libtorrent/alert.hpp>
 #include <libtorrent/alert_types.hpp>
-
 #include <extension/Status.hpp>
+#include <exception>
 
 namespace joystream {
 namespace extension {
-namespace request {
-    struct TorrentPluginRequest;
-}
 namespace alert {
+
+    typedef std::function<void()> LoadedCallback;
 
     struct PluginStatus : public libtorrent::alert {
 
@@ -41,25 +40,22 @@ namespace alert {
         status::Plugin status;
     };
 
-    template <class T>
     struct RequestResult : public libtorrent::alert {
 
         const static int alert_type = REQUEST_RESULT_ALERT_ID;
         static const int priority = 0; // 0 = regular, 1 = high
 
         RequestResult(libtorrent::aux::stack_allocator &,
-                      const typename T::Result & result,
-                      const typename T::ResultHandler & resultHandler)
-            : result(result)
-            , resultHandler(resultHandler) {}
+                      LoadedCallback loadedCallback)
+            : loadedCallback(loadedCallback) {}
 
         virtual int type() const { return alert_type; }
         virtual char const* what() const { return "RequestResult"; }
         virtual std::string message() const { return std::string("RequestResult"); }
-        virtual int category() const { return libtorrent::alert::error_notification; }
+        virtual int category() const { return libtorrent::alert::status_notification; }
 
-        typename T::Result result;
-        typename T::ResultHandler resultHandler;
+        // A (fully bound) callback object, to be run by libtorrent alert dispatcher
+        LoadedCallback loadedCallback;
     };
 
     struct AnchorAnnounced : public libtorrent::torrent_alert {
@@ -68,7 +64,7 @@ namespace alert {
         static const int priority = 0; // 0 = regular, 1 = high
 
         AnchorAnnounced(libtorrent::aux::stack_allocator & alloc,
-                        libtorrent::torrent_handle const & h,
+                        const libtorrent::torrent_handle & h,
                         const libtorrent::tcp::endpoint & endPoint,
                         quint64 value,
                         const Coin::typesafeOutPoint & anchor,

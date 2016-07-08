@@ -26,13 +26,15 @@ HEADERS += \
     include/extension/Request.hpp \
     include/extension/Status.hpp \
     include/extension/Alert.hpp \
-    include/extension/Exception.hpp
+    include/extension/Exception.hpp \
+    include/extension/detail.hpp
 
 SOURCES += \
     src/TorrentPlugin.cpp \
     src/Plugin.cpp \
     src/PeerPlugin.cpp \
     src/ExtendedMessageIdMapping.cpp \
+    src/detail.cpp
 
 # common
 INCLUDEPATH += $$PWD/../common/include
