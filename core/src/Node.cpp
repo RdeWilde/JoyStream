@@ -162,8 +162,7 @@ void Node::start(const configuration::Node & configuration, const NodeStarted & 
                                });
 
     // Create and install plugin
-    boost::shared_ptr<libtorrent::plugin> plugin(new extension::Plugin(CORE_BEP10_FINGERPRINT,
-                                                                       CORE_MINIMUM_EXTENDED_MESSAGE_ID));
+    boost::shared_ptr<libtorrent::plugin> plugin(new extension::Plugin(CORE_MINIMUM_EXTENDED_MESSAGE_ID));
 
     // Keep weak reference to plugin
     _plugin = boost::static_pointer_cast<extension::Plugin>(plugin);
