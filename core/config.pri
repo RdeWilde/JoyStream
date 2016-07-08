@@ -4,13 +4,13 @@
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, September 14 2015
 
 # Two byte peer-id use in initial BitTorrent handshake
-# BM=Bedeho Mender, since there was almost no other ones left
-DEFINES += CORE_PEER_ID=\\\"BM\\\"
+#JS = JoyStream, although previosuly used by now defunct 'JS' - Justseed.it client (https://justseed.it/)
+DEFINES += CORE_PEER_ID=\\\"JS\\\"
 DEFINES += CORE_VERSION_MAJOR=0
 DEFINES += CORE_VERSION_MINOR=1
 
-# BEP10 fingerprint
-DEFINES += CORE_BEP10_FINGERPRINT=\\\"JoyStream\\\"
+# Used for tracker communication and BEP10 extended handshake client identification
+DEFINES += CORE_USER_AGENT_NAME=\\\"JoyStream\\\"
 
 # Lowest extended message id which the extension should use not to conflict with
 # other plugins
