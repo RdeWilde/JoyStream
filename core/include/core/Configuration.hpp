@@ -52,13 +52,18 @@ public:
 
     TorrentPlugin();
 
-    TorrentPlugin inBuyMode(const protocol_session::BuyingPolicy & policy,
+    TorrentPlugin inBuyMode(extension::TorrentPlugin::LibtorrentInteraction interaction,
+                            protocol_session::SessionState state,
+                            const protocol_session::BuyingPolicy & policy,
                             const protocol_wire::BuyerTerms & terms);
 
-    TorrentPlugin inSellMode(const protocol_session::SellingPolicy & policy,
+    TorrentPlugin inSellMode(extension::TorrentPlugin::LibtorrentInteraction interaction,
+                             protocol_session::SessionState state,
+                             const protocol_session::SellingPolicy & policy,
                              const protocol_wire::SellerTerms & terms);
 
-    TorrentPlugin inObserveMode();
+    TorrentPlugin inObserveMode(extension::TorrentPlugin::LibtorrentInteraction interaction,
+                                protocol_session::SessionState state);
 
     /// Getters
 
@@ -70,7 +75,13 @@ public:
 
 private:
 
+    extension::TorrentPlugin::LibtorrentInteraction _interaction;
+
+    protocol_session::SessionState _state;
+
     protocol_session::SessionMode _mode;
+
+    /// Mode derived sub-configurations
 
     // _mode == SessionMode::observing, not_set
     // no

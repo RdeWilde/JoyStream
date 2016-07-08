@@ -37,26 +37,37 @@ TorrentPlugin::TorrentPlugin()
     : _mode(protocol_session::SessionMode::not_set) {
 }
 
-TorrentPlugin TorrentPlugin::inBuyMode(const protocol_session::BuyingPolicy & policy,
+TorrentPlugin TorrentPlugin::inBuyMode(extension::TorrentPlugin::LibtorrentInteraction interaction,
+                                       protocol_session::SessionState state,
+                                       const protocol_session::BuyingPolicy & policy,
                                        const protocol_wire::BuyerTerms & terms) {
     TorrentPlugin p;
+    p._interaction = interaction;
+    p._state = state;
     p._mode = protocol_session::SessionMode::buying;
     p._buying = BuyingPlugin(policy, terms);
 
     return p;
 }
 
-TorrentPlugin TorrentPlugin::inSellMode(const protocol_session::SellingPolicy & policy,
+TorrentPlugin TorrentPlugin::inSellMode(extension::TorrentPlugin::LibtorrentInteraction interaction,
+                                        protocol_session::SessionState state,
+                                        const protocol_session::SellingPolicy & policy,
                                         const protocol_wire::SellerTerms & terms) {
     TorrentPlugin p;
+    p._interaction = interaction;
+    p._state = state;
     p._mode = protocol_session::SessionMode::selling;
     p._selling = SellingPlugin(policy, terms);
 
     return p;
 }
 
-TorrentPlugin TorrentPlugin::inObserveMode() {
+TorrentPlugin TorrentPlugin::inObserveMode(extension::TorrentPlugin::LibtorrentInteraction interaction,
+                                           protocol_session::SessionState state) {
     TorrentPlugin p;
+    p._interaction = interaction;
+    p._state = state;
     p._mode = protocol_session::SessionMode::observing;
 
     return p;
