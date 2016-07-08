@@ -17,10 +17,8 @@
 namespace joystream {
 namespace extension {
 
-Plugin::Plugin(const std::string & bep10ClientIdentifier,
-               uint minimumMessageId)
+Plugin::Plugin(uint minimumMessageId)
     : _session(nullptr)
-    , _bep10ClientIdentifier(bep10ClientIdentifier)
     , _minimumMessageId(minimumMessageId)
     , _addedToSession(false) {
 }
@@ -40,7 +38,6 @@ boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::to
     // Create a torrent plugin
     boost::shared_ptr<libtorrent::torrent_plugin> plugin(new TorrentPlugin(this,
                                                                            h,
-                                                                           _bep10ClientIdentifier,
                                                                            _minimumMessageId,
                                                                            TorrentPlugin::Policy(),
                                                                            TorrentPlugin::LibtorrentInteraction::None));

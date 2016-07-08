@@ -49,7 +49,6 @@ namespace status {
         PeerPlugin(TorrentPlugin * plugin,
                    const libtorrent::peer_connection_handle & connection,
                    const Policy & policy,
-                   const std::string & bep10ClientIdentifier,
                    uint numberMessageIdsFrom);
 
         virtual ~PeerPlugin();
@@ -195,9 +194,6 @@ namespace status {
 
         // Policy governing runtime behaviour of plugin
         Policy _policy;
-
-        // Client identifier used in bep10 handshake v-key
-        const std::string _bep10ClientIdentifier;
 
         // Lowest all message id where libtorrent client can guarantee we will not
         // conflict with another libtorrent plugin (e.g. metadata, pex, etc.)

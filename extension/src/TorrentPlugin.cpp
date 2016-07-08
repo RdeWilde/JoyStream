@@ -18,13 +18,11 @@ namespace extension {
 
 TorrentPlugin::TorrentPlugin(Plugin * plugin,
                              const libtorrent::torrent_handle & torrent,
-                             const std::string & bep10ClientIdentifier,
                              uint minimumMessageId,
                              const Policy & policy,
                              LibtorrentInteraction libtorrentInteraction)
     : _plugin(plugin)
     , _torrent(torrent)
-    , _bep10ClientIdentifier(bep10ClientIdentifier)
     , _minimumMessageId(minimumMessageId)
     , _policy(policy)
     , _libtorrentInteraction(libtorrentInteraction) {
@@ -92,7 +90,7 @@ boost::shared_ptr<libtorrent::peer_plugin> TorrentPlugin::new_connection(const l
     std::clog << "Installed seller plugin #" << _peers.size() << std::endl;
 
     // Create a new peer plugin
-    boost::shared_ptr<PeerPlugin> plugin(new PeerPlugin(this, connection, _policy.peerPolicy, _bep10ClientIdentifier, _minimumMessageId));
+    boost::shared_ptr<PeerPlugin> plugin(new PeerPlugin(this, connection, _policy.peerPolicy, _minimumMessageId));
 
     // Add to collection
     _peers[endPoint] = boost::weak_ptr<PeerPlugin>(plugin);

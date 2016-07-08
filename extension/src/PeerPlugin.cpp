@@ -20,13 +20,11 @@ namespace extension {
     PeerPlugin::PeerPlugin(TorrentPlugin * plugin,
                            const libtorrent::peer_connection_handle & connection,
                            const Policy & policy,
-                           const std::string & bep10ClientIdentifier,
                            uint minimumMessageId)
         : _undead(false)
         , _plugin(plugin)
         , _connection(connection)
         , _policy(policy)
-        , _bep10ClientIdentifier(bep10ClientIdentifier)
         , _minimumMessageId(minimumMessageId)
         , _endPoint(connection.remote())
         , _sendUninstallMappingOnNextExtendedHandshake(false)
@@ -56,9 +54,6 @@ namespace extension {
 
         // Add top level key for extension which encodes protocol version
         handshake[BEP10_EXTENSION_NAME] = protocol_statemachine::CBStateMachine::protocolVersion.toString();
-
-        // Add top lvel key for client name and version
-        handshake["v"] = _bep10ClientIdentifier;
 
         // Add m keys for extended message ids
         libtorrent::entry::dictionary_type & m = handshake["m"].dict();

@@ -34,8 +34,7 @@ class Plugin : public libtorrent::plugin {
 
 public:
 
-    Plugin(const std::string & bep10ClientIdentifier,
-           uint minimumMessageId);
+    Plugin(uint minimumMessageId);
 
     ~Plugin();
 
@@ -66,9 +65,6 @@ private:
     // Libtorrent session.
     // NB: Is set by added() libtorrent callback, not constructor
     libtorrent::aux::session_impl * _session;
-
-    // Client identifier used in bep10 handshake v-key
-    const std::string _bep10ClientIdentifier;
 
     // Lowest all message id where libtorrent client can guarantee we will not
     // conflict with another libtorrent plugin (e.g. metadata, pex, etc.)

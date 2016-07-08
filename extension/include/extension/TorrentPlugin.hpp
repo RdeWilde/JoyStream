@@ -75,7 +75,6 @@ public:
 
     TorrentPlugin(Plugin * plugin,
                   const libtorrent::torrent_handle & torrent,
-                  const std::string & bep10ClientIdentifier,
                   uint minimumMessageId,
                   const Policy & policy,
                   LibtorrentInteraction libtorrentInteraction);
@@ -184,9 +183,6 @@ private:
 
     // Torrent for this torrent_plugin
     libtorrent::torrent_handle _torrent;
-
-    // Client identifier used in bep10 handshake v-key
-    const std::string _bep10ClientIdentifier;
 
     // Lowest all message id where libtorrent client can guarantee we will not
     // conflict with another libtorrent plugin (e.g. metadata, pex, etc.)
