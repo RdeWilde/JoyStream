@@ -32,10 +32,12 @@ using FunctionHandler = std::function<void(const std::exception_ptr &, Args... a
 
 struct UpdateStatus {
 
+    UpdateStatus() {}
 };
 
 struct UpdateLibtorrentUploadBlocking {
 
+    UpdateLibtorrentUploadBlocking() {}
     UpdateLibtorrentUploadBlocking(const libtorrent::sha1_hash & infoHash,
                                    TorrentPlugin::LibtorrentInteraction newInteraction,
                                    const SubroutineHandler & handler)
@@ -51,6 +53,7 @@ struct UpdateLibtorrentUploadBlocking {
 
 struct Start {
 
+    Start() {}
     Start(const libtorrent::sha1_hash & infoHash,
           const SubroutineHandler & handler)
         : infoHash(infoHash)
@@ -63,6 +66,7 @@ struct Start {
 
 struct Stop {
 
+    Stop() {}
     Stop(const libtorrent::sha1_hash & infoHash,
          const SubroutineHandler & handler)
         : infoHash(infoHash)
@@ -75,6 +79,7 @@ struct Stop {
 
 struct Pause {
 
+    Pause() {}
     Pause(const libtorrent::sha1_hash & infoHash,
           const SubroutineHandler & handler)
         : infoHash(infoHash)
@@ -87,6 +92,7 @@ struct Pause {
 
 struct UpdateBuyerTerms {
 
+    UpdateBuyerTerms() {}
     UpdateBuyerTerms(const libtorrent::sha1_hash & infoHash,
                      const protocol_wire::BuyerTerms & terms,
                      const SubroutineHandler & handler)
@@ -102,6 +108,7 @@ struct UpdateBuyerTerms {
 
 struct UpdateSellerTerms {
 
+    UpdateSellerTerms() {}
     UpdateSellerTerms(const libtorrent::sha1_hash & infoHash,
                       const protocol_wire::SellerTerms & terms,
                       const SubroutineHandler & handler)
@@ -117,6 +124,7 @@ struct UpdateSellerTerms {
 
 struct ToObserveMode {
 
+    ToObserveMode() {}
     ToObserveMode(const libtorrent::sha1_hash & infoHash,
                   const SubroutineHandler & handler)
         : infoHash(infoHash)
@@ -129,6 +137,7 @@ struct ToObserveMode {
 
 struct ToSellMode {
 
+    ToSellMode() {}
     ToSellMode(const libtorrent::sha1_hash & infoHash,
                const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
                const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
@@ -153,6 +162,7 @@ struct ToSellMode {
 
 struct ToBuyMode {
 
+    ToBuyMode() {}
     ToBuyMode(const libtorrent::sha1_hash & infoHash,
               const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
               const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
