@@ -410,6 +410,8 @@ private:
     // Generate session settings pack used with libtorrent
     static libtorrent::settings_pack session_settings() noexcept;
 
+    // Generates dht settings used with libtorrent
+    static libtorrent::dht_settings dht_settings() noexcept;
 };
 
 }

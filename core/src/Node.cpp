@@ -1520,6 +1520,15 @@ libtorrent::settings_pack Node::session_settings() noexcept {
     return pack;
 }
 
+libtorrent::dht_settings Node::dht_settings() noexcept {
+
+    // Initialize with default values
+    libtorrent::dht_settings settings;
+
+    // For now we use default settings!
+
+    return settings;
+}
 
 }
 }
