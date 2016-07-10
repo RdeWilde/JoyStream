@@ -10,7 +10,6 @@
 
 #include <core/Node.hpp>
 #include <core/Configuration.hpp>
-#include <core/ViewModel.hpp>
 #include <core/Exception.hpp>
 
 #endif // JOYSTREAM_CORE_CONTROLLER_HPP
