@@ -281,8 +281,6 @@ private:
 
     // State of controller
     State _state;
-
-    static bool isStopping(State s);
 	
     // Indicates if we are shutting down
     bool _closing;

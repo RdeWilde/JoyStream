@@ -1063,11 +1063,6 @@ void Node::onWalletConnected() {
     sendTransactions();
 }
 
-bool Node::isStopping(State s) {
-    return s == State::waiting_for_plugins_to_stop ||
-           s == State::waiting_for_resume_data;
-}
-
 void Node::update(const std::vector<libtorrent::torrent_status> & statuses) {
 
     for(std::vector<libtorrent::torrent_status>::const_iterator
