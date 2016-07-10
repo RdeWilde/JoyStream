@@ -23,6 +23,9 @@ namespace request {
 /// All request classes must satisfy requirements for use with boost::variant.
 /// http://www.boost.org/doc/libs/1_55_0/doc/html/variant.html
 
+// A standard handler which handles requests without an explicit result and no possibility of an exception being thrown
+typedef std::function <void(void)> NoExceptionSubroutineHandler;
+
 // A standard handler which handles requests without an explicit result, i.e. subroutine
 typedef std::function<void(const std::exception_ptr &)> SubroutineHandler;
 
@@ -33,6 +36,17 @@ using FunctionHandler = std::function<void(const std::exception_ptr &, Args... a
 struct UpdateStatus {
 
     UpdateStatus() {}
+};
+
+struct StopAllTorrentPlugins {
+
+    StopAllTorrentPlugins() {}
+
+    StopAllTorrentPlugins(const NoExceptionSubroutineHandler & handler)
+        : handler(handler) {
+    }
+
+    NoExceptionSubroutineHandler handler;
 };
 
 struct UpdateLibtorrentUploadBlocking {
