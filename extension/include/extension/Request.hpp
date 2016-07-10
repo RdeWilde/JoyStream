@@ -38,6 +38,17 @@ struct UpdateStatus {
     UpdateStatus() {}
 };
 
+struct PauseLibtorrent {
+
+    PauseLibtorrent() {}
+
+    PauseLibtorrent(const NoExceptionSubroutineHandler & handler)
+        : handler(handler) {
+    }
+
+    NoExceptionSubroutineHandler handler;
+};
+
 struct StopAllTorrentPlugins {
 
     StopAllTorrentPlugins() {}
