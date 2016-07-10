@@ -132,6 +132,9 @@ public:
                    const protocol_session::BuyingPolicy & policy,
                    const protocol_wire::BuyerTerms & terms);
 
+    // State of session
+    protocol_session::SessionState sessionState() const;
+
     /// Getters & setters
 
     status::TorrentPlugin status() const;
@@ -147,9 +150,6 @@ private:
 
     // Friendship required to process peer_plugin events
     friend class PeerPlugin;
-
-    // State of session
-    protocol_session::SessionState sessionState() const;
 
     // Adds peer correspoinding to given endpoint to session,
     // is called when peer has sucessfully completed extended handshake.
