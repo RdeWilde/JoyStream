@@ -53,30 +53,17 @@ public:
 
     enum class State {
 
-        // not yet started: ::start() not called
+        // After stopping has been completed, or before starting has been initiated for the first time.
         stopped,
 
-        //// all states below correpond to being started
+        // After starting has been initaited, but no result, successfull or not.
+        starting,
 
-        // after ::start(), but before libtorrent::listen_failed_alert or
-        //
-        waiting_to_listen,
-
-        //
-        //starting_libtorrent_session,
-
-        //
+        // After starting has been initiated, and sucessfully completed.
         started,
 
-        /// States for when node is 'closing', as distinct from when it is actually
-        /// closed, when it will be in State::stopped state.
-        /// NB: Factor out into substate later
-
-        //
-        waiting_for_plugins_to_stop,
-
-        //
-        waiting_for_resume_data
+        // After stopping has been initiated, but it has not yet been completed.
+        stopping
     };
 
     typedef std::function<void(const libtorrent::tcp::endpoint &)> NodeStarted;

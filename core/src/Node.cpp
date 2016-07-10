@@ -126,27 +126,29 @@ void Node::start(const configuration::Node & configuration, const NodeStarted & 
     if(_state != State::stopped)
         throw exception::CanOnlyStartStoppedNode(_state);
 
-    _state = State::waiting_to_listen;
+    _state = State::starting;
 
     assert(_session == nullptr);
     assert(_wallet != nullptr);
 
-    // Derive libtorrent settings from configuration
-    //libtorrent::settings_pack settingsPack = toSettingsPack(configuration);
-    // dht_settings
+    // Generate session settings
+    libtorrent::settings_pack sessionSettings = Node::session_settings();
 
-    // Create new libtorrent session
-    /**
-    _session = new libtorrent::session(libtorrent::fingerprint(CORE_EXTENSION_FINGERPRINT, CORE_VERSION_MAJOR, CORE_VERSION_MINOR, 0, 0),
-                                       libtorrent::session::add_default_plugins + libtorrent::session::start_default_features,
-                                       libtorrent::alert::error_notification +
-                                       libtorrent::alert::tracker_notification +
-                                       libtorrent::alert::debug_notification +
-                                       libtorrent::alert::status_notification +
-                                       libtorrent::alert::progress_notification +
-                                       libtorrent::alert::performance_warning +
-                                       libtorrent::alert::stats_notification);
-    */
+    // Create new libtorrent session wiht settings
+    _session = new libtorrent::session(sessionSettings,
+                                       libtorrent::session_handle::session_flags_t::start_default_features |
+                                       libtorrent::session_handle::session_flags_t::add_default_plugins);
+
+    // Generate DHT settings
+    libtorrent::dht_settings dht_settings = Node::dht_settings();
+
+    // Apply DHT settings to session
+    _session->set_dht_settings(dht_settings);
+
+    // Add DHT routers
+    _session->add_dht_router(std::make_pair(std::string("router.bittorrent.com"), 6881));
+    _session->add_dht_router(std::make_pair(std::string("router.utorrent.com"), 6881));
+    _session->add_dht_router(std::make_pair(std::string("router.bitcomet.com"), 6881));
 
     // From libtorrent docs:
     // the ``set_alert_notify`` function lets the client set a function object
