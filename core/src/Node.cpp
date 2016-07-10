@@ -48,11 +48,44 @@ namespace core {
 
 Node::Node(joystream::bitcoin::SPVWallet * wallet)
     : _state(State::stopped)
+    , _session(Node::session_settings(),
+               libtorrent::session_handle::session_flags_t::start_default_features |
+               libtorrent::session_handle::session_flags_t::add_default_plugins)
     , _closing(false)
     , _reconnecting(false)
     , _protocolErrorsCount(0)
-    , _session(nullptr)
     , _wallet(wallet) {
+
+    // Generate DHT settings
+    libtorrent::dht_settings dht_settings = Node::dht_settings();
+
+    // Apply DHT settings to session
+    _session.set_dht_settings(dht_settings);
+
+    // Add DHT routers
+    _session.add_dht_router(std::make_pair(std::string("router.bittorrent.com"), 6881));
+    _session.add_dht_router(std::make_pair(std::string("router.utorrent.com"), 6881));
+    _session.add_dht_router(std::make_pair(std::string("router.bitcomet.com"), 6881));
+
+    // From libtorrent docs:
+    // the ``set_alert_notify`` function lets the client set a function object
+    // to be invoked every time the alert queue goes from having 0 alerts to
+    // 1 alert. This function is called from within libtorrent, it may be the
+    // main thread, or it may be from within a user call. The intention of
+    // of the function is that the client wakes up its main thread, to poll
+    // for more alerts using ``pop_alerts()``. If the notify function fails
+    // to do so, it won't be called again, until ``pop_alerts`` is called for
+    // some other reason.
+    _session.set_alert_notify([this]() { this->libtorrent_alert_notification_entry_point(); });
+
+    // Create and install plugin
+    boost::shared_ptr<libtorrent::plugin> plugin(new extension::Plugin(CORE_MINIMUM_EXTENDED_MESSAGE_ID));
+
+    // Keep weak reference to plugin
+    _plugin = boost::static_pointer_cast<extension::Plugin>(plugin);
+
+    // Add plugin extension
+    _session.add_extension(plugin);
 
     /**
     // Comment out for now, not sure we need this
@@ -123,114 +156,51 @@ Node::~Node() {
 
 void Node::start(const configuration::Node & configuration, const NodeStarted & started, const NodeStartFailed & failed) {
 
+    // We can only start from stopped state
     if(_state != State::stopped)
-        throw exception::CanOnlyStartStoppedNode(_state);
+        throw exception::StateIncompatibleOperation(_state);
 
+    // Update state
     _state = State::starting;
 
-    assert(_session == nullptr);
-    assert(_wallet != nullptr);
-
-    // Generate session settings
-    libtorrent::settings_pack sessionSettings = Node::session_settings();
-
-    // Create new libtorrent session wiht settings
-    _session = new libtorrent::session(sessionSettings,
-                                       libtorrent::session_handle::session_flags_t::start_default_features |
-                                       libtorrent::session_handle::session_flags_t::add_default_plugins);
-
-    // Generate DHT settings
-    libtorrent::dht_settings dht_settings = Node::dht_settings();
-
-    // Apply DHT settings to session
-    _session->set_dht_settings(dht_settings);
-
-    // Add DHT routers
-    _session->add_dht_router(std::make_pair(std::string("router.bittorrent.com"), 6881));
-    _session->add_dht_router(std::make_pair(std::string("router.utorrent.com"), 6881));
-    _session->add_dht_router(std::make_pair(std::string("router.bitcomet.com"), 6881));
-
-    // From libtorrent docs:
-    // the ``set_alert_notify`` function lets the client set a function object
-    // to be invoked every time the alert queue goes from having 0 alerts to
-    // 1 alert. This function is called from within libtorrent, it may be the
-    // main thread, or it may be from within a user call. The intention of
-    // of the function is that the client wakes up its main thread, to poll
-    // for more alerts using ``pop_alerts()``. If the notify function fails
-    // to do so, it won't be called again, until ``pop_alerts`` is called for
-    // some other reason.
-    _session->set_alert_notify([this]() { this->libtorrent_alert_notification_entry_point(); });
-
-    // Create and install plugin
-    boost::shared_ptr<libtorrent::plugin> plugin(new extension::Plugin(CORE_MINIMUM_EXTENDED_MESSAGE_ID));
-
-    // Keep weak reference to plugin
-    _plugin = boost::static_pointer_cast<extension::Plugin>(plugin);
-
-    // Add plugin extension
-    _session->add_extension(plugin);
-
-    // Try to start listening
-    unsigned short port = _session->listen_port();
-
-    std::clog << "Trying to listen on port" << std::to_string(port) << std::endl;
-
-    // Store callbacks
+    // Store user callback to be called when resume data is generated
     _nodeStarted = started;
     _nodeStartFailed = failed;
+
+    // Try to start listening
+    unsigned short port = _session.listen_port();
+
+    std::clog << "Trying to listen on port" << std::to_string(port) << std::endl;
 }
 
 void Node::stop(const NodeStopped & nodeStopped) {
 
-    if(_state == State::stopped || isStopping(_state))
-        throw exception::CannotStopStoppedNode();
-
-    // Pause all torrents
-    _session->pause();
-
-    // Stop all torrent plugins
-    detail::SharedCounter counter;
-
-    for(auto t: _torrents) {
-
-        libtorrent::sha1_hash infoHash = t.first;
-
-        // Add to stop counter
-        counter.increment();
-
-        // Send stop request to plugin on torrent
-        t.second.stop([this, counter, infoHash](const std::exception_ptr & e) {
-
-            // There should have been no exception in any scenario
-            //handler.throwSetException();
-
-            std::clog << "Stopped plugin on " << infoHash.to_string() << std::endl;
-
-            // Are we done?
-            if(counter.decrement()) {
-
-                // Save resume data for all
-                int numberOutStanding = this->requestResumeData();
-
-                // If there are no outstanding, then just close right away
-                if(numberOutStanding == 0)
-                    this->finalize_stop();
-                else {
-
-                    std::clog << "Attempting to generate resume data for " << numberOutStanding << " torrents." << std::endl;
-
-                    // Update state
-                    _state = State::waiting_for_resume_data;
-                }
-            }
-        });
-    }
-
-    // Store user callback to be called when resume data is generated
-    _nodeStopped = nodeStopped;
+    // We can only stop from started state
+    if(_state != State::started)
+        throw exception::StateIncompatibleOperation(_state);
 
     // Update state
     _state = State::stopping;
+
+    _plugin->submit(extension::request::PauseLibtorrent([this, nodeStopped]() {
+
+        std::clog << "Libtorrent session paused" << std::endl;
+
+        // Stop all plugins
+        _plugin->submit(extension::request::StopAllTorrentPlugins([this, nodeStopped]() {
+
+            std::clog << "All plugins stopped" << std::endl;
+
+            // Update state
+            _state = State::stopped;
+
+            // Make user callback
+            nodeStopped();
+
+            emit nodeStopped();
+        }));
+
+    }));
 }
 
 void Node::syncWallet() {
@@ -377,7 +347,7 @@ void Node::processAlertQueue() {
 
     // Populate vector with alerts
     std::vector<libtorrent::alert *> alerts;
-    _session->pop_alerts(&alerts);
+    _session.pop_alerts(&alerts);
 
     // NOTE on owernship of alerts (alert.hpp)
     // Alerts returned by pop_alerts() are only valid until the next call to
@@ -487,6 +457,7 @@ void Node::process(const libtorrent::listen_failed_alert * p) {
     _nodeStartFailed(p->endpoint, p->error);
 }
 
+/**
 int Node::requestResumeData() {
 
     // Keeps track of how many calls were made
@@ -497,8 +468,8 @@ int Node::requestResumeData() {
         // Grab torrent;
         detail::Torrent & t = mapping.second;
 
-        // are in wrong state
-        if (t.state != detail::Torrent::State::normal)
+        // Skip torrents no yet added
+        if (t.state == detail::Torrent::State::being_added)
             continue;
 
         // Get handle
@@ -515,13 +486,11 @@ int Node::requestResumeData() {
 
         // Count call
         resumeCallsMade++;
-
-        // Change expected event of torrent
-        t.state = detail::Torrent::State::waiting_for_resume_data;
     }
 
     return resumeCallsMade;
 }
+*/
 
 void Node::processTorrentPausedAlert(libtorrent::torrent_paused_alert const * p) {
 
@@ -665,20 +634,14 @@ void Node::process(const libtorrent::save_resume_data_alert * p) {
     // Get reference to corresponding torrent
     libtorrent::torrent_handle h = p->handle;
 
+    /**
     auto it = _torrents.find(h.info_hash());
 
+    // Check that
     if(it == _torrents.cend()) {
         std::clog << "Dropped alert, no correspondign torrent found.";
         return;
     }
-
-    detail::Torrent & torrent = it->second;
-
-    // Check that alert was expected
-    assert(torrent.state == detail::Torrent::State::waiting_for_resume_data);
-
-    // Reset expected event
-    torrent.state = detail::Torrent::State::normal;
 
     // Create resume data buffer
     std::vector<char> resumeData;
@@ -687,20 +650,8 @@ void Node::process(const libtorrent::save_resume_data_alert * p) {
     libtorrent::bencode(std::back_inserter(resumeData), *(p->resume_data));
 
     // Save resume data in torrent
-    torrent.resumeData = resumeData;
-
-    // If this is part of closing client, then close client
-    // if there are no torrents still waiting for resume data.
-    if(_state == State::stopping) {
-
-        for(auto mapping : _torrents) {
-            if(mapping.second.state == detail::Torrent::State::waiting_for_resume_data)
-                return;
-        }
-
-        // Close client
-        finalize_stop();
-    }
+    //it->second.resumeData = resumeData;
+    */
 }
 
 void Node::process(const libtorrent::save_resume_data_failed_alert * p) {
@@ -713,33 +664,12 @@ void Node::process(const libtorrent::save_resume_data_failed_alert * p) {
     // Get reference to corresponding torrent
     libtorrent::torrent_handle h = p->handle;
 
-    auto it = _torrents.find(h.info_hash());
+//    auto it = _torrents.find(h.info_hash());
 
-    if(it == _torrents.cend()) {
-        std::clog << "Dropped alert, no correspondign torrent found.";
-        return;
-    }
-
-    detail::Torrent & torrent = it->second;
-
-    // Check that alert was expected
-    assert(torrent.state == detail::Torrent::State::waiting_for_resume_data);
-
-    // Reset expected event
-    torrent.state = detail::Torrent::State::normal;
-
-    // If this is part of closing client, then close client
-    // if there are no torrents still waiting for resume data.
-    if(_state == State::stopping) {
-
-        for(auto mapping : _torrents) {
-            if(mapping.second.state == detail::Torrent::State::waiting_for_resume_data)
-                return;
-        }
-
-        // Close client
-        finalize_stop();
-    }
+//    if(it == _torrents.cend()) {
+//        std::clog << "Dropped alert, no correspondign torrent found.";
+//        return;
+//    }
 }
 
 void Node::processTorrentCheckedAlert(libtorrent::torrent_checked_alert const * p) {
@@ -957,7 +887,7 @@ void Node::processSellerTorrentPluginStatusAlert(const SellerTorrentPluginStatus
 void Node::process(const extension::alert::PluginStatus * p) {
 
     //
-    emit pluginStatusUpdate(p->status);
+    //emit pluginStatusUpdate(p->status);
 }
 /*
 void Node::processSellerPeerAddedAlert(const SellerPeerAddedAlert * p) {
@@ -1018,15 +948,6 @@ void Node::sendTransactions() {
     }
 }
 
-extension::Plugin * Node::plugin() {
-
-    boost::shared_ptr<extension::Plugin> plugin = _plugin.lock();
-
-    assert(plugin);
-
-    return plugin.get();
-}
-
 // when wallet sees a transaction, either 0, 1 or 2 confirmations
 void Node::onTransactionUpdated(Coin::TransactionId txid, int confirmations) {
 
@@ -1083,7 +1004,7 @@ void Node::update(const libtorrent::torrent_status & status) {
 void Node::removeTorrent(const libtorrent::sha1_hash & info_hash) {
 
     // Find corresponding torrent
-    libtorrent::torrent_handle torrentHandle = _session->find_torrent(info_hash);
+    libtorrent::torrent_handle torrentHandle = _session.find_torrent(info_hash);
 
     // Check that there actually was such a torrent
     if(!torrentHandle.is_valid())
@@ -1092,7 +1013,7 @@ void Node::removeTorrent(const libtorrent::sha1_hash & info_hash) {
     // Remove from session
     // Session will send us torrent_removed_alert alert when torrent has been removed
     // at which point we can remove torrent from model in alert handler
-    _session->remove_torrent(torrentHandle);
+    _session.remove_torrent(torrentHandle);
 }
 
 /**
@@ -1404,10 +1325,10 @@ void Node::updateStatus() {
 
 
     // Regular torrent level state update
-    _session->post_torrent_updates();
+    _session.post_torrent_updates();
 
     // Plugin level updates
-    plugin()->submit(extension::request::UpdateStatus());
+    _plugin->submit(extension::request::UpdateStatus());
 }
 
 Node::State Node::state() const {
@@ -1420,12 +1341,13 @@ quint16 Controller::getServerPort() const {
 }
 */
 
+/**
 std::set<libtorrent::sha1_hash> Node::torrents() const {
 
     std::set<libtorrent::sha1_hash> infoHashes;
 
-    for(auto mapping : _torrents)
-        infoHashes.insert(mapping.first);
+    //for(auto mapping : _torrents)
+    //    infoHashes.insert(mapping.first);
 
     return infoHashes;
 }
@@ -1439,28 +1361,7 @@ std::weak_ptr<Torrent> Node::torrent(const libtorrent::sha1_hash & infoHash) con
     else
         return it->second.model;
 }
-
-void Node::finalize_stop() {
-
-    std::clog << "Dropping libtorrent session." << std::endl;
-
-    // Close session and delete instance
-    // This call will block, and may take a while to complete,
-    // as it involves on communicating with trackers - which may time out.
-    // Asynchronous shut-down is possible using libtorrent::session::abort(),
-    // however we opted for avoiding, since not other calls to
-    delete _session;
-    _session = nullptr;
-
-    // Update state
-    _state = State::stopped;
-
-    // Make user callback
-    _nodeStopped();
-
-    // Tell runner that controller is done
-    emit nodeStopped();
-}
+*/
 
 /**
 void Controller::fundWallet(uint64_t value) {

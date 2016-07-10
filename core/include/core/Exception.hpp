@@ -83,28 +83,6 @@ namespace exception {
 
     };
 
-    class CanOnlyStartStoppedNode : public std::runtime_error {
-
-    public:
-
-        CanOnlyStartStoppedNode(Node::State badState)
-            : std::runtime_error("Node can only be started when stopped.")
-            , badState(badState) {
-        }
-
-        // The state in the node
-        Node::State badState;
-    };
-
-    class CannotStopStoppedNode : public std::runtime_error {
-
-    public:
-
-        CannotStopStoppedNode()
-            : std::runtime_error("Node cannot be stopped when already stopped") {
-        }
-    };
-
     class NoSuchTorrentExists : public std::runtime_error {
 
     public:
@@ -140,6 +118,7 @@ namespace exception {
 
         Node::State _state;
     };
+
 }
 }
 }

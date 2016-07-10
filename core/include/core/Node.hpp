@@ -81,91 +81,50 @@ public:
     ~Node();
 
     /**
-     start
-     -------------
+     @brief Tries to start node, which results in both BitTorrent and DHT ports opening up.
+            Node must be in @State::stopped state.
 
-     DESCRIPTION
-     Tries to start node, which results in
-     both BitTorrent and DHT ports opening up, as well initializing the Bitcoin wallet.
-
-     ARGUMENTS
-     - configuration: Setup configurations for the node
-     - nodeStarted: called if startup succeeds
-     - nodeStartFailed: called if startup fails
-
-     THROWS
-     - exception::CanOnlyStartStoppedNode: if node is not in
-     states Node::State::{stopped, waiting_for_plugins_to_stop,  waiting_for_resume_data}.
-
-     SIGNALS
-     - nodeStarted: if a successful start is made
-     - nodeStartFailed: if starting was not successful
+     @param configuration Setup configurations for the node
+     @param nodeStarted called if startup succeeds
+     @param nodeStartFailed called if startup fails
+     @throws exception::StateIncompatibleOperation if node is not already State::stopped.
+     @signal nodeStarted if a successful start is made
+     @signal nodeStartFailed if starting was not successful
      */
     void start(const configuration::Node & configuration, const NodeStarted & nodeStarted, const NodeStartFailed & nodeStartFailed);
 
     /**
-     stop
-     -------------
+     @brief All plugins are stopped, connections are then terminated,
+            however they are still part present in session, and  BitTorrent and DHT daemons still run.
+            Node must be in @State::started state.
+            **Due to Libtorrent does not permit stopping daemons wihtout killing session**
 
-     DESCRIPTION
-     Tries to stop node, which involves stopping BitTorrent and DHT server, as
-     well as the Bitcoin wallet.
-
-     ARGUMENTS
-     - nodeStopped: callback about being actually stopped
-
-     THROWS
-     - exception::CannotStopStoppedNode: if node is already stopped, or is being stopped, that is in
-     states Node::State::{stopped, waiting_for_plugins_to_stop,  waiting_for_resume_data}.
-     - all exceptions thrown by protocol_session::Stop
-
-     SIGNALS
-     - nodeStopped:
+     @param nodeStopped callback about being actually stopped
+     @throws exception::StateIncompatibleOperation: if node is not already State::started.
+     @throws all exceptions thrown by protocol_session::Stop
+     @signal nodeStopped
     */
     void stop(const NodeStopped & nodeStopped);
 
     /**
-     addTorrent
-     -------------
+     @brief Tries to add torrent. Node must be in @State::started.
 
-     DESCRIPTION
-     Tries to add torrent to node.
-     <what is done with state of torrent?>
-     <automanage, download, upload, settings?>
-
-     ARGUMENTS
-     - configuration:
-     - addedTorrent:
-     - failedToAddTorrent:
-
-     THROWS
-     - exception::TorrentAlreadyAdded:
-     -
-
-     SIGNALS
-     - addedTorrent():
-     - failedToAddTorrent():
+     @param configuration
+     @param addedTorrent
+     @param failedToAddTorrent
+     @throws exception::TorrentAlreadyAdded
+     @signal addedTorrent
+     @signal failedToAddTorrent
      */
     void addTorrent(const configuration::Torrent & configuration, const AddedTorrent & addedTorrent);
 
     /**
-     removeTorrent
-     -------------
+     @brief Tries to remove torrent. Node must be in @State::started, and torrent must be exist.
 
-     DESCRIPTION
-     Remove torrent
-
-     ARGUMENTS
-     -
-     -
-
-     THROWS
-     - no such torrent exists
-     - is in the process of being removed?
-
-     SIGNALS
-     - removed: if
-     -
+     @param info_hash: info_hash of torrent
+     @throws no such torrent exists
+     @throws is in the process of being removed?
+     @signal torrentRemoved
      */
     void removeTorrent(const libtorrent::sha1_hash & info_hash);
 
@@ -201,11 +160,13 @@ public:
     quint16 getServerPort() const;
     */
 
+    /**
     // Get all info hashes
     std::set<libtorrent::sha1_hash> torrents() const;
 
     // Get torrents
     std::weak_ptr<Torrent> torrent(const libtorrent::sha1_hash & infoHash) const;
+    */
 
     // Configuration for current controller
     configuration::Node configuration() const;
@@ -223,28 +184,14 @@ signals:
     // Starting was successful, and node is listening on given endpoint
     void nodeStarted(const libtorrent::tcp::endpoint &);
 
-    // Starting was unsuccessful, and node could not listen to given endpoint for reason with given error
-    void nodeStartFailed(const libtorrent::tcp::endpoint &, libtorrent::error_code);
-
     // Stopped node
     void nodeStopped();
 
     // Sent when libtorrent::add_torrent_alert is received from libtorrent
     void addedTorrent(const Torrent *);
 
-    // A torrent was not added successfully according to libtorrent session giving
-    // a libtorrent::add_torrent_alert p->error was done.
-    void failedToAddTorrent(const std::string & name, const libtorrent::sha1_hash & info_has, const libtorrent::error_code & ec);
-
     // Torrent with given info hash was removed
     void removedTorrent(const libtorrent::sha1_hash & info_hash);
-
-    // Notify view
-    // DROP!
-    void torrentCheckedButHasNoPlugin(const libtorrent::torrent_info & torrentInfo, const libtorrent::torrent_status & torrentStatus);
-
-    // Status update from underlying libtorrent session
-    void pluginStatusUpdate(const extension::status::Plugin & status);
 
 private slots:
 
@@ -289,30 +236,26 @@ private:
     std::vector<Coin::Transaction> _transactionSendQueue;
 
     // Underlying libtorrent session
-    // Note: The only way to halt libtorrent::session
-    // is to destruct the object, hence the only way for Node
-    // to halt is to clear corresponding libtorrent::session,
-    // this is why we keep pointer, rather than byvalue
-    libtorrent::session * _session;
+    libtorrent::session _session;
 
     // Wallet used
     joystream::bitcoin::SPVWallet * _wallet;
 
     // Plugin
-    // We keep weak pointer ...
-    boost::weak_ptr<extension::Plugin> _plugin;
+    boost::shared_ptr<extension::Plugin> _plugin;
 
     // Torrents added to session
-    std::map<libtorrent::sha1_hash, detail::Torrent> _torrents;
+    // A shared pointer is used, in order to give weak pointers to
+    // public torrent handles, so that they can reaffirm torrent existance on
+    // any user operation. This is safe, sinc user and this object is maintained
+    // by same thread.
+    //std::map<libtorrent::sha1_hash, std::shared_ptr<detail::Torrent>> _torrents;
 
     /// User supplied callbacks to be used as response in asynchronous method calls
 
     // Node::start
     NodeStarted _nodeStarted;
     NodeStartFailed _nodeStartFailed;
-
-    // Node::stop
-    NodeStopped _nodeStopped;
 
     // TCP streaming server
     //QTcpServer _streamingServer;
@@ -375,20 +318,12 @@ private:
 
     // Tell libtorrent try save resume data for all torrents needing it
     // Assumes 
-    int requestResumeData();
-
-    // Routine called after all resume data has been saved as part of an initlal begin_close() call
-    void finalize_stop();
+    //int requestResumeData();
 
     // Save state of controller to file
     void saveStateToFile(const char * file);
 
     void sendTransactions();
-
-    ///
-
-    // Gives raw pointer to plugin
-    extension::Plugin *  plugin();
 
     ///
 
