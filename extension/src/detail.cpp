@@ -108,8 +108,17 @@ void RequestVariantVisitor::operator()(const request::StopAllTorrentPlugins & r)
 
         // Stop plugin if it exists and is not already stopped
         if(plugin && plugin->sessionState() != protocol_session::SessionState::stopped)
-            plugin->stop();
+                plugin->stop();
     }
+
+    // Send the result that we are done
+    sendRequestResult(r.handler);
+}
+
+void RequestVariantVisitor::operator()(const request::PauseLibtorrent & r) {
+
+    // Synchronous pause
+    _plugin->_session->pause();
 
     // Send the result that we are done
     sendRequestResult(r.handler);
