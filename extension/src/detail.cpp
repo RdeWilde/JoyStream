@@ -97,6 +97,24 @@ void RequestVariantVisitor::operator()(const request::UpdateStatus &) {
     _plugin->_session->alerts().emplace_alert<alert::PluginStatus>(_plugin->status());
 }
 
+void RequestVariantVisitor::operator()(const request::StopAllTorrentPlugins & r) {
+
+    // Stop all torrent plugins which can be stopped
+    auto pluginMap = _plugin->_plugins;
+
+    for(auto m : pluginMap) {
+
+        boost::shared_ptr<TorrentPlugin> plugin = m.second.lock();
+
+        // Stop plugin if it exists and is not already stopped
+        if(plugin && plugin->sessionState() != protocol_session::SessionState::stopped)
+            plugin->stop();
+    }
+
+    // Send the result that we are done
+    sendRequestResult(r.handler);
+}
+
 std::exception_ptr RequestVariantVisitor::runTorrentPluginRequest(const libtorrent::sha1_hash & infoHash,
                                                                   const std::function<void(const boost::shared_ptr<TorrentPlugin> &)> & f) const {
 

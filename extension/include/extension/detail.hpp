@@ -30,7 +30,8 @@ typedef boost::variant<request::Start,
                        request::ToObserveMode,
                        request::ToSellMode,
                        request::ToBuyMode,
-                       request::UpdateStatus> RequestVariant;
+                       request::UpdateStatus,
+                       request::StopAllTorrentPlugins> RequestVariant;
 
 class RequestVariantVisitor : public boost::static_visitor<> {
 
@@ -49,6 +50,7 @@ public:
     void operator()(const request::ToSellMode & r);
     void operator()(const request::ToBuyMode & r);
     void operator()(const request::UpdateStatus & r);
+    void operator()(const request::StopAllTorrentPlugins & r);
 
 private:
 
