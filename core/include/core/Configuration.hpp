@@ -43,9 +43,6 @@ struct SellingPlugin {
     protocol_wire::SellerTerms terms;
 };
 
-// Private members not directly exposed,
-// in order to ensure, throught he named cosntructors, that fields are always
-// coordinated with mode.
 class TorrentPlugin {
 
 public:
@@ -142,12 +139,7 @@ public:
 
     Node();
 
-    Node(const std::map<libtorrent::sha1_hash, Torrent> & torrents);
-
 private:
-
-    // Torrent configurations <?> should thios sbe here
-    std::map<libtorrent::sha1_hash, Torrent> _torrents;
 
 };
 

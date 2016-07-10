@@ -154,10 +154,6 @@ libtorrent::add_torrent_params Torrent::toAddTorrentParams() const noexcept {
 Node::Node() {
 }
 
-Node::Node(const std::map<libtorrent::sha1_hash, Torrent> & torrents)
-    : _torrents(torrents) {
-}
-
 }
 }
 }
