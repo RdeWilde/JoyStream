@@ -159,9 +159,7 @@ void Node::start(const configuration::Node & configuration, const NodeStarted & 
     // for more alerts using ``pop_alerts()``. If the notify function fails
     // to do so, it won't be called again, until ``pop_alerts`` is called for
     // some other reason.
-    _session->set_alert_notify([this]() -> void {
-                                   this->libtorrent_alert_notification_entry_point();
-                               });
+    _session->set_alert_notify([this]() { this->libtorrent_alert_notification_entry_point(); });
 
     // Create and install plugin
     boost::shared_ptr<libtorrent::plugin> plugin(new extension::Plugin(CORE_MINIMUM_EXTENDED_MESSAGE_ID));
@@ -232,7 +230,7 @@ void Node::stop(const NodeStopped & nodeStopped) {
     _nodeStopped = nodeStopped;
 
     // Update state
-    _state = State::waiting_for_plugins_to_stop;
+    _state = State::stopping;
 }
 
 void Node::syncWallet() {
@@ -462,7 +460,7 @@ void Node::processAlert(const libtorrent::alert * a) {
 
 void Node::process(const libtorrent::listen_succeeded_alert * p) {
 
-    assert(_state == State::waiting_to_listen);
+    assert(_state == State::starting);
 
     _state = State::started;
 
@@ -476,7 +474,7 @@ void Node::process(const libtorrent::listen_succeeded_alert * p) {
 
 void Node::process(const libtorrent::listen_failed_alert * p) {
 
-    assert(_state == State::waiting_to_listen);
+    assert(_state == State::starting);
 
     _state = State::stopped;
 
@@ -487,8 +485,6 @@ void Node::process(const libtorrent::listen_failed_alert * p) {
 
     // Make callback to user
     _nodeStartFailed(p->endpoint, p->error);
-
-    emit nodeStartFailed(p->endpoint, p->error);
 }
 
 int Node::requestResumeData() {
@@ -695,7 +691,7 @@ void Node::process(const libtorrent::save_resume_data_alert * p) {
 
     // If this is part of closing client, then close client
     // if there are no torrents still waiting for resume data.
-    if(_state == State::waiting_for_resume_data) {
+    if(_state == State::stopping) {
 
         for(auto mapping : _torrents) {
             if(mapping.second.state == detail::Torrent::State::waiting_for_resume_data)
@@ -734,7 +730,7 @@ void Node::process(const libtorrent::save_resume_data_failed_alert * p) {
 
     // If this is part of closing client, then close client
     // if there are no torrents still waiting for resume data.
-    if(_state == State::waiting_for_resume_data) {
+    if(_state == State::stopping) {
 
         for(auto mapping : _torrents) {
             if(mapping.second.state == detail::Torrent::State::waiting_for_resume_data)
