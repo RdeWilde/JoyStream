@@ -216,7 +216,6 @@ private slots:
     */
 
     // Move all of these out of controller later
-    void webSocketDisconnected();
     void scheduleReconnect();
     void onTransactionUpdated(Coin::TransactionId txid, int confirmations);
     void onWalletSynched();
@@ -312,16 +311,6 @@ private:
     // Status
     void update(const std::vector<libtorrent::torrent_status> & statuses);
     void update(const libtorrent::torrent_status & status);
-
-    // Start torrent plugin
-    void startTorrentPlugin(const libtorrent::sha1_hash & info_hash);
-
-    // Tell libtorrent try save resume data for all torrents needing it
-    // Assumes 
-    //int requestResumeData();
-
-    // Save state of controller to file
-    void saveStateToFile(const char * file);
 
     void sendTransactions();
 

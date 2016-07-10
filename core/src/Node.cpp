@@ -203,6 +203,53 @@ void Node::stop(const NodeStopped & nodeStopped) {
     }));
 }
 
+void Node::addTorrent(const configuration::Torrent & configuration, const AddedTorrent & addedTorrent) {
+
+    // We can only stop from started state
+    if(_state != State::started)
+        throw exception::StateIncompatibleOperation(_state);
+
+    // Update state
+    _state = State::starting;
+
+    // Store callback for
+    _addedTorrent = addedTorrent;
+
+    // Convert to add torrent parameters
+    libtorrent::add_torrent_params params = configuration.toAddTorrentParams();
+
+    // Check that torrent is not part of session
+    // throw if torrent already
+
+    // Create save_path on disk, return if it does not exist
+    //if(!(QDir()).mkpath(params.save_path.c_str())) {
+    //    qCCritical(_category) << "Could not create save_path: " << params.save_path.c_str();
+    //    return false;
+    // }
+
+    // Add torrent to session
+    _session.async_add_torrent(params);
+
+    // when to call _addedTorrent ???, can fail, can succeed
+}
+
+void Node::removeTorrent(const libtorrent::sha1_hash & info_hash) {
+
+    // Find corresponding torrent
+    libtorrent::torrent_handle torrentHandle = _session.find_torrent(info_hash);
+
+    // Check that there actually was such a torrent
+    if(!torrentHandle.is_valid())
+        assert(false);
+
+    // Remove from session
+    // Session will send us torrent_removed_alert alert when torrent has been removed
+    // at which point we can remove torrent from model in alert handler
+    _session.remove_torrent(torrentHandle);
+
+    // when to call _removedTorrent?
+}
+
 void Node::syncWallet() {
 
     if(_closing) return;
@@ -217,6 +264,22 @@ void Node::syncWallet() {
     _wallet->sync("testnet-seed.bitcoin.petertodd.org", 18333, CORE_CONTROLLER_SPV_KEEPALIVE_TIMEOUT);
 
     _reconnecting = false;
+}
+
+void Node::updateStatus() {
+
+    //guard state?
+
+
+    // Regular torrent level state update
+    _session.post_torrent_updates();
+
+    // Plugin level updates
+    _plugin->submit(extension::request::UpdateStatus());
+}
+
+Node::State Node::state() const {
+    return _state;
 }
 
 /**
@@ -236,21 +299,7 @@ void Controller::handleConnection() {
 void Controller::handleAcceptError(QAbstractSocket::SocketError socketError) {
     std::clog << "Failed to accept connection.";
 }
-*/
 
-void Node::scheduleReconnect() {
-
-    if(_closing) return;
-
-    if(_reconnecting) return;
-
-    _reconnecting = true;
-
-    // Retry connection
-    QTimer::singleShot(CORE_CONTROLLER_RECONNECT_DELAY, this, SLOT(syncWallet()));
-}
-
-/**
 void Controller::registerStream(const Stream * handler) {
 
     // Make sure to handle stream path announcement signal synchronously
@@ -824,128 +873,16 @@ void Node::process(const extension::alert::BroadcastTransaction * p) {
     }
 }
 
-/**
-void Node::processStartedSellerTorrentPlugin(const StartedSellerTorrentPlugin * p) {
+void Node::scheduleReconnect() {
 
-    Q_ASSERT(_torrents.contains(p->infoHash()));
+    if(_closing) return;
 
-    // Get torrent
-    Torrent * torrent = _torrents[p->infoHash()];
+    if(_reconnecting) return;
 
-    Q_ASSERT(torrent->pluginInstalled() == PluginInstalled::None);
+    _reconnecting = true;
 
-    // Update information about plugin installed on torrent
-    torrent->addPlugin(p->status());
-
-    // Send signal
-    // *** DISCONTINUED, THESE ARE INSTALLED AS SIGNALS ON TORRENT VIEW MODELS
-    //emit startedSellerTorrentPlugin(torrent->model()->sellerTorrentPluginViewModel());
-}
-
-void Node::processStartedBuyerTorrentPlugin(const StartedBuyerTorrentPlugin * p) {
-
-    Q_ASSERT(_torrents.contains(p->infoHash()));
-
-    Torrent * torrent = _torrents[p->infoHash()];
-
-    Q_ASSERT(torrent->pluginInstalled() == PluginInstalled::None);
-
-    // Update information about plugin installed on torrent
-    torrent->addPlugin(p->status());
-
-    // Send signal
-    // *** DISCONTINUED, THESE ARE INSTALLED AS SIGNALS ON TORRENT VIEW MODELS
-    //emit startedBuyerTorrentPlugin(torrent->model()->buyerTorrentPluginViewModel());
-}
-
-void Node::processBuyerTorrentPluginStatusAlert(const BuyerTorrentPluginStatusAlert * p) {
-
-    Q_ASSERT(_torrents.contains(p->infoHash()));
-
-    // Get view model for torrent
-    TorrentViewModel * model = _torrents[p->infoHash()]->model();
-
-    Q_ASSERT(model->pluginInstalled() == PluginInstalled::Buyer);
-
-    // Update
-    model->update(p->status());
-}
-
-void Node::processSellerTorrentPluginStatusAlert(const SellerTorrentPluginStatusAlert * p) {
-
-    Q_ASSERT(_torrents.contains(p->infoHash()));
-
-    // Get view model for torrent
-    TorrentViewModel * model = _torrents[p->infoHash()]->model();
-
-    Q_ASSERT(model->pluginInstalled() == PluginInstalled::Seller);
-
-    // Update
-    model->update(p->status());
-}
-*/
-void Node::process(const extension::alert::PluginStatus * p) {
-
-    //
-    //emit pluginStatusUpdate(p->status);
-}
-/*
-void Node::processSellerPeerAddedAlert(const SellerPeerAddedAlert * p) {
-
-    Q_ASSERT(_torrents.contains(p->infoHash()));
-
-    Torrent * torrent = _torrents[p->infoHash()];
-
-    torrent->model()->addPeer(p->endPoint(), p->status());
-}
-
-void Node::processBuyerPeerAddedAlert(const BuyerPeerAddedAlert * p) {
-
-    Q_ASSERT(_torrents.contains(p->infoHash()));
-
-    Torrent * torrent = _torrents[p->infoHash()];
-
-    torrent->model()->addPeer(p->endPoint(), p->status());
-}
-
-void Node::processSellerPeerPluginRemovedAlert(const SellerPeerPluginRemovedAlert * p) {
-
-    Q_ASSERT(_torrents.contains(p->infoHash()));
-
-    // Grab torrent
-    Torrent * torrent = _torrents[p->infoHash()];
-
-    Q_ASSERT(torrent->pluginInstalled() == PluginInstalled::Seller);
-
-    // Notify view model
-    torrent->model()->removePeer(p->endPoint());
-}
-
-void Node::processBuyerPeerPluginRemovedAlert(const BuyerPeerPluginRemovedAlert * p) {
-
-    Q_ASSERT(_torrents.contains(p->infoHash()));
-
-    // Grab torrent
-    Torrent * torrent = _torrents[p->infoHash()];
-
-    Q_ASSERT(torrent->pluginInstalled() == PluginInstalled::Buyer);
-
-    // Notify view model
-    torrent->model()->removePeer(p->endPoint());
-}
-*/
-
-// called on timer signal, to periodically try to resend transactions to the network
-void Node::sendTransactions() {
-
-    for(auto tx : _transactionSendQueue) {
-        try {
-            _wallet->broadcastTx(tx);
-        } catch(std::exception & e) {
-            // wallet is offline
-            return;
-        }
-    }
+    // Retry connection
+    QTimer::singleShot(CORE_CONTROLLER_RECONNECT_DELAY, this, SLOT(syncWallet()));
 }
 
 // when wallet sees a transaction, either 0, 1 or 2 confirmations
@@ -1001,255 +938,9 @@ void Node::update(const libtorrent::torrent_status & status) {
     */
 }
 
-void Node::removeTorrent(const libtorrent::sha1_hash & info_hash) {
-
-    // Find corresponding torrent
-    libtorrent::torrent_handle torrentHandle = _session.find_torrent(info_hash);
-
-    // Check that there actually was such a torrent
-    if(!torrentHandle.is_valid())
-        Q_ASSERT(false);
-
-    // Remove from session
-    // Session will send us torrent_removed_alert alert when torrent has been removed
-    // at which point we can remove torrent from model in alert handler
-    _session.remove_torrent(torrentHandle);
-}
-
-/**
-void Node::pauseTorrent(const libtorrent::sha1_hash & info_hash) {
-
-    // Find corresponding torrent
-    libtorrent::torrent_handle torrentHandle = _session->find_torrent(info_hash);
-
-    // Check that there actually was such a torrent
-    if(!torrentHandle.is_valid())
-        Q_ASSERT(false);
-
-    // Turn off auto managing
-    torrentHandle.auto_managed(false);
-
-    // Pause
-    // We save resume data when the pause alert is issued by libtorrent
-    torrentHandle.pause(libtorrent::torrent_handle::graceful_pause);
-}
-
-void Node::startTorrent(const libtorrent::sha1_hash & info_hash) {
-
-    // Find corresponding torrent
-    libtorrent::torrent_handle torrentHandle = _session->find_torrent(info_hash);
-
-    // Check that there actually was such a torrent
-    if(!torrentHandle.is_valid())
-        Q_ASSERT(false);
-
-    // Turn on auto managing
-    torrentHandle.auto_managed(true);
-
-    // Start
-    torrentHandle.resume();
-}
-*/
-
-void Node::addTorrent(const configuration::Torrent &, const AddedTorrent &) {
-/**
-    // make sure to check _state guard
-
-    // Convert to add torrent parameters
-    libtorrent::add_torrent_params params = configuration.toAddTorrentParams();
-
-    // Create save_path on disk, return if it does not exist
-    if(!(QDir()).mkpath(params.save_path.c_str())) {
-        qCCritical(_category) << "Could not create save_path: " << params.save_path.c_str();
-        return false;
-    }
-
-    // Get info hash
-    libtorrent::sha1_hash info_hash = configuration.infoHash();
-
-    // Create torrent
-    Torrent * torrent = new Torrent(info_hash,
-                                    configuration.name(),
-                                    configuration.name(),
-                                    configuration.resumeData(),
-                                    configuration.flags(),
-                                    configuration.torrentFile(), //.torrentInfo(),
-                                    //libtorrent::torrent_handle(), // proper handle is set when torrent has been added
-                                    Torrent::Status::being_async_added_to_session);
-
-    // Warn user if torrent has already been added
-    if(_torrents.contains(info_hash)) {
-        qCCritical(_category) << "Torrent with given info_hash has already been added.";
-        return false;
-    }
-
-    // !_torrents.contains(info_hash) =>
-    Q_ASSERT(!_pendingSellerTorrentPluginConfigurations.contains(info_hash));
-    Q_ASSERT(!_pendingBuyerTorrentPluginConfigurationAndUtxos.contains(info_hash));
-    //Q_ASSERT(!_pendingObserverTorrentPluginConfigurations.contains(info_hash));
-
-    // NOTE:
-    // The remaining signals model
-    // * pluginInstalledChanged(PluginInstalled pluginInstalled)
-    // * torrentStatusChanged(const libtorrent::torrent_status & status)
-    // should be wired up by controller users upon
-    // capturing addedTorrent(const TorrentViewModel *) signal.
-
-    // Save torrent
-    _torrents[info_hash] = torrent;
-
-    // Add torrent to session
-    _session->async_add_torrent(params);
-    */
-}
-/**
-bool Node::addTorrent(const Torrent::Configuration & configuration, const SellerTorrentPlugin::Configuration & pluginConfiguration) {
-
-    // Try to add torrent
-    if(!addTorrent(configuration))
-        return false;
-
-    // Save plugin configuration
-    _pendingSellerTorrentPluginConfigurations[configuration.infoHash()] = pluginConfiguration;
-
-    return true;
-}
-
-bool Node::addTorrent(const Torrent::Configuration & configuration, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const Coin::UnspentP2PKHOutput & utxo) {
-
-    // Try to add torrent
-    if(!addTorrent(configuration))
-        return false;
-
-    // Save plugin configuration and utxo
-    _pendingBuyerTorrentPluginConfigurationAndUtxos[configuration.infoHash()] = QPair<BuyerTorrentPlugin::Configuration, Coin::UnspentP2PKHOutput>(pluginConfiguration, utxo);
-
-    return true;
-}
-*/
-
-/**
-void Controller::startTorrentPlugin(const libtorrent::sha1_hash & info_hash, const TorrentPlugin::Configuration * configuration) {
-
-    // Check that torrent exists with given info hash
-    if(!_torrents.contains(info_hash)) {
-        qCCritical(_category) << "No torrent registered with given info hash.";
-        return;
-    }
-
-    // Grab torrent
-    Torrent & torrent = _torrents[info_hash];
-
-    Q_ASSERT(torrent->status() != Torrent::Status::being_async_added_to_session &&
-            torrent->status() != Torrent::Status::torrent_added_but_not_checked);
-
-    // Send configuration to plugin
-    _plugin->submitPluginRequest(new StartTorrentPlugin(info_hash, configuration));
-
-    // Reset event
-    torrent.setEvent(Torrent::ExpectedEvent::nothing);
-}
-*/
-
-/**
-void Node::startSellerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const SellerTorrentPlugin::Configuration & pluginConfiguration) {
-
-    Q_ASSERT(_torrents.contains(info_hash));
-
-    // Grab torrent
-    Torrent * torrent = _torrents[info_hash];
-
-    Q_ASSERT(torrent->status() != Torrent::Status::being_async_added_to_session &&
-            torrent->status() != Torrent::Status::torrent_added_but_not_checked);
-
-    // Reset event
-    torrent->setStatus(Torrent::Status::nothing);
-
-    // Send configuration to plugin
-    _plugin->submitPluginRequest(new StartSellerTorrentPlugin(info_hash, pluginConfiguration));
-}
-
-void Node::startBuyerTorrentPlugin(const libtorrent::sha1_hash & info_hash, const BuyerTorrentPlugin::Configuration & pluginConfiguration, const Coin::UnspentP2PKHOutput & utxo) {
-
-    Q_ASSERT(_torrents.contains(info_hash));
-
-    // Grab torrent
-    Torrent * torrent = _torrents[info_hash];
-
-    Q_ASSERT(torrent->status() != Torrent::Status::being_async_added_to_session &&
-            torrent->status() != Torrent::Status::torrent_added_but_not_checked);
-
-    // Reset event
-    torrent->setStatus(Torrent::Status::nothing);
-
-    // Send configuration to plugin
-    _plugin->submitPluginRequest(new StartBuyerTorrentPlugin(info_hash, pluginConfiguration, utxo));
-}
-*/
-
-void Node::saveStateToFile(const char * file) {
-
-    // NOT DONE!
-
-    /**
-
-	// Save present state of session in entry
-	libtorrent::entry libtorrentSessionSettingsEntry;
-    _session->save_state(libtorrentSessionSettingsEntry);
-
-    // Torrent configurations
-    std::vector<TorrentConfiguration *> torrentConfigurations;
-
-    // Grab torrent handles
-    std::vector<libtorrent::torrent_handle> torrents = _session->get_torrents();
-
-    for(std::vector<libtorrent::torrent_handle>::iterator i = torrents.begin(),
-            end(torrents.end()); i != end;i++) {
-
-        // Check if torrent handle is valid, if not, we can't save it
-        if((*i).is_valid()) {
-
-            // We need to have torrent plugin configurations already available,
-            // which is done asynch, perhaps make a parameter of this method
-            // which is called by a callback routine.
-
-            // Create torrent configuration
-            TorrentConfiguration * torrentConfiguration = new TorrentConfiguration();
-
-            // Add to vector of configurations
-            torrentConfigurations.push_back(torrentConfiguration);
-
-        } else
-            qCCritical(_category) << "Could not recover handle for torrent for saving, skipping it.";
-    }
-
-    // DHT routers
-    std::vector<std::pair<std::string, int>> dhtRouters;
-
-    // Create controller configuration
-    ControllerConfiguration controllerConfiguration(libtorrentSessionSettingsEntry
-                                                    ,_portRange
-                                                    ,torrentConfigurations
-                                                    ,dhtRouters);
-
-	// Save to file
-    controllerConfiguration.saveToFile(file);
-    */
-}
-
 /**
 joystream::bitcoin::SPVWallet * Node::wallet() {
     return _wallet;
-}
-*/
-
-/**
-libtorrent::torrent_handle Controller::getTorrentHandle(const libtorrent::sha1_hash & infoHash) const {
-
-    if(_torrents.contains(infoHash))
-        return _torrents[infoHash]->handle();
-    else
-        return libtorrent::torrent_handle();
 }
 */
 
@@ -1317,31 +1008,11 @@ void Node::changeDownloadingLocationFromThisPiece(const libtorrent::sha1_hash & 
     // Ask torrent to relocate
     _plugin->submitTorrentPluginRequest(new ChangeDownloadLocation(infoHash, pieceIndex));
 }
-*/
 
-void Node::updateStatus() {
-
-    //guard state?
-
-
-    // Regular torrent level state update
-    _session.post_torrent_updates();
-
-    // Plugin level updates
-    _plugin->submit(extension::request::UpdateStatus());
-}
-
-Node::State Node::state() const {
-    return _state;
-}
-
-/**
 quint16 Controller::getServerPort() const {
    return _streamingServer.serverPort();
 }
-*/
 
-/**
 std::set<libtorrent::sha1_hash> Node::torrents() const {
 
     std::set<libtorrent::sha1_hash> infoHashes;
@@ -1361,14 +1032,24 @@ std::weak_ptr<Torrent> Node::torrent(const libtorrent::sha1_hash & infoHash) con
     else
         return it->second.model;
 }
-*/
 
-/**
 void Controller::fundWallet(uint64_t value) {
     _restClient->fundWalletFromFaucet(_wallet->getReceiveAddress().toBase58CheckEncoding(), value);
 }
 */
 
+// called on timer signal, to periodically try to resend transactions to the network
+void Node::sendTransactions() {
+
+    for(auto tx : _transactionSendQueue) {
+        try {
+            _wallet->broadcastTx(tx);
+        } catch(std::exception & e) {
+            // wallet is offline
+            return;
+        }
+    }
+}
 
 libtorrent::settings_pack Node::session_settings() noexcept {
 
