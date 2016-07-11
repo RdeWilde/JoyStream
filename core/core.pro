@@ -35,7 +35,12 @@ HEADERS += \
     include/core/Exception.hpp \
     include/core/Torrent.hpp \
     include/core/Node.hpp \
-    include/core/detail/detail.hpp
+    include/core/detail/detail.hpp \
+    include/core/TorrentPlugin.hpp \
+    include/core/Peer.hpp \
+    include/core/Session.hpp \
+    include/core/PeerPlugin.hpp \
+    include/core/Connection.hpp \
 
 SOURCES += \
     #src/viewmodel/BuyerPeerPlugin.cpp \
@@ -52,7 +57,8 @@ SOURCES += \
     src/Torrent.cpp \
     src/Configuration.cpp \
     src/Node.cpp \
-    src/detail/detail.cpp
+    src/detail/detail.cpp \
+    src/TorrentPlugin.cpp \
 
 # extension
 INCLUDEPATH += $$PWD/../extension/include
