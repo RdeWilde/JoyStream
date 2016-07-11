@@ -139,7 +139,7 @@ libtorrent::add_torrent_params Torrent::toAddTorrentParams() const noexcept {
 
         case 1: params.url = boost::get<MagnetLink>(_torrentReference).toURI(); break;
 
-        case 2: params.ti = boost::shared_ptr<libtorrent::torrent_info>(new libtorrent::torrent_info(boost::get<libtorrent::torrent_info>(_torrentReference))); break;
+        case 2: params.ti = boost::get<boost::shared_ptr<libtorrent::torrent_info> >(_torrentReference); break;
 
         default:
             assert(false);
@@ -156,7 +156,7 @@ libtorrent::sha1_hash Torrent::infoHash() const noexcept {
 
         case 1: return boost::get<MagnetLink>(_torrentReference).infoHash();
 
-        case 2: return boost::get<libtorrent::torrent_info>(_torrentReference).info_hash();
+        case 2: return boost::get<boost::shared_ptr<libtorrent::torrent_info> >(_torrentReference)->info_hash();
 
         default:
             assert(false);

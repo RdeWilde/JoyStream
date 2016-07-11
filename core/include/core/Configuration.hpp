@@ -94,7 +94,7 @@ private:
 struct Torrent {
 
     // Represents most complete reference we have to a torrent (hash of info_hash, magnet link, torrent file)
-    typedef boost::variant<libtorrent::sha1_hash, MagnetLink, libtorrent::torrent_info> TorrentReference;
+    typedef boost::variant<libtorrent::sha1_hash, MagnetLink, boost::shared_ptr<libtorrent::torrent_info>> TorrentReference;
 
     Torrent();
 
