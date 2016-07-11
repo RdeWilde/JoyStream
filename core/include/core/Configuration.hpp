@@ -109,6 +109,8 @@ struct Torrent {
 
     libtorrent::add_torrent_params toAddTorrentParams() const noexcept;
 
+    libtorrent::sha1_hash infoHash() const noexcept;
+
 private:
 
     // Total (bytes/second across libtorrent+plugin) upload/download limit.

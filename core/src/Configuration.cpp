@@ -148,6 +148,22 @@ libtorrent::add_torrent_params Torrent::toAddTorrentParams() const noexcept {
     return params;
 }
 
+libtorrent::sha1_hash Torrent::infoHash() const noexcept {
+
+    switch(_torrentReference.which()) {
+
+        case 0: return boost::get<libtorrent::sha1_hash>(_torrentReference);
+
+        case 1: return boost::get<MagnetLink>(_torrentReference).infoHash();
+
+        case 2: return boost::get<libtorrent::torrent_info>(_torrentReference).info_hash();
+
+        default:
+            assert(false);
+    }
+
+}
+
 /// Controller
 
 Node::Node() {
