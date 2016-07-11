@@ -10,6 +10,7 @@
 
 #include <extension/extension.hpp>
 #include <protocol_session/protocol_session.hpp>
+#include <core/MagnetLink.hpp>
 #include <libtorrent/sha1_hash.hpp>
 #include <libtorrent/add_torrent_params.hpp>
 #include <libtorrent/torrent_info.hpp>
@@ -93,7 +94,7 @@ private:
 struct Torrent {
 
     // Represents most complete reference we have to a torrent (hash of info_hash, magnet link, torrent file)
-    typedef boost::variant<libtorrent::sha1_hash, std::string, libtorrent::torrent_info> TorrentReference;
+    typedef boost::variant<libtorrent::sha1_hash, MagnetLink, libtorrent::torrent_info> TorrentReference;
 
     Torrent();
 
