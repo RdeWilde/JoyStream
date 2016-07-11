@@ -41,6 +41,8 @@ HEADERS += \
     include/core/Session.hpp \
     include/core/PeerPlugin.hpp \
     include/core/Connection.hpp \
+    include/core/MagnetLink.hpp \
+    include/core/Callbacks.hpp
 
 SOURCES += \
     #src/viewmodel/BuyerPeerPlugin.cpp \
@@ -59,6 +61,7 @@ SOURCES += \
     src/Node.cpp \
     src/detail/detail.cpp \
     src/TorrentPlugin.cpp \
+    src/MagnetLink.cpp
 
 # extension
 INCLUDEPATH += $$PWD/../extension/include
