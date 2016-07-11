@@ -5,10 +5,11 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef CONTROLLER_HPP
-#define CONTROLLER_HPP
+#ifndef JOYSTREAM_CORE_NODE_HPP
+#define JOYSTREAM_CORE_NODE_HPP
 
 #include <core/detail/detail.hpp>
+#include <core/Callbacks.hpp>
 //#include <core/controller/Stream.hpp>
 #include <extension/extension.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
@@ -35,9 +36,6 @@ namespace extension {
     class Plugin;
 }
 namespace core {
-namespace detail {
-    struct Torrent;
-}
 namespace configuration {
     class Node;
     class Torrent;
@@ -66,10 +64,6 @@ public:
         stopping
     };
 
-    typedef std::function<void(const libtorrent::tcp::endpoint &)> NodeStarted;
-    typedef std::function<void(const libtorrent::tcp::endpoint &, libtorrent::error_code)> NodeStartFailed;
-    typedef std::function<void()> NodeStopped;
-    typedef std::function<void()> AddedTorrent;
 
     Node(joystream::bitcoin::SPVWallet *);
 
@@ -112,7 +106,7 @@ public:
      @param configuration
      @param addedTorrent
      @param failedToAddTorrent
-     @throws exception::TorrentAlreadyAdded
+     @throws exception::TorrentAlreadyExists if torrent already has been added
      @signal addedTorrent
      @signal failedToAddTorrent
      */
@@ -155,18 +149,11 @@ public:
     // State of controller
     State state() const;
 
-    /**
-    // Returns port server is presently listening on
-    quint16 getServerPort() const;
-    */
-
-    /**
     // Get all info hashes
     std::set<libtorrent::sha1_hash> torrents() const;
 
     // Get torrents
-    std::weak_ptr<Torrent> torrent(const libtorrent::sha1_hash & infoHash) const;
-    */
+    std::weak_ptr<Torrent> torrent(const libtorrent::sha1_hash & infoHash) const;    
 
     // Configuration for current controller
     configuration::Node configuration() const;
@@ -244,11 +231,10 @@ private:
     boost::shared_ptr<extension::Plugin> _plugin;
 
     // Torrents added to session
-    // A shared pointer is used, in order to give weak pointers to
-    // public torrent handles, so that they can reaffirm torrent existance on
-    // any user operation. This is safe, sinc user and this object is maintained
+    // A shared pointer is used, in order to give weak pointers as
+    // public handle. This is safe, sinc user and this object is maintained
     // by same thread.
-    //std::map<libtorrent::sha1_hash, std::shared_ptr<detail::Torrent>> _torrents;
+    std::map<libtorrent::sha1_hash, std::shared_ptr<Torrent>> _torrents;
 
     /// User supplied callbacks to be used as response in asynchronous method calls
 
@@ -294,27 +280,11 @@ private:
     void process(const extension::alert::BroadcastTransaction * p);
     void process(const extension::alert::PluginStatus * p);
 
-    /**
-    void processStartedSellerTorrentPlugin(const StartedSellerTorrentPlugin * p);
-    void processStartedBuyerTorrentPlugin(const StartedBuyerTorrentPlugin * p);
-    void processBuyerTorrentPluginStatusAlert(const BuyerTorrentPluginStatusAlert * p);
-    void processSellerTorrentPluginStatusAlert(const SellerTorrentPluginStatusAlert * p);
-    void processPluginStatusAlert(const PluginStatusAlert * p);
-    void processSellerPeerAddedAlert(const SellerPeerAddedAlert * p);
-    void processBuyerPeerAddedAlert(const BuyerPeerAddedAlert * p);
-    void processSellerPeerPluginRemovedAlert(const SellerPeerPluginRemovedAlert * p);
-    void processBuyerPeerPluginRemovedAlert(const BuyerPeerPluginRemovedAlert * p);
-    */
-
-    ///
-
     // Status
     void update(const std::vector<libtorrent::torrent_status> & statuses);
     void update(const libtorrent::torrent_status & status);
 
     void sendTransactions();
-
-    ///
 
     // Generate session settings pack used with libtorrent
     static libtorrent::settings_pack session_settings() noexcept;
@@ -326,4 +296,4 @@ private:
 }
 }
 
-#endif // CONTROLLER_HPP
+#endif // JOYSTREAM_CORE_NODE_HPP

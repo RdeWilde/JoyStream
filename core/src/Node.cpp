@@ -6,6 +6,7 @@
  */
 
 #include <core/Node.hpp>
+#include <core/Torrent.hpp>
 #include <core/Configuration.hpp>
 #include <core/Exception.hpp>
 #include <core/detail/detail.hpp>
@@ -209,17 +210,11 @@ void Node::addTorrent(const configuration::Torrent & configuration, const AddedT
     if(_state != State::started)
         throw exception::StateIncompatibleOperation(_state);
 
-    // Update state
-    _state = State::starting;
+    // Check that torrent not already present
+    libtorrent::sha1_hash infoHash = configuration.infoHash();
 
-    // Store callback for
-    _addedTorrent = addedTorrent;
-
-    // Convert to add torrent parameters
-    libtorrent::add_torrent_params params = configuration.toAddTorrentParams();
-
-    // Check that torrent is not part of session
-    // throw if torrent already
+    if(_torrents.count(infoHash) != 0)
+        throw exception::TorrentAlreadyExists(infoHash);
 
     // Create save_path on disk, return if it does not exist
     //if(!(QDir()).mkpath(params.save_path.c_str())) {
@@ -227,10 +222,21 @@ void Node::addTorrent(const configuration::Torrent & configuration, const AddedT
     //    return false;
     // }
 
+    // Create torrent
+    std::shared_ptr<Torrent> plugin(new Torrent(infoHash));
+
+    // and add
+    _torrents.insert(std::make_pair(infoHash, plugin));
+
+    // Store callback
+    assert(!plugin->_addTorrentCall);
+    plugin->_addTorrentCall = detail::AddTorrentCall(addedTorrent, configuration);
+
+    // Convert to add torrent parameters
+    libtorrent::add_torrent_params params = configuration.toAddTorrentParams();
+
     // Add torrent to session
     _session.async_add_torrent(params);
-
-    // when to call _addedTorrent ???, can fail, can succeed
 }
 
 void Node::removeTorrent(const libtorrent::sha1_hash & info_hash) {
@@ -370,9 +376,7 @@ void Controller::readPiece(int piece) {
     // and the nonly read pieces ones we actually know they have been
     // downloaded...
 }
-*/
 
-/**
 void Controller::addPeerPlugin(libtorrent::sha1_hash info_hash, libtorrent::tcp::endpoint endPoint) {
     view.addPeerPlugin(info_hash, endPoint);
 }
@@ -616,6 +620,9 @@ void Node::processMetadataFailedAlert(libtorrent::metadata_failed_alert const * 
 }
 
 void Node::process(libtorrent::add_torrent_alert const * p) {
+
+    // if it worked, then callback, emit signal and apply configuration to torrent plugin
+    // if it doesnt
 
     /**
     Q_ASSERT(_state == State::normal);
@@ -1008,17 +1015,14 @@ void Node::changeDownloadingLocationFromThisPiece(const libtorrent::sha1_hash & 
     // Ask torrent to relocate
     _plugin->submitTorrentPluginRequest(new ChangeDownloadLocation(infoHash, pieceIndex));
 }
-
-quint16 Controller::getServerPort() const {
-   return _streamingServer.serverPort();
-}
+*/
 
 std::set<libtorrent::sha1_hash> Node::torrents() const {
 
     std::set<libtorrent::sha1_hash> infoHashes;
 
-    //for(auto mapping : _torrents)
-    //    infoHashes.insert(mapping.first);
+    for(auto mapping : _torrents)
+        infoHashes.insert(mapping.first);
 
     return infoHashes;
 }
@@ -1030,9 +1034,10 @@ std::weak_ptr<Torrent> Node::torrent(const libtorrent::sha1_hash & infoHash) con
     if(it == _torrents.cend())
         throw exception::NoSuchTorrentExists(infoHash);
     else
-        return it->second.model;
+        return it->second;
 }
 
+/**
 void Controller::fundWallet(uint64_t value) {
     _restClient->fundWalletFromFaucet(_wallet->getReceiveAddress().toBase58CheckEncoding(), value);
 }
