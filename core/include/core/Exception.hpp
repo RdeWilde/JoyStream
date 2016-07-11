@@ -101,6 +101,24 @@ namespace exception {
         }
     };
 
+    class TorrentAlreadyExists : public std::runtime_error {
+
+    public:
+
+        TorrentAlreadyExists(const libtorrent::sha1_hash & infoHash)
+            : std::runtime_error(toMessage(infoHash))
+            , infoHash(infoHash) {
+        }
+
+        libtorrent::sha1_hash infoHash;
+
+    private:
+
+        static std::string toMessage(const libtorrent::sha1_hash & infoHash) {
+            return std::string("Torrent already present with same info_hash: ") + infoHash.to_string();
+        }
+    };
+
     class StateIncompatibleOperation : public std::runtime_error {
 
     public:
