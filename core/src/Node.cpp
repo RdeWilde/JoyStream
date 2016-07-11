@@ -49,12 +49,12 @@ namespace core {
 
 Node::Node(joystream::bitcoin::SPVWallet * wallet)
     : _state(State::stopped)
-    , _session(Node::session_settings(),
-               libtorrent::session_handle::session_flags_t::start_default_features |
-               libtorrent::session_handle::session_flags_t::add_default_plugins)
     , _closing(false)
     , _reconnecting(false)
     , _protocolErrorsCount(0)
+    , _session(Node::session_settings(),
+               libtorrent::session_handle::session_flags_t::start_default_features |
+               libtorrent::session_handle::session_flags_t::add_default_plugins)
     , _wallet(wallet) {
 
     // Generate DHT settings
@@ -155,7 +155,7 @@ Node::~Node() {
     _wallet->stopSync();
 }
 
-void Node::start(const configuration::Node & configuration, const NodeStarted & started, const NodeStartFailed & failed) {
+void Node::start(const configuration::Node &, const NodeStarted & started, const NodeStartFailed & failed) {
 
     // We can only start from stopped state
     if(_state != State::stopped)
@@ -545,7 +545,7 @@ int Node::requestResumeData() {
 }
 */
 
-void Node::processTorrentPausedAlert(libtorrent::torrent_paused_alert const * p) {
+void Node::processTorrentPausedAlert(libtorrent::torrent_paused_alert const *) {
 
     /**
     // Get handle
@@ -612,14 +612,14 @@ void Node::processMetadataReceivedAlert(libtorrent::metadata_received_alert cons
         std::clog << "Invalid handle for received metadata.";
 }
 
-void Node::processMetadataFailedAlert(libtorrent::metadata_failed_alert const * p) {
+void Node::processMetadataFailedAlert(libtorrent::metadata_failed_alert const *) {
 
     // WHAT DO WE DO HERE?
     std::clog << "Invalid metadata received.";
     throw std::runtime_error("Invalid metadata");
 }
 
-void Node::process(libtorrent::add_torrent_alert const * p) {
+void Node::process(libtorrent::add_torrent_alert const *) {
 
     // if it worked, then callback, emit signal and apply configuration to torrent plugin
     // if it doesnt
@@ -665,7 +665,7 @@ void Node::process(libtorrent::add_torrent_alert const * p) {
 */
 }
 
-void Node::processTorrentFinishedAlert(libtorrent::torrent_finished_alert const * p) {
+void Node::processTorrentFinishedAlert(libtorrent::torrent_finished_alert const *) {
 
     /*
     p->handle.set_max_connections(max_connections_per_torrent / 2);
@@ -728,7 +728,7 @@ void Node::process(const libtorrent::save_resume_data_failed_alert * p) {
 //    }
 }
 
-void Node::processTorrentCheckedAlert(libtorrent::torrent_checked_alert const * p) {
+void Node::processTorrentCheckedAlert(libtorrent::torrent_checked_alert const *) {
 
 //    // Get handle for torrent
 //    libtorrent::torrent_handle h = p->handle;
@@ -825,7 +825,7 @@ void Node::processTorrentCheckedAlert(libtorrent::torrent_checked_alert const * 
 //    }
 }
 
-void Node::processReadPieceAlert(const libtorrent::read_piece_alert * p) {
+void Node::processReadPieceAlert(const libtorrent::read_piece_alert *) {
 
 //    // Get info hash for torrent from which this read piece comes from
 //    const libtorrent::sha1_hash infoHash = p->handle.info_hash();
@@ -849,7 +849,7 @@ void Node::processReadPieceAlert(const libtorrent::read_piece_alert * p) {
 //    }
 }
 
-void Node::processPieceFinishedAlert(const libtorrent::piece_finished_alert * p) {
+void Node::processPieceFinishedAlert(const libtorrent::piece_finished_alert *) {
 
 //    // Get info hash for torrent from which this read piece comes from
 //    const libtorrent::sha1_hash infoHash = p->handle.info_hash();
@@ -860,7 +860,7 @@ void Node::processPieceFinishedAlert(const libtorrent::piece_finished_alert * p)
 //    _torrents[infoHash]->pieceFinished(p->piece_index);
 }
 
-void Node::process(const extension::alert::RequestResult * p) {
+void Node::process(const extension::alert::RequestResult *) {
 
     // Call handler with result
     //p->resultHandler(p->result);
@@ -893,7 +893,7 @@ void Node::scheduleReconnect() {
 }
 
 // when wallet sees a transaction, either 0, 1 or 2 confirmations
-void Node::onTransactionUpdated(Coin::TransactionId txid, int confirmations) {
+void Node::onTransactionUpdated(Coin::TransactionId txid, int) {
 
     //remove matching transaction from the send queue
     std::vector<Coin::Transaction>::iterator it;
@@ -932,7 +932,7 @@ void Node::update(const std::vector<libtorrent::torrent_status> & statuses) {
         update(*i);
 }
 
-void Node::update(const libtorrent::torrent_status & status) {
+void Node::update(const libtorrent::torrent_status &) {
 
     /**
     Q_ASSERT(_torrents.contains(status.info_hash));

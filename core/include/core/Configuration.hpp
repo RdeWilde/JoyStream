@@ -111,8 +111,6 @@ struct Torrent {
 
     libtorrent::sha1_hash infoHash() const noexcept;
 
-private:
-
     // Total (bytes/second across libtorrent+plugin) upload/download limit.
     // If not set, then unlimited.
     boost::optional<uint> _uploadLimit, _downloadLimit;

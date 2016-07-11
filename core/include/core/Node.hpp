@@ -38,7 +38,7 @@ namespace extension {
 namespace core {
 namespace configuration {
     class Node;
-    class Torrent;
+    struct Torrent;
 }
 
 class Torrent;
