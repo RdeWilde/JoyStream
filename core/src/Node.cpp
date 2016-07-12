@@ -222,8 +222,6 @@ void Node::addTorrent(const configuration::Torrent & configuration, const AddedT
     //    return false;
     // }
 
-
-
     // Convert to add torrent parameters
     libtorrent::add_torrent_params params = configuration.toAddTorrentParams();
 

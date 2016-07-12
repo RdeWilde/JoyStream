@@ -233,6 +233,11 @@ private:
     // A shared pointer is used, in order to give weak pointers as
     // public handle. This is safe, sinc user and this object is maintained
     // by same thread.
+    //
+    // NB: This container should not be used as reliable indication of
+    // state inside this class, it should simply be updated based on inbound
+    // libtorrent alerts. To check on torrents, this object should use the libtorrent
+    // session itself.
     std::map<libtorrent::sha1_hash, std::shared_ptr<Torrent>> _torrents;
 
     /// User supplied callbacks to be used as response in asynchronous method calls
