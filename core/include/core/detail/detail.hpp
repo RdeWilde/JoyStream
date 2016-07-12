@@ -68,7 +68,7 @@ private:
     // Shared underlying count
     std::shared_ptr<uint> _count;
 };
-*/
+
 
 struct AddTorrentCall {
 
@@ -81,6 +81,7 @@ struct AddTorrentCall {
     AddedTorrent addedTorrent;
     configuration::Torrent configuration;
 };
+*/
 
 }
 }

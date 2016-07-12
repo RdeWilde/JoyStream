@@ -94,15 +94,6 @@ private:
 
     // TorrentPlugin
     std::shared_ptr<TorrentPlugin> _torrentPlugin;
-
-    /// User provided callback state
-
-    // Node::addTorrent
-    boost::optional<detail::AddTorrentCall> _addTorrentCall;
-
-    // Node::removeTorrent
-
-
 };
 
 }

@@ -95,20 +95,19 @@ public:
 
      @param nodeStopped callback about being actually stopped
      @throws exception::StateIncompatibleOperation: if node is not already State::started.
-     @throws all exceptions thrown by protocol_session::Stop
+     @throws all exceptions thrown by joystream::protocol_session::Stop
      @signal nodeStopped
     */
     void stop(const NodeStopped & nodeStopped);
 
     /**
-     @brief Tries to add torrent. Node must be in @State::started.
+     @brief Tries to add torrent.
 
      @param configuration
      @param addedTorrent
-     @param failedToAddTorrent
      @throws exception::TorrentAlreadyExists if torrent already has been added
+     @throws exception::StateIncompatibleOperation if node not in mode @State::started
      @signal addedTorrent
-     @signal failedToAddTorrent
      */
     void addTorrent(const configuration::Torrent & configuration, const AddedTorrent & addedTorrent);
 
@@ -175,7 +174,7 @@ signals:
     void nodeStopped();
 
     // Sent when libtorrent::add_torrent_alert is received from libtorrent
-    void addedTorrent(const Torrent *);
+    void addedTorrent(const std::shared_ptr<Torrent> &);
 
     // Torrent with given info hash was removed
     void removedTorrent(const libtorrent::sha1_hash & info_hash);

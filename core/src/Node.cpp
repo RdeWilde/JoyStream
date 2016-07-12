@@ -222,21 +222,13 @@ void Node::addTorrent(const configuration::Torrent & configuration, const AddedT
     //    return false;
     // }
 
-    // Create torrent
-    std::shared_ptr<Torrent> plugin(new Torrent(infoHash));
 
-    // and add
-    _torrents.insert(std::make_pair(infoHash, plugin));
-
-    // Store callback
-    assert(!plugin->_addTorrentCall);
-    plugin->_addTorrentCall = detail::AddTorrentCall(addedTorrent, configuration);
 
     // Convert to add torrent parameters
     libtorrent::add_torrent_params params = configuration.toAddTorrentParams();
 
     // Add torrent to session
-    _session.async_add_torrent(params);
+    _plugin->submit(extension::request::AddTorrent(params, addedTorrent));
 }
 
 void Node::removeTorrent(const libtorrent::sha1_hash & info_hash) {
@@ -619,50 +611,44 @@ void Node::processMetadataFailedAlert(libtorrent::metadata_failed_alert const *)
     throw std::runtime_error("Invalid metadata");
 }
 
-void Node::process(libtorrent::add_torrent_alert const *) {
+void Node::process(const libtorrent::add_torrent_alert * p) {
 
-    // if it worked, then callback, emit signal and apply configuration to torrent plugin
-    // if it doesnt
+    std::clog << "add_torrent_alert" << std::endl;
 
-    /**
-    Q_ASSERT(_state == State::normal);
-    Q_ASSERT(_torrents.contains(p->params.info_hash));
+    // Check that node is started
+    if(_state != State::started) {
+        std::clog << "Ignored due to incompatible node state" << std::endl;
+        return;
+    }
 
-    // Get torrent
-    Torrent * torrent = _torrents[p->params.info_hash];
+    // Get torrent info_hash
+    libtorrent::torrent_handle h = p->handle;
 
-    Q_ASSERT(torrent->status() == Torrent::Status::being_async_added_to_session);
+    if(!h.is_valid())
+        return;
 
-    // Check if there was an error
-    if (p->error) {
+    libtorrent::sha1_hash infoHash = h.info_hash();
 
-        std::clog << "Adding torrent failed, must be removed.";
-
-        // Remove torrent here, so that it does not hanga around and cause problems.
-
-        // old name arg: p->params.ti.get() != 0 ? p->params.ti->name() : name = p->params.name
-        emit failedToAddTorrent(p->params.name, p->params.info_hash, p->error);
-
-    } else {
+    // Did adding succeed
+    if(!p->error) {
 
         std::clog << "Adding torrent succeeded.";
 
-//		h.set_max_connections(max_connections_per_torrent);
-//		h.set_max_uploads(-1);
-//		h.set_upload_limit(torrent_upload_limit);
-//		h.set_download_limit(torrent_download_limit);
-//		h.use_interface(outgoing_interface.c_str());
+        // Create torrent
+        std::shared_ptr<Torrent> plugin(new Torrent(infoHash));
+
+        // and add
+        assert(_torrents.count(infoHash) == 0);
+
+        _torrents.insert(std::make_pair(infoHash, plugin));
 
         // Give copy of handle
-        torrent->setHandle(p->handle);
-
-        // Update expected event on torrent
-        torrent->setStatus(Torrent::Status::torrent_checked);
+        plugin->_handle = h;
 
         // Send notification signal
-        emit addedTorrent(torrent->model());
-	}
-*/
+        emit addedTorrent(plugin);
+    } else
+        std::clog << "Adding torrent failed:" << p->error.message() << std::endl;
 }
 
 void Node::processTorrentFinishedAlert(libtorrent::torrent_finished_alert const *) {

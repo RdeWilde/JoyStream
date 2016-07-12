@@ -10,6 +10,7 @@
 
 #include <libtorrent/socket.hpp>
 #include <libtorrent/error_code.hpp>
+#include <extension/extension.hpp>
 #include <functional>
 
 namespace joystream {
@@ -20,7 +21,8 @@ typedef std::function<void(const libtorrent::tcp::endpoint &, libtorrent::error_
 
 typedef std::function<void()> NodeStopped;
 
-typedef std::function<void(const libtorrent::error_code)> AddedTorrent;
+//typedef std::function<void(const libtorrent::error_code)> AddedTorrent;
+typedef extension::request::AddTorrent::AddTorrentHandler AddedTorrent;
 
 }
 }
