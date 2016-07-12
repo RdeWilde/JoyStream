@@ -104,8 +104,7 @@ struct Torrent {
             const std::vector<char> & resumeData,
             const std::string & savePath,
             bool pause,
-            const TorrentReference & torrentReference,
-            const TorrentPlugin & plugin);
+            const TorrentReference & torrentReference);
 
     libtorrent::add_torrent_params toAddTorrentParams() const noexcept;
 
@@ -129,9 +128,6 @@ struct Torrent {
 
     // Torrent reference
     TorrentReference _torrentReference;
-
-    // Plugin
-    TorrentPlugin _plugin;
 };
 
 class Node {

@@ -95,16 +95,14 @@ Torrent::Torrent(const boost::optional<uint> & uploadLimit,
                  const std::vector<char> & resumeData,
                  const std::string & savePath,
                  bool pause,
-                 const TorrentReference & torrentReference,
-                 const TorrentPlugin & plugin)
+                 const TorrentReference & torrentReference)
     : _uploadLimit(uploadLimit)
     , _downloadLimit(downloadLimit)
     , _name(name)
     , _resumeData(resumeData)
     , _savePath(savePath)
     , _pause(pause)
-    , _torrentReference(torrentReference)
-    , _plugin(plugin) {
+    , _torrentReference(torrentReference) {
 }
 
 libtorrent::add_torrent_params Torrent::toAddTorrentParams() const noexcept {
