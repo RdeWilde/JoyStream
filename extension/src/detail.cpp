@@ -124,6 +124,15 @@ void RequestVariantVisitor::operator()(const request::PauseLibtorrent & r) {
     sendRequestResult(r.handler);
 }
 
+void RequestVariantVisitor::operator()(const request::AddTorrent & r) {
+
+    libtorrent::error_code ec;
+    libtorrent::torrent_handle h = _plugin->_session->add_torrent(r.params, ec);
+
+    // Bind to handler and send back to user
+    sendRequestResult(std::bind(r.handler, ec, h));
+}
+
 std::exception_ptr RequestVariantVisitor::runTorrentPluginRequest(const libtorrent::sha1_hash & infoHash,
                                                                   const std::function<void(const boost::shared_ptr<TorrentPlugin> &)> & f) const {
 

@@ -30,8 +30,25 @@ typedef std::function <void(void)> NoExceptionSubroutineHandler;
 typedef std::function<void(const std::exception_ptr &)> SubroutineHandler;
 
 // A standard handler which handles requests with and explicit result, i.e. a function
-template<typename... Args>
-using FunctionHandler = std::function<void(const std::exception_ptr &, Args... args)>;
+//template<typename... Args>
+//using FunctionHandler = std::function<void(const std::exception_ptr &, Args... args)>;
+
+/// Libtorrent requests
+
+struct AddTorrent {
+
+    typedef std::function<void(libtorrent::error_code &, libtorrent::torrent_handle &)> AddTorrentHandler;
+
+    AddTorrent(const libtorrent::add_torrent_params & params, const AddTorrentHandler & handler)
+        : params(params)
+        , handler(handler) {
+    }
+
+    libtorrent::add_torrent_params params;
+    AddTorrentHandler handler;
+};
+
+/// Plugin requests
 
 struct UpdateStatus {
 
