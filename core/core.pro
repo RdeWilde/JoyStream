@@ -61,7 +61,8 @@ SOURCES += \
     src/Node.cpp \
     src/detail/detail.cpp \
     src/TorrentPlugin.cpp \
-    src/MagnetLink.cpp
+    src/MagnetLink.cpp \
+    src/Peer.cpp
 
 # extension
 INCLUDEPATH += $$PWD/../extension/include
