@@ -229,21 +229,21 @@ void Node::addTorrent(const configuration::Torrent & configuration, const AddedT
     _plugin->submit(extension::request::AddTorrent(params, addedTorrent));
 }
 
-void Node::removeTorrent(const libtorrent::sha1_hash & info_hash) {
+void Node::removeTorrent(const libtorrent::sha1_hash & info_hash, const RemoveTorrent & handler) {
+
+    // We can only stop from started state
+    if(_state != State::started)
+        throw exception::StateIncompatibleOperation(_state);
 
     // Find corresponding torrent
-    libtorrent::torrent_handle torrentHandle = _session.find_torrent(info_hash);
+    libtorrent::torrent_handle h = _session.find_torrent(info_hash);
 
     // Check that there actually was such a torrent
-    if(!torrentHandle.is_valid())
-        assert(false);
+    if(!h.is_valid())
+        throw exception::NoSuchTorrentExists(info_hash);
 
-    // Remove from session
-    // Session will send us torrent_removed_alert alert when torrent has been removed
-    // at which point we can remove torrent from model in alert handler
-    _session.remove_torrent(torrentHandle);
-
-    // when to call _removedTorrent?
+    // Add torrent to session
+    _plugin->submit(extension::request::RemoveTorrent(info_hash, handler));
 }
 
 void Node::syncWallet() {
@@ -426,7 +426,7 @@ void Node::processAlert(const libtorrent::alert * a) {
     else if (libtorrent::state_update_alert const * p = libtorrent::alert_cast<libtorrent::state_update_alert>(a))
         processStatusUpdateAlert(p);
     else if(libtorrent::torrent_removed_alert const * p = libtorrent::alert_cast<libtorrent::torrent_removed_alert>(a))
-        processTorrentRemovedAlert(p);
+        process(p);
     else if(libtorrent::save_resume_data_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_alert>(a))
         process(p);
     else if(libtorrent::save_resume_data_failed_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_failed_alert>(a))
@@ -562,20 +562,25 @@ void Node::processTorrentPausedAlert(libtorrent::torrent_paused_alert const *) {
     */
 }
 
-void Node::processTorrentRemovedAlert(libtorrent::torrent_removed_alert const * p) {
+void Node::process(const libtorrent::torrent_removed_alert * p) {
 
     /*
-     * NOTICE: Docs say p->handle may be invalid at this time,
+     * NOTICE: Docs say p->handle may be invalid at this time - likely because this is a removal operation,
      * so we must use p->info_hash instead.
      */
 
     // Get torrent info hash
     libtorrent::sha1_hash info_hash = p->info_hash;
 
-    // Remove from view
-    removedTorrent(info_hash);
+    // Get torrent and remove it
+    auto it = _torrents.find(info_hash);
 
-    std::clog << "Found match and removed it.";
+    assert(it != _torrents.cend());
+
+    _torrents.erase(it);
+
+    // Send signal
+    emit removedTorrent(info_hash);
 }
 
 void Node::processMetadataReceivedAlert(libtorrent::metadata_received_alert const * p) {

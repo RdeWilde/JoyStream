@@ -48,6 +48,17 @@ struct AddTorrent {
     AddTorrentHandler handler;
 };
 
+struct RemoveTorrent {
+
+    RemoveTorrent(const libtorrent::sha1_hash & infoHash, const SubroutineHandler & handler)
+        : infoHash(infoHash)
+        , handler(handler) {
+    }
+
+    libtorrent::sha1_hash infoHash;
+    SubroutineHandler handler;
+};
+
 /// Plugin requests
 
 struct UpdateStatus {

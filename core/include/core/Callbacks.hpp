@@ -24,6 +24,8 @@ typedef std::function<void()> NodeStopped;
 //typedef std::function<void(const libtorrent::error_code)> AddedTorrent;
 typedef extension::request::AddTorrent::AddTorrentHandler AddedTorrent;
 
+typedef extension::request::SubroutineHandler RemoveTorrent;
+
 }
 }
 

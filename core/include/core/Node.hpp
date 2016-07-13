@@ -112,14 +112,15 @@ public:
     void addTorrent(const configuration::Torrent & configuration, const AddedTorrent & addedTorrent);
 
     /**
-     @brief Tries to remove torrent. Node must be in @State::started, and torrent must be exist.
+     @brief Tries to remove torrent.
 
-     @param info_hash: info_hash of torrent
-     @throws no such torrent exists
-     @throws is in the process of being removed?
-     @signal torrentRemoved
+     @param info_hash info_hash of torrent
+     @param RemoveTorrent callback when operation is completed
+     @throws exception::StateIncompatibleOperation if node not in mode @State::started
+     @throws exception::NoSuchTorrentExists if no such torrent exists
+     @signal removedTorrent
      */
-    void removeTorrent(const libtorrent::sha1_hash & info_hash);
+    void removeTorrent(const libtorrent::sha1_hash & info_hash, const RemoveTorrent & handler);
 
     /**NB: Move out of controller and onto wallet interface **/
     void syncWallet();
@@ -271,7 +272,7 @@ private:
     void process(const libtorrent::add_torrent_alert *);
     void processTorrentFinishedAlert(const libtorrent::torrent_finished_alert *);
     void processStatusUpdateAlert(const libtorrent::state_update_alert *);
-    void processTorrentRemovedAlert(const libtorrent::torrent_removed_alert *);
+    void process(const libtorrent::torrent_removed_alert *);
     void process(const libtorrent::save_resume_data_alert *);
     void process(const libtorrent::save_resume_data_failed_alert * p);
     void processTorrentPausedAlert(const libtorrent::torrent_paused_alert *);

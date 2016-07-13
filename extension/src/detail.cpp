@@ -133,6 +133,21 @@ void RequestVariantVisitor::operator()(const request::AddTorrent & r) {
     sendRequestResult(std::bind(r.handler, ec, h));
 }
 
+void RequestVariantVisitor::operator()(const request::RemoveTorrent & r) {
+
+    libtorrent::torrent_handle h = _plugin->_session->find_torrent_handle(r.infoHash);
+
+    alert::LoadedCallback callback;
+
+    if(!h.is_valid())
+        callback = std::bind(r.handler, exception::MissingTorrent());
+    else
+        _plugin->_session->remove_torrent(h);
+
+    // Send back to user
+    sendRequestResult(callback);
+}
+
 std::exception_ptr RequestVariantVisitor::runTorrentPluginRequest(const libtorrent::sha1_hash & infoHash,
                                                                   const std::function<void(const boost::shared_ptr<TorrentPlugin> &)> & f) const {
 
