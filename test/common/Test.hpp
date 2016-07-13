@@ -54,6 +54,12 @@ private slots:
     void P2SHMultisigScriptPubKey();
     void P2SHMultisigScriptSig();
 
+    /**
+      * BIP 39 Seed
+      */
+
+    void BIP39();
+
 private:
 
     static bool sighash(const QJsonArray & fixture);

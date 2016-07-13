@@ -52,6 +52,10 @@ public:
     // Synchrounously generates new seed, is quite slow?
     static Seed generate();
 
+    static Seed bip39(uchar_vector entropy, std::string passphrase = "");
+
+    static Seed bip39(std::string wordList, std::string passphrase = "");
+
     // Generate a HD key chain from seed
     Coin::HDKeychain generateHDKeychain();
 
