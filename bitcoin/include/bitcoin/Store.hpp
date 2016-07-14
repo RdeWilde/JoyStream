@@ -10,6 +10,7 @@
 #include <common/UnspentP2SHOutput.hpp>
 #include <common/P2SHAddress.hpp>
 #include <common/P2PKScriptPubKey.hpp>
+#include <common/Entropy.hpp>
 
 #include <CoinCore/hdkeys.h>
 #include <CoinCore/CoinNodeData.h>
@@ -60,14 +61,14 @@ public:
 
     bool open(std::string file);
     bool create(std::string file, Coin::Network network);
-    bool create(std::string file, Coin::Network network, uchar_vector entropy, uint32_t timestamp);
+    bool create(std::string file, Coin::Network network, const Coin::Entropy &entropy, uint32_t timestamp);
     bool connected() const;
     void close();
 
     Coin::Network network() const { return _network; }
     uint32_t created() const { return _timestamp; }
     Coin::Seed seed() const { return _seed; }
-    std::string getSeedWords() const { return Coin::BIP39::toWordlist(_entropy); }
+    std::string getSeedWords() const { return _entropy.mnemonic(); }
 
     // Return a new private key
     Coin::PrivateKey generateKey(const RedeemScriptGenerator & scriptGenerator);
@@ -110,7 +111,7 @@ private:
     Store(const Store &){}
 
     Coin::Network _network;
-    uchar_vector _entropy;
+    Coin::Entropy _entropy;
     Coin::Seed _seed;
     Coin::HDKeychain _rootKeychain;
     uint32_t _timestamp;

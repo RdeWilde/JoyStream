@@ -19,6 +19,9 @@ class Entropy : public Coin::UCharArray<WALLET_ENTROPY_BYTE_LENGTH> {
 
 public:
 
+    // Default constructor
+    Entropy();
+
     // Constructor from raw data
     explicit Entropy(const QByteArray & raw);
 
@@ -43,10 +46,6 @@ public:
 
     // Secure destructor
     ~Entropy();
-
-private:
-    // private Default constructor
-    Entropy();
 };
 
 }

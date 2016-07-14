@@ -40,8 +40,8 @@ const QList<Seed> Seed::testSeeds = QList<Seed>()
 Seed::Seed() {
 }
 
-Seed::Seed(const char * raw)
-    : Coin::UCharArray<WALLET_SEED_BYTE_LENGTH>(raw) {
+Seed::Seed(const char * hexEncoded)
+    : Coin::UCharArray<WALLET_SEED_BYTE_LENGTH>(hexEncoded) {
 }
 
 Seed::Seed(const QByteArray & raw)
@@ -67,34 +67,6 @@ Seed Seed::generate() {
     }
 
     return s;
-}
-
-Seed Seed::bip39(uchar_vector entropy, std::string passphrase) {
-    // Convert entropy to mnemonic phrase
-    const char * wordlist = Coin::BIP39::toWordlist(entropy).c_str();
-    const char * salt = ("mnemonic" + passphrase).c_str();
-
-    // Convert nmemonic phrase to seed
-    /* https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
-     * To create a binary seed from the mnemonic, we use the PBKDF2 function with a mnemonic sentence
-     * (in UTF-8 NFKD) used as the password and the string "mnemonic" + passphrase (again in UTF-8 NFKD)
-     * used as the salt. The iteration count is set to 2048 and HMAC-SHA512 is used as the pseudo-random function.
-     * The length of the derived key is 512 bits (= 64 bytes).
-     */
-
-    unsigned char seed[WALLET_SEED_BYTE_LENGTH];
-    if(!PKCS5_PBKDF2_HMAC(wordlist, strlen(wordlist), (unsigned char*)salt, strlen(salt), 2048, EVP_sha512(), WALLET_SEED_BYTE_LENGTH, seed)){
-        throw std::runtime_error("Error computing bip39 seed");
-    }
-
-    // Construct Seed from raw seed
-    QByteArray raw((char*)seed, WALLET_SEED_BYTE_LENGTH);
-
-    return Seed(raw);
-}
-
-Seed Seed::bip39(std::string wordList, std::string passphrase) {
-    return bip39(Coin::BIP39::fromWordlist(wordList), passphrase);
 }
 
 Coin::HDKeychain Seed::generateHDKeychain() {

@@ -138,7 +138,7 @@ void SPVWallet::create() {
     updateStatus(wallet_status_t::OFFLINE);
 }
 
-void SPVWallet::create(uchar_vector entropy, uint32_t timestamp) {
+void SPVWallet::create(const Coin::Entropy & entropy, uint32_t timestamp) {
 
     if(isInitialized()) {
         throw std::runtime_error("wallet already opened");

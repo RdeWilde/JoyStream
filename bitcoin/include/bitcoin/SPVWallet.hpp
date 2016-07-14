@@ -15,6 +15,7 @@ class Test;
 
 namespace Coin {
     class UnspentOutputSet;
+    class Entropy;
 }
 
 namespace joystream {
@@ -52,7 +53,7 @@ public:
     // Create a new wallet bip39 seed generated from provided entropy
     // Important - Creating a wallet with a predefined entropy does not by itself restore
     // a wallet.
-    void create(uchar_vector entropy, uint32_t timestamp = 0);
+    void create(const Coin::Entropy &entropy, uint32_t timestamp = 0);
 
     // Open the wallet. Will throw exception on failure
     void open();
