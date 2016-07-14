@@ -46,13 +46,15 @@ public:
 
     explicit SPVWallet(std::string storePath, std::string blockTreeFile, Coin::Network network = Coin::Network::testnet3);
 
-    // Create a new wallet with auto generated seed
+    // Create a new wallet (auto generated bip39 seed)
     void create();
 
-    // Create a new wallet with provided seed (useful for recovering a wallet from seed)
-    void create(Coin::Seed seed, uint32_t timestamp = 0);
+    // Create a new wallet bip39 seed generated from provided entropy
+    // Important - Creating a wallet with a predefined entropy does not by itself restore
+    // a wallet.
+    void create(uchar_vector entropy, uint32_t timestamp = 0);
 
-    // Open the wallet. Will throw exception on failure.
+    // Open the wallet. Will throw exception on failure
     void open();
 
     // Start Synching the wallet with peer at host:port
@@ -91,6 +93,8 @@ public:
     Q_INVOKABLE void broadcastTx(Coin::Transaction cointx);
 
     int32_t bestHeight() const;
+
+    std::string getSeedWords() const;
 
 signals:
 

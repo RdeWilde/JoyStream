@@ -15,6 +15,7 @@
 #include <CoinCore/CoinNodeData.h>
 #include <CoinQ/CoinQ_blocks.h>
 #include <CoinCore/BloomFilter.h>
+#include <CoinCore/bip39.h>
 
 #include <bitcoin/Common.hpp>
 
@@ -59,13 +60,14 @@ public:
 
     bool open(std::string file);
     bool create(std::string file, Coin::Network network);
-    bool create(std::string file, Coin::Network network, Coin::Seed seed, uint32_t timestamp);
+    bool create(std::string file, Coin::Network network, uchar_vector entropy, uint32_t timestamp);
     bool connected() const;
     void close();
 
     Coin::Network network() const { return _network; }
     uint32_t created() const { return _timestamp; }
     Coin::Seed seed() const { return _seed; }
+    std::string getSeedWords() const { return Coin::BIP39::toWordlist(_entropy); }
 
     // Return a new private key
     Coin::PrivateKey generateKey(const RedeemScriptGenerator & scriptGenerator);
@@ -108,6 +110,7 @@ private:
     Store(const Store &){}
 
     Coin::Network _network;
+    uchar_vector _entropy;
     Coin::Seed _seed;
     Coin::HDKeychain _rootKeychain;
     uint32_t _timestamp;

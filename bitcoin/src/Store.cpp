@@ -13,6 +13,9 @@
 
 #include <QString>
 
+#include <openssl/rand.h>
+#include <openssl/err.h>
+
 namespace joystream {
 namespace bitcoin {
 
@@ -85,8 +88,9 @@ bool Store::open(std::string file) {
         t.commit();
 
         _network = metadata->network();
+        _entropy = uchar_vector(metadata->entropy());
         _seed.clear();
-        _seed = Coin::Seed(QString::fromStdString(metadata->seed()));
+        _seed = Coin::Seed::bip39(_entropy);
         _rootKeychain = _seed.generateHDKeychain();
         _timestamp = metadata->created();
         return true;
@@ -104,10 +108,10 @@ bool Store::open(std::string file) {
 }
 
 bool Store::create(std::string file, Coin::Network network) {
-    return create(file, network, Coin::Seed::generate(), std::time(nullptr));
+    return create(file, network, uchar_vector(), std::time(nullptr));
 }
 
-bool Store::create(std::string file, Coin::Network network, Coin::Seed seed, uint32_t timestamp) {
+bool Store::create(std::string file, Coin::Network network, uchar_vector entropy, uint32_t timestamp) {
 
     close();
 
@@ -135,10 +139,19 @@ bool Store::create(std::string file, Coin::Network network, Coin::Seed seed, uin
 
         //initialise metadata
         _network = network;
-        _seed = seed;
+        _entropy = entropy;
+        if(_entropy.empty()) {
+            // get 128 bits of entropy -> 12 mnemonic words
+            Coin::UCharArray<16> randomBytes;
+            if (!RAND_bytes(&randomBytes.at(0), 16)) {
+                throw std::runtime_error(ERR_error_string(ERR_get_error(), NULL));
+            }
+            _entropy = randomBytes.toUCharVector();
+        }
+        _seed = Coin::Seed::bip39(_entropy);
         _rootKeychain = _seed.generateHDKeychain();
         _timestamp = timestamp;
-        detail::store::Metadata metadata(seed.toHex().toStdString(), network, timestamp);
+        detail::store::Metadata metadata(_entropy.getHex(), network, timestamp);
         _timestamp = timestamp;
         _db->persist(metadata);
 

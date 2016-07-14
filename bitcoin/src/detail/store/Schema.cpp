@@ -18,14 +18,14 @@ namespace store {
 
     Metadata::Metadata(){}
 
-    Metadata::Metadata(std::string seed, Coin::Network net, uint32_t created_utc) :
-        seed_(seed),
+    Metadata::Metadata(std::string entropy, Coin::Network net, uint32_t created_utc) :
+        entropy_(entropy),
         network_(net),
         created_(created_utc)
     {}
 
-    std::string Metadata::seed() const {
-        return seed_;
+    std::string Metadata::entropy() const {
+        return entropy_;
     }
 
     Coin::Network Metadata::network() const {

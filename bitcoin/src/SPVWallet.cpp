@@ -138,13 +138,13 @@ void SPVWallet::create() {
     updateStatus(wallet_status_t::OFFLINE);
 }
 
-void SPVWallet::create(Coin::Seed seed, uint32_t timestamp) {
+void SPVWallet::create(uchar_vector entropy, uint32_t timestamp) {
 
     if(isInitialized()) {
         throw std::runtime_error("wallet already opened");
     }
 
-    if(!_store.create(_storePath, _network, seed, timestamp == 0 ? std::time(nullptr) : timestamp)){
+    if(!_store.create(_storePath, _network, entropy, timestamp == 0 ? std::time(nullptr) : timestamp)){
         throw std::runtime_error("unable to create store");
     }
 
@@ -323,6 +323,10 @@ int32_t SPVWallet::bestHeight() const {
     }
 
     return _store.getBestHeaderHeight();
+}
+
+std::string SPVWallet::getSeedWords() const {
+    return _store.getSeedWords();
 }
 
 Coin::UnspentOutputSet

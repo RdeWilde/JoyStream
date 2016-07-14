@@ -113,7 +113,7 @@ void Test::cleanupTestCase() {
 void Test::walletCreation() {
     // Should create a fresh new wallet
     try{
-        _walletA->create(WALLET_SEED); // Return Metadata from store ?
+        _walletA->create();
         QVERIFY(true);
     } catch(std::exception & e) {
         QVERIFY(false);
@@ -161,8 +161,8 @@ void Test::Synching() {
     QSignalSpy spy_blocks_synched(_walletA, SIGNAL(synched()));
     QSignalSpy spy_store_error(_walletA, SIGNAL(storeUpdateFailed(std::string)));
 
-    _walletA->create(WALLET_SEED);
-
+    //_walletA->create(WALLET_SEED);
+    _walletA->create();
     // Should connect and synch headers
     _walletA->sync("localhost", 18444);
 
@@ -204,7 +204,8 @@ void Test::BalanceCheck() {
     QSignalSpy spy_blocks_synched(_walletA, SIGNAL(synched()));
     QSignalSpy spy_store_error(_walletA, SIGNAL(storeUpdateFailed(std::string)));
 
-    _walletA->create(WALLET_SEED);
+    //_walletA->create(WALLET_SEED);
+    _walletA->create();
 
     Coin::P2SHAddress addr = _walletA->generateReceiveAddress();
 

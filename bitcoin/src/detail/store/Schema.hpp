@@ -44,18 +44,17 @@ class Metadata : public std::enable_shared_from_this<Metadata> {
     std::shared_ptr<Metadata> get_shared_ptr() { return shared_from_this(); }
 
     Metadata();
-    Metadata(std::string seed, Coin::Network network, uint32_t created_utc);
+    Metadata(std::string entropy, Coin::Network network, uint32_t created_utc);
 
-    std::string seed() const;
+    std::string entropy() const;
     Coin::Network network() const;
     uint32_t created() const;
 
   private:
     friend class odb::access;
 
-    //TODO: store encrypted seed
     #pragma db not_null
-    std::string seed_;
+    std::string entropy_;
     #pragma db not_null
     Coin::Network network_;
     //utc unix timestamp: QDateTime::fromTime_t(created_) to convert to QDateTime local time
