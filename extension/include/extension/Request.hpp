@@ -59,6 +59,30 @@ struct RemoveTorrent {
     SubroutineHandler handler;
 };
 
+struct PauseTorrent {
+
+    PauseTorrent(const libtorrent::sha1_hash & infoHash, bool graceful, const SubroutineHandler & handler)
+        : infoHash(infoHash)
+        , graceful(graceful)
+        , handler(handler) {
+    }
+
+    libtorrent::sha1_hash infoHash;
+    bool graceful;
+    SubroutineHandler handler;
+};
+
+struct ResumeTorrent {
+
+    ResumeTorrent(const libtorrent::sha1_hash & infoHash, const SubroutineHandler & handler)
+        : infoHash(infoHash)
+        , handler(handler) {
+    }
+
+    libtorrent::sha1_hash infoHash;
+    SubroutineHandler handler;
+};
+
 /// Plugin requests
 
 struct UpdateStatus {

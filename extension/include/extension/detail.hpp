@@ -34,7 +34,9 @@ typedef boost::variant<request::Start,
                        request::StopAllTorrentPlugins,
                        request::PauseLibtorrent,
                        request::AddTorrent,
-                       request::RemoveTorrent> RequestVariant;
+                       request::RemoveTorrent,
+                       request::PauseTorrent,
+                       request::ResumeTorrent> RequestVariant;
 
 class RequestVariantVisitor : public boost::static_visitor<> {
 
@@ -57,6 +59,8 @@ public:
     void operator()(const request::PauseLibtorrent & r);
     void operator()(const request::AddTorrent & r);
     void operator()(const request::RemoveTorrent & r);
+    void operator()(const request::PauseTorrent & r);
+    void operator()(const request::ResumeTorrent & r);
 
 private:
 

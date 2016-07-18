@@ -140,9 +140,48 @@ void RequestVariantVisitor::operator()(const request::RemoveTorrent & r) {
     alert::LoadedCallback callback;
 
     if(!h.is_valid())
-        callback = std::bind(r.handler, exception::MissingTorrent());
+        callback = std::bind(r.handler, std::make_exception_ptr(exception::MissingTorrent()));
     else
-        _plugin->_session->remove_torrent(h);
+        _plugin->_session->remove_torrent(h, 0);
+
+    // Send back to user
+    sendRequestResult(callback);
+}
+
+void RequestVariantVisitor::operator()(const request::PauseTorrent & r) {
+
+    // Find torrent
+    boost::weak_ptr<libtorrent::torrent> w = _plugin->_session->find_torrent(r.infoHash);
+
+    alert::LoadedCallback callback;
+
+    // Pause if torrent was available, otherwise attach exception
+    if(auto torrent = w.lock())
+        torrent->pause(r.graceful);
+    else
+        callback = std::bind(r.handler, std::make_exception_ptr(exception::MissingTorrent()));
+
+    // Send back to user
+    sendRequestResult(callback);
+}
+
+void RequestVariantVisitor::operator()(const request::ResumeTorrent & r) {
+
+    // Find torrent
+    boost::weak_ptr<libtorrent::torrent> w = _plugin->_session->find_torrent(r.infoHash);
+
+    alert::LoadedCallback callback;
+
+    // Resume if torrent was available, otherwise attach exception
+    if(auto torrent = w.lock())
+
+        //if(torrent->is_paused())
+        //    callback = std::bind(r.handler, exception::MissingTorrent());
+        //else
+            torrent->resume();
+
+    else
+        callback = std::bind(r.handler, std::make_exception_ptr(exception::MissingTorrent()));
 
     // Send back to user
     sendRequestResult(callback);
