@@ -631,8 +631,8 @@ Store::getUnspentTransactionsOutputs(int32_t confirmations, int32_t main_chain_h
 
     for(auto & output : outputs) {
 
-        // Filter P2SH addresses with a script filter
-        if(scriptFilter && output.address->redeemScript() != "" && !scriptFilter(uchar_vector(output.address->redeemScript()))){
+        // Filter addresses with a script filter
+        if(scriptFilter && !scriptFilter(uchar_vector(output.address->redeemScript()))){
             continue;
         }
 
