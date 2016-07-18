@@ -18,13 +18,11 @@ namespace core {
 
 typedef std::function<void(const libtorrent::tcp::endpoint &)> NodeStarted;
 typedef std::function<void(const libtorrent::tcp::endpoint &, libtorrent::error_code)> NodeStartFailed;
-
 typedef std::function<void()> NodeStopped;
-
-//typedef std::function<void(const libtorrent::error_code)> AddedTorrent;
 typedef extension::request::AddTorrent::AddTorrentHandler AddedTorrent;
-
-typedef extension::request::SubroutineHandler RemoveTorrent;
+typedef extension::request::SubroutineHandler RemovedTorrent;
+typedef extension::request::SubroutineHandler TorrentPaused;
+typedef extension::request::SubroutineHandler TorrentResumed;
 
 }
 }
