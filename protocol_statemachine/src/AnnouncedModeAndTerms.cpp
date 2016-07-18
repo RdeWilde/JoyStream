@@ -29,6 +29,10 @@ namespace protocol_statemachine {
             return true; // if mode is not set, or is obseve, then we are done
     }
 
+    bool AnnouncedModeAndTerms::operator!=(const AnnouncedModeAndTerms & rhs) const {
+        return !(*this == rhs);
+    }
+
     void AnnouncedModeAndTerms::toObserve() {
         _modeAnnounced = ModeAnnounced::observe;
     }
