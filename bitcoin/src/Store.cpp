@@ -288,8 +288,7 @@ Coin::PrivateKey Store::generateChangeKey() {
     return generateKey(1);//TODO: use enum instead of magic numbers
 }
 
-// This is not really required, better to return public keys corresponding to receive and change addresses for bloom filter
-std::vector<Coin::PrivateKey> Store::listPrivateKeys() {
+std::vector<Coin::PrivateKey> Store::listPrivateKeys(uint32_t change) {
     if(!connected()) {
         throw NotConnected();
     }
@@ -300,7 +299,7 @@ std::vector<Coin::PrivateKey> Store::listPrivateKeys() {
     std::vector<Coin::PrivateKey> keys;
 
     odb::transaction t(_db->begin());
-    result r(_db->query<detail::store::key_view_t>(query::address::id.is_not_null() && query::key::path.coin_type == _coin_type));
+    result r(_db->query<detail::store::key_view_t>(query::address::id.is_not_null() && query::key::path.coin_type == _coin_type && query::key::path.change == change));
     for(auto &entry : r) {
         keys.push_back(entry.key->getPrivateKey());
     }
@@ -329,6 +328,7 @@ std::vector<uchar_vector> Store::listRedeemScripts() {
     return scripts;
 }
 
+/*
 std::list<Coin::Transaction> Store::listTransactions() {
     if(!connected()) {
         throw NotConnected();
@@ -351,7 +351,6 @@ std::list<Coin::Transaction> Store::listTransactions() {
     return transactions;
 }
 
-/*
 std::list<Coin::P2SHAddress> Store::listAddresses() {
 
     std::list<Coin::P2SHAddress> p2shAddresses;
@@ -379,6 +378,7 @@ bool Store::addressExists(const Coin::P2SHAddress & p2shaddress) {
 
     return false;
 }
+*/
 
 bool Store::transactionExists(const Coin::TransactionId & txid) {
     if(!connected()) {
@@ -390,7 +390,6 @@ bool Store::transactionExists(const Coin::TransactionId & txid) {
     odb::result<detail::store::Transaction> r(_db->query<detail::store::Transaction>(odb::query<detail::store::Transaction>::txid == txid.toHex().toStdString()));
     return !r.empty();
 }
-*/
 
 void Store::addTransaction(const Coin::Transaction & cointx) {
     if(!connected()) {

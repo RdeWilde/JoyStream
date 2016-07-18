@@ -95,13 +95,13 @@ public:
 
     Coin::PrivateKey generateChangeKey();
 
-    std::vector<Coin::PrivateKey> listPrivateKeys();
+    std::vector<Coin::PrivateKey> listPrivateKeys(uint32_t change);
     std::vector<uchar_vector> listRedeemScripts();
-    std::list<Coin::Transaction> listTransactions();
-    //std::list<Coin::P2SHAddress> listAddresses();
 
+    //std::list<Coin::Transaction> listTransactions();
+    //std::list<Coin::P2SHAddress> listAddresses();
     //bool addressExists(const Coin::P2SHAddress & p2shaddress);
-    //bool transactionExists(const Coin::TransactionId & txid);
+    bool transactionExists(const Coin::TransactionId & txid);
     //bool loadKey(const Coin::P2SHAddress &p2shaddress, Coin::PrivateKey & sk);
 
     std::list<std::shared_ptr<Coin::UnspentOutput> > getUnspentTransactionsOutputs(int32_t confirmations = 0, int32_t main_chain_height = 0, const RedeemScriptFilter & scriptFilter = nullptr) const;

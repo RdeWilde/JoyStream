@@ -78,10 +78,15 @@ public:
     std::vector<Coin::PrivateKey> generateKeys(const std::vector<RedeemScriptGenerator> & scriptGenerators);
     std::vector<Coin::KeyPair> generateKeyPairs(const std::vector<RedeemScriptGenerator> & scriptGenerators);
 
-    // Generate a Key with a P2PK redeem script
-    Coin::P2SHAddress generateReceiveAddress();
+    // Generate a Key for external use
+    Coin::PublicKey generateReceivePublicKey();
 
-    std::list<Coin::P2SHAddress> listAddresses();
+    // Generate a Key for internal use (change address)
+    Coin::PublicKey generateChangePublicKey();
+
+    //Generate addresses..
+    Coin::P2PKHAddress generateReceiveAddress();
+    Coin::P2PKHAddress generateChangeAddress();
 
     Coin::UnspentOutputSet lockOutputs(uint64_t minValue, uint32_t minimalConfirmations = 0, const Store::RedeemScriptFilter &scriptFilter = nullptr);
     uint unlockOutputs(const Coin::UnspentOutputSet & outputs);
@@ -167,9 +172,10 @@ private:
     void onMerkleBlock(const ChainMerkleBlock& chainmerkleblock);
 
     std::set<uchar_vector> _bloomFilterScripts;
+    std::set<Coin::PublicKey> _bloomFilterPubKeys;
     std::set<uchar_vector> _scriptPubKeys;
 
-    void updateBloomFilter(const std::vector<uchar_vector> redeemScripts);
+    void updateBloomFilter(const std::vector<uchar_vector> redeemScripts, const std::vector<Coin::PublicKey> publicKeys);
 
     bool transactionShouldBeStored(const Coin::Transaction &) const;
     bool spendsWalletOutput(const Coin::TxIn &) const;
@@ -183,7 +189,9 @@ private:
     // Prefix methods only required from unit tests with test_
     void test_syncBlocksStaringAtHeight(int32_t height);
     int32_t test_netsyncBestHeight() const { return _networkSync.getBestHeight(); }
+    Coin::Transaction test_sendToAddress(uint64_t value, const Coin::P2PKHAddress &destinationAddr, uint64_t fee);
     Coin::Transaction test_sendToAddress(uint64_t value, const Coin::P2SHAddress &destinationAddr, uint64_t fee);
+    Coin::Transaction test_sendToAddress(uint64_t value, const uchar_vector &scriptPubKey, uint64_t fee);
 
 };
 

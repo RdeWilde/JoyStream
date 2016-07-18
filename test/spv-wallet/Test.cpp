@@ -13,6 +13,7 @@
 #include <common/Seed.hpp>
 #include <common/PrivateKey.hpp>
 #include <common/PublicKey.hpp>
+#include <common/P2PKHAddress.hpp>
 #include <common/UnspentOutput.hpp>
 #include <common/UnspentOutputSet.hpp>
 #include <common/Utilities.hpp>
@@ -146,16 +147,6 @@ void Test::walletCreation() {
 
 }
 
-void Test::networkMismatchOnOpeningWallet() {
-    joystream::bitcoin::Store s;
-
-    // assuming a mainnet wallet already exists
-    s.create(TEST_WALLET_PATH_A, Coin::Network::mainnet);
-
-    // Wallet configured for regtest should fail
-    QVERIFY_EXCEPTION_THROWN(_walletA->open(), std::exception);
-}
-
 void Test::Synching() {
 
     QSignalSpy spy_blocks_synched(_walletA, SIGNAL(synched()));
@@ -207,7 +198,7 @@ void Test::BalanceCheck() {
     //_walletA->create(WALLET_SEED);
     _walletA->create();
 
-    Coin::P2SHAddress addr = _walletA->generateReceiveAddress();
+    auto addr = _walletA->generateReceiveAddress();
 
     // Should connect and synch headers
     _walletA->sync("localhost", 18444);
@@ -268,9 +259,9 @@ void Test::BalanceCheck() {
 void Test::Utxo() {
     _walletA->create();
 
-    Coin::P2SHAddress addr1 = _walletA->generateReceiveAddress();
-    Coin::P2SHAddress addr2 = _walletA->generateReceiveAddress();
-    Coin::P2SHAddress addr3 = _walletA->generateReceiveAddress();
+    auto addr1 = _walletA->generateReceiveAddress();
+    auto addr2 = _walletA->generateReceiveAddress();
+    auto addr3 = _walletA->generateReceiveAddress();
 
     bitcoin_rpc("sendtoaddress " + addr1.toBase58CheckEncoding().toStdString() + " 0.00100"); // 100,000 satoshi (2 conf)
     bitcoin_rpc("generate 1");
@@ -301,7 +292,7 @@ void Test::Utxo() {
         auto utxos(_walletA->lockOutputs(100000, 2));
         QCOMPARE(int(utxos.size()), 1);
         QCOMPARE(uint64_t(utxos.value()), uint64_t(100000));
-        QCOMPARE((*utxos.begin())->scriptPubKey().getHex(), addr1.toP2SHScriptPubKey().serialize().getHex());
+        QCOMPARE((*utxos.begin())->scriptPubKey().getHex(), Coin::P2PKHScriptPubKey(addr1.pubKeyHash()).serialize().getHex());
         lockedOutputs.insert(*utxos.begin());
     }
 
@@ -309,7 +300,7 @@ void Test::Utxo() {
         auto utxos(_walletA->lockOutputs(50000, 1));
         QCOMPARE(int(utxos.size()), 1);
         QCOMPARE(uint64_t(utxos.value()), uint64_t(50000));
-        QCOMPARE((*utxos.begin())->scriptPubKey().getHex(), addr2.toP2SHScriptPubKey().serialize().getHex());
+        QCOMPARE((*utxos.begin())->scriptPubKey().getHex(), Coin::P2PKHScriptPubKey(addr2.pubKeyHash()).serialize().getHex());
         lockedOutputs.insert(*utxos.begin());
     }
 
@@ -323,7 +314,7 @@ void Test::Utxo() {
         auto utxos(_walletA->lockOutputs(25000, 0));
         QCOMPARE(int(utxos.size()), 1);
         QCOMPARE(uint64_t(utxos.value()), uint64_t(25000));
-        QCOMPARE((*utxos.begin())->scriptPubKey().getHex(), addr3.toP2SHScriptPubKey().serialize().getHex());
+        QCOMPARE((*utxos.begin())->scriptPubKey().getHex(), Coin::P2PKHScriptPubKey(addr3.pubKeyHash()).serialize().getHex());
         lockedOutputs.insert(*utxos.begin());
     }
 
@@ -349,8 +340,8 @@ void Test::BroadcastingTx() {
     _walletA->create();
     _walletB->create();
 
-    Coin::P2SHAddress addrA = _walletA->generateReceiveAddress();
-    Coin::P2SHAddress addrB = _walletB->generateReceiveAddress();
+    auto addrA = _walletA->generateReceiveAddress();
+    auto addrB = _walletB->generateReceiveAddress();
 
     bitcoin_rpc("sendtoaddress " + addrA.toBase58CheckEncoding().toStdString() + " 0.00050");
     bitcoin_rpc("sendtoaddress " + addrA.toBase58CheckEncoding().toStdString() + " 0.00050");
@@ -426,8 +417,8 @@ void Test::FinanceTxFromMultipleSets() {
     _walletA->create();
     _walletB->create();
 
-    Coin::P2SHAddress addrA = _walletA->generateReceiveAddress();
-    Coin::P2SHAddress addrB = _walletB->generateReceiveAddress();
+    auto addrA = _walletA->generateReceiveAddress();
+    auto addrB = _walletB->generateReceiveAddress();
 
     bitcoin_rpc("sendtoaddress " + addrA.toBase58CheckEncoding().toStdString() + " 0.00050");
     bitcoin_rpc("sendtoaddress " + addrA.toBase58CheckEncoding().toStdString() + " 0.00050");
@@ -453,8 +444,8 @@ void Test::FinanceTxFromMultipleSets() {
 
     Coin::Transaction tx;
 
-    tx.addOutput(Coin::TxOut(70000, addrB.toP2SHScriptPubKey().serialize())); // to walletB
-    tx.addOutput(Coin::TxOut(25000, addrA.toP2SHScriptPubKey().serialize())); // change
+    tx.addOutput(Coin::TxOut(70000, Coin::P2PKHScriptPubKey(addrB.pubKeyHash()).serialize())); // to walletB
+    tx.addOutput(Coin::TxOut(25000, Coin::P2PKHScriptPubKey(addrA.pubKeyHash()).serialize())); // change
 
     utxoSet1.finance(tx, Coin::SigHashType(Coin::SigHashType::MutuallyExclusiveType::all, true));
     utxoSet2.finance(tx, Coin::SigHashType(Coin::SigHashType::MutuallyExclusiveType::all, true));

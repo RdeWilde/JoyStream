@@ -155,19 +155,24 @@ void SPVWallet::open() {
 
     // Only open the store once
     if(!isInitialized()) {
-        if(!_store.open(_storePath)) {
+        if(!_store.open(_storePath, _network)) {
             throw std::runtime_error("failed to open wallet");
-        }
-
-        if(_network != _store.network()){
-            throw std::runtime_error("store network type mistmatch");
         }
 
         updateStatus(wallet_status_t::OFFLINE);
 
         recalculateBalance();
 
-        updateBloomFilter(_store.listRedeemScripts());
+        auto scripts = _store.listRedeemScripts();
+        auto recvKeys = _store.listPrivateKeys(0);
+        auto changeKeys = _store.listPrivateKeys(1);
+
+        std::vector<Coin::PublicKey> pubKeys;
+
+        for(auto sk : recvKeys) pubKeys.push_back(sk.toPublicKey());
+        for(auto sk : changeKeys) pubKeys.push_back(sk.toPublicKey());
+
+        updateBloomFilter(scripts, pubKeys);
 
     } else {
         throw std::runtime_error("wallet already opened");
@@ -231,7 +236,7 @@ Coin::PrivateKey SPVWallet::generateKey(const RedeemScriptGenerator & scriptGene
         return info;
     });
 
-    updateBloomFilter({script});
+    updateBloomFilter({script}, {});
 
     return sk;
 }
@@ -250,7 +255,7 @@ std::vector<Coin::PrivateKey> SPVWallet::generateKeys(const std::vector<RedeemSc
         return info;
     });
 
-    updateBloomFilter(scripts);
+    updateBloomFilter(scripts, {});
 
     return keys;
 }
@@ -271,7 +276,7 @@ SPVWallet::generateKeyPairs(const std::vector<RedeemScriptGenerator> &scriptGene
         return info;
     });
 
-    updateBloomFilter(scripts);
+    updateBloomFilter(scripts, {});
 
     for(auto key : keys) {
         keyPairs.push_back(Coin::KeyPair(key));
@@ -280,30 +285,41 @@ SPVWallet::generateKeyPairs(const std::vector<RedeemScriptGenerator> &scriptGene
     return keyPairs;
 }
 
-std::list<Coin::P2SHAddress> SPVWallet::listAddresses() {
-    return _store.listAddresses();
-}
-
-Coin::P2SHAddress
-SPVWallet::generateReceiveAddress()
+Coin::PublicKey SPVWallet::generateReceivePublicKey()
 {
     if(!isInitialized()) {
         throw std::runtime_error("wallet not initialized");
     }
 
-    uchar_vector redeemScript;
+    auto pubKey = _store.generateReceiveKey().toPublicKey();
 
-    _store.generateKey([&redeemScript](const Coin::PublicKey & pubKey) {
-       Coin::P2PKScriptPubKey script(pubKey);
-       redeemScript = script.serialize();
-       return redeemScript;
-    });
+    updateBloomFilter({}, {pubKey});
 
-    updateBloomFilter({redeemScript});
-
-    return Coin::P2SHAddress(_network, Coin::RedeemScriptHash::fromRawScript(redeemScript));
+    return pubKey;
 }
 
+Coin::PublicKey SPVWallet::generateChangePublicKey()
+{
+    if(!isInitialized()) {
+        throw std::runtime_error("wallet not initialized");
+    }
+
+    auto pubKey = _store.generateChangeKey().toPublicKey();
+
+    updateBloomFilter({}, {pubKey});
+
+    return pubKey;
+}
+
+Coin::P2PKHAddress SPVWallet::generateReceiveAddress() {
+    auto pubKey = generateReceivePublicKey();
+    return Coin::P2PKHAddress(_network, pubKey.toPubKeyHash());
+}
+
+Coin::P2PKHAddress SPVWallet::generateChangeAddress() {
+    auto pubKey = generateChangePublicKey();
+    return Coin::P2PKHAddress(_network, pubKey.toPubKeyHash());
+}
 
 void SPVWallet::broadcastTx(Coin::Transaction cointx) {
     if(!isConnected()) {
@@ -532,17 +548,21 @@ void SPVWallet::onMerkleBlock(const ChainMerkleBlock& chainmerkleblock) {
     }
 }
 
-void SPVWallet::updateBloomFilter(const std::vector<uchar_vector> redeemScripts) {
+void SPVWallet::updateBloomFilter(const std::vector<uchar_vector> redeemScripts, const std::vector<Coin::PublicKey> publicKeys) {
 
     for(auto &script : redeemScripts) {
         _bloomFilterScripts.insert(script);
     }
 
-    const uint filterSize = _bloomFilterScripts.size() * 2;
+    for(auto &pubKey : publicKeys) {
+        _bloomFilterPubKeys.insert(pubKey);
+    }
+
+    const uint filterSize = (_bloomFilterScripts.size() * 2 + _bloomFilterPubKeys.size() * 2);
 
     if(filterSize == 0) return;
 
-    Coin::BloomFilter filter(filterSize, 0.0001, 0,0);
+    Coin::BloomFilter filter(filterSize, 0.0001, 0, 0);
 
     for(const uchar_vector & script : _bloomFilterScripts) {
         // For capturing inputs: Redeem script will be last data item pushed to stack in input scriptSig
@@ -554,6 +574,18 @@ void SPVWallet::updateBloomFilter(const std::vector<uchar_vector> redeemScripts)
 
         // Generate output scripts for direct comparison in createsWalletOutput() routine
         _scriptPubKeys.insert(address.toP2SHScriptPubKey().serialize());
+    }
+
+    for(const Coin::PublicKey & pubKey : _bloomFilterPubKeys) {
+        // For capturing inputs: input scriptSig will have full public Key
+        filter.insert(pubKey.toUCharVector());
+
+        // For capturing outputs: pubkey hash
+        filter.insert(pubKey.toPubKeyHash().toUCharVector());
+
+        // Generate output scripts for direct comparison in createsWalletOutput() routine
+        Coin::P2PKHScriptPubKey script = Coin::P2PKHScriptPubKey(pubKey);
+        _scriptPubKeys.insert(script.serialize());
     }
 
     _networkSync.setBloomFilter(filter);
@@ -580,6 +612,17 @@ bool SPVWallet::spendsWalletOutput(const Coin::TxIn & txin) const {
        // Compare the redeemScript to the end of the scriptSig which would contain the redeem script
        // in a p2sh spending input
        if(std::equal(redeemScript.rbegin(), redeemScript.rend(), txin.scriptSig.rbegin())) return true;
+    }
+
+    try{
+        uchar_vector pubkey = Coin::P2PKHScriptSig::deserialize(txin.scriptSig).pk().toUCharVector();
+
+        if(_bloomFilterPubKeys.find(pubkey) != _bloomFilterPubKeys.end()) {
+            return true;
+        }
+
+    } catch(std::runtime_error &e) {
+        // not a p2pkh script sig
     }
 
     return false;
@@ -614,8 +657,17 @@ void SPVWallet::test_syncBlocksStaringAtHeight(int32_t height) {
     _networkSync.syncBlocks(height);
 }
 
+Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2PKHAddress &destinationAddr, uint64_t fee) {
+    auto scriptPubKey = Coin::P2PKHScriptPubKey(destinationAddr.pubKeyHash()).serialize();
+    return test_sendToAddress(value, scriptPubKey, fee);
+}
 
 Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2SHAddress &destinationAddr, uint64_t fee) {
+    auto scriptPubKey = destinationAddr.toP2SHScriptPubKey().serialize();
+    return test_sendToAddress(value, scriptPubKey, fee);
+}
+
+Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const uchar_vector & scriptPubKey, uint64_t fee) {
 
     // Get UnspentUTXO
     auto utxos(lockOutputs(value + fee, 0));
@@ -628,14 +680,13 @@ Coin::Transaction SPVWallet::test_sendToAddress(uint64_t value, const Coin::P2SH
     Coin::Transaction cointx;
 
     // Add output sending value to the destination address
-    cointx.addOutput(Coin::TxOut(value, destinationAddr.toP2SHScriptPubKey().serialize()));
+    cointx.addOutput(Coin::TxOut(value, scriptPubKey));
 
     uint64_t change = utxos.value() - (value + fee);
 
     if(change > 0) {
         // Create Change output
-        Coin::P2SHAddress changeAddr = generateReceiveAddress();
-        Coin::P2SHScriptPubKey changeScript(changeAddr.toP2SHScriptPubKey());
+        Coin::P2PKHScriptPubKey changeScript(generateChangePublicKey());
         cointx.addOutput(Coin::TxOut(change, changeScript.serialize()));
     }
 
