@@ -18,18 +18,13 @@ namespace store {
 
     Metadata::Metadata(){}
 
-    Metadata::Metadata(std::string entropy, Coin::Network net, uint32_t created_utc) :
+    Metadata::Metadata(std::string entropy, uint32_t created_utc) :
         entropy_(entropy),
-        network_(net),
         created_(created_utc)
     {}
 
     std::string Metadata::entropy() const {
         return entropy_;
-    }
-
-    Coin::Network Metadata::network() const {
-        return network_;
     }
 
     uint32_t Metadata::created() const {
@@ -38,8 +33,9 @@ namespace store {
 
 /// Key
 
-    Key::Key(uint32_t index) :
-        index_(index),
+    Key::Key(uint32_t coin_type, uint32_t change, uint32_t index, const Coin::PrivateKey & sk) :
+        path_({coin_type, change, index}),
+        raw_(sk.toHex().toStdString()),
         generated_(std::time(nullptr))
     {}
 
@@ -47,8 +43,12 @@ namespace store {
         generated_(std::time(nullptr))
     {}
 
-    uint32_t Key::id() const {
-        return index_;
+    uint32_t Key::index() const {
+        return path_.index;
+    }
+
+    uint32_t Key::change() const {
+        return path_.change;
     }
 
     uint32_t Key::generated() const {
@@ -62,6 +62,11 @@ namespace store {
         redeemScript_ = scriptInfo.redeemScript.getHex();
         optionalData_ = scriptInfo.optionalData.getHex();
         scriptPubKey_ = Coin::P2SHScriptPubKey(Coin::RedeemScriptHash::fromRawScript(scriptInfo.redeemScript)).serialize().getHex();
+    }
+
+    Address::Address(const std::shared_ptr<Key> & key) {
+        key_ = key;
+        scriptPubKey_ = Coin::P2PKHScriptPubKey(key->getPrivateKey().toPublicKey());
     }
 
 /// Transaction

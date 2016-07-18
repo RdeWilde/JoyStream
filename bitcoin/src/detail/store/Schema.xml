@@ -2,22 +2,29 @@
   <model version="1">
     <table name="Metadata" kind="object">
       <column name="entropy" type="TEXT" null="false"/>
-      <column name="network" type="INTEGER" null="false"/>
       <column name="created" type="INTEGER" null="false"/>
     </table>
     <table name="Key" kind="object">
-      <column name="index" type="INTEGER" null="false"/>
+      <column name="id" type="INTEGER" null="false"/>
       <column name="generated" type="INTEGER" null="false"/>
       <column name="raw" type="TEXT" null="false"/>
+      <column name="path_coin_type" type="INTEGER" null="false"/>
+      <column name="path_change" type="INTEGER" null="false"/>
+      <column name="path_index" type="INTEGER" null="false"/>
       <primary-key auto="true">
-        <column name="index"/>
+        <column name="id"/>
       </primary-key>
+      <index name="Key_path_i" type="UNIQUE">
+        <column name="path_coin_type"/>
+        <column name="path_change"/>
+        <column name="path_index"/>
+      </index>
     </table>
     <table name="Address" kind="object">
       <column name="id" type="INTEGER" null="false"/>
       <column name="key" type="INTEGER" null="false"/>
       <column name="scriptPubKey" type="TEXT" null="false"/>
-      <column name="redeemScript" type="TEXT" null="false"/>
+      <column name="redeemScript" type="TEXT" null="true"/>
       <column name="optionalData" type="TEXT" null="true"/>
       <primary-key auto="true">
         <column name="id"/>
@@ -25,14 +32,11 @@
       <foreign-key name="key_fk" deferrable="DEFERRED">
         <column name="key"/>
         <references table="Key">
-          <column name="index"/>
+          <column name="id"/>
         </references>
       </foreign-key>
       <index name="Address_key_i" type="UNIQUE">
         <column name="key"/>
-      </index>
-      <index name="Address_redeemScript_i" type="UNIQUE">
-        <column name="redeemScript"/>
       </index>
     </table>
     <table name="BlockHeader" kind="object">

@@ -13,6 +13,7 @@
 #include <common/PubKeyHash.hpp>
 #include <common/P2SHAddress.hpp>
 #include <common/P2SHScriptPubKey.hpp>
+#include <common/P2PKHScriptPubKey.hpp>
 
 #include <common/TransactionId.hpp>
 #include <common/BlockId.hpp>
@@ -44,10 +45,9 @@ class Metadata : public std::enable_shared_from_this<Metadata> {
     std::shared_ptr<Metadata> get_shared_ptr() { return shared_from_this(); }
 
     Metadata();
-    Metadata(std::string entropy, Coin::Network network, uint32_t created_utc);
+    Metadata(std::string entropy, uint32_t created_utc);
 
     std::string entropy() const;
-    Coin::Network network() const;
     uint32_t created() const;
 
   private:
@@ -55,8 +55,7 @@ class Metadata : public std::enable_shared_from_this<Metadata> {
 
     #pragma db not_null
     std::string entropy_;
-    #pragma db not_null
-    Coin::Network network_;
+
     //utc unix timestamp: QDateTime::fromTime_t(created_) to convert to QDateTime local time
     uint32_t created_;
 };
@@ -65,29 +64,49 @@ class Metadata : public std::enable_shared_from_this<Metadata> {
  * Key
  */
 
+// bip32 derivation path: m / purpose' / coin_type' / account' / change / address_index
+#pragma db value
+struct key_path_t {
+    //uint32_t purpose;    // 0x8000002C = 44' implied (BIP44)
+    uint32_t coin_type;  // Bitcoin = 0x80000000, Bitcoin Tesnet = 0x80000001
+    //uint32_t account;   // 0x00000000 = 0 implied (Single Account)
+    // 0 = receive p2pkh address
+    // 1 = change  p2pkh address
+    // 2 = p2sh address (corresponding to payment channel commitment) this is not part of bip44
+    //                                                                which means coins controller by these p2sh
+    //                                                                addresses cannot be recovered by other bip44 wallets
+    uint32_t change;
+    uint32_t index;
+};
+
 #pragma db object pointer(std::shared_ptr) session
 class Key : public std::enable_shared_from_this<Key> {
 public:
     std::shared_ptr<Key> get_shared_ptr() { return shared_from_this(); }
 
-    Key(uint32_t index);
+    Key(uint32_t coin_type, uint32_t change, uint32_t index, const Coin::PrivateKey & sk);
     Key();
 
-    uint32_t id() const;
+    uint32_t index() const;
+    uint32_t change() const;
+    uint32_t coin_type() const;
     uint32_t generated() const;
 
     Coin::PrivateKey getPrivateKey() const { return Coin::PrivateKey(uchar_vector(raw_)); }
-    void setPrivateKey(Coin::PrivateKey sk) { raw_ = sk.toHex().toStdString(); }
 
 private:
     friend class odb::access;
 
     #pragma db id auto
-    uint32_t index_;
+    uint32_t id_;
+
     //utc unix timestamp: QDateTime::fromTime_t(created_) to convert to QDateTime local time
     uint32_t generated_;
 
     std::string raw_; //hex encoded raw private key
+
+    #pragma db index unique
+    key_path_t path_;
 };
 
 /*
@@ -100,7 +119,13 @@ public:
     std::shared_ptr<Address> get_shared_ptr() { return shared_from_this(); }
 
     Address() {}
+
+    // P2PKH Address
+    Address(const std::shared_ptr<Key> & key_);
+
+    // P2SH Adddress
     Address(const std::shared_ptr<Key> & key_, const RedeemScriptInfo & scriptInfo);
+
     const std::shared_ptr<Key> key() const { return key_; }
 
     std::string scriptPubKey() const { return scriptPubKey_; }
@@ -113,14 +138,14 @@ private:
     #pragma db id auto
     unsigned long id_;
 
-    #pragma db not_null unique // unique - it doesn't make sense to have two address objects for the same key
-    std::shared_ptr<Key> key_; // to establish a relation with the Wallet::Key
+    #pragma db not_null unique
+    std::shared_ptr<Key> key_;
 
     #pragma db not_null
     std::string scriptPubKey_; // to lookup outputs to this address
 
-    #pragma db not_null unique
-    std::string redeemScript_; // hex encoded redeem script
+    #pragma db null
+    std::string redeemScript_; // hex encoded redeem script (for p2sh address)
 
     #pragma db null
     std::string optionalData_; // optional hex encoded script chunk
@@ -368,11 +393,12 @@ typedef struct {
 
 #pragma db view object(Key)
 typedef struct {
-  #pragma db column("count(" + Key::index_ + ")")
+  #pragma db column("count(" + Key::id_ + ")")
   uint32_t count;
 
-  #pragma db column("max(" + Key::index_ + ")")
-  uint32_t max;
+  #pragma db column("max(" + Key::path_.index + ")")
+  uint32_t max_index;
+
 } key_stat_t;
 
 #pragma db view object(Key = key) object(Address = address)
