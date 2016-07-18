@@ -10,7 +10,7 @@
 
 #include <extension/extension.hpp>
 #include <core/Node.hpp>
-#include <core/Configuration.hpp>
+#include <core/Peer.hpp>
 #include <libtorrent/torrent_handle.hpp>
 
 #include <QObject>
@@ -28,72 +28,132 @@ class Torrent : public QObject {
 
 private:
 
-    Torrent(const libtorrent::sha1_hash &);
+    Torrent(const libtorrent::torrent_status &,
+            int uploadLimit,
+            int downloadLimit,
+            const boost::shared_ptr<extension::Plugin> &);
 
 public:
 
-    // No public constructor
-
-    // All user operations (method requiring talking to anything outside of this object, i.e. not simple getters):
-    // ---------------------
-    // 1) for all operations, try to lock underyling detail::torrent
-    // client first, throw exception if its not possible or if its
-    // possible, but currently in state "being_removed".
-    // 2) if its possible, and its in state "being_added", then assert
-    // failure, as no reference should ever have been given out by node, nor
-    // should node have called that operation
-    // 3) <what to do about Node state?>: jUST THROW IT ITS NOT  STARTED?
-
-    // Allow checking liveness without
-    // add bool expired() const noexcept;
+    /// Actions
 
     /**
-    // Stream management
-    void addStream(Stream * stream);
-    void removeStream(Stream * stream);
+     * @brief All connections are ended
+     * @param graceful whether regular bittorrent, i.e. non-plugin, pieces in inbound transit will be completed before closing a connection.
+     * @param handler callback handler when pause oeration has been completed
+     */
+    void paused(bool graceful, const TorrentPaused & handler);
 
-    // Given piece was read
-    void pieceRead(const boost::shared_array<char> & buffer, int pieceIndex, int size);
+    /**
+     * @brief All connections from a previous pause are resumed
+     * @param handler callback handler when resume operation has been completed
+     */
+    void resumed(const TorrentResumed & handler);
 
-    // Given piece was downloaded and checked
-    void pieceFinished(int piece);
-    */
+    /// Getters
 
     libtorrent::sha1_hash infoHash() const noexcept;
 
+    std::map<libtorrent::tcp::endpoint, std::shared_ptr<Peer>> peers() const noexcept;
 
-    // streaming routines
-    // this can be used to stream into a http daemon, etc.
-    // *initiating stream (register a callback)
-    // *stopping stream,
+    std::shared_ptr<TorrentPlugin> torrentPlugin() const noexcept;
 
+    libtorrent::torrent_status::state_t state() const noexcept;
 
-    // All streams for this torrent.
-    // Not quite sure if multiple separate streams for one torrent
-    // is necessary, if not, then remove this QSet later.
-    //QSet<Stream *> _streams;
+    std::string savePath() const noexcept;
+
+    std::string name() const noexcept;
+
+    boost::weak_ptr<const libtorrent::torrent_info> metaData() const noexcept;
+
+    float progress() const noexcept;
+
+    int downloadRate() const noexcept;
+
+    int uploadRate() const noexcept;
+
+    bool paused() const noexcept;
+
+    int uploadLimit() const noexcept;
+
+    int downloadLimit() const noexcept;
 
 signals:
 
-    // Classic vanilla libtorrent torrent state changes
+    void peerAdded(const std::shared_ptr<Peer> &);
+
+    void peerRemoved(const libtorrent::tcp::endpoint &);
+
+    void torrentPluginAdded(const std::shared_ptr<TorrentPlugin> &);
+
+    void torrentPluginRemoved();
+
+    // Triggered when torrent is added witout metadata, but later
+    // receives it from peers
+    void metadataReady();
+
+    void stateChanged(libtorrent::torrent_status::state_t);
+
+    void progressChanged(float);
+
+    void downloadRateChanged(int);
+
+    void uploadRateChanged(int);
+
+    void pausedChanged(bool);
+
+    void uploadLimitChanged(int);
+
+    void downloadLimitChanged(int);
 
 private:
 
     friend class Node;
 
-    // Info hash
-    libtorrent::sha1_hash _infoHash;
+    /// Updating routines
 
-    // Handle to torrent
-    // A valid handle is only set after the torrent has been added
-    // successfully to session
-    libtorrent::torrent_handle _handle;
+    void addPeer(const libtorrent::peer_info &);
+
+    void removePeer(const libtorrent::tcp::endpoint &);
+
+    void addTorrentPlugin(const extension::status::TorrentPlugin &);
+
+    void removeTorrentPlugin();
+
+    void updateStatus(const libtorrent::torrent_status &);
+
+    void updateUploadLimit(int);
+
+    void updateDownloadLimit(int);
+
+    void paused();
+
+    void resumed();
+
+    void setMetadata(const boost::shared_ptr<const libtorrent::torrent_info> &);
+
+    /// Members
+
+    // Plugin reference
+    boost::shared_ptr<extension::Plugin> _plugin;
+
+    // Most recent libtorrent status
+    libtorrent::torrent_status _status;
+
+    // Total (bytes/second across libtorrent+plugin) upload/download limit.
+    // If not set, then unlimited.
+    int _uploadLimit, _downloadLimit;
 
     // Peers
     std::map<libtorrent::tcp::endpoint, std::shared_ptr<Peer>> _peers;
 
     // TorrentPlugin
     std::shared_ptr<TorrentPlugin> _torrentPlugin;
+
+    // All streams for this torrent.
+    // Not quite sure if multiple separate streams for one torrent
+    // is necessary, if not, then remove this QSet later.
+    //QSet<Stream *> _streams;
 };
 
 }
