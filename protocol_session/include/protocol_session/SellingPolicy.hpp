@@ -15,6 +15,10 @@ class SellingPolicy {
 
 public:
 
+    bool operator==(const SellingPolicy &) const {
+        return true;
+    }
+
 private:
 
 };
