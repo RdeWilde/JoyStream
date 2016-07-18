@@ -229,7 +229,7 @@ void Node::addTorrent(const configuration::Torrent & configuration, const AddedT
     _plugin->submit(extension::request::AddTorrent(params, addedTorrent));
 }
 
-void Node::removeTorrent(const libtorrent::sha1_hash & info_hash, const RemoveTorrent & handler) {
+void Node::removeTorrent(const libtorrent::sha1_hash & info_hash, const RemovedTorrent & handler) {
 
     // We can only stop from started state
     if(_state != State::started)
@@ -406,13 +406,13 @@ void Node::processAlertQueue() {
 
 void Node::processAlert(const libtorrent::alert * a) {
 
-    std::clog << "Processing alert" << a->message() << std::endl;
+    std::clog << "Processing alert " << a->message() << std::endl;
 
     // Select alert type
     if(libtorrent::metadata_received_alert const * p = libtorrent::alert_cast<libtorrent::metadata_received_alert>(a))
-        processMetadataReceivedAlert(p);
+        process(p);
     else if(libtorrent::metadata_failed_alert const * p = libtorrent::alert_cast<libtorrent::metadata_failed_alert>(a))
-        processMetadataFailedAlert(p);
+        process(p);
     else if(libtorrent::listen_succeeded_alert const * p = libtorrent::alert_cast<libtorrent::listen_succeeded_alert>(a))
         process(p);
     else if(libtorrent::listen_failed_alert const * p = libtorrent::alert_cast<libtorrent::listen_failed_alert>(a))
@@ -420,11 +420,11 @@ void Node::processAlert(const libtorrent::alert * a) {
     else if(libtorrent::add_torrent_alert const * p = libtorrent::alert_cast<libtorrent::add_torrent_alert>(a))
         process(p);
     else if (libtorrent::torrent_finished_alert const * p = libtorrent::alert_cast<libtorrent::torrent_finished_alert>(a))
-        processTorrentFinishedAlert(p);
+        process(p);
     else if (libtorrent::torrent_paused_alert const * p = libtorrent::alert_cast<libtorrent::torrent_paused_alert>(a))
-        processTorrentPausedAlert(p);
+        process(p);
     else if (libtorrent::state_update_alert const * p = libtorrent::alert_cast<libtorrent::state_update_alert>(a))
-        processStatusUpdateAlert(p);
+        process(p);
     else if(libtorrent::torrent_removed_alert const * p = libtorrent::alert_cast<libtorrent::torrent_removed_alert>(a))
         process(p);
     else if(libtorrent::save_resume_data_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_alert>(a))
@@ -432,42 +432,19 @@ void Node::processAlert(const libtorrent::alert * a) {
     else if(libtorrent::save_resume_data_failed_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_failed_alert>(a))
         process(p);
     else if(libtorrent::torrent_checked_alert const * p = libtorrent::alert_cast<libtorrent::torrent_checked_alert>(a))
-        processTorrentCheckedAlert(p);
+        process(p);
     else if(libtorrent::read_piece_alert const * p = libtorrent::alert_cast<libtorrent::read_piece_alert>(a))
         processReadPieceAlert(p);
     else if(libtorrent::piece_finished_alert const * p = libtorrent::alert_cast<libtorrent::piece_finished_alert>(a))
         processPieceFinishedAlert(p);
-    else if(const extension::alert::RequestResult * p = libtorrent::alert_cast<extension::alert::RequestResult>(a))
+    else if(extension::alert::RequestResult const * p = libtorrent::alert_cast<extension::alert::RequestResult>(a))
         process(p);
-    else if(const extension::alert::BroadcastTransaction * p = libtorrent::alert_cast<extension::alert::BroadcastTransaction>(a))
+    else if(extension::alert::BroadcastTransaction const * p = libtorrent::alert_cast<extension::alert::BroadcastTransaction>(a))
         process(p);
     else if(extension::alert::PluginStatus const * p = libtorrent::alert_cast<extension::alert::PluginStatus>(a))
         process(p);
     else
         assert(false);
-
-    /**
-    else if(const StartedSellerTorrentPlugin * p = libtorrent::alert_cast<StartedSellerTorrentPlugin>(a))
-        processStartedSellerTorrentPlugin(p);
-    else if(const StartedBuyerTorrentPlugin * p = libtorrent::alert_cast<StartedBuyerTorrentPlugin>(a))
-        processStartedBuyerTorrentPlugin(p);
-    else if(const SellerTorrentPluginStatusAlert * p = libtorrent::alert_cast<SellerTorrentPluginStatusAlert>(a))
-        processSellerTorrentPluginStatusAlert(p);
-    else if(const BuyerTorrentPluginStatusAlert * p = libtorrent::alert_cast<BuyerTorrentPluginStatusAlert>(a))
-        processBuyerTorrentPluginStatusAlert(p);
-    else if(const SellerPeerAddedAlert * p = libtorrent::alert_cast<SellerPeerAddedAlert>(a))
-        processSellerPeerAddedAlert(p);
-    else if(const BuyerPeerAddedAlert * p = libtorrent::alert_cast<BuyerPeerAddedAlert>(a))
-        processBuyerPeerAddedAlert(p);
-    else if(const SellerPeerPluginRemovedAlert * p = libtorrent::alert_cast<SellerPeerPluginRemovedAlert>(a))
-        processSellerPeerPluginRemovedAlert(p);
-    else if(const BuyerPeerPluginRemovedAlert * p = libtorrent::alert_cast<BuyerPeerPluginRemovedAlert>(a))
-        processBuyerPeerPluginRemovedAlert(p);
-    else if(const BroadcastTransactionAlert * p = libtorrent::alert_cast<BroadcastTransactionAlert>(a))
-        processBroadcastTransactionAlert(p);
-    //else if(const TorrentPluginStartedAlert * p = libtorrent::alert_cast<TorrentPluginStartedAlert>(a))
-    //    processTorrentPluginStartedAlert(p);
-    */
 }
 
 
@@ -535,31 +512,26 @@ int Node::requestResumeData() {
 }
 */
 
-void Node::processTorrentPausedAlert(libtorrent::torrent_paused_alert const *) {
+void Node::process(const libtorrent::torrent_paused_alert * p) {
 
-    /**
-    // Get handle
-    libtorrent::torrent_handle torrentHandle = p->handle;
-
-    // Dont save data if we dont need to or can
-    if (!torrentHandle.need_save_resume_data() || !torrentHandle.status().has_metadata)
+    // Check that node is started
+    if(_state != State::started) {
+        std::clog << "Ignored due to incompatible node state" << std::endl;
         return;
-
-    // Set state
-    //_sourceForLastResumeDataCall = TORRENT_PAUSE;
-    //_numberOfOutstandingResumeDataCalls = 1;
-
-    // Save resume data
-    torrentHandle.save_resume_data();
+    }
 
     // Get info hash
-    libtorrent::sha1_hash info_hash = torrentHandle.info_hash();
+    libtorrent::sha1_hash infoHash = p->handle.info_hash();
 
-    // Grab torrent and set next event to be arrival of save_resume_data alert
-    Q_ASSERT(_torrents.contains(info_hash));
+    // Did we get a valid info hash
+    if(!infoHash.is_all_zeros()) {
 
-    _torrents[info_hash]->setStatus(Torrent::Status::asked_for_resume_data);
-    */
+        // then mark as paused
+        auto it = _torrents.find(infoHash);
+        assert(it != _torrents.cend());
+
+        it->second->paused();
+    }
 }
 
 void Node::process(const libtorrent::torrent_removed_alert * p) {
@@ -569,54 +541,25 @@ void Node::process(const libtorrent::torrent_removed_alert * p) {
      * so we must use p->info_hash instead.
      */
 
+    // Check that node is started
+    if(_state != State::started) {
+        std::clog << "Ignored due to incompatible node state" << std::endl;
+        return;
+    }
+
     // Get torrent info hash
     libtorrent::sha1_hash info_hash = p->info_hash;
 
-    // Get torrent and remove it
+    // Then erase from container
     auto it = _torrents.find(info_hash);
-
     assert(it != _torrents.cend());
-
     _torrents.erase(it);
 
-    // Send signal
+    // and send remove signal
     emit removedTorrent(info_hash);
 }
 
-void Node::processMetadataReceivedAlert(libtorrent::metadata_received_alert const * p) {
-
-    // Get handle for torrent
-    libtorrent::torrent_handle h = p->handle;
-
-    // Process if handle is valid
-    if (h.is_valid()) {
-
-        // get torrent info
-        //boost::shared_ptr<libtorrent::torrent_info const> torrentInfoIntrusivePtr = h.torrent_file();
-
-        //boost::intrusive_ptr<libtorrent::torrent_info const> torrentInfoIntrusivePtr = h.torrent_file();
-
-        //const libtorrent::torrent_info & torrentInfo = h.get_torrent_info();
-
-        // USE THIS INFORMATION FOR SOMETHING LATER
-
-        // Put in model later
-        std::clog << "Metadata saved.";
-
-    } else
-        std::clog << "Invalid handle for received metadata.";
-}
-
-void Node::processMetadataFailedAlert(libtorrent::metadata_failed_alert const *) {
-
-    // WHAT DO WE DO HERE?
-    std::clog << "Invalid metadata received.";
-    throw std::runtime_error("Invalid metadata");
-}
-
-void Node::process(const libtorrent::add_torrent_alert * p) {
-
-    std::clog << "add_torrent_alert" << std::endl;
+void Node::process(const libtorrent::torrent_resumed_alert * p) {
 
     // Check that node is started
     if(_state != State::started) {
@@ -624,62 +567,146 @@ void Node::process(const libtorrent::add_torrent_alert * p) {
         return;
     }
 
-    // Get torrent info_hash
-    libtorrent::torrent_handle h = p->handle;
+    // Get info hash
+    libtorrent::sha1_hash infoHash = p->handle.info_hash();
 
-    if(!h.is_valid())
+    // Did we get a valid info hash
+    if(!infoHash.is_all_zeros()) {
+
+        auto it = _torrents.find(infoHash);
+        assert(it != _torrents.cend());
+
+        // then mark as resmed
+        it->second->resumed();
+    }
+
+}
+
+void Node::process(const libtorrent::metadata_received_alert * p) {
+
+    // Check that node is started
+    if(_state != State::started) {
+        std::clog << "Ignored due to incompatible node state" << std::endl;
         return;
+    }
 
+    // Syncronous call which returns nullptr if call failes
+    libtorrent::torrent_handle h = p->handle;
+    boost::shared_ptr<const libtorrent::torrent_info> torrent_info = h.torrent_file();
     libtorrent::sha1_hash infoHash = h.info_hash();
 
-    // Did adding succeed
+    // If handle and info_hahs is still valid
+    if(torrent_info && !infoHash.is_all_zeros()) {
+
+        auto it = _torrents.find(infoHash);
+
+        assert(it != _torrents.cend());
+
+        // then set metadata
+        it->second->setMetadata(torrent_info);
+
+    } else
+        std::clog << "Invalid handle for received metadata.";
+}
+
+void Node::process(const libtorrent::metadata_failed_alert *) {
+
+    // Check that node is started
+    if(_state != State::started) {
+        std::clog << "Ignored due to incompatible node state" << std::endl;
+        return;
+    }
+
+    // what to do?
+}
+
+void Node::process(const libtorrent::add_torrent_alert * p) {
+
+    // Check that node is started
+    if(_state != State::started) {
+        std::clog << "Ignored due to incompatible node state" << std::endl;
+        return;
+    }
+
+    // Did adding succeed?
     if(!p->error) {
 
-        std::clog << "Adding torrent succeeded.";
+        // Get torrent info_hash
+        libtorrent::torrent_handle h = p->handle;
+        libtorrent::sha1_hash infoHash = h.info_hash();
 
-        // Create torrent
-        std::shared_ptr<Torrent> plugin(new Torrent(infoHash));
+        if(infoHash.is_all_zeros()) {
+            std::clog << "Added torrent has already expired." << std::endl;
+            return;
+        }
 
-        // and add
         assert(_torrents.count(infoHash) == 0);
 
+        libtorrent::torrent_status status = h.status();
+
+        int uploadLimit = h.upload_limit();
+        int downloadLimit = h.download_limit();
+
+        // Create torrent
+        std::shared_ptr<Torrent> plugin(new Torrent(status, uploadLimit, downloadLimit, _plugin));
+
+        // add to map
         _torrents.insert(std::make_pair(infoHash, plugin));
 
-        // Give copy of handle
-        plugin->_handle = h;
-
-        // Send notification signal
+        // send notification signal
         emit addedTorrent(plugin);
+
+        std::clog << "Adding torrent succeeded." << std::endl;
     } else
         std::clog << "Adding torrent failed:" << p->error.message() << std::endl;
 }
 
-void Node::processTorrentFinishedAlert(libtorrent::torrent_finished_alert const *) {
+void Node::process(const libtorrent::torrent_finished_alert *) {
 
-    /*
-    p->handle.set_max_connections(max_connections_per_torrent / 2);
+    // Check that node is started
+    if(_state != State::started) {
+        std::clog << "Ignored due to incompatible node state" << std::endl;
+        return;
+    }
 
-    // write resume data for the finished torrent
-    // the alert handler for save_resume_data_alert
-    // will save it to disk
-    torrent_handle h = p->handle;
-    h.save_resume_data();
-    ++num_outstanding_resume_data;
-    */
+    /// nothing to do?
 }
 
-void Node::processStatusUpdateAlert(libtorrent::state_update_alert const * p) {
-    update(p->status);
+void Node::process(const libtorrent::state_update_alert * p) {
+
+    // Check that node is started
+    if(_state != State::started) {
+        std::clog << "Ignored due to incompatible node state" << std::endl;
+        return;
+    }
+
+    for(auto s : p->status) {
+
+        // Try to get torrent refence
+        auto it = _torrents.find(s.info_hash);
+
+        // and update status if possible
+        if(it != _torrents.cend())
+            it->second->updateStatus(s);
+        else
+            std::clog << "Uknown torrent updated status." << std::endl;
+    }
+
 }
 
-void Node::process(const libtorrent::save_resume_data_alert * p) {
+void Node::process(const libtorrent::save_resume_data_alert *) {
 
-    std::clog << "libtorrent::save_resume_data_alert" << std::endl;
+    // Check that node is started
+    if(_state != State::started) {
+        std::clog << "Ignored due to incompatible node state" << std::endl;
+        return;
+    }
+
+    /**
 
     // Get reference to corresponding torrent
     libtorrent::torrent_handle h = p->handle;
 
-    /**
     auto it = _torrents.find(h.info_hash());
 
     // Check that
@@ -701,10 +728,15 @@ void Node::process(const libtorrent::save_resume_data_alert * p) {
 
 void Node::process(const libtorrent::save_resume_data_failed_alert * p) {
 
+    // Check that node is started
+    if(_state != State::started) {
+        std::clog << "Ignored due to incompatible node state" << std::endl;
+        return;
+    }
+
     /// Not sure why this would ever happen?
 
-    std::clog << "libtorrent::save_resume_data_failed_alert: "
-              << p->message() << std::endl;
+    std::clog << p->message() << std::endl;
 
     // Get reference to corresponding torrent
     libtorrent::torrent_handle h = p->handle;
@@ -717,104 +749,24 @@ void Node::process(const libtorrent::save_resume_data_failed_alert * p) {
 //    }
 }
 
-void Node::processTorrentCheckedAlert(libtorrent::torrent_checked_alert const *) {
+void Node::process(const libtorrent::torrent_checked_alert *) {
 
-//    // Get handle for torrent
-//    libtorrent::torrent_handle h = p->handle;
+    // Check that node is started
+    if(_state != State::started) {
+        std::clog << "Ignored due to incompatible node state" << std::endl;
+        return;
+    }
 
-//    // Process if handle is valid
-//    if(h.is_valid()) {
-
-//        // Get info hash of torrent
-//        libtorrent::sha1_hash infoHash = h.info_hash();
-
-//        //qCCritical(_category) << QString::fromStdString(h.info_hash().to_string()); // infoHash.to_string()
-//        //qCCritical(_category) << QString::fromStdString(_torrents.first()->infoHash().to_string());
-
-//        // Make sure the torrent exists
-//        Q_ASSERT(_torrents.contains(infoHash));
-
-//        // Grab torrent
-//        Torrent * torrent = _torrents[infoHash];
-
-//        // Assert that torrent_checked_alert was expected
-//        Q_ASSERT(torrent->status() == Torrent::Status::torrent_checked);
-
-//        /**
-//        // if a configuration was saved, i.e. started from disk, then we just use it
-//        if(_pendingConfigurations.contains(info_hash)) {
-
-//            // Remove torrent plugin configuration
-//            const TorrentPlugin::Configuration * configuration = _pendingConfigurations.take(info_hash);
-
-//            // Send configuration to plugin
-//            _plugin->submitPluginRequest(new StartTorrentPlugin(info_hash, configuration));
-
-//            // Reset event
-//            torrent.setEvent(Torrent::ExpectedEvent::nothing);
-
-//        } */
-
-//        // if a configuration was saved, i.e. started from disk, then we just use it
-//        if(_pendingSellerTorrentPluginConfigurations.contains(infoHash)) {
-
-//            // Remove torrent plugin configuration
-//            const SellerTorrentPlugin::Configuration configuration = _pendingSellerTorrentPluginConfigurations.take(infoHash);
-
-//            // Send configuration to plugin
-//            _plugin->submitPluginRequest(new StartSellerTorrentPlugin(infoHash, configuration));
-
-//            // Reset event
-//            torrent->setStatus(Torrent::Status::nothing);
-
-//        } else if(_pendingBuyerTorrentPluginConfigurationAndUtxos.contains(infoHash)) {
-
-//            // Remove torrent plugin configuration and utxo
-//            QPair<BuyerTorrentPlugin::Configuration, Coin::UnspentP2PKHOutput> p = _pendingBuyerTorrentPluginConfigurationAndUtxos.take(infoHash);
-
-//            // Send configuration to plugin
-//            _plugin->submitPluginRequest(new StartBuyerTorrentPlugin(infoHash, p.first, p.second));
-
-//            // Reset event
-//            torrent->setStatus(Torrent::Status::nothing);
-
-//        } /** else if(_pendingObserverTorrentPluginConfigurations.contains(info_hash)) {
-
-//            // Remove torrent plugin configuration
-//            const ObserverTorrentPlugin::Configuration configuration = _pendingObserverTorrentPluginConfigurations.take(info_hash);
-
-//            // Send configuration to plugin
-//            _plugin->submitPluginRequest(new StartObserverTorrentPlugin(info_hash, configuration));
-
-//            // Reset event
-//            torrent.setEvent(Torrent::ExpectedEvent::nothing);
-
-//        }*/ else {
-
-//            // Get torrent information
-//            //boost::shared_ptr<libtorrent::torrent_info const> torrentInfoIntrusivePtr = h.torrent_file();
-//            boost::intrusive_ptr<libtorrent::torrent_info const> torrentInfoIntrusivePtr = h.torrent_file();
-//            const libtorrent::torrent_info * torrentInfoPtr = torrentInfoIntrusivePtr.get();
-//            libtorrent::torrent_info torrentInfo = *torrentInfoPtr; //h.get_torrent_info();
-
-//            // Get torrent status
-//            libtorrent::torrent_status torrentStatus = h.status();
-
-//            // No longer used: Expect user to set configurations
-//            //torrent->setStatus(Torrent::Status::torrent_plugin_configuration_from_user);
-
-//            // Send signal
-//            emit torrentCheckedButHasNoPlugin(torrentInfo, torrentStatus);
-//        }
-
-//    } else {
-
-//        std::clog << "Invalid handle for checked torrent.";
-//        Q_ASSERT(false);
-//    }
+    /// nothing to do
 }
 
 void Node::processReadPieceAlert(const libtorrent::read_piece_alert *) {
+
+    // Check that node is started
+    if(_state != State::started) {
+        std::clog << "Ignored due to incompatible node state" << std::endl;
+        return;
+    }
 
 //    // Get info hash for torrent from which this read piece comes from
 //    const libtorrent::sha1_hash infoHash = p->handle.info_hash();
@@ -840,6 +792,13 @@ void Node::processReadPieceAlert(const libtorrent::read_piece_alert *) {
 
 void Node::processPieceFinishedAlert(const libtorrent::piece_finished_alert *) {
 
+    // Check that node is started
+    if(_state != State::started) {
+        std::clog << "Ignored due to incompatible node state" << std::endl;
+        return;
+    }
+
+
 //    // Get info hash for torrent from which this read piece comes from
 //    const libtorrent::sha1_hash infoHash = p->handle.info_hash();
 
@@ -849,14 +808,17 @@ void Node::processPieceFinishedAlert(const libtorrent::piece_finished_alert *) {
 //    _torrents[infoHash]->pieceFinished(p->piece_index);
 }
 
-void Node::process(const extension::alert::RequestResult *) {
+void Node::process(const extension::alert::RequestResult * p) {
 
-    // Call handler with result
-    //p->resultHandler(p->result);
+    /// No guard here, we allow user code to run
 
+    // Make loaded callback
+    p->loadedCallback();
 }
 
 void Node::process(const extension::alert::BroadcastTransaction * p) {
+
+    /// No guard here?
 
     // Enqueue transaction
     _transactionSendQueue.push_back(p->tx);
@@ -911,27 +873,6 @@ void Node::onWalletSynchingBlocks() {
 void Node::onWalletConnected() {
     std::clog << "Wallet Connected";
     sendTransactions();
-}
-
-void Node::update(const std::vector<libtorrent::torrent_status> & statuses) {
-
-    for(std::vector<libtorrent::torrent_status>::const_iterator
-        i = statuses.begin(),
-        end = statuses.end(); i != end;i++)
-        update(*i);
-}
-
-void Node::update(const libtorrent::torrent_status &) {
-
-    /**
-    Q_ASSERT(_torrents.contains(status.info_hash));
-
-    // Get view model
-    TorrentViewModel * model = _torrents[status.info_hash]->model();
-
-    // Update status
-    model->update(status);
-    */
 }
 
 /**

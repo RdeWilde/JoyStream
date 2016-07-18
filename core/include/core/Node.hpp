@@ -120,7 +120,7 @@ public:
      @throws exception::NoSuchTorrentExists if no such torrent exists
      @signal removedTorrent
      */
-    void removeTorrent(const libtorrent::sha1_hash & info_hash, const RemoveTorrent & handler);
+    void removeTorrent(const libtorrent::sha1_hash & info_hash, const RemovedTorrent & handler);
 
     /**NB: Move out of controller and onto wallet interface **/
     void syncWallet();
@@ -267,27 +267,31 @@ private:
     // Processing (standard) libtorrent alerts of given type
     void process(const libtorrent::listen_succeeded_alert *);
     void process(const libtorrent::listen_failed_alert *);
-    void processMetadataReceivedAlert(const libtorrent::metadata_received_alert *);
-    void processMetadataFailedAlert(const libtorrent::metadata_failed_alert *);
+    void process(const libtorrent::metadata_received_alert *);
+    void process(const libtorrent::metadata_failed_alert *);
     void process(const libtorrent::add_torrent_alert *);
-    void processTorrentFinishedAlert(const libtorrent::torrent_finished_alert *);
-    void processStatusUpdateAlert(const libtorrent::state_update_alert *);
+    void process(const libtorrent::torrent_finished_alert *);
+    void process(const libtorrent::state_update_alert *);
     void process(const libtorrent::torrent_removed_alert *);
+    void process(const libtorrent::torrent_resumed_alert *);
     void process(const libtorrent::save_resume_data_alert *);
     void process(const libtorrent::save_resume_data_failed_alert * p);
-    void processTorrentPausedAlert(const libtorrent::torrent_paused_alert *);
-    void processTorrentCheckedAlert(const libtorrent::torrent_checked_alert *);
+    void process(const libtorrent::torrent_paused_alert *);
+    void process(const libtorrent::torrent_checked_alert *);
+    // peer connect: peer_connect_alert
+    // peer disconnect: peer_disconnected_alert
     void processReadPieceAlert(const libtorrent::read_piece_alert *);
     void processPieceFinishedAlert(const libtorrent::piece_finished_alert *);
+
+    // when is upload & download lmit refreshed ?
 
     // Processing (plugin) alerts
     void process(const extension::alert::RequestResult * p);
     void process(const extension::alert::BroadcastTransaction * p);
     void process(const extension::alert::PluginStatus * p);
 
-    // Status
-    void update(const std::vector<libtorrent::torrent_status> & statuses);
-    void update(const libtorrent::torrent_status & status);
+    // torrent plugin added
+    // torrent plugin removed
 
     void sendTransactions();
 
