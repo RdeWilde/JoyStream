@@ -14,14 +14,10 @@ Peer::Peer(const libtorrent::peer_info & peerInformation)
     : _peerInformation(peerInformation) {
 }
 
-libtorrent::peer_info Peer::peerInformation() const noexcept {
-    return _peerInformation;
-}
-
 void Peer::update(const libtorrent::peer_info & peerInformation) {
 
     if(peerInformation.total_download != _peerInformation.total_download)
-        emit total_download(peerInformation.total_download);
+        emit total_downloadChanged(peerInformation.total_download);
 
     if(peerInformation.total_upload != _peerInformation.total_upload)
         emit total_upload(peerInformation.total_upload);
