@@ -19,6 +19,10 @@ public:
         return true;
     }
 
+    bool operator!=(const SellingPolicy & rhs) const {
+        return !(*this == rhs);
+    }
+
 private:
 
 };
