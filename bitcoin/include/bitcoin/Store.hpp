@@ -8,6 +8,7 @@
 #include <common/KeyPair.hpp>
 #include <common/TransactionId.hpp>
 #include <common/UnspentP2SHOutput.hpp>
+#include <common/UnspentP2PKHOutput.hpp>
 #include <common/P2SHAddress.hpp>
 #include <common/P2PKScriptPubKey.hpp>
 #include <common/Entropy.hpp>
@@ -56,10 +57,10 @@ public:
     };
 
     Store(){}
-    Store(std::string file);
+    Store(std::string file, Coin::Network network);
     ~Store();
 
-    bool open(std::string file);
+    bool open(std::string file, Coin::Network network);
     bool create(std::string file, Coin::Network network);
     bool create(std::string file, Coin::Network network, const Coin::Entropy &entropy, uint32_t timestamp);
     bool connected() const;
@@ -67,9 +68,9 @@ public:
 
     Coin::Network network() const { return _network; }
     uint32_t created() const { return _timestamp; }
-    Coin::Seed seed() const { return _seed; }
     std::string getSeedWords() const { return _entropy.mnemonic(); }
 
+    // Keys for use with P2SH addresses
     // Return a new private key
     Coin::PrivateKey generateKey(const RedeemScriptGenerator & scriptGenerator);
 
@@ -79,18 +80,29 @@ public:
     // Returns a vector of new key pairs
     std::vector<Coin::KeyPair> generateKeyPairs(uint32_t numKeys, const MultiRedeemScriptGenerator & multiScriptGenerator);
 
-    // Total number keys in wallet
-    uint32_t numberOfKeysInWallet();
+    // BIP44 - Keys for use with P2PKH Addresses, by default we generate a key for external use (receive address) change = 0
+    // To generate a key for use with an internal address (for example a change output, pass argument change = 1)
+    // Return a new private key
+    Coin::PrivateKey generateKey(uint32_t change);
+
+    // Returns a vector of new keys
+    std::vector<Coin::PrivateKey> generateKeys(uint32_t numKeys, uint32_t change);
+
+    // Returns a vector of new key pairs
+    std::vector<Coin::KeyPair> generateKeyPairs(uint32_t numKeys, uint32_t change);
+
+    Coin::PrivateKey generateReceiveKey();
+
+    Coin::PrivateKey generateChangeKey();
 
     std::vector<Coin::PrivateKey> listPrivateKeys();
     std::vector<uchar_vector> listRedeemScripts();
     std::list<Coin::Transaction> listTransactions();
-    std::list<Coin::P2SHAddress> listAddresses();
+    //std::list<Coin::P2SHAddress> listAddresses();
 
-    bool addressExists(const Coin::P2SHAddress & p2shaddress);
-    bool transactionExists(const Coin::TransactionId & txid);
-
-    bool loadKey(const Coin::P2SHAddress &p2shaddress, Coin::PrivateKey & sk);
+    //bool addressExists(const Coin::P2SHAddress & p2shaddress);
+    //bool transactionExists(const Coin::TransactionId & txid);
+    //bool loadKey(const Coin::P2SHAddress &p2shaddress, Coin::PrivateKey & sk);
 
     std::list<std::shared_ptr<Coin::UnspentOutput> > getUnspentTransactionsOutputs(int32_t confirmations = 0, int32_t main_chain_height = 0, const RedeemScriptFilter & scriptFilter = nullptr) const;
     uint64_t getWalletBalance(int32_t confirmations = 0, int32_t main_chain_height = 0) const;
@@ -112,15 +124,19 @@ private:
 
     Coin::Network _network;
     Coin::Entropy _entropy;
-    Coin::Seed _seed;
-    Coin::HDKeychain _rootKeychain;
+    uint32_t _coin_type;
+    Coin::HDKeychain _accountKeychain;
     uint32_t _timestamp;
     std::unique_ptr<odb::database> _db;
     mutable std::mutex _storeMutex;
 
-    //internal method used to persist a new key
+    //internal methods used to persist new keys
     //should be wrapped in an odb::transaction
-    Coin::PrivateKey createNewPrivateKey(RedeemScriptGenerator scriptGenerator);
+    Coin::PrivateKey createNewPrivateKey(RedeemScriptGenerator scriptGenerator, uint32_t index);
+    Coin::PrivateKey createNewPrivateKey(uint32_t change, uint32_t index);
+
+    // Total number of keys of change type
+    uint32_t getNextKeyIndex(uint32_t change);
 
     transactionUpdatedCallback notifyTxUpdated;
 };
