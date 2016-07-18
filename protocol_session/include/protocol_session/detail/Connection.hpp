@@ -19,7 +19,7 @@ namespace protocol_wire {
 namespace protocol_session {
 namespace status {
     template <class ConnectionIdType>
-    class Connection;
+    struct Connection;
 }
 namespace detail {
 
