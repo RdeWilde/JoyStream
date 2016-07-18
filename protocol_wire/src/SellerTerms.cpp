@@ -35,6 +35,10 @@ namespace protocol_wire {
                _settlementFee == rhs.settlementFee();
     }
 
+    bool SellerTerms::operator!=(const SellerTerms & rhs) const {
+        return !(*this == rhs);
+    }
+
     QDataStream & operator >>(QDataStream & stream, SellerTerms & rhs) {
 
         stream >> rhs._minPrice >> rhs._minLock >> rhs._maxSellers >> rhs._minContractFeePerKb >> rhs._settlementFee;
