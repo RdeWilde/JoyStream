@@ -66,7 +66,7 @@ namespace store {
 
     Address::Address(const std::shared_ptr<Key> & key) {
         key_ = key;
-        scriptPubKey_ = Coin::P2PKHScriptPubKey(key->getPrivateKey().toPublicKey());
+        scriptPubKey_ = Coin::P2PKHScriptPubKey(key->getPrivateKey().toPublicKey()).serialize().getHex();
     }
 
 /// Transaction
