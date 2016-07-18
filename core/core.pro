@@ -32,7 +32,10 @@ HEADERS += \
     include/core/PeerPlugin.hpp \
     include/core/Connection.hpp \
     include/core/MagnetLink.hpp \
-    include/core/Callbacks.hpp
+    include/core/Callbacks.hpp \
+    include/core/Selling.hpp \
+    include/core/Buying.hpp \
+    include/core/Seller.hpp
 
 SOURCES += \
     #src/Stream.cpp \
@@ -42,7 +45,13 @@ SOURCES += \
     src/detail/detail.cpp \
     src/TorrentPlugin.cpp \
     src/MagnetLink.cpp \
-    src/Peer.cpp
+    src/Peer.cpp \
+    src/Session.cpp \
+    src/PeerPlugin.cpp \
+    src/Selling.cpp \
+    src/Buying.cpp \
+    src/Seller.cpp \
+    src/Connection.cpp
 
 # extension
 INCLUDEPATH += $$PWD/../extension/include
