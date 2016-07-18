@@ -20,6 +20,7 @@ namespace protocol_statemachine {
 
         AnnouncedModeAndTerms();
 
+        bool operator==(const AnnouncedModeAndTerms &) const;
         // Mode change routines
         void toObserve();
         void toBuy(const protocol_wire::BuyerTerms &);
