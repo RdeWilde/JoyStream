@@ -10,31 +10,41 @@
 namespace joystream {
 namespace core {
 
-/**
+TorrentPlugin::TorrentPlugin(const extension::status::TorrentPlugin & status,
+                             const boost::shared_ptr<extension::Plugin> & plugin)
+    : _infoHash(status.infoHash)
+    , _session(new core::Session(status.session))
+    , _plugin(plugin) {
+
+    // Create peers
+    for(auto m : status.peers)
+        addPeerPlugin(m.second);
+}
+
 void TorrentPlugin::start(const extension::request::SubroutineHandler & handler) {
-    plugin->submit(extension::request::Start(infoHash, handler));
+    _plugin->submit(extension::request::Start(_infoHash, handler));
 }
 
 void TorrentPlugin::stop(const extension::request::SubroutineHandler & handler) {
-    plugin->submit(extension::request::Stop(infoHash, handler));
+    _plugin->submit(extension::request::Stop(_infoHash, handler));
 }
 
 void TorrentPlugin::pause(const extension::request::SubroutineHandler & handler) {
-   plugin->submit(extension::request::Pause(infoHash, handler));
+   _plugin->submit(extension::request::Pause(_infoHash, handler));
 }
 
 void TorrentPlugin::updateTerms(const protocol_wire::BuyerTerms & terms,
                           const extension::request::SubroutineHandler & handler) {
-    plugin->submit(extension::request::UpdateBuyerTerms(infoHash, terms, handler));
+    _plugin->submit(extension::request::UpdateBuyerTerms(_infoHash, terms, handler));
 }
 
 void TorrentPlugin::updateTerms(const protocol_wire::SellerTerms & terms,
                           const extension::request::SubroutineHandler & handler) {
-    plugin->submit(extension::request::UpdateSellerTerms(infoHash, terms, handler));
+    _plugin->submit(extension::request::UpdateSellerTerms(_infoHash, terms, handler));
 }
 
 void TorrentPlugin::toObserveMode(const extension::request::SubroutineHandler & handler) {
-    plugin->submit(extension::request::ToObserveMode(infoHash, handler));
+    _plugin->submit(extension::request::ToObserveMode(_infoHash, handler));
 }
 
 void TorrentPlugin::toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
@@ -43,7 +53,7 @@ void TorrentPlugin::toSellMode(const protocol_session::GenerateKeyPairsCallbackH
                          const protocol_wire::SellerTerms & terms,
                          const extension::request::SubroutineHandler & handler) {
 
-    plugin->submit(extension::request::ToSellMode(infoHash,
+    _plugin->submit(extension::request::ToSellMode(_infoHash,
                                                    generateKeyPairsCallbackHandler,
                                                    generateP2PKHAddressesCallbackHandler,
                                                    sellingPolicy,
@@ -58,7 +68,7 @@ void TorrentPlugin::toBuyMode(const protocol_session::GenerateKeyPairsCallbackHa
                         const protocol_wire::BuyerTerms & terms,
                         const extension::request::SubroutineHandler & handler) {
 
-    plugin->submit(extension::request::ToBuyMode(infoHash,
+    _plugin->submit(extension::request::ToBuyMode(_infoHash,
                                                   generateKeyPairsCallbackHandler,
                                                   generateP2PKHAddressesCallbackHandler,
                                                   funding,
@@ -66,7 +76,68 @@ void TorrentPlugin::toBuyMode(const protocol_session::GenerateKeyPairsCallbackHa
                                                   terms,
                                                   handler));
 }
-*/
+
+void TorrentPlugin::addPeerPlugin(const extension::status::PeerPlugin & status) {
+
+    // Ignore if it has already been added
+    if(_peers.count(status.endPoint) > 0)
+        return;
+
+    // Create peer plugin
+    std::shared_ptr<PeerPlugin> plugin(new PeerPlugin(status));
+
+    // Add to map
+    _peers.insert(std::make_pair(status.endPoint, plugin));
+
+    // announce
+    emit peerPluginAdded(plugin);
+}
+
+void TorrentPlugin::removePeerPlugin(const libtorrent::tcp::endpoint & endPoint) {
+
+    auto it = _peers.find(endPoint);
+
+    // Ignore if it is already gone
+    if(it == _peers.cend())
+        return;
+
+    // Remove from map
+    _peers.erase(it);
+
+    // announce
+    emit peerPluginRemoved(endPoint);
+}
+
+void TorrentPlugin::update(const extension::status::TorrentPlugin & status) {
+
+    assert(_infoHash == status.infoHash);
+
+    /// Update peer plugins
+
+    // for each peer with a status
+    for(auto p: status.peers) {
+
+        auto it = _peers.find(p.first);
+
+        // if peer is present, then update
+        if(it != _peers.cend())
+            it->second->update(p.second);
+        else // otherwise add
+            addPeerPlugin(p.second);
+
+    }
+
+    // for each exisiting peer
+    for(auto p: _peers) {
+
+        // if there is no status for it, then remove
+        if(status.peers.count(p.first) == 0)
+            removePeerPlugin(p.first);
+    }
+
+    // Session
+    _session->update(status.session);
+}
 
 }
 }
