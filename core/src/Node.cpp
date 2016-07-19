@@ -830,6 +830,21 @@ void Node::process(const extension::alert::BroadcastTransaction * p) {
     }
 }
 
+void Node::process(const extension::alert::PluginStatus * p) {
+
+    // Update torrent plugin statuses
+    for(auto status: p->status.plugins) {
+
+        auto it = _torrents.find(status.first);
+
+        // If there is a torrent for this plugin, then update status
+        if(it != _torrents.cend())
+            it->second->updateTorrentPluginStatus(status.second);
+    }
+
+    // Do other stuff when plugin status is extended
+}
+
 void Node::scheduleReconnect() {
 
     if(_closing) return;
