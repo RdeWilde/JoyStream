@@ -175,6 +175,13 @@ void Torrent::updatePeerStatuses(const std::vector<libtorrent::peer_info> & v) {
 
 }
 
+void Torrent::updateTorrentPluginStatus(const extension::status::TorrentPlugin & status) {
+
+    assert(status.infoHash == status.infoHash);
+
+    _torrentPlugin->update(status);
+}
+
 void Torrent::updateUploadLimit(int uploadLimit) {
 
     if(_uploadLimit != uploadLimit)

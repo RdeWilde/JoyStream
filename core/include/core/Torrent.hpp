@@ -124,6 +124,8 @@ private:
 
     void updatePeerStatuses(const std::vector<libtorrent::peer_info> &);
 
+    void updateTorrentPluginStatus(const extension::status::TorrentPlugin &);
+
     void updateUploadLimit(int);
 
     void updateDownloadLimit(int);
