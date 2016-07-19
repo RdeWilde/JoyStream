@@ -288,7 +288,7 @@ Coin::PrivateKey Store::generateChangeKey() {
     return generateKey(1);//TODO: use enum instead of magic numbers
 }
 
-std::vector<Coin::PrivateKey> Store::listPrivateKeys(uint32_t change) {
+std::vector<Coin::PrivateKey> Store::listPrivateKeys(uint32_t change) const {
     if(!connected()) {
         throw NotConnected();
     }
@@ -297,7 +297,7 @@ std::vector<Coin::PrivateKey> Store::listPrivateKeys(uint32_t change) {
     typedef odb::result<detail::store::key_view_t> result;
 
     std::vector<Coin::PrivateKey> keys;
-
+    odb::session s;
     odb::transaction t(_db->begin());
     result r(_db->query<detail::store::key_view_t>(query::address::id.is_not_null() && query::key::path.coin_type == _coin_type && query::key::path.change == change));
     for(auto &entry : r) {
@@ -309,7 +309,7 @@ std::vector<Coin::PrivateKey> Store::listPrivateKeys(uint32_t change) {
 
 // Needed to update bloom filter to detect P2SH outputs and spends
 // We can mark p2sh addresses spent when joystream paychan is settled (keeping bloom filter to minimal size)
-std::vector<uchar_vector> Store::listRedeemScripts() {
+std::vector<uchar_vector> Store::listRedeemScripts() const {
     if(!connected()) {
         throw NotConnected();
     }

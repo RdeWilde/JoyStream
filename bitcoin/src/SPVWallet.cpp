@@ -321,6 +321,14 @@ Coin::P2PKHAddress SPVWallet::generateChangeAddress() {
     return Coin::P2PKHAddress(_network, pubKey.toPubKeyHash());
 }
 
+std::vector<Coin::P2PKHAddress> SPVWallet::listReceiveAddresses() const {
+    std::vector<Coin::P2PKHAddress> addresses;
+    for(auto key : _store.listPrivateKeys(0)) {
+        addresses.push_back(Coin::P2PKHAddress(_network, key.toPublicKey().toPubKeyHash()));
+    }
+    return addresses;
+}
+
 void SPVWallet::broadcastTx(Coin::Transaction cointx) {
     if(!isConnected()) {
         throw std::runtime_error("cannot broadcast tx, wallet offline");

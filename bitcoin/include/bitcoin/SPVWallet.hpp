@@ -101,6 +101,8 @@ public:
     int32_t bestHeight() const;
 
     std::string getSeedWords() const;
+    
+    std::vector<Coin::P2PKHAddress> listReceiveAddresses() const;
 
 signals:
 

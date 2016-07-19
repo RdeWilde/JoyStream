@@ -95,8 +95,8 @@ public:
 
     Coin::PrivateKey generateChangeKey();
 
-    std::vector<Coin::PrivateKey> listPrivateKeys(uint32_t change);
-    std::vector<uchar_vector> listRedeemScripts();
+    std::vector<Coin::PrivateKey> listPrivateKeys(uint32_t change) const;
+    std::vector<uchar_vector> listRedeemScripts() const;
 
     //std::list<Coin::Transaction> listTransactions();
     //std::list<Coin::P2SHAddress> listAddresses();
