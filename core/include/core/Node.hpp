@@ -278,6 +278,7 @@ private:
     void process(const libtorrent::save_resume_data_failed_alert * p);
     void process(const libtorrent::torrent_paused_alert *);
     void process(const libtorrent::torrent_checked_alert *);
+    void process(const libtorrent::peer_connect_alert *);
     // peer connect: peer_connect_alert
     // peer disconnect: peer_disconnected_alert
     void processReadPieceAlert(const libtorrent::read_piece_alert *);

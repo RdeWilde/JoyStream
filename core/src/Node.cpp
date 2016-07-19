@@ -760,6 +760,44 @@ void Node::process(const libtorrent::torrent_checked_alert *) {
     /// nothing to do
 }
 
+void Node::process(const libtorrent::peer_connect_alert * p) {
+
+    // Check that node is started
+    if(_state != State::started) {
+        std::clog << "Ignored due to incompatible node state" << std::endl;
+        return;
+    }
+
+    // Get info_hash, drop alert if the handle gave us invalid info hash
+    libtorrent::sha1_hash infoHash = p->handle.info_hash();
+
+    if(infoHash.is_all_zeros())
+        return;
+
+    // Find torrent
+    auto it = _torrents.find(infoHash);
+
+    // If its not registerd, then we ignore alert
+    if(it == _torrents.cend())
+        return;
+
+    // Get peer_info for peer, which unfortunately requires
+    // getting it for all peers
+    std::vector<libtorrent::peer_info> v;
+
+    try {
+        p->handle.get_peer_info(v);
+    } catch (const libtorrent::libtorrent_exception &) {
+        // Handle was invalidated, drop alert
+        return;
+    }
+
+    // Find info for this peer, and add it to torrent
+    for(libtorrent::peer_info peer : v)
+        if(peer.ip == p->ip)
+            it->second->addPeer(peer);
+}
+
 void Node::processReadPieceAlert(const libtorrent::read_piece_alert *) {
 
     // Check that node is started
