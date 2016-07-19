@@ -408,6 +408,12 @@ void Node::processAlert(const libtorrent::alert * a) {
 
     std::clog << "Processing alert " << a->message() << std::endl;
 
+    // Check that node is started
+    if(_state != State::started) {
+        std::clog << "Ignored due to incompatible node state" << std::endl;
+        return;
+    }
+
     // Select alert type
     if(libtorrent::metadata_received_alert const * p = libtorrent::alert_cast<libtorrent::metadata_received_alert>(a))
         process(p);
@@ -514,12 +520,6 @@ int Node::requestResumeData() {
 
 void Node::process(const libtorrent::torrent_paused_alert * p) {
 
-    // Check that node is started
-    if(_state != State::started) {
-        std::clog << "Ignored due to incompatible node state" << std::endl;
-        return;
-    }
-
     // Get info hash
     libtorrent::sha1_hash infoHash = p->handle.info_hash();
 
@@ -541,12 +541,6 @@ void Node::process(const libtorrent::torrent_removed_alert * p) {
      * so we must use p->info_hash instead.
      */
 
-    // Check that node is started
-    if(_state != State::started) {
-        std::clog << "Ignored due to incompatible node state" << std::endl;
-        return;
-    }
-
     // Get torrent info hash
     libtorrent::sha1_hash info_hash = p->info_hash;
 
@@ -560,12 +554,6 @@ void Node::process(const libtorrent::torrent_removed_alert * p) {
 }
 
 void Node::process(const libtorrent::torrent_resumed_alert * p) {
-
-    // Check that node is started
-    if(_state != State::started) {
-        std::clog << "Ignored due to incompatible node state" << std::endl;
-        return;
-    }
 
     // Get info hash
     libtorrent::sha1_hash infoHash = p->handle.info_hash();
@@ -583,12 +571,6 @@ void Node::process(const libtorrent::torrent_resumed_alert * p) {
 }
 
 void Node::process(const libtorrent::metadata_received_alert * p) {
-
-    // Check that node is started
-    if(_state != State::started) {
-        std::clog << "Ignored due to incompatible node state" << std::endl;
-        return;
-    }
 
     // Syncronous call which returns nullptr if call failes
     libtorrent::torrent_handle h = p->handle;
@@ -611,22 +593,10 @@ void Node::process(const libtorrent::metadata_received_alert * p) {
 
 void Node::process(const libtorrent::metadata_failed_alert *) {
 
-    // Check that node is started
-    if(_state != State::started) {
-        std::clog << "Ignored due to incompatible node state" << std::endl;
-        return;
-    }
-
     // what to do?
 }
 
 void Node::process(const libtorrent::add_torrent_alert * p) {
-
-    // Check that node is started
-    if(_state != State::started) {
-        std::clog << "Ignored due to incompatible node state" << std::endl;
-        return;
-    }
 
     // Did adding succeed?
     if(!p->error) {
@@ -663,22 +633,10 @@ void Node::process(const libtorrent::add_torrent_alert * p) {
 
 void Node::process(const libtorrent::torrent_finished_alert *) {
 
-    // Check that node is started
-    if(_state != State::started) {
-        std::clog << "Ignored due to incompatible node state" << std::endl;
-        return;
-    }
-
     /// nothing to do?
 }
 
 void Node::process(const libtorrent::state_update_alert * p) {
-
-    // Check that node is started
-    if(_state != State::started) {
-        std::clog << "Ignored due to incompatible node state" << std::endl;
-        return;
-    }
 
     for(auto s : p->status) {
 
@@ -695,12 +653,6 @@ void Node::process(const libtorrent::state_update_alert * p) {
 }
 
 void Node::process(const libtorrent::save_resume_data_alert *) {
-
-    // Check that node is started
-    if(_state != State::started) {
-        std::clog << "Ignored due to incompatible node state" << std::endl;
-        return;
-    }
 
     /**
 
@@ -728,14 +680,6 @@ void Node::process(const libtorrent::save_resume_data_alert *) {
 
 void Node::process(const libtorrent::save_resume_data_failed_alert * p) {
 
-    // Check that node is started
-    if(_state != State::started) {
-        std::clog << "Ignored due to incompatible node state" << std::endl;
-        return;
-    }
-
-    /// Not sure why this would ever happen?
-
     std::clog << p->message() << std::endl;
 
     // Get reference to corresponding torrent
@@ -751,22 +695,10 @@ void Node::process(const libtorrent::save_resume_data_failed_alert * p) {
 
 void Node::process(const libtorrent::torrent_checked_alert *) {
 
-    // Check that node is started
-    if(_state != State::started) {
-        std::clog << "Ignored due to incompatible node state" << std::endl;
-        return;
-    }
-
     /// nothing to do
 }
 
 void Node::process(const libtorrent::peer_connect_alert * p) {
-
-    // Check that node is started
-    if(_state != State::started) {
-        std::clog << "Ignored due to incompatible node state" << std::endl;
-        return;
-    }
 
     // Get info_hash, drop alert if the handle gave us invalid info hash
     libtorrent::sha1_hash infoHash = p->handle.info_hash();
@@ -829,13 +761,6 @@ void Node::processReadPieceAlert(const libtorrent::read_piece_alert *) {
 }
 
 void Node::processPieceFinishedAlert(const libtorrent::piece_finished_alert *) {
-
-    // Check that node is started
-    if(_state != State::started) {
-        std::clog << "Ignored due to incompatible node state" << std::endl;
-        return;
-    }
-
 
 //    // Get info hash for torrent from which this read piece comes from
 //    const libtorrent::sha1_hash infoHash = p->handle.info_hash();
