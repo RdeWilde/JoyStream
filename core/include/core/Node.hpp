@@ -283,15 +283,10 @@ private:
     void processReadPieceAlert(const libtorrent::read_piece_alert *);
     void processPieceFinishedAlert(const libtorrent::piece_finished_alert *);
 
-    // when is upload & download lmit refreshed ?
-
     // Processing (plugin) alerts
     void process(const extension::alert::RequestResult * p);
     void process(const extension::alert::BroadcastTransaction * p);
     void process(const extension::alert::PluginStatus * p);
-
-    // torrent plugin added
-    // torrent plugin removed
 
     void sendTransactions();
 
