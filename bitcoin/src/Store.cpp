@@ -90,7 +90,7 @@ bool Store::open(std::string file, Coin::Network network) {
         _network = network;
         _coin_type = network == Coin::Network::mainnet ? 0x80000000 : 0x80000001;
         _entropy = Coin::Entropy(metadata->entropy());
-        _accountKeychain = _entropy.seed().generateHDKeychain().getChild(0x80000044).getChild(_coin_type).getChild(0x80000000);
+        _accountKeychain = _entropy.seed().generateHDKeychain().getChild(0x8000002C).getChild(_coin_type).getChild(0x80000000);
         _timestamp = metadata->created();
         return true;
 
@@ -140,7 +140,7 @@ bool Store::create(std::string file, Coin::Network network, const Coin::Entropy 
         _network = network;
         _coin_type = _network == Coin::Network::mainnet ? 0x80000000 : 0x80000001;
         _entropy = entropy;
-        _accountKeychain = _entropy.seed().generateHDKeychain().getChild(0x80000044).getChild(_coin_type).getChild(0x80000000);
+        _accountKeychain = _entropy.seed().generateHDKeychain().getChild(0x8000002C).getChild(_coin_type).getChild(0x80000000);
         _timestamp = timestamp;
         detail::store::Metadata metadata(_entropy.getHex(), timestamp);
         _timestamp = timestamp;
