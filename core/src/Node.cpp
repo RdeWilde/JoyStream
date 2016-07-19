@@ -264,14 +264,38 @@ void Node::syncWallet() {
 
 void Node::updateStatus() {
 
-    //guard state?
-
+    // We can only stop from started state
+    if(_state != State::started)
+        throw exception::StateIncompatibleOperation(_state);
 
     // Regular torrent level state update
     _session.post_torrent_updates();
 
     // Plugin level updates
     _plugin->submit(extension::request::UpdateStatus());
+
+    // Update
+    for(auto t : _torrents) {
+
+        // Get handle for torrent
+        libtorrent::sha1_hash infoHash = t.second->infoHash();
+        libtorrent::torrent_handle h = _session.find_torrent(infoHash);
+
+        // Get peer_info for peer, which unfortunately requires
+        // getting it for all peers
+        std::vector<libtorrent::peer_info> v;
+
+        try {
+            h.get_peer_info(v);
+        } catch (const libtorrent::libtorrent_exception &) {
+            // Handle was invalidated, drop torrent,
+            // torrent-removed_alert will come in due time.
+            continue;
+        }
+
+        // Update peer statuses on torrent
+        t.second->updatePeerStatuses(v);
+    }
 }
 
 Node::State Node::state() const {
@@ -700,6 +724,18 @@ void Node::process(const libtorrent::torrent_checked_alert *) {
 
 void Node::process(const libtorrent::peer_connect_alert * p) {
 
+    // Get peer_info for peer, which unfortunately requires
+    // getting it for all peers, and as such, we try to update
+    // the all statuses.
+    std::vector<libtorrent::peer_info> v;
+
+    try {
+        p->handle.get_peer_info(v);
+    } catch (const libtorrent::libtorrent_exception &) {
+        // Handle was invalidated, drop alert
+        return;
+    }
+
     // Get info_hash, drop alert if the handle gave us invalid info hash
     libtorrent::sha1_hash infoHash = p->handle.info_hash();
 
@@ -713,21 +749,8 @@ void Node::process(const libtorrent::peer_connect_alert * p) {
     if(it == _torrents.cend())
         return;
 
-    // Get peer_info for peer, which unfortunately requires
-    // getting it for all peers
-    std::vector<libtorrent::peer_info> v;
-
-    try {
-        p->handle.get_peer_info(v);
-    } catch (const libtorrent::libtorrent_exception &) {
-        // Handle was invalidated, drop alert
-        return;
-    }
-
-    // Find info for this peer, and add it to torrent
-    for(libtorrent::peer_info peer : v)
-        if(peer.ip == p->ip)
-            it->second->addPeer(peer);
+    // Update peer statuses on torrent
+    it->second->updatePeerStatuses(v);
 }
 
 void Node::process(const libtorrent::peer_disconnected_alert * p) {
