@@ -6,6 +6,7 @@
 
 #include <bitcoin/SPVWallet.hpp>
 #include <common/P2PKHAddress.hpp>
+#include <common/UnspentOutputSet.hpp>
 
 #include <CoinQ/CoinQ_coinparams.h>
 
@@ -24,7 +25,23 @@ using joystream::bitcoin::SPVWallet;
 
 void sendAllCoinsToBlockCypherFaucet(joystream::bitcoin::SPVWallet & wallet) {
     // mwmabpJVisvti3WEP5vhFRtn3yqHRD9KNP
+}
 
+void sendAllCoinsToTPFaucet(joystream::bitcoin::SPVWallet & wallet) {
+    /* https://tpfaucet.appspot.com/ */
+    auto faucet = Coin::P2PKHAddress::fromBase58CheckEncoding("n2eMqTT929pb1RDNuqEnxdaLau1rxy3efi");
+
+    Coin::Transaction Tx;
+
+    auto balance = wallet.balance();
+
+    Tx.addOutput(Coin::TxOut(balance, Coin::P2PKHScriptPubKey(faucet.pubKeyHash()).serialize()));
+
+    auto funds = wallet.lockOutputs(balance);
+
+    funds.finance(Tx, Coin::SigHashType(Coin::SigHashType::MutuallyExclusiveType::all, false));
+
+    wallet.broadcastTx(Tx);
 }
 
 int main(int argc, char *argv[])
@@ -71,9 +88,17 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    std::cout << "Wallet Seed Words:\n" << wallet.getSeedWords() << std::endl;
+
+    auto recvAddresses = wallet.listReceiveAddresses();
+
+    if(recvAddresses.size() == 0) {
+        wallet.generateReceiveAddress();
+    }
+
     std::cout << "Wallet contains the following receive addresses:\n";
 
-    for(auto addr : wallet.listAddresses()) {
+    for(auto addr : recvAddresses) {
         std::cout << addr.toBase58CheckEncoding().toStdString() << std::endl;
     }
 
@@ -121,6 +146,9 @@ int main(int argc, char *argv[])
     QObject::connect(&wallet, &SPVWallet::statusChanged, [&wallet, &a, &timer](SPVWallet::wallet_status_t status){
        if(status == SPVWallet::wallet_status_t::SYNCHED)  {
            std::cout << std::endl << "Wallet Synched" << std::endl;
+
+           //std::cout << "Sending all coins to Faucet\n";
+           //sendAllCoinsToTPFaucet(wallet);
        }
 
        if(status == SPVWallet::wallet_status_t::SYNCHING_HEADERS) {
