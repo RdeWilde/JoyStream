@@ -88,9 +88,9 @@ bool Store::open(std::string file, Coin::Network network) {
         t.commit();
 
         _network = network;
-        _coin_type = network == Coin::Network::mainnet ? 0x80000000 : 0x80000001;
+        _coin_type = network == Coin::Network::mainnet ? BIP44_COIN_TYPE_BITCOIN : BIP44_COIN_TYPE_BITCOIN_TESTNET;
         _entropy = Coin::Entropy(metadata->entropy());
-        _accountKeychain = _entropy.seed().generateHDKeychain().getChild(0x8000002C).getChild(_coin_type).getChild(0x80000000);
+        _accountKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
         _timestamp = metadata->created();
         return true;
 
@@ -138,9 +138,9 @@ bool Store::create(std::string file, Coin::Network network, const Coin::Entropy 
 
         //initialise metadata
         _network = network;
-        _coin_type = _network == Coin::Network::mainnet ? 0x80000000 : 0x80000001;
+        _coin_type = _network == Coin::Network::mainnet ? BIP44_COIN_TYPE_BITCOIN : BIP44_COIN_TYPE_BITCOIN_TESTNET;
         _entropy = entropy;
-        _accountKeychain = _entropy.seed().generateHDKeychain().getChild(0x8000002C).getChild(_coin_type).getChild(0x80000000);
+        _accountKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
         _timestamp = timestamp;
         detail::store::Metadata metadata(_entropy.getHex(), timestamp);
         _timestamp = timestamp;
@@ -185,7 +185,7 @@ Coin::PrivateKey Store::generateKey(const RedeemScriptGenerator & scriptGenerato
 
     odb::transaction t(_db->begin());
 
-    uint32_t index = getNextKeyIndex(2);
+    uint32_t index = getNextKeyIndex(KeychainType::Other);
 
     Coin::PrivateKey sk(createNewPrivateKey(scriptGenerator, index));
     t.commit();
@@ -204,7 +204,7 @@ std::vector<Coin::PrivateKey> Store::generateKeys(uint32_t numKeys, const Store:
 
     odb::transaction t(_db->begin());
 
-    uint32_t index = getNextKeyIndex(2);
+    uint32_t index = getNextKeyIndex(KeychainType::Other);
 
     for(uint32_t n = 0; n < numKeys; n++, index++) {
         privKeys.push_back(createNewPrivateKey([&n, &multiScriptGenerator](const Coin::PublicKey & pubKey){
@@ -229,7 +229,7 @@ std::vector<Coin::KeyPair> Store::generateKeyPairs(uint32_t numKeys, const Store
 }
 
 // Generates a new key - P2PKH
-Coin::PrivateKey Store::generateKey(uint32_t change) {
+Coin::PrivateKey Store::generateKey(KeychainType type) {
     if(!connected()) {
         throw NotConnected();
     }
@@ -238,15 +238,15 @@ Coin::PrivateKey Store::generateKey(uint32_t change) {
 
     odb::transaction t(_db->begin());
 
-    uint32_t index = getNextKeyIndex(change);
+    uint32_t index = getNextKeyIndex(type);
 
-    Coin::PrivateKey sk(createNewPrivateKey(change, index));
+    Coin::PrivateKey sk(createNewPrivateKey(type, index));
     t.commit();
 
     return sk;
 }
 
-std::vector<Coin::PrivateKey> Store::generateKeys(uint32_t numKeys, uint32_t change) {
+std::vector<Coin::PrivateKey> Store::generateKeys(uint32_t numKeys, KeychainType chainType) {
     if(!connected()) {
         throw NotConnected();
     }
@@ -257,10 +257,10 @@ std::vector<Coin::PrivateKey> Store::generateKeys(uint32_t numKeys, uint32_t cha
 
     odb::transaction t(_db->begin());
 
-    uint32_t index = getNextKeyIndex(change);
+    uint32_t index = getNextKeyIndex(chainType);
 
     for(uint32_t n = 0; n < numKeys; n++, index++) {
-        privKeys.push_back(createNewPrivateKey(change, index));
+        privKeys.push_back(createNewPrivateKey(chainType, index));
     }
 
     t.commit();
@@ -268,11 +268,11 @@ std::vector<Coin::PrivateKey> Store::generateKeys(uint32_t numKeys, uint32_t cha
     return privKeys;
 }
 
-std::vector<Coin::KeyPair> Store::generateKeyPairs(uint32_t numKeys, uint32_t change) {
+std::vector<Coin::KeyPair> Store::generateKeyPairs(uint32_t numKeys, KeychainType chainType) {
 
     std::vector<Coin::KeyPair> keyPairs;
 
-    for(auto sk : generateKeys(numKeys, change)) {
+    for(auto sk : generateKeys(numKeys, chainType)) {
         keyPairs.push_back(Coin::KeyPair(sk));
     }
 
@@ -280,15 +280,15 @@ std::vector<Coin::KeyPair> Store::generateKeyPairs(uint32_t numKeys, uint32_t ch
 }
 
 Coin::PrivateKey Store::generateReceiveKey() {
-    return generateKey(0);//TODO: use enum instead of magic numbers
+    return generateKey(KeychainType::External);
 }
 
 
 Coin::PrivateKey Store::generateChangeKey() {
-    return generateKey(1);//TODO: use enum instead of magic numbers
+    return generateKey(KeychainType::Internal);
 }
 
-std::vector<Coin::PrivateKey> Store::listPrivateKeys(uint32_t change) const {
+std::vector<Coin::PrivateKey> Store::listPrivateKeys(KeychainType chainType) const {
     if(!connected()) {
         throw NotConnected();
     }
@@ -299,7 +299,7 @@ std::vector<Coin::PrivateKey> Store::listPrivateKeys(uint32_t change) const {
     std::vector<Coin::PrivateKey> keys;
     odb::session s;
     odb::transaction t(_db->begin());
-    result r(_db->query<detail::store::key_view_t>(query::address::id.is_not_null() && query::key::path.coin_type == _coin_type && query::key::path.change == change));
+    result r(_db->query<detail::store::key_view_t>(query::address::id.is_not_null() && query::key::path.coin_type == _coin_type && query::key::path.change == (uint32_t)chainType));
     for(auto &entry : r) {
         keys.push_back(entry.key->getPrivateKey());
     }
@@ -320,7 +320,7 @@ std::vector<uchar_vector> Store::listRedeemScripts() const {
     std::vector<uchar_vector> scripts;
 
     odb::transaction t(_db->begin());
-    result r(_db->query<detail::store::key_view_t>(query::address::id.is_not_null() && query::key::path.coin_type == _coin_type && query::key::path.change == 2));
+    result r(_db->query<detail::store::key_view_t>(query::address::id.is_not_null() && query::key::path.coin_type == _coin_type && query::key::path.change == (uint32_t)KeychainType::Other));
     for(auto &entry : r) {
         scripts.push_back(uchar_vector(entry.address->redeemScript()));
     }
@@ -682,12 +682,12 @@ Coin::PrivateKey Store::createNewPrivateKey(RedeemScriptGenerator scriptGenerato
         throw std::runtime_error("redeem script generator function not provided");
     }
 
-    Coin::HDKeychain hdKeyChain = _accountKeychain.getChild(2).getChild(index);
+    Coin::HDKeychain hdKeyChain = _accountKeychain.getChild((uint32_t)KeychainType::Other).getChild(index);
 
     Coin::PrivateKey sk(hdKeyChain.privkey());
 
     // persist a new key
-    std::shared_ptr<detail::store::Key> key(new detail::store::Key(_coin_type, 2, index, sk));
+    std::shared_ptr<detail::store::Key> key(new detail::store::Key(_coin_type, (uint32_t)KeychainType::Other, index, sk));
     _db->persist(key);
 
     // persist new p2sh address
@@ -696,17 +696,17 @@ Coin::PrivateKey Store::createNewPrivateKey(RedeemScriptGenerator scriptGenerato
     return sk;
 }
 
-Coin::PrivateKey Store::createNewPrivateKey(uint32_t change, uint32_t index) {
+Coin::PrivateKey Store::createNewPrivateKey(KeychainType chainType, uint32_t index) {
     if(!connected()) {
         throw NotConnected();
     }
 
-    Coin::HDKeychain hdKeyChain = _accountKeychain.getChild(change).getChild(index);
+    Coin::HDKeychain hdKeyChain = _accountKeychain.getChild((uint32_t)chainType).getChild(index);
 
     Coin::PrivateKey sk(hdKeyChain.privkey());
 
     // persist a new key
-    std::shared_ptr<detail::store::Key> key(new detail::store::Key(_coin_type, change, index, sk));
+    std::shared_ptr<detail::store::Key> key(new detail::store::Key(_coin_type, (uint32_t)chainType, index, sk));
     _db->persist(key);
 
     // persist new p2pkh address
@@ -715,7 +715,7 @@ Coin::PrivateKey Store::createNewPrivateKey(uint32_t change, uint32_t index) {
     return sk;
 }
 
-uint32_t Store::getNextKeyIndex(uint32_t change) {
+uint32_t Store::getNextKeyIndex(KeychainType chainType) {
 
     if(!connected()) {
         throw NotConnected();
@@ -723,7 +723,7 @@ uint32_t Store::getNextKeyIndex(uint32_t change) {
 
     typedef odb::query<detail::store::Key> query;
 
-    auto stat(_db->query_value<detail::store::key_stat_t>(query::path.coin_type == _coin_type && query::path.change == change));
+    auto stat(_db->query_value<detail::store::key_stat_t>(query::path.coin_type == _coin_type && query::path.change == (uint32_t)chainType));
 
     if(stat.count == 0) return 0;
 

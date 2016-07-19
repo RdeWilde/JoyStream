@@ -164,8 +164,8 @@ void SPVWallet::open() {
         recalculateBalance();
 
         auto scripts = _store.listRedeemScripts();
-        auto recvKeys = _store.listPrivateKeys(0);
-        auto changeKeys = _store.listPrivateKeys(1);
+        auto recvKeys = _store.listPrivateKeys(Store::KeychainType::External);
+        auto changeKeys = _store.listPrivateKeys(Store::KeychainType::Internal);
 
         std::vector<Coin::PublicKey> pubKeys;
 
@@ -323,7 +323,7 @@ Coin::P2PKHAddress SPVWallet::generateChangeAddress() {
 
 std::vector<Coin::P2PKHAddress> SPVWallet::listReceiveAddresses() const {
     std::vector<Coin::P2PKHAddress> addresses;
-    for(auto key : _store.listPrivateKeys(0)) {
+    for(auto key : _store.listPrivateKeys(Store::KeychainType::External)) {
         addresses.push_back(Coin::P2PKHAddress(_network, key.toPublicKey().toPubKeyHash()));
     }
     return addresses;

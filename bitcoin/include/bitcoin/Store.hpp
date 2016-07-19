@@ -31,6 +31,17 @@ class Store {
 
 public:
 
+    enum class KeychainType : uint32_t {
+        External = 0,
+        Internal = 1,
+        Other    = 2  // not part of BIP44 spec
+    };
+
+    const uint32_t BIP44_PURPOSE = 0x8000002C;
+    const uint32_t BIP44_DEFAULT_ACCOUNT = 0x80000000;
+    const uint32_t BIP44_COIN_TYPE_BITCOIN = 0x80000000;
+    const uint32_t BIP44_COIN_TYPE_BITCOIN_TESTNET = 0x80000001;
+
     typedef std::function<void(Coin::TransactionId, int confirmations)> transactionUpdatedCallback;
     typedef std::function<RedeemScriptInfo(const Coin::PublicKey &, uint32_t n)> MultiRedeemScriptGenerator;
     typedef std::function<bool(const uchar_vector &script)> RedeemScriptFilter;
@@ -83,19 +94,19 @@ public:
     // BIP44 - Keys for use with P2PKH Addresses, by default we generate a key for external use (receive address) change = 0
     // To generate a key for use with an internal address (for example a change output, pass argument change = 1)
     // Return a new private key
-    Coin::PrivateKey generateKey(uint32_t change);
+    Coin::PrivateKey generateKey(KeychainType type);
 
     // Returns a vector of new keys
-    std::vector<Coin::PrivateKey> generateKeys(uint32_t numKeys, uint32_t change);
+    std::vector<Coin::PrivateKey> generateKeys(uint32_t numKeys, KeychainType chainType);
 
     // Returns a vector of new key pairs
-    std::vector<Coin::KeyPair> generateKeyPairs(uint32_t numKeys, uint32_t change);
+    std::vector<Coin::KeyPair> generateKeyPairs(uint32_t numKeys, KeychainType chainType);
 
     Coin::PrivateKey generateReceiveKey();
 
     Coin::PrivateKey generateChangeKey();
 
-    std::vector<Coin::PrivateKey> listPrivateKeys(uint32_t change) const;
+    std::vector<Coin::PrivateKey> listPrivateKeys(KeychainType chainType) const;
     std::vector<uchar_vector> listRedeemScripts() const;
 
     //std::list<Coin::Transaction> listTransactions();
@@ -133,10 +144,10 @@ private:
     //internal methods used to persist new keys
     //should be wrapped in an odb::transaction
     Coin::PrivateKey createNewPrivateKey(RedeemScriptGenerator scriptGenerator, uint32_t index);
-    Coin::PrivateKey createNewPrivateKey(uint32_t change, uint32_t index);
+    Coin::PrivateKey createNewPrivateKey(KeychainType chainType, uint32_t index);
 
     // Total number of keys of change type
-    uint32_t getNextKeyIndex(uint32_t change);
+    uint32_t getNextKeyIndex(KeychainType chainType);
 
     transactionUpdatedCallback notifyTxUpdated;
 };
