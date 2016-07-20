@@ -75,8 +75,8 @@ public:
     bool open(std::string file, Coin::Network network, std::string passphrase = "");
     bool create(std::string file, Coin::Network network);
     bool create(std::string file, Coin::Network network, const Coin::Entropy &entropy, uint32_t timestamp);
-    void encrypt(std::string passphrase);//encrypt the entropy in db (throw if already encrypted or something else goes wrong)
-    void decrypt(std::string passphrase);//decrypt the entropy in db (throw if not encrypted, or wrong passphrase)
+    void lock(std::string passphrase);//encrypt the entropy in db (throw if already encrypted or something else goes wrong)
+    void unlock(std::string passphrase);//decrypt the entropy in db (throw if not encrypted, or wrong passphrase)
     bool connected() const;
     void close();
 
@@ -140,7 +140,7 @@ private:
 
     Coin::Network _network;
     Coin::Entropy _entropy;
-    //bool _locked;
+    bool _readOnly;
     uint32_t _coin_type;
     Coin::HDKeychain _accountKeychain;
     uint32_t _timestamp;

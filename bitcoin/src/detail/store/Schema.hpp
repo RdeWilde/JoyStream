@@ -38,8 +38,7 @@ namespace store {
  * Metadata
  */
 
-//no_id - we don't intend to have more than one Metadata object in the database
-#pragma db object no_id pointer(std::shared_ptr)
+#pragma db object pointer(std::shared_ptr)
 class Metadata : public std::enable_shared_from_this<Metadata> {
   public:
     std::shared_ptr<Metadata> get_shared_ptr() { return shared_from_this(); }
@@ -49,16 +48,20 @@ class Metadata : public std::enable_shared_from_this<Metadata> {
 
     std::string entropy() const;
     uint32_t created() const;
-    //bool encrypted() const;
+    bool locked() const;
+    void locked(bool);
 
   private:
     friend class odb::access;
+
+    #pragma db id
+    int id_;
 
     #pragma db not_null
     std::string entropy_;
 
     //wether entropy_ is encrypted with a passphrase
-    //bool encrypted_;
+    bool locked_;
 
     //utc unix timestamp: QDateTime::fromTime_t(created_) to convert to QDateTime local time
     uint32_t created_;

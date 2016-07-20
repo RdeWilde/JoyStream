@@ -21,7 +21,7 @@ namespace store {
     Metadata::Metadata(std::string entropy, uint32_t created_utc) :
          entropy_(entropy)
         ,created_(created_utc)
-        //,encrypted_(false)
+        ,locked_(false)
     {}
 
     std::string Metadata::entropy() const {
@@ -32,9 +32,13 @@ namespace store {
         return created_;
     }
 
-//    bool Metadata::encrypted() const {
-//        return encrypted_;
-//    }
+    bool Metadata::locked() const {
+        return locked_;
+    }
+
+    void Metadata::locked(bool locked) {
+        locked_ = locked;
+    }
 
 /// Key
 

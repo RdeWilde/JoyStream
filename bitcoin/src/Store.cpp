@@ -91,17 +91,22 @@ bool Store::open(std::string file, Coin::Network network, std::string passphrase
         _coin_type = network == Coin::Network::mainnet ? BIP44_COIN_TYPE_BITCOIN : BIP44_COIN_TYPE_BITCOIN_TESTNET;
         _timestamp = metadata->created();
 
-//        if(metadata->encrypted()) {
-//            if(passphrase == "") {
-//                _locked = true;
-//            } else {
-//                // try to decrypt entropy
-//            }
-//        }else {
+        if(metadata->locked()) {
+            _readOnly = true;
+            if(passphrase != "") {
+                // try to DECRYPT entropy using passphrase
+                _entropy = Coin::Entropy(metadata->entropy());
+                _accountKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
+                _readOnly = false;
+            } else {
+                std::cerr << "Store is locked but no passphrase was provided to unlock it\n";
+                std::cerr << "Opening in read only mode\n";
+            }
+        }else {
             _entropy = Coin::Entropy(metadata->entropy());
             _accountKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
-//            _locked = false;
-//        }
+            _readOnly = false;
+        }
 
         return true;
 
@@ -155,7 +160,7 @@ bool Store::create(std::string file, Coin::Network network, const Coin::Entropy 
         _timestamp = timestamp;
         detail::store::Metadata metadata(_entropy.getHex(), timestamp);
         _timestamp = timestamp;
-        //_locked = false;
+        _readOnly = false;
         _db->persist(metadata);
 
         t.commit ();
@@ -174,6 +179,36 @@ bool Store::create(std::string file, Coin::Network network, const Coin::Entropy 
     }
 
     return false;
+}
+
+void Store::lock(std::string passphrase) {
+    std::lock_guard<std::mutex> lock(_storeMutex);
+    //load metadata
+    odb::transaction t(_db->begin());
+    std::shared_ptr<detail::store::Metadata> metadata(_db->query_one<detail::store::Metadata>());
+    if(metadata->locked()) {
+        throw std::runtime_error("Store::lock() store is already locked");
+    }
+    // encrypted_entropy = ENCRYPT(metadata->entropy);
+    // metadata->setEntropy(encrypted_entropy);
+    metadata->locked(true);
+    _db->update(metadata);
+    t.commit();
+}
+
+void Store::unlock(std::string passphrase) {
+    std::lock_guard<std::mutex> lock(_storeMutex);
+    //load metadata
+    odb::transaction t(_db->begin());
+    std::shared_ptr<detail::store::Metadata> metadata(_db->query_one<detail::store::Metadata>());
+    if(!metadata->locked()) {
+        throw std::runtime_error("Store::unlock() sotore is not locked");
+    }
+    // plaintext_entropy = DECRYPT(metadata->entropy())
+    // metadata->setEntropy(plaintext_entropy);
+    metadata->locked(false);
+    _db->update(metadata);
+    t.commit();
 }
 
 bool Store::connected() const {
