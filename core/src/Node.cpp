@@ -432,7 +432,14 @@ void Node::processAlert(const libtorrent::alert * a) {
 
     std::clog << "Processing alert " << a->message() << std::endl;
 
-    // Check that node is started
+    // Handilng resume data alerts is allowed in all states
+
+    if(libtorrent::save_resume_data_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_alert>(a))
+        process(p);
+    else if(libtorrent::save_resume_data_failed_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_failed_alert>(a))
+        process(p);
+
+    /// Check that node is started
     if(_state != State::started) {
         std::clog << "Ignored due to incompatible node state" << std::endl;
         return;
@@ -456,10 +463,6 @@ void Node::processAlert(const libtorrent::alert * a) {
     else if (libtorrent::state_update_alert const * p = libtorrent::alert_cast<libtorrent::state_update_alert>(a))
         process(p);
     else if(libtorrent::torrent_removed_alert const * p = libtorrent::alert_cast<libtorrent::torrent_removed_alert>(a))
-        process(p);
-    else if(libtorrent::save_resume_data_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_alert>(a))
-        process(p);
-    else if(libtorrent::save_resume_data_failed_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_failed_alert>(a))
         process(p);
     else if(libtorrent::torrent_checked_alert const * p = libtorrent::alert_cast<libtorrent::torrent_checked_alert>(a))
         process(p);
