@@ -40,20 +40,20 @@ public:
     /// Actions
 
     /**
-     * @brief All connections are ended
+     * @brief All connections are ended, can only be called when Node is started.
      * @param graceful whether regular bittorrent, i.e. non-plugin, pieces in inbound transit will be completed before closing a connection.
      * @param handler callback handler when pause oeration has been completed
      */
     void paused(bool graceful, const TorrentPaused & handler);
 
     /**
-     * @brief All connections from a previous pause are resumed
+     * @brief All connections from a previous pause are resumed, can only be called when Node is started.
      * @param handler callback handler when resume operation has been completed
      */
     void resumed(const TorrentResumed & handler);
 
     /**
-     * @brief Starts asynchronous process of generating resume data.
+     * @brief Starts asynchronous process of generating resume data, can be called at any time.
      * When process is done, the resumeDataGenerated signal will be emitted,
      */
     void generateResumeData();
