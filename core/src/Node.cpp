@@ -473,8 +473,7 @@ void Node::processAlert(const libtorrent::alert * a) {
         process(p);
     else if(extension::alert::PluginStatus const * p = libtorrent::alert_cast<extension::alert::PluginStatus>(a))
         process(p);
-    else
-        assert(false);
+
 }
 
 
