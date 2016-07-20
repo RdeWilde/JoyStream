@@ -684,16 +684,21 @@ void Node::process(const libtorrent::state_update_alert * p) {
 
 }
 
-void Node::process(const libtorrent::save_resume_data_alert *) {
+void Node::process(const libtorrent::save_resume_data_alert * p) {
 
-    /**
-
-    // Get reference to corresponding torrent
+    // Recover info_hash of torrent
     libtorrent::torrent_handle h = p->handle;
 
+    libtorrent::sha1_hash infoHash = h.info_hash();
+
+    if(infoHash.is_all_zeros()) {
+        std::clog << "Handle already expired." << std::endl;
+        return;
+    }
+
+    // Get reference ot corresponding torrent
     auto it = _torrents.find(h.info_hash());
 
-    // Check that
     if(it == _torrents.cend()) {
         std::clog << "Dropped alert, no correspondign torrent found.";
         return;
@@ -706,8 +711,7 @@ void Node::process(const libtorrent::save_resume_data_alert *) {
     libtorrent::bencode(std::back_inserter(resumeData), *(p->resume_data));
 
     // Save resume data in torrent
-    //it->second.resumeData = resumeData;
-    */
+    it->second->setResumeDataGenerationResult(resumeData);
 }
 
 void Node::process(const libtorrent::save_resume_data_failed_alert * p) {
