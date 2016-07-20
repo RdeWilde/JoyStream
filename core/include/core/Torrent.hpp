@@ -28,7 +28,8 @@ class Torrent : public QObject {
 
 private:
 
-    Torrent(const libtorrent::torrent_status &,
+    Torrent(const libtorrent::torrent_handle & handle,
+            const libtorrent::torrent_status & status,
             const std::vector<char> & resumeData,
             int uploadLimit,
             int downloadLimit,
@@ -50,6 +51,12 @@ public:
      * @param handler callback handler when resume operation has been completed
      */
     void resumed(const TorrentResumed & handler);
+
+    /**
+     * @brief Starts asynchronous process of generating resume data.
+     * When process is done, the resumeDataGenerated signal will be emitted,
+     */
+    void generateResumeData();
 
     /// Getters
 
@@ -90,6 +97,8 @@ signals:
     void torrentPluginAdded(const std::shared_ptr<TorrentPlugin> &);
 
     void torrentPluginRemoved();
+
+    void resumeDataGenerationCompleted(const std::vector<char> &);
 
     // Triggered when torrent is added witout metadata, but later
     // receives it from peers
@@ -137,12 +146,17 @@ private:
 
     void resumed();
 
+    void setResumeData(const std::vector<char> &);
+
     void setMetadata(const boost::shared_ptr<const libtorrent::torrent_info> &);
 
     /// Members
 
     // Plugin reference
     boost::shared_ptr<extension::Plugin> _plugin;
+
+    // Handle for torrent
+    libtorrent::torrent_handle _handle;
 
     // Most recent libtorrent status
     libtorrent::torrent_status _status;

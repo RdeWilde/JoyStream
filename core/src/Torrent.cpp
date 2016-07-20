@@ -12,12 +12,14 @@
 namespace joystream {
 namespace core {
 
-Torrent::Torrent(const libtorrent::torrent_status & status,
+Torrent::Torrent(const libtorrent::torrent_handle & handle,
+                 const libtorrent::torrent_status & status,
                  const std::vector<char> & resumeData,
                  int uploadLimit,
                  int downloadLimit,
                  const boost::shared_ptr<extension::Plugin> & plugin)
     : _plugin(plugin)
+    , _handle(handle)
     , _status(status)
     , _resumeData(resumeData)
     , _uploadLimit(uploadLimit)
@@ -30,6 +32,10 @@ void Torrent::paused(bool graceful, const TorrentPaused & handler) {
 
 void Torrent::resumed(const TorrentResumed & handler) {
     _plugin->submit(extension::request::ResumeTorrent(infoHash(), handler));
+}
+
+void Torrent::generateResumeData() {
+    _handle.save_resume_data();
 }
 
 libtorrent::sha1_hash Torrent::infoHash() const noexcept {
@@ -222,6 +228,13 @@ void Torrent::resumed() {
         emit pausedChanged(false);
 
     _status.paused = false;
+}
+
+void Torrent::setResumeData(const std::vector<char> & resumeData) {
+
+    _resumeData = resumeData;
+
+    emit resumeDataGenerationCompleted(resumeData);
 }
 
 void Torrent::setMetadata(const boost::shared_ptr<const libtorrent::torrent_info> & torrent_info) {
