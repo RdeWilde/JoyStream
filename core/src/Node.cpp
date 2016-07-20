@@ -712,17 +712,27 @@ void Node::process(const libtorrent::save_resume_data_alert *) {
 
 void Node::process(const libtorrent::save_resume_data_failed_alert * p) {
 
-    std::clog << p->message() << std::endl;
-
-    // Get reference to corresponding torrent
+    // Recover info_hash of torrent
     libtorrent::torrent_handle h = p->handle;
 
-//    auto it = _torrents.find(h.info_hash());
+    libtorrent::sha1_hash infoHash = h.info_hash();
 
-//    if(it == _torrents.cend()) {
-//        std::clog << "Dropped alert, no correspondign torrent found.";
-//        return;
-//    }
+    if(infoHash.is_all_zeros()) {
+        std::clog << "Handle already expired." << std::endl;
+        return;
+    }
+
+    // Get reference ot corresponding torrent
+    auto it = _torrents.find(h.info_hash());
+
+    if(it == _torrents.cend()) {
+        std::clog << "Dropped alert, no correspondign torrent found.";
+        return;
+    }
+
+    // Save empty resume data in torrent, is required
+    // to trigger event signal
+    it->second->setResumeDataGenerationResult(std::vector<char>());
 }
 
 void Node::process(const libtorrent::torrent_checked_alert *) {
