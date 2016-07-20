@@ -13,11 +13,13 @@ namespace joystream {
 namespace core {
 
 Torrent::Torrent(const libtorrent::torrent_status & status,
+                 const std::vector<char> & resumeData,
                  int uploadLimit,
                  int downloadLimit,
                  const boost::shared_ptr<extension::Plugin> & plugin)
     : _plugin(plugin)
     , _status(status)
+    , _resumeData(resumeData)
     , _uploadLimit(uploadLimit)
     , _downloadLimit(downloadLimit) {
 }
@@ -52,6 +54,10 @@ std::string Torrent::savePath() const noexcept {
 
 std::string Torrent::name() const noexcept {
     return _status.name;
+}
+
+std::vector<char> Torrent::resumeData() const noexcept {
+    return _resumeData;
 }
 
 boost::weak_ptr<const libtorrent::torrent_info> Torrent::metaData() const noexcept {

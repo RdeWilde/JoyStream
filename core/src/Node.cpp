@@ -641,7 +641,8 @@ void Node::process(const libtorrent::add_torrent_alert * p) {
         int downloadLimit = h.download_limit();
 
         // Create torrent
-        std::shared_ptr<Torrent> plugin(new Torrent(status, uploadLimit, downloadLimit, _plugin));
+        // where to get resume data from? needs to be in extra map
+        std::shared_ptr<Torrent> plugin(new Torrent(status, p->params.resume_data, uploadLimit, downloadLimit, _plugin));
 
         // add to map
         _torrents.insert(std::make_pair(infoHash, plugin));

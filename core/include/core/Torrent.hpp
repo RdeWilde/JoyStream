@@ -29,6 +29,7 @@ class Torrent : public QObject {
 private:
 
     Torrent(const libtorrent::torrent_status &,
+            const std::vector<char> & resumeData,
             int uploadLimit,
             int downloadLimit,
             const boost::shared_ptr<extension::Plugin> &);
@@ -63,6 +64,8 @@ public:
     std::string savePath() const noexcept;
 
     std::string name() const noexcept;
+
+    std::vector<char> resumeData() const noexcept;
 
     boost::weak_ptr<const libtorrent::torrent_info> metaData() const noexcept;
 
@@ -143,6 +146,9 @@ private:
 
     // Most recent libtorrent status
     libtorrent::torrent_status _status;
+
+    // Most up to fast resume data for torrent
+    std::vector<char> _resumeData;
 
     // Total (bytes/second across libtorrent+plugin) upload/download limit.
     // If not set, then unlimited.
