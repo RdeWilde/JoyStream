@@ -68,12 +68,15 @@ public:
     };
 
     Store(){}
-    Store(std::string file, Coin::Network network);
+    Store(std::string file, Coin::Network network, std::string passphrase = "");
     ~Store();
 
-    bool open(std::string file, Coin::Network network);
+    // optional passphrase to decrypt entropy when loaded from db, only try it if metadata says the entropy is encrypted
+    bool open(std::string file, Coin::Network network, std::string passphrase = "");
     bool create(std::string file, Coin::Network network);
     bool create(std::string file, Coin::Network network, const Coin::Entropy &entropy, uint32_t timestamp);
+    void encrypt(std::string passphrase);//encrypt the entropy in db (throw if already encrypted or something else goes wrong)
+    void decrypt(std::string passphrase);//decrypt the entropy in db (throw if not encrypted, or wrong passphrase)
     bool connected() const;
     void close();
 
@@ -106,6 +109,8 @@ public:
 
     Coin::PrivateKey generateChangeKey();
 
+    Coin::PrivateKey derivePrivateKey(KeychainType chainType, uint32_t index) const;
+
     std::vector<Coin::PrivateKey> listPrivateKeys(KeychainType chainType) const;
     std::vector<uchar_vector> listRedeemScripts() const;
 
@@ -135,6 +140,7 @@ private:
 
     Coin::Network _network;
     Coin::Entropy _entropy;
+    //bool _locked;
     uint32_t _coin_type;
     Coin::HDKeychain _accountKeychain;
     uint32_t _timestamp;

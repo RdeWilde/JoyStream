@@ -49,12 +49,16 @@ class Metadata : public std::enable_shared_from_this<Metadata> {
 
     std::string entropy() const;
     uint32_t created() const;
+    //bool encrypted() const;
 
   private:
     friend class odb::access;
 
     #pragma db not_null
     std::string entropy_;
+
+    //wether entropy_ is encrypted with a passphrase
+    //bool encrypted_;
 
     //utc unix timestamp: QDateTime::fromTime_t(created_) to convert to QDateTime local time
     uint32_t created_;
@@ -84,15 +88,13 @@ class Key : public std::enable_shared_from_this<Key> {
 public:
     std::shared_ptr<Key> get_shared_ptr() { return shared_from_this(); }
 
-    Key(uint32_t coin_type, uint32_t change, uint32_t index, const Coin::PrivateKey & sk);
+    Key(uint32_t coin_type, uint32_t change, uint32_t index);
     Key();
 
     uint32_t index() const;
     uint32_t change() const;
     uint32_t coin_type() const;
     uint32_t generated() const;
-
-    Coin::PrivateKey getPrivateKey() const { return Coin::PrivateKey(uchar_vector(raw_)); }
 
 private:
     friend class odb::access;
@@ -102,8 +104,6 @@ private:
 
     //utc unix timestamp: QDateTime::fromTime_t(created_) to convert to QDateTime local time
     uint32_t generated_;
-
-    std::string raw_; //hex encoded raw private key
 
     #pragma db index unique
     key_path_t path_;
@@ -121,7 +121,7 @@ public:
     Address() {}
 
     // P2PKH Address
-    Address(const std::shared_ptr<Key> & key_);
+    Address(const std::shared_ptr<Key> & key_, const Coin::Script &scriptPubKey);
 
     // P2SH Adddress
     Address(const std::shared_ptr<Key> & key_, const RedeemScriptInfo & scriptInfo);

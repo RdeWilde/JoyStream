@@ -32,8 +32,8 @@ namespace {
 
 // open existing store
 // used Store::connected() to check if store was opened successfully
-Store::Store(std::string file, Coin::Network network) {
-    open(file, network);
+Store::Store(std::string file, Coin::Network network, std::string passphrase) {
+    open(file, network, passphrase);
 }
 
 Store::~Store(){
@@ -41,7 +41,7 @@ Store::~Store(){
 }
 
 // open existing store, return true if opened successfully
-bool Store::open(std::string file, Coin::Network network) {
+bool Store::open(std::string file, Coin::Network network, std::string passphrase) {
 
     close();
 
@@ -89,9 +89,20 @@ bool Store::open(std::string file, Coin::Network network) {
 
         _network = network;
         _coin_type = network == Coin::Network::mainnet ? BIP44_COIN_TYPE_BITCOIN : BIP44_COIN_TYPE_BITCOIN_TESTNET;
-        _entropy = Coin::Entropy(metadata->entropy());
-        _accountKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
         _timestamp = metadata->created();
+
+//        if(metadata->encrypted()) {
+//            if(passphrase == "") {
+//                _locked = true;
+//            } else {
+//                // try to decrypt entropy
+//            }
+//        }else {
+            _entropy = Coin::Entropy(metadata->entropy());
+            _accountKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
+//            _locked = false;
+//        }
+
         return true;
 
     } catch (odb::exception &e) {
@@ -144,6 +155,7 @@ bool Store::create(std::string file, Coin::Network network, const Coin::Entropy 
         _timestamp = timestamp;
         detail::store::Metadata metadata(_entropy.getHex(), timestamp);
         _timestamp = timestamp;
+        //_locked = false;
         _db->persist(metadata);
 
         t.commit ();
@@ -288,6 +300,14 @@ Coin::PrivateKey Store::generateChangeKey() {
     return generateKey(KeychainType::Internal);
 }
 
+Coin::PrivateKey Store::derivePrivateKey(KeychainType chainType, uint32_t index) const {
+    Coin::HDKeychain hdKeyChain = _accountKeychain.getChild((uint32_t)chainType).getChild(index);
+
+    Coin::PrivateKey sk(hdKeyChain.privkey());
+
+    return sk;
+}
+
 std::vector<Coin::PrivateKey> Store::listPrivateKeys(KeychainType chainType) const {
     if(!connected()) {
         throw NotConnected();
@@ -301,7 +321,7 @@ std::vector<Coin::PrivateKey> Store::listPrivateKeys(KeychainType chainType) con
     odb::transaction t(_db->begin());
     result r(_db->query<detail::store::key_view_t>(query::address::id.is_not_null() && query::key::path.coin_type == _coin_type && query::key::path.change == (uint32_t)chainType));
     for(auto &entry : r) {
-        keys.push_back(entry.key->getPrivateKey());
+        keys.push_back(derivePrivateKey(chainType, entry.key->index()));
     }
 
     return keys;
@@ -635,7 +655,7 @@ Store::getUnspentTransactionsOutputs(int32_t confirmations, int32_t main_chain_h
             continue;
         }
 
-        Coin::KeyPair keypair(output.address->key()->getPrivateKey()); // Derive instead of load from DB ?
+        Coin::KeyPair keypair(derivePrivateKey((KeychainType)output.address->key()->change(), output.address->key()->index()));
         Coin::TransactionId txid(Coin::TransactionId::fromRPCByteOrder(uchar_vector(output.txid())));
         Coin::typesafeOutPoint outpoint(txid, output.index());
 
@@ -682,12 +702,10 @@ Coin::PrivateKey Store::createNewPrivateKey(RedeemScriptGenerator scriptGenerato
         throw std::runtime_error("redeem script generator function not provided");
     }
 
-    Coin::HDKeychain hdKeyChain = _accountKeychain.getChild((uint32_t)KeychainType::Other).getChild(index);
-
-    Coin::PrivateKey sk(hdKeyChain.privkey());
+    Coin::PrivateKey sk(derivePrivateKey(KeychainType::Other, index));
 
     // persist a new key
-    std::shared_ptr<detail::store::Key> key(new detail::store::Key(_coin_type, (uint32_t)KeychainType::Other, index, sk));
+    std::shared_ptr<detail::store::Key> key(new detail::store::Key(_coin_type, (uint32_t)KeychainType::Other, index));
     _db->persist(key);
 
     // persist new p2sh address
@@ -701,16 +719,15 @@ Coin::PrivateKey Store::createNewPrivateKey(KeychainType chainType, uint32_t ind
         throw NotConnected();
     }
 
-    Coin::HDKeychain hdKeyChain = _accountKeychain.getChild((uint32_t)chainType).getChild(index);
-
-    Coin::PrivateKey sk(hdKeyChain.privkey());
+    Coin::PrivateKey sk(derivePrivateKey(chainType, index));
 
     // persist a new key
-    std::shared_ptr<detail::store::Key> key(new detail::store::Key(_coin_type, (uint32_t)chainType, index, sk));
+    std::shared_ptr<detail::store::Key> key(new detail::store::Key(_coin_type, (uint32_t)chainType, index));
     _db->persist(key);
 
     // persist new p2pkh address
-    std::shared_ptr<detail::store::Address> address(new detail::store::Address(key));
+    auto scriptPubKey = Coin::P2PKHScriptPubKey(sk.toPublicKey());
+    std::shared_ptr<detail::store::Address> address(new detail::store::Address(key, scriptPubKey));
     _db->persist(address);
     return sk;
 }
