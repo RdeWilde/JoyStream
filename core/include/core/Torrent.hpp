@@ -146,7 +146,7 @@ private:
 
     void resumed();
 
-    void setResumeData(const std::vector<char> &);
+    void setResumeDataGenerationResult(const std::vector<char> &);
 
     void setMetadata(const boost::shared_ptr<const libtorrent::torrent_info> &);
 

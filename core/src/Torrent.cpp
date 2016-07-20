@@ -230,7 +230,7 @@ void Torrent::resumed() {
     _status.paused = false;
 }
 
-void Torrent::setResumeData(const std::vector<char> & resumeData) {
+void Torrent::setResumeDataGenerationResult(const std::vector<char> & resumeData) {
 
     _resumeData = resumeData;
 
