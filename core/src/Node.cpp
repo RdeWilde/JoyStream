@@ -633,16 +633,24 @@ void Node::process(const libtorrent::add_torrent_alert * p) {
             return;
         }
 
+        // This should always hold, as the latter of two outstanding
+        // add_torrent_async call will have its add_torrent_alert::error value set.
         assert(_torrents.count(infoHash) == 0);
 
-        libtorrent::torrent_status status = h.status();
+        // Get current status
+        libtorrent::torrent_status status;
+
+        try {
+            status = h.status();
+        } catch (const libtorrent::libtorrent_exception &) {
+            std::clog << "Handle has already expired." << std::endl;
+        }
 
         int uploadLimit = h.upload_limit();
         int downloadLimit = h.download_limit();
 
         // Create torrent
-        // where to get resume data from? needs to be in extra map
-        std::shared_ptr<Torrent> plugin(new Torrent(status, p->params.resume_data, uploadLimit, downloadLimit, _plugin));
+        std::shared_ptr<Torrent> plugin(new Torrent(h, status, p->params.resume_data, uploadLimit, downloadLimit, _plugin));
 
         // add to map
         _torrents.insert(std::make_pair(infoHash, plugin));
