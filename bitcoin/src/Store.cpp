@@ -87,8 +87,15 @@ bool Store::open(std::string file, Coin::Network network, std::string passphrase
         std::shared_ptr<detail::store::Metadata> metadata(_db->query_one<detail::store::Metadata>());
         t.commit();
 
+        // Make sure the network the client is attempting to use matches the store's network
+        if(network != metadata->network()){
+            throw std::runtime_error("Network Mismatch");
+        }
+
         _network = network;
+
         _coin_type = network == Coin::Network::mainnet ? BIP44_COIN_TYPE_BITCOIN : BIP44_COIN_TYPE_BITCOIN_TESTNET;
+
         _timestamp = metadata->created();
 
         if(metadata->locked()) {
@@ -115,7 +122,7 @@ bool Store::open(std::string file, Coin::Network network, std::string passphrase
         std::cerr << e.what() << std::endl;
         close();
     } catch (std::runtime_error &e) {
-        std::cerr << "Store Error reading metadata: " << e.what() << std::endl;
+        std::cerr << "Store::open() error: " << e.what() << std::endl;
         close();
     }
 
@@ -158,7 +165,7 @@ bool Store::create(std::string file, Coin::Network network, const Coin::Entropy 
         _entropy = entropy;
         _accountKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
         _timestamp = timestamp;
-        detail::store::Metadata metadata(_entropy.getHex(), timestamp);
+        detail::store::Metadata metadata(_entropy.getHex(), timestamp, network);
         _timestamp = timestamp;
         _generatePrivKeys = true;
         _db->persist(metadata);
@@ -169,7 +176,7 @@ bool Store::create(std::string file, Coin::Network network, const Coin::Entropy 
 
     } catch (odb::exception &e) {
         // failed to initialise the database
-        std::cerr << "Store::create - failed to create database. " << e.what() << std::endl;
+        std::cerr << "Store::create() error: " << e.what() << std::endl;
         close();
 
         // cleanup

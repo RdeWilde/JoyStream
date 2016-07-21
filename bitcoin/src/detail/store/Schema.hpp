@@ -44,12 +44,13 @@ class Metadata : public std::enable_shared_from_this<Metadata> {
     std::shared_ptr<Metadata> get_shared_ptr() { return shared_from_this(); }
 
     Metadata();
-    Metadata(std::string entropy, uint32_t created_utc);
+    Metadata(std::string entropy, uint32_t created_utc, Coin::Network network);
 
     std::string entropy() const;
     uint32_t created() const;
     bool locked() const;
     void locked(bool);
+    Coin::Network network() const;
 
   private:
     friend class odb::access;
@@ -59,6 +60,8 @@ class Metadata : public std::enable_shared_from_this<Metadata> {
 
     #pragma db not_null
     std::string entropy_;
+
+    Coin::Network network_;
 
     //wether entropy_ is encrypted with a passphrase
     bool locked_;
