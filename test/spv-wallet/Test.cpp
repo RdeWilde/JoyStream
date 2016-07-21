@@ -147,6 +147,57 @@ void Test::walletCreation() {
 
 }
 
+void Test::walletNetworkMismatch() {
+
+    // create default regtest wallet
+    _walletA->create();
+    delete _walletA;
+
+    // init a mainnet wallet
+    _walletA = new joystream::bitcoin::SPVWallet(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::mainnet);
+
+    // Attempting to open wallet with wrong network type should throw
+    QVERIFY_EXCEPTION_THROWN(_walletA->open(), std::exception);
+}
+
+void Test::walletEncryption() {
+    _walletA->create();
+    std::string seed = _walletA->getSeedWords();
+
+    _walletA->encrypt("password");
+    delete _walletA;
+
+    // Opening an encrypted wallet without a passphrase it will be in locked state
+    _walletA = new joystream::bitcoin::SPVWallet(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::regtest);
+    QVERIFY_EXCEPTION_THROWN(_walletA->open(), std::exception);
+    QVERIFY(_walletA->locked());
+    QVERIFY_EXCEPTION_THROWN(_walletA->getSeedWords(), std::exception);
+
+    //QVERIFY_EXCEPTION_THROWN(_walletA->decrypt("wrongPassword"), std::exception);
+    //QVERIFY(_walletA->locked());
+
+    _walletA->decrypt("password");
+
+    QVERIFY(seed == _walletA->getSeedWords());
+}
+
+void Test::walletLocking() {
+    _walletA->create();
+    QVERIFY(!_walletA->locked());
+    QVERIFY(!_walletA->encrypted());
+
+    _walletA->encrypt("password");
+    QVERIFY(_walletA->encrypted());
+    QVERIFY(!_walletA->locked());
+
+    _walletA->lock();
+    QVERIFY(_walletA->locked());
+
+    _walletA->decrypt("password");
+    QVERIFY(!_walletA->encrypted());
+    QVERIFY(!_walletA->locked());
+}
+
 void Test::Synching() {
 
     QSignalSpy spy_blocks_synched(_walletA, SIGNAL(synched()));

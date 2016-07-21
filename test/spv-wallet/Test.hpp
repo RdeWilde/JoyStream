@@ -45,6 +45,9 @@ private slots:
 
     // Unit Tests
     void walletCreation();
+    void walletNetworkMismatch();
+    void walletEncryption();
+    void walletLocking();
     void Synching();
     void BalanceCheck();
     void Utxo();
