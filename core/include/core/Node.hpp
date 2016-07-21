@@ -19,8 +19,6 @@
 #include <libtorrent/alert_types.hpp>
 
 #include <QObject>
-#include <QTimer>
-#include <QAbstractSocket> // is nested enum QAbstractSocket::SocketError
 
 #include <functional>
 
