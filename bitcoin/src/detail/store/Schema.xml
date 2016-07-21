@@ -4,7 +4,7 @@
       <column name="id" type="INTEGER" null="false"/>
       <column name="entropy" type="TEXT" null="false"/>
       <column name="network" type="INTEGER" null="false"/>
-      <column name="locked" type="INTEGER" null="false"/>
+      <column name="encrypted" type="INTEGER" null="false"/>
       <column name="created" type="INTEGER" null="false"/>
       <primary-key>
         <column name="id"/>

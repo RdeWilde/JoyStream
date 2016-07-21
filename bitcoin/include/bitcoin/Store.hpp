@@ -73,21 +73,28 @@ public:
     };
 
     Store(){}
-    Store(std::string file, Coin::Network network, std::string passphrase = "");
+    Store(std::string file, Coin::Network network);
     ~Store();
 
     // optional passphrase to decrypt entropy when loaded from db, only try it if metadata says the entropy is encrypted
-    bool open(std::string file, Coin::Network network, std::string passphrase = "");
+    bool open(std::string file, Coin::Network network);
     bool create(std::string file, Coin::Network network);
     bool create(std::string file, Coin::Network network, const Coin::Entropy &entropy, uint32_t timestamp);
-    void lock(std::string passphrase);//encrypt the entropy in db (throw if already encrypted or something else goes wrong)
-    void unlock(std::string passphrase);//decrypt the entropy in db (throw if not encrypted, or wrong passphrase)
+
+    bool encrypted() const;// is entropy in db encrypted?
+    void encrypt(std::string passphrase);//encrypt the entropy in db (throw if already encrypted or something else goes wrong)
+    void decrypt(std::string passphrase);//decrypt the entropy in db (throw if not encrypted, or wrong passphrase) and unlock
+
+    bool locked() const; // is the store in locked state?
+    void lock(); // set store to locked state
+    void unlock(std::string passphrase);
+
     bool connected() const;
     void close();
 
     Coin::Network network() const { return _network; }
     uint32_t created() const { return _timestamp; }
-    std::string getSeedWords() const { return _entropy.mnemonic(); }
+    std::string getSeedWords() const;
 
     // Keys for use with P2SH addresses
     // Return a new private key
@@ -145,7 +152,7 @@ private:
 
     Coin::Network _network;
     Coin::Entropy _entropy;
-    bool _generatePrivKeys;
+    bool _locked;
     uint32_t _coin_type;
     Coin::HDKeychain _accountKeychain;
     uint32_t _timestamp;

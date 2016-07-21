@@ -155,8 +155,12 @@ void SPVWallet::open(std::string passphrase) {
 
     // Only open the store once
     if(!isInitialized()) {
-        if(!_store.open(_storePath, _network, passphrase)) {
+        if(!_store.open(_storePath, _network)) {
             throw std::runtime_error("failed to open wallet");
+        }
+
+        if(_store.locked() && passphrase != "") {
+            _store.unlock(passphrase);
         }
 
         updateStatus(wallet_status_t::OFFLINE);
@@ -179,12 +183,28 @@ void SPVWallet::open(std::string passphrase) {
     }
 }
 
+bool SPVWallet::encrypted() const {
+    return _store.encrypted();
+}
+
+bool SPVWallet::locked() const {
+    return _store.locked();
+}
+
+void SPVWallet::unlock(std::string passphrase) {
+    _store.unlock(passphrase);
+}
+
+void SPVWallet::lock() {
+    _store.lock();
+}
+
 void SPVWallet::encrypt(std::string passphrase) {
-    _store.lock(passphrase);
+    _store.encrypt(passphrase);
 }
 
 void SPVWallet::decrypt(std::string passphrase) {
-    _store.unlock(passphrase);
+    _store.decrypt(passphrase);
 }
 
 void SPVWallet::loadBlockTree(std::function<void(std::string)> feedback) {

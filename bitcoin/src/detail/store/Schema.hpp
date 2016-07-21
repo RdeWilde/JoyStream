@@ -48,8 +48,8 @@ class Metadata : public std::enable_shared_from_this<Metadata> {
 
     std::string entropy() const;
     uint32_t created() const;
-    bool locked() const;
-    void locked(bool);
+    bool encrypted() const;
+    void encrypted(bool);
     Coin::Network network() const;
 
   private:
@@ -64,7 +64,7 @@ class Metadata : public std::enable_shared_from_this<Metadata> {
     Coin::Network network_;
 
     //wether entropy_ is encrypted with a passphrase
-    bool locked_;
+    bool encrypted_;
 
     //utc unix timestamp: QDateTime::fromTime_t(created_) to convert to QDateTime local time
     uint32_t created_;

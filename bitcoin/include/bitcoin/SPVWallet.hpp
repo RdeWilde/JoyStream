@@ -58,6 +58,12 @@ public:
     // Open the wallet. Will throw exception on failure
     void open(std::string passphrase = "");
 
+    bool encrypted() const;
+    bool locked() const;
+
+    void unlock(std::string passphrase);
+    void lock();
+
     void encrypt(std::string passphrase);
     void decrypt(std::string passphrase);
 

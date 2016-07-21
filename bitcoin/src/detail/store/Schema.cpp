@@ -21,7 +21,7 @@ namespace store {
     Metadata::Metadata(std::string entropy, uint32_t created_utc, Coin::Network network) :
          entropy_(entropy)
         ,created_(created_utc)
-        ,locked_(false)
+        ,encrypted_(false)
         ,network_(network)
     {}
 
@@ -33,12 +33,12 @@ namespace store {
         return created_;
     }
 
-    bool Metadata::locked() const {
-        return locked_;
+    bool Metadata::encrypted() const {
+        return encrypted_;
     }
 
-    void Metadata::locked(bool locked) {
-        locked_ = locked;
+    void Metadata::encrypted(bool encrypted) {
+        encrypted_ = encrypted;
     }
 
     Coin::Network Metadata::network() const {

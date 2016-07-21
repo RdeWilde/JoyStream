@@ -32,8 +32,8 @@ namespace {
 
 // open existing store
 // used Store::connected() to check if store was opened successfully
-Store::Store(std::string file, Coin::Network network, std::string passphrase) {
-    open(file, network, passphrase);
+Store::Store(std::string file, Coin::Network network) {
+    open(file, network);
 }
 
 Store::~Store(){
@@ -41,7 +41,7 @@ Store::~Store(){
 }
 
 // open existing store, return true if opened successfully
-bool Store::open(std::string file, Coin::Network network, std::string passphrase) {
+bool Store::open(std::string file, Coin::Network network) {
 
     close();
 
@@ -98,21 +98,13 @@ bool Store::open(std::string file, Coin::Network network, std::string passphrase
 
         _timestamp = metadata->created();
 
-        if(metadata->locked()) {
-            _generatePrivKeys = false;
-            if(passphrase != "") {
-                // try to DECRYPT entropy using passphrase
-                _entropy = Coin::Entropy(metadata->entropy());
-                _accountKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
-                _generatePrivKeys = true;
-            } else {
-                std::cerr << "Store is locked but no passphrase was provided to unlock it\n";
-                std::cerr << "Opening With limited capability\n";
-            }
+        if(metadata->encrypted()) {
+            _locked = true;
+            std::cerr << "Store opened in locked state\n";
         }else {
+            _locked = false;
             _entropy = Coin::Entropy(metadata->entropy());
             _accountKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
-            _generatePrivKeys = true;
         }
 
         return true;
@@ -167,7 +159,7 @@ bool Store::create(std::string file, Coin::Network network, const Coin::Entropy 
         _timestamp = timestamp;
         detail::store::Metadata metadata(_entropy.getHex(), timestamp, network);
         _timestamp = timestamp;
-        _generatePrivKeys = true;
+        _locked = false;
         _db->persist(metadata);
 
         t.commit ();
@@ -188,19 +180,67 @@ bool Store::create(std::string file, Coin::Network network, const Coin::Entropy 
     return false;
 }
 
-void Store::lock(std::string passphrase) {
+std::string Store::getSeedWords() const
+{
+    if(_locked) {
+        throw OperationNotAllowed();
+    }
+
+    return _entropy.mnemonic();
+}
+
+bool Store::locked() const {
+    return _locked;
+}
+
+bool Store::encrypted() const {
     std::lock_guard<std::mutex> lock(_storeMutex);
     //load metadata
     odb::transaction t(_db->begin());
     std::shared_ptr<detail::store::Metadata> metadata(_db->query_one<detail::store::Metadata>());
-    if(metadata->locked()) {
-        throw std::runtime_error("Store::lock() store is already locked");
+    bool isEncrypted = metadata->encrypted();
+    return isEncrypted;
+}
+
+void Store::encrypt(std::string passphrase) {
+    std::lock_guard<std::mutex> lock(_storeMutex);
+    //load metadata
+    odb::transaction t(_db->begin());
+    std::shared_ptr<detail::store::Metadata> metadata(_db->query_one<detail::store::Metadata>());
+    if(metadata->encrypted()) {
+        throw std::runtime_error("Store::encrypt() store is already encrypted");
     }
     // encrypted_entropy = ENCRYPT(metadata->entropy);
     // metadata->setEntropy(encrypted_entropy);
-    metadata->locked(true);
+    metadata->encrypted(true);
     _db->update(metadata);
     t.commit();
+
+    //encrypting the wallet doesn't change lock status..
+}
+
+void Store::decrypt(std::string passphrase) {
+    std::lock_guard<std::mutex> lock(_storeMutex);
+    //load metadata
+    odb::transaction t(_db->begin());
+    std::shared_ptr<detail::store::Metadata> metadata(_db->query_one<detail::store::Metadata>());
+    if(!metadata->encrypted()) {
+        throw std::runtime_error("Store::decrypt() store is not enrypted");
+    }
+    // plaintext_entropy = DECRYPT(metadata->entropy()), throw on failure
+    // metadata->setEntropy(plaintext_entropy);
+    metadata->encrypted(false);
+    _db->update(metadata);
+    t.commit();
+
+    // decrypting wallet also unlocks it
+    _entropy = Coin::Entropy(metadata->entropy());
+    _accountKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
+    _locked = false;
+}
+
+void Store::lock() {
+    _locked = true;
 }
 
 void Store::unlock(std::string passphrase) {
@@ -208,14 +248,17 @@ void Store::unlock(std::string passphrase) {
     //load metadata
     odb::transaction t(_db->begin());
     std::shared_ptr<detail::store::Metadata> metadata(_db->query_one<detail::store::Metadata>());
-    if(!metadata->locked()) {
-        throw std::runtime_error("Store::unlock() sotore is not locked");
+    if(!metadata->encrypted()) {
+        throw std::runtime_error("Store::unlock() store is not enrypted");
     }
-    // plaintext_entropy = DECRYPT(metadata->entropy())
-    // metadata->setEntropy(plaintext_entropy);
-    metadata->locked(false);
-    _db->update(metadata);
-    t.commit();
+
+    // try to DECRYPT entropy using passphrase, throw on failure..
+    //auto plaintext_entropy = DECRYPT(metadata->entropy());
+    auto plaintext_entropy = metadata->entropy();
+
+    _entropy = Coin::Entropy(plaintext_entropy);
+    _accountKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
+    _locked = false;
 }
 
 bool Store::connected() const {
@@ -235,7 +278,7 @@ Coin::PrivateKey Store::generateKey(const RedeemScriptGenerator & scriptGenerato
         throw NotConnected();
     }
 
-    if(!_generatePrivKeys) {
+    if(_locked) {
         throw OperationNotAllowed();
     }
 
@@ -256,7 +299,7 @@ std::vector<Coin::PrivateKey> Store::generateKeys(uint32_t numKeys, const Store:
         throw NotConnected();
     }
 
-    if(!_generatePrivKeys) {
+    if(_locked) {
         throw OperationNotAllowed();
     }
 
@@ -296,7 +339,7 @@ Coin::PrivateKey Store::generateKey(KeychainType type) {
         throw NotConnected();
     }
 
-    if(!_generatePrivKeys) {
+    if(_locked) {
         throw OperationNotAllowed();
     }
 
@@ -317,7 +360,7 @@ std::vector<Coin::PrivateKey> Store::generateKeys(uint32_t numKeys, KeychainType
         throw NotConnected();
     }
 
-    if(!_generatePrivKeys) {
+    if(_locked) {
         throw OperationNotAllowed();
     }
 
@@ -359,7 +402,7 @@ Coin::PrivateKey Store::generateChangeKey() {
 }
 
 Coin::PrivateKey Store::derivePrivateKey(KeychainType chainType, uint32_t index) const {
-    if(!_generatePrivKeys) {
+    if(_locked) {
         throw OperationNotAllowed();
     }
 
@@ -375,7 +418,7 @@ std::vector<Coin::PrivateKey> Store::listPrivateKeys(KeychainType chainType) con
         throw NotConnected();
     }
 
-    if(!_generatePrivKeys) {
+    if(_locked) {
         throw OperationNotAllowed();
     }
 
@@ -671,7 +714,7 @@ Store::getUnspentTransactionsOutputs(int32_t confirmations, int32_t main_chain_h
         throw NotConnected();
     }
 
-    if(!_generatePrivKeys) {
+    if(_locked) {
         throw OperationNotAllowed();
     }
 
@@ -743,7 +786,7 @@ Coin::PrivateKey Store::createNewPrivateKey(RedeemScriptGenerator scriptGenerato
         throw NotConnected();
     }
 
-    if(!_generatePrivKeys) {
+    if(_locked) {
         throw OperationNotAllowed();
     }
 
@@ -768,7 +811,7 @@ Coin::PrivateKey Store::createNewPrivateKey(KeychainType chainType, uint32_t ind
         throw NotConnected();
     }
 
-    if(!_generatePrivKeys) {
+    if(_locked) {
         throw OperationNotAllowed();
     }
 
