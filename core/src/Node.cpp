@@ -27,6 +27,7 @@
 #include <QFile>
 #include <QByteArray>
 #include <QThread>
+#include <QTimer>
 //#include <QNetworkAccessManager>
 
 /**
