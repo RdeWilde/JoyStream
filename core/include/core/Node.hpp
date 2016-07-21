@@ -73,7 +73,7 @@ public:
 
     /**
      @brief Tries to start node, which results in both BitTorrent and DHT ports opening up.
-            Node must be in @State::stopped state.
+            Node must be in stopped state.
 
      @param nodeStarted called if startup succeeds
      @param nodeStartFailed called if startup fails
@@ -86,8 +86,7 @@ public:
     /**
      @brief All plugins are stopped, connections are then terminated,
             however they are still part present in session, and  BitTorrent and DHT daemons still run.
-            Node must be in @State::started state.
-            **Due to Libtorrent does not permit stopping daemons wihtout killing session**
+            Node must be in started state.
 
      @param nodeStopped callback about being actually stopped
      @throws exception::StateIncompatibleOperation: if node is not already State::started.
@@ -127,7 +126,7 @@ public:
      @param RemoveTorrent callback when operation is completed
      @throws exception::StateIncompatibleOperation if node not in mode @State::started
      @throws exception::NoSuchTorrentExists if no such torrent exists
-     @signal removedTorrent
+     @signal removedTorrent if torrent was successfully removed
      */
     void removeTorrent(const libtorrent::sha1_hash & info_hash, const RemovedTorrent & handler);
 
