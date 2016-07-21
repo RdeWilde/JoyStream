@@ -56,7 +56,10 @@ public:
     void create(const Coin::Entropy &entropy, uint32_t timestamp = 0);
 
     // Open the wallet. Will throw exception on failure
-    void open();
+    void open(std::string passphrase = "");
+
+    void encrypt(std::string passphrase);
+    void decrypt(std::string passphrase);
 
     // Start Synching the wallet with peer at host:port
     void sync(std::string host, int port, unsigned int timeout = 0);

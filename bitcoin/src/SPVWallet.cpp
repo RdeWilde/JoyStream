@@ -151,11 +151,11 @@ void SPVWallet::create(const Coin::Entropy & entropy, uint32_t timestamp) {
     updateStatus(wallet_status_t::OFFLINE);
 }
 
-void SPVWallet::open() {
+void SPVWallet::open(std::string passphrase) {
 
     // Only open the store once
     if(!isInitialized()) {
-        if(!_store.open(_storePath, _network)) {
+        if(!_store.open(_storePath, _network, passphrase)) {
             throw std::runtime_error("failed to open wallet");
         }
 
@@ -177,6 +177,14 @@ void SPVWallet::open() {
     } else {
         throw std::runtime_error("wallet already opened");
     }
+}
+
+void SPVWallet::encrypt(std::string passphrase) {
+    _store.lock(passphrase);
+}
+
+void SPVWallet::decrypt(std::string passphrase) {
+    _store.unlock(passphrase);
 }
 
 void SPVWallet::loadBlockTree(std::function<void(std::string)> feedback) {

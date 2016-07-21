@@ -67,6 +67,11 @@ public:
         NotConnected() : std::runtime_error("Database not connected") {}
     };
 
+    class OperationNotAllowed : public std::runtime_error {
+    public:
+        OperationNotAllowed() : std::runtime_error("Store operation not allowed") {}
+    };
+
     Store(){}
     Store(std::string file, Coin::Network network, std::string passphrase = "");
     ~Store();
@@ -140,7 +145,7 @@ private:
 
     Coin::Network _network;
     Coin::Entropy _entropy;
-    bool _readOnly;
+    bool _generatePrivKeys;
     uint32_t _coin_type;
     Coin::HDKeychain _accountKeychain;
     uint32_t _timestamp;

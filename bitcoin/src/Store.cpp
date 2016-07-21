@@ -21,13 +21,13 @@ namespace bitcoin {
 
 //helper methods forward declaration
 namespace {
-
     std::shared_ptr<detail::store::Address> addressFind(std::unique_ptr<odb::database> & db, const std::string & script);
     std::shared_ptr<detail::store::Transaction> transactionSave(std::unique_ptr<odb::database> & db, const Coin::Transaction & coin_tx);
     std::vector<detail::store::TxHasInput> transactionLoadInputs(std::unique_ptr<odb::database> &db, std::string txid);
     std::vector<detail::store::TxHasOutput> transactionLoadOutputs(std::unique_ptr<odb::database> &db, std::string txid);
     bool transactionLoad(std::unique_ptr<odb::database> &db, std::string txid, Coin::Transaction &coin_tx);
     void transactionDelete(std::unique_ptr<odb::database> &db, std::string txid);
+    odb::result<detail::store::outputs_view_t> getOutputs(const std::unique_ptr<odb::database> & db, int32_t confirmations, int32_t main_chain_height);
 }
 
 // open existing store
@@ -92,20 +92,20 @@ bool Store::open(std::string file, Coin::Network network, std::string passphrase
         _timestamp = metadata->created();
 
         if(metadata->locked()) {
-            _readOnly = true;
+            _generatePrivKeys = false;
             if(passphrase != "") {
                 // try to DECRYPT entropy using passphrase
                 _entropy = Coin::Entropy(metadata->entropy());
                 _accountKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
-                _readOnly = false;
+                _generatePrivKeys = true;
             } else {
                 std::cerr << "Store is locked but no passphrase was provided to unlock it\n";
-                std::cerr << "Opening in read only mode\n";
+                std::cerr << "Opening With limited capability\n";
             }
         }else {
             _entropy = Coin::Entropy(metadata->entropy());
             _accountKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
-            _readOnly = false;
+            _generatePrivKeys = true;
         }
 
         return true;
@@ -160,7 +160,7 @@ bool Store::create(std::string file, Coin::Network network, const Coin::Entropy 
         _timestamp = timestamp;
         detail::store::Metadata metadata(_entropy.getHex(), timestamp);
         _timestamp = timestamp;
-        _readOnly = false;
+        _generatePrivKeys = true;
         _db->persist(metadata);
 
         t.commit ();
@@ -228,6 +228,10 @@ Coin::PrivateKey Store::generateKey(const RedeemScriptGenerator & scriptGenerato
         throw NotConnected();
     }
 
+    if(!_generatePrivKeys) {
+        throw OperationNotAllowed();
+    }
+
     std::lock_guard<std::mutex> lock(_storeMutex);
 
     odb::transaction t(_db->begin());
@@ -243,6 +247,10 @@ Coin::PrivateKey Store::generateKey(const RedeemScriptGenerator & scriptGenerato
 std::vector<Coin::PrivateKey> Store::generateKeys(uint32_t numKeys, const Store::MultiRedeemScriptGenerator & multiScriptGenerator) {
     if(!connected()) {
         throw NotConnected();
+    }
+
+    if(!_generatePrivKeys) {
+        throw OperationNotAllowed();
     }
 
     std::lock_guard<std::mutex> lock(_storeMutex);
@@ -281,6 +289,10 @@ Coin::PrivateKey Store::generateKey(KeychainType type) {
         throw NotConnected();
     }
 
+    if(!_generatePrivKeys) {
+        throw OperationNotAllowed();
+    }
+
     std::lock_guard<std::mutex> lock(_storeMutex);
 
     odb::transaction t(_db->begin());
@@ -296,6 +308,10 @@ Coin::PrivateKey Store::generateKey(KeychainType type) {
 std::vector<Coin::PrivateKey> Store::generateKeys(uint32_t numKeys, KeychainType chainType) {
     if(!connected()) {
         throw NotConnected();
+    }
+
+    if(!_generatePrivKeys) {
+        throw OperationNotAllowed();
     }
 
     std::lock_guard<std::mutex> lock(_storeMutex);
@@ -336,6 +352,10 @@ Coin::PrivateKey Store::generateChangeKey() {
 }
 
 Coin::PrivateKey Store::derivePrivateKey(KeychainType chainType, uint32_t index) const {
+    if(!_generatePrivKeys) {
+        throw OperationNotAllowed();
+    }
+
     Coin::HDKeychain hdKeyChain = _accountKeychain.getChild((uint32_t)chainType).getChild(index);
 
     Coin::PrivateKey sk(hdKeyChain.privkey());
@@ -346,6 +366,10 @@ Coin::PrivateKey Store::derivePrivateKey(KeychainType chainType, uint32_t index)
 std::vector<Coin::PrivateKey> Store::listPrivateKeys(KeychainType chainType) const {
     if(!connected()) {
         throw NotConnected();
+    }
+
+    if(!_generatePrivKeys) {
+        throw OperationNotAllowed();
     }
 
     typedef odb::query<detail::store::key_view_t> query;
@@ -640,6 +664,10 @@ Store::getUnspentTransactionsOutputs(int32_t confirmations, int32_t main_chain_h
         throw NotConnected();
     }
 
+    if(!_generatePrivKeys) {
+        throw OperationNotAllowed();
+    }
+
     if(confirmations > 0  && main_chain_height == 0) {
         throw std::runtime_error("getUnspentTransactionOutputs: must provide main_chain_height");
     }
@@ -648,38 +676,10 @@ Store::getUnspentTransactionsOutputs(int32_t confirmations, int32_t main_chain_h
         return std::list<std::shared_ptr<Coin::UnspentOutput>>();
     }
 
-    uint32_t maxHeight = main_chain_height - confirmations + 1;
-    // a transaction has  main_chain_height - block_height  = confirmations
-    //                    main_chain_heigth - confirmations = block_height
-    //                                          ^ goes up   -->  ^ goes down
-    // for a transaction to have at least N confirmations
-    // the block it is mined in must have a height no larger than:  main_chain_height - N = maxHeight
     typedef odb::result<detail::store::outputs_view_t> outputs_r;
-    typedef odb::query<detail::store::outputs_view_t> outputs_q;
     odb::session s;
     odb::transaction t(_db->begin());
-    outputs_r outputs;
-    if(confirmations > 0) {
-        outputs = _db->query<detail::store::outputs_view_t>(
-                          // we control the address
-                          (outputs_q::address::id.is_not_null() &&
-                          // output exists
-                          outputs_q::output_tx::txid.is_not_null() &&
-                          // no tx spends it
-                          outputs_q::spending_tx::txid.is_null() && //not considering mined status
-                          // output transaction is mined
-                          outputs_q::output_block::id.is_not_null() &&
-                          // meets minimum confirmations requirement
-                          outputs_q::output_block::height <= maxHeight) +
-                          "ORDER BY" + outputs_q::Output::id.value + "DESC"
-                          );
-    } else {
-        //Zero Confirmations - by defenition output doesn't have to be mined
-        outputs = _db->query<detail::store::outputs_view_t>((outputs_q::address::id.is_not_null() &&
-                                                            outputs_q::output_tx::txid.is_not_null() &&
-                                                            outputs_q::spending_tx::txid.is_null()) +
-                                                            "ORDER BY" + outputs_q::Output::id.value + "DESC");
-    }
+    auto outputs = getOutputs(_db, confirmations, main_chain_height);
 
     std::list<std::shared_ptr<Coin::UnspentOutput>> utxos;
 
@@ -721,8 +721,11 @@ uint64_t Store::getWalletBalance(int32_t confirmations, int32_t main_chain_heigh
 
     uint64_t balance = 0;
 
-    for(std::shared_ptr<Coin::UnspentOutput> & utxo : getUnspentTransactionsOutputs(confirmations, main_chain_height)) {
-        balance += utxo->value();
+    odb::session s;
+    odb::transaction t(_db->begin());
+
+    for(auto & output : getOutputs(_db, confirmations, main_chain_height)) {
+        balance += output.value();
     }
 
     return balance;
@@ -731,6 +734,10 @@ uint64_t Store::getWalletBalance(int32_t confirmations, int32_t main_chain_heigh
 Coin::PrivateKey Store::createNewPrivateKey(RedeemScriptGenerator scriptGenerator, uint32_t index) {
     if(!connected()) {
         throw NotConnected();
+    }
+
+    if(!_generatePrivKeys) {
+        throw OperationNotAllowed();
     }
 
     if(!scriptGenerator) {
@@ -752,6 +759,10 @@ Coin::PrivateKey Store::createNewPrivateKey(RedeemScriptGenerator scriptGenerato
 Coin::PrivateKey Store::createNewPrivateKey(KeychainType chainType, uint32_t index) {
     if(!connected()) {
         throw NotConnected();
+    }
+
+    if(!_generatePrivKeys) {
+        throw OperationNotAllowed();
     }
 
     Coin::PrivateKey sk(derivePrivateKey(chainType, index));
@@ -948,6 +959,43 @@ namespace {
         */
 
         db->erase<Transaction>(txid);
+    }
+
+    odb::result<outputs_view_t>
+    getOutputs(const std::unique_ptr<odb::database> &db, int32_t confirmations, int32_t main_chain_height) {
+
+        uint32_t maxHeight = main_chain_height - confirmations + 1;
+        // a transaction has  main_chain_height - block_height  = confirmations
+        //                    main_chain_heigth - confirmations = block_height
+        //                                          ^ goes up   -->  ^ goes down
+        // for a transaction to have at least N confirmations
+        // the block it is mined in must have a height no larger than:  main_chain_height - N = maxHeight
+        typedef odb::result<outputs_view_t> outputs_r;
+        typedef odb::query<outputs_view_t> outputs_q;
+        outputs_r results;
+        if(confirmations > 0) {
+            results = db->query<outputs_view_t>(
+                              // we control the address
+                              (outputs_q::address::id.is_not_null() &&
+                              // output exists
+                              outputs_q::output_tx::txid.is_not_null() &&
+                              // no tx spends it
+                              outputs_q::spending_tx::txid.is_null() && //not considering mined status
+                              // output transaction is mined
+                              outputs_q::output_block::id.is_not_null() &&
+                              // meets minimum confirmations requirement
+                              outputs_q::output_block::height <= maxHeight) +
+                              "ORDER BY" + outputs_q::Output::id.value + "DESC"
+                              );
+        } else {
+            //Zero Confirmations - by defenition output doesn't have to be mined
+            results = db->query<detail::store::outputs_view_t>((outputs_q::address::id.is_not_null() &&
+                                                                outputs_q::output_tx::txid.is_not_null() &&
+                                                                outputs_q::spending_tx::txid.is_null()) +
+                                                                "ORDER BY" + outputs_q::Output::id.value + "DESC");
+        }
+
+        return results;
     }
 
 } // anonymous namespace (local helper functions)
