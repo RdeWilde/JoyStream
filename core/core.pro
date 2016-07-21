@@ -21,7 +21,6 @@ INCLUDEPATH += $$PWD/include
 HEADERS += \
     #include/core/Stream.hpp \
     include/core/core.hpp \
-    include/core/Configuration.hpp \
     include/core/Exception.hpp \
     include/core/Torrent.hpp \
     include/core/Node.hpp \
@@ -35,12 +34,12 @@ HEADERS += \
     include/core/Callbacks.hpp \
     include/core/Selling.hpp \
     include/core/Buying.hpp \
-    include/core/Seller.hpp
+    include/core/Seller.hpp \
+    include/core/TorrentIdentifier.hpp
 
 SOURCES += \
     #src/Stream.cpp \
     src/Torrent.cpp \
-    src/Configuration.cpp \
     src/Node.cpp \
     src/detail/detail.cpp \
     src/TorrentPlugin.cpp \
@@ -51,7 +50,8 @@ SOURCES += \
     src/Selling.cpp \
     src/Buying.cpp \
     src/Seller.cpp \
-    src/Connection.cpp
+    src/Connection.cpp \
+    src/TorrentIdentifier.cpp
 
 # extension
 INCLUDEPATH += $$PWD/../extension/include

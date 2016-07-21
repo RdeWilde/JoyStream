@@ -10,7 +10,6 @@
 
 #include <extension/extension.hpp>
 #include <core/Callbacks.hpp>
-#include <core/Configuration.hpp>
 #include <libtorrent/sha1_hash.hpp>
 #include <libtorrent/torrent_handle.hpp>
 

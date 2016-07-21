@@ -36,12 +36,9 @@ namespace extension {
     class Plugin;
 }
 namespace core {
-namespace configuration {
-    class Node;
-    struct Torrent;
-}
 
 class Torrent;
+class TorrentIdentifier;
 
 class Node : public QObject {
 
@@ -78,14 +75,13 @@ public:
      @brief Tries to start node, which results in both BitTorrent and DHT ports opening up.
             Node must be in @State::stopped state.
 
-     @param configuration Setup configurations for the node
      @param nodeStarted called if startup succeeds
      @param nodeStartFailed called if startup fails
      @throws exception::StateIncompatibleOperation if node is not already State::stopped.
      @signal nodeStarted if a successful start is made
      @signal nodeStartFailed if starting was not successful
      */
-    void start(const configuration::Node & configuration, const NodeStarted & nodeStarted, const NodeStartFailed & nodeStartFailed);
+    void start(const NodeStarted & nodeStarted, const NodeStartFailed & nodeStartFailed);
 
     /**
      @brief All plugins are stopped, connections are then terminated,
@@ -96,20 +92,33 @@ public:
      @param nodeStopped callback about being actually stopped
      @throws exception::StateIncompatibleOperation: if node is not already State::started.
      @throws all exceptions thrown by joystream::protocol_session::Stop
-     @signal nodeStopped
+     @signal nodeStopped if node is successfully
     */
     void stop(const NodeStopped & nodeStopped);
 
     /**
-     @brief Tries to add torrent.
+     * @brief Tries to add torrent.
 
-     @param configuration
-     @param addedTorrent
-     @throws exception::TorrentAlreadyExists if torrent already has been added
-     @throws exception::StateIncompatibleOperation if node not in mode @State::started
-     @signal addedTorrent
+     * @param uploadLimit Maximum (bytes/s) upstream bandwidth utilization
+     * @param downloadLimit Maximum (bytes/s) downstream bandwidth utilization
+     * @param name Display name
+     * @param resumeData Fast resume data
+     * @param savePath Location where data is stored (loaded from) when downloading (uploading)
+     * @param paused Whether initial state of torrent is paused or not
+     * @param torrentReference
+     * @param addedTorrent callback called after operation has been completed
+     * @throws exception::TorrentAlreadyExists if torrent already has been added
+     * @throws exception::StateIncompatibleOperation if node not in mode @State::started
+     * @signal addedTorrent if torrent is successfully added
      */
-    void addTorrent(const configuration::Torrent & configuration, const AddedTorrent & addedTorrent);
+    void addTorrent(const boost::optional<uint> & uploadLimit,
+                    const boost::optional<uint> & downloadLimit,
+                    const std::string & name,
+                    const std::vector<char> & resumeData,
+                    const std::string & savePath,
+                    bool paused,
+                    const TorrentIdentifier & torrentReference,
+                    const AddedTorrent & addedTorrent);
 
     /**
      @brief Tries to remove torrent.
@@ -154,9 +163,6 @@ public:
 
     // Get torrents
     std::weak_ptr<Torrent> torrent(const libtorrent::sha1_hash & infoHash) const;    
-
-    // Configuration for current controller
-    configuration::Node configuration() const;
 
 signals:
 
@@ -295,6 +301,15 @@ private:
 
     // Generates dht settings used with libtorrent
     static libtorrent::dht_settings dht_settings() noexcept;
+
+    // Generate parameters for addign torrent
+    static libtorrent::add_torrent_params toAddTorrentParams(const boost::optional<uint> & uploadLimit,
+                                                             const boost::optional<uint> & downloadLimit,
+                                                             const std::string & name,
+                                                             const std::vector<char> & resumeData,
+                                                             const std::string & savePath,
+                                                             bool pause,
+                                                             const TorrentIdentifier & torrentIdentifier) noexcept;
 };
 
 }

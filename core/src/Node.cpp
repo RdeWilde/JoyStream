@@ -7,8 +7,8 @@
 
 #include <core/Node.hpp>
 #include <core/Torrent.hpp>
-#include <core/Configuration.hpp>
 #include <core/Exception.hpp>
+#include <core/TorrentIdentifier.hpp>
 #include <core/detail/detail.hpp>
 #include <extension/extension.hpp>
 #include <bitcoin/SPVWallet.hpp>
@@ -155,7 +155,7 @@ Node::~Node() {
     _wallet->stopSync();
 }
 
-void Node::start(const configuration::Node &, const NodeStarted & started, const NodeStartFailed & failed) {
+void Node::start(const NodeStarted & started, const NodeStartFailed & failed) {
 
     // We can only start from stopped state
     if(_state != State::stopped)
@@ -204,14 +204,21 @@ void Node::stop(const NodeStopped & nodeStopped) {
     }));
 }
 
-void Node::addTorrent(const configuration::Torrent & configuration, const AddedTorrent & addedTorrent) {
+void Node::addTorrent(const boost::optional<uint> & uploadLimit,
+                      const boost::optional<uint> & downloadLimit,
+                      const std::string & name,
+                      const std::vector<char> & resumeData,
+                      const std::string & savePath,
+                      bool paused,
+                      const TorrentIdentifier & torrentReference,
+                      const AddedTorrent & addedTorrent) {
 
     // We can only stop from started state
     if(_state != State::started)
         throw exception::StateIncompatibleOperation(_state);
 
     // Check that torrent not already present
-    libtorrent::sha1_hash infoHash = configuration.infoHash();
+    libtorrent::sha1_hash infoHash = torrentReference.infoHash();
 
     if(_torrents.count(infoHash) != 0)
         throw exception::TorrentAlreadyExists(infoHash);
@@ -223,7 +230,13 @@ void Node::addTorrent(const configuration::Torrent & configuration, const AddedT
     // }
 
     // Convert to add torrent parameters
-    libtorrent::add_torrent_params params = configuration.toAddTorrentParams();
+    libtorrent::add_torrent_params params = Node::toAddTorrentParams(uploadLimit,
+                                                                     downloadLimit,
+                                                                     name,
+                                                                     resumeData,
+                                                                     savePath,
+                                                                     paused,
+                                                                     torrentReference);
 
     // Add torrent to session
     _plugin->submit(extension::request::AddTorrent(params, addedTorrent));
@@ -1077,6 +1090,53 @@ libtorrent::dht_settings Node::dht_settings() noexcept {
     // For now we use default settings!
 
     return settings;
+}
+
+libtorrent::add_torrent_params Node::toAddTorrentParams(const boost::optional<uint> & uploadLimit,
+                                                        const boost::optional<uint> & downloadLimit,
+                                                        const std::string & name,
+                                                        const std::vector<char> & resumeData,
+                                                        const std::string & savePath,
+                                                        bool pause,
+                                                        const TorrentIdentifier & torrentIdentifier) noexcept {
+
+    // Initialize with default values
+    libtorrent::add_torrent_params params;
+
+    if(uploadLimit.is_initialized())
+        params.upload_limit = uploadLimit.value();
+
+    if(downloadLimit.is_initialized())
+        params.download_limit = downloadLimit.value();
+
+    params.name = name;
+    params.resume_data = resumeData;
+    params.save_path = savePath;
+
+    // NB: initial flags set in params is
+    // default_flags = flag_pinned | flag_update_subscribe | flag_auto_managed | flag_paused | flag_apply_ip_filter
+
+    // Pause, if paused
+    if(pause)
+        params.flags += libtorrent::add_torrent_params::flags_t::flag_paused;
+
+    // Remove auto-managing
+    params.flags -= libtorrent::add_torrent_params::flags_t::flag_auto_managed;
+
+    // Torrent refernce (usual, and safer, visitor pattern is a bit too heavy)
+    switch(torrentIdentifier.type()) {
+
+        case TorrentIdentifier::Type::Hash: params.info_hash = torrentIdentifier.infoHash(); break;
+
+        case TorrentIdentifier::Type::MagnetLink: params.url = torrentIdentifier.magnetLink().toURI(); break;
+
+        case TorrentIdentifier::Type::TorrentFile: params.ti = torrentIdentifier.torrentFile(); break;
+
+        default:
+            assert(false);
+    }
+
+    return params;
 }
 
 }
