@@ -160,7 +160,13 @@ void SPVWallet::open(std::string passphrase) {
         }
 
         if(_store.locked() && passphrase != "") {
-            _store.unlock(passphrase);
+            try {
+                _store.unlock(passphrase);
+            } catch(std::exception & e) {
+                // wrong passphrase
+                _store.close();
+                return;
+            }
         }
 
         updateStatus(wallet_status_t::OFFLINE);
@@ -168,13 +174,13 @@ void SPVWallet::open(std::string passphrase) {
         recalculateBalance();
 
         auto scripts = _store.listRedeemScripts();
-        auto recvKeys = _store.listPrivateKeys(Store::KeychainType::External);
-        auto changeKeys = _store.listPrivateKeys(Store::KeychainType::Internal);
+        auto recvKeys = _store.listPublicKeys(Store::KeychainType::External);
+        auto changeKeys = _store.listPublicKeys(Store::KeychainType::Internal);
 
         std::vector<Coin::PublicKey> pubKeys;
 
-        for(auto sk : recvKeys) pubKeys.push_back(sk.toPublicKey());
-        for(auto sk : changeKeys) pubKeys.push_back(sk.toPublicKey());
+        for(auto pk : recvKeys) pubKeys.push_back(pk);
+        for(auto pk : changeKeys) pubKeys.push_back(pk);
 
         updateBloomFilter(scripts, pubKeys);
 
@@ -258,7 +264,7 @@ Coin::PrivateKey SPVWallet::generateKey(const RedeemScriptGenerator & scriptGene
 
     uchar_vector script;
 
-    Coin::PrivateKey sk = _store.generateKey([&scriptGenerator, &script](const Coin::PublicKey & pubKey){
+    Coin::PrivateKey sk = _store.generatePrivateKey([&scriptGenerator, &script](const Coin::PublicKey & pubKey){
         RedeemScriptInfo info = scriptGenerator(pubKey);
         script = info.redeemScript;
         return info;
@@ -277,7 +283,7 @@ std::vector<Coin::PrivateKey> SPVWallet::generateKeys(const std::vector<RedeemSc
     std::vector<uchar_vector> scripts;
     uint32_t numKeys = scriptGenerators.size();
 
-    std::vector<Coin::PrivateKey> keys = _store.generateKeys(numKeys, [&scriptGenerators, &scripts](const Coin::PublicKey & pubKey, uint32_t n){
+    std::vector<Coin::PrivateKey> keys = _store.generatePrivateKeys(numKeys, [&scriptGenerators, &scripts](const Coin::PublicKey & pubKey, uint32_t n){
         RedeemScriptInfo info = scriptGenerators[n](pubKey);
         scripts.push_back(info.redeemScript);
         return info;
@@ -298,7 +304,7 @@ SPVWallet::generateKeyPairs(const std::vector<RedeemScriptGenerator> &scriptGene
     std::vector<Coin::KeyPair> keyPairs;
     uint32_t numKeys = scriptGenerators.size();
 
-    std::vector<Coin::PrivateKey> keys = _store.generateKeys(numKeys, [&scriptGenerators, &scripts](const Coin::PublicKey & pubKey, uint32_t n){
+    std::vector<Coin::PrivateKey> keys = _store.generatePrivateKeys(numKeys, [&scriptGenerators, &scripts](const Coin::PublicKey & pubKey, uint32_t n){
         RedeemScriptInfo info = scriptGenerators[n](pubKey);
         scripts.push_back(info.redeemScript);
         return info;
@@ -319,7 +325,7 @@ Coin::PublicKey SPVWallet::generateReceivePublicKey()
         throw std::runtime_error("wallet not initialized");
     }
 
-    auto pubKey = _store.generateReceiveKey().toPublicKey();
+    auto pubKey = _store.generateReceivePublicKey();
 
     updateBloomFilter({}, {pubKey});
 
@@ -332,7 +338,7 @@ Coin::PublicKey SPVWallet::generateChangePublicKey()
         throw std::runtime_error("wallet not initialized");
     }
 
-    auto pubKey = _store.generateChangeKey().toPublicKey();
+    auto pubKey = _store.generateChangePublicKey();
 
     updateBloomFilter({}, {pubKey});
 
@@ -349,10 +355,36 @@ Coin::P2PKHAddress SPVWallet::generateChangeAddress() {
     return Coin::P2PKHAddress(_network, pubKey.toPubKeyHash());
 }
 
+Coin::PrivateKey SPVWallet::generateReceivePrivateKey()
+{
+    if(!isInitialized()) {
+        throw std::runtime_error("wallet not initialized");
+    }
+
+    auto sk = _store.generateReceivePrivateKey();
+
+    updateBloomFilter({}, {sk.toPublicKey()});
+
+    return sk;
+}
+
+Coin::PrivateKey SPVWallet::generateChangePrivateKey()
+{
+    if(!isInitialized()) {
+        throw std::runtime_error("wallet not initialized");
+    }
+
+    auto sk = _store.generateChangePrivateKey();
+
+    updateBloomFilter({}, {sk.toPublicKey()});
+
+    return sk;
+}
+
 std::vector<Coin::P2PKHAddress> SPVWallet::listReceiveAddresses() const {
     std::vector<Coin::P2PKHAddress> addresses;
-    for(auto key : _store.listPrivateKeys(Store::KeychainType::External)) {
-        addresses.push_back(Coin::P2PKHAddress(_network, key.toPublicKey().toPubKeyHash()));
+    for(auto pubKey : _store.listPublicKeys(Store::KeychainType::External)) {
+        addresses.push_back(Coin::P2PKHAddress(_network, pubKey.toPubKeyHash()));
     }
     return addresses;
 }

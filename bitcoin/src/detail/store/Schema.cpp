@@ -18,8 +18,9 @@ namespace store {
 
     Metadata::Metadata(){}
 
-    Metadata::Metadata(std::string entropy, uint32_t created_utc, Coin::Network network) :
+    Metadata::Metadata(std::string entropy, std::string extendedPubKey, uint32_t created_utc, Coin::Network network) :
          entropy_(entropy)
+        ,xpublicKey_(extendedPubKey)
         ,created_(created_utc)
         ,encrypted_(false)
         ,network_(network)
@@ -43,6 +44,18 @@ namespace store {
 
     Coin::Network Metadata::network() const {
         return network_;
+    }
+
+    uint64_t Metadata::salt() const {
+        return salt_;
+    }
+
+    void Metadata::salt(uint64_t salt) {
+        salt_ = salt;
+    }
+
+    std::string Metadata::xpublicKey() const {
+        return xpublicKey_;
     }
 
 /// Key

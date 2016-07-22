@@ -98,10 +98,10 @@ public:
 
     // Keys for use with P2SH addresses
     // Return a new private key
-    Coin::PrivateKey generateKey(const RedeemScriptGenerator & scriptGenerator);
+    Coin::PrivateKey generatePrivateKey(const RedeemScriptGenerator & scriptGenerator);
 
     // Returns a vector of new keys
-    std::vector<Coin::PrivateKey> generateKeys(uint32_t numKeys, const MultiRedeemScriptGenerator & multiScriptGenerator);
+    std::vector<Coin::PrivateKey> generatePrivateKeys(uint32_t numKeys, const MultiRedeemScriptGenerator & multiScriptGenerator);
 
     // Returns a vector of new key pairs
     std::vector<Coin::KeyPair> generateKeyPairs(uint32_t numKeys, const MultiRedeemScriptGenerator & multiScriptGenerator);
@@ -109,21 +109,28 @@ public:
     // BIP44 - Keys for use with P2PKH Addresses, by default we generate a key for external use (receive address) change = 0
     // To generate a key for use with an internal address (for example a change output, pass argument change = 1)
     // Return a new private key
-    Coin::PrivateKey generateKey(KeychainType type);
+    Coin::PrivateKey generatePrivateKey(KeychainType type);
+    Coin::PublicKey generatePublicKey(KeychainType type);
 
     // Returns a vector of new keys
-    std::vector<Coin::PrivateKey> generateKeys(uint32_t numKeys, KeychainType chainType);
+    std::vector<Coin::PrivateKey> generatePrivateKeys(uint32_t numKeys, KeychainType chainType);
 
     // Returns a vector of new key pairs
     std::vector<Coin::KeyPair> generateKeyPairs(uint32_t numKeys, KeychainType chainType);
 
-    Coin::PrivateKey generateReceiveKey();
+    Coin::PrivateKey generateReceivePrivateKey();
 
-    Coin::PrivateKey generateChangeKey();
+    Coin::PrivateKey generateChangePrivateKey();
 
     Coin::PrivateKey derivePrivateKey(KeychainType chainType, uint32_t index) const;
 
-    std::vector<Coin::PrivateKey> listPrivateKeys(KeychainType chainType) const;
+    Coin::PublicKey derivePublicKey(KeychainType chainType, uint32_t index) const;
+
+    Coin::PublicKey generateReceivePublicKey();
+
+    Coin::PublicKey generateChangePublicKey();
+
+    std::vector<Coin::PublicKey> listPublicKeys(KeychainType chainType) const;
     std::vector<uchar_vector> listRedeemScripts() const;
 
     //std::list<Coin::Transaction> listTransactions();
@@ -154,7 +161,8 @@ private:
     Coin::Entropy _entropy;
     bool _locked;
     uint32_t _coin_type;
-    Coin::HDKeychain _accountKeychain;
+    Coin::HDKeychain _accountPrivKeychain;
+    Coin::HDKeychain _accountPubKeychain;
     uint32_t _timestamp;
     std::unique_ptr<odb::database> _db;
     mutable std::mutex _storeMutex;
@@ -163,6 +171,7 @@ private:
     //should be wrapped in an odb::transaction
     Coin::PrivateKey createNewPrivateKey(RedeemScriptGenerator scriptGenerator, uint32_t index);
     Coin::PrivateKey createNewPrivateKey(KeychainType chainType, uint32_t index);
+    Coin::PublicKey createNewPublicKey(KeychainType chainType, uint32_t index);
 
     // Total number of keys of change type
     uint32_t getNextKeyIndex(KeychainType chainType);

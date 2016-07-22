@@ -97,6 +97,9 @@ public:
     Coin::P2PKHAddress generateReceiveAddress();
     Coin::P2PKHAddress generateChangeAddress();
 
+    Coin::PrivateKey generateReceivePrivateKey();
+    Coin::PrivateKey generateChangePrivateKey();
+
     Coin::UnspentOutputSet lockOutputs(uint64_t minValue, uint32_t minimalConfirmations = 0, const Store::RedeemScriptFilter &scriptFilter = nullptr);
     uint unlockOutputs(const Coin::UnspentOutputSet & outputs);
 

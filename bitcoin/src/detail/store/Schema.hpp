@@ -44,13 +44,16 @@ class Metadata : public std::enable_shared_from_this<Metadata> {
     std::shared_ptr<Metadata> get_shared_ptr() { return shared_from_this(); }
 
     Metadata();
-    Metadata(std::string entropy, uint32_t created_utc, Coin::Network network);
+    Metadata(std::string entropy, std::string xpublicKey, uint32_t created_utc, Coin::Network network);
 
     std::string entropy() const;
     uint32_t created() const;
     bool encrypted() const;
     void encrypted(bool);
     Coin::Network network() const;
+    uint64_t salt() const;
+    void salt(uint64_t);
+    std::string xpublicKey() const;
 
   private:
     friend class odb::access;
@@ -59,12 +62,18 @@ class Metadata : public std::enable_shared_from_this<Metadata> {
     int id_;
 
     #pragma db not_null
-    std::string entropy_;
+    std::string entropy_; //hex encoded entropy
+
+    //hex encoded extended public key, for deriving public keys
+    std::string xpublicKey_;
 
     Coin::Network network_;
 
     //wether entropy_ is encrypted with a passphrase
     bool encrypted_;
+
+    //random salt used with key derivation function
+    uint64_t salt_;
 
     //utc unix timestamp: QDateTime::fromTime_t(created_) to convert to QDateTime local time
     uint32_t created_;

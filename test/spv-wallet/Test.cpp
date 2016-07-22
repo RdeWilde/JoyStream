@@ -17,6 +17,7 @@
 #include <common/UnspentOutput.hpp>
 #include <common/UnspentOutputSet.hpp>
 #include <common/Utilities.hpp>
+#include <common/Entropy.hpp>
 
 #include <CoinCore/hdkeys.h>
 #include <CoinCore/CoinNodeData.h> // Coin::Transaction
@@ -160,6 +161,27 @@ void Test::walletNetworkMismatch() {
     QVERIFY_EXCEPTION_THROWN(_walletA->open(), std::exception);
 }
 
+void Test::extendedPublicKey() {
+    auto store = new joystream::bitcoin::Store();
+    store->create(TEST_WALLET_PATH_A, Coin::Network::regtest);
+
+    auto privKey1 = store->derivePrivateKey(joystream::bitcoin::Store::KeychainType::External, 5);
+    auto pubKey1 = store->derivePublicKey(joystream::bitcoin::Store::KeychainType::External, 5);
+
+    QVERIFY(privKey1.toPublicKey() == pubKey1);
+
+    delete store;
+
+    store = new joystream::bitcoin::Store(TEST_WALLET_PATH_A, Coin::Network::regtest);
+    auto privKey2 = store->derivePrivateKey(joystream::bitcoin::Store::KeychainType::External, 5);
+    auto pubKey2 = store->derivePublicKey(joystream::bitcoin::Store::KeychainType::External, 5);
+
+    QVERIFY(privKey2.toPublicKey() == pubKey2);
+
+    QVERIFY(privKey1 == privKey2);
+    QVERIFY(pubKey1 == pubKey2);
+}
+
 void Test::walletEncryption() {
     _walletA->create();
     std::string seed = _walletA->getSeedWords();
@@ -169,7 +191,8 @@ void Test::walletEncryption() {
 
     // Opening an encrypted wallet without a passphrase it will be in locked state
     _walletA = new joystream::bitcoin::SPVWallet(TEST_WALLET_PATH_A, TEST_BLOCKTREE_PATH_A, Coin::Network::regtest);
-    QVERIFY_EXCEPTION_THROWN(_walletA->open(), std::exception);
+    _walletA->open();
+
     QVERIFY(_walletA->locked());
     QVERIFY_EXCEPTION_THROWN(_walletA->getSeedWords(), std::exception);
 
@@ -177,7 +200,6 @@ void Test::walletEncryption() {
     //QVERIFY(_walletA->locked());
 
     _walletA->decrypt("password");
-
     QVERIFY(seed == _walletA->getSeedWords());
 }
 
