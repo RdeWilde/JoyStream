@@ -177,6 +177,8 @@ private:
     uint32_t getNextKeyIndex(KeychainType chainType);
 
     transactionUpdatedCallback notifyTxUpdated;
+
+    uchar_vector keyFromPassphrase(std::string passphrase) const;
 };
 
 }//bitcoin

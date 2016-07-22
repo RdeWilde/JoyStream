@@ -196,8 +196,8 @@ void Test::walletEncryption() {
     QVERIFY(_walletA->locked());
     QVERIFY_EXCEPTION_THROWN(_walletA->getSeedWords(), std::exception);
 
-    //QVERIFY_EXCEPTION_THROWN(_walletA->decrypt("wrongPassword"), std::exception);
-    //QVERIFY(_walletA->locked());
+    QVERIFY_EXCEPTION_THROWN(_walletA->decrypt("wrongPassword"), std::exception);
+    QVERIFY(_walletA->locked());
 
     _walletA->decrypt("password");
     QVERIFY(seed == _walletA->getSeedWords());

@@ -207,6 +207,22 @@ bool Store::encrypted() const {
     return isEncrypted;
 }
 
+uchar_vector Store::keyFromPassphrase(std::string passphrase) const {
+    const char * password = passphrase.c_str();
+
+    std::string saltString = "joystream-salt"; //should this be a random salt?
+    const char * salt = saltString.c_str();
+
+    unsigned char digest[16]; //128 bits
+
+    if(!PKCS5_PBKDF2_HMAC(password, strlen(password), (unsigned char*)salt, strlen(salt), 2048, EVP_sha512(), sizeof(digest), digest)){
+        throw std::runtime_error(ERR_error_string(ERR_get_error(), NULL));
+    }
+    Coin::UCharArray<16> key(QByteArray((char*)digest, 16));
+
+    return key.toUCharVector();
+}
+
 void Store::encrypt(std::string passphrase) {
     std::lock_guard<std::mutex> lock(_storeMutex);
     //load metadata
@@ -215,9 +231,19 @@ void Store::encrypt(std::string passphrase) {
     if(metadata->encrypted()) {
         throw std::runtime_error("Store::encrypt() store is already encrypted");
     }
-    // encrypted_entropy = ENCRYPT(metadata->entropy);
-    // metadata->setEntropy(encrypted_entropy);
+
+    auto key = keyFromPassphrase(passphrase);
+
+    uchar_vector entropy(metadata->entropy());
+
+    auto salt = AES::random_salt();
+
+    metadata->salt(salt);
+
+    metadata->entropy(uchar_vector(AES::encrypt(key, entropy, true, salt)).getHex());
+
     metadata->encrypted(true);
+
     _db->update(metadata);
     t.commit();
 
@@ -232,9 +258,15 @@ void Store::decrypt(std::string passphrase) {
     if(!metadata->encrypted()) {
         throw std::runtime_error("Store::decrypt() store is not enrypted");
     }
-    // plaintext_entropy = DECRYPT(metadata->entropy()), throw on failure
-    // metadata->setEntropy(plaintext_entropy);
+
+    auto key = keyFromPassphrase(passphrase);
+
+    uchar_vector entropy(metadata->entropy());
+
+    metadata->entropy(uchar_vector(AES::decrypt(key, entropy, true, metadata->salt())).getHex());
+
     metadata->encrypted(false);
+
     _db->update(metadata);
     t.commit();
 
@@ -257,11 +289,13 @@ void Store::unlock(std::string passphrase) {
         throw std::runtime_error("Store::unlock() store is not enrypted");
     }
 
-    // try to DECRYPT entropy using passphrase, throw on failure..
-    //auto plaintext_entropy = DECRYPT(metadata->entropy());
-    auto plaintext_entropy = metadata->entropy();
+    auto key = keyFromPassphrase(passphrase);
 
-    _entropy = Coin::Entropy(plaintext_entropy);
+    uchar_vector entropy(metadata->entropy());
+
+    auto plaintext_entropy = uchar_vector(AES::decrypt(key, entropy, true, metadata->salt()));
+
+    _entropy = Coin::Entropy(plaintext_entropy.getHex());
     _accountPrivKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
     _locked = false;
 }

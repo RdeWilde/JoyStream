@@ -30,6 +30,10 @@ namespace store {
         return entropy_;
     }
 
+    void Metadata::entropy(std::string entropy) {
+        entropy_ = entropy;
+    }
+
     uint32_t Metadata::created() const {
         return created_;
     }

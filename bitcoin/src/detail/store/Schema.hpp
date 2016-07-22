@@ -47,7 +47,10 @@ class Metadata : public std::enable_shared_from_this<Metadata> {
     Metadata(std::string entropy, std::string xpublicKey, uint32_t created_utc, Coin::Network network);
 
     std::string entropy() const;
+    void entropy(std::string);
+
     uint32_t created() const;
+
     bool encrypted() const;
     void encrypted(bool);
     Coin::Network network() const;
@@ -72,7 +75,7 @@ class Metadata : public std::enable_shared_from_this<Metadata> {
     //wether entropy_ is encrypted with a passphrase
     bool encrypted_;
 
-    //random salt used with key derivation function
+    //random salt
     uint64_t salt_;
 
     //utc unix timestamp: QDateTime::fromTime_t(created_) to convert to QDateTime local time
