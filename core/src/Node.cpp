@@ -48,15 +48,12 @@ Q_DECLARE_METATYPE(const libtorrent::alert*) // Register type for QMetaObject::i
 namespace joystream {
 namespace core {
 
-Node::Node(joystream::bitcoin::SPVWallet * wallet)
+Node::Node(const BroadcastTransaction & broadcastTransaction)
     : _state(State::stopped)
-    , _closing(false)
-    , _reconnecting(false)
-    , _protocolErrorsCount(0)
     , _session(Node::session_settings(),
                libtorrent::session_handle::session_flags_t::start_default_features |
                libtorrent::session_handle::session_flags_t::add_default_plugins)
-    , _wallet(wallet) {
+    , _broadcastTransaction(broadcastTransaction) {
 
     // Generate DHT settings
     libtorrent::dht_settings dht_settings = Node::dht_settings();
@@ -81,7 +78,10 @@ Node::Node(joystream::bitcoin::SPVWallet * wallet)
     _session.set_alert_notify([this]() { this->libtorrent_alert_notification_entry_point(); });
 
     // Create and install plugin
-    boost::shared_ptr<libtorrent::plugin> plugin(new extension::Plugin(CORE_MINIMUM_EXTENDED_MESSAGE_ID));
+    boost::shared_ptr<libtorrent::plugin> plugin(new extension::Plugin([broadcastTransaction](const libtorrent::sha1_hash &, const Coin::Transaction & tx) -> void {
+                                                        // Call user provided broadcasting callback
+                                                        broadcastTransaction(tx);
+                                                     }, CORE_MINIMUM_EXTENDED_MESSAGE_ID));
 
     // Keep weak reference to plugin
     _plugin = boost::static_pointer_cast<extension::Plugin>(plugin);
@@ -136,24 +136,6 @@ Node::Node(joystream::bitcoin::SPVWallet * wallet)
     else
         std::clog << "Could not start streaming server on port:" << _streamingServer.serverPort();
     */
-
-    // Commenting out for now
-    //qRegisterMetaType<Coin::TransactionId>("Coin::TransactionId");
-    //QObject::connect(_wallet, SIGNAL(txUpdated(Coin::TransactionId, int)), this, SLOT(onTransactionUpdated(Coin::TransactionId ,int)));
-}
-
-Node::~Node() {
-
-    // NB
-    // we must handle case where ::stop is not caused, but
-    // we simply go out of scope. In that case we must
-    // do blocking exit, waiting on closed signal
-    //
-    // if we are already stopped, then we can easily close down
-
-    _closing = true;
-
-    _wallet->stopSync();
 }
 
 void Node::start(const NodeStarted & started, const NodeStartFailed & failed) {
@@ -258,22 +240,6 @@ void Node::removeTorrent(const libtorrent::sha1_hash & info_hash, const RemovedT
 
     // Add torrent to session
     _plugin->submit(extension::request::RemoveTorrent(info_hash, handler));
-}
-
-void Node::syncWallet() {
-
-    if(_closing) return;
-
-    _wallet->stopSync();
-
-    _protocolErrorsCount = 0;
-
-    std::clog << "connecting to bitcoin network...";
-    std::clog << "peer timeout value used:" << CORE_CONTROLLER_SPV_KEEPALIVE_TIMEOUT;
-
-    _wallet->sync("testnet-seed.bitcoin.petertodd.org", 18333, CORE_CONTROLLER_SPV_KEEPALIVE_TIMEOUT);
-
-    _reconnecting = false;
 }
 
 void Node::updateStatus() {
@@ -485,8 +451,6 @@ void Node::processAlert(const libtorrent::alert * a) {
     else if(libtorrent::piece_finished_alert const * p = libtorrent::alert_cast<libtorrent::piece_finished_alert>(a))
         processPieceFinishedAlert(p);
     else if(extension::alert::RequestResult const * p = libtorrent::alert_cast<extension::alert::RequestResult>(a))
-        process(p);
-    else if(extension::alert::BroadcastTransaction const * p = libtorrent::alert_cast<extension::alert::BroadcastTransaction>(a))
         process(p);
     else if(extension::alert::PluginStatus const * p = libtorrent::alert_cast<extension::alert::PluginStatus>(a))
         process(p);
@@ -854,21 +818,6 @@ void Node::process(const extension::alert::RequestResult * p) {
     p->loadedCallback();
 }
 
-void Node::process(const extension::alert::BroadcastTransaction * p) {
-
-    /// No guard here?
-
-    // Enqueue transaction
-    _transactionSendQueue.push_back(p->tx);
-
-    // try to send immediately
-    try {
-        _wallet->broadcastTx(p->tx);
-    } catch(std::exception & e) {
-        // wallet is offline
-    }
-}
-
 void Node::process(const extension::alert::PluginStatus * p) {
 
     // Update torrent plugin statuses
@@ -883,56 +832,6 @@ void Node::process(const extension::alert::PluginStatus * p) {
 
     // Do other stuff when plugin status is extended
 }
-
-void Node::scheduleReconnect() {
-
-    if(_closing) return;
-
-    if(_reconnecting) return;
-
-    _reconnecting = true;
-
-    // Retry connection
-    QTimer::singleShot(CORE_CONTROLLER_RECONNECT_DELAY, this, SLOT(syncWallet()));
-}
-
-// when wallet sees a transaction, either 0, 1 or 2 confirmations
-void Node::onTransactionUpdated(Coin::TransactionId txid, int) {
-
-    //remove matching transaction from the send queue
-    std::vector<Coin::Transaction>::iterator it;
-
-    it = std::find_if(_transactionSendQueue.begin(), _transactionSendQueue.end(), [&txid](Coin::Transaction &tx){
-       return txid == Coin::TransactionId::fromTx(tx);
-    });
-
-    if(it!= _transactionSendQueue.end()){
-        _transactionSendQueue.erase(it);
-    }
-}
-
-void Node::onWalletSynched() {
-    std::clog << "Wallet Synched";
-}
-
-void Node::onWalletSynchingHeaders() {
-    std::clog << "Wallet Synching Headers";
-}
-
-void Node::onWalletSynchingBlocks() {
-    std::clog << "Wallet Synching Blocks";
-}
-
-void Node::onWalletConnected() {
-    std::clog << "Wallet Connected";
-    sendTransactions();
-}
-
-/**
-joystream::bitcoin::SPVWallet * Node::wallet() {
-    return _wallet;
-}
-*/
 
 /**
 libtorrent::torrent_handle Controller::registerStream(Stream * stream) {
@@ -1018,25 +917,6 @@ std::weak_ptr<Torrent> Node::torrent(const libtorrent::sha1_hash & infoHash) con
         throw exception::NoSuchTorrentExists(infoHash);
     else
         return it->second;
-}
-
-/**
-void Controller::fundWallet(uint64_t value) {
-    _restClient->fundWalletFromFaucet(_wallet->getReceiveAddress().toBase58CheckEncoding(), value);
-}
-*/
-
-// called on timer signal, to periodically try to resend transactions to the network
-void Node::sendTransactions() {
-
-    for(auto tx : _transactionSendQueue) {
-        try {
-            _wallet->broadcastTx(tx);
-        } catch(std::exception & e) {
-            // wallet is offline
-            return;
-        }
-    }
 }
 
 libtorrent::settings_pack Node::session_settings() noexcept {

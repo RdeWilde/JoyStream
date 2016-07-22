@@ -59,15 +59,12 @@ public:
         stopping
     };
 
-
-    Node(joystream::bitcoin::SPVWallet *);
+    Node(const BroadcastTransaction &);
 
     /**
      No public routines are *NOT* thread safe, so calls have to be on same thread as owner of controller.
      NB: Not strictly true, some may be, but there are no guarantees as of yet.
      */
-
-    ~Node();
 
     /**
      @brief Tries to start node, which results in both BitTorrent and DHT ports opening up.
@@ -205,30 +202,13 @@ private slots:
     void readPiece(int piece);
     */
 
-    // Move all of these out of controller later
-    void scheduleReconnect();
-    void onTransactionUpdated(Coin::TransactionId txid, int confirmations);
-    void onWalletSynched();
-    void onWalletSynchingHeaders();
-    void onWalletSynchingBlocks();
-    void onWalletConnected();
-
 private:
 
     // State of controller
     State _state;
-	
-    // Indicates if we are shutting down
-    bool _closing;
-    bool _reconnecting;
-    int _protocolErrorsCount;
-    std::vector<Coin::Transaction> _transactionSendQueue;
 
     // Underlying libtorrent session
     libtorrent::session _session;
-
-    // Wallet used
-    joystream::bitcoin::SPVWallet * _wallet;
 
     // Plugin
     boost::shared_ptr<extension::Plugin> _plugin;
@@ -243,6 +223,9 @@ private:
     // libtorrent alerts. To check on torrents, this object should use the libtorrent
     // session itself.
     std::map<libtorrent::sha1_hash, std::shared_ptr<Torrent>> _torrents;
+
+    // Transaction broadcasting
+    BroadcastTransaction _broadcastTransaction;
 
     /// User supplied callbacks to be used as response in asynchronous method calls
 
@@ -288,10 +271,7 @@ private:
 
     // Processing (plugin) alerts
     void process(const extension::alert::RequestResult * p);
-    void process(const extension::alert::BroadcastTransaction * p);
     void process(const extension::alert::PluginStatus * p);
-
-    void sendTransactions();
 
     // Generate session settings pack used with libtorrent
     static libtorrent::settings_pack session_settings() noexcept;
