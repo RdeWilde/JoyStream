@@ -16,6 +16,7 @@
 #include <openssl/rand.h>
 #include <openssl/err.h>
 
+#include <CoinCore/scrypt/scrypt.h>
 #include <CoinCore/aes.h>
 
 namespace joystream {
@@ -207,15 +208,16 @@ bool Store::encrypted() const {
     return isEncrypted;
 }
 
-uchar_vector Store::keyFromPassphrase(std::string passphrase) const {
+uchar_vector Store::keyFromPassphrase(std::string passphrase, uint64_t random_salt) const {
     const char * password = passphrase.c_str();
 
-    std::string saltString = "joystream-salt"; //should this be a random salt?
-    const char * salt = saltString.c_str();
+    // convert 64bit number to 8 8bit values - is this method safe across different CPU architectures?
+    uint8_t i=0, salt[8]={0};
+    do salt[i++]=random_salt&0xFF; while (random_salt>>=8);
 
     unsigned char digest[16]; //128 bits
 
-    if(!PKCS5_PBKDF2_HMAC(password, strlen(password), (unsigned char*)salt, strlen(salt), 2048, EVP_sha512(), sizeof(digest), digest)){
+    if(!PKCS5_PBKDF2_HMAC(password, strlen(password), (unsigned char*)salt, sizeof(salt), 2048, EVP_sha512(), sizeof(digest), digest)){
         throw std::runtime_error(ERR_error_string(ERR_get_error(), NULL));
     }
     Coin::UCharArray<16> key(QByteArray((char*)digest, 16));
@@ -232,15 +234,16 @@ void Store::encrypt(std::string passphrase) {
         throw std::runtime_error("Store::encrypt() store is already encrypted");
     }
 
-    auto key = keyFromPassphrase(passphrase);
-
-    uchar_vector entropy(metadata->entropy());
 
     auto salt = AES::random_salt();
 
     metadata->salt(salt);
 
-    metadata->entropy(uchar_vector(AES::encrypt(key, entropy, true, salt)).getHex());
+    auto key = keyFromPassphrase(passphrase, salt);
+
+    uchar_vector entropy(metadata->entropy());
+
+    metadata->entropy(uchar_vector(AES::encrypt(key, entropy)).getHex());
 
     metadata->encrypted(true);
 
@@ -259,11 +262,11 @@ void Store::decrypt(std::string passphrase) {
         throw std::runtime_error("Store::decrypt() store is not enrypted");
     }
 
-    auto key = keyFromPassphrase(passphrase);
+    auto key = keyFromPassphrase(passphrase, metadata->salt());
 
     uchar_vector entropy(metadata->entropy());
 
-    metadata->entropy(uchar_vector(AES::decrypt(key, entropy, true, metadata->salt())).getHex());
+    metadata->entropy(uchar_vector(AES::decrypt(key, entropy)).getHex());
 
     metadata->encrypted(false);
 
@@ -289,11 +292,11 @@ void Store::unlock(std::string passphrase) {
         throw std::runtime_error("Store::unlock() store is not enrypted");
     }
 
-    auto key = keyFromPassphrase(passphrase);
+    auto key = keyFromPassphrase(passphrase, metadata->salt());
 
     uchar_vector entropy(metadata->entropy());
 
-    auto plaintext_entropy = uchar_vector(AES::decrypt(key, entropy, true, metadata->salt()));
+    auto plaintext_entropy = uchar_vector(AES::decrypt(key, entropy));
 
     _entropy = Coin::Entropy(plaintext_entropy.getHex());
     _accountPrivKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
