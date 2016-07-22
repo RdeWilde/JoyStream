@@ -18,11 +18,13 @@ namespace extension {
 
 TorrentPlugin::TorrentPlugin(Plugin * plugin,
                              const libtorrent::torrent_handle & torrent,
+                             const TransactionBroadcaster broadcaster,
                              uint minimumMessageId,
                              const Policy & policy,
                              LibtorrentInteraction libtorrentInteraction)
     : _plugin(plugin)
     , _torrent(torrent)
+    , _broadcaster(broadcaster)
     , _minimumMessageId(minimumMessageId)
     , _policy(policy)
     , _libtorrentInteraction(libtorrentInteraction) {
@@ -562,14 +564,15 @@ protocol_session::RemovedConnectionCallbackHandler<libtorrent::tcp::endpoint> To
 
 protocol_session::BroadcastTransaction TorrentPlugin::broadcastTransaction() {
 
-    // Get alert manager and handle for torrent
+    // Recover info hash
     libtorrent::torrent * t = torrent();
-    libtorrent::alert_manager & manager = t->alerts();
     libtorrent::torrent_handle h = t->get_handle();
+    libtorrent::sha1_hash infoHash = h.info_hash();
 
-    return [&manager, h](const Coin::Transaction & tx) -> bool {
+    return [this, infoHash](const Coin::Transaction & tx) -> bool {
 
-        manager.emplace_alert<alert::BroadcastTransaction>(h, tx);
+        // Broadcast transaction
+        this->_broadcaster(infoHash, tx);
 
         return true; // remove later, there is a github issue
     };
@@ -639,16 +642,17 @@ protocol_session::LoadPieceForBuyer<libtorrent::tcp::endpoint> TorrentPlugin::lo
 
 protocol_session::ClaimLastPayment<libtorrent::tcp::endpoint> TorrentPlugin::claimLastPayment() {
 
-    // Get alert manager and handle for torrent
+    // Recover info hash
     libtorrent::torrent * t = torrent();
-    libtorrent::alert_manager & manager = t->alerts();
     libtorrent::torrent_handle h = t->get_handle();
+    libtorrent::sha1_hash infoHash = h.info_hash();
 
-    return [&manager, h](const libtorrent::tcp::endpoint &, const joystream::paymentchannel::Payee & payee) {
+    return [this, infoHash](const libtorrent::tcp::endpoint &, const joystream::paymentchannel::Payee & payee) {
 
         Coin::Transaction tx = payee.lastPaymentTransaction();
 
-        manager.emplace_alert<alert::BroadcastTransaction>(h, tx);
+        // Broadcast transaction
+        this->_broadcaster(infoHash, tx);
     };
 }
 

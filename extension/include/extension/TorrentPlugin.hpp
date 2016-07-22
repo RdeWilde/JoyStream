@@ -9,6 +9,7 @@
 #define JOYSTREAM_EXTENSION_TORRENTPLUGIN_HPP
 
 #include <extension/PeerPlugin.hpp>
+#include <extension/Callbacks.hpp>
 #include <protocol_session/protocol_session.hpp>
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
@@ -75,6 +76,7 @@ public:
 
     TorrentPlugin(Plugin * plugin,
                   const libtorrent::torrent_handle & torrent,
+                  const TransactionBroadcaster broadcaster,
                   uint minimumMessageId,
                   const Policy & policy,
                   LibtorrentInteraction libtorrentInteraction);
@@ -183,6 +185,9 @@ private:
 
     // Torrent for this torrent_plugin
     libtorrent::torrent_handle _torrent;
+
+    // Broadcaster for transactions
+    TransactionBroadcaster _broadcaster;
 
     // Lowest all message id where libtorrent client can guarantee we will not
     // conflict with another libtorrent plugin (e.g. metadata, pex, etc.)
