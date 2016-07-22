@@ -89,6 +89,7 @@ namespace alert {
         Coin::PubKeyHash _finalPkHash;
     };
 
+    /**
     struct BroadcastTransaction : public libtorrent::torrent_alert {
 
         const static int alert_type = BROADCAST_TRANSACTION_ALERT_ID;
@@ -107,6 +108,7 @@ namespace alert {
 
         Coin::Transaction tx;
     };
+    */
 }
 }
 }
