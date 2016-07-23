@@ -32,7 +32,7 @@ namespace common {
             : MajorMinorSoftwareVersion(0,0) {
         }
 
-        MajorMinorSoftwareVersion(uint major, uint minor)
+        MajorMinorSoftwareVersion(unsigned int major, unsigned int minor)
             : _major(major)
             , _minor(minor) {
         }
@@ -47,8 +47,8 @@ namespace common {
             std::string majorString = s.substr(0, found);
             std::string minorString = s.substr(found + 1, s.length() - (found + 1));
 
-            return MajorMinorSoftwareVersion((uint)std::stoi(majorString.c_str()),
-                                   (uint)std::stoi(minorString.c_str()));
+            return MajorMinorSoftwareVersion((unsigned int)std::stoi(majorString.c_str()),
+                                   (unsigned int)std::stoi(minorString.c_str()));
         }
 
         std::string toString() const {
@@ -57,8 +57,8 @@ namespace common {
 
     private:
 
-        uint _major;
-        uint _minor;
+        unsigned int _major;
+        unsigned int _minor;
     };
 }
 }
