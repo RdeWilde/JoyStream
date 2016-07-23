@@ -69,16 +69,12 @@ DEPENDPATH += $$PWD/../protocol_statemachine/include
 INCLUDEPATH += $$PWD/../protocol_wire/include
 DEPENDPATH += $$PWD/../protocol_wire/include
 
-# common
-INCLUDEPATH += $$PWD/../common/include
-DEPENDPATH += $$PWD/../common/include
-
 # paymentchannel
 INCLUDEPATH += $$PWD/../paymentchannel/include
 DEPENDPATH += $$PWD/../paymentchannel/include
 
-# bitcoin
-INCLUDEPATH += $$PWD/../bitcoin/include
-DEPENDPATH += $$PWD/../bitcoin/include
+# common
+INCLUDEPATH += $$PWD/../common/include
+DEPENDPATH += $$PWD/../common/include
 
 include(../config.pri)
