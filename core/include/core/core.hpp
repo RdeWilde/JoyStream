@@ -15,8 +15,12 @@
 #include <core/Session.hpp>
 #include <core/Connection.hpp>
 #include <core/Peer.hpp>
-#include <core/Configuration.hpp>
+#include <core/Selling.hpp>
+#include <core/Buying.hpp>
+#include <core/Seller.hpp>
 #include <core/Exception.hpp>
 #include <core/Callbacks.hpp>
+#include <core/MagnetLink.hpp>
+#include <core/TorrentIdentifier.hpp>
 
 #endif // JOYSTREAM_CORE_CONTROLLER_HPP
