@@ -542,6 +542,10 @@ namespace extension {
         assert(!_undead);
     }
 
+    void PeerPlugin::sent_unchoke() {
+        assert(!_undead);
+    }
+
     void PeerPlugin::tick() {
         assert(!_undead);
     }
