@@ -3,21 +3,15 @@
 # Proprietary and confidential
 # Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
 
-include(config.pri)
-
-TARGET = core
+TARGET = core-test
 TEMPLATE = app
 
 CONFIG  += console
 CONFIG  += link_prl # Following http://qt-project.org/doc/qt-5/qmake-advanced-usage.html
-CONFIG  += c++11 # Needed for class enum
+CONFIG  += c++11
 CONFIG  += testcase
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets # QMainWindow, QDialog
-
 QT      += core
-QT      += sql
-QT      += network # network due to blockcypher integration
 QT      += testlib
 
 HEADERS += \
@@ -26,40 +20,7 @@ HEADERS += \
 SOURCES += \
     Test.cpp
 
-INCLUDEPATH += $$PWD # be able to include w.r.t root of this project
-
-# runner ###########################################################################
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../runner/release/ -lrunner
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../runner/debug/ -lrunner
-else:unix: LIBS += -L$$OUT_PWD/../../runner/ -lrunner
-
-INCLUDEPATH += $$PWD/../../runner/include
-DEPENDPATH += $$PWD/../../runner
-
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../runner/release/librunner.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../runner/debug/librunner.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../runner/release/runner.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../runner/debug/runner.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../runner/librunner.a
-
-# gui ###########################################################################
-# remove in the future, we should not require ui
-# for testing really
-
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../views/gui/release/ -lgui
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../views/gui/debug/ -lgui
-else:unix: LIBS += -L$$OUT_PWD/../../views/gui/ -lgui
-
-INCLUDEPATH += $$PWD/../../views/gui/include
-DEPENDPATH += $$PWD/../../views/gui
-
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../views/gui/release/libgui.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../views/gui/debug/libgui.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../views/gui/release/gui.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../views/gui/debug/gui.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../views/gui/libgui.a
-
-# core ###########################################################################
+# core
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../core/release/ -lcore
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../core/debug/ -lcore
 else:unix: LIBS += -L$$OUT_PWD/../../core/ -lcore
@@ -73,13 +34,77 @@ else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PW
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../core/debug/core.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../core/libcore.a
 
-# paymentchannel ###############################################################
+# extension
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../extension/release/ -lextension
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../extension/debug/ -lextension
+else:unix: LIBS += -L$$OUT_PWD/../../extension/ -lextension
+
+INCLUDEPATH += $$PWD/../../extension/include
+DEPENDPATH += $$PWD/../../extension
+
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../extension/release/libextension.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../extension/debug/libextension.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../extension/release/extension.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../extension/debug/extension.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../extension/libextension.a
+
+# protocol_session
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../protocol_session/release/ -lprotocol_session
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../protocol_session/debug/ -lprotocol_session
+else:unix: LIBS += -L$$OUT_PWD/../../protocol_session/ -lprotocol_session
+
+INCLUDEPATH += $$PWD/../../protocol_session/include
+DEPENDPATH += $$PWD/../../protocol_session
+
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../protocol_session/release/libprotocol_session.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../protocol_session/debug/libprotocol_session.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../protocol_session/release/protocol_session.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../protocol_session/debug/protocol_session.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../protocol_session/libprotocol_session.a
+
+# protocol_statemachine
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../protocol_statemachine/release/ -lprotocol_statemachine
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../protocol_statemachine/debug/ -lprotocol_statemachine
+else:unix: LIBS += -L$$OUT_PWD/../../protocol_statemachine/ -lprotocol_statemachine
+
+INCLUDEPATH += $$PWD/../../protocol_statemachine/include
+DEPENDPATH += $$PWD/../../protocol_statemachine
+
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../protocol_statemachine/release/libprotocol_statemachine.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../protocol_statemachine/debug/libprotocol_statemachine.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../protocol_statemachine/release/protocol_statemachine.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../protocol_statemachine/debug/protocol_statemachine.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../protocol_statemachine/libprotocol_statemachine.a
+
+# protocol_wire
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../protocol_wire/release/ -lprotocol_wire
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../protocol_wire/debug/ -lprotocol_wire
+else:unix: LIBS += -L$$OUT_PWD/../../protocol_wire/ -lprotocol_wire
+
+INCLUDEPATH += $$PWD/../../protocol_wire/include
+DEPENDPATH += $$PWD/../../protocol_wire
+
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../protocol_wire/release/libprotocol_wire.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../protocol_wire/debug/libprotocol_wire.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../protocol_wire/release/protocol_wire.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../protocol_wire/debug/protocol_wire.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../protocol_wire/libprotocol_wire.a
+
+# paymentchannel
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../paymentchannel/release/ -lpaymentchannel
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../paymentchannel/debug/ -lpaymentchannel
+else:unix: LIBS += -L$$OUT_PWD/../../paymentchannel/ -lpaymentchannel
+
 INCLUDEPATH += $$PWD/../../paymentchannel/include
+DEPENDPATH += $$PWD/../../paymentchannel
 
-# blockcypher  ###############################################################
-INCLUDEPATH += $$PWD/../../blockcypher/include
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/release/libpaymentchannel.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/debug/libpaymentchannel.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/release/paymentchannel.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/debug/paymentchannel.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../../paymentchannel/libpaymentchannel.a
 
-# common ###########################################################################
+# common
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../common/release/ -lcommon
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../common/debug/ -lcommon
 else:unix: LIBS += -L$$OUT_PWD/../../common/ -lcommon
