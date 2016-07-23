@@ -11,7 +11,6 @@
 #include <core/TorrentIdentifier.hpp>
 #include <core/detail/detail.hpp>
 #include <extension/extension.hpp>
-#include <bitcoin/SPVWallet.hpp>
 
 #include <libtorrent/alert_types.hpp>
 #include <libtorrent/error_code.hpp>
