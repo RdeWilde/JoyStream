@@ -9,7 +9,6 @@
 #define TEST_HPP
 
 #include <QtTest/QtTest>
-#include <QNetworkAccessManager>
 
 class Test : public QObject
 {
@@ -23,15 +22,11 @@ private slots:
      * Test routines
      */
 
-    void download_and_streaming();
+    void basic();
 
-    void paid_uploading();
 
 
 private:
-
-    // Manages HTTP access
-    QNetworkAccessManager _manager;
 };
 
 #endif // TEST_HPP
