@@ -202,7 +202,7 @@ void Torrent::updateUploadLimit(int uploadLimit) {
     _uploadLimit = uploadLimit;
 }
 
-void Torrent::downloadLimitChanged(int downloadLimit) {
+void Torrent::updateDownloadLimit(int downloadLimit) {
 
     if(_downloadLimit != downloadLimit)
         emit downloadLimitChanged(downloadLimit);
