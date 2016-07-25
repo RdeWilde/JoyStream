@@ -28,6 +28,9 @@ public:
     // Constructor from raw data
     explicit Entropy(const char * raw);
 
+    // Constructor from raw data
+    explicit Entropy(const uchar_vector & raw);
+
     // Constructor from hex encoded string
     explicit Entropy(const std::string & hexEncoded);
 

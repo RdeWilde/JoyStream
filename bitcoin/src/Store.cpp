@@ -204,8 +204,7 @@ bool Store::encrypted() const {
     //load metadata
     odb::transaction t(_db->begin());
     std::shared_ptr<detail::store::Metadata> metadata(_db->query_one<detail::store::Metadata>());
-    bool isEncrypted = metadata->encrypted();
-    return isEncrypted;
+    return metadata->encrypted();
 }
 
 uchar_vector Store::keyFromPassphrase(std::string passphrase, uint64_t random_salt) const {
@@ -298,7 +297,7 @@ void Store::unlock(std::string passphrase) {
 
     auto plaintext_entropy = uchar_vector(AES::decrypt(key, entropy));
 
-    _entropy = Coin::Entropy(plaintext_entropy.getHex());
+    _entropy = Coin::Entropy(plaintext_entropy);
     _accountPrivKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
     _locked = false;
 }

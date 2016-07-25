@@ -28,6 +28,11 @@ Entropy::Entropy(const QByteArray & raw)
     : Coin::UCharArray<WALLET_ENTROPY_BYTE_LENGTH>(raw) {
 }
 
+Entropy::Entropy(const uchar_vector &raw)
+    : Coin::UCharArray<WALLET_ENTROPY_BYTE_LENGTH>(raw) {
+
+}
+
 Entropy::Entropy(const std::string & hexEncoded)
     : Coin::UCharArray<WALLET_ENTROPY_BYTE_LENGTH>(hexEncoded) {
 }
