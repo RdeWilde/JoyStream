@@ -215,12 +215,12 @@ uchar_vector Store::keyFromPassphrase(std::string passphrase, uint64_t random_sa
     uint8_t i=0, salt[8]={0};
     do salt[i++]=random_salt&0xFF; while (random_salt>>=8);
 
-    unsigned char digest[16]; //128 bits
+    unsigned char digest[32]; //256 bits
 
     if(!PKCS5_PBKDF2_HMAC(password, strlen(password), (unsigned char*)salt, sizeof(salt), 2048, EVP_sha512(), sizeof(digest), digest)){
         throw std::runtime_error(ERR_error_string(ERR_get_error(), NULL));
     }
-    Coin::UCharArray<16> key(QByteArray((char*)digest, 16));
+    Coin::UCharArray<32> key(QByteArray((char*)digest, 32));
 
     return key.toUCharVector();
 }
