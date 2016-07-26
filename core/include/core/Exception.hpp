@@ -83,24 +83,6 @@ namespace exception {
 
     };
 
-    class NoSuchTorrentExists : public std::runtime_error {
-
-    public:
-
-        NoSuchTorrentExists(const libtorrent::sha1_hash & infoHash)
-            : std::runtime_error(toMessage(infoHash))
-            , infoHash(infoHash) {
-        }
-
-        libtorrent::sha1_hash infoHash;
-
-    private:
-
-        static std::string toMessage(const libtorrent::sha1_hash & infoHash) {
-            return std::string("No torrent added with info_hash: ") + infoHash.to_string();
-        }
-    };
-
     class TorrentAlreadyExists : public std::runtime_error {
 
     public:
