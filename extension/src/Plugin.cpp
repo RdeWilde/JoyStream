@@ -53,7 +53,7 @@ boost::shared_ptr<libtorrent::torrent_plugin> Plugin::new_torrent(libtorrent::to
 
 void Plugin::added(libtorrent::session_handle h) {
 
-    std::clog << "Plugin added to session.";
+    std::clog << "Plugin added to session." << std::endl;
 
     _session = h.native_handle();
     _addedToSession = true;
