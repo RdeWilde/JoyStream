@@ -212,15 +212,6 @@ void Node::addTorrent(const boost::optional<uint> & uploadLimit,
 }
 
 void Node::removeTorrent(const libtorrent::sha1_hash & info_hash, const RemovedTorrent & handler) {
-
-    // Find corresponding torrent
-    libtorrent::torrent_handle h = _session.find_torrent(info_hash);
-
-    // Check that there actually was such a torrent
-    if(!h.is_valid())
-        throw exception::NoSuchTorrentExists(info_hash);
-
-    // Add torrent to session
     _plugin->submit(extension::request::RemoveTorrent(info_hash, handler));
 }
 

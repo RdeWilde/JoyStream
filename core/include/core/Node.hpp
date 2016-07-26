@@ -106,7 +106,6 @@ public:
      *
      * @param info_hash info_hash of torrent
      * @param RemoveTorrent callback when operation is completed
-     * @throws exception::NoSuchTorrentExists if no such torrent exists
      * @signal removedTorrent if torrent was successfully removed
      */
     void removeTorrent(const libtorrent::sha1_hash & info_hash, const RemovedTorrent & handler);
