@@ -8,6 +8,7 @@
 #include <protocol_wire/MessageType.hpp>
 #include <cassert>
 #include <string>
+#include <stdexcept>
 
 namespace joystream {
 namespace protocol_wire {
