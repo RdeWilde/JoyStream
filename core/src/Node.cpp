@@ -832,24 +832,8 @@ void Node::changeDownloadingLocationFromThisPiece(const libtorrent::sha1_hash & 
 }
 */
 
-std::set<libtorrent::sha1_hash> Node::torrents() const {
-
-    std::set<libtorrent::sha1_hash> infoHashes;
-
-    for(auto mapping : _torrents)
-        infoHashes.insert(mapping.first);
-
-    return infoHashes;
-}
-
-std::weak_ptr<Torrent> Node::torrent(const libtorrent::sha1_hash & infoHash) const {
-
-    auto it = _torrents.find(infoHash);
-
-    if(it == _torrents.cend())
-        throw exception::NoSuchTorrentExists(infoHash);
-    else
-        return it->second;
+std::map<libtorrent::sha1_hash, std::shared_ptr<Torrent>> Node::torrents() const noexcept {
+    return _torrents;
 }
 
 libtorrent::settings_pack Node::session_settings() noexcept {

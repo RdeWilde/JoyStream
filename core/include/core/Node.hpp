@@ -131,11 +131,8 @@ public:
     // and any changes in state will be emitted as signals.
     void updateStatus();
 
-    // Get all info hashes
-    std::set<libtorrent::sha1_hash> torrents() const;
-
-    // Get torrents
-    std::weak_ptr<Torrent> torrent(const libtorrent::sha1_hash & infoHash) const;    
+    // Get all torrents
+    std::map<libtorrent::sha1_hash, std::shared_ptr<Torrent>> torrents() const noexcept;
 
 signals:
 
