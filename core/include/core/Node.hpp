@@ -42,57 +42,46 @@ class Node : public QObject {
 
     Q_OBJECT
 
+    /**
+     * IMPORTANT
+     *
+     * 1. No public routines are thread safe. Not only are simultaneous calls from
+     * distinct threads not safe, but even synchronized calls are not safe, as
+     * one call may invalidate the view model object another thread is relying on.
+     * Only use in single thread context.
+     *
+     * 2. Users should never trust std::shared_ptr references from core across multiple calls,
+     * since the underlying objects may expire. Only keep std::weak_ptr references, and lock to get
+     * std::shared_ptr reference. This will always be safe, without explicit synchronization,
+     * so long as user code core calls are made on same thread.
+     *
+     */
+
 public:
 
-    enum class State {
-
-        // After stopping has been completed, or before starting has been initiated for the first time.
-        stopped,
-
-        // After starting has been initaited, but no result, successfull or not.
-        starting,
-
-        // After starting has been initiated, and sucessfully completed.
-        started,
-
-        // After stopping has been initiated, but it has not yet been completed.
-        stopping
-    };
-
-    Node(const BroadcastTransaction &);
-
     /**
-     No public routines are *NOT* thread safe, so calls have to be on same thread as owner of controller.
-     NB: Not strictly true, some may be, but there are no guarantees as of yet.
+     * @brief Start node.
+     *
+     * @param broadcastTransaction called to broadcast transaction.
+     * @throws exception::FailedToStartNodeException if starting failed.
+     * @signal startedListeningOnPort if starting succeeded.
      */
+    Node(const BroadcastTransaction & broadcastTransaction);
 
     /**
-     @brief Tries to start node, which results in both BitTorrent and DHT ports opening up.
-            Node must be in stopped state.
-
-     @param nodeStarted called if startup succeeds
-     @param nodeStartFailed called if startup fails
-     @throws exception::StateIncompatibleOperation if node is not already State::stopped.
-     @signal nodeStarted if a successful start is made
-     @signal nodeStartFailed if starting was not successful
+     * @brief Terminates all connections on all torrents, and stops all plugins, but
+     *        BitTorrent and DHT daemons still run.
+     *
+     * @param nodeStopped callback about being actually stopped
+     * @throws exception::StateIncompatibleOperation: if node is not already State::started.
+     * @throws all exceptions thrown by joystream::protocol_session::Stop
+     * @signal nodeStopped if node is successfully
      */
-    void start(const NodeStarted & nodeStarted, const NodeStartFailed & nodeStartFailed);
-
-    /**
-     @brief All plugins are stopped, connections are then terminated,
-            however they are still part present in session, and  BitTorrent and DHT daemons still run.
-            Node must be in started state.
-
-     @param nodeStopped callback about being actually stopped
-     @throws exception::StateIncompatibleOperation: if node is not already State::started.
-     @throws all exceptions thrown by joystream::protocol_session::Stop
-     @signal nodeStopped if node is successfully
-    */
-    void stop(const NodeStopped & nodeStopped);
+    void pause(const NodePaused & nodeStopped);
 
     /**
      * @brief Tries to add torrent.
-
+     *
      * @param uploadLimit Maximum (bytes/s) upstream bandwidth utilization
      * @param downloadLimit Maximum (bytes/s) downstream bandwidth utilization
      * @param name Display name
@@ -115,13 +104,13 @@ public:
                     const AddedTorrent & addedTorrent);
 
     /**
-     @brief Tries to remove torrent.
-
-     @param info_hash info_hash of torrent
-     @param RemoveTorrent callback when operation is completed
-     @throws exception::StateIncompatibleOperation if node not in mode @State::started
-     @throws exception::NoSuchTorrentExists if no such torrent exists
-     @signal removedTorrent if torrent was successfully removed
+     * @brief Tries to remove torrent.
+     *
+     * @param info_hash info_hash of torrent
+     * @param RemoveTorrent callback when operation is completed
+     * @throws exception::StateIncompatibleOperation if node not in mode @State::started
+     * @throws exception::NoSuchTorrentExists if no such torrent exists
+     * @signal removedTorrent if torrent was successfully removed
      */
     void removeTorrent(const libtorrent::sha1_hash & info_hash, const RemovedTorrent & handler);
 
@@ -149,9 +138,6 @@ public:
     // and any changes in state will be emitted as signals.
     void updateStatus();
 
-    // State of controller
-    State state() const;
-
     // Get all info hashes
     std::set<libtorrent::sha1_hash> torrents() const;
 
@@ -168,13 +154,17 @@ signals:
     // while the latter is for an observer. E.g. a HTTP daemon wrapping joystream::core library
     // would use callbacks to service RPC calls, and signals to populate websocket streams.
 
-    // Starting was successful, and node is listening on given endpoint
-    void nodeStarted(const libtorrent::tcp::endpoint &);
+    // BitTorrent daemon now listens on given local endpoint.
+    // Is triggered on initial start of node, and on subsequent interface changes locally.
+    void startedListeningOnPort(const libtorrent::tcp::endpoint &);
 
-    // Stopped node
-    void nodeStopped();
+    // Node paused
+    void paused();
 
-    // Sent when libtorrent::add_torrent_alert is received from libtorrent
+    // Node unpaused
+    void unPaused();
+
+    // Torrent added
     void addedTorrent(const std::shared_ptr<Torrent> &);
 
     // Torrent with given info hash was removed
@@ -204,9 +194,6 @@ private slots:
 
 private:
 
-    // State of controller
-    State _state;
-
     // Underlying libtorrent session
     libtorrent::session _session;
 
@@ -227,12 +214,6 @@ private:
     // Transaction broadcasting
     BroadcastTransaction _broadcastTransaction;
 
-    /// User supplied callbacks to be used as response in asynchronous method calls
-
-    // Node::start
-    NodeStarted _nodeStarted;
-    NodeStartFailed _nodeStartFailed;
-
     // TCP streaming server
     //QTcpServer _streamingServer;
 
@@ -252,7 +233,6 @@ private:
 
     // Processing (standard) libtorrent alerts of given type
     void process(const libtorrent::listen_succeeded_alert *);
-    void process(const libtorrent::listen_failed_alert *);
     void process(const libtorrent::metadata_received_alert *);
     void process(const libtorrent::metadata_failed_alert *);
     void process(const libtorrent::add_torrent_alert *);

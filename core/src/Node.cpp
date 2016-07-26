@@ -48,11 +48,36 @@ namespace joystream {
 namespace core {
 
 Node::Node(const BroadcastTransaction & broadcastTransaction)
-    : _state(State::stopped)
-    , _session(Node::session_settings(),
+    : _session(Node::session_settings(),
                libtorrent::session_handle::session_flags_t::start_default_features |
                libtorrent::session_handle::session_flags_t::add_default_plugins)
     , _broadcastTransaction(broadcastTransaction) {
+
+    // Check if session was actually started properly
+    libtorrent::error_code ec;
+
+    if(ec)
+        throw exception::FailedToStartNodeException(ec);
+    else {
+
+        unsigned short port = _session.listen_port();
+
+        std::clog << "Node started with BitTorrent daemon on port: " << port << "." << std::endl;
+
+        libtorrent::tcp::endpoint endPoint = libtorrent::parse_endpoint("0.0.0.0:" + std::to_string(port), ec);
+        assert(!ec);
+
+        emit startedListeningOnPort(endPoint);
+    }
+
+    // Set alerts notification callback in session
+    // NB: This delayed setup of this notifcation handler w.r.t. creation of session
+    // can lead to a race condition where the inition 0->1 event is missed, and so
+    // the node misses all alerts until the session reaches its limit and dumps all alerts.
+    // To avoid this, we make one initial call to processAlertQueue() at the end of the constructor.
+    _session.set_alert_notify([this]() { this->libtorrent_alert_notification_entry_point(); });
+
+    /// Setup DHT
 
     // Generate DHT settings
     libtorrent::dht_settings dht_settings = Node::dht_settings();
@@ -65,16 +90,7 @@ Node::Node(const BroadcastTransaction & broadcastTransaction)
     _session.add_dht_router(std::make_pair(std::string("router.utorrent.com"), 6881));
     _session.add_dht_router(std::make_pair(std::string("router.bitcomet.com"), 6881));
 
-    // From libtorrent docs:
-    // the ``set_alert_notify`` function lets the client set a function object
-    // to be invoked every time the alert queue goes from having 0 alerts to
-    // 1 alert. This function is called from within libtorrent, it may be the
-    // main thread, or it may be from within a user call. The intention of
-    // of the function is that the client wakes up its main thread, to poll
-    // for more alerts using ``pop_alerts()``. If the notify function fails
-    // to do so, it won't be called again, until ``pop_alerts`` is called for
-    // some other reason.
-    _session.set_alert_notify([this]() { this->libtorrent_alert_notification_entry_point(); });
+    /// Setup plugin
 
     // Create and install plugin
     boost::shared_ptr<libtorrent::plugin> plugin(new extension::Plugin([broadcastTransaction](const libtorrent::sha1_hash &, const Coin::Transaction & tx) -> void {
@@ -135,52 +151,27 @@ Node::Node(const BroadcastTransaction & broadcastTransaction)
     else
         std::clog << "Could not start streaming server on port:" << _streamingServer.serverPort();
     */
+
+    // Resolve potential race condition described above
+    processAlertQueue();
 }
 
-void Node::start(const NodeStarted & started, const NodeStartFailed & failed) {
+void Node::pause(const NodePaused & nodePaused) {
 
-    // We can only start from stopped state
-    if(_state != State::stopped)
-        throw exception::StateIncompatibleOperation(_state);
-
-    // Update state
-    _state = State::starting;
-
-    // Store user callback to be called when resume data is generated
-    _nodeStarted = started;
-    _nodeStartFailed = failed;
-
-    // Try to start listening
-    unsigned short port = _session.listen_port();
-
-    std::clog << "Trying to listen on port" << std::to_string(port) << std::endl;
-}
-
-void Node::stop(const NodeStopped & nodeStopped) {
-
-    // We can only stop from started state
-    if(_state != State::started)
-        throw exception::StateIncompatibleOperation(_state);
-
-    // Update state
-    _state = State::stopping;
-
-    _plugin->submit(extension::request::PauseLibtorrent([this, nodeStopped]() {
+    // Pause libtorrent session
+    _plugin->submit(extension::request::PauseLibtorrent([this, nodePaused]() {
 
         std::clog << "Libtorrent session paused" << std::endl;
 
         // Stop all plugins
-        _plugin->submit(extension::request::StopAllTorrentPlugins([this, nodeStopped]() {
+        _plugin->submit(extension::request::StopAllTorrentPlugins([this, nodePaused]() {
 
             std::clog << "All plugins stopped" << std::endl;
 
-            // Update state
-            _state = State::stopped;
-
             // Make user callback
-            nodeStopped();
+            nodePaused();
 
-            emit nodeStopped();
+            emit paused();
         }));
 
     }));
@@ -194,10 +185,6 @@ void Node::addTorrent(const boost::optional<uint> & uploadLimit,
                       bool paused,
                       const TorrentIdentifier & torrentReference,
                       const AddedTorrent & addedTorrent) {
-
-    // We can only stop from started state
-    if(_state != State::started)
-        throw exception::StateIncompatibleOperation(_state);
 
     // Check that torrent not already present
     libtorrent::sha1_hash infoHash = torrentReference.infoHash();
@@ -226,10 +213,6 @@ void Node::addTorrent(const boost::optional<uint> & uploadLimit,
 
 void Node::removeTorrent(const libtorrent::sha1_hash & info_hash, const RemovedTorrent & handler) {
 
-    // We can only stop from started state
-    if(_state != State::started)
-        throw exception::StateIncompatibleOperation(_state);
-
     // Find corresponding torrent
     libtorrent::torrent_handle h = _session.find_torrent(info_hash);
 
@@ -242,10 +225,6 @@ void Node::removeTorrent(const libtorrent::sha1_hash & info_hash, const RemovedT
 }
 
 void Node::updateStatus() {
-
-    // We can only stop from started state
-    if(_state != State::started)
-        throw exception::StateIncompatibleOperation(_state);
 
     // Regular torrent level state update
     _session.post_torrent_updates();
@@ -275,10 +254,6 @@ void Node::updateStatus() {
         // Update peer statuses on torrent
         t.second->updatePeerStatuses(v);
     }
-}
-
-Node::State Node::state() const {
-    return _state;
 }
 
 /**
@@ -352,7 +327,7 @@ void Controller::registerRequestedPathOnStream(const Stream * stream, const QByt
 
     } else {
 
-        std::clog << "Requested path does not correspond to any presently active torrent.";
+        std::clog << "Requested path does not correspond to any presently active torrent." << std::endl;
 
         Q_ASSERT(false); // <== no clean way to deal with this, as this slot is called synchronously
     }
@@ -411,27 +386,12 @@ void Node::processAlert(const libtorrent::alert * a) {
 
     std::clog << "Processing alert " << a->message() << std::endl;
 
-    // Handilng resume data alerts is allowed in all states
-
-    if(libtorrent::save_resume_data_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_alert>(a))
-        process(p);
-    else if(libtorrent::save_resume_data_failed_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_failed_alert>(a))
-        process(p);
-
-    /// Check that node is started
-    if(_state != State::started) {
-        std::clog << "Ignored due to incompatible node state" << std::endl;
-        return;
-    }
-
     // Select alert type
     if(libtorrent::metadata_received_alert const * p = libtorrent::alert_cast<libtorrent::metadata_received_alert>(a))
         process(p);
     else if(libtorrent::metadata_failed_alert const * p = libtorrent::alert_cast<libtorrent::metadata_failed_alert>(a))
         process(p);
     else if(libtorrent::listen_succeeded_alert const * p = libtorrent::alert_cast<libtorrent::listen_succeeded_alert>(a))
-        process(p);
-    else if(libtorrent::listen_failed_alert const * p = libtorrent::alert_cast<libtorrent::listen_failed_alert>(a))
         process(p);
     else if(libtorrent::add_torrent_alert const * p = libtorrent::alert_cast<libtorrent::add_torrent_alert>(a))
         process(p);
@@ -440,6 +400,10 @@ void Node::processAlert(const libtorrent::alert * a) {
     else if (libtorrent::torrent_paused_alert const * p = libtorrent::alert_cast<libtorrent::torrent_paused_alert>(a))
         process(p);
     else if (libtorrent::state_update_alert const * p = libtorrent::alert_cast<libtorrent::state_update_alert>(a))
+        process(p);
+    else if(libtorrent::save_resume_data_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_alert>(a))
+        process(p);
+    else if(libtorrent::save_resume_data_failed_alert const * p = libtorrent::alert_cast<libtorrent::save_resume_data_failed_alert>(a))
         process(p);
     else if(libtorrent::torrent_removed_alert const * p = libtorrent::alert_cast<libtorrent::torrent_removed_alert>(a))
         process(p);
@@ -456,34 +420,9 @@ void Node::processAlert(const libtorrent::alert * a) {
 
 }
 
-
 void Node::process(const libtorrent::listen_succeeded_alert * p) {
 
-    assert(_state == State::starting);
-
-    _state = State::started;
-
-    std::clog << "Listening on endpoint" << p->endpoint.address().to_string() << std::endl;
-
-    // Make callback to user
-    _nodeStarted(p->endpoint);
-
-    emit nodeStarted(p->endpoint);
-}
-
-void Node::process(const libtorrent::listen_failed_alert * p) {
-
-    assert(_state == State::starting);
-
-    _state = State::stopped;
-
-    std::clog << "Failed to start listening on endpoint"
-              << p->endpoint.address().to_string()
-              << "due to error"
-              << p->error.message();
-
-    // Make callback to user
-    _nodeStartFailed(p->endpoint, p->error);
+    emit startedListeningOnPort(p->endpoint);
 }
 
 /**
@@ -591,7 +530,7 @@ void Node::process(const libtorrent::metadata_received_alert * p) {
         it->second->setMetadata(torrent_info);
 
     } else
-        std::clog << "Invalid handle for received metadata.";
+        std::clog << "Invalid handle for received metadata." << std::endl;
 }
 
 void Node::process(const libtorrent::metadata_failed_alert *) {
@@ -666,6 +605,8 @@ void Node::process(const libtorrent::state_update_alert * p) {
 
 void Node::process(const libtorrent::save_resume_data_alert * p) {
 
+    /// No guard required
+
     // Recover info_hash of torrent
     libtorrent::torrent_handle h = p->handle;
 
@@ -680,7 +621,7 @@ void Node::process(const libtorrent::save_resume_data_alert * p) {
     auto it = _torrents.find(h.info_hash());
 
     if(it == _torrents.cend()) {
-        std::clog << "Dropped alert, no correspondign torrent found.";
+        std::clog << "Dropped alert, no correspondign torrent found." << std::endl;
         return;
     }
 
@@ -696,6 +637,8 @@ void Node::process(const libtorrent::save_resume_data_alert * p) {
 
 void Node::process(const libtorrent::save_resume_data_failed_alert * p) {
 
+    /// No guard required
+
     // Recover info_hash of torrent
     libtorrent::torrent_handle h = p->handle;
 
@@ -710,7 +653,7 @@ void Node::process(const libtorrent::save_resume_data_failed_alert * p) {
     auto it = _torrents.find(h.info_hash());
 
     if(it == _torrents.cend()) {
-        std::clog << "Dropped alert, no correspondign torrent found.";
+        std::clog << "Dropped alert, no correspondign torrent found." << std::endl;
         return;
     }
 
@@ -790,7 +733,7 @@ void Node::processReadPieceAlert(const libtorrent::read_piece_alert *) {
 //    */
 
 //    if(p->ec) {
-//        std::clog << "There was some sort of error in reading a piece: " << QString::fromStdString(p->ec.message());
+//        std::clog << "There was some sort of error in reading a piece: " << QString::fromStdString(p->ec.message())  << std::endl;
 //    } else {
 
 //        // Notify torrent
@@ -870,7 +813,7 @@ void Controller::unRegisterStream(Stream * stream, Stream::Error error) {
 
     unRegisterStream(stream);
 
-    std::clog << "Stream unregistered due to some error.";
+    std::clog << "Stream unregistered due to some error. << std::endl;
 
     //emit some sort of signal about error
 }
@@ -882,14 +825,14 @@ void Node::changeDownloadingLocationFromThisPiece(const libtorrent::sha1_hash & 
     // Check that torrent exists
     if(!_torrents.contains(infoHash)) {
 
-        std::clog << "Changing download location requested for torrent which does not exist.";
+        std::clog << "Changing download location requested for torrent which does not exist." << std::endl;
         return;
     }
 
     // Check that
     if(_torrents[infoHash]->pluginInstalled() != PluginInstalled::Buyer) {
 
-        std::clog << "Changing download location requested for with plugin which does not have a buyer torrent plugin installed on torrent.";
+        std::clog << "Changing download location requested for with plugin which does not have a buyer torrent plugin installed on torrent." << std::endl;
         return;
     }
 

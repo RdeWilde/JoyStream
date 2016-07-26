@@ -17,9 +17,9 @@ namespace joystream {
 namespace core {
 
 typedef std::function<void(const Coin::Transaction &)> BroadcastTransaction;
-typedef std::function<void(const libtorrent::tcp::endpoint &)> NodeStarted;
-typedef std::function<void(const libtorrent::tcp::endpoint &, libtorrent::error_code)> NodeStartFailed;
-typedef std::function<void()> NodeStopped;
+//typedef std::function<void(const libtorrent::tcp::endpoint &)> NodeStarted;
+typedef std::function<void()> NodeUnPaused;
+typedef std::function<void()> NodePaused;
 typedef extension::request::AddTorrent::AddTorrentHandler AddedTorrent;
 typedef extension::request::SubroutineHandler RemovedTorrent;
 typedef extension::request::SubroutineHandler TorrentPaused;
