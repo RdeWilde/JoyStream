@@ -119,22 +119,23 @@ namespace exception {
         }
     };
 
-    class StateIncompatibleOperation : public std::runtime_error {
+    class FailedToStartNodeException : public std::runtime_error {
 
     public:
 
-        StateIncompatibleOperation(Node::State state)
-            : std::runtime_error("Operation was not compatible with current state of node.")
-            , _state(state) {
+        FailedToStartNodeException(const libtorrent::error_code & ec)
+            : std::runtime_error("Failed to start node: " + ec.message())
+            , _ec(ec) {
         }
 
-        Node::State state() const {
-            return _state;
+        libtorrent::error_code ec() const noexcept {
+            return _ec;
         }
 
     private:
 
-        Node::State _state;
+        libtorrent::error_code _ec;
+
     };
 
 }
