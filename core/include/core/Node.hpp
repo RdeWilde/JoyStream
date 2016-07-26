@@ -114,9 +114,6 @@ public:
      */
     void removeTorrent(const libtorrent::sha1_hash & info_hash, const RemovedTorrent & handler);
 
-    /**NB: Move out of controller and onto wallet interface **/
-    void syncWallet();
-
     /**
      * Stream management
 
