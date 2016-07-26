@@ -155,7 +155,7 @@ signals:
     void unPaused();
 
     // Torrent added
-    void addedTorrent(const std::shared_ptr<Torrent> &);
+    void addedTorrent(const std::weak_ptr<Torrent> &);
 
     // Torrent with given info hash was removed
     void removedTorrent(const libtorrent::sha1_hash & info_hash);

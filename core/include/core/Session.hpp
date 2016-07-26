@@ -46,7 +46,7 @@ signals:
 
     void stateChanged(protocol_session::SessionState);
 
-    void connectionAdded(const std::shared_ptr<Connection> &);
+    void connectionAdded(const std::weak_ptr<Connection> &);
 
     void connectionRemoved(const libtorrent::tcp::endpoint &);
 

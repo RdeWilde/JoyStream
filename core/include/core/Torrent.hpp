@@ -90,11 +90,11 @@ public:
 
 signals:
 
-    void peerAdded(const std::shared_ptr<Peer> &);
+    void peerAdded(const std::weak_ptr<Peer> &);
 
     void peerRemoved(const libtorrent::tcp::endpoint &);
 
-    void torrentPluginAdded(const std::shared_ptr<TorrentPlugin> &);
+    void torrentPluginAdded(const std::weak_ptr<TorrentPlugin> &);
 
     void torrentPluginRemoved();
 

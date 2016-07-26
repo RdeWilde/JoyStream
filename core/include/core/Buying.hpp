@@ -49,7 +49,7 @@ signals:
 
     void termsChanged(const protocol_wire::BuyerTerms &);
 
-    void sellerAdded(const std::shared_ptr<Seller>);
+    void sellerAdded(const std::weak_ptr<Seller>);
 
     void sellerRemoved(const libtorrent::tcp::endpoint &);
 

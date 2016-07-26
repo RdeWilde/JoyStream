@@ -57,7 +57,7 @@ public:
 
 signals:
 
-    void peerPluginAdded(const std::shared_ptr<PeerPlugin> &);
+    void peerPluginAdded(const std::weak_ptr<PeerPlugin> &);
 
     void peerPluginRemoved(const libtorrent::tcp::endpoint &);
 
