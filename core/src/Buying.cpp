@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, July 18 2016
  */
 
-#include <core/buying.hpp>
+#include <core/Buying.hpp>
 
 namespace joystream {
 namespace core {
