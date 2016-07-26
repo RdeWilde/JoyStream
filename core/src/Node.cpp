@@ -947,7 +947,6 @@ libtorrent::settings_pack Node::session_settings() noexcept {
     // For example: '-AZ2060-'...
     // default: "-LT1100-"
     std::string peerIdString = libtorrent::fingerprint(CORE_PEER_ID, CORE_VERSION_MAJOR, CORE_VERSION_MINOR, 0, 0).to_string();
-    assert(peerIdString.length() == 20);
 
     pack.set_str(libtorrent::settings_pack::peer_fingerprint, peerIdString);
 
