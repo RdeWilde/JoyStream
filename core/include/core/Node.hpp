@@ -73,7 +73,6 @@ public:
      *        BitTorrent and DHT daemons still run.
      *
      * @param nodeStopped callback about being actually stopped
-     * @throws exception::StateIncompatibleOperation: if node is not already State::started.
      * @throws all exceptions thrown by joystream::protocol_session::Stop
      * @signal nodeStopped if node is successfully
      */
@@ -91,7 +90,6 @@ public:
      * @param torrentReference
      * @param addedTorrent callback called after operation has been completed
      * @throws exception::TorrentAlreadyExists if torrent already has been added
-     * @throws exception::StateIncompatibleOperation if node not in mode @State::started
      * @signal addedTorrent if torrent is successfully added
      */
     void addTorrent(const boost::optional<uint> & uploadLimit,
@@ -108,7 +106,6 @@ public:
      *
      * @param info_hash info_hash of torrent
      * @param RemoveTorrent callback when operation is completed
-     * @throws exception::StateIncompatibleOperation if node not in mode @State::started
      * @throws exception::NoSuchTorrentExists if no such torrent exists
      * @signal removedTorrent if torrent was successfully removed
      */
