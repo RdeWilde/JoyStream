@@ -245,7 +245,10 @@ private:
     void process(const extension::alert::PluginStatus * p);
 
     // Generate session settings pack used with libtorrent
-    static libtorrent::settings_pack session_settings() noexcept;
+    static libtorrent::settings_pack session_settings(bool enableDHT) noexcept;
+
+    // Generates session flags used with libtorrent
+    static int session_flags() noexcept;
 
     // Generates dht settings used with libtorrent
     static libtorrent::dht_settings dht_settings() noexcept;

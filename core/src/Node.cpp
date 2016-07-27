@@ -48,9 +48,7 @@ namespace joystream {
 namespace core {
 
 Node::Node(const BroadcastTransaction & broadcastTransaction)
-    : _session(Node::session_settings(),
-               libtorrent::session_handle::session_flags_t::start_default_features |
-               libtorrent::session_handle::session_flags_t::add_default_plugins)
+    : _session(Node::session_settings(false), Node::session_flags())
     , _broadcastTransaction(broadcastTransaction) {
 
     // Check if session was actually started properly
@@ -89,6 +87,9 @@ Node::Node(const BroadcastTransaction & broadcastTransaction)
     _session.add_dht_router(std::make_pair(std::string("router.bittorrent.com"), 6881));
     _session.add_dht_router(std::make_pair(std::string("router.utorrent.com"), 6881));
     _session.add_dht_router(std::make_pair(std::string("router.bitcomet.com"), 6881));
+
+    // Enable DHT node, now that routers have been added
+    _session.apply_settings(Node::session_settings(true));
 
     /// Setup plugin
 
@@ -836,10 +837,51 @@ std::map<libtorrent::sha1_hash, std::shared_ptr<Torrent>> Node::torrents() const
     return _torrents;
 }
 
-libtorrent::settings_pack Node::session_settings() noexcept {
+libtorrent::settings_pack Node::session_settings(bool enableDHT) noexcept {
 
     // Initialize with default values
     libtorrent::settings_pack pack;
+
+    // Setup alert filtering
+    int ignoredAlerts =
+                        // Enables alerts on events in the DHT node. For incoming searches or bootstrapping being done etc.
+                        libtorrent::alert::dht_notification +
+
+                        // Enables alerts for when blocks are requested and completed. Also when pieces are completed.
+                        libtorrent::alert::progress_notification +
+
+                        // Enables stats_alert approximately once every second, for every active torrent.
+                        // These alerts contain all statistics counters for the interval since the lasts stats alert.
+                        libtorrent::alert::stats_notification +
+
+                        // Enables debug logging alerts. These are available unless libtorrent was
+                        // built with logging disabled (TORRENT_DISABLE_LOGGING).
+                        // The alerts being posted are log_alert and are session wide.
+                        libtorrent::alert::session_log_notification +
+
+                        // Enables debug logging alerts for torrents. These are available unless libtorrent was
+                        // built with logging disabled (TORRENT_DISABLE_LOGGING). The alerts being posted are
+                        // torrent_log_alert and are torrent wide debug events.
+                        libtorrent::alert::torrent_log_notification +
+
+                        // Enables debug logging alerts for peers. These are available unless libtorrent was
+                        // built with logging disabled (TORRENT_DISABLE_LOGGING). The alerts being posted are
+                        // peer_log_alert and low-level peer events and messages.
+                        libtorrent::alert::peer_log_notification +
+
+                        // Enables dht_log_alert, debug logging for the DHT
+                        libtorrent::alert::dht_log_notification +
+
+                        // Enables verbose logging from the piece picker
+                        libtorrent::alert::picker_log_notification;
+
+    pack.set_int(libtorrent::settings_pack::alert_mask, libtorrent::alert::all_categories & ~ ignoredAlerts);
+
+    // Enable all default extensions, and possibly DHT.
+    pack.set_bool(libtorrent::settings_pack::enable_upnp, true);
+    pack.set_bool(libtorrent::settings_pack::enable_natpmp, true);
+    pack.set_bool(libtorrent::settings_pack::enable_lsd, true);
+    pack.set_bool(libtorrent::settings_pack::enable_dht, enableDHT);
 
     // This is the client identification to the tracker.
     // The recommended format of this string is: "ClientName/ClientVersion libtorrent/libtorrentVersion".
@@ -877,6 +919,14 @@ libtorrent::settings_pack Node::session_settings() noexcept {
 
 
     return pack;
+}
+
+int Node::session_flags() noexcept {
+
+           // start_default_features: DHT, local service discovery, UPnP and NAT-PMP.
+    return libtorrent::session_handle::session_flags_t::start_default_features |
+           // add_default_plugins: ut_pex, ut_metadata, lt_tex, smart_ban and possibly others.
+           libtorrent::session_handle::session_flags_t::add_default_plugins;
 }
 
 libtorrent::dht_settings Node::dht_settings() noexcept {
