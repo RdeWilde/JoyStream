@@ -82,6 +82,9 @@ DEPENDPATH += $$PWD/../../blockcypher
 INCLUDEPATH += $$PWD/../../core/include
 DEPENDPATH += $$PWD/../../core
 
+INCLUDEPATH += $$PWD/../../extension/include
+DEPENDPATH += $$PWD/../../extension
+
 INCLUDEPATH += $$PWD/../../common/include
 DEPENDPATH += $$PWD/../../common
 
