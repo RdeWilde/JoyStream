@@ -207,18 +207,18 @@ bool Store::encrypted() const {
     return metadata->encrypted();
 }
 
-uchar_vector Store::keyFromPassphrase(std::string passphrase, uint64_t random_salt) const {
+uchar_vector Store::keyFromPassphrase(std::string passphrase, uchar_vector random_salt) const {
     const char * password = passphrase.c_str();
 
-    // convert 64bit number to 8 8bit values - is this method safe across different CPU architectures?
-    uint8_t i=0, salt[8]={0};
-    do salt[i++]=random_salt&0xFF; while (random_salt>>=8);
+    unsigned char salt[8];
+    random_salt.copyToArray(salt);
 
     unsigned char digest[32]; //256 bits
 
-    if(!PKCS5_PBKDF2_HMAC(password, strlen(password), (unsigned char*)salt, sizeof(salt), 2048, EVP_sha512(), sizeof(digest), digest)){
+    if(!PKCS5_PBKDF2_HMAC(password, strlen(password), salt, sizeof(salt), 2048, EVP_sha512(), sizeof(digest), digest)){
         throw std::runtime_error(ERR_error_string(ERR_get_error(), NULL));
     }
+
     Coin::UCharArray<32> key(QByteArray((char*)digest, 32));
 
     return key.toUCharVector();
@@ -233,10 +233,15 @@ void Store::encrypt(std::string passphrase) {
         throw std::runtime_error("Store::encrypt() store is already encrypted");
     }
 
+    unsigned char random_salt[8];
 
-    auto salt = AES::random_salt();
+    if (!RAND_bytes(random_salt, sizeof(random_salt))) {
+        throw std::runtime_error(ERR_error_string(ERR_get_error(), NULL));
+    }
 
-    metadata->salt(salt);
+    uchar_vector salt(random_salt, sizeof(random_salt));
+
+    metadata->salt(salt.getHex());
 
     auto key = keyFromPassphrase(passphrase, salt);
 
@@ -261,7 +266,7 @@ void Store::decrypt(std::string passphrase) {
         throw std::runtime_error("Store::decrypt() store is not enrypted");
     }
 
-    auto key = keyFromPassphrase(passphrase, metadata->salt());
+    auto key = keyFromPassphrase(passphrase, uchar_vector(metadata->salt()));
 
     uchar_vector entropy(metadata->entropy());
 
@@ -291,7 +296,7 @@ void Store::unlock(std::string passphrase) {
         throw std::runtime_error("Store::unlock() store is not enrypted");
     }
 
-    auto key = keyFromPassphrase(passphrase, metadata->salt());
+    auto key = keyFromPassphrase(passphrase, uchar_vector(metadata->salt()));
 
     uchar_vector entropy(metadata->entropy());
 

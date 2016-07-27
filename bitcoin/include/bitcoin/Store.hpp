@@ -178,7 +178,7 @@ private:
 
     transactionUpdatedCallback notifyTxUpdated;
 
-    uchar_vector keyFromPassphrase(std::string passphrase, uint64_t random_salt) const;
+    uchar_vector keyFromPassphrase(std::string passphrase, uchar_vector random_salt) const;
 };
 
 }//bitcoin

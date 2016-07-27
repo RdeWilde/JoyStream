@@ -50,11 +50,11 @@ namespace store {
         return network_;
     }
 
-    uint64_t Metadata::salt() const {
+    std::string Metadata::salt() const {
         return salt_;
     }
 
-    void Metadata::salt(uint64_t salt) {
+    void Metadata::salt(std::string salt) {
         salt_ = salt;
     }
 
