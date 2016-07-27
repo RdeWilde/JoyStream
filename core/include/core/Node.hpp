@@ -53,7 +53,8 @@ class Node : public QObject {
      * 2. Users should never trust std::shared_ptr references from core across multiple calls,
      * since the underlying objects may expire. Only keep std::weak_ptr references, and lock to get
      * std::shared_ptr reference. This will always be safe, without explicit synchronization,
-     * so long as user code core calls are made on same thread.
+     * so long as user code core calls are made on same thread. This is also
+     * why all signals carry std::weak_ptr references, as signals may be dispatched too late.
      *
      */
 
