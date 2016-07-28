@@ -15,9 +15,8 @@
 
 #include <openssl/rand.h>
 #include <openssl/err.h>
-
-#include <CoinCore/scrypt/scrypt.h>
-#include <CoinCore/aes.h>
+#include <openssl/aes.h>
+#include <openssl/evp.h>
 
 namespace joystream {
 namespace bitcoin {
@@ -31,6 +30,65 @@ namespace {
     bool transactionLoad(std::unique_ptr<odb::database> &db, std::string txid, Coin::Transaction &coin_tx);
     void transactionDelete(std::unique_ptr<odb::database> &db, std::string txid);
     odb::result<detail::store::outputs_view_t> getOutputs(const std::unique_ptr<odb::database> & db, int32_t confirmations, int32_t main_chain_height);
+
+    uchar_vector aes_128_gcm_encrypt(uchar_vector plaintext, uchar_vector key)
+    {
+        //check key.size() == 128
+
+        size_t enc_length = plaintext.size()*3;
+        uchar_vector output;
+        output.resize(enc_length,'\0');
+
+        unsigned char tag[AES_BLOCK_SIZE];
+        unsigned char iv[AES_BLOCK_SIZE];
+        RAND_bytes(iv, sizeof(iv));
+        std::copy( iv, iv+16, output.begin()+16);
+
+        int actual_size=0, final_size=0;
+        EVP_CIPHER_CTX* e_ctx = EVP_CIPHER_CTX_new();
+        //EVP_CIPHER_CTX_ctrl(e_ctx, EVP_CTRL_GCM_SET_IVLEN, 16, NULL);
+        EVP_EncryptInit(e_ctx, EVP_aes_128_gcm(), &key[0], iv);
+        EVP_EncryptUpdate(e_ctx, &output[32], &actual_size, &plaintext[0], plaintext.size() );
+
+        if(EVP_EncryptFinal(e_ctx, &output[32+actual_size], &final_size) == 1) {
+            EVP_CIPHER_CTX_ctrl(e_ctx, EVP_CTRL_GCM_GET_TAG, 16, tag);
+            std::copy( tag, tag+16, output.begin() );
+            std::copy( iv, iv+16, output.begin()+16);
+            output.resize(32 + actual_size+final_size);
+            EVP_CIPHER_CTX_free(e_ctx);
+            return output;
+        } else {
+            EVP_CIPHER_CTX_free(e_ctx);
+            throw std::runtime_error(ERR_error_string(ERR_get_error(), NULL));
+        }
+
+    }
+
+    uchar_vector aes_128_gcm_decrypt(uchar_vector ciphertext, uchar_vector key)
+    {
+        // check key.size() == 128;
+
+        unsigned char tag[AES_BLOCK_SIZE];
+        unsigned char iv[AES_BLOCK_SIZE];
+        std::copy( ciphertext.begin(),    ciphertext.begin()+16, tag);
+        std::copy( ciphertext.begin()+16, ciphertext.begin()+32, iv);
+        uchar_vector plaintext; plaintext.resize(ciphertext.size(), '\0');
+
+        int actual_size=0, final_size=0;
+        EVP_CIPHER_CTX *d_ctx = EVP_CIPHER_CTX_new();
+        EVP_DecryptInit(d_ctx, EVP_aes_128_gcm(), &key[0], iv);
+        EVP_DecryptUpdate(d_ctx, &plaintext[0], &actual_size, &ciphertext[32], ciphertext.size()-32 );
+        EVP_CIPHER_CTX_ctrl(d_ctx, EVP_CTRL_GCM_SET_TAG, 16, tag);
+        if(EVP_DecryptFinal(d_ctx, &plaintext[actual_size], &final_size) == 1) {
+            EVP_CIPHER_CTX_free(d_ctx);
+            plaintext.resize(actual_size + final_size, '\0');
+            return plaintext;
+        } else {
+            EVP_CIPHER_CTX_free(d_ctx);
+            throw std::runtime_error(ERR_error_string(ERR_get_error(), NULL));
+        }
+    }
+
 }
 
 // open existing store
@@ -247,7 +305,7 @@ void Store::encrypt(std::string passphrase) {
 
     uchar_vector entropy(metadata->entropy());
 
-    metadata->entropy(uchar_vector(AES::encrypt(key, entropy)).getHex());
+    metadata->entropy(aes_128_gcm_encrypt(entropy, key).getHex());
 
     metadata->encrypted(true);
 
@@ -270,7 +328,7 @@ void Store::decrypt(std::string passphrase) {
 
     uchar_vector entropy(metadata->entropy());
 
-    metadata->entropy(uchar_vector(AES::decrypt(key, entropy)).getHex());
+    metadata->entropy(aes_128_gcm_decrypt(entropy, key).getHex());
 
     metadata->encrypted(false);
 
@@ -300,7 +358,7 @@ void Store::unlock(std::string passphrase) {
 
     uchar_vector entropy(metadata->entropy());
 
-    auto plaintext_entropy = uchar_vector(AES::decrypt(key, entropy));
+    auto plaintext_entropy = aes_128_gcm_decrypt(entropy, key);
 
     _entropy = Coin::Entropy(plaintext_entropy);
     _accountPrivKeychain = _entropy.seed().generateHDKeychain().getChild(BIP44_PURPOSE).getChild(_coin_type).getChild(BIP44_DEFAULT_ACCOUNT);
