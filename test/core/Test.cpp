@@ -23,10 +23,6 @@ void Test::basic() {
     BroadcastTransaction callback([](const Coin::Transaction & ) -> void {});
 
     Node node(callback);
-
-    QCOMPARE(node.state(), Node::State::stopped);
-
-    node.start(NodeStarted(), NodeStartFailed());
 }
 
 QTEST_MAIN(Test)
