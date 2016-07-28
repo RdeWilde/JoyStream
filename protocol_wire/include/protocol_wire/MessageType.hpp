@@ -8,17 +8,12 @@
 #ifndef JOYSTREAM_WIRE_MESSAGE_TYPE_HPP
 #define JOYSTREAM_WIRE_MESSAGE_TYPE_HPP
 
-// can't forwar declare?
-// http://stackoverflow.com/questions/307343/forward-declare-an-stl-container
-#include <map>
-#include <set>
+#include <string>
 
 namespace joystream {
 namespace protocol_wire {
 
-    // Extended messages part of BEP43 wire protocol
     enum class MessageType {
-
         observe,
         buy,
         sell,
@@ -32,25 +27,12 @@ namespace protocol_wire {
         payment //, end
     };
 
-    const char * MessageTypeToString(MessageType type);
 
-    //MessageType StringToMessageType(const char * str);
-
-    // Mapping from type to name
-    const std::map<MessageType, const char *> messageTypeToNameMapping();
-
-    // Name from type
+    // Get name of message type
     const char * messageName(MessageType type);
 
-    // Type from name
-    MessageType messageType(const std::string & messageName);
-
-    // All messages
-    const std::set<MessageType> allMessageTypes();
-
-    // Count the number of message types
-    int numberOfMessageTypes();
-
+    // Get type based on name
+    MessageType messageType(const std::string &);
 }
 }
 

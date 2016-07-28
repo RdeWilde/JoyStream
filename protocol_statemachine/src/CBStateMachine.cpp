@@ -14,6 +14,8 @@
 namespace joystream {
 namespace protocol_statemachine {
 
+    const common::MajorMinorSoftwareVersion CBStateMachine::protocolVersion(MAJOR_PROTOCOL_VERSION, MINOR_PROTOCOL_VERSION);
+
     CBStateMachine::CBStateMachine(const PeerAnnouncedMode & peerAnnouncedMode,
                                    const InvitedToOutdatedContract & invitedToOutdatedContract,
                                    const InvitedToJoinContract & invitedToJoinContract,

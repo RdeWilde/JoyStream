@@ -19,58 +19,62 @@ QT      += websockets
 INCLUDEPATH += $$PWD/include
 
 HEADERS += \
-    include/core/logger/LoggerManager.hpp \
-    include/core/logger/exceptions/DuplicateLog.hpp \
-    include/core/logger/exceptions/CannnotOpenLogFile.hpp \
-    include/core/viewmodel/BuyerPeerPlugin.hpp \
-    include/core/viewmodel/BuyerTorrentPlugin.hpp \
-    include/core/viewmodel/Channel.hpp \
-    include/core/viewmodel/Payee.hpp \
-    include/core/viewmodel/Payor.hpp \
-    include/core/viewmodel/PeerPlugin.hpp \
-    include/core/viewmodel/SellerPeerPlugin.hpp \
-    include/core/viewmodel/SellerTorrentPlugin.hpp \
-    include/core/viewmodel/TorrentPlugin.hpp \
-    include/core/viewmodel/Torrent.hpp \
-    include/core/Controller.hpp \
-    include/core/PluginInstalled.hpp \
-    include/core/Stream.hpp \
-    include/core/TorrentConfiguration.hpp \
-    include/core/ControllerConfiguration.hpp
+    #include/core/Stream.hpp \
+    include/core/core.hpp \
+    include/core/Exception.hpp \
+    include/core/Torrent.hpp \
+    include/core/Node.hpp \
+    include/core/detail/detail.hpp \
+    include/core/TorrentPlugin.hpp \
+    include/core/Peer.hpp \
+    include/core/Session.hpp \
+    include/core/PeerPlugin.hpp \
+    include/core/Connection.hpp \
+    include/core/MagnetLink.hpp \
+    include/core/Callbacks.hpp \
+    include/core/Selling.hpp \
+    include/core/Buying.hpp \
+    include/core/Seller.hpp \
+    include/core/TorrentIdentifier.hpp
 
 SOURCES += \
-    src/logger/LoggerManager.cpp \
-    src/logger/exceptions/CannnotOpenLogFile.cpp \
-    src/logger/exceptions/DuplicateLog.cpp \
-    src/viewmodel/BuyerPeerPlugin.cpp \
-    src/viewmodel/BuyerTorrentPlugin.cpp \
-    src/viewmodel/Channel.cpp \
-    src/viewmodel/Payee.cpp \
-    src/viewmodel/Payor.cpp \
-    src/viewmodel/PeerPlugin.cpp \
-    src/viewmodel/SellerPeerPlugin.cpp \
-    src/viewmodel/SellerTorrentPlugin.cpp \
-    src/viewmodel/TorrentPlugin.cpp \
-    src/viewmodel/Torrent.cpp \
-    src/Controller.cpp \
-    src/Stream.cpp \
-    src/TorrentConfiguration.cpp \
-    src/ControllerConfiguration.cpp
+    #src/Stream.cpp \
+    src/Torrent.cpp \
+    src/Node.cpp \
+    src/detail/detail.cpp \
+    src/TorrentPlugin.cpp \
+    src/MagnetLink.cpp \
+    src/Peer.cpp \
+    src/Session.cpp \
+    src/PeerPlugin.cpp \
+    src/Selling.cpp \
+    src/Buying.cpp \
+    src/Seller.cpp \
+    src/Connection.cpp \
+    src/TorrentIdentifier.cpp
 
 # extension
 INCLUDEPATH += $$PWD/../extension/include
 DEPENDPATH += $$PWD/../extension/include
 
-# blockcypher
-INCLUDEPATH += $$PWD/../blockcypher/include
-DEPENDPATH += $$PWD/../blockcypher/include
+# protocol_session
+INCLUDEPATH += $$PWD/../protocol_session/include
+DEPENDPATH += $$PWD/../protocol_session/include
 
-# common
-INCLUDEPATH += $$PWD/../common/include
-DEPENDPATH += $$PWD/../common/include
+# protocol_statemachine
+INCLUDEPATH += $$PWD/../protocol_statemachine/include
+DEPENDPATH += $$PWD/../protocol_statemachine/include
+
+# protocol_wire
+INCLUDEPATH += $$PWD/../protocol_wire/include
+DEPENDPATH += $$PWD/../protocol_wire/include
 
 # paymentchannel
 INCLUDEPATH += $$PWD/../paymentchannel/include
 DEPENDPATH += $$PWD/../paymentchannel/include
+
+# common
+INCLUDEPATH += $$PWD/../common/include
+DEPENDPATH += $$PWD/../common/include
 
 include(../config.pri)

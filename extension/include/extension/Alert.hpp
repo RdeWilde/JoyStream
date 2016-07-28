@@ -9,159 +9,106 @@
 #define JOYSTREAM_EXTENSION_ALERT_HPP
 
 #define PLUGIN_STATUS_ALERT_ID                  (libtorrent::user_alert_id + 1)
-#define BROADCAST_TRANSACTION_ALERT_ID          (libtorrent::user_alert_id + 2)
-#define REQUEST_RESULT_ALERT_ID                 (libtorrent::user_alert_id + 3)
-#define ANCHOR_ANNOUNCED_ALERT_ID               (libtorrent::user_alert_id + 4)
+#define REQUEST_RESULT_ALERT_ID                 (libtorrent::user_alert_id + 2)
+#define ANCHOR_ANNOUNCED_ALERT_ID               (libtorrent::user_alert_id + 3)
+#define BROADCAST_TRANSACTION_ALERT_ID          (libtorrent::user_alert_id + 4)
 
 #include <libtorrent/alert.hpp>
 #include <libtorrent/alert_types.hpp>
-
 #include <extension/Status.hpp>
+#include <exception>
 
 namespace joystream {
 namespace extension {
 namespace alert {
 
-    // Rule: Alerts are used for operations which have no return value,
-    // and where thread running libtorrent alert loop is client, and hence
-    // we get synchornization for free.
+    typedef std::function<void()> LoadedCallback;
 
-    class PluginStatusAlert : public libtorrent::alert {
-
-    public:
+    struct PluginStatus : public libtorrent::alert {
 
         const static int alert_type = PLUGIN_STATUS_ALERT_ID;
+        static const int priority = 0; // 0 = regular, 1 = high
 
-        PluginStatusAlert();
+        PluginStatus(libtorrent::aux::stack_allocator &, const status::Plugin & status)
+            : status(status) {}
 
-        PluginStatusAlert(const status::Plugin & status)
-            : _status(status) { }
-
-        PluginStatusAlert(const PluginStatusAlert & alert)
-            : PluginStatusAlert(alert.status()) { }
-
-        // Virtual routines from libtorrent::alert
         virtual int type() const { return alert_type; }
         virtual char const* what() const { return "PluginStatusAlert"; }
-        virtual std::string message() const { return std::string("PluginStatusAlert::message: IMPLEMENT LATER"); }
+        virtual std::string message() const { return std::string("PluginStatusAlert"); }
         virtual int category() const { return libtorrent::alert::stats_notification; }
-        virtual std::auto_ptr<libtorrent::alert> clone() const { return std::auto_ptr<alert>(new PluginStatusAlert(*this)); }
 
-
-        status::Plugin status() const { return _status; }
-
-    private:
-
-        status::Plugin _status;
+        status::Plugin status;
     };
 
-    class BroadcastTransaction : public libtorrent::alert {
-
-    public:
-
-        const static int alert_type = BROADCAST_TRANSACTION_ALERT_ID;
-
-        BroadcastTransaction();
-
-        BroadcastTransaction(const Coin::Transaction  & tx)
-            : _tx(tx) { }
-
-        BroadcastTransaction(const BroadcastTransaction & alert)
-            : BroadcastTransaction(alert.tx()) { }
-
-        // Virtual routines from libtorrent::alert
-        virtual int type() const { return alert_type; }
-        virtual char const* what() const { return "BroadcastTransaction"; }
-        virtual std::string message() const { return std::string("BroadcastTransaction::message: IMPLEMENT LATER"); }
-        virtual int category() const { return libtorrent::alert::stats_notification; }
-        virtual std::auto_ptr<libtorrent::alert> clone() const { return std::auto_ptr<alert>(new BroadcastTransaction(*this)); }
-
-        Coin::Transaction tx() const { return _tx; }
-
-    private:
-
-        Coin::Transaction _tx;
-    };
-
-    template <class R>
-    class RequestResult : public libtorrent::alert {
-
-    public:
+    struct RequestResult : public libtorrent::alert {
 
         const static int alert_type = REQUEST_RESULT_ALERT_ID;
+        static const int priority = 0; // 0 = regular, 1 = high
 
-        RequestResult();
+        RequestResult(libtorrent::aux::stack_allocator &,
+                      LoadedCallback loadedCallback)
+            : loadedCallback(loadedCallback) {}
 
-        RequestResult(const R & result)
-            : _result(result) {}
-
-        RequestResult(const RequestResult & alert)
-            : RequestResult(alert.result()) { }
-
-        // Virtual routines from libtorrent::alert
         virtual int type() const { return alert_type; }
         virtual char const* what() const { return "RequestResult"; }
-        virtual std::string message() const { return std::string("RequestResult::message: IMPLEMENT LATER"); }
-        virtual int category() const { return libtorrent::alert::error_notification; }
-        virtual std::auto_ptr<libtorrent::alert> clone() const { return std::auto_ptr<alert>(new RequestResult(*this)); }
+        virtual std::string message() const { return std::string("RequestResult"); }
+        virtual int category() const { return libtorrent::alert::status_notification; }
 
-        R result() const { return _result; }
-
-    private:
-
-        // Request result
-        R _result;
+        // A (fully bound) callback object, to be run by libtorrent alert dispatcher
+        LoadedCallback loadedCallback;
     };
 
-    class AnchorAnnounced : public libtorrent::alert {
-
-    public:
+    struct AnchorAnnounced : public libtorrent::torrent_alert {
 
         const static int alert_type = ANCHOR_ANNOUNCED_ALERT_ID;
+        static const int priority = 0; // 0 = regular, 1 = high
 
-        AnchorAnnounced();
-
-        AnchorAnnounced(const libtorrent::tcp::endpoint & endPoint,
+        AnchorAnnounced(libtorrent::aux::stack_allocator & alloc,
+                        const libtorrent::torrent_handle & h,
+                        const libtorrent::tcp::endpoint & endPoint,
                         quint64 value,
                         const Coin::typesafeOutPoint & anchor,
                         const Coin::PublicKey & contractPk,
                         const Coin::PubKeyHash & finalPkHash)
-            : _endPoint(endPoint)
+            : libtorrent::torrent_alert(alloc, h)
+            , _endPoint(endPoint)
             , _value(value)
             , _anchor(anchor)
             , _contractPk(contractPk)
             , _finalPkHash(finalPkHash) {}
 
-        AnchorAnnounced(const AnchorAnnounced & alert)
-            : AnchorAnnounced(alert.endPoint(),
-                              alert.value(),
-                              alert.anchor(),
-                              alert.contractPk(),
-                              alert.finalPkHash()) {}
-
-        // Virtual routines from libtorrent::alert
         virtual int type() const { return alert_type; }
         virtual char const* what() const { return "AnchorAnnounced"; }
-        virtual std::string message() const { return std::string("AnchorAnnounced::message: IMPLEMENT LATER"); }
+        virtual std::string message() const { return std::string("AnchorAnnounced"); }
         virtual int category() const { return libtorrent::alert::error_notification; }
-        virtual std::auto_ptr<libtorrent::alert> clone() const { return std::auto_ptr<alert>(new AnchorAnnounced(*this)); }
-
-        libtorrent::tcp::endpoint endPoint() const { return _endPoint; }
-        quint64 value() const { return _value; }
-        Coin::typesafeOutPoint anchor() const { return _anchor; }
-        Coin::PublicKey contractPk() const { return _contractPk; }
-        Coin::PubKeyHash finalPkHash() const { return _finalPkHash; }
-
-    private:
 
         libtorrent::tcp::endpoint _endPoint;
         quint64 _value;
         Coin::typesafeOutPoint _anchor;
         Coin::PublicKey _contractPk;
         Coin::PubKeyHash _finalPkHash;
-
     };
 
+    /**
+    struct BroadcastTransaction : public libtorrent::torrent_alert {
+
+        const static int alert_type = BROADCAST_TRANSACTION_ALERT_ID;
+        static const int priority = 0; // 0 = regular, 1 = high
+
+        BroadcastTransaction(libtorrent::aux::stack_allocator & alloc,
+                             libtorrent::torrent_handle const & h,
+                             const Coin::Transaction  & tx)
+            : libtorrent::torrent_alert(alloc, h)
+            , tx(tx) { }
+
+        virtual int type() const { return alert_type; }
+        virtual char const* what() const { return "BroadcastTransaction"; }
+        virtual std::string message() const { return std::string("BroadcastTransaction"); }
+        virtual int category() const { return libtorrent::alert::stats_notification; }
+
+        Coin::Transaction tx;
+    };
+    */
 }
 }
 }

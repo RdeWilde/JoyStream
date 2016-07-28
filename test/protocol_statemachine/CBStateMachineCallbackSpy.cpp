@@ -30,7 +30,7 @@ protocol_statemachine::CBStateMachine * CBStateMachineCallbackSpy::createMonitor
     },
     [this](const protocol_wire::ExtendedMessagePayload * m) {
 
-        std::cout << "Sending message: " <<  protocol_wire::MessageTypeToString(m->messageType()) << std::endl;
+        std::cout << "Sending message: " <<  protocol_wire::messageName(m->messageType()) << std::endl;
 
         _messageSent = true;
 

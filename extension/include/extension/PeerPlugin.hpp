@@ -10,8 +10,10 @@
 
 #include <extension/BEPSupportStatus.hpp>
 #include <extension/ExtendedMessageIdMapping.hpp>
+#include <common/MajorMinorSoftwareVersion.hpp>
 
 #include <libtorrent/extensions.hpp>
+#include <libtorrent/peer_connection_handle.hpp>
 #include <libtorrent/entry.hpp>
 #include <libtorrent/error_code.hpp>
 #include <libtorrent/lazy_entry.hpp>
@@ -42,36 +44,18 @@ namespace status {
 
         struct Policy {
 
-            Policy(bool installPluginOnPeersWithoutExtension, bool installPluginOnPeersMisbehavingDuringExtendedHandshake)
-                : installPluginOnPeersWithoutExtension(installPluginOnPeersWithoutExtension)
-                , installPluginOnPeersMisbehavingDuringExtendedHandshake(installPluginOnPeersMisbehavingDuringExtendedHandshake) {
-            }
-
-            Policy() : Policy(false, false) { }
-
-            /**
-             * I suspect these will be dropped when libtorrent behaviour is
-             * better understood.
-             */
-
-            //
-            bool installPluginOnPeersWithoutExtension;
-
-            //
-            bool installPluginOnPeersMisbehavingDuringExtendedHandshake;
         };
 
         PeerPlugin(TorrentPlugin * plugin,
-                   libtorrent::bt_peer_connection * connection,
+                   const libtorrent::peer_connection_handle & connection,
                    const Policy & policy,
-                   const std::string & bep10ClientIdentifier);
+                   uint numberMessageIdsFrom);
 
         virtual ~PeerPlugin();
 
         //// Libtorrent hooks
 
-        // This function is expected to return the name of
-        // the plugin.
+        // This function is expected to return the name of the plugin.
         virtual char const* type() const;
 
         // can add entries to the extension handshake
@@ -101,8 +85,7 @@ namespace status {
         // supported by this peer. It will result in this peer_plugin
         // being removed from the peer_connection and destructed.
         // this is not called for web seeds
-        virtual bool on_extension_handshake(libtorrent::lazy_entry const & handshake);
-        //virtual bool on_extension_handshake(libtorrent::bdecode_node const&);
+        virtual bool on_extension_handshake(libtorrent::bdecode_node const&);
 
         // returning true from any of the message handlers
         // indicates that the plugin has handled the message.
@@ -167,8 +150,14 @@ namespace status {
         status::PeerPlugin status() const;
 
         // Getters
-        void disconnect(const libtorrent::error_code &);
-/**
+        bool undead() const;
+        void setUndead(bool);
+
+        libtorrent::peer_connection_handle connection() const;
+
+        void setSendUninstallMappingOnNextExtendedHandshake(bool);
+
+        /**
         bool peerTimedOut(int maxDelay) const;
 
         BEPSupportStatus peerBEP10SupportStatus() const;
@@ -182,20 +171,36 @@ namespace status {
 
     private:
 
+        // Dropps connection by
+        // 1) Issues disconnect request to peer_connection
+        // 2) If present, removing from session
+        // 3) Noting misbehaviour, if any
+        // 4) Dropping plugin reference
+        void drop(const libtorrent::error_code &);
+
+        // Whether we have initiated dropping the peer, that is disconnecting the peer_connection
+        // and removing the peer_plugin reference in the corresponding TorrentPlugin (_plugin)
+        // When this is the case, all libtorrent events are ignored, as if this plugin did not exist.
+        // on_disconnect is one event which will always fire, but beyond that its not clear what
+        // guarantees libtorrent gives regarding other events.
+        // If it is determined that no other events should fire, then guards can be turned into asserts.
+        bool _undead;
+
         // Torrent plugin for torrent
         TorrentPlugin * _plugin;
 
         // Connection to peer for this plugin
-        libtorrent::bt_peer_connection * _connection;
+        libtorrent::peer_connection_handle _connection;
 
         // Policy governing runtime behaviour of plugin
         Policy _policy;
 
-        // Client identifier used in bep10 handshake v-key
-        std::string _bep10ClientIdentifier;
+        // Lowest all message id where libtorrent client can guarantee we will not
+        // conflict with another libtorrent plugin (e.g. metadata, pex, etc.)
+        const uint _minimumMessageId;
 
         // Endpoint: can be deduced from connection, but is worth keeping if connection pointer becomes invalid
-        libtorrent::tcp::endpoint _endPoint;
+        const libtorrent::tcp::endpoint _endPoint;
 
         // Time since last message was sent to peer, is used to judge if peer has timed out
         //std::chrono::time_point<std::chrono::system_clock> _whenLastMessageSent;
@@ -209,16 +214,25 @@ namespace status {
         //libtorrent::error_code _deletionErrorCode;
 
         // Mapping from messages to BEP10 ID of client
+        // Is initialzed ones in constructor
         ExtendedMessageIdMapping _clientMapping;
 
         // Mapping from messages to BEP10 ID of peer
+        // Is empty until first handshake, and is cleared upon uninstalls
         ExtendedMessageIdMapping _peerMapping;
+
+        // Whether next add_handshake(libtorrent::entry &) should have uninstall mapping
+        // Invariant: _sendUninstallMappingOnNextExtendedHandshake => Session is stopped
+        bool _sendUninstallMappingOnNextExtendedHandshake;
 
         // Indicates whether peer supports BEP10
         BEPSupportStatus _peerBEP10SupportStatus;
 
         // Indicates whether peer supports Payments BEP
         BEPSupportStatus _peerPaymentBEPSupportStatus;
+
+        // Protocol version announced by peer during extended handshake
+        common::MajorMinorSoftwareVersion _protocolVersionOfPeer;
     };
 
 }

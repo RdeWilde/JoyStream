@@ -6,17 +6,23 @@
  */
 
 #include <Test.hpp>
+#include <core/core.hpp>
+
+using namespace joystream::core;
+
+template <>
+std::string IdToString(const libtorrent::tcp::endpoint & endPoint) {
+    return libtorrent::print_endpoint(endPoint);
+}
 
 void Test::init() {
-
 }
 
-void Test::download_and_streaming() {
+void Test::basic() {
 
-}
+    BroadcastTransaction callback([](const Coin::Transaction & ) -> void {});
 
-void Test::paid_uploading() {
-
+    Node node(callback);
 }
 
 QTEST_MAIN(Test)

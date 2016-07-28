@@ -17,7 +17,7 @@ namespace joystream {
 namespace protocol_session {
 namespace status {
     template <class ConnectionIdType>
-    class Seller;
+    struct Seller;
 }
 namespace detail {
 

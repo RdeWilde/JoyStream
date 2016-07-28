@@ -27,6 +27,8 @@ namespace protocol_wire {
 
         bool operator==(const BuyerTerms & rhs) const;
 
+        bool operator!=(const BuyerTerms & rhs) const;
+
         // Read from stream: is friend to write directly to private BuyerTerm members, simpler than using setters
         friend QDataStream & operator >>(QDataStream &, BuyerTerms &);
 

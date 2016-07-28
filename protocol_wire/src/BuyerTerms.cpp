@@ -32,6 +32,10 @@ namespace protocol_wire {
                _refundFee == rhs.refundFee();
     }
 
+    bool BuyerTerms::operator!=(const BuyerTerms & rhs) const {
+        return !(*this == rhs);
+    }
+
     QDataStream & operator >>(QDataStream & stream, BuyerTerms & rhs) {
 
         stream >> rhs._maxPrice >> rhs._maxLock >> rhs._minNumberOfSellers >> rhs._maxContractFeePerKb >> rhs._refundFee;

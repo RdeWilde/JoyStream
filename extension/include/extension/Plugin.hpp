@@ -10,7 +10,7 @@
 
 #include <extension/Status.hpp>
 #include <extension/TorrentPlugin.hpp>
-
+#include <extension/detail.hpp>
 #include <libtorrent/extensions.hpp>
 #include <libtorrent/torrent.hpp>
 #include <libtorrent/alert.hpp>
@@ -19,9 +19,7 @@
 #include <libtorrent/lazy_entry.hpp>
 #include <libtorrent/sha1_hash.hpp>
 #include <libtorrent/aux_/session_impl.hpp>
-
 #include <boost/weak_ptr.hpp>
-
 #include <mutex>
 
 namespace libtorrent {
@@ -31,52 +29,50 @@ namespace libtorrent {
 
 namespace joystream {
 namespace extension {
-namespace request {
-    class Request;
-    class PluginRequest;
-    class TorrentPluginRequest;
-    class PeerPluginRequest;
-}
-
-class TorrentPlugin;
 
 class Plugin : public libtorrent::plugin {
 
 public:
 
-    Plugin();
+    Plugin(const TransactionBroadcaster broadcaster,
+           uint minimumMessageId);
 
     ~Plugin();
 
-    /**
-     * All virtual functions below should only
-     * be called by libtorrent network thread, never by other threads,
-     * as this causes synchronization failures.
-     */
-    virtual void added(libtorrent::aux::session_impl * session);
+    virtual boost::uint32_t implemented_features();
+    virtual boost::shared_ptr<libtorrent::torrent_plugin> new_torrent(libtorrent::torrent_handle const&, void*);
+    virtual void added(libtorrent::session_handle);
     virtual void on_alert(libtorrent::alert const * a);
     virtual void on_tick();
-    //virtual bool on_optimistic_unchoke(std::vector<peer_connection_handle> & /* peers */);
     virtual void save_state(libtorrent::entry & stateEntry) const;
-    //virtual void load_state(const libtorrent::bdecode_node & state);
-    virtual void load_state(libtorrent::lazy_entry const & stateEntry);
+    virtual void load_state(const libtorrent::bdecode_node &);
 
     // Return status of plugin
     status::Plugin status() const;
 
-    /**
-     * Synchornized submittal of request to corresponding request queue,
-     * where each one is guaranteed to be serviced in FIFO.
-     * Synchronized routines called from controller by Qt thread.
-     * Takes ownership of request object.
-     */
-    void submit(const request::Request *);
+    // Synchornized submittal of request, request
+    // object is not owned by plugin, is returned
+    // in response for associating responses to initial
+    // requests. Deeper association can be done by subclassing
+    // requests to have custome identification data.
+
+    template<class T>
+    void submit(const T &);
 
 private:
+
+    friend class detail::RequestVariantVisitor;
 
     // Libtorrent session.
     // NB: Is set by added() libtorrent callback, not constructor
     libtorrent::aux::session_impl * _session;
+
+    // Broadcaster for transactions
+    TransactionBroadcaster _broadcaster;
+
+    // Lowest all message id where libtorrent client can guarantee we will not
+    // conflict with another libtorrent plugin (e.g. metadata, pex, etc.)
+    uint _minimumMessageId;
 
     // Has this plugin been added to session.
     // Do not use the _session pointer before this.
@@ -85,37 +81,35 @@ private:
     // Maps torrent hash to corresponding plugin
     std::map<libtorrent::sha1_hash, boost::weak_ptr<TorrentPlugin> > _plugins;
 
-    //// Requests
+    // Request queue
+    std::deque<detail::RequestVariant> _requestQueue;
 
-    // Request queue and synchronization lock
-    std::deque<const request::Request *> _requestQueue;
+    // Synchronization lock fo _requestQueue, coordinating
+    // public ::submit() and private ::processesRequestQueue()
     std::mutex _requestQueueMutex;
 
-    // Process request queue in thread safe wya
-    void processesRequests();
-
-    // Process corresponding request type
-    void process(const request::Request *);
-    void processPluginRequest(const request::PluginRequest *);
-    void processTorrentPluginRequest(const request::TorrentPluginRequest *);
-    void processPeerPluginRequest(const request::PeerPluginRequest *);
-
-    /**
-    // Removes torrent plugin
-    // 1) Remove plugin from torrentPlugins_ map
-    // 2) Deletes peer_plugin object
-    // 3) Notifies controller
-    void removeTorrentPlugin(const libtorrent::sha1_hash & info_hash);
-
-    // Start plugin
-    //bool startTorrentPlugin(const libtorrent::sha1_hash & infoHash, const TorrentPlugin::Configuration * configuration);
-    bool startBuyerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const BuyerTorrentPlugin::Configuration & configuration, const Coin::UnspentP2PKHOutput & utxo);
-    bool startSellerTorrentPlugin(const libtorrent::sha1_hash & infoHash, const SellerTorrentPlugin::Configuration & configuration);
-    */
-
-    // Send alert to session object
-    void sendAlertToSession(const libtorrent::alert & alert);
+    // Process all requests in queue until empty.
+    // Access to queue synchronized with ::submit()
+    void processesRequestQueue();
 };
+
+// These routines are templated, and therefore inlined
+
+template<class T>
+void Plugin::submit(const T & r) {
+
+    // Put request in container variant
+    detail::RequestVariant v;
+
+    // Convert to variant
+    // Generates compile time guarantee that all submitted requests have been registered in variant
+    v = r;
+
+    // Synchronized adding to back of queue
+    _requestQueueMutex.lock();
+    _requestQueue.push_back(v);
+    _requestQueueMutex.unlock();
+}
 
 }
 }

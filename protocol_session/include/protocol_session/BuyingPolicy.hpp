@@ -31,6 +31,16 @@ public:
         , _sellerTermsOrderingPolicy(policy) {
     }
 
+    bool operator==(const BuyingPolicy & rhs) const {
+        return _minTimeBeforeBuildingContract == rhs.minTimeBeforeBuildingContract() &&
+               _servicingPieceTimeOutLimit == rhs.servicingPieceTimeOutLimit() &&
+               _sellerTermsOrderingPolicy == rhs.sellerTermsOrderingPolicy();
+    }
+
+    bool operator!=(const BuyingPolicy & rhs) const {
+        return !(*this == rhs);
+    }
+
     std::chrono::duration<double> minTimeBeforeBuildingContract() const {
         return _minTimeBeforeBuildingContract;
     }

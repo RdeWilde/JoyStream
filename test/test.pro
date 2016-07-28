@@ -15,4 +15,5 @@ SUBDIRS     = \
             protocol_wire \
             blockcypher-websocket \
             spv-wallet \
-            spv-wallet-client
+            spv-wallet-client \
+            core

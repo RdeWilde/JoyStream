@@ -8,6 +8,7 @@
 #ifndef JOYSTREAM_PROTOCOL_STATEMACHINE_CBSTATEMACHINE_HPP
 #define JOYSTREAM_PROTOCOL_STATEMACHINE_CBSTATEMACHINE_HPP
 
+#include <common/MajorMinorSoftwareVersion.hpp>
 #include <protocol_statemachine/AnnouncedModeAndTerms.hpp>
 #include <protocol_statemachine/event/Recv.hpp>
 #include <paymentchannel/paymentchannel.hpp>
@@ -90,6 +91,9 @@ namespace protocol_statemachine {
     class CBStateMachine : public sc::state_machine<CBStateMachine, ChooseMode> {
 
     public:
+
+        // Version for of protocol that this state machine implements
+        const static common::MajorMinorSoftwareVersion protocolVersion;
 
         CBStateMachine(const PeerAnnouncedMode &,
                        const InvitedToOutdatedContract &,

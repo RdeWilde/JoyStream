@@ -51,7 +51,8 @@ HEADERS += \
     include/common/P2SHScriptSig.hpp \
     include/common/P2PKHScriptPubKey.hpp \
     include/common/P2PKHScriptSig.hpp \
-    include/common/Payment.hpp
+    include/common/Payment.hpp \
+    include/common/MajorMinorSoftwareVersion.hpp
 
 SOURCES += \
     src/DataSizeRepresentation.cpp \

@@ -15,6 +15,24 @@ namespace protocol_statemachine {
         , _index(0) {
     }
 
+    bool AnnouncedModeAndTerms::operator==(const AnnouncedModeAndTerms & rhs) const {
+
+        // Make sure mode is the same
+        if(_modeAnnounced != rhs.modeAnnounced())
+            return false;
+
+        if(_modeAnnounced == ModeAnnounced::buy)
+            return _buyModeTerms == rhs.buyModeTerms();
+        else if(_modeAnnounced == ModeAnnounced::sell)
+            return _sellModeTerms == rhs.sellModeTerms() && _index == rhs.index();
+        else
+            return true; // if mode is not set, or is obseve, then we are done
+    }
+
+    bool AnnouncedModeAndTerms::operator!=(const AnnouncedModeAndTerms & rhs) const {
+        return !(*this == rhs);
+    }
+
     void AnnouncedModeAndTerms::toObserve() {
         _modeAnnounced = ModeAnnounced::observe;
     }
