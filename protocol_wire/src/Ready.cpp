@@ -13,25 +13,25 @@ namespace joystream {
 namespace protocol_wire {
 
     Ready::Ready()
-        : Ready(0, Coin::typesafeOutPoint(), Coin::PublicKey(), Coin::RedeemScriptHash()) {
+        : Ready(0, Coin::typesafeOutPoint(), Coin::PublicKey(), Coin::PubKeyHash()) {
     }
 
-    Ready::Ready(quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::RedeemScriptHash & finalScriptHash)
+    Ready::Ready(quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & contractPk, const Coin::PubKeyHash &finalPkHash)
         : _value(value)
         , _anchor(anchor)
         , _contractPk(contractPk)
-        , _finalScriptHash(finalScriptHash) {
+        , _finalPkHash(finalPkHash) {
     }
 
     Ready::Ready(QDataStream & stream) {
-        stream >> _value >> _anchor >> _contractPk >> _finalScriptHash;
+        stream >> _value >> _anchor >> _contractPk >> _finalPkHash;
     }
 
     bool Ready::operator==(const Ready & rhs) const {
         return _value == rhs.value() &&
                _anchor == rhs.anchor() &&
                _contractPk == rhs.contractPk() &&
-               _finalScriptHash == rhs.finalScriptHash();
+               _finalPkHash == rhs.finalPkHash();
     }
 
     MessageType Ready::messageType() const {
@@ -43,7 +43,7 @@ namespace protocol_wire {
     }
 
     void Ready::write(QDataStream & stream) const {
-        stream << _value << _anchor << _contractPk << _finalScriptHash;
+        stream << _value << _anchor << _contractPk << _finalPkHash;
     }
 
     quint64 Ready::value() const {
@@ -58,8 +58,8 @@ namespace protocol_wire {
         return _contractPk;
     }
 
-    Coin::RedeemScriptHash Ready::finalScriptHash() const {
-        return _finalScriptHash;
+    Coin::PubKeyHash Ready::finalPkHash() const {
+        return _finalPkHash;
     }
 
 }

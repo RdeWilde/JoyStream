@@ -26,11 +26,11 @@ namespace protocol_statemachine {
         // Update payee
         context<CBStateMachine>()._payee.setFunds(m.value());
         context<CBStateMachine>()._payee.setPayorContractPk(m.contractPk());
-        context<CBStateMachine>()._payee.setPayorFinalScriptHash(m.finalScriptHash());
+        context<CBStateMachine>()._payee.setPayorFinalPkHash(m.finalPkHash());
         context<CBStateMachine>()._payee.setContractOutPoint(m.anchor());
 
         // Notify client
-        context<CBStateMachine>()._contractIsReady(m.value(), m.anchor(), m.contractPk(), m.finalScriptHash());
+        context<CBStateMachine>()._contractIsReady(m.value(), m.anchor(), m.contractPk(), m.finalPkHash());
 
         // Transition to deep history
         return transit<ReadyForPieceRequest>();

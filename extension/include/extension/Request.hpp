@@ -217,13 +217,13 @@ struct ToSellMode {
     ToSellMode() {}
     ToSellMode(const libtorrent::sha1_hash & infoHash,
                const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-               const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
+               const protocol_session::GenerateReceiveAddressesCallbackHandler & genReceiveAddressesCallbackHandler,
                const protocol_session::SellingPolicy & sellingPolicy,
                const protocol_wire::SellerTerms & terms,
                const SubroutineHandler & handler)
         : infoHash(infoHash)
         , generateKeyPairsCallbackHandler(generateKeyPairsCallbackHandler)
-        , generateP2PKHAddressesCallbackHandler(generateP2PKHAddressesCallbackHandler)
+        , generateReceiveAddressesCallbackHandler(genReceiveAddressesCallbackHandler)
         , sellingPolicy(sellingPolicy)
         , terms(terms)
         , handler(handler) {
@@ -231,7 +231,7 @@ struct ToSellMode {
 
     libtorrent::sha1_hash infoHash;
     protocol_session::GenerateKeyPairsCallbackHandler generateKeyPairsCallbackHandler;
-    protocol_session::GenerateP2PKHAddressesCallbackHandler generateP2PKHAddressesCallbackHandler;
+    protocol_session::GenerateReceiveAddressesCallbackHandler generateReceiveAddressesCallbackHandler;
     protocol_session::SellingPolicy sellingPolicy;
     protocol_wire::SellerTerms terms;
     SubroutineHandler handler;
@@ -242,14 +242,16 @@ struct ToBuyMode {
     ToBuyMode() {}
     ToBuyMode(const libtorrent::sha1_hash & infoHash,
               const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-              const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-              const Coin::UnspentP2PKHOutput & funding,
+              const protocol_session::GenerateReceiveAddressesCallbackHandler & genReceiveAddressesCallbackHandler,
+              const protocol_session::GenerateChangeAddressesCallbackHandler & genChangeAddressesCallbackHandler,
+              const Coin::UnspentOutputSet & funding,
               const protocol_session::BuyingPolicy & policy,
               const protocol_wire::BuyerTerms & terms,
               const SubroutineHandler & handler)
         : infoHash(infoHash)
         , generateKeyPairsCallbackHandler(generateKeyPairsCallbackHandler)
-        , generateP2PKHAddressesCallbackHandler(generateP2PKHAddressesCallbackHandler)
+        , generateReceiveAddressesCallbackHandler(genReceiveAddressesCallbackHandler)
+        , generateChangeAddressesCallbackHandler(genChangeAddressesCallbackHandler)
         , funding(funding)
         , policy(policy)
         , terms(terms)
@@ -258,8 +260,9 @@ struct ToBuyMode {
 
     libtorrent::sha1_hash infoHash;
     protocol_session::GenerateKeyPairsCallbackHandler generateKeyPairsCallbackHandler;
-    protocol_session::GenerateP2PKHAddressesCallbackHandler generateP2PKHAddressesCallbackHandler;
-    Coin::UnspentP2PKHOutput funding;
+    protocol_session::GenerateReceiveAddressesCallbackHandler generateReceiveAddressesCallbackHandler;
+    protocol_session::GenerateChangeAddressesCallbackHandler generateChangeAddressesCallbackHandler;
+    Coin::UnspentOutputSet funding;
     protocol_session::BuyingPolicy policy;
     protocol_wire::BuyerTerms terms;
     SubroutineHandler handler;

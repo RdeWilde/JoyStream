@@ -10,7 +10,6 @@
 
 #include <boost/statechart/event.hpp>
 #include <common/KeyPair.hpp>
-#include <common/RedeemScriptHash.hpp>
 
 namespace sc = boost::statechart;
 
@@ -23,12 +22,12 @@ namespace event {
     public:
 
         Joined();
-        Joined(const Coin::KeyPair &, const Coin::RedeemScriptHash &finalScriptHash);
+        Joined(const Coin::KeyPair &, const Coin::PubKeyHash &);
 
         // Getters
         Coin::KeyPair contractKeys() const;
 
-        Coin::RedeemScriptHash finalScriptHash() const;
+        Coin::PubKeyHash finalPkHash() const;
 
     private:
 
@@ -36,7 +35,7 @@ namespace event {
         Coin::KeyPair _contractKeys;
 
         // Payment payee output
-        Coin::RedeemScriptHash _finalScriptHash;
+        Coin::PubKeyHash _finalPkHash;
     };
 
 }

@@ -10,6 +10,7 @@
 #define JOYSTREAM_PROTOCOLSESSION_CALLBACKS_HPP
 
 #include <common/P2SHAddress.hpp>
+#include <common/P2PKHAddress.hpp>
 
 #include <functional>
 #include <vector>
@@ -57,11 +58,14 @@ enum class DisconnectCause {
 template <class ConnectionIdType>
 using RemovedConnectionCallbackHandler = std::function<void(const ConnectionIdType &, DisconnectCause)>;
 
-// Generate set of key pairs
+// Generate set of key pairs (payment channel)
 typedef std::function<std::vector<Coin::KeyPair>(int)> GenerateKeyPairsCallbackHandler;
 
-// Generate set of p2sh addresses
-typedef std::function<std::vector<Coin::P2SHAddress>(int)> GenerateP2SHAddressesCallbackHandler;
+// Generate set of receive p2pkh addresses
+typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateReceiveAddressesCallbackHandler;
+
+// Generate set of change p2pkh addresses
+typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateChangeAddressesCallbackHandler;
 
 // Send a message to be sent
 typedef std::function<void(const protocol_wire::ExtendedMessagePayload *)> SendMessageOnConnection;
@@ -95,7 +99,7 @@ using ClaimLastPayment = std::function<void(const ConnectionIdType &, const joys
 
 // Buyer with given connection id announced anchor
 template <class ConnectionIdType>
-using AnchorAnnounced = std::function<void(const ConnectionIdType &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::RedeemScriptHash &)>;
+using AnchorAnnounced = std::function<void(const ConnectionIdType &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &)>;
 
 }
 }

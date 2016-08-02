@@ -12,15 +12,15 @@ using namespace joystream::protocol_statemachine::event;
 Joined::Joined() {
 }
 
-Joined::Joined(const Coin::KeyPair & contractKeys, const Coin::RedeemScriptHash & finalScriptHash)
+Joined::Joined(const Coin::KeyPair & contractKeys, const Coin::PubKeyHash &finalPkHash)
     : _contractKeys(contractKeys)
-    , _finalScriptHash(finalScriptHash) {
+    , _finalPkHash(finalPkHash) {
 }
 
 Coin::KeyPair Joined::contractKeys() const {
     return _contractKeys;
 }
 
-Coin::RedeemScriptHash Joined::finalScriptHash() const {
-    return _finalScriptHash;
+Coin::PubKeyHash Joined::finalPkHash() const {
+    return _finalPkHash;
 }

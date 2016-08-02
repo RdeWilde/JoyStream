@@ -106,7 +106,7 @@ namespace protocol_session {
     template <class ConnectionIdType>
     void Session<ConnectionIdType>::toSellMode(const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
                                                const GenerateKeyPairsCallbackHandler & generateKeyPairs,
-                                               const GenerateP2SHAddressesCallbackHandler & generateP2SHAddresses,
+                                               const GenerateReceiveAddressesCallbackHandler &generateReceiveAddresses,
                                                const LoadPieceForBuyer<ConnectionIdType> & loadPieceForBuyer,
                                                const ClaimLastPayment<ConnectionIdType> & claimLastPayment,
                                                const AnchorAnnounced<ConnectionIdType> & anchorAnnounced,
@@ -153,7 +153,7 @@ namespace protocol_session {
         _selling = new detail::Selling<ConnectionIdType>(this,
                                                          removedConnection,
                                                          generateKeyPairs,
-                                                         generateP2SHAddresses,
+                                                         generateReceiveAddresses,
                                                          loadPieceForBuyer,
                                                          claimLastPayment,
                                                          anchorAnnounced,
@@ -165,7 +165,8 @@ namespace protocol_session {
     template <class ConnectionIdType>
     void Session<ConnectionIdType>::toBuyMode(const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
                                               const GenerateKeyPairsCallbackHandler & generateKeyPairs,
-                                              const GenerateP2SHAddressesCallbackHandler & generateP2SHAddresses,
+                                              const GenerateReceiveAddressesCallbackHandler & generateReceiveAddresses,
+                                              const GenerateChangeAddressesCallbackHandler & generateChangeAddresses,
                                               const BroadcastTransaction & hasOutstandingPayment,
                                               const FullPieceArrived<ConnectionIdType> & fullPieceArrived,
                                               const Coin::UnspentOutputSet & funding,
@@ -212,7 +213,8 @@ namespace protocol_session {
         _buying = new detail::Buying<ConnectionIdType>(this,
                                                        removedConnection,
                                                        generateKeyPairs,
-                                                       generateP2SHAddresses,
+                                                       generateReceiveAddresses,
+                                                       generateChangeAddresses,
                                                        hasOutstandingPayment,
                                                        fullPieceArrived,
                                                        funding,
@@ -748,13 +750,13 @@ namespace protocol_session {
     }
 
     template <class ConnectionIdType>
-    void Session<ConnectionIdType>::contractPrepared(const ConnectionIdType & id, quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::RedeemScriptHash & payorFinalScriptHash) {
+    void Session<ConnectionIdType>::contractPrepared(const ConnectionIdType & id, quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::PubKeyHash & payorFinalPkHash) {
 
         assert(hasConnection(id));
         assert(_mode == SessionMode::selling);
         assert(_observing == nullptr && _buying == nullptr && _selling != nullptr);
 
-        _selling->contractPrepared(id, value, anchor, payorContractPk, payorFinalScriptHash);
+        _selling->contractPrepared(id, value, anchor, payorContractPk, payorFinalPkHash);
     }
 
     template<class ConnectionIdType>
@@ -846,7 +848,7 @@ namespace protocol_session {
         [this, id](void) { this->invitedToOutdatedContract(id); },
         [this, id]() { this->invitedToJoinContract(id); },
         [this, callback](const protocol_wire::ExtendedMessagePayload * m) { callback(m); },
-        [this, id](quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::RedeemScriptHash & payorFinalScriptHash) { this->contractPrepared(id, value, anchor, payorContractPk, payorFinalScriptHash); },
+        [this, id](quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::PubKeyHash & payorFinalPkHash) { this->contractPrepared(id, value, anchor, payorContractPk, payorFinalPkHash); },
         [this, id](int i) { this->pieceRequested(id, i); },
         [this, id]() { this->invalidPieceRequested(id); },
         [this, id]() { this->paymentInterrupted(id); },

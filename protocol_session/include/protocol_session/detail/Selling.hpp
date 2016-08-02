@@ -35,7 +35,7 @@ public:
     Selling(Session<ConnectionIdType> *,
             const RemovedConnectionCallbackHandler<ConnectionIdType> &,
             const GenerateKeyPairsCallbackHandler &,
-            const GenerateP2SHAddressesCallbackHandler &,
+            const GenerateReceiveAddressesCallbackHandler &,
             const LoadPieceForBuyer<ConnectionIdType> &,
             const ClaimLastPayment<ConnectionIdType> &,
             const AnchorAnnounced<ConnectionIdType> &,
@@ -59,7 +59,7 @@ public:
     void peerAnnouncedModeAndTerms(const ConnectionIdType &, const protocol_statemachine::AnnouncedModeAndTerms &);
     void invitedToOutdatedContract(const ConnectionIdType &);
     void invitedToJoinContract(const ConnectionIdType &);
-    void contractPrepared(const ConnectionIdType &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::RedeemScriptHash &);
+    void contractPrepared(const ConnectionIdType &, quint64, const Coin::typesafeOutPoint &, const Coin::PublicKey &, const Coin::PubKeyHash &);
     void pieceRequested(const ConnectionIdType &, int);
     void invalidPieceRequested(const ConnectionIdType &);
     void paymentInterrupted(const ConnectionIdType &);
@@ -105,7 +105,7 @@ private:
     // Callback handlers
     RemovedConnectionCallbackHandler<ConnectionIdType> _removedConnection;
     GenerateKeyPairsCallbackHandler _generateKeyPairs;
-    GenerateP2SHAddressesCallbackHandler _generateP2SHAddresses;
+    GenerateReceiveAddressesCallbackHandler _generateReceiveAddresses;
     LoadPieceForBuyer<ConnectionIdType> _loadPieceForBuyer;
     ClaimLastPayment<ConnectionIdType> _claimLastPayment;
     AnchorAnnounced<ConnectionIdType> _anchorAnnounced;

@@ -17,18 +17,18 @@ namespace protocol_wire {
     JoiningContract::JoiningContract() {
     }
 
-    JoiningContract::JoiningContract(const Coin::PublicKey & contractPk, const Coin::RedeemScriptHash & finalScriptHash)
+    JoiningContract::JoiningContract(const Coin::PublicKey & contractPk, const Coin::PubKeyHash &finalPkHash)
         : _contractPk(contractPk)
-        , _finalScriptHash(finalScriptHash) {
+        , _finalPkHash(finalPkHash) {
     }
 
     bool JoiningContract::operator==(const JoiningContract & rhs) const {
         return rhs.contractPk() == rhs.contractPk() &&
-               rhs.finalScriptHash() == rhs.finalScriptHash();
+               rhs.finalPkHash() == rhs.finalPkHash();
     }
 
     JoiningContract::JoiningContract(QDataStream & stream) {
-        stream >> _contractPk >> _finalScriptHash;
+        stream >> _contractPk >> _finalPkHash;
     }
 
     MessageType JoiningContract::messageType() const {
@@ -40,15 +40,15 @@ namespace protocol_wire {
     }
 
     void JoiningContract::write(QDataStream & stream) const {
-        stream << _contractPk << _finalScriptHash;
+        stream << _contractPk << _finalPkHash;
     }
 
     Coin::PublicKey JoiningContract::contractPk() const {
         return _contractPk;
     }
 
-    Coin::RedeemScriptHash JoiningContract::finalScriptHash() const {
-        return _finalScriptHash;
+    Coin::PubKeyHash JoiningContract::finalPkHash() const {
+        return _finalPkHash;
     }
 
 }

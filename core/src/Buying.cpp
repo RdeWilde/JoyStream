@@ -64,7 +64,7 @@ Buying::~Buying() {
 }
 
 
-Coin::UnspentP2PKHOutput Buying::funding() const noexcept {
+Coin::UnspentOutputSet Buying::funding() const noexcept {
     return _funding;
 }
 

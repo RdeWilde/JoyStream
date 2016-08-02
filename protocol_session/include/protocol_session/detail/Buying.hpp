@@ -43,7 +43,8 @@ public:
     Buying(Session<ConnectionIdType> *,
            const RemovedConnectionCallbackHandler<ConnectionIdType> &,
            const GenerateKeyPairsCallbackHandler &,
-           const GenerateP2SHAddressesCallbackHandler &,
+           const GenerateReceiveAddressesCallbackHandler &,
+           const GenerateChangeAddressesCallbackHandler &,
            const BroadcastTransaction &,
            const FullPieceArrived<ConnectionIdType> &,
            const Coin::UnspentOutputSet &,
@@ -167,7 +168,8 @@ private:
     // Callback handlers
     RemovedConnectionCallbackHandler<ConnectionIdType> _removedConnection;
     GenerateKeyPairsCallbackHandler _generateKeyPairs;
-    GenerateP2SHAddressesCallbackHandler _generateP2SHAddresses;
+    GenerateReceiveAddressesCallbackHandler _generateReceiveAddresses;
+    GenerateChangeAddressesCallbackHandler _generateChangeAddresses;
     BroadcastTransaction _broadcastTransaction;
     FullPieceArrived<ConnectionIdType> _fullPieceArrived;
 

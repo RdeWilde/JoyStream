@@ -11,7 +11,6 @@
 #include <boost/statechart/event.hpp>
 #include <common/typesafeOutPoint.hpp>
 #include <common/KeyPair.hpp>
-#include <common/RedeemScriptHash.hpp>
 
 namespace sc = boost::statechart;
 
@@ -24,14 +23,14 @@ namespace event {
     public:
 
         ContractPrepared();
-        ContractPrepared(const Coin::typesafeOutPoint &, const Coin::KeyPair &, const Coin::RedeemScriptHash &, quint64);
+        ContractPrepared(const Coin::typesafeOutPoint &, const Coin::KeyPair &, const Coin::PubKeyHash &, quint64);
 
         // Getters
         Coin::typesafeOutPoint anchor() const;
 
         Coin::KeyPair contractKeyPair() const;
 
-        Coin::RedeemScriptHash finalScriptHash() const;
+        Coin::PubKeyHash finalPkHash() const;
 
         quint64 value() const;
 
@@ -44,7 +43,7 @@ namespace event {
         Coin::KeyPair _buyerContractKeyPair;
 
         // Payment/Refund buyer output
-        Coin::RedeemScriptHash _finalScriptHash;
+        Coin::PubKeyHash _finalPkHash;
 
         // NB: may be temporary
         quint64 _value;

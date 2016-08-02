@@ -72,7 +72,7 @@ void RequestVariantVisitor::operator()(const request::ToSellMode & r) {
 
     auto e = runTorrentPluginRequest(r.infoHash, [r](const boost::shared_ptr<TorrentPlugin> & plugin) {
         plugin->toSellMode(r.generateKeyPairsCallbackHandler,
-                           r.generateP2PKHAddressesCallbackHandler,
+                           r.generateReceiveAddressesCallbackHandler,
                            r.sellingPolicy,
                            r.terms);
     });
@@ -84,7 +84,8 @@ void RequestVariantVisitor::operator()(const request::ToBuyMode & r) {
 
     auto e = runTorrentPluginRequest(r.infoHash, [r](const boost::shared_ptr<TorrentPlugin> & plugin) {
         plugin->toBuyMode(r.generateKeyPairsCallbackHandler,
-                          r.generateP2PKHAddressesCallbackHandler,
+                          r.generateReceiveAddressesCallbackHandler,
+                          r.generateChangeAddressesCallbackHandler,
                           r.funding,
                           r.policy,
                           r.terms);

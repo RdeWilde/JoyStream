@@ -24,7 +24,8 @@ namespace detail {
     Buying<ConnectionIdType>::Buying(Session<ConnectionIdType> * session,
                                      const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
                                      const GenerateKeyPairsCallbackHandler & generateKeyPairs,
-                                     const GenerateP2SHAddressesCallbackHandler & generateP2SHAddresses,
+                                     const GenerateReceiveAddressesCallbackHandler &generateReceiveAddresses,
+                                     const GenerateChangeAddressesCallbackHandler &generateChangeAddresses,
                                      const BroadcastTransaction & broadcastTransaction,
                                      const FullPieceArrived<ConnectionIdType> & fullPieceArrived,
                                      const Coin::UnspentOutputSet & funding,
@@ -34,7 +35,8 @@ namespace detail {
         : _session(session)
         , _removedConnection(removedConnection)
         , _generateKeyPairs(generateKeyPairs)
-        , _generateP2SHAddresses(generateP2SHAddresses)
+        , _generateReceiveAddresses(generateReceiveAddresses)
+        , _generateChangeAddresses(generateChangeAddresses)
         , _broadcastTransaction(broadcastTransaction)
         , _fullPieceArrived(fullPieceArrived)
         , _funding(funding)
@@ -544,11 +546,11 @@ namespace detail {
 
         // Generate keys and addresses required
         std::vector<Coin::KeyPair> contractKeyPairs = _generateKeyPairs(numberOfSellers);
-        std::vector<Coin::RedeemScriptHash> finalScriptHashes;
+        std::vector<Coin::PubKeyHash> finalPkHashes;
 
-        std::vector<Coin::P2SHAddress> finalAddresses = _generateP2SHAddresses(numberOfSellers);
-        for(Coin::P2SHAddress a : finalAddresses)
-            finalScriptHashes.push_back(a.redeemScriptHash());
+        std::vector<Coin::P2PKHAddress> finalAddresses = _generateReceiveAddresses(numberOfSellers);
+        for(Coin::P2PKHAddress a : finalAddresses)
+            finalPkHashes.push_back(a.pubKeyHash());
 
         // Create and add commitment to contract
         for(uint32_t i = 0;i < numberOfSellers;i++)
@@ -561,10 +563,10 @@ namespace detail {
         if(changeAmount != 0) {
 
             // New change address
-            Coin::P2SHAddress address = _generateP2SHAddresses(1).front();
+            Coin::P2PKHAddress address = _generateChangeAddresses(1).front();
 
             // Create and set change payment
-            c.setChange(Coin::Payment(changeAmount, address.redeemScriptHash()));
+            c.setChange(Coin::Payment(changeAmount, address));
         }
 
         // Create and store contract transaction
@@ -589,7 +591,7 @@ namespace detail {
         for(uint32_t i = 0;i < numberOfSellers;i++)
             selected[i]->processEvent(protocol_statemachine::event::ContractPrepared(Coin::typesafeOutPoint(txId, i),
                                                                                      contractKeyPairs[i],
-                                                                                     finalScriptHashes[i],
+                                                                                     finalPkHashes[i],
                                                                                      funds[i]));
 
         /////////////////////////

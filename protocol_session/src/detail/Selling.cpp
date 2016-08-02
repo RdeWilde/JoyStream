@@ -19,7 +19,7 @@ namespace detail {
     Selling<ConnectionIdType>::Selling(Session<ConnectionIdType> * session,
                                        const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
                                        const GenerateKeyPairsCallbackHandler & generateKeyPairs,
-                                       const GenerateP2SHAddressesCallbackHandler & generateP2SHAddresses,
+                                       const GenerateReceiveAddressesCallbackHandler &generateReceiveAddresses,
                                        const LoadPieceForBuyer<ConnectionIdType> & loadPieceForBuyer,
                                        const ClaimLastPayment<ConnectionIdType> & claimLastPayment,
                                        const AnchorAnnounced<ConnectionIdType> & anchorAnnounced,
@@ -29,7 +29,7 @@ namespace detail {
         : _session(session)
         , _removedConnection(removedConnection)
         , _generateKeyPairs(generateKeyPairs)
-        , _generateP2SHAddresses(generateP2SHAddresses)
+        , _generateReceiveAddresses(generateReceiveAddresses)
         , _loadPieceForBuyer(loadPieceForBuyer)
         , _claimLastPayment(claimLastPayment)
         , _anchorAnnounced(anchorAnnounced)
@@ -155,7 +155,7 @@ namespace detail {
     }
 
     template<class ConnectionIdType>
-    void Selling<ConnectionIdType>::contractPrepared(const ConnectionIdType & id, quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::RedeemScriptHash & payorFinalScriptHash) {
+    void Selling<ConnectionIdType>::contractPrepared(const ConnectionIdType & id, quint64 value, const Coin::typesafeOutPoint & anchor, const Coin::PublicKey & payorContractPk, const Coin::PubKeyHash & payorFinalPkHash) {
 
         // We cannot have connection and be stopped
         assert(_session->state() != SessionState::stopped);
@@ -165,7 +165,7 @@ namespace detail {
 
         // Notify client
         // NB** We do this, even if we are paused!
-        _anchorAnnounced(id, value, anchor, payorContractPk, payorFinalScriptHash);
+        _anchorAnnounced(id, value, anchor, payorContractPk, payorFinalPkHash);
     }
 
     template<class ConnectionIdType>
@@ -375,8 +375,8 @@ namespace detail {
 
             // Join if they are
             Coin::KeyPair contractKeyPair = _generateKeyPairs(1).front();
-            Coin::RedeemScriptHash finalScriptHash = _generateP2SHAddresses(1).front().redeemScriptHash();
-            c->processEvent(joystream::protocol_statemachine::event::Joined(contractKeyPair, finalScriptHash));
+            Coin::PubKeyHash finalPkHash = _generateReceiveAddresses(1).front().pubKeyHash();
+            c->processEvent(joystream::protocol_statemachine::event::Joined(contractKeyPair, finalPkHash));
 
         } else {
 

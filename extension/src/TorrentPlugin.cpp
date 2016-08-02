@@ -389,7 +389,7 @@ void TorrentPlugin::toObserveMode() {
 }
 
 void TorrentPlugin::toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-                               const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
+                               const protocol_session::GenerateReceiveAddressesCallbackHandler & generateReceiveAddressesCallbackHandler,
                                const protocol_session::SellingPolicy & policy,
                                const protocol_wire::SellerTerms & terms) {
 
@@ -406,7 +406,7 @@ void TorrentPlugin::toSellMode(const protocol_session::GenerateKeyPairsCallbackH
 
     _session.toSellMode(removeConnection(),
                         generateKeyPairsCallbackHandler,
-                        generateP2PKHAddressesCallbackHandler,
+                        generateReceiveAddressesCallbackHandler,
                         loadPieceForBuyer(),
                         claimLastPayment(),
                         anchorAnnounced(),
@@ -416,8 +416,9 @@ void TorrentPlugin::toSellMode(const protocol_session::GenerateKeyPairsCallbackH
 }
 
 void TorrentPlugin::toBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-                              const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-                              const Coin::UnspentP2PKHOutput & funding,
+                              const protocol_session::GenerateReceiveAddressesCallbackHandler & generateReceiveAddressesCallbackHandler,
+                              const protocol_session::GenerateChangeAddressesCallbackHandler & generateChangeAddressesCallbackHandler,
+                              const Coin::UnspentOutputSet & funding,
                               const protocol_session::BuyingPolicy & policy,
                               const protocol_wire::BuyerTerms & terms) {
 
@@ -431,7 +432,8 @@ void TorrentPlugin::toBuyMode(const protocol_session::GenerateKeyPairsCallbackHa
 
     _session.toBuyMode(removeConnection(),
                        generateKeyPairsCallbackHandler,
-                       generateP2PKHAddressesCallbackHandler,
+                       generateReceiveAddressesCallbackHandler,
+                       generateChangeAddressesCallbackHandler,
                        broadcastTransaction(),
                        fullPieceArrived(),
                        funding,

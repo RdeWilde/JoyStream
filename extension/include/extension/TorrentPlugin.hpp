@@ -122,16 +122,18 @@ public:
     void toObserveMode();
 
     // Transition to sell mode
-    void toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler &,
-                    const protocol_session::GenerateP2SHAddressesCallbackHandler &,
-                    const protocol_session::SellingPolicy &,
-                    const protocol_wire::SellerTerms &);
+    void toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+                    const protocol_session::GenerateReceiveAddressesCallbackHandler &generateReceiveAddressesCallbackHandler,
+                    const protocol_session::SellingPolicy & policy,
+                    const protocol_wire::SellerTerms & terms);
 
-    void toBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler &,
-                   const protocol_session::GenerateP2SHAddressesCallbackHandler &,
-                   const Coin::UnspentOutputSet & funding,
-                   const protocol_session::BuyingPolicy &,
-                   const protocol_wire::BuyerTerms &);
+    // Transition to buy mode
+    void toBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+                   const protocol_session::GenerateReceiveAddressesCallbackHandler & generateReceiveAddressesCallbackHandler,
+                   const protocol_session::GenerateChangeAddressesCallbackHandler & generateChangeAddressesCallbackHandler,
+                   const Coin::UnspentOutputSet &funding,
+                   const protocol_session::BuyingPolicy & policy,
+                   const protocol_wire::BuyerTerms & terms);
 
     // State of session
     protocol_session::SessionState sessionState() const;

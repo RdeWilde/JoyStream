@@ -19,6 +19,8 @@
 
 #include <CoinCore/CoinNodeData.h> // Coin::Transaction
 
+//#include <common/UnspentP2PKHOutput.hpp>
+
 #include <queue>
 
 namespace joystream {

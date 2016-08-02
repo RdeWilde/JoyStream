@@ -58,14 +58,15 @@ public:
     void toObserveMode(const extension::request::SubroutineHandler &);
 
     void toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-                    const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
+                    const protocol_session::GenerateReceiveAddressesCallbackHandler & generateReceiveAddressesCallbackHandler,
                     const protocol_session::SellingPolicy & sellingPolicy,
                     const protocol_wire::SellerTerms & terms,
                     const extension::request::SubroutineHandler &);
 
     void toBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-                   const protocol_session::GenerateP2PKHAddressesCallbackHandler & generateP2PKHAddressesCallbackHandler,
-                   const Coin::UnspentP2PKHOutput & funding,
+                   const protocol_session::GenerateReceiveAddressesCallbackHandler & generateReceiveAddressesCallbackHandler,
+                   const protocol_session::GenerateChangeAddressesCallbackHandler & generateChangeAddressesCallbackHandler,
+                   const Coin::UnspentOutputSet & funding,
                    const protocol_session::BuyingPolicy & policy,
                    const protocol_wire::BuyerTerms & terms,
                    const extension::request::SubroutineHandler &);
