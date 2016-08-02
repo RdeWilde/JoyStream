@@ -72,7 +72,7 @@ private:
                                           const protocol_wire::Ready &,
                                           const Coin::PrivateKey &,
                                           const Coin::PublicKey &,
-                                          const Coin::RedeemScriptHash &);
+                                          const Coin::PubKeyHash &payeeFinalPkHash);
 
     //// Routines for doing spesific set of tests which can be used across number of cases
     //// Spy is always reset, if affected, by each call
@@ -144,7 +144,7 @@ private:
     // (2) peer announces given buyer terms
     // (3) peer (buyer) sends contract invitation
     // (4) peer (buyer) announces contract
-    void addBuyerAndGoToReadyForPieceRequest(ID, const protocol_wire::BuyerTerms &, const protocol_wire::Ready &, Coin::PublicKey &, Coin::RedeemScriptHash &);
+    void addBuyerAndGoToReadyForPieceRequest(ID, const protocol_wire::BuyerTerms &, const protocol_wire::Ready &, Coin::PublicKey &, Coin::PubKeyHash &payeeFinalPkHash);
 
     //
     void receiveValidFullPieceRequest(ID, int);
@@ -245,9 +245,9 @@ private:
                                          terms.settlementFee(),
                                          ready.anchor(),
                                          contractKeys,
-                                         joiningContract.finalScriptHash(),
+                                         joiningContract.finalPkHash(),
                                          ready.contractPk(),
-                                         ready.finalScriptHash(),
+                                         ready.finalPkHash(),
                                          Coin::Signature());
         }
 

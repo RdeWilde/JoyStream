@@ -16,9 +16,9 @@ event::Recv<protocol_wire::Payment> SellingNavigator::Fixture::goodPayment(const
                                            sellModeStarted.terms().minLock(),
                                            contractReady.message().anchor(),
                                            Coin::KeyPair(payorContractSk),
-                                           contractReady.message().finalScriptHash(),
+                                           contractReady.message().finalPkHash(),
                                            joinedContract.contractKeys().pk(),
-                                           joinedContract.finalScriptHash());
+                                           joinedContract.finalPkHash());
 
     Coin::Signature payment = payor.generatePayorSettlementSignature();
 

@@ -172,7 +172,7 @@ void Test::selling() {
     QVERIFY(spy.messageSent());
     QCOMPARE(spy.messageType(), protocol_wire::MessageType::joining_contract);
     QCOMPARE(spy.joiningContractMessage().contractPk(), f.joinedContract.contractKeys().pk());
-    QCOMPARE(spy.joiningContractMessage().finalScriptHash(), f.joinedContract.finalScriptHash());
+    QCOMPARE(spy.joiningContractMessage().finalPkHash(), f.joinedContract.finalPkHash());
 
     spy.reset();
 
@@ -186,7 +186,7 @@ void Test::selling() {
     QCOMPARE(spy.anchor(), f.contractReady.message().anchor());
     QCOMPARE(spy.value(), f.contractReady.message().value());
     QCOMPARE(spy.contractPk(), f.contractReady.message().contractPk());
-    QCOMPARE(spy.finalScriptHash(), f.contractReady.message().finalScriptHash());
+    QCOMPARE(spy.finalPkHash(), f.contractReady.message().finalPkHash());
     //QCOMPARE(machine->getInnerStateName(), typeid(ReadyForPieceRequest).name());
 
     spy.reset();
@@ -425,7 +425,7 @@ void Test::buying() {
     QCOMPARE(spy.readyMessage().anchor(), f.contractPrepared.anchor());
     QCOMPARE(spy.readyMessage().value(), f.contractPrepared.value());
     QCOMPARE(spy.readyMessage().contractPk(), f.contractPrepared.contractKeyPair().pk());
-    QCOMPARE(spy.readyMessage().finalScriptHash(), f.contractPrepared.finalScriptHash());
+    QCOMPARE(spy.readyMessage().finalPkHash(), f.contractPrepared.finalPkHash());
 
     spy.reset();
 

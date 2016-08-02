@@ -18,9 +18,9 @@ bool BuyingNavigator::Fixture::validatePayment(const Coin::Signature & payment, 
 
                                            // Private key is not relevant, as we wil only be validating payment signatures, not generating
                                            Coin::KeyPair(joiningContract.message().contractPk(), Coin::PrivateKey()),
-                                           joiningContract.message().finalScriptHash(),
+                                           joiningContract.message().finalPkHash(),
                                            contractPrepared.contractKeyPair().pk(),
-                                           contractPrepared.finalScriptHash(),
+                                           contractPrepared.finalPkHash(),
                                            Coin::Signature());
 
     return payee.registerPayment(payment);

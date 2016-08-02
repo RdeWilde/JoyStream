@@ -36,12 +36,23 @@ void Test::init() {
     },
     [this](int n) {
 
-        std::vector<Coin::P2SHAddress> addresses;
+        std::vector<Coin::P2PKHAddress> addresses;
 
         for(int i = 0;i < n;i++){
-            Coin::P2PKScriptPubKey p2pkScript(privateKeyFromUInt(i).toPublicKey());
-            Coin::RedeemScriptHash scriptHash(p2pkScript);
-            Coin::P2SHAddress addr(this->network, scriptHash);
+
+            Coin::P2PKHAddress addr(this->network, privateKeyFromUInt(i).toPublicKey().toPubKeyHash());
+            addresses.push_back(addr);
+        }
+        return addresses;
+
+    },
+    [this](int n) {
+
+        std::vector<Coin::P2PKHAddress> addresses;
+
+        for(int i = 0;i < n;i++){
+
+            Coin::P2PKHAddress addr(this->network, privateKeyFromUInt(i).toPublicKey().toPubKeyHash());
             addresses.push_back(addr);
         }
         return addresses;
@@ -764,7 +775,7 @@ paymentchannel::Payor Test::getPayor(const protocol_wire::SellerTerms & sellerTe
                                      const protocol_wire::Ready & ready,
                                      const Coin::PrivateKey & payorContractSk,
                                      const Coin::PublicKey & payeeContractPk,
-                                     const Coin::RedeemScriptHash & payeeFinalScriptHash) {
+                                     const Coin::PubKeyHash & payeeFinalPkHash) {
 
    return paymentchannel::Payor(sellerTerms.minPrice(),
                                 0,
@@ -773,9 +784,9 @@ paymentchannel::Payor Test::getPayor(const protocol_wire::SellerTerms & sellerTe
                                 sellerTerms.settlementFee(),
                                 ready.anchor(),
                                 Coin::KeyPair(payorContractSk),
-                                ready.finalScriptHash(),
+                                ready.finalPkHash(),
                                 payeeContractPk,
-                                payeeFinalScriptHash);
+                                payeeFinalPkHash);
 
 
 
@@ -1028,7 +1039,7 @@ void Test::assertFullPieceSent(ID peer, const protocol_wire::PieceData & data) c
 
 ////
 
-void Test::addBuyerAndGoToReadyForPieceRequest(ID id, const protocol_wire::BuyerTerms & terms, const protocol_wire::Ready & ready, Coin::PublicKey & payeeContractPk, Coin::RedeemScriptHash & payeeFinalScriptHash) {
+void Test::addBuyerAndGoToReadyForPieceRequest(ID id, const protocol_wire::BuyerTerms & terms, const protocol_wire::Ready & ready, Coin::PublicKey & payeeContractPk, Coin::PubKeyHash & payeeFinalPkHash) {
 
     // peer joins
     addConnection(id);
@@ -1047,8 +1058,8 @@ void Test::addBuyerAndGoToReadyForPieceRequest(ID id, const protocol_wire::Buyer
     QCOMPARE((int)std::get<0>(spy->generateKeyPairsCallbackSlot.front()), 1);
 
     // address was generated
-    QCOMPARE((int)spy->generateP2SHAddressesCallbackSlot.size(), 1);
-    QCOMPARE((int)std::get<0>(spy->generateP2SHAddressesCallbackSlot.front()), 1);
+    QCOMPARE((int)spy->generateReceiveAddressesCallbackSlot.size(), 1);
+    QCOMPARE((int)std::get<0>(spy->generateReceiveAddressesCallbackSlot.front()), 1);
 
     // client joined contract
     ConnectionSpy<ID> * cSpy = spy->connectionSpies.at(id);
@@ -1062,7 +1073,7 @@ void Test::addBuyerAndGoToReadyForPieceRequest(ID id, const protocol_wire::Buyer
 
     // copy out return values which payee sent
     payeeContractPk = m2->contractPk();
-    payeeFinalScriptHash = m2->finalScriptHash();
+    payeeFinalPkHash = m2->finalPkHash();
 
     spy->reset();
 
@@ -1077,15 +1088,15 @@ void Test::addBuyerAndGoToReadyForPieceRequest(ID id, const protocol_wire::Buyer
     quint64 value;
     Coin::typesafeOutPoint anchor;
     Coin::PublicKey contractPk;
-    Coin::RedeemScriptHash finalScriptHash;
+    Coin::PubKeyHash finalPkHash;
 
-    std::tie(announcedId, value, anchor, contractPk, finalScriptHash) = spy->anchorAnnouncedCallbackSlot.front();
+    std::tie(announcedId, value, anchor, contractPk, finalPkHash) = spy->anchorAnnouncedCallbackSlot.front();
 
     QCOMPARE(announcedId, id);
     QCOMPARE(value, ready.value());
     QCOMPARE(anchor, ready.anchor());
     QCOMPARE(contractPk, ready.contractPk());
-    QCOMPARE(finalScriptHash, ready.finalScriptHash());
+    QCOMPARE(finalPkHash, ready.finalPkHash());
 
     spy->reset();
 }
