@@ -38,8 +38,8 @@ namespace paymentchannel {
         // limit and transaction fee
         static Settlement dustLimitAndFeeAwareSettlement(const Coin::typesafeOutPoint & contractOutPoint,
                                                          const Commitment & commitment,
-                                                         const Coin::RedeemScriptHash & payorScriptHash,
-                                                         const Coin::RedeemScriptHash & payeeScriptHash,
+                                                         const Coin::PubKeyHash & payorPkHash,
+                                                         const Coin::PubKeyHash & payeePkHash,
                                                          uint64_t paid,
                                                          uint64_t fee);
 

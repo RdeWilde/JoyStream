@@ -46,9 +46,9 @@ namespace paymentchannel {
                 quint32 refundLockTime,
                 const Coin::typesafeOutPoint & anchor,
                 const Coin::KeyPair & payorContractKeyPair,
-                const Coin::RedeemScriptHash & payorFinalScriptHash,
+                const Coin::PubKeyHash & payorFinalPkHash,
                 const Coin::PublicKey & payeeContractPk,
-                const Coin::RedeemScriptHash & payeeFinalScriptHash);
+                const Coin::PubKeyHash & payeeFinalPkHash);
 
         // Commitment for channel
         Commitment commitment() const;
@@ -91,14 +91,14 @@ namespace paymentchannel {
         Coin::KeyPair payorContractKeyPair() const;
         void setPayorContractKeyPair(const Coin::KeyPair &);
 
-        Coin::RedeemScriptHash payorFinalScriptHash() const;
-        void setPayorFinalScriptHash(const Coin::RedeemScriptHash &);
+        Coin::PubKeyHash payorFinalPkHash() const;
+        void setPayorFinalPkHash(const Coin::PubKeyHash &);
 
         Coin::PublicKey payeeContractPk() const;
         void setPayeeContractPk(const Coin::PublicKey &);
 
-        Coin::RedeemScriptHash payeeFinalScriptHash() const;
-        void setPayeeFinalScriptHash(const Coin::RedeemScriptHash &);
+        Coin::PubKeyHash payeeFinalPkHash() const;
+        void setPayeeFinalPkHash(const Coin::PubKeyHash &);
 
     private:
 
@@ -124,13 +124,13 @@ namespace paymentchannel {
         Coin::KeyPair _payorContractKeyPair;
 
         // Controls final payment to payor
-        Coin::RedeemScriptHash _payorFinalScriptHash;
+        Coin::PubKeyHash _payorFinalPkHash;
 
         // Controls payee output of multisig, received in joinin_contract.pk
         Coin::PublicKey _payeeContractPk;
 
         // Controls payee payments, received in sign_refund.pk
-        Coin::RedeemScriptHash _payeeFinalScriptHash;
+        Coin::PubKeyHash _payeeFinalPkHash;
     };
 
 }

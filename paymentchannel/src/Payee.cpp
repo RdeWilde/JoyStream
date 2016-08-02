@@ -33,9 +33,9 @@ namespace paymentchannel {
                  quint64 settlementFee,
                  const Coin::typesafeOutPoint & contractOutPoint,
                  const Coin::KeyPair & payeeContractKeys,
-                 const Coin::RedeemScriptHash & payeeFinalKeyHash,
+                 const Coin::PubKeyHash &payeeFinalPkHash,
                  const Coin::PublicKey & payorContractPk,
-                 const Coin::RedeemScriptHash & payorFinalKeyHash,
+                 const Coin::PubKeyHash &payorFinalPkHash,
                  const Coin::Signature & lastValidPayorPaymentSignature)
         : _numberOfPaymentsMade(numberOfPaymentsMade)
         , _lockTime(lockTime)
@@ -44,9 +44,9 @@ namespace paymentchannel {
         , _settlementFee(settlementFee)
         , _contractOutPoint(contractOutPoint)
         , _payeeContractKeys(payeeContractKeys)
-        , _payeeFinalScriptHash(payeeFinalKeyHash)
+        , _payeeFinalPkHash(payeeFinalPkHash)
         , _payorContractPk(payorContractPk)
-        , _payorFinalScriptHash(payorFinalKeyHash)
+        , _payorFinalPkHash(payorFinalPkHash)
         , _lastValidPayorPaymentSignature(lastValidPayorPaymentSignature) {
     }
 
@@ -95,8 +95,8 @@ namespace paymentchannel {
 
         return Settlement::dustLimitAndFeeAwareSettlement(contractOutPoint(),
                                                           commitment(),
-                                                          _payorFinalScriptHash,
-                                                          _payeeFinalScriptHash,
+                                                          _payorFinalPkHash,
+                                                          _payeeFinalPkHash,
                                                           amountPaid,
                                                           _settlementFee);
     }
@@ -165,12 +165,12 @@ namespace paymentchannel {
         _payeeContractKeys = payeeContractKeys;
     }
 
-    Coin::RedeemScriptHash Payee::payeeFinalScriptHash() const {
-        return _payeeFinalScriptHash;
+    Coin::PubKeyHash Payee::payeeFinalPkHash() const {
+        return _payeeFinalPkHash;
     }
 
-    void Payee::setPayeeFinalScriptHash(const Coin::RedeemScriptHash & payeeFinalKeyHash) {
-        _payeeFinalScriptHash = payeeFinalKeyHash;
+    void Payee::setPayeeFinalPkHash(const Coin::PubKeyHash & payeeFinalPkHash) {
+        _payeeFinalPkHash = payeeFinalPkHash;
     }
 
     Coin::PublicKey Payee::payorContractPk() const {
@@ -181,12 +181,12 @@ namespace paymentchannel {
         _payorContractPk = payorContractPk;
     }
 
-    Coin::RedeemScriptHash Payee::payorFinalScriptHash() const {
-        return _payorFinalScriptHash;
+    Coin::PubKeyHash Payee::payorFinalPkHash() const {
+        return _payorFinalPkHash;
     }
 
-    void Payee::setPayorFinalScriptHash(const Coin::RedeemScriptHash & payorFinalKeyHash) {
-        _payorFinalScriptHash = payorFinalKeyHash;
+    void Payee::setPayorFinalPkHash(const Coin::PubKeyHash & payorFinalPkHash) {
+        _payorFinalPkHash = payorFinalPkHash;
     }
 
     Coin::Signature Payee::lastValidPayorPaymentSignature() const {

@@ -43,9 +43,9 @@ namespace paymentchannel {
               quint64 settlementFee,
               const Coin::typesafeOutPoint & contractOutPoint,
               const Coin::KeyPair & payeeContractKeys,
-              const Coin::RedeemScriptHash & payeeFinalScriptHash,
+              const Coin::PubKeyHash & payeeFinalPkHash,
               const Coin::PublicKey & payorContractPk,
-              const Coin::RedeemScriptHash & payorFinalScriptHash,
+              const Coin::PubKeyHash & payorFinalPkHash,
               const Coin::Signature & lastValidPayorPaymentSignature);
 
         // Attempts to register payment if signature is valid
@@ -96,14 +96,14 @@ namespace paymentchannel {
         Coin::KeyPair payeeContractKeys() const;
         void setPayeeContractKeys(const Coin::KeyPair &);
 
-        Coin::RedeemScriptHash payeeFinalScriptHash() const;
-        void setPayeeFinalScriptHash(const Coin::RedeemScriptHash &);
+        Coin::PubKeyHash payeeFinalPkHash() const;
+        void setPayeeFinalPkHash(const Coin::PubKeyHash &);
 
         Coin::PublicKey payorContractPk() const;
         void setPayorContractPk(const Coin::PublicKey &);
 
-        Coin::RedeemScriptHash payorFinalScriptHash() const;
-        void setPayorFinalScriptHash(const Coin::RedeemScriptHash &);
+        Coin::PubKeyHash payorFinalPkHash() const;
+        void setPayorFinalPkHash(const Coin::PubKeyHash &);
 
         Coin::Signature lastValidPayorPaymentSignature() const;
         void setLastValidPayorPaymentSignature(const Coin::Signature &);
@@ -132,13 +132,13 @@ namespace paymentchannel {
         Coin::KeyPair _payeeContractKeys;
 
         // Controls payee output in payment _lastValidPaymentSignature
-        Coin::RedeemScriptHash _payeeFinalScriptHash;
+        Coin::PubKeyHash _payeeFinalPkHash;
 
         // Payor key in contract output
         Coin::PublicKey _payorContractPk;
 
         // Payor P2SH output in refund/payment
-        Coin::RedeemScriptHash _payorFinalScriptHash;
+        Coin::PubKeyHash _payorFinalPkHash;
 
         // The last valid payment signature received, corresponds to _numberOfPaymentsMade
         Coin::Signature _lastValidPayorPaymentSignature;

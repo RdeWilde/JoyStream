@@ -39,8 +39,8 @@ namespace paymentchannel {
 
     Settlement Settlement::dustLimitAndFeeAwareSettlement(const Coin::typesafeOutPoint & contractOutPoint,
                                                           const Commitment & commitment,
-                                                          const Coin::RedeemScriptHash & payorKeyHash,
-                                                          const Coin::RedeemScriptHash & payeeKeyHash,
+                                                          const Coin::PubKeyHash &payorPkHash,
+                                                          const Coin::PubKeyHash &payeePkHash,
                                                           uint64_t paid,
                                                           uint64_t fee) {
 
@@ -53,12 +53,12 @@ namespace paymentchannel {
         if(paid > (BITCOIN_DUST_LIMIT + fee))
             return Settlement(contractOutPoint,
                               commitment,
-                              Coin::Payment(commitment.value() - paid, payorKeyHash),
-                              Coin::Payment(paid - fee, payeeKeyHash));
+                              Coin::Payment(commitment.value() - paid, payorPkHash),
+                              Coin::Payment(paid - fee, payeePkHash));
         else
             return Settlement(contractOutPoint,
                               commitment,
-                              Coin::Payment(commitment.value() - paid, payorKeyHash));
+                              Coin::Payment(commitment.value() - paid, payorPkHash));
 
     }
 
