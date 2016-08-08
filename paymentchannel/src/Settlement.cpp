@@ -21,20 +21,20 @@ namespace paymentchannel {
                            const Commitment & commitment,
                            const Coin::Payment & toPayor,
                            const Coin::Payment & toPayee)
-        : _contractOutPoint(contractOutPoint)
+        : _includePayee(true)
+        , _toPayee(toPayee)
+        , _contractOutPoint(contractOutPoint)
         , _commitment(commitment)
-        , _toPayor(toPayor)
-        , _includePayee(true)
-        , _toPayee(toPayee) {
+        , _toPayor(toPayor) {
     }
 
     Settlement::Settlement(const Coin::typesafeOutPoint & contractOutPoint,
                            const Commitment & commitment,
                            const Coin::Payment & toPayor)
-        : _contractOutPoint(contractOutPoint)
+        : _includePayee(false)
+        , _contractOutPoint(contractOutPoint)
         , _commitment(commitment)
-        , _toPayor(toPayor)
-        , _includePayee(false) {
+        , _toPayor(toPayor) {
     }
 
     Settlement Settlement::dustLimitAndFeeAwareSettlement(const Coin::typesafeOutPoint & contractOutPoint,
