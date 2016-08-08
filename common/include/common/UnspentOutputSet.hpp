@@ -10,6 +10,7 @@
 
 #include <common/UnspentOutput.hpp>
 #include <set>
+#include <memory>
 
 namespace Coin {
 
