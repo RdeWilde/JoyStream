@@ -78,7 +78,7 @@ namespace paymentchannel {
         _lockTime = lockTime;
     }
 
-    uint64_t Commitment::lockTime() const {
+    uint32_t Commitment::lockTime() const {
         return _lockTime;
     }
 }

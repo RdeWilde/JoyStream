@@ -56,7 +56,7 @@ namespace paymentchannel {
         void setPayeePk(const Coin::PublicKey & payeePk);
 
         void setLockTime(uint32_t lockTime);
-        uint64_t lockTime() const;
+        uint32_t lockTime() const;
 
     private:
 
