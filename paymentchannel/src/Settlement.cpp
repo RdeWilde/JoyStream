@@ -44,7 +44,7 @@ namespace paymentchannel {
                                                           uint64_t paid,
                                                           uint64_t fee) {
 
-        if(paid > commitment.value())
+        if(paid > (uint64_t)commitment.value())
             throw std::runtime_error("Funds do not cover payment.");
 
         // If payments cover tx fee and dust limit, then
