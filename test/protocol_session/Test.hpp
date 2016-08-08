@@ -68,7 +68,6 @@ private:
     static Coin::PrivateKey privateKeyFromUInt(uint i);
 
     static paymentchannel::Payor getPayor(const protocol_wire::SellerTerms &,
-                                          const protocol_wire::BuyerTerms &,
                                           const protocol_wire::Ready &,
                                           const Coin::PrivateKey &,
                                           const Coin::PublicKey &,

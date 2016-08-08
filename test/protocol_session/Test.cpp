@@ -180,11 +180,9 @@ void Test::selling() {
     addBuyerAndGoToReadyForPieceRequest(peer, buyerTerms, ready, payeeContractPk, payeeFinalScriptHash);
 
     // Do sequence of data for payments exchanges
-    paymentchannel::Payor payor = getPayor(sellerTerms, buyerTerms, ready, payorContractSk, payeeContractPk, payeeFinalScriptHash);
+    paymentchannel::Payor payor = getPayor(sellerTerms, ready, payorContractSk, payeeContractPk, payeeFinalScriptHash);
 
     exchangeDataForPayment(peer, numberOfExchangesWhileStarted, payor);
-
-    int x = 0;
 
     // Receive a single request
     receiveValidFullPieceRequest(peer, numberOfExchangesWhileStarted);
@@ -377,7 +375,7 @@ void Test::selling_buyer_disappears() {
     addBuyerAndGoToReadyForPieceRequest(peer, buyerTerms, ready, payeeContractPk, payeeFinalScriptHash);
 
     // Do sequence of data for payments exchanges
-    paymentchannel::Payor payor = getPayor(sellerTerms, buyerTerms, ready, payorContractSk, payeeContractPk, payeeFinalScriptHash);
+    paymentchannel::Payor payor = getPayor(sellerTerms, ready, payorContractSk, payeeContractPk, payeeFinalScriptHash);
 
     exchangeDataForPayment(peer, numberOfExchangesBeforeDisappearance, payor);
 
@@ -771,7 +769,6 @@ Coin::PrivateKey Test::privateKeyFromUInt(uint i) {
 }
 
 paymentchannel::Payor Test::getPayor(const protocol_wire::SellerTerms & sellerTerms,
-                                     const protocol_wire::BuyerTerms & buyerTerms,
                                      const protocol_wire::Ready & ready,
                                      const Coin::PrivateKey & payorContractSk,
                                      const Coin::PublicKey & payeeContractPk,
@@ -780,8 +777,8 @@ paymentchannel::Payor Test::getPayor(const protocol_wire::SellerTerms & sellerTe
    return paymentchannel::Payor(sellerTerms.minPrice(),
                                 0,
                                 ready.value(),
-                                buyerTerms.refundFee(),
                                 sellerTerms.settlementFee(),
+                                sellerTerms.minLock(),
                                 ready.anchor(),
                                 Coin::KeyPair(payorContractSk),
                                 ready.finalPkHash(),
