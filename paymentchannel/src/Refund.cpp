@@ -9,7 +9,7 @@
 #include <common/Utilities.hpp> // DEFAULT_SEQUENCE_NUMBER, sighash
 #include <common/TransactionSignature.hpp>
 #include <common/PrivateKey.hpp>
-
+#include <ctime>
 
 namespace joystream {
 namespace paymentchannel {
