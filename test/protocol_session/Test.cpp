@@ -7,6 +7,8 @@
 
 #include <Test.hpp>
 #include <thread>
+#include <common/Seed.hpp>
+#include <CoinCore/hdkeys.h>
 
 template<>
 std::string IdToString<ID>(const ID & s) {
@@ -181,6 +183,8 @@ void Test::selling() {
     paymentchannel::Payor payor = getPayor(sellerTerms, buyerTerms, ready, payorContractSk, payeeContractPk, payeeFinalScriptHash);
 
     exchangeDataForPayment(peer, numberOfExchangesWhileStarted, payor);
+
+    int x = 0;
 
     // Receive a single request
     receiveValidFullPieceRequest(peer, numberOfExchangesWhileStarted);
@@ -738,12 +742,7 @@ void Test::buying_seller_sent_invalid_piece() {
     spy->reset();
 }
 
-Coin::PrivateKey Test::privateKeyFromUInt(uint) {
-
-    /**
-     * For whatever reason, the private keys generated
-     * by this routine seem to be invalid? the EC routines fail to convert
-     * them properly to public keys.
+Coin::PrivateKey Test::privateKeyFromUInt(uint i) {
 
     std::stringstream s;
     s << std::hex << i;
@@ -755,19 +754,20 @@ Coin::PrivateKey Test::privateKeyFromUInt(uint) {
 
     std::string finalHexRepresentation;
 
-    if(hexInteger.length() > 2*Coin::PrivateKey::length())
+    if(hexInteger.length() > 2*Coin::Seed::length())
         throw std::runtime_error("privateKeyFromUInt: argument to big"); // not even going to truncate
-    else if(hexInteger.length() < 2*Coin::PrivateKey::length())
-        finalHexRepresentation = std::string(2*Coin::PrivateKey::length() - hexInteger.length(), '0') + hexInteger; // add suitable number of leading 0s
+    else if(hexInteger.length() < 2*Coin::Seed::length())
+        finalHexRepresentation = std::string(2*Coin::Seed::length() - hexInteger.length(), '0') + hexInteger; // add suitable number of leading 0s
 
-    assert(finalHexRepresentation.length() == 2*Coin::PrivateKey::length());
+    assert(finalHexRepresentation.length() == 2*Coin::Seed::length());
 
-    std::cout << "Generate ---- " << finalHexRepresentation.length() << std::endl;
+    //std::cout << "Generate ---- " << finalHexRepresentation.length() << std::endl;
 
-    return Coin::PrivateKey(finalHexRepresentation);
-    */
+    Coin::Seed seed(finalHexRepresentation.c_str());
 
-    return Coin::PrivateKey::generate();
+    Coin::HDKeychain keyChain(seed.generateHDKeychain());
+
+    return Coin::PrivateKey(keyChain.privkey());
 }
 
 paymentchannel::Payor Test::getPayor(const protocol_wire::SellerTerms & sellerTerms,
