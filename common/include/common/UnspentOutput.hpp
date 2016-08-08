@@ -35,7 +35,7 @@ public:
     void setOutPoint(const typesafeOutPoint & outPoint);
 
     uint64_t value() const;
-    void setValue(quint64 value);
+    void setValue(uint64_t value);
 
     virtual uchar_vector scriptPubKey() const = 0;
     virtual uchar_vector sighash(const Transaction & tx, const SigHashType &sigHashType) const = 0;
