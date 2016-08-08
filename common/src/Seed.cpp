@@ -69,6 +69,11 @@ Seed Seed::generate() {
     return s;
 }
 
+uint Seed::length() noexcept {
+    return WALLET_SEED_BYTE_LENGTH;
+}
+
+
 Coin::HDKeychain Seed::generateHDKeychain() {
 
     // Create keychain

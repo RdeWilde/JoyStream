@@ -52,6 +52,9 @@ public:
     // Synchrounously generates new seed, is quite slow?
     static Seed generate();
 
+    // Length of seeds
+    static uint length() noexcept;
+
     // Generate a HD key chain from seed
     Coin::HDKeychain generateHDKeychain();
 
