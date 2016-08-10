@@ -275,16 +275,15 @@ Coin::PrivateKey SPVWallet::generateKey(const RedeemScriptGenerator & scriptGene
     return sk;
 }
 
-std::vector<Coin::PrivateKey> SPVWallet::generateKeys(const std::vector<RedeemScriptGenerator> & scriptGenerators) {
+std::vector<Coin::PrivateKey> SPVWallet::generateKeys(uint32_t numKeys, const RedeemScriptGenerator & scriptGenerator) {
     if(!isInitialized()) {
         throw std::runtime_error("wallet not initialized");
     }
 
     std::vector<uchar_vector> scripts;
-    uint32_t numKeys = scriptGenerators.size();
 
-    std::vector<Coin::PrivateKey> keys = _store.generatePrivateKeys(numKeys, [&scriptGenerators, &scripts](const Coin::PublicKey & pubKey, uint32_t n){
-        RedeemScriptInfo info = scriptGenerators[n](pubKey);
+    std::vector<Coin::PrivateKey> keys = _store.generatePrivateKeys(numKeys, [&scriptGenerator, &scripts](const Coin::PublicKey & pubKey, uint32_t n){
+        RedeemScriptInfo info = scriptGenerator(pubKey);
         scripts.push_back(info.redeemScript);
         return info;
     });
@@ -295,17 +294,16 @@ std::vector<Coin::PrivateKey> SPVWallet::generateKeys(const std::vector<RedeemSc
 }
 
 std::vector<Coin::KeyPair>
-SPVWallet::generateKeyPairs(const std::vector<RedeemScriptGenerator> &scriptGenerators) {
+SPVWallet::generateKeyPairs(uint32_t numKeys, const RedeemScriptGenerator & scriptGenerator) {
     if(!isInitialized()) {
         throw std::runtime_error("wallet not initialized");
     }
 
     std::vector<uchar_vector> scripts;
     std::vector<Coin::KeyPair> keyPairs;
-    uint32_t numKeys = scriptGenerators.size();
 
-    std::vector<Coin::PrivateKey> keys = _store.generatePrivateKeys(numKeys, [&scriptGenerators, &scripts](const Coin::PublicKey & pubKey, uint32_t n){
-        RedeemScriptInfo info = scriptGenerators[n](pubKey);
+    std::vector<Coin::PrivateKey> keys = _store.generatePrivateKeys(numKeys, [&scriptGenerator, &scripts](const Coin::PublicKey & pubKey, uint32_t n){
+        RedeemScriptInfo info = scriptGenerator(pubKey);
         scripts.push_back(info.redeemScript);
         return info;
     });

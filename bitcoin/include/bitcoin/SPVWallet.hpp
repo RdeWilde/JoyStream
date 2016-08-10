@@ -84,8 +84,8 @@ public:
 
     // Generate Keys with custom redeem scripts
     Coin::PrivateKey generateKey(const RedeemScriptGenerator & scriptGenerator);
-    std::vector<Coin::PrivateKey> generateKeys(const std::vector<RedeemScriptGenerator> & scriptGenerators);
-    std::vector<Coin::KeyPair> generateKeyPairs(const std::vector<RedeemScriptGenerator> & scriptGenerators);
+    std::vector<Coin::PrivateKey> generateKeys(uint32_t numKeys, const RedeemScriptGenerator & scriptGenerator);
+    std::vector<Coin::KeyPair> generateKeyPairs(uint32_t numKeys, const RedeemScriptGenerator & scriptGenerator);
 
     // Generate a Key for external use
     Coin::PublicKey generateReceivePublicKey();
