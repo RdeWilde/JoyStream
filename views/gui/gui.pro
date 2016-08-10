@@ -92,4 +92,3 @@ INCLUDEPATH += $$PWD/../../bitcoin/include
 DEPENDPATH += $$PWD/../../bitcoin
 
 include(../../config.pri)
-include(../../app/config.pri)
