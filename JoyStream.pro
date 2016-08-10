@@ -16,7 +16,7 @@ SUBDIRS     = \
             bitcoin \
             mixpanel \
             core \
-            views \
+            classic \
             app \
             runner \
             test \
