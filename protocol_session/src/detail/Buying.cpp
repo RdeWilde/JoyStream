@@ -13,6 +13,7 @@
 #include <protocol_session/detail/Observing.hpp>
 #include <common/Bitcoin.hpp> // BITCOIN_DUST_LIMIT
 #include <common/P2SHAddress.hpp>
+#include <bitcoin/Common.hpp>
 
 #include <numeric>
 
@@ -23,7 +24,7 @@ namespace detail {
     template <class ConnectionIdType>
     Buying<ConnectionIdType>::Buying(Session<ConnectionIdType> * session,
                                      const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
-                                     const GenerateKeyPairsCallbackHandler & generateKeyPairs,
+                                     const GenerateP2SHKeyPairsCallbackHandler & generateP2SHKeyPairs,
                                      const GenerateReceiveAddressesCallbackHandler &generateReceiveAddresses,
                                      const GenerateChangeAddressesCallbackHandler &generateChangeAddresses,
                                      const BroadcastTransaction & broadcastTransaction,
@@ -34,7 +35,7 @@ namespace detail {
                                      const TorrentPieceInformation & information)
         : _session(session)
         , _removedConnection(removedConnection)
-        , _generateKeyPairs(generateKeyPairs)
+        , _generateP2SHKeyPairs(generateP2SHKeyPairs)
         , _generateReceiveAddresses(generateReceiveAddresses)
         , _generateChangeAddresses(generateChangeAddresses)
         , _broadcastTransaction(broadcastTransaction)
@@ -545,19 +546,27 @@ namespace detail {
         paymentchannel::Contract c(_funding);
 
         // Generate keys and addresses required
-        std::vector<Coin::KeyPair> contractKeyPairs = _generateKeyPairs(numberOfSellers);
         std::vector<Coin::PubKeyHash> finalPkHashes;
 
-        std::vector<Coin::P2PKHAddress> finalAddresses = _generateReceiveAddresses(numberOfSellers);
-        for(Coin::P2PKHAddress a : finalAddresses)
-            finalPkHashes.push_back(a.pubKeyHash());
+        for(const Coin::P2PKHAddress &finalAddress : _generateReceiveAddresses(numberOfSellers)){
+            finalPkHashes.push_back(finalAddress.pubKeyHash());
+        }
 
-        // Create and add commitment to contract
-        for(uint32_t i = 0;i < numberOfSellers;i++)
-            c.addCommitment(paymentchannel::Commitment(funds[i],
-                                                       contractKeyPairs[i].pk(),
-                                                       selected[i]->payor().payeeContractPk(),
-                                                       terms[i].minLock()));
+        // Generate contract key pairs
+        uint32_t i = 0;
+        std::vector<Coin::KeyPair> contractKeyPairs = _generateP2SHKeyPairs(numberOfSellers, [&](const Coin::PublicKey & pubKey){
+            // Create commitment
+            paymentchannel::Commitment commitment(funds[i],
+                                        pubKey,
+                                        selected[i]->payor().payeeContractPk(),
+                                        terms[i].minLock());
+            // Add commitment to contract
+            c.addCommitment(commitment);
+            
+            i++;
+            
+            return joystream::bitcoin::RedeemScriptInfo(commitment.redeemScript().serialized(), uchar_vector(0x00) /* OP_FALSE */);
+        });
 
         // Add change if worth doing
         if(changeAmount != 0) {

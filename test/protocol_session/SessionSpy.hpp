@@ -10,6 +10,7 @@
 
 #include <protocol_session/protocol_session.hpp>
 #include <protocol_wire/protocol_wire.hpp>
+#include <bitcoin/Common.hpp>
 
 using namespace joystream;
 using namespace joystream::protocol_session;
@@ -66,7 +67,7 @@ template <class ConnectionIdType>
 using RemovedConnectionCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, DisconnectCause>;
 
 template <class ConnectionIdType>
-using GenerateKeyPairsCallbackSlot = FunctionCallbackSlot<std::vector<Coin::KeyPair>,int>;
+using GenerateKeyPairsCallbackSlot = FunctionCallbackSlot<std::vector<Coin::KeyPair>,int, const joystream::bitcoin::RedeemScriptGenerator&>;
 
 template <class ConnectionIdType>
 using GenerateReceiveAddressesCallbackSlot = FunctionCallbackSlot<std::vector<Coin::P2PKHAddress>,int>;
@@ -136,7 +137,7 @@ public:
 
     // Handlers for all calls with return types is required, as slots
     // use them to return respons
-    SessionSpy(const GenerateKeyPairsCallbackHandler &,
+    SessionSpy(const GenerateP2SHKeyPairsCallbackHandler &,
                const GenerateReceiveAddressesCallbackHandler &receiveAddressHandler,
                const GenerateChangeAddressesCallbackHandler &changeAddressHandler,
                const BroadcastTransaction &,

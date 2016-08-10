@@ -12,6 +12,8 @@
 #include <common/P2SHAddress.hpp>
 #include <common/P2PKHAddress.hpp>
 
+#include <bitcoin/Common.hpp> // RedeemScriptGenerator
+
 #include <functional>
 #include <vector>
 
@@ -59,7 +61,7 @@ template <class ConnectionIdType>
 using RemovedConnectionCallbackHandler = std::function<void(const ConnectionIdType &, DisconnectCause)>;
 
 // Generate set of key pairs (payment channel)
-typedef std::function<std::vector<Coin::KeyPair>(int)> GenerateKeyPairsCallbackHandler;
+typedef std::function<std::vector<Coin::KeyPair>(int, const joystream::bitcoin::RedeemScriptGenerator&)> GenerateP2SHKeyPairsCallbackHandler;
 
 // Generate set of receive p2pkh addresses
 typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateReceiveAddressesCallbackHandler;

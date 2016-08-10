@@ -8,7 +8,7 @@
 #include "SessionSpy.hpp"
 
 template <class ConnectionIdType>
-SessionSpy<ConnectionIdType>::SessionSpy(const GenerateKeyPairsCallbackHandler & kpHandler,
+SessionSpy<ConnectionIdType>::SessionSpy(const GenerateP2SHKeyPairsCallbackHandler &kpHandler,
                                          const GenerateReceiveAddressesCallbackHandler &receiveAddressHandler,
                                          const GenerateChangeAddressesCallbackHandler &changeAddressHandler,
                                          const BroadcastTransaction & broadcast,

@@ -18,7 +18,7 @@ namespace detail {
     template <class ConnectionIdType>
     Selling<ConnectionIdType>::Selling(Session<ConnectionIdType> * session,
                                        const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
-                                       const GenerateKeyPairsCallbackHandler & generateKeyPairs,
+                                       const GenerateP2SHKeyPairsCallbackHandler & generateP2SHKeyPairs,
                                        const GenerateReceiveAddressesCallbackHandler &generateReceiveAddresses,
                                        const LoadPieceForBuyer<ConnectionIdType> & loadPieceForBuyer,
                                        const ClaimLastPayment<ConnectionIdType> & claimLastPayment,
@@ -28,7 +28,7 @@ namespace detail {
                                        int MAX_PIECE_INDEX)
         : _session(session)
         , _removedConnection(removedConnection)
-        , _generateKeyPairs(generateKeyPairs)
+        , _generateP2SHKeyPairs(generateP2SHKeyPairs)
         , _generateReceiveAddresses(generateReceiveAddresses)
         , _loadPieceForBuyer(loadPieceForBuyer)
         , _claimLastPayment(claimLastPayment)
@@ -374,7 +374,11 @@ namespace detail {
         if(_terms.satisfiedBy(announced.buyModeTerms())) {
 
             // Join if they are
-            Coin::KeyPair contractKeyPair = _generateKeyPairs(1).front();
+            Coin::KeyPair contractKeyPair = _generateP2SHKeyPairs(1, [&](const Coin::PublicKey &pubKey){
+                paymentchannel::RedeemScript redeemScript(c->payee().payorContractPk(), pubKey, c->payee().lockTime());
+                return joystream::bitcoin::RedeemScriptInfo(redeemScript.serialized(), uchar_vector(0x01) /*OP_TRUE */);
+            }).front();
+
             Coin::PubKeyHash finalPkHash = _generateReceiveAddresses(1).front().pubKeyHash();
             c->processEvent(joystream::protocol_statemachine::event::Joined(contractKeyPair, finalPkHash));
 

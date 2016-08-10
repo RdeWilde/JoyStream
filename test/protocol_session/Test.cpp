@@ -27,13 +27,15 @@ void Test::init() {
 
     spy = new
     SessionSpy<ID>(
-    [this](int n) -> std::vector<Coin::KeyPair> {
+    [this](int n, const joystream::bitcoin::RedeemScriptGenerator & scriptGenerator) -> std::vector<Coin::KeyPair> {
 
         std::vector<Coin::KeyPair> keys;
-
-        for(int i = 0;i < n;i++)
-            keys.push_back(Coin::KeyPair(privateKeyFromUInt(i)));
-
+        Coin::PrivateKey sk;
+        for(int i = 0;i < n;i++){
+            sk = privateKeyFromUInt(i);
+            keys.push_back(Coin::KeyPair(sk));
+            scriptGenerator(sk.toPublicKey());
+        }
         return keys;
     },
     [this](int n) {

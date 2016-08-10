@@ -105,7 +105,7 @@ namespace protocol_session {
 
     template <class ConnectionIdType>
     void Session<ConnectionIdType>::toSellMode(const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
-                                               const GenerateKeyPairsCallbackHandler & generateKeyPairs,
+                                               const GenerateP2SHKeyPairsCallbackHandler &generateP2SHKeyPairs,
                                                const GenerateReceiveAddressesCallbackHandler &generateReceiveAddresses,
                                                const LoadPieceForBuyer<ConnectionIdType> & loadPieceForBuyer,
                                                const ClaimLastPayment<ConnectionIdType> & claimLastPayment,
@@ -152,7 +152,7 @@ namespace protocol_session {
         // Create and set selling state
         _selling = new detail::Selling<ConnectionIdType>(this,
                                                          removedConnection,
-                                                         generateKeyPairs,
+                                                         generateP2SHKeyPairs,
                                                          generateReceiveAddresses,
                                                          loadPieceForBuyer,
                                                          claimLastPayment,
@@ -164,7 +164,7 @@ namespace protocol_session {
 
     template <class ConnectionIdType>
     void Session<ConnectionIdType>::toBuyMode(const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
-                                              const GenerateKeyPairsCallbackHandler & generateKeyPairs,
+                                              const GenerateP2SHKeyPairsCallbackHandler & generateP2SHKeyPairs,
                                               const GenerateReceiveAddressesCallbackHandler & generateReceiveAddresses,
                                               const GenerateChangeAddressesCallbackHandler & generateChangeAddresses,
                                               const BroadcastTransaction & hasOutstandingPayment,
@@ -212,7 +212,7 @@ namespace protocol_session {
         // Create and set selling state
         _buying = new detail::Buying<ConnectionIdType>(this,
                                                        removedConnection,
-                                                       generateKeyPairs,
+                                                       generateP2SHKeyPairs,
                                                        generateReceiveAddresses,
                                                        generateChangeAddresses,
                                                        hasOutstandingPayment,
