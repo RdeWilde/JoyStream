@@ -76,9 +76,6 @@ RESOURCES += \
 INCLUDEPATH += $$PWD/../../paymentchannel/include
 DEPENDPATH += $$PWD/../../paymentchannel/include
 
-INCLUDEPATH += $$PWD/../../blockcypher/include
-DEPENDPATH += $$PWD/../../blockcypher
-
 INCLUDEPATH += $$PWD/../../core/include
 DEPENDPATH += $$PWD/../../core
 
