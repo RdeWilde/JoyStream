@@ -28,7 +28,6 @@ SOURCES += \
     src/SellerTorrentPluginDialog.cpp \
     src/BuyerTorrentPluginDialog.cpp \
     src/AddTorrentDialog.cpp \
-    src/TorrentView.cpp \
     src/ChannelView.cpp \
     src/BuyerPeerPluginView.cpp \
     src/SellerPeerPluginView.cpp \
@@ -37,7 +36,8 @@ SOURCES += \
     src/ReceiveFundsDialog.cpp \
     src/MediaPlayerDialog.cpp \
     src/FundingWalletProgressDialog.cpp \
-    src/GeneralLoadingProgressDialog.cpp
+    src/GeneralLoadingProgressDialog.cpp \
+    src/Torrent.cpp
 
 HEADERS += \
     include/gui/MainWindow.hpp \
@@ -47,7 +47,6 @@ HEADERS += \
     include/gui/PeerPluginsDialog.hpp \
     include/gui/SellerTorrentPluginDialog.hpp \
     include/gui/BuyerTorrentPluginDialog.hpp \
-    include/gui/TorrentView.hpp \
     include/gui/ChannelView.hpp \
     include/gui/BuyerPeerPluginView.hpp \
     include/gui/SellerPeerPluginView.hpp \
@@ -55,7 +54,8 @@ HEADERS += \
     include/gui/ReceiveFundsDialog.hpp \
     include/gui/MediaPlayerDialog.hpp \
     include/gui/FundingWalletProgressDialog.hpp \
-    include/gui/GeneralLoadingProgressDialog.hpp
+    include/gui/GeneralLoadingProgressDialog.hpp \
+    include/gui/Torrent.hpp
 
 FORMS += \
     ui/SellerTorrentPluginConfigurationDialog.ui \

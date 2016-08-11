@@ -5,17 +5,19 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#include <gui/TorrentView.hpp>
-#include <core/controller/TorrentViewModel.hpp>
-#include <core/controller/SellerTorrentPluginViewModel.hpp>
-#include <core/controller/BuyerTorrentPluginViewModel.hpp>
+#include <gui/Torrent.hpp>
+
 #include <common/DataSizeRepresentation.hpp>
 #include <common/BitcoinRepresentation.hpp>
 #include <common/BitcoinDisplaySettings.hpp>
 
 #include <QStandardItem>
 
-TorrentView::TorrentView(QObject * parent,
+namespace joystream {
+namespace classic {
+namespace gui {
+
+Torrent::Torrent(QObject * parent,
                          const TorrentViewModel * torrentViewModel,
                          const BitcoinDisplaySettings * settings,
                          QStandardItem * nameItem,
@@ -33,9 +35,9 @@ TorrentView::TorrentView(QObject * parent,
     , _sizeItem(sizeItem)
     , _stateItem(stateItem)
     , _speedItem(speedItem)
-    , _buyersItem(buyersItem)
-    , _sellersItem(sellersItem)
-    , _pluginInstalledItem(pluginInstalledItem)
+    , _numberOfBuyerPeersItem(buyersItem)
+    , _numberOfSellerPeersitem(sellersItem)
+    , _sessionModeItem(pluginInstalledItem)
     , _balanceItem(balanceItem)
     , _pauseAction("Pause", this)
     , _startAction("Start", this)
@@ -55,9 +57,9 @@ TorrentView::TorrentView(QObject * parent,
     _sizeItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
     _stateItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
     _speedItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
-    _buyersItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
-    _sellersItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
-    _pluginInstalledItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _numberOfBuyerPeersItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _numberOfSellerPeersitem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+    _sessionModeItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
     _balanceItem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
 
     // Add menu buttons
@@ -124,21 +126,24 @@ TorrentView::TorrentView(QObject * parent,
                      this,
                      SLOT(updateStatus(const libtorrent::torrent_status &)));
 
+
+    /**
     _nameItem->setEditable(false);
     _sizeItem->setEditable(false);
     _stateItem->setEditable(false);
     _speedItem->setEditable(false);
-    _buyersItem->setEditable(false);
-    _sellersItem->setEditable(false);
-    _pluginInstalledItem->setEditable(false);
+    _numberOfBuyerPeersItem->setEditable(false);
+    _numberOfSellerPeersitem->setEditable(false);
+    _sessionModeItem->setEditable(false);
     _balanceItem->setEditable(false);
+    */
 }
 
-QString TorrentView::sizeToString(qint64 size) {
+QString Torrent::sizeToString(qint64 size) {
     return DataSizeRepresentation(size, DataSizeRepresentation::Base::Byte).toString();
 }
 
-QString TorrentView::pluginInstalledToString(PluginInstalled pluginInstalled) {
+QString Torrent::pluginInstalledToString(PluginInstalled pluginInstalled) {
 
     QString text;
 
@@ -160,7 +165,7 @@ QString TorrentView::pluginInstalledToString(PluginInstalled pluginInstalled) {
     return text;
 }
 
-QString TorrentView::torrentStateToString(bool paused, libtorrent::torrent_status::state_t state, float progress) {
+QString Torrent::torrentStateToString(bool paused, libtorrent::torrent_status::state_t state, float progress) {
 
     if(paused)
         return QString("Paused");
@@ -220,7 +225,7 @@ QString TorrentView::torrentStateToString(bool paused, libtorrent::torrent_statu
     return text;
 }
 
-QString TorrentView::speedToString(int downloadRate, int uploadRate) {
+QString Torrent::speedToString(int downloadRate, int uploadRate) {
 
     QString downloadSpeedString = DataSizeRepresentation(downloadRate, DataSizeRepresentation::Base::Byte).toString() + "/s";
     QString uploadSpeedString = DataSizeRepresentation(uploadRate, DataSizeRepresentation::Base::Byte).toString() + "/s";
@@ -228,23 +233,23 @@ QString TorrentView::speedToString(int downloadRate, int uploadRate) {
     return downloadSpeedString + QString(" | ") + uploadSpeedString;
 }
 
-QString TorrentView::peersToString(int numberOfPeers, int numberOfPeersWithExtension) {
+QString Torrent::peersToString(int numberOfPeers, int numberOfPeersWithExtension) {
     return QString::number(numberOfPeers) + QString(" | ") + QString::number(numberOfPeersWithExtension);
 }
 
-QString TorrentView::balanceToString(qint64 balance, const BitcoinDisplaySettings * settings) {
+QString Torrent::balanceToString(qint64 balance, const BitcoinDisplaySettings * settings) {
     //return BitCoinRepresentation(balance).toString(BitCoinRepresentation::Fiat::USD, rate);
     return BitcoinRepresentation(balance).toString(settings);
 }
 
-void TorrentView::updatePluginInstalled(PluginInstalled pluginInstalled) {
-    _pluginInstalledItem->setText(pluginInstalledToString(pluginInstalled));
+void Torrent::updatePluginInstalled(PluginInstalled pluginInstalled) {
+    _sessionModeItem->setText(pluginInstalledToString(pluginInstalled));
 }
 
-void TorrentView::updateStartedBuyerTorrentPlugin(const BuyerTorrentPluginViewModel * model) {
+void Torrent::updateStartedBuyerTorrentPlugin(const BuyerTorrentPluginViewModel * model) {
 
     // pluginInstalledItem
-    _pluginInstalledItem->setText("Buyer");
+    _sessionModeItem->setText("Buyer");
 
     // add action to menu
     //_torrentTableContextMenu.addSection("");
@@ -275,10 +280,10 @@ void TorrentView::updateStartedBuyerTorrentPlugin(const BuyerTorrentPluginViewMo
                      SLOT(updateBalance(qint64)));
 }
 
-void TorrentView::updateStartedSellerTorrentPlugin(const SellerTorrentPluginViewModel * model) {
+void Torrent::updateStartedSellerTorrentPlugin(const SellerTorrentPluginViewModel * model) {
 
     // pluginInstalledItem
-    _pluginInstalledItem->setText("Seller");
+    _sessionModeItem->setText("Seller");
 
     // add action to menu
     _torrentTableContextMenu.addSection("");
@@ -306,7 +311,7 @@ void TorrentView::updateStartedSellerTorrentPlugin(const SellerTorrentPluginView
                      SLOT(updateBalance(qint64)));
 }
 
-void TorrentView::updateStatus(const libtorrent::torrent_status & status) {
+void Torrent::updateStatus(const libtorrent::torrent_status & status) {
 
     // name
     QString name = QString::fromStdString(status.name);
@@ -326,42 +331,46 @@ void TorrentView::updatePeers(int numberOfPeers, int numberOfPeersWithExtension)
 }
 */
 
-void TorrentView::updateSize(qint64 totalSize) {
+void Torrent::updateSize(qint64 totalSize) {
     _sizeItem->setText(sizeToString(totalSize));
 }
 
-void TorrentView::updateNumberOfBuyers(quint32 num) {
-    _buyersItem->setText(QString::number(num));
+void Torrent::updateNumberOfBuyers(quint32 num) {
+    _numberOfBuyerPeersItem->setText(QString::number(num));
 }
 
-void TorrentView::updateNumberOfSellers(quint32 num) {
-    _sellersItem->setText(QString::number(num));
+void Torrent::updateNumberOfSellers(quint32 num) {
+    _numberOfSellerPeersitem->setText(QString::number(num));
 }
 
-void TorrentView::updateBalance(qint64 balance) {
+void Torrent::updateBalance(qint64 balance) {
     _balanceItem->setText(balanceToString(balance, _settings));
 }
 
-void TorrentView::showContextMenu(const QPoint & point) {
+void Torrent::showContextMenu(const QPoint & point) {
     _torrentTableContextMenu.popup(point);
 }
 
-void TorrentView::pause() {
+void Torrent::pause() {
     emit pauseTorrentRequested(_infoHash);
 }
 
-void TorrentView::start() {
+void Torrent::start() {
     emit startTorrentRequested(_infoHash);
 }
 
-void TorrentView::remove() {
+void Torrent::remove() {
     emit removeTorrentRequested(_infoHash);
 }
 
-void TorrentView::viewExtension() {
+void Torrent::viewExtension() {
     emit requestedViewingExtension(_infoHash);
 }
 
-void TorrentView::startStreamPlayback() {
+void Torrent::startStreamPlayback() {
     emit requestedStreamingPlayback(_infoHash);
+}
+
+}
+}
 }

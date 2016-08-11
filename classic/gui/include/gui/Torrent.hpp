@@ -5,40 +5,37 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, June 26 2015
  */
 
-#ifndef TORRENT_VIEW_HPP
-#define TORRENT_VIEW_HPP
+#ifndef JOYSTREAM_CLASSIC_GUI_TORRENT_HPP
+#define JOYSTREAM_CLASSIC_GUI_TORRENT_HPP
 
-#include <libtorrent/sha1_hash.hpp>
-#include <libtorrent/torrent_handle.hpp> // libtorrent::torrent_status::state_t
+#include <core/core.hpp>
 
 #include <QMenu>
 #include <QAction>
 
 class QStandardItem;
-enum class PluginInstalled;
-class TorrentViewModel;
-class BuyerTorrentPluginViewModel;
-class SellerTorrentPluginViewModel;
+
 class BitcoinDisplaySettings;
 
-namespace libtorrent {
-    struct torrent_status;
-}
+namespace joystream {
+namespace classic {
+namespace gui {
 
-class TorrentView : public QObject
+class Torrent : public QObject
 {
     Q_OBJECT
 
 public:
 
-    // Constructor
-    TorrentView(QObject * parent,
-                const TorrentViewModel * torrentViewModel,
+    Torrent(QObject * parent,
+                const std::weak_ptr<core::Torrent> & torrent,
                 const BitcoinDisplaySettings * settings,
                 QStandardItem * nameItem,
                 QStandardItem * sizeItem,
                 QStandardItem * stateItem,
-                QStandardItem * speedItem,
+                QStandardItem * uploadSpeed,
+                QStandardItem * downloadSpeed,
+
                 QStandardItem * buyersItem,
                 QStandardItem * sellersItem,
                 QStandardItem * pluginInstalledItem,
@@ -57,83 +54,68 @@ public slots:
     // Update
     void updatePluginInstalled(PluginInstalled pluginInstalled);
 
-    void updateStartedBuyerTorrentPlugin(const BuyerTorrentPluginViewModel * model);
-    void updateStartedSellerTorrentPlugin(const SellerTorrentPluginViewModel * model);
-
     void updateStatus(const libtorrent::torrent_status & status);
-    //void updatePeers(int numberOfPeers, int numberOfPeersWithExtension);
     void updateSize(qint64 totalSize);
     void updateNumberOfBuyers(quint32 num);
     void updateNumberOfSellers(quint32 num);
     void updateBalance(qint64 balance);
 
-
     // Popup context menu in given point
     void showContextMenu(const QPoint & point);
 
-    /**
-     * Ui event related slots, e.g. from menus and buttons
-     */
+    /// Slots below are used to peferform action on core model, and are intended to
+    /// for use by view signals
 
-    // _torrentTableContextMenu context QMenu
     void pause();
     void start();
     void remove();
     void viewExtension();
     void startStreamPlayback();
 
-signals:
-
-    //void pluginInstalled(const libtorrent::sha1_hash & infoHash);
-
-    /**
-     * Ui event related signals corresponding with slots above,
-     * where torrent identitiy is added.
-     */
-
-    // _torrentTableContextMenu context QMenu
-    void pauseTorrentRequested(const libtorrent::sha1_hash & infoHash);
-    void startTorrentRequested(const libtorrent::sha1_hash & infoHash);
-    void removeTorrentRequested(const libtorrent::sha1_hash & infoHash);
-    void requestedViewingExtension(const libtorrent::sha1_hash & infoHash);
-    void requestedStreamingPlayback(const libtorrent::sha1_hash & infoHash);
-
 private:
 
     // Info hash of torrent
-    // Is required to send signals based on user interaction
     libtorrent::sha1_hash _infoHash;
+
+    // Model of torrent
+    std::weak_ptr<core::Torrent> _torrent;
 
     // Display settings for bitcoin
     const BitcoinDisplaySettings * _settings;
-
-    // Plugin installed on torrent
-    // Has to be kept around since it informs how
-    // torrent is displayed, e.g. with colouring
-    // and sign of balance
-    //PluginInstalled _pluginInstalled;
 
     // View model pointers
     // Objects are owned by QStandardItemModel, not us
     QStandardItem * _nameItem,
                   * _sizeItem,
                   * _stateItem,
-                  * _speedItem,
-                  * _buyersItem,
-                  * _sellersItem,
-                  * _pluginInstalledItem,
+                  * _uplaodSpeed,
+                  * _downloadSpeed,
+                  * _numberOfBuyerPeersItem,
+                  * _numberOfSellerPeersitem,
+                  * _sessionModeItem,
                   * _balanceItem;
 
     // Context menu
     QMenu _torrentTableContextMenu;
 
     // Context menu actions
-    // Seems to have to be pointers, since they need parent
-    QAction _pauseAction,
+    QAction _manageSessionAction,
+            _viewPeersAction,
+            _removeTorrentAction,
+            _sessionToSellingModeAction,
+            _sessionToBuyingModeAction,
+            _sessionToObservingModeAction,
+
+            _pauseAction,
             _startAction,
-            _removeAction,
-            _viewExtensionAction,
-            _streamAction;
+            _stopSessionAction,
+
+            _streamMediaAction,
+            _openFolderLocationAction;
 };
 
-#endif // TORRENT_VIEW_HPP
+}
+}
+}
+
+#endif // JOYSTREAM_CLASSIC_GUI_TORRENT_HPP
