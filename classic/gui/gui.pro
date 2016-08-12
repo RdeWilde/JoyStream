@@ -82,6 +82,15 @@ DEPENDPATH += $$PWD/../../core
 INCLUDEPATH += $$PWD/../../extension/include
 DEPENDPATH += $$PWD/../../extension
 
+INCLUDEPATH += $$PWD/../../protocol_session/include
+DEPENDPATH += $$PWD/../../protocol_session
+
+INCLUDEPATH += $$PWD/../../protocol_statemachine/include
+DEPENDPATH += $$PWD/../../protocol_statemachine
+
+INCLUDEPATH += $$PWD/../../protocol_wire/include
+DEPENDPATH += $$PWD/../../protocol_wire
+
 INCLUDEPATH += $$PWD/../../common/include
 DEPENDPATH += $$PWD/../../common
 
