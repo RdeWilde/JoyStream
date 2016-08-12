@@ -55,6 +55,12 @@ public:
                    const protocol_wire::BuyerTerms & terms,
                    const extension::request::SubroutineHandler &);
 
+    libtorrent::sha1_hash infoHash() const noexcept;
+
+    std::map<libtorrent::tcp::endpoint, std::shared_ptr<PeerPlugin> > peers() const noexcept;
+
+    std::shared_ptr<Session> session() const noexcept;
+
 signals:
 
     void peerPluginAdded(const std::weak_ptr<PeerPlugin> &);

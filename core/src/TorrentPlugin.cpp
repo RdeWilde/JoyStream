@@ -77,6 +77,18 @@ void TorrentPlugin::toBuyMode(const protocol_session::GenerateKeyPairsCallbackHa
                                                   handler));
 }
 
+libtorrent::sha1_hash TorrentPlugin::infoHash() const noexcept {
+    return _infoHash;
+}
+
+std::map<libtorrent::tcp::endpoint, std::shared_ptr<PeerPlugin> > TorrentPlugin::peers() const noexcept {
+    return _peers;
+}
+
+std::shared_ptr<Session> TorrentPlugin::session() const noexcept {
+    return _session;
+}
+
 void TorrentPlugin::addPeerPlugin(const extension::status::PeerPlugin & status) {
 
     // Ignore if it has already been added
