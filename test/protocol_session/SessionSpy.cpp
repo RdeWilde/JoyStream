@@ -8,12 +8,12 @@
 #include "SessionSpy.hpp"
 
 template <class ConnectionIdType>
-SessionSpy<ConnectionIdType>::SessionSpy(const GenerateP2SHKeyPairsCallbackHandler &kpHandler,
+SessionSpy<ConnectionIdType>::SessionSpy(const GenerateP2SHKeyPairCallbackHandler &kpHandler,
                                          const GenerateReceiveAddressesCallbackHandler &receiveAddressHandler,
                                          const GenerateChangeAddressesCallbackHandler &changeAddressHandler,
                                          const BroadcastTransaction & broadcast,
                                          Session<ConnectionIdType> * session)
-    : generateKeyPairsCallbackSlot(kpHandler)
+    : generateKeyPairCallbackSlot(kpHandler)
     , generateReceiveAddressesCallbackSlot(receiveAddressHandler)
     , generateChangeAddressesCallbackSlot(changeAddressHandler)
     , broadcastTransactionCallbackSlot(broadcast)
@@ -36,7 +36,7 @@ void SessionSpy<ConnectionIdType>::toMonitoredSellMode(const SellingPolicy & pol
                                                        int maxPieceIndex) {
 
     _session->toSellMode(removedConnectionCallbackSlot.hook(),
-                         generateKeyPairsCallbackSlot.hook(),
+                         generateKeyPairCallbackSlot.hook(),
                          generateReceiveAddressesCallbackSlot.hook(),
                          loadPieceForBuyerCallbackSlot.hook(),
                          claimLastPaymentCallbackSlot.hook(),
@@ -53,7 +53,7 @@ void SessionSpy<ConnectionIdType>::toMonitoredBuyMode(const Coin::UnspentOutputS
                                                       const protocol_wire::BuyerTerms & terms,
                                                       const TorrentPieceInformation & information) {
     _session->toBuyMode(removedConnectionCallbackSlot.hook(),
-                         generateKeyPairsCallbackSlot.hook(),
+                         generateKeyPairCallbackSlot.hook(),
                          generateReceiveAddressesCallbackSlot.hook(),
                          generateChangeAddressesCallbackSlot.hook(),
                          broadcastTransactionCallbackSlot.hook(),
@@ -105,7 +105,7 @@ bool SessionSpy<ConnectionIdType>::blankSession() const {
 
             //// General
     return  removedConnectionCallbackSlot.empty() &&
-            generateKeyPairsCallbackSlot.empty() &&
+            generateKeyPairCallbackSlot.empty() &&
             generateReceiveAddressesCallbackSlot.empty() &&
             generateChangeAddressesCallbackSlot.empty() &&
             //// Buying
@@ -136,7 +136,7 @@ void SessionSpy<ConnectionIdType>::reset() {
 
     //// General
     removedConnectionCallbackSlot.clear();
-    generateKeyPairsCallbackSlot.clear();
+    generateKeyPairCallbackSlot.clear();
     generateReceiveAddressesCallbackSlot.clear();
     generateChangeAddressesCallbackSlot.clear();
 
@@ -158,7 +158,7 @@ template <class ConnectionIdType>
 bool SessionSpy<ConnectionIdType>::onlyCalledRemovedConnection() const {
     return  //// General
             !removedConnectionCallbackSlot.empty() &&
-            generateKeyPairsCallbackSlot.empty() &&
+            generateKeyPairCallbackSlot.empty() &&
             generateReceiveAddressesCallbackSlot.empty() &&
             generateChangeAddressesCallbackSlot.empty() &&
             //// Buying
@@ -174,7 +174,7 @@ template <class ConnectionIdType>
 bool SessionSpy<ConnectionIdType>::onlyCalledGenerateKeyPairs() const {
     return  //// General
             removedConnectionCallbackSlot.empty() &&
-            !generateKeyPairsCallbackSlot.empty() &&
+            !generateKeyPairCallbackSlot.empty() &&
             generateReceiveAddressesCallbackSlot.empty() &&
             generateChangeAddressesCallbackSlot.empty() &&
             //// Buying
@@ -190,7 +190,7 @@ template <class ConnectionIdType>
 bool SessionSpy<ConnectionIdType>::onlyCalledGenerateReceiveAddresses() const {
     return  //// General
             removedConnectionCallbackSlot.empty() &&
-            generateKeyPairsCallbackSlot.empty() &&
+            generateKeyPairCallbackSlot.empty() &&
             !generateReceiveAddressesCallbackSlot.empty() &&
             generateChangeAddressesCallbackSlot.empty() &&
             //// Buying
@@ -206,7 +206,7 @@ template <class ConnectionIdType>
 bool SessionSpy<ConnectionIdType>::onlyCalledBroadcastTransaction() const {
     return  //// General
             removedConnectionCallbackSlot.empty() &&
-            generateKeyPairsCallbackSlot.empty() &&
+            generateKeyPairCallbackSlot.empty() &&
             generateReceiveAddressesCallbackSlot.empty() &&
             //// Buying
             !broadcastTransactionCallbackSlot.empty() &&
@@ -221,7 +221,7 @@ template <class ConnectionIdType>
 bool SessionSpy<ConnectionIdType>::onlyCalledFullPieceArrived() const {
     return  //// General
             removedConnectionCallbackSlot.empty() &&
-            generateKeyPairsCallbackSlot.empty() &&
+            generateKeyPairCallbackSlot.empty() &&
             generateReceiveAddressesCallbackSlot.empty() &&
             //// Buying
             broadcastTransactionCallbackSlot.empty() &&
@@ -236,7 +236,7 @@ template <class ConnectionIdType>
 bool SessionSpy<ConnectionIdType>::onlyCalledLoadPieceForBuyer() const {
     return  //// General
             removedConnectionCallbackSlot.empty() &&
-            generateKeyPairsCallbackSlot.empty() &&
+            generateKeyPairCallbackSlot.empty() &&
             generateReceiveAddressesCallbackSlot.empty() &&
             //// Buying
             broadcastTransactionCallbackSlot.empty() &&
@@ -251,7 +251,7 @@ template <class ConnectionIdType>
 bool SessionSpy<ConnectionIdType>::onlyCalledClaimLastPayment() const {
     return  //// General
             removedConnectionCallbackSlot.empty() &&
-            generateKeyPairsCallbackSlot.empty() &&
+            generateKeyPairCallbackSlot.empty() &&
             generateReceiveAddressesCallbackSlot.empty() &&
             //// Buying
             broadcastTransactionCallbackSlot.empty() &&
@@ -266,7 +266,7 @@ template <class ConnectionIdType>
 bool SessionSpy<ConnectionIdType>::onlyCalledAnchorAnnounced() const {
     return  //// General
             removedConnectionCallbackSlot.empty() &&
-            generateKeyPairsCallbackSlot.empty() &&
+            generateKeyPairCallbackSlot.empty() &&
             generateReceiveAddressesCallbackSlot.empty() &&
             //// Buying
             broadcastTransactionCallbackSlot.empty() &&

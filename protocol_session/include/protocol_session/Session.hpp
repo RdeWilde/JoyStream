@@ -72,7 +72,7 @@ namespace detail {
 
         // Change session to sell mode
         void toSellMode(const RemovedConnectionCallbackHandler<ConnectionIdType> &,
-                        const GenerateP2SHKeyPairsCallbackHandler &,
+                        const GenerateP2SHKeyPairCallbackHandler &,
                         const GenerateReceiveAddressesCallbackHandler &,
                         const LoadPieceForBuyer<ConnectionIdType> &,
                         const ClaimLastPayment<ConnectionIdType> &,
@@ -83,7 +83,7 @@ namespace detail {
 
         // Change session to buy mode
         void toBuyMode(const RemovedConnectionCallbackHandler<ConnectionIdType> &,
-                       const GenerateP2SHKeyPairsCallbackHandler &,
+                       const GenerateP2SHKeyPairCallbackHandler &,
                        const GenerateReceiveAddressesCallbackHandler &,
                        const GenerateChangeAddressesCallbackHandler &,
                        const BroadcastTransaction &,

@@ -24,7 +24,7 @@ namespace detail {
     template <class ConnectionIdType>
     Buying<ConnectionIdType>::Buying(Session<ConnectionIdType> * session,
                                      const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
-                                     const GenerateP2SHKeyPairsCallbackHandler & generateP2SHKeyPairs,
+                                     const GenerateP2SHKeyPairCallbackHandler &generateP2SHKeyPair,
                                      const GenerateReceiveAddressesCallbackHandler &generateReceiveAddresses,
                                      const GenerateChangeAddressesCallbackHandler &generateChangeAddresses,
                                      const BroadcastTransaction & broadcastTransaction,
@@ -35,7 +35,7 @@ namespace detail {
                                      const TorrentPieceInformation & information)
         : _session(session)
         , _removedConnection(removedConnection)
-        , _generateP2SHKeyPairs(generateP2SHKeyPairs)
+        , _generateP2SHKeyPair(generateP2SHKeyPair)
         , _generateReceiveAddresses(generateReceiveAddresses)
         , _generateChangeAddresses(generateChangeAddresses)
         , _broadcastTransaction(broadcastTransaction)
@@ -557,7 +557,7 @@ namespace detail {
         std::vector<paymentchannel::Commitment> commitments;
 
         for(uint32_t i = 0; i < numberOfSellers; i++) {
-            Coin::KeyPair keyPair = _generateP2SHKeyPairs(1, [&](const Coin::PublicKey & pubKey){
+            Coin::KeyPair keyPair = _generateP2SHKeyPair([&](const Coin::PublicKey & pubKey){
 
                 paymentchannel::Commitment commitment(funds[i],
                                                       pubKey,
@@ -566,8 +566,9 @@ namespace detail {
 
                 commitments.push_back(commitment);
 
-                return joystream::bitcoin::RedeemScriptInfo(commitment.redeemScript().serialized(), uchar_vector(0x00) /* OP_FALSE */);
-            }).front();
+                return commitment.redeemScript().serialized();
+
+            }, uchar_vector(0x00) /* OP_FALSE */);
 
             contractKeyPairs.push_back(keyPair);
         }

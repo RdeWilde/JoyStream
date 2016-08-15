@@ -27,16 +27,13 @@ void Test::init() {
 
     spy = new
     SessionSpy<ID>(
-    [this](int n, const joystream::bitcoin::RedeemScriptGenerator & scriptGenerator) -> std::vector<Coin::KeyPair> {
+    [this](const joystream::bitcoin::RedeemScriptGenerator & scriptGenerator, const uchar_vector &optional_data) -> Coin::KeyPair {
 
-        std::vector<Coin::KeyPair> keys;
-        Coin::PrivateKey sk;
-        for(int i = 0;i < n;i++){
-            sk = privateKeyFromUInt(i);
-            keys.push_back(Coin::KeyPair(sk));
-            scriptGenerator(sk.toPublicKey());
-        }
-        return keys;
+        Coin::PrivateKey sk = privateKeyFromUInt(0);
+
+        scriptGenerator(sk.toPublicKey());
+
+        return Coin::KeyPair(sk);
     },
     [this](int n) {
 
@@ -1053,8 +1050,7 @@ void Test::addBuyerAndGoToReadyForPieceRequest(ID id, const protocol_wire::Buyer
     session->processMessageOnConnection(id, protocol_wire::JoinContract(0));
 
     // key pair was generated
-    QCOMPARE((int)spy->generateKeyPairsCallbackSlot.size(), 1);
-    QCOMPARE((int)std::get<0>(spy->generateKeyPairsCallbackSlot.front()), 1);
+    QCOMPARE((int)spy->generateKeyPairCallbackSlot.size(), 1);
 
     // address was generated
     QCOMPARE((int)spy->generateReceiveAddressesCallbackSlot.size(), 1);

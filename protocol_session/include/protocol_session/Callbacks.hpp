@@ -60,8 +60,8 @@ enum class DisconnectCause {
 template <class ConnectionIdType>
 using RemovedConnectionCallbackHandler = std::function<void(const ConnectionIdType &, DisconnectCause)>;
 
-// Generate set of key pairs (payment channel)
-typedef std::function<std::vector<Coin::KeyPair>(int, const joystream::bitcoin::RedeemScriptGenerator&)> GenerateP2SHKeyPairsCallbackHandler;
+// Generate a single key pair (for payment channel)
+typedef std::function<Coin::KeyPair(const joystream::bitcoin::RedeemScriptGenerator&, const uchar_vector&)> GenerateP2SHKeyPairCallbackHandler;
 
 // Generate set of receive p2pkh addresses
 typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateReceiveAddressesCallbackHandler;

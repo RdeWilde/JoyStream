@@ -67,7 +67,7 @@ template <class ConnectionIdType>
 using RemovedConnectionCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, DisconnectCause>;
 
 template <class ConnectionIdType>
-using GenerateKeyPairsCallbackSlot = FunctionCallbackSlot<std::vector<Coin::KeyPair>,int, const joystream::bitcoin::RedeemScriptGenerator&>;
+using GenerateKeyPairCallbackSlot = FunctionCallbackSlot<Coin::KeyPair, const joystream::bitcoin::RedeemScriptGenerator&, const uchar_vector&>;
 
 template <class ConnectionIdType>
 using GenerateReceiveAddressesCallbackSlot = FunctionCallbackSlot<std::vector<Coin::P2PKHAddress>,int>;
@@ -137,9 +137,9 @@ public:
 
     // Handlers for all calls with return types is required, as slots
     // use them to return respons
-    SessionSpy(const GenerateP2SHKeyPairsCallbackHandler &,
-               const GenerateReceiveAddressesCallbackHandler &receiveAddressHandler,
-               const GenerateChangeAddressesCallbackHandler &changeAddressHandler,
+    SessionSpy(const GenerateP2SHKeyPairCallbackHandler &,
+               const GenerateReceiveAddressesCallbackHandler &,
+               const GenerateChangeAddressesCallbackHandler &,
                const BroadcastTransaction &,
                Session<ConnectionIdType> *);
 
@@ -182,7 +182,7 @@ public:
 
     //// General
     RemovedConnectionCallbackSlot<ConnectionIdType> removedConnectionCallbackSlot;
-    GenerateKeyPairsCallbackSlot<ConnectionIdType> generateKeyPairsCallbackSlot;
+    GenerateKeyPairCallbackSlot<ConnectionIdType> generateKeyPairCallbackSlot;
     GenerateReceiveAddressesCallbackSlot<ConnectionIdType> generateReceiveAddressesCallbackSlot;
     GenerateChangeAddressesCallbackSlot<ConnectionIdType> generateChangeAddressesCallbackSlot;
 

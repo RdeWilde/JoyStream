@@ -42,7 +42,7 @@ public:
 
     Buying(Session<ConnectionIdType> *,
            const RemovedConnectionCallbackHandler<ConnectionIdType> &,
-           const GenerateP2SHKeyPairsCallbackHandler &,
+           const GenerateP2SHKeyPairCallbackHandler &generateP2SHKeyPair,
            const GenerateReceiveAddressesCallbackHandler &,
            const GenerateChangeAddressesCallbackHandler &,
            const BroadcastTransaction &,
@@ -167,7 +167,7 @@ private:
 
     // Callback handlers
     RemovedConnectionCallbackHandler<ConnectionIdType> _removedConnection;
-    GenerateP2SHKeyPairsCallbackHandler _generateP2SHKeyPairs;
+    GenerateP2SHKeyPairCallbackHandler _generateP2SHKeyPair;
     GenerateReceiveAddressesCallbackHandler _generateReceiveAddresses;
     GenerateChangeAddressesCallbackHandler _generateChangeAddresses;
     BroadcastTransaction _broadcastTransaction;

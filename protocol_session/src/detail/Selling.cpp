@@ -18,7 +18,7 @@ namespace detail {
     template <class ConnectionIdType>
     Selling<ConnectionIdType>::Selling(Session<ConnectionIdType> * session,
                                        const RemovedConnectionCallbackHandler<ConnectionIdType> & removedConnection,
-                                       const GenerateP2SHKeyPairsCallbackHandler & generateP2SHKeyPairs,
+                                       const GenerateP2SHKeyPairCallbackHandler &generateP2SHKeyPair,
                                        const GenerateReceiveAddressesCallbackHandler &generateReceiveAddresses,
                                        const LoadPieceForBuyer<ConnectionIdType> & loadPieceForBuyer,
                                        const ClaimLastPayment<ConnectionIdType> & claimLastPayment,
@@ -28,7 +28,7 @@ namespace detail {
                                        int MAX_PIECE_INDEX)
         : _session(session)
         , _removedConnection(removedConnection)
-        , _generateP2SHKeyPairs(generateP2SHKeyPairs)
+        , _generateP2SHKeyPair(generateP2SHKeyPair)
         , _generateReceiveAddresses(generateReceiveAddresses)
         , _loadPieceForBuyer(loadPieceForBuyer)
         , _claimLastPayment(claimLastPayment)
@@ -374,10 +374,10 @@ namespace detail {
         if(_terms.satisfiedBy(announced.buyModeTerms())) {
 
             // Join if they are
-            Coin::KeyPair contractKeyPair = _generateP2SHKeyPairs(1, [&](const Coin::PublicKey &pubKey){
+            Coin::KeyPair contractKeyPair = _generateP2SHKeyPair([&](const Coin::PublicKey &pubKey){
                 paymentchannel::RedeemScript redeemScript(c->payee().payorContractPk(), pubKey, c->payee().lockTime());
-                return joystream::bitcoin::RedeemScriptInfo(redeemScript.serialized(), uchar_vector(0x01) /*OP_TRUE */);
-            }).front();
+                return redeemScript.serialized();
+            }, uchar_vector(0x01) /*OP_TRUE */);
 
             Coin::PubKeyHash finalPkHash = _generateReceiveAddresses(1).front().pubKeyHash();
             c->processEvent(joystream::protocol_statemachine::event::Joined(contractKeyPair, finalPkHash));
