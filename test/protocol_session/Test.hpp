@@ -64,8 +64,11 @@ private:
     Session<ID> * session;
     SessionSpy<ID> * spy;
 
+    // Integer value used to generate a key in nextPrivateKey()
+    uint nextKey;
     // Generates private key which is 32 byte unsigned integer encoded i
-    static Coin::PrivateKey privateKeyFromUInt(uint i);
+    Coin::PrivateKey nextPrivateKey();
+
 
     static paymentchannel::Payor getPayor(const protocol_wire::SellerTerms &,
                                           const protocol_wire::Ready &,

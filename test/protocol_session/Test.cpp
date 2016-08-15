@@ -23,13 +23,16 @@ Test::Test()
 
 void Test::init() {
 
+    // Reset next key counter
+    nextKey = 1;
+
     session = new Session<ID>();
 
     spy = new
     SessionSpy<ID>(
     [this](const P2SHScriptGeneratorFromPubKey & scriptGenerator, const uchar_vector &optional_data) -> Coin::KeyPair {
 
-        Coin::PrivateKey sk = privateKeyFromUInt(0);
+        Coin::PrivateKey sk = nextPrivateKey();
 
         scriptGenerator(sk.toPublicKey());
 
@@ -41,7 +44,7 @@ void Test::init() {
 
         for(int i = 0;i < n;i++){
 
-            Coin::P2PKHAddress addr(this->network, privateKeyFromUInt(i).toPublicKey().toPubKeyHash());
+            Coin::P2PKHAddress addr(this->network, nextPrivateKey().toPublicKey().toPubKeyHash());
             addresses.push_back(addr);
         }
         return addresses;
@@ -53,7 +56,7 @@ void Test::init() {
 
         for(int i = 0;i < n;i++){
 
-            Coin::P2PKHAddress addr(this->network, privateKeyFromUInt(i).toPublicKey().toPubKeyHash());
+            Coin::P2PKHAddress addr(this->network, nextPrivateKey().toPublicKey().toPubKeyHash());
             addresses.push_back(addr);
         }
         return addresses;
@@ -739,10 +742,10 @@ void Test::buying_seller_sent_invalid_piece() {
     spy->reset();
 }
 
-Coin::PrivateKey Test::privateKeyFromUInt(uint i) {
+Coin::PrivateKey Test::nextPrivateKey() {
 
     std::stringstream s;
-    s << std::hex << i;
+    s << std::hex << nextKey++;
     std::string hexInteger = s.str(); // MSB is at index 0
 
     // Make even length representation by potentially adding leading 0
