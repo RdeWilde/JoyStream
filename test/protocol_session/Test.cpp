@@ -27,7 +27,7 @@ void Test::init() {
 
     spy = new
     SessionSpy<ID>(
-    [this](const joystream::bitcoin::RedeemScriptGenerator & scriptGenerator, const uchar_vector &optional_data) -> Coin::KeyPair {
+    [this](const P2SHScriptGeneratorFromPubKey & scriptGenerator, const uchar_vector &optional_data) -> Coin::KeyPair {
 
         Coin::PrivateKey sk = privateKeyFromUInt(0);
 

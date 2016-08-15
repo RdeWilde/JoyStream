@@ -10,7 +10,6 @@
 
 #include <protocol_session/protocol_session.hpp>
 #include <protocol_wire/protocol_wire.hpp>
-#include <bitcoin/Common.hpp>
 
 using namespace joystream;
 using namespace joystream::protocol_session;
@@ -67,7 +66,7 @@ template <class ConnectionIdType>
 using RemovedConnectionCallbackSlot = SubroutineCallbackSlot<ConnectionIdType, DisconnectCause>;
 
 template <class ConnectionIdType>
-using GenerateKeyPairCallbackSlot = FunctionCallbackSlot<Coin::KeyPair, const joystream::bitcoin::RedeemScriptGenerator&, const uchar_vector&>;
+using GenerateKeyPairCallbackSlot = FunctionCallbackSlot<Coin::KeyPair, const P2SHScriptGeneratorFromPubKey&, const uchar_vector&>;
 
 template <class ConnectionIdType>
 using GenerateReceiveAddressesCallbackSlot = FunctionCallbackSlot<std::vector<Coin::P2PKHAddress>,int>;

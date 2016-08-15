@@ -12,8 +12,6 @@
 #include <common/P2SHAddress.hpp>
 #include <common/P2PKHAddress.hpp>
 
-#include <bitcoin/Common.hpp> // RedeemScriptGenerator
-
 #include <functional>
 #include <vector>
 
@@ -60,8 +58,11 @@ enum class DisconnectCause {
 template <class ConnectionIdType>
 using RemovedConnectionCallbackHandler = std::function<void(const ConnectionIdType &, DisconnectCause)>;
 
+// P2SH redeem script generator callback - generates script from a Coin::PublicKey
+typedef std::function<uchar_vector(const Coin::PublicKey &)> P2SHScriptGeneratorFromPubKey;
+
 // Generate a single key pair (for payment channel)
-typedef std::function<Coin::KeyPair(const joystream::bitcoin::RedeemScriptGenerator&, const uchar_vector&)> GenerateP2SHKeyPairCallbackHandler;
+typedef std::function<Coin::KeyPair(const P2SHScriptGeneratorFromPubKey&, const uchar_vector&)> GenerateP2SHKeyPairCallbackHandler;
 
 // Generate set of receive p2pkh addresses
 typedef std::function<std::vector<Coin::P2PKHAddress>(int)> GenerateReceiveAddressesCallbackHandler;

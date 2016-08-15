@@ -13,7 +13,6 @@
 #include <protocol_session/detail/Observing.hpp>
 #include <common/Bitcoin.hpp> // BITCOIN_DUST_LIMIT
 #include <common/P2SHAddress.hpp>
-#include <bitcoin/Common.hpp>
 
 #include <numeric>
 
