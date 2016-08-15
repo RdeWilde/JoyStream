@@ -553,20 +553,32 @@ namespace detail {
         }
 
         // Generate contract key pairs
-        uint32_t i = 0;
-        std::vector<Coin::KeyPair> contractKeyPairs = _generateP2SHKeyPairs(numberOfSellers, [&](const Coin::PublicKey & pubKey){
-            // Create commitment
-            paymentchannel::Commitment commitment(funds[i],
-                                        pubKey,
-                                        selected[i]->payor().payeeContractPk(),
-                                        terms[i].minLock());
+        std::vector<Coin::KeyPair> contractKeyPairs;
+        std::vector<paymentchannel::Commitment> commitments;
+
+        for(uint32_t i = 0; i < numberOfSellers; i++) {
+            Coin::KeyPair keyPair = _generateP2SHKeyPairs(1, [&](const Coin::PublicKey & pubKey){
+
+                paymentchannel::Commitment commitment(funds[i],
+                                                      pubKey,
+                                                      selected[i]->payor().payeeContractPk(),
+                                                      terms[i].minLock());
+
+                commitments.push_back(commitment);
+
+                return joystream::bitcoin::RedeemScriptInfo(commitment.redeemScript().serialized(), uchar_vector(0x00) /* OP_FALSE */);
+            }).front();
+
+            contractKeyPairs.push_back(keyPair);
+        }
+
+        assert(contractKeyPairs.size() == numberOfSellers);
+        assert(commitments.size() == numberOfSellers);
+
+        for(auto &commitment : commitments) {
             // Add commitment to contract
             c.addCommitment(commitment);
-            
-            i++;
-            
-            return joystream::bitcoin::RedeemScriptInfo(commitment.redeemScript().serialized(), uchar_vector(0x00) /* OP_FALSE */);
-        });
+        }
 
         // Add change if worth doing
         if(changeAmount != 0) {
