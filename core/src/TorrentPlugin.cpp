@@ -74,21 +74,21 @@ void TorrentPlugin::toObserveMode(const extension::request::SubroutineHandler & 
     _plugin->submit(extension::request::ToObserveMode(_infoHash, handler));
 }
 
-void TorrentPlugin::toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+void TorrentPlugin::toSellMode(const protocol_session::GenerateP2SHKeyPairCallbackHandler & generateKeyPairCallbackHandler,
                          const protocol_session::GenerateReceiveAddressesCallbackHandler &generateReceiveAddressesCallbackHandler,
                          const protocol_session::SellingPolicy & sellingPolicy,
                          const protocol_wire::SellerTerms & terms,
                          const extension::request::SubroutineHandler & handler) {
 
     _plugin->submit(extension::request::ToSellMode(_infoHash,
-                                                   generateKeyPairsCallbackHandler,
+                                                   generateKeyPairCallbackHandler,
                                                    generateReceiveAddressesCallbackHandler,
                                                    sellingPolicy,
                                                    terms,
                                                    handler));
 }
 
-void TorrentPlugin::toBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+void TorrentPlugin::toBuyMode(const protocol_session::GenerateP2SHKeyPairCallbackHandler & generateKeyPairCallbackHandler,
                         const protocol_session::GenerateReceiveAddressesCallbackHandler &generateReceiveAddressesCallbackHandler, const protocol_session::GenerateChangeAddressesCallbackHandler &generateChangeAddressesCallbackHandler,
                         const Coin::UnspentOutputSet &funding,
                         const protocol_session::BuyingPolicy & policy,
@@ -96,7 +96,7 @@ void TorrentPlugin::toBuyMode(const protocol_session::GenerateKeyPairsCallbackHa
                         const extension::request::SubroutineHandler & handler) {
 
     _plugin->submit(extension::request::ToBuyMode(_infoHash,
-                                                  generateKeyPairsCallbackHandler,
+                                                  generateKeyPairCallbackHandler,
                                                   generateReceiveAddressesCallbackHandler,
                                                   generateChangeAddressesCallbackHandler,
                                                   funding,

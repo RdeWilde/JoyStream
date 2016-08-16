@@ -388,7 +388,7 @@ void TorrentPlugin::toObserveMode() {
     _session.toObserveMode(removeConnection());
 }
 
-void TorrentPlugin::toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+void TorrentPlugin::toSellMode(const protocol_session::GenerateP2SHKeyPairCallbackHandler &generateKeyPairCallbackHandler,
                                const protocol_session::GenerateReceiveAddressesCallbackHandler & generateReceiveAddressesCallbackHandler,
                                const protocol_session::SellingPolicy & policy,
                                const protocol_wire::SellerTerms & terms) {
@@ -405,7 +405,7 @@ void TorrentPlugin::toSellMode(const protocol_session::GenerateKeyPairsCallbackH
     int maxPieceIndex = torrent()->picker().num_pieces() - 1;
 
     _session.toSellMode(removeConnection(),
-                        generateKeyPairsCallbackHandler,
+                        generateKeyPairCallbackHandler,
                         generateReceiveAddressesCallbackHandler,
                         loadPieceForBuyer(),
                         claimLastPayment(),
@@ -415,7 +415,7 @@ void TorrentPlugin::toSellMode(const protocol_session::GenerateKeyPairsCallbackH
                         maxPieceIndex);
 }
 
-void TorrentPlugin::toBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+void TorrentPlugin::toBuyMode(const protocol_session::GenerateP2SHKeyPairCallbackHandler & generateKeyPairCallbackHandler,
                               const protocol_session::GenerateReceiveAddressesCallbackHandler & generateReceiveAddressesCallbackHandler,
                               const protocol_session::GenerateChangeAddressesCallbackHandler & generateChangeAddressesCallbackHandler,
                               const Coin::UnspentOutputSet & funding,
@@ -431,7 +431,7 @@ void TorrentPlugin::toBuyMode(const protocol_session::GenerateKeyPairsCallbackHa
         _outstandingLoadPieceForBuyerCalls.clear();
 
     _session.toBuyMode(removeConnection(),
-                       generateKeyPairsCallbackHandler,
+                       generateKeyPairCallbackHandler,
                        generateReceiveAddressesCallbackHandler,
                        generateChangeAddressesCallbackHandler,
                        broadcastTransaction(),

@@ -122,13 +122,13 @@ public:
     void toObserveMode();
 
     // Transition to sell mode
-    void toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+    void toSellMode(const protocol_session::GenerateP2SHKeyPairCallbackHandler &generateKeyPairCallbackHandler,
                     const protocol_session::GenerateReceiveAddressesCallbackHandler &generateReceiveAddressesCallbackHandler,
                     const protocol_session::SellingPolicy & policy,
                     const protocol_wire::SellerTerms & terms);
 
     // Transition to buy mode
-    void toBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
+    void toBuyMode(const protocol_session::GenerateP2SHKeyPairCallbackHandler & generateKeyPairCallbackHandler,
                    const protocol_session::GenerateReceiveAddressesCallbackHandler & generateReceiveAddressesCallbackHandler,
                    const protocol_session::GenerateChangeAddressesCallbackHandler & generateChangeAddressesCallbackHandler,
                    const Coin::UnspentOutputSet &funding,

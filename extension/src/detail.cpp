@@ -71,7 +71,7 @@ void RequestVariantVisitor::operator()(const request::ToObserveMode & r) {
 void RequestVariantVisitor::operator()(const request::ToSellMode & r) {
 
     auto e = runTorrentPluginRequest(r.infoHash, [r](const boost::shared_ptr<TorrentPlugin> & plugin) {
-        plugin->toSellMode(r.generateKeyPairsCallbackHandler,
+        plugin->toSellMode(r.generateKeyPairCallbackHandler,
                            r.generateReceiveAddressesCallbackHandler,
                            r.sellingPolicy,
                            r.terms);
@@ -83,7 +83,7 @@ void RequestVariantVisitor::operator()(const request::ToSellMode & r) {
 void RequestVariantVisitor::operator()(const request::ToBuyMode & r) {
 
     auto e = runTorrentPluginRequest(r.infoHash, [r](const boost::shared_ptr<TorrentPlugin> & plugin) {
-        plugin->toBuyMode(r.generateKeyPairsCallbackHandler,
+        plugin->toBuyMode(r.generateKeyPairCallbackHandler,
                           r.generateReceiveAddressesCallbackHandler,
                           r.generateChangeAddressesCallbackHandler,
                           r.funding,
