@@ -9,12 +9,20 @@
 #define JOYSTREAM_CORE_CONNECTION_HPP
 
 #include <libtorrent/socket_io.hpp>
-#include <protocol_session/protocol_session.hpp>
 
 #include <QObject>
 
 namespace joystream {
+namespace protocol_session {
+namespace status {
+    template <class ConnectionIdType>
+    struct Connection;
+}
+}
+
 namespace core {
+
+class CBStateMachine;
 
 class Connection : public QObject {
 
@@ -28,11 +36,9 @@ public:
 
     libtorrent::tcp::endpoint connectionId() const noexcept;
 
-    protocol_statemachine::AnnouncedModeAndTerms announcedModeAndTermsFromPeer() const noexcept;
+    std::shared_ptr<CBStateMachine> machine() const noexcept;
 
 signals:
-
-    void announcedModeAndTermsFromPeerChanged(const protocol_statemachine::AnnouncedModeAndTerms &);
 
 private:
 
@@ -43,28 +49,8 @@ private:
     // Connection id
     libtorrent::tcp::endpoint _connectionId;
 
-    //// Peer state
-
-    protocol_statemachine::AnnouncedModeAndTerms _announcedModeAndTermsFromPeer;
-
-    //// Buyer Client state
-
-    // Payor side of payment channel interaction
-    //paymentchannel::Payor _payor;
-
-    //// Seller Client state
-
-    // Payee side of payment channel interaction
-    //paymentchannel::Payee _payee;
-
-    //// Buyer
-
-    // Indexes of valid piecesm, in the order they were downloaded
-    // NB: The reason this is not in Seller, is because
-    // any peer can potentially provide valid pieces
-    //std::queue<uint32_t> _downloadedValidPieces;
-
-    //// Selling
+    // State machine for this connection
+    std::shared_ptr<CBStateMachine> _machine;
 
 };
 

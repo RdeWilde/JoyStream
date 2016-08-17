@@ -6,30 +6,27 @@
  */
 
 #include <core/Connection.hpp>
+#include <core/CBStateMachine.hpp>
+#include <protocol_session/protocol_session.hpp>
 
 namespace joystream {
 namespace core {
 
 Connection::Connection(const protocol_session::status::Connection<libtorrent::tcp::endpoint> & status)
     : _connectionId(status.connectionId)
-    , _announcedModeAndTermsFromPeer(status.machine.announcedModeAndTermsFromPeer) {
+    , _machine(new CBStateMachine(status.machine)) {
 }
 
 libtorrent::tcp::endpoint Connection::connectionId() const noexcept {
     return _connectionId;
 }
 
-protocol_statemachine::AnnouncedModeAndTerms Connection::announcedModeAndTermsFromPeer() const noexcept {
-    return _announcedModeAndTermsFromPeer;
+std::shared_ptr<CBStateMachine> Connection::machine() const noexcept {
+    return _machine;
 }
 
 void Connection::update(const protocol_session::status::Connection<libtorrent::tcp::endpoint> & status) {
-
-    if(_announcedModeAndTermsFromPeer != status.machine.announcedModeAndTermsFromPeer) {
-
-        _announcedModeAndTermsFromPeer = status.machine.announcedModeAndTermsFromPeer;
-        emit announcedModeAndTermsFromPeerChanged(_announcedModeAndTermsFromPeer);
-    }
+    _machine->update(status.machine);
 }
 
 }
