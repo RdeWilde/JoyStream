@@ -35,7 +35,10 @@ HEADERS += \
     include/core/Selling.hpp \
     include/core/Buying.hpp \
     include/core/Seller.hpp \
-    include/core/TorrentIdentifier.hpp
+    include/core/TorrentIdentifier.hpp \
+    include/core/CBStateMachine.hpp \
+    include/core/Payor.hpp \
+    include/core/Payee.hpp
 
 SOURCES += \
     #src/Stream.cpp \
@@ -51,7 +54,10 @@ SOURCES += \
     src/Buying.cpp \
     src/Seller.cpp \
     src/Connection.cpp \
-    src/TorrentIdentifier.cpp
+    src/TorrentIdentifier.cpp \
+    src/Payor.cpp \
+    src/Payee.cpp \
+    src/CBStateMachine.cpp
 
 # extension
 INCLUDEPATH += $$PWD/../extension/include
