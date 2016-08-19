@@ -139,10 +139,7 @@ void Torrent::updateStatus(const libtorrent::torrent_status & status) {
     assert(_status.info_hash == status.info_hash);
 
     if(_status.state != status.state)
-        emit stateChanged(status.state);
-
-    if(_status.progress != status.progress)
-        emit progressChanged(status.progress);
+        emit stateChanged(status.state, status.progress);
 
     if(_status.total_download != status.total_download)
         emit downloadRateChanged(status.total_download);
@@ -150,8 +147,7 @@ void Torrent::updateStatus(const libtorrent::torrent_status & status) {
     if(_status.total_upload != status.total_upload)
         emit uploadRateChanged(status.total_upload);
 
-    if(_status.paused != status.paused)
-        emit pausedChanged(status.paused);
+    updatePaused(status.paused);
 
     _status = status;
 }

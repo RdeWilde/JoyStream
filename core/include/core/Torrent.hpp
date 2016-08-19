@@ -104,9 +104,7 @@ signals:
     // receives it from peers
     void metadataReady();
 
-    void stateChanged(libtorrent::torrent_status::state_t);
-
-    void progressChanged(float);
+    void stateChanged(libtorrent::torrent_status::state_t state, float progress);
 
     void downloadRateChanged(int);
 
