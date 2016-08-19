@@ -142,9 +142,7 @@ private:
 
     void updateDownloadLimit(int);
 
-    void paused();
-
-    void resumed();
+    void updatePaused(bool);
 
     void setResumeDataGenerationResult(const std::vector<char> &);
 

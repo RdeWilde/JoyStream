@@ -210,24 +210,14 @@ void Torrent::updateDownloadLimit(int downloadLimit) {
     _downloadLimit = downloadLimit;
 }
 
-void Torrent::paused() {
+void Torrent::updatePaused(bool paused) {
 
-    assert(!_status.paused);
+    if(_status.paused != paused) {
 
-    if(!_status.paused)
-        emit pausedChanged(true);
+        emit pausedChanged(paused);
 
-    _status.paused = true;
-}
-
-void Torrent::resumed() {
-
-    assert(_status.paused);
-
-    if(_status.paused)
-        emit pausedChanged(false);
-
-    _status.paused = false;
+        _status.paused = paused;
+    }
 }
 
 void Torrent::setResumeDataGenerationResult(const std::vector<char> & resumeData) {
