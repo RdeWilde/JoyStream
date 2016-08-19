@@ -72,7 +72,8 @@ FORMS += \
     ui/ReceiveFundsDialog.ui \
     ui/MediaPlayerDialog.ui \
     ui/FundingWalletProgressDialog.ui \
-    ui/GeneralLoadingProgressDialog.ui
+    ui/GeneralLoadingProgressDialog.ui \
+    ui/BuyingModeSessionWidget.ui
 
 RESOURCES += \
     base.qrc
