@@ -82,7 +82,7 @@ int Torrent::uploadRate() const noexcept {
     return _status.upload_rate;
 }
 
-bool Torrent::paused() const noexcept {
+bool Torrent::isPaused() const noexcept {
     return _status.paused;
 }
 
