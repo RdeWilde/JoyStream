@@ -464,7 +464,7 @@ void Node::process(const libtorrent::torrent_paused_alert * p) {
         auto it = _torrents.find(infoHash);
         assert(it != _torrents.cend());
 
-        it->second->paused();
+        it->second->updatePaused(true);
     }
 }
 
@@ -499,7 +499,7 @@ void Node::process(const libtorrent::torrent_resumed_alert * p) {
         assert(it != _torrents.cend());
 
         // then mark as resmed
-        it->second->resumed();
+        it->second->updatePaused(false);
     }
 
 }
