@@ -37,7 +37,9 @@ SOURCES += \
     src/MediaPlayerDialog.cpp \
     src/FundingWalletProgressDialog.cpp \
     src/GeneralLoadingProgressDialog.cpp \
-    src/Torrent.cpp
+    src/TorrentContextMenu.cpp \
+    src/TorrentTreeViewRow.cpp \
+    src/Language.cpp
 
 HEADERS += \
     include/gui/MainWindow.hpp \
@@ -55,7 +57,9 @@ HEADERS += \
     include/gui/MediaPlayerDialog.hpp \
     include/gui/FundingWalletProgressDialog.hpp \
     include/gui/GeneralLoadingProgressDialog.hpp \
-    include/gui/Torrent.hpp
+    include/gui/TorrentContextMenu.hpp \
+    include/gui/TorrentTreeViewRow.hpp \
+    include/gui/Language.hpp
 
 FORMS += \
     ui/SellerTorrentPluginConfigurationDialog.ui \
