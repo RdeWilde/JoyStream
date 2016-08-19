@@ -82,7 +82,7 @@ public:
 
     int uploadRate() const noexcept;
 
-    bool paused() const noexcept;
+    bool isPaused() const noexcept;
 
     int uploadLimit() const noexcept;
 
