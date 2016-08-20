@@ -12,10 +12,12 @@
 
 #include <QObject>
 
+#include <typeindex>
+
 namespace joystream {
 namespace protocol_session {
 namespace status {
-    class CBStateMachine;
+    struct CBStateMachine;
 }
 }
 namespace core {
@@ -33,6 +35,8 @@ private:
 
 public:
 
+    std::type_index innerStateTypeIndex() const noexcept;
+
     protocol_statemachine::AnnouncedModeAndTerms announcedModeAndTermsFromPeer() const noexcept;
 
     std::shared_ptr<Payor> payor() const noexcept;
@@ -43,11 +47,15 @@ signals:
 
     void announcedModeAndTermsFromPeerChanged(const protocol_statemachine::AnnouncedModeAndTerms &);
 
+    void innerStateTypeIndexChanged(const std::type_index &);
+
 private:
 
     friend class Connection;
 
     void update(const protocol_session::status::CBStateMachine &);
+
+    std::type_index _innerStateTypeIndex;
 
     //// Peer state
     protocol_statemachine::AnnouncedModeAndTerms _announcedModeAndTermsFromPeer;
