@@ -16,6 +16,7 @@
 #include <boost/statechart/state_machine.hpp>
 
 #include <deque>
+#include <typeindex>
 
 namespace sc = boost::statechart;
 
@@ -116,8 +117,8 @@ namespace protocol_statemachine {
         template<typename T>
         bool inState() const;
 
-        // Get name of current state: ***Varies from compiler to compiler***
-        const char * getInnerStateName() const;
+        // Type index of innermost currently active state
+        std::type_index getInnerStateTypeIndex() const noexcept;
 
         // Mode of client
         ModeAnnounced clientMode() const;
