@@ -27,15 +27,21 @@ namespace status {
 
     struct CBStateMachine {
 
-        CBStateMachine() {}
+        CBStateMachine()
+            : innerStateTypeIndex(typeid(protocol_statemachine::ChooseMode)) {}
 
-        CBStateMachine(const protocol_statemachine::AnnouncedModeAndTerms & announcedModeAndTermsFromPeer,
+        CBStateMachine(const std::type_index & innerStateTypeIndex,
+                       const protocol_statemachine::AnnouncedModeAndTerms & announcedModeAndTermsFromPeer,
                        const paymentchannel::Payor & payor,
                        const paymentchannel::Payee & payee)
-            : announcedModeAndTermsFromPeer(announcedModeAndTermsFromPeer)
+            : innerStateTypeIndex(innerStateTypeIndex)
+            , announcedModeAndTermsFromPeer(announcedModeAndTermsFromPeer)
             , payor(payor)
             , payee(payee) {
         }
+
+        // Type index of innermost currently active state
+        std::type_index innerStateTypeIndex;
 
         //// Peer state
 

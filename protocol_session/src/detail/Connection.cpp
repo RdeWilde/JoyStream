@@ -142,7 +142,8 @@ namespace detail {
     template <class ConnectionIdType>
     typename status::Connection<ConnectionIdType> Connection<ConnectionIdType>::status() const {
         return status::Connection<ConnectionIdType>(_connectionId,
-                                                    status::CBStateMachine(_machine.announcedModeAndTermsFromPeer(),
+                                                    status::CBStateMachine(_machine.getInnerStateTypeIndex(),
+                                                                           _machine.announcedModeAndTermsFromPeer(),
                                                                            _machine.payor(),
                                                                            _machine.payee()),
                                                     _downloadedValidPieces);

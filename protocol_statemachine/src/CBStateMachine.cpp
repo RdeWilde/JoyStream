@@ -100,7 +100,7 @@ namespace protocol_statemachine {
         assert(false);
     }
 
-    const char * CBStateMachine::getInnerStateName() const {
+    std::type_index CBStateMachine::getInnerStateTypeIndex() const noexcept {
 
         // We assume there is only one type which is active in any
         // in the state machine.
@@ -112,7 +112,7 @@ namespace protocol_statemachine {
         // Get type info
         // The following use of typeid assumes that
         // BOOST_STATECHART_USE_NATIVE_RTTI is defined
-        return typeid(*(this->state_begin())).name();
+        return typeid(*(this->state_begin()));
     }
 
     void CBStateMachine::peerToObserveMode() {
