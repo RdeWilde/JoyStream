@@ -5,7 +5,7 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 19 2016
  */
 
-#include <gui/TorrentTreeViewRow.hpp>
+#include <gui/TorrentTableViewRow.hpp>
 #include <gui/Language.hpp>
 #include <core/core.hpp>
 #include <common/DataSizeRepresentation.hpp>
@@ -18,7 +18,7 @@ namespace joystream {
 namespace classic {
 namespace gui {
 
-TorrentTreeViewRow * TorrentTreeViewRow::create(QStandardItemModel * itemModel,
+TorrentTableViewRow * TorrentTableViewRow::create(QStandardItemModel * itemModel,
                                                 const std::shared_ptr<core::Torrent> & torrentModel,
                                                 const BitcoinDisplaySettings * settings) {
 
@@ -71,7 +71,7 @@ TorrentTreeViewRow * TorrentTreeViewRow::create(QStandardItemModel * itemModel,
     itemModel->appendRow(items);
 
     // Create torrent view model
-    TorrentTreeViewRow * torrentTreeViewRow = new TorrentTreeViewRow(itemModel,
+    TorrentTableViewRow * torrentTreeViewRow = new TorrentTableViewRow(itemModel,
                                                                      settings,
                                                                      nameItem,
                                                                      sizeItem,
@@ -126,7 +126,7 @@ TorrentTreeViewRow * TorrentTreeViewRow::create(QStandardItemModel * itemModel,
     return torrentTreeViewRow;
 }
 
-TorrentTreeViewRow::TorrentTreeViewRow(QObject * parent,
+TorrentTableViewRow::TorrentTableViewRow(QObject * parent,
                                        const BitcoinDisplaySettings * settings,
                                        QStandardItem * nameItem,
                                        QStandardItem * sizeItem,
@@ -151,19 +151,19 @@ TorrentTreeViewRow::TorrentTreeViewRow(QObject * parent,
 }
 
 
-void TorrentTreeViewRow::setName(const std::string & name) {
+void TorrentTableViewRow::setName(const std::string & name) {
     _nameItem->setText(QString::fromStdString(name));
 }
 
-void TorrentTreeViewRow::setSize(qint64 totalSize) {
+void TorrentTableViewRow::setSize(qint64 totalSize) {
     _sizeItem->setText(DataSizeRepresentation(totalSize, DataSizeRepresentation::Base::Byte).toString());
 }
 
-void TorrentTreeViewRow::setState(libtorrent::torrent_status::state_t state, float progress) {
+void TorrentTableViewRow::setState(libtorrent::torrent_status::state_t state, float progress) {
     _stateItem->setText(Language::toString(state, progress));
 }
 
-void TorrentTreeViewRow::setPaused(bool paused) {
+void TorrentTableViewRow::setPaused(bool paused) {
 
     if(paused)
         _stateItem->setText(tr("Paused"));
@@ -171,31 +171,31 @@ void TorrentTreeViewRow::setPaused(bool paused) {
         _stateItem->setText(tr("Resuming")); // we must get old state refershed, so lets just wait for new state update
 }
 
-void TorrentTreeViewRow::setUploadSpeed(int speed) {
+void TorrentTableViewRow::setUploadSpeed(int speed) {
     _uploadSpeedItem->setText(DataSizeRepresentation(speed, DataSizeRepresentation::Base::Byte).toString() + "/s");
 }
 
-void TorrentTreeViewRow::setDownloadSpeed(int speed) {
+void TorrentTableViewRow::setDownloadSpeed(int speed) {
     _downloadSpeedItem->setText(DataSizeRepresentation(speed, DataSizeRepresentation::Base::Byte).toString() + "/s");
 }
 
-void TorrentTreeViewRow::setNumberOfBuyers(quint32 num) {
+void TorrentTableViewRow::setNumberOfBuyers(quint32 num) {
     _numberOfBuyerPeersItem->setText(QString::number(num));
 }
 
-void TorrentTreeViewRow::setNumberOfSellers(quint32 num) {
+void TorrentTableViewRow::setNumberOfSellers(quint32 num) {
     _numberOfSellerPeersitem->setText(QString::number(num));
 }
 
-void TorrentTreeViewRow::setSessionMode(protocol_session::SessionMode mode) {
+void TorrentTableViewRow::setSessionMode(protocol_session::SessionMode mode) {
     _sessionModeItem->setText(Language::toString(mode));
 }
 
-void TorrentTreeViewRow::setBalance(qint64 balance) {
+void TorrentTableViewRow::setBalance(qint64 balance) {
     _balanceItem->setText(BitcoinRepresentation(balance).toString(_settings));
 }
 
-void TorrentTreeViewRow::setTorrentPluginPresent(const std::weak_ptr<core::TorrentPlugin> & p) {
+void TorrentTableViewRow::setTorrentPluginPresent(const std::weak_ptr<core::TorrentPlugin> & p) {
 
     if(std::shared_ptr<core::TorrentPlugin> plugin = p.lock()) {
 
@@ -270,7 +270,7 @@ void TorrentTreeViewRow::setTorrentPluginPresent(const std::weak_ptr<core::Torre
         std::clog << "Ignoring torrent plugin creation announcement, already expired!" << std::endl;
 }
 
-void TorrentTreeViewRow::setTorrentPluginAbsent() {
+void TorrentTableViewRow::setTorrentPluginAbsent() {
 
     _numberOfBuyerPeersItem->setText("-");
     _numberOfSellerPeersitem->setText("-");
@@ -281,7 +281,7 @@ void TorrentTreeViewRow::setTorrentPluginAbsent() {
 
 }
 
-void TorrentTreeViewRow::updateBalance(const core::Session * session) {
+void TorrentTableViewRow::updateBalance(const core::Session * session) {
 
     if(session->mode() == protocol_session::SessionMode::buying)
         setBalance(getBalanceInBuyingMode(session));
@@ -291,7 +291,7 @@ void TorrentTreeViewRow::updateBalance(const core::Session * session) {
         setBalance(0);
 }
 
-int64_t TorrentTreeViewRow::getBalanceInBuyingMode(const core::Session * session) {
+int64_t TorrentTableViewRow::getBalanceInBuyingMode(const core::Session * session) {
 
     int64_t balance = 0;
 
@@ -312,7 +312,7 @@ int64_t TorrentTreeViewRow::getBalanceInBuyingMode(const core::Session * session
     return balance;
 }
 
-int64_t TorrentTreeViewRow::getBalanceInSellingMode(const core::Session * session) {
+int64_t TorrentTableViewRow::getBalanceInSellingMode(const core::Session * session) {
 
     int64_t balance = 0;
 

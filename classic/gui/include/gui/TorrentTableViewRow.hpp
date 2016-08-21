@@ -5,8 +5,8 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 19 2016
  */
 
-#ifndef JOYSTREAM_CLASSIC_GUI_TORRENTTREEVIEWROW_HPP
-#define JOYSTREAM_CLASSIC_GUI_TORRENTTREEVIEWROW_HPP
+#ifndef JOYSTREAM_CLASSIC_GUI_TORRENTTABLEVIEWROW_HPP
+#define JOYSTREAM_CLASSIC_GUI_TORRENTTABLEVIEWROW_HPP
 
 #include <libtorrent/torrent_status.hpp>
 
@@ -30,17 +30,17 @@ namespace core {
 namespace classic {
 namespace gui {
 
-class TorrentTreeViewRow : public QObject {
+class TorrentTableViewRow : public QObject {
 
     Q_OBJECT
 
 public:
 
-    static TorrentTreeViewRow * create(QStandardItemModel * model,
+    static TorrentTableViewRow * create(QStandardItemModel * model,
                                        const std::shared_ptr<core::Torrent> & torrentModel,
                                        const BitcoinDisplaySettings * settings);
 
-    TorrentTreeViewRow(QObject * parent,
+    TorrentTableViewRow(QObject * parent,
                        const BitcoinDisplaySettings * settings,
                        QStandardItem * nameItem,
                        QStandardItem * sizeItem,
@@ -112,5 +112,5 @@ private:
 }
 }
 
-#endif // JOYSTREAM_CLASSIC_GUI_TORRENTTREEVIEWROW_HPP
+#endif // JOYSTREAM_CLASSIC_GUI_TORRENTTABLEVIEWROW_HPP
 
