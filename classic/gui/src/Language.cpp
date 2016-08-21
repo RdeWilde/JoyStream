@@ -81,6 +81,18 @@ QString Language::toString(protocol_session::SessionMode mode) {
     }
 }
 
+static QString Language::toString(const protocol_session::BuyingState & state) {
+
+    switch(state) {
+        case protocol_session::BuyingState::downloading: return QObject::tr("Downloading");
+        case protocol_session::BuyingState::download_completed: return QObject::tr("Downloading completed");
+        case protocol_session::BuyingState::sending_invitations: return QObject::tr("Sending invitations");
+        default:
+        assert(false);
+    }
+
+}
+
 }
 }
 }

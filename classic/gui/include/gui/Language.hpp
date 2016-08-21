@@ -15,6 +15,7 @@
 namespace joystream {
 namespace protocol_session {
     enum class SessionMode;
+    class BuyingState;
 }
 namespace classic {
 namespace gui {
@@ -25,6 +26,7 @@ public:
 
     static QString toString(const libtorrent::torrent_status::state_t & state, float progress);
     static QString toString(protocol_session::SessionMode mode);
+    static QString toString(const protocol_session::BuyingState & state);
 
 };
 
