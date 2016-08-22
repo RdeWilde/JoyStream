@@ -8,6 +8,8 @@
 #ifndef JOYSTREAM_CORE_PAYEE_HPP
 #define JOYSTREAM_CORE_PAYEE_HPP
 
+#include <common/typesafeOutPoint.hpp>
+
 #include <QObject>
 
 namespace joystream {
@@ -41,6 +43,9 @@ public:
     // Amount (#satoshies) used in fee for settlement
     quint64 settlementFee() const noexcept;
 
+    // Contract outpoint from which payments originate
+    Coin::typesafeOutPoint anchor() const noexcept;
+
 signals:
 
     // Changed the number of payments which have been successfully made
@@ -57,6 +62,9 @@ signals:
 
     // Cahnged amount (#satoshies) used in fee for settlement
     void settlementFeeChanged(quint64);
+
+    // Contract outpoint from which payments originate
+    void anchorChanged(const Coin::typesafeOutPoint &);
 
 private:
 
@@ -78,6 +86,9 @@ private:
 
     // Amount (#satoshies) used in fee for settlement
     quint64 _settlementFee;
+
+    // Contract outpoint from which payments originate
+    Coin::typesafeOutPoint _anchor;
 };
 
 }

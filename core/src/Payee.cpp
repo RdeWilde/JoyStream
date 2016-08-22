@@ -39,6 +39,10 @@ quint64 Payee::settlementFee() const noexcept {
     return _settlementFee;
 }
 
+Coin::typesafeOutPoint Payee::anchor() const noexcept {
+    return _anchor;
+}
+
 void Payee::update(const paymentchannel::Payee & payee) {
 
     if(_numberOfPaymentsMade != payee.numberOfPaymentsMade()) {
@@ -64,6 +68,11 @@ void Payee::update(const paymentchannel::Payee & payee) {
     if(_settlementFee != payee.settlementFee()) {
         _settlementFee = payee.settlementFee();
         emit settlementFeeChanged(_settlementFee);
+    }
+
+    if(_anchor != payee.contractOutPoint()) {
+        _anchor = payee.contractOutPoint();
+        emit anchorChanged(_anchor);
     }
 }
 
