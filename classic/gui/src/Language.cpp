@@ -81,7 +81,7 @@ QString Language::toString(protocol_session::SessionMode mode) {
     }
 }
 
-static QString Language::toString(const protocol_session::BuyingState & state) {
+QString Language::toString(const protocol_session::BuyingState & state) {
 
     switch(state) {
         case protocol_session::BuyingState::downloading: return QObject::tr("Downloading");
@@ -90,6 +90,49 @@ static QString Language::toString(const protocol_session::BuyingState & state) {
         default:
         assert(false);
     }
+
+}
+
+QString Language::toString(const std::type_index & index) {
+
+    // not set state
+    if(index == typeid(protocol_statemachine::ChooseMode))
+        return "Choose mode";
+
+    // **observe state**
+    else if(index == typeid(protocol_statemachine::Observing))
+        return "Observing";
+
+    // **selling state**
+    else if(index == typeid(protocol_statemachine::ReadyForInvitation))
+        return "Ready for invitation";
+    else if(index == typeid(protocol_statemachine::Invited))
+        return "Invited";
+    else if(index == typeid(protocol_statemachine::WaitingToStart))
+        return "Waiting to start";
+    else if(index == typeid(protocol_statemachine::ReadyForPieceRequest))
+        return "Ready for piece request";
+    else if(index == typeid(protocol_statemachine::LoadingPiece))
+        return "Loading piece";
+
+    // **buying state**
+
+    else if(index == typeid(protocol_statemachine::ReadyToInviteSeller))
+        return "Ready to invite seller";
+    else if(index == typeid(protocol_statemachine::WaitingForSellerToJoin))
+        return "Waiting for seller to join";
+    else if(index == typeid(protocol_statemachine::PreparingContract))
+        return "Preparing contract";
+    else if(index == typeid(protocol_statemachine::ReadyToRequestPiece))
+        return "Ready to request piece";
+    else if(index == typeid(protocol_statemachine::WaitingForFullPiece))
+        return "Waiting for full piece";
+    else if(index == typeid(protocol_statemachine::WaitingForFullPiece))
+        return "Waiting for full piece";
+    else if(index == typeid(protocol_statemachine::ProcessingPiece))
+        return "Processing piece";
+    else
+        assert(false);
 
 }
 
