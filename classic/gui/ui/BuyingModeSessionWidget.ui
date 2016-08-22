@@ -6,139 +6,232 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>401</width>
-    <height>441</height>
+    <width>621</width>
+    <height>331</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QLabel" name="StateTitleLabel">
+  <widget class="QTabWidget" name="tabWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>67</width>
-     <height>17</height>
+     <width>601</width>
+     <height>311</height>
     </rect>
    </property>
-   <property name="text">
-    <string>State:</string>
+   <property name="currentIndex">
+    <number>1</number>
    </property>
-  </widget>
-  <widget class="QLabel" name="StateValueLabel">
-   <property name="geometry">
-    <rect>
-     <x>120</x>
-     <y>10</y>
-     <width>171</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>&lt;buying mode state&gt;</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="ContractTxIdTitleLabel">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>30</y>
-     <width>111</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Contract TxId:</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="ContractTxIdValueLabel">
-   <property name="geometry">
-    <rect>
-     <x>120</x>
-     <y>30</y>
-     <width>171</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>&lt;txid&gt;</string>
-   </property>
-  </widget>
-  <widget class="QGroupBox" name="TermsGroupBox">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>70</y>
-     <width>371</width>
-     <height>131</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>Terms</string>
-   </property>
-   <widget class="QLabel" name="ContractTxIdTitleLabel_2">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>30</y>
-      <width>191</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Max price/piece (satoshies):</string>
-    </property>
+   <widget class="QWidget" name="tab">
+    <attribute name="title">
+     <string>State</string>
+    </attribute>
+    <widget class="QLabel" name="contractTxIdValueLabel">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>30</y>
+       <width>171</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&lt;txid&gt;</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="StateTitleLabel">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>67</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>State:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="ContractTxIdTitleLabel">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>111</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Contract TxId:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="stateValueLabel">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>10</y>
+       <width>171</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&lt;buying mode state&gt;</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="SellersListTitleLabel">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>60</y>
+       <width>111</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Sellers:</string>
+     </property>
+    </widget>
+    <widget class="QTreeView" name="sellersTableView">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>81</y>
+       <width>571</width>
+       <height>181</height>
+      </rect>
+     </property>
+    </widget>
    </widget>
-   <widget class="QLabel" name="ContractTxIdTitleLabel_3">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>60</y>
-      <width>191</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Max refund delay:</string>
-    </property>
+   <widget class="QWidget" name="tab_2">
+    <attribute name="title">
+     <string>Terms</string>
+    </attribute>
+    <widget class="QLabel" name="MaxPriceTitleLabel">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>201</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Maximum price/piece (sats):</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="maxRefundDelayTitleLabel">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>191</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Maximum refund delay (s):</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="maxContractFeePrKbTitleLabel">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>70</y>
+       <width>231</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Maximum contract fee (sats/Kb):</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="maxPriceValueLabel">
+     <property name="geometry">
+      <rect>
+       <x>280</x>
+       <y>10</y>
+       <width>71</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&lt;price&gt;</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="maxContractFeePrKbValueLabel">
+     <property name="geometry">
+      <rect>
+       <x>280</x>
+       <y>70</y>
+       <width>71</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&lt;fee&gt;</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="minNumberOfSellersTitleLabel">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>100</y>
+       <width>201</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Minimum number of sellers:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="maxRefundDelayValueLabel">
+     <property name="geometry">
+      <rect>
+       <x>280</x>
+       <y>40</y>
+       <width>71</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&lt;delay&gt;</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="minNumberOfSellersValueLabel">
+     <property name="geometry">
+      <rect>
+       <x>280</x>
+       <y>100</y>
+       <width>71</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&lt;#sellers&gt;</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="updateTermsPushButton">
+     <property name="geometry">
+      <rect>
+       <x>280</x>
+       <y>140</y>
+       <width>113</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Update</string>
+     </property>
+    </widget>
    </widget>
-   <widget class="QLabel" name="ContractTxIdTitleLabel_4">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>90</y>
-      <width>201</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Maximum number of sellers:</string>
-    </property>
+   <widget class="QWidget" name="tab_3">
+    <attribute name="title">
+     <string>Policy</string>
+    </attribute>
    </widget>
-  </widget>
-  <widget class="QTreeView" name="SellersTreeView">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>240</y>
-     <width>381</width>
-     <height>192</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="SellersListTitleLabel">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>210</y>
-     <width>111</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Sellers:</string>
-   </property>
   </widget>
  </widget>
  <resources/>
