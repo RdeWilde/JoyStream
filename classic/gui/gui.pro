@@ -38,8 +38,10 @@ SOURCES += \
     src/FundingWalletProgressDialog.cpp \
     src/GeneralLoadingProgressDialog.cpp \
     src/TorrentContextMenu.cpp \
-    src/TorrentTreeViewRow.cpp \
-    src/Language.cpp
+    src/Language.cpp \
+    src/SellingModeSessionWidget.cpp \
+    src/BuyingModeSessionWidget.cpp \
+    src/TorrentTableViewRow.cpp
 
 HEADERS += \
     include/gui/MainWindow.hpp \
@@ -58,8 +60,10 @@ HEADERS += \
     include/gui/FundingWalletProgressDialog.hpp \
     include/gui/GeneralLoadingProgressDialog.hpp \
     include/gui/TorrentContextMenu.hpp \
-    include/gui/TorrentTreeViewRow.hpp \
-    include/gui/Language.hpp
+    include/gui/Language.hpp \
+    include/gui/SellingModeSessionWidget.hpp \
+    include/gui/BuyingModeSessionWidget.hpp \
+    include/gui/TorrentTableViewRow.hpp
 
 FORMS += \
     ui/SellerTorrentPluginConfigurationDialog.ui \
@@ -73,7 +77,8 @@ FORMS += \
     ui/MediaPlayerDialog.ui \
     ui/FundingWalletProgressDialog.ui \
     ui/GeneralLoadingProgressDialog.ui \
-    ui/BuyingModeSessionWidget.ui
+    ui/BuyingModeSessionWidget.ui \
+    ui/SellingModeSessionWidget.ui
 
 RESOURCES += \
     base.qrc
