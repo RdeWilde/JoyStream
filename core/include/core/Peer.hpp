@@ -24,6 +24,10 @@ private:
 
 public:
 
+    libtorrent::tcp::endpoint endPoint() const noexcept;
+
+    std::string client();
+
     boost::int64_t total_download() const noexcept;
 
     boost::int64_t total_upload() const noexcept;
@@ -34,12 +38,13 @@ public:
 
 signals:
 
+    void clientChanged(std::string & client);
+
     void total_downloadChanged(boost::int64_t);
 
     void total_upload(boost::int64_t);
 
     void payload_up_speed(int);
-
 
     void payload_down_speed(int);
 
