@@ -25,13 +25,7 @@ SOURCES += \
     src/MainWindow.cpp \
     src/SellerTorrentPluginConfigurationDialog.cpp \
     src/BuyerTorrentPluginConfigurationDialog.cpp \
-    src/SellerTorrentPluginDialog.cpp \
-    src/BuyerTorrentPluginDialog.cpp \
     src/AddTorrentDialog.cpp \
-    src/ChannelView.cpp \
-    src/BuyerPeerPluginView.cpp \
-    src/SellerPeerPluginView.cpp \
-    src/PeerPluginsDialog.cpp \
     #src/UtxoEventViewModel.cpp \
     src/ReceiveFundsDialog.cpp \
     src/MediaPlayerDialog.cpp \
@@ -49,12 +43,6 @@ HEADERS += \
     include/gui/AddTorrentDialog.hpp \
     include/gui/SellerTorrentPluginConfigurationDialog.hpp \
     include/gui/BuyerTorrentPluginConfigurationDialog.hpp \
-    include/gui/PeerPluginsDialog.hpp \
-    include/gui/SellerTorrentPluginDialog.hpp \
-    include/gui/BuyerTorrentPluginDialog.hpp \
-    include/gui/ChannelView.hpp \
-    include/gui/BuyerPeerPluginView.hpp \
-    include/gui/SellerPeerPluginView.hpp \
     #include/gui/UtxoEventViewModel.hpp \
     include/gui/ReceiveFundsDialog.hpp \
     include/gui/MediaPlayerDialog.hpp \
@@ -70,9 +58,6 @@ HEADERS += \
 FORMS += \
     ui/SellerTorrentPluginConfigurationDialog.ui \
     ui/BuyerTorrentPluginConfigurationDialog.ui \
-    ui/PeerPluginsDialognsdialog.ui \
-    ui/SellerTorrentPluginDialog.ui \
-    ui/BuyerTorrentPluginDialog.ui \
     ui/MainWindow.ui \
     ui/AddTorrentDialog.ui \
     ui/ReceiveFundsDialog.ui \
