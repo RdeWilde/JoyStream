@@ -19,6 +19,9 @@ namespace protocol_session {
     enum class SessionMode;
     enum class BuyingState;
 }
+namespace extension {
+    enum class BEPSupportStatus;
+}
 namespace classic {
 namespace gui {
 
@@ -30,6 +33,7 @@ public:
     static QString toString(protocol_session::SessionMode mode);
     static QString toString(const protocol_session::BuyingState & state);
     static QString toString(const std::type_index & index);
+    static QString toString(const extension::BEPSupportStatus & status);
 
 };
 

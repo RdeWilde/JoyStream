@@ -8,6 +8,7 @@
 #include <gui/Language.hpp>
 
 #include <protocol_session/protocol_session.hpp>
+#include <extension/extension.hpp>
 
 #include <libtorrent/torrent_status.hpp>
 
@@ -133,6 +134,18 @@ QString Language::toString(const std::type_index & index) {
         return "Processing piece";
     else
         assert(false);
+
+}
+
+QString Language::toString(const extension::BEPSupportStatus & status) {
+
+    switch(status) {
+        case extension::BEPSupportStatus::not_supported: return tr("Not supported");
+        case extension::BEPSupportStatus::supported: return tr("Supported");
+        case extension::BEPSupportStatus::unknown: return tr("Unknown");
+        default:
+            assert(false);
+    }
 
 }
 
