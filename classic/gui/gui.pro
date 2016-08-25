@@ -36,7 +36,8 @@ SOURCES += \
     src/SellingModeSessionWidget.cpp \
     src/BuyingModeSessionWidget.cpp \
     src/TorrentTableViewRow.cpp \
-    src/SessionDialog.cpp
+    src/SessionDialog.cpp \
+    src/PeersDialog.cpp
 
 HEADERS += \
     include/gui/MainWindow.hpp \
@@ -53,7 +54,8 @@ HEADERS += \
     include/gui/SellingModeSessionWidget.hpp \
     include/gui/BuyingModeSessionWidget.hpp \
     include/gui/TorrentTableViewRow.hpp \
-    include/gui/SessionDialog.hpp
+    include/gui/SessionDialog.hpp \
+    include/gui/PeersDialog.hpp
 
 FORMS += \
     ui/SellerTorrentPluginConfigurationDialog.ui \
@@ -66,7 +68,8 @@ FORMS += \
     ui/GeneralLoadingProgressDialog.ui \
     ui/BuyingModeSessionWidget.ui \
     ui/SellingModeSessionWidget.ui \
-    ui/SessionDialog.ui
+    ui/SessionDialog.ui \
+    ui/PeersDialog.ui
 
 RESOURCES += \
     base.qrc

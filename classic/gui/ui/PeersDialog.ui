@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PeersDialog</class>
+ <widget class="QDialog" name="PeersDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>640</width>
+    <height>271</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <widget class="QTabWidget" name="tabWidget">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>621</width>
+     <height>251</height>
+    </rect>
+   </property>
+   <property name="currentIndex">
+    <number>0</number>
+   </property>
+   <widget class="QWidget" name="classic">
+    <attribute name="title">
+     <string>Classic</string>
+    </attribute>
+    <widget class="QTableView" name="allPeersTableView">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>596</width>
+       <height>197</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="BuyersTab">
+    <attribute name="title">
+     <string>Buyers</string>
+    </attribute>
+    <widget class="QTableView" name="buyersPeersTableView">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>596</width>
+       <height>197</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="SellersTab">
+    <attribute name="title">
+     <string>Sellers</string>
+    </attribute>
+    <widget class="QTableView" name="sellersPeersTableView">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>596</width>
+       <height>197</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="ObserversTab">
+    <attribute name="title">
+     <string>Observers</string>
+    </attribute>
+    <widget class="QTableView" name="observersPeersTableView">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>596</width>
+       <height>197</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
