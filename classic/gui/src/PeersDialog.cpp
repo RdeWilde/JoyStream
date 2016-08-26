@@ -495,6 +495,10 @@ PeersDialog::PeersDialog(QWidget * parent,
 PeersDialog::~PeersDialog()
 {
     delete ui;
+
+    // Clear all PeerRows
+    for(auto mapping : _endPointToPeerRows)
+        delete mapping.second;
 }
 
 void PeersDialog::addPeer(const std::weak_ptr<core::Peer> & p) {
