@@ -10,9 +10,13 @@
 
 #include "Fiat.hpp"
 
+#include <QObject>
+
 // Manages how an amount of bitcoin should be displayed, for now in text
-class BitcoinDisplaySettings
+class BitcoinDisplaySettings : public QObject
 {
+    Q_OBJECT
+
 public:
 
     enum class Currency {
@@ -38,6 +42,12 @@ public:
 
     int precision() const;
     void setPrecision(int value);
+
+signals:
+
+    // Settings changed, which is a useful signal for ui component to
+    // change display
+    void changed();
 
 private:
 

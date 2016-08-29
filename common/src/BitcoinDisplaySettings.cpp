@@ -24,6 +24,10 @@ BitcoinDisplaySettings::Currency BitcoinDisplaySettings::currency() const {
 }
 
 void BitcoinDisplaySettings::setCurrency(Currency currency) {
+
+    if(_currency != currency)
+        emit changed();
+
     _currency = currency;
 }
 
@@ -32,6 +36,10 @@ Fiat BitcoinDisplaySettings::fiat() const {
 }
 
 void BitcoinDisplaySettings::setFiat(Fiat fiat) {
+
+    if(_fiat != fiat)
+        emit changed();
+
     _fiat = fiat;
 }
 
@@ -40,6 +48,10 @@ float BitcoinDisplaySettings::rate() const {
 }
 
 void BitcoinDisplaySettings::setRate(float rate) {
+
+    if(_rate != rate)
+        emit changed();
+
     _rate = rate;
 }
 
@@ -47,7 +59,11 @@ int BitcoinDisplaySettings::precision() const {
     return _precision;
 }
 
-void BitcoinDisplaySettings::setPrecision(int value) {
-    _precision = value;
+void BitcoinDisplaySettings::setPrecision(int precision) {
+
+    if(_precision != precision)
+        emit changed();
+
+    _precision = precision;
 }
 
