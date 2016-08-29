@@ -46,6 +46,14 @@ namespace detail {
 
     public:
 
+        /**
+         * @brief Minimum funds required as buyer
+         * @param terms Terms that buyer side will have
+         * @param numberOfPieces Number of pieces to buy
+         * @return minimum Funds (#satoshies) required for buyer, with given terms, to fund contract
+         */
+        static int64_t minimumFundsRequiredAsBuyer(const protocol_wire::BuyerTerms & terms, int numberOfPieces);
+
         Session();
 
         ~Session();
