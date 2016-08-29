@@ -16,6 +16,7 @@ SUBDIRS     = \
             bitcoin \
             mixpanel \
             core \
+	    daemon \
             views \
             app \
             runner \
