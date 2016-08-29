@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package joystream.daemon.rpc;
+
+service Daemon {
+  rpc Pause(Void) returns (Void) {}
+  //rpc Resume(Void) returns (Void) {}
+
+  rpc GetEvents(Void) returns (stream Event) {}
+
+  rpc AddTorrent(Torrent) returns (TorrentState) {}
+  rpc RemoveTorrent(Torrent) returns (TorrentState) {}
+  rpc ListTorrents(Void) returns (stream Torrent) {}
+  rpc GetTorrentState (Torrent) returns (TorrentState) {}
+}
+
+message Void {
+
+}
+
+message Torrent {
+  string infohash = 1;
+}
+
+message TorrentState {
+  bool paused = 1;
+}
+
+message Event {
+  string name = 1;
+}
