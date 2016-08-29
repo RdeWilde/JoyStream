@@ -72,6 +72,16 @@ public:
     BitcoinRepresentation(MetricPrefix prefix, double fiatUnits, double fiatToBTCExchangeRate);
 
     /**
+     * Computes the significand for given prefix
+     */
+
+    // Number of units in given Bitcoin currency prefix
+    double unitsWithPrefix(BitCoinPrefix prefix) const;
+
+    // Number of units in given Fiat currency prefix
+    double unitsWithPrefix(MetricPrefix prefix, double fiatToBTCExchangeRate) const;
+
+    /**
      * Convert to QString routines
      */
 
@@ -107,10 +117,6 @@ private:
     // Returns best prefix
     BitCoinPrefix bestPrefix() const;
     MetricPrefix bestPrefix(double fiatToBTCExchangeRate) const;
-
-    // Computes the significand for given prefix
-    double unitsWithPrefix(BitCoinPrefix prefix) const;
-    double unitsWithPrefix(MetricPrefix prefix, double fiatToBTCExchangeRate) const;
 
     /**
      * To string conversion

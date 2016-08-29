@@ -96,6 +96,17 @@ BitcoinRepresentation::BitcoinRepresentation(MetricPrefix prefix, double fiatUni
     : BitcoinRepresentation(BitCoinPrefix::None, (pow(10, metricPrefixToPower[prefix]) * fiatUnits)/fiatToBTCExchangeRate){
 }
 
+double BitcoinRepresentation::unitsWithPrefix(BitCoinPrefix prefix) const {
+    return ((double)_satoshies) / pow(10, bitCoinPrefixToPower[prefix]);
+}
+
+double BitcoinRepresentation::unitsWithPrefix(MetricPrefix prefix, double fiatToBTCExchangeRate) const {
+
+    double totalAmountOfFiat = numberOfBTC() * fiatToBTCExchangeRate;
+
+    return totalAmountOfFiat / pow(10, metricPrefixToPower[prefix]);
+}
+
 BitcoinRepresentation::BitCoinPrefix BitcoinRepresentation::bestPrefix() const {
 
     // Get best exponent
@@ -160,17 +171,6 @@ int BitcoinRepresentation::bestExponent(double raw, quint8 base, const QList<int
         else
             return exponents[i-1];
     }
-}
-
-double BitcoinRepresentation::unitsWithPrefix(BitCoinPrefix prefix) const {
-    return ((double)_satoshies) / pow(10, bitCoinPrefixToPower[prefix]);
-}
-
-double BitcoinRepresentation::unitsWithPrefix(MetricPrefix prefix, double fiatToBTCExchangeRate) const {
-
-    double totalAmountOfFiat = numberOfBTC() * fiatToBTCExchangeRate;
-
-    return totalAmountOfFiat / pow(10, metricPrefixToPower[prefix]);
 }
 
 QString BitcoinRepresentation::toString(BitCoinPrefix prefix, int precision) const {
