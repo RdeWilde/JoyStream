@@ -18,6 +18,27 @@ namespace joystream {
 namespace protocol_session {
 
     template <class ConnectionIdType>
+    int64_t Session<ConnectionIdType>::minimumFundsRequiredAsBuyer(const protocol_wire::BuyerTerms & terms, int numberOfPieces) {
+
+        int64_t maxSingleSellerRevenue = terms.maxPrice() * numberOfPieces;
+
+        // Max total contract output
+        int64_t outputPerContractOutput;
+
+        if(maxSingleSellerRevenue > BITCOIN_DUST_LIMIT)
+            outputPerContractOutput = maxSingleSellerRevenue;
+        else
+            outputPerContractOutput = BITCOIN_DUST_LIMIT;
+
+        int64_t maxTotalOutput = outputPerContractOutput * terms.minNumberOfSellers();
+
+        // Contract fee when *there is a change output*
+        uint64_t contractTxFeeWithChangeOutput = paymentchannel::Contract::fee(terms.minNumberOfSellers(), true, terms.maxContractFeePerKb());
+
+        return maxTotalOutput + contractTxFeeWithChangeOutput;
+    }
+
+    template <class ConnectionIdType>
     Session<ConnectionIdType>::Session()
         : _mode(SessionMode::not_set)
         , _state(SessionState::stopped)
