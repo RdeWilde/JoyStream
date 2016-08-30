@@ -57,6 +57,9 @@ public:
     static QMap<MetricPrefix, int> metricPrefixToPower;
     static QMap<int, MetricPrefix> powerToMetricPrefix;
 
+    static QString prefixToString(BitCoinPrefix prefix);
+    static QString prefixToString(MetricPrefix prefix);
+
     /**
      * Constructors
      */
@@ -82,7 +85,17 @@ public:
     double unitsWithPrefix(MetricPrefix prefix, double fiatToBTCExchangeRate) const;
 
     /**
-     * Convert to QString routines
+     * Convert to string representation with given currency prefix
+     */
+
+    // Bitcoin currency units with given prefix
+    QString toString(BitCoinPrefix prefix, int precision = 1) const;
+
+    // Fiat representation with given prefix and rate
+    QString toString(Fiat fiat, MetricPrefix prefix, double fiatToBTCExchangeRate, int precision = 1) const;
+
+    /**
+     * Convert to best string representation
      */
 
     // BitCoin representation with best prefix
@@ -127,17 +140,8 @@ private:
     // by data representation class also
     static int bestExponent(double raw, quint8 base, const QList<int> & exponents);
 
-    // BitCoin representation with given prefix
-    QString toString(BitCoinPrefix prefix, int precision = 1) const;
-
-    // Fiat representation with given prefix
-    QString toString(Fiat fiat, MetricPrefix prefix, double fiatToBTCExchangeRate, int precision = 1) const;
-
     // Static utilities
     static quint64 satoshiesInABTC();
-
-    static QString prefixToString(BitCoinPrefix prefix);
-    static QString prefixToString(MetricPrefix prefix);
 
     //static quint8 prefixToExponent(BitCoinPrefix prefix);
     //static int prefixToExponent(MetricPrefix prefix);
