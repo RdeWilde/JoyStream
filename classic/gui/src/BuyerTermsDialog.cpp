@@ -59,7 +59,8 @@ void BuyerTermsDialog::setMaxPrice(quint64 maxPrice) const {
 quint32 BuyerTermsDialog::maxLock() const {
 
     bool ok;
-    int maxLock = ui->maxLockTimeLineEdit->text().toInt(&ok);
+    double maxLockHousrs = ui->maxLockTimeLineEdit->text().toDouble(&ok);
+    int maxLock = static_cast<int>(maxLockHousrs * 3600);
 
     if(!ok)
         throw std::runtime_error("Invalid maximum lock.");
@@ -70,7 +71,10 @@ quint32 BuyerTermsDialog::maxLock() const {
 }
 
 void BuyerTermsDialog::setMaxLock(quint32 maxLock) const {
-    ui->maxLockTimeLineEdit->setText(QString::number(maxLock));
+
+    double numberOfHours = (double)maxLock / 3600;
+
+    ui->maxLockTimeLineEdit->setText(QString::number(numberOfHours));
 }
 
 quint32 BuyerTermsDialog::minNumberOfSellers() const {
