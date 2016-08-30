@@ -65,7 +65,7 @@ quint32 BuyerTermsDialog::maxLock() const {
     if(!ok)
         throw std::runtime_error("Invalid maximum lock.");
     else if(maxLock <= 0)
-        throw std::runtime_error("Maximum price must be greater than 0.");
+        throw std::runtime_error("Maximum lock must be greater than 0.");
     else
         return maxLock;
 }
