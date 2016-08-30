@@ -80,7 +80,7 @@ void BuyerTermsDialog::setMaxLock(quint32 maxLock) const {
 quint32 BuyerTermsDialog::minNumberOfSellers() const {
 
     bool ok;
-    double minNumberOfSellers = ui->minNumberOfSellersLineEdit->text().toInt(&ok);
+    int minNumberOfSellers = ui->minNumberOfSellersLineEdit->text().toInt(&ok);
 
     if(!ok)
         throw std::runtime_error("Invalid minimum number of sellers.");
