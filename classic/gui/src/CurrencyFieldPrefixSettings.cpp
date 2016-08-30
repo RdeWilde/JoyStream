@@ -22,7 +22,7 @@ CurrencyFieldPrefixSettings::CurrencyFieldPrefixSettings(const BitcoinRepresenta
     , _settings(settings) {
 }
 
-QString CurrencyFieldPrefixSettings::toString(quint64 numberOfSatoshies) {
+QString CurrencyFieldPrefixSettings::toString(quint64 numberOfSatoshies) const noexcept {
 
     BitcoinRepresentation representation(numberOfSatoshies);
 
@@ -42,7 +42,7 @@ QString CurrencyFieldPrefixSettings::toString(quint64 numberOfSatoshies) {
 
 }
 
-quint64 CurrencyFieldPrefixSettings::toSatoshies(double units) {
+quint64 CurrencyFieldPrefixSettings::toSatoshies(double units) const noexcept {
 
     switch(_settings->currency()) {
 
@@ -58,6 +58,21 @@ quint64 CurrencyFieldPrefixSettings::toSatoshies(double units) {
             assert(false);
     }
 
+}
+
+QString CurrencyFieldPrefixSettings::prefix() const noexcept {
+
+    switch(_settings->currency()) {
+        case BitcoinDisplaySettings::Currency::BitCoin:
+
+            return BitcoinRepresentation::prefixToString(_bitcoinPrefix);
+
+        case BitcoinDisplaySettings::Currency::Fiat:
+
+            return BitcoinRepresentation::prefixToString(_metricPrefix);
+
+        default: assert(false);
+    }
 }
 
 }

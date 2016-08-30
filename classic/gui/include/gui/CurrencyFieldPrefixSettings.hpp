@@ -29,14 +29,16 @@ public:
      * @param numberOfSatoshies number of satoshies
      * @return
      */
-    QString toString(quint64 numberOfSatoshies);
+    QString toString(quint64 numberOfSatoshies) const noexcept;
 
     /**
      * @brief toSatoshies
      * @param units
      * @return
      */
-    quint64 toSatoshies(double units);
+    quint64 toSatoshies(double units) const noexcept;
+
+    QString prefix() const noexcept;
 
 private:
 
