@@ -64,7 +64,11 @@ void AppKit::buyTorrent(std::shared_ptr<core::Torrent> &torrent,
         outputs.front(),
         policy,
         terms,
-        handler
+        [this, outputs, &handler](const std::exception_ptr & e) {
+            _wallet->unlockOutputs(outputs);
+            handler(e);
+        }
+
     );
 }
 
