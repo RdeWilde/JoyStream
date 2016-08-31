@@ -23,8 +23,6 @@ std::string IdToString<boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>>(bo
     return id.address().to_string();
 }
 
-
-
 class DaemonServiceImpl final : public Daemon::Service {
 public:
   DaemonServiceImpl(joystream::core::Node* node) {
@@ -39,6 +37,13 @@ public:
       });
 
       return Status::OK;
+  }
+
+  Status ListTorrents(grpc::ServerContext *context, const joystream::daemon::rpc::Void *request, ::grpc::ServerWriter<joystream::daemon::rpc::Torrent> *writer) override {
+     joystream::daemon::rpc::Torrent t;
+     t.set_infohash("test-infohash");
+     writer->Write(t);
+     return Status::OK;
   }
 
   std::unique_ptr<Server> CreateServer() {
@@ -56,7 +61,6 @@ private:
   joystream::core::Node *node_;
 };
 
-
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
@@ -72,13 +76,8 @@ int main(int argc, char *argv[])
     // Build and Start the RPC service
     std::unique_ptr<Server> server = service.CreateServer();
 
-    // Process RPC requests on a new thread
-    std::thread rpc([&](){
-        server->Wait();
-    });
-
     // We need a Qt event loop
-    return a.exec();
+    a.exec();
 
-    rpc.join();
+    server->Shutdown();
 }
