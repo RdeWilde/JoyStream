@@ -21,6 +21,7 @@ SUBDIRS     = \
             runner \
             test \
             demo \
+    appkit
 
 # ensure that the subdirectories are built in the order in which they are specified
 CONFIG += ordered
