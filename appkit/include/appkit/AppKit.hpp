@@ -1,7 +1,8 @@
 #ifndef JOYSTREAM_APPKIT_HPP
 #define JOYSTREAM_APPKIT_HPP
 
-#include <core/Node.hpp>
+#include <core/core.hpp>
+//#include <libtorrent/sha1_hash.hpp>
 #include <bitcoin/SPVWallet.hpp>
 
 #include <iostream>
@@ -37,12 +38,16 @@ public:
     void broadcastTx(const Coin::Transaction &);
 
 
-    //void buyTorrent(libtorrent::sha1_hash &infohash);
+
     void buyTorrent(std::shared_ptr<joystream::core::Torrent> &,
                     protocol_session::BuyingPolicy&,
                     protocol_wire::BuyerTerms&,
                     extension::request::SubroutineHandler &);
 
+    void buyTorrent(libtorrent::sha1_hash &info_hash,
+                    protocol_session::BuyingPolicy&,
+                    protocol_wire::BuyerTerms&,
+                    extension::request::SubroutineHandler &);
 private:
     // Location of wallet data directory
     QDir walletDataDir_;

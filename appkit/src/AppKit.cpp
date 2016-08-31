@@ -1,5 +1,4 @@
 #include <appkit/AppKit.hpp>
-#include <core/core.hpp>
 
 namespace joystream {
 
@@ -67,6 +66,19 @@ void AppKit::buyTorrent(std::shared_ptr<core::Torrent> &torrent,
         terms,
         handler
     );
+}
+
+void AppKit::buyTorrent(libtorrent::sha1_hash &info_hash,
+                        protocol_session::BuyingPolicy& policy,
+                        protocol_wire::BuyerTerms& terms,
+                        extension::request::SubroutineHandler& handler) {
+
+    auto torrents = _node->torrents();
+
+    if(torrents.find(info_hash) == torrents.end())
+        return;
+
+    buyTorrent(torrents[info_hash], policy, terms, handler);
 }
 
 void AppKit::broadcastTx(const Coin::Transaction &tx) {
