@@ -18,4 +18,5 @@ SUBDIRS     = \
             protocol_statemachine \
             protocol_session \
             protocol_wire \
-            core
+            core \
+            app_kit

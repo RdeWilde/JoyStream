@@ -1,4 +1,4 @@
-#include <appkit/AppKit.hpp>
+#include <app_kit/AppKit.hpp>
 #include <core/core.hpp>
 #include <bitcoin/SPVWallet.hpp>
 

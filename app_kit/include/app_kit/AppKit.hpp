@@ -1,5 +1,5 @@
-#ifndef JOYSTREAM_APPKIT_HPP
-#define JOYSTREAM_APPKIT_HPP
+#ifndef JOYSTREAM_APP_KIT_HPP
+#define JOYSTREAM_APP_KIT_HPP
 
 #include <functional>
 
@@ -90,4 +90,4 @@ private:
 };
 
 }
-#endif // JOYSTREAM_APPKIT_HPP
+#endif // JOYSTREAM_APP_KIT_HPP

@@ -1,6 +1,6 @@
 QT       -= gui
 
-TARGET = appkit
+TARGET = app_kit
 TEMPLATE = lib
 
 CONFIG  += staticlib
@@ -9,7 +9,7 @@ CONFIG  += c++11 # Needed for class enum
 
 SOURCES += src/AppKit.cpp
 
-HEADERS += include/appkit/AppKit.hpp
+HEADERS += include/app_kit/AppKit.hpp
 
 INCLUDEPATH += $$PWD/include
 
@@ -23,3 +23,4 @@ INCLUDEPATH += $$PWD/../common/include \
                $$PWD/../bitcoin/include
 
 include(../config.pri)
+
