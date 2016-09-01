@@ -1,23 +1,47 @@
 #ifndef JOYSTREAM_APPKIT_HPP
 #define JOYSTREAM_APPKIT_HPP
 
-#include <core/core.hpp>
-//#include <libtorrent/sha1_hash.hpp>
-#include <bitcoin/SPVWallet.hpp>
-
 #include <iostream>
 
 #include <QDir>
 
+namespace libtorrent {
+    class sha1_hash;
+}
+
+namespace Coin {
+    class Transaction;
+}
+
 namespace joystream {
+
+namespace core {
+    class Node;
+    class Torrent;
+}
+
+namespace bitcoin {
+    class SPVWallet;
+}
+
+namespace protocol_session {
+    class BuyingPolicy;
+}
+
+namespace protocol_wire {
+    class BuyerTerms;
+}
 
 class AppKit
 {
 
 public:
+    typedef std::function<void(const Coin::Transaction &)> BroadcastTransaction;
+    typedef std::function<void(const std::exception_ptr &)> SubroutineHandler;
+
     AppKit();
 
-    std::shared_ptr<joystream::core::Node> createAndStartNode();
+    std::shared_ptr<core::Node> createAndStartNode();
 
     // Save Node state to and ostream
     //void saveNodeState(ostream&);
@@ -31,7 +55,7 @@ public:
     // Load Node state from torrent data directory
     void loadNodeState();
 
-    void registerTransactionBroadcaster(const joystream::core::BroadcastTransaction & broadcastTransaction);
+    void registerTransactionBroadcaster(const BroadcastTransaction & broadcastTransaction);
     void registerWalletAsTransactionBroadcaster();
     void stopBroadcastingTransactions();
 
@@ -39,15 +63,15 @@ public:
 
 
 
-    void buyTorrent(std::shared_ptr<joystream::core::Torrent> &,
+    void buyTorrent(std::shared_ptr<core::Torrent> &,
                     protocol_session::BuyingPolicy&,
                     protocol_wire::BuyerTerms&,
-                    extension::request::SubroutineHandler &);
+                    SubroutineHandler &);
 
     void buyTorrent(libtorrent::sha1_hash &info_hash,
                     protocol_session::BuyingPolicy&,
                     protocol_wire::BuyerTerms&,
-                    extension::request::SubroutineHandler &);
+                    SubroutineHandler &);
 private:
     // Location of wallet data directory
     QDir walletDataDir_;
@@ -55,11 +79,11 @@ private:
     // Location of Torrent data directory
     QDir torrentDataDir_;
 
-    std::shared_ptr<joystream::core::Node> _node;
+    std::shared_ptr<core::Node> _node;
 
-    joystream::core::BroadcastTransaction _registeredTransactionBroadcaster;
+    BroadcastTransaction _registeredTransactionBroadcaster;
 
-    std::shared_ptr<joystream::bitcoin::SPVWallet> _wallet;
+    std::shared_ptr<bitcoin::SPVWallet> _wallet;
 };
 
 }

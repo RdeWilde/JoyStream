@@ -1,4 +1,6 @@
 #include <appkit/AppKit.hpp>
+#include <core/core.hpp>
+#include <bitcoin/SPVWallet.hpp>
 
 namespace joystream {
 
@@ -7,7 +9,7 @@ AppKit::AppKit()
 {
 }
 
-std::shared_ptr<joystream::core::Node> AppKit::createAndStartNode() {
+std::shared_ptr<core::Node> AppKit::createAndStartNode() {
     if(_node) {
         throw std::runtime_error("Node already started");
     }
@@ -21,7 +23,7 @@ std::shared_ptr<joystream::core::Node> AppKit::createAndStartNode() {
         };
     }
 
-    _node = std::shared_ptr<joystream::core::Node>(new core::Node([this](const Coin::Transaction &tx){
+    _node = std::shared_ptr<core::Node>(new core::Node([this](const Coin::Transaction &tx){
         broadcastTx(tx);
     }));
 
