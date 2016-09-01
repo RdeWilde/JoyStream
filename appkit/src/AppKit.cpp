@@ -9,7 +9,7 @@ AppKit::AppKit()
 {
 }
 
-std::shared_ptr<core::Node> AppKit::createAndStartNode() {
+core::Node* AppKit::createAndStartNode() {
     if(_node) {
         throw std::runtime_error("Node already started");
     }
@@ -23,11 +23,13 @@ std::shared_ptr<core::Node> AppKit::createAndStartNode() {
         };
     }
 
-    _node = std::shared_ptr<core::Node>(new core::Node([this](const Coin::Transaction &tx){
+    auto nodep = new core::Node([this](const Coin::Transaction &tx){
         broadcastTx(tx);
-    }));
+    });
 
-    return _node;
+    _node = std::unique_ptr<core::Node>(nodep);
+
+    return nodep;
 
 }
 
