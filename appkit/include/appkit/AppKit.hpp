@@ -1,9 +1,11 @@
 #ifndef JOYSTREAM_APPKIT_HPP
 #define JOYSTREAM_APPKIT_HPP
 
-#include <iostream>
+#include <functional>
 
-#include <QDir>
+//#include <iostream>
+
+//#include <QDir>
 
 namespace libtorrent {
     class sha1_hash;
@@ -11,6 +13,7 @@ namespace libtorrent {
 
 namespace Coin {
     class Transaction;
+    enum class Network;
 }
 
 namespace joystream {
@@ -39,9 +42,14 @@ public:
     typedef std::function<void(const Coin::Transaction &)> BroadcastTransaction;
     typedef std::function<void(const std::exception_ptr &)> SubroutineHandler;
 
-    AppKit();
+    static bitcoin::SPVWallet* getWallet(std::string dataDirectory, Coin::Network network);
 
-    core::Node* createAndStartNode();
+    static void createWallet(std::string dataDirectory, Coin::Network network);
+
+    static AppKit* createInstance(std::string dataDirectory, Coin::Network network);
+
+    std::unique_ptr<bitcoin::SPVWallet> & wallet();
+    std::unique_ptr<core::Node> & node();
 
     // Save Node state to and ostream
     //void saveNodeState(ostream&);
@@ -55,14 +63,6 @@ public:
     // Load Node state from torrent data directory
     void loadNodeState();
 
-    void registerTransactionBroadcaster(const BroadcastTransaction & broadcastTransaction);
-    void registerWalletAsTransactionBroadcaster();
-    void stopBroadcastingTransactions();
-
-    void broadcastTx(const Coin::Transaction &);
-
-
-
     void buyTorrent(std::shared_ptr<core::Torrent> &,
                     protocol_session::BuyingPolicy&,
                     protocol_wire::BuyerTerms&,
@@ -73,15 +73,18 @@ public:
                     protocol_wire::BuyerTerms&,
                     SubroutineHandler &);
 private:
+
+    AppKit();
+
+    AppKit(std::unique_ptr<core::Node> &node, std::unique_ptr<bitcoin::SPVWallet> &wallet);
+
     // Location of wallet data directory
-    QDir walletDataDir_;
+    //QDir walletDataDir_;
 
     // Location of Torrent data directory
-    QDir torrentDataDir_;
+    //QDir torrentDataDir_;
 
     std::unique_ptr<core::Node> _node;
-
-    BroadcastTransaction _registeredTransactionBroadcaster;
 
     std::unique_ptr<bitcoin::SPVWallet> _wallet;
 };

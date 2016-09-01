@@ -9,28 +9,48 @@ AppKit::AppKit()
 {
 }
 
-core::Node* AppKit::createAndStartNode() {
-    if(_node) {
-        throw std::runtime_error("Node already started");
-    }
+bitcoin::SPVWallet * AppKit::getWallet(std::string dataDirectory, Coin::Network network) {
+    std::string storeFile = dataDirectory + "/store.sqlite";
+    std::string blockTreeFile = dataDirectory + "/blocktree.dat";
 
-    // If there is no registered transaction broadcaster but we have a registered wallet
-    // use its broadcastTx method
-    if(!_registeredTransactionBroadcaster && _wallet) {
-        _registeredTransactionBroadcaster = [this](const Coin::Transaction &tx) {
-            if(_wallet)
-                _wallet->broadcastTx(tx);
-        };
-    }
+    return new bitcoin::SPVWallet(storeFile, blockTreeFile, network);
+}
 
-    auto nodep = new core::Node([this](const Coin::Transaction &tx){
-        broadcastTx(tx);
-    });
+void AppKit::createWallet(std::string dataDirectory, Coin::Network network) {
 
-    _node = std::unique_ptr<core::Node>(nodep);
+    std::unique_ptr<bitcoin::SPVWallet> wallet(getWallet(dataDirectory, network));
 
-    return nodep;
+    wallet->create();
+}
 
+AppKit* AppKit::createInstance(std::string dataDirectory, Coin::Network network) {
+
+    auto walletp = getWallet(dataDirectory, network);
+
+    std::unique_ptr<bitcoin::SPVWallet> wallet(walletp);
+
+    wallet->open();
+
+    std::unique_ptr<core::Node> node(new core::Node([walletp](const Coin::Transaction &tx){
+        walletp->broadcastTx(tx);
+    }));
+
+    return new AppKit(node, wallet);
+
+}
+
+AppKit::AppKit(std::unique_ptr<core::Node> &node, std::unique_ptr<bitcoin::SPVWallet> &wallet)
+{
+    _node = std::move(node);
+    _wallet = std::move(wallet);
+}
+
+std::unique_ptr<core::Node>& AppKit::node() {
+    return _node;
+}
+
+std::unique_ptr<bitcoin::SPVWallet>& AppKit::wallet() {
+    return _wallet;
 }
 
 void AppKit::buyTorrent(std::shared_ptr<core::Torrent> &torrent,
@@ -87,19 +107,6 @@ void AppKit::buyTorrent(libtorrent::sha1_hash &info_hash,
         return;
 
     buyTorrent(torrents[info_hash], policy, terms, handler);
-}
-
-void AppKit::broadcastTx(const Coin::Transaction &tx) {
-    if(_registeredTransactionBroadcaster)
-        _registeredTransactionBroadcaster(tx);
-}
-
-void AppKit::registerTransactionBroadcaster(const core::BroadcastTransaction &broadcastTransaction) {
-    _registeredTransactionBroadcaster = broadcastTransaction;
-}
-
-void AppKit::stopBroadcastingTransactions() {
-    _registeredTransactionBroadcaster = nullptr;
 }
 
 
