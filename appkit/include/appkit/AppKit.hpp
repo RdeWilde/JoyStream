@@ -41,7 +41,7 @@ public:
 
     AppKit();
 
-    std::shared_ptr<core::Node> createAndStartNode();
+    core::Node* createAndStartNode();
 
     // Save Node state to and ostream
     //void saveNodeState(ostream&);
@@ -79,11 +79,11 @@ private:
     // Location of Torrent data directory
     QDir torrentDataDir_;
 
-    std::shared_ptr<core::Node> _node;
+    std::unique_ptr<core::Node> _node;
 
     BroadcastTransaction _registeredTransactionBroadcaster;
 
-    std::shared_ptr<bitcoin::SPVWallet> _wallet;
+    std::unique_ptr<bitcoin::SPVWallet> _wallet;
 };
 
 }
