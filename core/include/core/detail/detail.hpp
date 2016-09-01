@@ -19,68 +19,6 @@ namespace joystream {
 namespace core {
 namespace detail {
 
-/**
-// An unsynchronized counter shared across multiple callbacks.
-class SharedCounter {
-
-public:
-
-    SharedCounter()
-        : SharedCounter(0) {
-    }
-
-    SharedCounter(uint initialValue)
-        : _count(new uint) {
-
-        *(_count.get()) = initialValue;
-    }
-
-    uint increment() const {
-
-        uint * ptr = _count.get();
-
-        (*ptr)++;
-
-        return (*ptr);
-    }
-
-    void decrement() const {
-
-        uint * ptr = _count.get();
-
-        if((*ptr) == 0)
-            throw std::runtime_error("Counter already depleted.");
-        else
-            (*ptr)--;
-    }
-
-    uint count() const {
-        return *(_count.get());
-    }
-
-    bool zero() const {
-        return count() == 0;
-    }
-
-private:
-
-    // Shared underlying count
-    std::shared_ptr<uint> _count;
-};
-
-
-struct AddTorrentCall {
-
-    AddTorrentCall(const AddedTorrent & addedTorrent,
-                   const configuration::Torrent & configuration)
-        : addedTorrent(addedTorrent)
-        , configuration(configuration) {
-    }
-
-    AddedTorrent addedTorrent;
-    configuration::Torrent configuration;
-};
-*/
 
 }
 }
