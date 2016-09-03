@@ -35,7 +35,7 @@ public:
 
     protocol_wire::BuyerTerms terms() const noexcept;
 
-    std::map<libtorrent::tcp::endpoint, std::shared_ptr<Seller>> sellers() const noexcept;
+    std::map<libtorrent::tcp::endpoint, Seller *> sellers() const noexcept;
 
     Coin::Transaction contractTx() const noexcept;
 
@@ -49,7 +49,7 @@ signals:
 
     void termsChanged(const protocol_wire::BuyerTerms &);
 
-    void sellerAdded(const std::weak_ptr<Seller>);
+    void sellerAdded(const Seller *);
 
     void sellerRemoved(const libtorrent::tcp::endpoint &);
 
@@ -78,7 +78,7 @@ private:
     protocol_wire::BuyerTerms _terms;
 
     // Maps connection identifier to connection
-    std::map<libtorrent::tcp::endpoint, std::shared_ptr<Seller>> _sellers;
+    std::map<libtorrent::tcp::endpoint, std::unique_ptr<Seller>> _sellers;
 
     // Contract transaction id
     Coin::Transaction _contractTx;

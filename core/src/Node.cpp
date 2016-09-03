@@ -18,6 +18,7 @@
 #include <libtorrent/magnet_uri.hpp>
 #include <libtorrent/torrent_info.hpp>
 #include <libtorrent/peer_connection.hpp>
+#include <libtorrent/peer_info.hpp>
 
 #include <QObject>
 #include <QElapsedTimer>
@@ -225,10 +226,10 @@ void Node::updateStatus() {
     _plugin->submit(extension::request::UpdateStatus());
 
     // Update
-    for(auto t : _torrents) {
+    for(auto & mapping : _torrents) {
 
         // Get handle for torrent
-        libtorrent::sha1_hash infoHash = t.second->infoHash();
+        libtorrent::sha1_hash infoHash = mapping.second->infoHash();
         libtorrent::torrent_handle h = _session.find_torrent(infoHash);
 
         // Get peer_info for peer, which unfortunately requires
@@ -244,7 +245,7 @@ void Node::updateStatus() {
         }
 
         // Update peer statuses on torrent
-        t.second->updatePeerStatuses(v);
+        mapping.second->updatePeerStatuses(v);
     }
 }
 
@@ -561,13 +562,13 @@ void Node::process(const libtorrent::add_torrent_alert * p) {
         int downloadLimit = h.download_limit();
 
         // Create torrent
-        std::shared_ptr<Torrent> plugin(new Torrent(h, status, p->params.resume_data, uploadLimit, downloadLimit, _plugin));
+        auto t = new Torrent(h, status, p->params.resume_data, uploadLimit, downloadLimit, _plugin);
 
         // add to map
-        _torrents.insert(std::make_pair(infoHash, plugin));
+        _torrents.insert(std::make_pair(infoHash, std::unique_ptr<Torrent>(t)));
 
         // send notification signal
-        emit addedTorrent(plugin);
+        emit addedTorrent(t);
 
         std::clog << "Adding torrent succeeded." << std::endl;
     } else
@@ -833,8 +834,8 @@ void Node::changeDownloadingLocationFromThisPiece(const libtorrent::sha1_hash & 
 }
 */
 
-std::map<libtorrent::sha1_hash, std::shared_ptr<Torrent>> Node::torrents() const noexcept {
-    return _torrents;
+std::map<libtorrent::sha1_hash, Torrent *> Node::torrents() const noexcept {
+    return detail::getRawMap<libtorrent::sha1_hash, Torrent>(_torrents);
 }
 
 libtorrent::settings_pack Node::session_settings(bool enableDHT) noexcept {

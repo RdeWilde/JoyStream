@@ -6,6 +6,7 @@
  */
 
 #include <core/TorrentPlugin.hpp>
+#include <core/detail/detail.hpp>
 
 namespace joystream {
 namespace core {
@@ -81,12 +82,8 @@ libtorrent::sha1_hash TorrentPlugin::infoHash() const noexcept {
     return _infoHash;
 }
 
-std::map<libtorrent::tcp::endpoint, std::shared_ptr<PeerPlugin> > TorrentPlugin::peers() const noexcept {
-    return _peers;
-}
-
-std::shared_ptr<Session> TorrentPlugin::session() const noexcept {
-    return _session;
+std::map<libtorrent::tcp::endpoint, PeerPlugin *> TorrentPlugin::peers() const noexcept {
+    return detail::getRawMap<libtorrent::tcp::endpoint, PeerPlugin>(_peers);
 }
 
 void TorrentPlugin::addPeerPlugin(const extension::status::PeerPlugin & status) {
@@ -96,10 +93,10 @@ void TorrentPlugin::addPeerPlugin(const extension::status::PeerPlugin & status) 
         return;
 
     // Create peer plugin
-    std::shared_ptr<PeerPlugin> plugin(new PeerPlugin(status));
+    PeerPlugin * plugin = new PeerPlugin(status);
 
     // Add to map
-    _peers.insert(std::make_pair(status.endPoint, plugin));
+    _peers.insert(std::make_pair(status.endPoint, std::unique_ptr<PeerPlugin>(plugin)));
 
     // announce
     emit peerPluginAdded(plugin);
@@ -140,7 +137,7 @@ void TorrentPlugin::update(const extension::status::TorrentPlugin & status) {
     }
 
     // for each exisiting peer
-    for(auto p: _peers) {
+    for(auto & p: _peers) {
 
         // if there is no status for it, then remove
         if(status.peers.count(p.first) == 0)

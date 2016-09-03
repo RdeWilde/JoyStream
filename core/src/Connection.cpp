@@ -9,6 +9,9 @@
 #include <core/CBStateMachine.hpp>
 #include <protocol_session/protocol_session.hpp>
 
+//#include <core/Payor.hpp>
+//#include <core/Payee.hpp>
+
 namespace joystream {
 namespace core {
 
@@ -17,12 +20,16 @@ Connection::Connection(const protocol_session::status::Connection<libtorrent::tc
     , _machine(new CBStateMachine(status.machine)) {
 }
 
+Connection::~Connection() {
+
+}
+
 libtorrent::tcp::endpoint Connection::connectionId() const noexcept {
     return _connectionId;
 }
 
-std::shared_ptr<CBStateMachine> Connection::machine() const noexcept {
-    return _machine;
+CBStateMachine * Connection::machine() const noexcept {
+    return _machine.get();
 }
 
 void Connection::update(const protocol_session::status::Connection<libtorrent::tcp::endpoint> & status) {

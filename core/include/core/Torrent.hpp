@@ -9,8 +9,6 @@
 #define JOYSTREAM_CORE_TORRENT_HPP
 
 #include <extension/extension.hpp>
-#include <core/Node.hpp>
-#include <core/Peer.hpp>
 #include <libtorrent/torrent_handle.hpp>
 
 #include <QObject>
@@ -37,6 +35,11 @@ private:
 
 public:
 
+    typedef extension::request::SubroutineHandler TorrentPaused;
+    typedef extension::request::SubroutineHandler TorrentResumed;
+
+    ~Torrent();
+
     /// Actions
 
     /**
@@ -62,9 +65,9 @@ public:
 
     libtorrent::sha1_hash infoHash() const noexcept;
 
-    std::map<libtorrent::tcp::endpoint, std::shared_ptr<Peer>> peers() const noexcept;
+    std::map<libtorrent::tcp::endpoint, Peer *> peers() const noexcept;
 
-    std::shared_ptr<TorrentPlugin> torrentPlugin() const noexcept;
+    TorrentPlugin * torrentPlugin() const noexcept;
 
     libtorrent::torrent_status::state_t state() const noexcept;
 
@@ -90,11 +93,11 @@ public:
 
 signals:
 
-    void peerAdded(const std::weak_ptr<Peer> &);
+    void peerAdded(const Peer *);
 
     void peerRemoved(const libtorrent::tcp::endpoint &);
 
-    void torrentPluginAdded(const std::weak_ptr<TorrentPlugin> &);
+    void torrentPluginAdded(const TorrentPlugin *);
 
     void torrentPluginRemoved();
 
@@ -165,10 +168,10 @@ private:
     int _uploadLimit, _downloadLimit;
 
     // Peers
-    std::map<libtorrent::tcp::endpoint, std::shared_ptr<Peer>> _peers;
+    std::map<libtorrent::tcp::endpoint, std::unique_ptr<Peer>> _peers;
 
     // TorrentPlugin
-    std::shared_ptr<TorrentPlugin> _torrentPlugin;
+    std::unique_ptr<TorrentPlugin> _torrentPlugin;
 
     // All streams for this torrent.
     // Not quite sure if multiple separate streams for one torrent

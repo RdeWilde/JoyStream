@@ -24,6 +24,8 @@ private:
 
 public:
 
+    ~Peer();
+
     libtorrent::tcp::endpoint endPoint() const noexcept;
 
     std::string client();

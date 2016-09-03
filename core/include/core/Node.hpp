@@ -8,28 +8,21 @@
 #ifndef JOYSTREAM_CORE_NODE_HPP
 #define JOYSTREAM_CORE_NODE_HPP
 
-#include <core/detail/detail.hpp>
-#include <core/Callbacks.hpp>
+#include <core/Torrent.hpp>
+//#include <core/Callbacks.hpp>
 //#include <core/controller/Stream.hpp>
 #include <extension/extension.hpp>
 #include <common/UnspentP2PKHOutput.hpp>
-
 #include <libtorrent/session.hpp>
 #include <libtorrent/alert.hpp>
 #include <libtorrent/alert_types.hpp>
 
 #include <QObject>
 
+#include <memory>
 #include <functional>
 
-namespace libtorrent {
-    class peer_connection;
-}
-
 namespace joystream {
-namespace bitcoin {
-    class SPVWallet;
-}
 namespace extension {
     class Plugin;
 }
@@ -42,23 +35,14 @@ class Node : public QObject {
 
     Q_OBJECT
 
-    /**
-     * IMPORTANT
-     *
-     * 1. No public routines are thread safe. Not only are simultaneous calls from
-     * distinct threads not safe, but even synchronized calls are not safe, as
-     * one call may invalidate the view model object another thread is relying on.
-     * Only use in single thread context.
-     *
-     * 2. Users should never trust std::shared_ptr references from core across multiple calls,
-     * since the underlying objects may expire. Only keep std::weak_ptr references, and lock to get
-     * std::shared_ptr reference. This will always be safe, without explicit synchronization,
-     * so long as user code core calls are made on same thread. This is also
-     * why all signals carry std::weak_ptr references, as signals may be dispatched too late.
-     *
-     */
-
 public:
+
+    typedef std::function<void(const Coin::Transaction &)> BroadcastTransaction;
+    //typedef std::function<void(const libtorrent::tcp::endpoint &)> NodeStarted;
+    typedef std::function<void()> NodeUnPaused;
+    typedef std::function<void()> NodePaused;
+    typedef extension::request::AddTorrent::AddTorrentHandler AddedTorrent;
+    typedef extension::request::SubroutineHandler RemovedTorrent;
 
     /**
      * @brief Start node.
@@ -133,7 +117,7 @@ public:
     void updateStatus();
 
     // Get all torrents
-    std::map<libtorrent::sha1_hash, std::shared_ptr<Torrent>> torrents() const noexcept;
+    std::map<libtorrent::sha1_hash, Torrent *> torrents() const noexcept;
 
 signals:
 
@@ -156,7 +140,7 @@ signals:
     void unPaused();
 
     // Torrent added
-    void addedTorrent(const std::weak_ptr<Torrent> &);
+    void addedTorrent(const Torrent *);
 
     // Torrent with given info hash was removed
     void removedTorrent(const libtorrent::sha1_hash & info_hash);
@@ -192,15 +176,11 @@ private:
     boost::shared_ptr<extension::Plugin> _plugin;
 
     // Torrents added to session
-    // A shared pointer is used, in order to give weak pointers as
-    // public handle. This is safe, sinc user and this object is maintained
-    // by same thread.
-    //
     // NB: This container should not be used as reliable indication of
     // state inside this class, it should simply be updated based on inbound
     // libtorrent alerts. To check on torrents, this object should use the libtorrent
     // session itself.
-    std::map<libtorrent::sha1_hash, std::shared_ptr<Torrent>> _torrents;
+    std::map<libtorrent::sha1_hash, std::unique_ptr<Torrent>> _torrents;
 
     // Transaction broadcasting
     BroadcastTransaction _broadcastTransaction;

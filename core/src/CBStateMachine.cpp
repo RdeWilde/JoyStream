@@ -21,6 +21,10 @@ CBStateMachine::CBStateMachine(const protocol_session::status::CBStateMachine & 
 
 }
 
+CBStateMachine::~CBStateMachine() {
+
+}
+
 std::type_index CBStateMachine::innerStateTypeIndex() const noexcept {
     return _innerStateTypeIndex;
 }
@@ -29,12 +33,12 @@ protocol_statemachine::AnnouncedModeAndTerms CBStateMachine::announcedModeAndTer
     return _announcedModeAndTermsFromPeer;
 }
 
-std::shared_ptr<Payor> CBStateMachine::payor() const noexcept {
-    return _payor;
+Payor * CBStateMachine::payor() const noexcept {
+    return _payor.get();
 }
 
-std::shared_ptr<Payee> CBStateMachine::payee() const noexcept {
-    return _payee;
+Payee * CBStateMachine::payee() const noexcept {
+    return _payee.get();
 }
 
 void CBStateMachine::update(const protocol_session::status::CBStateMachine & status) {

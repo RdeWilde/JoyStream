@@ -34,11 +34,11 @@ public:
 
     protocol_session::SessionState state() const noexcept;
 
-    std::map<libtorrent::tcp::endpoint, std::shared_ptr<Connection> > connections() const noexcept;
+    std::map<libtorrent::tcp::endpoint, Connection *> connections() const noexcept;
 
-    std::shared_ptr<Selling> selling() const noexcept;
+    Selling * selling() const noexcept;
 
-    std::shared_ptr<Buying> buying() const noexcept;
+    Buying * buying() const noexcept;
 
 signals:
 
@@ -46,7 +46,7 @@ signals:
 
     void stateChanged(protocol_session::SessionState);
 
-    void connectionAdded(const std::weak_ptr<Connection> &);
+    void connectionAdded(const Connection *);
 
     void connectionRemoved(const libtorrent::tcp::endpoint &);
 
@@ -67,15 +67,19 @@ private:
     protocol_session::SessionState _state;
 
     // Connections
-    std::map<libtorrent::tcp::endpoint, std::shared_ptr<Connection> > _connections;
+    std::map<libtorrent::tcp::endpoint, std::unique_ptr<Connection> > _connections;
 
     /// Substates
 
     // Selling mode
-    std::shared_ptr<Selling> _selling;
+    std::unique_ptr<Selling> _selling;
 
     // Buying mode
-    std::shared_ptr<Buying> _buying;
+    std::unique_ptr<Buying> _buying;
+
+    // If mode has not changed, then status is updated, if it has, then old substate is discarded
+    // (if it was buying or selling) and mode change signal is emitted
+    void updateSubstate(const protocol_session::status::Session<libtorrent::tcp::endpoint> & status);
 };
 
 }

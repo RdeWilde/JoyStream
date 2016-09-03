@@ -12,6 +12,7 @@
 
 #include <QObject>
 
+#include <memory>
 #include <typeindex>
 
 namespace joystream {
@@ -35,13 +36,15 @@ private:
 
 public:
 
+    ~CBStateMachine();
+
     std::type_index innerStateTypeIndex() const noexcept;
 
     protocol_statemachine::AnnouncedModeAndTerms announcedModeAndTermsFromPeer() const noexcept;
 
-    std::shared_ptr<Payor> payor() const noexcept;
+    Payor * payor() const noexcept;
 
-    std::shared_ptr<Payee> payee() const noexcept;
+    Payee * payee() const noexcept;
 
 signals:
 
@@ -61,10 +64,10 @@ private:
     protocol_statemachine::AnnouncedModeAndTerms _announcedModeAndTermsFromPeer;
 
     //// Buyer Client state
-    std::shared_ptr<Payor> _payor;
+    std::unique_ptr<Payor> _payor;
 
     //// Seller Client state
-    std::shared_ptr<Payee> _payee;
+    std::unique_ptr<Payee> _payee;
 
 };
 

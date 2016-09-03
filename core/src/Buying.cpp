@@ -6,6 +6,7 @@
  */
 
 #include <core/Buying.hpp>
+#include <core/detail/detail.hpp>
 
 namespace joystream {
 namespace core {
@@ -39,28 +40,28 @@ protocol_wire::BuyerTerms Buying::terms() const noexcept {
     return _terms;
 }
 
-std::map<libtorrent::tcp::endpoint, std::shared_ptr<Seller>> Buying::sellers() const noexcept {
-    return _sellers;
+std::map<libtorrent::tcp::endpoint, Seller *> Buying::sellers() const noexcept {
+    return detail::getRawMap<libtorrent::tcp::endpoint, Seller>(_sellers);
 }
 
 Coin::Transaction Buying::contractTx() const noexcept {
     return _contractTx;
 }
 
-void Buying::addSeller(const protocol_session::status::Seller<libtorrent::tcp::endpoint> & s) {
+void Buying::addSeller(const protocol_session::status::Seller<libtorrent::tcp::endpoint> & status) {
 
     // if the seller alreadye exists, then ignore
-    if(_sellers.count(s.connection) > 0)
+    if(_sellers.count(status.connection) > 0)
         return;
 
     // Create seller
-    std::shared_ptr<Seller> plugin(new Seller(s));
+    auto s = new Seller(status);
 
     // Add to map
-    _sellers.insert(std::make_pair(s.connection, plugin));
+    _sellers.insert(std::make_pair(status.connection, std::unique_ptr<Seller>(s)));
 
     // announce
-    emit sellerAdded(plugin);
+    emit sellerAdded(s);
 }
 
 void Buying::removeSeller(const libtorrent::tcp::endpoint & endPoint) {
@@ -122,7 +123,7 @@ void Buying::update(const protocol_session::status::Buying<libtorrent::tcp::endp
     }
 
     // for each existing seller
-    for(auto p : _sellers) {
+    for(auto & p : _sellers) {
 
         // if there is no status for it, then remove
         if(status.sellers.count(p.first) == 0)

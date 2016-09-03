@@ -14,6 +14,10 @@ Peer::Peer(const libtorrent::peer_info & peerInformation)
     : _peerInformation(peerInformation) {
 }
 
+Peer::~Peer() {
+
+}
+
 libtorrent::tcp::endpoint Peer::endPoint() const noexcept {
     return _peerInformation.ip;
 }

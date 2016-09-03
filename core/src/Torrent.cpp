@@ -6,8 +6,10 @@
  */
 
 #include <core/Torrent.hpp>
+#include <core/Peer.hpp>
 #include <core/TorrentPlugin.hpp>
 #include <core/Exception.hpp>
+#include <core/detail/detail.hpp>
 
 namespace joystream {
 namespace core {
@@ -26,6 +28,9 @@ Torrent::Torrent(const libtorrent::torrent_handle & handle,
     , _downloadLimit(downloadLimit) {
 }
 
+Torrent::~Torrent() {
+}
+
 void Torrent::paused(bool graceful, const TorrentPaused & handler) {
     _plugin->submit(extension::request::PauseTorrent(infoHash(), graceful, handler));
 }
@@ -42,12 +47,12 @@ libtorrent::sha1_hash Torrent::infoHash() const noexcept {
     return _status.info_hash;
 }
 
-std::map<libtorrent::tcp::endpoint, std::shared_ptr<Peer>> Torrent::peers() const noexcept {
-    return _peers;
+std::map<libtorrent::tcp::endpoint, Peer *> Torrent::peers() const noexcept {
+    return detail::getRawMap<libtorrent::tcp::endpoint, Peer>(_peers);
 }
 
-std::shared_ptr<TorrentPlugin> Torrent::torrentPlugin() const noexcept {
-    return _torrentPlugin;
+TorrentPlugin * Torrent::torrentPlugin() const noexcept {
+    return _torrentPlugin.get();
 }
 
 libtorrent::torrent_status::state_t Torrent::state() const noexcept {
@@ -98,11 +103,11 @@ void Torrent::addPeer(const libtorrent::peer_info & info) {
 
     assert(_peers.count(info.ip) == 0);
 
-    std::shared_ptr<Peer> plugin(new Peer(info));
+    auto p = new Peer(info);
 
-    _peers.insert(std::make_pair(info.ip, plugin));
+    _peers.insert(std::make_pair(info.ip, std::unique_ptr<Peer>(p)));
 
-    emit addPeer(info);
+    emit peerAdded(p);
 }
 
 void Torrent::removePeer(const libtorrent::tcp::endpoint & ip) {
@@ -113,23 +118,25 @@ void Torrent::removePeer(const libtorrent::tcp::endpoint & ip) {
 
     _peers.erase(it);
 
-    emit removePeer(ip);
+    emit peerRemoved(ip);
 }
 
 void Torrent::addTorrentPlugin(const extension::status::TorrentPlugin & status) {
 
-    assert(!_torrentPlugin);
+    assert(_torrentPlugin.get() == nullptr);
 
-    _torrentPlugin = std::shared_ptr<TorrentPlugin>(new TorrentPlugin(status, _plugin));
+    auto plugin = new TorrentPlugin(status, _plugin);
 
-    emit torrentPluginAdded(_torrentPlugin);
+    _torrentPlugin.reset(plugin);
+
+    emit torrentPluginAdded(plugin);
 }
 
 void Torrent::removeTorrentPlugin() {
 
     assert(_torrentPlugin);
 
-    _torrentPlugin = nullptr;
+    _torrentPlugin.release();
 
     emit removeTorrentPlugin();
 }
@@ -174,7 +181,7 @@ void Torrent::updatePeerStatuses(const std::vector<libtorrent::peer_info> & v) {
     }
 
     // for each exisiting peer
-    for(auto p: _peers) {
+    for(auto & p: _peers) {
 
         // if there is no status for it, then remove
         if(peerToStatus.count(p.first) == 0)

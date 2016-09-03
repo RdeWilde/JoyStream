@@ -12,6 +12,8 @@
 
 #include <QObject>
 
+#include <memory>
+
 namespace joystream {
 namespace protocol_session {
 namespace status {
@@ -34,9 +36,11 @@ private:
 
 public:
 
+    ~Connection();
+
     libtorrent::tcp::endpoint connectionId() const noexcept;
 
-    std::shared_ptr<CBStateMachine> machine() const noexcept;
+    CBStateMachine * machine() const noexcept;
 
 signals:
 
@@ -50,8 +54,7 @@ private:
     libtorrent::tcp::endpoint _connectionId;
 
     // State machine for this connection
-    std::shared_ptr<CBStateMachine> _machine;
-
+    std::unique_ptr<CBStateMachine> _machine;
 };
 
 }

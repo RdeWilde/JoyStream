@@ -6,6 +6,9 @@
  */
 
 #include <core/Session.hpp>
+#include <core/detail/detail.hpp>
+
+#include <memory>
 
 namespace joystream {
 namespace core {
@@ -20,20 +23,22 @@ Session::Session(const protocol_session::status::Session<libtorrent::tcp::endpoi
     for(auto m : status.connections)
         addConnection(m.second);
 
+    /**
     // Create substate
     switch(_mode) {
 
         case protocol_session::SessionMode::selling:
-            _selling = std::shared_ptr<Selling>(new Selling(status.selling));
+            _selling = std::make_unique<Selling>(status.selling);
             break;
 
         case protocol_session::SessionMode::buying:
-            _buying = std::shared_ptr<Buying>(new Buying(status.buying));
+            _buying = std::make_unique<Buying>(status.buying);
             break;
 
         case protocol_session::SessionMode::not_set: break;
         case protocol_session::SessionMode::observing: break;
     }
+    */
 
 }
 
@@ -45,16 +50,16 @@ protocol_session::SessionState Session::state() const noexcept {
     return _state;
 }
 
-std::map<libtorrent::tcp::endpoint, std::shared_ptr<Connection> > Session::connections() const noexcept {
-    return _connections;
+std::map<libtorrent::tcp::endpoint, Connection*> Session::connections() const noexcept {
+    return detail::getRawMap<libtorrent::tcp::endpoint, Connection>(_connections);
 }
 
-std::shared_ptr<Selling> Session::selling() const noexcept {
-    return _selling;
+Selling * Session::selling() const noexcept {
+    return _selling.get();
 }
 
-std::shared_ptr<Buying> Session::buying() const noexcept {
-    return _buying;
+Buying * Session::buying() const noexcept {
+    return _buying.get();
 }
 
 void Session::addConnection(const protocol_session::status::Connection<libtorrent::tcp::endpoint> & status) {
@@ -64,13 +69,13 @@ void Session::addConnection(const protocol_session::status::Connection<libtorren
         return;
 
     // Create conneciton
-    std::shared_ptr<Connection> connection(new Connection(status));
+    Connection * c = new Connection(status);
 
     // Add to map
-    _connections.insert(std::make_pair(status.connectionId, connection));
+    _connections.insert(std::make_pair(status.connectionId, std::unique_ptr<Connection>(c)));
 
     // announce
-    emit connectionAdded(connection);
+    emit connectionAdded(c);
 }
 
 void Session::removeConnection(const libtorrent::tcp::endpoint & endPoint) {
@@ -89,11 +94,6 @@ void Session::removeConnection(const libtorrent::tcp::endpoint & endPoint) {
 }
 
 void Session::update(const protocol_session::status::Session<libtorrent::tcp::endpoint> & status) {
-
-    if(_mode != status.mode) {
-        _mode = status.mode;
-        emit modeChanged(status.mode);
-    }
 
     if(_state != status.state) {
         _state = status.state;
@@ -116,38 +116,66 @@ void Session::update(const protocol_session::status::Session<libtorrent::tcp::en
     }
 
     // for each exisiting peer
-    for(auto p: _connections) {
+    for(auto & p: _connections) {
 
         // if there is no status for it, then remove
         if(status.connections.count(p.first) == 0)
             removeConnection(p.first);
     }
 
-    /// Transition to/Update Substates
+    /// Update mode and tranistion to substates
+
+    updateSubstate(status);
+
+    // If mode changed
+    if(_mode != status.mode) {
+        _mode = status.mode;
+        emit modeChanged(_mode);
+    }
+}
+
+void Session::updateSubstate(const protocol_session::status::Session<libtorrent::tcp::endpoint> & status) {
 
     switch(status.mode) {
 
         case protocol_session::SessionMode::buying:
 
-            if(_mode == protocol_session::SessionMode::buying)
+            if(_mode == status.mode)
                 _buying->update(status.buying);
-            else
-                _buying = std::shared_ptr<Buying>(new Buying(status.buying));
+            else {
+
+                // Drop selling mode if we were in that mode
+                if(_mode == protocol_session::SessionMode::selling)
+                    _selling.reset();
+
+                // Create new buying sub state
+                assert(_buying.get() == nullptr);
+                _buying.reset(new Buying(status.buying));
+            }
 
             break;
 
         case protocol_session::SessionMode::selling:
 
-            if(_mode == protocol_session::SessionMode::selling)
+            if(_mode == status.mode)
                 _selling->update(status.selling);
-            else
-                _selling = std::shared_ptr<Selling>(new Selling(status.selling));
+            else {
+
+                // Drop buying mode if we were in that mode
+                if(_mode == protocol_session::SessionMode::buying)
+                    _buying.reset();
+
+                // Create new selling sub state
+                assert(_selling.get() == nullptr);
+                _selling.reset(new Selling(status.selling));
+            }
 
             break;
 
         case protocol_session::SessionMode::not_set: break;
         case protocol_session::SessionMode::observing: break;
     }
+
 }
 
 }

@@ -57,13 +57,11 @@ public:
 
     libtorrent::sha1_hash infoHash() const noexcept;
 
-    std::map<libtorrent::tcp::endpoint, std::shared_ptr<PeerPlugin> > peers() const noexcept;
-
-    std::shared_ptr<Session> session() const noexcept;
+    std::map<libtorrent::tcp::endpoint, PeerPlugin *> peers() const noexcept;
 
 signals:
 
-    void peerPluginAdded(const std::weak_ptr<PeerPlugin> &);
+    void peerPluginAdded(const PeerPlugin *);
 
     void peerPluginRemoved(const libtorrent::tcp::endpoint &);
 
@@ -81,9 +79,9 @@ private:
 
     libtorrent::sha1_hash _infoHash;
 
-    std::map<libtorrent::tcp::endpoint, std::shared_ptr<PeerPlugin> > _peers;
+    std::map<libtorrent::tcp::endpoint, std::unique_ptr<PeerPlugin>> _peers;
 
-    std::shared_ptr<Session> _session;
+    std::unique_ptr<Session> _session;
 
     boost::shared_ptr<extension::Plugin> _plugin;
 };
