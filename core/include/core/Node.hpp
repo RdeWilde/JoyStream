@@ -9,7 +9,6 @@
 #define JOYSTREAM_CORE_NODE_HPP
 
 #include <core/Torrent.hpp>
-//#include <core/Callbacks.hpp>
 //#include <core/controller/Stream.hpp>
 #include <extension/extension.hpp>
 #include <common/UnspentP2PKHOutput.hpp>

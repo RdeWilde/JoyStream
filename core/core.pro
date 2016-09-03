@@ -31,7 +31,6 @@ HEADERS += \
     include/core/PeerPlugin.hpp \
     include/core/Connection.hpp \
     include/core/MagnetLink.hpp \
-    include/core/Callbacks.hpp \
     include/core/Selling.hpp \
     include/core/Buying.hpp \
     include/core/Seller.hpp \
