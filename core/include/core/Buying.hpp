@@ -27,6 +27,8 @@ private:
 
 public:
 
+    ~Buying();
+
     Coin::UnspentP2PKHOutput funding() const noexcept;
 
     protocol_session::BuyingPolicy policy() const noexcept;
@@ -62,6 +64,8 @@ private:
     void addSeller(const protocol_session::status::Seller<libtorrent::tcp::endpoint> &);
 
     void removeSeller(const libtorrent::tcp::endpoint &);
+
+    void removeSeller(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Seller>>::iterator it);
 
     void update(const protocol_session::status::Buying<libtorrent::tcp::endpoint> &);
 

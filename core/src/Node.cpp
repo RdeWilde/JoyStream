@@ -158,6 +158,12 @@ Node::Node(const BroadcastTransaction & broadcastTransaction)
     processAlertQueue();
 }
 
+Node::~Node() {
+
+    for(auto it = _torrents.begin();it != _torrents.end();)
+        removeTorrent(it++);
+}
+
 void Node::pause(const NodePaused & nodePaused) {
 
     // Pause libtorrent session
@@ -476,16 +482,11 @@ void Node::process(const libtorrent::torrent_removed_alert * p) {
      * so we must use p->info_hash instead.
      */
 
-    // Get torrent info hash
-    libtorrent::sha1_hash info_hash = p->info_hash;
-
     // Then erase from container
-    auto it = _torrents.find(info_hash);
+    auto it = _torrents.find(p->info_hash);
     assert(it != _torrents.cend());
-    _torrents.erase(it);
 
-    // and send remove signal
-    emit removedTorrent(info_hash);
+    removeTorrent(it);
 }
 
 void Node::process(const libtorrent::torrent_resumed_alert * p) {
@@ -985,6 +986,17 @@ libtorrent::add_torrent_params Node::toAddTorrentParams(const boost::optional<ui
     }
 
     return params;
+}
+
+void Node::removeTorrent(std::map<libtorrent::sha1_hash, std::unique_ptr<Torrent>>::iterator it) {
+
+    libtorrent::sha1_hash info_hash = it->first;
+
+    _torrents.erase(it);
+
+    // and send remove signal
+    emit removedTorrent(info_hash);
+
 }
 
 }

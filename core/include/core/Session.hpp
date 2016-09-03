@@ -30,6 +30,8 @@ private:
 
 public:
 
+    ~Session();
+
     protocol_session::SessionMode mode() const noexcept;
 
     protocol_session::SessionState state() const noexcept;
@@ -57,6 +59,8 @@ private:
     void addConnection(const protocol_session::status::Connection<libtorrent::tcp::endpoint> & status);
 
     void removeConnection(const libtorrent::tcp::endpoint &);
+
+    void removeConnection(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Connection> >::iterator it);
 
     void update(const protocol_session::status::Session<libtorrent::tcp::endpoint> &);
 

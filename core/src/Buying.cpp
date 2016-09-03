@@ -23,6 +23,12 @@ Buying::Buying(const protocol_session::status::Buying<libtorrent::tcp::endpoint>
         addSeller(m.second);
 }
 
+Buying::~Buying() {
+
+    for(auto it = _sellers.begin();it != _sellers.end();)
+        removeSeller(it++);
+}
+
 
 Coin::UnspentP2PKHOutput Buying::funding() const noexcept {
     return _funding;
@@ -50,9 +56,7 @@ Coin::Transaction Buying::contractTx() const noexcept {
 
 void Buying::addSeller(const protocol_session::status::Seller<libtorrent::tcp::endpoint> & status) {
 
-    // if the seller alreadye exists, then ignore
-    if(_sellers.count(status.connection) > 0)
-        return;
+    assert(_sellers.count(status.connection) > 0);
 
     // Create seller
     auto s = new Seller(status);
@@ -67,10 +71,14 @@ void Buying::addSeller(const protocol_session::status::Seller<libtorrent::tcp::e
 void Buying::removeSeller(const libtorrent::tcp::endpoint & endPoint) {
 
     auto it = _sellers.find(endPoint);
+    assert(it != _sellers.cend());
 
-    // Ignore if it is already gone
-    if(it != _sellers.cend())
-        return;
+    removeSeller(it);
+}
+
+void Buying::removeSeller(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Seller>>::iterator it) {
+
+    libtorrent::tcp::endpoint endPoint = it->first;
 
     // Remove from map
     _sellers.erase(it);

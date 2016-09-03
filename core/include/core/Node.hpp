@@ -52,6 +52,8 @@ public:
      */
     Node(const BroadcastTransaction & broadcastTransaction);
 
+    ~Node();
+
     /**
      * @brief Terminates all connections on all torrents, and stops all plugins, but
      *        BitTorrent and DHT daemons still run.
@@ -240,6 +242,8 @@ private:
                                                              const std::string & savePath,
                                                              bool pause,
                                                              const TorrentIdentifier & torrentIdentifier) noexcept;
+
+    void removeTorrent(std::map<libtorrent::sha1_hash, std::unique_ptr<Torrent>>::iterator it);
 };
 
 }

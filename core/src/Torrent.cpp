@@ -29,6 +29,11 @@ Torrent::Torrent(const libtorrent::torrent_handle & handle,
 }
 
 Torrent::~Torrent() {
+
+    for(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Peer>>::iterator it = _peers.begin();it != _peers.end();)
+        removePeer(it++);
+
+    removeTorrentPlugin();
 }
 
 void Torrent::paused(bool graceful, const TorrentPaused & handler) {
@@ -112,13 +117,19 @@ void Torrent::addPeer(const libtorrent::peer_info & info) {
 
 void Torrent::removePeer(const libtorrent::tcp::endpoint & ip) {
 
-    // Make sure peer exists, and then drop it
     auto it = _peers.find(ip);
-    assert(it != _peers.cend());
+    assert(it != _peers.end());
+
+    removePeer(it);
+}
+
+void Torrent::removePeer(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Peer>>::iterator it) {
+
+    libtorrent::tcp::endpoint endPoint = it->first;
 
     _peers.erase(it);
 
-    emit peerRemoved(ip);
+    emit peerRemoved(endPoint);
 }
 
 void Torrent::addTorrentPlugin(const extension::status::TorrentPlugin & status) {
@@ -134,7 +145,7 @@ void Torrent::addTorrentPlugin(const extension::status::TorrentPlugin & status) 
 
 void Torrent::removeTorrentPlugin() {
 
-    assert(_torrentPlugin);
+    assert(_torrentPlugin.get() != nullptr);
 
     _torrentPlugin.release();
 

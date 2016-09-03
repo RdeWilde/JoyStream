@@ -7,6 +7,8 @@
 
 #include <core/TorrentPlugin.hpp>
 #include <core/detail/detail.hpp>
+#include <core/PeerPlugin.hpp>
+#include <core/Session.hpp>
 
 namespace joystream {
 namespace core {
@@ -20,6 +22,12 @@ TorrentPlugin::TorrentPlugin(const extension::status::TorrentPlugin & status,
     // Create peers
     for(auto m : status.peers)
         addPeerPlugin(m.second);
+}
+
+TorrentPlugin::~TorrentPlugin() {
+
+    for(auto it = _peers.begin();it != _peers.end();)
+        removePeerPlugin(it++);
 }
 
 void TorrentPlugin::start(const extension::request::SubroutineHandler & handler) {
@@ -105,10 +113,14 @@ void TorrentPlugin::addPeerPlugin(const extension::status::PeerPlugin & status) 
 void TorrentPlugin::removePeerPlugin(const libtorrent::tcp::endpoint & endPoint) {
 
     auto it = _peers.find(endPoint);
+    assert(it != _peers.end());
 
-    // Ignore if it is already gone
-    if(it == _peers.cend())
-        return;
+    removePeerPlugin(it);
+}
+
+void TorrentPlugin::removePeerPlugin(std::map<libtorrent::tcp::endpoint, std::unique_ptr<PeerPlugin>>::iterator it) {
+
+    libtorrent::tcp::endpoint endPoint = it->first;
 
     // Remove from map
     _peers.erase(it);

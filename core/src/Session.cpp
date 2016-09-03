@@ -42,6 +42,12 @@ Session::Session(const protocol_session::status::Session<libtorrent::tcp::endpoi
 
 }
 
+Session::~Session() {
+
+    for(auto it = _connections.begin();it != _connections.end();)
+        removeConnection(it++);
+}
+
 protocol_session::SessionMode Session::mode() const noexcept {
     return _mode;
 }
@@ -81,10 +87,14 @@ void Session::addConnection(const protocol_session::status::Connection<libtorren
 void Session::removeConnection(const libtorrent::tcp::endpoint & endPoint) {
 
     auto it = _connections.find(endPoint);
+    assert(it != _connections.end());
 
-    // Ignore if it as already gone
-    if(it == _connections.cend())
-        return;
+    removeConnection(it);
+}
+
+void Session::removeConnection(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Connection> >::iterator it) {
+
+    libtorrent::tcp::endpoint endPoint = it->first;
 
     // Remove from map
     _connections.erase(it);

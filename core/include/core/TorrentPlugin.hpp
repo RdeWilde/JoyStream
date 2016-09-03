@@ -9,13 +9,14 @@
 #define JOYSTREAM_CORE_TORRENTPLUGIN_HPP
 
 #include <extension/extension.hpp>
-#include <core/PeerPlugin.hpp>
-#include <core/Session.hpp>
 
 #include <QObject>
 
 namespace joystream {
 namespace core {
+
+class PeerPlugin;
+class Session;
 
 class TorrentPlugin : public QObject {
 
@@ -27,6 +28,8 @@ private:
                   const boost::shared_ptr<extension::Plugin> & plugin);
 
 public:
+
+    ~TorrentPlugin();
 
     void start(const extension::request::SubroutineHandler &);
 
@@ -72,6 +75,8 @@ private:
     void addPeerPlugin(const extension::status::PeerPlugin &);
 
     void removePeerPlugin(const libtorrent::tcp::endpoint &);
+
+    void removePeerPlugin(std::map<libtorrent::tcp::endpoint, std::unique_ptr<PeerPlugin>>::iterator it);
 
     void update(const extension::status::TorrentPlugin &);
 

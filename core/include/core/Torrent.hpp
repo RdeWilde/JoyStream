@@ -129,6 +129,8 @@ private:
 
     void removePeer(const libtorrent::tcp::endpoint &);
 
+    void removePeer(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Peer>>::iterator it);
+
     void addTorrentPlugin(const extension::status::TorrentPlugin &);
 
     void removeTorrentPlugin();
