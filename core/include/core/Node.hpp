@@ -8,7 +8,6 @@
 #ifndef JOYSTREAM_CORE_NODE_HPP
 #define JOYSTREAM_CORE_NODE_HPP
 
-#include <core/Torrent.hpp>
 //#include <core/controller/Stream.hpp>
 #include <extension/extension.hpp>
 #include <common/UnspentP2PKHOutput.hpp>

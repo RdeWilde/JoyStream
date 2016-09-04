@@ -6,6 +6,9 @@
  */
 
 #include <core/Session.hpp>
+#include <core/Connection.hpp>
+#include <core/Selling.hpp>
+#include <core/Buying.hpp>
 #include <core/detail/detail.hpp>
 
 #include <memory>
@@ -13,33 +16,27 @@
 namespace joystream {
 namespace core {
 
-Session::Session(const protocol_session::status::Session<libtorrent::tcp::endpoint> & status)
-    : _mode(status.mode)
-    , _state(status.state)
-    , _selling(nullptr)
-    , _buying(nullptr) {
+Session * Session::create(const protocol_session::status::Session<libtorrent::tcp::endpoint> & status) {
 
-    // Create connections
+    Session * session = new Session(status.mode,
+                                    status.state,
+                                    Selling::create(status.selling),
+                                    Buying::create(status.buying));
+
     for(auto m : status.connections)
-        addConnection(m.second);
+        session->addConnection(m.second);
 
-    /**
-    // Create substate
-    switch(_mode) {
+    return session;
+}
 
-        case protocol_session::SessionMode::selling:
-            _selling = std::make_unique<Selling>(status.selling);
-            break;
-
-        case protocol_session::SessionMode::buying:
-            _buying = std::make_unique<Buying>(status.buying);
-            break;
-
-        case protocol_session::SessionMode::not_set: break;
-        case protocol_session::SessionMode::observing: break;
-    }
-    */
-
+Session::Session(const protocol_session::SessionMode & mode,
+                 const protocol_session::SessionState & state,
+                 Selling * selling,
+                 Buying * buying)
+    : _mode(mode)
+    , _state(state)
+    , _selling(selling)
+    , _buying(buying) {
 }
 
 Session::~Session() {
@@ -75,7 +72,7 @@ void Session::addConnection(const protocol_session::status::Connection<libtorren
         return;
 
     // Create conneciton
-    Connection * c = new Connection(status);
+    Connection * c = Connection::create(status);
 
     // Add to map
     _connections.insert(std::make_pair(status.connectionId, std::unique_ptr<Connection>(c)));
@@ -160,7 +157,7 @@ void Session::updateSubstate(const protocol_session::status::Session<libtorrent:
 
                 // Create new buying sub state
                 assert(_buying.get() == nullptr);
-                _buying.reset(new Buying(status.buying));
+                _buying.reset(Buying::create(status.buying));
             }
 
             break;
@@ -177,7 +174,7 @@ void Session::updateSubstate(const protocol_session::status::Session<libtorrent:
 
                 // Create new selling sub state
                 assert(_selling.get() == nullptr);
-                _selling.reset(new Selling(status.selling));
+                _selling.reset(Selling::create(status.selling));
             }
 
             break;

@@ -21,7 +21,11 @@ class PeerPlugin : public QObject {
 
 public:
 
-    PeerPlugin(const extension::status::PeerPlugin &);
+    PeerPlugin(const libtorrent::tcp::endpoint & endPoint,
+               const extension::BEPSupportStatus & peerBEP10SupportStatus,
+               const extension::BEPSupportStatus & peerBitSwaprBEPSupportStatus);
+
+    static PeerPlugin * create(const extension::status::PeerPlugin & status);
 
     libtorrent::tcp::endpoint endPoint() const noexcept;
 

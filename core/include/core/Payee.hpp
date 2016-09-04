@@ -22,11 +22,16 @@ class Payee : public QObject {
 
     Q_OBJECT
 
-private:
-
-    Payee(const paymentchannel::Payee &);
-
 public:
+
+    Payee(quint64 numberOfPaymentsMade,
+          quint32 lockTime,
+          quint64 price,
+          quint64 funds,
+          quint64 settlementFee,
+          const Coin::typesafeOutPoint & anchor);
+
+    static Payee * create(const paymentchannel::Payee &);
 
     // The number of payments which have been successfully made
     quint64 numberOfPaymentsMade() const noexcept;

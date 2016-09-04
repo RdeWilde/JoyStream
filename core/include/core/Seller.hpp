@@ -21,11 +21,12 @@ class Seller : public QObject {
 
     Q_OBJECT
 
-private:
-
-    Seller(const protocol_session::status::Seller<libtorrent::tcp::endpoint> &);
-
 public:
+
+    Seller(const protocol_session::SellerState & state,
+           const libtorrent::tcp::endpoint & connectionId);
+
+    static Seller * create(const protocol_session::status::Seller<libtorrent::tcp::endpoint> & status);
 
     protocol_session::SellerState state() const noexcept;
 

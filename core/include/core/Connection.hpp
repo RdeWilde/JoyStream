@@ -30,11 +30,12 @@ class Connection : public QObject {
 
     Q_OBJECT
 
-private:
-
-    Connection(const protocol_session::status::Connection<libtorrent::tcp::endpoint> &);
-
 public:
+
+    Connection(const libtorrent::tcp::endpoint & connectionId,
+               CBStateMachine * machine);
+
+    static Connection * create(const protocol_session::status::Connection<libtorrent::tcp::endpoint> & status);
 
     ~Connection();
 

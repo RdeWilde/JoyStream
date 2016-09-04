@@ -13,15 +13,24 @@
 namespace joystream {
 namespace core {
 
-TorrentPlugin::TorrentPlugin(const extension::status::TorrentPlugin & status,
-                             const boost::shared_ptr<extension::Plugin> & plugin)
-    : _infoHash(status.infoHash)
-    , _session(new core::Session(status.session))
-    , _plugin(plugin) {
+TorrentPlugin * TorrentPlugin::create(const extension::status::TorrentPlugin & status,
+                                      const boost::shared_ptr<extension::Plugin> & p) {
 
-    // Create peers
+    TorrentPlugin * plugin = new TorrentPlugin(status.infoHash,
+                                               Session::create(status.session),
+                                               p);
     for(auto m : status.peers)
-        addPeerPlugin(m.second);
+        plugin->addPeerPlugin(m.second);
+
+    return plugin;
+}
+
+TorrentPlugin::TorrentPlugin(const libtorrent::sha1_hash & infoHash,
+                             Session * session,
+                             const boost::shared_ptr<extension::Plugin> & plugin)
+    : _infoHash(infoHash)
+    , _session(session)
+    , _plugin(plugin) {
 }
 
 TorrentPlugin::~TorrentPlugin() {
@@ -101,7 +110,7 @@ void TorrentPlugin::addPeerPlugin(const extension::status::PeerPlugin & status) 
         return;
 
     // Create peer plugin
-    PeerPlugin * plugin = new PeerPlugin(status);
+    PeerPlugin * plugin = PeerPlugin::create(status);
 
     // Add to map
     _peers.insert(std::make_pair(status.endPoint, std::unique_ptr<PeerPlugin>(plugin)));

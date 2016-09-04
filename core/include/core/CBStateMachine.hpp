@@ -30,11 +30,14 @@ class CBStateMachine : public QObject {
 
     Q_OBJECT
 
-private:
-
-    CBStateMachine(const protocol_session::status::CBStateMachine &);
-
 public:
+
+    CBStateMachine(const std::type_index & innerStateTypeIndex,
+                   const protocol_statemachine::AnnouncedModeAndTerms & announcedModeAndTermsFromPeer,
+                   Payor * payor,
+                   Payee * payee);
+
+    static CBStateMachine * create(const protocol_session::status::CBStateMachine & status);
 
     ~CBStateMachine();
 

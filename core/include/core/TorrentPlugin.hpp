@@ -22,12 +22,14 @@ class TorrentPlugin : public QObject {
 
     Q_OBJECT
 
-private:
-
-    TorrentPlugin(const extension::status::TorrentPlugin & status,
-                  const boost::shared_ptr<extension::Plugin> & plugin);
-
 public:
+
+    static TorrentPlugin * create(const extension::status::TorrentPlugin & status,
+                                  const boost::shared_ptr<extension::Plugin> & plugin);
+
+    TorrentPlugin(const libtorrent::sha1_hash & infoHash,
+                  Session * session,
+                  const boost::shared_ptr<extension::Plugin> & plugin);
 
     ~TorrentPlugin();
 

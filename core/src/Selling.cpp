@@ -10,9 +10,14 @@
 namespace joystream {
 namespace core {
 
-Selling::Selling(const protocol_session::status::Selling & status)
-    : _policy(status.policy)
-    , _terms(status.terms) {
+Selling * Selling::create(const protocol_session::status::Selling & status) {
+    return new Selling(status.policy, status.terms);
+}
+
+Selling::Selling(const protocol_session::SellingPolicy & policy,
+                 const protocol_wire::SellerTerms & terms)
+    : _policy(policy)
+    , _terms(terms) {
 }
 
 protocol_session::SellingPolicy Selling::policy() const noexcept {

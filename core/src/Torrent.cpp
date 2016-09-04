@@ -136,7 +136,7 @@ void Torrent::addTorrentPlugin(const extension::status::TorrentPlugin & status) 
 
     assert(_torrentPlugin.get() == nullptr);
 
-    auto plugin = new TorrentPlugin(status, _plugin);
+    TorrentPlugin * plugin = TorrentPlugin::create(status, _plugin);
 
     _torrentPlugin.reset(plugin);
 

@@ -24,7 +24,10 @@ class Torrent : public QObject {
 
     Q_OBJECT
 
-private:
+public:
+
+    typedef extension::request::SubroutineHandler TorrentPaused;
+    typedef extension::request::SubroutineHandler TorrentResumed;
 
     Torrent(const libtorrent::torrent_handle & handle,
             const libtorrent::torrent_status & status,
@@ -32,11 +35,6 @@ private:
             int uploadLimit,
             int downloadLimit,
             const boost::shared_ptr<extension::Plugin> &);
-
-public:
-
-    typedef extension::request::SubroutineHandler TorrentPaused;
-    typedef extension::request::SubroutineHandler TorrentResumed;
 
     ~Torrent();
 

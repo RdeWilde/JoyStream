@@ -11,13 +11,27 @@
 namespace joystream {
 namespace core {
 
-Payor::Payor(const paymentchannel::Payor & payor)
-    : _price(payor.price())
-    , _numberOfPaymentsMade(payor.numberOfPaymentsMade())
-    , _funds(payor.funds())
-    , _settlementFee(payor.settlementFee())
-    , _refundLockTime(payor.refundLockTime())
-    , _anchor(payor.anchor()) {
+Payor::Payor(quint64 price,
+             quint64 numberOfPaymentsMade,
+             quint64 funds,
+             quint64 settlementFee,
+             quint32 refundLockTime,
+             const Coin::typesafeOutPoint & anchor)
+    : _price(price)
+    , _numberOfPaymentsMade(numberOfPaymentsMade)
+    , _funds(funds)
+    , _settlementFee(settlementFee)
+    , _refundLockTime(refundLockTime)
+    , _anchor(anchor) {
+}
+
+Payor * Payor::create(const paymentchannel::Payor & payor) {
+    return new Payor(payor.price(),
+                     payor.numberOfPaymentsMade(),
+                     payor.funds(),
+                     payor.settlementFee(),
+                     payor.refundLockTime(),
+                     payor.anchor());
 }
 
 quint64 Payor::price() const noexcept {

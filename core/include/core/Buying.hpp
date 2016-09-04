@@ -9,7 +9,6 @@
 #define JOYSTREAM_CORE_BUYING_HPP
 
 #include <protocol_session/protocol_session.hpp>
-#include <core/Seller.hpp>
 #include <libtorrent/socket.hpp>
 
 #include <QObject>
@@ -17,15 +16,21 @@
 namespace joystream {
 namespace core {
 
+class Seller;
+
 class Buying : public QObject {
 
     Q_OBJECT
 
-private:
-
-    Buying(const protocol_session::status::Buying<libtorrent::tcp::endpoint> &);
-
 public:
+
+    Buying(const Coin::UnspentP2PKHOutput & funding,
+           const protocol_session::BuyingPolicy & policy,
+           const protocol_session::BuyingState & state,
+           const protocol_wire::BuyerTerms & terms,
+           const Coin::Transaction & contractTx);
+
+    static Buying * create(const protocol_session::status::Buying<libtorrent::tcp::endpoint> & status);
 
     ~Buying();
 

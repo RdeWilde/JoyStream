@@ -9,15 +9,17 @@
 #include <core/CBStateMachine.hpp>
 #include <protocol_session/protocol_session.hpp>
 
-//#include <core/Payor.hpp>
-//#include <core/Payee.hpp>
-
 namespace joystream {
 namespace core {
 
-Connection::Connection(const protocol_session::status::Connection<libtorrent::tcp::endpoint> & status)
-    : _connectionId(status.connectionId)
-    , _machine(new CBStateMachine(status.machine)) {
+Connection::Connection(const libtorrent::tcp::endpoint & connectionId,
+                       CBStateMachine * machine)
+    : _connectionId(connectionId)
+    , _machine(machine) {
+}
+
+Connection * Connection::create(const protocol_session::status::Connection<libtorrent::tcp::endpoint> & status) {
+    return new Connection(status.connectionId, CBStateMachine::create(status.machine));
 }
 
 Connection::~Connection() {

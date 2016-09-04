@@ -22,11 +22,16 @@ class Payor : public QObject {
 
     Q_OBJECT
 
-private:
-
-    Payor(const paymentchannel::Payor &);
-
 public:
+
+    Payor(quint64 price,
+          quint64 numberOfPaymentsMade,
+          quint64 funds,
+          quint64 settlementFee,
+          quint32 refundLockTime,
+          const Coin::typesafeOutPoint & anchor);
+
+    static Payor * create(const paymentchannel::Payor &);
 
     // Size of single payment
     quint64 price() const noexcept;

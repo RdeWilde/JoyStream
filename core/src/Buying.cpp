@@ -6,21 +6,37 @@
  */
 
 #include <core/Buying.hpp>
+#include <core/Seller.hpp>
 #include <core/detail/detail.hpp>
 
 namespace joystream {
 namespace core {
 
-Buying::Buying(const protocol_session::status::Buying<libtorrent::tcp::endpoint> & status)
-    : _funding(status.funding)
-    , _policy(status.policy)
-    , _state(status.state)
-    , _terms(status.terms)
-    , _contractTx(status.contractTx) {
+Buying * Buying::create(const protocol_session::status::Buying<libtorrent::tcp::endpoint> & status) {
 
-    // Create sellers
+    Buying * buying = new Buying(status.funding,
+                                 status.policy,
+                                 status.state,
+                                 status.terms,
+                                 status.contractTx);
+
     for(auto m : status.sellers)
-        addSeller(m.second);
+        buying->addSeller(m.second);
+
+    return buying;
+}
+
+Buying::Buying(const Coin::UnspentP2PKHOutput & funding,
+               const protocol_session::BuyingPolicy & policy,
+               const protocol_session::BuyingState & state,
+               const protocol_wire::BuyerTerms & terms,
+               const Coin::Transaction & contractTx)
+    : _funding(funding)
+    , _policy(policy)
+    , _state(state)
+    , _terms(terms)
+    , _contractTx(contractTx) {
+
 }
 
 Buying::~Buying() {
@@ -59,7 +75,7 @@ void Buying::addSeller(const protocol_session::status::Seller<libtorrent::tcp::e
     assert(_sellers.count(status.connection) > 0);
 
     // Create seller
-    auto s = new Seller(status);
+    Seller * s = Seller::create(status);
 
     // Add to map
     _sellers.insert(std::make_pair(status.connection, std::unique_ptr<Seller>(s)));

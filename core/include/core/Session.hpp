@@ -9,9 +9,6 @@
 #define JOYSTREAM_CORE_SESSION_HPP
 
 #include <protocol_session/protocol_session.hpp>
-#include <core/Connection.hpp>
-#include <core/Selling.hpp>
-#include <core/Buying.hpp>
 
 #include <libtorrent/socket.hpp>
 
@@ -20,15 +17,22 @@
 namespace joystream {
 namespace core {
 
+class Selling;
+class Buying;
+class Connection;
+
 class Session : public QObject {
 
     Q_OBJECT
 
-private:
-
-    Session(const protocol_session::status::Session<libtorrent::tcp::endpoint> &);
-
 public:
+
+    static Session * create(const protocol_session::status::Session<libtorrent::tcp::endpoint> &);
+
+    Session(const protocol_session::SessionMode & mode,
+            const protocol_session::SessionState & state,
+            Selling * selling,
+            Buying * buying);
 
     ~Session();
 

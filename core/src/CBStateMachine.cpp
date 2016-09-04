@@ -13,16 +13,24 @@
 namespace joystream {
 namespace core {
 
-CBStateMachine::CBStateMachine(const protocol_session::status::CBStateMachine & status)
-    : _innerStateTypeIndex(status.innerStateTypeIndex)
-    , _announcedModeAndTermsFromPeer(status.announcedModeAndTermsFromPeer)
-    , _payor(new Payor(status.payor))
-    , _payee(new Payee(status.payee)) {
+CBStateMachine::CBStateMachine(const std::type_index & innerStateTypeIndex,
+                               const protocol_statemachine::AnnouncedModeAndTerms & announcedModeAndTermsFromPeer,
+                               Payor * payor,
+                               Payee * payee)
+    : _innerStateTypeIndex(innerStateTypeIndex)
+    , _announcedModeAndTermsFromPeer(announcedModeAndTermsFromPeer)
+    , _payor(payor)
+    , _payee(payee) {
+}
 
+CBStateMachine * create(const protocol_session::status::CBStateMachine & status) {
+    return new CBStateMachine(status.innerStateTypeIndex,
+                              status.announcedModeAndTermsFromPeer,
+                              Payor::create(status.payor),
+                              Payee::create(status.payee));
 }
 
 CBStateMachine::~CBStateMachine() {
-
 }
 
 std::type_index CBStateMachine::innerStateTypeIndex() const noexcept {

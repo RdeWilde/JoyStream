@@ -19,11 +19,12 @@ class Selling : public QObject {
 
     Q_OBJECT
 
-private:
-
-    Selling(const protocol_session::status::Selling &);
-
 public:
+
+    static Selling * create(const protocol_session::status::Selling & status);
+
+    Selling(const protocol_session::SellingPolicy & policy,
+            const protocol_wire::SellerTerms & terms);
 
     protocol_session::SellingPolicy policy() const noexcept;
 
