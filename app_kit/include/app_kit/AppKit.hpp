@@ -38,7 +38,8 @@ class AppKit
 {
 
 public:
-    typedef std::function<void(const Coin::Transaction &)> BroadcastTransaction;
+    typedef std::function<void()> Callback;
+    //typedef std::function<void(const Coin::Transaction &)> BroadcastTransaction;
     typedef std::function<void(const std::exception_ptr &)> SubroutineHandler;
 
     static AppKit* createInstance(const QString &dataDirectory, Coin::Network network);
@@ -47,6 +48,8 @@ public:
     std::unique_ptr<core::Node> & node();
 
     void syncWallet(std::string host, int port);
+
+    void shutdown(Callback);
 
     // Save Node state to and ostream
     //void saveNodeState(ostream&);
@@ -61,14 +64,14 @@ public:
     void loadNodeState();
 
     void buyTorrent(std::shared_ptr<core::Torrent> &,
-                    protocol_session::BuyingPolicy&,
-                    protocol_wire::BuyerTerms&,
-                    SubroutineHandler &);
+                    const protocol_session::BuyingPolicy &,
+                    const protocol_wire::BuyerTerms &,
+                    const SubroutineHandler &);
 
-    void buyTorrent(libtorrent::sha1_hash &info_hash,
-                    protocol_session::BuyingPolicy&,
-                    protocol_wire::BuyerTerms&,
-                    SubroutineHandler &);
+    void buyTorrent(const libtorrent::sha1_hash &info_hash,
+                    const protocol_session::BuyingPolicy&,
+                    const protocol_wire::BuyerTerms&,
+                    const SubroutineHandler &);
 private:
 
     static bitcoin::SPVWallet* getWallet(const QString &dataDirectory, Coin::Network network);

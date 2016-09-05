@@ -67,10 +67,16 @@ void AppKit::syncWallet(std::string host, int port) {
     }
 }
 
+void AppKit::shutdown(Callback callback) {
+    _wallet->stopSync();
+    //_node->pause(callback);
+    callback();
+}
+
 void AppKit::buyTorrent(std::shared_ptr<core::Torrent> &torrent,
-                        protocol_session::BuyingPolicy& policy,
-                        protocol_wire::BuyerTerms& terms,
-                        extension::request::SubroutineHandler& handler){
+                        const protocol_session::BuyingPolicy& policy,
+                        const protocol_wire::BuyerTerms& terms,
+                        const extension::request::SubroutineHandler& handler){
 
     // This will be termporary. funding of the contract will be done
     // by an external transaction signing/funding routine
@@ -110,10 +116,10 @@ void AppKit::buyTorrent(std::shared_ptr<core::Torrent> &torrent,
     );
 }
 
-void AppKit::buyTorrent(libtorrent::sha1_hash &info_hash,
-                        protocol_session::BuyingPolicy& policy,
-                        protocol_wire::BuyerTerms& terms,
-                        extension::request::SubroutineHandler& handler) {
+void AppKit::buyTorrent(const libtorrent::sha1_hash &info_hash,
+                        const protocol_session::BuyingPolicy& policy,
+                        const protocol_wire::BuyerTerms& terms,
+                        const extension::request::SubroutineHandler& handler) {
 
     auto torrents = _node->torrents();
 
