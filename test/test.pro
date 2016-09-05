@@ -19,4 +19,5 @@ SUBDIRS     = \
             protocol_session \
             protocol_wire \
             core \
-            app_kit
+            app_kit \
+            app_kit_cli
