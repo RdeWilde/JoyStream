@@ -9,21 +9,21 @@ AppKit::AppKit()
 {
 }
 
-bitcoin::SPVWallet * AppKit::getWallet(std::string dataDirectory, Coin::Network network) {
+bitcoin::SPVWallet * AppKit::getWallet(const std::string & dataDirectory, Coin::Network network) {
     std::string storeFile = dataDirectory + "/store.sqlite";
     std::string blockTreeFile = dataDirectory + "/blocktree.dat";
 
     return new bitcoin::SPVWallet(storeFile, blockTreeFile, network);
 }
 
-void AppKit::createWallet(std::string dataDirectory, Coin::Network network) {
+void AppKit::createWallet(const std::string &dataDirectory, Coin::Network network) {
 
     std::unique_ptr<bitcoin::SPVWallet> wallet(getWallet(dataDirectory, network));
 
     wallet->create();
 }
 
-AppKit* AppKit::createInstance(std::string dataDirectory, Coin::Network network) {
+AppKit* AppKit::createInstance(const std::string &dataDirectory, Coin::Network network) {
 
     auto walletp = getWallet(dataDirectory, network);
 

@@ -17,6 +17,7 @@ class Test : public QObject
     Q_OBJECT
 
 private:
+    QString _tempDataPath;
 
 private slots:
 

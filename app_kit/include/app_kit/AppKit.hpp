@@ -42,11 +42,11 @@ public:
     typedef std::function<void(const Coin::Transaction &)> BroadcastTransaction;
     typedef std::function<void(const std::exception_ptr &)> SubroutineHandler;
 
-    static bitcoin::SPVWallet* getWallet(std::string dataDirectory, Coin::Network network);
+    static bitcoin::SPVWallet* getWallet(const std::string &dataDirectory, Coin::Network network);
 
-    static void createWallet(std::string dataDirectory, Coin::Network network);
+    static void createWallet(const std::string &dataDirectory, Coin::Network network);
 
-    static AppKit* createInstance(std::string dataDirectory, Coin::Network network);
+    static AppKit* createInstance(const std::string &dataDirectory, Coin::Network network);
 
     std::unique_ptr<bitcoin::SPVWallet> & wallet();
     std::unique_ptr<core::Node> & node();

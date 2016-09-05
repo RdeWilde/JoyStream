@@ -9,6 +9,7 @@
 #include <app_kit/AppKit.hpp>
 
 #include <common/Network.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/impl/src.hpp>
 
@@ -23,12 +24,13 @@ std::string IdToString<boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>>(bo
 
 void Test::initTestCase()
 {
-
+    _tempDataPath = QDir::tempPath() + QDir::separator() + "joystream" + QDir::separator();
 }
 
 void Test::init()
 {
-
+    boost::filesystem::remove_all(_tempDataPath.toStdString());
+    boost::filesystem::create_directory(_tempDataPath.toStdString());
 }
 
 void Test::cleanup()
@@ -38,12 +40,18 @@ void Test::cleanup()
 
 void Test::cleanupTestCase()
 {
-
+    boost::filesystem::remove_all(_tempDataPath.toStdString());
 }
 
 void Test::walletCreation()
 {
-    joystream::AppKit::createWallet("/tmp", Coin::Network::testnet3);
+    joystream::AppKit::createWallet(_tempDataPath.toStdString(), Coin::Network::testnet3);
+
+    auto kit = joystream::AppKit::createInstance(_tempDataPath.toStdString(), Coin::Network::testnet3);
+
+    // Make sure the unique_ptr is still managing the interal SPVWallet and Node
+    QVERIFY((bool)kit->node());
+    QVERIFY((bool)kit->wallet());
 }
 
 QTEST_MAIN(Test)
