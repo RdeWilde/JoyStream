@@ -2,6 +2,8 @@
 #include <core/core.hpp>
 #include <bitcoin/SPVWallet.hpp>
 
+#include <QDir>
+
 namespace joystream {
 
 
@@ -9,21 +11,22 @@ AppKit::AppKit()
 {
 }
 
-bitcoin::SPVWallet * AppKit::getWallet(const std::string & dataDirectory, Coin::Network network) {
-    std::string storeFile = dataDirectory + "/store.sqlite";
-    std::string blockTreeFile = dataDirectory + "/blocktree.dat";
+bitcoin::SPVWallet * AppKit::getWallet(const QString & dataDirectory, Coin::Network network) {
+    QString storeFile = dataDirectory + QDir::separator() + "store.sqlite";
+    QString blockTreeFile = dataDirectory + QDir::separator() + "blocktree.dat";
 
-    return new bitcoin::SPVWallet(storeFile, blockTreeFile, network);
+    return new bitcoin::SPVWallet(storeFile.toStdString(), blockTreeFile.toStdString(), network);
 }
 
-void AppKit::createWallet(const std::string &dataDirectory, Coin::Network network) {
+void AppKit::createWallet(const QString &dataDirectory, Coin::Network network) {
 
     std::unique_ptr<bitcoin::SPVWallet> wallet(getWallet(dataDirectory, network));
 
     wallet->create();
 }
 
-AppKit* AppKit::createInstance(const std::string &dataDirectory, Coin::Network network) {
+AppKit* AppKit::createInstance(const QString &dataDirectory, Coin::Network network)
+{
 
     auto walletp = getWallet(dataDirectory, network);
 
@@ -35,11 +38,12 @@ AppKit* AppKit::createInstance(const std::string &dataDirectory, Coin::Network n
         walletp->broadcastTx(tx);
     }));
 
-    return new AppKit(node, wallet);
+    return new AppKit(node, wallet, dataDirectory);
 
 }
 
-AppKit::AppKit(std::unique_ptr<core::Node> &node, std::unique_ptr<bitcoin::SPVWallet> &wallet)
+AppKit::AppKit(std::unique_ptr<core::Node> &node, std::unique_ptr<bitcoin::SPVWallet> &wallet, const QString &dataDirectory)
+    : _dataDirectory(dataDirectory)
 {
     _node = std::move(node);
     _wallet = std::move(wallet);
