@@ -15,24 +15,22 @@ bitcoin::SPVWallet * AppKit::getWallet(const QString & dataDirectory, Coin::Netw
     QString storeFile = dataDirectory + QDir::separator() + "store.sqlite";
     QString blockTreeFile = dataDirectory + QDir::separator() + "blocktree.dat";
 
-    return new bitcoin::SPVWallet(storeFile.toStdString(), blockTreeFile.toStdString(), network);
-}
+    auto wallet = new bitcoin::SPVWallet(storeFile.toStdString(), blockTreeFile.toStdString(), network);
 
-void AppKit::createWallet(const QString &dataDirectory, Coin::Network network) {
+    if(!QFile::exists(storeFile)){
+        wallet->create();
+    } else {
+        wallet->open();
+    }
 
-    std::unique_ptr<bitcoin::SPVWallet> wallet(getWallet(dataDirectory, network));
-
-    wallet->create();
+    return wallet;
 }
 
 AppKit* AppKit::createInstance(const QString &dataDirectory, Coin::Network network)
 {
-
     auto walletp = getWallet(dataDirectory, network);
 
     std::unique_ptr<bitcoin::SPVWallet> wallet(walletp);
-
-    wallet->open();
 
     std::unique_ptr<core::Node> node(new core::Node([walletp](const Coin::Transaction &tx){
         walletp->broadcastTx(tx);
@@ -55,6 +53,18 @@ std::unique_ptr<core::Node>& AppKit::node() {
 
 std::unique_ptr<bitcoin::SPVWallet>& AppKit::wallet() {
     return _wallet;
+}
+
+void AppKit::syncWallet(std::string host, int port) {
+    if(host.empty()) {
+        if(_wallet->network() == Coin::Network::testnet3) {
+            _wallet->sync("testnet-seed.bitcoin.petertodd.org", 18333);
+        }else{
+            throw std::runtime_error("No host provided to sync wallet");
+        }
+    } else {
+        _wallet->sync(host, port);
+    }
 }
 
 void AppKit::buyTorrent(std::shared_ptr<core::Torrent> &torrent,
