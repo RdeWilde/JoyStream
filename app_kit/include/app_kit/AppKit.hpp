@@ -2,10 +2,9 @@
 #define JOYSTREAM_APP_KIT_HPP
 
 #include <functional>
+#include <QString>
 
 //#include <iostream>
-
-//#include <QDir>
 
 namespace libtorrent {
     class sha1_hash;
@@ -42,11 +41,11 @@ public:
     typedef std::function<void(const Coin::Transaction &)> BroadcastTransaction;
     typedef std::function<void(const std::exception_ptr &)> SubroutineHandler;
 
-    static bitcoin::SPVWallet* getWallet(const std::string &dataDirectory, Coin::Network network);
+    static bitcoin::SPVWallet* getWallet(const QString &dataDirectory, Coin::Network network);
 
-    static void createWallet(const std::string &dataDirectory, Coin::Network network);
+    static void createWallet(const QString &dataDirectory, Coin::Network network);
 
-    static AppKit* createInstance(const std::string &dataDirectory, Coin::Network network);
+    static AppKit* createInstance(const QString &dataDirectory, Coin::Network network);
 
     std::unique_ptr<bitcoin::SPVWallet> & wallet();
     std::unique_ptr<core::Node> & node();
@@ -76,13 +75,9 @@ private:
 
     AppKit();
 
-    AppKit(std::unique_ptr<core::Node> &node, std::unique_ptr<bitcoin::SPVWallet> &wallet);
+    AppKit(std::unique_ptr<core::Node> &node, std::unique_ptr<bitcoin::SPVWallet> &wallet, const QString &dataDirectory);
 
-    // Location of wallet data directory
-    //QDir walletDataDir_;
-
-    // Location of Torrent data directory
-    //QDir torrentDataDir_;
+    QString _dataDirectory;
 
     std::unique_ptr<core::Node> _node;
 

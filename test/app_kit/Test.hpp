@@ -10,7 +10,7 @@
 
 #include <QtTest/QtTest>
 
-#define TEST_BITCOIN_NETWORK Coin::Network::regtest
+#define TEST_BITCOIN_NETWORK Coin::Network::testnet3
 
 class Test : public QObject
 {

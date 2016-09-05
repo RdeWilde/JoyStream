@@ -45,9 +45,9 @@ void Test::cleanupTestCase()
 
 void Test::walletCreation()
 {
-    joystream::AppKit::createWallet(_tempDataPath.toStdString(), Coin::Network::testnet3);
+    joystream::AppKit::createWallet(_tempDataPath, TEST_BITCOIN_NETWORK);
 
-    auto kit = joystream::AppKit::createInstance(_tempDataPath.toStdString(), Coin::Network::testnet3);
+    auto kit = joystream::AppKit::createInstance(_tempDataPath, TEST_BITCOIN_NETWORK);
 
     // Make sure the unique_ptr is still managing the interal SPVWallet and Node
     QVERIFY((bool)kit->node());
