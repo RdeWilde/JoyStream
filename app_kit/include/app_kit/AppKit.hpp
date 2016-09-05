@@ -41,14 +41,12 @@ public:
     typedef std::function<void(const Coin::Transaction &)> BroadcastTransaction;
     typedef std::function<void(const std::exception_ptr &)> SubroutineHandler;
 
-    static bitcoin::SPVWallet* getWallet(const QString &dataDirectory, Coin::Network network);
-
-    static void createWallet(const QString &dataDirectory, Coin::Network network);
-
     static AppKit* createInstance(const QString &dataDirectory, Coin::Network network);
 
     std::unique_ptr<bitcoin::SPVWallet> & wallet();
     std::unique_ptr<core::Node> & node();
+
+    void syncWallet(std::string host, int port);
 
     // Save Node state to and ostream
     //void saveNodeState(ostream&);
@@ -72,6 +70,8 @@ public:
                     protocol_wire::BuyerTerms&,
                     SubroutineHandler &);
 private:
+
+    static bitcoin::SPVWallet* getWallet(const QString &dataDirectory, Coin::Network network);
 
     AppKit();
 
