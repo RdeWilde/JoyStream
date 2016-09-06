@@ -19,7 +19,6 @@
 #include <core/Buying.hpp>
 #include <core/Seller.hpp>
 #include <core/Exception.hpp>
-#include <core/Callbacks.hpp>
 #include <core/MagnetLink.hpp>
 #include <core/TorrentIdentifier.hpp>
 #include <core/CBStateMachine.hpp>
