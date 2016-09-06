@@ -23,7 +23,7 @@ CBStateMachine::CBStateMachine(const std::type_index & innerStateTypeIndex,
     , _payee(payee) {
 }
 
-CBStateMachine * create(const protocol_session::status::CBStateMachine & status) {
+CBStateMachine * CBStateMachine::create(const protocol_session::status::CBStateMachine & status) {
     return new CBStateMachine(status.innerStateTypeIndex,
                               status.announcedModeAndTermsFromPeer,
                               Payor::create(status.payor),
