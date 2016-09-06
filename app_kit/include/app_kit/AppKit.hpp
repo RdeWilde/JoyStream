@@ -47,7 +47,7 @@ public:
     std::unique_ptr<bitcoin::SPVWallet> & wallet();
     std::unique_ptr<core::Node> & node();
 
-    void syncWallet(std::string host, int port);
+    void syncWallet(std::string host = "", int port = 0);
 
     void shutdown(Callback);
 
