@@ -89,7 +89,14 @@ void AppKit::buyTorrent(std::shared_ptr<core::Torrent> &torrent,
         return;
     }
 
-    torrent->torrentPlugin()->toBuyMode(
+    /// Traced the problem to here - after a Torrent is added, the torrentPlugin is still an empty shared_ptr
+    /// It is not set by Torrent::addTorrentPlugin(const extension::status::TorrentPlugin & status)
+    /// which is never called automatically
+    auto plugin = torrent->torrentPlugin();
+
+    if(!plugin.get()) return;
+
+    plugin->toBuyMode(
         // protocol_session::GenerateKeyPairsCallbackHandler
         [this](int npairs){
             return _wallet->getKeyPairs(npairs, false);
