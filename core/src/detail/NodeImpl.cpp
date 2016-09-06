@@ -17,7 +17,7 @@ namespace core {
 namespace detail {
 
 NodeImpl::NodeImpl(libtorrent::session * session,
-                   extension::Plugin * plugin,
+                   const boost::shared_ptr<extension::Plugin> & plugin,
                    const StartedListening & startedListening,
                    const AddedTorrent & addedTorrent,
                    const RemovedTorrent & removedTorrent)
