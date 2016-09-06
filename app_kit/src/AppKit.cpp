@@ -69,8 +69,7 @@ void AppKit::syncWallet(std::string host, int port) {
 
 void AppKit::shutdown(Callback callback) {
     _wallet->stopSync();
-    //_node->pause(callback);
-    callback();
+    _node->pause(callback);
 }
 
 void AppKit::buyTorrent(std::shared_ptr<core::Torrent> &torrent,
