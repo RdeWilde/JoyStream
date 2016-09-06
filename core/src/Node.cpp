@@ -12,6 +12,8 @@
 
 #include <libtorrent/error_code.hpp>
 
+#include <functional>
+
 /**
 // Register types for signal and slots: LATER CHECK WHICH ONE OF THESE ARE ACTUALLY REQUIRED
 Q_DECLARE_METATYPE(libtorrent::sha1_hash)
@@ -30,10 +32,9 @@ Node::Node(libtorrent::session * session,
            const boost::shared_ptr<extension::Plugin> & plugin)
     : _pimpl(session,
              plugin,
-             std::bind(this,),
-
-
-             ) {
+             std::bind(&Node::pimplStartedListeningHandler, this, std::placeholders::_1),
+             std::bind(&Node::pimplTorrentAdded, this, std::placeholders::_1),
+             std::bind(&Node::pimplTorrentRemoved, this, std::placeholders::_1)) {
 }
 
 Node * Node::create(const BroadcastTransaction & broadcastTransaction) {
@@ -50,15 +51,6 @@ Node * Node::create(const BroadcastTransaction & broadcastTransaction) {
 
     if(ec)
         throw exception::FailedToStartNodeException(ec);
-    else {
-
-        unsigned short port = session->listen_port();
-
-        std::clog << "Node started with BitTorrent daemon on port: " << port << "." << std::endl;
-
-        libtorrent::tcp::endpoint endPoint = libtorrent::parse_endpoint("0.0.0.0:" + std::to_string(port), ec);
-        assert(!ec);
-    }
 
     /// Setup DHT
 
@@ -79,13 +71,13 @@ Node * Node::create(const BroadcastTransaction & broadcastTransaction) {
     /// Setup plugin
 
     // Create and install plugin
-    boost::shared_ptr<libtorrent::plugin> plugin(new extension::Plugin([broadcastTransaction](const libtorrent::sha1_hash &, const Coin::Transaction & tx) -> void {
+    boost::shared_ptr<extension::Plugin> plugin(new extension::Plugin([broadcastTransaction](const libtorrent::sha1_hash &, const Coin::Transaction & tx) -> void {
                                                         // Call user provided broadcasting callback
                                                         broadcastTransaction(tx);
                                                      }, CORE_MINIMUM_EXTENDED_MESSAGE_ID));
 
     // Add plugin extension
-    session->add_extension(boost::static_pointer_cast<extension::Plugin>(plugin));
+    session->add_extension(boost::static_pointer_cast<libtorrent::plugin>(plugin));
 
     // Create actual node
     Node * node = new Node(session, plugin);
@@ -119,7 +111,7 @@ void Node::addTorrent(const boost::optional<uint> & uploadLimit,
     // Check that torrent not already present
     libtorrent::sha1_hash infoHash = torrentReference.infoHash();
 
-    if(_torrents.count(infoHash) != 0)
+    if(_pimpl._torrents.count(infoHash) != 0)
         throw exception::TorrentAlreadyExists(infoHash);
 
     // Create save_path on disk, return if it does not exist
@@ -150,15 +142,15 @@ void Node::updateStatus() {
     _pimpl.updatePeerStatus();
 }
 
-void Node::startedListening(const libtorrent::tcp::endpoint & endPoint) {
-    _pimpl.
+void Node::pimplStartedListeningHandler(const libtorrent::tcp::endpoint & endPoint) {
+    emit startedListening(endPoint);
 }
 
-void Node::torrentAdded(core::Torrent * torrent) {
-    emit addedTorrent(t);
+void Node::pimplTorrentAdded(core::Torrent * torrent) {
+    emit addedTorrent(torrent);
 }
 
-void Node::torrentRemoved(const libtorrent::sha1_hash & info_hash) {
+void Node::pimplTorrentRemoved(const libtorrent::sha1_hash & info_hash) {
     emit removedTorrent(info_hash);
 }
 
@@ -177,7 +169,7 @@ void Node::port() const noexcept {
 }
 
 std::map<libtorrent::sha1_hash, Torrent *> Node::torrents() const noexcept {
-    return detail::getRawMap<libtorrent::sha1_hash, Torrent>(_torrents);
+    return detail::getRawMap<libtorrent::sha1_hash, Torrent>(_pimpl._torrents);
 }
 
 libtorrent::settings_pack Node::session_settings(bool enableDHT) noexcept {

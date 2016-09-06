@@ -125,6 +125,9 @@ signals:
     // while the latter is for an observer. E.g. a HTTP daemon wrapping joystream::core library
     // would use callbacks to service RPC calls, and signals to populate websocket streams.
 
+    // BitTorrent daemon started on given endpoint
+    void startedListening(const boost::asio::ip::tcp::endpoint & endPoint);
+
     // Torrent added
     void addedTorrent(const Torrent *);
 
@@ -137,9 +140,9 @@ private:
     detail::NodeImpl _pimpl;
 
     // Callback handler for PIMPL
-    void startedListening(const libtorrent::tcp::endpoint & endPoint);
-    void torrentAdded(core::Torrent * torrent);
-    void torrentRemoved(const libtorrent::sha1_hash & info_hash);
+    void pimplStartedListeningHandler(const libtorrent::tcp::endpoint & endPoint);
+    void pimplTorrentAdded(core::Torrent * torrent);
+    void pimplTorrentRemoved(const libtorrent::sha1_hash & info_hash);
 
     // Entry point for callback from libtorrent, warning about 0->1 alert in queue.
     // NB: Do not under any circumstance have a call to libtorrent in this routine, since the network
