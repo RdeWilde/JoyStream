@@ -9,6 +9,7 @@
 #define JOYSTREAM_CORE_TORRENT_HPP
 
 #include <extension/extension.hpp>
+#include <libtorrent/peer_info.hpp>
 #include <libtorrent/torrent_handle.hpp>
 
 #include <QObject>
@@ -16,6 +17,9 @@
 
 namespace joystream {
 namespace core {
+namespace detail {
+    struct NodeImpl;
+}
 
 class Peer;
 class TorrentPlugin;
@@ -119,7 +123,7 @@ signals:
 
 private:
 
-    friend class Node;
+    friend struct detail::NodeImpl;
 
     /// Updating routines
 

@@ -37,7 +37,8 @@ HEADERS += \
     include/core/TorrentIdentifier.hpp \
     include/core/CBStateMachine.hpp \
     include/core/Payor.hpp \
-    include/core/Payee.hpp
+    include/core/Payee.hpp \
+    include/core/detail/NodeImpl.hpp
 
 SOURCES += \
     #src/Stream.cpp \
@@ -56,7 +57,8 @@ SOURCES += \
     src/TorrentIdentifier.cpp \
     src/Payor.cpp \
     src/Payee.cpp \
-    src/CBStateMachine.cpp
+    src/CBStateMachine.cpp \
+    src/detail/NodeImpl.cpp
 
 # extension
 INCLUDEPATH += $$PWD/../extension/include
