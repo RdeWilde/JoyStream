@@ -69,7 +69,18 @@ public:
 
     std::map<libtorrent::tcp::endpoint, Peer *> peers() const noexcept;
 
-    TorrentPlugin * torrentPlugin() const noexcept;
+    /**
+     * @brief Torrent plugin handle existence ten
+     * @return whether torrent plugin handle is present
+     */
+    bool torrentPluginSet() const noexcept;
+
+    /**
+     * @brief Torrent plugin handle
+     * @throws HandleNotSet if
+     * @return handle
+     */
+    TorrentPlugin * torrentPlugin() const;
 
     libtorrent::torrent_status::state_t state() const noexcept;
 

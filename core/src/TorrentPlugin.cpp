@@ -9,6 +9,7 @@
 #include <core/detail/detail.hpp>
 #include <core/PeerPlugin.hpp>
 #include <core/Session.hpp>
+#include <core/Exception.hpp>
 
 namespace joystream {
 namespace core {
@@ -101,6 +102,18 @@ libtorrent::sha1_hash TorrentPlugin::infoHash() const noexcept {
 
 std::map<libtorrent::tcp::endpoint, PeerPlugin *> TorrentPlugin::peers() const noexcept {
     return detail::getRawMap<libtorrent::tcp::endpoint, PeerPlugin>(_peers);
+}
+
+Session * TorrentPlugin::session() const {
+
+    if(sessionSet())
+        return _session.get();
+    else
+        throw exception::HandleNotSet();
+}
+
+bool TorrentPlugin::sessionSet() const noexcept {
+    return _session.get() != nullptr;
 }
 
 void TorrentPlugin::addPeerPlugin(const extension::status::PeerPlugin & status) {

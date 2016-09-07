@@ -42,9 +42,31 @@ public:
 
     std::map<libtorrent::tcp::endpoint, Connection *> connections() const noexcept;
 
-    Selling * selling() const noexcept;
+    /**
+     * @brief Checks existence of selling handle
+     * @return Whether selling handle is set
+     */
+    bool sellingSet() const noexcept;
 
-    Buying * buying() const noexcept;
+    /**
+     * @brief Returns selling handle if present
+     * @throws exception::HandleNotSet if handle is not present, i.e. !sellingSet()
+     * @return Selling handle
+     */
+    Selling * selling() const;
+
+    /**
+     * @brief buyingSet
+     * @return Whether buying handle is set
+     */
+    bool buyingSet() const noexcept;
+
+    /**
+     * @brief Returns buying handle if present
+     * @throws exception::HandleNotSet if handle is not present, i.e. !buyingSet()
+     * @return Buying handle
+     */
+    Buying * buying() const;
 
 signals:
 

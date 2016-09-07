@@ -10,6 +10,7 @@
 #include <core/Selling.hpp>
 #include <core/Buying.hpp>
 #include <core/detail/detail.hpp>
+#include <core/Exception.hpp>
 
 #include <memory>
 
@@ -57,12 +58,28 @@ std::map<libtorrent::tcp::endpoint, Connection*> Session::connections() const no
     return detail::getRawMap<libtorrent::tcp::endpoint, Connection>(_connections);
 }
 
-Selling * Session::selling() const noexcept {
-    return _selling.get();
+bool Session::sellingSet() const noexcept {
+    return _selling.get() != nullptr;
 }
 
-Buying * Session::buying() const noexcept {
-    return _buying.get();
+Selling * Session::selling() const {
+
+    if(sellingSet())
+        return _selling.get();
+    else
+        throw exception::HandleNotSet();
+}
+
+bool Session::buyingSet() const noexcept {
+    return _buying.get() != nullptr;
+}
+
+Buying * Session::buying() const {
+
+    if(buyingSet())
+        return _buying.get();
+    else
+        throw exception::HandleNotSet();
 }
 
 void Session::addConnection(const protocol_session::status::Connection<libtorrent::tcp::endpoint> & status) {

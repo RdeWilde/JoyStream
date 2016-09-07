@@ -56,8 +56,16 @@ std::map<libtorrent::tcp::endpoint, Peer *> Torrent::peers() const noexcept {
     return detail::getRawMap<libtorrent::tcp::endpoint, Peer>(_peers);
 }
 
-TorrentPlugin * Torrent::torrentPlugin() const noexcept {
-    return _torrentPlugin.get();
+bool Torrent::torrentPluginSet() const noexcept {
+    return _torrentPlugin.get() != nullptr;
+}
+
+TorrentPlugin * Torrent::torrentPlugin() const {
+
+    if(torrentPluginSet())
+        return _torrentPlugin.get();
+    else
+        throw exception::HandleNotSet();
 }
 
 libtorrent::torrent_status::state_t Torrent::state() const noexcept {
@@ -204,6 +212,7 @@ void Torrent::updatePeerStatuses(const std::vector<libtorrent::peer_info> & v) {
 void Torrent::updateTorrentPluginStatus(const extension::status::TorrentPlugin & status) {
 
     assert(status.infoHash == status.infoHash);
+    assert(torrentPluginSet());
 
     _torrentPlugin->update(status);
 }

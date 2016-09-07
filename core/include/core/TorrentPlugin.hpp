@@ -64,6 +64,20 @@ public:
 
     std::map<libtorrent::tcp::endpoint, PeerPlugin *> peers() const noexcept;
 
+    /**
+     * @brief Returns session handle
+     * @throws HandleNotSet if handle not set, i.e. !sessionSet()
+     * @return session handle
+     */
+    Session * session() const;
+
+    /**
+     * @brief Sessin handle existence check
+     * @return Whether session handle is present
+     */
+
+    bool sessionSet() const noexcept;
+
 signals:
 
     void peerPluginAdded(const PeerPlugin *);
