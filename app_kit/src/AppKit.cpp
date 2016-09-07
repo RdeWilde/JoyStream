@@ -67,9 +67,15 @@ void AppKit::syncWallet(std::string host, int port) {
     }
 }
 
-void AppKit::shutdown(Callback callback) {
-    _wallet->stopSync();
+void AppKit::shutdown(const Callback & callback) {
+    //std::cout << "Wallet::stopSync()" << std::endl;
+    //_wallet->stopSync(); // in debug mode enabling still causes a crash - must be disabled
+                           // does node try to broadcast a tx when plugins get paused ?
+
+    std::cout << "Node::Pause()" << std::endl;
     _node->pause(callback);
+
+    std::cout << "AppKit::Shutdown Done" << std::endl;
 }
 
 void AppKit::buyTorrent(std::shared_ptr<core::Torrent> &torrent,

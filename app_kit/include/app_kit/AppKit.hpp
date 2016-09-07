@@ -49,7 +49,7 @@ public:
 
     void syncWallet(std::string host = "", int port = 0);
 
-    void shutdown(Callback);
+    void shutdown(const Callback &);
 
     // Save Node state to and ostream
     //void saveNodeState(ostream&);
