@@ -51,6 +51,10 @@ public:
     // Anchor for channel in contract transaction
     Coin::typesafeOutPoint anchor() const noexcept;
 
+    /** Temporarily public ***/
+    void update(const paymentchannel::Payor &);
+    /** Temporarily public ***/
+
 signals:
 
     // Size of single payment
@@ -72,10 +76,6 @@ signals:
     void anchorChanged(const Coin::typesafeOutPoint &);
 
 private:
-
-    friend class CBStateMachine;
-
-    void update(const paymentchannel::Payor &);
 
     // Size of single payment
     quint64 _price;
