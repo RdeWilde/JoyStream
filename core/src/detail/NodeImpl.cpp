@@ -500,11 +500,21 @@ void NodeImpl::process(const extension::alert::PluginStatus * p) {
     // Update torrent plugin statuses
     for(auto status: p->status.plugins) {
 
+        // Get torrent for this plugin
         auto it = _torrents.find(status.first);
 
-        // If there is a torrent for this plugin, then update status
-        if(it != _torrents.cend())
-            it->second->updateTorrentPluginStatus(status.second);
+        if(it != _torrents.cend()) {
+
+            std::unique_ptr<Torrent> & t = it->second;
+
+            if(t->torrentPluginSet())
+                t->updateTorrentPluginStatus(status.second);
+            else
+                t->addTorrentPlugin(status.second);
+
+            // NB: we could keep track of missing plugin statuses also, but
+            // introducing explicit alerts for these events
+        }
     }
 
     // Do other stuff when plugin status is extended
