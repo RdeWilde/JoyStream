@@ -76,8 +76,8 @@ int main(int argc, char *argv[])
 
     std::cout << "Wallet Balance: " << kit->wallet()->unconfirmedBalance() << std::endl;
 
-    std::cout << "Starting Wallet Sync\n";
-    kit->syncWallet();
+    //std::cout << "Starting Wallet Sync\n";
+    //kit->syncWallet();
 
     QTimer *timer = new QTimer();
 
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
         std::cout << "Stopping..." << std::endl;
 
         kit->shutdown([&app](){
-            app.exit();
+            app.quit();
         });
     });
 
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
 
     signal(SIGINT, &handleSignal);
     signal(SIGTERM, &handleSignal);
-
+/*
     libtorrent::error_code ec;
     auto ti = boost::make_shared<libtorrent::torrent_info>(std::string(argv[1]), boost::ref(ec), 0);
     if (ec)
@@ -105,22 +105,35 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+
     QTimer::singleShot(1500, nullptr, [&kit, &ti](){
         std::cout << "Adding Torrent" << std::endl;
         auto savePath = (QDir::homePath()+"/Downloads/").toStdString();
 
         kit->node()->addTorrent(0, 0, "test", std::vector<char>(), savePath, false, joystream::core::TorrentIdentifier(ti),
                                [&kit](libtorrent::error_code &ecode, libtorrent::torrent_handle &th){
+
             if(ecode) {
                 std::cerr << "addTorrent() failed: " << ecode.message().c_str() << std::endl;
                 return;
             }
+
             std::cout << "Torrent Added" << std::endl;
+
             std::cout << "Trying to Buy Torrent" << std::endl;
             kit->buyTorrent(th.info_hash(), joystream::protocol_session::BuyingPolicy(), joystream::protocol_wire::BuyerTerms(), [](const std::exception_ptr &eptr){
                 std::cerr << "Error Buying Torrent" << std::endl;
                 std::rethrow_exception(eptr);
             });
+
+        });
+    });
+*/
+
+    // Try to pause the node after a few seconds...
+    QTimer::singleShot(1500, nullptr, [&kit](){
+        kit->node()->pause([](){
+            std::clog << "Node Paused after 1500ms delay" << std::endl;
         });
     });
 
