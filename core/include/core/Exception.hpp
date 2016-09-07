@@ -54,6 +54,23 @@ namespace exception {
 
     };
 
+    class HandleNotSet : public std::runtime_error {
+
+    public:
+
+        HandleNotSet()
+            : std::runtime_error("Handle is not set") {
+        }
+    };
+
+    class HandleExpired : public std::runtime_error {
+
+    public:
+
+        HandleExpired()
+            : std::runtime_error("Handle has expired") {
+        }
+    };
 }
 }
 }
