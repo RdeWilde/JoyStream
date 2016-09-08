@@ -68,7 +68,4 @@ namespace Coin {
 
 }
 
-#include <QMetaType>
-Q_DECLARE_METATYPE(Coin::UnspentP2PKHOutput)
-
 #endif // COIN_UNSPENT_P2PKH_OUTPUT_HPP
