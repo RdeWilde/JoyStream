@@ -24,6 +24,12 @@ class Payor : public QObject {
 
 public:
 
+    /**
+     * @brief Does MOC registration of all custome types used as signal arguments
+     * on this and dependant QObjects.
+     */
+    static void registerMetaTypes();
+
     Payor(quint64 price,
           quint64 numberOfPaymentsMade,
           quint64 funds,

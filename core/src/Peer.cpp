@@ -7,8 +7,15 @@
 
 #include <core/Peer.hpp>
 
+Q_DECLARE_METATYPE(std::string)
+
 namespace joystream {
 namespace core {
+
+void Peer::registerMetaTypes() {
+
+    qRegisterMetaType<std::string>();
+}
 
 Peer::Peer(const libtorrent::peer_info & peerInformation)
     : _peerInformation(peerInformation) {

@@ -6,27 +6,25 @@
  */
 
 #include <core/Node.hpp>
+#include <core/Torrent.hpp>
 #include <core/Exception.hpp>
 #include <core/TorrentIdentifier.hpp>
 #include <core/detail/detail.hpp>
-
 #include <libtorrent/error_code.hpp>
-
 #include <functional>
 
-/**
-// Register types for signal and slots: LATER CHECK WHICH ONE OF THESE ARE ACTUALLY REQUIRED
+Q_DECLARE_METATYPE(libtorrent::tcp::endpoint)
 Q_DECLARE_METATYPE(libtorrent::sha1_hash)
-Q_DECLARE_METATYPE(std::string)
-Q_DECLARE_METATYPE(libtorrent::error_code)
-Q_DECLARE_METATYPE(std::vector<libtorrent::torrent_status>)
-Q_DECLARE_METATYPE(libtorrent::torrent_status)
-Q_DECLARE_METATYPE(Coin::Transaction) // Probably should not be here
-Q_DECLARE_METATYPE(const libtorrent::alert*) // Register type for QMetaObject::invokeMethod
-*/
 
 namespace joystream {
 namespace core {
+
+void Node::registerMetaTypes() {
+
+    qRegisterMetaType<libtorrent::tcp::endpoint>();
+    qRegisterMetaType<libtorrent::sha1_hash>();
+    Torrent::registerMetaTypes();
+}
 
 Node::Node(libtorrent::session * session,
            const boost::shared_ptr<extension::Plugin> & plugin)

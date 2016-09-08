@@ -24,12 +24,18 @@ class TorrentPlugin : public QObject {
 
 public:
 
-    static TorrentPlugin * create(const extension::status::TorrentPlugin & status,
-                                  const boost::shared_ptr<extension::Plugin> & plugin);
+    /**
+     * @brief Does MOC registration of all custome types used as signal arguments
+     * on this and dependant QObjects.
+     */
+    static void registerMetaTypes();
 
     TorrentPlugin(const libtorrent::sha1_hash & infoHash,
                   Session * session,
                   const boost::shared_ptr<extension::Plugin> & plugin);
+
+    static TorrentPlugin * create(const extension::status::TorrentPlugin & status,
+                                  const boost::shared_ptr<extension::Plugin> & plugin);
 
     ~TorrentPlugin();
 

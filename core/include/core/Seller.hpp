@@ -23,6 +23,12 @@ class Seller : public QObject {
 
 public:
 
+    /**
+     * @brief Does MOC registration of all custome types used as signal arguments
+     * on this and dependant QObjects.
+     */
+    static void registerMetaTypes();
+
     Seller(const protocol_session::SellerState & state,
            const libtorrent::tcp::endpoint & connectionId);
 

@@ -9,21 +9,25 @@
 #include <core/Seller.hpp>
 #include <core/detail/detail.hpp>
 
+Q_DECLARE_METATYPE(Coin::UnspentP2PKHOutput)
+Q_DECLARE_METATYPE(joystream::protocol_session::BuyingPolicy)
+Q_DECLARE_METATYPE(joystream::protocol_session::BuyingState)
+Q_DECLARE_METATYPE(joystream::protocol_wire::BuyerTerms)
+Q_DECLARE_METATYPE(libtorrent::tcp::endpoint)
+Q_DECLARE_METATYPE(Coin::Transaction)
+
 namespace joystream {
 namespace core {
 
-Buying * Buying::create(const protocol_session::status::Buying<libtorrent::tcp::endpoint> & status) {
+void Buying::registerMetaTypes() {
 
-    Buying * buying = new Buying(status.funding,
-                                 status.policy,
-                                 status.state,
-                                 status.terms,
-                                 status.contractTx);
-
-    for(auto m : status.sellers)
-        buying->addSeller(m.second);
-
-    return buying;
+    qRegisterMetaType<Coin::UnspentP2PKHOutput>();
+    qRegisterMetaType<protocol_session::BuyingPolicy>();
+    qRegisterMetaType<protocol_session::BuyingState>();
+    qRegisterMetaType<protocol_wire::BuyerTerms>();
+    qRegisterMetaType<libtorrent::tcp::endpoint>();
+    qRegisterMetaType<Coin::Transaction>();
+    Seller::registerMetaTypes();
 }
 
 Buying::Buying(const Coin::UnspentP2PKHOutput & funding,
@@ -37,6 +41,20 @@ Buying::Buying(const Coin::UnspentP2PKHOutput & funding,
     , _terms(terms)
     , _contractTx(contractTx) {
 
+}
+
+Buying * Buying::create(const protocol_session::status::Buying<libtorrent::tcp::endpoint> & status) {
+
+    Buying * buying = new Buying(status.funding,
+                                 status.policy,
+                                 status.state,
+                                 status.terms,
+                                 status.contractTx);
+
+    for(auto m : status.sellers)
+        buying->addSeller(m.second);
+
+    return buying;
 }
 
 Buying::~Buying() {

@@ -11,8 +11,21 @@
 #include <core/Exception.hpp>
 #include <core/detail/detail.hpp>
 
+Q_DECLARE_METATYPE(libtorrent::tcp::endpoint)
+Q_DECLARE_METATYPE(std::vector<char>)
+Q_DECLARE_METATYPE(libtorrent::torrent_status::state_t)
+
 namespace joystream {
 namespace core {
+
+void Torrent::registerMetaTypes() {
+
+    Peer::registerMetaTypes();
+    TorrentPlugin::registerMetaTypes();
+    qRegisterMetaType<libtorrent::tcp::endpoint>();
+    qRegisterMetaType<std::vector<char>>();
+    qRegisterMetaType<libtorrent::torrent_status::state_t>();
+}
 
 Torrent::Torrent(const libtorrent::torrent_handle & handle,
                  const libtorrent::torrent_status & status,

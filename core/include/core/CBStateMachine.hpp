@@ -12,6 +12,8 @@
 
 #include <QObject>
 
+#include <boost/optional.hpp>
+
 #include <memory>
 #include <typeindex>
 
@@ -32,7 +34,19 @@ class CBStateMachine : public QObject {
 
 public:
 
-    CBStateMachine(const std::type_index & innerStateTypeIndex,
+
+    // Wrapped version of internal type index for the state machine.
+    // We can't use raw std::type_index, as it doesn't have a defalt,
+    // which Qt MOC requires
+    typedef boost::optional<std::type_index> InnerStateIndex;
+
+    /**
+     * @brief Does MOC registration of all custome types used as signal arguments
+     * on this and dependant QObjects.
+     */
+    static void registerMetaTypes();
+
+    CBStateMachine(const InnerStateIndex & innerStateTypeIndex,
                    const protocol_statemachine::AnnouncedModeAndTerms & announcedModeAndTermsFromPeer,
                    Payor * payor,
                    Payee * payee);
@@ -41,7 +55,7 @@ public:
 
     ~CBStateMachine();
 
-    std::type_index innerStateTypeIndex() const noexcept;
+    InnerStateIndex innerStateTypeIndex() const noexcept;
 
     protocol_statemachine::AnnouncedModeAndTerms announcedModeAndTermsFromPeer() const noexcept;
 
@@ -53,7 +67,7 @@ signals:
 
     void announcedModeAndTermsFromPeerChanged(const protocol_statemachine::AnnouncedModeAndTerms &);
 
-    void innerStateTypeIndexChanged(const std::type_index &);
+    void innerStateTypeIndexChanged(const InnerStateIndex &);
 
 private:
 
@@ -61,7 +75,7 @@ private:
 
     void update(const protocol_session::status::CBStateMachine &);
 
-    std::type_index _innerStateTypeIndex;
+    InnerStateIndex _innerStateTypeIndex;
 
     //// Peer state
     protocol_statemachine::AnnouncedModeAndTerms _announcedModeAndTermsFromPeer;

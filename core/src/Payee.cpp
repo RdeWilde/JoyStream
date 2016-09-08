@@ -8,8 +8,15 @@
 #include <core/Payee.hpp>
 #include <paymentchannel/paymentchannel.hpp>
 
+Q_DECLARE_METATYPE(Coin::typesafeOutPoint)
+
 namespace joystream {
 namespace core {
+
+void Payee::registerMetaTypes() {
+
+    qRegisterMetaType<Coin::typesafeOutPoint>();
+}
 
 Payee::Payee(quint64 numberOfPaymentsMade,
              quint32 lockTime,

@@ -7,8 +7,15 @@
 
 #include <core/PeerPlugin.hpp>
 
+Q_DECLARE_METATYPE(joystream::extension::BEPSupportStatus)
+
 namespace joystream {
 namespace core {
+
+void PeerPlugin::registerMetaTypes() {
+
+    qRegisterMetaType<extension::BEPSupportStatus>();
+}
 
 PeerPlugin::PeerPlugin(const libtorrent::tcp::endpoint & endPoint,
                        const extension::BEPSupportStatus & peerBEP10SupportStatus,

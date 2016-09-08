@@ -27,12 +27,18 @@ class Session : public QObject {
 
 public:
 
-    static Session * create(const protocol_session::status::Session<libtorrent::tcp::endpoint> &);
+    /**
+     * @brief Does MOC registration of all custome types used as signal arguments
+     * on this and dependant QObjects.
+     */
+    static void registerMetaTypes();
 
     Session(const protocol_session::SessionMode & mode,
             const protocol_session::SessionState & state,
             Selling * selling,
             Buying * buying);
+
+    static Session * create(const protocol_session::status::Session<libtorrent::tcp::endpoint> &);
 
     ~Session();
 

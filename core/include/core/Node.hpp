@@ -39,6 +39,12 @@ public:
     typedef extension::request::SubroutineHandler RemovedTorrent;
 
     /**
+     * @brief Does MOC registration of all custome types used as signal arguments
+     * on this and dependant QObjects.
+     */
+    static void registerMetaTypes();
+
+    /**
      * @brief Creates node based on session and plugin which are already
      * started, and the latter installed on the former.
      * @param sessionn started libtorrent session with plugin installed
@@ -126,7 +132,7 @@ signals:
     // would use callbacks to service RPC calls, and signals to populate websocket streams.
 
     // BitTorrent daemon started on given endpoint
-    void startedListening(const boost::asio::ip::tcp::endpoint & endPoint);
+    void startedListening(const libtorrent::tcp::endpoint & endPoint);
 
     // Torrent added
     void addedTorrent(const Torrent *);

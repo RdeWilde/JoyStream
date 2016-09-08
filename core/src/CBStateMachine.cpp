@@ -10,10 +10,20 @@
 #include <core/Payee.hpp>
 #include <protocol_session/protocol_session.hpp>
 
+Q_DECLARE_METATYPE(joystream::protocol_statemachine::AnnouncedModeAndTerms)
+Q_DECLARE_METATYPE(joystream::core::CBStateMachine::InnerStateIndex)
+
 namespace joystream {
 namespace core {
 
-CBStateMachine::CBStateMachine(const std::type_index & innerStateTypeIndex,
+void CBStateMachine::registerMetaTypes() {
+    qRegisterMetaType<protocol_statemachine::AnnouncedModeAndTerms>();
+    qRegisterMetaType<InnerStateIndex>();
+    Payor::registerMetaTypes();
+    Payee::registerMetaTypes();
+}
+
+CBStateMachine::CBStateMachine(const InnerStateIndex & innerStateTypeIndex,
                                const protocol_statemachine::AnnouncedModeAndTerms & announcedModeAndTermsFromPeer,
                                Payor * payor,
                                Payee * payee)
@@ -33,7 +43,7 @@ CBStateMachine * CBStateMachine::create(const protocol_session::status::CBStateM
 CBStateMachine::~CBStateMachine() {
 }
 
-std::type_index CBStateMachine::innerStateTypeIndex() const noexcept {
+CBStateMachine::InnerStateIndex CBStateMachine::innerStateTypeIndex() const noexcept {
     return _innerStateTypeIndex;
 }
 

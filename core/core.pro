@@ -38,7 +38,8 @@ HEADERS += \
     include/core/CBStateMachine.hpp \
     include/core/Payor.hpp \
     include/core/Payee.hpp \
-    include/core/detail/NodeImpl.hpp
+    include/core/detail/NodeImpl.hpp \
+    include/core/Q_DECLARE_METATYPE.hpp
 
 SOURCES += \
     #src/Stream.cpp \

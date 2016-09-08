@@ -7,8 +7,15 @@
 
 #include <core/Seller.hpp>
 
+Q_DECLARE_METATYPE(joystream::protocol_session::SellerState)
+
 namespace joystream {
 namespace core {
+
+void Seller::registerMetaTypes() {
+
+    qRegisterMetaType<protocol_session::SellerState>();
+}
 
 Seller::Seller(const protocol_session::SellerState & state,
                const libtorrent::tcp::endpoint & connectionId)

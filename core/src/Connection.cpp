@@ -12,6 +12,10 @@
 namespace joystream {
 namespace core {
 
+void Connection::registerMetaTypes() {
+    CBStateMachine::registerMetaTypes();
+}
+
 Connection::Connection(const libtorrent::tcp::endpoint & connectionId,
                        CBStateMachine * machine)
     : _connectionId(connectionId)

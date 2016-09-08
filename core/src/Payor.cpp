@@ -8,8 +8,15 @@
 #include <core/Payor.hpp>
 #include <paymentchannel/paymentchannel.hpp>
 
+Q_DECLARE_METATYPE(Coin::typesafeOutPoint)
+
 namespace joystream {
 namespace core {
+
+void Payor::registerMetaTypes() {
+
+    qRegisterMetaType<Coin::typesafeOutPoint>();
+}
 
 Payor::Payor(quint64 price,
              quint64 numberOfPaymentsMade,

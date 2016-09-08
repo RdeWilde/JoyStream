@@ -32,6 +32,12 @@ class Connection : public QObject {
 
 public:
 
+    /**
+     * @brief Does MOC registration of all custome types used as signal arguments
+     * on this and dependant QObjects.
+     */
+    static void registerMetaTypes();
+
     Connection(const libtorrent::tcp::endpoint & connectionId,
                CBStateMachine * machine);
 

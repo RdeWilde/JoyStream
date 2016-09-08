@@ -9,37 +9,6 @@
 #include <core/core.hpp>
 #include <paymentchannel/paymentchannel.hpp>
 
-// Payor/Payee
-Q_DECLARE_METATYPE(Coin::typesafeOutPoint)
-
-// CBStateMachine
-Q_DECLARE_METATYPE(joystream::protocol_statemachine::AnnouncedModeAndTerms)
-Q_DECLARE_METATYPE(std::type_index)
-
-// Seller
-Q_DECLARE_METATYPE(joystream::protocol_session::SellerState)
-
-// Buying
-Q_DECLARE_METATYPE(Coin::UnspentP2PKHOutput)
-Q_DECLARE_METATYPE(joystream::protocol_session::BuyingPolicy)
-Q_DECLARE_METATYPE(joystream::protocol_session::BuyingState)
-Q_DECLARE_METATYPE(joystream::protocol_wire::BuyerTerms)
-Q_DECLARE_METATYPE(libtorrent::tcp::endpoint)
-Q_DECLARE_METATYPE(Coin::Transaction)
-
-// Selling
-Q_DECLARE_METATYPE(joystream::protocol_session::SellingPolicy)
-Q_DECLARE_METATYPE(joystream::protocol_wire::SellerTerms)
-
-// Session
-Q_DECLARE_METATYPE(joystream::protocol_session::SessionMode)
-Q_DECLARE_METATYPE(joystream::protocol_session::SessionState)
-//Q_DECLARE_METATYPE(libtorrent::tcp::endpoint)
-
-// Torrent
-Q_DECLARE_METATYPE(std::vector<char>)
-Q_DECLARE_METATYPE(libtorrent::torrent_status::state_t)
-
 using namespace joystream;
 using namespace joystream::core;
 
@@ -48,8 +17,8 @@ std::string IdToString(const libtorrent::tcp::endpoint & endPoint) {
     return libtorrent::print_endpoint(endPoint);
 }
 
-void Test::init() {
-
+void Test::initTestCase() {
+    Node::registerMetaTypes();
 }
 
 void Test::integration_test() {

@@ -24,6 +24,12 @@ class Buying : public QObject {
 
 public:
 
+    /**
+     * @brief Does MOC registration of all custome types used as signal arguments
+     * on this and dependant QObjects.
+     */
+    static void registerMetaTypes();
+
     Buying(const Coin::UnspentP2PKHOutput & funding,
            const protocol_session::BuyingPolicy & policy,
            const protocol_session::BuyingState & state,

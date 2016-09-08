@@ -21,10 +21,16 @@ class Selling : public QObject {
 
 public:
 
-    static Selling * create(const protocol_session::status::Selling & status);
+    /**
+     * @brief Does MOC registration of all custome types used as signal arguments
+     * on this and dependant QObjects.
+     */
+    static void registerMetaTypes();
 
     Selling(const protocol_session::SellingPolicy & policy,
             const protocol_wire::SellerTerms & terms);
+
+    static Selling * create(const protocol_session::status::Selling & status);
 
     protocol_session::SellingPolicy policy() const noexcept;
 

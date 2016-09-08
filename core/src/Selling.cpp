@@ -7,17 +7,26 @@
 
 #include <core/Selling.hpp>
 
+Q_DECLARE_METATYPE(joystream::protocol_session::SellingPolicy)
+Q_DECLARE_METATYPE(joystream::protocol_wire::SellerTerms)
+
 namespace joystream {
 namespace core {
 
-Selling * Selling::create(const protocol_session::status::Selling & status) {
-    return new Selling(status.policy, status.terms);
+void Selling::registerMetaTypes() {
+
+    qRegisterMetaType<protocol_session::SellingPolicy>();
+    qRegisterMetaType<protocol_wire::SellerTerms>();
 }
 
 Selling::Selling(const protocol_session::SellingPolicy & policy,
                  const protocol_wire::SellerTerms & terms)
     : _policy(policy)
     , _terms(terms) {
+}
+
+Selling * Selling::create(const protocol_session::status::Selling & status) {
+    return new Selling(status.policy, status.terms);
 }
 
 protocol_session::SellingPolicy Selling::policy() const noexcept {

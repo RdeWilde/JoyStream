@@ -24,5 +24,6 @@
 #include <core/CBStateMachine.hpp>
 #include <core/Payor.hpp>
 #include <core/Payee.hpp>
+#include <core/Q_DECLARE_METATYPE.hpp>
 
 #endif // JOYSTREAM_CORE_CONTROLLER_HPP

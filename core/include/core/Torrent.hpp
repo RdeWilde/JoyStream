@@ -33,6 +33,12 @@ public:
     typedef extension::request::SubroutineHandler TorrentPaused;
     typedef extension::request::SubroutineHandler TorrentResumed;
 
+    /**
+     * @brief Does MOC registration of all custome types used as signal arguments
+     * on this and dependant QObjects.
+     */
+    static void registerMetaTypes();
+
     Torrent(const libtorrent::torrent_handle & handle,
             const libtorrent::torrent_status & status,
             const std::vector<char> & resumeData,

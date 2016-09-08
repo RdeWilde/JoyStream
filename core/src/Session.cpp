@@ -14,8 +14,32 @@
 
 #include <memory>
 
+Q_DECLARE_METATYPE(joystream::protocol_session::SessionMode)
+Q_DECLARE_METATYPE(joystream::protocol_session::SessionState)
+Q_DECLARE_METATYPE(libtorrent::tcp::endpoint)
+
 namespace joystream {
 namespace core {
+
+void Session::registerMetaTypes() {
+
+    qRegisterMetaType<protocol_session::SessionMode>();
+    qRegisterMetaType<protocol_session::SessionState>();
+    qRegisterMetaType<libtorrent::tcp::endpoint>();
+    Connection::registerMetaTypes();
+    Selling::registerMetaTypes();
+    Buying::registerMetaTypes();
+}
+
+Session::Session(const protocol_session::SessionMode & mode,
+                 const protocol_session::SessionState & state,
+                 Selling * selling,
+                 Buying * buying)
+    : _mode(mode)
+    , _state(state)
+    , _selling(selling)
+    , _buying(buying) {
+}
 
 Session * Session::create(const protocol_session::status::Session<libtorrent::tcp::endpoint> & status) {
 
@@ -28,16 +52,6 @@ Session * Session::create(const protocol_session::status::Session<libtorrent::tc
         session->addConnection(m.second);
 
     return session;
-}
-
-Session::Session(const protocol_session::SessionMode & mode,
-                 const protocol_session::SessionState & state,
-                 Selling * selling,
-                 Buying * buying)
-    : _mode(mode)
-    , _state(state)
-    , _selling(selling)
-    , _buying(buying) {
 }
 
 Session::~Session() {

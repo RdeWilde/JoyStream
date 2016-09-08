@@ -11,8 +11,24 @@
 #include <core/Session.hpp>
 #include <core/Exception.hpp>
 
+Q_DECLARE_METATYPE(libtorrent::tcp::endpoint)
+
 namespace joystream {
 namespace core {
+
+void TorrentPlugin::registerMetaTypes() {
+    PeerPlugin::registerMetaTypes();
+    Session::registerMetaTypes();
+    qRegisterMetaType<libtorrent::tcp::endpoint>();
+}
+
+TorrentPlugin::TorrentPlugin(const libtorrent::sha1_hash & infoHash,
+                             Session * session,
+                             const boost::shared_ptr<extension::Plugin> & plugin)
+    : _infoHash(infoHash)
+    , _session(session)
+    , _plugin(plugin) {
+}
 
 TorrentPlugin * TorrentPlugin::create(const extension::status::TorrentPlugin & status,
                                       const boost::shared_ptr<extension::Plugin> & p) {
@@ -24,14 +40,6 @@ TorrentPlugin * TorrentPlugin::create(const extension::status::TorrentPlugin & s
         plugin->addPeerPlugin(m.second);
 
     return plugin;
-}
-
-TorrentPlugin::TorrentPlugin(const libtorrent::sha1_hash & infoHash,
-                             Session * session,
-                             const boost::shared_ptr<extension::Plugin> & plugin)
-    : _infoHash(infoHash)
-    , _session(session)
-    , _plugin(plugin) {
 }
 
 TorrentPlugin::~TorrentPlugin() {
