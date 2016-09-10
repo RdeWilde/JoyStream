@@ -26,6 +26,10 @@ namespace core {
 
 class CBStateMachine;
 
+/**
+ * @brief Handle for connection in session
+ * @note Detect expiry by listening to the Session::connectionRemoved signal.
+ */
 class Connection : public QObject {
 
     Q_OBJECT
@@ -47,6 +51,10 @@ public:
 
     libtorrent::tcp::endpoint connectionId() const noexcept;
 
+    /**
+     * @brief Returns status of state machine for this connection
+     * @return Status of state machine
+     */
     CBStateMachine * machine() const noexcept;
 
 signals:

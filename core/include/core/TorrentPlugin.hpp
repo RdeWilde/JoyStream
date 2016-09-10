@@ -18,6 +18,10 @@ namespace core {
 class PeerPlugin;
 class Session;
 
+/**
+ * @brief The TorrentPlugin class
+ * @note Detect expiry by listening to the Torrent::torrentPluginRemoved signal
+ */
 class TorrentPlugin : public QObject {
 
     Q_OBJECT
@@ -68,21 +72,17 @@ public:
 
     libtorrent::sha1_hash infoHash() const noexcept;
 
+    /**
+     * @brief Returns peer plugin object mapping
+     * @return mapping of endpoint to peer plugin object
+     */
     std::map<libtorrent::tcp::endpoint, PeerPlugin *> peers() const noexcept;
 
     /**
-     * @brief Returns session handle
-     * @throws HandleNotSet if handle not set, i.e. !sessionSet()
-     * @return session handle
+     * @brief Returns session handle for session in plugin.
+     * @return Session handle
      */
     Session * session() const;
-
-    /**
-     * @brief Sessin handle existence check
-     * @return Whether session handle is present
-     */
-
-    bool sessionSet() const noexcept;
 
 signals:
 

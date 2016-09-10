@@ -14,6 +14,10 @@
 namespace joystream {
 namespace core {
 
+/**
+ * @brief Handle for peer on torrent
+ * @note Detect expiry of objects by listening to the Torrent::peerRemoved
+ */
 class Peer : public QObject {
 
     Q_OBJECT

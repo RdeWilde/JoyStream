@@ -18,6 +18,10 @@ namespace paymentchannel {
 }
 namespace core {
 
+/**
+ * @brief Handle for payee side of a payment channel
+ * @note Expires when state machine expires
+ */
 class Payee : public QObject {
 
     Q_OBJECT

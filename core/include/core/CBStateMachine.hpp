@@ -28,15 +28,18 @@ namespace core {
 class Payor;
 class Payee;
 
+/**
+ * @brief Handle for state machine in connection
+ * @note Expires when corresponding connection expires
+ */
 class CBStateMachine : public QObject {
 
     Q_OBJECT
 
 public:
 
-
     // Wrapped version of internal type index for the state machine.
-    // We can't use raw std::type_index, as it doesn't have a defalt,
+    // We can't use raw std::type_index, as it doesn't have a default CTR,
     // which Qt MOC requires
     typedef boost::optional<std::type_index> InnerStateIndex;
 
@@ -59,8 +62,16 @@ public:
 
     protocol_statemachine::AnnouncedModeAndTerms announcedModeAndTermsFromPeer() const noexcept;
 
+    /**
+     * @brief Returns handle for payor side of payment channel in the state machine
+     * @return Handle for payor side of payment channel
+     */
     Payor * payor() const noexcept;
 
+    /**
+     * @brief Returns handle for payee side of payment channel in state machine
+     * @return Handle for payee side of payment channel
+     */
     Payee * payee() const noexcept;
 
 signals:

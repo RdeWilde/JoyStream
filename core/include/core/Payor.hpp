@@ -18,6 +18,10 @@ namespace paymentchannel {
 }
 namespace core {
 
+/**
+ * @brief Handle for payor side of payment channel
+ * @note This object expires when the state machine expires (see Connection for how to detect this)
+ */
 class Payor : public QObject {
 
     Q_OBJECT

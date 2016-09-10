@@ -15,6 +15,11 @@
 namespace joystream {
 namespace core {
 
+/**
+ * @brief Handle for selling sub state of session
+ * @note Detect expiry by listening to the Session::modeChanged signal, which
+ * happens when mode changes away from selling.
+ */
 class Selling : public QObject {
 
     Q_OBJECT

@@ -18,6 +18,11 @@ namespace core {
 
 class Seller;
 
+/**
+ * @brief Handle for buying sub state of session
+ * @note Detect expiry by listening to the Session::modeChanged signal, which
+ * happens when mode changes away from buying.
+ */
 class Buying : public QObject {
 
     Q_OBJECT

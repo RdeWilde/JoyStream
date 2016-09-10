@@ -114,14 +114,9 @@ std::map<libtorrent::tcp::endpoint, PeerPlugin *> TorrentPlugin::peers() const n
 
 Session * TorrentPlugin::session() const {
 
-    if(sessionSet())
-        return _session.get();
-    else
-        throw exception::HandleNotSet();
-}
+    assert(_session.get() != nullptr);
 
-bool TorrentPlugin::sessionSet() const noexcept {
-    return _session.get() != nullptr;
+    return _session.get();
 }
 
 void TorrentPlugin::addPeerPlugin(const extension::status::PeerPlugin & status) {

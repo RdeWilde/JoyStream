@@ -21,6 +21,10 @@ class Selling;
 class Buying;
 class Connection;
 
+/**
+ * @brief Handle for session
+ * @note Detect expiry of this object by listening to the Torrent::torrentPluginRemoved signal
+ */
 class Session : public QObject {
 
     Q_OBJECT
@@ -46,6 +50,10 @@ public:
 
     protocol_session::SessionState state() const noexcept;
 
+    /**
+     * @brief Returns mapping of endpoints to Connections in the session
+     * @return mapping of endpoint to Connection object
+     */
     std::map<libtorrent::tcp::endpoint, Connection *> connections() const noexcept;
 
     /**

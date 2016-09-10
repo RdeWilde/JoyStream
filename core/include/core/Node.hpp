@@ -116,8 +116,8 @@ public:
     void port() const noexcept;
 
     /**
-     * @brief Returns torrent object mapping
-     * @return mapping of info_hash to torrent object
+     * @brief Returns map with all torrent handles, indexed by their info hashes
+     * @return Map of all torrent handles, indexed by their info hashes
      */
     std::map<libtorrent::sha1_hash, Torrent *> torrents() const noexcept;
 

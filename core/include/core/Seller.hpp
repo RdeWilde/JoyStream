@@ -17,6 +17,10 @@
 namespace joystream {
 namespace core {
 
+/**
+ * @brief Seller handle
+ * @note Detect expiry by listening to the Buying::sellerRemoved signal.
+ */
 class Seller : public QObject {
 
     Q_OBJECT

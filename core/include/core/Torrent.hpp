@@ -24,6 +24,10 @@ namespace detail {
 class Peer;
 class TorrentPlugin;
 
+/**
+ * @brief Torrent handle
+ * @note Detect expiry of handles listening to the Node::removeTorrent
+ */
 class Torrent : public QObject {
 
     Q_OBJECT
@@ -73,6 +77,10 @@ public:
 
     libtorrent::sha1_hash infoHash() const noexcept;
 
+    /**
+     * @brief Returns map of Peer handles, and endpoint is used as key.
+     * @return Map of Peer handles with endpoint as key
+     */
     std::map<libtorrent::tcp::endpoint, Peer *> peers() const noexcept;
 
     /**
@@ -82,9 +90,9 @@ public:
     bool torrentPluginSet() const noexcept;
 
     /**
-     * @brief Torrent plugin handle
-     * @throws HandleNotSet if
-     * @return handle
+     * @brief Returns torrent plugin handle on for this torrent, if present.
+     * @throws HandleNotSet if torrent plugin not set
+     * @return Torrent plugin handle
      */
     TorrentPlugin * torrentPlugin() const;
 
