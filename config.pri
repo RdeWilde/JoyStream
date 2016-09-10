@@ -38,6 +38,7 @@ CONFIG(release, debug|release) {
 
     LIBS += -L$$LIBTORRENT_LOCATION/release/lib -ltorrent
     DEFINES += NDEBUG
+    DEFINES += TORRENT_DISABLE_LOGGING TORRENT_USE_ASSERTS=0
 } else {
 
     # Added for the benefit of QtCreator only, next lone does the same thing
