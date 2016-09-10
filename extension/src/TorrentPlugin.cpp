@@ -489,7 +489,8 @@ void TorrentPlugin::addToSession(const libtorrent::tcp::endpoint & endPoint) {
     protocol_session::SendMessageOnConnection send = [wPeerPlugin] (const protocol_wire::ExtendedMessagePayload * m) -> void {
 
         boost::shared_ptr<PeerPlugin> plugin;
-        assert(plugin = wPeerPlugin.lock());
+        plugin = wPeerPlugin.lock();
+        assert(plugin);
         plugin->send(m);
         delete m;
     };
