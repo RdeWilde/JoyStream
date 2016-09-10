@@ -8,10 +8,6 @@ then
   exit 1
 fi
 
-pushd bitcoin/src/detail/store
-make
-popd
-
 pushd deps/linux
 if ./build-all.sh
 then
@@ -20,6 +16,10 @@ else
    echo "Building Dependencies failed"
    exit 1
 fi
+popd
+
+pushd bitcoin/src/detail/store
+make
 popd
 
 mkdir -p build/linux-x64

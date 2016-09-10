@@ -7,10 +7,6 @@ then
   exit 1
 fi
 
-pushd bitcoin/src/detail/store
-make
-popd
-
 echo "Building All Joystream dependencies..."
 pushd deps/osx/
 if BUILD_TYPE="DEBUG" ./build-all.sh
@@ -20,6 +16,10 @@ else
    echo "Building Dependencies failed"
    exit 1
 fi
+popd
+
+pushd bitcoin/src/detail/store
+make
 popd
 
 mkdir -p build/osx
