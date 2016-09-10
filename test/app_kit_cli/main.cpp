@@ -27,6 +27,7 @@
 
 #include <iostream>
 #include <signal.h>
+#include <string>
 
 // Explicit template instantiation of IdToString()
 // used in joystream::protocol_session::exception::ConnectionAlreadyAddedException
@@ -64,15 +65,17 @@ int main(int argc, char *argv[])
 
     joystream::AppKit* kit = joystream::AppKit::createInstance(QDir::homePath(), Coin::Network::testnet3);
 
-    bool hasDepositAddress = false;
-    for(auto addr : kit->wallet()->listAddresses()) {
-        hasDepositAddress = true;
-        std::cout << "Wallet Deposit Address: " << addr.toBase58CheckEncoding().toStdString() << std::endl;
-        break;
+    std::list<Coin::P2PKHAddress> addresses = kit->wallet()->listAddresses();
+
+    std::string depositAddress;
+
+    if(addresses.size() > 0){
+        depositAddress = addresses.front().toBase58CheckEncoding().toStdString();
+    } else {
+        depositAddress = kit->wallet()->getReceiveAddress().toBase58CheckEncoding().toStdString();
     }
-    if(!hasDepositAddress) {
-        std::cout << "Wallet Deposit Address: " << kit->wallet()->getReceiveAddress().toBase58CheckEncoding().toStdString() << std::endl;
-    }
+
+    std::cout << "Wallet Deposit Address: " <<  depositAddress << std::endl;
 
     std::cout << "Wallet Balance: " << kit->wallet()->unconfirmedBalance() << std::endl;
 
@@ -96,7 +99,7 @@ int main(int argc, char *argv[])
 
     signal(SIGINT, &handleSignal);
     signal(SIGTERM, &handleSignal);
-/*
+
     libtorrent::error_code ec;
     auto ti = boost::make_shared<libtorrent::torrent_info>(std::string(argv[1]), boost::ref(ec), 0);
     if (ec)
@@ -105,35 +108,25 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    std::cout << "Adding Torrent" << std::endl;
+    auto savePath = (QDir::homePath()+"/Downloads/").toStdString();
 
-    QTimer::singleShot(1500, nullptr, [&kit, &ti](){
-        std::cout << "Adding Torrent" << std::endl;
-        auto savePath = (QDir::homePath()+"/Downloads/").toStdString();
+    kit->node()->addTorrent(0, 0, "test", std::vector<char>(), savePath, false, joystream::core::TorrentIdentifier(ti),
+                           [&kit](libtorrent::error_code &ecode, libtorrent::torrent_handle &th){
 
-        kit->node()->addTorrent(0, 0, "test", std::vector<char>(), savePath, false, joystream::core::TorrentIdentifier(ti),
-                               [&kit](libtorrent::error_code &ecode, libtorrent::torrent_handle &th){
+        if(ecode) {
+            std::cerr << "addTorrent() failed: " << ecode.message().c_str() << std::endl;
+            return;
+        }
 
-            if(ecode) {
-                std::cerr << "addTorrent() failed: " << ecode.message().c_str() << std::endl;
-                return;
-            }
-
-            std::cout << "Torrent Added" << std::endl;
-
-            std::cout << "Trying to Buy Torrent" << std::endl;
-            kit->buyTorrent(th.info_hash(), joystream::protocol_session::BuyingPolicy(), joystream::protocol_wire::BuyerTerms(), [](const std::exception_ptr &eptr){
-                std::cerr << "Error Buying Torrent" << std::endl;
-                std::rethrow_exception(eptr);
-            });
-
-        });
+        std::cout << "Torrent Added" << std::endl;
     });
-*/
 
-    // Try to pause the node after a few seconds...
-    QTimer::singleShot(1500, nullptr, [&kit](){
-        kit->node()->pause([](){
-            std::clog << "Node Paused after 1500ms delay" << std::endl;
+    // Wait for TorrentPlugin to get added to the Torrent
+    QTimer::singleShot(20000, nullptr, [&kit, &ti](){
+        std::cout << "Trying to Buy Torrent" << std::endl;
+        kit->buyTorrent(ti->info_hash(), joystream::protocol_session::BuyingPolicy(), joystream::protocol_wire::BuyerTerms(), [](const std::exception_ptr &eptr){
+            std::cerr << "Error Buying Torrent" << std::endl;
         });
     });
 
