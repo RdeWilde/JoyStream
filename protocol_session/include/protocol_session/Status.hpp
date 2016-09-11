@@ -152,8 +152,6 @@ namespace status {
             , pieces(pieces) {
         }
 
-    private:
-
         // Funding for buyer
         Coin::UnspentOutputSet funding;
 
