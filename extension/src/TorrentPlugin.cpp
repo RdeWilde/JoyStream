@@ -218,80 +218,6 @@ void TorrentPlugin::on_add_peer(const libtorrent::tcp::endpoint & endPoint, int 
     */
 }
 
-<<<<<<< 01dd274213a9b0024b55f80beea249dc1f8e0daf
-=======
-void TorrentPlugin::handle(const request::TorrentPluginRequest * r) {
-
-    assert(r->infoHash == _infoHash);
-
-    // Process request and wrap response in an alert
-
-    libtorrent::alert * alert;
-
-    if(auto startRequest = dynamic_cast<const request::Start *>(r))
-        alert = new alert::RequestResult<request::Start::Response>(request::Start::Response(startRequest, start()));
-    else if (auto stopRequest = dynamic_cast<const request::Stop *>(r))
-        alert = new alert::RequestResult<request::Stop::Response>(request::Stop::Response(stopRequest, stop()));
-    else if (auto pauseRequest = dynamic_cast<const request::Pause *>(r))
-        alert = new alert::RequestResult<request::Pause::Response>(request::Pause::Response(pauseRequest, pause()));
-    else if (auto updateBuyerTermsRequest = dynamic_cast<const request::UpdateBuyerTerms *>(r))
-        alert = new alert::RequestResult<request::UpdateBuyerTerms::Response>(request::UpdateBuyerTerms::Response(updateBuyerTermsRequest, updateBuyerTerms(updateBuyerTermsRequest->terms)));
-    else if (auto updateSellerTermsRequest = dynamic_cast<const request::UpdateSellerTerms *>(r))
-        alert = new alert::RequestResult<request::UpdateSellerTerms::Response>(request::UpdateSellerTerms::Response(updateSellerTermsRequest, updateSellerTerms(updateSellerTermsRequest->terms)));
-    else if (auto toObserveModeRequest = dynamic_cast<const request::ToObserveMode *>(r)) {
-
-        // Clear relevant mappings
-        // NB: We are doing clearing regardless of whether operation is successful!
-        if(_session.mode() == protocol_session::SessionMode::selling)
-            _outstandingLoadPieceForBuyerCalls.clear();
-        else if(_session.mode() == protocol_session::SessionMode::buying)
-            _outstandingFullPieceArrivedCalls.clear();
-
-        alert = new alert::RequestResult<request::ToObserveMode::Response>(request::ToObserveMode::Response(toObserveModeRequest, toObserveMode()));
-
-    } else if (const request::ToSellMode * toSellModeRequest = dynamic_cast<const request::ToSellMode *>(r)) {
-
-        // Should have been cleared before
-        assert(_outstandingLoadPieceForBuyerCalls.empty());
-
-        // Clear relevant mappings
-        // NB: We are doing clearing regardless of whether operation is successful!
-        if(_session.mode() == protocol_session::SessionMode::buying)
-            _outstandingFullPieceArrivedCalls.clear();
-
-        alert = new alert::RequestResult<request::ToSellMode::Response>(request::ToSellMode::Response(toSellModeRequest, toSellMode(toSellModeRequest->generateKeyPairsCallbackHandler,
-                                                                                                                                    toSellModeRequest->generateP2SHAddressesCallbackHandler,
-                                                                                                                                    toSellModeRequest->sellingPolicy,
-                                                                                                                                    toSellModeRequest->terms)));
-
-    } else if (const request::ToBuyMode * toBuyModeRequest = dynamic_cast<const request::ToBuyMode *>(r)) {
-
-        // Should have been cleared before
-        assert(_outstandingFullPieceArrivedCalls.empty());
-
-        // Clear relevant mappings
-        // NB: We are doing clearing regardless of whether operation is successful!
-        if(_session.mode() == protocol_session::SessionMode::selling)
-            _outstandingLoadPieceForBuyerCalls.clear();
-
-        alert = new alert::RequestResult<request::ToBuyMode::Response>(request::ToBuyMode::Response(toBuyModeRequest, toBuyMode(toBuyModeRequest->generateKeyPairsCallbackHandler,
-                                                                                                                                toBuyModeRequest->generateP2SHAddressesCallbackHandler,
-                                                                                                                                toBuyModeRequest->funding,
-                                                                                                                                toBuyModeRequest->policy,
-                                                                                                                                toBuyModeRequest->terms)));
-
-
-
-    } else if (dynamic_cast<const request::ChangeDownloadLocation *>(r)) // const request::ChangeDownloadLocation * changeDownloadLocationRequest =
-        assert(false);
-    else
-        assert(false);
-
-    // Send alert
-    sendTorrentPluginAlertPtr(alert);
-}
-
->>>>>>> updated new extension to use p2sh
 void TorrentPlugin::pieceRead(const libtorrent::read_piece_alert * alert) {
 
     // There should be at least one peer registered for this piece
@@ -535,76 +461,20 @@ void TorrentPlugin::setLibtorrentInteraction(LibtorrentInteraction e) {
         forEachBitTorrentConnection([](libtorrent::bt_peer_connection *c) -> void { c->write_choke(); });
     }
 
-<<<<<<< 01dd274213a9b0024b55f80beea249dc1f8e0daf
     // Send messages for starting to prevent uploading
     if(e == LibtorrentInteraction::BlockDownloading ||
        e == LibtorrentInteraction::BlockUploadingAndDownloading) {
 
         // For each peer: sending (once) NOT-INTERESTED and CHOCKED message in order to discourage unchocking.
         forEachBitTorrentConnection([](libtorrent::bt_peer_connection *c) -> void { c->write_not_interested(); c->write_choke(); });
-=======
-    return request::ToObserveMode::Outcome::Success;
-}
 
-request::ToSellMode::Outcome TorrentPlugin::toSellMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-                                                       const protocol_session::GenerateP2SHAddressesCallbackHandler &generateP2SHAddressesCallbackHandler,
-                                                       const protocol_session::SellingPolicy & sellingPolicy,
-                                                       const protocol_wire::SellerTerms & terms) {
-
-    // Get maximum number of pieces
-    int maxPieceIndex = getTorrent()->picker().num_pieces() - 1;
-
-    try {
-
-        _session.toSellMode(removeConnection(),
-                            generateKeyPairsCallbackHandler,
-                            generateP2SHAddressesCallbackHandler,
-                            loadPieceForBuyer(),
-                            claimLastPayment(),
-                            anchorAnnounced(),
-                            sellingPolicy,
-                            terms,
-                            maxPieceIndex);
-
-    } catch (const protocol_session::exception::SessionAlreadyInThisMode &) {
-        return request::ToSellMode::Outcome::SessionAlreadyInThisMode;
->>>>>>> updated new extension to use p2sh
     }
 
     _libtorrentInteraction = e;
 }
 
-<<<<<<< 01dd274213a9b0024b55f80beea249dc1f8e0daf
 protocol_session::SessionState TorrentPlugin::sessionState() const {
     return _session.state();
-=======
-request::ToBuyMode::Outcome TorrentPlugin::toBuyMode(const protocol_session::GenerateKeyPairsCallbackHandler & generateKeyPairsCallbackHandler,
-                                                     const protocol_session::GenerateP2SHAddressesCallbackHandler & generateP2SHAddressesCallbackHandler,
-                                                     const Coin::UnspentOutputSet &funding,
-                                                     const protocol_session::BuyingPolicy & policy,
-                                                     const protocol_wire::BuyerTerms & terms) {
-
-    //
-
-    try {
-
-        _session.toBuyMode(removeConnection(),
-                           generateKeyPairsCallbackHandler,
-                           generateP2SHAddressesCallbackHandler,
-                           broadcastTransaction(),
-                           fullPieceArrived(),
-                           funding,
-                           policy,
-                           terms,
-                           torrentPieceInformation(getTorrent()->picker()));
-
-    } catch (const protocol_session::exception::SessionAlreadyInThisMode &) {
-        return request::ToBuyMode::Outcome::SessionAlreadyInThisMode;
-    }
-
-    return request::ToBuyMode::Outcome::Success;
-
->>>>>>> updated new extension to use p2sh
 }
 
 void TorrentPlugin::addToSession(const libtorrent::tcp::endpoint & endPoint) {
