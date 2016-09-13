@@ -138,7 +138,10 @@ protocol_wire::SellerTerms SellerTermsDialog::terms() const {
     return protocol_wire::SellerTerms(minPrice(), minLock(), maxNumberOfSellers(), minContractFeePerKb(), 0);
 }
 
-void SellerTermsDialog::setTorrentInfo(const TorrentInfo & torrentInfo) {
+boost::optional<SellerTermsDialog::TorrentInfo> SellerTermsDialog::torrentInfo() const noexcept {
+    return _torrentInfo;
+}
+void SellerTermsDialog::setTorrentInfo(const boost::optional<TorrentInfo> & torrentInfo) {
 
     // set/unset torrent information
     _torrentInfo = torrentInfo;
@@ -224,12 +227,19 @@ void SellerTermsDialog::updateValueLabels() {
     try {
         minimumPrice = minPrice();
     } catch(std::runtime_error &) {
+
+        ui->maxRevenuePrUploadValueLabel->setText("");
+        ui->pricePrGBValueLabel->setText("");
         return;
     }
 
     // If torrent information is not present, then we stop
-    if(!_torrentInfo.is_initialized())
+    if(!_torrentInfo.is_initialized()) {
+
+        ui->maxRevenuePrUploadValueLabel->setText("");
+        ui->pricePrGBValueLabel->setText("");
         return;
+    }
 
     // Set Maximum revenue per upload
     {

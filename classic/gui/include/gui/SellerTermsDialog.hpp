@@ -76,7 +76,8 @@ public:
 
     /// Ui related modifiers
 
-    void setTorrentInfo(const TorrentInfo & torrentInfo);
+    boost::optional<TorrentInfo> torrentInfo() const noexcept;
+    void setTorrentInfo(const boost::optional<TorrentInfo> & torrentInfo);
 
     DisplayMode displayMode() const noexcept;
     void setDisplayMode(const DisplayMode mode);
