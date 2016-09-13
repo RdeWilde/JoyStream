@@ -73,10 +73,6 @@ public:
     DisplayMode displayMode() const noexcept;
     void setDisplayMode(const DisplayMode mode);
 
-    // Updates the total funds required field based on the current values if possible,
-    // blanks out field if not.
-    void updateTotalFundsRequired();
-
 private slots:
 
     void on_displayModeButton_clicked();
@@ -85,7 +81,9 @@ private slots:
 
     void on_okPushButton_clicked();
 
-    void updateCurrencyFields();
+    void updateTitleLabels();
+
+    void updateValueLabels();
 
 private:
     Ui::BuyerTermsDialog *ui;

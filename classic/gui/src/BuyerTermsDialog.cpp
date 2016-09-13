@@ -32,7 +32,7 @@ BuyerTermsDialog::BuyerTermsDialog(const BitcoinDisplaySettings * settings)
     ui->setupUi(this);
 
     setDisplayMode(_displayMode);
-    updateCurrencyFields();
+    updateTitleLabels();
 }
 
 BuyerTermsDialog::~BuyerTermsDialog() {
@@ -126,8 +126,7 @@ void BuyerTermsDialog::setNumberOfPieces(const boost::optional<unsigned int> & n
 
     _numberOfPieces = numberOfPieces;
 
-    if(_numberOfPieces.is_initialized())
-        updateTotalFundsRequired();
+    updateValueLabels();
 }
 
 void BuyerTermsDialog::setDisplayMode(const DisplayMode mode) {
@@ -157,35 +156,6 @@ void BuyerTermsDialog::setDisplayMode(const DisplayMode mode) {
         ui->maxContractFeePrKbLineEdit->show();
     }
 
-}
-
-void BuyerTermsDialog::updateTotalFundsRequired() {
-
-    if(_numberOfPieces.is_initialized()) {
-
-        protocol_wire::BuyerTerms t;
-
-        try {
-
-            // Try to decode all fields
-            t = terms();
-
-        } catch(const std::runtime_error & e) {
-
-            // Jump ship, can't do it
-            ui->totalValueLabel->setText("");
-
-            return;
-        }
-
-        // Amount needed to fund contract (satoshies)
-        quint64 minFunds = protocol_session::Session<libtorrent::tcp::endpoint>::minimumFundsRequiredAsBuyer(t, _numberOfPieces.get());
-
-        // Update total price label
-        QString minFundsString = _totalFundsPrefixSettings.toString(minFunds);
-
-        ui->totalValueLabel->setText(minFundsString);
-    }
 }
 
 void BuyerTermsDialog::on_displayModeButton_clicked() {
@@ -221,14 +191,42 @@ void BuyerTermsDialog::on_okPushButton_clicked() {
 
 }
 
-void BuyerTermsDialog::updateCurrencyFields() {
+void BuyerTermsDialog::updateTitleLabels() {
 
     ui->maxPiecePriceLabelTitle->setText("Maximum price per piece (" + _maxPiecePricePrefixSettings.prefix() + ")");
     ui->maxContractFeePrKbLabel->setText("Maximum contract fee (" + _maxContractFeePerKbPrefixSettings.prefix() + "/Kb)");
     ui->totalFundsRequiredFieldLabel->setText("Total funds required (" + _totalFundsPrefixSettings.prefix() + ")");
+}
 
-    // make call
-    //updateTotalFundsRequired
+void BuyerTermsDialog::updateValueLabels() {
+
+    if(_numberOfPieces.is_initialized()) {
+
+        protocol_wire::BuyerTerms t;
+
+        try {
+
+            // Try to decode all fields
+            t = terms();
+
+        } catch(const std::runtime_error & e) {
+
+            // Jump ship, can't do it
+            ui->totalFundsRequiredValueLabel->setText("");
+
+            return;
+        }
+
+        // Amount needed to fund contract (satoshies)
+        quint64 minFunds = protocol_session::Session<libtorrent::tcp::endpoint>::minimumFundsRequiredAsBuyer(t, _numberOfPieces.get());
+
+        // Update total price label
+        QString minFundsString = _totalFundsPrefixSettings.toString(minFunds);
+
+        ui->totalFundsRequiredValueLabel->setText(minFundsString);
+    } else
+        ui->totalFundsRequiredValueLabel->setText("");
+
 }
 
 }
