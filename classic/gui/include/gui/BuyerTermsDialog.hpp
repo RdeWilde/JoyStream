@@ -73,8 +73,9 @@ public:
     DisplayMode displayMode() const noexcept;
     void setDisplayMode(const DisplayMode mode);
 
-    // Updates the total expenditure field based on the current configuration values
-    void updateTotal();
+    // Updates the total funds required field based on the current values if possible,
+    // blanks out field if not.
+    void updateTotalFundsRequired();
 
 private slots:
 

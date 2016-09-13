@@ -127,7 +127,7 @@ void BuyerTermsDialog::setNumberOfPieces(const boost::optional<unsigned int> & n
     _numberOfPieces = numberOfPieces;
 
     if(_numberOfPieces.is_initialized())
-        updateTotal();
+        updateTotalFundsRequired();
 }
 
 void BuyerTermsDialog::setDisplayMode(const DisplayMode mode) {
@@ -159,7 +159,7 @@ void BuyerTermsDialog::setDisplayMode(const DisplayMode mode) {
 
 }
 
-void BuyerTermsDialog::updateTotal() {
+void BuyerTermsDialog::updateTotalFundsRequired() {
 
     if(_numberOfPieces.is_initialized()) {
 
@@ -173,7 +173,7 @@ void BuyerTermsDialog::updateTotal() {
         } catch(const std::runtime_error & e) {
 
             // Jump ship, can't do it
-            ui->totalValueLabel->setText(e.what());
+            ui->totalValueLabel->setText("");
 
             return;
         }
@@ -225,7 +225,10 @@ void BuyerTermsDialog::updateCurrencyFields() {
 
     ui->maxPiecePriceLabelTitle->setText("Maximum price per piece (" + _maxPiecePricePrefixSettings.prefix() + ")");
     ui->maxContractFeePrKbLabel->setText("Maximum contract fee (" + _maxContractFeePerKbPrefixSettings.prefix() + "/Kb)");
-    ui->totalLabel->setText("Total funds required (" + _totalFundsPrefixSettings.prefix() + ")");
+    ui->totalFundsRequiredFieldLabel->setText("Total funds required (" + _totalFundsPrefixSettings.prefix() + ")");
+
+    // make call
+    //updateTotalFundsRequired
 }
 
 }
