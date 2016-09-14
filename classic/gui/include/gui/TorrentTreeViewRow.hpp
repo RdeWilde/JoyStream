@@ -5,16 +5,14 @@
  * Written by Bedeho Mender <bedeho.mender@gmail.com>, August 19 2016
  */
 
-#ifndef JOYSTREAM_CLASSIC_GUI_TORRENTTABLEVIEWROW_HPP
-#define JOYSTREAM_CLASSIC_GUI_TORRENTTABLEVIEWROW_HPP
+#ifndef JOYSTREAM_CLASSIC_GUI_TORRENTTREEVIEWROW_HPP
+#define JOYSTREAM_CLASSIC_GUI_TORRENTTREEVIEWROW_HPP
 
 #include <libtorrent/torrent_status.hpp>
 
-#include <QObject>
+#include <QtGlobal>
 
-#include <memory>
-
-class QStandardItemModel;
+class QObject;
 class QStandardItem;
 class BitcoinDisplaySettings;
 
@@ -30,18 +28,15 @@ namespace core {
 namespace classic {
 namespace gui {
 
-class TorrentTableViewRow : public QObject {
-
-    Q_OBJECT
+class TorrentTreeViewRow {
 
 public:
 
-    static TorrentTableViewRow * create(QStandardItemModel * model,
-                                       const std::shared_ptr<core::Torrent> & torrentModel,
-                                       const BitcoinDisplaySettings * settings);
-
-    TorrentTableViewRow(QObject * parent,
-                       const BitcoinDisplaySettings * settings,
+    /**
+     * @brief TorrentTableViewRow constructor
+     * @note This object does not take ownership of the items provided
+     */
+    TorrentTreeViewRow(const BitcoinDisplaySettings * settings,
                        QStandardItem * nameItem,
                        QStandardItem * sizeItem,
                        QStandardItem * stateItem,
@@ -52,9 +47,15 @@ public:
                        QStandardItem * sessionModeItem,
                        QStandardItem * balanceItem);
 
-public slots:
-
-    /// Set field
+    QStandardItem * nameItem() const noexcept;
+    QStandardItem * sizeItem() const noexcept;
+    QStandardItem * stateItem() const noexcept;
+    QStandardItem * uploadSpeedItem() const noexcept;
+    QStandardItem * downloadSpeedItem() const noexcept;
+    QStandardItem * numberOfBuyerPeersItem() const noexcept;
+    QStandardItem * numberOfSellerPeersitem() const noexcept;
+    QStandardItem * sessionModeItem() const noexcept;
+    QStandardItem * balanceItem() const noexcept;
 
     void setName(const std::string & name);
     void setSize(qint64 totalSize);
@@ -66,11 +67,6 @@ public slots:
     void setNumberOfSellers(quint32 num);
     void setSessionMode(protocol_session::SessionMode mode);
     void setBalance(qint64 balance);
-
-    /// Plugin events
-
-    void setTorrentPluginPresent(const std::weak_ptr<core::TorrentPlugin> &);
-    void setTorrentPluginAbsent();
 
 private:
 
@@ -88,29 +84,11 @@ private:
                   * _numberOfSellerPeersitem,
                   * _sessionModeItem,
                   * _balanceItem;
-
-    // Updates the peer counts
-    void updateConnectionCounts(const core::Session * session);
-
-    // Utility routine for getting counts on number of different peer types
-    static void numberOf(const core::Session * session,
-                         unsigned int & numberOfBuyers,
-                         unsigned int & numberOfSellers,
-                         unsigned int & numberOfObservers,
-                         unsigned int & numberOfUnAnnounced);
-
-    // Updates the balance
-    void updateBalance(const core::Session * session);
-
-    // Utility routine for figuring out the balance in the corresponding mode
-    static int64_t getBalanceInBuyingMode(const core::Session * session);
-    static int64_t getBalanceInSellingMode(const core::Session * session);
-
 };
 
 }
 }
 }
 
-#endif // JOYSTREAM_CLASSIC_GUI_TORRENTTABLEVIEWROW_HPP
+#endif // JOYSTREAM_CLASSIC_GUI_TORRENTTREEVIEWROW_HPP
 
