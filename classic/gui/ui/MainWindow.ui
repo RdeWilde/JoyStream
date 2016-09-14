@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1071</width>
-    <height>394</height>
+    <height>589</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -161,67 +161,6 @@
      <string>balance</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="walletPushButton">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>520</x>
-      <y>400</y>
-      <width>151</width>
-      <height>50</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>wallet</string>
-    </property>
-    <property name="iconSize">
-     <size>
-      <width>64</width>
-      <height>64</height>
-     </size>
-    </property>
-   </widget>
-   <widget class="QTreeView" name="torrentsTable">
-    <property name="geometry">
-     <rect>
-      <x>-2</x>
-      <y>80</y>
-      <width>1075</width>
-      <height>239</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>12</pointsize>
-     </font>
-    </property>
-    <property name="indentation">
-     <number>0</number>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="updatePushButton">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>400</x>
-      <y>400</y>
-      <width>111</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>update</string>
-    </property>
-   </widget>
    <widget class="QLabel" name="statusMessageLabel">
     <property name="geometry">
      <rect>
@@ -279,24 +218,6 @@
      <string>unconfirmed</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="bugsPushButton">
-    <property name="geometry">
-     <rect>
-      <x>880</x>
-      <y>330</y>
-      <width>101</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>9</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>report bugs</string>
-    </property>
-   </widget>
    <widget class="QPushButton" name="addMagnetLinkPushButton">
     <property name="geometry">
      <rect>
@@ -321,30 +242,14 @@
      </size>
     </property>
    </widget>
-   <widget class="QPushButton" name="topUpWalletPushButton">
+   <widget class="QTreeView" name="torrentsTreeView">
     <property name="geometry">
      <rect>
-      <x>700</x>
-      <y>400</y>
-      <width>111</width>
-      <height>51</height>
+      <x>130</x>
+      <y>130</y>
+      <width>691</width>
+      <height>351</height>
      </rect>
-    </property>
-    <property name="text">
-     <string>add funds</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>350</y>
-      <width>741</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>This version only uses Bitcoin testnet. Keep running at all times for testing purposes, restart for automatic updates.</string>
     </property>
    </widget>
   </widget>
