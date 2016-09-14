@@ -47,6 +47,8 @@ public:
                        QStandardItem * sessionModeItem,
                        QStandardItem * balanceItem);
 
+    TorrentTreeViewRow * create(const BitcoinDisplaySettings * settings);
+
     QStandardItem * nameItem() const noexcept;
     QStandardItem * sizeItem() const noexcept;
     QStandardItem * stateItem() const noexcept;
