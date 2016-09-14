@@ -11,8 +11,8 @@ WINDOWS_64BIT="x86_64-w64-mingw32"
 WINDOWS_32BIT="i686-w64-mingw32"
 TARGET_ARCH=$WINDOWS_32BIT
 
-SQLITE_VERSION="sqlite-autoconf-3090200"
-SQLITE_TARBALL="${SQLITE_VERSION}.tar.gz"
+. ../thirdparty-libs/versions.sh
+THIRDPARTY=`pwd`/../thirdparty-libs/
 
 mkdir -p src/
 
@@ -24,14 +24,7 @@ if [ ! -e "${SQLITE_TARBALL}" ]
   then
   rm -fr sqlite/
 
-  if wget "https://www.sqlite.org/2015/${SQLITE_TARBALL}"
-    then
-      echo "Download Successful"
-    else
-      rm ${SQLITE_TARBALL}
-      echo "Failed to download ${SQLITE_TARBALL}"
-      exit 1
-    fi
+  cp ${THIRDPARTY}/${SQLITE_TARBALL} ./
 fi
 popd
 

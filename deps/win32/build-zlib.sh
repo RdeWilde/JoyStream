@@ -11,8 +11,8 @@ WINDOWS_64BIT="x86_64-w64-mingw32"
 WINDOWS_32BIT="i686-w64-mingw32"
 TARGET_ARCH=$WINDOWS_32BIT
 
-ZLIB_VERSION="zlib-1.2.8"
-ZLIB_TARBALL="${ZLIB_VERSION}.tar.gz"
+. ../thirdparty-libs/versions.sh
+THIRDPARTY=`pwd`/../thirdparty-libs/
 
 mkdir -p src/
 
@@ -24,14 +24,7 @@ if [ ! -e "${ZLIB_TARBALL}"]
 then
   rm -fr zlib/
 
-  if wget "http://zlib.net/${ZLIB_TARBALL}"
-  then
-    echo "Downloaded zlib"
-  else
-    rm ${ZLIB_TARBALL}
-    echo "Failed to download zlib"
-    exit 1
-  fi
+  cp ${THIRDPARTY}/${ZLIB_TARBALL} ./
 fi
 popd
 
