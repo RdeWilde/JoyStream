@@ -7,18 +7,8 @@
 
 #set -x
 
-LIB_BOOST_VER="boost_1_59_0"
-LIB_BOOST_TARBALL="${LIB_BOOST_VER}.tar.gz"
-LIB_BOOST_VERSION="1.59.0"
-
-LIBTORRENT_VERSION="libtorrent-1_1"
-LIBTORRENT_TARBALL="${LIBTORRENT_VERSION}.tar.gz"
-
-OPENSSL_VERSION="openssl-1.0.2h"
-OPENSSL_TARBALL="${OPENSSL_VERSION}.tar.gz"
-
-LIBPNG_VERSION="libpng-1.6.25"
-LIBPNG_TARBALL="${LIBPNG_VERSION}.tar.gz"
+. ../thirdparty-libs/versions.sh
+THIRDPARTY=`pwd`/../thirdparty-libs/
 
 mkdir -p src/
 mkdir -p dist/
@@ -29,15 +19,7 @@ then
   # if we are downloading new version remove old build
   rm -fr openssl/
 
-  # download openssl
-  echo "Downloding ${OPENSSL_TARBALL}"
-  if wget -O ${OPENSSL_TARBALL} "https://www.openssl.org/source/${OPENSSL_TARBALL}"
-    then
-        echo "Download Successful"
-    else
-        rm ${OPENSSL_TARBALL};
-        exit 1
-  fi
+  cp ${THIRDPARTY}/${OPENSSL_TARBALL} ./
 fi
 
 if [ ! -r "openssl" ]
@@ -92,16 +74,7 @@ then
   # remove old build
   rm -fr boost/
 
-  # download boost
-  echo "Downloding ${LIB_BOOST_TARBALL}"
-  if wget -O ${LIB_BOOST_TARBALL} "http://sourceforge.net/projects/boost/files/boost/${LIB_BOOST_VERSION}/${LIB_BOOST_TARBALL}/download"
-  then
-      echo "Download Successful"
-  else
-      "Downloading Boost (${LIB_BOOST_TARBALL}) Failed"
-      rm ${LIB_BOOST_TARBALL}
-      exit 1
-  fi
+  cp ${THIRDPARTY}/${LIB_BOOST_TARBALL} ./
 fi
 
 if [ ! -e "boost" ]
@@ -143,16 +116,7 @@ if [ ! -e "${LIBTORRENT_TARBALL}" ]
 then
     rm -fr libtorrent/
 
-    # download libtorrent
-    echo "Downloding ${LIBTORRENT_TARBALL}"
-    if wget -O ${LIBTORRENT_TARBALL} "https://github.com/arvidn/libtorrent/archive/${LIBTORRENT_TARBALL}"
-    then
-        echo "Downloadin Successful"
-    else
-        echo "Downloading libtorrent failed"
-        rm ${LIBTORRENT_TARBALL}
-        exit 1
-    fi
+    cp ${THIRDPARTY}/${LIBTORRENT_TARBALL} ./
 fi
 
 if [ ! -e "libtorrent" ]
@@ -185,129 +149,109 @@ fi
 
 pushd src
 # ODB Compiler
-if [ ! -e "odb-2.4.0-i686-macosx.tar.bz2" ]
+if [ ! -e "${ODB_COMPILER_OSX_TARBALL}" ]
 then
-    rm -fr odb-2.4.0-i686-macosx/
+    rm -fr ${ODB_COMPILER_OSX}
 
-    if wget http://www.codesynthesis.com/download/odb/2.4/odb-2.4.0-i686-macosx.tar.bz2
-    then
-        echo "downloaded ODB compiler"
-    else
-        rm odb-2.4.0-i686-macosx.tar.bz2
-        exit 1
-    fi
+    cp ${THIRDPARTY}/${ODB_COMPILER_OSX_TARBALL} ./
 fi
 
-if [ ! -e "odb-2.4.0-i686-macosx" ]
+if [ ! -e "${ODB_COMPILER_OSX}" ]
 then
-    if tar -xjvf odb-2.4.0-i686-macosx.tar.bz2
+    if tar -xjvf ${ODB_COMPILER_OSX_TARBALL}
     then
-        echo "export PATH=$(pwd)/odb-2.4.0-i686-macosx/bin:\$PATH" >> ~/.bash_profile
+        echo "export PATH=$(pwd)/${ODB_COMPILER_OSX}/bin:\$PATH" >> ~/.bash_profile
         # http://www.joshstaiger.org/archives/2005/07/bash_profile_vs.html
         source ~/.bash_profile
     else
-        echo "Failed to extract ODB compiler odb-2.4.0-i686-macosx.tar.bz2"
-        rm odb-2.4.0-i686-macosx.tar.bz2
-        rm -fr odb-2.4.0-i686-macosx
+        echo "Failed to extract ODB compiler ${ODB_COMPILER_OSX_TARBALL}"
+        rm ${ODB_COMPILER_OSX_TARBALL}
+        rm -fr ${ODB_COMPILER_OSX}
         exit 1
     fi
 fi
 
 # ODB Common Runtime Library
-if [ ! -e "libodb-2.4.0.tar.bz2" ]
+if [ ! -e "${ODB_RUNTIME_TARBALL}" ]
 then
-    rm -fr libodb-2.4.0/
+    rm -fr ${ODB_RUNTIME}
 
-    if wget http://www.codesynthesis.com/download/odb/2.4/libodb-2.4.0.tar.bz2
-    then
-        echo "Downloaded ODB common runtime library"
-    else
-        echo "Failed to download ODB common runtime library"
-        rm libodb-2.4.0.tar.bz2
-        exit 1
-    fi
+    cp ${THIRDPARTY}/${ODB_RUNTIME_TARBALL} ./
 fi
 
-if [ ! -e "libodb-2.4.0" ]
+if [ ! -e "${ODB_RUNTIME}" ]
 then
-    if tar -xjvf libodb-2.4.0.tar.bz2
+    if tar -xjvf ${ODB_RUNTIME_TARBALL}
     then
-        cd libodb-2.4.0
+        cd ${ODB_RUNTIME}
         ./configure
         if [ $? -ne 0 ]; then
             echo "Failed to configure libodb"
             cd ../
-            rm -fr libodb-2.4.0
+            rm -fr ${ODB_RUNTIME}
             exit 1
         fi
         make
         if [ $? -ne 0 ]; then
             echo "Failed to Build libodb"
             cd ../
-            rm -fr libodb-2.4.0
+            rm -fr ${ODB_RUNTIME}
             exit 1
         fi
         make install
         if [ $? -ne 0 ]; then
             echo "Failed to install libodb"
             cd ../
-            rm -fr libodb-2.4.0
+            rm -fr ${ODB_RUNTIME}
             exit 1
         fi
         cd ..
     else
-        echo "failed to extract libodb-2.4.0.tar.bz2"
-        rm libodb-2.4.0.tar.bz2
-        rm -fr libodb-2.4.0
+        echo "failed to extract ${ODB_RUNTIME_TARBALL}"
+        rm ${ODB_RUNTIME_TARBALL}
+        rm -fr ${ODB_RUNTIME}
         exit 1
     fi
 fi
 
 # ODB Database Runtime Library
-if [ ! -e "libodb-sqlite-2.4.0.tar.bz2" ]
+if [ ! -e "${ODB_SQLITE_RUNTIME_TARBALL}" ]
 then
-    rm -fr libodb-sqlite/
+    rm -fr ${ODB_SQLITE_RUNTIME}
 
-    if wget http://www.codesynthesis.com/download/odb/2.4/libodb-sqlite-2.4.0.tar.bz2
-    then
-        echo "Downloaded libodb-sqlite-2.4.0.tar.bz2"
-    else
-        echo "Failed to download libodb-sqlite-2.4.0.tar.bz2"
-        rm libodb-sqlite-2.4.0.tar.bz2
-        exit 1
-    fi
+    cp ${THIRDPARTY}/${ODB_SQLITE_RUNTIME_TARBALL} ./
 fi
 
-if [ ! -e "libodb-sqlite-2.4.0" ]
+if [ ! -e "${ODB_SQLITE_RUNTIME}" ]
 then
-    if tar -xjvf libodb-sqlite-2.4.0.tar.bz2
+    if tar -xjvf ${ODB_SQLITE_RUNTIME_TARBALL}
     then
-        cd libodb-sqlite-2.4.0
+        cd ${ODB_SQLITE_RUNTIME}
         ./configure
         if [ $? -ne 0 ]; then
             echo "Failed to configure libodb-sqlite"
             cd ../
-            rm -fr libodb-sqlite-2.4.0
+            rm -fr ${ODB_SQLITE_RUNTIME}
             exit 1
         fi
         make
         if [ $? -ne 0 ]; then
             echo "Failed to build libodb-sqlite"
             cd ../
-            rm -fr libodb-sqlite-2.4.0
+            rm -fr ${ODB_SQLITE_RUNTIME}
             exit 1
         fi
         make install
         if [ $? -ne 0 ]; then
             echo "Failed to install libodb-sqlite"
             cd ../
-            rm -fr libodb-sqlite-2.4.0
+            rm -fr ${ODB_SQLITE_RUNTIME}
             exit 1
         fi
     else
-        echo "Failed to extract libodb-sqlite-2.4.0.tar.bz2"
-        rm libodb-sqlite-2.4.0.tar.bz2
-        rm -fr libodb-sqlite-2.4.0
+        echo "Failed to extract ${ODB_SQLITE_RUNTIME_TARBALL}"
+        rm ${ODB_SQLITE_RUNTIME_TARBALL}
+        rm -fr ${ODB_SQLITE_RUNTIME}
         exit 1
     fi
 fi
@@ -318,14 +262,7 @@ if [ ! -e "${LIBPNG_TARBALL}" ]
 then
     rm -fr ${LIBPNG_VERSION}
 
-    if wget -O ${LIBPNG_TARBALL} "ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng16/${LIBPNG_TARBALL}"
-    then
-        echo "Download Successful"
-    else
-        echo "Downloading ${LIBPNG_TARBALL} failed"
-        rm ${LIBPNG_TARBALL}
-        exit 1
-    fi
+    cp ${THIRDPARTY}/${LIBPNG_TARBALL} ./
 fi
 
 if [ ! -e "${LIBPNG_VERSION}" ]
