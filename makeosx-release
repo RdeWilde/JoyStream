@@ -7,6 +7,9 @@ then
   exit 1
 fi
 
+git submodule init
+git submodule update
+
 echo "Building All Joystream dependencies..."
 pushd deps/osx/
 if ./build-all.sh
