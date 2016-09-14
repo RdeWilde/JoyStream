@@ -7,5 +7,6 @@ TEMPLATE    = subdirs
 
 SUBDIRS     = \
             local-one-to-one \
-            public-one-symmetric
+            public-one-symmetric \
+            classic-gui
 
