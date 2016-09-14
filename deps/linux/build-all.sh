@@ -10,6 +10,8 @@ set -x
 . ../thirdparty-libs/versions.sh
 THIRDPARTY=`pwd`/../thirdparty-libs/
 
+rm -fr dist/
+
 mkdir -p src/
 mkdir -p dist/
 

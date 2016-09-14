@@ -11,24 +11,10 @@ WINDOWS_64BIT="x86_64-w64-mingw32"
 WINDOWS_32BIT="i686-w64-mingw32"
 TARGET_ARCH=$WINDOWS_32BIT
 
-LIB_BOOST_VER="boost_1_59_0"
-LIB_BOOST_TARBALL="${LIB_BOOST_VER}.tar.gz"
-LIB_BOOST_VERSION="1.59.0"
+. ../thirdparty-libs/versions.sh
+THIRDPARTY=`pwd`/../thirdparty-libs/
 
-LIBTORRENT_VERSION="libtorrent-1_1"
-LIBTORRENT_TARBALL="${LIBTORRENT_VERSION}.tar.gz"
-
-LIBPNG_VERSION="libpng-1.6.25"
-LIBPNG_TARBALL="${LIBPNG_VERSION}.tar.gz"
-
-ZLIB_VERSION="zlib-1.2.8"
-ZLIB_TARBALL="${ZLIB_VERSION}.tar.gz"
-
-OPENSSL_VERSION="openssl-1.0.2h"
-OPENSSL_TARBALL="${OPENSSL_VERSION}.tar.gz"
-
-SQLITE_VERSION="sqlite-autoconf-3090200"
-SQLITE_TARBALL="${SQLITE_VERSION}.tar.gz"
+rm -fr dist/
 
 mkdir -p src/
 mkdir -p dist/
