@@ -140,9 +140,9 @@ QString Language::toString(const std::type_index & index) {
 QString Language::toString(const extension::BEPSupportStatus & status) {
 
     switch(status) {
-        case extension::BEPSupportStatus::not_supported: return tr("Not supported");
-        case extension::BEPSupportStatus::supported: return tr("Supported");
-        case extension::BEPSupportStatus::unknown: return tr("Unknown");
+        case extension::BEPSupportStatus::not_supported: return QObject::tr("Not supported");
+        case extension::BEPSupportStatus::supported: return QObject::tr("Supported");
+        case extension::BEPSupportStatus::unknown: return QObject::tr("Unknown");
         default:
             assert(false);
     }
