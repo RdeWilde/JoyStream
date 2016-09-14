@@ -169,6 +169,13 @@ void TorrentTreeViewRow::setBalance(qint64 balance) {
     _balanceItem->setText(BitcoinRepresentation(balance).toString(_settings));
 }
 
+void TorrentTreeViewRow::unsetTorrentPluginPresence() {
+    _numberOfBuyerPeersItem->setText("-");
+    _numberOfSellerPeersitem->setText("-");
+    _sessionModeItem->setText("-");
+    _balanceItem->setText("-");
+}
+
 }
 }
 }

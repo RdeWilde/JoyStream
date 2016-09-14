@@ -70,6 +70,8 @@ public:
     void setSessionMode(protocol_session::SessionMode mode);
     void setBalance(qint64 balance);
 
+    void unsetTorrentPluginPresence();
+
 private:
 
     // Display settings for bitcoin
