@@ -19,6 +19,9 @@ BitcoinDisplaySettings::BitcoinDisplaySettings(Fiat fiat, float rate, int precis
     , _precision(precision) {
 }
 
+BitcoinDisplaySettings::~BitcoinDisplaySettings() {
+}
+
 BitcoinDisplaySettings::Currency BitcoinDisplaySettings::currency() const {
     return _currency;
 }

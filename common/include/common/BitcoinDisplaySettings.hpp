@@ -30,6 +30,8 @@ public:
     // Constructor for fiat
     BitcoinDisplaySettings(Fiat fiat, float rate, int precision = 1);
 
+    ~BitcoinDisplaySettings();
+
     // Getters and setters
     Currency currency() const;
     void setCurrency(Currency currency);
