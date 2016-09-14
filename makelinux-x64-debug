@@ -8,6 +8,9 @@ then
   exit 1
 fi
 
+git submodule init
+git submodule update
+
 pushd deps/linux
 if BUILD_TYPE="DEBUG" ./build-all.sh
 then

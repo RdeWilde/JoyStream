@@ -1,0 +1,3 @@
+[submodule "deps/thirdparty-libs"]
+	path = deps/thirdparty-libs
+	url = git@github.com:JoyStream/thirdparty-libs.git

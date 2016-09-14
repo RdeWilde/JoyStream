@@ -38,6 +38,7 @@ CONFIG(release, debug|release) {
 
     LIBS += -L$$LIBTORRENT_LOCATION/release/lib -ltorrent
     DEFINES += NDEBUG
+    DEFINES += TORRENT_DISABLE_LOGGING TORRENT_USE_ASSERTS=0
 } else {
 
     # Added for the benefit of QtCreator only, next lone does the same thing
@@ -54,7 +55,7 @@ CONFIG(release, debug|release) {
 # Added for the benefit of QtCreator only, next line does the same thing
 INCLUDEPATH += $$MSIGNA_SYSROOT/include
 #QMAKE_CXXFLAGS += -isystem $$MSIGNA_SYSROOT/include
-LIBS += -L$$MSIGNA_SYSROOT/lib -lCoinCore -llogger -lCoinCore
+LIBS += -L$$MSIGNA_SYSROOT/lib -lCoinQ -llogger -lCoinCore
 
 # Boost
 LIBS += \
