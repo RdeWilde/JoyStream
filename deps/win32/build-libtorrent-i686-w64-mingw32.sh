@@ -28,5 +28,5 @@ $PWD/../boost/b2 install \
   asserts=off \
   --layout=tagged \
   variant=release \
-  cxxflags="-std=gnu++11" \
+  cxxflags="-std=gnu++11 -DBOOST_ASIO_SEPARATE_COMPILATION" \
   --prefix=$PREFIX_PATH
