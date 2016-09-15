@@ -115,7 +115,7 @@ MainWindow::MainWindow(const QString & title,
     connect(ui->torrentsTreeView,
             &QTreeView::customContextMenuRequested,
             this,
-            &MainWindow::torrentsTreeViewContextMenuRequested);
+            &MainWindow::contextMenuRequestedAtTreeViewPoint);
 
     // Setup mouse click on torrent table view
     connect(ui->torrentsTreeView,
@@ -133,20 +133,28 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
-void MainWindow::addToTorrentsTreeView(const TorrentTreeViewRow * row) {
+void MainWindow::addToTorrentsTreeView(QStandardItem * nameItem,
+                                       QStandardItem * sizeItem,
+                                       QStandardItem * stateItem,
+                                       QStandardItem * uploadSpeedItem,
+                                       QStandardItem * downloadSpeedItem,
+                                       QStandardItem * numberOfBuyerPeersItem,
+                                       QStandardItem * numberOfSellerPeersitem,
+                                       QStandardItem * sessionModeItem,
+                                       QStandardItem * balanceItem) {
 
     // Add row to view model, which takes ownership of items
     QList<QStandardItem *> items;
 
-    items << row->nameItem()
-          << row->sizeItem()
-          << row->stateItem()
-          << row->uploadSpeedItem()
-          << row->downloadSpeedItem()
-          << row->numberOfBuyerPeersItem()
-          << row->numberOfSellerPeersitem()
-          << row->sessionModeItem()
-          << row->balanceItem();
+    items << nameItem
+          << sizeItem
+          << stateItem
+          << uploadSpeedItem
+          << downloadSpeedItem
+          << numberOfBuyerPeersItem
+          << numberOfSellerPeersitem
+          << sessionModeItem
+          << balanceItem;
 
     _torrentTreeViewModel.appendRow(items);
 }
@@ -199,26 +207,15 @@ void MainWindow::minimize() {
     setWindowState(Qt::WindowState::WindowMinimized);
 }
 
+QModelIndex MainWindow::indexAtTorrentTreeViewPosition(const QPoint & pos) const noexcept {
+    return ui->torrentsTreeView->indexAt(pos);
+}
+
 void MainWindow::closeEvent(QCloseEvent *event) {
 
     event->ignore();
 
     emit ignoredCloseEventOccured();
-}
-
-void MainWindow::torrentsTreeViewContextMenuRequested(const QPoint &pos) {
-
-    // Get model index of click
-    QModelIndex index = ui->torrentsTreeView->indexAt(pos);
-
-    // Check if this was invalid click
-    if(index.row() == -1)
-        return;
-
-    // Map to global coordinate system and emit signal
-    QPoint point = ui->torrentsTreeView->viewport()->mapToGlobal(pos);
-
-    emit contextMenuRequestedAtGlobalPoint(point);
 }
 
 }

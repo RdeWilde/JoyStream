@@ -8,12 +8,15 @@
 #ifndef JOYSTREAM_CLASSIC_GUI_MAINWINDOW_HPP
 #define JOYSTREAM_CLASSIC_GUI_MAINWINDOW_HPP
 
-#include <common/BitcoinDisplaySettings.hpp>
-
 #include <QMainWindow>
 #include <QStandardItemModel>
 #include <QLabel>
 #include <QStatusBar>
+
+#include <map>
+#include <memory>
+
+class BitcoinDisplaySettings;
 
 namespace Ui {
 class MainWindow;
@@ -43,7 +46,15 @@ public slots:
 
     /// Manage torrent table
 
-    void addToTorrentsTreeView(const TorrentTreeViewRow * row);
+    void addToTorrentsTreeView(QStandardItem * nameItem,
+                               QStandardItem * sizeItem,
+                               QStandardItem * stateItem,
+                               QStandardItem * uploadSpeedItem,
+                               QStandardItem * downloadSpeed,
+                               QStandardItem * numberOfBuyerPeersItem,
+                               QStandardItem * numberOfSellerPeersitem,
+                               QStandardItem * sessionModeItem,
+                               QStandardItem * balanceItem);
 
     void removeFromTorrentsTreeView(int row);
 
@@ -71,9 +82,13 @@ public slots:
 
     void minimize();
 
+    /// Utilities
+
+    QModelIndex indexAtTorrentTreeViewPosition(const QPoint & pos) const noexcept;
+
 signals:
 
-    void contextMenuRequestedAtGlobalPoint(const QPoint & point);
+    void contextMenuRequestedAtTreeViewPoint(const QPoint & point);
 
     void torrentTreeViewClicked(const QModelIndex & index);
 
@@ -99,10 +114,6 @@ private:
     const BitcoinDisplaySettings * _bitcoinDisplaySettings;
 
     void closeEvent(QCloseEvent *event);
-
-private slots:
-
-    void torrentsTreeViewContextMenuRequested(const QPoint &pos);
 };
 
 }
