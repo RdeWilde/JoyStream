@@ -18,15 +18,30 @@ namespace paymentchannel {
 }
 namespace core {
 
+/**
+ * @brief Handle for payor side of payment channel
+ * @note This object expires when the state machine expires (see Connection for how to detect this)
+ */
 class Payor : public QObject {
 
     Q_OBJECT
 
-private:
-
-    Payor(const paymentchannel::Payor &);
-
 public:
+
+    /**
+     * @brief Does MOC registration of all custome types used as signal arguments
+     * on this and dependant QObjects.
+     */
+    static void registerMetaTypes();
+
+    Payor(quint64 price,
+          quint64 numberOfPaymentsMade,
+          quint64 funds,
+          quint64 settlementFee,
+          quint32 refundLockTime,
+          const Coin::typesafeOutPoint & anchor);
+
+    static Payor * create(const paymentchannel::Payor &);
 
     // Size of single payment
     quint64 price() const noexcept;
@@ -45,6 +60,10 @@ public:
 
     // Anchor for channel in contract transaction
     Coin::typesafeOutPoint anchor() const noexcept;
+
+    /** Temporarily public ***/
+    void update(const paymentchannel::Payor &);
+    /** Temporarily public ***/
 
 signals:
 
@@ -67,10 +86,6 @@ signals:
     void anchorChanged(const Coin::typesafeOutPoint &);
 
 private:
-
-    friend class CBStateMachine;
-
-    void update(const paymentchannel::Payor &);
 
     // Size of single payment
     quint64 _price;

@@ -10,18 +10,40 @@
 #include <core/Payee.hpp>
 #include <protocol_session/protocol_session.hpp>
 
+Q_DECLARE_METATYPE(joystream::protocol_statemachine::AnnouncedModeAndTerms)
+Q_DECLARE_METATYPE(joystream::core::CBStateMachine::InnerStateIndex)
+
 namespace joystream {
 namespace core {
 
-CBStateMachine::CBStateMachine(const protocol_session::status::CBStateMachine & status)
-    : _innerStateTypeIndex(status.innerStateTypeIndex)
-    , _announcedModeAndTermsFromPeer(status.announcedModeAndTermsFromPeer)
-    , _payor(new Payor(status.payor))
-    , _payee(new Payee(status.payee)) {
-
+void CBStateMachine::registerMetaTypes() {
+    qRegisterMetaType<protocol_statemachine::AnnouncedModeAndTerms>();
+    qRegisterMetaType<InnerStateIndex>();
+    Payor::registerMetaTypes();
+    Payee::registerMetaTypes();
 }
 
-std::type_index CBStateMachine::innerStateTypeIndex() const noexcept {
+CBStateMachine::CBStateMachine(const InnerStateIndex & innerStateTypeIndex,
+                               const protocol_statemachine::AnnouncedModeAndTerms & announcedModeAndTermsFromPeer,
+                               Payor * payor,
+                               Payee * payee)
+    : _innerStateTypeIndex(innerStateTypeIndex)
+    , _announcedModeAndTermsFromPeer(announcedModeAndTermsFromPeer)
+    , _payor(payor)
+    , _payee(payee) {
+}
+
+CBStateMachine * CBStateMachine::create(const protocol_session::status::CBStateMachine & status) {
+    return new CBStateMachine(status.innerStateTypeIndex,
+                              status.announcedModeAndTermsFromPeer,
+                              Payor::create(status.payor),
+                              Payee::create(status.payee));
+}
+
+CBStateMachine::~CBStateMachine() {
+}
+
+CBStateMachine::InnerStateIndex CBStateMachine::innerStateTypeIndex() const noexcept {
     return _innerStateTypeIndex;
 }
 
@@ -29,12 +51,12 @@ protocol_statemachine::AnnouncedModeAndTerms CBStateMachine::announcedModeAndTer
     return _announcedModeAndTermsFromPeer;
 }
 
-std::shared_ptr<Payor> CBStateMachine::payor() const noexcept {
-    return _payor;
+Payor * CBStateMachine::payor() const noexcept {
+    return _payor.get();
 }
 
-std::shared_ptr<Payee> CBStateMachine::payee() const noexcept {
-    return _payee;
+Payee * CBStateMachine::payee() const noexcept {
+    return _payee.get();
 }
 
 void CBStateMachine::update(const protocol_session::status::CBStateMachine & status) {

@@ -12,6 +12,9 @@
 
 #include <QObject>
 
+#include <boost/optional.hpp>
+
+#include <memory>
 #include <typeindex>
 
 namespace joystream {
@@ -25,29 +28,57 @@ namespace core {
 class Payor;
 class Payee;
 
+/**
+ * @brief Handle for state machine in connection
+ * @note Expires when corresponding connection expires
+ */
 class CBStateMachine : public QObject {
 
     Q_OBJECT
 
-private:
-
-    CBStateMachine(const protocol_session::status::CBStateMachine &);
-
 public:
 
-    std::type_index innerStateTypeIndex() const noexcept;
+    // Wrapped version of internal type index for the state machine.
+    // We can't use raw std::type_index, as it doesn't have a default CTR,
+    // which Qt MOC requires
+    typedef boost::optional<std::type_index> InnerStateIndex;
+
+    /**
+     * @brief Does MOC registration of all custome types used as signal arguments
+     * on this and dependant QObjects.
+     */
+    static void registerMetaTypes();
+
+    CBStateMachine(const InnerStateIndex & innerStateTypeIndex,
+                   const protocol_statemachine::AnnouncedModeAndTerms & announcedModeAndTermsFromPeer,
+                   Payor * payor,
+                   Payee * payee);
+
+    static CBStateMachine * create(const protocol_session::status::CBStateMachine & status);
+
+    ~CBStateMachine();
+
+    InnerStateIndex innerStateTypeIndex() const noexcept;
 
     protocol_statemachine::AnnouncedModeAndTerms announcedModeAndTermsFromPeer() const noexcept;
 
-    std::shared_ptr<Payor> payor() const noexcept;
+    /**
+     * @brief Returns handle for payor side of payment channel in the state machine
+     * @return Handle for payor side of payment channel
+     */
+    Payor * payor() const noexcept;
 
-    std::shared_ptr<Payee> payee() const noexcept;
+    /**
+     * @brief Returns handle for payee side of payment channel in state machine
+     * @return Handle for payee side of payment channel
+     */
+    Payee * payee() const noexcept;
 
 signals:
 
     void announcedModeAndTermsFromPeerChanged(const protocol_statemachine::AnnouncedModeAndTerms &);
 
-    void innerStateTypeIndexChanged(const std::type_index &);
+    void innerStateTypeIndexChanged(const InnerStateIndex &);
 
 private:
 
@@ -55,16 +86,16 @@ private:
 
     void update(const protocol_session::status::CBStateMachine &);
 
-    std::type_index _innerStateTypeIndex;
+    InnerStateIndex _innerStateTypeIndex;
 
     //// Peer state
     protocol_statemachine::AnnouncedModeAndTerms _announcedModeAndTermsFromPeer;
 
     //// Buyer Client state
-    std::shared_ptr<Payor> _payor;
+    std::unique_ptr<Payor> _payor;
 
     //// Seller Client state
-    std::shared_ptr<Payee> _payee;
+    std::unique_ptr<Payee> _payee;
 
 };
 

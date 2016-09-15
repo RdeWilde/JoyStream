@@ -8,79 +8,32 @@
 #ifndef JOYSTREAM_CORE_DETAIL_TORRENT_HPP
 #define JOYSTREAM_CORE_DETAIL_TORRENT_HPP
 
+/**
 #include <extension/extension.hpp>
 #include <core/Callbacks.hpp>
 #include <libtorrent/sha1_hash.hpp>
 #include <libtorrent/torrent_handle.hpp>
-
 #include <cstdint>
+*/
+
+#include <map>
+#include <memory>
 
 namespace joystream {
 namespace core {
 namespace detail {
 
-/**
-// An unsynchronized counter shared across multiple callbacks.
-class SharedCounter {
+// Strip out std::unique_ptr instances from map and replace with raw pointers
+template <class KEY, class VAL>
+std::map<KEY, VAL *> getRawMap(const std::map<KEY, std::unique_ptr<VAL>> & map) {
 
-public:
+    std::map<KEY, VAL *> strippedMap;
 
-    SharedCounter()
-        : SharedCounter(0) {
-    }
+    for(auto & mapping : map)
+        strippedMap.insert(std::make_pair(mapping.first, mapping.second.get()));
 
-    SharedCounter(uint initialValue)
-        : _count(new uint) {
-
-        *(_count.get()) = initialValue;
-    }
-
-    uint increment() const {
-
-        uint * ptr = _count.get();
-
-        (*ptr)++;
-
-        return (*ptr);
-    }
-
-    void decrement() const {
-
-        uint * ptr = _count.get();
-
-        if((*ptr) == 0)
-            throw std::runtime_error("Counter already depleted.");
-        else
-            (*ptr)--;
-    }
-
-    uint count() const {
-        return *(_count.get());
-    }
-
-    bool zero() const {
-        return count() == 0;
-    }
-
-private:
-
-    // Shared underlying count
-    std::shared_ptr<uint> _count;
-};
-
-
-struct AddTorrentCall {
-
-    AddTorrentCall(const AddedTorrent & addedTorrent,
-                   const configuration::Torrent & configuration)
-        : addedTorrent(addedTorrent)
-        , configuration(configuration) {
-    }
-
-    AddedTorrent addedTorrent;
-    configuration::Torrent configuration;
-};
-*/
+    return strippedMap;
+}
 
 }
 }

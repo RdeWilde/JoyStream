@@ -8,15 +8,37 @@
 #include <core/Payee.hpp>
 #include <paymentchannel/paymentchannel.hpp>
 
+Q_DECLARE_METATYPE(Coin::typesafeOutPoint)
+
 namespace joystream {
 namespace core {
 
-Payee::Payee(const paymentchannel::Payee & payee)
-    : _numberOfPaymentsMade(payee.numberOfPaymentsMade())
-    , _lockTime(payee.lockTime())
-    , _price(payee.price())
-    , _funds(payee.funds())
-    , _settlementFee(payee.settlementFee()) {
+void Payee::registerMetaTypes() {
+
+    qRegisterMetaType<Coin::typesafeOutPoint>();
+}
+
+Payee::Payee(quint64 numberOfPaymentsMade,
+             quint32 lockTime,
+             quint64 price,
+             quint64 funds,
+             quint64 settlementFee,
+             const Coin::typesafeOutPoint & anchor)
+    : _numberOfPaymentsMade(numberOfPaymentsMade)
+    , _lockTime(lockTime)
+    , _price(price)
+    , _funds(funds)
+    , _settlementFee(settlementFee)
+    , _anchor(anchor) {
+}
+
+Payee * Payee::create(const paymentchannel::Payee & payee) {
+    return new Payee(payee.numberOfPaymentsMade(),
+                     payee.lockTime(),
+                     payee.price(),
+                     payee.funds(),
+                     payee.settlementFee(),
+                     payee.contractOutPoint());
 }
 
 quint64 Payee::numberOfPaymentsMade() const noexcept {

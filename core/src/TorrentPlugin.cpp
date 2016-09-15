@@ -6,19 +6,46 @@
  */
 
 #include <core/TorrentPlugin.hpp>
+#include <core/detail/detail.hpp>
+#include <core/PeerPlugin.hpp>
+#include <core/Session.hpp>
+#include <core/Exception.hpp>
+
+Q_DECLARE_METATYPE(libtorrent::tcp::endpoint)
 
 namespace joystream {
 namespace core {
 
-TorrentPlugin::TorrentPlugin(const extension::status::TorrentPlugin & status,
-                             const boost::shared_ptr<extension::Plugin> & plugin)
-    : _infoHash(status.infoHash)
-    , _session(new core::Session(status.session))
-    , _plugin(plugin) {
+void TorrentPlugin::registerMetaTypes() {
+    PeerPlugin::registerMetaTypes();
+    Session::registerMetaTypes();
+    qRegisterMetaType<libtorrent::tcp::endpoint>();
+}
 
-    // Create peers
+TorrentPlugin::TorrentPlugin(const libtorrent::sha1_hash & infoHash,
+                             Session * session,
+                             const boost::shared_ptr<extension::Plugin> & plugin)
+    : _infoHash(infoHash)
+    , _session(session)
+    , _plugin(plugin) {
+}
+
+TorrentPlugin * TorrentPlugin::create(const extension::status::TorrentPlugin & status,
+                                      const boost::shared_ptr<extension::Plugin> & p) {
+
+    TorrentPlugin * plugin = new TorrentPlugin(status.infoHash,
+                                               Session::create(status.session),
+                                               p);
     for(auto m : status.peers)
-        addPeerPlugin(m.second);
+        plugin->addPeerPlugin(m.second);
+
+    return plugin;
+}
+
+TorrentPlugin::~TorrentPlugin() {
+
+    for(auto it = _peers.begin();it != _peers.end();)
+        removePeerPlugin(it++);
 }
 
 void TorrentPlugin::start(const extension::request::SubroutineHandler & handler) {
@@ -81,12 +108,15 @@ libtorrent::sha1_hash TorrentPlugin::infoHash() const noexcept {
     return _infoHash;
 }
 
-std::map<libtorrent::tcp::endpoint, std::shared_ptr<PeerPlugin> > TorrentPlugin::peers() const noexcept {
-    return _peers;
+std::map<libtorrent::tcp::endpoint, PeerPlugin *> TorrentPlugin::peers() const noexcept {
+    return detail::getRawMap<libtorrent::tcp::endpoint, PeerPlugin>(_peers);
 }
 
-std::shared_ptr<Session> TorrentPlugin::session() const noexcept {
-    return _session;
+Session * TorrentPlugin::session() const {
+
+    assert(_session.get() != nullptr);
+
+    return _session.get();
 }
 
 void TorrentPlugin::addPeerPlugin(const extension::status::PeerPlugin & status) {
@@ -96,10 +126,10 @@ void TorrentPlugin::addPeerPlugin(const extension::status::PeerPlugin & status) 
         return;
 
     // Create peer plugin
-    std::shared_ptr<PeerPlugin> plugin(new PeerPlugin(status));
+    PeerPlugin * plugin = PeerPlugin::create(status);
 
     // Add to map
-    _peers.insert(std::make_pair(status.endPoint, plugin));
+    _peers.insert(std::make_pair(status.endPoint, std::unique_ptr<PeerPlugin>(plugin)));
 
     // announce
     emit peerPluginAdded(plugin);
@@ -108,10 +138,14 @@ void TorrentPlugin::addPeerPlugin(const extension::status::PeerPlugin & status) 
 void TorrentPlugin::removePeerPlugin(const libtorrent::tcp::endpoint & endPoint) {
 
     auto it = _peers.find(endPoint);
+    assert(it != _peers.end());
 
-    // Ignore if it is already gone
-    if(it == _peers.cend())
-        return;
+    removePeerPlugin(it);
+}
+
+void TorrentPlugin::removePeerPlugin(std::map<libtorrent::tcp::endpoint, std::unique_ptr<PeerPlugin>>::iterator it) {
+
+    libtorrent::tcp::endpoint endPoint = it->first;
 
     // Remove from map
     _peers.erase(it);
@@ -140,7 +174,7 @@ void TorrentPlugin::update(const extension::status::TorrentPlugin & status) {
     }
 
     // for each exisiting peer
-    for(auto p: _peers) {
+    for(auto & p: _peers) {
 
         // if there is no status for it, then remove
         if(status.peers.count(p.first) == 0)

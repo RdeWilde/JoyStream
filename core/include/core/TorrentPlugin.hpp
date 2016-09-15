@@ -9,24 +9,39 @@
 #define JOYSTREAM_CORE_TORRENTPLUGIN_HPP
 
 #include <extension/extension.hpp>
-#include <core/PeerPlugin.hpp>
-#include <core/Session.hpp>
 
 #include <QObject>
 
 namespace joystream {
 namespace core {
 
+class PeerPlugin;
+class Session;
+
+/**
+ * @brief The TorrentPlugin class
+ * @note Detect expiry by listening to the Torrent::torrentPluginRemoved signal
+ */
 class TorrentPlugin : public QObject {
 
     Q_OBJECT
 
-private:
+public:
 
-    TorrentPlugin(const extension::status::TorrentPlugin & status,
+    /**
+     * @brief Does MOC registration of all custome types used as signal arguments
+     * on this and dependant QObjects.
+     */
+    static void registerMetaTypes();
+
+    TorrentPlugin(const libtorrent::sha1_hash & infoHash,
+                  Session * session,
                   const boost::shared_ptr<extension::Plugin> & plugin);
 
-public:
+    static TorrentPlugin * create(const extension::status::TorrentPlugin & status,
+                                  const boost::shared_ptr<extension::Plugin> & plugin);
+
+    ~TorrentPlugin();
 
     void start(const extension::request::SubroutineHandler &);
 
@@ -57,13 +72,21 @@ public:
 
     libtorrent::sha1_hash infoHash() const noexcept;
 
-    std::map<libtorrent::tcp::endpoint, std::shared_ptr<PeerPlugin> > peers() const noexcept;
+    /**
+     * @brief Returns peer plugin object mapping
+     * @return mapping of endpoint to peer plugin object
+     */
+    std::map<libtorrent::tcp::endpoint, PeerPlugin *> peers() const noexcept;
 
-    std::shared_ptr<Session> session() const noexcept;
+    /**
+     * @brief Returns session handle for session in plugin.
+     * @return Session handle
+     */
+    Session * session() const;
 
 signals:
 
-    void peerPluginAdded(const std::weak_ptr<PeerPlugin> &);
+    void peerPluginAdded(const PeerPlugin *);
 
     void peerPluginRemoved(const libtorrent::tcp::endpoint &);
 
@@ -75,15 +98,17 @@ private:
 
     void removePeerPlugin(const libtorrent::tcp::endpoint &);
 
+    void removePeerPlugin(std::map<libtorrent::tcp::endpoint, std::unique_ptr<PeerPlugin>>::iterator it);
+
     void update(const extension::status::TorrentPlugin &);
 
     /// Member fields
 
     libtorrent::sha1_hash _infoHash;
 
-    std::map<libtorrent::tcp::endpoint, std::shared_ptr<PeerPlugin> > _peers;
+    std::map<libtorrent::tcp::endpoint, std::unique_ptr<PeerPlugin>> _peers;
 
-    std::shared_ptr<Session> _session;
+    std::unique_ptr<Session> _session;
 
     boost::shared_ptr<extension::Plugin> _plugin;
 };

@@ -6,20 +6,61 @@
  */
 
 #include <core/Buying.hpp>
+#include <core/Seller.hpp>
+#include <core/detail/detail.hpp>
+
+Q_DECLARE_METATYPE(Coin::UnspentP2PKHOutput)
+Q_DECLARE_METATYPE(joystream::protocol_session::BuyingPolicy)
+Q_DECLARE_METATYPE(joystream::protocol_session::BuyingState)
+Q_DECLARE_METATYPE(joystream::protocol_wire::BuyerTerms)
+Q_DECLARE_METATYPE(libtorrent::tcp::endpoint)
+Q_DECLARE_METATYPE(Coin::Transaction)
 
 namespace joystream {
 namespace core {
 
-Buying::Buying(const protocol_session::status::Buying<libtorrent::tcp::endpoint> & status)
-    : _funding(status.funding)
-    , _policy(status.policy)
-    , _state(status.state)
-    , _terms(status.terms)
-    , _contractTx(status.contractTx) {
+void Buying::registerMetaTypes() {
 
-    // Create sellers
+    qRegisterMetaType<Coin::UnspentP2PKHOutput>();
+    qRegisterMetaType<protocol_session::BuyingPolicy>();
+    qRegisterMetaType<protocol_session::BuyingState>();
+    qRegisterMetaType<protocol_wire::BuyerTerms>();
+    qRegisterMetaType<libtorrent::tcp::endpoint>();
+    qRegisterMetaType<Coin::Transaction>();
+    Seller::registerMetaTypes();
+}
+
+Buying::Buying(const Coin::UnspentP2PKHOutput & funding,
+               const protocol_session::BuyingPolicy & policy,
+               const protocol_session::BuyingState & state,
+               const protocol_wire::BuyerTerms & terms,
+               const Coin::Transaction & contractTx)
+    : _funding(funding)
+    , _policy(policy)
+    , _state(state)
+    , _terms(terms)
+    , _contractTx(contractTx) {
+
+}
+
+Buying * Buying::create(const protocol_session::status::Buying<libtorrent::tcp::endpoint> & status) {
+
+    Buying * buying = new Buying(status.funding,
+                                 status.policy,
+                                 status.state,
+                                 status.terms,
+                                 status.contractTx);
+
     for(auto m : status.sellers)
-        addSeller(m.second);
+        buying->addSeller(m.second);
+
+    return buying;
+}
+
+Buying::~Buying() {
+
+    for(auto it = _sellers.begin();it != _sellers.end();)
+        removeSeller(it++);
 }
 
 
@@ -39,37 +80,39 @@ protocol_wire::BuyerTerms Buying::terms() const noexcept {
     return _terms;
 }
 
-std::map<libtorrent::tcp::endpoint, std::shared_ptr<Seller>> Buying::sellers() const noexcept {
-    return _sellers;
+std::map<libtorrent::tcp::endpoint, Seller *> Buying::sellers() const noexcept {
+    return detail::getRawMap<libtorrent::tcp::endpoint, Seller>(_sellers);
 }
 
 Coin::Transaction Buying::contractTx() const noexcept {
     return _contractTx;
 }
 
-void Buying::addSeller(const protocol_session::status::Seller<libtorrent::tcp::endpoint> & s) {
+void Buying::addSeller(const protocol_session::status::Seller<libtorrent::tcp::endpoint> & status) {
 
-    // if the seller alreadye exists, then ignore
-    if(_sellers.count(s.connection) > 0)
-        return;
+    assert(_sellers.count(status.connection) > 0);
 
     // Create seller
-    std::shared_ptr<Seller> plugin(new Seller(s));
+    Seller * s = Seller::create(status);
 
     // Add to map
-    _sellers.insert(std::make_pair(s.connection, plugin));
+    _sellers.insert(std::make_pair(status.connection, std::unique_ptr<Seller>(s)));
 
     // announce
-    emit sellerAdded(plugin);
+    emit sellerAdded(s);
 }
 
 void Buying::removeSeller(const libtorrent::tcp::endpoint & endPoint) {
 
     auto it = _sellers.find(endPoint);
+    assert(it != _sellers.cend());
 
-    // Ignore if it is already gone
-    if(it != _sellers.cend())
-        return;
+    removeSeller(it);
+}
+
+void Buying::removeSeller(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Seller>>::iterator it) {
+
+    libtorrent::tcp::endpoint endPoint = it->first;
 
     // Remove from map
     _sellers.erase(it);
@@ -122,7 +165,7 @@ void Buying::update(const protocol_session::status::Buying<libtorrent::tcp::endp
     }
 
     // for each existing seller
-    for(auto p : _sellers) {
+    for(auto & p : _sellers) {
 
         // if there is no status for it, then remove
         if(status.sellers.count(p.first) == 0)

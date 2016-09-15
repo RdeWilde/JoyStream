@@ -15,15 +15,27 @@
 namespace joystream {
 namespace core {
 
+/**
+ * @brief Handle for selling sub state of session
+ * @note Detect expiry by listening to the Session::modeChanged signal, which
+ * happens when mode changes away from selling.
+ */
 class Selling : public QObject {
 
     Q_OBJECT
 
-private:
-
-    Selling(const protocol_session::status::Selling &);
-
 public:
+
+    /**
+     * @brief Does MOC registration of all custome types used as signal arguments
+     * on this and dependant QObjects.
+     */
+    static void registerMetaTypes();
+
+    Selling(const protocol_session::SellingPolicy & policy,
+            const protocol_wire::SellerTerms & terms);
+
+    static Selling * create(const protocol_session::status::Selling & status);
 
     protocol_session::SellingPolicy policy() const noexcept;
 

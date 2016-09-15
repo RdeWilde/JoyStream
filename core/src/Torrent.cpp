@@ -6,11 +6,26 @@
  */
 
 #include <core/Torrent.hpp>
+#include <core/Peer.hpp>
 #include <core/TorrentPlugin.hpp>
 #include <core/Exception.hpp>
+#include <core/detail/detail.hpp>
+
+Q_DECLARE_METATYPE(libtorrent::tcp::endpoint)
+Q_DECLARE_METATYPE(std::vector<char>)
+Q_DECLARE_METATYPE(libtorrent::torrent_status::state_t)
 
 namespace joystream {
 namespace core {
+
+void Torrent::registerMetaTypes() {
+
+    Peer::registerMetaTypes();
+    TorrentPlugin::registerMetaTypes();
+    qRegisterMetaType<libtorrent::tcp::endpoint>();
+    qRegisterMetaType<std::vector<char>>();
+    qRegisterMetaType<libtorrent::torrent_status::state_t>();
+}
 
 Torrent::Torrent(const libtorrent::torrent_handle & handle,
                  const libtorrent::torrent_status & status,
@@ -24,6 +39,14 @@ Torrent::Torrent(const libtorrent::torrent_handle & handle,
     , _resumeData(resumeData)
     , _uploadLimit(uploadLimit)
     , _downloadLimit(downloadLimit) {
+}
+
+Torrent::~Torrent() {
+
+    for(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Peer>>::iterator it = _peers.begin();it != _peers.end();)
+        removePeer(it++);
+
+    removeTorrentPlugin();
 }
 
 void Torrent::paused(bool graceful, const TorrentPaused & handler) {
@@ -42,12 +65,20 @@ libtorrent::sha1_hash Torrent::infoHash() const noexcept {
     return _status.info_hash;
 }
 
-std::map<libtorrent::tcp::endpoint, std::shared_ptr<Peer>> Torrent::peers() const noexcept {
-    return _peers;
+std::map<libtorrent::tcp::endpoint, Peer *> Torrent::peers() const noexcept {
+    return detail::getRawMap<libtorrent::tcp::endpoint, Peer>(_peers);
 }
 
-std::shared_ptr<TorrentPlugin> Torrent::torrentPlugin() const noexcept {
-    return _torrentPlugin;
+bool Torrent::torrentPluginSet() const noexcept {
+    return _torrentPlugin.get() != nullptr;
+}
+
+TorrentPlugin * Torrent::torrentPlugin() const {
+
+    if(torrentPluginSet())
+        return _torrentPlugin.get();
+    else
+        throw exception::HandleNotSet();
 }
 
 libtorrent::torrent_status::state_t Torrent::state() const noexcept {
@@ -98,38 +129,46 @@ void Torrent::addPeer(const libtorrent::peer_info & info) {
 
     assert(_peers.count(info.ip) == 0);
 
-    std::shared_ptr<Peer> plugin(new Peer(info));
+    auto p = new Peer(info);
 
-    _peers.insert(std::make_pair(info.ip, plugin));
+    _peers.insert(std::make_pair(info.ip, std::unique_ptr<Peer>(p)));
 
-    emit addPeer(info);
+    emit peerAdded(p);
 }
 
 void Torrent::removePeer(const libtorrent::tcp::endpoint & ip) {
 
-    // Make sure peer exists, and then drop it
     auto it = _peers.find(ip);
-    assert(it != _peers.cend());
+    assert(it != _peers.end());
+
+    removePeer(it);
+}
+
+void Torrent::removePeer(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Peer>>::iterator it) {
+
+    libtorrent::tcp::endpoint endPoint = it->first;
 
     _peers.erase(it);
 
-    emit removePeer(ip);
+    emit peerRemoved(endPoint);
 }
 
 void Torrent::addTorrentPlugin(const extension::status::TorrentPlugin & status) {
 
-    assert(!_torrentPlugin);
+    assert(_torrentPlugin.get() == nullptr);
 
-    _torrentPlugin = std::shared_ptr<TorrentPlugin>(new TorrentPlugin(status, _plugin));
+    TorrentPlugin * plugin = TorrentPlugin::create(status, _plugin);
 
-    emit torrentPluginAdded(_torrentPlugin);
+    _torrentPlugin.reset(plugin);
+
+    emit torrentPluginAdded(plugin);
 }
 
 void Torrent::removeTorrentPlugin() {
 
-    assert(_torrentPlugin);
+    assert(_torrentPlugin.get() != nullptr);
 
-    _torrentPlugin = nullptr;
+    _torrentPlugin.release();
 
     emit removeTorrentPlugin();
 }
@@ -174,7 +213,7 @@ void Torrent::updatePeerStatuses(const std::vector<libtorrent::peer_info> & v) {
     }
 
     // for each exisiting peer
-    for(auto p: _peers) {
+    for(auto & p: _peers) {
 
         // if there is no status for it, then remove
         if(peerToStatus.count(p.first) == 0)
@@ -186,6 +225,7 @@ void Torrent::updatePeerStatuses(const std::vector<libtorrent::peer_info> & v) {
 void Torrent::updateTorrentPluginStatus(const extension::status::TorrentPlugin & status) {
 
     assert(status.infoHash == status.infoHash);
+    assert(torrentPluginSet());
 
     _torrentPlugin->update(status);
 }

@@ -31,14 +31,15 @@ HEADERS += \
     include/core/PeerPlugin.hpp \
     include/core/Connection.hpp \
     include/core/MagnetLink.hpp \
-    include/core/Callbacks.hpp \
     include/core/Selling.hpp \
     include/core/Buying.hpp \
     include/core/Seller.hpp \
     include/core/TorrentIdentifier.hpp \
     include/core/CBStateMachine.hpp \
     include/core/Payor.hpp \
-    include/core/Payee.hpp
+    include/core/Payee.hpp \
+    include/core/detail/NodeImpl.hpp \
+    include/core/Q_DECLARE_METATYPE.hpp
 
 SOURCES += \
     #src/Stream.cpp \
@@ -57,7 +58,8 @@ SOURCES += \
     src/TorrentIdentifier.cpp \
     src/Payor.cpp \
     src/Payee.cpp \
-    src/CBStateMachine.cpp
+    src/CBStateMachine.cpp \
+    src/detail/NodeImpl.cpp
 
 # extension
 INCLUDEPATH += $$PWD/../extension/include

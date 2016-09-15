@@ -9,9 +9,6 @@
 #define JOYSTREAM_CORE_SESSION_HPP
 
 #include <protocol_session/protocol_session.hpp>
-#include <core/Connection.hpp>
-#include <core/Selling.hpp>
-#include <core/Buying.hpp>
 
 #include <libtorrent/socket.hpp>
 
@@ -20,25 +17,70 @@
 namespace joystream {
 namespace core {
 
+class Selling;
+class Buying;
+class Connection;
+
+/**
+ * @brief Handle for session
+ * @note Detect expiry of this object by listening to the Torrent::torrentPluginRemoved signal
+ */
 class Session : public QObject {
 
     Q_OBJECT
 
-private:
-
-    Session(const protocol_session::status::Session<libtorrent::tcp::endpoint> &);
-
 public:
+
+    /**
+     * @brief Does MOC registration of all custome types used as signal arguments
+     * on this and dependant QObjects.
+     */
+    static void registerMetaTypes();
+
+    Session(const protocol_session::SessionMode & mode,
+            const protocol_session::SessionState & state,
+            Selling * selling,
+            Buying * buying);
+
+    static Session * create(const protocol_session::status::Session<libtorrent::tcp::endpoint> &);
+
+    ~Session();
 
     protocol_session::SessionMode mode() const noexcept;
 
     protocol_session::SessionState state() const noexcept;
 
-    std::map<libtorrent::tcp::endpoint, std::shared_ptr<Connection> > connections() const noexcept;
+    /**
+     * @brief Returns mapping of endpoints to Connections in the session
+     * @return mapping of endpoint to Connection object
+     */
+    std::map<libtorrent::tcp::endpoint, Connection *> connections() const noexcept;
 
-    std::shared_ptr<Selling> selling() const noexcept;
+    /**
+     * @brief Checks existence of selling handle
+     * @return Whether selling handle is set
+     */
+    bool sellingSet() const noexcept;
 
-    std::shared_ptr<Buying> buying() const noexcept;
+    /**
+     * @brief Returns selling handle if present
+     * @throws exception::HandleNotSet if handle is not present, i.e. !sellingSet()
+     * @return Selling handle
+     */
+    Selling * selling() const;
+
+    /**
+     * @brief buyingSet
+     * @return Whether buying handle is set
+     */
+    bool buyingSet() const noexcept;
+
+    /**
+     * @brief Returns buying handle if present
+     * @throws exception::HandleNotSet if handle is not present, i.e. !buyingSet()
+     * @return Buying handle
+     */
+    Buying * buying() const;
 
 signals:
 
@@ -46,7 +88,7 @@ signals:
 
     void stateChanged(protocol_session::SessionState);
 
-    void connectionAdded(const std::weak_ptr<Connection> &);
+    void connectionAdded(const Connection *);
 
     void connectionRemoved(const libtorrent::tcp::endpoint &);
 
@@ -58,6 +100,8 @@ private:
 
     void removeConnection(const libtorrent::tcp::endpoint &);
 
+    void removeConnection(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Connection> >::iterator it);
+
     void update(const protocol_session::status::Session<libtorrent::tcp::endpoint> &);
 
     // Session mode
@@ -67,15 +111,19 @@ private:
     protocol_session::SessionState _state;
 
     // Connections
-    std::map<libtorrent::tcp::endpoint, std::shared_ptr<Connection> > _connections;
+    std::map<libtorrent::tcp::endpoint, std::unique_ptr<Connection> > _connections;
 
     /// Substates
 
     // Selling mode
-    std::shared_ptr<Selling> _selling;
+    std::unique_ptr<Selling> _selling;
 
     // Buying mode
-    std::shared_ptr<Buying> _buying;
+    std::unique_ptr<Buying> _buying;
+
+    // If mode has not changed, then status is updated, if it has, then old substate is discarded
+    // (if it was buying or selling) and mode change signal is emitted
+    void updateSubstate(const protocol_session::status::Session<libtorrent::tcp::endpoint> & status);
 };
 
 }

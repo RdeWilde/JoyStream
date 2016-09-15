@@ -9,8 +9,7 @@
 #define JOYSTREAM_CORE_TORRENT_HPP
 
 #include <extension/extension.hpp>
-#include <core/Node.hpp>
-#include <core/Peer.hpp>
+#include <libtorrent/peer_info.hpp>
 #include <libtorrent/torrent_handle.hpp>
 
 #include <QObject>
@@ -18,15 +17,31 @@
 
 namespace joystream {
 namespace core {
+namespace detail {
+    struct NodeImpl;
+}
 
 class Peer;
 class TorrentPlugin;
 
+/**
+ * @brief Torrent handle
+ * @note Detect expiry of handles listening to the Node::removeTorrent
+ */
 class Torrent : public QObject {
 
     Q_OBJECT
 
-private:
+public:
+
+    typedef extension::request::SubroutineHandler TorrentPaused;
+    typedef extension::request::SubroutineHandler TorrentResumed;
+
+    /**
+     * @brief Does MOC registration of all custome types used as signal arguments
+     * on this and dependant QObjects.
+     */
+    static void registerMetaTypes();
 
     Torrent(const libtorrent::torrent_handle & handle,
             const libtorrent::torrent_status & status,
@@ -35,7 +50,7 @@ private:
             int downloadLimit,
             const boost::shared_ptr<extension::Plugin> &);
 
-public:
+    ~Torrent();
 
     /// Actions
 
@@ -62,9 +77,24 @@ public:
 
     libtorrent::sha1_hash infoHash() const noexcept;
 
-    std::map<libtorrent::tcp::endpoint, std::shared_ptr<Peer>> peers() const noexcept;
+    /**
+     * @brief Returns map of Peer handles, and endpoint is used as key.
+     * @return Map of Peer handles with endpoint as key
+     */
+    std::map<libtorrent::tcp::endpoint, Peer *> peers() const noexcept;
 
-    std::shared_ptr<TorrentPlugin> torrentPlugin() const noexcept;
+    /**
+     * @brief Torrent plugin handle existence ten
+     * @return whether torrent plugin handle is present
+     */
+    bool torrentPluginSet() const noexcept;
+
+    /**
+     * @brief Returns torrent plugin handle on for this torrent, if present.
+     * @throws HandleNotSet if torrent plugin not set
+     * @return Torrent plugin handle
+     */
+    TorrentPlugin * torrentPlugin() const;
 
     libtorrent::torrent_status::state_t state() const noexcept;
 
@@ -90,11 +120,11 @@ public:
 
 signals:
 
-    void peerAdded(const std::weak_ptr<Peer> &);
+    void peerAdded(const Peer *);
 
     void peerRemoved(const libtorrent::tcp::endpoint &);
 
-    void torrentPluginAdded(const std::weak_ptr<TorrentPlugin> &);
+    void torrentPluginAdded(const TorrentPlugin *);
 
     void torrentPluginRemoved();
 
@@ -118,13 +148,15 @@ signals:
 
 private:
 
-    friend class Node;
+    friend struct detail::NodeImpl;
 
     /// Updating routines
 
     void addPeer(const libtorrent::peer_info &);
 
     void removePeer(const libtorrent::tcp::endpoint &);
+
+    void removePeer(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Peer>>::iterator it);
 
     void addTorrentPlugin(const extension::status::TorrentPlugin &);
 
@@ -165,10 +197,10 @@ private:
     int _uploadLimit, _downloadLimit;
 
     // Peers
-    std::map<libtorrent::tcp::endpoint, std::shared_ptr<Peer>> _peers;
+    std::map<libtorrent::tcp::endpoint, std::unique_ptr<Peer>> _peers;
 
     // TorrentPlugin
-    std::shared_ptr<TorrentPlugin> _torrentPlugin;
+    std::unique_ptr<TorrentPlugin> _torrentPlugin;
 
     // All streams for this torrent.
     // Not quite sure if multiple separate streams for one torrent
