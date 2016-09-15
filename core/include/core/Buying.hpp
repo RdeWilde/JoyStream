@@ -35,7 +35,7 @@ public:
      */
     static void registerMetaTypes();
 
-    Buying(const Coin::UnspentP2PKHOutput & funding,
+    Buying(const Coin::UnspentOutputSet & funding,
            const protocol_session::BuyingPolicy & policy,
            const protocol_session::BuyingState & state,
            const protocol_wire::BuyerTerms & terms,
