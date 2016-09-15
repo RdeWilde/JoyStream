@@ -8,6 +8,7 @@
 #include <Test.hpp>
 #include <core/core.hpp>
 #include <paymentchannel/paymentchannel.hpp>
+#include <boost/asio/impl/src.hpp>
 
 using namespace joystream;
 using namespace joystream::core;

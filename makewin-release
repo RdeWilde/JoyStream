@@ -10,9 +10,8 @@ then
   exit 1
 fi
 
-pushd bitcoin/src/detail/store
-make
-popd
+git submodule init
+git submodule update
 
 echo "Building All Joystream dependencies..."
 pushd deps/win32
@@ -23,6 +22,10 @@ else
    echo "Building Dependencies failed"
    exit 1
 fi
+popd
+
+pushd bitcoin/src/detail/store
+make
 popd
 
 mkdir -p build/win32

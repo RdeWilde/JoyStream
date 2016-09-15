@@ -11,8 +11,8 @@ WINDOWS_64BIT="x86_64-w64-mingw32"
 WINDOWS_32BIT="i686-w64-mingw32"
 TARGET_ARCH=$WINDOWS_32BIT
 
-OPENSSL_VERSION="openssl-1.0.2g"
-OPENSSL_TARBALL="${OPENSSL_VERSION}.tar.gz"
+. ../thirdparty-libs/versions.sh
+THIRDPARTY=`pwd`/../thirdparty-libs/
 
 mkdir -p src/
 
@@ -25,15 +25,7 @@ then
   # if we are downloading new version remove old build
   rm -fr openssl/
 
-  # download openssl
-  echo "Downloding ${OPENSSL_TARBALL}"
-  if wget -O ${OPENSSL_TARBALL} "https://www.openssl.org/source/${OPENSSL_TARBALL}"
-    then
-        echo "Download Successful"
-    else
-        rm ${OPENSSL_TARBALL};
-        exit 1
-  fi
+  cp ${THIRDPARTY}/${OPENSSL_TARBALL} ./
 fi
 popd
 
