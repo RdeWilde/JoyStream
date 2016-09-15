@@ -23,53 +23,55 @@ INCLUDEPATH += $$PWD/include
 
 SOURCES += \
     src/MainWindow.cpp \
-    src/SellerTorrentPluginConfigurationDialog.cpp \
-    src/BuyerTorrentPluginConfigurationDialog.cpp \
-    src/AddTorrentDialog.cpp \
     #src/UtxoEventViewModel.cpp \
     src/ReceiveFundsDialog.cpp \
-    src/MediaPlayerDialog.cpp \
     src/FundingWalletProgressDialog.cpp \
     src/GeneralLoadingProgressDialog.cpp \
     src/TorrentContextMenu.cpp \
     src/Language.cpp \
     src/SellingModeSessionWidget.cpp \
     src/BuyingModeSessionWidget.cpp \
-    src/TorrentTableViewRow.cpp \
     src/SessionDialog.cpp \
-    src/PeersDialog.cpp
+    src/PeersDialog.cpp \
+    src/BuyerTermsDialog.cpp \
+    src/CurrencyFieldPrefixSettings.cpp \
+    src/SellerTermsDialog.cpp \
+    src/SelectTorrentForDownloadDialog.cpp \
+    src/TrayMenuManager.cpp \
+    src/TorrentTreeViewRow.cpp
 
 HEADERS += \
     include/gui/MainWindow.hpp \
-    include/gui/AddTorrentDialog.hpp \
-    include/gui/SellerTorrentPluginConfigurationDialog.hpp \
-    include/gui/BuyerTorrentPluginConfigurationDialog.hpp \
     #include/gui/UtxoEventViewModel.hpp \
     include/gui/ReceiveFundsDialog.hpp \
-    include/gui/MediaPlayerDialog.hpp \
     include/gui/FundingWalletProgressDialog.hpp \
     include/gui/GeneralLoadingProgressDialog.hpp \
     include/gui/TorrentContextMenu.hpp \
     include/gui/Language.hpp \
     include/gui/SellingModeSessionWidget.hpp \
     include/gui/BuyingModeSessionWidget.hpp \
-    include/gui/TorrentTableViewRow.hpp \
     include/gui/SessionDialog.hpp \
-    include/gui/PeersDialog.hpp
+    include/gui/PeersDialog.hpp \
+    include/gui/BuyerTermsDialog.hpp \
+    include/gui/CurrencyFieldPrefixSettings.hpp \
+    include/gui/SellerTermsDialog.hpp \
+    include/gui/SelectTorrentForDownloadDialog.hpp \
+    include/gui/TrayMenuManager.hpp \
+    include/gui/TorrentTreeViewRow.hpp \
+    include/gui/gui.hpp
 
 FORMS += \
-    ui/SellerTorrentPluginConfigurationDialog.ui \
-    ui/BuyerTorrentPluginConfigurationDialog.ui \
     ui/MainWindow.ui \
-    ui/AddTorrentDialog.ui \
     ui/ReceiveFundsDialog.ui \
-    ui/MediaPlayerDialog.ui \
     ui/FundingWalletProgressDialog.ui \
     ui/GeneralLoadingProgressDialog.ui \
     ui/BuyingModeSessionWidget.ui \
     ui/SellingModeSessionWidget.ui \
     ui/SessionDialog.ui \
-    ui/PeersDialog.ui
+    ui/PeersDialog.ui \
+    ui/BuyerTermsDialog.ui \
+    ui/SellerTermsDialog.ui \
+    ui/SelectTorrentForDownloadDialog.ui
 
 RESOURCES += \
     base.qrc
