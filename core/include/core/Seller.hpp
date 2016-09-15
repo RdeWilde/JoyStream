@@ -17,15 +17,26 @@
 namespace joystream {
 namespace core {
 
+/**
+ * @brief Seller handle
+ * @note Detect expiry by listening to the Buying::sellerRemoved signal.
+ */
 class Seller : public QObject {
 
     Q_OBJECT
 
-private:
-
-    Seller(const protocol_session::status::Seller<libtorrent::tcp::endpoint> &);
-
 public:
+
+    /**
+     * @brief Does MOC registration of all custome types used as signal arguments
+     * on this and dependant QObjects.
+     */
+    static void registerMetaTypes();
+
+    Seller(const protocol_session::SellerState & state,
+           const libtorrent::tcp::endpoint & connectionId);
+
+    static Seller * create(const protocol_session::status::Seller<libtorrent::tcp::endpoint> & status);
 
     protocol_session::SellerState state() const noexcept;
 

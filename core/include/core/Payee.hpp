@@ -18,15 +18,30 @@ namespace paymentchannel {
 }
 namespace core {
 
+/**
+ * @brief Handle for payee side of a payment channel
+ * @note Expires when state machine expires
+ */
 class Payee : public QObject {
 
     Q_OBJECT
 
-private:
-
-    Payee(const paymentchannel::Payee &);
-
 public:
+
+    /**
+     * @brief Does MOC registration of all custome types used as signal arguments
+     * on this and dependant QObjects.
+     */
+    static void registerMetaTypes();
+
+    Payee(quint64 numberOfPaymentsMade,
+          quint32 lockTime,
+          quint64 price,
+          quint64 funds,
+          quint64 settlementFee,
+          const Coin::typesafeOutPoint & anchor);
+
+    static Payee * create(const paymentchannel::Payee &);
 
     // The number of payments which have been successfully made
     quint64 numberOfPaymentsMade() const noexcept;
@@ -45,6 +60,10 @@ public:
 
     // Contract outpoint from which payments originate
     Coin::typesafeOutPoint anchor() const noexcept;
+
+    /** Temporarily public ***/
+    void update(const paymentchannel::Payee &);
+    /** Temporarily public ***/
 
 signals:
 
@@ -68,10 +87,6 @@ signals:
 
 private:
 
-    friend class CBStateMachine;
-
-    void update(const paymentchannel::Payee &);
-
     // The number of payments which have been successfully made
     quint64 _numberOfPaymentsMade;
 
@@ -93,4 +108,5 @@ private:
 
 }
 }
+
 #endif // JOYSTREAM_CORE_PAYEE_HPP

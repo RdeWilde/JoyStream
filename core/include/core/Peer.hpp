@@ -14,15 +14,25 @@
 namespace joystream {
 namespace core {
 
+/**
+ * @brief Handle for peer on torrent
+ * @note Detect expiry of objects by listening to the Torrent::peerRemoved
+ */
 class Peer : public QObject {
 
     Q_OBJECT
 
-private:
+public:
+
+    /**
+     * @brief Does MOC registration of all custome types used as signal arguments
+     * on this and dependant QObjects.
+     */
+    static void registerMetaTypes();
 
     Peer(const libtorrent::peer_info &);
 
-public:
+    ~Peer();
 
     libtorrent::tcp::endpoint endPoint() const noexcept;
 

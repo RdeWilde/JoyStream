@@ -12,17 +12,30 @@
 namespace joystream {
 namespace core {
 
-Connection::Connection(const protocol_session::status::Connection<libtorrent::tcp::endpoint> & status)
-    : _connectionId(status.connectionId)
-    , _machine(new CBStateMachine(status.machine)) {
+void Connection::registerMetaTypes() {
+    CBStateMachine::registerMetaTypes();
+}
+
+Connection::Connection(const libtorrent::tcp::endpoint & connectionId,
+                       CBStateMachine * machine)
+    : _connectionId(connectionId)
+    , _machine(machine) {
+}
+
+Connection * Connection::create(const protocol_session::status::Connection<libtorrent::tcp::endpoint> & status) {
+    return new Connection(status.connectionId, CBStateMachine::create(status.machine));
+}
+
+Connection::~Connection() {
+
 }
 
 libtorrent::tcp::endpoint Connection::connectionId() const noexcept {
     return _connectionId;
 }
 
-std::shared_ptr<CBStateMachine> Connection::machine() const noexcept {
-    return _machine;
+CBStateMachine * Connection::machine() const noexcept {
+    return _machine.get();
 }
 
 void Connection::update(const protocol_session::status::Connection<libtorrent::tcp::endpoint> & status) {

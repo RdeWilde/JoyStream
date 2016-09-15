@@ -134,6 +134,8 @@ void Plugin::processesRequestQueue() {
         // Relock for checking loop condition
         _requestQueueMutex.lock();
     }
+
+    _requestQueueMutex.unlock();
 }
 
 }

@@ -9,7 +9,6 @@
 #define JOYSTREAM_CORE_BUYING_HPP
 
 #include <protocol_session/protocol_session.hpp>
-#include <core/Seller.hpp>
 #include <libtorrent/socket.hpp>
 
 #include <QObject>
@@ -17,15 +16,34 @@
 namespace joystream {
 namespace core {
 
+class Seller;
+
+/**
+ * @brief Handle for buying sub state of session
+ * @note Detect expiry by listening to the Session::modeChanged signal, which
+ * happens when mode changes away from buying.
+ */
 class Buying : public QObject {
 
     Q_OBJECT
 
-private:
-
-    Buying(const protocol_session::status::Buying<libtorrent::tcp::endpoint> &);
-
 public:
+
+    /**
+     * @brief Does MOC registration of all custome types used as signal arguments
+     * on this and dependant QObjects.
+     */
+    static void registerMetaTypes();
+
+    Buying(const Coin::UnspentP2PKHOutput & funding,
+           const protocol_session::BuyingPolicy & policy,
+           const protocol_session::BuyingState & state,
+           const protocol_wire::BuyerTerms & terms,
+           const Coin::Transaction & contractTx);
+
+    static Buying * create(const protocol_session::status::Buying<libtorrent::tcp::endpoint> & status);
+
+    ~Buying();
 
     Coin::UnspentP2PKHOutput funding() const noexcept;
 
@@ -35,7 +53,7 @@ public:
 
     protocol_wire::BuyerTerms terms() const noexcept;
 
-    std::map<libtorrent::tcp::endpoint, std::shared_ptr<Seller>> sellers() const noexcept;
+    std::map<libtorrent::tcp::endpoint, Seller *> sellers() const noexcept;
 
     Coin::Transaction contractTx() const noexcept;
 
@@ -49,7 +67,7 @@ signals:
 
     void termsChanged(const protocol_wire::BuyerTerms &);
 
-    void sellerAdded(const std::weak_ptr<Seller>);
+    void sellerAdded(const Seller *);
 
     void sellerRemoved(const libtorrent::tcp::endpoint &);
 
@@ -62,6 +80,8 @@ private:
     void addSeller(const protocol_session::status::Seller<libtorrent::tcp::endpoint> &);
 
     void removeSeller(const libtorrent::tcp::endpoint &);
+
+    void removeSeller(std::map<libtorrent::tcp::endpoint, std::unique_ptr<Seller>>::iterator it);
 
     void update(const protocol_session::status::Buying<libtorrent::tcp::endpoint> &);
 
@@ -78,7 +98,7 @@ private:
     protocol_wire::BuyerTerms _terms;
 
     // Maps connection identifier to connection
-    std::map<libtorrent::tcp::endpoint, std::shared_ptr<Seller>> _sellers;
+    std::map<libtorrent::tcp::endpoint, std::unique_ptr<Seller>> _sellers;
 
     // Contract transaction id
     Coin::Transaction _contractTx;

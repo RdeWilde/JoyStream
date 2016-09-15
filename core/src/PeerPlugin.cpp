@@ -7,13 +7,28 @@
 
 #include <core/PeerPlugin.hpp>
 
+Q_DECLARE_METATYPE(joystream::extension::BEPSupportStatus)
+
 namespace joystream {
 namespace core {
 
-PeerPlugin::PeerPlugin(const extension::status::PeerPlugin & status)
-    : _endPoint(status.endPoint)
-    , _peerBEP10SupportStatus(status.peerBEP10SupportStatus)
-    , _peerBitSwaprBEPSupportStatus(status.peerBitSwaprBEPSupportStatus) {
+void PeerPlugin::registerMetaTypes() {
+
+    qRegisterMetaType<extension::BEPSupportStatus>();
+}
+
+PeerPlugin::PeerPlugin(const libtorrent::tcp::endpoint & endPoint,
+                       const extension::BEPSupportStatus & peerBEP10SupportStatus,
+                       const extension::BEPSupportStatus & peerBitSwaprBEPSupportStatus)
+    : _endPoint(endPoint)
+    , _peerBEP10SupportStatus(peerBEP10SupportStatus)
+    , _peerBitSwaprBEPSupportStatus(peerBitSwaprBEPSupportStatus) {
+}
+
+PeerPlugin * PeerPlugin::create(const extension::status::PeerPlugin & status) {
+    return new PeerPlugin(status.endPoint,
+                          status.peerBEP10SupportStatus,
+                          status.peerBitSwaprBEPSupportStatus);
 }
 
 libtorrent::tcp::endpoint PeerPlugin::endPoint() const noexcept {
