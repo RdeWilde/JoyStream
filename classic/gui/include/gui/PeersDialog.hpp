@@ -191,6 +191,8 @@ private:
 
 class PeerRows : public QObject {
 
+    Q_OBJECT
+
 public:
 
     typedef boost::variant<BuyerConnectionRow *,
